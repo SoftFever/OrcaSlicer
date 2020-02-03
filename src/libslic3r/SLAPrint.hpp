@@ -20,8 +20,8 @@ enum SLAPrintStep : unsigned int {
 
 enum SLAPrintObjectStep : unsigned int {
     slaposHollowing,
+    slaposDrillHoles,
 	slaposObjectSlice,
-    slaposDrillHolesIfHollowed,
 	slaposSupportPoints,
 	slaposSupportTree,
 	slaposPad,
@@ -138,9 +138,9 @@ public:
         // Returns the current layer height
         float layer_height() const { return m_height; }
 
-        bool is_valid() const { return ! std::isnan(m_slice_z); }
+        bool is_valid() const { return m_po && ! std::isnan(m_slice_z); }
 
-        const SLAPrintObject* print_obj() const { assert(m_po); return m_po; }
+        const SLAPrintObject* print_obj() const { return m_po; }
 
         // Methods for setting the indices into the slice vectors.
         void set_model_slice_idx(const SLAPrintObject &po, size_t id) {

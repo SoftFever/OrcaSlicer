@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <sstream>
 #include "WipeTowerDialog.hpp"
-#include "PresetBundle.hpp"
+#include "BitmapCache.hpp"
 #include "GUI.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
@@ -191,7 +191,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
 
     for (const std::string& color : extruder_colours) {
         unsigned char rgb[3];
-        Slic3r::PresetBundle::parse_color(color, rgb);
+        Slic3r::GUI::BitmapCache::parse_color(color, rgb);
         m_colours.push_back(wxColor(rgb[0], rgb[1], rgb[2]));
     }
 

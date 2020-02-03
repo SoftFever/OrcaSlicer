@@ -120,17 +120,17 @@ public:
     // so that next call to make_perimeters() performs a union() before computing loops
     bool                    typed_slices;
 
-    Vec3crd                 size;           // XYZ in scaled coordinates
-
+    // XYZ in scaled coordinates
+    const Vec3crd&           size() const			{ return m_size; }
     const PrintObjectConfig& config() const         { return m_config; }    
     const LayerPtrs&        layers() const          { return m_layers; }
     const SupportLayerPtrs& support_layers() const  { return m_support_layers; }
     const Transform3d&      trafo() const           { return m_trafo; }
     const PrintInstances&   instances() const       { return m_instances; }
-    const Point 			instance_center(size_t idx) const { return m_instances[idx].shift + m_copies_shift + Point(this->size.x() / 2, this->size.y() / 2); }
+    const Point 			instance_center(size_t idx) const { return m_instances[idx].shift + m_copies_shift + Point(this->size().x() / 2, this->size().y() / 2); }
 
     // since the object is aligned to origin, bounding box coincides with size
-    BoundingBox bounding_box() const { return BoundingBox(Point(0,0), to_2d(this->size)); }
+    BoundingBox bounding_box() const { return BoundingBox(Point(0,0), to_2d(this->size())); }
 
     // adds region_id, too, if necessary
     void add_region_volume(unsigned int region_id, int volume_id, const t_layer_height_range &layer_range) {
@@ -235,6 +235,8 @@ private:
     void combine_infill();
     void _generate_support_material();
 
+    // XYZ in scaled coordinates
+    Vec3crd									m_size;
     PrintObjectConfig                       m_config;
     // Translation in Z + Rotation + Scaling / Mirroring.
     Transform3d                             m_trafo = Transform3d::Identity();

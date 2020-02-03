@@ -960,8 +960,11 @@ void GUI_App::load_current_presets()
 	this->plater()->set_printer_technology(printer_technology);
     for (Tab *tab : tabs_list)
 		if (tab->supports_printer_technology(printer_technology)) {
-			if (tab->type() == Preset::TYPE_PRINTER)
+			if (tab->type() == Preset::TYPE_PRINTER) {
 				static_cast<TabPrinter*>(tab)->update_pages();
+				// Mark the plater to update print bed by tab->load_current_preset() from Plater::on_config_change().
+				this->plater()->force_print_bed_update();
+			}
 			tab->load_current_preset();
 		}
 }

@@ -958,7 +958,7 @@ namespace DoExport {
 	                skirts.emplace_back(std::move(s));
 	            }
 	            ooze_prevention.enable = true;
-	            ooze_prevention.standby_points = offset(Slic3r::Geometry::convex_hull(skirts), scale_(3.f)).front().equally_spaced_points(scale_(10.));
+	            ooze_prevention.standby_points = offset(Slic3r::Geometry::convex_hull(skirts), float(scale_(3.))).front().equally_spaced_points(float(scale_(10.)));
 	#if 0
 	                require "Slic3r/SVG.pm";
 	                Slic3r::SVG::output(
@@ -1091,7 +1091,7 @@ namespace DoExport {
 static inline std::vector<const PrintInstance*> sort_object_instances_by_max_z(const Print &print)
 {
     std::vector<const PrintObject*> objects(print.objects().begin(), print.objects().end());
-	std::sort(objects.begin(), objects.end(), [](const PrintObject *po1, const PrintObject *po2) { return po1->size(2) < po2->size(2); });
+	std::sort(objects.begin(), objects.end(), [](const PrintObject *po1, const PrintObject *po2) { return po1->size()(2) < po2->size()(2); });
 	std::vector<const PrintInstance*> instances;
 	instances.reserve(objects.size());
 	for (const PrintObject *object : objects)

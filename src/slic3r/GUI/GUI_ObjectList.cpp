@@ -90,20 +90,20 @@ ObjectList::ObjectList(wxWindow* parent) :
         // see note in PresetBundle::load_compatible_bitmaps()
 
         // ptFFF
-        CATEGORY_ICON[L("Layers and Perimeters")]    = create_scaled_bitmap(nullptr, "layers");
-        CATEGORY_ICON[L("Infill")]                   = create_scaled_bitmap(nullptr, "infill");
-        CATEGORY_ICON[L("Support material")]         = create_scaled_bitmap(nullptr, "support");
-        CATEGORY_ICON[L("Speed")]                    = create_scaled_bitmap(nullptr, "time");
-        CATEGORY_ICON[L("Extruders")]                = create_scaled_bitmap(nullptr, "funnel");
-        CATEGORY_ICON[L("Extrusion Width")]          = create_scaled_bitmap(nullptr, "funnel");
-        CATEGORY_ICON[L("Wipe options")]             = create_scaled_bitmap(nullptr, "funnel");
-//         CATEGORY_ICON[L("Skirt and brim")]          = create_scaled_bitmap(nullptr, "skirt+brim"); 
-//         CATEGORY_ICON[L("Speed > Acceleration")]    = create_scaled_bitmap(nullptr, "time");
-        CATEGORY_ICON[L("Advanced")]                 = create_scaled_bitmap(nullptr, "wrench");
+        CATEGORY_ICON[L("Layers and Perimeters")]    = create_scaled_bitmap("layers");
+        CATEGORY_ICON[L("Infill")]                   = create_scaled_bitmap("infill");
+        CATEGORY_ICON[L("Support material")]         = create_scaled_bitmap("support");
+        CATEGORY_ICON[L("Speed")]                    = create_scaled_bitmap("time");
+        CATEGORY_ICON[L("Extruders")]                = create_scaled_bitmap("funnel");
+        CATEGORY_ICON[L("Extrusion Width")]          = create_scaled_bitmap("funnel");
+        CATEGORY_ICON[L("Wipe options")]             = create_scaled_bitmap("funnel");
+//         CATEGORY_ICON[L("Skirt and brim")]          = create_scaled_bitmap("skirt+brim"); 
+//         CATEGORY_ICON[L("Speed > Acceleration")]    = create_scaled_bitmap("time");
+        CATEGORY_ICON[L("Advanced")]                 = create_scaled_bitmap("wrench");
         // ptSLA
-        CATEGORY_ICON[L("Supports")]                 = create_scaled_bitmap(nullptr, "support"/*"sla_supports"*/);
-        CATEGORY_ICON[L("Pad")]                      = create_scaled_bitmap(nullptr, "pad");
-        CATEGORY_ICON[L("Hollowing")]                = create_scaled_bitmap(nullptr, "hollowing");
+        CATEGORY_ICON[L("Supports")]                 = create_scaled_bitmap("support"/*"sla_supports"*/);
+        CATEGORY_ICON[L("Pad")]                      = create_scaled_bitmap("pad");
+        CATEGORY_ICON[L("Hollowing")]                = create_scaled_bitmap("hollowing");
     }
 
     // create control
@@ -230,9 +230,9 @@ ObjectList::ObjectList(wxWindow* parent) :
 	// So the postponed EnsureVisible() call is planned for an item, which may not exist at the Idle processing time, if this wxEVT_SIZE
 	// event is succeeded by a delete of the currently active item. We are trying our luck by postponing the wxEVT_SIZE triggered EnsureVisible(),
 	// which seems to be working as of now.
-	this->CallAfter([this](){ this->EnsureVisible(this->GetCurrentItem()); });
+    this->CallAfter([this](){ ensure_current_item_visible(); });
 #else
-	this->EnsureVisible(this->GetCurrentItem());
+    ensure_current_item_visible();
 #endif
 	e.Skip();
 	}));
@@ -265,7 +265,7 @@ void ObjectList::create_objects_ctrl()
 
     // column ItemName(Icon+Text) of the view control: 
     // And Icon can be consisting of several bitmaps
-    AppendColumn(new wxDataViewColumn(_(L("Name")), new BitmapTextRenderer(),
+    AppendColumn(new wxDataViewColumn(_(L("Name")), new BitmapTextRenderer(this),
         colName, 20*em, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
 
     // column PrintableProperty (Icon) of the view control:
@@ -559,10 +559,10 @@ void ObjectList::update_name_in_model(const wxDataViewItem& item) const
 
 void ObjectList::init_icons()
 {
-    m_bmp_solidmesh         = ScalableBitmap(nullptr, ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::MODEL_PART)        ].second);
-    m_bmp_modifiermesh      = ScalableBitmap(nullptr, ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::PARAMETER_MODIFIER)].second);
-    m_bmp_support_enforcer  = ScalableBitmap(nullptr, ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::SUPPORT_ENFORCER)  ].second);
-    m_bmp_support_blocker   = ScalableBitmap(nullptr, ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::SUPPORT_BLOCKER)   ].second); 
+    m_bmp_solidmesh         = ScalableBitmap(this, ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::MODEL_PART)        ].second);
+    m_bmp_modifiermesh      = ScalableBitmap(this, ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::PARAMETER_MODIFIER)].second);
+    m_bmp_support_enforcer  = ScalableBitmap(this, ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::SUPPORT_ENFORCER)  ].second);
+    m_bmp_support_blocker   = ScalableBitmap(this, ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::SUPPORT_BLOCKER)   ].second); 
 
     m_bmp_vector.reserve(4); // bitmaps for different types of parts 
     m_bmp_vector.push_back(&m_bmp_solidmesh.bmp());         
@@ -575,12 +575,12 @@ void ObjectList::init_icons()
     m_objects_model->SetVolumeBitmaps(m_bmp_vector);
 
     // init icon for manifold warning
-    m_bmp_manifold_warning  = ScalableBitmap(nullptr, "exclamation");
+    m_bmp_manifold_warning  = ScalableBitmap(this, "exclamation");
     // Set warning bitmap for the model
     m_objects_model->SetWarningBitmap(&m_bmp_manifold_warning.bmp());
 
     // init bitmap for "Add Settings" context menu
-    m_bmp_cog               = ScalableBitmap(nullptr, "cog");
+    m_bmp_cog               = ScalableBitmap(this, "cog");
 }
 
 void ObjectList::msw_rescale_icons()
@@ -607,23 +607,20 @@ void ObjectList::msw_rescale_icons()
 
     // Update CATEGORY_ICON according to new scale
     {
-        // Note: `this` isn't passed to create_scaled_bitmap() here because of bugs in the widget,
-        // see note in PresetBundle::load_compatible_bitmaps()
-
         // ptFFF
-        CATEGORY_ICON[L("Layers and Perimeters")]    = create_scaled_bitmap(nullptr, "layers");
-        CATEGORY_ICON[L("Infill")]                   = create_scaled_bitmap(nullptr, "infill");
-        CATEGORY_ICON[L("Support material")]         = create_scaled_bitmap(nullptr, "support");
-        CATEGORY_ICON[L("Speed")]                    = create_scaled_bitmap(nullptr, "time");
-        CATEGORY_ICON[L("Extruders")]                = create_scaled_bitmap(nullptr, "funnel");
-        CATEGORY_ICON[L("Extrusion Width")]          = create_scaled_bitmap(nullptr, "funnel");
-        CATEGORY_ICON[L("Wipe options")]             = create_scaled_bitmap(nullptr, "funnel");
-//         CATEGORY_ICON[L("Skirt and brim")]          = create_scaled_bitmap(nullptr, "skirt+brim"); 
-//         CATEGORY_ICON[L("Speed > Acceleration")]    = create_scaled_bitmap(nullptr, "time");
-        CATEGORY_ICON[L("Advanced")]                 = create_scaled_bitmap(nullptr, "wrench");
+        CATEGORY_ICON[L("Layers and Perimeters")]    = create_scaled_bitmap("layers");
+        CATEGORY_ICON[L("Infill")]                   = create_scaled_bitmap("infill");
+        CATEGORY_ICON[L("Support material")]         = create_scaled_bitmap("support");
+        CATEGORY_ICON[L("Speed")]                    = create_scaled_bitmap("time");
+        CATEGORY_ICON[L("Extruders")]                = create_scaled_bitmap("funnel");
+        CATEGORY_ICON[L("Extrusion Width")]          = create_scaled_bitmap("funnel");
+        CATEGORY_ICON[L("Wipe options")]             = create_scaled_bitmap("funnel");
+//         CATEGORY_ICON[L("Skirt and brim")]          = create_scaled_bitmap("skirt+brim"); 
+//         CATEGORY_ICON[L("Speed > Acceleration")]    = create_scaled_bitmap("time");
+        CATEGORY_ICON[L("Advanced")]                 = create_scaled_bitmap("wrench");
         // ptSLA
-        CATEGORY_ICON[L("Supports")]                 = create_scaled_bitmap(nullptr, "support"/*"sla_supports"*/);
-        CATEGORY_ICON[L("Pad")]                      = create_scaled_bitmap(nullptr, "pad");
+        CATEGORY_ICON[L("Supports")]                 = create_scaled_bitmap("support"/*"sla_supports"*/);
+        CATEGORY_ICON[L("Pad")]                      = create_scaled_bitmap("pad");
     }
 }
 
@@ -1003,14 +1000,13 @@ void ObjectList::OnBeginDrag(wxDataViewEvent &event)
     const bool mult_sel = multiple_selection();
 
     if ((mult_sel && !selected_instances_of_same_object()) ||
-        (!mult_sel && (GetSelection() != item)) ||
-        m_objects_model->GetParent(item) == wxDataViewItem(nullptr) ) {
+        (!mult_sel && (GetSelection() != item)) ) {
         event.Veto();
         return;
     }
    
     const ItemType& type = m_objects_model->GetItemType(item);
-    if (!(type & (itVolume | itInstance))) {
+    if (!(type & (itVolume | itObject | itInstance))) {
         event.Veto();
         return;
     }
@@ -1024,11 +1020,13 @@ void ObjectList::OnBeginDrag(wxDataViewEvent &event)
         for (auto sel : sels )
             sub_obj_idxs.insert(m_objects_model->GetInstanceIdByItem(sel));
     }
-    else 
+    else if (type & itObject)
+        m_dragged_data.init(m_objects_model->GetIdByItem(item), type);
+    else
         m_dragged_data.init(m_objects_model->GetObjectIdByItem(item), 
-                        type&itVolume ? m_objects_model->GetVolumeIdByItem(item) :
+                            type&itVolume ? m_objects_model->GetVolumeIdByItem(item) :
                                         m_objects_model->GetInstanceIdByItem(item), 
-                        type);
+                            type);
 
     /* Under MSW or OSX, DnD moves an item to the place of another selected item
     * But under GTK, DnD moves an item between another two items.
@@ -1049,10 +1047,20 @@ void ObjectList::OnBeginDrag(wxDataViewEvent &event)
 
 bool ObjectList::can_drop(const wxDataViewItem& item) const 
 {
-    return (m_dragged_data.type() == itInstance && !item.IsOk())     ||
-           (m_dragged_data.type() == itVolume && item.IsOk() &&
-            m_objects_model->GetItemType(item) == itVolume &&
-            m_dragged_data.obj_idx() == m_objects_model->GetObjectIdByItem(item));
+    // move instance(s) or object on "empty place" of ObjectList
+    if ( (m_dragged_data.type() & (itInstance | itObject)) && !item.IsOk() )
+        return true;
+
+    // type of moved item should be the same as a "destination" item
+    if (!item.IsOk() || !(m_dragged_data.type() & (itVolume|itObject)) || 
+        m_objects_model->GetItemType(item) != m_dragged_data.type() )
+        return false;
+
+    // move volumes inside one object only
+    if (m_dragged_data.type() & itVolume)
+        return m_dragged_data.obj_idx() == m_objects_model->GetObjectIdByItem(item);
+
+    return true;
 }
 
 void ObjectList::OnDropPossible(wxDataViewEvent &event)
@@ -1082,9 +1090,6 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
         return;
     }
 
-    const int from_volume_id = m_dragged_data.sub_obj_idx();
-    int to_volume_id = m_objects_model->GetVolumeIdByItem(item);
-
 // It looks like a fixed in current version of the wxWidgets
 // #ifdef __WXGTK__
 //     /* Under GTK, DnD moves an item between another two items.
@@ -1096,14 +1101,33 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
 
     take_snapshot(_((m_dragged_data.type() == itVolume) ? L("Volumes in Object reordered") : L("Object reordered")));
 
-    auto& volumes = (*m_objects)[m_dragged_data.obj_idx()]->volumes;
-    auto delta = to_volume_id < from_volume_id ? -1 : 1;
-    int cnt = 0;
-    for (int id = from_volume_id; cnt < abs(from_volume_id - to_volume_id); id += delta, cnt++)
-        std::swap(volumes[id], volumes[id + delta]);
+    if (m_dragged_data.type() & itVolume)
+    {
+        int from_volume_id = m_dragged_data.sub_obj_idx();
+        int to_volume_id   = m_objects_model->GetVolumeIdByItem(item);
+        int delta = to_volume_id < from_volume_id ? -1 : 1;
 
-    select_item(m_objects_model->ReorganizeChildren(from_volume_id, to_volume_id,
-                                                    m_objects_model->GetParent(item)));
+        auto& volumes = (*m_objects)[m_dragged_data.obj_idx()]->volumes;
+
+        int cnt = 0;
+        for (int id = from_volume_id; cnt < abs(from_volume_id - to_volume_id); id += delta, cnt++)
+            std::swap(volumes[id], volumes[id + delta]);
+
+        select_item(m_objects_model->ReorganizeChildren(from_volume_id, to_volume_id, m_objects_model->GetParent(item)));
+
+    }
+    else if (m_dragged_data.type() & itObject)
+    {
+        int from_obj_id = m_dragged_data.obj_idx();
+        int to_obj_id   = item.IsOk() ? m_objects_model->GetIdByItem(item) : ((int)m_objects->size()-1);
+        int delta = to_obj_id < from_obj_id ? -1 : 1;
+
+        int cnt = 0;
+        for (int id = from_obj_id; cnt < abs(from_obj_id - to_obj_id); id += delta, cnt++)
+            std::swap((*m_objects)[id], (*m_objects)[id + delta]);
+
+        select_item(m_objects_model->ReorganizeObjects(from_obj_id, to_obj_id));
+    }
 
     changed_object(m_dragged_data.obj_idx());
 
@@ -1741,7 +1765,8 @@ void ObjectList::create_instance_popupmenu(wxMenu*menu)
 void ObjectList::create_default_popupmenu(wxMenu*menu)
 {
     wxMenu* sub_menu = append_submenu_add_generic(menu, ModelVolumeType::INVALID);
-    append_submenu(menu, sub_menu, wxID_ANY, _(L("Add Shape")), "", "add_part");
+    append_submenu(menu, sub_menu, wxID_ANY, _(L("Add Shape")), "", "add_part", 
+        [](){return true;}, this);
 }
 
 wxMenu* ObjectList::create_settings_popupmenu(wxMenu *parent_menu)
@@ -3162,7 +3187,7 @@ void ObjectList::update_selections()
     select_items(sels);
 
     // Scroll selected Item in the middle of an object list
-    this->EnsureVisible(this->GetCurrentItem());
+    ensure_current_item_visible();
 }
 
 void ObjectList::update_selections_on_canvas()

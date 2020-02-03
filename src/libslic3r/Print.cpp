@@ -836,7 +836,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         // Update the ModelObject instance, possibly invalidate the linked PrintObjects.
         assert(it_status->status == ModelObjectStatus::Old || it_status->status == ModelObjectStatus::Moved);
         // Check whether a model part volume was added or removed, their transformations or order changed.
-        // Only volume IDs, volume types and their order are checked, configuration and other parameters are NOT checked.
+        // Only volume IDs, volume types, transformation matrices and their order are checked, configuration and other parameters are NOT checked.
         bool model_parts_differ         = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::MODEL_PART);
         bool modifiers_differ           = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::PARAMETER_MODIFIER);
         bool support_blockers_differ    = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_BLOCKER);
@@ -899,10 +899,14 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 	                model_object.instances.emplace_back(new ModelInstance(*model_instance));
 	                model_object.instances.back()->set_model_object(&model_object);
 	            }
-	        } else {
-	        	// Just synchronize the content of the instances. This avoids memory allocation and it does not invalidate ModelInstance pointers,
-	        	// which may be accessed by G-code export in the meanwhile to deduce sequential print order.
-                auto new_instance = model_object_new.instances.begin();
+	        } else if (! std::equal(model_object.instances.begin(), model_object.instances.end(), model_object_new.instances.begin(), 
+	        		[](auto l, auto r){ return l->print_volume_state == r->print_volume_state && l->printable == r->printable && 
+	        						           l->get_transformation().get_matrix().isApprox(r->get_transformation().get_matrix()); })) {
+	        	// If some of the instances changed, the bounding box of the updated ModelObject is likely no more valid.
+	        	// This is safe as the ModelObject's bounding box is only accessed from this function, which is called from the main thread only.
+	 			model_object.invalidate_bounding_box();
+	        	// Synchronize the content of instances.
+	        	auto new_instance = model_object_new.instances.begin();
 				for (auto old_instance = model_object.instances.begin(); old_instance != model_object.instances.end(); ++ old_instance, ++ new_instance) {
 					(*old_instance)->set_transformation((*new_instance)->get_transformation());
                     (*old_instance)->print_volume_state = (*new_instance)->print_volume_state;
@@ -1197,7 +1201,7 @@ std::string Print::validate() const
         {
             std::vector<coord_t> object_height;
             for (const PrintObject *object : m_objects)
-                object_height.insert(object_height.end(), object->instances().size(), object->size(2));
+                object_height.insert(object_height.end(), object->instances().size(), object->size()(2));
             std::sort(object_height.begin(), object_height.end());
             // Ignore the tallest *copy* (this is why we repeat height for all of them):
             // it will be printed as last one so its height doesn't matter.
@@ -1429,7 +1433,7 @@ BoundingBox Print::bounding_box() const
     for (const PrintObject *object : m_objects)
         for (const PrintInstance &instance : object->instances()) {
             bb.merge(instance.shift);
-            bb.merge(instance.shift + to_2d(object->size));
+            bb.merge(instance.shift + to_2d(object->size()));
         }
     return bb;
 }

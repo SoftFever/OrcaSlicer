@@ -114,7 +114,7 @@ void Tab::create_preset_tab()
 #endif //__WXOSX__
 
     // preset chooser
-    m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(35 * m_em_unit, -1), 0, 0, wxCB_READONLY);
+    m_presets_choice = new PresetBitmapComboBox(panel, wxSize(35 * m_em_unit, -1));
 
     auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
@@ -1690,7 +1690,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
         auto printhost_cafile_browse = [this, optgroup] (wxWindow* parent) {
             auto btn = new wxButton(parent, wxID_ANY, " " + _(L("Browse"))+" " +dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
             btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-            btn->SetBitmap(create_scaled_bitmap(this, "browse"));
+            btn->SetBitmap(create_scaled_bitmap("browse"));
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
             sizer->Add(btn);
 

@@ -907,10 +907,8 @@ const BoundingBoxf3& ModelObject::raw_bounding_box() const
 
         const Transform3d& inst_matrix = this->instances.front()->get_transformation().get_matrix(true);
         for (const ModelVolume *v : this->volumes)
-        {
             if (v->is_model_part())
                 m_raw_bounding_box.merge(v->mesh().transformed_bounding_box(inst_matrix * v->get_matrix()));
-        }
     }
 	return m_raw_bounding_box;
 }
@@ -1115,7 +1113,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
     if (keep_upper) {
         upper->set_model(nullptr);
         upper->sla_support_points.clear();
-        lower->sla_drain_holes.clear();
+        upper->sla_drain_holes.clear();
         upper->sla_points_status = sla::PointsStatus::NoPoints;
         upper->clear_volumes();
         upper->input_file = "";

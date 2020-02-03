@@ -1,6 +1,9 @@
 #include "BitmapCache.hpp"
 
 #include "libslic3r/Utils.hpp"
+#include "../Utils/MacDarkMode.hpp"
+#include "GUI.hpp"
+
 #include <boost/filesystem.hpp>
 
 #if ! defined(WIN32) && ! defined(__APPLE__)
@@ -19,6 +22,16 @@
 //#include "GUI_App.hpp"
 
 namespace Slic3r { namespace GUI {
+
+BitmapCache::BitmapCache()
+{
+#ifdef __APPLE__
+    // Note: win->GetContentScaleFactor() is not used anymore here because it tends to
+    // return bogus results quite often (such as 1.0 on Retina or even 0.0).
+    // We're using the max scaling factor across all screens because it's very likely to be good enough.
+    m_scale = mac_max_scaling_factor();
+#endif
+}
 
 void BitmapCache::clear()
 {
@@ -55,6 +68,14 @@ wxBitmap* BitmapCache::insert(const std::string &bitmap_key, size_t width, size_
     auto      it     = m_map.find(bitmap_key);
     if (it == m_map.end()) {
         bitmap = new wxBitmap(width, height);
+#ifdef __APPLE__
+        // Contrary to intuition, the `scale` argument isn't "please scale this to such and such"
+        // but rather "the wxImage is sized for backing scale such and such".
+        // So, We need to let the Mac OS wxBitmap implementation
+        // know that the image may already be scaled appropriately for Retina,
+        // and thereby that it's not supposed to upscale it.
+        bitmap->CreateScaled(width, height, -1, m_scale);
+#endif
         m_map[bitmap_key] = bitmap;
     } else {
         bitmap = it->second;
@@ -100,8 +121,13 @@ wxBitmap* BitmapCache::insert(const std::string &bitmap_key, const wxBitmap *beg
     size_t width  = 0;
     size_t height = 0;
     for (const wxBitmap *bmp = begin; bmp != end; ++ bmp) {
+#ifdef __APPLE__
+        width += bmp->GetScaledWidth();
+        height = std::max<size_t>(height, bmp->GetScaledHeight());
+#else
         width += bmp->GetWidth();
         height = std::max<size_t>(height, bmp->GetHeight());
+#endif
     }
 
 #ifdef BROKEN_ALPHA
@@ -167,7 +193,12 @@ wxBitmap* BitmapCache::insert(const std::string &bitmap_key, const wxBitmap *beg
     for (const wxBitmap *bmp = begin; bmp != end; ++ bmp) {
         if (bmp->GetWidth() > 0)
             memDC.DrawBitmap(*bmp, x, 0, true);
+#ifdef __APPLE__
+        // we should "move" with step equal to non-scaled width
+        x += bmp->GetScaledWidth();
+#else
         x += bmp->GetWidth();
+#endif 
     }
     memDC.SelectObject(wxNullBitmap);
     return bitmap;
@@ -175,7 +206,7 @@ wxBitmap* BitmapCache::insert(const std::string &bitmap_key, const wxBitmap *beg
 #endif
 }
 
-wxBitmap* BitmapCache::insert_raw_rgba(const std::string &bitmap_key, unsigned width, unsigned height, const unsigned char *raw_data, float scale /* = 1.0f */, const bool grayscale/* = false*/)
+wxBitmap* BitmapCache::insert_raw_rgba(const std::string &bitmap_key, unsigned width, unsigned height, const unsigned char *raw_data, const bool grayscale/* = false*/)
 {
     wxImage image(width, height);
     image.InitAlpha();
@@ -192,7 +223,7 @@ wxBitmap* BitmapCache::insert_raw_rgba(const std::string &bitmap_key, unsigned w
     if (grayscale)
         image = image.ConvertToGreyscale(m_gs, m_gs, m_gs);
 
-    return this->insert(bitmap_key, wxImage_to_wxBitmap_with_alpha(std::move(image), scale));
+    return this->insert(bitmap_key, wxImage_to_wxBitmap_with_alpha(std::move(image), m_scale));
 }
 
 wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned width, unsigned height,
@@ -227,12 +258,12 @@ wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned width, 
 }
 
 wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_width, unsigned target_height, 
-    float scale /* = 1.0f */, const bool grayscale/* = false*/, const bool dark_mode/* = false*/)
+    const bool grayscale/* = false*/, const bool dark_mode/* = false*/)
 {
     std::string bitmap_key = bitmap_name + ( target_height !=0 ? 
                                            "-h" + std::to_string(target_height) : 
                                            "-w" + std::to_string(target_width))
-                                         + (scale != 1.0f ? "-s" + std::to_string(scale) : "")
+                                         + (m_scale != 1.0f ? "-s" + std::to_string(m_scale) : "")
                                          + (grayscale ? "-gs" : "");
 
     /* For the Dark mode of any platform, we should draw icons in respect to OS background
@@ -272,7 +303,7 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
     if (image == nullptr)
         return nullptr;
 
-    target_height != 0 ? target_height *= scale : target_width *= scale;
+    target_height != 0 ? target_height *= m_scale : target_width *= m_scale;
 
     float svg_scale = target_height != 0 ? 
                   (float)target_height / image->height  : target_width != 0 ?
@@ -297,11 +328,16 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
     ::nsvgDeleteRasterizer(rast);
     ::nsvgDelete(image);
 
-    return this->insert_raw_rgba(bitmap_key, width, height, data.data(), scale, grayscale);
+    return this->insert_raw_rgba(bitmap_key, width, height, data.data(), grayscale);
 }
 
-wxBitmap BitmapCache::mksolid(size_t width, size_t height, unsigned char r, unsigned char g, unsigned char b, unsigned char transparency)
+//we make scaled solid bitmaps only for the cases, when its will be used with scaled SVG icon in one output bitmap
+wxBitmap BitmapCache::mksolid(size_t width, size_t height, unsigned char r, unsigned char g, unsigned char b, unsigned char transparency, bool suppress_scaling/* = false*/)
 {
+    double scale = suppress_scaling ? 1.0f : m_scale;
+    width  *= scale;
+    height *= scale;
+
     wxImage image(width, height);
     image.InitAlpha();
     unsigned char* imgdata = image.GetData();
@@ -312,7 +348,32 @@ wxBitmap BitmapCache::mksolid(size_t width, size_t height, unsigned char r, unsi
         *imgdata ++ = b;
         *imgalpha ++ = transparency;
     }
-    return wxImage_to_wxBitmap_with_alpha(std::move(image));
+    return wxImage_to_wxBitmap_with_alpha(std::move(image), scale);
+}
+
+
+static inline int hex_digit_to_int(const char c)
+{
+    return
+        (c >= '0' && c <= '9') ? int(c - '0') :
+        (c >= 'A' && c <= 'F') ? int(c - 'A') + 10 :
+        (c >= 'a' && c <= 'f') ? int(c - 'a') + 10 : -1;
+}
+
+bool BitmapCache::parse_color(const std::string& scolor, unsigned char* rgb_out)
+{
+    rgb_out[0] = rgb_out[1] = rgb_out[2] = 0;
+    if (scolor.size() != 7 || scolor.front() != '#')
+        return false;
+    const char* c = scolor.data() + 1;
+    for (size_t i = 0; i < 3; ++i) {
+        int digit1 = hex_digit_to_int(*c++);
+        int digit2 = hex_digit_to_int(*c++);
+        if (digit1 == -1 || digit2 == -1)
+            return false;
+        rgb_out[i] = (unsigned char)(digit1 * 16 + digit2);
+    }
+    return true;
 }
 
 } // namespace GUI

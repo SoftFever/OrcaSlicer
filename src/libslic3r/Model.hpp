@@ -674,6 +674,7 @@ public:
         set_rotation(Z, rotation);
         set_offset(X, unscale<double>(offs(X)));
         set_offset(Y, unscale<double>(offs(Y)));
+        this->object->invalidate_bounding_box();
     }
 
 protected:

@@ -1256,6 +1256,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
 wxDEFINE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_RELOAD_FROM_DISK, SimpleEvent);
 
 #if ENABLE_THUMBNAIL_GENERATOR
 const double GLCanvas3D::DefaultCameraZoomToBoxMarginFactor = 1.25;
@@ -1710,6 +1711,13 @@ void GLCanvas3D::render()
     }
 
     const Size& cnv_size = get_canvas_size();
+#if ENABLE_6DOF_CAMERA
+    // Probably due to different order of events on Linux/GTK2, when one switched from 3D scene
+    // to preview, this was called before canvas had its final size. It reported zero width
+    // and the viewport was set incorrectly, leading to tripping glAsserts further down
+    // the road (in apply_projection). That's why the minimum size is forced to 10.
+    m_camera.apply_viewport(0, 0, std::max(10u, (unsigned int)cnv_size.get_width()), std::max(10u, (unsigned int)cnv_size.get_height()));
+#endif // ENABLE_6DOF_CAMERA
 
     if (m_camera.requires_zoom_to_bed)
     {
@@ -2647,6 +2655,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                   post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE));
                   break;
         case WXK_ESCAPE: { deselect_all(); break; }
+        case WXK_F5: { post_event(SimpleEvent(EVT_GLCANVAS_RELOAD_FROM_DISK)); break; }
         case '0': { select_view("iso"); break; }
         case '1': { select_view("top"); break; }
         case '2': { select_view("bottom"); break; }
@@ -3839,8 +3848,13 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool 
 #if ENABLE_6DOF_CAMERA
     camera.set_scene_box(scene_bounding_box());
 #endif // ENABLE_6DOF_CAMERA
+#if ENABLE_6DOF_CAMERA
+    camera.apply_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
+    camera.zoom_to_volumes(visible_volumes);
+#else
     camera.zoom_to_volumes(visible_volumes, thumbnail_data.width, thumbnail_data.height);
     camera.apply_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
+#endif // ENABLE_6DOF_CAMERA
     camera.apply_view_matrix();
 
     double near_z = -1.0;
@@ -4431,8 +4445,10 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     // ensures that this canvas is current
     _set_current();
 
+#if !ENABLE_6DOF_CAMERA
     // updates camera
     m_camera.apply_viewport(0, 0, w, h);
+#endif // !ENABLE_6DOF_CAMERA
 }
 
 BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_bed_model) const
@@ -4456,8 +4472,12 @@ BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_be
 #if ENABLE_THUMBNAIL_GENERATOR
 void GLCanvas3D::_zoom_to_box(const BoundingBoxf3& box, double margin_factor)
 {
+#if ENABLE_6DOF_CAMERA
+    m_camera.zoom_to_box(box, margin_factor);
+#else
     const Size& cnv_size = get_canvas_size();
     m_camera.zoom_to_box(box, cnv_size.get_width(), cnv_size.get_height(), margin_factor);
+#endif // ENABLE_6DOF_CAMERA
     m_dirty = true;
 }
 #else

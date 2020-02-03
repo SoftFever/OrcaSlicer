@@ -12,6 +12,7 @@
 
 #include "3DScene.hpp"
 #include "GLTexture.hpp"
+#include "wxExtensions.hpp"
 
 class wxButton;
 class ScalableButton;
@@ -49,7 +50,7 @@ using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 class Plater;
 enum class ActionButtonType : int;
 
-class PresetComboBox : public wxBitmapComboBox
+class PresetComboBox : public PresetBitmapComboBox
 {
 public:
     PresetComboBox(wxWindow *parent, Preset::Type preset_type);
@@ -193,6 +194,7 @@ public:
     void export_amf();
     void export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path());
     void reload_from_disk();
+    void reload_all_from_disk();
     bool has_toolpaths_to_export() const;
     void export_toolpaths_to_obj() const;
     void hollow();
@@ -227,9 +229,9 @@ public:
     void on_extruders_change(size_t extruders_count);
     void on_config_change(const DynamicPrintConfig &config);
     void force_filament_colors_update();
+    void force_print_bed_update();
     // On activating the parent window.
     void on_activate();
-    const DynamicPrintConfig* get_plater_config() const;
     std::vector<std::string> get_extruder_colors_from_plater_config() const;
     std::vector<std::string> get_colors_for_color_print() const;
 

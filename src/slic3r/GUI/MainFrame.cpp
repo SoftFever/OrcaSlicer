@@ -68,7 +68,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     /* Load default preset bitmaps before a tabpanel initialization,
      * but after filling of an em_unit value 
      */
-    wxGetApp().preset_bundle->load_default_preset_bitmaps(this);
+    wxGetApp().preset_bundle->load_default_preset_bitmaps();
 
     // initialize tabpanel and menubar
     init_tabpanel();
@@ -345,7 +345,7 @@ void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
     /* Load default preset bitmaps before a tabpanel initialization,
      * but after filling of an em_unit value
      */
-    wxGetApp().preset_bundle->load_default_preset_bitmaps(this);
+    wxGetApp().preset_bundle->load_default_preset_bitmaps();
 
     // update Plater
     wxGetApp().plater()->msw_rescale();
@@ -578,6 +578,11 @@ void MainFrame::init_menubar()
         append_menu_item(editMenu, wxID_ANY, _(L("&Paste")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "V",
             _(L("Paste clipboard")), [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); },
             "paste_menu", nullptr, [this](){return m_plater->can_paste_from_clipboard(); }, this);
+        
+        editMenu->AppendSeparator();
+        append_menu_item(editMenu, wxID_ANY, _(L("Re&load from disk")) + sep + "F5",
+            _(L("Reload the plater from disk")), [this](wxCommandEvent&) { m_plater->reload_all_from_disk(); },
+            "", nullptr, [this]() {return !m_plater->model().objects.empty(); }, this);
     }
 
     // Window menu
@@ -728,7 +733,7 @@ void MainFrame::update_menubar()
     m_changeable_menu_items[miSend]         ->SetItemLabel((is_fff ? _(L("S&end G-code"))           : _(L("S&end to print"))) + dots    + "\tCtrl+Shift+G");
 
     m_changeable_menu_items[miMaterialTab]  ->SetItemLabel((is_fff ? _(L("&Filament Settings Tab")) : _(L("Mate&rial Settings Tab")))   + "\tCtrl+3");
-    m_changeable_menu_items[miMaterialTab]  ->SetBitmap(create_scaled_bitmap(this, is_fff ? "spool": "resin"));
+    m_changeable_menu_items[miMaterialTab]  ->SetBitmap(create_scaled_bitmap(is_fff ? "spool": "resin"));
 }
 
 // To perform the "Quck Slice", "Quick Slice and Save As", "Repeat last Quick Slice" and "Slice to SVG".

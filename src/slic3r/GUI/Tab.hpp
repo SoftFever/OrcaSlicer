@@ -120,7 +120,7 @@ protected:
     Preset::Type        m_type;
 	std::string			m_name;
 	const wxString		m_title;
-	wxBitmapComboBox*	m_presets_choice;
+	PresetBitmapComboBox*	m_presets_choice;
 	ScalableButton*		m_btn_save_preset;
 	ScalableButton*		m_btn_delete_preset;
 	ScalableButton*		m_btn_hide_incompatible_presets;

@@ -550,7 +550,6 @@ const std::vector<std::string>& Preset::sla_printer_options()
         s_opts = {
             "printer_technology",
             "bed_shape", "bed_custom_texture", "bed_custom_model", "max_print_height",
-            "bed_shape", "max_print_height",
             "display_width", "display_height", "display_pixels_x", "display_pixels_y",
             "display_mirror_x", "display_mirror_y",
             "display_orientation",
@@ -874,18 +873,14 @@ bool PresetCollection::delete_preset(const std::string& name)
     return true;
 }
 
-void PresetCollection::load_bitmap_default(wxWindow *window, const std::string &file_name)
+void PresetCollection::load_bitmap_default(const std::string &file_name)
 {
-    // XXX: See note in PresetBundle::load_compatible_bitmaps()
-    (void)window;
-    *m_bitmap_main_frame = create_scaled_bitmap(nullptr, file_name);
+    *m_bitmap_main_frame = create_scaled_bitmap(file_name);
 }
 
-void PresetCollection::load_bitmap_add(wxWindow *window, const std::string &file_name)
+void PresetCollection::load_bitmap_add(const std::string &file_name)
 {
-    // XXX: See note in PresetBundle::load_compatible_bitmaps()
-    (void)window;
-    *m_bitmap_add = create_scaled_bitmap(nullptr, file_name);
+    *m_bitmap_add = create_scaled_bitmap(file_name);
 }
 
 const Preset* PresetCollection::get_selected_preset_parent() const

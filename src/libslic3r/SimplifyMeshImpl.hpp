@@ -21,8 +21,10 @@
 #include <array>
 #include <type_traits>
 #include <algorithm>
+#include <cmath>
 
 #ifndef NDEBUG
+#include <ostream>
 #include <iostream>
 #endif
 
@@ -63,7 +65,7 @@ namespace implementation {
 template<bool B, class T>
 using enable_if_t = typename std::enable_if<B, T>::type;
 
-// Meta predicates for floating, 'scaled coord' and generic arithmetic types
+// Meta predicates for floating, integer and generic arithmetic types
 template<class T, class O = T>
 using FloatingOnly = enable_if_t<std::is_floating_point<T>::value, O>;
 
@@ -82,40 +84,14 @@ struct remove_cvref {
 template< class T >
 using remove_cvref_t = typename remove_cvref<T>::type;
 
-struct DOut {
-#ifndef NDEBUG
-    std::ostream& out = std::cout;
-#endif
-};
-
-template<class T>
-inline DOut&& operator<<( DOut&& out, T&& d) {
-#ifndef NDEBUG
-    out.out << d;
-#endif
-    return std::move(out);
-}
-
-inline DOut dout() { return DOut(); }
-
 template<class T> FloatingOnly<T, bool> is_approx(T val, T ref) { return std::abs(val - ref) < 1e-8; }
 template<class T> IntegerOnly <T, bool> is_approx(T val, T ref) { val == ref; }
 
-template<class T, size_t N = 10> class SymetricMatrix {
+template<class T> class SymetricMatrix {
+    static const constexpr size_t N = 10;
 public:
     
     explicit SymetricMatrix(ArithmeticOnly<T> c = T()) { std::fill(m, m + N, c); }
-    
-    SymetricMatrix(T m11, T m12, T m13, T m14,
-                   T m22, T m23, T m24,
-                   T m33, T m34,
-                   T m44)
-    {
-        m[0] = m11;  m[1] = m12;  m[2] = m13;  m[3] = m14;
-        m[4] = m22;  m[5] = m23;  m[6] = m24;
-        m[7] = m33;  m[8] = m34;
-        m[9] = m44;
-    }
     
     // Make plane
     SymetricMatrix(T a, T b, T c, T d)
@@ -140,21 +116,16 @@ public:
         return det;
     }
     
-    const SymetricMatrix operator+(const SymetricMatrix& n) const
+    const SymetricMatrix& operator+=(const SymetricMatrix& n)
     {
-        return SymetricMatrix(m[0] + n[0], m[1] + n[1], m[2] + n[2], m[3]+n[3],
-                              m[4] + n[4], m[5] + n[5], m[6] + n[6], 
-                              m[7] + n[7], m[8] + n[8],
-                              m[9] + n[9]);
+        for (size_t i = 0; i < N; ++i) m[i] += n[i];
+        return *this;
     }
     
-    SymetricMatrix& operator+=(const SymetricMatrix& n)
+    SymetricMatrix operator+(const SymetricMatrix& n)
     {
-        m[0]+=n[0]; m[1]+=n[1]; m[2]+=n[2]; m[3]+=n[3];
-        m[4]+=n[4]; m[5]+=n[5]; m[6]+=n[6]; m[7]+=n[7];
-        m[8]+=n[8]; m[9]+=n[9];
-        
-        return *this;
+        SymetricMatrix self = *this;
+        return self += n;
     }
     
     T m[N];
@@ -349,9 +320,9 @@ public:
         
     }
     
-    void simplify_mesh_lossless();
+    template<class ProgressFn> void simplify_mesh_lossless(ProgressFn &&fn);
+    void simplify_mesh_lossless() { simplify_mesh_lossless([](int){}); }
 };
-
 
 template<class Mesh> void SimplifiableMesh<Mesh>::compact_faces()
 {
@@ -604,7 +575,7 @@ bool SimplifiableMesh<Mesh>::flipped(const Vertex &    p,
 }
 
 template<class Mesh>
-void SimplifiableMesh<Mesh>::simplify_mesh_lossless()
+template<class Fn> void SimplifiableMesh<Mesh>::simplify_mesh_lossless(Fn &&fn)
 {
     // init
     for (FaceInfo &fi : m_faceinfo) fi.deleted = false;
@@ -628,7 +599,7 @@ void SimplifiableMesh<Mesh>::simplify_mesh_lossless()
         //
         double threshold = std::numeric_limits<double>::epsilon(); //1.0E-3 EPS; // Really? (tm)
         
-        dout() << "lossless iteration " << iteration << "\n";
+        fn(iteration);
         
         for (FaceInfo &fi : m_faceinfo) {
             if (fi.err[3] > threshold || fi.deleted || fi.dirty) continue;

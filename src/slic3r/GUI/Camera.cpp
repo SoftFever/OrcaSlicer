@@ -14,7 +14,9 @@
 
 #include <GL/glew.h>
 
+#if !ENABLE_6DOF_CAMERA
 static const float GIMBALL_LOCK_THETA_MAX = 180.0f;
+#endif // !ENABLE_6DOF_CAMERA
 
 // phi / theta angles to orient the camera.
 static const float VIEW_DEFAULT[2] = { 45.0f, 45.0f };
@@ -66,13 +68,10 @@ std::string Camera::get_type_as_string() const
 {
     switch (m_type)
     {
-    case Unknown:
-        return "unknown";
-    case Perspective:
-        return "perspective";
+    case Unknown:     return "unknown";
+    case Perspective: return "perspective";
     default:
-    case Ortho:
-        return "orthographic";
+    case Ortho:       return "orthographic";
     };
 }
 
@@ -88,10 +87,7 @@ void Camera::set_type(EType type)
 
 void Camera::set_type(const std::string& type)
 {
-    if (type == "1")
-        set_type(Perspective);
-    else
-        set_type(Ortho);
+    set_type((type == "1") ? Perspective : Ortho);
 }
 
 void Camera::select_next_type()
@@ -157,17 +153,17 @@ void Camera::select_view(const std::string& direction)
     if (direction == "iso")
         set_default_orientation();
     else if (direction == "left")
-        m_view_matrix = look_at(m_target - m_distance * Vec3d::UnitX(), m_target, Vec3d::UnitZ());
+        look_at(m_target - m_distance * Vec3d::UnitX(), m_target, Vec3d::UnitZ());
     else if (direction == "right")
-        m_view_matrix = look_at(m_target + m_distance * Vec3d::UnitX(), m_target, Vec3d::UnitZ());
+        look_at(m_target + m_distance * Vec3d::UnitX(), m_target, Vec3d::UnitZ());
     else if (direction == "top")
-        m_view_matrix = look_at(m_target + m_distance * Vec3d::UnitZ(), m_target, Vec3d::UnitY());
+        look_at(m_target + m_distance * Vec3d::UnitZ(), m_target, Vec3d::UnitY());
     else if (direction == "bottom")
-        m_view_matrix = look_at(m_target - m_distance * Vec3d::UnitZ(), m_target, -Vec3d::UnitY());
+        look_at(m_target - m_distance * Vec3d::UnitZ(), m_target, -Vec3d::UnitY());
     else if (direction == "front")
-        m_view_matrix = look_at(m_target - m_distance * Vec3d::UnitY(), m_target, Vec3d::UnitZ());
+        look_at(m_target - m_distance * Vec3d::UnitY(), m_target, Vec3d::UnitZ());
     else if (direction == "rear")
-        m_view_matrix = look_at(m_target + m_distance * Vec3d::UnitY(), m_target, Vec3d::UnitZ());
+        look_at(m_target + m_distance * Vec3d::UnitY(), m_target, Vec3d::UnitZ());
 }
 #else
 bool Camera::select_view(const std::string& direction)
@@ -244,17 +240,27 @@ void Camera::apply_view_matrix() const
 
 void Camera::apply_projection(const BoundingBoxf3& box, double near_z, double far_z) const
 {
+#if !ENABLE_6DOF_CAMERA
     set_distance(DefaultDistance);
+#endif // !ENABLE_6DOF_CAMERA
 
     double w = 0.0;
     double h = 0.0;
 
+#if ENABLE_6DOF_CAMERA
+    double old_distance = m_distance;
+    m_frustrum_zs = calc_tight_frustrum_zs_around(box);
+    if (m_distance != old_distance)
+        // the camera has been moved re-apply view matrix
+        apply_view_matrix();
+#else
     while (true)
     {
         m_frustrum_zs = calc_tight_frustrum_zs_around(box);
+#endif // !ENABLE_6DOF_CAMERA
 
         if (near_z > 0.0)
-            m_frustrum_zs.first = std::min(m_frustrum_zs.first, near_z);
+            m_frustrum_zs.first = std::max(std::min(m_frustrum_zs.first, near_z), FrustrumMinNearZ);
 
         if (far_z > 0.0)
             m_frustrum_zs.second = std::max(m_frustrum_zs.second, far_z);
@@ -262,12 +268,9 @@ void Camera::apply_projection(const BoundingBoxf3& box, double near_z, double fa
         w = 0.5 * (double)m_viewport[2];
         h = 0.5 * (double)m_viewport[3];
 
-        if (m_zoom != 0.0)
-        {
-            double inv_zoom = 1.0 / m_zoom;
-            w *= inv_zoom;
-            h *= inv_zoom;
-        }
+        double inv_zoom = get_inv_zoom();
+        w *= inv_zoom;
+        h *= inv_zoom;
 
         switch (m_type)
         {
@@ -288,6 +291,7 @@ void Camera::apply_projection(const BoundingBoxf3& box, double near_z, double fa
         }
         }
 
+#if !ENABLE_6DOF_CAMERA
         if (m_type == Perspective)
         {
             double fov_deg = Geometry::rad2deg(2.0 * std::atan(h / m_frustrum_zs.first));
@@ -307,6 +311,7 @@ void Camera::apply_projection(const BoundingBoxf3& box, double near_z, double fa
         else
             break;
     }
+#endif // !ENABLE_6DOF_CAMERA
 
     glsafe(::glMatrixMode(GL_PROJECTION));
     glsafe(::glLoadIdentity());
@@ -331,14 +336,22 @@ void Camera::apply_projection(const BoundingBoxf3& box, double near_z, double fa
 }
 
 #if ENABLE_THUMBNAIL_GENERATOR
+#if ENABLE_6DOF_CAMERA
+void Camera::zoom_to_box(const BoundingBoxf3& box, double margin_factor)
+#else
 void Camera::zoom_to_box(const BoundingBoxf3& box, int canvas_w, int canvas_h, double margin_factor)
+#endif // ENABLE_6DOF_CAMERA
 #else
 void Camera::zoom_to_box(const BoundingBoxf3& box, int canvas_w, int canvas_h)
 #endif // ENABLE_THUMBNAIL_GENERATOR
 {
     // Calculate the zoom factor needed to adjust the view around the given box.
 #if ENABLE_THUMBNAIL_GENERATOR
+#if ENABLE_6DOF_CAMERA
+    double zoom = calc_zoom_to_bounding_box_factor(box, margin_factor);
+#else
     double zoom = calc_zoom_to_bounding_box_factor(box, canvas_w, canvas_h, margin_factor);
+#endif // ENABLE_6DOF_CAMERA
 #else
     double zoom = calc_zoom_to_bounding_box_factor(box, canvas_w, canvas_h);
 #endif // ENABLE_THUMBNAIL_GENERATOR
@@ -355,10 +368,18 @@ void Camera::zoom_to_box(const BoundingBoxf3& box, int canvas_w, int canvas_h)
 }
 
 #if ENABLE_THUMBNAIL_GENERATOR
+#if ENABLE_6DOF_CAMERA
+void Camera::zoom_to_volumes(const GLVolumePtrs& volumes, double margin_factor)
+#else
 void Camera::zoom_to_volumes(const GLVolumePtrs& volumes, int canvas_w, int canvas_h, double margin_factor)
+#endif // ENABLE_6DOF_CAMERA
 {
     Vec3d center;
+#if ENABLE_6DOF_CAMERA
+    double zoom = calc_zoom_to_volumes_factor(volumes, center, margin_factor);
+#else
     double zoom = calc_zoom_to_volumes_factor(volumes, canvas_w, canvas_h, center, margin_factor);
+#endif // ENABLE_6DOF_CAMERA
     if (zoom > 0.0)
     {
         m_zoom = zoom;
@@ -396,6 +417,7 @@ void Camera::debug_render() const
     float deltaZ = farZ - nearZ;
     float zoom = (float)m_zoom;
     float fov = (float)get_fov();
+    std::array<int, 4>viewport = get_viewport();
     float gui_scale = (float)get_gui_scale();
 
     ImGui::InputText("Type", type.data(), type.length(), ImGuiInputTextFlags_ReadOnly);
@@ -414,6 +436,8 @@ void Camera::debug_render() const
     ImGui::Separator();
     ImGui::InputFloat("Zoom", &zoom, 0.0f, 0.0f, "%.6f", ImGuiInputTextFlags_ReadOnly);
     ImGui::InputFloat("Fov", &fov, 0.0f, 0.0f, "%.6f", ImGuiInputTextFlags_ReadOnly);
+    ImGui::Separator();
+    ImGui::InputInt4("Viewport", viewport.data(), ImGuiInputTextFlags_ReadOnly);
     ImGui::Separator();
     ImGui::InputFloat("GUI scale", &gui_scale, 0.0f, 0.0f, "%.6f", ImGuiInputTextFlags_ReadOnly);
     imgui.end();
@@ -434,10 +458,31 @@ void Camera::translate_world(const Vec3d& displacement)
 
 void Camera::rotate_on_sphere(double delta_azimut_rad, double delta_zenit_rad)
 {
+    // FIXME -> The following is a HACK !!!
+    // When the value of the zenit rotation is large enough, the following call to rotate() shows
+    // numerical instability introducing some scaling into m_view_matrix (verified by checking
+    // that the camera space unit vectors are no more unit).
+    // See also https://dev.prusa3d.com/browse/SPE-1082
+    // We split the zenit rotation into a set of smaller rotations which are then applied.
+    static const double MAX_ALLOWED = Geometry::deg2rad(0.1);
+    unsigned int zenit_steps_count = 1 + (unsigned int)(std::abs(delta_zenit_rad) / MAX_ALLOWED);
+    double zenit_step = delta_zenit_rad / (double)zenit_steps_count;
+
     Vec3d target = m_target;
     translate_world(-target);
-    m_view_matrix.rotate(Eigen::AngleAxisd(delta_zenit_rad, get_dir_right()));
-    m_view_matrix.rotate(Eigen::AngleAxisd(delta_azimut_rad, Vec3d::UnitZ()));
+
+    if (zenit_step != 0.0)
+    {
+        Vec3d right = get_dir_right();
+        for (unsigned int i = 0; i < zenit_steps_count; ++i)
+        {
+            m_view_matrix.rotate(Eigen::AngleAxisd(zenit_step, right));
+        }
+    }
+
+    if (delta_azimut_rad != 0.0)
+        m_view_matrix.rotate(Eigen::AngleAxisd(delta_azimut_rad, Vec3d::UnitZ()));
+
     translate_world(target);
 }
 
@@ -457,49 +502,77 @@ void Camera::rotate_local_around_pivot(const Vec3d& rotation_rad, const Vec3d& p
     m_view_matrix.rotate(Eigen::AngleAxisd(rotation_rad(2), get_dir_forward()));
     translate_world(center);
 }
+#endif // ENABLE_6DOF_CAMERA
 
 double Camera::min_zoom() const
 {
-    return 0.7 * calc_zoom_to_bounding_box_factor(m_scene_box, (int)m_viewport[2], (int)m_viewport[3]);
-}
+#if ENABLE_6DOF_CAMERA
+    return 0.7 * calc_zoom_to_bounding_box_factor(m_scene_box);
+#else
+    return 0.7 * calc_zoom_to_bounding_box_factor(m_scene_box, m_viewport[2], m_viewport[3]);
 #endif // ENABLE_6DOF_CAMERA
+}
 
 std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBoxf3& box) const
 {
     std::pair<double, double> ret;
+    auto& [near_z, far_z] = ret;
 
+#if !ENABLE_6DOF_CAMERA
     while (true)
     {
+#endif // !ENABLE_6DOF_CAMERA
         // box in eye space
         BoundingBoxf3 eye_box = box.transformed(m_view_matrix);
-        ret.first = -eye_box.max(2);
-        ret.second = -eye_box.min(2);
+        near_z = -eye_box.max(2);
+        far_z = -eye_box.min(2);
 
         // apply margin
-        ret.first -= FrustrumZMargin;
-        ret.second += FrustrumZMargin;
+        near_z -= FrustrumZMargin;
+        far_z += FrustrumZMargin;
 
         // ensure min size
-        if (ret.second - ret.first < FrustrumMinZRange)
+        if (far_z - near_z < FrustrumMinZRange)
         {
-            double mid_z = 0.5 * (ret.first + ret.second);
+            double mid_z = 0.5 * (near_z + far_z);
             double half_size = 0.5 * FrustrumMinZRange;
-            ret.first = mid_z - half_size;
-            ret.second = mid_z + half_size;
+            near_z = mid_z - half_size;
+            far_z = mid_z + half_size;
         }
 
-        if (ret.first >= FrustrumMinNearZ)
+#if ENABLE_6DOF_CAMERA
+        if (near_z < FrustrumMinNearZ)
+        {
+            float delta = FrustrumMinNearZ - near_z;
+            set_distance(m_distance + delta);
+            near_z += delta;
+            far_z += delta;
+        }
+        else if ((near_z > 2.0 * FrustrumMinNearZ) && (m_distance > DefaultDistance))
+        {
+            float delta = m_distance - DefaultDistance;
+            set_distance(DefaultDistance);
+            near_z -= delta;
+            far_z -= delta;
+        }
+#else
+        if (near_z >= FrustrumMinNearZ)
             break;
 
-        // ensure min Near Z
-        set_distance(m_distance + FrustrumMinNearZ - ret.first);
+        // ensure min near z
+        set_distance(m_distance + FrustrumMinNearZ - near_z);
     }
+#endif // ENABLE_6DOF_CAMERA
 
     return ret;
 }
 
 #if ENABLE_THUMBNAIL_GENERATOR
+#if ENABLE_6DOF_CAMERA
+double Camera::calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, double margin_factor) const
+#else
 double Camera::calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, int canvas_w, int canvas_h, double margin_factor) const
+#endif // ENABLE_6DOF_CAMERA
 #else
 double Camera::calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, int canvas_w, int canvas_h) const
 #endif // ENABLE_THUMBNAIL_GENERATOR
@@ -511,8 +584,10 @@ double Camera::calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, int ca
     // project the box vertices on a plane perpendicular to the camera forward axis
     // then calculates the vertices coordinate on this plane along the camera xy axes
 
+#if !ENABLE_6DOF_CAMERA
     // ensure that the view matrix is updated
     apply_view_matrix();
+#endif // !ENABLE_6DOF_CAMERA
 
     Vec3d right = get_dir_right();
     Vec3d up = get_dir_up();
@@ -569,11 +644,19 @@ double Camera::calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, int ca
     dx *= margin_factor;
     dy *= margin_factor;
 
+#if ENABLE_6DOF_CAMERA
+    return std::min((double)m_viewport[2] / dx, (double)m_viewport[3] / dy);
+#else
     return std::min((double)canvas_w / dx, (double)canvas_h / dy);
+#endif // ENABLE_6DOF_CAMERA
 }
 
 #if ENABLE_THUMBNAIL_GENERATOR
+#if ENABLE_6DOF_CAMERA
+double Camera::calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, Vec3d& center, double margin_factor) const
+#else
 double Camera::calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, int canvas_w, int canvas_h, Vec3d& center, double margin_factor) const
+#endif // ENABLE_6DOF_CAMERA
 {
     if (volumes.empty())
         return -1.0;
@@ -581,8 +664,10 @@ double Camera::calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, int canv
     // project the volumes vertices on a plane perpendicular to the camera forward axis
     // then calculates the vertices coordinate on this plane along the camera xy axes
 
+#if !ENABLE_6DOF_CAMERA
     // ensure that the view matrix is updated
     apply_view_matrix();
+#endif // !ENABLE_6DOF_CAMERA
 
     Vec3d right = get_dir_right();
     Vec3d up = get_dir_up();
@@ -634,46 +719,57 @@ double Camera::calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, int canv
     if ((dx <= 0.0) || (dy <= 0.0))
         return -1.0f;
 
+#if ENABLE_6DOF_CAMERA
+    return std::min((double)m_viewport[2] / dx, (double)m_viewport[3] / dy);
+#else
     return std::min((double)canvas_w / dx, (double)canvas_h / dy);
+#endif // ENABLE_6DOF_CAMERA
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
 void Camera::set_distance(double distance) const
 {
+#if ENABLE_6DOF_CAMERA
+    if (m_distance != distance)
+    {
+        m_view_matrix.translate((distance - m_distance) * get_dir_forward());
+        m_distance = distance;
+    }
+#else
     m_distance = distance;
     apply_view_matrix();
+#endif // ENABLE_6DOF_CAMERA
 }
 
 #if ENABLE_6DOF_CAMERA
-Transform3d Camera::look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up) const
+void Camera::look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up)
 {
     Vec3d unit_z = (position - target).normalized();
     Vec3d unit_x = up.cross(unit_z).normalized();
     Vec3d unit_y = unit_z.cross(unit_x).normalized();
 
-    Transform3d matrix;
+    m_target = target;
+    Vec3d new_position = m_target + m_distance * unit_z;
 
-    matrix(0, 0) = unit_x(0);
-    matrix(0, 1) = unit_x(1);
-    matrix(0, 2) = unit_x(2);
-    matrix(0, 3) = -unit_x.dot(position);
+    m_view_matrix(0, 0) = unit_x(0);
+    m_view_matrix(0, 1) = unit_x(1);
+    m_view_matrix(0, 2) = unit_x(2);
+    m_view_matrix(0, 3) = -unit_x.dot(new_position);
 
-    matrix(1, 0) = unit_y(0);
-    matrix(1, 1) = unit_y(1);
-    matrix(1, 2) = unit_y(2);
-    matrix(1, 3) = -unit_y.dot(position);
+    m_view_matrix(1, 0) = unit_y(0);
+    m_view_matrix(1, 1) = unit_y(1);
+    m_view_matrix(1, 2) = unit_y(2);
+    m_view_matrix(1, 3) = -unit_y.dot(new_position);
 
-    matrix(2, 0) = unit_z(0);
-    matrix(2, 1) = unit_z(1);
-    matrix(2, 2) = unit_z(2);
-    matrix(2, 3) = -unit_z.dot(position);
+    m_view_matrix(2, 0) = unit_z(0);
+    m_view_matrix(2, 1) = unit_z(1);
+    m_view_matrix(2, 2) = unit_z(2);
+    m_view_matrix(2, 3) = -unit_z.dot(new_position);
 
-    matrix(3, 0) = 0.0;
-    matrix(3, 1) = 0.0;
-    matrix(3, 2) = 0.0;
-    matrix(3, 3) = 1.0;
-
-    return matrix;
+    m_view_matrix(3, 0) = 0.0;
+    m_view_matrix(3, 1) = 0.0;
+    m_view_matrix(3, 2) = 0.0;
+    m_view_matrix(3, 3) = 1.0;
 }
 
 void Camera::set_default_orientation()

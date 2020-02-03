@@ -111,7 +111,7 @@ static TriangleMesh cgal_to_triangle_mesh(const _CGALMesh &cgalmesh)
         auto    vtc = cgalmesh.vertices_around_face(cgalmesh.halfedge(face));
         int     i   = 0;
         Vec3crd trface;
-        for (auto v : vtc) trface(i++) = int(v.idx());
+        for (auto v : vtc) trface(i++) = static_cast<unsigned>(v);
         facets.emplace_back(trface);
     }
     

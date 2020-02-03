@@ -500,7 +500,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             processed = true;
         }
         else if (evt.Dragging() && (m_parent.get_move_volume_id() != -1) && (m_current == SlaSupports || m_current == Hollow))
-                        // don't allow dragging objects with the Sla gizmo on
+            // don't allow dragging objects with the Sla gizmo on
             processed = true;
         else if (evt.Dragging() && (m_current == SlaSupports || m_current == Hollow) && gizmo_event(SLAGizmoEventType::Dragging, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown()))
         {
@@ -557,12 +557,9 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         else if (evt.LeftUp() && is_dragging())
         {
             switch (m_current) {
-            case Move : m_parent.do_move(L("Gizmo-Move"));
-                        break;
-            case Scale : m_parent.do_scale(L("Gizmo-Scale"));
-                         break;
-            case Rotate : m_parent.do_rotate(L("Gizmo-Rotate"));
-                          break;
+            case Move : m_parent.do_move(L("Gizmo-Move")); break;
+            case Scale : m_parent.do_scale(L("Gizmo-Scale")); break;
+            case Rotate : m_parent.do_rotate(L("Gizmo-Rotate")); break;
             default : break;
             }
 
@@ -777,6 +774,64 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
                 // alt has been just released - SLA gizmo might want to close rectangular selection.
                 if (gizmo_event(SLAGizmoEventType::AltUp) || (is_editing && is_rectangle_dragging))
                     processed = true;
+            }
+        }
+        else if (m_current == Move)
+        {
+            auto do_move = [this, &processed](const Vec3d& displacement) {
+                Selection& selection = m_parent.get_selection();
+                selection.start_dragging();
+                selection.translate(displacement);
+                wxGetApp().obj_manipul()->set_dirty();
+                m_parent.do_move(L("Gizmo-Move"));
+                m_parent.set_as_dirty();
+                processed = true;
+            };
+
+            switch (keyCode)
+            {
+            case WXK_NUMPAD_LEFT:  case WXK_LEFT:  { do_move(-Vec3d::UnitX()); break; }
+            case WXK_NUMPAD_RIGHT: case WXK_RIGHT: { do_move(Vec3d::UnitX()); break; }
+            case WXK_NUMPAD_UP:    case WXK_UP:    { do_move(Vec3d::UnitY()); break; }
+            case WXK_NUMPAD_DOWN:  case WXK_DOWN:  { do_move(-Vec3d::UnitY()); break; }
+            default: { break; }
+            }
+        }
+        else if (m_current == Rotate)
+        {
+            auto do_rotate = [this, &processed](const Vec3d& rotation) {
+                Selection& selection = m_parent.get_selection();
+                selection.start_dragging();
+                selection.rotate(rotation, TransformationType(TransformationType::World_Relative_Joint));
+                wxGetApp().obj_manipul()->set_dirty();
+                m_parent.do_rotate(L("Gizmo-Rotate"));
+                m_parent.set_as_dirty();
+                processed = true;
+            };
+
+            switch (keyCode)
+            {
+            case WXK_NUMPAD_LEFT:  case WXK_LEFT:  { do_rotate(Vec3d(0.0, 0.0, 0.5 * M_PI)); break; }
+            case WXK_NUMPAD_RIGHT: case WXK_RIGHT: { do_rotate(-Vec3d(0.0, 0.0, 0.5 * M_PI)); break; }
+            case WXK_NUMPAD_UP:    case WXK_UP:    { do_rotate(Vec3d(0.0, 0.0, 0.25 * M_PI)); break; }
+            case WXK_NUMPAD_DOWN:  case WXK_DOWN:  { do_rotate(-Vec3d(0.0, 0.0, 0.25 * M_PI)); break; }
+            default: { break; }
+            }
+        }
+        else if (m_current == Cut)
+        {
+            auto do_move = [this, &processed](double delta_z) {
+                GLGizmoCut* cut = dynamic_cast<GLGizmoCut*>(get_current());
+                cut->set_cut_z(delta_z + cut->get_cut_z());
+                m_parent.set_as_dirty();
+                processed = true;
+            };
+
+            switch (keyCode)
+            {
+            case WXK_NUMPAD_UP:   case WXK_UP:   { do_move(1.0); break; }
+            case WXK_NUMPAD_DOWN: case WXK_DOWN: { do_move(-1.0); break; }
+            default: { break; }
             }
         }
 

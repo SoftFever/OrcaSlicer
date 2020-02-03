@@ -252,46 +252,6 @@ template<class T> struct remove_cvref
 
 template<class T> using remove_cvref_t = typename remove_cvref<T>::type;
 
-template<class T> using DefaultContainer = std::vector<T>;
-
-/// Exactly like Matlab https://www.mathworks.com/help/matlab/ref/linspace.html
-template<class T, class I, template<class> class Container = DefaultContainer>
-inline Container<remove_cvref_t<T>> linspace(const T &start,
-                                             const T &stop,
-                                             const I &n)
-{
-    Container<remove_cvref_t<T>> vals(n, T());
-
-    T      stride = (stop - start) / n;
-    size_t i      = 0;
-    std::generate(vals.begin(), vals.end(), [&i, start, stride] {
-        return start + i++ * stride;
-    });
-
-    return vals;
-}
-
-/// A set of equidistant values starting from 'start' (inclusive), ending
-/// in the closest multiple of 'stride' less than or equal to 'end' and
-/// leaving 'stride' space between each value. 
-/// Very similar to Matlab [start:stride:end] notation.
-template<class T, template<class> class Container = DefaultContainer>
-inline Container<remove_cvref_t<T>> grid(const T &start,
-                                         const T &stop,
-                                         const T &stride)
-{
-    Container<remove_cvref_t<T>>
-        vals(size_t(std::ceil((stop - start) / stride)), T());
-    
-    int i = 0;
-    std::generate(vals.begin(), vals.end(), [&i, start, stride] {
-        return start + i++ * stride; 
-    });
-     
-    return vals;
-}
-
-
 // A shorter C++14 style form of the enable_if metafunction
 template<bool B, class T>
 using enable_if_t = typename std::enable_if<B, T>::type;
@@ -390,6 +350,56 @@ inline IntegerOnly<I, std::vector<T, Args...>> reserve_vector(I capacity)
     if (capacity > I(0)) ret.reserve(size_t(capacity));
     
     return ret;
+}
+
+/// Exactly like Matlab https://www.mathworks.com/help/matlab/ref/linspace.html
+template<class T, class I>
+inline std::vector<T> linspace_vector(const ArithmeticOnly<T> &start, 
+                                      const T &stop, 
+                                      const IntegerOnly<I> &n)
+{
+    std::vector<T> vals(n, T());
+
+    T      stride = (stop - start) / n;
+    size_t i      = 0;
+    std::generate(vals.begin(), vals.end(), [&i, start, stride] {
+        return start + i++ * stride;
+    });
+
+    return vals;
+}
+
+template<size_t N, class T>
+inline std::array<ArithmeticOnly<T>, N> linspace_array(const T &start, const T &stop)
+{
+    std::array<T, N> vals = {T()};
+
+    T      stride = (stop - start) / N;
+    size_t i      = 0;
+    std::generate(vals.begin(), vals.end(), [&i, start, stride] {
+        return start + i++ * stride;
+    });
+
+    return vals;
+}
+
+/// A set of equidistant values starting from 'start' (inclusive), ending
+/// in the closest multiple of 'stride' less than or equal to 'end' and
+/// leaving 'stride' space between each value. 
+/// Very similar to Matlab [start:stride:end] notation.
+template<class T>
+inline std::vector<ArithmeticOnly<T>> grid(const T &start, 
+                                           const T &stop, 
+                                           const T &stride)
+{
+    std::vector<T> vals(size_t(std::ceil((stop - start) / stride)), T());
+    
+    int i = 0;
+    std::generate(vals.begin(), vals.end(), [&i, start, stride] {
+        return start + i++ * stride; 
+    });
+     
+    return vals;
 }
 
 } // namespace Slic3r
