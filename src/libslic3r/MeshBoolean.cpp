@@ -150,8 +150,17 @@ void minus(TriangleMesh &A, const TriangleMesh &B)
     triangle_mesh_to_cgal(B, meshB.m);
     
     CGALMesh meshResult;
-    CGALProc::corefine_and_compute_difference(meshA.m, meshB.m, meshResult.m);
-    
+    bool success = false;
+    try {
+        success = CGALProc::corefine_and_compute_difference(meshA.m, meshB.m, meshResult.m,
+            CGALParams::throw_on_self_intersection(true), CGALParams::throw_on_self_intersection(true));
+    }
+    catch (const CGAL::Polygon_mesh_processing::Corefinement::Self_intersection_exception&) {
+        success = false;
+    }
+    if (! success)
+        throw std::runtime_error("CGAL corefine_and_compute_difference failed");
+
     A = cgal_to_triangle_mesh(meshResult.m);
 }
 

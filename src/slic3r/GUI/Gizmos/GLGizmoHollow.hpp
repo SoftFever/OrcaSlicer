@@ -53,14 +53,12 @@ private:
     void render_points(const Selection& selection, bool picking = false) const;
     void render_clipping_plane(const Selection& selection) const;
     void render_hollowed_mesh() const;
-    bool is_mesh_update_necessary() const;
-    void update_mesh();
     void hollow_mesh(bool postpone_error_messages = false);
     bool unsaved_changes() const;
 
     bool  m_show_supports = true;
     float m_new_hole_radius = 2.f;        // Size of a new hole.
-    float m_new_hole_height = 5.f;
+    float m_new_hole_height = 6.f;
     mutable std::vector<bool> m_selected; // which holes are currently selected
 
     bool m_enable_hollowing = true;
@@ -72,13 +70,9 @@ private:
     float m_closing_d_stash = 2.f;
     Vec3f m_hole_before_drag = Vec3f::Zero();
 
-
     sla::DrainHoles m_holes_stash;
 
-
-    
-    float m_clipping_plane_distance = 0.f;
-    std::unique_ptr<ClippingPlane> m_clipping_plane;
+    //std::unique_ptr<ClippingPlane> m_clipping_plane;
     
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.

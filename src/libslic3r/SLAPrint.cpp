@@ -122,10 +122,10 @@ void SLAPrint::clear()
 }
 
 // Transformation without rotation around Z and without a shift by X and Y.
-static Transform3d sla_trafo(const SLAPrint& p, const ModelObject &model_object)
+Transform3d SLAPrint::sla_trafo(const ModelObject &model_object) const
 {
 
-    Vec3d corr = p.relative_correction();
+    Vec3d corr = this->relative_correction();
 
     ModelInstance &model_instance = *model_object.instances.front();
     Vec3d          offset         = model_instance.get_offset();
@@ -376,7 +376,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, DynamicPrintConfig con
             bool sla_trafo_differs  =
                 model_object.instances.empty() != model_object_new.instances.empty() ||
                 (! model_object.instances.empty() &&
-                  (! sla_trafo(*this, model_object).isApprox(sla_trafo(*this, model_object_new)) ||
+                  (! sla_trafo(model_object).isApprox(sla_trafo(model_object_new)) ||
                     model_object.instances.front()->is_left_handed() != model_object_new.instances.front()->is_left_handed()));
             if (model_parts_differ || sla_trafo_differs) {
                 // The very first step (the slicing step) is invalidated. One may freely remove all associated PrintObjects.
@@ -419,7 +419,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, DynamicPrintConfig con
                 if (model_object.sla_drain_holes != model_object_new.sla_drain_holes)
                 {
                     model_object.sla_drain_holes = model_object_new.sla_drain_holes;
-                    update_apply_status(it_print_object_status->print_object->invalidate_step(slaposHollowing));
+                    update_apply_status(it_print_object_status->print_object->invalidate_step(slaposDrillHoles));
                 }
 
                 // Copy the ModelObject name, input_file and instances. The instances will compared against PrintObject instances in the next step.
@@ -453,7 +453,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, DynamicPrintConfig con
 
             // FIXME: this invalidates the transformed mesh in SLAPrintObject
             // which is expensive to calculate (especially the raw_mesh() call)
-            print_object->set_trafo(sla_trafo(*this, model_object), model_object.instances.front()->is_left_handed());
+            print_object->set_trafo(sla_trafo(model_object), model_object.instances.front()->is_left_handed());
 
             print_object->set_instances(std::move(new_instances));
 
@@ -1101,6 +1101,8 @@ const ExPolygons &SliceRecord::get_slice(SliceOrigin o) const
 bool SLAPrintObject::has_mesh(SLAPrintObjectStep step) const
 {
     switch (step) {
+    case slaposDrillHoles:
+        return m_hollowing_data && !m_hollowing_data->hollow_mesh_with_holes.empty();
     case slaposSupportTree:
         return ! this->support_mesh().empty();
     case slaposPad:
@@ -1117,7 +1119,7 @@ TriangleMesh SLAPrintObject::get_mesh(SLAPrintObjectStep step) const
         return this->support_mesh();
     case slaposPad:
         return this->pad_mesh();
-    case slaposHollowing:
+    case slaposDrillHoles:
         if (m_hollowing_data)
             return m_hollowing_data->hollow_mesh_with_holes;
         [[fallthrough]];

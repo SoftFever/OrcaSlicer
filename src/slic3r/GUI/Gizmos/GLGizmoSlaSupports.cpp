@@ -27,7 +27,7 @@ GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& ic
     , m_quadric(nullptr)
     , m_its(nullptr)
 {
-    m_clipping_plane.reset(new ClippingPlane(Vec3d::Zero(), 0.));
+    m_c->m_clipping_plane.reset(new ClippingPlane(Vec3d::Zero(), 0.));
     m_quadric = ::gluNewQuadric();
     if (m_quadric != nullptr)
         // using GLU_FILL does not work when the instance's transformation
@@ -63,43 +63,22 @@ bool GLGizmoSlaSupports::on_init()
 
 void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const Selection& selection)
 {
-    if (! model_object || selection.is_empty()) {
-        m_c->m_model_object = nullptr;
-        return;
-    }
-
-    bool something_changed = false;
-
-    if (m_c->m_model_object != model_object
-     || m_c->m_model_object_id != model_object->id()
-     || m_c->m_active_instance != selection.get_instance_idx()) {
-        m_c->m_model_object = model_object;
-        m_c->m_print_object_idx = -1;
-        m_c->m_active_instance = selection.get_instance_idx();
-        something_changed = true;
-    }
-
-    if (model_object && selection.is_from_single_instance())
-    {
-        // Cache the bb - it's needed for dealing with the clipping plane quite often
-        // It could be done inside update_mesh but one has to account for scaling of the instance.
-        if (something_changed) {
-            m_c->m_active_instance_bb_radius = m_c->m_model_object->instance_bounding_box(m_c->m_active_instance).radius();
-            if (m_state == On) {
-                m_parent.toggle_model_objects_visibility(false);
-                m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
-                m_parent.toggle_sla_auxiliaries_visibility(! m_editing_mode, m_c->m_model_object, m_c->m_active_instance);
-            }
-            else
-                m_parent.toggle_model_objects_visibility(true, nullptr, -1);
+    if (m_c->recent_update) {
+        if (m_state == On) {
+            m_parent.toggle_model_objects_visibility(false);
+            m_parent.toggle_model_objects_visibility(/*! m_c->m_cavity_mesh*/ true, m_c->m_model_object, m_c->m_active_instance);
+            m_parent.toggle_sla_auxiliaries_visibility(! m_editing_mode, m_c->m_model_object, m_c->m_active_instance);
         }
+        else
+            m_parent.toggle_model_objects_visibility(true, nullptr, -1);
 
-        if (is_mesh_update_necessary()) {
-            update_mesh();
+        disable_editing_mode();
+        if (m_c->m_model_object)
             reload_cache();
-        }
+    }
 
-        // If we triggered autogeneration before, check backend and fetch results if they are there
+    // If we triggered autogeneration before, check backend and fetch results if they are there
+    if (m_c->m_model_object) {
         if (m_c->m_model_object->sla_points_status == sla::PointsStatus::Generating)
             get_data_from_backend();
     }
@@ -119,9 +98,6 @@ void GLGizmoSlaSupports::on_render() const
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_RESETGIZMOS));
         return;
     }
-
-    if (! m_its || ! m_c->m_mesh)
-        const_cast<GLGizmoSlaSupports*>(this)->update_mesh();
 
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
@@ -143,7 +119,7 @@ void GLGizmoSlaSupports::on_render() const
 
 void GLGizmoSlaSupports::render_hollowed_mesh() const
 {
-    if (m_c->m_volume_with_cavity) {
+    /*if (m_c->m_volume_with_cavity) {
         m_c->m_volume_with_cavity->set_sla_shift_z(m_z_shift);
         m_parent.get_shader().start_using();
 
@@ -159,14 +135,14 @@ void GLGizmoSlaSupports::render_hollowed_mesh() const
         m_c->m_volume_with_cavity->set_instance_transformation(m_c->m_model_object->instances[size_t(m_c->m_active_instance)]->get_transformation());
         m_c->m_volume_with_cavity->render(color_id, print_box_detection_id, print_box_worldmatrix_id);
         m_parent.get_shader().stop_using();
-    }
+    }*/
 }
 
 
 
 void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection) const
 {
-    if (m_clipping_plane_distance == 0.f || m_c->m_mesh->empty())
+    if (m_c->m_clipping_plane_distance == 0.f || m_c->m_mesh->empty())
         return;
 
     // Get transformation of the instance
@@ -188,7 +164,7 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection) const
         m_c->m_object_clipper.reset(new MeshClipper);
         m_c->m_object_clipper->set_mesh(*m_c->mesh());
     }
-    m_c->m_object_clipper->set_plane(*m_clipping_plane);
+    m_c->m_object_clipper->set_plane(*m_c->m_clipping_plane);
     m_c->m_object_clipper->set_transformation(trafo);
 
 
@@ -219,7 +195,7 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection) const
                 m_c->m_supports_clipper->set_mesh(print_object->support_mesh());
                 m_c->m_old_timestamp = timestamp;
             }
-            m_c->m_supports_clipper->set_plane(*m_clipping_plane);
+            m_c->m_supports_clipper->set_plane(*m_c->m_clipping_plane);
             m_c->m_supports_clipper->set_transformation(supports_trafo);
         }
         else
@@ -359,7 +335,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
     }
 
     // Now render the drain holes:
-    if (! m_c->m_cavity_mesh) {
+    /*if (! m_c->m_cavity_mesh) {
         render_color[0] = 0.7f;
         render_color[1] = 0.7f;
         render_color[2] = 0.7f;
@@ -394,7 +370,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
                 glFrontFace(GL_CCW);
             glsafe(::glPopMatrix());
         }
-    }
+    }*/
 
     if (!picking)
         glsafe(::glDisable(GL_LIGHTING));
@@ -406,51 +382,22 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
 
 bool GLGizmoSlaSupports::is_mesh_point_clipped(const Vec3d& point) const
 {
-    if (m_clipping_plane_distance == 0.f)
+    if (m_c->m_clipping_plane_distance == 0.f)
         return false;
 
     Vec3d transformed_point = m_c->m_model_object->instances[m_c->m_active_instance]->get_transformation().get_matrix() * point;
     transformed_point(2) += m_z_shift;
-    return m_clipping_plane->is_point_clipped(transformed_point);
+    return m_c->m_clipping_plane->is_point_clipped(transformed_point);
 }
 
-
-
-bool GLGizmoSlaSupports::is_mesh_update_necessary() const
-{
-    return ((m_state == On) && (m_c->m_model_object != nullptr) && !m_c->m_model_object->instances.empty())
-        && ((m_c->m_model_object->id() != m_c->m_model_object_id) || m_its == nullptr);
-}
-
-
-
-void GLGizmoSlaSupports::update_mesh()
-{
-    if (! m_c->m_model_object)
-        return;
-
-    wxBusyCursor wait;
-    // this way we can use that mesh directly.
-    // This mesh does not account for the possible Z up SLA offset.
-    m_c->m_mesh = &m_c->m_model_object->volumes.front()->mesh();
-    m_its = &m_c->m_mesh->its;
-
-    // If this is different mesh than last time or if the AABB tree is uninitialized, recalculate it.
-    if (m_c->m_model_object_id != m_c->m_model_object->id() || ! m_c->m_mesh_raycaster)
-        m_c->m_mesh_raycaster.reset(new MeshRaycaster(*m_c->mesh()));
-
-    m_c->m_model_object_id = m_c->m_model_object->id();
-    disable_editing_mode();
-}
 
 
 // Unprojects the mouse position on the mesh and saves hit point and normal of the facet into pos_and_normal
 // Return false if no intersection was found, true otherwise.
 bool GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal)
 {
-    // if the gizmo doesn't have the V, F structures for igl, calculate them first:
     if (! m_c->m_mesh_raycaster)
-        update_mesh();
+        return false;
 
     const Camera& camera = m_parent.get_camera();
     const Selection& selection = m_parent.get_selection();
@@ -461,20 +408,20 @@ bool GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec
     // The raycaster query
     Vec3f hit;
     Vec3f normal;
-    if (m_c->m_mesh_raycaster->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, hit, normal, m_clipping_plane.get())) {
+    if (m_c->m_mesh_raycaster->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, hit, normal, m_c->m_clipping_plane.get())) {
         // Check whether the hit is in a hole
         bool in_hole = false;
         // In case the hollowed and drilled mesh is available, we can allow
         // placing points in holes, because they should never end up
         // on surface that's been drilled away.
-        if (! m_c->m_cavity_mesh) {
+        /*if (! m_c->m_cavity_mesh) {
             for (const sla::DrainHole& hole : m_c->m_model_object->sla_drain_holes) {
                 if (hole.is_inside(hit)) {
                     in_hole = true;
                     break;
                 }
             }
-        }
+        }*/
         if (! in_hole) {
             // Return both the point and the facet normal.
             pos_and_normal = std::make_pair(hit, normal);
@@ -555,7 +502,7 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 points_inside.push_back(points[idx].cast<float>());
 
             // Only select/deselect points that are actually visible
-            for (size_t idx :  m_c->m_mesh_raycaster->get_unobscured_idxs(trafo, m_parent.get_camera(), points_inside, m_clipping_plane.get()))
+            for (size_t idx :  m_c->m_mesh_raycaster->get_unobscured_idxs(trafo, m_parent.get_camera(), points_inside, m_c->m_clipping_plane.get()))
             {
                 if (rectangle_status == GLSelectionRectangle::Deselect)
                     unselect_point(points_idxs[idx]);
@@ -632,13 +579,13 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
     }
 
     if (action == SLAGizmoEventType::MouseWheelUp && control_down) {
-        m_clipping_plane_distance = std::min(1.f, m_clipping_plane_distance + 0.01f);
+        m_c->m_clipping_plane_distance = std::min(1.f, m_c->m_clipping_plane_distance + 0.01f);
         update_clipping_plane(true);
         return true;
     }
 
     if (action == SLAGizmoEventType::MouseWheelDown && control_down) {
-        m_clipping_plane_distance = std::max(0.f, m_clipping_plane_distance - 0.01f);
+        m_c->m_clipping_plane_distance = std::max(0.f, m_c->m_clipping_plane_distance - 0.01f);
         update_clipping_plane(true);
         return true;
     }
@@ -719,10 +666,10 @@ std::vector<const ConfigOption*> GLGizmoSlaSupports::get_config_options(const st
 
 ClippingPlane GLGizmoSlaSupports::get_sla_clipping_plane() const
 {
-    if (!m_c->m_model_object || m_state == Off || m_clipping_plane_distance == 0.f)
+    if (!m_c->m_model_object || m_state == Off || m_c->m_clipping_plane_distance == 0.f)
         return ClippingPlane::ClipsNothing();
     else
-        return ClippingPlane(-m_clipping_plane->get_normal(), m_clipping_plane->get_data()[3]);
+        return ClippingPlane(-m_c->m_clipping_plane->get_normal(), m_c->m_clipping_plane->get_data()[3]);
 }
 
 
@@ -944,7 +891,7 @@ RENDER_AGAIN:
 
     // Following is rendered in both editing and non-editing mode:
     ImGui::Separator();
-    if (m_clipping_plane_distance == 0.f)
+    if (m_c->m_clipping_plane_distance == 0.f)
     {
         ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("clipping_of_view"));
@@ -959,7 +906,7 @@ RENDER_AGAIN:
 
     ImGui::SameLine(clipping_slider_left);
     ImGui::PushItemWidth(window_width - clipping_slider_left);
-    if (ImGui::SliderFloat("  ", &m_clipping_plane_distance, 0.f, 1.f, "%.2f"))
+    if (ImGui::SliderFloat("  ", &m_c->m_clipping_plane_distance, 0.f, 1.f, "%.2f"))
         update_clipping_plane(true);
 
 
@@ -1043,15 +990,17 @@ void GLGizmoSlaSupports::on_set_state()
 
     if (m_state == On && m_old_state != On) { // the gizmo was just turned on
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned on")));
-        if (is_mesh_update_necessary())
-            update_mesh();
+
+        m_c->unstash_clipping_plane();
+        update_clipping_plane(m_c->m_clipping_plane_distance != 0.f);
+
 
         // we'll now reload support points:
         if (m_c->m_model_object)
             reload_cache();
 
         m_parent.toggle_model_objects_visibility(false);
-        if (m_c->m_model_object && ! m_c->m_cavity_mesh)
+        if (m_c->m_model_object /*&& ! m_c->m_cavity_mesh*/)
             m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
         m_parent.toggle_sla_auxiliaries_visibility(! m_editing_mode, m_c->m_model_object, m_c->m_active_instance);
 
@@ -1081,13 +1030,14 @@ void GLGizmoSlaSupports::on_set_state()
             Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned off")));
             m_parent.toggle_model_objects_visibility(true);
             m_normal_cache.clear();
-            m_clipping_plane_distance = 0.f;
-            update_clipping_plane();
+            m_c->stash_clipping_plane();
+            m_c->m_clipping_plane_distance = 0.f;
+            update_clipping_plane(true);
             // Release clippers and the AABB raycaster.
             m_its = nullptr;
             m_c->m_object_clipper.reset();
             m_c->m_supports_clipper.reset();
-            m_c->m_mesh_raycaster.reset();
+            //m_c->m_mesh_raycaster.reset();
         }
     }
     m_old_state = m_state;
@@ -1127,8 +1077,8 @@ void GLGizmoSlaSupports::on_stop_dragging()
 
 void GLGizmoSlaSupports::on_load(cereal::BinaryInputArchive& ar)
 {
-    ar(m_clipping_plane_distance,
-       *m_clipping_plane,
+    ar(m_c->m_clipping_plane_distance,
+       *m_c->m_clipping_plane,
        m_c->m_model_object_id,
        m_new_point_head_diameter,
        m_normal_cache,
@@ -1141,8 +1091,8 @@ void GLGizmoSlaSupports::on_load(cereal::BinaryInputArchive& ar)
 
 void GLGizmoSlaSupports::on_save(cereal::BinaryOutputArchive& ar) const
 {
-    ar(m_clipping_plane_distance,
-       *m_clipping_plane,
+    ar(m_c->m_clipping_plane_distance,
+       *m_c->m_clipping_plane,
        m_c->m_model_object_id,
        m_new_point_head_diameter,
        m_normal_cache,
@@ -1244,6 +1194,9 @@ void GLGizmoSlaSupports::reload_cache()
 
 bool GLGizmoSlaSupports::has_backend_supports() const
 {
+    if (! m_c->m_model_object)
+        return false;
+
     // find SlaPrintObject with this ID
     for (const SLAPrintObject* po : m_parent.sla_print()->objects()) {
         if (po->model_object()->id() == m_c->m_model_object->id())
@@ -1338,12 +1291,12 @@ bool GLGizmoSlaSupports::unsaved_changes() const
 
 void GLGizmoSlaSupports::update_clipping_plane(bool keep_normal) const
 {
-    Vec3d normal = (keep_normal && m_clipping_plane->get_normal() != Vec3d::Zero() ?
-                        m_clipping_plane->get_normal() : -m_parent.get_camera().get_dir_forward());
+    Vec3d normal = (keep_normal && m_c->m_clipping_plane->get_normal() != Vec3d::Zero() ?
+                        m_c->m_clipping_plane->get_normal() : -m_parent.get_camera().get_dir_forward());
 
     const Vec3d& center = m_c->m_model_object->instances[m_c->m_active_instance]->get_offset() + Vec3d(0., 0., m_z_shift);
     float dist = normal.dot(center);
-    *m_clipping_plane = ClippingPlane(normal, (dist - (-m_c->m_active_instance_bb_radius) - m_clipping_plane_distance * 2*m_c->m_active_instance_bb_radius));
+    *m_c->m_clipping_plane = ClippingPlane(normal, (dist - (-m_c->m_active_instance_bb_radius) - m_c->m_clipping_plane_distance * 2*m_c->m_active_instance_bb_radius));
     m_parent.set_as_dirty();
 }
 
