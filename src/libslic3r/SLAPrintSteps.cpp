@@ -99,17 +99,37 @@ void SLAPrint::Steps::hollow_model(SLAPrintObject &po)
     else {
         po.m_hollowing_data.reset(new SLAPrintObject::HollowingData());
         po.m_hollowing_data->interior = *meshptr;
-        auto &hollowed_mesh = po.m_hollowing_data->hollow_mesh_with_holes;
-        hollowed_mesh = po.transformed_mesh();
-        hollowed_mesh.merge(po.m_hollowing_data->interior);
-        hollowed_mesh.require_shared_vertices();
     }
 }
 
+// Drill holes into the hollowed/original mesh.
 void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
 {
-    // Drill holes into the hollowed/original mesh.
-    if (po.m_model_object->sla_drain_holes.empty()) {
+    bool needs_drilling = ! po.m_model_object->sla_drain_holes.empty();
+    bool is_hollowed = (po.m_hollowing_data && ! po.m_hollowing_data->interior.empty());
+
+    if (! is_hollowed && ! needs_drilling) {
+        // In this case we can dump any data that might have been
+        // generated on previous runs.
+        po.m_hollowing_data.reset();
+        return;
+    }
+
+    if (! po.m_hollowing_data)
+        po.m_hollowing_data.reset(new SLAPrintObject::HollowingData());
+
+    // Hollowing and/or drilling is active, m_hollowing_data is valid.
+
+    // Regenerate hollowed mesh, even if it was there already. It may contain
+    // holes that are no longer on the frontend.
+    TriangleMesh &hollowed_mesh = po.m_hollowing_data->hollow_mesh_with_holes;
+    hollowed_mesh = po.transformed_mesh();
+    if (! po.m_hollowing_data->interior.empty()) {
+        hollowed_mesh.merge(po.m_hollowing_data->interior);
+        hollowed_mesh.require_shared_vertices();
+    }
+
+    if (! needs_drilling) {
         BOOST_LOG_TRIVIAL(info) << "Drilling skipped (no holes).";
         return;
     }
@@ -125,17 +145,9 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
     holes_mesh.require_shared_vertices();
     MeshBoolean::cgal::self_union(holes_mesh); //FIXME-fix and use the cgal version
     
-    // If there is no hollowed mesh yet, copy the original mesh.
-    if (! po.m_hollowing_data) {
-        po.m_hollowing_data.reset(new SLAPrintObject::HollowingData());
-        po.m_hollowing_data->hollow_mesh_with_holes = po.transformed_mesh();
-    }
-    
-    TriangleMesh &hollowed_mesh = po.m_hollowing_data->hollow_mesh_with_holes;
-    
     try {
         MeshBoolean::cgal::minus(hollowed_mesh, holes_mesh);
-    } catch (const std::runtime_error &ex) {
+    } catch (const std::runtime_error&) {
         throw std::runtime_error(L(
             "Drilling holes into the mesh failed. "
             "This is usually caused by broken model. Try to fix it first."));
