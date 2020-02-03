@@ -978,6 +978,8 @@ void ObjectList::key_event(wxKeyEvent& event)
         ) {
         remove();
     }
+    else if (event.GetKeyCode() == WXK_F5)
+        wxGetApp().plater()->reload_all_from_disk();
     else if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_CONTROL/*WXK_SHIFT*/))
         select_item_all_children();
     else if (wxGetKeyState(wxKeyCode('C')) && wxGetKeyState(WXK_CONTROL)) 
