@@ -231,16 +231,17 @@ static inline bool is_approx(Number value, Number test_value)
 }
 
 template<class...Args>
-std::string string_printf(const char *const fmt, Args &&...args)
+std::string string_printf(const char *const _fmt, Args &&...args)
 {
     static const size_t INITIAL_LEN = 1024;
     std::vector<char> buffer(INITIAL_LEN, '\0');
     
-    int bufflen = snprintf(buffer.data(), INITIAL_LEN - 1, fmt, std::forward<Args>(args)...);
+    auto fmt = std::string("%s") + _fmt;
+    int bufflen = snprintf(buffer.data(), INITIAL_LEN - 1, fmt.c_str(), "", std::forward<Args>(args)...);
     
     if (bufflen >= int(INITIAL_LEN)) {
         buffer.resize(size_t(bufflen) + 1);
-        snprintf(buffer.data(), buffer.size(), fmt, std::forward<Args>(args)...);
+        snprintf(buffer.data(), buffer.size(), fmt.c_str(), "", std::forward<Args>(args)...);
     }
     
     return std::string(buffer.begin(), buffer.begin() + bufflen);
