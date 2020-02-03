@@ -3,6 +3,7 @@
 
 #include <map>
 #include <vector>
+#include <set>
 
 #include <wx/bitmap.h>
 #include <wx/dataview.h>
