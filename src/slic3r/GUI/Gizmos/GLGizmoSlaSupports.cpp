@@ -1291,6 +1291,8 @@ bool GLGizmoSlaSupports::unsaved_changes() const
 
 void GLGizmoSlaSupports::update_clipping_plane(bool keep_normal) const
 {
+    if (! m_c->m_model_object)
+        return;
     Vec3d normal = (keep_normal && m_c->m_clipping_plane->get_normal() != Vec3d::Zero() ?
                         m_c->m_clipping_plane->get_normal() : -m_parent.get_camera().get_dir_forward());
 

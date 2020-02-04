@@ -683,7 +683,7 @@ void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool 
         case ObjectOutside      : text = L("An object outside the print area was detected"); break;
         case ToolpathOutside    : text = L("A toolpath outside the print area was detected"); break;
         case SlaSupportsOutside : text = L("SLA supports outside the print area were detected"); break;
-        case SomethingNotShown  : text = L("Some objects are not visible when editing supports"); break;
+        case SomethingNotShown  : text = L("Some objects are not visible"); break;
         case ObjectClashed: {
             text = L("An object outside the print area was detected\n"
                      "Resolve the current problem to continue slicing");
