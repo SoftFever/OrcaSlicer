@@ -33,10 +33,14 @@ enum SelectedSlider {
     ssHigher
 };
 
-enum IconFocus {
-    ifNone,
-    ifRevert,
-    ifCog
+enum FocusItem {
+    fiNone,
+    fiRevertIcon,
+    fiOneLayerIcon,
+    fiCogIcon,
+    fiColorBand,
+    fiActionIcon,
+    fiTick
 };
 
 enum ConflictType
@@ -263,7 +267,7 @@ private:
     wxSize      get_size();
     void        get_size(int *w, int *h);
     double      get_double_value(const SelectedSlider& selection);
-    wxString    get_tooltip(IconFocus icon_focus);
+    wxString    get_tooltip(FocusItem focused_item, int tick = -1);
 
     std::string get_color_for_tool_change_tick(std::set<TickCode>::const_iterator it) const;
     std::string get_color_for_color_change_tick(std::set<TickCode>::const_iterator it) const;
