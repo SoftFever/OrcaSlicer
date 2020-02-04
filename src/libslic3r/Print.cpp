@@ -494,7 +494,7 @@ static bool custom_per_printz_gcodes_tool_changes_differ(const std::vector<Custo
 {
 	auto it_a = va.begin();
 	auto it_b = vb.begin();
-	while (it_a != va.end() && it_b != vb.end()) {
+	while (it_a != va.end() || it_b != vb.end()) {
 		if (it_a != va.end() && it_a->gcode != ToolChangeCode) {
 			// Skip any CustomGCode items, which are not tool changes.
 			++ it_a;
