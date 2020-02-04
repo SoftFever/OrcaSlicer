@@ -603,21 +603,24 @@ std::string Control::get_color_for_color_change_tick(std::set<TickCode>::const_i
     return "";
 }
 
-void Control::draw_colored_band(wxDC& dc)
+wxRect Control::get_colored_band_rect()
 {
-    if (!m_is_enabled_tick_manipulation)
-        return;
-
     int height, width;
     get_size(&width, &height);
 
     const wxCoord mid = is_horizontal() ? 0.5 * height : 0.5 * width;
 
-    wxRect main_band = is_horizontal() ?
-                       wxRect(SLIDER_MARGIN, lround(mid - 0.375 * m_thumb_size.y), 
-                              width - 2 * SLIDER_MARGIN + 1, lround(0.75 * m_thumb_size.y)) :
-                       wxRect(lround(mid - 0.375 * m_thumb_size.x), SLIDER_MARGIN, 
-                              lround(0.75 * m_thumb_size.x), height - 2 * SLIDER_MARGIN + 1);
+    return is_horizontal() ?
+           wxRect(SLIDER_MARGIN, lround(mid - 0.375 * m_thumb_size.y), 
+                  width - 2 * SLIDER_MARGIN + 1, lround(0.75 * m_thumb_size.y)) :
+           wxRect(lround(mid - 0.375 * m_thumb_size.x), SLIDER_MARGIN, 
+                  lround(0.75 * m_thumb_size.x), height - 2 * SLIDER_MARGIN + 1);
+}
+
+void Control::draw_colored_band(wxDC& dc)
+{
+    if (!m_is_enabled_tick_manipulation)
+        return;
 
     auto draw_band = [](wxDC& dc, const wxColour& clr, const wxRect& band_rc) 
     {
@@ -625,6 +628,8 @@ void Control::draw_colored_band(wxDC& dc)
         dc.SetBrush(clr);
         dc.DrawRectangle(band_rc);
     };
+
+    wxRect main_band = get_colored_band_rect();
 
     // don't color a band for MultiExtruder mode
     if (m_ticks.empty() || m_mode == t_mode::MultiExtruder)
@@ -887,7 +892,7 @@ wxString Control::get_tooltip(FocusItem focused_item, int tick/*=-1*/)
         return _(L("Set extruder sequence for whole print"));
     if (focused_item == fiColorBand)
         return m_mode != t_mode::SingleExtruder ? "" :
-               _(L("For edit current color use Right(Double) mouse click on colored band"));
+               _(L("For edit current color use right mouse button click on colored band"));
 
     wxString tooltip;
     const auto tick_code_it = m_ticks.ticks.find(TickCode{tick});
@@ -961,6 +966,23 @@ wxString Control::get_tooltip(FocusItem focused_item, int tick/*=-1*/)
 
 }
 
+int Control::get_edited_tick_for_position(const wxPoint pos, const std::string& gcode /*= ColorChangeCode*/)
+{
+    if (m_ticks.empty())
+        return -1;
+
+    int tick = get_value_from_position(pos);
+    auto it = std::lower_bound(m_ticks.ticks.begin(), m_ticks.ticks.end(), TickCode{ tick });
+
+    while (it != m_ticks.ticks.begin()) {
+        --it;
+        if (it->gcode == gcode)
+            return it->tick;
+    }
+
+    return -1;
+}
+
 void Control::OnMotion(wxMouseEvent& event)
 {
     bool action = false;
@@ -985,6 +1007,9 @@ void Control::OnMotion(wxMouseEvent& event)
             focused_item = fiRevertIcon;
         else if (is_point_in_rect(pos, m_rect_cog_icon))
             focused_item = fiCogIcon;
+        else if (m_mode == t_mode::SingleExtruder && is_point_in_rect(pos, get_colored_band_rect()) &&
+                 get_edited_tick_for_position(pos) >= 0 )
+            focused_item = fiColorBand;
         else {
             focused_item = fiTick;
             tick = get_tick_near_point(pos);
@@ -1242,7 +1267,7 @@ void Control::OnRightDown(wxMouseEvent& event)
     const wxClientDC dc(this);
 
     wxPoint pos = event.GetLogicalPosition(dc);
-    if (is_point_in_rect(pos, m_rect_tick_action) && m_is_enabled_tick_manipulation)
+    if (m_is_enabled_tick_manipulation && is_point_in_rect(pos, m_rect_tick_action))
     {
         const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
         if (m_ticks.ticks.find(TickCode{ tick }) == m_ticks.ticks.end())   // if on this Z doesn't exist tick
@@ -1251,6 +1276,13 @@ void Control::OnRightDown(wxMouseEvent& event)
         else
             // show "Edit" and "Delete" menu on OnRightUp()
             m_show_edit_menu = true;
+        return;
+    }
+
+    if (m_is_enabled_tick_manipulation && m_mode == t_mode::SingleExtruder && 
+        is_point_in_rect(pos, get_colored_band_rect()))
+    {
+        m_force_color_edit = true;
         return;
     }
 
@@ -1424,6 +1456,17 @@ void Control::OnRightUp(wxMouseEvent& event)
 
         m_show_edit_menu = false;
     }
+    else if (m_force_color_edit)
+    {
+        const wxClientDC dc(this);
+        wxPoint pos = event.GetLogicalPosition(dc);
+
+        int edited_tick = get_edited_tick_for_position(pos);
+        if (edited_tick >= 0)
+            edit_tick(edited_tick);
+
+        m_force_color_edit = false;
+    }
 
     Refresh();
     Update();
@@ -1587,9 +1630,10 @@ void Control::delete_current_tick()
     post_ticks_changed_event(code);
 }
 
-void Control::edit_tick()
+void Control::edit_tick(int tick/* = -1*/)
 {
-    const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
+    if (tick < 0)
+        tick = m_selection == ssLower ? m_lower_value : m_higher_value;
     const std::set<TickCode>::iterator it = m_ticks.ticks.find(TickCode{ tick });
 
     if (it == m_ticks.ticks.end() ||

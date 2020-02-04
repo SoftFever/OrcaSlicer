@@ -225,7 +225,7 @@ public:
     void add_current_tick(bool call_from_keyboard = false);
     // delete current tick, when press "-"
     void delete_current_tick();
-    void edit_tick();
+    void edit_tick(int tick = -1);
     void edit_extruder_sequence();
 
     ExtrudersSequence m_extruders_sequence;
@@ -263,14 +263,17 @@ private:
     wxString    get_label(const SelectedSlider& selection) const;
     void        get_lower_and_higher_position(int& lower_pos, int& higher_pos);
     int         get_value_from_position(const wxCoord x, const wxCoord y);
+    int         get_value_from_position(const wxPoint pos) { return get_value_from_position(pos.x, pos.y); }
     wxCoord     get_position_from_value(const int value);
     wxSize      get_size();
     void        get_size(int *w, int *h);
     double      get_double_value(const SelectedSlider& selection);
     wxString    get_tooltip(FocusItem focused_item, int tick = -1);
+    int         get_edited_tick_for_position(wxPoint pos, const std::string& gcode = ColorChangeCode);
 
     std::string get_color_for_tool_change_tick(std::set<TickCode>::const_iterator it) const;
     std::string get_color_for_color_change_tick(std::set<TickCode>::const_iterator it) const;
+    wxRect      get_colored_band_rect();
 
     // Get active extruders for tick. 
     // Means one current extruder for not existing tick OR 
@@ -316,6 +319,7 @@ private:
     bool        m_force_mode_apply = true;
     bool        m_force_add_tick    = false;
     bool        m_force_delete_tick = false;
+    bool        m_force_color_edit  = false;
     t_mode      m_mode = t_mode::SingleExtruder;
     int         m_only_extruder = -1;
 
