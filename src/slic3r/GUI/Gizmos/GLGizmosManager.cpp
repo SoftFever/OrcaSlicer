@@ -776,56 +776,6 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
                     processed = true;
             }
         }
-        else if (m_current == Move)
-        {
-            switch (keyCode)
-            {
-            case WXK_NUMPAD_LEFT:  case WXK_LEFT: 
-            case WXK_NUMPAD_RIGHT: case WXK_RIGHT:
-            case WXK_NUMPAD_UP:    case WXK_UP:
-            case WXK_NUMPAD_DOWN:  case WXK_DOWN:
-            {
-                m_parent.do_move(L("Gizmo-Move"));
-                stop_dragging();
-                update_data();
-
-                wxGetApp().obj_manipul()->set_dirty();
-                // Let the plater know that the dragging finished, so a delayed refresh
-                // of the scene with the background processing data should be performed.
-                m_parent.post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
-                // updates camera target constraints
-                m_parent.refresh_camera_scene_box();
-                processed = true;
-
-                break;
-            }
-            default: { break; }
-            }
-        }
-        else if (m_current == Rotate)
-        {
-            switch (keyCode)
-            {
-            case WXK_NUMPAD_LEFT:  case WXK_LEFT: 
-            case WXK_NUMPAD_RIGHT: case WXK_RIGHT:
-            {
-                m_parent.do_rotate(L("Gizmo-Rotate"));
-                stop_dragging();
-                update_data();
-
-                wxGetApp().obj_manipul()->set_dirty();
-                // Let the plater know that the dragging finished, so a delayed refresh
-                // of the scene with the background processing data should be performed.
-                m_parent.post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
-                // updates camera target constraints
-                m_parent.refresh_camera_scene_box();
-                processed = true;
-
-                break;
-            }
-            default: { break; }
-            }
-        }
 
 //        if (processed)
 //            m_parent.set_cursor(GLCanvas3D::Standard);
@@ -837,44 +787,6 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
         {
 //            m_parent.set_cursor(GLCanvas3D::Cross);
             processed = true;
-        }
-        else if (m_current == Move)
-        {
-            auto do_move = [this, &processed](const Vec3d& displacement) {
-                Selection& selection = m_parent.get_selection();
-                selection.start_dragging();
-                start_dragging();
-                selection.translate(displacement);
-//                wxGetApp().obj_manipul()->set_dirty();
-                processed = true;
-            };
-
-            switch (keyCode)
-            {
-            case WXK_NUMPAD_LEFT:  case WXK_LEFT:  { do_move(-Vec3d::UnitX()); break; }
-            case WXK_NUMPAD_RIGHT: case WXK_RIGHT: { do_move(Vec3d::UnitX()); break; }
-            case WXK_NUMPAD_UP:    case WXK_UP:    { do_move(Vec3d::UnitY()); break; }
-            case WXK_NUMPAD_DOWN:  case WXK_DOWN:  { do_move(-Vec3d::UnitY()); break; }
-            default: { break; }
-            }
-        }
-        else if (m_current == Rotate)
-        {
-            auto do_rotate = [this, &processed](double angle_z_rad) {
-                Selection& selection = m_parent.get_selection();
-                selection.start_dragging();
-                start_dragging();
-                selection.rotate(Vec3d(0.0, 0.0, angle_z_rad), TransformationType(TransformationType::World_Relative_Joint));
-//                wxGetApp().obj_manipul()->set_dirty();
-                processed = true;
-            };
-
-            switch (keyCode)
-            {
-            case WXK_NUMPAD_LEFT:  case WXK_LEFT:  { do_rotate(0.25 * M_PI); break; }
-            case WXK_NUMPAD_RIGHT: case WXK_RIGHT: { do_rotate(-0.25 * M_PI); break; }
-            default: { break; }
-            }
         }
         else if (m_current == Cut)
         {

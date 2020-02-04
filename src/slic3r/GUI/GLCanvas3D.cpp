@@ -2743,6 +2743,46 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 }
                 else if (keyCode == WXK_CONTROL)
                     m_dirty = true;
+                else if (m_gizmos.is_enabled() && !m_selection.is_empty()) {
+                    switch (keyCode)
+                    {
+                    case WXK_NUMPAD_LEFT:  case WXK_LEFT:
+                    case WXK_NUMPAD_RIGHT: case WXK_RIGHT:
+                    case WXK_NUMPAD_UP:    case WXK_UP:
+                    case WXK_NUMPAD_DOWN:  case WXK_DOWN:
+                    {
+                        do_move(L("Gizmo-Move"));
+                        m_gizmos.update_data();
+
+                        wxGetApp().obj_manipul()->set_dirty();
+                        // Let the plater know that the dragging finished, so a delayed refresh
+                        // of the scene with the background processing data should be performed.
+                        post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
+                        // updates camera target constraints
+                        refresh_camera_scene_box();
+                        m_dirty = true;
+
+                        break;
+                    }
+                    case WXK_NUMPAD_PAGEUP:   case WXK_PAGEUP:
+                    case WXK_NUMPAD_PAGEDOWN: case WXK_PAGEDOWN:
+                    {
+                        do_rotate(L("Gizmo-Rotate"));
+                        m_gizmos.update_data();
+
+                        wxGetApp().obj_manipul()->set_dirty();
+                        // Let the plater know that the dragging finished, so a delayed refresh
+                        // of the scene with the background processing data should be performed.
+                        post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
+                        // updates camera target constraints
+                        refresh_camera_scene_box();
+                        m_dirty = true;
+
+                        break;
+                    }
+                    default: { break; }
+                    }
+                }
             }
             else if (evt.GetEventType() == wxEVT_KEY_DOWN) {
                 m_tab_down = keyCode == WXK_TAB && !evt.HasAnyModifiers();
@@ -2764,14 +2804,43 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 }
                 else if (keyCode == WXK_CONTROL)
                     m_dirty = true;
-                // DoubleSlider navigation in Preview
-                else if (keyCode == WXK_LEFT    || 
-                         keyCode == WXK_RIGHT   ||
-                         keyCode == WXK_UP      || 
-                         keyCode == WXK_DOWN    )
+                else if (m_gizmos.is_enabled() && !m_selection.is_empty())
                 {
-                    if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
-                        post_event(wxKeyEvent(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, evt));
+                    auto do_move = [this](const Vec3d& displacement) {
+                        m_selection.start_dragging();
+                        m_selection.translate(displacement);
+                        m_dirty = true;
+//                        wxGetApp().obj_manipul()->set_dirty();
+                    };
+                    auto do_rotate = [this](double angle_z_rad) {
+                        m_selection.start_dragging();
+                        m_selection.rotate(Vec3d(0.0, 0.0, angle_z_rad), TransformationType(TransformationType::World_Relative_Joint));
+                        m_dirty = true;
+//                        wxGetApp().obj_manipul()->set_dirty();
+                    };
+
+                    switch (keyCode)
+                    {
+                    case WXK_NUMPAD_LEFT:     case WXK_LEFT:     { do_move(-Vec3d::UnitX()); break; }
+                    case WXK_NUMPAD_RIGHT:    case WXK_RIGHT:    { do_move(Vec3d::UnitX()); break; }
+                    case WXK_NUMPAD_UP:       case WXK_UP:       { do_move(Vec3d::UnitY()); break; }
+                    case WXK_NUMPAD_DOWN:     case WXK_DOWN:     { do_move(-Vec3d::UnitY()); break; }
+                    case WXK_NUMPAD_PAGEUP:   case WXK_PAGEUP:   { do_rotate(0.25 * M_PI); break; }
+                    case WXK_NUMPAD_PAGEDOWN: case WXK_PAGEDOWN: { do_rotate(-0.25 * M_PI); break; }
+                    default: { break; }
+                    }
+                }
+                else if (!m_gizmos.is_enabled())
+                {
+                    // DoubleSlider navigation in Preview
+                    if (keyCode == WXK_LEFT ||
+                        keyCode == WXK_RIGHT ||
+                        keyCode == WXK_UP ||
+                        keyCode == WXK_DOWN)
+                    {
+                        if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
+                            post_event(wxKeyEvent(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, evt));
+                    }
                 }
             }
         }
