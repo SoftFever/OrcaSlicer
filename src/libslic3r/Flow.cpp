@@ -1,12 +1,17 @@
 #include "Flow.hpp"
+#include "I18N.hpp"
 #include "Print.hpp"
 #include <cmath>
 #include <assert.h>
 
+
+// Mark string for localization and translate.
+#define L(s) Slic3r::I18N::translate(s)
+
 namespace Slic3r {
 
 // This static method returns a sane extrusion width default.
-static inline float auto_extrusion_width(FlowRole role, float nozzle_diameter, float height)
+float Flow::auto_extrusion_width(FlowRole role, float nozzle_diameter)
 {
     switch (role) {
     case frSupportMaterial:
@@ -20,6 +25,92 @@ static inline float auto_extrusion_width(FlowRole role, float nozzle_diameter, f
     case frInfill:
         return 1.125f * nozzle_diameter;
     }
+}
+
+// Used by the Flow::extrusion_width() funtion to provide hints to the user on default extrusion width values,
+// and to provide reasonable values to the PlaceholderParser.
+static inline FlowRole opt_key_to_flow_role(const std::string &opt_key)
+{
+ 	if (opt_key == "perimeter_extrusion_width" || 
+ 		// or all the defaults:
+ 		opt_key == "extrusion_width" || opt_key == "first_layer_extrusion_width")
+        return frPerimeter;
+    else if (opt_key == "external_perimeter_extrusion_width")
+        return frExternalPerimeter;
+    else if (opt_key == "infill_extrusion_width")
+        return frInfill;
+    else if (opt_key == "solid_infill_extrusion_width")
+        return frSolidInfill;
+	else if (opt_key == "top_infill_extrusion_width")
+		return frTopSolidInfill;
+	else if (opt_key == "support_material_extrusion_width")
+    	return frSupportMaterial;
+    else 
+    	throw std::runtime_error("opt_key_to_flow_role: invalid argument");
+};
+
+static inline void throw_on_missing_variable(const std::string &opt_key, const char *dependent_opt_key) 
+{
+	throw std::runtime_error((boost::format(L("Cannot calculate extrusion width for %1%: Variable \"%2%\" not accessible.")) % opt_key % dependent_opt_key).str());
+}
+
+// Used to provide hints to the user on default extrusion width values, and to provide reasonable values to the PlaceholderParser.
+double Flow::extrusion_width(const std::string& opt_key, const ConfigOptionFloatOrPercent* opt, const ConfigOptionResolver& config, const unsigned int first_printing_extruder)
+{
+	assert(opt != nullptr);
+
+	bool first_layer = boost::starts_with(opt_key, "first_layer_");
+
+#if 0
+// This is the logic used for skit / brim, but not for the rest of the 1st layer.
+	if (opt->value == 0. && first_layer) {
+		// The "first_layer_extrusion_width" was set to zero, try a substitute.
+		opt = config.option<ConfigOptionFloatOrPercent>("perimeter_extrusion_width");
+		if (opt == nullptr)
+    		throw_on_missing_variable(opt_key, "perimeter_extrusion_width");
+	}
+#endif
+
+	if (opt->value == 0.) {
+		// The role specific extrusion width value was set to zero, try the role non-specific extrusion width.
+		opt = config.option<ConfigOptionFloatOrPercent>("extrusion_width");
+		if (opt == nullptr)
+    		throw_on_missing_variable(opt_key, "extrusion_width");
+    	// Use the "layer_height" instead of "first_layer_height".
+    	first_layer = false;
+	}
+
+	if (opt->percent) {
+		auto opt_key_layer_height = first_layer ? "first_layer_height" : "layer_height";
+    	auto opt_layer_height = config.option(opt_key_layer_height);
+    	if (opt_layer_height == nullptr)
+    		throw_on_missing_variable(opt_key, opt_key_layer_height);
+    	double layer_height = opt_layer_height->getFloat();
+    	if (first_layer && static_cast<const ConfigOptionFloatOrPercent*>(opt_layer_height)->percent) {
+    		// first_layer_height depends on layer_height.
+	    	opt_layer_height = config.option("layer_height");
+	    	if (opt_layer_height == nullptr)
+	    		throw_on_missing_variable(opt_key, "layer_height");
+	    	layer_height *= 0.01 * opt_layer_height->getFloat();
+    	}
+		return opt->get_abs_value(layer_height);
+	}
+
+	if (opt->value == 0.) {
+        // If user left option to 0, calculate a sane default width.
+    	auto opt_nozzle_diameters = config.option<ConfigOptionFloats>("nozzle_diameter");
+    	if (opt_nozzle_diameters == nullptr)
+    		throw_on_missing_variable(opt_key, "nozzle_diameter");
+        return auto_extrusion_width(opt_key_to_flow_role(opt_key), float(opt_nozzle_diameters->get_at(first_printing_extruder)));
+    }
+
+	return opt->value;
+}
+
+// Used to provide hints to the user on default extrusion width values, and to provide reasonable values to the PlaceholderParser.
+double Flow::extrusion_width(const std::string& opt_key, const ConfigOptionResolver &config, const unsigned int first_printing_extruder)
+{
+    return extrusion_width(opt_key, config.option<ConfigOptionFloatOrPercent>(opt_key), config, first_printing_extruder);
 }
 
 // This constructor builds a Flow object from an extrusion width config setting
@@ -39,7 +130,7 @@ Flow Flow::new_from_config_width(FlowRole role, const ConfigOptionFloatOrPercent
             sqrt(bridge_flow_ratio) * nozzle_diameter;
     } else if (! width.percent && width.value == 0.) {
         // If user left option to 0, calculate a sane default width.
-        w = auto_extrusion_width(role, nozzle_diameter, height);
+        w = auto_extrusion_width(role, nozzle_diameter);
     } else {
         // If user set a manual value, use it.
         w = float(width.get_abs_value(height));

@@ -14,7 +14,15 @@ SCENARIO("Placeholder parser scripting", "[PlaceholderParser]") {
 	    { "nozzle_diameter", "0.6;0.6;0.6;0.6" },
 	    { "temperature", "357;359;363;378" }
 	});
-	parser.apply_config(config);
+    // To test the "first_layer_extrusion_width" over "first_layer_heigth" over "layer_height" chain.
+    config.option<ConfigOptionFloatOrPercent>("first_layer_height")->value = 150.;
+    config.option<ConfigOptionFloatOrPercent>("first_layer_height")->percent = true;
+    // To let the PlaceholderParser throw when referencing first_layer_speed if it is set to percent, as the PlaceholderParser does not know
+    // a percent to what.
+    config.option<ConfigOptionFloatOrPercent>("first_layer_speed")->value = 50.;
+    config.option<ConfigOptionFloatOrPercent>("first_layer_speed")->percent = true;
+
+    parser.apply_config(config);
 	parser.set("foo", 0);
 	parser.set("bar", 2);
 	parser.set("num_extruders", 4);
@@ -40,6 +48,19 @@ SCENARIO("Placeholder parser scripting", "[PlaceholderParser]") {
     SECTION("math: max(13.4, -1238.1)") { REQUIRE(std::stod(parser.process("{max(13.4, -1238.1)}")) == Approx(13.4)); }
     SECTION("math: int(13.4)") { REQUIRE(parser.process("{int(13.4)}") == "13"); }
     SECTION("math: int(-13.4)") { REQUIRE(parser.process("{int(-13.4)}") == "-13"); }
+
+    // Test the "coFloatOrPercent" and "xxx_extrusion_width" substitutions.
+    // first_layer_extrusion_width ratio_over first_layer_heigth ratio_over layer_height
+    SECTION("perimeter_extrusion_width") { REQUIRE(std::stod(parser.process("{perimeter_extrusion_width}")) == Approx(0.67500001192092896)); }
+    SECTION("first_layer_extrusion_width") { REQUIRE(std::stod(parser.process("{first_layer_extrusion_width}")) == Approx(0.9)); }
+    SECTION("support_material_xy_spacing") { REQUIRE(std::stod(parser.process("{support_material_xy_spacing}")) == Approx(0.3375)); }
+    // external_perimeter_speed over perimeter_speed
+    SECTION("external_perimeter_speed") { REQUIRE(std::stod(parser.process("{external_perimeter_speed}")) == Approx(30.)); }
+    // infill_overlap over perimeter_extrusion_width
+    SECTION("infill_overlap") { REQUIRE(std::stod(parser.process("{infill_overlap}")) == Approx(0.16875)); }
+    // If first_layer_speed is set to percent, then it is applied over respective extrusion types by overriding their respective speeds.
+    // The PlaceholderParser has no way to know which extrusion type the caller has in mind, therefore it throws.
+    SECTION("first_layer_speed") { REQUIRE_THROWS(parser.process("{first_layer_speed}")); }
 
     // Test the boolean expression parser.
     auto boolean_expression = [&parser](const std::string& templ) { return parser.evaluate_boolean_expression(templ, parser.config()); };

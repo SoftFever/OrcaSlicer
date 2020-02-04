@@ -757,6 +757,12 @@ ConfigOption* DynamicConfig::optptr(const t_config_option_key &opt_key, bool cre
     return opt;
 }
 
+const ConfigOption* DynamicConfig::optptr(const t_config_option_key &opt_key) const
+{
+    auto it = options.find(opt_key);
+    return (it == options.end()) ? nullptr : it->second.get();
+}
+
 void DynamicConfig::read_cli(const std::vector<std::string> &tokens, t_config_option_keys* extra, t_config_option_keys* keys)
 {
     std::vector<const char*> args;    

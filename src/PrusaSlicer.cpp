@@ -591,7 +591,7 @@ bool CLI::setup(int argc, char **argv)
     // Initialize with defaults.
     for (const t_optiondef_map *options : { &cli_actions_config_def.options, &cli_transform_config_def.options, &cli_misc_config_def.options })
         for (const std::pair<t_config_option_key, ConfigOptionDef> &optdef : *options)
-            m_config.optptr(optdef.first, true);
+            m_config.option(optdef.first, true);
 
     set_data_dir(m_config.opt_string("datadir"));
 

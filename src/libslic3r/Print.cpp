@@ -24,8 +24,7 @@
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
 
-//! macro used to mark string used at localization,
-//! return same string
+// Mark string for localization and translate.
 #define L(s) Slic3r::I18N::translate(s)
 
 namespace Slic3r {
@@ -527,7 +526,6 @@ void Print::config_diffs(
 	const DynamicPrintConfig &new_full_config, 
 	t_config_option_keys &print_diff, t_config_option_keys &object_diff, t_config_option_keys &region_diff, 
 	t_config_option_keys &full_config_diff, 
-	DynamicPrintConfig &placeholder_parser_overrides,
 	DynamicPrintConfig &filament_overrides) const
 {
     // Collect changes to print config, account for overrides of extruder retract values by filament presets.
@@ -563,19 +561,11 @@ void Print::config_diffs(
     object_diff = m_default_object_config.diff(new_full_config);
     region_diff = m_default_region_config.diff(new_full_config);
     // Prepare for storing of the full print config into new_full_config to be exported into the G-code and to be used by the PlaceholderParser.
-    // As the PlaceholderParser does not interpret the FloatOrPercent values itself, these values are stored into the PlaceholderParser converted to floats.
     for (const t_config_option_key &opt_key : new_full_config.keys()) {
         const ConfigOption *opt_old = m_full_print_config.option(opt_key);
         const ConfigOption *opt_new = new_full_config.option(opt_key);
         if (opt_old == nullptr || *opt_new != *opt_old)
             full_config_diff.emplace_back(opt_key);
-        if (opt_new->type() == coFloatOrPercent) {
-        	// The m_placeholder_parser is never modified by the background processing, GCode.cpp/hpp makes a copy.
-	        const ConfigOption *opt_old_pp = this->placeholder_parser().config().option(opt_key);
-	        double new_value = new_full_config.get_abs_value(opt_key);
-	        if (opt_old_pp == nullptr || static_cast<const ConfigOptionFloat*>(opt_old_pp)->value != new_value)
-	        	placeholder_parser_overrides.set_key_value(opt_key, new ConfigOptionFloat(new_value));
-		}
     }
 }
 
@@ -593,8 +583,8 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 
     // Find modified keys of the various configs. Resolve overrides extruder retract values by filament profiles.
 	t_config_option_keys print_diff, object_diff, region_diff, full_config_diff;
-	DynamicPrintConfig placeholder_parser_overrides, filament_overrides;
-	this->config_diffs(new_full_config, print_diff, object_diff, region_diff, full_config_diff, placeholder_parser_overrides, filament_overrides);
+	DynamicPrintConfig filament_overrides;
+	this->config_diffs(new_full_config, print_diff, object_diff, region_diff, full_config_diff, filament_overrides);
 
     // Do not use the ApplyStatus as we will use the max function when updating apply_status.
     unsigned int apply_status = APPLY_STATUS_UNCHANGED;
@@ -614,9 +604,8 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     // which should be stopped if print_diff is not empty.
     size_t num_extruders = m_config.nozzle_diameter.size();
     bool   num_extruders_changed = false;
-    if (! full_config_diff.empty() || ! placeholder_parser_overrides.empty()) {
+    if (! full_config_diff.empty()) {
         update_apply_status(this->invalidate_step(psGCodeExport));
-		m_placeholder_parser.apply_config(std::move(placeholder_parser_overrides));
         // Set the profile aliases for the PrintBase::output_filename()
 		m_placeholder_parser.set("print_preset",    new_full_config.option("print_settings_id")->clone());
 		m_placeholder_parser.set("filament_preset", new_full_config.option("filament_settings_id")->clone());
