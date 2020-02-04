@@ -200,6 +200,7 @@ private:
     bool            select_language();
 
     bool            config_wizard_startup();
+	void            check_updates(const bool verbose);
 
 #ifdef __WXMSW__
     void            associate_3mf_files();
