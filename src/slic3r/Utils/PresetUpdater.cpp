@@ -301,9 +301,9 @@ void PresetUpdater::priv::sync_config(const VendorMap vendors)
 		const std::string idx_path = (cache_path / (vendor.id + ".idx")).string();
 		const std::string idx_path_temp = idx_path + "-update";
 		//check if idx_url is leading to our site 
-		if(idx_url.substr(0, 54) != "http://files.prusa3d.com/wp-content/uploads/repository")
+		if (! boost::starts_with(idx_url, "http://files.prusa3d.com/wp-content/uploads/repository/"))
 		{
-			BOOST_LOG_TRIVIAL(warning) << "unsafe url path for vendor: " << vendor.name;
+			BOOST_LOG_TRIVIAL(warning) << "unsafe url path for vendor \"" << vendor.name << "\" rejected: " << idx_url;
 			continue;
 		}
 		if (!get_file(idx_url, idx_path_temp)) { continue; }
