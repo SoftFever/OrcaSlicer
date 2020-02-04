@@ -35,7 +35,7 @@ public:
     wxBitmap* 		load_svg(const std::string &bitmap_key, unsigned width = 0, unsigned height = 0, const bool grayscale = false, const bool dark_mode = false);
 
 	/*static */wxBitmap mksolid(size_t width, size_t height, unsigned char r, unsigned char g, unsigned char b, unsigned char transparency, bool suppress_scaling = false);
-	/*static */wxBitmap mksolid(size_t width, size_t height, const unsigned char rgb[3], bool suppress_scaling = false) { return mksolid(width, height, rgb[0], rgb[1], rgb[2], wxALPHA_OPAQUE); }
+	/*static */wxBitmap mksolid(size_t width, size_t height, const unsigned char rgb[3], bool suppress_scaling = false) { return mksolid(width, height, rgb[0], rgb[1], rgb[2], wxALPHA_OPAQUE, suppress_scaling); }
 	/*static */wxBitmap mkclear(size_t width, size_t height) { return mksolid(width, height, 0, 0, 0, wxALPHA_TRANSPARENT); }
 
 	static bool                 parse_color(const std::string& scolor, unsigned char* rgb_out);

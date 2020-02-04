@@ -230,23 +230,6 @@ static inline bool is_approx(Number value, Number test_value)
     return std::fabs(double(value) - double(test_value)) < double(EPSILON);
 }
 
-template<class...Args>
-std::string string_printf(const char *const _fmt, Args &&...args)
-{
-    static const size_t INITIAL_LEN = 1024;
-    std::vector<char> buffer(INITIAL_LEN, '\0');
-    
-    auto fmt = std::string("%s") + _fmt;
-    int bufflen = snprintf(buffer.data(), INITIAL_LEN - 1, fmt.c_str(), "", std::forward<Args>(args)...);
-    
-    if (bufflen >= int(INITIAL_LEN)) {
-        buffer.resize(size_t(bufflen) + 1);
-        snprintf(buffer.data(), buffer.size(), fmt.c_str(), "", std::forward<Args>(args)...);
-    }
-    
-    return std::string(buffer.begin(), buffer.begin() + bufflen);
-}
-
 } // namespace Slic3r
 
 #endif

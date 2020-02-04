@@ -78,13 +78,13 @@ public:
     // Support mesh is only valid if this->is_step_done(slaposPad) is true.
     const TriangleMesh&     pad_mesh() const;
     
-    // Ready after this->is_step_done(slaposHollowing) is true
+    // Ready after this->is_step_done(slaposDrillHoles) is true
     const TriangleMesh&     hollowed_interior_mesh() const;
     
     // Get the mesh that is going to be printed with all the modifications
     // like hollowing and drilled holes.
     const TriangleMesh & get_mesh_to_print() const {
-        return m_hollowing_data ? m_hollowing_data->hollow_mesh_with_holes : transformed_mesh();
+        return (m_hollowing_data && is_step_done(slaposDrillHoles)) ? m_hollowing_data->hollow_mesh_with_holes : transformed_mesh();
     }
 
     // This will return the transformed mesh which is cached
@@ -420,6 +420,9 @@ public:
 
     // Extracted value from the configuration objects
     Vec3d                       relative_correction() const;
+
+    // Return sla tansformation for a given model_object
+    Transform3d sla_trafo(const ModelObject &model_object) const;
 
 	std::string                 output_filename(const std::string &filename_base = std::string()) const override;
 

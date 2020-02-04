@@ -2076,7 +2076,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, [this](SimpleEvent&) { this->view3D->get_canvas3d()->reset_layer_height_profile(); });
     view3D_canvas->Bind(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, [this](Event<float>& evt) { this->view3D->get_canvas3d()->adaptive_layer_height_profile(evt.data); });
     view3D_canvas->Bind(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, [this](HeightProfileSmoothEvent& evt) { this->view3D->get_canvas3d()->smooth_layer_height_profile(evt.data); });
-    view3D_canvas->Bind(EVT_GLCANVAS_RELOAD_FROM_DISK, [this](SimpleEvent&) { if (!this->model.objects.empty()) this->reload_all_from_disk(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_RELOAD_FROM_DISK, [this](SimpleEvent&) { this->reload_all_from_disk(); });
 
     // 3DScene/Toolbar:
     view3D_canvas->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
@@ -3451,6 +3451,9 @@ void Plater::priv::reload_from_disk()
 
 void Plater::priv::reload_all_from_disk()
 {
+    if (model.objects.empty())
+        return;
+
     Plater::TakeSnapshot snapshot(q, _(L("Reload all from disk")));
     Plater::SuppressSnapshots suppress(q);
 
@@ -5130,7 +5133,7 @@ void Plater::reslice_SLA_supports(const ModelObject &object, bool postpone_error
 
 void Plater::reslice_SLA_hollowing(const ModelObject &object, bool postpone_error_messages)
 {
-    reslice_SLA_until_step(slaposHollowing, object, postpone_error_messages);
+    reslice_SLA_until_step(slaposDrillHoles, object, postpone_error_messages);
 }
 
 void Plater::reslice_SLA_until_step(SLAPrintObjectStep step, const ModelObject &object, bool postpone_error_messages)

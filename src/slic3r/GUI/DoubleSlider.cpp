@@ -1,4 +1,5 @@
 #include "wxExtensions.hpp"
+#include "libslic3r/GCode/PreviewData.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "I18N.hpp"
@@ -322,7 +323,8 @@ void Control::SetTicksValues(const CustomGCode::Info& custom_gcode_per_print_z)
         // Switch to the "Feature type"/"Tool" from the very beginning of a new object slicing after deleting of the old one
         post_ticks_changed_event();
 
-    m_ticks.mode = custom_gcode_per_print_z.mode;
+    if (custom_gcode_per_print_z.mode)
+        m_ticks.mode = custom_gcode_per_print_z.mode;
 
     Refresh();
     Update();
@@ -1169,6 +1171,8 @@ void Control::OnKeyDown(wxKeyEvent &event)
         m_ticks.suppress_minus(true);
         delete_current_tick();
     }
+    else if (event.GetKeyCode() == WXK_SHIFT)
+        UseDefaultColors(false);
     else if (is_horizontal())
     {
         if (key == WXK_LEFT || key == WXK_RIGHT)
@@ -1194,6 +1198,9 @@ void Control::OnKeyUp(wxKeyEvent &event)
 {
     if (event.GetKeyCode() == WXK_CONTROL)
         m_is_one_layer = false;
+    else if (event.GetKeyCode() == WXK_SHIFT)
+        UseDefaultColors(true);
+
     Refresh();
     Update();
     event.Skip();
@@ -1278,9 +1285,11 @@ std::array<int, 2> Control::get_active_extruders_for_tick(int tick) const
 
 // Get used extruders for tick. 
 // Means all extruders(tools) which will be used during printing from current tick to the end
-std::set<int> TickCodeInfo::get_used_extruders_for_tick(int tick, int only_extruder, double print_z) const
+std::set<int> TickCodeInfo::get_used_extruders_for_tick(int tick, int only_extruder, double print_z, t_mode force_mode/* = t_mode::Undef*/) const
 {
-    if (mode == t_mode::MultiExtruder)
+    t_mode e_mode = !force_mode ? mode : force_mode;
+
+    if (e_mode == t_mode::MultiExtruder)
     {
         // #ys_FIXME: get tool ordering from _correct_ place
         const ToolOrdering& tool_ordering = GUI::wxGetApp().plater()->fff_print().get_tool_ordering();
@@ -1301,8 +1310,8 @@ std::set<int> TickCodeInfo::get_used_extruders_for_tick(int tick, int only_extru
         return used_extruders;
     }
 
-    const int default_initial_extruder = mode == t_mode::MultiAsSingle ? std::max(only_extruder, 1) : 1;
-    if (ticks.empty())
+    const int default_initial_extruder = e_mode == t_mode::MultiAsSingle ? std::max(only_extruder, 1) : 1;
+    if (ticks.empty() || e_mode == t_mode::SingleExtruder)
         return {default_initial_extruder};
 
     std::set<int> used_extruders;
@@ -1346,10 +1355,13 @@ void Control::OnRightUp(wxMouseEvent& event)
     if (m_show_context_menu) {
         wxMenu menu;
 
-        if (m_mode == t_mode::SingleExtruder)
+        if (m_mode == t_mode::SingleExtruder) {
             append_menu_item(&menu, wxID_ANY, _(L("Add color change")) + " (M600)", "",
                 [this](wxCommandEvent&) { add_code_as_tick(ColorChangeCode); }, "colorchange_add_m", &menu,
                 [](){return true;}, this);
+
+            UseDefaultColors(false);
+        }
         else
         {
             append_change_extruder_menu_item(&menu);
@@ -1688,9 +1700,18 @@ bool Control::check_ticks_changed_event(const std::string& gcode)
     return true;
 }
 
-
 std::string TickCodeInfo::get_color_for_tick(TickCode tick, const std::string& code, const int extruder)
 {
+    if (mode == t_mode::SingleExtruder && code == ColorChangeCode && m_use_default_colors)
+    {
+        const std::vector<std::string>& colors = GCodePreviewData::ColorPrintColors();
+        if (ticks.empty())
+            return colors[0];
+        m_default_color_idx++;
+
+        return colors[m_default_color_idx % colors.size()];
+    }
+
     std::vector<std::string> colors = GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
     std::string color = colors[extruder - 1];
 
@@ -1739,6 +1760,9 @@ bool TickCodeInfo::add_tick(const int tick, std::string& code, const int extrude
         if (color.empty())
             return false;
     }
+
+    if (mode == t_mode::SingleExtruder)
+        m_use_default_colors = true;
 
     ticks.emplace(TickCode{ tick, code, extruder, color });
     return true;
@@ -1840,7 +1864,7 @@ ConflictType TickCodeInfo::is_conflict_tick(const TickCode& tick, t_mode out_mod
     {
         // We should mark a tick as a "MeaninglessColorChange", 
         // if it has a ColorChange for unused extruder from current print to end of the print
-        std::set<int> used_extruders_for_tick = get_used_extruders_for_tick(tick.tick, only_extruder, print_z);
+        std::set<int> used_extruders_for_tick = get_used_extruders_for_tick(tick.tick, only_extruder, print_z, out_mode);
 
         if (used_extruders_for_tick.find(tick.extruder) == used_extruders_for_tick.end())
             return ctMeaninglessColorChange;
@@ -1868,7 +1892,6 @@ ConflictType TickCodeInfo::is_conflict_tick(const TickCode& tick, t_mode out_mod
     {
         // We should mark a tick as a "MeaninglessToolChange", 
         // if it has a ToolChange to the same extruder
-
         auto it = ticks.find(tick);
         if (it == ticks.begin())
             return tick.extruder == std::max<int>(only_extruder, 1) ? ctMeaninglessToolChange : ctNone;
