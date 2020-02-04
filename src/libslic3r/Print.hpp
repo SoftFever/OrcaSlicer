@@ -435,7 +435,6 @@ private:
 		const DynamicPrintConfig &new_full_config, 
 		t_config_option_keys &print_diff, t_config_option_keys &object_diff, t_config_option_keys &region_diff, 
 		t_config_option_keys &full_config_diff, 
-		DynamicPrintConfig &placeholder_parser_overrides,
 		DynamicPrintConfig &filament_overrides) const;
 
     bool                invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);

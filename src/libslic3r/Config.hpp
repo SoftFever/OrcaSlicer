@@ -1494,8 +1494,49 @@ protected:
     ConfigOptionDef*        add_nullable(const t_config_option_key &opt_key, ConfigOptionType type);
 };
 
+// A pure interface to resolving ConfigOptions.
+// This pure interface is useful as a base of ConfigBase, also it may be overriden to combine 
+// various config sources.
+class ConfigOptionResolver
+{
+public:
+    ConfigOptionResolver() {}
+    virtual ~ConfigOptionResolver() {}
+
+    // Find a ConfigOption instance for a given name.
+    virtual const ConfigOption* optptr(const t_config_option_key &opt_key) const = 0;
+
+    bool 						has(const t_config_option_key &opt_key) const { return this->optptr(opt_key) != nullptr; }
+    
+    const ConfigOption* 		option(const t_config_option_key &opt_key) const { return this->optptr(opt_key); }
+
+    template<typename TYPE>
+    const TYPE* 				option(const t_config_option_key& opt_key) const
+    {
+        const ConfigOption* opt = this->optptr(opt_key);
+        return (opt == nullptr || opt->type() != TYPE::static_type()) ? nullptr : static_cast<const TYPE*>(opt);
+    }
+
+    const ConfigOption* 		option_throw(const t_config_option_key& opt_key) const
+    {
+        const ConfigOption* opt = this->optptr(opt_key);
+        if (opt == nullptr)
+            throw UnknownOptionException(opt_key);
+        return opt;
+    }
+
+    template<typename TYPE>
+    const TYPE* 				option_throw(const t_config_option_key& opt_key) const
+    {
+        const ConfigOption* opt = this->option_throw(opt_key);
+        if (opt->type() != TYPE::static_type())
+            throw BadOptionTypeException("Conversion to a wrong type");
+        return static_cast<TYPE*>(opt);
+    }
+};
+
 // An abstract configuration store.
-class ConfigBase
+class ConfigBase : public ConfigOptionResolver
 {
 public:
     // Definition of configuration values for the purpose of GUI presentation, editing, value mapping and config file handling.
@@ -1503,7 +1544,7 @@ public:
     // but it carries the defaults of the configuration values.
     
     ConfigBase() {}
-    virtual ~ConfigBase() {}
+    ~ConfigBase() override {}
 
     // Virtual overridables:
 public:
@@ -1513,6 +1554,7 @@ public:
     virtual ConfigOption*           optptr(const t_config_option_key &opt_key, bool create = false) = 0;
     // Collect names of all configuration values maintained by this configuration store.
     virtual t_config_option_keys    keys() const = 0;
+
 protected:
     // Verify whether the opt_key has not been obsoleted or renamed.
     // Both opt_key and value may be modified by handle_legacy().
@@ -1521,12 +1563,10 @@ protected:
     virtual void                    handle_legacy(t_config_option_key &/*opt_key*/, std::string &/*value*/) const {}
 
 public:
+	using ConfigOptionResolver::option;
+	using ConfigOptionResolver::option_throw;
+
     // Non-virtual methods:
-    bool has(const t_config_option_key &opt_key) const { return this->option(opt_key) != nullptr; }
-    
-    const ConfigOption* option(const t_config_option_key &opt_key) const
-        { return const_cast<ConfigBase*>(this)->option(opt_key, false); }
-    
     ConfigOption* option(const t_config_option_key &opt_key, bool create = false)
         { return this->optptr(opt_key, create); }
     
@@ -1537,10 +1577,6 @@ public:
         return (opt == nullptr || opt->type() != TYPE::static_type()) ? nullptr : static_cast<TYPE*>(opt);
     }
 
-    template<typename TYPE>
-    const TYPE* option(const t_config_option_key &opt_key) const
-        { return const_cast<ConfigBase*>(this)->option<TYPE>(opt_key, false); }
-
     ConfigOption* option_throw(const t_config_option_key &opt_key, bool create = false)
     { 
         ConfigOption *opt = this->optptr(opt_key, create);
@@ -1548,9 +1584,6 @@ public:
             throw UnknownOptionException(opt_key);
         return opt;
     }
-    
-    const ConfigOption* option_throw(const t_config_option_key &opt_key) const
-        { return const_cast<ConfigBase*>(this)->option_throw(opt_key, false); }
     
     template<typename TYPE>
     TYPE* option_throw(const t_config_option_key &opt_key, bool create = false)
@@ -1560,10 +1593,6 @@ public:
             throw BadOptionTypeException("Conversion to a wrong type");
         return static_cast<TYPE*>(opt);
     }
-    
-    template<typename TYPE>
-    const TYPE* option_throw(const t_config_option_key &opt_key) const
-        { return const_cast<ConfigBase*>(this)->option_throw<TYPE>(opt_key, false); }
     
     // Apply all keys of other ConfigBase defined by this->def() to this ConfigBase.
     // An UnknownOptionException is thrown in case some option keys of other are not defined by this->def(),
@@ -1735,6 +1764,8 @@ public:
         { return dynamic_cast<T*>(this->option(opt_key, create)); }
     template<class T> const T* opt(const t_config_option_key &opt_key) const
         { return dynamic_cast<const T*>(this->option(opt_key)); }
+    // Overrides ConfigResolver::optptr().
+    const ConfigOption*     optptr(const t_config_option_key &opt_key) const override;
     // Overrides ConfigBase::optptr(). Find ando/or create a ConfigOption instance for a given name.
     ConfigOption*           optptr(const t_config_option_key &opt_key, bool create = false) override;
     // Overrides ConfigBase::keys(). Collect names of all configuration values maintained by this configuration store.
