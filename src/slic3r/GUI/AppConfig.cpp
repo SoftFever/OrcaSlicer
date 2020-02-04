@@ -95,11 +95,6 @@ void AppConfig::set_defaults()
         set("use_free_camera", "0");
 #endif // ENABLE_6DOF_CAMERA
 
-#if ENABLE_SHOW_SCENE_LABELS
-    if (get("show_labels").empty())
-        set("show_labels", "0");
-#endif // ENABLE_SHOW_SCENE_LABELS
-
     // Remove legacy window positions/sizes
     erase("", "main_frame_maximized");
     erase("", "main_frame_pos");

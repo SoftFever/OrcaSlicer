@@ -170,6 +170,11 @@ public:
     bool is_preview_loaded() const;
     bool is_view3D_shown() const;
 
+#if ENABLE_SHOW_SCENE_LABELS
+    bool are_view3D_labels_shown() const;
+    void show_view3D_labels(bool show);
+#endif // ENABLE_SHOW_SCENE_LABELS
+
     // Called after the Preferences dialog is closed and the program settings are saved.
     // Update the UI based on the current preferences.
     void update_ui_from_settings();

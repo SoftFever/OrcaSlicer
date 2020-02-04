@@ -146,7 +146,8 @@ wxMenuItem* append_menu_radio_item(wxMenu* menu, int id, const wxString& string,
 }
 
 wxMenuItem* append_menu_check_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
-    std::function<void(wxCommandEvent& event)> cb, wxEvtHandler* event_handler)
+    std::function<void(wxCommandEvent & event)> cb, wxEvtHandler* event_handler,
+    std::function<bool()> const enable_condition, std::function<bool()> const check_condition, wxWindow* parent)
 {
     if (id == wxID_ANY)
         id = wxNewId();
@@ -159,6 +160,13 @@ wxMenuItem* append_menu_check_item(wxMenu* menu, int id, const wxString& string,
     else
 #endif // __WXMSW__
         menu->Bind(wxEVT_MENU, cb, id);
+
+    if (parent)
+        parent->Bind(wxEVT_UPDATE_UI, [enable_condition, check_condition](wxUpdateUIEvent& evt)
+            {
+                evt.Enable(enable_condition());
+                evt.Check(check_condition());
+            }, id);
 
     return item;
 }

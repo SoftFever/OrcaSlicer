@@ -381,13 +381,14 @@ private:
     class Labels
     {
         bool m_enabled{ false };
+        bool m_shown{ false };
         GLCanvas3D& m_canvas;
 
     public:
         explicit Labels(GLCanvas3D& canvas) : m_canvas(canvas) {}
         void enable(bool enable) { m_enabled = enable; }
-        void show(bool show);
-        bool is_shown() const;
+        void show(bool show) { m_shown = m_enabled ? show : false; }
+        bool is_shown() const { return m_shown; }
         void render(const std::vector<const PrintInstance*>& sorted_instances) const;
     };
 #endif // ENABLE_SHOW_SCENE_LABELS
@@ -675,6 +676,11 @@ public:
     void export_toolpaths_to_obj(const char* filename) const;
 
     void mouse_up_cleanup();
+
+#if ENABLE_SHOW_SCENE_LABELS
+    bool are_labels_shown() const { return m_labels.is_shown(); }
+    void show_labels(bool show) { m_labels.show(show); }
+#endif // ENABLE_SHOW_SCENE_LABELS
 
 private:
     bool _is_shown_on_screen() const;

@@ -34,7 +34,9 @@ wxMenuItem* append_menu_radio_item(wxMenu* menu, int id, const wxString& string,
     std::function<void(wxCommandEvent& event)> cb, wxEvtHandler* event_handler);
 
 wxMenuItem* append_menu_check_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
-    std::function<void(wxCommandEvent& event)> cb, wxEvtHandler* event_handler);
+    std::function<void(wxCommandEvent & event)> cb, wxEvtHandler* event_handler,
+    std::function<bool()> const enable_condition = []() { return true; }, 
+    std::function<bool()> const check_condition = []() { return true; }, wxWindow* parent = nullptr);
 
 void enable_menu_item(wxUpdateUIEvent& evt, std::function<bool()> const cb_condition, wxMenuItem* item, wxWindow* win);
 

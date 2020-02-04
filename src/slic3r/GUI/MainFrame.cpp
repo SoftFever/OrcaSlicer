@@ -550,10 +550,10 @@ void MainFrame::init_menubar()
         wxString hotkey_delete = "Del";
     #endif
         append_menu_item(editMenu, wxID_ANY, _(L("&Select all")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "A",
-            _(L("Selects all objects")), [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->select_all(); },
+            _(L("Selects all objects")), [this](wxCommandEvent&) { m_plater->select_all(); },
             "", nullptr, [this](){return can_select(); }, this);
         append_menu_item(editMenu, wxID_ANY, _(L("D&eselect all")) + sep + "Esc",
-            _(L("Deselects all objects")), [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->deselect_all(); },
+            _(L("Deselects all objects")), [this](wxCommandEvent&) { m_plater->deselect_all(); },
             "", nullptr, [this](){return can_deselect(); }, this);
         editMenu->AppendSeparator();
         append_menu_item(editMenu, wxID_ANY, _(L("&Delete selected")) + sep + hotkey_delete,
@@ -659,6 +659,12 @@ void MainFrame::init_menubar()
             "", nullptr, [this](){return can_change_view(); }, this);
         append_menu_item(viewMenu, wxID_ANY, _(L("Right")) + sep + "&6", _(L("Right View")), [this](wxCommandEvent&) { select_view("right"); },
             "", nullptr, [this](){return can_change_view(); }, this);
+#if ENABLE_SHOW_SCENE_LABELS
+        viewMenu->AppendSeparator();
+        append_menu_check_item(viewMenu, wxID_ANY, _(L("Show &labels")) + sep + "E", _(L("Show object/instance labels in 3D scene")),
+            [this](wxCommandEvent&) { m_plater->show_view3D_labels(!m_plater->are_view3D_labels_shown()); }, this,
+            [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_labels_shown(); }, this);
+#endif // ENABLE_SHOW_SCENE_LABELS
     }
 
     // Help menu

@@ -1238,21 +1238,6 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
 }
 
 #if ENABLE_SHOW_SCENE_LABELS
-void GLCanvas3D::Labels::show(bool show)
-{
-    bool shown = is_shown();
-    if (shown != show)
-    {
-        wxGetApp().app_config->set("show_labels", show ? "1" : "0");
-        wxGetApp().app_config->save();
-    }
-}
-
-bool GLCanvas3D::Labels::is_shown() const
-{
-    return wxGetApp().app_config->get("show_labels") == "1";
-}
-
 void GLCanvas3D::Labels::render(const std::vector<const PrintInstance*>& sorted_instances) const
 {
     if (!m_enabled || !is_shown())

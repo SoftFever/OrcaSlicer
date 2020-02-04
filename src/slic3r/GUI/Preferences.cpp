@@ -144,15 +144,6 @@ void PreferencesDialog::build()
 		}
 	};
 
-#if ENABLE_SHOW_SCENE_LABELS
-	def.label = L("Show object/instance labels in 3D scene");
-	def.type = coBool;
-	def.tooltip = L("If enabled, shows labels containing info about objects/instances.");
-	def.set_default_value(new ConfigOptionBool{ app_config->get("show_labels") == "1" });
-	option = Option(def, "show_labels");
-	m_optgroup_gui->append_single_option_line(option);
-#endif // ENABLE_SHOW_SCENE_LABELS
-
 	def.label = L("Use custom size for toolbar icons");
 	def.type = coBool;
 	def.tooltip = L("If enabled, you can change size of toolbar icons manually.");
