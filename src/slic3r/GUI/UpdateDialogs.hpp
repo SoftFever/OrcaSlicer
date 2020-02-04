@@ -63,6 +63,33 @@ public:
 };
 
 // Informs about currently installed bundles not being compatible with the running Slic3r. Asks about action.
+class MsgUpdateForced : public MsgDialog
+{
+public:
+	struct Update
+	{
+		std::string vendor;
+		Semver version;
+		std::string comment;
+		std::string changelog_url;
+
+		Update(std::string vendor, Semver version, std::string comment, std::string changelog_url)
+			: vendor(std::move(vendor))
+			, version(std::move(version))
+			, comment(std::move(comment))
+			, changelog_url(std::move(changelog_url))
+		{}
+	};
+
+	MsgUpdateForced(const std::vector<Update>& updates);
+	MsgUpdateForced(MsgUpdateForced&&) = delete;
+	MsgUpdateForced(const MsgUpdateForced&) = delete;
+	MsgUpdateForced& operator=(MsgUpdateForced&&) = delete;
+	MsgUpdateForced& operator=(const MsgUpdateForced&) = delete;
+	~MsgUpdateForced();
+};
+
+// Informs about currently installed bundles not being compatible with the running Slic3r. Asks about action.
 class MsgDataIncompatible : public MsgDialog
 {
 public:
@@ -87,6 +114,17 @@ public:
 	~MsgDataLegacy();
 };
 
+// Informs about absence of bundles requiring update.
+class MsgNoUpdates : public MsgDialog
+{
+public:
+	MsgNoUpdates();
+	MsgNoUpdates(MsgNoUpdates&&) = delete;
+	MsgNoUpdates(const MsgNoUpdates&) = delete;
+	MsgNoUpdates& operator=(MsgNoUpdates&&) = delete;
+	MsgNoUpdates& operator=(const MsgNoUpdates&) = delete;
+	~MsgNoUpdates();
+};
 
 }
 }

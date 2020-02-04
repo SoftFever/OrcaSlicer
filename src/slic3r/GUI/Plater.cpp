@@ -5375,6 +5375,13 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         this->p->schedule_background_process();
 }
 
+void Plater::set_bed_shape() const
+{
+	p->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values,
+		p->config->option<ConfigOptionString>("bed_custom_texture")->value,
+		p->config->option<ConfigOptionString>("bed_custom_model")->value);
+}
+
 void Plater::force_filament_colors_update()
 {
     bool update_scheduled = false;

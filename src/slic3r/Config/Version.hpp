@@ -29,6 +29,7 @@ struct Version
 
 	bool 		is_slic3r_supported(const Semver &slicer_version) const;
 	bool 		is_current_slic3r_supported() const;
+	bool 		is_current_slic3r_downgrade() const;
 };
 
 // Index of vendor specific config bundle versions and Slic3r compatibilities.
