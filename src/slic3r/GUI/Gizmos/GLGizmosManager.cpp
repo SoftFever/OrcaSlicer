@@ -845,7 +845,7 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
                 selection.start_dragging();
                 start_dragging();
                 selection.translate(displacement);
-                wxGetApp().obj_manipul()->set_dirty();
+//                wxGetApp().obj_manipul()->set_dirty();
                 processed = true;
             };
 
@@ -860,19 +860,19 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
         }
         else if (m_current == Rotate)
         {
-            auto do_rotate = [this, &processed](const Vec3d& rotation) {
+            auto do_rotate = [this, &processed](double angle_z_rad) {
                 Selection& selection = m_parent.get_selection();
                 selection.start_dragging();
                 start_dragging();
-                selection.rotate(rotation, TransformationType(TransformationType::World_Relative_Joint));
-                wxGetApp().obj_manipul()->set_dirty();
+                selection.rotate(Vec3d(0.0, 0.0, angle_z_rad), TransformationType(TransformationType::World_Relative_Joint));
+//                wxGetApp().obj_manipul()->set_dirty();
                 processed = true;
             };
 
             switch (keyCode)
             {
-            case WXK_NUMPAD_LEFT:  case WXK_LEFT:  { do_rotate(Vec3d(0.0, 0.0, 0.25 * M_PI)); break; }
-            case WXK_NUMPAD_RIGHT: case WXK_RIGHT: { do_rotate(-Vec3d(0.0, 0.0, 0.25 * M_PI)); break; }
+            case WXK_NUMPAD_LEFT:  case WXK_LEFT:  { do_rotate(0.25 * M_PI); break; }
+            case WXK_NUMPAD_RIGHT: case WXK_RIGHT: { do_rotate(-0.25 * M_PI); break; }
             default: { break; }
             }
         }
