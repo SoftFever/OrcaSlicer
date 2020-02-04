@@ -915,10 +915,14 @@ wxString Control::get_tooltip(FocusItem focused_item, int tick/*=-1*/)
         // Show list of actions with new tick
         tooltip += ( m_mode == t_mode::MultiAsSingle                            ?
                   _(L("For add change extruder use left mouse button click"))   :
+                     m_mode == t_mode::SingleExtruder                                      ?
+                  _(L("For add color change use left mouse button click "
+                      "if you want to use colors from default color list, "
+                      "or Shift + left mouse button click if you want to select a color")) :
                   _(L("For add color change use left mouse button click"))  ) + " " +
                   _(L("OR pres \"+\" key")) + "\n" + (
                       is_osx ? 
-                  _(L("For add another code use Ctrl + Left mouse button click")) :
+                  _(L("For add another code use Ctrl + left mouse button click")) :
                   _(L("For add another code use right mouse button click")) );
     }
 
@@ -1955,9 +1959,11 @@ ConflictType TickCodeInfo::is_conflict_tick(const TickCode& tick, t_mode out_mod
         if (it == ticks.begin())
             return tick.extruder == std::max<int>(only_extruder, 1) ? ctMeaninglessToolChange : ctNone;
 
-        --it;
-        if (it->gcode == ToolChangeCode && tick.extruder == it->extruder)
-            return ctMeaninglessToolChange;
+        while (it != ticks.begin()) {
+            --it;
+            if (it->gcode == ToolChangeCode)
+                return tick.extruder == it->extruder ? ctMeaninglessToolChange : ctNone;
+        }
     }
 
     return ctNone;
