@@ -538,13 +538,16 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
 			}
 
 			// Check if the update is already present in a snapshot
-			const auto recommended_snap = SnapshotDB::singleton().snapshot_with_vendor_preset(vp.name, recommended->config_version);
-			if (recommended_snap != SnapshotDB::singleton().end()) {
-				BOOST_LOG_TRIVIAL(info) << boost::format("Bundle update %1% %2% already found in snapshot %3%, skipping...")
-					% vp.name
-					% recommended->config_version.to_string()
-					% recommended_snap->id;
-				continue;
+			if(!current_not_supported)
+			{
+				const auto recommended_snap = SnapshotDB::singleton().snapshot_with_vendor_preset(vp.name, recommended->config_version);
+				if (recommended_snap != SnapshotDB::singleton().end()) {
+					BOOST_LOG_TRIVIAL(info) << boost::format("Bundle update %1% %2% already found in snapshot %3%, skipping...")
+						% vp.name
+						% recommended->config_version.to_string()
+						% recommended_snap->id;
+					continue;
+				}
 			}
 
 			updates.updates.emplace_back(std::move(new_update));
