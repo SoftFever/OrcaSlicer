@@ -1363,7 +1363,7 @@ void GLCanvas3D::Labels::render(const std::vector<const PrintInstance*>& sorted_
 
         // force re-render while the windows gets to its final size (it takes several frames)
         float content_w = 1 + ImGui::GetWindowContentRegionWidth();
-        if (content_w <= label_len)
+        if (content_w < label_len)
             m_canvas.request_extra_frame();
 
         imgui.end();
