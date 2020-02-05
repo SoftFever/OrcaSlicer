@@ -233,22 +233,27 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
                     "solid_infill_every_layers", "solid_infill_below_area", "infill_extruder" })
         toggle_field(el, have_infill);
 
-    bool have_solid_infill = config->opt_int("top_solid_layers") > 0 || config->opt_int("bottom_solid_layers") > 0;
+    bool has_spiral_vase         = config->opt_bool("spiral_vase");
+    bool has_top_solid_infill 	 = config->opt_int("top_solid_layers") > 0;
+    bool has_bottom_solid_infill = config->opt_int("bottom_solid_layers") > 0;
+    bool has_solid_infill 		 = has_top_solid_infill || has_bottom_solid_infill;
     // solid_infill_extruder uses the same logic as in Print::extruders()
     for (auto el : { "top_fill_pattern", "bottom_fill_pattern", "infill_first", "solid_infill_extruder",
                     "solid_infill_extrusion_width", "solid_infill_speed" })
-        toggle_field(el, have_solid_infill);
+        toggle_field(el, has_solid_infill);
 
     for (auto el : { "fill_angle", "bridge_angle", "infill_extrusion_width",
                     "infill_speed", "bridge_speed" })
-        toggle_field(el, have_infill || have_solid_infill);
+        toggle_field(el, have_infill || has_solid_infill);
+
+    toggle_field("top_solid_min_thickness", ! has_spiral_vase && has_top_solid_infill);
+    toggle_field("bottom_solid_min_thickness", ! has_spiral_vase && has_bottom_solid_infill);
 
     // Gap fill is newly allowed in between perimeter lines even for empty infill (see GH #1476).
     toggle_field("gap_fill_speed", have_perimeters);
 
-    bool have_top_solid_infill = config->opt_int("top_solid_layers") > 0;
     for (auto el : { "top_infill_extrusion_width", "top_solid_infill_speed" })
-        toggle_field(el, have_top_solid_infill);
+        toggle_field(el, has_top_solid_infill);
 
     bool have_default_acceleration = config->opt_float("default_acceleration") > 0;
     for (auto el : { "perimeter_acceleration", "infill_acceleration",

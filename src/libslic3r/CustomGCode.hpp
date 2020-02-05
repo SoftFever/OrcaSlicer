@@ -42,7 +42,7 @@ enum Mode
     SingleExtruder,   // Single extruder printer preset is selected
     MultiAsSingle,    // Multiple extruder printer preset is selected, but 
                       // this mode works just for Single extruder print 
-                      // (For all print from objects settings is used just one extruder) 
+                      // (The same extruder is assigned to all ModelObjects and ModelVolumes).
     MultiExtruder     // Multiple extruder printer preset is selected
 };
 
