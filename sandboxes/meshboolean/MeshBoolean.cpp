@@ -11,66 +11,34 @@
 
 #include <boost/log/trivial.hpp>
 
-namespace Slic3r {
-
-} // namespace Slic3r
-
 int main(const int argc, const char * argv[])
 {
     using namespace Slic3r;
     
-    if (argc <= 1) return EXIT_FAILURE;
+    if (argc <= 1) {
+        std::cout << "Usage: meshboolean <input_file.3mf>" << std::endl;
+        return EXIT_FAILURE;
+    }
     
-    DynamicPrintConfig cfg;
-    auto model = Model::read_from_file(argv[1], &cfg);
     
-    if (model.objects.empty()) return EXIT_SUCCESS;
+    TriangleMesh input;
     
-    SLAPrint print;
-    print.apply(model, cfg);
-    PrintBase::TaskParams task;
-    task.to_object_step = slaposHollowing;
-    
-    print.set_task(task);
-    print.process();
+    input.ReadSTLFile(argv[1]);
+    input.repair();
     
     Benchmark bench;
     
-    for (SLAPrintObject *po : print.objects()) {
-        TriangleMesh holes;
-        sla::DrainHoles holepts = po->transformed_drainhole_points();
-        
-        for (auto &hole: holepts)
-            holes.merge(sla::to_triangle_mesh(hole.to_mesh()));
-        
-        TriangleMesh hollowed_mesh = po->transformed_mesh();
-        hollowed_mesh.merge(po->hollowed_interior_mesh());
-        
-        hollowed_mesh.require_shared_vertices();
-        holes.require_shared_vertices();
-        
-        TriangleMesh drilled_mesh_igl = hollowed_mesh;
-        bench.start();
-        MeshBoolean::minus(drilled_mesh_igl, holes);
-        bench.stop();
-        
-        std::cout << "Mesh boolean duration with IGL: " << bench.getElapsedSec() << std::endl;
-        
-        TriangleMesh drilled_mesh_cgal = hollowed_mesh;
-        bench.start();
-        MeshBoolean::cgal::self_union(drilled_mesh_cgal);
-        MeshBoolean::cgal::minus(drilled_mesh_cgal, holes);
-        bench.stop();
-        
-        std::cout << "Mesh boolean duration with CGAL: " << bench.getElapsedSec() << std::endl;
-        
-        std::string name("obj"), outf;
-        outf = name + "igl" + std::to_string(po->model_object()->id().id) + ".obj";
-        drilled_mesh_igl.WriteOBJFile(outf.c_str());
-        
-        outf = name + "cgal" + std::to_string(po->model_object()->id().id) + ".obj";
-        drilled_mesh_cgal.WriteOBJFile(outf.c_str());
-    }
+    bench.start();
+    bool fckd = MeshBoolean::cgal::does_self_intersect(input);
+    bench.stop();
+    
+    std::cout << "Self intersect test: " << fckd << " duration: " << bench.getElapsedSec() << std::endl;
+    
+    bench.start();
+    MeshBoolean::self_union(input);
+    bench.stop();
+    
+    std::cout << "Self union duration: " << bench.getElapsedSec() << std::endl;
     
     return 0;
 }
