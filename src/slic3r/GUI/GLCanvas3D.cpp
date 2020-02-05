@@ -690,7 +690,7 @@ void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool 
         case ObjectOutside      : text = L("An object outside the print area was detected"); break;
         case ToolpathOutside    : text = L("A toolpath outside the print area was detected"); break;
         case SlaSupportsOutside : text = L("SLA supports outside the print area were detected"); break;
-        case SomethingNotShown  : text = L("Some objects are not visible when editing supports"); break;
+        case SomethingNotShown  : text = L("Some objects are not visible"); break;
         case ObjectClashed: {
             text = L("An object outside the print area was detected\n"
                      "Resolve the current problem to continue slicing");
@@ -1384,6 +1384,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_INCREASE_INSTANCES, Event<int>);
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_MOVED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_ROTATED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_SCALED, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_FORCE_UPDATE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_ROTATED, Vec3dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
@@ -2849,8 +2850,127 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
     }
 }
 
+class TranslationProcessor
+{
+    using UpAction = std::function<void(void)>;
+    using DownAction = std::function<void(const Vec3d&, bool, bool)>;
+
+    UpAction m_up_action{ nullptr };
+    DownAction m_down_action{ nullptr };
+
+    bool m_running{ false };
+    Vec3d m_direction{ Vec3d::UnitX() };
+
+public:
+    TranslationProcessor(UpAction up_action, DownAction down_action)
+        : m_up_action(up_action), m_down_action(down_action)
+    {
+    }
+
+    void process(wxKeyEvent& evt)
+    {
+        const int keyCode = evt.GetKeyCode();
+        wxEventType type = evt.GetEventType();
+        if (type == wxEVT_KEY_UP) {
+            switch (keyCode)
+            {
+            case WXK_NUMPAD_LEFT:  case WXK_LEFT:
+            case WXK_NUMPAD_RIGHT: case WXK_RIGHT:
+            case WXK_NUMPAD_UP:    case WXK_UP:
+            case WXK_NUMPAD_DOWN:  case WXK_DOWN:
+            {
+                m_running = false;
+                m_up_action();
+                break;
+            }
+            default: { break; }
+            }
+        }
+        else if (type == wxEVT_KEY_DOWN) {
+            bool apply = false;
+
+            switch (keyCode)
+            {
+            case WXK_SHIFT:
+            {
+                if (m_running) 
+                    apply = true;
+
+                break;
+            }
+            case WXK_NUMPAD_LEFT:
+            case WXK_LEFT:
+            {
+                m_direction = -Vec3d::UnitX();
+                apply = true;
+                break;
+            }
+            case WXK_NUMPAD_RIGHT:
+            case WXK_RIGHT:
+            {
+                m_direction = Vec3d::UnitX();
+                apply = true;
+                break;
+            }
+            case WXK_NUMPAD_UP:
+            case WXK_UP:
+            {
+                m_direction = Vec3d::UnitY();
+                apply = true;
+                break;
+            }
+            case WXK_NUMPAD_DOWN:
+            case WXK_DOWN:
+            {
+                m_direction = -Vec3d::UnitY();
+                apply = true;
+                break;
+            }
+            default: { break; }
+            }
+
+            if (apply) {
+                m_running = true;
+                m_down_action(m_direction, evt.ShiftDown(), evt.CmdDown());
+            }
+        }
+    }
+};
+
 void GLCanvas3D::on_key(wxKeyEvent& evt)
 {
+    static TranslationProcessor translationProcessor(
+        [this]() {
+            do_move(L("Gizmo-Move"));
+            m_gizmos.update_data();
+
+            wxGetApp().obj_manipul()->set_dirty();
+            // Let the plater know that the dragging finished, so a delayed refresh
+            // of the scene with the background processing data should be performed.
+            post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
+            // updates camera target constraints
+            refresh_camera_scene_box();
+            m_dirty = true;
+        },
+        [this](const Vec3d& direction, bool slow, bool camera_space) {
+            m_selection.start_dragging();
+            double multiplier = slow ? 1.0 : 10.0;
+
+            Vec3d displacement;
+            if (camera_space)
+            {
+                Eigen::Matrix<double, 3, 3, Eigen::DontAlign> inv_view_3x3 = m_camera.get_view_matrix().inverse().matrix().block(0, 0, 3, 3);
+                displacement = multiplier * (inv_view_3x3 * direction);
+                displacement(2) = 0.0;
+            }
+            else
+                displacement = multiplier * direction;
+
+            m_selection.translate(displacement);
+            m_dirty = true;
+        }
+    );
+
     const int keyCode = evt.GetKeyCode();
 
     auto imgui = wxGetApp().imgui();
@@ -2869,6 +2989,8 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 }
                 else if (keyCode == WXK_SHIFT)
                 {
+                    translationProcessor.process(evt);
+
                     if (m_picking_enabled && m_rectangle_selection.is_dragging())
                     {
                         _update_selection_from_hover();
@@ -2892,26 +3014,10 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 else if (keyCode == WXK_CONTROL)
                     m_dirty = true;
                 else if (m_gizmos.is_enabled() && !m_selection.is_empty()) {
+                    translationProcessor.process(evt);
+
                     switch (keyCode)
                     {
-                    case WXK_NUMPAD_LEFT:  case WXK_LEFT:
-                    case WXK_NUMPAD_RIGHT: case WXK_RIGHT:
-                    case WXK_NUMPAD_UP:    case WXK_UP:
-                    case WXK_NUMPAD_DOWN:  case WXK_DOWN:
-                    {
-                        do_move(L("Gizmo-Move"));
-                        m_gizmos.update_data();
-
-                        wxGetApp().obj_manipul()->set_dirty();
-                        // Let the plater know that the dragging finished, so a delayed refresh
-                        // of the scene with the background processing data should be performed.
-                        post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
-                        // updates camera target constraints
-                        refresh_camera_scene_box();
-                        m_dirty = true;
-
-                        break;
-                    }
                     case WXK_NUMPAD_PAGEUP:   case WXK_PAGEUP:
                     case WXK_NUMPAD_PAGEDOWN: case WXK_PAGEDOWN:
                     {
@@ -2936,6 +3042,8 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 m_tab_down = keyCode == WXK_TAB && !evt.HasAnyModifiers();
                 if (keyCode == WXK_SHIFT)
                 {
+                    translationProcessor.process(evt);
+
                     if (m_picking_enabled && (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports))
                     {
                         m_mouse.ignore_left_up = false;
@@ -2954,12 +3062,6 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     m_dirty = true;
                 else if (m_gizmos.is_enabled() && !m_selection.is_empty())
                 {
-                    auto do_move = [this](const Vec3d& displacement) {
-                        m_selection.start_dragging();
-                        m_selection.translate(displacement);
-                        m_dirty = true;
-//                        wxGetApp().obj_manipul()->set_dirty();
-                    };
                     auto do_rotate = [this](double angle_z_rad) {
                         m_selection.start_dragging();
                         m_selection.rotate(Vec3d(0.0, 0.0, angle_z_rad), TransformationType(TransformationType::World_Relative_Joint));
@@ -2967,12 +3069,10 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
 //                        wxGetApp().obj_manipul()->set_dirty();
                     };
 
+                    translationProcessor.process(evt);
+
                     switch (keyCode)
                     {
-                    case WXK_NUMPAD_LEFT:     case WXK_LEFT:     { do_move(-Vec3d::UnitX()); break; }
-                    case WXK_NUMPAD_RIGHT:    case WXK_RIGHT:    { do_move(Vec3d::UnitX()); break; }
-                    case WXK_NUMPAD_UP:       case WXK_UP:       { do_move(Vec3d::UnitY()); break; }
-                    case WXK_NUMPAD_DOWN:     case WXK_DOWN:     { do_move(-Vec3d::UnitY()); break; }
                     case WXK_NUMPAD_PAGEUP:   case WXK_PAGEUP:   { do_rotate(0.25 * M_PI); break; }
                     case WXK_NUMPAD_PAGEDOWN: case WXK_PAGEDOWN: { do_rotate(-0.25 * M_PI); break; }
                     default: { break; }

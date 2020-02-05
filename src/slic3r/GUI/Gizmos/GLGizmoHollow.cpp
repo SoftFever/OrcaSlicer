@@ -330,6 +330,7 @@ bool GLGizmoHollow::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, V
 {
     if (! m_c->m_mesh_raycaster)
         return false;
+
     // if the gizmo doesn't have the V, F structures for igl, calculate them first:
     // !!! is it really necessary?
     //m_c->update_from_backend(m_parent, m_c->m_model_object);
@@ -344,6 +345,19 @@ bool GLGizmoHollow::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, V
     Vec3f hit;
     Vec3f normal;
     if (m_c->m_mesh_raycaster->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, hit, normal, m_c->m_clipping_plane.get())) {
+
+        // User is about to manipulate a hole. If the gizmo currently shows drilled mesh,
+        // invalidate slaposDrillHoles so it returns to normal. To do this, hackishly
+        // add a hole, force SLAPrint::apply call that will invalidate the step because
+        // of it and then remove the hole again.
+        if (m_c->has_drilled_mesh()) {
+            m_c->m_model_object->sla_drain_holes.push_back(sla::DrainHole());
+            m_selected.push_back(false);
+            m_parent.post_event(SimpleEvent(EVT_GLCANVAS_FORCE_UPDATE));
+            wxGetApp().CallAfter([this] { m_c->m_model_object->sla_drain_holes.pop_back(); m_selected.pop_back(); });
+            return false;
+        }
+
         // Return both the point and the facet normal.
         pos_and_normal = std::make_pair(hit, normal);
         return true;
@@ -513,6 +527,8 @@ void GLGizmoHollow::delete_selected_points()
         }
     }
 
+    m_parent.post_event(SimpleEvent(EVT_GLCANVAS_FORCE_UPDATE));
+
     select_point(NoPoints);
 }
 
@@ -652,6 +668,7 @@ void GLGizmoHollow::on_render_input_window(float x, float y, float bottom_limit)
 
     bool first_run = true; // This is a hack to redraw the button when all points are removed,
                            // so it is not delayed until the background process finishes.
+
 RENDER_AGAIN:
     const float approx_height = m_imgui->scaled(20.0f);
     y = std::min(y, bottom_limit - approx_height);
@@ -677,6 +694,8 @@ RENDER_AGAIN:
 
     if (m_imgui->button(m_desc["preview"]))
         hollow_mesh();
+    
+    bool config_changed = false;
 
     ImGui::Separator();
 
@@ -686,6 +705,7 @@ RENDER_AGAIN:
         if (m_imgui->checkbox(m_desc["enable"], m_enable_hollowing)) {
             m_c->m_model_object->config.opt<ConfigOptionBool>("hollowing_enable", true)->value = m_enable_hollowing;
             wxGetApp().obj_list()->update_and_show_object_settings_item();
+            config_changed = true;
         }
     }
 
@@ -761,8 +781,10 @@ RENDER_AGAIN:
         m_c->m_model_object->config.opt<ConfigOptionFloat>("hollowing_min_thickness", true)->value = offset;
         m_c->m_model_object->config.opt<ConfigOptionFloat>("hollowing_quality", true)->value = quality;
         m_c->m_model_object->config.opt<ConfigOptionFloat>("hollowing_closing_distance", true)->value = closing_d;
-        if (slider_released)
+        if (slider_released) {
             wxGetApp().obj_list()->update_and_show_object_settings_item();
+            config_changed = true;
+        }
     }
 
     m_imgui->disabled_end();
@@ -887,6 +909,9 @@ RENDER_AGAIN:
 
     if (force_refresh)
         m_parent.set_as_dirty();
+    
+    if (config_changed)
+        m_parent.post_event(SimpleEvent(EVT_GLCANVAS_FORCE_UPDATE));
 }
 
 bool GLGizmoHollow::on_is_activable() const

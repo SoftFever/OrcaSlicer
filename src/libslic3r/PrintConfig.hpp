@@ -46,12 +46,6 @@ enum SeamPosition {
     spRandom, spNearest, spAligned, spRear
 };
 
-/*
-enum FilamentType {
-    ftPLA, ftABS, ftPET, ftHIPS, ftFLEX, ftSCAFF, ftEDGE, ftNGEN, ftPVA
-};
-*/
-
 enum SLAMaterial {
     slamTough,
     slamFlex,
@@ -148,24 +142,6 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<SeamPosition>::ge
     }
     return keys_map;
 }
-
-/*
-template<> inline const t_config_enum_values& ConfigOptionEnum<FilamentType>::get_enum_values() {
-    static t_config_enum_values keys_map;
-    if (keys_map.empty()) {
-        keys_map["PLA"]             = ftPLA;
-        keys_map["ABS"]             = ftABS;
-        keys_map["PET"]             = ftPET;
-        keys_map["HIPS"]            = ftHIPS;
-        keys_map["FLEX"]            = ftFLEX;
-        keys_map["SCAFF"]           = ftSCAFF;
-        keys_map["EDGE"]            = ftEDGE;
-        keys_map["NGEN"]            = ftNGEN;
-        keys_map["PVA"]             = ftPVA;
-    }
-    return keys_map;
-}
-*/
 
 template<> inline const t_config_enum_values& ConfigOptionEnum<SLADisplayOrientation>::get_enum_values() {
     static const t_config_enum_values keys_map = {
@@ -353,6 +329,9 @@ protected:
 
 #define STATIC_PRINT_CONFIG_CACHE_BASE(CLASS_NAME) \
 public: \
+    /* Overrides ConfigBase::optptr(). Find ando/or create a ConfigOption instance for a given name. */ \
+    const ConfigOption*      optptr(const t_config_option_key &opt_key) const override \
+        { return s_cache_##CLASS_NAME.optptr(opt_key, this); } \
     /* Overrides ConfigBase::optptr(). Find ando/or create a ConfigOption instance for a given name. */ \
     ConfigOption*            optptr(const t_config_option_key &opt_key, bool create = false) override \
         { return s_cache_##CLASS_NAME.optptr(opt_key, this); } \

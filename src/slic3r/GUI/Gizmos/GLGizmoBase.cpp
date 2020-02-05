@@ -358,12 +358,14 @@ bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas, ModelObject* mode
             m_backend_mesh_transformed = po->get_mesh_to_print();
             m_backend_mesh_transformed.transform(canvas.sla_print()->sla_trafo(*m_model_object).inverse());
             m_mesh = &m_backend_mesh_transformed;
+            m_has_drilled_mesh = true;
         }
     }
 
     if (! m_mesh) {
         m_mesh = &m_model_object->volumes.front()->mesh();
         m_backend_mesh_transformed.clear();
+        m_has_drilled_mesh = false;
     }
 
     m_model_object_id = m_model_object->id();

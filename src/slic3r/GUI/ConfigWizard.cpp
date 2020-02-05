@@ -2001,6 +2001,10 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     p->page_msla = new PagePrinters(this, _(L("Prusa MSLA Technology Printers")), "Prusa MSLA", *vendor_prusa, 0, T_SLA);
     p->add_page(p->page_msla);
 
+	// Pages for 3rd party vendors
+	p->create_3rdparty_pages();   // Needs to be done _before_ creating PageVendors
+	p->add_page(p->page_vendors = new PageVendors(this));
+
     p->any_sla_selected = p->check_sla_selected();
     p->any_fff_selected = p->check_fff_selected();
 
@@ -2021,10 +2025,6 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     p->add_page(p->page_bed      = new PageBedShape(this));
     p->add_page(p->page_diams    = new PageDiameters(this));
     p->add_page(p->page_temps    = new PageTemperatures(this));
-
-    // Pages for 3rd party vendors
-    p->create_3rdparty_pages();   // Needs to be done _before_ creating PageVendors
-    p->add_page(p->page_vendors = new PageVendors(this));
 
     p->load_pages();
     p->index->go_to(size_t{0});

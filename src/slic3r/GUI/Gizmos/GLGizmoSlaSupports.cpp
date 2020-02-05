@@ -335,7 +335,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
     }
 
     // Now render the drain holes:
-    /*if (! m_c->m_cavity_mesh) {
+    if (! m_c->has_drilled_mesh()) {
         render_color[0] = 0.7f;
         render_color[1] = 0.7f;
         render_color[2] = 0.7f;
@@ -370,7 +370,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
                 glFrontFace(GL_CCW);
             glsafe(::glPopMatrix());
         }
-    }*/
+    }
 
     if (!picking)
         glsafe(::glDisable(GL_LIGHTING));
@@ -414,14 +414,14 @@ bool GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec
         // In case the hollowed and drilled mesh is available, we can allow
         // placing points in holes, because they should never end up
         // on surface that's been drilled away.
-        /*if (! m_c->m_cavity_mesh) {
+        if (! m_c->has_drilled_mesh()) {
             for (const sla::DrainHole& hole : m_c->m_model_object->sla_drain_holes) {
                 if (hole.is_inside(hit)) {
                     in_hole = true;
                     break;
                 }
             }
-        }*/
+        }
         if (! in_hole) {
             // Return both the point and the facet normal.
             pos_and_normal = std::make_pair(hit, normal);
@@ -1291,6 +1291,8 @@ bool GLGizmoSlaSupports::unsaved_changes() const
 
 void GLGizmoSlaSupports::update_clipping_plane(bool keep_normal) const
 {
+    if (! m_c->m_model_object)
+        return;
     Vec3d normal = (keep_normal && m_c->m_clipping_plane->get_normal() != Vec3d::Zero() ?
                         m_c->m_clipping_plane->get_normal() : -m_parent.get_camera().get_dir_forward());
 

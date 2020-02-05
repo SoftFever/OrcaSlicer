@@ -2067,6 +2067,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLCANVAS_INCREASE_INSTANCES, [this](Event<int> &evt)
         { if (evt.data == 1) this->q->increase_instances(); else if (this->can_decrease_instances()) this->q->decrease_instances(); });
     view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) { update(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_FORCE_UPDATE, [this](SimpleEvent&) { update(); });
     view3D_canvas->Bind(EVT_GLCANVAS_WIPETOWER_MOVED, &priv::on_wipetower_moved, this);
     view3D_canvas->Bind(EVT_GLCANVAS_WIPETOWER_ROTATED, &priv::on_wipetower_rotated, this);
     view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_ROTATED, [this](SimpleEvent&) { update(); });
@@ -5382,6 +5383,13 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 
     if (p->main_frame->is_loaded())
         this->p->schedule_background_process();
+}
+
+void Plater::set_bed_shape() const
+{
+	p->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values,
+		p->config->option<ConfigOptionString>("bed_custom_texture")->value,
+		p->config->option<ConfigOptionString>("bed_custom_model")->value);
 }
 
 void Plater::force_filament_colors_update()

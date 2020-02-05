@@ -227,10 +227,13 @@ public:
         m_clipping_plane_distance = m_clipping_plane_distance_stash;
     }
 
+    bool has_drilled_mesh() const { return m_has_drilled_mesh; }
+
 private:
     const TriangleMesh* m_old_mesh;
     TriangleMesh m_backend_mesh_transformed;
     float m_clipping_plane_distance_stash = 0.f;
+    bool m_has_drilled_mesh = false;
 };
 
 } // namespace GUI

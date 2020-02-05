@@ -603,21 +603,24 @@ std::string Control::get_color_for_color_change_tick(std::set<TickCode>::const_i
     return "";
 }
 
-void Control::draw_colored_band(wxDC& dc)
+wxRect Control::get_colored_band_rect()
 {
-    if (!m_is_enabled_tick_manipulation)
-        return;
-
     int height, width;
     get_size(&width, &height);
 
     const wxCoord mid = is_horizontal() ? 0.5 * height : 0.5 * width;
 
-    wxRect main_band = is_horizontal() ?
-                       wxRect(SLIDER_MARGIN, lround(mid - 0.375 * m_thumb_size.y), 
-                              width - 2 * SLIDER_MARGIN + 1, lround(0.75 * m_thumb_size.y)) :
-                       wxRect(lround(mid - 0.375 * m_thumb_size.x), SLIDER_MARGIN, 
-                              lround(0.75 * m_thumb_size.x), height - 2 * SLIDER_MARGIN + 1);
+    return is_horizontal() ?
+           wxRect(SLIDER_MARGIN, lround(mid - 0.375 * m_thumb_size.y), 
+                  width - 2 * SLIDER_MARGIN + 1, lround(0.75 * m_thumb_size.y)) :
+           wxRect(lround(mid - 0.375 * m_thumb_size.x), SLIDER_MARGIN, 
+                  lround(0.75 * m_thumb_size.x), height - 2 * SLIDER_MARGIN + 1);
+}
+
+void Control::draw_colored_band(wxDC& dc)
+{
+    if (!m_is_enabled_tick_manipulation)
+        return;
 
     auto draw_band = [](wxDC& dc, const wxColour& clr, const wxRect& band_rc) 
     {
@@ -625,6 +628,8 @@ void Control::draw_colored_band(wxDC& dc)
         dc.SetBrush(clr);
         dc.DrawRectangle(band_rc);
     };
+
+    wxRect main_band = get_colored_band_rect();
 
     // don't color a band for MultiExtruder mode
     if (m_ticks.empty() || m_mode == t_mode::MultiExtruder)
@@ -875,87 +880,111 @@ void Control::correct_higher_value()
         m_lower_value = m_higher_value;
 }
 
-wxString Control::get_tooltip(IconFocus icon_focus)
+wxString Control::get_tooltip(FocusItem focused_item, int tick/*=-1*/)
 {
-    wxString tooltip(wxEmptyString);
-    if (m_is_one_layer_icon_focesed)
-        tooltip = _(L("One layer mode"));
+    if (focused_item == fiNone)
+        return "";
+    if (focused_item == fiOneLayerIcon)
+        return _(L("One layer mode"));
+    if (focused_item == fiRevertIcon)
+        return _(L("Discard all custom changes"));
+    if (focused_item == fiCogIcon)
+        return _(L("Set extruder sequence for whole print"));
+    if (focused_item == fiColorBand)
+        return m_mode != t_mode::SingleExtruder ? "" :
+               _(L("For edit current color use right mouse button click on colored band"));
 
-    if (icon_focus == ifRevert)
-        tooltip = _(L("Discard all custom changes"));
-    if (icon_focus == ifCog)
-        tooltip = _(L("Set extruder sequence for whole print"));
-    else if (m_is_action_icon_focesed)
+    wxString tooltip;
+    const auto tick_code_it = m_ticks.ticks.find(TickCode{tick});
+
+    if (tick_code_it == m_ticks.ticks.end() && focused_item == fiActionIcon)    // tick doesn't exist
     {
-        const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
-        const auto tick_code_it = m_ticks.ticks.find(TickCode{tick});
+        // Show mode as a first string of tooltop
+        tooltip = "    " + _(L("Slider(print) mode")) + ": ";
+        tooltip += (m_mode == t_mode::SingleExtruder ? CustomGCode::SingleExtruderMode :
+                    m_mode == t_mode::MultiAsSingle  ? CustomGCode::MultiAsSingleMode  :
+                    CustomGCode::MultiExtruderMode );
+        tooltip += "\n\n";
 
         /* Note: just on OSX!!!
-         * Right click event causes a little scrolling. 
+         * Right click event causes a little scrolling.
          * So, as a workaround we use Ctrl+LeftMouseClick instead of RightMouseClick
          * Show this information in tooltip
          * */
 
-        if (tick_code_it == m_ticks.ticks.end())    // tick doesn't exist
-        {
-            // Show mode as a first string of tooltop
-            tooltip = "    " + _(L("Slider(print) mode")) + ": ";
-            tooltip += (m_mode == t_mode::SingleExtruder ? CustomGCode::SingleExtruderMode :
-                        m_mode == t_mode::MultiAsSingle  ? CustomGCode::MultiAsSingleMode  :
-                        CustomGCode::MultiExtruderMode );
-            tooltip += "\n\n";
-
-            // Show list of actions with new tick
-            tooltip += ( m_mode == t_mode::MultiAsSingle                            ?
-                      _(L("For add change extruder use left mouse button click"))   :
-                      _(L("For add color change use left mouse button click"))  ) + " " +
-                      _(L("OR pres \"+\" key")) + "\n" + (
-                          is_osx ? 
-                      _(L("For add another code use Ctrl + Left mouse button click")) :
-                      _(L("For add another code use right mouse button click")) );
-        }
-        else                                        // tick exists
-        {
-            // Show custom Gcode as a first string of tooltop
-            tooltip = "    ";
-            tooltip +=  tick_code_it->gcode == ColorChangeCode ?    (
-                            m_mode == t_mode::SingleExtruder ? 
-                            from_u8((boost::format(_utf8(L("Color change (\"%1%\")"))) % tick_code_it->gcode ).str()) :
-                            from_u8((boost::format(_utf8(L("Color change (\"%1%\") for Extruder %2%"))) % 
-                                                   tick_code_it->gcode % tick_code_it->extruder).str()) ) :
-                        tick_code_it->gcode == PausePrintCode ?
-                            from_u8((boost::format(_utf8(L("Pause print (\"%1%\")"))) % tick_code_it->gcode ).str()) :
-                        tick_code_it->gcode == ToolChangeCode ?
-                            from_u8((boost::format(_utf8(L("Extruder(tool) is changed to Extruder \"%1%\""))) % tick_code_it->extruder ).str()) :
-                            from_u8((boost::format(_utf8(L("\"%1%\""))) % tick_code_it->gcode ).str()) ;
-
-            // If tick is marked as a conflict (exclamation icon),
-            // we should to explain why
-            ConflictType conflict = m_ticks.is_conflict_tick(*tick_code_it, m_mode, m_only_extruder, m_values[tick]);
-            if (conflict != ctNone)
-                tooltip += "\n\n" + _(L("Note")) + "! ";
-            if (conflict == ctModeConflict)
-                tooltip +=  _(L("G-code of this tick has a conflict with slider(print) mode.\n"
-                                "Any its editing will cause a changes of DoubleSlider data."));
-            else if (conflict == ctMeaninglessColorChange)
-                tooltip +=  _(L("There is a color change for extruder that wouldn't be used till the end of printing.\n"
-                                "This code wouldn't be processed during GCode generation."));
-            else if (conflict == ctMeaninglessToolChange)
-                tooltip +=  _(L("There is a extruder change to the same extruder.\n"
-                                "This code wouldn't be processed during GCode generation."));
-            else if (conflict == ctRedundant)
-                tooltip +=  _(L("There is a color change for extruder that has not been used before.\n"
-                                "Check your choice to avoid redundant color changes."));
-
-            // Show list of actions with existing tick
-            tooltip += "\n\n" + _(L("For Delete tick use left mouse button click OR pres \"-\" key")) + "\n" + (
-                          is_osx ? 
-                       _(L("For Edit tick use Ctrl + Left mouse button click")) :
-                       _(L("For Edit tick use right mouse button click")) );
-        }
+        // Show list of actions with new tick
+        tooltip += ( m_mode == t_mode::MultiAsSingle                            ?
+                  _(L("For add change extruder use left mouse button click"))   :
+                     m_mode == t_mode::SingleExtruder                                      ?
+                  _(L("For add color change use left mouse button click "
+                      "if you want to use colors from default color list, "
+                      "or Shift + left mouse button click if you want to select a color")) :
+                  _(L("For add color change use left mouse button click"))  ) + " " +
+                  _(L("OR pres \"+\" key")) + "\n" + (
+                      is_osx ? 
+                  _(L("For add another code use Ctrl + left mouse button click")) :
+                  _(L("For add another code use right mouse button click")) );
     }
 
+    if (tick_code_it != m_ticks.ticks.end())                                    // tick exists
+    {
+        // Show custom Gcode as a first string of tooltop
+        tooltip = "    ";
+        tooltip +=  tick_code_it->gcode == ColorChangeCode ?    (
+                        m_mode == t_mode::SingleExtruder ? 
+                        from_u8((boost::format(_utf8(L("Color change (\"%1%\")"))) % tick_code_it->gcode ).str()) :
+                        from_u8((boost::format(_utf8(L("Color change (\"%1%\") for Extruder %2%"))) % 
+                                               tick_code_it->gcode % tick_code_it->extruder).str()) ) :
+                    tick_code_it->gcode == PausePrintCode ?
+                        from_u8((boost::format(_utf8(L("Pause print (\"%1%\")"))) % tick_code_it->gcode ).str()) :
+                    tick_code_it->gcode == ToolChangeCode ?
+                        from_u8((boost::format(_utf8(L("Extruder(tool) is changed to Extruder \"%1%\""))) % tick_code_it->extruder ).str()) :
+                        from_u8((boost::format(_utf8(L("\"%1%\""))) % tick_code_it->gcode ).str()) ;
+
+        // If tick is marked as a conflict (exclamation icon),
+        // we should to explain why
+        ConflictType conflict = m_ticks.is_conflict_tick(*tick_code_it, m_mode, m_only_extruder, m_values[tick]);
+        if (conflict != ctNone)
+            tooltip += "\n\n" + _(L("Note")) + "! ";
+        if (conflict == ctModeConflict)
+            tooltip +=  _(L("G-code of this tick has a conflict with slider(print) mode.\n"
+                            "Any its editing will cause a changes of DoubleSlider data."));
+        else if (conflict == ctMeaninglessColorChange)
+            tooltip +=  _(L("There is a color change for extruder that wouldn't be used till the end of printing.\n"
+                            "This code wouldn't be processed during GCode generation."));
+        else if (conflict == ctMeaninglessToolChange)
+            tooltip +=  _(L("There is a extruder change to the same extruder.\n"
+                            "This code wouldn't be processed during GCode generation."));
+        else if (conflict == ctRedundant)
+            tooltip +=  _(L("There is a color change for extruder that has not been used before.\n"
+                            "Check your choice to avoid redundant color changes."));
+
+        // Show list of actions with existing tick
+        if (focused_item == fiActionIcon)
+        tooltip += "\n\n" + _(L("For Delete tick use left mouse button click OR pres \"-\" key")) + "\n" + (
+                      is_osx ? 
+                   _(L("For Edit tick use Ctrl + Left mouse button click")) :
+                   _(L("For Edit tick use right mouse button click")) );
+    }
     return tooltip;
+
+}
+
+int Control::get_edited_tick_for_position(const wxPoint pos, const std::string& gcode /*= ColorChangeCode*/)
+{
+    if (m_ticks.empty())
+        return -1;
+
+    int tick = get_value_from_position(pos);
+    auto it = std::lower_bound(m_ticks.ticks.begin(), m_ticks.ticks.end(), TickCode{ tick });
+
+    while (it != m_ticks.ticks.begin()) {
+        --it;
+        if (it->gcode == gcode)
+            return it->tick;
+    }
+
+    return -1;
 }
 
 void Control::OnMotion(wxMouseEvent& event)
@@ -966,14 +995,29 @@ void Control::OnMotion(wxMouseEvent& event)
     const wxPoint pos = event.GetLogicalPosition(dc);
 
     m_is_one_layer_icon_focesed = is_point_in_rect(pos, m_rect_one_layer_icon);
-    IconFocus icon_focus = ifNone;
+
+    FocusItem focused_item = fiNone;
+    int tick = -1;
 
     if (!m_is_left_down && !m_is_one_layer) {
         m_is_action_icon_focesed = is_point_in_rect(pos, m_rect_tick_action);
-        if (!m_ticks.empty() && is_point_in_rect(pos, m_rect_revert_icon))
-            icon_focus = ifRevert;
+        if (m_is_one_layer_icon_focesed)
+            focused_item = fiOneLayerIcon;
+        else if (m_is_action_icon_focesed) {
+            focused_item = fiActionIcon;
+            tick = m_selection == ssLower ? m_lower_value : m_higher_value;
+        }
+        else if (!m_ticks.empty() && is_point_in_rect(pos, m_rect_revert_icon))
+            focused_item = fiRevertIcon;
         else if (is_point_in_rect(pos, m_rect_cog_icon))
-            icon_focus = ifCog;
+            focused_item = fiCogIcon;
+        else if (m_mode == t_mode::SingleExtruder && is_point_in_rect(pos, get_colored_band_rect()) &&
+                 get_edited_tick_for_position(pos) >= 0 )
+            focused_item = fiColorBand;
+        else {
+            focused_item = fiTick;
+            tick = get_tick_near_point(pos);
+        }
     }
     else if (m_is_left_down || m_is_right_down) {
         if (m_selection == ssLower) {
@@ -994,7 +1038,7 @@ void Control::OnMotion(wxMouseEvent& event)
     event.Skip();
 
     // Set tooltips with information for each icon
-    this->SetToolTip(get_tooltip(icon_focus));
+    this->SetToolTip(get_tooltip(focused_item, tick));
 
     if (action)
     {
@@ -1227,7 +1271,7 @@ void Control::OnRightDown(wxMouseEvent& event)
     const wxClientDC dc(this);
 
     wxPoint pos = event.GetLogicalPosition(dc);
-    if (is_point_in_rect(pos, m_rect_tick_action) && m_is_enabled_tick_manipulation)
+    if (m_is_enabled_tick_manipulation && is_point_in_rect(pos, m_rect_tick_action))
     {
         const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
         if (m_ticks.ticks.find(TickCode{ tick }) == m_ticks.ticks.end())   // if on this Z doesn't exist tick
@@ -1236,6 +1280,13 @@ void Control::OnRightDown(wxMouseEvent& event)
         else
             // show "Edit" and "Delete" menu on OnRightUp()
             m_show_edit_menu = true;
+        return;
+    }
+
+    if (m_is_enabled_tick_manipulation && m_mode == t_mode::SingleExtruder && 
+        is_point_in_rect(pos, get_colored_band_rect()))
+    {
+        m_force_color_edit = true;
         return;
     }
 
@@ -1409,6 +1460,17 @@ void Control::OnRightUp(wxMouseEvent& event)
 
         m_show_edit_menu = false;
     }
+    else if (m_force_color_edit)
+    {
+        const wxClientDC dc(this);
+        wxPoint pos = event.GetLogicalPosition(dc);
+
+        int edited_tick = get_edited_tick_for_position(pos);
+        if (edited_tick >= 0)
+            edit_tick(edited_tick);
+
+        m_force_color_edit = false;
+    }
 
     Refresh();
     Update();
@@ -1572,9 +1634,10 @@ void Control::delete_current_tick()
     post_ticks_changed_event(code);
 }
 
-void Control::edit_tick()
+void Control::edit_tick(int tick/* = -1*/)
 {
-    const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
+    if (tick < 0)
+        tick = m_selection == ssLower ? m_lower_value : m_higher_value;
     const std::set<TickCode>::iterator it = m_ticks.ticks.find(TickCode{ tick });
 
     if (it == m_ticks.ticks.end() ||
@@ -1896,9 +1959,11 @@ ConflictType TickCodeInfo::is_conflict_tick(const TickCode& tick, t_mode out_mod
         if (it == ticks.begin())
             return tick.extruder == std::max<int>(only_extruder, 1) ? ctMeaninglessToolChange : ctNone;
 
-        --it;
-        if (it->gcode == ToolChangeCode && tick.extruder == it->extruder)
-            return ctMeaninglessToolChange;
+        while (it != ticks.begin()) {
+            --it;
+            if (it->gcode == ToolChangeCode)
+                return tick.extruder == it->extruder ? ctMeaninglessToolChange : ctNone;
+        }
     }
 
     return ctNone;
