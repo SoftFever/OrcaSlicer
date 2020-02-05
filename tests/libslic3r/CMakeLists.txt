@@ -12,6 +12,7 @@ add_executable(${_TEST_NAME}_tests
 	test_polygon.cpp
 	test_stl.cpp
         test_meshsimplify.cpp
+        test_meshboolean.cpp
 	)
 
 if (TARGET OpenVDB::openvdb)

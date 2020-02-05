@@ -143,11 +143,13 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
         holes_mesh.merge(sla::to_triangle_mesh(holept.to_mesh()));
     
     holes_mesh.require_shared_vertices();
-    MeshBoolean::self_union(holes_mesh);
+    if (!holes_mesh.is_manifold() || MeshBoolean::cgal::does_self_intersect(holes_mesh)) {
+        MeshBoolean::self_union(holes_mesh);
+    }
     
     try {
         MeshBoolean::cgal::minus(hollowed_mesh, holes_mesh);
-    } catch (const std::runtime_error&) {
+    } catch (const std::runtime_error &) {
         throw std::runtime_error(L(
             "Drilling holes into the mesh failed. "
             "This is usually caused by broken model. Try to fix it first."));
