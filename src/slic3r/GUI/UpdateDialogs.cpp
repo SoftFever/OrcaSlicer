@@ -162,23 +162,19 @@ MsgUpdateForced::MsgUpdateForced(const std::vector<Update>& updates) :
 
 	const auto lang_code = wxGetApp().current_language_code_safe().ToStdString();
 
-	auto* versions = new wxBoxSizer(wxVERTICAL);
+	auto* versions = new wxFlexGridSizer(2, 0, VERT_SPACING);
 	for (const auto& update : updates) {
-		auto* flex = new wxFlexGridSizer(2, 0, VERT_SPACING);
-
 		auto* text_vendor = new wxStaticText(this, wxID_ANY, update.vendor);
 		text_vendor->SetFont(boldfont);
-		flex->Add(text_vendor);
-		flex->Add(new wxStaticText(this, wxID_ANY, update.version.to_string()));
+		versions->Add(text_vendor);
+		versions->Add(new wxStaticText(this, wxID_ANY, update.version.to_string()));
 
 		if (!update.comment.empty()) {
-			flex->Add(new wxStaticText(this, wxID_ANY, _(L("Comment:"))), 0, wxALIGN_RIGHT);
+			versions->Add(new wxStaticText(this, wxID_ANY, _(L("Comment:")))/*, 0, wxALIGN_RIGHT*/);//uncoment if align to right (might not look good if 1  vedor name is longer than other names)
 			auto* update_comment = new wxStaticText(this, wxID_ANY, from_u8(update.comment));
 			update_comment->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
-			flex->Add(update_comment);
+			versions->Add(update_comment);
 		}
-
-		versions->Add(flex);
 
 		if (!update.changelog_url.empty() && update.version.prerelease() == nullptr) {
 			auto* line = new wxBoxSizer(wxHORIZONTAL);
