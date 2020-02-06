@@ -80,6 +80,19 @@ SLAPrint::Steps::Steps(SLAPrint *print)
     , objectstep_scale{(max_objstatus - min_objstatus) / (objcount * 100.0)}
 {}
 
+
+void SLAPrint::Steps::apply_elefant_foot_compensation(SLAPrintObject &po, SliceOrigin o)
+{
+    auto faded_lyrs = size_t(po.m_config.faded_layers.getInt());
+    faded_lyrs = std::min(po.m_slice_index.size(), faded_lyrs);
+    
+    if (!po.m_model_height_levels.empty() && po.m_model_height_levels[0] < ilh) {
+        auto &first_sl = po.m_model_slices[0];
+        double compensation = m_print->m_printer_config.elefant_foot_compensation.getFloat();
+        first_sl = elephant_foot_compensation(first_sl, 0., compensation);
+    }
+}
+
 void SLAPrint::Steps::hollow_model(SLAPrintObject &po)
 {
     po.m_hollowing_data.reset();
@@ -241,11 +254,7 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
     double doffs = m_print->m_printer_config.absolute_correction.getFloat();
     coord_t clpr_offs = scaled(doffs);
     
-    if (!po.m_model_height_levels.empty() && po.m_model_height_levels[0] < ilh) {
-        auto &first_sl = po.m_model_slices[0];
-        double compensation = m_print->m_printer_config.elefant_foot_compensation.getFloat();
-        first_sl = elephant_foot_compensation(first_sl, 0., compensation);
-    }
+
     
     for(size_t id = 0;
          id < po.m_model_slices.size() && mit != po.m_slice_index.end();

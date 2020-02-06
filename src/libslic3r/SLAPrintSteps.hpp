@@ -43,6 +43,8 @@ private:
     bool canceled() const { return m_print->canceled(); }
     void initialize_printer_input();
     
+    void apply_elefant_foot_compensation(SLAPrintObject &po, SliceOrigin o);
+    
 public:
     Steps(SLAPrint *print);
     

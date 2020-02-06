@@ -558,6 +558,7 @@ const std::vector<std::string>& Preset::sla_printer_options()
             "relative_correction",
             "absolute_correction",
             "elefant_foot_compensation",
+            "elefant_foot_min_width",
             "gamma_correction",
             "min_exposure_time", "max_exposure_time",
             "min_initial_exposure_time", "max_initial_exposure_time",

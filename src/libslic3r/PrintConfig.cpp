@@ -2452,6 +2452,15 @@ void PrintConfigDef::init_sla_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.2));
+    
+    def = this->add("elefant_foot_min_width", coFloat);
+    def->label = L("Elefant foot minimum width");
+    def->category = L("Advanced");
+    def->tooltip = L("Minimum with of features to maintain when doing EFC");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.2));
 
     def = this->add("gamma_correction", coFloat);
     def->label = L("Printer gamma correction");
