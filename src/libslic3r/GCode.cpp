@@ -1774,7 +1774,7 @@ namespace ProcessLayer
     	const CustomGCode::Item 								*custom_gcode,
         // ID of the first extruder printing this layer.
         unsigned int                                             first_extruder_id,
-		bool  											         single_material_print)
+		bool  											         single_extruder_printer)
 	{
         std::string gcode;
         
@@ -1782,31 +1782,39 @@ namespace ProcessLayer
 			// Extruder switches are processed by LayerTools, they should be filtered out.
 			assert(custom_gcode->gcode != ToolChangeCode);
 
-            const std::string &custom_code = custom_gcode->gcode;
+            const std::string  &custom_code  = custom_gcode->gcode;
+            bool  				color_change = custom_code == ColorChangeCode;
+            bool 				tool_change  = custom_code == ToolChangeCode;
+		    // Tool Change is applied as Color Change for a single extruder printer only.
+		    assert(! tool_change || single_extruder_printer);
+
 		    std::string pause_print_msg;
 		    int m600_extruder_before_layer = -1;
-	        if (custom_code == ColorChangeCode && custom_gcode->extruder > 0)
+	        if (color_change && custom_gcode->extruder > 0)
 	            m600_extruder_before_layer = custom_gcode->extruder - 1;
 	        else if (custom_code == PausePrintCode)
 	            pause_print_msg = custom_gcode->color;
 
-		    // we should add or not colorprint_change in respect to nozzle_diameter count instead of really used extruders count	        
-	        if (custom_code == ColorChangeCode) // color change
+		    // we should add or not colorprint_change in respect to nozzle_diameter count instead of really used extruders count
+	        if (color_change || tool_change)
 	        {
+		        // Color Change or Tool Change as Color Change.
 	            // add tag for analyzer
 	            gcode += "; " + GCodeAnalyzer::Color_Change_Tag + ",T" + std::to_string(m600_extruder_before_layer) + "\n";
 	            // add tag for time estimator
 	            gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
 
-	            if (!single_material_print && m600_extruder_before_layer >= 0 && first_extruder_id != m600_extruder_before_layer
+	            if (!single_extruder_printer && m600_extruder_before_layer >= 0 && first_extruder_id != m600_extruder_before_layer
 	                // && !MMU1
 	                ) {
 	                //! FIXME_in_fw show message during print pause
 	                gcode += "M601\n"; // pause print
 	                gcode += "M117 Change filament for Extruder " + std::to_string(m600_extruder_before_layer) + "\n";
 	            }
-	            else 
-	                gcode += custom_code + "\n";
+                else {
+                    gcode += ColorChangeCode;
+                    gcode += "\n";
+                }
 	        } 
 	        else
 	        {

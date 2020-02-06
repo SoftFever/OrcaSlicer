@@ -5100,7 +5100,7 @@ void GLCanvas3D::_render_overlays() const
 
 #if ENABLE_SHOW_SCENE_LABELS
     const ConfigOptionBool* opt = dynamic_cast<const ConfigOptionBool*>(m_config->option("complete_objects"));
-    bool sequential_print = (opt != nullptr) ? m_config->opt_bool("complete_objects") : false;
+    bool sequential_print = opt != nullptr && opt->value;
     std::vector<const ModelInstance*> sorted_instances;
     if (sequential_print) {
         for (ModelObject* model_object : m_model->objects)

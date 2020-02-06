@@ -80,6 +80,7 @@ public:
     bool is_selection_rectangle_dragging() const { return m_selection_rectangle.is_dragging(); }
     bool has_backend_supports() const;
     void reslice_SLA_supports(bool postpone_error_messages = false) const;
+    void update_clipping_plane(bool keep_normal = false) const;
 
 private:
     bool on_init() override;
@@ -139,7 +140,6 @@ private:
     void switch_to_editing_mode();
     void disable_editing_mode();
     void reset_clipping_plane_normal() const;
-    void update_clipping_plane(bool keep_normal = false) const;
 
 protected:
     void on_set_state() override;

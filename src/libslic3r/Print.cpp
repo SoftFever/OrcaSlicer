@@ -709,7 +709,11 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 			model_object_status.emplace(model_object->id(), ModelObjectStatus::New);
     } else {
         if (m_model.custom_gcode_per_print_z != model.custom_gcode_per_print_z) {
-            update_apply_status(custom_per_printz_gcodes_tool_changes_differ(m_model.custom_gcode_per_print_z.gcodes, model.custom_gcode_per_print_z.gcodes) ?
+            update_apply_status(num_extruders_changed || 
+            	// Tool change G-codes are applied as color changes for a single extruder printer, no need to invalidate tool ordering.
+            	//FIXME The tool ordering may be invalidated unnecessarily if the custom_gcode_per_print_z.mode is not applicable
+            	// to the active print / model state, and then it is reset, so it is being applicable, but empty, thus the effect is the same.
+            	(num_extruders > 1 && custom_per_printz_gcodes_tool_changes_differ(m_model.custom_gcode_per_print_z.gcodes, model.custom_gcode_per_print_z.gcodes)) ?
             	// The Tool Ordering and the Wipe Tower are no more valid.
             	this->invalidate_steps({ psWipeTower, psGCodeExport }) :
             	// There is no change in Tool Changes stored in custom_gcode_per_print_z, therefore there is no need to update Tool Ordering.
