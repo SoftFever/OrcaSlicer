@@ -12,7 +12,6 @@
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/TriangleMesh.hpp"
-#include "libslic3r/MeshBoolean.hpp"
 
 
 namespace Slic3r {
@@ -59,8 +58,11 @@ void GLGizmoHollow::set_sla_support_data(ModelObject*, const Selection&)
 {
     if (m_c->recent_update) {
 
-        if (m_c->m_model_object)
+        if (m_c->m_model_object) {
             reload_cache();
+            if (m_c->has_drilled_mesh())
+                m_holes_in_drilled_mesh = m_c->m_model_object->sla_drain_holes;
+        }
 
         if (m_state == On) {
             m_parent.toggle_model_objects_visibility(false);
@@ -344,18 +346,25 @@ bool GLGizmoHollow::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, V
     // The raycaster query
     Vec3f hit;
     Vec3f normal;
-    if (m_c->m_mesh_raycaster->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, hit, normal, m_c->m_clipping_plane.get())) {
-
-        // User is about to manipulate a hole. If the gizmo currently shows drilled mesh,
-        // invalidate slaposDrillHoles so it returns to normal. To do this, hackishly
-        // add a hole, force SLAPrint::apply call that will invalidate the step because
-        // of it and then remove the hole again.
+    if (m_c->m_mesh_raycaster->unproject_on_mesh(
+            mouse_pos,
+            trafo.get_matrix(),
+            camera,
+            hit,
+            normal,
+            m_c->m_clipping_plane_distance != 0.f ? m_c->m_clipping_plane.get() : nullptr))
+    {
         if (m_c->has_drilled_mesh()) {
-            m_c->m_model_object->sla_drain_holes.push_back(sla::DrainHole());
-            m_selected.push_back(false);
-            m_parent.post_event(SimpleEvent(EVT_GLCANVAS_FORCE_UPDATE));
-            wxGetApp().CallAfter([this] { m_c->m_model_object->sla_drain_holes.pop_back(); m_selected.pop_back(); });
-            return false;
+            // in this case the raycaster sees the hollowed and drilled mesh.
+            // if the point lies on the surface created by the hole, we want
+            // to ignore it.
+            for (const sla::DrainHole& hole : m_holes_in_drilled_mesh) {
+                sla::DrainHole outer(hole);
+                outer.radius *= 1.001f;
+                outer.height *= 1.001f;
+                if (outer.is_inside(hit))
+                    return false;
+            }
         }
 
         // Return both the point and the facet normal.
@@ -526,8 +535,6 @@ void GLGizmoHollow::delete_selected_points()
             m_c->m_model_object->sla_drain_holes.erase(m_c->m_model_object->sla_drain_holes.begin() + (idx--));
         }
     }
-
-    m_parent.post_event(SimpleEvent(EVT_GLCANVAS_FORCE_UPDATE));
 
     select_point(NoPoints);
 }

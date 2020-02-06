@@ -384,7 +384,7 @@ bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas, ModelObject* mode
     if (! recent_update)
         recent_update = m_print_object_idx < 0 && old_po_idx >= 0;
 
-    return m_print_object_idx < 0 ? old_po_idx >=0 : false;
+    return recent_update;
 }
 
 

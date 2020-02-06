@@ -34,6 +34,9 @@ struct DrainHole
     DrainHole(Vec3f p, Vec3f n, float r, float h)
         : pos(p), normal(n), radius(r), height(h)
     {}
+
+    DrainHole(const DrainHole& rhs) :
+        DrainHole(rhs.pos, rhs.normal, rhs.radius, rhs.height) {}
     
     bool operator==(const DrainHole &sp) const;
     
@@ -50,6 +53,8 @@ struct DrainHole
     {
         ar(pos, normal, radius, height);
     }
+
+    static constexpr size_t steps = 32;
 };
 
 using DrainHoles = std::vector<DrainHole>;

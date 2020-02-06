@@ -70,6 +70,7 @@ private:
     float m_quality_stash = 0.5f;
     float m_closing_d_stash = 2.f;
     Vec3f m_hole_before_drag = Vec3f::Zero();
+    sla::DrainHoles m_holes_in_drilled_mesh;
 
     sla::DrainHoles m_holes_stash;
 

@@ -408,7 +408,14 @@ bool GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec
     // The raycaster query
     Vec3f hit;
     Vec3f normal;
-    if (m_c->m_mesh_raycaster->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, hit, normal, m_c->m_clipping_plane.get())) {
+    if (m_c->m_mesh_raycaster->unproject_on_mesh(
+            mouse_pos,
+            trafo.get_matrix(),
+            camera,
+            hit,
+            normal,
+            m_c->m_clipping_plane_distance != 0.f ? m_c->m_clipping_plane.get() : nullptr))
+    {
         // Check whether the hit is in a hole
         bool in_hole = false;
         // In case the hollowed and drilled mesh is available, we can allow

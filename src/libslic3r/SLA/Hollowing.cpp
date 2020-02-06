@@ -119,7 +119,7 @@ Contour3D DrainHole::to_mesh() const
 {
     auto r = double(radius);
     auto h = double(height);
-    sla::Contour3D hole = sla::cylinder(r, h);
+    sla::Contour3D hole = sla::cylinder(r, h, steps);
     Eigen::Quaterniond q;
     q.setFromTwoVectors(Vec3d{0., 0., 1.}, normal.cast<double>());
     for(auto& p : hole.points) p = q * p + pos.cast<double>();
