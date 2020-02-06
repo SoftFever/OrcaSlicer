@@ -2934,7 +2934,7 @@ void PrintConfigDef::init_sla_params()
     def = this->add("hollowing_closing_distance", coFloat);
     def->label = L("Hollowing closing distance");
     def->category = L("Hollowing");
-    def->tooltip  = L("");
+    def->tooltip  = "";//L("");
     def->min = 0;
     def->max = 10;
     def->mode = comExpert;
