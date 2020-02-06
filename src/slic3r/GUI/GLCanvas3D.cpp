@@ -1442,7 +1442,9 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
     , m_show_picking_texture(false)
 #endif // ENABLE_RENDER_PICKING_PASS
     , m_render_sla_auxiliaries(true)
+#if ENABLE_SHOW_SCENE_LABELS
     , m_labels(*this)
+#endif // ENABLE_SHOW_SCENE_LABELS
 {
     if (m_canvas != nullptr) {
         m_timer.SetOwner(m_canvas);
