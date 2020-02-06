@@ -1175,6 +1175,7 @@ public:
     ConfigOptionBool                        display_mirror_y;
     ConfigOptionFloats                      relative_correction;
     ConfigOptionFloat                       absolute_correction;
+    ConfigOptionFloat                       elefant_foot_compensation;
     ConfigOptionFloat                       gamma_correction;
     ConfigOptionFloat                       fast_tilt_time;
     ConfigOptionFloat                       slow_tilt_time;
@@ -1198,6 +1199,7 @@ protected:
         OPT_PTR(display_orientation);
         OPT_PTR(relative_correction);
         OPT_PTR(absolute_correction);
+        OPT_PTR(elefant_foot_compensation);
         OPT_PTR(gamma_correction);
         OPT_PTR(fast_tilt_time);
         OPT_PTR(slow_tilt_time);

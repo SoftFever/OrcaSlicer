@@ -8,6 +8,8 @@
 #include <libslic3r/SLA/Pad.hpp>
 #include <libslic3r/SLA/SupportPointGenerator.hpp>
 
+#include <libslic3r/ElephantFootCompensation.hpp>
+
 #include <libslic3r/ClipperUtils.hpp>
 
 // For geometry algorithms with native Clipper types (no copies and conversions)
@@ -238,6 +240,13 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
     auto mit = slindex_it;
     double doffs = m_print->m_printer_config.absolute_correction.getFloat();
     coord_t clpr_offs = scaled(doffs);
+    
+    if (!po.m_model_height_levels.empty() && po.m_model_height_levels[0] < ilh) {
+        auto &first_sl = po.m_model_slices[0];
+        double compensation = m_print->m_printer_config.elefant_foot_compensation.getFloat();
+        first_sl = elephant_foot_compensation(first_sl, 0., compensation);
+    }
+    
     for(size_t id = 0;
          id < po.m_model_slices.size() && mit != po.m_slice_index.end();
          id++)
@@ -449,6 +458,12 @@ void SLAPrint::Steps::slice_supports(SLAPrintObject &po) {
         
         sd->support_slices = sd->support_tree_ptr->slice(
                     heights, float(po.config().slice_closing_radius.value));
+        
+        if (!heights.empty() && heights[0] < ilh) {
+            auto &first_sl = sd->support_slices[0];
+            double compensation = m_print->m_printer_config.elefant_foot_compensation.getFloat();
+            first_sl = elephant_foot_compensation(first_sl, 0., compensation);
+        }
     }
     
     double doffs = m_print->m_printer_config.absolute_correction.getFloat();

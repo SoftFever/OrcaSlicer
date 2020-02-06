@@ -2112,8 +2112,9 @@ void TabPrinter::build_sla()
     }
     optgroup->append_line(line);
     optgroup->append_single_option_line("absolute_correction");
+    optgroup->append_single_option_line("elefant_foot_compensation");
     optgroup->append_single_option_line("gamma_correction");
-
+    
     optgroup = page->new_optgroup(_(L("Exposure")));
     optgroup->append_single_option_line("min_exposure_time");
     optgroup->append_single_option_line("max_exposure_time");
