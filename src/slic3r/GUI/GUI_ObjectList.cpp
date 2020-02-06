@@ -3905,6 +3905,8 @@ void ObjectList::OnEditingDone(wxDataViewEvent &event)
 	// Here the last active column is forgotten, so when leaving the editing mode, the next mouse click will not enter the editing mode of the newly selected column.
 	m_last_selected_column = -1;
 #endif //__WXMSW__
+
+    wxGetApp().plater()->set_current_canvas_as_dirty();
 }
 
 void ObjectList::show_multi_selection_menu()
