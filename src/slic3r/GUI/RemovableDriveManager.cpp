@@ -374,6 +374,11 @@ std::string RemovableDriveManager::get_drive_from_path(const std::string& path)
 {
 	std::size_t found = path.find_last_of("/");
 	std::string new_path = found == path.size() - 1 ? path.substr(0, found) : path;
+    
+    // trim the filename
+    found = new_path.find_last_of("/");
+    new_path = new_path.substr(0, found);
+    
 	//check if same filesystem
 	for (auto it = m_current_drives.begin(); it != m_current_drives.end(); ++it)
 	{
