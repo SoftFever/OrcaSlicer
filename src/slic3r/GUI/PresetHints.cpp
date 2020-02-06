@@ -288,14 +288,13 @@ std::string PresetHints::top_bottom_shell_thickness_explanation(const PresetBund
     int 	bottom_solid_layers             = print_config.opt_int("bottom_solid_layers");
     bool    has_top_layers 					= top_solid_layers > 0;
     bool    has_bottom_layers 				= bottom_solid_layers > 0;
-    bool 	has_shell						= has_top_layers && has_bottom_layers;
     double  top_solid_min_thickness        	= print_config.opt_float("top_solid_min_thickness");
     double  bottom_solid_min_thickness  	= print_config.opt_float("bottom_solid_min_thickness");
     double  layer_height                    = print_config.opt_float("layer_height");
     bool    variable_layer_height			= printer_config.opt_bool("variable_layer_height");
     //FIXME the following lines take into account the 1st extruder only.
-    double  min_layer_height				= (has_shell && variable_layer_height) ? Slicing::min_layer_height_from_nozzle(printer_config, 1) : layer_height;
-    double  max_layer_height				= (has_shell && variable_layer_height) ? Slicing::max_layer_height_from_nozzle(printer_config, 1) : layer_height;
+    double  min_layer_height				= variable_layer_height ? Slicing::min_layer_height_from_nozzle(printer_config, 1) : layer_height;
+    double  max_layer_height				= variable_layer_height ? Slicing::max_layer_height_from_nozzle(printer_config, 1) : layer_height;
 
 	if (layer_height <= 0.f) {
 		out += _utf8(L("Top / bottom shell thickness hint: Not available due to invalid layer height."));
@@ -316,7 +315,10 @@ std::string PresetHints::top_bottom_shell_thickness_explanation(const PresetBund
         	out += " ";
 	        out += (boost::format(_utf8(L("Minimum top shell thickness is %1% mm."))) % top_shell_thickness_minimum).str();        	
         }
-    }
+    } else
+        out += _utf8(L("Top is open."));
+
+    out += "\n";
 
     if (has_bottom_layers) {
     	double bottom_shell_thickness = bottom_solid_layers * layer_height;
@@ -327,14 +329,13 @@ std::string PresetHints::top_bottom_shell_thickness_explanation(const PresetBund
     		bottom_shell_thickness = n * layer_height;
     	}
     	double bottom_shell_thickness_minimum = std::max(bottom_solid_min_thickness, bottom_solid_layers * min_layer_height);
-    	if (! out.empty())
-    		out += "\n";
         out += (boost::format(_utf8(L("Bottom shell is %1% mm thick for layer height %2% mm."))) % bottom_shell_thickness % layer_height).str();
         if (variable_layer_height && bottom_shell_thickness_minimum < bottom_shell_thickness) {
         	out += " ";
 	        out += (boost::format(_utf8(L("Minimum bottom shell thickness is %1% mm."))) % bottom_shell_thickness_minimum).str();        	
         }
-    }
+    } else 
+        out += _utf8(L("Bottom is open."));
 
     return out;
 }
