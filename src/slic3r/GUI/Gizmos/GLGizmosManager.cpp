@@ -348,11 +348,22 @@ void GLGizmosManager::set_sla_support_data(ModelObject* model_object)
     if (!m_enabled || m_gizmos.empty())
         return;
 
-    // Update common data for hollowing and sla support gizmos.
-    m_common_gizmos_data->update_from_backend(m_parent, model_object);
+    auto* gizmo_supports = dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get());
+    auto* gizmo_hollow = dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get());
 
-    dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get())->set_sla_support_data(model_object, m_parent.get_selection());
-    dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get())->set_sla_support_data(model_object, m_parent.get_selection());
+
+    // Update common data for hollowing and sla support gizmos.
+    if (m_common_gizmos_data->update_from_backend(m_parent, model_object)) {
+        // FIXME: this is a hack to make that the clipping plane is
+        // updated when the update set its position to zero. The clipping
+        // plane itself should be common, including the update_function.
+        // Then update_from_backend could do it itself.
+        gizmo_supports->update_clipping_plane();
+        gizmo_hollow->update_clipping_plane();
+    }
+
+    gizmo_supports->set_sla_support_data(model_object, m_parent.get_selection());
+    gizmo_hollow->set_sla_support_data(model_object, m_parent.get_selection());
 }
 
 // Returns true if the gizmo used the event to do something, false otherwise.

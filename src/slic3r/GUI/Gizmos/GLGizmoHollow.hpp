@@ -43,6 +43,7 @@ public:
     void update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh);
 
     bool is_selection_rectangle_dragging() const { return m_selection_rectangle.is_dragging(); }
+    void update_clipping_plane(bool keep_normal = false) const;
 
 private:
     bool on_init() override;
@@ -96,7 +97,6 @@ private:
     void select_point(int i);
     void unselect_point(int i);
     void reload_cache();
-    void update_clipping_plane(bool keep_normal = false) const;
 
 protected:
     void on_set_state() override;
