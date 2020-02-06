@@ -1056,6 +1056,16 @@ void TabPrint::build()
         line.append_option(optgroup->get_option("top_solid_layers"));
         line.append_option(optgroup->get_option("bottom_solid_layers"));
         optgroup->append_line(line);
+    	line = { _(L("Minimum shell thickness")), "" };
+        line.append_option(optgroup->get_option("top_solid_min_thickness"));
+        line.append_option(optgroup->get_option("bottom_solid_min_thickness"));
+        optgroup->append_line(line);
+		line = { "", "" };
+	    line.full_width = 1;
+	    line.widget = [this](wxWindow* parent) {
+	        return description_line_widget(parent, &m_top_bottom_shell_thickness_explanation);
+	    };
+	    optgroup->append_line(line);
 
         optgroup = page->new_optgroup(_(L("Quality (slower slicing)")));
         optgroup->append_single_option_line("extra_perimeters");
@@ -1277,6 +1287,8 @@ void TabPrint::update()
 
     m_recommended_thin_wall_thickness_description_line->SetText(
         from_u8(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle)));
+    m_top_bottom_shell_thickness_explanation->SetText(
+        from_u8(PresetHints::top_bottom_shell_thickness_explanation(*m_preset_bundle)));
     Layout();
 
 //	Thaw();
@@ -1295,6 +1307,8 @@ void TabPrint::OnActivate()
 {
     m_recommended_thin_wall_thickness_description_line->SetText(
         from_u8(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle)));
+    m_top_bottom_shell_thickness_explanation->SetText(
+        from_u8(PresetHints::top_bottom_shell_thickness_explanation(*m_preset_bundle)));
     Tab::OnActivate();
 }
 

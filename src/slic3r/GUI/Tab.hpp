@@ -327,8 +327,9 @@ public:
         Tab(parent, _(L("Print Settings")), Slic3r::Preset::TYPE_PRINT) {}
 	~TabPrint() {}
 
-	ogStaticText*	m_recommended_thin_wall_thickness_description_line;
-	bool		m_support_material_overhangs_queried = false;
+	ogStaticText*	m_recommended_thin_wall_thickness_description_line = nullptr;
+	ogStaticText*	m_top_bottom_shell_thickness_explanation = nullptr;
+	bool			m_support_material_overhangs_queried = false;
 
 	void		build() override;
 	void		reload_config() override;
@@ -336,6 +337,7 @@ public:
 	void		OnActivate() override;
     bool 		supports_printer_technology(const PrinterTechnology tech) override { return tech == ptFFF; }
 };
+
 class TabFilament : public Tab
 {
 	ogStaticText*	m_volumetric_speed_description_line;

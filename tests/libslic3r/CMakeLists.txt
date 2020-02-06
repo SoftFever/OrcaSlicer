@@ -12,6 +12,7 @@ add_executable(${_TEST_NAME}_tests
 	test_polygon.cpp
 	test_stl.cpp
         test_meshsimplify.cpp
+        test_meshboolean.cpp
 	)
 
 if (TARGET OpenVDB::openvdb)
@@ -20,6 +21,10 @@ endif()
     
 target_link_libraries(${_TEST_NAME}_tests test_common libslic3r)
 set_property(TARGET ${_TEST_NAME}_tests PROPERTY FOLDER "tests")
+
+if (WIN32)
+    prusaslicer_copy_dlls(${_TEST_NAME}_tests)
+endif()
 
 # catch_discover_tests(${_TEST_NAME}_tests TEST_PREFIX "${_TEST_NAME}: ")
 add_test(${_TEST_NAME}_tests ${_TEST_NAME}_tests ${CATCH_EXTRA_ARGS})

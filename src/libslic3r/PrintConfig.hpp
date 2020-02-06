@@ -466,6 +466,7 @@ class PrintRegionConfig : public StaticPrintConfig
 public:
     ConfigOptionFloat               bridge_angle;
     ConfigOptionInt                 bottom_solid_layers;
+    ConfigOptionFloat               bottom_solid_min_thickness;
     ConfigOptionFloat               bridge_flow_ratio;
     ConfigOptionFloat               bridge_speed;
     ConfigOptionBool                ensure_vertical_shell_thickness;
@@ -501,6 +502,7 @@ public:
     ConfigOptionBool                thin_walls;
     ConfigOptionFloatOrPercent      top_infill_extrusion_width;
     ConfigOptionInt                 top_solid_layers;
+    ConfigOptionFloat 				top_solid_min_thickness;
     ConfigOptionFloatOrPercent      top_solid_infill_speed;
     ConfigOptionBool                wipe_into_infill;
 
@@ -509,6 +511,7 @@ protected:
     {
         OPT_PTR(bridge_angle);
         OPT_PTR(bottom_solid_layers);
+        OPT_PTR(bottom_solid_min_thickness);
         OPT_PTR(bridge_flow_ratio);
         OPT_PTR(bridge_speed);
         OPT_PTR(ensure_vertical_shell_thickness);
@@ -542,6 +545,7 @@ protected:
         OPT_PTR(top_infill_extrusion_width);
         OPT_PTR(top_solid_infill_speed);
         OPT_PTR(top_solid_layers);
+        OPT_PTR(top_solid_min_thickness);
         OPT_PTR(wipe_into_infill);
     }
 };

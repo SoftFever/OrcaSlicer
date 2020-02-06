@@ -33,7 +33,7 @@ enum SelectedSlider {
     ssHigher
 };
 
-enum FocusItem {
+enum FocusedItem {
     fiNone,
     fiRevertIcon,
     fiOneLayerIcon,
@@ -50,6 +50,20 @@ enum ConflictType
     ctMeaninglessColorChange,
     ctMeaninglessToolChange,
     ctRedundant
+};
+
+enum MouseAction
+{
+    maNone,
+    maAddMenu,                  // show "Add"  context menu for NOTexist active tick
+    maEditMenu,                 // show "Edit" context menu for exist active tick
+    maCogIconMenu,              // show context for "cog" icon
+    maForceColorEdit,           // force color editing from colored band
+    maAddTick,                  // force tick adding
+    maDeleteTick,               // force tick deleting
+    maCogIconClick,             // LeftMouseClick on "cog" icon
+    maOneLayerIconClick,        // LeftMouseClick on "one_layer" icon
+    maRevertIconClick,          // LeftMouseClick on "revert" icon
 };
 
 using t_mode = CustomGCode::Mode;
@@ -188,17 +202,7 @@ public:
 
     void    SetManipulationMode(t_mode mode)    { m_mode = mode; }
     t_mode  GetManipulationMode() const         { return m_mode; }
-    void    SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, const int only_extruder)
-    {
-        m_mode = !is_one_extruder_printed_model ? t_mode::MultiExtruder :
-                 only_extruder < 0              ? t_mode::SingleExtruder :
-                                                  t_mode::MultiAsSingle;
-        if (!m_ticks.mode)
-            m_ticks.mode = m_mode;
-        m_only_extruder = only_extruder;
-
-        UseDefaultColors(m_mode == t_mode::SingleExtruder);
-    }
+    void    SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, const int only_extruder);
 
     bool is_horizontal() const      { return m_style == wxSL_HORIZONTAL; }
     bool is_one_layer() const       { return m_is_one_layer; }
@@ -226,7 +230,14 @@ public:
     // delete current tick, when press "-"
     void delete_current_tick();
     void edit_tick(int tick = -1);
+    void switch_one_layer_mode();
+    void discard_all_thicks();
+    void move_current_thumb_to_pos(wxPoint pos);
     void edit_extruder_sequence();
+    void jump_to_print_z();
+    void get_add_menu(wxMenu *menu);
+    void get_edit_menu(wxMenu *menu);
+    void get_cog_icon_menu(wxMenu *menu);
 
     ExtrudersSequence m_extruders_sequence;
 
@@ -268,7 +279,7 @@ private:
     wxSize      get_size();
     void        get_size(int *w, int *h);
     double      get_double_value(const SelectedSlider& selection);
-    wxString    get_tooltip(FocusItem focused_item, int tick = -1);
+    wxString    get_tooltip(int tick = -1);
     int         get_edited_tick_for_position(wxPoint pos, const std::string& gcode = ColorChangeCode);
 
     std::string get_color_for_tool_change_tick(std::set<TickCode>::const_iterator it) const;
@@ -310,18 +321,14 @@ private:
     bool        m_is_right_down = false;
     bool        m_is_one_layer = false;
     bool        m_is_focused = false;
-    bool        m_is_action_icon_focesed = false;
-    bool        m_is_one_layer_icon_focesed = false;
     bool        m_is_enabled_tick_manipulation = true;
-    bool        m_show_context_menu = false;
-    bool        m_show_edit_menu = false;
-    bool        m_force_edit_extruder_sequence = false;
     bool        m_force_mode_apply = true;
-    bool        m_force_add_tick    = false;
-    bool        m_force_delete_tick = false;
-    bool        m_force_color_edit  = false;
+
     t_mode      m_mode = t_mode::SingleExtruder;
     int         m_only_extruder = -1;
+
+    MouseAction m_mouse = maNone;
+    FocusedItem m_focus = fiNone;
 
     wxRect      m_rect_lower_thumb;
     wxRect      m_rect_higher_thumb;
