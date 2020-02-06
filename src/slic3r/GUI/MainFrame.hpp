@@ -96,7 +96,7 @@ protected:
 
 public:
     MainFrame();
-    ~MainFrame();
+    ~MainFrame() = default;
 
     Plater*     plater() { return m_plater; }
 
