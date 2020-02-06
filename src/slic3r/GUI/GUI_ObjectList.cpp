@@ -1134,6 +1134,8 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
     changed_object(m_dragged_data.obj_idx());
 
     m_dragged_data.clear();
+
+    wxGetApp().plater()->set_current_canvas_as_dirty();
 }
 
 

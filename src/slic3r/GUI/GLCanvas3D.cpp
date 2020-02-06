@@ -1238,7 +1238,7 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
 }
 
 #if ENABLE_SHOW_SCENE_LABELS
-void GLCanvas3D::Labels::render(const std::vector<const PrintInstance*>& sorted_instances) const
+void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_instances) const
 {
     if (!m_enabled || !is_shown())
         return;
@@ -1298,7 +1298,7 @@ void GLCanvas3D::Labels::render(const std::vector<const PrintInstance*>& sorted_
     // updates print order strings
     if (sorted_instances.size() > 1) {
         for (int i = 0; i < sorted_instances.size(); ++i) {
-            size_t id = sorted_instances[i]->model_instance->id().id;
+            size_t id = sorted_instances[i]->id().id;
             std::vector<Owner>::iterator it = std::find_if(owners.begin(), owners.end(), [id](const Owner& owner) {
                 return owner.model_instance_id == id;
                 });
@@ -5101,11 +5101,12 @@ void GLCanvas3D::_render_overlays() const
 #if ENABLE_SHOW_SCENE_LABELS
     const ConfigOptionBool* opt = dynamic_cast<const ConfigOptionBool*>(m_config->option("complete_objects"));
     bool sequential_print = (opt != nullptr) ? m_config->opt_bool("complete_objects") : false;
-    std::vector<const PrintInstance*> sorted_instances;
+    std::vector<const ModelInstance*> sorted_instances;
     if (sequential_print) {
-        const Print* print = fff_print();
-        if (print != nullptr)
-            sorted_instances = sort_object_instances_by_model_order(*print);
+        for (ModelObject* model_object : m_model->objects)
+            for (ModelInstance* model_instance : model_object->instances) {
+                sorted_instances.push_back(model_instance);
+            }
     }
     m_labels.render(sorted_instances);
 #endif // ENABLE_SHOW_SCENE_LABELS
