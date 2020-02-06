@@ -235,9 +235,9 @@ public:
     void move_current_thumb_to_pos(wxPoint pos);
     void edit_extruder_sequence();
     void jump_to_print_z();
-    void get_add_menu(wxMenu *menu);
-    void get_edit_menu(wxMenu *menu);
-    void get_cog_icon_menu(wxMenu *menu);
+    void show_add_context_menu();
+    void show_edit_context_menu();
+    void show_cog_icon_context_menu();
 
     ExtrudersSequence m_extruders_sequence;
 
@@ -256,6 +256,8 @@ protected:
     void    draw_cog_icon(wxDC &dc);
     void    draw_thumb_item(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection);
     void    draw_info_line_with_icon(wxDC& dc, const wxPoint& pos, SelectedSlider selection);
+    void    draw_tick_on_mouse_position(wxDC &dc);
+    void    draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, bool right_side = true) const;
     void    draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const;
 
     void    update_thumb_rect(const wxCoord& begin_x, const wxCoord& begin_y, const SelectedSlider& selection);
@@ -271,7 +273,7 @@ private:
     int     get_tick_near_point(const wxPoint& pt);
 
     double      get_scroll_step();
-    wxString    get_label(const SelectedSlider& selection) const;
+    wxString    get_label(int tick) const;
     void        get_lower_and_higher_position(int& lower_pos, int& higher_pos);
     int         get_value_from_position(const wxCoord x, const wxCoord y);
     int         get_value_from_position(const wxPoint pos) { return get_value_from_position(pos.x, pos.y); }
@@ -329,6 +331,7 @@ private:
 
     MouseAction m_mouse = maNone;
     FocusedItem m_focus = fiNone;
+    wxPoint     m_moving_pos = wxDefaultPosition;
 
     wxRect      m_rect_lower_thumb;
     wxRect      m_rect_higher_thumb;
