@@ -1784,6 +1784,11 @@ struct Plater::priv
     bool is_preview_loaded() const { return preview->is_loaded(); }
     bool is_view3D_shown() const { return current_panel == view3D; }
 
+#if ENABLE_SHOW_SCENE_LABELS
+    bool are_view3D_labels_shown() const { return (current_panel == view3D) && view3D->get_canvas3d()->are_labels_shown(); }
+    void show_view3D_labels(bool show) { if (current_panel == view3D) view3D->get_canvas3d()->show_labels(show); }
+#endif // ENABLE_SHOW_SCENE_LABELS
+
     void set_current_canvas_as_dirty();
 #if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
     GLCanvas3D* get_current_canvas3D();
@@ -4672,6 +4677,11 @@ void Plater::select_view_3D(const std::string& name) { p->select_view_3D(name); 
 bool Plater::is_preview_shown() const { return p->is_preview_shown(); }
 bool Plater::is_preview_loaded() const { return p->is_preview_loaded(); }
 bool Plater::is_view3D_shown() const { return p->is_view3D_shown(); }
+
+#if ENABLE_SHOW_SCENE_LABELS
+bool Plater::are_view3D_labels_shown() const { return p->are_view3D_labels_shown(); }
+void Plater::show_view3D_labels(bool show) { p->show_view3D_labels(show); }
+#endif // ENABLE_SHOW_SCENE_LABELS
 
 void Plater::select_all() { p->select_all(); }
 void Plater::deselect_all() { p->deselect_all(); }
