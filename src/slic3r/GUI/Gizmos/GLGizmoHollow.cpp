@@ -676,6 +676,29 @@ void GLGizmoHollow::on_render_input_window(float x, float y, float bottom_limit)
     bool first_run = true; // This is a hack to redraw the button when all points are removed,
                            // so it is not delayed until the background process finishes.
 
+
+    std::vector<std::string> opts_keys = {"hollowing_min_thickness", "hollowing_quality", "hollowing_closing_distance"};
+    auto opts = get_config_options(opts_keys);
+    auto* offset_cfg = static_cast<const ConfigOptionFloat*>(opts[0].first);
+    float offset = offset_cfg->value;
+    double offset_min = opts[0].second->min;
+    double offset_max = opts[0].second->max;
+
+    auto* quality_cfg = static_cast<const ConfigOptionFloat*>(opts[1].first);
+    float quality = quality_cfg->value;
+    double quality_min = opts[1].second->min;
+    double quality_max = opts[1].second->max;
+
+    auto* closing_d_cfg = static_cast<const ConfigOptionFloat*>(opts[2].first);
+    float closing_d = closing_d_cfg->value;
+    double closing_d_min = opts[2].second->min;
+    double closing_d_max = opts[2].second->max;
+
+    m_desc["offset"] = _(opts[0].second->label).ToUTF8() + wxString(":");
+    m_desc["quality"] = _(opts[1].second->label).ToUTF8() + wxString(":");
+    m_desc["closing_distance"] = _(opts[2].second->label).ToUTF8() + wxString(":");
+
+
 RENDER_AGAIN:
     const float approx_height = m_imgui->scaled(20.0f);
     y = std::min(y, bottom_limit - approx_height);
@@ -717,24 +740,6 @@ RENDER_AGAIN:
     }
 
     m_imgui->disabled_begin(! m_enable_hollowing);
-
-    std::vector<std::string> opts_keys = {"hollowing_min_thickness", "hollowing_quality", "hollowing_closing_distance"};
-    auto opts = get_config_options(opts_keys);
-    auto* offset_cfg = static_cast<const ConfigOptionFloat*>(opts[0].first);
-    float offset = offset_cfg->value;
-    double offset_min = opts[0].second->min;
-    double offset_max = opts[0].second->max;
-
-    auto* quality_cfg = static_cast<const ConfigOptionFloat*>(opts[1].first);
-    float quality = quality_cfg->value;
-    double quality_min = opts[1].second->min;
-    double quality_max = opts[1].second->max;
-
-    auto* closing_d_cfg = static_cast<const ConfigOptionFloat*>(opts[2].first);
-    float closing_d = closing_d_cfg->value;
-    double closing_d_min = opts[2].second->min;
-    double closing_d_max = opts[2].second->max;
-
 
     m_imgui->text(m_desc.at("offset"));
     ImGui::SameLine(settings_sliders_left);
