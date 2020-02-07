@@ -167,7 +167,7 @@ void MainFrame::update_title()
     		build_id.erase(build_id.begin() + idx_plus, build_id.end());    		
 #if defined(_WIN32) && ! defined(_WIN64)
     		// People are using 32bit slicer on a 64bit machine by mistake. Make it explicit.
-    		build_id += " 32 bit"
+            build_id += " 32 bit";
 #endif
     	}
     }
