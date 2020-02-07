@@ -1091,7 +1091,7 @@ namespace DoExport {
 static inline std::vector<const PrintInstance*> sort_object_instances_by_max_z(const Print &print)
 {
     std::vector<const PrintObject*> objects(print.objects().begin(), print.objects().end());
-	std::sort(objects.begin(), objects.end(), [](const PrintObject *po1, const PrintObject *po2) { return po1->size()(2) < po2->size()(2); });
+	std::sort(objects.begin(), objects.end(), [](const PrintObject *po1, const PrintObject *po2) { return po1->height() < po2->height(); });
 	std::vector<const PrintInstance*> instances;
 	instances.reserve(objects.size());
 	for (const PrintObject *object : objects)
@@ -2616,8 +2616,9 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             }
         }
         else if (seam_position == spRear) {
-            last_pos = m_layer->object()->bounding_box().center();
-            last_pos(1) += coord_t(3. * m_layer->object()->bounding_box().radius());
+            // Object is centered around (0,0) in its current coordinate system.
+            last_pos.x() = 0;
+            last_pos.y() += coord_t(3. * m_layer->object()->bounding_box().radius());
             last_pos_weight = 5.f;
         }
 

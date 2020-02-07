@@ -84,7 +84,7 @@ private:
     
     PrintRegion(Print* print) : m_refcnt(0), m_print(print) {}
     PrintRegion(Print* print, const PrintRegionConfig &config) : m_refcnt(0), m_print(print), m_config(config) {}
-    ~PrintRegion() {}
+    ~PrintRegion() = default;
 };
 
 
@@ -101,7 +101,7 @@ struct PrintInstance
     PrintObject 		*print_object;
     // Source ModelInstance of a ModelObject, for which this print_object was created.
 	const ModelInstance *model_instance;
-	// Shift of this instance towards its PrintObject
+	// Shift of this instance's center into the world coordinates.
 	Point 				 shift;
 };
 
@@ -116,21 +116,22 @@ public:
     // vector of (layer height ranges and vectors of volume ids), indexed by region_id
     std::vector<std::vector<std::pair<t_layer_height_range, int>>> region_volumes;
 
-    // this is set to true when LayerRegion->slices is split in top/internal/bottom
-    // so that next call to make_perimeters() performs a union() before computing loops
-    bool                    typed_slices;
-
-    // XYZ in scaled coordinates
-    const Vec3crd&           size() const			{ return m_size; }
+    // Size of an object: XYZ in scaled coordinates. The size might not be quite snug in XY plane.
+    const Vec3crd&          size() const			{ return m_size; }
     const PrintObjectConfig& config() const         { return m_config; }    
     const LayerPtrs&        layers() const          { return m_layers; }
     const SupportLayerPtrs& support_layers() const  { return m_support_layers; }
     const Transform3d&      trafo() const           { return m_trafo; }
     const PrintInstances&   instances() const       { return m_instances; }
-    const Point 			instance_center(size_t idx) const { return m_instances[idx].shift + m_copies_shift + Point(this->size().x() / 2, this->size().y() / 2); }
 
-    // since the object is aligned to origin, bounding box coincides with size
-    BoundingBox bounding_box() const { return BoundingBox(Point(0,0), to_2d(this->size())); }
+    // Bounding box is used to align the object infill patterns, and to calculate attractor for the rear seam.
+    // The bounding box may not be quite snug.
+    BoundingBox             bounding_box()    const { return BoundingBox(Point(- m_size.x() / 2, - m_size.y() / 2), Point(m_size.x() / 2, m_size.y() / 2)); }
+    // Height is used for slicing, for sorting the objects by height for sequential printing and for checking vertical clearence in sequential print mode.
+    // The height is snug.
+    coord_t 				height() 		  const { return m_size.z(); }
+    // Centering offset of the sliced mesh from the scaled and rotated mesh of the model.
+    const Point& 			center_offset()   const { return m_center_offset; }
 
     // adds region_id, too, if necessary
     void add_region_volume(unsigned int region_id, int volume_id, const t_layer_height_range &layer_range) {
@@ -196,14 +197,12 @@ private:
     // to be called from Print only.
     friend class Print;
 
-	PrintObject(Print* print, ModelObject* model_object, bool add_instances = true);
-	~PrintObject() {}
+	PrintObject(Print* print, ModelObject* model_object, const Transform3d& trafo, PrintInstances&& instances);
+	~PrintObject() = default;
 
     void                    config_apply(const ConfigBase &other, bool ignore_nonexistent = false) { this->m_config.apply(other, ignore_nonexistent); }
     void                    config_apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false) { this->m_config.apply_only(other, keys, ignore_nonexistent); }
-    void                    set_trafo(const Transform3d& trafo) { m_trafo = trafo; }
     PrintBase::ApplyStatus  set_instances(PrintInstances &&instances);
-    void 					set_trafo_and_instances(const Transform3d& trafo, PrintInstances &&instances) { this->set_trafo(trafo); this->set_instances(std::move(instances)); }
     // Invalidates the step, and its depending steps in PrintObject and Print.
     bool                    invalidate_step(PrintObjectStep step);
     // Invalidates all PrintObject and Print steps.
@@ -242,14 +241,17 @@ private:
     Transform3d                             m_trafo = Transform3d::Identity();
     // Slic3r::Point objects in scaled G-code coordinates
     std::vector<PrintInstance>              m_instances;
-    // scaled coordinates to add to copies (to compensate for the alignment
-    // operated when creating the object but still preserving a coherent API
-    // for external callers)
-    Point                                   m_copies_shift;
+    // The mesh is being centered before thrown to Clipper, so that the Clipper's fixed coordinates require less bits.
+    // This is the adjustment of the  the Object's coordinate system towards PrintObject's coordinate system.
+    Point                                   m_center_offset;
 
     SlicingParameters                       m_slicing_params;
     LayerPtrs                               m_layers;
     SupportLayerPtrs                        m_support_layers;
+
+    // this is set to true when LayerRegion->slices is split in top/internal/bottom
+    // so that next call to make_perimeters() performs a union() before computing loops
+    bool                    				m_typed_slices = false;
 
     std::vector<ExPolygons> slice_region(size_t region_id, const std::vector<float> &z) const;
     std::vector<ExPolygons> slice_modifiers(size_t region_id, const std::vector<float> &z) const;
@@ -343,7 +345,7 @@ private: // Prevents erroneous use by other classes.
     typedef PrintBaseWithState<PrintStep, psCount> Inherited;
 
 public:
-    Print() {}
+    Print() = default;
 	virtual ~Print() { this->clear(); }
 
 	PrinterTechnology	technology() const noexcept { return ptFFF; }
@@ -379,8 +381,6 @@ public:
 
     // Returns an empty string if valid, otherwise returns an error message.
     std::string         validate() const override;
-    BoundingBox         bounding_box() const;
-    BoundingBox         total_bounding_box() const;
     double              skirt_first_layer_height() const;
     Flow                brim_flow() const;
     Flow                skirt_flow() const;

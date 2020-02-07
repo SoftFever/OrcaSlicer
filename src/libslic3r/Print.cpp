@@ -462,7 +462,7 @@ static std::vector<PrintObjectTrafoAndInstances> print_objects_from_model_object
         if (model_instance->is_printable()) {
             trafo.trafo = model_instance->get_matrix();
             auto shift = Point::new_scale(trafo.trafo.data()[12], trafo.trafo.data()[13]);
-            // Set the Z axis of the transformation.
+            // Reset the XY axes of the transformation.
             trafo.trafo.data()[12] = 0;
             trafo.trafo.data()[13] = 0;
             // Search or insert a trafo.
@@ -930,8 +930,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             if (old.empty()) {
                 // Simple case, just generate new instances.
                 for (PrintObjectTrafoAndInstances &print_instances : new_print_instances) {
-                    PrintObject *print_object = new PrintObject(this, model_object, false);
-					print_object->set_trafo_and_instances(print_instances.trafo, std::move(print_instances.instances));
+                    PrintObject *print_object = new PrintObject(this, model_object, print_instances.trafo, std::move(print_instances.instances));
                     print_object->config_apply(config);
                     print_objects_new.emplace_back(print_object);
                     // print_object_status.emplace(PrintObjectStatus(print_object, PrintObjectStatus::New));
@@ -948,8 +947,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 				for (; it_old != old.end() && transform3d_lower((*it_old)->trafo, new_instances.trafo); ++ it_old);
 				if (it_old == old.end() || ! transform3d_equal((*it_old)->trafo, new_instances.trafo)) {
                     // This is a new instance (or a set of instances with the same trafo). Just add it.
-                    PrintObject *print_object = new PrintObject(this, model_object, false);
-					print_object->set_trafo_and_instances(new_instances.trafo, std::move(new_instances.instances));
+                    PrintObject *print_object = new PrintObject(this, model_object, new_instances.trafo, std::move(new_instances.instances));
                     print_object->config_apply(config);
                     print_objects_new.emplace_back(print_object);
                     // print_object_status.emplace(PrintObjectStatus(print_object, PrintObjectStatus::New));
@@ -1151,6 +1149,62 @@ bool Print::has_skirt() const
         || this->has_infinite_skirt();
 }
 
+static inline bool sequential_print_horizontal_clearance_valid(const Print &print)
+{
+	Polygons convex_hulls_other;
+	std::map<ObjectID, Polygon> map_model_object_to_convex_hull;
+	for (const PrintObject *print_object : print.objects()) {
+	    assert(! print_object->model_object()->instances.empty());
+	    assert(! print_object->instances().empty());
+	    ObjectID model_object_id = print_object->model_object()->id();
+	    auto it_convex_hull = map_model_object_to_convex_hull.find(model_object_id);
+        // Get convex hull of all printable volumes assigned to this print object.
+        ModelInstance *model_instance0 = print_object->model_object()->instances.front();
+	    if (it_convex_hull == map_model_object_to_convex_hull.end()) {
+	        // Calculate the convex hull of a printable object. 
+	        // Grow convex hull with the clearance margin.
+	        // FIXME: Arrangement has different parameters for offsetting (jtMiter, limit 2)
+	        // which causes that the warning will be showed after arrangement with the
+	        // appropriate object distance. Even if I set this to jtMiter the warning still shows up.
+	        it_convex_hull = map_model_object_to_convex_hull.emplace_hint(it_convex_hull, model_object_id, 
+                offset(print_object->model_object()->convex_hull_2d(
+	                        Geometry::assemble_transform(Vec3d::Zero(), model_instance0->get_rotation(), model_instance0->get_scaling_factor(), model_instance0->get_mirror())),
+                	// Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
+	                // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
+	                float(scale_(0.5 * print.config().extruder_clearance_radius.value - EPSILON)),
+	                jtRound, float(scale_(0.1))).front());
+	    }
+	    // Make a copy, so it may be rotated for instances.
+	    Polygon convex_hull0 = it_convex_hull->second;
+		double z_diff = Geometry::rotation_diff_z(model_instance0->get_rotation(), print_object->instances().front().model_instance->get_rotation());
+		if (std::abs(z_diff) > EPSILON)
+			convex_hull0.rotate(z_diff);
+	    // Now we check that no instance of convex_hull intersects any of the previously checked object instances.
+	    for (const PrintInstance &instance : print_object->instances()) {
+	        Polygon convex_hull = convex_hull0;
+	        // instance.shift is a position of a centered object, while model object may not be centered.
+	        // Conver the shift from the PrintObject's coordinates into ModelObject's coordinates by removing the centering offset.
+	        convex_hull.translate(instance.shift - print_object->center_offset());
+	        if (! intersection(convex_hulls_other, convex_hull).empty())
+	            return false;
+	        polygons_append(convex_hulls_other, convex_hull);
+	    }
+	}
+	return true;
+}
+
+static inline bool sequential_print_vertical_clearance_valid(const Print &print)
+{
+	std::vector<const PrintInstance*> print_instances_ordered = sort_object_instances_by_model_order(print);
+	// Ignore the last instance printed.
+	print_instances_ordered.pop_back();
+	// Find the other highest instance.
+	auto it = std::max_element(print_instances_ordered.begin(), print_instances_ordered.end(), [](auto l, auto r) {
+		return l->print_object->height() < r->print_object->height();
+	});
+    return it == print_instances_ordered.end() || (*it)->print_object->height() < scale_(print.config().extruder_clearance_height.value);
+}
+
 // Precondition: Print::validate() requires the Print::apply() to be called its invocation.
 std::string Print::validate() const
 {
@@ -1161,48 +1215,11 @@ std::string Print::validate() const
         return L("The supplied settings will cause an empty print.");
 
     if (m_config.complete_objects) {
-        // Check horizontal clearance.
-        {
-            Polygons convex_hulls_other;
-            for (const PrintObject *print_object : m_objects) {
-                assert(! print_object->model_object()->instances.empty());
-                assert(! print_object->instances().empty());
-                // Get convex hull of all meshes assigned to this print object.
-                ModelInstance *model_instance0 = print_object->model_object()->instances.front();
-                Vec3d          rotation        = model_instance0->get_rotation();
-                rotation.z() = 0.;
-                // Calculate the convex hull of a printable object centered around X=0,Y=0. 
-                // Grow convex hull with the clearance margin.
-                // FIXME: Arrangement has different parameters for offsetting (jtMiter, limit 2)
-                // which causes that the warning will be showed after arrangement with the
-                // appropriate object distance. Even if I set this to jtMiter the warning still shows up.
-                Polygon        convex_hull0    = offset(
-                    print_object->model_object()->convex_hull_2d(
-                        Geometry::assemble_transform(Vec3d::Zero(), rotation, model_instance0->get_scaling_factor(), model_instance0->get_mirror())),
-                    float(scale_(0.5 * m_config.extruder_clearance_radius.value)), jtRound, float(scale_(0.1))).front();
-                // Now we check that no instance of convex_hull intersects any of the previously checked object instances.
-                for (const PrintInstance &instance : print_object->instances()) {
-                    Polygon convex_hull = convex_hull0;
-                    convex_hull.translate(instance.shift);
-                    if (! intersection(convex_hulls_other, convex_hull).empty())
-                        return L("Some objects are too close; your extruder will collide with them.");
-                    polygons_append(convex_hulls_other, convex_hull);
-                }
-            }
-        }
-        // Check vertical clearance.
-        {
-            std::vector<coord_t> object_height;
-            for (const PrintObject *object : m_objects)
-                object_height.insert(object_height.end(), object->instances().size(), object->size()(2));
-            std::sort(object_height.begin(), object_height.end());
-            // Ignore the tallest *copy* (this is why we repeat height for all of them):
-            // it will be printed as last one so its height doesn't matter.
-            object_height.pop_back();
-            if (! object_height.empty() && object_height.back() > scale_(m_config.extruder_clearance_height.value))
-                return L("Some objects are too tall and cannot be printed without extruder collisions.");
-        }
-    } // end if (m_config.complete_objects)
+    	if (! sequential_print_horizontal_clearance_valid(*this))
+            return L("Some objects are too close; your extruder will collide with them.");
+        if (! sequential_print_vertical_clearance_valid(*this))
+	        return L("Some objects are too tall and cannot be printed without extruder collisions.");
+    }
 
     if (m_config.spiral_vase) {
         size_t total_copies_count = 0;
@@ -1418,6 +1435,7 @@ std::string Print::validate() const
     return std::string();
 }
 
+#if 0
 // the bounding box of objects placed in copies position
 // (without taking skirt/brim/support material into account)
 BoundingBox Print::bounding_box() const
@@ -1425,8 +1443,9 @@ BoundingBox Print::bounding_box() const
     BoundingBox bb;
     for (const PrintObject *object : m_objects)
         for (const PrintInstance &instance : object->instances()) {
-            bb.merge(instance.shift);
-            bb.merge(instance.shift + to_2d(object->size()));
+        	BoundingBox bb2(object->bounding_box());
+        	bb.merge(bb2.min + instance.shift);
+        	bb.merge(bb2.max + instance.shift);
         }
     return bb;
 }
@@ -1471,6 +1490,7 @@ BoundingBox Print::total_bounding_box() const
     
     return bb;
 }
+#endif
 
 double Print::skirt_first_layer_height() const
 {

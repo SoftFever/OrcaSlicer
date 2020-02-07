@@ -148,9 +148,6 @@ _constant()
                 croak("Configuration is not valid: %s\n", err.c_str()); 
             RETVAL = 1;
         %};
-    Clone<BoundingBox> bounding_box();
-    Clone<BoundingBox> total_bounding_box();
-    Clone<Point>       size() %code%{ RETVAL = THIS->bounding_box().size(); %};
 
     void set_callback_event(int evt) %code%{
         %};

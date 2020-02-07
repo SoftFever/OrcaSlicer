@@ -40,41 +40,41 @@
 
 namespace Slic3r {
 
-PrintObject::PrintObject(Print* print, ModelObject* model_object, bool add_instances) :
+// Constructor is called from the main thread, therefore all Model / ModelObject / ModelIntance data are valid.
+PrintObject::PrintObject(Print* print, ModelObject* model_object, const Transform3d& trafo, PrintInstances&& instances) :
     PrintObjectBaseWithState(print, model_object),
-    typed_slices(false),
-    m_size(Vec3crd::Zero())
+    m_trafo(trafo)
 {
-    // Compute the translation to be applied to our meshes so that we work with smaller coordinates
-    {
-        // Translate meshes so that our toolpath generation algorithms work with smaller
-        // XY coordinates; this translation is an optimization and not strictly required.
-        // A cloned mesh will be aligned to 0 before slicing in slice_region() since we
-        // don't assume it's already aligned and we don't alter the original position in model.
-        // We store the XY translation so that we can place copies correctly in the output G-code
-        // (copies are expressed in G-code coordinates and this translation is not publicly exposed).
-        const BoundingBoxf3 modobj_bbox = model_object->raw_bounding_box();
-        m_copies_shift = Point::new_scale(modobj_bbox.min(0), modobj_bbox.min(1));
-        // Scale the object size and store it
-        this->m_size = (modobj_bbox.size() * (1. / SCALING_FACTOR)).cast<coord_t>();
-    }
-    
-    if (add_instances) {
-        PrintInstances instances;
-        instances.reserve(m_model_object->instances.size());
-        for (const ModelInstance *mi : m_model_object->instances) {
-            assert(mi->is_printable());
-            const Vec3d &offset = mi->get_offset();
-            instances.emplace_back(PrintInstance{ nullptr, mi, Point::new_scale(offset(0), offset(1)) });
-        }
-        this->set_instances(std::move(instances));
-    }
+    // Compute centering offet to be applied to our meshes so that we work with smaller coordinates
+    // requiring less bits to represent Clipper coordinates.
+
+	// Snug bounding box of a rotated and scaled object by the 1st instantion, without the instance translation applied.
+	// All the instances share the transformation matrix with the exception of translation in XY and rotation by Z,
+	// therefore a bounding box from 1st instance of a ModelObject is good enough for calculating the object center,
+	// snug height and an approximate bounding box in XY.
+    BoundingBoxf3  bbox        = model_object->raw_bounding_box();
+    Vec3d 		   bbox_center = bbox.center();
+	// We may need to rotate the bbox / bbox_center from the original instance to the current instance.
+	double z_diff = Geometry::rotation_diff_z(model_object->instances.front()->get_rotation(), instances.front().model_instance->get_rotation());
+	if (std::abs(z_diff) > EPSILON) {
+		auto z_rot  = Eigen::AngleAxisd(z_diff, Vec3d::UnitZ());
+		bbox 		= bbox.transformed(Transform3d(z_rot));
+		bbox_center = (z_rot * bbox_center).eval();
+	}
+
+    // Center of the transformed mesh (without translation).
+    m_center_offset = Point::new_scale(bbox_center.x(), bbox_center.y());
+    // Size of the transformed mesh. This bounding may not be snug in XY plane, but it is snug in Z.
+    m_size = (bbox.size() * (1. / SCALING_FACTOR)).cast<coord_t>();
+
+    this->set_instances(std::move(instances));
 }
 
 PrintBase::ApplyStatus PrintObject::set_instances(PrintInstances &&instances)
 {
     for (PrintInstance &i : instances)
-    	i.shift += m_copies_shift;
+    	// Add the center offset, which will be subtracted from the mesh when slicing.
+    	i.shift += m_center_offset;
     // Invalidate and set copies.
     PrintBase::ApplyStatus status = PrintBase::APPLY_STATUS_UNCHANGED;
     bool equal_length = instances.size() == m_instances.size();
@@ -153,12 +153,12 @@ void PrintObject::make_perimeters()
     BOOST_LOG_TRIVIAL(info) << "Generating perimeters..." << log_memory_info();
     
     // merge slices if they were split into types
-    if (this->typed_slices) {
+    if (m_typed_slices) {
         for (Layer *layer : m_layers) {
             layer->merge_slices();
             m_print->throw_if_canceled();
         }
-        this->typed_slices = false;
+        m_typed_slices = false;
     }
     
     // compare each layer to the one below, and mark those slices needing
@@ -822,7 +822,7 @@ void PrintObject::detect_surfaces_type()
     } // for each this->print->region_count
 
     // Mark the object to have the region slices classified (typed, which also means they are split based on whether they are supported, bridging, top layers etc.)
-    this->typed_slices = true;
+    m_typed_slices = true;
 }
 
 void PrintObject::process_external_surfaces()
@@ -1481,7 +1481,7 @@ void PrintObject::update_slicing_parameters()
 {
     if (! m_slicing_params.valid)
         m_slicing_params = SlicingParameters::create_from_config(
-            this->print()->config(), m_config, unscale<double>(this->size()(2)), this->object_extruders());
+            this->print()->config(), m_config, unscale<double>(this->height()), this->object_extruders());
 }
 
 SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig& full_config, const ModelObject& model_object, float object_max_z)
@@ -1568,7 +1568,7 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
 {
     BOOST_LOG_TRIVIAL(info) << "Slicing objects..." << log_memory_info();
 
-    this->typed_slices = false;
+    m_typed_slices = false;
 
 #ifdef SLIC3R_PROFILE
     // Disable parallelization so the Shiny profiler works
@@ -2030,7 +2030,7 @@ std::vector<ExPolygons> PrintObject::slice_volumes(const std::vector<float> &z, 
         if (mesh.stl.stats.number_of_facets > 0) {
             mesh.transform(m_trafo, true);
             // apply XY shift
-            mesh.translate(- unscale<float>(m_copies_shift(0)), - unscale<float>(m_copies_shift(1)), 0);
+            mesh.translate(- unscale<float>(m_center_offset.x()), - unscale<float>(m_center_offset.y()), 0);
             // perform actual slicing
             const Print *print = this->print();
             auto callback = TriangleMeshSlicer::throw_on_cancel_callback_type([print](){print->throw_if_canceled();});
@@ -2060,7 +2060,7 @@ std::vector<ExPolygons> PrintObject::slice_volume(const std::vector<float> &z, c
 	    if (mesh.stl.stats.number_of_facets > 0) {
 	        mesh.transform(m_trafo, true);
 	        // apply XY shift
-	        mesh.translate(- unscale<float>(m_copies_shift(0)), - unscale<float>(m_copies_shift(1)), 0);
+	        mesh.translate(- unscale<float>(m_center_offset.x()), - unscale<float>(m_center_offset.y()), 0);
 	        // perform actual slicing
 	        TriangleMeshSlicer mslicer;
 	        const Print *print = this->print();

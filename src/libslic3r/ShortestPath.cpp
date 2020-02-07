@@ -1954,7 +1954,8 @@ std::vector<const PrintInstance*> chain_print_object_instances(const Print &prin
     for (size_t i = 0; i < print.objects().size(); ++ i) {
     	const PrintObject &object = *print.objects()[i];
     	for (size_t j = 0; j < object.instances().size(); ++ j) {
-        	object_reference_points.emplace_back(object.instance_center(j));
+    		// Sliced PrintObjects are centered, object.instances()[j].shift is the center of the PrintObject in G-code coordinates.
+        	object_reference_points.emplace_back(object.instances()[j].shift);
         	instances.emplace_back(i, j);
         }
     }

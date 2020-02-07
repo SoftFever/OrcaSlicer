@@ -544,8 +544,8 @@ static ClipperPolygons get_all_polygons(const SliceRecord& record, SliceOrigin o
             }
             
             sl::rotate(poly, double(instances[i].rotation));
-            sl::translate(poly, ClipperPoint{instances[i].shift(X),
-                                             instances[i].shift(Y)});
+            sl::translate(poly, ClipperPoint{instances[i].shift.x(),
+                                             instances[i].shift.y()});
             
             polygons.emplace_back(std::move(poly));
         }
