@@ -1202,7 +1202,7 @@ static inline bool sequential_print_vertical_clearance_valid(const Print &print)
 	auto it = std::max_element(print_instances_ordered.begin(), print_instances_ordered.end(), [](auto l, auto r) {
 		return l->print_object->height() < r->print_object->height();
 	});
-    return it == print_instances_ordered.end() || (*it)->print_object->height() < scale_(print.config().extruder_clearance_height.value);
+    return it == print_instances_ordered.end() || (*it)->print_object->height() <= scale_(print.config().extruder_clearance_height.value);
 }
 
 // Precondition: Print::validate() requires the Print::apply() to be called its invocation.
