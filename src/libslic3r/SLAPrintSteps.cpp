@@ -49,7 +49,7 @@ std::string OBJ_STEP_LABELS(size_t idx)
     }
     assert(false);
     return "Out of bounds!";
-};
+}
 
 const std::array<unsigned, slapsCount> PRINT_STEP_LEVELS = {
     10, // slapsMergeSlicesAndEval
@@ -64,12 +64,13 @@ std::string PRINT_STEP_LABELS(size_t idx)
     default:;
     }
     assert(false); return "Out of bounds!";
-};
+}
 
 }
 
 SLAPrint::Steps::Steps(SLAPrint *print)
     : m_print{print}
+    , m_rng{std::random_device{}()}
     , objcount{m_print->m_objects.size()}
     , ilhd{m_print->m_material_config.initial_layer_height.getFloat()}
     , ilh{float(ilhd)}
@@ -137,28 +138,30 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
     BOOST_LOG_TRIVIAL(info) << "Drilling drainage holes.";
     sla::DrainHoles drainholes = po.transformed_drainhole_points();
     
-    TriangleMesh holes_mesh;
-    
-    for (const sla::DrainHole &holept : drainholes)
-        holes_mesh.merge(sla::to_triangle_mesh(holept.to_mesh()));
-    
-    holes_mesh.require_shared_vertices();
-    if (!holes_mesh.is_manifold() || MeshBoolean::cgal::does_self_intersect(holes_mesh)) {
-        MeshBoolean::self_union(holes_mesh);
-        
-        if (MeshBoolean::cgal::does_self_intersect(holes_mesh))
-            throw std::runtime_error(L("Too much overlapping holes."));
+    std::uniform_real_distribution<float> dist(1., float(EPSILON));
+    auto holes_mesh_cgal = MeshBoolean::cgal::triangle_mesh_to_cgal({});
+    for (const sla::DrainHole &holept : drainholes) {
+        auto &&m = sla::to_triangle_mesh(holept.to_mesh());
+        float t = dist(m_rng);
+        m.translate(t, t, t);
+        m.require_shared_vertices();
+        auto cgal_m = MeshBoolean::cgal::triangle_mesh_to_cgal(m);
+        MeshBoolean::cgal::plus(*holes_mesh_cgal, *cgal_m);
     }
     
+    if (MeshBoolean::cgal::does_self_intersect(*holes_mesh_cgal))
+        throw std::runtime_error(L("Too much overlapping holes."));
+    
+    auto hollowed_mesh_cgal = MeshBoolean::cgal::triangle_mesh_to_cgal(hollowed_mesh);
+    
     try {
-        MeshBoolean::cgal::minus(hollowed_mesh, holes_mesh);
+        MeshBoolean::cgal::minus(*hollowed_mesh_cgal, *holes_mesh_cgal);
+        hollowed_mesh = MeshBoolean::cgal::cgal_to_triangle_mesh(*hollowed_mesh_cgal);
     } catch (const std::runtime_error &) {
         throw std::runtime_error(L(
             "Drilling holes into the mesh failed. "
             "This is usually caused by broken model. Try to fix it first."));
     }
-
-    hollowed_mesh.require_shared_vertices();
 }
 
 // The slicing will be performed on an imaginary 1D grid which starts from

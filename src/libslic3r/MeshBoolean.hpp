@@ -25,7 +25,6 @@ void self_union(TriangleMesh& mesh);
 namespace cgal {
 
 struct CGALMesh;
-
 struct CGALMeshDeleter { void operator()(CGALMesh *ptr); };
 
 std::unique_ptr<CGALMesh, CGALMeshDeleter> triangle_mesh_to_cgal(const TriangleMesh &M);

@@ -113,6 +113,9 @@ struct CGALMesh { _EpicMesh m; };
 template<class _Mesh> void triangle_mesh_to_cgal(const TriangleMesh &M, _Mesh &out)
 {
     using Index3 = std::array<size_t, 3>;
+    
+    if (M.empty()) return;
+    
     std::vector<typename _Mesh::Point> points;
     std::vector<Index3> indices;
     points.reserve(M.its.vertices.size());
