@@ -138,12 +138,13 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
     BOOST_LOG_TRIVIAL(info) << "Drilling drainage holes.";
     sla::DrainHoles drainholes = po.transformed_drainhole_points();
     
-    std::uniform_real_distribution<float> dist(1., float(EPSILON));
+    std::uniform_real_distribution<float> dist(0., float(EPSILON));
     auto holes_mesh_cgal = MeshBoolean::cgal::triangle_mesh_to_cgal({});
-    for (const sla::DrainHole &holept : drainholes) {
-        auto &&m = sla::to_triangle_mesh(holept.to_mesh());
-        float t = dist(m_rng);
-        m.translate(t, t, t);
+    for (sla::DrainHole holept : drainholes) {
+        holept.normal += Vec3f{dist(m_rng), dist(m_rng), dist(m_rng)};
+        holept.normal.normalize();
+        holept.pos += Vec3f{dist(m_rng), dist(m_rng), dist(m_rng)};
+        TriangleMesh m = sla::to_triangle_mesh(holept.to_mesh());
         m.require_shared_vertices();
         auto cgal_m = MeshBoolean::cgal::triangle_mesh_to_cgal(m);
         MeshBoolean::cgal::plus(*holes_mesh_cgal, *cgal_m);
