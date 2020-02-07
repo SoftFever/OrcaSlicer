@@ -1793,12 +1793,7 @@ void Control::edit_extruder_sequence()
     GUI::ExtruderSequenceDialog dlg(m_extruders_sequence);
     if (dlg.ShowModal() != wxID_OK)
         return;
-
-    const ExtrudersSequence& from_dlg_val = dlg.GetValue();
-    if (m_extruders_sequence == from_dlg_val)
-        return;
-
-    m_extruders_sequence = from_dlg_val;
+    m_extruders_sequence = dlg.GetValue();
 
     m_ticks.erase_all_ticks_with_code(ToolChangeCode);
 
@@ -1813,7 +1808,7 @@ void Control::edit_extruder_sequence()
     {
         const int cur_extruder = m_extruders_sequence.extruders[extruder];
 
-        bool meaningless_tick =  value == 0.0 && cur_extruder == extruder;
+        bool meaningless_tick = tick == 0.0 && cur_extruder == extruder;
         if (!meaningless_tick)
             m_ticks.ticks.emplace(TickCode{tick, ToolChangeCode, cur_extruder + 1, colors[cur_extruder]});
 
