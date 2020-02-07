@@ -874,7 +874,7 @@ Sidebar::Sidebar(Plater *parent)
 
     init_scalable_btn(&p->btn_send_gcode   , "export_gcode", _(L("Send to printer")));
     init_scalable_btn(&p->btn_remove_device, "cross"       , _(L("Remove device")));
-	init_scalable_btn(&p->btn_export_gcode_removable, "export_to_sd", _(L("Export to SD card/ USB thumb drive")));
+	init_scalable_btn(&p->btn_export_gcode_removable, "export_to_sd", _(L("Export to SD card / Flash drive")));
 
     // regular buttons "Slice now" and "Export G-code" 
 
