@@ -145,6 +145,9 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
     holes_mesh.require_shared_vertices();
     if (!holes_mesh.is_manifold() || MeshBoolean::cgal::does_self_intersect(holes_mesh)) {
         MeshBoolean::self_union(holes_mesh);
+        
+        if (MeshBoolean::cgal::does_self_intersect(holes_mesh))
+            throw std::runtime_error(L("Too much overlapping holes."));
     }
     
     try {
