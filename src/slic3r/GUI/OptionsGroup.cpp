@@ -703,7 +703,7 @@ Field* ConfigOptionsGroup::get_fieldc(const t_config_option_key& opt_key, int op
 void ogStaticText::SetText(const wxString& value, bool wrap/* = true*/)
 {
 	SetLabel(value);
-    if (wrap) Wrap(40 * wxGetApp().em_unit());
+    if (wrap) Wrap(60 * wxGetApp().em_unit());
 	GetParent()->Layout();
 }
 

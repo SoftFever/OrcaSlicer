@@ -1061,7 +1061,15 @@ void PresetCollection::update_plater_ui(GUI::PresetComboBox *ui)
         const Preset &preset = this->m_presets[i];
         if (! preset.is_visible || (! preset.is_compatible && i != m_idx_selected))
             continue;
+
         std::string   bitmap_key = "";
+        // !!! Temporary solution, till refactoring: create and use "sla_printer" icon instead of m_bitmap_main_frame
+        wxBitmap main_bmp = m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap;
+        if (m_type == Preset::TYPE_PRINTER && preset.printer_technology()==ptSLA ) {
+            bitmap_key = "sla_printer";
+            main_bmp = create_scaled_bitmap("sla_printer");
+        }
+
         // If the filament preset is not compatible and there is a "red flag" icon loaded, show it left
         // to the filament color image.
         if (wide_icons)
@@ -1076,7 +1084,7 @@ void PresetCollection::update_plater_ui(GUI::PresetComboBox *ui)
                 bmps.emplace_back(preset.is_compatible ? m_bitmap_cache->mkclear(icon_width, icon_height) : *m_bitmap_incompatible);
             // Paint the color bars.
             bmps.emplace_back(m_bitmap_cache->mkclear(thin_space_icon_width, icon_height));
-            bmps.emplace_back(*m_bitmap_main_frame);
+            bmps.emplace_back(main_bmp);
             // Paint a lock at the system presets.
             bmps.emplace_back(m_bitmap_cache->mkclear(wide_space_icon_width, icon_height));
             bmps.emplace_back((preset.is_system || preset.is_default) ? *m_bitmap_lock : m_bitmap_cache->mkclear(icon_width, icon_height));
@@ -1086,7 +1094,7 @@ void PresetCollection::update_plater_ui(GUI::PresetComboBox *ui)
         const std::string name = preset.alias.empty() ? preset.name : preset.alias;
         if (preset.is_default || preset.is_system) {
             ui->Append(wxString::FromUTF8((/*preset.*/name + (preset.is_dirty ? g_suffix_modified : "")).c_str()),
-                (bmp == 0) ? (m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap) : *bmp);
+                (bmp == 0) ? main_bmp : *bmp);
             if (i == m_idx_selected ||
                 // just in case: mark selected_preset_item as a first added element
                 selected_preset_item == INT_MAX) {
@@ -1116,13 +1124,13 @@ void PresetCollection::update_plater_ui(GUI::PresetComboBox *ui)
                 selected_preset_item = ui->GetCount() - 1;
         }
     }
-    if (m_type == Preset::TYPE_PRINTER) {
+    if (m_type == Preset::TYPE_PRINTER || m_type == Preset::TYPE_SLA_MATERIAL) {
         std::string   bitmap_key = "";
         // If the filament preset is not compatible and there is a "red flag" icon loaded, show it left
         // to the filament color image.
         if (wide_icons)
             bitmap_key += "wide,";
-        bitmap_key += "add_printer";
+        bitmap_key += "edit_preset_list";
         wxBitmap     *bmp = m_bitmap_cache->find(bitmap_key);
         if (bmp == nullptr) {
             // Create the bitmap with color bars.
@@ -1135,12 +1143,14 @@ void PresetCollection::update_plater_ui(GUI::PresetComboBox *ui)
             bmps.emplace_back(*m_bitmap_main_frame);
             // Paint a lock at the system presets.
             bmps.emplace_back(m_bitmap_cache->mkclear(wide_space_icon_width, icon_height));
-            bmps.emplace_back(m_bitmap_add ? *m_bitmap_add : wxNullBitmap);
+//            bmps.emplace_back(m_bitmap_add ? *m_bitmap_add : wxNullBitmap);
+            bmps.emplace_back(create_scaled_bitmap("edit_uni"));
             bmp = m_bitmap_cache->insert(bitmap_key, bmps);
         }
-        ui->set_label_marker(ui->Append(PresetCollection::separator(L("Add a new printer")), *bmp), GUI::PresetComboBox::LABEL_ITEM_WIZARD_PRINTERS);
-    } else if (m_type == Preset::TYPE_SLA_MATERIAL) {
-        ui->set_label_marker(ui->Append(PresetCollection::separator(L("Add/Remove materials")), wxNullBitmap), GUI::PresetComboBox::LABEL_ITEM_WIZARD_MATERIALS);
+        if (m_type == Preset::TYPE_SLA_MATERIAL)
+            ui->set_label_marker(ui->Append(PresetCollection::separator(L("Add/Remove materials")), *bmp), GUI::PresetComboBox::LABEL_ITEM_WIZARD_MATERIALS);
+        else
+            ui->set_label_marker(ui->Append(PresetCollection::separator(L("Add/Remove printers")), *bmp), GUI::PresetComboBox::LABEL_ITEM_WIZARD_PRINTERS);
     }
 
     /* But, if selected_preset_item is still equal to INT_MAX, it means that
@@ -1185,6 +1195,14 @@ size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompati
         if (! preset.is_visible || (! show_incompatible && ! preset.is_compatible && i != m_idx_selected))
             continue;
         std::string   bitmap_key = "tab";
+
+        // !!! Temporary solution, till refactoring: create and use "sla_printer" icon instead of m_bitmap_main_frame
+        wxBitmap main_bmp = m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap;
+        if (m_type == Preset::TYPE_PRINTER && preset.printer_technology() == ptSLA) {
+            bitmap_key = "sla_printer";
+            main_bmp = create_scaled_bitmap("sla_printer");
+        }
+
         bitmap_key += preset.is_compatible ? ",cmpt" : ",ncmpt";
         bitmap_key += (preset.is_system || preset.is_default) ? ",syst" : ",nsyst";
         wxBitmap     *bmp = m_bitmap_cache->find(bitmap_key);
@@ -1192,7 +1210,7 @@ size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompati
             // Create the bitmap with color bars.
             std::vector<wxBitmap> bmps;
             const wxBitmap* tmp_bmp = preset.is_compatible ? m_bitmap_compatible : m_bitmap_incompatible;
-            bmps.emplace_back((tmp_bmp == 0) ? (m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap) : *tmp_bmp);
+            bmps.emplace_back((tmp_bmp == 0) ? main_bmp : *tmp_bmp);
             // Paint a lock at the system presets.
             bmps.emplace_back((preset.is_system || preset.is_default) ? *m_bitmap_lock : m_bitmap_cache->mkclear(icon_width, icon_height));
             bmp = m_bitmap_cache->insert(bitmap_key, bmps);
@@ -1200,7 +1218,7 @@ size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompati
 
         if (preset.is_default || preset.is_system) {
             ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()),
-                (bmp == 0) ? (m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap) : *bmp);
+                (bmp == 0) ? main_bmp : *bmp);
             if (i == m_idx_selected ||
                 // just in case: mark selected_preset_item as a first added element
                 selected_preset_item == INT_MAX)
@@ -1227,12 +1245,13 @@ size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompati
         }
     }
     if (m_type == Preset::TYPE_PRINTER) {
-        wxBitmap *bmp = m_bitmap_cache->find("add_printer_tab");
+        wxBitmap *bmp = m_bitmap_cache->find("edit_printer_list");
         if (bmp == nullptr) {
             // Create the bitmap with color bars.
             std::vector<wxBitmap> bmps;
             bmps.emplace_back(*m_bitmap_main_frame);
-            bmps.emplace_back(m_bitmap_add ? *m_bitmap_add : wxNullBitmap);
+//            bmps.emplace_back(m_bitmap_add ? *m_bitmap_add : wxNullBitmap);
+            bmps.emplace_back(create_scaled_bitmap("edit_uni"));
             bmp = m_bitmap_cache->insert("add_printer_tab", bmps);
         }
         ui->Append(PresetCollection::separator("Add a new printer"), *bmp);

@@ -1678,7 +1678,23 @@ void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::Pre
 		}
 	}
 
-    ui->set_label_marker(ui->Append(PresetCollection::separator(L("Add/Remove filaments")), wxNullBitmap), GUI::PresetComboBox::LABEL_ITEM_WIZARD_FILAMENTS);
+    std::string   bitmap_key = "";
+    if (wide_icons)
+        bitmap_key += "wide,";
+    bitmap_key += "edit_preset_list";
+    wxBitmap* bmp = m_bitmapCache->find(bitmap_key);
+    if (bmp == nullptr) {
+        // Create the bitmap with color bars.
+        std::vector<wxBitmap> bmps;
+        if (wide_icons)
+            // Paint a red flag for incompatible presets.
+            bmps.emplace_back(m_bitmapCache->mkclear(normal_icon_width, icon_height));
+        // Paint the color bars + a lock at the system presets.
+        bmps.emplace_back(m_bitmapCache->mkclear(wide_icon_width+space_icon_width, icon_height));
+        bmps.emplace_back(create_scaled_bitmap("edit_uni"));
+        bmp = m_bitmapCache->insert(bitmap_key, bmps);
+    }
+    ui->set_label_marker(ui->Append(PresetCollection::separator(L("Add/Remove filaments")), *bmp), GUI::PresetComboBox::LABEL_ITEM_WIZARD_FILAMENTS);
 
     /* But, if selected_preset_item is still equal to INT_MAX, it means that
      * there is no presets added to the list.

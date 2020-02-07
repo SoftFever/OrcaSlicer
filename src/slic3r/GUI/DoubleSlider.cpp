@@ -1032,7 +1032,11 @@ void Control::OnMotion(wxMouseEvent& event)
     const wxPoint pos = event.GetLogicalPosition(wxClientDC(this));
     int tick = -1;
 
-    if (!m_is_left_down && !m_is_one_layer)
+    /* Note: Checking "!m_is_one_layer" is commented now because of 
+     * it looks like unnecessary and cause a tooltip "One layer" showing when OneLayerLock is on
+     * #ysFIXME : Delete it after testing
+     *  */
+    if (!m_is_left_down/* && !m_is_one_layer*/) 
     {
         if (is_point_in_rect(pos, m_rect_one_layer_icon))
             m_focus = fiOneLayerIcon;
@@ -1166,7 +1170,10 @@ void Control::OnLeftUp(wxMouseEvent& event)
         add_current_tick();
         break;
     case maCogIconClick :
-        jump_to_print_z();
+        if (m_mode == t_mode::MultiAsSingle)
+            show_cog_icon_context_menu();
+        else
+            jump_to_print_z();
         break;
     case maOneLayerIconClick:
         switch_one_layer_mode();
