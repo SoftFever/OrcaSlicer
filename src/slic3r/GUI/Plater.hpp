@@ -277,9 +277,7 @@ public:
     bool can_copy_to_clipboard() const;
     bool can_undo() const;
     bool can_redo() const;
-#if !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
     bool can_reload_from_disk() const;
-#endif // !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
     void msw_rescale();
 

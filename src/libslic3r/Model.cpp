@@ -1116,7 +1116,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
         upper->sla_drain_holes.clear();
         upper->sla_points_status = sla::PointsStatus::NoPoints;
         upper->clear_volumes();
-        upper->input_file = "";
+        upper->input_file.clear();
     }
 
     if (keep_lower) {
@@ -1125,7 +1125,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
         lower->sla_drain_holes.clear();
         lower->sla_points_status = sla::PointsStatus::NoPoints;
         lower->clear_volumes();
-        lower->input_file = "";
+        lower->input_file.clear();
     }
 
     // Because transformations are going to be applied to meshes directly,

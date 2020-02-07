@@ -1923,9 +1923,7 @@ struct Plater::priv
     bool can_fix_through_netfabb() const;
     bool can_set_instance_to_object() const;
     bool can_mirror() const;
-#if !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
     bool can_reload_from_disk() const;
-#endif // !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
 #if ENABLE_THUMBNAIL_GENERATOR
     void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background);
@@ -3259,7 +3257,7 @@ void Plater::priv::reload_from_disk()
                 missing_input_paths.push_back(volume->source.input_file);
         }
 #if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
-        else if (!volume->name.empty())
+        else if (!object->input_file.empty() && !volume->name.empty())
             missing_input_paths.push_back(volume->name);
 #endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
     }
@@ -3942,13 +3940,8 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
         append_menu_item(menu, wxID_ANY, _(L("Delete")) + "\tDel", _(L("Remove the selected object")),
             [this](wxCommandEvent&) { q->remove_selected();         }, "delete",            nullptr, [this]() { return can_delete(); }, q);
 
-#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
-        append_menu_item(menu, wxID_ANY, _(L("Reload from disk")), _(L("Reload the selected volumes from disk")),
-            [this](wxCommandEvent&) { q->reload_from_disk(); }, "", menu);
-#else
         append_menu_item(menu, wxID_ANY, _(L("Reload from disk")), _(L("Reload the selected volumes from disk")),
             [this](wxCommandEvent&) { q->reload_from_disk(); }, "", menu, [this]() { return can_reload_from_disk(); }, q);
-#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
         sidebar->obj_list()->append_menu_item_export_stl(menu);
     }
@@ -3976,13 +3969,8 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
         wxMenuItem* menu_item_printable = sidebar->obj_list()->append_menu_item_printable(menu, q);
         menu->AppendSeparator();
 
-#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
-        append_menu_item(menu, wxID_ANY, _(L("Reload from disk")), _(L("Reload the selected object from disk")),
-            [this](wxCommandEvent&) { reload_from_disk(); }, "", nullptr);
-#else
         append_menu_item(menu, wxID_ANY, _(L("Reload from disk")), _(L("Reload the selected object from disk")),
             [this](wxCommandEvent&) { reload_from_disk(); }, "", nullptr, [this]() { return can_reload_from_disk(); }, q);
-#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
         append_menu_item(menu, wxID_ANY, _(L("Export as STL")) + dots, _(L("Export the selected object as STL file")),
             [this](wxCommandEvent&) { q->export_stl(false, true); }, "", nullptr, 
@@ -4162,7 +4150,6 @@ bool Plater::priv::can_mirror() const
     return get_selection().is_from_single_instance();
 }
 
-#if !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 bool Plater::priv::can_reload_from_disk() const
 {
     // struct to hold selected ModelVolumes by their indices
@@ -4199,16 +4186,20 @@ bool Plater::priv::can_reload_from_disk() const
     std::vector<fs::path> paths;
     for (const SelectedVolume& v : selected_volumes)
     {
-        const ModelVolume* volume = model.objects[v.object_idx]->volumes[v.volume_idx];
+        const ModelObject* object = model.objects[v.object_idx];
+        const ModelVolume* volume = object->volumes[v.volume_idx];
         if (!volume->source.input_file.empty())
             paths.push_back(volume->source.input_file);
+#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
+        else if (!object->input_file.empty() && !volume->name.empty())
+            paths.push_back(volume->name);
+#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
     }
     std::sort(paths.begin(), paths.end());
     paths.erase(std::unique(paths.begin(), paths.end()), paths.end());
 
     return !paths.empty();
 }
-#endif // !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
 void Plater::priv::set_bed_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model)
 {
@@ -5709,9 +5700,7 @@ bool Plater::can_copy_to_clipboard() const
 
 bool Plater::can_undo() const { return p->undo_redo_stack().has_undo_snapshot(); }
 bool Plater::can_redo() const { return p->undo_redo_stack().has_redo_snapshot(); }
-#if !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 bool Plater::can_reload_from_disk() const { return p->can_reload_from_disk(); }
-#endif // !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 const UndoRedo::Stack& Plater::undo_redo_stack_main() const { return p->undo_redo_stack_main(); }
 void Plater::enter_gizmos_stack() { p->enter_gizmos_stack(); }
 void Plater::leave_gizmos_stack() { p->leave_gizmos_stack(); }
