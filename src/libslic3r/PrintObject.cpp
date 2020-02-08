@@ -463,10 +463,10 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
                opt_key == "layer_height"
             || opt_key == "first_layer_height"
             || opt_key == "raft_layers"
-            || opt_key == "slice_closing_radius") {
+            || opt_key == "slice_closing_radius"
+            || opt_key == "spiral_vase") {
             steps.emplace_back(posSlice);
-		}
-		else if (
+		} else if (
                opt_key == "clip_multipart_objects"
             || opt_key == "elefant_foot_compensation"
             || opt_key == "support_material_contact_distance" 
@@ -624,6 +624,14 @@ bool PrintObject::has_support_material() const
         || m_config.support_material_enforce_layers > 0;
 }
 
+static const PrintRegion* first_printing_region(const PrintObject &print_object)
+{
+    for (size_t idx_region = 0; idx_region < print_object.region_volumes.size(); ++ idx_region)
+    	if (!print_object.region_volumes.empty())
+    		return print_object.print()->regions()[idx_region];
+    return nullptr;
+}
+
 // This function analyzes slices of a region (SurfaceCollection slices).
 // Each region slice (instance of Surface) is analyzed, whether it is supported or whether it is the top surface.
 // Initially all slices are of type stInternal.
@@ -642,7 +650,9 @@ void PrintObject::detect_surfaces_type()
     // are completely hidden inside a collective body of intersecting parts.
     // This is useful if one of the parts is to be dissolved, or if it is transparent and the internal shells
     // should be visible.
-    bool interface_shells = m_config.interface_shells.value;
+    bool spiral_vase      = this->print()->config().spiral_vase.value;
+    bool interface_shells = ! spiral_vase && m_config.interface_shells.value;
+    size_t num_layers     = spiral_vase ? first_printing_region(*this)->config().bottom_solid_layers : m_layers.size();
 
     for (size_t idx_region = 0; idx_region < this->region_volumes.size(); ++ idx_region) {
         BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << idx_region << " in parallel - start";
@@ -655,10 +665,15 @@ void PrintObject::detect_surfaces_type()
         // Cache the result of the following parallel_loop.
         std::vector<Surfaces> surfaces_new;
         if (interface_shells)
-            surfaces_new.assign(m_layers.size(), Surfaces());
+            surfaces_new.assign(num_layers, Surfaces());
 
         tbb::parallel_for(
-            tbb::blocked_range<size_t>(0, m_layers.size()),
+            tbb::blocked_range<size_t>(0, 
+            	spiral_vase ?
+            		// In spiral vase mode, reserve the last layer for the top surface if more than 1 layer is planned for the vase bottom.
+            		((num_layers > 1) ? num_layers - 1 : num_layers) :
+            		// In non-spiral vase mode, go over all layers.
+            		m_layers.size()),
             [this, idx_region, interface_shells, &surfaces_new](const tbb::blocked_range<size_t>& range) {
                 // If we have raft layers, consider bottom layer as a bridge just like any other bottom surface lying on the void.
                 SurfaceType surface_type_bottom_1st =
@@ -799,8 +814,15 @@ void PrintObject::detect_surfaces_type()
 
         if (interface_shells) {
             // Move surfaces_new to layerm->slices.surfaces
-            for (size_t idx_layer = 0; idx_layer < m_layers.size(); ++ idx_layer)
+            for (size_t idx_layer = 0; idx_layer < num_layers; ++ idx_layer)
                 m_layers[idx_layer]->m_regions[idx_region]->slices.surfaces = std::move(surfaces_new[idx_layer]);
+        }
+
+        if (spiral_vase && num_layers > 1) {
+        	// Turn the last bottom layer infill to a top infill, so it will be extruded with a proper pattern.
+        	Surfaces &surfaces = m_layers[num_layers - 1]->m_regions[idx_region]->slices.surfaces;
+        	for (Surface &surface : surfaces)
+        		surface.surface_type = stTop;
         }
 
         BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << idx_region << " - clipping in parallel - start";
@@ -916,6 +938,8 @@ void PrintObject::discover_vertical_shells()
         Polygons    bottom_surfaces;
         Polygons    holes;
     };
+    bool     spiral_vase      = this->print()->config().spiral_vase.value;
+    size_t   num_layers       = spiral_vase ? first_printing_region(*this)->config().bottom_solid_layers : m_layers.size();
     coordf_t min_layer_height = this->slicing_parameters().min_layer_height;
     // Does this region possibly produce more than 1 top or bottom layer?
     auto has_extra_layers_fn = [min_layer_height](const PrintRegionConfig &config) {
@@ -929,7 +953,7 @@ void PrintObject::discover_vertical_shells()
     	return num_extra_layers(config.top_solid_layers, config.top_solid_min_thickness) +
 	    	   num_extra_layers(config.bottom_solid_layers, config.bottom_solid_min_thickness) > 0;
     };
-    std::vector<DiscoverVerticalShellsCacheEntry> cache_top_botom_regions(m_layers.size(), DiscoverVerticalShellsCacheEntry());
+    std::vector<DiscoverVerticalShellsCacheEntry> cache_top_botom_regions(num_layers, DiscoverVerticalShellsCacheEntry());
     bool top_bottom_surfaces_all_regions = this->region_volumes.size() > 1 && ! m_config.interface_shells.value;
     if (top_bottom_surfaces_all_regions) {
         // This is a multi-material print and interface_shells are disabled, meaning that the vertical shell thickness
@@ -948,9 +972,9 @@ void PrintObject::discover_vertical_shells()
             return;
         BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells in parallel - start : cache top / bottom";
         //FIXME Improve the heuristics for a grain size.
-        size_t grain_size = std::max(m_layers.size() / 16, size_t(1));
+        size_t grain_size = std::max(num_layers / 16, size_t(1));
         tbb::parallel_for(
-            tbb::blocked_range<size_t>(0, m_layers.size(), grain_size),
+            tbb::blocked_range<size_t>(0, num_layers, grain_size),
             [this, &cache_top_botom_regions](const tbb::blocked_range<size_t>& range) {
                 const SurfaceType surfaces_bottom[2] = { stBottom, stBottomBridge };
                 const size_t num_regions = this->region_volumes.size();
@@ -999,8 +1023,8 @@ void PrintObject::discover_vertical_shells()
                         polygons_append(cache.holes, offset(offset_ex(layer.lslices, 0.3f * perimeter_min_spacing), - perimeter_offset - 0.3f * perimeter_min_spacing));
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
                         {
-                            Slic3r::SVG svg(debug_out_path("discover_vertical_shells-extra-holes-%d.svg", debug_idx), get_extents(layer.slices));
-                            svg.draw(layer.slices, "blue");
+                            Slic3r::SVG svg(debug_out_path("discover_vertical_shells-extra-holes-%d.svg", debug_idx), get_extents(layer.lslices));
+                            svg.draw(layer.lslices, "blue");
                             svg.draw(union_ex(cache.holes), "red");
                             svg.draw_outline(union_ex(cache.holes), "black", "blue", scale_(0.05));
                             svg.Close(); 
@@ -1026,14 +1050,14 @@ void PrintObject::discover_vertical_shells()
             continue;
 
         //FIXME Improve the heuristics for a grain size.
-        size_t grain_size = std::max(m_layers.size() / 16, size_t(1));
+        size_t grain_size = std::max(num_layers / 16, size_t(1));
 
         if (! top_bottom_surfaces_all_regions) {
             // This is either a single material print, or a multi-material print and interface_shells are enabled, meaning that the vertical shell thickness
             // is calculated over a single material.
             BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << idx_region << " in parallel - start : cache top / bottom";
             tbb::parallel_for(
-                tbb::blocked_range<size_t>(0, m_layers.size(), grain_size),
+                tbb::blocked_range<size_t>(0, num_layers, grain_size),
                 [this, idx_region, &cache_top_botom_regions](const tbb::blocked_range<size_t>& range) {
                     const SurfaceType surfaces_bottom[2] = { stBottom, stBottomBridge };
                     for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
@@ -1061,7 +1085,7 @@ void PrintObject::discover_vertical_shells()
 
         BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << idx_region << " in parallel - start : ensure vertical wall thickness";
         tbb::parallel_for(
-            tbb::blocked_range<size_t>(0, m_layers.size(), grain_size),
+            tbb::blocked_range<size_t>(0, num_layers, grain_size),
             [this, idx_region, &cache_top_botom_regions]
             (const tbb::blocked_range<size_t>& range) {
                 // printf("discover_vertical_shells from %d to %d\n", range.begin(), range.end());
@@ -1635,13 +1659,14 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
     // Slice all non-modifier volumes.
     bool clipped  = false;
     bool upscaled = false;
+    auto slicing_mode = this->print()->config().spiral_vase ? SlicingMode::PositiveLargestContour : SlicingMode::Regular;
     if (! has_z_ranges && (! m_config.clip_multipart_objects.value || all_volumes_single_region >= 0)) {
         // Cheap path: Slice regions without mutual clipping.
         // The cheap path is possible if no clipping is allowed or if slicing volumes of just a single region.
         for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id) {
             BOOST_LOG_TRIVIAL(debug) << "Slicing objects - region " << region_id;
             // slicing in parallel
-            std::vector<ExPolygons> expolygons_by_layer = this->slice_region(region_id, slice_zs);
+            std::vector<ExPolygons> expolygons_by_layer = this->slice_region(region_id, slice_zs, slicing_mode);
             m_print->throw_if_canceled();
             BOOST_LOG_TRIVIAL(debug) << "Slicing objects - append slices " << region_id << " start";
             for (size_t layer_id = 0; layer_id < expolygons_by_layer.size(); ++ layer_id)
@@ -1679,7 +1704,7 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
 						else
 							ranges.emplace_back(volumes_and_ranges[j].first);
                     // slicing in parallel
-					sliced_volumes.emplace_back(volume_id, (int)region_id, this->slice_volume(slice_zs, ranges, *model_volume));
+					sliced_volumes.emplace_back(volume_id, (int)region_id, this->slice_volume(slice_zs, ranges, slicing_mode, *model_volume));
 					i = j;
 				} else
 					++ i;
@@ -1888,7 +1913,7 @@ end:
 }
 
 // To be used only if there are no layer span specific configurations applied, which would lead to z ranges being generated for this region.
-std::vector<ExPolygons> PrintObject::slice_region(size_t region_id, const std::vector<float> &z) const
+std::vector<ExPolygons> PrintObject::slice_region(size_t region_id, const std::vector<float> &z, SlicingMode mode) const
 {
 	std::vector<const ModelVolume*> volumes;
     if (region_id < this->region_volumes.size()) {
@@ -1898,7 +1923,7 @@ std::vector<ExPolygons> PrintObject::slice_region(size_t region_id, const std::v
 				volumes.emplace_back(volume);
 		}
     }
-	return this->slice_volumes(z, volumes);
+	return this->slice_volumes(z, mode, volumes);
 }
 
 // Z ranges are not applicable to modifier meshes, therefore a sinle volume will be found in volume_and_range at most once.
@@ -1948,7 +1973,7 @@ std::vector<ExPolygons> PrintObject::slice_modifiers(size_t region_id, const std
 					if (volume->is_modifier())
 						volumes.emplace_back(volume);
 				}
-				out = this->slice_volumes(slice_zs, volumes);
+				out = this->slice_volumes(slice_zs, SlicingMode::Regular, volumes);
 			} else {
 				// Some modifier in this region was split to layer spans.
 				std::vector<char> merge;
@@ -1966,7 +1991,7 @@ std::vector<ExPolygons> PrintObject::slice_modifiers(size_t region_id, const std
 							for (; j < volumes_and_ranges.size() && volume_id == volumes_and_ranges[j].second; ++ j)
 								ranges.emplace_back(volumes_and_ranges[j].first);
 			                // slicing in parallel
-			                std::vector<ExPolygons> this_slices = this->slice_volume(slice_zs, ranges, *model_volume);
+			                std::vector<ExPolygons> this_slices = this->slice_volume(slice_zs, ranges, SlicingMode::Regular, *model_volume);
 			                if (out.empty()) {
 			                	out = std::move(this_slices);
 			                	merge.assign(out.size(), false);
@@ -2005,10 +2030,10 @@ std::vector<ExPolygons> PrintObject::slice_support_volumes(const ModelVolumeType
     zs.reserve(this->layers().size());
     for (const Layer *l : this->layers())
         zs.emplace_back((float)l->slice_z);
-    return this->slice_volumes(zs, volumes);
+    return this->slice_volumes(zs, SlicingMode::Regular, volumes);
 }
 
-std::vector<ExPolygons> PrintObject::slice_volumes(const std::vector<float> &z, const std::vector<const ModelVolume*> &volumes) const
+std::vector<ExPolygons> PrintObject::slice_volumes(const std::vector<float> &z, SlicingMode mode, const std::vector<const ModelVolume*> &volumes) const
 {
     std::vector<ExPolygons> layers;
     if (! volumes.empty()) {
@@ -2038,14 +2063,14 @@ std::vector<ExPolygons> PrintObject::slice_volumes(const std::vector<float> &z, 
             mesh.require_shared_vertices();
             TriangleMeshSlicer mslicer;
             mslicer.init(&mesh, callback);
-			mslicer.slice(z, float(m_config.slice_closing_radius.value), &layers, callback);
+			mslicer.slice(z, mode, float(m_config.slice_closing_radius.value), &layers, callback);
             m_print->throw_if_canceled();
         }
     }
     return layers;
 }
 
-std::vector<ExPolygons> PrintObject::slice_volume(const std::vector<float> &z, const ModelVolume &volume) const
+std::vector<ExPolygons> PrintObject::slice_volume(const std::vector<float> &z, SlicingMode mode, const ModelVolume &volume) const
 {
     std::vector<ExPolygons> layers;
     if (! z.empty()) {
@@ -2068,7 +2093,7 @@ std::vector<ExPolygons> PrintObject::slice_volume(const std::vector<float> &z, c
 	        // TriangleMeshSlicer needs the shared vertices.
 	        mesh.require_shared_vertices();
 	        mslicer.init(&mesh, callback);
-	        mslicer.slice(z, float(m_config.slice_closing_radius.value), &layers, callback);
+	        mslicer.slice(z, mode, float(m_config.slice_closing_radius.value), &layers, callback);
 	        m_print->throw_if_canceled();
 	    }
 	}
@@ -2076,13 +2101,13 @@ std::vector<ExPolygons> PrintObject::slice_volume(const std::vector<float> &z, c
 }
 
 // Filter the zs not inside the ranges. The ranges are closed at the botton and open at the top, they are sorted lexicographically and non overlapping.
-std::vector<ExPolygons> PrintObject::slice_volume(const std::vector<float> &z, const std::vector<t_layer_height_range> &ranges, const ModelVolume &volume) const
+std::vector<ExPolygons> PrintObject::slice_volume(const std::vector<float> &z, const std::vector<t_layer_height_range> &ranges, SlicingMode mode, const ModelVolume &volume) const
 {
 	std::vector<ExPolygons> out;
 	if (! z.empty() && ! ranges.empty()) {
 		if (ranges.size() == 1 && z.front() >= ranges.front().first && z.back() < ranges.front().second) {
 			// All layers fit into a single range.
-			out = this->slice_volume(z, volume);
+			out = this->slice_volume(z, mode, volume);
 		} else {
 			std::vector<float> 					   z_filtered;
 			std::vector<std::pair<size_t, size_t>> n_filtered;
@@ -2098,7 +2123,7 @@ std::vector<ExPolygons> PrintObject::slice_volume(const std::vector<float> &z, c
 					n_filtered.emplace_back(std::make_pair(first, i));
 			}
 			if (! n_filtered.empty()) {
-				std::vector<ExPolygons> layers = this->slice_volume(z_filtered, volume);
+				std::vector<ExPolygons> layers = this->slice_volume(z_filtered, mode, volume);
 				out.assign(z.size(), ExPolygons());
 				i = 0;
 				for (const std::pair<size_t, size_t> &span : n_filtered)
@@ -2453,7 +2478,8 @@ void PrintObject::discover_horizontal_shells()
                                     // is grown, and that little space is an internal solid shell so 
                                     // it triggers this too_narrow logic.)
                                     internal));
-                            solid = new_internal_solid;
+                            // see https://github.com/prusa3d/PrusaSlicer/pull/3426
+                            // solid = new_internal_solid;
                         }
                     }
                     

@@ -220,7 +220,7 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
     float closing_r  = float(po.config().slice_closing_radius.value);
     auto  thr        = [this]() { m_print->throw_if_canceled(); };
     auto &slice_grid = po.m_model_height_levels;
-    slicer.slice(slice_grid, closing_r, &po.m_model_slices, thr);
+    slicer.slice(slice_grid, SlicingMode::Regular, closing_r, &po.m_model_slices, thr);
     
 //    sla::DrainHoles drainholes = po.transformed_drainhole_points();
 //    cut_drainholes(po.m_model_slices, slice_grid, closing_r, drainholes, thr);

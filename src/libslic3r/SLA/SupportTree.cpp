@@ -61,7 +61,7 @@ std::vector<ExPolygons> SupportTree::slice(
         slices.emplace_back();
 
         TriangleMeshSlicer sup_slicer(&sup_mesh);
-        sup_slicer.slice(grid, cr, &slices.back(), ctl().cancelfn);
+        sup_slicer.slice(grid, SlicingMode::Regular, cr, &slices.back(), ctl().cancelfn);
     }
 
     if (!pad_mesh.empty()) {
@@ -75,7 +75,7 @@ std::vector<ExPolygons> SupportTree::slice(
         std::copy(grid.begin(), maxzit, std::back_inserter(padgrid));
 
         TriangleMeshSlicer pad_slicer(&pad_mesh);
-        pad_slicer.slice(padgrid, cr, &slices.back(), ctl().cancelfn);
+        pad_slicer.slice(padgrid, SlicingMode::Regular, cr, &slices.back(), ctl().cancelfn);
     }
 
     size_t len = grid.size();

@@ -657,4 +657,23 @@ bool remove_sticks(ExPolygon &poly)
     return remove_sticks(poly.contour) || remove_sticks(poly.holes);
 }
 
+void keep_largest_contour_only(ExPolygons &polygons)
+{
+	if (polygons.size() > 1) {
+	    double     max_area = 0.;
+	    ExPolygon* max_area_polygon = nullptr;
+	    for (ExPolygon& p : polygons) {
+	        double a = p.contour.area();
+	        if (a > max_area) {
+	            max_area         = a;
+	            max_area_polygon = &p;
+	        }
+	    }
+	    assert(max_area_polygon != nullptr);
+	    ExPolygon p(std::move(*max_area_polygon));
+	    polygons.clear();
+	    polygons.emplace_back(std::move(p));
+	}
+}
+
 } // namespace Slic3r

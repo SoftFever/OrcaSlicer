@@ -638,7 +638,7 @@ void pad_blueprint(const TriangleMesh &      mesh,
     TriangleMeshSlicer slicer(&mesh);
 
     auto out = reserve_vector<ExPolygons>(heights.size());
-    slicer.slice(heights, 0.f, &out, thrfn);
+    slicer.slice(heights, SlicingMode::Regular, 0.f, &out, thrfn);
 
     size_t count = 0;
     for(auto& o : out) count += o.size();

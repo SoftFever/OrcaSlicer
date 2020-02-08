@@ -362,8 +362,10 @@ void LayerRegion::prepare_fill_surfaces()
         alter fill_surfaces boundaries on which our idempotency relies since that's
         the only meaningful information returned by psPerimeters. */
     
+    bool spiral_vase = this->layer()->object()->print()->config().spiral_vase;
+
     // if no solid layers are requested, turn top/bottom surfaces to internal
-    if (this->region()->config().top_solid_layers == 0) {
+    if (! spiral_vase && this->region()->config().top_solid_layers == 0) {
         for (Surface &surface : this->fill_surfaces.surfaces)
             if (surface.is_top())
                 surface.surface_type = this->layer()->object()->config().infill_only_where_needed ? stInternalVoid : stInternal;
@@ -375,7 +377,7 @@ void LayerRegion::prepare_fill_surfaces()
     }
 
     // turn too small internal regions into solid regions according to the user setting
-    if (this->region()->config().fill_density.value > 0) {
+    if (! spiral_vase && this->region()->config().fill_density.value > 0) {
         // scaling an area requires two calls!
         double min_area = scale_(scale_(this->region()->config().solid_infill_below_area.value));
         for (Surface &surface : this->fill_surfaces.surfaces)

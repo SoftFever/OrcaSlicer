@@ -262,7 +262,7 @@ void cut_drainholes(std::vector<ExPolygons> & obj_slices,
     TriangleMeshSlicer slicer(&mesh);
     
     std::vector<ExPolygons> hole_slices;
-    slicer.slice(slicegrid, closing_radius, &hole_slices, thr);
+    slicer.slice(slicegrid, SlicingMode::Regular, closing_radius, &hole_slices, thr);
     
     if (obj_slices.size() != hole_slices.size())
         BOOST_LOG_TRIVIAL(warning)

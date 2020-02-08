@@ -24,6 +24,7 @@ class PrintObject;
 class ModelObject;
 class GCode;
 class GCodePreviewData;
+enum class SlicingMode : uint32_t;
 
 // Print step IDs for keeping track of the print state.
 enum PrintStep {
@@ -253,11 +254,11 @@ private:
     // so that next call to make_perimeters() performs a union() before computing loops
     bool                    				m_typed_slices = false;
 
-    std::vector<ExPolygons> slice_region(size_t region_id, const std::vector<float> &z) const;
+    std::vector<ExPolygons> slice_region(size_t region_id, const std::vector<float> &z, SlicingMode mode) const;
     std::vector<ExPolygons> slice_modifiers(size_t region_id, const std::vector<float> &z) const;
-    std::vector<ExPolygons> slice_volumes(const std::vector<float> &z, const std::vector<const ModelVolume*> &volumes) const;
-    std::vector<ExPolygons> slice_volume(const std::vector<float> &z, const ModelVolume &volume) const;
-    std::vector<ExPolygons> slice_volume(const std::vector<float> &z, const std::vector<t_layer_height_range> &ranges, const ModelVolume &volume) const;
+    std::vector<ExPolygons> slice_volumes(const std::vector<float> &z, SlicingMode mode, const std::vector<const ModelVolume*> &volumes) const;
+    std::vector<ExPolygons> slice_volume(const std::vector<float> &z, SlicingMode mode, const ModelVolume &volume) const;
+    std::vector<ExPolygons> slice_volume(const std::vector<float> &z, const std::vector<t_layer_height_range> &ranges, SlicingMode mode, const ModelVolume &volume) const;
 };
 
 struct WipeTowerData
