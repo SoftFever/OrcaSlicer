@@ -2,6 +2,7 @@
 #define SLIC3R_GUI_BITMAP_CACHE_HPP
 
 #include <map>
+#include <vector>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
