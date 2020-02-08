@@ -353,13 +353,15 @@ void GLGizmosManager::set_sla_support_data(ModelObject* model_object)
 
 
     // Update common data for hollowing and sla support gizmos.
-    if (m_common_gizmos_data->update_from_backend(m_parent, model_object)) {
-        // FIXME: this is a hack to make that the clipping plane is
-        // updated when the update set its position to zero. The clipping
-        // plane itself should be common, including the update_function.
-        // Then update_from_backend could do it itself.
-        gizmo_supports->update_clipping_plane();
-        gizmo_hollow->update_clipping_plane();
+    if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA) {
+        if (m_common_gizmos_data->update_from_backend(m_parent, model_object)) {
+            // FIXME: this is a hack to make that the clipping plane is
+            // updated when the update set its position to zero. The clipping
+            // plane itself should be common, including the update_function.
+            // Then update_from_backend could do it itself.
+            gizmo_supports->update_clipping_plane();
+            gizmo_hollow->update_clipping_plane();
+        }
     }
 
     gizmo_supports->set_sla_support_data(model_object, m_parent.get_selection());
