@@ -173,7 +173,11 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             steps.emplace_back(psSkirt);
         } else if (
                opt_key == "nozzle_diameter"
-            || opt_key == "resolution") {
+            || opt_key == "resolution"
+            // Spiral Vase forces different kind of slicing than the normal model:
+            // In Spiral Vase mode, holes are closed and only the largest area contour is kept at each layer.
+            // Therefore toggling the Spiral Vase on / off requires complete reslicing.
+            || opt_key == "spiral_vase") {
             osteps.emplace_back(posSlice);
         } else if (
                opt_key == "complete_objects"
@@ -195,7 +199,6 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "high_current_on_filament_swap"
             || opt_key == "infill_first"
             || opt_key == "single_extruder_multi_material"
-            || opt_key == "spiral_vase"
             || opt_key == "temperature"
             || opt_key == "wipe_tower"
             || opt_key == "wipe_tower_width"
