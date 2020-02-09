@@ -829,7 +829,7 @@ void PrintObject::detect_surfaces_type()
         // Fill in layerm->fill_surfaces by trimming the layerm->slices by the cummulative layerm->fill_surfaces.
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size()),
-            [this, idx_region, interface_shells, &surfaces_new](const tbb::blocked_range<size_t>& range) {
+            [this, idx_region, interface_shells](const tbb::blocked_range<size_t>& range) {
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                     m_print->throw_if_canceled();
                     LayerRegion *layerm = m_layers[idx_layer]->m_regions[idx_region];
@@ -1145,7 +1145,7 @@ void PrintObject::discover_vertical_shells()
                             coordf_t print_z      = layer->print_z;
                             int      n_top_layers = region_config.top_solid_layers.value;
 	                        for (int i = int(idx_layer) + 1; 
-	                        	i < int(m_layers.size()) && 
+	                        	i < int(cache_top_botom_regions.size()) && 
 	                        		(i < int(idx_layer) + n_top_layers ||
 	                        		 m_layers[i]->print_z - print_z < region_config.top_solid_min_thickness - EPSILON);
 	                        	++ i) {

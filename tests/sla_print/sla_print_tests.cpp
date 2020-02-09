@@ -54,7 +54,7 @@ TEST_CASE("Support point generator should be deterministic if seeded",
     
     auto slicegrid = grid(float(gnd), float(zmax), layer_h);
     std::vector<ExPolygons> slices;
-    slicer.slice(slicegrid, CLOSING_RADIUS, &slices, []{});
+    slicer.slice(slicegrid, SlicingMode::Regular, CLOSING_RADIUS, &slices, []{});
     
     point_gen.seed(0);
     point_gen.execute(slices, slicegrid);
