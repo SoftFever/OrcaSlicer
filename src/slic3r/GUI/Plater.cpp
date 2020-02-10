@@ -4893,85 +4893,105 @@ void Plater::export_stl(bool extended, bool selection_only)
 
     wxBusyCursor wait;
 
+    const auto &selection = p->get_selection();
+    const auto obj_idx = selection.get_object_idx();
+    if (selection_only && (obj_idx == -1 || selection.is_wipe_tower()))
+        return;
+
     TriangleMesh mesh;
-    if (selection_only) {
-        const auto &selection = p->get_selection();
-        if (selection.is_wipe_tower()) { return; }
-
-        const auto obj_idx = selection.get_object_idx();
-        if (obj_idx == -1) { return; }
-
-        const ModelObject* model_object = p->model.objects[obj_idx];
-        if (selection.get_mode() == Selection::Instance)
-        {
-            if (selection.is_single_full_object())
-                mesh = model_object->mesh();
+    if (p->printer_technology == ptFFF) {
+        if (selection_only) {
+            const ModelObject* model_object = p->model.objects[obj_idx];
+            if (selection.get_mode() == Selection::Instance)
+            {
+                if (selection.is_single_full_object())
+                    mesh = model_object->mesh();
+                else
+                    mesh = model_object->full_raw_mesh();
+            }
             else
-                mesh = model_object->full_raw_mesh();
+            {
+                const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+                mesh = model_object->volumes[volume->volume_idx()]->mesh();
+                mesh.transform(volume->get_volume_transformation().get_matrix());
+                mesh.translate(-model_object->origin_translation.cast<float>());
+            }
         }
-        else
-        {
-            const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-            mesh = model_object->volumes[volume->volume_idx()]->mesh();
-            mesh.transform(volume->get_volume_transformation().get_matrix());
-            mesh.translate(-model_object->origin_translation.cast<float>());
+        else {
+            mesh = p->model.mesh();
         }
     }
     else
     {
-        mesh = p->model.mesh();
+        // This is SLA mode, all objects have only one volume.
+        // However, we must have a look at the backend to load
+        // hollowed mesh and/or supports
 
-        if (extended && (p->printer_technology == ptSLA))
+        const PrintObjects& objects = p->sla_print.objects();
+        for (const SLAPrintObject* object : objects)
         {
-            const PrintObjects& objects = p->sla_print.objects();
-            for (const SLAPrintObject* object : objects)
+            const ModelObject* model_object = object->model_object();
+            if (selection_only) {
+                if (model_object->id() != p->model.objects[obj_idx]->id())
+                    continue;
+            }
+            Transform3d mesh_trafo_inv = object->trafo().inverse();
+            bool is_left_handed = object->is_left_handed();
+
+            TriangleMesh pad_mesh;
+            bool has_pad_mesh = extended && object->has_mesh(slaposPad);
+            if (has_pad_mesh)
             {
-                const ModelObject* model_object = object->model_object();
-                Transform3d mesh_trafo_inv = object->trafo().inverse();
-                bool is_left_handed = object->is_left_handed();
+                pad_mesh = object->get_mesh(slaposPad);
+                pad_mesh.transform(mesh_trafo_inv);
+            }
 
-                TriangleMesh pad_mesh;
-                bool has_pad_mesh = object->has_mesh(slaposPad);
-                if (has_pad_mesh)
+            TriangleMesh supports_mesh;
+            bool has_supports_mesh = extended && object->has_mesh(slaposSupportTree);
+            if (has_supports_mesh)
+            {
+                supports_mesh = object->get_mesh(slaposSupportTree);
+                supports_mesh.transform(mesh_trafo_inv);
+            }
+
+            const std::vector<SLAPrintObject::Instance>& obj_instances = object->instances();
+            for (const SLAPrintObject::Instance& obj_instance : obj_instances)
+            {
+                auto it = std::find_if(model_object->instances.begin(), model_object->instances.end(),
+                    [&obj_instance](const ModelInstance *mi) { return mi->id() == obj_instance.instance_id; });
+                assert(it != model_object->instances.end());
+
+                if (it != model_object->instances.end())
                 {
-                    pad_mesh = object->get_mesh(slaposPad);
-                    pad_mesh.transform(mesh_trafo_inv);
-                }
+                    bool one_inst_only = selection_only && ! selection.is_single_full_object();
 
-                TriangleMesh supports_mesh;
-                bool has_supports_mesh = object->has_mesh(slaposSupportTree);
-                if (has_supports_mesh)
-                {
-                    supports_mesh = object->get_mesh(slaposSupportTree);
-                    supports_mesh.transform(mesh_trafo_inv);
-                }
+                    int instance_idx = it - model_object->instances.begin();
+                    const Transform3d& inst_transform = one_inst_only
+                            ? Transform3d::Identity()
+                            : object->model_object()->instances[instance_idx]->get_transformation().get_matrix();
 
-                const std::vector<SLAPrintObject::Instance>& obj_instances = object->instances();
-                for (const SLAPrintObject::Instance& obj_instance : obj_instances)
-                {
-                    auto it = std::find_if(model_object->instances.begin(), model_object->instances.end(),
-                        [&obj_instance](const ModelInstance *mi) { return mi->id() == obj_instance.instance_id; });
-                    assert(it != model_object->instances.end());
-
-                    if (it != model_object->instances.end())
+                    if (has_pad_mesh)
                     {
-                        int instance_idx = it - model_object->instances.begin();
-                        const Transform3d& inst_transform = object->model_object()->instances[instance_idx]->get_transformation().get_matrix();
-
-                        if (has_pad_mesh)
-                        {
-                            TriangleMesh inst_pad_mesh = pad_mesh;
-                            inst_pad_mesh.transform(inst_transform, is_left_handed);
-                            mesh.merge(inst_pad_mesh);
-                        }
-
-                        if (has_supports_mesh)
-                        {
-                            TriangleMesh inst_supports_mesh = supports_mesh;
-                            inst_supports_mesh.transform(inst_transform, is_left_handed);
-                            mesh.merge(inst_supports_mesh);
-                        }
+                        TriangleMesh inst_pad_mesh = pad_mesh;
+                        inst_pad_mesh.transform(inst_transform, is_left_handed);
+                        mesh.merge(inst_pad_mesh);
                     }
+
+                    if (has_supports_mesh)
+                    {
+                        TriangleMesh inst_supports_mesh = supports_mesh;
+                        inst_supports_mesh.transform(inst_transform, is_left_handed);
+                        mesh.merge(inst_supports_mesh);
+                    }
+
+                    TriangleMesh inst_object_mesh = object->get_mesh_to_print();
+                    inst_object_mesh.translate(0.f, 0.f, -object->get_elevation());
+                    inst_object_mesh.transform(inst_transform, is_left_handed);
+
+                    mesh.merge(inst_object_mesh);
+
+                    if (one_inst_only)
+                        break;
                 }
             }
         }
