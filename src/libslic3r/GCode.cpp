@@ -1031,8 +1031,8 @@ namespace DoExport {
 		std::string filament_stats_string_out;
 
 	    print_statistics.clear();
-	    print_statistics.estimated_normal_print_time = normal_time_estimator.get_time_dhms();
-	    print_statistics.estimated_silent_print_time = silent_time_estimator_enabled ? silent_time_estimator.get_time_dhms() : "N/A";
+	    print_statistics.estimated_normal_print_time = normal_time_estimator.get_time_dhm/*s*/();
+	    print_statistics.estimated_silent_print_time = silent_time_estimator_enabled ? silent_time_estimator.get_time_dhm/*s*/() : "N/A";
 	    print_statistics.estimated_normal_color_print_times = normal_time_estimator.get_color_times_dhms(true);
 	    if (silent_time_estimator_enabled)
 	        print_statistics.estimated_silent_color_print_times = silent_time_estimator.get_color_times_dhms(true);
@@ -1528,9 +1528,9 @@ void GCode::_do_export(Print& print, FILE* file)
     _write_format(file, "; total filament cost = %.1lf\n", print.m_print_statistics.total_cost);
     if (print.m_print_statistics.total_toolchanges > 0)
     	_write_format(file, "; total toolchanges = %i\n", print.m_print_statistics.total_toolchanges);
-    _write_format(file, "; estimated printing time (normal mode) = %s\n", m_normal_time_estimator.get_time_dhms().c_str());
+    _write_format(file, "; estimated printing time (normal mode) = %s\n", m_normal_time_estimator.get_time_dhm/*s*/().c_str());
     if (m_silent_time_estimator_enabled)
-        _write_format(file, "; estimated printing time (silent mode) = %s\n", m_silent_time_estimator.get_time_dhms().c_str());
+        _write_format(file, "; estimated printing time (silent mode) = %s\n", m_silent_time_estimator.get_time_dhm/*s*/().c_str());
 
     // Append full config.
     _write(file, "\n");
