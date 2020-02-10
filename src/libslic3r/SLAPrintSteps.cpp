@@ -222,8 +222,18 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
     auto &slice_grid = po.m_model_height_levels;
     slicer.slice(slice_grid, SlicingMode::Regular, closing_r, &po.m_model_slices, thr);
     
-//    sla::DrainHoles drainholes = po.transformed_drainhole_points();
-//    cut_drainholes(po.m_model_slices, slice_grid, closing_r, drainholes, thr);
+    if (po.m_hollowing_data) {
+        po.m_hollowing_data->interior.repair();
+        TriangleMeshSlicer interior_slicer(&po.m_hollowing_data->interior);
+        std::vector<ExPolygons> interior_slices;
+        interior_slicer.slice(slice_grid, SlicingMode::Regular, closing_r, &interior_slices, thr);
+
+        sla::ccr::enumerate(interior_slices.begin(), interior_slices.end(),
+                            [&po](const ExPolygons &slice, size_t i) {
+                                po.m_model_slices[i] =
+                                    diff_ex(po.m_model_slices[i], slice);
+                            });
+    }
     
     auto mit = slindex_it;
     double doffs = m_print->m_printer_config.absolute_correction.getFloat();
