@@ -2123,21 +2123,16 @@ void GCode::process_layer(
 
                         // Let's recover vector of extruder overrides:
                         const WipingExtrusions::ExtruderPerCopy *entity_overrides = nullptr;
-                        // see GH issue #3637: Object disappears when wipe to object turned on
-                        //FIXME Vojtec With the optimization disabled, the G-code generator will not be slower
-						// than PrusaSlicer 2.1.1. I am leaving the code there to mark for further optimization opportunities.
-                        //if (is_anything_overridden)
-                        if (true)
-                        {
-	                        printing_extruders.clear();
-	                        if (! layer_tools.has_extruder(correct_extruder_id)) {
-								// this entity is not overridden, but its extruder is not in layer_tools - we'll print it
-	                            // by last extruder on this layer (could happen e.g. when a wiping object is taller than others - dontcare extruders are eradicated from layer_tools)
-	                            correct_extruder_id = layer_tools.extruders.back();
-	                        }
+                        if (! layer_tools.has_extruder(correct_extruder_id)) {
+							// this entity is not overridden, but its extruder is not in layer_tools - we'll print it
+                            // by last extruder on this layer (could happen e.g. when a wiping object is taller than others - dontcare extruders are eradicated from layer_tools)
+                            correct_extruder_id = layer_tools.extruders.back();
+                        }
+                        printing_extruders.clear();
+                        if (is_anything_overridden) {
                         	entity_overrides = const_cast<LayerTools&>(layer_tools).wiping_extrusions().get_extruder_overrides(extrusions, correct_extruder_id, layer_to_print.object()->instances().size());
 	                        if (entity_overrides == nullptr) {
-	                        	printing_extruders.emplace_back(correct_extruder_id);
+		                    	printing_extruders.emplace_back(correct_extruder_id);
 	                        } else {
 	                        	printing_extruders.reserve(entity_overrides->size());
 	                        	for (int extruder : *entity_overrides)
@@ -2146,10 +2141,10 @@ void GCode::process_layer(
 	                        			extruder : 
 	                        			// at least one copy would normally be printed with this extruder (see get_extruder_overrides function for explanation)
 	                        			static_cast<unsigned int>(- extruder - 1));
+		                        Slic3r::sort_remove_duplicates(printing_extruders);
 	                        }
-	                        Slic3r::sort_remove_duplicates(printing_extruders);
 	                    } else
-	                    	printing_extruders = { (unsigned int)correct_extruder_id };
+	                    	printing_extruders.emplace_back(correct_extruder_id);
 
                         // Now we must add this extrusion into the by_extruder map, once for each extruder that will print it:
                         for (unsigned int extruder : printing_extruders)
