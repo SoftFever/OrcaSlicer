@@ -257,9 +257,10 @@ void Tab::create_preset_tab()
 
     // Fill cache for mode bitmaps
     m_mode_bitmap_cache.reserve(3);
-    m_mode_bitmap_cache.push_back(ScalableBitmap(this, "mode_simple"));
-    m_mode_bitmap_cache.push_back(ScalableBitmap(this, "mode_advanced"));
-    m_mode_bitmap_cache.push_back(ScalableBitmap(this, "mode_expert"));
+    int icon_px = 14;
+    m_mode_bitmap_cache.push_back(ScalableBitmap(this, "mode_simple"  , icon_px));
+    m_mode_bitmap_cache.push_back(ScalableBitmap(this, "mode_advanced", icon_px));
+    m_mode_bitmap_cache.push_back(ScalableBitmap(this, "mode_expert"  , icon_px));
 
     // Initialize the DynamicPrintConfig by default keys/values.
     build();

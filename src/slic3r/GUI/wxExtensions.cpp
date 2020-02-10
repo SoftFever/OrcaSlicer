@@ -677,6 +677,20 @@ ModeButton::ModeButton( wxWindow *          parent,
                         const wxPoint&      pos         /* = wxDefaultPosition*/) :
     ScalableButton(parent, id, icon_name, mode, size, pos, wxBU_EXACTFIT)
 {
+    Init(mode);
+}
+
+ModeButton::ModeButton( wxWindow*           parent,
+                        const wxString&     mode/* = wxEmptyString*/,
+                        const std::string&  icon_name/* = ""*/,
+                        int                 px_cnt/* = 16*/) :
+    ScalableButton(parent, wxID_ANY, ScalableBitmap(parent, icon_name, px_cnt), mode, wxBU_EXACTFIT)
+{
+    Init(mode);
+}
+
+void ModeButton::Init(const wxString &mode)
+{
     m_tt_focused = wxString::Format(_(L("Switch to the %s mode")), mode);
     m_tt_selected = wxString::Format(_(L("Current mode is %s")), mode);
 
@@ -739,7 +753,7 @@ ModeSizer::ModeSizer(wxWindow *parent, int hgap/* = 0*/) :
     
     m_mode_btns.reserve(3);
     for (const auto& button : buttons) {
-        m_mode_btns.push_back(new ModeButton(parent, wxID_ANY, button.second, button.first));
+        m_mode_btns.push_back(new ModeButton(parent, button.first, button.second, 14));
 
         m_mode_btns.back()->Bind(wxEVT_BUTTON, std::bind(modebtnfn, std::placeholders::_1, int(m_mode_btns.size() - 1)));
         Add(m_mode_btns.back());
