@@ -1875,7 +1875,9 @@ namespace Skirt {
         const Print 							&print,
 	    const std::vector<GCode::LayerToPrint> 	&layers,
 	    const LayerTools                		&layer_tools,
-        // Heights (print_z) at which the skirt has already been extruded.
+	    // First non-empty support layer.
+	    const SupportLayer  					*support_layer,
+	    // Heights (print_z) at which the skirt has already been extruded.
         std::vector<coordf_t>			    	&skirt_done)
     {
         // Extrude skirt at the print_z of the raft layers and normal object layers
@@ -1888,7 +1890,7 @@ namespace Skirt {
             // This print_z has not been extruded yet (sequential print)
             skirt_done.back() < layer_tools.print_z - EPSILON &&
             // and this layer is an object layer, or it is a raft layer.
-            (layer_tools.has_object || layers.front().support_layer->id() < (size_t)layers.front().support_layer->object()->config().raft_layers.value)) {
+            (layer_tools.has_object || support_layer->id() < (size_t)support_layer->object()->config().raft_layers.value)) {
 #if 0
             // Prime just the first printing extruder. This is original Slic3r's implementation.
             skirt_loops_per_extruder_out[layer_tools.extruders.front()] = std::pair<size_t, size_t>(0, print.config().skirts.value);
@@ -2016,7 +2018,7 @@ void GCode::process_layer(
     // not at the print_z of the interlaced support material layers.
     skirt_loops_per_extruder = first_layer ?
         Skirt::make_skirt_loops_per_extruder_1st_layer(print, layers, layer_tools, m_skirt_done) :
-        Skirt::make_skirt_loops_per_extruder_other_layers(print, layers, layer_tools, m_skirt_done);
+        Skirt::make_skirt_loops_per_extruder_other_layers(print, layers, layer_tools, support_layer, m_skirt_done);
 
     // Group extrusions by an extruder, then by an object, an island and a region.
     std::map<unsigned int, std::vector<ObjectByExtruder>> by_extruder;
