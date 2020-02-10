@@ -227,8 +227,12 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
         TriangleMeshSlicer interior_slicer(&po.m_hollowing_data->interior);
         std::vector<ExPolygons> interior_slices;
         interior_slicer.slice(slice_grid, SlicingMode::Regular, closing_r, &interior_slices, thr);
-        for (size_t i = 0; i < slice_grid.size(); ++i)
-            po.m_model_slices[i] = diff_ex(po.m_model_slices[i], interior_slices[i]);
+
+        sla::ccr::enumerate(interior_slices.begin(), interior_slices.end(),
+                            [&po](const ExPolygons &slice, size_t i) {
+                                po.m_model_slices[i] =
+                                    diff_ex(po.m_model_slices[i], slice);
+                            });
     }
     
     auto mit = slindex_it;
