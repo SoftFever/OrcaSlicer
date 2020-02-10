@@ -486,6 +486,15 @@ int em_unit(wxWindow* win)
     return Slic3r::GUI::wxGetApp().em_unit();
 }
 
+int mode_icon_px_size()
+{
+#ifdef __APPLE__
+    return 10;
+#else
+    return 12;
+#endif
+}
+
 // win is used to get a correct em_unit value
 // It's important for bitmaps of dialogs.
 // if win == nullptr, em_unit value of MainFrame will be used
@@ -753,7 +762,7 @@ ModeSizer::ModeSizer(wxWindow *parent, int hgap/* = 0*/) :
     
     m_mode_btns.reserve(3);
     for (const auto& button : buttons) {
-        m_mode_btns.push_back(new ModeButton(parent, button.first, button.second, 14));
+        m_mode_btns.push_back(new ModeButton(parent, button.first, button.second, mode_icon_px_size()));
 
         m_mode_btns.back()->Bind(wxEVT_BUTTON, std::bind(modebtnfn, std::placeholders::_1, int(m_mode_btns.size() - 1)));
         Add(m_mode_btns.back());
