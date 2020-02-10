@@ -50,9 +50,11 @@ Camera::Camera()
 #endif // ENABLE_6DOF_CAMERA
     , m_type(Perspective)
     , m_target(Vec3d::Zero())
-#if !ENABLE_6DOF_CAMERA
+#if ENABLE_6DOF_CAMERA
+    , m_zenit(45.0f)
+#else
     , m_theta(45.0f)
-#endif // !ENABLE_6DOF_CAMERA
+#endif // ENABLE_6DOF_CAMERA
     , m_zoom(1.0)
     , m_distance(DefaultDistance)
     , m_gui_scale(1.0)
@@ -409,6 +411,9 @@ void Camera::debug_render() const
     Vec3f position = get_position().cast<float>();
     Vec3f target = m_target.cast<float>();
     float distance = (float)get_distance();
+#if ENABLE_6DOF_CAMERA
+    float zenit = (float)m_zenit;
+#endif // ENABLE_6DOF_CAMERA
     Vec3f forward = get_dir_forward().cast<float>();
     Vec3f right = get_dir_right().cast<float>();
     Vec3f up = get_dir_up().cast<float>();
@@ -425,6 +430,10 @@ void Camera::debug_render() const
     ImGui::InputFloat3("Position", position.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
     ImGui::InputFloat3("Target", target.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
     ImGui::InputFloat("Distance", &distance, 0.0f, 0.0f, "%.6f", ImGuiInputTextFlags_ReadOnly);
+#if ENABLE_6DOF_CAMERA
+    ImGui::Separator();
+    ImGui::InputFloat("Zenit", &zenit, 0.0f, 0.0f, "%.6f", ImGuiInputTextFlags_ReadOnly);
+#endif // ENABLE_6DOF_CAMERA
     ImGui::Separator();
     ImGui::InputFloat3("Forward", forward.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
     ImGui::InputFloat3("Right", right.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
@@ -456,8 +465,20 @@ void Camera::translate_world(const Vec3d& displacement)
     }
 }
 
-void Camera::rotate_on_sphere(double delta_azimut_rad, double delta_zenit_rad)
+void Camera::rotate_on_sphere(double delta_azimut_rad, double delta_zenit_rad, bool apply_limits)
 {
+    m_zenit += Geometry::rad2deg(delta_zenit_rad);
+    if (apply_limits) {
+        if (m_zenit > 90.0f) {
+            delta_zenit_rad -= Geometry::deg2rad(m_zenit - 90.0f);
+            m_zenit = 90.0f;
+        }
+        else if (m_zenit < -90.0f) {
+            delta_zenit_rad -= Geometry::deg2rad(m_zenit + 90.0f);
+            m_zenit = -90.0f;
+        }
+    }
+
     // FIXME -> The following is a HACK !!!
     // When the value of the zenit rotation is large enough, the following call to rotate() shows
     // numerical instability introducing some scaling into m_view_matrix (verified by checking
@@ -501,6 +522,7 @@ void Camera::rotate_local_around_pivot(const Vec3d& rotation_rad, const Vec3d& p
     m_view_matrix.rotate(Eigen::AngleAxisd(rotation_rad(1), get_dir_up()));
     m_view_matrix.rotate(Eigen::AngleAxisd(rotation_rad(2), get_dir_forward()));
     translate_world(center);
+    update_zenit();
 }
 #endif // ENABLE_6DOF_CAMERA
 
@@ -770,11 +792,14 @@ void Camera::look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up
     m_view_matrix(3, 1) = 0.0;
     m_view_matrix(3, 2) = 0.0;
     m_view_matrix(3, 3) = 1.0;
+
+    update_zenit();
 }
 
 void Camera::set_default_orientation()
 {
-    double theta_rad = Geometry::deg2rad(-45.0);
+    m_zenit = 45.0f;
+    double theta_rad = Geometry::deg2rad(-(double)m_zenit);
     double phi_rad = Geometry::deg2rad(45.0);
     double sin_theta = ::sin(theta_rad);
     Vec3d camera_pos = m_target + m_distance * Vec3d(sin_theta * ::sin(phi_rad), sin_theta * ::cos(phi_rad), ::cos(theta_rad));
@@ -794,6 +819,11 @@ Vec3d Camera::validate_target(const Vec3d& target) const
     return Vec3d(std::clamp(target(0), test_box.min(0), test_box.max(0)),
         std::clamp(target(1), test_box.min(1), test_box.max(1)),
         std::clamp(target(2), test_box.min(2), test_box.max(2)));
+}
+
+void Camera::update_zenit()
+{
+    m_zenit = Geometry::rad2deg(0.5 * M_PI - std::acos(std::clamp(-get_dir_forward().dot(Vec3d::UnitZ()), -1.0, 1.0)));
 }
 #endif // ENABLE_6DOF_CAMERA
 

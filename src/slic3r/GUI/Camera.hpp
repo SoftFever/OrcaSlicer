@@ -39,9 +39,11 @@ struct Camera
 private:
     EType m_type;
     Vec3d m_target;
-#if !ENABLE_6DOF_CAMERA
+#if ENABLE_6DOF_CAMERA
+    float m_zenit;
+#else
     float m_theta;
-#endif // !ENABLE_6DOF_CAMERA
+#endif // ENABLE_6DOF_CAMERA
     double m_zoom;
     // Distance between camera position and camera target measured along the camera Z axis
     mutable double m_distance;
@@ -136,7 +138,8 @@ public:
 
     // rotate the camera on a sphere having center == m_target and radius == m_distance
     // using the given variations of spherical coordinates
-    void rotate_on_sphere(double delta_azimut_rad, double delta_zenit_rad);
+    // if apply_limits == true the camera stops rotating when its forward vector is parallel to the world Z axis
+    void rotate_on_sphere(double delta_azimut_rad, double delta_zenit_rad, bool apply_limits);
 
     // rotate the camera around three axes parallel to the camera local axes and passing through m_target
     void rotate_local_around_target(const Vec3d& rotation_rad);
@@ -171,6 +174,7 @@ private:
     void look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up);
     void set_default_orientation();
     Vec3d validate_target(const Vec3d& target) const;
+    void update_zenit();
 #endif // ENABLE_6DOF_CAMERA
 };
 
