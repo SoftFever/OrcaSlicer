@@ -2123,7 +2123,12 @@ void GCode::process_layer(
 
                         // Let's recover vector of extruder overrides:
                         const WipingExtrusions::ExtruderPerCopy *entity_overrides = nullptr;
-                        if (is_anything_overridden) {
+                        // see GH issue #3637: Object disappears when wipe to object turned on
+                        //FIXME Vojtec With the optimization disabled, the G-code generator will not be slower
+						// than PrusaSlicer 2.1.1. I am leaving the code there to mark for further optimization opportunities.
+                        //if (is_anything_overridden)
+                        if (true)
+                        {
 	                        printing_extruders.clear();
 	                        if (! layer_tools.has_extruder(correct_extruder_id)) {
 								// this entity is not overridden, but its extruder is not in layer_tools - we'll print it
