@@ -13,7 +13,7 @@
 #define LISTBOOK_LEFT 4
 #define TOOLBOOK 5
 #define CHOICEBOOK 6
-#define BOOK_TYPE NOTEBOOK_LEFT
+#define BOOK_TYPE CHOICEBOOK
 
 #if (BOOK_TYPE == NOTEBOOK_TOP) || (BOOK_TYPE == NOTEBOOK_LEFT)
 #include <wx/notebook.h>
