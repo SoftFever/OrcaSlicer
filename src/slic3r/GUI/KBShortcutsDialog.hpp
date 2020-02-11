@@ -13,17 +13,9 @@ namespace GUI {
 
 class KBShortcutsDialog : public DPIDialog
 {
-    enum PLACED_SIZER_ID
-    {
-        szLeft = 0,
-        szRight
-    };
-
     typedef std::pair<std::string, std::string> Shortcut;
     typedef std::vector< Shortcut >             Shortcuts;
-    typedef std::vector< std::pair<wxString, std::pair<Shortcuts, PLACED_SIZER_ID>> >   ShortcutsVec;
-
-    wxScrolledWindow*               panel;
+    typedef std::vector<std::pair<wxString, Shortcuts>>   ShortcutsVec;
 
     ShortcutsVec                    m_full_shortcuts;
     ScalableBitmap                  m_logo_bmp;
@@ -32,14 +24,14 @@ class KBShortcutsDialog : public DPIDialog
 public:
     KBShortcutsDialog();
     
-    void fill_shortcuts();
-
 protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
 
 private:
-    void onCloseDialog(wxEvent &);
-    wxSize get_size();
+    void fill_shortcuts();
+
+    wxPanel* create_header(wxWindow* parent, const wxFont& bold_font);
+    wxPanel* create_page(wxWindow* parent, const std::pair<wxString, Shortcuts>& shortcuts, const wxFont& font, const wxFont& bold_font);
 };
 
 } // namespace GUI
