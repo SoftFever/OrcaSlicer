@@ -573,7 +573,6 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("If layer print time is estimated below this number of seconds, fan will be enabled "
                    "and its speed will be calculated by interpolating the minimum and maximum speeds.");
     def->sidetext = L("approximate seconds");
-    def->width = 6;
     def->min = 0;
     def->max = 1000;
     def->mode = comExpert;
@@ -1104,7 +1103,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionBool(true));
 
-    const int machine_limits_opt_width = 7;
     {
         struct AxisDefault {
             std::string         name;
@@ -1136,7 +1134,6 @@ void PrintConfigDef::init_fff_params()
             (void)L("Maximum feedrate of the E axis");
             def->sidetext = L("mm/s");
             def->min = 0;
-            def->width = machine_limits_opt_width;
             def->mode = comAdvanced;
             def->set_default_value(new ConfigOptionFloats(axis.max_feedrate));
             // Add the machine acceleration limits for XYZE axes (M201)
@@ -1154,7 +1151,6 @@ void PrintConfigDef::init_fff_params()
             (void)L("Maximum acceleration of the E axis");
             def->sidetext = L("mm/s²");
             def->min = 0;
-            def->width = machine_limits_opt_width;
             def->mode = comAdvanced;
             def->set_default_value(new ConfigOptionFloats(axis.max_acceleration));
             // Add the machine jerk limits for XYZE axes (M205)
@@ -1172,7 +1168,6 @@ void PrintConfigDef::init_fff_params()
             (void)L("Maximum jerk of the E axis");
             def->sidetext = L("mm/s");
             def->min = 0;
-            def->width = machine_limits_opt_width;
             def->mode = comAdvanced;
             def->set_default_value(new ConfigOptionFloats(axis.max_jerk));
         }
@@ -1185,7 +1180,6 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Minimum feedrate when extruding (M205 S)");
     def->sidetext = L("mm/s");
     def->min = 0;
-    def->width = machine_limits_opt_width;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats{ 0., 0. });
 
@@ -1196,7 +1190,6 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Minimum travel feedrate (M205 T)");
     def->sidetext = L("mm/s");
     def->min = 0;
-    def->width = machine_limits_opt_width;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats{ 0., 0. });
 
@@ -1207,7 +1200,6 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Maximum acceleration when extruding (M204 S)");
     def->sidetext = L("mm/s²");
     def->min = 0;
-    def->width = machine_limits_opt_width;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
@@ -1218,7 +1210,6 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Maximum acceleration when retracting (M204 T)");
     def->sidetext = L("mm/s²");
     def->min = 0;
-    def->width = machine_limits_opt_width;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
@@ -1715,7 +1706,6 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("If layer print time is estimated below this number of seconds, print moves "
                    "speed will be scaled down to extend duration to this value.");
     def->sidetext = L("approximate seconds");
-    def->width = 6;
     def->min = 0;
     def->max = 1000;
     def->mode = comExpert;
