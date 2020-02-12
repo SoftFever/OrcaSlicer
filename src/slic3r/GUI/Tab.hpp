@@ -290,7 +290,7 @@ public:
 	virtual void	reload_config();
     void            update_mode();
     void            update_visibility();
-    void            msw_rescale();
+    virtual void    msw_rescale();
 	Field*			get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
 	bool			set_value(const t_config_option_key& opt_key, const boost::any& value);
 	wxSizer*		description_line_widget(wxWindow* parent, ogStaticText** StaticText);
@@ -403,6 +403,7 @@ public:
 	void		build_unregular_pages();
 	void		on_preset_loaded() override;
 	void		init_options_list() override;
+	void		msw_rescale() override;
     bool 		supports_printer_technology(const PrinterTechnology /* tech */) override { return true; }
 };
 

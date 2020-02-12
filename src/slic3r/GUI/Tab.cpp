@@ -518,6 +518,18 @@ void TabPrinter::init_options_list()
     m_options_list.emplace("extruders_count", m_opt_status_value);
 }
 
+void TabPrinter::msw_rescale()
+{
+    Tab::msw_rescale();
+
+    // rescale missed options_groups
+    const std::vector<PageShp>& pages = m_printer_technology == ptFFF ? m_pages_sla : m_pages_fff;
+    for (auto page : pages)
+        page->msw_rescale();
+
+    Layout();
+}
+
 void TabSLAMaterial::init_options_list()
 {
     if (!m_options_list.empty())
@@ -1221,18 +1233,14 @@ void TabPrint::build()
         optgroup = page->new_optgroup(_(L("Sequential printing")));
         optgroup->append_single_option_line("complete_objects");
         line = { _(L("Extruder clearance (mm)")), "" };
-        Option option = optgroup->get_option("extruder_clearance_radius");
-        option.opt.width = 6;
-        line.append_option(option);
-        option = optgroup->get_option("extruder_clearance_height");
-        option.opt.width = 6;
-        line.append_option(option);
+        line.append_option(optgroup->get_option("extruder_clearance_radius"));
+        line.append_option(optgroup->get_option("extruder_clearance_height"));
         optgroup->append_line(line);
 
         optgroup = page->new_optgroup(_(L("Output file")));
         optgroup->append_single_option_line("gcode_comments");
         optgroup->append_single_option_line("gcode_label_objects");
-        option = optgroup->get_option("output_filename_format");
+        Option option = optgroup->get_option("output_filename_format");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
 
@@ -1463,7 +1471,10 @@ void TabFilament::build()
 
     page = add_options_page(_(L("Advanced")), "wrench");
         optgroup = page->new_optgroup(_(L("Filament properties")));
-        optgroup->append_single_option_line("filament_type");
+        // Set size as all another fields for a better alignment
+        Option option = optgroup->get_option("filament_type");
+        option.opt.width = Field::def_width();
+        optgroup->append_single_option_line(option);
         optgroup->append_single_option_line("filament_soluble");
 
         optgroup = page->new_optgroup(_(L("Print speed override")));
@@ -1517,7 +1528,7 @@ void TabFilament::build()
 
     page = add_options_page(_(L("Custom G-code")), "cog");
         optgroup = page->new_optgroup(_(L("Start G-code")), 0);
-        Option option = optgroup->get_option("start_filament_gcode");
+        option = optgroup->get_option("start_filament_gcode");
         option.opt.full_width = true;
         option.opt.height = gcode_field_height;// 150;
         optgroup->append_single_option_line(option);
@@ -1690,7 +1701,10 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
         return sizer;
     };
 
-    Line host_line = optgroup->create_single_option_line("print_host");
+    // Set a wider width for a better alignment
+    Option option = optgroup->get_option("print_host");
+    option.opt.width = Field::def_width_wider();
+    Line host_line = optgroup->create_single_option_line(option);
     host_line.append_widget(printhost_browse);
     host_line.append_widget(print_host_test);
     optgroup->append_line(host_line);
@@ -3497,7 +3511,6 @@ void TabSLAMaterial::build()
         for (auto& axis : axes) {
             auto opt = optgroup->get_option(opt_key, id);
             opt.opt.label = axis;
-            opt.opt.width = 6;
             line.append_option(opt);
             ++id;
         }
