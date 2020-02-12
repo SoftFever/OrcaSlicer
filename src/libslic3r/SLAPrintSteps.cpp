@@ -222,8 +222,8 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
     auto &slice_grid = po.m_model_height_levels;
     slicer.slice(slice_grid, SlicingMode::Regular, closing_r, &po.m_model_slices, thr);
     
-    if (po.m_hollowing_data) {
-        po.m_hollowing_data->interior.repair();
+    if (po.m_hollowing_data && ! po.m_hollowing_data->interior.empty()) {
+        po.m_hollowing_data->interior.repair(true);
         TriangleMeshSlicer interior_slicer(&po.m_hollowing_data->interior);
         std::vector<ExPolygons> interior_slices;
         interior_slicer.slice(slice_grid, SlicingMode::Regular, closing_r, &interior_slices, thr);
