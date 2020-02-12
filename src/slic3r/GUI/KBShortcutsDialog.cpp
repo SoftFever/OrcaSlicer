@@ -13,7 +13,7 @@
 #define LISTBOOK_LEFT 4
 #define TOOLBOOK 5
 #define CHOICEBOOK 6
-#define BOOK_TYPE CHOICEBOOK
+#define BOOK_TYPE NOTEBOOK_TOP
 
 #if (BOOK_TYPE == NOTEBOOK_TOP) || (BOOK_TYPE == NOTEBOOK_LEFT)
 #include <wx/notebook.h>
@@ -75,13 +75,8 @@ main_sizer->Add(book, 1, wxEXPAND | wxALL, 10);
 void KBShortcutsDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
     m_logo_bmp.msw_rescale();
-
-    for (wxStaticBitmap* bmp : m_head_bitmaps)
-        bmp->SetBitmap(m_logo_bmp.bmp());
-
-    const int em = em_unit();
-
-    msw_buttons_rescale(this, em, { wxID_OK });
+    m_header_bitmap->SetBitmap(m_logo_bmp.bmp());
+    msw_buttons_rescale(this, em_unit(), { wxID_OK });
 
     Layout();
     Fit();
@@ -224,9 +219,9 @@ wxPanel* KBShortcutsDialog::create_header(wxWindow* parent, const wxFont& bold_f
 
     // logo
     m_logo_bmp = ScalableBitmap(this, "PrusaSlicer_32px.png", 32);
-    m_head_bitmaps.push_back(new wxStaticBitmap(panel, wxID_ANY, m_logo_bmp.bmp()));
-    sizer->Add(m_head_bitmaps.back(), 0, wxEXPAND | wxLEFT | wxRIGHT, 10);
-    
+    m_header_bitmap = new wxStaticBitmap(panel, wxID_ANY, m_logo_bmp.bmp());
+    sizer->Add(m_header_bitmap, 0, wxEXPAND | wxLEFT | wxRIGHT, 10);
+
     // text
     wxStaticText* text = new wxStaticText(panel, wxID_ANY, _(L("Keyboard shortcuts")));
     text->SetFont(header_font);
@@ -241,7 +236,7 @@ wxPanel* KBShortcutsDialog::create_header(wxWindow* parent, const wxFont& bold_f
 wxPanel* KBShortcutsDialog::create_page(wxWindow* parent, const std::pair<wxString, Shortcuts>& shortcuts, const wxFont& font, const wxFont& bold_font)
 {
     static const int max_items_per_column = 20;
-    int columns_count = 2 * (1 + (int)shortcuts.second.size() / max_items_per_column);
+    int columns_count = 1 + (int)shortcuts.second.size() / max_items_per_column;
 
     wxPanel* page = new wxPanel(parent);
 #if (BOOK_TYPE == LISTBOOK_TOP) || (BOOK_TYPE == LISTBOOK_LEFT)
@@ -251,17 +246,26 @@ wxPanel* KBShortcutsDialog::create_page(wxWindow* parent, const std::pair<wxStri
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
 #endif // BOOK_TYPE
 
-    wxFlexGridSizer* grid_sizer = new wxFlexGridSizer(columns_count, 5, 15);
+    wxFlexGridSizer* grid_sizer = new wxFlexGridSizer(2 * columns_count, 5, 15);
 
-    for (const auto& [shortcut, description] : shortcuts.second)
+    int items_count = (int)shortcuts.second.size();
+    for (int i = 0; i < max_items_per_column; ++i)
     {
-        auto key = new wxStaticText(page, wxID_ANY, _(shortcut));
-        key->SetFont(bold_font);
-        grid_sizer->Add(key, 0, wxALIGN_CENTRE_VERTICAL);
+        for (int j = 0; j < columns_count; ++j)
+        {
+            int id = j * max_items_per_column + i;
+            if (id >= items_count)
+                break;
 
-        auto desc = new wxStaticText(page, wxID_ANY, _(description));
-        desc->SetFont(font);
-        grid_sizer->Add(desc, 0, wxALIGN_CENTRE_VERTICAL);
+            const auto& [shortcut, description] = shortcuts.second[id];
+            auto key = new wxStaticText(page, wxID_ANY, _(shortcut));
+            key->SetFont(bold_font);
+            grid_sizer->Add(key, 0, wxALIGN_CENTRE_VERTICAL);
+
+            auto desc = new wxStaticText(page, wxID_ANY, _(description));
+            desc->SetFont(font);
+            grid_sizer->Add(desc, 0, wxALIGN_CENTRE_VERTICAL);
+        }
     }
 
     sizer->Add(grid_sizer, 1, wxEXPAND | wxALL, 10);

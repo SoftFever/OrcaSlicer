@@ -14,12 +14,12 @@ namespace GUI {
 class KBShortcutsDialog : public DPIDialog
 {
     typedef std::pair<std::string, std::string> Shortcut;
-    typedef std::vector< Shortcut >             Shortcuts;
-    typedef std::vector<std::pair<wxString, Shortcuts>>   ShortcutsVec;
+    typedef std::vector<Shortcut> Shortcuts;
+    typedef std::vector<std::pair<wxString, Shortcuts>> ShortcutsVec;
 
-    ShortcutsVec                    m_full_shortcuts;
-    ScalableBitmap                  m_logo_bmp;
-    std::vector<wxStaticBitmap*>    m_head_bitmaps;
+    ShortcutsVec    m_full_shortcuts;
+    ScalableBitmap  m_logo_bmp;
+    wxStaticBitmap* m_header_bitmap;
 
 public:
     KBShortcutsDialog();
