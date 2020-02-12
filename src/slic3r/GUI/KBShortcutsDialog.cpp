@@ -260,7 +260,7 @@ wxPanel* KBShortcutsDialog::create_page(wxWindow* parent, const std::pair<wxStri
 #if ENABLE_SCROLLABLE
     wxScrolledWindow* page = new wxScrolledWindow(parent);
     page->SetScrollbars(20, 20, 50, 50);
-    page->SetInitialSize(wxSize(750, 350));
+    page->SetInitialSize(wxSize(850, 450));
 #else
     wxPanel* page = new wxPanel(parent);
 #endif // ENABLE_SCROLLABLE
