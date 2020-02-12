@@ -25,12 +25,25 @@
 #include <wx/choicebk.h>
 #endif // BOOK_TYPE 
 
+#if ENABLE_SCROLLABLE
+static wxSize get_screen_size(wxWindow* window)
+{
+    const auto idx = wxDisplay::GetFromWindow(window);
+    wxDisplay display(idx != wxNOT_FOUND ? idx : 0u);
+    return display.GetClientArea().GetSize();
+}
+#endif // ENABLE_SCROLLABLE
+
 namespace Slic3r {
 namespace GUI {
 
 KBShortcutsDialog::KBShortcutsDialog()
     : DPIDialog(NULL, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _(L("Keyboard Shortcuts")),
-      wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE) // | wxRESIZE_BORDER)
+#if ENABLE_SCROLLABLE
+    wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+#else
+    wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
+#endif // ENABLE_SCROLLABLE
 {
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 
@@ -61,12 +74,18 @@ main_sizer->Add(book, 1, wxEXPAND | wxALL, 10);
     fill_shortcuts();
     for (size_t i = 0; i < m_full_shortcuts.size(); ++i)
     {
+#if ENABLE_SCROLLABLE
+        wxPanel* page = create_page(book, m_full_shortcuts[i], font, bold_font);
+        m_pages.push_back(page);
+        book->AddPage(page, m_full_shortcuts[i].first, i == 0);
+#else
         book->AddPage(create_page(book, m_full_shortcuts[i], font, bold_font), m_full_shortcuts[i].first, i == 0);
+#endif // ENABLE_SCROLLABLE
     }
 
     wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxOK);
     this->SetEscapeId(wxID_OK);
-    main_sizer->Add(buttons, 0, wxEXPAND | wxALL, 10);
+    main_sizer->Add(buttons, 0, wxEXPAND | wxALL, 5);
 
     SetSizer(main_sizer);
     main_sizer->SetSizeHints(this);
@@ -238,7 +257,14 @@ wxPanel* KBShortcutsDialog::create_page(wxWindow* parent, const std::pair<wxStri
     static const int max_items_per_column = 20;
     int columns_count = 1 + (int)shortcuts.second.size() / max_items_per_column;
 
+#if ENABLE_SCROLLABLE
+    wxScrolledWindow* page = new wxScrolledWindow(parent);
+    page->SetScrollbars(20, 20, 50, 50);
+    page->SetInitialSize(wxSize(750, 350));
+#else
     wxPanel* page = new wxPanel(parent);
+#endif // ENABLE_SCROLLABLE
+
 #if (BOOK_TYPE == LISTBOOK_TOP) || (BOOK_TYPE == LISTBOOK_LEFT)
     wxStaticBoxSizer* sizer = new wxStaticBoxSizer(wxVERTICAL, page, " " + shortcuts.first + " ");
     sizer->GetStaticBox()->SetFont(bold_font);
@@ -269,6 +295,7 @@ wxPanel* KBShortcutsDialog::create_page(wxWindow* parent, const std::pair<wxStri
     }
 
     sizer->Add(grid_sizer, 1, wxEXPAND | wxALL, 10);
+
     page->SetSizer(sizer);
     return page;
 }
