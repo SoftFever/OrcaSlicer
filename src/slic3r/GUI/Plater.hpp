@@ -170,10 +170,8 @@ public:
     bool is_preview_loaded() const;
     bool is_view3D_shown() const;
 
-#if ENABLE_SHOW_SCENE_LABELS
     bool are_view3D_labels_shown() const;
     void show_view3D_labels(bool show);
-#endif // ENABLE_SHOW_SCENE_LABELS
 
     // Called after the Preferences dialog is closed and the program settings are saved.
     // Update the UI based on the current preferences.
@@ -250,9 +248,7 @@ public:
     int get_selected_object_idx();
     bool is_single_full_object_selection() const;
     GLCanvas3D* canvas3D();
-#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
     GLCanvas3D* get_current_canvas3D();
-#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
     BoundingBoxf bed_shape_bb() const;
 
     void set_current_canvas_as_dirty();

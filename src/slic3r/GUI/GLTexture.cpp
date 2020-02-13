@@ -168,25 +168,15 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
     if (filenames.empty() || states.empty() || (sprite_size_px == 0))
         return false;
 
-#if ENABLE_MODIFIED_TOOLBAR_TEXTURES
     // every tile needs to have a 1px border around it to avoid artifacts when linear sampling on its edges
     unsigned int sprite_size_px_ex = sprite_size_px + 1;
 
     m_width = 1 + (int)(sprite_size_px_ex * states.size());
     m_height = 1 + (int)(sprite_size_px_ex * filenames.size());
-#else
-    m_width = (int)(sprite_size_px * states.size());
-    m_height = (int)(sprite_size_px * filenames.size());
-#endif // ENABLE_MODIFIED_TOOLBAR_TEXTURES
 
     int n_pixels = m_width * m_height;
-#if ENABLE_MODIFIED_TOOLBAR_TEXTURES
     int sprite_n_pixels = sprite_size_px_ex * sprite_size_px_ex;
     int sprite_stride = sprite_size_px_ex * 4;
-#else
-    int sprite_n_pixels = sprite_size_px * sprite_size_px;
-    int sprite_stride = sprite_size_px * 4;
-#endif // ENABLE_MODIFIED_TOOLBAR_TEXTURES
     int sprite_bytes = sprite_n_pixels * 4;
 
     if (n_pixels <= 0)
@@ -225,12 +215,8 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
 
         float scale = (float)sprite_size_px / std::max(image->width, image->height);
 
-#if ENABLE_MODIFIED_TOOLBAR_TEXTURES
         // offset by 1 to leave the first pixel empty (both in x and y)
         nsvgRasterize(rast, image, 1, 1, scale, sprite_data.data(), sprite_size_px, sprite_size_px, sprite_stride);
-#else
-        nsvgRasterize(rast, image, 0, 0, scale, sprite_data.data(), sprite_size_px, sprite_size_px, sprite_stride);
-#endif // ENABLE_MODIFIED_TOOLBAR_TEXTURES
 
         // makes white only copy of the sprite
         ::memcpy((void*)sprite_white_only_data.data(), (const void*)sprite_data.data(), sprite_bytes);
@@ -250,11 +236,7 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
                 ::memset((void*)&sprite_gray_only_data.data()[offset], 128, 3);
         }
 
-#if ENABLE_MODIFIED_TOOLBAR_TEXTURES
         int sprite_offset_px = sprite_id * (int)sprite_size_px_ex * m_width;
-#else
-        int sprite_offset_px = sprite_id * sprite_size_px * m_width;
-#endif // ENABLE_MODIFIED_TOOLBAR_TEXTURES
         int state_id = -1;
         for (const std::pair<int, bool>& state : states)
         {
@@ -273,7 +255,6 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
             // applies background, if needed
             if (state.second)
             {
-#if ENABLE_MODIFIED_TOOLBAR_TEXTURES
                 float inv_255 = 1.0f / 255.0f;
                 // offset by 1 to leave the first pixel empty (both in x and y)
                 for (unsigned int r = 1; r <= sprite_size_px; ++r)
@@ -289,32 +270,13 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
                         output_data.data()[offset + 3] = (unsigned char)(128 * (1.0f - alpha) + output_data.data()[offset + 3] * alpha);
                     }
                 }
-#else
-                for (int i = 0; i < sprite_n_pixels; ++i)
-                {
-                    int offset = i * 4;
-                    float alpha = (float)output_data.data()[offset + 3] / 255.0f;
-                    output_data.data()[offset + 0] = (unsigned char)(output_data.data()[offset + 0] * alpha);
-                    output_data.data()[offset + 1] = (unsigned char)(output_data.data()[offset + 1] * alpha);
-                    output_data.data()[offset + 2] = (unsigned char)(output_data.data()[offset + 2] * alpha);
-                    output_data.data()[offset + 3] = (unsigned char)(128 * (1.0f - alpha) + output_data.data()[offset + 3] * alpha);
-                }
-#endif // ENABLE_MODIFIED_TOOLBAR_TEXTURES
             }
 
-#if ENABLE_MODIFIED_TOOLBAR_TEXTURES
             int state_offset_px = sprite_offset_px + state_id * sprite_size_px_ex;
             for (int j = 0; j < (int)sprite_size_px_ex; ++j)
             {
                 ::memcpy((void*)&data.data()[(state_offset_px + j * m_width) * 4], (const void*)&output_data.data()[j * sprite_stride], sprite_stride);
             }
-#else
-            int state_offset_px = sprite_offset_px + state_id * sprite_size_px;
-            for (int j = 0; j < (int)sprite_size_px; ++j)
-            {
-                ::memcpy((void*)&data.data()[(state_offset_px + j * m_width) * 4], (const void*)&output_data.data()[j * sprite_stride], sprite_stride);
-            }
-#endif // ENABLE_MODIFIED_TOOLBAR_TEXTURES
         }
 
         nsvgDelete(image);

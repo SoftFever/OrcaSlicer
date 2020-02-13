@@ -1708,12 +1708,16 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
     host_line.append_widget(printhost_browse);
     host_line.append_widget(print_host_test);
     optgroup->append_line(host_line);
-    optgroup->append_single_option_line("printhost_apikey");
+    option = optgroup->get_option("printhost_apikey");
+    option.opt.width = Field::def_width_wider();
+    optgroup->append_single_option_line(option);
 
     const auto ca_file_hint = _(L("HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate."));
 
     if (Http::ca_file_supported()) {
-        Line cafile_line = optgroup->create_single_option_line("printhost_cafile");
+        option = optgroup->get_option("printhost_cafile");
+        option.opt.width = Field::def_width_wider();
+        Line cafile_line = optgroup->create_single_option_line(option);
 
         auto printhost_cafile_browse = [this, optgroup] (wxWindow* parent) {
             auto btn = new wxButton(parent, wxID_ANY, " " + _(L("Browse"))+" " +dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);

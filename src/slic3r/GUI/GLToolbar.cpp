@@ -86,7 +86,6 @@ bool GLToolbarItem::update_enabled_state()
 
 void GLToolbarItem::render(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const
 {
-#if ENABLE_MODIFIED_TOOLBAR_TEXTURES
     auto uvs = [this](unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) ->GLTexture::Quad_UVs
     {
         assert((tex_width != 0) && (tex_height != 0));
@@ -112,9 +111,6 @@ void GLToolbarItem::render(unsigned int tex_id, float left, float right, float b
     };
 
     GLTexture::render_sub_texture(tex_id, left, right, bottom, top, uvs(tex_width, tex_height, icon_size));
-#else
-    GLTexture::render_sub_texture(tex_id, left, right, bottom, top, get_uvs(tex_width, tex_height, icon_size));
-#endif // ENABLE_MODIFIED_TOOLBAR_TEXTURES
 
     if (is_pressed())
     {
@@ -124,29 +120,6 @@ void GLToolbarItem::render(unsigned int tex_id, float left, float right, float b
             m_data.right.render_callback(left, right, bottom, top);
     }
 }
-
-#if !ENABLE_MODIFIED_TOOLBAR_TEXTURES
-GLTexture::Quad_UVs GLToolbarItem::get_uvs(unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const
-{
-    GLTexture::Quad_UVs uvs;
-
-    float inv_tex_width = (tex_width != 0) ? 1.0f / (float)tex_width : 0.0f;
-    float inv_tex_height = (tex_height != 0) ? 1.0f / (float)tex_height : 0.0f;
-
-    float scaled_icon_width = (float)icon_size * inv_tex_width;
-    float scaled_icon_height = (float)icon_size * inv_tex_height;
-    float left = (float)m_state * scaled_icon_width;
-    float right = left + scaled_icon_width;
-    float top = (float)m_data.sprite_id * scaled_icon_height;
-    float bottom = top + scaled_icon_height;
-    uvs.left_top = { left, top };
-    uvs.left_bottom = { left, bottom };
-    uvs.right_bottom = { right, bottom };
-    uvs.right_top = { right, top };
-
-    return uvs;
-}
-#endif // !ENABLE_MODIFIED_TOOLBAR_TEXTURES
 
 BackgroundTexture::Metadata::Metadata()
     : filename("")

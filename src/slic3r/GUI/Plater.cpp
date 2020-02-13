@@ -26,9 +26,7 @@
 #include <wx/colordlg.h>
 #include <wx/numdlg.h>
 #include <wx/debug.h>
-#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 #include <wx/busyinfo.h>
-#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Format/STL.hpp"
@@ -1784,15 +1782,11 @@ struct Plater::priv
     bool is_preview_loaded() const { return preview->is_loaded(); }
     bool is_view3D_shown() const { return current_panel == view3D; }
 
-#if ENABLE_SHOW_SCENE_LABELS
     bool are_view3D_labels_shown() const { return (current_panel == view3D) && view3D->get_canvas3d()->are_labels_shown(); }
     void show_view3D_labels(bool show) { if (current_panel == view3D) view3D->get_canvas3d()->show_labels(show); }
-#endif // ENABLE_SHOW_SCENE_LABELS
 
     void set_current_canvas_as_dirty();
-#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
     GLCanvas3D* get_current_canvas3D();
-#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
     bool init_view_toolbar();
 
@@ -3256,10 +3250,8 @@ void Plater::priv::reload_from_disk()
             else
                 missing_input_paths.push_back(volume->source.input_file);
         }
-#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
         else if (!object->input_file.empty() && !volume->name.empty())
             missing_input_paths.push_back(volume->name);
-#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
     }
 
     std::sort(missing_input_paths.begin(), missing_input_paths.end());
@@ -3314,19 +3306,15 @@ void Plater::priv::reload_from_disk()
     std::sort(input_paths.begin(), input_paths.end());
     input_paths.erase(std::unique(input_paths.begin(), input_paths.end()), input_paths.end());
 
-#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
     std::vector<wxString> fail_list;
-#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
     // load one file at a time
     for (size_t i = 0; i < input_paths.size(); ++i)
     {
         const auto& path = input_paths[i].string();
 
-#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
         wxBusyCursor wait;
         wxBusyInfo info(_(L("Reload from: ")) + from_u8(path), q->get_current_canvas3D()->get_wxglcanvas());
-#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
         Model new_model;
         try
@@ -3350,19 +3338,10 @@ void Plater::priv::reload_from_disk()
             ModelObject* old_model_object = model.objects[sel_v.object_idx];
             ModelVolume* old_volume = old_model_object->volumes[sel_v.volume_idx];
 
-#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
             bool has_source = !old_volume->source.input_file.empty() && boost::algorithm::iequals(fs::path(old_volume->source.input_file).filename().string(), fs::path(path).filename().string());
             bool has_name = !old_volume->name.empty() && boost::algorithm::iequals(old_volume->name, fs::path(path).filename().string());
             if (has_source || has_name)
-#else
-            int new_volume_idx = old_volume->source.volume_idx;
-            int new_object_idx = old_volume->source.object_idx;
-
-            if (boost::algorithm::iequals(fs::path(old_volume->source.input_file).filename().string(),
-                fs::path(path).filename().string()))
-#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
             {
-#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
                 int new_volume_idx = -1;
                 int new_object_idx = -1;
                 if (has_source)
@@ -3398,17 +3377,12 @@ void Plater::priv::reload_from_disk()
                     fail_list.push_back(from_u8(has_source ? old_volume->source.input_file : old_volume->name));
                     continue;
                 }
-#else
-                assert(new_object_idx < (int)new_model.objects.size());
-#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
                 ModelObject* new_model_object = new_model.objects[new_object_idx];
-#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
                 if ((new_volume_idx < 0) && ((int)new_model.objects.size() <= new_volume_idx))
                 {
                     fail_list.push_back(from_u8(has_source ? old_volume->source.input_file : old_volume->name));
                     continue;
                 }
-#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
                 if (new_volume_idx < (int)new_model_object->volumes.size())
                 {
                     old_model_object->add_volume(*new_model_object->volumes[new_volume_idx]);
@@ -3419,9 +3393,6 @@ void Plater::priv::reload_from_disk()
                     new_volume->set_material_id(old_volume->material_id());
                     new_volume->set_transformation(old_volume->get_transformation() * old_volume->source.transform);
                     new_volume->translate(new_volume->get_transformation().get_matrix(true) * (new_volume->source.mesh_offset - old_volume->source.mesh_offset));
-#if !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
-                    new_volume->source.input_file = path;
-#endif // !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
                     std::swap(old_model_object->volumes[sel_v.volume_idx], old_model_object->volumes.back());
                     old_model_object->delete_volume(old_model_object->volumes.size() - 1);
                     old_model_object->ensure_on_bed();
@@ -3430,7 +3401,6 @@ void Plater::priv::reload_from_disk()
         }
     }
 
-#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
     if (!fail_list.empty())
     {
         wxString message = _(L("Unable to reload:")) + "\n";
@@ -3441,7 +3411,6 @@ void Plater::priv::reload_from_disk()
         wxMessageDialog dlg(q, message, _(L("Error during reload")), wxOK | wxOK_DEFAULT | wxICON_WARNING);
         dlg.ShowModal();
     }
-#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
     // update 3D scene
     update();
@@ -4073,12 +4042,10 @@ void Plater::priv::set_current_canvas_as_dirty()
         preview->set_as_dirty();
 }
 
-#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 GLCanvas3D* Plater::priv::get_current_canvas3D()
 {
     return (current_panel == view3D) ? view3D->get_canvas3d() : ((current_panel == preview) ? preview->get_canvas3d() : nullptr);
 }
-#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
 bool Plater::priv::init_view_toolbar()
 {
@@ -4190,10 +4157,8 @@ bool Plater::priv::can_reload_from_disk() const
         const ModelVolume* volume = object->volumes[v.volume_idx];
         if (!volume->source.input_file.empty())
             paths.push_back(volume->source.input_file);
-#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
         else if (!object->input_file.empty() && !volume->name.empty())
             paths.push_back(volume->name);
-#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
     }
     std::sort(paths.begin(), paths.end());
     paths.erase(std::unique(paths.begin(), paths.end()), paths.end());
@@ -4669,10 +4634,8 @@ bool Plater::is_preview_shown() const { return p->is_preview_shown(); }
 bool Plater::is_preview_loaded() const { return p->is_preview_loaded(); }
 bool Plater::is_view3D_shown() const { return p->is_view3D_shown(); }
 
-#if ENABLE_SHOW_SCENE_LABELS
 bool Plater::are_view3D_labels_shown() const { return p->are_view3D_labels_shown(); }
 void Plater::show_view3D_labels(bool show) { p->show_view3D_labels(show); }
-#endif // ENABLE_SHOW_SCENE_LABELS
 
 void Plater::select_all() { p->select_all(); }
 void Plater::deselect_all() { p->deselect_all(); }
@@ -5012,12 +4975,8 @@ void Plater::export_amf()
     wxBusyCursor wait;
     bool export_config = true;
     DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
-#if ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
     bool full_pathnames = wxGetApp().app_config->get("export_sources_full_pathnames") == "1";
     if (Slic3r::store_amf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, full_pathnames)) {
-#else
-    if (Slic3r::store_amf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr)) {
-#endif // ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
         // Success
         p->statusbar()->set_status_text(wxString::Format(_(L("AMF file exported to %s")), path));
     } else {
@@ -5046,7 +5005,6 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
     const std::string path_u8 = into_u8(path);
     wxBusyCursor wait;
-#if ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
     bool full_pathnames = wxGetApp().app_config->get("export_sources_full_pathnames") == "1";
 #if ENABLE_THUMBNAIL_GENERATOR
     ThumbnailData thumbnail_data;
@@ -5055,15 +5013,6 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
 #else
     if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, full_pathnames)) {
 #endif // ENABLE_THUMBNAIL_GENERATOR
-#else
-#if ENABLE_THUMBNAIL_GENERATOR
-    ThumbnailData thumbnail_data;
-    p->generate_thumbnail(thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, false, true, true, true);
-    if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, &thumbnail_data)) {
-#else
-    if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr)) {
-#endif // ENABLE_THUMBNAIL_GENERATOR
-#endif // ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
         // Success
         p->statusbar()->set_status_text(wxString::Format(_(L("3MF file exported to %s")), path));
         p->set_project_filename(path);
@@ -5521,12 +5470,10 @@ GLCanvas3D* Plater::canvas3D()
     return p->view3D->get_canvas3d();
 }
 
-#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 GLCanvas3D* Plater::get_current_canvas3D()
 {
     return p->get_current_canvas3D();
 }
-#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
 BoundingBoxf Plater::bed_shape_bb() const
 {
