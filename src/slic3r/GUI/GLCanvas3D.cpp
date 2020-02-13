@@ -1809,14 +1809,9 @@ void GLCanvas3D::zoom_to_selection()
 
 void GLCanvas3D::select_view(const std::string& direction)
 {
-#if ENABLE_6DOF_CAMERA
     m_camera.select_view(direction);
     if (m_canvas != nullptr)
         m_canvas->Refresh();
-#else
-    if (m_camera.select_view(direction) && (m_canvas != nullptr))
-        m_canvas->Refresh();
-#endif // ENABLE_6DOF_CAMERA
 }
 
 void GLCanvas3D::update_volumes_colors_by_extruder()
@@ -1857,13 +1852,11 @@ void GLCanvas3D::render()
     }
 
     const Size& cnv_size = get_canvas_size();
-#if ENABLE_6DOF_CAMERA
     // Probably due to different order of events on Linux/GTK2, when one switched from 3D scene
     // to preview, this was called before canvas had its final size. It reported zero width
     // and the viewport was set incorrectly, leading to tripping glAsserts further down
     // the road (in apply_projection). That's why the minimum size is forced to 10.
     m_camera.apply_viewport(0, 0, std::max(10u, (unsigned int)cnv_size.get_width()), std::max(10u, (unsigned int)cnv_size.get_height()));
-#endif // ENABLE_6DOF_CAMERA
 
     if (m_camera.requires_zoom_to_bed)
     {
@@ -1879,13 +1872,6 @@ void GLCanvas3D::render()
     glsafe(::glLightfv(GL_LIGHT1, GL_POSITION, position_cam));
     GLfloat position_top[4] = { -0.5f, -0.5f, 1.0f, 0.0f };
     glsafe(::glLightfv(GL_LIGHT0, GL_POSITION, position_top));
-
-#if !ENABLE_6DOF_CAMERA
-    float theta = m_camera.get_theta();
-    if (theta > 180.f)
-        // absolute value of the rotation
-        theta = 360.f - theta;
-#endif // !ENABLE_6DOF_CAMERA
 
     wxGetApp().imgui()->new_frame();
 
@@ -1910,11 +1896,7 @@ void GLCanvas3D::render()
     _render_objects();
     _render_sla_slices();
     _render_selection();
-#if ENABLE_6DOF_CAMERA
     _render_bed(!m_camera.is_looking_downward(), true);
-#else
-    _render_bed(theta, true);
-#endif // ENABLE_6DOF_CAMERA
 
 #if ENABLE_RENDER_SELECTION_CENTER
     _render_selection_center();
@@ -3429,11 +3411,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // we do not want to translate objects if the user just clicked on an object while pressing shift to remove it from the selection and then drag
             if (m_selection.contains_volume(get_first_hover_volume_idx()))
             {
-#if ENABLE_6DOF_CAMERA
                 if (std::abs(m_camera.get_dir_forward()(2)) < EPSILON)
-#else
-                if (m_camera.get_theta() == 90.0f)
-#endif // ENABLE_6DOF_CAMERA
                 {
                     // side view -> move selected volumes orthogonally to camera view direction
                     Linef3 ray = mouse_ray(pos);
@@ -3493,18 +3471,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (m_hover_volume_idxs.empty() && m_mouse.is_start_position_3D_defined())
             {
                 const Vec3d& orig = m_mouse.drag.start_position_3D;
-#if ENABLE_6DOF_CAMERA
                 double x = Geometry::deg2rad(pos(0) - orig(0)) * (double)TRACKBALLSIZE;
                 double y = Geometry::deg2rad(pos(1) - orig(1)) * (double)TRACKBALLSIZE;
                 if (wxGetApp().plater()->get_mouse3d_controller().is_running() || (wxGetApp().app_config->get("use_free_camera") == "1"))
                     m_camera.rotate_local_around_target(Vec3d(y, x, 0.0));
                 else
                     m_camera.rotate_on_sphere(x, y, wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
-#else
-                float sign = m_camera.inverted_phi ? -1.0f : 1.0f;
-                m_camera.phi += sign * ((float)pos(0) - (float)orig(0)) * TRACKBALLSIZE;
-                m_camera.set_theta(m_camera.get_theta() - ((float)pos(1) - (float)orig(1)) * TRACKBALLSIZE, wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
-#endif // ENABLE_6DOF_CAMERA
+
                 m_dirty = true;
             }
             m_mouse.drag.start_position_3D = Vec3d((double)pos(0), (double)pos(1), 0.0);
@@ -3554,11 +3527,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (!evt.ShiftDown() && m_picking_enabled)
                 deselect_all();
         }
-#if !ENABLE_6DOF_CAMERA
-        else if (evt.LeftUp() && m_mouse.dragging)
-            // Flips X mouse deltas if bed is upside down
-            m_camera.inverted_phi = (m_camera.get_dir_up()(2) < 0.0);
-#endif // !ENABLE_6DOF_CAMERA
         else if (evt.RightUp())
         {
             m_mouse.position = pos.cast<double>();
@@ -4163,16 +4131,9 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool 
 
     Camera camera;
     camera.set_type(Camera::Ortho);
-#if ENABLE_6DOF_CAMERA
     camera.set_scene_box(scene_bounding_box());
-#endif // ENABLE_6DOF_CAMERA
-#if ENABLE_6DOF_CAMERA
     camera.apply_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
     camera.zoom_to_volumes(visible_volumes);
-#else
-    camera.zoom_to_volumes(visible_volumes, thumbnail_data.width, thumbnail_data.height);
-    camera.apply_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
-#endif // ENABLE_6DOF_CAMERA
     camera.apply_view_matrix();
 
     double near_z = -1.0;
@@ -4221,11 +4182,7 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool 
     glsafe(::glDisable(GL_DEPTH_TEST));
 
     if (show_bed)
-#if ENABLE_6DOF_CAMERA
         _render_bed(!camera.is_looking_downward(), false);
-#else
-        _render_bed(camera.get_theta(), false);
-#endif // ENABLE_6DOF_CAMERA
 
     if (transparent_background)
         glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
@@ -4762,11 +4719,6 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 
     // ensures that this canvas is current
     _set_current();
-
-#if !ENABLE_6DOF_CAMERA
-    // updates camera
-    m_camera.apply_viewport(0, 0, w, h);
-#endif // !ENABLE_6DOF_CAMERA
 }
 
 BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_bed_model) const
@@ -4790,12 +4742,7 @@ BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_be
 #if ENABLE_THUMBNAIL_GENERATOR
 void GLCanvas3D::_zoom_to_box(const BoundingBoxf3& box, double margin_factor)
 {
-#if ENABLE_6DOF_CAMERA
     m_camera.zoom_to_box(box, margin_factor);
-#else
-    const Size& cnv_size = get_canvas_size();
-    m_camera.zoom_to_box(box, cnv_size.get_width(), cnv_size.get_height(), margin_factor);
-#endif // ENABLE_6DOF_CAMERA
     m_dirty = true;
 }
 #else

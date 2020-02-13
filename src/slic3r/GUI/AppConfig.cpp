@@ -88,10 +88,8 @@ void AppConfig::set_defaults()
     if (get("use_perspective_camera").empty())
         set("use_perspective_camera", "1");
 
-#if ENABLE_6DOF_CAMERA
     if (get("use_free_camera").empty())
         set("use_free_camera", "0");
-#endif // ENABLE_6DOF_CAMERA
 
     // Remove legacy window positions/sizes
     erase("", "main_frame_maximized");

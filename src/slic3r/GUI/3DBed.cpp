@@ -260,11 +260,7 @@ Point Bed3D::point_projection(const Point& point) const
     return m_polygon.point_projection(point);
 }
 
-#if ENABLE_6DOF_CAMERA
 void Bed3D::render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool show_axes) const
-#else
-void Bed3D::render(GLCanvas3D& canvas, float theta, float scale_factor, bool show_axes) const
-#endif // ENABLE_6DOF_CAMERA
 {
     m_scale_factor = scale_factor;
 
@@ -275,15 +271,9 @@ void Bed3D::render(GLCanvas3D& canvas, float theta, float scale_factor, bool sho
 
     switch (m_type)
     {
-#if ENABLE_6DOF_CAMERA
     case System: { render_system(canvas, bottom); break; }
     default:
     case Custom: { render_custom(canvas, bottom); break; }
-#else
-    case System: { render_system(canvas, theta > 90.0f); break; }
-    default:
-    case Custom: { render_custom(canvas, theta > 90.0f); break; }
-#endif // ENABLE_6DOF_CAMERA
     }
 
     glsafe(::glDisable(GL_DEPTH_TEST));
