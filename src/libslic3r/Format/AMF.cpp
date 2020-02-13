@@ -1022,11 +1022,7 @@ bool load_amf(const char* path, DynamicPrintConfig* config, Model* model, bool c
         return false;
 }
 
-#if ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
 bool store_amf(const char* path, Model* model, const DynamicPrintConfig* config, bool fullpath_sources)
-#else
-bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
-#endif // ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
 {
     if ((path == nullptr) || (model == nullptr))
         return false;
@@ -1180,12 +1176,8 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
             stream << "</metadata>\n";
             if (!volume->source.input_file.empty())
             {
-#if ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
                 std::string input_file = xml_escape(fullpath_sources ? volume->source.input_file : boost::filesystem::path(volume->source.input_file).filename().string());
                 stream << "        <metadata type=\"slic3r.source_file\">" << input_file << "</metadata>\n";
-#else
-                stream << "        <metadata type=\"slic3r.source_file\">" << xml_escape(volume->source.input_file) << "</metadata>\n";
-#endif // ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
                 stream << "        <metadata type=\"slic3r.source_object_id\">" << volume->source.object_idx << "</metadata>\n";
                 stream << "        <metadata type=\"slic3r.source_volume_id\">" << volume->source.volume_idx << "</metadata>\n";
                 stream << "        <metadata type=\"slic3r.source_offset_x\">" << volume->source.mesh_offset(0) << "</metadata>\n";

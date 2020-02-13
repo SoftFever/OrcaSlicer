@@ -35,19 +35,11 @@ namespace Slic3r {
 
     // Save the given model and the config data contained in the given Print into a 3mf file.
     // The model could be modified during the export process if meshes are not repaired or have no shared vertices
-#if ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
 #if ENABLE_THUMBNAIL_GENERATOR
     extern bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data = nullptr);
 #else
     extern bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config, bool fullpath_sources);
 #endif // ENABLE_THUMBNAIL_GENERATOR
-#else
-#if ENABLE_THUMBNAIL_GENERATOR
-    extern bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config, const ThumbnailData* thumbnail_data = nullptr);
-#else
-    extern bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config);
-#endif // ENABLE_THUMBNAIL_GENERATOR
-#endif // ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
 
 }; // namespace Slic3r
 

@@ -68,7 +68,6 @@ void PreferencesDialog::build()
 	option = Option (def, "version_check");
 	m_optgroup_general->append_single_option_line(option);
 
-#if ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
 	// Please keep in sync with ConfigWizard
 	def.label = L("Export sources full pathnames to 3mf and amf");
 	def.type = coBool;
@@ -76,7 +75,6 @@ void PreferencesDialog::build()
 	def.set_default_value(new ConfigOptionBool(app_config->get("export_sources_full_pathnames") == "1"));
 	option = Option(def, "export_sources_full_pathnames");
 	m_optgroup_general->append_single_option_line(option);
-#endif // ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
 
 	// Please keep in sync with ConfigWizard
 	def.label = L("Update built-in Presets automatically");

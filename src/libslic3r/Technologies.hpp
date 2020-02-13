@@ -47,9 +47,6 @@
 //==================
 #define ENABLE_2_2_0_BETA1 1
 
-// Enable configurable paths export (fullpath or not) to 3mf and amf
-#define ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF (1 && ENABLE_2_2_0_BETA1)
-
 // Enable 6 degrees of freedom camera
 #define ENABLE_6DOF_CAMERA (1 && ENABLE_2_2_0_BETA1)
 
