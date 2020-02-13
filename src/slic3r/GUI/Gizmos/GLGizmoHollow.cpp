@@ -676,6 +676,7 @@ void GLGizmoHollow::on_render_input_window(float x, float y, float bottom_limit)
     bool first_run = true; // This is a hack to redraw the button when all points are removed,
                            // so it is not delayed until the background process finishes.
 
+    ConfigOptionMode current_mode = wxGetApp().get_mode();
 
     std::vector<std::string> opts_keys = {"hollowing_min_thickness", "hollowing_quality", "hollowing_closing_distance"};
     auto opts = get_config_options(opts_keys);
@@ -688,11 +689,13 @@ void GLGizmoHollow::on_render_input_window(float x, float y, float bottom_limit)
     float quality = quality_cfg->value;
     double quality_min = opts[1].second->min;
     double quality_max = opts[1].second->max;
+    ConfigOptionMode quality_mode = opts[1].second->mode;
 
     auto* closing_d_cfg = static_cast<const ConfigOptionFloat*>(opts[2].first);
     float closing_d = closing_d_cfg->value;
     double closing_d_min = opts[2].second->min;
     double closing_d_max = opts[2].second->max;
+    ConfigOptionMode closing_d_mode = opts[2].second->mode;
 
     m_desc["offset"] = _(opts[0].second->label).ToUTF8() + wxString(":");
     m_desc["quality"] = _(opts[1].second->label).ToUTF8() + wxString(":");
@@ -754,29 +757,33 @@ RENDER_AGAIN:
     bool slider_edited = ImGui::IsItemEdited(); // someone is dragging the slider
     bool slider_released = ImGui::IsItemDeactivatedAfterEdit(); // someone has just released the slider
 
-    m_imgui->text(m_desc.at("quality"));
-    ImGui::SameLine(settings_sliders_left);
-    ImGui::SliderFloat("    ", &quality, quality_min, quality_max, "%.1f");
-    if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::TextUnformatted(_(opts[1].second->tooltip).ToUTF8());
-        ImGui::EndTooltip();
+    if (current_mode >= quality_mode) {
+        m_imgui->text(m_desc.at("quality"));
+        ImGui::SameLine(settings_sliders_left);
+        ImGui::SliderFloat("    ", &quality, quality_min, quality_max, "%.1f");
+        if (ImGui::IsItemHovered()) {
+            ImGui::BeginTooltip();
+            ImGui::TextUnformatted(_(opts[1].second->tooltip).ToUTF8());
+            ImGui::EndTooltip();
+        }
+        slider_clicked |= ImGui::IsItemClicked();
+        slider_edited |= ImGui::IsItemEdited();
+        slider_released |= ImGui::IsItemDeactivatedAfterEdit();
     }
-    slider_clicked |= ImGui::IsItemClicked();
-    slider_edited |= ImGui::IsItemEdited();
-    slider_released |= ImGui::IsItemDeactivatedAfterEdit();
 
-    m_imgui->text(m_desc.at("closing_distance"));
-    ImGui::SameLine(settings_sliders_left);
-    ImGui::SliderFloat("      ", &closing_d, closing_d_min, closing_d_max, "%.1f");
-    if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::TextUnformatted(_(opts[2].second->tooltip).ToUTF8());
-        ImGui::EndTooltip();
+    if (current_mode >= closing_d_mode) {
+        m_imgui->text(m_desc.at("closing_distance"));
+        ImGui::SameLine(settings_sliders_left);
+        ImGui::SliderFloat("      ", &closing_d, closing_d_min, closing_d_max, "%.1f");
+        if (ImGui::IsItemHovered()) {
+            ImGui::BeginTooltip();
+            ImGui::TextUnformatted(_(opts[2].second->tooltip).ToUTF8());
+            ImGui::EndTooltip();
+        }
+        slider_clicked |= ImGui::IsItemClicked();
+        slider_edited |= ImGui::IsItemEdited();
+        slider_released |= ImGui::IsItemDeactivatedAfterEdit();
     }
-    slider_clicked |= ImGui::IsItemClicked();
-    slider_edited |= ImGui::IsItemEdited();
-    slider_released |= ImGui::IsItemDeactivatedAfterEdit();
 
     if (slider_clicked) {
         m_offset_stash = offset;
