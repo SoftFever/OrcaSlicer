@@ -597,9 +597,7 @@ void SLAPrint::finalize()
 std::string SLAPrint::output_filename(const std::string &filename_base) const
 {
     DynamicConfig config = this->finished() ? this->print_statistics().config() : this->print_statistics().placeholders();
-    // we need to remove the extension from the format string or the following call to PrintBase::output_filename() won't be able to change it to ".sl1"
-    std::string format = boost::filesystem::path(m_print_config.output_filename_format.value).replace_extension("").string();
-    return this->PrintBase::output_filename(format, ".sl1", filename_base, &config);
+    return this->PrintBase::output_filename(m_print_config.output_filename_format.value, ".sl1", filename_base, &config);
 }
 
 std::string SLAPrint::validate() const
