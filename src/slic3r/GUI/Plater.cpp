@@ -4916,7 +4916,6 @@ void Plater::export_stl(bool extended, bool selection_only)
                 supports_mesh = object->get_mesh(slaposSupportTree);
                 supports_mesh.transform(mesh_trafo_inv);
             }
-
             const std::vector<SLAPrintObject::Instance>& obj_instances = object->instances();
             for (const SLAPrintObject::Instance& obj_instance : obj_instances)
             {
@@ -4948,7 +4947,7 @@ void Plater::export_stl(bool extended, bool selection_only)
                     }
 
                     TriangleMesh inst_object_mesh = object->get_mesh_to_print();
-                    inst_object_mesh.translate(0.f, 0.f, -object->get_elevation());
+                    inst_object_mesh.transform(mesh_trafo_inv);
                     inst_object_mesh.transform(inst_transform, is_left_handed);
 
                     mesh.merge(inst_object_mesh);
