@@ -1101,11 +1101,7 @@ static inline std::vector<const PrintInstance*> sort_object_instances_by_max_z(c
 }
 
 // Produce a vector of PrintObjects in the order of their respective ModelObjects in print.model().
-#if ENABLE_SHOW_SCENE_LABELS
 std::vector<const PrintInstance*> sort_object_instances_by_model_order(const Print& print)
-#else
-static inline std::vector<const PrintInstance*> sort_object_instances_by_model_order(const Print& print)
-#endif // ENABLE_SHOW_SCENE_LABELS
 {
     // Build up map from ModelInstance* to PrintInstance*
     std::vector<std::pair<const ModelInstance*, const PrintInstance*>> model_instance_to_print_instance;

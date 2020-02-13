@@ -47,7 +47,5 @@
 //==================
 #define ENABLE_2_2_0_BETA1 1
 
-// Enable showing object/instance info with labels into the 3D scene
-#define ENABLE_SHOW_SCENE_LABELS (1 && ENABLE_2_2_0_BETA1)
 
 #endif // _technologies_h_

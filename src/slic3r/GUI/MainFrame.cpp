@@ -672,12 +672,10 @@ void MainFrame::init_menubar()
             "", nullptr, [this](){return can_change_view(); }, this);
         append_menu_item(viewMenu, wxID_ANY, _(L("Right")) + sep + "&6", _(L("Right View")), [this](wxCommandEvent&) { select_view("right"); },
             "", nullptr, [this](){return can_change_view(); }, this);
-#if ENABLE_SHOW_SCENE_LABELS
         viewMenu->AppendSeparator();
         append_menu_check_item(viewMenu, wxID_ANY, _(L("Show &labels")) + sep + "E", _(L("Show object/instance labels in 3D scene")),
             [this](wxCommandEvent&) { m_plater->show_view3D_labels(!m_plater->are_view3D_labels_shown()); }, this,
             [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_labels_shown(); }, this);
-#endif // ENABLE_SHOW_SCENE_LABELS
     }
 
     // Help menu

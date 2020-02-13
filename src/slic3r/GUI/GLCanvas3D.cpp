@@ -6,9 +6,6 @@
 #include "polypartition.h"
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/PrintConfig.hpp"
-#if ENABLE_SHOW_SCENE_LABELS
-#include "libslic3r/GCode.hpp"
-#endif // ENABLE_SHOW_SCENE_LABELS
 #include "libslic3r/GCode/PreviewData.hpp"
 #if ENABLE_THUMBNAIL_GENERATOR
 #include "libslic3r/GCode/ThumbnailData.hpp"
@@ -68,9 +65,7 @@
 #include <chrono>
 #endif // ENABLE_RENDER_STATISTICS
 
-#if ENABLE_SHOW_SCENE_LABELS
 #include <imgui/imgui_internal.h>
-#endif // ENABLE_SHOW_SCENE_LABELS
 
 static const float TRACKBALLSIZE = 0.8f;
 
@@ -1237,7 +1232,6 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
     }
 }
 
-#if ENABLE_SHOW_SCENE_LABELS
 void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_instances) const
 {
     if (!m_enabled || !is_shown())
@@ -1370,7 +1364,6 @@ void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_
         ImGui::PopStyleVar(2);
     }
 }
-#endif // ENABLE_SHOW_SCENE_LABELS
 
 wxDEFINE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
@@ -1441,9 +1434,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
     , m_show_picking_texture(false)
 #endif // ENABLE_RENDER_PICKING_PASS
     , m_render_sla_auxiliaries(true)
-#if ENABLE_SHOW_SCENE_LABELS
     , m_labels(*this)
-#endif // ENABLE_SHOW_SCENE_LABELS
 {
     if (m_canvas != nullptr) {
         m_timer.SetOwner(m_canvas);
@@ -2808,10 +2799,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'a': { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
         case 'B':
         case 'b': { zoom_to_bed(); break; }
-#if ENABLE_SHOW_SCENE_LABELS
         case 'E':
         case 'e': { m_labels.show(!m_labels.is_shown()); m_dirty = true; break; }
-#endif // ENABLE_SHOW_SCENE_LABELS
         case 'I':
         case 'i': { _update_camera_zoom(1.0); break; }
         case 'K':
@@ -5045,7 +5034,6 @@ void GLCanvas3D::_render_overlays() const
     if ((m_layers_editing.last_object_id >= 0) && (m_layers_editing.object_max_z() > 0.0f))
         m_layers_editing.render_overlay(*this);
 
-#if ENABLE_SHOW_SCENE_LABELS
     const ConfigOptionBool* opt = dynamic_cast<const ConfigOptionBool*>(m_config->option("complete_objects"));
     bool sequential_print = opt != nullptr && opt->value;
     std::vector<const ModelInstance*> sorted_instances;
@@ -5056,7 +5044,6 @@ void GLCanvas3D::_render_overlays() const
             }
     }
     m_labels.render(sorted_instances);
-#endif // ENABLE_SHOW_SCENE_LABELS
 
     glsafe(::glPopMatrix());
 }
