@@ -129,8 +129,11 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 		m_options.emplace(opt.opt_id, opt);
 
 	// Set sidetext width for a better alignment of options in line
-	if (option_set.size() > 1)
+	if (option_set.size() > 1) {
 		sidetext_width = Field::def_width_thinner();
+		if (m_show_modified_btns) // means that options groups are in tabs
+		    sublabel_width = Field::def_width();
+	}
 
     // add mode value for current line to m_options_mode
     if (!option_set.empty())
@@ -248,15 +251,16 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 		ConfigOptionDef option = opt.opt;
 		wxSizer* sizer_tmp = sizer;
 		// add label if any
-		if (option.label != "") {
+		if (!option.label.empty()) {
 //!			To correct translation by context have to use wxGETTEXT_IN_CONTEXT macro from wxWidget 3.1.1
 			wxString str_label = (option.label == L_CONTEXT("Top", "Layers") || option.label == L_CONTEXT("Bottom", "Layers")) ?
 								_CTX(option.label, "Layers") :
 								_(option.label);
-			label = new wxStaticText(this->ctrl_parent(), wxID_ANY, str_label + ": ", wxDefaultPosition, wxDefaultSize);
+			label = new wxStaticText(this->ctrl_parent(), wxID_ANY, str_label + ": ", wxDefaultPosition, //wxDefaultSize); 
+				wxSize(sublabel_width != -1 ? sublabel_width * wxGetApp().em_unit() : -1, -1), wxALIGN_RIGHT);
 			label->SetBackgroundStyle(wxBG_STYLE_PAINT);
             label->SetFont(wxGetApp().normal_font());
-			sizer_tmp->Add(label, 0, /*wxALIGN_RIGHT |*/ wxALIGN_CENTER_VERTICAL, 0);
+			sizer_tmp->Add(label, 0, wxALIGN_CENTER_VERTICAL, 0);
 		}
 
 		// add field

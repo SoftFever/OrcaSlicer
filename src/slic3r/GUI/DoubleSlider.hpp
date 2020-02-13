@@ -66,6 +66,13 @@ enum MouseAction
     maRevertIconClick,          // LeftMouseClick on "revert" icon
 };
 
+enum DrawMode
+{
+    dmRegular,
+    dmSlaPrint,
+    dmSequentialFffPrint,
+};
+
 using t_mode = CustomGCode::Mode;
 
 struct TickCode
@@ -197,8 +204,7 @@ public:
     CustomGCode::Info   GetTicksValues() const;
     void                SetTicksValues(const Slic3r::CustomGCode::Info &custom_gcode_per_print_z);
 
-    void    EnableTickManipulation(bool enable = true) { m_is_enabled_tick_manipulation = enable; }
-    void    DisableTickManipulation()                  { EnableTickManipulation(false); }
+    void    SetDrawMode(bool is_sla_print, bool is_sequential_print);
 
     void    SetManipulationMode(t_mode mode)    { m_mode = mode; }
     t_mode  GetManipulationMode() const         { return m_mode; }
@@ -323,8 +329,9 @@ private:
     bool        m_is_right_down = false;
     bool        m_is_one_layer = false;
     bool        m_is_focused = false;
-    bool        m_is_enabled_tick_manipulation = true;
     bool        m_force_mode_apply = true;
+
+    DrawMode    m_draw_mode = dmRegular;
 
     t_mode      m_mode = t_mode::SingleExtruder;
     int         m_only_extruder = -1;

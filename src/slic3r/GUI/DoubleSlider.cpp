@@ -332,6 +332,13 @@ void Control::SetTicksValues(const CustomGCode::Info& custom_gcode_per_print_z)
     Update();
 }
 
+void Control::SetDrawMode(bool is_sla_print, bool is_sequential_print)
+{ 
+    m_draw_mode = is_sla_print          ? dmSlaPrint            : 
+                  is_sequential_print   ? dmSequentialFffPrint  : 
+                                          dmRegular; 
+}
+
 void Control::SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, const int only_extruder)
 {
     m_mode = !is_one_extruder_printed_model ? t_mode::MultiExtruder :
@@ -441,7 +448,7 @@ void Control::draw_info_line_with_icon(wxDC& dc, const wxPoint& pos, const Selec
         dc.DrawLine(pt_beg, pt_end);
 
         //draw action icon
-        if (m_is_enabled_tick_manipulation)
+        if (m_draw_mode == dmRegular)
             draw_action_icon(dc, pt_beg, pt_end);
     }
 }
@@ -612,10 +619,10 @@ void Control::draw_thumbs(wxDC& dc, const wxCoord& lower_pos, const wxCoord& hig
 
 void Control::draw_ticks(wxDC& dc)
 {
-    if (!m_is_enabled_tick_manipulation)
+    if (m_draw_mode == dmSlaPrint)
         return;
 
-    dc.SetPen(m_is_enabled_tick_manipulation ? DARK_GREY_PEN : LIGHT_GREY_PEN );
+    dc.SetPen(m_draw_mode == dmRegular ? DARK_GREY_PEN : LIGHT_GREY_PEN );
     int height, width;
     get_size(&width, &height);
     const wxCoord mid = is_horizontal() ? 0.5*height : 0.5*width;
@@ -633,7 +640,11 @@ void Control::draw_ticks(wxDC& dc)
 
         // get icon name if it is
         std::string icon_name;
-        if (tick.gcode == ColorChangeCode || tick.gcode == ToolChangeCode) { 
+
+        // if we have non-regular draw mode, all ticks should be marked with error icon
+        if (m_draw_mode != dmRegular)
+            icon_name = focused_tick ? "error_tick_f" : "error_tick";
+        else if (tick.gcode == ColorChangeCode || tick.gcode == ToolChangeCode) { 
             if (m_ticks.is_conflict_tick(tick, m_mode, m_only_extruder, m_values[tick.tick]))
                 icon_name = focused_tick ? "error_tick_f" : "error_tick";
         }
@@ -705,7 +716,7 @@ wxRect Control::get_colored_band_rect()
 
 void Control::draw_colored_band(wxDC& dc)
 {
-    if (!m_is_enabled_tick_manipulation)
+    if (m_draw_mode != dmRegular)
         return;
 
     auto draw_band = [](wxDC& dc, const wxColour& clr, const wxRect& band_rc) 
@@ -771,7 +782,7 @@ void Control::draw_one_layer_icon(wxDC& dc)
 
 void Control::draw_revert_icon(wxDC& dc)
 {
-    if (m_ticks.empty() || !m_is_enabled_tick_manipulation)
+    if (m_ticks.empty() || m_draw_mode != dmRegular)
         return;
 
     int width, height;
@@ -880,7 +891,7 @@ void Control::OnLeftDown(wxMouseEvent& event)
         m_mouse = maOneLayerIconClick;
     else if (is_point_in_rect(pos, m_rect_cog_icon))
         m_mouse = maCogIconClick;
-    else if (m_is_enabled_tick_manipulation)
+    else if (m_draw_mode == dmRegular)
     {
         if (is_point_in_rect(pos, m_rect_tick_action)) {
             auto it = m_ticks.ticks.find(TickCode{ m_selection == ssLower ? m_lower_value : m_higher_value });
@@ -931,6 +942,8 @@ wxString Control::get_tooltip(int tick/*=-1*/)
     if (m_focus == fiColorBand)
         return m_mode != t_mode::SingleExtruder ? "" :
                _(L("Edit current color - Right click the colored slider segment"));
+    if (m_draw_mode == dmSlaPrint)
+        return ""; // no drawn ticks and no tooltips for them in SlaPrinting mode
 
     wxString tooltip;
     const auto tick_code_it = m_ticks.ticks.find(TickCode{tick});
@@ -953,9 +966,9 @@ wxString Control::get_tooltip(int tick/*=-1*/)
         // Show list of actions with new tick
         tooltip += ( m_mode == t_mode::MultiAsSingle                            ?
                   _(L("Add extruder change - Left click"))                      :
-                     m_mode == t_mode::SingleExtruder                                      ?
+                     m_mode == t_mode::SingleExtruder                           ?
                   _(L("Add color change - Left click for predefined color or"
-                      "Shift + Left click for custom color selection"))                    :
+                      "Shift + Left click for custom color selection"))         :
                   _(L("Add color change - Left click"))  ) + " " +
                   _(L("or press \"+\" key")) + "\n" + (
                       is_osx ? 
@@ -965,17 +978,22 @@ wxString Control::get_tooltip(int tick/*=-1*/)
 
     if (tick_code_it != m_ticks.ticks.end())                                    // tick exists
     {
+        if (m_draw_mode == dmSequentialFffPrint)
+            return  _(L("The sequential print is on.\n"
+                        "It's impossible to apply any custom G-code for objects printing sequentually.\n" 
+                        "This code won't be processed during G-code generation."));
+
         // Show custom Gcode as a first string of tooltop
         tooltip = "    ";
-        tooltip +=  tick_code_it->gcode == ColorChangeCode ?    (
-                        m_mode == t_mode::SingleExtruder ? 
+        tooltip +=  tick_code_it->gcode == ColorChangeCode ?    (   m_mode == t_mode::SingleExtruder                ? 
                         from_u8((boost::format(_utf8(L("Color change (\"%1%\")"))) % tick_code_it->gcode ).str()) :
                         from_u8((boost::format(_utf8(L("Color change (\"%1%\") for Extruder %2%"))) % 
-                                               tick_code_it->gcode % tick_code_it->extruder).str()) ) :
+                                               tick_code_it->gcode % tick_code_it->extruder).str()) )                   :
                     tick_code_it->gcode == PausePrintCode ?
-                        from_u8((boost::format(_utf8(L("Pause print (\"%1%\")"))) % tick_code_it->gcode ).str()) :
+                        from_u8((boost::format(_utf8(L("Pause print (\"%1%\")"))) % tick_code_it->gcode ).str())      :
                     tick_code_it->gcode == ToolChangeCode ?
-                        from_u8((boost::format(_utf8(L("Extruder (tool) is changed to Extruder \"%1%\""))) % tick_code_it->extruder ).str()) :
+                        from_u8((boost::format(_utf8(L("Extruder (tool) is changed to Extruder \"%1%\""))) % 
+                                               tick_code_it->extruder ).str())                                          :
                         from_u8((boost::format(_utf8(L("\"%1%\""))) % tick_code_it->gcode ).str()) ;
 
         // If tick is marked as a conflict (exclamation icon),
@@ -1169,7 +1187,7 @@ void Control::OnLeftUp(wxMouseEvent& event)
         add_current_tick();
         break;
     case maCogIconClick :
-        if (m_mode == t_mode::MultiAsSingle)
+        if (m_mode == t_mode::MultiAsSingle && m_draw_mode == dmRegular)
             show_cog_icon_context_menu();
         else
             jump_to_print_z();
@@ -1320,7 +1338,7 @@ void Control::OnRightDown(wxMouseEvent& event)
     const wxPoint pos = event.GetLogicalPosition(wxClientDC(this));
 
     m_mouse = maNone;
-    if (m_is_enabled_tick_manipulation) {
+    if (m_draw_mode == dmRegular) {
         if (is_point_in_rect(pos, m_rect_tick_action))
         {
             const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
@@ -1766,7 +1784,7 @@ void Control::discard_all_thicks()
 void Control::move_current_thumb_to_pos(wxPoint pos)
 {
     const int tick_val = get_tick_near_point(pos);
-    const int mouse_val = tick_val >= 0 && m_is_enabled_tick_manipulation ? tick_val :
+    const int mouse_val = tick_val >= 0 && m_draw_mode == dmRegular ? tick_val :
         get_value_from_position(pos);
     if (mouse_val >= 0)
     {

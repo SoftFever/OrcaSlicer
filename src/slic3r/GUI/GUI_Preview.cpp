@@ -586,7 +586,9 @@ void Preview::update_view_type(bool slice_completed)
 void Preview::create_double_slider()
 {
     m_slider = new DoubleSlider::Control(this, wxID_ANY, 0, 0, 0, 100);
-    m_slider->EnableTickManipulation(wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF);
+    bool sla_print_technology = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA;
+    bool sequential_print = wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_bool("complete_objects");
+    m_slider->SetDrawMode(sla_print_technology, sequential_print);
 
     m_double_slider_sizer->Add(m_slider, 0, wxEXPAND, 0);
 
@@ -700,7 +702,9 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
 
     m_slider->SetTicksValues(ticks_info_from_model);
 
-    m_slider->EnableTickManipulation(wxGetApp().plater()->printer_technology() == ptFFF);
+    bool sla_print_technology = wxGetApp().plater()->printer_technology() == ptSLA;
+    bool sequential_print = wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_bool("complete_objects");
+    m_slider->SetDrawMode(sla_print_technology, sequential_print);
 }
 
 void Preview::update_double_slider_mode()
