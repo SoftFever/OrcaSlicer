@@ -47,9 +47,6 @@
 //==================
 #define ENABLE_2_2_0_BETA1 1
 
-// Enhance reload from disk to be able to work with 3mf/amf files saved with PrusaSlicer 2.1.0 and earlier
-#define ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK (1 && ENABLE_2_2_0_BETA1)
-
 // Enable showing object/instance info with labels into the 3D scene
 #define ENABLE_SHOW_SCENE_LABELS (1 && ENABLE_2_2_0_BETA1)
 

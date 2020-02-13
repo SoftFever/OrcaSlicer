@@ -2270,9 +2270,7 @@ void ObjectList::split()
         add_settings_item(vol_item, &volume->config);
     }
 
-#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
     model_object->input_file.clear();
-#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
     if (parent == item)
         Expand(parent);
