@@ -950,7 +950,7 @@ bool GLGizmoHollow::on_is_selectable() const
 
 std::string GLGizmoHollow::on_get_name() const
 {
-    return (_(L("Hollowing and drilling")) + " [H]").ToUTF8().data();
+    return (_(L("Hollow and drill")) + " [H]").ToUTF8().data();
 }
 
 
