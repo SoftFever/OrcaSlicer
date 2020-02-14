@@ -2238,7 +2238,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
     auto *nozzle_dmrs = config->opt<ConfigOptionFloats>("nozzle_diameter");
 
-    bool one_by_one = input_files.size() == 1 || nozzle_dmrs->values.size() <= 1;
+    bool one_by_one = input_files.size() == 1 || printer_technology == ptSLA || nozzle_dmrs->values.size() <= 1;
     if (! one_by_one) {
         for (const auto &path : input_files) {
             if (std::regex_match(path.string(), pattern_bundle)) {
