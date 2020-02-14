@@ -77,6 +77,7 @@ Control::Control( wxWindow *parent,
 
     m_selection = ssUndef;
     m_ticks.set_pause_print_msg(_utf8(L("Place bearings in slots and resume printing")));
+    m_ticks.set_extruder_colors(&m_extruder_colors);
 
     // slider events
     this->Bind(wxEVT_PAINT,       &Control::OnPaint,    this);
@@ -349,6 +350,11 @@ void Control::SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, c
     m_only_extruder = only_extruder;
 
     UseDefaultColors(m_mode == t_mode::SingleExtruder);
+}
+
+void Control::SetExtruderColors( const std::vector<std::string>& extruder_colors)
+{
+    m_extruder_colors = extruder_colors;
 }
 
 void Control::get_lower_and_higher_position(int& lower_pos, int& higher_pos)
@@ -677,7 +683,7 @@ std::string Control::get_color_for_tool_change_tick(std::set<TickCode>::const_it
             return it_n->color;
     }
 
-    return it->color;
+    return m_extruder_colors[current_extruder-1]; // return a color for a specific extruder from the colors list 
 }
 
 std::string Control::get_color_for_color_change_tick(std::set<TickCode>::const_iterator it) const
@@ -690,7 +696,7 @@ std::string Control::get_color_for_color_change_tick(std::set<TickCode>::const_i
         if (it_n->gcode == ToolChangeCode) {
             is_tool_change = true;
             if (it_n->extruder == it->extruder)
-                return it->color;
+                return m_extruder_colors[it->extruder-1]; // return a color for a specific extruder from the colors list 
             break;
         }
     }
@@ -736,7 +742,7 @@ void Control::draw_colored_band(wxDC& dc)
     }
 
     const int default_color_idx = m_mode==t_mode::MultiAsSingle ? std::max<int>(m_only_extruder - 1, 0) : 0;
-    draw_band(dc, wxColour(GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config()[default_color_idx]), main_band);
+    draw_band(dc, wxColour(m_extruder_colors[default_color_idx]), main_band);
 
     std::set<TickCode>::const_iterator tick_it = m_ticks.ticks.begin();
 
@@ -1819,15 +1825,13 @@ void Control::edit_extruder_sequence()
     int extruder = 0;
     const int extr_cnt = m_extruders_sequence.extruders.size();
 
-    std::vector<std::string> colors = GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
-
     while (tick <= m_max_value)
     {
         const int cur_extruder = m_extruders_sequence.extruders[extruder];
 
         bool meaningless_tick = tick == 0.0 && cur_extruder == extruder;
         if (!meaningless_tick)
-            m_ticks.ticks.emplace(TickCode{tick, ToolChangeCode, cur_extruder + 1, colors[cur_extruder]});
+            m_ticks.ticks.emplace(TickCode{tick, ToolChangeCode, cur_extruder + 1, m_extruder_colors[cur_extruder]});
 
         extruder++;
         if (extruder == extr_cnt)
@@ -1942,8 +1946,7 @@ std::string TickCodeInfo::get_color_for_tick(TickCode tick, const std::string& c
         return colors[m_default_color_idx % colors.size()];
     }
 
-    std::vector<std::string> colors = GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
-    std::string color = colors[extruder - 1];
+    std::string color = (*m_colors)[extruder - 1];
 
     if (code == ColorChangeCode)
     {

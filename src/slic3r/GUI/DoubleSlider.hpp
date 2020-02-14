@@ -95,6 +95,8 @@ class TickCodeInfo
     bool        m_use_default_colors= false;
     int         m_default_color_idx = 0;
 
+    std::vector<std::string>* m_colors {nullptr};
+
     std::string get_color_for_tick(TickCode tick, const std::string& code, const int extruder);
 
 public:
@@ -122,6 +124,8 @@ public:
     bool suppressed_plus () { return m_suppress_plus; }
     bool suppressed_minus() { return m_suppress_minus; }
     void set_default_colors(bool default_colors_on)  { m_use_default_colors = default_colors_on; }
+
+    void set_extruder_colors(std::vector<std::string>* extruder_colors) { m_colors = extruder_colors; }
 };
 
 
@@ -209,6 +213,7 @@ public:
     void    SetManipulationMode(t_mode mode)    { m_mode = mode; }
     t_mode  GetManipulationMode() const         { return m_mode; }
     void    SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, const int only_extruder);
+    void    SetExtruderColors(const std::vector<std::string>& extruder_colors);
 
     bool is_horizontal() const      { return m_style == wxSL_HORIZONTAL; }
     bool is_one_layer() const       { return m_is_one_layer; }
@@ -356,6 +361,8 @@ private:
 
     std::vector<double> m_values;
     TickCodeInfo        m_ticks;
+
+    std::vector<std::string>    m_extruder_colors;
 
 // control's view variables
     wxCoord SLIDER_MARGIN; // margin around slider

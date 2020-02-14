@@ -705,6 +705,8 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     bool sla_print_technology = wxGetApp().plater()->printer_technology() == ptSLA;
     bool sequential_print = wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_bool("complete_objects");
     m_slider->SetDrawMode(sla_print_technology, sequential_print);
+
+    m_slider->SetExtruderColors(wxGetApp().plater()->get_extruder_colors_from_plater_config());
 }
 
 void Preview::update_double_slider_mode()

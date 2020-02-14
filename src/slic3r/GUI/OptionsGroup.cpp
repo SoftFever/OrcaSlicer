@@ -131,8 +131,10 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 	// Set sidetext width for a better alignment of options in line
 	if (option_set.size() > 1) {
 		sidetext_width = Field::def_width_thinner();
+		/* Temporary commented till UI-review will be completed
 		if (m_show_modified_btns) // means that options groups are in tabs
 		    sublabel_width = Field::def_width();
+	    */
 	}
 
     // add mode value for current line to m_options_mode
