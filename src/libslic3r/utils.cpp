@@ -584,15 +584,20 @@ std::string string_printf(const char *format, ...)
     va_start(args1, format);
     va_list args2;
     va_copy(args2, args1);
-
-    size_t needed_size = ::vsnprintf(nullptr, 0, format, args1) + 1;
-    va_end(args1);
-
-    std::string res(needed_size, '\0');
-    ::vsnprintf(&res.front(), res.size(), format, args2);
-    va_end(args2);
-
-    return res;
+    
+    static const size_t INITIAL_LEN = 200;
+    std::string buffer(INITIAL_LEN, '\0');
+    
+    int bufflen = ::vsnprintf(buffer.data(), INITIAL_LEN - 1, format, args1);
+    
+    if (bufflen >= int(INITIAL_LEN)) {
+        buffer.resize(size_t(bufflen) + 1);
+        ::vsnprintf(buffer.data(), buffer.size(), format, args2);
+    }
+    
+    buffer.resize(bufflen);
+    
+    return buffer;
 }
 
 std::string header_slic3r_generated()

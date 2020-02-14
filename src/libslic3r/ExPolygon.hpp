@@ -327,6 +327,7 @@ extern BoundingBox get_extents_rotated(const ExPolygons &polygons, double angle)
 extern std::vector<BoundingBox> get_extents_vector(const ExPolygons &polygons);
 
 extern bool        remove_sticks(ExPolygon &poly);
+extern void 	   keep_largest_contour_only(ExPolygons &polygons);
 
 extern std::list<TPPLPoly> expoly_to_polypartition_input(const ExPolygons &expp);
 extern std::list<TPPLPoly> expoly_to_polypartition_input(const ExPolygon &ex);

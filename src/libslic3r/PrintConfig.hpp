@@ -46,12 +46,6 @@ enum SeamPosition {
     spRandom, spNearest, spAligned, spRear
 };
 
-/*
-enum FilamentType {
-    ftPLA, ftABS, ftPET, ftHIPS, ftFLEX, ftSCAFF, ftEDGE, ftNGEN, ftPVA
-};
-*/
-
 enum SLAMaterial {
     slamTough,
     slamFlex,
@@ -148,24 +142,6 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<SeamPosition>::ge
     }
     return keys_map;
 }
-
-/*
-template<> inline const t_config_enum_values& ConfigOptionEnum<FilamentType>::get_enum_values() {
-    static t_config_enum_values keys_map;
-    if (keys_map.empty()) {
-        keys_map["PLA"]             = ftPLA;
-        keys_map["ABS"]             = ftABS;
-        keys_map["PET"]             = ftPET;
-        keys_map["HIPS"]            = ftHIPS;
-        keys_map["FLEX"]            = ftFLEX;
-        keys_map["SCAFF"]           = ftSCAFF;
-        keys_map["EDGE"]            = ftEDGE;
-        keys_map["NGEN"]            = ftNGEN;
-        keys_map["PVA"]             = ftPVA;
-    }
-    return keys_map;
-}
-*/
 
 template<> inline const t_config_enum_values& ConfigOptionEnum<SLADisplayOrientation>::get_enum_values() {
     static const t_config_enum_values keys_map = {
@@ -354,6 +330,9 @@ protected:
 #define STATIC_PRINT_CONFIG_CACHE_BASE(CLASS_NAME) \
 public: \
     /* Overrides ConfigBase::optptr(). Find ando/or create a ConfigOption instance for a given name. */ \
+    const ConfigOption*      optptr(const t_config_option_key &opt_key) const override \
+        { return s_cache_##CLASS_NAME.optptr(opt_key, this); } \
+    /* Overrides ConfigBase::optptr(). Find ando/or create a ConfigOption instance for a given name. */ \
     ConfigOption*            optptr(const t_config_option_key &opt_key, bool create = false) override \
         { return s_cache_##CLASS_NAME.optptr(opt_key, this); } \
     /* Overrides ConfigBase::keys(). Collect names of all configuration values maintained by this configuration store. */ \
@@ -487,6 +466,7 @@ class PrintRegionConfig : public StaticPrintConfig
 public:
     ConfigOptionFloat               bridge_angle;
     ConfigOptionInt                 bottom_solid_layers;
+    ConfigOptionFloat               bottom_solid_min_thickness;
     ConfigOptionFloat               bridge_flow_ratio;
     ConfigOptionFloat               bridge_speed;
     ConfigOptionBool                ensure_vertical_shell_thickness;
@@ -522,6 +502,7 @@ public:
     ConfigOptionBool                thin_walls;
     ConfigOptionFloatOrPercent      top_infill_extrusion_width;
     ConfigOptionInt                 top_solid_layers;
+    ConfigOptionFloat 				top_solid_min_thickness;
     ConfigOptionFloatOrPercent      top_solid_infill_speed;
     ConfigOptionBool                wipe_into_infill;
 
@@ -530,6 +511,7 @@ protected:
     {
         OPT_PTR(bridge_angle);
         OPT_PTR(bottom_solid_layers);
+        OPT_PTR(bottom_solid_min_thickness);
         OPT_PTR(bridge_flow_ratio);
         OPT_PTR(bridge_speed);
         OPT_PTR(ensure_vertical_shell_thickness);
@@ -563,6 +545,7 @@ protected:
         OPT_PTR(top_infill_extrusion_width);
         OPT_PTR(top_solid_infill_speed);
         OPT_PTR(top_solid_layers);
+        OPT_PTR(top_solid_min_thickness);
         OPT_PTR(wipe_into_infill);
     }
 };
@@ -1017,7 +1000,7 @@ public:
     ConfigOptionFloat support_base_height /*= 1.0*/;
 
     // The minimum distance of the pillar base from the model in mm.
-    ConfigOptionFloat support_base_safety_distance; /*= 1.0*/;
+    ConfigOptionFloat support_base_safety_distance; /*= 1.0*/
 
     // The default angle for connecting support sticks and junctions.
     ConfigOptionFloat support_critical_angle /*= 45*/;
@@ -1062,7 +1045,7 @@ public:
 
     // /////////////////////////////////////////////////////////////////////////
     // Zero elevation mode parameters:
-    //    - The object pad will be derived from the the model geometry.
+    //    - The object pad will be derived from the model geometry.
     //    - There will be a gap between the object pad and the generated pad
     //      according to the support_base_safety_distance parameter.
     //    - The two pads will be connected with tiny connector sticks
@@ -1084,6 +1067,28 @@ public:
 
     // How much should the tiny connectors penetrate into the model body
     ConfigOptionFloat pad_object_connector_penetration;
+    
+    // /////////////////////////////////////////////////////////////////////////
+    // Model hollowing parameters:
+    //   - Models can be hollowed out as part of the SLA print process
+    //   - Thickness of the hollowed model walls can be adjusted
+    //   -
+    //   - Additional holes will be drilled into the hollow model to allow for
+    //   - resin removal.
+    // /////////////////////////////////////////////////////////////////////////
+    
+    ConfigOptionBool hollowing_enable;
+    
+    // The minimum thickness of the model walls to maintain. Note that the 
+    // resulting walls may be thicker due to smoothing out fine cavities where
+    // resin could stuck.
+    ConfigOptionFloat hollowing_min_thickness;
+    
+    // Indirectly controls the voxel size (resolution) used by openvdb
+    ConfigOptionFloat hollowing_quality;
+   
+    // Indirectly controls the minimum size of created cavities.
+    ConfigOptionFloat hollowing_closing_distance;
 
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
@@ -1121,6 +1126,10 @@ protected:
         OPT_PTR(pad_object_connector_stride);
         OPT_PTR(pad_object_connector_width);
         OPT_PTR(pad_object_connector_penetration);
+        OPT_PTR(hollowing_enable);
+        OPT_PTR(hollowing_min_thickness);
+        OPT_PTR(hollowing_quality);
+        OPT_PTR(hollowing_closing_distance);
     }
 };
 

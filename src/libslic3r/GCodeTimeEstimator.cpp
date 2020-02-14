@@ -707,6 +707,11 @@ namespace Slic3r {
         return _get_time_dhms(get_time());
     }
 
+    std::string GCodeTimeEstimator::get_time_dhm() const
+    {
+        return _get_time_dhm(get_time());
+    }
+
     std::string GCodeTimeEstimator::get_time_minutes() const
     {
         return _get_time_minutes(get_time());
@@ -1612,6 +1617,29 @@ namespace Slic3r {
             ::sprintf(buffer, "%dm %ds", minutes, (int)time_in_secs);
         else
             ::sprintf(buffer, "%ds", (int)time_in_secs);
+
+        return buffer;
+    }
+
+    std::string GCodeTimeEstimator::_get_time_dhm(float time_in_secs)
+    {
+        char buffer[64];
+
+		int minutes = std::round(time_in_secs / 60.);
+    	if (minutes <= 0) {
+            ::sprintf(buffer, "%ds", (int)time_in_secs);
+    	} else {
+	        int days = minutes / 1440;
+	        minutes -= days * 1440;
+	        int hours = minutes / 60;
+	        minutes -= hours * 60;
+	        if (days > 0)
+	            ::sprintf(buffer, "%dd %dh %dm", days, hours, minutes);
+	        else if (hours > 0)
+	            ::sprintf(buffer, "%dh %dm", hours, minutes);
+	        else
+	            ::sprintf(buffer, "%dm", minutes);
+	    }
 
         return buffer;
     }

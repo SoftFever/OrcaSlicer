@@ -10,7 +10,7 @@
 #include "GLCanvas3DManager.hpp"
 #include "GLCanvas3D.hpp"
 #include "PresetBundle.hpp"
-#include "wxExtensions.hpp"
+#include "DoubleSlider.hpp"
 
 #include <wx/notebook.h>
 #include <wx/glcanvas.h>
@@ -65,6 +65,7 @@ bool View3D::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_
     m_canvas->enable_selection(true);
     m_canvas->enable_main_toolbar(true);
     m_canvas->enable_undoredo_toolbar(true);
+    m_canvas->enable_labels(true);
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);
@@ -584,18 +585,23 @@ void Preview::update_view_type(bool slice_completed)
 
 void Preview::create_double_slider()
 {
-    m_slider = new DoubleSlider(this, wxID_ANY, 0, 0, 0, 100);
+    m_slider = new DoubleSlider::Control(this, wxID_ANY, 0, 0, 0, 100);
     m_slider->EnableTickManipulation(wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF);
 
     m_double_slider_sizer->Add(m_slider, 0, wxEXPAND, 0);
 
     // sizer, m_canvas_widget
     m_canvas_widget->Bind(wxEVT_KEY_DOWN, &Preview::update_double_slider_from_canvas, this);
+    m_canvas_widget->Bind(wxEVT_KEY_UP, [this](wxKeyEvent& event) {
+        if (event.GetKeyCode() == WXK_SHIFT)
+            m_slider->UseDefaultColors(true);
+        event.Skip();
+    });
 
     m_slider->Bind(wxEVT_SCROLL_CHANGED, &Preview::on_sliders_scroll_changed, this);
 
 
-    Bind(wxCUSTOMEVT_TICKSCHANGED, [this](wxEvent&) {
+    Bind(DoubleSlider::wxCUSTOMEVT_TICKSCHANGED, [this](wxEvent&) {
         Model& model = wxGetApp().plater()->model();
         model.custom_gcode_per_print_z = m_slider->GetTicksValues();
         m_schedule_background_process();
@@ -633,7 +639,7 @@ static int find_close_layer_idx(const std::vector<double>& zs, double &z, double
     return -1;
 }
 
-void Preview::check_slider_values(std::vector<Model::CustomGCode>& ticks_from_model,
+void Preview::check_slider_values(std::vector<CustomGCode::Item>& ticks_from_model,
                                   const std::vector<double>& layers_z)
 {
     // All ticks that would end up outside the slider range should be erased.
@@ -641,7 +647,7 @@ void Preview::check_slider_values(std::vector<Model::CustomGCode>& ticks_from_mo
     // this function is e.g. not called when the last object is deleted
     unsigned int old_size = ticks_from_model.size();
     ticks_from_model.erase(std::remove_if(ticks_from_model.begin(), ticks_from_model.end(),
-                     [layers_z](Model::CustomGCode val)
+                     [layers_z](CustomGCode::Item val)
         {
             auto it = std::lower_bound(layers_z.begin(), layers_z.end(), val.print_z - DoubleSlider::epsilon());
             return it == layers_z.end();
@@ -669,7 +675,7 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     // Detect and set manipulation mode for double slider
     update_double_slider_mode();
 
-    Model::CustomGCodeInfo &ticks_info_from_model = wxGetApp().plater()->model().custom_gcode_per_print_z;
+    CustomGCode::Info &ticks_info_from_model = wxGetApp().plater()->model().custom_gcode_per_print_z;
     check_slider_values(ticks_info_from_model.gcodes, layers_z);
 
     m_slider->SetSliderValues(layers_z);
@@ -776,6 +782,8 @@ void Preview::update_double_slider_from_canvas(wxKeyEvent& event)
     }
     else if (key == 'S')
         m_slider->ChangeOneLayerLock();
+    else if (key == WXK_SHIFT)
+        m_slider->UseDefaultColors(false);
     else
         event.Skip();
 }
@@ -830,7 +838,7 @@ void Preview::load_print_as_fff(bool keep_z_range)
     bool gcode_preview_data_valid = print->is_step_done(psGCodeExport) && ! m_gcode_preview_data->empty();
     // Collect colors per extruder.
     std::vector<std::string> colors;
-    std::vector<Model::CustomGCode> color_print_values = {};
+    std::vector<CustomGCode::Item> color_print_values = {};
     // set color print values, if it si selected "ColorPrint" view type
     if (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint)
     {

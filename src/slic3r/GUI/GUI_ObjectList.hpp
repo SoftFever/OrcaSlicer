@@ -3,6 +3,7 @@
 
 #include <map>
 #include <vector>
+#include <set>
 
 #include <wx/bitmap.h>
 #include <wx/dataview.h>
@@ -10,6 +11,7 @@
 
 #include "Event.hpp"
 #include "wxExtensions.hpp"
+#include "ObjectDataViewModel.hpp"
 
 class wxBoxSizer;
 class wxBitmapComboBox;
@@ -170,6 +172,12 @@ private:
     SettingsBundle m_freq_settings_fff;
     SettingsBundle m_freq_settings_sla;
 #endif
+
+    inline void ensure_current_item_visible()
+    {
+        if (const auto &item = this->GetCurrentItem())
+            this->EnsureVisible(item);
+    }
 
 public:
     ObjectList(wxWindow* parent);

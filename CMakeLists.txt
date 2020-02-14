@@ -104,7 +104,7 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/)
 
 enable_testing ()
 
-# Enable C++11 language standard.
+# Enable C++17 language standard.
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -392,8 +392,7 @@ if (NOT GLEW_FOUND)
 endif ()
 
 # Find the Cereal serialization library
-add_library(cereal INTERFACE)
-target_include_directories(cereal INTERFACE include)
+find_package(cereal REQUIRED)
 
 # l10n
 set(L10N_DIR "${SLIC3R_RESOURCES_DIR}/localization")
@@ -426,6 +425,12 @@ if(SLIC3R_STATIC)
     set(USE_BLOSC TRUE)
 endif()
 
+find_package(OpenVDB 5.0 REQUIRED COMPONENTS openvdb)
+if(OpenVDB_FOUND)
+    slic3r_remap_configs(IlmBase::Half RelWithDebInfo Release)
+    slic3r_remap_configs(Blosc::blosc RelWithDebInfo Release)
+endif()
+
 set(TOP_LEVEL_PROJECT_DIR ${PROJECT_SOURCE_DIR})
 function(prusaslicer_copy_dlls target)
     if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
@@ -434,23 +439,30 @@ function(prusaslicer_copy_dlls target)
         set(_bits 32)
     endif ()
     
-    get_target_property(_out_dir ${target} BINARY_DIR)
+    get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+    get_target_property(_alt_out_dir ${target} RUNTIME_OUTPUT_DIRECTORY)
+
+    if (_alt_out_dir)
+        set (_out_dir "${_alt_out_dir}")
+    elseif (_is_multi)
+        set (_out_dir "$<TARGET_PROPERTY:${target},BINARY_DIR>/$<CONFIG>")
+    else ()
+        set (_out_dir "$<TARGET_PROPERTY:${target},BINARY_DIR>")
+    endif ()
     
     # This has to be a separate target due to the windows command line lenght limits    
     add_custom_command(TARGET ${target} POST_BUILD 
-        COMMAND ${CMAKE_COMMAND} -E copy ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/win${_bits}/libgmp-10.dll ${_out_dir}/
+        COMMAND ${CMAKE_COMMAND} -E copy ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/win${_bits}/libgmp-10.dll ${_out_dir}
         COMMENT "Copy gmp runtime to build tree"
         VERBATIM)
     
     add_custom_command(TARGET ${target} POST_BUILD 
-        COMMAND ${CMAKE_COMMAND} -E copy ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/win${_bits}/libmpfr-4.dll ${_out_dir}/
+        COMMAND ${CMAKE_COMMAND} -E copy ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/win${_bits}/libmpfr-4.dll ${_out_dir}
         COMMENT "Copy mpfr runtime to build tree"
         VERBATIM)
 
 endfunction()
 
-#find_package(OpenVDB 5.0 COMPONENTS openvdb)
-#slic3r_remap_configs(IlmBase::Half RelWithDebInfo Release)
 
 # libslic3r, PrusaSlicer GUI and the PrusaSlicer executable.
 add_subdirectory(src)

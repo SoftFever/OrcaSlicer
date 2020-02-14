@@ -133,18 +133,12 @@ public:
     std::vector<std::string> get_recent_projects() const;
     void set_recent_projects(const std::vector<std::string>& recent_projects);
 
-#if ENABLE_3DCONNEXION_Y_AS_ZOOM
 	void set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone, float rotation_speed, float rotation_deadzone, double zoom_speed);
-#else
-	void set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone, float rotation_speed, float rotation_deadzone);
-#endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
 	bool get_mouse_device_translation_speed(const std::string& name, double& speed);
     bool get_mouse_device_translation_deadzone(const std::string& name, double& deadzone);
     bool get_mouse_device_rotation_speed(const std::string& name, float& speed);
     bool get_mouse_device_rotation_deadzone(const std::string& name, float& deadzone);
-#if ENABLE_3DCONNEXION_Y_AS_ZOOM
 	bool get_mouse_device_zoom_speed(const std::string& name, double& speed);
-#endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
 
 	static const std::string SECTION_FILAMENTS;
     static const std::string SECTION_MATERIALS;

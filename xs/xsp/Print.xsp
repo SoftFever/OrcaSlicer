@@ -48,12 +48,8 @@ _constant()
     Ref<ModelObject> model_object();
     Ref<StaticPrintConfig> config()
         %code%{ RETVAL = &THIS->config(); %};
-    Points copies();
     Clone<BoundingBox> bounding_box();
     
-    Points _shifted_copies()
-        %code%{ RETVAL = THIS->copies(); %};
-
     size_t layer_count();
     Ref<Layer> get_layer(int idx);
 
@@ -152,9 +148,6 @@ _constant()
                 croak("Configuration is not valid: %s\n", err.c_str()); 
             RETVAL = 1;
         %};
-    Clone<BoundingBox> bounding_box();
-    Clone<BoundingBox> total_bounding_box();
-    Clone<Point>       size() %code%{ RETVAL = THIS->bounding_box().size(); %};
 
     void set_callback_event(int evt) %code%{
         %};

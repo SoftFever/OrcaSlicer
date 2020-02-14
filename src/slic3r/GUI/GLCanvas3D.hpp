@@ -91,6 +91,7 @@ wxDECLARE_EVENT(EVT_GLCANVAS_SELECT_ALL, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_QUESTION_MARK, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_INCREASE_INSTANCES, Event<int>); // data: +1 => increase, -1 => decrease
 wxDECLARE_EVENT(EVT_GLCANVAS_INSTANCE_MOVED, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_FORCE_UPDATE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_INSTANCE_ROTATED, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_INSTANCE_SCALED, SimpleEvent);
@@ -108,6 +109,7 @@ wxDECLARE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
 wxDECLARE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_RELOAD_FROM_DISK, SimpleEvent);
 
 class GLCanvas3D
 {
@@ -373,6 +375,20 @@ private:
     };
 #endif // ENABLE_RENDER_STATISTICS
 
+    class Labels
+    {
+        bool m_enabled{ false };
+        bool m_shown{ false };
+        GLCanvas3D& m_canvas;
+
+    public:
+        explicit Labels(GLCanvas3D& canvas) : m_canvas(canvas) {}
+        void enable(bool enable) { m_enabled = enable; }
+        void show(bool show) { m_shown = m_enabled ? show : false; }
+        bool is_shown() const { return m_shown; }
+        void render(const std::vector<const ModelInstance*>& sorted_instances) const;
+    };
+
 public:
     enum ECursorType : unsigned char
     {
@@ -450,6 +466,8 @@ private:
     mutable int m_imgui_undo_redo_hovered_pos{ -1 };
     int m_selected_extruder;
 
+    Labels m_labels;
+
 public:
     GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar);
     ~GLCanvas3D();
@@ -465,6 +483,7 @@ public:
     void set_as_dirty();
 
     unsigned int get_volumes_count() const;
+    const GLVolumeCollection& get_volumes() const { return m_volumes; }
     void reset_volumes();
     int check_volumes_outside_state() const;
 
@@ -476,6 +495,7 @@ public:
     void set_config(const DynamicPrintConfig* config);
     void set_process(BackgroundSlicingProcess* process);
     void set_model(Model* model);
+    const Model* get_model() const { return m_model; }
 
     const Selection& get_selection() const { return m_selection; }
     Selection& get_selection() { return m_selection; }
@@ -499,6 +519,7 @@ public:
     void set_color_by(const std::string& value);
 
     const Camera& get_camera() const { return m_camera; }
+    const Shader& get_shader() const { return m_shader; }
     Camera& get_camera() { return m_camera; }
 
     BoundingBoxf3 volumes_bounding_box() const;
@@ -522,6 +543,7 @@ public:
     void enable_main_toolbar(bool enable);
     void enable_undoredo_toolbar(bool enable);
     void enable_dynamic_background(bool enable);
+    void enable_labels(bool enable) { m_labels.enable(enable); }
     void allow_multisample(bool allow);
 
     void zoom_to_bed();
@@ -557,7 +579,7 @@ public:
 
     void load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors);
     void load_sla_preview();
-    void load_preview(const std::vector<std::string>& str_tool_colors, const std::vector<Model::CustomGCode>& color_print_values);
+    void load_preview(const std::vector<std::string>& str_tool_colors, const std::vector<CustomGCode::Item>& color_print_values);
     void bind_event_handlers();
     void unbind_event_handlers();
 
@@ -643,6 +665,9 @@ public:
 
     void mouse_up_cleanup();
 
+    bool are_labels_shown() const { return m_labels.is_shown(); }
+    void show_labels(bool show) { m_labels.show(show); }
+
 private:
     bool _is_shown_on_screen() const;
 
@@ -720,7 +745,7 @@ private:
     // Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes,
     // one for perimeters, one for infill and one for supports.
     void _load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors,
-                                      const std::vector<Model::CustomGCode>& color_print_values);
+                                      const std::vector<CustomGCode::Item>& color_print_values);
     // Create 3D thick extrusion lines for wipe tower extrusions
     void _load_wipe_tower_toolpaths(const std::vector<std::string>& str_tool_colors);
 

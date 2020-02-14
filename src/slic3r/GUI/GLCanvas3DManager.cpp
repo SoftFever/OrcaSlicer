@@ -10,6 +10,7 @@
 
 #include <wx/glcanvas.h>
 #include <wx/timer.h>
+#include <wx/msgdlg.h>
 
 #include <vector>
 #include <string>

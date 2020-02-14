@@ -54,11 +54,13 @@ public:
 
     enum EType : unsigned char
     {
+        // Order must match index in m_gizmos!
         Move,
         Scale,
         Rotate,
         Flatten,
         Cut,
+        Hollow,
         SlaSupports,
         Undefined
     };
@@ -111,6 +113,7 @@ private:
     MouseCapture m_mouse_capture;
     std::string m_tooltip;
     bool m_serializing;
+    std::unique_ptr<CommonGizmosData> m_common_gizmos_data;
 
 public:
     explicit GLGizmosManager(GLCanvas3D& parent);
@@ -168,6 +171,7 @@ public:
     void update_data();
 
     EType get_current_type() const { return m_current; }
+    GLGizmoBase* get_current() const;
 
     bool is_running() const;
     bool handle_shortcut(int key);
@@ -215,8 +219,6 @@ private:
 
     float get_scaled_total_height() const;
     float get_scaled_total_width() const;
-
-    GLGizmoBase* get_current() const;
 
     bool generate_icons_texture() const;
 

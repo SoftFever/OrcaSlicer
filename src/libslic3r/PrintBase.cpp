@@ -64,8 +64,8 @@ std::string PrintBase::output_filename(const std::string &format, const std::str
 		boost::filesystem::path filename = format.empty() ?
 			cfg.opt_string("input_filename_base") + default_ext :
 			this->placeholder_parser().process(format, 0, &cfg);
-		if (filename.extension().empty())
-        	filename = boost::filesystem::change_extension(filename, default_ext);
+        if (filename.extension().empty())
+            filename = boost::filesystem::change_extension(filename, default_ext);
         return filename.string();
     } catch (std::runtime_error &err) {
         throw std::runtime_error(L("Failed processing of the output_filename_format template.") + "\n" + err.what());

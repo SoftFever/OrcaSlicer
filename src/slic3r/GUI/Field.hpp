@@ -220,16 +220,15 @@ public:
 		m_side_text = side_text;
     }
 
-    virtual void msw_rescale() {
-        m_Undo_to_sys_btn->msw_rescale();
-        m_Undo_btn->msw_rescale();
-
-        // update em_unit value
-        m_em_unit = em_unit(m_parent);
-    }
+    virtual void msw_rescale(bool rescale_sidetext = false);
 
     bool get_enter_pressed() const { return bEnterPressed; }
     void set_enter_pressed(bool pressed) { bEnterPressed = pressed; }
+
+	// Values of width to "systematic" alignments of fields
+	static int def_width()			{ return 7; }
+	static int def_width_wider()	{ return 14; }
+	static int def_width_thinner()	{ return 4; }
 
 protected:
 	RevertButton*			m_Undo_btn = nullptr;
@@ -297,7 +296,7 @@ public:
 
 	boost::any&		get_value() override;
 
-    void            msw_rescale() override;
+    void            msw_rescale(bool rescale_sidetext = false) override;
     
     virtual void	enable();
     virtual void	disable();
@@ -325,7 +324,7 @@ public:
 	void            set_na_value() override;
 	boost::any&		get_value() override;
 
-    void            msw_rescale() override;
+    void            msw_rescale(bool rescale_sidetext = false) override;
 
 	void			enable() override { dynamic_cast<wxCheckBox*>(window)->Enable(); }
 	void			disable() override { dynamic_cast<wxCheckBox*>(window)->Disable(); }
@@ -368,7 +367,7 @@ public:
 		return m_value = value;
 	}
 
-    void            msw_rescale() override;
+    void            msw_rescale(bool rescale_sidetext = false) override;
 
 	void			enable() override { dynamic_cast<wxSpinCtrl*>(window)->Enable(); }
 	void			disable() override { dynamic_cast<wxSpinCtrl*>(window)->Disable(); }
@@ -377,7 +376,6 @@ public:
 
 class Choice : public Field {
 	using Field::Field;
-    int             m_width{ 15 };
 public:
 	Choice(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id) {}
 	Choice(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
@@ -397,7 +395,7 @@ public:
 	void			set_values(const std::vector<std::string> &values);
 	boost::any&		get_value() override;
 
-    void            msw_rescale() override;
+    void            msw_rescale(bool rescale_sidetext = false) override;
 
 	void			enable() override { dynamic_cast<wxBitmapComboBox*>(window)->Enable(); };
 	void			disable() override{ dynamic_cast<wxBitmapComboBox*>(window)->Disable(); };
@@ -423,7 +421,7 @@ public:
 	 	}
 	void			set_value(const boost::any& value, bool change_event = false) override;
 	boost::any&		get_value() override;
-    void            msw_rescale() override;
+    void            msw_rescale(bool rescale_sidetext = false) override;
 
 	void			enable() override { dynamic_cast<wxColourPickerCtrl*>(window)->Enable(); };
 	void			disable() override{ dynamic_cast<wxColourPickerCtrl*>(window)->Disable(); };
@@ -448,7 +446,7 @@ public:
 	void			set_value(const boost::any& value, bool change_event = false);
 	boost::any&		get_value() override;
 
-    void            msw_rescale() override;
+    void            msw_rescale(bool rescale_sidetext = false) override;
 
 	void			enable() override {
 		x_textctrl->Enable();
@@ -482,7 +480,7 @@ public:
 
 	boost::any&		get_value()override { return m_value; }
 
-    void            msw_rescale() override;
+    void            msw_rescale(bool rescale_sidetext = false) override;
 
 	void			enable() override { dynamic_cast<wxStaticText*>(window)->Enable(); };
 	void			disable() override{ dynamic_cast<wxStaticText*>(window)->Disable(); };

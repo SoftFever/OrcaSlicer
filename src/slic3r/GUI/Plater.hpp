@@ -12,6 +12,7 @@
 
 #include "3DScene.hpp"
 #include "GLTexture.hpp"
+#include "wxExtensions.hpp"
 
 class wxButton;
 class ScalableButton;
@@ -26,6 +27,7 @@ class Model;
 class ModelObject;
 class Print;
 class SLAPrint;
+enum SLAPrintObjectStep : unsigned int;
 
 namespace UndoRedo {
 	class Stack;
@@ -48,7 +50,7 @@ using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 class Plater;
 enum class ActionButtonType : int;
 
-class PresetComboBox : public wxBitmapComboBox
+class PresetComboBox : public PresetBitmapComboBox
 {
 public:
     PresetComboBox(wxWindow *parent, Preset::Type preset_type);
@@ -168,6 +170,9 @@ public:
     bool is_preview_loaded() const;
     bool is_view3D_shown() const;
 
+    bool are_view3D_labels_shown() const;
+    void show_view3D_labels(bool show);
+
     // Called after the Preferences dialog is closed and the program settings are saved.
     // Update the UI based on the current preferences.
     void update_ui_from_settings();
@@ -192,10 +197,14 @@ public:
     void export_amf();
     void export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path());
     void reload_from_disk();
+    void reload_all_from_disk();
     bool has_toolpaths_to_export() const;
     void export_toolpaths_to_obj() const;
+    void hollow();
     void reslice();
     void reslice_SLA_supports(const ModelObject &object, bool postpone_error_messages = false);
+    void reslice_SLA_hollowing(const ModelObject &object, bool postpone_error_messages = false);
+    void reslice_SLA_until_step(SLAPrintObjectStep step, const ModelObject &object, bool postpone_error_messages = false);
     void changed_object(int obj_idx);
     void changed_objects(const std::vector<size_t>& object_idxs);
     void schedule_background_process(bool schedule = true);
@@ -223,9 +232,9 @@ public:
     void on_extruders_change(size_t extruders_count);
     void on_config_change(const DynamicPrintConfig &config);
     void force_filament_colors_update();
+    void force_print_bed_update();
     // On activating the parent window.
     void on_activate();
-    const DynamicPrintConfig* get_plater_config() const;
     std::vector<std::string> get_extruder_colors_from_plater_config() const;
     std::vector<std::string> get_colors_for_color_print() const;
 
@@ -239,9 +248,7 @@ public:
     int get_selected_object_idx();
     bool is_single_full_object_selection() const;
     GLCanvas3D* canvas3D();
-#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
     GLCanvas3D* get_current_canvas3D();
-#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
     BoundingBoxf bed_shape_bb() const;
 
     void set_current_canvas_as_dirty();
@@ -266,9 +273,7 @@ public:
     bool can_copy_to_clipboard() const;
     bool can_undo() const;
     bool can_redo() const;
-#if !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
     bool can_reload_from_disk() const;
-#endif // !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
     void msw_rescale();
 
@@ -277,6 +282,8 @@ public:
     const Camera& get_camera() const;
     const Mouse3DController& get_mouse3d_controller() const;
     Mouse3DController& get_mouse3d_controller();
+
+	void set_bed_shape() const;
 
 	// ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
 	class SuppressSnapshots

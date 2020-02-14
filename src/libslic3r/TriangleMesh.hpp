@@ -23,6 +23,7 @@ class TriangleMesh
 public:
     TriangleMesh() : repaired(false) {}
     TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd> &facets);
+    explicit TriangleMesh(const indexed_triangle_set &M);
 	void clear() { this->stl.clear(); this->its.clear(); this->repaired = false; }
     bool ReadSTLFile(const char* input_file) { return stl_open(&stl, input_file); }
     bool write_ascii(const char* output_file) { return stl_write_ascii(&this->stl, output_file, ""); }
@@ -161,6 +162,16 @@ public:
 typedef std::vector<IntersectionLine> IntersectionLines;
 typedef std::vector<IntersectionLine*> IntersectionLinePtrs;
 
+enum class SlicingMode : uint32_t {
+	// Regular slicing, maintain all contours and their orientation.
+	Regular,
+	// Maintain all contours, orient all contours CCW, therefore all holes are being closed.
+	Positive,
+	// Orient all contours CCW and keep only the contour with the largest area.
+	// This mode is useful for slicing complex objects in vase mode.
+	PositiveLargestContour,
+};
+
 class TriangleMeshSlicer
 {
 public:
@@ -168,8 +179,8 @@ public:
     TriangleMeshSlicer() : mesh(nullptr) {}
 	TriangleMeshSlicer(const TriangleMesh* mesh) { this->init(mesh, [](){}); }
     void init(const TriangleMesh *mesh, throw_on_cancel_callback_type throw_on_cancel);
-    void slice(const std::vector<float> &z, std::vector<Polygons>* layers, throw_on_cancel_callback_type throw_on_cancel) const;
-    void slice(const std::vector<float> &z, const float closing_radius, std::vector<ExPolygons>* layers, throw_on_cancel_callback_type throw_on_cancel) const;
+    void slice(const std::vector<float> &z, SlicingMode mode, std::vector<Polygons>* layers, throw_on_cancel_callback_type throw_on_cancel) const;
+    void slice(const std::vector<float> &z, SlicingMode mode, const float closing_radius, std::vector<ExPolygons>* layers, throw_on_cancel_callback_type throw_on_cancel) const;
     enum FacetSliceType {
         NoSlice = 0,
         Slicing = 1,
@@ -206,7 +217,7 @@ inline void slice_mesh(
 {
     if (mesh.empty()) return;
     TriangleMeshSlicer slicer(&mesh);
-    slicer.slice(z, &layers, thr);
+    slicer.slice(z, SlicingMode::Regular, &layers, thr);
 }
 
 inline void slice_mesh(
@@ -218,7 +229,7 @@ inline void slice_mesh(
 {
     if (mesh.empty()) return;
     TriangleMeshSlicer slicer(&mesh);
-    slicer.slice(z, closing_radius, &layers, thr);
+    slicer.slice(z, SlicingMode::Regular, closing_radius, &layers, thr);
 }
 
 TriangleMesh make_cube(double x, double y, double z);

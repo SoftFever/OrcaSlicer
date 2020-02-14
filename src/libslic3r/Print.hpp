@@ -24,6 +24,7 @@ class PrintObject;
 class ModelObject;
 class GCode;
 class GCodePreviewData;
+enum class SlicingMode : uint32_t;
 
 // Print step IDs for keeping track of the print state.
 enum PrintStep {
@@ -84,13 +85,28 @@ private:
     
     PrintRegion(Print* print) : m_refcnt(0), m_print(print) {}
     PrintRegion(Print* print, const PrintRegionConfig &config) : m_refcnt(0), m_print(print), m_config(config) {}
-    ~PrintRegion() {}
+    ~PrintRegion() = default;
 };
 
 
 typedef std::vector<Layer*> LayerPtrs;
 typedef std::vector<SupportLayer*> SupportLayerPtrs;
 class BoundingBoxf3;        // TODO: for temporary constructor parameter
+
+// Single instance of a PrintObject.
+// As multiple PrintObjects may be generated for a single ModelObject (their instances differ in rotation around Z),
+// ModelObject's instancess will be distributed among these multiple PrintObjects.
+struct PrintInstance
+{
+    // Parent PrintObject
+    PrintObject 		*print_object;
+    // Source ModelInstance of a ModelObject, for which this print_object was created.
+	const ModelInstance *model_instance;
+	// Shift of this instance's center into the world coordinates.
+	Point 				 shift;
+};
+
+typedef std::vector<PrintInstance> PrintInstances;
 
 class PrintObject : public PrintObjectBaseWithState<Print, PrintObjectStep, posCount>
 {
@@ -101,21 +117,22 @@ public:
     // vector of (layer height ranges and vectors of volume ids), indexed by region_id
     std::vector<std::vector<std::pair<t_layer_height_range, int>>> region_volumes;
 
-    // this is set to true when LayerRegion->slices is split in top/internal/bottom
-    // so that next call to make_perimeters() performs a union() before computing loops
-    bool                    typed_slices;
-
-    Vec3crd                 size;           // XYZ in scaled coordinates
-
+    // Size of an object: XYZ in scaled coordinates. The size might not be quite snug in XY plane.
+    const Vec3crd&          size() const			{ return m_size; }
     const PrintObjectConfig& config() const         { return m_config; }    
     const LayerPtrs&        layers() const          { return m_layers; }
     const SupportLayerPtrs& support_layers() const  { return m_support_layers; }
     const Transform3d&      trafo() const           { return m_trafo; }
-    const Points&           copies() const          { return m_copies; }
-    const Point 			copy_center(size_t idx) const { return m_copies[idx] + m_copies_shift + Point(this->size.x() / 2, this->size.y() / 2); }
+    const PrintInstances&   instances() const       { return m_instances; }
 
-    // since the object is aligned to origin, bounding box coincides with size
-    BoundingBox bounding_box() const { return BoundingBox(Point(0,0), to_2d(this->size)); }
+    // Bounding box is used to align the object infill patterns, and to calculate attractor for the rear seam.
+    // The bounding box may not be quite snug.
+    BoundingBox             bounding_box()    const { return BoundingBox(Point(- m_size.x() / 2, - m_size.y() / 2), Point(m_size.x() / 2, m_size.y() / 2)); }
+    // Height is used for slicing, for sorting the objects by height for sequential printing and for checking vertical clearence in sequential print mode.
+    // The height is snug.
+    coord_t 				height() 		  const { return m_size.z(); }
+    // Centering offset of the sliced mesh from the scaled and rotated mesh of the model.
+    const Point& 			center_offset()   const { return m_center_offset; }
 
     // adds region_id, too, if necessary
     void add_region_volume(unsigned int region_id, int volume_id, const t_layer_height_range &layer_range) {
@@ -126,9 +143,9 @@ public:
     // This is the *total* layer count (including support layers)
     // this value is not supposed to be compared with Layer::id
     // since they have different semantics.
-    size_t total_layer_count() const { return this->layer_count() + this->support_layer_count(); }
-    size_t layer_count() const { return m_layers.size(); }
-    void clear_layers();
+    size_t 			total_layer_count() const { return this->layer_count() + this->support_layer_count(); }
+    size_t 			layer_count() const { return m_layers.size(); }
+    void 			clear_layers();
     const Layer* 	get_layer(int idx) const { return m_layers[idx]; }
     Layer* 			get_layer(int idx) 		 { return m_layers[idx]; }
     // Get a layer exactly at print_z.
@@ -177,17 +194,16 @@ public:
     std::vector<ExPolygons>     slice_support_blockers() const { return this->slice_support_volumes(ModelVolumeType::SUPPORT_BLOCKER); }
     std::vector<ExPolygons>     slice_support_enforcers() const { return this->slice_support_volumes(ModelVolumeType::SUPPORT_ENFORCER); }
 
-protected:
+private:
     // to be called from Print only.
     friend class Print;
 
-	PrintObject(Print* print, ModelObject* model_object, bool add_instances = true);
-	~PrintObject() {}
+	PrintObject(Print* print, ModelObject* model_object, const Transform3d& trafo, PrintInstances&& instances);
+	~PrintObject() = default;
 
     void                    config_apply(const ConfigBase &other, bool ignore_nonexistent = false) { this->m_config.apply(other, ignore_nonexistent); }
     void                    config_apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false) { this->m_config.apply_only(other, keys, ignore_nonexistent); }
-    void                    set_trafo(const Transform3d& trafo) { m_trafo = trafo; }
-    PrintBase::ApplyStatus  set_copies(const Points &points);
+    PrintBase::ApplyStatus  set_instances(PrintInstances &&instances);
     // Invalidates the step, and its depending steps in PrintObject and Print.
     bool                    invalidate_step(PrintObjectStep step);
     // Invalidates all PrintObject and Print steps.
@@ -219,25 +235,30 @@ private:
     void combine_infill();
     void _generate_support_material();
 
+    // XYZ in scaled coordinates
+    Vec3crd									m_size;
     PrintObjectConfig                       m_config;
     // Translation in Z + Rotation + Scaling / Mirroring.
     Transform3d                             m_trafo = Transform3d::Identity();
     // Slic3r::Point objects in scaled G-code coordinates
-    Points                                  m_copies;
-    // scaled coordinates to add to copies (to compensate for the alignment
-    // operated when creating the object but still preserving a coherent API
-    // for external callers)
-    Point                                   m_copies_shift;
+    std::vector<PrintInstance>              m_instances;
+    // The mesh is being centered before thrown to Clipper, so that the Clipper's fixed coordinates require less bits.
+    // This is the adjustment of the  the Object's coordinate system towards PrintObject's coordinate system.
+    Point                                   m_center_offset;
 
     SlicingParameters                       m_slicing_params;
     LayerPtrs                               m_layers;
     SupportLayerPtrs                        m_support_layers;
 
-    std::vector<ExPolygons> slice_region(size_t region_id, const std::vector<float> &z) const;
+    // this is set to true when LayerRegion->slices is split in top/internal/bottom
+    // so that next call to make_perimeters() performs a union() before computing loops
+    bool                    				m_typed_slices = false;
+
+    std::vector<ExPolygons> slice_region(size_t region_id, const std::vector<float> &z, SlicingMode mode) const;
     std::vector<ExPolygons> slice_modifiers(size_t region_id, const std::vector<float> &z) const;
-    std::vector<ExPolygons> slice_volumes(const std::vector<float> &z, const std::vector<const ModelVolume*> &volumes) const;
-    std::vector<ExPolygons> slice_volume(const std::vector<float> &z, const ModelVolume &volume) const;
-    std::vector<ExPolygons> slice_volume(const std::vector<float> &z, const std::vector<t_layer_height_range> &ranges, const ModelVolume &volume) const;
+    std::vector<ExPolygons> slice_volumes(const std::vector<float> &z, SlicingMode mode, const std::vector<const ModelVolume*> &volumes) const;
+    std::vector<ExPolygons> slice_volume(const std::vector<float> &z, SlicingMode mode, const ModelVolume &volume) const;
+    std::vector<ExPolygons> slice_volume(const std::vector<float> &z, const std::vector<t_layer_height_range> &ranges, SlicingMode mode, const ModelVolume &volume) const;
 };
 
 struct WipeTowerData
@@ -325,7 +346,7 @@ private: // Prevents erroneous use by other classes.
     typedef PrintBaseWithState<PrintStep, psCount> Inherited;
 
 public:
-    Print() {}
+    Print() = default;
 	virtual ~Print() { this->clear(); }
 
 	PrinterTechnology	technology() const noexcept { return ptFFF; }
@@ -361,8 +382,6 @@ public:
 
     // Returns an empty string if valid, otherwise returns an error message.
     std::string         validate() const override;
-    BoundingBox         bounding_box() const;
-    BoundingBox         total_bounding_box() const;
     double              skirt_first_layer_height() const;
     Flow                brim_flow() const;
     Flow                skirt_flow() const;
@@ -417,7 +436,6 @@ private:
 		const DynamicPrintConfig &new_full_config, 
 		t_config_option_keys &print_diff, t_config_option_keys &object_diff, t_config_option_keys &region_diff, 
 		t_config_option_keys &full_config_diff, 
-		DynamicPrintConfig &placeholder_parser_overrides,
 		DynamicPrintConfig &filament_overrides) const;
 
     bool                invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);

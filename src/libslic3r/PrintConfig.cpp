@@ -168,6 +168,17 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionInt(3));
 
+    def = this->add("bottom_solid_min_thickness", coFloat);
+    //TRN To be shown in Print Settings "Top solid layers"
+    def->label = L("Bottom");
+    def->category = L("Layers and Perimeters");
+    def->tooltip = L("The number of bottom solid layers is increased above bottom_solid_layers if necessary to satisfy "
+    				 "minimum thickness of bottom shell.");
+    def->full_label = L("Minimum bottom shell thickness");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
     def = this->add("bridge_acceleration", coFloat);
     def->label = L("Bridge");
     def->tooltip = L("This is the acceleration your printer will use for bridges. "
@@ -562,7 +573,6 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("If layer print time is estimated below this number of seconds, fan will be enabled "
                    "and its speed will be calculated by interpolating the minimum and maximum speeds.");
     def->sidetext = L("approximate seconds");
-    def->width = 6;
     def->min = 0;
     def->max = 1000;
     def->mode = comExpert;
@@ -718,8 +728,9 @@ void PrintConfigDef::init_fff_params()
     def->gui_type = "f_enum_open";
     def->gui_flags = "show_value";
     def->enum_values.push_back("PLA");
-    def->enum_values.push_back("ABS");
     def->enum_values.push_back("PET");
+    def->enum_values.push_back("ABS");
+    def->enum_values.push_back("ASA");
     def->enum_values.push_back("FLEX");
     def->enum_values.push_back("HIPS");
     def->enum_values.push_back("EDGE");
@@ -1092,7 +1103,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionBool(true));
 
-    const int machine_limits_opt_width = 7;
     {
         struct AxisDefault {
             std::string         name;
@@ -1124,7 +1134,6 @@ void PrintConfigDef::init_fff_params()
             (void)L("Maximum feedrate of the E axis");
             def->sidetext = L("mm/s");
             def->min = 0;
-            def->width = machine_limits_opt_width;
             def->mode = comAdvanced;
             def->set_default_value(new ConfigOptionFloats(axis.max_feedrate));
             // Add the machine acceleration limits for XYZE axes (M201)
@@ -1142,7 +1151,6 @@ void PrintConfigDef::init_fff_params()
             (void)L("Maximum acceleration of the E axis");
             def->sidetext = L("mm/s²");
             def->min = 0;
-            def->width = machine_limits_opt_width;
             def->mode = comAdvanced;
             def->set_default_value(new ConfigOptionFloats(axis.max_acceleration));
             // Add the machine jerk limits for XYZE axes (M205)
@@ -1160,7 +1168,6 @@ void PrintConfigDef::init_fff_params()
             (void)L("Maximum jerk of the E axis");
             def->sidetext = L("mm/s");
             def->min = 0;
-            def->width = machine_limits_opt_width;
             def->mode = comAdvanced;
             def->set_default_value(new ConfigOptionFloats(axis.max_jerk));
         }
@@ -1173,7 +1180,6 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Minimum feedrate when extruding (M205 S)");
     def->sidetext = L("mm/s");
     def->min = 0;
-    def->width = machine_limits_opt_width;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats{ 0., 0. });
 
@@ -1184,7 +1190,6 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Minimum travel feedrate (M205 T)");
     def->sidetext = L("mm/s");
     def->min = 0;
-    def->width = machine_limits_opt_width;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats{ 0., 0. });
 
@@ -1195,7 +1200,6 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Maximum acceleration when extruding (M204 S)");
     def->sidetext = L("mm/s²");
     def->min = 0;
-    def->width = machine_limits_opt_width;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
@@ -1206,7 +1210,6 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Maximum acceleration when retracting (M204 T)");
     def->sidetext = L("mm/s²");
     def->min = 0;
-    def->width = machine_limits_opt_width;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
@@ -1703,7 +1706,6 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("If layer print time is estimated below this number of seconds, print moves "
                    "speed will be scaled down to extend duration to this value.");
     def->sidetext = L("approximate seconds");
-    def->width = 6;
     def->min = 0;
     def->max = 1000;
     def->mode = comExpert;
@@ -1779,6 +1781,13 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Number of solid layers to generate on top and bottom surfaces.");
     def->shortcut.push_back("top_solid_layers");
     def->shortcut.push_back("bottom_solid_layers");
+    def->min = 0;
+
+    def = this->add("solid_min_thickness", coFloat);
+    def->label = L("Minimum thickness of a top / bottom shell");
+    def->tooltip = L("Minimum thickness of a top / bottom shell");
+    def->shortcut.push_back("top_solid_min_thickness");
+    def->shortcut.push_back("bottom_solid_min_thickness");
     def->min = 0;
 
     def = this->add("spiral_vase", coBool);
@@ -2126,6 +2135,18 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Top solid layers");
     def->min = 0;
     def->set_default_value(new ConfigOptionInt(3));
+
+    def = this->add("top_solid_min_thickness", coFloat);
+    //TRN To be shown in Print Settings "Top solid layers"
+    def->label = L("Top");
+    def->category = L("Layers and Perimeters");
+    def->tooltip = L("The number of top solid layers is increased above top_solid_layers if necessary to satisfy "
+    				 "minimum thickness of top shell."
+    				 " This is useful to prevent pillowing effect when printing with variable layer height.");
+    def->full_label = L("Minimum top shell thickness");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->set_default_value(new ConfigOptionFloat(0.));
 
     def = this->add("travel_speed", coFloat);
     def->label = L("Travel");
@@ -2873,6 +2894,47 @@ void PrintConfigDef::init_sla_params()
     def->min = 0;
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionFloat(0.3));
+    
+    def = this->add("hollowing_enable", coBool);
+    def->label = L("Enable hollowing");
+    def->category = L("Hollowing");
+    def->tooltip = L("Hollow out a model to have an empty interior");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+    
+    def = this->add("hollowing_min_thickness", coFloat);
+    def->label = L("Wall thickness");
+    def->category = L("Hollowing");
+    def->tooltip  = L("Minimum wall thickness of a hollowed model.");
+    def->sidetext = L("mm");
+    def->min = 1;
+    def->max = 10;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionFloat(3.));
+    
+    def = this->add("hollowing_quality", coFloat);
+    def->label = L("Accuracy");
+    def->category = L("Hollowing");
+    def->tooltip  = L("Performance vs accuracy of calculation. Lower values may produce unwanted artifacts.");
+    def->min = 0;
+    def->max = 1;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(0.5));
+    
+    def = this->add("hollowing_closing_distance", coFloat);
+    def->label = L("Closing distance");
+    def->category = L("Hollowing");
+    def->tooltip  = L(
+        "Hollowing is done in two steps: first, an imaginary interior is "
+        "calculated deeper (offset plus the closing distance) in the object and "
+        "then it's inflated back to the specified offset. A greater closing "
+        "distance makes the interior more rounded. At zero, the interior will "
+        "resemble the exterior the most.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->max = 10;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(2.0));
 }
 
 void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &value)

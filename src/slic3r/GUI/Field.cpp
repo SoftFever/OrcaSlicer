@@ -250,6 +250,23 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
 	}
 }
 
+void Field::msw_rescale(bool rescale_sidetext)
+{
+	m_Undo_to_sys_btn->msw_rescale();
+	m_Undo_btn->msw_rescale();
+
+	// update em_unit value
+	m_em_unit = em_unit(m_parent);
+
+	// update sidetext if it is needed
+	if (m_side_text && rescale_sidetext)
+	{
+		auto size = wxSize(def_width_thinner() * m_em_unit, -1);
+		m_side_text->SetSize(size);
+		m_side_text->SetMinSize(size);
+	}
+}
+
 template<class T>
 bool is_defined_input_value(wxWindow* win, const ConfigOptionType& type)
 {
@@ -259,7 +276,7 @@ bool is_defined_input_value(wxWindow* win, const ConfigOptionType& type)
 }
 
 void TextCtrl::BUILD() {
-    auto size = wxSize(wxDefaultSize);
+    auto size = wxSize(def_width()*m_em_unit, wxDefaultCoord);
     if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
     if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
@@ -455,10 +472,10 @@ boost::any& TextCtrl::get_value()
 	return m_value;
 }
 
-void TextCtrl::msw_rescale()
+void TextCtrl::msw_rescale(bool rescale_sidetext/* = false*/)
 {
-    Field::msw_rescale();
-    auto size = wxSize(wxDefaultSize);
+    Field::msw_rescale(rescale_sidetext);
+    auto size = wxSize(def_width() * m_em_unit, wxDefaultCoord);
     if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
     if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
@@ -555,7 +572,7 @@ boost::any& CheckBox::get_value()
  	return m_value;
 }
 
-void CheckBox::msw_rescale()
+void CheckBox::msw_rescale(bool rescale_sidetext/* = false*/)
 {
     Field::msw_rescale();
 
@@ -565,7 +582,7 @@ void CheckBox::msw_rescale()
 
 
 void SpinCtrl::BUILD() {
-	auto size = wxSize(wxDefaultSize);
+	auto size = wxSize(def_width() * m_em_unit, wxDefaultCoord);
     if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
     if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
@@ -690,16 +707,16 @@ void SpinCtrl::propagate_value()
     suppress_propagation = false;
 }
 
-void SpinCtrl::msw_rescale()
+void SpinCtrl::msw_rescale(bool rescale_sidetext/* = false*/)
 {
-    Field::msw_rescale();
+    Field::msw_rescale(rescale_sidetext);
 
     wxSpinCtrl* field = dynamic_cast<wxSpinCtrl*>(window);
-    field->SetMinSize(wxSize(-1, int(1.9f*field->GetFont().GetPixelSize().y)));
+    field->SetMinSize(wxSize(def_width() * m_em_unit, int(1.9f*field->GetFont().GetPixelSize().y)));
 }
 
 void Choice::BUILD() {
-    wxSize size(m_width * m_em_unit, -1);
+    wxSize size(def_width_wider() * m_em_unit, wxDefaultCoord);
     if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
     if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
@@ -1018,7 +1035,7 @@ boost::any& Choice::get_value()
 	return m_value;
 }
 
-void Choice::msw_rescale()
+void Choice::msw_rescale(bool rescale_sidetext/* = false*/)
 {
     Field::msw_rescale();
 
@@ -1034,7 +1051,7 @@ void Choice::msw_rescale()
 	 */
     field->Clear();
     wxSize size(wxDefaultSize);
-    size.SetWidth((m_opt.width > 0 ? m_opt.width : m_width) * m_em_unit);
+    size.SetWidth((m_opt.width > 0 ? m_opt.width : def_width_wider()) * m_em_unit);
  
     // Set rescaled min height to correct layout
     field->SetMinSize(wxSize(-1, int(1.5f*field->GetFont().GetPixelSize().y + 0.5f)));
@@ -1065,7 +1082,7 @@ void Choice::msw_rescale()
 
 void ColourPicker::BUILD()
 {
-	auto size = wxSize(wxDefaultSize);
+	auto size = wxSize(def_width() * m_em_unit, wxDefaultCoord);
     if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
     if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
@@ -1133,11 +1150,16 @@ boost::any& ColourPicker::get_value()
 	return m_value;
 }
 
-void ColourPicker::msw_rescale()
+void ColourPicker::msw_rescale(bool rescale_sidetext/* = false*/)
 {
     Field::msw_rescale();
 
-    wxColourPickerCtrl* field = dynamic_cast<wxColourPickerCtrl*>(window);
+	wxColourPickerCtrl* field = dynamic_cast<wxColourPickerCtrl*>(window);
+    auto size = wxSize(def_width() * m_em_unit, wxDefaultCoord);
+	if (m_opt.height >= 0) size.SetHeight(m_opt.height * m_em_unit);
+	if (m_opt.width >= 0) size.SetWidth(m_opt.width * m_em_unit);
+	field->SetMinSize(size);
+
     if (field->GetColour() == wxTransparentColour)
         set_undef_value(field);
 }
@@ -1189,7 +1211,7 @@ void PointCtrl::BUILD()
 	y_textctrl->SetToolTip(get_tooltip_text(X+", "+Y));
 }
 
-void PointCtrl::msw_rescale()
+void PointCtrl::msw_rescale(bool rescale_sidetext/* = false*/)
 {
     Field::msw_rescale();
 
@@ -1259,7 +1281,7 @@ void StaticText::BUILD()
 	temp->SetToolTip(get_tooltip_text(legend));
 }
 
-void StaticText::msw_rescale()
+void StaticText::msw_rescale(bool rescale_sidetext/* = false*/)
 {
     Field::msw_rescale();
 

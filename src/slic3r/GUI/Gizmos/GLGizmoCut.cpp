@@ -9,6 +9,8 @@
 #include <wx/stattext.h>
 #include <wx/sizer.h>
 
+#include <algorithm>
+
 #include "slic3r/GUI/GUI_App.hpp"
 
 
@@ -189,7 +191,7 @@ void GLGizmoCut::update_max_z(const Selection& selection) const
 void GLGizmoCut::set_cut_z(double cut_z) const
 {
     // Clamp the plane to the object's bounding box
-    m_cut_z = std::max(0.0, std::min(m_max_z, cut_z));
+    m_cut_z = std::clamp(cut_z, 0.0, m_max_z);
 }
 
 void GLGizmoCut::perform_cut(const Selection& selection)

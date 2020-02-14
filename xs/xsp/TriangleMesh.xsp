@@ -182,7 +182,7 @@ TriangleMesh::slice(z)
         
         std::vector<ExPolygons> layers;
         TriangleMeshSlicer mslicer(THIS);
-        mslicer.slice(z_f, 0.049f, &layers, [](){});
+        mslicer.slice(z_f, SlicingMode::Regular, 0.049f, &layers, [](){});
         
         AV* layers_av = newAV();
         size_t len = layers.size();

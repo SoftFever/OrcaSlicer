@@ -278,34 +278,23 @@ bool GUI_App::on_init_inner()
 		RemovableDriveManager::get_instance().update(wxGetLocalTime(), true);
 #endif
 
-        // Preset updating & Configwizard are done after the above initializations,
-        // and after MainFrame is created & shown.
-        // The extra CallAfter() is needed because of Mac, where this is the only way
-        // to popup a modal dialog on start without screwing combo boxes.
-        // This is ugly but I honestly found no better way to do it.
-        // Neither wxShowEvent nor wxWindowCreateEvent work reliably.
+		// Preset updating & Configwizard are done after the above initializations,
+	    // and after MainFrame is created & shown.
+	    // The extra CallAfter() is needed because of Mac, where this is the only way
+	    // to popup a modal dialog on start without screwing combo boxes.
+	    // This is ugly but I honestly found no better way to do it.
+	    // Neither wxShowEvent nor wxWindowCreateEvent work reliably. 
+
         static bool once = true;
         if (once) {
             once = false;
+			check_updates(false);
 
-            PresetUpdater::UpdateResult updater_result;
-            try {
-                updater_result = preset_updater->config_update(app_config->orig_version());
-                if (updater_result == PresetUpdater::R_INCOMPAT_EXIT) {
-                    mainframe->Close();
-                } else if (updater_result == PresetUpdater::R_INCOMPAT_CONFIGURED) {
-                    app_conf_exists = true;
-                }
-            } catch (const std::exception &ex) {
-                show_error(nullptr, from_u8(ex.what()));
-            }
-
-            CallAfter([this] {
-                config_wizard_startup();
-                preset_updater->slic3r_update_notify();
-                preset_updater->sync(preset_bundle);
-            });
-			
+			CallAfter([this] {
+				config_wizard_startup();
+				preset_updater->slic3r_update_notify();
+				preset_updater->sync(preset_bundle);
+				});
         }
     });
 
@@ -810,7 +799,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     local_menu->Append(config_id_base + ConfigMenuWizard, config_wizard_name + dots, config_wizard_tooltip);
     local_menu->Append(config_id_base + ConfigMenuSnapshots, _(L("&Configuration Snapshots")) + dots, _(L("Inspect / activate configuration snapshots")));
     local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _(L("Take Configuration &Snapshot")), _(L("Capture a configuration snapshot")));
-    // 	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 					_(L("Check for configuration updates")));
+    local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 					_(L("Check for configuration updates")));
     local_menu->AppendSeparator();
     local_menu->Append(config_id_base + ConfigMenuPreferences, _(L("&Preferences")) + dots + 
 #ifdef __APPLE__
@@ -841,6 +830,9 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
         case ConfigMenuWizard:
             run_wizard(ConfigWizard::RR_USER);
             break;
+		case ConfigMenuUpdate:
+			check_updates(true);
+			break;
         case ConfigMenuTakeSnapshot:
             // Take a configuration snapshot.
             if (check_unsaved_changes()) {
@@ -960,8 +952,11 @@ void GUI_App::load_current_presets()
 	this->plater()->set_printer_technology(printer_technology);
     for (Tab *tab : tabs_list)
 		if (tab->supports_printer_technology(printer_technology)) {
-			if (tab->type() == Preset::TYPE_PRINTER)
+			if (tab->type() == Preset::TYPE_PRINTER) {
 				static_cast<TabPrinter*>(tab)->update_pages();
+				// Mark the plater to update print bed by tab->load_current_preset() from Plater::on_config_change().
+				this->plater()->force_print_bed_update();
+			}
 			tab->load_current_preset();
 		}
 }
@@ -1227,6 +1222,30 @@ bool GUI_App::config_wizard_startup()
     return false;
 }
 
+void GUI_App::check_updates(const bool verbose)
+{
+	
+	PresetUpdater::UpdateResult updater_result;
+	try {
+		updater_result = preset_updater->config_update(app_config->orig_version());
+		if (updater_result == PresetUpdater::R_INCOMPAT_EXIT) {
+			mainframe->Close();
+		}
+		else if (updater_result == PresetUpdater::R_INCOMPAT_CONFIGURED) {
+			app_conf_exists = true;
+		}
+		else if(verbose && updater_result == PresetUpdater::R_NOOP)
+		{
+			MsgNoUpdates dlg;
+			dlg.ShowModal();
+		}
+	}
+	catch (const std::exception & ex) {
+		show_error(nullptr, from_u8(ex.what()));
+	}
+
+	
+}
 // static method accepting a wxWindow object as first parameter
 // void warning_catcher{
 //     my($self, $message_dialog) = @_;

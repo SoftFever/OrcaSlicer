@@ -1328,6 +1328,7 @@ void Selection::copy_to_clipboard()
 		static_cast<DynamicPrintConfig&>(dst_object->config) = static_cast<const DynamicPrintConfig&>(src_object->config);
         dst_object->sla_support_points   = src_object->sla_support_points;
         dst_object->sla_points_status    = src_object->sla_points_status;
+        dst_object->sla_drain_holes      = src_object->sla_drain_holes;
         dst_object->layer_config_ranges  = src_object->layer_config_ranges;     // #ys_FIXME_experiment
         dst_object->layer_height_profile = src_object->layer_height_profile;
         dst_object->origin_translation   = src_object->origin_translation;
@@ -2004,11 +2005,7 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
     const float max_y = box.max(1) + Margin;
 
     // view dependend order of rendering to keep correct transparency
-#if ENABLE_6DOF_CAMERA
     bool camera_on_top = wxGetApp().plater()->get_camera().is_looking_downward();
-#else
-    bool camera_on_top = wxGetApp().plater()->get_camera().get_theta() <= 90.0f;
-#endif // ENABLE_6DOF_CAMERA
     float z1 = camera_on_top ? min_z : max_z;
     float z2 = camera_on_top ? max_z : min_z;
 

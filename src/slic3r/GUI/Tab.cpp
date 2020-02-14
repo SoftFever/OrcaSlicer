@@ -114,7 +114,7 @@ void Tab::create_preset_tab()
 #endif //__WXOSX__
 
     // preset chooser
-    m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(35 * m_em_unit, -1), 0, 0, wxCB_READONLY);
+    m_presets_choice = new PresetBitmapComboBox(panel, wxSize(35 * m_em_unit, -1));
 
     auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
@@ -257,9 +257,9 @@ void Tab::create_preset_tab()
 
     // Fill cache for mode bitmaps
     m_mode_bitmap_cache.reserve(3);
-    m_mode_bitmap_cache.push_back(ScalableBitmap(this, "mode_simple_.png"));
-    m_mode_bitmap_cache.push_back(ScalableBitmap(this, "mode_advanced_.png"));
-    m_mode_bitmap_cache.push_back(ScalableBitmap(this, "mode_expert_.png"));
+    m_mode_bitmap_cache.push_back(ScalableBitmap(this, "mode_simple"  , mode_icon_px_size()));
+    m_mode_bitmap_cache.push_back(ScalableBitmap(this, "mode_advanced", mode_icon_px_size()));
+    m_mode_bitmap_cache.push_back(ScalableBitmap(this, "mode_expert"  , mode_icon_px_size()));
 
     // Initialize the DynamicPrintConfig by default keys/values.
     build();
@@ -516,6 +516,18 @@ void TabPrinter::init_options_list()
         }
     }
     m_options_list.emplace("extruders_count", m_opt_status_value);
+}
+
+void TabPrinter::msw_rescale()
+{
+    Tab::msw_rescale();
+
+    // rescale missed options_groups
+    const std::vector<PageShp>& pages = m_printer_technology == ptFFF ? m_pages_sla : m_pages_fff;
+    for (auto page : pages)
+        page->msw_rescale();
+
+    Layout();
 }
 
 void TabSLAMaterial::init_options_list()
@@ -1056,6 +1068,16 @@ void TabPrint::build()
         line.append_option(optgroup->get_option("top_solid_layers"));
         line.append_option(optgroup->get_option("bottom_solid_layers"));
         optgroup->append_line(line);
+    	line = { _(L("Minimum shell thickness")), "" };
+        line.append_option(optgroup->get_option("top_solid_min_thickness"));
+        line.append_option(optgroup->get_option("bottom_solid_min_thickness"));
+        optgroup->append_line(line);
+		line = { "", "" };
+	    line.full_width = 1;
+	    line.widget = [this](wxWindow* parent) {
+	        return description_line_widget(parent, &m_top_bottom_shell_thickness_explanation);
+	    };
+	    optgroup->append_line(line);
 
         optgroup = page->new_optgroup(_(L("Quality (slower slicing)")));
         optgroup->append_single_option_line("extra_perimeters");
@@ -1211,18 +1233,14 @@ void TabPrint::build()
         optgroup = page->new_optgroup(_(L("Sequential printing")));
         optgroup->append_single_option_line("complete_objects");
         line = { _(L("Extruder clearance (mm)")), "" };
-        Option option = optgroup->get_option("extruder_clearance_radius");
-        option.opt.width = 6;
-        line.append_option(option);
-        option = optgroup->get_option("extruder_clearance_height");
-        option.opt.width = 6;
-        line.append_option(option);
+        line.append_option(optgroup->get_option("extruder_clearance_radius"));
+        line.append_option(optgroup->get_option("extruder_clearance_height"));
         optgroup->append_line(line);
 
         optgroup = page->new_optgroup(_(L("Output file")));
         optgroup->append_single_option_line("gcode_comments");
         optgroup->append_single_option_line("gcode_label_objects");
-        option = optgroup->get_option("output_filename_format");
+        Option option = optgroup->get_option("output_filename_format");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
 
@@ -1277,6 +1295,8 @@ void TabPrint::update()
 
     m_recommended_thin_wall_thickness_description_line->SetText(
         from_u8(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle)));
+    m_top_bottom_shell_thickness_explanation->SetText(
+        from_u8(PresetHints::top_bottom_shell_thickness_explanation(*m_preset_bundle)));
     Layout();
 
 //	Thaw();
@@ -1295,6 +1315,8 @@ void TabPrint::OnActivate()
 {
     m_recommended_thin_wall_thickness_description_line->SetText(
         from_u8(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle)));
+    m_top_bottom_shell_thickness_explanation->SetText(
+        from_u8(PresetHints::top_bottom_shell_thickness_explanation(*m_preset_bundle)));
     Tab::OnActivate();
 }
 
@@ -1449,7 +1471,10 @@ void TabFilament::build()
 
     page = add_options_page(_(L("Advanced")), "wrench");
         optgroup = page->new_optgroup(_(L("Filament properties")));
-        optgroup->append_single_option_line("filament_type");
+        // Set size as all another fields for a better alignment
+        Option option = optgroup->get_option("filament_type");
+        option.opt.width = Field::def_width();
+        optgroup->append_single_option_line(option);
         optgroup->append_single_option_line("filament_soluble");
 
         optgroup = page->new_optgroup(_(L("Print speed override")));
@@ -1503,7 +1528,7 @@ void TabFilament::build()
 
     page = add_options_page(_(L("Custom G-code")), "cog");
         optgroup = page->new_optgroup(_(L("Start G-code")), 0);
-        Option option = optgroup->get_option("start_filament_gcode");
+        option = optgroup->get_option("start_filament_gcode");
         option.opt.full_width = true;
         option.opt.height = gcode_field_height;// 150;
         optgroup->append_single_option_line(option);
@@ -1676,21 +1701,28 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
         return sizer;
     };
 
-    Line host_line = optgroup->create_single_option_line("print_host");
+    // Set a wider width for a better alignment
+    Option option = optgroup->get_option("print_host");
+    option.opt.width = Field::def_width_wider();
+    Line host_line = optgroup->create_single_option_line(option);
     host_line.append_widget(printhost_browse);
     host_line.append_widget(print_host_test);
     optgroup->append_line(host_line);
-    optgroup->append_single_option_line("printhost_apikey");
+    option = optgroup->get_option("printhost_apikey");
+    option.opt.width = Field::def_width_wider();
+    optgroup->append_single_option_line(option);
 
     const auto ca_file_hint = _(L("HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate."));
 
     if (Http::ca_file_supported()) {
-        Line cafile_line = optgroup->create_single_option_line("printhost_cafile");
+        option = optgroup->get_option("printhost_cafile");
+        option.opt.width = Field::def_width_wider();
+        Line cafile_line = optgroup->create_single_option_line(option);
 
         auto printhost_cafile_browse = [this, optgroup] (wxWindow* parent) {
             auto btn = new wxButton(parent, wxID_ANY, " " + _(L("Browse"))+" " +dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
             btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-            btn->SetBitmap(create_scaled_bitmap(this, "browse"));
+            btn->SetBitmap(create_scaled_bitmap("browse"));
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
             sizer->Add(btn);
 
@@ -3483,7 +3515,6 @@ void TabSLAMaterial::build()
         for (auto& axis : axes) {
             auto opt = optgroup->get_option(opt_key, id);
             opt.opt.label = axis;
-            opt.opt.width = 6;
             line.append_option(opt);
             ++id;
         }
@@ -3608,6 +3639,13 @@ void TabSLAPrint::build()
     optgroup->append_single_option_line("pad_object_connector_stride");
     optgroup->append_single_option_line("pad_object_connector_width");
     optgroup->append_single_option_line("pad_object_connector_penetration");
+    
+    page = add_options_page(_(L("Hollowing")), "hollowing");
+    optgroup = page->new_optgroup(_(L("Hollowing")));
+    optgroup->append_single_option_line("hollowing_enable");
+    optgroup->append_single_option_line("hollowing_min_thickness");
+    optgroup->append_single_option_line("hollowing_quality");
+    optgroup->append_single_option_line("hollowing_closing_distance");
 
     page = add_options_page(_(L("Advanced")), "wrench");
     optgroup = page->new_optgroup(_(L("Slicing")));

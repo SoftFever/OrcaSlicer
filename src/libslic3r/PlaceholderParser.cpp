@@ -1,4 +1,5 @@
 #include "PlaceholderParser.hpp"
+#include "Flow.hpp"
 #include <cstring>
 #include <ctime>
 #include <iomanip>
@@ -99,11 +100,7 @@ static inline bool opts_equal(const DynamicConfig &config_old, const DynamicConf
 	const ConfigOption *opt_old = config_old.option(opt_key);
 	const ConfigOption *opt_new = config_new.option(opt_key);
 	assert(opt_new != nullptr);
-	if (opt_old == nullptr)
-        return false;
-    return (opt_new->type() == coFloatOrPercent) ?
-		dynamic_cast<const ConfigOptionFloat*>(opt_old)->value == config_new.get_abs_value(opt_key) :
-        *opt_new == *opt_old;
+    return opt_old != nullptr && *opt_new == *opt_old;
 }
 
 std::vector<std::string> PlaceholderParser::config_diff(const DynamicPrintConfig &rhs)
@@ -126,14 +123,7 @@ bool PlaceholderParser::apply_config(const DynamicPrintConfig &rhs)
     bool modified = false;
     for (const t_config_option_key &opt_key : rhs.keys()) {
         if (! opts_equal(m_config, rhs, opt_key)) {
-            // Store a copy of the config option.
-            // Convert FloatOrPercent values to floats first.
-            //FIXME there are some ratio_over chains, which end with empty ratio_with.
-            // For example, XXX_extrusion_width parameters are not handled by get_abs_value correctly.
-			const ConfigOption *opt_rhs = rhs.option(opt_key);
-			this->set(opt_key, (opt_rhs->type() == coFloatOrPercent) ?
-                new ConfigOptionFloat(rhs.get_abs_value(opt_key)) :
-                opt_rhs->clone());
+			this->set(opt_key, rhs.option(opt_key)->clone());
             modified = true;
         }
     }
@@ -142,16 +132,8 @@ bool PlaceholderParser::apply_config(const DynamicPrintConfig &rhs)
 
 void PlaceholderParser::apply_only(const DynamicPrintConfig &rhs, const std::vector<std::string> &keys)
 {
-    for (const t_config_option_key &opt_key : keys) {
-        // Store a copy of the config option.
-        // Convert FloatOrPercent values to floats first.
-        //FIXME there are some ratio_over chains, which end with empty ratio_with.
-        // For example, XXX_extrusion_width parameters are not handled by get_abs_value correctly.
-        const ConfigOption *opt_rhs = rhs.option(opt_key);
-        this->set(opt_key, (opt_rhs->type() == coFloatOrPercent) ?
-            new ConfigOptionFloat(rhs.get_abs_value(opt_key)) :
-            opt_rhs->clone());
-    }
+    for (const t_config_option_key &opt_key : keys)
+        this->set(opt_key, rhs.option(opt_key)->clone());
 }
 
 void PlaceholderParser::apply_config(DynamicPrintConfig &&rhs)
@@ -635,7 +617,7 @@ namespace client
         return os;
     }
 
-    struct MyContext {
+    struct MyContext : public ConfigOptionResolver {
     	const DynamicConfig     *external_config        = nullptr;
         const DynamicConfig     *config                 = nullptr;
         const DynamicConfig     *config_override        = nullptr;
@@ -650,7 +632,7 @@ namespace client
 
         static void             evaluate_full_macro(const MyContext *ctx, bool &result) { result = ! ctx->just_boolean_expression; }
 
-        const ConfigOption*     resolve_symbol(const std::string &opt_key) const
+        const ConfigOption* 	optptr(const t_config_option_key &opt_key) const override
         {
             const ConfigOption *opt = nullptr;
             if (config_override != nullptr)
@@ -661,6 +643,8 @@ namespace client
                 opt = external_config->option(opt_key);
             return opt;
         }
+
+        const ConfigOption*     resolve_symbol(const std::string &opt_key) const { return this->optptr(opt_key); }
 
         template <typename Iterator>
         static void legacy_variable_expansion(
@@ -758,7 +742,43 @@ namespace client
             case coPoint:   output.set_s(opt.opt->serialize());  break;
             case coBool:    output.set_b(opt.opt->getBool());    break;
             case coFloatOrPercent:
-                ctx->throw_exception("FloatOrPercent variables are not supported", opt.it_range);
+            {
+                std::string opt_key(opt.it_range.begin(), opt.it_range.end());
+                if (boost::ends_with(opt_key, "extrusion_width")) {
+                	// Extrusion width supports defaults and a complex graph of dependencies.
+                    output.set_d(Flow::extrusion_width(opt_key, *ctx, static_cast<unsigned int>(ctx->current_extruder_id)));
+                } else if (! static_cast<const ConfigOptionFloatOrPercent*>(opt.opt)->percent) {
+                	// Not a percent, just return the value.
+                    output.set_d(opt.opt->getFloat());
+                } else {
+                	// Resolve dependencies using the "ratio_over" link to a parent value.
+			        const ConfigOptionDef  *opt_def = print_config_def.get(opt_key);
+			        assert(opt_def != nullptr);
+			        double v = opt.opt->getFloat() * 0.01; // percent to ratio
+			        for (;;) {
+			        	const ConfigOption *opt_parent = opt_def->ratio_over.empty() ? nullptr : ctx->resolve_symbol(opt_def->ratio_over);
+			        	if (opt_parent == nullptr)
+			                ctx->throw_exception("FloatOrPercent variable failed to resolve the \"ratio_over\" dependencies", opt.it_range);
+			            if (boost::ends_with(opt_def->ratio_over, "extrusion_width")) {
+                			// Extrusion width supports defaults and a complex graph of dependencies.
+                            assert(opt_parent->type() == coFloatOrPercent);
+                    		v *= Flow::extrusion_width(opt_def->ratio_over, static_cast<const ConfigOptionFloatOrPercent*>(opt_parent), *ctx, static_cast<unsigned int>(ctx->current_extruder_id));
+                    		break;
+                    	}
+                    	if (opt_parent->type() == coFloat || opt_parent->type() == coFloatOrPercent) {
+			        		v *= opt_parent->getFloat();
+			        		if (opt_parent->type() == coFloat || ! static_cast<const ConfigOptionFloatOrPercent*>(opt_parent)->percent)
+			        			break;
+			        		v *= 0.01; // percent to ratio
+			        	}
+		        		// Continue one level up in the "ratio_over" hierarchy.
+				        opt_def = print_config_def.get(opt_def->ratio_over);
+				        assert(opt_def != nullptr);
+			        }
+                    output.set_d(v);
+	            }
+		        break;
+		    }
             default:
                 ctx->throw_exception("Unknown scalar variable type", opt.it_range);
             }
