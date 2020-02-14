@@ -241,14 +241,14 @@ public:
     wxMenuItem*         append_menu_item_split(wxMenu* menu);
     wxMenuItem*         append_menu_item_layers_editing(wxMenu* menu, wxWindow* parent);
     wxMenuItem*         append_menu_item_settings(wxMenu* menu);
-    wxMenuItem*         append_menu_item_change_type(wxMenu* menu);
+    wxMenuItem*         append_menu_item_change_type(wxMenu* menu, wxWindow* parent = nullptr);
     wxMenuItem*         append_menu_item_instance_to_object(wxMenu* menu, wxWindow* parent);
     wxMenuItem*         append_menu_item_printable(wxMenu* menu, wxWindow* parent);
     void                append_menu_items_osx(wxMenu* menu);
     wxMenuItem*         append_menu_item_fix_through_netfabb(wxMenu* menu);
     void                append_menu_item_export_stl(wxMenu* menu) const;
     void                append_menu_item_reload_from_disk(wxMenu* menu) const;
-    void                append_menu_item_change_extruder(wxMenu* menu) const;
+    void                append_menu_item_change_extruder(wxMenu* menu);
     void                append_menu_item_delete(wxMenu* menu);
     void                append_menu_item_scale_selection_to_fit_print_volume(wxMenu* menu);
     void                create_object_popupmenu(wxMenu *menu);

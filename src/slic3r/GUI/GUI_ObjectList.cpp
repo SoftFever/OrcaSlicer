@@ -1541,7 +1541,8 @@ wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_)
     // If there are selected more then one instance but not all of them
     // don't add settings menu items
     const Selection& selection = scene_selection();
-    if (selection.is_multiple_full_instance() && !selection.is_single_full_object())
+    if (selection.is_multiple_full_instance() && !selection.is_single_full_object() || 
+        selection.is_multiple_volume() || selection.is_mixed() ) // more than one volume(part) is selected on the scene
         return nullptr;
 
     const auto sel_vol = get_selected_model_volume();
@@ -1560,6 +1561,8 @@ wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_)
 
     // Add frequently settings
     const ItemType item_type = m_objects_model->GetItemType(GetSelection());
+    if (item_type == itUndef)
+        return nullptr;
     const bool is_object_settings = item_type & itObject || item_type & itInstance || selection.is_single_full_object();
     create_freq_settings_popupmenu(menu, is_object_settings);
 
@@ -1577,11 +1580,14 @@ wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_)
     return menu->Append(menu_item);
 }
 
-wxMenuItem* ObjectList::append_menu_item_change_type(wxMenu* menu)
+wxMenuItem* ObjectList::append_menu_item_change_type(wxMenu* menu, wxWindow* parent/* = nullptr*/)
 {
     return append_menu_item(menu, wxID_ANY, _(L("Change type")), "",
-        [this](wxCommandEvent&) { change_part_type(); }, "", menu);
-
+        [this](wxCommandEvent&) { change_part_type(); }, "", menu, 
+        [this]() {
+            wxDataViewItem item = GetSelection();
+            return item.IsOk() || m_objects_model->GetItemType(item) == itVolume;
+        }, parent);
 }
 
 wxMenuItem* ObjectList::append_menu_item_instance_to_object(wxMenu* menu, wxWindow* parent)
@@ -1656,19 +1662,27 @@ void ObjectList::append_menu_item_reload_from_disk(wxMenu* menu) const
         []() { return wxGetApp().plater()->can_reload_from_disk(); }, wxGetApp().plater());
 }
 
-void ObjectList::append_menu_item_change_extruder(wxMenu* menu) const
+void ObjectList::append_menu_item_change_extruder(wxMenu* menu)
 {
-    const wxString name = _(L("Change extruder"));
+    const std::vector<wxString> names = {_(L("Change extruder")), _(L("Set extruder for selected items")) };
     // Delete old menu item
-    const int item_id = menu->FindItem(name);
-    if (item_id != wxNOT_FOUND)
-        menu->Destroy(item_id);
+    for (const wxString& name : names) {
+        const int item_id = menu->FindItem(name);
+        if (item_id != wxNOT_FOUND)
+            menu->Destroy(item_id);
+    }
 
     const int extruders_cnt = extruders_count();
-    const wxDataViewItem item = GetSelection();
-    if (item && extruders_cnt > 1)
+    if (extruders_cnt <= 1)
+        return;
+
+    if (!GetSelection().IsOk())
+        append_menu_item(menu, wxID_ANY, names[1],
+            _(L("Select extruder number for selected objects and/or parts")),
+            [this](wxCommandEvent&) { extruder_selection(); }, "", menu);
+    else
     {
-        DynamicPrintConfig& config = get_item_config(item);
+        DynamicPrintConfig& config = get_item_config(GetSelection());
 
         const int initial_extruder = !config.has("extruder") ? 0 :
                                       config.option<ConfigOptionInt>("extruder")->value;
@@ -1683,7 +1697,7 @@ void ObjectList::append_menu_item_change_extruder(wxMenu* menu) const
                 [this, i](wxCommandEvent&) { set_extruder_for_selected_items(i); }, menu)->Check(i == initial_extruder);
         }
 
-        menu->AppendSubMenu(extruder_selection_menu, name, _(L("Select new extruder for the object/part")));
+        menu->AppendSubMenu(extruder_selection_menu, names[0], _(L("Select new extruder for the object/part")));
     }
 }
 
@@ -3159,7 +3173,9 @@ void ObjectList::update_selections()
 
             for (auto obj_ins : objects_content_list) {
                 if (obj_ins.first == glv_obj_idx) {
-                    if (obj_ins.second.find(glv_ins_idx) != obj_ins.second.end()) {
+                    if (obj_ins.second.find(glv_ins_idx) != obj_ins.second.end() &&
+                        !selection.is_from_single_instance() ) // a case when volumes of different types are selected
+                    {
                         if (glv_ins_idx == 0 && (*m_objects)[glv_obj_idx]->instances.size() == 1)
                             sels.Add(m_objects_model->GetItemById(glv_obj_idx));
                         else

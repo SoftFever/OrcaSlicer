@@ -4029,7 +4029,7 @@ bool Plater::priv::complit_init_part_menu()
     part_menu.AppendSeparator();
 
     auto obj_list = sidebar->obj_list();
-    obj_list->append_menu_item_change_type(&part_menu);
+    obj_list->append_menu_item_change_type(&part_menu, q);
 
     return true;
 }
