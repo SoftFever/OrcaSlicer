@@ -821,7 +821,7 @@ void Control::draw_cog_icon(wxDC& dc)
 
 void Control::update_thumb_rect(const wxCoord& begin_x, const wxCoord& begin_y, const SelectedSlider& selection)
 {
-    const wxRect& rect = wxRect(begin_x, begin_y, m_thumb_size.x, int(m_thumb_size.y*0.5));
+    const wxRect& rect = wxRect(begin_x, begin_y + (selection == ssLower ? int(m_thumb_size.y * 0.5) : 0), m_thumb_size.x, int(m_thumb_size.y*0.5));
     if (selection == ssLower)
         m_rect_lower_thumb = rect;
     else
@@ -839,10 +839,15 @@ int Control::get_value_from_position(const wxCoord x, const wxCoord y)
     return int(m_min_value + double(height - SLIDER_MARGIN - y) / step + 0.5);
 }
 
-void Control::detect_selected_slider(const wxPoint& pt)
+bool Control::detect_selected_slider(const wxPoint& pt)
 {
-    m_selection = is_point_in_rect(pt, m_rect_lower_thumb) ? ssLower :
-                  is_point_in_rect(pt, m_rect_higher_thumb) ? ssHigher : ssUndef;
+    if (is_point_in_rect(pt, m_rect_lower_thumb))
+        m_selection = ssLower;
+    else if(is_point_in_rect(pt, m_rect_higher_thumb))
+        m_selection = ssHigher;
+    else
+        return false; // pt doesn't referenced to any thumb 
+    return true;
 }
 
 bool Control::is_point_in_rect(const wxPoint& pt, const wxRect& rect)
@@ -906,6 +911,9 @@ void Control::OnLeftDown(wxMouseEvent& event)
         else if (is_point_in_rect(pos, m_rect_revert_icon))
             m_mouse = maRevertIconClick;
     }
+
+    if (m_mouse == maNone)
+        detect_selected_slider(pos);
 
     event.Skip();
 }
@@ -1055,11 +1063,7 @@ void Control::OnMotion(wxMouseEvent& event)
     const wxPoint pos = event.GetLogicalPosition(wxClientDC(this));
     int tick = -1;
 
-    /* Note: Checking "!m_is_one_layer" is commented now because of 
-     * it looks like unnecessary and cause a tooltip "One layer" showing when OneLayerLock is on
-     * #ysFIXME : Delete it after testing
-     *  */
-    if (!m_is_left_down/* && !m_is_one_layer*/) 
+    if (!m_is_left_down && !m_is_right_down) 
     {
         if (is_point_in_rect(pos, m_rect_one_layer_icon))
             m_focus = fiOneLayerIcon;
@@ -1351,16 +1355,12 @@ void Control::OnRightDown(wxMouseEvent& event)
             m_mouse = m_ticks.ticks.find(TickCode{ tick }) == m_ticks.ticks.end() ?
                              maAddMenu : maEditMenu;
         }
-        else if (m_mode == t_mode::SingleExtruder   && is_point_in_rect(pos, get_colored_band_rect()))
+        else if (m_mode == t_mode::SingleExtruder   && !detect_selected_slider(pos) && is_point_in_rect(pos, get_colored_band_rect()))
             m_mouse = maForceColorEdit;
         else if (m_mode == t_mode::MultiAsSingle    && is_point_in_rect(pos, m_rect_cog_icon))
             m_mouse = maCogIconMenu;
     }
-    if (m_mouse != maNone)
-        return;
-
-    detect_selected_slider(pos);
-    if (!m_selection)
+    if (m_mouse != maNone || !detect_selected_slider(pos))
         return;
 
     if (m_selection == ssLower)
@@ -1795,10 +1795,11 @@ void Control::move_current_thumb_to_pos(wxPoint pos)
     if (mouse_val >= 0)
     {
         // if (abs(mouse_val - m_lower_value) < abs(mouse_val - m_higher_value)) {
-        if (mouse_val <= m_lower_value) {
+        // if (mouse_val <= m_lower_value) {
+        if (m_selection == ssLower) {
             SetLowerValue(mouse_val);
             correct_lower_value();
-            m_selection = ssLower;
+        //    m_selection = ssLower;
         }
         else {
             SetHigherValue(mouse_val);
