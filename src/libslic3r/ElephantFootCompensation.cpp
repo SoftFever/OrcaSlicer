@@ -592,6 +592,10 @@ ExPolygon elephant_foot_compensation(const ExPolygon &input_expoly, double min_c
 			assert(out_vec.size() == 1);
 		}
 	}
+    
+    // FIXME: orientations are messed up (Tamas)
+    out.contour.make_counter_clockwise();
+    for (auto &h : out.holes) h.make_clockwise();
 
 	return out;
 }

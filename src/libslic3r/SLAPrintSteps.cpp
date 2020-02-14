@@ -80,16 +80,37 @@ SLAPrint::Steps::Steps(SLAPrint *print)
     , objectstep_scale{(max_objstatus - min_objstatus) / (objcount * 100.0)}
 {}
 
-
-void SLAPrint::Steps::apply_elefant_foot_compensation(SLAPrintObject &po, SliceOrigin o)
+void SLAPrint::Steps::apply_printer_corrections(SLAPrintObject &po, SliceOrigin o)
 {
+    if (o == soSupport && !po.m_supportdata) return;
+    
     auto faded_lyrs = size_t(po.m_config.faded_layers.getInt());
+    double min_w = m_print->m_printer_config.elefant_foot_min_width.getFloat() / 2.;
+    double start_efc = m_print->m_printer_config.elefant_foot_compensation.getFloat();
+    
+    double doffs = m_print->m_printer_config.absolute_correction.getFloat();
+    coord_t clpr_offs = scaled(doffs);
+    
     faded_lyrs = std::min(po.m_slice_index.size(), faded_lyrs);
     
-    if (!po.m_model_height_levels.empty() && po.m_model_height_levels[0] < ilh) {
-        auto &first_sl = po.m_model_slices[0];
-        double compensation = m_print->m_printer_config.elefant_foot_compensation.getFloat();
-        first_sl = elephant_foot_compensation(first_sl, 0., compensation);
+    auto efc = [start_efc, faded_lyrs](size_t pos) {
+        return (faded_lyrs - 1 - pos) * start_efc / (faded_lyrs - 1); 
+    };
+
+    std::vector<ExPolygons> &slices = o == soModel ?
+                                          po.m_model_slices :
+                                          po.m_supportdata->support_slices;
+    
+    if (clpr_offs != 0) for (size_t i = 0; i < po.m_slice_index.size(); ++i) {
+        size_t idx = po.m_slice_index[i].get_slice_idx(o);
+        if (idx < slices.size())
+            slices[idx] = offset_ex(slices[idx], float(clpr_offs));
+    }
+    
+    if (start_efc > 0.) for (size_t i = 0; i < faded_lyrs; ++i) {
+        size_t idx = po.m_slice_index[i].get_slice_idx(o);
+        if (idx < slices.size())
+            slices[idx] = elephant_foot_compensation(slices[idx], min_w, efc(i));
     }
 }
 
@@ -251,23 +272,15 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
     }
     
     auto mit = slindex_it;
-    double doffs = m_print->m_printer_config.absolute_correction.getFloat();
-    coord_t clpr_offs = scaled(doffs);
-    
-
-    
-    for(size_t id = 0;
+    for (size_t id = 0;
          id < po.m_model_slices.size() && mit != po.m_slice_index.end();
-         id++)
-    {
-        // We apply the printer correction offset here.
-        if(clpr_offs != 0)
-            po.m_model_slices[id] =
-                offset_ex(po.m_model_slices[id], float(clpr_offs));
-        
+         id++) {
         mit->set_model_slice_idx(po, id); ++mit;
     }
     
+    // We apply the printer correction offset here.
+    apply_printer_corrections(po, soModel);
+        
     if(po.m_config.supports_enable.getBool() || po.m_config.pad_enable.getBool())
     {
         po.m_supportdata.reset(new SLAPrintObject::SupportData(mesh));
@@ -464,27 +477,15 @@ void SLAPrint::Steps::slice_supports(SLAPrintObject &po) {
         auto heights = reserve_vector<float>(po.m_slice_index.size());
         
         for(auto& rec : po.m_slice_index) heights.emplace_back(rec.slice_level());
-        
+
         sd->support_slices = sd->support_tree_ptr->slice(
-                    heights, float(po.config().slice_closing_radius.value));
-        
-        if (!heights.empty() && heights[0] < ilh) {
-            auto &first_sl = sd->support_slices[0];
-            double compensation = m_print->m_printer_config.elefant_foot_compensation.getFloat();
-            first_sl = elephant_foot_compensation(first_sl, 0., compensation);
-        }
+            heights, float(po.config().slice_closing_radius.value));
     }
     
-    double doffs = m_print->m_printer_config.absolute_correction.getFloat();
-    coord_t clpr_offs = scaled(doffs);
-
-    for (size_t i = 0; i < sd->support_slices.size() && i < po.m_slice_index.size(); ++i) {
-        // We apply the printer correction offset here.
-        if (clpr_offs != 0)
-            sd->support_slices[i] = offset_ex(sd->support_slices[i], float(clpr_offs));
-
+    for (size_t i = 0; i < sd->support_slices.size() && i < po.m_slice_index.size(); ++i) 
         po.m_slice_index[i].set_support_slice_idx(po, i);
-    }
+    
+    apply_printer_corrections(po, soSupport);
 
     // Using RELOAD_SLA_PREVIEW to tell the Plater to pass the update
     // status to the 3D preview to load the SLA slices.
