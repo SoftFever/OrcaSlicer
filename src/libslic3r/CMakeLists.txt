@@ -91,6 +91,8 @@ add_library(libslic3r STATIC
     GCode/ToolOrdering.hpp
     GCode/WipeTower.cpp
     GCode/WipeTower.hpp
+    GCode/GCodeProcessor.cpp
+    GCode/GCodeProcessor.hpp
     GCode.cpp
     GCode.hpp
     GCodeReader.cpp
