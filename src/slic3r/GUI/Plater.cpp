@@ -1233,19 +1233,19 @@ void Sidebar::update_sliced_info_sizer()
             p->sliced_info->SetTextAndShow(siFilament_m,    info_text,      new_label);
 
             p->sliced_info->SetTextAndShow(siFilament_mm3,  wxString::Format("%.2f", ps.total_extruded_volume));
-            p->sliced_info->SetTextAndShow(siFilament_g,    wxString::Format("%.2f", ps.total_weight));
-
+            p->sliced_info->SetTextAndShow(siFilament_g,    ps.total_weight == 0.0 ? "N/A" : wxString::Format("%.2f", ps.total_weight));
 
             new_label = _(L("Cost"));
             if (is_wipe_tower)
                 new_label += wxString::Format(" :\n    - %s\n    - %s", _(L("objects")), _(L("wipe tower")));
 
-            info_text = is_wipe_tower ?
+            info_text = ps.total_cost == 0.0 ? "N/A" :
+                        is_wipe_tower ?
                         wxString::Format("%.2f \n%.2f \n%.2f", ps.total_cost,
                                             (ps.total_cost - ps.total_wipe_tower_cost),
                                             ps.total_wipe_tower_cost) :
                         wxString::Format("%.2f", ps.total_cost);
-            p->sliced_info->SetTextAndShow(siCost,       info_text,      new_label);
+            p->sliced_info->SetTextAndShow(siCost, info_text,      new_label);
 
             if (ps.estimated_normal_print_time == "N/A" && ps.estimated_silent_print_time == "N/A")
                 p->sliced_info->SetTextAndShow(siEstimatedTime, "N/A");
