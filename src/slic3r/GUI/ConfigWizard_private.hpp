@@ -447,6 +447,7 @@ struct ConfigWizard::priv
     std::unique_ptr<DynamicPrintConfig> custom_config;           // Backing for custom printer definition
     bool any_fff_selected;        // Used to decide whether to display Filaments page
     bool any_sla_selected;        // Used to decide whether to display SLA Materials page
+	bool custom_printer_selected; 
 
     wxScrolledWindow *hscroll = nullptr;
     wxBoxSizer *hscroll_sizer = nullptr;
@@ -497,7 +498,7 @@ struct ConfigWizard::priv
     void set_run_reason(RunReason run_reason);
     void update_materials(Technology technology);
 
-    void on_custom_setup();
+    void on_custom_setup(const bool custom_wanted);
     void on_printer_pick(PagePrinters *page, const PrinterPickerEvent &evt);
     void select_default_materials_for_printer_model(const std::vector<VendorProfile::PrinterModel> &models,
                                                     Technology                                      technology,
