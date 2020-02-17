@@ -1676,29 +1676,37 @@ void ObjectList::append_menu_item_change_extruder(wxMenu* menu)
     if (extruders_cnt <= 1)
         return;
 
-    if (!GetSelection().IsOk())
-        append_menu_item(menu, wxID_ANY, names[1],
-            _(L("Select extruder number for selected objects and/or parts")),
-            [this](wxCommandEvent&) { extruder_selection(); }, "", menu);
-    else
-    {
-        DynamicPrintConfig& config = get_item_config(GetSelection());
+    wxDataViewItemArray sels;
+    GetSelections(sels);
+    if (sels.IsEmpty())
+        return;
 
-        const int initial_extruder = !config.has("extruder") ? 0 :
-                                      config.option<ConfigOptionInt>("extruder")->value;
+    std::vector<wxBitmap*> icons = get_extruder_color_icons(true);
+    wxMenu* extruder_selection_menu = new wxMenu();
+    const wxString& name = sels.Count()==1 ? names[0] : names[1];
 
-        wxMenu* extruder_selection_menu = new wxMenu();
-
-        for (int i = 0; i <= extruders_cnt; i++)
-        {
-            const wxString& item_name = i == 0 ? _(L("Default")) : wxString::Format("%d", i);
-
-            append_menu_radio_item(extruder_selection_menu, wxID_ANY, item_name, "",
-                [this, i](wxCommandEvent&) { set_extruder_for_selected_items(i); }, menu)->Check(i == initial_extruder);
-        }
-
-        menu->AppendSubMenu(extruder_selection_menu, names[0], _(L("Select new extruder for the object/part")));
+    int initial_extruder = -1; // negative value for multiple object/part selection
+    if (sels.Count()==1) {
+        DynamicPrintConfig& config = get_item_config(sels[0]);
+        initial_extruder = !config.has("extruder") ? 0 : 
+                            config.option<ConfigOptionInt>("extruder")->value;
     }
+
+    for (int i = 0; i <= extruders_cnt; i++)
+    {
+        bool is_active_extruder = i == initial_extruder;
+        int icon_idx = i == 0 ? 0 : i - 1;
+
+        const wxString& item_name = (i == 0 ? _(L("Default")) : wxString::Format(_(L("Extruder %d")), i)) +
+                                    (is_active_extruder ? " (" + _(L("active")) + ")" : "");
+
+        append_menu_item(extruder_selection_menu, wxID_ANY, item_name, "",
+            [this, i](wxCommandEvent&) { set_extruder_for_selected_items(i); }, *icons[icon_idx], menu,
+            [is_active_extruder]() { return !is_active_extruder; }, GUI::wxGetApp().plater());
+
+    }
+
+    menu->AppendSubMenu(extruder_selection_menu, name);
 }
 
 void ObjectList::append_menu_item_delete(wxMenu* menu)
@@ -3937,9 +3945,7 @@ void ObjectList::show_multi_selection_menu()
     wxMenu* menu = new wxMenu();
 
     if (extruders_count() > 1)
-        append_menu_item(menu, wxID_ANY, _(L("Set extruder for selected items")),
-            _(L("Select extruder number for selected objects and/or parts")),
-            [this](wxCommandEvent&) { extruder_selection(); }, "", menu);
+        append_menu_item_change_extruder(menu);
 
     append_menu_item(menu, wxID_ANY, _(L("Reload from disk")), _(L("Reload the selected volumes from disk")),
         [this](wxCommandEvent&) { wxGetApp().plater()->reload_from_disk(); }, "", menu, []() {

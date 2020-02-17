@@ -1122,6 +1122,8 @@ void Control::append_change_extruder_menu_item(wxMenu* menu, bool switch_current
     {
         std::array<int, 2> active_extruders = get_active_extruders_for_tick(m_selection == ssLower ? m_lower_value : m_higher_value);
 
+        std::vector<wxBitmap*> icons = get_extruder_color_icons(true);
+
         wxMenu* change_extruder_menu = new wxMenu();
 
         for (int i = 1; i <= extruders_cnt; i++)
@@ -1132,7 +1134,7 @@ void Control::append_change_extruder_menu_item(wxMenu* menu, bool switch_current
 
             if (m_mode == t_mode::MultiAsSingle)
                 append_menu_item(change_extruder_menu, wxID_ANY, item_name, "",
-                    [this, i](wxCommandEvent&) { add_code_as_tick(ToolChangeCode, i); }, "", menu,
+                    [this, i](wxCommandEvent&) { add_code_as_tick(ToolChangeCode, i); }, *icons[i-1], menu,
                     [is_active_extruder]() { return !is_active_extruder; }, GUI::wxGetApp().plater());
         }
 
