@@ -1139,10 +1139,9 @@ void PrintObject::discover_vertical_shells()
                         }
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 			        	polygons_append(holes, cache_top_botom_regions[idx_layer].holes);
-                        {
+			        	if (int n_top_layers = region_config.top_solid_layers.value; n_top_layers > 0) {
                             // Gather top regions projected to this layer.
-                            coordf_t print_z      = layer->print_z;
-                            int      n_top_layers = region_config.top_solid_layers.value;
+                            coordf_t print_z = layer->print_z;
 	                        for (int i = int(idx_layer) + 1; 
 	                        	i < int(cache_top_botom_regions.size()) && 
 	                        		(i < int(idx_layer) + n_top_layers ||
@@ -1159,10 +1158,9 @@ void PrintObject::discover_vertical_shells()
 	                           }
 	                        }
 	                    }
-	                    {
+	                    if (int n_bottom_layers = region_config.bottom_solid_layers.value; n_bottom_layers > 0) {
                             // Gather bottom regions projected to this layer.
-                            coordf_t bottom_z        = layer->bottom_z();
-				        	int 	 n_bottom_layers = region_config.bottom_solid_layers.value;
+                            coordf_t bottom_z = layer->bottom_z();
 	                        for (int i = int(idx_layer) - 1;
 	                        	i >= 0 &&
 	                        		(i > int(idx_layer) - n_bottom_layers ||
@@ -2356,6 +2354,9 @@ void PrintObject::discover_horizontal_shells()
             for (size_t idx_surface_type = 0; idx_surface_type < 3; ++ idx_surface_type) {
                 m_print->throw_if_canceled();
                 SurfaceType type = (idx_surface_type == 0) ? stTop : (idx_surface_type == 1) ? stBottom : stBottomBridge;
+                int num_solid_layers = (type == stTop) ? region_config.top_solid_layers.value : region_config.bottom_solid_layers.value;
+                if (num_solid_layers == 0)
+                	continue;
                 // Find slices of current type for current layer.
                 // Use slices instead of fill_surfaces, because they also include the perimeter area,
                 // which needs to be propagated in shells; we need to grow slices like we did for
@@ -2384,9 +2385,9 @@ void PrintObject::discover_horizontal_shells()
                 // Scatter top / bottom regions to other layers. Scattering process is inherently serial, it is difficult to parallelize without locking.
                 for (int n = (type == stTop) ? int(i) - 1 : int(i) + 1;
                 	(type == stTop) ?
-                		(n >= 0                   && (int(i) - n < region_config.top_solid_layers.value || 
+                		(n >= 0                   && (int(i) - n < num_solid_layers || 
                 								 	  print_z - m_layers[n]->print_z < region_config.top_solid_min_thickness.value - EPSILON)) :
-                		(n < int(m_layers.size()) && (n - int(i) < region_config.bottom_solid_layers.value ||
+                		(n < int(m_layers.size()) && (n - int(i) < num_solid_layers ||
                 									  m_layers[n]->bottom_z() - bottom_z < region_config.bottom_solid_min_thickness.value - EPSILON));
                 	(type == stTop) ? -- n : ++ n)
                 {
