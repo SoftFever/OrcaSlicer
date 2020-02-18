@@ -112,6 +112,9 @@ int get_dpi_for_window(wxWindow *window)
 #elif defined __APPLE__
     // TODO
     return DPI_DEFAULT;
+#else // freebsd and others
+    // TODO
+    return DPI_DEFAULT;
 #endif
 }
 
