@@ -686,6 +686,7 @@ public:
     ConfigOption*           clone() const override { return new ConfigOptionString(*this); }
     ConfigOptionString&     operator=(const ConfigOption *opt) { this->set(opt); return *this; }
     bool                    operator==(const ConfigOptionString &rhs) const { return this->value == rhs.value; }
+    bool 					empty() const { return this->value.empty(); }
 
     std::string serialize() const override
     { 

@@ -683,19 +683,51 @@ Preset& PresetCollection::load_preset(const std::string &path, const std::string
     return this->load_preset(path, name, std::move(cfg), select);
 }
 
-static bool profile_print_params_same(const DynamicPrintConfig &cfg1, const DynamicPrintConfig &cfg2)
+enum class ProfileHostParams
 {
-    t_config_option_keys diff = cfg1.diff(cfg2);
+	Same,
+	Different,
+	Anonymized,
+};
+
+static ProfileHostParams profile_host_params_same_or_anonymized(const DynamicPrintConfig &cfg_old, const DynamicPrintConfig &cfg_new)
+{
+	auto opt_print_host_old 	  = cfg_old.option<ConfigOptionString>("print_host");
+	auto opt_printhost_apikey_old = cfg_old.option<ConfigOptionString>("printhost_apikey");
+	auto opt_printhost_cafile_old = cfg_old.option<ConfigOptionString>("printhost_cafile");
+
+	auto opt_print_host_new 	  = cfg_new.option<ConfigOptionString>("print_host");
+	auto opt_printhost_apikey_new = cfg_new.option<ConfigOptionString>("printhost_apikey");
+	auto opt_printhost_cafile_new = cfg_new.option<ConfigOptionString>("printhost_cafile");
+
+	// If the new print host data is undefined, use the old data.
+	bool new_print_host_undefined = (opt_print_host_new 		== nullptr || opt_print_host_new		->empty()) &&
+									(opt_printhost_apikey_new 	== nullptr || opt_printhost_apikey_new	->empty()) &&
+									(opt_printhost_cafile_new 	== nullptr || opt_printhost_cafile_new	->empty());
+	if (new_print_host_undefined)
+		return ProfileHostParams::Anonymized;
+
+	auto opt_same = [](const ConfigOptionString *l, const ConfigOptionString *r) {
+		return ((l == nullptr || l->empty()) && (r == nullptr || r->empty())) ||
+			   (l != nullptr && r != nullptr && l->value == r->value);
+	};
+	return (opt_same(opt_print_host_old, opt_print_host_new) && opt_same(opt_printhost_apikey_old, opt_printhost_apikey_new) && 
+		    opt_same(opt_printhost_cafile_old, opt_printhost_cafile_new)) ? ProfileHostParams::Same : ProfileHostParams::Different;
+}
+
+static bool profile_print_params_same(const DynamicPrintConfig &cfg_old, const DynamicPrintConfig &cfg_new)
+{
+    t_config_option_keys diff = cfg_old.diff(cfg_new);
     // Following keys are used by the UI, not by the slicing core, therefore they are not important
     // when comparing profiles for equality. Ignore them.
     for (const char *key : { "compatible_prints", "compatible_prints_condition",
                              "compatible_printers", "compatible_printers_condition", "inherits",
                              "print_settings_id", "filament_settings_id", "sla_print_settings_id", "sla_material_settings_id", "printer_settings_id",
                              "printer_model", "printer_variant", "default_print_profile", "default_filament_profile", "default_sla_print_profile", "default_sla_material_profile",
-                             "printhost_apikey", "printhost_cafile" })
+                             "print_host", "printhost_apikey", "printhost_cafile" })
         diff.erase(std::remove(diff.begin(), diff.end(), key), diff.end());
     // Preset with the same name as stored inside the config exists.
-    return diff.empty();
+    return diff.empty() && profile_host_params_same_or_anonymized(cfg_old, cfg_new) != ProfileHostParams::Different;
 }
 
 // Load a preset from an already parsed config file, insert it into the sorted sequence of presets
@@ -724,11 +756,25 @@ Preset& PresetCollection::load_external_preset(
 		it = this->find_preset_renamed(original_name);
 		found = it != m_presets.end();
     }
-    if (found && profile_print_params_same(it->config, cfg)) {
-        // The preset exists and it matches the values stored inside config.
-        if (select)
-            this->select_preset(it - m_presets.begin());
-        return *it;
+    if (found) {
+    	if (profile_print_params_same(it->config, cfg)) {
+	        // The preset exists and it matches the values stored inside config.
+	        if (select)
+	            this->select_preset(it - m_presets.begin());
+	        return *it;
+	    }
+	    if (profile_host_params_same_or_anonymized(it->config, cfg) == ProfileHostParams::Anonymized) {
+	    	// The project being loaded is anonymized. Replace the empty host keys of the loaded profile with the data from the original profile.
+	    	// See "Octoprint Settings when Opening a .3MF file" GH issue #3244
+	    	auto opt_update = [it, &cfg](const std::string &opt_key) {
+				auto opt = it->config.option<ConfigOptionString>(opt_key);
+				if (opt != nullptr)
+					cfg.set_key_value(opt_key, opt->clone());
+	    	};
+	    	opt_update("print_host");
+	    	opt_update("printhost_apikey");
+	    	opt_update("printhost_cafile");
+	    }
     }
     // Update the "inherits" field.
     std::string &inherits = Preset::inherits(cfg);
