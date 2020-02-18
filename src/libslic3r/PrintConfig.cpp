@@ -2840,7 +2840,7 @@ void PrintConfigDef::init_sla_params()
     def->min = 45;
     def->max = 90;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(45.0));
+    def->set_default_value(new ConfigOptionFloat(90.0));
 
     def = this->add("pad_around_object", coBool);
     def->label = L("Pad around object");
