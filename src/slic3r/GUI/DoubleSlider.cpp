@@ -1008,7 +1008,7 @@ wxString Control::get_tooltip(int tick/*=-1*/)
                     tick_code_it->gcode == ToolChangeCode ?
                         from_u8((boost::format(_utf8(L("Extruder (tool) is changed to Extruder \"%1%\""))) % 
                                                tick_code_it->extruder ).str())                                          :
-                        from_u8((boost::format(_utf8(L("\"%1%\""))) % tick_code_it->gcode ).str()) ;
+                        tick_code_it->gcode;
 
         // If tick is marked as a conflict (exclamation icon),
         // we should to explain why
@@ -1894,8 +1894,8 @@ bool Control::check_ticks_changed_event(const std::string& gcode)
             return true;
 
         wxString message = (m_ticks.mode == t_mode::SingleExtruder ?
-                            _(L("The last color change data was saved for a single extruder printer profile.")) :
-                            _(L("The last color change data was saved for a multiple extruder printer profile.")) 
+                            _(L("The last color change data was saved for a single extruder printing.")) :
+                            _(L("The last color change data was saved for a multi extruder printing.")) 
                             ) + "\n" +
                             _(L("Your current changes will delete all saved color changes.")) + "\n\n\t" +
                             _(L("Are you sure you want to continue?"));
