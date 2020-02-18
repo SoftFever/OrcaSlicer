@@ -27,6 +27,31 @@ enum FlowRole {
     frSupportMaterialInterface,
 };
 
+class FlowError : public std::invalid_argument
+{
+public:
+	FlowError(const std::string& what_arg) : invalid_argument(what_arg) {}
+	FlowError(const char* what_arg) : invalid_argument(what_arg) {}
+};
+
+class FlowErrorNegativeSpacing : public FlowError
+{
+public:
+    FlowErrorNegativeSpacing();
+};
+
+class FlowErrorNegativeFlow : public FlowError
+{
+public:
+    FlowErrorNegativeFlow();
+};
+
+class FlowErrorMissingVariable : public FlowError
+{
+public:
+    FlowErrorMissingVariable(const std::string& what_arg) : FlowError(what_arg) {}
+};
+
 class Flow
 {
 public:

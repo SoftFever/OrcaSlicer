@@ -262,12 +262,16 @@ std::string PresetHints::recommended_thin_wall_thickness(const PresetBundle &pre
         int num_lines = std::min(num_perimeters * 2, 10);
         out += (boost::format(_utf8(L("Recommended object thin wall thickness for layer height %.2f and"))) % layer_height).str() + " ";
         // Start with the width of two closely spaced 
-        double width = external_perimeter_flow.width + external_perimeter_flow.spacing();
-        for (int i = 2; i <= num_lines; thin_walls ? ++ i : i += 2) {
-            if (i > 2)
-                out += ", ";
-            out += (boost::format(_utf8(L("%d lines: %.2f mm"))) % i %  width).str() + " ";
-            width += perimeter_flow.spacing() * (thin_walls ? 1.f : 2.f);
+        try {
+	        double width = external_perimeter_flow.width + external_perimeter_flow.spacing();
+	        for (int i = 2; i <= num_lines; thin_walls ? ++ i : i += 2) {
+	            if (i > 2)
+	                out += ", ";
+	            out += (boost::format(_utf8(L("%d lines: %.2f mm"))) % i %  width).str() + " ";
+	            width += perimeter_flow.spacing() * (thin_walls ? 1.f : 2.f);
+	        }
+	    } catch (const FlowErrorNegativeSpacing &) {
+            out = _utf8(L("Recommended object thin wall thickness: Not available due to excessively small extrusion width."));
         }
     }
     return out;
