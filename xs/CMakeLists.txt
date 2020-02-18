@@ -7,8 +7,12 @@ if (WIN32)
 else()
     set(ENV_PATH_SEPARATOR ":")
 endif()
-set(ENV{PATH}     "${PROJECT_SOURCE_DIR}/local-lib/bin${ENV_PATH_SEPARATOR}$ENV{PATH}")
-set(PERL_INCLUDE  "${PROJECT_SOURCE_DIR}/local-lib/lib/perl5${ENV_PATH_SEPARATOR}$ENV{PERL5LIB}")
+
+# Install the XS.pm and XS.{so,dll,bundle} into the local-lib directory.
+set(PERL_LOCAL_LIB_DIR ${PROJECT_SOURCE_DIR}/../local-lib)
+
+set(ENV{PATH}     "${PERL_LOCAL_LIB_DIR}/bin${ENV_PATH_SEPARATOR}$ENV{PATH}")
+set(PERL_INCLUDE  "${PERL_LOCAL_LIB_DIR}/lib/perl5${ENV_PATH_SEPARATOR}$ENV{PERL5LIB}")
 message("PATH: $ENV{PATH}")
 message("PERL_INCLUDE: ${PERL_INCLUDE}")
 find_package(Perl REQUIRED)
@@ -154,22 +158,22 @@ if (WIN32)
     target_link_libraries(XS ${PERL_LIBRARY})
 endif()
 
-# Install the XS.pm and XS.{so,dll,bundle} into the local-lib directory.
-set(PERL_LOCAL_LIB_DIR "../../local-lib/lib/perl5/${PerlEmbed_ARCHNAME}")
+
+set(PERL_LOCAL_LIB_ARCH_DIR "${PERL_LOCAL_LIB_DIR}/lib/perl5/${PerlEmbed_ARCHNAME}")
 add_custom_command(
     TARGET XS
     POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${PERL_LOCAL_LIB_DIR}/auto/Slic3r/XS/"
-        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:XS>" "${PERL_LOCAL_LIB_DIR}/auto/Slic3r/XS/"
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${PERL_LOCAL_LIB_DIR}/Slic3r/"
-        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/lib/Slic3r/XS.pm" "${PERL_LOCAL_LIB_DIR}/Slic3r/"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${PERL_LOCAL_LIB_ARCH_DIR}/auto/Slic3r/XS/"
+        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:XS>" "${PERL_LOCAL_LIB_ARCH_DIR}/auto/Slic3r/XS/"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${PERL_LOCAL_LIB_ARCH_DIR}/Slic3r/"
+        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/lib/Slic3r/XS.pm" "${PERL_LOCAL_LIB_ARCH_DIR}/Slic3r/"
     COMMENT "Installing XS.pm and XS.{so,dll,bundle} into the local-lib directory ..."
 )
 if(APPLE)
     add_custom_command(
         TARGET XS
         POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E rename "${PERL_LOCAL_LIB_DIR}/auto/Slic3r/XS/XS" "${PERL_LOCAL_LIB_DIR}/auto/Slic3r/XS/XS.bundle"
+            COMMAND ${CMAKE_COMMAND} -E rename "${PERL_LOCAL_LIB_ARCH_DIR}/auto/Slic3r/XS/XS" "${PERL_LOCAL_LIB_ARCH_DIR}/auto/Slic3r/XS/XS.bundle"
     )
 endif()
 
@@ -195,5 +199,5 @@ if (MSVC)
 else ()
     set(PERL_PROVE "${PERL_BIN_PATH}/prove")
 endif ()
-add_test (NAME xs COMMAND "${PERL_EXECUTABLE}" ${PERL_PROVE} -I ${PROJECT_SOURCE_DIR}/../local-lib/lib/perl5 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_test (NAME xs COMMAND "${PERL_EXECUTABLE}" ${PERL_PROVE} -I ${PERL_LOCAL_LIB_DIR}/lib/perl5 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 add_test (NAME integration COMMAND "${PERL_EXECUTABLE}" ${PERL_PROVE} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/..)
