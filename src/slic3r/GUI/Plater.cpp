@@ -5327,11 +5327,6 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         }
     }
 
-    {
-        const auto prin_host_opt = p->config->option<ConfigOptionString>("print_host");
-        p->sidebar->show_send(prin_host_opt != nullptr && !prin_host_opt->value.empty());
-    }
-
     if (bed_shape_changed)
         p->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values,
             p->config->option<ConfigOptionString>("bed_custom_texture")->value,
