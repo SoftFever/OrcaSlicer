@@ -2444,9 +2444,9 @@ void PrintConfigDef::init_sla_params()
     def->set_default_value(new ConfigOptionFloat(0.0));
     
     def = this->add("elefant_foot_min_width", coFloat);
-    def->label = L("Elefant foot minimum width");
+    def->label = L("Elephant foot minimum width");
     def->category = L("Advanced");
-    def->tooltip = L("Minimum with of features to maintain when doing EFC");
+    def->tooltip = L("Minimum width of features to maintain when doing elephant foot compensation.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
