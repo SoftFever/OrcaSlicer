@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-02-19 13:17+0100\n"
+"POT-Creation-Date: 2020-02-19 13:53+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -9003,11 +9003,12 @@ msgid ""
 msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:2447
-msgid "Elefant foot minimum width"
+msgid "Elephant foot minimum width"
 msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:2449
-msgid "Minimum with of features to maintain when doing EFC"
+msgid ""
+"Minimum width of features to maintain when doing elephant foot compensation."
 msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:2456 src/libslic3r/PrintConfig.cpp:2457
