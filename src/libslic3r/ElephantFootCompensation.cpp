@@ -524,8 +524,20 @@ static inline void smooth_compensation_banded(const Points &contour, float band,
 	}
 }
 
+#ifndef NDEBUG
+static bool validate_expoly_orientation(const ExPolygon &expoly)
+{
+	bool valid = expoly.contour.is_counter_clockwise();
+    for (auto &h : expoly.holes) 
+		valid &= h.is_clockwise();
+	return valid;
+}
+#endif /* NDEBUG */
+
 ExPolygon elephant_foot_compensation(const ExPolygon &input_expoly, double min_contour_width, const double compensation)
 {	
+	assert(validate_expoly_orientation(input_expoly));
+
 	double scaled_compensation = scale_(compensation);
     min_contour_width = scale_(min_contour_width);
 	double min_contour_width_compensated = min_contour_width + 2. * scaled_compensation;
@@ -546,6 +558,7 @@ ExPolygon elephant_foot_compensation(const ExPolygon &input_expoly, double min_c
 	{
 		EdgeGrid::Grid grid;
 		ExPolygon simplified = input_expoly.simplify(SCALED_EPSILON).front();
+		assert(validate_expoly_orientation(simplified));
 		BoundingBox bbox = get_extents(simplified.contour);
 		bbox.offset(SCALED_EPSILON);
 		grid.set_bbox(bbox);
@@ -558,6 +571,7 @@ ExPolygon elephant_foot_compensation(const ExPolygon &input_expoly, double min_c
 			Polygon &poly = (idx_contour == 0) ? resampled.contour : resampled.holes[idx_contour - 1];
 			std::vector<ResampledPoint> resampled_point_parameters;
 			poly.points = resample_polygon(poly.points, resample_interval, resampled_point_parameters);
+			assert(poly.is_counter_clockwise() == (idx_contour == 0));
 			std::vector<float> dists = contour_distance2(grid, idx_contour, poly.points, resampled_point_parameters, scaled_compensation, search_radius);
 			for (float &d : dists) {
 	//			printf("Point %d, Distance: %lf\n", int(&d - dists.data()), unscale<double>(d));
@@ -593,10 +607,7 @@ ExPolygon elephant_foot_compensation(const ExPolygon &input_expoly, double min_c
 		}
 	}
     
-    // FIXME: orientations are messed up (Tamas)
-    out.contour.make_counter_clockwise();
-    for (auto &h : out.holes) h.make_clockwise();
-
+	assert(validate_expoly_orientation(out));
 	return out;
 }
 
