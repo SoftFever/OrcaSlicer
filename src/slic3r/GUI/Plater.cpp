@@ -870,7 +870,7 @@ Sidebar::Sidebar(Plater *parent)
         (*btn)->Hide();
     };
 
-    init_scalable_btn(&p->btn_send_gcode   , "export_gcode", _(L("Send to printer")));
+    init_scalable_btn(&p->btn_send_gcode   , "export_gcode", _(L("Send to printer")) + "\tCtrl+Shift+G");
     init_scalable_btn(&p->btn_remove_device, "cross"       , _(L("Remove device")));
 	init_scalable_btn(&p->btn_export_gcode_removable, "export_to_sd", _(L("Export to SD card / Flash drive")));
 

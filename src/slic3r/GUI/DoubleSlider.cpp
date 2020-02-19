@@ -981,7 +981,7 @@ wxString Control::get_tooltip(int tick/*=-1*/)
         tooltip += ( m_mode == t_mode::MultiAsSingle                            ?
                   _(L("Add extruder change - Left click"))                      :
                      m_mode == t_mode::SingleExtruder                           ?
-                  _(L("Add color change - Left click for predefined color or"
+                  _(L("Add color change - Left click for predefined color or "
                       "Shift + Left click for custom color selection"))         :
                   _(L("Add color change - Left click"))  ) + " " +
                   _(L("or press \"+\" key")) + "\n" + (
@@ -1645,7 +1645,7 @@ static std::string get_pause_print_msg(const std::string& msg_in, double height)
 
 static double get_print_z_to_jump(double active_print_z, double min_z, double max_z)
 {
-    wxString msg_text = _(L("Enter the height you want to jump to")) + " :";
+    wxString msg_text = _(L("Enter the height you want to jump to")) + ":";
     wxString msg_header = _(L("Jump to height"));
     wxString msg_in = GUI::double_to_string(active_print_z);
 
