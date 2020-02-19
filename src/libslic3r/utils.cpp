@@ -456,11 +456,13 @@ int copy_file(const std::string &from, const std::string &to, const bool with_ch
 
 int check_copy(const std::string &origin, const std::string &copy)
 {
-	std::ifstream f1(origin, std::ifstream::in | std::ifstream::binary | std::ifstream::ate);
-	std::ifstream f2(copy, std::ifstream::in | std::ifstream::binary | std::ifstream::ate);
+	boost::nowide::ifstream f1(origin, std::ifstream::in | std::ifstream::binary | std::ifstream::ate);
+	boost::nowide::ifstream f2(copy, std::ifstream::in | std::ifstream::binary | std::ifstream::ate);
 
-	if (f1.fail() || f2.fail())
-		return -2;
+	if (f1.fail())
+		return -4;
+	if (f2.fail())
+		return -5;
 
 	std::streampos fsize = f1.tellg();
 	if (fsize != f2.tellg())
