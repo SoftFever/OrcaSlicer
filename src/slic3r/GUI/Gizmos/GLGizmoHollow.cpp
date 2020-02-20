@@ -242,7 +242,7 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
         const sla::DrainHole& drain_hole = m_c->m_model_object->sla_drain_holes[i];
         const bool& point_selected = m_selected[i];
 
-        if (is_mesh_point_clipped((drain_hole.pos+HoleStickOutLength*drain_hole.normal).cast<double>()))
+        if (is_mesh_point_clipped((drain_hole.pos+m_c->HoleStickOutLength*drain_hole.normal).cast<double>()))
             continue;
 
         // First decide about the color of the point.
@@ -417,8 +417,8 @@ bool GLGizmoHollow::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_pos
                                          pos_and_normal.second(1)/scaling(1),
                                          pos_and_normal.second(2)/scaling(2));
 
-                m_c->m_model_object->sla_drain_holes.emplace_back(pos_and_normal.first + HoleStickOutLength * pos_and_normal.second/* normal_transformed.normalized()*/,
-                                                             -pos_and_normal.second, m_new_hole_radius, m_new_hole_height+HoleStickOutLength);
+                m_c->m_model_object->sla_drain_holes.emplace_back(pos_and_normal.first + m_c->HoleStickOutLength * pos_and_normal.second/* normal_transformed.normalized()*/,
+                                                             -pos_and_normal.second, m_new_hole_radius, m_new_hole_height+m_c->HoleStickOutLength);
                 m_selected.push_back(false);
                 assert(m_selected.size() == m_c->m_model_object->sla_drain_holes.size());
                 m_parent.set_as_dirty();
@@ -545,7 +545,7 @@ void GLGizmoHollow::on_update(const UpdateData& data)
         std::pair<Vec3f, Vec3f> pos_and_normal;
         if (! unproject_on_mesh(data.mouse_pos.cast<double>(), pos_and_normal))
             return;
-        m_c->m_model_object->sla_drain_holes[m_hover_id].pos = pos_and_normal.first + HoleStickOutLength * pos_and_normal.second;
+        m_c->m_model_object->sla_drain_holes[m_hover_id].pos = pos_and_normal.first + m_c->HoleStickOutLength * pos_and_normal.second;
         m_c->m_model_object->sla_drain_holes[m_hover_id].normal = -pos_and_normal.second;
     }
 }
@@ -831,9 +831,9 @@ RENDER_AGAIN:
 
     m_imgui->text(m_desc["hole_depth"]);
     ImGui::SameLine(diameter_slider_left);
-    m_new_hole_height -= HoleStickOutLength;
+    m_new_hole_height -= m_c->HoleStickOutLength;
     ImGui::SliderFloat("  ", &m_new_hole_height, 0.f, 10.f, "%.1f");
-    m_new_hole_height += HoleStickOutLength;
+    m_new_hole_height += m_c->HoleStickOutLength;
 
     clicked |= ImGui::IsItemClicked();
     edited |= ImGui::IsItemEdited();
@@ -1082,7 +1082,7 @@ void GLGizmoHollow::select_point(int i)
 
         if (i == AllPoints) {
             m_new_hole_radius = m_c->m_model_object->sla_drain_holes[0].radius;
-            m_new_hole_height = m_c->m_model_object->sla_drain_holes[0].height - HoleStickOutLength;
+            m_new_hole_height = m_c->m_model_object->sla_drain_holes[0].height - m_c->HoleStickOutLength;
         }
     }
     else {
@@ -1091,7 +1091,7 @@ void GLGizmoHollow::select_point(int i)
         m_selected[i] = true;
         m_selection_empty = false;
         m_new_hole_radius = m_c->m_model_object->sla_drain_holes[i].radius;
-        m_new_hole_height = m_c->m_model_object->sla_drain_holes[i].height - HoleStickOutLength;
+        m_new_hole_height = m_c->m_model_object->sla_drain_holes[i].height - m_c->HoleStickOutLength;
     }
 }
 

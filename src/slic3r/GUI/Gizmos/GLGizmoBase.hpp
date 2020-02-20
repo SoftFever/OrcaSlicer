@@ -198,6 +198,8 @@ public:
 
     bool recent_update = false;
 
+    static constexpr float HoleStickOutLength = 1.f;
+
 
 
     ModelObject* m_model_object = nullptr;

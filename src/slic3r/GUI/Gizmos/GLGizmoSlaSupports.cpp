@@ -342,6 +342,9 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
         render_color[3] = 0.7f;
         glsafe(::glColor4fv(render_color));
         for (const sla::DrainHole& drain_hole : m_c->m_model_object->sla_drain_holes) {
+            if (is_mesh_point_clipped((drain_hole.pos+m_c->HoleStickOutLength*drain_hole.normal).cast<double>()))
+                continue;
+
             // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
             glsafe(::glPushMatrix());
             glsafe(::glTranslatef(drain_hole.pos(0), drain_hole.pos(1), drain_hole.pos(2)));
