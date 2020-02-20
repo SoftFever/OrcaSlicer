@@ -1561,9 +1561,11 @@ wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_)
 
     // Add frequently settings
     const ItemType item_type = m_objects_model->GetItemType(GetSelection());
-    if (item_type == itUndef)
+    if (item_type == itUndef && !selection.is_single_full_object())
         return nullptr;
-    const bool is_object_settings = item_type & itObject || item_type & itInstance || selection.is_single_full_object();
+    const bool is_object_settings = item_type & itObject || item_type & itInstance ||
+                                    // multi-selection in ObjectList, but full_object in Selection
+                                    (item_type == itUndef && selection.is_single_full_object()); 
     create_freq_settings_popupmenu(menu, is_object_settings);
 
     if (mode == comAdvanced)
