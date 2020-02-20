@@ -231,11 +231,14 @@ public:
 
     bool has_drilled_mesh() const { return m_has_drilled_mesh; }
 
+    void build_AABB_if_needed();
+
 private:
     const TriangleMesh* m_old_mesh;
     TriangleMesh m_backend_mesh_transformed;
     float m_clipping_plane_distance_stash = 0.f;
     bool m_has_drilled_mesh = false;
+    bool m_schedule_aabb_calculation = false;
 };
 
 } // namespace GUI

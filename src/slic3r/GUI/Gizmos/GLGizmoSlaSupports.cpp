@@ -63,7 +63,16 @@ bool GLGizmoSlaSupports::on_init()
 
 void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const Selection& selection)
 {
+    // Update common data for hollowing and sla support gizmos.
+    if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA)
+        m_c->update_from_backend(m_parent, model_object);
+
     if (m_c->recent_update) {
+        if (m_state == On)
+            m_c->build_AABB_if_needed();
+
+        update_clipping_plane();
+
         if (m_state == On) {
             m_parent.toggle_model_objects_visibility(false);
             m_parent.toggle_model_objects_visibility(/*! m_c->m_cavity_mesh*/ true, m_c->m_model_object, m_c->m_active_instance);
@@ -1003,6 +1012,8 @@ void GLGizmoSlaSupports::on_set_state()
 
         m_c->unstash_clipping_plane();
         update_clipping_plane(m_c->m_clipping_plane_distance != 0.f);
+
+        m_c->build_AABB_if_needed();
 
 
         // we'll now reload support points:

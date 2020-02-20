@@ -371,13 +371,7 @@ bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas, ModelObject* mode
     m_model_object_id = m_model_object->id();
 
     if (m_mesh != m_old_mesh) {
-        wxBusyCursor wait;
-        m_mesh_raycaster.reset(new MeshRaycaster(*m_mesh));
-        m_object_clipper.reset();
-        m_supports_clipper.reset();
-        m_old_mesh = m_mesh;
-        m_clipping_plane_distance = 0.f;
-        m_clipping_plane_distance_stash = 0.f;
+        m_schedule_aabb_calculation = true;
         recent_update = true;
         return true;
     }
@@ -387,6 +381,21 @@ bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas, ModelObject* mode
     return recent_update;
 }
 
+
+void CommonGizmosData::build_AABB_if_needed()
+{
+    if (! m_schedule_aabb_calculation)
+        return;
+
+    wxBusyCursor wait;
+    m_mesh_raycaster.reset(new MeshRaycaster(*m_mesh));
+    m_object_clipper.reset();
+    m_supports_clipper.reset();
+    m_old_mesh = m_mesh;
+    m_clipping_plane_distance = 0.f;
+    m_clipping_plane_distance_stash = 0.f;
+    m_schedule_aabb_calculation = false;
+}
 
 
 } // namespace GUI

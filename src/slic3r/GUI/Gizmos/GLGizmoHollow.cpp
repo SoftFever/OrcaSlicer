@@ -57,6 +57,10 @@ bool GLGizmoHollow::on_init()
 void GLGizmoHollow::set_sla_support_data(ModelObject*, const Selection&)
 {
     if (m_c->recent_update) {
+        if (m_state == On)
+            m_c->build_AABB_if_needed();
+
+        update_clipping_plane();
 
         if (m_c->m_model_object) {
             reload_cache();
@@ -982,6 +986,8 @@ void GLGizmoHollow::on_set_state()
         //m_c->update_from_backend(m_parent, m_c->m_model_object);
         m_c->unstash_clipping_plane();
         update_clipping_plane(m_c->m_clipping_plane_distance != 0.f);
+
+        m_c->build_AABB_if_needed();
 
         // we'll now reload support points:
         if (m_c->m_model_object)
