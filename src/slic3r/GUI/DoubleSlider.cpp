@@ -696,9 +696,11 @@ std::string Control::get_color_for_color_change_tick(std::set<TickCode>::const_i
         if (it_n->gcode == ToolChangeCode) {
             is_tool_change = true;
             if (it_n->extruder == it->extruder)
-                return m_extruder_colors[it->extruder-1]; // return a color for a specific extruder from the colors list 
+                return it->color;
             break;
         }
+        if (it_n->gcode == ColorChangeCode && it_n->extruder == it->extruder)
+            return it->color;
     }
     if (!is_tool_change && it->extruder == def_extruder)
         return it->color;

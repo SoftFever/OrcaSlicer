@@ -1252,23 +1252,40 @@ void Sidebar::update_sliced_info_sizer()
             else {
                 new_label = _(L("Estimated printing time")) +" :";
                 info_text = "";
-                if (ps.estimated_normal_print_time != "N/A") {
-                    new_label += wxString::Format("\n    - %s", _(L("normal mode")));
-                    info_text += wxString::Format("\n%s", ps.estimated_normal_print_time);
-                    for (int i = (int)ps.estimated_normal_color_print_times.size() - 1; i >= 0; --i)
+                wxString str_color = _(L("Color"));
+                wxString str_pause = _(L("Pause"));
+
+                auto fill_labels = [str_color, str_pause](const std::vector<std::pair<CustomGcodeType, std::string>>& times, 
+                                                          wxString& new_label, wxString& info_text)
+                {
+                    int color_change_count = 0;
+                    for (auto time : times)
+                        if (time.first == cgtColorChange)
+                            color_change_count++;
+
+                    for (int i = (int)times.size() - 1; i >= 0; --i)
                     {
-                        new_label += wxString::Format("\n      - %s%d", _(L("Color")) + " ", i + 1);
-                        info_text += wxString::Format("\n%s", ps.estimated_normal_color_print_times[i]);
+                        if (i == 0 || times[i - 1].first == cgtPausePrint)
+                            new_label += wxString::Format("\n      - %s%d", str_color + " ", color_change_count);
+                        else if (times[i - 1].first == cgtColorChange)
+                            new_label += wxString::Format("\n      - %s%d", str_color + " ", color_change_count--);
+
+                        if (i != (int)times.size() - 1 && times[i].first == cgtPausePrint)
+                            new_label += wxString::Format(" -> %s", str_pause);
+
+                        info_text += wxString::Format("\n%s", times[i].second);
                     }
+                };
+
+                if (ps.estimated_normal_print_time != "N/A") {
+                    new_label += wxString::Format("\n   - %s", _(L("normal mode")));
+                    info_text += wxString::Format("\n%s", ps.estimated_normal_print_time);
+                    fill_labels(ps.estimated_normal_custom_gcode_print_times, new_label, info_text);
                 }
                 if (ps.estimated_silent_print_time != "N/A") {
-                    new_label += wxString::Format("\n    - %s", _(L("stealth mode")));
+                    new_label += wxString::Format("\n   - %s", _(L("stealth mode")));
                     info_text += wxString::Format("\n%s", ps.estimated_silent_print_time);
-                    for (int i = (int)ps.estimated_silent_color_print_times.size() - 1; i >= 0; --i)
-                    {
-                        new_label += wxString::Format("\n      - %s%d", _(L("Color")) + " ", i + 1);
-                        info_text += wxString::Format("\n%s", ps.estimated_silent_color_print_times[i]);
-                    }
+                    fill_labels(ps.estimated_silent_custom_gcode_print_times, new_label, info_text);
                 }
                 p->sliced_info->SetTextAndShow(siEstimatedTime,  info_text,      new_label);
             }

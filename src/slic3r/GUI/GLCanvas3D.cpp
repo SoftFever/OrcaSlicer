@@ -982,12 +982,17 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D
         cp_legend_items.emplace_back(I18N::translate_utf8(L("Pause print or custom G-code")));
 
         int cnt = custom_gcode_per_print_z.size();
+        int color_change_idx = color_cnt - extruders_cnt;
         for (int i = cnt-1; i >= 0; --i)
             if (custom_gcode_per_print_z[i].gcode == ColorChangeCode) {
                 ::memcpy((void*)(colors.data() + color_pos), (const void*)(colors_in.data() + color_in_pos), 4 * sizeof(float));
                 color_pos += 4;
                 color_in_pos -= 4;
-                cp_legend_items.emplace_back((boost::format(I18N::translate_utf8(L("Color change for Extruder %d at %.2f mm"))) % custom_gcode_per_print_z[i].extruder % custom_gcode_per_print_z[i].print_z).str());
+
+                // create label for color change item
+                std::string id_str = std::to_string(color_change_idx--) + ": ";
+
+                cp_legend_items.emplace_back(id_str + (boost::format(I18N::translate_utf8(L("Color change for Extruder %d at %.2f mm"))) % custom_gcode_per_print_z[i].extruder % custom_gcode_per_print_z[i].print_z).str());
             }
     }
 }
