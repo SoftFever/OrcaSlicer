@@ -3407,7 +3407,7 @@ const std::vector<GCode::ObjectByExtruder::Island::Region>& GCode::ObjectByExtru
             		if (this_override == nullptr || (*this_override)[copy] == -int(extruder)-1)
 	                    target_eec.emplace_back(entities[i]);
 	            }
-	            for (; i < overrides.size(); ++ i)
+	            for (; i < entities.size(); ++ i)
                     target_eec.emplace_back(entities[i]);
 		    }
         }
