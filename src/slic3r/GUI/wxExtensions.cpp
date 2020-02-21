@@ -603,7 +603,7 @@ void apply_extruder_selector(wxBitmapComboBox** ctrl,
             ++i;
         }
 
-        (*ctrl)->Append(use_full_item_name ? wxString::Format("%s %d", str, i) : std::to_string(i), *bmp);
+        (*ctrl)->Append(use_full_item_name ? wxString::Format("%s %d", str, i) : wxString::Format("%d", i), *bmp);
         ++i;
     }
     (*ctrl)->SetSelection(0);

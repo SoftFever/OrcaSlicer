@@ -274,7 +274,7 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     if (ImGui::IsItemHovered())
     {
         ImGui::BeginTooltip();
-        ImGui::TextUnformatted(_(L("Higher print quality versus higher print speed.")));
+        ImGui::TextUnformatted(_(L("Higher print quality versus higher print speed.")).ToUTF8());
         ImGui::EndTooltip();
     }
 
@@ -1302,7 +1302,7 @@ void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_
                 return owner.model_instance_id == id;
                 });
             if (it != owners.end())
-                it->print_order = _(L("Seq.")) + "#: " + std::to_string(i + 1);
+                it->print_order = std::string((_(L("Seq."))).ToUTF8()) + "#: " + std::to_string(i + 1);
         }
     }
 
