@@ -2795,7 +2795,7 @@ void Tab::select_preset(std::string preset_name, bool delete_current)
         if (! canceled) {
             // The preset will be switched to a different, compatible preset, or the '-- default --'.
             m_dependent_tabs.emplace_back((printer_technology == ptFFF) ? Preset::Type::TYPE_FILAMENT : Preset::Type::TYPE_SLA_MATERIAL);
-            if (old_preset_dirty)
+            if (old_preset_dirty && ! new_preset_compatible)
                 dependent.discard_current_changes();
         }
     } else if (printer_tab) {
