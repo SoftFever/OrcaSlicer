@@ -103,30 +103,25 @@ void BackgroundSlicingProcess::process_fff()
 			GUI::RemovableDriveManager::get_instance().update();
 			bool with_check = GUI::RemovableDriveManager::get_instance().is_path_on_removable_drive(export_path);
 			int copy_ret_val = copy_file(m_temp_output_path, export_path, with_check);
-			if (with_check && copy_ret_val == -2)
-			{
-				std::string err_msg = "Copying of the temporary G-code to the output G-code failed. There might be problem with target device, please try exporting again or using different device. The corrupted output G-code is at " + export_path + ".tmp.";
-				throw std::runtime_error(_utf8(L(err_msg)));
+			switch (copy_ret_val){
+			case 0: break; // no error
+			case -2: 
+				throw std::runtime_error((boost::format(_utf8(L("Copying of the temporary G-code to the output G-code failed. There might be problem with target device, please try exporting again or using different device. The corrupted output G-code is at %1%.tmp."))) % export_path).str());
+				break;
+			case -3: 
+				throw std::runtime_error((boost::format(_utf8(L("Renaming of the G-code after copying to the selected destination folder has failed. Current path is %1%.tmp. Please try exporting again."))) % export_path).str()); 
+				break;
+			case -4: 
+				throw std::runtime_error((boost::format(_utf8(L("Copying of the temporary G-code has finished but the original code at %1% couldn't be opened during copy check. The output G-code is at %2%.tmp."))) % m_temp_output_path % export_path).str());
+				break;
+			case -5: 
+				throw std::runtime_error((boost::format(_utf8(L("Copying of the temporary G-code has finished but the exported code couldn't be opened during copy check. The output G-code is at %1%.tmp."))) % export_path).str()); 
+				break;
+			default:
+				throw std::runtime_error(_utf8(L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?"))); 
+				break;
 			}
-			else if (with_check && copy_ret_val == -4)
-			{
-                std::string err_msg = "Copying of the temporary G-code has finished but the original code at "+ m_temp_output_path +" couldn't be opened during copy check. The output G-code is at " + export_path + ".tmp.";
-				throw std::runtime_error(_utf8(L(err_msg)));
-			}
-			else if (with_check && copy_ret_val == -5)
-			{
-                std::string err_msg = "Copying of the temporary G-code has finished but the exported code couldn't be opened during copy check. The output G-code is at " + export_path + ".tmp.";
-				throw std::runtime_error(_utf8(L(err_msg)));
-			}
-			else if (copy_ret_val == -3)
-			{
-				std::string err_msg = "Renaming of the G-code after copying to the selected destination folder has failed. Current path is " + export_path + ".tmp. Please try exporting again.";
-				throw std::runtime_error(_utf8(L(err_msg)));
-			}
-			else if ( copy_ret_val != 0)
-			{
-	    		throw std::runtime_error(_utf8(L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?")));
-			}
+			
 	    	m_print->set_status(95, _utf8(L("Running post-processing scripts")));
 	    	run_post_process_scripts(export_path, m_fff_print->config());
 	    	m_print->set_status(100, (boost::format(_utf8(L("G-code file exported to %1%"))) % export_path).str());
