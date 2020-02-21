@@ -310,6 +310,7 @@ unsigned char picking_checksum_alpha_channel(unsigned char red, unsigned char gr
 bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas, ModelObject* model_object)
 {
     recent_update = false;
+    bool object_changed = false;
 
     if (m_model_object != model_object
     || (model_object && m_model_object_id != model_object->id())) {
@@ -325,7 +326,7 @@ bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas, ModelObject* mode
             m_active_instance = canvas.get_selection().get_instance_idx();
             m_active_instance_bb_radius = m_model_object->instance_bounding_box(m_active_instance).radius();
         }
-
+        object_changed = true;
         recent_update = true;
     }
 
@@ -347,6 +348,7 @@ bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas, ModelObject* mode
         }
     }
 
+    bool mesh_exchanged = false;
     m_mesh = nullptr;
     // Load either the model_object mesh, or one provided by the backend
     // This mesh does not account for the possible Z up SLA offset.
@@ -359,6 +361,7 @@ bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas, ModelObject* mode
             m_backend_mesh_transformed.transform(canvas.sla_print()->sla_trafo(*m_model_object).inverse());
             m_mesh = &m_backend_mesh_transformed;
             m_has_drilled_mesh = true;
+            mesh_exchanged = true;
         }
     }
 
@@ -371,6 +374,21 @@ bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas, ModelObject* mode
     m_model_object_id = m_model_object->id();
 
     if (m_mesh != m_old_mesh) {
+        // Update clipping plane position.
+        float new_clp_pos = m_clipping_plane_distance;
+        if (object_changed) {
+            new_clp_pos = 0.f;
+            m_clipping_plane_was_moved = false;
+        } else {
+            // After we got a drilled mesh, move the cp to 25% (if not used already)
+            if (m_clipping_plane_distance == 0.f && mesh_exchanged && m_has_drilled_mesh) {
+                new_clp_pos = 0.25f;
+                m_clipping_plane_was_moved = false; // so it uses current camera direction
+            }
+        }
+        m_clipping_plane_distance = new_clp_pos;
+        m_clipping_plane_distance_stash = new_clp_pos;
+
         m_schedule_aabb_calculation = true;
         recent_update = true;
         return true;
@@ -392,8 +410,6 @@ void CommonGizmosData::build_AABB_if_needed()
     m_object_clipper.reset();
     m_supports_clipper.reset();
     m_old_mesh = m_mesh;
-    m_clipping_plane_distance = 0.f;
-    m_clipping_plane_distance_stash = 0.f;
     m_schedule_aabb_calculation = false;
 }
 

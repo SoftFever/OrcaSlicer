@@ -57,10 +57,11 @@ bool GLGizmoHollow::on_init()
 void GLGizmoHollow::set_sla_support_data(ModelObject*, const Selection&)
 {
     if (m_c->recent_update) {
+
         if (m_state == On)
             m_c->build_AABB_if_needed();
 
-        update_clipping_plane();
+        update_clipping_plane(m_c->m_clipping_plane_was_moved);
 
         if (m_c->m_model_object) {
             reload_cache();
@@ -511,7 +512,8 @@ bool GLGizmoHollow::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_pos
 
     if (action == SLAGizmoEventType::MouseWheelUp && control_down) {
         m_c->m_clipping_plane_distance = std::min(1.f, m_c->m_clipping_plane_distance + 0.01f);
-        update_clipping_plane(true);
+        update_clipping_plane(m_c->m_clipping_plane_was_moved);
+        m_c->m_clipping_plane_was_moved = true;
         return true;
     }
 
@@ -901,8 +903,10 @@ RENDER_AGAIN:
 
     ImGui::SameLine(clipping_slider_left);
     ImGui::PushItemWidth(window_width - clipping_slider_left);
-    if (ImGui::SliderFloat("     ", &m_c->m_clipping_plane_distance, 0.f, 1.f, "%.2f"))
-        update_clipping_plane(true);
+    if (ImGui::SliderFloat("     ", &m_c->m_clipping_plane_distance, 0.f, 1.f, "%.2f")) {
+        update_clipping_plane(m_c->m_clipping_plane_was_moved);
+        m_c->m_clipping_plane_was_moved = true;
+    }
 
     // make sure supports are shown/hidden as appropriate
     if (m_imgui->checkbox(m_desc["show_supports"], m_show_supports)) {
@@ -985,7 +989,7 @@ void GLGizmoHollow::on_set_state()
         //Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned on")));
         //m_c->update_from_backend(m_parent, m_c->m_model_object);
         m_c->unstash_clipping_plane();
-        update_clipping_plane(m_c->m_clipping_plane_distance != 0.f);
+        update_clipping_plane(m_c->m_clipping_plane_was_moved);
 
         m_c->build_AABB_if_needed();
 

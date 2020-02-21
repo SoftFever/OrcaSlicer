@@ -220,6 +220,7 @@ public:
 
     float m_clipping_plane_distance = 0.f;
     std::unique_ptr<ClippingPlane> m_clipping_plane;
+    bool m_clipping_plane_was_moved = false;
 
     void stash_clipping_plane() {
         m_clipping_plane_distance_stash = m_clipping_plane_distance;
