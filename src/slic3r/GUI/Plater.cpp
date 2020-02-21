@@ -3074,10 +3074,10 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
             auto *top_level_wnd = dynamic_cast<wxTopLevelWindow*>(p);
             if (! postpone_error_messages && top_level_wnd && top_level_wnd->IsActive()) {
                 // The error returned from the Print needs to be translated into the local language.
-                GUI::show_error(this->q, _(err));
+                GUI::show_error(this->q, err);
             } else {
                 // Show the error message once the main window gets activated.
-                this->delayed_error_message = _(err).ToUTF8();
+                this->delayed_error_message = err;
             }
             return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
         }

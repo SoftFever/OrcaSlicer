@@ -229,10 +229,15 @@ void show_error(wxWindow* parent, const wxString& message)
 	msg.ShowModal();
 }
 
+void show_error(wxWindow* parent, const char* message)
+{
+	show_error(parent, wxString::FromUTF8(message));
+}
+
 void show_error_id(int id, const std::string& message)
 {
 	auto *parent = id != 0 ? wxWindow::FindWindowById(id) : nullptr;
-	show_error(parent, from_u8(message));
+	show_error(parent, message);
 }
 
 void show_info(wxWindow* parent, const wxString& message, const wxString& title)

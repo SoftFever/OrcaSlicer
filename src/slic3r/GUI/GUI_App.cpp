@@ -244,7 +244,7 @@ bool GUI_App::on_init_inner()
     try {
         preset_bundle->load_presets(*app_config);
     } catch (const std::exception &ex) {
-        show_error(nullptr, from_u8(ex.what()));
+        show_error(nullptr, ex.what());
     }
 
     register_dpi_event();
@@ -1241,7 +1241,7 @@ void GUI_App::check_updates(const bool verbose)
 		}
 	}
 	catch (const std::exception & ex) {
-		show_error(nullptr, from_u8(ex.what()));
+		show_error(nullptr, ex.what());
 	}
 
 	

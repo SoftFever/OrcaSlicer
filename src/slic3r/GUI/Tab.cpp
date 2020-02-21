@@ -3032,7 +3032,7 @@ void Tab::save_preset(std::string name /*= ""*/)
         const Preset &preset = m_presets->get_selected_preset();
         auto default_name = preset.is_default ? "Untitled" :
 //                            preset.is_system ? (boost::format(_utf8(L("%1% - Copy"))) % preset.name).str() :
-                            preset.is_system ? (boost::format(_CTX_utf8(L_CONTEXT("%1% - Copy", "PresetName"), "PresetName").ToUTF8()) % preset.name).str() :
+                            preset.is_system ? (boost::format(_CTX_utf8(L_CONTEXT("%1% - Copy", "PresetName"), "PresetName")) % preset.name).str() :
                             preset.name;
 
         bool have_extention = boost::iends_with(default_name, ".ini");
