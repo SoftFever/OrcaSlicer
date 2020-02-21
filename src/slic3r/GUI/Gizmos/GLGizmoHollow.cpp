@@ -756,7 +756,7 @@ RENDER_AGAIN:
     m_imgui->text(m_desc.at("offset"));
     ImGui::SameLine(settings_sliders_left);
     ImGui::PushItemWidth(window_width - settings_sliders_left);
-    ImGui::SliderFloat("   ", &offset, offset_min, offset_max, "%.1f");
+    ImGui::SliderFloat("   ", &offset, offset_min, offset_max, "%.1f mm");
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
         ImGui::TextUnformatted(_(opts[0].second->tooltip).ToUTF8());
@@ -783,7 +783,7 @@ RENDER_AGAIN:
     if (current_mode >= closing_d_mode) {
         m_imgui->text(m_desc.at("closing_distance"));
         ImGui::SameLine(settings_sliders_left);
-        ImGui::SliderFloat("      ", &closing_d, closing_d_min, closing_d_max, "%.1f");
+        ImGui::SliderFloat("      ", &closing_d, closing_d_min, closing_d_max, "%.1f mm");
         if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
             ImGui::TextUnformatted(_(opts[2].second->tooltip).ToUTF8());
@@ -832,7 +832,7 @@ RENDER_AGAIN:
     ImGui::PushItemWidth(window_width - diameter_slider_left);
 
     float diam = 2.f * m_new_hole_radius;
-    ImGui::SliderFloat("", &diam, 1.f, diameter_upper_cap, "%.1f");
+    ImGui::SliderFloat("", &diam, 1.f, diameter_upper_cap, "%.1f mm");
     m_new_hole_radius = diam / 2.f;
     bool clicked = ImGui::IsItemClicked();
     bool edited = ImGui::IsItemEdited();
@@ -841,7 +841,7 @@ RENDER_AGAIN:
     m_imgui->text(m_desc["hole_depth"]);
     ImGui::SameLine(diameter_slider_left);
     m_new_hole_height -= m_c->HoleStickOutLength;
-    ImGui::SliderFloat("  ", &m_new_hole_height, 0.f, 10.f, "%.1f");
+    ImGui::SliderFloat("  ", &m_new_hole_height, 0.f, 10.f, "%.1f mm");
     m_new_hole_height += m_c->HoleStickOutLength;
 
     clicked |= ImGui::IsItemClicked();
