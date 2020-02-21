@@ -322,7 +322,7 @@ PresetBitmapComboBox(parent, wxSize(15 * wxGetApp().em_unit(), -1)),
             dialog.CenterOnParent();
             if (dialog.ShowModal() == wxID_OK)
             {
-                colors->values[extruder_idx] = dialog.GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX);
+                colors->values[extruder_idx] = dialog.GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
 
                 DynamicPrintConfig cfg_new = *cfg;
                 cfg_new.set_key_value("extruder_colour", colors);
@@ -3077,7 +3077,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
                 GUI::show_error(this->q, _(err));
             } else {
                 // Show the error message once the main window gets activated.
-                this->delayed_error_message = _(err);
+                this->delayed_error_message = _(err).ToUTF8();
             }
             return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
         }

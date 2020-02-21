@@ -219,7 +219,7 @@ void BackgroundSlicingProcess::thread_proc()
             wxString errmsg = wxString::Format(_(L("%s has encountered an error. It was likely caused by running out of memory. "
                                   "If you are sure you have enough RAM on your system, this may also be a bug and we would "
                                   "be glad if you reported it.")), SLIC3R_APP_NAME);
-            error = errmsg.ToStdString() + "\n\n" + std::string(ex.what());
+            error = std::string(errmsg.ToUTF8()) + "\n\n" + std::string(ex.what());
         } catch (std::exception &ex) {
 			error = ex.what();
 		} catch (...) {

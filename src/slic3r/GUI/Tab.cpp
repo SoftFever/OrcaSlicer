@@ -49,14 +49,14 @@ Tab::Tab(wxNotebook* parent, const wxString& title, Preset::Type type) :
     m_compatible_printers.type			= Preset::TYPE_PRINTER;
     m_compatible_printers.key_list		= "compatible_printers";
     m_compatible_printers.key_condition	= "compatible_printers_condition";
-    m_compatible_printers.dialog_title 	= _(L("Compatible printers"));
-    m_compatible_printers.dialog_label 	= _(L("Select the printers this profile is compatible with."));
+    m_compatible_printers.dialog_title 	= _(L("Compatible printers")).ToUTF8();
+    m_compatible_printers.dialog_label 	= _(L("Select the printers this profile is compatible with.")).ToUTF8();
 
     m_compatible_prints.type			= Preset::TYPE_PRINT;
     m_compatible_prints.key_list 		= "compatible_prints";
     m_compatible_prints.key_condition	= "compatible_prints_condition";
-    m_compatible_prints.dialog_title 	= _(L("Compatible print profiles"));
-    m_compatible_prints.dialog_label 	= _(L("Select the print profiles this profile is compatible with."));
+    m_compatible_prints.dialog_title 	= _(L("Compatible print profiles")).ToUTF8();
+    m_compatible_prints.dialog_label 	= _(L("Select the print profiles this profile is compatible with.")).ToUTF8();
 
     wxGetApp().tabs_list.push_back(this);
 
@@ -3032,7 +3032,7 @@ void Tab::save_preset(std::string name /*= ""*/)
         const Preset &preset = m_presets->get_selected_preset();
         auto default_name = preset.is_default ? "Untitled" :
 //                            preset.is_system ? (boost::format(_utf8(L("%1% - Copy"))) % preset.name).str() :
-                            preset.is_system ? (boost::format(_CTX_utf8(L_CONTEXT("%1% - Copy", "PresetName"), "PresetName")) % preset.name).str() :
+                            preset.is_system ? (boost::format(_CTX_utf8(L_CONTEXT("%1% - Copy", "PresetName"), "PresetName").ToUTF8()) % preset.name).str() :
                             preset.name;
 
         bool have_extention = boost::iends_with(default_name, ".ini");

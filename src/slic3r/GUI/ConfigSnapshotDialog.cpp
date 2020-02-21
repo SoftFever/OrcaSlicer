@@ -162,7 +162,7 @@ void ConfigSnapshotDialog::on_dpi_changed(const wxRect &suggested_rect)
 
 void ConfigSnapshotDialog::onLinkClicked(wxHtmlLinkEvent &event)
 {
-    m_snapshot_to_activate = event.GetLinkInfo().GetHref();
+    m_snapshot_to_activate = event.GetLinkInfo().GetHref().ToUTF8();
     this->EndModal(wxID_CLOSE);
 }
 
