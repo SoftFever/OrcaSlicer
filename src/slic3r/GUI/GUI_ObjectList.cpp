@@ -77,7 +77,9 @@ static int extruders_count()
 
 static void take_snapshot(const wxString& snapshot_name) 
 {
-    wxGetApp().plater()->take_snapshot(snapshot_name);
+    Plater* plater = wxGetApp().plater();
+    if (plater)
+        plater->take_snapshot(snapshot_name);
 }
 
 ObjectList::ObjectList(wxWindow* parent) :
@@ -3931,7 +3933,9 @@ void ObjectList::OnEditingDone(wxDataViewEvent &event)
 	m_last_selected_column = -1;
 #endif //__WXMSW__
 
-    wxGetApp().plater()->set_current_canvas_as_dirty();
+    Plater* plater = wxGetApp().plater();
+    if (plater)
+        plater->set_current_canvas_as_dirty();
 }
 
 void ObjectList::show_multi_selection_menu()
