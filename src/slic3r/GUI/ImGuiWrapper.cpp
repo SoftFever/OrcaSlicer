@@ -286,6 +286,12 @@ bool ImGuiWrapper::input_double(const std::string &label, const double &value, c
     return ImGui::InputDouble(label.c_str(), const_cast<double*>(&value), 0.0f, 0.0f, format.c_str());
 }
 
+bool ImGuiWrapper::input_double(const wxString &label, const double &value, const std::string &format)
+{
+    auto label_utf8 = into_u8(label);
+    return input_double(label_utf8, value, format);
+}
+
 bool ImGuiWrapper::input_vec3(const std::string &label, const Vec3d &value, float width, const std::string &format)
 {
     bool value_changed = false;
