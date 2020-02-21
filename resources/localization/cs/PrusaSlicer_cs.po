@@ -5470,7 +5470,7 @@ msgstr "Přednastavení s názvem \"%1%\" již existuje."
 #: src/slic3r/GUI/Tab.cpp:3029
 msgctxt "PresetName"
 msgid "%1% - Copy"
-msgstr "PresetName||%1% - Kopie"
+msgstr "%1% - Kopie"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:152
 msgid ""

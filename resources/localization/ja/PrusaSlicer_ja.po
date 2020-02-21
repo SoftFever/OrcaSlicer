@@ -3475,13 +3475,13 @@ msgstr "レイヤースライダーのショートカット"
 #: rc/libslic3r/PrintConfig.cpp:149
 msgctxt "Layers"
 msgid "Bottom"
-msgstr "レイヤー||最下層"
+msgstr "最下層"
 
 #. TRN To be shown in Print Settings "Top solid layers"
 #: src/libslic3r/PrintConfig.cpp:2043
 msgctxt "Layers"
 msgid "Top"
-msgstr "レイヤー||トップ"
+msgstr "トップ"
 
 #: src/slic3r/GUI/MainFrame.cpp:527
 msgid "Left"
@@ -4826,7 +4826,7 @@ msgstr "\"%1%\"というプリセット名は既に存在します。"
 #: src/slic3r/GUI/Tab.cpp:2994
 msgctxt "PresetName"
 msgid "%1% - Copy"
-msgstr "PresetName||%1% - コピー"
+msgstr "%1% - コピー"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:147
 msgid "Press to activate deselection rectangle\nor to scale or rotate selected objects\naround their own center"

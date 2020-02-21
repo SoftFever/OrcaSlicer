@@ -5364,7 +5364,7 @@ msgstr "Zestaw ustawień o nazwie \"%1%\" już istnieje."
 #: src/slic3r/GUI/Tab.cpp:3029
 msgctxt "PresetName"
 msgid "%1% - Copy"
-msgstr "PresetName||%1% - Kopia"
+msgstr "%1% - Kopia"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:152
 msgid "Press to activate deselection rectangle\nor to scale or rotate selected objects\naround their own center"
