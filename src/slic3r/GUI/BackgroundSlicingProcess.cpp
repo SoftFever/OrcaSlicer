@@ -110,12 +110,12 @@ void BackgroundSlicingProcess::process_fff()
 			}
 			else if (with_check && copy_ret_val == -4)
 			{
-				std::string err_msg = "Copying of the temporary G-code has finnished but the original code at "+ m_temp_output_path +" couldn't be opened during copy check. The output G-code is at " + export_path + ".tmp.";
+                std::string err_msg = "Copying of the temporary G-code has finished but the original code at "+ m_temp_output_path +" couldn't be opened during copy check. The output G-code is at " + export_path + ".tmp.";
 				throw std::runtime_error(_utf8(L(err_msg)));
 			}
 			else if (with_check && copy_ret_val == -5)
 			{
-				std::string err_msg = "Copying of the temporary G-code has finnished but the exported code couldn't be opened during copy check. The output G-code is at " + export_path + ".tmp.";
+                std::string err_msg = "Copying of the temporary G-code has finished but the exported code couldn't be opened during copy check. The output G-code is at " + export_path + ".tmp.";
 				throw std::runtime_error(_utf8(L(err_msg)));
 			}
 			else if (copy_ret_val == -3)
