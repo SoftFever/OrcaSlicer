@@ -220,6 +220,7 @@ public:
 
     float m_clipping_plane_distance = 0.f;
     std::unique_ptr<ClippingPlane> m_clipping_plane;
+    bool m_clipping_plane_was_moved = false;
 
     void stash_clipping_plane() {
         m_clipping_plane_distance_stash = m_clipping_plane_distance;
@@ -231,11 +232,14 @@ public:
 
     bool has_drilled_mesh() const { return m_has_drilled_mesh; }
 
+    void build_AABB_if_needed();
+
 private:
     const TriangleMesh* m_old_mesh;
     TriangleMesh m_backend_mesh_transformed;
     float m_clipping_plane_distance_stash = 0.f;
     bool m_has_drilled_mesh = false;
+    bool m_schedule_aabb_calculation = false;
 };
 
 } // namespace GUI
