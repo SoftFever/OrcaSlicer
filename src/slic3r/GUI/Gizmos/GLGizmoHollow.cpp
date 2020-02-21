@@ -426,7 +426,7 @@ bool GLGizmoHollow::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_pos
                                          pos_and_normal.second(2)/scaling(2));
 
                 m_c->m_model_object->sla_drain_holes.emplace_back(pos_and_normal.first + m_c->HoleStickOutLength * pos_and_normal.second/* normal_transformed.normalized()*/,
-                                                             -pos_and_normal.second, m_new_hole_radius, m_new_hole_height+m_c->HoleStickOutLength);
+                                                             -pos_and_normal.second, m_new_hole_radius, m_new_hole_height);
                 m_selected.push_back(false);
                 assert(m_selected.size() == m_c->m_model_object->sla_drain_holes.size());
                 m_parent.set_as_dirty();
@@ -1095,7 +1095,7 @@ void GLGizmoHollow::select_point(int i)
 
         if (i == AllPoints) {
             m_new_hole_radius = m_c->m_model_object->sla_drain_holes[0].radius;
-            m_new_hole_height = m_c->m_model_object->sla_drain_holes[0].height - m_c->HoleStickOutLength;
+            m_new_hole_height = m_c->m_model_object->sla_drain_holes[0].height;
         }
     }
     else {
@@ -1104,7 +1104,7 @@ void GLGizmoHollow::select_point(int i)
         m_selected[i] = true;
         m_selection_empty = false;
         m_new_hole_radius = m_c->m_model_object->sla_drain_holes[i].radius;
-        m_new_hole_height = m_c->m_model_object->sla_drain_holes[i].height - m_c->HoleStickOutLength;
+        m_new_hole_height = m_c->m_model_object->sla_drain_holes[i].height;
     }
 }
 
