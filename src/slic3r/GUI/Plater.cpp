@@ -4743,8 +4743,8 @@ void Plater::set_number_of_copies(/*size_t num*/)
 
     ModelObject* model_object = p->model.objects[obj_idx];
 
-    const int num = wxGetNumberFromUser( " ", _("Enter the number of copies:"),
-                                    _("Copies of the selected object"), model_object->instances.size(), 0, 1000, this );
+    const int num = wxGetNumberFromUser( " ", _(L("Enter the number of copies:")),
+                                    _(L("Copies of the selected object")), model_object->instances.size(), 0, 1000, this );
     if (num < 0)
         return;
 

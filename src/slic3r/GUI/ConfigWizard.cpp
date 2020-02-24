@@ -432,7 +432,7 @@ PageWelcome::PageWelcome(ConfigWizard *parent)
     , welcome_text(append_text(wxString::Format(
         _(L("Hello, welcome to %s! This %s helps you with the initial configuration; just a few settings and you will be ready to print.")),
         SLIC3R_APP_NAME,
-        ConfigWizard::name())
+        _(ConfigWizard::name()))
     ))
     , cbox_reset(append(
         new wxCheckBox(this, wxID_ANY, _(L("Remove user profiles - install from scratch (a snapshot will be taken beforehand)")))
@@ -1946,7 +1946,7 @@ bool ConfigWizard::priv::check_sla_selected()
 // Public
 
 ConfigWizard::ConfigWizard(wxWindow *parent)
-    : DPIDialog(parent, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _(name().ToStdString()), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog(parent, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _(name()), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
     , p(new priv(this))
 {
     this->SetFont(wxGetApp().normal_font());
