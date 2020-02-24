@@ -5194,7 +5194,10 @@ void Plater::drive_ejected_callback()
 	if (RemovableDriveManager::get_instance().get_did_eject())
 	{
         RemovableDriveManager::get_instance().set_did_eject(false);
-		wxString message = "Unmounting successful. The device " + RemovableDriveManager::get_instance().get_ejected_name() + "(" + RemovableDriveManager::get_instance().get_ejected_path() + ")" + " can now be safely removed from the computer.";
+        wxString message = wxString::Format(
+            "Unmounting successful. The device %s(%s) can now be safely removed from the computer.",
+            RemovableDriveManager::get_instance().get_ejected_name(),
+            RemovableDriveManager::get_instance().get_ejected_path());
 		wxMessageBox(message);
 	}
 	p->show_action_buttons(false);
