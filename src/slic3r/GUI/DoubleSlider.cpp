@@ -1010,7 +1010,7 @@ wxString Control::get_tooltip(int tick/*=-1*/)
                     tick_code_it->gcode == ToolChangeCode ?
                         from_u8((boost::format(_utf8(L("Extruder (tool) is changed to Extruder \"%1%\""))) % 
                                                tick_code_it->extruder ).str())                                          :
-                        tick_code_it->gcode;
+                        from_u8(tick_code_it->gcode);
 
         // If tick is marked as a conflict (exclamation icon),
         // we should to explain why
