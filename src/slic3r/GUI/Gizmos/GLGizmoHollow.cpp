@@ -752,14 +752,16 @@ RENDER_AGAIN:
     }
 
     m_imgui->disabled_begin(! m_enable_hollowing);
-
+    float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
     m_imgui->text(m_desc.at("offset"));
     ImGui::SameLine(settings_sliders_left);
     ImGui::PushItemWidth(window_width - settings_sliders_left);
     ImGui::SliderFloat("   ", &offset, offset_min, offset_max, "%.1f mm");
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
-        ImGui::TextUnformatted(_(opts[0].second->tooltip).ToUTF8());
+        ImGui::PushTextWrapPos(max_tooltip_width);
+        ImGui::TextUnformatted((_utf8(opts[0].second->tooltip)).c_str());
+        ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
     bool slider_clicked = ImGui::IsItemClicked(); // someone clicked the slider
@@ -772,7 +774,9 @@ RENDER_AGAIN:
         ImGui::SliderFloat("    ", &quality, quality_min, quality_max, "%.1f");
         if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
-            ImGui::TextUnformatted(_(opts[1].second->tooltip).ToUTF8());
+            ImGui::PushTextWrapPos(max_tooltip_width);
+            ImGui::TextUnformatted((_utf8(opts[1].second->tooltip)).c_str());
+            ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
         }
         slider_clicked |= ImGui::IsItemClicked();
@@ -786,7 +790,9 @@ RENDER_AGAIN:
         ImGui::SliderFloat("      ", &closing_d, closing_d_min, closing_d_max, "%.1f mm");
         if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
-            ImGui::TextUnformatted(_(opts[2].second->tooltip).ToUTF8());
+            ImGui::PushTextWrapPos(max_tooltip_width);
+            ImGui::TextUnformatted((_utf8(opts[2].second->tooltip)).c_str());
+            ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
         }
         slider_clicked |= ImGui::IsItemClicked();
