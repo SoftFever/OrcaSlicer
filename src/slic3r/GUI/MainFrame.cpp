@@ -1148,11 +1148,12 @@ void MainFrame::add_to_recent_projects(const wxString& filename)
 // Update the UI based on the current preferences.
 void MainFrame::update_ui_from_settings()
 {
-    const bool bp_on = wxGetApp().app_config->get("background_processing") == "1";
+//    const bool bp_on = wxGetApp().app_config->get("background_processing") == "1";
 //     m_menu_item_reslice_now->Enable(!bp_on);
-    m_plater->sidebar().show_reslice(!bp_on);
-    m_plater->sidebar().show_export(bp_on);
-    m_plater->sidebar().Layout();
+//    m_plater->sidebar().show_reslice(!bp_on);
+//    m_plater->sidebar().show_export(bp_on);
+//    m_plater->sidebar().Layout();
+
     if (m_plater)
         m_plater->update_ui_from_settings();
     for (auto tab: wxGetApp().tabs_list)
