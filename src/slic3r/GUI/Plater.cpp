@@ -3267,7 +3267,7 @@ void Plater::priv::reload_from_disk()
             else
                 missing_input_paths.push_back(volume->source.input_file);
         }
-        else if (!object->input_file.empty() && !volume->name.empty())
+        else if (!object->input_file.empty() && volume->is_model_part() && !volume->name.empty())
             missing_input_paths.push_back(volume->name);
     }
 
