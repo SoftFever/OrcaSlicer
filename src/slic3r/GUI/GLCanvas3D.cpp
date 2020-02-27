@@ -734,7 +734,7 @@ static void msw_disable_cleartype(wxFont &font)
     ++ startpos_weight;
     size_t endpos_weight = font_desc.find(sep, startpos_weight);
     // Parse the weight field.
-    unsigned int weight = atoi(font_desc(startpos_weight, endpos_weight - startpos_weight));
+    unsigned int weight = wxAtoi(font_desc(startpos_weight, endpos_weight - startpos_weight));
     size_t startpos = endpos_weight;
     for (size_t i = 0; i < 6; ++ i)
         startpos = font_desc.find(sep, startpos + 1);

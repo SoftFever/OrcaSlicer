@@ -227,6 +227,9 @@ endif(WIN32)
 
 add_definitions(-DwxUSE_UNICODE -D_UNICODE -DUNICODE -DWXINTL_NO_GETTEXT_MACRO)
 
+# Disable unsafe implicit wxString to const char* / std::string and vice versa. This implicit conversion breaks the UTF-8 encoding quite often.
+add_definitions(-DwxNO_UNSAFE_WXSTRING_CONV)
+
 if (SLIC3R_PROFILE)
     message("PrusaSlicer will be built with a Shiny invasive profiler")
     add_definitions(-DSLIC3R_PROFILE)
