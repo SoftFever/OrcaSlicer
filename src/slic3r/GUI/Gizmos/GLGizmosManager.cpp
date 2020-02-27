@@ -345,8 +345,12 @@ void GLGizmosManager::set_flattening_data(const ModelObject* model_object)
 
 void GLGizmosManager::set_sla_support_data(ModelObject* model_object)
 {
-    if (!m_enabled || m_gizmos.empty())
+    if (! m_enabled
+     || m_gizmos.empty()
+     || wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
         return;
+
+    m_common_gizmos_data->update_from_backend(m_parent, model_object);
 
     auto* gizmo_supports = dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get());
     auto* gizmo_hollow = dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get());

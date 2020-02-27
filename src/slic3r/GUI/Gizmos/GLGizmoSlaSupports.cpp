@@ -63,10 +63,6 @@ bool GLGizmoSlaSupports::on_init()
 
 void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const Selection& selection)
 {
-    // Update common data for hollowing and sla support gizmos.
-    if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA)
-        m_c->update_from_backend(m_parent, model_object);
-
     if (m_c->recent_update) {
         if (m_state == On)
             m_c->build_AABB_if_needed();
