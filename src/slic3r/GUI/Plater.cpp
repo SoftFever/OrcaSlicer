@@ -262,6 +262,11 @@ PresetBitmapComboBox(parent, wxSize(15 * wxGetApp().em_unit(), -1)),
     m_em_unit(wxGetApp().em_unit())
 {
     SetFont(wxGetApp().normal_font());
+#ifdef _WIN32
+    // Workaround for ignoring CBN_EDITCHANGE events, which are processed after the content of the combo box changes, so that
+    // the index of the item inside CBN_EDITCHANGE may no more be valid.
+    EnableTextChangedEvents(false);
+#endif /* _WIN32 */
     Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &evt) {
         auto selected_item = this->GetSelection();
 
