@@ -1143,10 +1143,19 @@ bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas, ModelObject* mode
             new_clp_pos = 0.f;
             m_clipping_plane_was_moved = false;
         } else {
-            // After we got a drilled mesh, move the cp to 25% (if not used already)
+            // After we got a drilled mesh, move the cp to 25%. This only applies when
+            // the hollowing gizmo is active and hollowing is enabled
             if (m_clipping_plane_distance == 0.f && mesh_exchanged && m_has_drilled_mesh) {
-                new_clp_pos = 0.25f;
-                m_clipping_plane_was_moved = false; // so it uses current camera direction
+                const DynamicPrintConfig& cfg =
+                    (m_model_object && m_model_object->config.has("hollowing_enable"))
+                    ? m_model_object->config
+                    : wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
+
+                if (cfg.has("hollowing_enable") && cfg.opt_bool("hollowing_enable")
+                 && canvas.get_gizmos_manager().get_current_type() == GLGizmosManager::Hollow) {
+                   new_clp_pos = 0.25f;
+                   m_clipping_plane_was_moved = false; // so it uses current camera direction
+                }
             }
         }
         m_clipping_plane_distance = new_clp_pos;
