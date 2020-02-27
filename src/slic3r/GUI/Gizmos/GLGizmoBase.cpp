@@ -322,12 +322,18 @@ bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas, ModelObject* mode
         m_old_mesh = nullptr;
         m_mesh = nullptr;
         m_backend_mesh_transformed.clear();
-        if (m_model_object) {
-            m_active_instance = canvas.get_selection().get_instance_idx();
-            m_active_instance_bb_radius = m_model_object->instance_bounding_box(m_active_instance).radius();
-        }
+
         object_changed = true;
         recent_update = true;
+    }
+
+    if (m_model_object) {
+        int active_inst = canvas.get_selection().get_instance_idx();
+        if (m_active_instance != active_inst) {
+            m_active_instance = active_inst;
+            m_active_instance_bb_radius = m_model_object->instance_bounding_box(m_active_instance).radius();
+            recent_update = true;
+        }
     }
 
 
