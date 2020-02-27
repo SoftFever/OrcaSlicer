@@ -22,12 +22,11 @@
 namespace Slic3r {
 namespace GUI {
 
-GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, CommonGizmosData* cd)
-    : GLGizmoBase(parent, icon_filename, sprite_id, cd)
+GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
     , m_quadric(nullptr)
     , m_its(nullptr)
-{
-    m_c->m_clipping_plane.reset(new ClippingPlane(Vec3d::Zero(), 0.));
+{    
     m_quadric = ::gluNewQuadric();
     if (m_quadric != nullptr)
         // using GLU_FILL does not work when the instance's transformation

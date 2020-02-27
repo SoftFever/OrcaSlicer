@@ -5,10 +5,6 @@
 
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
-#include "libslic3r/SLAPrint.hpp"
-#include "slic3r/GUI/MeshUtils.hpp"
-
-
 
 
 
@@ -138,7 +134,7 @@ void GLGizmoBase::Grabber::render_face(float half_size) const
 }
 
 
-GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, CommonGizmosData* common_data_ptr)
+GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : m_parent(parent)
     , m_group_id(-1)
     , m_state(Off)
@@ -149,7 +145,6 @@ GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, u
     , m_dragging(false)
     , m_imgui(wxGetApp().imgui())
     , m_first_input_window_render(true)
-    , m_c(common_data_ptr)
 {
     ::memcpy((void*)m_base_color, (const void*)DEFAULT_BASE_COLOR, 4 * sizeof(float));
     ::memcpy((void*)m_drag_color, (const void*)DEFAULT_DRAG_COLOR, 4 * sizeof(float));
@@ -303,120 +298,6 @@ unsigned char picking_checksum_alpha_channel(unsigned char red, unsigned char gr
 	// Flip every second bit to increase the enthropy even more.
 	b ^= 0x55;
 	return b;
-}
-
-
-
-bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas, ModelObject* model_object)
-{
-    recent_update = false;
-    bool object_changed = false;
-
-    if (m_model_object != model_object
-    || (model_object && m_model_object_id != model_object->id())) {
-        m_model_object = model_object;
-        m_print_object_idx = -1;
-        m_mesh_raycaster.reset();
-        m_object_clipper.reset();
-        m_supports_clipper.reset();
-        m_old_mesh = nullptr;
-        m_mesh = nullptr;
-        m_backend_mesh_transformed.clear();
-
-        object_changed = true;
-        recent_update = true;
-    }
-
-    if (m_model_object) {
-        int active_inst = canvas.get_selection().get_instance_idx();
-        if (m_active_instance != active_inst) {
-            m_active_instance = active_inst;
-            m_active_instance_bb_radius = m_model_object->instance_bounding_box(m_active_instance).radius();
-            recent_update = true;
-        }
-    }
-
-
-    if (! m_model_object || ! canvas.get_selection().is_from_single_instance())
-        return false;
-
-    int old_po_idx = m_print_object_idx;
-
-    // First we need a pointer to the respective SLAPrintObject. The index into objects vector is
-    // cached so we don't have todo it on each render. We only search for the po if needed:
-    if (m_print_object_idx < 0 || (int)canvas.sla_print()->objects().size() != m_print_objects_count) {
-        m_print_objects_count = canvas.sla_print()->objects().size();
-        m_print_object_idx = -1;
-        for (const SLAPrintObject* po : canvas.sla_print()->objects()) {
-            ++m_print_object_idx;
-            if (po->model_object()->id() == m_model_object->id())
-                break;
-        }
-    }
-
-    bool mesh_exchanged = false;
-    m_mesh = nullptr;
-    // Load either the model_object mesh, or one provided by the backend
-    // This mesh does not account for the possible Z up SLA offset.
-    // The backend mesh needs to be transformed and because a pointer to it is
-    // saved, a copy is stored as a member (FIXME)
-    if (m_print_object_idx >=0) {
-        const SLAPrintObject* po = canvas.sla_print()->objects()[m_print_object_idx];
-        if (po->is_step_done(slaposDrillHoles)) {
-            m_backend_mesh_transformed = po->get_mesh_to_print();
-            m_backend_mesh_transformed.transform(canvas.sla_print()->sla_trafo(*m_model_object).inverse());
-            m_mesh = &m_backend_mesh_transformed;
-            m_has_drilled_mesh = true;
-            mesh_exchanged = true;
-        }
-    }
-
-    if (! m_mesh) {
-        m_mesh = &m_model_object->volumes.front()->mesh();
-        m_backend_mesh_transformed.clear();
-        m_has_drilled_mesh = false;
-    }
-
-    m_model_object_id = m_model_object->id();
-
-    if (m_mesh != m_old_mesh) {
-        // Update clipping plane position.
-        float new_clp_pos = m_clipping_plane_distance;
-        if (object_changed) {
-            new_clp_pos = 0.f;
-            m_clipping_plane_was_moved = false;
-        } else {
-            // After we got a drilled mesh, move the cp to 25% (if not used already)
-            if (m_clipping_plane_distance == 0.f && mesh_exchanged && m_has_drilled_mesh) {
-                new_clp_pos = 0.25f;
-                m_clipping_plane_was_moved = false; // so it uses current camera direction
-            }
-        }
-        m_clipping_plane_distance = new_clp_pos;
-        m_clipping_plane_distance_stash = new_clp_pos;
-
-        m_schedule_aabb_calculation = true;
-        recent_update = true;
-        return true;
-    }
-    if (! recent_update)
-        recent_update = m_print_object_idx < 0 && old_po_idx >= 0;
-
-    return recent_update;
-}
-
-
-void CommonGizmosData::build_AABB_if_needed()
-{
-    if (! m_schedule_aabb_calculation)
-        return;
-
-    wxBusyCursor wait;
-    m_mesh_raycaster.reset(new MeshRaycaster(*m_mesh));
-    m_object_clipper.reset();
-    m_supports_clipper.reset();
-    m_old_mesh = m_mesh;
-    m_schedule_aabb_calculation = false;
 }
 
 

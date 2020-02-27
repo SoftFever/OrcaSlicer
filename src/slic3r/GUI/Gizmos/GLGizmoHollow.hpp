@@ -16,6 +16,7 @@ namespace GUI {
 class ClippingPlane;
 class MeshClipper;
 class MeshRaycaster;
+class CommonGizmosData;
 enum class SLAGizmoEventType : unsigned char;
 
 class GLGizmoHollow : public GLGizmoBase
@@ -28,7 +29,7 @@ private:
 
 
 public:
-    GLGizmoHollow(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, CommonGizmosData* cd);
+    GLGizmoHollow(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
     ~GLGizmoHollow() override;
     void set_sla_support_data(ModelObject* model_object, const Selection& selection);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
@@ -42,6 +43,7 @@ public:
 
     bool is_selection_rectangle_dragging() const { return m_selection_rectangle.is_dragging(); }
     void update_clipping_plane(bool keep_normal = false) const;
+    void set_common_data_ptr(CommonGizmosData* ptr) { m_c = ptr; }
 
 private:
     bool on_init() override;
@@ -72,6 +74,8 @@ private:
 
     sla::DrainHoles m_holes_stash;
 
+    CommonGizmosData* m_c = nullptr;
+
     //std::unique_ptr<ClippingPlane> m_clipping_plane;
     
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
@@ -99,12 +103,7 @@ private:
 
 protected:
     void on_set_state() override;
-    void on_set_hover_id() override
-
-    {
-        if (int(m_c->m_model_object->sla_drain_holes.size()) <= m_hover_id)
-            m_hover_id = -1;
-    }
+    void on_set_hover_id() override;
     void on_start_dragging() override;
     void on_stop_dragging() override;
     void on_render_input_window(float x, float y, float bottom_limit) override;

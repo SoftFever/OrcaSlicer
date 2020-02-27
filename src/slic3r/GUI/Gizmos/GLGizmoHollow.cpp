@@ -17,11 +17,10 @@
 namespace Slic3r {
 namespace GUI {
 
-GLGizmoHollow::GLGizmoHollow(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, CommonGizmosData* cd)
-    : GLGizmoBase(parent, icon_filename, sprite_id, cd)
+GLGizmoHollow::GLGizmoHollow(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
     , m_quadric(nullptr)
 {
-    m_c->m_clipping_plane.reset(new ClippingPlane(Vec3d::Zero(), 0.));
     m_quadric = ::gluNewQuadric();
     if (m_quadric != nullptr)
         // using GLU_FILL does not work when the instance's transformation
@@ -1144,6 +1143,13 @@ void GLGizmoHollow::update_clipping_plane(bool keep_normal) const
     float dist = normal.dot(center);
     *m_c->m_clipping_plane = ClippingPlane(normal, (dist - (-m_c->m_active_instance_bb_radius) - m_c->m_clipping_plane_distance * 2*m_c->m_active_instance_bb_radius));
     m_parent.set_as_dirty();
+}
+
+
+void GLGizmoHollow::on_set_hover_id()
+{
+    if (int(m_c->m_model_object->sla_drain_holes.size()) <= m_hover_id)
+        m_hover_id = -1;
 }
 
 
