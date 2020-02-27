@@ -68,20 +68,15 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const S
 
         update_clipping_plane(m_c->m_clipping_plane_was_moved);
 
-        if (m_state == On) {
-            m_parent.toggle_model_objects_visibility(false);
-            m_parent.toggle_model_objects_visibility(/*! m_c->m_cavity_mesh*/ true, m_c->m_model_object, m_c->m_active_instance);
-            m_parent.toggle_sla_auxiliaries_visibility(! m_editing_mode, m_c->m_model_object, m_c->m_active_instance);
-        }
-        // following was removed so that it does not show the object when it should
-        // be hidden because the supports gizmo is active. on_set_state takes care
-        // of showing the object.
-        //else
-        //    m_parent.toggle_model_objects_visibility(true, nullptr, -1);
-
         disable_editing_mode();
         if (m_c->m_model_object)
             reload_cache();
+    }
+
+    if (m_state == On) {
+        m_parent.toggle_model_objects_visibility(false);
+        m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
+        m_parent.toggle_sla_auxiliaries_visibility(! m_editing_mode, m_c->m_model_object, m_c->m_active_instance);
     }
 
     // If we triggered autogeneration before, check backend and fetch results if they are there

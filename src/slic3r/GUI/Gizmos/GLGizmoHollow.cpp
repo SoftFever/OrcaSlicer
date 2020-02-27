@@ -75,17 +75,12 @@ void GLGizmoHollow::set_sla_support_data(ModelObject*, const Selection&)
             if (m_c->has_drilled_mesh())
                 m_holes_in_drilled_mesh = m_c->m_model_object->sla_drain_holes;
         }
+    }
 
-        if (m_state == On) {
-            m_parent.toggle_model_objects_visibility(false);
-            m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
-            m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, m_c->m_model_object, m_c->m_active_instance);
-        }
-        // following was removed so that it does not show the object when it should
-        // be hidden because the supports gizmo is active. on_set_state takes care
-        // of showing the object.
-        //else
-          //  m_parent.toggle_model_objects_visibility(true, nullptr, -1);
+    if (m_state == On) {
+        m_parent.toggle_model_objects_visibility(false);
+        m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
+        m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, m_c->m_model_object, m_c->m_active_instance);
     }
 }
 
