@@ -116,6 +116,9 @@ void GLCanvas3DManager::GLInfo::detect() const
 
     m_max_tex_size /= 2;
 
+    if (Slic3r::total_physical_memory() / (1024 * 1024 * 1024) < 6)
+        m_max_tex_size /= 2;
+
     if (GLEW_EXT_texture_filter_anisotropic)
         glsafe(::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &m_max_anisotropy));
 
