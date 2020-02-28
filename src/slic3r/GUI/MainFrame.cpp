@@ -143,6 +143,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     wxGetApp().persist_window_geometry(this, true);
 
     update_ui_from_settings();    // FIXME (?)
+
+    if (m_plater != nullptr)
+        m_plater->show_action_buttons(true);
 }
 
 void MainFrame::update_title()

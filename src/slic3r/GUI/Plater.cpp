@@ -5591,6 +5591,7 @@ void Plater::suppress_background_process(const bool stop_background_process)
 void Plater::fix_through_netfabb(const int obj_idx, const int vol_idx/* = -1*/) { p->fix_through_netfabb(obj_idx, vol_idx); }
 
 void Plater::update_object_menu() { p->update_object_menu(); }
+void Plater::show_action_buttons(const bool is_ready_to_slice) const { p->show_action_buttons(is_ready_to_slice); }
 
 void Plater::copy_selection_to_clipboard()
 {
