@@ -8,8 +8,9 @@
 #include "slic3r/Utils/UndoRedo.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "slic3r/GUI/MeshUtils.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmos.hpp"
+#include "slic3r/GUI/Camera.hpp"
 
-#include <GL/glew.h>
 #include <wx/glcanvas.h>
 
 namespace Slic3r {

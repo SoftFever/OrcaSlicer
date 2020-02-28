@@ -80,12 +80,13 @@
 #include "../Utils/PrintHost.hpp"
 #include "../Utils/FixModelByWin10.hpp"
 #include "../Utils/UndoRedo.hpp"
-#include "../Utils/Thread.hpp"
 #include "RemovableDriveManager.hpp"
 
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
 #include "WipeTowerDialog.hpp"
 #include "libslic3r/CustomGCode.hpp"
+
+#include "Gizmos/GLGizmoHollow.hpp"
 
 using boost::optional;
 namespace fs = boost::filesystem;
@@ -1699,6 +1700,7 @@ struct Plater::priv
         void process() override;
     };
 
+    // FIXME: This should be removed, as well as the #include of the gizmo
     class HollowJob : public PlaterJob
     {
     public:
