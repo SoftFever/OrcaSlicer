@@ -326,15 +326,17 @@ void Camera::rotate_on_sphere(double delta_azimut_rad, double delta_zenit_rad, b
     m_view_matrix.fromPositionOrientationScale(m_view_rotation * (- m_target) + translation, m_view_rotation, Vec3d(1., 1., 1.));
 }
 
+// Virtual trackball, rotate around an axis, where the eucledian norm of the axis gives the rotation angle in radians.
 void Camera::rotate_local_around_target(const Vec3d& rotation_rad)
 {
-    Vec3d translation = m_view_matrix.translation() + m_view_rotation * m_target;
-    auto rot_z = Eigen::AngleAxisd(rotation_rad(2), get_dir_forward());
-    auto rot_y = Eigen::AngleAxisd(rotation_rad(1), rot_z.inverse() * get_dir_up());
-    auto rot_x = Eigen::AngleAxisd(rotation_rad(0), rot_y.inverse() * get_dir_right());
-    m_view_rotation *= rot_z * rot_y * rot_x;
-    m_view_matrix.fromPositionOrientationScale(m_view_rotation * (-m_target) + translation, m_view_rotation, Vec3d(1., 1., 1.));
-    update_zenit();
+    double angle = rotation_rad.norm();
+    if (std::abs(angle) > EPSILON) {
+	    Vec3d translation = m_view_matrix.translation() + m_view_rotation * m_target;
+	    Vec3d axis        = m_view_rotation.conjugate() * rotation_rad.normalized();
+        m_view_rotation *= Eigen::Quaterniond(Eigen::AngleAxisd(angle, axis));
+	    m_view_matrix.fromPositionOrientationScale(m_view_rotation * (-m_target) + translation, m_view_rotation, Vec3d(1., 1., 1.));
+	    update_zenit();
+	}
 }
 
 double Camera::min_zoom() const
