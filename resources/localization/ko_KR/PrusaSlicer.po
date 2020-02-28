@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-08-06 09:54+0200\n"
-"PO-Revision-Date: 2020-02-11 09:49+0900\n"
+"PO-Revision-Date: 2020-02-28 09:34+0900\n"
 "Last-Translator: lee hak-min <hangmini12@naver.com>\n"
 "Language-Team: ulsanether\n"
 "Language: ko_KR\n"
@@ -9346,7 +9346,7 @@ msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:2185
 msgid "Use volumetric E"
-msgstr "용적 E 사용"
+msgstr "용적(volumetric) E 사용"
 
 #: src/libslic3r/PrintConfig.cpp:2186
 msgid ""
@@ -9605,11 +9605,11 @@ msgstr "느리게"
 
 #: src/libslic3r/PrintConfig.cpp:2425
 msgid "Slow tilt"
-msgstr "슬로우 틸트"
+msgstr "천천히 기울이기"
 
 #: src/libslic3r/PrintConfig.cpp:2426
 msgid "Time of the slow tilt"
-msgstr "느린 기울기의 시간"
+msgstr "천천히 기울이는 속도"
 
 #: src/libslic3r/PrintConfig.cpp:2433
 msgid "Area fill"
@@ -9668,7 +9668,7 @@ msgstr "병 볼륨"
 
 #: src/libslic3r/PrintConfig.cpp:2492
 msgid "ml"
-msgstr "광년"
+msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:2497 src/libslic3r/PrintConfig.cpp:2498
 msgid "Bottle weight"
@@ -9684,7 +9684,7 @@ msgstr "g /ml"
 
 #: src/libslic3r/PrintConfig.cpp:2513
 msgid "money/bottle"
-msgstr "돈 /병"
+msgstr "가격 /병"
 
 #: src/libslic3r/PrintConfig.cpp:2518
 msgid "Faded layers"
@@ -10022,7 +10022,7 @@ msgstr "빈 내부를 가지고 모델을 비우기"
 
 #: src/libslic3r/PrintConfig.cpp:2916
 msgid "Hollowing thickness"
-msgstr ""
+msgstr "속빈 공동 두께"
 
 #: src/libslic3r/PrintConfig.cpp:2918
 msgid "Minimum wall thickness of a hollowed model."
@@ -10030,7 +10030,7 @@ msgstr "속이 빈 모델의 최소 벽 두께입니다."
 
 #: src/libslic3r/PrintConfig.cpp:2926
 msgid "Hollowing accuracy"
-msgstr ""
+msgstr "속빈 공동 정확도"
 
 #: src/libslic3r/PrintConfig.cpp:2928
 msgid ""
@@ -10041,7 +10041,7 @@ msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:2935
 msgid "Hollowing closing distance"
-msgstr ""
+msgstr "속비움된 닫힘 반경"
 
 #: src/libslic3r/PrintConfig.cpp:3315
 msgid "Export OBJ"
