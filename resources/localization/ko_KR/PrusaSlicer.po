@@ -532,7 +532,7 @@ msgstr "변종"
 #: src/slic3r/GUI/ConfigSnapshotDialog.cpp:75
 #, c-format
 msgid "Incompatible with this %s"
-msgstr "%s 과 호환되지 않습니다"
+msgstr "%s 와 호환되지 않습니다"
 
 #: src/slic3r/GUI/ConfigSnapshotDialog.cpp:78
 msgid "Activate"
