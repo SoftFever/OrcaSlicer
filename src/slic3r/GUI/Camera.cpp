@@ -43,6 +43,7 @@ Camera::Camera()
     , m_distance(DefaultDistance)
     , m_gui_scale(1.0)
     , m_view_matrix(Transform3d::Identity())
+    , m_view_rotation(1., 0., 0., 0.)
     , m_projection_matrix(Transform3d::Identity())
 {
     set_default_orientation();
@@ -85,7 +86,13 @@ void Camera::select_next_type()
 
 void Camera::set_target(const Vec3d& target)
 {
-    translate_world(target - m_target);
+    Vec3d new_target = validate_target(target);
+    Vec3d new_displacement = new_target - m_target;
+    if (!new_displacement.isApprox(Vec3d::Zero()))
+    {
+        m_target = new_target;
+        m_view_matrix.translate(-new_displacement);
+    }
 }
 
 void Camera::update_zoom(double delta_zoom)
@@ -299,17 +306,6 @@ void Camera::debug_render() const
 }
 #endif // ENABLE_CAMERA_STATISTICS
 
-void Camera::translate_world(const Vec3d& displacement)
-{
-    Vec3d new_target = validate_target(m_target + displacement);
-    Vec3d new_displacement = new_target - m_target;
-    if (!new_displacement.isApprox(Vec3d::Zero()))
-    {
-        m_target += new_displacement;
-        m_view_matrix.translate(-new_displacement);
-    }
-}
-
 void Camera::rotate_on_sphere(double delta_azimut_rad, double delta_zenit_rad, bool apply_limits)
 {
     m_zenit += Geometry::rad2deg(delta_zenit_rad);
@@ -324,49 +320,20 @@ void Camera::rotate_on_sphere(double delta_azimut_rad, double delta_zenit_rad, b
         }
     }
 
-    // FIXME -> The following is a HACK !!!
-    // When the value of the zenit rotation is large enough, the following call to rotate() shows
-    // numerical instability introducing some scaling into m_view_matrix (verified by checking
-    // that the camera space unit vectors are no more unit).
-    // See also https://dev.prusa3d.com/browse/SPE-1082
-    // We split the zenit rotation into a set of smaller rotations which are then applied.
-    static const double MAX_ALLOWED = Geometry::deg2rad(0.1);
-    unsigned int zenit_steps_count = 1 + (unsigned int)(std::abs(delta_zenit_rad) / MAX_ALLOWED);
-    double zenit_step = delta_zenit_rad / (double)zenit_steps_count;
-
-    Vec3d target = m_target;
-    translate_world(-target);
-
-    if (zenit_step != 0.0)
-    {
-        Vec3d right = get_dir_right();
-        for (unsigned int i = 0; i < zenit_steps_count; ++i)
-        {
-            m_view_matrix.rotate(Eigen::AngleAxisd(zenit_step, right));
-        }
-    }
-
-    if (delta_azimut_rad != 0.0)
-        m_view_matrix.rotate(Eigen::AngleAxisd(delta_azimut_rad, Vec3d::UnitZ()));
-
-    translate_world(target);
+    Vec3d translation = m_view_matrix.translation() + m_view_rotation * m_target;
+    auto rot_z = Eigen::AngleAxisd(delta_azimut_rad, Vec3d::UnitZ());
+    m_view_rotation *= rot_z * Eigen::AngleAxisd(delta_zenit_rad, rot_z.inverse() * get_dir_right());
+    m_view_matrix.fromPositionOrientationScale(m_view_rotation * (- m_target) + translation, m_view_rotation, Vec3d(1., 1., 1.));
 }
 
 void Camera::rotate_local_around_target(const Vec3d& rotation_rad)
 {
-    rotate_local_around_pivot(rotation_rad, m_target);
-}
-
-void Camera::rotate_local_around_pivot(const Vec3d& rotation_rad, const Vec3d& pivot)
-{
-    // we use a copy of the pivot because a reference to the current m_target may be passed in (see i.e. rotate_local_around_target())
-    // and m_target is modified by the translate_world() calls
-    Vec3d center = pivot;
-    translate_world(-center);
-    m_view_matrix.rotate(Eigen::AngleAxisd(rotation_rad(0), get_dir_right()));
-    m_view_matrix.rotate(Eigen::AngleAxisd(rotation_rad(1), get_dir_up()));
-    m_view_matrix.rotate(Eigen::AngleAxisd(rotation_rad(2), get_dir_forward()));
-    translate_world(center);
+    Vec3d translation = m_view_matrix.translation() + m_view_rotation * m_target;
+    auto rot_z = Eigen::AngleAxisd(rotation_rad(2), get_dir_forward());
+    auto rot_y = Eigen::AngleAxisd(rotation_rad(1), rot_z.inverse() * get_dir_up());
+    auto rot_x = Eigen::AngleAxisd(rotation_rad(0), rot_y.inverse() * get_dir_right());
+    m_view_rotation *= rot_z * rot_y * rot_x;
+    m_view_matrix.fromPositionOrientationScale(m_view_rotation * (-m_target) + translation, m_view_rotation, Vec3d(1., 1., 1.));
     update_zenit();
 }
 
@@ -588,6 +555,9 @@ void Camera::look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up
     m_view_matrix(3, 2) = 0.0;
     m_view_matrix(3, 3) = 1.0;
 
+    // Initialize the rotation quaternion from the rotation submatrix of of m_view_matrix.
+    m_view_rotation = Eigen::Quaterniond(m_view_matrix.matrix().template block<3, 3>(0, 0));
+
     update_zenit();
 }
 
@@ -598,8 +568,8 @@ void Camera::set_default_orientation()
     double phi_rad = Geometry::deg2rad(45.0);
     double sin_theta = ::sin(theta_rad);
     Vec3d camera_pos = m_target + m_distance * Vec3d(sin_theta * ::sin(phi_rad), sin_theta * ::cos(phi_rad), ::cos(theta_rad));
-    m_view_matrix = Transform3d::Identity();
-    m_view_matrix.rotate(Eigen::AngleAxisd(theta_rad, Vec3d::UnitX())).rotate(Eigen::AngleAxisd(phi_rad, Vec3d::UnitZ())).translate(-camera_pos);
+    m_view_rotation = Eigen::AngleAxisd(theta_rad, Vec3d::UnitX()) * Eigen::AngleAxisd(phi_rad, Vec3d::UnitZ());
+    m_view_matrix.fromPositionOrientationScale(m_view_rotation * (- camera_pos), m_view_rotation, Vec3d(1., 1., 1.));
 }
 
 Vec3d Camera::validate_target(const Vec3d& target) const
