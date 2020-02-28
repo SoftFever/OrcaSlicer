@@ -385,7 +385,7 @@ msgid ""
 "(both support_material_extruder and support_material_interface_extruder need "
 "to be set to 0)."
 msgstr ""
-"와이프 타워는 현재 비수용성 지원만 지원합니다.\n"
+"와이프 타워(프라임 타워)는 현재 비수용성 지원만 지원합니다.\n"
 "공구 교환을 트리거하지 않고 현재 압출기로 인쇄된 경우\n"
 "(support_material_extruder support_material_interface_extruder 모두 0으로 설"
 "정해야 합니다)."
@@ -397,14 +397,14 @@ msgstr "와이프 타워를 활성화하기 위해 이러한 설정을 조정해
 #: src/slic3r/GUI/ConfigManipulation.cpp:112
 #: src/slic3r/GUI/ConfigManipulation.cpp:132
 msgid "Wipe Tower"
-msgstr "와이프 타워(Wipe Tower)"
+msgstr "와이프 타워(프라임 타워)"
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:128
 msgid ""
 "For the Wipe Tower to work with the soluble supports, the support layers\n"
 "need to be synchronized with the object layers."
 msgstr ""
-"와이프 타워가 가용성 지지체와 함께 작동 하려면 서포트 레이어를 객체(object) "
+"와이프 타워(프라임 타워)가 가용성 지지체와 함께 작동 하려면 서포트 레이어를 객체(object) "
 "레이어와 동기화 해야 합니다."
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:131
