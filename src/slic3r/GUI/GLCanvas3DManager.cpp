@@ -19,10 +19,12 @@
 #include <string>
 #include <iostream>
 
-#if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
-// Part of temporary hack to remove crash when closing on OSX 10.9.5
-#include <wx/platinfo.h>
-#endif // ENABLE_HACK_CLOSING_ON_OSX_10_9_5
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//#if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
+//// Part of temporary hack to remove crash when closing on OSX 10.9.5
+//#include <wx/platinfo.h>
+//#endif // ENABLE_HACK_CLOSING_ON_OSX_10_9_5
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 #ifdef __APPLE__
 #include "../Utils/MacDarkMode.hpp"
@@ -211,11 +213,13 @@ GLCanvas3DManager::EMultisampleState GLCanvas3DManager::s_multisample = GLCanvas
 GLCanvas3DManager::EFramebufferType GLCanvas3DManager::s_framebuffers_type = GLCanvas3DManager::FB_None;
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
-#if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
-#ifdef __APPLE__ 
-GLCanvas3DManager::OSInfo GLCanvas3DManager::s_os_info;
-#endif // __APPLE__ 
-#endif // ENABLE_HACK_CLOSING_ON_OSX_10_9_5
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//#if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
+//#ifdef __APPLE__ 
+//GLCanvas3DManager::OSInfo GLCanvas3DManager::s_os_info;
+//#endif // __APPLE__ 
+//#endif // ENABLE_HACK_CLOSING_ON_OSX_10_9_5
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 #if !ENABLE_NON_STATIC_CANVAS_MANAGER
 GLCanvas3DManager::GLCanvas3DManager()
@@ -256,14 +260,16 @@ bool GLCanvas3DManager::add(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLTo
         if (m_context == nullptr)
             return false;
 
-#if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
-#ifdef __APPLE__ 
-        // Part of temporary hack to remove crash when closing on OSX 10.9.5
-        s_os_info.major = wxPlatformInfo::Get().GetOSMajorVersion();
-        s_os_info.minor = wxPlatformInfo::Get().GetOSMinorVersion();
-        s_os_info.micro = wxPlatformInfo::Get().GetOSMicroVersion();
-#endif //__APPLE__
-#endif // ENABLE_HACK_CLOSING_ON_OSX_10_9_5
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//#if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
+//#ifdef __APPLE__ 
+//        // Part of temporary hack to remove crash when closing on OSX 10.9.5
+//        s_os_info.major = wxPlatformInfo::Get().GetOSMajorVersion();
+//        s_os_info.minor = wxPlatformInfo::Get().GetOSMinorVersion();
+//        s_os_info.micro = wxPlatformInfo::Get().GetOSMicroVersion();
+//#endif //__APPLE__
+//#endif // ENABLE_HACK_CLOSING_ON_OSX_10_9_5
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     }
 
     canvas3D->set_context(m_context);
@@ -383,14 +389,16 @@ void GLCanvas3DManager::destroy()
 {
     if (m_context != nullptr)
     {
-#if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
-#ifdef __APPLE__ 
-        // this is a temporary ugly hack to solve the crash happening when closing the application on OSX 10.9.5
-        // the crash is inside wxGLContext destructor
-        if (s_os_info.major == 10 && s_os_info.minor == 9 && s_os_info.micro == 5)
-            return;
-#endif //__APPLE__
-#endif // ENABLE_HACK_CLOSING_ON_OSX_10_9_5
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//#if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
+//#ifdef __APPLE__ 
+//        // this is a temporary ugly hack to solve the crash happening when closing the application on OSX 10.9.5
+//        // the crash is inside wxGLContext destructor
+//        if (s_os_info.major == 10 && s_os_info.minor == 9 && s_os_info.micro == 5)
+//            return;
+//#endif //__APPLE__
+//#endif // ENABLE_HACK_CLOSING_ON_OSX_10_9_5
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         delete m_context;
         m_context = nullptr;
