@@ -374,12 +374,23 @@ void Preset::set_visible_from_appconfig(const AppConfig &app_config)
     if (type == TYPE_PRINTER) {
         const std::string &model = config.opt_string("printer_model");
         const std::string &variant = config.opt_string("printer_variant");
-        if (model.empty() || variant.empty()) { return; }
+        if (model.empty() || variant.empty())
+        	return;
         is_visible = app_config.get_variant(vendor->id, model, variant);
-    } else if (type == TYPE_FILAMENT) {
-        is_visible = app_config.has("filaments", name);
-    } else if (type == TYPE_SLA_MATERIAL) {
-        is_visible = app_config.has("sla_materials", name);
+    } else if (type == TYPE_FILAMENT || type == TYPE_SLA_MATERIAL) {
+    	const char *section_name = (type == TYPE_FILAMENT) ? "filaments" : "sla_materials";
+    	if (app_config.has_section(section_name)) {
+    		// Check whether this profile is marked as "installed" in PrusaSlicer.ini, 
+    		// or whether a profile is marked as "installed", which this profile may have been renamed from.
+	    	const std::map<std::string, std::string> &installed = app_config.get_section(section_name);
+	    	auto has = [&installed](const std::string &name) {
+	    		auto it = installed.find(name);
+				return it != installed.end() && ! it->second.empty();
+	    	};
+	    	is_visible = has(this->name);
+	    	for (auto it = this->renamed_from.begin(); ! is_visible && it != this->renamed_from.end(); ++ it)
+	    		is_visible = has(*it);
+	    }
     }
 }
 
