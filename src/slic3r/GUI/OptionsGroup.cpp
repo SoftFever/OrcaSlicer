@@ -129,7 +129,8 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 		m_options.emplace(opt.opt_id, opt);
 
 	// Set sidetext width for a better alignment of options in line
-	if (option_set.size() > 1) {
+	// "m_show_modified_btns==true" means that options groups are in tabs
+	if (option_set.size() > 1 && m_show_modified_btns) {
 		sidetext_width = Field::def_width_thinner();
 		/* Temporary commented till UI-review will be completed
 		if (m_show_modified_btns) // means that options groups are in tabs

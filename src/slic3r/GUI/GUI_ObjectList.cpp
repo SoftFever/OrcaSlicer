@@ -289,6 +289,7 @@ void ObjectList::create_objects_ctrl()
         GetColumn(colName)->SetWidth(20*em);
         GetColumn(colPrint)->SetWidth(3*em);
         GetColumn(colExtruder)->SetWidth(8*em);
+        GetColumn(colEditing) ->SetWidth(7*em);
     }
 }
 
