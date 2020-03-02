@@ -82,6 +82,11 @@
 #include "../Utils/UndoRedo.hpp"
 #include "../Utils/Thread.hpp"
 #include "RemovableDriveManager.hpp"
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+#ifdef __APPLE__
+#include "Gizmos/GLGizmosManager.hpp"
+#endif // __APPLE__
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
 #include "WipeTowerDialog.hpp"
@@ -2039,6 +2044,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
     view3D = new View3D(q, &model, config, &background_process);
     preview = new Preview(q, &model, config, &background_process, &gcode_preview_data, [this]() { schedule_background_process(); });
+
+#ifdef __APPLE__
+    // set default view_toolbar icons size equal to GLGizmosManager::Default_Icons_Size
+    m_view_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size);
+#endif // __APPLE__
 #else
     view3D = new View3D(q, bed, camera, view_toolbar, &model, config, &background_process);
     preview = new Preview(q, bed, camera, view_toolbar, &model, config, &background_process, &gcode_preview_data, [this](){ schedule_background_process(); });
