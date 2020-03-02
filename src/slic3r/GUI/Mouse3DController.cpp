@@ -162,8 +162,8 @@ bool Mouse3DController::State::apply(Camera& camera)
 
     if (has_rotation())
     {
-        Vec3d rotation = (m_rotation_params.scale * m_rotation.queue.front()).cast<double>();
-        camera.rotate_local_around_target(Vec3d(Geometry::deg2rad(rotation(0)), Geometry::deg2rad(-rotation(2)), Geometry::deg2rad(-rotation(1))));
+    	Vec3d rot = (m_rotation_params.scale * m_rotation.queue.front()).cast<double>() * (PI / 180.);
+        camera.rotate_local_around_target(Vec3d(rot.x(), - rot.z(), rot.y()));
         m_rotation.queue.pop();
         ret = true;
     }

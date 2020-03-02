@@ -43,6 +43,8 @@ private:
 
     mutable std::array<int, 4> m_viewport;
     mutable Transform3d m_view_matrix;
+    // We are calculating the rotation part of the m_view_matrix from m_view_rotation.
+    mutable Eigen::Quaterniond m_view_rotation;
     mutable Transform3d m_projection_matrix;
     mutable std::pair<double, double> m_frustrum_zs;
 
@@ -107,7 +109,7 @@ public:
 #endif // ENABLE_CAMERA_STATISTICS
 
     // translate the camera in world space
-    void translate_world(const Vec3d& displacement);
+    void translate_world(const Vec3d& displacement) { this->set_target(m_target + displacement); }
 
     // rotate the camera on a sphere having center == m_target and radius == m_distance
     // using the given variations of spherical coordinates
@@ -116,9 +118,6 @@ public:
 
     // rotate the camera around three axes parallel to the camera local axes and passing through m_target
     void rotate_local_around_target(const Vec3d& rotation_rad);
-
-    // rotate the camera around three axes parallel to the camera local axes and passing through the given pivot point
-    void rotate_local_around_pivot(const Vec3d& rotation_rad, const Vec3d& pivot);
 
     // returns true if the camera z axis (forward) is pointing in the negative direction of the world z axis
     bool is_looking_downward() const { return get_dir_forward().dot(Vec3d::UnitZ()) < 0.0; }
