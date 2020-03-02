@@ -2047,7 +2047,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
 #ifdef __APPLE__
     // set default view_toolbar icons size equal to GLGizmosManager::Default_Icons_Size
-    m_view_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size);
+    view_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size);
 #endif // __APPLE__
 #else
     view3D = new View3D(q, bed, camera, view_toolbar, &model, config, &background_process);

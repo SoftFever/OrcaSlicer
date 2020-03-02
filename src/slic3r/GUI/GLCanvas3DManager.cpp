@@ -207,7 +207,7 @@ GLCanvas3DManager::GLInfo GLCanvas3DManager::s_gl_info;
 bool GLCanvas3DManager::s_compressed_textures_supported = false;
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
 GLCanvas3DManager::EMultisampleState GLCanvas3DManager::s_multisample = GLCanvas3DManager::EMultisampleState::Unknown;
-GLCanvas3DManager::EFramebufferType GLCanvas3DManager::s_framebuffers_type = GLCanvas3DManager::EFramebufferType::None;
+GLCanvas3DManager::EFramebufferType GLCanvas3DManager::s_framebuffers_type = GLCanvas3DManager::EFramebufferType::Unknown;
 #else
 GLCanvas3DManager::EMultisampleState GLCanvas3DManager::s_multisample = GLCanvas3DManager::MS_Unknown;
 GLCanvas3DManager::EFramebufferType GLCanvas3DManager::s_framebuffers_type = GLCanvas3DManager::FB_None;
@@ -337,7 +337,7 @@ void GLCanvas3DManager::init_gl()
         else if (GLEW_EXT_framebuffer_object)
             s_framebuffers_type = EFramebufferType::Ext;
         else
-            s_framebuffers_type = EFramebufferType::None;
+            s_framebuffers_type = EFramebufferType::Unknown;
 #else
         if (GLEW_ARB_framebuffer_object)
             s_framebuffers_type = FB_Arb;

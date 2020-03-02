@@ -35,7 +35,7 @@ public:
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
     enum class EFramebufferType : unsigned char
     {
-        None,
+        Unknown,
         Arb,
         Ext
     };
@@ -182,7 +182,7 @@ public:
     static bool are_compressed_textures_supported() { return s_compressed_textures_supported; }
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
     static bool can_multisample() { return s_multisample == EMultisampleState::Enabled; }
-    static bool are_framebuffers_supported() { return (s_framebuffers_type != EFramebufferType::None); }
+    static bool are_framebuffers_supported() { return (s_framebuffers_type != EFramebufferType::Unknown); }
 #else
     static bool can_multisample() { return s_multisample == MS_Enabled; }
     static bool are_framebuffers_supported() { return (s_framebuffers_type != FB_None); }
