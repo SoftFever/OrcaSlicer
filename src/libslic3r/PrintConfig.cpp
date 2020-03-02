@@ -2653,6 +2653,16 @@ void PrintConfigDef::init_sla_params()
     def->max = 15;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(1.0));
+    
+    def = this->add("support_max_bridges_on_pillar", coInt);
+    def->label = L("Max bridges on a pillar");
+    def->tooltip = L(
+        "Maximum number of bridges that can be placed on a pillar. Bridges "
+        "hold support point pinheads and connect to pillars as small branches.");
+    def->min = 0;
+    def->max = 50;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionInt(3));
 
     def = this->add("support_pillar_connection_mode", coEnum);
     def->label = L("Support pillar connection mode");

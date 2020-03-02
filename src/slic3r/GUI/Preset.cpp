@@ -480,6 +480,7 @@ const std::vector<std::string>& Preset::sla_print_options()
             "support_head_penetration",
             "support_head_width",
             "support_pillar_diameter",
+            "support_max_bridges_on_pillar",
             "support_pillar_connection_mode",
             "support_buildplate_only",
             "support_pillar_widening_factor",
