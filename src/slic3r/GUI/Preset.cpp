@@ -313,9 +313,9 @@ std::string Preset::label() const
     return this->name + (this->is_dirty ? g_suffix_modified : "");
 }
 
-bool is_compatible_with_print(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_print)
+bool is_compatible_with_print(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_print, const PresetWithVendorProfile &active_printer)
 {
-	if (preset.vendor != nullptr && preset.vendor != active_print.vendor)
+	if (preset.vendor != nullptr && preset.vendor != active_printer.vendor)
 		// The current profile has a vendor assigned and it is different from the active print's vendor.
 		return false;
     auto &condition             = preset.preset.compatible_prints_condition();
@@ -1042,7 +1042,7 @@ void PresetCollection::set_default_suppressed(bool default_suppressed)
     }
 }
 
-size_t PresetCollection::update_compatible_internal(const PresetWithVendorProfile &active_printer, const PresetWithVendorProfile *active_print, bool unselect_if_incompatible)
+size_t PresetCollection::update_compatible_internal(const PresetWithVendorProfile &active_printer, const PresetWithVendorProfile *active_print, PresetSelectCompatibleType unselect_if_incompatible)
 {
     DynamicPrintConfig config;
     config.set_key_value("printer_preset", new ConfigOptionString(active_printer.preset.name));
@@ -1054,10 +1054,12 @@ size_t PresetCollection::update_compatible_internal(const PresetWithVendorProfil
         Preset &preset_selected = m_presets[idx_preset];
         Preset &preset_edited   = selected ? m_edited_preset : preset_selected;
         const PresetWithVendorProfile this_preset_with_vendor_profile = this->get_preset_with_vendor_profile(preset_edited);
+        bool    was_compatible  = preset_edited.is_compatible;
         preset_edited.is_compatible = is_compatible_with_printer(this_preset_with_vendor_profile, active_printer, &config);
 	    if (active_print != nullptr)
-	        preset_edited.is_compatible &= is_compatible_with_print(this_preset_with_vendor_profile, *active_print);
-        if (! preset_edited.is_compatible && selected && unselect_if_incompatible)
+	        preset_edited.is_compatible &= is_compatible_with_print(this_preset_with_vendor_profile, *active_print, active_printer);
+        if (! preset_edited.is_compatible && selected && 
+        	(unselect_if_incompatible == PresetSelectCompatibleType::Always || (unselect_if_incompatible == PresetSelectCompatibleType::OnlyIfWasCompatible && was_compatible)))
             m_idx_selected = -1;
         if (selected)
             preset_selected.is_compatible = preset_edited.is_compatible;

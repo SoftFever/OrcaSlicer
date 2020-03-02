@@ -3413,7 +3413,7 @@ bool ObjectList::check_last_selection(wxString& msg_str)
         (type & itInstance && !(m_selection_mode & smInstance))
         )
     {
-        // Inform user why selection isn't complited
+        // Inform user why selection isn't completed
         const wxString item_type = m_selection_mode & smInstance ? _(L("Object or Instance")) : 
                                    m_selection_mode & smVolume   ? _(L("Part")) : _(L("Layer"));
 

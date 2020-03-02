@@ -25,12 +25,11 @@
 namespace Slic3r {
 namespace GUI {
 
-GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, CommonGizmosData* cd)
-    : GLGizmoBase(parent, icon_filename, sprite_id, cd)
+GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
     , m_quadric(nullptr)
     , m_its(nullptr)
-{
-    m_c->m_clipping_plane.reset(new ClippingPlane(Vec3d::Zero(), 0.));
+{    
     m_quadric = ::gluNewQuadric();
     if (m_quadric != nullptr)
         // using GLU_FILL does not work when the instance's transformation
@@ -66,30 +65,21 @@ bool GLGizmoSlaSupports::on_init()
 
 void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const Selection& selection)
 {
-    // Update common data for hollowing and sla support gizmos.
-    if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA)
-        m_c->update_from_backend(m_parent, model_object);
-
     if (m_c->recent_update) {
         if (m_state == On)
             m_c->build_AABB_if_needed();
 
         update_clipping_plane(m_c->m_clipping_plane_was_moved);
 
-        if (m_state == On) {
-            m_parent.toggle_model_objects_visibility(false);
-            m_parent.toggle_model_objects_visibility(/*! m_c->m_cavity_mesh*/ true, m_c->m_model_object, m_c->m_active_instance);
-            m_parent.toggle_sla_auxiliaries_visibility(! m_editing_mode, m_c->m_model_object, m_c->m_active_instance);
-        }
-        // following was removed so that it does not show the object when it should
-        // be hidden because the supports gizmo is active. on_set_state takes care
-        // of showing the object.
-        //else
-        //    m_parent.toggle_model_objects_visibility(true, nullptr, -1);
-
         disable_editing_mode();
         if (m_c->m_model_object)
             reload_cache();
+    }
+
+    if (m_state == On) {
+        m_parent.toggle_model_objects_visibility(false);
+        m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
+        m_parent.toggle_sla_auxiliaries_visibility(! m_editing_mode, m_c->m_model_object, m_c->m_active_instance);
     }
 
     // If we triggered autogeneration before, check backend and fetch results if they are there

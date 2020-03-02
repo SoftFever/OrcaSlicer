@@ -94,6 +94,17 @@ public:
         void detect() const;
     };
 
+#if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
+#ifdef __APPLE__ 
+    struct OSInfo
+    {
+        int major{ 0 };
+        int minor{ 0 };
+        int micro{ 0 };
+    };
+#endif //__APPLE__
+#endif // ENABLE_HACK_CLOSING_ON_OSX_10_9_5
+
 private:
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
     enum class EMultisampleState : unsigned char
@@ -118,6 +129,15 @@ private:
     wxGLContext* m_context{ nullptr };
 #else
     wxGLContext* m_context;
+<<<<<<< HEAD
+=======
+    static GLInfo s_gl_info;
+#if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
+#ifdef __APPLE__ 
+    static OSInfo s_os_info;
+#endif //__APPLE__
+#endif // ENABLE_HACK_CLOSING_ON_OSX_10_9_5
+>>>>>>> 11bd62a3e6887741701eb908e0fd0cc0b6afb576
     bool m_gl_initialized;
     CanvasesMap m_canvases;
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER

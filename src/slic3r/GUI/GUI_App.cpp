@@ -204,8 +204,8 @@ bool GUI_App::on_init_inner()
         wxString::Format("Resources path does not exist or is not a directory: %s", resources_dir));
 
     // Profiles for the alpha are stored into the PrusaSlicer-alpha directory to not mix with the current release.
-    // SetAppName(SLIC3R_APP_KEY);
-    SetAppName(SLIC3R_APP_KEY "-beta");
+    SetAppName(SLIC3R_APP_KEY);
+//    SetAppName(SLIC3R_APP_KEY "-beta");
     SetAppDisplayName(SLIC3R_APP_NAME);
 
 // Enable this to get the default Win32 COMCTRL32 behavior of static boxes.
@@ -349,7 +349,11 @@ unsigned GUI_App::get_colour_approx_luma(const wxColour &colour)
 bool GUI_App::dark_mode()
 {
 #if __APPLE__
-    return mac_dark_mode();
+    // The check for dark mode returns false positive on 10.12 and 10.13,
+    // which allowed setting dark menu bar and dock area, which is
+    // is detected as dark mode. We must run on at least 10.14 where the
+    // proper dark mode was first introduced.
+    return wxPlatformInfo::Get().CheckOSVersion(10, 14) && mac_dark_mode();
 #else
     const unsigned luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
     return luma < 128;
@@ -773,7 +777,7 @@ Tab* GUI_App::get_tab(Preset::Type type)
 {
     for (Tab* tab: tabs_list)
         if (tab->type() == type)
-            return tab->complited() ? tab : nullptr; // To avoid actions with no-completed Tab
+            return tab->completed() ? tab : nullptr; // To avoid actions with no-completed Tab
     return nullptr;
 }
 

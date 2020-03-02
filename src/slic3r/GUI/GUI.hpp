@@ -42,7 +42,9 @@ void show_error(wxWindow* parent, const wxString& message);
 void show_error(wxWindow* parent, const char* message);
 inline void show_error(wxWindow* parent, const std::string& message) { show_error(parent, message.c_str()); }
 void show_error_id(int id, const std::string& message);   // For Perl
-void show_info(wxWindow* parent, const wxString& message, const wxString& title);
+void show_info(wxWindow* parent, const wxString& message, const wxString& title = wxString());
+void show_info(wxWindow* parent, const char* message, const char* title = nullptr);
+inline void show_info(wxWindow* parent, const std::string& message,const std::string& title = std::string()) { show_info(parent, message.c_str(), title.c_str()); }
 void warning_catcher(wxWindow* parent, const wxString& message);
 
 // Creates a wxCheckListBoxComboPopup inside the given wxComboCtrl, filled with the given text and items.

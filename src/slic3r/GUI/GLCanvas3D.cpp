@@ -742,7 +742,7 @@ static void msw_disable_cleartype(wxFont &font)
     ++ startpos_weight;
     size_t endpos_weight = font_desc.find(sep, startpos_weight);
     // Parse the weight field.
-    unsigned int weight = atoi(font_desc(startpos_weight, endpos_weight - startpos_weight));
+    unsigned int weight = wxAtoi(font_desc(startpos_weight, endpos_weight - startpos_weight));
     size_t startpos = endpos_weight;
     for (size_t i = 0; i < 6; ++ i)
         startpos = font_desc.find(sep, startpos + 1);
@@ -3601,19 +3601,19 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // if dragging over blank area with left button, rotate
             if (m_hover_volume_idxs.empty() && m_mouse.is_start_position_3D_defined())
             {
-                const Vec3d& orig = m_mouse.drag.start_position_3D;
-                double x = Geometry::deg2rad(pos(0) - orig(0)) * (double)TRACKBALLSIZE;
-                double y = Geometry::deg2rad(pos(1) - orig(1)) * (double)TRACKBALLSIZE;
+                const Vec3d rot = (Vec3d(pos.x(), pos.y(), 0.) - m_mouse.drag.start_position_3D) * (PI * TRACKBALLSIZE / 180.);
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
                 if (wxGetApp().plater()->get_mouse3d_controller().is_running() || (wxGetApp().app_config->get("use_free_camera") == "1"))
-                    wxGetApp().plater()->get_camera().rotate_local_around_target(Vec3d(y, x, 0.0));
+                    // Virtual track ball (similar to the 3DConnexion mouse).
+                    wxGetApp().plater()->get_camera().rotate_local_around_target(Vec3d(rot.y(), rot.x(), 0.));
                 else
-                    wxGetApp().plater()->get_camera().rotate_on_sphere(x, y, wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
+                    wxGetApp().plater()->get_camera().rotate_on_sphere(rot.x(), rot.y(), wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
 #else
                 if (wxGetApp().plater()->get_mouse3d_controller().is_running() || (wxGetApp().app_config->get("use_free_camera") == "1"))
-                    m_camera.rotate_local_around_target(Vec3d(y, x, 0.0));
+                    // Virtual track ball (similar to the 3DConnexion mouse).
+                    m_camera.rotate_local_around_target(Vec3d(rot.y(), rot.x(), 0.));
                 else
-                    m_camera.rotate_on_sphere(x, y, wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
+                    m_camera.rotate_on_sphere(rot.x(), rot.y(), wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
                 m_dirty = true;
