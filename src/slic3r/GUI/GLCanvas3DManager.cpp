@@ -238,7 +238,7 @@ GLCanvas3DManager::~GLCanvas3DManager()
 #if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
 #ifdef __APPLE__ 
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    std::cout << "OSX version" << s_os_info.major << "." << s_os_info.minor << "." << s_os_info.micro << std::endl;;
+    std::cout << "OSX version: " << s_os_info.major << "." << s_os_info.minor << "." << s_os_info.micro << std::endl;;
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     // This is an ugly hack needed to solve the crash happening when closing the application on OSX 10.9.5 with newer wxWidgets
     // The crash is triggered inside wxGLContext destructor
@@ -395,8 +395,22 @@ void GLCanvas3DManager::init_gl()
 wxGLContext* GLCanvas3DManager::init_glcontext(wxGLCanvas& canvas)
 {
     if (m_context == nullptr)
+    {
         m_context = new wxGLContext(&canvas);
 
+#if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
+#ifdef __APPLE__ 
+        // Part of hack to remove crash when closing the application on OSX 10.9.5 when building against newer wxWidgets
+        s_os_info.major = wxPlatformInfo::Get().GetOSMajorVersion();
+        s_os_info.minor = wxPlatformInfo::Get().GetOSMinorVersion();
+        s_os_info.micro = wxPlatformInfo::Get().GetOSMicroVersion();
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        std::cout << "GLCanvas3DManager::init_glcontext() -> OSX version: " << s_os_info.major << "." << s_os_info.minor << "." << s_os_info.micro << std::endl;;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#endif //__APPLE__
+#endif // ENABLE_HACK_CLOSING_ON_OSX_10_9_5
+    }
     return m_context;
 }
 #else
