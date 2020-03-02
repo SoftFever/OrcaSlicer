@@ -280,12 +280,22 @@ public:
     bool init_view_toolbar();
 
     const Camera& get_camera() const;
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    Camera& get_camera();
+
+    const Bed3D& get_bed() const;
+    Bed3D& get_bed();
+
+    const GLToolbar& get_view_toolbar() const;
+    GLToolbar& get_view_toolbar();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
+
     const Mouse3DController& get_mouse3d_controller() const;
     Mouse3DController& get_mouse3d_controller();
 
 	void set_bed_shape() const;
 
-	// ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
+    // ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
 	class SuppressSnapshots
 	{
 	public:

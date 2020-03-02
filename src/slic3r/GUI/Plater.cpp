@@ -2031,8 +2031,13 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     sla_print.set_status_callback(statuscb);
     this->q->Bind(EVT_SLICING_UPDATE, &priv::on_slicing_update, this);
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    view3D = new View3D(q, &model, config, &background_process);
+    preview = new Preview(q, &model, config, &background_process, &gcode_preview_data, [this]() { schedule_background_process(); });
+#else
     view3D = new View3D(q, bed, camera, view_toolbar, &model, config, &background_process);
     preview = new Preview(q, bed, camera, view_toolbar, &model, config, &background_process, &gcode_preview_data, [this](){ schedule_background_process(); });
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     panels.push_back(view3D);
     panels.push_back(preview);
@@ -2132,7 +2137,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     // Drop target:
     q->SetDropTarget(new PlaterDropTarget(q));   // if my understanding is right, wxWindow takes the owenership
 
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
     update_ui_from_settings();
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
     q->Layout();
 
     set_current_panel(view3D);
@@ -4530,7 +4537,8 @@ void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& lab
 // Plater / Public
 
 Plater::Plater(wxWindow *parent, MainFrame *main_frame)
-    : wxPanel(parent), p(new priv(this, main_frame))
+    : wxPanel(parent)
+    , p(new priv(this, main_frame))
 {
     // Initialization performed in the private c-tor
 }
@@ -5625,6 +5633,33 @@ const Camera& Plater::get_camera() const
 {
     return p->camera;
 }
+
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+Camera& Plater::get_camera()
+{
+    return p->camera;
+}
+
+const Bed3D& Plater::get_bed() const
+{
+    return p->bed;
+}
+
+Bed3D& Plater::get_bed()
+{
+    return p->bed;
+}
+
+const GLToolbar& Plater::get_view_toolbar() const
+{
+    return p->view_toolbar;
+}
+
+GLToolbar& Plater::get_view_toolbar()
+{
+    return p->view_toolbar;
+}
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 const Mouse3DController& Plater::get_mouse3d_controller() const
 {

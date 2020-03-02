@@ -43,9 +43,12 @@
 
 
 //==================
-// 2.2.0.beta1 techs
+// 2.2.0.final techs
 //==================
-#define ENABLE_2_2_0_BETA1 1
+#define ENABLE_2_2_0_FINAL 1
+
+// Moves GLCanvas3DManager from being a static member of _3DScene to be a normal member of GUI_App
+#define ENABLE_NON_STATIC_CANVAS_MANAGER (1 && ENABLE_2_2_0_FINAL)
 
 
 #endif // _technologies_h_

@@ -122,7 +122,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
         wxGetApp().app_config->save();
 //         if (m_plater)
 //             m_plater->print = undef;
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
         _3DScene::remove_all_canvases();
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 //         Slic3r::GUI::deregister_on_request_update_callback();
 
         // set to null tabs and a plater

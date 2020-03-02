@@ -527,8 +527,10 @@ int CLI::run(int argc, char **argv)
                 gui->mainframe->load_config(m_extra_config);
         });
         int result = wxEntry(argc, argv);
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
         //FIXME this is a workaround for the PrusaSlicer 2.1 release.
 		_3DScene::destroy();
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
         return result;
 #else /* SLIC3R_GUI */
         // No GUI support. Just print out a help.

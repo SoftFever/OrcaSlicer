@@ -3,7 +3,13 @@
 
 #include "GLToolbar.hpp"
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+#include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/Camera.hpp"
+#else
 #include "../../slic3r/GUI/GLCanvas3D.hpp"
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 #include <GL/glew.h>
 
@@ -15,7 +21,6 @@
 
 namespace Slic3r {
 namespace GUI {
-
 
 wxDEFINE_EVENT(EVT_GLTOOLBAR_ADD, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLTOOLBAR_DELETE, SimpleEvent);
@@ -626,7 +631,11 @@ std::string GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos, GLC
 {
     // NB: mouse_pos is already scaled appropriately
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
+#else
     float inv_zoom = (float)parent.get_camera().get_inv_zoom();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     float factor = m_layout.scale * inv_zoom;
 
     Size cnv_size = parent.get_canvas_size();
@@ -730,7 +739,11 @@ std::string GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos, GLCan
 {
     // NB: mouse_pos is already scaled appropriately
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
+#else
     float inv_zoom = (float)parent.get_camera().get_inv_zoom();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     float factor = m_layout.scale * inv_zoom;
 
     Size cnv_size = parent.get_canvas_size();
@@ -846,7 +859,11 @@ int GLToolbar::contains_mouse_horizontal(const Vec2d& mouse_pos, const GLCanvas3
 {
     // NB: mouse_pos is already scaled appropriately
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
+#else
     float inv_zoom = (float)parent.get_camera().get_inv_zoom();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     float factor = m_layout.scale * inv_zoom;
 
     Size cnv_size = parent.get_canvas_size();
@@ -919,7 +936,11 @@ int GLToolbar::contains_mouse_vertical(const Vec2d& mouse_pos, const GLCanvas3D&
 {
     // NB: mouse_pos is already scaled appropriately
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
+#else
     float inv_zoom = (float)parent.get_camera().get_inv_zoom();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     float factor = m_layout.scale * inv_zoom;
 
     Size cnv_size = parent.get_canvas_size();
@@ -1071,7 +1092,11 @@ void GLToolbar::render_horizontal(const GLCanvas3D& parent) const
     int tex_width = m_icons_texture.get_width();
     int tex_height = m_icons_texture.get_height();
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
+#else
     float inv_zoom = (float)parent.get_camera().get_inv_zoom();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     float factor = inv_zoom * m_layout.scale;
 
     float scaled_icons_size = m_layout.icons_size * factor;
@@ -1119,7 +1144,11 @@ void GLToolbar::render_vertical(const GLCanvas3D& parent) const
     int tex_width = m_icons_texture.get_width();
     int tex_height = m_icons_texture.get_height();
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
+#else
     float inv_zoom = (float)parent.get_camera().get_inv_zoom();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     float factor = inv_zoom * m_layout.scale;
 
     float scaled_icons_size = m_layout.icons_size * factor;

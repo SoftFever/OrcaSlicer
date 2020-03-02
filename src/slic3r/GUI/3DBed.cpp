@@ -10,6 +10,9 @@
 #include "PresetBundle.hpp"
 #include "Gizmos/GLGizmoBase.hpp"
 #include "GLCanvas3D.hpp"
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+#include "GLCanvas3DManager.hpp"
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 #include <GL/glew.h>
 

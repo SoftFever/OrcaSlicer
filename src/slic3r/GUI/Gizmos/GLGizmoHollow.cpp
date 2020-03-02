@@ -9,6 +9,9 @@
 #include "slic3r/GUI/GUI_ObjectList.hpp"
 #include "slic3r/GUI/MeshUtils.hpp"
 #include "slic3r/GUI/Plater.hpp"
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+#include "slic3r/GUI/Camera.hpp"
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/TriangleMesh.hpp"
@@ -345,7 +348,11 @@ bool GLGizmoHollow::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, V
     // !!! is it really necessary?
     //m_c->update_from_backend(m_parent, m_c->m_model_object);
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    const Camera& camera = wxGetApp().plater()->get_camera();
+#else
     const Camera& camera = m_parent.get_camera();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     const Selection& selection = m_parent.get_selection();
     const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
     Geometry::Transformation trafo = volume->get_instance_transformation();
@@ -460,7 +467,11 @@ bool GLGizmoHollow::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_pos
             points_inside.push_back(points[idx].cast<float>());
 
         // Only select/deselect points that are actually visible
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+        for (size_t idx : m_c->m_mesh_raycaster->get_unobscured_idxs(trafo, wxGetApp().plater()->get_camera(), points_inside, m_c->m_clipping_plane.get()))
+#else
         for (size_t idx :  m_c->m_mesh_raycaster->get_unobscured_idxs(trafo, m_parent.get_camera(), points_inside, m_c->m_clipping_plane.get()))
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
         {
             if (rectangle_status == GLSelectionRectangle::Deselect)
                 unselect_point(points_idxs[idx]);
@@ -1137,8 +1148,13 @@ void GLGizmoHollow::update_clipping_plane(bool keep_normal) const
 {
     if (! m_c->m_model_object)
         return;
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    Vec3d normal = (keep_normal && m_c->m_clipping_plane->get_normal() != Vec3d::Zero() ?
+        m_c->m_clipping_plane->get_normal() : -wxGetApp().plater()->get_camera().get_dir_forward());
+#else
     Vec3d normal = (keep_normal && m_c->m_clipping_plane->get_normal() != Vec3d::Zero() ?
                         m_c->m_clipping_plane->get_normal() : -m_parent.get_camera().get_dir_forward());
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     const Vec3d& center = m_c->m_model_object->instances[m_c->m_active_instance]->get_offset() + Vec3d(0., 0., m_z_shift);
     float dist = normal.dot(center);

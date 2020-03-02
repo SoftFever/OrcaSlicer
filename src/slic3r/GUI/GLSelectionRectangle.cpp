@@ -2,6 +2,9 @@
 #include "Camera.hpp"
 #include "3DScene.hpp"
 #include "GLCanvas3D.hpp"
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+#include "GUI_App.hpp"
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 #include <GL/glew.h>
 
@@ -35,7 +38,11 @@ namespace GUI {
 
         m_state = Off;
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+        const Camera& camera = wxGetApp().plater()->get_camera();
+#else
         const Camera& camera = canvas.get_camera();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
         const std::array<int, 4>& viewport = camera.get_viewport();
         const Transform3d& modelview_matrix = camera.get_view_matrix();
         const Transform3d& projection_matrix = camera.get_projection_matrix();
@@ -68,7 +75,11 @@ namespace GUI {
         if (!is_dragging())
             return;
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+        const Camera& camera = wxGetApp().plater()->get_camera();
+#else
         const Camera& camera = canvas.get_camera();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
         float inv_zoom = (float)camera.get_inv_zoom();
 
         Size cnv_size = canvas.get_canvas_size();
