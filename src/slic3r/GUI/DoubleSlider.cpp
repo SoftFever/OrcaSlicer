@@ -530,7 +530,7 @@ wxString Control::get_label(int tick) const
     const wxString str = m_values.empty() ? 
                          wxNumberFormatter::ToString(m_label_koef*value, 2, wxNumberFormatter::Style_None) :
                          wxNumberFormatter::ToString(m_values[value], 2, wxNumberFormatter::Style_None);
-    return wxString::Format("%s\n(%d)", str, m_values.empty() ? value : value+1);
+    return from_u8((boost::format("%1%\n(%2%)") % str % (m_values.empty() ? value : value+1)).str());
 }
 
 void Control::draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, bool right_side/*=true*/) const
@@ -952,8 +952,8 @@ wxString Control::get_tooltip(int tick/*=-1*/)
         return _(L("Discard all custom changes"));
     if (m_focus == fiCogIcon)
         return m_mode == t_mode::MultiAsSingle                                                              ?
-               wxString::Format(_(L("Jump to height %s or "
-                                       "Set extruder sequence for the entire print")), " (Shift + G)\n") :
+               wxString::FromUTF8((boost::format(_utf8(L("Jump to height %s or "
+                                       "Set extruder sequence for the entire print"))) % " (Shift + G)\n").str()) :
                _(L("Jump to height")) + " (Shift + G)";
     if (m_focus == fiColorBand)
         return m_mode != t_mode::SingleExtruder ? "" :

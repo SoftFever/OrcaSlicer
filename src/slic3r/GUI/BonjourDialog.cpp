@@ -215,14 +215,14 @@ void BonjourDialog::on_reply(BonjourReplyEvent &e)
 
 void BonjourDialog::on_timer(wxTimerEvent &)
 {
-	const auto search_str = _(L("Searching for devices"));
+    const auto search_str = _utf8(L("Searching for devices"));
 
 	if (timer_state > 0) {
 		const std::string dots(timer_state, '.');
-		label->SetLabel(wxString::Format("%s %s", search_str, dots));
+        label->SetLabel(wxString::FromUTF8((boost::format("%1% %2%") % search_str % dots).str()));
 		timer_state = (timer_state) % 3 + 1;
 	} else {
-		label->SetLabel(wxString::Format("%s: %s", search_str, _(L("Finished"))+"."));
+        label->SetLabel(wxString::FromUTF8((boost::format("%1%: %2%") % search_str % (_utf8(L("Finished"))+".")).str()));
 		timer->Stop();
 	}
 }
