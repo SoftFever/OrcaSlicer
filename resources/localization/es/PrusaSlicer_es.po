@@ -5,7 +5,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.2.1\n"
+"X-Generator: Poedit 1.8.7.1\n"
 "Project-Id-Version: \n"
 "POT-Creation-Date: \n"
 "PO-Revision-Date: \n"
@@ -7567,7 +7567,7 @@ msgstr "Textura"
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:208
 msgid "The %1% infill pattern is not supposed to work at 100%% density."
-msgstr "Se supone que el patrón de relleno %1% no funciona a una densidad del 100%."
+msgstr "Se supone que el patrón de relleno %1% no funciona a una densidad del 100%%."
 
 #: src/slic3r/GUI/FirmwareDialog.cpp:548
 #, c-format
