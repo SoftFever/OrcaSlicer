@@ -8,7 +8,9 @@
 
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
-
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+#include <boost/log/trivial.hpp>
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 #include <wx/glcanvas.h>
 #include <wx/timer.h>
 #include <wx/msgdlg.h>
