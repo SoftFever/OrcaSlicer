@@ -8,30 +8,26 @@ static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
 
 namespace Slic3r {
 
-void GCodeProcessor::apply_config(const PrintConfig& config)
-{
-    m_parser.apply_config(config);
-}
-
 void GCodeProcessor::reset()
 {
     m_units = EUnits::Millimeters;
     m_global_positioning_type = EPositioningType::Absolute;
     m_e_local_positioning_type = EPositioningType::Absolute;
     
-    ::memset(m_start_position.data(), 0, sizeof(AxisCoords));
-    ::memset(m_end_position.data(), 0, sizeof(AxisCoords));
-    ::memset(m_origin.data(), 0, sizeof(AxisCoords));
+    std::fill(m_start_position.begin(), m_start_position.end(), 0.0f);
+    std::fill(m_end_position.begin(), m_end_position.end(), 0.0f);
+    std::fill(m_origin.begin(), m_origin.end(), 0.0f);
 
     m_feedrate = 0.0f;
+    m_extruder_id = 0;
 
-    m_moves.clear();
+    m_result.reset();
 }
 
 void GCodeProcessor::process_file(const std::string& filename)
 {
-    MoveStep start_step {};
-    m_moves.emplace_back(start_step);
+    MoveVertex start_vertex {};
+    m_result.moves.emplace_back(start_vertex);
     m_parser.parse_file(filename, [this](GCodeReader& reader, const GCodeReader::GCodeLine& line) { process_gcode_line(line); });
     int a = 0;
 }
@@ -149,9 +145,17 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
     else if ((delta_pos[X] != 0.0f) || (delta_pos[Y] != 0.0f) || (delta_pos[Z] != 0.0f))
         move_type = EMoveType::Travel;
 
+    // correct position by extruder offset
+    Vec3d extruder_offset = Vec3d::Zero();
+    auto it = m_extruder_offsets.find(m_extruder_id);
+    if (it != m_extruder_offsets.end())
+        extruder_offset = Vec3d(it->second(0), it->second(1), 0.0);
 
-    MoveStep move_step { m_end_position, m_feedrate, move_type };
-    m_moves.emplace_back(move_step);
+    MoveVertex vertex;
+    vertex.position = Vec3d(m_end_position[0], m_end_position[1], m_end_position[2]) + extruder_offset;
+    vertex.feedrate = m_feedrate;
+    vertex.type = move_type;
+    m_result.moves.emplace_back(vertex);
 
 /*
     std::cout << "start: ";

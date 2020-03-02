@@ -1619,11 +1619,13 @@ void Print::process()
 // The export_gcode may die for various reasons (fails to process output_filename_format,
 // write error into the G-code, cannot execute post-processing scripts).
 // It is up to the caller to show an error message.
-#if ENABLE_THUMBNAIL_GENERATOR
+#if ENABLE_GCODE_VIEWER
+std::string Print::export_gcode(const std::string& path_template, GCodePreviewData* preview_data, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb)
+#elif ENABLE_THUMBNAIL_GENERATOR
 std::string Print::export_gcode(const std::string& path_template, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb)
 #else
 std::string Print::export_gcode(const std::string &path_template, GCodePreviewData *preview_data)
-#endif // ENABLE_THUMBNAIL_GENERATOR
+#endif // ENABLE_GCODE_VIEWER
 {
     // output everything to a G-code file
     // The following call may die if the output_filename_format template substitution fails.
@@ -1640,11 +1642,13 @@ std::string Print::export_gcode(const std::string &path_template, GCodePreviewDa
 
     // The following line may die for multiple reasons.
     GCode gcode;
-#if ENABLE_THUMBNAIL_GENERATOR
+#if ENABLE_GCODE_VIEWER
+    gcode.do_export(this, path.c_str(), preview_data, result, thumbnail_cb);
+#elif ENABLE_THUMBNAIL_GENERATOR
     gcode.do_export(this, path.c_str(), preview_data, thumbnail_cb);
 #else
     gcode.do_export(this, path.c_str(), preview_data);
-#endif // ENABLE_THUMBNAIL_GENERATOR
+#endif // ENABLE_GCODE_VIEWER
     return path.c_str();
 }
 

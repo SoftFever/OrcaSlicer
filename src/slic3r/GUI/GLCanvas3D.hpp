@@ -13,6 +13,9 @@
 #include "Gizmos/GLGizmosManager.hpp"
 #include "GUI_ObjectLayers.hpp"
 #include "MeshUtils.hpp"
+#if ENABLE_GCODE_VIEWER
+#include "libslic3r/GCode/GCodeProcessor.hpp"
+#endif // ENABLE_GCODE_VIEWER
 
 #include <float.h>
 
@@ -576,6 +579,10 @@ public:
     void mirror_selection(Axis axis);
 
     void reload_scene(bool refresh_immediately, bool force_full_scene_refresh = false);
+
+#if ENABLE_GCODE_VIEWER
+    void load_gcode_preview_2(const GCodeProcessor::Result& gcode_result);
+#endif // ENABLE_GCODE_VIEWER
 
     void load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors);
     void load_sla_preview();

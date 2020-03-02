@@ -698,11 +698,13 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
     return layers_to_print;
 }
 
-#if ENABLE_THUMBNAIL_GENERATOR
+#if ENABLE_GCODE_VIEWER
+void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_data, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb)
+#elif ENABLE_THUMBNAIL_GENERATOR
 void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb)
 #else
 void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_data)
-#endif // ENABLE_THUMBNAIL_GENERATOR
+#endif // ENABLE_GCODE_VIEWER
 {
     PROFILE_CLEAR();
 
@@ -761,13 +763,11 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
         throw std::runtime_error(msg);
     }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #if ENABLE_GCODE_VIEWER
-    m_processor.apply_config(print->config());
-    m_processor.reset();
     m_processor.process_file(path_tmp);
+    if (result != nullptr)
+        *result = std::move(m_processor.extract_result());
 #endif // ENABLE_GCODE_VIEWER
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     GCodeTimeEstimator::PostProcessData normal_data = m_normal_time_estimator.get_post_process_data();
     GCodeTimeEstimator::PostProcessData silent_data = m_silent_time_estimator.get_post_process_data();
@@ -904,6 +904,25 @@ namespace DoExport {
 	    // tell analyzer about the gcode flavor
 	    analyzer.set_gcode_flavor(config.gcode_flavor);
 	}
+
+#if ENABLE_GCODE_VIEWER
+    static void init_gcode_processor(const PrintConfig& config, GCodeProcessor& processor)
+    {
+        processor.reset();
+        processor.apply_config(config);
+
+        // send extruder offset data to processor
+        unsigned int num_extruders = static_cast<unsigned int>(config.nozzle_diameter.values.size());
+        GCodeProcessor::ExtruderOffsetsMap extruder_offsets;
+        for (unsigned int id = 0; id < num_extruders; ++id)
+        {
+            Vec2d offset = config.extruder_offset.get_at(id);
+            if (!offset.isApprox(Vec2d::Zero()))
+                extruder_offsets[id] = offset;
+        }
+        processor.set_extruder_offsets(extruder_offsets);
+    }
+#endif // ENABLE_GCODE_VIEWER
 
 	static double autospeed_volumetric_limit(const Print &print)
 	{
@@ -1142,6 +1161,9 @@ void GCode::_do_export(Print& print, FILE* file)
     	// modifies the following:
     	m_normal_time_estimator, m_silent_time_estimator, m_silent_time_estimator_enabled);
     DoExport::init_gcode_analyzer(print.config(), m_analyzer);
+#if ENABLE_GCODE_VIEWER
+    DoExport::init_gcode_processor(print.config(), m_processor);
+#endif // ENABLE_GCODE_VIEWER
 
     // resets analyzer's tracking data
     m_last_mm3_per_mm = GCodeAnalyzer::Default_mm3_per_mm;

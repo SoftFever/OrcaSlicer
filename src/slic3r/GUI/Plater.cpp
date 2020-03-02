@@ -1440,6 +1440,9 @@ struct Plater::priv
     Slic3r::Model               model;
     PrinterTechnology           printer_technology = ptFFF;
     Slic3r::GCodePreviewData    gcode_preview_data;
+#if ENABLE_GCODE_VIEWER
+    Slic3r::GCodeProcessor::Result gcode_result;
+#endif // ENABLE_GCODE_VIEWER
 
     // GUI elements
     wxSizer* panel_sizer{ nullptr };
@@ -1990,6 +1993,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     background_process.set_fff_print(&fff_print);
     background_process.set_sla_print(&sla_print);
     background_process.set_gcode_preview_data(&gcode_preview_data);
+#if ENABLE_GCODE_VIEWER
+    background_process.set_gcode_result(&gcode_result);
+#endif // ENABLE_GCODE_VIEWER
 #if ENABLE_THUMBNAIL_GENERATOR
     background_process.set_thumbnail_cb([this](ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
         {
@@ -2015,7 +2021,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->q->Bind(EVT_SLICING_UPDATE, &priv::on_slicing_update, this);
 
     view3D = new View3D(q, bed, camera, view_toolbar, &model, config, &background_process);
+#if ENABLE_GCODE_VIEWER
+    preview = new Preview(q, bed, camera, view_toolbar, &model, config, &background_process, &gcode_preview_data, &gcode_result, [this]() { schedule_background_process(); });
+#else
     preview = new Preview(q, bed, camera, view_toolbar, &model, config, &background_process, &gcode_preview_data, [this](){ schedule_background_process(); });
+#endif // ENABLE_GCODE_VIEWER
 
     panels.push_back(view3D);
     panels.push_back(preview);

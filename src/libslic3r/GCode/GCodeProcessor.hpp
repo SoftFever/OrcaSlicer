@@ -33,15 +33,24 @@ namespace Slic3r {
             Num_Types
         };
 
-        struct MoveStep
+        struct MoveVertex
         {
-            AxisCoords position; // mm
-            float feedrate; // mm/s
-            EMoveType type;
+            Vec3d position{ Vec3d::Zero() }; // mm
+            float feedrate{ 0.0f }; // mm/s
+            // type of the move terminating at this vertex
+            EMoveType type{ EMoveType::Noop };
         };
 
-        using MoveStepsList = std::vector<MoveStep>;
+    public:
+        typedef std::map<unsigned int, Vec2d> ExtruderOffsetsMap;
 
+        struct Result
+        {
+            std::vector<MoveVertex> moves;
+            void reset() { moves = std::vector<MoveVertex>(); }
+        };
+
+    private:
         GCodeReader m_parser;
 
         EUnits m_units;
@@ -53,16 +62,21 @@ namespace Slic3r {
         AxisCoords m_origin;         // mm
 
         float m_feedrate; // mm/s
+        unsigned int m_extruder_id;
+        ExtruderOffsetsMap m_extruder_offsets;
 
-        MoveStepsList m_moves;
-
+        Result m_result;
 
     public:
         GCodeProcessor() { reset(); }
 
-        void apply_config(const PrintConfig& config);
-
+        void apply_config(const PrintConfig& config) { m_parser.apply_config(config); }
         void reset();
+
+        void set_extruder_offsets(const ExtruderOffsetsMap& extruder_offsets) { m_extruder_offsets = extruder_offsets; }
+
+        const Result& get_result() const { return m_result; }
+        Result&& extract_result() { return std::move(m_result); }
 
         // Process the gcode contained in the file with the given filename
         // Return false if any error occourred

@@ -6,6 +6,9 @@
 
 #include <string>
 #include "libslic3r/Model.hpp"
+#if ENABLE_GCODE_VIEWER
+#include "libslic3r/GCode/GCodeProcessor.hpp"
+#endif // ENABLE_GCODE_VIEWER
 
 class wxNotebook;
 class wxGLCanvas;
@@ -90,6 +93,9 @@ class Preview : public wxPanel
     DynamicPrintConfig* m_config;
     BackgroundSlicingProcess* m_process;
     GCodePreviewData* m_gcode_preview_data;
+#if ENABLE_GCODE_VIEWER
+    GCodeProcessor::Result* m_gcode_result;
+#endif // ENABLE_GCODE_VIEWER
 
 #ifdef __linux__
     // We are getting mysterious crashes on Linux in gtk due to OpenGL context activation GH #1874 #1955.
@@ -109,8 +115,13 @@ class Preview : public wxPanel
     DoubleSlider::Control*       m_slider {nullptr};
 
 public:
-    Preview(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, 
-        BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process = [](){});
+#if ENABLE_GCODE_VIEWER
+    Preview(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config,
+        BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, GCodeProcessor::Result* gcode_result, std::function<void()> schedule_background_process = []() {});
+#else
+    Preview(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config,
+        BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process = []() {});
+#endif // ENABLE_GCODE_VIEWER
     virtual ~Preview();
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }

@@ -163,9 +163,15 @@ void View3D::render()
         m_canvas->set_as_dirty();
 }
 
+#if ENABLE_GCODE_VIEWER
 Preview::Preview(
     wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, 
+    BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, GCodeProcessor::Result* gcode_result, std::function<void()> schedule_background_process_func)
+#else
+Preview::Preview(
+    wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config,
     BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process_func)
+#endif // ENABLE_GCODE_VIEWER
     : m_canvas_widget(nullptr)
     , m_canvas(nullptr)
     , m_double_slider_sizer(nullptr)
@@ -181,6 +187,9 @@ Preview::Preview(
     , m_config(config)
     , m_process(process)
     , m_gcode_preview_data(gcode_preview_data)
+#if ENABLE_GCODE_VIEWER
+    , m_gcode_result(gcode_result)
+#endif // ENABLE_GCODE_VIEWER
     , m_number_extruders(1)
     , m_preferred_color_mode("feature")
     , m_loaded(false)
@@ -860,6 +869,9 @@ void Preview::load_print_as_fff(bool keep_z_range)
         if (gcode_preview_data_valid) {
             // Load the real G-code preview.
             m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
+#if ENABLE_GCODE_VIEWER
+            m_canvas->load_gcode_preview_2(*m_gcode_result);
+#endif // ENABLE_GCODE_VIEWER
             m_loaded = true;
         } else {
             // Load the initial preview based on slices, not the final G-code.

@@ -443,7 +443,11 @@ int CLI::run(int argc, char **argv)
                         print->process();
                         if (printer_technology == ptFFF) {
                             // The outfile is processed by a PlaceholderParser.
+#if ENABLE_GCODE_VIEWER
+                            outfile = fff_print.export_gcode(outfile, nullptr, nullptr);
+#else
                             outfile = fff_print.export_gcode(outfile, nullptr);
+#endif // ENABLE_GCODE_VIEWER
                             outfile_final = fff_print.print_statistics().finalize_output_path(outfile);
                         } else {
                             outfile = sla_print.output_filepath(outfile);

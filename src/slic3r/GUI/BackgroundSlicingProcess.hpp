@@ -52,6 +52,9 @@ public:
 #if ENABLE_THUMBNAIL_GENERATOR
     void set_thumbnail_cb(ThumbnailsGeneratorCallback cb) { m_thumbnail_cb = cb; }
 #endif // ENABLE_THUMBNAIL_GENERATOR
+#if ENABLE_GCODE_VIEWER
+	void set_gcode_result(GCodeProcessor::Result* result) { m_gcode_result = result; }
+#endif // ENABLE_GCODE_VIEWER
 
 	// The following wxCommandEvent will be sent to the UI thread / Plater window, when the slicing is finished
 	// and the background processing will transition into G-code export.
@@ -159,6 +162,9 @@ private:
     // Callback function, used to write thumbnails into gcode.
     ThumbnailsGeneratorCallback m_thumbnail_cb = nullptr;
 #endif // ENABLE_THUMBNAIL_GENERATOR
+#if ENABLE_GCODE_VIEWER
+	GCodeProcessor::Result* m_gcode_result = nullptr;
+#endif // ENABLE_GCODE_VIEWER
 	// Temporary G-code, there is one defined for the BackgroundSlicingProcess, differentiated from the other processes by a process ID.
 	std::string 				m_temp_output_path;
 	// Output path provided by the user. The output path may be set even if the slicing is running,

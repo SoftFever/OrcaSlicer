@@ -2480,6 +2480,12 @@ static void load_gcode_retractions(const GCodePreviewData::Retraction& retractio
 	volume->indexed_vertex_array.finalize_geometry(gl_initialized);
 }
 
+#if ENABLE_GCODE_VIEWER
+void GLCanvas3D::load_gcode_preview_2(const GCodeProcessor::Result& gcode_result)
+{
+}
+#endif // ENABLE_GCODE_VIEWER
+
 void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors)
 {
     const Print *print = this->fff_print();

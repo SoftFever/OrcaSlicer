@@ -14,6 +14,9 @@
 #if ENABLE_THUMBNAIL_GENERATOR
 #include "GCode/ThumbnailData.hpp"
 #endif // ENABLE_THUMBNAIL_GENERATOR
+#if ENABLE_GCODE_VIEWER
+#include "GCode/GCodeProcessor.hpp"
+#endif // ENABLE_GCODE_VIEWER
 
 #include "libslic3r.h"
 
@@ -364,11 +367,13 @@ public:
     void                process() override;
     // Exports G-code into a file name based on the path_template, returns the file path of the generated G-code file.
     // If preview_data is not null, the preview_data is filled in for the G-code visualization (not used by the command line Slic3r).
-#if ENABLE_THUMBNAIL_GENERATOR
+#if ENABLE_GCODE_VIEWER
+    std::string         export_gcode(const std::string& path_template, GCodePreviewData* preview_data, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
+#elif ENABLE_THUMBNAIL_GENERATOR
     std::string         export_gcode(const std::string& path_template, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
 #else
     std::string         export_gcode(const std::string &path_template, GCodePreviewData *preview_data);
-#endif // ENABLE_THUMBNAIL_GENERATOR
+#endif // ENABLE_GCODE_VIEWER
 
     // methods for handling state
     bool                is_step_done(PrintStep step) const { return Inherited::is_step_done(step); }

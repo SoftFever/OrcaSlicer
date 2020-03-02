@@ -50,7 +50,11 @@ SCENARIO("Model construction", "[Model]") {
 				print.apply(model, config);
 				print.process();
 				boost::filesystem::path temp = boost::filesystem::unique_path();
+#if ENABLE_GCODE_VIEWER
+				print.export_gcode(temp.string(), nullptr, nullptr);
+#else
 				print.export_gcode(temp.string(), nullptr);
+#endif // ENABLE_GCODE_VIEWER
 				REQUIRE(boost::filesystem::exists(temp));
 				REQUIRE(boost::filesystem::is_regular_file(temp));
 				REQUIRE(boost::filesystem::file_size(temp) > 0);
