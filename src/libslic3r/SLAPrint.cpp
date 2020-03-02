@@ -65,6 +65,8 @@ sla::SupportConfig make_support_cfg(const SLAPrintObjectConfig& c)
         c.support_base_safety_distance.getFloat() < EPSILON ?
             scfg.safety_distance_mm : c.support_base_safety_distance.getFloat();
     
+    scfg.max_bridges_on_pillar = unsigned(c.support_max_bridges_on_pillar.getInt());
+    
     return scfg;
 }
 
@@ -946,6 +948,7 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
             || opt_key == "support_head_penetration"
             || opt_key == "support_head_width"
             || opt_key == "support_pillar_diameter"
+            || opt_key == "support_max_bridges_on_pillar"
             || opt_key == "support_pillar_connection_mode"
             || opt_key == "support_buildplate_only"
             || opt_key == "support_base_diameter"
