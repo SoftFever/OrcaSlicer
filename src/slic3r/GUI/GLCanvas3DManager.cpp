@@ -230,9 +230,16 @@ GLCanvas3DManager::GLCanvas3DManager()
 
 GLCanvas3DManager::~GLCanvas3DManager()
 {
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    std::cout << "GLCanvas3DManager::~GLCanvas3DManager()\n";
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
 #if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
 #ifdef __APPLE__ 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    std::cout << "OSX version" << s_os_info.major << "." << s_os_info.minor << "." << s_os_info.micro << std::endl;;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     // This is an ugly hack needed to solve the crash happening when closing the application on OSX 10.9.5 with newer wxWidgets
     // The crash is triggered inside wxGLContext destructor
     if (s_os_info.major != 10 || s_os_info.minor != 9 || s_os_info.micro != 5)
@@ -240,8 +247,13 @@ GLCanvas3DManager::~GLCanvas3DManager()
 #endif //__APPLE__
 #endif // ENABLE_HACK_CLOSING_ON_OSX_10_9_5
 
-    if (m_context != nullptr)
-        delete m_context;
+        if (m_context != nullptr)
+        {
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            std::cout << "Destroy wxGLContext\n";
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            delete m_context;
+        }
 
 #if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
 #ifdef __APPLE__ 
