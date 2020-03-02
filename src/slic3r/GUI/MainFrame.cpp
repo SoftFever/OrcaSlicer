@@ -422,18 +422,19 @@ void MainFrame::init_menubar()
                 m_plater->load_project(filename);
             else
             {
-                wxMessageDialog msg(this, _(L("The selected project is no more available")), _(L("Error")));
-                msg.ShowModal();
-
-                m_recent_projects.RemoveFileFromHistory(file_id);
-                std::vector<std::string> recent_projects;
-                size_t count = m_recent_projects.GetCount();
-                for (size_t i = 0; i < count; ++i)
+                wxMessageDialog msg(this, _(L("The selected project is no longer available.\nDo you want to remove it from the recent projects list ?")), _(L("Error")), wxYES_NO | wxYES_DEFAULT);
+                if (msg.ShowModal() == wxID_YES)
                 {
-                    recent_projects.push_back(into_u8(m_recent_projects.GetHistoryFile(i)));
+                    m_recent_projects.RemoveFileFromHistory(file_id);
+                        std::vector<std::string> recent_projects;
+                        size_t count = m_recent_projects.GetCount();
+                        for (size_t i = 0; i < count; ++i)
+                        {
+                            recent_projects.push_back(into_u8(m_recent_projects.GetHistoryFile(i)));
+                        }
+                    wxGetApp().app_config->set_recent_projects(recent_projects);
+                    wxGetApp().app_config->save();
                 }
-                wxGetApp().app_config->set_recent_projects(recent_projects);
-                wxGetApp().app_config->save();
             }
             }, wxID_FILE1, wxID_FILE9);
 
