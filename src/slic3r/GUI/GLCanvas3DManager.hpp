@@ -94,18 +94,17 @@ public:
         void detect() const;
     };
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//#if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
-//#ifdef __APPLE__ 
-//    struct OSInfo
-//    {
-//        int major{ 0 };
-//        int minor{ 0 };
-//        int micro{ 0 };
-//    };
-//#endif //__APPLE__
-//#endif // ENABLE_HACK_CLOSING_ON_OSX_10_9_5
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
+#ifdef __APPLE__ 
+    // Part of hack to remove crash when closing the application on OSX 10.9.5 when building against newer wxWidgets
+    struct OSInfo
+    {
+        int major{ 0 };
+        int minor{ 0 };
+        int micro{ 0 };
+    };
+#endif //__APPLE__
+#endif // ENABLE_HACK_CLOSING_ON_OSX_10_9_5
 
 private:
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
@@ -131,17 +130,16 @@ private:
     wxGLContext* m_context{ nullptr };
 #else
     wxGLContext* m_context;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//#if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
-//#ifdef __APPLE__ 
-//    static OSInfo s_os_info;
-//#endif //__APPLE__
-//#endif // ENABLE_HACK_CLOSING_ON_OSX_10_9_5
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     bool m_gl_initialized;
     CanvasesMap m_canvases;
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     static GLInfo s_gl_info;
+#if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
+#ifdef __APPLE__ 
+    // Part of hack to remove crash when closing the application on OSX 10.9.5 when building against newer wxWidgets
+    static OSInfo s_os_info;
+#endif //__APPLE__
+#endif // ENABLE_HACK_CLOSING_ON_OSX_10_9_5
     static bool s_compressed_textures_supported;
     static EMultisampleState s_multisample;
     static EFramebufferType s_framebuffers_type;
