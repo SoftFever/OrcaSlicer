@@ -41,7 +41,6 @@ const double SupportConfig::max_dual_pillar_height_mm = 35.0;
 const double   SupportConfig::optimizer_rel_score_diff = 1e-6;
 const unsigned SupportConfig::optimizer_max_iterations = 1000;
 const unsigned SupportConfig::pillar_cascade_neighbors = 3;
-const unsigned SupportConfig::max_bridges_on_pillar = 3;
 
 void SupportTree::retrieve_full_mesh(TriangleMesh &outmesh) const {
     outmesh.merge(retrieve_mesh(MeshType::Support));
