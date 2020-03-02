@@ -603,7 +603,9 @@ void apply_extruder_selector(wxBitmapComboBox** ctrl,
             ++i;
         }
 
-        (*ctrl)->Append(use_full_item_name ? wxString::Format("%s %d", str, i) : wxString::Format("%d", i), *bmp);
+        (*ctrl)->Append(use_full_item_name
+                        ? wxString::FromUTF8((boost::format("%1% %2%") % str % i).str())
+                        : wxString::Format("%d", i), *bmp);
         ++i;
     }
     (*ctrl)->SetSelection(0);
@@ -700,8 +702,9 @@ ModeButton::ModeButton( wxWindow*           parent,
 
 void ModeButton::Init(const wxString &mode)
 {
-    m_tt_focused = wxString::Format(_(L("Switch to the %s mode")), mode);
-    m_tt_selected = wxString::Format(_(L("Current mode is %s")), mode);
+    std::string mode_str = std::string(mode.ToUTF8());
+    m_tt_focused  = wxString::FromUTF8((boost::format(_utf8(L("Switch to the %s mode"))) % mode_str).str());
+    m_tt_selected = wxString::FromUTF8((boost::format(_utf8(L("Current mode is %s"))) % mode_str).str());
 
     SetBitmapMargins(3, 0);
 

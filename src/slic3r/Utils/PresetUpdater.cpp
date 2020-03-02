@@ -702,15 +702,15 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver &old_slic3
 			const auto max_slic3r = incompat.version.max_slic3r_version;
 			wxString restrictions;
 			if (min_slic3r != Semver::zero() && max_slic3r != Semver::inf()) {
-				restrictions = wxString::Format(_(L("requires min. %s and max. %s")),
-					min_slic3r.to_string(),
-					max_slic3r.to_string()
+                restrictions = GUI::from_u8((boost::format(_utf8(L("requires min. %s and max. %s")))
+                    % min_slic3r.to_string()
+                    % max_slic3r.to_string()).str()
 				);
 			} else if (min_slic3r != Semver::zero()) {
-				restrictions = wxString::Format(_(L("requires min. %s")), min_slic3r.to_string());
+                restrictions = GUI::from_u8((boost::format(_utf8(L("requires min. %s"))) % min_slic3r.to_string()).str());
 				BOOST_LOG_TRIVIAL(debug) << "Bundle is not downgrade, user will now have to do whole wizard. This should not happen.";
 			} else {
-				restrictions = wxString::Format(_(L("requires max. %s")), max_slic3r.to_string());
+                restrictions = GUI::from_u8((boost::format(_utf8(L("requires max. %s"))) % max_slic3r.to_string()).str());
 			}
 
 			incompats_map.emplace(std::make_pair(incompat.vendor, std::move(restrictions)));

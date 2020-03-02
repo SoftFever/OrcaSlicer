@@ -13,6 +13,7 @@
 
 #include "libslic3r/PrintConfig.hpp"
 #include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/GUI.hpp"
 #include "Http.hpp"
 
 
@@ -65,7 +66,7 @@ bool OctoPrint::test(wxString &msg) const
                 const auto text = ptree.get_optional<std::string>("text");
                 res = validate_version_text(text);
                 if (! res) {
-                    msg = wxString::Format(_(L("Mismatched type of print host: %s")), text ? *text : "OctoPrint");
+                    msg = GUI::from_u8((boost::format(_utf8(L("Mismatched type of print host: %s"))) % (text ? *text : "OctoPrint")).str());
                 }
             }
             catch (const std::exception &) {
@@ -85,8 +86,10 @@ wxString OctoPrint::get_test_ok_msg () const
 
 wxString OctoPrint::get_test_failed_msg (wxString &msg) const
 {
-    return wxString::Format("%s: %s\n\n%s",
-        _(L("Could not connect to OctoPrint")), msg, _(L("Note: OctoPrint version at least 1.1.0 is required.")));
+    return GUI::from_u8((boost::format("%s: %s\n\n%s")
+        % _utf8(L("Could not connect to OctoPrint"))
+        % std::string(msg.ToUTF8())
+        % _utf8(L("Note: OctoPrint version at least 1.1.0 is required."))).str());
 }
 
 bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn) const
@@ -178,7 +181,9 @@ wxString SL1Host::get_test_ok_msg () const
 
 wxString SL1Host::get_test_failed_msg (wxString &msg) const
 {
-    return wxString::Format("%s: %s", _(L("Could not connect to Prusa SLA")), msg);
+    return GUI::from_u8((boost::format("%s: %s")
+                    % _utf8(L("Could not connect to Prusa SLA"))
+                    % std::string(msg.ToUTF8())).str());
 }
 
 bool SL1Host::validate_version_text(const boost::optional<std::string> &version_text) const
