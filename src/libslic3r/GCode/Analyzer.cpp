@@ -644,7 +644,7 @@ bool GCodeAnalyzer::_process_tags(const GCodeReader::GCodeLine& line)
     if (pos != comment.npos)
     {
         pos = comment.find_last_of(",T");
-        int extruder = pos == comment.npos ? 0 : std::atoi(comment.substr(pos + 1, comment.npos).c_str());
+        unsigned extruder = pos == comment.npos ? 0 : std::stoi(comment.substr(pos + 1, comment.npos));
         _process_color_change_tag(extruder);
         return true;
     }
@@ -702,7 +702,7 @@ void GCodeAnalyzer::_process_height_tag(const std::string& comment, size_t pos)
     _set_height((float)::strtod(comment.substr(pos + Height_Tag.length()).c_str(), nullptr));
 }
 
-void GCodeAnalyzer::_process_color_change_tag(int extruder)
+void GCodeAnalyzer::_process_color_change_tag(unsigned extruder)
 {
     m_extruder_color[extruder] = m_extruders_count + m_state.cp_color_counter; // color_change position in list of color for preview
     m_state.cp_color_counter++;

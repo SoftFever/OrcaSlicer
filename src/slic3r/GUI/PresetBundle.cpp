@@ -1316,7 +1316,7 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
 
             // Derive the profile logical name aka alias from the preset name if the alias was not stated explicitely.
             if (alias_name.empty()) {
-	            int end_pos = preset_name.find_first_of("@");
+                size_t end_pos = preset_name.find_first_of("@");
 	            if (end_pos != std::string::npos) {
 	                alias_name = preset_name.substr(0, end_pos);
 	                if (renamed_from.empty())
@@ -1717,7 +1717,7 @@ void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::Pre
     if (selected_preset_item == INT_MAX)
         selected_preset_item = ui->GetCount() - 1;
 
-	ui->SetSelection(selected_preset_item);
+    ui->SetSelection(selected_preset_item);
 	ui->SetToolTip(tooltip.IsEmpty() ? ui->GetString(selected_preset_item) : tooltip);
     ui->check_selection();
     ui->Thaw();

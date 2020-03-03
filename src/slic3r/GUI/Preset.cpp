@@ -1012,7 +1012,7 @@ const std::string& PresetCollection::get_preset_name_by_alias(const std::string&
 		it != m_map_alias_to_profile_name.end() && it->first == alias; ++ it)
 		if (auto it_preset = this->find_preset_internal(it->second);
 			it_preset != m_presets.end() && it_preset->name == it->second && 
-			it_preset->is_visible && (it_preset->is_compatible || (it_preset - m_presets.begin()) == m_idx_selected))
+            it_preset->is_visible && (it_preset->is_compatible || size_t(it_preset - m_presets.begin()) == m_idx_selected))
 	        return it_preset->name;
     return alias;
 }

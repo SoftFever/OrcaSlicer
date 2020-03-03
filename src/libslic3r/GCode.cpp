@@ -1749,7 +1749,6 @@ std::vector<GCode::InstanceToPrint> GCode::sort_print_object_instances(
 		std::sort(sorted.begin(), sorted.end());
 
 		if (! sorted.empty()) {
-			const Print &print = *sorted.front().first->print();
 		    out.reserve(sorted.size());
 		    for (const PrintInstance *instance : *ordering) {
 		    	const PrintObject &print_object = *instance->print_object;
@@ -1795,13 +1794,14 @@ namespace ProcessLayer
 		    // we should add or not colorprint_change in respect to nozzle_diameter count instead of really used extruders count
 	        if (color_change || tool_change)
 	        {
+                assert(m600_extruder_before_layer >= 0);
 		        // Color Change or Tool Change as Color Change.
 	            // add tag for analyzer
 	            gcode += "; " + GCodeAnalyzer::Color_Change_Tag + ",T" + std::to_string(m600_extruder_before_layer) + "\n";
 	            // add tag for time estimator
 	            gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
 
-	            if (!single_extruder_printer && m600_extruder_before_layer >= 0 && first_extruder_id != m600_extruder_before_layer
+                if (!single_extruder_printer && m600_extruder_before_layer >= 0 && first_extruder_id != (unsigned)m600_extruder_before_layer
 	                // && !MMU1
 	                ) {
 	                //! FIXME_in_fw show message during print pause

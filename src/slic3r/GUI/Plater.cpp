@@ -3611,7 +3611,7 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
     else if (wxGetApp().get_mode() == comSimple)
         show_action_buttons(false);
 
-	if(!canceled && RemovableDriveManager::get_instance().get_is_writing())
+    if(!canceled && RemovableDriveManager::get_instance().get_is_writing())
 	{	
 		RemovableDriveManager::get_instance().set_is_writing(false);
 		show_action_buttons(false);	

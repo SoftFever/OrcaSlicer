@@ -1936,7 +1936,7 @@ void Print::_make_brim()
 				// Find all pieces that the initial loop was split into.
 				size_t j = i + 1;
                 for (; j < loops_trimmed_order.size() && loops_trimmed_order[i].second == loops_trimmed_order[j].second; ++ j) ;
-				const ClipperLib_Z::Path &first_path = *loops_trimmed_order[i].first;
+                const ClipperLib_Z::Path &first_path = *loops_trimmed_order[i].first;
 				if (i + 1 == j && first_path.size() > 3 && first_path.front().X == first_path.back().X && first_path.front().Y == first_path.back().Y) {
 					auto *loop = new ExtrusionLoop();
 					m_brim.entities.emplace_back(loop);
