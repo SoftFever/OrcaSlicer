@@ -417,7 +417,7 @@ std::error_code rename_file(const std::string &from, const std::string &to)
 #endif
 }
 
-int copy_file_inner(const std::string& from, const std::string& to)
+CopyFileResult copy_file_inner(const std::string& from, const std::string& to)
 {
 	const boost::filesystem::path source(from);
 	const boost::filesystem::path target(to);
@@ -433,38 +433,40 @@ int copy_file_inner(const std::string& from, const std::string& to)
 	boost::filesystem::permissions(target, perms, ec);
 	boost::filesystem::copy_file(source, target, boost::filesystem::copy_option::overwrite_if_exists, ec);
 	if (ec) {
-		return -1;
+		return FAIL_COPY_FILE;
 	}
 	boost::filesystem::permissions(target, perms, ec);
-	return 0;
+	return SUCCESS;
 }
 
-int copy_file(const std::string &from, const std::string &to, const bool with_check)
+CopyFileResult copy_file(const std::string &from, const std::string &to, const bool with_check)
 {
 	std::string to_temp = to + ".tmp";
-	int ret_val = copy_file_inner(from,to_temp);
-    if(ret_val == 0)
+	CopyFileResult ret_val = copy_file_inner(from,to_temp);
+    if(ret_val == SUCCESS)
 	{
         if (with_check)
             ret_val = check_copy(from, to_temp);
 
         if (ret_val == 0 && rename_file(to_temp, to))
-        	ret_val = -3;
+        	ret_val = FAIL_RENAMING;
 	}
 	return ret_val;
 }
 
-int check_copy(const std::string &origin, const std::string &copy)
+CopyFileResult check_copy(const std::string &origin, const std::string &copy)
 {
-	std::ifstream f1(origin, std::ifstream::in | std::ifstream::binary | std::ifstream::ate);
-	std::ifstream f2(copy, std::ifstream::in | std::ifstream::binary | std::ifstream::ate);
+	boost::nowide::ifstream f1(origin, std::ifstream::in | std::ifstream::binary | std::ifstream::ate);
+	boost::nowide::ifstream f2(copy, std::ifstream::in | std::ifstream::binary | std::ifstream::ate);
 
-	if (f1.fail() || f2.fail())
-		return -2;
+	if (f1.fail())
+		return FAIL_CHECK_ORIGIN_NOT_OPENED;
+	if (f2.fail())
+		return FAIL_CHECK_TARGET_NOT_OPENED;
 
 	std::streampos fsize = f1.tellg();
 	if (fsize != f2.tellg())
-		return -2;
+		return FAIL_FILES_DIFFERENT;
 
 	f1.seekg(0, std::ifstream::beg);
 	f2.seekg(0, std::ifstream::beg);
@@ -481,12 +483,12 @@ int check_copy(const std::string &origin, const std::string &copy)
 		if (origin_cnt != copy_cnt ||
 			(origin_cnt > 0 && std::memcmp(buffer_origin.data(), buffer_copy.data(), origin_cnt) != 0))
 			// Files are different.
-			return -2;
+			return FAIL_FILES_DIFFERENT;
 		fsize -= origin_cnt;
     } while (f1.good() && f2.good());
 
     // All data has been read and compared equal.
-    return (f1.eof() && f2.eof() && fsize == 0) ? 0 : -2;
+    return (f1.eof() && f2.eof() && fsize == 0) ? SUCCESS : FAIL_FILES_DIFFERENT;
 }
 
 // Ignore system and hidden files, which may be created by the DropBox synchronisation process.

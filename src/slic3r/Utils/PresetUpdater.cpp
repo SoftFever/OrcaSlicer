@@ -423,7 +423,7 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
 			// Any published config shall be always found in the latest config index.
 			auto message = (boost::format("Preset bundle `%1%` version not found in index: %2%") % idx.vendor() % vp.config_version.to_string()).str();
 			BOOST_LOG_TRIVIAL(error) << message;
-			GUI::show_error(nullptr, GUI::from_u8(message));
+			GUI::show_error(nullptr, message);
 			continue;
 		}
 

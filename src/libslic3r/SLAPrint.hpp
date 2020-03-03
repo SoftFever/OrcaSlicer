@@ -152,6 +152,10 @@ public:
         }
 
         const ExPolygons& get_slice(SliceOrigin o) const;
+        size_t            get_slice_idx(SliceOrigin o) const
+        {
+            return o == soModel ? m_model_slices_idx : m_support_slices_idx;
+        }
     };
 
 private:

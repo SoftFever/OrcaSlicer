@@ -127,7 +127,8 @@ public:
     // Also updates the is_visible flag of each preset.
     // If select_other_if_incompatible is true, then the print or filament preset is switched to some compatible
     // preset if the current print or filament preset is not compatible.
-    void                        update_compatible(bool select_other_if_incompatible);
+    void                        update_compatible(PresetSelectCompatibleType select_other_print_if_incompatible, PresetSelectCompatibleType select_other_filament_if_incompatible);
+    void                        update_compatible(PresetSelectCompatibleType select_other_if_incompatible) { this->update_compatible(select_other_if_incompatible, select_other_if_incompatible); }
 
     void                        load_default_preset_bitmaps();
 

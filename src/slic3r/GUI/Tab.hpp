@@ -218,7 +218,7 @@ protected:
 
     int                 m_em_unit;
     // To avoid actions with no-completed Tab
-    bool                m_complited { false };
+    bool                m_completed { false };
     ConfigOptionMode    m_mode = comExpert; // to correct first Tab update_visibility() set mode to Expert
 
 public:
@@ -244,7 +244,8 @@ public:
 // 	std::string	name()	 const { return m_name; }
 	std::string	name()	 const { return m_presets->name(); }
     Preset::Type type()  const { return m_type; }
-    bool complited()     const { return m_complited; }
+    // The tab is already constructed.
+    bool 		completed() const { return m_completed; }
     virtual bool supports_printer_technology(const PrinterTechnology tech) = 0;
 
 	void		create_preset_tab();

@@ -4,6 +4,7 @@
 #include "libslic3r.h"
 #include "PrintConfig.hpp"
 #include "GCodeReader.hpp"
+#include "CustomGCode.hpp"
 
 #define ENABLE_MOVE_STATS 0
 
@@ -23,6 +24,7 @@ namespace Slic3r {
         static const std::string Silent_Last_M73_Output_Placeholder_Tag;
 
         static const std::string Color_Change_Tag;
+        static const std::string Pause_Print_Tag;
 
         enum EMode : unsigned char
         {
@@ -240,10 +242,10 @@ namespace Slic3r {
         int m_last_st_synchronized_block_id;
         float m_time; // s
 
-        // data to calculate color print times
-        bool m_needs_color_times;
-        std::vector<float> m_color_times;
-        float m_color_time_cache;
+        // data to calculate custom code times
+        bool m_needs_custom_gcode_times;
+        std::vector<std::pair<CustomGcodeType, float>> m_custom_gcode_times;
+        float m_custom_gcode_time_cache;
 
 #if ENABLE_MOVE_STATS
         MovesStatsMap _moves_stats;
@@ -369,8 +371,8 @@ namespace Slic3r {
         // Returns the estimated time, in minutes (integer)
         std::string get_time_minutes() const;
 
-        // Returns the estimated time, in seconds, for each color
-        std::vector<float> get_color_times() const;
+        // Returns the estimated time, in seconds, for each custom gcode
+        std::vector<std::pair<CustomGcodeType, float>> get_custom_gcode_times() const;
 
         // Returns the estimated time, in format DDd HHh MMm SSs, for each color
         // If include_remaining==true the strings will be formatted as: "time for color (remaining time at color start)"
@@ -379,6 +381,10 @@ namespace Slic3r {
         // Returns the estimated time, in minutes (integer), for each color
         // If include_remaining==true the strings will be formatted as: "time for color (remaining time at color start)"
         std::vector<std::string> get_color_times_minutes(bool include_remaining) const;
+
+        // Returns the estimated time, in format DDd HHh MMm, for each custom_gcode
+        // If include_remaining==true the strings will be formatted as: "time for custom_gcode (remaining time at color start)"
+        std::vector<std::pair<CustomGcodeType, std::string>> get_custom_gcode_times_dhm(bool include_remaining) const;
 
         // Return an estimate of the memory consumed by the time estimator.
         size_t memory_used() const;
@@ -460,8 +466,8 @@ namespace Slic3r {
         // Returns true if any tag has been processed
         bool _process_tags(const GCodeReader::GCodeLine& line);
 
-        // Processes color change tag
-        void _process_color_change_tag();
+        // Processes ColorChangeTag and PausePrintTag
+        void _process_custom_gcode_tag(CustomGcodeType code);
 
         // Simulates firmware st_synchronize() call
         void _simulate_st_synchronize();

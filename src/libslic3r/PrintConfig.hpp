@@ -980,6 +980,9 @@ public:
 
     // Radius in mm of the support pillars.
     ConfigOptionFloat support_pillar_diameter /*= 0.8*/;
+    
+    // How much bridge (supporting another pinhead) can be placed on a pillar.
+    ConfigOptionInt   support_max_bridges_on_pillar;
 
     // How the pillars are bridged together
     ConfigOptionEnum<SLAPillarConnectionMode> support_pillar_connection_mode;
@@ -1101,6 +1104,7 @@ protected:
         OPT_PTR(support_head_penetration);
         OPT_PTR(support_head_width);
         OPT_PTR(support_pillar_diameter);
+        OPT_PTR(support_max_bridges_on_pillar);
         OPT_PTR(support_pillar_connection_mode);
         OPT_PTR(support_buildplate_only);
         OPT_PTR(support_pillar_widening_factor);
@@ -1175,6 +1179,8 @@ public:
     ConfigOptionBool                        display_mirror_y;
     ConfigOptionFloats                      relative_correction;
     ConfigOptionFloat                       absolute_correction;
+    ConfigOptionFloat                       elefant_foot_compensation;
+    ConfigOptionFloat                       elefant_foot_min_width;
     ConfigOptionFloat                       gamma_correction;
     ConfigOptionFloat                       fast_tilt_time;
     ConfigOptionFloat                       slow_tilt_time;
@@ -1198,6 +1204,8 @@ protected:
         OPT_PTR(display_orientation);
         OPT_PTR(relative_correction);
         OPT_PTR(absolute_correction);
+        OPT_PTR(elefant_foot_compensation);
+        OPT_PTR(elefant_foot_min_width);
         OPT_PTR(gamma_correction);
         OPT_PTR(fast_tilt_time);
         OPT_PTR(slow_tilt_time);

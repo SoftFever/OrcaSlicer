@@ -275,7 +275,7 @@ void PrintHostQueueDialog::on_error(Event &evt)
 
     on_list_select();
 
-    GUI::show_error(nullptr, std::move(errormsg));
+    GUI::show_error(nullptr, errormsg);
 }
 
 void PrintHostQueueDialog::on_cancel(Event &evt)

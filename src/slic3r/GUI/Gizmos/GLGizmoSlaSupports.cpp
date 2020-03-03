@@ -22,12 +22,11 @@
 namespace Slic3r {
 namespace GUI {
 
-GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, CommonGizmosData* cd)
-    : GLGizmoBase(parent, icon_filename, sprite_id, cd)
+GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
     , m_quadric(nullptr)
     , m_its(nullptr)
-{
-    m_c->m_clipping_plane.reset(new ClippingPlane(Vec3d::Zero(), 0.));
+{    
     m_quadric = ::gluNewQuadric();
     if (m_quadric != nullptr)
         // using GLU_FILL does not work when the instance's transformation
@@ -64,17 +63,20 @@ bool GLGizmoSlaSupports::on_init()
 void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const Selection& selection)
 {
     if (m_c->recent_update) {
-        if (m_state == On) {
-            m_parent.toggle_model_objects_visibility(false);
-            m_parent.toggle_model_objects_visibility(/*! m_c->m_cavity_mesh*/ true, m_c->m_model_object, m_c->m_active_instance);
-            m_parent.toggle_sla_auxiliaries_visibility(! m_editing_mode, m_c->m_model_object, m_c->m_active_instance);
-        }
-        else
-            m_parent.toggle_model_objects_visibility(true, nullptr, -1);
+        if (m_state == On)
+            m_c->build_AABB_if_needed();
+
+        update_clipping_plane(m_c->m_clipping_plane_was_moved);
 
         disable_editing_mode();
         if (m_c->m_model_object)
             reload_cache();
+    }
+
+    if (m_state == On) {
+        m_parent.toggle_model_objects_visibility(false);
+        m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
+        m_parent.toggle_sla_auxiliaries_visibility(! m_editing_mode, m_c->m_model_object, m_c->m_active_instance);
     }
 
     // If we triggered autogeneration before, check backend and fetch results if they are there
@@ -342,6 +344,9 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
         render_color[3] = 0.7f;
         glsafe(::glColor4fv(render_color));
         for (const sla::DrainHole& drain_hole : m_c->m_model_object->sla_drain_holes) {
+            if (is_mesh_point_clipped((drain_hole.pos+m_c->HoleStickOutLength*drain_hole.normal).cast<double>()))
+                continue;
+
             // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
             glsafe(::glPushMatrix());
             glsafe(::glTranslatef(drain_hole.pos(0), drain_hole.pos(1), drain_hole.pos(2)));
@@ -587,7 +592,8 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
     if (action == SLAGizmoEventType::MouseWheelUp && control_down) {
         m_c->m_clipping_plane_distance = std::min(1.f, m_c->m_clipping_plane_distance + 0.01f);
-        update_clipping_plane(true);
+        update_clipping_plane(m_c->m_clipping_plane_was_moved);
+        m_c->m_clipping_plane_was_moved = true;
         return true;
     }
 
@@ -913,8 +919,10 @@ RENDER_AGAIN:
 
     ImGui::SameLine(clipping_slider_left);
     ImGui::PushItemWidth(window_width - clipping_slider_left);
-    if (ImGui::SliderFloat("  ", &m_c->m_clipping_plane_distance, 0.f, 1.f, "%.2f"))
-        update_clipping_plane(true);
+    if (ImGui::SliderFloat("  ", &m_c->m_clipping_plane_distance, 0.f, 1.f, "%.2f")) {
+        update_clipping_plane(m_c->m_clipping_plane_was_moved);
+        m_c->m_clipping_plane_was_moved = true;
+    }
 
 
     if (m_imgui->button("?")) {
@@ -999,7 +1007,9 @@ void GLGizmoSlaSupports::on_set_state()
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned on")));
 
         m_c->unstash_clipping_plane();
-        update_clipping_plane(m_c->m_clipping_plane_distance != 0.f);
+        update_clipping_plane(m_c->m_clipping_plane_was_moved);
+
+        m_c->build_AABB_if_needed();
 
 
         // we'll now reload support points:
@@ -1007,9 +1017,10 @@ void GLGizmoSlaSupports::on_set_state()
             reload_cache();
 
         m_parent.toggle_model_objects_visibility(false);
-        if (m_c->m_model_object /*&& ! m_c->m_cavity_mesh*/)
+        if (m_c->m_model_object)  {
             m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
-        m_parent.toggle_sla_auxiliaries_visibility(! m_editing_mode, m_c->m_model_object, m_c->m_active_instance);
+            m_parent.toggle_sla_auxiliaries_visibility(! m_editing_mode, m_c->m_model_object, m_c->m_active_instance);
+        }
 
         // Set default head diameter from config.
         const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;

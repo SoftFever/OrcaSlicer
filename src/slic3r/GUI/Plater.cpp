@@ -262,6 +262,11 @@ PresetBitmapComboBox(parent, wxSize(15 * wxGetApp().em_unit(), -1)),
     m_em_unit(wxGetApp().em_unit())
 {
     SetFont(wxGetApp().normal_font());
+#ifdef _WIN32
+    // Workaround for ignoring CBN_EDITCHANGE events, which are processed after the content of the combo box changes, so that
+    // the index of the item inside CBN_EDITCHANGE may no more be valid.
+    EnableTextChangedEvents(false);
+#endif /* _WIN32 */
     Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &evt) {
         auto selected_item = this->GetSelection();
 
@@ -322,7 +327,7 @@ PresetBitmapComboBox(parent, wxSize(15 * wxGetApp().em_unit(), -1)),
             dialog.CenterOnParent();
             if (dialog.ShowModal() == wxID_OK)
             {
-                colors->values[extruder_idx] = dialog.GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX);
+                colors->values[extruder_idx] = dialog.GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
 
                 DynamicPrintConfig cfg_new = *cfg;
                 cfg_new.set_key_value("extruder_colour", colors);
@@ -870,8 +875,8 @@ Sidebar::Sidebar(Plater *parent)
         (*btn)->Hide();
     };
 
-    init_scalable_btn(&p->btn_send_gcode   , "export_gcode", _(L("Send to printer")));
-    init_scalable_btn(&p->btn_remove_device, "cross"       , _(L("Remove device")));
+    init_scalable_btn(&p->btn_send_gcode   , "export_gcode", _(L("Send to printer")) + "\tCtrl+Shift+G");
+    init_scalable_btn(&p->btn_remove_device, "eject_sd"       , _(L("Remove device")));
 	init_scalable_btn(&p->btn_export_gcode_removable, "export_to_sd", _(L("Export to SD card / Flash drive")));
 
     // regular buttons "Slice now" and "Export G-code" 
@@ -1233,42 +1238,59 @@ void Sidebar::update_sliced_info_sizer()
             p->sliced_info->SetTextAndShow(siFilament_m,    info_text,      new_label);
 
             p->sliced_info->SetTextAndShow(siFilament_mm3,  wxString::Format("%.2f", ps.total_extruded_volume));
-            p->sliced_info->SetTextAndShow(siFilament_g,    wxString::Format("%.2f", ps.total_weight));
-
+            p->sliced_info->SetTextAndShow(siFilament_g,    ps.total_weight == 0.0 ? "N/A" : wxString::Format("%.2f", ps.total_weight));
 
             new_label = _(L("Cost"));
             if (is_wipe_tower)
                 new_label += wxString::Format(" :\n    - %s\n    - %s", _(L("objects")), _(L("wipe tower")));
 
-            info_text = is_wipe_tower ?
+            info_text = ps.total_cost == 0.0 ? "N/A" :
+                        is_wipe_tower ?
                         wxString::Format("%.2f \n%.2f \n%.2f", ps.total_cost,
                                             (ps.total_cost - ps.total_wipe_tower_cost),
                                             ps.total_wipe_tower_cost) :
                         wxString::Format("%.2f", ps.total_cost);
-            p->sliced_info->SetTextAndShow(siCost,       info_text,      new_label);
+            p->sliced_info->SetTextAndShow(siCost, info_text,      new_label);
 
             if (ps.estimated_normal_print_time == "N/A" && ps.estimated_silent_print_time == "N/A")
                 p->sliced_info->SetTextAndShow(siEstimatedTime, "N/A");
             else {
                 new_label = _(L("Estimated printing time")) +" :";
                 info_text = "";
-                if (ps.estimated_normal_print_time != "N/A") {
-                    new_label += wxString::Format("\n    - %s", _(L("normal mode")));
-                    info_text += wxString::Format("\n%s", ps.estimated_normal_print_time);
-                    for (int i = (int)ps.estimated_normal_color_print_times.size() - 1; i >= 0; --i)
+                wxString str_color = _(L("Color"));
+                wxString str_pause = _(L("Pause"));
+
+                auto fill_labels = [str_color, str_pause](const std::vector<std::pair<CustomGcodeType, std::string>>& times, 
+                                                          wxString& new_label, wxString& info_text)
+                {
+                    int color_change_count = 0;
+                    for (auto time : times)
+                        if (time.first == cgtColorChange)
+                            color_change_count++;
+
+                    for (int i = (int)times.size() - 1; i >= 0; --i)
                     {
-                        new_label += wxString::Format("\n      - %s%d", _(L("Color")) + " ", i + 1);
-                        info_text += wxString::Format("\n%s", ps.estimated_normal_color_print_times[i]);
+                        if (i == 0 || times[i - 1].first == cgtPausePrint)
+                            new_label += wxString::Format("\n      - %s%d", str_color + " ", color_change_count);
+                        else if (times[i - 1].first == cgtColorChange)
+                            new_label += wxString::Format("\n      - %s%d", str_color + " ", color_change_count--);
+
+                        if (i != (int)times.size() - 1 && times[i].first == cgtPausePrint)
+                            new_label += wxString::Format(" -> %s", str_pause);
+
+                        info_text += wxString::Format("\n%s", times[i].second);
                     }
+                };
+
+                if (ps.estimated_normal_print_time != "N/A") {
+                    new_label += wxString::Format("\n   - %s", _(L("normal mode")));
+                    info_text += wxString::Format("\n%s", ps.estimated_normal_print_time);
+                    fill_labels(ps.estimated_normal_custom_gcode_print_times, new_label, info_text);
                 }
                 if (ps.estimated_silent_print_time != "N/A") {
-                    new_label += wxString::Format("\n    - %s", _(L("stealth mode")));
+                    new_label += wxString::Format("\n   - %s", _(L("stealth mode")));
                     info_text += wxString::Format("\n%s", ps.estimated_silent_print_time);
-                    for (int i = (int)ps.estimated_silent_color_print_times.size() - 1; i >= 0; --i)
-                    {
-                        new_label += wxString::Format("\n      - %s%d", _(L("Color")) + " ", i + 1);
-                        info_text += wxString::Format("\n%s", ps.estimated_silent_color_print_times[i]);
-                    }
+                    fill_labels(ps.estimated_silent_custom_gcode_print_times, new_label, info_text);
                 }
                 p->sliced_info->SetTextAndShow(siEstimatedTime,  info_text,      new_label);
             }
@@ -2248,7 +2270,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
     auto *nozzle_dmrs = config->opt<ConfigOptionFloats>("nozzle_diameter");
 
-    bool one_by_one = input_files.size() == 1 || nozzle_dmrs->values.size() <= 1;
+    bool one_by_one = input_files.size() == 1 || printer_technology == ptSLA || nozzle_dmrs->values.size() <= 1;
     if (! one_by_one) {
         for (const auto &path : input_files) {
             if (std::regex_match(path.string(), pattern_bundle)) {
@@ -3067,10 +3089,10 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
             auto *top_level_wnd = dynamic_cast<wxTopLevelWindow*>(p);
             if (! postpone_error_messages && top_level_wnd && top_level_wnd->IsActive()) {
                 // The error returned from the Print needs to be translated into the local language.
-                GUI::show_error(this->q, _(err));
+                GUI::show_error(this->q, err);
             } else {
                 // Show the error message once the main window gets activated.
-                this->delayed_error_message = _(err);
+                this->delayed_error_message = err;
             }
             return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
         }
@@ -3260,7 +3282,7 @@ void Plater::priv::reload_from_disk()
             else
                 missing_input_paths.push_back(volume->source.input_file);
         }
-        else if (!object->input_file.empty() && !volume->name.empty())
+        else if (!object->input_file.empty() && volume->is_model_part() && !volume->name.empty())
             missing_input_paths.push_back(volume->name);
     }
 
@@ -3324,7 +3346,7 @@ void Plater::priv::reload_from_disk()
         const auto& path = input_paths[i].string();
 
         wxBusyCursor wait;
-        wxBusyInfo info(_(L("Reload from: ")) + from_u8(path), q->get_current_canvas3D()->get_wxglcanvas());
+        wxBusyInfo info(_(L("Reload from:")) + " " + from_u8(path), q->get_current_canvas3D()->get_wxglcanvas());
 
         Model new_model;
         try
@@ -4039,7 +4061,7 @@ bool Plater::priv::complit_init_part_menu()
     part_menu.AppendSeparator();
 
     auto obj_list = sidebar->obj_list();
-    obj_list->append_menu_item_change_type(&part_menu);
+    obj_list->append_menu_item_change_type(&part_menu, q);
 
     return true;
 }
@@ -4736,8 +4758,8 @@ void Plater::set_number_of_copies(/*size_t num*/)
 
     ModelObject* model_object = p->model.objects[obj_idx];
 
-    const int num = wxGetNumberFromUser( " ", _("Enter the number of copies:"),
-                                    _("Copies of the selected object"), model_object->instances.size(), 0, 1000, this );
+    const int num = wxGetNumberFromUser( " ", _(L("Enter the number of copies:")),
+                                    _(L("Copies of the selected object")), model_object->instances.size(), 0, 1000, this );
     if (num < 0)
         return;
 
@@ -5187,8 +5209,10 @@ void Plater::drive_ejected_callback()
 	if (RemovableDriveManager::get_instance().get_did_eject())
 	{
         RemovableDriveManager::get_instance().set_did_eject(false);
-		wxString message = "Unmounting successful. The device " + RemovableDriveManager::get_instance().get_ejected_name() + "(" + RemovableDriveManager::get_instance().get_ejected_path() + ")" + " can now be safely removed from the computer.";
-		wxMessageBox(message);
+        show_info(this,
+        	(boost::format(_utf8(L("Unmounting successful. The device %s(%s) can now be safely removed from the computer."))) 
+            	% RemovableDriveManager::get_instance().get_ejected_name()
+            	% RemovableDriveManager::get_instance().get_ejected_path()).str());
 	}
 	p->show_action_buttons(false);
 }
@@ -5335,11 +5359,6 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             bed_shape_changed = true;
             update_scheduled = true;
         }
-    }
-
-    {
-        const auto prin_host_opt = p->config->option<ConfigOptionString>("print_host");
-        p->sidebar->show_send(prin_host_opt != nullptr && !prin_host_opt->value.empty());
     }
 
     if (bed_shape_changed)
@@ -5581,6 +5600,7 @@ void Plater::suppress_background_process(const bool stop_background_process)
 void Plater::fix_through_netfabb(const int obj_idx, const int vol_idx/* = -1*/) { p->fix_through_netfabb(obj_idx, vol_idx); }
 
 void Plater::update_object_menu() { p->update_object_menu(); }
+void Plater::show_action_buttons(const bool is_ready_to_slice) const { p->show_action_buttons(is_ready_to_slice); }
 
 void Plater::copy_selection_to_clipboard()
 {

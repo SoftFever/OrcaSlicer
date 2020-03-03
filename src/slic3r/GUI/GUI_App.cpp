@@ -187,8 +187,8 @@ bool GUI_App::on_init_inner()
         wxString::Format("Resources path does not exist or is not a directory: %s", resources_dir));
 
     // Profiles for the alpha are stored into the PrusaSlicer-alpha directory to not mix with the current release.
-    // SetAppName(SLIC3R_APP_KEY);
-    SetAppName(SLIC3R_APP_KEY "-alpha");
+    SetAppName(SLIC3R_APP_KEY);
+//    SetAppName(SLIC3R_APP_KEY "-beta");
     SetAppDisplayName(SLIC3R_APP_NAME);
 
 // Enable this to get the default Win32 COMCTRL32 behavior of static boxes.
@@ -244,7 +244,7 @@ bool GUI_App::on_init_inner()
     try {
         preset_bundle->load_presets(*app_config);
     } catch (const std::exception &ex) {
-        show_error(nullptr, from_u8(ex.what()));
+        show_error(nullptr, ex.what());
     }
 
     register_dpi_event();
@@ -332,7 +332,11 @@ unsigned GUI_App::get_colour_approx_luma(const wxColour &colour)
 bool GUI_App::dark_mode()
 {
 #if __APPLE__
-    return mac_dark_mode();
+    // The check for dark mode returns false positive on 10.12 and 10.13,
+    // which allowed setting dark menu bar and dock area, which is
+    // is detected as dark mode. We must run on at least 10.14 where the
+    // proper dark mode was first introduced.
+    return wxPlatformInfo::Get().CheckOSVersion(10, 14) && mac_dark_mode();
 #else
     const unsigned luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
     return luma < 128;
@@ -754,7 +758,7 @@ Tab* GUI_App::get_tab(Preset::Type type)
 {
     for (Tab* tab: tabs_list)
         if (tab->type() == type)
-            return tab->complited() ? tab : nullptr; // To avoid actions with no-completed Tab
+            return tab->completed() ? tab : nullptr; // To avoid actions with no-completed Tab
     return nullptr;
 }
 
@@ -793,7 +797,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     auto local_menu = new wxMenu();
     wxWindowID config_id_base = wxWindow::NewControlId(int(ConfigMenuCnt));
 
-    const auto config_wizard_name = _(ConfigWizard::name(true).wx_str());
+    const auto config_wizard_name = _(ConfigWizard::name(true));
     const auto config_wizard_tooltip = wxString::Format(_(L("Run %s")), config_wizard_name);
     // Cmd+, is standard on OS X - what about other operating systems?
     local_menu->Append(config_id_base + ConfigMenuWizard, config_wizard_name + dots, config_wizard_tooltip);
@@ -819,7 +823,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
 
     local_menu->AppendSubMenu(mode_menu, _(L("Mode")), wxString::Format(_(L("%s View Mode")), SLIC3R_APP_NAME));
     local_menu->AppendSeparator();
-    local_menu->Append(config_id_base + ConfigMenuLanguage, _(L("Change Application &Language")));
+    local_menu->Append(config_id_base + ConfigMenuLanguage, _(L("&Language")));
     local_menu->AppendSeparator();
     local_menu->Append(config_id_base + ConfigMenuFlashFirmware, _(L("Flash printer &firmware")), _(L("Upload a firmware image into an Arduino based printer")));
     // TODO: for when we're able to flash dictionaries
@@ -1241,7 +1245,7 @@ void GUI_App::check_updates(const bool verbose)
 		}
 	}
 	catch (const std::exception & ex) {
-		show_error(nullptr, from_u8(ex.what()));
+		show_error(nullptr, ex.what());
 	}
 
 	

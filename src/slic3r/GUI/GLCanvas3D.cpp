@@ -274,7 +274,7 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     if (ImGui::IsItemHovered())
     {
         ImGui::BeginTooltip();
-        ImGui::TextUnformatted(_(L("Higher print quality versus higher print speed.")));
+        ImGui::TextUnformatted(_(L("Higher print quality versus higher print speed.")).ToUTF8());
         ImGui::EndTooltip();
     }
 
@@ -734,7 +734,7 @@ static void msw_disable_cleartype(wxFont &font)
     ++ startpos_weight;
     size_t endpos_weight = font_desc.find(sep, startpos_weight);
     // Parse the weight field.
-    unsigned int weight = atoi(font_desc(startpos_weight, endpos_weight - startpos_weight));
+    unsigned int weight = wxAtoi(font_desc(startpos_weight, endpos_weight - startpos_weight));
     size_t startpos = endpos_weight;
     for (size_t i = 0; i < 6; ++ i)
         startpos = font_desc.find(sep, startpos + 1);
@@ -982,12 +982,17 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D
         cp_legend_items.emplace_back(I18N::translate_utf8(L("Pause print or custom G-code")));
 
         int cnt = custom_gcode_per_print_z.size();
+        int color_change_idx = color_cnt - extruders_cnt;
         for (int i = cnt-1; i >= 0; --i)
             if (custom_gcode_per_print_z[i].gcode == ColorChangeCode) {
                 ::memcpy((void*)(colors.data() + color_pos), (const void*)(colors_in.data() + color_in_pos), 4 * sizeof(float));
                 color_pos += 4;
                 color_in_pos -= 4;
-                cp_legend_items.emplace_back((boost::format(I18N::translate_utf8(L("Color change for Extruder %d at %.2f mm"))) % custom_gcode_per_print_z[i].extruder % custom_gcode_per_print_z[i].print_z).str());
+
+                // create label for color change item
+                std::string id_str = std::to_string(color_change_idx--) + ": ";
+
+                cp_legend_items.emplace_back(id_str + (boost::format(I18N::translate_utf8(L("Color change for Extruder %d at %.2f mm"))) % custom_gcode_per_print_z[i].extruder % custom_gcode_per_print_z[i].print_z).str());
             }
     }
 }
@@ -1297,7 +1302,7 @@ void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_
                 return owner.model_instance_id == id;
                 });
             if (it != owners.end())
-                it->print_order = _(L("Seq.")) + "#: " + std::to_string(i + 1);
+                it->print_order = std::string((_(L("Seq."))).ToUTF8()) + "#: " + std::to_string(i + 1);
         }
     }
 
@@ -3465,13 +3470,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // if dragging over blank area with left button, rotate
             if (m_hover_volume_idxs.empty() && m_mouse.is_start_position_3D_defined())
             {
-                const Vec3d& orig = m_mouse.drag.start_position_3D;
-                double x = Geometry::deg2rad(pos(0) - orig(0)) * (double)TRACKBALLSIZE;
-                double y = Geometry::deg2rad(pos(1) - orig(1)) * (double)TRACKBALLSIZE;
+                const Vec3d rot = (Vec3d(pos.x(), pos.y(), 0.) - m_mouse.drag.start_position_3D) * (PI * TRACKBALLSIZE / 180.);
                 if (wxGetApp().plater()->get_mouse3d_controller().is_running() || (wxGetApp().app_config->get("use_free_camera") == "1"))
-                    m_camera.rotate_local_around_target(Vec3d(y, x, 0.0));
+                    // Virtual track ball (similar to the 3DConnexion mouse).
+                    m_camera.rotate_local_around_target(Vec3d(rot.y(), rot.x(), 0.));
                 else
-                    m_camera.rotate_on_sphere(x, y, wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
+                    m_camera.rotate_on_sphere(rot.x(), rot.y(), wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
 
                 m_dirty = true;
             }

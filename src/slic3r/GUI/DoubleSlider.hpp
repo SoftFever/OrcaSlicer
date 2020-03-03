@@ -66,6 +66,13 @@ enum MouseAction
     maRevertIconClick,          // LeftMouseClick on "revert" icon
 };
 
+enum DrawMode
+{
+    dmRegular,
+    dmSlaPrint,
+    dmSequentialFffPrint,
+};
+
 using t_mode = CustomGCode::Mode;
 
 struct TickCode
@@ -87,6 +94,8 @@ class TickCodeInfo
     bool        m_suppress_minus    = false;
     bool        m_use_default_colors= false;
     int         m_default_color_idx = 0;
+
+    std::vector<std::string>* m_colors {nullptr};
 
     std::string get_color_for_tick(TickCode tick, const std::string& code, const int extruder);
 
@@ -115,6 +124,8 @@ public:
     bool suppressed_plus () { return m_suppress_plus; }
     bool suppressed_minus() { return m_suppress_minus; }
     void set_default_colors(bool default_colors_on)  { m_use_default_colors = default_colors_on; }
+
+    void set_extruder_colors(std::vector<std::string>* extruder_colors) { m_colors = extruder_colors; }
 };
 
 
@@ -197,12 +208,12 @@ public:
     CustomGCode::Info   GetTicksValues() const;
     void                SetTicksValues(const Slic3r::CustomGCode::Info &custom_gcode_per_print_z);
 
-    void    EnableTickManipulation(bool enable = true) { m_is_enabled_tick_manipulation = enable; }
-    void    DisableTickManipulation()                  { EnableTickManipulation(false); }
+    void    SetDrawMode(bool is_sla_print, bool is_sequential_print);
 
     void    SetManipulationMode(t_mode mode)    { m_mode = mode; }
     t_mode  GetManipulationMode() const         { return m_mode; }
     void    SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, const int only_extruder);
+    void    SetExtruderColors(const std::vector<std::string>& extruder_colors);
 
     bool is_horizontal() const      { return m_style == wxSL_HORIZONTAL; }
     bool is_one_layer() const       { return m_is_one_layer; }
@@ -261,7 +272,7 @@ protected:
     void    draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const;
 
     void    update_thumb_rect(const wxCoord& begin_x, const wxCoord& begin_y, const SelectedSlider& selection);
-    void    detect_selected_slider(const wxPoint& pt);
+    bool    detect_selected_slider(const wxPoint& pt);
     void    correct_lower_value();
     void    correct_higher_value();
     void    move_current_thumb(const bool condition);
@@ -323,8 +334,9 @@ private:
     bool        m_is_right_down = false;
     bool        m_is_one_layer = false;
     bool        m_is_focused = false;
-    bool        m_is_enabled_tick_manipulation = true;
     bool        m_force_mode_apply = true;
+
+    DrawMode    m_draw_mode = dmRegular;
 
     t_mode      m_mode = t_mode::SingleExtruder;
     int         m_only_extruder = -1;
@@ -349,6 +361,8 @@ private:
 
     std::vector<double> m_values;
     TickCodeInfo        m_ticks;
+
+    std::vector<std::string>    m_extruder_colors;
 
 // control's view variables
     wxCoord SLIDER_MARGIN; // margin around slider

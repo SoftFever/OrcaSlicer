@@ -145,7 +145,7 @@ MsgUpdateConfig::~MsgUpdateConfig() {}
 //MsgUpdateForced
 
 MsgUpdateForced::MsgUpdateForced(const std::vector<Update>& updates) :
-	MsgDialog(nullptr, wxString::Format(_(L("%s incompatibility")), SLIC3R_APP_NAME), _(L("Configuration update is necessary to install")), wxID_NONE)
+    MsgDialog(nullptr, wxString::Format(_(L("%s incompatibility")), SLIC3R_APP_NAME), _(L("You must install a configuration update.")) + " ", wxID_NONE)
 {
 	auto* text = new wxStaticText(this, wxID_ANY, wxString::Format(_(L(
 		"%s will now start updates. Otherwise it won't be able to start.\n\n"
@@ -277,7 +277,7 @@ MsgDataLegacy::MsgDataLegacy() :
 			"Please proceed with the %s that follows to set up the new presets "
 			"and to choose whether to enable automatic preset updates."
 		)),
-		SLIC3R_APP_NAME, ConfigWizard::name()
+        SLIC3R_APP_NAME, _(ConfigWizard::name())
 	));
 	text->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 	content_sizer->Add(text);
@@ -300,14 +300,14 @@ MsgDataLegacy::~MsgDataLegacy() {}
 // MsgNoUpdate
 
 MsgNoUpdates::MsgNoUpdates() :
-	MsgDialog(nullptr, _(L("Configuration updates")), _(L("No updates aviable")))
+    MsgDialog(nullptr, _(L("Configuration updates")), _(L("No updates available")))
 {
 
 	auto* text = new wxStaticText(this, wxID_ANY, wxString::Format(
 		_(L(
-			"%s has no configuration updates aviable."
+            "%s has no configuration updates available."
 		)),
-		SLIC3R_APP_NAME, ConfigWizard::name()
+        SLIC3R_APP_NAME
 	));
 	text->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 	content_sizer->Add(text);

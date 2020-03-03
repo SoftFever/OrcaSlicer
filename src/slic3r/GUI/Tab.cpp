@@ -38,8 +38,6 @@ namespace GUI {
 wxDEFINE_EVENT(EVT_TAB_VALUE_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_TAB_PRESETS_CHANGED, SimpleEvent);
 
-// Tab::Tab(wxNotebook* parent, const wxString& title, const char* name) :
-// 	m_parent(parent), m_title(title), m_name(name)
 Tab::Tab(wxNotebook* parent, const wxString& title, Preset::Type type) :
     m_parent(parent), m_title(title), m_type(type)
 {
@@ -49,14 +47,14 @@ Tab::Tab(wxNotebook* parent, const wxString& title, Preset::Type type) :
     m_compatible_printers.type			= Preset::TYPE_PRINTER;
     m_compatible_printers.key_list		= "compatible_printers";
     m_compatible_printers.key_condition	= "compatible_printers_condition";
-    m_compatible_printers.dialog_title 	= _(L("Compatible printers"));
-    m_compatible_printers.dialog_label 	= _(L("Select the printers this profile is compatible with."));
+    m_compatible_printers.dialog_title 	= _(L("Compatible printers")).ToUTF8();
+    m_compatible_printers.dialog_label 	= _(L("Select the printers this profile is compatible with.")).ToUTF8();
 
     m_compatible_prints.type			= Preset::TYPE_PRINT;
     m_compatible_prints.key_list 		= "compatible_prints";
     m_compatible_prints.key_condition	= "compatible_prints_condition";
-    m_compatible_prints.dialog_title 	= _(L("Compatible print profiles"));
-    m_compatible_prints.dialog_label 	= _(L("Select the print profiles this profile is compatible with."));
+    m_compatible_prints.dialog_title 	= _(L("Compatible print profiles")).ToUTF8();
+    m_compatible_prints.dialog_label 	= _(L("Select the print profiles this profile is compatible with.")).ToUTF8();
 
     wxGetApp().tabs_list.push_back(this);
 
@@ -264,7 +262,7 @@ void Tab::create_preset_tab()
     // Initialize the DynamicPrintConfig by default keys/values.
     build();
     rebuild_page_tree();
-    m_complited = true;
+    m_completed = true;
 }
 
 void Tab::add_scaled_button(wxWindow* parent,
@@ -833,7 +831,7 @@ void Tab::load_key_value(const std::string& opt_key, const boost::any& value, bo
     // Mark the print & filament enabled if they are compatible with the currently selected preset.
     if (opt_key == "compatible_printers" || opt_key == "compatible_prints") {
         // Don't select another profile if this profile happens to become incompatible.
-        m_preset_bundle->update_compatible(false);
+        m_preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
     }
     m_presets->update_dirty_ui(m_presets_choice);
     on_presets_changed();
@@ -2112,8 +2110,10 @@ void TabPrinter::build_sla()
     }
     optgroup->append_line(line);
     optgroup->append_single_option_line("absolute_correction");
+    optgroup->append_single_option_line("elefant_foot_compensation");
+    optgroup->append_single_option_line("elefant_foot_min_width");
     optgroup->append_single_option_line("gamma_correction");
-
+    
     optgroup = page->new_optgroup(_(L("Exposure")));
     optgroup->append_single_option_line("min_exposure_time");
     optgroup->append_single_option_line("max_exposure_time");
@@ -2776,6 +2776,7 @@ void Tab::select_preset(std::string preset_name, bool delete_current)
     bool print_tab     = m_presets->type() == Preset::TYPE_PRINT || m_presets->type() == Preset::TYPE_SLA_PRINT;
     bool printer_tab   = m_presets->type() == Preset::TYPE_PRINTER;
     bool canceled      = false;
+    bool technology_changed = false;
     m_dependent_tabs = {};
     if (current_dirty && ! may_discard_current_dirty_preset()) {
         canceled = true;
@@ -2784,16 +2785,18 @@ void Tab::select_preset(std::string preset_name, bool delete_current)
         // are compatible with the new print.
         // If it is not compatible and the current filament or SLA material are dirty, let user decide
         // whether to discard the changes or keep the current print selection.
-        PrinterTechnology  printer_technology = m_preset_bundle->printers.get_edited_preset().printer_technology();
+        PresetWithVendorProfile printer_profile = m_preset_bundle->printers.get_edited_preset_with_vendor_profile();
+        PrinterTechnology  printer_technology = printer_profile.preset.printer_technology();
         PresetCollection  &dependent = (printer_technology == ptFFF) ? m_preset_bundle->filaments : m_preset_bundle->sla_materials;
         bool 			   old_preset_dirty = dependent.current_is_dirty();
-        bool 			   new_preset_compatible = is_compatible_with_print(dependent.get_edited_preset_with_vendor_profile(), m_presets->get_preset_with_vendor_profile(*m_presets->find_preset(preset_name, true)));
+        bool 			   new_preset_compatible = is_compatible_with_print(dependent.get_edited_preset_with_vendor_profile(), 
+        	m_presets->get_preset_with_vendor_profile(*m_presets->find_preset(preset_name, true)), printer_profile);
         if (! canceled)
             canceled = old_preset_dirty && ! new_preset_compatible && ! may_discard_current_dirty_preset(&dependent, preset_name);
         if (! canceled) {
             // The preset will be switched to a different, compatible preset, or the '-- default --'.
             m_dependent_tabs.emplace_back((printer_technology == ptFFF) ? Preset::Type::TYPE_FILAMENT : Preset::Type::TYPE_SLA_MATERIAL);
-            if (old_preset_dirty)
+            if (old_preset_dirty && ! new_preset_compatible)
                 dependent.discard_current_changes();
         }
     } else if (printer_tab) {
@@ -2840,6 +2843,8 @@ void Tab::select_preset(std::string preset_name, bool delete_current)
                 }
             }
         }
+        if (! canceled)
+        	technology_changed = old_printer_technology != new_printer_technology;
     }
 
     if (! canceled && delete_current) {
@@ -2868,8 +2873,15 @@ void Tab::select_preset(std::string preset_name, bool delete_current)
         // Mark the print & filament enabled if they are compatible with the currently selected preset.
         // The following method should not discard changes of current print or filament presets on change of a printer profile,
         // if they are compatible with the current printer.
+        auto update_compatible_type = [](bool technology_changed, bool on_page, bool show_incompatible_presets) {
+        	return technology_changed ? PresetSelectCompatibleType::Always :
+        	       on_page            ? PresetSelectCompatibleType::Never  : 
+        	       (show_incompatible_presets ? PresetSelectCompatibleType::OnlyIfWasCompatible : PresetSelectCompatibleType::Always);
+        };
         if (current_dirty || delete_current || print_tab || printer_tab)
-            m_preset_bundle->update_compatible(true);
+            m_preset_bundle->update_compatible(
+            	update_compatible_type(technology_changed, print_tab,   (print_tab ? this : wxGetApp().get_tab(Preset::TYPE_PRINT))->m_show_incompatible_presets),
+            	update_compatible_type(technology_changed, false, 		wxGetApp().get_tab(Preset::TYPE_FILAMENT)->m_show_incompatible_presets));
         // Initialize the UI from the current preset.
         if (printer_tab)
             static_cast<TabPrinter*>(this)->update_pages();
@@ -3082,7 +3094,7 @@ void Tab::save_preset(std::string name /*= ""*/)
     // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
     m_presets->save_current_preset(name);
     // Mark the print & filament enabled if they are compatible with the currently selected preset.
-    m_preset_bundle->update_compatible(false);
+    m_preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
     // Add the new item into the UI component, remove dirty flags and activate the saved item.
     update_tab_ui();
     // Update the selection boxes at the plater.
@@ -3505,7 +3517,6 @@ void TabSLAMaterial::build()
     optgroup->append_single_option_line("initial_exposure_time");
 
     optgroup = page->new_optgroup(_(L("Corrections")));
-    optgroup->label_width = 19;//190;
     std::vector<std::string> corrections = {"material_correction"};
 //    std::vector<std::string> axes{ "X", "Y", "Z" };
     std::vector<std::string> axes{ "XY", "Z" };
@@ -3601,6 +3612,8 @@ void TabSLAPrint::build()
 
     optgroup = page->new_optgroup(_(L("Support pillar")));
     optgroup->append_single_option_line("support_pillar_diameter");
+    optgroup->append_single_option_line("support_max_bridges_on_pillar");
+    
     optgroup->append_single_option_line("support_pillar_connection_mode");
     optgroup->append_single_option_line("support_buildplate_only");
     // TODO: This parameter is not used at the moment.

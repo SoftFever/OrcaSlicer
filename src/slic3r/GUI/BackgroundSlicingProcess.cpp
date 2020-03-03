@@ -105,20 +105,28 @@ void BackgroundSlicingProcess::process_fff()
 			GUI::RemovableDriveManager::get_instance().update();
 			bool with_check = GUI::RemovableDriveManager::get_instance().is_path_on_removable_drive(export_path);
 			int copy_ret_val = copy_file(m_temp_output_path, export_path, with_check);
-			if (with_check && copy_ret_val == -2)
-			{
-				std::string err_msg = "Copying of the temporary G-code to the output G-code failed. There might be problem with target device, please try exporting again or using different device. The corrupted output G-code is at " + export_path + ".tmp.";
-				throw std::runtime_error(_utf8(L(err_msg)));
+			switch (copy_ret_val){
+			case SUCCESS: break; // no error
+			case FAIL_COPY_FILE:
+				throw std::runtime_error(_utf8(L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?")));
+				break;
+			case FAIL_FILES_DIFFERENT: 
+				throw std::runtime_error((boost::format(_utf8(L("Copying of the temporary G-code to the output G-code failed. There might be problem with target device, please try exporting again or using different device. The corrupted output G-code is at %1%.tmp."))) % export_path).str());
+				break;
+			case FAIL_RENAMING: 
+				throw std::runtime_error((boost::format(_utf8(L("Renaming of the G-code after copying to the selected destination folder has failed. Current path is %1%.tmp. Please try exporting again."))) % export_path).str()); 
+				break;
+			case FAIL_CHECK_ORIGIN_NOT_OPENED: 
+				throw std::runtime_error((boost::format(_utf8(L("Copying of the temporary G-code has finished but the original code at %1% couldn't be opened during copy check. The output G-code is at %2%.tmp."))) % m_temp_output_path % export_path).str());
+				break;
+			case FAIL_CHECK_TARGET_NOT_OPENED: 
+				throw std::runtime_error((boost::format(_utf8(L("Copying of the temporary G-code has finished but the exported code couldn't be opened during copy check. The output G-code is at %1%.tmp."))) % export_path).str()); 
+				break;
+			default:
+				BOOST_LOG_TRIVIAL(warning) << "Unexpected fail code(" << (int)copy_ret_val << ") durring copy_file() to " << export_path << ".";
+				break;
 			}
-			else if (copy_ret_val == -3)
-			{
-				std::string err_msg = "Renaming of the G-code after copying to the selected destination folder has failed. Current path is " + export_path + ".tmp. Please try exporting again.";
-				throw std::runtime_error(_utf8(L(err_msg)));
-			}
-			else if ( copy_ret_val != 0)
-			{
-	    		throw std::runtime_error(_utf8(L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?")));
-			}
+			
 	    	m_print->set_status(95, _utf8(L("Running post-processing scripts")));
 	    	run_post_process_scripts(export_path, m_fff_print->config());
 	    	m_print->set_status(100, (boost::format(_utf8(L("G-code file exported to %1%"))) % export_path).str());
@@ -216,7 +224,7 @@ void BackgroundSlicingProcess::thread_proc()
             wxString errmsg = wxString::Format(_(L("%s has encountered an error. It was likely caused by running out of memory. "
                                   "If you are sure you have enough RAM on your system, this may also be a bug and we would "
                                   "be glad if you reported it.")), SLIC3R_APP_NAME);
-            error = errmsg.ToStdString() + "\n\n" + std::string(ex.what());
+            error = std::string(errmsg.ToUTF8()) + "\n\n" + std::string(ex.what());
         } catch (std::exception &ex) {
 			error = ex.what();
 		} catch (...) {
@@ -484,7 +492,7 @@ void BackgroundSlicingProcess::prepare_upload()
 
 	if (m_print == m_fff_print) {
 		m_print->set_status(95, _utf8(L("Running post-processing scripts")));
-		if (copy_file(m_temp_output_path, source_path.string()) != 0) {
+		if (copy_file(m_temp_output_path, source_path.string()) != SUCCESS) {
 			throw std::runtime_error(_utf8(L("Copying of the temporary G-code to the output G-code failed")));
 		}
 		run_post_process_scripts(source_path.string(), m_fff_print->config());

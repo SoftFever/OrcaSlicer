@@ -153,15 +153,15 @@ public:
     Layer* 			get_layer(int idx) 		 { return m_layers[idx]; }
     // Get a layer exactly at print_z.
     const Layer*	get_layer_at_printz(coordf_t print_z) const {
-    	auto it = Slic3r::lower_bound_by_predicate(m_layers.begin(), m_layers.end(), [print_z](const Layer *layer) { return layer->print_z < print_z; });
+        auto it = Slic3r::lower_bound_by_predicate(m_layers.begin(), m_layers.end(), [print_z](const Layer *layer) { return layer->print_z < print_z; });
 		return (it == m_layers.end() || (*it)->print_z != print_z) ? nullptr : *it;
 	}
     Layer*			get_layer_at_printz(coordf_t print_z) { return const_cast<Layer*>(std::as_const(*this).get_layer_at_printz(print_z)); }
     // Get a layer approximately at print_z.
     const Layer*	get_layer_at_printz(coordf_t print_z, coordf_t epsilon) const {
-        coordf_t limit = print_z + epsilon;
-    	auto it = Slic3r::lower_bound_by_predicate(m_layers.begin(), m_layers.end(), [limit](const Layer *layer) { return layer->print_z < limit; });
-		return (it == m_layers.end() || (*it)->print_z < print_z - epsilon) ? nullptr : *it;
+        coordf_t limit = print_z - epsilon;
+        auto it = Slic3r::lower_bound_by_predicate(m_layers.begin(), m_layers.end(), [limit](const Layer *layer) { return layer->print_z < limit; });
+        return (it == m_layers.end() || (*it)->print_z > print_z + epsilon) ? nullptr : *it;
 	}
     Layer*			get_layer_at_printz(coordf_t print_z, coordf_t epsilon) { return const_cast<Layer*>(std::as_const(*this).get_layer_at_printz(print_z, epsilon)); }
 
@@ -305,8 +305,8 @@ struct PrintStatistics
     PrintStatistics() { clear(); }
     std::string                     estimated_normal_print_time;
     std::string                     estimated_silent_print_time;
-    std::vector<std::string>        estimated_normal_color_print_times;
-    std::vector<std::string>        estimated_silent_color_print_times;
+    std::vector<std::pair<CustomGcodeType, std::string>>    estimated_normal_custom_gcode_print_times;
+    std::vector<std::pair<CustomGcodeType, std::string>>    estimated_silent_custom_gcode_print_times;
     double                          total_used_filament;
     double                          total_extruded_volume;
     double                          total_cost;
@@ -326,8 +326,8 @@ struct PrintStatistics
     void clear() {
         estimated_normal_print_time.clear();
         estimated_silent_print_time.clear();
-        estimated_normal_color_print_times.clear();
-        estimated_silent_color_print_times.clear();
+        estimated_normal_custom_gcode_print_times.clear();
+        estimated_silent_custom_gcode_print_times.clear();
         total_used_filament    = 0.;
         total_extruded_volume  = 0.;
         total_cost             = 0.;

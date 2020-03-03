@@ -30,7 +30,6 @@ static const float CONSTRAINED_COLOR[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
 
 
 class ImGuiWrapper;
-class CommonGizmosData;
 class GLCanvas3D;
 class ClippingPlane;
 
@@ -101,13 +100,11 @@ protected:
     mutable std::vector<Grabber> m_grabbers;
     ImGuiWrapper* m_imgui;
     bool m_first_input_window_render;
-    CommonGizmosData* m_c = nullptr;
 
 public:
     GLGizmoBase(GLCanvas3D& parent,
                 const std::string& icon_filename,
-                unsigned int sprite_id,
-                CommonGizmosData* common_data = nullptr);
+                unsigned int sprite_id);
     virtual ~GLGizmoBase() {}
 
     bool init() { return on_init(); }
@@ -184,57 +181,6 @@ protected:
 // Produce an alpha channel checksum for the red green blue components. The alpha channel may then be used to verify, whether the rgb components
 // were not interpolated by alpha blending or multi sampling.
 extern unsigned char picking_checksum_alpha_channel(unsigned char red, unsigned char green, unsigned char blue);
-
-class MeshRaycaster;
-class MeshClipper;
-
-class CommonGizmosData {
-public:
-    const TriangleMesh* mesh() const {
-        return (! m_mesh ? nullptr : m_mesh); //(m_cavity_mesh ? m_cavity_mesh.get() : m_mesh));
-    }
-
-    bool update_from_backend(GLCanvas3D& canvas, ModelObject* model_object);
-
-    bool recent_update = false;
-
-
-
-    ModelObject* m_model_object = nullptr;
-    const TriangleMesh* m_mesh;
-    std::unique_ptr<MeshRaycaster> m_mesh_raycaster;
-    std::unique_ptr<MeshClipper> m_object_clipper;
-    std::unique_ptr<MeshClipper> m_supports_clipper;
-
-    //std::unique_ptr<TriangleMesh> m_cavity_mesh;
-    //std::unique_ptr<GLVolume> m_volume_with_cavity;
-
-    int m_active_instance = -1;
-    float m_active_instance_bb_radius = 0;
-    ObjectID m_model_object_id = 0;
-    int m_print_object_idx = -1;
-    int m_print_objects_count = -1;
-    int m_old_timestamp = -1;
-
-    float m_clipping_plane_distance = 0.f;
-    std::unique_ptr<ClippingPlane> m_clipping_plane;
-
-    void stash_clipping_plane() {
-        m_clipping_plane_distance_stash = m_clipping_plane_distance;
-    }
-
-    void unstash_clipping_plane() {
-        m_clipping_plane_distance = m_clipping_plane_distance_stash;
-    }
-
-    bool has_drilled_mesh() const { return m_has_drilled_mesh; }
-
-private:
-    const TriangleMesh* m_old_mesh;
-    TriangleMesh m_backend_mesh_transformed;
-    float m_clipping_plane_distance_stash = 0.f;
-    bool m_has_drilled_mesh = false;
-};
 
 } // namespace GUI
 } // namespace Slic3r

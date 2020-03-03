@@ -1060,9 +1060,9 @@ namespace DoExport {
 	    print_statistics.clear();
 	    print_statistics.estimated_normal_print_time = normal_time_estimator.get_time_dhm/*s*/();
 	    print_statistics.estimated_silent_print_time = silent_time_estimator_enabled ? silent_time_estimator.get_time_dhm/*s*/() : "N/A";
-	    print_statistics.estimated_normal_color_print_times = normal_time_estimator.get_color_times_dhms(true);
+	    print_statistics.estimated_normal_custom_gcode_print_times = normal_time_estimator.get_custom_gcode_times_dhm(true);
 	    if (silent_time_estimator_enabled)
-	        print_statistics.estimated_silent_color_print_times = silent_time_estimator.get_color_times_dhms(true);
+	        print_statistics.estimated_silent_custom_gcode_print_times = silent_time_estimator.get_custom_gcode_times_dhm(true);
 	    print_statistics.total_toolchanges = std::max(0, wipe_tower_data.number_of_toolchanges);
 	    if (! extruders.empty()) {
 	        std::pair<std::string, unsigned int> out_filament_used_mm ("; filament used [mm] = ", 0);
@@ -1104,11 +1104,11 @@ namespace DoExport {
 	            print_statistics.total_wipe_tower_cost += has_wipe_tower ? (extruded_volume - extruder.extruded_volume())* extruder.filament_density() * 0.001 * extruder.filament_cost() * 0.001 : 0.;
 	        }
 	        filament_stats_string_out += out_filament_used_mm.first;
-			filament_stats_string_out += out_filament_used_cm3.first;
+            filament_stats_string_out += "\n" + out_filament_used_cm3.first;
 			if (out_filament_used_g.second)
-				filament_stats_string_out += out_filament_used_g.first;
+                filament_stats_string_out += "\n" + out_filament_used_g.first;
 			if (out_filament_cost.second)
-				filament_stats_string_out += out_filament_cost.first;
+                filament_stats_string_out += "\n" + out_filament_cost.first;
 	    }
 	    return filament_stats_string_out;
 	}
@@ -1550,6 +1550,7 @@ void GCode::_do_export(Print& print, FILE* file)
         m_writer.extruders(),
         // Modifies
         print.m_print_statistics));
+    _write(file, "\n");
     _write_format(file, "; total filament used [g] = %.1lf\n", print.m_print_statistics.total_weight);
     _write_format(file, "; total filament cost = %.1lf\n", print.m_print_statistics.total_cost);
     if (print.m_print_statistics.total_toolchanges > 0)
@@ -1852,7 +1853,7 @@ namespace ProcessLayer
 	                if (!pause_print_msg.empty())
 	                    gcode += "M117 " + pause_print_msg + "\n";
 	                // add tag for time estimator
-	                //gcode += "; " + GCodeTimeEstimator::Pause_Print_Tag + "\n";
+	                gcode += "; " + GCodeTimeEstimator::Pause_Print_Tag + "\n";
 	            }
 	            else // custom Gcode
 	            {
@@ -3436,7 +3437,7 @@ const std::vector<GCode::ObjectByExtruder::Island::Region>& GCode::ObjectByExtru
             		if (this_override == nullptr || (*this_override)[copy] == -int(extruder)-1)
 	                    target_eec.emplace_back(entities[i]);
 	            }
-	            for (; i < overrides.size(); ++ i)
+	            for (; i < entities.size(); ++ i)
                     target_eec.emplace_back(entities[i]);
 		    }
         }

@@ -855,7 +855,12 @@ Polygons top_level_islands(const Slic3r::Polygons &polygons)
 }
 
 // Outer offset shall not split the input contour into multiples. It is expected, that the solution will be non empty and it will contain just a single polygon.
-ClipperLib::Paths fix_after_outer_offset(const ClipperLib::Path &input, ClipperLib::PolyFillType filltype, bool reverse_result)
+ClipperLib::Paths fix_after_outer_offset(
+	const ClipperLib::Path 		&input, 
+													// combination of default prameters to correspond to void ClipperOffset::Execute(Paths& solution, double delta)
+													// to produce a CCW output contour from CCW input contour for a positive offset.
+	ClipperLib::PolyFillType 	 filltype, 			// = ClipperLib::pftPositive
+	bool 						 reverse_result)	// = false
 {
   	ClipperLib::Paths solution;
   	if (! input.empty()) {
@@ -867,8 +872,13 @@ ClipperLib::Paths fix_after_outer_offset(const ClipperLib::Path &input, ClipperL
     return solution;
 }
 
-// Inner offset may split the source contour into multiple contours, but one shall not be inside the other.
-ClipperLib::Paths fix_after_inner_offset(const ClipperLib::Path &input, ClipperLib::PolyFillType filltype, bool reverse_result)
+// Inner offset may split the source contour into multiple contours, but one resulting contour shall not lie inside the other.
+ClipperLib::Paths fix_after_inner_offset(
+	const ClipperLib::Path 		&input, 
+													// combination of default prameters to correspond to void ClipperOffset::Execute(Paths& solution, double delta)
+													// to produce a CCW output contour from CCW input contour for a negative offset.
+	ClipperLib::PolyFillType 	 filltype, 			// = ClipperLib::pftNegative
+	bool 						 reverse_result) 	// = true
 {
   	ClipperLib::Paths solution;
   	if (! input.empty()) {
@@ -1041,12 +1051,20 @@ Polygons variable_offset_inner(const ExPolygon &expoly, const std::vector<std::v
 
 	// 1) Offset the outer contour.
 	ClipperLib::Paths contours = fix_after_inner_offset(mittered_offset_path_scaled(expoly.contour.points, deltas.front(), miter_limit), ClipperLib::pftNegative, true);
+#ifndef NDEBUG	
+	for (auto &c : contours)
+		assert(ClipperLib::Area(c) > 0.);
+#endif /* NDEBUG */
 
 	// 2) Offset the holes one by one, collect the results.
 	ClipperLib::Paths holes;
 	holes.reserve(expoly.holes.size());
 	for (const Polygon& hole : expoly.holes)
-		append(holes, fix_after_outer_offset(mittered_offset_path_scaled(hole, deltas[1 + &hole - expoly.holes.data()], miter_limit), ClipperLib::pftPositive, false));
+		append(holes, fix_after_outer_offset(mittered_offset_path_scaled(hole, deltas[1 + &hole - expoly.holes.data()], miter_limit), ClipperLib::pftNegative, false));
+#ifndef NDEBUG	
+	for (auto &c : holes)
+		assert(ClipperLib::Area(c) > 0.);
+#endif /* NDEBUG */
 
 	// 3) Subtract holes from the contours.
 	ClipperLib::Paths output;
@@ -1077,12 +1095,20 @@ for (const std::vector<float>& ds : deltas)
 
 	// 1) Offset the outer contour.
 	ClipperLib::Paths contours = fix_after_outer_offset(mittered_offset_path_scaled(expoly.contour.points, deltas.front(), miter_limit), ClipperLib::pftPositive, false);
+#ifndef NDEBUG
+	for (auto &c : contours)
+		assert(ClipperLib::Area(c) > 0.);
+#endif /* NDEBUG */
 
 	// 2) Offset the holes one by one, collect the results.
 	ClipperLib::Paths holes;
 	holes.reserve(expoly.holes.size());
 	for (const Polygon& hole : expoly.holes)
 		append(holes, fix_after_inner_offset(mittered_offset_path_scaled(hole, deltas[1 + &hole - expoly.holes.data()], miter_limit), ClipperLib::pftPositive, true));
+#ifndef NDEBUG
+	for (auto &c : holes)
+		assert(ClipperLib::Area(c) > 0.);
+#endif /* NDEBUG */
 
 	// 3) Subtract holes from the contours.
 	ClipperLib::Paths output;
@@ -1113,12 +1139,20 @@ for (const std::vector<float>& ds : deltas)
 
 	// 1) Offset the outer contour.
 	ClipperLib::Paths contours = fix_after_outer_offset(mittered_offset_path_scaled(expoly.contour.points, deltas.front(), miter_limit), ClipperLib::pftPositive, false);
+#ifndef NDEBUG
+	for (auto &c : contours)
+		assert(ClipperLib::Area(c) > 0.);
+#endif /* NDEBUG */
 
 	// 2) Offset the holes one by one, collect the results.
 	ClipperLib::Paths holes;
 	holes.reserve(expoly.holes.size());
 	for (const Polygon& hole : expoly.holes)
 		append(holes, fix_after_inner_offset(mittered_offset_path_scaled(hole, deltas[1 + &hole - expoly.holes.data()], miter_limit), ClipperLib::pftPositive, true));
+#ifndef NDEBUG
+	for (auto &c : holes)
+		assert(ClipperLib::Area(c) > 0.);
+#endif /* NDEBUG */
 
 	// 3) Subtract holes from the contours.
 	unscaleClipperPolygons(contours);
@@ -1152,13 +1186,21 @@ ExPolygons variable_offset_inner_ex(const ExPolygon &expoly, const std::vector<s
 #endif /* NDEBUG */
 
 	// 1) Offset the outer contour.
-	ClipperLib::Paths contours = fix_after_inner_offset(mittered_offset_path_scaled(expoly.contour.points, deltas.front(), miter_limit), ClipperLib::pftNegative, false);
+	ClipperLib::Paths contours = fix_after_inner_offset(mittered_offset_path_scaled(expoly.contour.points, deltas.front(), miter_limit), ClipperLib::pftNegative, true);
+#ifndef NDEBUG
+	for (auto &c : contours)
+		assert(ClipperLib::Area(c) > 0.);
+#endif /* NDEBUG */
 
 	// 2) Offset the holes one by one, collect the results.
 	ClipperLib::Paths holes;
 	holes.reserve(expoly.holes.size());
 	for (const Polygon& hole : expoly.holes)
-		append(holes, fix_after_outer_offset(mittered_offset_path_scaled(hole, deltas[1 + &hole - expoly.holes.data()], miter_limit), ClipperLib::pftNegative, true));
+		append(holes, fix_after_outer_offset(mittered_offset_path_scaled(hole, deltas[1 + &hole - expoly.holes.data()], miter_limit), ClipperLib::pftNegative, false));
+#ifndef NDEBUG
+	for (auto &c : holes)
+		assert(ClipperLib::Area(c) > 0.);
+#endif /* NDEBUG */
 
 	// 3) Subtract holes from the contours.
 	unscaleClipperPolygons(contours);

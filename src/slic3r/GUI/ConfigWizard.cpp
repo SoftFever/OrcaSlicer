@@ -432,7 +432,7 @@ PageWelcome::PageWelcome(ConfigWizard *parent)
     , welcome_text(append_text(wxString::Format(
         _(L("Hello, welcome to %s! This %s helps you with the initial configuration; just a few settings and you will be ready to print.")),
         SLIC3R_APP_NAME,
-        ConfigWizard::name())
+        _(ConfigWizard::name()))
     ))
     , cbox_reset(append(
         new wxCheckBox(this, wxID_ANY, _(L("Remove user profiles - install from scratch (a snapshot will be taken beforehand)")))
@@ -748,7 +748,8 @@ PageCustom::PageCustom(ConfigWizard *parent)
 
     cb_custom->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &event) {
         tc_profile_name->Enable(custom_wanted());
-        wizard_p()->on_custom_setup();
+        wizard_p()->on_custom_setup(custom_wanted());
+		
     });
 
     append(cb_custom);
@@ -1396,7 +1397,7 @@ void ConfigWizard::priv::load_pages()
     if (any_sla_selected) { index->add_page(page_sla_materials); }
 
     // there should to be selected at least one printer
-    btn_finish->Enable(any_fff_selected || any_sla_selected);
+    btn_finish->Enable(any_fff_selected || any_sla_selected || custom_printer_selected);
 
     index->add_page(page_update);
     index->add_page(page_reload_from_disk);
@@ -1599,8 +1600,9 @@ void ConfigWizard::priv::update_materials(Technology technology)
     }
 }
 
-void ConfigWizard::priv::on_custom_setup()
+void ConfigWizard::priv::on_custom_setup(const bool custom_wanted)
 {
+	custom_printer_selected = custom_wanted;
     load_pages();
 }
 
@@ -1723,6 +1725,8 @@ bool ConfigWizard::priv::on_bnt_finish()
     if (any_sla_selected)
         page_sla_materials->reload_presets();
 
+	// theres no need to check that filament is selected if we have only custom printer
+	if (custom_printer_selected && !any_fff_selected && !any_sla_selected) return true;
     // check, that there is selected at least one filament/material
     return check_materials_in_config(T_ANY);
 }
@@ -1751,13 +1755,13 @@ bool ConfigWizard::priv::check_materials_in_config(Technology technology, bool s
 
     if (any_fff_selected && technology & T_FFF && !exist_preset(AppConfig::SECTION_FILAMENTS, filaments))
     {
-        if (show_info_msg)
-        {
-            wxString message = _(L("You have to select at least one filament for selected printers")) + "\n\n\t" +
-                               _(L("Do you want to automatic select default filaments?"));
-            ask_and_selected_default_materials(message, T_FFF);
-        }
-        return false;
+		if (show_info_msg)
+		{
+			wxString message = _(L("You have to select at least one filament for selected printers")) + "\n\n\t" +
+				_(L("Do you want to automatic select default filaments?"));
+			ask_and_selected_default_materials(message, T_FFF);
+		}
+		return false;
     }
 
     if (any_sla_selected && technology & T_SLA && !exist_preset(AppConfig::SECTION_MATERIALS, sla_materials))
@@ -1875,6 +1879,7 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
             if (bundle.second.is_prusa_bundle) { continue; }
 
             const auto config = enabled_vendors.find(bundle.first);
+			if (config == enabled_vendors.end()) { continue; }
             for (const auto &model : bundle.second.vendor_profile->models) {
                 const auto model_it = config->second.find(model.id);
                 if (model_it != config->second.end() && model_it->second.size() > 0) {
@@ -1925,7 +1930,6 @@ bool ConfigWizard::priv::check_fff_selected()
     for (const auto& printer: pages_3rdparty)
         if (printer.second.first)               // FFF page
             ret |= printer.second.first->any_selected();
-
     return ret;
 }
 
@@ -1942,7 +1946,7 @@ bool ConfigWizard::priv::check_sla_selected()
 // Public
 
 ConfigWizard::ConfigWizard(wxWindow *parent)
-    : DPIDialog(parent, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _(name().ToStdString()), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog(parent, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _(name()), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
     , p(new priv(this))
 {
     this->SetFont(wxGetApp().normal_font());
@@ -1997,6 +2001,8 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
 	// Pages for 3rd party vendors
 	p->create_3rdparty_pages();   // Needs to be done _before_ creating PageVendors
 	p->add_page(p->page_vendors = new PageVendors(this));
+	p->add_page(p->page_custom = new PageCustom(this));
+	p->custom_printer_selected = p->page_custom->custom_wanted();
 
     p->any_sla_selected = p->check_sla_selected();
     p->any_fff_selected = p->check_fff_selected();
@@ -2008,7 +2014,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     p->add_page(p->page_sla_materials = new PageMaterials(this, &p->sla_materials,
         _(L("SLA Material Profiles Selection")) + " ", _(L("SLA Materials")), _(L("Layer height:")) ));
 
-    p->add_page(p->page_custom   = new PageCustom(this));
+    
     p->add_page(p->page_update   = new PageUpdate(this));
     p->add_page(p->page_reload_from_disk = new PageReloadFromDisk(this));
     p->add_page(p->page_mode     = new PageMode(this));

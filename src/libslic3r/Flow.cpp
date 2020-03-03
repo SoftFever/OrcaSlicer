@@ -11,6 +11,12 @@
 
 namespace Slic3r {
 
+FlowErrorNegativeSpacing::FlowErrorNegativeSpacing() : 
+	FlowError("Flow::spacing() produced negative spacing. Did you set some extrusion width too small?") {}
+
+FlowErrorNegativeFlow::FlowErrorNegativeFlow() :
+    FlowError("Flow::mm3_per_mm() produced negative flow. Did you set some extrusion width too small?") {}
+
 // This static method returns a sane extrusion width default.
 float Flow::auto_extrusion_width(FlowRole role, float nozzle_diameter)
 {
@@ -52,7 +58,7 @@ static inline FlowRole opt_key_to_flow_role(const std::string &opt_key)
 
 static inline void throw_on_missing_variable(const std::string &opt_key, const char *dependent_opt_key) 
 {
-	throw std::runtime_error((boost::format(L("Cannot calculate extrusion width for %1%: Variable \"%2%\" not accessible.")) % opt_key % dependent_opt_key).str());
+	throw FlowErrorMissingVariable((boost::format(L("Cannot calculate extrusion width for %1%: Variable \"%2%\" not accessible.")) % opt_key % dependent_opt_key).str());
 }
 
 // Used to provide hints to the user on default extrusion width values, and to provide reasonable values to the PlaceholderParser.
@@ -174,7 +180,7 @@ float Flow::spacing() const
 #endif
 //    assert(res > 0.f);
 	if (res <= 0.f)
-		throw std::runtime_error("Flow::spacing() produced negative spacing. Did you set some extrusion width too small?");
+		throw FlowErrorNegativeSpacing();
 	return res;
 }
 
@@ -190,7 +196,7 @@ float Flow::spacing(const Flow &other) const
         0.5 * this->spacing() + 0.5 * other.spacing());
 //    assert(res > 0.f);
 	if (res <= 0.f)
-		throw std::runtime_error("Flow::spacing() produced negative spacing. Did you set some extrusion width too small?");
+		throw FlowErrorNegativeSpacing();
 	return res;
 }
 
@@ -204,7 +210,7 @@ double Flow::mm3_per_mm() const
         float(this->height * (this->width - this->height * (1. - 0.25 * PI)));
     //assert(res > 0.);
 	if (res <= 0.)
-		throw std::runtime_error("Flow::mm3_per_mm() produced negative flow. Did you set some extrusion width too small?");
+		throw FlowErrorNegativeFlow();
     return res;
 }
 

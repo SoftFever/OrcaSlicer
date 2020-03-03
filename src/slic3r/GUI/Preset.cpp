@@ -313,9 +313,9 @@ std::string Preset::label() const
     return this->name + (this->is_dirty ? g_suffix_modified : "");
 }
 
-bool is_compatible_with_print(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_print)
+bool is_compatible_with_print(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_print, const PresetWithVendorProfile &active_printer)
 {
-	if (preset.vendor != nullptr && preset.vendor != active_print.vendor)
+	if (preset.vendor != nullptr && preset.vendor != active_printer.vendor)
 		// The current profile has a vendor assigned and it is different from the active print's vendor.
 		return false;
     auto &condition             = preset.preset.compatible_prints_condition();
@@ -374,12 +374,23 @@ void Preset::set_visible_from_appconfig(const AppConfig &app_config)
     if (type == TYPE_PRINTER) {
         const std::string &model = config.opt_string("printer_model");
         const std::string &variant = config.opt_string("printer_variant");
-        if (model.empty() || variant.empty()) { return; }
+        if (model.empty() || variant.empty())
+        	return;
         is_visible = app_config.get_variant(vendor->id, model, variant);
-    } else if (type == TYPE_FILAMENT) {
-        is_visible = app_config.has("filaments", name);
-    } else if (type == TYPE_SLA_MATERIAL) {
-        is_visible = app_config.has("sla_materials", name);
+    } else if (type == TYPE_FILAMENT || type == TYPE_SLA_MATERIAL) {
+    	const char *section_name = (type == TYPE_FILAMENT) ? "filaments" : "sla_materials";
+    	if (app_config.has_section(section_name)) {
+    		// Check whether this profile is marked as "installed" in PrusaSlicer.ini, 
+    		// or whether a profile is marked as "installed", which this profile may have been renamed from.
+	    	const std::map<std::string, std::string> &installed = app_config.get_section(section_name);
+	    	auto has = [&installed](const std::string &name) {
+	    		auto it = installed.find(name);
+				return it != installed.end() && ! it->second.empty();
+	    	};
+	    	is_visible = has(this->name);
+	    	for (auto it = this->renamed_from.begin(); ! is_visible && it != this->renamed_from.end(); ++ it)
+	    		is_visible = has(*it);
+	    }
     }
 }
 
@@ -480,6 +491,7 @@ const std::vector<std::string>& Preset::sla_print_options()
             "support_head_penetration",
             "support_head_width",
             "support_pillar_diameter",
+            "support_max_bridges_on_pillar",
             "support_pillar_connection_mode",
             "support_buildplate_only",
             "support_pillar_widening_factor",
@@ -557,6 +569,8 @@ const std::vector<std::string>& Preset::sla_printer_options()
             "fast_tilt_time", "slow_tilt_time", "area_fill",
             "relative_correction",
             "absolute_correction",
+            "elefant_foot_compensation",
+            "elefant_foot_min_width",
             "gamma_correction",
             "min_exposure_time", "max_exposure_time",
             "min_initial_exposure_time", "max_initial_exposure_time",
@@ -683,19 +697,51 @@ Preset& PresetCollection::load_preset(const std::string &path, const std::string
     return this->load_preset(path, name, std::move(cfg), select);
 }
 
-static bool profile_print_params_same(const DynamicPrintConfig &cfg1, const DynamicPrintConfig &cfg2)
+enum class ProfileHostParams
 {
-    t_config_option_keys diff = cfg1.diff(cfg2);
+	Same,
+	Different,
+	Anonymized,
+};
+
+static ProfileHostParams profile_host_params_same_or_anonymized(const DynamicPrintConfig &cfg_old, const DynamicPrintConfig &cfg_new)
+{
+	auto opt_print_host_old 	  = cfg_old.option<ConfigOptionString>("print_host");
+	auto opt_printhost_apikey_old = cfg_old.option<ConfigOptionString>("printhost_apikey");
+	auto opt_printhost_cafile_old = cfg_old.option<ConfigOptionString>("printhost_cafile");
+
+	auto opt_print_host_new 	  = cfg_new.option<ConfigOptionString>("print_host");
+	auto opt_printhost_apikey_new = cfg_new.option<ConfigOptionString>("printhost_apikey");
+	auto opt_printhost_cafile_new = cfg_new.option<ConfigOptionString>("printhost_cafile");
+
+	// If the new print host data is undefined, use the old data.
+	bool new_print_host_undefined = (opt_print_host_new 		== nullptr || opt_print_host_new		->empty()) &&
+									(opt_printhost_apikey_new 	== nullptr || opt_printhost_apikey_new	->empty()) &&
+									(opt_printhost_cafile_new 	== nullptr || opt_printhost_cafile_new	->empty());
+	if (new_print_host_undefined)
+		return ProfileHostParams::Anonymized;
+
+	auto opt_same = [](const ConfigOptionString *l, const ConfigOptionString *r) {
+		return ((l == nullptr || l->empty()) && (r == nullptr || r->empty())) ||
+			   (l != nullptr && r != nullptr && l->value == r->value);
+	};
+	return (opt_same(opt_print_host_old, opt_print_host_new) && opt_same(opt_printhost_apikey_old, opt_printhost_apikey_new) && 
+		    opt_same(opt_printhost_cafile_old, opt_printhost_cafile_new)) ? ProfileHostParams::Same : ProfileHostParams::Different;
+}
+
+static bool profile_print_params_same(const DynamicPrintConfig &cfg_old, const DynamicPrintConfig &cfg_new)
+{
+    t_config_option_keys diff = cfg_old.diff(cfg_new);
     // Following keys are used by the UI, not by the slicing core, therefore they are not important
     // when comparing profiles for equality. Ignore them.
     for (const char *key : { "compatible_prints", "compatible_prints_condition",
                              "compatible_printers", "compatible_printers_condition", "inherits",
                              "print_settings_id", "filament_settings_id", "sla_print_settings_id", "sla_material_settings_id", "printer_settings_id",
                              "printer_model", "printer_variant", "default_print_profile", "default_filament_profile", "default_sla_print_profile", "default_sla_material_profile",
-                             "printhost_apikey", "printhost_cafile" })
+                             "print_host", "printhost_apikey", "printhost_cafile" })
         diff.erase(std::remove(diff.begin(), diff.end(), key), diff.end());
     // Preset with the same name as stored inside the config exists.
-    return diff.empty();
+    return diff.empty() && profile_host_params_same_or_anonymized(cfg_old, cfg_new) != ProfileHostParams::Different;
 }
 
 // Load a preset from an already parsed config file, insert it into the sorted sequence of presets
@@ -724,11 +770,25 @@ Preset& PresetCollection::load_external_preset(
 		it = this->find_preset_renamed(original_name);
 		found = it != m_presets.end();
     }
-    if (found && profile_print_params_same(it->config, cfg)) {
-        // The preset exists and it matches the values stored inside config.
-        if (select)
-            this->select_preset(it - m_presets.begin());
-        return *it;
+    if (found) {
+    	if (profile_print_params_same(it->config, cfg)) {
+	        // The preset exists and it matches the values stored inside config.
+	        if (select)
+	            this->select_preset(it - m_presets.begin());
+	        return *it;
+	    }
+	    if (profile_host_params_same_or_anonymized(it->config, cfg) == ProfileHostParams::Anonymized) {
+	    	// The project being loaded is anonymized. Replace the empty host keys of the loaded profile with the data from the original profile.
+	    	// See "Octoprint Settings when Opening a .3MF file" GH issue #3244
+	    	auto opt_update = [it, &cfg](const std::string &opt_key) {
+				auto opt = it->config.option<ConfigOptionString>(opt_key);
+				if (opt != nullptr)
+					cfg.set_key_value(opt_key, opt->clone());
+	    	};
+	    	opt_update("print_host");
+	    	opt_update("printhost_apikey");
+	    	opt_update("printhost_cafile");
+	    }
     }
     // Update the "inherits" field.
     std::string &inherits = Preset::inherits(cfg);
@@ -994,7 +1054,7 @@ void PresetCollection::set_default_suppressed(bool default_suppressed)
     }
 }
 
-size_t PresetCollection::update_compatible_internal(const PresetWithVendorProfile &active_printer, const PresetWithVendorProfile *active_print, bool unselect_if_incompatible)
+size_t PresetCollection::update_compatible_internal(const PresetWithVendorProfile &active_printer, const PresetWithVendorProfile *active_print, PresetSelectCompatibleType unselect_if_incompatible)
 {
     DynamicPrintConfig config;
     config.set_key_value("printer_preset", new ConfigOptionString(active_printer.preset.name));
@@ -1006,10 +1066,12 @@ size_t PresetCollection::update_compatible_internal(const PresetWithVendorProfil
         Preset &preset_selected = m_presets[idx_preset];
         Preset &preset_edited   = selected ? m_edited_preset : preset_selected;
         const PresetWithVendorProfile this_preset_with_vendor_profile = this->get_preset_with_vendor_profile(preset_edited);
+        bool    was_compatible  = preset_edited.is_compatible;
         preset_edited.is_compatible = is_compatible_with_printer(this_preset_with_vendor_profile, active_printer, &config);
 	    if (active_print != nullptr)
-	        preset_edited.is_compatible &= is_compatible_with_print(this_preset_with_vendor_profile, *active_print);
-        if (! preset_edited.is_compatible && selected && unselect_if_incompatible)
+	        preset_edited.is_compatible &= is_compatible_with_print(this_preset_with_vendor_profile, *active_print, active_printer);
+        if (! preset_edited.is_compatible && selected && 
+        	(unselect_if_incompatible == PresetSelectCompatibleType::Always || (unselect_if_incompatible == PresetSelectCompatibleType::OnlyIfWasCompatible && was_compatible)))
             m_idx_selected = -1;
         if (selected)
             preset_selected.is_compatible = preset_edited.is_compatible;
@@ -1324,7 +1386,7 @@ inline t_config_option_keys deep_diff(const ConfigBase &config_this, const Confi
         const ConfigOption *other_opt = config_other.option(opt_key);
         if (this_opt != nullptr && other_opt != nullptr && *this_opt != *other_opt)
         {
-            if (opt_key == "bed_shape" || opt_key == "compatible_prints" || opt_key == "compatible_printers") {
+            if (opt_key == "bed_shape" || opt_key == "thumbnails" || opt_key == "compatible_prints" || opt_key == "compatible_printers") {
                 diff.emplace_back(opt_key);
                 continue;
             }

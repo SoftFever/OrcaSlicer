@@ -543,7 +543,7 @@ std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon/* = false*/)
      * and scale them in respect to em_unit value
      */
     const double em = Slic3r::GUI::wxGetApp().em_unit();
-    const int icon_width = lround((thin_icon ? 1 : 3.2) * em);
+    const int icon_width = lround((thin_icon ? 1.6 : 3.2) * em);
     const int icon_height = lround(1.6 * em);
 
     for (const std::string& color : colors)
@@ -603,7 +603,7 @@ void apply_extruder_selector(wxBitmapComboBox** ctrl,
             ++i;
         }
 
-        (*ctrl)->Append(use_full_item_name ? wxString::Format("%s %d", str, i) : std::to_string(i), *bmp);
+        (*ctrl)->Append(use_full_item_name ? wxString::Format("%s %d", str, i) : wxString::Format("%d", i), *bmp);
         ++i;
     }
     (*ctrl)->SetSelection(0);

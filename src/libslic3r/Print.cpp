@@ -613,8 +613,12 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 		m_placeholder_parser.set("print_preset",    new_full_config.option("print_settings_id")->clone());
 		m_placeholder_parser.set("filament_preset", new_full_config.option("filament_settings_id")->clone());
 		m_placeholder_parser.set("printer_preset",  new_full_config.option("printer_settings_id")->clone());
+		// We want the filament overrides to be applied over their respective extruder parameters by the PlaceholderParser.
+		// see "Placeholders do not respect filament overrides." GH issue #3649
+		m_placeholder_parser.apply_config(filament_overrides);
 	    // It is also safe to change m_config now after this->invalidate_state_by_config_options() call.
 	    m_config.apply_only(new_full_config, print_diff, true);
+	    //FIXME use move semantics once ConfigBase supports it.
 	    m_config.apply(filament_overrides);
 	    // Handle changes to object config defaults
 	    m_default_object_config.apply_only(new_full_config, object_diff, true);
@@ -1935,7 +1939,7 @@ void Print::_make_brim()
 			for (size_t i = 0; i < loops_trimmed_order.size();) {
 				// Find all pieces that the initial loop was split into.
 				size_t j = i + 1;
-				for (; j < loops_trimmed_order.size() && loops_trimmed_order[i].first == loops_trimmed_order[j].first; ++ j) ;
+                for (; j < loops_trimmed_order.size() && loops_trimmed_order[i].second == loops_trimmed_order[j].second; ++ j) ;
 				const ClipperLib_Z::Path &first_path = *loops_trimmed_order[i].first;
 				if (i + 1 == j && first_path.size() > 3 && first_path.front().X == first_path.back().X && first_path.front().Y == first_path.back().Y) {
 					auto *loop = new ExtrusionLoop();

@@ -79,6 +79,11 @@ void Field::PostInitialize()
 	BUILD();
 }
 
+// Values of width to alignments of fields
+int Field::def_width()			{ return wxOSX ? 8 : 7; }
+int Field::def_width_wider()	{ return 14; }
+int Field::def_width_thinner()	{ return 4; }
+
 void Field::on_kill_focus()
 {
 	// call the registered function if it is available
@@ -240,6 +245,8 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                     set_value(wxString::Format("%s%%", stVal), false/*true*/);
                     str += "%%";
                 }
+				else
+					set_value(stVal, false); // it's no needed but can be helpful, when inputted value contained "," instead of "."
             }
         }
     
@@ -367,14 +374,23 @@ void TextCtrl::BUILD() {
 	temp->Bind(wxEVT_KILL_FOCUS, ([this, temp](wxEvent& e)
 	{
 		e.Skip();
+#ifdef __WXOSX__
+		// OSX issue: For some unknown reason wxEVT_KILL_FOCUS is emitted twice in a row
+		// Thus, suppress its second call
+		if (bKilledFocus) {
+			bKilledFocus = false;
+			return;
+		}
+		bKilledFocus = true;
+#endif // __WXOSX__
+
 #if !defined(__WXGTK__)
 		temp->GetToolTip()->Enable(true);
 #endif // __WXGTK__
-        if (bEnterPressed) {
+        if (bEnterPressed)
             bEnterPressed = false;
-            return;
-        }
-        propagate_value();
+		else
+            propagate_value();
 	}), temp->GetId());
 
 	// select all text using Ctrl+A
@@ -423,10 +439,12 @@ bool TextCtrl::value_was_changed()
 
 void TextCtrl::propagate_value()
 {
-    if (is_defined_input_value<wxTextCtrl>(window, m_opt.type) && value_was_changed())
-        on_change_field();
-    else
+	if (!is_defined_input_value<wxTextCtrl>(window, m_opt.type) )
+		// on_kill_focus() cause a call of OptionsGroup::reload_config(),
+		// Thus, do it only when it's really needed (when undefined value was input)
         on_kill_focus();
+	else if (value_was_changed())
+        on_change_field();
 }
 
 void TextCtrl::set_value(const boost::any& value, bool change_event/* = false*/) {

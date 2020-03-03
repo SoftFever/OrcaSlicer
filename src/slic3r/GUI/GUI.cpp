@@ -229,16 +229,28 @@ void show_error(wxWindow* parent, const wxString& message)
 	msg.ShowModal();
 }
 
+void show_error(wxWindow* parent, const char* message)
+{
+	assert(message);
+	show_error(parent, wxString::FromUTF8(message));
+}
+
 void show_error_id(int id, const std::string& message)
 {
 	auto *parent = id != 0 ? wxWindow::FindWindowById(id) : nullptr;
-	show_error(parent, from_u8(message));
+	show_error(parent, message);
 }
 
 void show_info(wxWindow* parent, const wxString& message, const wxString& title)
 {
-	wxMessageDialog msg_wingow(parent, message, title.empty() ? _(L("Notice")) : title, wxOK | wxICON_INFORMATION);
+	wxMessageDialog msg_wingow(parent, message, wxString(SLIC3R_APP_NAME " - ") + (title.empty() ? _(L("Notice")) : title), wxOK | wxICON_INFORMATION);
 	msg_wingow.ShowModal();
+}
+
+void show_info(wxWindow* parent, const char* message, const char* title)
+{
+	assert(message);
+	show_info(parent, wxString::FromUTF8(message), title ? wxString::FromUTF8(title) : wxString());
 }
 
 void warning_catcher(wxWindow* parent, const wxString& message)
