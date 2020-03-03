@@ -4,6 +4,7 @@
 #include "PresetBundle.hpp"
 #include "PresetHints.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Model.hpp"
 
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/PrintHost.hpp"

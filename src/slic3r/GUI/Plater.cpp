@@ -80,7 +80,6 @@
 #include "../Utils/PrintHost.hpp"
 #include "../Utils/FixModelByWin10.hpp"
 #include "../Utils/UndoRedo.hpp"
-#include "../Utils/Thread.hpp"
 #include "RemovableDriveManager.hpp"
 
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
@@ -1554,8 +1553,7 @@ struct Plater::priv
 
     enum class Jobs : size_t {
         Arrange,
-        Rotoptimize,
-        Hollow
+        Rotoptimize
     };
 
     class ArrangeJob : public PlaterJob
@@ -1699,22 +1697,6 @@ struct Plater::priv
         void process() override;
     };
 
-    class HollowJob : public PlaterJob
-    {
-    public:
-        using PlaterJob::PlaterJob;
-        void prepare() override;
-        void process() override;
-        void finalize() override;
-    private:
-        GLGizmoHollow * get_gizmo();
-        const GLGizmoHollow * get_gizmo() const;
-        
-        std::unique_ptr<TriangleMesh> m_output_mesh;
-        std::unique_ptr<MeshRaycaster> m_output_raycaster;
-        const TriangleMesh* m_object_mesh = nullptr;
-        sla::HollowingConfig m_cfg;
-    };
 
     // Jobs defined inside the group class will be managed so that only one can
     // run at a time. Also, the background process will be stopped if a job is
@@ -1727,7 +1709,6 @@ struct Plater::priv
 
         ArrangeJob arrange_job{m_plater};
         RotoptimizeJob rotoptimize_job{m_plater};
-        HollowJob hollow_job{m_plater};
 
         // To create a new job, just define a new subclass of Job, implement
         // the process and the optional prepare() and finalize() methods
@@ -1735,8 +1716,7 @@ struct Plater::priv
         // if it cannot run concurrently with other jobs in this group
 
         std::vector<std::reference_wrapper<Job>> m_jobs{arrange_job,
-                                                        rotoptimize_job,
-                                                        hollow_job};
+                                                        rotoptimize_job};
 
     public:
         ExclusiveJobGroup(priv *_plater) : m_plater(_plater) {}
@@ -1839,7 +1819,6 @@ struct Plater::priv
     void reset();
     void mirror(Axis axis);
     void arrange();
-    void hollow();
     void sla_optimize_rotation();
     void split_object();
     void split_volume();
@@ -2755,11 +2734,6 @@ void Plater::priv::arrange()
     m_ui_jobs.start(Jobs::Arrange);
 }
 
-void Plater::priv::hollow()
-{
-    this->take_snapshot(_(L("Hollow")));
-    m_ui_jobs.start(Jobs::Hollow);
-}
 
 // This method will find an optimal orientation for the currently selected item
 // Very similar in nature to the arrange method above...
@@ -2892,67 +2866,6 @@ void Plater::priv::RotoptimizeJob::process()
                                  : _(L("Orientation found.")));
 }
 
-void Plater::priv::HollowJob::prepare()
-{
-    const GLGizmosManager& gizmo_manager = plater().q->canvas3D()->get_gizmos_manager();
-    const GLGizmoHollow* gizmo_hollow = dynamic_cast<const GLGizmoHollow*>(gizmo_manager.get_current());
-    assert(gizmo_hollow);
-    auto hlw_data = gizmo_hollow->get_hollowing_parameters();
-    m_object_mesh = hlw_data.first;
-    m_cfg = hlw_data.second;
-    m_output_mesh.reset();
-}
-
-void Plater::priv::HollowJob::process()
-{
-    sla::JobController ctl;
-    ctl.stopcondition = [this]{ return was_canceled(); };
-    ctl.statuscb = [this](unsigned st, const std::string &s) {
-        if (st < 100) update_status(int(st), s);
-    };
-    
-    std::unique_ptr<TriangleMesh> omesh =
-        sla::generate_interior(*m_object_mesh, m_cfg, ctl);
-    
-    if (omesh && !omesh->empty()) {
-        m_output_mesh.reset(new TriangleMesh{*m_object_mesh});
-        m_output_mesh->merge(*omesh);
-        m_output_mesh->require_shared_vertices();
-        
-        update_status(90, _(L("Indexing hollowed object")));
-        
-        m_output_raycaster.reset(new MeshRaycaster(*m_output_mesh));
-        
-        update_status(100, was_canceled() ? _(L("Hollowing cancelled.")) :
-                                            _(L("Hollowing done.")));
-    } else {
-        update_status(100, _(L("Hollowing failed.")));
-    }
-}
-
-void Plater::priv::HollowJob::finalize()
-{
-    if (auto gizmo = get_gizmo()) {
-        gizmo->update_mesh_raycaster(std::move(m_output_raycaster));
-        gizmo->update_hollowed_mesh(std::move(m_output_mesh));
-    }       
-}
-
-GLGizmoHollow *Plater::priv::HollowJob::get_gizmo()
-{
-    const GLGizmosManager& gizmo_manager = plater().q->canvas3D()->get_gizmos_manager();
-    auto ret = dynamic_cast<GLGizmoHollow*>(gizmo_manager.get_current());
-    assert(ret);
-    return ret;
-}
-
-const GLGizmoHollow *Plater::priv::HollowJob::get_gizmo() const
-{
-    const GLGizmosManager& gizmo_manager = plater().q->canvas3D()->get_gizmos_manager();
-    auto ret = dynamic_cast<const GLGizmoHollow*>(gizmo_manager.get_current());
-    assert(ret);
-    return ret;
-}
 
 void Plater::priv::split_object()
 {
@@ -3698,7 +3611,7 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
     else if (wxGetApp().get_mode() == comSimple)
         show_action_buttons(false);
 
-	if(!canceled && RemovableDriveManager::get_instance().get_is_writing())
+    if(!canceled && RemovableDriveManager::get_instance().get_is_writing())
 	{	
 		RemovableDriveManager::get_instance().set_is_writing(false);
 		show_action_buttons(false);	
@@ -5072,10 +4985,6 @@ void Plater::export_toolpaths_to_obj() const
     p->preview->get_canvas3d()->export_toolpaths_to_obj(into_u8(path).c_str());
 }
 
-void Plater::hollow()
-{
-    p->hollow();
-}
 
 void Plater::reslice()
 {

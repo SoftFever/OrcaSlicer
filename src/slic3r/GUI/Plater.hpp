@@ -10,14 +10,11 @@
 
 #include "Preset.hpp"
 
-#include "3DScene.hpp"
-#include "GLTexture.hpp"
+#include "libslic3r/BoundingBox.hpp"
 #include "wxExtensions.hpp"
 
 class wxButton;
 class ScalableButton;
-class wxBoxSizer;
-class wxGLCanvas;
 class wxScrolledWindow;
 class wxString;
 
@@ -30,9 +27,9 @@ class SLAPrint;
 enum SLAPrintObjectStep : unsigned int;
 
 namespace UndoRedo {
-	class Stack;
-	struct Snapshot;	
-};
+    class Stack;
+    struct Snapshot;
+}
 
 namespace GUI {
 
@@ -44,6 +41,7 @@ class ObjectLayers;
 class ObjectList;
 class GLCanvas3D;
 class Mouse3DController;
+struct Camera;
 
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
@@ -200,7 +198,6 @@ public:
     void reload_all_from_disk();
     bool has_toolpaths_to_export() const;
     void export_toolpaths_to_obj() const;
-    void hollow();
     void reslice();
     void reslice_SLA_supports(const ModelObject &object, bool postpone_error_messages = false);
     void reslice_SLA_hollowing(const ModelObject &object, bool postpone_error_messages = false);

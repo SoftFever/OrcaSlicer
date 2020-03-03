@@ -17,22 +17,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <utility>
 #include <assert.h>
 
 #include <boost/log/trivial.hpp>
 
 #include <boost/filesystem/operations.hpp>
-#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 #include <boost/nowide/cstdio.hpp>
 
-#include <tbb/parallel_for.h>
-#include <tbb/spin_mutex.h>
-
 #include <Eigen/Dense>
-
-#include "GUI.hpp"
 
 #ifdef HAS_GLSAFE
 void glAssertRecentCallImpl(const char *file_name, unsigned int line, const char *function_name)

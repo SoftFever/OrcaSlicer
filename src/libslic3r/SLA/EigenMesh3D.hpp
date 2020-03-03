@@ -101,6 +101,9 @@ public:
 
     // Iterates over hits and holes and returns the true hit, possibly
     // on the inside of a hole.
+    // This function is currently not used anywhere, it was written when the
+    // holes were subtracted on slices, that is, before we started using CGAL
+    // to actually cut the holes into the mesh.
     hit_result filter_hits(const std::vector<EigenMesh3D::hit_result>& obj_hits) const;
 
     class si_result {

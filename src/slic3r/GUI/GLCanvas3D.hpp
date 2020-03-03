@@ -6,19 +6,18 @@
 
 #include "3DScene.hpp"
 #include "GLToolbar.hpp"
+#include "GLShader.hpp"
 #include "Event.hpp"
-#include "3DBed.hpp"
-#include "Camera.hpp"
 #include "Selection.hpp"
 #include "Gizmos/GLGizmosManager.hpp"
 #include "GUI_ObjectLayers.hpp"
+#include "GLSelectionRectangle.hpp"
 #include "MeshUtils.hpp"
 
 #include <float.h>
 
 #include <wx/timer.h>
 
-class wxWindow;
 class wxSizeEvent;
 class wxIdleEvent;
 class wxKeyEvent;
@@ -32,8 +31,8 @@ class wxGLCanvas;
 
 namespace Slic3r {
 
-class GLShader;
-class ExPolygon;
+class Bed3D;
+struct Camera;
 class BackgroundSlicingProcess;
 class GCodePreviewData;
 #if ENABLE_THUMBNAIL_GENERATOR
@@ -43,8 +42,6 @@ struct SlicingParameters;
 enum LayerHeightEditActionType : unsigned int;
 
 namespace GUI {
-
-class GLGizmoBase;
 
 #if ENABLE_RETINA_GL
 class RetinaHelper;
@@ -646,7 +643,7 @@ public:
     Linef3 mouse_ray(const Point& mouse_pos);
 
     void set_mouse_as_dragging() { m_mouse.dragging = true; }
-    void refresh_camera_scene_box() { m_camera.set_scene_box(scene_bounding_box()); }
+    void refresh_camera_scene_box();
     bool is_mouse_dragging() const { return m_mouse.dragging; }
 
     double get_size_proportional_to_max_bed_size(double factor) const;

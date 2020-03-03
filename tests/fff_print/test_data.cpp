@@ -161,7 +161,7 @@ void init_print(std::vector<TriangleMesh> &&meshes, Slic3r::Print &print, Slic3r
     if (verbose_gcode())
         config.set_key_value("gcode_comments", new ConfigOptionBool(true));
 
-	for (const TriangleMesh &t : meshes) {
+    for (const TriangleMesh &t : meshes) {
 		ModelObject *object = model.add_object();
 		object->name += "object.stl";
 		object->add_volume(std::move(t));

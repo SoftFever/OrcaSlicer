@@ -511,7 +511,7 @@ void TextCtrl::disable() { dynamic_cast<wxTextCtrl*>(window)->Disable(); dynamic
 #ifdef __WXGTK__
 void TextCtrl::change_field_value(wxEvent& event)
 {
-	if (bChangedValueEvent = (event.GetEventType()==wxEVT_KEY_UP))
+    if ((bChangedValueEvent = (event.GetEventType()==wxEVT_KEY_UP)))
 		on_change_field();
     event.Skip();
 };
