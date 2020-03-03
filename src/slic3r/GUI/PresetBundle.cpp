@@ -1606,6 +1606,15 @@ void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::Pre
     const int icon_height       = m_bitmapLock->GetHeight();
 #endif
 
+    /* To avoid asserts, each added bitmap to wxBitmapCombobox should be the same size. 
+     * But for some display scaling (for example 125% or 175%) normal_icon_width differs from icon width.
+     * So:
+     * for nonsystem presets set a width of empty bitmap to m_bitmapLock->GetWidth()
+     * for compatible presets set a width of empty bitmap to m_bitmapIncompatible->GetWidth()
+     **/
+    const int lock_icon_width   = m_bitmapLock->GetWidth();
+    const int flag_icon_width   = m_bitmapIncompatible->GetWidth();
+
     wxString tooltip = "";
 
 	for (int i = this->filaments().front().is_visible ? 0 : 1; i < int(this->filaments().size()); ++i) {
@@ -1631,7 +1640,7 @@ void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::Pre
             std::vector<wxBitmap> bmps;
             if (wide_icons)
                 // Paint a red flag for incompatible presets.
-                bmps.emplace_back(preset.is_compatible ? m_bitmapCache->mkclear(normal_icon_width, icon_height) : *m_bitmapIncompatible);
+                bmps.emplace_back(preset.is_compatible ? m_bitmapCache->mkclear(flag_icon_width, icon_height) : *m_bitmapIncompatible);
             // Paint the color bars.
             m_bitmapCache->parse_color(filament_rgb, rgb);
             bmps.emplace_back(m_bitmapCache->mksolid(single_bar ? wide_icon_width : normal_icon_width, icon_height, rgb));
@@ -1641,9 +1650,7 @@ void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::Pre
             }
             // Paint a lock at the system presets.
             bmps.emplace_back(m_bitmapCache->mkclear(space_icon_width, icon_height));
-            // To avoid asserts, each added bitmap to wxBitmapCombobox should be the same size, so
-            // for nonsystem presets set a width of empty bitmap to m_bitmapLock->GetWidth()
-            bmps.emplace_back((preset.is_system || preset.is_default) ? *m_bitmapLock : m_bitmapCache->mkclear(m_bitmapLock->GetWidth(), icon_height));
+            bmps.emplace_back((preset.is_system || preset.is_default) ? *m_bitmapLock : m_bitmapCache->mkclear(lock_icon_width, icon_height));
 //                 (preset.is_dirty ? *m_bitmapLockOpen : *m_bitmapLock) : m_bitmapCache->mkclear(16, 16));
             bitmap = m_bitmapCache->insert(bitmap_key, bmps);
 		}
@@ -1695,7 +1702,7 @@ void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::Pre
         std::vector<wxBitmap> bmps;
         if (wide_icons)
             // Paint a red flag for incompatible presets.
-            bmps.emplace_back(m_bitmapCache->mkclear(normal_icon_width, icon_height));
+            bmps.emplace_back(m_bitmapCache->mkclear(flag_icon_width, icon_height));
         // Paint the color bars + a lock at the system presets.
         bmps.emplace_back(m_bitmapCache->mkclear(wide_icon_width+space_icon_width, icon_height));
         bmps.emplace_back(create_scaled_bitmap("edit_uni"));
