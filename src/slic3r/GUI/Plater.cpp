@@ -1196,7 +1196,7 @@ void Sidebar::update_sliced_info_sizer()
             wxString new_label = _(L("Used Material (ml)")) + " :";
             const bool is_supports = ps.support_used_material > 0.0;
             if (is_supports)
-                new_label += wxString::Format("\n    - %s\n    - %s", _(L("object(s)")), _(L("supports and pad")));
+                new_label += from_u8((boost::format("\n    - %s\n    - %s") % _utf8(L("object(s)")) % _utf8(L("supports and pad"))).str());
 
             wxString info_text = is_supports ?
                 wxString::Format("%.2f \n%.2f \n%.2f", (ps.objects_used_material + ps.support_used_material) / 1000,
@@ -1233,7 +1233,7 @@ void Sidebar::update_sliced_info_sizer()
 
             wxString new_label = _(L("Used Filament (m)"));
             if (is_wipe_tower)
-                new_label += wxString::Format(" :\n    - %s\n    - %s", _(L("objects")), _(L("wipe tower")));
+                new_label += from_u8((boost::format(" :\n    - %1%\n    - %2%") % _utf8(L("objects")) % _utf8(L("wipe tower"))).str());
 
             wxString info_text = is_wipe_tower ?
                                 wxString::Format("%.2f \n%.2f \n%.2f", ps.total_used_filament / 1000,
@@ -1247,7 +1247,7 @@ void Sidebar::update_sliced_info_sizer()
 
             new_label = _(L("Cost"));
             if (is_wipe_tower)
-                new_label += wxString::Format(" :\n    - %s\n    - %s", _(L("objects")), _(L("wipe tower")));
+                new_label += from_u8((boost::format(" :\n    - %1%\n    - %2%") % _utf8(L("objects")) % _utf8(L("wipe tower"))).str());
 
             info_text = ps.total_cost == 0.0 ? "N/A" :
                         is_wipe_tower ?
@@ -1276,25 +1276,25 @@ void Sidebar::update_sliced_info_sizer()
                     for (int i = (int)times.size() - 1; i >= 0; --i)
                     {
                         if (i == 0 || times[i - 1].first == cgtPausePrint)
-                            new_label += wxString::Format("\n      - %s%d", str_color + " ", color_change_count);
+                            new_label += from_u8((boost::format("\n      - %1%%2%") % (std::string(str_color.ToUTF8()) + " ") % color_change_count).str());
                         else if (times[i - 1].first == cgtColorChange)
-                            new_label += wxString::Format("\n      - %s%d", str_color + " ", color_change_count--);
+                            new_label += from_u8((boost::format("\n      - %1%%2%") % (std::string(str_color.ToUTF8()) + " ") % color_change_count--).str());
 
                         if (i != (int)times.size() - 1 && times[i].first == cgtPausePrint)
-                            new_label += wxString::Format(" -> %s", str_pause);
+                            new_label += from_u8((boost::format(" -> %1%") % std::string(str_pause.ToUTF8())).str());
 
-                        info_text += wxString::Format("\n%s", times[i].second);
+                        info_text += from_u8((boost::format("\n%1%") % times[i].second).str());
                     }
                 };
 
                 if (ps.estimated_normal_print_time != "N/A") {
-                    new_label += wxString::Format("\n   - %s", _(L("normal mode")));
-                    info_text += wxString::Format("\n%s", ps.estimated_normal_print_time);
+                    new_label += from_u8((boost::format("\n   - %1%") % _utf8(L("normal mode"))).str());
+                    info_text += from_u8((boost::format("\n%1%") % ps.estimated_normal_print_time).str());
                     fill_labels(ps.estimated_normal_custom_gcode_print_times, new_label, info_text);
                 }
                 if (ps.estimated_silent_print_time != "N/A") {
-                    new_label += wxString::Format("\n   - %s", _(L("stealth mode")));
-                    info_text += wxString::Format("\n%s", ps.estimated_silent_print_time);
+                    new_label += from_u8((boost::format("\n   - %1%") % _utf8(L("stealth mode"))).str());
+                    info_text += from_u8((boost::format("\n%1%") % ps.estimated_silent_print_time).str());
                     fill_labels(ps.estimated_silent_custom_gcode_print_times, new_label, info_text);
                 }
                 p->sliced_info->SetTextAndShow(siEstimatedTime,  info_text,      new_label);
@@ -2297,7 +2297,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     for (size_t i = 0; i < input_files.size(); i++) {
         const auto &path = input_files[i];
         const auto filename = path.filename();
-        const auto dlg_info = wxString::Format(_(L("Processing input file %s")), from_path(filename)) + "\n";
+        const auto dlg_info = from_u8((boost::format(_utf8(L("Processing input file %s"))) % from_path(filename)).str()) + "\n";
         dlg.Update(100 * i / input_files.size(), dlg_info);
 
         const bool type_3mf = std::regex_match(path.string(), pattern_3mf);
@@ -2404,8 +2404,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 for (auto obj : model.objects)
                     if ( obj->volumes.size()>1 ) {
                         Slic3r::GUI::show_error(nullptr,
-                            wxString::Format(_(L("You can't to add the object(s) from %s because of one or some of them is(are) multi-part")),
-                                             from_path(filename)));
+                            from_u8((boost::format(_utf8(L("You can't to add the object(s) from %s because of one or some of them is(are) multi-part")))
+                                             % from_path(filename)).str()));
                         return obj_idxs;
                     }
             }
@@ -5000,7 +5000,7 @@ void Plater::export_stl(bool extended, bool selection_only)
     }
 
     Slic3r::store_stl(path_u8.c_str(), &mesh, true);
-    p->statusbar()->set_status_text(wxString::Format(_(L("STL file exported to %s")), path));
+    p->statusbar()->set_status_text(from_u8((boost::format(_utf8(L("STL file exported to %s"))) % path).str()));
 }
 
 void Plater::export_amf()
@@ -5017,10 +5017,10 @@ void Plater::export_amf()
     bool full_pathnames = wxGetApp().app_config->get("export_sources_full_pathnames") == "1";
     if (Slic3r::store_amf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, full_pathnames)) {
         // Success
-        p->statusbar()->set_status_text(wxString::Format(_(L("AMF file exported to %s")), path));
+        p->statusbar()->set_status_text(from_u8((boost::format(_utf8(L("AMF file exported to %s"))) % path).str()));
     } else {
         // Failure
-        p->statusbar()->set_status_text(wxString::Format(_(L("Error exporting AMF file %s")), path));
+        p->statusbar()->set_status_text(from_u8((boost::format(_utf8(L("Error exporting AMF file %s"))) % path).str()));
     }
 }
 
@@ -5053,12 +5053,12 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, full_pathnames)) {
 #endif // ENABLE_THUMBNAIL_GENERATOR
         // Success
-        p->statusbar()->set_status_text(wxString::Format(_(L("3MF file exported to %s")), path));
+        p->statusbar()->set_status_text(from_u8((boost::format(_utf8(L("3MF file exported to %s"))) % path).str()));
         p->set_project_filename(path);
     }
     else {
         // Failure
-        p->statusbar()->set_status_text(wxString::Format(_(L("Error exporting 3MF file %s")), path));
+        p->statusbar()->set_status_text(from_u8((boost::format(_utf8(L("Error exporting 3MF file %s"))) % path).str()));
     }
 }
 

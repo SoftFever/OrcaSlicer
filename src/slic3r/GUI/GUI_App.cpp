@@ -817,7 +817,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     wxWindowID config_id_base = wxWindow::NewControlId(int(ConfigMenuCnt));
 
     const auto config_wizard_name = _(ConfigWizard::name(true));
-    const auto config_wizard_tooltip = wxString::Format(_(L("Run %s")), config_wizard_name);
+    const auto config_wizard_tooltip = from_u8((boost::format(_utf8(L("Run %s"))) % config_wizard_name).str());
     // Cmd+, is standard on OS X - what about other operating systems?
     local_menu->Append(config_id_base + ConfigMenuWizard, config_wizard_name + dots, config_wizard_tooltip);
     local_menu->Append(config_id_base + ConfigMenuSnapshots, _(L("&Configuration Snapshots")) + dots, _(L("Inspect / activate configuration snapshots")));

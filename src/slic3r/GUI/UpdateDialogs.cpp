@@ -265,8 +265,8 @@ MsgDataIncompatible::~MsgDataIncompatible() {}
 MsgDataLegacy::MsgDataLegacy() :
 	MsgDialog(nullptr, _(L("Configuration update")), _(L("Configuration update")))
 {
-	auto *text = new wxStaticText(this, wxID_ANY, wxString::Format(
-		_(L(
+    auto *text = new wxStaticText(this, wxID_ANY, from_u8((boost::format(
+        _utf8(L(
 			"%s now uses an updated configuration structure.\n\n"
 
 			"So called 'System presets' have been introduced, which hold the built-in default settings for various "
@@ -276,8 +276,9 @@ MsgDataLegacy::MsgDataLegacy() :
 
 			"Please proceed with the %s that follows to set up the new presets "
 			"and to choose whether to enable automatic preset updates."
-		)),
-        SLIC3R_APP_NAME, _(ConfigWizard::name())
+        )))
+        % SLIC3R_APP_NAME
+        % _utf8(ConfigWizard::name())).str()
 	));
 	text->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 	content_sizer->Add(text);
