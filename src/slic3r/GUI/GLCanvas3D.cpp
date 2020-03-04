@@ -3082,10 +3082,11 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
 
 void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
 {
-    // try to filter out events coming from mouse 3d 
-    Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
-    if (controller.process_mouse_wheel())
+#ifdef WIN32
+    // Try to filter out spurious mouse wheel events comming from 3D mouse.
+    if (wxGetApp().plater()->get_mouse3d_controller().process_mouse_wheel())
         return;
+#endif
 
     if (!m_initialized)
         return;
