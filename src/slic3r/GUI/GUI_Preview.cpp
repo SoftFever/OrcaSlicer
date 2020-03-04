@@ -4,7 +4,6 @@
 #include "GUI_App.hpp"
 #include "GUI.hpp"
 #include "I18N.hpp"
-#include "AppConfig.hpp"
 #include "3DScene.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "OpenGLManager.hpp"

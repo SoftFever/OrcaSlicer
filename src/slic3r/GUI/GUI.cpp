@@ -1,12 +1,9 @@
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "I18N.hpp"
-#include "WipeTowerDialog.hpp"
 
-#include <assert.h>
 #include <string>
 
-#include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 
 #if __APPLE__
@@ -18,22 +15,16 @@
 #include "boost/nowide/convert.hpp"
 #endif
 
-#include <wx/display.h>
-
-#include "wxExtensions.hpp"
-#include "GUI_Preview.hpp"
 #include "AboutDialog.hpp"
-#include "AppConfig.hpp"
-#include "ConfigWizard.hpp"
-#include "PresetBundle.hpp"
-#include "UpdateDialogs.hpp"
+#include "MsgDialog.hpp"
 
-#include "libslic3r/Utils.hpp"
 #include "libslic3r/Print.hpp"
-#include "Tab.hpp"
-#include "GUI_ObjectList.hpp"
 
-namespace Slic3r { namespace GUI {
+namespace Slic3r {
+
+class AppConfig;
+
+namespace GUI {
 
 #if __APPLE__
 IOPMAssertionID assertionID;

@@ -4,7 +4,8 @@
 #include <memory>
 
 #include "GUI_ObjectSettings.hpp"
-#include "GLCanvas3D.hpp"
+#include "libslic3r/Point.hpp"
+#include <float.h>
 
 class wxBitmapComboBox;
 class wxStaticText;

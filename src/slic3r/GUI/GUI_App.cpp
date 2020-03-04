@@ -36,6 +36,7 @@
 #include "GUI_Utils.hpp"
 #include "AppConfig.hpp"
 #include "PresetBundle.hpp"
+#include "3DScene.hpp"
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Utils/PrintHost.hpp"
