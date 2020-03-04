@@ -323,6 +323,7 @@ void Camera::rotate_on_sphere(double delta_azimut_rad, double delta_zenit_rad, b
     Vec3d translation = m_view_matrix.translation() + m_view_rotation * m_target;
     auto rot_z = Eigen::AngleAxisd(delta_azimut_rad, Vec3d::UnitZ());
     m_view_rotation *= rot_z * Eigen::AngleAxisd(delta_zenit_rad, rot_z.inverse() * get_dir_right());
+    m_view_rotation.normalize();
     m_view_matrix.fromPositionOrientationScale(m_view_rotation * (- m_target) + translation, m_view_rotation, Vec3d(1., 1., 1.));
 }
 
@@ -334,6 +335,7 @@ void Camera::rotate_local_around_target(const Vec3d& rotation_rad)
 	    Vec3d translation = m_view_matrix.translation() + m_view_rotation * m_target;
 	    Vec3d axis        = m_view_rotation.conjugate() * rotation_rad.normalized();
         m_view_rotation *= Eigen::Quaterniond(Eigen::AngleAxisd(angle, axis));
+        m_view_rotation.normalize();
 	    m_view_matrix.fromPositionOrientationScale(m_view_rotation * (-m_target) + translation, m_view_rotation, Vec3d(1., 1., 1.));
 	    update_zenit();
 	}
@@ -559,6 +561,7 @@ void Camera::look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up
 
     // Initialize the rotation quaternion from the rotation submatrix of of m_view_matrix.
     m_view_rotation = Eigen::Quaterniond(m_view_matrix.matrix().template block<3, 3>(0, 0));
+    m_view_rotation.normalize();
 
     update_zenit();
 }
@@ -571,6 +574,7 @@ void Camera::set_default_orientation()
     double sin_theta = ::sin(theta_rad);
     Vec3d camera_pos = m_target + m_distance * Vec3d(sin_theta * ::sin(phi_rad), sin_theta * ::cos(phi_rad), ::cos(theta_rad));
     m_view_rotation = Eigen::AngleAxisd(theta_rad, Vec3d::UnitX()) * Eigen::AngleAxisd(phi_rad, Vec3d::UnitZ());
+    m_view_rotation.normalize();
     m_view_matrix.fromPositionOrientationScale(m_view_rotation * (- camera_pos), m_view_rotation, Vec3d(1., 1., 1.));
 }
 
