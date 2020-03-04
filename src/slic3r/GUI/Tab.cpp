@@ -754,9 +754,16 @@ void Tab::update_visibility()
 {
     Freeze(); // There is needed Freeze/Thaw to avoid a flashing after Show/Layout
 
+    // m_detach_preset_btn will be shown always after call page->update_visibility()
+    // So let save a "show state" of m_detach_preset_btn before update_visibility
+    bool was_shown = m_detach_preset_btn->IsShown();
+
     for (auto page : m_pages)
         page->update_visibility(m_mode);
     update_page_tree_visibility();
+
+    // update visibility for detach_preset_btn
+    m_detach_preset_btn->Show(was_shown);
 
     Layout();
     Thaw();
@@ -942,6 +949,71 @@ void Tab::on_presets_changed()
     m_dependent_tabs.clear();
 }
 
+void Tab::detach_preset(Preset& preset)
+{
+    preset.inherits().clear();
+    preset.renamed_from.clear();
+    preset.vendor = nullptr;
+
+    update_ui_items_related_on_parent_preset(m_presets->get_selected_preset_parent());
+
+    update_dirty();
+    reload_config();
+    update();
+}
+
+void Tab::build_preset_description_line(ConfigOptionsGroup* optgroup)
+{
+    auto description_line = [this](wxWindow* parent) {
+        return description_line_widget(parent, &m_parent_preset_description_line);
+    };
+
+    auto detach_preset_btn = [this](wxWindow* parent) {
+        add_scaled_button(parent, &m_detach_preset_btn, "lock_open_sys", _(L("Detach from system preset")), wxBU_LEFT | wxBU_EXACTFIT);
+        ScalableButton* btn = m_detach_preset_btn;
+        btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+
+        auto sizer = new wxBoxSizer(wxHORIZONTAL);
+        sizer->Add(btn);
+
+        btn->Bind(wxEVT_BUTTON, [this, parent](wxCommandEvent&)
+        {
+            wxString msg_text;
+
+            if (m_presets->get_edited_preset().is_system)
+                msg_text = _(L("You want to detach system preset. \n"
+                               "New preset will be created as a copy of the current preset.\n"
+                               "Created preset will be detached from system parent preset.")) + "\n\n";
+            else
+                msg_text = _(L("You want to detach current custom preset from the system parent preset. \n"
+                               "This action is not revertable.")) + "\n\n";
+            
+            msg_text += _(L("Are you sure you want to continue?"));
+
+            wxMessageDialog dialog(parent, msg_text, _(L("Detach preset")), wxICON_WARNING | wxYES_NO);
+
+            if (dialog.ShowModal() == wxID_YES)
+            {
+                if (m_presets->get_edited_preset().is_system)
+                    save_preset("", _utf8(L("Detached")));
+
+                detach_preset(m_presets->get_edited_preset());
+            }
+        });
+
+        btn->Hide();
+
+        return sizer;
+    };
+
+    Line line = Line{ "", "" };
+    line.full_width = 1;
+
+    line.append_widget(description_line);
+    line.append_widget(detach_preset_btn);
+    optgroup->append_line(line);
+}
+
 void Tab::update_preset_description_line()
 {
     const Preset* parent = m_presets->get_selected_preset_parent();
@@ -1008,14 +1080,18 @@ void Tab::update_preset_description_line()
             default: break;
             }
         }
-        else
+        else if (!preset.alias.empty())
         {
-            description_line += "\n\n\t" + _(L("full profile name")) + ": \n\t\t" + parent->name;
-            description_line += "\n\t" + _(L("symbolic profile name")) + ": \n\t\t" + parent->alias;
+            description_line += "\n\n\t" + _(L("full profile name"))     + ": \n\t\t" + preset.name;
+            description_line += "\n\t"   + _(L("symbolic profile name")) + ": \n\t\t" + preset.alias;
         }
     }
 
     m_parent_preset_description_line->SetText(description_line, false);
+
+    if (m_detach_preset_btn)
+        m_detach_preset_btn->Show(parent && parent->is_system && !preset.is_default);
+    Layout();
 }
 
 void Tab::update_frequently_changed_parameters()
@@ -1266,12 +1342,7 @@ void TabPrint::build()
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
 
-        line = Line{ "", "" };
-        line.full_width = 1;
-        line.widget = [this](wxWindow* parent) {
-            return description_line_widget(parent, &m_parent_preset_description_line);
-        };
-        optgroup->append_line(line);
+        build_preset_description_line(optgroup.get());
 }
 
 // Reload current config (aka presets->edited_preset->config) into the UI fields.
@@ -1566,12 +1637,7 @@ void TabFilament::build()
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
 
-        line = Line{ "", "" };
-        line.full_width = 1;
-        line.widget = [this](wxWindow* parent) {
-            return description_line_widget(parent, &m_parent_preset_description_line);
-        };
-        optgroup->append_line(line);
+        build_preset_description_line(optgroup.get());
 }
 
 // Reload current config (aka presets->edited_preset->config) into the UI fields.
@@ -2018,12 +2084,8 @@ void TabPrinter::build_fff()
 
     page = add_options_page(_(L("Dependencies")), "wrench.png");
         optgroup = page->new_optgroup(_(L("Profile dependencies")));
-        line = Line{ "", "" };
-        line.full_width = 1;
-        line.widget = [this](wxWindow* parent) {
-            return description_line_widget(parent, &m_parent_preset_description_line);
-        };
-        optgroup->append_line(line);
+
+        build_preset_description_line(optgroup.get());
 
     build_unregular_pages();
 
@@ -2134,12 +2196,8 @@ void TabPrinter::build_sla()
 
     page = add_options_page(_(L("Dependencies")), "wrench.png");
     optgroup = page->new_optgroup(_(L("Profile dependencies")));
-    line = Line{ "", "" };
-    line.full_width = 1;
-    line.widget = [this](wxWindow* parent) {
-        return description_line_widget(parent, &m_parent_preset_description_line);
-    };
-    optgroup->append_line(line);
+
+    build_preset_description_line(optgroup.get());
 }
 
 void TabPrinter::update_serial_ports()
@@ -2602,6 +2660,15 @@ void TabPrinter::update_fff()
 void TabPrinter::update_sla()
 { ; }
 
+void Tab::update_ui_items_related_on_parent_preset(const Preset* selected_preset_parent)
+{
+    m_is_default_preset = selected_preset_parent != nullptr && selected_preset_parent->is_default;
+
+    m_bmp_non_system = selected_preset_parent ? &m_bmp_value_unlock : &m_bmp_white_bullet;
+    m_ttg_non_system = selected_preset_parent ? &m_ttg_value_unlock : &m_ttg_white_bullet_ns;
+    m_tt_non_system  = selected_preset_parent ? &m_tt_value_unlock  : &m_ttg_white_bullet_ns;
+}
+
 // Initialize the UI from the current preset
 void Tab::load_current_preset()
 {
@@ -2620,12 +2687,7 @@ void Tab::load_current_preset()
     // Reload preset pages with the new configuration values.
     reload_config();
 
-    const Preset* selected_preset_parent = m_presets->get_selected_preset_parent();
-    m_is_default_preset = selected_preset_parent != nullptr && selected_preset_parent->is_default;
-
-    m_bmp_non_system = selected_preset_parent ? &m_bmp_value_unlock : &m_bmp_white_bullet;
-    m_ttg_non_system = selected_preset_parent ? &m_ttg_value_unlock : &m_ttg_white_bullet_ns;
-    m_tt_non_system  = selected_preset_parent ? &m_tt_value_unlock  : &m_ttg_white_bullet_ns;
+    update_ui_items_related_on_parent_preset(m_presets->get_selected_preset_parent());
 
 //	m_undo_to_sys_btn->Enable(!preset.is_default);
 
@@ -3031,18 +3093,21 @@ void Tab::OnKeyDown(wxKeyEvent& event)
 // and activates the new preset.
 // Wizard calls save_preset with a name "My Settings", otherwise no name is provided and this method
 // opens a Slic3r::GUI::SavePresetWindow dialog.
-void Tab::save_preset(std::string name /*= ""*/)
+void Tab::save_preset(std::string name /*= ""*/, std::string suffix/* = ""*/)
 {
     // since buttons(and choices too) don't get focus on Mac, we set focus manually
     // to the treectrl so that the EVT_* events are fired for the input field having
     // focus currently.is there anything better than this ?
 //!	m_treectrl->OnSetFocus();
 
+    if (suffix.empty())
+        suffix = _CTX_utf8(L_CONTEXT("Copy", "PresetName"), "PresetName");
+
     if (name.empty()) {
         const Preset &preset = m_presets->get_selected_preset();
         auto default_name = preset.is_default ? "Untitled" :
-//                            preset.is_system ? (boost::format(_utf8(L("%1% - Copy"))) % preset.name).str() :
-                            preset.is_system ? (boost::format(_CTX_utf8(L_CONTEXT("%1% - Copy", "PresetName"), "PresetName")) % preset.name).str() :
+//                            preset.is_system ? (boost::format(_CTX_utf8(L_CONTEXT("%1% - Copy", "PresetName"), "PresetName")) % preset.name).str() :
+                            preset.is_system ? (boost::format(("%1% - %2%")) % preset.name % suffix).str() :
                             preset.name;
 
         bool have_extention = boost::iends_with(default_name, ".ini");
@@ -3560,12 +3625,7 @@ void TabSLAMaterial::build()
     option.opt.full_width = true;
     optgroup->append_single_option_line(option);
 
-    line = Line{ "", "" };
-    line.full_width = 1;
-    line.widget = [this](wxWindow* parent) {
-        return description_line_widget(parent, &m_parent_preset_description_line);
-    };
-    optgroup->append_line(line);
+    build_preset_description_line(optgroup.get());
 }
 
 // Reload current config (aka presets->edited_preset->config) into the UI fields.
@@ -3682,12 +3742,7 @@ void TabSLAPrint::build()
     option.opt.full_width = true;
     optgroup->append_single_option_line(option);
 
-    line = Line{ "", "" };
-    line.full_width = 1;
-    line.widget = [this](wxWindow* parent) {
-        return description_line_widget(parent, &m_parent_preset_description_line);
-    };
-    optgroup->append_line(line);
+    build_preset_description_line(optgroup.get());
 }
 
 // Reload current config (aka presets->edited_preset->config) into the UI fields.
