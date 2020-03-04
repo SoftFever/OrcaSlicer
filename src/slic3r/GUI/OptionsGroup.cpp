@@ -427,7 +427,9 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
 		auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("nozzle_diameter"));
 		value = int(nozzle_diameter->values.size());
 	}
-    else if (m_opt_map.find(opt_key) == m_opt_map.end() || opt_key == "bed_shape") {
+    else if (m_opt_map.find(opt_key) == m_opt_map.end() ||
+		    // This option don't have corresponded field
+		     opt_key == "bed_shape" || opt_key == "compatible_printers" || opt_key == "compatible_prints" ) {
         value = get_config_value(config, opt_key);
         change_opt_value(*m_config, opt_key, value);
         return;
@@ -644,7 +646,7 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 		ret = static_cast<wxString>(config.opt_string(opt_key));
 		break;
 	case coStrings:
-		if (opt_key.compare("compatible_printers") == 0) {
+		if (opt_key == "compatible_printers" || opt_key == "compatible_prints") {
 			ret = config.option<ConfigOptionStrings>(opt_key)->values;
 			break;
 		}

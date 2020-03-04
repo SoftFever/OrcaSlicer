@@ -359,9 +359,10 @@ void Tab::update_labels_colour()
                 color = &m_modified_label_clr;
         }
         if (opt.first == "bed_shape" || opt.first == "compatible_prints" || opt.first == "compatible_printers") {
-            if (m_colored_Label != nullptr)	{
-                m_colored_Label->SetForegroundColour(*color);
-                m_colored_Label->Refresh(true);
+            wxStaticText* label = (m_colored_Labels.find(opt.first) == m_colored_Labels.end()) ? nullptr : m_colored_Labels.at(opt.first);
+            if (label) {
+                label->SetForegroundColour(*color);
+                label->Refresh(true);
             }
             continue;
         }
@@ -449,9 +450,10 @@ void Tab::update_changed_ui()
             tt = &m_tt_white_bullet;
         }
         if (opt.first == "bed_shape" || opt.first == "compatible_prints" || opt.first == "compatible_printers") {
-            if (m_colored_Label != nullptr)	{
-                m_colored_Label->SetForegroundColour(*color);
-                m_colored_Label->Refresh(true);
+            wxStaticText* label = (m_colored_Labels.find(opt.first) == m_colored_Labels.end()) ? nullptr : m_colored_Labels.at(opt.first);
+            if (label) {
+                label->SetForegroundColour(*color);
+                label->Refresh(true);
             }
             continue;
         }
@@ -668,7 +670,8 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
 
                 }
                 if (group->title == _("Profile dependencies")) {
-                    if (m_type != Slic3r::Preset::TYPE_PRINTER && (m_options_list["compatible_printers"] & os) == 0) {
+                    // "compatible_printers" option doesn't exists in Printer Settimgs Tab
+                    if (m_type != Preset::TYPE_PRINTER && (m_options_list["compatible_printers"] & os) == 0) {
                         to_sys ? group->back_to_sys_value("compatible_printers") : group->back_to_initial_value("compatible_printers");
                         load_key_value("compatible_printers", true/*some value*/, true);
 
@@ -676,7 +679,8 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
                         m_compatible_printers.checkbox->SetValue(is_empty);
                         is_empty ? m_compatible_printers.btn->Disable() : m_compatible_printers.btn->Enable();
                     }
-                    if ((m_type == Slic3r::Preset::TYPE_PRINT || m_type == Slic3r::Preset::TYPE_SLA_PRINT) && (m_options_list["compatible_prints"] & os) == 0) {
+                    // "compatible_prints" option exists only in Filament Settimgs and Materials Tabs
+                    if ((m_type == Preset::TYPE_FILAMENT || m_type == Preset::TYPE_SLA_MATERIAL) && (m_options_list["compatible_prints"] & os) == 0) {
                         to_sys ? group->back_to_sys_value("compatible_prints") : group->back_to_initial_value("compatible_prints");
                         load_key_value("compatible_prints", true/*some value*/, true);
 
@@ -1333,11 +1337,11 @@ void TabPrint::build()
 
     page = add_options_page(_(L("Dependencies")), "wrench.png");
         optgroup = page->new_optgroup(_(L("Profile dependencies")));
-        line = optgroup->create_single_option_line("compatible_printers");
-        line.widget = [this](wxWindow* parent) {
+
+        create_line_with_widget(optgroup.get(), "compatible_printers", [this](wxWindow* parent) {
             return compatible_widget_create(parent, m_compatible_printers);
-        };
-        optgroup->append_line(line, &m_colored_Label);
+        });
+        
         option = optgroup->get_option("compatible_printers_condition");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
@@ -1618,21 +1622,18 @@ void TabFilament::build()
 
     page = add_options_page(_(L("Dependencies")), "wrench.png");
         optgroup = page->new_optgroup(_(L("Profile dependencies")));
-
-        line = optgroup->create_single_option_line("compatible_printers");
-        line.widget = [this](wxWindow* parent) {
+        create_line_with_widget(optgroup.get(), "compatible_printers", [this](wxWindow* parent) {
             return compatible_widget_create(parent, m_compatible_printers);
-        };
-        optgroup->append_line(line, &m_colored_Label);
+        });
+
         option = optgroup->get_option("compatible_printers_condition");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
 
-        line = optgroup->create_single_option_line("compatible_prints");
-        line.widget = [this](wxWindow* parent) {
+        create_line_with_widget(optgroup.get(), "compatible_prints", [this](wxWindow* parent) {
             return compatible_widget_create(parent, m_compatible_prints);
-        };
-        optgroup->append_line(line, &m_colored_Label);
+        });
+
         option = optgroup->get_option("compatible_prints_condition");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
@@ -1862,38 +1863,10 @@ void TabPrinter::build_fff()
     auto page = add_options_page(_(L("General")), "printer");
         auto optgroup = page->new_optgroup(_(L("Size and coordinates")));
 
-        Line line = optgroup->create_single_option_line("bed_shape");//{ _(L("Bed shape")), "" };
-        line.widget = [this](wxWindow* parent) {
-            ScalableButton* btn;
-            add_scaled_button(parent, &btn, "printer_white",  " " + _(L("Set")) + " " + dots, wxBU_LEFT | wxBU_EXACTFIT);
-            btn->SetFont(wxGetApp().normal_font());
+        create_line_with_widget(optgroup.get(), "bed_shape", [this](wxWindow* parent) {
+            return 	create_bed_shape_widget(parent);
+        });
 
-            auto sizer = new wxBoxSizer(wxHORIZONTAL);
-            sizer->Add(btn);
-
-            btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
-            {
-                BedShapeDialog dlg(this);
-                dlg.build_dialog(*m_config->option<ConfigOptionPoints>("bed_shape"),
-                    *m_config->option<ConfigOptionString>("bed_custom_texture"),
-                    *m_config->option<ConfigOptionString>("bed_custom_model"));
-                if (dlg.ShowModal() == wxID_OK) {
-                    const std::vector<Vec2d>& shape = dlg.get_shape();
-                    const std::string& custom_texture = dlg.get_custom_texture();
-                    const std::string& custom_model = dlg.get_custom_model();
-                    if (!shape.empty())
-                    {
-                        load_key_value("bed_shape", shape);
-                        load_key_value("bed_custom_texture", custom_texture);
-                        load_key_value("bed_custom_model", custom_model);
-                        update_changed_ui();
-                    }
-                }
-            }));
-
-            return sizer;
-        };
-        optgroup->append_line(line, &m_colored_Label);
         optgroup->append_single_option_line("max_print_height");
         optgroup->append_single_option_line("z_offset");
 
@@ -2102,39 +2075,9 @@ void TabPrinter::build_sla()
     auto page = add_options_page(_(L("General")), "printer");
     auto optgroup = page->new_optgroup(_(L("Size and coordinates")));
 
-    Line line = optgroup->create_single_option_line("bed_shape");//{ _(L("Bed shape")), "" };
-    line.widget = [this](wxWindow* parent) {
-        ScalableButton* btn;
-        add_scaled_button(parent, &btn, "printer_white", " " + _(L("Set")) + " " + dots, wxBU_LEFT | wxBU_EXACTFIT);
-        btn->SetFont(wxGetApp().normal_font());
-
-
-        auto sizer = new wxBoxSizer(wxHORIZONTAL);
-        sizer->Add(btn);
-
-        btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
-        {
-            BedShapeDialog dlg(this);
-            dlg.build_dialog(*m_config->option<ConfigOptionPoints>("bed_shape"),
-                *m_config->option<ConfigOptionString>("bed_custom_texture"),
-                *m_config->option<ConfigOptionString>("bed_custom_model"));
-            if (dlg.ShowModal() == wxID_OK) {
-                const std::vector<Vec2d>& shape = dlg.get_shape();
-                const std::string& custom_texture = dlg.get_custom_texture();
-                const std::string& custom_model = dlg.get_custom_model();
-                if (!shape.empty())
-                {
-                    load_key_value("bed_shape", shape);
-                    load_key_value("bed_custom_texture", custom_texture);
-                    load_key_value("bed_custom_model", custom_model);
-                    update_changed_ui();
-                }
-            }
-        }));
-
-        return sizer;
-    };
-    optgroup->append_line(line, &m_colored_Label);
+    create_line_with_widget(optgroup.get(), "bed_shape", [this](wxWindow* parent) {
+        return 	create_bed_shape_widget(parent);
+    });
     optgroup->append_single_option_line("max_print_height");
 
     optgroup = page->new_optgroup(_(L("Display")));
@@ -2142,7 +2085,7 @@ void TabPrinter::build_sla()
     optgroup->append_single_option_line("display_height");
 
     auto option = optgroup->get_option("display_pixels_x");
-    line = { _(option.opt.full_label), "" };
+    Line line = { _(option.opt.full_label), "" };
     line.append_option(option);
     line.append_option(optgroup->get_option("display_pixels_y"));
     optgroup->append_line(line);
@@ -3233,6 +3176,15 @@ void Tab::update_ui_from_settings()
     }
 }
 
+void Tab::create_line_with_widget(ConfigOptionsGroup* optgroup, const std::string& opt_key, widget_t widget)
+{
+    Line line = optgroup->create_single_option_line(opt_key);
+    line.widget = widget;
+
+    m_colored_Labels[opt_key] = nullptr;
+    optgroup->append_line(line, &m_colored_Labels[opt_key]);
+}
+
 // Return a callback to create a Tab widget to mark the preferences as compatible / incompatible to the current printer.
 wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &deps)
 {
@@ -3301,6 +3253,39 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
             this->update_changed_ui();
         }
     }));
+    return sizer;
+}
+
+// Return a callback to create a TabPrinter widget to edit bed shape
+wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
+{
+    ScalableButton* btn;
+    add_scaled_button(parent, &btn, "printer_white", " " + _(L("Set")) + " " + dots, wxBU_LEFT | wxBU_EXACTFIT);
+    btn->SetFont(wxGetApp().normal_font());
+
+    auto sizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(btn);
+
+    btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
+        {
+            BedShapeDialog dlg(this);
+            dlg.build_dialog(*m_config->option<ConfigOptionPoints>("bed_shape"),
+                *m_config->option<ConfigOptionString>("bed_custom_texture"),
+                *m_config->option<ConfigOptionString>("bed_custom_model"));
+            if (dlg.ShowModal() == wxID_OK) {
+                const std::vector<Vec2d>& shape = dlg.get_shape();
+                const std::string& custom_texture = dlg.get_custom_texture();
+                const std::string& custom_model = dlg.get_custom_model();
+                if (!shape.empty())
+                {
+                    load_key_value("bed_shape", shape);
+                    load_key_value("bed_custom_texture", custom_texture);
+                    load_key_value("bed_custom_model", custom_model);
+                    update_changed_ui();
+                }
+            }
+        }));
+
     return sizer;
 }
 
@@ -3607,20 +3592,19 @@ void TabSLAMaterial::build()
 
     page = add_options_page(_(L("Dependencies")), "wrench.png");
     optgroup = page->new_optgroup(_(L("Profile dependencies")));
-    Line line = optgroup->create_single_option_line("compatible_printers");
-    line.widget = [this](wxWindow* parent) {
+
+    create_line_with_widget(optgroup.get(), "compatible_printers", [this](wxWindow* parent) {
         return compatible_widget_create(parent, m_compatible_printers);
-    };
-    optgroup->append_line(line, &m_colored_Label);
+    });
+    
     option = optgroup->get_option("compatible_printers_condition");
     option.opt.full_width = true;
     optgroup->append_single_option_line(option);
 
-    line = optgroup->create_single_option_line("compatible_prints");
-    line.widget = [this](wxWindow* parent) {
+    create_line_with_widget(optgroup.get(), "compatible_prints", [this](wxWindow* parent) {
         return compatible_widget_create(parent, m_compatible_prints);
-    };
-    optgroup->append_line(line, &m_colored_Label);
+    });
+
     option = optgroup->get_option("compatible_prints_condition");
     option.opt.full_width = true;
     optgroup->append_single_option_line(option);
@@ -3732,11 +3716,10 @@ void TabSLAPrint::build()
 
     page = add_options_page(_(L("Dependencies")), "wrench");
     optgroup = page->new_optgroup(_(L("Profile dependencies")));
-    Line line = optgroup->create_single_option_line("compatible_printers");//Line { _(L("Compatible printers")), "" };
-    line.widget = [this](wxWindow* parent) {
+
+    create_line_with_widget(optgroup.get(), "compatible_printers", [this](wxWindow* parent) {
         return compatible_widget_create(parent, m_compatible_printers);
-    };
-    optgroup->append_line(line, &m_colored_Label);
+    });
 
     option = optgroup->get_option("compatible_printers_condition");
     option.opt.full_width = true;

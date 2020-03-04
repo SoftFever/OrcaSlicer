@@ -228,7 +228,11 @@ public:
 	DynamicPrintConfig*	m_config;
 	ogStaticText*		m_parent_preset_description_line;
 	ScalableButton*		m_detach_preset_btn	= nullptr;
-	wxStaticText*		m_colored_Label = nullptr;
+
+	// map of option name -> wxStaticText (colored label, associated with option) 
+    // Used for options which don't have corresponded field
+	std::map<std::string, wxStaticText*>	m_colored_Labels;
+
     // Counter for the updating (because of an update() function can have a recursive behavior):
     // 1. increase value from the very beginning of an update() function
     // 2. decrease value at the end of an update() function
@@ -308,6 +312,7 @@ public:
     void            update_wiping_button_visibility();
 
 protected:
+	void			create_line_with_widget(ConfigOptionsGroup* optgroup, const std::string& opt_key, widget_t widget);
 	wxSizer*		compatible_widget_create(wxWindow* parent, PresetDependencies &deps);
 	void 			compatible_widget_reload(PresetDependencies &deps);
 	void			load_key_value(const std::string& opt_key, const boost::any& value, bool saved_value = false);
@@ -410,6 +415,8 @@ public:
 	void		init_options_list() override;
 	void		msw_rescale() override;
     bool 		supports_printer_technology(const PrinterTechnology /* tech */) override { return true; }
+
+	wxSizer*	create_bed_shape_widget(wxWindow* parent);
 };
 
 class TabSLAMaterial : public Tab
