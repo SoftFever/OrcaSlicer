@@ -1814,6 +1814,11 @@ struct Plater::priv
 
     void set_current_canvas_as_dirty();
     GLCanvas3D* get_current_canvas3D();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    void unbind_canvas_event_handlers();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     bool init_view_toolbar();
 
@@ -4089,6 +4094,19 @@ GLCanvas3D* Plater::priv::get_current_canvas3D()
     return (current_panel == view3D) ? view3D->get_canvas3d() : ((current_panel == preview) ? preview->get_canvas3d() : nullptr);
 }
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+void Plater::priv::unbind_canvas_event_handlers()
+{
+    if (view3D != nullptr)
+        view3D->get_canvas3d()->unbind_event_handlers();
+
+    if (preview != nullptr)
+        preview->get_canvas3d()->unbind_event_handlers();
+}
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 bool Plater::priv::init_view_toolbar()
 {
     if (view_toolbar.get_items_count() > 0)
@@ -5526,6 +5544,15 @@ void Plater::set_current_canvas_as_dirty()
 {
     p->set_current_canvas_as_dirty();
 }
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+void Plater::unbind_canvas_event_handlers()
+{
+    p->unbind_canvas_event_handlers();
+}
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 PrinterTechnology Plater::printer_technology() const
 {
