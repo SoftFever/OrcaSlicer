@@ -106,7 +106,7 @@ public:
     double total_volume() const override { double volume=0.; for (const auto& ent : entities) volume+=ent->total_volume(); return volume; }
 
     // Following methods shall never be called on an ExtrusionEntityCollection.
-    Polyline as_polyline() const {
+    Polyline as_polyline() const override {
         throw std::runtime_error("Calling as_polyline() on a ExtrusionEntityCollection");
         return Polyline();
     };
