@@ -2,7 +2,7 @@
 #define slic3r_Mouse3DController_hpp_
 
 // Enabled debug output to console and extended imgui dialog
-#define ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT 1
+#define ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT 0
 
 #include "libslic3r/Point.hpp"
 
@@ -180,7 +180,7 @@ public:
     void disconnected();
     typedef std::array<double, 6> DataPacketAxis;
 	// Unpack a 3DConnexion packet provided by the 3DConnexion driver into m_state. Called by Mouse3DHandlerMac.mm
-    static bool handle_input(const DataPacketAxis& packet, const Params &params, State &state_in_out);
+    bool handle_input(const DataPacketAxis& packet);
 #endif // __APPLE__
 
 #ifdef WIN32

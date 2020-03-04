@@ -389,10 +389,10 @@ void Mouse3DController::disconnected()
     m_connected = false;
 }
 
-bool Mouse3DController::handle_input(const DataPacketAxis& packet, const Params &params, State &state_in_out)
+bool Mouse3DController::handle_input(const DataPacketAxis& packet)
 {
     if (! wxGetApp().IsActive())
-        return;
+        return false;
 
     {
     	// Synchronize parameters between the UI thread and the background thread.
@@ -405,34 +405,30 @@ bool Mouse3DController::handle_input(const DataPacketAxis& packet, const Params 
     }
     
     bool updated = false;
-    //translation
-    double deadzone = params.translation.deadzone;
+    // translation
+    double deadzone = m_params.translation.deadzone;
     Vec3d translation(std::abs(packet[0]) > deadzone ? -packet[0] : 0.0,
                       std::abs(packet[1]) > deadzone ?  packet[1] : 0.0,
                       std::abs(packet[2]) > deadzone ?  packet[2] : 0.0);
-    if (!translation.isApprox(Vec3d::Zero()))
-    {
-        state_in_out.append_translation(translation, params.input_queue_max_size);
+    if (! translation.isApprox(Vec3d::Zero())) {
+        m_state.append_translation(translation, m_params.input_queue_max_size);
         updated = true;
     }
-    //rotation
-    deadzone = params.rotation.deadzone;
+    // rotation
+    deadzone = m_params.rotation.deadzone;
     Vec3f rotation(std::abs(packet[3]) > deadzone ? (float)packet[3] : 0.0,
                    std::abs(packet[4]) > deadzone ? (float)packet[4] : 0.0,
                    std::abs(packet[5]) > deadzone ? (float)packet[5] : 0.0);
-    if (!rotation.isApprox(Vec3f::Zero()))
-    {
-        state_in_out.append_rotation(rotation, params.input_queue_max_size);
+    if (! rotation.isApprox(Vec3f::Zero())) {
+        m_state.append_rotation(rotation, m_params.input_queue_max_size);
         updated = true;
     }
 
-#if 1
     if (updated) {
         wxGetApp().plater()->set_current_canvas_as_dirty();
         // ask for an idle event to update 3D scene
         wxWakeUpIdle();
     }
-#endif
     return updated;
 }
 
