@@ -126,7 +126,7 @@ static bool load_driver_functions()
     BOOST_LOG_TRIVIAL(error) << "3dx drivers module loading error: "<< dlerror() ;
   }
 
-  BOOST_LOG_TRIVIAL(info) << "3dx drivers loaded: "<< driver_loaded ? (has_new_driver ? "YES, new" : "YES, old") : "NO" ;
+  BOOST_LOG_TRIVIAL(info) << "3dx drivers loaded: " << (driver_loaded ? (has_new_driver ? "YES, new" : "YES, old") : "NO");
   return driver_loaded;
 }
 
@@ -164,7 +164,7 @@ static void DeviceEvent(uint32_t unused, uint32_t msg_type, void *msg_arg)
         case kConnexionCmdHandleAxis: {
           // The axis field is an array of 6 signed 16-bit integers corresponding to the 6 device axes. Data is ordered as Tx, Tz, Ty, Rx, Rz, Ry. The values reported are scaled by the driver according to the speed slider settings on the 3Dconnexion preference panel. At maximum speed, the range is - 1024 to 1024. Typical range that you should optimize your application for should be -500 to 500.
           // Actually we are getting values way over 1024. Max is probably 2048 now.
-          Mouse3DController::DataPacketAxis packet;
+          Slic3r::GUI::Mouse3DController::DataPacketAxis packet;
           for (int i = 0; i < 6; ++ i)
               packet[i] = (double)s->axis[i]/350.0;//wanted to divide by 500 but 350 is used at raw input so i used same value.
           mouse_3d_controller->handle_input(packet);
