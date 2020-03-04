@@ -638,7 +638,7 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
                     _(L("Object name")) + ": " + object.model_object()->name + "\n" + _(L("Print z")) + ": " +
                     std::to_string(layers_to_print.back().print_z()) + "\n\n" + _(L("This is "
                     "usually caused by negligibly small extrusions or by a faulty model. Try to repair "
-                    " the model or change its orientation on the bed.")));
+                    "the model or change its orientation on the bed.")));
             // Remember last layer with extrusions.
             last_extrusion_layer = &layers_to_print.back();
         }
