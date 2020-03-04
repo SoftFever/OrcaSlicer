@@ -109,13 +109,20 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
             return;
         }
         
-        if(m_plater) m_plater->stop_jobs();
+        if (m_plater)
+        	m_plater->stop_jobs();
 
         // Weird things happen as the Paint messages are floating around the windows being destructed.
         // Avoid the Paint messages by hiding the main window.
         // Also the application closes much faster without these unnecessary screen refreshes.
         // In addition, there were some crashes due to the Paint events sent to already destructed windows.
         this->Show(false);
+
+		// Stop the background thread (Windows and Linux).
+		// Disconnect from a 3DConnextion driver (OSX).
+        m_plater->get_mouse3d_controller().shutdown();
+		// Store the device parameter database back to appconfig.
+        m_plater->get_mouse3d_controller().save_config(*wxGetApp().app_config);
 
         // Save the slic3r.ini.Usually the ini file is saved from "on idle" callback,
         // but in rare cases it may not have been called yet.

@@ -134,16 +134,36 @@ public:
     void set_recent_projects(const std::vector<std::string>& recent_projects);
 
 	void set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone, float rotation_speed, float rotation_deadzone, double zoom_speed);
-	bool get_mouse_device_translation_speed(const std::string& name, double& speed);
-    bool get_mouse_device_translation_deadzone(const std::string& name, double& deadzone);
-    bool get_mouse_device_rotation_speed(const std::string& name, float& speed);
-    bool get_mouse_device_rotation_deadzone(const std::string& name, float& deadzone);
-	bool get_mouse_device_zoom_speed(const std::string& name, double& speed);
+	std::vector<std::string> get_mouse_device_names() const;
+	bool get_mouse_device_translation_speed(const std::string& name, double& speed) const
+		{ return get_3dmouse_device_numeric_value(name, "translation_speed", speed); }
+    bool get_mouse_device_translation_deadzone(const std::string& name, double& deadzone) const
+		{ return get_3dmouse_device_numeric_value(name, "translation_deadzone", deadzone); }
+    bool get_mouse_device_rotation_speed(const std::string& name, float& speed) const
+		{ return get_3dmouse_device_numeric_value(name, "rotation_speed", speed); }
+    bool get_mouse_device_rotation_deadzone(const std::string& name, float& deadzone) const
+		{ return get_3dmouse_device_numeric_value(name, "rotation_deadzone", deadzone); }
+	bool get_mouse_device_zoom_speed(const std::string& name, double& speed) const
+		{ return get_3dmouse_device_numeric_value(name, "zoom_speed", speed); }
 
 	static const std::string SECTION_FILAMENTS;
     static const std::string SECTION_MATERIALS;
 
 private:
+	template<typename T>
+	bool get_3dmouse_device_numeric_value(const std::string &device_name, const char *parameter_name, T &out) const 
+	{
+	    std::string key = std::string("mouse_device:") + device_name;
+	    auto it = m_storage.find(key);
+	    if (it == m_storage.end())
+	        return false;
+	    auto it_val = it->second.find(parameter_name);
+	    if (it_val == it->second.end())
+	        return false;
+	    out = T(::atof(it_val->second.c_str()));
+	    return true;
+	}
+
 	// Map of section, name -> value
 	std::map<std::string, std::map<std::string, std::string>> 	m_storage;
 	// Map of enabled vendors / models / variants

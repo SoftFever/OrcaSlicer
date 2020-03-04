@@ -2145,6 +2145,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     // updates camera type from .ini file
     camera.set_type(get_config("use_perspective_camera"));
 
+    // Load the 3DConnexion device database.
+    mouse3d_controller.load_config(*wxGetApp().app_config);
+	// Start the background thread to detect and connect to a HID device (Windows and Linux).
+	// Connect to a 3DConnextion driver (OSX).    
     mouse3d_controller.init();
 
     // Initialize the Undo / Redo stack with a first snapshot.
@@ -2156,8 +2160,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
 Plater::priv::~priv()
 {
-    mouse3d_controller.shutdown();
-
     if (config != nullptr)
         delete config;
 }

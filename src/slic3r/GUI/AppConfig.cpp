@@ -295,79 +295,15 @@ void AppConfig::set_mouse_device(const std::string& name, double translation_spe
     it->second["zoom_speed"] = std::to_string(zoom_speed);
 }
 
-bool AppConfig::get_mouse_device_translation_speed(const std::string& name, double& speed)
+std::vector<std::string> AppConfig::get_mouse_device_names() const
 {
-    std::string key = std::string("mouse_device:") + name;
-    auto it = m_storage.find(key);
-    if (it == m_storage.end())
-        return false;
-
-    auto it_val = it->second.find("translation_speed");
-    if (it_val == it->second.end())
-        return false;
-
-    speed = ::atof(it_val->second.c_str());
-    return true;
-}
-
-bool AppConfig::get_mouse_device_translation_deadzone(const std::string& name, double& deadzone)
-{
-    std::string key = std::string("mouse_device:") + name;
-    auto it = m_storage.find(key);
-    if (it == m_storage.end())
-        return false;
-
-    auto it_val = it->second.find("translation_deadzone");
-    if (it_val == it->second.end())
-        return false;
-
-    deadzone = ::atof(it_val->second.c_str());
-    return true;
-}
-
-bool AppConfig::get_mouse_device_rotation_speed(const std::string& name, float& speed)
-{
-    std::string key = std::string("mouse_device:") + name;
-    auto it = m_storage.find(key);
-    if (it == m_storage.end())
-        return false;
-
-    auto it_val = it->second.find("rotation_speed");
-    if (it_val == it->second.end())
-        return false;
-
-    speed = (float)::atof(it_val->second.c_str());
-    return true;
-}
-
-bool AppConfig::get_mouse_device_rotation_deadzone(const std::string& name, float& deadzone)
-{
-    std::string key = std::string("mouse_device:") + name;
-    auto it = m_storage.find(key);
-    if (it == m_storage.end())
-        return false;
-
-    auto it_val = it->second.find("rotation_deadzone");
-    if (it_val == it->second.end())
-        return false;
-
-    deadzone = (float)::atof(it_val->second.c_str());
-    return true;
-}
-
-bool AppConfig::get_mouse_device_zoom_speed(const std::string& name, double& speed)
-{
-    std::string key = std::string("mouse_device:") + name;
-    auto it = m_storage.find(key);
-    if (it == m_storage.end())
-        return false;
-
-    auto it_val = it->second.find("zoom_speed");
-    if (it_val == it->second.end())
-        return false;
-
-    speed = (float)::atof(it_val->second.c_str());
-    return true;
+	static constexpr char   *prefix     = "mouse_device:";
+    static constexpr size_t  prefix_len = 13; // strlen(prefix); reports error C2131: expression did not evaluate to a constant on VS2019
+	std::vector<std::string> out;
+    for (const std::pair<std::string, std::map<std::string, std::string>>& key_value_pair : m_storage)
+        if (boost::starts_with(key_value_pair.first, "mouse_device:") && key_value_pair.first.size() > prefix_len)
+            out.emplace_back(key_value_pair.first.substr(prefix_len));
+	return out;
 }
 
 void AppConfig::update_config_dir(const std::string &dir)

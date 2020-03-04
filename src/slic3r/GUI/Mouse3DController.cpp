@@ -53,205 +53,163 @@ static const std::vector<int> _3DCONNEXION_DEVICES =
 
 namespace Slic3r {
 namespace GUI {
-    
-const double Mouse3DController::State::DefaultTranslationScale = 2.5;
-const double Mouse3DController::State::MaxTranslationDeadzone = 0.2;
-const double Mouse3DController::State::DefaultTranslationDeadzone = 0.5 * Mouse3DController::State::MaxTranslationDeadzone;
-const float Mouse3DController::State::DefaultRotationScale = 1.0f;
-const float Mouse3DController::State::MaxRotationDeadzone = 0.2f;
-const float Mouse3DController::State::DefaultRotationDeadzone = 0.5f * Mouse3DController::State::MaxRotationDeadzone;
-const double Mouse3DController::State::DefaultZoomScale = 0.1;
 
-Mouse3DController::State::State()
-    : m_buttons_enabled(false)
-    , m_translation_params(DefaultTranslationScale, DefaultTranslationDeadzone)
-    , m_rotation_params(DefaultRotationScale, DefaultRotationDeadzone)
-    , m_zoom_params(DefaultZoomScale, 0.0)
-    , m_mouse_wheel_counter(0)
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-    , m_translation_queue_max_size(0)
-    , m_rotation_queue_max_size(0)
-    , m_buttons_queue_max_size(0)
-#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+template<typename T>
+void update_maximum(std::atomic<T>& maximum_value, T const& value) noexcept
 {
+    T prev_value = maximum_value;
+    while (prev_value < value && ! maximum_value.compare_exchange_weak(prev_value, value)) ;
 }
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
-void Mouse3DController::State::append_translation(const Vec3d& translation)
+void Mouse3DController::State::append_translation(const Vec3d& translation, size_t input_queue_max_size)
 {
-    while (m_translation.queue.size() >= m_translation.max_size)
-    {
-        m_translation.queue.pop();
-    }
-    m_translation.queue.push(translation);
+	tbb::mutex::scoped_lock lock(m_input_queue_mutex);
+    while (m_input_queue.size() >= input_queue_max_size)
+        m_input_queue.pop_front();
+    m_input_queue.emplace_back(QueueItem::translation(translation));
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-    m_translation_queue_max_size = std::max(m_translation_queue_max_size, m_translation.queue.size());
+    update_maximum(input_queue_max_size_achieved, m_input_queue.size());
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 }
 
-void Mouse3DController::State::append_rotation(const Vec3f& rotation)
+void Mouse3DController::State::append_rotation(const Vec3f& rotation, size_t input_queue_max_size)
 {
-    while (m_rotation.queue.size() >= m_rotation.max_size)
-    {
-        m_rotation.queue.pop();
-    }
-    m_rotation.queue.push(rotation);
+	tbb::mutex::scoped_lock lock(m_input_queue_mutex);
+    while (m_input_queue.size() >= input_queue_max_size)
+        m_input_queue.pop_front();
+    m_input_queue.emplace_back(QueueItem::rotation(rotation.cast<double>()));
+#ifdef WIN32
+	if (rotation.x() != 0.0f)
+        ++ m_mouse_wheel_counter;
+#endif // WIN32
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-    m_rotation_queue_max_size = std::max(m_rotation_queue_max_size, m_rotation.queue.size());
-#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-    if (rotation(0) != 0.0f)
-        ++m_mouse_wheel_counter;
-}
-
-void Mouse3DController::State::append_button(unsigned int id)
-{
-    if (!m_buttons_enabled)
-        return;
-
-    m_buttons.push(id);
-#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-    m_buttons_queue_max_size = std::max(m_buttons_queue_max_size, m_buttons.size());
+    update_maximum(input_queue_max_size_achieved, m_input_queue.size());
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 }
 
+void Mouse3DController::State::append_button(unsigned int id, size_t /* input_queue_max_size */)
+{
+	tbb::mutex::scoped_lock lock(m_input_queue_mutex);
+    m_input_queue.emplace_back(QueueItem::buttons(id));
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+    update_maximum(input_queue_max_size_achieved, m_input_queue.size());
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+}
+
+#ifdef WIN32
+// Filter out mouse scroll events produced by the 3DConnexion driver.
 bool Mouse3DController::State::process_mouse_wheel()
 {
-    if (m_mouse_wheel_counter.load() == 0)
+	tbb::mutex::scoped_lock lock(m_input_queue_mutex);
+	if (m_mouse_wheel_counter == 0)
+    	// No 3DConnexion rotation has been captured since the last mouse scroll event.
         return false;
-    else if (!m_rotation.queue.empty())
-    {
-        --m_mouse_wheel_counter;
+    if (std::find_if(m_input_queue.begin(), m_input_queue.end(), [](const QueueItem &item){ return item.is_rotation(); }) != m_input_queue.end()) {
+    	// There is a rotation stored in the queue. Suppress one mouse scroll event.
+        -- m_mouse_wheel_counter;
         return true;
     }
-
-    m_mouse_wheel_counter.store(0);
+    m_mouse_wheel_counter = 0;
     return true;
 }
+#endif // WIN32
 
-void Mouse3DController::State::set_queues_max_size(size_t size)
+bool Mouse3DController::State::apply(const Mouse3DController::Params &params, Camera& camera)
 {
-    if (size > 0)
-    {
-        m_translation.max_size = size;
-        m_rotation.max_size = size;
-
-#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-        m_translation_queue_max_size = 0;
-        m_rotation_queue_max_size = 0;
-        m_buttons_queue_max_size = 0;
-#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-    }
-}
-
-bool Mouse3DController::State::apply(Camera& camera)
-{
-    if (!wxGetApp().IsActive())
+    if (! wxGetApp().IsActive())
         return false;
 
-    bool ret = false;
-
-    if (has_translation())
+    std::deque<QueueItem> input_queue;
     {
-        const Vec3d& translation = m_translation.queue.front();
-        double zoom_factor = camera.min_zoom() / camera.get_zoom();
-        camera.set_target(camera.get_target() + zoom_factor * m_translation_params.scale * (translation(0) * camera.get_dir_right() + translation(2) * camera.get_dir_up()));
-        if (translation(1) != 0.0)
-            camera.update_zoom(m_zoom_params.scale * translation(1) / std::abs(translation(1)));
-        m_translation.queue.pop();
-        ret = true;
+    	// Atomically move m_input_queue to input_queue.
+    	tbb::mutex::scoped_lock lock(m_input_queue_mutex);
+    	input_queue = std::move(m_input_queue);
+        m_input_queue.clear();
     }
 
-    if (has_rotation())
-    {
-    	Vec3d rot = (m_rotation_params.scale * m_rotation.queue.front()).cast<double>() * (PI / 180.);
-        camera.rotate_local_around_target(Vec3d(rot.x(), - rot.z(), rot.y()));
-        m_rotation.queue.pop();
-        ret = true;
+    for (const QueueItem &input_queue_item : input_queue) {
+    	if (input_queue_item.is_translation()) {
+	        const Vec3d& translation = input_queue_item.vector;
+	        double zoom_factor = camera.min_zoom() / camera.get_zoom();
+	        camera.set_target(camera.get_target() + zoom_factor * params.translation.scale * (translation.x() * camera.get_dir_right() + translation.z() * camera.get_dir_up()));
+	        if (translation.y() != 0.0)
+	            camera.update_zoom(params.zoom.scale * translation.y() / std::abs(translation.y()));
+	    } else if (input_queue_item.is_rotation()) {
+	    	Vec3d rot = params.rotation.scale * input_queue_item.vector * (PI / 180.);
+	        camera.rotate_local_around_target(Vec3d(rot.x(), - rot.z(), rot.y()));
+	        break;
+	    } else {
+	    	assert(input_queue_item.is_buttons());
+	        switch (input_queue_item.type_or_buttons) {
+	        case 0: camera.update_zoom(1.0); break;
+	        case 1: camera.update_zoom(-1.0); break;
+            default: break;
+	        }
+    	}
     }
 
-    if (m_buttons_enabled && has_button())
-    {
-        unsigned int button = m_buttons.front();
-        switch (button)
-        {
-        case 0: { camera.update_zoom(1.0); break; }
-        case 1: { camera.update_zoom(-1.0); break; }
-        default: { break; }
-        }
-        m_buttons.pop();
-        ret = true;
-    }
-
-    return ret;
+    return ! input_queue.empty();
 }
 
-Mouse3DController::Mouse3DController()
-    : m_initialized(false)
-    , m_device(nullptr)
-    , m_device_str("")
-    , m_running(false)
-    , m_show_settings_dialog(false)
-    , m_mac_mouse_connected(false)
-    , m_settings_dialog_closed_by_user(false)
-#if __APPLE__
-    ,m_handler_mac(new Mouse3DHandlerMac(this))
-#endif //__APPLE__
+// Load the device parameter database from appconfig. To be called on application startup.
+void Mouse3DController::load_config(const AppConfig &appconfig)
 {
-    m_last_time = std::chrono::high_resolution_clock::now();
+	// We do not synchronize m_params_by_device with the background thread explicitely 
+	// as there should be a full memory barrier executed once the background thread is started.
+	m_params_by_device.clear();
+
+	for (const std::string &device_name : appconfig.get_mouse_device_names()) {
+	    double translation_speed 	= 4.0;
+	    float  rotation_speed 		= 4.0;
+	    double translation_deadzone = Params::DefaultTranslationDeadzone;
+	    float  rotation_deadzone 	= Params::DefaultRotationDeadzone;
+	    double zoom_speed 			= 2.0;
+	    appconfig.get_mouse_device_translation_speed(device_name, translation_speed);
+	    appconfig.get_mouse_device_translation_deadzone(device_name, translation_deadzone);
+	    appconfig.get_mouse_device_rotation_speed(device_name, rotation_speed);
+	    appconfig.get_mouse_device_rotation_deadzone(device_name, rotation_deadzone);
+	    appconfig.get_mouse_device_zoom_speed(device_name, zoom_speed);
+	    // clamp to valid values
+	    Params params;
+	    params.translation.scale = Params::DefaultTranslationScale * std::clamp(translation_speed, 0.1, 10.0);
+	    params.translation.deadzone = std::clamp(translation_deadzone, 0.0, Params::MaxTranslationDeadzone);
+	    params.rotation.scale = Params::DefaultRotationScale * std::clamp(rotation_speed, 0.1f, 10.0f);
+	    params.rotation.deadzone = std::clamp(rotation_deadzone, 0.0f, Params::MaxRotationDeadzone);
+	    params.zoom.scale = Params::DefaultZoomScale * std::clamp(zoom_speed, 0.1, 10.0);
+	    m_params_by_device[device_name] = std::move(params);
+	}
 }
 
-void Mouse3DController::init()
+// Store the device parameter database back to appconfig. To be called on application closeup.
+void Mouse3DController::save_config(AppConfig &appconfig) const
 {
-    if (m_initialized)
-        return;
-
-    // Initialize the hidapi library
-    int res = hid_init();
-    if (res != 0)
-    {
-        BOOST_LOG_TRIVIAL(error) << "Unable to initialize hidapi library";
-        return;
-    }
-
-    m_initialized = true;
-}
-
-void Mouse3DController::shutdown()
-{
-    if (!m_initialized)
-        return;
-
-    stop();
-    disconnect_device();
-
-    // Finalize the hidapi library
-    hid_exit();
-    m_initialized = false;
+	// We do not synchronize m_params_by_device with the background thread explicitely 
+	// as there should be a full memory barrier executed once the background thread is stopped.
+	for (const std::pair<std::string, Params> &key_value_pair : m_params_by_device) {
+		const std::string &device_name = key_value_pair.first;
+		const Params      &params      = key_value_pair.second;
+	    // Store current device parameters into the config
+	    appconfig.set_mouse_device(device_name, params.translation.scale / Params::DefaultTranslationScale, params.translation.deadzone,
+	        params.rotation.scale / Params::DefaultRotationScale, params.rotation.deadzone, params.zoom.scale / Params::DefaultZoomScale);
+	}
 }
 
 bool Mouse3DController::apply(Camera& camera)
 {
-    if (!m_initialized)
-        return false;
-
     // check if the user unplugged the device
-    if (!is_running() && is_device_connected())
-    {
-        disconnect_device();
+    if (! m_connected) {
         // hides the settings dialog if the user un-plug the device
         m_show_settings_dialog = false;
         m_settings_dialog_closed_by_user = false;
     }
-
-    // check if the user plugged the device
-    if (connect_device())
-        start();
-
-    return is_device_connected() ? m_state.apply(camera) : false;
+    return m_state.apply(m_params, camera);
 }
 
 void Mouse3DController::render_settings_dialog(GLCanvas3D& canvas) const
 {
-    if (!is_running() || !m_show_settings_dialog)
+    if (! m_show_settings_dialog || ! m_connected)
         return;
 
     // when the user clicks on [X] or [Close] button we need to trigger
@@ -262,6 +220,13 @@ void Mouse3DController::render_settings_dialog(GLCanvas3D& canvas) const
         m_settings_dialog_closed_by_user = false;
         canvas.request_extra_frame();
         return;
+    }
+
+    Params params_copy;
+    bool   params_changed = false;
+    {
+    	tbb::mutex::scoped_lock lock(m_params_ui_mutex);
+    	params_copy = m_params_ui;
     }
 
     Size cnv_size = canvas.get_canvas_size();
@@ -296,30 +261,40 @@ void Mouse3DController::render_settings_dialog(GLCanvas3D& canvas) const
             imgui.text(_(L("Speed:")));
             ImGui::PopStyleColor();
 
-            float translation_scale = (float)m_state.get_translation_scale() / State::DefaultTranslationScale;
-            if (imgui.slider_float(_(L("Translation")) + "##1", &translation_scale, 0.1f, 10.0f, "%.1f"))
-                m_state.set_translation_scale(State::DefaultTranslationScale * (double)translation_scale);
+            float translation_scale = (float)params_copy.translation.scale / Params::DefaultTranslationScale;
+            if (imgui.slider_float(_(L("Translation")) + "##1", &translation_scale, 0.1f, 10.0f, "%.1f")) {
+            	params_copy.translation.scale = Params::DefaultTranslationScale * (double)translation_scale;
+            	params_changed = true;
+            }
 
-            float rotation_scale = m_state.get_rotation_scale() / State::DefaultRotationScale;
-            if (imgui.slider_float(_(L("Rotation")) + "##1", &rotation_scale, 0.1f, 10.0f, "%.1f"))
-                m_state.set_rotation_scale(State::DefaultRotationScale * rotation_scale);
+            float rotation_scale = params_copy.rotation.scale / Params::DefaultRotationScale;
+            if (imgui.slider_float(_(L("Rotation")) + "##1", &rotation_scale, 0.1f, 10.0f, "%.1f")) {
+            	params_copy.rotation.scale = Params::DefaultRotationScale * rotation_scale;
+            	params_changed = true;
+            }
 
-            float zoom_scale = m_state.get_zoom_scale() / State::DefaultZoomScale;
-            if (imgui.slider_float(_(L("Zoom")), &zoom_scale, 0.1f, 10.0f, "%.1f"))
-                m_state.set_zoom_scale(State::DefaultZoomScale * zoom_scale);
+            float zoom_scale = params_copy.zoom.scale / Params::DefaultZoomScale;
+            if (imgui.slider_float(_(L("Zoom")), &zoom_scale, 0.1f, 10.0f, "%.1f")) {
+            	params_copy.zoom.scale = Params::DefaultZoomScale * zoom_scale;
+            	params_changed = true;
+            }
 
             ImGui::Separator();
             ImGui::PushStyleColor(ImGuiCol_Text, color);
             imgui.text(_(L("Deadzone:")));
             ImGui::PopStyleColor();
 
-            float translation_deadzone = (float)m_state.get_translation_deadzone();
-            if (imgui.slider_float(_(L("Translation")) + "/" + _(L("Zoom")), &translation_deadzone, 0.0f, (float)State::MaxTranslationDeadzone, "%.2f"))
-                m_state.set_translation_deadzone((double)translation_deadzone);
+            float translation_deadzone = (float)params_copy.translation.deadzone;
+            if (imgui.slider_float(_(L("Translation")) + "/" + _(L("Zoom")), &translation_deadzone, 0.0f, (float)Params::MaxTranslationDeadzone, "%.2f")) {
+            	params_copy.translation.deadzone = (double)translation_deadzone;
+            	params_changed = true;
+            }
 
-            float rotation_deadzone = m_state.get_rotation_deadzone();
-            if (imgui.slider_float(_(L("Rotation")) + "##2", &rotation_deadzone, 0.0f, State::MaxRotationDeadzone, "%.2f"))
-                m_state.set_rotation_deadzone(rotation_deadzone);
+            float rotation_deadzone = params_copy.rotation.deadzone;
+            if (imgui.slider_float(_(L("Rotation")) + "##2", &rotation_deadzone, 0.0f, Params::MaxRotationDeadzone, "%.2f")) {
+            	params_copy.rotation.deadzone = rotation_deadzone;
+            	params_changed = true;
+            }
 
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
             ImGui::Separator();
@@ -328,8 +303,8 @@ void Mouse3DController::render_settings_dialog(GLCanvas3D& canvas) const
             imgui.text("DEBUG:");
             imgui.text("Vectors:");
             ImGui::PopStyleColor();
-            Vec3f translation = m_state.get_translation().cast<float>();
-            Vec3f rotation = m_state.get_rotation();
+            Vec3f translation = m_state.get_first_vector_of_type(State::QueueItem::TranslationType).cast<float>();
+            Vec3f rotation = m_state.get_first_vector_of_type(State::QueueItem::RotationType).cast<float>();
             ImGui::InputFloat3("Translation##3", translation.data(), "%.3f", ImGuiInputTextFlags_ReadOnly);
             ImGui::InputFloat3("Rotation##3", rotation.data(), "%.3f", ImGuiInputTextFlags_ReadOnly);
 
@@ -337,19 +312,16 @@ void Mouse3DController::render_settings_dialog(GLCanvas3D& canvas) const
             imgui.text("Queue size:");
             ImGui::PopStyleColor();
 
-            int translation_size[2] = { (int)m_state.get_translation_queue_size(), (int)m_state.get_translation_queue_max_size() };
-            int rotation_size[2] = { (int)m_state.get_rotation_queue_size(), (int)m_state.get_rotation_queue_max_size() };
-            int buttons_size[2] = { (int)m_state.get_buttons_queue_size(), (int)m_state.get_buttons_queue_max_size() };
+            int input_queue_size_current[2] = { int(m_state.input_queue_size_current()), int(m_state.input_queue_max_size_achieved) };
+            ImGui::InputInt2("Current##4", input_queue_size_current, ImGuiInputTextFlags_ReadOnly);
 
-            ImGui::InputInt2("Translation##4", translation_size, ImGuiInputTextFlags_ReadOnly);
-            ImGui::InputInt2("Rotation##4", rotation_size, ImGuiInputTextFlags_ReadOnly);
-            ImGui::InputInt2("Buttons", buttons_size, ImGuiInputTextFlags_ReadOnly);
-
-            int queue_size = (int)m_state.get_queues_max_size();
-            if (ImGui::InputInt("Max size", &queue_size, 1, 1, ImGuiInputTextFlags_ReadOnly))
+            int input_queue_size_param = int(params_copy.input_queue_max_size);
+            if (ImGui::InputInt("Max size", &input_queue_size_param, 1, 1, ImGuiInputTextFlags_ReadOnly))
             {
-                if (queue_size > 0)
-                    m_state.set_queues_max_size(queue_size);
+                if (input_queue_size_param > 0) {
+	            	params_copy.input_queue_max_size = input_queue_size_param;
+    	        	params_changed = true;
+                }
             }
 
             ImGui::Separator();
@@ -377,23 +349,169 @@ void Mouse3DController::render_settings_dialog(GLCanvas3D& canvas) const
     }
 
     imgui.end();
+
+    if (params_changed) {
+    	// Synchronize front end parameters to back end.
+    	tbb::mutex::scoped_lock lock(m_params_ui_mutex);
+        auto pthis = const_cast<Mouse3DController*>(this);
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+        if (params_copy.input_queue_max_size != params_copy.input_queue_max_size)
+        	// Reset the statistics counter.
+            m_state.input_queue_max_size_achieved = 0;
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+        pthis->m_params_ui = params_copy;
+        pthis->m_params_ui_changed = true;
+    }
+}
+
+#if __APPLE__
+
+void Mouse3DController::connected(std::string device_name)
+{
+	m_device_str = device_name;
+    // Copy the parameters for m_device_str into the current parameters.
+    if (auto it_params = m_params_by_device.find(m_device_str); it_params != m_params_by_device.end()) {
+    	tbb::mutex::scoped_lock lock(m_params_ui_mutex);
+    	m_params = m_params_ui = it_params->second;
+    }
+    m_connected = true;
+}
+
+void Mouse3DController::disconnected()
+{
+    // Copy the current parameters for m_device_str into the parameter database.
+    assert(! m_device_str.empty());
+    if (! m_device_str.empty()) {
+        tbb::mutex::scoped_lock lock(m_params_ui_mutex);
+        m_params_by_device[m_device_str] = m_params_ui;
+    }
+    m_device_str.clear();
+    m_connected = false;
+}
+
+bool Mouse3DController::handle_input(const DataPacketAxis& packet, const Params &params, State &state_in_out)
+{
+    if (! wxGetApp().IsActive())
+        return;
+
+    {
+    	// Synchronize parameters between the UI thread and the background thread.
+    	//FIXME is this necessary on OSX? Are these notifications triggered from the main thread or from a worker thread?
+    	tbb::mutex::scoped_lock lock(m_params_ui_mutex);
+    	if (m_params_ui_changed) {
+    		m_params = m_params_ui;
+    		m_params_ui_changed = false;
+    	}
+    }
+    
+    bool updated = false;
+    //translation
+    double deadzone = params.translation.deadzone;
+    Vec3d translation(std::abs(packet[0]) > deadzone ? -packet[0] : 0.0,
+                      std::abs(packet[1]) > deadzone ?  packet[1] : 0.0,
+                      std::abs(packet[2]) > deadzone ?  packet[2] : 0.0);
+    if (!translation.isApprox(Vec3d::Zero()))
+    {
+        state_in_out.append_translation(translation, params.input_queue_max_size);
+        updated = true;
+    }
+    //rotation
+    deadzone = params.rotation.deadzone;
+    Vec3f rotation(std::abs(packet[3]) > deadzone ? (float)packet[3] : 0.0,
+                   std::abs(packet[4]) > deadzone ? (float)packet[4] : 0.0,
+                   std::abs(packet[5]) > deadzone ? (float)packet[5] : 0.0);
+    if (!rotation.isApprox(Vec3f::Zero()))
+    {
+        state_in_out.append_rotation(rotation, params.input_queue_max_size);
+        updated = true;
+    }
+
+#if 1
+    if (updated) {
+        wxGetApp().plater()->set_current_canvas_as_dirty();
+        // ask for an idle event to update 3D scene
+        wxWakeUpIdle();
+    }
+#endif
+    return updated;
+}
+
+#else //__APPLE__
+
+// Initialize the application.
+void Mouse3DController::init()
+{
+	assert(! m_thread.joinable());
+    if (! m_thread.joinable()) {
+    	m_stop = false;
+	    m_thread = std::thread(&Mouse3DController::run, this);
+	}
+}
+
+// Closing the application.
+void Mouse3DController::shutdown()
+{
+    if (m_thread.joinable()) {
+    	// Stop the worker thread, if running.
+    	{
+    		// Notify the worker thread to cancel wait on detection polling.
+			std::unique_lock<std::mutex> lock(m_stop_condition_mutex);
+			m_stop = true;
+			m_stop_condition.notify_all();
+		}
+		// Wait for the worker thread to stop.
+        m_thread.join();
+	}
+}
+
+// Main routine of the worker thread.
+void Mouse3DController::run()
+{
+    // Initialize the hidapi library
+    int res = hid_init();
+    if (res != 0) {
+    	// Give up.
+        BOOST_LOG_TRIVIAL(error) << "Unable to initialize hidapi library";
+        return;
+    }
+
+    for (;;) {
+        {
+        	tbb::mutex::scoped_lock lock(m_params_ui_mutex);
+        	if (m_stop)
+        		break;
+        	if (m_params_ui_changed) {
+        		m_params = m_params_ui;
+        		m_params_ui_changed = false;
+        	}
+        }
+    	if (m_device == nullptr)
+    		// Polls the HID devices, blocks for maximum 2 seconds.
+    		m_connected = this->connect_device();
+    	else
+    		// Waits for 3DConnexion mouse input for maximum 100ms, then repeats.
+        	this->collect_input();
+    }
+
+    this->disconnect_device();
+
+    // Finalize the hidapi library
+    hid_exit();
 }
 
 bool Mouse3DController::connect_device()
 {
-#ifdef __APPLE__
-    return false;
-#endif//__APPLE__
-    static const long long DETECTION_TIME_MS = 2000; // two seconds
+    if (m_stop)
+    	return false;
 
-    if (is_device_connected())
-        return false;
+    {
+    	// Wait for 2 seconds, but cancellable by m_stop.
+    	std::unique_lock<std::mutex> lock(m_stop_condition_mutex);
+        m_stop_condition.wait_for(lock, std::chrono::seconds(2), [this]{ return this->m_stop; });
+    }
 
-    // check time since last detection took place
-    if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_last_time).count() < DETECTION_TIME_MS)
-        return false;
-    
-    m_last_time = std::chrono::high_resolution_clock::now();
+    if (m_stop)
+    	return false;
 
     // Enumerates devices
     hid_device_info* devices = hid_enumerate(0, 0);
@@ -623,23 +741,11 @@ bool Mouse3DController::connect_device()
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
         std::cout << "Opened device." << std::endl;
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-        // get device parameters from the config, if present
-        double translation_speed = 4.0;
-        float rotation_speed = 4.0;
-        double translation_deadzone = State::DefaultTranslationDeadzone;
-        float rotation_deadzone = State::DefaultRotationDeadzone;
-        double zoom_speed = 2.0;
-        wxGetApp().app_config->get_mouse_device_translation_speed(m_device_str, translation_speed);
-        wxGetApp().app_config->get_mouse_device_translation_deadzone(m_device_str, translation_deadzone);
-        wxGetApp().app_config->get_mouse_device_rotation_speed(m_device_str, rotation_speed);
-        wxGetApp().app_config->get_mouse_device_rotation_deadzone(m_device_str, rotation_deadzone);
-        wxGetApp().app_config->get_mouse_device_zoom_speed(m_device_str, zoom_speed);
-        // clamp to valid values
-        m_state.set_translation_scale(State::DefaultTranslationScale * std::clamp(translation_speed, 0.1, 10.0));
-        m_state.set_translation_deadzone(std::clamp(translation_deadzone, 0.0, State::MaxTranslationDeadzone));
-        m_state.set_rotation_scale(State::DefaultRotationScale * std::clamp(rotation_speed, 0.1f, 10.0f));
-        m_state.set_rotation_deadzone(std::clamp(rotation_deadzone, 0.0f, State::MaxRotationDeadzone));
-        m_state.set_zoom_scale(State::DefaultZoomScale * std::clamp(zoom_speed, 0.1, 10.0));
+        // Copy the parameters for m_device_str into the current parameters.
+        if (auto it_params = m_params_by_device.find(m_device_str); it_params != m_params_by_device.end()) {
+	    	tbb::mutex::scoped_lock lock(m_params_ui_mutex);
+	    	m_params = m_params_ui = it_params->second;
+	    }
     }
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
     else
@@ -657,138 +763,85 @@ bool Mouse3DController::connect_device()
 
 void Mouse3DController::disconnect_device()
 {
-    if (!is_device_connected())
-        return;
-    
-    // Stop the secondary thread, if running
-    if (m_thread.joinable())
-        m_thread.join();
-
-    // Store current device parameters into the config
-    wxGetApp().app_config->set_mouse_device(m_device_str, m_state.get_translation_scale() / State::DefaultTranslationScale, m_state.get_translation_deadzone(),
-        m_state.get_rotation_scale() / State::DefaultRotationScale, m_state.get_rotation_deadzone(), m_state.get_zoom_scale() / State::DefaultZoomScale);
-
-    wxGetApp().app_config->save();
-
-    // Close the 3Dconnexion device
-    hid_close(m_device);
-    m_device = nullptr;
-
-    BOOST_LOG_TRIVIAL(info) << "Disconnected device: " << m_device_str;
-
-    m_device_str = "";
+    if (m_device) {
+	    hid_close(m_device);
+	    m_device = nullptr;
+	    BOOST_LOG_TRIVIAL(info) << "Disconnected device: " << m_device_str;
+        // Copy the current parameters for m_device_str into the parameter database.
+        {
+	        tbb::mutex::scoped_lock lock(m_params_ui_mutex);
+	        m_params_by_device[m_device_str] = m_params_ui;
+	    }
+	    m_device_str.clear();
+	    m_connected = false;
+	}
 }
 
-void Mouse3DController::start()
-{
-    if (!is_device_connected() || m_running)
-        return;
-
-    m_thread = std::thread(&Mouse3DController::run, this);
-}
-
-void Mouse3DController::run()
-{
-    m_running = true;
-    while (m_running)
-    {
-        collect_input();
-    }
-}
 void Mouse3DController::collect_input()
 {
     DataPacketRaw packet = { 0 };
+    // Read packet, block maximum 100 ms. That means when closing the application, closing the application will be delayed by 100 ms.
     int res = hid_read_timeout(m_device, packet.data(), packet.size(), 100);
-    if (res < 0)
-    {
-        // An error occourred (device detached from pc ?)
-        stop();
-        return;
-    }
-	handle_input(packet, res);
+    if (res < 0) {
+        // An error occourred (device detached from pc ?). Close the 3Dconnexion device.
+        this->disconnect_device();
+    } else
+		this->handle_input(packet, res, m_params, m_state);
 }
-    
-void Mouse3DController::handle_input_axis(const DataPacketAxis& packet)
+
+// Unpack raw 3DConnexion HID packet of a wired 3D mouse into m_state. Called by the worker thread.
+bool Mouse3DController::handle_input(const DataPacketRaw& packet, const int packet_lenght, const Params &params, State &state_in_out)
 {
-    if (!wxGetApp().IsActive())
-        return;
-    bool appended = false;
-    //translation
-    double deadzone = m_state.get_translation_deadzone();
-    Vec3d translation(std::abs(packet[0]) > deadzone ? -packet[0] : 0.0,
-                      std::abs(packet[1]) > deadzone ?  packet[1] : 0.0,
-                      std::abs(packet[2]) > deadzone ?  packet[2] : 0.0);
-    if (!translation.isApprox(Vec3d::Zero()))
-    {
-        m_state.append_translation(translation);
-        appended = true;
-    }
-    //rotation
-    deadzone = m_state.get_rotation_deadzone();
-    Vec3f rotation(std::abs(packet[3]) > deadzone ? (float)packet[3] : 0.0,
-                   std::abs(packet[4]) > deadzone ? (float)packet[4] : 0.0,
-                   std::abs(packet[5]) > deadzone ? (float)packet[5] : 0.0);
-    if (!rotation.isApprox(Vec3f::Zero()))
-    {
-        m_state.append_rotation(rotation);
-        appended = true;
-    }
-    if (appended)
-    {
-        wxGetApp().plater()->set_current_canvas_as_dirty();
-        // ask for an idle event to update 3D scene
-        wxWakeUpIdle();
-    }
-}
-void Mouse3DController::handle_input(const DataPacketRaw& packet, const int packet_lenght)
-{
-    if (!wxGetApp().IsActive())
-        return;
+    if (! wxGetApp().IsActive())
+        return false;
 
     int res = packet_lenght;
     bool updated = false;
 
     if (res == 7)
-        updated = handle_packet(packet);
+        updated = handle_packet(packet, params, state_in_out);
     else if (res == 13)
-        updated = handle_wireless_packet(packet);
+        updated = handle_wireless_packet(packet, params, state_in_out);
     else if ((res == 3) && (packet[0] == 3))
         // On Mac button packets can be 3 bytes long
-        updated = handle_packet(packet);
+        updated = handle_packet(packet, params, state_in_out);
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
     else if (res > 0)
         std::cout << "Got unknown data packet of length: " << res << ", code:" << (int)packet[0] << std::endl;
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
-    if (updated)
-    {
+#if 1
+    if (updated) {
         wxGetApp().plater()->set_current_canvas_as_dirty();
         // ask for an idle event to update 3D scene
         wxWakeUpIdle();
     }
+#endif
+    return updated;
 }
 
-bool Mouse3DController::handle_packet(const DataPacketRaw& packet)
+// Unpack raw 3DConnexion HID packet of a wired 3D mouse into m_state. Called by handle_input() from the worker thread.
+bool Mouse3DController::handle_packet(const DataPacketRaw& packet, const Params &params, State &state_in_out)
 {
     switch (packet[0])
     {
     case 1: // Translation
         {
-            if (handle_packet_translation(packet))
+            if (handle_packet_translation(packet, params, state_in_out))
                 return true;
 
             break;
         }
     case 2: // Rotation
         {
-            if (handle_packet_rotation(packet, 1))
+            if (handle_packet_rotation(packet, 1, params, state_in_out))
                 return true;
 
             break;
         }
     case 3: // Button
         {
-            if (handle_packet_button(packet, packet.size() - 1))
+            if (params.buttons_enabled && handle_packet_button(packet, packet.size() - 1, params, state_in_out))
                 return true;
 
             break;
@@ -796,14 +849,14 @@ bool Mouse3DController::handle_packet(const DataPacketRaw& packet)
     case 23: // Battery charge
         {
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-            std::cout << m_device_str << " - battery level: " << (int)packet[1] << " percent" << std::endl;
+            std::cout << "3DConnexion - battery level: " << (int)packet[1] << " percent" << std::endl;
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
             break;
         }
     default:
         {
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-            std::cout << "Got unknown data packet of code: " << (int)packet[0] << std::endl;
+            std::cout << "3DConnexion - Got unknown data packet of code: " << (int)packet[0] << std::endl;
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
             break;
         }
@@ -812,14 +865,15 @@ bool Mouse3DController::handle_packet(const DataPacketRaw& packet)
     return false;
 }
 
-bool Mouse3DController::handle_wireless_packet(const DataPacketRaw& packet)
+// Unpack raw 3DConnexion HID packet of a wireless 3D mouse into m_state. Called by handle_input() from the worker thread.
+bool Mouse3DController::handle_wireless_packet(const DataPacketRaw& packet, const Params &params, State &state_in_out)
 {
     switch (packet[0])
     {
     case 1: // Translation + Rotation
         {
-            bool updated = handle_packet_translation(packet);
-            updated |= handle_packet_rotation(packet, 7);
+            bool updated = handle_packet_translation(packet, params, state_in_out);
+            updated |= handle_packet_rotation(packet, 7, params, state_in_out);
 
             if (updated)
                 return true;
@@ -828,7 +882,7 @@ bool Mouse3DController::handle_wireless_packet(const DataPacketRaw& packet)
         }
     case 3: // Button
         {
-            if (handle_packet_button(packet, 12))
+            if (params.buttons_enabled && handle_packet_button(packet, 12, params, state_in_out))
                 return true;
 
             break;
@@ -836,14 +890,14 @@ bool Mouse3DController::handle_wireless_packet(const DataPacketRaw& packet)
     case 23: // Battery charge
         {
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-            std::cout << m_device_str << " - battery level: " << (int)packet[1] << " percent" << std::endl;
+            std::cout << "3DConnexion - battery level: " << (int)packet[1] << " percent" << std::endl;
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
             break;
         }
     default:
         {
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-            std::cout << "Got unknown data packet of code: " << (int)packet[0] << std::endl;
+            std::cout << "3DConnexion - Got unknown data packet of code: " << (int)packet[0] << std::endl;
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
             break;
         }
@@ -852,46 +906,52 @@ bool Mouse3DController::handle_wireless_packet(const DataPacketRaw& packet)
     return false;
 }
 
-double convert_input(unsigned char first, unsigned char second, double deadzone)
+// Convert a signed 16bit word from a 3DConnexion mouse HID packet into a double coordinate, apply a dead zone.
+static double convert_input(int coord_byte_low, int coord_byte_high, double deadzone)
 {
-    short value = first | second << 8;
+    int value = coord_byte_low | (coord_byte_high << 8);
+    if (value >= 32768)
+    	value = value - 65536;
     double ret = (double)value / 350.0;
     return (std::abs(ret) > deadzone) ? ret : 0.0;
 }
 
-bool Mouse3DController::handle_packet_translation(const DataPacketRaw& packet)
+// Unpack raw 3DConnexion HID packet, decode state of translation axes into state_in_out. Called by handle_input() from the worker thread.
+bool Mouse3DController::handle_packet_translation(const DataPacketRaw& packet, const Params &params, State &state_in_out)
 {
-    double deadzone = m_state.get_translation_deadzone();
+    double deadzone = params.translation.deadzone;
     Vec3d translation(-convert_input(packet[1], packet[2], deadzone),
         convert_input(packet[3], packet[4], deadzone),
         convert_input(packet[5], packet[6], deadzone));
 
     if (!translation.isApprox(Vec3d::Zero()))
     {
-        m_state.append_translation(translation);
+        state_in_out.append_translation(translation, params.input_queue_max_size);
         return true;
     }
 
     return false;
 }
 
-bool Mouse3DController::handle_packet_rotation(const DataPacketRaw& packet, unsigned int first_byte)
+// Unpack raw 3DConnexion HID packet, decode state of rotation axes into state_in_out. Called by the handle_input() from worker thread.
+bool Mouse3DController::handle_packet_rotation(const DataPacketRaw& packet, unsigned int first_byte, const Params &params, State &state_in_out)
 {
-    double deadzone = (double)m_state.get_rotation_deadzone();
+    double deadzone = (double)params.rotation.deadzone;
     Vec3f rotation((float)convert_input(packet[first_byte + 0], packet[first_byte + 1], deadzone),
         (float)convert_input(packet[first_byte + 2], packet[first_byte + 3], deadzone),
         (float)convert_input(packet[first_byte + 4], packet[first_byte + 5], deadzone));
 
     if (!rotation.isApprox(Vec3f::Zero()))
     {
-        m_state.append_rotation(rotation);
+        state_in_out.append_rotation(rotation, params.input_queue_max_size);
         return true;
     }
 
     return false;
 }
 
-bool Mouse3DController::handle_packet_button(const DataPacketRaw& packet, unsigned int packet_size)
+// Unpack raw 3DConnexion HID packet, decode button state into state_in_out. Called by handle_input() from the worker thread.
+bool Mouse3DController::handle_packet_button(const DataPacketRaw& packet, unsigned int packet_size, const Params &params, State &state_in_out)
 {
     unsigned int data = 0;
     for (unsigned int i = 1; i < packet_size; ++i)
@@ -904,13 +964,15 @@ bool Mouse3DController::handle_packet_button(const DataPacketRaw& packet, unsign
     {
         if (data_bits.test(i))
         {
-            m_state.append_button((unsigned int)i);
+            state_in_out.append_button((unsigned int)i, params.input_queue_max_size);
             return true;
         }
     }
 
     return false;
 }
+
+#endif //__APPLE__
 
 } // namespace GUI
 } // namespace Slic3r
