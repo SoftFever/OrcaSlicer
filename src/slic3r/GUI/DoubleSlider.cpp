@@ -952,7 +952,7 @@ wxString Control::get_tooltip(int tick/*=-1*/)
         return _(L("Discard all custom changes"));
     if (m_focus == fiCogIcon)
         return m_mode == t_mode::MultiAsSingle                                                              ?
-               wxString::FromUTF8((boost::format(_utf8(L("Jump to height %s or "
+               GUI::from_u8((boost::format(_utf8(L("Jump to height %s or "
                                        "Set extruder sequence for the entire print"))) % " (Shift + G)\n").str()) :
                _(L("Jump to height")) + " (Shift + G)";
     if (m_focus == fiColorBand)

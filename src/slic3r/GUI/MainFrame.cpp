@@ -1029,7 +1029,7 @@ void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool re
 	wxGetApp().load_current_presets();
 
     const auto message = wxString::Format(_(L("%d presets successfully imported.")), presets_imported);
-    Slic3r::GUI::show_info(this, message, "Info");
+    Slic3r::GUI::show_info(this, message, wxString("Info"));
 }
 
 // Load a provied DynamicConfig into the Print / Filament / Printer tabs, thus modifying the active preset.
