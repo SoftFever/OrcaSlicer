@@ -46,19 +46,19 @@ namespace Slic3r {
         ::memset(abs_axis_feedrate, 0, Num_Axis * sizeof(float));
     }
 
-    float GCodeTimeEstimator::Block::Trapezoid::acceleration_time(float acceleration) const
+    float GCodeTimeEstimator::Block::Trapezoid::acceleration_time(float entry_feedrate, float acceleration) const
     {
-        return acceleration_time_from_distance(feedrate.entry, accelerate_until, acceleration);
+        return acceleration_time_from_distance(entry_feedrate, accelerate_until, acceleration);
     }
 
     float GCodeTimeEstimator::Block::Trapezoid::cruise_time() const
     {
-        return (feedrate.cruise != 0.0f) ? cruise_distance() / feedrate.cruise : 0.0f;
+        return (cruise_feedrate != 0.0f) ? cruise_distance() / cruise_feedrate : 0.0f;
     }
 
-    float GCodeTimeEstimator::Block::Trapezoid::deceleration_time(float acceleration) const
+    float GCodeTimeEstimator::Block::Trapezoid::deceleration_time(float distance, float acceleration) const
     {
-        return acceleration_time_from_distance(feedrate.cruise, (distance - decelerate_after), -acceleration);
+        return acceleration_time_from_distance(cruise_feedrate, (distance - decelerate_after), -acceleration);
     }
 
     float GCodeTimeEstimator::Block::Trapezoid::cruise_distance() const
@@ -76,10 +76,6 @@ namespace Slic3r {
         // to avoid invalid negative numbers due to numerical imprecision 
         float value = std::max(0.0f, sqr(initial_feedrate) + 2.0f * acceleration * distance);
         return ::sqrt(value);
-    }
-
-    GCodeTimeEstimator::Block::Block()
-    {
     }
 
     float GCodeTimeEstimator::Block::move_length() const
@@ -100,7 +96,7 @@ namespace Slic3r {
 
     float GCodeTimeEstimator::Block::acceleration_time() const
     {
-        return trapezoid.acceleration_time(acceleration);
+        return trapezoid.acceleration_time(feedrate.entry, acceleration);
     }
 
     float GCodeTimeEstimator::Block::cruise_time() const
@@ -110,7 +106,7 @@ namespace Slic3r {
 
     float GCodeTimeEstimator::Block::deceleration_time() const
     {
-        return trapezoid.deceleration_time(acceleration);
+        return trapezoid.deceleration_time(move_length(), acceleration);
     }
 
     float GCodeTimeEstimator::Block::cruise_distance() const
@@ -122,8 +118,7 @@ namespace Slic3r {
     {
         float distance = move_length();
 
-        trapezoid.distance = distance;
-        trapezoid.feedrate = feedrate;
+        trapezoid.cruise_feedrate = feedrate.cruise;
 
         float accelerate_distance = std::max(0.0f, estimate_acceleration_distance(feedrate.entry, feedrate.cruise, acceleration));
         float decelerate_distance = std::max(0.0f, estimate_acceleration_distance(feedrate.cruise, feedrate.exit, -acceleration));
@@ -136,7 +131,7 @@ namespace Slic3r {
         {
             accelerate_distance = clamp(0.0f, distance, intersection_distance(feedrate.entry, feedrate.exit, acceleration, distance));
             cruise_distance = 0.0f;
-            trapezoid.feedrate.cruise = Trapezoid::speed_from_distance(feedrate.entry, accelerate_distance, acceleration);
+            trapezoid.cruise_feedrate = Trapezoid::speed_from_distance(feedrate.entry, accelerate_distance, acceleration);
         }
 
         trapezoid.accelerate_until = accelerate_distance;
@@ -833,6 +828,7 @@ namespace Slic3r {
     void GCodeTimeEstimator::_calculate_time()
     {
         PROFILE_FUNC();
+
         _forward_pass();
         _reverse_pass();
         _recalculate_trapezoids();

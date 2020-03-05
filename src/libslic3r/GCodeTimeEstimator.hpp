@@ -125,14 +125,13 @@ namespace Slic3r {
 
             struct Trapezoid
             {
-                float distance;         // mm
                 float accelerate_until; // mm
                 float decelerate_after; // mm
-                FeedrateProfile feedrate;
+                float cruise_feedrate; // mm/sec
 
-                float acceleration_time(float acceleration) const;
+                float acceleration_time(float entry_feedrate, float acceleration) const;
                 float cruise_time() const;
-                float deceleration_time(float acceleration) const;
+                float deceleration_time(float distance, float acceleration) const;
                 float cruise_distance() const;
 
                 // This function gives the time needed to accelerate from an initial speed to reach a final distance.
@@ -162,7 +161,7 @@ namespace Slic3r {
             Trapezoid trapezoid;
             float elapsed_time;
 
-            Block();
+            Block() = default;
 
             // Returns the length of the move covered by this block, in mm
             float move_length() const;
