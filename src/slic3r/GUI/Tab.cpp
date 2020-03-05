@@ -956,8 +956,7 @@ void Tab::update_preset_description_line()
     } else if (parent == nullptr) {
         description_line = _(L("Current preset is inherited from the default preset."));
     } else {
-        description_line = from_u8((boost::format(
-            _utf8(L("Current preset is inherited from:\n\t%s"))) % parent->name).str());
+        description_line = _(L("Current preset is inherited from")) + ":\n\t" + parent->name;
     }
 
     if (preset.is_default || preset.is_system)
@@ -1709,7 +1708,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
     option.opt.width = Field::def_width_wider();
     optgroup->append_single_option_line(option);
 
-    const auto ca_file_hint = _(L("HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate."));
+    const auto ca_file_hint = _utf8(L("HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate."));
 
     if (Http::ca_file_supported()) {
         option = optgroup->get_option("printhost_cafile");
@@ -1751,15 +1750,19 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
         Line line { "", "" };
         line.full_width = 1;
 
-        line.widget = [this, ca_file_hint] (wxWindow* parent) {
-            auto txt = new wxStaticText(parent, wxID_ANY, from_u8((boost::format("%1%\n\n\t%2%")
-    % (boost::format(_utf8(L("HTTPS CA File:\n\
+        line.widget = [ca_file_hint] (wxWindow* parent) {
+            std::string info = _utf8(L("HTTPS CA File")) + ":\n\t" +
+                (boost::format(_utf8(L("On this system, %s uses HTTPS certificates from the system Certificate Store or Keychain."))) % SLIC3R_APP_NAME).str() +
+                "\n\t" + _utf8(L("To use a custom CA file, please import your CA file into Certificate Store / Keychain."));
+
+            auto txt = new wxStaticText(parent, wxID_ANY, from_u8((boost::format("%1%\n\n\t%2%") % info % ca_file_hint).str()));
+/*    % (boost::format(_utf8(L("HTTPS CA File:\n\
     \tOn this system, %s uses HTTPS certificates from the system Certificate Store or Keychain.\n\
     \tTo use a custom CA file, please import your CA file into Certificate Store / Keychain."))) % SLIC3R_APP_NAME).str()
     % std::string(ca_file_hint.ToUTF8())).str()));
-            txt->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+*/            txt->SetFont(Slic3r::GUI::wxGetApp().normal_font());
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
-            sizer->Add(txt);
+            sizer->Add(txt, 1, wxEXPAND);
             return sizer;
         };
 
@@ -3261,8 +3264,8 @@ void Tab::fill_icon_descriptions()
 
     m_icon_descriptions.emplace_back(&m_bmp_white_bullet, L("WHITE BULLET"),
         // TRN Description for "WHITE BULLET"
-        L("for the left button: \tindicates a non-system (or non-default) preset,\n"
-        "for the right button: \tindicates that the settings hasn't been modified."));
+        L("for the left button: indicates a non-system (or non-default) preset,\n"
+          "for the right button: indicates that the settings hasn't been modified."));
 
     m_icon_descriptions.emplace_back(&m_bmp_value_revert, L("BACK ARROW"),
         // TRN Description for "BACK ARROW"

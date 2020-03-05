@@ -1193,7 +1193,7 @@ void Sidebar::update_sliced_info_sizer()
         if (p->plater->printer_technology() == ptSLA)
         {
             const SLAPrintStatistics& ps = p->plater->sla_print().print_statistics();
-            wxString new_label = _(L("Used Material (ml)")) + " :";
+            wxString new_label = _(L("Used Material (ml)")) + ":";
             const bool is_supports = ps.support_used_material > 0.0;
             if (is_supports)
                 new_label += from_u8((boost::format("\n    - %s\n    - %s") % _utf8(L("object(s)")) % _utf8(L("supports and pad"))).str());
@@ -1218,7 +1218,7 @@ void Sidebar::update_sliced_info_sizer()
             p->sliced_info->SetTextAndShow(siCost, str_total_cost, "Cost");
 
             wxString t_est = std::isnan(ps.estimated_print_time) ? "N/A" : get_time_dhms(float(ps.estimated_print_time));
-            p->sliced_info->SetTextAndShow(siEstimatedTime, t_est, _(L("Estimated printing time")) + " :");
+            p->sliced_info->SetTextAndShow(siEstimatedTime, t_est, _(L("Estimated printing time")) + ":");
 
             // Hide non-SLA sliced info parameters
             p->sliced_info->SetTextAndShow(siFilament_m, "N/A");
@@ -1233,7 +1233,7 @@ void Sidebar::update_sliced_info_sizer()
 
             wxString new_label = _(L("Used Filament (m)"));
             if (is_wipe_tower)
-                new_label += from_u8((boost::format(" :\n    - %1%\n    - %2%") % _utf8(L("objects")) % _utf8(L("wipe tower"))).str());
+                new_label += from_u8((boost::format(":\n    - %1%\n    - %2%") % _utf8(L("objects")) % _utf8(L("wipe tower"))).str());
 
             wxString info_text = is_wipe_tower ?
                                 wxString::Format("%.2f \n%.2f \n%.2f", ps.total_used_filament / 1000,
@@ -1247,7 +1247,7 @@ void Sidebar::update_sliced_info_sizer()
 
             new_label = _(L("Cost"));
             if (is_wipe_tower)
-                new_label += from_u8((boost::format(" :\n    - %1%\n    - %2%") % _utf8(L("objects")) % _utf8(L("wipe tower"))).str());
+                new_label += from_u8((boost::format(":\n    - %1%\n    - %2%") % _utf8(L("objects")) % _utf8(L("wipe tower"))).str());
 
             info_text = ps.total_cost == 0.0 ? "N/A" :
                         is_wipe_tower ?
@@ -1260,7 +1260,7 @@ void Sidebar::update_sliced_info_sizer()
             if (ps.estimated_normal_print_time == "N/A" && ps.estimated_silent_print_time == "N/A")
                 p->sliced_info->SetTextAndShow(siEstimatedTime, "N/A");
             else {
-                new_label = _(L("Estimated printing time")) +" :";
+                new_label = _(L("Estimated printing time")) +":";
                 info_text = "";
                 wxString str_color = _(L("Color"));
                 wxString str_pause = _(L("Pause"));
@@ -2165,6 +2165,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     // updates camera type from .ini file
     camera.set_type(get_config("use_perspective_camera"));
 
+    // Load the 3DConnexion device database.
+    mouse3d_controller.load_config(*wxGetApp().app_config);
+	// Start the background thread to detect and connect to a HID device (Windows and Linux).
+	// Connect to a 3DConnextion driver (OSX).    
     mouse3d_controller.init();
 
     // Initialize the Undo / Redo stack with a first snapshot.
@@ -2176,8 +2180,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
 Plater::priv::~priv()
 {
-    mouse3d_controller.shutdown();
-
     if (config != nullptr)
         delete config;
 }

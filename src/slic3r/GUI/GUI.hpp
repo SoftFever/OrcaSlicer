@@ -1,7 +1,8 @@
 #ifndef slic3r_GUI_hpp_
 #define slic3r_GUI_hpp_
 
-#include <boost/filesystem/path.hpp>
+namespace boost { class any; }
+namespace boost::filesystem { class path; }
 
 #include <wx/string.h>
 

@@ -422,14 +422,14 @@ void ConfigWizardPage::append_spacer(int space)
 // Wizard pages
 
 PageWelcome::PageWelcome(ConfigWizard *parent)
-    : ConfigWizardPage(parent, wxString::FromUTF8((boost::format(
+    : ConfigWizardPage(parent, from_u8((boost::format(
 #ifdef __APPLE__
             _utf8(L("Welcome to the %s Configuration Assistant"))
 #else
             _utf8(L("Welcome to the %s Configuration Wizard"))
 #endif
             ) % SLIC3R_APP_NAME).str()), _(L("Welcome")))
-    , welcome_text(append_text(wxString::FromUTF8((boost::format(
+    , welcome_text(append_text(from_u8((boost::format(
         _utf8(L("Hello, welcome to %s! This %s helps you with the initial configuration; just a few settings and you will be ready to print.")))
         % SLIC3R_APP_NAME
         % _utf8(ConfigWizard::name())).str())
@@ -478,7 +478,7 @@ PagePrinters::PagePrinters(ConfigWizard *parent,
             continue;
         }
 
-        const auto picker_title = family.empty() ? wxString() : wxString::FromUTF8((boost::format(_utf8(L("%s Family"))) % family).str());
+        const auto picker_title = family.empty() ? wxString() : from_u8((boost::format(_utf8(L("%s Family"))) % family).str());
         auto *picker = new PrinterPicker(this, vendor, picker_title, MAX_COLS, *appconfig, filter);
 
         picker->Bind(EVT_PRINTER_PICK, [this, appconfig](const PrinterPickerEvent &evt) {
