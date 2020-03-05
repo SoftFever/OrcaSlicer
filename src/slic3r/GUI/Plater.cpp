@@ -1814,11 +1814,9 @@ struct Plater::priv
 
     void set_current_canvas_as_dirty();
     GLCanvas3D* get_current_canvas3D();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
     void unbind_canvas_event_handlers();
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     bool init_view_toolbar();
 
@@ -2178,9 +2176,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
 Plater::priv::~priv()
 {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    std::cout << "Plater::priv::~priv()\n";
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     mouse3d_controller.shutdown();
 
     if (config != nullptr)
@@ -4094,7 +4089,6 @@ GLCanvas3D* Plater::priv::get_current_canvas3D()
     return (current_panel == view3D) ? view3D->get_canvas3d() : ((current_panel == preview) ? preview->get_canvas3d() : nullptr);
 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
 void Plater::priv::unbind_canvas_event_handlers()
 {
@@ -4105,7 +4099,6 @@ void Plater::priv::unbind_canvas_event_handlers()
         preview->get_canvas3d()->unbind_event_handlers();
 }
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 bool Plater::priv::init_view_toolbar()
 {
@@ -4581,9 +4574,6 @@ Plater::Plater(wxWindow *parent, MainFrame *main_frame)
 
 Plater::~Plater()
 {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    std::cout << "Plater::~Plater()\n";
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 }
 
 Sidebar&        Plater::sidebar()           { return *p->sidebar; }
@@ -5545,14 +5535,12 @@ void Plater::set_current_canvas_as_dirty()
     p->set_current_canvas_as_dirty();
 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
 void Plater::unbind_canvas_event_handlers()
 {
     p->unbind_canvas_event_handlers();
 }
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 PrinterTechnology Plater::printer_technology() const
 {
