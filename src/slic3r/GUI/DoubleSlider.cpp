@@ -1914,8 +1914,8 @@ bool Control::check_ticks_changed_event(const std::string& gcode)
     {
         wxString message =  m_mode == t_mode::SingleExtruder ?                          (
                             _(L("The last color change data was saved for a multi extruder printing.")) + "\n\n" +
-                            _(L("Select YES if you want to delete all saved tool changes, \n\t"
-                                "NO if you want all tool changes switch to color changes, \n\t"
+                            _(L("Select YES if you want to delete all saved tool changes, \n"
+                                "NO if you want all tool changes switch to color changes, \n"
                                 "or CANCEL to leave it unchanged.")) + "\n\n\t" +
                             _(L("Do you want to delete all saved tool changes?"))  
                             ) : ( // t_mode::MultiExtruder
