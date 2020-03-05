@@ -78,22 +78,6 @@ namespace Slic3r {
         return ::sqrt(value);
     }
 
-    float GCodeTimeEstimator::Block::move_length() const
-    {
-        float length = ::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
-        return (length > 0.0f) ? length : std::abs(delta_pos[E]);
-    }
-
-    float GCodeTimeEstimator::Block::is_extruder_only_move() const
-    {
-        return (delta_pos[X] == 0.0f) && (delta_pos[Y] == 0.0f) && (delta_pos[Z] == 0.0f) && (delta_pos[E] != 0.0f);
-    }
-
-    float GCodeTimeEstimator::Block::is_travel_move() const
-    {
-        return delta_pos[E] == 0.0f;
-    }
-
     float GCodeTimeEstimator::Block::acceleration_time() const
     {
         return trapezoid.acceleration_time(feedrate.entry, acceleration);
@@ -106,7 +90,7 @@ namespace Slic3r {
 
     float GCodeTimeEstimator::Block::deceleration_time() const
     {
-        return trapezoid.deceleration_time(move_length(), acceleration);
+        return trapezoid.deceleration_time(distance, acceleration);
     }
 
     float GCodeTimeEstimator::Block::cruise_distance() const
@@ -116,8 +100,6 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::Block::calculate_trapezoid()
     {
-        float distance = move_length();
-
         trapezoid.cruise_feedrate = feedrate.cruise;
 
         float accelerate_distance = std::max(0.0f, estimate_acceleration_distance(feedrate.entry, feedrate.cruise, acceleration));
@@ -129,7 +111,7 @@ namespace Slic3r {
         // and start braking in order to reach the exit_feedrate exactly at the end of this block.
         if (cruise_distance < 0.0f)
         {
-            accelerate_distance = clamp(0.0f, distance, intersection_distance(feedrate.entry, feedrate.exit, acceleration, distance));
+            accelerate_distance = std::clamp(intersection_distance(feedrate.entry, feedrate.exit, acceleration, distance), 0.0f, distance);
             cruise_distance = 0.0f;
             trapezoid.cruise_feedrate = Trapezoid::speed_from_distance(feedrate.entry, accelerate_distance, acceleration);
         }
@@ -1017,11 +999,20 @@ namespace Slic3r {
                 return current_absolute_position;
         };
 
+        auto move_length = [](const std::array<float, Num_Axis>& delta_pos) {
+            float xyz_length = std::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
+            return (xyz_length > 0.0f) ? xyz_length : std::abs(delta_pos[E]);
+        };
+
+        auto is_extruder_only_move = [](const std::array<float, Num_Axis>& delta_pos) {
+            return (delta_pos[X] == 0.0f) && (delta_pos[Y] == 0.0f) && (delta_pos[Z] == 0.0f) && (delta_pos[E] != 0.0f);
+        };
+
         PROFILE_FUNC();
         increment_g1_line_id();
 
         // updates axes positions from line
-        float new_pos[Num_Axis];
+        std::array<float, Num_Axis> new_pos;
         for (unsigned char a = X; a < Num_Axis; ++a)
         {
             new_pos[a] = axis_absolute_position((EAxis)a, line);
@@ -1036,10 +1027,11 @@ namespace Slic3r {
 
         // calculates block movement deltas
         float max_abs_delta = 0.0f;
+        std::array<float, Num_Axis> delta_pos;
         for (unsigned char a = X; a < Num_Axis; ++a)
         {
-            block.delta_pos[a] = new_pos[a] - get_axis_position((EAxis)a);
-            max_abs_delta = std::max(max_abs_delta, std::abs(block.delta_pos[a]));
+            delta_pos[a] = new_pos[a] - get_axis_position((EAxis)a);
+            max_abs_delta = std::max(max_abs_delta, std::abs(delta_pos[a]));
         }
 
         // is it a move ?
@@ -1047,15 +1039,15 @@ namespace Slic3r {
             return;
 
         // calculates block feedrate
-        m_curr.feedrate = std::max(get_feedrate(), block.is_travel_move() ? get_minimum_travel_feedrate() : get_minimum_feedrate());
+        m_curr.feedrate = std::max(get_feedrate(), (delta_pos[E] == 0.0f) ? get_minimum_travel_feedrate() : get_minimum_feedrate());
 
-        float distance = block.move_length();
-        float invDistance = 1.0f / distance;
+        block.distance = move_length(delta_pos);
+        float invDistance = 1.0f / block.distance;
 
         float min_feedrate_factor = 1.0f;
         for (unsigned char a = X; a < Num_Axis; ++a)
         {
-            m_curr.axis_feedrate[a] = m_curr.feedrate * block.delta_pos[a] * invDistance;
+            m_curr.axis_feedrate[a] = m_curr.feedrate * delta_pos[a] * invDistance;
             if (a == E)
                 m_curr.axis_feedrate[a] *= get_extrude_factor_override_percentage();
 
@@ -1076,12 +1068,12 @@ namespace Slic3r {
         }
 
         // calculates block acceleration
-        float acceleration = block.is_extruder_only_move() ? get_retract_acceleration() : get_acceleration();
+        float acceleration = is_extruder_only_move(delta_pos) ? get_retract_acceleration() : get_acceleration();
 
         for (unsigned char a = X; a < Num_Axis; ++a)
         {
             float axis_max_acceleration = get_axis_max_acceleration((EAxis)a);
-            if (acceleration * std::abs(block.delta_pos[a]) * invDistance > axis_max_acceleration)
+            if (acceleration * std::abs(delta_pos[a]) * invDistance > axis_max_acceleration)
                 acceleration = axis_max_acceleration;
         }
 
@@ -1161,7 +1153,7 @@ namespace Slic3r {
                 vmax_junction = m_curr.safe_feedrate;
         }
 
-        float v_allowable = Block::max_allowable_speed(-acceleration, m_curr.safe_feedrate, distance);
+        float v_allowable = Block::max_allowable_speed(-acceleration, m_curr.safe_feedrate, block.distance);
         block.feedrate.entry = std::min(vmax_junction, v_allowable);
 
         block.max_entry_speed = vmax_junction;
@@ -1185,21 +1177,21 @@ namespace Slic3r {
         // detects block move type
         block.move_type = Block::Noop;
 
-        if (block.delta_pos[E] < 0.0f)
+        if (delta_pos[E] < 0.0f)
         {
-            if ((block.delta_pos[X] != 0.0f) || (block.delta_pos[Y] != 0.0f) || (block.delta_pos[Z] != 0.0f))
+            if ((delta_pos[X] != 0.0f) || (delta_pos[Y] != 0.0f) || (delta_pos[Z] != 0.0f))
                 block.move_type = Block::Move;
             else
                 block.move_type = Block::Retract;
         }
-        else if (block.delta_pos[E] > 0.0f)
+        else if (delta_pos[E] > 0.0f)
         {
-            if ((block.delta_pos[X] == 0.0f) && (block.delta_pos[Y] == 0.0f) && (block.delta_pos[Z] == 0.0f))
+            if ((delta_pos[X] == 0.0f) && (delta_pos[Y] == 0.0f) && (delta_pos[Z] == 0.0f))
                 block.move_type = Block::Unretract;
-            else if ((block.delta_pos[X] != 0.0f) || (block.delta_pos[Y] != 0.0f))
+            else if ((delta_pos[X] != 0.0f) || (delta_pos[Y] != 0.0f))
                 block.move_type = Block::Extrude;
         }
-        else if ((block.delta_pos[X] != 0.0f) || (block.delta_pos[Y] != 0.0f) || (block.delta_pos[Z] != 0.0f))
+        else if ((delta_pos[X] != 0.0f) || (delta_pos[Y] != 0.0f) || (delta_pos[Z] != 0.0f))
             block.move_type = Block::Move;
 #endif // ENABLE_MOVE_STATS
 
@@ -1558,7 +1550,7 @@ namespace Slic3r {
         {
             if (prev.feedrate.entry < curr.feedrate.entry)
             {
-                float entry_speed = std::min(curr.feedrate.entry, Block::max_allowable_speed(-prev.acceleration, prev.feedrate.entry, prev.move_length()));
+                float entry_speed = std::min(curr.feedrate.entry, Block::max_allowable_speed(-prev.acceleration, prev.feedrate.entry, prev.distance));
 
                 // Check for junction speed change
                 if (curr.feedrate.entry != entry_speed)
@@ -1580,7 +1572,7 @@ namespace Slic3r {
             // If nominal length true, max junction speed is guaranteed to be reached. Only compute
             // for max allowable speed if block is decelerating and nominal length is false.
             if (!curr.flags.nominal_length && (curr.max_entry_speed > next.feedrate.entry))
-                curr.feedrate.entry = std::min(curr.max_entry_speed, Block::max_allowable_speed(-curr.acceleration, next.feedrate.entry, curr.move_length()));
+                curr.feedrate.entry = std::min(curr.max_entry_speed, Block::max_allowable_speed(-curr.acceleration, next.feedrate.entry, curr.distance));
             else
                 curr.feedrate.entry = curr.max_entry_speed;
 

@@ -152,7 +152,7 @@ namespace Slic3r {
 #endif // ENABLE_MOVE_STATS
             Flags flags;
 
-            float delta_pos[Num_Axis]; // mm
+            float distance; // mm
             float acceleration;        // mm/s^2
             float max_entry_speed;     // mm/s
             float safe_feedrate;       // mm/s
@@ -160,17 +160,6 @@ namespace Slic3r {
             FeedrateProfile feedrate;
             Trapezoid trapezoid;
             float elapsed_time;
-
-            Block() = default;
-
-            // Returns the length of the move covered by this block, in mm
-            float move_length() const;
-
-            // Returns true if this block is a retract/unretract move only
-            float is_extruder_only_move() const;
-
-            // Returns true if this block is a move with no extrusion
-            float is_travel_move() const;
 
             // Returns the time spent accelerating toward cruise speed, in seconds
             float acceleration_time() const;
