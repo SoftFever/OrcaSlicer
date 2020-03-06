@@ -3096,6 +3096,11 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach)
 
     if (m_type == Preset::TYPE_PRINTER)
         static_cast<TabPrinter*>(this)->m_initial_extruders_count = static_cast<TabPrinter*>(this)->m_extruders_count;
+
+    // Parent preset is "default" after detaching, so we should to update UI values, related on parent preset  
+    if (detach)
+        update_ui_items_related_on_parent_preset(m_presets->get_selected_preset_parent());
+
     update_changed_ui();
 
     /* If filament preset is saved for multi-material printer preset, 
