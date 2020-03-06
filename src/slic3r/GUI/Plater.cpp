@@ -296,15 +296,20 @@ PresetBitmapComboBox(parent, wxSize(15 * wxGetApp().em_unit(), -1)),
     if (preset_type == Slic3r::Preset::TYPE_FILAMENT)
     {
         Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {
-            int shifl_Left = 0;
+            PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+            const Preset* selected_preset = preset_bundle->filaments.find_preset(preset_bundle->filament_presets[extruder_idx]);
+            // Wide icons are shown if the currently selected preset is not compatible with the current printer,
+            // and red flag is drown in front of the selected preset.
+            bool          wide_icons = selected_preset != nullptr && !selected_preset->is_compatible;
             float scale = m_em_unit*0.1f;
+
+            int shifl_Left = wide_icons ? int(scale * 16 + 0.5) : 0;
 #if defined(wxBITMAPCOMBOBOX_OWNERDRAWN_BASED)
-            shifl_Left  = int(scale * 4 + 0.5f); // IMAGE_SPACING_RIGHT = 4 for wxBitmapComboBox -> Space left of image
+            shifl_Left  += int(scale * 4 + 0.5f); // IMAGE_SPACING_RIGHT = 4 for wxBitmapComboBox -> Space left of image
 #endif
-            int icon_right_pos = int(scale * (24+4) + 0.5);
+            int icon_right_pos = shifl_Left + int(scale * (24+4) + 0.5);
             int mouse_pos = event.GetLogicalPosition(wxClientDC(this)).x;
-//             if (extruder_idx < 0 || event.GetLogicalPosition(wxClientDC(this)).x > 24) {
-            if ( extruder_idx < 0 || mouse_pos < shifl_Left || mouse_pos > icon_right_pos ) {
+            if (mouse_pos < shifl_Left || mouse_pos > icon_right_pos ) {
                 // Let the combo box process the mouse click.
                 event.Skip();
                 return;
@@ -333,7 +338,7 @@ PresetBitmapComboBox(parent, wxSize(15 * wxGetApp().em_unit(), -1)),
                 cfg_new.set_key_value("extruder_colour", colors);
 
                 wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg_new);
-                wxGetApp().preset_bundle->update_plater_filament_ui(extruder_idx, this);
+                preset_bundle->update_plater_filament_ui(extruder_idx, this);
                 wxGetApp().plater()->on_config_change(cfg_new);
             }
         });
