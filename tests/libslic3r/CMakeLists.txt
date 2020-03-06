@@ -13,6 +13,7 @@ add_executable(${_TEST_NAME}_tests
 	test_stl.cpp
         test_meshsimplify.cpp
         test_meshboolean.cpp
+        test_timeutils.cpp
 	)
 
 if (TARGET OpenVDB::openvdb)
