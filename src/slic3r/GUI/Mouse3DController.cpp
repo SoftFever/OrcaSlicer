@@ -451,12 +451,13 @@ void Mouse3DController::shutdown()
     	// Stop the worker thread, if running.
     	{
     		// Notify the worker thread to cancel wait on detection polling.
-			std::unique_lock<std::mutex> lock(m_stop_condition_mutex);
+			std::lock_guard<std::mutex> lock(m_stop_condition_mutex);
 			m_stop = true;
-			m_stop_condition.notify_all();
 		}
+		m_stop_condition.notify_all();
 		// Wait for the worker thread to stop.
         m_thread.join();
+        m_stop = false;
 	}
 }
 

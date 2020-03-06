@@ -155,6 +155,7 @@ GUI_App::GUI_App()
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
     , m_wizard(nullptr)
+	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
 {}
 
 GUI_App::~GUI_App()
@@ -262,7 +263,6 @@ bool GUI_App::on_init_inner()
 
     m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
 
-	RemovableDriveManager::get_instance().init();
 
     Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
     {
@@ -273,10 +273,6 @@ bool GUI_App::on_init_inner()
             app_config->save();
 
         this->obj_manipul()->update_if_dirty();
-
-#if !__APPLE__
-		RemovableDriveManager::get_instance().update(wxGetLocalTime(), true);
-#endif
 
 		// Preset updating & Configwizard are done after the above initializations,
 	    // and after MainFrame is created & shown.
