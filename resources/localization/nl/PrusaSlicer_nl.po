@@ -1223,9 +1223,9 @@ msgstr "Weet u zeker dat u wilt doorgaan?"
 
 #: src/slic3r/GUI/DoubleSlider.cpp:1915
 msgid ""
-"Select YES if you want to delete all saved tool changes, \n"
-"\tNO if you want all tool changes switch to color changes, \n"
-"\tor CANCEL to leave it unchanged"
+"Select YES if you want to delete all saved tool changes,\n"
+"NO if you want all tool changes switch to color changes,\n"
+"or CANCEL to leave it unchanged"
 msgstr ""
 "Selecteer JA als u alle opgeslagen toolwisselingen wilt verwijdere,\n"
 "Selecteer NEE als u alle toolwisselingen wil omzetten in kleurwisselingen\n"
@@ -5264,11 +5264,9 @@ msgstr "Huidige preset is gebaseerd op de standaard preset."
 #: src/slic3r/GUI/Tab.cpp:962
 #, c-format
 msgid ""
-"Current preset is inherited from:\n"
-"\t%s"
+"Current preset is inherited from"
 msgstr ""
-"Huidige preset is gebaseerd op:\n"
-"\t%s"
+"Huidige preset is gebaseerd op"
 
 #: src/slic3r/GUI/Tab.cpp:966
 msgid "It can't be deleted or modified."
@@ -5544,16 +5542,18 @@ msgstr "Open een CA-certificaatbestand"
 #: src/slic3r/GUI/Tab.cpp:1759
 #, c-format
 msgid ""
-"HTTPS CA File:\n"
-"    \tOn this system, %s uses HTTPS certificates from the system Certificate "
-"Store or Keychain.\n"
-"    \tTo use a custom CA file, please import your CA file into Certificate "
+"On this system, %s uses HTTPS certificates from the system Certificate "
+"Store or Keychain."
+msgstr ""
+"%s gebruikt op dit systeem HTTPS-certificaten van de Certificate Store "
+"of Keychain."
+
+#: src/slic3r/GUI/Tab.cpp:1759
+msgid ""
+"To use a custom CA file, please import your CA file into Certificate "
 "Store / Keychain."
 msgstr ""
-"HTTPS-CA-bestand:\n"
-"    \t%s gebruikt op dit systeem HTTPS-certificaten van de Certificate Store "
-"of Keychain.\n"
-"    \tOm een aangepast CA-bestand te gebruiken moet uw CA-bestand in de "
+"Om een aangepast CA-bestand te gebruiken moet uw CA-bestand in de "
 "Certificate Store of Keychain geïmporteerd worden."
 
 #: src/slic3r/GUI/Tab.cpp:1799 src/slic3r/GUI/Tab.cpp:2043
@@ -5855,11 +5855,11 @@ msgstr "Wit bolletje"
 #. TRN Description for "WHITE BULLET"
 #: src/slic3r/GUI/Tab.cpp:3255
 msgid ""
-"for the left button: \tindicates a non-system (or non-default) preset,\n"
-"for the right button: \tindicates that the settings hasn't been modified."
+"for the left button: indicates a non-system (or non-default) preset,\n"
+"for the right button: indicates that the settings hasn't been modified."
 msgstr ""
-"linker knop: \tgeeft een niet-systeempreset aan,\n"
-"rechter knop: \tgeeft aan dat de instelling niet veranderd is."
+"linker knop: geeft een niet-systeempreset aan,\n"
+"rechter knop: geeft aan dat de instelling niet veranderd is."
 
 #: src/slic3r/GUI/Tab.cpp:3258
 msgid "BACK ARROW"
@@ -6623,7 +6623,7 @@ msgstr "Print Z"
 #: src/libslic3r/GCode.cpp:639
 msgid ""
 "This is usually caused by negligibly small extrusions or by a faulty model. "
-"Try to repair  the model or change its orientation on the bed."
+"Try to repair the model or change its orientation on the bed."
 msgstr ""
 "Dit komt meestal voor bij verwaarloosbare extrusiehoeveelheden of door een "
 "foutief model. Probeer het model te repareren of verander de oriëntatie."

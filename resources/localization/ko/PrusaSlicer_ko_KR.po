@@ -1207,13 +1207,13 @@ msgstr "다중 압출기 인쇄를 위해 마지막 색상 변경 데이터가 �
 
 #: src/slic3r/GUI/DoubleSlider.cpp:1889
 msgid ""
-"Select YES if you want to delete all saved tool changes, \n"
-"\tNO if you want all tool changes switch to color changes, \n"
-"\tor CANCEL for do nothing"
+"Select YES if you want to delete all saved tool changes,\n"
+"NO if you want all tool changes switch to color changes,\n"
+"or CANCEL for do nothing"
 msgstr ""
-"저장된 도구 변경 내용을 모두 삭제하려면 YES를 선택합니다. \n"
-"\t아니오 모든 도구 변경 이 색상 변경으로 전환하려면 \n"
-"\t또는 아무것도 하지 않는 취소"
+"저장된 도구 변경 내용을 모두 삭제하려면 YES를 선택합니다.\n"
+"아니오 모든 도구 변경 이 색상 변경으로 전환하려면\n"
+"또는 아무것도 하지 않는 취소"
 
 #: src/slic3r/GUI/DoubleSlider.cpp:1892
 msgid "Do you want to delete all saved tool changes?"
@@ -5411,16 +5411,18 @@ msgstr "CA 인증서 파일 열기"
 #: src/slic3r/GUI/Tab.cpp:1741
 #, c-format
 msgid ""
-"HTTPS CA File:\n"
-"    \tOn this system, %s uses HTTPS certificates from the system Certificate "
+"On this system, %s uses HTTPS certificates from the system Certificate "
 "Store or Keychain.\n"
-"    \tTo use a custom CA file, please import your CA file into Certificate "
+msgstr ""
+"이 시스템에서 %s는 시스템 인증서 저장소나 키체인의 HTTPS 인증서를 사용 "
+"합니다.\n"
+
+#: src/slic3r/GUI/Tab.cpp:1741
+msgid ""
+"To use a custom CA file, please import your CA file into Certificate "
 "Store / Keychain."
 msgstr ""
-"HTTPS CA 파일:\n"
-"   \t이 시스템에서 %s는 시스템 인증서 저장소나 키체인의 HTTPS 인증서를 사용 "
-"합니다.\n"
-"   \t사용자 지정 CA 파일을 사용 하려면 CA 파일을 인증서 저장소/키체인에 가져"
+"사용자 지정 CA 파일을 사용 하려면 CA 파일을 인증서 저장소/키체인에 가져"
 "오십시오."
 
 #: src/slic3r/GUI/Tab.cpp:1781 src/slic3r/GUI/Tab.cpp:2025
@@ -5717,8 +5719,8 @@ msgstr "흰색 글머리 기호"
 #. TRN Description for "WHITE BULLET"
 #: src/slic3r/GUI/Tab.cpp:3235
 msgid ""
-"for the left button: \tindicates a non-system (or non-default) preset,\n"
-"for the right button: \tindicates that the settings hasn't been modified."
+"for the left button: indicates a non-system (or non-default) preset,\n"
+"for the right button: indicates that the settings hasn't been modified."
 msgstr ""
 "왼쪽 단추의 경우: 비시스템(또는 기본이 아닌) 사전 설정을 나타냅니다.\n"
 "오른쪽 버튼: 설정이 수정되지 않았음을 나타냅니다."
@@ -6478,7 +6480,7 @@ msgstr "인쇄 z"
 #: src/libslic3r/GCode.cpp:639
 msgid ""
 "This is usually caused by negligibly small extrusions or by a faulty model. "
-"Try to repair  the model or change its orientation on the bed."
+"Try to repair the model or change its orientation on the bed."
 msgstr ""
 "이는 일반적으로 무시할 수 있는 작은 돌출 또는 결함이 있는 모델에 의해 발생합"
 "니다. 모델을 수리하거나 배드에서 방향을 변경하십시오."
