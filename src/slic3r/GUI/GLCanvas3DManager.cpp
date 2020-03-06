@@ -302,9 +302,9 @@ void GLCanvas3DManager::init_gl()
 
         if (! s_gl_info.is_version_greater_or_equal_to(2, 0)) {
         	// Complain about the OpenGL version.
-        	wxString message = wxString::Format(
-        		_(L("PrusaSlicer requires OpenGL 2.0 capable graphics driver to run correctly, \n"
-        			"while OpenGL version %s, render %s, vendor %s was detected.")), wxString(s_gl_info.get_version()), wxString(s_gl_info.get_renderer()), wxString(s_gl_info.get_vendor()));
+            wxString message = from_u8((boost::format(
+                _utf8(L("PrusaSlicer requires OpenGL 2.0 capable graphics driver to run correctly, \n"
+                    "while OpenGL version %s, render %s, vendor %s was detected."))) % s_gl_info.get_version() % s_gl_info.get_renderer() % s_gl_info.get_vendor()).str());
         	message += "\n";
         	message += _(L("You may need to update your graphics card driver."));
 #ifdef _WIN32

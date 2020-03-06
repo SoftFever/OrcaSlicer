@@ -632,13 +632,16 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
             // Negative support_contact_z is not taken into account, it can result in false positives in cases
             // where previous layer has object extrusions too (https://github.com/prusa3d/PrusaSlicer/issues/2752)
 
+            // Only check this layer in case it has some extrusions.
+            bool has_extrusions = (layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
+                               || (layer_to_print.support_layer && layer_to_print.support_layer->has_extrusions());
 
-            if (layer_to_print.print_z() > maximal_print_z + 2. * EPSILON)
+            if (has_extrusions && layer_to_print.print_z() > maximal_print_z + 2. * EPSILON)
                 throw std::runtime_error(_(L("Empty layers detected, the output would not be printable.")) + "\n\n" +
                     _(L("Object name")) + ": " + object.model_object()->name + "\n" + _(L("Print z")) + ": " +
                     std::to_string(layers_to_print.back().print_z()) + "\n\n" + _(L("This is "
                     "usually caused by negligibly small extrusions or by a faulty model. Try to repair "
-                    " the model or change its orientation on the bed.")));
+                    "the model or change its orientation on the bed.")));
             // Remember last layer with extrusions.
             last_extrusion_layer = &layers_to_print.back();
         }

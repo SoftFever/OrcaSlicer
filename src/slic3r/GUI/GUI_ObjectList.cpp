@@ -354,7 +354,7 @@ wxString ObjectList::get_mesh_errors_list(const int obj_idx, const int vol_idx /
 
     for (const auto& error : error_msg)
         if (error.second > 0)
-            tooltip += wxString::Format("\t%d %s\n", error.second, _(error.first));
+            tooltip += from_u8((boost::format("\t%1% %2%\n") % error.second % _utf8(error.first)).str());
 
     if (is_windows10())
         tooltip += _(L("Right button click the icon to fix STL through Netfabb"));
@@ -1180,7 +1180,7 @@ const std::vector<std::string>& ObjectList::get_options_for_bundle(const wxStrin
 
     for (auto& it : bundle_quick)
     {
-        if ( bundle_name == wxString::Format(_(L("Quick Add Settings (%s)")), _(it.first)) )
+        if ( bundle_name == from_u8((boost::format(_utf8(L("Quick Add Settings (%s)"))) % _(it.first)).str()) )
             return it.second;
     }
 #endif
@@ -1528,13 +1528,13 @@ wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_)
 #if 0
     for (auto& it : m_freq_settings_fff)
     {
-        settings_id = menu->FindItem(wxString::Format(_(L("Quick Add Settings (%s)")), _(it.first)));
+        settings_id = menu->FindItem(from_u8((boost::format(_utf8(L("Quick Add Settings (%s)"))) % _(it.first)).str()));
         if (settings_id != wxNOT_FOUND)
             menu->Destroy(settings_id);
     }
     for (auto& it : m_freq_settings_sla)
     {
-        settings_id = menu->FindItem(wxString::Format(_(L("Quick Add Settings (%s)")), _(it.first)));
+        settings_id = menu->FindItem(from_u8((boost::format(_utf8(L("Quick Add Settings (%s)"))) % _(it.first)).str()));
         if (settings_id != wxNOT_FOUND)
             menu->Destroy(settings_id);
     }
@@ -1847,7 +1847,7 @@ void ObjectList::create_freq_settings_popupmenu(wxMenu *menu, const bool is_obje
         if (improper_category(it.first, extruders_cnt))
             continue;
 
-        append_menu_item(menu, wxID_ANY, wxString::Format(_(L("Quick Add Settings (%s)")), _(it.first)), "",
+        append_menu_item(menu, wxID_ANY, from_u8((boost::format(_utf8(L("Quick Add Settings (%s)"))) % _(it.first)).str()), "",
                         [menu, this](wxCommandEvent& event) { get_freq_settings_choice(menu->GetLabel(event.GetId())); }, 
                         CATEGORY_ICON.find(it.first) == CATEGORY_ICON.end() ? wxNullBitmap : CATEGORY_ICON.at(it.first), menu,
                         [this]() { return true; }, wxGetApp().plater());
@@ -4091,9 +4091,9 @@ void ObjectList::toggle_printable_state(wxDataViewItem item)
         // get object's printable and change it
         const bool printable = !m_objects_model->IsPrintable(item);
 
-        const wxString snapshot_text = wxString::Format("%s %s", 
-                                                        printable ? _(L("Set Printable")) : _(L("Set Unprintable")), 
-                                                        object->name);
+        const wxString snapshot_text = from_u8((boost::format("%1% %2%")
+                                                  % (printable ? _(L("Set Printable")) : _(L("Set Unprintable")))
+                                                  % object->name).str());
         take_snapshot(snapshot_text);
 
         // set printable value for all instances in object

@@ -1,4 +1,3 @@
-
 #include "Mouse3DController.hpp"
 
 #include <stdint.h>
@@ -10,7 +9,7 @@
 #include <cstdio>
 
 
-static Slic3r::GUI::Mouse3DController* mouse_3d_controller = NULL;
+static Slic3r::GUI::Mouse3DController* mouse_3d_controller = nullptr;
 
 static uint16_t clientID = 0;
 
@@ -65,7 +64,7 @@ typedef int16_t (*ConnexionClientControl_ptr)(uint16_t clientID,
                                               int32_t param,
                                               int32_t *result);
 
-#define DECLARE_FUNC(name) name##_ptr name = NULL
+#define DECLARE_FUNC(name) name##_ptr name = nullptr
 
 DECLARE_FUNC(SetConnexionHandlers);
 DECLARE_FUNC(InstallConnexionHandlers);
@@ -79,15 +78,12 @@ static void *load_func(void *module, const char *func_name)
 {
   void *func = dlsym(module, func_name);
 
-//#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
   if (func) {
       BOOST_LOG_TRIVIAL(info) << func_name <<" loaded";
   }
   else {
-    //printf("<!> %s\n", dlerror());
     BOOST_LOG_TRIVIAL(error) <<"loading 3dx drivers dlsym error: "<< dlerror();
   }
-//#endif
 
   return func;
 }
@@ -98,9 +94,8 @@ static void *module;  // handle to the whole driver
 
 static bool load_driver_functions()
 {
-  if (driver_loaded) {
+  if (driver_loaded)
     return true;
-  }
 
   module = dlopen("/Library/Frameworks/3DconnexionClient.framework/3DconnexionClient",
                   RTLD_LAZY | RTLD_LOCAL);
@@ -109,15 +104,14 @@ static bool load_driver_functions()
     BOOST_LOG_TRIVIAL(info) << "loading 3dx drivers";
     LOAD_FUNC(SetConnexionHandlers);
 
-    if (SetConnexionHandlers != NULL) {
+    if (SetConnexionHandlers != nullptr) {
       driver_loaded = true;
       has_new_driver = true;
     }
     else {
-        BOOST_LOG_TRIVIAL(info) << "installing 3dx drivers";
+      BOOST_LOG_TRIVIAL(info) << "installing 3dx drivers";
       LOAD_FUNC(InstallConnexionHandlers);
-
-      driver_loaded = (InstallConnexionHandlers != NULL);
+      driver_loaded = (InstallConnexionHandlers != nullptr);
     }
 
     if (driver_loaded) {
@@ -128,17 +122,11 @@ static bool load_driver_functions()
       LOAD_FUNC(ConnexionClientControl);
     }
   }
- else {
+  else {
     BOOST_LOG_TRIVIAL(error) << "3dx drivers module loading error: "<< dlerror() ;
-#if DENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-    printf("<!> %s\n", dlerror());
-#endif
   }
-#if DENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-  printf("loaded: %s\n", driver_loaded ? "YES" : "NO");
-  printf("new: %s\n", has_new_driver ? "YES" : "NO");
-#endif
-    BOOST_LOG_TRIVIAL(info) << "3dx drivers loaded: "<< driver_loaded ? "YES" : "NO" ;
+
+  BOOST_LOG_TRIVIAL(info) << "3dx drivers loaded: " << (driver_loaded ? (has_new_driver ? "YES, new" : "YES, old") : "NO");
   return driver_loaded;
 }
 
@@ -149,29 +137,22 @@ static void unload_driver()
 
 static void DeviceAdded(uint32_t unused)
 {
-#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-    std::cout<<"3D device added"<<std::endl;
-#endif
   BOOST_LOG_TRIVIAL(info)<<"3dx device added";
   // determine exactly which device is plugged in
   int32_t result;
   ConnexionClientControl(clientID, kConnexionCtlGetDeviceID, 0, &result);
-  int16_t vendorID = result >> 16;
-  int16_t productID = result & 0xffff;
-
+  int vendorID  = result >> 16;
+  int productID = result & 0xffff;
   //TODO: verify device
-
-    
-  mouse_3d_controller->set_mac_mouse_connected(true);
+  char buf[64];
+  sprintf(buf, "VID%04X,PID%04X", vendorID, productID);
+  mouse_3d_controller->connected(buf);
 }
 
 static void DeviceRemoved(uint32_t unused)
 {
-#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-  printf("3d device removed\n");
-#endif
   BOOST_LOG_TRIVIAL(info) << "3dx device removed\n";
-  mouse_3d_controller->set_mac_mouse_connected(true);
+  mouse_3d_controller->disconnected();
 }
 
 static void DeviceEvent(uint32_t unused, uint32_t msg_type, void *msg_arg)
@@ -181,21 +162,16 @@ static void DeviceEvent(uint32_t unused, uint32_t msg_type, void *msg_arg)
     if (s->client == clientID) {
       switch (s->command) {
         case kConnexionCmdHandleAxis: {
-            /*
-             The axis field is an array of 6 signed 16-bit integers corresponding to the 6 device axes. Data is ordered as Tx, Tz, Ty, Rx, Rz, Ry. The values reported are scaled by the driver according to the speed slider settings on the 3Dconnexion preference panel. At maximum speed, the range is - 1024 to 1024. Typical range that you should optimize your application for should be -500 to 500.
-             */
-            //Actually we are getting values way over 1024. Max is probably 2048 now.
-          std::array<double, 6> packet;
-          for (int i = 0; i < 6; i++) {
+          // The axis field is an array of 6 signed 16-bit integers corresponding to the 6 device axes. Data is ordered as Tx, Tz, Ty, Rx, Rz, Ry. The values reported are scaled by the driver according to the speed slider settings on the 3Dconnexion preference panel. At maximum speed, the range is - 1024 to 1024. Typical range that you should optimize your application for should be -500 to 500.
+          // Actually we are getting values way over 1024. Max is probably 2048 now.
+          Slic3r::GUI::Mouse3DController::DataPacketAxis packet;
+          for (int i = 0; i < 6; ++ i)
               packet[i] = (double)s->axis[i]/350.0;//wanted to divide by 500 but 350 is used at raw input so i used same value.
-          }
-          mouse_3d_controller->handle_input_axis(packet);
-
-          
+          mouse_3d_controller->handle_input(packet);
           break;
         }
         case kConnexionCmdHandleButtons:
-        break;
+          break;
         case kConnexionCmdAppSpecific:
           break;
         default:
@@ -203,41 +179,35 @@ static void DeviceEvent(uint32_t unused, uint32_t msg_type, void *msg_arg)
       }
     }
   }
-  
 }
 
 namespace Slic3r {
 namespace GUI {
-Mouse3DHandlerMac::Mouse3DHandlerMac(Mouse3DController* controller)
+
+// Initialize the application.
+void Mouse3DController::init()
 {
-   BOOST_LOG_TRIVIAL(info) << "3dx mac handler starts";
+  BOOST_LOG_TRIVIAL(info) << "3dx mac handler starts";
   if (load_driver_functions()) {
-    mouse_3d_controller = controller;
+    mouse_3d_controller = this;
 
-    uint16_t error;
-    if (has_new_driver) {
-      error = SetConnexionHandlers(DeviceEvent, DeviceAdded, DeviceRemoved, false);
-    }
-    else {
-      error = InstallConnexionHandlers(DeviceEvent, DeviceAdded, DeviceRemoved);
-    }
+    uint16_t error = has_new_driver ? 
+      SetConnexionHandlers(DeviceEvent, DeviceAdded, DeviceRemoved, false) :
+      InstallConnexionHandlers(DeviceEvent, DeviceAdded, DeviceRemoved);
 
-    if (error) {
-      return;
+    if (! error) {
+      // Registration is done either by 4letter constant (CFBundleSignature - obsolete
+      //and we dont have that) or Executable name in pascal string(first byte is string lenght).
+      //If no packets are recieved the name might be different - check cmake. If debugging try commenting
+      // set_target_properties(PrusaSlicer PROPERTIES OUTPUT_NAME "prusa-slicer")
+      clientID = RegisterConnexionClient(
+          0, "\013PrusaSlicer", kConnexionClientModeTakeOver, kConnexionMaskAxis);
+        BOOST_LOG_TRIVIAL(info) << "3dx mac handler registered";
     }
-
-    // Registration is done either by 4letter constant (CFBundleSignature - obsolete
-    //and we dont have that) or Executable name in pascal string(first byte is string lenght).
-    //If no packets are recieved the name might be different - check cmake. If debugging try commenting
-    // set_target_properties(PrusaSlicer PROPERTIES OUTPUT_NAME "prusa-slicer")
-    
-    clientID = RegisterConnexionClient(
-        0, "\013PrusaSlicer", kConnexionClientModeTakeOver, kConnexionMaskAxis);
-      BOOST_LOG_TRIVIAL(info) << "3dx mac handler registered";
   }
 }
 
-Mouse3DHandlerMac::~Mouse3DHandlerMac()
+void Mouse3DController::shutdown()
 {
   if (driver_loaded) {
     UnregisterConnexionClient(clientID);
@@ -245,11 +215,6 @@ Mouse3DHandlerMac::~Mouse3DHandlerMac()
     unload_driver();
   }
   mouse_3d_controller = nullptr;
-}
-
-bool Mouse3DHandlerMac::available()
-{
-  return driver_loaded;
 }
 
 }}//namespace Slic3r::GUI

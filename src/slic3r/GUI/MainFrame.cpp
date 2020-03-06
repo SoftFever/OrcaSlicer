@@ -109,13 +109,20 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
             return;
         }
         
-        if(m_plater) m_plater->stop_jobs();
+        if (m_plater)
+        	m_plater->stop_jobs();
 
         // Weird things happen as the Paint messages are floating around the windows being destructed.
         // Avoid the Paint messages by hiding the main window.
         // Also the application closes much faster without these unnecessary screen refreshes.
         // In addition, there were some crashes due to the Paint events sent to already destructed windows.
         this->Show(false);
+
+		// Stop the background thread (Windows and Linux).
+		// Disconnect from a 3DConnextion driver (OSX).
+        m_plater->get_mouse3d_controller().shutdown();
+		// Store the device parameter database back to appconfig.
+        m_plater->get_mouse3d_controller().save_config(*wxGetApp().app_config);
 
         // Save the slic3r.ini.Usually the ini file is saved from "on idle" callback,
         // but in rare cases it may not have been called yet.
@@ -827,7 +834,7 @@ void MainFrame::quick_slice(const int qs)
     } 
     else if (qs & qsSaveAs) {
         // The following line may die if the output_filename_format template substitution fails.
-        wxFileDialog dlg(this, wxString::Format(_(L("Save %s file as:")) , qs & qsExportSVG ? _(L("SVG")) : _(L("G-code")) ),
+        wxFileDialog dlg(this, from_u8((boost::format(_utf8(L("Save %s file as:"))) % ((qs & qsExportSVG) ? _(L("SVG")) : _(L("G-code")))).str()),
             wxGetApp().app_config->get_last_output_dir(get_dir_name(output_file)), get_base_name(input_file), 
             qs & qsExportSVG ? file_wildcards(FT_SVG) : file_wildcards(FT_GCODE),
             wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -850,7 +857,7 @@ void MainFrame::quick_slice(const int qs)
     // show processbar dialog
     m_progress_dialog = new wxProgressDialog(_(L("Slicing")) + dots, 
     // TRN "Processing input_file_basename"
-                                             wxString::Format(_(L("Processing %s")), input_file_basename + dots),
+                                             from_u8((boost::format(_utf8(L("Processing %s"))) % (input_file_basename + dots)).str()),
         100, this, 4);
     m_progress_dialog->Pulse();
     {
@@ -1029,7 +1036,7 @@ void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool re
 	wxGetApp().load_current_presets();
 
     const auto message = wxString::Format(_(L("%d presets successfully imported.")), presets_imported);
-    Slic3r::GUI::show_info(this, message, "Info");
+    Slic3r::GUI::show_info(this, message, wxString("Info"));
 }
 
 // Load a provied DynamicConfig into the Print / Filament / Printer tabs, thus modifying the active preset.

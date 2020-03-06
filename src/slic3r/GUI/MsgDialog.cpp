@@ -81,7 +81,7 @@ ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg)
         html->SetMinSize(wxSize(40 * wxGetApp().em_unit(), -1));
         wxFont 	  	font 			= wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 		wxColour  	text_clr  		= wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
-		wxColour  	bgr_clr 		= wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK); // wxSYS_COLOUR_WINDOW
+        wxColour  	bgr_clr 		= wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 		auto      	text_clr_str 	= wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
 		auto      	bgr_clr_str 	= wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
 		const int 	font_size       = font.GetPointSize()-1;

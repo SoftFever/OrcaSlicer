@@ -130,7 +130,7 @@ void Tab::create_preset_tab()
     add_scaled_button(panel, &m_btn_hide_incompatible_presets, m_bmp_hide_incompatible_presets.name());
 
     // TRN "Save current Settings"
-    m_btn_save_preset->SetToolTip(wxString::Format(_(L("Save current %s")),m_title));
+    m_btn_save_preset->SetToolTip(from_u8((boost::format(_utf8(L("Save current %s"))) % m_title).str()));
     m_btn_delete_preset->SetToolTip(_(L("Delete this preset")));
     m_btn_delete_preset->Disable();
 
@@ -1032,8 +1032,7 @@ void Tab::update_preset_description_line()
     } else if (parent == nullptr) {
         description_line = _(L("Current preset is inherited from the default preset."));
     } else {
-        description_line = wxString::Format(
-            _(L("Current preset is inherited from:\n\t%s")), GUI::from_u8(parent->name));
+        description_line = _(L("Current preset is inherited from")) + ":\n\t" + parent->name;
     }
 
     if (preset.is_default || preset.is_system)
@@ -1750,8 +1749,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
         btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
             std::unique_ptr<PrintHost> host(PrintHost::get_print_host(m_config));
             if (! host) {
-                const auto text = wxString::Format("%s",
-                    _(L("Could not get a valid Printer Host reference")));
+                const wxString text = _(L("Could not get a valid Printer Host reference"));
                 show_error(this, text);
                 return;
             }
@@ -1777,7 +1775,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
     option.opt.width = Field::def_width_wider();
     optgroup->append_single_option_line(option);
 
-    const auto ca_file_hint = _(L("HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate."));
+    const auto ca_file_hint = _utf8(L("HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate."));
 
     if (Http::ca_file_supported()) {
         option = optgroup->get_option("printhost_cafile");
@@ -1819,15 +1817,19 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
         Line line { "", "" };
         line.full_width = 1;
 
-        line.widget = [this, ca_file_hint] (wxWindow* parent) {
-            auto txt = new wxStaticText(parent, wxID_ANY, wxString::Format("%s\n\n\t%s",
-    wxString::Format(_(L("HTTPS CA File:\n\
+        line.widget = [ca_file_hint] (wxWindow* parent) {
+            std::string info = _utf8(L("HTTPS CA File")) + ":\n\t" +
+                (boost::format(_utf8(L("On this system, %s uses HTTPS certificates from the system Certificate Store or Keychain."))) % SLIC3R_APP_NAME).str() +
+                "\n\t" + _utf8(L("To use a custom CA file, please import your CA file into Certificate Store / Keychain."));
+
+            auto txt = new wxStaticText(parent, wxID_ANY, from_u8((boost::format("%1%\n\n\t%2%") % info % ca_file_hint).str()));
+/*    % (boost::format(_utf8(L("HTTPS CA File:\n\
     \tOn this system, %s uses HTTPS certificates from the system Certificate Store or Keychain.\n\
-    \tTo use a custom CA file, please import your CA file into Certificate Store / Keychain.")), SLIC3R_APP_NAME),
-                ca_file_hint));
-            txt->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+    \tTo use a custom CA file, please import your CA file into Certificate Store / Keychain."))) % SLIC3R_APP_NAME).str()
+    % std::string(ca_file_hint.ToUTF8())).str()));
+*/            txt->SetFont(Slic3r::GUI::wxGetApp().normal_font());
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
-            sizer->Add(txt);
+            sizer->Add(txt, 1, wxEXPAND);
             return sizer;
         };
 
@@ -2921,8 +2923,8 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
     std::string   type_name  = presets->name();
     wxString      tab        = "          ";
     wxString      name       = old_preset.is_default ?
-        wxString::Format(_(L("Default preset (%s)")), _(type_name)) :
-        wxString::Format(_(L("Preset (%s)")), _(type_name)) + "\n" + tab + old_preset.name;
+        from_u8((boost::format(_utf8(L("Default preset (%s)"))) % _utf8(type_name)).str()) :
+        from_u8((boost::format(_utf8(L("Preset (%s)"))) % _utf8(type_name)).str()) + "\n" + tab + old_preset.name;
 
     // Collect descriptions of the dirty options.
     wxString changes;
@@ -3190,7 +3192,7 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 {
     deps.checkbox = new wxCheckBox(parent, wxID_ANY, _(L("All")));
     deps.checkbox->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-    add_scaled_button(parent, &deps.btn, "printer_white", wxString::Format(" %s %s", _(L("Set")), dots), wxBU_LEFT | wxBU_EXACTFIT);
+    add_scaled_button(parent, &deps.btn, "printer_white", from_u8((boost::format(" %s %s") % _utf8(L("Set")) % std::string(dots.ToUTF8())).str()), wxBU_LEFT | wxBU_EXACTFIT);
     deps.btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -3312,8 +3314,8 @@ void Tab::fill_icon_descriptions()
 
     m_icon_descriptions.emplace_back(&m_bmp_white_bullet, L("WHITE BULLET"),
         // TRN Description for "WHITE BULLET"
-        L("for the left button: \tindicates a non-system (or non-default) preset,\n"
-        "for the right button: \tindicates that the settings hasn't been modified."));
+        L("for the left button: indicates a non-system (or non-default) preset,\n"
+          "for the right button: indicates that the settings hasn't been modified."));
 
     m_icon_descriptions.emplace_back(&m_bmp_value_revert, L("BACK ARROW"),
         // TRN Description for "BACK ARROW"
@@ -3464,7 +3466,7 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
 void SavePresetWindow::build(const wxString& title, const std::string& default_name, std::vector<std::string> &values)
 {
     // TRN Preset
-    auto text = new wxStaticText(this, wxID_ANY, wxString::Format(_(L("Save %s as:")), title),
+    auto text = new wxStaticText(this, wxID_ANY, from_u8((boost::format(_utf8(L("Save %s as:"))) % title).str()),
                                     wxDefaultPosition, wxDefaultSize);
     m_combo = new wxComboBox(this, wxID_ANY, from_u8(default_name),
                             wxDefaultPosition, wxDefaultSize, 0, 0, wxTE_PROCESS_ENTER);

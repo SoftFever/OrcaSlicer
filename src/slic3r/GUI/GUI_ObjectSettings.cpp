@@ -98,7 +98,7 @@ bool ObjectSettings::update_settings_list()
             btn->SetBitmapHover(m_bmp_delete_focus.bmp());
 
 			btn->Bind(wxEVT_BUTTON, [opt_key, config, this](wxEvent &event) {
-                wxGetApp().plater()->take_snapshot(wxString::Format(_(L("Delete Option %s")), opt_key));
+                wxGetApp().plater()->take_snapshot(from_u8((boost::format(_utf8(L("Delete Option %s"))) % opt_key).str()));
 				config->erase(opt_key);
                 wxGetApp().obj_list()->changed_object();
                 wxTheApp->CallAfter([this]() {
@@ -149,7 +149,7 @@ bool ObjectSettings::update_settings_list()
 
                 optgroup->get_field(opt)->m_on_change = [optgroup](const std::string& opt_id, const boost::any& value) {
                     // first of all take a snapshot and then change value in configuration
-                    wxGetApp().plater()->take_snapshot(wxString::Format(_(L("Change Option %s")), opt_id));
+                    wxGetApp().plater()->take_snapshot(from_u8((boost::format(_utf8(L("Change Option %s"))) % opt_id).str()));
                     optgroup->on_change_OG(opt_id, value);
                 };
 

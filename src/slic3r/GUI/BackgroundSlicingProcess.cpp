@@ -1,5 +1,6 @@
 #include "BackgroundSlicingProcess.hpp"
 #include "GUI_App.hpp"
+#include "GUI.hpp"
 
 #include <wx/app.h>
 #include <wx/panel.h>
@@ -219,9 +220,9 @@ void BackgroundSlicingProcess::thread_proc()
 			// Canceled, this is all right.
 			assert(m_print->canceled());
         } catch (const std::bad_alloc& ex) {
-            wxString errmsg = wxString::Format(_(L("%s has encountered an error. It was likely caused by running out of memory. "
+            wxString errmsg = GUI::from_u8((boost::format(_utf8(L("%s has encountered an error. It was likely caused by running out of memory. "
                                   "If you are sure you have enough RAM on your system, this may also be a bug and we would "
-                                  "be glad if you reported it.")), SLIC3R_APP_NAME);
+                                  "be glad if you reported it."))) % SLIC3R_APP_NAME).str());
             error = std::string(errmsg.ToUTF8()) + "\n\n" + std::string(ex.what());
         } catch (std::exception &ex) {
 			error = ex.what();
