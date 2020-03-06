@@ -851,7 +851,7 @@ Preset& PresetCollection::load_preset(const std::string &path, const std::string
     return preset;
 }
 
-void PresetCollection::save_current_preset(const std::string &new_name)
+void PresetCollection::save_current_preset(const std::string &new_name, bool detach)
 {
     // 1) Find the preset with a new_name or create a new one,
     // initialize it with the edited config.
@@ -866,6 +866,13 @@ void PresetCollection::save_current_preset(const std::string &new_name)
         preset.config = std::move(m_edited_preset.config);
         // The newly saved preset will be activated -> make it visible.
         preset.is_visible = true;
+        if (detach) {
+            // Clear the link to the parent profile.
+            preset.vendor = nullptr;
+			preset.inherits().clear();
+			preset.alias.clear();
+			preset.renamed_from.clear();
+        }
     } else {
         // Creating a new preset.
         Preset       &preset   = *m_presets.insert(it, m_edited_preset);
@@ -874,7 +881,12 @@ void PresetCollection::save_current_preset(const std::string &new_name)
         preset.name = new_name;
         preset.file = this->path_from_name(new_name);
         preset.vendor = nullptr;
-        if (preset.is_system) {
+		preset.alias.clear();
+        preset.renamed_from.clear();
+        if (detach) {
+        	// Clear the link to the parent profile.
+        	inherits.clear();
+        } else if (preset.is_system) {
             // Inheriting from a system preset.
             inherits = /* preset.vendor->name + "/" + */ old_name;
         } else if (inherits.empty()) {
@@ -1061,6 +1073,7 @@ size_t PresetCollection::update_compatible_internal(const PresetWithVendorProfil
     const ConfigOption *opt = active_printer.preset.config.option("nozzle_diameter");
     if (opt)
         config.set_key_value("num_extruders", new ConfigOptionInt((int)static_cast<const ConfigOptionFloats*>(opt)->values.size()));
+    bool some_compatible = false;
     for (size_t idx_preset = m_num_default_presets; idx_preset < m_presets.size(); ++ idx_preset) {
         bool    selected        = idx_preset == m_idx_selected;
         Preset &preset_selected = m_presets[idx_preset];
@@ -1068,6 +1081,7 @@ size_t PresetCollection::update_compatible_internal(const PresetWithVendorProfil
         const PresetWithVendorProfile this_preset_with_vendor_profile = this->get_preset_with_vendor_profile(preset_edited);
         bool    was_compatible  = preset_edited.is_compatible;
         preset_edited.is_compatible = is_compatible_with_printer(this_preset_with_vendor_profile, active_printer, &config);
+        some_compatible |= preset_edited.is_compatible;
 	    if (active_print != nullptr)
 	        preset_edited.is_compatible &= is_compatible_with_print(this_preset_with_vendor_profile, *active_print, active_printer);
         if (! preset_edited.is_compatible && selected && 
@@ -1076,6 +1090,10 @@ size_t PresetCollection::update_compatible_internal(const PresetWithVendorProfil
         if (selected)
             preset_selected.is_compatible = preset_edited.is_compatible;
     }
+    // Update visibility of the default profiles here if the defaults are suppressed, the current profile is not compatible and we don't want to select another compatible profile.
+    if (m_idx_selected >= m_num_default_presets && m_default_suppressed)
+	    for (size_t i = 0; i < m_num_default_presets; ++ i)
+	        m_presets[i].is_visible = ! some_compatible;
     return m_idx_selected;
 }
 

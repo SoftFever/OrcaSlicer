@@ -201,7 +201,7 @@ protected:
 	bool				m_disable_tree_sel_changed_event;
 	bool				m_show_incompatible_presets;
 
-    std::vector<Preset::Type>	m_dependent_tabs = {};
+    std::vector<Preset::Type>	m_dependent_tabs;
 	enum OptStatus { osSystemValue = 1, osInitValue = 2 };
 	std::map<std::string, int>	m_options_list;
 	int							m_opt_status_value = 0;
@@ -270,7 +270,7 @@ public:
 	void		OnTreeSelChange(wxTreeEvent& event);
 	void		OnKeyDown(wxKeyEvent& event);
 
-	void		save_preset(std::string name = "", std::string suffix = "");
+	void		save_preset(std::string name = std::string(), bool detach = false);
 	void		delete_preset();
 	void		toggle_show_hide_incompatible();
 	void		update_show_hide_incompatible_button();
@@ -318,7 +318,6 @@ protected:
 	void			load_key_value(const std::string& opt_key, const boost::any& value, bool saved_value = false);
 
 	void			on_presets_changed();
-	void			detach_preset(Preset& preset);	
 	void			build_preset_description_line(ConfigOptionsGroup* optgroup);
 	void			update_preset_description_line();
 	void			update_frequently_changed_parameters();

@@ -953,19 +953,6 @@ void Tab::on_presets_changed()
     m_dependent_tabs.clear();
 }
 
-void Tab::detach_preset(Preset& preset)
-{
-    preset.inherits().clear();
-    preset.renamed_from.clear();
-    preset.vendor = nullptr;
-
-    update_ui_items_related_on_parent_preset(m_presets->get_selected_preset_parent());
-
-    update_dirty();
-    reload_config();
-    update();
-}
-
 void Tab::build_preset_description_line(ConfigOptionsGroup* optgroup)
 {
     auto description_line = [this](wxWindow* parent) {
@@ -997,12 +984,7 @@ void Tab::build_preset_description_line(ConfigOptionsGroup* optgroup)
             wxMessageDialog dialog(parent, msg_text, _(L("Detach preset")), wxICON_WARNING | wxYES_NO);
 
             if (dialog.ShowModal() == wxID_YES)
-            {
-                if (m_presets->get_edited_preset().is_system)
-                    save_preset("", _utf8(L("Detached")));
-
-                detach_preset(m_presets->get_edited_preset());
-            }
+                save_preset(m_presets->get_edited_preset().is_system ? std::string() : m_presets->get_edited_preset().name, true);
         });
 
         btn->Hide();
@@ -2784,7 +2766,7 @@ void Tab::select_preset(std::string preset_name, bool delete_current)
     bool printer_tab   = m_presets->type() == Preset::TYPE_PRINTER;
     bool canceled      = false;
     bool technology_changed = false;
-    m_dependent_tabs = {};
+    m_dependent_tabs.clear();
     if (current_dirty && ! may_discard_current_dirty_preset()) {
         canceled = true;
     } else if (print_tab) {
@@ -3038,15 +3020,14 @@ void Tab::OnKeyDown(wxKeyEvent& event)
 // and activates the new preset.
 // Wizard calls save_preset with a name "My Settings", otherwise no name is provided and this method
 // opens a Slic3r::GUI::SavePresetWindow dialog.
-void Tab::save_preset(std::string name /*= ""*/, std::string suffix/* = ""*/)
+void Tab::save_preset(std::string name /*= ""*/, bool detach)
 {
     // since buttons(and choices too) don't get focus on Mac, we set focus manually
     // to the treectrl so that the EVT_* events are fired for the input field having
     // focus currently.is there anything better than this ?
 //!	m_treectrl->OnSetFocus();
 
-    if (suffix.empty())
-        suffix = _CTX_utf8(L_CONTEXT("Copy", "PresetName"), "PresetName");
+    std::string suffix = detach ? _utf8(L("Detached")) : _CTX_utf8(L_CONTEXT("Copy", "PresetName"), "PresetName");
 
     if (name.empty()) {
         const Preset &preset = m_presets->get_selected_preset();
@@ -3102,8 +3083,9 @@ void Tab::save_preset(std::string name /*= ""*/, std::string suffix/* = ""*/)
     }
 
     // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
-    m_presets->save_current_preset(name);
+    m_presets->save_current_preset(name, detach);
     // Mark the print & filament enabled if they are compatible with the currently selected preset.
+    // If saving the preset changes compatibility with other presets, keep the now incompatible dependent presets selected, however with a "red flag" icon showing that they are no more compatible.
     m_preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
     // Add the new item into the UI component, remove dirty flags and activate the saved item.
     update_tab_ui();
@@ -3121,6 +3103,30 @@ void Tab::save_preset(std::string name /*= ""*/, std::string suffix/* = ""*/)
      * but in full_config a filament_colors option aren't.*/
     if (m_type == Preset::TYPE_FILAMENT && wxGetApp().extruders_edited_cnt() > 1)
         wxGetApp().plater()->force_filament_colors_update();
+
+    {
+    	// Profile compatiblity is updated first when the profile is saved.
+    	// Update profile selection combo boxes at the depending tabs to reflect modifications in profile compatibility.
+	    std::vector<Preset::Type> dependent;
+	    switch (m_type) {
+	    case Preset::TYPE_PRINT:
+	    	dependent = { Preset::TYPE_FILAMENT };
+	    	break;
+	    case Preset::TYPE_SLA_PRINT:
+	    	dependent = { Preset::TYPE_SLA_MATERIAL };
+	    	break;
+	    case Preset::TYPE_PRINTER:
+            if (static_cast<const TabPrinter*>(this)->m_printer_technology == ptFFF)
+                dependent = { Preset::TYPE_PRINT, Preset::TYPE_FILAMENT };
+            else
+                dependent = { Preset::TYPE_SLA_PRINT, Preset::TYPE_SLA_MATERIAL };
+	        break;
+        default:
+	        break;
+	    }
+	    for (Preset::Type preset_type : dependent)
+			wxGetApp().get_tab(preset_type)->update_tab_ui();
+	}
 }
 
 // Called for a currently selected preset.
