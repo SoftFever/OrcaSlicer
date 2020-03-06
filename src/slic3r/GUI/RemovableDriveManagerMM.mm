@@ -1,5 +1,6 @@
 #import "RemovableDriveManager.hpp"
 #import "RemovableDriveManagerMM.h"
+#import "GUI_App.hpp"
 #import <AppKit/AppKit.h> 
 #import <DiskArbitration/DiskArbitration.h>
 
@@ -10,22 +11,23 @@
 -(instancetype) init
 {
 	self = [super init];
-	if(self)
-	{        
-	}
+	//if(self){}
 	return self;
 }
+
 -(void) on_device_unmount: (NSNotification*) notification
 {
-    NSLog(@"on device change");
-    Slic3r::GUI::RemovableDriveManager::get_instance().update(0,true);
+    //NSLog(@"on device change");
+    Slic3r::GUI::wxGetApp().removable_drive_manager()->update();
 }
+
 -(void) add_unmount_observer
 {
-    NSLog(@"add unmount observer");
+    //NSLog(@"add unmount observer");
     [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self selector: @selector(on_device_unmount:) name:NSWorkspaceDidUnmountNotification object:nil];
     [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self selector: @selector(on_device_unmount:) name:NSWorkspaceDidMountNotification object:nil];
 }
+
 -(NSArray*) list_dev
 {
     // DEPRICATED:
@@ -40,118 +42,99 @@
         DADiskRef           disk;
         DASessionRef        session;
         CFDictionaryRef     descDict;
-        session = DASessionCreate(NULL);
-        if (session == NULL) {
+        session = DASessionCreate(nullptr);
+        if (session == nullptr)
             err = EINVAL;
-        }
         if (err == 0) {
-            disk = DADiskCreateFromVolumePath(NULL,session,(CFURLRef)volURL);
-            if (session == NULL) {
+            disk = DADiskCreateFromVolumePath(nullptr,session,(CFURLRef)volURL);
+            if (session == nullptr)
                 err = EINVAL;
-            }
         }
         if (err == 0) {
             descDict = DADiskCopyDescription(disk);
-            if (descDict == NULL) {
+            if (descDict == nullptr)
                 err = EINVAL;
-            }
         }
         if (err == 0) {
             CFTypeRef mediaEjectableKey = CFDictionaryGetValue(descDict,kDADiskDescriptionMediaEjectableKey);
             BOOL ejectable = [mediaEjectableKey boolValue];
             CFTypeRef deviceProtocolName = CFDictionaryGetValue(descDict,kDADiskDescriptionDeviceProtocolKey);
             CFTypeRef deviceModelKey = CFDictionaryGetValue(descDict, kDADiskDescriptionDeviceModelKey);
-            if (mediaEjectableKey != NULL)
-            {
+            if (mediaEjectableKey != nullptr) {
                 BOOL op = ejectable && (CFEqual(deviceProtocolName, CFSTR("USB")) || CFEqual(deviceModelKey, CFSTR("SD Card Reader")));
                 //!CFEqual(deviceModelKey, CFSTR("Disk Image"));
-                //
-                if (op) {
+                if (op)
                     [result addObject:volURL.path];
-                }
             }
         }
-        if (descDict != NULL) {
+        if (descDict != nullptr)
             CFRelease(descDict);
-        }
-        
-        
     }
     return result;
 }
+
+//this eject drive is not used now
 -(void)eject_drive:(NSString *)path
 {
     DADiskRef disk;
     DASessionRef session;
     NSURL *url = [[NSURL alloc] initFileURLWithPath:path];
     int err = 0;
-    session = DASessionCreate(NULL);
-    if (session == NULL) {
+    session = DASessionCreate(nullptr);
+    if (session == nullptr)
         err = EINVAL;
-    }
-    if (err == 0) {
-        disk = DADiskCreateFromVolumePath(NULL,session,(CFURLRef)url);
-    }
+    if (err == 0)
+        disk = DADiskCreateFromVolumePath(nullptr,session,(CFURLRef)url);
     if( err == 0)
-    {
-        DADiskUnmount(disk, kDADiskUnmountOptionDefault,
-                      NULL, NULL);
-    }
-    if (disk != NULL) {
+        DADiskUnmount(disk, kDADiskUnmountOptionDefault, nullptr, nullptr);
+    if (disk != nullptr)
         CFRelease(disk);
-    }
-    if (session != NULL) {
+    if (session != nullptr)
         CFRelease(session);
-    }
 }
-namespace Slic3r {
-namespace GUI {
-RDMMMWrapper::RDMMMWrapper():m_imp(nullptr){
-	m_imp = [[RemovableDriveManagerMM alloc] init];
-}
-RDMMMWrapper::~RDMMMWrapper()
-{
-	if(m_imp)
-	{
-		[m_imp release];
-	}
-}
-void  RDMMMWrapper::register_window()
-{
-	if(m_imp)
-	{
-		[m_imp add_unmount_observer];
-	}
-}
-void  RDMMMWrapper::list_devices()
-{
-    if(m_imp)
-    {
-    	NSArray* devices = [m_imp list_dev];
-    	for (NSString* volumePath in devices)
-    	{
-        	NSLog(@"%@", volumePath);
-        	Slic3r::GUI::RemovableDriveManager::get_instance().inspect_file(std::string([volumePath UTF8String]), "/Volumes");
-		}
-    }
-}
-void RDMMMWrapper::log(const std::string &msg)
-{
-    NSLog(@"%s", msg.c_str());
-}
-void RDMMMWrapper::eject_device(const std::string &path)
-{
-    if(m_imp)
-    {
-        NSString * pth = [NSString stringWithCString:path.c_str()
-                                            encoding:[NSString defaultCStringEncoding]];
-        [m_imp eject_drive:pth];
-    }
-}
-}}//namespace Slicer::GUI
-
-/*
-
-*/
 
 @end
+
+namespace Slic3r {
+namespace GUI {
+
+void RemovableDriveManager::register_window_osx()
+{
+    assert(m_impl_osx == nullptr);
+    m_impl_osx = [[RemovableDriveManagerMM alloc] init];
+	if (m_impl_osx)
+		[m_impl_osx add_unmount_observer];
+}
+
+void RemovableDriveManager::unregister_window_osx()
+{
+    if (m_impl_osx)
+        [m_impl_osx release];
+}
+
+namespace search_for_drives_internal 
+{
+    void inspect_file(const std::string &path, const std::string &parent_path, std::vector<DriveData> &out);
+}
+
+void RemovableDriveManager::list_devices(std::vector<DriveData> &out) const
+{
+    assert(m_impl_osx != nullptr);
+    if (m_impl_osx) {
+    	NSArray* devices = [m_impl_osx list_dev];
+    	for (NSString* volumePath in devices)
+        	search_for_drives_internal::inspect_file(std::string([volumePath UTF8String]), "/Volumes", out);
+    }
+}
+
+// not used as of now
+void RemovableDriveManager::eject_device(const std::string &path)
+{
+    assert(m_impl_osx != nullptr);
+    if (m_impl_osx) {
+        NSString * pth = [NSString stringWithCString:path.c_str() encoding:[NSString defaultCStringEncoding]];
+        [m_impl_osx eject_drive:pth];
+    }
+}
+
+}}//namespace Slicer::GUI
