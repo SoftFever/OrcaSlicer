@@ -235,7 +235,7 @@ void BackgroundSlicingProcess::thread_proc()
 			// Only post the canceled event, if canceled by user.
 			// Don't post the canceled event, if canceled from Print::apply().
 			wxCommandEvent evt(m_event_finished_id);
-			evt.SetString(error);
+            evt.SetString(GUI::from_u8(error));
 			evt.SetInt(m_print->canceled() ? -1 : (error.empty() ? 1 : 0));
         	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
         }
