@@ -312,7 +312,7 @@ public:
     // Save the preset under a new name. If the name is different from the old one,
     // a new preset is stored into the list of presets.
     // All presets are marked as not modified and the new preset is activated.
-    void            save_current_preset(const std::string &new_name);
+    void            save_current_preset(const std::string &new_name, bool detach = false);
 
     // Delete the current preset, activate the first visible preset.
     // returns true if the preset was deleted successfully.

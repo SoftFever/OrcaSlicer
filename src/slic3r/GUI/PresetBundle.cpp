@@ -1599,21 +1599,23 @@ void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::Pre
 
     // To avoid asserts, each added bitmap to wxBitmapCombobox should be the same size, so
     // set a bitmap height to m_bitmapLock->GetHeight()
-    // Note, under OSX we should use a ScaledHeight because of Retina scale
+    //
+    // To avoid asserts, each added bitmap to wxBitmapCombobox should be the same size. 
+    // But for some display scaling (for example 125% or 175%) normal_icon_width differs from icon width.
+    // So:
+    // for nonsystem presets set a width of empty bitmap to m_bitmapLock->GetWidth()
+    // for compatible presets set a width of empty bitmap to m_bitmapIncompatible->GetWidth()
+    //
+    // Note, under OSX we should use a Scaled Height/Width because of Retina scale
 #ifdef __APPLE__
     const int icon_height       = m_bitmapLock->GetScaledHeight();
+    const int lock_icon_width   = m_bitmapLock->GetScaledWidth();
+    const int flag_icon_width   = m_bitmapIncompatible->GetScaledWidth();
 #else
     const int icon_height       = m_bitmapLock->GetHeight();
-#endif
-
-    /* To avoid asserts, each added bitmap to wxBitmapCombobox should be the same size. 
-     * But for some display scaling (for example 125% or 175%) normal_icon_width differs from icon width.
-     * So:
-     * for nonsystem presets set a width of empty bitmap to m_bitmapLock->GetWidth()
-     * for compatible presets set a width of empty bitmap to m_bitmapIncompatible->GetWidth()
-     **/
     const int lock_icon_width   = m_bitmapLock->GetWidth();
     const int flag_icon_width   = m_bitmapIncompatible->GetWidth();
+#endif
 
     wxString tooltip = "";
 
