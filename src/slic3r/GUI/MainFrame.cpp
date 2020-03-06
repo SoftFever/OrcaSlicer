@@ -25,6 +25,7 @@
 #include "wxExtensions.hpp"
 #include "GUI_ObjectList.hpp"
 #include "Mouse3DController.hpp"
+#include "RemovableDriveManager.hpp"
 #include "I18N.hpp"
 
 #include <fstream>
@@ -123,6 +124,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
         m_plater->get_mouse3d_controller().shutdown();
 		// Store the device parameter database back to appconfig.
         m_plater->get_mouse3d_controller().save_config(*wxGetApp().app_config);
+
+        // Stop the background thread of the removable drive manager, so that no new updates will be sent to the Plater.
+        wxGetApp().removable_drive_manager()->shutdown();
 
         // Save the slic3r.ini.Usually the ini file is saved from "on idle" callback,
         // but in rare cases it may not have been called yet.
