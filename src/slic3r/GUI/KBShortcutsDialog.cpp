@@ -122,6 +122,8 @@ void KBShortcutsDialog::fill_shortcuts()
         { ctrl + "G", L("Export G-code") },
         { ctrl + "Shift+" + "G", L("Send G-code") },
         { ctrl + "E", L("Export config") },
+		{ ctrl + "U", L("Export to SD card / Flash drive") },
+		{ ctrl + "T", L("Eject SD card / Flash drive") },
         // Edit
         { ctrl + "A", L("Select all objects") },
         { "Esc", L("Deselect all") },
