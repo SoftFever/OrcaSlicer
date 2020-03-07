@@ -37,10 +37,7 @@ std::vector<DriveData> RemovableDriveManager::search_for_removable_drives() cons
 
 	// Allocate the buffers before the loop.
 	std::wstring volume_name;
-	volume_name.resize(MAX_PATH + 1);
 	std::wstring file_system_name;
-	file_system_name.resize(MAX_PATH + 1);
-
 	// Iterate the Windows drives from 'A' to 'Z'
 	std::vector<DriveData> current_drives;
 	for (size_t i = 0; i < 26; ++ i)
@@ -51,6 +48,8 @@ std::vector<DriveData> RemovableDriveManager::search_for_removable_drives() cons
 			if (drive_type ==  DRIVE_REMOVABLE) {
 				// get name of drive
 				std::wstring wpath = boost::nowide::widen(path);
+				volume_name.resize(MAX_PATH + 1);
+				file_system_name.resize(MAX_PATH + 1);
 				BOOL error = ::GetVolumeInformationW(wpath.c_str(), volume_name.data(), sizeof(volume_name), nullptr, nullptr, nullptr, file_system_name.data(), sizeof(file_system_name));
 				if (error != 0) {
 					volume_name.erase(volume_name.begin() + wcslen(volume_name.c_str()), volume_name.end());
