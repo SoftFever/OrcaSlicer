@@ -969,20 +969,19 @@ void Tab::build_preset_description_line(ConfigOptionsGroup* optgroup)
 
         btn->Bind(wxEVT_BUTTON, [this, parent](wxCommandEvent&)
         {
-            wxString msg_text;
+        	bool system = m_presets->get_edited_preset().is_system;
+        	bool dirty  = m_presets->get_edited_preset().is_dirty;
+            wxString msg_text = system ? 
+            	_(L("A copy of the current system preset will be created, which will be detached from the system preset.")) :
+                _(L("The current custom preset will be detached from the parent system preset."));
+            if (dirty) {
+	            msg_text += "\n\n";
+            	msg_text += _(L("Modifications to the current profile will be saved."));
+            }
+            msg_text += "\n\n";
+            msg_text += _(L("This action is not revertable.\nDo you want to proceed?"));
 
-            if (m_presets->get_edited_preset().is_system)
-                msg_text = _(L("You want to detach system preset. \n"
-                               "New preset will be created as a copy of the current preset.\n"
-                               "Created preset will be detached from system parent preset.")) + "\n\n";
-            else
-                msg_text = _(L("You want to detach current custom preset from the system parent preset. \n"
-                               "This action is not revertable.")) + "\n\n";
-            
-            msg_text += _(L("Are you sure you want to continue?"));
-
-            wxMessageDialog dialog(parent, msg_text, _(L("Detach preset")), wxICON_WARNING | wxYES_NO);
-
+            wxMessageDialog dialog(parent, msg_text, _(L("Detach preset")), wxICON_WARNING | wxYES_NO | wxCANCEL);
             if (dialog.ShowModal() == wxID_YES)
                 save_preset(m_presets->get_edited_preset().is_system ? std::string() : m_presets->get_edited_preset().name, true);
         });
