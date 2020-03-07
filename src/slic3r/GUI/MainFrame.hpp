@@ -100,6 +100,9 @@ public:
     MainFrame();
     ~MainFrame() = default;
 
+	// Called when closing the application and when switching the application language.
+	void 		shutdown();
+
     Plater*     plater() { return m_plater; }
 
     void        update_title();

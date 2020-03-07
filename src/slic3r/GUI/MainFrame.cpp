@@ -109,38 +109,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
             event.Veto();
             return;
         }
-        
-        if (m_plater)
-        	m_plater->stop_jobs();
-
-        // Weird things happen as the Paint messages are floating around the windows being destructed.
-        // Avoid the Paint messages by hiding the main window.
-        // Also the application closes much faster without these unnecessary screen refreshes.
-        // In addition, there were some crashes due to the Paint events sent to already destructed windows.
-        this->Show(false);
-
-		// Stop the background thread (Windows and Linux).
-		// Disconnect from a 3DConnextion driver (OSX).
-        m_plater->get_mouse3d_controller().shutdown();
-		// Store the device parameter database back to appconfig.
-        m_plater->get_mouse3d_controller().save_config(*wxGetApp().app_config);
-
-        // Stop the background thread of the removable drive manager, so that no new updates will be sent to the Plater.
-        wxGetApp().removable_drive_manager()->shutdown();
-
-        // Save the slic3r.ini.Usually the ini file is saved from "on idle" callback,
-        // but in rare cases it may not have been called yet.
-        wxGetApp().app_config->save();
-//         if (m_plater)
-//             m_plater->print = undef;
-        _3DScene::remove_all_canvases();
-//         Slic3r::GUI::deregister_on_request_update_callback();
-
-        // set to null tabs and a plater
-        // to avoid any manipulations with them from App->wxEVT_IDLE after of the mainframe closing 
-        wxGetApp().tabs_list.clear();
-        wxGetApp().plater_ = nullptr;
-
+        this->shutdown();
         // propagate event
         event.Skip();
     });
@@ -157,6 +126,41 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 
     if (m_plater != nullptr)
         m_plater->show_action_buttons(true);
+}
+
+// Called when closing the application and when switching the application language.
+void MainFrame::shutdown()
+{
+    if (m_plater)
+    	m_plater->stop_jobs();
+
+    // Weird things happen as the Paint messages are floating around the windows being destructed.
+    // Avoid the Paint messages by hiding the main window.
+    // Also the application closes much faster without these unnecessary screen refreshes.
+    // In addition, there were some crashes due to the Paint events sent to already destructed windows.
+    this->Show(false);
+
+	// Stop the background thread (Windows and Linux).
+	// Disconnect from a 3DConnextion driver (OSX).
+    m_plater->get_mouse3d_controller().shutdown();
+	// Store the device parameter database back to appconfig.
+    m_plater->get_mouse3d_controller().save_config(*wxGetApp().app_config);
+
+    // Stop the background thread of the removable drive manager, so that no new updates will be sent to the Plater.
+    wxGetApp().removable_drive_manager()->shutdown();
+
+    // Save the slic3r.ini.Usually the ini file is saved from "on idle" callback,
+    // but in rare cases it may not have been called yet.
+    wxGetApp().app_config->save();
+//         if (m_plater)
+//             m_plater->print = undef;
+    _3DScene::remove_all_canvases();
+//         Slic3r::GUI::deregister_on_request_update_callback();
+
+    // set to null tabs and a plater
+    // to avoid any manipulations with them from App->wxEVT_IDLE after of the mainframe closing 
+    wxGetApp().tabs_list.clear();
+    wxGetApp().plater_ = nullptr;
 }
 
 void MainFrame::update_title()

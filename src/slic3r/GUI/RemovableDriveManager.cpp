@@ -434,6 +434,7 @@ void RemovableDriveManager::shutdown()
 #endif
 
 	m_initialized = false;
+	m_callback_evt_handler = nullptr;
 }
 
 bool RemovableDriveManager::set_and_verify_last_save_path(const std::string &path)
