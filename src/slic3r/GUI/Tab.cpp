@@ -3476,7 +3476,7 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
 void SavePresetWindow::build(const wxString& title, const std::string& default_name, std::vector<std::string> &values)
 {
     // TRN Preset
-    auto text = new wxStaticText(this, wxID_ANY, from_u8((boost::format(_utf8(L("Save %s as:"))) % title).str()),
+    auto text = new wxStaticText(this, wxID_ANY, from_u8((boost::format(_utf8(L("Save %s as:"))) % into_u8(title)).str()),
                                     wxDefaultPosition, wxDefaultSize);
     m_combo = new wxComboBox(this, wxID_ANY, from_u8(default_name),
                             wxDefaultPosition, wxDefaultSize, 0, 0, wxTE_PROCESS_ENTER);
