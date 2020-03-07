@@ -5,7 +5,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 2.2.1\n"
+"X-Generator: Poedit 2.3\n"
 "Project-Id-Version: \n"
 "POT-Creation-Date: \n"
 "PO-Revision-Date: \n"
@@ -1553,6 +1553,10 @@ msgstr "立方"
 msgid "Current mode is %s"
 msgstr "現在のモードは%sです"
 
+#: src/slic3r/GUI/Tab.cpp:959
+msgid "Current preset is inherited from"
+msgstr "現在のプリセット継承元"
+
 #: src/slic3r/GUI/Tab.cpp:957
 msgid "Current preset is inherited from the default preset."
 msgstr "現在の設定はデフォルト設定から継承されます。"
@@ -2941,6 +2945,15 @@ msgid ""
 "for the right button: \tindicates that the settings hasn't been modified."
 msgstr "左ボタンの場合：システム（デフォルト）プリセットでないことを示し、右側ボタンの場合：設定が変更されていないことを示します。"
 
+#. TRN Description for "WHITE BULLET"
+#: src/slic3r/GUI/Tab.cpp:3267
+msgid ""
+"for the left button: indicates a non-system (or non-default) preset,\n"
+"for the right button: indicates that the settings hasn't been modified."
+msgstr ""
+"左ボタンの場合：システム（デフォルト）プリセットでないことを示し、\n"
+"右側ボタンの場合：設定が変更されていないことを示します。"
+
 #: src/slic3r/GUI/ConfigManipulation.cpp:136
 msgid ""
 "For the Wipe Tower to work with the soluble supports, the support layers\n"
@@ -3571,7 +3584,9 @@ msgstr "設定が現在の設定グループのシステム（デフォルト）
 msgid ""
 "indicates that the settings were changed and are not equal to the last saved preset for the current option group.\n"
 "Click the BACK ARROW icon to reset all settings for the current option group to the last saved preset."
-msgstr "設定が変更され、現在のオプショングループに最後に保存されたプリセットと等しくないことを示します。戻る矢印アイコンをクリックして、現在のオプショングループのすべての設定を最後に保存されたプリセットに戻します。"
+msgstr ""
+"設定が変更され、現在のオプショングループに最後に保存されたプリセットと等しくないことを示します。\n"
+"戻る矢印アイコンをクリックして、現在のオプショングループのすべての設定を最後に保存されたプリセットに戻します。"
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:211
 #: src/slic3r/GUI/GUI_ObjectList.cpp:35 src/slic3r/GUI/GUI_ObjectList.cpp:96
@@ -4100,6 +4115,10 @@ msgstr "最大"
 msgid "Max bridge length"
 msgstr "最長ブリッジ長さ"
 
+#: src/libslic3r/PrintConfig.cpp:2658
+msgid "Max bridges on a pillar"
+msgstr "柱の上の最大ブリッジ数"
+
 #: src/libslic3r/PrintConfig.cpp:2822
 msgid "Max merge distance"
 msgstr "最大結合距離"
@@ -4267,6 +4286,10 @@ msgstr "Yの最大ジャーク"
 #: src/libslic3r/PrintConfig.cpp:1161
 msgid "Maximum jerk Z"
 msgstr "Zの最大ジャーク"
+
+#: src/libslic3r/PrintConfig.cpp:2660
+msgid "Maximum number of bridges that can be placed on a pillar. Bridges hold support point pinheads and connect to pillars as small branches."
+msgstr "柱の上に置くことができるブリッジの最大数。 ブリッジはサポートポイントのピンヘッドを保持し、小さな枝として柱に接続します。"
 
 #: src/libslic3r/PrintConfig.cpp:598
 msgid "Maximum volumetric speed allowed for this filament. Limits the maximum volumetric speed of a print to the minimum of print and filament volumetric speed. Set to zero for no limit."
@@ -4921,6 +4944,11 @@ msgstr "現在のオブジェクトの"
 #: src/slic3r/GUI/Gizmos/GLGizmoHollow.cpp:43
 msgid "Offset"
 msgstr "オフセット"
+
+#: src/slic3r/GUI/Tab.cpp:1755
+#, c-format
+msgid "On this system, %s uses HTTPS certificates from the system Certificate Store or Keychain."
+msgstr "このシステムでは、%sはシステムの証明書ストアまたはキーチェーンからのHTTPS証明書を使用します。"
 
 #: src/slic3r/GUI/DoubleSlider.cpp:950
 msgid "One layer mode"
@@ -6391,6 +6419,16 @@ msgstr ""
 "すべてのツールの変更を色の変更に切り替えたい場合は「いいえ」、\n"
 "または「キャンセル」で変更せずにそのままにします"
 
+#: src/slic3r/GUI/DoubleSlider.cpp:1917
+msgid ""
+"Select YES if you want to delete all saved tool changes, \n"
+"NO if you want all tool changes switch to color changes, \n"
+"or CANCEL to leave it unchanged."
+msgstr ""
+"保存したツールの変更をすべて削除する場合は、「はい」を選択します。\n"
+"すべてのツールの変更を色の変更に切り替えたい場合は「いいえ」、\n"
+"または「キャンセル」で変更せずにそのままにします"
+
 #: src/slic3r/GUI/Selection.cpp:146
 msgid "Selection-Add"
 msgstr "選択-追加"
@@ -7696,6 +7734,14 @@ msgstr "選択したオブジェクトには複数のボリューム/マテリ�
 msgid "The selected object couldn't be split because it contains only one part."
 msgstr "選択したオブジェクトには、1つのパーツしか含まれていないため、分割できませんでした。"
 
+#: src/slic3r/GUI/MainFrame.cpp:432
+msgid ""
+"The selected project is no longer available.\n"
+"Do you want to remove it from the recent projects list ?"
+msgstr ""
+"選択したプロジェクトは使用できなくなりました。\n"
+"最近のプロジェクトリストから削除しますか？"
+
 #: src/slic3r/GUI/MainFrame.cpp:422
 msgid "The selected project is no more available"
 msgstr "選択したプロジェクトはもう利用できません"
@@ -8040,6 +8086,10 @@ msgstr "このエクストルーダーの最小プリント可能なレイヤー
 msgid "This is usually caused by negligibly small extrusions or by a faulty model. Try to repair  the model or change its orientation on the bed."
 msgstr "これは通常、無視できるほど少量の押出量またはモデルの欠陥が原因です。 ベッド上のモデルの修復または向きを再配置してみてください。"
 
+#: src/libslic3r/GCode.cpp:639
+msgid "This is usually caused by negligibly small extrusions or by a faulty model. Try to repair the model or change its orientation on the bed."
+msgstr "これは通常、無視できるほど少量の押出量またはモデルの欠陥が原因です。 ベッド上のモデルの修復または向きを再配置してみてください。"
+
 #: src/libslic3r/PrintConfig.cpp:2215
 msgid "This matrix describes volumes (in cubic milimetres) required to purge the new filament on the wipe tower for any given pair of tools."
 msgstr "この行列は、任意のツールチェンジ間においてワイプタワーの新しいフィラメントをパージするために必要な体積（立方ミリメートル）を示しています。"
@@ -8179,6 +8229,10 @@ msgstr "オブジェクト"
 #: src/slic3r/GUI/Plater.cpp:4016
 msgid "To parts"
 msgstr "パーツへ"
+
+#: src/slic3r/GUI/Tab.cpp:1756
+msgid "To use a custom CA file, please import your CA file into Certificate Store / Keychain."
+msgstr "カスタムCAファイルを使用するには、CAファイルを証明書ストア/キーチェーンにインポートしてください。"
 
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:263
 #, c-format
