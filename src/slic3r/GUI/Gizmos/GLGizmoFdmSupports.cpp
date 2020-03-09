@@ -8,6 +8,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MeshUtils.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
+#include "slic3r/GUI/Camera.hpp"
 
 
 
@@ -278,31 +279,6 @@ void GLGizmoFdmSupports::update_mesh()
 
 
 
-// Unprojects the mouse position on the mesh and saves hit facet index into facet_idx
-// Position of the hit in mesh coords is copied into *position, if provided.
-// Returns false if no intersection was found, true otherwise.
-bool GLGizmoFdmSupports::unproject_on_mesh(size_t mesh_id, const Vec2d& mouse_pos, size_t& facet_idx, Vec3f* position)
-{
-    // if the gizmo doesn't have the V, F structures for igl, calculate them first:
-    //if (! m_meshes_raycaster[mesh_id])
-    //    update_mesh();
-    const Camera& camera = m_parent.get_camera();
-    const Selection& selection = m_parent.get_selection();
-    const Transform3d trafo_matrix =
-            m_model_object->instances[selection.get_instance_idx()]->get_transformation().get_matrix() *
-            m_model_object->volumes[mesh_id]->get_matrix();
-
-    // The raycaster query
-    Vec3f hit;
-    Vec3f normal;
-    if (m_meshes_raycaster[mesh_id]->unproject_on_mesh(mouse_pos, trafo_matrix, camera, hit, normal, m_clipping_plane.get(), &facet_idx)) {
-        if (position)
-            *position = hit;
-        return true;
-    }
-    else
-        return false;
-}
 
 bool operator<(const GLGizmoFdmSupports::NeighborData& a, const GLGizmoFdmSupports::NeighborData& b) {
     return a.first < b.first;
@@ -333,32 +309,74 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
     }
 
     if (action == SLAGizmoEventType::LeftDown || (action == SLAGizmoEventType::Dragging && m_wait_for_up_event)) {
-        size_t facet = 0;
-        Vec3f hit_pos;
-        bool mesh_was_hit = false;
+        bool select = ! shift_down;
+        const Camera& camera = m_parent.get_camera();
+        const Selection& selection = m_parent.get_selection();
+        const Transform3d& instance_trafo = m_model_object->instances[selection.get_instance_idx()]->get_transformation().get_matrix();
 
-        for (size_t mesh_id=0; mesh_id<m_model_object->volumes.size(); ++mesh_id) {
-            if (unproject_on_mesh(mesh_id, mouse_position, facet, &hit_pos)) {
-                mesh_was_hit = true;
+        // Precalculate transformations of individual meshes
+        std::vector<Transform3d> trafo_matrices;
+        for (const ModelVolume* mv : m_model_object->volumes)
+            trafo_matrices.push_back(instance_trafo * mv->get_matrix());
+
+        std::vector<std::vector<std::pair<Vec3f, size_t>>> hit_positions_and_facet_ids(m_meshes.size());
+        bool some_mesh_was_hit = false;
+
+        // Cast a ray on all meshes, pick the closest hit and save it for the respective mesh
+        Vec3f normal =  Vec3f::Zero();
+        Vec3f hit = Vec3f::Zero();
+        size_t facet = 0;
+        Vec3f closest_hit = Vec3f::Zero();
+        double closest_hit_squared_distance = std::numeric_limits<double>::max();
+        size_t closest_facet = 0;
+        size_t closest_hit_mesh_id = size_t(-1);
+
+        for (size_t mesh_id=0; mesh_id<m_meshes.size(); ++mesh_id) {
+
+            if (m_meshes_raycaster[mesh_id]->unproject_on_mesh(
+                       mouse_position,
+                       trafo_matrices[mesh_id],
+                       camera,
+                       hit,
+                       normal,
+                       m_clipping_plane.get(),
+                       &facet))
+            {
+                // Is this hit the closest to the camera so far?
+                double hit_squared_distance = (camera.get_position()-trafo_matrices[mesh_id]*hit.cast<double>()).squaredNorm();
+                if (hit_squared_distance < closest_hit_squared_distance) {
+                    closest_hit_squared_distance = hit_squared_distance;
+                    closest_facet = facet;
+                    closest_hit_mesh_id = mesh_id;
+                    closest_hit = hit;
+                }
+            }
+        }
+        // We now know where the ray hit, let's save it and cast another ray
+        if (closest_hit_mesh_id != size_t(-1)) // only if there is at least one hit
+            hit_positions_and_facet_ids[closest_hit_mesh_id].emplace_back(closest_hit, closest_facet);
+
+
+        // Now propagate the hits
+        for (size_t mesh_id=0; mesh_id<m_meshes.size(); ++mesh_id) {
+            // For all hits on this mesh...
+            for (const std::pair<Vec3f, size_t>& hit_and_facet : hit_positions_and_facet_ids[mesh_id]) {
+                some_mesh_was_hit = true;
                 const TriangleMesh* mesh = m_meshes[mesh_id];
                 std::vector<NeighborData>& neighbors = m_neighbors[mesh_id];
 
-                bool select = ! shift_down;
-
                 // Calculate direction from camera to the hit (in mesh coords):
-                const Selection& selection = m_parent.get_selection();
-                const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-                Geometry::Transformation trafo = volume->get_instance_transformation();
-                trafo.set_offset(trafo.get_offset());
-                Vec3f dir = ((trafo.get_matrix().inverse() * m_parent.get_camera().get_position()).cast<float>() - hit_pos).normalized();
+                const Transform3d& trafo_matrix = trafo_matrices[mesh_id];
+
+                Vec3f dir = ((trafo_matrix.inverse() * camera.get_position()).cast<float>() - hit_and_facet.first).normalized();
 
                 // Calculate how far can a point be from the line (in mesh coords).
                 // FIXME: This should account for (possibly non-uniform) scaling of the mesh.
                 float limit = pow(m_cursor_radius, 2.f);
 
-                // A lambda to calculate distance from the line:
-                auto squared_distance_from_line = [&hit_pos, &dir](const Vec3f point) -> float {
-                    Vec3f diff = hit_pos - point;
+                // A lambda to calculate distance from the centerline:
+                auto squared_distance_from_line = [&hit_and_facet, &dir](const Vec3f point) -> float {
+                    Vec3f diff = hit_and_facet.first - point;
                     return (diff - diff.dot(dir) * dir).squaredNorm();
                 };
 
@@ -369,7 +387,7 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 // Now start with the facet the pointer points to and check all adjacent facets. neighbors vector stores
                 // pairs of vertex_idx - facet_idx and is sorted with respect to the former. Neighboring facet index can be
                 // quickly found by finding a vertex in the list and read the respective facet ids.
-                std::vector<size_t> facets_to_select{facet};
+                std::vector<size_t> facets_to_select{hit_and_facet.second};
                 NeighborData vertex = std::make_pair(0, 0);
                 std::vector<bool> visited(m_selected_facets[mesh_id].size(), false); // keep track of facets we already processed
                 size_t facet_idx = 0; // index into facets_to_select
@@ -401,7 +419,7 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             }
         }
 
-        if (mesh_was_hit)
+        if (some_mesh_was_hit)
         {
             m_wait_for_up_event = true;
             m_parent.set_as_dirty();

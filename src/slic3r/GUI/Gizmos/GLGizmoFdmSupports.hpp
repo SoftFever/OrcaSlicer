@@ -22,8 +22,6 @@ private:
     std::vector<ObjectID> m_volumes_ids;
     int m_active_instance = -1;
     float m_active_instance_bb_radius; // to cache the bb
-    bool unproject_on_mesh(size_t mesh_id, const Vec2d& mouse_pos,  size_t& facet_idx, Vec3f* position = nullptr);
-
 
     GLUquadricObj* m_quadric;
 
