@@ -101,12 +101,6 @@ private:
 	// m_current_drives is guarded by m_drives_mutex
 	// sorted ascending by path
 	std::vector<DriveData> 	m_current_drives;
-	// When user requested an eject, the drive to be forcefuly ejected is stored here, so the next update will
-	// recognize that the eject was finished with success and an eject event is sent out.
-	// guarded with m_drives_mutex
-#ifdef WIN32
-	DriveData 				m_drive_data_last_eject;
-#endif // WIN32
 	mutable tbb::mutex 		m_drives_mutex;
 
 	// Returns drive path (same as path in DriveData) if exists otherwise empty string.

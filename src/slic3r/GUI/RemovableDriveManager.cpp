@@ -103,7 +103,10 @@ void RemovableDriveManager::eject_drive()
 			return;
 		}
 		CloseHandle(handle);
-		m_drive_data_last_eject = *it_drive_data;
+		assert(m_callback_evt_handler);
+		if (m_callback_evt_handler) 
+			wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::move(*it_drive_data)));
+		m_current_drives.erase(it_drive_data);
 	}
 }
 
@@ -476,19 +479,9 @@ void RemovableDriveManager::update()
 	tbb::mutex::scoped_lock lock(m_drives_mutex);
 	std::sort(current_drives.begin(), current_drives.end());
 	if (current_drives != m_current_drives) {
-#ifdef WIN32
-		if (! m_drive_data_last_eject.empty() && std::find(current_drives.begin(), current_drives.end(), m_drive_data_last_eject) == current_drives.end()) {
-			assert(m_callback_evt_handler);
-			if (m_callback_evt_handler) 
-				wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::move(m_drive_data_last_eject)));
-			m_drive_data_last_eject.clear();
-		} else 
-#endif // WIN32
-		{
-			assert(m_callback_evt_handler);
-			if (m_callback_evt_handler)
-				wxPostEvent(m_callback_evt_handler, RemovableDrivesChangedEvent(EVT_REMOVABLE_DRIVES_CHANGED));
-		}
+		assert(m_callback_evt_handler);
+		if (m_callback_evt_handler)
+			wxPostEvent(m_callback_evt_handler, RemovableDrivesChangedEvent(EVT_REMOVABLE_DRIVES_CHANGED));
 	}
 	m_current_drives = std::move(current_drives);
 }
