@@ -338,9 +338,11 @@ void RemovableDriveManager::eject_drive()
 		// there is no usable command in c++ so terminal command is used instead
 		// but neither triggers "succesful safe removal messege"
 		std::string command = 
-#if __APPLE__
-		//this->eject_device(m_last_save_path);
+#if __APPLE__		
 			"diskutil unmount ";
+			//Another option how to eject at mac. Currently not working.
+			//used insted of system() command;
+			//this->eject_device(correct_path);
 #else
 			"umount ";
 #endif
