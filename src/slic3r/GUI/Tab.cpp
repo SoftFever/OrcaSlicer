@@ -2861,10 +2861,10 @@ void Tab::select_preset(std::string preset_name, bool delete_current)
         // Mark the print & filament enabled if they are compatible with the currently selected preset.
         // The following method should not discard changes of current print or filament presets on change of a printer profile,
         // if they are compatible with the current printer.
-        auto update_compatible_type = [](bool technology_changed, bool on_page, bool show_incompatible_presets) {
-        	return technology_changed ? PresetSelectCompatibleType::Always :
-        	       on_page            ? PresetSelectCompatibleType::Never  : 
-        	       (show_incompatible_presets ? PresetSelectCompatibleType::OnlyIfWasCompatible : PresetSelectCompatibleType::Always);
+        auto update_compatible_type = [delete_current](bool technology_changed, bool on_page, bool show_incompatible_presets) {
+        	return (delete_current || technology_changed) ? PresetSelectCompatibleType::Always :
+        	       on_page                                ? PresetSelectCompatibleType::Never  :
+        	       show_incompatible_presets              ? PresetSelectCompatibleType::OnlyIfWasCompatible : PresetSelectCompatibleType::Always;
         };
         if (current_dirty || delete_current || print_tab || printer_tab)
             m_preset_bundle->update_compatible(
