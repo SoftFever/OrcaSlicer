@@ -260,7 +260,7 @@ void Camera::debug_render() const
     imgui.begin(std::string("Camera statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
     std::string type = get_type_as_string();
-    if (wxGetApp().plater()->get_mouse3d_controller().is_running() || (wxGetApp().app_config->get("use_free_camera") == "1"))
+    if (wxGetApp().plater()->get_mouse3d_controller().connected() || (wxGetApp().app_config->get("use_free_camera") == "1"))
         type += "/free";
     else
         type += "/constrained";
@@ -537,6 +537,7 @@ void Camera::look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up
     Vec3d unit_y = unit_z.cross(unit_x).normalized();
 
     m_target = target;
+    m_distance = (position - target).norm();
     Vec3d new_position = m_target + m_distance * unit_z;
 
     m_view_matrix(0, 0) = unit_x(0);

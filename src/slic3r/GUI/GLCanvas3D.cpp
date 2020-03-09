@@ -3932,7 +3932,6 @@ void GLCanvas3D::handle_layers_data_focus_event(const t_layer_height_range range
 
 void GLCanvas3D::update_ui_from_settings()
 {
-    m_camera.set_type(wxGetApp().app_config->get("use_perspective_camera"));
     m_dirty = true;
 
 #if ENABLE_RETINA_GL

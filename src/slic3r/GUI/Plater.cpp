@@ -2245,6 +2245,14 @@ void Plater::priv::update_ui_from_settings()
     //     $self->{buttons_sizer}->Layout;
     // }
 
+    camera.set_type(wxGetApp().app_config->get("use_perspective_camera"));
+    if (wxGetApp().app_config->get("use_free_camera") != "1")
+    {
+        // forces camera right vector to be parallel to XY plane
+        if (std::abs(camera.get_dir_right()(2)) > EPSILON)
+            camera.look_at(camera.get_position(), camera.get_target(), Vec3d::UnitZ());
+    }
+
     view3D->get_canvas3d()->update_ui_from_settings();
     preview->get_canvas3d()->update_ui_from_settings();
 }
