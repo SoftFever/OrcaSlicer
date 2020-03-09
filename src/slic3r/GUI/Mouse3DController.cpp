@@ -368,6 +368,8 @@ void Mouse3DController::render_settings_dialog(GLCanvas3D& canvas) const
 
 void Mouse3DController::connected(std::string device_name)
 {
+    assert(! m_connected);
+    assert(m_device_str.empty());
 	m_device_str = device_name;
     // Copy the parameters for m_device_str into the current parameters.
     if (auto it_params = m_params_by_device.find(m_device_str); it_params != m_params_by_device.end()) {
@@ -380,13 +382,13 @@ void Mouse3DController::connected(std::string device_name)
 void Mouse3DController::disconnected()
 {
     // Copy the current parameters for m_device_str into the parameter database.
-    assert(! m_device_str.empty());
-    if (! m_device_str.empty()) {
+    assert(m_connected == ! m_device_str.empty());
+    if (m_connected) {
         tbb::mutex::scoped_lock lock(m_params_ui_mutex);
         m_params_by_device[m_device_str] = m_params_ui;
+	    m_device_str.clear();
+	    m_connected = false;
     }
-    m_device_str.clear();
-    m_connected = false;
 }
 
 bool Mouse3DController::handle_input(const DataPacketAxis& packet)
@@ -451,12 +453,13 @@ void Mouse3DController::shutdown()
     	// Stop the worker thread, if running.
     	{
     		// Notify the worker thread to cancel wait on detection polling.
-			std::unique_lock<std::mutex> lock(m_stop_condition_mutex);
+			std::lock_guard<std::mutex> lock(m_stop_condition_mutex);
 			m_stop = true;
-			m_stop_condition.notify_all();
 		}
+		m_stop_condition.notify_all();
 		// Wait for the worker thread to stop.
         m_thread.join();
+        m_stop = false;
 	}
 }
 

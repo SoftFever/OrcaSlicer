@@ -12,6 +12,7 @@
 #include <thread>
 #include <vector>
 #include <chrono>
+#include <condition_variable>
 
 #include <tbb/mutex.h>
 
@@ -138,7 +139,7 @@ class Mouse3DController
     std::map<std::string, Params> m_params_by_device;
 
     mutable State 		m_state;
-    std::atomic<bool> 	m_connected;
+    std::atomic<bool> 	m_connected { false };
     std::string 		m_device_str;
 
 #if ! __APPLE__

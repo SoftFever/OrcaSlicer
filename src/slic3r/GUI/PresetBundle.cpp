@@ -703,7 +703,10 @@ void PresetBundle::load_config_file(const std::string &path)
         boost::nowide::ifstream ifs(path);
         boost::property_tree::read_ini(ifs, tree);
     } catch (const std::ifstream::failure &err) {
-        throw std::runtime_error(std::string("The config file cannot be loaded: ") + path + "\n\tReason: " + err.what());
+        throw std::runtime_error(std::string("The Config Bundle cannot be loaded: ") + path + "\n\tReason: " + err.what());
+    } catch (const boost::property_tree::file_parser_error &err) {
+        throw std::runtime_error((boost::format("Failed loading the Config Bundle \"%1%\": %2% at line %3%")
+        	% err.filename() % err.message() % err.line()).str());
     } catch (const std::runtime_error &err) {
         throw std::runtime_error(std::string("Failed loading the preset file: ") + path + "\n\tReason: " + err.what());
     }
@@ -1109,8 +1112,13 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
     const VendorProfile *vendor_profile = nullptr;
     if (flags & (LOAD_CFGBNDLE_SYSTEM | LOAD_CFGBUNDLE_VENDOR_ONLY)) {
         auto vp = VendorProfile::from_ini(tree, path);
-        if (vp.num_variants() == 0)
+        if (vp.models.size() == 0) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("Vendor bundle: `%1%`: No printer model defined.") % path;
             return 0;
+        } else if (vp.num_variants() == 0) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("Vendor bundle: `%1%`: No printer variant defined") % path;
+            return 0;
+        }
         vendor_profile = &this->vendors.insert({vp.id, vp}).first->second;
     }
 
@@ -1599,21 +1607,23 @@ void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::Pre
 
     // To avoid asserts, each added bitmap to wxBitmapCombobox should be the same size, so
     // set a bitmap height to m_bitmapLock->GetHeight()
-    // Note, under OSX we should use a ScaledHeight because of Retina scale
+    //
+    // To avoid asserts, each added bitmap to wxBitmapCombobox should be the same size. 
+    // But for some display scaling (for example 125% or 175%) normal_icon_width differs from icon width.
+    // So:
+    // for nonsystem presets set a width of empty bitmap to m_bitmapLock->GetWidth()
+    // for compatible presets set a width of empty bitmap to m_bitmapIncompatible->GetWidth()
+    //
+    // Note, under OSX we should use a Scaled Height/Width because of Retina scale
 #ifdef __APPLE__
     const int icon_height       = m_bitmapLock->GetScaledHeight();
+    const int lock_icon_width   = m_bitmapLock->GetScaledWidth();
+    const int flag_icon_width   = m_bitmapIncompatible->GetScaledWidth();
 #else
     const int icon_height       = m_bitmapLock->GetHeight();
-#endif
-
-    /* To avoid asserts, each added bitmap to wxBitmapCombobox should be the same size. 
-     * But for some display scaling (for example 125% or 175%) normal_icon_width differs from icon width.
-     * So:
-     * for nonsystem presets set a width of empty bitmap to m_bitmapLock->GetWidth()
-     * for compatible presets set a width of empty bitmap to m_bitmapIncompatible->GetWidth()
-     **/
     const int lock_icon_width   = m_bitmapLock->GetWidth();
     const int flag_icon_width   = m_bitmapIncompatible->GetWidth();
+#endif
 
     wxString tooltip = "";
 

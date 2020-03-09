@@ -25,6 +25,7 @@
 #include "wxExtensions.hpp"
 #include "GUI_ObjectList.hpp"
 #include "Mouse3DController.hpp"
+#include "RemovableDriveManager.hpp"
 #include "I18N.hpp"
 
 #include <fstream>
@@ -108,44 +109,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
             event.Veto();
             return;
         }
-        
-        if (m_plater)
-        	m_plater->stop_jobs();
-
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
-        // Unbinding of wxWidgets event handling in canvases needs to be done here because on MAC,
-        // when closing the application using Command+Q, a mouse event is triggered after this lambda is completed,
-        // causing a crash
-        if (m_plater) m_plater->unbind_canvas_event_handlers();
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
-
-        // Weird things happen as the Paint messages are floating around the windows being destructed.
-        // Avoid the Paint messages by hiding the main window.
-        // Also the application closes much faster without these unnecessary screen refreshes.
-        // In addition, there were some crashes due to the Paint events sent to already destructed windows.
-        this->Show(false);
-
-		// Stop the background thread (Windows and Linux).
-		// Disconnect from a 3DConnextion driver (OSX).
-        m_plater->get_mouse3d_controller().shutdown();
-		// Store the device parameter database back to appconfig.
-        m_plater->get_mouse3d_controller().save_config(*wxGetApp().app_config);
-
-        // Save the slic3r.ini.Usually the ini file is saved from "on idle" callback,
-        // but in rare cases it may not have been called yet.
-        wxGetApp().app_config->save();
-//         if (m_plater)
-//             m_plater->print = undef;
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-        _3DScene::remove_all_canvases();
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
-//         Slic3r::GUI::deregister_on_request_update_callback();
-
-        // set to null tabs and a plater
-        // to avoid any manipulations with them from App->wxEVT_IDLE after of the mainframe closing 
-        wxGetApp().tabs_list.clear();
-        wxGetApp().plater_ = nullptr;
-
+        this->shutdown();
         // propagate event
         event.Skip();
     });
@@ -162,6 +126,50 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 
     if (m_plater != nullptr)
         m_plater->show_action_buttons(true);
+}
+
+// Called when closing the application and when switching the application language.
+void MainFrame::shutdown()
+{
+    if (m_plater)
+    	m_plater->stop_jobs();
+
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    // Unbinding of wxWidgets event handling in canvases needs to be done here because on MAC,
+    // when closing the application using Command+Q, a mouse event is triggered after this lambda is completed,
+    // causing a crash
+    if (m_plater) m_plater->unbind_canvas_event_handlers();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
+
+    // Weird things happen as the Paint messages are floating around the windows being destructed.
+    // Avoid the Paint messages by hiding the main window.
+    // Also the application closes much faster without these unnecessary screen refreshes.
+    // In addition, there were some crashes due to the Paint events sent to already destructed windows.
+    this->Show(false);
+
+	// Stop the background thread (Windows and Linux).
+	// Disconnect from a 3DConnextion driver (OSX).
+    m_plater->get_mouse3d_controller().shutdown();
+	// Store the device parameter database back to appconfig.
+    m_plater->get_mouse3d_controller().save_config(*wxGetApp().app_config);
+
+    // Stop the background thread of the removable drive manager, so that no new updates will be sent to the Plater.
+    wxGetApp().removable_drive_manager()->shutdown();
+
+    // Save the slic3r.ini.Usually the ini file is saved from "on idle" callback,
+    // but in rare cases it may not have been called yet.
+    wxGetApp().app_config->save();
+//         if (m_plater)
+//             m_plater->print = undef;
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
+    _3DScene::remove_all_canvases();
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
+//         Slic3r::GUI::deregister_on_request_update_callback();
+
+    // set to null tabs and a plater
+    // to avoid any manipulations with them from App->wxEVT_IDLE after of the mainframe closing 
+    wxGetApp().tabs_list.clear();
+    wxGetApp().plater_ = nullptr;
 }
 
 void MainFrame::update_title()
@@ -332,6 +340,27 @@ bool MainFrame::can_send_gcode() const
     return print_host_opt != nullptr && !print_host_opt->value.empty();
 }
 
+bool MainFrame::can_export_gcode_sd() const
+{
+	if (m_plater == nullptr)
+		return false;
+
+	if (m_plater->model().objects.empty())
+		return false;
+
+	if (m_plater->is_export_gcode_scheduled())
+		return false;
+
+	// TODO:: add other filters
+
+	return wxGetApp().removable_drive_manager()->status().has_removable_drives;
+}
+
+bool MainFrame::can_eject() const
+{
+	return wxGetApp().removable_drive_manager()->status().has_eject;
+}
+
 bool MainFrame::can_slice() const
 {
     bool bg_proc = wxGetApp().app_config->get("background_processing") == "1";
@@ -438,7 +467,7 @@ void MainFrame::init_menubar()
                 m_plater->load_project(filename);
             else
             {
-                wxMessageDialog msg(this, _(L("The selected project is no longer available.\nDo you want to remove it from the recent projects list ?")), _(L("Error")), wxYES_NO | wxYES_DEFAULT);
+                wxMessageDialog msg(this, _(L("The selected project is no longer available.\nDo you want to remove it from the recent projects list?")), _(L("Error")), wxYES_NO | wxYES_DEFAULT);
                 if (msg.ShowModal() == wxID_YES)
                 {
                     m_recent_projects.RemoveFileFromHistory(file_id);
@@ -502,6 +531,9 @@ void MainFrame::init_menubar()
             [this](wxCommandEvent&) { if (m_plater) m_plater->send_gcode(); }, "export_gcode", nullptr,
             [this](){return can_send_gcode(); }, this);
         m_changeable_menu_items.push_back(item_send_gcode);
+		append_menu_item(export_menu, wxID_ANY, _(L("Export G-code to SD card / Flash drive")) + dots + "\tCtrl+U", _(L("Export current plate as G-code to SD card / Flash drive")),
+			[this](wxCommandEvent&) { if (m_plater) m_plater->export_gcode(true); }, "export_to_sd", nullptr,
+			[this]() {return can_export_gcode_sd(); }, this);
         export_menu->AppendSeparator();
         append_menu_item(export_menu, wxID_ANY, _(L("Export plate as &STL")) + dots, _(L("Export current plate as STL")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(); }, "export_plater", nullptr,
@@ -524,6 +556,10 @@ void MainFrame::init_menubar()
             [this](wxCommandEvent&) { export_configbundle(); }, "export_config_bundle", nullptr,
             [this]() {return true; }, this);
         append_submenu(fileMenu, export_menu, wxID_ANY, _(L("&Export")), "");
+
+		append_menu_item(fileMenu, wxID_ANY, _(L("Ejec&t SD card / Flash drive")) + dots + "\tCtrl+T", _(L("Eject SD card / Flash drive after the G-code was exported to it.")),
+			[this](wxCommandEvent&) { if (m_plater) m_plater->eject_drive(); }, "eject_sd", nullptr,
+			[this]() {return can_eject(); }, this);
 
         fileMenu->AppendSeparator();
 

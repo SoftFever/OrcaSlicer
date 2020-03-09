@@ -155,6 +155,7 @@ GUI_App::GUI_App()
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
     , m_wizard(nullptr)
+	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
 {}
 
 GUI_App::~GUI_App()
@@ -279,7 +280,6 @@ bool GUI_App::on_init_inner()
 
     m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
 
-	RemovableDriveManager::get_instance().init();
 
     Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
     {
@@ -290,10 +290,6 @@ bool GUI_App::on_init_inner()
             app_config->save();
 
         this->obj_manipul()->update_if_dirty();
-
-#if !__APPLE__
-		RemovableDriveManager::get_instance().update(wxGetLocalTime(), true);
-#endif
 
 		// Preset updating & Configwizard are done after the above initializations,
 	    // and after MainFrame is created & shown.
@@ -454,46 +450,30 @@ float GUI_App::toolbar_icon_scale(const bool is_limited/* = false*/) const
 
 void GUI_App::recreate_GUI()
 {
-    // Weird things happen as the Paint messages are floating around the windows being destructed.
-    // Avoid the Paint messages by hiding the main window.
-    // Also the application closes much faster without these unnecessary screen refreshes.
-    // In addition, there were some crashes due to the Paint events sent to already destructed windows.
-    mainframe->Show(false);
+    mainframe->shutdown();
 
     const auto msg_name = _(L("Changing of an application language")) + dots;
     wxProgressDialog dlg(msg_name, msg_name);
     dlg.Pulse();
-
-    // to make sure nobody accesses data from the soon-to-be-destroyed widgets:
-    tabs_list.clear();
-    plater_ = nullptr;
-
     dlg.Update(10, _(L("Recreating")) + dots);
 
-    MainFrame* topwindow = mainframe;
+    MainFrame *old_main_frame = mainframe;
     mainframe = new MainFrame();
-    sidebar().obj_list()->init_objects(); // propagate model objects to object list
+    // Propagate model objects to object list.
+    sidebar().obj_list()->init_objects();
+    SetTopWindow(mainframe);
 
-    if (topwindow) {
-        SetTopWindow(mainframe);
-
-        dlg.Update(30, _(L("Recreating")) + dots);
-        topwindow->Destroy();
-
-        // For this moment ConfigWizard is deleted, invalidate it
-        m_wizard = nullptr;
-    }
+    dlg.Update(30, _(L("Recreating")) + dots);
+    old_main_frame->Destroy();
+    // For this moment ConfigWizard is deleted, invalidate it.
+    m_wizard = nullptr;
 
     dlg.Update(80, _(L("Loading of current presets")) + dots);
-
     m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
-
     load_current_presets();
-
     mainframe->Show(true);
 
     dlg.Update(90, _(L("Loading of a mode view")) + dots);
-
     /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
     * change min hight of object list to the normal min value (15 * wxGetApp().em_unit())
     * after first whole Mainframe updating/layouting
@@ -501,7 +481,6 @@ void GUI_App::recreate_GUI()
     const int list_min_height = 15 * em_unit();
     if (obj_list()->GetMinSize().GetY() > list_min_height)
         obj_list()->SetMinSize(wxSize(-1, list_min_height));
-
     update_mode();
 
     // #ys_FIXME_delete_after_testing  Do we still need this  ?
@@ -596,9 +575,6 @@ void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files) const
 bool GUI_App::switch_language()
 {
     if (select_language()) {
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-        _3DScene::remove_all_canvases();
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
         recreate_GUI();
         return true;
     } else {

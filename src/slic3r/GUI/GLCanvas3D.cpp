@@ -4088,12 +4088,6 @@ void GLCanvas3D::handle_layers_data_focus_event(const t_layer_height_range range
 
 void GLCanvas3D::update_ui_from_settings()
 {
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
-    Camera& camera = wxGetApp().plater()->get_camera();
-    camera.set_type(wxGetApp().app_config->get("use_perspective_camera"));
-#else
-    m_camera.set_type(wxGetApp().app_config->get("use_perspective_camera"));
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     m_dirty = true;
 
 #if ENABLE_RETINA_GL

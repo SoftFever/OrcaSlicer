@@ -212,10 +212,8 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                 if (m_print_config_ptr) { // in this case complete_objects is false (see ToolOrdering constructors)
                     something_nonoverriddable = false;
                     for (const auto& eec : layerm->perimeters.entities) // let's check if there are nonoverriddable entities
-                        if (!layer_tools.wiping_extrusions().is_overriddable_and_mark(dynamic_cast<const ExtrusionEntityCollection&>(*eec), *m_print_config_ptr, object, region)) {
+                        if (!layer_tools.wiping_extrusions().is_overriddable_and_mark(dynamic_cast<const ExtrusionEntityCollection&>(*eec), *m_print_config_ptr, object, region))
                             something_nonoverriddable = true;
-                            break;
-                        }
                 }
 
                 if (something_nonoverriddable)
@@ -237,7 +235,7 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                     has_infill = true;
 
                 if (m_print_config_ptr) {
-                    if (!something_nonoverriddable && !layer_tools.wiping_extrusions().is_overriddable_and_mark(*fill, *m_print_config_ptr, object, region))
+                    if (! layer_tools.wiping_extrusions().is_overriddable_and_mark(*fill, *m_print_config_ptr, object, region))
                         something_nonoverriddable = true;
                 }
             }

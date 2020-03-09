@@ -328,13 +328,21 @@ find_package(TBB REQUIRED)
 # add_definitions(-DTBB_USE_CAPTURED_EXCEPTION=0)
 
 find_package(CURL REQUIRED)
-include_directories(${CURL_INCLUDE_DIRS})
+
+add_library(libcurl INTERFACE)
+target_link_libraries(libcurl INTERFACE CURL::libcurl)
+
+if (NOT WIN32)
+    # Required by libcurl
+    find_package(ZLIB REQUIRED)
+    target_link_libraries(libcurl INTERFACE ZLIB::ZLIB)
+endif()
 
 if (SLIC3R_STATIC)
     if (NOT APPLE)
         # libcurl is always linked dynamically to the system libcurl on OSX.
         # On other systems, libcurl is linked statically if SLIC3R_STATIC is set.
-        add_definitions(-DCURL_STATICLIB)
+        target_compile_definitions(libcurl INTERFACE CURL_STATICLIB)
     endif()
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
         # As of now, our build system produces a statically linked libcurl,
@@ -342,7 +350,8 @@ if (SLIC3R_STATIC)
         find_package(OpenSSL REQUIRED)
         message("OpenSSL include dir: ${OPENSSL_INCLUDE_DIR}")
         message("OpenSSL libraries: ${OPENSSL_LIBRARIES}")
-        include_directories(${OPENSSL_INCLUDE_DIR})
+        target_include_directories(libcurl INTERFACE ${OPENSSL_INCLUDE_DIR})
+        target_link_libraries(libcurl INTERFACE ${OPENSSL_LIBRARIES})
     endif()
 endif()
 

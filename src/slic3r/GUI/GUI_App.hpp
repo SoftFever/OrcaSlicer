@@ -32,9 +32,9 @@ class PresetUpdater;
 class ModelObject;
 class PrintHostJobQueue;
 
-namespace GUI
-{
 
+namespace GUI{
+class RemovableDriveManager;
 enum FileType
 {
     FT_STL,
@@ -102,6 +102,9 @@ class GUI_App : public wxApp
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
     GLCanvas3DManager m_canvas_mgr;
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
+
+    std::unique_ptr<RemovableDriveManager> m_removable_drive_manager;
+
     std::unique_ptr<ImGuiWrapper> m_imgui;
     std::unique_ptr<PrintHostJobQueue> m_printhost_job_queue;
     ConfigWizard* m_wizard;    // Managed by wxWindow tree
@@ -191,6 +194,8 @@ public:
     int             extruders_edited_cnt() const;
 
     std::vector<Tab *>      tabs_list;
+
+	RemovableDriveManager* removable_drive_manager() { return m_removable_drive_manager.get(); }
 
     ImGuiWrapper* imgui() { return m_imgui.get(); }
 

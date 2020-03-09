@@ -100,12 +100,15 @@ struct Materials
 struct Bundle
 {
     std::unique_ptr<PresetBundle> preset_bundle;
-    VendorProfile *vendor_profile;
-    const bool is_in_resources;
-    const bool is_prusa_bundle;
+    VendorProfile *vendor_profile { nullptr };
+    bool is_in_resources { false };
+    bool is_prusa_bundle { false };
 
-    Bundle(fs::path source_path, bool is_in_resources, bool is_prusa_bundle = false);
+    Bundle() = default;
     Bundle(Bundle &&other);
+
+    // Returns false if not loaded. Reason for that is logged as boost::log error.
+    bool load(fs::path source_path, bool is_in_resources, bool is_prusa_bundle = false);
 
     const std::string& vendor_id() const { return vendor_profile->id; }
 };

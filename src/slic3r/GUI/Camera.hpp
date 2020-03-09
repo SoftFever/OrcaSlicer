@@ -122,6 +122,8 @@ public:
     // returns true if the camera z axis (forward) is pointing in the negative direction of the world z axis
     bool is_looking_downward() const { return get_dir_forward().dot(Vec3d::UnitZ()) < 0.0; }
 
+    void look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up);
+
     double max_zoom() const { return 100.0; }
     double min_zoom() const;
 
@@ -137,7 +139,6 @@ private:
 #endif // ENABLE_THUMBNAIL_GENERATOR
     void set_distance(double distance) const;
 
-    void look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up);
     void set_default_orientation();
     Vec3d validate_target(const Vec3d& target) const;
     void update_zenit();
