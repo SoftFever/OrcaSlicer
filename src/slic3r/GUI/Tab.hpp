@@ -321,6 +321,7 @@ protected:
 	void			build_preset_description_line(ConfigOptionsGroup* optgroup);
 	void			update_preset_description_line();
 	void			update_frequently_changed_parameters();
+    void			update_sliced_info_on_plater();
 	void			fill_icon_descriptions();
 	void			set_tooltips_text();
 

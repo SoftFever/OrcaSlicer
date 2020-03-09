@@ -96,6 +96,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         "filament_density",
         "filament_notes",
         "filament_cost",
+        "filament_spool_weight",
         "first_layer_acceleration",
         "first_layer_bed_temperature",
         "first_layer_speed",
