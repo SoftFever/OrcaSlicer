@@ -65,6 +65,8 @@ public:
 	// Verify whether the path provided is on removable media. If so, save the path for further eject and return true, otherwise return false.
 	bool 		set_and_verify_last_save_path(const std::string &path);
 	// Eject drive of a file set by set_and_verify_last_save_path().
+	// On Unix / OSX, the function blocks and sends out the EVT_REMOVABLE_DRIVE_EJECTED event on success.
+	// On Windows, the function does not block, and the eject is detected in the background thread.
 	void 		eject_drive();
 
 	struct RemovableDrivesStatus {
@@ -99,10 +101,6 @@ private:
 	// m_current_drives is guarded by m_drives_mutex
 	// sorted ascending by path
 	std::vector<DriveData> 	m_current_drives;
-	// When user requested an eject, the drive to be forcefuly ejected is stored here, so the next update will
-	// recognize that the eject was finished with success and an eject event is sent out.
-	// guarded with m_drives_mutex
-	DriveData 				m_drive_data_last_eject;
 	mutable tbb::mutex 		m_drives_mutex;
 
 	// Returns drive path (same as path in DriveData) if exists otherwise empty string.
