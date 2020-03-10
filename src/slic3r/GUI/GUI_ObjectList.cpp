@@ -115,6 +115,11 @@ ObjectList::ObjectList(wxWindow* parent) :
 
     // describe control behavior 
     Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxDataViewEvent& event) {
+        // detect the current mouse position here, to pass it to list_manipulation() method
+        // if we detect it later, the user may have moved the mouse pointer while calculations are performed, and this would mess-up the HitTest() call performed into list_manipulation()
+        // see: https://github.com/prusa3d/PrusaSlicer/issues/3802
+        const wxPoint mouse_pos = get_mouse_position_in_control();
+
 #ifndef __APPLE__
         // On Windows and Linux, forces a kill focus emulation on the object manipulator fields because this event handler is called
         // before the kill focus event handler on the object manipulator when changing selection in the list, invalidating the object
@@ -170,7 +175,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 #endif //__WXMSW__
 
 #ifndef __WXOSX__
-        list_manipulation();
+        list_manipulation(mouse_pos);
 #endif //__WXOSX__
     });
 
@@ -784,23 +789,31 @@ void ObjectList::OnChar(wxKeyEvent& event)
 */
 #endif /* __WXOSX__ */
 
-void ObjectList::OnContextMenu(wxDataViewEvent&)
+void ObjectList::OnContextMenu(wxDataViewEvent& evt)
 {
+    // The mouse position returned by get_mouse_position_in_control() here is the one at the time the mouse button is released (mouse up event)
+    wxPoint mouse_pos = get_mouse_position_in_control();
+
+    // We check if the mouse down event was over the "Editing" column, if not, we change the mouse position so that the following call to list_simulation() does not show any context menu
+    // see: https://github.com/prusa3d/PrusaSlicer/issues/3802
+    wxDataViewColumn* column = evt.GetDataViewColumn();
+    if (column == nullptr || column->GetTitle() != _("Editing"))
+        mouse_pos.x = 0;
+
     // Do not show the context menu if the user pressed the right mouse button on the 3D scene and released it on the objects list
     GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
     bool evt_context_menu = (canvas != nullptr) ? !canvas->is_mouse_dragging() : true;
     if (!evt_context_menu)
         canvas->mouse_up_cleanup();
 
-    list_manipulation(evt_context_menu);
+    list_manipulation(mouse_pos, evt_context_menu);
 }
 
-void ObjectList::list_manipulation(bool evt_context_menu/* = false*/)
+void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_menu/* = false*/)
 {
     wxDataViewItem item;
     wxDataViewColumn* col = nullptr;
-    const wxPoint pt = get_mouse_position_in_control();
-    HitTest(pt, item, col);
+    HitTest(mouse_pos, item, col);
 
     if (m_extruder_editor)
         m_extruder_editor->Hide();
@@ -854,7 +867,7 @@ void ObjectList::list_manipulation(bool evt_context_menu/* = false*/)
             get_selected_item_indexes(obj_idx, vol_idx, item);
 
             if (get_mesh_errors_count(obj_idx, vol_idx) > 0 && 
-                pt.x > 2*wxGetApp().em_unit() && pt.x < 4*wxGetApp().em_unit() )
+                mouse_pos.x > 2 * wxGetApp().em_unit() && mouse_pos.x < 4 * wxGetApp().em_unit())
                 fix_through_netfabb();
         }
     }
