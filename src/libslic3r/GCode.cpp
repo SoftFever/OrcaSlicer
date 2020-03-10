@@ -291,7 +291,7 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
 
     std::string gcode;
 
-    // Toolchangeresult.gcode assumes the wipe tower corner is at the origin
+    // Toolchangeresult.gcode assumes the wipe tower corner is at the origin (except for priming lines)
     // We want to rotate and shift all extrusions (gcode postprocessing) and starting and ending position
     float alpha = m_wipe_tower_rotation/180.f * float(M_PI);
     Vec2f start_pos = tcr.start_pos;
@@ -431,7 +431,6 @@ std::string WipeTowerIntegration::post_process_wipe_tower_moves(const WipeTower:
     Vec2f pos = tcr.start_pos;
     Vec2f transformed_pos = pos;
     Vec2f old_pos(-1000.1f, -1000.1f);
-    std::string never_skip_tag = WipeTower::never_skip_tag();
 
     while (gcode_str) {
         std::getline(gcode_str, line);  // we read the gcode line by line
@@ -441,11 +440,11 @@ std::string WipeTowerIntegration::post_process_wipe_tower_moves(const WipeTower:
         // WT generator can override this by appending the never_skip_tag
         if (line.find("G1 ") == 0) {
             bool never_skip = false;
-            auto it = line.find(never_skip_tag);
+            auto it = line.find(WipeTower::never_skip_tag());
             if (it != std::string::npos) {
                 // remove the tag and remember we saw it
                 never_skip = true;
-                line.erase(it, it+never_skip_tag.size());
+                line.erase(it, it+WipeTower::never_skip_tag().size());
             }
             std::ostringstream line_out;
             std::istringstream line_str(line);

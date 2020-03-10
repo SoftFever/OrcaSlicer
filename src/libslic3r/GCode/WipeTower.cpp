@@ -492,6 +492,9 @@ WipeTower::WipeTower(const PrintConfig& config, const std::vector<std::vector<fl
     const std::vector<Vec2d>& bed_points = config.bed_shape.values;
     m_bed_shape = (bed_points.size() == 4 ? RectangularBed : CircularBed);
     m_bed_width = float(BoundingBoxf(bed_points).size().x());
+    m_bed_bottom_left = m_bed_shape == RectangularBed
+                  ? Vec2f(bed_points.front().x(), bed_points.front().y())
+                  : Vec2f::Zero();
 }
 
 
@@ -566,6 +569,8 @@ std::vector<WipeTower::ToolChangeResult> WipeTower::prime(
     // In case of a circular bed, place it so it goes across the diameter and hope it will fit
     if (m_bed_shape == CircularBed)
         cleaning_box.translate(-m_bed_width/2 + m_bed_width * 0.03f, -m_bed_width * 0.12f);
+    if (m_bed_shape == RectangularBed)
+        cleaning_box.translate(m_bed_bottom_left);
 
     std::vector<ToolChangeResult> results;
 
