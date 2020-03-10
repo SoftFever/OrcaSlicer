@@ -283,9 +283,9 @@ public:
     bool init_view_toolbar();
 
     const Camera& get_camera() const;
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     Camera& get_camera();
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
     const Bed3D& get_bed() const;
     Bed3D& get_bed();
 

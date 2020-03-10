@@ -388,6 +388,9 @@ void Mouse3DController::disconnected()
         m_params_by_device[m_device_str] = m_params_ui;
 	    m_device_str.clear();
 	    m_connected = false;
+        wxGetApp().plater()->get_camera().recover_from_free_camera();
+        wxGetApp().plater()->set_current_canvas_as_dirty();
+        wxWakeUpIdle();
     }
 }
 
@@ -773,7 +776,10 @@ void Mouse3DController::disconnect_device()
 	    }
 	    m_device_str.clear();
 	    m_connected = false;
-	}
+        wxGetApp().plater()->get_camera().recover_from_free_camera();
+        wxGetApp().plater()->set_current_canvas_as_dirty();
+        wxWakeUpIdle();
+    }
 }
 
 void Mouse3DController::collect_input()

@@ -2297,11 +2297,7 @@ void Plater::priv::update_ui_from_settings()
 
     camera.set_type(wxGetApp().app_config->get("use_perspective_camera"));
     if (wxGetApp().app_config->get("use_free_camera") != "1")
-    {
-        // forces camera right vector to be parallel to XY plane
-        if (std::abs(camera.get_dir_right()(2)) > EPSILON)
-            camera.look_at(camera.get_position(), camera.get_target(), Vec3d::UnitZ());
-    }
+        camera.recover_from_free_camera();
 
     view3D->get_canvas3d()->update_ui_from_settings();
     preview->get_canvas3d()->update_ui_from_settings();
@@ -5700,12 +5696,12 @@ const Camera& Plater::get_camera() const
     return p->camera;
 }
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 Camera& Plater::get_camera()
 {
     return p->camera;
 }
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
 const Bed3D& Plater::get_bed() const
 {
     return p->bed;
