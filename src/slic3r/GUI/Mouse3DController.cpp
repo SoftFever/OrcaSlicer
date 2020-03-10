@@ -134,9 +134,9 @@ bool Mouse3DController::State::apply(const Mouse3DController::Params &params, Ca
 	        const Vec3d& translation = input_queue_item.vector;
 	        double zoom_factor = camera.min_zoom() / camera.get_zoom();
 	        camera.set_target(camera.get_target() + zoom_factor * params.translation.scale * (translation.x() * camera.get_dir_right() + translation.z() * camera.get_dir_up()));
-	        if (translation.y() != 0.0)
-	            camera.update_zoom(params.zoom.scale * translation.y() / std::abs(translation.y()));
-	    } else if (input_queue_item.is_rotation()) {
+            if (translation.y() != 0.0)
+                camera.update_zoom(params.zoom.scale * translation.y());
+        } else if (input_queue_item.is_rotation()) {
 	    	Vec3d rot = params.rotation.scale * input_queue_item.vector * (PI / 180.);
 	        camera.rotate_local_around_target(Vec3d(rot.x(), - rot.z(), rot.y()));
 	        break;
