@@ -122,6 +122,13 @@ public:
     // returns true if the camera z axis (forward) is pointing in the negative direction of the world z axis
     bool is_looking_downward() const { return get_dir_forward().dot(Vec3d::UnitZ()) < 0.0; }
 
+    // forces camera right vector to be parallel to XY plane
+    void recover_from_free_camera()
+    {
+        if (std::abs(get_dir_right()(2)) > EPSILON)
+            look_at(get_position(), m_target, Vec3d::UnitZ());
+    }
+
     void look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up);
 
     double max_zoom() const { return 100.0; }

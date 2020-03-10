@@ -280,6 +280,7 @@ public:
     bool init_view_toolbar();
 
     const Camera& get_camera() const;
+    Camera& get_camera();
     const Mouse3DController& get_mouse3d_controller() const;
     Mouse3DController& get_mouse3d_controller();
 
