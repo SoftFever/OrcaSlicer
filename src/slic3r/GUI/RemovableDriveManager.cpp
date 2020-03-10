@@ -21,6 +21,7 @@
 #include <pwd.h>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/convenience.hpp>
+#include <boost/process.hpp>
 #endif
 
 namespace Slic3r {
@@ -329,29 +330,40 @@ void RemovableDriveManager::eject_drive()
 	auto it_drive_data = this->find_last_save_path_drive_data();
 	if (it_drive_data != m_current_drives.end()) {
 		std::string correct_path(m_last_save_path);
-		for (size_t i = 0; i < correct_path.size(); ++i)
+#ifndef __APPLE__
+		for (size_t i = 0; i < correct_path.size(); ++i) 
         	if (correct_path[i]==' ') {
 				correct_path = correct_path.insert(i,1,'\\');
         		++ i;
         	}
+#endif
 		//std::cout<<"Ejecting "<<(*it).name<<" from "<< correct_path<<"\n";
 		// there is no usable command in c++ so terminal command is used instead
 		// but neither triggers "succesful safe removal messege"
-		std::string command = 
+        	BOOST_LOG_TRIVIAL(info) << "Ejecting started";
+        	boost::process::ipstream istd_err;
+    		boost::process::child child(
 #if __APPLE__		
-			"diskutil unmount ";
+			boost::process::search_path("diskutil"), "eject", correct_path.c_str(), (boost::process::std_out & boost::process::std_err) > istd_err);
 			//Another option how to eject at mac. Currently not working.
 			//used insted of system() command;
 			//this->eject_device(correct_path);
 #else
-			"umount ";
+    		boost::process::search_path("umount"), correct_path.c_str(), (boost::process::std_out & boost::process::std_err) > istd_err);
 #endif
-		command += correct_path;
-		int err = system(command.c_str());
-		if (err) {
-			BOOST_LOG_TRIVIAL(error) << "Ejecting " << m_last_save_path << " failed";
-			return;
+		std::string line;
+		while (child.running() && std::getline(istd_err, line)) {
+			BOOST_LOG_TRIVIAL(trace) << line;
 		}
+		// wait for command to finnish (blocks ui thread)
+		child.wait();
+    	int err = child.exit_code();
+    	if(err)
+    	{
+    		BOOST_LOG_TRIVIAL(error) << "Ejecting failed";
+    		return;
+    	}
+		BOOST_LOG_TRIVIAL(info) << "Ejecting finished";
 
 		assert(m_callback_evt_handler);
 		if (m_callback_evt_handler) 
