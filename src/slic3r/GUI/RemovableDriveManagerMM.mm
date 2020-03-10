@@ -4,9 +4,21 @@
 #import <AppKit/AppKit.h> 
 #import <DiskArbitration/DiskArbitration.h>
 
+static void eject_callback(DADiskRef disk, DADissenterRef dissenter, void *context)
+{
+    NSLog(@"eject successfull");
+}
+
+static void unmount_callback(DADiskRef disk, DADissenterRef dissenter, void *context)
+{
+    //if (dissenter) {
+        //?
+    //} else {
+        DADiskEject(disk, kDADiskEjectOptionDefault, eject_callback, context);
+    //}
+}
+
 @implementation RemovableDriveManagerMM
-
-
 
 -(instancetype) init
 {
@@ -59,9 +71,17 @@
             CFTypeRef mediaEjectableKey = CFDictionaryGetValue(descDict,kDADiskDescriptionMediaEjectableKey);
             BOOL ejectable = [mediaEjectableKey boolValue];
             CFTypeRef deviceProtocolName = CFDictionaryGetValue(descDict,kDADiskDescriptionDeviceProtocolKey);
+            
             CFTypeRef deviceModelKey = CFDictionaryGetValue(descDict, kDADiskDescriptionDeviceModelKey);
+            //debug logging
+            /*
+            if (deviceProtocolName)
+                NSLog(@"%@",(CFStringRef)deviceProtocolName);
+            if (deviceModelKey)
+                NSLog(@"-%@",(CFStringRef)deviceModelKey);
+            */
             if (mediaEjectableKey != nullptr) {
-                BOOL op = ejectable && (CFEqual(deviceProtocolName, CFSTR("USB")) || CFEqual(deviceModelKey, CFSTR("SD Card Reader")));
+                BOOL op = ejectable && (CFEqual(deviceProtocolName, CFSTR("USB")) || CFEqual(deviceModelKey, CFSTR("SD Card Reader"))  || CFEqual(deviceProtocolName, CFSTR("Secure Digital")));
                 //!CFEqual(deviceModelKey, CFSTR("Disk Image"));
                 if (op)
                     [result addObject:volURL.path];
@@ -86,7 +106,8 @@
     if (err == 0)
         disk = DADiskCreateFromVolumePath(nullptr,session,(CFURLRef)url);
     if( err == 0)
-        DADiskUnmount(disk, kDADiskUnmountOptionDefault, nullptr, nullptr);
+        //DADiskUnmount(disk, kDADiskUnmountOptionDefault, nullptr, nullptr);
+        DADiskUnmount(disk, kDADiskUnmountOptionWhole | kDADiskUnmountOptionForce, unmount_callback, nullptr);
     if (disk != nullptr)
         CFRelease(disk);
     if (session != nullptr)
