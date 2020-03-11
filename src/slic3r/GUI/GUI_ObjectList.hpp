@@ -320,13 +320,26 @@ public:
     // Remove objects/sub-object from the list
     void remove();
     void del_layer_range(const t_layer_height_range& range);
-    void add_layer_range_after_current(const t_layer_height_range& current_range);
+    // Add a new layer height after the current range if possible.
+    // The current range is shortened and the new range is entered after the shortened current range if it fits.
+    // If no range fits after the current range, then no range is inserted.
+    // The layer range panel is updated even if this function does not change the layer ranges, as the panel update
+    // may have been postponed from the "kill focus" event of a text field, if the focus was lost for the "add layer" button.
+    // Rather providing the range by a value than by a reference, so that the memory referenced cannot be invalidated.
+    void add_layer_range_after_current(const t_layer_height_range current_range);
     void add_layer_item (const t_layer_height_range& range, 
                          const wxDataViewItem layers_item, 
                          const int layer_idx = -1);
     bool edit_layer_range(const t_layer_height_range& range, coordf_t layer_height);
+    // This function may be called when a text field loses focus for a "add layer" or "remove layer" button.
+    // In that case we don't want to destroy the panel with that "add layer" or "remove layer" buttons, as some messages
+    // are already planned for them and destroying these widgets leads to crashes at least on OSX.
+    // In that case the "add layer" or "remove layer" button handlers are responsible for always rebuilding the panel
+    // even if the "add layer" or "remove layer" buttons did not update the layer spans or layer heights.
     bool edit_layer_range(const t_layer_height_range& range, 
-                          const t_layer_height_range& new_range);
+                          const t_layer_height_range& new_range,
+                          // Don't destroy the panel with the "add layer" or "remove layer" buttons.
+                          bool suppress_ui_update = false);
 
     void init_objects();
     bool multiple_selection() const ;

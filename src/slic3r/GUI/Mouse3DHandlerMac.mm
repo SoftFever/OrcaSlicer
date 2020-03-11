@@ -152,8 +152,9 @@ static void DeviceAdded(uint32_t unused)
 static void DeviceRemoved(uint32_t unused)
 {
   BOOST_LOG_TRIVIAL(info) << "3dx device removed\n";
-  assert(m_connected);
-  assert(! m_device_str.empty());
+// not accessible in a free function
+//  assert(m_connected);
+//  assert(! m_device_str.empty());
   mouse_3d_controller->disconnected();
 }
 
