@@ -189,6 +189,9 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
             	default_materials_field = section.second.get<std::string>("default_filaments", "");
             if (Slic3r::unescape_strings_cstyle(default_materials_field, model.default_materials)) {
             	Slic3r::sort_remove_duplicates(model.default_materials);
+            	if (! model.default_materials.empty() && model.default_materials.front().empty())
+            		// An empty material was inserted into the list of default materials. Remove it.
+            		model.default_materials.erase(model.default_materials.begin());
             } else {
                 BOOST_LOG_TRIVIAL(error) << boost::format("Vendor bundle: `%1%`: Malformed default_materials field: `%2%`") % id % default_materials_field;
             }

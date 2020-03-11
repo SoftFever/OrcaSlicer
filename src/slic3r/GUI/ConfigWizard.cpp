@@ -1926,6 +1926,7 @@ void ConfigWizard::priv::update_presets_in_config(const std::string& section, co
     const PresetAliases& aliases = section == AppConfig::SECTION_FILAMENTS ? aliases_fff : aliases_sla;
 
     auto update = [this, add](const std::string& s, const std::string& key) {
+    	assert(! s.empty());
         if (add)
             appconfig_new.set(s, key, "1");
         else
