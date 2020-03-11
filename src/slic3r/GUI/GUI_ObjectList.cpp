@@ -2881,76 +2881,84 @@ static double get_max_layer_height(const int extruder_idx)
     return max_layer_height;
 }
 
-void ObjectList::add_layer_range_after_current(const t_layer_height_range& current_range)
+void ObjectList::add_layer_range_after_current(const t_layer_height_range current_range)
 {
     const int obj_idx = get_selected_obj_idx();
-    if (obj_idx < 0) return;
+    if (obj_idx < 0) 
+        // This should not happen.
+        return;
 
     const wxDataViewItem layers_item = GetSelection();
 
     t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
+    auto it_range = ranges.find(current_range);
+    assert(it_range != ranges.end());
+    if (it_range == ranges.end())
+        // This shoudl not happen.
+        return;
 
-    const t_layer_height_range& last_range = (--ranges.end())->first;
-    
-    if (current_range == last_range)
+    auto it_next_range = it_range;
+    bool changed = false;
+    if (++ it_next_range == ranges.end())
     {
+        // Adding a new layer height range after the last one.
         take_snapshot(_(L("Add Height Range")));
+        changed = true;
 
-        const t_layer_height_range& new_range = { last_range.second, last_range.second + 2. };
+        const t_layer_height_range new_range = { current_range.second, current_range.second + 2. };
         ranges[new_range] = get_default_layer_config(obj_idx);
         add_layer_item(new_range, layers_item);
     }
-    else
+    else if (const std::pair<coordf_t, coordf_t> &next_range = it_next_range->first; current_range.second <= next_range.first)
     {
-        const t_layer_height_range& next_range = (++ranges.find(current_range))->first;
-
-        if (current_range.second > next_range.first)
-            return; // range division has no sense
-        
         const int layer_idx = m_objects_model->GetItemIdByLayerRange(obj_idx, next_range);
-        if (layer_idx < 0)
-            return;
-
-        if (current_range.second == next_range.first)
+        assert(layer_idx >= 0);
+        if (layer_idx >= 0) 
         {
-            const auto old_config = ranges.at(next_range);
+            if (current_range.second == next_range.first)
+            {
+                // Splitting the currnet layer heigth range to two.
+                const auto old_config = ranges.at(next_range);
+                const coordf_t delta = (next_range.second - next_range.first);
+                if (delta >= get_min_layer_height(old_config.opt_int("extruder"))/*0.05f*/) {
+                    const coordf_t midl_layer = next_range.first + 0.5 * delta;
+                    t_layer_height_range new_range = { midl_layer, next_range.second };
 
-            const coordf_t delta = (next_range.second - next_range.first);
-            if (delta < get_min_layer_height(old_config.opt_int("extruder"))/*0.05f*/) // next range division has no sense 
-                return; 
+                    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Add Height Range")));
+                    changed = true;
 
-            const coordf_t midl_layer = next_range.first + 0.5 * delta;
-            
-            t_layer_height_range new_range = { midl_layer, next_range.second };
+                    // create new 2 layers instead of deleted one
+                    // delete old layer
 
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Add Height Range")));
+                    wxDataViewItem layer_item = m_objects_model->GetItemByLayerRange(obj_idx, next_range);
+                    del_subobject_item(layer_item);
 
-            // create new 2 layers instead of deleted one
+                    ranges[new_range] = old_config;
+                    add_layer_item(new_range, layers_item, layer_idx);
 
-            // delete old layer
+                    new_range = { current_range.second, midl_layer };
+                    ranges[new_range] = get_default_layer_config(obj_idx);
+                    add_layer_item(new_range, layers_item, layer_idx);
+                }
+            }
+            else
+            {
+                // Filling in a gap between the current and a new layer height range with a new one.
+                take_snapshot(_(L("Add Height Range")));
+                changed = true;
 
-            wxDataViewItem layer_item = m_objects_model->GetItemByLayerRange(obj_idx, next_range);
-            del_subobject_item(layer_item);
-
-            ranges[new_range] = old_config;
-            add_layer_item(new_range, layers_item, layer_idx);
-
-            new_range = { current_range.second, midl_layer };
-            ranges[new_range] = get_default_layer_config(obj_idx);
-            add_layer_item(new_range, layers_item, layer_idx);
+                const t_layer_height_range new_range = { current_range.second, next_range.first };
+                ranges[new_range] = get_default_layer_config(obj_idx);
+                add_layer_item(new_range, layers_item, layer_idx);
+            }
         }
-        else
-        {
-            take_snapshot(_(L("Add Height Range")));
-
-            const t_layer_height_range new_range = { current_range.second, next_range.first };
-            ranges[new_range] = get_default_layer_config(obj_idx);
-            add_layer_item(new_range, layers_item, layer_idx);
-        }        
     }
 
-    changed_object(obj_idx);
+    if (changed)
+        changed_object(obj_idx);
 
+    // The layer range panel is updated even if this function does not change the layer ranges, as the panel update
+    // may have been postponed from the "kill focus" event of a text field, if the focus was lost for the "add layer" button.
     // select item to update layers sizer
     select_item(layers_item);
 }
@@ -2996,7 +3004,7 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, coordf_t la
     return false;
 }
 
-bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_layer_height_range& new_range)
+bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_layer_height_range& new_range, bool dont_update_ui)
 {
     const int obj_idx = get_selected_obj_idx();
     if (obj_idx < 0) return false;
@@ -3012,17 +3020,21 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_lay
     ranges.erase(range);
     ranges[new_range] = config;
     changed_object(obj_idx);
-
+    
     wxDataViewItem root_item = m_objects_model->GetLayerRootItem(m_objects_model->GetItemById(obj_idx));
     // To avoid update selection after deleting of a selected item (under GTK)
     // set m_prevent_list_events to true
     m_prevent_list_events = true;
     m_objects_model->DeleteChildren(root_item);
 
-    if (root_item.IsOk())
+    if (root_item.IsOk()) {
         // create Layer item(s) according to the layer_config_ranges
         for (const auto& r : ranges)
             add_layer_item(r.first, root_item);
+    }
+
+    if (dont_update_ui)
+        return true;
 
     select_item(sel_type&itLayer ? m_objects_model->GetItemByLayerRange(obj_idx, new_range) : root_item);
     Expand(root_item);
