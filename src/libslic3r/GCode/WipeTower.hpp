@@ -236,6 +236,7 @@ private:
         CircularBed
     } m_bed_shape;
     float m_bed_width; // width of the bed bounding box
+    Vec2f m_bed_bottom_left; // bottom-left corner coordinates (for rectangular beds)
 
 	float m_perimeter_width = 0.4f * Width_To_Nozzle_Ratio; // Width of an extrusion line, also a perimeter spacing for 100% infill.
 	float m_extrusion_flow = 0.038f; //0.029f;// Extrusion flow is derived from m_perimeter_width, layer height and filament diameter.

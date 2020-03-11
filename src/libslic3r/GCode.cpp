@@ -291,7 +291,7 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
 
     std::string gcode;
 
-    // Toolchangeresult.gcode assumes the wipe tower corner is at the origin
+    // Toolchangeresult.gcode assumes the wipe tower corner is at the origin (except for priming lines)
     // We want to rotate and shift all extrusions (gcode postprocessing) and starting and ending position
     float alpha = m_wipe_tower_rotation/180.f * float(M_PI);
     Vec2f start_pos = tcr.start_pos;
