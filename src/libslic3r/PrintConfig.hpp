@@ -802,6 +802,7 @@ public:
     ConfigOptionBools               retract_layer_change;
     ConfigOptionFloat               skirt_distance;
     ConfigOptionInt                 skirt_height;
+    ConfigOptionBool                infinit_skirt;
     ConfigOptionInt                 skirts;
     ConfigOptionInts                slowdown_below_layer_time;
     ConfigOptionBool                spiral_vase;
@@ -874,6 +875,7 @@ protected:
         OPT_PTR(retract_layer_change);
         OPT_PTR(skirt_distance);
         OPT_PTR(skirt_height);
+        OPT_PTR(infinit_skirt);
         OPT_PTR(skirts);
         OPT_PTR(slowdown_below_layer_time);
         OPT_PTR(spiral_vase);

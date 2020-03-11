@@ -1698,6 +1698,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(1));
 
+    def = this->add("infinit_skirt", coBool);
+    def->label = L("Use unlimit skirt");
+    def->tooltip = L("If enabled, the skirt will be as tall as a highest printed object.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("skirts", coInt);
     def->label = L("Loops (minimum)");
     def->full_label = L("Skirt Loops");
