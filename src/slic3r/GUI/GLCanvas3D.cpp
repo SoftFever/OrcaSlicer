@@ -5031,6 +5031,19 @@ void GLCanvas3D::_render_overlays() const
     _render_gizmos_overlay();
     _render_warning_texture();
     _render_legend_texture();
+
+    // main toolbar and undoredo toolbar need to be both updated before rendering because both their sizes are needed
+    // to correctly place them
+#if ENABLE_RETINA_GL
+    const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale(true);
+    m_main_toolbar.set_scale(scale);
+    m_undoredo_toolbar.set_scale(scale);
+#else
+    const float size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(true));
+    m_main_toolbar.set_icons_size(size);
+    m_undoredo_toolbar.set_icons_size(size);
+#endif // ENABLE_RETINA_GL
+
     _render_main_toolbar();
     _render_undoredo_toolbar();
     _render_view_toolbar();
@@ -5123,17 +5136,6 @@ void GLCanvas3D::_render_main_toolbar() const
     if (!m_main_toolbar.is_enabled())
         return;
 
-#if ENABLE_RETINA_GL
-//     m_main_toolbar.set_scale(m_retina_helper->get_scale_factor());
-    const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale(true);
-    m_main_toolbar.set_scale(scale); //! #ys_FIXME_experiment
-#else
-//     m_main_toolbar.set_scale(m_canvas->GetContentScaleFactor());
-//     m_main_toolbar.set_scale(wxGetApp().em_unit()*0.1f);
-    const float size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(true));
-    m_main_toolbar.set_icons_size(size); //! #ys_FIXME_experiment
-#endif // ENABLE_RETINA_GL
-
     Size cnv_size = get_canvas_size();
     float inv_zoom = (float)m_camera.get_inv_zoom();
 
@@ -5148,17 +5150,6 @@ void GLCanvas3D::_render_undoredo_toolbar() const
 {
     if (!m_undoredo_toolbar.is_enabled())
         return;
-
-#if ENABLE_RETINA_GL
-//     m_undoredo_toolbar.set_scale(m_retina_helper->get_scale_factor());
-    const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale(true);
-    m_undoredo_toolbar.set_scale(scale); //! #ys_FIXME_experiment
-#else
-//     m_undoredo_toolbar.set_scale(m_canvas->GetContentScaleFactor());
-//     m_undoredo_toolbar.set_scale(wxGetApp().em_unit()*0.1f);
-    const float size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(true));
-    m_undoredo_toolbar.set_icons_size(size); //! #ys_FIXME_experiment
-#endif // ENABLE_RETINA_GL
 
     Size cnv_size = get_canvas_size();
     float inv_zoom = (float)m_camera.get_inv_zoom();
