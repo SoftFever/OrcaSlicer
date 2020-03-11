@@ -850,30 +850,32 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
             Select(item);
     }
 
-    const wxString title = col->GetTitle();
-
-    if (title == " ")
-        toggle_printable_state(item);
-    else if (title == _("Editing"))
-        show_context_menu(evt_context_menu);
-    else if (title == _("Name"))
+    if (col != nullptr) 
     {
-        if (wxOSX)
-            show_context_menu(evt_context_menu); // return context menu under OSX (related to #2909)
+	    const wxString title = col->GetTitle();
+	    if (title == " ")
+	        toggle_printable_state(item);
+	    else if (title == _("Editing"))
+	        show_context_menu(evt_context_menu);
+	    else if (title == _("Name"))
+	    {
+	        if (wxOSX)
+	            show_context_menu(evt_context_menu); // return context menu under OSX (related to #2909)
 
-        if (is_windows10())
-        {
-            int obj_idx, vol_idx;
-            get_selected_item_indexes(obj_idx, vol_idx, item);
+	        if (is_windows10())
+	        {
+	            int obj_idx, vol_idx;
+	            get_selected_item_indexes(obj_idx, vol_idx, item);
 
-            if (get_mesh_errors_count(obj_idx, vol_idx) > 0 && 
-                mouse_pos.x > 2 * wxGetApp().em_unit() && mouse_pos.x < 4 * wxGetApp().em_unit())
-                fix_through_netfabb();
-        }
-    }
-    // workaround for extruder editing under OSX 
-    else if (wxOSX && evt_context_menu && title == _("Extruder"))
-        extruder_editing();
+	            if (get_mesh_errors_count(obj_idx, vol_idx) > 0 && 
+	                mouse_pos.x > 2 * wxGetApp().em_unit() && mouse_pos.x < 4 * wxGetApp().em_unit())
+	                fix_through_netfabb();
+	        }
+	    }
+	    // workaround for extruder editing under OSX 
+	    else if (wxOSX && evt_context_menu && title == _("Extruder"))
+	        extruder_editing();
+	}
 
 #ifndef __WXMSW__
     GetMainWindow()->SetToolTip(""); // hide tooltip
