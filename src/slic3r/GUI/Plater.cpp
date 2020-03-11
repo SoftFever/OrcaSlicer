@@ -5232,6 +5232,7 @@ void Plater::send_gcode()
 // Called when the Eject button is pressed.
 void Plater::eject_drive()
 {
+    wxBusyCursor wait;
 	wxGetApp().removable_drive_manager()->eject_drive();
 }
 
