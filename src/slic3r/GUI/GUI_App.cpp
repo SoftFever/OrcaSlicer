@@ -877,14 +877,19 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
             /* Before change application language, let's check unsaved changes on 3D-Scene
              * and draw user's attention to the application restarting after a language change
              */
-            wxMessageDialog dialog(nullptr,
-                _(L("Switching the language will trigger application restart.\n"
-                    "You will lose content of the plater.")) + "\n\n" +
-                _(L("Do you want to proceed?")),
-                wxString(SLIC3R_APP_NAME) + " - " + _(L("Language selection")),
-                wxICON_QUESTION | wxOK | wxCANCEL);
-            if ( dialog.ShowModal() == wxID_CANCEL)
-                return;
+            {
+                // the dialog needs to be destroyed before the call to switch_language()
+                // or sometimes the application crashes into wxDialogBase() destructor
+                // so we put it into an inner scope
+                wxMessageDialog dialog(nullptr,
+                    _(L("Switching the language will trigger application restart.\n"
+                        "You will lose content of the plater.")) + "\n\n" +
+                    _(L("Do you want to proceed?")),
+                    wxString(SLIC3R_APP_NAME) + " - " + _(L("Language selection")),
+                    wxICON_QUESTION | wxOK | wxCANCEL);
+                if (dialog.ShowModal() == wxID_CANCEL)
+                    return;
+            }
 
             switch_language();
             break;
