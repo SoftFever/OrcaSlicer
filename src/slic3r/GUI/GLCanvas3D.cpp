@@ -3191,6 +3191,9 @@ std::string format_mouse_event_debug_message(const wxMouseEvent &evt)
 
 void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 {
+    if (!m_initialized || !_set_current())
+        return;
+
 #if ENABLE_RETINA_GL
     const float scale = m_retina_helper->get_scale_factor();
     evt.SetX(evt.GetX() * scale);
@@ -3259,9 +3262,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.set_start_position_3D_as_invalid();
         return;
     }
-
-    if (m_picking_enabled)
-        _set_current();
 
     int selected_object_idx = m_selection.get_object_idx();
     int layer_editing_object_idx = is_layers_editing_enabled() ? selected_object_idx : -1;
