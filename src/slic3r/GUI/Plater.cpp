@@ -2200,7 +2200,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 				% evt.data.first.name % evt.data.first.path).str());
 		} else
 			Slic3r::GUI::show_info(this->q, (boost::format(_utf8(L("Ejecting of device %s(%s) has failed.")))
-			% evt.data.first.name % evt.data.first.path).str());
+				% evt.data.first.name % evt.data.first.path).str());
 	});
     this->q->Bind(EVT_REMOVABLE_DRIVES_CHANGED, [this](RemovableDrivesChangedEvent &) { this->show_action_buttons(this->ready_to_slice); });
     // Start the background thread and register this window as a target for update events.
