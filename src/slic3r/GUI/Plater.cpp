@@ -5612,7 +5612,7 @@ void Plater::schedule_background_process(bool schedule/* = true*/)
     this->p->suppressed_backround_processing_update = false;
 }
 
-bool Plater::is_background_process_running() const
+bool Plater::is_background_process_update_scheduled() const
 {
     return this->p->background_process_timer.IsRunning();
 }
@@ -5754,14 +5754,14 @@ bool Plater::PopupMenu(wxMenu *menu, const wxPoint& pos)
 }
 
 SuppressBackgroundProcessingUpdate::SuppressBackgroundProcessingUpdate() :
-    m_was_running(wxGetApp().plater()->is_background_process_running())
+    m_was_scheduled(wxGetApp().plater()->is_background_process_update_scheduled())
 {
-    wxGetApp().plater()->suppress_background_process(m_was_running);
+    wxGetApp().plater()->suppress_background_process(m_was_scheduled);
 }
 
 SuppressBackgroundProcessingUpdate::~SuppressBackgroundProcessingUpdate()
 {
-    wxGetApp().plater()->schedule_background_process(m_was_running);
+    wxGetApp().plater()->schedule_background_process(m_was_scheduled);
 }
 
 }}    // namespace Slic3r::GUI
