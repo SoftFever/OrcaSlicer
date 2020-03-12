@@ -473,7 +473,16 @@ void Mouse3DController::run()
     int res = hid_init();
     if (res != 0) {
     	// Give up.
-        BOOST_LOG_TRIVIAL(error) << "Unable to initialize hidapi library";
+#if defined(__unix__) || defined(__unix) || defined(unix)    	
+    	if (res == -1)
+    		// Hopefully this error code comes from our bundled patched hidapi. In that case, -1 is returned by hid_wrapper_udev_init() and it mean
+			BOOST_LOG_TRIVIAL(error) << "Unable to initialize hidapi library: failed to load libudev.so.1 or libudev.so.0";
+    	else if (res == -2)
+    		// Hopefully this error code comes from our bundled patched hidapi. In that case, -2 is returned by hid_wrapper_udev_init() and it mean
+			BOOST_LOG_TRIVIAL(error) << "Unable to initialize hidapi library: failed to resolve some function from libudev.so.1 or libudev.so.0"; 
+    	else
+#endif // unixes
+	        BOOST_LOG_TRIVIAL(error) << "Unable to initialize hidapi library";
         return;
     }
 
