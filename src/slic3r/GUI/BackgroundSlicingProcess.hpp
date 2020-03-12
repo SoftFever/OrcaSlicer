@@ -98,7 +98,7 @@ public:
 
 	// Set the export path of the G-code.
 	// Once the path is set, the G-code 
-	void schedule_export(const std::string &path);
+	void schedule_export(const std::string &path, bool export_path_on_removable_media);
 	// Set print host upload job data to be enqueued to the PrintHostJobQueue
 	// after current print slicing is complete
 	void schedule_upload(Slic3r::PrintHostJob upload_job);
@@ -157,13 +157,14 @@ private:
 	GCodePreviewData 		   *m_gcode_preview_data = nullptr;
 #if ENABLE_THUMBNAIL_GENERATOR
     // Callback function, used to write thumbnails into gcode.
-    ThumbnailsGeneratorCallback m_thumbnail_cb = nullptr;
+    ThumbnailsGeneratorCallback m_thumbnail_cb 		 = nullptr;
 #endif // ENABLE_THUMBNAIL_GENERATOR
 	// Temporary G-code, there is one defined for the BackgroundSlicingProcess, differentiated from the other processes by a process ID.
 	std::string 				m_temp_output_path;
 	// Output path provided by the user. The output path may be set even if the slicing is running,
 	// but once set, it cannot be re-set.
 	std::string 				m_export_path;
+	bool 						m_export_path_on_removable_media = false;
 	// Print host upload job to schedule after slicing is complete, used by schedule_upload(),
 	// empty by default (ie. no upload to schedule)
 	PrintHostJob                m_upload_job;
