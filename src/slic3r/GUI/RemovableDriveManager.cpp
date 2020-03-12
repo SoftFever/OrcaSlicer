@@ -89,6 +89,9 @@ void RemovableDriveManager::eject_drive()
 		HANDLE handle = CreateFileA(mpath.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
 		if (handle == INVALID_HANDLE_VALUE) {
 			std::cerr << "Ejecting " << mpath << " failed " << GetLastError() << " \n";
+			assert(m_callback_evt_handler);
+			if (m_callback_evt_handler)
+				wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::pair< DriveData, bool >(std::move(*it_drive_data), false)));
 			return;
 		}
 		DWORD deviceControlRetVal(0);
@@ -101,12 +104,15 @@ void RemovableDriveManager::eject_drive()
 		if (error == 0) {
 			CloseHandle(handle);
 			BOOST_LOG_TRIVIAL(error) << "Ejecting " << mpath << " failed " << deviceControlRetVal << " " << GetLastError() << " \n";
+			assert(m_callback_evt_handler);
+			if (m_callback_evt_handler)
+				wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::pair< DriveData, bool >(std::move(*it_drive_data),false)));
 			return;
 		}
 		CloseHandle(handle);
 		assert(m_callback_evt_handler);
 		if (m_callback_evt_handler) 
-			wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::move(*it_drive_data)));
+			wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::pair< DriveData, bool >(std::move(*it_drive_data), true)));
 		m_current_drives.erase(it_drive_data);
 	}
 }
@@ -361,13 +367,16 @@ void RemovableDriveManager::eject_drive()
     	if(err)
     	{
     		BOOST_LOG_TRIVIAL(error) << "Ejecting failed";
+			assert(m_callback_evt_handler);
+			if (m_callback_evt_handler)
+				wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::pair< DriveData, bool >(std::move(*it_drive_data), false)));
     		return;
     	}
 		BOOST_LOG_TRIVIAL(info) << "Ejecting finished";
 
 		assert(m_callback_evt_handler);
 		if (m_callback_evt_handler) 
-			wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::move(*it_drive_data)));
+			wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::pair< DriveData, bool >(std::move(*it_drive_data), true)));
 		m_current_drives.erase(it_drive_data);
 	}
 }

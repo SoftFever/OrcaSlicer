@@ -2191,10 +2191,16 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 	// Connect to a 3DConnextion driver (OSX).    
     mouse3d_controller.init();
 
+	
+
     this->q->Bind(EVT_REMOVABLE_DRIVE_EJECTED, [this](RemovableDriveEjectEvent &evt) {
-	    this->show_action_buttons(this->ready_to_slice);
-        Slic3r::GUI::show_info(this->q, (boost::format(_utf8(L("Unmounting successful. The device %s(%s) can now be safely removed from the computer.")))
-	    					% evt.data.name % evt.data.path).str());
+		if (evt.data.second) {
+			this->show_action_buttons(this->ready_to_slice);
+			Slic3r::GUI::show_info(this->q, (boost::format(_utf8(L("Unmounting successful. The device %s(%s) can now be safely removed from the computer.")))
+				% evt.data.first.name % evt.data.first.path).str());
+		} else
+			Slic3r::GUI::show_info(this->q, (boost::format(_utf8(L("Ejecting of device %s(%s) has failed.")))
+			% evt.data.first.name % evt.data.first.path).str());
 	});
     this->q->Bind(EVT_REMOVABLE_DRIVES_CHANGED, [this](RemovableDrivesChangedEvent &) { this->show_action_buttons(this->ready_to_slice); });
     // Start the background thread and register this window as a target for update events.

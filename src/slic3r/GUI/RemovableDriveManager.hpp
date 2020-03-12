@@ -32,7 +32,7 @@ inline bool operator< (const DriveData &lhs, const DriveData &rhs) { return lhs.
 inline bool operator> (const DriveData &lhs, const DriveData &rhs) { return lhs.path > rhs.path; }
 inline bool operator==(const DriveData &lhs, const DriveData &rhs) { return lhs.path == rhs.path; }
 
-using RemovableDriveEjectEvent = Event<DriveData>;
+using RemovableDriveEjectEvent = Event<std::pair<DriveData, bool>>;
 wxDECLARE_EVENT(EVT_REMOVABLE_DRIVE_EJECTED, RemovableDriveEjectEvent);
 
 using RemovableDrivesChangedEvent = SimpleEvent;
