@@ -487,17 +487,25 @@ RemovableDriveManager::RemovableDrivesStatus RemovableDriveManager::status()
 // Update is called from thread_proc() and from most of the public methods on demand.
 void RemovableDriveManager::update()
 {
-	std::vector<DriveData> current_drives = this->search_for_removable_drives();
-
-	// Post update events.
-	tbb::mutex::scoped_lock lock(m_drives_mutex);
-	std::sort(current_drives.begin(), current_drives.end());
-	if (current_drives != m_current_drives) {
-		assert(m_callback_evt_handler);
-		if (m_callback_evt_handler)
-			wxPostEvent(m_callback_evt_handler, RemovableDrivesChangedEvent(EVT_REMOVABLE_DRIVES_CHANGED));
+	tbb::mutex::scoped_lock inside_update_lock;
+	if (inside_update_lock.try_acquire(m_inside_update_mutex)) {
+		// Got the lock without waiting. That means, the update was not running.
+		// Run the update.
+		std::vector<DriveData> current_drives = this->search_for_removable_drives();
+		// Post update events.
+		tbb::mutex::scoped_lock lock(m_drives_mutex);
+		std::sort(current_drives.begin(), current_drives.end());
+		if (current_drives != m_current_drives) {
+			assert(m_callback_evt_handler);
+			if (m_callback_evt_handler)
+				wxPostEvent(m_callback_evt_handler, RemovableDrivesChangedEvent(EVT_REMOVABLE_DRIVES_CHANGED));
+		}
+		m_current_drives = std::move(current_drives);
+	} else {
+		// Acquiring the m_iniside_update lock failed, therefore another update is running.
+		// Just block until the other instance of update() finishes.
+		inside_update_lock.acquire(m_inside_update_mutex);
 	}
-	m_current_drives = std::move(current_drives);
 }
 
 #ifndef REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
