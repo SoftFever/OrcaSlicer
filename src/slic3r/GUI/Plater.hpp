@@ -319,9 +319,19 @@ public:
 		Plater *m_plater;
 	};
 
+	// Wrapper around wxWindow::PopupMenu to suppress error messages popping out while tracking the popup menu.
+	bool PopupMenu(wxMenu *menu, const wxPoint& pos = wxDefaultPosition);
+    bool PopupMenu(wxMenu *menu, int x, int y) { return this->PopupMenu(menu, wxPoint(x, y)); }
+
 private:
     struct priv;
     std::unique_ptr<priv> p;
+
+    // Set true during PopupMenu() tracking to suppress immediate error message boxes.
+    // The error messages are collected to m_tracking_popup_menu_error_message instead and these error messages
+    // are shown after the pop-up dialog closes.
+    bool 	 m_tracking_popup_menu = false;
+    wxString m_tracking_popup_menu_error_message;
 
     void suppress_snapshots();
     void allow_snapshots();

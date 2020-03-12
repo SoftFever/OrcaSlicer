@@ -3725,7 +3725,12 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
         wxString message = evt.GetString();
         if (message.IsEmpty())
             message = _(L("Export failed"));
-        show_error(q, message);
+        if (q->m_tracking_popup_menu)
+        	// We don't want to pop-up a message box when tracking a pop-up menu.
+        	// We postpone the error message instead.
+            q->m_tracking_popup_menu_error_message = message;
+        else
+	        show_error(q, message);
         this->statusbar()->set_status_text(message);
     }
     if (canceled)
@@ -5728,6 +5733,25 @@ bool Plater::can_reload_from_disk() const { return p->can_reload_from_disk(); }
 const UndoRedo::Stack& Plater::undo_redo_stack_main() const { return p->undo_redo_stack_main(); }
 void Plater::enter_gizmos_stack() { p->enter_gizmos_stack(); }
 void Plater::leave_gizmos_stack() { p->leave_gizmos_stack(); }
+
+// Wrapper around wxWindow::PopupMenu to suppress error messages popping out while tracking the popup menu.
+bool Plater::PopupMenu(wxMenu *menu, const wxPoint& pos)
+{
+	// Don't want to wake up and trigger reslicing while tracking the pop-up menu.
+	SuppressBackgroundProcessingUpdate sbpu;
+	// When tracking a pop-up menu, postpone error messages from the slicing result.
+	m_tracking_popup_menu = true;
+	bool out = this->wxPanel::PopupMenu(menu, pos);
+	m_tracking_popup_menu = false;
+	if (! m_tracking_popup_menu_error_message.empty()) {
+        // Don't know whether the CallAfter is necessary, but it should not hurt.
+        // The menus likely sends out some commands, so we may be safer if the dialog is shown after the menu command is processed.
+		wxString message = std::move(m_tracking_popup_menu_error_message);
+        wxTheApp->CallAfter([message, this]() { show_error(this, message); });
+        m_tracking_popup_menu_error_message.clear();
+    }
+	return out;
+}
 
 SuppressBackgroundProcessingUpdate::SuppressBackgroundProcessingUpdate() :
     m_was_running(wxGetApp().plater()->is_background_process_running())
