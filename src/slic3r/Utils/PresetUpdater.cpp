@@ -394,7 +394,7 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
 		auto bundle_path_idx = vendor_path / idx.path().filename();
 
 		if (! fs::exists(bundle_path)) {
-			BOOST_LOG_TRIVIAL(info) << "Confing bundle not installed for vendor %1%, skipping: " << idx.vendor();
+			BOOST_LOG_TRIVIAL(info) << boost::format("Confing bundle not installed for vendor %1%, skipping: ") % idx.vendor();
 			continue;
 		}
 
