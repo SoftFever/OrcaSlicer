@@ -469,9 +469,6 @@ bool RemovableDriveManager::set_and_verify_last_save_path(const std::string &pat
 
 RemovableDriveManager::RemovableDrivesStatus RemovableDriveManager::status()
 {
-#ifndef REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
-	this->update();
-#endif // REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
 
 	RemovableDriveManager::RemovableDrivesStatus out;
 	{

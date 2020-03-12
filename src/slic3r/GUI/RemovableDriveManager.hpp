@@ -69,6 +69,8 @@ public:
 	// On Windows, the function does not block, and the eject is detected in the background thread.
 	void 		eject_drive();
 
+	// Status is used to retrieve info for showing UI buttons.
+	// Status is called every time when change of UI buttons is possible therefore should not perform update.
 	struct RemovableDrivesStatus {
 		bool 	has_removable_drives { false };
 		bool 	has_eject { false };
