@@ -188,7 +188,7 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
 
         wxBitmap bitmap;
         int bitmap_width = 0;
-        const wxString bitmap_file = GUI::from_u8(Slic3r::var((boost::format("printers/%1%_%2%.png") % vendor.id % model.id).str()));
+        const wxString bitmap_file = GUI::from_u8(Slic3r::resources_dir() + "/profiles/" + vendor.id + "/" + model.id + "_thumbnail.png");
         if (wxFileExists(bitmap_file)) {
             bitmap.LoadFile(bitmap_file, wxBITMAP_TYPE_PNG);
             bitmap_width = bitmap.GetWidth();
