@@ -33,6 +33,7 @@
 #include "Event.hpp"
 #include "wxExtensions.hpp"
 #include "ConfigManipulation.hpp"
+#include "SearchComboBox.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -121,6 +122,7 @@ protected:
 	std::string			m_name;
 	const wxString		m_title;
 	PresetBitmapComboBox*	m_presets_choice;
+	SearchComboBox*		m_search_cb;
 	ScalableButton*		m_btn_save_preset;
 	ScalableButton*		m_btn_delete_preset;
 	ScalableButton*		m_btn_hide_incompatible_presets;
@@ -299,6 +301,7 @@ public:
     void            update_visibility();
     virtual void    msw_rescale();
 	Field*			get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
+    Field*          get_field(const t_config_option_key &opt_key, Page** selected_page, int opt_index = -1);
 	bool			set_value(const t_config_option_key& opt_key, const boost::any& value);
 	wxSizer*		description_line_widget(wxWindow* parent, ogStaticText** StaticText);
 	bool			current_preset_is_dirty();
@@ -310,6 +313,7 @@ public:
 	void			on_value_change(const std::string& opt_key, const boost::any& value);
 
     void            update_wiping_button_visibility();
+	void			activate_option(const std::string& opt_key, const wxString& category);
 
 protected:
 	void			create_line_with_widget(ConfigOptionsGroup* optgroup, const std::string& opt_key, widget_t widget);

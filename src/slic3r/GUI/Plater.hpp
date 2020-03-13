@@ -125,6 +125,7 @@ public:
 	bool                    show_export_removable(bool show) const;
     bool                    is_multifilament();
     void                    update_mode();
+    void                    update_search_list();
 
     std::vector<PresetComboBox*>& combos_filament();
 private:

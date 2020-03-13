@@ -82,6 +82,7 @@
 #include "../Utils/UndoRedo.hpp"
 #include "../Utils/Thread.hpp"
 #include "RemovableDriveManager.hpp"
+#include "SearchComboBox.hpp"
 
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
 #include "WipeTowerDialog.hpp"
@@ -705,6 +706,7 @@ struct Sidebar::priv
 
     wxBoxSizer *sizer_params;
     FreqChangedParams   *frequently_changed_parameters{ nullptr };
+    SearchComboBox      *search_cb{ nullptr };
     ObjectList          *object_list{ nullptr };
     ObjectManipulation  *object_manipulation{ nullptr };
     ObjectSettings      *object_settings{ nullptr };
@@ -830,6 +832,10 @@ Sidebar::Sidebar(Plater *parent)
     // Frequently changed parameters
     p->frequently_changed_parameters = new FreqChangedParams(p->scrolled);
     p->sizer_params->Add(p->frequently_changed_parameters->get_sizer(), 0, wxEXPAND | wxTOP | wxBOTTOM, wxOSX ? 1 : margin_5);
+
+    // Search combobox
+    p->search_cb = new SearchComboBox(p->scrolled);
+    p->sizer_params->Add(p->search_cb, 0, wxEXPAND | wxTOP | wxBOTTOM, wxOSX ? 1 : margin_5);
 
     // Object List
     p->object_list = new ObjectList(p->scrolled);
@@ -1341,6 +1347,23 @@ bool Sidebar::is_multifilament()
     return p->combos_filament.size() > 1;
 }
 
+static std::vector<SearchInput> get_search_inputs(ConfigOptionMode mode)
+{
+    std::vector<SearchInput> ret {};
+
+    auto& tabs_list = wxGetApp().tabs_list;
+    auto print_tech = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology();
+    for (auto tab : tabs_list)
+        if (tab->supports_printer_technology(print_tech))
+            ret.emplace_back(SearchInput{tab->get_config(), tab->type(), mode});
+
+    return ret;
+}
+
+void Sidebar::update_search_list()
+{
+    p->search_cb->init(get_search_inputs(m_mode));
+}
 
 void Sidebar::update_mode()
 {
@@ -1348,6 +1371,7 @@ void Sidebar::update_mode()
 
     update_reslice_btn_tooltip();
     update_mode_sizer();
+    update_search_list();
 
     wxWindowUpdateLocker noUpdates(this);
 
@@ -3650,13 +3674,17 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 
     // update plater with new config
     wxGetApp().plater()->on_config_change(wxGetApp().preset_bundle->full_config());
+    if (preset_type == Preset::TYPE_PRINTER) {
     /* Settings list can be changed after printer preset changing, so
      * update all settings items for all item had it.
      * Furthermore, Layers editing is implemented only for FFF printers
      * and for SLA presets they should be deleted
      */
-    if (preset_type == Preset::TYPE_PRINTER)
         wxGetApp().obj_list()->update_object_list_by_printer_technology();
+
+        // print technology could be changed, so we should to update a search list
+        sidebar->update_search_list();
+    }
 }
 
 void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)

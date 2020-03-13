@@ -114,6 +114,9 @@ void Tab::create_preset_tab()
     // preset chooser
     m_presets_choice = new PresetBitmapComboBox(panel, wxSize(35 * m_em_unit, -1));
 
+    // search combox
+    m_search_cb = new SearchComboBox(panel);
+
     auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
     //buttons
@@ -186,13 +189,18 @@ void Tab::create_preset_tab()
     m_hsizer->Add(m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL);
     m_hsizer->AddSpacer(int(4 * scale_factor));
     m_hsizer->Add(m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL);
-    m_hsizer->AddSpacer(int(16 * scale_factor));
+    m_hsizer->AddSpacer(int(/*16*/8 * scale_factor));
     m_hsizer->Add(m_btn_hide_incompatible_presets, 0, wxALIGN_CENTER_VERTICAL);
-    m_hsizer->AddSpacer(int(64 * scale_factor));
+    m_hsizer->AddSpacer(int(8 * scale_factor));
+    m_hsizer->Add(m_question_btn, 0, wxALIGN_CENTER_VERTICAL);
+    m_hsizer->AddSpacer(int(/*32*/16 * scale_factor));
     m_hsizer->Add(m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
     m_hsizer->Add(m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
-    m_hsizer->AddSpacer(int(32 * scale_factor));
-    m_hsizer->Add(m_question_btn, 0, wxALIGN_CENTER_VERTICAL);
+    m_hsizer->AddSpacer(int(/*32*/16 * scale_factor));
+    m_hsizer->Add(m_search_cb, 0, wxALIGN_CENTER_VERTICAL);
+    m_hsizer->AddSpacer(int(16 * scale_factor));
+//    m_hsizer->AddSpacer(int(32 * scale_factor));
+//    m_hsizer->Add(m_question_btn, 0, wxALIGN_CENTER_VERTICAL);
     // m_hsizer->AddStretchSpacer(32);
     // StretchSpacer has a strange behavior under OSX, so
     // There is used just additional sizer for m_mode_sizer with right alignment
@@ -752,6 +760,9 @@ void Tab::update_mode()
     update_visibility();
 
     update_changed_tree_ui();
+
+    // update list of options for search
+    m_search_cb->init(m_config, type(), m_mode);
 }
 
 void Tab::update_visibility()
@@ -778,6 +789,7 @@ void Tab::msw_rescale()
     m_em_unit = wxGetApp().em_unit();
 
     m_mode_sizer->msw_rescale();
+    m_search_cb->msw_rescale();
 
     m_presets_choice->SetSize(35 * m_em_unit, -1);
     m_treectrl->SetMinSize(wxSize(20 * m_em_unit, -1));
@@ -816,6 +828,19 @@ Field* Tab::get_field(const t_config_option_key& opt_key, int opt_index/* = -1*/
         field = page->get_field(opt_key, opt_index);
         if (field != nullptr)
             return field;
+    }
+    return field;
+}
+
+Field* Tab::get_field(const t_config_option_key& opt_key, Page** selected_page, int opt_index/* = -1*/)
+{
+    Field* field = nullptr;
+    for (auto page : m_pages) {
+        field = page->get_field(opt_key, opt_index);
+        if (field != nullptr) {
+            *selected_page = page.get();
+            return field;
+        }
     }
     return field;
 }
@@ -923,6 +948,40 @@ void Tab::update_wiping_button_visibility() {
         wiping_dialog_button->Show(wipe_tower_enabled && multiple_extruders);
         wiping_dialog_button->GetParent()->Layout();
     }
+}
+
+void Tab::activate_option(const std::string& opt_key, const wxString& category)
+{
+    Page* page {nullptr};
+    Field* field = get_field(opt_key, &page);
+
+    // for option, which doesn't have field but just a text or button
+    wxString page_title = (!field || !page) ? category : page->title();
+
+    auto cur_item = m_treectrl->GetFirstVisibleItem();
+    if (!cur_item || !m_treectrl->IsVisible(cur_item))
+        return;
+
+    while (cur_item) {
+        auto title = m_treectrl->GetItemText(cur_item);
+        if (page_title != title) {
+            cur_item = m_treectrl->GetNextVisible(cur_item);
+            continue;
+        }
+
+        m_treectrl->SelectItem(cur_item);
+        break;
+    }
+
+    // we should to activate a tab with searched option, if it doesn't.
+    wxNotebook* tap_panel = wxGetApp().tab_panel();
+    int page_id = tap_panel->FindPage(this);
+    if (tap_panel->GetSelection() != page_id)
+        tap_panel->SetSelection(page_id);
+
+    // focused selected field
+    if (field)
+        field->getWindow()->SetFocus();
 }
 
 
