@@ -794,12 +794,6 @@ void ObjectList::OnContextMenu(wxDataViewEvent& evt)
     // The mouse position returned by get_mouse_position_in_control() here is the one at the time the mouse button is released (mouse up event)
     wxPoint mouse_pos = get_mouse_position_in_control();
 
-    // We check if the mouse down event was over the "Editing" column, if not, we change the mouse position so that the following call to list_simulation() does not show any context menu
-    // see: https://github.com/prusa3d/PrusaSlicer/issues/3802
-    wxDataViewColumn* column = evt.GetDataViewColumn();
-    if (column == nullptr || column->GetTitle() != _("Editing"))
-        mouse_pos.x = 0;
-
     // Do not show the context menu if the user pressed the right mouse button on the 3D scene and released it on the objects list
     GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
     bool evt_context_menu = (canvas != nullptr) ? !canvas->is_mouse_dragging() : true;
@@ -811,6 +805,12 @@ void ObjectList::OnContextMenu(wxDataViewEvent& evt)
 
 void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_menu/* = false*/)
 {
+    // Interesting fact: when mouse_pos.x < 0, HitTest(mouse_pos, item, col) returns item = null, but column = last column.
+    // So, when mouse was moved to scene immediately after clicking in ObjectList, in the scene will be shown context menu for the Editing column.
+    // see: https://github.com/prusa3d/PrusaSlicer/issues/3802
+    if (mouse_pos.x < 0)
+        return;
+
     wxDataViewItem item;
     wxDataViewColumn* col = nullptr;
     HitTest(mouse_pos, item, col);
