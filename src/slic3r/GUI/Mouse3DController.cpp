@@ -407,9 +407,13 @@ void Mouse3DController::disconnected()
         m_params_by_device[m_device_str] = m_params_ui;
 	    m_device_str.clear();
 	    m_connected = false;
-        wxGetApp().plater()->get_camera().recover_from_free_camera();
-        wxGetApp().plater()->set_current_canvas_as_dirty();
-        wxWakeUpIdle();
+        wxGetApp().plater()->CallAfter([]() {
+        	Plater *plater = wxGetApp().plater();
+        	if (plater != nullptr) {
+	        	plater->get_camera().recover_from_free_camera();
+    	   		plater->set_current_canvas_as_dirty();
+    	   	}
+    	});
     }
 }
 
@@ -822,10 +826,14 @@ void Mouse3DController::disconnect_device()
 #ifdef _WIN32
 	    // Enumerate once immediately after disconnect.
 	    m_wakeup = true;
-#endif // _WIN32
-        wxGetApp().plater()->get_camera().recover_from_free_camera();
-        wxGetApp().plater()->set_current_canvas_as_dirty();
-        wxWakeUpIdle();
+#endif // _WIN32	    
+        wxGetApp().plater()->CallAfter([]() {
+        	Plater *plater = wxGetApp().plater();
+        	if (plater != nullptr) {
+	        	plater->get_camera().recover_from_free_camera();
+    	   		plater->set_current_canvas_as_dirty();
+    	   	}
+    	});
     }
 }
 

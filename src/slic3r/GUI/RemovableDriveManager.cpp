@@ -440,7 +440,9 @@ void RemovableDriveManager::update()
 void RemovableDriveManager::thread_proc()
 {
 	// Signal the worker thread to update initially.
+#ifdef _WIN32
     m_wakeup = true;
+#endif // _WIN32
 
 	for (;;) {
 		// Wait for 2 seconds before running the disk enumeration.
