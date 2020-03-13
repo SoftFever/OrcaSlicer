@@ -173,6 +173,13 @@ public:
     bool are_view3D_labels_shown() const;
     void show_view3D_labels(bool show);
 
+#if ENABLE_SLOPE_RENDERING
+    bool is_view3D_slope_shown() const;
+    void show_view3D_slope(bool show);
+
+    bool is_view3D_layers_editing_enabled() const;
+#endif // ENABLE_SLOPE_RENDERING
+
     // Called after the Preferences dialog is closed and the program settings are saved.
     // Update the UI based on the current preferences.
     void update_ui_from_settings();

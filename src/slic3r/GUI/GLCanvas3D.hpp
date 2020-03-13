@@ -389,6 +389,24 @@ private:
         void render(const std::vector<const ModelInstance*>& sorted_instances) const;
     };
 
+#if ENABLE_SLOPE_RENDERING
+    class Slope
+    {
+        bool m_enabled{ false };
+        GLCanvas3D& m_canvas;
+        GLVolumeCollection& m_volumes;
+
+    public:
+        Slope(GLCanvas3D& canvas, GLVolumeCollection& volumes) : m_canvas(canvas), m_volumes(volumes) {}
+
+        void enable(bool enable) { m_enabled = enable; }
+        bool is_enabled() const { return m_enabled; }
+        void show(bool show) { m_volumes.set_slope_active(m_enabled ? show : false); }
+        bool is_shown() const { return m_volumes.is_slope_active(); }
+        void render() const;
+    };
+#endif // ENABLE_SLOPE_RENDERING
+
 public:
     enum ECursorType : unsigned char
     {
@@ -467,6 +485,9 @@ private:
     int m_selected_extruder;
 
     Labels m_labels;
+#if ENABLE_SLOPE_RENDERING
+    Slope m_slope;
+#endif // ENABLE_SLOPE_RENDERING
 
 public:
     GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar);
@@ -544,6 +565,9 @@ public:
     void enable_undoredo_toolbar(bool enable);
     void enable_dynamic_background(bool enable);
     void enable_labels(bool enable) { m_labels.enable(enable); }
+#if ENABLE_SLOPE_RENDERING
+    void enable_slope(bool enable) { m_slope.enable(enable); }
+#endif // ENABLE_SLOPE_RENDERING
     void allow_multisample(bool allow);
 
     void zoom_to_bed();
@@ -667,6 +691,11 @@ public:
 
     bool are_labels_shown() const { return m_labels.is_shown(); }
     void show_labels(bool show) { m_labels.show(show); }
+
+#if ENABLE_SLOPE_RENDERING
+    bool is_slope_shown() const { return m_slope.is_shown(); }
+    void show_slope(bool show) { m_slope.show(show); }
+#endif // ENABLE_SLOPE_RENDERING
 
 private:
     bool _is_shown_on_screen() const;

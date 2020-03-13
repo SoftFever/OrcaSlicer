@@ -147,6 +147,9 @@ void KBShortcutsDialog::fill_shortcuts()
 #if ENABLE_SHOW_SCENE_LABELS
         { "E", L("Show/Hide object/instance labels") },
 #endif // ENABLE_SHOW_SCENE_LABELS
+#if ENABLE_SLOPE_RENDERING
+        { "D", L("Turn On/Off facets' slope rendering") },
+#endif // ENABLE_SLOPE_RENDERING
         // Configuration
         { ctrl + "P", L("Preferences") },
         // Help

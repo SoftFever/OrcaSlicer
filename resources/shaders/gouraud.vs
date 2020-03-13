@@ -20,13 +20,22 @@ const vec3 ZERO = vec3(0.0, 0.0, 0.0);
 
 struct PrintBoxDetection
 {
+    bool active;
     vec3 min;
     vec3 max;
-    bool volume_detection;
     mat4 volume_world_matrix;
 };
 
+struct SlopeDetection
+{
+    bool active;
+	// x = yellow z, y = red z
+	vec2 z_range;
+    mat3 volume_world_normal_matrix;
+};
+
 uniform PrintBoxDetection print_box;
+uniform SlopeDetection slope;
 
 // Clipping plane, x = min z, y = max z. Used by the FFF and SLA previews to clip with a top / bottom plane.
 uniform vec2 z_range;
@@ -40,6 +49,8 @@ varying vec3 delta_box_min;
 varying vec3 delta_box_max;
 
 varying vec3 clipping_planes_dots;
+
+varying float world_normal_z;
 
 void main()
 {
@@ -61,7 +72,7 @@ void main()
     intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
 
     // compute deltas for out of print volume detection (world coordinates)
-    if (print_box.volume_detection)
+    if (print_box.active)
     {
         vec3 v = (print_box.volume_world_matrix * gl_Vertex).xyz;
         delta_box_min = v - print_box.min;
@@ -72,6 +83,9 @@ void main()
         delta_box_min = ZERO;
         delta_box_max = ZERO;
     }
+
+    // z component of normal vector in world coordinate used for slope shading
+	world_normal_z = slope.active ? (normalize(slope.volume_world_normal_matrix * gl_Normal)).z : 0.0;
 
     gl_Position = ftransform();
     // Point in homogenous coordinates.
