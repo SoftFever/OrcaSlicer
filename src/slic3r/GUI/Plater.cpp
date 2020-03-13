@@ -207,9 +207,11 @@ class SlicedInfo : public wxStaticBoxSizer
 public:
     SlicedInfo(wxWindow *parent);
     void SetTextAndShow(SlicedInfoIdx idx, const wxString& text, const wxString& new_label="");
+    void SetNoteAndShow(const wxString& text);
 
 private:
     std::vector<std::pair<wxStaticText*, wxStaticText*>> info_vec;
+    wxStaticText*       m_notes {nullptr};
 };
 
 SlicedInfo::SlicedInfo(wxWindow *parent) :
@@ -241,6 +243,10 @@ SlicedInfo::SlicedInfo(wxWindow *parent) :
     init_info_label(_(L("Number of tool changes")));
 
     Add(grid_sizer, 0, wxEXPAND);
+
+    m_notes = new wxStaticText(parent, wxID_ANY, "N/A");
+    Add(m_notes, 0, wxEXPAND);
+
     this->Show(false);
 }
 
@@ -253,6 +259,14 @@ void SlicedInfo::SetTextAndShow(SlicedInfoIdx idx, const wxString& text, const w
         info_vec[idx].first->SetLabelText(new_label);
     info_vec[idx].first->Show(show);
     info_vec[idx].second->Show(show);
+}
+
+void SlicedInfo::SetNoteAndShow(const wxString& text)
+{
+    const bool show = text != "N/A";
+    if (show)
+        m_notes->SetLabelText(text);
+    m_notes->Show(show);
 }
 
 PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
@@ -1244,6 +1258,18 @@ void Sidebar::update_sliced_info_sizer()
 
             p->sliced_info->SetTextAndShow(siFilament_mm3,  wxString::Format("%.2f", ps.total_extruded_volume));
             p->sliced_info->SetTextAndShow(siFilament_g,    ps.total_weight == 0.0 ? "N/A" : wxString::Format("%.2f", ps.total_weight));
+
+            // Show a note information, if there is not enough filaments to complete a print
+            wxString note = "N/A";
+            DynamicPrintConfig* cfg = wxGetApp().get_tab(Preset::TYPE_FILAMENT)->get_config();
+            auto filament_spool_weights = dynamic_cast<const ConfigOptionFloats*>(cfg->option("filament_spool_weight"))->values;
+            if (ps.total_weight > 0.0 && !filament_spool_weights.empty() && filament_spool_weights[0] > 0.0 && 
+                ps.total_weight > filament_spool_weights[0])
+                note = "\n" + _(L("WARNING")) + ":\n   " + 
+                       _(L("There is not enough filaments to complete a print")) + ".\n   " +
+                       from_u8((boost::format(_utf8(L("You only have %.2f g of the required %.2f g."))) % 
+                                filament_spool_weights[0] % ps.total_weight).str());
+            p->sliced_info->SetNoteAndShow(note);
 
             new_label = _(L("Cost"));
             if (is_wipe_tower)

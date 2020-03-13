@@ -2978,6 +2978,40 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range curren
     select_item(layers_item);
 }
 
+wxString ObjectList::can_add_new_range_after_current(const t_layer_height_range current_range)
+{
+    wxString ret;
+    const int obj_idx = get_selected_obj_idx();
+    if (obj_idx < 0)
+        // This should not happen.
+        return ret;
+
+    t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
+    auto it_range = ranges.find(current_range);
+    assert(it_range != ranges.end());
+    if (it_range == ranges.end())
+        // This shoudl not happen.
+        return ret;
+
+    auto it_next_range = it_range;
+    if (++it_next_range == ranges.end())
+        return ret;
+    
+    if (const std::pair<coordf_t, coordf_t>& next_range = it_next_range->first; current_range.second <= next_range.first)
+    {
+        if (current_range.second == next_range.first &&
+            next_range.second - next_range.first < get_min_layer_height(ranges.at(next_range).opt_int("extruder")))
+                ret = _(L("A difference between ranges is a less than minimum layer height."));
+    }
+    else
+        ret = _(L("End of current range is bigger then next one."));
+    
+    if (!ret.IsEmpty())
+        ret += "\n" + _(L("New range between them couldn't be added."));
+
+    return ret;
+}
+
 void ObjectList::add_layer_item(const t_layer_height_range& range, 
                                 const wxDataViewItem layers_item, 
                                 const int layer_idx /* = -1*/)
@@ -3048,12 +3082,10 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_lay
             add_layer_item(r.first, root_item);
     }
 
-    if (dont_update_ui)
-        return true;
+    if (!dont_update_ui)
+        select_item(sel_type&itLayer ? m_objects_model->GetItemByLayerRange(obj_idx, new_range) : root_item);
 
-    select_item(sel_type&itLayer ? m_objects_model->GetItemByLayerRange(obj_idx, new_range) : root_item);
     Expand(root_item);
-
     return true;
 }
 

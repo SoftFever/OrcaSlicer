@@ -617,6 +617,7 @@ public:
     ConfigOptionStrings             filament_type;
     ConfigOptionBools               filament_soluble;
     ConfigOptionFloats              filament_cost;
+    ConfigOptionFloats              filament_spool_weight;
     ConfigOptionFloats              filament_max_volumetric_speed;
     ConfigOptionFloats              filament_loading_speed;
     ConfigOptionFloats              filament_loading_speed_start;
@@ -690,6 +691,7 @@ protected:
         OPT_PTR(filament_type);
         OPT_PTR(filament_soluble);
         OPT_PTR(filament_cost);
+        OPT_PTR(filament_spool_weight);
         OPT_PTR(filament_max_volumetric_speed);
         OPT_PTR(filament_loading_speed);
         OPT_PTR(filament_loading_speed_start);
@@ -800,6 +802,7 @@ public:
     ConfigOptionBools               retract_layer_change;
     ConfigOptionFloat               skirt_distance;
     ConfigOptionInt                 skirt_height;
+    ConfigOptionBool                infinit_skirt;
     ConfigOptionInt                 skirts;
     ConfigOptionInts                slowdown_below_layer_time;
     ConfigOptionBool                spiral_vase;
@@ -872,6 +875,7 @@ protected:
         OPT_PTR(retract_layer_change);
         OPT_PTR(skirt_distance);
         OPT_PTR(skirt_height);
+        OPT_PTR(infinit_skirt);
         OPT_PTR(skirts);
         OPT_PTR(slowdown_below_layer_time);
         OPT_PTR(spiral_vase);
