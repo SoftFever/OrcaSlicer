@@ -2188,10 +2188,16 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     // Load the 3DConnexion device database.
     mouse3d_controller.load_config(*wxGetApp().app_config);
 	// Start the background thread to detect and connect to a HID device (Windows and Linux).
-	// Connect to a 3DConnextion driver (OSX).    
+	// Connect to a 3DConnextion driver (OSX).
     mouse3d_controller.init();
-
-	
+#ifdef _WIN32
+    // Register an USB HID (Human Interface Device) attach event. evt contains Win32 path to the USB device containing VID, PID and other info.
+    // This event wakes up the Mouse3DController's background thread to enumerate HID devices, if the VID of the callback event
+    // is one of the 3D Mouse vendors (3DConnexion or Logitech).
+    this->q->Bind(EVT_HID_DEVICE_ATTACHED, [this](HIDDeviceAttachedEvent &evt) {
+    	mouse3d_controller.device_attached(evt.data);
+    });
+#endif /* _WIN32 */
 
     this->q->Bind(EVT_REMOVABLE_DRIVE_EJECTED, [this](RemovableDriveEjectEvent &evt) {
 		if (evt.data.second) {
@@ -2205,6 +2211,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->q->Bind(EVT_REMOVABLE_DRIVES_CHANGED, [this](RemovableDrivesChangedEvent &) { this->show_action_buttons(this->ready_to_slice); });
     // Start the background thread and register this window as a target for update events.
     wxGetApp().removable_drive_manager()->init(this->q);
+#ifdef _WIN32
+    // Trigger enumeration of removable media on Win32 notification.
+    this->q->Bind(EVT_VOLUME_ATTACHED, [this](VolumeAttachedEvent &evt) { wxGetApp().removable_drive_manager()->volumes_changed(); });
+    this->q->Bind(EVT_VOLUME_DETACHED, [this](VolumeDetachedEvent &evt) { wxGetApp().removable_drive_manager()->volumes_changed(); });
+#endif /* _WIN32 */
 
     // Initialize the Undo / Redo stack with a first snapshot.
     this->take_snapshot(_(L("New Project")));

@@ -18,6 +18,8 @@
 #include <wx/debug.h>
 #include <wx/settings.h>
 
+#include "Event.hpp"
+
 class wxCheckBox;
 class wxTopLevelWindow;
 class wxRect;
@@ -26,6 +28,19 @@ class wxRect;
 namespace Slic3r {
 namespace GUI {
 
+#ifdef _WIN32
+// USB HID attach / detach events from Windows OS.
+using HIDDeviceAttachedEvent = Event<std::string>;
+using HIDDeviceDetachedEvent = Event<std::string>;
+wxDECLARE_EVENT(EVT_HID_DEVICE_ATTACHED, HIDDeviceAttachedEvent);
+wxDECLARE_EVENT(EVT_HID_DEVICE_DETACHED, HIDDeviceDetachedEvent);
+
+// Disk aka Volume attach / detach events from Windows OS.
+using VolumeAttachedEvent = SimpleEvent;
+using VolumeDetachedEvent = SimpleEvent;
+wxDECLARE_EVENT(EVT_VOLUME_ATTACHED, VolumeAttachedEvent);
+wxDECLARE_EVENT(EVT_VOLUME_DETACHED, VolumeDetachedEvent);
+#endif /* _WIN32 */
 
 wxTopLevelWindow* find_toplevel_parent(wxWindow *window);
 

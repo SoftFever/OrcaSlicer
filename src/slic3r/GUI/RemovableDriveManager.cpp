@@ -56,7 +56,7 @@ std::vector<DriveData> RemovableDriveManager::search_for_removable_drives() cons
 					volume_name.erase(volume_name.begin() + wcslen(volume_name.c_str()), volume_name.end());
 					if (! file_system_name.empty()) {
 						ULARGE_INTEGER free_space;
-						::GetDiskFreeSpaceExA(path.c_str(), &free_space, nullptr, nullptr);
+						::GetDiskFreeSpaceExW(wpath.c_str(), &free_space, nullptr, nullptr);
 						if (free_space.QuadPart > 0) {
 							path += "\\";
 							current_drives.emplace_back(DriveData{ boost::nowide::narrow(volume_name), path });
@@ -86,7 +86,7 @@ void RemovableDriveManager::eject_drive()
 		// get handle to device
 		std::string mpath = "\\\\.\\" + m_last_save_path;
 		mpath = mpath.substr(0, mpath.size() - 1);
-		HANDLE handle = CreateFileA(mpath.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
+		HANDLE handle = CreateFileW(boost::nowide::widen(mpath).c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
 		if (handle == INVALID_HANDLE_VALUE) {
 			std::cerr << "Ejecting " << mpath << " failed " << GetLastError() << " \n";
 			assert(m_callback_evt_handler);
@@ -128,7 +128,7 @@ std::string RemovableDriveManager::get_removable_drive_path(const std::string &p
 		return std::string();
 	std::size_t found = path.find_last_of("\\");
 	std::string new_path = path.substr(0, found);
-	int letter = PathGetDriveNumberA(new_path.c_str());
+	int letter = PathGetDriveNumberW(boost::nowide::widen(new_path).c_str());
 	for (const DriveData &drive_data : m_current_drives) {
 		char drive = drive_data.path[0];
 		if (drive == 'A' + letter)
@@ -142,7 +142,7 @@ std::string RemovableDriveManager::get_removable_drive_from_path(const std::stri
 	tbb::mutex::scoped_lock lock(m_drives_mutex);
 	std::size_t found = path.find_last_of("\\");
 	std::string new_path = path.substr(0, found);
-	int letter = PathGetDriveNumberA(new_path.c_str());	
+	int letter = PathGetDriveNumberW(boost::nowide::widen(new_path).c_str());	
 	for (const DriveData &drive_data : m_current_drives) {
 		assert(! drive_data.path.empty());
 		if (drive_data.path.front() == 'A' + letter)
@@ -151,92 +151,15 @@ std::string RemovableDriveManager::get_removable_drive_from_path(const std::stri
 	return std::string();
 }
 
-#if 0
-// currently not used, left for possible future use
-INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+// Called by Win32 Volume arrived / detached callback.
+void RemovableDriveManager::volumes_changed()
 {
-	// here we need to catch messeges about device removal
-	// problem is that when ejecting usb (how is it implemented above) there is no messege dispached. Only after physical removal of the device.
-	//uncomment register_window() in init() to register and comment update() in GUI_App.cpp (only for windows!) to stop recieving periodical updates 
-	
-	LRESULT lRet = 1;
-	static HDEVNOTIFY hDeviceNotify;
-	static constexpr GUID WceusbshGUID = { 0x25dbce51, 0x6c8f, 0x4a72, 0x8a,0x6d,0xb5,0x4c,0x2b,0x4f,0xc8,0x35 };
-
-	switch (message)
-	{
-	case WM_CREATE:
-		DEV_BROADCAST_DEVICEINTERFACE NotificationFilter;
-
-		ZeroMemory(&NotificationFilter, sizeof(NotificationFilter));
-		NotificationFilter.dbcc_size = sizeof(DEV_BROADCAST_DEVICEINTERFACE);
-		NotificationFilter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
-		NotificationFilter.dbcc_classguid = WceusbshGUID;
-
-		hDeviceNotify = RegisterDeviceNotification(hWnd, &NotificationFilter, DEVICE_NOTIFY_WINDOW_HANDLE);
-		break;
-	
-	case WM_DEVICECHANGE:
-	{
-		// here is the important
-		if(wParam == DBT_DEVICEREMOVECOMPLETE)
-		{
-			RemovableDriveManager::get_instance().update(0, true);
-		}
+	if (m_initialized) {
+		// Signal the worker thread to wake up and enumerate removable drives.
+	    m_wakeup = true;
+		m_thread_stop_condition.notify_all();
 	}
-	break;
-	
-	default:
-		// Send all other messages on to the default windows handler.
-		lRet = DefWindowProc(hWnd, message, wParam, lParam);
-		break;
-	}
-	return lRet;
-	
 }
-
-void RemovableDriveManager::register_window()
-{
-	//creates new unvisible window that is recieving callbacks from system
-	// structure to register 
-	// currently not used, left for possible future use
-	WNDCLASSEX wndClass;
-	wndClass.cbSize = sizeof(WNDCLASSEX);
-	wndClass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
-	wndClass.hInstance = reinterpret_cast<HINSTANCE>(GetModuleHandle(0));
-	wndClass.lpfnWndProc = reinterpret_cast<WNDPROC>(WinProcCallback);//this is callback
-	wndClass.cbClsExtra = 0;
-	wndClass.cbWndExtra = 0;
-	wndClass.hIcon = LoadIcon(0, IDI_APPLICATION);
-	wndClass.hbrBackground = CreateSolidBrush(RGB(192, 192, 192));
-	wndClass.hCursor = LoadCursor(0, IDC_ARROW);
-	wndClass.lpszClassName = L"PrusaSlicer_aux_class";
-	wndClass.lpszMenuName = NULL;
-	wndClass.hIconSm = wndClass.hIcon;
-	if(!RegisterClassEx(&wndClass))
-	{
-		DWORD err = GetLastError();
-		return;
-	}
-
-	HWND hWnd = CreateWindowEx(
-		WS_EX_NOACTIVATE,
-		L"PrusaSlicer_aux_class",
-		L"PrusaSlicer_aux_wnd",
-		WS_DISABLED, // style
-		CW_USEDEFAULT, 0,
-		640, 480,
-		NULL, NULL,
-		GetModuleHandle(NULL),
-		NULL);
-	if(hWnd == NULL)
-	{
-		DWORD err = GetLastError();
-	}
-	//ShowWindow(hWnd, SW_SHOWNORMAL);
-	UpdateWindow(hWnd);
-}
-#endif
 
 #else
 
@@ -424,9 +347,7 @@ void RemovableDriveManager::init(wxEvtHandler *callback_evt_handler)
 	m_initialized = true;
 	m_callback_evt_handler = callback_evt_handler;
 
-#if _WIN32
-	//this->register_window_msw();
-#elif __APPLE__
+#if __APPLE__
     this->register_window_osx();
 #endif
 
@@ -440,6 +361,10 @@ void RemovableDriveManager::init(wxEvtHandler *callback_evt_handler)
 
 void RemovableDriveManager::shutdown()
 {
+#if __APPLE__
+	this->unregister_window_osx();
+#endif
+
 #ifndef REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
     if (m_thread.joinable()) {
     	// Stop the worker thread, if running.
@@ -454,12 +379,6 @@ void RemovableDriveManager::shutdown()
 		m_stop = false;
 	}
 #endif // REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
-
-#if _WIN32
-	//this->unregister_window_msw();
-#elif __APPLE__
-    this->unregister_window_osx();
-#endif
 
 	m_initialized = false;
 	m_callback_evt_handler = nullptr;
@@ -493,6 +412,10 @@ RemovableDriveManager::RemovableDrivesStatus RemovableDriveManager::status()
 void RemovableDriveManager::update()
 {
 	tbb::mutex::scoped_lock inside_update_lock;
+#ifdef _WIN32
+	// All wake up calls up to now are now consumed when the drive enumeration starts.
+	m_wakeup = false;
+#endif // _WIN32
 	if (inside_update_lock.try_acquire(m_inside_update_mutex)) {
 		// Got the lock without waiting. That means, the update was not running.
 		// Run the update.
@@ -516,12 +439,21 @@ void RemovableDriveManager::update()
 #ifndef REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
 void RemovableDriveManager::thread_proc()
 {
+	// Signal the worker thread to update initially.
+    m_wakeup = true;
+
 	for (;;) {
 		// Wait for 2 seconds before running the disk enumeration.
 		// Cancellable.
 		{
 			std::unique_lock<std::mutex> lck(m_thread_stop_mutex);
+#ifdef _WIN32
+	    	// Wait 30 seconds for the stop signal, wake up time to time to remove those devices that the user ejected in file explorer
+	    	// or another application (for example in Cura). This is a workaround, as Windows does not send an event on software eject of a drive.
+			m_thread_stop_condition.wait_for(lck, std::chrono::seconds(30), [this]{ return m_stop || m_wakeup; });
+#else
 			m_thread_stop_condition.wait_for(lck, std::chrono::seconds(2), [this]{ return m_stop; });
+#endif
 		}
 		if (m_stop)
 			// Stop the worker thread.

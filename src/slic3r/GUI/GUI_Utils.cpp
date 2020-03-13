@@ -21,6 +21,10 @@
 namespace Slic3r {
 namespace GUI {
 
+wxDEFINE_EVENT(EVT_HID_DEVICE_ATTACHED, HIDDeviceAttachedEvent);
+wxDEFINE_EVENT(EVT_HID_DEVICE_DETACHED, HIDDeviceDetachedEvent);
+wxDEFINE_EVENT(EVT_VOLUME_ATTACHED, VolumeAttachedEvent);
+wxDEFINE_EVENT(EVT_VOLUME_DETACHED, VolumeDetachedEvent);
 
 wxTopLevelWindow* find_toplevel_parent(wxWindow *window)
 {
