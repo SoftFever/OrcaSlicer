@@ -337,6 +337,10 @@ msgstr "Un'espressione booleana che usa i valori di configurazione di un profilo
 msgid "A boolean expression using the configuration values of an active printer profile. If this expression evaluates to true, this profile is considered compatible with the active printer profile."
 msgstr "Un'espressione booleana che usa i valori di configurazione di un profilo stampante attivo. Se questa espressione produce un risultato vero, questo profilo si considera compatibile con il profilo stampante attivo."
 
+#: src/slic3r/GUI/Tab.cpp:975
+msgid "A copy of the current system preset will be created, which will be detached from the system preset."
+msgstr "Verrà creata una copia del preset di sistema corrente, e verrà distaccata dal preset di sistema."
+
 #: src/slic3r/GUI/ConfigWizard.cpp:1034
 msgid "A rule of thumb is 160 to 230 °C for PLA, and 215 to 250 °C for ABS."
 msgstr "Una regola generale è da 160 a 230°C per il PLA, e da 215 a 250°C per l'ABS."
@@ -1569,15 +1573,6 @@ msgstr "Il preset corrente è ereditato da"
 msgid "Current preset is inherited from the default preset."
 msgstr "Il preset attuale è stato ereditato dal preset predefinito."
 
-#: src/slic3r/GUI/Tab.cpp:960
-#, c-format
-msgid ""
-"Current preset is inherited from:\n"
-"\t%s"
-msgstr ""
-"Il preset corrente è ereditato da:\n"
-"%s"
-
 #: src/slic3r/GUI/UpdateDialogs.cpp:43
 msgid "Current version:"
 msgstr "Versione corrente:"
@@ -1877,6 +1872,18 @@ msgstr "Deseleziona con rettangolo"
 msgid "Deselects all objects"
 msgstr "Deseleziona tutti gli oggetti"
 
+#: src/slic3r/GUI/Tab.cpp:963
+msgid "Detach from system preset"
+msgstr "Distacco dal preset di sistema"
+
+#: src/slic3r/GUI/Tab.cpp:984
+msgid "Detach preset"
+msgstr "Preset distacco"
+
+#: src/slic3r/GUI/Tab.cpp:3029
+msgid "Detached"
+msgstr "Distaccato"
+
 #: src/libslic3r/PrintConfig.cpp:1373
 msgid "Detect bridging perimeters"
 msgstr "Rileva perimetri ponte (bridge)"
@@ -2139,6 +2146,23 @@ msgstr "Modifica segno di spunta - Clic destro"
 #: src/slic3r/GUI/GUI_ObjectList.cpp:282 src/slic3r/GUI/GUI_ObjectList.cpp:394
 msgid "Editing"
 msgstr "Editing"
+
+#: src/slic3r/GUI/MainFrame.cpp:547
+msgid "Ejec&t SD card / Flash drive"
+msgstr "(&t) Espelli Scheda SD / Memoria flash"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:126
+msgid "Eject SD card / Flash drive"
+msgstr "Espelli scheda SD / Memoria flash"
+
+#: src/slic3r/GUI/MainFrame.cpp:547
+msgid "Eject SD card / Flash drive after the G-code was exported to it."
+msgstr "Espelli scheda SD / Memoria flash dopo l'esportazione del G-code in essa."
+
+#: src/slic3r/GUI/Plater.cpp:2202
+#, c-format
+msgid "Ejecting of device %s(%s) has failed."
+msgstr "Espulsione del dispositivo %s(%s) non riuscita."
 
 #: src/libslic3r/PrintConfig.cpp:118
 msgid "Elephant foot compensation"
@@ -2430,6 +2454,10 @@ msgstr "Esporta il piano corrente come AMF"
 msgid "Export current plate as G-code"
 msgstr "Esporta il piano corrente come G-code"
 
+#: src/slic3r/GUI/MainFrame.cpp:521
+msgid "Export current plate as G-code to SD card / Flash drive"
+msgstr "Esporta il piano corrente come G-code su scheda SD / Memoria flash"
+
 #: src/slic3r/GUI/MainFrame.cpp:486
 msgid "Export current plate as STL"
 msgstr "Esporta il piano corrente come STL"
@@ -2450,6 +2478,10 @@ msgstr "Esporta il percorso completo dei modelli e fonti delle parti nei file 3m
 #: src/slic3r/GUI/Plater.cpp:5521 src/libslic3r/PrintConfig.cpp:3353
 msgid "Export G-code"
 msgstr "Esporta G-code"
+
+#: src/slic3r/GUI/MainFrame.cpp:521
+msgid "Export G-code to SD card / Flash drive"
+msgstr "Esporta G-code su Scheda SD / Memoria flash"
 
 #: src/libslic3r/PrintConfig.cpp:3320
 msgid "Export OBJ"
@@ -2952,15 +2984,6 @@ msgid "For support enforcers only"
 msgstr "Solo per rinforzi supporto"
 
 #. TRN Description for "WHITE BULLET"
-#: src/slic3r/GUI/Tab.cpp:3265
-msgid ""
-"for the left button: \tindicates a non-system (or non-default) preset,\n"
-"for the right button: \tindicates that the settings hasn't been modified."
-msgstr ""
-"per il tasto sinistro: indica un preset non di sistema (o non-predefinito),\n"
-"per il tasto destro: indica che le impostazioni non sono state modificate."
-
-#. TRN Description for "WHITE BULLET"
 #: src/slic3r/GUI/Tab.cpp:3267
 msgid ""
 "for the left button: indicates a non-system (or non-default) preset,\n"
@@ -3374,17 +3397,6 @@ msgstr "File HTTPS CA"
 #: src/slic3r/GUI/Tab.cpp:1713
 msgid "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate."
 msgstr "File HTTPS CA opzionale. È necessario solo se si intende usare un HTTPS con certificato autofirmato."
-
-#: src/slic3r/GUI/Tab.cpp:1757
-#, c-format
-msgid ""
-"HTTPS CA File:\n"
-"    \tOn this system, %s uses HTTPS certificates from the system Certificate Store or Keychain.\n"
-"    \tTo use a custom CA file, please import your CA file into Certificate Store / Keychain."
-msgstr ""
-"File HTTPS CA:\n"
-"Su questo sistema, %s utilizza certificati HTTPS provenienti dal sistema Certificate Store o da Keychain.\n"
-"Per utilizzare un file CA personalizzato, importa il tuo file CA sul Certificate Store / Keychain."
 
 #: src/slic3r/GUI/Preferences.cpp:222
 msgid "Icon size in a respect to the default size"
@@ -4170,7 +4182,7 @@ msgstr "Distanza massima bridging"
 
 #: src/libslic3r/PrintConfig.cpp:2269
 msgid "Maximal distance between supports on sparse infill sections."
-msgstr "Distanza massima tra supporti in sezioni a scarso riempimento."
+msgstr "Distanza massima tra supporti in sezioni a riempimento sparso."
 
 #: src/libslic3r/PrintConfig.cpp:1145
 msgid "Maximum acceleration E"
@@ -4602,6 +4614,10 @@ msgstr "Riparazione modello terminata"
 msgid "Model repaired successfully"
 msgstr "Modello riparato con successo"
 
+#: src/slic3r/GUI/Tab.cpp:979
+msgid "Modifications to the current profile will be saved."
+msgstr "Verranno salvate le modifiche al profilo attuale."
+
 #: src/slic3r/GUI/Preset.cpp:247
 msgid "modified"
 msgstr "modificato"
@@ -4792,7 +4808,7 @@ msgstr "NESSUN RAMMING"
 
 #: src/libslic3r/PrintConfig.cpp:1857
 msgid "No sparse layers (EXPERIMENTAL)"
-msgstr "Nessun layer rado (SPERIMENTALE)"
+msgstr "Nessun layer sparso (SPERIMENTALE)"
 
 #: src/libslic3r/PrintConfig.cpp:2774
 msgid "No support points will be placed closer than this threshold."
@@ -5399,10 +5415,10 @@ msgstr "Preset (%s)"
 msgid "Preset with name \"%1%\" already exists."
 msgstr "Preset con il nome \"%1%\" già esistente."
 
-#: src/slic3r/GUI/Tab.cpp:3045
+#: src/slic3r/GUI/Tab.cpp:3029
 msgctxt "PresetName"
-msgid "%1% - Copy"
-msgstr "%1% - Copia"
+msgid "Copy"
+msgstr "Copia"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:163
 msgid "Press to activate deselection rectangle"
@@ -6440,16 +6456,6 @@ msgstr "Seleziona il tipo di Pad richiesto"
 #: src/slic3r/GUI/Plater.cpp:498
 msgid "Select what kind of support do you need"
 msgstr "Seleziona il tipo di supporto richiesto"
-
-#: src/slic3r/GUI/DoubleSlider.cpp:1917
-msgid ""
-"Select YES if you want to delete all saved tool changes, \n"
-"\tNO if you want all tool changes switch to color changes, \n"
-"\tor CANCEL to leave it unchanged."
-msgstr ""
-"Seleziona SI se vuoi cancellare tutti i cambi attrezzo salvati,\n"
-"NO se vuoi che tutti i cambi attrezzo passino a cambi colore,\n"
-"o ANNULLA per lasciarlo invariato."
 
 #: src/slic3r/GUI/DoubleSlider.cpp:1917
 msgid ""
@@ -7616,6 +7622,10 @@ msgstr ""
 "Il dispositivo %s non è stato trovato.\n"
 "Se il dispositivo è connesso, premi il pulsante Reset vicino al connettore USB ..."
 
+#: src/slic3r/GUI/Tab.cpp:976
+msgid "The current custom preset will be detached from the parent system preset."
+msgstr "Il preset personalizzato corrente sarà staccato dal preset del sistema padre."
+
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:875
 msgid ""
 "The currently manipulated object is tilted (rotation angles are not multiples of 90°).\n"
@@ -7772,17 +7782,13 @@ msgstr "L'oggetto selezionato non può essere diviso perché contiene più di un
 msgid "The selected object couldn't be split because it contains only one part."
 msgstr "L'oggetto selezionato non può essere diviso perché contiene solo una parte."
 
-#: src/slic3r/GUI/MainFrame.cpp:432
+#: src/slic3r/GUI/MainFrame.cpp:461
 msgid ""
 "The selected project is no longer available.\n"
-"Do you want to remove it from the recent projects list ?"
+"Do you want to remove it from the recent projects list?"
 msgstr ""
 "Il progetto selezionato non è più disponibile.\n"
 "Vuoi rimuoverlo dall'elenco dei progetti recenti?"
-
-#: src/slic3r/GUI/MainFrame.cpp:422
-msgid "The selected project is no more available"
-msgstr "Il progetto selezionato non è più disponibile"
 
 #: src/slic3r/GUI/DoubleSlider.cpp:998
 msgid ""
@@ -7953,6 +7959,14 @@ msgstr ""
 msgid "This %s version: %s"
 msgstr "%s versione: %s"
 
+#: src/slic3r/GUI/Tab.cpp:982
+msgid ""
+"This action is not revertable.\n"
+"Do you want to proceed?"
+msgstr ""
+"Questa azione non è reversibile.\n"
+"Vuoi continuare?"
+
 #: src/libslic3r/PrintConfig.cpp:165
 msgid "This code is inserted between objects when using sequential printing. By default extruder and bed temperature are reset using non-wait command; however if M104, M109, M140 or M190 are detected in this custom code, Slic3r will not add temperature commands. Note that you can use placeholder variables for all Slic3r settings, so you can put a \"M109 S[first_layer_temperature]\" command wherever you want."
 msgstr "Questo codice è inserito tra gli oggetti quando si utilizza una stampa sequenziale. Come predefinito, la temperatura di estrusione e del piano sono resettate con il comando non-attesa; in ogni caso se nel codice personalizzato vengono rilevati i comandi M104,M109,M140 o M190, Slic3r non aggiungerà i comandi di temperatura. Si fa presente che puoi usare variabili sostitutive per tutte le impostazioni di Slic3r, quindi puoi inserire un comando \"M109 S[first_layer_temperature]\" quando preferisci."
@@ -8119,10 +8133,6 @@ msgstr "Questa è la massima altezza layer stampabile per questo estrusore, usat
 #: src/libslic3r/PrintConfig.cpp:1290
 msgid "This is the lowest printable layer height for this extruder and limits the resolution for variable layer height. Typical values are between 0.05 mm and 0.1 mm."
 msgstr "Questa è l'altezza minima stampabile per questo estrusore e limita la risoluzione per l'altezza variabile dei layer.  Valori tipici sono compresi tra 0.05 mm e 0.1 mm."
-
-#: src/libslic3r/GCode.cpp:639
-msgid "This is usually caused by negligibly small extrusions or by a faulty model. Try to repair  the model or change its orientation on the bed."
-msgstr "Questo solitamente è causato da estrusioni molto piccole o da un modello difettoso. Provare a riparare il modello o cambiare il suo orientamento sul piano."
 
 #: src/libslic3r/GCode.cpp:639
 msgid "This is usually caused by negligibly small extrusions or by a faulty model. Try to repair the model or change its orientation on the bed."
