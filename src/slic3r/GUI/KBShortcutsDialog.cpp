@@ -144,9 +144,7 @@ void KBShortcutsDialog::fill_shortcuts()
         { ctrl + "J", L("Print host upload queue") },
         // View
         { "0-6", L("Camera view") },
-#if ENABLE_SHOW_SCENE_LABELS
         { "E", L("Show/Hide object/instance labels") },
-#endif // ENABLE_SHOW_SCENE_LABELS
         // Configuration
         { ctrl + "P", L("Preferences") },
         // Help
