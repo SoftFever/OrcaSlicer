@@ -225,7 +225,7 @@ void GLGizmosManager::update_data()
         set_scale(Vec3d::Ones());
         set_rotation(Vec3d::Zero());
         set_flattening_data(selection.is_from_single_object() ? selection.get_model()->objects[selection.get_object_idx()] : nullptr);
-        set_sla_support_data(nullptr);
+        set_sla_support_data(selection.is_from_single_instance() ? selection.get_model()->objects[selection.get_object_idx()] : nullptr);
     }
 }
 
