@@ -331,6 +331,10 @@ msgstr "アクティブなプリントプロファイルの構成値を使用す
 msgid "A boolean expression using the configuration values of an active printer profile. If this expression evaluates to true, this profile is considered compatible with the active printer profile."
 msgstr "アクティブなプリンタープロファイルの構成値を使った論理式です。 この論理式が真の場合、このプロファイルはアクティブなプリンタープロファイルと互換性があると見なされます。"
 
+#: src/slic3r/GUI/Tab.cpp:975
+msgid "A copy of the current system preset will be created, which will be detached from the system preset."
+msgstr "現在のシステムプリセットからコピーを作成し、システムプリセットから切り離します。"
+
 #: src/slic3r/GUI/ConfigWizard.cpp:1034
 msgid "A rule of thumb is 160 to 230 °C for PLA, and 215 to 250 °C for ABS."
 msgstr "一般的には、PLAは160〜230℃、ABSは215〜250℃です。"
@@ -1561,13 +1565,6 @@ msgstr "現在のプリセット継承元"
 msgid "Current preset is inherited from the default preset."
 msgstr "現在の設定はデフォルト設定から継承されます。"
 
-#: src/slic3r/GUI/Tab.cpp:960
-#, c-format
-msgid ""
-"Current preset is inherited from:\n"
-"\t%s"
-msgstr "現在のプリセット継承元：%s"
-
 #: src/slic3r/GUI/UpdateDialogs.cpp:43
 msgid "Current version:"
 msgstr "現在のバージョン:"
@@ -1867,6 +1864,18 @@ msgstr "方形で選択解除"
 msgid "Deselects all objects"
 msgstr "全てのオブジェクトの選択解除"
 
+#: src/slic3r/GUI/Tab.cpp:963
+msgid "Detach from system preset"
+msgstr "システムプリセットから取り外す"
+
+#: src/slic3r/GUI/Tab.cpp:984
+msgid "Detach preset"
+msgstr "プリセットを切り離す"
+
+#: src/slic3r/GUI/Tab.cpp:3029
+msgid "Detached"
+msgstr "取り外しました"
+
 #: src/libslic3r/PrintConfig.cpp:1373
 msgid "Detect bridging perimeters"
 msgstr "ブリッジ外周の検出"
@@ -2126,6 +2135,23 @@ msgstr "マーカーの編集-マウスの右ボタン"
 #: src/slic3r/GUI/GUI_ObjectList.cpp:282 src/slic3r/GUI/GUI_ObjectList.cpp:394
 msgid "Editing"
 msgstr "編集中"
+
+#: src/slic3r/GUI/MainFrame.cpp:547
+msgid "Ejec&t SD card / Flash drive"
+msgstr "SDカード/USBメモリーを取り出す(&t)"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:126
+msgid "Eject SD card / Flash drive"
+msgstr "SDカード/USBメモリーを取り出す"
+
+#: src/slic3r/GUI/MainFrame.cpp:547
+msgid "Eject SD card / Flash drive after the G-code was exported to it."
+msgstr "Gコードをエクスポートした後に、SDカード/USBメモリーを取り出します。"
+
+#: src/slic3r/GUI/Plater.cpp:2202
+#, c-format
+msgid "Ejecting of device %s(%s) has failed."
+msgstr "デバイス %s(%s) の取り出しに失敗しました。"
 
 #: src/libslic3r/PrintConfig.cpp:118
 msgid "Elephant foot compensation"
@@ -2417,6 +2443,10 @@ msgstr "現在のプレートをAMFとしてエクスポート"
 msgid "Export current plate as G-code"
 msgstr "現在のプレートをGコードとしてエクスポート"
 
+#: src/slic3r/GUI/MainFrame.cpp:521
+msgid "Export current plate as G-code to SD card / Flash drive"
+msgstr "現在のプレートをGコードとしてSDカード/USBメモリーにエクスポート"
+
 #: src/slic3r/GUI/MainFrame.cpp:486
 msgid "Export current plate as STL"
 msgstr "現在のプレートをSTLとしてエクスポート"
@@ -2437,6 +2467,10 @@ msgstr "モデルのフルパス名とパーツソースを3mfおよびamfファ
 #: src/slic3r/GUI/Plater.cpp:5521 src/libslic3r/PrintConfig.cpp:3353
 msgid "Export G-code"
 msgstr "Gコードのエクスポート"
+
+#: src/slic3r/GUI/MainFrame.cpp:521
+msgid "Export G-code to SD card / Flash drive"
+msgstr "GコードをSDカード/USBメモリーにエクスポート"
 
 #: src/libslic3r/PrintConfig.cpp:3320
 msgid "Export OBJ"
@@ -2939,13 +2973,6 @@ msgid "For support enforcers only"
 msgstr "強制サポートのみ"
 
 #. TRN Description for "WHITE BULLET"
-#: src/slic3r/GUI/Tab.cpp:3265
-msgid ""
-"for the left button: \tindicates a non-system (or non-default) preset,\n"
-"for the right button: \tindicates that the settings hasn't been modified."
-msgstr "左ボタンの場合：システム（デフォルト）プリセットでないことを示し、右側ボタンの場合：設定が変更されていないことを示します。"
-
-#. TRN Description for "WHITE BULLET"
 #: src/slic3r/GUI/Tab.cpp:3267
 msgid ""
 "for the left button: indicates a non-system (or non-default) preset,\n"
@@ -3361,17 +3388,6 @@ msgstr "HTTPS CAファイル"
 #: src/slic3r/GUI/Tab.cpp:1713
 msgid "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate."
 msgstr "HTTPS CAファイルはオプションです。 HTTPSを自己署名証明書で使用する場合にのみ必要です。"
-
-#: src/slic3r/GUI/Tab.cpp:1757
-#, c-format
-msgid ""
-"HTTPS CA File:\n"
-"    \tOn this system, %s uses HTTPS certificates from the system Certificate Store or Keychain.\n"
-"    \tTo use a custom CA file, please import your CA file into Certificate Store / Keychain."
-msgstr ""
-"HTTPS CAファイル：\n"
-"     このシステムでは、%sはシステムの証明書ストアまたはキーチェーンからのHTTPS証明書を使用します。\n"
-"     カスタムCAファイルを使用するには、CAファイルを証明書ストア/キーチェーンにインポートしてください。"
 
 #: src/slic3r/GUI/Preferences.cpp:222
 msgid "Icon size in a respect to the default size"
@@ -4572,6 +4588,10 @@ msgstr "モデル修正完了"
 msgid "Model repaired successfully"
 msgstr "モデルの修復完了"
 
+#: src/slic3r/GUI/Tab.cpp:979
+msgid "Modifications to the current profile will be saved."
+msgstr "現在のプロファイルの編集が保存されます。"
+
 #: src/slic3r/GUI/Preset.cpp:247
 msgid "modified"
 msgstr "変更あり"
@@ -5370,10 +5390,10 @@ msgstr "プリセット(%s)"
 msgid "Preset with name \"%1%\" already exists."
 msgstr "\"%1%\"というプリセット名は既に存在します。"
 
-#: src/slic3r/GUI/Tab.cpp:3045
+#: src/slic3r/GUI/Tab.cpp:3029
 msgctxt "PresetName"
-msgid "%1% - Copy"
-msgstr "%1% - コピー"
+msgid "Copy"
+msgstr "コピー"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:163
 msgid "Press to activate deselection rectangle"
@@ -6408,16 +6428,6 @@ msgstr "必要なパッドの種類を選択してください"
 #: src/slic3r/GUI/Plater.cpp:498
 msgid "Select what kind of support do you need"
 msgstr "必要なサポートの種類を選択してください"
-
-#: src/slic3r/GUI/DoubleSlider.cpp:1917
-msgid ""
-"Select YES if you want to delete all saved tool changes, \n"
-"\tNO if you want all tool changes switch to color changes, \n"
-"\tor CANCEL to leave it unchanged."
-msgstr ""
-"保存したツールの変更をすべて削除する場合は、「はい」を選択します。\n"
-"すべてのツールの変更を色の変更に切り替えたい場合は「いいえ」、\n"
-"または「キャンセル」で変更せずにそのままにします"
 
 #: src/slic3r/GUI/DoubleSlider.cpp:1917
 msgid ""
@@ -7579,6 +7589,10 @@ msgstr ""
 "%sデバイスが見つかりませんでした。\n"
 "デバイスが接続されている場合は、USBコネクタの横にあるリセットボタンを押してください..."
 
+#: src/slic3r/GUI/Tab.cpp:976
+msgid "The current custom preset will be detached from the parent system preset."
+msgstr "現在のカスタムプリセットは、親システムプリセットから切り離されます。"
+
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:875
 msgid ""
 "The currently manipulated object is tilted (rotation angles are not multiples of 90°).\n"
@@ -7734,17 +7748,13 @@ msgstr "選択したオブジェクトには複数のボリューム/マテリ�
 msgid "The selected object couldn't be split because it contains only one part."
 msgstr "選択したオブジェクトには、1つのパーツしか含まれていないため、分割できませんでした。"
 
-#: src/slic3r/GUI/MainFrame.cpp:432
+#: src/slic3r/GUI/MainFrame.cpp:461
 msgid ""
 "The selected project is no longer available.\n"
-"Do you want to remove it from the recent projects list ?"
+"Do you want to remove it from the recent projects list?"
 msgstr ""
 "選択したプロジェクトは使用できなくなりました。\n"
 "最近のプロジェクトリストから削除しますか？"
-
-#: src/slic3r/GUI/MainFrame.cpp:422
-msgid "The selected project is no more available"
-msgstr "選択したプロジェクトはもう利用できません"
 
 #: src/slic3r/GUI/DoubleSlider.cpp:998
 msgid ""
@@ -7914,6 +7924,14 @@ msgstr ""
 msgid "This %s version: %s"
 msgstr "この%sのバージョン: %s"
 
+#: src/slic3r/GUI/Tab.cpp:982
+msgid ""
+"This action is not revertable.\n"
+"Do you want to proceed?"
+msgstr ""
+"この操作は元に戻せません。\n"
+"続行しますか？"
+
 #: src/libslic3r/PrintConfig.cpp:165
 msgid "This code is inserted between objects when using sequential printing. By default extruder and bed temperature are reset using non-wait command; however if M104, M109, M140 or M190 are detected in this custom code, Slic3r will not add temperature commands. Note that you can use placeholder variables for all Slic3r settings, so you can put a \"M109 S[first_layer_temperature]\" command wherever you want."
 msgstr "このコードは、オブジェクト別の順次プリンティングを使用するとき、オブジェクト間に挿入されます。 デフォルトでは、エクストルーダーとベッドの温度は非待機コマンドを使用します(M104/M140)。 ただし、このカスタムコードでM104、M109、M140またはM190が記述された場合、Slic3rは温度コマンドを追加しません。 すべてのSlic3r代替変数を使用できるため、「M109 S [first_layer_temperature]」コマンドを必要な場所に記述できます。"
@@ -8081,10 +8099,6 @@ msgstr "これは、このエクストルーダーの最大プリント可能レ
 #: src/libslic3r/PrintConfig.cpp:1290
 msgid "This is the lowest printable layer height for this extruder and limits the resolution for variable layer height. Typical values are between 0.05 mm and 0.1 mm."
 msgstr "このエクストルーダーの最小プリント可能なレイヤー高さ。 可変レイヤー高の解像度を制限します。一般的な値は0.05mmと0.1mmの間です。"
-
-#: src/libslic3r/GCode.cpp:639
-msgid "This is usually caused by negligibly small extrusions or by a faulty model. Try to repair  the model or change its orientation on the bed."
-msgstr "これは通常、無視できるほど少量の押出量またはモデルの欠陥が原因です。 ベッド上のモデルの修復または向きを再配置してみてください。"
 
 #: src/libslic3r/GCode.cpp:639
 msgid "This is usually caused by negligibly small extrusions or by a faulty model. Try to repair the model or change its orientation on the bed."

@@ -208,7 +208,7 @@ public:
     void changed_object(int obj_idx);
     void changed_objects(const std::vector<size_t>& object_idxs);
     void schedule_background_process(bool schedule = true);
-    bool is_background_process_running() const;
+    bool is_background_process_update_scheduled() const;
     void suppress_background_process(const bool stop_background_process) ;
     void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
     void send_gcode();
@@ -319,9 +319,19 @@ public:
 		Plater *m_plater;
 	};
 
+	// Wrapper around wxWindow::PopupMenu to suppress error messages popping out while tracking the popup menu.
+	bool PopupMenu(wxMenu *menu, const wxPoint& pos = wxDefaultPosition);
+    bool PopupMenu(wxMenu *menu, int x, int y) { return this->PopupMenu(menu, wxPoint(x, y)); }
+
 private:
     struct priv;
     std::unique_ptr<priv> p;
+
+    // Set true during PopupMenu() tracking to suppress immediate error message boxes.
+    // The error messages are collected to m_tracking_popup_menu_error_message instead and these error messages
+    // are shown after the pop-up dialog closes.
+    bool 	 m_tracking_popup_menu = false;
+    wxString m_tracking_popup_menu_error_message;
 
     void suppress_snapshots();
     void allow_snapshots();
@@ -335,7 +345,7 @@ public:
     SuppressBackgroundProcessingUpdate();
     ~SuppressBackgroundProcessingUpdate();
 private:
-    bool m_was_running;
+    bool m_was_scheduled;
 };
 
 }}

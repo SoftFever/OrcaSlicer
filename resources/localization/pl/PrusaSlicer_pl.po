@@ -337,6 +337,10 @@ msgstr "Wyrażenie logiczne (Boole'owskie) używające wartości konfiguracji ak
 msgid "A boolean expression using the configuration values of an active printer profile. If this expression evaluates to true, this profile is considered compatible with the active printer profile."
 msgstr "Wyrażenie logiczne (Boole'owskie) używające wartości konfiguracji aktywnego profilu drukarki. Jeśli to wyrażenie jest prawdziwe to znaczy, że aktywny profil jest kompatybilny z drukarką."
 
+#: src/slic3r/GUI/Tab.cpp:975
+msgid "A copy of the current system preset will be created, which will be detached from the system preset."
+msgstr "Zostanie utworzona kopia obecnego zestawu ustawień i odłączona od ustawień systemowych."
+
 #: src/slic3r/GUI/ConfigWizard.cpp:1034
 msgid "A rule of thumb is 160 to 230 °C for PLA, and 215 to 250 °C for ABS."
 msgstr "Generalną zasadą jest 160 do 230 °C dla PLA i 215 do 250 °C dla ABS."
@@ -1569,15 +1573,6 @@ msgstr "Obecny zestaw ustawień jest dziedziczony z"
 msgid "Current preset is inherited from the default preset."
 msgstr "Obecny zestaw ustawień jest dziedziczony z zestawu domyślnego."
 
-#: src/slic3r/GUI/Tab.cpp:960
-#, c-format
-msgid ""
-"Current preset is inherited from:\n"
-"\t%s"
-msgstr ""
-"Obecny zestaw ustawień jest dziedziczony z:\n"
-"%s"
-
 #: src/slic3r/GUI/UpdateDialogs.cpp:43
 msgid "Current version:"
 msgstr "Obecna wersja:"
@@ -1877,6 +1872,18 @@ msgstr "Odznaczenie prostokątem"
 msgid "Deselects all objects"
 msgstr "Odznacza wszystkie modele"
 
+#: src/slic3r/GUI/Tab.cpp:963
+msgid "Detach from system preset"
+msgstr "Odłącz od ustawień systemowych"
+
+#: src/slic3r/GUI/Tab.cpp:984
+msgid "Detach preset"
+msgstr "Odłącz zestaw ustawień"
+
+#: src/slic3r/GUI/Tab.cpp:3029
+msgid "Detached"
+msgstr "Odłączono"
+
 #: src/libslic3r/PrintConfig.cpp:1373
 msgid "Detect bridging perimeters"
 msgstr "Wykrywanie mostów przy obrysach"
@@ -2139,6 +2146,23 @@ msgstr "Edytuj zaznaczenie - kliknij prawym przyciskiem"
 #: src/slic3r/GUI/GUI_ObjectList.cpp:282 src/slic3r/GUI/GUI_ObjectList.cpp:394
 msgid "Editing"
 msgstr "Edytowanie"
+
+#: src/slic3r/GUI/MainFrame.cpp:547
+msgid "Ejec&t SD card / Flash drive"
+msgstr "Wysuń kar&tę SD / pamięć flash"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:126
+msgid "Eject SD card / Flash drive"
+msgstr "Wysuń kartę SD / pamięć flash"
+
+#: src/slic3r/GUI/MainFrame.cpp:547
+msgid "Eject SD card / Flash drive after the G-code was exported to it."
+msgstr "Wysuń kartę SD / pamięć flash po wyeksportowaniu na nią G-code."
+
+#: src/slic3r/GUI/Plater.cpp:2202
+#, c-format
+msgid "Ejecting of device %s(%s) has failed."
+msgstr "Wysuwanie urządzenia %s(%s) nie powiodło się."
 
 #: src/libslic3r/PrintConfig.cpp:118
 msgid "Elephant foot compensation"
@@ -2430,6 +2454,10 @@ msgstr "Eksport zawartości stołu jako AMF"
 msgid "Export current plate as G-code"
 msgstr "Eksport zawartości stołu jako G-code"
 
+#: src/slic3r/GUI/MainFrame.cpp:521
+msgid "Export current plate as G-code to SD card / Flash drive"
+msgstr "Eksport zawartości stołu jako G-gode na kartę SD / pamięć flash"
+
 #: src/slic3r/GUI/MainFrame.cpp:486
 msgid "Export current plate as STL"
 msgstr "Eksport zawartości stołu jako STL"
@@ -2450,6 +2478,10 @@ msgstr "Eksport pełnych ścieżek źródłowych modeli i części do plików 3M
 #: src/slic3r/GUI/Plater.cpp:5521 src/libslic3r/PrintConfig.cpp:3353
 msgid "Export G-code"
 msgstr "Eksport G-code"
+
+#: src/slic3r/GUI/MainFrame.cpp:521
+msgid "Export G-code to SD card / Flash drive"
+msgstr "Eksport G-gode na kartę SD / pamięć flash"
 
 #: src/libslic3r/PrintConfig.cpp:3320
 msgid "Export OBJ"
@@ -2952,15 +2984,6 @@ msgid "For support enforcers only"
 msgstr "Tylko dla wymuszania podpór"
 
 #. TRN Description for "WHITE BULLET"
-#: src/slic3r/GUI/Tab.cpp:3265
-msgid ""
-"for the left button: \tindicates a non-system (or non-default) preset,\n"
-"for the right button: \tindicates that the settings hasn't been modified."
-msgstr ""
-"dla lewego przycisku: wskazuje na niesystemowy (lub inny niż domyślny) zestaw ustawień,\n"
-"dla prawego przycisku: wskazuje, że ustawienia nie zostały zmodyfikowane."
-
-#. TRN Description for "WHITE BULLET"
 #: src/slic3r/GUI/Tab.cpp:3267
 msgid ""
 "for the left button: indicates a non-system (or non-default) preset,\n"
@@ -3376,16 +3399,6 @@ msgstr "Plik certyfikatu HTTPS CA"
 #: src/slic3r/GUI/Tab.cpp:1713
 msgid "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate."
 msgstr "Plik HTTPS CA jest opcjonalny. Jest potrzebny jedynie w sytuacji, gdy używasz HTTPS z certyfikatem samopodpisanym."
-
-#: src/slic3r/GUI/Tab.cpp:1757
-#, c-format
-msgid ""
-"HTTPS CA File:\n"
-"    \tOn this system, %s uses HTTPS certificates from the system Certificate Store or Keychain.\n"
-"    \tTo use a custom CA file, please import your CA file into Certificate Store / Keychain."
-msgstr ""
-"Plik certyfikatu HTTPS:\n"
-"W tym systemie, %s używa certyfikatu HTTPS z magazynu systemowego (Certificate Store) lub Keychain. Aby użyć własnego certyfikatu, zaimportuj plik do Certificate Store / Keychain."
 
 #: src/slic3r/GUI/Preferences.cpp:222
 msgid "Icon size in a respect to the default size"
@@ -4603,6 +4616,10 @@ msgstr "Ukończono naprawę modelu"
 msgid "Model repaired successfully"
 msgstr "Model naprawiono pomyślnie"
 
+#: src/slic3r/GUI/Tab.cpp:979
+msgid "Modifications to the current profile will be saved."
+msgstr "Modyfikacje zostaną zapisane na obecnym profilu."
+
 #: src/slic3r/GUI/Preset.cpp:247
 msgid "modified"
 msgstr "zmodyfikowano"
@@ -5400,10 +5417,10 @@ msgstr "Zestaw ustawień (%s)"
 msgid "Preset with name \"%1%\" already exists."
 msgstr "Zestaw ustawień o nazwie \"%1%\" już istnieje."
 
-#: src/slic3r/GUI/Tab.cpp:3045
+#: src/slic3r/GUI/Tab.cpp:3029
 msgctxt "PresetName"
-msgid "%1% - Copy"
-msgstr "%1% - Kopia"
+msgid "Copy"
+msgstr "Kopia"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:163
 msgid "Press to activate deselection rectangle"
@@ -6445,16 +6462,6 @@ msgstr "Wybierz rodzaj wymaganej podkładki"
 #: src/slic3r/GUI/Plater.cpp:498
 msgid "Select what kind of support do you need"
 msgstr "Wybierz rodzaj potrzebnych podpór"
-
-#: src/slic3r/GUI/DoubleSlider.cpp:1917
-msgid ""
-"Select YES if you want to delete all saved tool changes, \n"
-"\tNO if you want all tool changes switch to color changes, \n"
-"\tor CANCEL to leave it unchanged."
-msgstr ""
-"Wybierz TAK, jeśli chcesz usunąć wszystkie zapisane zmiany narzędzi,\n"
-"NIE, jeśli chcesz przełączyć zmiany narzędzi na zmiany koloru lub\n"
-"ANULUJ, aby pozostawić bez zmian."
 
 #: src/slic3r/GUI/DoubleSlider.cpp:1917
 msgid ""
@@ -7618,6 +7625,10 @@ msgstr ""
 "Nie znaleziono urządzenia %s .\n"
 "Jeśli urządzenie jest podłączone, to naciśnij przycisk Reset obok złącza USB ..."
 
+#: src/slic3r/GUI/Tab.cpp:976
+msgid "The current custom preset will be detached from the parent system preset."
+msgstr "Obecny niestandardowy zestaw ustawień zostanie odłączony od dziedziczącego zestawu systemowego."
+
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:875
 msgid ""
 "The currently manipulated object is tilted (rotation angles are not multiples of 90°).\n"
@@ -7774,17 +7785,13 @@ msgstr "Wybrany model nie może być podzielony ponieważ składa się z więcej
 msgid "The selected object couldn't be split because it contains only one part."
 msgstr "Wybrany model nie może być rozdzielony ponieważ zawiera tylko jedną część."
 
-#: src/slic3r/GUI/MainFrame.cpp:432
+#: src/slic3r/GUI/MainFrame.cpp:461
 msgid ""
 "The selected project is no longer available.\n"
-"Do you want to remove it from the recent projects list ?"
+"Do you want to remove it from the recent projects list?"
 msgstr ""
 "Wybrany obiekt nie jest już dostępny.\n"
 "Czy chcesz usunąć go z listy niedawno używanych projektów?"
-
-#: src/slic3r/GUI/MainFrame.cpp:422
-msgid "The selected project is no more available"
-msgstr "Wybrany projekt nie jest dostępny"
 
 #: src/slic3r/GUI/DoubleSlider.cpp:998
 msgid ""
@@ -7955,6 +7962,14 @@ msgstr ""
 msgid "This %s version: %s"
 msgstr "%s wersja: %s"
 
+#: src/slic3r/GUI/Tab.cpp:982
+msgid ""
+"This action is not revertable.\n"
+"Do you want to proceed?"
+msgstr ""
+"Tej czynności nie można odwrócić.\n"
+"Czy chcesz kontynuować?"
+
 #: src/libslic3r/PrintConfig.cpp:165
 msgid "This code is inserted between objects when using sequential printing. By default extruder and bed temperature are reset using non-wait command; however if M104, M109, M140 or M190 are detected in this custom code, Slic3r will not add temperature commands. Note that you can use placeholder variables for all Slic3r settings, so you can put a \"M109 S[first_layer_temperature]\" command wherever you want."
 msgstr "Ten kod jest wykonywany pomiędzy drukiem poszczególnych modeli w trybie druku sekwencyjnego. Domyślnie przy komendzie non-wait temperatury dyszy i stołu są resetowane; jednakże jeśli przy tej opcji zostaną użyte komendy M104, M109, M140 lub M190 to Slic3r nie doda własnych komend do kontroli temperatury. Pamiętaj, że możesz używać zmiennych typu placeholder, więc np. komendę \"M109 S[first_layer_temperature]\" (temperatura pierwszej warstwy) możesz umieścić gdzie chcesz."
@@ -8122,10 +8137,6 @@ msgstr "To jest najwyższa możliwa do wydrukowania wysokość warstwy dla tego 
 #: src/libslic3r/PrintConfig.cpp:1290
 msgid "This is the lowest printable layer height for this extruder and limits the resolution for variable layer height. Typical values are between 0.05 mm and 0.1 mm."
 msgstr "To jest najniższa możliwa do wydrukowania wysokość warstwy dla tego ekstrudera i jednocześnie dolny limit dla funkcji zmiennej wysokości warstwy. Zazwyczaj jest to 0.05 lub 0.1 mm."
-
-#: src/libslic3r/GCode.cpp:639
-msgid "This is usually caused by negligibly small extrusions or by a faulty model. Try to repair  the model or change its orientation on the bed."
-msgstr "Dzieje się to zazwyczaj z powodu zbyt małych odcinków ekstruzji (są one pomijane) lub uszkodzenia modelu. Spróbuj naprawić model lub zmienić jego orientację na stole."
 
 #: src/libslic3r/GCode.cpp:639
 msgid "This is usually caused by negligibly small extrusions or by a faulty model. Try to repair the model or change its orientation on the bed."

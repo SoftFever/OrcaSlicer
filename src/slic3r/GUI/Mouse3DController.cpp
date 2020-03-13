@@ -99,6 +99,25 @@ void Mouse3DController::State::append_button(unsigned int id, size_t /* input_qu
 }
 
 #ifdef WIN32
+// Called by Win32 HID enumeration callback.
+void Mouse3DController::device_attached(const std::string &device)
+{
+	int vid = 0;
+	int pid = 0;
+	if (sscanf(device.c_str(), "\\\\?\\HID#VID_%x&PID_%x&", &vid, &pid) == 2) {
+//    BOOST_LOG_TRIVIAL(trace) << boost::format("Mouse3DController::device_attached(VID_%04xxPID_%04x)") % vid % pid;
+//    BOOST_LOG_TRIVIAL(trace) << "Mouse3DController::device_attached: " << device;
+	    if (std::find(_3DCONNEXION_VENDORS.begin(), _3DCONNEXION_VENDORS.end(), vid) != _3DCONNEXION_VENDORS.end()) {
+			// Signal the worker thread to wake up and enumerate HID devices, if not connected at the moment.
+			// The message may come multiple times per each USB device. For example, some USB wireless dongles register as multiple HID sockets 
+			// for multiple devices to connect to.
+			// Never mind, enumeration will be performed until connected.
+		    m_wakeup = true;
+			m_stop_condition.notify_all();
+		}
+	}
+}
+
 // Filter out mouse scroll events produced by the 3DConnexion driver.
 bool Mouse3DController::State::process_mouse_wheel()
 {
@@ -388,9 +407,13 @@ void Mouse3DController::disconnected()
         m_params_by_device[m_device_str] = m_params_ui;
 	    m_device_str.clear();
 	    m_connected = false;
-        wxGetApp().plater()->get_camera().recover_from_free_camera();
-        wxGetApp().plater()->set_current_canvas_as_dirty();
-        wxWakeUpIdle();
+        wxGetApp().plater()->CallAfter([]() {
+        	Plater *plater = wxGetApp().plater();
+        	if (plater != nullptr) {
+	        	plater->get_camera().recover_from_free_camera();
+    	   		plater->set_current_canvas_as_dirty();
+    	   	}
+    	});
     }
 }
 
@@ -486,6 +509,11 @@ void Mouse3DController::run()
         return;
     }
 
+#ifdef _WIN32
+    // Enumerate once just after thread start.
+	m_wakeup = true;
+#endif // _WIN32
+
     for (;;) {
         {
         	tbb::mutex::scoped_lock lock(m_params_ui_mutex);
@@ -518,7 +546,13 @@ bool Mouse3DController::connect_device()
     {
     	// Wait for 2 seconds, but cancellable by m_stop.
     	std::unique_lock<std::mutex> lock(m_stop_condition_mutex);
-        m_stop_condition.wait_for(lock, std::chrono::seconds(2), [this]{ return this->m_stop; });
+#ifdef _WIN32
+    	// Wait indifinetely for the stop signal.
+        m_stop_condition.wait(lock, [this]{ return m_stop || m_wakeup; });
+        m_wakeup = false;
+#else
+        m_stop_condition.wait_for(lock, std::chrono::seconds(2), [this]{ return m_stop; });
+#endif
     }
 
     if (m_stop)
@@ -528,9 +562,13 @@ bool Mouse3DController::connect_device()
     hid_device_info* devices = hid_enumerate(0, 0);
     if (devices == nullptr)
     {
-        BOOST_LOG_TRIVIAL(error) << "Unable to enumerate HID devices";
+        BOOST_LOG_TRIVIAL(trace) << "Mouse3DController::connect_device() - no HID device enumerated.";
         return false;
     }
+
+#ifdef _WIN32
+    BOOST_LOG_TRIVIAL(trace) << "Mouse3DController::connect_device() - enumerating HID devices.";
+#endif // _WIN32
 
     // Searches for 1st connected 3Dconnexion device
     struct DeviceData
@@ -785,9 +823,17 @@ void Mouse3DController::disconnect_device()
 	    }
 	    m_device_str.clear();
 	    m_connected = false;
-        wxGetApp().plater()->get_camera().recover_from_free_camera();
-        wxGetApp().plater()->set_current_canvas_as_dirty();
-        wxWakeUpIdle();
+#ifdef _WIN32
+	    // Enumerate once immediately after disconnect.
+	    m_wakeup = true;
+#endif // _WIN32	    
+        wxGetApp().plater()->CallAfter([]() {
+        	Plater *plater = wxGetApp().plater();
+        	if (plater != nullptr) {
+	        	plater->get_camera().recover_from_free_camera();
+    	   		plater->set_current_canvas_as_dirty();
+    	   	}
+    	});
     }
 }
 

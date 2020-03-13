@@ -1955,7 +1955,7 @@ struct Plater::priv
 			GUI::show_error(this->q, msg);
 		}
 	}
-    void export_gcode(fs::path output_path, PrintHostJob upload_job);
+    void export_gcode(fs::path output_path, bool output_path_on_removable_media, PrintHostJob upload_job);
     void reload_from_disk();
     void reload_all_from_disk();
     void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
@@ -2214,17 +2214,34 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     // Load the 3DConnexion device database.
     mouse3d_controller.load_config(*wxGetApp().app_config);
 	// Start the background thread to detect and connect to a HID device (Windows and Linux).
-	// Connect to a 3DConnextion driver (OSX).    
+	// Connect to a 3DConnextion driver (OSX).
     mouse3d_controller.init();
+#ifdef _WIN32
+    // Register an USB HID (Human Interface Device) attach event. evt contains Win32 path to the USB device containing VID, PID and other info.
+    // This event wakes up the Mouse3DController's background thread to enumerate HID devices, if the VID of the callback event
+    // is one of the 3D Mouse vendors (3DConnexion or Logitech).
+    this->q->Bind(EVT_HID_DEVICE_ATTACHED, [this](HIDDeviceAttachedEvent &evt) {
+    	mouse3d_controller.device_attached(evt.data);
+    });
+#endif /* _WIN32 */
 
     this->q->Bind(EVT_REMOVABLE_DRIVE_EJECTED, [this](RemovableDriveEjectEvent &evt) {
-	    this->show_action_buttons(this->ready_to_slice);
-        Slic3r::GUI::show_info(this->q, (boost::format(_utf8(L("Unmounting successful. The device %s(%s) can now be safely removed from the computer.")))
-	    					% evt.data.name % evt.data.path).str());
+		if (evt.data.second) {
+			this->show_action_buttons(this->ready_to_slice);
+			Slic3r::GUI::show_info(this->q, (boost::format(_utf8(L("Unmounting successful. The device %s(%s) can now be safely removed from the computer.")))
+				% evt.data.first.name % evt.data.first.path).str());
+		} else
+			Slic3r::GUI::show_info(this->q, (boost::format(_utf8(L("Ejecting of device %s(%s) has failed.")))
+				% evt.data.first.name % evt.data.first.path).str());
 	});
     this->q->Bind(EVT_REMOVABLE_DRIVES_CHANGED, [this](RemovableDrivesChangedEvent &) { this->show_action_buttons(this->ready_to_slice); });
     // Start the background thread and register this window as a target for update events.
     wxGetApp().removable_drive_manager()->init(this->q);
+#ifdef _WIN32
+    // Trigger enumeration of removable media on Win32 notification.
+    this->q->Bind(EVT_VOLUME_ATTACHED, [this](VolumeAttachedEvent &evt) { wxGetApp().removable_drive_manager()->volumes_changed(); });
+    this->q->Bind(EVT_VOLUME_DETACHED, [this](VolumeDetachedEvent &evt) { wxGetApp().removable_drive_manager()->volumes_changed(); });
+#endif /* _WIN32 */
 
     // Initialize the Undo / Redo stack with a first snapshot.
     this->take_snapshot(_(L("New Project")));
@@ -3242,7 +3259,7 @@ bool Plater::priv::restart_background_process(unsigned int state)
     return false;
 }
 
-void Plater::priv::export_gcode(fs::path output_path, PrintHostJob upload_job)
+void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_removable_media, PrintHostJob upload_job)
 {
     wxCHECK_RET(!(output_path.empty() && upload_job.empty()), "export_gcode: output_path and upload_job empty");
 
@@ -3263,7 +3280,7 @@ void Plater::priv::export_gcode(fs::path output_path, PrintHostJob upload_job)
         return;
 
     if (! output_path.empty()) {
-        background_process.schedule_export(output_path.string());
+        background_process.schedule_export(output_path.string(), output_path_on_removable_media);
     } else {
         background_process.schedule_upload(std::move(upload_job));
     }
@@ -3745,7 +3762,12 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
         wxString message = evt.GetString();
         if (message.IsEmpty())
             message = _(L("Export failed"));
-        show_error(q, message);
+        if (q->m_tracking_popup_menu)
+        	// We don't want to pop-up a message box when tracking a pop-up menu.
+        	// We postpone the error message instead.
+            q->m_tracking_popup_menu_error_message = message;
+        else
+	        show_error(q, message);
         this->statusbar()->set_status_text(message);
     }
     if (canceled)
@@ -4927,8 +4949,8 @@ void Plater::export_gcode(bool prefer_removable)
     }
 
     if (! output_path.empty()) {
-        p->export_gcode(output_path, PrintHostJob());
 		bool path_on_removable_media = removable_drive_manager.set_and_verify_last_save_path(output_path.string());
+        p->export_gcode(output_path, path_on_removable_media, PrintHostJob());
         // Storing a path to AppConfig either as path to removable media or a path to internal media.
         // is_path_on_removable_drive() is called with the "true" parameter to update its internal database as the user may have shuffled the external drives
         // while the dialog was open.
@@ -5251,7 +5273,7 @@ void Plater::send_gcode()
         upload_job.upload_data.upload_path = dlg.filename();
         upload_job.upload_data.start_print = dlg.start_print();
 
-        p->export_gcode(fs::path(), std::move(upload_job));
+        p->export_gcode(fs::path(), false, std::move(upload_job));
     }
 }
 
@@ -5627,7 +5649,7 @@ void Plater::schedule_background_process(bool schedule/* = true*/)
     this->p->suppressed_backround_processing_update = false;
 }
 
-bool Plater::is_background_process_running() const
+bool Plater::is_background_process_update_scheduled() const
 {
     return this->p->background_process_timer.IsRunning();
 }
@@ -5749,15 +5771,34 @@ const UndoRedo::Stack& Plater::undo_redo_stack_main() const { return p->undo_red
 void Plater::enter_gizmos_stack() { p->enter_gizmos_stack(); }
 void Plater::leave_gizmos_stack() { p->leave_gizmos_stack(); }
 
-SuppressBackgroundProcessingUpdate::SuppressBackgroundProcessingUpdate() :
-    m_was_running(wxGetApp().plater()->is_background_process_running())
+// Wrapper around wxWindow::PopupMenu to suppress error messages popping out while tracking the popup menu.
+bool Plater::PopupMenu(wxMenu *menu, const wxPoint& pos)
 {
-    wxGetApp().plater()->suppress_background_process(m_was_running);
+	// Don't want to wake up and trigger reslicing while tracking the pop-up menu.
+	SuppressBackgroundProcessingUpdate sbpu;
+	// When tracking a pop-up menu, postpone error messages from the slicing result.
+	m_tracking_popup_menu = true;
+	bool out = this->wxPanel::PopupMenu(menu, pos);
+	m_tracking_popup_menu = false;
+	if (! m_tracking_popup_menu_error_message.empty()) {
+        // Don't know whether the CallAfter is necessary, but it should not hurt.
+        // The menus likely sends out some commands, so we may be safer if the dialog is shown after the menu command is processed.
+		wxString message = std::move(m_tracking_popup_menu_error_message);
+        wxTheApp->CallAfter([message, this]() { show_error(this, message); });
+        m_tracking_popup_menu_error_message.clear();
+    }
+	return out;
+}
+
+SuppressBackgroundProcessingUpdate::SuppressBackgroundProcessingUpdate() :
+    m_was_scheduled(wxGetApp().plater()->is_background_process_update_scheduled())
+{
+    wxGetApp().plater()->suppress_background_process(m_was_scheduled);
 }
 
 SuppressBackgroundProcessingUpdate::~SuppressBackgroundProcessingUpdate()
 {
-    wxGetApp().plater()->schedule_background_process(m_was_running);
+    wxGetApp().plater()->schedule_background_process(m_was_scheduled);
 }
 
 }}    // namespace Slic3r::GUI
