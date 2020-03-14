@@ -42,12 +42,22 @@
 #define ENABLE_THUMBNAIL_GENERATOR_DEBUG (0 && ENABLE_THUMBNAIL_GENERATOR)
 
 
-//==================
+//================
 // 2.2.0.rc1 techs
-//==================
+//================
 #define ENABLE_2_2_0_RC1 1
 
 // Enable hack to remove crash when closing on OSX 10.9.5
 #define ENABLE_HACK_CLOSING_ON_OSX_10_9_5 (1 && ENABLE_2_2_0_RC1)
+
+
+//============
+// 2.2.0 techs
+//============
+#define ENABLE_2_2_0 1
+
+// Enable automatic switch to constrained camera when manipulating the scene using regular mouse
+// while 3D mouse is connected and free camera is not selected
+#define ENABLE_AUTO_CONSTRAINED_CAMERA (1 && ENABLE_2_2_0)
 
 #endif // _technologies_h_
