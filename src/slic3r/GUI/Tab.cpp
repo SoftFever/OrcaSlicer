@@ -1100,12 +1100,6 @@ void Tab::update_frequently_changed_parameters()
     }
 }
 
-void Tab::update_sliced_info_on_plater()
-{
-    wxGetApp().sidebar().update_sliced_info_sizer();
-    wxGetApp().sidebar().Layout();
-}
-
 void TabPrint::build()
 {
     m_presets = &m_preset_bundle->prints;
@@ -1491,19 +1485,6 @@ void TabFilament::build()
         optgroup->append_single_option_line("extrusion_multiplier");
         optgroup->append_single_option_line("filament_density");
         optgroup->append_single_option_line("filament_cost");
-        optgroup->append_single_option_line("filament_spool_weight");
-
-        optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value)
-        {
-            update_dirty();
-
-            if (opt_key== "filament_spool_weight")
-                // Change of this option only has an influence to an update of "Sliced Info"
-                update_sliced_info_on_plater();
-            else
-                // update configuration for its check and to schedule a background process, if needed
-                update();
-        };
 
         optgroup = page->new_optgroup(_(L("Temperature")) + wxString(" °C", wxConvUTF8));
         Line line = { _(L("Extruder")), "" };
@@ -3587,7 +3568,8 @@ void TabSLAMaterial::build()
         update_dirty();
 
         // Change of any from those options influences for an update of "Sliced Info"
-        update_sliced_info_on_plater();
+        wxGetApp().sidebar().update_sliced_info_sizer();
+        wxGetApp().sidebar().Layout();
     };
 
     optgroup = page->new_optgroup(_(L("Layers")));
