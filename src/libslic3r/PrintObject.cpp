@@ -817,11 +817,12 @@ void PrintObject::detect_surfaces_type()
                 m_layers[idx_layer]->m_regions[idx_region]->slices.surfaces = std::move(surfaces_new[idx_layer]);
         }
 
-        if (spiral_vase && num_layers > 1) {
-        	// Turn the last bottom layer infill to a top infill, so it will be extruded with a proper pattern.
-        	Surfaces &surfaces = m_layers[num_layers - 1]->m_regions[idx_region]->slices.surfaces;
-        	for (Surface &surface : surfaces)
-        		surface.surface_type = stTop;
+        if (spiral_vase) {
+        	if (num_layers > 1)
+	        	// Turn the last bottom layer infill to a top infill, so it will be extruded with a proper pattern.
+	        	m_layers[num_layers - 1]->m_regions[idx_region]->slices.set_type(stTop);
+	        for (size_t i = num_layers; i < m_layers.size(); ++ i)
+	        	m_layers[i]->m_regions[idx_region]->slices.set_type(stInternal);
         }
 
         BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << idx_region << " - clipping in parallel - start";
