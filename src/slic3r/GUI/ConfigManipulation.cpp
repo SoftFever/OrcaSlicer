@@ -268,11 +268,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
                     "bridge_acceleration", "first_layer_acceleration" })
         toggle_field(el, have_default_acceleration);
 
-    bool have_skirt = config->opt_int("skirts") > 0 || config->opt_float("min_skirt_length") > 0;
-    for (auto el : { "skirt_distance", "skirt_height" })
+    bool have_skirt = config->opt_int("skirts") > 0;
+    toggle_field("skirt_height", have_skirt && !config->opt_bool("draft_shield"));
+    for (auto el : { "skirt_distance", "draft_shield", "min_skirt_length" })
         toggle_field(el, have_skirt);
-
-    toggle_field("skirt_height", !config->opt_bool("draft_shield"));
 
     bool have_brim = config->opt_float("brim_width") > 0;
     // perimeter_extruder uses the same logic as in Print::extruders()
