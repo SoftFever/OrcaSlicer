@@ -162,7 +162,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         } else if (
                opt_key == "skirts"
             || opt_key == "skirt_height"
-            || opt_key == "infinit_skirt"
+            || opt_key == "draft_shield"
             || opt_key == "skirt_distance"
             || opt_key == "min_skirt_length"
             || opt_key == "ooze_prevention"
@@ -1148,15 +1148,12 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 
 bool Print::has_infinite_skirt() const
 {
-//    return (m_config.skirt_height == -1 && m_config.skirts > 0)
-    return (m_config.infinit_skirt && m_config.skirts > 0)
-        || (m_config.ooze_prevention && this->extruders().size() > 1);
+    return (m_config.draft_shield && m_config.skirts > 0) || (m_config.ooze_prevention && this->extruders().size() > 1);
 }
 
 bool Print::has_skirt() const
 {
-    return (m_config.skirt_height > 0 && m_config.skirts > 0)
-        || this->has_infinite_skirt();
+    return (m_config.skirt_height > 0 && m_config.skirts > 0) || this->has_infinite_skirt();
 }
 
 static inline bool sequential_print_horizontal_clearance_valid(const Print &print)
