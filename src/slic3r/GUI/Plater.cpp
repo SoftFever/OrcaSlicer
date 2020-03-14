@@ -2311,13 +2311,6 @@ void Plater::priv::reset_all_gizmos()
 // Update the UI based on the current preferences.
 void Plater::priv::update_ui_from_settings()
 {
-    // TODO: (?)
-    // my ($self) = @_;
-    // if (defined($self->{btn_reslice}) && $self->{buttons_sizer}->IsShown($self->{btn_reslice}) != (! wxTheApp->{app_config}->get("background_processing"))) {
-    //     $self->{buttons_sizer}->Show($self->{btn_reslice}, ! wxTheApp->{app_config}->get("background_processing"));
-    //     $self->{buttons_sizer}->Layout;
-    // }
-
     camera.set_type(wxGetApp().app_config->get("use_perspective_camera"));
     if (wxGetApp().app_config->get("use_free_camera") != "1")
         camera.recover_from_free_camera();

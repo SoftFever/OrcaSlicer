@@ -3472,6 +3472,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     m_camera.rotate_local_around_target(Vec3d(rot.y(), rot.x(), 0.));
                 else
                 {
+                	// Forces camera right vector to be parallel to XY plane in case it has been misaligned using the 3D mouse free rotation.
+                	// It is cheaper to call this function right away instead of testing wxGetApp().plater()->get_mouse3d_controller().connected(),
+                	// which checks an atomics (flushes CPU caches).
+                	// See GH issue #3816.
                     m_camera.recover_from_free_camera();
                     m_camera.rotate_on_sphere(rot.x(), rot.y(), wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
                 }
@@ -3498,6 +3502,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 Vec3d orig = _mouse_to_3d(m_mouse.drag.start_position_2D, &z);
 #if ENABLE_AUTO_CONSTRAINED_CAMERA
                 if (wxGetApp().app_config->get("use_free_camera") != "1")
+                	// Forces camera right vector to be parallel to XY plane in case it has been misaligned using the 3D mouse free rotation.
+                	// It is cheaper to call this function right away instead of testing wxGetApp().plater()->get_mouse3d_controller().connected(),
+                	// which checks an atomics (flushes CPU caches).
+                	// See GH issue #3816.
                     m_camera.recover_from_free_camera();
 #endif // ENABLE_AUTO_CONSTRAINED_CAMERA
 
