@@ -118,7 +118,7 @@ ObjectList::ObjectList(wxWindow* parent) :
         // detect the current mouse position here, to pass it to list_manipulation() method
         // if we detect it later, the user may have moved the mouse pointer while calculations are performed, and this would mess-up the HitTest() call performed into list_manipulation()
         // see: https://github.com/prusa3d/PrusaSlicer/issues/3802
-        const wxPoint mouse_pos = get_mouse_position_in_control();
+        const wxPoint mouse_pos = this->get_mouse_position_in_control();
 
 #ifndef __APPLE__
         // On Windows and Linux, forces a kill focus emulation on the object manipulator fields because this event handler is called
@@ -155,7 +155,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 			// Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.
 		    wxDataViewItem    item;
 		    wxDataViewColumn *col;
-		    this->HitTest(get_mouse_position_in_control(), item, col);
+		    this->HitTest(this->get_mouse_position_in_control(), item, col);
 		    new_selected_column = (col == nullptr) ? -1 : (int)col->GetModelColumn();
 	        if (new_selected_item == m_last_selected_item && m_last_selected_column != -1 && m_last_selected_column != new_selected_column) {
 	        	// Mouse clicked on another column of the active row. Simulate keyboard enter to enter the editing mode of the current column.
@@ -171,7 +171,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 
         selection_changed();
 #ifndef __WXMSW__
-        set_tooltip_for_item(get_mouse_position_in_control());
+        set_tooltip_for_item(this->get_mouse_position_in_control());
 #endif //__WXMSW__
 
 #ifndef __WXOSX__
@@ -211,7 +211,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 
 #ifdef __WXMSW__
     GetMainWindow()->Bind(wxEVT_MOTION, [this](wxMouseEvent& event) {
-        set_tooltip_for_item(get_mouse_position_in_control());
+        set_tooltip_for_item(this->get_mouse_position_in_control());
         event.Skip();
     });
 #endif //__WXMSW__
@@ -417,14 +417,6 @@ void ObjectList::set_tooltip_for_item(const wxPoint& pt)
     }
     
     GetMainWindow()->SetToolTip(tooltip);
-}
-
-wxPoint ObjectList::get_mouse_position_in_control()
-{
-    const wxPoint& pt = wxGetMousePosition();
-//     wxWindow* win = GetMainWindow();
-//     wxPoint screen_pos = win->GetScreenPosition();
-    return wxPoint(pt.x - /*win->*/GetScreenPosition().x, pt.y - /*win->*/GetScreenPosition().y);
 }
 
 int ObjectList::get_selected_obj_idx() const
@@ -792,7 +784,7 @@ void ObjectList::OnChar(wxKeyEvent& event)
 void ObjectList::OnContextMenu(wxDataViewEvent& evt)
 {
     // The mouse position returned by get_mouse_position_in_control() here is the one at the time the mouse button is released (mouse up event)
-    wxPoint mouse_pos = get_mouse_position_in_control();
+    wxPoint mouse_pos = this->get_mouse_position_in_control();
 
     // Do not show the context menu if the user pressed the right mouse button on the 3D scene and released it on the objects list
     GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
@@ -925,7 +917,7 @@ void ObjectList::extruder_editing()
 
     const int column_width = GetColumn(colExtruder)->GetWidth() + wxSystemSettings::GetMetric(wxSYS_VSCROLL_X) + 5;
 
-    wxPoint pos = get_mouse_position_in_control();
+    wxPoint pos = this->get_mouse_position_in_control();
     wxSize size = wxSize(column_width, -1);
     pos.x = GetColumn(colName)->GetWidth() + GetColumn(colPrint)->GetWidth() + 5;
     pos.y -= GetTextExtent("m").y;

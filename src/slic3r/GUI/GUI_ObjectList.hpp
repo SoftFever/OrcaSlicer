@@ -284,7 +284,7 @@ public:
     bool                selected_instances_of_same_object();
     bool                can_split_instances();
 
-    wxPoint             get_mouse_position_in_control();
+    wxPoint             get_mouse_position_in_control() const { return wxGetMousePosition() - this->GetScreenPosition(); }
     wxBoxSizer*         get_sizer() {return  m_sizer;}
     int                 get_selected_obj_idx() const;
     DynamicPrintConfig& get_item_config(const wxDataViewItem& item) const;
