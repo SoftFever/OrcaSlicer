@@ -1483,6 +1483,7 @@ void ConfigWizard::priv::load_vendors()
 			for (const std::pair<std::string, std::string> &material_name_and_installed : section_old)
 				if (material_name_and_installed.second == "1") {
 					// Material is installed. Resolve it in bundles.
+                    size_t num_found = 0;
 					const std::string &material_name = material_name_and_installed.first;
 				    for (auto &bundle : bundles) {
 				    	const PresetCollection &materials = bundle.second.preset_bundle->materials(technology);
@@ -1491,13 +1492,19 @@ void ConfigWizard::priv::load_vendors()
 				    		// Not found. Maybe the material preset is there, bu it was was renamed?
 							const std::string *new_name = materials.get_preset_name_renamed(material_name);
 							if (new_name != nullptr)
-								preset = materials.find_preset(material_name);
+								preset = materials.find_preset(*new_name);
 				    	}
-				    	if (preset != nullptr)
-				    		// Materal preset was found, mark it as installed.
-				        	section_new[preset->name] = "1";
+                        if (preset != nullptr) {
+                            // Materal preset was found, mark it as installed.
+                            section_new[preset->name] = "1";
+                            ++ num_found;
+                        }
 				    }
-				}
+                    if (num_found == 0)
+            	        BOOST_LOG_TRIVIAL(error) << boost::format("Profile %1% was not found in installed vendor Preset Bundles.") % material_name;
+                    else if (num_found > 1)
+            	        BOOST_LOG_TRIVIAL(error) << boost::format("Profile %1% was found in %2% vendor Preset Bundles.") % material_name % num_found;
+                }
 		}
         appconfig_new.set_section(section_name, section_new);
     };
