@@ -1473,12 +1473,34 @@ void ConfigWizard::priv::load_vendors()
         pair.second.preset_bundle->load_installed_printers(appconfig_new);
     }
 
-    if (app_config->has_section(AppConfig::SECTION_FILAMENTS)) {
-        appconfig_new.set_section(AppConfig::SECTION_FILAMENTS, app_config->get_section(AppConfig::SECTION_FILAMENTS));
-    }
-    if (app_config->has_section(AppConfig::SECTION_MATERIALS)) {
-        appconfig_new.set_section(AppConfig::SECTION_MATERIALS, app_config->get_section(AppConfig::SECTION_MATERIALS));
-    }
+    // Copy installed filaments and SLA material names from app_config to appconfig_new
+    // while resolving current names of profiles, which were renamed in the meantime.
+    for (PrinterTechnology technology : { ptFFF, ptSLA }) {
+    	const std::string &section_name = (technology == ptFFF) ? AppConfig::SECTION_FILAMENTS : AppConfig::SECTION_MATERIALS;
+		std::map<std::string, std::string> section_new;
+		if (app_config->has_section(section_name)) {
+			const std::map<std::string, std::string> &section_old = app_config->get_section(section_name);
+			for (const std::pair<std::string, std::string> &material_name_and_installed : section_old)
+				if (material_name_and_installed.second == "1") {
+					// Material is installed. Resolve it in bundles.
+					const std::string &material_name = material_name_and_installed.first;
+				    for (auto &bundle : bundles) {
+				    	const PresetCollection &materials = bundle.second.preset_bundle->materials(technology);
+				    	const Preset           *preset    = materials.find_preset(material_name);
+				    	if (preset == nullptr) {
+				    		// Not found. Maybe the material preset is there, bu it was was renamed?
+							const std::string *new_name = materials.get_preset_name_renamed(material_name);
+							if (new_name != nullptr)
+								preset = materials.find_preset(material_name);
+				    	}
+				    	if (preset != nullptr)
+				    		// Materal preset was found, mark it as installed.
+				        	section_new[preset->name] = "1";
+				    }
+				}
+		}
+        appconfig_new.set_section(section_name, section_new);
+    };
 }
 
 void ConfigWizard::priv::add_page(ConfigWizardPage *page)
@@ -1642,9 +1664,9 @@ void ConfigWizard::priv::on_printer_pick(PagePrinters *page, const PrinterPicker
             }
         }
 
-        // if at list one printer is selected but there in no one selected material,
-        // select materials which is default for selected printer(s)
-        select_default_materials_if_needed(pair.second.vendor_profile, page->technology, evt.model_id);
+        // When a printer model is picked, but there is no material installed compatible with this printer model,
+        // install default materials for selected printer model silently.
+		check_and_install_missing_materials(page->technology, evt.model_id);
     }
 
     if (page->technology & T_FFF) {
@@ -1654,41 +1676,26 @@ void ConfigWizard::priv::on_printer_pick(PagePrinters *page, const PrinterPicker
     }
 }
 
-void ConfigWizard::priv::select_default_materials_for_printer_model(const std::vector<VendorProfile::PrinterModel>& models, Technology technology, const std::string& model_id)
+void ConfigWizard::priv::select_default_materials_for_printer_model(const VendorProfile::PrinterModel &printer_model, Technology technology)
 {
     PageMaterials* page_materials = technology & T_FFF ? page_filaments : page_sla_materials;
-
-    auto it = std::find_if(models.begin(), models.end(), [model_id](VendorProfile::PrinterModel model) {return model_id == model.id; });
-    if (it != models.end())
-        for (const std::string& material : it->default_materials)
-            appconfig_new.set(page_materials->materials->appconfig_section(), material, "1");
+    for (const std::string& material : printer_model.default_materials)
+        appconfig_new.set(page_materials->materials->appconfig_section(), material, "1");
 }
 
-void ConfigWizard::priv::select_default_materials_if_needed(VendorProfile* vendor_profile, Technology technology, const std::string& model_id)
+void ConfigWizard::priv::select_default_materials_for_printer_models(Technology technology, const std::set<const VendorProfile::PrinterModel*> &printer_models)
 {
-    if ((technology & T_FFF && !any_fff_selected) ||
-        (technology & T_SLA && !any_sla_selected) ||
-        check_materials_in_config(technology, false))
-        return;
+    PageMaterials     *page_materials    = technology & T_FFF ? page_filaments : page_sla_materials;
+    const std::string &appconfig_section = page_materials->materials->appconfig_section();
 
-    select_default_materials_for_printer_model(vendor_profile->models, technology, model_id);
-}
-
-void ConfigWizard::priv::selected_default_materials(Technology technology)
-{
-    auto select_default_materials_for_printer_page = [this](PagePrinters * page_printers, Technology technology)
+    auto select_default_materials_for_printer_page = [this, appconfig_section, printer_models](PagePrinters *page_printers, Technology technology)
     {
-        std::set<std::string>   selected_models = page_printers->get_selected_models();
-        const std::string       vendor_id       = page_printers->get_vendor_id();
-
+        const std::string vendor_id = page_printers->get_vendor_id();
         for (auto& pair : bundles)
-        {
-            if (pair.first != vendor_id)
-                continue;
-
-            for (const std::string& model_id : selected_models)
-                select_default_materials_for_printer_model(pair.second.vendor_profile->models, technology, model_id);
-        }
+            if (pair.first == vendor_id)
+            	for (const VendorProfile::PrinterModel *printer_model : printer_models)
+    		        for (const std::string &material : printer_model->default_materials)
+			            appconfig_new.set(appconfig_section, material, "1");
     };
 
     PagePrinters* page_printers = technology & T_FFF ? page_fff : page_msla;
@@ -1702,7 +1709,7 @@ void ConfigWizard::priv::selected_default_materials(Technology technology)
     }
 
     update_materials(technology);
-    (technology& T_FFF ? page_filaments : page_sla_materials)->reload_presets();
+    ((technology & T_FFF) ? page_filaments : page_sla_materials)->reload_presets();
 }
 
 void ConfigWizard::priv::on_3rdparty_install(const VendorProfile *vendor, bool install)
@@ -1743,51 +1750,105 @@ bool ConfigWizard::priv::on_bnt_finish()
 	// theres no need to check that filament is selected if we have only custom printer
 	if (custom_printer_selected && !any_fff_selected && !any_sla_selected) return true;
     // check, that there is selected at least one filament/material
-    return check_materials_in_config(T_ANY);
+    return check_and_install_missing_materials(T_ANY);
 }
 
-bool ConfigWizard::priv::check_materials_in_config(Technology technology, bool show_info_msg)
+// This allmighty method verifies, whether there is at least a single compatible filament or SLA material installed
+// for each Printer preset of each Printer Model installed.
+//
+// In case only_for_model_id is set, then the test is done for that particular printer model only, and the default materials are installed silently.
+// Otherwise the user is quieried whether to install the missing default materials or not.
+// 
+// Return true if the tested Printer Models already had materials installed.
+// Return false if there were some Printer Models with missing materials, independent from whether the defaults were installed for these
+// respective Printer Models or not.
+bool ConfigWizard::priv::check_and_install_missing_materials(Technology technology, const std::string &only_for_model_id)
 {
-    const auto exist_preset = [this](const std::string& section, const Materials& materials)
+	// Walk over all installed Printer presets and verify whether there is a filament or SLA material profile installed at the same PresetBundle,
+	// which is compatible with it.
+    const auto printer_models_missing_materials = [this, only_for_model_id](PrinterTechnology technology, const std::string &section)
     {
-        if (appconfig_new.has_section(section) &&
-            !appconfig_new.get_section(section).empty())
-        {
-            const std::map<std::string, std::string>& appconfig_presets = appconfig_new.get_section(section);
-            for (const auto& preset : appconfig_presets)
-                if (materials.exist_preset(preset.first))
-                    return true;
+		const std::map<std::string, std::string> &appconfig_presets = appconfig_new.has_section(section) ? appconfig_new.get_section(section) : std::map<std::string, std::string>();
+    	std::set<const VendorProfile::PrinterModel*> printer_models_without_material;
+        for (const auto &pair : bundles) {
+        	const PresetCollection &materials = pair.second.preset_bundle->materials(technology);
+        	for (const auto &printer : pair.second.preset_bundle->printers) {
+                if (printer.is_visible && printer.printer_technology() == technology) {
+	            	const VendorProfile::PrinterModel *printer_model = PresetUtils::system_printer_model(printer);
+	            	assert(printer_model != nullptr);
+	            	if ((only_for_model_id.empty() || only_for_model_id == printer_model->id) &&
+	            		printer_models_without_material.find(printer_model) == printer_models_without_material.end()) {
+                    	bool has_material = false;
+			            for (const std::pair<std::string, std::string> &preset : appconfig_presets) {
+			            	if (preset.second == "1") {
+			            		const Preset *material = materials.find_preset(preset.first, false);
+			            		if (material != nullptr && is_compatible_with_printer(PresetWithVendorProfile(*material, nullptr), PresetWithVendorProfile(printer, nullptr))) {
+				                	has_material = true;
+				                    break;
+				                }
+			                }
+			            }
+			            if (! has_material)
+			            	printer_models_without_material.insert(printer_model);
+			        }
+                }
+            }
         }
-        return false;
+        assert(printer_models_without_material.empty() || only_for_model_id.empty() || only_for_model_id == (*printer_models_without_material.begin())->id);
+        return printer_models_without_material;
     };
 
-    const auto ask_and_selected_default_materials = [this](wxString message, Technology technology)
+    const auto ask_and_select_default_materials = [this](const wxString &message, const std::set<const VendorProfile::PrinterModel*> &printer_models, Technology technology)
     {
         wxMessageDialog msg(q, message, _(L("Notice")), wxYES_NO);
         if (msg.ShowModal() == wxID_YES)
-            selected_default_materials(technology);
+            select_default_materials_for_printer_models(technology, printer_models);
     };
 
-    if (any_fff_selected && technology & T_FFF && !exist_preset(AppConfig::SECTION_FILAMENTS, filaments))
-    {
-		if (show_info_msg)
-		{
-			wxString message = _(L("You have to select at least one filament for selected printers")) + "\n\n\t" +
-				_(L("Do you want to automatic select default filaments?"));
-			ask_and_selected_default_materials(message, T_FFF);
+    const auto printer_model_list = [](const std::set<const VendorProfile::PrinterModel*> &printer_models) -> wxString {
+    	wxString out;
+    	for (const VendorProfile::PrinterModel *printer_model : printer_models) {
+    		out += "\t\t";
+    		out += from_u8(printer_model->name);
+    		out += "\n";
+    	}
+    	return out;
+    };
+
+    if (any_fff_selected && (technology & T_FFF)) {
+    	std::set<const VendorProfile::PrinterModel*> printer_models_without_material = printer_models_missing_materials(ptFFF, AppConfig::SECTION_FILAMENTS);
+    	if (! printer_models_without_material.empty()) {
+			if (only_for_model_id.empty())
+				ask_and_select_default_materials(
+					_L("The following FFF printer models have no filament selected:") +
+					"\n\n\t" +
+					printer_model_list(printer_models_without_material) +
+					"\n\n\t" +
+					_L("Do you want to select default filaments for these FFF printer models?"),
+					printer_models_without_material,
+					T_FFF);
+			else
+				select_default_materials_for_printer_model(**printer_models_without_material.begin(), T_FFF);
+			return false;
 		}
-		return false;
     }
 
-    if (any_sla_selected && technology & T_SLA && !exist_preset(AppConfig::SECTION_MATERIALS, sla_materials))
-    {
-        if (show_info_msg)
-        {
-            wxString message = _(L("You have to select at least one material for selected printers")) + "\n\n\t" +
-                               _(L("Do you want to automatic select default materials?"));
-            ask_and_selected_default_materials(message, T_SLA);
-        }
-        return false;
+    if (any_sla_selected && (technology & T_SLA)) {
+    	std::set<const VendorProfile::PrinterModel*> printer_models_without_material = printer_models_missing_materials(ptSLA, AppConfig::SECTION_MATERIALS);
+    	if (! printer_models_without_material.empty()) {
+	        if (only_for_model_id.empty())
+	            ask_and_select_default_materials(
+					_L("The following SLA printer models have no materials selected:") +
+	            	"\n\n\t" +
+				   	printer_model_list(printer_models_without_material) +
+					"\n\n\t" +
+					_L("Do you want to select default SLA materials for these printer models?"),
+					printer_models_without_material,
+	            	T_SLA);
+	        else
+				select_default_materials_for_printer_model(**printer_models_without_material.begin(), T_SLA);
+	        return false;
+	    }
     }
 
     return true;
@@ -2062,8 +2123,11 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     {
         // check, that there is selected at least one filament/material
         ConfigWizardPage* active_page = this->p->index->active_page();
-        if ( (active_page == p->page_filaments || active_page == p->page_sla_materials)
-            && !p->check_materials_in_config(dynamic_cast<PageMaterials*>(active_page)->materials->technology))
+        if (// Leaving the filaments or SLA materials page and 
+        	(active_page == p->page_filaments || active_page == p->page_sla_materials) && 
+        	// some Printer models had no filament or SLA material selected.
+        	! p->check_and_install_missing_materials(dynamic_cast<PageMaterials*>(active_page)->materials->technology))
+        	// In that case don't leave the page and the function above queried the user whether to install default materials.
             return;
         this->p->index->go_next();
     });
