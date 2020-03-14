@@ -2872,13 +2872,13 @@ void ObjectList::del_layer_range(const t_layer_height_range& range)
 static double get_min_layer_height(const int extruder_idx)
 {
     const DynamicPrintConfig& config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    return config.opt_float("min_layer_height", extruder_idx <= 0 ? 0 : extruder_idx-1);
+    return config.opt_float("min_layer_height", std::max(0, extruder_idx - 1));
 }
 
 static double get_max_layer_height(const int extruder_idx)
 {
     const DynamicPrintConfig& config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    int extruder_idx_zero_based = extruder_idx <= 0 ? 0 : extruder_idx-1;
+    int extruder_idx_zero_based = std::max(0, extruder_idx - 1);
     double max_layer_height = config.opt_float("max_layer_height", extruder_idx_zero_based);
 
     // In case max_layer_height is set to zero, it should default to 75 % of nozzle diameter:
@@ -2888,9 +2888,11 @@ static double get_max_layer_height(const int extruder_idx)
     return max_layer_height;
 }
 
+// When editing this function, please synchronize the conditions with can_add_new_range_after_current().
 void ObjectList::add_layer_range_after_current(const t_layer_height_range current_range)
 {
     const int obj_idx = get_selected_obj_idx();
+    assert(obj_idx >= 0);
     if (obj_idx < 0) 
         // This should not happen.
         return;
@@ -2924,12 +2926,18 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range curren
         {
             if (current_range.second == next_range.first)
             {
-                // Splitting the currnet layer heigth range to two.
+                // Splitting the next layer height range to two.
                 const auto old_config = ranges.at(next_range);
-                const coordf_t delta = (next_range.second - next_range.first);
-                if (delta >= get_min_layer_height(old_config.opt_int("extruder"))/*0.05f*/) {
-                    const coordf_t midl_layer = next_range.first + 0.5 * delta;
-                    t_layer_height_range new_range = { midl_layer, next_range.second };
+                const coordf_t delta = next_range.second - next_range.first;
+                // Layer height of the current layer.
+                const coordf_t old_min_layer_height = get_min_layer_height(old_config.opt_int("extruder"));
+                // Layer height of the layer to be inserted.
+                const coordf_t new_min_layer_height = get_min_layer_height(0);
+                if (delta >= old_min_layer_height + new_min_layer_height - EPSILON) {
+                    const coordf_t middle_layer_z = (new_min_layer_height > 0.5 * delta) ?
+	                    next_range.second - new_min_layer_height :
+                    	next_range.first + std::max(old_min_layer_height, 0.5 * delta);
+                    t_layer_height_range new_range = { middle_layer_z, next_range.second };
 
                     Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Add Height Range")));
                     changed = true;
@@ -2943,12 +2951,12 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range curren
                     ranges[new_range] = old_config;
                     add_layer_item(new_range, layers_item, layer_idx);
 
-                    new_range = { current_range.second, midl_layer };
+                    new_range = { current_range.second, middle_layer_z };
                     ranges[new_range] = get_default_layer_config(obj_idx);
                     add_layer_item(new_range, layers_item, layer_idx);
                 }
             }
-            else
+            else if (next_range.first - current_range.second >= get_min_layer_height(0) - EPSILON)
             {
                 // Filling in a gap between the current and a new layer height range with a new one.
                 take_snapshot(_(L("Add Height Range")));
@@ -2970,38 +2978,47 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range curren
     select_item(layers_item);
 }
 
+// Returning an empty string means that the layer could be added after the current layer.
+// Otherwise an error tooltip is returned.
+// When editing this function, please synchronize the conditions with add_layer_range_after_current().
 wxString ObjectList::can_add_new_range_after_current(const t_layer_height_range current_range)
 {
-    wxString ret;
     const int obj_idx = get_selected_obj_idx();
+    assert(obj_idx >= 0);
     if (obj_idx < 0)
         // This should not happen.
-        return ret;
+        return "ObjectList assert";
 
     t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
     auto it_range = ranges.find(current_range);
     assert(it_range != ranges.end());
     if (it_range == ranges.end())
         // This shoudl not happen.
-        return ret;
+        return "ObjectList assert";
 
     auto it_next_range = it_range;
-    if (++it_next_range == ranges.end())
-        return ret;
+    if (++ it_next_range == ranges.end())
+    	// Adding a layer after the last layer is always possible.
+        return "";
     
     if (const std::pair<coordf_t, coordf_t>& next_range = it_next_range->first; current_range.second <= next_range.first)
     {
-        if (current_range.second == next_range.first &&
-            next_range.second - next_range.first < get_min_layer_height(ranges.at(next_range).opt_int("extruder")))
-                ret = _(L("A difference between ranges is a less than minimum layer height."));
-    }
-    else
-        ret = _(L("End of current range is bigger then next one."));
-    
-    if (!ret.IsEmpty())
-        ret += "\n" + _(L("New range between them couldn't be added."));
+        if (current_range.second == next_range.first) {
+            if (next_range.second - next_range.first < get_min_layer_height(it_next_range->second.opt_int("extruder")) + get_min_layer_height(0) - EPSILON)
+                return _(L("Cannot insert a new layer range after the current layer range.\n"
+                	       "The next layer range is too thin to be split to two\n"
+                	       "without violating the minimum layer height."));
+        } else if (next_range.first - current_range.second < get_min_layer_height(0) - EPSILON) {
+            return _(L("Cannot insert a new layer range between the current and the next layer range.\n"
+            	       "The gap between the current layer range and the next layer range\n"
+            	       "is thinner than the minimum layer height allowed."));
+        }
+    } else
+	    return _(L("Cannot insert a new layer range after the current layer range.\n"
+	    		   "Current layer range overlaps with the next layer range."));
 
-    return ret;
+	// All right, new layer height range could be inserted.
+	return "";
 }
 
 void ObjectList::add_layer_item(const t_layer_height_range& range, 
