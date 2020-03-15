@@ -450,7 +450,7 @@ PageWelcome::PageWelcome(ConfigWizard *parent)
         % _utf8(ConfigWizard::name())).str())
     ))
     , cbox_reset(append(
-        new wxCheckBox(this, wxID_ANY, _(L("Remove user profiles - install from scratch (a snapshot will be taken beforehand)")))
+        new wxCheckBox(this, wxID_ANY, _(L("Remove user profiles (a snapshot will be taken beforehand)")))
     ))
 {
     welcome_text->Hide();
