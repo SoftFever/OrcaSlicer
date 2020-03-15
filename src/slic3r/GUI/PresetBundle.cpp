@@ -1073,7 +1073,11 @@ static void flatten_configbundle_hierarchy(boost::property_tree::ptree &tree, co
         // Iterate in a reverse order, so the last change will be placed first in merged.
         for (auto it_inherits = prst->inherits.rbegin(); it_inherits != prst->inherits.rend(); ++ it_inherits)
             for (auto it = (*it_inherits)->node->begin(); it != (*it_inherits)->node->end(); ++ it)
-                if (prst->node->find(it->first) == prst->node->not_found())
+				if (it->first == "renamed_from") {
+            		// Don't inherit "renamed_from" flag, it does not make sense. The "renamed_from" flag only makes sense for a concrete preset.
+            		if (boost::starts_with((*it_inherits)->name, "*"))
+			            BOOST_LOG_TRIVIAL(error) << boost::format("Nonpublic intermediate preset %1% contains a \"renamed_from\" field, which is ignored") % (*it_inherits)->name;
+				} else if (prst->node->find(it->first) == prst->node->not_found())
                     prst->node->add_child(it->first, it->second);
     }
 
