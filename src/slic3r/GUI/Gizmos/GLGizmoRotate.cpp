@@ -135,10 +135,8 @@ void GLGizmoRotate::on_render() const
     case Z: { axis = "Z"; break; }
     }
 
-    if (!m_dragging && (m_hover_id == 0))
-        set_tooltip(axis);
-    else if (m_dragging)
-        set_tooltip(axis + ": " + format((float)Geometry::rad2deg(m_angle), 4) + "\u00B0");
+    if (m_hover_id == 0 || m_grabbers[0].dragging)
+        set_tooltip(axis + ": " + format((float)Geometry::rad2deg(m_angle), 4));
     else
     {
         m_center = box.center();

@@ -422,6 +422,15 @@ void GLGizmosManager::render_overlay() const
     do_render_overlay();
 }
 
+std::string GLGizmosManager::get_tooltip() const
+{
+    if (!m_tooltip.empty())
+        return m_tooltip;
+
+    const GLGizmoBase* curr = get_current();
+    return (curr != nullptr) ? curr->get_tooltip() : "";
+}
+
 bool GLGizmosManager::on_mouse_wheel(wxMouseEvent& evt)
 {
     bool processed = false;

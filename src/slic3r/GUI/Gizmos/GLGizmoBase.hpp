@@ -100,6 +100,7 @@ protected:
     mutable std::vector<Grabber> m_grabbers;
     ImGuiWrapper* m_imgui;
     bool m_first_input_window_render;
+    mutable std::string m_tooltip;
 
 public:
     GLGizmoBase(GLCanvas3D& parent,
@@ -145,9 +146,11 @@ public:
 
     void update(const UpdateData& data);
 
-    void render() const { on_render(); }
+    void render() const { m_tooltip.clear(); on_render(); }
     void render_for_picking() const { on_render_for_picking(); }
     void render_input_window(float x, float y, float bottom_limit);
+
+    virtual const std::string& get_tooltip() const { return m_tooltip; }
 
 protected:
     virtual bool on_init() = 0;

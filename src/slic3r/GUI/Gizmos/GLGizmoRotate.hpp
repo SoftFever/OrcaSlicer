@@ -81,6 +81,16 @@ public:
     Vec3d get_rotation() const { return Vec3d(m_gizmos[X].get_angle(), m_gizmos[Y].get_angle(), m_gizmos[Z].get_angle()); }
     void set_rotation(const Vec3d& rotation) { m_gizmos[X].set_angle(rotation(0)); m_gizmos[Y].set_angle(rotation(1)); m_gizmos[Z].set_angle(rotation(2)); }
 
+    virtual const std::string& get_tooltip() const
+    {
+        m_tooltip = m_gizmos[X].get_tooltip();
+        if (m_tooltip.empty())
+            m_tooltip = m_gizmos[Y].get_tooltip();
+        if (m_tooltip.empty())
+            m_tooltip = m_gizmos[Z].get_tooltip();
+        return m_tooltip;
+    }
+
 protected:
     virtual bool on_init();
     virtual std::string on_get_name() const;

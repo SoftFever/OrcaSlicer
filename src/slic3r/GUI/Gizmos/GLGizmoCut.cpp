@@ -79,9 +79,8 @@ void GLGizmoCut::on_update(const UpdateData& data)
 
 void GLGizmoCut::on_render() const
 {
-    if (m_grabbers[0].dragging) {
+    if (m_hover_id == 0 || m_grabbers[0].dragging)
         set_tooltip("Z: " + format(m_cut_z, 2));
-    }
 
     const Selection& selection = m_parent.get_selection();
 
