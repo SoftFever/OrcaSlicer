@@ -1,15 +1,15 @@
 #version 110
 
 const vec3 ZERO = vec3(0.0, 0.0, 0.0);
-const vec3 GREEN = vec3(0.0, 0.65, 0.0);
-const vec3 YELLOW = vec3(0.5, 0.65, 0.0);
-const vec3 RED = vec3(0.65, 0.0, 0.0);
+const vec3 GREEN = vec3(0.0, 0.7, 0.0);
+const vec3 YELLOW = vec3(0.5, 0.7, 0.0);
+const vec3 RED = vec3(0.7, 0.0, 0.0);
 const float EPSILON = 0.0001;
 
 struct SlopeDetection
 {
     bool active;
-	// x = yellow z, y = red z
+	// x = yellow, y = red
 	vec2 z_range;
     mat3 volume_world_normal_matrix;
 };
@@ -29,7 +29,8 @@ varying float world_normal_z;
 
 vec3 slope_color()
 {
-    return (world_normal_z > slope.z_range.x - EPSILON) ? GREEN : mix(RED, YELLOW, (world_normal_z - slope.z_range.y) / (slope.z_range.x - slope.z_range.y));
+    float gradient_range = slope.z_range.x - slope.z_range.y;
+    return (world_normal_z > slope.z_range.x - EPSILON) ? GREEN : ((gradient_range == 0.0) ? RED : mix(RED, YELLOW, clamp((world_normal_z - slope.z_range.y) / gradient_range, 0.0, 1.0)));
 }
 
 void main()

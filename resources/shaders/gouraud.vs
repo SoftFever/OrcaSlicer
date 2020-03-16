@@ -29,7 +29,7 @@ struct PrintBoxDetection
 struct SlopeDetection
 {
     bool active;
-	// x = yellow z, y = red z
+	// x = yellow, y = red
 	vec2 z_range;
     mat3 volume_world_normal_matrix;
 };
