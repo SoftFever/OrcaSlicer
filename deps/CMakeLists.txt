@@ -49,10 +49,6 @@ find_package(Git REQUIRED)
 
 get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 
-# C and CXX flags handed over to unix autotools projects.
-set(DEP_CFLAGS "")
-set(DEP_CXXFLAGS "")
-
 function(prusaslicer_add_cmake_project projectname)
     cmake_parse_arguments(P_ARGS "" "INSTALL_DIR;BUILD_COMMAND;INSTALL_COMMAND" "CMAKE_ARGS" ${ARGN})
 
