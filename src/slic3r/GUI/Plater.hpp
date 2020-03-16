@@ -125,6 +125,8 @@ public:
 	bool                    show_export_removable(bool show) const;
     bool                    is_multifilament();
     void                    update_mode();
+    bool                    is_collapsed();
+    void                    collapse(bool collapse);
 
     std::vector<PresetComboBox*>& combos_filament();
 private:
@@ -172,6 +174,9 @@ public:
 
     bool are_view3D_labels_shown() const;
     void show_view3D_labels(bool show);
+
+    bool is_sidebar_collapsed() const;
+    void collapse_sidebur(bool show);
 
     // Called after the Preferences dialog is closed and the program settings are saved.
     // Update the UI based on the current preferences.

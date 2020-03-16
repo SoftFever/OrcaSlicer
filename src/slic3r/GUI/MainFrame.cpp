@@ -757,6 +757,9 @@ void MainFrame::init_menubar()
         append_menu_check_item(viewMenu, wxID_ANY, _(L("Show &labels")) + sep + "E", _(L("Show object/instance labels in 3D scene")),
             [this](wxCommandEvent&) { m_plater->show_view3D_labels(!m_plater->are_view3D_labels_shown()); }, this,
             [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_labels_shown(); }, this);
+        append_menu_check_item(viewMenu, wxID_ANY, _(L("&Collapse sidebar")), _(L("Collapse sidebar")),
+            [this](wxCommandEvent&) { m_plater->collapse_sidebur(!m_plater->is_sidebar_collapsed()); }, this,
+            [this]() { return true; }, [this]() { return m_plater->is_sidebar_collapsed(); }, this);
     }
 
     // Help menu
