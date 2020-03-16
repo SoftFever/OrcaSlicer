@@ -1172,6 +1172,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("skirts");
         optgroup->append_single_option_line("skirt_distance");
         optgroup->append_single_option_line("skirt_height");
+        optgroup->append_single_option_line("draft_shield");
         optgroup->append_single_option_line("min_skirt_length");
 
         optgroup = page->new_optgroup(_(L("Brim")));

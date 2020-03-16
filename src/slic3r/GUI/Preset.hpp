@@ -361,7 +361,8 @@ public:
     PresetWithVendorProfile get_preset_with_vendor_profile(const Preset &preset) const;
     PresetWithVendorProfile get_edited_preset_with_vendor_profile() const { return this->get_preset_with_vendor_profile(this->get_edited_preset()); }
 
-    const std::string& get_preset_name_by_alias(const std::string& alias) const;
+    const std::string& 		get_preset_name_by_alias(const std::string& alias) const;
+	const std::string*		get_preset_name_renamed(const std::string &old_name) const;
 
 	// used to update preset_choice from Tab
 	const std::deque<Preset>&	get_presets() const	{ return m_presets; }

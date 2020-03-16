@@ -10,6 +10,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/nowide/convert.hpp>
 
 #include <wx/stdpaths.h>
 #include <wx/imagpng.h>
@@ -50,6 +51,7 @@
 
 #ifdef __WXMSW__
 #include <Shlobj.h>
+#include <dbt.h>
 #endif // __WXMSW__
 
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG
@@ -60,6 +62,7 @@
 namespace Slic3r {
 namespace GUI {
 
+class MainFrame;
 
 wxString file_wildcards(FileType file_type, const std::string &custom_extension)
 {
@@ -96,9 +99,9 @@ wxString file_wildcards(FileType file_type, const std::string &custom_extension)
 
 static std::string libslic3r_translate_callback(const char *s) { return wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str().data(); }
 
-static void register_dpi_event()
-{
 #ifdef WIN32
+static void register_win32_dpi_event()
+{
     enum { WM_DPICHANGED_ = 0x02e0 };
 
     wxWindow::MSWRegisterMessageHandler(WM_DPICHANGED_, [](wxWindow *win, WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) {
@@ -111,9 +114,52 @@ static void register_dpi_event()
 
         return true;
     });
-#endif
 }
 
+static GUID GUID_DEVINTERFACE_HID = { 0x4D1E55B2, 0xF16F, 0x11CF, 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 };
+
+static void register_win32_device_notification_event()
+{
+    enum { WM_DPICHANGED_ = 0x02e0 };
+
+    wxWindow::MSWRegisterMessageHandler(WM_DEVICECHANGE, [](wxWindow *win, WXUINT /* nMsg */, WXWPARAM wParam, WXLPARAM lParam) {
+        // Some messages are sent to top level windows by default, some messages are sent to only registered windows, and we explictely register on MainFrame only.
+        auto main_frame = dynamic_cast<MainFrame*>(win);
+        auto plater = (main_frame == nullptr) ? nullptr : main_frame->plater();
+        if (plater == nullptr)
+            // Maybe some other top level window like a dialog or maybe a pop-up menu?
+            return true;
+		PDEV_BROADCAST_HDR lpdb = (PDEV_BROADCAST_HDR)lParam;
+        switch (wParam) {
+        case DBT_DEVICEARRIVAL:
+			if (lpdb->dbch_devicetype == DBT_DEVTYP_VOLUME)
+		        plater->GetEventHandler()->AddPendingEvent(VolumeAttachedEvent(EVT_VOLUME_ATTACHED));
+			else if (lpdb->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE) {
+				PDEV_BROADCAST_DEVICEINTERFACE lpdbi = (PDEV_BROADCAST_DEVICEINTERFACE)lpdb;
+//				if (lpdbi->dbcc_classguid == GUID_DEVINTERFACE_VOLUME) {
+//					printf("DBT_DEVICEARRIVAL %d - Media has arrived: %ws\n", msg_count, lpdbi->dbcc_name);
+				if (lpdbi->dbcc_classguid == GUID_DEVINTERFACE_HID)
+			        plater->GetEventHandler()->AddPendingEvent(HIDDeviceAttachedEvent(EVT_HID_DEVICE_ATTACHED, boost::nowide::narrow(lpdbi->dbcc_name)));
+			}
+            break;
+		case DBT_DEVICEREMOVECOMPLETE:
+			if (lpdb->dbch_devicetype == DBT_DEVTYP_VOLUME)
+                plater->GetEventHandler()->AddPendingEvent(VolumeDetachedEvent(EVT_VOLUME_DETACHED));
+			else if (lpdb->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE) {
+				PDEV_BROADCAST_DEVICEINTERFACE lpdbi = (PDEV_BROADCAST_DEVICEINTERFACE)lpdb;
+//				if (lpdbi->dbcc_classguid == GUID_DEVINTERFACE_VOLUME)
+//					printf("DBT_DEVICEARRIVAL %d - Media was removed: %ws\n", msg_count, lpdbi->dbcc_name);
+				if (lpdbi->dbcc_classguid == GUID_DEVINTERFACE_HID)
+        			plater->GetEventHandler()->AddPendingEvent(HIDDeviceDetachedEvent(EVT_HID_DEVICE_DETACHED, boost::nowide::narrow(lpdbi->dbcc_name)));
+			}
+			break;
+        default:
+            break;
+        }
+        return true;
+    });
+}
+#endif // WIN32
 
 static void generic_exception_handle()
 {
@@ -248,7 +294,10 @@ bool GUI_App::on_init_inner()
         show_error(nullptr, ex.what());
     }
 
-    register_dpi_event();
+#ifdef WIN32
+    register_win32_dpi_event();
+    register_win32_device_notification_event();
+#endif // WIN32
 
     // Let the libslic3r know the callback, which will translate messages on demand.
     Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);

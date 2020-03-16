@@ -82,14 +82,6 @@ struct Materials
         }
     }
 
-    bool exist_preset(const std::string& preset_name) const
-    {
-        for (const Preset* preset : presets)
-            if (preset->name == preset_name)
-                return true;
-        return false;
-    }
-
     static const std::string UNKNOWN;
     static const std::string& get_filament_type(const Preset *preset);
     static const std::string& get_filament_vendor(const Preset *preset);
@@ -503,17 +495,12 @@ struct ConfigWizard::priv
 
     void on_custom_setup(const bool custom_wanted);
     void on_printer_pick(PagePrinters *page, const PrinterPickerEvent &evt);
-    void select_default_materials_for_printer_model(const std::vector<VendorProfile::PrinterModel> &models,
-                                                    Technology                                      technology,
-                                                    const std::string &                             model_id);
-    void select_default_materials_if_needed(VendorProfile*     vendor_profile,
-                                            Technology         technology,
-                                            const std::string &model_id);
-    void selected_default_materials(Technology technology);
+    void select_default_materials_for_printer_model(const VendorProfile::PrinterModel &printer_model, Technology technology);
+    void select_default_materials_for_printer_models(Technology technology, const std::set<const VendorProfile::PrinterModel*> &printer_models);
     void on_3rdparty_install(const VendorProfile *vendor, bool install);
 
     bool on_bnt_finish();
-    bool check_materials_in_config(Technology technology, bool show_info_msg = true);
+    bool check_and_install_missing_materials(Technology technology, const std::string &only_for_model_id = std::string());
     void apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater);
     // #ys_FIXME_alise
     void update_presets_in_config(const std::string& section, const std::string& alias_key, bool add);

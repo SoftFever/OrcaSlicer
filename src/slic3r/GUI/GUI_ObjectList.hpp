@@ -284,7 +284,7 @@ public:
     bool                selected_instances_of_same_object();
     bool                can_split_instances();
 
-    wxPoint             get_mouse_position_in_control();
+    wxPoint             get_mouse_position_in_control() const { return wxGetMousePosition() - this->GetScreenPosition(); }
     wxBoxSizer*         get_sizer() {return  m_sizer;}
     int                 get_selected_obj_idx() const;
     DynamicPrintConfig& get_item_config(const wxDataViewItem& item) const;
@@ -327,6 +327,7 @@ public:
     // may have been postponed from the "kill focus" event of a text field, if the focus was lost for the "add layer" button.
     // Rather providing the range by a value than by a reference, so that the memory referenced cannot be invalidated.
     void add_layer_range_after_current(const t_layer_height_range current_range);
+    wxString can_add_new_range_after_current( t_layer_height_range current_range);
     void add_layer_item (const t_layer_height_range& range, 
                          const wxDataViewItem layers_item, 
                          const int layer_idx = -1);

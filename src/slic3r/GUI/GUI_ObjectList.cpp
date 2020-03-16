@@ -118,7 +118,7 @@ ObjectList::ObjectList(wxWindow* parent) :
         // detect the current mouse position here, to pass it to list_manipulation() method
         // if we detect it later, the user may have moved the mouse pointer while calculations are performed, and this would mess-up the HitTest() call performed into list_manipulation()
         // see: https://github.com/prusa3d/PrusaSlicer/issues/3802
-        const wxPoint mouse_pos = get_mouse_position_in_control();
+        const wxPoint mouse_pos = this->get_mouse_position_in_control();
 
 #ifndef __APPLE__
         // On Windows and Linux, forces a kill focus emulation on the object manipulator fields because this event handler is called
@@ -155,7 +155,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 			// Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.
 		    wxDataViewItem    item;
 		    wxDataViewColumn *col;
-		    this->HitTest(get_mouse_position_in_control(), item, col);
+		    this->HitTest(this->get_mouse_position_in_control(), item, col);
 		    new_selected_column = (col == nullptr) ? -1 : (int)col->GetModelColumn();
 	        if (new_selected_item == m_last_selected_item && m_last_selected_column != -1 && m_last_selected_column != new_selected_column) {
 	        	// Mouse clicked on another column of the active row. Simulate keyboard enter to enter the editing mode of the current column.
@@ -171,7 +171,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 
         selection_changed();
 #ifndef __WXMSW__
-        set_tooltip_for_item(get_mouse_position_in_control());
+        set_tooltip_for_item(this->get_mouse_position_in_control());
 #endif //__WXMSW__
 
 #ifndef __WXOSX__
@@ -211,7 +211,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 
 #ifdef __WXMSW__
     GetMainWindow()->Bind(wxEVT_MOTION, [this](wxMouseEvent& event) {
-        set_tooltip_for_item(get_mouse_position_in_control());
+        set_tooltip_for_item(this->get_mouse_position_in_control());
         event.Skip();
     });
 #endif //__WXMSW__
@@ -417,14 +417,6 @@ void ObjectList::set_tooltip_for_item(const wxPoint& pt)
     }
     
     GetMainWindow()->SetToolTip(tooltip);
-}
-
-wxPoint ObjectList::get_mouse_position_in_control()
-{
-    const wxPoint& pt = wxGetMousePosition();
-//     wxWindow* win = GetMainWindow();
-//     wxPoint screen_pos = win->GetScreenPosition();
-    return wxPoint(pt.x - /*win->*/GetScreenPosition().x, pt.y - /*win->*/GetScreenPosition().y);
 }
 
 int ObjectList::get_selected_obj_idx() const
@@ -792,13 +784,7 @@ void ObjectList::OnChar(wxKeyEvent& event)
 void ObjectList::OnContextMenu(wxDataViewEvent& evt)
 {
     // The mouse position returned by get_mouse_position_in_control() here is the one at the time the mouse button is released (mouse up event)
-    wxPoint mouse_pos = get_mouse_position_in_control();
-
-    // We check if the mouse down event was over the "Editing" column, if not, we change the mouse position so that the following call to list_simulation() does not show any context menu
-    // see: https://github.com/prusa3d/PrusaSlicer/issues/3802
-    wxDataViewColumn* column = evt.GetDataViewColumn();
-    if (column == nullptr || column->GetTitle() != _("Editing"))
-        mouse_pos.x = 0;
+    wxPoint mouse_pos = this->get_mouse_position_in_control();
 
     // Do not show the context menu if the user pressed the right mouse button on the 3D scene and released it on the objects list
     GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
@@ -811,6 +797,12 @@ void ObjectList::OnContextMenu(wxDataViewEvent& evt)
 
 void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_menu/* = false*/)
 {
+    // Interesting fact: when mouse_pos.x < 0, HitTest(mouse_pos, item, col) returns item = null, but column = last column.
+    // So, when mouse was moved to scene immediately after clicking in ObjectList, in the scene will be shown context menu for the Editing column.
+    // see: https://github.com/prusa3d/PrusaSlicer/issues/3802
+    if (mouse_pos.x < 0)
+        return;
+
     wxDataViewItem item;
     wxDataViewColumn* col = nullptr;
     HitTest(mouse_pos, item, col);
@@ -925,7 +917,7 @@ void ObjectList::extruder_editing()
 
     const int column_width = GetColumn(colExtruder)->GetWidth() + wxSystemSettings::GetMetric(wxSYS_VSCROLL_X) + 5;
 
-    wxPoint pos = get_mouse_position_in_control();
+    wxPoint pos = this->get_mouse_position_in_control();
     wxSize size = wxSize(column_width, -1);
     pos.x = GetColumn(colName)->GetWidth() + GetColumn(colPrint)->GetWidth() + 5;
     pos.y -= GetTextExtent("m").y;
@@ -2880,13 +2872,13 @@ void ObjectList::del_layer_range(const t_layer_height_range& range)
 static double get_min_layer_height(const int extruder_idx)
 {
     const DynamicPrintConfig& config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    return config.opt_float("min_layer_height", extruder_idx <= 0 ? 0 : extruder_idx-1);
+    return config.opt_float("min_layer_height", std::max(0, extruder_idx - 1));
 }
 
 static double get_max_layer_height(const int extruder_idx)
 {
     const DynamicPrintConfig& config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    int extruder_idx_zero_based = extruder_idx <= 0 ? 0 : extruder_idx-1;
+    int extruder_idx_zero_based = std::max(0, extruder_idx - 1);
     double max_layer_height = config.opt_float("max_layer_height", extruder_idx_zero_based);
 
     // In case max_layer_height is set to zero, it should default to 75 % of nozzle diameter:
@@ -2896,9 +2888,11 @@ static double get_max_layer_height(const int extruder_idx)
     return max_layer_height;
 }
 
+// When editing this function, please synchronize the conditions with can_add_new_range_after_current().
 void ObjectList::add_layer_range_after_current(const t_layer_height_range current_range)
 {
     const int obj_idx = get_selected_obj_idx();
+    assert(obj_idx >= 0);
     if (obj_idx < 0) 
         // This should not happen.
         return;
@@ -2932,12 +2926,18 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range curren
         {
             if (current_range.second == next_range.first)
             {
-                // Splitting the currnet layer heigth range to two.
+                // Splitting the next layer height range to two.
                 const auto old_config = ranges.at(next_range);
-                const coordf_t delta = (next_range.second - next_range.first);
-                if (delta >= get_min_layer_height(old_config.opt_int("extruder"))/*0.05f*/) {
-                    const coordf_t midl_layer = next_range.first + 0.5 * delta;
-                    t_layer_height_range new_range = { midl_layer, next_range.second };
+                const coordf_t delta = next_range.second - next_range.first;
+                // Layer height of the current layer.
+                const coordf_t old_min_layer_height = get_min_layer_height(old_config.opt_int("extruder"));
+                // Layer height of the layer to be inserted.
+                const coordf_t new_min_layer_height = get_min_layer_height(0);
+                if (delta >= old_min_layer_height + new_min_layer_height - EPSILON) {
+                    const coordf_t middle_layer_z = (new_min_layer_height > 0.5 * delta) ?
+	                    next_range.second - new_min_layer_height :
+                    	next_range.first + std::max(old_min_layer_height, 0.5 * delta);
+                    t_layer_height_range new_range = { middle_layer_z, next_range.second };
 
                     Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Add Height Range")));
                     changed = true;
@@ -2951,12 +2951,12 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range curren
                     ranges[new_range] = old_config;
                     add_layer_item(new_range, layers_item, layer_idx);
 
-                    new_range = { current_range.second, midl_layer };
+                    new_range = { current_range.second, middle_layer_z };
                     ranges[new_range] = get_default_layer_config(obj_idx);
                     add_layer_item(new_range, layers_item, layer_idx);
                 }
             }
-            else
+            else if (next_range.first - current_range.second >= get_min_layer_height(0) - EPSILON)
             {
                 // Filling in a gap between the current and a new layer height range with a new one.
                 take_snapshot(_(L("Add Height Range")));
@@ -2976,6 +2976,49 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range curren
     // may have been postponed from the "kill focus" event of a text field, if the focus was lost for the "add layer" button.
     // select item to update layers sizer
     select_item(layers_item);
+}
+
+// Returning an empty string means that the layer could be added after the current layer.
+// Otherwise an error tooltip is returned.
+// When editing this function, please synchronize the conditions with add_layer_range_after_current().
+wxString ObjectList::can_add_new_range_after_current(const t_layer_height_range current_range)
+{
+    const int obj_idx = get_selected_obj_idx();
+    assert(obj_idx >= 0);
+    if (obj_idx < 0)
+        // This should not happen.
+        return "ObjectList assert";
+
+    t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
+    auto it_range = ranges.find(current_range);
+    assert(it_range != ranges.end());
+    if (it_range == ranges.end())
+        // This shoudl not happen.
+        return "ObjectList assert";
+
+    auto it_next_range = it_range;
+    if (++ it_next_range == ranges.end())
+    	// Adding a layer after the last layer is always possible.
+        return "";
+    
+    if (const std::pair<coordf_t, coordf_t>& next_range = it_next_range->first; current_range.second <= next_range.first)
+    {
+        if (current_range.second == next_range.first) {
+            if (next_range.second - next_range.first < get_min_layer_height(it_next_range->second.opt_int("extruder")) + get_min_layer_height(0) - EPSILON)
+                return _(L("Cannot insert a new layer range after the current layer range.\n"
+                	       "The next layer range is too thin to be split to two\n"
+                	       "without violating the minimum layer height."));
+        } else if (next_range.first - current_range.second < get_min_layer_height(0) - EPSILON) {
+            return _(L("Cannot insert a new layer range between the current and the next layer range.\n"
+            	       "The gap between the current layer range and the next layer range\n"
+            	       "is thinner than the minimum layer height allowed."));
+        }
+    } else
+	    return _(L("Cannot insert a new layer range after the current layer range.\n"
+	    		   "Current layer range overlaps with the next layer range."));
+
+	// All right, new layer height range could be inserted.
+	return "";
 }
 
 void ObjectList::add_layer_item(const t_layer_height_range& range, 
@@ -3048,12 +3091,10 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_lay
             add_layer_item(r.first, root_item);
     }
 
-    if (dont_update_ui)
-        return true;
+    if (!dont_update_ui)
+        select_item(sel_type&itLayer ? m_objects_model->GetItemByLayerRange(obj_idx, new_range) : root_item);
 
-    select_item(sel_type&itLayer ? m_objects_model->GetItemByLayerRange(obj_idx, new_range) : root_item);
     Expand(root_item);
-
     return true;
 }
 

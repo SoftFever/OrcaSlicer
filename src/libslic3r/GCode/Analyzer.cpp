@@ -470,7 +470,7 @@ void GCodeAnalyzer::_processM106(const GCodeReader::GCodeLine& line)
         // The absence of P means the print cooling fan, so ignore anything else.
         float new_fan_speed;
         if (line.has_value('S', new_fan_speed))
-            _set_fan_speed((100.0f / 256.0f) * new_fan_speed);
+            _set_fan_speed((100.0f / 255.0f) * new_fan_speed);
         else
             _set_fan_speed(100.0f);
     }

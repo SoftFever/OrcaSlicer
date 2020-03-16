@@ -381,7 +381,7 @@ void Preset::set_visible_from_appconfig(const AppConfig &app_config)
         	return;
         is_visible = app_config.get_variant(vendor->id, model, variant);
     } else if (type == TYPE_FILAMENT || type == TYPE_SLA_MATERIAL) {
-    	const char *section_name = (type == TYPE_FILAMENT) ? "filaments" : "sla_materials";
+    	const std::string &section_name = (type == TYPE_FILAMENT) ? AppConfig::SECTION_FILAMENTS : AppConfig::SECTION_MATERIALS;
     	if (app_config.has_section(section_name)) {
     		// Check whether this profile is marked as "installed" in PrusaSlicer.ini, 
     		// or whether a profile is marked as "installed", which this profile may have been renamed from.
@@ -413,7 +413,7 @@ const std::vector<std::string>& Preset::print_options()
         "perimeter_speed", "small_perimeter_speed", "external_perimeter_speed", "infill_speed", "solid_infill_speed",
         "top_solid_infill_speed", "support_material_speed", "support_material_xy_spacing", "support_material_interface_speed",
         "bridge_speed", "gap_fill_speed", "travel_speed", "first_layer_speed", "perimeter_acceleration", "infill_acceleration",
-        "bridge_acceleration", "first_layer_acceleration", "default_acceleration", "skirts", "skirt_distance", "skirt_height",
+        "bridge_acceleration", "first_layer_acceleration", "default_acceleration", "skirts", "skirt_distance", "skirt_height", "draft_shield",
         "min_skirt_length", "brim_width", "support_material", "support_material_auto", "support_material_threshold", "support_material_enforce_layers",
         "raft_layers", "support_material_pattern", "support_material_with_sheath", "support_material_spacing",
         "support_material_synchronize_layers", "support_material_angle", "support_material_interface_layers",
@@ -1030,6 +1030,14 @@ const std::string& PresetCollection::get_preset_name_by_alias(const std::string&
 			it_preset->is_visible && (it_preset->is_compatible || (it_preset - m_presets.begin()) == m_idx_selected))
 	        return it_preset->name;
     return alias;
+}
+
+const std::string* PresetCollection::get_preset_name_renamed(const std::string &old_name) const
+{
+	auto it_renamed = m_map_system_profile_renamed.find(old_name);
+	if (it_renamed != m_map_system_profile_renamed.end())
+		return &it_renamed->second;
+	return nullptr;
 }
 
 const std::string& PresetCollection::get_suffix_modified() {
