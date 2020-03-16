@@ -1951,6 +1951,25 @@ void GLCanvas3D::render()
     auto end_time = std::chrono::high_resolution_clock::now();
     m_render_stats.last_frame = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
 #endif // ENABLE_RENDER_STATISTICS
+
+    std::string tooltip = "";
+
+    if (tooltip.empty())
+        tooltip = m_layers_editing.get_tooltip(*this);
+
+    if (tooltip.empty())
+        tooltip = m_gizmos.get_tooltip();
+
+    if (tooltip.empty())
+        tooltip = m_main_toolbar.get_tooltip();
+
+    if (tooltip.empty())
+        tooltip = m_undoredo_toolbar.get_tooltip();
+
+    if (tooltip.empty())
+        tooltip = m_view_toolbar.get_tooltip();
+
+    set_tooltip(tooltip);
 }
 
 #if ENABLE_THUMBNAIL_GENERATOR
@@ -3587,24 +3606,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     else if (evt.Moving())
     {
         m_mouse.position = pos.cast<double>();
-        std::string tooltip = "";
-
-        if (tooltip.empty())
-            tooltip = m_layers_editing.get_tooltip(*this);
-
-        if (tooltip.empty())
-            tooltip = m_gizmos.get_tooltip();
-
-        if (tooltip.empty())
-            tooltip = m_main_toolbar.get_tooltip();
-
-        if (tooltip.empty())
-            tooltip = m_undoredo_toolbar.get_tooltip();
-
-        if (tooltip.empty())
-            tooltip = m_view_toolbar.get_tooltip();
-
-        set_tooltip(tooltip);
 
         // updates gizmos overlay
         if (m_selection.is_empty())
@@ -3691,7 +3692,6 @@ void GLCanvas3D::set_tooltip(const std::string& tooltip) const
             m_canvas->SetToolTip(wxString::FromUTF8(tooltip.data()));
     }
 }
-
 
 void GLCanvas3D::do_move(const std::string& snapshot_type)
 {

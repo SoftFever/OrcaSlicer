@@ -204,7 +204,7 @@ public:
 
     void render_overlay() const;
 
-    const std::string& get_tooltip() const { return m_tooltip; }
+    std::string get_tooltip() const;
 
     bool on_mouse(wxMouseEvent& evt);
     bool on_mouse_wheel(wxMouseEvent& evt);
