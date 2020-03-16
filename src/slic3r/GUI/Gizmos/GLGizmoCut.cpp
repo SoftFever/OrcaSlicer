@@ -30,6 +30,11 @@ GLGizmoCut::GLGizmoCut(GLCanvas3D& parent, const std::string& icon_filename, uns
     , m_rotate_lower(false)
 {}
 
+std::string GLGizmoCut::get_tooltip() const
+{
+    return (m_hover_id == 0 || m_grabbers[0].dragging) ? "Z: " + format(m_cut_z, 2) : "";
+}
+
 bool GLGizmoCut::on_init()
 {
     m_grabbers.emplace_back();
@@ -79,9 +84,6 @@ void GLGizmoCut::on_update(const UpdateData& data)
 
 void GLGizmoCut::on_render() const
 {
-    if (m_hover_id == 0 || m_grabbers[0].dragging)
-        set_tooltip("Z: " + format(m_cut_z, 2));
-
     const Selection& selection = m_parent.get_selection();
 
     update_max_z(selection);
