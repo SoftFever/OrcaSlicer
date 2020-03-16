@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-12 13:09+0100\n"
+"POT-Creation-Date: 2020-03-16 13:41+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -38,7 +38,7 @@ msgstr ""
 msgid "About %s"
 msgstr ""
 
-#: src/slic3r/GUI/AboutDialog.cpp:233 src/slic3r/GUI/MainFrame.cpp:65
+#: src/slic3r/GUI/AboutDialog.cpp:233 src/slic3r/GUI/MainFrame.cpp:69
 msgid "Version"
 msgstr ""
 
@@ -136,7 +136,7 @@ msgstr ""
 msgid "Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"
 msgstr ""
 
-#: src/slic3r/GUI/BedShapeDialog.cpp:66 src/slic3r/GUI/GUI_ObjectList.cpp:2075
+#: src/slic3r/GUI/BedShapeDialog.cpp:66 src/slic3r/GUI/GUI_ObjectList.cpp:2067
 msgid "Shape"
 msgstr ""
 
@@ -146,7 +146,7 @@ msgstr ""
 
 #: src/slic3r/GUI/BedShapeDialog.cpp:77
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:232 src/slic3r/GUI/Plater.cpp:160
-#: src/slic3r/GUI/Tab.cpp:2308
+#: src/slic3r/GUI/Tab.cpp:2309
 msgid "Size"
 msgstr ""
 
@@ -188,23 +188,23 @@ msgstr ""
 #: src/libslic3r/PrintConfig.cpp:1565 src/libslic3r/PrintConfig.cpp:1573
 #: src/libslic3r/PrintConfig.cpp:1583 src/libslic3r/PrintConfig.cpp:1591
 #: src/libslic3r/PrintConfig.cpp:1599 src/libslic3r/PrintConfig.cpp:1682
-#: src/libslic3r/PrintConfig.cpp:1914 src/libslic3r/PrintConfig.cpp:1985
-#: src/libslic3r/PrintConfig.cpp:2019 src/libslic3r/PrintConfig.cpp:2147
-#: src/libslic3r/PrintConfig.cpp:2226 src/libslic3r/PrintConfig.cpp:2233
-#: src/libslic3r/PrintConfig.cpp:2240 src/libslic3r/PrintConfig.cpp:2270
-#: src/libslic3r/PrintConfig.cpp:2280 src/libslic3r/PrintConfig.cpp:2290
-#: src/libslic3r/PrintConfig.cpp:2450 src/libslic3r/PrintConfig.cpp:2484
-#: src/libslic3r/PrintConfig.cpp:2623 src/libslic3r/PrintConfig.cpp:2632
-#: src/libslic3r/PrintConfig.cpp:2641 src/libslic3r/PrintConfig.cpp:2651
-#: src/libslic3r/PrintConfig.cpp:2705 src/libslic3r/PrintConfig.cpp:2715
-#: src/libslic3r/PrintConfig.cpp:2727 src/libslic3r/PrintConfig.cpp:2747
-#: src/libslic3r/PrintConfig.cpp:2757 src/libslic3r/PrintConfig.cpp:2767
-#: src/libslic3r/PrintConfig.cpp:2785 src/libslic3r/PrintConfig.cpp:2800
-#: src/libslic3r/PrintConfig.cpp:2814 src/libslic3r/PrintConfig.cpp:2825
-#: src/libslic3r/PrintConfig.cpp:2838 src/libslic3r/PrintConfig.cpp:2883
-#: src/libslic3r/PrintConfig.cpp:2893 src/libslic3r/PrintConfig.cpp:2902
-#: src/libslic3r/PrintConfig.cpp:2912 src/libslic3r/PrintConfig.cpp:2928
-#: src/libslic3r/PrintConfig.cpp:2952
+#: src/libslic3r/PrintConfig.cpp:1921 src/libslic3r/PrintConfig.cpp:1992
+#: src/libslic3r/PrintConfig.cpp:2026 src/libslic3r/PrintConfig.cpp:2154
+#: src/libslic3r/PrintConfig.cpp:2233 src/libslic3r/PrintConfig.cpp:2240
+#: src/libslic3r/PrintConfig.cpp:2247 src/libslic3r/PrintConfig.cpp:2277
+#: src/libslic3r/PrintConfig.cpp:2287 src/libslic3r/PrintConfig.cpp:2297
+#: src/libslic3r/PrintConfig.cpp:2457 src/libslic3r/PrintConfig.cpp:2491
+#: src/libslic3r/PrintConfig.cpp:2630 src/libslic3r/PrintConfig.cpp:2639
+#: src/libslic3r/PrintConfig.cpp:2648 src/libslic3r/PrintConfig.cpp:2658
+#: src/libslic3r/PrintConfig.cpp:2712 src/libslic3r/PrintConfig.cpp:2722
+#: src/libslic3r/PrintConfig.cpp:2734 src/libslic3r/PrintConfig.cpp:2754
+#: src/libslic3r/PrintConfig.cpp:2764 src/libslic3r/PrintConfig.cpp:2774
+#: src/libslic3r/PrintConfig.cpp:2792 src/libslic3r/PrintConfig.cpp:2807
+#: src/libslic3r/PrintConfig.cpp:2821 src/libslic3r/PrintConfig.cpp:2832
+#: src/libslic3r/PrintConfig.cpp:2845 src/libslic3r/PrintConfig.cpp:2890
+#: src/libslic3r/PrintConfig.cpp:2900 src/libslic3r/PrintConfig.cpp:2909
+#: src/libslic3r/PrintConfig.cpp:2919 src/libslic3r/PrintConfig.cpp:2935
+#: src/libslic3r/PrintConfig.cpp:2959
 msgid "mm"
 msgstr ""
 
@@ -240,7 +240,7 @@ msgid "Load..."
 msgstr ""
 
 #: src/slic3r/GUI/BedShapeDialog.cpp:190 src/slic3r/GUI/BedShapeDialog.cpp:269
-#: src/slic3r/GUI/Tab.cpp:3144
+#: src/slic3r/GUI/Tab.cpp:3145
 msgid "Remove"
 msgstr ""
 
@@ -424,31 +424,31 @@ msgstr ""
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:211
 #: src/slic3r/GUI/GUI_ObjectList.cpp:35 src/slic3r/GUI/GUI_ObjectList.cpp:96
-#: src/slic3r/GUI/GUI_ObjectList.cpp:620 src/slic3r/GUI/Plater.cpp:532
+#: src/slic3r/GUI/GUI_ObjectList.cpp:612 src/slic3r/GUI/Plater.cpp:532
 #: src/slic3r/GUI/Tab.cpp:1151 src/slic3r/GUI/Tab.cpp:1152
 #: src/libslic3r/PrintConfig.cpp:203 src/libslic3r/PrintConfig.cpp:416
 #: src/libslic3r/PrintConfig.cpp:436 src/libslic3r/PrintConfig.cpp:776
 #: src/libslic3r/PrintConfig.cpp:790 src/libslic3r/PrintConfig.cpp:827
 #: src/libslic3r/PrintConfig.cpp:981 src/libslic3r/PrintConfig.cpp:991
 #: src/libslic3r/PrintConfig.cpp:1009 src/libslic3r/PrintConfig.cpp:1028
-#: src/libslic3r/PrintConfig.cpp:1047 src/libslic3r/PrintConfig.cpp:1728
-#: src/libslic3r/PrintConfig.cpp:1745
+#: src/libslic3r/PrintConfig.cpp:1047 src/libslic3r/PrintConfig.cpp:1735
+#: src/libslic3r/PrintConfig.cpp:1752
 msgid "Infill"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigManipulation.cpp:317
+#: src/slic3r/GUI/ConfigManipulation.cpp:318
 msgid "Head penetration should not be greater than the head width."
 msgstr ""
 
-#: src/slic3r/GUI/ConfigManipulation.cpp:319
+#: src/slic3r/GUI/ConfigManipulation.cpp:320
 msgid "Invalid Head penetration"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigManipulation.cpp:330
+#: src/slic3r/GUI/ConfigManipulation.cpp:331
 msgid "Pinhead diameter should be smaller than the pillar diameter."
 msgstr ""
 
-#: src/slic3r/GUI/ConfigManipulation.cpp:332
+#: src/slic3r/GUI/ConfigManipulation.cpp:333
 msgid "Invalid pinhead diameter"
 msgstr ""
 
@@ -480,7 +480,7 @@ msgstr ""
 msgid "PrusaSlicer version"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigSnapshotDialog.cpp:51 src/slic3r/GUI/Preset.cpp:1554
+#: src/slic3r/GUI/ConfigSnapshotDialog.cpp:51 src/slic3r/GUI/Preset.cpp:1562
 msgid "print"
 msgstr ""
 
@@ -488,7 +488,7 @@ msgstr ""
 msgid "filaments"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigSnapshotDialog.cpp:53 src/slic3r/GUI/Preset.cpp:1558
+#: src/slic3r/GUI/ConfigSnapshotDialog.cpp:53 src/slic3r/GUI/Preset.cpp:1566
 msgid "printer"
 msgstr ""
 
@@ -546,7 +546,7 @@ msgid "Standard"
 msgstr ""
 
 #: src/slic3r/GUI/ConfigWizard.cpp:305 src/slic3r/GUI/ConfigWizard.cpp:588
-#: src/slic3r/GUI/Tab.cpp:3203
+#: src/slic3r/GUI/Tab.cpp:3204
 msgid "All"
 msgstr ""
 
@@ -578,9 +578,7 @@ msgid ""
 msgstr ""
 
 #: src/slic3r/GUI/ConfigWizard.cpp:453
-msgid ""
-"Remove user profiles - install from scratch (a snapshot will be taken "
-"beforehand)"
+msgid "Remove user profiles (a snapshot will be taken beforehand)"
 msgstr ""
 
 #: src/slic3r/GUI/ConfigWizard.cpp:496
@@ -662,9 +660,9 @@ msgid ""
 "an update is applied."
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:813 src/slic3r/GUI/GUI_ObjectList.cpp:1680
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3984 src/slic3r/GUI/Plater.cpp:3288
-#: src/slic3r/GUI/Plater.cpp:3992 src/slic3r/GUI/Plater.cpp:4021
+#: src/slic3r/GUI/ConfigWizard.cpp:813 src/slic3r/GUI/GUI_ObjectList.cpp:1672
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4025 src/slic3r/GUI/Plater.cpp:3292
+#: src/slic3r/GUI/Plater.cpp:4001 src/slic3r/GUI/Plater.cpp:4030
 msgid "Reload from disk"
 msgstr ""
 
@@ -719,7 +717,7 @@ msgstr ""
 msgid "Firmware Type"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:906 src/slic3r/GUI/Tab.cpp:1969
+#: src/slic3r/GUI/ConfigWizard.cpp:906 src/slic3r/GUI/Tab.cpp:1970
 msgid "Firmware"
 msgstr ""
 
@@ -805,101 +803,101 @@ msgstr ""
 msgid "Bed Temperature:"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:1486 src/slic3r/GUI/ConfigWizard.cpp:2029
+#: src/slic3r/GUI/ConfigWizard.cpp:1515 src/slic3r/GUI/ConfigWizard.cpp:2097
 msgid "Filaments"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:1486 src/slic3r/GUI/ConfigWizard.cpp:2031
+#: src/slic3r/GUI/ConfigWizard.cpp:1515 src/slic3r/GUI/ConfigWizard.cpp:2099
 msgid "SLA Materials"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:1540
+#: src/slic3r/GUI/ConfigWizard.cpp:1569
 msgid "FFF Technology Printers"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:1545
+#: src/slic3r/GUI/ConfigWizard.cpp:1574
 msgid "SLA Technology Printers"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:1766 src/slic3r/GUI/DoubleSlider.cpp:1905
+#: src/slic3r/GUI/ConfigWizard.cpp:1810 src/slic3r/GUI/DoubleSlider.cpp:1905
 #: src/slic3r/GUI/DoubleSlider.cpp:1926 src/slic3r/GUI/GUI.cpp:246
 msgid "Notice"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:1775
-msgid "You have to select at least one filament for selected printers"
+#: src/slic3r/GUI/ConfigWizard.cpp:1830
+msgid "The following FFF printer models have no filament selected:"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:1776
-msgid "Do you want to automatic select default filaments?"
+#: src/slic3r/GUI/ConfigWizard.cpp:1834
+msgid "Do you want to select default filaments for these FFF printer models?"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:1786
-msgid "You have to select at least one material for selected printers"
+#: src/slic3r/GUI/ConfigWizard.cpp:1848
+msgid "The following SLA printer models have no materials selected:"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:1787
-msgid "Do you want to automatic select default materials?"
+#: src/slic3r/GUI/ConfigWizard.cpp:1852
+msgid "Do you want to select default SLA materials for these printer models?"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:1992
+#: src/slic3r/GUI/ConfigWizard.cpp:2060
 msgid "Select all standard printers"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:1995
+#: src/slic3r/GUI/ConfigWizard.cpp:2063
 msgid "< &Back"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:1996
+#: src/slic3r/GUI/ConfigWizard.cpp:2064
 msgid "&Next >"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:1997
+#: src/slic3r/GUI/ConfigWizard.cpp:2065
 msgid "&Finish"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:1998 src/slic3r/GUI/FirmwareDialog.cpp:151
+#: src/slic3r/GUI/ConfigWizard.cpp:2066 src/slic3r/GUI/FirmwareDialog.cpp:151
 #: src/slic3r/GUI/ProgressStatusBar.cpp:26
 msgid "Cancel"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:2011
+#: src/slic3r/GUI/ConfigWizard.cpp:2079
 msgid "Prusa FFF Technology Printers"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:2014
+#: src/slic3r/GUI/ConfigWizard.cpp:2082
 msgid "Prusa MSLA Technology Printers"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:2029
+#: src/slic3r/GUI/ConfigWizard.cpp:2097
 msgid "Filament Profiles Selection"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:2029 src/slic3r/GUI/GUI_ObjectList.cpp:3581
+#: src/slic3r/GUI/ConfigWizard.cpp:2097 src/slic3r/GUI/GUI_ObjectList.cpp:3622
 msgid "Type:"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:2031
+#: src/slic3r/GUI/ConfigWizard.cpp:2099
 msgid "SLA Material Profiles Selection"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:2031
+#: src/slic3r/GUI/ConfigWizard.cpp:2099
 msgid "Layer height:"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:2125
+#: src/slic3r/GUI/ConfigWizard.cpp:2196
 msgid "Configuration Assistant"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:2126
+#: src/slic3r/GUI/ConfigWizard.cpp:2197
 msgid "Configuration &Assistant"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:2128
+#: src/slic3r/GUI/ConfigWizard.cpp:2199
 msgid "Configuration Wizard"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:2129
+#: src/slic3r/GUI/ConfigWizard.cpp:2200
 msgid "Configuration &Wizard"
 msgstr ""
 
@@ -1025,13 +1023,13 @@ msgid "Edit tick mark - Right click"
 msgstr ""
 
 #: src/slic3r/GUI/DoubleSlider.cpp:1134 src/slic3r/GUI/DoubleSlider.cpp:1170
-#: src/slic3r/GUI/GLCanvas3D.cpp:977 src/slic3r/GUI/GUI_ObjectList.cpp:1720
-#: src/slic3r/GUI/Tab.cpp:2304 src/libslic3r/GCode/PreviewData.cpp:445
+#: src/slic3r/GUI/GLCanvas3D.cpp:977 src/slic3r/GUI/GUI_ObjectList.cpp:1712
+#: src/slic3r/GUI/Tab.cpp:2305 src/libslic3r/GCode/PreviewData.cpp:445
 #, possible-c-format
 msgid "Extruder %d"
 msgstr ""
 
-#: src/slic3r/GUI/DoubleSlider.cpp:1135 src/slic3r/GUI/GUI_ObjectList.cpp:1721
+#: src/slic3r/GUI/DoubleSlider.cpp:1135 src/slic3r/GUI/GUI_ObjectList.cpp:1713
 msgid "active"
 msgstr ""
 
@@ -1039,7 +1037,7 @@ msgstr ""
 msgid "Switch code to Change extruder"
 msgstr ""
 
-#: src/slic3r/GUI/DoubleSlider.cpp:1144 src/slic3r/GUI/GUI_ObjectList.cpp:1687
+#: src/slic3r/GUI/DoubleSlider.cpp:1144 src/slic3r/GUI/GUI_ObjectList.cpp:1679
 msgid "Change extruder"
 msgstr ""
 
@@ -1175,8 +1173,8 @@ msgstr ""
 #: src/slic3r/GUI/ExtruderSequenceDialog.cpp:52
 #: src/libslic3r/PrintConfig.cpp:362 src/libslic3r/PrintConfig.cpp:994
 #: src/libslic3r/PrintConfig.cpp:1505 src/libslic3r/PrintConfig.cpp:1690
-#: src/libslic3r/PrintConfig.cpp:1750 src/libslic3r/PrintConfig.cpp:1930
-#: src/libslic3r/PrintConfig.cpp:1976
+#: src/libslic3r/PrintConfig.cpp:1757 src/libslic3r/PrintConfig.cpp:1937
+#: src/libslic3r/PrintConfig.cpp:1983
 msgid "layers"
 msgstr ""
 
@@ -1210,7 +1208,7 @@ msgid "%s doesn't support percentage"
 msgstr ""
 
 #: src/slic3r/GUI/Field.cpp:195 src/slic3r/GUI/Field.cpp:226
-#: src/slic3r/GUI/GUI_ObjectLayers.cpp:380
+#: src/slic3r/GUI/GUI_ObjectLayers.cpp:383
 msgid "Invalid numeric input."
 msgstr ""
 
@@ -1302,8 +1300,8 @@ msgstr ""
 msgid "Firmware image:"
 msgstr ""
 
-#: src/slic3r/GUI/FirmwareDialog.cpp:805 src/slic3r/GUI/Tab.cpp:1705
-#: src/slic3r/GUI/Tab.cpp:1767
+#: src/slic3r/GUI/FirmwareDialog.cpp:805 src/slic3r/GUI/Tab.cpp:1706
+#: src/slic3r/GUI/Tab.cpp:1768
 msgid "Browse"
 msgstr ""
 
@@ -1336,7 +1334,7 @@ msgid "Advanced: Output log"
 msgstr ""
 
 #: src/slic3r/GUI/FirmwareDialog.cpp:852
-#: src/slic3r/GUI/Mouse3DController.cpp:336
+#: src/slic3r/GUI/Mouse3DController.cpp:355
 #: src/slic3r/GUI/PrintHostDialogs.cpp:161
 msgid "Close"
 msgstr ""
@@ -1355,7 +1353,7 @@ msgstr ""
 msgid "Cancelling..."
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:234 src/slic3r/GUI/GLCanvas3D.cpp:4572
+#: src/slic3r/GUI/GLCanvas3D.cpp:234 src/slic3r/GUI/GLCanvas3D.cpp:4596
 msgid "Variable layer height"
 msgstr ""
 
@@ -1512,108 +1510,108 @@ msgstr ""
 msgid "Gizmo-Rotate"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:3505
+#: src/slic3r/GUI/GLCanvas3D.cpp:3529
 msgid "Move Object"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:4046
+#: src/slic3r/GUI/GLCanvas3D.cpp:4070
 msgid "Undo History"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:4046
+#: src/slic3r/GUI/GLCanvas3D.cpp:4070
 msgid "Redo History"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:4064
+#: src/slic3r/GUI/GLCanvas3D.cpp:4088
 #, possible-c-format
 msgid "Undo %1$d Action"
 msgid_plural "Undo %1$d Actions"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:4064
+#: src/slic3r/GUI/GLCanvas3D.cpp:4088
 #, possible-c-format
 msgid "Redo %1$d Action"
 msgid_plural "Redo %1$d Actions"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:4466
+#: src/slic3r/GUI/GLCanvas3D.cpp:4490
 msgid "Add..."
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:4474 src/slic3r/GUI/GUI_ObjectList.cpp:1734
-#: src/slic3r/GUI/Plater.cpp:3989 src/slic3r/GUI/Plater.cpp:4011
-#: src/slic3r/GUI/Tab.cpp:3144
+#: src/slic3r/GUI/GLCanvas3D.cpp:4498 src/slic3r/GUI/GUI_ObjectList.cpp:1726
+#: src/slic3r/GUI/Plater.cpp:3998 src/slic3r/GUI/Plater.cpp:4020
+#: src/slic3r/GUI/Tab.cpp:3145
 msgid "Delete"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:4483 src/slic3r/GUI/KBShortcutsDialog.cpp:131
-#: src/slic3r/GUI/Plater.cpp:4731
+#: src/slic3r/GUI/GLCanvas3D.cpp:4507 src/slic3r/GUI/KBShortcutsDialog.cpp:131
+#: src/slic3r/GUI/Plater.cpp:4740
 msgid "Delete all"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:4492 src/slic3r/GUI/KBShortcutsDialog.cpp:159
-#: src/slic3r/GUI/Plater.cpp:2812
+#: src/slic3r/GUI/GLCanvas3D.cpp:4516 src/slic3r/GUI/KBShortcutsDialog.cpp:157
+#: src/slic3r/GUI/Plater.cpp:2816
 msgid "Arrange"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:4492 src/slic3r/GUI/KBShortcutsDialog.cpp:160
+#: src/slic3r/GUI/GLCanvas3D.cpp:4516 src/slic3r/GUI/KBShortcutsDialog.cpp:158
 msgid "Arrange selection"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:4504
+#: src/slic3r/GUI/GLCanvas3D.cpp:4528
 msgid "Copy"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:4513
+#: src/slic3r/GUI/GLCanvas3D.cpp:4537
 msgid "Paste"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:4525 src/slic3r/GUI/Plater.cpp:3846
-#: src/slic3r/GUI/Plater.cpp:3858 src/slic3r/GUI/Plater.cpp:3998
+#: src/slic3r/GUI/GLCanvas3D.cpp:4549 src/slic3r/GUI/Plater.cpp:3855
+#: src/slic3r/GUI/Plater.cpp:3867 src/slic3r/GUI/Plater.cpp:4007
 msgid "Add instance"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:4536 src/slic3r/GUI/Plater.cpp:4000
+#: src/slic3r/GUI/GLCanvas3D.cpp:4560 src/slic3r/GUI/Plater.cpp:4009
 msgid "Remove instance"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:4549
+#: src/slic3r/GUI/GLCanvas3D.cpp:4573
 msgid "Split to objects"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:4559 src/slic3r/GUI/GUI_ObjectList.cpp:1503
+#: src/slic3r/GUI/GLCanvas3D.cpp:4583 src/slic3r/GUI/GUI_ObjectList.cpp:1495
 msgid "Split to parts"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:4623 src/slic3r/GUI/KBShortcutsDialog.cpp:132
-#: src/slic3r/GUI/MainFrame.cpp:628
+#: src/slic3r/GUI/GLCanvas3D.cpp:4647 src/slic3r/GUI/KBShortcutsDialog.cpp:132
+#: src/slic3r/GUI/MainFrame.cpp:662
 msgid "Undo"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:4623 src/slic3r/GUI/GLCanvas3D.cpp:4656
+#: src/slic3r/GUI/GLCanvas3D.cpp:4647 src/slic3r/GUI/GLCanvas3D.cpp:4680
 msgid "Click right mouse button to open History"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:4640
+#: src/slic3r/GUI/GLCanvas3D.cpp:4664
 msgid "Next Undo action: %1%"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:4656 src/slic3r/GUI/KBShortcutsDialog.cpp:133
-#: src/slic3r/GUI/MainFrame.cpp:631
+#: src/slic3r/GUI/GLCanvas3D.cpp:4680 src/slic3r/GUI/KBShortcutsDialog.cpp:133
+#: src/slic3r/GUI/MainFrame.cpp:665
 msgid "Redo"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:4672
+#: src/slic3r/GUI/GLCanvas3D.cpp:4696
 msgid "Next Redo action: %1%"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:6588
+#: src/slic3r/GUI/GLCanvas3D.cpp:6609
 msgid "Selection-Add from rectangle"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:6607
+#: src/slic3r/GUI/GLCanvas3D.cpp:6628
 msgid "Selection-Remove from rectangle"
 msgstr ""
 
@@ -1639,7 +1637,7 @@ msgid "Unsupported OpenGL version"
 msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:42
-#: src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:144 src/libslic3r/PrintConfig.cpp:3412
+#: src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:144 src/libslic3r/PrintConfig.cpp:3424
 msgid "Cut"
 msgstr ""
 
@@ -1680,7 +1678,7 @@ msgid "Quality"
 msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoHollow.cpp:44
-#: src/libslic3r/PrintConfig.cpp:2944
+#: src/libslic3r/PrintConfig.cpp:2951
 msgid "Closing distance"
 msgstr ""
 
@@ -1746,7 +1744,7 @@ msgstr ""
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:480
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:499
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:517
-#: src/libslic3r/PrintConfig.cpp:3461
+#: src/libslic3r/PrintConfig.cpp:3473
 msgid "Rotate"
 msgstr ""
 
@@ -1754,7 +1752,7 @@ msgstr ""
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:230
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:500
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:518
-#: src/libslic3r/PrintConfig.cpp:3476
+#: src/libslic3r/PrintConfig.cpp:3488
 msgid "Scale"
 msgstr ""
 
@@ -1790,7 +1788,7 @@ msgid "Minimal points distance"
 msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:54
-#: src/libslic3r/PrintConfig.cpp:2774
+#: src/libslic3r/PrintConfig.cpp:2781
 msgid "Support points density"
 msgstr ""
 
@@ -1856,7 +1854,7 @@ msgid "Are you sure you want to do it?"
 msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:1260 src/slic3r/GUI/GUI.cpp:258
-#: src/slic3r/GUI/Tab.cpp:3074 src/slic3r/GUI/WipeTowerDialog.cpp:45
+#: src/slic3r/GUI/Tab.cpp:3075 src/slic3r/GUI/WipeTowerDialog.cpp:45
 #: src/slic3r/GUI/WipeTowerDialog.cpp:366
 msgid "Warning"
 msgstr ""
@@ -1945,7 +1943,7 @@ msgstr ""
 msgid "Gizmo-Scale"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:138
+#: src/slic3r/GUI/GUI_App.cpp:184
 #, possible-c-format
 msgid ""
 "%s has encountered an error. It was likely caused by running out of memory. "
@@ -1955,184 +1953,184 @@ msgid ""
 "The application will now terminate."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:141
+#: src/slic3r/GUI/GUI_App.cpp:187
 msgid "Fatal error"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:438
+#: src/slic3r/GUI/GUI_App.cpp:487
 msgid "Changing of an application language"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:441 src/slic3r/GUI/GUI_App.cpp:449
+#: src/slic3r/GUI/GUI_App.cpp:490 src/slic3r/GUI/GUI_App.cpp:498
 msgid "Recreating"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:454
+#: src/slic3r/GUI/GUI_App.cpp:503
 msgid "Loading of current presets"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:459
+#: src/slic3r/GUI/GUI_App.cpp:508
 msgid "Loading of a mode view"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:538
+#: src/slic3r/GUI/GUI_App.cpp:587
 msgid "Choose one file (3MF/AMF):"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:550
+#: src/slic3r/GUI/GUI_App.cpp:599
 msgid "Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:611
+#: src/slic3r/GUI/GUI_App.cpp:660
 msgid "Select the language"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:611
+#: src/slic3r/GUI/GUI_App.cpp:660
 msgid "Language"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:779
+#: src/slic3r/GUI/GUI_App.cpp:828
 #, possible-c-format
 msgid "Run %s"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:782
+#: src/slic3r/GUI/GUI_App.cpp:831
 msgid "&Configuration Snapshots"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:782
+#: src/slic3r/GUI/GUI_App.cpp:831
 msgid "Inspect / activate configuration snapshots"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:783
+#: src/slic3r/GUI/GUI_App.cpp:832
 msgid "Take Configuration &Snapshot"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:783
+#: src/slic3r/GUI/GUI_App.cpp:832
 msgid "Capture a configuration snapshot"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:784
+#: src/slic3r/GUI/GUI_App.cpp:833
 msgid "Check for updates"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:784
+#: src/slic3r/GUI/GUI_App.cpp:833
 msgid "Check for configuration updates"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:786
+#: src/slic3r/GUI/GUI_App.cpp:835
 msgid "&Preferences"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:792
+#: src/slic3r/GUI/GUI_App.cpp:841
 msgid "Application preferences"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:795 src/slic3r/GUI/wxExtensions.cpp:756
+#: src/slic3r/GUI/GUI_App.cpp:844 src/slic3r/GUI/wxExtensions.cpp:756
 msgid "Simple"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:795
+#: src/slic3r/GUI/GUI_App.cpp:844
 msgid "Simple View Mode"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:796 src/slic3r/GUI/GUI_ObjectList.cpp:104
-#: src/slic3r/GUI/GUI_ObjectList.cpp:628 src/slic3r/GUI/Tab.cpp:1147
-#: src/slic3r/GUI/Tab.cpp:1162 src/slic3r/GUI/Tab.cpp:1261
-#: src/slic3r/GUI/Tab.cpp:1264 src/slic3r/GUI/Tab.cpp:1525
-#: src/slic3r/GUI/Tab.cpp:1989 src/slic3r/GUI/Tab.cpp:3719
+#: src/slic3r/GUI/GUI_App.cpp:845 src/slic3r/GUI/GUI_ObjectList.cpp:104
+#: src/slic3r/GUI/GUI_ObjectList.cpp:620 src/slic3r/GUI/Tab.cpp:1147
+#: src/slic3r/GUI/Tab.cpp:1162 src/slic3r/GUI/Tab.cpp:1262
+#: src/slic3r/GUI/Tab.cpp:1265 src/slic3r/GUI/Tab.cpp:1526
+#: src/slic3r/GUI/Tab.cpp:1990 src/slic3r/GUI/Tab.cpp:3720
 #: src/slic3r/GUI/wxExtensions.cpp:757 src/libslic3r/PrintConfig.cpp:88
 #: src/libslic3r/PrintConfig.cpp:119 src/libslic3r/PrintConfig.cpp:223
-#: src/libslic3r/PrintConfig.cpp:1037 src/libslic3r/PrintConfig.cpp:2276
-#: src/libslic3r/PrintConfig.cpp:2448
+#: src/libslic3r/PrintConfig.cpp:1037 src/libslic3r/PrintConfig.cpp:2283
+#: src/libslic3r/PrintConfig.cpp:2455
 msgid "Advanced"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:796
+#: src/slic3r/GUI/GUI_App.cpp:845
 msgid "Advanced View Mode"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:797 src/slic3r/GUI/wxExtensions.cpp:758
+#: src/slic3r/GUI/GUI_App.cpp:846 src/slic3r/GUI/wxExtensions.cpp:758
 msgid "Expert"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:797
+#: src/slic3r/GUI/GUI_App.cpp:846
 msgid "Expert View Mode"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:802
+#: src/slic3r/GUI/GUI_App.cpp:851
 msgid "Mode"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:802
+#: src/slic3r/GUI/GUI_App.cpp:851
 #, possible-c-format
 msgid "%s View Mode"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:804
+#: src/slic3r/GUI/GUI_App.cpp:853
 msgid "&Language"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:806
+#: src/slic3r/GUI/GUI_App.cpp:855
 msgid "Flash printer &firmware"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:806
+#: src/slic3r/GUI/GUI_App.cpp:855
 msgid "Upload a firmware image into an Arduino based printer"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:821
+#: src/slic3r/GUI/GUI_App.cpp:870
 msgid "Taking configuration snapshot"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:821
+#: src/slic3r/GUI/GUI_App.cpp:870
 msgid "Snapshot name"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:868
+#: src/slic3r/GUI/GUI_App.cpp:917
 msgid ""
 "Switching the language will trigger application restart.\n"
 "You will lose content of the plater."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:870
+#: src/slic3r/GUI/GUI_App.cpp:919
 msgid "Do you want to proceed?"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:871
+#: src/slic3r/GUI/GUI_App.cpp:920
 msgid "Language selection"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:895
+#: src/slic3r/GUI/GUI_App.cpp:944
 msgid "&Configuration"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:919
+#: src/slic3r/GUI/GUI_App.cpp:968
 msgid "The presets on the following tabs were modified"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:919 src/slic3r/GUI/Tab.cpp:2934
+#: src/slic3r/GUI/GUI_App.cpp:968 src/slic3r/GUI/Tab.cpp:2935
 msgid "Discard changes and continue anyway?"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:922
+#: src/slic3r/GUI/GUI_App.cpp:971
 msgid "Unsaved Presets"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:1071 src/slic3r/GUI/Tab.cpp:2946
+#: src/slic3r/GUI/GUI_App.cpp:1120 src/slic3r/GUI/Tab.cpp:2947
 msgid "It's impossible to print multi-part object(s) with SLA technology."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:1072
+#: src/slic3r/GUI/GUI_App.cpp:1121
 msgid "Please check and fix your object list."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:1073 src/slic3r/GUI/Plater.cpp:2371
-#: src/slic3r/GUI/Tab.cpp:2948
+#: src/slic3r/GUI/GUI_App.cpp:1122 src/slic3r/GUI/Plater.cpp:2375
+#: src/slic3r/GUI/Tab.cpp:2949
 msgid "Attention!"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:1090
+#: src/slic3r/GUI/GUI_App.cpp:1139
 msgid "Select a gcode file:"
 msgstr ""
 
@@ -2148,42 +2146,42 @@ msgstr ""
 msgid "Remove layer range"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectLayers.cpp:160
+#: src/slic3r/GUI/GUI_ObjectLayers.cpp:162
 msgid "Add layer range"
 msgstr ""
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:34 src/slic3r/GUI/GUI_ObjectList.cpp:95
-#: src/slic3r/GUI/GUI_ObjectList.cpp:619 src/libslic3r/PrintConfig.cpp:72
+#: src/slic3r/GUI/GUI_ObjectList.cpp:611 src/libslic3r/PrintConfig.cpp:72
 #: src/libslic3r/PrintConfig.cpp:175 src/libslic3r/PrintConfig.cpp:184
 #: src/libslic3r/PrintConfig.cpp:408 src/libslic3r/PrintConfig.cpp:470
 #: src/libslic3r/PrintConfig.cpp:478 src/libslic3r/PrintConfig.cpp:890
 #: src/libslic3r/PrintConfig.cpp:1075 src/libslic3r/PrintConfig.cpp:1374
 #: src/libslic3r/PrintConfig.cpp:1441 src/libslic3r/PrintConfig.cpp:1622
-#: src/libslic3r/PrintConfig.cpp:2074 src/libslic3r/PrintConfig.cpp:2133
-#: src/libslic3r/PrintConfig.cpp:2142
+#: src/libslic3r/PrintConfig.cpp:2081 src/libslic3r/PrintConfig.cpp:2140
+#: src/libslic3r/PrintConfig.cpp:2149
 msgid "Layers and Perimeters"
 msgstr ""
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:36 src/slic3r/GUI/GUI_ObjectList.cpp:97
-#: src/slic3r/GUI/GUI_ObjectList.cpp:621 src/slic3r/GUI/GUI_Preview.cpp:246
-#: src/slic3r/GUI/Tab.cpp:1180 src/slic3r/GUI/Tab.cpp:1181
+#: src/slic3r/GUI/GUI_ObjectList.cpp:613 src/slic3r/GUI/GUI_Preview.cpp:246
+#: src/slic3r/GUI/Tab.cpp:1181 src/slic3r/GUI/Tab.cpp:1182
 #: src/libslic3r/ExtrusionEntity.cpp:319 src/libslic3r/PrintConfig.cpp:370
-#: src/libslic3r/PrintConfig.cpp:1502 src/libslic3r/PrintConfig.cpp:1866
-#: src/libslic3r/PrintConfig.cpp:1872 src/libslic3r/PrintConfig.cpp:1880
-#: src/libslic3r/PrintConfig.cpp:1892 src/libslic3r/PrintConfig.cpp:1902
-#: src/libslic3r/PrintConfig.cpp:1910 src/libslic3r/PrintConfig.cpp:1925
-#: src/libslic3r/PrintConfig.cpp:1946 src/libslic3r/PrintConfig.cpp:1958
-#: src/libslic3r/PrintConfig.cpp:1974 src/libslic3r/PrintConfig.cpp:1983
-#: src/libslic3r/PrintConfig.cpp:1992 src/libslic3r/PrintConfig.cpp:2003
-#: src/libslic3r/PrintConfig.cpp:2017 src/libslic3r/PrintConfig.cpp:2025
-#: src/libslic3r/PrintConfig.cpp:2026 src/libslic3r/PrintConfig.cpp:2035
-#: src/libslic3r/PrintConfig.cpp:2043 src/libslic3r/PrintConfig.cpp:2057
+#: src/libslic3r/PrintConfig.cpp:1502 src/libslic3r/PrintConfig.cpp:1873
+#: src/libslic3r/PrintConfig.cpp:1879 src/libslic3r/PrintConfig.cpp:1887
+#: src/libslic3r/PrintConfig.cpp:1899 src/libslic3r/PrintConfig.cpp:1909
+#: src/libslic3r/PrintConfig.cpp:1917 src/libslic3r/PrintConfig.cpp:1932
+#: src/libslic3r/PrintConfig.cpp:1953 src/libslic3r/PrintConfig.cpp:1965
+#: src/libslic3r/PrintConfig.cpp:1981 src/libslic3r/PrintConfig.cpp:1990
+#: src/libslic3r/PrintConfig.cpp:1999 src/libslic3r/PrintConfig.cpp:2010
+#: src/libslic3r/PrintConfig.cpp:2024 src/libslic3r/PrintConfig.cpp:2032
+#: src/libslic3r/PrintConfig.cpp:2033 src/libslic3r/PrintConfig.cpp:2042
+#: src/libslic3r/PrintConfig.cpp:2050 src/libslic3r/PrintConfig.cpp:2064
 msgid "Support material"
 msgstr ""
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:39 src/slic3r/GUI/GUI_ObjectList.cpp:101
-#: src/slic3r/GUI/GUI_ObjectList.cpp:625 src/libslic3r/PrintConfig.cpp:2252
-#: src/libslic3r/PrintConfig.cpp:2260
+#: src/slic3r/GUI/GUI_ObjectList.cpp:617 src/libslic3r/PrintConfig.cpp:2259
+#: src/libslic3r/PrintConfig.cpp:2267
 msgid "Wipe options"
 msgstr ""
 
@@ -2207,64 +2205,64 @@ msgstr ""
 msgid "Add support blocker"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:98 src/slic3r/GUI/GUI_ObjectList.cpp:622
-#: src/slic3r/GUI/GUI_Preview.cpp:224 src/slic3r/GUI/Tab.cpp:1205
+#: src/slic3r/GUI/GUI_ObjectList.cpp:98 src/slic3r/GUI/GUI_ObjectList.cpp:614
+#: src/slic3r/GUI/GUI_Preview.cpp:224 src/slic3r/GUI/Tab.cpp:1206
 #: src/libslic3r/PrintConfig.cpp:235 src/libslic3r/PrintConfig.cpp:458
 #: src/libslic3r/PrintConfig.cpp:919 src/libslic3r/PrintConfig.cpp:1048
 #: src/libslic3r/PrintConfig.cpp:1431 src/libslic3r/PrintConfig.cpp:1668
-#: src/libslic3r/PrintConfig.cpp:1716 src/libslic3r/PrintConfig.cpp:1768
-#: src/libslic3r/PrintConfig.cpp:2118
+#: src/libslic3r/PrintConfig.cpp:1723 src/libslic3r/PrintConfig.cpp:1775
+#: src/libslic3r/PrintConfig.cpp:2125
 msgid "Speed"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:99 src/slic3r/GUI/GUI_ObjectList.cpp:623
-#: src/slic3r/GUI/Tab.cpp:1240 src/slic3r/GUI/Tab.cpp:1860
+#: src/slic3r/GUI/GUI_ObjectList.cpp:99 src/slic3r/GUI/GUI_ObjectList.cpp:615
+#: src/slic3r/GUI/Tab.cpp:1241 src/slic3r/GUI/Tab.cpp:1861
 #: src/libslic3r/PrintConfig.cpp:488 src/libslic3r/PrintConfig.cpp:1002
-#: src/libslic3r/PrintConfig.cpp:1409 src/libslic3r/PrintConfig.cpp:1737
-#: src/libslic3r/PrintConfig.cpp:1938 src/libslic3r/PrintConfig.cpp:1965
+#: src/libslic3r/PrintConfig.cpp:1409 src/libslic3r/PrintConfig.cpp:1744
+#: src/libslic3r/PrintConfig.cpp:1945 src/libslic3r/PrintConfig.cpp:1972
 msgid "Extruders"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:100 src/slic3r/GUI/GUI_ObjectList.cpp:624
+#: src/slic3r/GUI/GUI_ObjectList.cpp:100 src/slic3r/GUI/GUI_ObjectList.cpp:616
 #: src/libslic3r/PrintConfig.cpp:447 src/libslic3r/PrintConfig.cpp:555
 #: src/libslic3r/PrintConfig.cpp:877 src/libslic3r/PrintConfig.cpp:1010
-#: src/libslic3r/PrintConfig.cpp:1418 src/libslic3r/PrintConfig.cpp:1757
-#: src/libslic3r/PrintConfig.cpp:1947 src/libslic3r/PrintConfig.cpp:2106
+#: src/libslic3r/PrintConfig.cpp:1418 src/libslic3r/PrintConfig.cpp:1764
+#: src/libslic3r/PrintConfig.cpp:1954 src/libslic3r/PrintConfig.cpp:2113
 msgid "Extrusion Width"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:106 src/slic3r/GUI/GUI_ObjectList.cpp:630
-#: src/slic3r/GUI/Plater.cpp:500 src/slic3r/GUI/Tab.cpp:3660
-#: src/slic3r/GUI/Tab.cpp:3661 src/libslic3r/PrintConfig.cpp:2614
-#: src/libslic3r/PrintConfig.cpp:2621 src/libslic3r/PrintConfig.cpp:2630
-#: src/libslic3r/PrintConfig.cpp:2639 src/libslic3r/PrintConfig.cpp:2649
-#: src/libslic3r/PrintConfig.cpp:2685 src/libslic3r/PrintConfig.cpp:2692
-#: src/libslic3r/PrintConfig.cpp:2703 src/libslic3r/PrintConfig.cpp:2713
-#: src/libslic3r/PrintConfig.cpp:2722 src/libslic3r/PrintConfig.cpp:2735
-#: src/libslic3r/PrintConfig.cpp:2745 src/libslic3r/PrintConfig.cpp:2754
-#: src/libslic3r/PrintConfig.cpp:2764 src/libslic3r/PrintConfig.cpp:2775
-#: src/libslic3r/PrintConfig.cpp:2783
+#: src/slic3r/GUI/GUI_ObjectList.cpp:106 src/slic3r/GUI/GUI_ObjectList.cpp:622
+#: src/slic3r/GUI/Plater.cpp:500 src/slic3r/GUI/Tab.cpp:3661
+#: src/slic3r/GUI/Tab.cpp:3662 src/libslic3r/PrintConfig.cpp:2621
+#: src/libslic3r/PrintConfig.cpp:2628 src/libslic3r/PrintConfig.cpp:2637
+#: src/libslic3r/PrintConfig.cpp:2646 src/libslic3r/PrintConfig.cpp:2656
+#: src/libslic3r/PrintConfig.cpp:2692 src/libslic3r/PrintConfig.cpp:2699
+#: src/libslic3r/PrintConfig.cpp:2710 src/libslic3r/PrintConfig.cpp:2720
+#: src/libslic3r/PrintConfig.cpp:2729 src/libslic3r/PrintConfig.cpp:2742
+#: src/libslic3r/PrintConfig.cpp:2752 src/libslic3r/PrintConfig.cpp:2761
+#: src/libslic3r/PrintConfig.cpp:2771 src/libslic3r/PrintConfig.cpp:2782
+#: src/libslic3r/PrintConfig.cpp:2790
 msgid "Supports"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:107 src/slic3r/GUI/GUI_ObjectList.cpp:631
-#: src/slic3r/GUI/Plater.cpp:640 src/slic3r/GUI/Tab.cpp:3694
-#: src/slic3r/GUI/Tab.cpp:3695 src/libslic3r/PrintConfig.cpp:2791
-#: src/libslic3r/PrintConfig.cpp:2798 src/libslic3r/PrintConfig.cpp:2812
-#: src/libslic3r/PrintConfig.cpp:2823 src/libslic3r/PrintConfig.cpp:2833
-#: src/libslic3r/PrintConfig.cpp:2855 src/libslic3r/PrintConfig.cpp:2866
-#: src/libslic3r/PrintConfig.cpp:2873 src/libslic3r/PrintConfig.cpp:2880
-#: src/libslic3r/PrintConfig.cpp:2891 src/libslic3r/PrintConfig.cpp:2900
-#: src/libslic3r/PrintConfig.cpp:2909
+#: src/slic3r/GUI/GUI_ObjectList.cpp:107 src/slic3r/GUI/GUI_ObjectList.cpp:623
+#: src/slic3r/GUI/Plater.cpp:640 src/slic3r/GUI/Tab.cpp:3695
+#: src/slic3r/GUI/Tab.cpp:3696 src/libslic3r/PrintConfig.cpp:2798
+#: src/libslic3r/PrintConfig.cpp:2805 src/libslic3r/PrintConfig.cpp:2819
+#: src/libslic3r/PrintConfig.cpp:2830 src/libslic3r/PrintConfig.cpp:2840
+#: src/libslic3r/PrintConfig.cpp:2862 src/libslic3r/PrintConfig.cpp:2873
+#: src/libslic3r/PrintConfig.cpp:2880 src/libslic3r/PrintConfig.cpp:2887
+#: src/libslic3r/PrintConfig.cpp:2898 src/libslic3r/PrintConfig.cpp:2907
+#: src/libslic3r/PrintConfig.cpp:2916
 msgid "Pad"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:108 src/slic3r/GUI/Tab.cpp:3712
-#: src/slic3r/GUI/Tab.cpp:3713 src/libslic3r/SLA/Hollowing.cpp:46
+#: src/slic3r/GUI/GUI_ObjectList.cpp:108 src/slic3r/GUI/Tab.cpp:3713
+#: src/slic3r/GUI/Tab.cpp:3714 src/libslic3r/SLA/Hollowing.cpp:46
 #: src/libslic3r/SLA/Hollowing.cpp:58 src/libslic3r/SLA/Hollowing.cpp:67
-#: src/libslic3r/SLA/Hollowing.cpp:76 src/libslic3r/PrintConfig.cpp:2919
-#: src/libslic3r/PrintConfig.cpp:2926 src/libslic3r/PrintConfig.cpp:2936
-#: src/libslic3r/PrintConfig.cpp:2945
+#: src/libslic3r/SLA/Hollowing.cpp:76 src/libslic3r/PrintConfig.cpp:2926
+#: src/libslic3r/PrintConfig.cpp:2933 src/libslic3r/PrintConfig.cpp:2943
+#: src/libslic3r/PrintConfig.cpp:2952
 msgid "Hollowing"
 msgstr ""
 
@@ -2273,7 +2271,7 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:283 src/slic3r/GUI/Tab.cpp:1489
+#: src/slic3r/GUI/GUI_ObjectList.cpp:283 src/slic3r/GUI/Tab.cpp:1490
 #: src/slic3r/GUI/wxExtensions.cpp:598 src/libslic3r/PrintConfig.cpp:487
 msgid "Extruder"
 msgstr ""
@@ -2331,10 +2329,10 @@ msgstr ""
 msgid "Click the icon to change the object printable property"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:463 src/slic3r/GUI/GUI_ObjectList.cpp:475
-#: src/slic3r/GUI/GUI_ObjectList.cpp:933 src/slic3r/GUI/GUI_ObjectList.cpp:3995
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4005
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4040
+#: src/slic3r/GUI/GUI_ObjectList.cpp:455 src/slic3r/GUI/GUI_ObjectList.cpp:467
+#: src/slic3r/GUI/GUI_ObjectList.cpp:925 src/slic3r/GUI/GUI_ObjectList.cpp:4036
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4046
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4081
 #: src/slic3r/GUI/ObjectDataViewModel.cpp:200
 #: src/slic3r/GUI/ObjectDataViewModel.cpp:257
 #: src/slic3r/GUI/ObjectDataViewModel.cpp:282
@@ -2343,368 +2341,389 @@ msgstr ""
 msgid "default"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:542
+#: src/slic3r/GUI/GUI_ObjectList.cpp:534
 msgid "Change Extruder"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:557
+#: src/slic3r/GUI/GUI_ObjectList.cpp:549
 msgid "Rename Object"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:557
+#: src/slic3r/GUI/GUI_ObjectList.cpp:549
 msgid "Rename Sub-object"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1107
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3809
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1099
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3850
 msgid "Instances to Separated Objects"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1122
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1114
 msgid "Volumes in Object reordered"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1122
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1114
 msgid "Object reordered"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1198
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1546
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1552
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1865
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1190
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1538
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1544
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1857
 #, possible-c-format
 msgid "Quick Add Settings (%s)"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1281
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1273
 msgid "Select showing settings"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1330
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1322
 msgid "Add Settings for Layers"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1331
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1323
 msgid "Add Settings for Sub-object"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1332
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1324
 msgid "Add Settings for Object"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1402
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1394
 msgid "Add Settings Bundle for Height range"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1403
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1395
 msgid "Add Settings Bundle for Sub-object"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1404
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1396
 msgid "Add Settings Bundle for Object"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1443
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1435
 msgid "Load"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1448
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1480
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1484
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1440
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1472
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1476
 msgid "Box"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1448
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1440
 msgid "Cylinder"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1448
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1440
 msgid "Sphere"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1448
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1440
 msgid "Slab"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1516
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1508
 msgid "Height range Modifier"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1525
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1517
 msgid "Add settings"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1605
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1597
 msgid "Change type"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1615
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1627
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1607
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1619
 msgid "Set as a Separated Object"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1627
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1619
 msgid "Set as a Separated Objects"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1637
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1629
 msgid "Printable"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1652
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1644
 msgid "Rename"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1663
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1655
 msgid "Fix through the Netfabb"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1673 src/slic3r/GUI/Plater.cpp:4024
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1665 src/slic3r/GUI/Plater.cpp:4033
 msgid "Export as STL"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1680
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3984 src/slic3r/GUI/Plater.cpp:3992
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1672
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4025 src/slic3r/GUI/Plater.cpp:4001
 msgid "Reload the selected volumes from disk"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1687
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1679
 msgid "Set extruder for selected items"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1720 src/libslic3r/PrintConfig.cpp:335
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1712 src/libslic3r/PrintConfig.cpp:335
 msgid "Default"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1740
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1732
 msgid "Scale to print volume"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1740
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1732
 msgid "Scale the selected object to fit the print volume"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1809
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2067
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1801
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2059
 msgid "Add Shape"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1895
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1887
 msgid "Load Part"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1934
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1926
 msgid "Error!"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2009
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2001
 msgid "Add Generic Subobject"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2038
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2030
 msgid "Generic"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2156
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2258
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2148
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2250
 msgid "Last instance of an object cannot be deleted."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2168
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2160
 msgid "Delete Settings"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2192
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2184
 msgid "Delete All Instances from Object"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2208
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2200
 msgid "Delete Height Range"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2239
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2231
 msgid "From Object List You can't delete the last solid part from object."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2243
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2235
 msgid "Delete Subobject"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2262
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2254
 msgid "Delete Instance"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2286 src/slic3r/GUI/Plater.cpp:3041
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2278 src/slic3r/GUI/Plater.cpp:3045
 msgid ""
 "The selected object couldn't be split because it contains only one part."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2290
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2282
 msgid "Split to Parts"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2344
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2336
 msgid "Add Layers"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2470
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2462
 msgid "Group manipulation"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2482
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2474
 msgid "Object manipulation"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2495
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2487
 msgid "Object Settings to modify"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2499
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2491
 msgid "Part Settings to modify"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2504
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2496
 msgid "Layer range Settings to modify"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2510
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2502
 msgid "Part manipulation"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2516
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2508
 msgid "Instance manipulation"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2523
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2515
 msgid "Height ranges"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2523
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2515
 msgid "Settings for height range"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2709
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2701
 msgid "Delete Selected Item"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2846
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2838
 msgid "Delete Selected"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2920
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2914
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2942
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2962
 msgid "Add Height Range"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3027
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3008
+msgid ""
+"Cannot insert a new layer range after the current layer range.\n"
+"The next layer range is too thin to be split to two\n"
+"without violating the minimum layer height."
+msgstr ""
+
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3012
+msgid ""
+"Cannot insert a new layer range between the current and the next layer "
+"range.\n"
+"The gap between the current layer range and the next layer range\n"
+"is thinner than the minimum layer height allowed."
+msgstr ""
+
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3017
+msgid ""
+"Cannot insert a new layer range after the current layer range.\n"
+"Current layer range overlaps with the next layer range."
+msgstr ""
+
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3070
 msgid "Edit Height Range"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3319
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3360
 msgid "Selection-Remove from list"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3327
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3368
 msgid "Selection-Add from list"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3445
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3486
 msgid "Object or Instance"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3446
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3579
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3487
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3620
 msgid "Part"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3446
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3487
 msgid "Layer"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3448
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3489
 msgid "Unsupported selection"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3449
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3490
 #, possible-c-format
 msgid "You started your selection with %s Item."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3450
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3491
 #, possible-c-format
 msgid "In this mode you can select only other %s Items%s"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3453
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3494
 msgid "of a current Object"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3458
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3533 src/slic3r/GUI/Plater.cpp:141
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3499
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3574 src/slic3r/GUI/Plater.cpp:141
 msgid "Info"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3574
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3615
 msgid "You can't change a type of the last solid part of the object."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3579
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3620
 msgid "Modifier"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3579
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3620
 msgid "Support Enforcer"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3579
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3620
 msgid "Support Blocker"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3581
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3622
 msgid "Select type of part"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3586
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3627
 msgid "Change Part Type"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3831
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3872
 msgid "Enter new name"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3831
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3872
 msgid "Renaming"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3847
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3954 src/slic3r/GUI/Tab.cpp:3518
-#: src/slic3r/GUI/Tab.cpp:3522
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3888
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3995 src/slic3r/GUI/Tab.cpp:3519
+#: src/slic3r/GUI/Tab.cpp:3523
 msgid "The supplied name is not valid;"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3848
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3955 src/slic3r/GUI/Tab.cpp:3519
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3889
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3996 src/slic3r/GUI/Tab.cpp:3520
 msgid "the following characters are not allowed:"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3999
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4040
 msgid "Select extruder number:"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4000
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4041
 msgid "This extruder will be set for selected items"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4025
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4066
 msgid "Change Extruders"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4122 src/slic3r/GUI/Selection.cpp:1475
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4163 src/slic3r/GUI/Selection.cpp:1475
 msgid "Set Printable"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4122 src/slic3r/GUI/Selection.cpp:1475
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4163 src/slic3r/GUI/Selection.cpp:1475
 msgid "Set Unprintable"
 msgstr ""
 
@@ -2733,8 +2752,8 @@ msgstr ""
 
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:216
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:458
-#: src/slic3r/GUI/Mouse3DController.cpp:271
-#: src/slic3r/GUI/Mouse3DController.cpp:294
+#: src/slic3r/GUI/Mouse3DController.cpp:290
+#: src/slic3r/GUI/Mouse3DController.cpp:313
 msgid "Rotation"
 msgstr ""
 
@@ -2836,11 +2855,11 @@ msgstr ""
 msgid "Height"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_Preview.cpp:223 src/libslic3r/PrintConfig.cpp:2238
+#: src/slic3r/GUI/GUI_Preview.cpp:223 src/libslic3r/PrintConfig.cpp:2245
 msgid "Width"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_Preview.cpp:225 src/slic3r/GUI/Tab.cpp:1512
+#: src/slic3r/GUI/GUI_Preview.cpp:225 src/slic3r/GUI/Tab.cpp:1513
 msgid "Fan speed"
 msgstr ""
 
@@ -2884,12 +2903,12 @@ msgid "Internal infill"
 msgstr ""
 
 #: src/slic3r/GUI/GUI_Preview.cpp:241 src/libslic3r/ExtrusionEntity.cpp:314
-#: src/libslic3r/PrintConfig.cpp:1756 src/libslic3r/PrintConfig.cpp:1767
+#: src/libslic3r/PrintConfig.cpp:1763 src/libslic3r/PrintConfig.cpp:1774
 msgid "Solid infill"
 msgstr ""
 
 #: src/slic3r/GUI/GUI_Preview.cpp:242 src/libslic3r/ExtrusionEntity.cpp:315
-#: src/libslic3r/PrintConfig.cpp:2105 src/libslic3r/PrintConfig.cpp:2117
+#: src/libslic3r/PrintConfig.cpp:2112 src/libslic3r/PrintConfig.cpp:2124
 msgid "Top solid infill"
 msgstr ""
 
@@ -2908,16 +2927,16 @@ msgid "Skirt"
 msgstr ""
 
 #: src/slic3r/GUI/GUI_Preview.cpp:247 src/libslic3r/ExtrusionEntity.cpp:320
-#: src/libslic3r/PrintConfig.cpp:1991
+#: src/libslic3r/PrintConfig.cpp:1998
 msgid "Support material interface"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_Preview.cpp:248 src/slic3r/GUI/Tab.cpp:1251
+#: src/slic3r/GUI/GUI_Preview.cpp:248 src/slic3r/GUI/Tab.cpp:1252
 #: src/libslic3r/ExtrusionEntity.cpp:321
 msgid "Wipe tower"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_Preview.cpp:253 src/libslic3r/PrintConfig.cpp:2152
+#: src/slic3r/GUI/GUI_Preview.cpp:253 src/libslic3r/PrintConfig.cpp:2159
 msgid "Travel"
 msgstr ""
 
@@ -2941,7 +2960,7 @@ msgstr ""
 msgid "ERROR: not enough resources to execute a new job."
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:41 src/slic3r/GUI/MainFrame.cpp:755
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:41 src/slic3r/GUI/MainFrame.cpp:789
 msgid "Keyboard Shortcuts"
 msgstr ""
 
@@ -2978,11 +2997,11 @@ msgid "Load Config from ini/amf/3mf/gcode and merge"
 msgstr ""
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:122 src/slic3r/GUI/Plater.cpp:896
-#: src/slic3r/GUI/Plater.cpp:5553 src/libslic3r/PrintConfig.cpp:3363
+#: src/slic3r/GUI/Plater.cpp:5562 src/libslic3r/PrintConfig.cpp:3375
 msgid "Export G-code"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:123 src/slic3r/GUI/Plater.cpp:5554
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:123 src/slic3r/GUI/Plater.cpp:5563
 msgid "Send G-code"
 msgstr ""
 
@@ -3055,877 +3074,877 @@ msgstr ""
 msgid "Camera view"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:148
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:147
 msgid "Show/Hide object/instance labels"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:151 src/slic3r/GUI/Preferences.cpp:10
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:149 src/slic3r/GUI/Preferences.cpp:10
 msgid "Preferences"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:153
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:151
 msgid "Show keyboard shortcuts list"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:156
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:154
 msgid "Commands"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:161
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:159
 msgid "Add Instance of the selected object"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:162
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:160
 msgid "Remove Instance of the selected object"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:163
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:161
 msgid ""
 "Press to select multiple objects\n"
 "or move multiple objects with mouse"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:164
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:162
 msgid "Press to activate selection rectangle"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:165
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:163
 msgid "Press to activate deselection rectangle"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:166
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:206
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:216
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:164
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:204
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:214
 msgid "Arrow Up"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:166
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:164
 msgid "Move selection 10 mm in positive Y direction"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:167
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:207
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:217
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:165
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:205
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:215
 msgid "Arrow Down"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:167
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:165
 msgid "Move selection 10 mm in negative Y direction"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:168
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:218
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:166
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:216
 msgid "Arrow Left"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:168
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:166
 msgid "Move selection 10 mm in negative X direction"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:169
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:219
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:167
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:217
 msgid "Arrow Right"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:169
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:167
 msgid "Move selection 10 mm in positive X direction"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:170
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:171
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:168
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:169
 msgid "Any arrow"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:170
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:168
 msgid "Movement step set to 1 mm"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:171
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:169
 msgid "Movement in camera space"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:172
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:170
 msgid "Page Up"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:172
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:170
 msgid "Rotate selection 45 degrees CCW"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:173
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:171
 msgid "Page Down"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:173
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:171
 msgid "Rotate selection 45 degrees CW"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:174
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:172
 msgid "Gizmo move"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:175
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:173
 msgid "Gizmo scale"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:176
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:174
 msgid "Gizmo rotate"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:177
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:175
 msgid "Gizmo cut"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:178
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:176
 msgid "Gizmo Place face on bed"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:179
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:177
 msgid "Gizmo SLA hollow"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:180
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:178
 msgid "Gizmo SLA support points"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:181
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:179
 msgid "Unselect gizmo or clear selection"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:182
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:180
 msgid "Change camera type (perspective, orthographic)"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:183
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:181
 msgid "Zoom to Bed"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:184
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:182
 msgid ""
 "Zoom to selected object\n"
 "or all objects in scene, if none selected"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:185
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:183
 msgid "Zoom in"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:186
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:184
 msgid "Zoom out"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:187
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:185
 msgid "Show/Hide 3Dconnexion devices settings dialog"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:194 src/slic3r/GUI/MainFrame.cpp:222
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:192 src/slic3r/GUI/MainFrame.cpp:256
 msgid "Plater"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:197
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:195
 #, possible-c-format
 msgid ""
 "Press to snap by 5% in Gizmo scale\n"
 "or to snap by 1mm in Gizmo move"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:198
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:196
 msgid ""
 "Scale selection to fit print volume\n"
 "in Gizmo scale"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:199
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:197
 msgid "Press to activate one direction scaling in Gizmo scale"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:200
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:198
 msgid ""
 "Press to scale (in Gizmo scale) or rotate (in Gizmo rotate)\n"
 "selected objects around their own center"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:203
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:201
 msgid "Gizmos"
 msgstr ""
 
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:204
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:206
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:208
 msgid "Upper Layer"
 msgstr ""
 
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:205
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:207
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:209
 msgid "Lower Layer"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:210
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:208
 msgid "Show/Hide Legend"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:213 src/slic3r/GUI/Plater.cpp:4163
-#: src/slic3r/GUI/Tab.cpp:2374
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:211 src/slic3r/GUI/Plater.cpp:4172
+#: src/slic3r/GUI/Tab.cpp:2375
 msgid "Preview"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:216
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:214
 msgid "Move current slider thumb Up"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:217
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:215
 msgid "Move current slider thumb Down"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:218
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:216
 msgid "Set upper thumb to current slider thumb"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:219
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:217
 msgid "Set lower thumb to current slider thumb"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:220
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:218
 msgid "Add color change marker for current layer"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:221
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:219
 msgid "Delete color change marker for current layer"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:224
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:222
 msgid "Layers Slider"
 msgstr ""
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:247
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:245
 msgid "Keyboard shortcuts"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:67
+#: src/slic3r/GUI/MainFrame.cpp:71
 msgid ""
 " - Remember to check for updates at http://github.com/prusa3d/PrusaSlicer/"
 "releases"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:192
+#: src/slic3r/GUI/MainFrame.cpp:226
 msgid "based on Slic3r"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:444
+#: src/slic3r/GUI/MainFrame.cpp:478
 msgid "&New Project"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:444
+#: src/slic3r/GUI/MainFrame.cpp:478
 msgid "Start a new project"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:447
+#: src/slic3r/GUI/MainFrame.cpp:481
 msgid "&Open Project"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:447
+#: src/slic3r/GUI/MainFrame.cpp:481
 msgid "Open a project file"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:452
+#: src/slic3r/GUI/MainFrame.cpp:486
 msgid "Recent projects"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:461
+#: src/slic3r/GUI/MainFrame.cpp:495
 msgid ""
 "The selected project is no longer available.\n"
 "Do you want to remove it from the recent projects list?"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:461 src/slic3r/GUI/MainFrame.cpp:832
+#: src/slic3r/GUI/MainFrame.cpp:495 src/slic3r/GUI/MainFrame.cpp:866
 #: src/slic3r/GUI/PrintHostDialogs.cpp:231
 msgid "Error"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:486
+#: src/slic3r/GUI/MainFrame.cpp:520
 msgid "&Save Project"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:486
+#: src/slic3r/GUI/MainFrame.cpp:520
 msgid "Save current project file"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:490 src/slic3r/GUI/MainFrame.cpp:492
+#: src/slic3r/GUI/MainFrame.cpp:524 src/slic3r/GUI/MainFrame.cpp:526
 msgid "Save Project &as"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:490 src/slic3r/GUI/MainFrame.cpp:492
+#: src/slic3r/GUI/MainFrame.cpp:524 src/slic3r/GUI/MainFrame.cpp:526
 msgid "Save current project file as"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:500
+#: src/slic3r/GUI/MainFrame.cpp:534
 msgid "Import STL/OBJ/AM&F/3MF"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:500
+#: src/slic3r/GUI/MainFrame.cpp:534
 msgid "Load a model"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:504
+#: src/slic3r/GUI/MainFrame.cpp:538
 msgid "Import &Config"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:504
+#: src/slic3r/GUI/MainFrame.cpp:538
 msgid "Load exported configuration file"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:507
+#: src/slic3r/GUI/MainFrame.cpp:541
 msgid "Import Config from &project"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:507
+#: src/slic3r/GUI/MainFrame.cpp:541
 msgid "Load configuration from project file"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:511
+#: src/slic3r/GUI/MainFrame.cpp:545
 msgid "Import Config &Bundle"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:511
+#: src/slic3r/GUI/MainFrame.cpp:545
 msgid "Load presets from a bundle"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:514
+#: src/slic3r/GUI/MainFrame.cpp:548
 msgid "&Import"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:517 src/slic3r/GUI/MainFrame.cpp:796
+#: src/slic3r/GUI/MainFrame.cpp:551 src/slic3r/GUI/MainFrame.cpp:830
 msgid "Export &G-code"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:517
+#: src/slic3r/GUI/MainFrame.cpp:551
 msgid "Export current plate as G-code"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:521 src/slic3r/GUI/MainFrame.cpp:797
+#: src/slic3r/GUI/MainFrame.cpp:555 src/slic3r/GUI/MainFrame.cpp:831
 msgid "S&end G-code"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:521
+#: src/slic3r/GUI/MainFrame.cpp:555
 msgid "Send to print current plate as G-code"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:525
+#: src/slic3r/GUI/MainFrame.cpp:559
 msgid "Export G-code to SD card / Flash drive"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:525
+#: src/slic3r/GUI/MainFrame.cpp:559
 msgid "Export current plate as G-code to SD card / Flash drive"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:529
+#: src/slic3r/GUI/MainFrame.cpp:563
 msgid "Export plate as &STL"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:529
+#: src/slic3r/GUI/MainFrame.cpp:563
 msgid "Export current plate as STL"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:532
+#: src/slic3r/GUI/MainFrame.cpp:566
 msgid "Export plate as STL &including supports"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:532
+#: src/slic3r/GUI/MainFrame.cpp:566
 msgid "Export current plate as STL including supports"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:535
+#: src/slic3r/GUI/MainFrame.cpp:569
 msgid "Export plate as &AMF"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:535
+#: src/slic3r/GUI/MainFrame.cpp:569
 msgid "Export current plate as AMF"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:539
+#: src/slic3r/GUI/MainFrame.cpp:573
 msgid "Export &toolpaths as OBJ"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:539
+#: src/slic3r/GUI/MainFrame.cpp:573
 msgid "Export toolpaths as OBJ"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:543
+#: src/slic3r/GUI/MainFrame.cpp:577
 msgid "Export &Config"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:543
+#: src/slic3r/GUI/MainFrame.cpp:577
 msgid "Export current configuration to file"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:546
+#: src/slic3r/GUI/MainFrame.cpp:580
 msgid "Export Config &Bundle"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:546
+#: src/slic3r/GUI/MainFrame.cpp:580
 msgid "Export all presets to file"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:549
+#: src/slic3r/GUI/MainFrame.cpp:583
 msgid "&Export"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:551
+#: src/slic3r/GUI/MainFrame.cpp:585
 msgid "Ejec&t SD card / Flash drive"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:551
+#: src/slic3r/GUI/MainFrame.cpp:585
 msgid "Eject SD card / Flash drive after the G-code was exported to it."
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:559
+#: src/slic3r/GUI/MainFrame.cpp:593
 msgid "Quick Slice"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:559
+#: src/slic3r/GUI/MainFrame.cpp:593
 msgid "Slice a file into a G-code"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:565
+#: src/slic3r/GUI/MainFrame.cpp:599
 msgid "Quick Slice and Save As"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:565
+#: src/slic3r/GUI/MainFrame.cpp:599
 msgid "Slice a file into a G-code, save as"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:571
+#: src/slic3r/GUI/MainFrame.cpp:605
 msgid "Repeat Last Quick Slice"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:571
+#: src/slic3r/GUI/MainFrame.cpp:605
 msgid "Repeat last quick slice"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:579
+#: src/slic3r/GUI/MainFrame.cpp:613
 msgid "(Re)Slice No&w"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:579
+#: src/slic3r/GUI/MainFrame.cpp:613
 msgid "Start new slicing process"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:583
+#: src/slic3r/GUI/MainFrame.cpp:617
 msgid "&Repair STL file"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:583
+#: src/slic3r/GUI/MainFrame.cpp:617
 msgid "Automatically repair an STL file"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:587
+#: src/slic3r/GUI/MainFrame.cpp:621
 msgid "&Quit"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:587
+#: src/slic3r/GUI/MainFrame.cpp:621
 #, possible-c-format
 msgid "Quit %s"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:612
+#: src/slic3r/GUI/MainFrame.cpp:646
 msgid "&Select all"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:613
+#: src/slic3r/GUI/MainFrame.cpp:647
 msgid "Selects all objects"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:615
+#: src/slic3r/GUI/MainFrame.cpp:649
 msgid "D&eselect all"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:616
+#: src/slic3r/GUI/MainFrame.cpp:650
 msgid "Deselects all objects"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:619
+#: src/slic3r/GUI/MainFrame.cpp:653
 msgid "&Delete selected"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:620
+#: src/slic3r/GUI/MainFrame.cpp:654
 msgid "Deletes the current selection"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:622
+#: src/slic3r/GUI/MainFrame.cpp:656
 msgid "Delete &all"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:623
+#: src/slic3r/GUI/MainFrame.cpp:657
 msgid "Deletes all objects"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:627
+#: src/slic3r/GUI/MainFrame.cpp:661
 msgid "&Undo"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:630
+#: src/slic3r/GUI/MainFrame.cpp:664
 msgid "&Redo"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:635
+#: src/slic3r/GUI/MainFrame.cpp:669
 msgid "&Copy"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:636
+#: src/slic3r/GUI/MainFrame.cpp:670
 msgid "Copy selection to clipboard"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:638
+#: src/slic3r/GUI/MainFrame.cpp:672
 msgid "&Paste"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:639
+#: src/slic3r/GUI/MainFrame.cpp:673
 msgid "Paste clipboard"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:643
+#: src/slic3r/GUI/MainFrame.cpp:677
 msgid "Re&load from disk"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:644
+#: src/slic3r/GUI/MainFrame.cpp:678
 msgid "Reload the plater from disk"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:653
+#: src/slic3r/GUI/MainFrame.cpp:687
 msgid "&Plater Tab"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:653
+#: src/slic3r/GUI/MainFrame.cpp:687
 msgid "Show the plater"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:661
+#: src/slic3r/GUI/MainFrame.cpp:695
 msgid "P&rint Settings Tab"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:661
+#: src/slic3r/GUI/MainFrame.cpp:695
 msgid "Show the print settings"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:664 src/slic3r/GUI/MainFrame.cpp:799
+#: src/slic3r/GUI/MainFrame.cpp:698 src/slic3r/GUI/MainFrame.cpp:833
 msgid "&Filament Settings Tab"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:664
+#: src/slic3r/GUI/MainFrame.cpp:698
 msgid "Show the filament settings"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:668
+#: src/slic3r/GUI/MainFrame.cpp:702
 msgid "Print&er Settings Tab"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:668
+#: src/slic3r/GUI/MainFrame.cpp:702
 msgid "Show the printer settings"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:673
+#: src/slic3r/GUI/MainFrame.cpp:707
 msgid "3&D"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:673
+#: src/slic3r/GUI/MainFrame.cpp:707
 msgid "Show the 3D editing view"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:676
+#: src/slic3r/GUI/MainFrame.cpp:710
 msgid "Pre&view"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:676
+#: src/slic3r/GUI/MainFrame.cpp:710
 msgid "Show the 3D slices preview"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:695
+#: src/slic3r/GUI/MainFrame.cpp:729
 msgid "Print &Host Upload Queue"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:695
+#: src/slic3r/GUI/MainFrame.cpp:729
 msgid "Display the Print Host Upload Queue window"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:705
+#: src/slic3r/GUI/MainFrame.cpp:739
 msgid "Iso"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:705
+#: src/slic3r/GUI/MainFrame.cpp:739
 msgid "Iso View"
 msgstr ""
 
 #. TRN To be shown in the main menu View->Top
 #. TRN To be shown in Print Settings "Top solid layers"
-#: src/slic3r/GUI/MainFrame.cpp:709 src/libslic3r/PrintConfig.cpp:2132
-#: src/libslic3r/PrintConfig.cpp:2141
+#: src/slic3r/GUI/MainFrame.cpp:743 src/libslic3r/PrintConfig.cpp:2139
+#: src/libslic3r/PrintConfig.cpp:2148
 msgid "Top"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:709
+#: src/slic3r/GUI/MainFrame.cpp:743
 msgid "Top View"
 msgstr ""
 
 #. TRN To be shown in the main menu View->Bottom
 #. TRN To be shown in Print Settings "Bottom solid layers"
 #. TRN To be shown in Print Settings "Top solid layers"
-#: src/slic3r/GUI/MainFrame.cpp:712 src/libslic3r/PrintConfig.cpp:174
+#: src/slic3r/GUI/MainFrame.cpp:746 src/libslic3r/PrintConfig.cpp:174
 #: src/libslic3r/PrintConfig.cpp:183
 msgid "Bottom"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:712
+#: src/slic3r/GUI/MainFrame.cpp:746
 msgid "Bottom View"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:714
+#: src/slic3r/GUI/MainFrame.cpp:748
 msgid "Front"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:714
+#: src/slic3r/GUI/MainFrame.cpp:748
 msgid "Front View"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:716 src/libslic3r/PrintConfig.cpp:1632
+#: src/slic3r/GUI/MainFrame.cpp:750 src/libslic3r/PrintConfig.cpp:1632
 msgid "Rear"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:716
+#: src/slic3r/GUI/MainFrame.cpp:750
 msgid "Rear View"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:718
+#: src/slic3r/GUI/MainFrame.cpp:752
 msgid "Left"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:718
+#: src/slic3r/GUI/MainFrame.cpp:752
 msgid "Left View"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:720
+#: src/slic3r/GUI/MainFrame.cpp:754
 msgid "Right"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:720
+#: src/slic3r/GUI/MainFrame.cpp:754
 msgid "Right View"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:723
+#: src/slic3r/GUI/MainFrame.cpp:757
 msgid "Show &labels"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:723
+#: src/slic3r/GUI/MainFrame.cpp:757
 msgid "Show object/instance labels in 3D scene"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:731
+#: src/slic3r/GUI/MainFrame.cpp:765
 msgid "Prusa 3D &Drivers"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:731
+#: src/slic3r/GUI/MainFrame.cpp:765
 msgid "Open the Prusa3D drivers download page in your browser"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:733
+#: src/slic3r/GUI/MainFrame.cpp:767
 msgid "Software &Releases"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:733
+#: src/slic3r/GUI/MainFrame.cpp:767
 msgid "Open the software releases page in your browser"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:739
+#: src/slic3r/GUI/MainFrame.cpp:773
 #, possible-c-format
 msgid "%s &Website"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:740
+#: src/slic3r/GUI/MainFrame.cpp:774
 #, possible-c-format
 msgid "Open the %s website in your browser"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:746
+#: src/slic3r/GUI/MainFrame.cpp:780
 msgid "System &Info"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:746
+#: src/slic3r/GUI/MainFrame.cpp:780
 msgid "Show system information"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:748
+#: src/slic3r/GUI/MainFrame.cpp:782
 msgid "Show &Configuration Folder"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:748
+#: src/slic3r/GUI/MainFrame.cpp:782
 msgid "Show user configuration folder (datadir)"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:750
+#: src/slic3r/GUI/MainFrame.cpp:784
 msgid "Report an I&ssue"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:750
+#: src/slic3r/GUI/MainFrame.cpp:784
 #, possible-c-format
 msgid "Report an issue on %s"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:752
+#: src/slic3r/GUI/MainFrame.cpp:786
 #, possible-c-format
 msgid "&About %s"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:752
+#: src/slic3r/GUI/MainFrame.cpp:786
 msgid "Show about dialog"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:755
+#: src/slic3r/GUI/MainFrame.cpp:789
 msgid "Show the list of the keyboard shortcuts"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:768
+#: src/slic3r/GUI/MainFrame.cpp:802
 msgid "&File"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:769
+#: src/slic3r/GUI/MainFrame.cpp:803
 msgid "&Edit"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:770
+#: src/slic3r/GUI/MainFrame.cpp:804
 msgid "&Window"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:771
+#: src/slic3r/GUI/MainFrame.cpp:805
 msgid "&View"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:774
+#: src/slic3r/GUI/MainFrame.cpp:808
 msgid "&Help"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:796
+#: src/slic3r/GUI/MainFrame.cpp:830
 msgid "E&xport"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:797
+#: src/slic3r/GUI/MainFrame.cpp:831
 msgid "S&end to print"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:799
+#: src/slic3r/GUI/MainFrame.cpp:833
 msgid "Mate&rial Settings Tab"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:820
+#: src/slic3r/GUI/MainFrame.cpp:854
 msgid "Choose a file to slice (STL/OBJ/AMF/3MF/PRUSA):"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:831
+#: src/slic3r/GUI/MainFrame.cpp:865
 msgid "No previously sliced file."
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:837
+#: src/slic3r/GUI/MainFrame.cpp:871
 msgid "Previously sliced file ("
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:837
+#: src/slic3r/GUI/MainFrame.cpp:871
 msgid ") not found."
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:838
+#: src/slic3r/GUI/MainFrame.cpp:872
 msgid "File Not Found"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:873
+#: src/slic3r/GUI/MainFrame.cpp:907
 #, possible-c-format
 msgid "Save %s file as:"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:873
+#: src/slic3r/GUI/MainFrame.cpp:907
 msgid "SVG"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:873
+#: src/slic3r/GUI/MainFrame.cpp:907
 msgid "G-code"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:885
+#: src/slic3r/GUI/MainFrame.cpp:919
 msgid "Save zip file as:"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:894 src/slic3r/GUI/Plater.cpp:3184
-#: src/slic3r/GUI/Plater.cpp:5156 src/slic3r/GUI/Tab.cpp:1281
-#: src/slic3r/GUI/Tab.cpp:3720
+#: src/slic3r/GUI/MainFrame.cpp:928 src/slic3r/GUI/Plater.cpp:3188
+#: src/slic3r/GUI/Plater.cpp:5165 src/slic3r/GUI/Tab.cpp:1282
+#: src/slic3r/GUI/Tab.cpp:3721
 msgid "Slicing"
 msgstr ""
 
 #. TRN "Processing input_file_basename"
-#: src/slic3r/GUI/MainFrame.cpp:896
+#: src/slic3r/GUI/MainFrame.cpp:930
 #, possible-c-format
 msgid "Processing %s"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:919
+#: src/slic3r/GUI/MainFrame.cpp:953
 msgid " was successfully sliced."
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:921
+#: src/slic3r/GUI/MainFrame.cpp:955
 msgid "Slicing Done!"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:936
+#: src/slic3r/GUI/MainFrame.cpp:970
 msgid "Select the STL file to repair:"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:946
+#: src/slic3r/GUI/MainFrame.cpp:980
 msgid "Save OBJ file (less prone to coordinate errors than STL) as:"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:958
+#: src/slic3r/GUI/MainFrame.cpp:992
 msgid "Your file was repaired."
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:958 src/libslic3r/PrintConfig.cpp:3457
+#: src/slic3r/GUI/MainFrame.cpp:992 src/libslic3r/PrintConfig.cpp:3469
 msgid "Repair"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:972
+#: src/slic3r/GUI/MainFrame.cpp:1006
 msgid "Save configuration as:"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:991 src/slic3r/GUI/MainFrame.cpp:1053
+#: src/slic3r/GUI/MainFrame.cpp:1025 src/slic3r/GUI/MainFrame.cpp:1087
 msgid "Select configuration to load:"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:1027
+#: src/slic3r/GUI/MainFrame.cpp:1061
 msgid "Save presets bundle as:"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:1074
+#: src/slic3r/GUI/MainFrame.cpp:1108
 #, possible-c-format
 msgid "%d presets successfully imported."
 msgstr ""
 
-#: src/slic3r/GUI/Mouse3DController.cpp:239
+#: src/slic3r/GUI/Mouse3DController.cpp:258
 msgid "3Dconnexion settings"
 msgstr ""
 
-#: src/slic3r/GUI/Mouse3DController.cpp:254
+#: src/slic3r/GUI/Mouse3DController.cpp:273
 msgid "Device:"
 msgstr ""
 
-#: src/slic3r/GUI/Mouse3DController.cpp:261
+#: src/slic3r/GUI/Mouse3DController.cpp:280
 msgid "Speed:"
 msgstr ""
 
-#: src/slic3r/GUI/Mouse3DController.cpp:265
-#: src/slic3r/GUI/Mouse3DController.cpp:288
+#: src/slic3r/GUI/Mouse3DController.cpp:284
+#: src/slic3r/GUI/Mouse3DController.cpp:307
 msgid "Translation"
 msgstr ""
 
-#: src/slic3r/GUI/Mouse3DController.cpp:277
-#: src/slic3r/GUI/Mouse3DController.cpp:288
+#: src/slic3r/GUI/Mouse3DController.cpp:296
+#: src/slic3r/GUI/Mouse3DController.cpp:307
 msgid "Zoom"
 msgstr ""
 
-#: src/slic3r/GUI/Mouse3DController.cpp:284
+#: src/slic3r/GUI/Mouse3DController.cpp:303
 msgid "Deadzone:"
 msgstr ""
 
@@ -3949,8 +3968,8 @@ msgstr ""
 msgid "Instance %d"
 msgstr ""
 
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:67 src/slic3r/GUI/Tab.cpp:3574
-#: src/slic3r/GUI/Tab.cpp:3656
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:67 src/slic3r/GUI/Tab.cpp:3575
+#: src/slic3r/GUI/Tab.cpp:3657
 msgid "Layers"
 msgstr ""
 
@@ -4025,8 +4044,8 @@ msgstr ""
 msgid "Select what kind of support do you need"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:505 src/libslic3r/PrintConfig.cpp:1901
-#: src/libslic3r/PrintConfig.cpp:2684
+#: src/slic3r/GUI/Plater.cpp:505 src/libslic3r/PrintConfig.cpp:1908
+#: src/libslic3r/PrintConfig.cpp:2691
 msgid "Support on build plate only"
 msgstr ""
 
@@ -4038,7 +4057,7 @@ msgstr ""
 msgid "Everywhere"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:539 src/slic3r/GUI/Tab.cpp:1177
+#: src/slic3r/GUI/Plater.cpp:539 src/slic3r/GUI/Tab.cpp:1178
 msgid "Brim"
 msgstr ""
 
@@ -4068,8 +4087,8 @@ msgstr ""
 msgid "Print settings"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:821 src/slic3r/GUI/Tab.cpp:1480
-#: src/slic3r/GUI/Tab.cpp:1481
+#: src/slic3r/GUI/Plater.cpp:821 src/slic3r/GUI/Tab.cpp:1481
+#: src/slic3r/GUI/Tab.cpp:1482
 msgid "Filament"
 msgstr ""
 
@@ -4077,7 +4096,7 @@ msgstr ""
 msgid "SLA print settings"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:823 src/slic3r/GUI/Preset.cpp:1557
+#: src/slic3r/GUI/Plater.cpp:823 src/slic3r/GUI/Preset.cpp:1565
 msgid "SLA material"
 msgstr ""
 
@@ -4085,7 +4104,7 @@ msgstr ""
 msgid "Printer"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:883 src/slic3r/GUI/Plater.cpp:5554
+#: src/slic3r/GUI/Plater.cpp:883 src/slic3r/GUI/Plater.cpp:5563
 msgid "Send to printer"
 msgstr ""
 
@@ -4093,8 +4112,8 @@ msgstr ""
 msgid "Remove device"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:897 src/slic3r/GUI/Plater.cpp:3184
-#: src/slic3r/GUI/Plater.cpp:5159
+#: src/slic3r/GUI/Plater.cpp:897 src/slic3r/GUI/Plater.cpp:3188
+#: src/slic3r/GUI/Plater.cpp:5168
 msgid "Slice now"
 msgstr ""
 
@@ -4144,7 +4163,7 @@ msgid "wipe tower"
 msgstr ""
 
 #: src/slic3r/GUI/Plater.cpp:1248 src/libslic3r/PrintConfig.cpp:760
-#: src/libslic3r/PrintConfig.cpp:2510 src/libslic3r/PrintConfig.cpp:2511
+#: src/libslic3r/PrintConfig.cpp:2517 src/libslic3r/PrintConfig.cpp:2518
 msgid "Cost"
 msgstr ""
 
@@ -4172,421 +4191,421 @@ msgstr ""
 msgid "Load Files"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2199
+#: src/slic3r/GUI/Plater.cpp:2205
 #, possible-c-format
 msgid ""
 "Unmounting successful. The device %s(%s) can now be safely removed from the "
 "computer."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2202
+#: src/slic3r/GUI/Plater.cpp:2208
 #, possible-c-format
 msgid "Ejecting of device %s(%s) has failed."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2210
+#: src/slic3r/GUI/Plater.cpp:2221
 msgid "New Project"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2331
+#: src/slic3r/GUI/Plater.cpp:2335
 msgid "Loading"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2341
+#: src/slic3r/GUI/Plater.cpp:2345
 #, possible-c-format
 msgid "Processing input file %s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2369
+#: src/slic3r/GUI/Plater.cpp:2373
 msgid "You cannot load SLA project with a multi-part object on the bed"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2370 src/slic3r/GUI/Tab.cpp:2947
+#: src/slic3r/GUI/Plater.cpp:2374 src/slic3r/GUI/Tab.cpp:2948
 msgid "Please check your object list before preset changing."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2415
+#: src/slic3r/GUI/Plater.cpp:2419
 msgid ""
 "This file contains several objects positioned at multiple heights.\n"
 "Instead of considering them as multiple objects, should I consider\n"
 "this file as a single object having multiple parts?"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2418 src/slic3r/GUI/Plater.cpp:2471
+#: src/slic3r/GUI/Plater.cpp:2422 src/slic3r/GUI/Plater.cpp:2475
 msgid "Multi-part object detected"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2425
+#: src/slic3r/GUI/Plater.cpp:2429
 msgid ""
 "This file cannot be loaded in a simple mode. Do you want to switch to an "
 "advanced mode?"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2426
+#: src/slic3r/GUI/Plater.cpp:2430
 msgid "Detected advanced data"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2448
+#: src/slic3r/GUI/Plater.cpp:2452
 #, possible-c-format
 msgid ""
 "You can't to add the object(s) from %s because of one or some of them "
 "is(are) multi-part"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2468
+#: src/slic3r/GUI/Plater.cpp:2472
 msgid ""
 "Multiple objects were loaded for a multi-material printer.\n"
 "Instead of considering them as multiple objects, should I consider\n"
 "these files to represent a single object having multiple parts?"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2484
+#: src/slic3r/GUI/Plater.cpp:2488
 msgid "Loaded"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2586
+#: src/slic3r/GUI/Plater.cpp:2590
 msgid ""
 "Your object appears to be too large, so it was automatically scaled down to "
 "fit your print bed."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2587
+#: src/slic3r/GUI/Plater.cpp:2591
 msgid "Object too large?"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2649
+#: src/slic3r/GUI/Plater.cpp:2653
 msgid "Export STL file:"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2656
+#: src/slic3r/GUI/Plater.cpp:2660
 msgid "Export AMF file:"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2662
+#: src/slic3r/GUI/Plater.cpp:2666
 msgid "Save file as:"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2668
+#: src/slic3r/GUI/Plater.cpp:2672
 msgid "Export OBJ file:"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2770
+#: src/slic3r/GUI/Plater.cpp:2774
 msgid "Delete Object"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2781
+#: src/slic3r/GUI/Plater.cpp:2785
 msgid "Reset Project"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2818
+#: src/slic3r/GUI/Plater.cpp:2822
 msgid "Hollow"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2825
+#: src/slic3r/GUI/Plater.cpp:2829
 msgid "Optimize Rotation"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2871
+#: src/slic3r/GUI/Plater.cpp:2875
 msgid "Arranging"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2898
+#: src/slic3r/GUI/Plater.cpp:2902
 msgid "Could not arrange model objects! Some geometries may be invalid."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2904
+#: src/slic3r/GUI/Plater.cpp:2908
 msgid "Arranging canceled."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2905
+#: src/slic3r/GUI/Plater.cpp:2909
 msgid "Arranging done."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2921
+#: src/slic3r/GUI/Plater.cpp:2925
 msgid "Searching for optimal orientation"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2954
+#: src/slic3r/GUI/Plater.cpp:2958
 msgid "Orientation search canceled."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2955
+#: src/slic3r/GUI/Plater.cpp:2959
 msgid "Orientation found."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2985
+#: src/slic3r/GUI/Plater.cpp:2989
 msgid "Indexing hollowed object"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2989
+#: src/slic3r/GUI/Plater.cpp:2993
 msgid "Hollowing cancelled."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2990
+#: src/slic3r/GUI/Plater.cpp:2994
 msgid "Hollowing done."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2992
+#: src/slic3r/GUI/Plater.cpp:2996
 msgid "Hollowing failed."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3033
+#: src/slic3r/GUI/Plater.cpp:3037
 msgid ""
 "The selected object can't be split because it contains more than one volume/"
 "material."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3044
+#: src/slic3r/GUI/Plater.cpp:3048
 msgid "Split to Objects"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3169
+#: src/slic3r/GUI/Plater.cpp:3173
 msgid "Invalid data"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3178
+#: src/slic3r/GUI/Plater.cpp:3182
 msgid "Ready to slice"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3216 src/slic3r/GUI/PrintHostDialogs.cpp:232
+#: src/slic3r/GUI/Plater.cpp:3220 src/slic3r/GUI/PrintHostDialogs.cpp:232
 msgid "Cancelling"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3233
+#: src/slic3r/GUI/Plater.cpp:3237
 msgid "Another export job is currently running."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3349
+#: src/slic3r/GUI/Plater.cpp:3353
 msgid "Please select the file to reload"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3384
+#: src/slic3r/GUI/Plater.cpp:3388
 msgid "It is not allowed to change the file to reload"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3384
+#: src/slic3r/GUI/Plater.cpp:3388
 msgid "Do you want to retry"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3402
+#: src/slic3r/GUI/Plater.cpp:3406
 msgid "Reload from:"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3491
+#: src/slic3r/GUI/Plater.cpp:3495
 msgid "Unable to reload:"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3496
+#: src/slic3r/GUI/Plater.cpp:3500
 msgid "Error during reload"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3515
+#: src/slic3r/GUI/Plater.cpp:3519
 msgid "Reload all from disk"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3536
+#: src/slic3r/GUI/Plater.cpp:3540
 msgid "Fix Throught NetFabb"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3727
+#: src/slic3r/GUI/Plater.cpp:3731
 msgid "Export failed"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3732 src/slic3r/GUI/PrintHostDialogs.cpp:233
+#: src/slic3r/GUI/Plater.cpp:3741 src/slic3r/GUI/PrintHostDialogs.cpp:233
 msgid "Cancelled"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3989 src/slic3r/GUI/Plater.cpp:4011
+#: src/slic3r/GUI/Plater.cpp:3998 src/slic3r/GUI/Plater.cpp:4020
 msgid "Remove the selected object"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3998
+#: src/slic3r/GUI/Plater.cpp:4007
 msgid "Add one more instance of the selected object"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4000
+#: src/slic3r/GUI/Plater.cpp:4009
 msgid "Remove one instance of the selected object"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4002
+#: src/slic3r/GUI/Plater.cpp:4011
 msgid "Set number of instances"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4002
+#: src/slic3r/GUI/Plater.cpp:4011
 msgid "Change the number of instances of the selected object"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4021
+#: src/slic3r/GUI/Plater.cpp:4030
 msgid "Reload the selected object from disk"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4024
+#: src/slic3r/GUI/Plater.cpp:4033
 msgid "Export the selected object as STL file"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4053
+#: src/slic3r/GUI/Plater.cpp:4062
 msgid "Along X axis"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4053
+#: src/slic3r/GUI/Plater.cpp:4062
 msgid "Mirror the selected object along the X axis"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4055
+#: src/slic3r/GUI/Plater.cpp:4064
 msgid "Along Y axis"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4055
+#: src/slic3r/GUI/Plater.cpp:4064
 msgid "Mirror the selected object along the Y axis"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4057
+#: src/slic3r/GUI/Plater.cpp:4066
 msgid "Along Z axis"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4057
+#: src/slic3r/GUI/Plater.cpp:4066
 msgid "Mirror the selected object along the Z axis"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4060
+#: src/slic3r/GUI/Plater.cpp:4069
 msgid "Mirror"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4060
+#: src/slic3r/GUI/Plater.cpp:4069
 msgid "Mirror the selected object"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4072
+#: src/slic3r/GUI/Plater.cpp:4081
 msgid "To objects"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4072 src/slic3r/GUI/Plater.cpp:4092
+#: src/slic3r/GUI/Plater.cpp:4081 src/slic3r/GUI/Plater.cpp:4101
 msgid "Split the selected object into individual objects"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4074
+#: src/slic3r/GUI/Plater.cpp:4083
 msgid "To parts"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4074 src/slic3r/GUI/Plater.cpp:4106
+#: src/slic3r/GUI/Plater.cpp:4083 src/slic3r/GUI/Plater.cpp:4115
 msgid "Split the selected object into individual sub-parts"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4077 src/slic3r/GUI/Plater.cpp:4092
-#: src/slic3r/GUI/Plater.cpp:4106 src/libslic3r/PrintConfig.cpp:3481
+#: src/slic3r/GUI/Plater.cpp:4086 src/slic3r/GUI/Plater.cpp:4101
+#: src/slic3r/GUI/Plater.cpp:4115 src/libslic3r/PrintConfig.cpp:3493
 msgid "Split"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4077
+#: src/slic3r/GUI/Plater.cpp:4086
 msgid "Split the selected object"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4098
+#: src/slic3r/GUI/Plater.cpp:4107
 msgid "Optimize orientation"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4098
+#: src/slic3r/GUI/Plater.cpp:4107
 msgid "Optimize the rotation of the object for better print results."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4155
+#: src/slic3r/GUI/Plater.cpp:4164
 msgid "3D editor view"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4462
+#: src/slic3r/GUI/Plater.cpp:4471
 msgid ""
 "%1% printer was active at the time the target Undo / Redo snapshot was "
 "taken. Switching to %1% printer requires reloading of %1% presets."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4637
+#: src/slic3r/GUI/Plater.cpp:4646
 msgid "Load Project"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4665
+#: src/slic3r/GUI/Plater.cpp:4674
 msgid "Import Object"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4669
+#: src/slic3r/GUI/Plater.cpp:4678
 msgid "Import Objects"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4731
+#: src/slic3r/GUI/Plater.cpp:4740
 msgid "All objects will be removed, continue?"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4739
+#: src/slic3r/GUI/Plater.cpp:4748
 msgid "Delete Selected Objects"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4747
+#: src/slic3r/GUI/Plater.cpp:4756
 msgid "Increase Instances"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4782
+#: src/slic3r/GUI/Plater.cpp:4791
 msgid "Decrease Instances"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4813
+#: src/slic3r/GUI/Plater.cpp:4822
 msgid "Enter the number of copies:"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4814
+#: src/slic3r/GUI/Plater.cpp:4823
 msgid "Copies of the selected object"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4818
+#: src/slic3r/GUI/Plater.cpp:4827
 #, possible-c-format
 msgid "Set numbers of copies to %d"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4848
+#: src/slic3r/GUI/Plater.cpp:4857
 msgid "Cut by Plane"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4899
+#: src/slic3r/GUI/Plater.cpp:4908
 msgid "Save G-code file as:"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4899
+#: src/slic3r/GUI/Plater.cpp:4908
 msgid "Save SL1 file as:"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:5034
+#: src/slic3r/GUI/Plater.cpp:5043
 #, possible-c-format
 msgid "STL file exported to %s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:5051
+#: src/slic3r/GUI/Plater.cpp:5060
 #, possible-c-format
 msgid "AMF file exported to %s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:5054
+#: src/slic3r/GUI/Plater.cpp:5063
 #, possible-c-format
 msgid "Error exporting AMF file %s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:5087
+#: src/slic3r/GUI/Plater.cpp:5096
 #, possible-c-format
 msgid "3MF file exported to %s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:5092
+#: src/slic3r/GUI/Plater.cpp:5101
 #, possible-c-format
 msgid "Error exporting 3MF file %s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:5553
+#: src/slic3r/GUI/Plater.cpp:5562
 msgid "Export"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:5639
+#: src/slic3r/GUI/Plater.cpp:5648
 msgid "Paste From Clipboard"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:22 src/slic3r/GUI/Tab.cpp:1846
-#: src/slic3r/GUI/Tab.cpp:2058
+#: src/slic3r/GUI/Preferences.cpp:22 src/slic3r/GUI/Tab.cpp:1847
+#: src/slic3r/GUI/Tab.cpp:2059
 msgid "General"
 msgstr ""
 
@@ -4726,34 +4745,34 @@ msgstr ""
 msgid "modified"
 msgstr ""
 
-#: src/slic3r/GUI/Preset.cpp:1142 src/slic3r/GUI/Preset.cpp:1197
-#: src/slic3r/GUI/Preset.cpp:1275 src/slic3r/GUI/Preset.cpp:1317
-#: src/slic3r/GUI/PresetBundle.cpp:1591 src/slic3r/GUI/PresetBundle.cpp:1689
+#: src/slic3r/GUI/Preset.cpp:1150 src/slic3r/GUI/Preset.cpp:1205
+#: src/slic3r/GUI/Preset.cpp:1283 src/slic3r/GUI/Preset.cpp:1325
+#: src/slic3r/GUI/PresetBundle.cpp:1599 src/slic3r/GUI/PresetBundle.cpp:1697
 msgid "System presets"
 msgstr ""
 
-#: src/slic3r/GUI/Preset.cpp:1201 src/slic3r/GUI/Preset.cpp:1321
-#: src/slic3r/GUI/PresetBundle.cpp:1694
+#: src/slic3r/GUI/Preset.cpp:1209 src/slic3r/GUI/Preset.cpp:1329
+#: src/slic3r/GUI/PresetBundle.cpp:1702
 msgid "User presets"
 msgstr ""
 
-#: src/slic3r/GUI/Preset.cpp:1234
+#: src/slic3r/GUI/Preset.cpp:1242
 msgid "Add/Remove materials"
 msgstr ""
 
-#: src/slic3r/GUI/Preset.cpp:1236
+#: src/slic3r/GUI/Preset.cpp:1244
 msgid "Add/Remove printers"
 msgstr ""
 
-#: src/slic3r/GUI/Preset.cpp:1555
+#: src/slic3r/GUI/Preset.cpp:1563
 msgid "filament"
 msgstr ""
 
-#: src/slic3r/GUI/Preset.cpp:1556
+#: src/slic3r/GUI/Preset.cpp:1564
 msgid "SLA print"
 msgstr ""
 
-#: src/slic3r/GUI/PresetBundle.cpp:1721
+#: src/slic3r/GUI/PresetBundle.cpp:1729
 msgid "Add/Remove filaments"
 msgstr ""
 
@@ -4981,11 +5000,11 @@ msgstr ""
 
 #: src/slic3r/GUI/RammingChart.cpp:76 src/slic3r/GUI/WipeTowerDialog.cpp:83
 #: src/libslic3r/PrintConfig.cpp:644 src/libslic3r/PrintConfig.cpp:688
-#: src/libslic3r/PrintConfig.cpp:703 src/libslic3r/PrintConfig.cpp:2408
-#: src/libslic3r/PrintConfig.cpp:2417 src/libslic3r/PrintConfig.cpp:2527
-#: src/libslic3r/PrintConfig.cpp:2535 src/libslic3r/PrintConfig.cpp:2543
-#: src/libslic3r/PrintConfig.cpp:2550 src/libslic3r/PrintConfig.cpp:2558
-#: src/libslic3r/PrintConfig.cpp:2566
+#: src/libslic3r/PrintConfig.cpp:703 src/libslic3r/PrintConfig.cpp:2415
+#: src/libslic3r/PrintConfig.cpp:2424 src/libslic3r/PrintConfig.cpp:2534
+#: src/libslic3r/PrintConfig.cpp:2542 src/libslic3r/PrintConfig.cpp:2550
+#: src/libslic3r/PrintConfig.cpp:2557 src/libslic3r/PrintConfig.cpp:2565
+#: src/libslic3r/PrintConfig.cpp:2573
 msgid "s"
 msgstr ""
 
@@ -5176,7 +5195,7 @@ msgstr ""
 msgid "symbolic profile name"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1108 src/slic3r/GUI/Tab.cpp:3654
+#: src/slic3r/GUI/Tab.cpp:1108 src/slic3r/GUI/Tab.cpp:3655
 msgid "Layers and perimeters"
 msgstr ""
 
@@ -5188,7 +5207,7 @@ msgstr ""
 msgid "Horizontal shells"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1125 src/libslic3r/PrintConfig.cpp:1780
+#: src/slic3r/GUI/Tab.cpp:1125 src/libslic3r/PrintConfig.cpp:1787
 msgid "Solid layers"
 msgstr ""
 
@@ -5208,226 +5227,226 @@ msgstr ""
 msgid "Skirt and brim"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1187
+#: src/slic3r/GUI/Tab.cpp:1188
 msgid "Raft"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1191
+#: src/slic3r/GUI/Tab.cpp:1192
 msgid "Options for support material and raft"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1206
+#: src/slic3r/GUI/Tab.cpp:1207
 msgid "Speed for print moves"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1218
+#: src/slic3r/GUI/Tab.cpp:1219
 msgid "Speed for non-print moves"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1221
+#: src/slic3r/GUI/Tab.cpp:1222
 msgid "Modifiers"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1224
+#: src/slic3r/GUI/Tab.cpp:1225
 msgid "Acceleration control (advanced)"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1231
+#: src/slic3r/GUI/Tab.cpp:1232
 msgid "Autospeed (advanced)"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1239
+#: src/slic3r/GUI/Tab.cpp:1240
 msgid "Multiple Extruders"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1247
+#: src/slic3r/GUI/Tab.cpp:1248
 msgid "Ooze prevention"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1265
+#: src/slic3r/GUI/Tab.cpp:1266
 msgid "Extrusion width"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1275
+#: src/slic3r/GUI/Tab.cpp:1276
 msgid "Overlap"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1278
+#: src/slic3r/GUI/Tab.cpp:1279
 msgid "Flow"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1287
+#: src/slic3r/GUI/Tab.cpp:1288
 msgid "Other"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1290 src/slic3r/GUI/Tab.cpp:3723
+#: src/slic3r/GUI/Tab.cpp:1291 src/slic3r/GUI/Tab.cpp:3724
 msgid "Output options"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1291
+#: src/slic3r/GUI/Tab.cpp:1292
 msgid "Sequential printing"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1293
+#: src/slic3r/GUI/Tab.cpp:1294
 msgid "Extruder clearance (mm)"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1298 src/slic3r/GUI/Tab.cpp:3724
+#: src/slic3r/GUI/Tab.cpp:1299 src/slic3r/GUI/Tab.cpp:3725
 msgid "Output file"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1305 src/libslic3r/PrintConfig.cpp:1453
+#: src/slic3r/GUI/Tab.cpp:1306 src/libslic3r/PrintConfig.cpp:1453
 msgid "Post-processing scripts"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1311 src/slic3r/GUI/Tab.cpp:1312
-#: src/slic3r/GUI/Tab.cpp:1595 src/slic3r/GUI/Tab.cpp:1596
-#: src/slic3r/GUI/Tab.cpp:2034 src/slic3r/GUI/Tab.cpp:2035
-#: src/slic3r/GUI/Tab.cpp:2116 src/slic3r/GUI/Tab.cpp:2117
-#: src/slic3r/GUI/Tab.cpp:3597 src/slic3r/GUI/Tab.cpp:3598
+#: src/slic3r/GUI/Tab.cpp:1312 src/slic3r/GUI/Tab.cpp:1313
+#: src/slic3r/GUI/Tab.cpp:1596 src/slic3r/GUI/Tab.cpp:1597
+#: src/slic3r/GUI/Tab.cpp:2035 src/slic3r/GUI/Tab.cpp:2036
+#: src/slic3r/GUI/Tab.cpp:2117 src/slic3r/GUI/Tab.cpp:2118
+#: src/slic3r/GUI/Tab.cpp:3598 src/slic3r/GUI/Tab.cpp:3599
 msgid "Notes"
-msgstr ""
-
-#: src/slic3r/GUI/Tab.cpp:1318 src/slic3r/GUI/Tab.cpp:1603
-#: src/slic3r/GUI/Tab.cpp:2041 src/slic3r/GUI/Tab.cpp:2123
-#: src/slic3r/GUI/Tab.cpp:3605 src/slic3r/GUI/Tab.cpp:3729
-msgid "Dependencies"
 msgstr ""
 
 #: src/slic3r/GUI/Tab.cpp:1319 src/slic3r/GUI/Tab.cpp:1604
 #: src/slic3r/GUI/Tab.cpp:2042 src/slic3r/GUI/Tab.cpp:2124
 #: src/slic3r/GUI/Tab.cpp:3606 src/slic3r/GUI/Tab.cpp:3730
+msgid "Dependencies"
+msgstr ""
+
+#: src/slic3r/GUI/Tab.cpp:1320 src/slic3r/GUI/Tab.cpp:1605
+#: src/slic3r/GUI/Tab.cpp:2043 src/slic3r/GUI/Tab.cpp:2125
+#: src/slic3r/GUI/Tab.cpp:3607 src/slic3r/GUI/Tab.cpp:3731
 msgid "Profile dependencies"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1378 src/slic3r/GUI/Tab.cpp:1433
+#: src/slic3r/GUI/Tab.cpp:1379 src/slic3r/GUI/Tab.cpp:1434
 msgid "Filament Overrides"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1379 src/slic3r/GUI/Tab.cpp:1438
-#: src/slic3r/GUI/Tab.cpp:2354
+#: src/slic3r/GUI/Tab.cpp:1380 src/slic3r/GUI/Tab.cpp:1439
+#: src/slic3r/GUI/Tab.cpp:2355
 msgid "Retraction"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1488 src/libslic3r/PrintConfig.cpp:2067
+#: src/slic3r/GUI/Tab.cpp:1489 src/libslic3r/PrintConfig.cpp:2074
 msgid "Temperature"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1494
+#: src/slic3r/GUI/Tab.cpp:1495
 msgid "Bed"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1499
+#: src/slic3r/GUI/Tab.cpp:1500
 msgid "Cooling"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1500 src/libslic3r/PrintConfig.cpp:1355
-#: src/libslic3r/PrintConfig.cpp:2200
+#: src/slic3r/GUI/Tab.cpp:1501 src/libslic3r/PrintConfig.cpp:1355
+#: src/libslic3r/PrintConfig.cpp:2207
 msgid "Enable"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1511
+#: src/slic3r/GUI/Tab.cpp:1512
 msgid "Fan settings"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1520
+#: src/slic3r/GUI/Tab.cpp:1521
 msgid "Cooling thresholds"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1526
+#: src/slic3r/GUI/Tab.cpp:1527
 msgid "Filament properties"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1533
+#: src/slic3r/GUI/Tab.cpp:1534
 msgid "Print speed override"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1543
+#: src/slic3r/GUI/Tab.cpp:1544
 msgid "Wipe tower parameters"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1546
+#: src/slic3r/GUI/Tab.cpp:1547
 msgid "Toolchange parameters with single extruder MM printers"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1560
+#: src/slic3r/GUI/Tab.cpp:1561
 msgid "Ramming settings"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1582 src/slic3r/GUI/Tab.cpp:1997
+#: src/slic3r/GUI/Tab.cpp:1583 src/slic3r/GUI/Tab.cpp:1998
 msgid "Custom G-code"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1583 src/slic3r/GUI/Tab.cpp:1998
-#: src/libslic3r/PrintConfig.cpp:1813 src/libslic3r/PrintConfig.cpp:1828
+#: src/slic3r/GUI/Tab.cpp:1584 src/slic3r/GUI/Tab.cpp:1999
+#: src/libslic3r/PrintConfig.cpp:1820 src/libslic3r/PrintConfig.cpp:1835
 msgid "Start G-code"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1589 src/slic3r/GUI/Tab.cpp:2004
+#: src/slic3r/GUI/Tab.cpp:1590 src/slic3r/GUI/Tab.cpp:2005
 #: src/libslic3r/PrintConfig.cpp:385 src/libslic3r/PrintConfig.cpp:395
 msgid "End G-code"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1638
+#: src/slic3r/GUI/Tab.cpp:1639
 msgid "Volumetric flow hints not available"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1724 src/slic3r/GUI/Tab.cpp:1937
+#: src/slic3r/GUI/Tab.cpp:1725 src/slic3r/GUI/Tab.cpp:1938
 msgid "Test"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1733
+#: src/slic3r/GUI/Tab.cpp:1734
 msgid "Could not get a valid Printer Host reference"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1739 src/slic3r/GUI/Tab.cpp:1950
+#: src/slic3r/GUI/Tab.cpp:1740 src/slic3r/GUI/Tab.cpp:1951
 msgid "Success!"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1759
+#: src/slic3r/GUI/Tab.cpp:1760
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
 "signed certificate."
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1774
+#: src/slic3r/GUI/Tab.cpp:1775
 msgid "Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1775
+#: src/slic3r/GUI/Tab.cpp:1776
 msgid "Open CA certificate file"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1802 src/libslic3r/PrintConfig.cpp:111
+#: src/slic3r/GUI/Tab.cpp:1803 src/libslic3r/PrintConfig.cpp:111
 msgid "HTTPS CA File"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1803
+#: src/slic3r/GUI/Tab.cpp:1804
 #, possible-c-format
 msgid ""
 "On this system, %s uses HTTPS certificates from the system Certificate Store "
 "or Keychain."
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1804
+#: src/slic3r/GUI/Tab.cpp:1805
 msgid ""
 "To use a custom CA file, please import your CA file into Certificate Store / "
 "Keychain."
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1847 src/slic3r/GUI/Tab.cpp:2059
+#: src/slic3r/GUI/Tab.cpp:1848 src/slic3r/GUI/Tab.cpp:2060
 msgid "Size and coordinates"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1856
+#: src/slic3r/GUI/Tab.cpp:1857
 msgid "Capabilities"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1861
+#: src/slic3r/GUI/Tab.cpp:1862
 msgid "Number of extruders of the printer."
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1889
+#: src/slic3r/GUI/Tab.cpp:1890
 msgid ""
 "Single Extruder Multi Material is selected, \n"
 "and all extruders must have the same diameter.\n"
@@ -5435,72 +5454,72 @@ msgid ""
 "nozzle diameter value?"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1892 src/slic3r/GUI/Tab.cpp:2324
+#: src/slic3r/GUI/Tab.cpp:1893 src/slic3r/GUI/Tab.cpp:2325
 #: src/libslic3r/PrintConfig.cpp:1326
 msgid "Nozzle diameter"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1922
+#: src/slic3r/GUI/Tab.cpp:1923
 msgid "USB/Serial connection"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1923 src/libslic3r/PrintConfig.cpp:1661
+#: src/slic3r/GUI/Tab.cpp:1924 src/libslic3r/PrintConfig.cpp:1661
 msgid "Serial port"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1928
+#: src/slic3r/GUI/Tab.cpp:1929
 msgid "Rescan serial ports"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1950
+#: src/slic3r/GUI/Tab.cpp:1951
 msgid "Connection to printer works correctly."
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1953
+#: src/slic3r/GUI/Tab.cpp:1954
 msgid "Connection failed."
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1966 src/slic3r/GUI/Tab.cpp:2111
+#: src/slic3r/GUI/Tab.cpp:1967 src/slic3r/GUI/Tab.cpp:2112
 msgid "Print Host upload"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2010 src/libslic3r/PrintConfig.cpp:153
+#: src/slic3r/GUI/Tab.cpp:2011 src/libslic3r/PrintConfig.cpp:153
 msgid "Before layer change G-code"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2016 src/libslic3r/PrintConfig.cpp:1080
+#: src/slic3r/GUI/Tab.cpp:2017 src/libslic3r/PrintConfig.cpp:1080
 msgid "After layer change G-code"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2022 src/libslic3r/PrintConfig.cpp:2093
+#: src/slic3r/GUI/Tab.cpp:2023 src/libslic3r/PrintConfig.cpp:2100
 msgid "Tool change G-code"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2028
+#: src/slic3r/GUI/Tab.cpp:2029
 msgid "Between objects G-code (for sequential printing)"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2066
+#: src/slic3r/GUI/Tab.cpp:2067
 msgid "Display"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2081
+#: src/slic3r/GUI/Tab.cpp:2082
 msgid "Tilt"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2082
+#: src/slic3r/GUI/Tab.cpp:2083
 msgid "Tilt time"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2088 src/slic3r/GUI/Tab.cpp:3581
+#: src/slic3r/GUI/Tab.cpp:2089 src/slic3r/GUI/Tab.cpp:3582
 msgid "Corrections"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2105 src/slic3r/GUI/Tab.cpp:3577
+#: src/slic3r/GUI/Tab.cpp:2106 src/slic3r/GUI/Tab.cpp:3578
 msgid "Exposure"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2172 src/slic3r/GUI/Tab.cpp:2257
+#: src/slic3r/GUI/Tab.cpp:2173 src/slic3r/GUI/Tab.cpp:2258
 #: src/libslic3r/PrintConfig.cpp:1129 src/libslic3r/PrintConfig.cpp:1146
 #: src/libslic3r/PrintConfig.cpp:1163 src/libslic3r/PrintConfig.cpp:1179
 #: src/libslic3r/PrintConfig.cpp:1189 src/libslic3r/PrintConfig.cpp:1199
@@ -5508,183 +5527,183 @@ msgstr ""
 msgid "Machine limits"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2186
+#: src/slic3r/GUI/Tab.cpp:2187
 msgid "Values in this column are for Normal mode"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2187
+#: src/slic3r/GUI/Tab.cpp:2188
 msgid "Normal"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2192
+#: src/slic3r/GUI/Tab.cpp:2193
 msgid "Values in this column are for Stealth mode"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2193
+#: src/slic3r/GUI/Tab.cpp:2194
 msgid "Stealth"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2201
+#: src/slic3r/GUI/Tab.cpp:2202
 msgid "Maximum feedrates"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2206
+#: src/slic3r/GUI/Tab.cpp:2207
 msgid "Maximum accelerations"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2213
+#: src/slic3r/GUI/Tab.cpp:2214
 msgid "Jerk limits"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2218
+#: src/slic3r/GUI/Tab.cpp:2219
 msgid "Minimum feedrates"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2282 src/slic3r/GUI/Tab.cpp:2290
+#: src/slic3r/GUI/Tab.cpp:2283 src/slic3r/GUI/Tab.cpp:2291
 msgid "Single extruder MM setup"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2291
+#: src/slic3r/GUI/Tab.cpp:2292
 msgid "Single extruder multimaterial parameters"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2322
+#: src/slic3r/GUI/Tab.cpp:2323
 msgid ""
 "This is a single extruder multimaterial printer, diameters of all extruders "
 "will be set to the new value. Do you want to proceed?"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2346
+#: src/slic3r/GUI/Tab.cpp:2347
 msgid "Layer height limits"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2351
+#: src/slic3r/GUI/Tab.cpp:2352
 msgid "Position (for multi-extruder printers)"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2357
+#: src/slic3r/GUI/Tab.cpp:2358
 msgid "Only lift Z"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2370
+#: src/slic3r/GUI/Tab.cpp:2371
 msgid ""
 "Retraction when tool is disabled (advanced settings for multi-extruder "
 "setups)"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2378
+#: src/slic3r/GUI/Tab.cpp:2379
 msgid "Reset to Filament Color"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2559
+#: src/slic3r/GUI/Tab.cpp:2560
 msgid ""
 "The Wipe option is not available when using the Firmware Retraction mode.\n"
 "\n"
 "Shall I disable it in order to enable Firmware Retraction?"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2561
+#: src/slic3r/GUI/Tab.cpp:2562
 msgid "Firmware Retraction"
-msgstr ""
-
-#: src/slic3r/GUI/Tab.cpp:2907
-#, possible-c-format
-msgid "Default preset (%s)"
 msgstr ""
 
 #: src/slic3r/GUI/Tab.cpp:2908
 #, possible-c-format
+msgid "Default preset (%s)"
+msgstr ""
+
+#: src/slic3r/GUI/Tab.cpp:2909
+#, possible-c-format
 msgid "Preset (%s)"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2925
+#: src/slic3r/GUI/Tab.cpp:2926
 msgid "has the following unsaved changes:"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2928
+#: src/slic3r/GUI/Tab.cpp:2929
 msgid "is not compatible with printer"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2929
+#: src/slic3r/GUI/Tab.cpp:2930
 msgid "is not compatible with print profile"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2931
+#: src/slic3r/GUI/Tab.cpp:2932
 msgid "and it has the following unsaved changes:"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:2935
+#: src/slic3r/GUI/Tab.cpp:2936
 msgid "Unsaved Changes"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3029
+#: src/slic3r/GUI/Tab.cpp:3030
 msgid "Detached"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3029
+#: src/slic3r/GUI/Tab.cpp:3030
 msgctxt "PresetName"
 msgid "Copy"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3058
+#: src/slic3r/GUI/Tab.cpp:3059
 msgid "The supplied name is empty. It can't be saved."
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3063
+#: src/slic3r/GUI/Tab.cpp:3064
 msgid "Cannot overwrite a system profile."
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3067
+#: src/slic3r/GUI/Tab.cpp:3068
 msgid "Cannot overwrite an external profile."
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3072
+#: src/slic3r/GUI/Tab.cpp:3073
 msgid "Preset with name \"%1%\" already exists."
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3073
+#: src/slic3r/GUI/Tab.cpp:3074
 msgid "Replace?"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3141
+#: src/slic3r/GUI/Tab.cpp:3142
 msgid "remove"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3141
+#: src/slic3r/GUI/Tab.cpp:3142
 msgid "delete"
 msgstr ""
 
 #. TRN  remove/delete
-#: src/slic3r/GUI/Tab.cpp:3143
+#: src/slic3r/GUI/Tab.cpp:3144
 msgid "Are you sure you want to %1% the selected preset?"
 msgstr ""
 
 #. TRN  Remove/Delete
-#: src/slic3r/GUI/Tab.cpp:3146
+#: src/slic3r/GUI/Tab.cpp:3147
 msgid "%1% Preset"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3205 src/slic3r/GUI/Tab.cpp:3275
+#: src/slic3r/GUI/Tab.cpp:3206 src/slic3r/GUI/Tab.cpp:3276
 msgid "Set"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3314
+#: src/slic3r/GUI/Tab.cpp:3315
 msgid "LOCKED LOCK"
 msgstr ""
 
 #. TRN Description for "LOCKED LOCK"
-#: src/slic3r/GUI/Tab.cpp:3316
+#: src/slic3r/GUI/Tab.cpp:3317
 msgid ""
 "indicates that the settings are the same as the system (or default) values "
 "for the current option group"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3318
+#: src/slic3r/GUI/Tab.cpp:3319
 msgid "UNLOCKED LOCK"
 msgstr ""
 
 #. TRN Description for "UNLOCKED LOCK"
-#: src/slic3r/GUI/Tab.cpp:3320
+#: src/slic3r/GUI/Tab.cpp:3321
 msgid ""
 "indicates that some settings were changed and are not equal to the system "
 "(or default) values for the current option group.\n"
@@ -5692,23 +5711,23 @@ msgid ""
 "to the system (or default) values."
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3325
+#: src/slic3r/GUI/Tab.cpp:3326
 msgid "WHITE BULLET"
 msgstr ""
 
 #. TRN Description for "WHITE BULLET"
-#: src/slic3r/GUI/Tab.cpp:3327
+#: src/slic3r/GUI/Tab.cpp:3328
 msgid ""
 "for the left button: indicates a non-system (or non-default) preset,\n"
 "for the right button: indicates that the settings hasn't been modified."
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3330
+#: src/slic3r/GUI/Tab.cpp:3331
 msgid "BACK ARROW"
 msgstr ""
 
 #. TRN Description for "BACK ARROW"
-#: src/slic3r/GUI/Tab.cpp:3332
+#: src/slic3r/GUI/Tab.cpp:3333
 msgid ""
 "indicates that the settings were changed and are not equal to the last saved "
 "preset for the current option group.\n"
@@ -5716,13 +5735,13 @@ msgid ""
 "to the last saved preset."
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3342
+#: src/slic3r/GUI/Tab.cpp:3343
 msgid ""
 "LOCKED LOCK icon indicates that the settings are the same as the system (or "
 "default) values for the current option group"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3344
+#: src/slic3r/GUI/Tab.cpp:3345
 msgid ""
 "UNLOCKED LOCK icon indicates that some settings were changed and are not "
 "equal to the system (or default) values for the current option group.\n"
@@ -5730,17 +5749,17 @@ msgid ""
 "default) values."
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3347
+#: src/slic3r/GUI/Tab.cpp:3348
 msgid "WHITE BULLET icon indicates a non system (or non default) preset."
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3350
+#: src/slic3r/GUI/Tab.cpp:3351
 msgid ""
 "WHITE BULLET icon indicates that the settings are the same as in the last "
 "saved preset for the current option group."
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3352
+#: src/slic3r/GUI/Tab.cpp:3353
 msgid ""
 "BACK ARROW icon indicates that the settings were changed and are not equal "
 "to the last saved preset for the current option group.\n"
@@ -5748,26 +5767,26 @@ msgid ""
 "preset."
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3358
+#: src/slic3r/GUI/Tab.cpp:3359
 msgid ""
 "LOCKED LOCK icon indicates that the value is the same as the system (or "
 "default) value."
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3359
+#: src/slic3r/GUI/Tab.cpp:3360
 msgid ""
 "UNLOCKED LOCK icon indicates that the value was changed and is not equal to "
 "the system (or default) value.\n"
 "Click to reset current value to the system (or default) value."
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3365
+#: src/slic3r/GUI/Tab.cpp:3366
 msgid ""
 "WHITE BULLET icon indicates that the value is the same as in the last saved "
 "preset."
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3366
+#: src/slic3r/GUI/Tab.cpp:3367
 msgid ""
 "BACK ARROW icon indicates that the value was changed and is not equal to the "
 "last saved preset.\n"
@@ -5775,36 +5794,36 @@ msgid ""
 msgstr ""
 
 #. TRN Preset
-#: src/slic3r/GUI/Tab.cpp:3479
+#: src/slic3r/GUI/Tab.cpp:3480
 #, possible-c-format
 msgid "Save %s as:"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3523
+#: src/slic3r/GUI/Tab.cpp:3524
 msgid "the following suffix is not allowed:"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3527
+#: src/slic3r/GUI/Tab.cpp:3528
 msgid "The supplied name is not available."
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3540 src/slic3r/GUI/Tab.cpp:3542
+#: src/slic3r/GUI/Tab.cpp:3541 src/slic3r/GUI/Tab.cpp:3543
 msgid "Material"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3664
+#: src/slic3r/GUI/Tab.cpp:3665
 msgid "Support head"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3669
+#: src/slic3r/GUI/Tab.cpp:3670
 msgid "Support pillar"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3685
+#: src/slic3r/GUI/Tab.cpp:3686
 msgid "Connection of the support sticks and junctions"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3690
+#: src/slic3r/GUI/Tab.cpp:3691
 msgid "Automatic generation"
 msgstr ""
 
@@ -6412,110 +6431,110 @@ msgid ""
 "compatible."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1219
+#: src/libslic3r/Print.cpp:1218
 msgid "All objects are outside of the print volume."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1222
+#: src/libslic3r/Print.cpp:1221
 msgid "The supplied settings will cause an empty print."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1226
+#: src/libslic3r/Print.cpp:1225
 msgid "Some objects are too close; your extruder will collide with them."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1228
+#: src/libslic3r/Print.cpp:1227
 msgid ""
 "Some objects are too tall and cannot be printed without extruder collisions."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1237
+#: src/libslic3r/Print.cpp:1236
 msgid "The Spiral Vase option can only be used when printing a single object."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1244
+#: src/libslic3r/Print.cpp:1243
 msgid ""
 "The Spiral Vase option can only be used when printing single material "
 "objects."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1257
+#: src/libslic3r/Print.cpp:1256
 msgid ""
 "The wipe tower is only supported if all extruders have the same nozzle "
 "diameter and use filaments of the same diameter."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1262
+#: src/libslic3r/Print.cpp:1261
 msgid ""
 "The Wipe Tower is currently only supported for the Marlin, RepRap/Sprinter "
 "and Repetier G-code flavors."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1264
+#: src/libslic3r/Print.cpp:1263
 msgid ""
 "The Wipe Tower is currently only supported with the relative extruder "
 "addressing (use_relative_e_distances=1)."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1266
+#: src/libslic3r/Print.cpp:1265
 msgid "Ooze prevention is currently not supported with the wipe tower enabled."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1268
+#: src/libslic3r/Print.cpp:1267
 msgid ""
 "The Wipe Tower currently does not support volumetric E (use_volumetric_e=0)."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1270
+#: src/libslic3r/Print.cpp:1269
 msgid ""
 "The Wipe Tower is currently not supported for multimaterial sequential "
 "prints."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1291
+#: src/libslic3r/Print.cpp:1290
 msgid ""
 "The Wipe Tower is only supported for multiple objects if they have equal "
 "layer heights"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1293
+#: src/libslic3r/Print.cpp:1292
 msgid ""
 "The Wipe Tower is only supported for multiple objects if they are printed "
 "over an equal number of raft layers"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1295
+#: src/libslic3r/Print.cpp:1294
 msgid ""
 "The Wipe Tower is only supported for multiple objects if they are printed "
 "with the same support_material_contact_distance"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1297
+#: src/libslic3r/Print.cpp:1296
 msgid ""
 "The Wipe Tower is only supported for multiple objects if they are sliced "
 "equally."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1339
+#: src/libslic3r/Print.cpp:1338
 msgid ""
 "The Wipe tower is only supported if all objects have the same variable layer "
 "height"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1365
+#: src/libslic3r/Print.cpp:1364
 msgid ""
 "One or more object were assigned an extruder that the printer does not have."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1374
+#: src/libslic3r/Print.cpp:1373
 msgid "%1%=%2% mm is too low to be printable at a layer height %3% mm"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1377
+#: src/libslic3r/Print.cpp:1376
 msgid "Excessive %1%=%2% mm to be printable with a nozzle diameter %3% mm"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1388
+#: src/libslic3r/Print.cpp:1387
 msgid ""
 "Printing with multiple extruders of differing nozzle diameters. If support "
 "is to be printed with the current extruder (support_material_extruder == 0 "
@@ -6523,13 +6542,13 @@ msgid ""
 "same diameter."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1396
+#: src/libslic3r/Print.cpp:1395
 msgid ""
 "For the Wipe Tower to work with the soluble supports, the support layers "
 "need to be synchronized with the object layers."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1400
+#: src/libslic3r/Print.cpp:1399
 msgid ""
 "The Wipe Tower currently supports the non-soluble supports only if they are "
 "printed with the current extruder without triggering a tool change. (both "
@@ -6537,31 +6556,31 @@ msgid ""
 "set to 0)."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1422
+#: src/libslic3r/Print.cpp:1421
 msgid "First layer height can't be greater than nozzle diameter"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1427
+#: src/libslic3r/Print.cpp:1426
 msgid "Layer height can't be greater than nozzle diameter"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1584
+#: src/libslic3r/Print.cpp:1583
 msgid "Infilling layers"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1606
+#: src/libslic3r/Print.cpp:1605
 msgid "Generating skirt"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1614
+#: src/libslic3r/Print.cpp:1613
 msgid "Generating brim"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1638
+#: src/libslic3r/Print.cpp:1637
 msgid "Exporting G-code"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1642
+#: src/libslic3r/Print.cpp:1641
 msgid "Generating G-code"
 msgstr ""
 
@@ -6761,7 +6780,7 @@ msgid ""
 "feature slows down both the print and the G-code generation."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:144 src/libslic3r/PrintConfig.cpp:2064
+#: src/libslic3r/PrintConfig.cpp:144 src/libslic3r/PrintConfig.cpp:2071
 msgid "Other layers"
 msgstr ""
 
@@ -6844,9 +6863,9 @@ msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:207 src/libslic3r/PrintConfig.cpp:780
 #: src/libslic3r/PrintConfig.cpp:1640 src/libslic3r/PrintConfig.cpp:1650
-#: src/libslic3r/PrintConfig.cpp:1894 src/libslic3r/PrintConfig.cpp:2049
-#: src/libslic3r/PrintConfig.cpp:2247 src/libslic3r/PrintConfig.cpp:2737
-#: src/libslic3r/PrintConfig.cpp:2858
+#: src/libslic3r/PrintConfig.cpp:1901 src/libslic3r/PrintConfig.cpp:2056
+#: src/libslic3r/PrintConfig.cpp:2254 src/libslic3r/PrintConfig.cpp:2744
+#: src/libslic3r/PrintConfig.cpp:2865
 msgid "°"
 msgstr ""
 
@@ -6860,8 +6879,8 @@ msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:215 src/libslic3r/PrintConfig.cpp:792
 #: src/libslic3r/PrintConfig.cpp:1219 src/libslic3r/PrintConfig.cpp:1282
-#: src/libslic3r/PrintConfig.cpp:1532 src/libslic3r/PrintConfig.cpp:2425
-#: src/libslic3r/PrintConfig.cpp:2777
+#: src/libslic3r/PrintConfig.cpp:1532 src/libslic3r/PrintConfig.cpp:2432
+#: src/libslic3r/PrintConfig.cpp:2784
 msgid "%"
 msgstr ""
 
@@ -6894,7 +6913,7 @@ msgstr ""
 #: src/libslic3r/PrintConfig.cpp:1191 src/libslic3r/PrintConfig.cpp:1241
 #: src/libslic3r/PrintConfig.cpp:1300 src/libslic3r/PrintConfig.cpp:1433
 #: src/libslic3r/PrintConfig.cpp:1607 src/libslic3r/PrintConfig.cpp:1616
-#: src/libslic3r/PrintConfig.cpp:2028 src/libslic3r/PrintConfig.cpp:2154
+#: src/libslic3r/PrintConfig.cpp:2035 src/libslic3r/PrintConfig.cpp:2161
 msgid "mm/s"
 msgstr ""
 
@@ -7009,8 +7028,8 @@ msgstr ""
 msgid "Default print profile"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:353 src/libslic3r/PrintConfig.cpp:2592
-#: src/libslic3r/PrintConfig.cpp:2603
+#: src/libslic3r/PrintConfig.cpp:353 src/libslic3r/PrintConfig.cpp:2599
+#: src/libslic3r/PrintConfig.cpp:2610
 msgid ""
 "Default print profile associated with the current printer profile. On "
 "selection of the current printer profile, this print profile will be "
@@ -7081,7 +7100,7 @@ msgid ""
 msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:425 src/libslic3r/PrintConfig.cpp:843
-#: src/libslic3r/PrintConfig.cpp:2009
+#: src/libslic3r/PrintConfig.cpp:2016
 msgid "Rectilinear"
 msgstr ""
 
@@ -7126,9 +7145,9 @@ msgstr ""
 #: src/libslic3r/PrintConfig.cpp:451 src/libslic3r/PrintConfig.cpp:560
 #: src/libslic3r/PrintConfig.cpp:882 src/libslic3r/PrintConfig.cpp:895
 #: src/libslic3r/PrintConfig.cpp:1015 src/libslic3r/PrintConfig.cpp:1041
-#: src/libslic3r/PrintConfig.cpp:1423 src/libslic3r/PrintConfig.cpp:1761
-#: src/libslic3r/PrintConfig.cpp:1883 src/libslic3r/PrintConfig.cpp:1951
-#: src/libslic3r/PrintConfig.cpp:2111
+#: src/libslic3r/PrintConfig.cpp:1423 src/libslic3r/PrintConfig.cpp:1768
+#: src/libslic3r/PrintConfig.cpp:1890 src/libslic3r/PrintConfig.cpp:1958
+#: src/libslic3r/PrintConfig.cpp:2118
 msgid "mm or %"
 msgstr ""
 
@@ -7140,8 +7159,8 @@ msgid ""
 msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:462 src/libslic3r/PrintConfig.cpp:904
-#: src/libslic3r/PrintConfig.cpp:1720 src/libslic3r/PrintConfig.cpp:1772
-#: src/libslic3r/PrintConfig.cpp:1995 src/libslic3r/PrintConfig.cpp:2124
+#: src/libslic3r/PrintConfig.cpp:1727 src/libslic3r/PrintConfig.cpp:1779
+#: src/libslic3r/PrintConfig.cpp:2002 src/libslic3r/PrintConfig.cpp:2131
 msgid "mm/s or %"
 msgstr ""
 
@@ -7265,7 +7284,7 @@ msgid ""
 "maximum speeds."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:575 src/libslic3r/PrintConfig.cpp:1708
+#: src/libslic3r/PrintConfig.cpp:575 src/libslic3r/PrintConfig.cpp:1715
 msgid "approximate seconds"
 msgstr ""
 
@@ -7416,8 +7435,8 @@ msgid ""
 "average."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:717 src/libslic3r/PrintConfig.cpp:2503
-#: src/libslic3r/PrintConfig.cpp:2504
+#: src/libslic3r/PrintConfig.cpp:717 src/libslic3r/PrintConfig.cpp:2510
+#: src/libslic3r/PrintConfig.cpp:2511
 msgid "Density"
 msgstr ""
 
@@ -7459,7 +7478,7 @@ msgstr ""
 msgid "money/kg"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:771 src/libslic3r/PrintConfig.cpp:2587
+#: src/libslic3r/PrintConfig.cpp:771 src/libslic3r/PrintConfig.cpp:2594
 msgid "(Unknown)"
 msgstr ""
 
@@ -7510,7 +7529,7 @@ msgstr ""
 msgid "Line"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:850 src/libslic3r/PrintConfig.cpp:2011
+#: src/libslic3r/PrintConfig.cpp:850 src/libslic3r/PrintConfig.cpp:2018
 msgid "Honeycomb"
 msgstr ""
 
@@ -8375,68 +8394,79 @@ msgid ""
 msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:1695
-msgid "Loops (minimum)"
+msgid "Draft shield"
 msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:1696
+msgid ""
+"If enabled, the skirt will be as tall as a highest printed object. This is "
+"useful to protect an ABS or ASA print from warping and detaching from print "
+"bed due to wind draft."
+msgstr ""
+
+#: src/libslic3r/PrintConfig.cpp:1702
+msgid "Loops (minimum)"
+msgstr ""
+
+#: src/libslic3r/PrintConfig.cpp:1703
 msgid "Skirt Loops"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1697
+#: src/libslic3r/PrintConfig.cpp:1704
 msgid ""
 "Number of loops for the skirt. If the Minimum Extrusion Length option is "
 "set, the number of loops might be greater than the one configured here. Set "
 "this to zero to disable skirt completely."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1705
+#: src/libslic3r/PrintConfig.cpp:1712
 msgid "Slow down if layer print time is below"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1706
+#: src/libslic3r/PrintConfig.cpp:1713
 msgid ""
 "If layer print time is estimated below this number of seconds, print moves "
 "speed will be scaled down to extend duration to this value."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1715
+#: src/libslic3r/PrintConfig.cpp:1722
 msgid "Small perimeters"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1717
+#: src/libslic3r/PrintConfig.cpp:1724
 msgid ""
 "This separate setting will affect the speed of perimeters having radius <= "
 "6.5mm (usually holes). If expressed as percentage (for example: 80%) it will "
 "be calculated on the perimeters speed setting above. Set to zero for auto."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1727
+#: src/libslic3r/PrintConfig.cpp:1734
 msgid "Solid infill threshold area"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1729
+#: src/libslic3r/PrintConfig.cpp:1736
 msgid ""
 "Force solid infill for regions having a smaller area than the specified "
 "threshold."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1730
+#: src/libslic3r/PrintConfig.cpp:1737
 msgid "mm²"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1736
+#: src/libslic3r/PrintConfig.cpp:1743
 msgid "Solid infill extruder"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1738
+#: src/libslic3r/PrintConfig.cpp:1745
 msgid "The extruder to use when printing solid infill."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1744
+#: src/libslic3r/PrintConfig.cpp:1751
 msgid "Solid infill every"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1746
+#: src/libslic3r/PrintConfig.cpp:1753
 msgid ""
 "This feature allows to force a solid layer every given number of layers. "
 "Zero to disable. You can set this to any value (for example 9999); Slic3r "
@@ -8444,7 +8474,7 @@ msgid ""
 "according to nozzle diameter and layer height."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1758
+#: src/libslic3r/PrintConfig.cpp:1765
 msgid ""
 "Set this to a non-zero value to set a manual extrusion width for infill for "
 "solid surfaces. If left zero, default extrusion width will be used if set, "
@@ -8452,26 +8482,26 @@ msgid ""
 "(for example 90%) it will be computed over layer height."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1769
+#: src/libslic3r/PrintConfig.cpp:1776
 msgid ""
 "Speed for printing solid regions (top/bottom/internal horizontal shells). "
 "This can be expressed as a percentage (for example: 80%) over the default "
 "infill speed above. Set to zero for auto."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1781
+#: src/libslic3r/PrintConfig.cpp:1788
 msgid "Number of solid layers to generate on top and bottom surfaces."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1787 src/libslic3r/PrintConfig.cpp:1788
+#: src/libslic3r/PrintConfig.cpp:1794 src/libslic3r/PrintConfig.cpp:1795
 msgid "Minimum thickness of a top / bottom shell"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1794
+#: src/libslic3r/PrintConfig.cpp:1801
 msgid "Spiral vase"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1795
+#: src/libslic3r/PrintConfig.cpp:1802
 msgid ""
 "This feature will raise Z gradually while printing a single-walled object in "
 "order to remove any visible seam. This option requires a single perimeter, "
@@ -8480,18 +8510,18 @@ msgid ""
 "when printing more than an object."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1803
+#: src/libslic3r/PrintConfig.cpp:1810
 msgid "Temperature variation"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1804
+#: src/libslic3r/PrintConfig.cpp:1811
 msgid ""
 "Temperature difference to be applied when an extruder is not active. Enables "
 "a full-height \"sacrificial\" skirt on which the nozzles are periodically "
 "wiped."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1814
+#: src/libslic3r/PrintConfig.cpp:1821
 msgid ""
 "This start procedure is inserted at the beginning, after bed has reached the "
 "target temperature and extruder just started heating, and before extruder "
@@ -8502,7 +8532,7 @@ msgid ""
 "put a \"M109 S[first_layer_temperature]\" command wherever you want."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1829
+#: src/libslic3r/PrintConfig.cpp:1836
 msgid ""
 "This start procedure is inserted at the beginning, after any printer start "
 "gcode (and after any toolchange to this filament in case of multi-material "
@@ -8515,29 +8545,29 @@ msgid ""
 "extruders, the gcode is processed in extruder order."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1845
+#: src/libslic3r/PrintConfig.cpp:1852
 msgid "Single Extruder Multi Material"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1846
+#: src/libslic3r/PrintConfig.cpp:1853
 msgid "The printer multiplexes filaments into a single hot end."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1851
+#: src/libslic3r/PrintConfig.cpp:1858
 msgid "Prime all printing extruders"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1852
+#: src/libslic3r/PrintConfig.cpp:1859
 msgid ""
 "If enabled, all printing extruders will be primed at the front edge of the "
 "print bed at the start of the print."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1857
+#: src/libslic3r/PrintConfig.cpp:1864
 msgid "No sparse layers (EXPERIMENTAL)"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1858
+#: src/libslic3r/PrintConfig.cpp:1865
 msgid ""
 "If enabled, the wipe tower will not be printed on layers with no "
 "toolchanges. On layers with a toolchange, extruder will travel downward to "
@@ -8545,75 +8575,75 @@ msgid ""
 "with the print."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1865
+#: src/libslic3r/PrintConfig.cpp:1872
 msgid "Generate support material"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1867
+#: src/libslic3r/PrintConfig.cpp:1874
 msgid "Enable support material generation."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1871
+#: src/libslic3r/PrintConfig.cpp:1878
 msgid "Auto generated supports"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1873
+#: src/libslic3r/PrintConfig.cpp:1880
 msgid ""
 "If checked, supports will be generated automatically based on the overhang "
 "threshold value. If unchecked, supports will be generated inside the "
 "\"Support Enforcer\" volumes only."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1879
+#: src/libslic3r/PrintConfig.cpp:1886
 msgid "XY separation between an object and its support"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1881
+#: src/libslic3r/PrintConfig.cpp:1888
 msgid ""
 "XY separation between an object and its support. If expressed as percentage "
 "(for example 50%), it will be calculated over external perimeter width."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1891
+#: src/libslic3r/PrintConfig.cpp:1898
 msgid "Pattern angle"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1893
+#: src/libslic3r/PrintConfig.cpp:1900
 msgid ""
 "Use this setting to rotate the support material pattern on the horizontal "
 "plane."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1903 src/libslic3r/PrintConfig.cpp:2686
+#: src/libslic3r/PrintConfig.cpp:1910 src/libslic3r/PrintConfig.cpp:2693
 msgid ""
 "Only create support if it lies on a build plate. Don't create support on a "
 "print."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1909
+#: src/libslic3r/PrintConfig.cpp:1916
 msgid "Contact Z distance"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1911
+#: src/libslic3r/PrintConfig.cpp:1918
 msgid ""
 "The vertical distance between object and support material interface. Setting "
 "this to 0 will also prevent Slic3r from using bridge flow and speed for the "
 "first object layer."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1918
+#: src/libslic3r/PrintConfig.cpp:1925
 msgid "0 (soluble)"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1919
+#: src/libslic3r/PrintConfig.cpp:1926
 msgid "0.2 (detachable)"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1924
+#: src/libslic3r/PrintConfig.cpp:1931
 msgid "Enforce support for the first"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1926
+#: src/libslic3r/PrintConfig.cpp:1933
 msgid ""
 "Generate support material for the specified number of layers counting from "
 "bottom, regardless of whether normal support material is enabled or not and "
@@ -8621,21 +8651,21 @@ msgid ""
 "of objects having a very thin or poor footprint on the build plate."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1931
+#: src/libslic3r/PrintConfig.cpp:1938
 msgid "Enforce support for the first n layers"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1937
+#: src/libslic3r/PrintConfig.cpp:1944
 msgid "Support material/raft/skirt extruder"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1939
+#: src/libslic3r/PrintConfig.cpp:1946
 msgid ""
 "The extruder to use when printing support material, raft and skirt (1+, 0 to "
 "use the current extruder to minimize tool changes)."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1948
+#: src/libslic3r/PrintConfig.cpp:1955
 msgid ""
 "Set this to a non-zero value to set a manual extrusion width for support "
 "material. If left zero, default extrusion width will be used if set, "
@@ -8643,89 +8673,89 @@ msgid ""
 "example 90%) it will be computed over layer height."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1957
+#: src/libslic3r/PrintConfig.cpp:1964
 msgid "Interface loops"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1959
+#: src/libslic3r/PrintConfig.cpp:1966
 msgid ""
 "Cover the top contact layer of the supports with loops. Disabled by default."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1964
+#: src/libslic3r/PrintConfig.cpp:1971
 msgid "Support material/raft interface extruder"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1966
+#: src/libslic3r/PrintConfig.cpp:1973
 msgid ""
 "The extruder to use when printing support material interface (1+, 0 to use "
 "the current extruder to minimize tool changes). This affects raft too."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1973
+#: src/libslic3r/PrintConfig.cpp:1980
 msgid "Interface layers"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1975
+#: src/libslic3r/PrintConfig.cpp:1982
 msgid ""
 "Number of interface layers to insert between the object(s) and support "
 "material."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1982
+#: src/libslic3r/PrintConfig.cpp:1989
 msgid "Interface pattern spacing"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1984
+#: src/libslic3r/PrintConfig.cpp:1991
 msgid "Spacing between interface lines. Set zero to get a solid interface."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:1993
+#: src/libslic3r/PrintConfig.cpp:2000
 msgid ""
 "Speed for printing support material interface layers. If expressed as "
 "percentage (for example 50%) it will be calculated over support material "
 "speed."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2002
+#: src/libslic3r/PrintConfig.cpp:2009
 msgid "Pattern"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2004
+#: src/libslic3r/PrintConfig.cpp:2011
 msgid "Pattern used to generate support material."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2010
+#: src/libslic3r/PrintConfig.cpp:2017
 msgid "Rectilinear grid"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2016
+#: src/libslic3r/PrintConfig.cpp:2023
 msgid "Pattern spacing"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2018
+#: src/libslic3r/PrintConfig.cpp:2025
 msgid "Spacing between support material lines."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2027
+#: src/libslic3r/PrintConfig.cpp:2034
 msgid "Speed for printing support material."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2034
+#: src/libslic3r/PrintConfig.cpp:2041
 msgid "Synchronize with object layers"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2036
+#: src/libslic3r/PrintConfig.cpp:2043
 msgid ""
 "Synchronize support layers with the object print layers. This is useful with "
 "multi-material printers, where the extruder switch is expensive."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2042
+#: src/libslic3r/PrintConfig.cpp:2049
 msgid "Overhang threshold"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2044
+#: src/libslic3r/PrintConfig.cpp:2051
 msgid ""
 "Support material will not be generated for overhangs whose slope angle (90° "
 "= vertical) is above the given threshold. In other words, this value "
@@ -8734,43 +8764,43 @@ msgid ""
 "detection (recommended)."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2056
+#: src/libslic3r/PrintConfig.cpp:2063
 msgid "With sheath around the support"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2058
+#: src/libslic3r/PrintConfig.cpp:2065
 msgid ""
 "Add a sheath (a single perimeter line) around the base support. This makes "
 "the support more reliable, but also more difficult to remove."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2065
+#: src/libslic3r/PrintConfig.cpp:2072
 msgid ""
 "Extruder temperature for layers after the first one. Set this to zero to "
 "disable temperature control commands in the output."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2073
+#: src/libslic3r/PrintConfig.cpp:2080
 msgid "Detect thin walls"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2075
+#: src/libslic3r/PrintConfig.cpp:2082
 msgid ""
 "Detect single-width walls (parts where two extrusions don't fit and we need "
 "to collapse them into a single trace)."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2081
+#: src/libslic3r/PrintConfig.cpp:2088
 msgid "Threads"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2082
+#: src/libslic3r/PrintConfig.cpp:2089
 msgid ""
 "Threads are used to parallelize long-running tasks. Optimal threads number "
 "is slightly above the number of available cores/processors."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2094
+#: src/libslic3r/PrintConfig.cpp:2101
 msgid ""
 "This custom code is inserted before every toolchange. Placeholder variables "
 "for all PrusaSlicer settings as well as {previous_extruder} and "
@@ -8780,7 +8810,7 @@ msgid ""
 "behaviour both before and after the toolchange."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2107
+#: src/libslic3r/PrintConfig.cpp:2114
 msgid ""
 "Set this to a non-zero value to set a manual extrusion width for infill for "
 "top surfaces. You may want to use thinner extrudates to fill all narrow "
@@ -8789,7 +8819,7 @@ msgid ""
 "percentage (for example 90%) it will be computed over layer height."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2119
+#: src/libslic3r/PrintConfig.cpp:2126
 msgid ""
 "Speed for printing top solid layers (it only applies to the uppermost "
 "external layers and not to their internal solid layers). You may want to "
@@ -8798,54 +8828,54 @@ msgid ""
 "for auto."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2134
+#: src/libslic3r/PrintConfig.cpp:2141
 msgid "Number of solid layers to generate on top surfaces."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2135
+#: src/libslic3r/PrintConfig.cpp:2142
 msgid "Top solid layers"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2143
+#: src/libslic3r/PrintConfig.cpp:2150
 msgid ""
 "The number of top solid layers is increased above top_solid_layers if "
 "necessary to satisfy minimum thickness of top shell. This is useful to "
 "prevent pillowing effect when printing with variable layer height."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2146
+#: src/libslic3r/PrintConfig.cpp:2153
 msgid "Minimum top shell thickness"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2153
+#: src/libslic3r/PrintConfig.cpp:2160
 msgid "Speed for travel moves (jumps between distant extrusion points)."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2161
+#: src/libslic3r/PrintConfig.cpp:2168
 msgid "Use firmware retraction"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2162
+#: src/libslic3r/PrintConfig.cpp:2169
 msgid ""
 "This experimental setting uses G10 and G11 commands to have the firmware "
 "handle the retraction. This is only supported in recent Marlin."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2168
+#: src/libslic3r/PrintConfig.cpp:2175
 msgid "Use relative E distances"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2169
+#: src/libslic3r/PrintConfig.cpp:2176
 msgid ""
 "If your firmware requires relative E values, check this, otherwise leave it "
 "unchecked. Most firmwares use absolute values."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2175
+#: src/libslic3r/PrintConfig.cpp:2182
 msgid "Use volumetric E"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2176
+#: src/libslic3r/PrintConfig.cpp:2183
 msgid ""
 "This experimental setting uses outputs the E values in cubic millimeters "
 "instead of linear millimeters. If your firmware doesn't already know "
@@ -8855,127 +8885,127 @@ msgid ""
 "only supported in recent Marlin."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2186
+#: src/libslic3r/PrintConfig.cpp:2193
 msgid "Enable variable layer height feature"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2187
+#: src/libslic3r/PrintConfig.cpp:2194
 msgid ""
 "Some printers or printer setups may have difficulties printing with a "
 "variable layer height. Enabled by default."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2193
+#: src/libslic3r/PrintConfig.cpp:2200
 msgid "Wipe while retracting"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2194
+#: src/libslic3r/PrintConfig.cpp:2201
 msgid ""
 "This flag will move the nozzle while retracting to minimize the possible "
 "blob on leaky extruders."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2201
+#: src/libslic3r/PrintConfig.cpp:2208
 msgid ""
 "Multi material printers may need to prime or purge extruders on tool "
 "changes. Extrude the excess material into the wipe tower."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2207
+#: src/libslic3r/PrintConfig.cpp:2214
 msgid "Purging volumes - load/unload volumes"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2208
+#: src/libslic3r/PrintConfig.cpp:2215
 msgid ""
 "This vector saves required volumes to change from/to each tool used on the "
 "wipe tower. These values are used to simplify creation of the full purging "
 "volumes below."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2214
+#: src/libslic3r/PrintConfig.cpp:2221
 msgid "Purging volumes - matrix"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2215
+#: src/libslic3r/PrintConfig.cpp:2222
 msgid ""
 "This matrix describes volumes (in cubic milimetres) required to purge the "
 "new filament on the wipe tower for any given pair of tools."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2224
+#: src/libslic3r/PrintConfig.cpp:2231
 msgid "Position X"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2225
+#: src/libslic3r/PrintConfig.cpp:2232
 msgid "X coordinate of the left front corner of a wipe tower"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2231
+#: src/libslic3r/PrintConfig.cpp:2238
 msgid "Position Y"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2232
+#: src/libslic3r/PrintConfig.cpp:2239
 msgid "Y coordinate of the left front corner of a wipe tower"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2239
+#: src/libslic3r/PrintConfig.cpp:2246
 msgid "Width of a wipe tower"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2245
+#: src/libslic3r/PrintConfig.cpp:2252
 msgid "Wipe tower rotation angle"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2246
+#: src/libslic3r/PrintConfig.cpp:2253
 msgid "Wipe tower rotation angle with respect to x-axis."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2253
+#: src/libslic3r/PrintConfig.cpp:2260
 msgid "Wipe into this object's infill"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2254
+#: src/libslic3r/PrintConfig.cpp:2261
 msgid ""
 "Purging after toolchange will done inside this object's infills. This lowers "
 "the amount of waste but may result in longer print time  due to additional "
 "travel moves."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2261
+#: src/libslic3r/PrintConfig.cpp:2268
 msgid "Wipe into this object"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2262
+#: src/libslic3r/PrintConfig.cpp:2269
 msgid ""
 "Object will be used to purge the nozzle after a toolchange to save material "
 "that would otherwise end up in the wipe tower and decrease print time. "
 "Colours of the objects will be mixed as a result."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2268
+#: src/libslic3r/PrintConfig.cpp:2275
 msgid "Maximal bridging distance"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2269
+#: src/libslic3r/PrintConfig.cpp:2276
 msgid "Maximal distance between supports on sparse infill sections."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2275
+#: src/libslic3r/PrintConfig.cpp:2282
 msgid "XY Size Compensation"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2277
+#: src/libslic3r/PrintConfig.cpp:2284
 msgid ""
 "The object will be grown/shrunk in the XY plane by the configured value "
 "(negative = inwards, positive = outwards). This might be useful for fine-"
 "tuning hole sizes."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2285
+#: src/libslic3r/PrintConfig.cpp:2292
 msgid "Z offset"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2286
+#: src/libslic3r/PrintConfig.cpp:2293
 msgid ""
 "This value will be added (or subtracted) from all the Z coordinates in the "
 "output G-code. It is used to compensate for bad Z endstop position: for "
@@ -8983,408 +9013,408 @@ msgid ""
 "print bed, set this to -0.3 (or fix your endstop)."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2353
+#: src/libslic3r/PrintConfig.cpp:2360
 msgid "Display width"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2354
+#: src/libslic3r/PrintConfig.cpp:2361
 msgid "Width of the display"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2359
+#: src/libslic3r/PrintConfig.cpp:2366
 msgid "Display height"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2360
+#: src/libslic3r/PrintConfig.cpp:2367
 msgid "Height of the display"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2365
+#: src/libslic3r/PrintConfig.cpp:2372
 msgid "Number of pixels in"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2367
+#: src/libslic3r/PrintConfig.cpp:2374
 msgid "Number of pixels in X"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2373
+#: src/libslic3r/PrintConfig.cpp:2380
 msgid "Number of pixels in Y"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2378
+#: src/libslic3r/PrintConfig.cpp:2385
 msgid "Display horizontal mirroring"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2379
+#: src/libslic3r/PrintConfig.cpp:2386
 msgid "Mirror horizontally"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2380
+#: src/libslic3r/PrintConfig.cpp:2387
 msgid "Enable horizontal mirroring of output images"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2385
+#: src/libslic3r/PrintConfig.cpp:2392
 msgid "Display vertical mirroring"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2386
+#: src/libslic3r/PrintConfig.cpp:2393
 msgid "Mirror vertically"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2387
+#: src/libslic3r/PrintConfig.cpp:2394
 msgid "Enable vertical mirroring of output images"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2392
+#: src/libslic3r/PrintConfig.cpp:2399
 msgid "Display orientation"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2393
+#: src/libslic3r/PrintConfig.cpp:2400
 msgid ""
 "Set the actual LCD display orientation inside the SLA printer. Portrait mode "
 "will flip the meaning of display width and height parameters and the output "
 "images will be rotated by 90 degrees."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2399
+#: src/libslic3r/PrintConfig.cpp:2406
 msgid "Landscape"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2400
+#: src/libslic3r/PrintConfig.cpp:2407
 msgid "Portrait"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2405
+#: src/libslic3r/PrintConfig.cpp:2412
 msgid "Fast"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2406
+#: src/libslic3r/PrintConfig.cpp:2413
 msgid "Fast tilt"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2407
+#: src/libslic3r/PrintConfig.cpp:2414
 msgid "Time of the fast tilt"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2414
+#: src/libslic3r/PrintConfig.cpp:2421
 msgid "Slow"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2415
+#: src/libslic3r/PrintConfig.cpp:2422
 msgid "Slow tilt"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2416
+#: src/libslic3r/PrintConfig.cpp:2423
 msgid "Time of the slow tilt"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2423
+#: src/libslic3r/PrintConfig.cpp:2430
 msgid "Area fill"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2424
+#: src/libslic3r/PrintConfig.cpp:2431
 msgid ""
 "The percentage of the bed area. \n"
 "If the print area exceeds the specified value, \n"
 "then a slow tilt will be used, otherwise - a fast tilt"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2431 src/libslic3r/PrintConfig.cpp:2432
-#: src/libslic3r/PrintConfig.cpp:2433
+#: src/libslic3r/PrintConfig.cpp:2438 src/libslic3r/PrintConfig.cpp:2439
+#: src/libslic3r/PrintConfig.cpp:2440
 msgid "Printer scaling correction"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2439 src/libslic3r/PrintConfig.cpp:2440
+#: src/libslic3r/PrintConfig.cpp:2446 src/libslic3r/PrintConfig.cpp:2447
 msgid "Printer absolute correction"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2441
+#: src/libslic3r/PrintConfig.cpp:2448
 msgid ""
 "Will inflate or deflate the sliced 2D polygons according to the sign of the "
 "correction."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2447
+#: src/libslic3r/PrintConfig.cpp:2454
 msgid "Elephant foot minimum width"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2449
+#: src/libslic3r/PrintConfig.cpp:2456
 msgid ""
 "Minimum width of features to maintain when doing elephant foot compensation."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2456 src/libslic3r/PrintConfig.cpp:2457
+#: src/libslic3r/PrintConfig.cpp:2463 src/libslic3r/PrintConfig.cpp:2464
 msgid "Printer gamma correction"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2458
+#: src/libslic3r/PrintConfig.cpp:2465
 msgid ""
 "This will apply a gamma correction to the rasterized 2D polygons. A gamma "
 "value of zero means thresholding with the threshold in the middle. This "
 "behaviour eliminates antialiasing without losing holes in polygons."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2470 src/libslic3r/PrintConfig.cpp:2471
+#: src/libslic3r/PrintConfig.cpp:2477 src/libslic3r/PrintConfig.cpp:2478
 msgid "SLA material type"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2482 src/libslic3r/PrintConfig.cpp:2483
+#: src/libslic3r/PrintConfig.cpp:2489 src/libslic3r/PrintConfig.cpp:2490
 msgid "Initial layer height"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2489 src/libslic3r/PrintConfig.cpp:2490
+#: src/libslic3r/PrintConfig.cpp:2496 src/libslic3r/PrintConfig.cpp:2497
 msgid "Bottle volume"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2491
+#: src/libslic3r/PrintConfig.cpp:2498
 msgid "ml"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2496 src/libslic3r/PrintConfig.cpp:2497
+#: src/libslic3r/PrintConfig.cpp:2503 src/libslic3r/PrintConfig.cpp:2504
 msgid "Bottle weight"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2498
+#: src/libslic3r/PrintConfig.cpp:2505
 msgid "kg"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2505
+#: src/libslic3r/PrintConfig.cpp:2512
 msgid "g/ml"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2512
+#: src/libslic3r/PrintConfig.cpp:2519
 msgid "money/bottle"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2517
+#: src/libslic3r/PrintConfig.cpp:2524
 msgid "Faded layers"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2518
+#: src/libslic3r/PrintConfig.cpp:2525
 msgid ""
 "Number of the layers needed for the exposure time fade from initial exposure "
 "time to the exposure time"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2525 src/libslic3r/PrintConfig.cpp:2526
+#: src/libslic3r/PrintConfig.cpp:2532 src/libslic3r/PrintConfig.cpp:2533
 msgid "Minimum exposure time"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2533 src/libslic3r/PrintConfig.cpp:2534
+#: src/libslic3r/PrintConfig.cpp:2540 src/libslic3r/PrintConfig.cpp:2541
 msgid "Maximum exposure time"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2541 src/libslic3r/PrintConfig.cpp:2542
+#: src/libslic3r/PrintConfig.cpp:2548 src/libslic3r/PrintConfig.cpp:2549
 msgid "Exposure time"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2548 src/libslic3r/PrintConfig.cpp:2549
+#: src/libslic3r/PrintConfig.cpp:2555 src/libslic3r/PrintConfig.cpp:2556
 msgid "Minimum initial exposure time"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2556 src/libslic3r/PrintConfig.cpp:2557
+#: src/libslic3r/PrintConfig.cpp:2563 src/libslic3r/PrintConfig.cpp:2564
 msgid "Maximum initial exposure time"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2564 src/libslic3r/PrintConfig.cpp:2565
+#: src/libslic3r/PrintConfig.cpp:2571 src/libslic3r/PrintConfig.cpp:2572
 msgid "Initial exposure time"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2571 src/libslic3r/PrintConfig.cpp:2572
+#: src/libslic3r/PrintConfig.cpp:2578 src/libslic3r/PrintConfig.cpp:2579
 msgid "Correction for expansion"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2578
+#: src/libslic3r/PrintConfig.cpp:2585
 msgid "SLA print material notes"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2579
+#: src/libslic3r/PrintConfig.cpp:2586
 msgid "You can put your notes regarding the SLA print material here."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2591 src/libslic3r/PrintConfig.cpp:2602
+#: src/libslic3r/PrintConfig.cpp:2598 src/libslic3r/PrintConfig.cpp:2609
 msgid "Default SLA material profile"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2613
+#: src/libslic3r/PrintConfig.cpp:2620
 msgid "Generate supports"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2615
+#: src/libslic3r/PrintConfig.cpp:2622
 msgid "Generate supports for the models"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2620
+#: src/libslic3r/PrintConfig.cpp:2627
 msgid "Support head front diameter"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2622
+#: src/libslic3r/PrintConfig.cpp:2629
 msgid "Diameter of the pointing side of the head"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2629
+#: src/libslic3r/PrintConfig.cpp:2636
 msgid "Support head penetration"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2631
+#: src/libslic3r/PrintConfig.cpp:2638
 msgid "How much the pinhead has to penetrate the model surface"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2638
+#: src/libslic3r/PrintConfig.cpp:2645
 msgid "Support head width"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2640
+#: src/libslic3r/PrintConfig.cpp:2647
 msgid "Width from the back sphere center to the front sphere center"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2648
+#: src/libslic3r/PrintConfig.cpp:2655
 msgid "Support pillar diameter"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2650
+#: src/libslic3r/PrintConfig.cpp:2657
 msgid "Diameter in mm of the support pillars"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2658
+#: src/libslic3r/PrintConfig.cpp:2665
 msgid "Max bridges on a pillar"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2660
+#: src/libslic3r/PrintConfig.cpp:2667
 msgid ""
 "Maximum number of bridges that can be placed on a pillar. Bridges hold "
 "support point pinheads and connect to pillars as small branches."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2668
+#: src/libslic3r/PrintConfig.cpp:2675
 msgid "Support pillar connection mode"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2669
+#: src/libslic3r/PrintConfig.cpp:2676
 msgid ""
 "Controls the bridge type between two neighboring pillars. Can be zig-zag, "
 "cross (double zig-zag) or dynamic which will automatically switch between "
 "the first two depending on the distance of the two pillars."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2677
+#: src/libslic3r/PrintConfig.cpp:2684
 msgid "Zig-Zag"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2678
+#: src/libslic3r/PrintConfig.cpp:2685
 msgid "Cross"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2679
+#: src/libslic3r/PrintConfig.cpp:2686
 msgid "Dynamic"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2691
+#: src/libslic3r/PrintConfig.cpp:2698
 msgid "Pillar widening factor"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2693
+#: src/libslic3r/PrintConfig.cpp:2700
 msgid ""
 "Merging bridges or pillars into another pillars can increase the radius. "
 "Zero means no increase, one means full increase."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2702
+#: src/libslic3r/PrintConfig.cpp:2709
 msgid "Support base diameter"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2704
+#: src/libslic3r/PrintConfig.cpp:2711
 msgid "Diameter in mm of the pillar base"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2712
+#: src/libslic3r/PrintConfig.cpp:2719
 msgid "Support base height"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2714
+#: src/libslic3r/PrintConfig.cpp:2721
 msgid "The height of the pillar base cone"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2721
+#: src/libslic3r/PrintConfig.cpp:2728
 msgid "Support base safety distance"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2724
+#: src/libslic3r/PrintConfig.cpp:2731
 msgid ""
 "The minimum distance of the pillar base from the model in mm. Makes sense in "
 "zero elevation mode where a gap according to this parameter is inserted "
 "between the model and the pad."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2734
+#: src/libslic3r/PrintConfig.cpp:2741
 msgid "Critical angle"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2736
+#: src/libslic3r/PrintConfig.cpp:2743
 msgid "The default angle for connecting support sticks and junctions."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2744
+#: src/libslic3r/PrintConfig.cpp:2751
 msgid "Max bridge length"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2746
+#: src/libslic3r/PrintConfig.cpp:2753
 msgid "The max length of a bridge"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2753
+#: src/libslic3r/PrintConfig.cpp:2760
 msgid "Max pillar linking distance"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2755
+#: src/libslic3r/PrintConfig.cpp:2762
 msgid ""
 "The max distance of two pillars to get linked with each other. A zero value "
 "will prohibit pillar cascading."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2763
+#: src/libslic3r/PrintConfig.cpp:2770
 msgid "Object elevation"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2765
+#: src/libslic3r/PrintConfig.cpp:2772
 msgid ""
 "How much the supports should lift up the supported object. If \"Pad around "
 "object\" is enabled, this value is ignored."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2776
+#: src/libslic3r/PrintConfig.cpp:2783
 msgid "This is a relative measure of support points density."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2782
+#: src/libslic3r/PrintConfig.cpp:2789
 msgid "Minimal distance of the support points"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2784
+#: src/libslic3r/PrintConfig.cpp:2791
 msgid "No support points will be placed closer than this threshold."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2790
+#: src/libslic3r/PrintConfig.cpp:2797
 msgid "Use pad"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2792
+#: src/libslic3r/PrintConfig.cpp:2799
 msgid "Add a pad underneath the supported model"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2797
+#: src/libslic3r/PrintConfig.cpp:2804
 msgid "Pad wall thickness"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2799
+#: src/libslic3r/PrintConfig.cpp:2806
 msgid "The thickness of the pad and its optional cavity walls."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2807
+#: src/libslic3r/PrintConfig.cpp:2814
 msgid "Pad wall height"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2808
+#: src/libslic3r/PrintConfig.cpp:2815
 msgid ""
 "Defines the pad cavity depth. Set to zero to disable the cavity. Be careful "
 "when enabling this feature, as some resins may produce an extreme suction "
@@ -9392,115 +9422,115 @@ msgid ""
 "difficult."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2821
+#: src/libslic3r/PrintConfig.cpp:2828
 msgid "Pad brim size"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2822
+#: src/libslic3r/PrintConfig.cpp:2829
 msgid "How far should the pad extend around the contained geometry"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2832
+#: src/libslic3r/PrintConfig.cpp:2839
 msgid "Max merge distance"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2834
+#: src/libslic3r/PrintConfig.cpp:2841
 msgid ""
 "Some objects can get along with a few smaller pads instead of a single big "
 "one. This parameter defines how far the center of two smaller pads should "
 "be. If theyare closer, they will get merged into one pad."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2854
+#: src/libslic3r/PrintConfig.cpp:2861
 msgid "Pad wall slope"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2856
+#: src/libslic3r/PrintConfig.cpp:2863
 msgid ""
 "The slope of the pad wall relative to the bed plane. 90 degrees means "
 "straight walls."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2865
+#: src/libslic3r/PrintConfig.cpp:2872
 msgid "Pad around object"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2867
+#: src/libslic3r/PrintConfig.cpp:2874
 msgid "Create pad around object and ignore the support elevation"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2872
+#: src/libslic3r/PrintConfig.cpp:2879
 msgid "Pad around object everywhere"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2874
+#: src/libslic3r/PrintConfig.cpp:2881
 msgid "Force pad around object everywhere"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2879
+#: src/libslic3r/PrintConfig.cpp:2886
 msgid "Pad object gap"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2881
+#: src/libslic3r/PrintConfig.cpp:2888
 msgid ""
 "The gap between the object bottom and the generated pad in zero elevation "
 "mode."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2890
+#: src/libslic3r/PrintConfig.cpp:2897
 msgid "Pad object connector stride"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2892
+#: src/libslic3r/PrintConfig.cpp:2899
 msgid ""
 "Distance between two connector sticks which connect the object and the "
 "generated pad."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2899
+#: src/libslic3r/PrintConfig.cpp:2906
 msgid "Pad object connector width"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2901
+#: src/libslic3r/PrintConfig.cpp:2908
 msgid ""
 "Width of the connector sticks which connect the object and the generated pad."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2908
+#: src/libslic3r/PrintConfig.cpp:2915
 msgid "Pad object connector penetration"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2911
+#: src/libslic3r/PrintConfig.cpp:2918
 msgid "How much should the tiny connectors penetrate into the model body."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2918
+#: src/libslic3r/PrintConfig.cpp:2925
 msgid "Enable hollowing"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2920
+#: src/libslic3r/PrintConfig.cpp:2927
 msgid "Hollow out a model to have an empty interior"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2925
+#: src/libslic3r/PrintConfig.cpp:2932
 msgid "Wall thickness"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2927
+#: src/libslic3r/PrintConfig.cpp:2934
 msgid "Minimum wall thickness of a hollowed model."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2935
+#: src/libslic3r/PrintConfig.cpp:2942
 msgid "Accuracy"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2937
+#: src/libslic3r/PrintConfig.cpp:2944
 msgid ""
 "Performance vs accuracy of calculation. Lower values may produce unwanted "
 "artifacts."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:2947
+#: src/libslic3r/PrintConfig.cpp:2954
 msgid ""
 "Hollowing is done in two steps: first, an imaginary interior is calculated "
 "deeper (offset plus the closing distance) in the object and then it's "
@@ -9509,255 +9539,255 @@ msgid ""
 "most."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3330
+#: src/libslic3r/PrintConfig.cpp:3342
 msgid "Export OBJ"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3331
+#: src/libslic3r/PrintConfig.cpp:3343
 msgid "Export the model(s) as OBJ."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3342
+#: src/libslic3r/PrintConfig.cpp:3354
 msgid "Export SLA"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3343
+#: src/libslic3r/PrintConfig.cpp:3355
 msgid "Slice the model and export SLA printing layers as PNG."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3348
+#: src/libslic3r/PrintConfig.cpp:3360
 msgid "Export 3MF"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3349
+#: src/libslic3r/PrintConfig.cpp:3361
 msgid "Export the model(s) as 3MF."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3353
+#: src/libslic3r/PrintConfig.cpp:3365
 msgid "Export AMF"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3354
+#: src/libslic3r/PrintConfig.cpp:3366
 msgid "Export the model(s) as AMF."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3358
+#: src/libslic3r/PrintConfig.cpp:3370
 msgid "Export STL"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3359
+#: src/libslic3r/PrintConfig.cpp:3371
 msgid "Export the model(s) as STL."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3364
+#: src/libslic3r/PrintConfig.cpp:3376
 msgid "Slice the model and export toolpaths as G-code."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3369
+#: src/libslic3r/PrintConfig.cpp:3381
 msgid "Slice"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3370
+#: src/libslic3r/PrintConfig.cpp:3382
 msgid ""
 "Slice the model as FFF or SLA based on the printer_technology configuration "
 "value."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3375
+#: src/libslic3r/PrintConfig.cpp:3387
 msgid "Help"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3376
+#: src/libslic3r/PrintConfig.cpp:3388
 msgid "Show this help."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3381
+#: src/libslic3r/PrintConfig.cpp:3393
 msgid "Help (FFF options)"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3382
+#: src/libslic3r/PrintConfig.cpp:3394
 msgid "Show the full list of print/G-code configuration options."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3386
+#: src/libslic3r/PrintConfig.cpp:3398
 msgid "Help (SLA options)"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3387
+#: src/libslic3r/PrintConfig.cpp:3399
 msgid "Show the full list of SLA print configuration options."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3391
+#: src/libslic3r/PrintConfig.cpp:3403
 msgid "Output Model Info"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3392
+#: src/libslic3r/PrintConfig.cpp:3404
 msgid "Write information about the model to the console."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3396
+#: src/libslic3r/PrintConfig.cpp:3408
 msgid "Save config file"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3397
+#: src/libslic3r/PrintConfig.cpp:3409
 msgid "Save configuration to the specified file."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3407
+#: src/libslic3r/PrintConfig.cpp:3419
 msgid "Align XY"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3408
+#: src/libslic3r/PrintConfig.cpp:3420
 msgid "Align the model to the given point."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3413
+#: src/libslic3r/PrintConfig.cpp:3425
 msgid "Cut model at the given Z."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3434
+#: src/libslic3r/PrintConfig.cpp:3446
 msgid "Center"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3435
+#: src/libslic3r/PrintConfig.cpp:3447
 msgid "Center the print around the given center."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3439
+#: src/libslic3r/PrintConfig.cpp:3451
 msgid "Don't arrange"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3440
+#: src/libslic3r/PrintConfig.cpp:3452
 msgid ""
 "Do not rearrange the given models before merging and keep their original XY "
 "coordinates."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3443
+#: src/libslic3r/PrintConfig.cpp:3455
 msgid "Duplicate"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3444
+#: src/libslic3r/PrintConfig.cpp:3456
 msgid "Multiply copies by this factor."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3448
+#: src/libslic3r/PrintConfig.cpp:3460
 msgid "Duplicate by grid"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3449
+#: src/libslic3r/PrintConfig.cpp:3461
 msgid "Multiply copies by creating a grid."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3452
+#: src/libslic3r/PrintConfig.cpp:3464
 msgid "Merge"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3453
+#: src/libslic3r/PrintConfig.cpp:3465
 msgid ""
 "Arrange the supplied models in a plate and merge them in a single model in "
 "order to perform actions once."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3458
+#: src/libslic3r/PrintConfig.cpp:3470
 msgid ""
 "Try to repair any non-manifold meshes (this option is implicitly added "
 "whenever we need to slice the model to perform the requested action)."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3462
+#: src/libslic3r/PrintConfig.cpp:3474
 msgid "Rotation angle around the Z axis in degrees."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3466
+#: src/libslic3r/PrintConfig.cpp:3478
 msgid "Rotate around X"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3467
+#: src/libslic3r/PrintConfig.cpp:3479
 msgid "Rotation angle around the X axis in degrees."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3471
+#: src/libslic3r/PrintConfig.cpp:3483
 msgid "Rotate around Y"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3472
+#: src/libslic3r/PrintConfig.cpp:3484
 msgid "Rotation angle around the Y axis in degrees."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3477
+#: src/libslic3r/PrintConfig.cpp:3489
 msgid "Scaling factor or percentage."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3482
+#: src/libslic3r/PrintConfig.cpp:3494
 msgid ""
 "Detect unconnected parts in the given model(s) and split them into separate "
 "objects."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3485
+#: src/libslic3r/PrintConfig.cpp:3497
 msgid "Scale to Fit"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3486
+#: src/libslic3r/PrintConfig.cpp:3498
 msgid "Scale to fit the given volume."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3495
+#: src/libslic3r/PrintConfig.cpp:3507
 msgid "Ignore non-existent config files"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3496
+#: src/libslic3r/PrintConfig.cpp:3508
 msgid "Do not fail if a file supplied to --load does not exist."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3499
+#: src/libslic3r/PrintConfig.cpp:3511
 msgid "Load config file"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3500
+#: src/libslic3r/PrintConfig.cpp:3512
 msgid ""
 "Load configuration from the specified file. It can be used more than once to "
 "load options from multiple files."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3503
+#: src/libslic3r/PrintConfig.cpp:3515
 msgid "Output File"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3504
+#: src/libslic3r/PrintConfig.cpp:3516
 msgid ""
 "The file where the output will be written (if not specified, it will be "
 "based on the input file)."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3514
+#: src/libslic3r/PrintConfig.cpp:3526
 msgid "Data directory"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3515
+#: src/libslic3r/PrintConfig.cpp:3527
 msgid ""
 "Load and store settings at the given directory. This is useful for "
 "maintaining different profiles or including configurations from a network "
 "storage."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3518
+#: src/libslic3r/PrintConfig.cpp:3530
 msgid "Logging level"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3519
+#: src/libslic3r/PrintConfig.cpp:3531
 msgid ""
 "Sets logging sensitivity. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
 "trace\n"
 "For example. loglevel=2 logs fatal, error and warning level messages."
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3525
+#: src/libslic3r/PrintConfig.cpp:3537
 msgid "Render with a software renderer"
 msgstr ""
 
-#: src/libslic3r/PrintConfig.cpp:3526
+#: src/libslic3r/PrintConfig.cpp:3538
 msgid ""
 "Render with a software renderer. The bundled MESA software renderer is "
 "loaded instead of the default OpenGL driver."
