@@ -684,11 +684,8 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         glsafe(::glUniform4fv(clipping_plane_id, 1, (const GLfloat*)m_clipping_plane));
 
 #if ENABLE_SLOPE_RENDERING
-    if (slope_active_id != -1)
-        glsafe(::glUniform1i(slope_active_id, type == Opaque && m_slope_active ? 1 : 0));
-
     if (slope_z_range_id != -1)
-        glsafe(::glUniform2fv(slope_z_range_id, 1, (const GLfloat*)m_slope_z_range.data()));
+        glsafe(::glUniform2fv(slope_z_range_id, 1, (const GLfloat*)m_slope.z_range.data()));
 #endif // ENABLE_SLOPE_RENDERING
 
     GLVolumeWithIdAndZList to_render = volumes_to_render(this->volumes, type, view_matrix, filter_func);
@@ -705,6 +702,9 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
 
         if (print_box_worldmatrix_id != -1)
             glsafe(::glUniformMatrix4fv(print_box_worldmatrix_id, 1, GL_FALSE, (const GLfloat*)volume.first->world_matrix().cast<float>().data()));
+
+        if (slope_active_id != -1)
+            glsafe(::glUniform1i(slope_active_id, m_slope.active && !volume.first->is_modifier && !volume.first->is_wipe_tower ? 1 : 0));
 
         if (slope_normal_matrix_id != -1)
         {

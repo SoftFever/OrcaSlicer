@@ -497,10 +497,15 @@ private:
     float m_clipping_plane[4];
 
 #if ENABLE_SLOPE_RENDERING
-    // toggle for slope rendering 
-    bool m_slope_active { false };
-    // [0] = yellow, [1] = red
-    std::array<float, 2> m_slope_z_range;
+    struct Slope
+    {
+        // toggle for slope rendering 
+        bool active{ false };
+        // [0] = yellow, [1] = red
+        std::array<float, 2> z_range;
+    };
+
+    Slope m_slope;
 #endif // ENABLE_SLOPE_RENDERING
 
 public:
@@ -570,12 +575,12 @@ public:
     void set_clipping_plane(const double* coeffs) { m_clipping_plane[0] = coeffs[0]; m_clipping_plane[1] = coeffs[1]; m_clipping_plane[2] = coeffs[2]; m_clipping_plane[3] = coeffs[3]; }
 
 #if ENABLE_SLOPE_RENDERING
-    bool is_slope_active() const { return m_slope_active; }
-    void set_slope_active(bool active) { m_slope_active = active; }
+    bool is_slope_active() const { return m_slope.active; }
+    void set_slope_active(bool active) { m_slope.active = active; }
 
-    const std::array<float, 2>& get_slope_z_range() const { return m_slope_z_range; }
-    void set_slope_z_range(const std::array<float, 2>& range) { m_slope_z_range = range; }
-    void set_default_slope_z_range() { m_slope_z_range = { -::cos(Geometry::deg2rad(90.0f - 45.0f)), -::cos(Geometry::deg2rad(90.0f - 70.0f)) }; }
+    const std::array<float, 2>& get_slope_z_range() const { return m_slope.z_range; }
+    void set_slope_z_range(const std::array<float, 2>& range) { m_slope.z_range = range; }
+    void set_default_slope_z_range() { m_slope.z_range = { -::cos(Geometry::deg2rad(90.0f - 45.0f)), -::cos(Geometry::deg2rad(90.0f - 70.0f)) }; }
 #endif // ENABLE_SLOPE_RENDERING
 
     // returns true if all the volumes are completely contained in the print volume
