@@ -1370,6 +1370,22 @@ void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_
     }
 }
 
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position) const
+{
+    if (m_text.empty())
+        return;
+
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    imgui.set_next_window_pos(mouse_position(0), mouse_position(1) + 16, ImGuiCond_Always, 0.0f, 0.0f);
+    imgui.begin(_(L("canvas_tooltip")), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
+    imgui.text(m_text);
+    imgui.end();
+    ImGui::PopStyleVar();
+}
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+
 wxDEFINE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, RBtnEvent);
@@ -1941,17 +1957,7 @@ void GLCanvas3D::render()
     m_camera.debug_render();
 #endif // ENABLE_CAMERA_STATISTICS
 
-    wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog(*this);
-
-    wxGetApp().imgui()->render();
-
-    m_canvas->SwapBuffers();
-
-#if ENABLE_RENDER_STATISTICS
-    auto end_time = std::chrono::high_resolution_clock::now();
-    m_render_stats.last_frame = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-#endif // ENABLE_RENDER_STATISTICS
-
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     std::string tooltip = "";
 
     if (tooltip.empty())
@@ -1970,6 +1976,41 @@ void GLCanvas3D::render()
         tooltip = m_view_toolbar.get_tooltip();
 
     set_tooltip(tooltip);
+
+    m_tooltip.render(m_mouse.position);
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+
+    wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog(*this);
+
+    wxGetApp().imgui()->render();
+
+    m_canvas->SwapBuffers();
+
+#if ENABLE_RENDER_STATISTICS
+    auto end_time = std::chrono::high_resolution_clock::now();
+    m_render_stats.last_frame = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+#endif // ENABLE_RENDER_STATISTICS
+
+#if !ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+    std::string tooltip = "";
+
+    if (tooltip.empty())
+        tooltip = m_layers_editing.get_tooltip(*this);
+
+    if (tooltip.empty())
+        tooltip = m_gizmos.get_tooltip();
+
+    if (tooltip.empty())
+        tooltip = m_main_toolbar.get_tooltip();
+
+    if (tooltip.empty())
+        tooltip = m_undoredo_toolbar.get_tooltip();
+
+    if (tooltip.empty())
+        tooltip = m_view_toolbar.get_tooltip();
+
+    set_tooltip(tooltip);
+#endif // !ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 }
 
 #if ENABLE_THUMBNAIL_GENERATOR
@@ -3279,6 +3320,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             mouse_up_cleanup();
 
         m_mouse.set_start_position_3D_as_invalid();
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+        m_mouse.position = pos.cast<double>();
+#endif /// ENABLE_CANVAS_TOOLTIP_USING_IMGUI
         return;
     }
 
@@ -3680,7 +3724,9 @@ void GLCanvas3D::set_tooltip(const std::string& tooltip) const
 {
     if (m_canvas != nullptr)
     {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+        m_tooltip.set_text(std::string((_(L(tooltip))).ToUTF8()));
+#else
         wxString txt = wxString::FromUTF8(tooltip.data());
         if (m_canvas->GetToolTipText() != txt)
             m_canvas->SetToolTip(txt);
@@ -3695,7 +3741,7 @@ void GLCanvas3D::set_tooltip(const std::string& tooltip) const
 //        }
 //        else if (!tooltip.empty()) // Avoid "empty" tooltips => unset of the empty tooltip leads to application crash under OSX
 //            m_canvas->SetToolTip(wxString::FromUTF8(tooltip.data()));
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     }
 }
 

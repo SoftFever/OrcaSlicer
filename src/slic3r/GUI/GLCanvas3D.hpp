@@ -389,6 +389,17 @@ private:
         void render(const std::vector<const ModelInstance*>& sorted_instances) const;
     };
 
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+    class Tooltip
+    {
+        std::string m_text;
+
+    public:
+        void set_text(const std::string& text) { m_text = text; }
+        void render(const Vec2d& mouse_position) const;
+    };
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+
 public:
     enum ECursorType : unsigned char
     {
@@ -467,6 +478,9 @@ private:
     int m_selected_extruder;
 
     Labels m_labels;
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+    mutable Tooltip m_tooltip;
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
 public:
     GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar);

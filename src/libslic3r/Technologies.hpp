@@ -60,4 +60,13 @@
 // while 3D mouse is connected and free camera is not selected
 #define ENABLE_AUTO_CONSTRAINED_CAMERA (1 && ENABLE_2_2_0)
 
+
+//==================
+// 2.2.0.final techs
+//==================
+#define ENABLE_2_2_0_FINAL 1
+
+// Enable tooltips for GLCanvas3D using ImGUI
+#define ENABLE_CANVAS_TOOLTIP_USING_IMGUI (1 && ENABLE_2_2_0_FINAL)
+
 #endif // _technologies_h_
