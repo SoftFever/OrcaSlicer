@@ -3680,16 +3680,22 @@ void GLCanvas3D::set_tooltip(const std::string& tooltip) const
 {
     if (m_canvas != nullptr)
     {
-        wxToolTip* t = m_canvas->GetToolTip();
-        if (t != nullptr)
-        {
-            if (tooltip.empty())
-                m_canvas->UnsetToolTip();
-            else
-                t->SetTip(wxString::FromUTF8(tooltip.data()));
-        }
-        else if (!tooltip.empty()) // Avoid "empty" tooltips => unset of the empty tooltip leads to application crash under OSX
-            m_canvas->SetToolTip(wxString::FromUTF8(tooltip.data()));
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        wxString txt = wxString::FromUTF8(tooltip.data());
+        if (m_canvas->GetToolTipText() != txt)
+            m_canvas->SetToolTip(txt);
+
+//        wxToolTip* t = m_canvas->GetToolTip();
+//        if (t != nullptr)
+//        {
+//            if (tooltip.empty())
+//                m_canvas->UnsetToolTip();
+//            else
+//                t->SetTip(wxString::FromUTF8(tooltip.data()));
+//        }
+//        else if (!tooltip.empty()) // Avoid "empty" tooltips => unset of the empty tooltip leads to application crash under OSX
+//            m_canvas->SetToolTip(wxString::FromUTF8(tooltip.data()));
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     }
 }
 
