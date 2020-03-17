@@ -1379,7 +1379,7 @@ void GLCanvas3D::Tooltip::set_text(const std::string& text)
     if (m_text != text)
     {
         if (m_text.empty())
-            m_start_time = std::chrono::high_resolution_clock::now();
+            m_start_time = std::chrono::steady_clock::now();
 
         m_text = text;
     }
@@ -1393,14 +1393,11 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position) const
 #endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
 {
 #if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
-    if (m_text.empty() || std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_start_time).count() < 500)
-    {
-        if (!m_text.empty())
-            // request another frame to show up later
-            canvas.request_extra_frame();
-
+    if (m_text.empty())
         return;
-    }
+
+    // draw the tooltip as hidden until the delay is expired
+    float alpha = (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_start_time).count() < 500) ? 0.0f : 1.0;
 #else
     if (m_text.empty())
         return;
@@ -1408,19 +1405,27 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position) const
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+#if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
+#endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
     imgui.set_next_window_pos(mouse_position(0), mouse_position(1) + 16, ImGuiCond_Always, 0.0f, 0.0f);
-    imgui.begin(_(L("canvas_tooltip")), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
+
+    imgui.begin(_(L("canvas_tooltip")), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoFocusOnAppearing);
     ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
     imgui.text(m_text);
 
 #if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
-    // force re-render while the windows gets to its final size (it may take several frames)
-    if (ImGui::GetWindowContentRegionWidth() + 2.0f * ImGui::GetStyle().WindowPadding.x != ImGui::CalcWindowExpectedSize(ImGui::GetCurrentWindow()).x)
+    // force re-render while the windows gets to its final size (it may take several frames) or while hidden
+    if (alpha == 0.0f || ImGui::GetWindowContentRegionWidth() + 2.0f * ImGui::GetStyle().WindowPadding.x != ImGui::CalcWindowExpectedSize(ImGui::GetCurrentWindow()).x)
         canvas.request_extra_frame();
 #endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
 
     imgui.end();
+#if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
+    ImGui::PopStyleVar(2);
+#else
     ImGui::PopStyleVar();
+#endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
 }
 #endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
