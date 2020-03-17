@@ -3,6 +3,9 @@
 
 #include <stddef.h>
 #include <memory>
+#if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
+#include <chrono>
+#endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
 
 #include "3DScene.hpp"
 #include "GLToolbar.hpp"
@@ -393,10 +396,18 @@ private:
     class Tooltip
     {
         std::string m_text;
+#if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
+        std::chrono::steady_clock::time_point m_start_time;
+#endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
 
     public:
+#if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
+        void set_text(const std::string& text);
+        void render(const Vec2d& mouse_position, GLCanvas3D& canvas) const;
+#else
         void set_text(const std::string& text) { m_text = text; }
         void render(const Vec2d& mouse_position) const;
+#endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
     };
 #endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
