@@ -577,7 +577,7 @@ void _arrange(
         std::function<bool()>         stopfn)
 {
     // Integer ceiling the min distance from the bed perimeters
-    coord_t md = minobjd - 2 * scaled(0.1 + EPSILON);
+    coord_t md = minobjd;
     md = (md % 2) ? md / 2 + 1 : md / 2;
     
     auto corrected_bin = bin;
