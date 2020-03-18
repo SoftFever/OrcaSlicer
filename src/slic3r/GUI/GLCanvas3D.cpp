@@ -1414,7 +1414,7 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position) const
 
     imgui.begin(_(L("canvas_tooltip")), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoFocusOnAppearing);
     ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
-    imgui.text(m_text);
+    ImGui::TextUnformatted(m_text.c_str());
 
 #if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
     // force re-render while the windows gets to its final size (it may take several frames) or while hidden
