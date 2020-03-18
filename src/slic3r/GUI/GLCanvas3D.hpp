@@ -401,6 +401,7 @@ private:
 #endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
 
     public:
+        bool is_empty() const { return m_text.empty(); }
 #if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
         void set_text(const std::string& text);
         void render(const Vec2d& mouse_position, GLCanvas3D& canvas) const;

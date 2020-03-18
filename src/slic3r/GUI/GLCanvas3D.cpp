@@ -3307,16 +3307,22 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     evt.SetY(evt.GetY() * scale);
 #endif
 
-	Point pos(evt.GetX(), evt.GetY());
+    Point pos(evt.GetX(), evt.GetY());
 
-    ImGuiWrapper *imgui = wxGetApp().imgui();
+    ImGuiWrapper* imgui = wxGetApp().imgui();
     if (imgui->update_mouse_data(evt)) {
         m_mouse.position = evt.Leaving() ? Vec2d(-1.0, -1.0) : pos.cast<double>();
         render();
 #ifdef SLIC3R_DEBUG_MOUSE_EVENTS
-		printf((format_mouse_event_debug_message(evt) + " - Consumed by ImGUI\n").c_str());
+        printf((format_mouse_event_debug_message(evt) + " - Consumed by ImGUI\n").c_str());
 #endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
-		return;
+        // do not return if dragging or tooltip not empty to allow for tooltip update
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+        if (!m_mouse.dragging && m_tooltip.is_empty())
+#else
+        if (!m_mouse.dragging && m_canvas->GetToolTipText().empty())
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+            return;
     }
 
 #ifdef __WXMSW__
