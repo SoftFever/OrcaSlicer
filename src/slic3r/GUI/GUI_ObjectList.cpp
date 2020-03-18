@@ -124,7 +124,14 @@ ObjectList::ObjectList(wxWindow* parent) :
         // On Windows and Linux, forces a kill focus emulation on the object manipulator fields because this event handler is called
         // before the kill focus event handler on the object manipulator when changing selection in the list, invalidating the object
         // manipulator cache with the following call to selection_changed()
-        wxGetApp().obj_manipul()->emulate_kill_focus();
+//        wxGetApp().obj_manipul()->emulate_kill_focus(); // It's not necessury anymore #ys_FIXME delete after testing
+
+        // On Windows and Linux:
+        // It's not invoked KillFocus event for "temporary" panels (like "Manipulation panel", "Settings", "Layer ranges"),
+        // if we change selection in object list.
+        // see https://github.com/prusa3d/PrusaSlicer/issues/3303
+        // But, if we call SetFocus() for ObjectList it will cause an invoking of a KillFocus event for "temporary" panels  
+        this->SetFocus();
 #else
         // To avoid selection update from SetSelection() and UnselectAll() under osx
         if (m_prevent_list_events)
@@ -3041,7 +3048,10 @@ void ObjectList::add_layer_item(const t_layer_height_range& range,
 
 bool ObjectList::edit_layer_range(const t_layer_height_range& range, coordf_t layer_height)
 {
-    const int obj_idx = get_selected_obj_idx();
+    // Use m_selected_object_id instead of get_selected_obj_idx()
+    // because of get_selected_obj_idx() return obj_idx for currently selected item.
+    // But edit_layer_range(...) function can be called, when Selection in ObjectList could be changed
+    const int obj_idx = m_selected_object_id ; 
     if (obj_idx < 0) 
         return false;
 
@@ -3064,7 +3074,10 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, coordf_t la
 
 bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_layer_height_range& new_range, bool dont_update_ui)
 {
-    const int obj_idx = get_selected_obj_idx();
+    // Use m_selected_object_id instead of get_selected_obj_idx()
+    // because of get_selected_obj_idx() return obj_idx for currently selected item.
+    // But edit_layer_range(...) function can be called, when Selection in ObjectList could be changed
+    const int obj_idx = m_selected_object_id;
     if (obj_idx < 0) return false;
 
     take_snapshot(_(L("Edit Height Range")));
@@ -3091,10 +3104,13 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_lay
             add_layer_item(r.first, root_item);
     }
 
-    if (!dont_update_ui)
+    // if this function was invoked from wxEVT_CHANGE_SELECTION selected item could be other than itLayer or itLayerRoot      
+    if (!dont_update_ui && (sel_type & (itLayer | itLayerRoot)))
         select_item(sel_type&itLayer ? m_objects_model->GetItemByLayerRange(obj_idx, new_range) : root_item);
 
     Expand(root_item);
+
+    m_prevent_list_events = false;
     return true;
 }
 

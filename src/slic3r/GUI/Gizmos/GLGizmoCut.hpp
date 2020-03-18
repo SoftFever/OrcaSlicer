@@ -28,7 +28,7 @@ public:
     double get_cut_z() const { return m_cut_z; }
     void set_cut_z(double cut_z) const;
 
-    virtual std::string get_tooltip() const;
+    std::string get_tooltip() const override;
 
 protected:
     virtual bool on_init();
