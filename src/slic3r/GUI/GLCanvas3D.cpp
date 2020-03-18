@@ -2003,22 +2003,27 @@ void GLCanvas3D::render()
 #endif // ENABLE_CAMERA_STATISTICS
 
 #if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
-    std::string tooltip = "";
+    std::string tooltip;
 
-    if (tooltip.empty())
-        tooltip = m_layers_editing.get_tooltip(*this);
+	// Negative coordinate means out of the window, likely because the window was deactivated.
+	// In that case the tooltip should be hidden.
+    if (m_mouse.position.x() >= 0. && m_mouse.position.y() >= 0.) 
+    {
+	    if (tooltip.empty())
+	        tooltip = m_layers_editing.get_tooltip(*this);
 
-    if (tooltip.empty())
-        tooltip = m_gizmos.get_tooltip();
+	    if (tooltip.empty())
+	        tooltip = m_gizmos.get_tooltip();
 
-    if (tooltip.empty())
-        tooltip = m_main_toolbar.get_tooltip();
+	    if (tooltip.empty())
+	        tooltip = m_main_toolbar.get_tooltip();
 
-    if (tooltip.empty())
-        tooltip = m_undoredo_toolbar.get_tooltip();
+	    if (tooltip.empty())
+	        tooltip = m_undoredo_toolbar.get_tooltip();
 
-    if (tooltip.empty())
-        tooltip = m_view_toolbar.get_tooltip();
+	    if (tooltip.empty())
+	        tooltip = m_view_toolbar.get_tooltip();
+	}
 
     set_tooltip(tooltip);
 
