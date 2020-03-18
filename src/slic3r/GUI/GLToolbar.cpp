@@ -429,6 +429,48 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
         m_mouse_capture.reset();
     }
 
+#if ENABLE_MODIFIED_TOOLBAR_MOUSE_EVENT_HANDLING
+    if (evt.Moving())
+        m_tooltip = update_hover_state(mouse_pos, parent);
+    else if (evt.LeftUp())
+    {
+        if (m_mouse_capture.left)
+        {
+            processed = true;
+            m_mouse_capture.left = false;
+        }
+        else
+            return false;
+    }
+    else if (evt.MiddleUp())
+    {
+        if (m_mouse_capture.middle)
+        {
+            processed = true;
+            m_mouse_capture.middle = false;
+        }
+        else
+            return false;
+    }
+    else if (evt.RightUp())
+    {
+        if (m_mouse_capture.right)
+        {
+            processed = true;
+            m_mouse_capture.right = false;
+        }
+        else
+            return false;
+    }
+    else if (evt.Dragging())
+    {
+        if (m_mouse_capture.any())
+            // if the button down was done on this toolbar, prevent from dragging into the scene
+            processed = true;
+        else
+            return false;
+    }
+#else
     if (evt.Moving())
         m_tooltip = update_hover_state(mouse_pos, parent);
     else if (evt.LeftUp())
@@ -440,6 +482,7 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
     else if (evt.Dragging() && m_mouse_capture.any())
         // if the button down was done on this toolbar, prevent from dragging into the scene
         processed = true;
+#endif // ENABLE_MODIFIED_TOOLBAR_MOUSE_EVENT_HANDLING
 
     int item_id = contains_mouse(mouse_pos, parent);
     if (item_id == -1)
@@ -479,8 +522,10 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
                 parent.set_as_dirty();
             }
         }
+#if !ENABLE_MODIFIED_TOOLBAR_MOUSE_EVENT_HANDLING
         else if (evt.LeftUp())
             processed = true;
+#endif // !ENABLE_MODIFIED_TOOLBAR_MOUSE_EVENT_HANDLING
     }
 
     return processed;
