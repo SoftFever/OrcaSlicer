@@ -42,7 +42,7 @@ public:
 
     const Vec3d& get_offset() const { return m_offset; }
 
-    virtual std::string get_tooltip() const;
+    std::string get_tooltip() const override;
 
 protected:
     virtual bool on_init();

@@ -30,7 +30,7 @@ public:
 
     const Vec3d& get_displacement() const { return m_displacement; }
 
-    virtual std::string get_tooltip() const;
+    std::string get_tooltip() const override;
 
 protected:
     virtual bool on_init();

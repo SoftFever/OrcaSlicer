@@ -3778,7 +3778,7 @@ void GLCanvas3D::set_tooltip(const std::string& tooltip) const
     if (m_canvas != nullptr)
     {
 #if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
-        m_tooltip.set_text(std::string((_(L(tooltip))).ToUTF8()));
+        m_tooltip.set_text(tooltip);
 #else
         wxString txt = wxString::FromUTF8(tooltip.data());
         if (m_canvas->GetToolTipText() != txt)
