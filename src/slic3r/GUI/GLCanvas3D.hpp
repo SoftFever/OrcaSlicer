@@ -399,6 +399,8 @@ private:
 #if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
         std::chrono::steady_clock::time_point m_start_time;
 #endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
+        // Indicator that the mouse is inside an ImGUI dialog, therefore the tooltip should be suppressed.
+        bool 		m_in_imgui = false;
 
     public:
         bool is_empty() const { return m_text.empty(); }
@@ -409,6 +411,8 @@ private:
         void set_text(const std::string& text) { m_text = text; }
         void render(const Vec2d& mouse_position) const;
 #endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
+        // Indicates that the mouse is inside an ImGUI dialog, therefore the tooltip should be suppressed.
+        void set_in_imgui(bool b) { m_in_imgui = b; }
     };
 #endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 

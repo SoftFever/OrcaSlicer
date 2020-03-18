@@ -1376,12 +1376,14 @@ void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_
 #if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
 void GLCanvas3D::Tooltip::set_text(const std::string& text)
 {
-    if (m_text != text)
+    // If the mouse is inside an ImGUI dialog, then the tooltip is suppressed.
+	const std::string &new_text = m_in_imgui ? std::string() : text;
+    if (m_text != new_text)
     {
         if (m_text.empty())
             m_start_time = std::chrono::steady_clock::now();
 
-        m_text = text;
+        m_text = new_text;
     }
 }
 #endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
@@ -3310,15 +3312,18 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     Point pos(evt.GetX(), evt.GetY());
 
     ImGuiWrapper* imgui = wxGetApp().imgui();
+    m_tooltip.set_in_imgui(false);
     if (imgui->update_mouse_data(evt)) {
         m_mouse.position = evt.Leaving() ? Vec2d(-1.0, -1.0) : pos.cast<double>();
+        m_tooltip.set_in_imgui(true);
         render();
 #ifdef SLIC3R_DEBUG_MOUSE_EVENTS
         printf((format_mouse_event_debug_message(evt) + " - Consumed by ImGUI\n").c_str());
 #endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
         // do not return if dragging or tooltip not empty to allow for tooltip update
 #if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
-        if (!m_mouse.dragging && m_tooltip.is_empty())
+        // Replaced with the m_tooltip.is_in_imgui() flag.
+//        if (!m_mouse.dragging && had_tooltip && m_tooltip.is_empty())
 #else
         if (!m_mouse.dragging && m_canvas->GetToolTipText().empty())
 #endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
