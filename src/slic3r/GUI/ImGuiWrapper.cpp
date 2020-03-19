@@ -444,9 +444,9 @@ bool ImGuiWrapper::want_any_input() const
 #ifdef __APPLE__
 static const ImWchar ranges_keyboard_shortcuts[] =
 {
+    0x21E7, 0x21E7, // OSX Shift Key symbol
     0x2318, 0x2318, // OSX Command Key symbol
     0x2325, 0x2325, // OSX Option Key symbol
-    0x21E7, 0x21E7, // OSX Shift Key symbol
     0,
 };
 #endif // __APPLE__
@@ -480,9 +480,13 @@ void ImGuiWrapper::init_font(bool compress)
     }
 
 #ifdef __APPLE__
-	if (! m_font_cjk)
+    ImFontConfig config;
+    config.MergeMode = true;
+    if (! m_font_cjk) {
 		// Apple keyboard shortcuts are only contained in the CJK fonts.
-		io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/NotoSansCJK-Regular.ttf").c_str(), m_font_size, nullptr, ranges_keyboard_shortcuts);
+		ImFont *font_cjk = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/NotoSansCJK-Regular.ttc").c_str(), m_font_size, &config, ranges_keyboard_shortcuts);
+        assert(font_cjk != nullptr);
+    }
 #endif
 
     // Build texture atlas
