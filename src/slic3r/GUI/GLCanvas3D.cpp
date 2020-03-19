@@ -3350,8 +3350,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
         // do not return if dragging or tooltip not empty to allow for tooltip update
 #if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
-        // Replaced with the m_tooltip.is_in_imgui() flag.
-//        if (!m_mouse.dragging && had_tooltip && m_tooltip.is_empty())
+        if (!m_mouse.dragging && m_tooltip.is_empty())
 #else
         if (!m_mouse.dragging && m_canvas->GetToolTipText().empty())
 #endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
