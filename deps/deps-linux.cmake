@@ -31,7 +31,7 @@ ExternalProject_Add(dep_libopenssl
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ./config
         "--prefix=${DESTDIR}/usr/local"
-        "--libdir=${DESTDIR}/usr/local/lib"
+        "--libdir=lib"
         no-shared
         no-ssl3-method
         no-dynamic-engine
