@@ -1092,6 +1092,32 @@ msgstr "Annulation..."
 msgid "Cannot calculate extrusion width for %1%: Variable \"%2%\" not accessible."
 msgstr "Impossible de calculer la largeur d'extrusion pour %1% : la variable \"%2%\" n'est pas accessible."
 
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3017
+msgid ""
+"Cannot insert a new layer range after the current layer range.\n"
+"Current layer range overlaps with the next layer range."
+msgstr ""
+"Impossible d'insérer une nouvelle zone de couche après la zone de couche actuelle.\n"
+"La zone de couche actuelle chevauche la prochaine zone de couche."
+
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3008
+msgid ""
+"Cannot insert a new layer range after the current layer range.\n"
+"The next layer range is too thin to be split to two\n"
+"without violating the minimum layer height."
+msgstr ""
+"Impossible d'insérer une nouvelle zone de couche après la zone de couche actuelle.\n"
+"La zone de couche suivante est trop fine pour être séparée en deux sans enfreindre la hauteur de couche minimum."
+
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3012
+msgid ""
+"Cannot insert a new layer range between the current and the next layer range.\n"
+"The gap between the current layer range and the next layer range\n"
+"is thinner than the minimum layer height allowed."
+msgstr ""
+"Impossible d'insérer une nouvelle zone de couche entre l'actuelle et la prochaine.\n"
+"L'espace entre la zone de couche actuelle et la prochaine est inférieur à la hauteur de couche minimum autorisée."
+
 #: src/slic3r/GUI/Tab.cpp:3073
 msgid "Cannot overwrite a system profile."
 msgstr "Impossible d'écraser un profil système."
@@ -2032,14 +2058,6 @@ msgstr ""
 "Sélectionnez OUI si vous voulez changer cette valeur pour %s%%,\n"
 "ou NON si vous êtes certain que %s%s est une valeur correcte."
 
-#: src/slic3r/GUI/ConfigWizard.cpp:1761
-msgid "Do you want to automatic select default filaments?"
-msgstr "Voulez-vous sélectionner automatiquement les filaments par défaut ?"
-
-#: src/slic3r/GUI/ConfigWizard.cpp:1772
-msgid "Do you want to automatic select default materials?"
-msgstr "Voulez-vous sélectionner automatiquement les matériaux par défaut ?"
-
 #: src/slic3r/GUI/DoubleSlider.cpp:1920
 msgid "Do you want to delete all saved tool changes?"
 msgstr "Voulez-vous supprimer tous les changements d'outils enregistrés ?"
@@ -2056,6 +2074,14 @@ msgstr "Voulez-vous réessayer"
 msgid "Do you want to save your manually edited support points?"
 msgstr "Voulez-vous sauvegarder vos points de support édités manuellement ?"
 
+#: src/slic3r/GUI/ConfigWizard.cpp:1834
+msgid "Do you want to select default filaments for these FFF printer models?"
+msgstr "Voulez-vous sélectionner les filaments par défaut pour ces modèles d'imprimantes FFF ?"
+
+#: src/slic3r/GUI/ConfigWizard.cpp:1852
+msgid "Do you want to select default SLA materials for these printer models?"
+msgstr "Voulez-vous sélectionner les matériaux SLA par défaut pour ces modèles d'imprimantes ?"
+
 #: src/libslic3r/PrintConfig.cpp:3429
 msgid "Don't arrange"
 msgstr "Ne pas agencer"
@@ -2071,6 +2097,10 @@ msgstr "Ne pas supporter les ponts"
 #: src/slic3r/GUI/ConfigSnapshotDialog.cpp:20
 msgid "Downgrade"
 msgstr "Rétrograder"
+
+#: src/libslic3r/PrintConfig.cpp:1695
+msgid "Draft shield"
+msgstr "Bouclier contre les flux d'air"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:1365
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:1368
@@ -3453,6 +3483,10 @@ msgstr "Si activé, Slic3r télécharge les mises à jours des préréglages sys
 #: src/slic3r/GUI/Preferences.cpp:106
 msgid "If enabled, the 3D scene will be rendered in Retina resolution. If you are experiencing 3D performance problems, disabling this option may help."
 msgstr "Si ceci est activé, la scène 3D sera affichée avec la résolution Retina. Si vous rencontrez des problèmes de performance 3D, le fait de désactiver cette option vous aidera peut-être."
+
+#: src/libslic3r/PrintConfig.cpp:1696
+msgid "If enabled, the skirt will be as tall as a highest printed object. This is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft."
+msgstr "Si elle est activée, la jupe sera aussi haute que l'objet imprimé le plus haut. Cela sert à protéger les impressions ABS ou ASA des phénomènes de déformation ou de décollement du plateau d'impression liés au flux d'air."
 
 #: src/libslic3r/PrintConfig.cpp:1858
 msgid "If enabled, the wipe tower will not be printed on layers with no toolchanges. On layers with a toolchange, extruder will travel downward to print the wipe tower. User is responsible for ensuring there is no collision with the print."
@@ -5947,9 +5981,9 @@ msgstr "Retirer les points sélectionnés"
 msgid "Remove the selected object"
 msgstr "Retirer l'objet sélectionné"
 
-#: src/slic3r/GUI/ConfigWizard.cpp:438
-msgid "Remove user profiles - install from scratch (a snapshot will be taken beforehand)"
-msgstr "Supprimer les profils d'utilisateur - installation à partir de zéro (un instantané des réglages sera pris)"
+#: src/slic3r/GUI/ConfigWizard.cpp:453
+msgid "Remove user profiles (a snapshot will be taken beforehand)"
+msgstr "Supprimer les profils utilisateurs (un instantané sera pris au préalable)"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1636
 msgid "Rename"
@@ -7696,6 +7730,14 @@ msgstr "La première couche sera réduite sur le plan XY selon la valeur configu
 msgid "the following characters are not allowed:"
 msgstr "les caractères suivant ne sont pas autorisés :"
 
+#: src/slic3r/GUI/ConfigWizard.cpp:1830
+msgid "The following FFF printer models have no filament selected:"
+msgstr "Les modèles d'imprimantes FFF suivants n'ont aucun filament sélectionné :"
+
+#: src/slic3r/GUI/ConfigWizard.cpp:1848
+msgid "The following SLA printer models have no materials selected:"
+msgstr "Les modèles d'imprimantes SLA suivants n'ont aucun matériau sélectionné :"
+
 #: src/slic3r/GUI/Tab.cpp:3461
 msgid "the following suffix is not allowed:"
 msgstr "le suffixe suivant n'est pas autorisé :"
@@ -9048,14 +9090,6 @@ msgstr "Vous ne pouvez pas charger un projet SLA avec un objet en plusieurs part
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:578
 msgid "You cannot use non-uniform scaling mode for multiple objects/parts selection"
 msgstr "Vous ne pouvez pas utiliser un mode de redimensionnement non-uniforme pour une sélection d'objets/de parties multiples"
-
-#: src/slic3r/GUI/ConfigWizard.cpp:1760
-msgid "You have to select at least one filament for selected printers"
-msgstr "Vous devez sélectionner au moins un filament pour les imprimantes sélectionnées"
-
-#: src/slic3r/GUI/ConfigWizard.cpp:1771
-msgid "You have to select at least one material for selected printers"
-msgstr "Vous devez sélectionner au moins un matériau pour les imprimantes sélectionnées"
 
 #: src/slic3r/GUI/GLCanvas3DManager.cpp:287
 msgid "You may need to update your graphics card driver."
