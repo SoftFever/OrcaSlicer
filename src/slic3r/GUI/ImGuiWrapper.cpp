@@ -447,9 +447,21 @@ void ImGuiWrapper::init_font(bool compress)
 
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->Clear();
-    //FIXME replace with io.Fonts->AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, m_font_size, nullptr, m_glyph_ranges);
+
+    // Create ranges of characters from m_glyph_ranges, possibly adding some OS specific special characters.
+	ImVector<ImWchar> ranges;
+	ImFontAtlas::GlyphRangesBuilder builder;
+	builder.AddRanges(m_glyph_ranges);
+#ifdef __APPLE__
+	builder.AddChar(0x2318); // OSX Command Key symbol
+	builder.AddChar(0x2325); // OSX Option Key symbol
+	builder.AddChar(0x21E7); // OSX Shift Key symbol
+#endif
+	builder.BuildRanges(&ranges); // Build the final result (ordered ranges with all the unique characters submitted)
+
+    //FIXME replace with io.Fonts->AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, m_font_size, nullptr, ranges.Data);
     //https://github.com/ocornut/imgui/issues/220
-	ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + (m_font_cjk ? "NotoSansCJK-Regular.ttc" : "NotoSans-Regular.ttf")).c_str(), m_font_size, nullptr, m_glyph_ranges);
+	ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + (m_font_cjk ? "NotoSansCJK-Regular.ttc" : "NotoSans-Regular.ttf")).c_str(), m_font_size, nullptr, ranges.Data);
     if (font == nullptr) {
         font = io.Fonts->AddFontDefault();
         if (font == nullptr) {
