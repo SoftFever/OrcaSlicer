@@ -56,8 +56,8 @@ class Mouse3DController
         // The effects of changing this value can be tested by setting ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT to 1
         // and playing with the imgui dialog which shows by pressing CTRL+M
         size_t 					 input_queue_max_size { 15 };
-        // Whether to swap Y/Z axis when translating or not.
-        bool 					 swap_yz_translations{ false };
+        // Whether to swap Y/Z axes or not.
+        bool 					 swap_yz{ false };
     };
 
 	// Queue of the 3DConnexion input events (translations, rotations, button presses).
