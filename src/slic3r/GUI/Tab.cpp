@@ -1359,7 +1359,10 @@ void TabPrint::update()
     if (m_update_cnt==0) {
         m_config_manipulation.toggle_print_fff_options(m_config);
 
-        wxGetApp().obj_list()->update_and_show_object_settings_item();
+        // update() could be called during undo/redo execution
+        // Update of objectList can cause a crash in this case (because m_objects doesn't match ObjectList) 
+        if (!wxGetApp().plater()->inside_snapshot_capture())
+            wxGetApp().obj_list()->update_and_show_object_settings_item();
 
         wxGetApp().mainframe->on_config_changed(m_config);
     }
@@ -3761,7 +3764,10 @@ void TabSLAPrint::update()
     if (m_update_cnt == 0) {
         m_config_manipulation.toggle_print_sla_options(m_config);
 
-        wxGetApp().obj_list()->update_and_show_object_settings_item();
+        // update() could be called during undo/redo execution
+        // Update of objectList can cause a crash in this case (because m_objects doesn't match ObjectList) 
+        if (!wxGetApp().plater()->inside_snapshot_capture())
+            wxGetApp().obj_list()->update_and_show_object_settings_item();
 
         wxGetApp().mainframe->on_config_changed(m_config);
     }
