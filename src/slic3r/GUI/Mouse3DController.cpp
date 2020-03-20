@@ -150,8 +150,8 @@ bool Mouse3DController::State::apply(const Mouse3DController::Params &params, Ca
 
     for (const QueueItem &input_queue_item : input_queue) {
     	if (input_queue_item.is_translation()) {
-	        const Vec3d& translation = input_queue_item.vector;
-	        double zoom_factor = camera.min_zoom() / camera.get_zoom();
+            Vec3d translation = params.swap_yz_translations ? Vec3d(input_queue_item.vector(0), input_queue_item.vector(2), input_queue_item.vector(1)) : input_queue_item.vector;
+            double zoom_factor = camera.min_zoom() / camera.get_zoom();
 	        camera.set_target(camera.get_target() + zoom_factor * params.translation.scale * (translation.x() * camera.get_dir_right() + translation.z() * camera.get_dir_up()));
             if (translation.y() != 0.0)
                 camera.update_zoom(params.zoom.scale * translation.y());
@@ -185,19 +185,22 @@ void Mouse3DController::load_config(const AppConfig &appconfig)
 	    double translation_deadzone = Params::DefaultTranslationDeadzone;
 	    float  rotation_deadzone 	= Params::DefaultRotationDeadzone;
 	    double zoom_speed 			= 2.0;
-	    appconfig.get_mouse_device_translation_speed(device_name, translation_speed);
+        bool   swap_yz_translations = false;
+        appconfig.get_mouse_device_translation_speed(device_name, translation_speed);
 	    appconfig.get_mouse_device_translation_deadzone(device_name, translation_deadzone);
 	    appconfig.get_mouse_device_rotation_speed(device_name, rotation_speed);
 	    appconfig.get_mouse_device_rotation_deadzone(device_name, rotation_deadzone);
 	    appconfig.get_mouse_device_zoom_speed(device_name, zoom_speed);
-	    // clamp to valid values
+        appconfig.get_mouse_device_swap_yz_translations(device_name, swap_yz_translations);
+        // clamp to valid values
 	    Params params;
 	    params.translation.scale = Params::DefaultTranslationScale * std::clamp(translation_speed, 0.1, 10.0);
 	    params.translation.deadzone = std::clamp(translation_deadzone, 0.0, Params::MaxTranslationDeadzone);
 	    params.rotation.scale = Params::DefaultRotationScale * std::clamp(rotation_speed, 0.1f, 10.0f);
 	    params.rotation.deadzone = std::clamp(rotation_deadzone, 0.0f, Params::MaxRotationDeadzone);
 	    params.zoom.scale = Params::DefaultZoomScale * std::clamp(zoom_speed, 0.1, 10.0);
-	    m_params_by_device[device_name] = std::move(params);
+        params.swap_yz_translations = swap_yz_translations;
+        m_params_by_device[device_name] = std::move(params);
 	}
 }
 
@@ -210,9 +213,9 @@ void Mouse3DController::save_config(AppConfig &appconfig) const
 		const std::string &device_name = key_value_pair.first;
 		const Params      &params      = key_value_pair.second;
 	    // Store current device parameters into the config
-	    appconfig.set_mouse_device(device_name, params.translation.scale / Params::DefaultTranslationScale, params.translation.deadzone,
-	        params.rotation.scale / Params::DefaultRotationScale, params.rotation.deadzone, params.zoom.scale / Params::DefaultZoomScale);
-	}
+        appconfig.set_mouse_device(device_name, params.translation.scale / Params::DefaultTranslationScale, params.translation.deadzone,
+            params.rotation.scale / Params::DefaultRotationScale, params.rotation.deadzone, params.zoom.scale / Params::DefaultZoomScale, params.swap_yz_translations);
+    }
 }
 
 bool Mouse3DController::apply(Camera& camera)
@@ -313,6 +316,17 @@ void Mouse3DController::render_settings_dialog(GLCanvas3D& canvas) const
             if (imgui.slider_float(_(L("Rotation")) + "##2", &rotation_deadzone, 0.0f, Params::MaxRotationDeadzone, "%.2f")) {
             	params_copy.rotation.deadzone = rotation_deadzone;
             	params_changed = true;
+            }
+
+            ImGui::Separator();
+            ImGui::PushStyleColor(ImGuiCol_Text, color);
+            imgui.text(_(L("Options:")));
+            ImGui::PopStyleColor();
+
+            bool swap_yz = params_copy.swap_yz_translations;
+            if (imgui.checkbox("Swap Y/Z translations", swap_yz)) {
+                params_copy.swap_yz_translations = swap_yz;
+                params_changed = true;
             }
 
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
