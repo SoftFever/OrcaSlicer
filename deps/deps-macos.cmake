@@ -11,9 +11,6 @@ set(DEP_CMAKE_OPTS
     "-DCMAKE_C_FLAGS=${DEP_WERRORS_SDK}"
 )
 
-list(APPEND DEP_CFLAGS "-mmacosx-version-min=${DEP_OSX_TARGET} ${DEP_WERRORS_SDK}")
-list(APPEND DEP_CXXFLAGS "-mmacosx-version-min=${DEP_OSX_TARGET} ${DEP_WERRORS_SDK}")
-
 include("deps-unix-common.cmake")
 
 

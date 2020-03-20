@@ -129,8 +129,10 @@ void RemovableDriveManager::register_window_osx()
 
 void RemovableDriveManager::unregister_window_osx()
 {
-    if (m_impl_osx)
+    if (m_impl_osx) {
         [m_impl_osx release];
+        m_impl_osx = nullptr;
+    }
 }
 
 namespace search_for_drives_internal 
