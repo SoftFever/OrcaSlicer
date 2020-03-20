@@ -117,7 +117,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
         // Voids are sparse infills if infill rate is zero.
         Polygons voids;
         for (const Surface &surface : this->fill_surfaces.surfaces) {
-            if (surface.surface_type == stTop) {
+            if (surface.is_top()) {
                 // Collect the top surfaces, inflate them and trim them by the bottom surfaces.
                 // This gives the priority to bottom surfaces.
                 surfaces_append(top, offset_ex(surface.expolygon, margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS), surface);
@@ -313,7 +313,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
                     s2.clear();
                 }
             }
-            if (s1.surface_type == stTop)
+            if (s1.is_top())
                 // Trim the top surfaces by the bottom surfaces. This gives the priority to the bottom surfaces.
                 polys = diff(polys, bottom_polygons);
             surfaces_append(

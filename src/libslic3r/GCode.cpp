@@ -2880,11 +2880,12 @@ std::string GCode::extrude_path(ExtrusionPath path, std::string description, dou
 std::string GCode::extrude_perimeters(const Print &print, const std::vector<ObjectByExtruder::Island::Region> &by_region, std::unique_ptr<EdgeGrid::Grid> &lower_layer_edge_grid)
 {
     std::string gcode;
-    for (const ObjectByExtruder::Island::Region &region : by_region) {
-        m_config.apply(print.regions()[&region - &by_region.front()]->config());
-        for (const ExtrusionEntity *ee : region.perimeters)
-            gcode += this->extrude_entity(*ee, "perimeter", -1., &lower_layer_edge_grid);
-    }
+    for (const ObjectByExtruder::Island::Region &region : by_region)
+        if (! region.perimeters.empty()) {
+            m_config.apply(print.regions()[&region - &by_region.front()]->config());
+            for (const ExtrusionEntity *ee : region.perimeters)
+                gcode += this->extrude_entity(*ee, "perimeter", -1., &lower_layer_edge_grid);
+        }
     return gcode;
 }
 
@@ -2892,19 +2893,20 @@ std::string GCode::extrude_perimeters(const Print &print, const std::vector<Obje
 std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectByExtruder::Island::Region> &by_region)
 {
     std::string gcode;
-    for (const ObjectByExtruder::Island::Region &region : by_region) {
-        m_config.apply(print.regions()[&region - &by_region.front()]->config());
-		ExtrusionEntitiesPtr extrusions { region.infills };
-		chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
-        for (const ExtrusionEntity *fill : extrusions) {
-            auto *eec = dynamic_cast<const ExtrusionEntityCollection*>(fill);
-            if (eec) {
-				for (ExtrusionEntity *ee : eec->chained_path_from(m_last_pos).entities)
-                    gcode += this->extrude_entity(*ee, "infill");
-            } else
-                gcode += this->extrude_entity(*fill, "infill");
+    for (const ObjectByExtruder::Island::Region &region : by_region)
+        if (! region.infills.empty()) {
+            m_config.apply(print.regions()[&region - &by_region.front()]->config());
+		    ExtrusionEntitiesPtr extrusions { region.infills };
+		    chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
+            for (const ExtrusionEntity *fill : extrusions) {
+                auto *eec = dynamic_cast<const ExtrusionEntityCollection*>(fill);
+                if (eec) {
+				    for (ExtrusionEntity *ee : eec->chained_path_from(m_last_pos).entities)
+                        gcode += this->extrude_entity(*ee, "infill");
+                } else
+                    gcode += this->extrude_entity(*fill, "infill");
+            }
         }
-    }
     return gcode;
 }
 
@@ -3370,16 +3372,17 @@ const std::vector<GCode::ObjectByExtruder::Island::Region>& GCode::ObjectByExtru
     		has_overrides = true;
     		break;
     	}
+
+	// Data is cleared, but the memory is not.
+    by_region_per_copy_cache.clear();
+
     if (! has_overrides)
     	// Simple case. No need to copy the regions.
-    	return this->by_region;
+    	return wiping_entities ? by_region_per_copy_cache : this->by_region;
 
     // Complex case. Some of the extrusions of some object instances are to be printed first - those are the wiping extrusions.
     // Some of the extrusions of some object instances are printed later - those are the clean print extrusions.
     // Filter out the extrusions based on the infill_overrides / perimeter_overrides:
-
-	// Data is cleared, but the memory is not.
-    by_region_per_copy_cache.clear();
 
     for (const auto& reg : by_region) {
         by_region_per_copy_cache.emplace_back(); // creates a region in the newly created Island
@@ -3441,15 +3444,17 @@ void GCode::ObjectByExtruder::Island::Region::append(const Type type, const Extr
 
     // First we append the entities, there are eec->entities.size() of them:
     size_t old_size = perimeters_or_infills->size();
-    perimeters_or_infills->reserve(perimeters_or_infills->size() + eec->entities.size());
+    size_t new_size = old_size + eec->entities.size();
+    perimeters_or_infills->reserve(new_size);
     for (auto* ee : eec->entities)
         perimeters_or_infills->emplace_back(ee);
 
     if (copies_extruder != nullptr) {
-    	perimeters_or_infills_overrides->reserve(old_size + eec->entities.size());
-    	perimeters_or_infills_overrides->resize(old_size, nullptr);
-	    for (unsigned int i = 0; i < eec->entities.size(); ++ i)
-	        perimeters_or_infills_overrides->emplace_back(copies_extruder);
+    	// Don't reallocate overrides if not needed.
+    	// Missing overrides are implicitely considered non-overridden.
+        perimeters_or_infills_overrides->reserve(new_size);
+        perimeters_or_infills_overrides->resize(old_size, nullptr);
+        perimeters_or_infills_overrides->resize(new_size, copies_extruder);
 	}
 }
 

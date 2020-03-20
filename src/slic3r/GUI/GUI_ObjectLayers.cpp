@@ -156,8 +156,11 @@ void ObjectLayers::create_layers_list()
         const t_layer_height_range& range = layer.first;
         auto del_btn = new PlusMinusButton(m_parent, m_bmp_delete, range);
         del_btn->SetToolTip(_(L("Remove layer range")));
+
         auto add_btn = new PlusMinusButton(m_parent, m_bmp_add, range);
-        add_btn->SetToolTip(_(L("Add layer range")));
+        wxString tooltip = wxGetApp().obj_list()->can_add_new_range_after_current(range);
+        add_btn->SetToolTip(tooltip.IsEmpty() ? _(L("Add layer range")) : tooltip);
+        add_btn->Enable(tooltip.IsEmpty());
 
         auto sizer = create_layer(range, del_btn, add_btn);
         sizer->Add(del_btn, 0, wxRIGHT | wxLEFT, em_unit(m_parent));

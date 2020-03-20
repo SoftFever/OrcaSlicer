@@ -31,6 +31,10 @@
 #include <fstream>
 #include "GUI_App.hpp"
 
+#ifdef _WIN32
+#include <dbt.h>
+#endif // _WIN32
+
 namespace Slic3r {
 namespace GUI {
 
@@ -104,6 +108,31 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     update_title();
 
     // declare events
+    Bind(wxEVT_CREATE, [this](wxWindowCreateEvent& event) {
+
+#ifdef _WIN32
+		//static GUID GUID_DEVINTERFACE_USB_DEVICE	= { 0xA5DCBF10, 0x6530, 0x11D2, 0x90, 0x1F, 0x00, 0xC0, 0x4F, 0xB9, 0x51, 0xED };
+		//static GUID GUID_DEVINTERFACE_DISK 		= { 0x53f56307, 0xb6bf, 0x11d0, 0x94, 0xf2, 0x00, 0xa0, 0xc9, 0x1e, 0xfb, 0x8b };
+		//static GUID GUID_DEVINTERFACE_VOLUME 	    = { 0x71a27cdd, 0x812a, 0x11d0, 0xbe, 0xc7, 0x08, 0x00, 0x2b, 0xe2, 0x09, 0x2f };
+		static GUID GUID_DEVINTERFACE_HID			= { 0x4D1E55B2, 0xF16F, 0x11CF, 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 };
+
+    	// Register USB HID (Human Interface Devices) notifications to trigger the 3DConnexion enumeration.
+		DEV_BROADCAST_DEVICEINTERFACE NotificationFilter = { 0 };
+		NotificationFilter.dbcc_size = sizeof(DEV_BROADCAST_DEVICEINTERFACE);
+		NotificationFilter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+		NotificationFilter.dbcc_classguid = GUID_DEVINTERFACE_HID;
+		m_hDeviceNotify = ::RegisterDeviceNotification(this->GetHWND(), &NotificationFilter, DEVICE_NOTIFY_WINDOW_HANDLE);
+
+// or register for file handle change?
+//		DEV_BROADCAST_HANDLE NotificationFilter = { 0 };
+//		NotificationFilter.dbch_size = sizeof(DEV_BROADCAST_HANDLE);
+//		NotificationFilter.dbch_devicetype = DBT_DEVTYP_HANDLE;
+#endif // _WIN32
+
+        // propagate event
+        event.Skip();
+    });
+
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
         if (event.CanVeto() && !wxGetApp().check_unsaved_changes()) {
             event.Veto();
@@ -131,6 +160,11 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 // Called when closing the application and when switching the application language.
 void MainFrame::shutdown()
 {
+#ifdef _WIN32
+	::UnregisterDeviceNotification(HDEVNOTIFY(m_hDeviceNotify));
+	m_hDeviceNotify = nullptr;
+#endif // _WIN32
+
     if (m_plater)
     	m_plater->stop_jobs();
 

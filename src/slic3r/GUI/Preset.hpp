@@ -237,6 +237,7 @@ public:
 
 	static void                             update_suffix_modified();
     static const std::string&               suffix_modified();
+    static std::string                      remove_suffix_modified(const std::string& name);
     static void                             normalize(DynamicPrintConfig &config);
     // Report configuration fields, which are misplaced into a wrong group, remove them from the config.
     static std::string                      remove_invalid_keys(DynamicPrintConfig &config, const DynamicPrintConfig &default_config);
@@ -244,7 +245,6 @@ public:
 protected:
     friend class        PresetCollection;
     friend class        PresetBundle;
-    static std::string  remove_suffix_modified(const std::string &name);
 };
 
 bool is_compatible_with_print  (const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_print, const PresetWithVendorProfile &active_printer);
@@ -361,7 +361,8 @@ public:
     PresetWithVendorProfile get_preset_with_vendor_profile(const Preset &preset) const;
     PresetWithVendorProfile get_edited_preset_with_vendor_profile() const { return this->get_preset_with_vendor_profile(this->get_edited_preset()); }
 
-    const std::string& get_preset_name_by_alias(const std::string& alias) const;
+    const std::string& 		get_preset_name_by_alias(const std::string& alias) const;
+	const std::string*		get_preset_name_renamed(const std::string &old_name) const;
 
 	// used to update preset_choice from Tab
 	const std::deque<Preset>&	get_presets() const	{ return m_presets; }

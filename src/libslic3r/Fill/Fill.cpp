@@ -114,7 +114,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 	        if (surface.surface_type == stInternalVoid)
 	        	has_internal_voids = true;
 	        else {
-		        FlowRole extrusion_role = (surface.surface_type == stTop) ? frTopSolidInfill : (surface.is_solid() ? frSolidInfill : frInfill);
+		        FlowRole extrusion_role = surface.is_top() ? frTopSolidInfill : (surface.is_solid() ? frSolidInfill : frInfill);
 		        bool     is_bridge 	    = layer.id() > 0 && surface.is_bridge();
 		        params.extruder 	 = layerm.region()->extruder(extrusion_role);
 		        params.pattern 		 = layerm.region()->config().fill_pattern.value;
@@ -132,7 +132,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		            is_bridge ?
 		                erBridgeInfill :
 		                (surface.is_solid() ?
-		                    ((surface.surface_type == stTop) ? erTopSolidInfill : erSolidInfill) :
+		                    (surface.is_top() ? erTopSolidInfill : erSolidInfill) :
 		                    erInternalInfill);
 		        params.bridge_angle = float(surface.bridge_angle);
 		        params.angle 		= float(Geometry::deg2rad(layerm.region()->config().fill_angle.value));

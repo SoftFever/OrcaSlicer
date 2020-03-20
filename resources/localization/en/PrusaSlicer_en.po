@@ -1,0 +1,155 @@
+msgid ""
+msgstr ""
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"X-Generator: Poedit 2.3\n"
+
+#: src/slic3r/GUI/UpdateDialogs.cpp:71
+msgid "Don't notify about new releases any more"
+msgstr "Don't notify about new releases anymore"
+
+#: src/libslic3r/PrintConfig.cpp:287
+msgid "A boolean expression using the configuration values of an active print profile. If this expression evaluates to true, this profile is considered compatible with the active print profile."
+msgstr "A Boolean expression using the configuration values of an active print profile. If this expression evaluates to true, this profile is considered compatible with the active print profile."
+
+#: src/libslic3r/PrintConfig.cpp:272
+msgid "A boolean expression using the configuration values of an active printer profile. If this expression evaluates to true, this profile is considered compatible with the active printer profile."
+msgstr "A Boolean expression using the configuration values of an active printer profile. If this expression evaluates to true, this profile is considered compatible with the active printer profile."
+
+#: src/libslic3r/PrintConfig.cpp:409
+msgid "Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top+bottom solid layers)."
+msgstr "Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top + bottom solid layers)."
+
+#: src/slic3r/GUI/ConfigWizard.cpp:791
+msgid "Additionally a backup snapshot of the whole configuration is created before an update is applied."
+msgstr "Additionally, a backup snapshot of the whole configuration is created before an update is applied."
+
+#: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:1268
+msgid "Autogeneration will erase all manually edited points."
+msgstr "Auto Generation will erase all manually edited points."
+
+#: src/slic3r/GUI/Tab.cpp:1171
+msgid "Autospeed (advanced)"
+msgstr "Auto Speed (advanced)"
+
+#: src/slic3r/GUI/ConfigSnapshotDialog.cpp:22
+msgid "Before roll back"
+msgstr "Before rollback"
+
+#: src/slic3r/GUI/ButtonsDescription.cpp:16
+msgid "Buttons And Text Colors Description"
+msgstr "Buttons and Text Colors Description"
+
+#: src/libslic3r/PrintConfig.cpp:791
+msgid "Density of internal infill, expressed in the range 0% - 100%."
+msgstr "Density of internal infill, expressed in the range 0 % - 100 %."
+
+#: src/slic3r/GUI/ConfigWizard.cpp:773
+#, c-format
+msgid "If enabled, %s checks for new application versions online. When a new version becomes available, a notification is displayed at the next application startup (never during program usage). This is only a notification mechanisms, no automatic installation is done."
+msgstr "If enabled, %s checks for new application versions online. When a new version becomes available, a notification is displayed at the next application startup (never during program usage). This is only a notification mechanism, no automatic installation is done."
+
+#: src/slic3r/GUI/ConfigWizard.cpp:783
+#, c-format
+msgid "If enabled, %s downloads updates of built-in system presets in the background.These updates are downloaded into a separate temporary location.When a new preset version becomes available it is offered at application startup."
+msgstr "If enabled, %s downloads updates of built-in system presets in the background. These updates are downloaded into a separate temporary location. When a new preset version becomes available it is offered at application startup."
+
+#: src/slic3r/GUI/Preferences.cpp:66
+msgid "If enabled, PrusaSlicer will check for the new versions of itself online. When a new version becomes available a notification is displayed at the next application startup (never during program usage). This is only a notification mechanisms, no automatic installation is done."
+msgstr "If enabled, PrusaSlicer will check for the new versions of itself online. When a new version becomes available a notification is displayed at the next application startup (never during program usage). This is only a notification mechanism, no automatic installation is done."
+
+#: src/libslic3r/PrintConfig.cpp:1858
+msgid "If enabled, the wipe tower will not be printed on layers with no toolchanges. On layers with a toolchange, extruder will travel downward to print the wipe tower. User is responsible for ensuring there is no collision with the print."
+msgstr "If enabled, the wipe tower will not be printed on layers with no tool changes. On layers with a tool change, extruder will travel downward to print the wipe tower. User is responsible for ensuring there is no collision with the print."
+
+#: src/libslic3r/PrintConfig.cpp:2262
+msgid "Object will be used to purge the nozzle after a toolchange to save material that would otherwise end up in the wipe tower and decrease print time. Colours of the objects will be mixed as a result."
+msgstr "Object will be used to purge the nozzle after a tool change to save material that would otherwise end up in the wipe tower and decrease print time. Colours of the objects will be mixed as a result."
+
+#: src/libslic3r/Print.cpp:1365
+msgid "One or more object were assigned an extruder that the printer does not have."
+msgstr "One or more objects were assigned an extruder that the printer does not have."
+
+#: src/libslic3r/PrintConfig.cpp:2254
+msgid "Purging after toolchange will done inside this object's infills. This lowers the amount of waste but may result in longer print time  due to additional travel moves."
+msgstr "Purging after tool change will done inside this object's infills. This lowers the amount of waste but may result in longer print time due to additional travel moves."
+
+#: src/libslic3r/PrintConfig.cpp:1552
+msgid "Retraction Length (Toolchange)"
+msgstr "Retraction Length (Tool change)"
+
+#: src/libslic3r/PrintConfig.cpp:556
+msgid "Set this to a non-zero value to allow a manual extrusion width. If left to zero, Slic3r derives extrusion widths from the nozzle diameter (see the tooltips for perimeter extrusion width, infill extrusion width etc). If expressed as percentage (for example: 230%), it will be computed over layer height."
+msgstr "Set this to a non-zero value to allow a manual extrusion width. If left to zero, Slic3r derives extrusion widths from the nozzle diameter (see the tooltips for perimeter extrusion width, infill extrusion width etc.). If expressed as percentage (for example: 230%), it will be computed over layer height."
+
+#: src/libslic3r/PrintConfig.cpp:2824
+msgid "Some objects can get along with a few smaller pads instead of a single big one. This parameter defines how far the center of two smaller pads should be. If theyare closer, they will get merged into one pad."
+msgstr "Some objects can get along with a few smaller pads instead of a single big one. This parameter defines how far the center of two smaller pads should be. If they are closer, they will get merged into one pad."
+
+#: src/libslic3r/PrintConfig.cpp:624
+msgid "Speed used for unloading the filament on the wipe tower (does not affect  initial part of unloading just after ramming)."
+msgstr "Speed used for unloading the filament on the wipe tower (does not affect initial part of unloading just after ramming)."
+
+#: src/libslic3r/PrintConfig.cpp:2044
+msgid "Support material will not be generated for overhangs whose slope angle (90° = vertical) is above the given threshold. In other words, this value represent the most horizontal slope (measured from the horizontal plane) that you can print without support material. Set to zero for automatic detection (recommended)."
+msgstr "Support material will not be generated for overhangs whose slope angle (90° = vertical) is above the given threshold. In other words, this value represents the most horizontal slope (measured from the horizontal plane) that you can print without support material. Set to zero for automatic detection (recommended)."
+
+#: src/slic3r/GUI/DoubleSlider.cpp:998
+msgid ""
+"The sequential print is on.\n"
+"It's impossible to apply any custom G-code for objects printing sequentually.\n"
+"This code won't be processed during G-code generation."
+msgstr ""
+"The sequential print is on.\n"
+"It's impossible to apply any custom G-code for objects printing sequentially.\n"
+"This code won't be processed during G-code generation."
+
+#: src/libslic3r/PrintConfig.cpp:2094
+msgid "This custom code is inserted before every toolchange. Placeholder variables for all PrusaSlicer settings as well as {previous_extruder} and {next_extruder} can be used. When a tool-changing command which changes to the correct extruder is included (such as T{next_extruder}), PrusaSlicer will emit no other such command. It is therefore possible to script custom behaviour both before and after the toolchange."
+msgstr "This custom code is inserted before every tool change. Placeholder variables for all PrusaSlicer settings as well as {previous_extruder} and {next_extruder} can be used. When a tool-changing command which changes to the correct extruder is included (such as T{next_extruder}), PrusaSlicer will emit no other such command. It is therefore possible to script custom behaviour both before and after the tool change."
+
+#: src/libslic3r/PrintConfig.cpp:396
+msgid "This end procedure is inserted at the end of the output file, before the printer end gcode (and before any toolchange from this filament in case of multimaterial printers). Note that you can use placeholder variables for all PrusaSlicer settings. If you have multiple extruders, the gcode is processed in extruder order."
+msgstr "This end procedure is inserted at the end of the output file, before the printer end gcode (and before any tool change from this filament in case of multimaterial printers). Note that you can use placeholder variables for all PrusaSlicer settings. If you have multiple extruders, the gcode is processed in extruder order."
+
+#: src/libslic3r/PrintConfig.cpp:2215
+msgid "This matrix describes volumes (in cubic milimetres) required to purge the new filament on the wipe tower for any given pair of tools."
+msgstr "This matrix describes volumes (in cubic millimetres) required to purge the new filament on the wipe tower for any given pair of tools."
+
+#: src/libslic3r/PrintConfig.cpp:1829
+msgid "This start procedure is inserted at the beginning, after any printer start gcode (and after any toolchange to this filament in case of multi-material printers). This is used to override settings for a specific filament. If PrusaSlicer detects M104, M109, M140 or M190 in your custom codes, such commands will not be prepended automatically so you're free to customize the order of heating commands and other custom actions. Note that you can use placeholder variables for all PrusaSlicer settings, so you can put a \"M109 S[first_layer_temperature]\" command wherever you want. If you have multiple extruders, the gcode is processed in extruder order."
+msgstr "This start procedure is inserted at the beginning, after any printer start gcode (and after any tool change to this filament in case of multi-material printers). This is used to override settings for a specific filament. If PrusaSlicer detects M104, M109, M140 or M190 in your custom codes, such commands will not be prepended automatically so you're free to customize the order of heating commands and other custom actions. Note that you can use placeholder variables for all PrusaSlicer settings, so you can put a \"M109 S[first_layer_temperature]\" command wherever you want. If you have multiple extruders, the gcode is processed in extruder order."
+
+#: src/libslic3r/PrintConfig.cpp:641
+msgid "Time to wait after the filament is unloaded. May help to get reliable toolchanges with flexible materials that may need more time to shrink to original dimensions."
+msgstr "Time to wait after the filament is unloaded. May help to get reliable tool changes with flexible materials that may need more time to shrink to original dimensions."
+
+#: src/slic3r/GUI/Tab.cpp:1491
+msgid "Toolchange parameters with single extruder MM printers"
+msgstr "Toolchange parameters with single extruder MM printers"
+
+#: src/slic3r/Utils/Duet.cpp:82 src/slic3r/Utils/Duet.cpp:137
+#: src/slic3r/Utils/FlashAir.cpp:119 src/slic3r/Utils/FlashAir.cpp:140
+#: src/slic3r/Utils/FlashAir.cpp:156
+msgid "Unknown error occured"
+msgstr "Unknown error occurred"
+
+#: src/libslic3r/PrintConfig.cpp:253
+msgid "When printing multi-material objects, this settings will make Slic3r to clip the overlapping object parts one by the other (2nd part will be clipped by the 1st, 3rd part will be clipped by the 1st and 2nd etc)."
+msgstr "When printing multi-material objects, this settings will make Slic3r to clip the overlapping object parts one by the other (2nd part will be clipped by the 1st, 3rd part will be clipped by the 1st and 2nd etc.)."
+
+#: src/libslic3r/PrintConfig.cpp:1391
+msgid "When set to zero, the distance the filament is moved from parking position during load is exactly the same as it was moved back during unload. When positive, it is loaded further,  if negative, the loading move is shorter than unloading."
+msgstr "When set to zero, the distance the filament is moved from parking position during load is exactly the same as it was moved back during unload. When positive, it is loaded further, if negative, the loading move is shorter than unloading."
+
+#: src/slic3r/GUI/Tab.cpp:3285
+msgid "WHITE BULLET icon indicates a non system (or non default) preset."
+msgstr "WHITE BULLET icon indicates a non-system (or non-default) preset."
