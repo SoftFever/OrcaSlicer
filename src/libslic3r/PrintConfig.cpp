@@ -254,7 +254,7 @@ void PrintConfigDef::init_fff_params()
                    "to clip the overlapping object parts one by the other "
                    "(2nd part will be clipped by the 1st, 3rd part will be clipped by the 1st and 2nd etc).");
     def->mode = comExpert;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("colorprint_heights", coFloats);
     def->label = L("Colorprint height");
