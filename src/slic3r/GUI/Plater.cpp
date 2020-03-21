@@ -834,8 +834,8 @@ Sidebar::Sidebar(Plater *parent)
     p->sizer_params->Add(p->frequently_changed_parameters->get_sizer(), 0, wxEXPAND | wxTOP | wxBOTTOM, wxOSX ? 1 : margin_5);
 
     // Search combobox
-    p->search_cb = new SearchComboBox(p->scrolled);
-    p->sizer_params->Add(p->search_cb, 0, wxEXPAND | wxTOP | wxBOTTOM, wxOSX ? 1 : margin_5);
+//    p->search_cb = new SearchComboBox(p->scrolled);
+//    p->sizer_params->Add(p->search_cb, 0, wxEXPAND | wxTOP | wxBOTTOM, wxOSX ? 1 : margin_5);
 
     // Object List
     p->object_list = new ObjectList(p->scrolled);
@@ -1362,7 +1362,21 @@ static std::vector<SearchInput> get_search_inputs(ConfigOptionMode mode)
 
 void Sidebar::update_search_list()
 {
-    p->search_cb->init(get_search_inputs(m_mode));
+    if (p->search_cb)
+        p->search_cb->init(get_search_inputs(m_mode));
+
+    std::vector<SearchInput> search_list{};
+
+    auto& tabs_list = wxGetApp().tabs_list;
+    auto print_tech = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology();
+
+    for (auto tab : tabs_list)
+        if (tab->supports_printer_technology(print_tech))
+            search_list.emplace_back(SearchInput{ tab->get_config(), tab->type(), m_mode });
+
+    for (auto tab : tabs_list)
+        if (tab->supports_printer_technology(print_tech))
+            tab->get_search_cb()->init(search_list);
 }
 
 void Sidebar::update_mode()

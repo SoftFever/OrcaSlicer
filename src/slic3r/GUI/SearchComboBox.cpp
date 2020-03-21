@@ -34,7 +34,6 @@ bool SearchOptions::Option::containes(const wxString& search_) const
     return (opt_key.find(into_u8(search)) != std::string::npos ||
             label_.Find(search) != wxNOT_FOUND ||
             category_.Find(search) != wxNOT_FOUND);
-/*    */
 
     auto search_str = into_u8(search);
     auto pos = opt_key.find(into_u8(search));
@@ -87,11 +86,11 @@ void SearchOptions::append_options(DynamicPrintConfig* config, Preset::Type type
 
 
 SearchComboBox::SearchComboBox(wxWindow *parent) :
-wxBitmapComboBox(parent, wxID_ANY, "", wxDefaultPosition, wxSize(25 * wxGetApp().em_unit(), -1)),
+wxBitmapComboBox(parent, wxID_ANY, _(L("Type here to search")) + dots, wxDefaultPosition, wxSize(25 * wxGetApp().em_unit(), -1)),
     em_unit(wxGetApp().em_unit())
 {
     SetFont(wxGetApp().normal_font());
-    default_search_line = search_line = _(L("Search through options")) + dots;
+    default_search_line = search_line = _(L("Type here to search")) + dots;
     bmp = ScalableBitmap(this, "search");
 
 #ifdef _WIN32
@@ -124,14 +123,9 @@ wxBitmapComboBox(parent, wxID_ANY, "", wxDefaultPosition, wxSize(25 * wxGetApp()
             update_combobox();
             search_line = this->GetValue();
         }
-    }); 
 
-    Bind(wxEVT_KILL_FOCUS, [this](wxEvent & e) {
         e.Skip();
-
-        SuppressUpdate su(this);        
-        this->SetValue(search_line.IsEmpty() ? default_search_line : search_line);
-    }); 
+    });
 }
 
 SearchComboBox::~SearchComboBox()
@@ -202,7 +196,7 @@ void SearchComboBox::append_items(const wxString& search)
         if (option.containes(search))
             append(option.label, (void*)&option);
 
-    this->Popup();
+//    this->Popup();
     SuppressUpdate su(this);
     this->SetValue(search);
     this->SetInsertionPointEnd();

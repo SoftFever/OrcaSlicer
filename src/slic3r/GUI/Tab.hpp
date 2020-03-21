@@ -308,6 +308,7 @@ public:
 
 	DynamicPrintConfig*	get_config() { return m_config; }
 	PresetCollection*	get_presets() { return m_presets; }
+	SearchComboBox*     get_search_cb() { return m_search_cb; }
 	size_t				get_selected_preset_item() { return m_selected_preset_item; }
 
 	void			on_value_change(const std::string& opt_key, const boost::any& value);

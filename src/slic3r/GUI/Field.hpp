@@ -460,6 +460,7 @@ public:
 		x_textctrl->Disable();
 		y_textctrl->Disable(); }
 	wxSizer*		getSizer() override { return sizer; }
+	wxWindow*		getWindow() override { return dynamic_cast<wxWindow*>(x_textctrl); }
 };
 
 class StaticText : public Field {

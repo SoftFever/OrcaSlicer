@@ -762,7 +762,7 @@ void Tab::update_mode()
     update_changed_tree_ui();
 
     // update list of options for search
-    m_search_cb->init(m_config, type(), m_mode);
+//    m_search_cb->init(m_config, type(), m_mode);
 }
 
 void Tab::update_visibility()
