@@ -1410,7 +1410,8 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position) const
         return;
 
     // draw the tooltip as hidden until the delay is expired
-    float alpha = (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_start_time).count() < 500) ? 0.0f : 1.0;
+    // use a value of alpha slightly different from 0.0f because newer imgui does not calculate properly the window size if alpha == 0.0f
+    float alpha = (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_start_time).count() < 500) ? 0.01f : 1.0f;
 #else
     if (m_text.empty())
         return;
@@ -1437,7 +1438,7 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position) const
 
 #if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
     // force re-render while the windows gets to its final size (it may take several frames) or while hidden
-    if (alpha == 0.0f || ImGui::GetWindowContentRegionWidth() + 2.0f * ImGui::GetStyle().WindowPadding.x != ImGui::CalcWindowExpectedSize(ImGui::GetCurrentWindow()).x)
+    if (alpha < 1.0f || ImGui::GetWindowContentRegionWidth() + 2.0f * ImGui::GetStyle().WindowPadding.x != ImGui::CalcWindowExpectedSize(ImGui::GetCurrentWindow()).x)
         canvas.request_extra_frame();
 #endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
 
@@ -3603,9 +3604,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         if ((m_layers_editing.state != LayersEditing::Unknown) && (layer_editing_object_idx != -1))
         {
-            set_tooltip("");
             if (m_layers_editing.state == LayersEditing::Editing)
+            {
                 _perform_layer_editing_action(&evt);
+                m_mouse.position = pos.cast<double>();
+            }
         }
         // do not process the dragging if the left mouse was set down in another canvas
         else if (evt.LeftIsDown())
