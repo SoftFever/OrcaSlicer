@@ -229,7 +229,13 @@ void Tab::create_preset_tab()
         //! but the OSX version derived from wxOwnerDrawnCombo, instead of:
         //! select_preset(m_presets_choice->GetStringSelection().ToUTF8().data()); 
         //! we doing next:
-        int selected_item = m_presets_choice->GetSelection();
+        // int selected_item = m_presets_choice->GetSelection();
+
+        // see https://github.com/prusa3d/PrusaSlicer/issues/3889
+        // Under OSX: in case of use of a same names written in different case (like "ENDER" and "Ender")
+        // m_presets_choice->GetSelection() will return first item, because search in PopupListCtrl is case-insensitive.
+        // So, use GetSelection() from event parameter 
+        int selected_item = e.GetSelection();
         if (m_selected_preset_item == size_t(selected_item) && !m_presets->current_is_dirty())
             return;
         if (selected_item >= 0) {

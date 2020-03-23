@@ -268,7 +268,7 @@ PresetBitmapComboBox(parent, wxSize(15 * wxGetApp().em_unit(), -1)),
     EnableTextChangedEvents(false);
 #endif /* _WIN32 */
     Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &evt) {
-        auto selected_item = this->GetSelection();
+        auto selected_item = evt.GetSelection();
 
         auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
         if (marker >= LABEL_ITEM_MARKER && marker < LABEL_ITEM_MAX) {
@@ -388,9 +388,9 @@ void PresetComboBox::set_label_marker(int item, LabelItemType label_item_type)
     this->SetClientData(item, (void*)label_item_type);
 }
 
-void PresetComboBox::check_selection()
+void PresetComboBox::check_selection(int selection)
 {
-    this->last_selected = GetSelection();
+    this->last_selected = selection;
 }
 
 void PresetComboBox::msw_rescale()
@@ -3627,6 +3627,14 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     auto preset_type = static_cast<Preset::Type>(evt.GetInt());
     auto *combo = static_cast<PresetComboBox*>(evt.GetEventObject());
 
+    // see https://github.com/prusa3d/PrusaSlicer/issues/3889
+    // Under OSX: in case of use of a same names written in different case (like "ENDER" and "Ender"),
+    // m_presets_choice->GetSelection() will return first item, because search in PopupListCtrl is case-insensitive.
+    // So, use GetSelection() from event parameter 
+    // But in this function we couldn't use evt.GetSelection(), because m_commandInt is used for preset_type
+    // Thus, get selection in this way:
+    int selection = combo->FindString(evt.GetString(), true);
+
     auto idx = combo->get_extruder_idx();
 
     //! Because of The MSW and GTK version of wxBitmapComboBox derived from wxComboBox,
@@ -3637,7 +3645,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     //!     combo->GetStringSelection().ToUTF8().data());
 
     const std::string preset_name = wxGetApp().preset_bundle->get_preset_name_by_alias(preset_type, 
-        Preset::remove_suffix_modified(combo->GetString(combo->GetSelection()).ToUTF8().data()));
+        Preset::remove_suffix_modified(combo->GetString(selection).ToUTF8().data()));
 
     if (preset_type == Preset::TYPE_FILAMENT) {
         wxGetApp().preset_bundle->set_filament_preset(idx, preset_name);
