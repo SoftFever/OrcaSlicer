@@ -132,14 +132,18 @@ int CLI::run(int argc, char **argv)
         Model model;
         try {
             // When loading an AMF or 3MF, config is imported as well, including the printer technology.
-            model = Model::read_from_file(file, &m_print_config, true);
-            PrinterTechnology other_printer_technology = get_printer_technology(m_print_config);
+            DynamicPrintConfig config;
+            model = Model::read_from_file(file, &config, true);
+            PrinterTechnology other_printer_technology = get_printer_technology(config);
             if (printer_technology == ptUnknown) {
                 printer_technology = other_printer_technology;
             } else if (printer_technology != other_printer_technology && other_printer_technology != ptUnknown) {
                 boost::nowide::cerr << "Mixing configurations for FFF and SLA technologies" << std::endl;
                 return 1;
             }
+            // config is applied to m_print_config before the current m_config values.
+            config += std::move(m_print_config);
+            m_print_config = std::move(config);
         } catch (std::exception &e) {
             boost::nowide::cerr << file << ": " << e.what() << std::endl;
             return 1;
