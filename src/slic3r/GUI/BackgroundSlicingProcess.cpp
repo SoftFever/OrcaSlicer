@@ -1,5 +1,6 @@
 #include "BackgroundSlicingProcess.hpp"
 #include "GUI_App.hpp"
+#include "GUI.hpp"
 
 #include <wx/app.h>
 #include <wx/panel.h>
@@ -99,10 +100,8 @@ void BackgroundSlicingProcess::process_fff()
 	    	//FIXME localize the messages
 	    	// Perform the final post-processing of the export path by applying the print statistics over the file name.
 	    	std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);
-			GUI::RemovableDriveManager::get_instance().update();
-			bool with_check = GUI::RemovableDriveManager::get_instance().is_path_on_removable_drive(export_path);
-			int copy_ret_val = copy_file(m_temp_output_path, export_path, with_check);
-			switch (copy_ret_val){
+			int copy_ret_val = copy_file(m_temp_output_path, export_path, m_export_path_on_removable_media);
+			switch (copy_ret_val) {
 			case SUCCESS: break; // no error
 			case FAIL_COPY_FILE:
 				throw std::runtime_error(_utf8(L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?")));
@@ -218,7 +217,7 @@ void BackgroundSlicingProcess::thread_proc()
 			// Canceled, this is all right.
 			assert(m_print->canceled());
         } catch (const std::bad_alloc& ex) {
-            wxString errmsg = wxString::FromUTF8((boost::format(_utf8(L("%s has encountered an error. It was likely caused by running out of memory. "
+            wxString errmsg = GUI::from_u8((boost::format(_utf8(L("%s has encountered an error. It was likely caused by running out of memory. "
                                   "If you are sure you have enough RAM on your system, this may also be a bug and we would "
                                   "be glad if you reported it."))) % SLIC3R_APP_NAME).str());
             error = std::string(errmsg.ToUTF8()) + "\n\n" + std::string(ex.what());
@@ -234,7 +233,7 @@ void BackgroundSlicingProcess::thread_proc()
 			// Only post the canceled event, if canceled by user.
 			// Don't post the canceled event, if canceled from Print::apply().
 			wxCommandEvent evt(m_event_finished_id);
-			evt.SetString(error);
+            evt.SetString(GUI::from_u8(error));
 			evt.SetInt(m_print->canceled() ? -1 : (error.empty() ? 1 : 0));
         	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
         }
@@ -401,7 +400,7 @@ void BackgroundSlicingProcess::set_task(const PrintBase::TaskParams &params)
 }
 
 // Set the output path of the G-code.
-void BackgroundSlicingProcess::schedule_export(const std::string &path)
+void BackgroundSlicingProcess::schedule_export(const std::string &path, bool export_path_on_removable_media)
 { 
 	assert(m_export_path.empty());
 	if (! m_export_path.empty())
@@ -411,6 +410,7 @@ void BackgroundSlicingProcess::schedule_export(const std::string &path)
 	tbb::mutex::scoped_lock lock(m_print->state_mutex());
 	this->invalidate_step(bspsGCodeFinalize);
 	m_export_path = path;
+	m_export_path_on_removable_media = export_path_on_removable_media;
 }
 
 void BackgroundSlicingProcess::schedule_upload(Slic3r::PrintHostJob upload_job)
@@ -431,6 +431,7 @@ void BackgroundSlicingProcess::reset_export()
 	assert(! this->running());
 	if (! this->running()) {
 		m_export_path.clear();
+		m_export_path_on_removable_media = false;
 		// invalidate_step expects the mutex to be locked.
 		tbb::mutex::scoped_lock lock(m_print->state_mutex());
 		this->invalidate_step(bspsGCodeFinalize);

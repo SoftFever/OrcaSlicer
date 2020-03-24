@@ -444,8 +444,10 @@ void GCodeAnalyzer::_processG92(const GCodeReader::GCodeLine& line)
         anyFound = true;
     }
 
-    if (!anyFound)
+    if (!anyFound && ! line.has_unknown_axis())
     {
+    	// The G92 may be called for axes that PrusaSlicer does not recognize, for example see GH issue #3510, 
+    	// where G92 A0 B0 is called although the extruder axis is till E.
         for (unsigned char a = X; a < Num_Axis; ++a)
         {
             _set_axis_origin((EAxis)a, _get_axis_position((EAxis)a));
@@ -470,7 +472,7 @@ void GCodeAnalyzer::_processM106(const GCodeReader::GCodeLine& line)
         // The absence of P means the print cooling fan, so ignore anything else.
         float new_fan_speed;
         if (line.has_value('S', new_fan_speed))
-            _set_fan_speed((100.0f / 256.0f) * new_fan_speed);
+            _set_fan_speed((100.0f / 255.0f) * new_fan_speed);
         else
             _set_fan_speed(100.0f);
     }

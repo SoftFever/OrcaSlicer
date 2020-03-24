@@ -70,6 +70,8 @@ class MainFrame : public DPIFrame
     bool can_export_supports() const;
     bool can_export_gcode() const;
     bool can_send_gcode() const;
+	bool can_export_gcode_sd() const;
+	bool can_eject() const;
     bool can_slice() const;
     bool can_change_view() const;
     bool can_select() const;
@@ -97,6 +99,9 @@ protected:
 public:
     MainFrame();
     ~MainFrame() = default;
+
+	// Called when closing the application and when switching the application language.
+	void 		shutdown();
 
     Plater*     plater() { return m_plater; }
 
@@ -136,6 +141,10 @@ public:
     wxNotebook*         m_tabpanel { nullptr };
     wxProgressDialog*   m_progress_dialog { nullptr };
     std::shared_ptr<ProgressStatusBar>  m_statusbar;
+
+#ifdef _WIN32
+    void*				m_hDeviceNotify { nullptr };
+#endif // _WIN32
 };
 
 } // GUI

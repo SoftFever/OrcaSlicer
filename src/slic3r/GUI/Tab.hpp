@@ -201,7 +201,7 @@ protected:
 	bool				m_disable_tree_sel_changed_event;
 	bool				m_show_incompatible_presets;
 
-    std::vector<Preset::Type>	m_dependent_tabs = {};
+    std::vector<Preset::Type>	m_dependent_tabs;
 	enum OptStatus { osSystemValue = 1, osInitValue = 2 };
 	std::map<std::string, int>	m_options_list;
 	int							m_opt_status_value = 0;
@@ -227,7 +227,12 @@ public:
 	PresetCollection*	m_presets;
 	DynamicPrintConfig*	m_config;
 	ogStaticText*		m_parent_preset_description_line;
-	wxStaticText*		m_colored_Label = nullptr;
+	ScalableButton*		m_detach_preset_btn	= nullptr;
+
+	// map of option name -> wxStaticText (colored label, associated with option) 
+    // Used for options which don't have corresponded field
+	std::map<std::string, wxStaticText*>	m_colored_Labels;
+
     // Counter for the updating (because of an update() function can have a recursive behavior):
     // 1. increase value from the very beginning of an update() function
     // 2. decrease value at the end of an update() function
@@ -253,6 +258,7 @@ public:
                                   const wxString& label = wxEmptyString, 
                                   long style = wxBU_EXACTFIT | wxNO_BORDER);
     void        add_scaled_bitmap(wxWindow* parent, ScalableBitmap& btn, const std::string& icon_name);
+	void		update_ui_items_related_on_parent_preset(const Preset* selected_preset_parent);
     void		load_current_preset();
 	void        rebuild_page_tree();
 	void        update_page_tree_visibility();
@@ -264,7 +270,7 @@ public:
 	void		OnTreeSelChange(wxTreeEvent& event);
 	void		OnKeyDown(wxKeyEvent& event);
 
-	void		save_preset(std::string name = "");
+	void		save_preset(std::string name = std::string(), bool detach = false);
 	void		delete_preset();
 	void		toggle_show_hide_incompatible();
 	void		update_show_hide_incompatible_button();
@@ -306,11 +312,13 @@ public:
     void            update_wiping_button_visibility();
 
 protected:
+	void			create_line_with_widget(ConfigOptionsGroup* optgroup, const std::string& opt_key, widget_t widget);
 	wxSizer*		compatible_widget_create(wxWindow* parent, PresetDependencies &deps);
 	void 			compatible_widget_reload(PresetDependencies &deps);
 	void			load_key_value(const std::string& opt_key, const boost::any& value, bool saved_value = false);
 
 	void			on_presets_changed();
+	void			build_preset_description_line(ConfigOptionsGroup* optgroup);
 	void			update_preset_description_line();
 	void			update_frequently_changed_parameters();
 	void			fill_icon_descriptions();
@@ -406,6 +414,8 @@ public:
 	void		init_options_list() override;
 	void		msw_rescale() override;
     bool 		supports_printer_technology(const PrinterTechnology /* tech */) override { return true; }
+
+	wxSizer*	create_bed_shape_widget(wxWindow* parent);
 };
 
 class TabSLAMaterial : public Tab

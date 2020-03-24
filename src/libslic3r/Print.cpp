@@ -161,6 +161,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         } else if (
                opt_key == "skirts"
             || opt_key == "skirt_height"
+            || opt_key == "draft_shield"
             || opt_key == "skirt_distance"
             || opt_key == "min_skirt_length"
             || opt_key == "ooze_prevention"
@@ -1146,14 +1147,12 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 
 bool Print::has_infinite_skirt() const
 {
-    return (m_config.skirt_height == -1 && m_config.skirts > 0)
-        || (m_config.ooze_prevention && this->extruders().size() > 1);
+    return (m_config.draft_shield && m_config.skirts > 0) || (m_config.ooze_prevention && this->extruders().size() > 1);
 }
 
 bool Print::has_skirt() const
 {
-    return (m_config.skirt_height > 0 && m_config.skirts > 0)
-        || this->has_infinite_skirt();
+    return (m_config.skirt_height > 0 && m_config.skirts > 0) || this->has_infinite_skirt();
 }
 
 static inline bool sequential_print_horizontal_clearance_valid(const Print &print)
@@ -2138,6 +2137,7 @@ std::string Print::output_filename(const std::string &filename_base) const
     // Set the placeholders for the data know first after the G-code export is finished.
     // These values will be just propagated into the output file name.
     DynamicConfig config = this->finished() ? this->print_statistics().config() : this->print_statistics().placeholders();
+    config.set_key_value("num_extruders", new ConfigOptionInt((int)m_config.nozzle_diameter.size()));
     return this->PrintBase::output_filename(m_config.output_filename_format.value, ".gcode", filename_base, &config);
 }
 

@@ -122,6 +122,8 @@ void KBShortcutsDialog::fill_shortcuts()
         { ctrl + "G", L("Export G-code") },
         { ctrl + "Shift+" + "G", L("Send G-code") },
         { ctrl + "E", L("Export config") },
+		{ ctrl + "U", L("Export to SD card / Flash drive") },
+		{ ctrl + "T", L("Eject SD card / Flash drive") },
         // Edit
         { ctrl + "A", L("Select all objects") },
         { "Esc", L("Deselect all") },
@@ -142,9 +144,7 @@ void KBShortcutsDialog::fill_shortcuts()
         { ctrl + "J", L("Print host upload queue") },
         // View
         { "0-6", L("Camera view") },
-#if ENABLE_SHOW_SCENE_LABELS
         { "E", L("Show/Hide object/instance labels") },
-#endif // ENABLE_SHOW_SCENE_LABELS
         // Configuration
         { ctrl + "P", L("Preferences") },
         // Help

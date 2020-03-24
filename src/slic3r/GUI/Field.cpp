@@ -375,12 +375,11 @@ void TextCtrl::BUILD() {
 	{
 		e.Skip();
 #ifdef __WXOSX__
-		// OSX issue: For some unknown reason wxEVT_KILL_FOCUS is emitted twice in a row
+		// OSX issue: For some unknown reason wxEVT_KILL_FOCUS is emitted twice in a row in some cases 
+	    // (like when information dialog is shown during an update of the option value)
 		// Thus, suppress its second call
-		if (bKilledFocus) {
-			bKilledFocus = false;
+		if (bKilledFocus)
 			return;
-		}
 		bKilledFocus = true;
 #endif // __WXOSX__
 
@@ -391,6 +390,10 @@ void TextCtrl::BUILD() {
             bEnterPressed = false;
 		else
             propagate_value();
+#ifdef __WXOSX__
+		// After processing of KILL_FOCUS event we should to invalidate a bKilledFocus flag
+		bKilledFocus = false;
+#endif // __WXOSX__
 	}), temp->GetId());
 
 	// select all text using Ctrl+A

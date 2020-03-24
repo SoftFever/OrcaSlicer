@@ -42,6 +42,8 @@ public:
     PresetCollection            sla_prints;
     PresetCollection            filaments;
     PresetCollection            sla_materials;
+	PresetCollection& 			materials(PrinterTechnology pt)       { return pt == ptFFF ? this->filaments : this->sla_materials; }
+	const PresetCollection& 	materials(PrinterTechnology pt) const { return pt == ptFFF ? this->filaments : this->sla_materials; }
     PrinterPresetCollection     printers;
     // Filament preset names for a multi-extruder or multi-material print.
     // extruders.size() should be the same as printers.get_edited_preset().config.nozzle_diameter.size()
@@ -144,6 +146,8 @@ private:
     std::string                 load_system_presets();
     // Merge one vendor's presets with the other vendor's presets, report duplicates.
     std::vector<std::string>    merge_presets(PresetBundle &&other);
+    // Update renamed_from and alias maps of system profiles.
+    void 						update_system_maps();
 
     // Set the is_visible flag for filaments and sla materials,
     // apply defaults based on enabled printers when no filaments/materials are installed.

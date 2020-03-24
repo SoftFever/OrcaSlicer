@@ -219,10 +219,10 @@ void BonjourDialog::on_timer(wxTimerEvent &)
 
 	if (timer_state > 0) {
 		const std::string dots(timer_state, '.');
-        label->SetLabel(wxString::FromUTF8((boost::format("%1% %2%") % search_str % dots).str()));
+        label->SetLabel(GUI::from_u8((boost::format("%1% %2%") % search_str % dots).str()));
 		timer_state = (timer_state) % 3 + 1;
 	} else {
-        label->SetLabel(wxString::FromUTF8((boost::format("%1%: %2%") % search_str % (_utf8(L("Finished"))+".")).str()));
+        label->SetLabel(GUI::from_u8((boost::format("%1%: %2%") % search_str % (_utf8(L("Finished"))+".")).str()));
 		timer->Stop();
 	}
 }

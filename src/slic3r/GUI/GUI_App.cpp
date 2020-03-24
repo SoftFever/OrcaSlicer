@@ -10,6 +10,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/nowide/convert.hpp>
 
 #include <wx/stdpaths.h>
 #include <wx/imagpng.h>
@@ -50,6 +51,7 @@
 
 #ifdef __WXMSW__
 #include <Shlobj.h>
+#include <dbt.h>
 #endif // __WXMSW__
 
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG
@@ -60,6 +62,7 @@
 namespace Slic3r {
 namespace GUI {
 
+class MainFrame;
 
 wxString file_wildcards(FileType file_type, const std::string &custom_extension)
 {
@@ -96,9 +99,9 @@ wxString file_wildcards(FileType file_type, const std::string &custom_extension)
 
 static std::string libslic3r_translate_callback(const char *s) { return wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str().data(); }
 
-static void register_dpi_event()
-{
 #ifdef WIN32
+static void register_win32_dpi_event()
+{
     enum { WM_DPICHANGED_ = 0x02e0 };
 
     wxWindow::MSWRegisterMessageHandler(WM_DPICHANGED_, [](wxWindow *win, WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) {
@@ -111,9 +114,52 @@ static void register_dpi_event()
 
         return true;
     });
-#endif
 }
 
+static GUID GUID_DEVINTERFACE_HID = { 0x4D1E55B2, 0xF16F, 0x11CF, 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 };
+
+static void register_win32_device_notification_event()
+{
+    enum { WM_DPICHANGED_ = 0x02e0 };
+
+    wxWindow::MSWRegisterMessageHandler(WM_DEVICECHANGE, [](wxWindow *win, WXUINT /* nMsg */, WXWPARAM wParam, WXLPARAM lParam) {
+        // Some messages are sent to top level windows by default, some messages are sent to only registered windows, and we explictely register on MainFrame only.
+        auto main_frame = dynamic_cast<MainFrame*>(win);
+        auto plater = (main_frame == nullptr) ? nullptr : main_frame->plater();
+        if (plater == nullptr)
+            // Maybe some other top level window like a dialog or maybe a pop-up menu?
+            return true;
+		PDEV_BROADCAST_HDR lpdb = (PDEV_BROADCAST_HDR)lParam;
+        switch (wParam) {
+        case DBT_DEVICEARRIVAL:
+			if (lpdb->dbch_devicetype == DBT_DEVTYP_VOLUME)
+		        plater->GetEventHandler()->AddPendingEvent(VolumeAttachedEvent(EVT_VOLUME_ATTACHED));
+			else if (lpdb->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE) {
+				PDEV_BROADCAST_DEVICEINTERFACE lpdbi = (PDEV_BROADCAST_DEVICEINTERFACE)lpdb;
+//				if (lpdbi->dbcc_classguid == GUID_DEVINTERFACE_VOLUME) {
+//					printf("DBT_DEVICEARRIVAL %d - Media has arrived: %ws\n", msg_count, lpdbi->dbcc_name);
+				if (lpdbi->dbcc_classguid == GUID_DEVINTERFACE_HID)
+			        plater->GetEventHandler()->AddPendingEvent(HIDDeviceAttachedEvent(EVT_HID_DEVICE_ATTACHED, boost::nowide::narrow(lpdbi->dbcc_name)));
+			}
+            break;
+		case DBT_DEVICEREMOVECOMPLETE:
+			if (lpdb->dbch_devicetype == DBT_DEVTYP_VOLUME)
+                plater->GetEventHandler()->AddPendingEvent(VolumeDetachedEvent(EVT_VOLUME_DETACHED));
+			else if (lpdb->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE) {
+				PDEV_BROADCAST_DEVICEINTERFACE lpdbi = (PDEV_BROADCAST_DEVICEINTERFACE)lpdb;
+//				if (lpdbi->dbcc_classguid == GUID_DEVINTERFACE_VOLUME)
+//					printf("DBT_DEVICEARRIVAL %d - Media was removed: %ws\n", msg_count, lpdbi->dbcc_name);
+				if (lpdbi->dbcc_classguid == GUID_DEVINTERFACE_HID)
+        			plater->GetEventHandler()->AddPendingEvent(HIDDeviceDetachedEvent(EVT_HID_DEVICE_DETACHED, boost::nowide::narrow(lpdbi->dbcc_name)));
+			}
+			break;
+        default:
+            break;
+        }
+        return true;
+    });
+}
+#endif // WIN32
 
 static void generic_exception_handle()
 {
@@ -155,6 +201,7 @@ GUI_App::GUI_App()
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
     , m_wizard(nullptr)
+	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
 {}
 
 GUI_App::~GUI_App()
@@ -247,7 +294,10 @@ bool GUI_App::on_init_inner()
         show_error(nullptr, ex.what());
     }
 
-    register_dpi_event();
+#ifdef WIN32
+    register_win32_dpi_event();
+    register_win32_device_notification_event();
+#endif // WIN32
 
     // Let the libslic3r know the callback, which will translate messages on demand.
     Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
@@ -262,7 +312,6 @@ bool GUI_App::on_init_inner()
 
     m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
 
-	RemovableDriveManager::get_instance().init();
 
     Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
     {
@@ -273,10 +322,6 @@ bool GUI_App::on_init_inner()
             app_config->save();
 
         this->obj_manipul()->update_if_dirty();
-
-#if !__APPLE__
-		RemovableDriveManager::get_instance().update(wxGetLocalTime(), true);
-#endif
 
 		// Preset updating & Configwizard are done after the above initializations,
 	    // and after MainFrame is created & shown.
@@ -437,46 +482,30 @@ float GUI_App::toolbar_icon_scale(const bool is_limited/* = false*/) const
 
 void GUI_App::recreate_GUI()
 {
-    // Weird things happen as the Paint messages are floating around the windows being destructed.
-    // Avoid the Paint messages by hiding the main window.
-    // Also the application closes much faster without these unnecessary screen refreshes.
-    // In addition, there were some crashes due to the Paint events sent to already destructed windows.
-    mainframe->Show(false);
+    mainframe->shutdown();
 
     const auto msg_name = _(L("Changing of an application language")) + dots;
     wxProgressDialog dlg(msg_name, msg_name);
     dlg.Pulse();
-
-    // to make sure nobody accesses data from the soon-to-be-destroyed widgets:
-    tabs_list.clear();
-    plater_ = nullptr;
-
     dlg.Update(10, _(L("Recreating")) + dots);
 
-    MainFrame* topwindow = mainframe;
+    MainFrame *old_main_frame = mainframe;
     mainframe = new MainFrame();
-    sidebar().obj_list()->init_objects(); // propagate model objects to object list
+    // Propagate model objects to object list.
+    sidebar().obj_list()->init_objects();
+    SetTopWindow(mainframe);
 
-    if (topwindow) {
-        SetTopWindow(mainframe);
-
-        dlg.Update(30, _(L("Recreating")) + dots);
-        topwindow->Destroy();
-
-        // For this moment ConfigWizard is deleted, invalidate it
-        m_wizard = nullptr;
-    }
+    dlg.Update(30, _(L("Recreating")) + dots);
+    old_main_frame->Destroy();
+    // For this moment ConfigWizard is deleted, invalidate it.
+    m_wizard = nullptr;
 
     dlg.Update(80, _(L("Loading of current presets")) + dots);
-
     m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
-
     load_current_presets();
-
     mainframe->Show(true);
 
     dlg.Update(90, _(L("Loading of a mode view")) + dots);
-
     /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
     * change min hight of object list to the normal min value (15 * wxGetApp().em_unit())
     * after first whole Mainframe updating/layouting
@@ -484,7 +513,6 @@ void GUI_App::recreate_GUI()
     const int list_min_height = 15 * em_unit();
     if (obj_list()->GetMinSize().GetY() > list_min_height)
         obj_list()->SetMinSize(wxSize(-1, list_min_height));
-
     update_mode();
 
     // #ys_FIXME_delete_after_testing  Do we still need this  ?
@@ -579,7 +607,6 @@ void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files) const
 bool GUI_App::switch_language()
 {
     if (select_language()) {
-        _3DScene::remove_all_canvases();
         recreate_GUI();
         return true;
     } else {
@@ -882,14 +909,19 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
             /* Before change application language, let's check unsaved changes on 3D-Scene
              * and draw user's attention to the application restarting after a language change
              */
-            wxMessageDialog dialog(nullptr,
-                _(L("Switching the language will trigger application restart.\n"
-                    "You will lose content of the plater.")) + "\n\n" +
-                _(L("Do you want to proceed?")),
-                wxString(SLIC3R_APP_NAME) + " - " + _(L("Language selection")),
-                wxICON_QUESTION | wxOK | wxCANCEL);
-            if ( dialog.ShowModal() == wxID_CANCEL)
-                return;
+            {
+                // the dialog needs to be destroyed before the call to switch_language()
+                // or sometimes the application crashes into wxDialogBase() destructor
+                // so we put it into an inner scope
+                wxMessageDialog dialog(nullptr,
+                    _(L("Switching the language will trigger application restart.\n"
+                        "You will lose content of the plater.")) + "\n\n" +
+                    _(L("Do you want to proceed?")),
+                    wxString(SLIC3R_APP_NAME) + " - " + _(L("Language selection")),
+                    wxICON_QUESTION | wxOK | wxCANCEL);
+                if (dialog.ShowModal() == wxID_CANCEL)
+                    return;
+            }
 
             switch_language();
             break;

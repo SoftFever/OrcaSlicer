@@ -30,14 +30,6 @@ public:
     // When allocating extruder overrides of an object's ExtrusionEntity, overrides for maximum 3 copies are allocated in place.
     typedef boost::container::small_vector<int32_t, 3> ExtruderPerCopy;
 
-    class ExtruderOverrides
-    {
-    public:
-    	ExtruderOverrides(const ExtruderPerCopy *overrides, const int correct_extruder_id) : m_overrides(overrides) {}
-    private:
-    	const ExtruderPerCopy *m_overrides;
-    };
-
     // This is called from GCode::process_layer - see implementation for further comments:
     const ExtruderPerCopy* get_extruder_overrides(const ExtrusionEntity* entity, int correct_extruder_id, size_t num_of_copies);
 

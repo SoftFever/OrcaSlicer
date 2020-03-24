@@ -39,7 +39,7 @@ public:
     // last point == first point for polygons
     const Point& last_point() const override { return this->points.front(); }
 
-    virtual Lines lines() const;
+    Lines lines() const override;
     Polyline split_at_vertex(const Point &point) const;
     // Split a closed polygon into an open polyline, with the split point duplicated at both ends.
     Polyline split_at_index(int index) const;

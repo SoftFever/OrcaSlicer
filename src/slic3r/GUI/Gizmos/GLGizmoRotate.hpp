@@ -49,6 +49,8 @@ public:
     double get_angle() const { return m_angle; }
     void set_angle(double angle);
 
+    std::string get_tooltip() const override;
+
 protected:
     virtual bool on_init();
     virtual std::string on_get_name() const { return ""; }
@@ -80,6 +82,16 @@ public:
 
     Vec3d get_rotation() const { return Vec3d(m_gizmos[X].get_angle(), m_gizmos[Y].get_angle(), m_gizmos[Z].get_angle()); }
     void set_rotation(const Vec3d& rotation) { m_gizmos[X].set_angle(rotation(0)); m_gizmos[Y].set_angle(rotation(1)); m_gizmos[Z].set_angle(rotation(2)); }
+
+    std::string get_tooltip() const override
+    {
+        std::string tooltip = m_gizmos[X].get_tooltip();
+        if (tooltip.empty())
+            tooltip = m_gizmos[Y].get_tooltip();
+        if (tooltip.empty())
+            tooltip = m_gizmos[Z].get_tooltip();
+        return tooltip;
+    }
 
 protected:
     virtual bool on_init();

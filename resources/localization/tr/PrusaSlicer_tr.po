@@ -3679,13 +3679,15 @@ msgstr "CA sertifika dosyasını aç"
 #: src/slic3r/GUI/Tab.cpp:1810
 #, c-format
 msgid ""
-"HTTPS CA File:\n"
-"    \tOn this system, %s uses HTTPS certificates from the system Certificate Store or Keychain.\n"
-"    \tTo use a custom CA file, please import your CA file into Certificate Store / Keychain."
+"On this system, %s uses HTTPS certificates from the system Certificate Store or Keychain."
 msgstr ""
-"HTTPS CA Dosyası:\n"
-"    \tBu sistemde, %s , sistem Sertifika Deposu veya Anahtarlıktan HTTPS sertifikaları kullanır.\n"
-"    \tÖzel bir CA dosyası kullanmak için, lütfen CA dosyanızı Sertifika Deposu/Anahtarlık içine aktarın."
+"Bu sistemde, %s , sistem Sertifika Deposu veya Anahtarlıktan HTTPS sertifikaları kullanır."
+
+#: src/slic3r/GUI/Tab.cpp:1810
+msgid ""
+"To use a custom CA file, please import your CA file into Certificate Store / Keychain."
+msgstr ""
+"Özel bir CA dosyası kullanmak için, lütfen CA dosyanızı Sertifika Deposu/Anahtarlık içine aktarın."
 
 #: src/slic3r/GUI/Tab.cpp:1850 src/slic3r/GUI/Tab.cpp:2051
 msgid "Size and coordinates"
@@ -3948,11 +3950,11 @@ msgstr "BEYAZ NOKTA"
 #. TRN Description for "WHITE BULLET"
 #: src/slic3r/GUI/Tab.cpp:3129
 msgid ""
-"for the left button: \tindicates a non-system preset,\n"
-"for the right button: \tindicates that the settings hasn't been modified."
+"for the left button: indicates a non-system preset,\n"
+"for the right button: indicates that the settings hasn't been modified."
 msgstr ""
-"sol tuş için: \tsistem dışı bir ön ayarı gösterir,\n"
-"sağ tuş için: \tayarların değiştirilmediğini gösterir."
+"sol tuş için: sistem dışı bir ön ayarı gösterir,\n"
+"sağ tuş için: ayarların değiştirilmediğini gösterir."
 
 #: src/slic3r/GUI/Tab.cpp:3103
 msgid "BACK ARROW"

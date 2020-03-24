@@ -278,6 +278,8 @@ template<class RawShape> class EdgeCache {
 
     inline Vertex coords(const ContourCache& cache, double distance) const {
         assert(distance >= .0 && distance <= 1.0);
+        if (cache.distances.empty() || cache.emap.empty()) return Vertex{};
+        if (distance > 1.0) distance = std::fmod(distance, 1.0);
 
         // distance is from 0.0 to 1.0, we scale it up to the full length of
         // the circumference
