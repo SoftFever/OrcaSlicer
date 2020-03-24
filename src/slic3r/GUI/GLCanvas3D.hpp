@@ -413,6 +413,7 @@ private:
 #endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
         // Indicates that the mouse is inside an ImGUI dialog, therefore the tooltip should be suppressed.
         void set_in_imgui(bool b) { m_in_imgui = b; }
+        bool is_in_imgui() const { return m_in_imgui; }
     };
 #endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 

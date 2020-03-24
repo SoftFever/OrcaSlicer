@@ -594,6 +594,12 @@ void GUI_App::load_project(wxWindow *parent, wxString& input_file) const
 
 void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files) const
 {
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+    if (this->plater_ != nullptr)
+        // hides the tooltip
+        plater_->get_current_canvas3D()->set_tooltip("");
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+
     input_files.Clear();
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
         _(L("Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):")),

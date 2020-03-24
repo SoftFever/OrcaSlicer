@@ -3341,6 +3341,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     Point pos(evt.GetX(), evt.GetY());
 
     ImGuiWrapper* imgui = wxGetApp().imgui();
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+    if (m_tooltip.is_in_imgui() && evt.LeftUp())
+        // ignore left up events coming from imgui windows and not processed by them
+        m_mouse.ignore_left_up = true;
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     m_tooltip.set_in_imgui(false);
     if (imgui->update_mouse_data(evt)) {
         m_mouse.position = evt.Leaving() ? Vec2d(-1.0, -1.0) : pos.cast<double>();
@@ -3352,10 +3357,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // do not return if dragging or tooltip not empty to allow for tooltip update
 #if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
         if (!m_mouse.dragging && m_tooltip.is_empty())
+            return;
 #else
         if (!m_mouse.dragging && m_canvas->GetToolTipText().empty())
-#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
             return;
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     }
 
 #ifdef __WXMSW__
