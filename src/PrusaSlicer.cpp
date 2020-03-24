@@ -644,6 +644,14 @@ void CLI::print_help(bool include_print_options, PrinterTechnology printer_techn
         << "Other options:" << std::endl;
         cli_misc_config_def.print_cli_help(boost::nowide::cout, false);
 
+    boost::nowide::cout
+        << std::endl
+        << "Print options are processed in the following order:" << std::endl
+        << "\t1) Config keys from the command line, for example --fill-pattern=stars" << std::endl
+        << "\t   (highest priority, overwrites everything below)" << std::endl
+        << "\t2) Config files loaded with --load" << std::endl
+	    << "\t3) Config values loaded from amf or 3mf files" << std::endl;
+
     if (include_print_options) {
         boost::nowide::cout << std::endl;
         print_config_def.print_cli_help(boost::nowide::cout, true, [printer_technology](const ConfigOptionDef &def)
