@@ -3,8 +3,8 @@
 
 #include "slic3r/GUI/GLTexture.hpp"
 #include "slic3r/GUI/GLToolbar.hpp"
-#include "slic3r/GUI/Gizmos/GLGizmos.hpp"
 #include "libslic3r/ObjectID.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoBase.hpp"
 
 #include <map>
 
@@ -18,6 +18,8 @@ namespace GUI {
 
 class GLCanvas3D;
 class ClippingPlane;
+enum class SLAGizmoEventType : unsigned char;
+class CommonGizmosData;
 
 class Rect
 {

@@ -22,6 +22,8 @@
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "slic3r/GUI/Tab.hpp"
 #include "slic3r/GUI/GUI_Preview.hpp"
+#include "slic3r/GUI/3DBed.hpp"
+#include "slic3r/GUI/Camera.hpp"
 
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -1298,7 +1300,7 @@ void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_
 
     // updates print order strings
     if (sorted_instances.size() > 1) {
-        for (int i = 0; i < sorted_instances.size(); ++i) {
+        for (size_t i = 0; i < sorted_instances.size(); ++i) {
             size_t id = sorted_instances[i]->id().id;
             std::vector<Owner>::iterator it = std::find_if(owners.begin(), owners.end(), [id](const Owner& owner) {
                 return owner.model_instance_id == id;
@@ -4138,6 +4140,13 @@ Linef3 GLCanvas3D::mouse_ray(const Point& mouse_pos)
     float z1 = 1.0f;
     return Linef3(_mouse_to_3d(mouse_pos, &z0), _mouse_to_3d(mouse_pos, &z1));
 }
+
+
+void GLCanvas3D::refresh_camera_scene_box()
+{
+    m_camera.set_scene_box(scene_bounding_box());
+}
+
 
 double GLCanvas3D::get_size_proportional_to_max_bed_size(double factor) const
 {

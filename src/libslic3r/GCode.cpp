@@ -431,7 +431,6 @@ std::string WipeTowerIntegration::post_process_wipe_tower_moves(const WipeTower:
     Vec2f pos = tcr.start_pos;
     Vec2f transformed_pos = pos;
     Vec2f old_pos(-1000.1f, -1000.1f);
-    std::string never_skip_tag = WipeTower::never_skip_tag();
 
     while (gcode_str) {
         std::getline(gcode_str, line);  // we read the gcode line by line
@@ -441,11 +440,11 @@ std::string WipeTowerIntegration::post_process_wipe_tower_moves(const WipeTower:
         // WT generator can override this by appending the never_skip_tag
         if (line.find("G1 ") == 0) {
             bool never_skip = false;
-            auto it = line.find(never_skip_tag);
+            auto it = line.find(WipeTower::never_skip_tag());
             if (it != std::string::npos) {
                 // remove the tag and remember we saw it
                 never_skip = true;
-                line.erase(it, it+never_skip_tag.size());
+                line.erase(it, it+WipeTower::never_skip_tag().size());
             }
             std::ostringstream line_out;
             std::istringstream line_str(line);
@@ -1752,7 +1751,6 @@ std::vector<GCode::InstanceToPrint> GCode::sort_print_object_instances(
 		std::sort(sorted.begin(), sorted.end());
 
 		if (! sorted.empty()) {
-			const Print &print = *sorted.front().first->print();
 		    out.reserve(sorted.size());
 		    for (const PrintInstance *instance : *ordering) {
 		    	const PrintObject &print_object = *instance->print_object;
@@ -1798,13 +1796,14 @@ namespace ProcessLayer
 		    // we should add or not colorprint_change in respect to nozzle_diameter count instead of really used extruders count
 	        if (color_change || tool_change)
 	        {
+                assert(m600_extruder_before_layer >= 0);
 		        // Color Change or Tool Change as Color Change.
 	            // add tag for analyzer
 	            gcode += "; " + GCodeAnalyzer::Color_Change_Tag + ",T" + std::to_string(m600_extruder_before_layer) + "\n";
 	            // add tag for time estimator
 	            gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
 
-	            if (!single_extruder_printer && m600_extruder_before_layer >= 0 && first_extruder_id != m600_extruder_before_layer
+                if (!single_extruder_printer && m600_extruder_before_layer >= 0 && first_extruder_id != (unsigned)m600_extruder_before_layer
 	                // && !MMU1
 	                ) {
 	                //! FIXME_in_fw show message during print pause

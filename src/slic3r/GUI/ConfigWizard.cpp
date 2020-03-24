@@ -1755,7 +1755,7 @@ bool ConfigWizard::priv::on_bnt_finish()
         page_sla_materials->reload_presets();
 
 	// theres no need to check that filament is selected if we have only custom printer
-	if (custom_printer_selected && !any_fff_selected && !any_sla_selected) return true;
+    if (custom_printer_selected && !any_fff_selected && !any_sla_selected) return true;
     // check, that there is selected at least one filament/material
     return check_and_install_missing_materials(T_ANY);
 }

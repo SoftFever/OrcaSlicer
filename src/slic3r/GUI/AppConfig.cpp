@@ -2,22 +2,18 @@
 #include "libslic3r/Utils.hpp"
 #include "AppConfig.hpp"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <utility>
-#include <assert.h>
 #include <vector>
 #include <stdexcept>
 
-#include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/nowide/cenv.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/property_tree/ini_parser.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/exceptions.hpp>
+#include <boost/property_tree/ptree_fwd.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/format.hpp>
+#include <boost/format/format_fwd.hpp>
 
 #include <wx/string.h>
 #include "I18N.hpp"
@@ -76,7 +72,7 @@ void AppConfig::set_defaults()
     if (get("remember_output_path").empty())
         set("remember_output_path", "1");
 
-	if (get("remember_output_path_removable").empty())
+    if (get("remember_output_path_removable").empty())
 		set("remember_output_path_removable", "1");
 
     if (get("use_custom_toolbar_size").empty())

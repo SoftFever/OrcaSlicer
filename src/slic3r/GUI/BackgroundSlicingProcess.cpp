@@ -26,16 +26,15 @@
 #include <cassert>
 #include <stdexcept>
 #include <cctype>
-#include <algorithm>
 
-#include <boost/format.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem.hpp>
+#include <boost/format/format_fwd.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include "I18N.hpp"
-#include "GUI.hpp"
 #include "RemovableDriveManager.hpp"
+
+#include "slic3r/Utils/Thread.hpp"
 
 namespace Slic3r {
 

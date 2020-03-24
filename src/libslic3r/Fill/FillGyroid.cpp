@@ -156,7 +156,7 @@ void FillGyroid::_fill_surface_single(
     Polylines                       &polylines_out)
 {
     float infill_angle = this->angle + (CorrectionAngle * 2*M_PI) / 360.;
-    if(abs(infill_angle) >= EPSILON)
+    if(std::abs(infill_angle) >= EPSILON)
         expolygon.rotate(-infill_angle);
 
     BoundingBox bb = expolygon.contour.bounding_box();
@@ -197,8 +197,9 @@ void FillGyroid::_fill_surface_single(
         	append(polylines_out, std::move(polylines));
         else
             this->connect_infill(std::move(polylines), expolygon, polylines_out, this->spacing, params);
+
 	    // new paths must be rotated back
-	    if (abs(infill_angle) >= EPSILON) {
+        if (std::abs(infill_angle) >= EPSILON) {
 	        for (auto it = polylines_out.begin() + polylines_out_first_idx; it != polylines_out.end(); ++ it)
 	        	it->rotate(infill_angle);
 	    }

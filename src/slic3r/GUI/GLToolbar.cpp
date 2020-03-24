@@ -4,8 +4,7 @@
 #include "GLToolbar.hpp"
 
 #include "../../slic3r/GUI/GLCanvas3D.hpp"
-
-#include <GL/glew.h>
+#include "../../slic3r/GUI/Camera.hpp"
 
 #include <wx/event.h>
 #include <wx/bitmap.h>
