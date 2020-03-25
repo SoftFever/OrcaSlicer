@@ -531,7 +531,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
 #if ENABLE_GIZMO_TOOLBAR_DRAGGING_FIX
     else if (evt.Dragging() && !is_dragging())
 #else
-    else if (evt.Dragging()))
+    else if (evt.Dragging())
 #endif // ENABLE_GIZMO_TOOLBAR_DRAGGING_FIX
     {
         if (m_mouse_capture.any())
