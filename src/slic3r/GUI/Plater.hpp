@@ -42,6 +42,10 @@ class ObjectList;
 class GLCanvas3D;
 class Mouse3DController;
 struct Camera;
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+class Bed3D;
+class GLToolbar;
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
@@ -249,6 +253,9 @@ public:
     BoundingBoxf bed_shape_bb() const;
 
     void set_current_canvas_as_dirty();
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    void unbind_canvas_event_handlers();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     PrinterTechnology   printer_technology() const;
     void                set_printer_technology(PrinterTechnology printer_technology);
@@ -278,12 +285,21 @@ public:
 
     const Camera& get_camera() const;
     Camera& get_camera();
+
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    const Bed3D& get_bed() const;
+    Bed3D& get_bed();
+
+    const GLToolbar& get_view_toolbar() const;
+    GLToolbar& get_view_toolbar();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
+
     const Mouse3DController& get_mouse3d_controller() const;
     Mouse3DController& get_mouse3d_controller();
 
 	void set_bed_shape() const;
 
-	// ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
+    // ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
 	class SuppressSnapshots
 	{
 	public:

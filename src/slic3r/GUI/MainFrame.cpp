@@ -168,6 +168,13 @@ void MainFrame::shutdown()
     if (m_plater)
     	m_plater->stop_jobs();
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    // Unbinding of wxWidgets event handling in canvases needs to be done here because on MAC,
+    // when closing the application using Command+Q, a mouse event is triggered after this lambda is completed,
+    // causing a crash
+    if (m_plater) m_plater->unbind_canvas_event_handlers();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
+
     // Weird things happen as the Paint messages are floating around the windows being destructed.
     // Avoid the Paint messages by hiding the main window.
     // Also the application closes much faster without these unnecessary screen refreshes.
@@ -188,7 +195,9 @@ void MainFrame::shutdown()
     wxGetApp().app_config->save();
 //         if (m_plater)
 //             m_plater->print = undef;
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
     _3DScene::remove_all_canvases();
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 //         Slic3r::GUI::deregister_on_request_update_callback();
 
     // set to null tabs and a plater

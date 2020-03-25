@@ -440,6 +440,12 @@ void Selection::clear()
     update_type();
     this->set_bounding_boxes_dirty();
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    // this happens while the application is closing
+    if (wxGetApp().obj_manipul() == nullptr)
+        return;
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
+
     // resets the cache in the sidebar
     wxGetApp().obj_manipul()->reset_cache();
 

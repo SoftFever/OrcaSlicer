@@ -216,6 +216,23 @@ GUI_App::~GUI_App()
         delete preset_updater;
 }
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+std::string GUI_App::get_gl_info(bool format_as_html, bool extensions)
+{
+    return GLCanvas3DManager::get_gl_info().to_string(format_as_html, extensions);
+}
+
+wxGLContext* GUI_App::init_glcontext(wxGLCanvas& canvas)
+{
+    return m_canvas_mgr.init_glcontext(canvas);
+}
+
+bool GUI_App::init_opengl()
+{
+    return m_canvas_mgr.init_gl();
+}
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
+
 bool GUI_App::OnInit()
 {
     try {
@@ -781,7 +798,7 @@ bool GUI_App::load_language(wxString language, bool initial)
     wxTranslations::Get()->SetLanguage(language_dict);
     m_wxLocale->AddCatalog(SLIC3R_APP_KEY);
     m_imgui->set_language(into_u8(language_info->CanonicalName));
-	//FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
+    //FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
     wxSetlocale(LC_NUMERIC, "C");
     Preset::update_suffix_modified();
 	return true;

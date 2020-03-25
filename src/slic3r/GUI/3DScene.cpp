@@ -1816,7 +1816,9 @@ void _3DScene::point3_to_verts(const Vec3crd& point, double width, double height
     thick_point_to_verts(point, width, height, volume);
 }
 
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
 GUI::GLCanvas3DManager _3DScene::s_canvas_mgr;
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 
 GLModel::GLModel()
     : m_filename("")
@@ -2099,6 +2101,7 @@ bool GLBed::on_init_from_file(const std::string& filename)
     return true;
 }
 
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
 std::string _3DScene::get_gl_info(bool format_as_html, bool extensions)
 {
     return Slic3r::GUI::GLCanvas3DManager::get_gl_info().to_string(format_as_html, extensions);
@@ -2133,5 +2136,6 @@ GUI::GLCanvas3D* _3DScene::get_canvas(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.get_canvas(canvas);
 }
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 
 } // namespace Slic3r

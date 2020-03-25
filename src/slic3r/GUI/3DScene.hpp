@@ -7,7 +7,9 @@
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
 #include "slic3r/GUI/GLCanvas3DManager.hpp"
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 
 #include <functional>
 
@@ -639,10 +641,17 @@ protected:
     bool on_init_from_file(const std::string& filename) override;
 };
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+struct _3DScene
+#else
 class _3DScene
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 {
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
     static GUI::GLCanvas3DManager s_canvas_mgr;
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
 public:
     static std::string get_gl_info(bool format_as_html, bool extensions);
 
@@ -654,6 +663,7 @@ public:
     static void destroy();
 
     static GUI::GLCanvas3D* get_canvas(wxGLCanvas* canvas);
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 
     static void thick_lines_to_verts(const Lines& lines, const std::vector<double>& widths, const std::vector<double>& heights, bool closed, double top_z, GLVolume& volume);
     static void thick_lines_to_verts(const Lines3& lines, const std::vector<double>& widths, const std::vector<double>& heights, bool closed, GLVolume& volume);
