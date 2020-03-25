@@ -69,7 +69,7 @@ public:
     void set_extruder_idx(const int extr_idx)   { extruder_idx = extr_idx; }
     int  get_extruder_idx() const               { return extruder_idx; }
     int  em_unit() const                        { return m_em_unit; }
-    void check_selection();
+    void check_selection(int selection);
 
     void msw_rescale();
 

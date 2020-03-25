@@ -1737,7 +1737,7 @@ void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::Pre
 
     ui->SetSelection(selected_preset_item);
 	ui->SetToolTip(tooltip.IsEmpty() ? ui->GetString(selected_preset_item) : tooltip);
-    ui->check_selection();
+    ui->check_selection(selected_preset_item);
     ui->Thaw();
 
     // Update control min size after rescale (changed Display DPI under MSW)
