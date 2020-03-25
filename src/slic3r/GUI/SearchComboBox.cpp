@@ -20,6 +20,9 @@
 #include "Tab.hpp"
 #include "PresetBundle.hpp"
 
+#define FTS_FUZZY_MATCH_IMPLEMENTATION
+#include "fts_fuzzy_match.h"
+
 using boost::optional;
 
 namespace Slic3r {
@@ -27,23 +30,22 @@ namespace GUI {
 
 bool SearchOptions::Option::containes(const wxString& search_) const
 {
-    wxString search = search_.Lower();
-    wxString label_ = label.Lower();
-    wxString category_ = category.Lower();
+    char const* search_pattern = search_.utf8_str();
+    char const* opt_key_str    = opt_key.c_str();
+    char const* label_str      = label.utf8_str();
 
-    return (opt_key.find(into_u8(search)) != std::string::npos ||
-            label_.Find(search) != wxNOT_FOUND ||
-            category_.Find(search) != wxNOT_FOUND);
+    return  fts::fuzzy_match_simple(search_pattern, label_str   )   ||
+            fts::fuzzy_match_simple(search_pattern, opt_key_str )   ; 
+}
 
-    auto search_str = into_u8(search);
-    auto pos = opt_key.find(into_u8(search));
-    bool in_opt_key = pos != std::string::npos;
-    bool in_label = label_.Find(search) != wxNOT_FOUND;
-    bool in_category = category_.Find(search) != wxNOT_FOUND;
+bool SearchOptions::Option::is_matched_option(const wxString& search, int& outScore)
+{
+    char const* search_pattern = search.utf8_str();
+    char const* opt_key_str    = opt_key.c_str();
+    char const* label_str      = label.utf8_str();
 
-    if (in_opt_key || in_label || in_category)
-        return true;
-    return false;
+    return (fts::fuzzy_match(search_pattern, label_str   , outScore)   ||
+            fts::fuzzy_match(search_pattern, opt_key_str , outScore)   ); 
 }
 
 
@@ -80,10 +82,20 @@ void SearchOptions::append_options(DynamicPrintConfig* config, Preset::Type type
             label += _(opt.category) + " : ";
         label += _(opt.full_label.empty() ? opt.label : opt.full_label);
 
-        options.emplace(Option{ opt_key, label, opt.category, type });
+        options.emplace_back(Option{ label, opt_key, opt.category, type });
     }
 }
 
+void SearchOptions::apply_filters(const wxString& search)
+{
+    clear_filters();
+    for (auto option : options) {
+        int score;
+        if (option.is_matched_option(search, score))
+            filters.emplace_back(Filter{ option.label, score });
+    }
+    sort_filters();
+}
 
 SearchComboBox::SearchComboBox(wxWindow *parent) :
 wxBitmapComboBox(parent, wxID_ANY, _(L("Type here to search")) + dots, wxDefaultPosition, wxSize(25 * wxGetApp().em_unit(), -1)),
@@ -148,18 +160,19 @@ void SearchComboBox::msw_rescale()
 
 void SearchComboBox::init(DynamicPrintConfig* config, Preset::Type type, ConfigOptionMode mode)
 {
-    search_list.clear();
+    search_list.clear_options();
     search_list.append_options(config, type, mode);
+    search_list.sort_options();
 
     update_combobox();
 }
 
 void SearchComboBox::init(std::vector<SearchInput> input_values)
 {
-    search_list.clear();
-
+    search_list.clear_options();
     for (auto i : input_values)
         search_list.append_options(i.config, i.type, i.mode);
+    search_list.sort_options();
 
     update_combobox();
 }
@@ -188,15 +201,19 @@ void SearchComboBox::append_all_items()
 void SearchComboBox::append_items(const wxString& search)
 {
     this->Clear();
-
-    auto cmp = [](SearchOptions::Option* o1, SearchOptions::Option* o2) { return o1->label > o2->label; };
-    std::set<SearchOptions::Option*, decltype(cmp)> ret(cmp);
+/*
+    search_list.apply_filters(search);
+    for (auto filter : search_list.filters) {
+        auto it = std::lower_bound(search_list.options.begin(), search_list.options.end(), SearchOptions::Option{filter.label});
+        if (it != search_list.options.end())
+            append(it->label, (void*)(&(*it)));
+    }
+*/
 
     for (const SearchOptions::Option& option : search_list.options)
         if (option.containes(search))
             append(option.label, (void*)&option);
 
-//    this->Popup();
     SuppressUpdate su(this);
     this->SetValue(search);
     this->SetInsertionPointEnd();

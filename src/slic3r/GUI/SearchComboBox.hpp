@@ -29,19 +29,36 @@ public:
         bool operator<(const Option& other) const { return other.label > this->label; }
         bool operator>(const Option& other) const { return other.label < this->label; }
 
-        std::string     opt_key;
         wxString        label;
+        std::string     opt_key;
         wxString        category;
         Preset::Type    type {Preset::TYPE_INVALID};
         // wxString     grope;
 
         bool containes(const wxString& search) const;
+        bool is_matched_option(const wxString &search, int &outScore);
     };
+    std::vector<Option> options {};
 
-    std::set<Option> options {};
+    struct Filter {
+        wxString        label;
+        int             outScore {0};
+    };
+    std::vector<Filter> filters {};
 
-    void clear() { options. clear(); }
+    void clear_options() { options.clear(); }
+    void clear_filters() { filters.clear(); }
     void append_options(DynamicPrintConfig* config, Preset::Type type, ConfigOptionMode mode);
+    void apply_filters(const wxString& search);
+
+    void sort_options() {
+        std::sort(options.begin(), options.end(), [](const Option& o1, const Option& o2) {
+            return o1.label < o2.label; });
+    }
+    void sort_filters() {
+        std::sort(filters.begin(), filters.end(), [](const Filter& f1, const Filter& f2) {
+            return f1.outScore > f2.outScore; });
+    };
 };
 
 class SearchComboBox : public wxBitmapComboBox
