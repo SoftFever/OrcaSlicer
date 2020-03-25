@@ -42,7 +42,7 @@
 
 namespace Slic3r {
 
-TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd>& facets) : repaired(false)
+TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Vec3i> &facets) : repaired(false)
 {
     stl_file &stl = this->stl;
     stl.stats.type = inmemory;
@@ -600,7 +600,7 @@ TriangleMesh TriangleMesh::convex_hull_3d() const
 
     // Let's collect results:
     Pointf3s dst_vertices;
-    std::vector<Vec3crd> facets;
+    std::vector<Vec3i> facets;
     auto facet_list = qhull.facetList().toStdVector();
     for (const orgQhull::QhullFacet& facet : facet_list)
     {   // iterate through facets
@@ -1931,22 +1931,18 @@ void TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower) 
 // Generate the vertex list for a cube solid of arbitrary size in X/Y/Z.
 TriangleMesh make_cube(double x, double y, double z) 
 {
-    Vec3d pv[8] = { 
-        Vec3d(x, y, 0), Vec3d(x, 0, 0), Vec3d(0, 0, 0), 
-        Vec3d(0, y, 0), Vec3d(x, y, z), Vec3d(0, y, z), 
-        Vec3d(0, 0, z), Vec3d(x, 0, z) 
-    };
-    Vec3crd fv[12] = { 
-        Vec3crd(0, 1, 2), Vec3crd(0, 2, 3), Vec3crd(4, 5, 6), 
-        Vec3crd(4, 6, 7), Vec3crd(0, 4, 7), Vec3crd(0, 7, 1), 
-        Vec3crd(1, 7, 6), Vec3crd(1, 6, 2), Vec3crd(2, 6, 5), 
-        Vec3crd(2, 5, 3), Vec3crd(4, 0, 3), Vec3crd(4, 3, 5) 
-    };
-
-    std::vector<Vec3crd> facets(&fv[0], &fv[0]+12);
-    Pointf3s vertices(&pv[0], &pv[0]+8);
-
-    TriangleMesh mesh(vertices ,facets);
+    TriangleMesh mesh(
+        {
+            {x, y, 0}, {x, 0, 0}, {0, 0, 0},
+            {0, y, 0}, {x, y, z}, {0, y, z},
+            {0, 0, z}, {x, 0, z}
+        },
+        {
+            {0, 1, 2}, {0, 2, 3}, {4, 5, 6},
+            {4, 6, 7}, {0, 4, 7}, {0, 7, 1},
+            {1, 7, 6}, {1, 6, 2}, {2, 6, 5},
+            {2, 5, 3}, {4, 0, 3}, {4, 3, 5}
+        });
 	mesh.repair();
 	return mesh;
 }
@@ -1959,8 +1955,8 @@ TriangleMesh make_cylinder(double r, double h, double fa)
 	size_t n_steps    = (size_t)ceil(2. * PI / fa);
 	double angle_step = 2. * PI / n_steps;
 
-	Pointf3s				vertices;
-	std::vector<Vec3crd>	facets;
+	Pointf3s			vertices;
+	std::vector<Vec3i>	facets;
 	vertices.reserve(2 * n_steps + 2);
 	facets.reserve(4 * n_steps);
 
@@ -1980,17 +1976,17 @@ TriangleMesh make_cylinder(double r, double h, double fa)
         vertices.emplace_back(Vec3d(p(0), p(1), 0.));
         vertices.emplace_back(Vec3d(p(0), p(1), h));
         int id = (int)vertices.size() - 1;
-        facets.emplace_back(Vec3crd( 0, id - 1, id - 3)); // top
-        facets.emplace_back(Vec3crd(id,      1, id - 2)); // bottom
-		facets.emplace_back(Vec3crd(id, id - 2, id - 3)); // upper-right of side
-        facets.emplace_back(Vec3crd(id, id - 3, id - 1)); // bottom-left of side
+        facets.emplace_back( 0, id - 1, id - 3); // top
+        facets.emplace_back(id,      1, id - 2); // bottom
+		facets.emplace_back(id, id - 2, id - 3); // upper-right of side
+        facets.emplace_back(id, id - 3, id - 1); // bottom-left of side
     }
     // Connect the last set of vertices with the first.
 	int id = (int)vertices.size() - 1;
-    facets.emplace_back(Vec3crd( 0, 2, id - 1));
-    facets.emplace_back(Vec3crd( 3, 1,     id));
-	facets.emplace_back(Vec3crd(id, 2,      3));
-    facets.emplace_back(Vec3crd(id, id - 1, 2));
+    facets.emplace_back( 0, 2, id - 1);
+    facets.emplace_back( 3, 1,     id);
+	facets.emplace_back(id, 2,      3);
+    facets.emplace_back(id, id - 1, 2);
     
 	TriangleMesh mesh(std::move(vertices), std::move(facets));
 	mesh.repair();
@@ -2025,7 +2021,7 @@ TriangleMesh make_sphere(double radius, double fa)
 			}
 	}
 
-	std::vector<Vec3crd> facets;
+	std::vector<Vec3i> facets;
 	facets.reserve(2 * (stackCount - 1) * sectorCount);
 	for (int i = 0; i < stackCount; ++ i) {
 		// Beginning of current stack.
@@ -2040,11 +2036,11 @@ TriangleMesh make_sphere(double radius, double fa)
 			int k2_next = k2;
 			if (i != 0) {
 				k1_next = (j + 1 == sectorCount) ? k1_first : (k1 + 1);
-				facets.emplace_back(Vec3crd(k1, k2, k1_next));
+				facets.emplace_back(k1, k2, k1_next);
 			}
 			if (i + 1 != stackCount) {
 				k2_next = (j + 1 == sectorCount) ? k2_first : (k2 + 1);
-				facets.emplace_back(Vec3crd(k1_next, k2, k2_next));
+				facets.emplace_back(k1_next, k2, k2_next);
 			}
 			k1 = k1_next;
 			k2 = k2_next;

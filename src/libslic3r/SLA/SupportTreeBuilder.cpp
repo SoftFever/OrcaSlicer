@@ -48,9 +48,8 @@ Contour3D sphere(double rho, Portion portion, double fa) {
         vertices.emplace_back(Vec3d(b(0), b(1), z));
         
         if (sbegin == 0)
-            facets.emplace_back((i == 0) ?
-                                    Vec3crd(coord_t(ring.size()), 0, 1) :
-                                    Vec3crd(id - 1, 0, id));
+            (i == 0) ? facets.emplace_back(coord_t(ring.size()), 0, 1) :
+        			   facets.emplace_back(id - 1, 0, id);
         ++id;
     }
     
@@ -66,12 +65,11 @@ Contour3D sphere(double rho, Portion portion, double fa) {
             auto id_ringsize = coord_t(id - int(ring.size()));
             if (i == 0) {
                 // wrap around
-                facets.emplace_back(Vec3crd(id - 1, id,
-                                            id + coord_t(ring.size() - 1)));
-                facets.emplace_back(Vec3crd(id - 1, id_ringsize, id));
+                facets.emplace_back(id - 1, id, id + coord_t(ring.size() - 1) );
+                facets.emplace_back(id - 1, id_ringsize, id);
             } else {
-                facets.emplace_back(Vec3crd(id_ringsize - 1, id_ringsize, id));
-                facets.emplace_back(Vec3crd(id - 1, id_ringsize - 1, id));
+                facets.emplace_back(id_ringsize - 1, id_ringsize, id);
+                facets.emplace_back(id - 1, id_ringsize - 1, id);
             }
             id++;
         }
@@ -85,10 +83,10 @@ Contour3D sphere(double rho, Portion portion, double fa) {
             auto id_ringsize = coord_t(id - int(ring.size()));
             if (i == 0) {
                 // third vertex is on the other side of the ring.
-                facets.emplace_back(Vec3crd(id - 1, id_ringsize, id));
+                facets.emplace_back(id - 1, id_ringsize, id);
             } else {
                 auto ci = coord_t(id_ringsize + coord_t(i));
-                facets.emplace_back(Vec3crd(ci - 1, ci, id));
+                facets.emplace_back(ci - 1, ci, id);
             }
         }
     }

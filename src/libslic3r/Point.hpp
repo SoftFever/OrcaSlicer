@@ -24,7 +24,9 @@ typedef Eigen::Matrix<coord_t,  2, 1, Eigen::DontAlign> Vec2crd;
 typedef Eigen::Matrix<coord_t,  3, 1, Eigen::DontAlign> Vec3crd;
 typedef Eigen::Matrix<int,      2, 1, Eigen::DontAlign> Vec2i;
 typedef Eigen::Matrix<int,      3, 1, Eigen::DontAlign> Vec3i;
+typedef Eigen::Matrix<int32_t,  2, 1, Eigen::DontAlign> Vec2i32;
 typedef Eigen::Matrix<int64_t,  2, 1, Eigen::DontAlign> Vec2i64;
+typedef Eigen::Matrix<int32_t,  3, 1, Eigen::DontAlign> Vec3i32;
 typedef Eigen::Matrix<int64_t,  3, 1, Eigen::DontAlign> Vec3i64;
 
 // Vector types with a double coordinate base type.
@@ -53,12 +55,12 @@ typedef Eigen::Transform<double, 3, Eigen::Affine, Eigen::DontAlign> Transform3d
 
 inline bool operator<(const Vec2d &lhs, const Vec2d &rhs) { return lhs(0) < rhs(0) || (lhs(0) == rhs(0) && lhs(1) < rhs(1)); }
 
+inline int32_t cross2(const Vec2i32 &v1, const Vec2i32 &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
 inline int64_t cross2(const Vec2i64 &v1, const Vec2i64 &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
-inline coord_t cross2(const Vec2crd &v1, const Vec2crd &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
 inline float   cross2(const Vec2f   &v1, const Vec2f   &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
 inline double  cross2(const Vec2d   &v1, const Vec2d   &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
 
-inline Vec2crd to_2d(const Vec3crd &pt3) { return Vec2crd(pt3(0), pt3(1)); }
+inline Vec2i32 to_2d(const Vec2i32 &pt3) { return Vec2i32(pt3(0), pt3(1)); }
 inline Vec2i64 to_2d(const Vec3i64 &pt3) { return Vec2i64(pt3(0), pt3(1)); }
 inline Vec2f   to_2d(const Vec3f   &pt3) { return Vec2f  (pt3(0), pt3(1)); }
 inline Vec2d   to_2d(const Vec3d   &pt3) { return Vec2d  (pt3(0), pt3(1)); }
@@ -89,8 +91,8 @@ public:
     typedef coord_t coord_type;
 
     Point() : Vec2crd(0, 0) {}
-    Point(coord_t x, coord_t y) : Vec2crd(x, y) {}
-    Point(int64_t x, int64_t y) : Vec2crd(coord_t(x), coord_t(y)) {} // for Clipper
+    Point(int32_t x, int32_t y) : Vec2crd(coord_t(x), coord_t(y)) {}
+    Point(int64_t x, int64_t y) : Vec2crd(coord_t(x), coord_t(y)) {}
     Point(double x, double y) : Vec2crd(coord_t(lrint(x)), coord_t(lrint(y))) {}
     Point(const Point &rhs) { *this = rhs; }
 	explicit Point(const Vec2d& rhs) : Vec2crd(coord_t(lrint(rhs.x())), coord_t(lrint(rhs.y()))) {}

@@ -218,10 +218,10 @@ public:
 		bbox.min /= m_resolution;
 		bbox.max /= m_resolution;
 		// Trim with the cells.
-		bbox.min.x() = std::max(bbox.min.x(), 0);
-		bbox.min.y() = std::max(bbox.min.y(), 0);
-		bbox.max.x() = std::min(bbox.max.x(), (coord_t)m_cols - 1);
-		bbox.max.y() = std::min(bbox.max.y(), (coord_t)m_rows - 1);
+		bbox.min.x() = std::max<coord_t>(bbox.min.x(), 0);
+		bbox.min.y() = std::max<coord_t>(bbox.min.y(), 0);
+		bbox.max.x() = std::min<coord_t>(bbox.max.x(), (coord_t)m_cols - 1);
+		bbox.max.y() = std::min<coord_t>(bbox.max.y(), (coord_t)m_rows - 1);
 		for (coord_t iy = bbox.min.y(); iy <= bbox.max.y(); ++ iy)
 			for (coord_t ix = bbox.min.x(); ix <= bbox.max.x(); ++ ix)
 				if (! visitor(iy, ix))
