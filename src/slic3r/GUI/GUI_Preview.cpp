@@ -56,7 +56,9 @@ View3D::~View3D()
         _3DScene::remove_canvas(m_canvas_widget);
 #endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
         delete m_canvas_widget;
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
         m_canvas = nullptr;
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
     }
 }
 
