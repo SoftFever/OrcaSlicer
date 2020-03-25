@@ -64,7 +64,7 @@ private:
     std::map<const ExtrusionEntity*, ExtruderPerCopy> entity_map;  // to keep track of who prints what
     bool something_overridable = false;
     bool something_overridden = false;
-    const LayerTools* m_layer_tools;    // so we know which LayerTools object this belongs to
+    const LayerTools* m_layer_tools = nullptr;    // so we know which LayerTools object this belongs to
 };
 
 

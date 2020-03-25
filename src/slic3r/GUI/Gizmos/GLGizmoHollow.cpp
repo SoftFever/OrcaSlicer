@@ -1,5 +1,6 @@
 #include "GLGizmoHollow.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmos.hpp"
 
 #include <GL/glew.h>
@@ -99,15 +100,10 @@ void GLGizmoHollow::on_render() const
         return;
     }
 
-    // !!! is it necessary?
-    //const_cast<GLGizmoHollow*>(this)->m_c->update_from_backend(m_parent, m_c->m_model_object);
-
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
     m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
-
-    render_hollowed_mesh();
 
     if (m_quadric != nullptr && selection.is_from_single_instance())
         render_points(selection, false);
@@ -118,28 +114,6 @@ void GLGizmoHollow::on_render() const
     glsafe(::glDisable(GL_BLEND));
 }
 
-
-
-void GLGizmoHollow::render_hollowed_mesh() const
-{
-    /*if (m_c->m_volume_with_cavity) {
-        m_c->m_volume_with_cavity->set_sla_shift_z(m_z_shift);
-        m_parent.get_shader().start_using();
-
-        GLint current_program_id;
-        glsafe(::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id));
-        GLint color_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "uniform_color") : -1;
-        GLint print_box_detection_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.volume_detection") : -1;
-        GLint print_box_worldmatrix_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.volume_world_matrix") : -1;
-        glcheck();
-        m_c->m_volume_with_cavity->set_render_color();
-        const Geometry::Transformation& volume_trafo = m_c->m_model_object->volumes.front()->get_transformation();
-        m_c->m_volume_with_cavity->set_volume_transformation(volume_trafo);
-        m_c->m_volume_with_cavity->set_instance_transformation(m_c->m_model_object->instances[size_t(m_c->m_active_instance)]->get_transformation());
-        m_c->m_volume_with_cavity->render(color_id, print_box_detection_id, print_box_worldmatrix_id);
-        m_parent.get_shader().stop_using();
-    }*/
-}
 
 
 void GLGizmoHollow::render_clipping_plane(const Selection& selection) const
@@ -168,11 +142,6 @@ void GLGizmoHollow::render_clipping_plane(const Selection& selection) const
     }
     m_c->m_object_clipper->set_plane(*m_c->m_clipping_plane);
     m_c->m_object_clipper->set_transformation(trafo);
-
-
-    // Next, ask the backend if supports are already calculated. If so, we are gonna cut them too.
-    //if (m_c->m_print_object_idx < 0)
-    //    m_c->update_from_backend(m_parent, m_c->m_model_object);
 
     if (m_c->m_print_object_idx >= 0) {
         const SLAPrintObject* print_object = m_parent.sla_print()->objects()[m_c->m_print_object_idx];
@@ -229,7 +198,6 @@ void GLGizmoHollow::on_render_for_picking() const
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_points(selection, true);
-    render_hollowed_mesh();
 }
 
 void GLGizmoHollow::render_points(const Selection& selection, bool picking) const
@@ -342,10 +310,6 @@ bool GLGizmoHollow::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, V
 {
     if (! m_c->m_mesh_raycaster)
         return false;
-
-    // if the gizmo doesn't have the V, F structures for igl, calculate them first:
-    // !!! is it really necessary?
-    //m_c->update_from_backend(m_parent, m_c->m_model_object);
 
     const Camera& camera = m_parent.get_camera();
     const Selection& selection = m_parent.get_selection();
@@ -561,86 +525,14 @@ void GLGizmoHollow::on_update(const UpdateData& data)
     }
 }
 
-std::pair<const TriangleMesh *, sla::HollowingConfig> GLGizmoHollow::get_hollowing_parameters() const
-{
-    // FIXME this function is probably obsolete, caller could
-    // get the data from model config himself
-    auto opts = get_config_options({"hollowing_min_thickness", "hollowing_quality", "hollowing_closing_distance"});
-    double offset = static_cast<const ConfigOptionFloat*>(opts[0].first)->value;
-    double quality = static_cast<const ConfigOptionFloat*>(opts[1].first)->value;
-    double closing_d = static_cast<const ConfigOptionFloat*>(opts[2].first)->value;
-    return std::make_pair(m_c->m_mesh, sla::HollowingConfig{offset, quality, closing_d});
-}
-
-void GLGizmoHollow::update_mesh_raycaster(std::unique_ptr<MeshRaycaster> &&rc)
-{
-    m_c->m_mesh_raycaster = std::move(rc);
-    m_c->m_object_clipper.reset();
-    //m_c->m_volume_with_cavity.reset();
-}
 
 void GLGizmoHollow::hollow_mesh(bool postpone_error_messages)
 {
-    // Trigger a UI job to hollow the mesh.
-   // wxGetApp().plater()->hollow();
-
     wxGetApp().CallAfter([this, postpone_error_messages]() {
         wxGetApp().plater()->reslice_SLA_hollowing(*m_c->m_model_object, postpone_error_messages);
     });
 }
 
-
-void GLGizmoHollow::update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh)
-{
-    // Called from Plater when the UI job finishes
-    /*m_c->m_cavity_mesh = std::move(mesh);
-
-    if(m_c->m_cavity_mesh) {
-        // First subtract the holes:
-        if (! m_c->m_model_object->sla_drain_holes.empty()) {
-            TriangleMesh holes_mesh;
-            for (const sla::DrainHole& hole : m_c->m_model_object->sla_drain_holes) {
-                TriangleMesh hole_mesh = make_cylinder(hole.radius, hole.height, 2*M_PI/32);
-
-                Vec3d scaling = m_c->m_model_object->instances[m_c->m_active_instance]->get_scaling_factor();
-                Vec3d normal_transformed = Vec3d(hole.normal(0)/scaling(0), hole.normal(1)/scaling(1), hole.normal(2)/scaling(2));
-                normal_transformed.normalize();
-
-                // Rotate the cylinder appropriately
-                Eigen::Quaterniond q;
-                Transform3d m = Transform3d::Identity();
-                m.matrix().block(0, 0, 3, 3) = q.setFromTwoVectors(Vec3d::UnitZ(), normal_transformed).toRotationMatrix();
-                hole_mesh.transform(m);
-
-                // If the instance is scaled, undo the scaling of the hole
-                hole_mesh.scale(Vec3d(1/scaling(0), 1/scaling(1), 1/scaling(2)));
-
-                // Translate the hole into position and merge with the others
-                hole_mesh.translate(hole.pos);
-                holes_mesh.merge(hole_mesh);
-                holes_mesh.repair();
-            }
-            MeshBoolean::minus(*m_c->m_cavity_mesh.get(), holes_mesh);
-        }
-
-        // create a new GLVolume that only has the cavity inside
-        m_c->m_volume_with_cavity.reset(new GLVolume(GLVolume::MODEL_COLOR[2]));
-        m_c->m_volume_with_cavity->indexed_vertex_array.load_mesh(*m_c->m_cavity_mesh.get());
-        m_c->m_volume_with_cavity->finalize_geometry(true);
-        m_c->m_volume_with_cavity->force_transparent = false;
-
-        m_parent.toggle_model_objects_visibility(false, m_c->m_model_object, m_c->m_active_instance);
-        m_parent.toggle_sla_auxiliaries_visibility(true, m_c->m_model_object, m_c->m_active_instance);
-
-        // Reset raycaster so it works with the new mesh:
-        m_c->m_mesh_raycaster.reset(new MeshRaycaster(*m_c->mesh()));
-    }
-
-    if (m_c->m_clipping_plane_distance == 0.f) {
-        m_c->m_clipping_plane_distance = 0.5f;
-        update_clipping_plane();
-    }*/
-}
 
 std::vector<std::pair<const ConfigOption*, const ConfigOptionDef*>> GLGizmoHollow::get_config_options(const std::vector<std::string>& keys) const
 {
@@ -829,7 +721,6 @@ RENDER_AGAIN:
     bool remove_selected = false;
     bool remove_all = false;
 
-   // m_imgui->text(" "); // vertical gap
     ImGui::Separator();
 
     float diameter_upper_cap = 15.;
@@ -1013,10 +904,6 @@ void GLGizmoHollow::on_set_state()
             m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
             m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, m_c->m_model_object, m_c->m_active_instance);
         }
-
-        // Set default head diameter from config.
-        //const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
-        //m_new_hole_radius = static_cast<const ConfigOptionFloat*>(cfg.option("support_head_front_diameter"))->value;
     }
     if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
         //Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned off")));

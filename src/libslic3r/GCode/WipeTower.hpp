@@ -21,7 +21,7 @@ enum GCodeFlavor : unsigned char;
 class WipeTower
 {
 public:
-    static char const* never_skip_tag() { return "_GCODE_WIPE_TOWER_NEVER_SKIP_TAG"; }
+    static const std::string never_skip_tag() { return "_GCODE_WIPE_TOWER_NEVER_SKIP_TAG"; }
 
     struct Extrusion
     {
@@ -189,8 +189,6 @@ public:
     };
 
 private:
-	WipeTower();
-
 	enum wipe_shape // A fill-in direction
 	{
 		SHAPE_NORMAL = 1,

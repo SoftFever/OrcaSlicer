@@ -8,7 +8,6 @@
 
 #include "GUI_App.hpp"
 #include "PresetBundle.hpp"
-#include "Gizmos/GLGizmoBase.hpp"
 #include "GLCanvas3D.hpp"
 
 #include <GL/glew.h>

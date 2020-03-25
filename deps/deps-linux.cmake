@@ -47,7 +47,6 @@ ExternalProject_Add(dep_libcurl
     URL_HASH SHA256=cc245bf9a1a42a45df491501d97d5593392a03f7b4f07b952793518d97666115
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ./configure
-        "--libdir=${DESTDIR}/usr/local/lib"
         --enable-static
         --disable-shared
         "--with-ssl=${DESTDIR}/usr/local"
@@ -56,7 +55,12 @@ ExternalProject_Add(dep_libcurl
         --enable-versioned-symbols
         --enable-threaded-resolver
         --with-random=/dev/urandom
-        --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt
+        
+        # CA root certificate paths will be set for openssl at runtime.
+        --without-ca-bundle
+        --without-ca-path
+        --with-ca-fallback # to look for the ssl backend's ca store
+
         --disable-ldap
         --disable-ldaps
         --disable-manual

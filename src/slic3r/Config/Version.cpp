@@ -2,8 +2,7 @@
 
 #include <cctype>
 
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/trim.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/nowide/fstream.hpp>
 
 #include "libslic3r/libslic3r.h"

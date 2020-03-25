@@ -11,9 +11,7 @@
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
 
-#if ENABLE_THUMBNAIL_GENERATOR
 #include <miniz.h>
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 // Print now includes tbb, and tbb includes Windows. This breaks compilation of wxWidgets if included before wx.
 #include "libslic3r/Print.hpp"
@@ -26,16 +24,15 @@
 #include <cassert>
 #include <stdexcept>
 #include <cctype>
-#include <algorithm>
 
-#include <boost/format.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem.hpp>
+#include <boost/format/format_fwd.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include "I18N.hpp"
-#include "GUI.hpp"
 #include "RemovableDriveManager.hpp"
+
+#include "slic3r/Utils/Thread.hpp"
 
 namespace Slic3r {
 
@@ -90,11 +87,7 @@ void BackgroundSlicingProcess::process_fff()
 	assert(m_print == m_fff_print);
     m_print->process();
 	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_slicing_completed_id));
-#if ENABLE_THUMBNAIL_GENERATOR
     m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data, m_thumbnail_cb);
-#else
-    m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data);
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 	if (this->set_step_started(bspsGCodeFinalize)) {
 	    if (! m_export_path.empty()) {
@@ -136,7 +129,6 @@ void BackgroundSlicingProcess::process_fff()
 	}
 }
 
-#if ENABLE_THUMBNAIL_GENERATOR
 static void write_thumbnail(Zipper& zipper, const ThumbnailData& data)
 {
     size_t png_size = 0;
@@ -147,7 +139,6 @@ static void write_thumbnail(Zipper& zipper, const ThumbnailData& data)
         mz_free(png_data);
     }
 }
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 void BackgroundSlicingProcess::process_sla()
 {
@@ -160,7 +151,6 @@ void BackgroundSlicingProcess::process_sla()
             Zipper zipper(export_path);
             m_sla_print->export_raster(zipper);
 
-#if ENABLE_THUMBNAIL_GENERATOR
             if (m_thumbnail_cb != nullptr)
             {
                 ThumbnailsList thumbnails;
@@ -172,7 +162,6 @@ void BackgroundSlicingProcess::process_sla()
                         write_thumbnail(zipper, data);
                 }
             }
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
             zipper.finalize();
 
@@ -487,7 +476,6 @@ void BackgroundSlicingProcess::prepare_upload()
 
         Zipper zipper{source_path.string()};
         m_sla_print->export_raster(zipper, m_upload_job.upload_data.upload_path.string());
-#if ENABLE_THUMBNAIL_GENERATOR
         if (m_thumbnail_cb != nullptr)
         {
             ThumbnailsList thumbnails;
@@ -499,7 +487,6 @@ void BackgroundSlicingProcess::prepare_upload()
                     write_thumbnail(zipper, data);
             }
         }
-#endif // ENABLE_THUMBNAIL_GENERATOR
         zipper.finalize();
     }
 

@@ -8,8 +8,9 @@
 #include "slic3r/Utils/UndoRedo.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "slic3r/GUI/MeshUtils.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmos.hpp"
+#include "slic3r/GUI/Camera.hpp"
 
-#include <GL/glew.h>
 #include <wx/glcanvas.h>
 
 namespace Slic3r {
@@ -456,7 +457,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
     int selected_object_idx = selection.get_object_idx();
     bool processed = false;
 
-#if !ENABLE_MODIFIED_GIZMOBAR_MOUSE_EVENT_HANDLING
+#if !ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     // mouse anywhere
     if (!evt.Dragging() && !evt.Leaving() && !evt.Entering() && (m_mouse_capture.parent != nullptr))
     {
@@ -466,12 +467,12 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
 
         m_mouse_capture.reset();
     }
-#endif // !ENABLE_MODIFIED_GIZMOBAR_MOUSE_EVENT_HANDLING
+#endif // !ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
     // mouse anywhere
     if (evt.Moving())
         m_tooltip = update_hover_state(mouse_pos);
-#if ENABLE_MODIFIED_GIZMOBAR_MOUSE_EVENT_HANDLING
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     else if (evt.LeftUp())
     {
         if (m_mouse_capture.left)
@@ -531,7 +532,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
 #if ENABLE_GIZMO_TOOLBAR_DRAGGING_FIX
     else if (evt.Dragging() && !is_dragging())
 #else
-    else if (evt.Dragging()))
+    else if (evt.Dragging())
 #endif // ENABLE_GIZMO_TOOLBAR_DRAGGING_FIX
     {
         if (m_mouse_capture.any())
@@ -557,7 +558,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
     else if (evt.Dragging() && m_mouse_capture.any())
         // if the button down was done on this toolbar, prevent from dragging into the scene
         processed = true;
-#endif // ENABLE_MODIFIED_GIZMOBAR_MOUSE_EVENT_HANDLING
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 #if ENABLE_GIZMO_TOOLBAR_DRAGGING_FIX
     else if (evt.Dragging() && is_dragging())
     {
@@ -696,7 +697,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             processed = true;
         }
 #endif // !ENABLE_GIZMO_TOOLBAR_DRAGGING_FIX
-#if !ENABLE_MODIFIED_GIZMOBAR_MOUSE_EVENT_HANDLING
+#if !ENABLE_CANVAS_TOOLTIP_USING_IMGUI
         else if (evt.LeftUp() && is_dragging())
         {
             switch (m_current) {
@@ -718,7 +719,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
 
             processed = true;
         }
-#endif // !ENABLE_MODIFIED_GIZMOBAR_MOUSE_EVENT_HANDLING
+#endif // !ENABLE_CANVAS_TOOLTIP_USING_IMGUI
         else if (evt.LeftUp() && (m_current == SlaSupports || m_current == Hollow) && !m_parent.is_mouse_dragging())
         {
             // in case SLA gizmo is selected, we just pass the LeftUp event and stop processing - neither
@@ -757,10 +758,10 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             m_mouse_capture.right = true;
             m_mouse_capture.parent = &m_parent;
         }
-#if !ENABLE_MODIFIED_GIZMOBAR_MOUSE_EVENT_HANDLING
+#if !ENABLE_CANVAS_TOOLTIP_USING_IMGUI
         else if (evt.LeftUp())
             processed = true;
-#endif // !ENABLE_MODIFIED_GIZMOBAR_MOUSE_EVENT_HANDLING
+#endif // !ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     }
 
     return processed;

@@ -132,14 +132,18 @@ int CLI::run(int argc, char **argv)
         Model model;
         try {
             // When loading an AMF or 3MF, config is imported as well, including the printer technology.
-            model = Model::read_from_file(file, &m_print_config, true);
-            PrinterTechnology other_printer_technology = get_printer_technology(m_print_config);
+            DynamicPrintConfig config;
+            model = Model::read_from_file(file, &config, true);
+            PrinterTechnology other_printer_technology = get_printer_technology(config);
             if (printer_technology == ptUnknown) {
                 printer_technology = other_printer_technology;
             } else if (printer_technology != other_printer_technology && other_printer_technology != ptUnknown) {
                 boost::nowide::cerr << "Mixing configurations for FFF and SLA technologies" << std::endl;
                 return 1;
             }
+            // config is applied to m_print_config before the current m_config values.
+            config += std::move(m_print_config);
+            m_print_config = std::move(config);
         } catch (std::exception &e) {
             boost::nowide::cerr << file << ": " << e.what() << std::endl;
             return 1;
@@ -639,6 +643,14 @@ void CLI::print_help(bool include_print_options, PrinterTechnology printer_techn
         << std::endl
         << "Other options:" << std::endl;
         cli_misc_config_def.print_cli_help(boost::nowide::cout, false);
+
+    boost::nowide::cout
+        << std::endl
+        << "Print options are processed in the following order:" << std::endl
+        << "\t1) Config keys from the command line, for example --fill-pattern=stars" << std::endl
+        << "\t   (highest priority, overwrites everything below)" << std::endl
+        << "\t2) Config files loaded with --load" << std::endl
+	    << "\t3) Config values loaded from amf or 3mf files" << std::endl;
 
     if (include_print_options) {
         boost::nowide::cout << std::endl;

@@ -2,8 +2,9 @@
 #include "I18N.hpp"
 
 #include "libslic3r/Utils.hpp"
+#include "GUI.hpp"
 #include "GUI_App.hpp"
-#include "wxExtensions.hpp"
+
 
 namespace Slic3r { 
 namespace GUI {

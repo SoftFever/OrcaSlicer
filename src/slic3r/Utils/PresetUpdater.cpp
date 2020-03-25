@@ -526,8 +526,8 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
 					existing_idx.load(bundle_path_idx);
 					// Find a recommended config bundle version for the slic3r version last executed. This makes sure that a config bundle update will not be missed
 					// when upgrading an application. On the other side, the user will be bugged every time he will switch between slic3r versions.
-					const auto existing_recommended = existing_idx.recommended(old_slic3r_version);
-					/*if (existing_recommended != existing_idx.end() && recommended->config_version == existing_recommended->config_version) {
+                    /*const auto existing_recommended = existing_idx.recommended(old_slic3r_version);
+                    if (existing_recommended != existing_idx.end() && recommended->config_version == existing_recommended->config_version) {
 						// The user has already seen (and presumably rejected) this update
 						BOOST_LOG_TRIVIAL(info) << boost::format("Downloaded index for `%1%` is the same as installed one, not offering an update.") % idx.vendor();
 						continue;

@@ -199,6 +199,10 @@ if(APPLE)
     target_link_libraries(libslic3r_gui ${DISKARBITRATION_LIBRARY})
 endif()
 
+if (SLIC3R_STATIC)
+    target_compile_definitions(libslic3r_gui PRIVATE OPENSSL_CERT_OVERRIDE)
+endif ()
+
 if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
     add_precompiled_header(libslic3r_gui pchheader.hpp FORCEINCLUDE)
 endif ()
