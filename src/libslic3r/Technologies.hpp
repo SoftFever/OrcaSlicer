@@ -50,7 +50,7 @@
 #define ENABLE_2_3_0 1
 
 // Enable rendering of objects colored by facets' slope
-#define ENABLE_SLOPE_RENDERING (1 && ENABLE_2_2_0)
+#define ENABLE_SLOPE_RENDERING (1 && ENABLE_2_3_0)
 
 //===================
 // 2.3.0.alpha1 techs
