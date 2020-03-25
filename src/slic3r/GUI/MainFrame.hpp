@@ -141,6 +141,10 @@ public:
     wxNotebook*         m_tabpanel { nullptr };
     wxProgressDialog*   m_progress_dialog { nullptr };
     std::shared_ptr<ProgressStatusBar>  m_statusbar;
+
+#ifdef _WIN32
+    void*				m_hDeviceNotify { nullptr };
+#endif // _WIN32
 };
 
 } // GUI

@@ -12,7 +12,6 @@
 #endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 
 #include <functional>
-#include <memory>
 
 #ifndef NDEBUG
 #define HAS_GLSAFE
@@ -36,13 +35,8 @@ struct Camera;
 class GLToolbar;
 } // namespace GUI
 
-class Print;
-class PrintObject;
-class SLAPrint;
 class SLAPrintObject;
 enum  SLAPrintObjectStep : unsigned int;
-class Model;
-class ModelObject;
 class DynamicPrintConfig;
 class ExtrusionPath;
 class ExtrusionMultiPath;

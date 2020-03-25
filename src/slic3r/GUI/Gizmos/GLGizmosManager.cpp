@@ -11,8 +11,9 @@
 #include "slic3r/Utils/UndoRedo.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "slic3r/GUI/MeshUtils.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmos.hpp"
+#include "slic3r/GUI/Camera.hpp"
 
-#include <GL/glew.h>
 #include <wx/glcanvas.h>
 
 namespace Slic3r {
@@ -228,7 +229,7 @@ void GLGizmosManager::update_data()
         set_scale(Vec3d::Ones());
         set_rotation(Vec3d::Zero());
         set_flattening_data(selection.is_from_single_object() ? selection.get_model()->objects[selection.get_object_idx()] : nullptr);
-        set_sla_support_data(nullptr);
+        set_sla_support_data(selection.is_from_single_instance() ? selection.get_model()->objects[selection.get_object_idx()] : nullptr);
     }
 }
 
@@ -425,6 +426,15 @@ void GLGizmosManager::render_overlay() const
     do_render_overlay();
 }
 
+std::string GLGizmosManager::get_tooltip() const
+{
+    if (!m_tooltip.empty())
+        return m_tooltip;
+
+    const GLGizmoBase* curr = get_current();
+    return (curr != nullptr) ? curr->get_tooltip() : "";
+}
+
 bool GLGizmosManager::on_mouse_wheel(wxMouseEvent& evt)
 {
     bool processed = false;
@@ -450,6 +460,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
     int selected_object_idx = selection.get_object_idx();
     bool processed = false;
 
+#if !ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     // mouse anywhere
     if (!evt.Dragging() && !evt.Leaving() && !evt.Entering() && (m_mouse_capture.parent != nullptr))
     {
@@ -459,10 +470,81 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
 
         m_mouse_capture.reset();
     }
+#endif // !ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
     // mouse anywhere
     if (evt.Moving())
         m_tooltip = update_hover_state(mouse_pos);
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+    else if (evt.LeftUp())
+    {
+        if (m_mouse_capture.left)
+        {
+            processed = true;
+            m_mouse_capture.left = false;
+        }
+        else if (is_dragging())
+        {
+            switch (m_current) {
+            case Move: m_parent.do_move(L("Gizmo-Move")); break;
+            case Scale: m_parent.do_scale(L("Gizmo-Scale")); break;
+            case Rotate: m_parent.do_rotate(L("Gizmo-Rotate")); break;
+            default: break;
+            }
+
+            stop_dragging();
+            update_data();
+
+            wxGetApp().obj_manipul()->set_dirty();
+            // Let the plater know that the dragging finished, so a delayed refresh
+            // of the scene with the background processing data should be performed.
+            m_parent.post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
+            // updates camera target constraints
+            m_parent.refresh_camera_scene_box();
+
+            processed = true;
+        }
+//        else
+//            return false;
+    }
+    else if (evt.MiddleUp())
+    {
+        if (m_mouse_capture.middle)
+        {
+            processed = true;
+            m_mouse_capture.middle = false;
+        }
+        else
+            return false;
+    }
+    else if (evt.RightUp())
+    {
+        if (pending_right_up)
+        {
+            pending_right_up = false;
+            return true;
+        }
+        if (m_mouse_capture.right)
+        {
+            processed = true;
+            m_mouse_capture.right = false;
+        }
+        else
+            return false;
+    }
+#if ENABLE_GIZMO_TOOLBAR_DRAGGING_FIX
+    else if (evt.Dragging() && !is_dragging())
+#else
+    else if (evt.Dragging())
+#endif // ENABLE_GIZMO_TOOLBAR_DRAGGING_FIX
+    {
+        if (m_mouse_capture.any())
+            // if the button down was done on this toolbar, prevent from dragging into the scene
+            processed = true;
+//        else
+//            return false;
+    }
+#else
     else if (evt.LeftUp())
         m_mouse_capture.left = false;
     else if (evt.MiddleUp())
@@ -479,6 +561,55 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
     else if (evt.Dragging() && m_mouse_capture.any())
         // if the button down was done on this toolbar, prevent from dragging into the scene
         processed = true;
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+#if ENABLE_GIZMO_TOOLBAR_DRAGGING_FIX
+    else if (evt.Dragging() && is_dragging())
+    {
+        if (!m_parent.get_wxglcanvas()->HasCapture())
+            m_parent.get_wxglcanvas()->CaptureMouse();
+
+        m_parent.set_mouse_as_dragging();
+        update(m_parent.mouse_ray(pos), pos);
+
+        switch (m_current)
+        {
+        case Move:
+        {
+            // Apply new temporary offset
+            selection.translate(get_displacement());
+            wxGetApp().obj_manipul()->set_dirty();
+            break;
+        }
+        case Scale:
+        {
+            // Apply new temporary scale factors
+            TransformationType transformation_type(TransformationType::Local_Absolute_Joint);
+            if (evt.AltDown())
+                transformation_type.set_independent();
+            selection.scale(get_scale(), transformation_type);
+            if (evt.ControlDown())
+                selection.translate(get_scale_offset(), true);
+            wxGetApp().obj_manipul()->set_dirty();
+            break;
+        }
+        case Rotate:
+        {
+            // Apply new temporary rotations
+            TransformationType transformation_type(TransformationType::World_Relative_Joint);
+            if (evt.AltDown())
+                transformation_type.set_independent();
+            selection.rotate(get_rotation(), transformation_type);
+            wxGetApp().obj_manipul()->set_dirty();
+            break;
+        }
+        default:
+            break;
+        }
+
+        m_parent.set_as_dirty();
+        processed = true;
+    }
+#endif // ENABLE_GIZMO_TOOLBAR_DRAGGING_FIX
 
     if (get_gizmo_idx_from_mouse(mouse_pos) == Undefined)
     {
@@ -521,6 +652,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             m_parent.set_as_dirty();
             processed = true;
         }
+#if !ENABLE_GIZMO_TOOLBAR_DRAGGING_FIX
         else if (evt.Dragging() && is_dragging())
         {
             if (!m_parent.get_wxglcanvas()->HasCapture())
@@ -567,6 +699,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             m_parent.set_as_dirty();
             processed = true;
         }
+#endif // !ENABLE_GIZMO_TOOLBAR_DRAGGING_FIX
+#if !ENABLE_CANVAS_TOOLTIP_USING_IMGUI
         else if (evt.LeftUp() && is_dragging())
         {
             switch (m_current) {
@@ -588,6 +722,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
 
             processed = true;
         }
+#endif // !ENABLE_CANVAS_TOOLTIP_USING_IMGUI
         else if (evt.LeftUp() && (m_current == SlaSupports || m_current == Hollow) && !m_parent.is_mouse_dragging())
         {
             // in case SLA gizmo is selected, we just pass the LeftUp event and stop processing - neither
@@ -626,8 +761,10 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             m_mouse_capture.right = true;
             m_mouse_capture.parent = &m_parent;
         }
+#if !ENABLE_CANVAS_TOOLTIP_USING_IMGUI
         else if (evt.LeftUp())
             processed = true;
+#endif // !ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     }
 
     return processed;

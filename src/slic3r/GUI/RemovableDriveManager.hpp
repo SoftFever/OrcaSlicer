@@ -32,7 +32,7 @@ inline bool operator< (const DriveData &lhs, const DriveData &rhs) { return lhs.
 inline bool operator> (const DriveData &lhs, const DriveData &rhs) { return lhs.path > rhs.path; }
 inline bool operator==(const DriveData &lhs, const DriveData &rhs) { return lhs.path == rhs.path; }
 
-using RemovableDriveEjectEvent = Event<DriveData>;
+using RemovableDriveEjectEvent = Event<std::pair<DriveData, bool>>;
 wxDECLARE_EVENT(EVT_REMOVABLE_DRIVE_EJECTED, RemovableDriveEjectEvent);
 
 using RemovableDrivesChangedEvent = SimpleEvent;
@@ -69,6 +69,8 @@ public:
 	// On Windows, the function does not block, and the eject is detected in the background thread.
 	void 		eject_drive();
 
+	// Status is used to retrieve info for showing UI buttons.
+	// Status is called every time when change of UI buttons is possible therefore should not perform update.
 	struct RemovableDrivesStatus {
 		bool 	has_removable_drives { false };
 		bool 	has_eject { false };
@@ -82,6 +84,11 @@ public:
 	// It would be better to make this method private and friend to RemovableDriveManagerMM, but RemovableDriveManagerMM is an ObjectiveC class.
 	void 		update();
 
+#ifdef _WIN32
+    // Called by Win32 Volume arrived / detached callback.
+	void 		volumes_changed();
+#endif // _WIN32
+
 private:
 	bool 			 		m_initialized { false };
 	wxEvtHandler*			m_callback_evt_handler { nullptr };
@@ -93,6 +100,9 @@ private:
 	std::condition_variable m_thread_stop_condition;
 	mutable std::mutex 		m_thread_stop_mutex;
 	bool 					m_stop { false };
+#ifdef _WIN32
+    std::atomic<bool>		m_wakeup { false };
+#endif /* _WIN32 */
 #endif // REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
 
 	// Called from update() to enumerate removable drives.
@@ -102,6 +112,8 @@ private:
 	// sorted ascending by path
 	std::vector<DriveData> 	m_current_drives;
 	mutable tbb::mutex 		m_drives_mutex;
+	// Locking the update() function to avoid that the function is executed multiple times.
+	mutable tbb::mutex 		m_inside_update_mutex;
 
 	// Returns drive path (same as path in DriveData) if exists otherwise empty string.
 	std::string 			get_removable_drive_from_path(const std::string& path);
@@ -110,10 +122,7 @@ private:
 	// Set with set_and_verify_last_save_path() to a removable drive path to be ejected.
 	std::string 			m_last_save_path;
 
-#if _WIN32
-	//registers for notifications by creating invisible window
-	//void register_window_msw();
-#elif __APPLE__
+#if __APPLE__
     void register_window_osx();
     void unregister_window_osx();
     void list_devices(std::vector<DriveData> &out) const;

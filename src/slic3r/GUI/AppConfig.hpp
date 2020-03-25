@@ -5,6 +5,8 @@
 #include <map>
 #include <string>
 
+#include <boost/algorithm/string/trim_all.hpp>
+
 #include "libslic3r/Config.hpp"
 #include "libslic3r/Semver.hpp"
 
@@ -52,7 +54,13 @@ public:
 	std::string 		get(const std::string &key) const
 		{ std::string value; this->get("", key, value); return value; }
 	void			    set(const std::string &section, const std::string &key, const std::string &value)
-	{ 
+	{
+#ifndef _NDEBUG
+		std::string key_trimmed = key;
+		boost::trim_all(key_trimmed);
+		assert(key_trimmed == key);
+		assert(! key_trimmed.empty());
+#endif _NDEBUG
 		std::string &old = m_storage[section][key];
 		if (old != value) {
 			old = value;
@@ -133,7 +141,7 @@ public:
     std::vector<std::string> get_recent_projects() const;
     void set_recent_projects(const std::vector<std::string>& recent_projects);
 
-	void set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone, float rotation_speed, float rotation_deadzone, double zoom_speed);
+	void set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone, float rotation_speed, float rotation_deadzone, double zoom_speed, bool swap_yz);
 	std::vector<std::string> get_mouse_device_names() const;
 	bool get_mouse_device_translation_speed(const std::string& name, double& speed) const
 		{ return get_3dmouse_device_numeric_value(name, "translation_speed", speed); }
@@ -145,6 +153,8 @@ public:
 		{ return get_3dmouse_device_numeric_value(name, "rotation_deadzone", deadzone); }
 	bool get_mouse_device_zoom_speed(const std::string& name, double& speed) const
 		{ return get_3dmouse_device_numeric_value(name, "zoom_speed", speed); }
+	bool get_mouse_device_swap_yz(const std::string& name, bool& swap) const
+		{ return get_3dmouse_device_numeric_value(name, "swap_yz", swap); }
 
 	static const std::string SECTION_FILAMENTS;
     static const std::string SECTION_MATERIALS;

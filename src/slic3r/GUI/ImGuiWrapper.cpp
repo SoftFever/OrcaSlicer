@@ -441,21 +441,53 @@ bool ImGuiWrapper::want_any_input() const
     return io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput;
 }
 
+#ifdef __APPLE__
+static const ImWchar ranges_keyboard_shortcuts[] =
+{
+    0x21E7, 0x21E7, // OSX Shift Key symbol
+    0x2318, 0x2318, // OSX Command Key symbol
+    0x2325, 0x2325, // OSX Option Key symbol
+    0,
+};
+#endif // __APPLE__
+
 void ImGuiWrapper::init_font(bool compress)
 {
     destroy_font();
 
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->Clear();
-    //FIXME replace with io.Fonts->AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, m_font_size, nullptr, m_glyph_ranges);
+
+    // Create ranges of characters from m_glyph_ranges, possibly adding some OS specific special characters.
+	ImVector<ImWchar> ranges;
+	ImFontAtlas::GlyphRangesBuilder builder;
+	builder.AddRanges(m_glyph_ranges);
+#ifdef __APPLE__
+	if (m_font_cjk)
+		// Apple keyboard shortcuts are only contained in the CJK fonts.
+		builder.AddRanges(ranges_keyboard_shortcuts);
+#endif
+	builder.BuildRanges(&ranges); // Build the final result (ordered ranges with all the unique characters submitted)
+
+    //FIXME replace with io.Fonts->AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, m_font_size, nullptr, ranges.Data);
     //https://github.com/ocornut/imgui/issues/220
-	ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + (m_font_cjk ? "NotoSansCJK-Regular.ttc" : "NotoSans-Regular.ttf")).c_str(), m_font_size, nullptr, m_glyph_ranges);
+	ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + (m_font_cjk ? "NotoSansCJK-Regular.ttc" : "NotoSans-Regular.ttf")).c_str(), m_font_size, nullptr, ranges.Data);
     if (font == nullptr) {
         font = io.Fonts->AddFontDefault();
         if (font == nullptr) {
             throw std::runtime_error("ImGui: Could not load deafult font");
         }
     }
+
+#ifdef __APPLE__
+    ImFontConfig config;
+    config.MergeMode = true;
+    if (! m_font_cjk) {
+		// Apple keyboard shortcuts are only contained in the CJK fonts.
+		ImFont *font_cjk = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/NotoSansCJK-Regular.ttc").c_str(), m_font_size, &config, ranges_keyboard_shortcuts);
+        assert(font_cjk != nullptr);
+    }
+#endif
 
     // Build texture atlas
     unsigned char* pixels;

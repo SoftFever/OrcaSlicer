@@ -2,22 +2,18 @@
 #include "libslic3r/Utils.hpp"
 #include "AppConfig.hpp"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <utility>
-#include <assert.h>
 #include <vector>
 #include <stdexcept>
 
-#include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/nowide/cenv.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/property_tree/ini_parser.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/exceptions.hpp>
+#include <boost/property_tree/ptree_fwd.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/format.hpp>
+#include <boost/format/format_fwd.hpp>
 
 #include <wx/string.h>
 #include "I18N.hpp"
@@ -76,7 +72,7 @@ void AppConfig::set_defaults()
     if (get("remember_output_path").empty())
         set("remember_output_path", "1");
 
-	if (get("remember_output_path_removable").empty())
+    if (get("remember_output_path_removable").empty())
 		set("remember_output_path_removable", "1");
 
     if (get("use_custom_toolbar_size").empty())
@@ -280,7 +276,7 @@ void AppConfig::set_recent_projects(const std::vector<std::string>& recent_proje
     }
 }
 
-void AppConfig::set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone, float rotation_speed, float rotation_deadzone, double zoom_speed)
+void AppConfig::set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone, float rotation_speed, float rotation_deadzone, double zoom_speed, bool swap_yz)
 {
     std::string key = std::string("mouse_device:") + name;
     auto it = m_storage.find(key);
@@ -293,6 +289,7 @@ void AppConfig::set_mouse_device(const std::string& name, double translation_spe
     it->second["rotation_speed"] = std::to_string(rotation_speed);
     it->second["rotation_deadzone"] = std::to_string(rotation_deadzone);
     it->second["zoom_speed"] = std::to_string(zoom_speed);
+    it->second["swap_yz"] = swap_yz ? "1" : "0";
 }
 
 std::vector<std::string> AppConfig::get_mouse_device_names() const

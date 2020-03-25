@@ -56,7 +56,9 @@ class Mouse3DController
         // The effects of changing this value can be tested by setting ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT to 1
         // and playing with the imgui dialog which shows by pressing CTRL+M
         size_t 					 input_queue_max_size { 15 };
-	};
+        // Whether to swap Y/Z axes or not.
+        bool 					 swap_yz{ false };
+    };
 
 	// Queue of the 3DConnexion input events (translations, rotations, button presses).
     class State
@@ -148,6 +150,9 @@ class Mouse3DController
     hid_device* 		m_device { nullptr };
     // Using m_stop_condition_mutex to synchronize m_stop.
     bool				m_stop { false };
+#ifdef _WIN32
+    std::atomic<bool>	m_wakeup { false };
+#endif /* _WIN32 */
     // Mutex and condition variable for sleeping during the detection of 3DConnexion devices by polling while allowing
     // cancellation before the end of the polling interval.
 	std::mutex 			m_stop_condition_mutex;
@@ -185,6 +190,9 @@ public:
 #endif // __APPLE__
 
 #ifdef WIN32
+    // Called by Win32 HID enumeration callback.
+    void device_attached(const std::string &device);
+
     // On Windows, the 3DConnexion driver sends out mouse wheel rotation events to an active application
     // if the application does not register at the driver. This is a workaround to ignore these superfluous
     // mouse wheel events.

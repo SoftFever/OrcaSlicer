@@ -99,6 +99,25 @@ void Mouse3DController::State::append_button(unsigned int id, size_t /* input_qu
 }
 
 #ifdef WIN32
+// Called by Win32 HID enumeration callback.
+void Mouse3DController::device_attached(const std::string &device)
+{
+	int vid = 0;
+	int pid = 0;
+	if (sscanf(device.c_str(), "\\\\?\\HID#VID_%x&PID_%x&", &vid, &pid) == 2) {
+//    BOOST_LOG_TRIVIAL(trace) << boost::format("Mouse3DController::device_attached(VID_%04xxPID_%04x)") % vid % pid;
+//    BOOST_LOG_TRIVIAL(trace) << "Mouse3DController::device_attached: " << device;
+	    if (std::find(_3DCONNEXION_VENDORS.begin(), _3DCONNEXION_VENDORS.end(), vid) != _3DCONNEXION_VENDORS.end()) {
+			// Signal the worker thread to wake up and enumerate HID devices, if not connected at the moment.
+			// The message may come multiple times per each USB device. For example, some USB wireless dongles register as multiple HID sockets 
+			// for multiple devices to connect to.
+			// Never mind, enumeration will be performed until connected.
+		    m_wakeup = true;
+			m_stop_condition.notify_all();
+		}
+	}
+}
+
 // Filter out mouse scroll events produced by the 3DConnexion driver.
 bool Mouse3DController::State::process_mouse_wheel()
 {
@@ -131,14 +150,16 @@ bool Mouse3DController::State::apply(const Mouse3DController::Params &params, Ca
 
     for (const QueueItem &input_queue_item : input_queue) {
     	if (input_queue_item.is_translation()) {
-	        const Vec3d& translation = input_queue_item.vector;
-	        double zoom_factor = camera.min_zoom() / camera.get_zoom();
+            Vec3d translation = params.swap_yz ? Vec3d(input_queue_item.vector.x(), - input_queue_item.vector.z(), input_queue_item.vector.y()) : input_queue_item.vector;
+            double zoom_factor = camera.min_zoom() / camera.get_zoom();
 	        camera.set_target(camera.get_target() + zoom_factor * params.translation.scale * (translation.x() * camera.get_dir_right() + translation.z() * camera.get_dir_up()));
             if (translation.y() != 0.0)
                 camera.update_zoom(params.zoom.scale * translation.y());
         } else if (input_queue_item.is_rotation()) {
-	    	Vec3d rot = params.rotation.scale * input_queue_item.vector * (PI / 180.);
-	        camera.rotate_local_around_target(Vec3d(rot.x(), - rot.z(), rot.y()));
+            Vec3d rot = params.rotation.scale * input_queue_item.vector * (PI / 180.);
+            if (params.swap_yz)
+                rot = Vec3d(rot.x(), -rot.z(), rot.y());
+            camera.rotate_local_around_target(Vec3d(rot.x(), - rot.z(), rot.y()));
 	        break;
 	    } else {
 	    	assert(input_queue_item.is_buttons());
@@ -166,19 +187,22 @@ void Mouse3DController::load_config(const AppConfig &appconfig)
 	    double translation_deadzone = Params::DefaultTranslationDeadzone;
 	    float  rotation_deadzone 	= Params::DefaultRotationDeadzone;
 	    double zoom_speed 			= 2.0;
-	    appconfig.get_mouse_device_translation_speed(device_name, translation_speed);
+        bool   swap_yz              = false;
+        appconfig.get_mouse_device_translation_speed(device_name, translation_speed);
 	    appconfig.get_mouse_device_translation_deadzone(device_name, translation_deadzone);
 	    appconfig.get_mouse_device_rotation_speed(device_name, rotation_speed);
 	    appconfig.get_mouse_device_rotation_deadzone(device_name, rotation_deadzone);
 	    appconfig.get_mouse_device_zoom_speed(device_name, zoom_speed);
-	    // clamp to valid values
+        appconfig.get_mouse_device_swap_yz(device_name, swap_yz);
+        // clamp to valid values
 	    Params params;
 	    params.translation.scale = Params::DefaultTranslationScale * std::clamp(translation_speed, 0.1, 10.0);
 	    params.translation.deadzone = std::clamp(translation_deadzone, 0.0, Params::MaxTranslationDeadzone);
 	    params.rotation.scale = Params::DefaultRotationScale * std::clamp(rotation_speed, 0.1f, 10.0f);
 	    params.rotation.deadzone = std::clamp(rotation_deadzone, 0.0f, Params::MaxRotationDeadzone);
 	    params.zoom.scale = Params::DefaultZoomScale * std::clamp(zoom_speed, 0.1, 10.0);
-	    m_params_by_device[device_name] = std::move(params);
+        params.swap_yz = swap_yz;
+        m_params_by_device[device_name] = std::move(params);
 	}
 }
 
@@ -191,9 +215,9 @@ void Mouse3DController::save_config(AppConfig &appconfig) const
 		const std::string &device_name = key_value_pair.first;
 		const Params      &params      = key_value_pair.second;
 	    // Store current device parameters into the config
-	    appconfig.set_mouse_device(device_name, params.translation.scale / Params::DefaultTranslationScale, params.translation.deadzone,
-	        params.rotation.scale / Params::DefaultRotationScale, params.rotation.deadzone, params.zoom.scale / Params::DefaultZoomScale);
-	}
+        appconfig.set_mouse_device(device_name, params.translation.scale / Params::DefaultTranslationScale, params.translation.deadzone,
+            params.rotation.scale / Params::DefaultRotationScale, params.rotation.deadzone, params.zoom.scale / Params::DefaultZoomScale, params.swap_yz);
+    }
 }
 
 bool Mouse3DController::apply(Camera& camera)
@@ -296,6 +320,17 @@ void Mouse3DController::render_settings_dialog(GLCanvas3D& canvas) const
             	params_changed = true;
             }
 
+            ImGui::Separator();
+            ImGui::PushStyleColor(ImGuiCol_Text, color);
+            imgui.text(_(L("Options:")));
+            ImGui::PopStyleColor();
+
+            bool swap_yz = params_copy.swap_yz;
+            if (imgui.checkbox("Swap Y/Z axes", swap_yz)) {
+                params_copy.swap_yz = swap_yz;
+                params_changed = true;
+            }
+
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
             ImGui::Separator();
             ImGui::Separator();
@@ -388,9 +423,13 @@ void Mouse3DController::disconnected()
         m_params_by_device[m_device_str] = m_params_ui;
 	    m_device_str.clear();
 	    m_connected = false;
-        wxGetApp().plater()->get_camera().recover_from_free_camera();
-        wxGetApp().plater()->set_current_canvas_as_dirty();
-        wxWakeUpIdle();
+        wxGetApp().plater()->CallAfter([]() {
+        	Plater *plater = wxGetApp().plater();
+        	if (plater != nullptr) {
+	        	plater->get_camera().recover_from_free_camera();
+    	   		plater->set_current_canvas_as_dirty();
+    	   	}
+    	});
     }
 }
 
@@ -473,9 +512,23 @@ void Mouse3DController::run()
     int res = hid_init();
     if (res != 0) {
     	// Give up.
-        BOOST_LOG_TRIVIAL(error) << "Unable to initialize hidapi library";
+#if defined(__unix__) || defined(__unix) || defined(unix)    	
+    	if (res == -1)
+    		// Hopefully this error code comes from our bundled patched hidapi. In that case, -1 is returned by hid_wrapper_udev_init() and it mean
+			BOOST_LOG_TRIVIAL(error) << "Unable to initialize hidapi library: failed to load libudev.so.1 or libudev.so.0";
+    	else if (res == -2)
+    		// Hopefully this error code comes from our bundled patched hidapi. In that case, -2 is returned by hid_wrapper_udev_init() and it mean
+			BOOST_LOG_TRIVIAL(error) << "Unable to initialize hidapi library: failed to resolve some function from libudev.so.1 or libudev.so.0"; 
+    	else
+#endif // unixes
+	        BOOST_LOG_TRIVIAL(error) << "Unable to initialize hidapi library";
         return;
     }
+
+#ifdef _WIN32
+    // Enumerate once just after thread start.
+	m_wakeup = true;
+#endif // _WIN32
 
     for (;;) {
         {
@@ -509,7 +562,13 @@ bool Mouse3DController::connect_device()
     {
     	// Wait for 2 seconds, but cancellable by m_stop.
     	std::unique_lock<std::mutex> lock(m_stop_condition_mutex);
-        m_stop_condition.wait_for(lock, std::chrono::seconds(2), [this]{ return this->m_stop; });
+#ifdef _WIN32
+    	// Wait indifinetely for the stop signal.
+        m_stop_condition.wait(lock, [this]{ return m_stop || m_wakeup; });
+        m_wakeup = false;
+#else
+        m_stop_condition.wait_for(lock, std::chrono::seconds(2), [this]{ return m_stop; });
+#endif
     }
 
     if (m_stop)
@@ -519,9 +578,13 @@ bool Mouse3DController::connect_device()
     hid_device_info* devices = hid_enumerate(0, 0);
     if (devices == nullptr)
     {
-        BOOST_LOG_TRIVIAL(error) << "Unable to enumerate HID devices";
+        BOOST_LOG_TRIVIAL(trace) << "Mouse3DController::connect_device() - no HID device enumerated.";
         return false;
     }
+
+#ifdef _WIN32
+    BOOST_LOG_TRIVIAL(trace) << "Mouse3DController::connect_device() - enumerating HID devices.";
+#endif // _WIN32
 
     // Searches for 1st connected 3Dconnexion device
     struct DeviceData
@@ -776,9 +839,17 @@ void Mouse3DController::disconnect_device()
 	    }
 	    m_device_str.clear();
 	    m_connected = false;
-        wxGetApp().plater()->get_camera().recover_from_free_camera();
-        wxGetApp().plater()->set_current_canvas_as_dirty();
-        wxWakeUpIdle();
+#ifdef _WIN32
+	    // Enumerate once immediately after disconnect.
+	    m_wakeup = true;
+#endif // _WIN32	    
+        wxGetApp().plater()->CallAfter([]() {
+        	Plater *plater = wxGetApp().plater();
+        	if (plater != nullptr) {
+	        	plater->get_camera().recover_from_free_camera();
+    	   		plater->set_current_canvas_as_dirty();
+    	   	}
+    	});
     }
 }
 

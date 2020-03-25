@@ -33,9 +33,7 @@
 #include "libslic3r/Format/AMF.hpp"
 #include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/GCode/PreviewData.hpp"
-#if ENABLE_THUMBNAIL_GENERATOR
 #include "libslic3r/GCode/ThumbnailData.hpp"
-#endif // ENABLE_THUMBNAIL_GENERATOR
 #include "libslic3r/Model.hpp"
 #include "libslic3r/SLA/Hollowing.hpp"
 #include "libslic3r/SLA/Rotfinder.hpp"
@@ -80,7 +78,6 @@
 #include "../Utils/PrintHost.hpp"
 #include "../Utils/FixModelByWin10.hpp"
 #include "../Utils/UndoRedo.hpp"
-#include "../Utils/Thread.hpp"
 #include "RemovableDriveManager.hpp"
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
 #ifdef __APPLE__
@@ -98,9 +95,7 @@ using Slic3r::_3DScene;
 using Slic3r::Preset;
 using Slic3r::PrintHostJob;
 
-#if ENABLE_THUMBNAIL_GENERATOR
 static const std::pair<unsigned int, unsigned int> THUMBNAIL_SIZE_3MF = { 256, 256 };
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 namespace Slic3r {
 namespace GUI {
@@ -273,7 +268,7 @@ PresetBitmapComboBox(parent, wxSize(15 * wxGetApp().em_unit(), -1)),
     EnableTextChangedEvents(false);
 #endif /* _WIN32 */
     Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &evt) {
-        auto selected_item = this->GetSelection();
+        auto selected_item = evt.GetSelection();
 
         auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
         if (marker >= LABEL_ITEM_MARKER && marker < LABEL_ITEM_MAX) {
@@ -393,9 +388,9 @@ void PresetComboBox::set_label_marker(int item, LabelItemType label_item_type)
     this->SetClientData(item, (void*)label_item_type);
 }
 
-void PresetComboBox::check_selection()
+void PresetComboBox::check_selection(int selection)
 {
-    this->last_selected = GetSelection();
+    this->last_selected = selection;
 }
 
 void PresetComboBox::msw_rescale()
@@ -1565,8 +1560,7 @@ struct Plater::priv
 
     enum class Jobs : size_t {
         Arrange,
-        Rotoptimize,
-        Hollow
+        Rotoptimize
     };
 
     class ArrangeJob : public PlaterJob
@@ -1739,22 +1733,6 @@ struct Plater::priv
         void process() override;
     };
 
-    class HollowJob : public PlaterJob
-    {
-    public:
-        using PlaterJob::PlaterJob;
-        void prepare() override;
-        void process() override;
-        void finalize() override;
-    private:
-        GLGizmoHollow * get_gizmo();
-        const GLGizmoHollow * get_gizmo() const;
-        
-        std::unique_ptr<TriangleMesh> m_output_mesh;
-        std::unique_ptr<MeshRaycaster> m_output_raycaster;
-        const TriangleMesh* m_object_mesh = nullptr;
-        sla::HollowingConfig m_cfg;
-    };
 
     // Jobs defined inside the group class will be managed so that only one can
     // run at a time. Also, the background process will be stopped if a job is
@@ -1767,7 +1745,6 @@ struct Plater::priv
 
         ArrangeJob arrange_job{m_plater};
         RotoptimizeJob rotoptimize_job{m_plater};
-        HollowJob hollow_job{m_plater};
 
         // To create a new job, just define a new subclass of Job, implement
         // the process and the optional prepare() and finalize() methods
@@ -1775,8 +1752,7 @@ struct Plater::priv
         // if it cannot run concurrently with other jobs in this group
 
         std::vector<std::reference_wrapper<Job>> m_jobs{arrange_job,
-                                                        rotoptimize_job,
-                                                        hollow_job};
+                                                        rotoptimize_job};
 
     public:
         ExclusiveJobGroup(priv *_plater) : m_plater(_plater) {}
@@ -1882,7 +1858,6 @@ struct Plater::priv
     void reset();
     void mirror(Axis axis);
     void arrange();
-    void hollow();
     void sla_optimize_rotation();
     void split_object();
     void split_volume();
@@ -1937,7 +1912,7 @@ struct Plater::priv
 			GUI::show_error(this->q, msg);
 		}
 	}
-    void export_gcode(fs::path output_path, PrintHostJob upload_job);
+    void export_gcode(fs::path output_path, bool output_path_on_removable_media, PrintHostJob upload_job);
     void reload_from_disk();
     void reload_all_from_disk();
     void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
@@ -1984,10 +1959,8 @@ struct Plater::priv
     bool can_mirror() const;
     bool can_reload_from_disk() const;
 
-#if ENABLE_THUMBNAIL_GENERATOR
     void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background);
     void generate_thumbnails(ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool show_bed, bool transparent_background);
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
     void msw_rescale_object_menu();
 
@@ -2000,6 +1973,7 @@ struct Plater::priv
     mutable bool    			ready_to_slice = { false };
     // Flag indicating that the G-code export targets a removable device, therefore the show_action_buttons() needs to be called at any case when the background processing finishes.
     bool 						writing_to_removable_device = { false };
+    bool                        inside_snapshot_capture() { return m_prevent_snapshots != 0; }
 
 private:
     bool init_object_menu();
@@ -2060,7 +2034,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     background_process.set_fff_print(&fff_print);
     background_process.set_sla_print(&sla_print);
     background_process.set_gcode_preview_data(&gcode_preview_data);
-#if ENABLE_THUMBNAIL_GENERATOR
     background_process.set_thumbnail_cb([this](ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
         {
             std::packaged_task<void(ThumbnailsList&, const Vec2ds&, bool, bool, bool, bool)> task([this](ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) {
@@ -2070,7 +2043,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
             wxTheApp->CallAfter([&]() { task(thumbnails, sizes, printable_only, parts_only, show_bed, transparent_background); });
             result.wait();
         });
-#endif // ENABLE_THUMBNAIL_GENERATOR
     background_process.set_slicing_completed_event(EVT_SLICING_COMPLETED);
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
     // Default printer technology for default config.
@@ -2208,17 +2180,34 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     // Load the 3DConnexion device database.
     mouse3d_controller.load_config(*wxGetApp().app_config);
 	// Start the background thread to detect and connect to a HID device (Windows and Linux).
-	// Connect to a 3DConnextion driver (OSX).    
+	// Connect to a 3DConnextion driver (OSX).
     mouse3d_controller.init();
+#ifdef _WIN32
+    // Register an USB HID (Human Interface Device) attach event. evt contains Win32 path to the USB device containing VID, PID and other info.
+    // This event wakes up the Mouse3DController's background thread to enumerate HID devices, if the VID of the callback event
+    // is one of the 3D Mouse vendors (3DConnexion or Logitech).
+    this->q->Bind(EVT_HID_DEVICE_ATTACHED, [this](HIDDeviceAttachedEvent &evt) {
+    	mouse3d_controller.device_attached(evt.data);
+    });
+#endif /* _WIN32 */
 
     this->q->Bind(EVT_REMOVABLE_DRIVE_EJECTED, [this](RemovableDriveEjectEvent &evt) {
-	    this->show_action_buttons(this->ready_to_slice);
-        Slic3r::GUI::show_info(this->q, (boost::format(_utf8(L("Unmounting successful. The device %s(%s) can now be safely removed from the computer.")))
-	    					% evt.data.name % evt.data.path).str());
+		if (evt.data.second) {
+			this->show_action_buttons(this->ready_to_slice);
+			Slic3r::GUI::show_info(this->q, (boost::format(_utf8(L("Unmounting successful. The device %s(%s) can now be safely removed from the computer.")))
+				% evt.data.first.name % evt.data.first.path).str());
+		} else
+			Slic3r::GUI::show_info(this->q, (boost::format(_utf8(L("Ejecting of device %s(%s) has failed.")))
+				% evt.data.first.name % evt.data.first.path).str());
 	});
     this->q->Bind(EVT_REMOVABLE_DRIVES_CHANGED, [this](RemovableDrivesChangedEvent &) { this->show_action_buttons(this->ready_to_slice); });
     // Start the background thread and register this window as a target for update events.
     wxGetApp().removable_drive_manager()->init(this->q);
+#ifdef _WIN32
+    // Trigger enumeration of removable media on Win32 notification.
+    this->q->Bind(EVT_VOLUME_ATTACHED, [this](VolumeAttachedEvent &evt) { wxGetApp().removable_drive_manager()->volumes_changed(); });
+    this->q->Bind(EVT_VOLUME_DETACHED, [this](VolumeDetachedEvent &evt) { wxGetApp().removable_drive_manager()->volumes_changed(); });
+#endif /* _WIN32 */
 
     // Initialize the Undo / Redo stack with a first snapshot.
     this->take_snapshot(_(L("New Project")));
@@ -2288,13 +2277,6 @@ void Plater::priv::reset_all_gizmos()
 // Update the UI based on the current preferences.
 void Plater::priv::update_ui_from_settings()
 {
-    // TODO: (?)
-    // my ($self) = @_;
-    // if (defined($self->{btn_reslice}) && $self->{buttons_sizer}->IsShown($self->{btn_reslice}) != (! wxTheApp->{app_config}->get("background_processing"))) {
-    //     $self->{buttons_sizer}->Show($self->{btn_reslice}, ! wxTheApp->{app_config}->get("background_processing"));
-    //     $self->{buttons_sizer}->Layout;
-    // }
-
     camera.set_type(wxGetApp().app_config->get("use_perspective_camera"));
     if (wxGetApp().app_config->get("use_free_camera") != "1")
         camera.recover_from_free_camera();
@@ -2511,7 +2493,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             selection.add_object((unsigned int)idx, false);
         }
 
-        if (view3D->get_canvas3d()->get_gizmos_manager().is_running())
+        if (view3D->get_canvas3d()->get_gizmos_manager().is_enabled())
             // this is required because the selected object changed and the flatten on face an sla support gizmos need to be updated accordingly
             view3D->get_canvas3d()->update_gizmos_on_off_state();
     }
@@ -2827,11 +2809,6 @@ void Plater::priv::arrange()
     m_ui_jobs.start(Jobs::Arrange);
 }
 
-void Plater::priv::hollow()
-{
-    this->take_snapshot(_(L("Hollow")));
-    m_ui_jobs.start(Jobs::Hollow);
-}
 
 // This method will find an optimal orientation for the currently selected item
 // Very similar in nature to the arrange method above...
@@ -2969,67 +2946,6 @@ void Plater::priv::RotoptimizeJob::process()
                                  : _(L("Orientation found.")));
 }
 
-void Plater::priv::HollowJob::prepare()
-{
-    const GLGizmosManager& gizmo_manager = plater().q->canvas3D()->get_gizmos_manager();
-    const GLGizmoHollow* gizmo_hollow = dynamic_cast<const GLGizmoHollow*>(gizmo_manager.get_current());
-    assert(gizmo_hollow);
-    auto hlw_data = gizmo_hollow->get_hollowing_parameters();
-    m_object_mesh = hlw_data.first;
-    m_cfg = hlw_data.second;
-    m_output_mesh.reset();
-}
-
-void Plater::priv::HollowJob::process()
-{
-    sla::JobController ctl;
-    ctl.stopcondition = [this]{ return was_canceled(); };
-    ctl.statuscb = [this](unsigned st, const std::string &s) {
-        if (st < 100) update_status(int(st), s);
-    };
-    
-    std::unique_ptr<TriangleMesh> omesh =
-        sla::generate_interior(*m_object_mesh, m_cfg, ctl);
-    
-    if (omesh && !omesh->empty()) {
-        m_output_mesh.reset(new TriangleMesh{*m_object_mesh});
-        m_output_mesh->merge(*omesh);
-        m_output_mesh->require_shared_vertices();
-        
-        update_status(90, _(L("Indexing hollowed object")));
-        
-        m_output_raycaster.reset(new MeshRaycaster(*m_output_mesh));
-        
-        update_status(100, was_canceled() ? _(L("Hollowing cancelled.")) :
-                                            _(L("Hollowing done.")));
-    } else {
-        update_status(100, _(L("Hollowing failed.")));
-    }
-}
-
-void Plater::priv::HollowJob::finalize()
-{
-    if (auto gizmo = get_gizmo()) {
-        gizmo->update_mesh_raycaster(std::move(m_output_raycaster));
-        gizmo->update_hollowed_mesh(std::move(m_output_mesh));
-    }       
-}
-
-GLGizmoHollow *Plater::priv::HollowJob::get_gizmo()
-{
-    const GLGizmosManager& gizmo_manager = plater().q->canvas3D()->get_gizmos_manager();
-    auto ret = dynamic_cast<GLGizmoHollow*>(gizmo_manager.get_current());
-    assert(ret);
-    return ret;
-}
-
-const GLGizmoHollow *Plater::priv::HollowJob::get_gizmo() const
-{
-    const GLGizmosManager& gizmo_manager = plater().q->canvas3D()->get_gizmos_manager();
-    auto ret = dynamic_cast<const GLGizmoHollow*>(gizmo_manager.get_current());
-    assert(ret);
-    return ret;
-}
 
 void Plater::priv::split_object()
 {
@@ -3236,7 +3152,7 @@ bool Plater::priv::restart_background_process(unsigned int state)
     return false;
 }
 
-void Plater::priv::export_gcode(fs::path output_path, PrintHostJob upload_job)
+void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_removable_media, PrintHostJob upload_job)
 {
     wxCHECK_RET(!(output_path.empty() && upload_job.empty()), "export_gcode: output_path and upload_job empty");
 
@@ -3257,7 +3173,7 @@ void Plater::priv::export_gcode(fs::path output_path, PrintHostJob upload_job)
         return;
 
     if (! output_path.empty()) {
-        background_process.schedule_export(output_path.string());
+        background_process.schedule_export(output_path.string(), output_path_on_removable_media);
     } else {
         background_process.schedule_upload(std::move(upload_job));
     }
@@ -3636,6 +3552,14 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     auto preset_type = static_cast<Preset::Type>(evt.GetInt());
     auto *combo = static_cast<PresetComboBox*>(evt.GetEventObject());
 
+    // see https://github.com/prusa3d/PrusaSlicer/issues/3889
+    // Under OSX: in case of use of a same names written in different case (like "ENDER" and "Ender"),
+    // m_presets_choice->GetSelection() will return first item, because search in PopupListCtrl is case-insensitive.
+    // So, use GetSelection() from event parameter 
+    // But in this function we couldn't use evt.GetSelection(), because m_commandInt is used for preset_type
+    // Thus, get selection in this way:
+    int selection = combo->FindString(evt.GetString(), true);
+
     auto idx = combo->get_extruder_idx();
 
     //! Because of The MSW and GTK version of wxBitmapComboBox derived from wxComboBox,
@@ -3645,8 +3569,8 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     //! instead of
     //!     combo->GetStringSelection().ToUTF8().data());
 
-    const std::string& selected_string = combo->GetString(combo->GetSelection()).ToUTF8().data();
-    const std::string preset_name = wxGetApp().preset_bundle->get_preset_name_by_alias(preset_type, selected_string);
+    const std::string preset_name = wxGetApp().preset_bundle->get_preset_name_by_alias(preset_type, 
+        Preset::remove_suffix_modified(combo->GetString(selection).ToUTF8().data()));
 
     if (preset_type == Preset::TYPE_FILAMENT) {
         wxGetApp().preset_bundle->set_filament_preset(idx, preset_name);
@@ -3739,7 +3663,12 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
         wxString message = evt.GetString();
         if (message.IsEmpty())
             message = _(L("Export failed"));
-        show_error(q, message);
+        if (q->m_tracking_popup_menu)
+        	// We don't want to pop-up a message box when tracking a pop-up menu.
+        	// We postpone the error message instead.
+            q->m_tracking_popup_menu_error_message = message;
+        else
+	        show_error(q, message);
         this->statusbar()->set_status_text(message);
     }
     if (canceled)
@@ -3943,7 +3872,6 @@ bool Plater::priv::init_object_menu()
     return true;
 }
 
-#if ENABLE_THUMBNAIL_GENERATOR
 void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
 {
     view3D->get_canvas3d()->render_thumbnail(data, w, h, printable_only, parts_only, show_bed, transparent_background);
@@ -3961,7 +3889,6 @@ void Plater::priv::generate_thumbnails(ThumbnailsList& thumbnails, const Vec2ds&
             thumbnails.pop_back();
     }
 }
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 void Plater::priv::msw_rescale_object_menu()
 {
@@ -4933,8 +4860,8 @@ void Plater::export_gcode(bool prefer_removable)
     }
 
     if (! output_path.empty()) {
-        p->export_gcode(output_path, PrintHostJob());
 		bool path_on_removable_media = removable_drive_manager.set_and_verify_last_save_path(output_path.string());
+        p->export_gcode(output_path, path_on_removable_media, PrintHostJob());
         // Storing a path to AppConfig either as path to removable media or a path to internal media.
         // is_path_on_removable_drive() is called with the "true" parameter to update its internal database as the user may have shuffled the external drives
         // while the dialog was open.
@@ -5102,13 +5029,9 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     const std::string path_u8 = into_u8(path);
     wxBusyCursor wait;
     bool full_pathnames = wxGetApp().app_config->get("export_sources_full_pathnames") == "1";
-#if ENABLE_THUMBNAIL_GENERATOR
     ThumbnailData thumbnail_data;
     p->generate_thumbnail(thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, false, true, true, true);
     if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, full_pathnames, &thumbnail_data)) {
-#else
-    if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, full_pathnames)) {
-#endif // ENABLE_THUMBNAIL_GENERATOR
         // Success
         p->statusbar()->set_status_text(from_u8((boost::format(_utf8(L("3MF file exported to %s"))) % path).str()));
         p->set_project_filename(path);
@@ -5147,10 +5070,6 @@ void Plater::export_toolpaths_to_obj() const
     p->preview->get_canvas3d()->export_toolpaths_to_obj(into_u8(path).c_str());
 }
 
-void Plater::hollow()
-{
-    p->hollow();
-}
 
 void Plater::reslice()
 {
@@ -5257,13 +5176,14 @@ void Plater::send_gcode()
         upload_job.upload_data.upload_path = dlg.filename();
         upload_job.upload_data.start_print = dlg.start_print();
 
-        p->export_gcode(fs::path(), std::move(upload_job));
+        p->export_gcode(fs::path(), false, std::move(upload_job));
     }
 }
 
 // Called when the Eject button is pressed.
 void Plater::eject_drive()
 {
+    wxBusyCursor wait;
 	wxGetApp().removable_drive_manager()->eject_drive();
 }
 
@@ -5639,7 +5559,7 @@ void Plater::schedule_background_process(bool schedule/* = true*/)
     this->p->suppressed_backround_processing_update = false;
 }
 
-bool Plater::is_background_process_running() const
+bool Plater::is_background_process_update_scheduled() const
 {
     return this->p->background_process_timer.IsRunning();
 }
@@ -5782,16 +5702,36 @@ bool Plater::can_reload_from_disk() const { return p->can_reload_from_disk(); }
 const UndoRedo::Stack& Plater::undo_redo_stack_main() const { return p->undo_redo_stack_main(); }
 void Plater::enter_gizmos_stack() { p->enter_gizmos_stack(); }
 void Plater::leave_gizmos_stack() { p->leave_gizmos_stack(); }
+bool Plater::inside_snapshot_capture() { return p->inside_snapshot_capture(); }
+
+// Wrapper around wxWindow::PopupMenu to suppress error messages popping out while tracking the popup menu.
+bool Plater::PopupMenu(wxMenu *menu, const wxPoint& pos)
+{
+	// Don't want to wake up and trigger reslicing while tracking the pop-up menu.
+	SuppressBackgroundProcessingUpdate sbpu;
+	// When tracking a pop-up menu, postpone error messages from the slicing result.
+	m_tracking_popup_menu = true;
+	bool out = this->wxPanel::PopupMenu(menu, pos);
+	m_tracking_popup_menu = false;
+	if (! m_tracking_popup_menu_error_message.empty()) {
+        // Don't know whether the CallAfter is necessary, but it should not hurt.
+        // The menus likely sends out some commands, so we may be safer if the dialog is shown after the menu command is processed.
+		wxString message = std::move(m_tracking_popup_menu_error_message);
+        wxTheApp->CallAfter([message, this]() { show_error(this, message); });
+        m_tracking_popup_menu_error_message.clear();
+    }
+	return out;
+}
 
 SuppressBackgroundProcessingUpdate::SuppressBackgroundProcessingUpdate() :
-    m_was_running(wxGetApp().plater()->is_background_process_running())
+    m_was_scheduled(wxGetApp().plater()->is_background_process_update_scheduled())
 {
-    wxGetApp().plater()->suppress_background_process(m_was_running);
+    wxGetApp().plater()->suppress_background_process(m_was_scheduled);
 }
 
 SuppressBackgroundProcessingUpdate::~SuppressBackgroundProcessingUpdate()
 {
-    wxGetApp().plater()->schedule_background_process(m_was_running);
+    wxGetApp().plater()->schedule_background_process(m_was_scheduled);
 }
 
 }}    // namespace Slic3r::GUI

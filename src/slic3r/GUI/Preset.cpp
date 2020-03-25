@@ -189,6 +189,9 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
             	default_materials_field = section.second.get<std::string>("default_filaments", "");
             if (Slic3r::unescape_strings_cstyle(default_materials_field, model.default_materials)) {
             	Slic3r::sort_remove_duplicates(model.default_materials);
+            	if (! model.default_materials.empty() && model.default_materials.front().empty())
+            		// An empty material was inserted into the list of default materials. Remove it.
+            		model.default_materials.erase(model.default_materials.begin());
             } else {
                 BOOST_LOG_TRIVIAL(error) << boost::format("Vendor bundle: `%1%`: Malformed default_materials field: `%2%`") % id % default_materials_field;
             }
@@ -378,7 +381,7 @@ void Preset::set_visible_from_appconfig(const AppConfig &app_config)
         	return;
         is_visible = app_config.get_variant(vendor->id, model, variant);
     } else if (type == TYPE_FILAMENT || type == TYPE_SLA_MATERIAL) {
-    	const char *section_name = (type == TYPE_FILAMENT) ? "filaments" : "sla_materials";
+    	const std::string &section_name = (type == TYPE_FILAMENT) ? AppConfig::SECTION_FILAMENTS : AppConfig::SECTION_MATERIALS;
     	if (app_config.has_section(section_name)) {
     		// Check whether this profile is marked as "installed" in PrusaSlicer.ini, 
     		// or whether a profile is marked as "installed", which this profile may have been renamed from.
@@ -410,7 +413,7 @@ const std::vector<std::string>& Preset::print_options()
         "perimeter_speed", "small_perimeter_speed", "external_perimeter_speed", "infill_speed", "solid_infill_speed",
         "top_solid_infill_speed", "support_material_speed", "support_material_xy_spacing", "support_material_interface_speed",
         "bridge_speed", "gap_fill_speed", "travel_speed", "first_layer_speed", "perimeter_acceleration", "infill_acceleration",
-        "bridge_acceleration", "first_layer_acceleration", "default_acceleration", "skirts", "skirt_distance", "skirt_height",
+        "bridge_acceleration", "first_layer_acceleration", "default_acceleration", "skirts", "skirt_distance", "skirt_height", "draft_shield",
         "min_skirt_length", "brim_width", "support_material", "support_material_auto", "support_material_threshold", "support_material_enforce_layers",
         "raft_layers", "support_material_pattern", "support_material_with_sheath", "support_material_spacing",
         "support_material_synchronize_layers", "support_material_angle", "support_material_interface_layers",
@@ -1024,9 +1027,17 @@ const std::string& PresetCollection::get_preset_name_by_alias(const std::string&
 		it != m_map_alias_to_profile_name.end() && it->first == alias; ++ it)
 		if (auto it_preset = this->find_preset_internal(it->second);
 			it_preset != m_presets.end() && it_preset->name == it->second && 
-			it_preset->is_visible && (it_preset->is_compatible || (it_preset - m_presets.begin()) == m_idx_selected))
+            it_preset->is_visible && (it_preset->is_compatible || size_t(it_preset - m_presets.begin()) == m_idx_selected))
 	        return it_preset->name;
     return alias;
+}
+
+const std::string* PresetCollection::get_preset_name_renamed(const std::string &old_name) const
+{
+	auto it_renamed = m_map_system_profile_renamed.find(old_name);
+	if (it_renamed != m_map_system_profile_renamed.end())
+		return &it_renamed->second;
+	return nullptr;
 }
 
 const std::string& PresetCollection::get_suffix_modified() {
@@ -1078,6 +1089,7 @@ size_t PresetCollection::update_compatible_internal(const PresetWithVendorProfil
         bool    selected        = idx_preset == m_idx_selected;
         Preset &preset_selected = m_presets[idx_preset];
         Preset &preset_edited   = selected ? m_edited_preset : preset_selected;
+
         const PresetWithVendorProfile this_preset_with_vendor_profile = this->get_preset_with_vendor_profile(preset_edited);
         bool    was_compatible  = preset_edited.is_compatible;
         preset_edited.is_compatible = is_compatible_with_printer(this_preset_with_vendor_profile, active_printer, &config);
@@ -1086,7 +1098,7 @@ size_t PresetCollection::update_compatible_internal(const PresetWithVendorProfil
 	        preset_edited.is_compatible &= is_compatible_with_print(this_preset_with_vendor_profile, *active_print, active_printer);
         if (! preset_edited.is_compatible && selected && 
         	(unselect_if_incompatible == PresetSelectCompatibleType::Always || (unselect_if_incompatible == PresetSelectCompatibleType::OnlyIfWasCompatible && was_compatible)))
-            m_idx_selected = -1;
+            m_idx_selected = size_t(-1);
         if (selected)
             preset_selected.is_compatible = preset_edited.is_compatible;
     }
@@ -1242,7 +1254,7 @@ void PresetCollection::update_plater_ui(GUI::PresetComboBox *ui)
 
     ui->SetSelection(selected_preset_item);
     ui->SetToolTip(tooltip.IsEmpty() ? ui->GetString(selected_preset_item) : tooltip);
-    ui->check_selection();
+    ui->check_selection(selected_preset_item);
     ui->Thaw();
 
     // Update control min size after rescale (changed Display DPI under MSW)
@@ -1387,7 +1399,7 @@ void add_correct_opts_to_diff(const std::string &opt_key, t_config_option_keys& 
     const T* opt_init = static_cast<const T*>(other.option(opt_key));
     const T* opt_cur = static_cast<const T*>(this_c.option(opt_key));
     int opt_init_max_id = opt_init->values.size() - 1;
-    for (int i = 0; i < opt_cur->values.size(); i++)
+    for (int i = 0; i < int(opt_cur->values.size()); i++)
     {
         int init_id = i <= opt_init_max_id ? i : 0;
         if (opt_cur->values[i] != opt_init->values[init_id])

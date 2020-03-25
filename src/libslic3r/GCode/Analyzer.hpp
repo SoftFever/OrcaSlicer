@@ -220,7 +220,7 @@ private:
     void _process_height_tag(const std::string& comment, size_t pos);
 
     // Processes color change tag
-    void _process_color_change_tag(int extruder);
+    void _process_color_change_tag(unsigned extruder);
 
     // Processes pause print and custom gcode tag
     void _process_pause_print_or_custom_code_tag();
