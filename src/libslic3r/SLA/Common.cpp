@@ -228,7 +228,7 @@ void to_eigen_mesh(const TriangleMesh &tmesh, Eigen::MatrixXd &V, Eigen::MatrixX
 void to_triangle_mesh(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F, TriangleMesh &out)
 {
     Pointf3s points(size_t(V.rows())); 
-    std::vector<Vec3crd> facets(size_t(F.rows()));
+    std::vector<Vec3i> facets(size_t(F.rows()));
     
     for (Eigen::Index i = 0; i < V.rows(); ++i)
         points[size_t(i)] = V.row(i);

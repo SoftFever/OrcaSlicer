@@ -41,7 +41,7 @@ namespace GUI {
         const Transform3d& projection_matrix = camera.get_projection_matrix();
 
         // bounding box created from the rectangle corners - will take care of order of the corners
-        BoundingBox rectangle(Points{ Point(m_start_corner.cast<int>()), Point(m_end_corner.cast<int>()) });
+        BoundingBox rectangle(Points{ Point(m_start_corner.cast<coord_t>()), Point(m_end_corner.cast<coord_t>()) });
 
         // Iterate over all points and determine whether they're in the rectangle.
         for (unsigned int i = 0; i<points.size(); ++i) {
