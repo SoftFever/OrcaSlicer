@@ -1445,6 +1445,62 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas
 }
 #endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
+#if ENABLE_SLOPE_RENDERING
+void GLCanvas3D::Slope::render() const
+{
+    if (is_shown())
+    {
+        const std::array<float, 2>& z_range = m_volumes.get_slope_z_range();
+        std::array<float, 2> angle_range = { Geometry::rad2deg(::acos(z_range[0])) - 90.0f, Geometry::rad2deg(::acos(z_range[1])) - 90.0f };
+        bool modified = false;
+
+        ImGuiWrapper& imgui = *wxGetApp().imgui();
+        const Size& cnv_size = m_canvas.get_canvas_size();
+        imgui.set_next_window_pos((float)cnv_size.get_width(), (float)cnv_size.get_height(), ImGuiCond_Always, 1.0f, 1.0f);
+        imgui.begin(_(L("Slope visualization")), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+
+        imgui.text(_(L("Facets' normal angle range (degrees)")) + ":");
+
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.75f, 0.75f, 0.0f, 0.5f));
+        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(1.0f, 1.0f, 0.0f, 0.5f));
+        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.85f, 0.85f, 0.0f, 0.5f));
+        ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.25f, 0.25f, 0.0f, 1.0f));
+        if (ImGui::SliderFloat("##yellow", &angle_range[0], 0.0f, 90.0f, "%.1f"))
+        {
+            modified = true;
+            if (angle_range[1] < angle_range[0])
+                angle_range[1] = angle_range[0];
+        }
+        ImGui::PopStyleColor(4);
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.75f, 0.0f, 0.0f, 0.5f));
+        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(1.0f, 0.0f, 0.0f, 0.5f));
+        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.85f, 0.0f, 0.0f, 0.5f));
+        ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.25f, 0.0f, 0.0f, 1.0f));
+        if (ImGui::SliderFloat("##red", &angle_range[1], 0.0f, 90.0f, "%.1f"))
+        {
+            modified = true;
+            if (angle_range[0] > angle_range[1])
+                angle_range[0] = angle_range[1];
+        }
+        ImGui::PopStyleColor(4);
+
+        ImGui::Separator();
+
+        if (imgui.button(_(L("Default"))))
+            m_volumes.set_default_slope_z_range();
+
+        // to let the dialog immediately showup without waiting for a mouse move
+        if (ImGui::GetWindowContentRegionWidth() + 2.0f * ImGui::GetStyle().WindowPadding.x != ImGui::CalcWindowExpectedSize(ImGui::GetCurrentWindow()).x)
+            m_canvas.request_extra_frame();
+
+        imgui.end();
+
+        if (modified)
+            m_volumes.set_slope_z_range({ -::cos(Geometry::deg2rad(90.0f - angle_range[0])), -::cos(Geometry::deg2rad(90.0f - angle_range[1])) });
+    }
+    }
+#endif // ENABLE_SLOPE_RENDERING
+
 wxDEFINE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, RBtnEvent);
@@ -1519,6 +1575,9 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
 #endif // ENABLE_RENDER_PICKING_PASS
     , m_render_sla_auxiliaries(true)
     , m_labels(*this)
+#if ENABLE_SLOPE_RENDERING
+    , m_slope(*this, m_volumes)
+#endif // ENABLE_SLOPE_RENDERING
 {
     if (m_canvas != nullptr) {
         m_timer.SetOwner(m_canvas);
@@ -1838,6 +1897,11 @@ bool GLCanvas3D::is_reload_delayed() const
 
 void GLCanvas3D::enable_layers_editing(bool enable)
 {
+#if ENABLE_SLOPE_RENDERING
+    if (enable && m_slope.is_shown())
+        m_slope.show(false);
+#endif // ENABLE_SLOPE_RENDERING
+
     m_layers_editing.set_enabled(enable);
     const Selection::IndicesList& idxs = m_selection.get_volume_idxs();
     for (unsigned int idx : idxs)
@@ -3022,6 +3086,17 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'a': { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
         case 'B':
         case 'b': { zoom_to_bed(); break; }
+#if ENABLE_SLOPE_RENDERING
+        case 'D':
+        case 'd': {
+                    if (!is_layers_editing_enabled())
+                    {
+                        m_slope.show(!m_slope.is_shown());
+                        m_dirty = true;
+                    }
+                    break;
+                  }
+#endif // ENABLE_SLOPE_RENDERING
         case 'E':
         case 'e': { m_labels.show(!m_labels.is_shown()); m_dirty = true; break; }
         case 'I':
@@ -5412,6 +5487,10 @@ void GLCanvas3D::_render_overlays() const
             }
     }
     m_labels.render(sorted_instances);
+
+#if ENABLE_SLOPE_RENDERING
+    m_slope.render();
+#endif // ENABLE_SLOPE_RENDERING
 
     glsafe(::glPopMatrix());
 }

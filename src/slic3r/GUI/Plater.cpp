@@ -1823,6 +1823,13 @@ struct Plater::priv
     bool are_view3D_labels_shown() const { return (current_panel == view3D) && view3D->get_canvas3d()->are_labels_shown(); }
     void show_view3D_labels(bool show) { if (current_panel == view3D) view3D->get_canvas3d()->show_labels(show); }
 
+#if ENABLE_SLOPE_RENDERING
+    bool is_view3D_slope_shown() const { return (current_panel == view3D) && view3D->get_canvas3d()->is_slope_shown(); }
+    void show_view3D_slope(bool show) { if (current_panel == view3D) view3D->get_canvas3d()->show_slope(show); }
+
+    bool is_view3D_layers_editing_enabled() const { return (current_panel == view3D) && view3D->get_canvas3d()->is_layers_editing_enabled(); }
+#endif // ENABLE_SLOPE_RENDERING
+
     void set_current_canvas_as_dirty();
     GLCanvas3D* get_current_canvas3D();
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
@@ -4673,6 +4680,13 @@ bool Plater::is_view3D_shown() const { return p->is_view3D_shown(); }
 
 bool Plater::are_view3D_labels_shown() const { return p->are_view3D_labels_shown(); }
 void Plater::show_view3D_labels(bool show) { p->show_view3D_labels(show); }
+
+#if ENABLE_SLOPE_RENDERING
+bool Plater::is_view3D_slope_shown() const { return p->is_view3D_slope_shown(); }
+void Plater::show_view3D_slope(bool show) { p->show_view3D_slope(show); }
+
+bool Plater::is_view3D_layers_editing_enabled() const { return p->is_view3D_layers_editing_enabled(); }
+#endif // ENABLE_SLOPE_RENDERING
 
 void Plater::select_all() { p->select_all(); }
 void Plater::deselect_all() { p->deselect_all(); }
