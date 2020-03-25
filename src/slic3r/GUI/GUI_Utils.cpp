@@ -21,6 +21,12 @@
 namespace Slic3r {
 namespace GUI {
 
+#ifdef _WIN32
+wxDEFINE_EVENT(EVT_HID_DEVICE_ATTACHED, HIDDeviceAttachedEvent);
+wxDEFINE_EVENT(EVT_HID_DEVICE_DETACHED, HIDDeviceDetachedEvent);
+wxDEFINE_EVENT(EVT_VOLUME_ATTACHED, VolumeAttachedEvent);
+wxDEFINE_EVENT(EVT_VOLUME_DETACHED, VolumeDetachedEvent);
+#endif // _WIN32
 
 wxTopLevelWindow* find_toplevel_parent(wxWindow *window)
 {
@@ -110,6 +116,9 @@ int get_dpi_for_window(wxWindow *window)
     // TODO
     return DPI_DEFAULT;
 #elif defined __APPLE__
+    // TODO
+    return DPI_DEFAULT;
+#else // freebsd and others
     // TODO
     return DPI_DEFAULT;
 #endif

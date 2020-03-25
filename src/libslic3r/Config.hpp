@@ -16,8 +16,8 @@
 #include "Point.hpp"
 
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/format.hpp>
-#include <boost/property_tree/ptree.hpp>
+#include <boost/format/format_fwd.hpp>
+#include <boost/property_tree/ptree_fwd.hpp>
 
 #include <cereal/access.hpp>
 #include <cereal/types/base_class.hpp>
@@ -686,6 +686,7 @@ public:
     ConfigOption*           clone() const override { return new ConfigOptionString(*this); }
     ConfigOptionString&     operator=(const ConfigOption *opt) { this->set(opt); return *this; }
     bool                    operator==(const ConfigOptionString &rhs) const { return this->value == rhs.value; }
+    bool 					empty() const { return this->value.empty(); }
 
     std::string serialize() const override
     { 

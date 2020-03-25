@@ -79,6 +79,11 @@ void Field::PostInitialize()
 	BUILD();
 }
 
+// Values of width to alignments of fields
+int Field::def_width()			{ return wxOSX ? 8 : 7; }
+int Field::def_width_wider()	{ return 14; }
+int Field::def_width_thinner()	{ return 4; }
+
 void Field::on_kill_focus()
 {
 	// call the registered function if it is available
@@ -167,7 +172,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
 			if		(label.Last() == '\n')	label.RemoveLast();
 			while	(label.Last() == ' ')	label.RemoveLast();
 			if		(label.Last() == ':')	label.RemoveLast();
-			show_error(m_parent, wxString::Format(_(L("%s doesn't support percentage")), label));
+            show_error(m_parent, from_u8((boost::format(_utf8(L("%s doesn't support percentage"))) % label).str()));
 			set_value(double_to_string(m_opt.min), true);
 			m_value = double(m_opt.min);
 			break;
@@ -232,14 +237,16 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
 
                 const std::string sidetext = m_opt.sidetext.rfind("mm/s") != std::string::npos ? "mm/s" : "mm";
                 const wxString stVal = double_to_string(val, 2);
-                const wxString msg_text = wxString::Format(_(L("Do you mean %s%% instead of %s %s?\n"
+                const wxString msg_text = from_u8((boost::format(_utf8(L("Do you mean %s%% instead of %s %s?\n"
                     "Select YES if you want to change this value to %s%%, \n"
-                    "or NO if you are sure that %s %s is a correct value.")), stVal, stVal, sidetext, stVal, stVal, sidetext);
+                    "or NO if you are sure that %s %s is a correct value."))) % stVal % stVal % sidetext % stVal % stVal % sidetext).str());
                 wxMessageDialog dialog(m_parent, msg_text, _(L("Parameter validation")) + ": " + m_opt_id , wxICON_WARNING | wxYES | wxNO);
                 if (dialog.ShowModal() == wxID_YES) {
-                    set_value(wxString::Format("%s%%", stVal), false/*true*/);
+                    set_value(from_u8((boost::format("%s%%") % stVal).str()), false/*true*/);
                     str += "%%";
                 }
+				else
+					set_value(stVal, false); // it's no needed but can be helpful, when inputted value contained "," instead of "."
             }
         }
     
@@ -367,14 +374,26 @@ void TextCtrl::BUILD() {
 	temp->Bind(wxEVT_KILL_FOCUS, ([this, temp](wxEvent& e)
 	{
 		e.Skip();
+#ifdef __WXOSX__
+		// OSX issue: For some unknown reason wxEVT_KILL_FOCUS is emitted twice in a row in some cases 
+	    // (like when information dialog is shown during an update of the option value)
+		// Thus, suppress its second call
+		if (bKilledFocus)
+			return;
+		bKilledFocus = true;
+#endif // __WXOSX__
+
 #if !defined(__WXGTK__)
 		temp->GetToolTip()->Enable(true);
 #endif // __WXGTK__
-        if (bEnterPressed) {
+        if (bEnterPressed)
             bEnterPressed = false;
-            return;
-        }
-        propagate_value();
+		else
+            propagate_value();
+#ifdef __WXOSX__
+		// After processing of KILL_FOCUS event we should to invalidate a bKilledFocus flag
+		bKilledFocus = false;
+#endif // __WXOSX__
 	}), temp->GetId());
 
 	// select all text using Ctrl+A
@@ -423,10 +442,12 @@ bool TextCtrl::value_was_changed()
 
 void TextCtrl::propagate_value()
 {
-    if (is_defined_input_value<wxTextCtrl>(window, m_opt.type) && value_was_changed())
-        on_change_field();
-    else
+	if (!is_defined_input_value<wxTextCtrl>(window, m_opt.type) )
+		// on_kill_focus() cause a call of OptionsGroup::reload_config(),
+		// Thus, do it only when it's really needed (when undefined value was input)
         on_kill_focus();
+	else if (value_was_changed())
+        on_change_field();
 }
 
 void TextCtrl::set_value(const boost::any& value, bool change_event/* = false*/) {
@@ -493,7 +514,7 @@ void TextCtrl::disable() { dynamic_cast<wxTextCtrl*>(window)->Disable(); dynamic
 #ifdef __WXGTK__
 void TextCtrl::change_field_value(wxEvent& event)
 {
-	if (bChangedValueEvent = (event.GetEventType()==wxEVT_KEY_UP))
+    if ((bChangedValueEvent = (event.GetEventType()==wxEVT_KEY_UP)))
 		on_change_field();
     event.Skip();
 };

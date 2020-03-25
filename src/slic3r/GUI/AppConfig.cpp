@@ -2,22 +2,18 @@
 #include "libslic3r/Utils.hpp"
 #include "AppConfig.hpp"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <utility>
-#include <assert.h>
 #include <vector>
 #include <stdexcept>
 
-#include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/nowide/cenv.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/property_tree/ini_parser.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/exceptions.hpp>
+#include <boost/property_tree/ptree_fwd.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/format.hpp>
+#include <boost/format/format_fwd.hpp>
 
 #include <wx/string.h>
 #include "I18N.hpp"
@@ -76,7 +72,7 @@ void AppConfig::set_defaults()
     if (get("remember_output_path").empty())
         set("remember_output_path", "1");
 
-	if (get("remember_output_path_removable").empty())
+    if (get("remember_output_path_removable").empty())
 		set("remember_output_path_removable", "1");
 
     if (get("use_custom_toolbar_size").empty())
@@ -280,7 +276,7 @@ void AppConfig::set_recent_projects(const std::vector<std::string>& recent_proje
     }
 }
 
-void AppConfig::set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone, float rotation_speed, float rotation_deadzone, double zoom_speed)
+void AppConfig::set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone, float rotation_speed, float rotation_deadzone, double zoom_speed, bool swap_yz)
 {
     std::string key = std::string("mouse_device:") + name;
     auto it = m_storage.find(key);
@@ -293,81 +289,18 @@ void AppConfig::set_mouse_device(const std::string& name, double translation_spe
     it->second["rotation_speed"] = std::to_string(rotation_speed);
     it->second["rotation_deadzone"] = std::to_string(rotation_deadzone);
     it->second["zoom_speed"] = std::to_string(zoom_speed);
+    it->second["swap_yz"] = swap_yz ? "1" : "0";
 }
 
-bool AppConfig::get_mouse_device_translation_speed(const std::string& name, double& speed)
+std::vector<std::string> AppConfig::get_mouse_device_names() const
 {
-    std::string key = std::string("mouse_device:") + name;
-    auto it = m_storage.find(key);
-    if (it == m_storage.end())
-        return false;
-
-    auto it_val = it->second.find("translation_speed");
-    if (it_val == it->second.end())
-        return false;
-
-    speed = ::atof(it_val->second.c_str());
-    return true;
-}
-
-bool AppConfig::get_mouse_device_translation_deadzone(const std::string& name, double& deadzone)
-{
-    std::string key = std::string("mouse_device:") + name;
-    auto it = m_storage.find(key);
-    if (it == m_storage.end())
-        return false;
-
-    auto it_val = it->second.find("translation_deadzone");
-    if (it_val == it->second.end())
-        return false;
-
-    deadzone = ::atof(it_val->second.c_str());
-    return true;
-}
-
-bool AppConfig::get_mouse_device_rotation_speed(const std::string& name, float& speed)
-{
-    std::string key = std::string("mouse_device:") + name;
-    auto it = m_storage.find(key);
-    if (it == m_storage.end())
-        return false;
-
-    auto it_val = it->second.find("rotation_speed");
-    if (it_val == it->second.end())
-        return false;
-
-    speed = (float)::atof(it_val->second.c_str());
-    return true;
-}
-
-bool AppConfig::get_mouse_device_rotation_deadzone(const std::string& name, float& deadzone)
-{
-    std::string key = std::string("mouse_device:") + name;
-    auto it = m_storage.find(key);
-    if (it == m_storage.end())
-        return false;
-
-    auto it_val = it->second.find("rotation_deadzone");
-    if (it_val == it->second.end())
-        return false;
-
-    deadzone = (float)::atof(it_val->second.c_str());
-    return true;
-}
-
-bool AppConfig::get_mouse_device_zoom_speed(const std::string& name, double& speed)
-{
-    std::string key = std::string("mouse_device:") + name;
-    auto it = m_storage.find(key);
-    if (it == m_storage.end())
-        return false;
-
-    auto it_val = it->second.find("zoom_speed");
-    if (it_val == it->second.end())
-        return false;
-
-    speed = (float)::atof(it_val->second.c_str());
-    return true;
+	static constexpr char   *prefix     = "mouse_device:";
+    static constexpr size_t  prefix_len = 13; // strlen(prefix); reports error C2131: expression did not evaluate to a constant on VS2019
+	std::vector<std::string> out;
+    for (const std::pair<std::string, std::map<std::string, std::string>>& key_value_pair : m_storage)
+        if (boost::starts_with(key_value_pair.first, "mouse_device:") && key_value_pair.first.size() > prefix_len)
+            out.emplace_back(key_value_pair.first.substr(prefix_len));
+	return out;
 }
 
 void AppConfig::update_config_dir(const std::string &dir)

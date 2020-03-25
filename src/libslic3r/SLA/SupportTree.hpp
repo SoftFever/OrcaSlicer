@@ -83,6 +83,8 @@ struct SupportConfig
     // body. This is only useful when elevation is set to zero.
     double pillar_base_safety_distance_mm = 0.5;
     
+    unsigned max_bridges_on_pillar = 3;
+    
     double head_fullwidth() const {
         return 2 * head_front_radius_mm + head_width_mm +
                2 * head_back_radius_mm - head_penetration_mm;
@@ -103,7 +105,7 @@ struct SupportConfig
     static const double   optimizer_rel_score_diff;
     static const unsigned optimizer_max_iterations;
     static const unsigned pillar_cascade_neighbors;
-    static const unsigned max_bridges_on_pillar;
+    
 };
 
 enum class MeshType { Support, Pad };

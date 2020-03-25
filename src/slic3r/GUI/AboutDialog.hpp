@@ -1,8 +1,6 @@
 #ifndef slic3r_GUI_AboutDialog_hpp_
 #define slic3r_GUI_AboutDialog_hpp_
 
-#include "GUI.hpp"
-
 #include <wx/wx.h>
 #include <wx/intl.h>
 #include <wx/html/htmlwin.h>

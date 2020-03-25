@@ -268,8 +268,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
                     "bridge_acceleration", "first_layer_acceleration" })
         toggle_field(el, have_default_acceleration);
 
-    bool have_skirt = config->opt_int("skirts") > 0 || config->opt_float("min_skirt_length") > 0;
-    for (auto el : { "skirt_distance", "skirt_height" })
+    bool have_skirt = config->opt_int("skirts") > 0;
+    toggle_field("skirt_height", have_skirt && !config->opt_bool("draft_shield"));
+    for (auto el : { "skirt_distance", "draft_shield", "min_skirt_length" })
         toggle_field(el, have_skirt);
 
     bool have_brim = config->opt_float("brim_width") > 0;
@@ -347,6 +348,7 @@ void ConfigManipulation::toggle_print_sla_options(DynamicPrintConfig* config)
     toggle_field("support_head_penetration", supports_en);
     toggle_field("support_head_width", supports_en);
     toggle_field("support_pillar_diameter", supports_en);
+    toggle_field("support_max_bridges_on_pillar", supports_en);
     toggle_field("support_pillar_connection_mode", supports_en);
     toggle_field("support_buildplate_only", supports_en);
     toggle_field("support_base_diameter", supports_en);

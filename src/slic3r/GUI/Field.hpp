@@ -225,10 +225,10 @@ public:
     bool get_enter_pressed() const { return bEnterPressed; }
     void set_enter_pressed(bool pressed) { bEnterPressed = pressed; }
 
-	// Values of width to "systematic" alignments of fields
-	static int def_width()			{ return 7; }
-	static int def_width_wider()	{ return 14; }
-	static int def_width_thinner()	{ return 4; }
+	// Values of width to alignments of fields
+	static int def_width()			;
+	static int def_width_wider()	;
+	static int def_width_thinner()	;
 
 protected:
 	RevertButton*			m_Undo_btn = nullptr;
@@ -274,12 +274,17 @@ class TextCtrl : public Field {
 	bool	bChangedValueEvent = true;
     void    change_field_value(wxEvent& event);
 #endif //__WXGTK__
+
+#ifdef __WXOSX__
+	bool	bKilledFocus = false;
+#endif // __WXOSX__
+
 public:
 	TextCtrl(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt,  id) {}
 	TextCtrl(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
 	~TextCtrl() {}
 
-    void BUILD();
+    void BUILD() override;
     bool value_was_changed();
     // Propagate value from field to the OptionGroupe and Config after kill_focus/ENTER
     void propagate_value();
@@ -298,9 +303,9 @@ public:
 
     void            msw_rescale(bool rescale_sidetext = false) override;
     
-    virtual void	enable();
-    virtual void	disable();
-    virtual wxWindow* getWindow() { return window; }
+    void			enable() override;
+    void			disable() override;
+    wxWindow* 		getWindow() override { return window; }
 };
 
 class CheckBox : public Field {

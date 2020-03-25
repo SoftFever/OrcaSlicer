@@ -5,6 +5,8 @@
 #include "GUI_ObjectList.hpp"
 #include "I18N.hpp"
 
+#include "libslic3r/Model.hpp"
+
 #include <wx/bmpcbox.h>
 #include <wx/dc.h>
 
@@ -1185,6 +1187,26 @@ void ObjectDataViewModel::SetExtruder(const wxString& extruder, wxDataViewItem i
     SetValue(value, item, colExtruder);
 }
 
+void ObjectDataViewModel::AddAllChildren(const wxDataViewItem& parent)
+{
+    ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)parent.GetID();
+    if (!node || node->GetChildCount() == 0)
+        return;
+
+    wxDataViewItemArray array;
+    const size_t count = node->GetChildCount();
+    for (size_t pos = 0; pos < count; pos++) {
+        ObjectDataViewModelNode* child = node->GetChildren().Item(pos);
+        array.Add(wxDataViewItem((void*)child));
+        ItemAdded(parent, wxDataViewItem((void*)child));
+    }
+
+    for (const auto item : array)
+        AddAllChildren(item);
+
+    m_ctrl->Expand(parent);
+};
+
 wxDataViewItem ObjectDataViewModel::ReorganizeChildren( const int current_volume_id, 
                                                         const int new_volume_id, 
                                                         const wxDataViewItem &parent)
@@ -1204,6 +1226,10 @@ wxDataViewItem ObjectDataViewModel::ReorganizeChildren( const int current_volume
     ItemDeleted(parent, wxDataViewItem(deleted_node));
     node_parent->Insert(deleted_node, new_volume_id+shift);
     ItemAdded(parent, wxDataViewItem(deleted_node));
+
+    // If some item has a children, just to add a deleted item is not enough on Linux 
+    // We should to add all its children separately
+    AddAllChildren(wxDataViewItem(deleted_node));
 
     //update volume_id value for child-nodes
     auto children = node_parent->GetChildren();
@@ -1226,6 +1252,10 @@ wxDataViewItem ObjectDataViewModel::ReorganizeObjects(  const int current_id, co
 
     m_objects.emplace(m_objects.begin() + new_id, deleted_node);
     ItemAdded(wxDataViewItem(nullptr), wxDataViewItem(deleted_node));
+
+    // If some item has a children, just to add a deleted item is not enough on Linux 
+    // We should to add all its children separately
+    AddAllChildren(wxDataViewItem(deleted_node));
 
     return wxDataViewItem(deleted_node);
 }

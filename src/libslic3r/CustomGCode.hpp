@@ -13,6 +13,12 @@ static constexpr char ColorChangeCode[] = "M600";
 static constexpr char PausePrintCode[]  = "M601";
 static constexpr char ToolChangeCode[]  = "tool_change";
 
+enum CustomGcodeType
+{
+    cgtColorChange,
+    cgtPausePrint,
+};
+
 namespace CustomGCode {
 
 struct Item

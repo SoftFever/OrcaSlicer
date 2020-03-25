@@ -21,7 +21,7 @@ enum GCodeFlavor : unsigned char;
 class WipeTower
 {
 public:
-    static char const* never_skip_tag() { return "_GCODE_WIPE_TOWER_NEVER_SKIP_TAG"; }
+    static const std::string never_skip_tag() { return "_GCODE_WIPE_TOWER_NEVER_SKIP_TAG"; }
 
     struct Extrusion
     {
@@ -189,8 +189,6 @@ public:
     };
 
 private:
-	WipeTower();
-
 	enum wipe_shape // A fill-in direction
 	{
 		SHAPE_NORMAL = 1,
@@ -236,6 +234,7 @@ private:
         CircularBed
     } m_bed_shape;
     float m_bed_width; // width of the bed bounding box
+    Vec2f m_bed_bottom_left; // bottom-left corner coordinates (for rectangular beds)
 
 	float m_perimeter_width = 0.4f * Width_To_Nozzle_Ratio; // Width of an extrusion line, also a perimeter spacing for 100% infill.
 	float m_extrusion_flow = 0.038f; //0.029f;// Extrusion flow is derived from m_perimeter_width, layer height and filament diameter.

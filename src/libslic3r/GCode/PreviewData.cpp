@@ -72,7 +72,7 @@ Color GCodePreviewData::RangeBase::get_color_at(float value) const
 {
     // Input value scaled to the color range
     float step = step_size();
-    const float global_t = (step != 0.0f) ? std::max(0.0f, value - min()) / step_size() : 0.0f; // lower limit of 0.0f
+    const float global_t = (step != 0.0f) ? std::max(0.0f, value - min()) / step : 0.0f; // lower limit of 0.0f
 
     constexpr std::size_t color_max_idx = range_rainbow_colors.size() - 1;
 
@@ -241,6 +241,7 @@ void GCodePreviewData::reset()
     ranges.width.reset();
     ranges.height.reset();
     ranges.feedrate.reset();
+    ranges.fan_speed.reset();
     ranges.volumetric_rate.reset();
     extrusion.layers.clear();
     travel.polylines.clear();

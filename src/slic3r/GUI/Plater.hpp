@@ -10,14 +10,11 @@
 
 #include "Preset.hpp"
 
-#include "3DScene.hpp"
-#include "GLTexture.hpp"
+#include "libslic3r/BoundingBox.hpp"
 #include "wxExtensions.hpp"
 
 class wxButton;
 class ScalableButton;
-class wxBoxSizer;
-class wxGLCanvas;
 class wxScrolledWindow;
 class wxString;
 
@@ -30,9 +27,9 @@ class SLAPrint;
 enum SLAPrintObjectStep : unsigned int;
 
 namespace UndoRedo {
-	class Stack;
-	struct Snapshot;	
-};
+    class Stack;
+    struct Snapshot;
+}
 
 namespace GUI {
 
@@ -44,6 +41,7 @@ class ObjectLayers;
 class ObjectList;
 class GLCanvas3D;
 class Mouse3DController;
+struct Camera;
 
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
@@ -71,7 +69,7 @@ public:
     void set_extruder_idx(const int extr_idx)   { extruder_idx = extr_idx; }
     int  get_extruder_idx() const               { return extruder_idx; }
     int  em_unit() const                        { return m_em_unit; }
-    void check_selection();
+    void check_selection(int selection);
 
     void msw_rescale();
 
@@ -200,7 +198,6 @@ public:
     void reload_all_from_disk();
     bool has_toolpaths_to_export() const;
     void export_toolpaths_to_obj() const;
-    void hollow();
     void reslice();
     void reslice_SLA_supports(const ModelObject &object, bool postpone_error_messages = false);
     void reslice_SLA_hollowing(const ModelObject &object, bool postpone_error_messages = false);
@@ -208,12 +205,11 @@ public:
     void changed_object(int obj_idx);
     void changed_objects(const std::vector<size_t>& object_idxs);
     void schedule_background_process(bool schedule = true);
-    bool is_background_process_running() const;
+    bool is_background_process_update_scheduled() const;
     void suppress_background_process(const bool stop_background_process) ;
     void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
     void send_gcode();
 	void eject_drive();
-	void drive_ejected_callback();
 
     void take_snapshot(const std::string &snapshot_name);
     void take_snapshot(const wxString &snapshot_name);
@@ -239,6 +235,7 @@ public:
     std::vector<std::string> get_colors_for_color_print() const;
 
     void update_object_menu();
+    void show_action_buttons(const bool is_ready_to_slice) const;
 
     wxString get_project_filename(const wxString& extension = wxEmptyString) const;
     void set_project_filename(const wxString& filename);
@@ -280,6 +277,7 @@ public:
     bool init_view_toolbar();
 
     const Camera& get_camera() const;
+    Camera& get_camera();
     const Mouse3DController& get_mouse3d_controller() const;
     Mouse3DController& get_mouse3d_controller();
 
@@ -318,9 +316,21 @@ public:
 		Plater *m_plater;
 	};
 
+    bool inside_snapshot_capture();
+
+	// Wrapper around wxWindow::PopupMenu to suppress error messages popping out while tracking the popup menu.
+	bool PopupMenu(wxMenu *menu, const wxPoint& pos = wxDefaultPosition);
+    bool PopupMenu(wxMenu *menu, int x, int y) { return this->PopupMenu(menu, wxPoint(x, y)); }
+
 private:
     struct priv;
     std::unique_ptr<priv> p;
+
+    // Set true during PopupMenu() tracking to suppress immediate error message boxes.
+    // The error messages are collected to m_tracking_popup_menu_error_message instead and these error messages
+    // are shown after the pop-up dialog closes.
+    bool 	 m_tracking_popup_menu = false;
+    wxString m_tracking_popup_menu_error_message;
 
     void suppress_snapshots();
     void allow_snapshots();
@@ -334,7 +344,7 @@ public:
     SuppressBackgroundProcessingUpdate();
     ~SuppressBackgroundProcessingUpdate();
 private:
-    bool m_was_running;
+    bool m_was_scheduled;
 };
 
 }}

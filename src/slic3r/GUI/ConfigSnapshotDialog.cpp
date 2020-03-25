@@ -72,7 +72,7 @@ static wxString generate_html_row(const Config::Snapshot &snapshot, bool row_eve
     }
 
     if (! compatible) {
-        text += "<p align=\"right\">" + wxString::Format(_(L("Incompatible with this %s")), SLIC3R_APP_NAME) + "</p>";
+        text += "<p align=\"right\">" + from_u8((boost::format(_utf8(L("Incompatible with this %s"))) % SLIC3R_APP_NAME).str()) + "</p>";
     }
     else if (! snapshot_active)
         text += "<p align=\"right\"><a href=\"" + snapshot.id + "\">" + _(L("Activate")) + "</a></p>";
@@ -162,7 +162,7 @@ void ConfigSnapshotDialog::on_dpi_changed(const wxRect &suggested_rect)
 
 void ConfigSnapshotDialog::onLinkClicked(wxHtmlLinkEvent &event)
 {
-    m_snapshot_to_activate = event.GetLinkInfo().GetHref();
+    m_snapshot_to_activate = event.GetLinkInfo().GetHref().ToUTF8();
     this->EndModal(wxID_CLOSE);
 }
 

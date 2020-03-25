@@ -1147,7 +1147,7 @@ EdgeGrid::Grid::ClosestPointResult EdgeGrid::Grid::closest_point(const Point &pt
 			}
 		}
 	}
-	if (result.contour_idx != -1 && d_min <= double(search_radius)) {
+    if (result.contour_idx != size_t(-1) && d_min <= double(search_radius)) {
 		result.distance = d_min * sign_min;
 		result.t /= l2_seg_min;
 		assert(result.t >= 0. && result.t < 1.);

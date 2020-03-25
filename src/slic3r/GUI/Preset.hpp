@@ -237,6 +237,7 @@ public:
 
 	static void                             update_suffix_modified();
     static const std::string&               suffix_modified();
+    static std::string                      remove_suffix_modified(const std::string& name);
     static void                             normalize(DynamicPrintConfig &config);
     // Report configuration fields, which are misplaced into a wrong group, remove them from the config.
     static std::string                      remove_invalid_keys(DynamicPrintConfig &config, const DynamicPrintConfig &default_config);
@@ -244,12 +245,20 @@ public:
 protected:
     friend class        PresetCollection;
     friend class        PresetBundle;
-    static std::string  remove_suffix_modified(const std::string &name);
 };
 
-bool is_compatible_with_print  (const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_print);
+bool is_compatible_with_print  (const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_print, const PresetWithVendorProfile &active_printer);
 bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer, const DynamicPrintConfig *extra_config);
 bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer);
+
+enum class PresetSelectCompatibleType {
+	// Never select a compatible preset if the newly selected profile is not compatible.
+	Never,
+	// Only select a compatible preset if the active profile used to be compatible, but it is no more.
+	OnlyIfWasCompatible,
+	// Always select a compatible preset if the active profile is no more compatible.
+	Always
+};
 
 // Collections of presets of the same type (one of the Print, Filament or Printer type).
 class PresetCollection
@@ -303,7 +312,7 @@ public:
     // Save the preset under a new name. If the name is different from the old one,
     // a new preset is stored into the list of presets.
     // All presets are marked as not modified and the new preset is activated.
-    void            save_current_preset(const std::string &new_name);
+    void            save_current_preset(const std::string &new_name, bool detach = false);
 
     // Delete the current preset, activate the first visible preset.
     // returns true if the preset was deleted successfully.
@@ -333,9 +342,9 @@ public:
     // Return the selected preset, without the user modifications applied.
     Preset&         get_selected_preset()       { return m_presets[m_idx_selected]; }
     const Preset&   get_selected_preset() const { return m_presets[m_idx_selected]; }
-    int             get_selected_idx()    const { return m_idx_selected; }
+    size_t          get_selected_idx()    const { return m_idx_selected; }
     // Returns the name of the selected preset, or an empty string if no preset is selected.
-    std::string     get_selected_preset_name() const { return (m_idx_selected == -1) ? std::string() : this->get_selected_preset().name; }
+    std::string     get_selected_preset_name() const { return (m_idx_selected == size_t(-1)) ? std::string() : this->get_selected_preset().name; }
     // For the current edited preset, return the parent preset if there is one.
     // If there is no parent preset, nullptr is returned.
     // The parent preset may be a system preset or a user preset, which will be
@@ -352,11 +361,12 @@ public:
     PresetWithVendorProfile get_preset_with_vendor_profile(const Preset &preset) const;
     PresetWithVendorProfile get_edited_preset_with_vendor_profile() const { return this->get_preset_with_vendor_profile(this->get_edited_preset()); }
 
-    const std::string& get_preset_name_by_alias(const std::string& alias) const;
+    const std::string& 		get_preset_name_by_alias(const std::string& alias) const;
+	const std::string*		get_preset_name_renamed(const std::string &old_name) const;
 
 	// used to update preset_choice from Tab
 	const std::deque<Preset>&	get_presets() const	{ return m_presets; }
-	int							get_idx_selected()	{ return m_idx_selected; }
+    size_t                      get_idx_selected()	{ return m_idx_selected; }
 	static const std::string&	get_suffix_modified();
 
     // Return a preset possibly with modifications.
@@ -364,7 +374,7 @@ public:
 	const Preset&   default_preset(size_t idx = 0) const { assert(idx < m_num_default_presets); return m_presets[idx]; }
 	virtual const Preset& default_preset_for(const DynamicPrintConfig & /* config */) const { return this->default_preset(); }
     // Return a preset by an index. If the preset is active, a temporary copy is returned.
-    Preset&         preset(size_t idx)          { return (int(idx) == m_idx_selected) ? m_edited_preset : m_presets[idx]; }
+    Preset&         preset(size_t idx)          { return (idx == m_idx_selected) ? m_edited_preset : m_presets[idx]; }
     const Preset&   preset(size_t idx) const    { return const_cast<PresetCollection*>(this)->preset(idx); }
     void            discard_current_changes()   { m_presets[m_idx_selected].reset_dirty(); m_edited_preset = m_presets[m_idx_selected]; }
     
@@ -412,13 +422,13 @@ public:
 
     // For Print / Filament presets, disable those, which are not compatible with the printer.
     template<typename PreferedCondition>
-    void            update_compatible(const PresetWithVendorProfile &active_printer, const PresetWithVendorProfile *active_print, bool select_other_if_incompatible, PreferedCondition prefered_condition)
+    void            update_compatible(const PresetWithVendorProfile &active_printer, const PresetWithVendorProfile *active_print, PresetSelectCompatibleType select_other_if_incompatible, PreferedCondition prefered_condition)
     {
         if (this->update_compatible_internal(active_printer, active_print, select_other_if_incompatible) == (size_t)-1)
             // Find some other compatible preset, or the "-- default --" preset.
             this->select_preset(this->first_compatible_idx(prefered_condition));        
     }
-    void            update_compatible(const PresetWithVendorProfile &active_printer, const PresetWithVendorProfile *active_print, bool select_other_if_incompatible)
+    void            update_compatible(const PresetWithVendorProfile &active_printer, const PresetWithVendorProfile *active_print, PresetSelectCompatibleType select_other_if_incompatible)
         { this->update_compatible(active_printer, active_print, select_other_if_incompatible, [](const std::string&){return true;}); }
 
     size_t          num_visible() const { return std::count_if(m_presets.begin(), m_presets.end(), [](const Preset &preset){return preset.is_visible;}); }
@@ -515,7 +525,7 @@ private:
     std::deque<Preset>::const_iterator find_preset_renamed(const std::string &name) const
         { return const_cast<PresetCollection*>(this)->find_preset_renamed(name); }
 
-    size_t update_compatible_internal(const PresetWithVendorProfile &active_printer, const PresetWithVendorProfile *active_print, bool unselect_if_incompatible);
+    size_t update_compatible_internal(const PresetWithVendorProfile &active_printer, const PresetWithVendorProfile *active_print, PresetSelectCompatibleType unselect_if_incompatible);
 
     static std::vector<std::string> dirty_options(const Preset *edited, const Preset *reference, const bool is_printer_type = false);
 
@@ -532,7 +542,7 @@ private:
     // Initially this preset contains a copy of the selected preset. Later on, this copy may be modified by the user.
     Preset                  m_edited_preset;
     // Selected preset.
-    int                     m_idx_selected;
+    size_t                  m_idx_selected;
     // Is the "- default -" preset suppressed?
     bool                    m_default_suppressed  = true;
     size_t                  m_num_default_presets = 0;

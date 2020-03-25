@@ -98,7 +98,17 @@ extern Semver SEMVER;
 template<typename T, typename Q>
 inline T unscale(Q v) { return T(v) * T(SCALING_FACTOR); }
 
-enum Axis { X=0, Y, Z, E, F, NUM_AXES };
+enum Axis { 
+	X=0,
+	Y,
+	Z,
+	E,
+	F,
+	NUM_AXES,
+	// For the GCodeReader to mark a parsed axis, which is not in "XYZEF", it was parsed correctly.
+	UNKNOWN_AXIS = NUM_AXES,
+	NUM_AXES_WITH_UNKNOWN,
+};
 
 template <class T>
 inline void append_to(std::vector<T> &dst, const std::vector<T> &src)

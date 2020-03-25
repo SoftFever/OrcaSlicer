@@ -145,7 +145,7 @@ MsgUpdateConfig::~MsgUpdateConfig() {}
 //MsgUpdateForced
 
 MsgUpdateForced::MsgUpdateForced(const std::vector<Update>& updates) :
-	MsgDialog(nullptr, wxString::Format(_(L("%s incompatibility")), SLIC3R_APP_NAME), _(L("Configuration update is necessary to install")), wxID_NONE)
+    MsgDialog(nullptr, wxString::Format(_(L("%s incompatibility")), SLIC3R_APP_NAME), _(L("You must install a configuration update.")) + " ", wxID_NONE)
 {
 	auto* text = new wxStaticText(this, wxID_ANY, wxString::Format(_(L(
 		"%s will now start updates. Otherwise it won't be able to start.\n\n"
@@ -265,8 +265,8 @@ MsgDataIncompatible::~MsgDataIncompatible() {}
 MsgDataLegacy::MsgDataLegacy() :
 	MsgDialog(nullptr, _(L("Configuration update")), _(L("Configuration update")))
 {
-	auto *text = new wxStaticText(this, wxID_ANY, wxString::Format(
-		_(L(
+    auto *text = new wxStaticText(this, wxID_ANY, from_u8((boost::format(
+        _utf8(L(
 			"%s now uses an updated configuration structure.\n\n"
 
 			"So called 'System presets' have been introduced, which hold the built-in default settings for various "
@@ -276,8 +276,9 @@ MsgDataLegacy::MsgDataLegacy() :
 
 			"Please proceed with the %s that follows to set up the new presets "
 			"and to choose whether to enable automatic preset updates."
-		)),
-		SLIC3R_APP_NAME, ConfigWizard::name()
+        )))
+        % SLIC3R_APP_NAME
+        % _utf8(ConfigWizard::name())).str()
 	));
 	text->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 	content_sizer->Add(text);
@@ -300,14 +301,14 @@ MsgDataLegacy::~MsgDataLegacy() {}
 // MsgNoUpdate
 
 MsgNoUpdates::MsgNoUpdates() :
-	MsgDialog(nullptr, _(L("Configuration updates")), _(L("No updates aviable")))
+    MsgDialog(nullptr, _(L("Configuration updates")), _(L("No updates available")))
 {
 
 	auto* text = new wxStaticText(this, wxID_ANY, wxString::Format(
 		_(L(
-			"%s has no configuration updates aviable."
+            "%s has no configuration updates available."
 		)),
-		SLIC3R_APP_NAME, ConfigWizard::name()
+        SLIC3R_APP_NAME
 	));
 	text->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 	content_sizer->Add(text);

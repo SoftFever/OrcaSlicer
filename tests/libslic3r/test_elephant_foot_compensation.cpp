@@ -413,6 +413,19 @@ static ExPolygon contour_with_hole()
 	return out;
 }
 
+static bool is_valid_orientation(const ExPolygon &p)
+{
+    bool ret = p.contour.is_counter_clockwise();
+    for (auto &h : p.holes) ret = ret && h.is_clockwise();
+    return ret;
+}
+
+static bool is_efc_result_smaller(const ExPolygon &efc, const ExPolygon &orig)
+{
+    double efc_area = efc.area();
+    return efc_area > 0. && efc_area < orig.area() && is_valid_orientation(efc);
+}
+
 SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
 
 	GIVEN("Contour with hole") {
@@ -426,7 +439,7 @@ SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
 				  { { expoly_compensated }, { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } } });
 #endif /* TESTS_EXPORT_SVGS */
             THEN("area of the compensated polygon is smaller") {
-                REQUIRE(expoly_compensated.area() < expoly.area());
+                REQUIRE(is_efc_result_smaller(expoly_compensated, expoly));
             }
 		}
 	}
@@ -456,7 +469,7 @@ SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
 				  { { expoly_compensated }, { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } } });
 #endif /* TESTS_EXPORT_SVGS */
             THEN("area of the compensated polygon is smaller") {
-                REQUIRE(expoly_compensated.area() < expoly.area());
+                REQUIRE(is_efc_result_smaller(expoly_compensated, expoly));
             }
         }
 	}
@@ -471,7 +484,7 @@ SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
 				  { { expoly_compensated }, { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } } });
 #endif /* TESTS_EXPORT_SVGS */
             THEN("area of the compensated polygon is smaller") {
-                REQUIRE(expoly_compensated.area() < expoly.area());
+                REQUIRE(is_efc_result_smaller(expoly_compensated, expoly));
             }
         }
 	}
@@ -523,7 +536,7 @@ SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
 				  { { expoly_compensated }, { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } } });
 #endif /* TESTS_EXPORT_SVGS */
             THEN("area of the compensated polygon is smaller") {
-                REQUIRE(expoly_compensated.area() < expoly.area());
+                REQUIRE(is_efc_result_smaller(expoly_compensated, expoly));
             }
         }
 		WHEN("Fully compensated") {
@@ -534,7 +547,7 @@ SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
 				  { { expoly_compensated }, { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } } });
 #endif /* TESTS_EXPORT_SVGS */
 			THEN("area of the compensated polygon is smaller") {
-				REQUIRE(expoly_compensated.area() < expoly.area());
+				REQUIRE(is_efc_result_smaller(expoly_compensated, expoly));
 			}
 		}
 	}
@@ -549,7 +562,7 @@ SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
 				  { { expoly_compensated }, { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } } });
 #endif /* TESTS_EXPORT_SVGS */
             THEN("area of the compensated polygon is smaller") {
-                REQUIRE(expoly_compensated.area() < expoly.area());
+                REQUIRE(is_efc_result_smaller(expoly_compensated, expoly));
             }
         }
 	}
@@ -566,7 +579,7 @@ SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
 				  { { expoly_compensated }, { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } } });
 #endif /* TESTS_EXPORT_SVGS */
             THEN("area of the compensated polygon is smaller") {
-                REQUIRE(expoly_compensated.area() < expoly.area());
+                REQUIRE(is_efc_result_smaller(expoly_compensated, expoly));
             }
         }
 		WHEN("Fully compensated") {
@@ -577,7 +590,7 @@ SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
 				  { { expoly_compensated }, { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } } });
 #endif /* TESTS_EXPORT_SVGS */
 			THEN("area of the compensated polygon is smaller") {
-				REQUIRE(expoly_compensated.area() < expoly.area());
+				REQUIRE(is_efc_result_smaller(expoly_compensated, expoly));
 			}
 		}
         WHEN("Brutally compensated") {
@@ -588,7 +601,7 @@ SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
 				  { { expoly_compensated }, { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } } });
 #endif /* TESTS_EXPORT_SVGS */
             THEN("area of the compensated polygon is smaller") {
-                REQUIRE(expoly_compensated.area() < expoly.area());
+                REQUIRE(is_efc_result_smaller(expoly_compensated, expoly));
             }
         }
 	}
@@ -603,7 +616,7 @@ SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
 				  { { expoly_compensated }, { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } } });
 #endif /* TESTS_EXPORT_SVGS */
             THEN("area of the compensated polygon is smaller") {
-                REQUIRE(expoly_compensated.area() < expoly.area());
+                REQUIRE(is_efc_result_smaller(expoly_compensated, expoly));
             }
         }
 	}

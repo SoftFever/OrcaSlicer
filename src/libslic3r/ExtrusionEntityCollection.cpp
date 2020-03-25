@@ -11,18 +11,10 @@ void filter_by_extrusion_role_in_place(ExtrusionEntitiesPtr &extrusion_entities,
 	if (role != erMixed) {
 		auto first  = extrusion_entities.begin();
 		auto last   = extrusion_entities.end();
-		auto result = first;
-		while (first != last) {
-		    // The caller wants only paths with a specific extrusion role.
-		    auto role2 = (*first)->role();
-		    if (role != role2) {
-		        // This extrusion entity does not match the role asked.
-		        assert(role2 != erMixed);
-		        *result = *first;
-	  			++ result;
-		    }
-			++ first;
-		}
+        extrusion_entities.erase(
+            std::remove_if(first, last, [&role](const ExtrusionEntity* ee) {
+                return ee->role() != role; }),
+            last);
 	}
 }
 

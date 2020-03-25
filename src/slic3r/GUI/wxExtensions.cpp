@@ -543,7 +543,7 @@ std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon/* = false*/)
      * and scale them in respect to em_unit value
      */
     const double em = Slic3r::GUI::wxGetApp().em_unit();
-    const int icon_width = lround((thin_icon ? 1 : 3.2) * em);
+    const int icon_width = lround((thin_icon ? 1.6 : 3.2) * em);
     const int icon_height = lround(1.6 * em);
 
     for (const std::string& color : colors)
@@ -603,7 +603,9 @@ void apply_extruder_selector(wxBitmapComboBox** ctrl,
             ++i;
         }
 
-        (*ctrl)->Append(use_full_item_name ? wxString::Format("%s %d", str, i) : std::to_string(i), *bmp);
+        (*ctrl)->Append(use_full_item_name
+                        ? Slic3r::GUI::from_u8((boost::format("%1% %2%") % str % i).str())
+                        : wxString::Format("%d", i), *bmp);
         ++i;
     }
     (*ctrl)->SetSelection(0);
@@ -700,8 +702,9 @@ ModeButton::ModeButton( wxWindow*           parent,
 
 void ModeButton::Init(const wxString &mode)
 {
-    m_tt_focused = wxString::Format(_(L("Switch to the %s mode")), mode);
-    m_tt_selected = wxString::Format(_(L("Current mode is %s")), mode);
+    std::string mode_str = std::string(mode.ToUTF8());
+    m_tt_focused  = Slic3r::GUI::from_u8((boost::format(_utf8(L("Switch to the %s mode"))) % mode_str).str());
+    m_tt_selected = Slic3r::GUI::from_u8((boost::format(_utf8(L("Current mode is %s"))) % mode_str).str());
 
     SetBitmapMargins(3, 0);
 

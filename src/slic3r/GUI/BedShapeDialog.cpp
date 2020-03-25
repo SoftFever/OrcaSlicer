@@ -220,7 +220,7 @@ wxPanel* BedShapePanel::init_texture_panel()
                     if (m_custom_texture != NONE)
                     {
                         if (!exists)
-                            tooltip_text += _(L("Not found: "));
+                            tooltip_text += _(L("Not found:")) + " ";
 
                         tooltip_text += _(m_custom_texture);
                     }
@@ -299,7 +299,7 @@ wxPanel* BedShapePanel::init_model_panel()
                     if (m_custom_model != NONE)
                     {
                         if (!exists)
-                            tooltip_text += _(L("Not found: "));
+                            tooltip_text += _(L("Not found:")) + " ";
 
                         tooltip_text += _(m_custom_model);
                     }

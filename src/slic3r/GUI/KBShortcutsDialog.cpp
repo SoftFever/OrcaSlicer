@@ -122,6 +122,8 @@ void KBShortcutsDialog::fill_shortcuts()
         { ctrl + "G", L("Export G-code") },
         { ctrl + "Shift+" + "G", L("Send G-code") },
         { ctrl + "E", L("Export config") },
+		{ ctrl + "U", L("Export to SD card / Flash drive") },
+		{ ctrl + "T", L("Eject SD card / Flash drive") },
         // Edit
         { ctrl + "A", L("Select all objects") },
         { "Esc", L("Deselect all") },
@@ -142,9 +144,7 @@ void KBShortcutsDialog::fill_shortcuts()
         { ctrl + "J", L("Print host upload queue") },
         // View
         { "0-6", L("Camera view") },
-#if ENABLE_SHOW_SCENE_LABELS
         { "E", L("Show/Hide object/instance labels") },
-#endif // ENABLE_SHOW_SCENE_LABELS
         // Configuration
         { ctrl + "P", L("Preferences") },
         // Help
@@ -158,7 +158,7 @@ void KBShortcutsDialog::fill_shortcuts()
         { "Shift+A", L("Arrange selection") },
         { "+", L("Add Instance of the selected object") },
         { "-", L("Remove Instance of the selected object") },
-        { ctrl, L("Press to select multiple object\nor move multiple object with mouse") },
+        { ctrl, L("Press to select multiple objects\nor move multiple objects with mouse") },
         { "Shift+", L("Press to activate selection rectangle") },
         { alt, L("Press to activate deselection rectangle") },
         { L("Arrow Up"), L("Move selection 10 mm in positive Y direction") },
@@ -192,7 +192,7 @@ void KBShortcutsDialog::fill_shortcuts()
     m_full_shortcuts.push_back(std::make_pair(_(L("Plater")), plater_shortcuts));
 
     Shortcuts gizmos_shortcuts = {
-        { "Shift+", L("Press to to snap by 5% in Gizmo scale\nor to snap by 1mm in Gizmo move") },
+        { "Shift+", L("Press to snap by 5% in Gizmo scale\nor to snap by 1mm in Gizmo move") },
         { "F", L("Scale selection to fit print volume\nin Gizmo scale") },
         { ctrl, L("Press to activate one direction scaling in Gizmo scale") },
         { alt, L("Press to scale (in Gizmo scale) or rotate (in Gizmo rotate)\nselected objects around their own center") },

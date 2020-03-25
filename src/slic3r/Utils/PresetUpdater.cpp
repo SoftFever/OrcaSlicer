@@ -394,7 +394,7 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
 		auto bundle_path_idx = vendor_path / idx.path().filename();
 
 		if (! fs::exists(bundle_path)) {
-			BOOST_LOG_TRIVIAL(info) << "Confing bundle not installed for vendor %1%, skipping: " << idx.vendor();
+			BOOST_LOG_TRIVIAL(info) << boost::format("Confing bundle not installed for vendor %1%, skipping: ") % idx.vendor();
 			continue;
 		}
 
@@ -423,7 +423,7 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
 			// Any published config shall be always found in the latest config index.
 			auto message = (boost::format("Preset bundle `%1%` version not found in index: %2%") % idx.vendor() % vp.config_version.to_string()).str();
 			BOOST_LOG_TRIVIAL(error) << message;
-			GUI::show_error(nullptr, GUI::from_u8(message));
+			GUI::show_error(nullptr, message);
 			continue;
 		}
 
@@ -526,8 +526,8 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
 					existing_idx.load(bundle_path_idx);
 					// Find a recommended config bundle version for the slic3r version last executed. This makes sure that a config bundle update will not be missed
 					// when upgrading an application. On the other side, the user will be bugged every time he will switch between slic3r versions.
-					const auto existing_recommended = existing_idx.recommended(old_slic3r_version);
-					/*if (existing_recommended != existing_idx.end() && recommended->config_version == existing_recommended->config_version) {
+                    /*const auto existing_recommended = existing_idx.recommended(old_slic3r_version);
+                    if (existing_recommended != existing_idx.end() && recommended->config_version == existing_recommended->config_version) {
 						// The user has already seen (and presumably rejected) this update
 						BOOST_LOG_TRIVIAL(info) << boost::format("Downloaded index for `%1%` is the same as installed one, not offering an update.") % idx.vendor();
 						continue;
@@ -702,15 +702,15 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver &old_slic3
 			const auto max_slic3r = incompat.version.max_slic3r_version;
 			wxString restrictions;
 			if (min_slic3r != Semver::zero() && max_slic3r != Semver::inf()) {
-				restrictions = wxString::Format(_(L("requires min. %s and max. %s")),
-					min_slic3r.to_string(),
-					max_slic3r.to_string()
+                restrictions = GUI::from_u8((boost::format(_utf8(L("requires min. %s and max. %s")))
+                    % min_slic3r.to_string()
+                    % max_slic3r.to_string()).str()
 				);
 			} else if (min_slic3r != Semver::zero()) {
-				restrictions = wxString::Format(_(L("requires min. %s")), min_slic3r.to_string());
+                restrictions = GUI::from_u8((boost::format(_utf8(L("requires min. %s"))) % min_slic3r.to_string()).str());
 				BOOST_LOG_TRIVIAL(debug) << "Bundle is not downgrade, user will now have to do whole wizard. This should not happen.";
 			} else {
-				restrictions = wxString::Format(_(L("requires max. %s")), max_slic3r.to_string());
+                restrictions = GUI::from_u8((boost::format(_utf8(L("requires max. %s"))) % max_slic3r.to_string()).str());
 			}
 
 			incompats_map.emplace(std::make_pair(incompat.vendor, std::move(restrictions)));

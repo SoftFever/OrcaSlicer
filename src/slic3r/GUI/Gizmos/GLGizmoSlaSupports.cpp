@@ -1,6 +1,7 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoSlaSupports.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmos.hpp"
 
 #include <GL/glew.h>
@@ -22,12 +23,11 @@
 namespace Slic3r {
 namespace GUI {
 
-GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, CommonGizmosData* cd)
-    : GLGizmoBase(parent, icon_filename, sprite_id, cd)
+GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
     , m_quadric(nullptr)
     , m_its(nullptr)
-{
-    m_c->m_clipping_plane.reset(new ClippingPlane(Vec3d::Zero(), 0.));
+{    
     m_quadric = ::gluNewQuadric();
     if (m_quadric != nullptr)
         // using GLU_FILL does not work when the instance's transformation
@@ -64,17 +64,20 @@ bool GLGizmoSlaSupports::on_init()
 void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const Selection& selection)
 {
     if (m_c->recent_update) {
-        if (m_state == On) {
-            m_parent.toggle_model_objects_visibility(false);
-            m_parent.toggle_model_objects_visibility(/*! m_c->m_cavity_mesh*/ true, m_c->m_model_object, m_c->m_active_instance);
-            m_parent.toggle_sla_auxiliaries_visibility(! m_editing_mode, m_c->m_model_object, m_c->m_active_instance);
-        }
-        else
-            m_parent.toggle_model_objects_visibility(true, nullptr, -1);
+        if (m_state == On)
+            m_c->build_AABB_if_needed();
+
+        update_clipping_plane(m_c->m_clipping_plane_was_moved);
 
         disable_editing_mode();
         if (m_c->m_model_object)
             reload_cache();
+    }
+
+    if (m_state == On) {
+        m_parent.toggle_model_objects_visibility(false);
+        m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
+        m_parent.toggle_sla_auxiliaries_visibility(! m_editing_mode, m_c->m_model_object, m_c->m_active_instance);
     }
 
     // If we triggered autogeneration before, check backend and fetch results if they are there
@@ -104,8 +107,6 @@ void GLGizmoSlaSupports::on_render() const
 
     m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
 
-    render_hollowed_mesh();
-
     if (m_quadric != nullptr && selection.is_from_single_instance())
         render_points(selection, false);
 
@@ -113,29 +114,6 @@ void GLGizmoSlaSupports::on_render() const
     render_clipping_plane(selection);
 
     glsafe(::glDisable(GL_BLEND));
-}
-
-
-
-void GLGizmoSlaSupports::render_hollowed_mesh() const
-{
-    /*if (m_c->m_volume_with_cavity) {
-        m_c->m_volume_with_cavity->set_sla_shift_z(m_z_shift);
-        m_parent.get_shader().start_using();
-
-        GLint current_program_id;
-        glsafe(::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id));
-        GLint color_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "uniform_color") : -1;
-        GLint print_box_detection_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.volume_detection") : -1;
-        GLint print_box_worldmatrix_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.volume_world_matrix") : -1;
-        glcheck();
-        m_c->m_volume_with_cavity->set_render_color();
-        const Geometry::Transformation& volume_trafo = m_c->m_model_object->volumes.front()->get_transformation();
-        m_c->m_volume_with_cavity->set_volume_transformation(volume_trafo);
-        m_c->m_volume_with_cavity->set_instance_transformation(m_c->m_model_object->instances[size_t(m_c->m_active_instance)]->get_transformation());
-        m_c->m_volume_with_cavity->render(color_id, print_box_detection_id, print_box_worldmatrix_id);
-        m_parent.get_shader().stop_using();
-    }*/
 }
 
 
@@ -236,7 +214,6 @@ void GLGizmoSlaSupports::on_render_for_picking() const
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_points(selection, true);
-    render_hollowed_mesh();
 }
 
 void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking) const
@@ -342,6 +319,9 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
         render_color[3] = 0.7f;
         glsafe(::glColor4fv(render_color));
         for (const sla::DrainHole& drain_hole : m_c->m_model_object->sla_drain_holes) {
+            if (is_mesh_point_clipped((drain_hole.pos+m_c->HoleStickOutLength*drain_hole.normal).cast<double>()))
+                continue;
+
             // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
             glsafe(::glPushMatrix());
             glsafe(::glTranslatef(drain_hole.pos(0), drain_hole.pos(1), drain_hole.pos(2)));
@@ -587,7 +567,8 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
     if (action == SLAGizmoEventType::MouseWheelUp && control_down) {
         m_c->m_clipping_plane_distance = std::min(1.f, m_c->m_clipping_plane_distance + 0.01f);
-        update_clipping_plane(true);
+        update_clipping_plane(m_c->m_clipping_plane_was_moved);
+        m_c->m_clipping_plane_was_moved = true;
         return true;
     }
 
@@ -621,8 +602,6 @@ void GLGizmoSlaSupports::delete_selected_points(bool force)
     }
 
     select_point(NoPoints);
-
-    //m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
 void GLGizmoSlaSupports::on_update(const UpdateData& data)
@@ -637,8 +616,6 @@ void GLGizmoSlaSupports::on_update(const UpdateData& data)
             m_editing_cache[m_hover_id].support_point.pos = pos_and_normal.first;
             m_editing_cache[m_hover_id].support_point.is_new_island = false;
             m_editing_cache[m_hover_id].normal = pos_and_normal.second;
-            // Do not update immediately, wait until the mouse is released.
-            // m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
         }
     }
 }
@@ -913,8 +890,10 @@ RENDER_AGAIN:
 
     ImGui::SameLine(clipping_slider_left);
     ImGui::PushItemWidth(window_width - clipping_slider_left);
-    if (ImGui::SliderFloat("  ", &m_c->m_clipping_plane_distance, 0.f, 1.f, "%.2f"))
-        update_clipping_plane(true);
+    if (ImGui::SliderFloat("  ", &m_c->m_clipping_plane_distance, 0.f, 1.f, "%.2f")) {
+        update_clipping_plane(m_c->m_clipping_plane_was_moved);
+        m_c->m_clipping_plane_was_moved = true;
+    }
 
 
     if (m_imgui->button("?")) {
@@ -999,7 +978,9 @@ void GLGizmoSlaSupports::on_set_state()
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned on")));
 
         m_c->unstash_clipping_plane();
-        update_clipping_plane(m_c->m_clipping_plane_distance != 0.f);
+        update_clipping_plane(m_c->m_clipping_plane_was_moved);
+
+        m_c->build_AABB_if_needed();
 
 
         // we'll now reload support points:
@@ -1007,9 +988,10 @@ void GLGizmoSlaSupports::on_set_state()
             reload_cache();
 
         m_parent.toggle_model_objects_visibility(false);
-        if (m_c->m_model_object /*&& ! m_c->m_cavity_mesh*/)
+        if (m_c->m_model_object)  {
             m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
-        m_parent.toggle_sla_auxiliaries_visibility(! m_editing_mode, m_c->m_model_object, m_c->m_active_instance);
+            m_parent.toggle_sla_auxiliaries_visibility(! m_editing_mode, m_c->m_model_object, m_c->m_active_instance);
+        }
 
         // Set default head diameter from config.
         const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;

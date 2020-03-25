@@ -16,6 +16,7 @@ namespace GUI {
 class ClippingPlane;
 class MeshClipper;
 class MeshRaycaster;
+class CommonGizmosData;
 enum class SLAGizmoEventType : unsigned char;
 
 class GLGizmoSlaSupports : public GLGizmoBase
@@ -69,7 +70,7 @@ private:
     };
 
 public:
-    GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, CommonGizmosData* cd);
+    GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
     ~GLGizmoSlaSupports() override;
     void set_sla_support_data(ModelObject* model_object, const Selection& selection);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
@@ -81,6 +82,7 @@ public:
     bool has_backend_supports() const;
     void reslice_SLA_supports(bool postpone_error_messages = false) const;
     void update_clipping_plane(bool keep_normal = false) const;
+    void set_common_data_ptr(CommonGizmosData* ptr) { m_c = ptr; }
 
 private:
     bool on_init() override;
@@ -91,7 +93,6 @@ private:
     //void render_selection_rectangle() const;
     void render_points(const Selection& selection, bool picking = false) const;
     void render_clipping_plane(const Selection& selection) const;
-    void render_hollowed_mesh() const;
     bool unsaved_changes() const;
 
     bool m_lock_unique_islands = false;
@@ -115,6 +116,8 @@ private:
     bool m_wait_for_up_event = false;
     bool m_selection_empty = true;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
+
+    CommonGizmosData* m_c = nullptr;
 
     //mutable std::unique_ptr<MeshClipper> m_object_clipper;
     //mutable std::unique_ptr<MeshClipper> m_supports_clipper;

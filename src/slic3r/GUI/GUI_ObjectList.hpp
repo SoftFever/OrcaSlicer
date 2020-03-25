@@ -241,14 +241,14 @@ public:
     wxMenuItem*         append_menu_item_split(wxMenu* menu);
     wxMenuItem*         append_menu_item_layers_editing(wxMenu* menu, wxWindow* parent);
     wxMenuItem*         append_menu_item_settings(wxMenu* menu);
-    wxMenuItem*         append_menu_item_change_type(wxMenu* menu);
+    wxMenuItem*         append_menu_item_change_type(wxMenu* menu, wxWindow* parent = nullptr);
     wxMenuItem*         append_menu_item_instance_to_object(wxMenu* menu, wxWindow* parent);
     wxMenuItem*         append_menu_item_printable(wxMenu* menu, wxWindow* parent);
     void                append_menu_items_osx(wxMenu* menu);
     wxMenuItem*         append_menu_item_fix_through_netfabb(wxMenu* menu);
     void                append_menu_item_export_stl(wxMenu* menu) const;
     void                append_menu_item_reload_from_disk(wxMenu* menu) const;
-    void                append_menu_item_change_extruder(wxMenu* menu) const;
+    void                append_menu_item_change_extruder(wxMenu* menu);
     void                append_menu_item_delete(wxMenu* menu);
     void                append_menu_item_scale_selection_to_fit_print_volume(wxMenu* menu);
     void                create_object_popupmenu(wxMenu *menu);
@@ -284,7 +284,7 @@ public:
     bool                selected_instances_of_same_object();
     bool                can_split_instances();
 
-    wxPoint             get_mouse_position_in_control();
+    wxPoint             get_mouse_position_in_control() const { return wxGetMousePosition() - this->GetScreenPosition(); }
     wxBoxSizer*         get_sizer() {return  m_sizer;}
     int                 get_selected_obj_idx() const;
     DynamicPrintConfig& get_item_config(const wxDataViewItem& item) const;
@@ -320,13 +320,27 @@ public:
     // Remove objects/sub-object from the list
     void remove();
     void del_layer_range(const t_layer_height_range& range);
-    void add_layer_range_after_current(const t_layer_height_range& current_range);
+    // Add a new layer height after the current range if possible.
+    // The current range is shortened and the new range is entered after the shortened current range if it fits.
+    // If no range fits after the current range, then no range is inserted.
+    // The layer range panel is updated even if this function does not change the layer ranges, as the panel update
+    // may have been postponed from the "kill focus" event of a text field, if the focus was lost for the "add layer" button.
+    // Rather providing the range by a value than by a reference, so that the memory referenced cannot be invalidated.
+    void add_layer_range_after_current(const t_layer_height_range current_range);
+    wxString can_add_new_range_after_current( t_layer_height_range current_range);
     void add_layer_item (const t_layer_height_range& range, 
                          const wxDataViewItem layers_item, 
                          const int layer_idx = -1);
     bool edit_layer_range(const t_layer_height_range& range, coordf_t layer_height);
+    // This function may be called when a text field loses focus for a "add layer" or "remove layer" button.
+    // In that case we don't want to destroy the panel with that "add layer" or "remove layer" buttons, as some messages
+    // are already planned for them and destroying these widgets leads to crashes at least on OSX.
+    // In that case the "add layer" or "remove layer" button handlers are responsible for always rebuilding the panel
+    // even if the "add layer" or "remove layer" buttons did not update the layer spans or layer heights.
     bool edit_layer_range(const t_layer_height_range& range, 
-                          const t_layer_height_range& new_range);
+                          const t_layer_height_range& new_range,
+                          // Don't destroy the panel with the "add layer" or "remove layer" buttons.
+                          bool suppress_ui_update = false);
 
     void init_objects();
     bool multiple_selection() const ;
@@ -381,7 +395,7 @@ private:
 //    void OnChar(wxKeyEvent& event);
 #endif /* __WXOSX__ */
     void OnContextMenu(wxDataViewEvent &event);
-    void list_manipulation(bool evt_context_menu = false);
+    void list_manipulation(const wxPoint& mouse_pos, bool evt_context_menu = false);
 
     void OnBeginDrag(wxDataViewEvent &event);
     void OnDropPossible(wxDataViewEvent &event);

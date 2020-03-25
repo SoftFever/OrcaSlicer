@@ -3,8 +3,8 @@
 
 #include "slic3r/GUI/GLTexture.hpp"
 #include "slic3r/GUI/GLToolbar.hpp"
-#include "slic3r/GUI/Gizmos/GLGizmos.hpp"
 #include "libslic3r/ObjectID.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoBase.hpp"
 
 #include <map>
 
@@ -18,6 +18,8 @@ namespace GUI {
 
 class GLCanvas3D;
 class ClippingPlane;
+enum class SLAGizmoEventType : unsigned char;
+class CommonGizmosData;
 
 class Rect
 {
@@ -204,7 +206,7 @@ public:
 
     void render_overlay() const;
 
-    const std::string& get_tooltip() const { return m_tooltip; }
+    std::string get_tooltip() const;
 
     bool on_mouse(wxMouseEvent& evt);
     bool on_mouse_wheel(wxMouseEvent& evt);
@@ -225,6 +227,65 @@ private:
     void update_on_off_state(const Vec2d& mouse_pos);
     std::string update_hover_state(const Vec2d& mouse_pos);
     bool grabber_contains_mouse() const;
+};
+
+
+
+class MeshRaycaster;
+class MeshClipper;
+
+// This class is only for sharing SLA related data between SLA gizmos
+// and its synchronization with backend data. It should not be misused
+// for anything else.
+class CommonGizmosData {
+public:
+    CommonGizmosData();
+    const TriangleMesh* mesh() const {
+        return (! m_mesh ? nullptr : m_mesh); //(m_cavity_mesh ? m_cavity_mesh.get() : m_mesh));
+    }
+
+    bool update_from_backend(GLCanvas3D& canvas, ModelObject* model_object);
+    bool recent_update = false;
+    static constexpr float HoleStickOutLength = 1.f;
+
+    ModelObject* m_model_object = nullptr;
+    const TriangleMesh* m_mesh;
+    std::unique_ptr<MeshRaycaster> m_mesh_raycaster;
+    std::unique_ptr<MeshClipper> m_object_clipper;
+    std::unique_ptr<MeshClipper> m_supports_clipper;
+
+    //std::unique_ptr<TriangleMesh> m_cavity_mesh;
+    //std::unique_ptr<GLVolume> m_volume_with_cavity;
+
+    int m_active_instance = -1;
+    float m_active_instance_bb_radius = 0;
+    ObjectID m_model_object_id = 0;
+    int m_print_object_idx = -1;
+    int m_print_objects_count = -1;
+    int m_old_timestamp = -1;
+
+    float m_clipping_plane_distance = 0.f;
+    std::unique_ptr<ClippingPlane> m_clipping_plane;
+    bool m_clipping_plane_was_moved = false;
+
+    void stash_clipping_plane() {
+        m_clipping_plane_distance_stash = m_clipping_plane_distance;
+    }
+
+    void unstash_clipping_plane() {
+        m_clipping_plane_distance = m_clipping_plane_distance_stash;
+    }
+
+    bool has_drilled_mesh() const { return m_has_drilled_mesh; }
+
+    void build_AABB_if_needed();
+
+private:
+    const TriangleMesh* m_old_mesh;
+    TriangleMesh m_backend_mesh_transformed;
+    float m_clipping_plane_distance_stash = 0.f;
+    bool m_has_drilled_mesh = false;
+    bool m_schedule_aabb_calculation = false;
 };
 
 } // namespace GUI

@@ -3,6 +3,7 @@
 
 #include "GLCanvas3D.hpp"
 #include "GUI_App.hpp"
+#include "GUI.hpp"
 #include "GUI_ObjectManipulation.hpp"
 #include "GUI_ObjectList.hpp"
 #include "Gizmos/GLGizmoBase.hpp"
@@ -1470,9 +1471,10 @@ void Selection::toggle_instance_printable_state()
             ModelInstance* instance = model_object->instances[instance_idx];
             const bool printable = !instance->printable;
 
-            wxString snapshot_text = model_object->instances.size() == 1 ? wxString::Format("%s %s",
-                                     printable ? _(L("Set Printable")) : _(L("Set Unprintable")), model_object->name) :
-                                     printable ? _(L("Set Printable Instance")) : _(L("Set Unprintable Instance"));
+            wxString snapshot_text = model_object->instances.size() == 1 ? from_u8((boost::format("%1% %2%")
+                                         % (printable ? _utf8(L("Set Printable")) : _utf8(L("Set Unprintable")))
+                                         % model_object->name).str()) :
+                                     (printable ? _(L("Set Printable Instance")) : _(L("Set Unprintable Instance")));
             wxGetApp().plater()->take_snapshot(snapshot_text);
 
             instance->printable = printable;

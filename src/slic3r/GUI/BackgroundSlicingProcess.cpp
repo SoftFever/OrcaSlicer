@@ -1,5 +1,6 @@
 #include "BackgroundSlicingProcess.hpp"
 #include "GUI_App.hpp"
+#include "GUI.hpp"
 
 #include <wx/app.h>
 #include <wx/panel.h>
@@ -10,9 +11,7 @@
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
 
-#if ENABLE_THUMBNAIL_GENERATOR
 #include <miniz.h>
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 // Print now includes tbb, and tbb includes Windows. This breaks compilation of wxWidgets if included before wx.
 #include "libslic3r/Print.hpp"
@@ -25,16 +24,15 @@
 #include <cassert>
 #include <stdexcept>
 #include <cctype>
-#include <algorithm>
 
-#include <boost/format.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem.hpp>
+#include <boost/format/format_fwd.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include "I18N.hpp"
-#include "GUI.hpp"
 #include "RemovableDriveManager.hpp"
+
+#include "slic3r/Utils/Thread.hpp"
 
 namespace Slic3r {
 
@@ -91,10 +89,8 @@ void BackgroundSlicingProcess::process_fff()
 	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_slicing_completed_id));
 #if ENABLE_GCODE_VIEWER
 	m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data, m_gcode_result, m_thumbnail_cb);
-#elif ENABLE_THUMBNAIL_GENERATOR
-	m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data, m_thumbnail_cb);
 #else
-    m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data);
+    m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data, m_thumbnail_cb);
 #endif // ENABLE_GCODE_VIEWER
 
 	if (this->set_step_started(bspsGCodeFinalize)) {
@@ -102,23 +98,29 @@ void BackgroundSlicingProcess::process_fff()
 	    	//FIXME localize the messages
 	    	// Perform the final post-processing of the export path by applying the print statistics over the file name.
 	    	std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);
-			GUI::RemovableDriveManager::get_instance().update();
-			bool with_check = GUI::RemovableDriveManager::get_instance().is_path_on_removable_drive(export_path);
-			int copy_ret_val = copy_file(m_temp_output_path, export_path, with_check);
-			if (with_check && copy_ret_val == -2)
-			{
-				std::string err_msg = "Copying of the temporary G-code to the output G-code failed. There might be problem with target device, please try exporting again or using different device. The corrupted output G-code is at " + export_path + ".tmp.";
-				throw std::runtime_error(_utf8(L(err_msg)));
+			int copy_ret_val = copy_file(m_temp_output_path, export_path, m_export_path_on_removable_media);
+			switch (copy_ret_val) {
+			case SUCCESS: break; // no error
+			case FAIL_COPY_FILE:
+				throw std::runtime_error(_utf8(L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?")));
+				break;
+			case FAIL_FILES_DIFFERENT: 
+				throw std::runtime_error((boost::format(_utf8(L("Copying of the temporary G-code to the output G-code failed. There might be problem with target device, please try exporting again or using different device. The corrupted output G-code is at %1%.tmp."))) % export_path).str());
+				break;
+			case FAIL_RENAMING: 
+				throw std::runtime_error((boost::format(_utf8(L("Renaming of the G-code after copying to the selected destination folder has failed. Current path is %1%.tmp. Please try exporting again."))) % export_path).str()); 
+				break;
+			case FAIL_CHECK_ORIGIN_NOT_OPENED: 
+				throw std::runtime_error((boost::format(_utf8(L("Copying of the temporary G-code has finished but the original code at %1% couldn't be opened during copy check. The output G-code is at %2%.tmp."))) % m_temp_output_path % export_path).str());
+				break;
+			case FAIL_CHECK_TARGET_NOT_OPENED: 
+				throw std::runtime_error((boost::format(_utf8(L("Copying of the temporary G-code has finished but the exported code couldn't be opened during copy check. The output G-code is at %1%.tmp."))) % export_path).str()); 
+				break;
+			default:
+				BOOST_LOG_TRIVIAL(warning) << "Unexpected fail code(" << (int)copy_ret_val << ") durring copy_file() to " << export_path << ".";
+				break;
 			}
-			else if (copy_ret_val == -3)
-			{
-				std::string err_msg = "Renaming of the G-code after copying to the selected destination folder has failed. Current path is " + export_path + ".tmp. Please try exporting again.";
-				throw std::runtime_error(_utf8(L(err_msg)));
-			}
-			else if ( copy_ret_val != 0)
-			{
-	    		throw std::runtime_error(_utf8(L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?")));
-			}
+			
 	    	m_print->set_status(95, _utf8(L("Running post-processing scripts")));
 	    	run_post_process_scripts(export_path, m_fff_print->config());
 	    	m_print->set_status(100, (boost::format(_utf8(L("G-code file exported to %1%"))) % export_path).str());
@@ -131,7 +133,6 @@ void BackgroundSlicingProcess::process_fff()
 	}
 }
 
-#if ENABLE_THUMBNAIL_GENERATOR
 static void write_thumbnail(Zipper& zipper, const ThumbnailData& data)
 {
     size_t png_size = 0;
@@ -142,7 +143,6 @@ static void write_thumbnail(Zipper& zipper, const ThumbnailData& data)
         mz_free(png_data);
     }
 }
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 void BackgroundSlicingProcess::process_sla()
 {
@@ -155,7 +155,6 @@ void BackgroundSlicingProcess::process_sla()
             Zipper zipper(export_path);
             m_sla_print->export_raster(zipper);
 
-#if ENABLE_THUMBNAIL_GENERATOR
             if (m_thumbnail_cb != nullptr)
             {
                 ThumbnailsList thumbnails;
@@ -167,7 +166,6 @@ void BackgroundSlicingProcess::process_sla()
                         write_thumbnail(zipper, data);
                 }
             }
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
             zipper.finalize();
 
@@ -213,10 +211,10 @@ void BackgroundSlicingProcess::thread_proc()
 			// Canceled, this is all right.
 			assert(m_print->canceled());
         } catch (const std::bad_alloc& ex) {
-            wxString errmsg = wxString::Format(_(L("%s has encountered an error. It was likely caused by running out of memory. "
+            wxString errmsg = GUI::from_u8((boost::format(_utf8(L("%s has encountered an error. It was likely caused by running out of memory. "
                                   "If you are sure you have enough RAM on your system, this may also be a bug and we would "
-                                  "be glad if you reported it.")), SLIC3R_APP_NAME);
-            error = errmsg.ToStdString() + "\n\n" + std::string(ex.what());
+                                  "be glad if you reported it."))) % SLIC3R_APP_NAME).str());
+            error = std::string(errmsg.ToUTF8()) + "\n\n" + std::string(ex.what());
         } catch (std::exception &ex) {
 			error = ex.what();
 		} catch (...) {
@@ -229,7 +227,7 @@ void BackgroundSlicingProcess::thread_proc()
 			// Only post the canceled event, if canceled by user.
 			// Don't post the canceled event, if canceled from Print::apply().
 			wxCommandEvent evt(m_event_finished_id);
-			evt.SetString(error);
+            evt.SetString(GUI::from_u8(error));
 			evt.SetInt(m_print->canceled() ? -1 : (error.empty() ? 1 : 0));
         	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
         }
@@ -410,7 +408,7 @@ void BackgroundSlicingProcess::set_task(const PrintBase::TaskParams &params)
 }
 
 // Set the output path of the G-code.
-void BackgroundSlicingProcess::schedule_export(const std::string &path)
+void BackgroundSlicingProcess::schedule_export(const std::string &path, bool export_path_on_removable_media)
 { 
 	assert(m_export_path.empty());
 	if (! m_export_path.empty())
@@ -420,6 +418,7 @@ void BackgroundSlicingProcess::schedule_export(const std::string &path)
 	tbb::mutex::scoped_lock lock(m_print->state_mutex());
 	this->invalidate_step(bspsGCodeFinalize);
 	m_export_path = path;
+	m_export_path_on_removable_media = export_path_on_removable_media;
 }
 
 void BackgroundSlicingProcess::schedule_upload(Slic3r::PrintHostJob upload_job)
@@ -440,6 +439,7 @@ void BackgroundSlicingProcess::reset_export()
 	assert(! this->running());
 	if (! this->running()) {
 		m_export_path.clear();
+		m_export_path_on_removable_media = false;
 		// invalidate_step expects the mutex to be locked.
 		tbb::mutex::scoped_lock lock(m_print->state_mutex());
 		this->invalidate_step(bspsGCodeFinalize);
@@ -484,7 +484,7 @@ void BackgroundSlicingProcess::prepare_upload()
 
 	if (m_print == m_fff_print) {
 		m_print->set_status(95, _utf8(L("Running post-processing scripts")));
-		if (copy_file(m_temp_output_path, source_path.string()) != 0) {
+		if (copy_file(m_temp_output_path, source_path.string()) != SUCCESS) {
 			throw std::runtime_error(_utf8(L("Copying of the temporary G-code to the output G-code failed")));
 		}
 		run_post_process_scripts(source_path.string(), m_fff_print->config());
@@ -494,7 +494,6 @@ void BackgroundSlicingProcess::prepare_upload()
 
         Zipper zipper{source_path.string()};
         m_sla_print->export_raster(zipper, m_upload_job.upload_data.upload_path.string());
-#if ENABLE_THUMBNAIL_GENERATOR
         if (m_thumbnail_cb != nullptr)
         {
             ThumbnailsList thumbnails;
@@ -506,7 +505,6 @@ void BackgroundSlicingProcess::prepare_upload()
                     write_thumbnail(zipper, data);
             }
         }
-#endif // ENABLE_THUMBNAIL_GENERATOR
         zipper.finalize();
     }
 

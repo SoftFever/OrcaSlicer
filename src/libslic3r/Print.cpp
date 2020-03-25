@@ -161,6 +161,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         } else if (
                opt_key == "skirts"
             || opt_key == "skirt_height"
+            || opt_key == "draft_shield"
             || opt_key == "skirt_distance"
             || opt_key == "min_skirt_length"
             || opt_key == "ooze_prevention"
@@ -613,8 +614,12 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 		m_placeholder_parser.set("print_preset",    new_full_config.option("print_settings_id")->clone());
 		m_placeholder_parser.set("filament_preset", new_full_config.option("filament_settings_id")->clone());
 		m_placeholder_parser.set("printer_preset",  new_full_config.option("printer_settings_id")->clone());
+		// We want the filament overrides to be applied over their respective extruder parameters by the PlaceholderParser.
+		// see "Placeholders do not respect filament overrides." GH issue #3649
+		m_placeholder_parser.apply_config(filament_overrides);
 	    // It is also safe to change m_config now after this->invalidate_state_by_config_options() call.
 	    m_config.apply_only(new_full_config, print_diff, true);
+	    //FIXME use move semantics once ConfigBase supports it.
 	    m_config.apply(filament_overrides);
 	    // Handle changes to object config defaults
 	    m_default_object_config.apply_only(new_full_config, object_diff, true);
@@ -1142,14 +1147,12 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 
 bool Print::has_infinite_skirt() const
 {
-    return (m_config.skirt_height == -1 && m_config.skirts > 0)
-        || (m_config.ooze_prevention && this->extruders().size() > 1);
+    return (m_config.draft_shield && m_config.skirts > 0) || (m_config.ooze_prevention && this->extruders().size() > 1);
 }
 
 bool Print::has_skirt() const
 {
-    return (m_config.skirt_height > 0 && m_config.skirts > 0)
-        || this->has_infinite_skirt();
+    return (m_config.skirt_height > 0 && m_config.skirts > 0) || this->has_infinite_skirt();
 }
 
 static inline bool sequential_print_horizontal_clearance_valid(const Print &print)
@@ -1621,10 +1624,8 @@ void Print::process()
 // It is up to the caller to show an error message.
 #if ENABLE_GCODE_VIEWER
 std::string Print::export_gcode(const std::string& path_template, GCodePreviewData* preview_data, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb)
-#elif ENABLE_THUMBNAIL_GENERATOR
-std::string Print::export_gcode(const std::string& path_template, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb)
 #else
-std::string Print::export_gcode(const std::string &path_template, GCodePreviewData *preview_data)
+std::string Print::export_gcode(const std::string& path_template, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb)
 #endif // ENABLE_GCODE_VIEWER
 {
     // output everything to a G-code file
@@ -1644,10 +1645,8 @@ std::string Print::export_gcode(const std::string &path_template, GCodePreviewDa
     GCode gcode;
 #if ENABLE_GCODE_VIEWER
     gcode.do_export(this, path.c_str(), preview_data, result, thumbnail_cb);
-#elif ENABLE_THUMBNAIL_GENERATOR
-    gcode.do_export(this, path.c_str(), preview_data, thumbnail_cb);
 #else
-    gcode.do_export(this, path.c_str(), preview_data);
+    gcode.do_export(this, path.c_str(), preview_data, thumbnail_cb);
 #endif // ENABLE_GCODE_VIEWER
     return path.c_str();
 }
@@ -1935,8 +1934,8 @@ void Print::_make_brim()
 			for (size_t i = 0; i < loops_trimmed_order.size();) {
 				// Find all pieces that the initial loop was split into.
 				size_t j = i + 1;
-				for (; j < loops_trimmed_order.size() && loops_trimmed_order[i].first == loops_trimmed_order[j].first; ++ j) ;
-				const ClipperLib_Z::Path &first_path = *loops_trimmed_order[i].first;
+                for (; j < loops_trimmed_order.size() && loops_trimmed_order[i].second == loops_trimmed_order[j].second; ++ j) ;
+                const ClipperLib_Z::Path &first_path = *loops_trimmed_order[i].first;
 				if (i + 1 == j && first_path.size() > 3 && first_path.front().X == first_path.back().X && first_path.front().Y == first_path.back().Y) {
 					auto *loop = new ExtrusionLoop();
 					m_brim.entities.emplace_back(loop);
@@ -2138,6 +2137,7 @@ std::string Print::output_filename(const std::string &filename_base) const
     // Set the placeholders for the data know first after the G-code export is finished.
     // These values will be just propagated into the output file name.
     DynamicConfig config = this->finished() ? this->print_statistics().config() : this->print_statistics().placeholders();
+    config.set_key_value("num_extruders", new ConfigOptionInt((int)m_config.nozzle_diameter.size()));
     return this->PrintBase::output_filename(m_config.output_filename_format.value, ".gcode", filename_base, &config);
 }
 

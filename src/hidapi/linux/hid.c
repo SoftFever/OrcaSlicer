@@ -159,7 +159,7 @@ static int hid_wrapper_udev_init()
 	{
 		// Error, close the shared library handle and finish.
 		hid_wrapper_udev_close();
-		return -1;
+		return -2;
 	}
 
 	// Success.
