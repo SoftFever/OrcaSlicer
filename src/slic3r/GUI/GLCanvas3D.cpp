@@ -3588,7 +3588,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (m_hover_volume_idxs.empty() && m_mouse.is_start_position_3D_defined())
             {
                 const Vec3d rot = (Vec3d(pos.x(), pos.y(), 0.) - m_mouse.drag.start_position_3D) * (PI * TRACKBALLSIZE / 180.);
-#if ENABLE_AUTO_CONSTRAINED_CAMERA
                 if (wxGetApp().app_config->get("use_free_camera") == "1")
                     // Virtual track ball (similar to the 3DConnexion mouse).
                     m_camera.rotate_local_around_target(Vec3d(rot.y(), rot.x(), 0.));
@@ -3601,13 +3600,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     m_camera.recover_from_free_camera();
                     m_camera.rotate_on_sphere(rot.x(), rot.y(), wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
                 }
-#else
-                if (wxGetApp().plater()->get_mouse3d_controller().connected() || (wxGetApp().app_config->get("use_free_camera") == "1"))
-                    // Virtual track ball (similar to the 3DConnexion mouse).
-                    m_camera.rotate_local_around_target(Vec3d(rot.y(), rot.x(), 0.));
-                else
-                    m_camera.rotate_on_sphere(rot.x(), rot.y(), wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
-#endif // ENABLE_AUTO_CONSTRAINED_CAMERA
 
                 m_dirty = true;
             }
@@ -3622,14 +3614,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 float z = 0.0f;
                 const Vec3d& cur_pos = _mouse_to_3d(pos, &z);
                 Vec3d orig = _mouse_to_3d(m_mouse.drag.start_position_2D, &z);
-#if ENABLE_AUTO_CONSTRAINED_CAMERA
                 if (wxGetApp().app_config->get("use_free_camera") != "1")
                 	// Forces camera right vector to be parallel to XY plane in case it has been misaligned using the 3D mouse free rotation.
                 	// It is cheaper to call this function right away instead of testing wxGetApp().plater()->get_mouse3d_controller().connected(),
                 	// which checks an atomics (flushes CPU caches).
                 	// See GH issue #3816.
                     m_camera.recover_from_free_camera();
-#endif // ENABLE_AUTO_CONSTRAINED_CAMERA
 
                 m_camera.set_target(m_camera.get_target() + orig - cur_pos);
                 m_dirty = true;

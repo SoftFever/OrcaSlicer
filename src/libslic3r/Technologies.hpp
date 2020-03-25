@@ -34,16 +34,6 @@
 #define ENABLE_HACK_CLOSING_ON_OSX_10_9_5 (1 && ENABLE_2_2_0_RC1)
 
 
-//============
-// 2.2.0 techs
-//============
-#define ENABLE_2_2_0 1
-
-// Enable automatic switch to constrained camera when manipulating the scene using regular mouse
-// while 3D mouse is connected and free camera is not selected
-#define ENABLE_AUTO_CONSTRAINED_CAMERA (1 && ENABLE_2_2_0)
-
-
 //==================
 // 2.2.0.final techs
 //==================
