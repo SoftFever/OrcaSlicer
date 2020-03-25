@@ -42,12 +42,10 @@ class ObjectList;
 class GLCanvas3D;
 class Mouse3DController;
 struct Camera;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
 class Bed3D;
 class GLToolbar;
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
