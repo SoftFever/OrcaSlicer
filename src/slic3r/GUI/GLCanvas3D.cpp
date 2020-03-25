@@ -4229,7 +4229,8 @@ void GLCanvas3D::update_ui_from_settings()
         BOOST_LOG_TRIVIAL(debug) << "GLCanvas3D: Scaling factor: " << new_scaling;
 
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
-        wxGetApp().plater()->get_camera().set_zoom(camera.get_zoom() * new_scaling / orig_scaling);
+        Camera& camera = wxGetApp().plater()->get_camera();
+        camera.set_zoom(camera.get_zoom() * new_scaling / orig_scaling);
 #else
         m_camera.set_zoom(m_camera.get_zoom() * new_scaling / orig_scaling);
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
