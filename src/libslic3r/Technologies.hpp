@@ -68,8 +68,6 @@
 
 // Enable tooltips for GLCanvas3D using ImGUI
 #define ENABLE_CANVAS_TOOLTIP_USING_IMGUI (1 && ENABLE_2_2_0_FINAL)
-// Enable constraining tooltips for GLCanvas3D using ImGUI into canvas area
-#define ENABLE_CANVAS_CONSTRAINED_TOOLTIP_USING_IMGUI (1 && ENABLE_CANVAS_TOOLTIP_USING_IMGUI)
 // Enable delay for showing tooltips for GLCanvas3D using ImGUI
 #define ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI (1 && ENABLE_CANVAS_TOOLTIP_USING_IMGUI)
 // Enable modified mouse events handling for toolbars

@@ -1394,7 +1394,7 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas
 void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position) const
 #endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
 {
-#if ENABLE_CANVAS_CONSTRAINED_TOOLTIP_USING_IMGUI
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     static ImVec2 size(0.0f, 0.0f);
 
     auto validate_position = [](const Vec2d& position, const GLCanvas3D& canvas, const ImVec2& wnd_size) {
@@ -1403,7 +1403,7 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position) const
         float y = std::clamp((float)position(1) + 16, 0.0f, (float)cnv_size.get_height() - wnd_size.y);
         return Vec2f(x, y);
     };
-#endif // ENABLE_CANVAS_CONSTRAINED_TOOLTIP_USING_IMGUI
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
 #if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
     if (m_text.empty())
@@ -1417,20 +1417,20 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position) const
         return;
 #endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
 
-#if ENABLE_CANVAS_CONSTRAINED_TOOLTIP_USING_IMGUI
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     Vec2f position = validate_position(mouse_position, canvas, size);
-#endif // ENABLE_CANVAS_CONSTRAINED_TOOLTIP_USING_IMGUI
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 #if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
 #endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
-#if ENABLE_CANVAS_CONSTRAINED_TOOLTIP_USING_IMGUI
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     imgui.set_next_window_pos(position(0), position(1), ImGuiCond_Always, 0.0f, 0.0f);
 #else
     imgui.set_next_window_pos(mouse_position(0), mouse_position(1) + 16, ImGuiCond_Always, 0.0f, 0.0f);
-#endif // ENABLE_CANVAS_CONSTRAINED_TOOLTIP_USING_IMGUI
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
     imgui.begin(_(L("canvas_tooltip")), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoFocusOnAppearing);
     ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
@@ -1442,9 +1442,9 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position) const
         canvas.request_extra_frame();
 #endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
 
-#if ENABLE_CANVAS_CONSTRAINED_TOOLTIP_USING_IMGUI
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     size = ImGui::GetWindowSize();
-#endif // ENABLE_CANVAS_CONSTRAINED_TOOLTIP_USING_IMGUI
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
     imgui.end();
 #if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
