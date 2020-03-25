@@ -3312,11 +3312,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     if (m_tooltip.is_in_imgui() && evt.LeftUp())
         // ignore left up events coming from imgui windows and not processed by them
         m_mouse.ignore_left_up = true;
-#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     m_tooltip.set_in_imgui(false);
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     if (imgui->update_mouse_data(evt)) {
         m_mouse.position = evt.Leaving() ? Vec2d(-1.0, -1.0) : pos.cast<double>();
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
         m_tooltip.set_in_imgui(true);
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
         render();
 #ifdef SLIC3R_DEBUG_MOUSE_EVENTS
         printf((format_mouse_event_debug_message(evt) + " - Consumed by ImGUI\n").c_str());
