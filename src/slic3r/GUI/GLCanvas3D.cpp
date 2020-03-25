@@ -781,6 +781,13 @@ bool GLCanvas3D::WarningTexture::generate(const std::string& msg_utf8, const GLC
 #else
     // select default font
     const float scale = canvas.get_canvas_size().get_scale_factor();
+#if ENABLE_RETINA_GL
+    // For non-visible or non-created window getBackingScaleFactor function return 0.0 value.
+    // And using of the zero scale causes a crash, when we trying to draw text to the (0,0) rectangle
+    // https://github.com/prusa3d/PrusaSlicer/issues/3916
+    if (scale <= 0.0f)
+        return false;
+#endif
     wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale);
 #endif
 
