@@ -454,7 +454,7 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
         m_mouse_capture.reset();
     }
 
-#if ENABLE_MODIFIED_TOOLBAR_MOUSE_EVENT_HANDLING
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     if (evt.Moving())
         update_hover_state(mouse_pos, parent);
     else if (evt.LeftUp())
@@ -507,7 +507,7 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
     else if (evt.Dragging() && m_mouse_capture.any())
         // if the button down was done on this toolbar, prevent from dragging into the scene
         processed = true;
-#endif // ENABLE_MODIFIED_TOOLBAR_MOUSE_EVENT_HANDLING
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
     int item_id = contains_mouse(mouse_pos, parent);
 #if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
@@ -551,10 +551,10 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
                 parent.set_as_dirty();
             }
         }
-#if !ENABLE_MODIFIED_TOOLBAR_MOUSE_EVENT_HANDLING
+#if !ENABLE_CANVAS_TOOLTIP_USING_IMGUI
         else if (evt.LeftUp())
             processed = true;
-#endif // !ENABLE_MODIFIED_TOOLBAR_MOUSE_EVENT_HANDLING
+#endif // !ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     }
 
     return processed;
