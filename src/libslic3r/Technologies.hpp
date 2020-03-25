@@ -68,8 +68,6 @@
 
 // Enable tooltips for GLCanvas3D using ImGUI
 #define ENABLE_CANVAS_TOOLTIP_USING_IMGUI (1 && ENABLE_2_2_0_FINAL)
-// Enable delay for showing tooltips for GLCanvas3D using ImGUI
-#define ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI (1 && ENABLE_CANVAS_TOOLTIP_USING_IMGUI)
 // Enable modified mouse events handling for toolbars
 #define ENABLE_MODIFIED_TOOLBAR_MOUSE_EVENT_HANDLING (1 && ENABLE_CANVAS_TOOLTIP_USING_IMGUI)
 // Enable modified mouse events handling for gizmobar

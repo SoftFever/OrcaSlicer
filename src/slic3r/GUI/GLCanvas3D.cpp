@@ -61,11 +61,11 @@
 #include <algorithm>
 #include <cmath>
 #include "DoubleSlider.hpp"
-#if !ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
+#if !ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 #if ENABLE_RENDER_STATISTICS
 #include <chrono>
 #endif // ENABLE_RENDER_STATISTICS
-#endif // !ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
+#endif // !ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
 #include <imgui/imgui_internal.h>
 
@@ -1373,7 +1373,6 @@ void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_
 }
 
 #if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
-#if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
 void GLCanvas3D::Tooltip::set_text(const std::string& text)
 {
     // If the mouse is inside an ImGUI dialog, then the tooltip is suppressed.
@@ -1386,15 +1385,9 @@ void GLCanvas3D::Tooltip::set_text(const std::string& text)
         m_text = new_text;
     }
 }
-#endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
 
-#if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
 void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas) const
-#else
-void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position) const
-#endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
 {
-#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     static ImVec2 size(0.0f, 0.0f);
 
     auto validate_position = [](const Vec2d& position, const GLCanvas3D& canvas, const ImVec2& wnd_size) {
@@ -1403,55 +1396,33 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position) const
         float y = std::clamp((float)position(1) + 16, 0.0f, (float)cnv_size.get_height() - wnd_size.y);
         return Vec2f(x, y);
     };
-#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
-#if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
     if (m_text.empty())
         return;
 
     // draw the tooltip as hidden until the delay is expired
     // use a value of alpha slightly different from 0.0f because newer imgui does not calculate properly the window size if alpha == 0.0f
     float alpha = (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_start_time).count() < 500) ? 0.01f : 1.0f;
-#else
-    if (m_text.empty())
-        return;
-#endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
 
-#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     Vec2f position = validate_position(mouse_position, canvas, size);
-#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-#if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
-#endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
-#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     imgui.set_next_window_pos(position(0), position(1), ImGuiCond_Always, 0.0f, 0.0f);
-#else
-    imgui.set_next_window_pos(mouse_position(0), mouse_position(1) + 16, ImGuiCond_Always, 0.0f, 0.0f);
-#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
     imgui.begin(_(L("canvas_tooltip")), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoFocusOnAppearing);
     ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
     ImGui::TextUnformatted(m_text.c_str());
 
-#if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
     // force re-render while the windows gets to its final size (it may take several frames) or while hidden
     if (alpha < 1.0f || ImGui::GetWindowContentRegionWidth() + 2.0f * ImGui::GetStyle().WindowPadding.x != ImGui::CalcWindowExpectedSize(ImGui::GetCurrentWindow()).x)
         canvas.request_extra_frame();
-#endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
 
-#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     size = ImGui::GetWindowSize();
-#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
     imgui.end();
-#if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
     ImGui::PopStyleVar(2);
-#else
-    ImGui::PopStyleVar();
-#endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
 }
 #endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
@@ -2051,11 +2022,7 @@ void GLCanvas3D::render()
 
     set_tooltip(tooltip);
 
-#if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
     m_tooltip.render(m_mouse.position, *this);
-#else
-    m_tooltip.render(m_mouse.position);
-#endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
 #endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
     wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog(*this);

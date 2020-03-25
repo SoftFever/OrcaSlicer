@@ -3,9 +3,9 @@
 
 #include <stddef.h>
 #include <memory>
-#if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 #include <chrono>
-#endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
 #include "3DScene.hpp"
 #include "GLToolbar.hpp"
@@ -396,21 +396,14 @@ private:
     class Tooltip
     {
         std::string m_text;
-#if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
         std::chrono::steady_clock::time_point m_start_time;
-#endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
         // Indicator that the mouse is inside an ImGUI dialog, therefore the tooltip should be suppressed.
-        bool 		m_in_imgui = false;
+        bool m_in_imgui = false;
 
     public:
         bool is_empty() const { return m_text.empty(); }
-#if ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
         void set_text(const std::string& text);
         void render(const Vec2d& mouse_position, GLCanvas3D& canvas) const;
-#else
-        void set_text(const std::string& text) { m_text = text; }
-        void render(const Vec2d& mouse_position) const;
-#endif // ENABLE_CANVAS_DELAYED_TOOLTIP_USING_IMGUI
         // Indicates that the mouse is inside an ImGUI dialog, therefore the tooltip should be suppressed.
         void set_in_imgui(bool b) { m_in_imgui = b; }
         bool is_in_imgui() const { return m_in_imgui; }
