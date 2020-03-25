@@ -21,7 +21,13 @@
 #include "Technologies.hpp"
 #include "Semver.hpp"
 
+#if 1
+// Saves around 32% RAM after slicing step, 6.7% after G-code export (tested on PrusaSlicer 2.2.0 final).
+typedef int32_t coord_t;
+#else
 typedef int64_t coord_t;
+#endif
+
 typedef double  coordf_t;
 
 //FIXME This epsilon value is used for many non-related purposes:
