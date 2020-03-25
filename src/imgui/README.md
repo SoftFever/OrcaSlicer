@@ -2,4 +2,4 @@
 
 For more information go to https://github.com/ocornut/imgui
 
-THIS DIRECTORY CONTAINS THE imgui-1.66 da3c433 SOURCE DISTRIBUTION.
+THIS DIRECTORY CONTAINS THE imgui-1.75 58b3e02 SOURCE DISTRIBUTION.
