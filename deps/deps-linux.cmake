@@ -55,7 +55,12 @@ ExternalProject_Add(dep_libcurl
         --enable-versioned-symbols
         --enable-threaded-resolver
         --with-random=/dev/urandom
-        --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt
+        
+        # CA root certificate paths will be set for openssl at runtime.
+        --without-ca-bundle
+        --without-ca-path
+        --with-ca-fallback # to look for the ssl backend's ca store
+
         --disable-ldap
         --disable-ldaps
         --disable-manual
