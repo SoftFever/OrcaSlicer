@@ -20,9 +20,7 @@
 #include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
-#if ENABLE_THUMBNAIL_GENERATOR
 #include <boost/beast/core/detail/base64.hpp>
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/cstdio.hpp>
@@ -700,11 +698,7 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
     return layers_to_print;
 }
 
-#if ENABLE_THUMBNAIL_GENERATOR
 void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb)
-#else
-void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_data)
-#endif // ENABLE_THUMBNAIL_GENERATOR
 {
     PROFILE_CLEAR();
 
@@ -730,11 +724,7 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
 
     try {
         m_placeholder_parser_failed_templates.clear();
-#if ENABLE_THUMBNAIL_GENERATOR
         this->_do_export(*print, file, thumbnail_cb);
-#else
-        this->_do_export(*print, file);
-#endif // ENABLE_THUMBNAIL_GENERATOR
         fflush(file);
         if (ferror(file)) {
             fclose(file);
@@ -974,7 +964,6 @@ namespace DoExport {
 	    }
 	}
 
-	#if ENABLE_THUMBNAIL_GENERATOR
 	template<typename WriteToOutput, typename ThrowIfCanceledCallback>
 	static void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb, const std::vector<Vec2d> &sizes, WriteToOutput output, ThrowIfCanceledCallback throw_if_canceled)
 	{
@@ -1018,7 +1007,6 @@ namespace DoExport {
 	        }
 	    }
 	}
-	#endif // ENABLE_THUMBNAIL_GENERATOR
 
 	// Fill in print_statistics and return formatted string containing filament statistics to be inserted into G-code comment section.
 	static std::string update_print_stats_and_format_filament_stats(
@@ -1124,11 +1112,7 @@ std::vector<const PrintInstance*> sort_object_instances_by_model_order(const Pri
     return instances;
 }
 
-#if ENABLE_THUMBNAIL_GENERATOR
 void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thumbnail_cb)
-#else
-void GCode::_do_export(Print& print, FILE* file)
-#endif // ENABLE_THUMBNAIL_GENERATOR
 {
     PROFILE_FUNC();
 

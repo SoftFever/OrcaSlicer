@@ -33,9 +33,7 @@
 #include "libslic3r/Format/AMF.hpp"
 #include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/GCode/PreviewData.hpp"
-#if ENABLE_THUMBNAIL_GENERATOR
 #include "libslic3r/GCode/ThumbnailData.hpp"
-#endif // ENABLE_THUMBNAIL_GENERATOR
 #include "libslic3r/Model.hpp"
 #include "libslic3r/SLA/Hollowing.hpp"
 #include "libslic3r/SLA/Rotfinder.hpp"
@@ -92,9 +90,7 @@ using Slic3r::_3DScene;
 using Slic3r::Preset;
 using Slic3r::PrintHostJob;
 
-#if ENABLE_THUMBNAIL_GENERATOR
 static const std::pair<unsigned int, unsigned int> THUMBNAIL_SIZE_3MF = { 256, 256 };
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 namespace Slic3r {
 namespace GUI {
@@ -1955,10 +1951,8 @@ struct Plater::priv
     bool can_mirror() const;
     bool can_reload_from_disk() const;
 
-#if ENABLE_THUMBNAIL_GENERATOR
     void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background);
     void generate_thumbnails(ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool show_bed, bool transparent_background);
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
     void msw_rescale_object_menu();
 
@@ -2032,7 +2026,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     background_process.set_fff_print(&fff_print);
     background_process.set_sla_print(&sla_print);
     background_process.set_gcode_preview_data(&gcode_preview_data);
-#if ENABLE_THUMBNAIL_GENERATOR
     background_process.set_thumbnail_cb([this](ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
         {
             std::packaged_task<void(ThumbnailsList&, const Vec2ds&, bool, bool, bool, bool)> task([this](ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) {
@@ -2042,7 +2035,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
             wxTheApp->CallAfter([&]() { task(thumbnails, sizes, printable_only, parts_only, show_bed, transparent_background); });
             result.wait();
         });
-#endif // ENABLE_THUMBNAIL_GENERATOR
     background_process.set_slicing_completed_event(EVT_SLICING_COMPLETED);
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
     // Default printer technology for default config.
@@ -3852,7 +3844,6 @@ bool Plater::priv::init_object_menu()
     return true;
 }
 
-#if ENABLE_THUMBNAIL_GENERATOR
 void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
 {
     view3D->get_canvas3d()->render_thumbnail(data, w, h, printable_only, parts_only, show_bed, transparent_background);
@@ -3870,7 +3861,6 @@ void Plater::priv::generate_thumbnails(ThumbnailsList& thumbnails, const Vec2ds&
             thumbnails.pop_back();
     }
 }
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 void Plater::priv::msw_rescale_object_menu()
 {
@@ -4999,13 +4989,9 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     const std::string path_u8 = into_u8(path);
     wxBusyCursor wait;
     bool full_pathnames = wxGetApp().app_config->get("export_sources_full_pathnames") == "1";
-#if ENABLE_THUMBNAIL_GENERATOR
     ThumbnailData thumbnail_data;
     p->generate_thumbnail(thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, false, true, true, true);
     if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, full_pathnames, &thumbnail_data)) {
-#else
-    if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, full_pathnames)) {
-#endif // ENABLE_THUMBNAIL_GENERATOR
         // Success
         p->statusbar()->set_status_text(from_u8((boost::format(_utf8(L("3MF file exported to %s"))) % path).str()));
         p->set_project_filename(path);

@@ -7,9 +7,7 @@
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/GCode/PreviewData.hpp"
-#if ENABLE_THUMBNAIL_GENERATOR
 #include "libslic3r/GCode/ThumbnailData.hpp"
-#endif // ENABLE_THUMBNAIL_GENERATOR
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/ExtrusionEntity.hpp"
 #include "libslic3r/Utils.hpp"
@@ -1457,9 +1455,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
 wxDEFINE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RELOAD_FROM_DISK, SimpleEvent);
 
-#if ENABLE_THUMBNAIL_GENERATOR
 const double GLCanvas3D::DefaultCameraZoomToBoxMarginFactor = 1.25;
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar)
     : m_canvas(canvas)
@@ -2060,7 +2056,6 @@ void GLCanvas3D::render()
 #endif // !ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 }
 
-#if ENABLE_THUMBNAIL_GENERATOR
 void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) const
 {
     switch (GLCanvas3DManager::get_framebuffers_type())
@@ -2070,7 +2065,6 @@ void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w,
     default: { _render_thumbnail_legacy(thumbnail_data, w, h, printable_only, parts_only, show_bed, transparent_background); break; }
     }
 }
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 void GLCanvas3D::select_all()
 {
@@ -4221,7 +4215,6 @@ bool GLCanvas3D::_render_undo_redo_stack(const bool is_undo, float pos_x) const
     return action_taken;
 }
 
-#if ENABLE_THUMBNAIL_GENERATOR
 #define ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT 0
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
@@ -4571,7 +4564,6 @@ void GLCanvas3D::_render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigne
     // restore the default framebuffer size to avoid flickering on the 3D scene
     m_camera.apply_viewport(0, 0, cnv_size.get_width(), cnv_size.get_height());
 }
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 bool GLCanvas3D::_init_toolbars()
 {
@@ -4899,20 +4891,11 @@ BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_be
     return bb;
 }
 
-#if ENABLE_THUMBNAIL_GENERATOR
 void GLCanvas3D::_zoom_to_box(const BoundingBoxf3& box, double margin_factor)
 {
     m_camera.zoom_to_box(box, margin_factor);
     m_dirty = true;
 }
-#else
-void GLCanvas3D::_zoom_to_box(const BoundingBoxf3& box)
-{
-    const Size& cnv_size = get_canvas_size();
-    m_camera.zoom_to_box(box, cnv_size.get_width(), cnv_size.get_height());
-    m_dirty = true;
-}
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 void GLCanvas3D::_update_camera_zoom(double zoom)
 {
@@ -5115,9 +5098,6 @@ void GLCanvas3D::_render_objects() const
     if (m_volumes.empty())
         return;
 
-#if !ENABLE_THUMBNAIL_GENERATOR
-    glsafe(::glEnable(GL_LIGHTING));
-#endif // !ENABLE_THUMBNAIL_GENERATOR
     glsafe(::glEnable(GL_DEPTH_TEST));
 
     m_camera_clipping_plane = m_gizmos.get_sla_clipping_plane();
@@ -5161,9 +5141,6 @@ void GLCanvas3D::_render_objects() const
     m_shader.stop_using();
 
     m_camera_clipping_plane = ClippingPlane::ClipsNothing();
-#if !ENABLE_THUMBNAIL_GENERATOR
-    glsafe(::glDisable(GL_LIGHTING));
-#endif // !ENABLE_THUMBNAIL_GENERATOR
 }
 
 void GLCanvas3D::_render_selection() const

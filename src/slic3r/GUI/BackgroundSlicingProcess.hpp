@@ -49,9 +49,7 @@ public:
 	void set_fff_print(Print *print) { m_fff_print = print; }
 	void set_sla_print(SLAPrint *print) { m_sla_print = print; }
 	void set_gcode_preview_data(GCodePreviewData *gpd) { m_gcode_preview_data = gpd; }
-#if ENABLE_THUMBNAIL_GENERATOR
     void set_thumbnail_cb(ThumbnailsGeneratorCallback cb) { m_thumbnail_cb = cb; }
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 	// The following wxCommandEvent will be sent to the UI thread / Plater window, when the slicing is finished
 	// and the background processing will transition into G-code export.
@@ -155,10 +153,8 @@ private:
 	SLAPrint 				   *m_sla_print			 = nullptr;
 	// Data structure, to which the G-code export writes its annotations.
 	GCodePreviewData 		   *m_gcode_preview_data = nullptr;
-#if ENABLE_THUMBNAIL_GENERATOR
     // Callback function, used to write thumbnails into gcode.
     ThumbnailsGeneratorCallback m_thumbnail_cb 		 = nullptr;
-#endif // ENABLE_THUMBNAIL_GENERATOR
 	// Temporary G-code, there is one defined for the BackgroundSlicingProcess, differentiated from the other processes by a process ID.
 	std::string 				m_temp_output_path;
 	// Output path provided by the user. The output path may be set even if the slicing is running,

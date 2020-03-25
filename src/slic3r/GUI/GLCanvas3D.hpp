@@ -38,9 +38,7 @@ class Bed3D;
 struct Camera;
 class BackgroundSlicingProcess;
 class GCodePreviewData;
-#if ENABLE_THUMBNAIL_GENERATOR
 struct ThumbnailData;
-#endif // ENABLE_THUMBNAIL_GENERATOR
 struct SlicingParameters;
 enum LayerHeightEditActionType : unsigned int;
 
@@ -113,9 +111,7 @@ wxDECLARE_EVENT(EVT_GLCANVAS_RELOAD_FROM_DISK, SimpleEvent);
 
 class GLCanvas3D
 {
-#if ENABLE_THUMBNAIL_GENERATOR
     static const double DefaultCameraZoomToBoxMarginFactor;
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 public:
     struct GCodePreviewVolumeIndex
@@ -577,11 +573,9 @@ public:
     bool is_dragging() const { return m_gizmos.is_dragging() || m_moving; }
 
     void render();
-#if ENABLE_THUMBNAIL_GENERATOR
     // printable_only == false -> render also non printable volumes as grayed
     // parts_only == false -> render also sla support and pad
     void render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) const;
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
     void select_all();
     void deselect_all();
@@ -702,11 +696,7 @@ private:
 
     BoundingBoxf3 _max_bounding_box(bool include_gizmos, bool include_bed_model) const;
 
-#if ENABLE_THUMBNAIL_GENERATOR
     void _zoom_to_box(const BoundingBoxf3& box, double margin_factor = DefaultCameraZoomToBoxMarginFactor);
-#else
-    void _zoom_to_box(const BoundingBoxf3& box);
-#endif // ENABLE_THUMBNAIL_GENERATOR
     void _update_camera_zoom(double zoom);
 
     void _refresh_if_shown_on_screen();
@@ -735,7 +725,6 @@ private:
     void _render_sla_slices() const;
     void _render_selection_sidebar_hints() const;
     bool _render_undo_redo_stack(const bool is_undo, float pos_x) const;
-#if ENABLE_THUMBNAIL_GENERATOR
     void _render_thumbnail_internal(ThumbnailData& thumbnail_data, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) const;
     // render thumbnail using an off-screen framebuffer
     void _render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) const;
@@ -743,7 +732,6 @@ private:
     void _render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) const;
     // render thumbnail using the default framebuffer
     void _render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) const;
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
     void _update_volumes_hover_state() const;
 
