@@ -36,11 +36,6 @@ public:
     void delete_selected_points();
     ClippingPlane get_sla_clipping_plane() const;
     
-    
-    std::pair<const TriangleMesh *, sla::HollowingConfig> get_hollowing_parameters() const;
-    void update_mesh_raycaster(std::unique_ptr<MeshRaycaster> &&rc);
-    void update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh);
-
     bool is_selection_rectangle_dragging() const { return m_selection_rectangle.is_dragging(); }
     void update_clipping_plane(bool keep_normal = false) const;
     void set_common_data_ptr(CommonGizmosData* ptr) { m_c = ptr; }
@@ -53,7 +48,6 @@ private:
 
     void render_points(const Selection& selection, bool picking = false) const;
     void render_clipping_plane(const Selection& selection) const;
-    void render_hollowed_mesh() const;
     void hollow_mesh(bool postpone_error_messages = false);
     bool unsaved_changes() const;
 

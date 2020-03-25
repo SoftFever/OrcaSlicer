@@ -277,7 +277,6 @@ SCENARIO( "make_xxx functions produce meshes.") {
     GIVEN("make_sphere() function") {
         WHEN("make_sphere() is called with arguments 10, PI / 3") {
             TriangleMesh sph = make_sphere(10, PI / 243.0);
-            double angle = (2.0*PI / floor(2.0*PI / (PI / 243.0)));
             THEN("Resulting mesh has one point at 0,0,-10 and one at 0,0,10") {
 				const std::vector<stl_vertex> &verts = sph.its.vertices;
                 REQUIRE(std::count_if(verts.begin(), verts.end(), [](const Vec3f& t) { return is_approx(t, Vec3f(0.f, 0.f, 10.f)); } ) == 1);

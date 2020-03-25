@@ -182,8 +182,6 @@ std::string FlashAir::timestamp_str() const
 	auto t = std::time(nullptr);
 	auto tm = *std::localtime(&t);
 
-	const char *name = get_name();
-
 	unsigned long fattime = ((tm.tm_year - 80) << 25) | 
 							((tm.tm_mon + 1) << 21) |
 							(tm.tm_mday << 16) |

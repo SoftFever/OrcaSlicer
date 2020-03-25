@@ -5,11 +5,12 @@
 #include <time.h>
 
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/trim.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/property_tree/ini_parser.hpp>
-#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/ptree_fwd.hpp>
+#include <boost/filesystem/operations.hpp>
+
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Time.hpp"

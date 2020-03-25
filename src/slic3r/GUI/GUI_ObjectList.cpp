@@ -483,7 +483,6 @@ void ObjectList::update_extruder_values_for_items(const size_t max_extruder)
 
 void ObjectList::update_objects_list_extruder_column(size_t extruders_count)
 {
-    if (!this) return; // #ys_FIXME
     if (printer_technology() == ptSLA)
         extruders_count = 1;
 
@@ -1558,7 +1557,7 @@ wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_)
     // If there are selected more then one instance but not all of them
     // don't add settings menu items
     const Selection& selection = scene_selection();
-    if (selection.is_multiple_full_instance() && !selection.is_single_full_object() || 
+    if ((selection.is_multiple_full_instance() && !selection.is_single_full_object()) ||
         selection.is_multiple_volume() || selection.is_mixed() ) // more than one volume(part) is selected on the scene
         return nullptr;
 
