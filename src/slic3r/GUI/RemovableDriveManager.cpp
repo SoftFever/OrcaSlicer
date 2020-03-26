@@ -33,17 +33,19 @@ wxDEFINE_EVENT(EVT_REMOVABLE_DRIVES_CHANGED, RemovableDrivesChangedEvent);
 #if _WIN32
 std::vector<DriveData> RemovableDriveManager::search_for_removable_drives() const
 {
-	//get logical drives flags by letter in alphabetical order
+	// Get logical drives flags by letter in alphabetical order.
 	DWORD drives_mask = ::GetLogicalDrives();
 
 	// Allocate the buffers before the loop.
 	std::wstring volume_name;
 	std::wstring file_system_name;
-	// Iterate the Windows drives from 'A' to 'Z'
+	// Iterate the Windows drives from 'C' to 'Z'
 	std::vector<DriveData> current_drives;
-	for (size_t i = 0; i < 26; ++ i)
-		if (drives_mask & (1 << i)) {
-			std::string path { char('A' + i), ':' };
+	// Skip A and B drives.
+	drives_mask >>= 2;
+	for (char drive = 'C'; drive <= 'Z'; ++ drive, drives_mask >>= 1)
+		if (drives_mask & 1) {
+			std::string path { drive, ':' };
 			UINT drive_type = ::GetDriveTypeA(path.c_str());
 			// DRIVE_REMOVABLE on W are sd cards and usb thumbnails (not usb harddrives)
 			if (drive_type ==  DRIVE_REMOVABLE) {
