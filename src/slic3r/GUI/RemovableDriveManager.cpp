@@ -452,14 +452,8 @@ void RemovableDriveManager::thread_proc()
 		{
 			std::unique_lock<std::mutex> lck(m_thread_stop_mutex);
 #ifdef _WIN32
-			// Windows do not send an update on insert / eject of an SD card into an external SD card reader.
-			// Windows also do not send an update on software eject of a FLASH drive.
-			// We can likely use the Windows WMI API, but it will be quite time consuming to implement.
-			// https://www.codeproject.com/Articles/10539/Making-WMI-Queries-In-C
-			// https://docs.microsoft.com/en-us/windows/win32/wmisdk/wmi-start-page
-			// https://docs.microsoft.com/en-us/windows/win32/wmisdk/com-api-for-wmi
-			// https://docs.microsoft.com/en-us/windows/win32/wmisdk/example--receiving-event-notifications-through-wmi-
-			m_thread_stop_condition.wait_for(lck, std::chrono::seconds(2), [this]{ return m_stop || m_wakeup; });
+			// Reacting to updates by WM_DEVICECHANGE and WM_USER_MEDIACHANGED
+			m_thread_stop_condition.wait(lck, [this]{ return m_stop || m_wakeup; });
 #else
 			m_thread_stop_condition.wait_for(lck, std::chrono::seconds(2), [this]{ return m_stop; });
 #endif
