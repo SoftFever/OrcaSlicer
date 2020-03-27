@@ -472,32 +472,30 @@ TEST_CASE("ArrangeRectanglesLoose", "[Nesting]")
 namespace {
 using namespace libnest2d;
 
-template<long long SCALE = 1, class Bin>
-void exportSVG(std::vector<std::reference_wrapper<Item>>& result, const Bin& bin, int idx = 0) {
-    std::string loc = "out";
+template<long long SCALE = 1, class It>
+void exportSVG(const char *loc, It from, It to) {
 
-    static std::string svg_header =
-        R"raw(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    static const char* svg_header =
+R"raw(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
 <svg height="500" width="500" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 )raw";
 
-    int i = idx;
-    auto r = result;
     //    for(auto r : result) {
-    std::fstream out(loc + std::to_string(i) + ".svg", std::fstream::out);
+    std::fstream out(loc, std::fstream::out);
     if(out.is_open()) {
         out << svg_header;
-        Item rbin( RectangleItem(bin.width(), bin.height()) );
-        for(unsigned j = 0; j < rbin.vertexCount(); j++) {
-            auto v = rbin.vertex(j);
-            setY(v, -getY(v)/SCALE + 500 );
-            setX(v, getX(v)/SCALE);
-            rbin.setVertex(j, v);
-        }
-        out << shapelike::serialize<Formats::SVG>(rbin.rawShape()) << std::endl;
-        for(Item& sh : r) {
-            Item tsh(sh.transformedShape());
+//        Item rbin( RectangleItem(bin.width(), bin.height()) );
+//        for(unsigned j = 0; j < rbin.vertexCount(); j++) {
+//            auto v = rbin.vertex(j);
+//            setY(v, -getY(v)/SCALE + 500 );
+//            setX(v, getX(v)/SCALE);
+//            rbin.setVertex(j, v);
+//        }
+//        out << shapelike::serialize<Formats::SVG>(rbin.rawShape()) << std::endl;
+        for(auto it = from; it != to; ++it) {
+            const Item &itm = *it;
+            Item tsh(itm.transformedShape());
             for(unsigned j = 0; j < tsh.vertexCount(); j++) {
                 auto v = tsh.vertex(j);
                 setY(v, -getY(v)/SCALE + 500);
@@ -509,9 +507,15 @@ void exportSVG(std::vector<std::reference_wrapper<Item>>& result, const Bin& bin
         out << "\n</svg>" << std::endl;
     }
     out.close();
-
+    
     //        i++;
     //    }
+}
+
+template<long long SCALE = 1>
+void exportSVG(std::vector<std::reference_wrapper<Item>>& result, int idx = 0) {
+    exportSVG((std::string("out") + std::to_string(idx) + ".svg").c_str(),
+              result.begin(), result.end());
 }
 }
 
@@ -541,7 +545,7 @@ TEST_CASE("BottomLeftStressTest", "[Geometry]") {
             valid = (valid && !r1.isInside(r2) && !r2.isInside(r1));
             if(!valid) {
                 std::cout << "error index: " << i << std::endl;
-                exportSVG(result, bin, i);
+                exportSVG<SCALE>(result, i);
             }
             REQUIRE(valid);
         } else {
@@ -894,7 +898,7 @@ void testNfp(const std::vector<ItemPair>& testdata) {
 
     int TEST_CASEcase = 0;
 
-    auto& exportfun = exportSVG<SCALE, Box>;
+    auto& exportfun = exportSVG<SCALE>;
 
     auto onetest = [&](Item& orbiter, Item& stationary, unsigned /*testidx*/){
         TEST_CASEcase++;
@@ -941,7 +945,7 @@ void testNfp(const std::vector<ItemPair>& testdata) {
                     std::ref(stationary), std::ref(tmp), std::ref(infp)
                 };
 
-                exportfun(inp, bin, TEST_CASEcase*i++);
+                exportfun(inp, TEST_CASEcase*i++);
             }
 
             REQUIRE(touching);
@@ -1095,4 +1099,92 @@ TEST_CASE("MinAreaBBWithRotatingCalipers", "[Geometry]") {
 
         REQUIRE(succ);
     }
+}
+
+template<class It> MultiPolygon merged_pile(It from, It to, int bin_id)
+{
+    MultiPolygon pile;
+    pile.reserve(size_t(to - from));
+    
+    for (auto it = from; it != to; ++it) {
+        if (it->binId() == bin_id) pile.emplace_back(it->transformedShape());
+    }
+    
+    return nfp::merge(pile);
+}
+
+TEST_CASE("Test for bed center distance optimization", "[Nesting], [NestKernels]")
+{
+    static const constexpr ClipperLib::cInt W = 10000000;
+    
+    // Get the input items and define the bin.
+    std::vector<RectangleItem> input(9, {W, W});
+    
+    auto bin = Box::infinite();
+    
+    NfpPlacer::Config pconfig;
+    
+    pconfig.object_function = [](const Item &item) -> double {
+        return pl::magnsq<PointImpl, double>(item.boundingBox().center());
+    };
+    
+    size_t bins = nest(input, bin, 0, NestConfig{pconfig});
+    
+    REQUIRE(bins == 1);
+    
+    // Gather the items into piles of arranged polygons...
+    MultiPolygon pile;
+    pile.reserve(input.size());
+    
+    for (auto &itm : input) {
+        REQUIRE(itm.binId() == 0);
+        pile.emplace_back(itm.transformedShape());
+    }
+    
+    MultiPolygon m = merged_pile(input.begin(), input.end(), 0);
+    
+    REQUIRE(m.size() == 1);
+    
+    REQUIRE(sl::area(m) == Approx(9. * W * W));
+}
+
+TEST_CASE("Test for biggest bounding box area", "[Nesting], [NestKernels]")
+{
+    static const constexpr ClipperLib::cInt W = 10000000;
+    static const constexpr size_t N = 100;
+    
+    // Get the input items and define the bin.
+    std::vector<RectangleItem> input(N, {W, W});
+    
+    auto bin = Box::infinite();
+    
+    NfpPlacer::Config pconfig;
+    pconfig.rotations = {0.};
+    Box pile_box;
+    pconfig.before_packing =
+        [&pile_box](const MultiPolygon &pile,
+                    const _ItemGroup<PolygonImpl> &/*packed_items*/,
+                    const _ItemGroup<PolygonImpl> &/*remaining_items*/) {
+        pile_box = sl::boundingBox(pile);
+    };
+
+    pconfig.object_function = [&pile_box](const Item &item) -> double {
+        Box b = sl::boundingBox(item.boundingBox(), pile_box);
+        double area = b.area<double>() / (W * W);
+        return -area;
+    };
+    
+    size_t bins = nest(input, bin, 0, NestConfig{pconfig});
+    
+    // To debug:
+    exportSVG<1000000>("out", input.begin(), input.end());
+    
+    REQUIRE(bins == 1);
+    
+    MultiPolygon pile = merged_pile(input.begin(), input.end(), 0);
+    Box bb = sl::boundingBox(pile);
+    
+    // Here the result shall be a stairway of boxes
+    REQUIRE(pile.size() == N);
+    REQUIRE(bb.area() == N * N * W * W);
 }
