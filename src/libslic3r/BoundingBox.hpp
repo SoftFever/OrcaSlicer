@@ -186,6 +186,11 @@ inline bool empty(const BoundingBox3Base<VT> &bb)
     return ! bb.defined || bb.min(0) >= bb.max(0) || bb.min(1) >= bb.max(1) || bb.min(2) >= bb.max(2);
 }
 
+inline BoundingBox scaled(const BoundingBoxf &bb) { return {scaled(bb.min), scaled(bb.max)}; }
+inline BoundingBox3 scaled(const BoundingBoxf3 &bb) { return {scaled(bb.min), scaled(bb.max)}; }
+inline BoundingBoxf unscaled(const BoundingBox &bb) { return {unscaled(bb.min), unscaled(bb.max)}; }
+inline BoundingBoxf3 unscaled(const BoundingBox3 &bb) { return {unscaled(bb.min), unscaled(bb.max)}; }
+
 } // namespace Slic3r
 
 // Serialization through the Cereal library
