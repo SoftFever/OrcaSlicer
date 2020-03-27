@@ -3575,7 +3575,38 @@ void DynamicPrintAndCLIConfig::handle_legacy(t_config_option_key &opt_key, std::
     }
 }
 
+static Points to_points(const std::vector<Vec2d> &dpts)
+{
+    Points pts; pts.reserve(dpts.size());
+    for (auto &v : dpts)
+        pts.emplace_back( coord_t(scale_(v.x())), coord_t(scale_(v.y())) );
+    return pts;    
 }
+
+Points get_bed_shape(const DynamicPrintConfig &config)
+{
+    const auto *bed_shape_opt = config.opt<ConfigOptionPoints>("bed_shape");
+    if (!bed_shape_opt) {
+        
+        // Here, it is certain that the bed shape is missing, so an infinite one
+        // has to be used, but still, the center of bed can be queried
+        if (auto center_opt = config.opt<ConfigOptionPoint>("center"))
+            return { scaled(center_opt->value) };
+        
+        return {};
+    }
+    
+    return to_points(bed_shape_opt->values);
+}
+
+Points get_bed_shape(const PrintConfig &cfg)
+{
+    return to_points(cfg.bed_shape.values);
+}
+
+Points get_bed_shape(const SLAPrinterConfig &cfg) { return to_points(cfg.bed_shape.values); }
+
+} // namespace Slic3r
 
 #include <cereal/types/polymorphic.hpp>
 CEREAL_REGISTER_TYPE(Slic3r::DynamicPrintConfig)
