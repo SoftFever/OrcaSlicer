@@ -48,6 +48,10 @@ bool SearchOptions::Option::is_matched_option(const wxString& search, int& outSc
             fts::fuzzy_match(search_pattern, opt_key_str , outScore)   ); 
 }
 
+void SearchOptions::Filter::get_label(const char** out_text) const
+{
+    *out_text = label.utf8_str();
+}
 
 template<class T>
 void change_opt_key(std::string& opt_key, DynamicPrintConfig* config)
@@ -82,19 +86,40 @@ void SearchOptions::append_options(DynamicPrintConfig* config, Preset::Type type
             label += _(opt.category) + " : ";
         label += _(opt.full_label.empty() ? opt.label : opt.full_label);
 
-        options.emplace_back(Option{ label, opt_key, opt.category, type });
+        if (!label.IsEmpty())
+            options.emplace_back(Option{ label, opt_key, opt.category, type });
     }
 }
 
-void SearchOptions::apply_filters(const wxString& search)
+void SearchOptions::apply_filters(const std::string& search)
 {
     clear_filters();
-    for (auto option : options) {
-        int score;
-        if (option.is_matched_option(search, score))
-            filters.emplace_back(Filter{ option.label, score });
+
+    bool full_list = search.empty();
+    for (size_t i=0; i < options.size(); i++) {
+        int score=0;
+        if (full_list || options[i].is_matched_option(search, score))
+            filters.emplace_back(Filter{ options[i].label, i, score });
     }
-    sort_filters();
+
+    if (!full_list)
+        sort_filters();
+}
+
+void SearchOptions::init(std::vector<SearchInput> input_values)
+{
+    clear_options();
+    for (auto i : input_values)
+        append_options(i.config, i.type, i.mode);
+    sort_options();
+
+    apply_filters("");
+}
+
+const SearchOptions::Option& SearchOptions::get_option(size_t pos_in_filter) const
+{
+    assert(pos_in_filter != size_t(-1) && filters[pos_in_filter].option_idx != size_t(-1));
+    return options[filters[pos_in_filter].option_idx];
 }
 
 SearchComboBox::SearchComboBox(wxWindow *parent) :
@@ -173,6 +198,13 @@ void SearchComboBox::init(std::vector<SearchInput> input_values)
     for (auto i : input_values)
         search_list.append_options(i.config, i.type, i.mode);
     search_list.sort_options();
+
+    update_combobox();
+}
+
+void SearchComboBox::init(const SearchOptions& new_search_list)
+{
+    search_list = new_search_list;
 
     update_combobox();
 }

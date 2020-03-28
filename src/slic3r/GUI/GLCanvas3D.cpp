@@ -1450,6 +1450,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, wxKeyEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_EDIT_COLOR_CHANGE, wxKeyEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UNDO, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_COLLAPSE_SIDEBAR, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
 wxDEFINE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
@@ -4205,6 +4206,55 @@ bool GLCanvas3D::_render_undo_redo_stack(const bool is_undo, float pos_x) const
     return action_taken;
 }
 
+// Getter for the const char*[] for the search list 
+static bool search_string_getter(int idx, const char** out_text)
+{
+    return wxGetApp().plater()->search_string_getter(idx, out_text);
+}
+
+bool GLCanvas3D::_render_search_list(float pos_x) const
+{
+    bool action_taken = false;
+    ImGuiWrapper* imgui = wxGetApp().imgui();
+
+    const float x = pos_x * (float)get_camera().get_zoom() + 0.5f * (float)get_canvas_size().get_width();
+    imgui->set_next_window_pos(x, m_undoredo_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
+    std::string title = L("Search");
+    imgui->begin(_(title), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+
+    size_t selected = size_t(-1);
+    bool edited = false;
+    float em = static_cast<float>(wxGetApp().em_unit());
+#if ENABLE_RETINA_GL
+	em *= m_retina_helper->get_scale_factor();
+#endif
+
+    std::string& search_line = wxGetApp().sidebar().get_search_line();
+    char *s = new char[255];
+    strcpy(s, search_line.empty() ? _utf8(L("Type here to search")).c_str() : search_line.c_str());
+
+    imgui->search_list(ImVec2(22 * em, 30 * em), &search_string_getter, s, selected, edited);
+
+    search_line = s;
+    delete [] s;
+
+    if (selected != size_t(-1))
+    {
+        wxGetApp().sidebar().jump_to_option(selected);
+        action_taken = true;
+    }
+
+    if (edited)
+    {
+        wxGetApp().sidebar().apply_search_filter();
+        action_taken = true;
+    }
+
+    imgui->end();
+
+    return action_taken;
+}
+
 #define ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT 0
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
@@ -4723,6 +4773,23 @@ bool GLCanvas3D::_init_main_toolbar()
     if (!m_main_toolbar.add_item(item))
         return false;
 
+    if (!m_main_toolbar.add_separator())
+        return false;
+
+    item.name = "search";
+    item.icon_filename = "search_.svg";
+    item.tooltip = _utf8(L("Search"));
+    item.sprite_id = 11;
+    item.left.render_callback = [this](float left, float right, float, float) {
+        if (m_canvas != nullptr)
+        {
+            _render_search_list(0.5f * (left + right));
+        }
+    };
+    item.enabling_callback = []()->bool { return true; };
+    if (!m_main_toolbar.add_item(item))
+        return false;
+
     return true;
 }
 
@@ -4829,6 +4896,18 @@ bool GLCanvas3D::_init_undoredo_toolbar()
         return can_redo;
     };
 
+    if (!m_undoredo_toolbar.add_item(item))
+        return false;
+
+    if (!m_undoredo_toolbar.add_separator())
+        return false;
+
+    item.name = "collapse_sidebar";
+    item.icon_filename = "cross.svg";
+    item.tooltip = _utf8(L("Collapse right panel"));
+    item.sprite_id = 2;
+    item.left.action_callback = [this]() { post_event(SimpleEvent(EVT_GLCANVAS_COLLAPSE_SIDEBAR)); };
+    item.enabling_callback = []()->bool { return true; };
     if (!m_undoredo_toolbar.add_item(item))
         return false;
 

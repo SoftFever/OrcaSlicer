@@ -400,6 +400,61 @@ bool ImGuiWrapper::undo_redo_list(const ImVec2& size, const bool is_undo, bool (
     return is_hovered;
 }
 
+void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, const char**), char* search_str, size_t& selected, bool& edited)
+{
+    // ImGui::ListBoxHeader("", size);
+    {   
+        // rewrote part of function to add a TextInput instead of label Text
+        ImGuiContext& g = *GImGui;
+        ImGuiWindow* window = ImGui::GetCurrentWindow();
+        if (window->SkipItems)
+            return ;
+
+        const ImGuiStyle& style = g.Style;
+
+        // Size default to hold ~7 items. Fractional number of items helps seeing that we can scroll down/up without looking at scrollbar.
+        ImVec2 size = ImGui::CalcItemSize(size_, ImGui::CalcItemWidth(), ImGui::GetTextLineHeightWithSpacing() * 7.4f + style.ItemSpacing.y);
+        ImRect frame_bb(window->DC.CursorPos, ImVec2(window->DC.CursorPos.x + size.x, window->DC.CursorPos.y + size.y));
+
+        ImRect bb(frame_bb.Min, frame_bb.Max);
+        window->DC.LastItemRect = bb; // Forward storage for ListBoxFooter.. dodgy.
+        g.NextItemData.ClearFlags();
+
+        if (!ImGui::IsRectVisible(bb.Min, bb.Max))
+        {
+            ImGui::ItemSize(bb.GetSize(), style.FramePadding.y);
+            ImGui::ItemAdd(bb, 0, &frame_bb);
+            return ;
+        }
+
+        ImGui::BeginGroup();
+
+        const ImGuiID id = ImGui::GetID(search_str);
+        ImVec2 search_size = ImVec2(size.x, ImGui::GetTextLineHeightWithSpacing() + style.ItemSpacing.y);
+
+        ImGui::InputTextEx("", NULL, search_str, 20, search_size, 0, NULL, NULL);
+        edited = ImGui::IsItemEdited();
+
+        ImGui::BeginChildFrame(id, frame_bb.GetSize());
+    }
+
+    size_t i = 0;
+    const char* item_text;
+    while (items_getter(i, &item_text))
+    {
+        ImGui::Selectable(item_text, false);
+
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("%s", item_text);
+
+        if (ImGui::IsItemClicked())
+            selected = i;
+        i++;
+    }
+
+    ImGui::ListBoxFooter();
+}
+
 void ImGuiWrapper::disabled_begin(bool disabled)
 {
     wxCHECK_RET(!m_disabled, "ImGUI: Unbalanced disabled_begin() call");

@@ -701,7 +701,6 @@ struct Sidebar::priv
 
     wxBoxSizer *sizer_params;
     FreqChangedParams   *frequently_changed_parameters{ nullptr };
-    SearchComboBox      *search_cb{ nullptr };
     ObjectList          *object_list{ nullptr };
     ObjectManipulation  *object_manipulation{ nullptr };
     ObjectSettings      *object_settings{ nullptr };
@@ -714,6 +713,9 @@ struct Sidebar::priv
     ScalableButton *btn_send_gcode;
     ScalableButton *btn_remove_device;
 	ScalableButton* btn_export_gcode_removable; //exports to removable drives (appears only if removable drive is connected)
+
+    SearchOptions		search_list;
+    std::string         search_line;
 
     priv(Plater *plater) : plater(plater) {}
     ~priv();
@@ -827,10 +829,6 @@ Sidebar::Sidebar(Plater *parent)
     // Frequently changed parameters
     p->frequently_changed_parameters = new FreqChangedParams(p->scrolled);
     p->sizer_params->Add(p->frequently_changed_parameters->get_sizer(), 0, wxEXPAND | wxTOP | wxBOTTOM, wxOSX ? 1 : margin_5);
-
-    // Search combobox
-//    p->search_cb = new SearchComboBox(p->scrolled);
-//    p->sizer_params->Add(p->search_cb, 0, wxEXPAND | wxTOP | wxBOTTOM, wxOSX ? 1 : margin_5);
 
     // Object List
     p->object_list = new ObjectList(p->scrolled);
@@ -1083,6 +1081,17 @@ void Sidebar::msw_rescale()
     p->btn_reslice     ->SetMinSize(wxSize(-1, scaled_height));
 
     p->scrolled->Layout();
+}
+
+void Sidebar::apply_search_filter()
+{
+    p->search_list.apply_filters(p->search_line);
+}
+
+void Sidebar::jump_to_option(size_t selected)
+{
+    const SearchOptions::Option& opt = p->search_list.get_option(selected);
+    wxGetApp().get_tab(opt.type)->activate_option(opt.opt_key, opt.category);
 }
 
 ObjectManipulation* Sidebar::obj_manipul()
@@ -1357,21 +1366,14 @@ static std::vector<SearchInput> get_search_inputs(ConfigOptionMode mode)
 
 void Sidebar::update_search_list()
 {
-    if (p->search_cb)
-        p->search_cb->init(get_search_inputs(m_mode));
-
-    std::vector<SearchInput> search_list{};
+    p->search_list.init(get_search_inputs(m_mode));
 
     auto& tabs_list = wxGetApp().tabs_list;
     auto print_tech = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology();
 
     for (auto tab : tabs_list)
         if (tab->supports_printer_technology(print_tech))
-            search_list.emplace_back(SearchInput{ tab->get_config(), tab->type(), m_mode });
-
-    for (auto tab : tabs_list)
-        if (tab->supports_printer_technology(print_tech))
-            tab->get_search_cb()->init(search_list);
+            tab->get_search_cb()->init(p->search_list);
 }
 
 void Sidebar::update_mode()
@@ -1396,6 +1398,16 @@ void Sidebar::update_mode()
 std::vector<PresetComboBox*>& Sidebar::combos_filament()
 {
     return p->combos_filament;
+}
+
+SearchOptions& Sidebar::get_search_list()
+{
+    return p->search_list;
+}
+
+std::string& Sidebar::get_search_line()
+{
+    return p->search_line;
 }
 
 // Plater::DropTarget
@@ -2143,6 +2155,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLCANVAS_RESETGIZMOS, [this](SimpleEvent&) { reset_all_gizmos(); });
     view3D_canvas->Bind(EVT_GLCANVAS_UNDO, [this](SimpleEvent&) { this->undo(); });
     view3D_canvas->Bind(EVT_GLCANVAS_REDO, [this](SimpleEvent&) { this->redo(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_COLLAPSE_SIDEBAR, [this](SimpleEvent&) { /*this->redo();*/ });
     view3D_canvas->Bind(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, [this](SimpleEvent&) { this->view3D->get_canvas3d()->reset_layer_height_profile(); });
     view3D_canvas->Bind(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, [this](Event<float>& evt) { this->view3D->get_canvas3d()->adaptive_layer_height_profile(evt.data); });
     view3D_canvas->Bind(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, [this](HeightProfileSmoothEvent& evt) { this->view3D->get_canvas3d()->smooth_layer_height_profile(evt.data); });
@@ -5247,6 +5260,18 @@ void Plater::undo_redo_topmost_string_getter(const bool is_undo, std::string& ou
     }
 
     out_text = "";
+}
+
+bool Plater::search_string_getter(int idx, const char** out_text)
+{
+    const SearchOptions& search_list = p->sidebar->get_search_list();
+    
+    if (0 <= idx && (size_t)idx < search_list.size()) {
+        search_list[idx].get_label(out_text);
+        return true;
+    }
+
+    return false;
 }
 
 void Plater::on_extruders_change(size_t num_extruders)

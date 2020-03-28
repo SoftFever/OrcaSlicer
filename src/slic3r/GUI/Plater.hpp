@@ -12,6 +12,7 @@
 
 #include "libslic3r/BoundingBox.hpp"
 #include "wxExtensions.hpp"
+#include "SearchComboBox.hpp"
 
 class wxButton;
 class ScalableButton;
@@ -100,6 +101,8 @@ public:
     void update_mode_sizer() const;
     void update_reslice_btn_tooltip() const;
     void msw_rescale();
+    void apply_search_filter();
+    void jump_to_option(size_t selected);
 
     ObjectManipulation*     obj_manipul();
     ObjectList*             obj_list();
@@ -125,7 +128,10 @@ public:
     void                    update_mode();
     void                    update_search_list();
 
-    std::vector<PresetComboBox*>& combos_filament();
+    std::vector<PresetComboBox*>&   combos_filament();
+    SearchOptions&                  get_search_list();
+    std::string&                    get_search_line();
+
 private:
     struct priv;
     std::unique_ptr<priv> p;
@@ -220,6 +226,7 @@ public:
     void redo_to(int selection);
     bool undo_redo_string_getter(const bool is_undo, int idx, const char** out_text);
     void undo_redo_topmost_string_getter(const bool is_undo, std::string& out_text);
+    bool search_string_getter(int idx, const char **out_text);
     // For the memory statistics. 
     const Slic3r::UndoRedo::Stack& undo_redo_stack_main() const;
     // Enter / leave the Gizmos specific Undo / Redo stack. To be used by the SLA support point editing gizmo.

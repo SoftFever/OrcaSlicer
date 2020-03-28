@@ -104,6 +104,7 @@ wxDECLARE_EVENT(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, wxKeyEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_EDIT_COLOR_CHANGE, wxKeyEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_UNDO, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_COLLAPSE_SIDEBAR, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
 wxDECLARE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
@@ -725,6 +726,7 @@ private:
     void _render_sla_slices() const;
     void _render_selection_sidebar_hints() const;
     bool _render_undo_redo_stack(const bool is_undo, float pos_x) const;
+    bool _render_search_list(float pos_x) const;
     void _render_thumbnail_internal(ThumbnailData& thumbnail_data, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) const;
     // render thumbnail using an off-screen framebuffer
     void _render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) const;

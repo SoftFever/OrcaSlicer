@@ -42,14 +42,17 @@ public:
 
     struct Filter {
         wxString        label;
+        size_t          option_idx {0};
         int             outScore {0};
+
+        void get_label(const char** out_text) const;
     };
     std::vector<Filter> filters {};
 
     void clear_options() { options.clear(); }
     void clear_filters() { filters.clear(); }
     void append_options(DynamicPrintConfig* config, Preset::Type type, ConfigOptionMode mode);
-    void apply_filters(const wxString& search);
+    void apply_filters(const std::string& search);
 
     void sort_options() {
         std::sort(options.begin(), options.end(), [](const Option& o1, const Option& o2) {
@@ -59,6 +62,15 @@ public:
         std::sort(filters.begin(), filters.end(), [](const Filter& f1, const Filter& f2) {
             return f1.outScore > f2.outScore; });
     };
+
+    void init(std::vector<SearchInput> input_values);
+    size_t options_size() const { return options.size(); }
+    size_t filters_size() const { return filters.size(); }
+
+    size_t size() const         { return filters_size(); }
+
+    const Filter& operator[](const size_t pos) const noexcept { return filters[pos]; }
+    const Option& get_option(size_t pos_in_filter) const;
 };
 
 class SearchComboBox : public wxBitmapComboBox
@@ -86,6 +98,7 @@ public:
 
     void	init(DynamicPrintConfig* config, Preset::Type type, ConfigOptionMode mode);
     void    init(std::vector<SearchInput> input_values);
+    void    init(const SearchOptions& new_search_list);
     void    update_combobox();
 
 private:
