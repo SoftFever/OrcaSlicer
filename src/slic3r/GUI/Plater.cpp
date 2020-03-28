@@ -714,6 +714,7 @@ struct Sidebar::priv
     ScalableButton *btn_remove_device;
 	ScalableButton* btn_export_gcode_removable; //exports to removable drives (appears only if removable drive is connected)
 
+    bool                is_collapsed {false};
     SearchOptions		search_list;
     std::string         search_line;
 
@@ -1395,6 +1396,20 @@ void Sidebar::update_mode()
     Layout();
 }
 
+bool Sidebar::is_collapsed() { return p->is_collapsed; }
+
+void Sidebar::collapse(bool collapse)
+{
+    p->is_collapsed = collapse;
+
+    this->Show(!collapse);
+    p->plater->Layout();
+
+    // save collapsing state to the AppConfig
+    wxGetApp().app_config->set("collapsed_sidebar", collapse ? "1" : "0");
+}
+
+
 std::vector<PresetComboBox*>& Sidebar::combos_filament()
 {
     return p->combos_filament;
@@ -1868,6 +1883,9 @@ struct Plater::priv
     bool are_view3D_labels_shown() const { return (current_panel == view3D) && view3D->get_canvas3d()->are_labels_shown(); }
     void show_view3D_labels(bool show) { if (current_panel == view3D) view3D->get_canvas3d()->show_labels(show); }
 
+    bool is_sidebar_collapsed() const   { return sidebar->is_collapsed(); }
+    void collapse_sidebur(bool show)    { sidebar->collapse(show); }
+
     void set_current_canvas_as_dirty();
     GLCanvas3D* get_current_canvas3D();
 
@@ -2242,6 +2260,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     // Initialize the Undo / Redo stack with a first snapshot.
     this->take_snapshot(_(L("New Project")));
+
+    // collapse sidebar according to saved value
+    sidebar->collapse(wxGetApp().app_config->get("collapsed_sidebar") == "1");
 }
 
 Plater::priv::~priv()
@@ -4696,6 +4717,9 @@ bool Plater::is_view3D_shown() const { return p->is_view3D_shown(); }
 
 bool Plater::are_view3D_labels_shown() const { return p->are_view3D_labels_shown(); }
 void Plater::show_view3D_labels(bool show) { p->show_view3D_labels(show); }
+
+bool Plater::is_sidebar_collapsed() const { return p->is_sidebar_collapsed(); }
+void Plater::collapse_sidebur(bool show) { p->collapse_sidebur(show); }
 
 void Plater::select_all() { p->select_all(); }
 void Plater::deselect_all() { p->deselect_all(); }
