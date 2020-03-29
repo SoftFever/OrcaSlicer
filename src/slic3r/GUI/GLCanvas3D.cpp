@@ -4463,7 +4463,11 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
     bool action_taken = false;
     ImGuiWrapper* imgui = wxGetApp().imgui();
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    const float x = pos_x * (float)wxGetApp().plater()->get_camera().get_zoom() + 0.5f * (float)get_canvas_size().get_width();
+#else
     const float x = pos_x * (float)get_camera().get_zoom() + 0.5f * (float)get_canvas_size().get_width();
+#endif
     imgui->set_next_window_pos(x, m_undoredo_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
     std::string title = L("Search");
     imgui->begin(_(title), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
