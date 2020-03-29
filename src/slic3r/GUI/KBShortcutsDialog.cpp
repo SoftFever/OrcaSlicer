@@ -145,6 +145,9 @@ void KBShortcutsDialog::fill_shortcuts()
         // View
         { "0-6", L("Camera view") },
         { "E", L("Show/Hide object/instance labels") },
+#if ENABLE_SLOPE_RENDERING
+        { "D", L("Turn On/Off facets' slope rendering") },
+#endif // ENABLE_SLOPE_RENDERING
         // Configuration
         { ctrl + "P", L("Preferences") },
         // Help

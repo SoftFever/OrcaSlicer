@@ -464,7 +464,7 @@ bool ConfigBase::set_deserialize_nothrow(const t_config_option_key &opt_key_src,
 void ConfigBase::set_deserialize(const t_config_option_key &opt_key_src, const std::string &value_src, bool append)
 {
 	if (! this->set_deserialize_nothrow(opt_key_src, value_src, append))
-		throw BadOptionTypeException("ConfigBase::set_deserialize() failed");
+		throw BadOptionTypeException((boost::format("ConfigBase::set_deserialize() failed for parameter \"%1%\", value \"%2%\"") % opt_key_src % value_src).str());
 }
 
 void ConfigBase::set_deserialize(std::initializer_list<SetDeserializeItem> items)

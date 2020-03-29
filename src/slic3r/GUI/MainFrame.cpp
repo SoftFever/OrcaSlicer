@@ -33,6 +33,7 @@
 
 #ifdef _WIN32
 #include <dbt.h>
+#include <shlobj.h>
 #endif // _WIN32
 
 namespace Slic3r {
@@ -127,6 +128,30 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 //		DEV_BROADCAST_HANDLE NotificationFilter = { 0 };
 //		NotificationFilter.dbch_size = sizeof(DEV_BROADCAST_HANDLE);
 //		NotificationFilter.dbch_devicetype = DBT_DEVTYP_HANDLE;
+
+		// Using Win32 Shell API to register for media insert / removal events.
+		LPITEMIDLIST ppidl;
+		if (SHGetSpecialFolderLocation(this->GetHWND(), CSIDL_DESKTOP, &ppidl) == NOERROR) {
+			SHChangeNotifyEntry shCNE;
+			shCNE.pidl       = ppidl;
+			shCNE.fRecursive = TRUE;
+			// Returns a positive integer registration identifier (ID).
+			// Returns zero if out of memory or in response to invalid parameters.
+			m_ulSHChangeNotifyRegister = SHChangeNotifyRegister(this->GetHWND(),		// Hwnd to receive notification
+				SHCNE_DISKEVENTS,														// Event types of interest (sources)
+				SHCNE_MEDIAINSERTED | SHCNE_MEDIAREMOVED,
+				//SHCNE_UPDATEITEM,														// Events of interest - use SHCNE_ALLEVENTS for all events
+				WM_USER_MEDIACHANGED,													// Notification message to be sent upon the event
+				1,																		// Number of entries in the pfsne array
+				&shCNE);																// Array of SHChangeNotifyEntry structures that 
+																						// contain the notifications. This array should 
+																						// always be set to one when calling SHChnageNotifyRegister
+																						// or SHChangeNotifyDeregister will not work properly.
+			assert(m_ulSHChangeNotifyRegister != 0);    // Shell notification failed
+		} else {
+			// Failed to get desktop location
+			assert(false); 
+		}
 #endif // _WIN32
 
         // propagate event
@@ -161,12 +186,25 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 void MainFrame::shutdown()
 {
 #ifdef _WIN32
-	::UnregisterDeviceNotification(HDEVNOTIFY(m_hDeviceNotify));
-	m_hDeviceNotify = nullptr;
+	if (m_hDeviceNotify) {
+		::UnregisterDeviceNotification(HDEVNOTIFY(m_hDeviceNotify));
+		m_hDeviceNotify = nullptr;
+	}
+ 	if (m_ulSHChangeNotifyRegister) {
+        SHChangeNotifyDeregister(m_ulSHChangeNotifyRegister);
+        m_ulSHChangeNotifyRegister = 0;
+ 	}
 #endif // _WIN32
 
     if (m_plater)
     	m_plater->stop_jobs();
+
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    // Unbinding of wxWidgets event handling in canvases needs to be done here because on MAC,
+    // when closing the application using Command+Q, a mouse event is triggered after this lambda is completed,
+    // causing a crash
+    if (m_plater) m_plater->unbind_canvas_event_handlers();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     // Weird things happen as the Paint messages are floating around the windows being destructed.
     // Avoid the Paint messages by hiding the main window.
@@ -188,7 +226,9 @@ void MainFrame::shutdown()
     wxGetApp().app_config->save();
 //         if (m_plater)
 //             m_plater->print = undef;
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
     _3DScene::remove_all_canvases();
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 //         Slic3r::GUI::deregister_on_request_update_callback();
 
     // set to null tabs and a plater
@@ -755,9 +795,20 @@ void MainFrame::init_menubar()
         append_menu_item(viewMenu, wxID_ANY, _(L("Right")) + sep + "&6", _(L("Right View")), [this](wxCommandEvent&) { select_view("right"); },
             "", nullptr, [this](){return can_change_view(); }, this);
         viewMenu->AppendSeparator();
+#if ENABLE_SLOPE_RENDERING
+        wxMenu* options_menu = new wxMenu();
+        append_menu_check_item(options_menu, wxID_ANY, _(L("Show &labels")) + sep + "E", _(L("Show object/instance labels in 3D scene")),
+            [this](wxCommandEvent&) { m_plater->show_view3D_labels(!m_plater->are_view3D_labels_shown()); }, this,
+            [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_labels_shown(); }, this);
+        append_menu_check_item(options_menu, wxID_ANY, _(L("Show &slope")) + sep + "D", _(L("Objects coloring using faces' slope")),
+            [this](wxCommandEvent&) { m_plater->show_view3D_slope(!m_plater->is_view3D_slope_shown()); }, this,
+            [this]() { return m_plater->is_view3D_shown() && !m_plater->is_view3D_layers_editing_enabled(); }, [this]() { return m_plater->is_view3D_slope_shown(); }, this);
+        append_submenu(viewMenu, options_menu, wxID_ANY, _(L("&Options")), "");
+#else
         append_menu_check_item(viewMenu, wxID_ANY, _(L("Show &labels")) + sep + "E", _(L("Show object/instance labels in 3D scene")),
             [this](wxCommandEvent&) { m_plater->show_view3D_labels(!m_plater->are_view3D_labels_shown()); }, this,
             [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_labels_shown(); }, this);
+#endif // ENABLE_SLOPE_RENDERING
         append_menu_check_item(viewMenu, wxID_ANY, _(L("&Collapse sidebar")), _(L("Collapse sidebar")),
             [this](wxCommandEvent&) { m_plater->collapse_sidebur(!m_plater->is_sidebar_collapsed()); }, this,
             [this]() { return true; }, [this]() { return m_plater->is_sidebar_collapsed(); }, this);

@@ -33,17 +33,19 @@ wxDEFINE_EVENT(EVT_REMOVABLE_DRIVES_CHANGED, RemovableDrivesChangedEvent);
 #if _WIN32
 std::vector<DriveData> RemovableDriveManager::search_for_removable_drives() const
 {
-	//get logical drives flags by letter in alphabetical order
+	// Get logical drives flags by letter in alphabetical order.
 	DWORD drives_mask = ::GetLogicalDrives();
 
 	// Allocate the buffers before the loop.
 	std::wstring volume_name;
 	std::wstring file_system_name;
-	// Iterate the Windows drives from 'A' to 'Z'
+	// Iterate the Windows drives from 'C' to 'Z'
 	std::vector<DriveData> current_drives;
-	for (size_t i = 0; i < 26; ++ i)
-		if (drives_mask & (1 << i)) {
-			std::string path { char('A' + i), ':' };
+	// Skip A and B drives.
+	drives_mask >>= 2;
+	for (char drive = 'C'; drive <= 'Z'; ++ drive, drives_mask >>= 1)
+		if (drives_mask & 1) {
+			std::string path { drive, ':' };
 			UINT drive_type = ::GetDriveTypeA(path.c_str());
 			// DRIVE_REMOVABLE on W are sd cards and usb thumbnails (not usb harddrives)
 			if (drive_type ==  DRIVE_REMOVABLE) {
@@ -450,14 +452,8 @@ void RemovableDriveManager::thread_proc()
 		{
 			std::unique_lock<std::mutex> lck(m_thread_stop_mutex);
 #ifdef _WIN32
-			// Windows do not send an update on insert / eject of an SD card into an external SD card reader.
-			// Windows also do not send an update on software eject of a FLASH drive.
-			// We can likely use the Windows WMI API, but it will be quite time consuming to implement.
-			// https://www.codeproject.com/Articles/10539/Making-WMI-Queries-In-C
-			// https://docs.microsoft.com/en-us/windows/win32/wmisdk/wmi-start-page
-			// https://docs.microsoft.com/en-us/windows/win32/wmisdk/com-api-for-wmi
-			// https://docs.microsoft.com/en-us/windows/win32/wmisdk/example--receiving-event-notifications-through-wmi-
-			m_thread_stop_condition.wait_for(lck, std::chrono::seconds(2), [this]{ return m_stop || m_wakeup; });
+			// Reacting to updates by WM_DEVICECHANGE and WM_USER_MEDIACHANGED
+			m_thread_stop_condition.wait(lck, [this]{ return m_stop || m_wakeup; });
 #else
 			m_thread_stop_condition.wait_for(lck, std::chrono::seconds(2), [this]{ return m_stop; });
 #endif

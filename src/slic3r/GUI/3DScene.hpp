@@ -7,7 +7,9 @@
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
 #include "slic3r/GUI/GLCanvas3DManager.hpp"
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 
 #include <functional>
 
@@ -443,7 +445,9 @@ public:
     void                set_range(double low, double high);
 
     void                render() const;
+#if !ENABLE_SLOPE_RENDERING
     void                render(int color_id, int detection_id, int worldmatrix_id) const;
+#endif // !ENABLE_SLOPE_RENDERING
 
     void                finalize_geometry(bool opengl_initialized) { this->indexed_vertex_array.finalize_geometry(opengl_initialized); }
     void                release_geometry() { this->indexed_vertex_array.release_geometry(); }
@@ -479,20 +483,36 @@ public:
 
 private:
     // min and max vertex of the print box volume
-    float print_box_min[3];
-    float print_box_max[3];
+    float m_print_box_min[3];
+    float m_print_box_max[3];
 
     // z range for clipping in shaders
-    float z_range[2];
+    float m_z_range[2];
 
     // plane coeffs for clipping in shaders
-    float clipping_plane[4];
+    float m_clipping_plane[4];
+
+#if ENABLE_SLOPE_RENDERING
+    struct Slope
+    {
+        // toggle for slope rendering 
+        bool active{ false };
+        // [0] = yellow, [1] = red
+        std::array<float, 2> z_range;
+    };
+
+    Slope m_slope;
+#endif // ENABLE_SLOPE_RENDERING
 
 public:
     GLVolumePtrs volumes;
 
-    GLVolumeCollection() {};
-    ~GLVolumeCollection() { clear(); };
+#if ENABLE_SLOPE_RENDERING
+    GLVolumeCollection() { set_default_slope_z_range(); }
+#else
+    GLVolumeCollection() = default;
+#endif // ENABLE_SLOPE_RENDERING
+    ~GLVolumeCollection() { clear(); }
 
     std::vector<int> load_object(
         const ModelObject 		*model_object,
@@ -543,12 +563,21 @@ public:
     void set_range(double low, double high) { for (GLVolume *vol : this->volumes) vol->set_range(low, high); }
 
     void set_print_box(float min_x, float min_y, float min_z, float max_x, float max_y, float max_z) {
-        print_box_min[0] = min_x; print_box_min[1] = min_y; print_box_min[2] = min_z;
-        print_box_max[0] = max_x; print_box_max[1] = max_y; print_box_max[2] = max_z;
+        m_print_box_min[0] = min_x; m_print_box_min[1] = min_y; m_print_box_min[2] = min_z;
+        m_print_box_max[0] = max_x; m_print_box_max[1] = max_y; m_print_box_max[2] = max_z;
     }
 
-    void set_z_range(float min_z, float max_z) { z_range[0] = min_z; z_range[1] = max_z; }
-    void set_clipping_plane(const double* coeffs) { clipping_plane[0] = coeffs[0]; clipping_plane[1] = coeffs[1]; clipping_plane[2] = coeffs[2]; clipping_plane[3] = coeffs[3]; }
+    void set_z_range(float min_z, float max_z) { m_z_range[0] = min_z; m_z_range[1] = max_z; }
+    void set_clipping_plane(const double* coeffs) { m_clipping_plane[0] = coeffs[0]; m_clipping_plane[1] = coeffs[1]; m_clipping_plane[2] = coeffs[2]; m_clipping_plane[3] = coeffs[3]; }
+
+#if ENABLE_SLOPE_RENDERING
+    bool is_slope_active() const { return m_slope.active; }
+    void set_slope_active(bool active) { m_slope.active = active; }
+
+    const std::array<float, 2>& get_slope_z_range() const { return m_slope.z_range; }
+    void set_slope_z_range(const std::array<float, 2>& range) { m_slope.z_range = range; }
+    void set_default_slope_z_range() { m_slope.z_range = { -::cos(Geometry::deg2rad(90.0f - 45.0f)), -::cos(Geometry::deg2rad(90.0f - 70.0f)) }; }
+#endif // ENABLE_SLOPE_RENDERING
 
     // returns true if all the volumes are completely contained in the print volume
     // returns the containment state in the given out_state, if non-null
@@ -639,10 +668,17 @@ protected:
     bool on_init_from_file(const std::string& filename) override;
 };
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+struct _3DScene
+#else
 class _3DScene
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 {
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
     static GUI::GLCanvas3DManager s_canvas_mgr;
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
 public:
     static std::string get_gl_info(bool format_as_html, bool extensions);
 
@@ -654,6 +690,7 @@ public:
     static void destroy();
 
     static GUI::GLCanvas3D* get_canvas(wxGLCanvas* canvas);
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 
     static void thick_lines_to_verts(const Lines& lines, const std::vector<double>& widths, const std::vector<double>& heights, bool closed, double top_z, GLVolume& volume);
     static void thick_lines_to_verts(const Lines3& lines, const std::vector<double>& widths, const std::vector<double>& heights, bool closed, GLVolume& volume);

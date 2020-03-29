@@ -28,6 +28,9 @@ class wxMouseEvent;
 class wxTimerEvent;
 class wxPaintEvent;
 class wxGLCanvas;
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+class wxGLContext;
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 // Support for Retina OpenGL on Mac OS
 #define ENABLE_RETINA_GL __APPLE__
@@ -404,6 +407,24 @@ private:
     };
 #endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
+#if ENABLE_SLOPE_RENDERING
+    class Slope
+    {
+        bool m_enabled{ false };
+        GLCanvas3D& m_canvas;
+        GLVolumeCollection& m_volumes;
+
+    public:
+        Slope(GLCanvas3D& canvas, GLVolumeCollection& volumes) : m_canvas(canvas), m_volumes(volumes) {}
+
+        void enable(bool enable) { m_enabled = enable; }
+        bool is_enabled() const { return m_enabled; }
+        void show(bool show) { m_volumes.set_slope_active(m_enabled ? show : false); }
+        bool is_shown() const { return m_volumes.is_slope_active(); }
+        void render() const;
+    };
+#endif // ENABLE_SLOPE_RENDERING
+
 public:
     enum ECursorType : unsigned char
     {
@@ -421,9 +442,11 @@ private:
     LegendTexture m_legend_texture;
     WarningTexture m_warning_texture;
     wxTimer m_timer;
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
     Bed3D& m_bed;
     Camera& m_camera;
     GLToolbar& m_view_toolbar;
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
     LayersEditing m_layers_editing;
     Shader m_shader;
     Mouse m_mouse;
@@ -485,10 +508,21 @@ private:
 #if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     mutable Tooltip m_tooltip;
 #endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+#if ENABLE_SLOPE_RENDERING
+    Slope m_slope;
+#endif // ENABLE_SLOPE_RENDERING
 
 public:
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    explicit GLCanvas3D(wxGLCanvas* canvas);
+#else
     GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar);
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     ~GLCanvas3D();
+
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    bool is_initialized() const { return m_initialized; }
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     void set_context(wxGLContext* context) { m_context = context; }
 
@@ -536,9 +570,14 @@ public:
 
     void set_color_by(const std::string& value);
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    void refresh_camera_scene_box();
+#else
+    void refresh_camera_scene_box() { m_camera.set_scene_box(scene_bounding_box()); }
     const Camera& get_camera() const { return m_camera; }
-    const Shader& get_shader() const { return m_shader; }
     Camera& get_camera() { return m_camera; }
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
+    const Shader& get_shader() const { return m_shader; }
 
     BoundingBoxf3 volumes_bounding_box() const;
     BoundingBoxf3 scene_bounding_box() const;
@@ -562,6 +601,9 @@ public:
     void enable_undoredo_toolbar(bool enable);
     void enable_dynamic_background(bool enable);
     void enable_labels(bool enable) { m_labels.enable(enable); }
+#if ENABLE_SLOPE_RENDERING
+    void enable_slope(bool enable) { m_slope.enable(enable); }
+#endif // ENABLE_SLOPE_RENDERING
     void allow_multisample(bool allow);
 
     void zoom_to_bed();
@@ -630,7 +672,9 @@ public:
 
     void update_ui_from_settings();
 
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
     float get_view_toolbar_height() const { return m_view_toolbar.get_height(); }
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 
     int get_move_volume_id() const { return m_mouse.drag.move_volume_idx; }
     int get_first_hover_volume_idx() const { return m_hover_volume_idxs.empty() ? -1 : m_hover_volume_idxs.front(); }
@@ -662,7 +706,6 @@ public:
     Linef3 mouse_ray(const Point& mouse_pos);
 
     void set_mouse_as_dragging() { m_mouse.dragging = true; }
-    void refresh_camera_scene_box();
     bool is_mouse_dragging() const { return m_mouse.dragging; }
 
     double get_size_proportional_to_max_bed_size(double factor) const;
@@ -683,6 +726,11 @@ public:
 
     bool are_labels_shown() const { return m_labels.is_shown(); }
     void show_labels(bool show) { m_labels.show(show); }
+
+#if ENABLE_SLOPE_RENDERING
+    bool is_slope_shown() const { return m_slope.is_shown(); }
+    void show_slope(bool show) { m_slope.show(show); }
+#endif // ENABLE_SLOPE_RENDERING
 
 private:
     bool _is_shown_on_screen() const;
