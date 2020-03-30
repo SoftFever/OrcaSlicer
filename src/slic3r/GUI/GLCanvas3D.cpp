@@ -5161,10 +5161,21 @@ bool GLCanvas3D::_init_undoredo_toolbar()
         return false;
 
     item.name = "collapse_sidebar";
-    item.icon_filename = "cross.svg";
-    item.tooltip = _utf8(L("Collapse right panel"));
+    item.icon_filename = "collapse.svg";
+    item.tooltip = wxGetApp().plater()->is_sidebar_collapsed() ? 
+                   _utf8(L("Expand right panel")) : _utf8(L("Collapse right panel"));
     item.sprite_id = 2;
-    item.left.action_callback = [this]() { post_event(SimpleEvent(EVT_GLCANVAS_COLLAPSE_SIDEBAR)); };
+    item.left.action_callback = [this, item]() {
+        std::string new_tooltip = wxGetApp().plater()->is_sidebar_collapsed() ? 
+                                  _utf8(L("Collapse right panel")) : _utf8(L("Expand right panel"));
+
+        int id = m_undoredo_toolbar.get_item_id("collapse_sidebar");
+        m_undoredo_toolbar.set_tooltip(id, new_tooltip);
+        set_tooltip("");
+
+        post_event(SimpleEvent(EVT_GLCANVAS_COLLAPSE_SIDEBAR));
+    };
+
     item.enabling_callback = []()->bool { return true; };
     if (!m_undoredo_toolbar.add_item(item))
         return false;
