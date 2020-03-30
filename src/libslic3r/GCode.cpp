@@ -906,13 +906,13 @@ namespace DoExport {
         processor.apply_config(config);
 
         // send extruder offset data to processor
-        unsigned int num_extruders = static_cast<unsigned int>(config.nozzle_diameter.values.size());
         GCodeProcessor::ExtruderOffsetsMap extruder_offsets;
-        for (unsigned int id = 0; id < num_extruders; ++id)
+        const size_t num_extruders = config.nozzle_diameter.values.size();
+        for (size_t id = 0; id < num_extruders; ++id)
         {
-            Vec2d offset = config.extruder_offset.get_at(id);
+            const Vec2d& offset = config.extruder_offset.get_at(id);
             if (!offset.isApprox(Vec2d::Zero()))
-                extruder_offsets[id] = offset;
+                extruder_offsets[static_cast<unsigned int>(id)] = offset;
         }
         processor.set_extruder_offsets(extruder_offsets);
     }
