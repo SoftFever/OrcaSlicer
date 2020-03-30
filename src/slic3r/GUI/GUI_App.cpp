@@ -50,8 +50,8 @@
 #include "RemovableDriveManager.hpp"
 
 #ifdef __WXMSW__
-#include <Shlobj.h>
 #include <dbt.h>
+#include <shlobj.h>
 #endif // __WXMSW__
 
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG
@@ -158,6 +158,41 @@ static void register_win32_device_notification_event()
         }
         return true;
     });
+
+    wxWindow::MSWRegisterMessageHandler(MainFrame::WM_USER_MEDIACHANGED, [](wxWindow *win, WXUINT /* nMsg */, WXWPARAM wParam, WXLPARAM lParam) {
+        // Some messages are sent to top level windows by default, some messages are sent to only registered windows, and we explictely register on MainFrame only.
+        auto main_frame = dynamic_cast<MainFrame*>(win);
+        auto plater = (main_frame == nullptr) ? nullptr : main_frame->plater();
+        if (plater == nullptr)
+            // Maybe some other top level window like a dialog or maybe a pop-up menu?
+            return true;
+        wchar_t sPath[MAX_PATH];
+        if (lParam == SHCNE_MEDIAINSERTED || lParam == SHCNE_MEDIAREMOVED) {
+            struct _ITEMIDLIST* pidl = *reinterpret_cast<struct _ITEMIDLIST**>(wParam);
+            if (! SHGetPathFromIDList(pidl, sPath)) {
+                BOOST_LOG_TRIVIAL(error) << "MediaInserted: SHGetPathFromIDList failed";
+                return false;
+            }
+        }
+        switch (lParam) {
+        case SHCNE_MEDIAINSERTED:
+        {
+            //printf("SHCNE_MEDIAINSERTED %S\n", sPath);
+            plater->GetEventHandler()->AddPendingEvent(VolumeAttachedEvent(EVT_VOLUME_ATTACHED));
+            break;
+        }
+        case SHCNE_MEDIAREMOVED:
+        {
+            //printf("SHCNE_MEDIAREMOVED %S\n", sPath);
+            plater->GetEventHandler()->AddPendingEvent(VolumeDetachedEvent(EVT_VOLUME_DETACHED));
+            break;
+        }
+	    default:
+//          printf("Unknown\n");
+            break;
+	    }
+        return true;
+    });
 }
 #endif // WIN32
 
@@ -215,6 +250,23 @@ GUI_App::~GUI_App()
     if (preset_updater != nullptr)
         delete preset_updater;
 }
+
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+std::string GUI_App::get_gl_info(bool format_as_html, bool extensions)
+{
+    return GLCanvas3DManager::get_gl_info().to_string(format_as_html, extensions);
+}
+
+wxGLContext* GUI_App::init_glcontext(wxGLCanvas& canvas)
+{
+    return m_canvas_mgr.init_glcontext(canvas);
+}
+
+bool GUI_App::init_opengl()
+{
+    return m_canvas_mgr.init_gl();
+}
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 bool GUI_App::OnInit()
 {
@@ -667,15 +719,16 @@ bool GUI_App::select_language()
 	// Try to load a new language.
     if (index != -1 && (init_selection == -1 || init_selection != index)) {
     	const wxLanguageInfo *new_language_info = language_infos[index];
-        if (new_language_info == m_language_info_best || new_language_info == m_language_info_system) {
-        	// The newly selected profile matches user's default profile exactly. That's great.
-        } else if (m_language_info_best != nullptr && new_language_info->CanonicalName.BeforeFirst('_') == m_language_info_best->CanonicalName.BeforeFirst('_'))
-    		new_language_info = m_language_info_best;
-    	else if (m_language_info_system != nullptr && new_language_info->CanonicalName.BeforeFirst('_') == m_language_info_system->CanonicalName.BeforeFirst('_'))
-            new_language_info = m_language_info_system;
     	if (this->load_language(new_language_info->CanonicalName, false)) {
 			// Save language at application config.
-			app_config->set("translation_language", m_wxLocale->GetCanonicalName().ToUTF8().data());
+            // Which language to save as the selected dictionary language?
+            // 1) Hopefully the language set to wxTranslations by this->load_language(), but that API is weird and we don't want to rely on its
+            //    stability in the future:
+            //    wxTranslations::Get()->GetBestTranslation(SLIC3R_APP_KEY, wxLANGUAGE_ENGLISH);
+            // 2) Current locale language may not match the dictionary name, see GH issue #3901
+            //    m_wxLocale->GetCanonicalName()
+            // 3) new_language_info->CanonicalName is a safe bet. It points to a valid dictionary name.
+			app_config->set("translation_language", new_language_info->CanonicalName.ToUTF8().data());            
 			app_config->save();
     		return true;
     	}
@@ -704,7 +757,6 @@ bool GUI_App::load_language(wxString language, bool initial)
 	        	BOOST_LOG_TRIVIAL(trace) << boost::format("System language detected (user locales and such): %1%") % m_language_info_system->CanonicalName.ToUTF8().data();
 	        }
 		}
-#if defined(__WXMSW__) || defined(__WXOSX__)
         {
 	    	// Allocating a temporary locale will switch the default wxTranslations to its internal wxTranslations instance.
 	    	wxLocale temp_locale;
@@ -721,7 +773,6 @@ bool GUI_App::load_language(wxString language, bool initial)
 	        	BOOST_LOG_TRIVIAL(trace) << boost::format("Best translation language detected (may be different from user locales): %1%") % m_language_info_best->CanonicalName.ToUTF8().data();
 			}
 		}
-#endif
     }
 
 	const wxLanguageInfo *language_info = language.empty() ? nullptr : wxLocale::FindLanguageInfo(language);
@@ -737,6 +788,7 @@ bool GUI_App::load_language(wxString language, bool initial)
 	}
 
     if (language_info == nullptr) {
+        // PrusaSlicer does not support the Right to Left languages yet.
         if (m_language_info_system != nullptr && m_language_info_system->LayoutDirection != wxLayout_RightToLeft)
             language_info = m_language_info_system;
         if (m_language_info_best != nullptr && m_language_info_best->LayoutDirection != wxLayout_RightToLeft)
@@ -754,6 +806,16 @@ bool GUI_App::load_language(wxString language, bool initial)
     	language_dict = wxLANGUAGE_CZECH;
 		BOOST_LOG_TRIVIAL(trace) << "Using Czech dictionaries for Slovak language";
     }
+
+    // Select language for locales. This language may be different from the language of the dictionary.
+    if (language_info == m_language_info_best || language_info == m_language_info_system) {
+        // The current language matches user's default profile exactly. That's great.
+    } else if (m_language_info_best != nullptr && language_info->CanonicalName.BeforeFirst('_') == m_language_info_best->CanonicalName.BeforeFirst('_')) {
+        // Use whatever the operating system recommends, if it the language code of the dictionary matches the recommended language.
+        // This allows a Swiss guy to use a German dictionary without forcing him to German locales.
+        language_info = m_language_info_best;
+    } else if (m_language_info_system != nullptr && language_info->CanonicalName.BeforeFirst('_') == m_language_info_system->CanonicalName.BeforeFirst('_'))
+        language_info = m_language_info_system;
 
     if (! wxLocale::IsAvailable(language_info->Language)) {
     	// Loading the language dictionary failed.
@@ -781,7 +843,7 @@ bool GUI_App::load_language(wxString language, bool initial)
     wxTranslations::Get()->SetLanguage(language_dict);
     m_wxLocale->AddCatalog(SLIC3R_APP_KEY);
     m_imgui->set_language(into_u8(language_info->CanonicalName));
-	//FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
+    //FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
     wxSetlocale(LC_NUMERIC, "C");
     Preset::update_suffix_modified();
 	return true;

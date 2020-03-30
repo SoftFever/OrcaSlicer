@@ -37,6 +37,9 @@ class GLCanvas3D;
 class GLToolbar;
 class Bed3D;
 struct Camera;
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+class Plater;
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 class View3D : public wxPanel
 {
@@ -44,7 +47,11 @@ class View3D : public wxPanel
     GLCanvas3D* m_canvas;
 
 public:
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    View3D(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
+#else
     View3D(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     virtual ~View3D();
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
@@ -72,7 +79,11 @@ public:
     void render();
 
 private:
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    bool init(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
+#else
     bool init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 };
 
 class Preview : public wxPanel
@@ -115,6 +126,15 @@ class Preview : public wxPanel
     DoubleSlider::Control*       m_slider {nullptr};
 
 public:
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+#if ENABLE_GCODE_VIEWER
+    Preview(wxWindow* parent, Model* model, DynamicPrintConfig* config,
+        BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, GCodeProcessor::Result* gcode_result, std::function<void()> schedule_background_process = []() {});
+#else
+    Preview(wxWindow* parent, Model* model, DynamicPrintConfig* config,
+        BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process = []() {});
+#endif // ENABLE_GCODE_VIEWER
+#else
 #if ENABLE_GCODE_VIEWER
     Preview(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config,
         BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, GCodeProcessor::Result* gcode_result, std::function<void()> schedule_background_process = []() {});
@@ -122,6 +142,7 @@ public:
     Preview(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config,
         BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process = []() {});
 #endif // ENABLE_GCODE_VIEWER
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     virtual ~Preview();
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
@@ -148,7 +169,11 @@ public:
     bool is_loaded() const { return m_loaded; }
 
 private:
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    bool init(wxWindow* parent, Model* model);
+#else
     bool init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model);
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     void bind_event_handlers();
     void unbind_event_handlers();
@@ -181,7 +206,6 @@ private:
     void load_print_as_sla();
 
     void on_sliders_scroll_changed(wxCommandEvent& event);
-
 };
 
 } // namespace GUI

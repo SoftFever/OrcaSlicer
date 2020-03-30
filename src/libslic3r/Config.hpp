@@ -56,10 +56,9 @@ public:
 class BadOptionTypeException : public std::runtime_error
 {
 public:
-	BadOptionTypeException() :
-		std::runtime_error("Bad option type exception") {}
-	BadOptionTypeException(const char* message) : 
-		std::runtime_error(message) {}
+	BadOptionTypeException() : std::runtime_error("Bad option type exception") {}
+	BadOptionTypeException(const std::string &message) : std::runtime_error(message) {}
+    BadOptionTypeException(const char* message) : std::runtime_error(message) {}
 };
 
 // Type of a configuration value.
