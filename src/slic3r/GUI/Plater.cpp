@@ -1489,7 +1489,7 @@ struct Plater::priv
         friend priv;
     public:
 
-        void apply_arrange_result(const Vec2crd& tr, double rotation)
+        void apply_arrange_result(const Vec2d& tr, double rotation)
         {
             m_pos = unscaled(tr); m_rotation = rotation;
             apply_wipe_tower();
@@ -1604,7 +1604,7 @@ struct Plater::priv
             ap.bed_idx        = ap.translation.x() / bed_stride();
             ap.setter         = [obj, this](const ArrangePolygon &p) {
                 if (p.is_arranged()) {
-                    auto t = p.translation;
+                    Vec2d t = p.translation.cast<double>();
                     t.x() += p.bed_idx * bed_stride();
                     obj->apply_arrange_result(t, p.rotation);
                 }
@@ -2861,7 +2861,7 @@ void Plater::priv::find_new_position(const ModelInstancePtrs &instances,
 
     for (size_t i = 0; i < instances.size(); ++i)
         if (movable[i].bed_idx == 0)
-            instances[i]->apply_arrange_result(movable[i].translation,
+            instances[i]->apply_arrange_result(movable[i].translation.cast<double>(),
                                                movable[i].rotation);
 }
 
