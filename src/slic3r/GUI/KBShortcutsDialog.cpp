@@ -185,10 +185,12 @@ void KBShortcutsDialog::fill_shortcuts()
         { "Z", L("Zoom to selected object\nor all objects in scene, if none selected") },
         { "I", L("Zoom in") },
         { "O", L("Zoom out") },
-        { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") }
+#ifdef __APPLE__
+        { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
+#endif // __APPLE__
 #if ENABLE_RENDER_PICKING_PASS
         // Don't localize debugging texts.
-        , { "T", "Toggle picking pass texture rendering on/off" }
+        { "T", "Toggle picking pass texture rendering on/off" },
 #endif // ENABLE_RENDER_PICKING_PASS
     };
 
