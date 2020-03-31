@@ -33,6 +33,7 @@ Index of this file:
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 #include "imgui_internal.h"
+#include "imconfig.h"
 
 #include <stdio.h>      // vsnprintf, sscanf, printf
 #if !defined(alloca)
@@ -2991,6 +2992,8 @@ void ImFont::RenderText(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col
     ImDrawIdx* idx_write = draw_list->_IdxWritePtr;
     unsigned int vtx_current_idx = draw_list->_VtxCurrentIdx;
 
+    ImU32 defaultCol = col;
+
     while (s < text_end)
     {
         if (word_wrap_enabled)
@@ -3017,6 +3020,17 @@ void ImFont::RenderText(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col
                 }
                 continue;
             }
+        }
+
+        if (*s == ImGui::ColorMarkerStart) {
+            col = ImGui::GetColorU32(ImGuiCol_ButtonHovered);
+            s += 1;
+        }
+        else if (*s == ImGui::ColorMarkerEnd) {
+            col = defaultCol;
+            s += 1;
+            if (s == text_end)
+                break;
         }
 
         // Decode and advance source

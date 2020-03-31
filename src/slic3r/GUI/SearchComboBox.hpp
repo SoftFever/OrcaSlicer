@@ -35,8 +35,12 @@ public:
         Preset::Type    type {Preset::TYPE_INVALID};
         // wxString     grope;
 
-        bool containes(const wxString& search) const;
-        bool is_matched_option(const wxString &search, int &outScore);
+        bool fuzzy_match_simple(char const *search_pattern) const;
+        bool fuzzy_match_simple(const wxString& search) const;
+        bool fuzzy_match_simple(const std::string &search) const;
+        bool fuzzy_match(char const *search_pattern, int &outScore);
+        bool fuzzy_match(const wxString &search, int &outScore);
+        bool fuzzy_match(const std::string &search, int &outScore);
     };
     std::vector<Option> options {};
 

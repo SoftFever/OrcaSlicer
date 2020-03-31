@@ -97,9 +97,14 @@
 //#define IMGUI_DEBUG_PARANOID
 
 //---- Tip: You can add extra functions within the ImGui:: namespace, here or in your own headers files.
-/*
+
 namespace ImGui
 {
-    void MyFunction(const char* name, const MyMatrix44& v);
+    // Special ASCII characters STX and ETX are used here as markup symbols for tokens to be highlighted.
+    const char ColorMarkerStart = 0x2; // STX
+    const char ColorMarkerEnd   = 0x3; // ETX
+
+//    void MyFunction(const char* name, const MyMatrix44& v);
+
 }
-*/
+
