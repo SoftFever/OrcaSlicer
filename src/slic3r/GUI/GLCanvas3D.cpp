@@ -3013,16 +3013,15 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
             post_event(SimpleEvent(EVT_GLTOOLBAR_COPY));
         break;
 
-#ifdef __APPLE__
-        case 'm':
-        case 'M':
+#ifdef __linux__
+        case WXK_CONTROL_M:
         {
             Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
             controller.show_settings_dialog(!controller.is_settings_dialog_shown());
             m_dirty = true;
             break;
         }
-#endif /* __APPLE__ */
+#endif /* __linux__ */
 
 #ifdef __APPLE__
         case 'v':
