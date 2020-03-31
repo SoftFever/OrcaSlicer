@@ -152,6 +152,16 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 			// Failed to get desktop location
 			assert(false); 
 		}
+
+		{
+			static constexpr int device_count = 1;
+			RAWINPUTDEVICE devices[device_count] = { 0 };
+			// multi-axis mouse (SpaceNavigator, etc.)
+			devices[0].usUsagePage = 0x01;
+			devices[0].usUsage = 0x08;
+			if (! RegisterRawInputDevices(devices, device_count, sizeof(RAWINPUTDEVICE)))
+				BOOST_LOG_TRIVIAL(error) << "RegisterRawInputDevices failed";
+		}
 #endif // _WIN32
 
         // propagate event

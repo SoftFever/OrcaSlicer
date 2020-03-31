@@ -190,6 +190,8 @@ public:
 #endif // __APPLE__
 
 #ifdef WIN32
+	bool handle_raw_input_win32(const unsigned char *data, const int packet_lenght);
+
     // Called by Win32 HID enumeration callback.
     void device_attached(const std::string &device);
 
@@ -218,10 +220,9 @@ private:
     typedef std::array<unsigned char, 13> DataPacketRaw;
 
 	// Unpack raw 3DConnexion HID packet of a wired 3D mouse into m_state. Called by the worker thread.
-    static bool handle_input(const DataPacketRaw& packet, const int packet_lenght, const Params &params, State &state_in_out);
+    static bool handle_input(const DataPacketRaw& packet, const int packet_length, const Params &params, State &state_in_out);
     // The following is called by handle_input() from the worker thread.
-    static bool handle_packet(const DataPacketRaw& packet, const Params &params, State &state_in_out);
-    static bool handle_wireless_packet(const DataPacketRaw& packet, const Params &params, State &state_in_out);
+    static bool handle_packet(const DataPacketRaw& packet, const int packet_length, const Params &params, State &state_in_out);
     static bool handle_packet_translation(const DataPacketRaw& packet, const Params &params, State &state_in_out);
     static bool handle_packet_rotation(const DataPacketRaw& packet, unsigned int first_byte, const Params &params, State &state_in_out);
     static bool handle_packet_button(const DataPacketRaw& packet, unsigned int packet_size, const Params &params, State &state_in_out);

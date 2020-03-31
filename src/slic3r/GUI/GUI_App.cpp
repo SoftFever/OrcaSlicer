@@ -47,6 +47,7 @@
 #include "SysInfoDialog.hpp"
 #include "KBShortcutsDialog.hpp"
 #include "UpdateDialogs.hpp"
+#include "Mouse3DController.hpp"
 #include "RemovableDriveManager.hpp"
 
 #ifdef __WXMSW__
@@ -192,6 +193,20 @@ static void register_win32_device_notification_event()
             break;
 	    }
         return true;
+    });
+
+    wxWindow::MSWRegisterMessageHandler(WM_INPUT, [](wxWindow *win, WXUINT /* nMsg */, WXWPARAM wParam, WXLPARAM lParam) {
+        auto main_frame = dynamic_cast<MainFrame*>(Slic3r::GUI::find_toplevel_parent(win));
+        auto plater = (main_frame == nullptr) ? nullptr : main_frame->plater();
+//        if (wParam == RIM_INPUTSINK && plater != nullptr && main_frame->IsActive()) {
+        if (wParam == RIM_INPUT && plater != nullptr && main_frame->IsActive()) {
+        RAWINPUT raw;
+			UINT rawSize = sizeof(RAWINPUT);
+			::GetRawInputData((HRAWINPUT)lParam, RID_INPUT, &raw, &rawSize, sizeof(RAWINPUTHEADER));
+			if (raw.header.dwType == RIM_TYPEHID && plater->get_mouse3d_controller().handle_raw_input_win32(raw.data.hid.bRawData, raw.data.hid.dwSizeHid))
+				return true;
+		}
+        return false;
     });
 }
 #endif // WIN32
