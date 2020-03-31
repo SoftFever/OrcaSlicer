@@ -1824,14 +1824,12 @@ void GLCanvas3D::set_color_by(const std::string& value)
     m_color_by = value;
 }
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
 void GLCanvas3D::refresh_camera_scene_box()
 {
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     wxGetApp().plater()->get_camera().set_scene_box(scene_bounding_box());
-#else
-    m_camera.set_scene_box(scene_bounding_box());
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 }
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
 {
