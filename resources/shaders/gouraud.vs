@@ -20,7 +20,7 @@ const vec3 ZERO = vec3(0.0, 0.0, 0.0);
 
 struct PrintBoxDetection
 {
-    bool active;
+    bool actived;
     vec3 min;
     vec3 max;
     mat4 volume_world_matrix;
@@ -28,7 +28,7 @@ struct PrintBoxDetection
 
 struct SlopeDetection
 {
-    bool active;
+    bool actived;
 	// x = yellow, y = red
 	vec2 z_range;
     mat3 volume_world_normal_matrix;
@@ -72,7 +72,7 @@ void main()
     intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
 
     // compute deltas for out of print volume detection (world coordinates)
-    if (print_box.active)
+    if (print_box.actived)
     {
         vec3 v = (print_box.volume_world_matrix * gl_Vertex).xyz;
         delta_box_min = v - print_box.min;
@@ -85,7 +85,7 @@ void main()
     }
 
     // z component of normal vector in world coordinate used for slope shading
-	world_normal_z = slope.active ? (normalize(slope.volume_world_normal_matrix * gl_Normal)).z : 0.0;
+	world_normal_z = slope.actived ? (normalize(slope.volume_world_normal_matrix * gl_Normal)).z : 0.0;
 
     gl_Position = ftransform();
     // Point in homogenous coordinates.
