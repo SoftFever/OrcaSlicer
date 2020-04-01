@@ -834,6 +834,7 @@ private:
     void _update_selection_from_hover();
 
     bool _deactivate_undo_redo_toolbar_items();
+    bool _deactivate_search_toolbar_item();
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 

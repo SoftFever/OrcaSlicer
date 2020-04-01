@@ -100,6 +100,9 @@
 
 namespace ImGui
 {
+    // Special ASCII character is used here as markup symbols for tokens to be highlighted as a for hovered item
+    const char ColorMarkerHovered   = 0x1; // STX
+
     // Special ASCII characters STX and ETX are used here as markup symbols for tokens to be highlighted.
     const char ColorMarkerStart = 0x2; // STX
     const char ColorMarkerEnd   = 0x3; // ETX

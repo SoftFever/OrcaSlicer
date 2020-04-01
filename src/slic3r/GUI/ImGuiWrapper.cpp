@@ -15,6 +15,9 @@
 
 #include <GL/glew.h>
 
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
 #include <imgui/imgui_internal.h>
 
 #include "libslic3r/libslic3r.h"
@@ -400,6 +403,141 @@ bool ImGuiWrapper::undo_redo_list(const ImVec2& size, const bool is_undo, bool (
     return is_hovered;
 }
 
+// It's a copy of IMGui::Selactable function.
+// But a little beat modified to change a label text.
+// If item is hovered we should use another color for highlighted letters.
+// To do that we push a ColorMarkerHovered symbol at the very beginning of the label
+// This symbol will be used to a color selection for the highlighted letters.
+// see imgui_draw.cpp, void ImFont::RenderText()
+static bool selectable(const char* label, bool selected, ImGuiSelectableFlags flags = 0, const ImVec2& size_arg = ImVec2(0, 0))
+{
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+
+    if ((flags & ImGuiSelectableFlags_SpanAllColumns) && window->DC.CurrentColumns) // FIXME-OPT: Avoid if vertically clipped.
+        ImGui::PushColumnsBackground();
+
+    ImGuiID id = window->GetID(label);
+    ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
+    ImVec2 size(size_arg.x != 0.0f ? size_arg.x : label_size.x, size_arg.y != 0.0f ? size_arg.y : label_size.y);
+    ImVec2 pos = window->DC.CursorPos;
+    pos.y += window->DC.CurrLineTextBaseOffset;
+    ImRect bb_inner(pos, pos + size);
+    ImGui::ItemSize(size, 0.0f);
+
+    // Fill horizontal space.
+    ImVec2 window_padding = window->WindowPadding;
+    float max_x = (flags & ImGuiSelectableFlags_SpanAllColumns) ? ImGui::GetWindowContentRegionMax().x : ImGui::GetContentRegionMax().x;
+    float w_draw = ImMax(label_size.x, window->Pos.x + max_x - window_padding.x - pos.x);
+    ImVec2 size_draw((size_arg.x != 0 && !(flags & ImGuiSelectableFlags_DrawFillAvailWidth)) ? size_arg.x : w_draw, size_arg.y != 0.0f ? size_arg.y : size.y);
+    ImRect bb(pos, pos + size_draw);
+    if (size_arg.x == 0.0f || (flags & ImGuiSelectableFlags_DrawFillAvailWidth))
+        bb.Max.x += window_padding.x;
+
+    // Selectables are tightly packed together so we extend the box to cover spacing between selectable.
+    const float spacing_x = style.ItemSpacing.x;
+    const float spacing_y = style.ItemSpacing.y;
+    const float spacing_L = IM_FLOOR(spacing_x * 0.50f);
+    const float spacing_U = IM_FLOOR(spacing_y * 0.50f);
+    bb.Min.x -= spacing_L;
+    bb.Min.y -= spacing_U;
+    bb.Max.x += (spacing_x - spacing_L);
+    bb.Max.y += (spacing_y - spacing_U);
+
+    bool item_add;
+    if (flags & ImGuiSelectableFlags_Disabled)
+    {
+        ImGuiItemFlags backup_item_flags = window->DC.ItemFlags;
+        window->DC.ItemFlags |= ImGuiItemFlags_Disabled | ImGuiItemFlags_NoNavDefaultFocus;
+        item_add = ImGui::ItemAdd(bb, id);
+        window->DC.ItemFlags = backup_item_flags;
+    }
+    else
+    {
+        item_add = ImGui::ItemAdd(bb, id);
+    }
+    if (!item_add)
+    {
+        if ((flags & ImGuiSelectableFlags_SpanAllColumns) && window->DC.CurrentColumns)
+            ImGui::PopColumnsBackground();
+        return false;
+    }
+
+    // We use NoHoldingActiveID on menus so user can click and _hold_ on a menu then drag to browse child entries
+    ImGuiButtonFlags button_flags = 0;
+    if (flags & ImGuiSelectableFlags_NoHoldingActiveID) { button_flags |= ImGuiButtonFlags_NoHoldingActiveId; }
+    if (flags & ImGuiSelectableFlags_PressedOnClick) { button_flags |= ImGuiButtonFlags_PressedOnClick; }
+    if (flags & ImGuiSelectableFlags_PressedOnRelease) { button_flags |= ImGuiButtonFlags_PressedOnRelease; }
+    if (flags & ImGuiSelectableFlags_Disabled) { button_flags |= ImGuiButtonFlags_Disabled; }
+    if (flags & ImGuiSelectableFlags_AllowDoubleClick) { button_flags |= ImGuiButtonFlags_PressedOnClickRelease | ImGuiButtonFlags_PressedOnDoubleClick; }
+    if (flags & ImGuiSelectableFlags_AllowItemOverlap) { button_flags |= ImGuiButtonFlags_AllowItemOverlap; }
+
+    if (flags & ImGuiSelectableFlags_Disabled)
+        selected = false;
+
+    const bool was_selected = selected;
+    bool hovered, held;
+    bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, button_flags);
+
+    // Update NavId when clicking or when Hovering (this doesn't happen on most widgets), so navigation can be resumed with gamepad/keyboard
+    if (pressed || (hovered && (flags & ImGuiSelectableFlags_SetNavIdOnHover)))
+    {
+        if (!g.NavDisableMouseHover && g.NavWindow == window && g.NavLayer == window->DC.NavLayerCurrent)
+        {
+            g.NavDisableHighlight = true;
+            ImGui::SetNavID(id, window->DC.NavLayerCurrent, window->DC.NavFocusScopeIdCurrent);
+        }
+    }
+    if (pressed)
+        ImGui::MarkItemEdited(id);
+
+    if (flags & ImGuiSelectableFlags_AllowItemOverlap)
+        ImGui::SetItemAllowOverlap();
+
+    // In this branch, Selectable() cannot toggle the selection so this will never trigger.
+    if (selected != was_selected) //-V547
+        window->DC.LastItemStatusFlags |= ImGuiItemStatusFlags_ToggledSelection;
+
+    // Render
+    if (held && (flags & ImGuiSelectableFlags_DrawHoveredWhenHeld))
+        hovered = true;
+    if (hovered || selected)
+    {
+        const ImU32 col = ImGui::GetColorU32((held && hovered) ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
+        ImGui::RenderFrame(bb.Min, bb.Max, col, false, 0.0f);
+        ImGui::RenderNavHighlight(bb, id, ImGuiNavHighlightFlags_TypeThin | ImGuiNavHighlightFlags_NoRounding);
+    }
+
+    if ((flags & ImGuiSelectableFlags_SpanAllColumns) && window->DC.CurrentColumns)
+    {
+        ImGui::PopColumnsBackground();
+        bb.Max.x -= (ImGui::GetContentRegionMax().x - max_x);
+    }
+
+    // mark a label with a ImGui::ColorMarkerHovered, if item is hovered
+    char* marked_label = new char[255];
+    if (hovered)
+        sprintf(marked_label, "%c%s", ImGui::ColorMarkerHovered, label);
+    else
+        strcpy(marked_label, label);
+
+    if (flags & ImGuiSelectableFlags_Disabled) ImGui::PushStyleColor(ImGuiCol_Text, style.Colors[ImGuiCol_TextDisabled]);
+    ImGui::RenderTextClipped(bb_inner.Min, bb_inner.Max, marked_label, NULL, &label_size, style.SelectableTextAlign, &bb);
+    if (flags & ImGuiSelectableFlags_Disabled) ImGui::PopStyleColor();
+
+    delete[] marked_label;
+
+    // Automatically close popups
+    if (pressed && (window->Flags & ImGuiWindowFlags_Popup) && !(flags & ImGuiSelectableFlags_DontClosePopups) && !(window->DC.ItemFlags & ImGuiItemFlags_SelectableDontClosePopup)) ImGui::CloseCurrentPopup();
+
+    IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.ItemFlags);
+    return pressed;
+}
+
 void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, const char**), char* search_str, size_t& selected, bool& edited)
 {
     // ImGui::ListBoxHeader("", size);
@@ -442,7 +580,7 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
     const char* item_text;
     while (items_getter(i, &item_text))
     {
-        ImGui::Selectable(item_text, false);
+        selectable(item_text, false);
 
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("%s", item_text);

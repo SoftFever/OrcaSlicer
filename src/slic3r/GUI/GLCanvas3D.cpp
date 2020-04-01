@@ -2986,7 +2986,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         return;
     }
 
-    if ((keyCode == WXK_ESCAPE) && _deactivate_undo_redo_toolbar_items())
+    if ((keyCode == WXK_ESCAPE) && (_deactivate_undo_redo_toolbar_items() || _deactivate_search_toolbar_item()))
         return;
 
     if (m_gizmos.on_char(evt))
@@ -3636,6 +3636,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     else if (evt.Leaving())
     {
         _deactivate_undo_redo_toolbar_items();
+        _deactivate_search_toolbar_item();
 
         // to remove hover on objects when the mouse goes out of this canvas
         m_mouse.position = Vec2d(-1.0, -1.0);
@@ -3643,7 +3644,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
     else if (evt.LeftDown() || evt.RightDown() || evt.MiddleDown())
     {
-        if (_deactivate_undo_redo_toolbar_items())
+        if (_deactivate_undo_redo_toolbar_items() || _deactivate_search_toolbar_item())
             return;
 
         // If user pressed left or right button we first check whether this happened
@@ -4488,15 +4489,12 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
     search_line = s;
     delete [] s;
 
+    if (edited)
+        wxGetApp().sidebar().apply_search_filter();
+
     if (selected != size_t(-1))
     {
         wxGetApp().sidebar().jump_to_option(selected);
-        action_taken = true;
-    }
-
-    if (edited)
-    {
-        wxGetApp().sidebar().apply_search_filter();
         action_taken = true;
     }
 
@@ -5041,10 +5039,13 @@ bool GLCanvas3D::_init_main_toolbar()
     item.left.render_callback = [this](float left, float right, float, float) {
         if (m_canvas != nullptr)
         {
-            _render_search_list(0.5f * (left + right));
+            if (_render_search_list(0.5f * (left + right)))
+                _deactivate_search_toolbar_item();
         }
     };
-    item.enabling_callback = []()->bool { return true; };
+    item.left.action_callback   = GLToolbarItem::Default_Action_Callback;
+    item.visibility_callback    = GLToolbarItem::Default_Visibility_Callback;
+    item.enabling_callback      = GLToolbarItem::Default_Enabling_Callback;
     if (!m_main_toolbar.add_item(item))
         return false;
 
@@ -7224,6 +7225,17 @@ bool GLCanvas3D::_deactivate_undo_redo_toolbar_items()
     else if (m_undoredo_toolbar.is_item_pressed("redo"))
     {
         m_undoredo_toolbar.force_right_action(m_undoredo_toolbar.get_item_id("redo"), *this);
+        return true;
+    }
+
+    return false;
+}
+
+bool GLCanvas3D::_deactivate_search_toolbar_item()
+{
+    if (m_main_toolbar.is_item_pressed("search"))
+    {
+        m_main_toolbar.force_left_action(m_main_toolbar.get_item_id("search"), *this);
         return true;
     }
 

@@ -2993,6 +2993,13 @@ void ImFont::RenderText(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col
     unsigned int vtx_current_idx = draw_list->_VtxCurrentIdx;
 
     ImU32 defaultCol = col;
+    ImU32 highlighCol = ImGui::GetColorU32(ImGuiCol_ButtonHovered);
+
+    // if text is started with ColorMarkerHovered symbol, we should use another color for a highlighting
+    if (*s == ImGui::ColorMarkerHovered) {
+        highlighCol = ImGui::GetColorU32(ImGuiCol_FrameBg);
+        s += 1;
+    }
 
     while (s < text_end)
     {
@@ -3023,7 +3030,7 @@ void ImFont::RenderText(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col
         }
 
         if (*s == ImGui::ColorMarkerStart) {
-            col = ImGui::GetColorU32(ImGuiCol_ButtonHovered);
+            col = highlighCol;
             s += 1;
         }
         else if (*s == ImGui::ColorMarkerEnd) {
