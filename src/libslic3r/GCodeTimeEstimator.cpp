@@ -982,12 +982,12 @@ namespace Slic3r {
         };
 
         auto move_length = [](const std::array<float, Num_Axis>& delta_pos) {
-            float xyz_length = std::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
-            return (xyz_length > 0.0f) ? xyz_length : std::abs(delta_pos[E]);
+            float xyz_length = std::sqrt(sqr(delta_pos[(size_t)X]) + sqr(delta_pos[(size_t)Y]) + sqr(delta_pos[(size_t)Z]));
+            return (xyz_length > 0.0f) ? xyz_length : std::abs(delta_pos[(size_t)E]);
         };
 
         auto is_extruder_only_move = [](const std::array<float, Num_Axis>& delta_pos) {
-            return (delta_pos[X] == 0.0f) && (delta_pos[Y] == 0.0f) && (delta_pos[Z] == 0.0f) && (delta_pos[E] != 0.0f);
+            return (delta_pos[(size_t)X] == 0.0f) && (delta_pos[(size_t)Y] == 0.0f) && (delta_pos[(size_t)Z] == 0.0f) && (delta_pos[(size_t)E] != 0.0f);
         };
 
         PROFILE_FUNC();
