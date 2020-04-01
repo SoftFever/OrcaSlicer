@@ -275,6 +275,7 @@ public:
     void set_current_canvas_as_dirty();
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
     void unbind_canvas_event_handlers();
+    void reset_canvas_volumes();
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     PrinterTechnology   printer_technology() const;

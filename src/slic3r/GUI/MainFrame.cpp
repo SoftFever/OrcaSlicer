@@ -152,6 +152,16 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 			// Failed to get desktop location
 			assert(false); 
 		}
+
+		{
+			static constexpr int device_count = 1;
+			RAWINPUTDEVICE devices[device_count] = { 0 };
+			// multi-axis mouse (SpaceNavigator, etc.)
+			devices[0].usUsagePage = 0x01;
+			devices[0].usUsage = 0x08;
+			if (! RegisterRawInputDevices(devices, device_count, sizeof(RAWINPUTDEVICE)))
+				BOOST_LOG_TRIVIAL(error) << "RegisterRawInputDevices failed";
+		}
 #endif // _WIN32
 
         // propagate event
@@ -204,6 +214,10 @@ void MainFrame::shutdown()
     // when closing the application using Command+Q, a mouse event is triggered after this lambda is completed,
     // causing a crash
     if (m_plater) m_plater->unbind_canvas_event_handlers();
+
+    // Cleanup of canvases' volumes needs to be done here or a crash may happen on some Linux Debian flavours
+    // see: https://github.com/prusa3d/PrusaSlicer/issues/3964
+    if (m_plater) m_plater->reset_canvas_volumes();
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     // Weird things happen as the Paint messages are floating around the windows being destructed.

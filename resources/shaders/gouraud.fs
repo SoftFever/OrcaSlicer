@@ -8,7 +8,7 @@ const float EPSILON = 0.0001;
 
 struct SlopeDetection
 {
-    bool active;
+    bool actived;
 	// x = yellow, y = red
 	vec2 z_range;
     mat3 volume_world_normal_matrix;
@@ -37,7 +37,7 @@ void main()
 {
     if (any(lessThan(clipping_planes_dots, ZERO)))
         discard;
-	vec3 color = slope.active ? slope_color() : uniform_color.rgb;
+	vec3 color = slope.actived ? slope_color() : uniform_color.rgb;
     // if the fragment is outside the print volume -> use darker color
 	color = (any(lessThan(delta_box_min, ZERO)) || any(greaterThan(delta_box_max, ZERO))) ? mix(color, ZERO, 0.3333) : color;
     gl_FragColor = vec4(vec3(intensity.y, intensity.y, intensity.y) + color * intensity.x, uniform_color.a);

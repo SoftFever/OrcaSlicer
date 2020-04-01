@@ -484,7 +484,10 @@ void Mouse3DController::init()
 	assert(! m_thread.joinable());
     if (! m_thread.joinable()) {
     	m_stop = false;
+#ifndef _WIN32
+    	// Don't start the background thread on Windows, as the HID messages are sent as Windows messages.
 	    m_thread = std::thread(&Mouse3DController::run, this);
+#endif // _WIN32
 	}
 }
 
@@ -600,7 +603,10 @@ bool Mouse3DController::connect_device()
             : path(path), usage_page(usage_page), usage(usage)
         {}
 
-        bool has_valid_usage() const { return (usage_page == 1) && (usage == 8); }
+        // https://www.usb.org/sites/default/files/documents/hut1_12v2.pdf
+        // Usage page 1 - Generic Desktop Controls
+        // Usage page 1, usage 8 - Multi-axis Controller
+        bool has_valid_usage() const { return usage_page == 1 && usage == 8; }
     };
 
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
@@ -688,7 +694,7 @@ bool Mouse3DController::connect_device()
     if (detected_devices.empty())
         return false;
 
-    std::string path = "";
+    std::string path;
     unsigned short vendor_id = 0;
     unsigned short product_id = 0;
 
@@ -865,45 +871,60 @@ void Mouse3DController::collect_input()
 		this->handle_input(packet, res, m_params, m_state);
 }
 
-// Unpack raw 3DConnexion HID packet of a wired 3D mouse into m_state. Called by the worker thread.
-bool Mouse3DController::handle_input(const DataPacketRaw& packet, const int packet_lenght, const Params &params, State &state_in_out)
+#ifdef _WIN32
+bool Mouse3DController::handle_raw_input_win32(const unsigned char *data, const int packet_length)
 {
     if (! wxGetApp().IsActive())
         return false;
 
-    int res = packet_lenght;
+    if (packet_length == 7 || packet_length == 13) {
+        DataPacketRaw packet;
+    	memcpy(packet.data(), data, packet_length);
+        handle_packet(packet, packet_length, m_params, m_state);
+    }
+
+    return true;
+}
+#endif /* _WIN32 */
+
+// Unpack raw 3DConnexion HID packet of a wired 3D mouse into m_state. Called by the worker thread.
+bool Mouse3DController::handle_input(const DataPacketRaw& packet, const int packet_length, const Params &params, State &state_in_out)
+{
+    if (! wxGetApp().IsActive())
+        return false;
+
+    int res = packet_length;
     bool updated = false;
 
-    if (res == 7)
-        updated = handle_packet(packet, params, state_in_out);
-    else if (res == 13)
-        updated = handle_wireless_packet(packet, params, state_in_out);
-    else if ((res == 3) && (packet[0] == 3))
+    if (res == 7 || res == 13 ||
         // On Mac button packets can be 3 bytes long
-        updated = handle_packet(packet, params, state_in_out);
+       	((res == 3) && (packet[0] == 3)))
+        updated = handle_packet(packet, res, params, state_in_out);
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
     else if (res > 0)
         std::cout << "Got unknown data packet of length: " << res << ", code:" << (int)packet[0] << std::endl;
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
-#if 1
     if (updated) {
         wxGetApp().plater()->set_current_canvas_as_dirty();
         // ask for an idle event to update 3D scene
         wxWakeUpIdle();
     }
-#endif
     return updated;
 }
 
 // Unpack raw 3DConnexion HID packet of a wired 3D mouse into m_state. Called by handle_input() from the worker thread.
-bool Mouse3DController::handle_packet(const DataPacketRaw& packet, const Params &params, State &state_in_out)
+bool Mouse3DController::handle_packet(const DataPacketRaw& packet, const int packet_length, const Params &params, State &state_in_out)
 {
     switch (packet[0])
     {
-    case 1: // Translation
+    case 1: // Translation + Rotation
         {
-            if (handle_packet_translation(packet, params, state_in_out))
+            bool updated = handle_packet_translation(packet, params, state_in_out);
+            if (packet_length == 13)
+	            updated |= handle_packet_rotation(packet, 7, params, state_in_out);
+
+            if (updated)
                 return true;
 
             break;
@@ -938,47 +959,6 @@ bool Mouse3DController::handle_packet(const DataPacketRaw& packet, const Params 
         }
     }
 
-    return false;
-}
-
-// Unpack raw 3DConnexion HID packet of a wireless 3D mouse into m_state. Called by handle_input() from the worker thread.
-bool Mouse3DController::handle_wireless_packet(const DataPacketRaw& packet, const Params &params, State &state_in_out)
-{
-    switch (packet[0])
-    {
-    case 1: // Translation + Rotation
-        {
-            bool updated = handle_packet_translation(packet, params, state_in_out);
-            updated |= handle_packet_rotation(packet, 7, params, state_in_out);
-
-            if (updated)
-                return true;
-
-            break;
-        }
-    case 3: // Button
-        {
-            if (params.buttons_enabled && handle_packet_button(packet, 12, params, state_in_out))
-                return true;
-
-            break;
-        }
-    case 23: // Battery charge
-        {
-#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-            std::cout << "3DConnexion - battery level: " << (int)packet[1] << " percent" << std::endl;
-#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-            break;
-        }
-    default:
-        {
-#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-            std::cout << "3DConnexion - Got unknown data packet of code: " << (int)packet[0] << std::endl;
-#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-            break;
-        }
-    }
-    
     return false;
 }
 
