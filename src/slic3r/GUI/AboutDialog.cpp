@@ -2,8 +2,9 @@
 #include "I18N.hpp"
 
 #include "libslic3r/Utils.hpp"
+#include "GUI.hpp"
 #include "GUI_App.hpp"
-#include "wxExtensions.hpp"
+
 
 namespace Slic3r { 
 namespace GUI {
@@ -266,7 +267,7 @@ AboutDialog::AboutDialog()
             "<html>"
             "<body bgcolor= %1% link= %2%>"
             "<font color=%3%>"
-            "%4% &copy; 2016-2019 Prusa Research. <br />"
+            "%4% &copy; 2016-2020 Prusa Research. <br />"
             "%5% &copy; 2011-2018 Alessandro Ranellucci. <br />"
             "<a href=\"http://slic3r.org/\">Slic3r</a> %6% "
             "<a href=\"http://www.gnu.org/licenses/agpl-3.0.html\">%7%</a>."

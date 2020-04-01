@@ -113,7 +113,11 @@ void OptionsGroup::add_undo_buttuns_to_sizer(wxSizer* sizer, const t_field& fiel
 }
 
 void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = nullptr*/) {
-	if ( (line.sizer != nullptr || line.widget != nullptr) && line.full_width) {
+	if ( line.full_width && (
+		 line.sizer  != nullptr				|| 
+		 line.widget != nullptr				||
+		!line.get_extra_widgets().empty() ) 
+		) {
 		if (line.sizer != nullptr) {
             sizer->Add(line.sizer, 0, wxEXPAND | wxALL, wxOSX ? 0 : 15);
             return;
@@ -122,6 +126,17 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
             sizer->Add(line.widget(this->ctrl_parent()), 0, wxEXPAND | wxALL, wxOSX ? 0 : 15);
             return;
         }
+		if (!line.get_extra_widgets().empty()) {
+			const auto h_sizer = new wxBoxSizer(wxHORIZONTAL);
+			sizer->Add(h_sizer, 1, wxEXPAND | wxALL, wxOSX ? 0 : 15);
+
+            bool is_first_item = true;
+			for (auto extra_widget : line.get_extra_widgets()) {
+				h_sizer->Add(extra_widget(this->ctrl_parent()), is_first_item ? 1 : 0, wxLEFT, 15);
+				is_first_item = false;
+			}
+			return;
+		}
     }
 
 	auto option_set = line.get_options();
@@ -412,7 +427,9 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
 		auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("nozzle_diameter"));
 		value = int(nozzle_diameter->values.size());
 	}
-    else if (m_opt_map.find(opt_key) == m_opt_map.end() || opt_key == "bed_shape") {
+    else if (m_opt_map.find(opt_key) == m_opt_map.end() ||
+		    // This option don't have corresponded field
+		     opt_key == "bed_shape" || opt_key == "compatible_printers" || opt_key == "compatible_prints" ) {
         value = get_config_value(config, opt_key);
         change_opt_value(*m_config, opt_key, value);
         return;
@@ -629,7 +646,7 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 		ret = static_cast<wxString>(config.opt_string(opt_key));
 		break;
 	case coStrings:
-		if (opt_key.compare("compatible_printers") == 0) {
+		if (opt_key == "compatible_printers" || opt_key == "compatible_prints") {
 			ret = config.option<ConfigOptionStrings>(opt_key)->values;
 			break;
 		}

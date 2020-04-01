@@ -7,9 +7,16 @@
 #include <sstream>
 #include <exception>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <curl/curl.h>
+
+#ifdef OPENSSL_CERT_OVERRIDE
+#include <openssl/x509.h>
+#endif
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
@@ -22,13 +29,55 @@ namespace Slic3r {
 
 // Private
 
-class CurlGlobalInit
+struct CurlGlobalInit
 {
-	static const CurlGlobalInit instance;
+    static std::unique_ptr<CurlGlobalInit> instance;
 
-	CurlGlobalInit()  { ::curl_global_init(CURL_GLOBAL_DEFAULT); }
+	CurlGlobalInit()
+    {
+#ifdef OPENSSL_CERT_OVERRIDE // defined if SLIC3R_STATIC=ON
+        
+        // Look for a set of distro specific directories. Don't change the
+        // order: https://bugzilla.redhat.com/show_bug.cgi?id=1053882
+        static const char * CA_BUNDLES[] = {
+            "/etc/pki/tls/certs/ca-bundle.crt",   // Fedora/RHEL 6
+            "/etc/ssl/certs/ca-certificates.crt", // Debian/Ubuntu/Gentoo etc.
+            "/usr/share/ssl/certs/ca-bundle.crt",
+            "/usr/local/share/certs/ca-root-nss.crt", // FreeBSD
+            "/etc/ssl/cert.pem",
+            "/etc/ssl/ca-bundle.pem"              // OpenSUSE Tumbleweed              
+        };
+        
+        namespace fs = boost::filesystem;
+        // Env var name for the OpenSSL CA bundle (SSL_CERT_FILE nomally)
+        const char *const SSL_CA_FILE = X509_get_default_cert_file_env();
+        const char * ssl_cafile = ::getenv(SSL_CA_FILE);
+        
+        if (!ssl_cafile)
+            ssl_cafile = X509_get_default_cert_file();
+        
+        int replace = true;
+        
+        if (!ssl_cafile || !fs::exists(fs::path(ssl_cafile)))
+            for (const char * bundle : CA_BUNDLES) {
+                if (fs::exists(fs::path(bundle))) {
+                    ::setenv(SSL_CA_FILE, bundle, replace);
+                    break;
+                }
+            }
+
+        BOOST_LOG_TRIVIAL(info)
+            << "Detected OpenSSL root CA store: " << ::getenv(SSL_CA_FILE);
+
+#endif
+        
+        ::curl_global_init(CURL_GLOBAL_DEFAULT);
+    }
+    
 	~CurlGlobalInit() { ::curl_global_cleanup(); }
 };
+
+std::unique_ptr<CurlGlobalInit> CurlGlobalInit::instance;
 
 struct Http::priv
 {
@@ -83,6 +132,9 @@ Http::priv::priv(const std::string &url)
 	, limit(0)
 	, cancel(false)
 {
+    if (!CurlGlobalInit::instance)
+        CurlGlobalInit::instance = std::make_unique<CurlGlobalInit>();
+    
 	if (curl == nullptr) {
 		throw std::runtime_error(std::string("Could not construct Curl object"));
 	}

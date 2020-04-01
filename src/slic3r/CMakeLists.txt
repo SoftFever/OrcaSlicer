@@ -22,6 +22,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/ConfigSnapshotDialog.hpp
     GUI/3DScene.cpp
     GUI/3DScene.hpp
+    GUI/format.hpp
     GUI/GLShader.cpp
     GUI/GLShader.hpp    
     GUI/GLCanvas3D.hpp
@@ -191,11 +192,15 @@ add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
 
 encoding_check(libslic3r_gui)
 
-target_link_libraries(libslic3r_gui libslic3r avrdude cereal imgui GLEW::GLEW OpenGL::GL OpenGL::GLU hidapi)
+target_link_libraries(libslic3r_gui libslic3r avrdude cereal imgui GLEW::GLEW OpenGL::GL OpenGL::GLU hidapi libcurl ${wxWidgets_LIBRARIES})
 
 if(APPLE)
     target_link_libraries(libslic3r_gui ${DISKARBITRATION_LIBRARY})
 endif()
+
+if (SLIC3R_STATIC AND UNIX AND NOT APPLE)
+    target_compile_definitions(libslic3r_gui PRIVATE OPENSSL_CERT_OVERRIDE)
+endif ()
 
 if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
     add_precompiled_header(libslic3r_gui pchheader.hpp FORCEINCLUDE)

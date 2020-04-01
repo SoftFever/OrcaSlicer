@@ -43,7 +43,8 @@ public:
                         const wxString& value = wxEmptyString,
                         EditorType type = etUndef,
                         std::function<void(EditorType)>     set_focus_data_fn   = [](EditorType)      {;},
-                        std::function<bool(coordf_t, bool)> edit_fn             = [](coordf_t, bool) {return false; }
+                        // callback parameters: new value, from enter, dont't update panel UI (when called from edit field's kill focus handler for the PlusMinusButton)
+                        std::function<bool(coordf_t, bool, bool)> edit_fn       = [](coordf_t, bool, bool) {return false; }
                         );
     ~LayerRangeEditor() {}
 
@@ -69,8 +70,23 @@ public:
     ObjectLayers(wxWindow* parent);
     ~ObjectLayers() {}
 
+    
+    // Button remembers the layer height range, for which it has been created.
+    // The layer height range for this button is updated when the low or high boundary of the layer height range is updated
+    // by the respective text edit field, so that this button emits an action for an up to date layer height range value.
+    class PlusMinusButton : public ScalableButton
+    {
+    public:
+        PlusMinusButton(wxWindow *parent, const ScalableBitmap &bitmap, std::pair<coordf_t, coordf_t> range) : ScalableButton(parent, wxID_ANY, bitmap), range(range) {}
+        // updated when the text edit field loses focus for any PlusMinusButton.
+        std::pair<coordf_t, coordf_t> range;
+    };
+
     void        select_editor(LayerRangeEditor* editor, const bool is_last_edited_range);
-    wxSizer*    create_layer(const t_layer_height_range& range);    // without_buttons
+    // Create sizer with layer height range and layer height text edit fields, without buttons.
+    // If the delete and add buttons are provided, the respective text edit fields will modify the layer height ranges of thes buttons
+    // on value change, so that these buttons work with up to date values.
+    wxSizer*    create_layer(const t_layer_height_range& range, PlusMinusButton *delete_button, PlusMinusButton *add_button);
     void        create_layers_list();
     void        update_layers_list();
 

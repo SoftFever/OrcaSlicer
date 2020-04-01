@@ -1,8 +1,6 @@
 #include "libslic3r/libslic3r.h"
 #include "ThumbnailData.hpp"
 
-#if ENABLE_THUMBNAIL_GENERATOR
-
 namespace Slic3r {
 
 void ThumbnailData::set(unsigned int w, unsigned int h)
@@ -32,5 +30,3 @@ bool ThumbnailData::is_valid() const
 }
 
 } // namespace Slic3r
-
-#endif // ENABLE_THUMBNAIL_GENERATOR

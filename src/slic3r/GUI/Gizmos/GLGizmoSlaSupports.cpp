@@ -1,6 +1,7 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoSlaSupports.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmos.hpp"
 
 #include <GL/glew.h>
@@ -13,6 +14,9 @@
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_ObjectSettings.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+#include "slic3r/GUI/Camera.hpp"
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 #include "slic3r/GUI/MeshUtils.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
@@ -106,8 +110,6 @@ void GLGizmoSlaSupports::on_render() const
 
     m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
 
-    render_hollowed_mesh();
-
     if (m_quadric != nullptr && selection.is_from_single_instance())
         render_points(selection, false);
 
@@ -115,29 +117,6 @@ void GLGizmoSlaSupports::on_render() const
     render_clipping_plane(selection);
 
     glsafe(::glDisable(GL_BLEND));
-}
-
-
-
-void GLGizmoSlaSupports::render_hollowed_mesh() const
-{
-    /*if (m_c->m_volume_with_cavity) {
-        m_c->m_volume_with_cavity->set_sla_shift_z(m_z_shift);
-        m_parent.get_shader().start_using();
-
-        GLint current_program_id;
-        glsafe(::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id));
-        GLint color_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "uniform_color") : -1;
-        GLint print_box_detection_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.volume_detection") : -1;
-        GLint print_box_worldmatrix_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.volume_world_matrix") : -1;
-        glcheck();
-        m_c->m_volume_with_cavity->set_render_color();
-        const Geometry::Transformation& volume_trafo = m_c->m_model_object->volumes.front()->get_transformation();
-        m_c->m_volume_with_cavity->set_volume_transformation(volume_trafo);
-        m_c->m_volume_with_cavity->set_instance_transformation(m_c->m_model_object->instances[size_t(m_c->m_active_instance)]->get_transformation());
-        m_c->m_volume_with_cavity->render(color_id, print_box_detection_id, print_box_worldmatrix_id);
-        m_parent.get_shader().stop_using();
-    }*/
 }
 
 
@@ -238,7 +217,6 @@ void GLGizmoSlaSupports::on_render_for_picking() const
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_points(selection, true);
-    render_hollowed_mesh();
 }
 
 void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking) const
@@ -404,7 +382,11 @@ bool GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec
     if (! m_c->m_mesh_raycaster)
         return false;
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    const Camera& camera = wxGetApp().plater()->get_camera();
+#else
     const Camera& camera = m_parent.get_camera();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     const Selection& selection = m_parent.get_selection();
     const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
     Geometry::Transformation trafo = volume->get_instance_transformation();
@@ -514,7 +496,11 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 points_inside.push_back(points[idx].cast<float>());
 
             // Only select/deselect points that are actually visible
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+            for (size_t idx : m_c->m_mesh_raycaster->get_unobscured_idxs(trafo, wxGetApp().plater()->get_camera(), points_inside, m_c->m_clipping_plane.get()))
+#else
             for (size_t idx :  m_c->m_mesh_raycaster->get_unobscured_idxs(trafo, m_parent.get_camera(), points_inside, m_c->m_clipping_plane.get()))
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
             {
                 if (rectangle_status == GLSelectionRectangle::Deselect)
                     unselect_point(points_idxs[idx]);
@@ -627,8 +613,6 @@ void GLGizmoSlaSupports::delete_selected_points(bool force)
     }
 
     select_point(NoPoints);
-
-    //m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
 void GLGizmoSlaSupports::on_update(const UpdateData& data)
@@ -643,8 +627,6 @@ void GLGizmoSlaSupports::on_update(const UpdateData& data)
             m_editing_cache[m_hover_id].support_point.pos = pos_and_normal.first;
             m_editing_cache[m_hover_id].support_point.is_new_island = false;
             m_editing_cache[m_hover_id].normal = pos_and_normal.second;
-            // Do not update immediately, wait until the mouse is released.
-            // m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
         }
     }
 }
@@ -1311,8 +1293,14 @@ void GLGizmoSlaSupports::update_clipping_plane(bool keep_normal) const
 {
     if (! m_c->m_model_object)
         return;
+
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
     Vec3d normal = (keep_normal && m_c->m_clipping_plane->get_normal() != Vec3d::Zero() ?
-                        m_c->m_clipping_plane->get_normal() : -m_parent.get_camera().get_dir_forward());
+        m_c->m_clipping_plane->get_normal() : -wxGetApp().plater()->get_camera().get_dir_forward());
+#else
+    Vec3d normal = (keep_normal && m_c->m_clipping_plane->get_normal() != Vec3d::Zero() ?
+        m_c->m_clipping_plane->get_normal() : -m_parent.get_camera().get_dir_forward());
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     const Vec3d& center = m_c->m_model_object->instances[m_c->m_active_instance]->get_offset() + Vec3d(0., 0., m_z_shift);
     float dist = normal.dot(center);

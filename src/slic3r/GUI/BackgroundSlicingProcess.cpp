@@ -11,9 +11,7 @@
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
 
-#if ENABLE_THUMBNAIL_GENERATOR
 #include <miniz.h>
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 // Print now includes tbb, and tbb includes Windows. This breaks compilation of wxWidgets if included before wx.
 #include "libslic3r/Print.hpp"
@@ -26,16 +24,15 @@
 #include <cassert>
 #include <stdexcept>
 #include <cctype>
-#include <algorithm>
 
-#include <boost/format.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem.hpp>
+#include <boost/format/format_fwd.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include "I18N.hpp"
-#include "GUI.hpp"
 #include "RemovableDriveManager.hpp"
+
+#include "slic3r/Utils/Thread.hpp"
 
 namespace Slic3r {
 
@@ -90,21 +87,15 @@ void BackgroundSlicingProcess::process_fff()
 	assert(m_print == m_fff_print);
     m_print->process();
 	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_slicing_completed_id));
-#if ENABLE_THUMBNAIL_GENERATOR
     m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data, m_thumbnail_cb);
-#else
-    m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data);
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 	if (this->set_step_started(bspsGCodeFinalize)) {
 	    if (! m_export_path.empty()) {
 	    	//FIXME localize the messages
 	    	// Perform the final post-processing of the export path by applying the print statistics over the file name.
 	    	std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);
-			GUI::RemovableDriveManager::get_instance().update();
-			bool with_check = GUI::RemovableDriveManager::get_instance().is_path_on_removable_drive(export_path);
-			int copy_ret_val = copy_file(m_temp_output_path, export_path, with_check);
-			switch (copy_ret_val){
+			int copy_ret_val = copy_file(m_temp_output_path, export_path, m_export_path_on_removable_media);
+			switch (copy_ret_val) {
 			case SUCCESS: break; // no error
 			case FAIL_COPY_FILE:
 				throw std::runtime_error(_utf8(L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?")));
@@ -138,7 +129,6 @@ void BackgroundSlicingProcess::process_fff()
 	}
 }
 
-#if ENABLE_THUMBNAIL_GENERATOR
 static void write_thumbnail(Zipper& zipper, const ThumbnailData& data)
 {
     size_t png_size = 0;
@@ -149,7 +139,6 @@ static void write_thumbnail(Zipper& zipper, const ThumbnailData& data)
         mz_free(png_data);
     }
 }
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 void BackgroundSlicingProcess::process_sla()
 {
@@ -162,7 +151,6 @@ void BackgroundSlicingProcess::process_sla()
             Zipper zipper(export_path);
             m_sla_print->export_raster(zipper);
 
-#if ENABLE_THUMBNAIL_GENERATOR
             if (m_thumbnail_cb != nullptr)
             {
                 ThumbnailsList thumbnails;
@@ -174,7 +162,6 @@ void BackgroundSlicingProcess::process_sla()
                         write_thumbnail(zipper, data);
                 }
             }
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
             zipper.finalize();
 
@@ -236,7 +223,7 @@ void BackgroundSlicingProcess::thread_proc()
 			// Only post the canceled event, if canceled by user.
 			// Don't post the canceled event, if canceled from Print::apply().
 			wxCommandEvent evt(m_event_finished_id);
-			evt.SetString(error);
+            evt.SetString(GUI::from_u8(error));
 			evt.SetInt(m_print->canceled() ? -1 : (error.empty() ? 1 : 0));
         	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
         }
@@ -403,7 +390,7 @@ void BackgroundSlicingProcess::set_task(const PrintBase::TaskParams &params)
 }
 
 // Set the output path of the G-code.
-void BackgroundSlicingProcess::schedule_export(const std::string &path)
+void BackgroundSlicingProcess::schedule_export(const std::string &path, bool export_path_on_removable_media)
 { 
 	assert(m_export_path.empty());
 	if (! m_export_path.empty())
@@ -413,6 +400,7 @@ void BackgroundSlicingProcess::schedule_export(const std::string &path)
 	tbb::mutex::scoped_lock lock(m_print->state_mutex());
 	this->invalidate_step(bspsGCodeFinalize);
 	m_export_path = path;
+	m_export_path_on_removable_media = export_path_on_removable_media;
 }
 
 void BackgroundSlicingProcess::schedule_upload(Slic3r::PrintHostJob upload_job)
@@ -433,6 +421,7 @@ void BackgroundSlicingProcess::reset_export()
 	assert(! this->running());
 	if (! this->running()) {
 		m_export_path.clear();
+		m_export_path_on_removable_media = false;
 		// invalidate_step expects the mutex to be locked.
 		tbb::mutex::scoped_lock lock(m_print->state_mutex());
 		this->invalidate_step(bspsGCodeFinalize);
@@ -487,7 +476,6 @@ void BackgroundSlicingProcess::prepare_upload()
 
         Zipper zipper{source_path.string()};
         m_sla_print->export_raster(zipper, m_upload_job.upload_data.upload_path.string());
-#if ENABLE_THUMBNAIL_GENERATOR
         if (m_thumbnail_cb != nullptr)
         {
             ThumbnailsList thumbnails;
@@ -499,7 +487,6 @@ void BackgroundSlicingProcess::prepare_upload()
                     write_thumbnail(zipper, data);
             }
         }
-#endif // ENABLE_THUMBNAIL_GENERATOR
         zipper.finalize();
     }
 

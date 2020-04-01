@@ -145,7 +145,11 @@ SysInfoDialog::SysInfoDialog()
             "</font>"
             "</body>"
             "</html>", bgr_clr_str, text_clr_str, text_clr_str,
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+            get_mem_info(true) + "<br>" + wxGetApp().get_gl_info(true, true));
+#else
             get_mem_info(true) + "<br>" + _3DScene::get_gl_info(true, true));
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
         m_opengl_info_html->SetPage(text);
         main_sizer->Add(m_opengl_info_html, 1, wxEXPAND | wxBOTTOM, 15);
     }
@@ -198,7 +202,11 @@ void SysInfoDialog::on_dpi_changed(const wxRect &suggested_rect)
 void SysInfoDialog::onCopyToClipboard(wxEvent &)
 {
     wxTheClipboard->Open();
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    const auto text = get_main_info(false) + "\n" + wxGetApp().get_gl_info(false, true);
+#else
     const auto text = get_main_info(false)+"\n"+_3DScene::get_gl_info(false, true);
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     wxTheClipboard->SetData(new wxTextDataObject(text));
     wxTheClipboard->Close();
 }
