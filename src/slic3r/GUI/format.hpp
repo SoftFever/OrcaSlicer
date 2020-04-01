@@ -25,11 +25,11 @@ inline wxString format_wxstr(const std::string& fmt, TArgs&&... args) {
 }
 template<typename... TArgs>
 inline wxString format_wxstr(const wxString& fmt, TArgs&&... args) {
-	return format_wxstr(fmt.ToUTF8().data());
+	return format_wxstr(fmt.ToUTF8().data(), std::forward<TArgs>(args)...);
 }
 template<typename... TArgs>
 inline std::string format(const wxString& fmt, TArgs&&... args) {
-	return format(fmt.ToUTF8().data());
+	return format(fmt.ToUTF8().data(), std::forward<TArgs>(args)...);
 }
 
 } // namespace GUI
