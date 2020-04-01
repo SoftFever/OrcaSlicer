@@ -981,13 +981,15 @@ namespace Slic3r {
                 return current_absolute_position;
         };
 
-        auto move_length = [](const std::array<float, Num_Axis>& delta_pos) {
-            float xyz_length = std::sqrt(sqr(delta_pos[(size_t)X]) + sqr(delta_pos[(size_t)Y]) + sqr(delta_pos[(size_t)Z]));
-            return (xyz_length > 0.0f) ? xyz_length : std::abs(delta_pos[(size_t)E]);
+        // delta_pos must have size >= 4
+        auto move_length = [](const float* delta_pos) {
+            float xyz_length = std::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
+            return (xyz_length > 0.0f) ? xyz_length : std::abs(delta_pos[E]);
         };
 
-        auto is_extruder_only_move = [](const std::array<float, Num_Axis>& delta_pos) {
-            return (delta_pos[(size_t)X] == 0.0f) && (delta_pos[(size_t)Y] == 0.0f) && (delta_pos[(size_t)Z] == 0.0f) && (delta_pos[(size_t)E] != 0.0f);
+        // delta_pos must have size >= 4
+        auto is_extruder_only_move = [](const float* delta_pos) {
+            return (delta_pos[X] == 0.0f) && (delta_pos[Y] == 0.0f) && (delta_pos[Z] == 0.0f) && (delta_pos[E] != 0.0f);
         };
 
         PROFILE_FUNC();
@@ -1023,7 +1025,7 @@ namespace Slic3r {
         // calculates block feedrate
         m_curr.feedrate = std::max(get_feedrate(), (delta_pos[E] == 0.0f) ? get_minimum_travel_feedrate() : get_minimum_feedrate());
 
-        block.distance = move_length(delta_pos);
+        block.distance = move_length(delta_pos.data());
         float invDistance = 1.0f / block.distance;
 
         float min_feedrate_factor = 1.0f;
@@ -1050,7 +1052,7 @@ namespace Slic3r {
         }
 
         // calculates block acceleration
-        float acceleration = is_extruder_only_move(delta_pos) ? get_retract_acceleration() : get_acceleration();
+        float acceleration = is_extruder_only_move(delta_pos.data()) ? get_retract_acceleration() : get_acceleration();
 
         for (unsigned char a = X; a < Num_Axis; ++a)
         {
