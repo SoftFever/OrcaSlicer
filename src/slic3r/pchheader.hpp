@@ -183,3 +183,5 @@
 #include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/libslic3r.h"
+
+#include "GUI/format.hpp"
