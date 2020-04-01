@@ -94,6 +94,7 @@ namespace fs = boost::filesystem;
 using Slic3r::_3DScene;
 using Slic3r::Preset;
 using Slic3r::PrintHostJob;
+using Slic3r::GUI::format_wxstr;
 
 static const std::pair<unsigned int, unsigned int> THUMBNAIL_SIZE_3MF = { 256, 256 };
 

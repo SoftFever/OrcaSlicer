@@ -184,4 +184,6 @@
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/libslic3r.h"
 
+#ifdef _WIN32
 #include "GUI/format.hpp"
+#endif // _WIN32
