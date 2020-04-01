@@ -1594,9 +1594,9 @@ struct Plater::priv
         }
 
         // Stride between logical beds
-        coord_t bed_stride() const {
+        double bed_stride() const {
             double bedwidth = plater().bed_shape_bb().size().x();
-            return scaled((1. + LOGICAL_BED_GAP) * bedwidth);
+            return scaled<double>((1. + LOGICAL_BED_GAP) * bedwidth);
         }
 
         // Set up arrange polygon for a ModelInstance and Wipe tower
