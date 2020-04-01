@@ -124,14 +124,13 @@ namespace Slic3r {
 
             struct Trapezoid
             {
-                float distance;         // mm
                 float accelerate_until; // mm
                 float decelerate_after; // mm
-                FeedrateProfile feedrate;
+                float cruise_feedrate; // mm/sec
 
-                float acceleration_time(float acceleration) const;
+                float acceleration_time(float entry_feedrate, float acceleration) const;
                 float cruise_time() const;
-                float deceleration_time(float acceleration) const;
+                float deceleration_time(float distance, float acceleration) const;
                 float cruise_distance() const;
 
                 // This function gives the time needed to accelerate from an initial speed to reach a final distance.
@@ -152,7 +151,7 @@ namespace Slic3r {
 #endif // ENABLE_MOVE_STATS
             Flags flags;
 
-            float delta_pos[Num_Axis]; // mm
+            float distance; // mm
             float acceleration;        // mm/s^2
             float max_entry_speed;     // mm/s
             float safe_feedrate;       // mm/s
@@ -162,17 +161,6 @@ namespace Slic3r {
 
             // Ordnary index of this G1 line in the file.
             int   g1_line_id { -1 };
-
-            Block();
-
-            // Returns the length of the move covered by this block, in mm
-            float move_length() const;
-
-            // Returns true if this block is a retract/unretract move only
-            float is_extruder_only_move() const;
-
-            // Returns true if this block is a move with no extrusion
-            float is_travel_move() const;
 
             // Returns the time spent accelerating toward cruise speed, in seconds
             float acceleration_time() const;
