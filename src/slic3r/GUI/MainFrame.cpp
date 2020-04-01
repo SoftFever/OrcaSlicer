@@ -214,6 +214,10 @@ void MainFrame::shutdown()
     // when closing the application using Command+Q, a mouse event is triggered after this lambda is completed,
     // causing a crash
     if (m_plater) m_plater->unbind_canvas_event_handlers();
+
+    // Cleanup of canvases' volumes needs to be done here or a crash may happen on some Linux Debian flavours
+    // see: https://github.com/prusa3d/PrusaSlicer/issues/3964
+    if (m_plater) m_plater->reset_canvas_volumes();
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     // Weird things happen as the Paint messages are floating around the windows being destructed.

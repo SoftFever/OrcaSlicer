@@ -1834,6 +1834,7 @@ struct Plater::priv
     GLCanvas3D* get_current_canvas3D();
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
     void unbind_canvas_event_handlers();
+    void reset_canvas_volumes();
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     bool init_view_toolbar();
@@ -4084,6 +4085,15 @@ void Plater::priv::unbind_canvas_event_handlers()
     if (preview != nullptr)
         preview->get_canvas3d()->unbind_event_handlers();
 }
+
+void Plater::priv::reset_canvas_volumes()
+{
+    if (view3D != nullptr)
+        view3D->get_canvas3d()->reset_volumes();
+
+    if (preview != nullptr)
+        preview->get_canvas3d()->reset_volumes();
+}
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 bool Plater::priv::init_view_toolbar()
@@ -5499,6 +5509,11 @@ void Plater::set_current_canvas_as_dirty()
 void Plater::unbind_canvas_event_handlers()
 {
     p->unbind_canvas_event_handlers();
+}
+
+void Plater::reset_canvas_volumes()
+{
+    p->reset_canvas_volumes();
 }
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
