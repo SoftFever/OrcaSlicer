@@ -780,6 +780,10 @@ void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_
 
     // starts analyzer calculations
     if (m_enable_analyzer) {
+#if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+        m_analyzer.close_debug_output_file();
+#endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+
         BOOST_LOG_TRIVIAL(debug) << "Preparing G-code preview data" << log_memory_info();
         m_analyzer.calc_gcode_preview_data(*preview_data, [print]() { print->throw_if_canceled(); });
         m_analyzer.reset();
@@ -897,24 +901,17 @@ namespace DoExport {
 
 	    // tell analyzer about the gcode flavor
 	    analyzer.set_gcode_flavor(config.gcode_flavor);
-	}
+
+#if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+        analyzer.open_debug_output_file();
+#endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+    }
 
 #if ENABLE_GCODE_VIEWER
     static void init_gcode_processor(const PrintConfig& config, GCodeProcessor& processor)
     {
         processor.reset();
         processor.apply_config(config);
-
-        // send extruder offset data to processor
-        GCodeProcessor::ExtruderOffsetsMap extruder_offsets;
-        const size_t num_extruders = config.nozzle_diameter.values.size();
-        for (size_t id = 0; id < num_extruders; ++id)
-        {
-            const Vec2d& offset = config.extruder_offset.get_at(id);
-            if (!offset.isApprox(Vec2d::Zero()))
-                extruder_offsets[static_cast<unsigned int>(id)] = offset;
-        }
-        processor.set_extruder_offsets(extruder_offsets);
     }
 #endif // ENABLE_GCODE_VIEWER
 
@@ -1340,6 +1337,11 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
         // adds tag for analyzer
         _write_format(file, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erCustom);
 
+#if ENABLE_GCODE_VIEWER
+    // adds tag for processor
+    _write_format(file, ";%s%d\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), erCustom);
+#endif // ENABLE_GCODE_VIEWER
+
     // Write the custom start G-code
     _writeln(file, start_gcode);
 
@@ -1492,6 +1494,11 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
     if (m_enable_analyzer)
         // adds tag for analyzer
         _write_format(file, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erCustom);
+
+#if ENABLE_GCODE_VIEWER
+    // adds tag for processor
+    _write_format(file, ";%s%d\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), erCustom);
+#endif // ENABLE_GCODE_VIEWER
 
     // Process filament-specific gcode in extruder order.
     {
@@ -3112,6 +3119,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         {
             m_last_analyzer_extrusion_role = path.role();
             sprintf(buf, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), int(m_last_analyzer_extrusion_role));
+#if ENABLE_GCODE_VIEWER
+            gcode += buf;
+            sprintf(buf, ";%s%d\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), int(m_last_analyzer_extrusion_role));
+#endif // ENABLE_GCODE_VIEWER
             gcode += buf;
         }
 
@@ -3127,6 +3138,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             m_last_width = path.width;
             sprintf(buf, ";%s%f\n", GCodeAnalyzer::Width_Tag.c_str(), m_last_width);
             gcode += buf;
+#if ENABLE_GCODE_VIEWER
+            sprintf(buf, ";%s%f\n", GCodeProcessor::Width_Tag.c_str(), m_last_width);
+            gcode += buf;
+#endif // ENABLE_GCODE_VIEWER
         }
 
         if (last_was_wipe_tower || (m_last_height != path.height))
@@ -3134,6 +3149,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             m_last_height = path.height;
             sprintf(buf, ";%s%f\n", GCodeAnalyzer::Height_Tag.c_str(), m_last_height);
             gcode += buf;
+#if ENABLE_GCODE_VIEWER
+            sprintf(buf, ";%s%f\n", GCodeProcessor::Height_Tag.c_str(), m_last_height);
+            gcode += buf;
+#endif // ENABLE_GCODE_VIEWER
         }
     }
 

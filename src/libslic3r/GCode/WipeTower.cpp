@@ -22,6 +22,9 @@ TODO LIST
 #include <numeric>
 
 #include "Analyzer.hpp"
+#if ENABLE_GCODE_VIEWER
+#include "GCodeProcessor.hpp"
+#endif // ENABLE_GCODE_VIEWER
 #include "BoundingBox.hpp"
 
 #if defined(__linux) || defined(__GNUC__ )
@@ -55,7 +58,15 @@ public:
             char buf[64];
             sprintf(buf, ";%s%f\n", GCodeAnalyzer::Height_Tag.c_str(), m_layer_height); // don't rely on GCodeAnalyzer knowing the layer height - it knows nothing at priming
             m_gcode += buf;
+#if ENABLE_GCODE_VIEWER
+            sprintf(buf, ";%s%f\n", GCodeProcessor::Height_Tag.c_str(), m_layer_height); // don't rely on GCodeAnalyzer knowing the layer height - it knows nothing at priming
+            m_gcode += buf;
+#endif // ENABLE_GCODE_VIEWER
             sprintf(buf, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erWipeTower);
+#if ENABLE_GCODE_VIEWER
+            m_gcode += buf;
+            sprintf(buf, ";%s%d\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), erWipeTower);
+#endif // ENABLE_GCODE_VIEWER
             m_gcode += buf;
             change_analyzer_line_width(line_width);
         }
@@ -65,6 +76,10 @@ public:
             char buf[64];
             sprintf(buf, ";%s%f\n", GCodeAnalyzer::Width_Tag.c_str(), line_width);
             m_gcode += buf;
+#if ENABLE_GCODE_VIEWER
+            sprintf(buf, ";%s%f\n", GCodeProcessor::Width_Tag.c_str(), line_width);
+            m_gcode += buf;
+#endif // ENABLE_GCODE_VIEWER
             return *this;
     }
 

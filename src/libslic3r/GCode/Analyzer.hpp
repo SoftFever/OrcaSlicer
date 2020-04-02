@@ -8,6 +8,10 @@
 #include "../Point.hpp"
 #include "../GCodeReader.hpp"
 
+#if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+#include <boost/nowide/fstream.hpp>
+#endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+
 namespace Slic3r {
 
 class GCodePreviewData;
@@ -146,6 +150,14 @@ public:
     size_t memory_used() const;
 
     static bool is_valid_extrusion_role(ExtrusionRole role);
+
+#if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+private:
+    boost::nowide::ofstream m_debug_output;
+public:
+    void open_debug_output_file();
+    void close_debug_output_file();
+#endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
 
 private:
     // Processes the given gcode line

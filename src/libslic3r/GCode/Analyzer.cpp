@@ -174,6 +174,19 @@ bool GCodeAnalyzer::is_valid_extrusion_role(ExtrusionRole role)
     return ((erPerimeter <= role) && (role < erMixed));
 }
 
+#if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+void GCodeAnalyzer::open_debug_output_file()
+{
+    boost::filesystem::path path("d:/analyzer.output");
+    m_debug_output.open(path.string());
+}
+
+void GCodeAnalyzer::close_debug_output_file()
+{
+    m_debug_output.close();
+}
+#endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+
 void GCodeAnalyzer::_process_gcode_line(GCodeReader&, const GCodeReader::GCodeLine& line)
 {
     // processes 'special' comments contained in line
@@ -350,7 +363,7 @@ void GCodeAnalyzer::_processG1(const GCodeReader::GCodeLine& line)
     if (delta_pos[E] < 0.0f)
     {
         if ((delta_pos[X] != 0.0f) || (delta_pos[Y] != 0.0f) || (delta_pos[Z] != 0.0f))
-        type = GCodeMove::Move;
+            type = GCodeMove::Move;
         else
             type = GCodeMove::Retract;
     }
@@ -922,6 +935,20 @@ void GCodeAnalyzer::_store_move(GCodeAnalyzer::GCodeMove::EType type)
     Vec3d start_position = _get_start_position() + extruder_offset;
     Vec3d end_position = _get_end_position() + extruder_offset;
     it->second.emplace_back(type, _get_extrusion_role(), extruder_id, _get_mm3_per_mm(), _get_width(), _get_height(), _get_feedrate(), start_position, end_position, _get_delta_extrusion(), _get_fan_speed(), _get_cp_color_id());
+
+#if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+    if (m_debug_output.good())
+    {
+        m_debug_output << std::to_string((int)type);
+        m_debug_output << ", " << std::to_string((int)_get_extrusion_role());
+        m_debug_output << ", " << Slic3r::to_string(_get_end_position());
+        m_debug_output << ", " << std::to_string(extruder_id);
+        m_debug_output << ", " << std::to_string(_get_feedrate());
+        m_debug_output << ", " << std::to_string(_get_width());
+        m_debug_output << ", " << std::to_string(_get_height());
+        m_debug_output << "\n";
+    }
+#endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
 }
 
 bool GCodeAnalyzer::_is_valid_extrusion_role(int value) const

@@ -2772,6 +2772,16 @@ static void load_gcode_retractions(const GCodePreviewData::Retraction& retractio
 #if ENABLE_GCODE_VIEWER
 void GLCanvas3D::load_gcode_preview_2(const GCodeProcessor::Result& gcode_result)
 {
+#if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+    boost::filesystem::path path("d:/processor.output");
+    boost::nowide::ofstream out;
+    out.open(path.string());
+    for (const GCodeProcessor::MoveVertex& v : gcode_result.moves)
+    {
+        out << v.to_string() << "\n";
+    }
+    out.close();
+#endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
 }
 #endif // ENABLE_GCODE_VIEWER
 
