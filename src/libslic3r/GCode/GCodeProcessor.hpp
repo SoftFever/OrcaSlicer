@@ -6,6 +6,8 @@
 #include "../Point.hpp"
 #include "../ExtrusionEntity.hpp"
 
+#include <array>
+
 namespace Slic3r {
 
     class GCodeProcessor

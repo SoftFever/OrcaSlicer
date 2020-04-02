@@ -8,6 +8,9 @@
 #include "Print.hpp"
 
 #include <boost/log/trivial.hpp>
+#if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+#include <boost/filesystem/path.hpp>
+#endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
 
 #include "Analyzer.hpp"
 #include "PreviewData.hpp"
