@@ -102,11 +102,14 @@ bool GLGizmosManager::init()
     //dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get())->set_common_data_ptr(m_common_gizmos_data.get());
     //dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get())->set_common_data_ptr(m_common_gizmos_data.get());
 
+    m_common_gizmos_data.reset(new CommonGizmosDataPool(&m_parent));
+
     for (auto& gizmo : m_gizmos) {
         if (! gizmo->init()) {
             m_gizmos.clear();
             return false;
         }
+        gizmo->set_common_data_pool(m_common_gizmos_data.get());
     }
 
     m_current = Undefined;
@@ -1334,6 +1337,7 @@ void CommonGizmosData::build_AABB_if_needed()
     m_old_mesh = m_mesh;
     m_schedule_aabb_calculation = false;
 }
+
 
 } // namespace GUI
 } // namespace Slic3r

@@ -111,7 +111,7 @@ private:
     int m_active_inst = -1;
 };
 
-
+/*
 class InstancesHider : public CommonGizmosDataBase
 {
 public:
@@ -175,7 +175,7 @@ public:
         : CommonGizmosDataBase(cgdp) {}
     void update(bool required) override;
 };
-
+*/
 
 } // namespace CommonGizmosDataObjects
 

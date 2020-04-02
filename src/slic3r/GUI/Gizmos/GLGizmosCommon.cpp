@@ -14,11 +14,11 @@ CommonGizmosDataPool::CommonGizmosDataPool(GLCanvas3D* canvas)
     using namespace CommonGizmosDataObjects;
     using c = CommonGizmosDataID;
     m_data[c::SelectionInfo].reset(       new SelectionInfo(this));
-    m_data[c::InstancesHider].reset(      new InstancesHider(this));
-    m_data[c::HollowedMesh].reset(        new HollowedMesh(this));
-    m_data[c::ClippingPlaneWrapper].reset(new ClippingPlaneWrapper(this));
-    m_data[c::SupportsClipper].reset(     new SupportsClipper(this));
-    m_data[c::MeshRaycaster].reset(       new Raycaster(this));
+    //m_data[c::InstancesHider].reset(      new InstancesHider(this));
+    //m_data[c::HollowedMesh].reset(        new HollowedMesh(this));
+    //m_data[c::ClippingPlaneWrapper].reset(new ClippingPlaneWrapper(this));
+    //m_data[c::SupportsClipper].reset(     new SupportsClipper(this));
+    //m_data[c::MeshRaycaster].reset(       new Raycaster(this));
 }
 
 void CommonGizmosDataPool::update(CommonGizmosDataID required)

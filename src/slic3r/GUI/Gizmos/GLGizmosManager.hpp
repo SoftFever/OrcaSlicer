@@ -5,6 +5,7 @@
 #include "slic3r/GUI/GLToolbar.hpp"
 #include "libslic3r/ObjectID.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoBase.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
 
 #include <map>
 
@@ -20,6 +21,7 @@ class GLCanvas3D;
 class ClippingPlane;
 enum class SLAGizmoEventType : unsigned char;
 class CommonGizmosData;
+class CommonGizmosDataPool;
 
 class Rect
 {
@@ -115,7 +117,8 @@ private:
     MouseCapture m_mouse_capture;
     std::string m_tooltip;
     bool m_serializing;
-    std::unique_ptr<CommonGizmosData> m_common_gizmos_data;
+    //std::unique_ptr<CommonGizmosData> m_common_gizmos_data;
+    std::unique_ptr<CommonGizmosDataPool> m_common_gizmos_data;
 
 public:
     explicit GLGizmosManager(GLCanvas3D& parent);

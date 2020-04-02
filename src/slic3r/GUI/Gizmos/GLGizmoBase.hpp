@@ -33,6 +33,7 @@ class ImGuiWrapper;
 class GLCanvas3D;
 class ClippingPlane;
 enum class CommonGizmosDataID;
+class CommonGizmosDataPool;
 
 class GLGizmoBase
 {
@@ -102,6 +103,7 @@ protected:
     ImGuiWrapper* m_imgui;
     bool m_first_input_window_render;
     mutable std::string m_tooltip;
+    CommonGizmosDataPool* m_c;
 
 public:
     GLGizmoBase(GLCanvas3D& parent,
@@ -130,6 +132,7 @@ public:
     bool is_activable() const { return on_is_activable(); }
     bool is_selectable() const { return on_is_selectable(); }
     CommonGizmosDataID get_requirements() const { return on_get_requirements(); }
+    void set_common_data_pool(CommonGizmosDataPool* ptr) { m_c = ptr; }
 
     unsigned int get_sprite_id() const { return m_sprite_id; }
 
