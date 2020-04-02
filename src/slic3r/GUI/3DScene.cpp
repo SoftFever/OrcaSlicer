@@ -655,11 +655,11 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
 
     GLint print_box_min_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.min") : -1;
     GLint print_box_max_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.max") : -1;
-    GLint print_box_active_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.active") : -1;
+    GLint print_box_active_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.actived") : -1;
     GLint print_box_worldmatrix_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.volume_world_matrix") : -1;
 
 #if ENABLE_SLOPE_RENDERING
-    GLint slope_active_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "slope.active") : -1;
+    GLint slope_active_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "slope.actived") : -1;
     GLint slope_normal_matrix_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "slope.volume_world_normal_matrix") : -1;
     GLint slope_z_range_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "slope.z_range") : -1;
 #endif // ENABLE_SLOPE_RENDERING

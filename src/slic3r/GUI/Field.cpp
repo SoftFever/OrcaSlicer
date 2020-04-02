@@ -1242,12 +1242,24 @@ void PointCtrl::msw_rescale(bool rescale_sidetext/* = false*/)
     y_textctrl->SetMinSize(field_size);
 }
 
+bool PointCtrl::value_was_changed(wxTextCtrl* win)
+{
+	if (m_value.empty())
+		return true;
+
+	boost::any val = m_value;
+	// update m_value!
+	get_value();
+
+	return boost::any_cast<Vec2d>(m_value) != boost::any_cast<Vec2d>(val);
+}
+
 void PointCtrl::propagate_value(wxTextCtrl* win)
 {
-    if (!win->GetValue().empty()) 
-        on_change_field();
-    else
+    if (win->GetValue().empty())
         on_kill_focus();
+	else if (value_was_changed(win))
+        on_change_field();
 }
 
 void PointCtrl::set_value(const Vec2d& value, bool change_event)
@@ -1281,6 +1293,19 @@ boost::any& PointCtrl::get_value()
 	double x, y;
 	x_textctrl->GetValue().ToDouble(&x);
 	y_textctrl->GetValue().ToDouble(&y);
+
+	if (m_opt.min > x || x > m_opt.max ||
+		m_opt.min > y || y > m_opt.max)
+	{		
+		if (m_opt.min > x) x = m_opt.min;
+		if (x > m_opt.max) x = m_opt.max;
+		if (m_opt.min > y) y = m_opt.min;
+		if (y > m_opt.max) y = m_opt.max;
+		set_value(Vec2d(x, y), true);
+
+		show_error(m_parent, _(L("Input value is out of range")));
+	}
+
 	return m_value = Vec2d(x, y);
 }
 

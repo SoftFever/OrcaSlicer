@@ -1824,14 +1824,12 @@ void GLCanvas3D::set_color_by(const std::string& value)
     m_color_by = value;
 }
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
 void GLCanvas3D::refresh_camera_scene_box()
 {
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     wxGetApp().plater()->get_camera().set_scene_box(scene_bounding_box());
-#else
-    m_camera.set_scene_box(scene_bounding_box());
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 }
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
 {
@@ -3029,18 +3027,15 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
             post_event(SimpleEvent(EVT_GLTOOLBAR_COPY));
         break;
 
-#ifdef __APPLE__
-        case 'm':
-        case 'M':
-#else /* __APPLE__ */
+#ifdef __linux__
         case WXK_CONTROL_M:
-#endif /* __APPLE__ */
-            {
-                Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
-                controller.show_settings_dialog(!controller.is_settings_dialog_shown());
-                m_dirty = true;
-                break;
-            }
+        {
+            Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
+            controller.show_settings_dialog(!controller.is_settings_dialog_shown());
+            m_dirty = true;
+            break;
+        }
+#endif /* __linux__ */
 
 #ifdef __APPLE__
         case 'v':
@@ -6529,7 +6524,7 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
             case GCodePreviewData::Extrusion::FanSpeed:
                 return path.fan_speed;
             case GCodePreviewData::Extrusion::VolumetricRate:
-                return path.feedrate * (float)path.mm3_per_mm;
+                return path.feedrate * path.mm3_per_mm;
             case GCodePreviewData::Extrusion::Tool:
                 return (float)path.extruder_id;
             case GCodePreviewData::Extrusion::ColorPrint:

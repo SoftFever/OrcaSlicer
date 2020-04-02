@@ -64,6 +64,7 @@ add_library(libslic3r STATIC
     Fill/FillRectilinear3.hpp
     Flow.cpp
     Flow.hpp
+    format.hpp
     Format/3mf.cpp
     Format/3mf.hpp
     Format/AMF.cpp

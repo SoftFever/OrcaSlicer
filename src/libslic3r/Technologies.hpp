@@ -44,18 +44,14 @@
 // Enable fix for dragging mouse event handling for gizmobar
 #define ENABLE_GIZMO_TOOLBAR_DRAGGING_FIX (1 && ENABLE_2_2_0_FINAL)
 
-//============
-// 2.3.0 techs
-//============
-#define ENABLE_2_3_0 1
-
-// Enable rendering of objects colored by facets' slope
-#define ENABLE_SLOPE_RENDERING (1 && ENABLE_2_3_0)
 
 //===================
 // 2.3.0.alpha1 techs
 //===================
 #define ENABLE_2_3_0_ALPHA1 1
+
+// Enable rendering of objects colored by facets' slope
+#define ENABLE_SLOPE_RENDERING (1 && ENABLE_2_3_0_ALPHA1)
 
 // Moves GLCanvas3DManager from being a static member of _3DScene to be a normal member of GUI_App
 #define ENABLE_NON_STATIC_CANVAS_MANAGER (1 && ENABLE_2_3_0_ALPHA1)

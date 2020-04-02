@@ -16,6 +16,9 @@
 #include "GUI_ObjectLayers.hpp"
 #include "GLSelectionRectangle.hpp"
 #include "MeshUtils.hpp"
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
+#include "Camera.hpp"
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 #if ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #endif // ENABLE_GCODE_VIEWER
