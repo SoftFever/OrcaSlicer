@@ -95,12 +95,12 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoRotate3D(m_parent, "rotate.svg", 2));
     m_gizmos.emplace_back(new GLGizmoFlatten(m_parent, "place.svg", 3));
     m_gizmos.emplace_back(new GLGizmoCut(m_parent, "cut.svg", 4));
-    m_gizmos.emplace_back(new GLGizmoHollow(m_parent, "hollow.svg", 5));
-    m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", 6));
+    //m_gizmos.emplace_back(new GLGizmoHollow(m_parent, "hollow.svg", 5));
+    //m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", 6));
 
-    m_common_gizmos_data.reset(new CommonGizmosData());
-    dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get())->set_common_data_ptr(m_common_gizmos_data.get());
-    dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get())->set_common_data_ptr(m_common_gizmos_data.get());
+    //m_common_gizmos_data.reset(new CommonGizmosData());
+    //dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get())->set_common_data_ptr(m_common_gizmos_data.get());
+    //dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get())->set_common_data_ptr(m_common_gizmos_data.get());
 
     for (auto& gizmo : m_gizmos) {
         if (! gizmo->init()) {
@@ -353,7 +353,7 @@ void GLGizmosManager::set_flattening_data(const ModelObject* model_object)
 
 void GLGizmosManager::set_sla_support_data(ModelObject* model_object)
 {
-    if (! m_enabled
+    /*if (! m_enabled
      || m_gizmos.empty()
      || wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
         return;
@@ -367,6 +367,7 @@ void GLGizmosManager::set_sla_support_data(ModelObject* model_object)
     // following lines are thus dependent
     gizmo_supports->set_sla_support_data(model_object, m_parent.get_selection());
     gizmo_hollow->set_sla_support_data(model_object, m_parent.get_selection());
+    */
 }
 
 // Returns true if the gizmo used the event to do something, false otherwise.
