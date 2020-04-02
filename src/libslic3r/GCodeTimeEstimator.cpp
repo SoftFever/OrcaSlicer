@@ -981,13 +981,13 @@ namespace Slic3r {
                 return current_absolute_position;
         };
 
-        // delta_pos must have size >= 4
+        // delta_pos must have size >= Num_Axis
         auto move_length = [](const float* delta_pos) {
             float xyz_length = std::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
             return (xyz_length > 0.0f) ? xyz_length : std::abs(delta_pos[E]);
         };
 
-        // delta_pos must have size >= 4
+        // delta_pos must have size >= Num_Axis
         auto is_extruder_only_move = [](const float* delta_pos) {
             return (delta_pos[X] == 0.0f) && (delta_pos[Y] == 0.0f) && (delta_pos[Z] == 0.0f) && (delta_pos[E] != 0.0f);
         };
@@ -996,7 +996,7 @@ namespace Slic3r {
         increment_g1_line_id();
 
         // updates axes positions from line
-        std::array<float, Num_Axis> new_pos;
+        float new_pos[Num_Axis];
         for (unsigned char a = X; a < Num_Axis; ++a)
         {
             new_pos[a] = axis_absolute_position((EAxis)a, line);
@@ -1011,7 +1011,7 @@ namespace Slic3r {
 
         // calculates block movement deltas
         float max_abs_delta = 0.0f;
-        std::array<float, Num_Axis> delta_pos;
+        float delta_pos[Num_Axis];
         for (unsigned char a = X; a < Num_Axis; ++a)
         {
             delta_pos[a] = new_pos[a] - get_axis_position((EAxis)a);
@@ -1025,7 +1025,7 @@ namespace Slic3r {
         // calculates block feedrate
         m_curr.feedrate = std::max(get_feedrate(), (delta_pos[E] == 0.0f) ? get_minimum_travel_feedrate() : get_minimum_feedrate());
 
-        block.distance = move_length(delta_pos.data());
+        block.distance = move_length(delta_pos);
         float invDistance = 1.0f / block.distance;
 
         float min_feedrate_factor = 1.0f;
@@ -1052,7 +1052,7 @@ namespace Slic3r {
         }
 
         // calculates block acceleration
-        float acceleration = is_extruder_only_move(delta_pos.data()) ? get_retract_acceleration() : get_acceleration();
+        float acceleration = is_extruder_only_move(delta_pos) ? get_retract_acceleration() : get_acceleration();
 
         for (unsigned char a = X; a < Num_Axis; ++a)
         {
