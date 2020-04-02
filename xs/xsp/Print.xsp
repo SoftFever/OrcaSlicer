@@ -164,7 +164,7 @@ _constant()
 
     void export_gcode(char *path_template) %code%{
             try {
-                THIS->export_gcode(path_template, nullptr);
+                THIS->export_gcode(path_template, nullptr, nullptr);
             } catch (std::exception& e) {
                 croak("%s\n", e.what());
             }
