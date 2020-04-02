@@ -59,6 +59,10 @@
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
+#if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+#include <boost/nowide/fstream.hpp>
+#endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+
 #include <iostream>
 #include <float.h>
 #include <algorithm>
