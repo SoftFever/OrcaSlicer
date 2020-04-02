@@ -15,6 +15,13 @@
 #include "Analyzer.hpp"
 #include "PreviewData.hpp"
 
+#if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+#include <boost/nowide/fstream.hpp>
+
+// don't worry, this is just temporary
+static boost::nowide::ofstream g_debug_output;
+#endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+
 static const std::string AXIS_STR = "XYZE";
 static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
 static const float INCHES_TO_MM = 25.4f;
@@ -181,12 +188,12 @@ bool GCodeAnalyzer::is_valid_extrusion_role(ExtrusionRole role)
 void GCodeAnalyzer::open_debug_output_file()
 {
     boost::filesystem::path path("d:/analyzer.output");
-    m_debug_output.open(path.string());
+    g_debug_output.open(path.string());
 }
 
 void GCodeAnalyzer::close_debug_output_file()
 {
-    m_debug_output.close();
+    g_debug_output.close();
 }
 #endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
 
@@ -940,16 +947,16 @@ void GCodeAnalyzer::_store_move(GCodeAnalyzer::GCodeMove::EType type)
     it->second.emplace_back(type, _get_extrusion_role(), extruder_id, _get_mm3_per_mm(), _get_width(), _get_height(), _get_feedrate(), start_position, end_position, _get_delta_extrusion(), _get_fan_speed(), _get_cp_color_id());
 
 #if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
-    if (m_debug_output.good())
+    if (g_debug_output.good())
     {
-        m_debug_output << std::to_string((int)type);
-        m_debug_output << ", " << std::to_string((int)_get_extrusion_role());
-        m_debug_output << ", " << Slic3r::to_string((Vec3d)_get_end_position().cast<double>());
-        m_debug_output << ", " << std::to_string(extruder_id);
-        m_debug_output << ", " << std::to_string(_get_feedrate());
-        m_debug_output << ", " << std::to_string(_get_width());
-        m_debug_output << ", " << std::to_string(_get_height());
-        m_debug_output << "\n";
+        g_debug_output << std::to_string((int)type);
+        g_debug_output << ", " << std::to_string((int)_get_extrusion_role());
+        g_debug_output << ", " << Slic3r::to_string((Vec3d)_get_end_position().cast<double>());
+        g_debug_output << ", " << std::to_string(extruder_id);
+        g_debug_output << ", " << std::to_string(_get_feedrate());
+        g_debug_output << ", " << std::to_string(_get_width());
+        g_debug_output << ", " << std::to_string(_get_height());
+        g_debug_output << "\n";
     }
 #endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
 }

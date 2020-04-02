@@ -1,6 +1,8 @@
 #include "../libslic3r.h"
 #include "GCodeProcessor.hpp"
 
+#include <boost/log/trivial.hpp>
+
 #if ENABLE_GCODE_VIEWER
 
 static const float INCHES_TO_MM = 25.4f;
