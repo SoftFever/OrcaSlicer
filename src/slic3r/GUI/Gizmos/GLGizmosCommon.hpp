@@ -119,19 +119,21 @@ private:
     int m_active_inst = -1;
 };
 
-/*
+
 class InstancesHider : public CommonGizmosDataBase
 {
 public:
     explicit InstancesHider(CommonGizmosDataPool* cgdp)
         : CommonGizmosDataBase(cgdp) {}
-    void update(bool required) override;
+protected:
+    void on_update() override;
+    void on_release() override;
 };
 
 
 
 
-
+/*
 
 
 class HollowedMesh : public CommonGizmosDataBase

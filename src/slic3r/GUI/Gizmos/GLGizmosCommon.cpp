@@ -14,7 +14,7 @@ CommonGizmosDataPool::CommonGizmosDataPool(GLCanvas3D* canvas)
 {
     using c = CommonGizmosDataID;
     m_data[c::SelectionInfo].reset(       new SelectionInfo(this));
-    //m_data[c::InstancesHider].reset(      new InstancesHider(this));
+    m_data[c::InstancesHider].reset(      new InstancesHider(this));
     //m_data[c::HollowedMesh].reset(        new HollowedMesh(this));
     //m_data[c::ClippingPlaneWrapper].reset(new ClippingPlaneWrapper(this));
     //m_data[c::SupportsClipper].reset(     new SupportsClipper(this));
@@ -27,8 +27,10 @@ void CommonGizmosDataPool::update(CommonGizmosDataID required)
     for (auto& [id, data] : m_data) {
         if (int(required) & int(CommonGizmosDataID(id)))
             data->update();
-        else if (data->is_valid())
-            data->release();
+        else
+            if (data->is_valid())
+                data->release();
+
     }
 }
 
@@ -36,6 +38,7 @@ void CommonGizmosDataPool::update(CommonGizmosDataID required)
 SelectionInfo* CommonGizmosDataPool::selection_info()
 {
     SelectionInfo* sel_info = dynamic_cast<SelectionInfo*>(m_data[CommonGizmosDataID::SelectionInfo].get());
+    assert(sel_info->is_valid());
     return sel_info;
 }
 
@@ -54,7 +57,7 @@ bool CommonGizmosDataPool::check_dependencies(CommonGizmosDataID required) const
 
 void SelectionInfo::on_update()
 {
-    Selection selection = m_common->get_canvas()->get_selection();
+    const Selection& selection = m_common->get_canvas()->get_selection();
     if (selection.is_single_full_instance())
         m_model_object = selection.get_model()->objects[selection.get_object_idx()];
     else
@@ -65,6 +68,37 @@ void SelectionInfo::on_release()
 {
     m_model_object = nullptr;
 }
+
+int SelectionInfo::get_active_instance()
+{
+    const Selection& selection = m_common->get_canvas()->get_selection();
+    return selection.get_instance_idx();
+}
+
+
+
+
+
+void InstancesHider::on_update()
+{
+    const ModelObject* mo = m_common->selection_info()->model_object();
+    int active_inst = m_common->selection_info()->get_active_instance();
+    GLCanvas3D* canvas = m_common->get_canvas();
+
+    if (mo && active_inst != -1) {
+        canvas->toggle_model_objects_visibility(false);
+        canvas->toggle_model_objects_visibility(true, mo, active_inst);
+    }
+    else
+        canvas->toggle_model_objects_visibility(true);
+}
+
+void InstancesHider::on_release()
+{
+    m_common->get_canvas()->toggle_model_objects_visibility(true);
+}
+
+
 
 } // namespace GUI
 } // namespace Slic3r

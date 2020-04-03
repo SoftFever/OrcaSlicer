@@ -1196,10 +1196,13 @@ void GLGizmosManager::activate_gizmo(EType type)
             return; // gizmo refused to be turned off, do nothing.
     }
 
+    m_current = type;
+    m_common_gizmos_data->update(get_current()
+                           ? get_current()->get_requirements()
+                           : CommonGizmosDataID(0));
+
     if (type != Undefined)
         m_gizmos[type]->set_state(GLGizmoBase::On);
-
-    m_current = type;
 }
 
 
