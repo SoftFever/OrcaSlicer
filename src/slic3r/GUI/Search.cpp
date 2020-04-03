@@ -431,8 +431,7 @@ void PopupSearchList::update_list(std::vector<SearchOptions::Filter>& filters)
 //          SearchCtrl
 //------------------------------------------
 
-SearchCtrl::SearchCtrl(wxWindow* parent):
-    parent(parent)
+SearchCtrl::SearchCtrl(wxWindow* parent)
 {
     popup_win = new PopupSearchList(parent);
     box_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -451,6 +450,8 @@ SearchCtrl::SearchCtrl(wxWindow* parent):
 
 SearchCtrl::~SearchCtrl()
 {
+    if (search_line)
+        search_line->Destroy();
     if (search_btn)
         search_btn->Destroy();
     if (popup_win)

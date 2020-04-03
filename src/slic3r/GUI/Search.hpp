@@ -149,7 +149,7 @@ private:
 
 class SearchCtrl
 {
-    wxWindow*           parent      {nullptr};
+//    wxWindow*           parent      {nullptr};
     wxBoxSizer*         box_sizer   {nullptr};
     wxTextCtrl*         search_line {nullptr};
     ScalableButton*     search_btn  {nullptr};
