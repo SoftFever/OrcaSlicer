@@ -46,10 +46,10 @@ public:
 
     // Update all resources and release what is not used.
     // Accepts a bitmask of currently required resources.
-    void update(CommonGizmosDataID required = CommonGizmosDataID::None);
+    void update(CommonGizmosDataID required);
 
     // Getters for the data that need to be accessed from the gizmos directly.
-    CommonGizmosDataObjects::SelectionInfo selection_info();
+    CommonGizmosDataObjects::SelectionInfo* selection_info();
 
     GLCanvas3D* get_canvas() const { return m_canvas; }
 
@@ -74,16 +74,21 @@ public:
     // objects can communicate with one another.
     explicit CommonGizmosDataBase(CommonGizmosDataPool* cgdp)
         : m_common{cgdp} {}
+    virtual ~CommonGizmosDataBase() {}
 
-    // Update the resource. If it is not needed (based on argument value)
-    // any persistent data will be released.
-    virtual void update(bool required) = 0;
+    // Update the resource.
+    void update() { on_update(); m_is_valid = true; }
+
+    // Release any data that are stored internally.
+    void release() { on_release(); m_is_valid = false; }
 
     // Returns whether the resource is currently maintained.
     bool is_valid() const { return m_is_valid; }
 
 protected:
     CommonGizmosDataPool* m_common = nullptr;
+    virtual void on_release() = 0;
+    virtual void on_update() = 0;
 
 private:
     bool m_is_valid = false;
@@ -99,12 +104,15 @@ namespace CommonGizmosDataObjects
 class SelectionInfo : public CommonGizmosDataBase
 {
 public:
-    explicit SelectionInfo(CommonGizmosDataPool* cgdp) :
-        CommonGizmosDataBase(cgdp) {}
-    void update(bool required) override;
+    explicit SelectionInfo(CommonGizmosDataPool* cgdp)
+        : CommonGizmosDataBase(cgdp) {}
 
-    ModelObject* model_object();
+    ModelObject* model_object() { return m_model_object; }
     int get_active_instance();
+
+protected:
+    void on_update() override;
+    void on_release() override;
 
 private:
     ModelObject* m_model_object = nullptr;
@@ -115,8 +123,8 @@ private:
 class InstancesHider : public CommonGizmosDataBase
 {
 public:
-    explicit InstancesHider(CommonGizmosDataPool* cgdp) :
-        CommonGizmosDataBase(cgdp) {}
+    explicit InstancesHider(CommonGizmosDataPool* cgdp)
+        : CommonGizmosDataBase(cgdp) {}
     void update(bool required) override;
 };
 

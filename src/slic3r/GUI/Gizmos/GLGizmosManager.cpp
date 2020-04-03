@@ -201,6 +201,10 @@ void GLGizmosManager::update_data()
         enable_grabber(Scale, i, enable_scale_xyz);
     }
 
+    m_common_gizmos_data->update(get_current()
+                           ? get_current()->get_requirements()
+                           : CommonGizmosDataID(0));
+
     if (selection.is_single_full_instance())
     {
         // all volumes in the selection belongs to the same instance, any of them contains the needed data, so we take the first
