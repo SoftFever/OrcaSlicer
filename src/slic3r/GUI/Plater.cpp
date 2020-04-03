@@ -80,7 +80,6 @@
 #include "../Utils/FixModelByWin10.hpp"
 #include "../Utils/UndoRedo.hpp"
 #include "RemovableDriveManager.hpp"
-#include "SearchComboBox.hpp"
 
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
 #ifdef __APPLE__
@@ -1095,6 +1094,7 @@ void Sidebar::msw_rescale()
 void Sidebar::apply_search_filter()
 {
     p->search_list.apply_filters(p->search_line);
+    apply_search_line_on_tabs();
 }
 
 void Sidebar::jump_to_option(size_t selected)
@@ -1373,16 +1373,21 @@ static std::vector<SearchInput> get_search_inputs(ConfigOptionMode mode)
     return ret;
 }
 
-void Sidebar::update_search_list()
+void Sidebar::apply_search_line_on_tabs()
 {
-    p->search_list.init(get_search_inputs(m_mode));
-
     auto& tabs_list = wxGetApp().tabs_list;
     auto print_tech = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology();
 
     for (auto tab : tabs_list)
         if (tab->supports_printer_technology(print_tech))
-            tab->get_search_cb()->init(p->search_list);
+            //tab->get_search_cb()->update_combobox();
+            tab->set_search_line(p->search_line);
+}
+
+void Sidebar::update_search_list()
+{
+    p->search_list.init(get_search_inputs(m_mode));
+    apply_search_line_on_tabs();
 }
 
 void Sidebar::update_mode()
@@ -5345,7 +5350,7 @@ bool Plater::search_string_getter(int idx, const char** out_text)
     const SearchOptions& search_list = p->sidebar->get_search_list();
     
     if (0 <= idx && (size_t)idx < search_list.size()) {
-        search_list[idx].get_label(out_text);
+        search_list[idx].get_marked_label(out_text);
         return true;
     }
 

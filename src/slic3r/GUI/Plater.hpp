@@ -12,7 +12,7 @@
 
 #include "libslic3r/BoundingBox.hpp"
 #include "wxExtensions.hpp"
-#include "SearchComboBox.hpp"
+#include "Search.hpp"
 
 class wxButton;
 class ScalableButton;
@@ -132,6 +132,7 @@ public:
     void                    update_mode();
     bool                    is_collapsed();
     void                    collapse(bool collapse);
+    void                    apply_search_line_on_tabs();
     void                    update_search_list();
 
     std::vector<PresetComboBox*>&   combos_filament();

@@ -4477,7 +4477,7 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
 
     std::string& search_line = wxGetApp().sidebar().get_search_line();
     char *s = new char[255];
-    strcpy(s, search_line.empty() ? _utf8(L("Type here to search")).c_str() : search_line.c_str());
+    strcpy(s, search_line.empty() ? _u8L("Type here to search").c_str() : search_line.c_str());
 
     imgui->search_list(ImVec2(22 * em, 30 * em), &search_string_getter, s, selected, edited);
 

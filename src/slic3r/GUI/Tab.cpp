@@ -116,7 +116,8 @@ void Tab::create_preset_tab()
     m_presets_choice = new PresetBitmapComboBox(panel, wxSize(35 * m_em_unit, -1));
 
     // search combox
-    m_search_cb = new SearchComboBox(panel);
+//    m_search_cb = new SearchComboBox(panel, wxGetApp().sidebar().get_search_list());
+    m_search = new SearchCtrl(panel);
 
     auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
@@ -198,7 +199,8 @@ void Tab::create_preset_tab()
     m_hsizer->Add(m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
     m_hsizer->Add(m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
     m_hsizer->AddSpacer(int(/*32*/16 * scale_factor));
-    m_hsizer->Add(m_search_cb, 0, wxALIGN_CENTER_VERTICAL);
+//    m_hsizer->Add(m_search_cb, 0, wxALIGN_CENTER_VERTICAL);
+    m_hsizer->Add(m_search->sizer(), 0, wxALIGN_CENTER_VERTICAL);
     m_hsizer->AddSpacer(int(16 * scale_factor));
 //    m_hsizer->AddSpacer(int(32 * scale_factor));
 //    m_hsizer->Add(m_question_btn, 0, wxALIGN_CENTER_VERTICAL);
@@ -767,9 +769,6 @@ void Tab::update_mode()
     update_visibility();
 
     update_changed_tree_ui();
-
-    // update list of options for search
-//    m_search_cb->init(m_config, type(), m_mode);
 }
 
 void Tab::update_visibility()
@@ -796,7 +795,8 @@ void Tab::msw_rescale()
     m_em_unit = wxGetApp().em_unit();
 
     m_mode_sizer->msw_rescale();
-    m_search_cb->msw_rescale();
+//    m_search_cb->msw_rescale();
+    m_search->msw_rescale();
 
     m_presets_choice->SetSize(35 * m_em_unit, -1);
     m_treectrl->SetMinSize(wxSize(20 * m_em_unit, -1));
@@ -897,6 +897,11 @@ static wxString support_combo_value_for_config(const DynamicPrintConfig &config,
 static wxString pad_combo_value_for_config(const DynamicPrintConfig &config)
 {
     return config.opt_bool("pad_enable") ? (config.opt_bool("pad_around_object") ? _("Around object") : _("Below object")) : _("None");
+}
+
+void Tab::set_search_line(const std::string& search_line)
+{
+    m_search->set_search_line(search_line);
 }
 
 void Tab::on_value_change(const std::string& opt_key, const boost::any& value)

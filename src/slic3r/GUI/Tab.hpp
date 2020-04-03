@@ -33,7 +33,7 @@
 #include "Event.hpp"
 #include "wxExtensions.hpp"
 #include "ConfigManipulation.hpp"
-#include "SearchComboBox.hpp"
+#include "Search.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -122,7 +122,8 @@ protected:
 	std::string			m_name;
 	const wxString		m_title;
 	PresetBitmapComboBox*	m_presets_choice;
-	SearchComboBox*		m_search_cb;
+//	SearchComboBox*		m_search_cb;
+	SearchCtrl*			m_search;
 	ScalableButton*		m_btn_save_preset;
 	ScalableButton*		m_btn_delete_preset;
 	ScalableButton*		m_btn_hide_incompatible_presets;
@@ -308,8 +309,10 @@ public:
 
 	DynamicPrintConfig*	get_config() { return m_config; }
 	PresetCollection*	get_presets() { return m_presets; }
-	SearchComboBox*     get_search_cb() { return m_search_cb; }
+//	SearchComboBox*     get_search_cb() { return m_search_cb; }
 	size_t				get_selected_preset_item() { return m_selected_preset_item; }
+
+	void			set_search_line(const std::string& search_line);
 
 	void			on_value_change(const std::string& opt_key, const boost::any& value);
 
