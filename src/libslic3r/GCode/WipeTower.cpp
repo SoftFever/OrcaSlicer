@@ -90,6 +90,10 @@ public:
             char buf[64];
             sprintf(buf, ";%s%f\n", GCodeAnalyzer::Mm3_Per_Mm_Tag.c_str(), mm3_per_mm);
             m_gcode += buf;
+#if ENABLE_GCODE_VIEWER
+            sprintf(buf, ";%s%f\n", GCodeProcessor::Mm3_Per_Mm_Tag.c_str(), mm3_per_mm);
+            m_gcode += buf;
+#endif // ENABLE_GCODE_VIEWER
             return *this;
     }
 

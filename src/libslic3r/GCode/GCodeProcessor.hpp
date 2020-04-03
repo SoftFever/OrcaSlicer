@@ -16,6 +16,7 @@ namespace Slic3r {
         static const std::string Extrusion_Role_Tag;
         static const std::string Width_Tag;
         static const std::string Height_Tag;
+        static const std::string Mm3_Per_Mm_Tag;
 
     private:
         using AxisCoords = std::array<float, 4>;
@@ -52,6 +53,8 @@ namespace Slic3r {
             float feedrate{ 0.0f }; // mm/s
             float width{ 0.0f }; // mm
             float height{ 0.0f }; // mm
+            float mm3_per_mm{ 0.0f };
+            float fan_speed{ 0.0f }; // percentage
             unsigned int extruder_id{ 0 };
 
             std::string to_string() const
@@ -63,6 +66,8 @@ namespace Slic3r {
                 str += ", " + std::to_string(feedrate);
                 str += ", " + std::to_string(width);
                 str += ", " + std::to_string(height);
+                str += ", " + std::to_string(mm3_per_mm);
+                str += ", " + std::to_string(fan_speed);
                 return str;
             }
         };
@@ -85,9 +90,11 @@ namespace Slic3r {
         AxisCoords m_end_position;   // mm
         AxisCoords m_origin;         // mm
 
-        float m_feedrate; // mm/s
-        float m_width;    // mm
-        float m_height;   // mm
+        float m_feedrate;  // mm/s
+        float m_width;     // mm
+        float m_height;    // mm
+        float m_mm3_per_mm;
+        float m_fan_speed; // percentage
         ExtrusionRole m_extrusion_role;
         unsigned int m_extruder_id;
 
@@ -103,7 +110,6 @@ namespace Slic3r {
         Result&& extract_result() { return std::move(m_result); }
 
         // Process the gcode contained in the file with the given filename
-        // Return false if any error occourred
         void process_file(const std::string& filename);
 
     private:
@@ -115,23 +121,41 @@ namespace Slic3r {
         // Move
         void process_G1(const GCodeReader::GCodeLine& line);
 
+        // Retract
+        void process_G10(const GCodeReader::GCodeLine& line);
+
+        // Unretract
+        void process_G11(const GCodeReader::GCodeLine& line);
+
+        // Firmware controlled Retract
+        void process_G22(const GCodeReader::GCodeLine& line);
+
+        // Firmware controlled Unretract
+        void process_G23(const GCodeReader::GCodeLine& line);
+
         // Set to Absolute Positioning
-        void processG90(const GCodeReader::GCodeLine& line);
+        void process_G90(const GCodeReader::GCodeLine& line);
 
         // Set to Relative Positioning
-        void processG91(const GCodeReader::GCodeLine& line);
+        void process_G91(const GCodeReader::GCodeLine& line);
 
         // Set Position
-        void processG92(const GCodeReader::GCodeLine& line);
+        void process_G92(const GCodeReader::GCodeLine& line);
 
         // Set extruder to absolute mode
-        void processM82(const GCodeReader::GCodeLine& line);
+        void process_M82(const GCodeReader::GCodeLine& line);
 
         // Set extruder to relative mode
-        void processM83(const GCodeReader::GCodeLine& line);
+        void process_M83(const GCodeReader::GCodeLine& line);
+
+        // Set fan speed
+        void process_M106(const GCodeReader::GCodeLine& line);
+
+        // Disable fan
+        void process_M107(const GCodeReader::GCodeLine& line);
 
         // Processes T line (Select Tool)
-        void processT(const GCodeReader::GCodeLine& line);
+        void process_T(const GCodeReader::GCodeLine& line);
 
         void store_move_vertex(EMoveType type);
    };

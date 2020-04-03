@@ -956,6 +956,8 @@ void GCodeAnalyzer::_store_move(GCodeAnalyzer::GCodeMove::EType type)
         g_debug_output << ", " << std::to_string(_get_feedrate());
         g_debug_output << ", " << std::to_string(_get_width());
         g_debug_output << ", " << std::to_string(_get_height());
+        g_debug_output << ", " << std::to_string(_get_mm3_per_mm());
+        g_debug_output << ", " << std::to_string(_get_fan_speed());
         g_debug_output << "\n";
     }
 #endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT

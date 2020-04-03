@@ -3131,6 +3131,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             m_last_mm3_per_mm = path.mm3_per_mm;
             sprintf(buf, ";%s%f\n", GCodeAnalyzer::Mm3_Per_Mm_Tag.c_str(), m_last_mm3_per_mm);
             gcode += buf;
+#if ENABLE_GCODE_VIEWER
+            sprintf(buf, ";%s%f\n", GCodeProcessor::Mm3_Per_Mm_Tag.c_str(), m_last_mm3_per_mm);
+            gcode += buf;
+#endif // ENABLE_GCODE_VIEWER
         }
 
         if (last_was_wipe_tower || (m_last_width != path.width))

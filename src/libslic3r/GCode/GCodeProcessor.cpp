@@ -18,6 +18,7 @@ namespace Slic3r {
 const std::string GCodeProcessor::Extrusion_Role_Tag = "_PROCESSOR_EXTRUSION_ROLE:";
 const std::string GCodeProcessor::Width_Tag          = "_PROCESSOR_WIDTH:";
 const std::string GCodeProcessor::Height_Tag         = "_PROCESSOR_HEIGHT:";
+const std::string GCodeProcessor::Mm3_Per_Mm_Tag     = "_PROCESSOR_MM3_PER_MM:";
 
 void GCodeProcessor::apply_config(const PrintConfig& config)
 {
@@ -48,6 +49,9 @@ void GCodeProcessor::reset()
     m_feedrate = 0.0f;
     m_width = 0.0f;
     m_height = 0.0f;
+    m_mm3_per_mm = 0.0f;
+    m_fan_speed = 0.0f;
+
     m_extrusion_role = erNone;
     m_extruder_id = 0;
 
@@ -79,14 +83,14 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line)
             {
                 switch (::atoi(&cmd[1]))
                 {
-                // Move
-                case 1: { process_G1(line); break; }
-                // Set to Absolute Positioning
-                case 90: { processG90(line); break; }
-                // Set to Relative Positioning
-                case 91: { processG91(line); break; }
-                // Set Position
-                case 92: { processG92(line); break; }
+                case 1:  { process_G1(line); break; }  // Move
+                case 10: { process_G10(line); break; } // Retract
+                case 11: { process_G11(line); break; } // Unretract
+                case 22: { process_G22(line); break; } // Firmware controlled retract
+                case 23: { process_G23(line); break; } // Firmware controlled unretract
+                case 90: { process_G90(line); break; } // Set to Absolute Positioning
+                case 91: { process_G91(line); break; } // Set to Relative Positioning
+                case 92: { process_G92(line); break; } // Set Position
                 default: { break; }
                 }
                 break;
@@ -95,16 +99,17 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line)
             {
                 switch (::atoi(&cmd[1]))
                 {
-                // Set extruder to absolute mode
-                case 82: { processM82(line); break; }
-                // Set extruder to relative mode
-                case 83: { processM83(line); break; }
+                case 82:  { process_M82(line); break; }  // Set extruder to absolute mode
+                case 83:  { process_M83(line); break; }  // Set extruder to relative mode
+                case 106: { process_M106(line); break; } // Set fan speed
+                case 107: { process_M107(line); break; } // Disable fan
                 default: { break; }
                 }
                 break;
             }
         case 'T':
             {
+                process_T(line); // Select Tool
                 break;
             }
         default: { break; }
@@ -125,12 +130,19 @@ void GCodeProcessor::process_tags(const std::string& comment)
     size_t pos = comment.find(Extrusion_Role_Tag);
     if (pos != comment.npos)
     {
-        int role = std::stoi(comment.substr(pos + Extrusion_Role_Tag.length()));
-        if (is_valid_extrusion_role(role))
-            m_extrusion_role = static_cast<ExtrusionRole>(role);
-        else
+        try
         {
-            // todo: show some error ?
+            int role = std::stoi(comment.substr(pos + Extrusion_Role_Tag.length()));
+            if (is_valid_extrusion_role(role))
+                m_extrusion_role = static_cast<ExtrusionRole>(role);
+            else
+            {
+                // todo: show some error ?
+            }
+        }
+        catch (...)
+        {
+            BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Extrusion Role (" << comment << ").";
         }
 
         return;
@@ -140,7 +152,14 @@ void GCodeProcessor::process_tags(const std::string& comment)
     pos = comment.find(Width_Tag);
     if (pos != comment.npos)
     {
-        m_width = std::stof(comment.substr(pos + Width_Tag.length()));
+        try
+        {
+            m_width = std::stof(comment.substr(pos + Width_Tag.length()));
+        }
+        catch (...)
+        {
+            BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
+        }
         return;
     }
 
@@ -148,7 +167,29 @@ void GCodeProcessor::process_tags(const std::string& comment)
     pos = comment.find(Height_Tag);
     if (pos != comment.npos)
     {
-        m_height = std::stof(comment.substr(pos + Height_Tag.length()));
+        try
+        {
+            m_height = std::stof(comment.substr(pos + Height_Tag.length()));
+        }
+        catch (...)
+        {
+            BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Height (" << comment << ").";
+        }
+        return;
+    }
+
+    // mm3 per mm tag
+    pos = comment.find(Mm3_Per_Mm_Tag);
+    if (pos != comment.npos)
+    {
+        try
+        {
+            m_mm3_per_mm = std::stof(comment.substr(pos + Mm3_Per_Mm_Tag.length()));
+        }
+        catch (...)
+        {
+            BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Mm3_Per_Mm (" << comment << ").";
+        }
         return;
     }
 }
@@ -224,17 +265,41 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
     store_move_vertex(move_type(delta_pos));
 }
 
-void GCodeProcessor::processG90(const GCodeReader::GCodeLine& line)
+void GCodeProcessor::process_G10(const GCodeReader::GCodeLine& line)
+{
+    // stores retract move
+    store_move_vertex(EMoveType::Retract);
+}
+
+void GCodeProcessor::process_G11(const GCodeReader::GCodeLine& line)
+{
+    // stores unretract move
+    store_move_vertex(EMoveType::Unretract);
+}
+
+void GCodeProcessor::process_G22(const GCodeReader::GCodeLine& line)
+{
+    // stores retract move
+    store_move_vertex(EMoveType::Retract);
+}
+
+void GCodeProcessor::process_G23(const GCodeReader::GCodeLine& line)
+{
+    // stores unretract move
+    store_move_vertex(EMoveType::Unretract);
+}
+
+void GCodeProcessor::process_G90(const GCodeReader::GCodeLine& line)
 {
     m_global_positioning_type = EPositioningType::Absolute;
 }
 
-void GCodeProcessor::processG91(const GCodeReader::GCodeLine& line)
+void GCodeProcessor::process_G91(const GCodeReader::GCodeLine& line)
 {
     m_global_positioning_type = EPositioningType::Relative;
 }
 
-void GCodeProcessor::processG92(const GCodeReader::GCodeLine& line)
+void GCodeProcessor::process_G92(const GCodeReader::GCodeLine& line)
 {
     float lengthsScaleFactor = (m_units == EUnits::Inches) ? INCHES_TO_MM : 1.0f;
     bool anyFound = false;
@@ -276,36 +341,61 @@ void GCodeProcessor::processG92(const GCodeReader::GCodeLine& line)
     }
 }
 
-void GCodeProcessor::processM82(const GCodeReader::GCodeLine& line)
+void GCodeProcessor::process_M82(const GCodeReader::GCodeLine& line)
 {
     m_e_local_positioning_type = EPositioningType::Absolute;
 }
 
-void GCodeProcessor::processM83(const GCodeReader::GCodeLine& line)
+void GCodeProcessor::process_M83(const GCodeReader::GCodeLine& line)
 {
     m_e_local_positioning_type = EPositioningType::Relative;
 }
 
-void GCodeProcessor::processT(const GCodeReader::GCodeLine& line)
+void GCodeProcessor::process_M106(const GCodeReader::GCodeLine& line)
+{
+    if (!line.has('P'))
+    {
+        // The absence of P means the print cooling fan, so ignore anything else.
+        float new_fan_speed;
+        if (line.has_value('S', new_fan_speed))
+            m_fan_speed = (100.0f / 255.0f) * new_fan_speed;
+        else
+            m_fan_speed = 100.0f;
+    }
+}
+
+void GCodeProcessor::process_M107(const GCodeReader::GCodeLine& line)
+{
+    m_fan_speed = 0.0f;
+}
+
+void GCodeProcessor::process_T(const GCodeReader::GCodeLine& line)
 {
     const std::string& cmd = line.cmd();
     if (cmd.length() > 1)
     {
-        unsigned int id = (unsigned int)std::stoi(cmd.substr(1));
-        if (m_extruder_id != id)
+        try
         {
-            unsigned int extruders_count = (unsigned int)m_extruder_offsets.size();
-            if (id >= extruders_count)
-                BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid toolchange, maybe from a custom gcode.";
-            else
+            unsigned int id = (unsigned int)std::stoi(cmd.substr(1));
+            if (m_extruder_id != id)
             {
-                m_extruder_id = id;
+                unsigned int extruders_count = (unsigned int)m_extruder_offsets.size();
+                if (id >= extruders_count)
+                    BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid toolchange, maybe from a custom gcode.";
+                else
+                {
+                    m_extruder_id = id;
 //                if (_get_cp_color_id() != INT_MAX) <<<<<<<<<<<<<<<<<<< TODO
 //                    _set_cp_color_id(m_extruder_color[id]);
-            }
+                }
 
-            // store tool change move
-            store_move_vertex(EMoveType::Tool_change);
+                // store tool change move
+                store_move_vertex(EMoveType::Tool_change);
+            }
+        }
+        catch (...)
+        {
+            BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid toolchange (" << cmd << ").";
         }
     }
 }
@@ -319,6 +409,8 @@ void GCodeProcessor::store_move_vertex(EMoveType type)
     vertex.feedrate = m_feedrate;
     vertex.width = m_width;
     vertex.height = m_height;
+    vertex.mm3_per_mm = m_mm3_per_mm;
+    vertex.fan_speed = m_fan_speed;
     vertex.extruder_id = m_extruder_id;
     m_result.moves.emplace_back(vertex);
 }
