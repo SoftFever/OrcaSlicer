@@ -35,6 +35,7 @@ set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination direct
 
 option(DEP_DEBUG "Build debug variants (only applicable on Windows)" ON)
 option(DEP_WX_STABLE "Build against wxWidgets stable 3.0 as opposed to default 3.1 (Linux only)" OFF)
+option(DEP_WX_GTK3 "Build wxWidgets against GTK3" OFF)
 
 # On developer machines, it can be enabled to speed up compilation and suppress warnings coming from IGL. 
 # FIXME:
