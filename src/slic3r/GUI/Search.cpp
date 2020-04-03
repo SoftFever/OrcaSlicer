@@ -152,12 +152,11 @@ static void clear_marked_string(wxString& str)
 {
     // Check if the string has a several ColorMarkerStart in a row and replace them to only one, if any
     wxString delete_string = wxString::Format("%c%c", ImGui::ColorMarkerStart, ImGui::ColorMarkerStart);
-    if (str.Replace(delete_string, ImGui::ColorMarkerStart, true) != 0) {
-        // If there were several ColorMarkerStart in a row, it means there should be a several ColorMarkerStop in a row,
-        // replace them to only one
-        delete_string = wxString::Format("%c%c", ImGui::ColorMarkerEnd, ImGui::ColorMarkerEnd);
-        str.Replace(delete_string, ImGui::ColorMarkerEnd, true);
-    }
+    str.Replace(delete_string, ImGui::ColorMarkerStart, true);
+    // If there were several ColorMarkerStart in a row, it means there should be a several ColorMarkerStop in a row,
+    // replace them to only one
+    delete_string = wxString::Format("%c%c", ImGui::ColorMarkerEnd, ImGui::ColorMarkerEnd);
+    str.Replace(delete_string, ImGui::ColorMarkerEnd, true);
 
     // And we should to remove redundant ColorMarkers, if they are in "End, Start" sequence in a row
     delete_string = wxString::Format("%c%c", ImGui::ColorMarkerEnd, ImGui::ColorMarkerStart);
