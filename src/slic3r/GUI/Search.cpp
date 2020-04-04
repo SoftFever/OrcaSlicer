@@ -354,7 +354,7 @@ void SearchComboBox::append_items(const wxString& search)
 //------------------------------------------
 
 PopupSearchList::PopupSearchList(wxWindow* parent) :
-    wxPopupTransientWindow(parent)
+    wxPopupTransientWindow(parent, wxSTAY_ON_TOP| wxBORDER_NONE)
 {
     panel = new wxPanel(this, wxID_ANY);
 
@@ -367,6 +367,19 @@ PopupSearchList::PopupSearchList(wxWindow* parent) :
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
+    wxTextCtrl *text = new wxTextCtrl(panel, wxID_ANY, "Brrrr");
+    text->Bind(wxEVT_ACTIVATE, [](wxEvent& e) {
+        int i=0; });
+    text->Bind(wxEVT_MOUSE_CAPTURE_CHANGED, [](wxEvent& e) {
+        int i = 0; });
+    text->Bind(wxEVT_LEFT_DOWN, [text](wxEvent& e) {
+        text->SetValue("mrrrrrty"); });
+    text->Bind(wxEVT_TEXT, [text](wxCommandEvent& e) {
+        text->SetSelection(2, 3); });
+    text->Bind(wxEVT_CHAR, [text](wxKeyEvent& e) {
+        text->SetFocus(); });
+
+    topSizer->Add(text, 0, wxEXPAND | wxALL, 2);
     topSizer->Add(search_ctrl, 0, wxEXPAND | wxALL, 2);
 
     panel->SetSizer(topSizer);
@@ -432,9 +445,9 @@ void PopupSearchList::update_list(std::vector<SearchOptions::Filter>& filters)
 
 SearchCtrl::SearchCtrl(wxWindow* parent)
 {
-    popup_win = new PopupSearchList(parent);
+//    popup_win = new PopupSearchList(parent);
     box_sizer = new wxBoxSizer(wxHORIZONTAL);
-
+ /*
     search_line = new wxTextCtrl(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(25 * wxGetApp().em_unit(), -1), wxTE_PROCESS_ENTER);
     search_line->Bind(wxEVT_TEXT, &SearchCtrl::OnInputText, this);
     search_line->Bind(wxEVT_TEXT_ENTER, &SearchCtrl::PopupList, this);
@@ -445,6 +458,28 @@ SearchCtrl::SearchCtrl(wxWindow* parent)
     box_sizer->Add(search_line, 0, wxALIGN_CENTER_VERTICAL);
     box_sizer->AddSpacer(5);
     box_sizer->Add(search_btn, 0, wxALIGN_CENTER_VERTICAL);
+
+*/
+    default_string = _L("Type here to search");
+
+    comboCtrl = new wxComboCtrl(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(25 * wxGetApp().em_unit(), -1), wxTE_PROCESS_ENTER);
+    comboCtrl->UseAltPopupWindow();
+    popupCtrl = new SearchComboPopup();
+
+    // It is important to call SetPopupControl() as soon as possible
+    comboCtrl->SetPopupControl(popupCtrl);
+    wxBitmap bmp_norm = create_scaled_bitmap("search_gray");
+    wxBitmap bmp_hov = create_scaled_bitmap("search");
+    comboCtrl->SetButtonBitmaps(bmp_norm, true, bmp_hov, bmp_hov, bmp_norm);
+    box_sizer->Add(comboCtrl, 0, wxALIGN_CENTER_VERTICAL);
+
+    popupCtrl->Bind(wxEVT_LISTBOX, &SearchCtrl::OnSelect, this);
+
+    comboCtrl->Bind(wxEVT_TEXT,                 &SearchCtrl::OnInputText, this);
+    comboCtrl->Bind(wxEVT_TEXT_ENTER,           &SearchCtrl::PopupList, this);
+    comboCtrl->Bind(wxEVT_COMBOBOX_DROPDOWN,    &SearchCtrl::PopupList, this);
+
+    comboCtrl->GetTextCtrl()->Bind(wxEVT_LEFT_DOWN,    &SearchCtrl::OnLeftDown, this);
 }
 
 SearchCtrl::~SearchCtrl()
@@ -461,16 +496,20 @@ void SearchCtrl::OnInputText(wxCommandEvent& )
 {
     if (prevent_update)
         return;
+
     std::string& search_str = wxGetApp().sidebar().get_search_line();
-    search_str = into_u8(search_line->GetValue());
+//    search_str = into_u8(search_line->GetValue());
+    search_str = into_u8(comboCtrl->GetValue());
     wxGetApp().sidebar().apply_search_filter();
 
-    popup_win->update_list(wxGetApp().sidebar().get_search_list().filters);
+//    popup_win->update_list(wxGetApp().sidebar().get_search_list().filters);
+
+//    update_list(wxGetApp().sidebar().get_search_list().filters);
 }
 
-void SearchCtrl::PopupList(wxCommandEvent& )
+void SearchCtrl::PopupList(wxCommandEvent& e)
 {
-    popup_win->update_list(wxGetApp().sidebar().get_search_list().filters);
+/*    popup_win->update_list(wxGetApp().sidebar().get_search_list().filters);
 
     wxPoint pos = search_line->ClientToScreen(wxPoint(0, 0));
     wxSize sz = search_line->GetSize();
@@ -478,13 +517,18 @@ void SearchCtrl::PopupList(wxCommandEvent& )
     popup_win->Position(pos, sz);
 
     popup_win->Popup();
+    */
+    update_list(wxGetApp().sidebar().get_search_list().filters);
+    e.Skip();
 }
 
 void SearchCtrl::set_search_line(const std::string& line)
 {
     prevent_update = true;
-    search_line->SetValue(line.empty() ? _L("Type here to search") : from_u8(line));
+//    search_line->SetValue(line.empty() ? _L("Type here to search") : from_u8(line));
+    comboCtrl->SetText(line.empty() ? default_string : from_u8(line));
     prevent_update = false;
+
 }
 
 void SearchCtrl::msw_rescale()
@@ -494,7 +538,41 @@ void SearchCtrl::msw_rescale()
     search_line->SetMinSize(size);
     // Set rescaled size
     search_btn->msw_rescale();
+
+
+    comboCtrl->SetButtonBitmaps(create_scaled_bitmap("search"));
 }
 
+
+void SearchCtrl::OnSelect(wxCommandEvent& event)
+{
+    prevent_update = true;
+
+    int selection = event.GetSelection();
+    if (selection >= 0)
+        wxGetApp().sidebar().jump_to_option(selection);
+
+    prevent_update = false;
+
+    comboCtrl->Dismiss();
+}
+
+void SearchCtrl::update_list(std::vector<SearchOptions::Filter>& filters)
+{
+    popupCtrl->Clear();
+    for (const SearchOptions::Filter& item : filters)
+        popupCtrl->Append(item.label);
+}
+
+void SearchCtrl::OnLeftDown(wxEvent &event)
+{
+    const wxString& str = comboCtrl->GetValue();
+    if (!str.IsEmpty() && str == default_string) {
+        prevent_update = true;
+        comboCtrl->SetValue("");
+        prevent_update = false;
+    }
+    event.Skip();
+}
 
 }}    // namespace Slic3r::GUI

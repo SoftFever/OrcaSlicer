@@ -194,6 +194,24 @@ public:
 #else
         sizer->Add(m_grid_sizer, 0, wxEXPAND | wxALL, wxOSX||!staticbox ? 0: 5);
 #endif /* __WXGTK__ */
+
+
+
+        if (stb)
+            stb->Bind(wxEVT_PAINT, [this](wxPaintEvent& evt) {
+                evt.Skip();
+                const wxSize sz = stb->GetSize();
+                wxPaintDC dc(stb);
+                const wxPen pen = wxPen(wxColour(250, 10, 10), 2, wxPENSTYLE_SOLID);
+                dc.SetPen(pen);
+                dc.SetBrush(wxBrush(wxColour(250, 0, 0), wxBRUSHSTYLE_SOLID));
+                dc.DrawRectangle(5, 5, sz.x - 5, sz.y - 5);
+
+                HDC hdc = GetHdcOf(dc);
+                RECT dim = { 5, 5, sz.x - 5, sz.y - 5 };
+                ::FillRect(hdc, &dim, GetHbrushOf(wxBrush(wxColour( 0, 250,0), wxBRUSHSTYLE_SOLID)));
+
+            });
     }
 
     wxGridSizer*        get_grid_sizer() { return m_grid_sizer; }

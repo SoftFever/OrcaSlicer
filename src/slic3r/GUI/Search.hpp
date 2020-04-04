@@ -9,6 +9,8 @@
 #include <wx/popupwin.h>
 #include <wx/listctrl.h>
 
+#include <wx/combo.h>
+
 #include "Preset.hpp"
 #include "wxExtensions.hpp"
 
@@ -147,18 +149,74 @@ private:
     void OnSelect(wxListEvent& event);
 };
 
+
+
+
+
+class SearchComboPopup : public wxListBox, public wxComboPopup
+{
+public:
+    // Initialize member variables
+    virtual void Init(){}
+
+    // Create popup control
+    virtual bool Create(wxWindow* parent)
+    {
+        return wxListBox::Create(parent, 1, wxPoint(0, 0), wxDefaultSize);
+    }
+    // Return pointer to the created control
+    virtual wxWindow* GetControl() { return this; }
+    // Translate string into a list selection
+    virtual void SetStringValue(const wxString& s)
+    {
+        int n = wxListBox::FindString(s);
+        if (n >= 0 && n < wxListBox::GetCount())
+            wxListBox::Select(n);
+
+        // save a combo control's string
+        m_input_string = s;
+    }
+    // Get list selection as a string
+    virtual wxString GetStringValue() const
+    {
+        // we shouldn't change a combo control's string
+        return m_input_string;
+    }
+    // Do mouse hot-tracking (which is typical in list popups)
+    void OnMouseMove(wxMouseEvent& event)
+    {
+        // TODO: Move selection to cursor
+    }
+    // On mouse left up, set the value and close the popup
+    void OnMouseClick(wxMouseEvent& WXUNUSED(event))
+    {
+         // TODO: Send event as well
+        Dismiss();
+    }
+protected:
+    wxString m_input_string;
+};
+
+
 class SearchCtrl
 {
-//    wxWindow*           parent      {nullptr};
     wxBoxSizer*         box_sizer   {nullptr};
     wxTextCtrl*         search_line {nullptr};
     ScalableButton*     search_btn  {nullptr};
     PopupSearchList*    popup_win   {nullptr};
 
+
     bool                prevent_update{ false };
+    wxString            default_string;
 
     void PopupList(wxCommandEvent& event);
     void OnInputText(wxCommandEvent& event);
+
+    wxComboCtrl*        comboCtrl {nullptr};
+    SearchComboPopup*   popupCtrl {nullptr};
+
+    void OnSelect(wxCommandEvent& event);
+    void OnLeftDown(wxEvent& event);
 
 public:
     SearchCtrl(wxWindow* parent);
@@ -168,7 +226,11 @@ public:
 
     void		set_search_line(const std::string& search_line);
     void        msw_rescale();
+
+    void        update_list(std::vector<SearchOptions::Filter>& filters);
 };
+
+
 
 }}
 
