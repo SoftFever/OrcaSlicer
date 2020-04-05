@@ -198,6 +198,52 @@ protected:
 };
 
 
+
+class SearchComboPopup_ : public wxListCtrl, public wxComboPopup
+{
+public:
+    // Initialize member variables
+    virtual void Init() {}
+
+    // Create popup control
+    virtual bool Create(wxWindow* parent)
+    {
+        return wxListCtrl::Create(parent, 1, wxPoint(0, 0), wxDefaultSize, wxLC_LIST | wxLC_NO_HEADER | wxLC_SINGLE_SEL);
+    }
+    // Return pointer to the created control
+    virtual wxWindow* GetControl() { return this; }
+    // Translate string into a list selection
+    virtual void SetStringValue(const wxString& s)
+    {
+        int n = wxListCtrl::FindItem(0, s);
+        if (n >= 0 && n < wxListCtrl::GetItemCount())
+            wxListCtrl::SetItemState(n, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+
+        // save a combo control's string
+        m_input_string = s;
+    }
+    // Get list selection as a string
+    virtual wxString GetStringValue() const
+    {
+        // we shouldn't change a combo control's string
+        return m_input_string;
+    }
+    // Do mouse hot-tracking (which is typical in list popups)
+    void OnMouseMove(wxMouseEvent& event)
+    {
+        // TODO: Move selection to cursor
+    }
+    // On mouse left up, set the value and close the popup
+    void OnMouseClick(wxMouseEvent& WXUNUSED(event))
+    {
+        // TODO: Send event as well
+        Dismiss();
+    }
+protected:
+    wxString m_input_string;
+};
+
+
 class SearchCtrl
 {
     wxBoxSizer*         box_sizer   {nullptr};
@@ -213,10 +259,12 @@ class SearchCtrl
     void OnInputText(wxCommandEvent& event);
 
     wxComboCtrl*        comboCtrl {nullptr};
-    SearchComboPopup*   popupCtrl {nullptr};
+    SearchComboPopup*   popupListBox {nullptr};
+    SearchComboPopup_*   popupListCtrl {nullptr};
 
     void OnSelect(wxCommandEvent& event);
     void OnLeftDown(wxEvent& event);
+    void OnSelectCtrl(wxListEvent& event);
 
 public:
     SearchCtrl(wxWindow* parent);

@@ -464,16 +464,26 @@ SearchCtrl::SearchCtrl(wxWindow* parent)
 
     comboCtrl = new wxComboCtrl(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(25 * wxGetApp().em_unit(), -1), wxTE_PROCESS_ENTER);
     comboCtrl->UseAltPopupWindow();
-    popupCtrl = new SearchComboPopup();
 
-    // It is important to call SetPopupControl() as soon as possible
-    comboCtrl->SetPopupControl(popupCtrl);
     wxBitmap bmp_norm = create_scaled_bitmap("search_gray");
     wxBitmap bmp_hov = create_scaled_bitmap("search");
     comboCtrl->SetButtonBitmaps(bmp_norm, true, bmp_hov, bmp_hov, bmp_norm);
+
+//    popupListBox = new SearchComboPopup();
+    popupListCtrl = new SearchComboPopup_();
+
+    // It is important to call SetPopupControl() as soon as possible
+//    comboCtrl->SetPopupControl(popupListBox);
+    comboCtrl->SetPopupControl(popupListCtrl);
+
     box_sizer->Add(comboCtrl, 0, wxALIGN_CENTER_VERTICAL);
 
-    popupCtrl->Bind(wxEVT_LISTBOX, &SearchCtrl::OnSelect, this);
+//    popupListBox->Bind(wxEVT_LISTBOX, &SearchCtrl::OnSelect, this);
+//    popupListCtrl->Bind(wxEVT_LIST_ITEM_SELECTED, &SearchCtrl::OnSelectCtrl, this);
+    popupListCtrl->Bind(wxEVT_LIST_ITEM_SELECTED, [](wxListEvent& event)
+    {
+        int i=0;
+    });
 
     comboCtrl->Bind(wxEVT_TEXT,                 &SearchCtrl::OnInputText, this);
     comboCtrl->Bind(wxEVT_TEXT_ENTER,           &SearchCtrl::PopupList, this);
@@ -557,11 +567,27 @@ void SearchCtrl::OnSelect(wxCommandEvent& event)
     comboCtrl->Dismiss();
 }
 
+void SearchCtrl::OnSelectCtrl(wxListEvent& event)
+{
+    prevent_update = true;
+
+    int selection = event.GetIndex();
+    if (selection >= 0)
+        wxGetApp().sidebar().jump_to_option(selection);
+
+    prevent_update = false;
+
+    comboCtrl->Dismiss();
+}
+
 void SearchCtrl::update_list(std::vector<SearchOptions::Filter>& filters)
 {
-    popupCtrl->Clear();
+/*    popupListBox->Clear();
     for (const SearchOptions::Filter& item : filters)
-        popupCtrl->Append(item.label);
+        popupListBox->Append(item.label);*/
+    popupListCtrl->DeleteAllItems();
+    for (const SearchOptions::Filter& item : filters)
+        popupListCtrl->InsertItem(popupListCtrl->GetItemCount(), item.label);
 }
 
 void SearchCtrl::OnLeftDown(wxEvent &event)
