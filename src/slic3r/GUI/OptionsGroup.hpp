@@ -205,12 +205,12 @@ public:
                 const wxPen pen = wxPen(wxColour(250, 10, 10), 2, wxPENSTYLE_SOLID);
                 dc.SetPen(pen);
                 dc.SetBrush(wxBrush(wxColour(250, 0, 0), wxBRUSHSTYLE_SOLID));
-                dc.DrawRectangle(5, 5, sz.x - 5, sz.y - 5);
-
+                dc.DrawRectangle(25, 25, sz.x - 25, sz.y - 25);
+/*
                 HDC hdc = GetHdcOf(dc);
                 RECT dim = { 5, 5, sz.x - 5, sz.y - 5 };
                 ::FillRect(hdc, &dim, GetHbrushOf(wxBrush(wxColour( 0, 250,0), wxBRUSHSTYLE_SOLID)));
-
+*/
             });
     }
 
