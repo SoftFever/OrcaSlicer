@@ -1823,7 +1823,11 @@ namespace ProcessLayer
 		        // Color Change or Tool Change as Color Change.
 	            // add tag for analyzer
 	            gcode += "; " + GCodeAnalyzer::Color_Change_Tag + ",T" + std::to_string(m600_extruder_before_layer) + "\n";
-	            // add tag for time estimator
+#if ENABLE_GCODE_VIEWER
+                // add tag for processor
+                gcode += "; " + GCodeProcessor::Color_Change_Tag + ",T" + std::to_string(m600_extruder_before_layer) + "\n";
+#endif // ENABLE_GCODE_VIEWER
+                // add tag for time estimator
 	            gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
 
                 if (!single_extruder_printer && m600_extruder_before_layer >= 0 && first_extruder_id != (unsigned)m600_extruder_before_layer
@@ -1844,7 +1848,11 @@ namespace ProcessLayer
 	            {
 	                // add tag for analyzer
 	                gcode += "; " + GCodeAnalyzer::Pause_Print_Tag + "\n";
-	                //! FIXME_in_fw show message during print pause
+#if ENABLE_GCODE_VIEWER
+                    // add tag for processor
+                    gcode += "; " + GCodeProcessor::Pause_Print_Tag + "\n";
+#endif // ENABLE_GCODE_VIEWER
+                    //! FIXME_in_fw show message during print pause
 	                if (!pause_print_msg.empty())
 	                    gcode += "M117 " + pause_print_msg + "\n";
 	                // add tag for time estimator
@@ -1854,7 +1862,11 @@ namespace ProcessLayer
 	            {
 	                // add tag for analyzer
 	                gcode += "; " + GCodeAnalyzer::Custom_Code_Tag + "\n";
-	                // add tag for time estimator
+#if ENABLE_GCODE_VIEWER
+                    // add tag for processor
+                    gcode += "; " + GCodeProcessor::Custom_Code_Tag + "\n";
+#endif // ENABLE_GCODE_VIEWER
+                    // add tag for time estimator
 	                //gcode += "; " + GCodeTimeEstimator::Custom_Code_Tag + "\n";
 	            }
 	            gcode += custom_code + "\n";
@@ -2315,6 +2327,14 @@ void GCode::process_layer(
         gcode += "\n; " + GCodeAnalyzer::End_Pause_Print_Or_Custom_Code_Tag + "\n";
     else if (gcode.find(GCodeAnalyzer::Custom_Code_Tag) != gcode.npos)
         gcode += "\n; " + GCodeAnalyzer::End_Pause_Print_Or_Custom_Code_Tag + "\n";
+
+#if ENABLE_GCODE_VIEWER
+    // add tag for processor
+    if (gcode.find(GCodeProcessor::Pause_Print_Tag) != gcode.npos)
+        gcode += "\n; " + GCodeProcessor::End_Pause_Print_Or_Custom_Code_Tag + "\n";
+    else if (gcode.find(GCodeProcessor::Custom_Code_Tag) != gcode.npos)
+        gcode += "\n; " + GCodeProcessor::End_Pause_Print_Or_Custom_Code_Tag + "\n";
+#endif // ENABLE_GCODE_VIEWER
 
 #ifdef HAS_PRESSURE_EQUALIZER
     // Apply pressure equalization if enabled;

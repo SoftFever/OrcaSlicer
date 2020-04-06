@@ -19,6 +19,22 @@ const std::string GCodeProcessor::Extrusion_Role_Tag = "_PROCESSOR_EXTRUSION_ROL
 const std::string GCodeProcessor::Width_Tag          = "_PROCESSOR_WIDTH:";
 const std::string GCodeProcessor::Height_Tag         = "_PROCESSOR_HEIGHT:";
 const std::string GCodeProcessor::Mm3_Per_Mm_Tag     = "_PROCESSOR_MM3_PER_MM:";
+const std::string GCodeProcessor::Color_Change_Tag   = "_PROCESSOR_COLOR_CHANGE";
+const std::string GCodeProcessor::Pause_Print_Tag    = "_PROCESSOR_PAUSE_PRINT";
+const std::string GCodeProcessor::Custom_Code_Tag    = "_PROCESSOR_CUSTOM_CODE";
+const std::string GCodeProcessor::End_Pause_Print_Or_Custom_Code_Tag = "_PROCESSOR_END_PAUSE_PRINT_OR_CUSTOM_CODE";
+
+void GCodeProcessor::CachedPosition::reset()
+{
+    std::fill(position.begin(), position.end(), FLT_MAX);
+    feedrate = FLT_MAX;
+}
+
+void GCodeProcessor::CpColor::reset()
+{
+    counter = 0;
+    current = 0;
+}
 
 void GCodeProcessor::apply_config(const PrintConfig& config)
 {
@@ -27,13 +43,18 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_flavor = config.gcode_flavor;
 
     size_t extruders_count = config.nozzle_diameter.values.size();
-    if (m_extruder_offsets.size() != extruders_count)
-        m_extruder_offsets.resize(extruders_count);
 
+    m_extruder_offsets.resize(extruders_count);
     for (size_t id = 0; id < extruders_count; ++id)
     {
         Vec2f offset = config.extruder_offset.get_at(id).cast<float>();
         m_extruder_offsets[id] = Vec3f(offset(0), offset(1), 0.0f);
+    }
+
+    m_extruders_color.resize(extruders_count);
+    for (size_t id = 0; id < extruders_count; ++id)
+    {
+        m_extruders_color[id] = static_cast<unsigned int>(id);
     }
 }
 
@@ -48,8 +69,7 @@ void GCodeProcessor::reset()
     std::fill(m_start_position.begin(), m_start_position.end(), 0.0f);
     std::fill(m_end_position.begin(), m_end_position.end(), 0.0f);
     std::fill(m_origin.begin(), m_origin.end(), 0.0f);
-    std::fill(m_cached_position.position.begin(), m_cached_position.position.end(), FLT_MAX);
-    m_cached_position.feedrate = FLT_MAX;
+    m_cached_position.reset();
 
     m_feedrate = 0.0f;
     m_width = 0.0f;
@@ -59,6 +79,8 @@ void GCodeProcessor::reset()
 
     m_extrusion_role = erNone;
     m_extruder_id = 0;
+    m_extruders_color = ExtrudersColor();
+    m_cp_color.reset();
 
     m_result.reset();
 }
@@ -200,6 +222,55 @@ void GCodeProcessor::process_tags(const std::string& comment)
         {
             BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Mm3_Per_Mm (" << comment << ").";
         }
+        return;
+    }
+
+    // color change tag
+    pos = comment.find(Color_Change_Tag);
+    if (pos != comment.npos)
+    {
+        pos = comment.find_last_of(",T");
+        try
+        {
+            unsigned int extruder_id = (pos == comment.npos) ? 0 : static_cast<unsigned int>(std::stoi(comment.substr(pos + 1, comment.npos)));
+
+            m_extruders_color[extruder_id] = static_cast<unsigned int>(m_extruder_offsets.size()) + m_cp_color.counter; // color_change position in list of color for preview
+            ++m_cp_color.counter;
+
+            if (m_extruder_id == extruder_id)
+                m_cp_color.current = m_extruders_color[extruder_id];
+        }
+        catch (...)
+        {
+            BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Color_Change (" << comment << ").";
+        }
+
+        return;
+    }
+
+    // pause print tag
+    pos = comment.find(Pause_Print_Tag);
+    if (pos != comment.npos)
+    {
+        m_cp_color.current = INT_MAX;
+        return;
+    }
+
+    // custom code tag
+    pos = comment.find(Custom_Code_Tag);
+    if (pos != comment.npos)
+    {
+        m_cp_color.current = INT_MAX;
+        return;
+    }
+
+    // end pause print or custom code tag
+    pos = comment.find(End_Pause_Print_Or_Custom_Code_Tag);
+    if (pos != comment.npos)
+    {
+        if (m_cp_color.current == INT_MAX)
+            m_cp_color.current = m_extruders_color[m_extruder_id];
+
         return;
     }
 }
@@ -485,17 +556,17 @@ void GCodeProcessor::process_T(const std::string& command)
     {
         try
         {
-            unsigned int id = (unsigned int)std::stoi(command.substr(1));
+            unsigned int id = static_cast<unsigned int>(std::stoi(command.substr(1)));
             if (m_extruder_id != id)
             {
-                unsigned int extruders_count = (unsigned int)m_extruder_offsets.size();
+                unsigned int extruders_count = static_cast<unsigned int>(m_extruder_offsets.size());
                 if (id >= extruders_count)
                     BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid toolchange, maybe from a custom gcode.";
                 else
                 {
                     m_extruder_id = id;
-//                if (_get_cp_color_id() != INT_MAX) <<<<<<<<<<<<<<<<<<< TODO
-//                    _set_cp_color_id(m_extruder_color[id]);
+                    if (m_cp_color.current != INT_MAX)
+                        m_cp_color.current = m_extruders_color[id];
                 }
 
                 // store tool change move
@@ -521,6 +592,7 @@ void GCodeProcessor::store_move_vertex(EMoveType type)
     vertex.mm3_per_mm = m_mm3_per_mm;
     vertex.fan_speed = m_fan_speed;
     vertex.extruder_id = m_extruder_id;
+    vertex.cp_color_id = m_cp_color.current;
     m_result.moves.emplace_back(vertex);
 }
 

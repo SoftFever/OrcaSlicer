@@ -7,6 +7,7 @@
 #include "../ExtrusionEntity.hpp"
 
 #include <array>
+#include <vector>
 
 namespace Slic3r {
 
@@ -17,9 +18,14 @@ namespace Slic3r {
         static const std::string Width_Tag;
         static const std::string Height_Tag;
         static const std::string Mm3_Per_Mm_Tag;
+        static const std::string Color_Change_Tag;
+        static const std::string Pause_Print_Tag;
+        static const std::string Custom_Code_Tag;
+        static const std::string End_Pause_Print_Or_Custom_Code_Tag;
 
     private:
         using AxisCoords = std::array<float, 4>;
+        using ExtrudersColor = std::vector<unsigned int>;
 
         enum class EUnits : unsigned char
         {
@@ -48,6 +54,16 @@ namespace Slic3r {
         {
             AxisCoords position; // mm
             float feedrate;  // mm/s
+
+            void reset();
+        };
+
+        struct CpColor
+        {
+            unsigned int counter;
+            unsigned int current;
+
+            void reset();
         };
 
     public:
@@ -62,6 +78,7 @@ namespace Slic3r {
             float mm3_per_mm{ 0.0f };
             float fan_speed{ 0.0f }; // percentage
             unsigned int extruder_id{ 0 };
+            unsigned int cp_color_id{ 0 };
 
             std::string to_string() const
             {
@@ -69,6 +86,7 @@ namespace Slic3r {
                 str += ", " + std::to_string((int)extrusion_role);
                 str += ", " + Slic3r::to_string((Vec3d)position.cast<double>());
                 str += ", " + std::to_string(extruder_id);
+                str += ", " + std::to_string(cp_color_id);
                 str += ", " + std::to_string(feedrate);
                 str += ", " + std::to_string(width);
                 str += ", " + std::to_string(height);
@@ -105,6 +123,8 @@ namespace Slic3r {
         float m_fan_speed; // percentage
         ExtrusionRole m_extrusion_role;
         unsigned int m_extruder_id;
+        ExtrudersColor m_extruders_color;
+        CpColor m_cp_color;
 
         Result m_result;
 

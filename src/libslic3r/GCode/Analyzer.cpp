@@ -674,7 +674,7 @@ bool GCodeAnalyzer::_process_tags(const GCodeReader::GCodeLine& line)
         return true;
     }
 
-    // color change tag
+    // pause print tag
     pos = comment.find(Pause_Print_Tag);
     if (pos != comment.npos)
     {
@@ -682,7 +682,7 @@ bool GCodeAnalyzer::_process_tags(const GCodeReader::GCodeLine& line)
         return true;
     }
 
-    // color change tag
+    // custom code tag
     pos = comment.find(Custom_Code_Tag);
     if (pos != comment.npos)
     {
@@ -690,7 +690,7 @@ bool GCodeAnalyzer::_process_tags(const GCodeReader::GCodeLine& line)
         return true;
     }
 
-    // color change tag
+    // end pause print or custom code tag
     pos = comment.find(End_Pause_Print_Or_Custom_Code_Tag);
     if (pos != comment.npos)
     {
@@ -949,10 +949,11 @@ void GCodeAnalyzer::_store_move(GCodeAnalyzer::GCodeMove::EType type)
 #if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
     if (g_debug_output.good())
     {
-        g_debug_output << std::to_string((int)type);
-        g_debug_output << ", " << std::to_string((int)_get_extrusion_role());
-        g_debug_output << ", " << Slic3r::to_string((Vec3d)end_position.cast<double>());
+        g_debug_output << std::to_string(static_cast<int>(type));
+        g_debug_output << ", " << std::to_string(static_cast<int>(_get_extrusion_role()));
+        g_debug_output << ", " << Slic3r::to_string(static_cast<Vec3d>(end_position.cast<double>()));
         g_debug_output << ", " << std::to_string(extruder_id);
+        g_debug_output << ", " << std::to_string(_get_cp_color_id());
         g_debug_output << ", " << std::to_string(_get_feedrate());
         g_debug_output << ", " << std::to_string(_get_width());
         g_debug_output << ", " << std::to_string(_get_height());
