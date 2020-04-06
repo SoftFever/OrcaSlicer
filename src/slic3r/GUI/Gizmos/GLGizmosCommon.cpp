@@ -198,21 +198,41 @@ void Raycaster::on_update()
     if (! mo)
         return;
 
-    const TriangleMesh* mesh = &mo->volumes.front()->mesh();
-    const HollowedMesh* hollowed_mesh_tracker = get_pool()->hollowed_mesh();
-    if (hollowed_mesh_tracker && hollowed_mesh_tracker->get_hollowed_mesh())
-        mesh = hollowed_mesh_tracker->get_hollowed_mesh();
+    std::vector<const TriangleMesh*> meshes;
+    const std::vector<ModelVolume*>& mvs = mo->volumes;
+    if (mvs.size() == 1) {
+        assert(mvs.front()->is_model_part());
+        const HollowedMesh* hollowed_mesh_tracker = get_pool()->hollowed_mesh();
+        if (hollowed_mesh_tracker && hollowed_mesh_tracker->get_hollowed_mesh())
+            meshes.push_back(hollowed_mesh_tracker->get_hollowed_mesh());
+    }
+    if (meshes.empty()) {
+        for (const ModelVolume* mv : mvs) {
+            if (mv->is_model_part())
+                meshes.push_back(&mv->mesh());
+        }
+    }
 
-    if (mesh != m_old_mesh) {
-        m_raycaster.reset(new MeshRaycaster(*mesh));
-        m_old_mesh = mesh;
+    if (meshes != m_old_meshes) {
+        m_raycasters.clear();
+        for (const TriangleMesh* mesh : meshes)
+            m_raycasters.emplace_back(new MeshRaycaster(*mesh));
+        m_old_meshes = meshes;
     }
 }
 
 void Raycaster::on_release()
 {
-    m_raycaster.reset();
-    m_old_mesh = nullptr;
+    m_raycasters.clear();
+    m_old_meshes.clear();
+}
+
+std::vector<const MeshRaycaster*> Raycaster::raycasters() const
+{
+    std::vector<const MeshRaycaster*> mrcs;
+    for (const auto& raycaster_unique_ptr : m_raycasters)
+        mrcs.push_back(raycaster_unique_ptr.get());
+    return mrcs;
 }
 
 

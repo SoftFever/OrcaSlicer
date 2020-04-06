@@ -188,15 +188,16 @@ public:
     CommonGizmosDataID get_dependencies() const override { return CommonGizmosDataID::SelectionInfo; }
 #endif // NDEBUG
 
-    const MeshRaycaster* raycaster() const { return m_raycaster.get(); }
+    const MeshRaycaster* raycaster() const { assert(m_raycasters.size() == 1); return m_raycasters.front().get(); }
+    std::vector<const MeshRaycaster*> raycasters() const;
 
 protected:
     void on_update() override;
     void on_release() override;
 
 private:
-    std::unique_ptr<MeshRaycaster> m_raycaster;
-    const TriangleMesh* m_old_mesh = nullptr;
+    std::vector<std::unique_ptr<MeshRaycaster>> m_raycasters;
+    std::vector<const TriangleMesh*> m_old_meshes;
 };
 
 /*
