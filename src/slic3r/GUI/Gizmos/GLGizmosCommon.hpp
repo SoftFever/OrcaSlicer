@@ -85,13 +85,22 @@ public:
     // Returns whether the resource is currently maintained.
     bool is_valid() const { return m_is_valid; }
 
+#ifndef NDEBUG
+    // Return a bitmask of all resources that this one relies on.
+    // The dependent resource must have higher ID than the one
+    // it depends on.
+    virtual CommonGizmosDataID get_dependencies() const { return CommonGizmosDataID::None; }
+#endif // NDEBUG
+
 protected:
-    CommonGizmosDataPool* m_common = nullptr;
     virtual void on_release() = 0;
     virtual void on_update() = 0;
+    CommonGizmosDataPool* get_pool() const { return m_common; }
+
 
 private:
     bool m_is_valid = false;
+    CommonGizmosDataPool* m_common = nullptr;
 };
 
 
@@ -125,6 +134,10 @@ class InstancesHider : public CommonGizmosDataBase
 public:
     explicit InstancesHider(CommonGizmosDataPool* cgdp)
         : CommonGizmosDataBase(cgdp) {}
+#ifndef NDEBUG
+    CommonGizmosDataID get_dependencies() const override { return CommonGizmosDataID::SelectionInfo; }
+#endif // NDEBUG
+
 protected:
     void on_update() override;
     void on_release() override;

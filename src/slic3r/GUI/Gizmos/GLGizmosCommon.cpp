@@ -43,11 +43,24 @@ SelectionInfo* CommonGizmosDataPool::selection_info()
 }
 
 #ifndef NDEBUG
+// Check the required resources one by one and return true if all
+// dependencies are met.
 bool CommonGizmosDataPool::check_dependencies(CommonGizmosDataID required) const
 {
     // This should iterate over currently required data. Each of them should
     // be asked about its dependencies and it must check that all dependencies
     // are also in required and before the current one.
+    for (auto& [id, data] : m_data) {
+        // in case we don't use this, the deps are irrelevant
+        if (! (int(required) & int(CommonGizmosDataID(id))))
+            continue;
+
+
+        CommonGizmosDataID deps = data->get_dependencies();
+        assert(int(deps) == (int(deps) & int(required)));
+    }
+
+
     return true;
 }
 #endif // NDEBUG
@@ -57,7 +70,7 @@ bool CommonGizmosDataPool::check_dependencies(CommonGizmosDataID required) const
 
 void SelectionInfo::on_update()
 {
-    const Selection& selection = m_common->get_canvas()->get_selection();
+    const Selection& selection = get_pool()->get_canvas()->get_selection();
     if (selection.is_single_full_instance())
         m_model_object = selection.get_model()->objects[selection.get_object_idx()];
     else
@@ -71,7 +84,7 @@ void SelectionInfo::on_release()
 
 int SelectionInfo::get_active_instance()
 {
-    const Selection& selection = m_common->get_canvas()->get_selection();
+    const Selection& selection = get_pool()->get_canvas()->get_selection();
     return selection.get_instance_idx();
 }
 
@@ -81,9 +94,9 @@ int SelectionInfo::get_active_instance()
 
 void InstancesHider::on_update()
 {
-    const ModelObject* mo = m_common->selection_info()->model_object();
-    int active_inst = m_common->selection_info()->get_active_instance();
-    GLCanvas3D* canvas = m_common->get_canvas();
+    const ModelObject* mo = get_pool()->selection_info()->model_object();
+    int active_inst = get_pool()->selection_info()->get_active_instance();
+    GLCanvas3D* canvas = get_pool()->get_canvas();
 
     if (mo && active_inst != -1) {
         canvas->toggle_model_objects_visibility(false);
@@ -95,7 +108,7 @@ void InstancesHider::on_update()
 
 void InstancesHider::on_release()
 {
-    m_common->get_canvas()->toggle_model_objects_visibility(true);
+    get_pool()->get_canvas()->toggle_model_objects_visibility(true);
 }
 
 
