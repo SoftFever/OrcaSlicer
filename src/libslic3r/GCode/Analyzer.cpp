@@ -951,7 +951,7 @@ void GCodeAnalyzer::_store_move(GCodeAnalyzer::GCodeMove::EType type)
     {
         g_debug_output << std::to_string((int)type);
         g_debug_output << ", " << std::to_string((int)_get_extrusion_role());
-        g_debug_output << ", " << Slic3r::to_string((Vec3d)_get_end_position().cast<double>());
+        g_debug_output << ", " << Slic3r::to_string((Vec3d)end_position.cast<double>());
         g_debug_output << ", " << std::to_string(extruder_id);
         g_debug_output << ", " << std::to_string(_get_feedrate());
         g_debug_output << ", " << std::to_string(_get_width());

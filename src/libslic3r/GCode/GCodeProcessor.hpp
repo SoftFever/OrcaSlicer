@@ -44,6 +44,12 @@ namespace Slic3r {
             Num_Types
         };
 
+        struct CachedPosition
+        {
+            AxisCoords position; // mm
+            float feedrate;  // mm/s
+        };
+
     public:
         struct MoveVertex
         {
@@ -85,10 +91,12 @@ namespace Slic3r {
         EPositioningType m_global_positioning_type;
         EPositioningType m_e_local_positioning_type;
         std::vector<Vec3f> m_extruder_offsets;
+        GCodeFlavor m_flavor;
 
         AxisCoords m_start_position; // mm
         AxisCoords m_end_position;   // mm
         AxisCoords m_origin;         // mm
+        CachedPosition m_cached_position;
 
         float m_feedrate;  // mm/s
         float m_width;     // mm
@@ -154,8 +162,24 @@ namespace Slic3r {
         // Disable fan
         void process_M107(const GCodeReader::GCodeLine& line);
 
+        // Set tool (Sailfish)
+        void process_M108(const GCodeReader::GCodeLine& line);
+
+        // Recall stored home offsets
+        void process_M132(const GCodeReader::GCodeLine& line);
+
+        // Set tool (MakerWare)
+        void process_M135(const GCodeReader::GCodeLine& line);
+
+        // Repetier: Store x, y and z position
+        void process_M401(const GCodeReader::GCodeLine& line);
+
+        // Repetier: Go to stored position
+        void process_M402(const GCodeReader::GCodeLine& line);
+
         // Processes T line (Select Tool)
         void process_T(const GCodeReader::GCodeLine& line);
+        void process_T(const std::string& command);
 
         void store_move_vertex(EMoveType type);
    };

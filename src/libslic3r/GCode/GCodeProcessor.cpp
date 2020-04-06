@@ -24,6 +24,8 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
 {
     m_parser.apply_config(config);
 
+    m_flavor = config.gcode_flavor;
+
     size_t extruders_count = config.nozzle_diameter.values.size();
     if (m_extruder_offsets.size() != extruders_count)
         m_extruder_offsets.resize(extruders_count);
@@ -41,10 +43,13 @@ void GCodeProcessor::reset()
     m_global_positioning_type = EPositioningType::Absolute;
     m_e_local_positioning_type = EPositioningType::Absolute;
     m_extruder_offsets = std::vector<Vec3f>(1, Vec3f::Zero());
+    m_flavor = gcfRepRap;
 
     std::fill(m_start_position.begin(), m_start_position.end(), 0.0f);
     std::fill(m_end_position.begin(), m_end_position.end(), 0.0f);
     std::fill(m_origin.begin(), m_origin.end(), 0.0f);
+    std::fill(m_cached_position.position.begin(), m_cached_position.position.end(), FLT_MAX);
+    m_cached_position.feedrate = FLT_MAX;
 
     m_feedrate = 0.0f;
     m_width = 0.0f;
@@ -103,6 +108,11 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line)
                 case 83:  { process_M83(line); break; }  // Set extruder to relative mode
                 case 106: { process_M106(line); break; } // Set fan speed
                 case 107: { process_M107(line); break; } // Disable fan
+                case 108: { process_M108(line); break; } // Set tool (Sailfish)
+                case 132: { process_M132(line); break; } // Recall stored home offsets
+                case 135: { process_M135(line); break; } // Set tool (MakerWare)
+                case 401: { process_M401(line); break; } // Repetier: Store x, y and z position
+                case 402: { process_M402(line); break; } // Repetier: Go to stored position
                 default: { break; }
                 }
                 break;
@@ -369,14 +379,113 @@ void GCodeProcessor::process_M107(const GCodeReader::GCodeLine& line)
     m_fan_speed = 0.0f;
 }
 
+void GCodeProcessor::process_M108(const GCodeReader::GCodeLine& line)
+{
+    // These M-codes are used by Sailfish to change active tool.
+    // They have to be processed otherwise toolchanges will be unrecognised
+    // by the analyzer - see https://github.com/prusa3d/PrusaSlicer/issues/2566
+
+    if (m_flavor != gcfSailfish)
+        return;
+
+    std::string cmd = line.raw();
+    size_t pos = cmd.find("T");
+    if (pos != std::string::npos)
+        process_T(cmd.substr(pos));
+}
+
+void GCodeProcessor::process_M132(const GCodeReader::GCodeLine& line)
+{
+    // This command is used by Makerbot to load the current home position from EEPROM
+    // see: https://github.com/makerbot/s3g/blob/master/doc/GCodeProtocol.md
+    // Using this command to reset the axis origin to zero helps in fixing: https://github.com/prusa3d/PrusaSlicer/issues/3082
+
+    if (line.has_x())
+        m_origin[X] = 0.0f;
+
+    if (line.has_y())
+        m_origin[Y] = 0.0f;
+
+    if (line.has_z())
+        m_origin[Z] = 0.0f;
+
+    if (line.has_e())
+        m_origin[E] = 0.0f;
+}
+
+void GCodeProcessor::process_M135(const GCodeReader::GCodeLine& line)
+{
+    // These M-codes are used by MakerWare to change active tool.
+    // They have to be processed otherwise toolchanges will be unrecognised
+    // by the analyzer - see https://github.com/prusa3d/PrusaSlicer/issues/2566
+
+    if (m_flavor != gcfMakerWare)
+        return;
+
+    std::string cmd = line.raw();
+    size_t pos = cmd.find("T");
+    if (pos != std::string::npos)
+        process_T(cmd.substr(pos));
+}
+
+void GCodeProcessor::process_M401(const GCodeReader::GCodeLine& line)
+{
+    if (m_flavor != gcfRepetier)
+        return;
+
+    for (unsigned char a = 0; a <= 3; ++a)
+    {
+        m_cached_position.position[a] = m_start_position[a];
+    }
+    m_cached_position.feedrate = m_feedrate;
+}
+
+void GCodeProcessor::process_M402(const GCodeReader::GCodeLine& line)
+{
+    if (m_flavor != gcfRepetier)
+        return;
+
+    // see for reference:
+    // https://github.com/repetier/Repetier-Firmware/blob/master/src/ArduinoAVR/Repetier/Printer.cpp
+    // void Printer::GoToMemoryPosition(bool x, bool y, bool z, bool e, float feed)
+
+    bool has_xyz = !(line.has_x() || line.has_y() || line.has_z());
+
+    float p = FLT_MAX;
+    for (unsigned char a = X; a <= Z; ++a)
+    {
+        if (has_xyz || line.has(a))
+        {
+            p = m_cached_position.position[a];
+            if (p != FLT_MAX)
+                m_start_position[a] = p;
+        }
+    }
+
+    p = m_cached_position.position[E];
+    if (p != FLT_MAX)
+        m_start_position[E] = p;
+
+    p = FLT_MAX;
+    if (!line.has_value(4, p))
+        p = m_cached_position.feedrate;
+
+    if (p != FLT_MAX)
+        m_feedrate = p;
+}
+
 void GCodeProcessor::process_T(const GCodeReader::GCodeLine& line)
 {
-    const std::string& cmd = line.cmd();
-    if (cmd.length() > 1)
+    process_T(line.cmd());
+}
+
+void GCodeProcessor::process_T(const std::string& command)
+{
+    if (command.length() > 1)
     {
         try
         {
-            unsigned int id = (unsigned int)std::stoi(cmd.substr(1));
+            unsigned int id = (unsigned int)std::stoi(command.substr(1));
             if (m_extruder_id != id)
             {
                 unsigned int extruders_count = (unsigned int)m_extruder_offsets.size();
@@ -395,7 +504,7 @@ void GCodeProcessor::process_T(const GCodeReader::GCodeLine& line)
         }
         catch (...)
         {
-            BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid toolchange (" << cmd << ").";
+            BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid toolchange (" << command << ").";
         }
     }
 }
