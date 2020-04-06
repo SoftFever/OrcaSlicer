@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "slic3r/GUI/GLCanvas3D.hpp"
+#include "libslic3r/SLAPrint.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -15,7 +16,7 @@ CommonGizmosDataPool::CommonGizmosDataPool(GLCanvas3D* canvas)
     using c = CommonGizmosDataID;
     m_data[c::SelectionInfo].reset(       new SelectionInfo(this));
     m_data[c::InstancesHider].reset(      new InstancesHider(this));
-    //m_data[c::HollowedMesh].reset(        new HollowedMesh(this));
+    m_data[c::HollowedMesh].reset(        new HollowedMesh(this));
     //m_data[c::ClippingPlaneWrapper].reset(new ClippingPlaneWrapper(this));
     //m_data[c::SupportsClipper].reset(     new SupportsClipper(this));
     //m_data[c::MeshRaycaster].reset(       new Raycaster(this));
@@ -38,8 +39,15 @@ void CommonGizmosDataPool::update(CommonGizmosDataID required)
 SelectionInfo* CommonGizmosDataPool::selection_info()
 {
     SelectionInfo* sel_info = dynamic_cast<SelectionInfo*>(m_data[CommonGizmosDataID::SelectionInfo].get());
-    assert(sel_info->is_valid());
-    return sel_info;
+    assert(sel_info);
+    return sel_info->is_valid() ? sel_info : nullptr;
+}
+
+HollowedMesh* CommonGizmosDataPool::hollowed_mesh()
+{
+    HollowedMesh* hol_mesh = dynamic_cast<HollowedMesh*>(m_data[CommonGizmosDataID::HollowedMesh].get());
+    assert(hol_mesh);
+    return hol_mesh->is_valid() ? hol_mesh : nullptr;
 }
 
 #ifndef NDEBUG
@@ -111,6 +119,65 @@ void InstancesHider::on_release()
     get_pool()->get_canvas()->toggle_model_objects_visibility(true);
 }
 
+
+
+void HollowedMesh::on_update()
+{
+    const ModelObject* mo = get_pool()->selection_info()->model_object();
+    if (! mo)
+        return;
+
+    const GLCanvas3D* canvas = get_pool()->get_canvas();
+    const PrintObjects& print_objects = canvas->sla_print()->objects();
+    const SLAPrintObject* print_object = m_print_object_idx != -1
+            ? print_objects[m_print_object_idx]
+            : nullptr;
+
+    // Find the respective SLAPrintObject.
+    if (m_print_object_idx < 0 || m_print_objects_count != int(print_objects.size())) {
+        m_print_objects_count = print_objects.size();
+        m_print_object_idx = -1;
+        for (const SLAPrintObject* po : print_objects) {
+            ++m_print_object_idx;
+            if (po->model_object()->id() == mo->id()) {
+                print_object = po;
+                break;
+            }
+        }
+    }
+
+    // If there is a valid SLAPrintObject, check state of Hollowing step.
+    if (print_object) {
+        if (print_object->is_step_done(slaposDrillHoles) && print_object->has_mesh(slaposDrillHoles)) {
+            size_t timestamp = print_object->step_state_with_timestamp(slaposDrillHoles).timestamp;
+            if (timestamp > m_old_hollowing_timestamp) {
+                const TriangleMesh& backend_mesh = print_object->get_mesh_to_print();
+                m_hollowed_mesh_transformed.reset(new TriangleMesh(backend_mesh));
+                Transform3d trafo_inv = canvas->sla_print()->sla_trafo(*mo).inverse();
+                m_hollowed_mesh_transformed->transform(trafo_inv);
+                m_old_hollowing_timestamp = timestamp;
+            }
+        }
+        else {
+            m_hollowed_mesh_transformed.reset(nullptr);
+            m_old_hollowing_timestamp = 0;
+        }
+    }
+}
+
+
+void HollowedMesh::on_release()
+{
+    m_hollowed_mesh_transformed.reset();
+    m_old_hollowing_timestamp = 0;
+    m_print_object_idx = -1;
+}
+
+
+const TriangleMesh* HollowedMesh::get_hollowed_mesh() const
+{
+    return m_hollowed_mesh_transformed.get();
+}
 
 
 } // namespace GUI

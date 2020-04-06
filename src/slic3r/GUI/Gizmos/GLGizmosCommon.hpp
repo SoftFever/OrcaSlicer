@@ -7,6 +7,7 @@
 namespace Slic3r {
 
 class ModelObject;
+class TriangleMesh;
 
 
 namespace GUI {
@@ -16,6 +17,8 @@ class GLCanvas3D;
 class CommonGizmosDataBase;
 namespace CommonGizmosDataObjects {
     class SelectionInfo;
+    class InstancesHider;
+    class HollowedMesh;
 }
 
 // Some of the gizmos use the same data that need to be updated ocassionally.
@@ -50,6 +53,8 @@ public:
 
     // Getters for the data that need to be accessed from the gizmos directly.
     CommonGizmosDataObjects::SelectionInfo* selection_info();
+    CommonGizmosDataObjects::HollowedMesh* hollowed_mesh();
+
 
     GLCanvas3D* get_canvas() const { return m_canvas; }
 
@@ -129,6 +134,7 @@ private:
 };
 
 
+
 class InstancesHider : public CommonGizmosDataBase
 {
 public:
@@ -145,23 +151,29 @@ protected:
 
 
 
-
-/*
-
-
 class HollowedMesh : public CommonGizmosDataBase
 {
 public:
     explicit HollowedMesh(CommonGizmosDataPool* cgdp)
         : CommonGizmosDataBase(cgdp) {}
-    void update(bool required) override;
+#ifndef NDEBUG
+    CommonGizmosDataID get_dependencies() const override { return CommonGizmosDataID::SelectionInfo; }
+#endif // NDEBUG
+
+    const TriangleMesh* get_hollowed_mesh() const;
+
+protected:
+    void on_update() override;
+    void on_release() override;
+
+private:
+    std::unique_ptr<TriangleMesh> m_hollowed_mesh_transformed;
+    size_t m_old_hollowing_timestamp = 0;
+    int m_print_object_idx = -1;
+    int m_print_objects_count = 0;
 };
 
-
-
-
-
-
+/*
 
 class ClippingPlaneWrapper : public CommonGizmosDataBase
 {
