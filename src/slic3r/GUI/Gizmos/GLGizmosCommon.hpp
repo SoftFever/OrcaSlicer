@@ -4,10 +4,11 @@
 #include <memory>
 #include <map>
 
+#include "slic3r/GUI/MeshUtils.hpp"
+
 namespace Slic3r {
 
 class ModelObject;
-class TriangleMesh;
 
 
 namespace GUI {
@@ -19,6 +20,7 @@ namespace CommonGizmosDataObjects {
     class SelectionInfo;
     class InstancesHider;
     class HollowedMesh;
+    class Raycaster;
 }
 
 // Some of the gizmos use the same data that need to be updated ocassionally.
@@ -34,9 +36,10 @@ enum class CommonGizmosDataID {
     SelectionInfo        = 1 << 0,
     InstancesHider       = 1 << 1,
     HollowedMesh         = 1 << 2,
-    ClippingPlaneWrapper = 1 << 3,
-    SupportsClipper      = 1 << 4,
-    MeshRaycaster        = 1 << 5,
+    Raycaster            = 1 << 3,
+    ObjectClipper        = 1 << 4,
+    SupportsClipper      = 1 << 5,
+
 };
 
 
@@ -54,6 +57,7 @@ public:
     // Getters for the data that need to be accessed from the gizmos directly.
     CommonGizmosDataObjects::SelectionInfo* selection_info();
     CommonGizmosDataObjects::HollowedMesh* hollowed_mesh();
+    CommonGizmosDataObjects::Raycaster* raycaster();
 
 
     GLCanvas3D* get_canvas() const { return m_canvas; }
@@ -173,6 +177,28 @@ private:
     int m_print_objects_count = 0;
 };
 
+
+
+class Raycaster : public CommonGizmosDataBase
+{
+public:
+    explicit Raycaster(CommonGizmosDataPool* cgdp)
+        : CommonGizmosDataBase(cgdp) {}
+#ifndef NDEBUG
+    CommonGizmosDataID get_dependencies() const override { return CommonGizmosDataID::SelectionInfo; }
+#endif // NDEBUG
+
+    const MeshRaycaster* raycaster() const { return m_raycaster.get(); }
+
+protected:
+    void on_update() override;
+    void on_release() override;
+
+private:
+    std::unique_ptr<MeshRaycaster> m_raycaster;
+    const TriangleMesh* m_old_mesh = nullptr;
+};
+
 /*
 
 class ClippingPlaneWrapper : public CommonGizmosDataBase
@@ -185,10 +211,6 @@ public:
 
 
 
-
-
-
-
 class SupportsClipper : public CommonGizmosDataBase
 {
 public:
@@ -197,19 +219,6 @@ public:
     void update(bool required) override;
 };
 
-
-
-
-
-
-
-class Raycaster : public CommonGizmosDataBase
-{
-public:
-    explicit Raycaster(CommonGizmosDataPool* cgdp)
-        : CommonGizmosDataBase(cgdp) {}
-    void update(bool required) override;
-};
 */
 
 } // namespace CommonGizmosDataObjects

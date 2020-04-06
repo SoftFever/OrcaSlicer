@@ -17,9 +17,10 @@ CommonGizmosDataPool::CommonGizmosDataPool(GLCanvas3D* canvas)
     m_data[c::SelectionInfo].reset(       new SelectionInfo(this));
     m_data[c::InstancesHider].reset(      new InstancesHider(this));
     m_data[c::HollowedMesh].reset(        new HollowedMesh(this));
-    //m_data[c::ClippingPlaneWrapper].reset(new ClippingPlaneWrapper(this));
+    m_data[c::Raycaster].reset(           new Raycaster(this));
+    //m_data[c::ObjectClipper].reset(new ClippingPlaneWrapper(this));
     //m_data[c::SupportsClipper].reset(     new SupportsClipper(this));
-    //m_data[c::MeshRaycaster].reset(       new Raycaster(this));
+
 }
 
 void CommonGizmosDataPool::update(CommonGizmosDataID required)
@@ -48,6 +49,13 @@ HollowedMesh* CommonGizmosDataPool::hollowed_mesh()
     HollowedMesh* hol_mesh = dynamic_cast<HollowedMesh*>(m_data[CommonGizmosDataID::HollowedMesh].get());
     assert(hol_mesh);
     return hol_mesh->is_valid() ? hol_mesh : nullptr;
+}
+
+Raycaster* CommonGizmosDataPool::raycaster()
+{
+    Raycaster* rc = dynamic_cast<Raycaster*>(m_data[CommonGizmosDataID::Raycaster].get());
+    assert(rc);
+    return rc->is_valid() ? rc : nullptr;
 }
 
 #ifndef NDEBUG
@@ -178,6 +186,37 @@ const TriangleMesh* HollowedMesh::get_hollowed_mesh() const
 {
     return m_hollowed_mesh_transformed.get();
 }
+
+
+
+
+
+void Raycaster::on_update()
+{
+    const ModelObject* mo = get_pool()->selection_info()->model_object();
+
+    if (! mo)
+        return;
+
+    const TriangleMesh* mesh = &mo->volumes.front()->mesh();
+    const HollowedMesh* hollowed_mesh_tracker = get_pool()->hollowed_mesh();
+    if (hollowed_mesh_tracker && hollowed_mesh_tracker->get_hollowed_mesh())
+        mesh = hollowed_mesh_tracker->get_hollowed_mesh();
+
+    if (mesh != m_old_mesh) {
+        m_raycaster.reset(new MeshRaycaster(*mesh));
+        m_old_mesh = mesh;
+    }
+}
+
+void Raycaster::on_release()
+{
+    m_raycaster.reset();
+    m_old_mesh = nullptr;
+}
+
+
+
 
 
 } // namespace GUI
