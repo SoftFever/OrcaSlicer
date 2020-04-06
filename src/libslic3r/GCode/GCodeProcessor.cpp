@@ -3,6 +3,8 @@
 
 #include <boost/log/trivial.hpp>
 
+#include <float.h>
+
 #if ENABLE_GCODE_VIEWER
 
 static const float INCHES_TO_MM = 25.4f;
