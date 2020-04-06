@@ -25,7 +25,7 @@ namespace Slic3r {
 
     private:
         using AxisCoords = std::array<float, 4>;
-        using ExtrudersColor = std::vector<unsigned int>;
+        using ExtrudersColor = std::vector<unsigned char>;
 
         enum class EUnits : unsigned char
         {
@@ -60,8 +60,8 @@ namespace Slic3r {
 
         struct CpColor
         {
-            unsigned int counter;
-            unsigned int current;
+            unsigned char counter;
+            unsigned char current;
 
             void reset();
         };
@@ -71,14 +71,14 @@ namespace Slic3r {
         {
             EMoveType type{ EMoveType::Noop };
             ExtrusionRole extrusion_role{ erNone };
+            unsigned char extruder_id{ 0 };
+            unsigned char cp_color_id{ 0 };
             Vec3f position{ Vec3f::Zero() }; // mm
             float feedrate{ 0.0f }; // mm/s
             float width{ 0.0f }; // mm
             float height{ 0.0f }; // mm
             float mm3_per_mm{ 0.0f };
             float fan_speed{ 0.0f }; // percentage
-            unsigned int extruder_id{ 0 };
-            unsigned int cp_color_id{ 0 };
 
             std::string to_string() const
             {
@@ -122,7 +122,7 @@ namespace Slic3r {
         float m_mm3_per_mm;
         float m_fan_speed; // percentage
         ExtrusionRole m_extrusion_role;
-        unsigned int m_extruder_id;
+        unsigned char m_extruder_id;
         ExtrudersColor m_extruders_color;
         CpColor m_cp_color;
 

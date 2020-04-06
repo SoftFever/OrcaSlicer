@@ -232,9 +232,9 @@ void GCodeProcessor::process_tags(const std::string& comment)
         pos = comment.find_last_of(",T");
         try
         {
-            unsigned int extruder_id = (pos == comment.npos) ? 0 : static_cast<unsigned int>(std::stoi(comment.substr(pos + 1, comment.npos)));
+            unsigned char extruder_id = (pos == comment.npos) ? 0 : static_cast<unsigned char>(std::stoi(comment.substr(pos + 1, comment.npos)));
 
-            m_extruders_color[extruder_id] = static_cast<unsigned int>(m_extruder_offsets.size()) + m_cp_color.counter; // color_change position in list of color for preview
+            m_extruders_color[extruder_id] = static_cast<unsigned char>(m_extruder_offsets.size()) + m_cp_color.counter; // color_change position in list of color for preview
             ++m_cp_color.counter;
 
             if (m_extruder_id == extruder_id)
@@ -252,7 +252,7 @@ void GCodeProcessor::process_tags(const std::string& comment)
     pos = comment.find(Pause_Print_Tag);
     if (pos != comment.npos)
     {
-        m_cp_color.current = INT_MAX;
+        m_cp_color.current = 255;
         return;
     }
 
@@ -260,7 +260,7 @@ void GCodeProcessor::process_tags(const std::string& comment)
     pos = comment.find(Custom_Code_Tag);
     if (pos != comment.npos)
     {
-        m_cp_color.current = INT_MAX;
+        m_cp_color.current = 255;
         return;
     }
 
@@ -268,7 +268,7 @@ void GCodeProcessor::process_tags(const std::string& comment)
     pos = comment.find(End_Pause_Print_Or_Custom_Code_Tag);
     if (pos != comment.npos)
     {
-        if (m_cp_color.current == INT_MAX)
+        if (m_cp_color.current == 255)
             m_cp_color.current = m_extruders_color[m_extruder_id];
 
         return;
@@ -556,16 +556,16 @@ void GCodeProcessor::process_T(const std::string& command)
     {
         try
         {
-            unsigned int id = static_cast<unsigned int>(std::stoi(command.substr(1)));
+            unsigned char id = static_cast<unsigned char>(std::stoi(command.substr(1)));
             if (m_extruder_id != id)
             {
-                unsigned int extruders_count = static_cast<unsigned int>(m_extruder_offsets.size());
+                unsigned char extruders_count = static_cast<unsigned char>(m_extruder_offsets.size());
                 if (id >= extruders_count)
                     BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid toolchange, maybe from a custom gcode.";
                 else
                 {
                     m_extruder_id = id;
-                    if (m_cp_color.current != INT_MAX)
+                    if (m_cp_color.current != 255)
                         m_cp_color.current = m_extruders_color[id];
                 }
 
