@@ -196,16 +196,18 @@ void HollowedMesh::on_update()
             size_t timestamp = print_object->step_state_with_timestamp(slaposDrillHoles).timestamp;
             if (timestamp > m_old_hollowing_timestamp) {
                 const TriangleMesh& backend_mesh = print_object->get_mesh_to_print();
-                m_hollowed_mesh_transformed.reset(new TriangleMesh(backend_mesh));
-                Transform3d trafo_inv = canvas->sla_print()->sla_trafo(*mo).inverse();
-                m_hollowed_mesh_transformed->transform(trafo_inv);
-                m_old_hollowing_timestamp = timestamp;
+                if (! backend_mesh.empty()) {
+                    m_hollowed_mesh_transformed.reset(new TriangleMesh(backend_mesh));
+                    Transform3d trafo_inv = canvas->sla_print()->sla_trafo(*mo).inverse();
+                    m_hollowed_mesh_transformed->transform(trafo_inv);
+                    m_old_hollowing_timestamp = timestamp;
+                }
+                else
+                    m_hollowed_mesh_transformed.reset(nullptr);
             }
         }
-        else {
+        else
             m_hollowed_mesh_transformed.reset(nullptr);
-            m_old_hollowing_timestamp = 0;
-        }
     }
 }
 
@@ -417,7 +419,7 @@ void SupportsClipper::render_cut() const
     const SelectionInfo* sel_info = get_pool()->selection_info();
     const ModelObject* mo = sel_info->model_object();
     Geometry::Transformation inst_trafo = mo->instances[sel_info->get_active_instance()]->get_transformation();
-    Geometry::Transformation vol_trafo  = mo->volumes.front()->get_transformation();
+    //Geometry::Transformation vol_trafo  = mo->volumes.front()->get_transformation();
     Geometry::Transformation trafo = inst_trafo;// * vol_trafo;
     trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., sel_info->get_sla_shift()));
 

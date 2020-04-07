@@ -9,10 +9,10 @@
 #include "slic3r/GUI/GUI_ObjectManipulation.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
-#include "libslic3r/SLAPrint.hpp"
-#include "slic3r/GUI/MeshUtils.hpp"
+//#include "libslic3r/SLAPrint.hpp"
+//#include "slic3r/GUI/MeshUtils.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmos.hpp"
-#include "slic3r/GUI/Camera.hpp"
+//#include "slic3r/GUI/Camera.hpp"
 
 #include <wx/glcanvas.h>
 
@@ -96,7 +96,7 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoFlatten(m_parent, "place.svg", 3));
     m_gizmos.emplace_back(new GLGizmoCut(m_parent, "cut.svg", 4));
     m_gizmos.emplace_back(new GLGizmoHollow(m_parent, "hollow.svg", 5));
-    //m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", 6));
+    m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", 6));
 
     //m_common_gizmos_data.reset(new CommonGizmosData());
     //dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get())->set_common_data_ptr(m_common_gizmos_data.get());
@@ -375,7 +375,9 @@ void GLGizmosManager::set_sla_support_data(ModelObject* model_object)
     //gizmo_supports->set_sla_support_data(model_object, m_parent.get_selection());
     */
     auto* gizmo_hollow = dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get());
+    auto* gizmo_supports = dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get());
     gizmo_hollow->set_sla_support_data(model_object, m_parent.get_selection());
+    gizmo_supports->set_sla_support_data(model_object, m_parent.get_selection());
 }
 
 // Returns true if the gizmo used the event to do something, false otherwise.
@@ -1217,7 +1219,7 @@ bool GLGizmosManager::grabber_contains_mouse() const
 }
 
 
-
+/*
 CommonGizmosData::CommonGizmosData()
 {
     m_clipping_plane.reset(new ClippingPlane(Vec3d::Zero(), 0.));
@@ -1344,7 +1346,7 @@ void CommonGizmosData::build_AABB_if_needed()
     m_supports_clipper.reset();
     m_old_mesh = m_mesh;
     m_schedule_aabb_calculation = false;
-}
+}*/
 
 
 } // namespace GUI

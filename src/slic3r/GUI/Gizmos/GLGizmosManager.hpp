@@ -3,7 +3,7 @@
 
 #include "slic3r/GUI/GLTexture.hpp"
 #include "slic3r/GUI/GLToolbar.hpp"
-#include "libslic3r/ObjectID.hpp"
+//#include "libslic3r/ObjectID.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoBase.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
 
@@ -20,7 +20,7 @@ namespace GUI {
 class GLCanvas3D;
 class ClippingPlane;
 enum class SLAGizmoEventType : unsigned char;
-class CommonGizmosData;
+//class CommonGizmosData;
 class CommonGizmosDataPool;
 
 class Rect
@@ -234,13 +234,13 @@ private:
 
 
 
-class MeshRaycaster;
-class MeshClipper;
+//class MeshRaycaster;
+//class MeshClipper;
 
 // This class is only for sharing SLA related data between SLA gizmos
 // and its synchronization with backend data. It should not be misused
 // for anything else.
-class CommonGizmosData {
+/*class CommonGizmosData {
 public:
     CommonGizmosData();
     const TriangleMesh* mesh() const {
@@ -290,7 +290,7 @@ private:
     bool m_has_drilled_mesh = false;
     bool m_schedule_aabb_calculation = false;
 };
-
+*/
 } // namespace GUI
 } // namespace Slic3r
 

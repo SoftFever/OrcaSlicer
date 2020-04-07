@@ -971,7 +971,7 @@ void GLGizmoHollow::on_set_state()
     if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
         //Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned off")));
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_FORCE_UPDATE));
-        m_parent.toggle_model_objects_visibility(true);
+        //m_parent.toggle_model_objects_visibility(true);
         //m_c->stash_clipping_plane();
         //m_c->m_clipping_plane_distance = 0.f;
         //update_clipping_plane(true);
