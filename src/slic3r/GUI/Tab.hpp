@@ -225,31 +225,14 @@ protected:
     ConfigOptionMode    m_mode = comExpert; // to correct first Tab update_visibility() set mode to Expert
 
 	wxTimer             m_highlighting_timer;
-	struct {
+	struct Highlighter
+	{
+		void init(Field* f);
+		void invalidate();
+		bool blink();
+	private:
 	    Field*	field {nullptr};
 		int		blink_counter {0};
-
-		void init(Field* f)
-		{
-		    field = f;
-			field->activate_attention_bmp();
-		}
-
-		void invalidate()
-		{
-			field->invalidate_attention_bmp();
-		    field = nullptr;
-			blink_counter = 0;
-		}
-
-		bool blink()
-		{
-			field->blink_attention_bmp();
-			if ((++blink_counter) == 5)
-			    invalidate();
-
-			return blink_counter != 0;
-		}
 	} m_highlighter;
 
 public:

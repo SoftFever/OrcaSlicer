@@ -84,72 +84,6 @@ public:
     const Filter& operator[](const size_t pos) const noexcept { return filters[pos]; }
     const Option& get_option(size_t pos_in_filter) const;
 };
-/*
-class SearchComboBox : public wxBitmapComboBox
-{
-    class SuppressUpdate
-    {
-        SearchComboBox* m_cb;
-    public:
-        SuppressUpdate(SearchComboBox* cb) : 
-                m_cb(cb)    { m_cb->prevent_update = true ; }
-        ~SuppressUpdate()   { m_cb->prevent_update = false; }
-    };                                                 
-
-public:
-    SearchComboBox(wxWindow *parent, SearchOptions& search_list);
-    ~SearchComboBox();
-
-    int     append(const wxString& item)                            { return Append(item, bmp.bmp()); }
-    int     append(const wxString& item, void* clientData)          { return Append(item, bmp.bmp(), clientData); }
-    int     append(const wxString& item, wxClientData* clientData)  { return Append(item, bmp.bmp(), clientData); }
-    
-    void    append_all_items();
-    void    append_items(const wxString& search);
-
-    void    msw_rescale();
-
-    void	init(DynamicPrintConfig* config, Preset::Type type, ConfigOptionMode mode);
-    void    init(std::vector<SearchInput> input_values);
-    void    init(const SearchOptions& new_search_list);
-    void    update_combobox();
-
-
-private:
-    SearchOptions&		search_list;
-    wxString            default_search_line;
-    wxString            search_line;
-
-    int                 em_unit;
-    bool                prevent_update {false};
-
-    ScalableBitmap      bmp;
-};
-*/
-class PopupSearchList : public wxPopupTransientWindow
-{
-public:
-    PopupSearchList(wxWindow* parent);
-    ~PopupSearchList() {}
-
-    // wxPopupTransientWindow virtual methods are all overridden to log them
-    void Popup(wxWindow* focus = NULL) wxOVERRIDE;
-    void OnDismiss() wxOVERRIDE;
-    bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;
-    bool Show(bool show = true) wxOVERRIDE;
-
-    void update_list(std::vector<SearchOptions::Filter>& filters);
-
-private:
-    wxWindow*   panel;
-    wxListCtrl* search_ctrl{ nullptr };
-
-    void OnSize(wxSizeEvent& event);
-    void OnSetFocus(wxFocusEvent& event);
-    void OnKillFocus(wxFocusEvent& event);
-    void OnSelect(wxListEvent& event);
-};
-
 
 
 class SearchComboPopup : public wxListBox, public wxComboPopup
@@ -208,13 +142,9 @@ protected:
     wxString m_input_string;
 };
 
-class SearchCtrl
+class SearchCtrl : public wxComboCtrl
 {
-    wxBoxSizer*         box_sizer   {nullptr};
-    wxTextCtrl*         search_line {nullptr};
-    ScalableButton*     search_btn  {nullptr};
-    PopupSearchList*    popup_win   {nullptr};
-
+    SearchComboPopup*   popupListBox {nullptr};
 
     bool                prevent_update{ false };
     wxString            default_string;
@@ -223,26 +153,18 @@ class SearchCtrl
     void PopupList(wxCommandEvent& event);
     void OnInputText(wxCommandEvent& event);
 
-    wxComboCtrl*        comboCtrl {nullptr};
-    SearchComboPopup*   popupListBox {nullptr};
-
     void OnSelect(wxCommandEvent& event);
-    void OnLeftDownInPopup(wxEvent& event);
     void OnLeftUpInTextCtrl(wxEvent& event);
 
 public:
     SearchCtrl(wxWindow* parent);
-    ~SearchCtrl();
-
-    wxBoxSizer* sizer() const { return box_sizer; }
+    ~SearchCtrl() {}
 
     void		set_search_line(const std::string& search_line);
     void        msw_rescale();
-    void        select(int selection);
 
     void        update_list(std::vector<SearchOptions::Filter>& filters);
 };
-
 
 
 }}

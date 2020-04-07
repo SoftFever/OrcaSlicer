@@ -39,6 +39,28 @@ namespace GUI {
 wxDEFINE_EVENT(EVT_TAB_VALUE_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_TAB_PRESETS_CHANGED, SimpleEvent);
 
+void Tab::Highlighter::init(Field* f)
+{
+    field = f;
+    field->activate_attention_bmp();
+}
+
+void Tab::Highlighter::invalidate()
+{
+    field->invalidate_attention_bmp();
+    field = nullptr;
+    blink_counter = 0;
+}
+
+bool Tab::Highlighter::blink()
+{
+    field->blink_attention_bmp();
+    if ((++blink_counter) == 29)
+        invalidate();
+
+    return blink_counter != 0;
+}
+
 Tab::Tab(wxNotebook* parent, const wxString& title, Preset::Type type) :
     m_parent(parent), m_title(title), m_type(type)
 {
@@ -123,7 +145,6 @@ void Tab::create_preset_tab()
     m_presets_choice = new PresetBitmapComboBox(panel, wxSize(35 * m_em_unit, -1));
 
     // search combox
-//    m_search_cb = new SearchComboBox(panel, wxGetApp().sidebar().get_search_list());
     m_search = new SearchCtrl(panel);
 
     auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
@@ -206,8 +227,7 @@ void Tab::create_preset_tab()
     m_hsizer->Add(m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
     m_hsizer->Add(m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
     m_hsizer->AddSpacer(int(/*32*/16 * scale_factor));
-//    m_hsizer->Add(m_search_cb, 0, wxALIGN_CENTER_VERTICAL);
-    m_hsizer->Add(m_search->sizer(), 0, wxALIGN_CENTER_VERTICAL);
+    m_hsizer->Add(m_search, 0, wxALIGN_CENTER_VERTICAL);
     m_hsizer->AddSpacer(int(16 * scale_factor));
 //    m_hsizer->AddSpacer(int(32 * scale_factor));
 //    m_hsizer->Add(m_question_btn, 0, wxALIGN_CENTER_VERTICAL);
@@ -1001,7 +1021,11 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
     // focused selected field
     if (field) {
         field->getWindow()->SetFocus();
-        m_highlighting_timer.Start(500, false);
+        if (m_highlighting_timer.IsRunning()) {
+            m_highlighting_timer.Stop();
+            m_highlighter.invalidate();
+        }
+        m_highlighting_timer.Start(100, false);
         m_highlighter.init(field);
     }
 }
