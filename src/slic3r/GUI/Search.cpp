@@ -482,8 +482,8 @@ SearchCtrl::SearchCtrl(wxWindow* parent)
 
     box_sizer->Add(comboCtrl, 0, wxALIGN_CENTER_VERTICAL);
 
-    popupListBox->Bind(wxEVT_LISTBOX,           &SearchCtrl::OnSelect, this);
-    popupListBox->Bind(wxEVT_LEFT_DOWN,         &SearchCtrl::OnLeftDownInPopup, this);
+//    popupListBox->Bind(wxEVT_LEFT_DOWN,         &SearchCtrl::OnLeftDownInPopup, this);
+    popupListBox->Bind(wxEVT_LISTBOX,           &SearchCtrl::OnSelect,          this);
 
     comboCtrl->Bind(wxEVT_TEXT,                 &SearchCtrl::OnInputText, this);
     comboCtrl->Bind(wxEVT_TEXT_ENTER,           &SearchCtrl::PopupList, this);
@@ -559,18 +559,21 @@ void SearchCtrl::msw_rescale()
     comboCtrl->SetButtonBitmaps(create_scaled_bitmap("search"));
 }
 
+void SearchCtrl::select(int selection)
+{
+    if (selection < 0)
+        return;
+
+    prevent_update = true;
+    wxGetApp().sidebar().jump_to_option(selection);
+    prevent_update = false;
+
+//    comboCtrl->Dismiss();
+}
 
 void SearchCtrl::OnSelect(wxCommandEvent& event)
 {
-    prevent_update = true;
-
-    int selection = event.GetSelection();
-    if (selection >= 0)
-        wxGetApp().sidebar().jump_to_option(selection);
-
-    prevent_update = false;
-
-    comboCtrl->Dismiss();
+    select(event.GetSelection());
 }
 
 void SearchCtrl::update_list(std::vector<SearchOptions::Filter>& filters)
@@ -596,7 +599,7 @@ void SearchCtrl::OnLeftUpInTextCtrl(wxEvent &event)
 void SearchCtrl::OnLeftDownInPopup(wxEvent &event)
 {
     wxPoint pt = wxGetMousePosition() - popupListBox->GetScreenPosition();
-    int selected_item = popupListBox->HitTest(pt);
+    select(popupListBox->HitTest(pt));
 
     event.Skip();
 }

@@ -156,7 +156,11 @@ class SearchComboPopup : public wxListBox, public wxComboPopup
 {
 public:
     // Initialize member variables
-    virtual void Init(){}
+    virtual void Init()
+    {
+        this->Bind(wxEVT_MOTION, &SearchComboPopup::OnMouseMove, this);
+        this->Bind(wxEVT_LEFT_UP, &SearchComboPopup::OnMouseClick, this);
+    }
 
     // Create popup control
     virtual bool Create(wxWindow* parent)
@@ -184,12 +188,20 @@ public:
     // Do mouse hot-tracking (which is typical in list popups)
     void OnMouseMove(wxMouseEvent& event)
     {
-        // TODO: Move selection to cursor
+        wxPoint pt = wxGetMousePosition() - this->GetScreenPosition();
+        int selection = this->HitTest(pt);
+        wxListBox::Select(selection);
     }
     // On mouse left up, set the value and close the popup
     void OnMouseClick(wxMouseEvent& WXUNUSED(event))
     {
-         // TODO: Send event as well
+        int selection = wxListBox::GetSelection();
+        SetSelection(wxNOT_FOUND);
+        wxCommandEvent event(wxEVT_LISTBOX, GetId());
+        event.SetInt(selection);
+        event.SetEventObject(this);
+        ProcessEvent(event);
+
         Dismiss();
     }
 protected:
@@ -226,6 +238,7 @@ public:
 
     void		set_search_line(const std::string& search_line);
     void        msw_rescale();
+    void        select(int selection);
 
     void        update_list(std::vector<SearchOptions::Filter>& filters);
 };
