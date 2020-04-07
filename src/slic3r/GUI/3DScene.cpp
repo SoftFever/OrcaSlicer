@@ -394,6 +394,7 @@ void GLVolume::render() const
         glFrontFace(GL_CCW);
 }
 
+#if !ENABLE_SLOPE_RENDERING
 void GLVolume::render(int color_id, int detection_id, int worldmatrix_id) const
 {
     if (color_id >= 0)
@@ -409,6 +410,7 @@ void GLVolume::render(int color_id, int detection_id, int worldmatrix_id) const
 
     render();
 }
+#endif // !ENABLE_SLOPE_RENDERING
 
 bool GLVolume::is_sla_support() const { return this->composite_id.volume_id == -int(slaposSupportTree); }
 bool GLVolume::is_sla_pad() const { return this->composite_id.volume_id == -int(slaposPad); }
@@ -535,16 +537,16 @@ int GLVolumeCollection::load_wipe_tower_preview(
         // We'll now create the box with jagged edge. y-coordinates of the pre-generated model are shifted so that the front
         // edge has y=0 and centerline of the back edge has y=depth:
         Pointf3s points;
-        std::vector<Vec3crd> facets;
+        std::vector<Vec3i> facets;
         float out_points_idx[][3] = { { 0, -depth, 0 }, { 0, 0, 0 }, { 38.453f, 0, 0 }, { 61.547f, 0, 0 }, { 100.0f, 0, 0 }, { 100.0f, -depth, 0 }, { 55.7735f, -10.0f, 0 }, { 44.2265f, 10.0f, 0 },
         { 38.453f, 0, 1 }, { 0, 0, 1 }, { 0, -depth, 1 }, { 100.0f, -depth, 1 }, { 100.0f, 0, 1 }, { 61.547f, 0, 1 }, { 55.7735f, -10.0f, 1 }, { 44.2265f, 10.0f, 1 } };
         int out_facets_idx[][3] = { { 0, 1, 2 }, { 3, 4, 5 }, { 6, 5, 0 }, { 3, 5, 6 }, { 6, 2, 7 }, { 6, 0, 2 }, { 8, 9, 10 }, { 11, 12, 13 }, { 10, 11, 14 }, { 14, 11, 13 }, { 15, 8, 14 },
                                    {8, 10, 14}, {3, 12, 4}, {3, 13, 12}, {6, 13, 3}, {6, 14, 13}, {7, 14, 6}, {7, 15, 14}, {2, 15, 7}, {2, 8, 15}, {1, 8, 2}, {1, 9, 8},
                                    {0, 9, 1}, {0, 10, 9}, {5, 10, 0}, {5, 11, 10}, {4, 11, 5}, {4, 12, 11} };
         for (int i = 0; i < 16; ++i)
-            points.push_back(Vec3d(out_points_idx[i][0] / (100.f / min_width), out_points_idx[i][1] + depth, out_points_idx[i][2]));
+            points.emplace_back(out_points_idx[i][0] / (100.f / min_width), out_points_idx[i][1] + depth, out_points_idx[i][2]);
         for (int i = 0; i < 28; ++i)
-            facets.push_back(Vec3crd(out_facets_idx[i][0], out_facets_idx[i][1], out_facets_idx[i][2]));
+            facets.emplace_back(out_facets_idx[i][0], out_facets_idx[i][1], out_facets_idx[i][2]);
         TriangleMesh tooth_mesh(points, facets);
 
         // We have the mesh ready. It has one tooth and width of min_width. We will now append several of these together until we are close to
@@ -650,28 +652,64 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
     GLint color_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "uniform_color") : -1;
     GLint z_range_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "z_range") : -1;
     GLint clipping_plane_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "clipping_plane") : -1;
+
     GLint print_box_min_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.min") : -1;
     GLint print_box_max_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.max") : -1;
-    GLint print_box_detection_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.volume_detection") : -1;
+    GLint print_box_active_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.actived") : -1;
     GLint print_box_worldmatrix_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.volume_world_matrix") : -1;
+
+#if ENABLE_SLOPE_RENDERING
+    GLint slope_active_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "slope.actived") : -1;
+    GLint slope_normal_matrix_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "slope.volume_world_normal_matrix") : -1;
+    GLint slope_z_range_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "slope.z_range") : -1;
+#endif // ENABLE_SLOPE_RENDERING
     glcheck();
 
     if (print_box_min_id != -1)
-        glsafe(::glUniform3fv(print_box_min_id, 1, (const GLfloat*)print_box_min));
+        glsafe(::glUniform3fv(print_box_min_id, 1, (const GLfloat*)m_print_box_min));
 
     if (print_box_max_id != -1)
-        glsafe(::glUniform3fv(print_box_max_id, 1, (const GLfloat*)print_box_max));
+        glsafe(::glUniform3fv(print_box_max_id, 1, (const GLfloat*)m_print_box_max));
 
     if (z_range_id != -1)
-        glsafe(::glUniform2fv(z_range_id, 1, (const GLfloat*)z_range));
+        glsafe(::glUniform2fv(z_range_id, 1, (const GLfloat*)m_z_range));
 
     if (clipping_plane_id != -1)
-        glsafe(::glUniform4fv(clipping_plane_id, 1, (const GLfloat*)clipping_plane));
+        glsafe(::glUniform4fv(clipping_plane_id, 1, (const GLfloat*)m_clipping_plane));
+
+#if ENABLE_SLOPE_RENDERING
+    if (slope_z_range_id != -1)
+        glsafe(::glUniform2fv(slope_z_range_id, 1, (const GLfloat*)m_slope.z_range.data()));
+#endif // ENABLE_SLOPE_RENDERING
 
     GLVolumeWithIdAndZList to_render = volumes_to_render(this->volumes, type, view_matrix, filter_func);
     for (GLVolumeWithIdAndZ& volume : to_render) {
         volume.first->set_render_color();
+#if ENABLE_SLOPE_RENDERING
+        if (color_id >= 0)
+            glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)volume.first->render_color));
+        else
+            glsafe(::glColor4fv(volume.first->render_color));
+
+        if (print_box_active_id != -1)
+            glsafe(::glUniform1i(print_box_active_id, volume.first->shader_outside_printer_detection_enabled ? 1 : 0));
+
+        if (print_box_worldmatrix_id != -1)
+            glsafe(::glUniformMatrix4fv(print_box_worldmatrix_id, 1, GL_FALSE, (const GLfloat*)volume.first->world_matrix().cast<float>().data()));
+
+        if (slope_active_id != -1)
+            glsafe(::glUniform1i(slope_active_id, m_slope.active && !volume.first->is_modifier && !volume.first->is_wipe_tower ? 1 : 0));
+
+        if (slope_normal_matrix_id != -1)
+        {
+            Matrix3f normal_matrix = volume.first->world_matrix().matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>();
+            glsafe(::glUniformMatrix3fv(slope_normal_matrix_id, 1, GL_FALSE, (const GLfloat*)normal_matrix.data()));
+        }
+
+        volume.first->render();
+#else
         volume.first->render(color_id, print_box_detection_id, print_box_worldmatrix_id);
+#endif // ENABLE_SLOPE_RENDERING
     }
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
@@ -1816,7 +1854,9 @@ void _3DScene::point3_to_verts(const Vec3crd& point, double width, double height
     thick_point_to_verts(point, width, height, volume);
 }
 
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
 GUI::GLCanvas3DManager _3DScene::s_canvas_mgr;
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 
 GLModel::GLModel()
     : m_filename("")
@@ -1885,7 +1925,16 @@ void GLModel::render() const
     GLint color_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "uniform_color") : -1;
     glcheck();
 
+#if ENABLE_SLOPE_RENDERING
+    if (color_id >= 0)
+        glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)m_volume.render_color));
+    else
+        glsafe(::glColor4fv(m_volume.render_color));
+
+    m_volume.render();
+#else
     m_volume.render(color_id, -1, -1);
+#endif // ENABLE_SLOPE_RENDERING
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
@@ -1899,7 +1948,7 @@ void GLModel::render() const
 bool GLArrow::on_init()
 {
     Pointf3s vertices;
-    std::vector<Vec3crd> triangles;
+    std::vector<Vec3i> triangles;
 
     // bottom face
     vertices.emplace_back(0.5, 0.0, -0.1);
@@ -1965,7 +2014,7 @@ GLCurvedArrow::GLCurvedArrow(unsigned int resolution)
 bool GLCurvedArrow::on_init()
 {
     Pointf3s vertices;
-    std::vector<Vec3crd> triangles;
+    std::vector<Vec3i> triangles;
 
     double ext_radius = 2.5;
     double int_radius = 1.5;
@@ -2099,6 +2148,7 @@ bool GLBed::on_init_from_file(const std::string& filename)
     return true;
 }
 
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
 std::string _3DScene::get_gl_info(bool format_as_html, bool extensions)
 {
     return Slic3r::GUI::GLCanvas3DManager::get_gl_info().to_string(format_as_html, extensions);
@@ -2133,5 +2183,6 @@ GUI::GLCanvas3D* _3DScene::get_canvas(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.get_canvas(canvas);
 }
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 
 } // namespace Slic3r

@@ -3,9 +3,7 @@
 #include "../Utils.hpp"
 #include "../GCode.hpp"
 #include "../Geometry.hpp"
-#if ENABLE_THUMBNAIL_GENERATOR
 #include "../GCode/ThumbnailData.hpp"
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 #include "../I18N.hpp"
 
@@ -47,9 +45,7 @@ const std::string MODEL_EXTENSION = ".model";
 const std::string MODEL_FILE = "3D/3dmodel.model"; // << this is the only format of the string which works with CURA
 const std::string CONTENT_TYPES_FILE = "[Content_Types].xml";
 const std::string RELATIONSHIPS_FILE = "_rels/.rels";
-#if ENABLE_THUMBNAIL_GENERATOR
 const std::string THUMBNAIL_FILE = "Metadata/thumbnail.png";
-#endif // ENABLE_THUMBNAIL_GENERATOR
 const std::string PRINT_CONFIG_FILE = "Metadata/Slic3r_PE.config";
 const std::string MODEL_CONFIG_FILE = "Metadata/Slic3r_PE_model.config";
 const std::string LAYER_HEIGHTS_PROFILE_FILE = "Metadata/Slic3r_PE_layer_heights_profile.txt";
@@ -1969,22 +1965,12 @@ namespace Slic3r {
         bool m_fullpath_sources{ true };
 
     public:
-#if ENABLE_THUMBNAIL_GENERATOR
         bool save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data = nullptr);
-#else
-        bool save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, bool fullpath_sources);
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
     private:
-#if ENABLE_THUMBNAIL_GENERATOR
         bool _save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, const ThumbnailData* thumbnail_data);
-#else
-        bool _save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config);
-#endif // ENABLE_THUMBNAIL_GENERATOR
         bool _add_content_types_file_to_archive(mz_zip_archive& archive);
-#if ENABLE_THUMBNAIL_GENERATOR
         bool _add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data);
-#endif // ENABLE_THUMBNAIL_GENERATOR
         bool _add_relationships_file_to_archive(mz_zip_archive& archive);
         bool _add_model_file_to_archive(mz_zip_archive& archive, const Model& model, IdToObjectDataMap &objects_data);
         bool _add_object_to_model_stream(std::stringstream& stream, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items, VolumeToOffsetsMap& volumes_offsets);
@@ -1999,26 +1985,14 @@ namespace Slic3r {
         bool _add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model);
     };
 
-#if ENABLE_THUMBNAIL_GENERATOR
     bool _3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data)
     {
         clear_errors();
         m_fullpath_sources = fullpath_sources;
         return _save_model_to_file(filename, model, config, thumbnail_data);
     }
-#else
-    bool _3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, bool fullpath_sources)
-    {
-        clear_errors();
-        return _save_model_to_file(filename, model, config);
-    }
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
-#if ENABLE_THUMBNAIL_GENERATOR
     bool _3MF_Exporter::_save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, const ThumbnailData* thumbnail_data)
-#else
-    bool _3MF_Exporter::_save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config)
-#endif // ENABLE_THUMBNAIL_GENERATOR
     {
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
@@ -2037,7 +2011,6 @@ namespace Slic3r {
             return false;
         }
 
-#if ENABLE_THUMBNAIL_GENERATOR
         if ((thumbnail_data != nullptr) && thumbnail_data->is_valid())
         {
             // Adds the file Metadata/thumbnail.png.
@@ -2048,7 +2021,6 @@ namespace Slic3r {
                 return false;
             }
         }
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
         // Adds relationships file ("_rels/.rels"). 
         // The content of this file is the same for each PrusaSlicer 3mf.
@@ -2160,9 +2132,7 @@ namespace Slic3r {
         stream << "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">\n";
         stream << " <Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\" />\n";
         stream << " <Default Extension=\"model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\" />\n";
-#if ENABLE_THUMBNAIL_GENERATOR
         stream << " <Default Extension=\"png\" ContentType=\"image/png\" />\n";
-#endif // ENABLE_THUMBNAIL_GENERATOR
         stream << "</Types>";
 
         std::string out = stream.str();
@@ -2176,7 +2146,6 @@ namespace Slic3r {
         return true;
     }
 
-#if ENABLE_THUMBNAIL_GENERATOR
     bool _3MF_Exporter::_add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data)
     {
         bool res = false;
@@ -2194,7 +2163,6 @@ namespace Slic3r {
 
         return res;
     }
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
     bool _3MF_Exporter::_add_relationships_file_to_archive(mz_zip_archive& archive)
     {
@@ -2202,9 +2170,7 @@ namespace Slic3r {
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         stream << "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">\n";
         stream << " <Relationship Target=\"/" << MODEL_FILE << "\" Id=\"rel-1\" Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\" />\n";
-#if ENABLE_THUMBNAIL_GENERATOR
         stream << " <Relationship Target=\"/" << THUMBNAIL_FILE << "\" Id=\"rel-2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail\" />\n";
-#endif // ENABLE_THUMBNAIL_GENERATOR
         stream << "</Relationships>";
 
         std::string out = stream.str();
@@ -2795,22 +2761,13 @@ bool load_3mf(const char* path, DynamicPrintConfig* config, Model* model, bool c
         return res;
     }
 
-#if ENABLE_THUMBNAIL_GENERATOR
 bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data)
-#else
-bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config, bool fullpath_sources)
-#endif // ENABLE_THUMBNAIL_GENERATOR
     {
         if ((path == nullptr) || (model == nullptr))
             return false;
 
         _3MF_Exporter exporter;
-#if ENABLE_THUMBNAIL_GENERATOR
         bool res = exporter.save_model_to_file(path, *model, config, fullpath_sources, thumbnail_data);
-#else
-        bool res = exporter.save_model_to_file(path, *model, config, fullpath_sources);
-#endif // ENABLE_THUMBNAIL_GENERATOR
-
         if (!res)
             exporter.log_errors();
 

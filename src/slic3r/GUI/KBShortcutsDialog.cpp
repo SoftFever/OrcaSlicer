@@ -122,6 +122,8 @@ void KBShortcutsDialog::fill_shortcuts()
         { ctrl + "G", L("Export G-code") },
         { ctrl + "Shift+" + "G", L("Send G-code") },
         { ctrl + "E", L("Export config") },
+		{ ctrl + "U", L("Export to SD card / Flash drive") },
+		{ ctrl + "T", L("Eject SD card / Flash drive") },
         // Edit
         { ctrl + "A", L("Select all objects") },
         { "Esc", L("Deselect all") },
@@ -142,9 +144,10 @@ void KBShortcutsDialog::fill_shortcuts()
         { ctrl + "J", L("Print host upload queue") },
         // View
         { "0-6", L("Camera view") },
-#if ENABLE_SHOW_SCENE_LABELS
         { "E", L("Show/Hide object/instance labels") },
-#endif // ENABLE_SHOW_SCENE_LABELS
+#if ENABLE_SLOPE_RENDERING
+        { "D", L("Turn On/Off facets' slope rendering") },
+#endif // ENABLE_SLOPE_RENDERING
         // Configuration
         { ctrl + "P", L("Preferences") },
         // Help
@@ -182,10 +185,12 @@ void KBShortcutsDialog::fill_shortcuts()
         { "Z", L("Zoom to selected object\nor all objects in scene, if none selected") },
         { "I", L("Zoom in") },
         { "O", L("Zoom out") },
-        { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") }
+#ifdef __linux__
+        { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
+#endif // __linux__
 #if ENABLE_RENDER_PICKING_PASS
         // Don't localize debugging texts.
-        , { "T", "Toggle picking pass texture rendering on/off" }
+        { "T", "Toggle picking pass texture rendering on/off" },
 #endif // ENABLE_RENDER_PICKING_PASS
     };
 

@@ -2,6 +2,9 @@
 #include "Camera.hpp"
 #include "3DScene.hpp"
 #include "GLCanvas3D.hpp"
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+#include "GUI_App.hpp"
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 #include <GL/glew.h>
 
@@ -35,13 +38,17 @@ namespace GUI {
 
         m_state = Off;
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+        const Camera& camera = wxGetApp().plater()->get_camera();
+#else
         const Camera& camera = canvas.get_camera();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
         const std::array<int, 4>& viewport = camera.get_viewport();
         const Transform3d& modelview_matrix = camera.get_view_matrix();
         const Transform3d& projection_matrix = camera.get_projection_matrix();
 
         // bounding box created from the rectangle corners - will take care of order of the corners
-        BoundingBox rectangle(Points{ Point(m_start_corner.cast<int>()), Point(m_end_corner.cast<int>()) });
+        BoundingBox rectangle(Points{ Point(m_start_corner.cast<coord_t>()), Point(m_end_corner.cast<coord_t>()) });
 
         // Iterate over all points and determine whether they're in the rectangle.
         for (unsigned int i = 0; i<points.size(); ++i) {
@@ -68,7 +75,11 @@ namespace GUI {
         if (!is_dragging())
             return;
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+        const Camera& camera = wxGetApp().plater()->get_camera();
+#else
         const Camera& camera = canvas.get_camera();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
         float inv_zoom = (float)camera.get_inv_zoom();
 
         Size cnv_size = canvas.get_canvas_size();

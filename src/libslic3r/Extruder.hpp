@@ -3,9 +3,10 @@
 
 #include "libslic3r.h"
 #include "Point.hpp"
-#include "PrintConfig.hpp"
 
 namespace Slic3r {
+
+class GCodeConfig;
 
 class Extruder
 {

@@ -1,7 +1,8 @@
 #ifndef slic3r_LambdaObjectDialog_hpp_
 #define slic3r_LambdaObjectDialog_hpp_
 
-#include "GUI.hpp"
+#include <vector>
+#include <memory>
 
 #include <wx/dialog.h>
 #include <wx/sizer.h>

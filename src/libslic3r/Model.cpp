@@ -419,7 +419,7 @@ bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
         if (input[i].bed_idx != 0) ret = false;
         if (input[i].bed_idx >= 0) {
             input[i].translation += Vec2crd{input[i].bed_idx * stride, 0};
-            instances[i]->apply_arrange_result(input[i].translation,
+            instances[i]->apply_arrange_result(input[i].translation.cast<double>(),
                                                input[i].rotation);
         }
     }

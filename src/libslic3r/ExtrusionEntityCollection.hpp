@@ -40,7 +40,7 @@ public:
     ~ExtrusionEntityCollection() { clear(); }
     explicit operator ExtrusionPaths() const;
     
-    bool is_collection() const { return true; }
+    bool is_collection() const override { return true; }
     ExtrusionRole role() const override {
         ExtrusionRole out = erNone;
         for (const ExtrusionEntity *ee : entities) {
@@ -49,7 +49,7 @@ public:
         }
         return out;
     }
-    bool can_reverse() const { return !this->no_sort; }
+    bool can_reverse() const override { return !this->no_sort; }
     bool empty() const { return this->entities.empty(); }
     void clear();
     void swap (ExtrusionEntityCollection &c);
@@ -83,9 +83,9 @@ public:
     static ExtrusionEntityCollection chained_path_from(const ExtrusionEntitiesPtr &extrusion_entities, const Point &start_near, ExtrusionRole role = erMixed);
     ExtrusionEntityCollection chained_path_from(const Point &start_near, ExtrusionRole role = erMixed) const 
     	{ return this->no_sort ? *this : chained_path_from(this->entities, start_near, role); }
-    void reverse();
-    const Point& first_point() const { return this->entities.front()->first_point(); }
-    const Point& last_point() const { return this->entities.back()->last_point(); }
+    void reverse() override;
+    const Point& first_point() const override { return this->entities.front()->first_point(); }
+    const Point& last_point() const override { return this->entities.back()->last_point(); }
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
     void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const override;
@@ -102,11 +102,11 @@ public:
     /// You should be iterating over flatten().entities if you are interested in the underlying ExtrusionEntities (and don't care about hierarchy).
     /// \param preserve_ordering Flag to method that will flatten if and only if the underlying collection is sortable when True (default: False).
     ExtrusionEntityCollection flatten(bool preserve_ordering = false) const;
-    double min_mm3_per_mm() const;
+    double min_mm3_per_mm() const override;
     double total_volume() const override { double volume=0.; for (const auto& ent : entities) volume+=ent->total_volume(); return volume; }
 
     // Following methods shall never be called on an ExtrusionEntityCollection.
-    Polyline as_polyline() const {
+    Polyline as_polyline() const override {
         throw std::runtime_error("Calling as_polyline() on a ExtrusionEntityCollection");
         return Polyline();
     };

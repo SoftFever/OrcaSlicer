@@ -3049,8 +3049,8 @@ msgid "It's a system preset."
 msgstr "這是一個系統預設。"
 
 #: src/slic3r/GUI/Tab.cpp:860
-msgid "Current preset is inherited from "
-msgstr "當前預設繼承自 "
+msgid "Current preset is inherited from"
+msgstr "當前預設繼承自"
 
 #: src/slic3r/GUI/Tab.cpp:865
 msgid "It can't be deleted or modified. "
@@ -3391,16 +3391,19 @@ msgid "Open CA certificate file"
 msgstr "打開 CA 證書文件"
 
 #: src/slic3r/GUI/Tab.cpp:1725
+#, c-format
 msgid ""
-"HTTPS CA File:\n"
-"\tOn this system, Slic3r uses HTTPS certificates from the system Certificate "
-"Store or Keychain.\n"
-"\tTo use a custom CA file, please import your CA file into Certificate "
+"On this system, %s uses HTTPS certificates from the system Certificate "
+"Store or Keychain."
+msgstr ""
+"在此係統上, %s 使用來自系統證書存儲或鑰匙串的 https 證書。"
+
+#: src/slic3r/GUI/Tab.cpp:1725
+msgid ""
+"To use a custom CA file, please import your CA file into Certificate "
 "Store / Keychain."
 msgstr ""
-"HTTPS CA 文件:\n"
-"\t在此係統上, Slic3r 使用來自系統證書存儲或鑰匙串的 https 證書。\n"
-"\t要使用自定義 CA 文件, 請將 CA 文件導入到證書存儲/鑰匙串。"
+"要使用自定義 CA 文件, 請將 CA 文件導入到證書存儲/鑰匙串。"
 
 #: src/slic3r/GUI/Tab.cpp:1763 src/slic3r/GUI/Tab.cpp:1964
 msgid "Size and coordinates"
@@ -3664,11 +3667,11 @@ msgstr ""
 
 #: src/slic3r/GUI/Tab.cpp:2998
 msgid ""
-"WHITE BULLET;for the left button: \tindicates a non-system preset,\n"
-"for the right button: \tindicates that the settings hasn't been modified."
+"WHITE BULLET;for the left button: indicates a non-system preset,\n"
+"for the right button: indicates that the settings hasn't been modified."
 msgstr ""
-"白色彈頭; 對於左側按鈕:  \t表示非系統預設,\n"
-"對於右側按鈕:  \t表示設置尚未被修改。"
+"白色彈頭; 對於左側按鈕: 表示非系統預設,\n"
+"對於右側按鈕: 表示設置尚未被修改。"
 
 #: src/slic3r/GUI/Tab.cpp:3002
 msgid ""

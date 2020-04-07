@@ -21,7 +21,13 @@
 #include "Technologies.hpp"
 #include "Semver.hpp"
 
+#if 1
+// Saves around 32% RAM after slicing step, 6.7% after G-code export (tested on PrusaSlicer 2.2.0 final).
 typedef int32_t coord_t;
+#else
+typedef int64_t coord_t;
+#endif
+
 typedef double  coordf_t;
 
 //FIXME This epsilon value is used for many non-related purposes:
@@ -33,6 +39,7 @@ typedef double  coordf_t;
 // This scaling generates a following fixed point representation with for a 32bit integer:
 // 0..4294mm with 1nm resolution
 // int32_t fits an interval of (-2147.48mm, +2147.48mm)
+// with int64_t we don't have to worry anymore about the size of the int.
 #define SCALING_FACTOR 0.000001
 // RESOLUTION, SCALED_RESOLUTION: Used as an error threshold for a Douglas-Peucker polyline simplification algorithm.
 #define RESOLUTION 0.0125
@@ -98,7 +105,17 @@ extern Semver SEMVER;
 template<typename T, typename Q>
 inline T unscale(Q v) { return T(v) * T(SCALING_FACTOR); }
 
-enum Axis { X=0, Y, Z, E, F, NUM_AXES };
+enum Axis { 
+	X=0,
+	Y,
+	Z,
+	E,
+	F,
+	NUM_AXES,
+	// For the GCodeReader to mark a parsed axis, which is not in "XYZEF", it was parsed correctly.
+	UNKNOWN_AXIS = NUM_AXES,
+	NUM_AXES_WITH_UNKNOWN,
+};
 
 template <class T>
 inline void append_to(std::vector<T> &dst, const std::vector<T> &src)

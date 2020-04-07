@@ -30,14 +30,6 @@ public:
     // When allocating extruder overrides of an object's ExtrusionEntity, overrides for maximum 3 copies are allocated in place.
     typedef boost::container::small_vector<int32_t, 3> ExtruderPerCopy;
 
-    class ExtruderOverrides
-    {
-    public:
-    	ExtruderOverrides(const ExtruderPerCopy *overrides, const int correct_extruder_id) : m_overrides(overrides) {}
-    private:
-    	const ExtruderPerCopy *m_overrides;
-    };
-
     // This is called from GCode::process_layer - see implementation for further comments:
     const ExtruderPerCopy* get_extruder_overrides(const ExtrusionEntity* entity, int correct_extruder_id, size_t num_of_copies);
 
@@ -174,7 +166,7 @@ private:
     void				initialize_layers(std::vector<coordf_t> &zs);
     void 				collect_extruders(const PrintObject &object, const std::vector<std::pair<double, unsigned int>> &per_layer_extruder_switches);
     void				reorder_extruders(unsigned int last_extruder_id);
-    void 				fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z);
+    void 				fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z, coordf_t max_layer_height);
     void 				collect_extruder_statistics(bool prime_multi_material);
 
     std::vector<LayerTools>    m_layer_tools;

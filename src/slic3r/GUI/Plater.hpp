@@ -42,6 +42,10 @@ class ObjectList;
 class GLCanvas3D;
 class Mouse3DController;
 struct Camera;
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+class Bed3D;
+class GLToolbar;
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
@@ -69,7 +73,7 @@ public:
     void set_extruder_idx(const int extr_idx)   { extruder_idx = extr_idx; }
     int  get_extruder_idx() const               { return extruder_idx; }
     int  em_unit() const                        { return m_em_unit; }
-    void check_selection();
+    void check_selection(int selection);
 
     void msw_rescale();
 
@@ -171,6 +175,13 @@ public:
     bool are_view3D_labels_shown() const;
     void show_view3D_labels(bool show);
 
+#if ENABLE_SLOPE_RENDERING
+    bool is_view3D_slope_shown() const;
+    void show_view3D_slope(bool show);
+
+    bool is_view3D_layers_editing_enabled() const;
+#endif // ENABLE_SLOPE_RENDERING
+
     // Called after the Preferences dialog is closed and the program settings are saved.
     // Update the UI based on the current preferences.
     void update_ui_from_settings();
@@ -205,12 +216,11 @@ public:
     void changed_object(int obj_idx);
     void changed_objects(const std::vector<size_t>& object_idxs);
     void schedule_background_process(bool schedule = true);
-    bool is_background_process_running() const;
+    bool is_background_process_update_scheduled() const;
     void suppress_background_process(const bool stop_background_process) ;
     void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
     void send_gcode();
 	void eject_drive();
-	void drive_ejected_callback();
 
     void take_snapshot(const std::string &snapshot_name);
     void take_snapshot(const wxString &snapshot_name);
@@ -250,6 +260,10 @@ public:
     BoundingBoxf bed_shape_bb() const;
 
     void set_current_canvas_as_dirty();
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    void unbind_canvas_event_handlers();
+    void reset_canvas_volumes();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     PrinterTechnology   printer_technology() const;
     void                set_printer_technology(PrinterTechnology printer_technology);
@@ -278,12 +292,22 @@ public:
     bool init_view_toolbar();
 
     const Camera& get_camera() const;
+    Camera& get_camera();
+
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    const Bed3D& get_bed() const;
+    Bed3D& get_bed();
+
+    const GLToolbar& get_view_toolbar() const;
+    GLToolbar& get_view_toolbar();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
+
     const Mouse3DController& get_mouse3d_controller() const;
     Mouse3DController& get_mouse3d_controller();
 
 	void set_bed_shape() const;
 
-	// ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
+    // ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
 	class SuppressSnapshots
 	{
 	public:
@@ -316,9 +340,21 @@ public:
 		Plater *m_plater;
 	};
 
+    bool inside_snapshot_capture();
+
+	// Wrapper around wxWindow::PopupMenu to suppress error messages popping out while tracking the popup menu.
+	bool PopupMenu(wxMenu *menu, const wxPoint& pos = wxDefaultPosition);
+    bool PopupMenu(wxMenu *menu, int x, int y) { return this->PopupMenu(menu, wxPoint(x, y)); }
+
 private:
     struct priv;
     std::unique_ptr<priv> p;
+
+    // Set true during PopupMenu() tracking to suppress immediate error message boxes.
+    // The error messages are collected to m_tracking_popup_menu_error_message instead and these error messages
+    // are shown after the pop-up dialog closes.
+    bool 	 m_tracking_popup_menu = false;
+    wxString m_tracking_popup_menu_error_message;
 
     void suppress_snapshots();
     void allow_snapshots();
@@ -332,7 +368,7 @@ public:
     SuppressBackgroundProcessingUpdate();
     ~SuppressBackgroundProcessingUpdate();
 private:
-    bool m_was_running;
+    bool m_was_scheduled;
 };
 
 }}

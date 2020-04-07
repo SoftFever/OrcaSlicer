@@ -16,8 +16,8 @@
 #include "Point.hpp"
 
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/format.hpp>
-#include <boost/property_tree/ptree.hpp>
+#include <boost/format/format_fwd.hpp>
+#include <boost/property_tree/ptree_fwd.hpp>
 
 #include <cereal/access.hpp>
 #include <cereal/types/base_class.hpp>
@@ -56,10 +56,9 @@ public:
 class BadOptionTypeException : public std::runtime_error
 {
 public:
-	BadOptionTypeException() :
-		std::runtime_error("Bad option type exception") {}
-	BadOptionTypeException(const char* message) : 
-		std::runtime_error(message) {}
+	BadOptionTypeException() : std::runtime_error("Bad option type exception") {}
+	BadOptionTypeException(const std::string &message) : std::runtime_error(message) {}
+    BadOptionTypeException(const char* message) : std::runtime_error(message) {}
 };
 
 // Type of a configuration value.

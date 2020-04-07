@@ -37,7 +37,7 @@ void AboutDialogLogo::onRepaint(wxEvent &event)
 // CopyrightsDialog
 // -----------------------------------------
 CopyrightsDialog::CopyrightsDialog()
-    : DPIDialog(NULL, wxID_ANY, wxString::FromUTF8((boost::format("%1% - %2%")
+    : DPIDialog(NULL, wxID_ANY, from_u8((boost::format("%1% - %2%")
                                                        % SLIC3R_APP_NAME
                                                        % _utf8(L("Portions copyright"))).str()),
                 wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
@@ -199,7 +199,7 @@ void CopyrightsDialog::onCloseDialog(wxEvent &)
 }
 
 AboutDialog::AboutDialog()
-    : DPIDialog(NULL, wxID_ANY, wxString::FromUTF8((boost::format(_utf8(L("About %s"))) % SLIC3R_APP_NAME).str()), wxDefaultPosition,
+    : DPIDialog(NULL, wxID_ANY, from_u8((boost::format(_utf8(L("About %s"))) % SLIC3R_APP_NAME).str()), wxDefaultPosition,
                 wxDefaultSize, /*wxCAPTION*/wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     SetFont(wxGetApp().normal_font());
@@ -262,12 +262,12 @@ AboutDialog::AboutDialog()
         const std::string license_str = _utf8(L("GNU Affero General Public License, version 3"));
         const std::string based_on_str = _utf8(L("PrusaSlicer is based on Slic3r by Alessandro Ranellucci and the RepRap community."));
         const std::string contributors_str = _utf8(L("Contributions by Henrik Brix Andersen, Nicolas Dandrimont, Mark Hindess, Petr Ledvina, Joseph Lenox, Y. Sapir, Mike Sheldrake, Vojtech Bubnik and numerous others."));
-        const auto text = wxString::FromUTF8(
+        const auto text = from_u8(
             (boost::format(
             "<html>"
             "<body bgcolor= %1% link= %2%>"
             "<font color=%3%>"
-            "%4% &copy; 2016-2019 Prusa Research. <br />"
+            "%4% &copy; 2016-2020 Prusa Research. <br />"
             "%5% &copy; 2011-2018 Alessandro Ranellucci. <br />"
             "<a href=\"http://slic3r.org/\">Slic3r</a> %6% "
             "<a href=\"http://www.gnu.org/licenses/agpl-3.0.html\">%7%</a>."

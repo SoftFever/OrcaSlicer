@@ -262,12 +262,6 @@ void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
     }
 }
 
-
-void GLGizmoBase::set_tooltip(const std::string& tooltip) const
-{
-    m_parent.set_tooltip(tooltip);
-}
-
 std::string GLGizmoBase::format(float value, unsigned int decimals) const
 {
     return Slic3r::string_printf("%.*f", decimals, value);

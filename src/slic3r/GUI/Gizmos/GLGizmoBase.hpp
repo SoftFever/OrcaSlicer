@@ -32,6 +32,8 @@ static const float CONSTRAINED_COLOR[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
 class ImGuiWrapper;
 class GLCanvas3D;
 class ClippingPlane;
+enum class CommonGizmosDataID;
+class CommonGizmosDataPool;
 
 class GLGizmoBase
 {
@@ -100,6 +102,8 @@ protected:
     mutable std::vector<Grabber> m_grabbers;
     ImGuiWrapper* m_imgui;
     bool m_first_input_window_render;
+    mutable std::string m_tooltip;
+    CommonGizmosDataPool* m_c;
 
 public:
     GLGizmoBase(GLCanvas3D& parent,
@@ -127,6 +131,8 @@ public:
 
     bool is_activable() const { return on_is_activable(); }
     bool is_selectable() const { return on_is_selectable(); }
+    CommonGizmosDataID get_requirements() const { return on_get_requirements(); }
+    void set_common_data_pool(CommonGizmosDataPool* ptr) { m_c = ptr; }
 
     unsigned int get_sprite_id() const { return m_sprite_id; }
 
@@ -145,9 +151,11 @@ public:
 
     void update(const UpdateData& data);
 
-    void render() const { on_render(); }
+    void render() const { m_tooltip.clear(); on_render(); }
     void render_for_picking() const { on_render_for_picking(); }
     void render_input_window(float x, float y, float bottom_limit);
+
+    virtual std::string get_tooltip() const { return ""; }
 
 protected:
     virtual bool on_init() = 0;
@@ -158,6 +166,7 @@ protected:
     virtual void on_set_hover_id() {}
     virtual bool on_is_activable() const { return true; }
     virtual bool on_is_selectable() const { return true; }
+    virtual CommonGizmosDataID on_get_requirements() const { return CommonGizmosDataID(0); }
     virtual void on_enable_grabber(unsigned int id) {}
     virtual void on_disable_grabber(unsigned int id) {}
     virtual void on_start_dragging() {}
@@ -174,7 +183,6 @@ protected:
     void render_grabbers(float size) const;
     void render_grabbers_for_picking(const BoundingBoxf3& box) const;
 
-    void set_tooltip(const std::string& tooltip) const;
     std::string format(float value, unsigned int decimals) const;
 };
 
