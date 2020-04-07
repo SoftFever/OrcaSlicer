@@ -223,7 +223,7 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
     const Transform3d& instance_matrix = vol->get_instance_transformation().get_matrix();
 
     glsafe(::glPushMatrix());
-    glsafe(::glTranslated(0.0, 0.0, m_z_shift));
+    glsafe(::glTranslated(0.0, 0.0, m_c->selection_info()->get_sla_shift()));
     glsafe(::glMultMatrixd(instance_matrix.data()));
 
     float render_color[4];
@@ -444,7 +444,7 @@ bool GLGizmoHollow::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_pos
 
         // First collect positions of all the points in world coordinates.
         Geometry::Transformation trafo = mo->instances[active_inst]->get_transformation();
-        trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., m_z_shift));
+        trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., m_c->selection_info()->get_sla_shift()));
         std::vector<Vec3d> points;
         for (unsigned int i=0; i<mo->sla_drain_holes.size(); ++i)
             points.push_back(trafo.get_matrix() * mo->sla_drain_holes[i].pos.cast<double>());
@@ -607,7 +607,7 @@ GLGizmoHollow::get_config_options(const std::vector<std::string>& keys) const
     return out;
 }
 
-
+/*
 ClippingPlane GLGizmoHollow::get_sla_clipping_plane() const
 {
     if (! m_c->selection_info()->model_object()
@@ -619,7 +619,7 @@ ClippingPlane GLGizmoHollow::get_sla_clipping_plane() const
         return ClippingPlane(-clp.get_normal(), clp.get_data()[3]);
     }
 }
-
+*/
 
 void GLGizmoHollow::on_render_input_window(float x, float y, float bottom_limit)
 {

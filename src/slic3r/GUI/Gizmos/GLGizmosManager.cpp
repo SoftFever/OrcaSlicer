@@ -395,13 +395,22 @@ bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_p
 
 ClippingPlane GLGizmosManager::get_sla_clipping_plane() const
 {
-    if (!m_enabled || (m_current != SlaSupports && m_current != Hollow) || m_gizmos.empty())
+    if (! m_common_gizmos_data->object_clipper()
+       || m_common_gizmos_data->object_clipper()->get_position() == 0.)
+        return ClippingPlane::ClipsNothing();
+    else {
+        const ClippingPlane& clp = *m_common_gizmos_data->object_clipper()->get_clipping_plane();
+        return ClippingPlane(-clp.get_normal(), clp.get_data()[3]);
+    }
+
+
+    /*if (!m_enabled || (m_current != SlaSupports && m_current != Hollow) || m_gizmos.empty())
         return ClippingPlane::ClipsNothing();
 
     if (m_current == SlaSupports)
         return dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get())->get_sla_clipping_plane();
     else
-        return dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get())->get_sla_clipping_plane();
+        return dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get())->get_sla_clipping_plane();*/
 }
 
 bool GLGizmosManager::wants_reslice_supports_on_undo() const

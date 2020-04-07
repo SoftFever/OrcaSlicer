@@ -22,7 +22,7 @@ enum class SLAGizmoEventType : unsigned char;
 class GLGizmoHollow : public GLGizmoBase
 {
 private:
-    mutable double m_z_shift = 0.;
+    //mutable double m_z_shift = 0.;
     bool unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal);
 
     GLUquadricObj* m_quadric;
@@ -34,7 +34,7 @@ public:
     void set_sla_support_data(ModelObject* model_object, const Selection& selection);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
     void delete_selected_points();
-    ClippingPlane get_sla_clipping_plane() const;
+    //ClippingPlane get_sla_clipping_plane() const;
     
     bool is_selection_rectangle_dragging() const { return m_selection_rectangle.is_dragging(); }
     //void set_common_data_ptr(CommonGizmosData* ptr) { m_c = ptr; }

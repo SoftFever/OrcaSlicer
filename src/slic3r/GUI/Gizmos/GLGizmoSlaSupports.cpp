@@ -691,7 +691,7 @@ std::vector<const ConfigOption*> GLGizmoSlaSupports::get_config_options(const st
     return out;
 }
 
-
+/*
 ClippingPlane GLGizmoSlaSupports::get_sla_clipping_plane() const
 {
     //if (!m_c->m_model_object || m_state == Off || m_c->m_clipping_plane_distance == 0.f)
@@ -707,7 +707,7 @@ ClippingPlane GLGizmoSlaSupports::get_sla_clipping_plane() const
         return ClippingPlane(-clp.get_normal(), clp.get_data()[3]);
     }
 }
-
+*/
 
 /*
 void GLGizmoSlaSupports::find_intersecting_facets(const igl::AABB<Eigen::MatrixXf, 3>* aabb, const Vec3f& normal, double offset, std::vector<unsigned int>& idxs) const

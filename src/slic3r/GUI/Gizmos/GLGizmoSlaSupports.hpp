@@ -75,7 +75,7 @@ public:
     void set_sla_support_data(ModelObject* model_object, const Selection& selection);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
     void delete_selected_points(bool force = false);
-    ClippingPlane get_sla_clipping_plane() const;
+    //ClippingPlane get_sla_clipping_plane() const;
 
     bool is_in_editing_mode() const { return m_editing_mode; }
     bool is_selection_rectangle_dragging() const { return m_selection_rectangle.is_dragging(); }
