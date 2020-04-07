@@ -1093,8 +1093,8 @@ void Sidebar::msw_rescale()
 
 void Sidebar::apply_search_filter()
 {
-    p->search_list.apply_filters(p->search_line);
-    apply_search_line_on_tabs();
+    if (p->search_list.apply_filters(p->search_line))
+        apply_search_line_on_tabs();
 }
 
 void Sidebar::jump_to_option(size_t selected)
@@ -1387,7 +1387,7 @@ void Sidebar::apply_search_line_on_tabs()
 void Sidebar::update_search_list()
 {
     p->search_list.init(get_search_inputs(m_mode));
-    apply_search_line_on_tabs();
+//    apply_search_line_on_tabs();
 }
 
 void Sidebar::update_mode()

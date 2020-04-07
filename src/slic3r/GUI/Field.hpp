@@ -193,6 +193,7 @@ public:
 
 	void	invalidate_attention_bmp() const {
         m_find_image->SetBitmap(wxNullBitmap);
+		m_find_image->Show();
     }
 
 	void	activate_attention_bmp() const {

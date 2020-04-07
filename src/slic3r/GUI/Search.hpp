@@ -28,6 +28,7 @@ struct SearchInput
 
 class SearchOptions
 {
+    std::string         search_line;
 public:
     struct Option {
         bool operator<(const Option& other) const { return other.label > this->label; }
@@ -65,7 +66,7 @@ public:
     void init(std::vector<SearchInput> input_values);
 
     void append_options(DynamicPrintConfig* config, Preset::Type type, ConfigOptionMode mode);
-    void apply_filters(const std::string& search);
+    bool apply_filters(const std::string& search, bool force = false);
 
     void sort_options() {
         std::sort(options.begin(), options.end(), [](const Option& o1, const Option& o2) {
@@ -151,8 +152,6 @@ private:
 
 
 
-
-
 class SearchComboPopup : public wxListBox, public wxComboPopup
 {
 public:
@@ -197,53 +196,6 @@ protected:
     wxString m_input_string;
 };
 
-
-
-class SearchComboPopup_ : public wxListCtrl, public wxComboPopup
-{
-public:
-    // Initialize member variables
-    virtual void Init() {}
-
-    // Create popup control
-    virtual bool Create(wxWindow* parent)
-    {
-        return wxListCtrl::Create(parent, 1, wxPoint(0, 0), wxDefaultSize, wxLC_LIST | wxLC_NO_HEADER | wxLC_SINGLE_SEL);
-    }
-    // Return pointer to the created control
-    virtual wxWindow* GetControl() { return this; }
-    // Translate string into a list selection
-    virtual void SetStringValue(const wxString& s)
-    {
-        int n = wxListCtrl::FindItem(0, s);
-        if (n >= 0 && n < wxListCtrl::GetItemCount())
-            wxListCtrl::SetItemState(n, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-
-        // save a combo control's string
-        m_input_string = s;
-    }
-    // Get list selection as a string
-    virtual wxString GetStringValue() const
-    {
-        // we shouldn't change a combo control's string
-        return m_input_string;
-    }
-    // Do mouse hot-tracking (which is typical in list popups)
-    void OnMouseMove(wxMouseEvent& event)
-    {
-        // TODO: Move selection to cursor
-    }
-    // On mouse left up, set the value and close the popup
-    void OnMouseClick(wxMouseEvent& WXUNUSED(event))
-    {
-        // TODO: Send event as well
-        Dismiss();
-    }
-protected:
-    wxString m_input_string;
-};
-
-
 class SearchCtrl
 {
     wxBoxSizer*         box_sizer   {nullptr};
@@ -254,17 +206,17 @@ class SearchCtrl
 
     bool                prevent_update{ false };
     wxString            default_string;
+    bool                editing {false};
 
     void PopupList(wxCommandEvent& event);
     void OnInputText(wxCommandEvent& event);
 
     wxComboCtrl*        comboCtrl {nullptr};
     SearchComboPopup*   popupListBox {nullptr};
-    SearchComboPopup_*   popupListCtrl {nullptr};
 
     void OnSelect(wxCommandEvent& event);
-    void OnLeftDown(wxEvent& event);
-    void OnSelectCtrl(wxListEvent& event);
+    void OnLeftDownInPopup(wxEvent& event);
+    void OnLeftUpInTextCtrl(wxEvent& event);
 
 public:
     SearchCtrl(wxWindow* parent);
