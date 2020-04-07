@@ -1,12 +1,11 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoFdmSupports.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
-#include "slic3r/GUI/Gizmos/GLGizmos.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
 
 #include <GL/glew.h>
 
 #include "slic3r/GUI/GUI_App.hpp"
-#include "slic3r/GUI/MeshUtils.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "slic3r/GUI/Camera.hpp"
 
@@ -55,32 +54,16 @@ bool GLGizmoFdmSupports::on_init()
 
 void GLGizmoFdmSupports::set_fdm_support_data(ModelObject* model_object, const Selection& selection)
 {
-    if (! model_object || selection.is_empty()) {
-        m_model_object = nullptr;
+    const ModelObject* mo = m_c->selection_info() ? m_c->selection_info()->model_object() : nullptr;
+    if (! mo)
         return;
-    }
 
-    if (m_model_object != model_object || m_model_object_id != model_object->id())
-        m_model_object = model_object;
-
-    m_active_instance = selection.get_instance_idx();
-
-    if (model_object && selection.is_from_single_instance())
+    if (mo && selection.is_from_single_instance()
+     && (mo != m_old_mo || mo->volumes.size() != m_old_volumes_size))
     {
-        // Cache the bb - it's needed for dealing with the clipping plane quite often
-        // It could be done inside update_mesh but one has to account for scaling of the instance.
-        //FIXME calling ModelObject::instance_bounding_box() is expensive!
-        m_active_instance_bb_radius = m_model_object->instance_bounding_box(m_active_instance).radius();
-
-        if (is_mesh_update_necessary())
-            update_mesh();
-
-        if (m_state == On) {
-            m_parent.toggle_model_objects_visibility(false);
-            m_parent.toggle_model_objects_visibility(true, m_model_object, m_active_instance);
-        }
-        else
-            m_parent.toggle_model_objects_visibility(true, nullptr, -1);
+        update_mesh();
+        m_old_mo = mo;
+        m_old_volumes_size = mo->volumes.size();
     }
 }
 
@@ -90,23 +73,11 @@ void GLGizmoFdmSupports::on_render() const
 {
     const Selection& selection = m_parent.get_selection();
 
-    // If current m_model_object does not match selection, ask GLCanvas3D to turn us off
-    if (m_state == On
-     && (m_model_object != selection.get_model()->objects[selection.get_object_idx()]
-      || m_active_instance != selection.get_instance_idx()
-      || m_model_object_id != m_model_object->id())) {
-        m_parent.post_event(SimpleEvent(EVT_GLCANVAS_RESETGIZMOS));
-        return;
-    }
-
-    if (m_meshes.empty())
-        const_cast<GLGizmoFdmSupports*>(this)->update_mesh();
-
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
     render_triangles(selection);
-    render_clipping_plane(selection);
+    m_c->object_clipper()->render_cut();
     render_cursor_circle();
 
     glsafe(::glDisable(GL_BLEND));
@@ -114,16 +85,14 @@ void GLGizmoFdmSupports::on_render() const
 
 void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
 {
-//    if (m_meshes.empty())
-//        return;
+    const ModelObject* mo = m_c->selection_info()->model_object();
 
-
-    for (size_t mesh_id=0; mesh_id<m_meshes.size(); ++mesh_id) {
+    for (size_t mesh_id=0; mesh_id<mo->volumes.size(); ++mesh_id) {
 
         const Transform3d trafo_matrix =
-            m_model_object->instances[selection.get_instance_idx()]->get_transformation().get_matrix() *
-            m_model_object->volumes[mesh_id]->get_matrix();
-        const TriangleMesh* mesh = m_meshes[mesh_id];
+            mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix() *
+            mo->volumes[mesh_id]->get_matrix();
+        const TriangleMesh* mesh = &mo->volumes[mesh_id]->mesh();
 
 
 
@@ -147,39 +116,10 @@ void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
     }
 }
 
-void GLGizmoFdmSupports::render_clipping_plane(const Selection& selection) const
-{
-//    if (m_clipping_plane_distance == 0.f)
-//        return;
-
-//    // Get transformation of the instance
-//    const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
-//    Geometry::Transformation trafo = vol->get_instance_transformation();
-
-
-//    // Now initialize the TMS for the object, perform the cut and save the result.
-//    if (! m_object_clipper) {
-//        m_object_clipper.reset(new MeshClipper);
-//        m_object_clipper->set_mesh(*m_mesh);
-//    }
-//    m_object_clipper->set_plane(*m_clipping_plane);
-//    m_object_clipper->set_transformation(trafo);
-
-//    // At this point we have the triangulated cuts for both the object and supports - let's render.
-//    if (! m_object_clipper->get_triangles().empty()) {
-//		::glPushMatrix();
-//        ::glColor3f(1.0f, 0.37f, 0.0f);
-//        ::glBegin(GL_TRIANGLES);
-//        for (const Vec3f& point : m_object_clipper->get_triangles())
-//            ::glVertex3f(point(0), point(1), point(2));
-//        ::glEnd();
-//		::glPopMatrix();
-//	}
-}
 
 void GLGizmoFdmSupports::render_cursor_circle() const
 {
-    const Camera& camera = m_parent.get_camera();
+    const Camera& camera = wxGetApp().plater()->get_camera();
     float zoom = (float)camera.get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
@@ -228,35 +168,19 @@ void GLGizmoFdmSupports::on_render_for_picking() const
 }
 
 
-bool GLGizmoFdmSupports::is_mesh_update_necessary() const
-{
-    std::vector<ObjectID> volumes_ids;
-    for (const ModelVolume* vol : m_model_object->volumes)
-        volumes_ids.push_back(vol->id());
-
-    return ((m_state == On) && (m_model_object != nullptr) && !m_model_object->instances.empty())
-        && (m_model_object->id() != m_model_object_id || m_volumes_ids != volumes_ids);
-}
-
-
 
 void GLGizmoFdmSupports::update_mesh()
 {
-    if (! m_model_object)
-        return;
-
     wxBusyCursor wait;
 
-    size_t num_of_volumes = m_model_object->volumes.size();
-    m_meshes.clear();
+    const ModelObject* mo = m_c->selection_info()->model_object();
+    size_t num_of_volumes = mo->volumes.size();
     m_selected_facets.resize(num_of_volumes);
     m_neighbors.resize(num_of_volumes);
-    m_meshes_raycaster.clear();
 
     for (size_t volume_id=0; volume_id<num_of_volumes; ++volume_id) {
         // This mesh does not account for the possible Z up SLA offset.
-        const TriangleMesh* mesh = &m_model_object->volumes[volume_id]->mesh();
-        m_meshes.push_back(mesh);
+        const TriangleMesh* mesh = &mo->volumes[volume_id]->mesh();
 
         m_selected_facets[volume_id].assign(mesh->its.indices.size(), false);
         m_neighbors[volume_id].resize(3 * mesh->its.indices.size());
@@ -269,12 +193,7 @@ void GLGizmoFdmSupports::update_mesh()
             m_neighbors[volume_id][3*i+2] = std::make_pair(ind(2), i);
         }
         std::sort(m_neighbors[volume_id].begin(), m_neighbors[volume_id].end());
-
-        // Recalculate raycaster.
-        m_meshes_raycaster.emplace_back(new MeshRaycaster(*mesh));
     }
-
-    m_model_object_id = m_model_object->id();
 }
 
 
@@ -292,34 +211,38 @@ bool operator<(const GLGizmoFdmSupports::NeighborData& a, const GLGizmoFdmSuppor
 bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down)
 {
     if (action == SLAGizmoEventType::MouseWheelUp && control_down) {
-        m_clipping_plane_distance = std::min(1.f, m_clipping_plane_distance + 0.01f);
-        update_clipping_plane(true);
+        double pos = m_c->object_clipper()->get_position();
+        pos = std::min(1., pos + 0.01);
+        m_c->object_clipper()->set_position(pos, true);
         return true;
     }
 
     if (action == SLAGizmoEventType::MouseWheelDown && control_down) {
-        m_clipping_plane_distance = std::max(0.f, m_clipping_plane_distance - 0.01f);
-        update_clipping_plane(true);
+        double pos = m_c->object_clipper()->get_position();
+        pos = std::max(0., pos - 0.01);
+        m_c->object_clipper()->set_position(pos, true);
         return true;
     }
 
     if (action == SLAGizmoEventType::ResetClippingPlane) {
-        update_clipping_plane();
+        m_c->object_clipper()->set_position(-1., false);
         return true;
     }
 
     if (action == SLAGizmoEventType::LeftDown || (action == SLAGizmoEventType::Dragging && m_wait_for_up_event)) {
         bool select = ! shift_down;
-        const Camera& camera = m_parent.get_camera();
+        const Camera& camera = wxGetApp().plater()->get_camera();
         const Selection& selection = m_parent.get_selection();
-        const Transform3d& instance_trafo = m_model_object->instances[selection.get_instance_idx()]->get_transformation().get_matrix();
+        const ModelInstance* mi = m_c->selection_info()->model_object()->instances[selection.get_instance_idx()];
+        const Transform3d& instance_trafo = mi->get_transformation().get_matrix();
 
         // Precalculate transformations of individual meshes
         std::vector<Transform3d> trafo_matrices;
-        for (const ModelVolume* mv : m_model_object->volumes)
+        const std::vector<ModelVolume*>& volumes = m_c->selection_info()->model_object()->volumes;
+        for (const ModelVolume* mv : volumes)
             trafo_matrices.push_back(instance_trafo * mv->get_matrix());
 
-        std::vector<std::vector<std::pair<Vec3f, size_t>>> hit_positions_and_facet_ids(m_meshes.size());
+        std::vector<std::vector<std::pair<Vec3f, size_t>>> hit_positions_and_facet_ids(volumes.size());
         bool some_mesh_was_hit = false;
 
         // Cast a ray on all meshes, pick the closest hit and save it for the respective mesh
@@ -331,9 +254,9 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         size_t closest_facet = 0;
         size_t closest_hit_mesh_id = size_t(-1);
 
-        for (size_t mesh_id=0; mesh_id<m_meshes.size(); ++mesh_id) {
+        for (size_t mesh_id=0; mesh_id<volumes.size(); ++mesh_id) {
 
-            if (m_meshes_raycaster[mesh_id]->unproject_on_mesh(
+            if (m_c->raycaster()->raycasters()[mesh_id]->unproject_on_mesh(
                        mouse_position,
                        trafo_matrices[mesh_id],
                        camera,
@@ -358,11 +281,11 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
 
         // Now propagate the hits
-        for (size_t mesh_id=0; mesh_id<m_meshes.size(); ++mesh_id) {
+        for (size_t mesh_id=0; mesh_id<volumes.size(); ++mesh_id) {
             // For all hits on this mesh...
             for (const std::pair<Vec3f, size_t>& hit_and_facet : hit_positions_and_facet_ids[mesh_id]) {
                 some_mesh_was_hit = true;
-                const TriangleMesh* mesh = m_meshes[mesh_id];
+                const TriangleMesh* mesh = &volumes[mesh_id]->mesh();
                 std::vector<NeighborData>& neighbors = m_neighbors[mesh_id];
 
                 // Calculate direction from camera to the hit (in mesh coords):
@@ -381,8 +304,8 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 };
 
                 // A lambda to determine whether this facet is potentionally visible (still can be obscured)
-                auto faces_camera = [&dir, this](const size_t& mesh_id, const size_t& facet) -> bool {
-                    return (m_meshes[mesh_id]->stl.facet_start[facet].normal.dot(dir) > 0.);
+                auto faces_camera = [&dir, &volumes](const size_t& mesh_id, const size_t& facet) -> bool {
+                    return (volumes[mesh_id]->mesh().stl.facet_start[facet].normal.dot(dir) > 0.);
                 };
                 // Now start with the facet the pointer points to and check all adjacent facets. neighbors vector stores
                 // pairs of vertex_idx - facet_idx and is sorted with respect to the former. Neighboring facet index can be
@@ -439,18 +362,9 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
 
 
-
-ClippingPlane GLGizmoFdmSupports::get_fdm_clipping_plane() const
-{
-    if (!m_model_object || m_state == Off || m_clipping_plane_distance == 0.f)
-        return ClippingPlane::ClipsNothing();
-    else
-        return ClippingPlane(-m_clipping_plane->get_normal(), m_clipping_plane->get_data()[3]);
-}
-
 void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_limit)
 {
-    if (!m_model_object)
+    if (! m_c->selection_info()->model_object())
         return;
 
     const float approx_height = m_imgui->scaled(18.0f);
@@ -474,20 +388,21 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     // Following is rendered in both editing and non-editing mode:
     m_imgui->text("");
-    if (m_clipping_plane_distance == 0.f)
+    if (m_c->object_clipper()->get_position() == 0.f)
         m_imgui->text(m_desc.at("clipping_of_view"));
     else {
         if (m_imgui->button(m_desc.at("reset_direction"))) {
             wxGetApp().CallAfter([this](){
-                    update_clipping_plane();
+                    m_c->object_clipper()->set_position(-1., false);
                 });
         }
     }
 
     ImGui::SameLine(clipping_slider_left);
     ImGui::PushItemWidth(window_width - clipping_slider_left);
-    if (ImGui::SliderFloat("  ", &m_clipping_plane_distance, 0.f, 1.f, "%.2f"))
-        update_clipping_plane(true);
+    float clp_dist = m_c->object_clipper()->get_position();
+    if (ImGui::SliderFloat("  ", &clp_dist, 0.f, 1.f, "%.2f"))
+        m_c->object_clipper()->set_position(clp_dist, true);
 
      ImGui::SliderFloat(" ", &m_cursor_radius, 0.f, 8.f, "%.2f");
 
@@ -522,46 +437,29 @@ std::string GLGizmoFdmSupports::on_get_name() const
 }
 
 
+CommonGizmosDataID GLGizmoFdmSupports::on_get_requirements() const
+{
+    return CommonGizmosDataID(
+                int(CommonGizmosDataID::SelectionInfo)
+              | int(CommonGizmosDataID::InstancesHider)
+              | int(CommonGizmosDataID::Raycaster)
+              | int(CommonGizmosDataID::HollowedMesh)
+              | int(CommonGizmosDataID::ObjectClipper)
+              | int(CommonGizmosDataID::SupportsClipper));
+}
+
 
 void GLGizmoFdmSupports::on_set_state()
 {
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    return;
-
-    // m_model_object pointer can be invalid (for instance because of undo/redo action),
-    // we should recover it from the object id
-    m_model_object = nullptr;
-    for (const auto mo : wxGetApp().model().objects) {
-        if (mo->id() == m_model_object_id) {
-            m_model_object = mo;
-            break;
-        }
-    }
-
     if (m_state == m_old_state)
         return;
 
     if (m_state == On && m_old_state != On) { // the gizmo was just turned on
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("FDM gizmo turned on")));
-        if (is_mesh_update_necessary())
-            update_mesh();
-
-        // we'll now reload support points:
-        if (m_model_object)
-            ;// !!!! reload_cache();
-
-        m_parent.toggle_model_objects_visibility(false);
-        if (m_model_object)
-            m_parent.toggle_model_objects_visibility(true, m_model_object, m_active_instance);
     }
     if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
         // we are actually shutting down
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("FDM gizmo turned off")));
-        m_parent.toggle_model_objects_visibility(true);
-        m_clipping_plane_distance = 0.f;
-        // Release clippers and the AABB raycaster.
-        m_meshes_clipper.clear();
-        m_meshes_raycaster.clear();
     }
     m_old_state = m_state;
 }
@@ -592,19 +490,6 @@ void GLGizmoFdmSupports::on_save(cereal::BinaryOutputArchive& ar) const
 {
 
 }
-
-
-void GLGizmoFdmSupports::update_clipping_plane(bool keep_normal) const
-{
-    Vec3d normal = (keep_normal && m_clipping_plane->get_normal() != Vec3d::Zero() ?
-                        m_clipping_plane->get_normal() : -m_parent.get_camera().get_dir_forward());
-
-    const Vec3d& center = m_model_object->instances[m_active_instance]->get_offset();
-    float dist = normal.dot(center);
-    *m_clipping_plane = ClippingPlane(normal, (dist - (-m_active_instance_bb_radius) - m_clipping_plane_distance * 2*m_active_instance_bb_radius));
-    m_parent.set_as_dirty();
-}
-
 
 
 

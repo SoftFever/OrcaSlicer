@@ -15,6 +15,7 @@
 #include "slic3r/GUI/Gizmos/GLGizmoRotate.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoFlatten.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSlaSupports.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoFdmSupports.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoCut.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoHollow.hpp"
 
@@ -103,12 +104,7 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", 6));
     m_gizmos.emplace_back(new GLGizmoFdmSupports(m_parent, "sla_supports.svg", 7));
 
-    //m_common_gizmos_data.reset(new CommonGizmosData());
-    //dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get())->set_common_data_ptr(m_common_gizmos_data.get());
-    //dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get())->set_common_data_ptr(m_common_gizmos_data.get());
-
     m_common_gizmos_data.reset(new CommonGizmosDataPool(&m_parent));
-
 
     for (auto& gizmo : m_gizmos) {
         if (! gizmo->init()) {
