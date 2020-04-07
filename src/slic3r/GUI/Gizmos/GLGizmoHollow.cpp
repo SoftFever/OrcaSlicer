@@ -119,6 +119,7 @@ void GLGizmoHollow::on_render() const
     m_selection_rectangle.render(m_parent);
     //render_clipping_plane(selection);
     m_c->object_clipper()->render_cut();
+    m_c->supports_clipper()->render_cut();
 
     glsafe(::glDisable(GL_BLEND));
 }
@@ -929,7 +930,8 @@ CommonGizmosDataID GLGizmoHollow::on_get_requirements() const
               | int(CommonGizmosDataID::InstancesHider)
               | int(CommonGizmosDataID::Raycaster)
               | int(CommonGizmosDataID::HollowedMesh)
-              | int(CommonGizmosDataID::ObjectClipper));
+              | int(CommonGizmosDataID::ObjectClipper)
+              | int(CommonGizmosDataID::SupportsClipper));
 }
 
 

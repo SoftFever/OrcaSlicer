@@ -26,6 +26,7 @@ namespace CommonGizmosDataObjects {
     class HollowedMesh;
     class Raycaster;
     class ObjectClipper;
+    class SupportsClipper;
 }
 
 // Some of the gizmos use the same data that need to be updated ocassionally.
@@ -65,6 +66,7 @@ public:
     CommonGizmosDataObjects::HollowedMesh* hollowed_mesh() const;
     CommonGizmosDataObjects::Raycaster* raycaster() const;
     CommonGizmosDataObjects::ObjectClipper* object_clipper() const;
+    CommonGizmosDataObjects::SupportsClipper* supports_clipper() const;
 
 
     GLCanvas3D* get_canvas() const { return m_canvas; }
@@ -226,7 +228,6 @@ public:
     CommonGizmosDataID get_dependencies() const override { return CommonGizmosDataID::SelectionInfo; }
 #endif // NDEBUG
 
-    MeshClipper* get_clipper() const { return m_clipper.get(); }
     void set_position(double pos, bool keep_normal);
     double get_position() const { return m_clp_ratio; }
     ClippingPlane* get_clipping_plane() const { return m_clp.get(); }
@@ -243,17 +244,6 @@ private:
     std::unique_ptr<ClippingPlane> m_clp;
     double m_clp_ratio = 0.;
     double m_active_inst_bb_radius = 0.;
-
-};
-
-/*
-
-class ClippingPlaneWrapper : public CommonGizmosDataBase
-{
-public:
-    explicit ClippingPlaneWrapper(CommonGizmosDataPool* cgdp)
-        : CommonGizmosDataBase(cgdp) {}
-    void update(bool required) override;
 };
 
 
@@ -263,10 +253,28 @@ class SupportsClipper : public CommonGizmosDataBase
 public:
     explicit SupportsClipper(CommonGizmosDataPool* cgdp)
         : CommonGizmosDataBase(cgdp) {}
-    void update(bool required) override;
-};
+#ifndef NDEBUG
+    CommonGizmosDataID get_dependencies() const override {
+        return CommonGizmosDataID(
+                    int(CommonGizmosDataID::SelectionInfo)
+                  | int(CommonGizmosDataID::ObjectClipper)
+               );
+    }
+#endif // NDEBUG
 
-*/
+    void render_cut() const;
+
+
+protected:
+    void on_update() override;
+    void on_release() override;
+
+private:
+    size_t m_old_timestamp = 0;
+    int m_print_object_idx = -1;
+    int m_print_objects_count = 0;
+    std::unique_ptr<MeshClipper> m_clipper;
+};
 
 } // namespace CommonGizmosDataObjects
 
