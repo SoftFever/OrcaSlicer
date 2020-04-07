@@ -110,6 +110,7 @@ void OptionsGroup::add_undo_buttuns_to_sizer(wxSizer* sizer, const t_field& fiel
 
 	sizer->Add(field->m_Undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
 	sizer->Add(field->m_Undo_btn, 0, wxALIGN_CENTER_VERTICAL);
+    sizer->Add(field->m_find_image, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 2);
 }
 
 void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = nullptr*/) {

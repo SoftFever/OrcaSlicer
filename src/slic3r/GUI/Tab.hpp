@@ -224,6 +224,34 @@ protected:
     bool                m_completed { false };
     ConfigOptionMode    m_mode = comExpert; // to correct first Tab update_visibility() set mode to Expert
 
+	wxTimer             m_highlighting_timer;
+	struct {
+	    Field*	field {nullptr};
+		int		blink_counter {0};
+
+		void init(Field* f)
+		{
+		    field = f;
+			field->activate_attention_bmp();
+		}
+
+		void invalidate()
+		{
+			field->invalidate_attention_bmp();
+		    field = nullptr;
+			blink_counter = 0;
+		}
+
+		bool blink()
+		{
+			field->blink_attention_bmp();
+			if ((++blink_counter) == 5)
+			    invalidate();
+
+			return blink_counter != 0;
+		}
+	} m_highlighter;
+
 public:
 	PresetBundle*		m_preset_bundle;
 	bool				m_show_btn_incompatible_presets = false;

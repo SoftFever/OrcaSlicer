@@ -191,6 +191,19 @@ public:
 		return false;
 	}
 
+	void	invalidate_attention_bmp() const {
+        m_find_image->SetBitmap(wxNullBitmap);
+    }
+
+	void	activate_attention_bmp() const {
+		m_find_image->SetBitmap(m_attention_bmp.bmp());
+	}
+
+	void	blink_attention_bmp() const {
+		bool is_shown = m_find_image->IsShown();
+		m_find_image->Show(!is_shown);
+	}
+
 	bool	set_label_colour_force(const wxColour *clr) {
 		if (m_Label == nullptr) return false;
 		m_Label->SetForegroundColour(*clr);
@@ -239,6 +252,9 @@ protected:
 	// Bitmap and Tooltip text for m_Undo_to_sys_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
     const ScalableBitmap*   m_undo_to_sys_bitmap = nullptr;
 	const wxString*		    m_undo_to_sys_tooltip = nullptr;
+
+	ScalableBitmap			m_attention_bmp;
+	wxStaticBitmap*			m_find_image{ nullptr };
 
 	wxStaticText*		m_Label = nullptr;
 	// Color for Label. The wxColour will be updated only if the new wxColour pointer differs from the currently rendered one.

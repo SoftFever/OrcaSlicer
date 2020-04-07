@@ -69,6 +69,13 @@ Tab::Tab(wxNotebook* parent, const wxString& title, Preset::Type type) :
                 page->layout_valid = false;
         evt.Skip();
     }));
+
+    this->m_highlighting_timer.SetOwner(this, 0);
+    this->Bind(wxEVT_TIMER, [this](wxTimerEvent&)
+    {
+        if (!m_highlighter.blink())
+            m_highlighting_timer.Stop();
+    });
 }
 
 void Tab::set_type()
@@ -992,8 +999,11 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
         tap_panel->SetSelection(page_id);
 
     // focused selected field
-    if (field)
+    if (field) {
         field->getWindow()->SetFocus();
+        m_highlighting_timer.Start(500, false);
+        m_highlighter.init(field);
+    }
 }
 
 

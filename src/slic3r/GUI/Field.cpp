@@ -57,6 +57,9 @@ void Field::PostInitialize()
     m_Undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_back_to_initial_value(); }));
 	m_Undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_back_to_sys_value(); }));
 
+	m_attention_bmp		= ScalableBitmap(m_parent, "error_tick_f");
+	m_find_image		= new wxStaticBitmap(m_parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, m_attention_bmp.bmp().GetSize());
+
 	switch (m_opt.type)
 	{
 	case coPercents:
