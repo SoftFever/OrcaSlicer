@@ -4,6 +4,10 @@
 
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "libslic3r/SLAPrint.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/Camera.hpp"
+
+#include <GL/glew.h>
 
 namespace Slic3r {
 namespace GUI {
@@ -18,7 +22,7 @@ CommonGizmosDataPool::CommonGizmosDataPool(GLCanvas3D* canvas)
     m_data[c::InstancesHider].reset(      new InstancesHider(this));
     m_data[c::HollowedMesh].reset(        new HollowedMesh(this));
     m_data[c::Raycaster].reset(           new Raycaster(this));
-    //m_data[c::ObjectClipper].reset(new ClippingPlaneWrapper(this));
+    m_data[c::ObjectClipper].reset(new ObjectClipper(this));
     //m_data[c::SupportsClipper].reset(     new SupportsClipper(this));
 
 }
@@ -37,25 +41,32 @@ void CommonGizmosDataPool::update(CommonGizmosDataID required)
 }
 
 
-SelectionInfo* CommonGizmosDataPool::selection_info()
+SelectionInfo* CommonGizmosDataPool::selection_info() const
 {
-    SelectionInfo* sel_info = dynamic_cast<SelectionInfo*>(m_data[CommonGizmosDataID::SelectionInfo].get());
+    SelectionInfo* sel_info = dynamic_cast<SelectionInfo*>(m_data.at(CommonGizmosDataID::SelectionInfo).get());
     assert(sel_info);
     return sel_info->is_valid() ? sel_info : nullptr;
 }
 
-HollowedMesh* CommonGizmosDataPool::hollowed_mesh()
+HollowedMesh* CommonGizmosDataPool::hollowed_mesh() const
 {
-    HollowedMesh* hol_mesh = dynamic_cast<HollowedMesh*>(m_data[CommonGizmosDataID::HollowedMesh].get());
+    HollowedMesh* hol_mesh = dynamic_cast<HollowedMesh*>(m_data.at(CommonGizmosDataID::HollowedMesh).get());
     assert(hol_mesh);
     return hol_mesh->is_valid() ? hol_mesh : nullptr;
 }
 
-Raycaster* CommonGizmosDataPool::raycaster()
+Raycaster* CommonGizmosDataPool::raycaster() const
 {
-    Raycaster* rc = dynamic_cast<Raycaster*>(m_data[CommonGizmosDataID::Raycaster].get());
+    Raycaster* rc = dynamic_cast<Raycaster*>(m_data.at(CommonGizmosDataID::Raycaster).get());
     assert(rc);
     return rc->is_valid() ? rc : nullptr;
+}
+
+ObjectClipper* CommonGizmosDataPool::object_clipper() const
+{
+    ObjectClipper* oc = dynamic_cast<ObjectClipper*>(m_data.at(CommonGizmosDataID::ObjectClipper).get());
+    assert(oc);
+    return oc->is_valid() ? oc : nullptr;
 }
 
 #ifndef NDEBUG
@@ -87,8 +98,10 @@ bool CommonGizmosDataPool::check_dependencies(CommonGizmosDataID required) const
 void SelectionInfo::on_update()
 {
     const Selection& selection = get_pool()->get_canvas()->get_selection();
-    if (selection.is_single_full_instance())
+    if (selection.is_single_full_instance()) {
         m_model_object = selection.get_model()->objects[selection.get_object_idx()];
+        m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
+    }
     else
         m_model_object = nullptr;
 }
@@ -98,7 +111,7 @@ void SelectionInfo::on_release()
     m_model_object = nullptr;
 }
 
-int SelectionInfo::get_active_instance()
+int SelectionInfo::get_active_instance() const
 {
     const Selection& selection = get_pool()->get_canvas()->get_selection();
     return selection.get_instance_idx();
@@ -236,6 +249,84 @@ std::vector<const MeshRaycaster*> Raycaster::raycasters() const
 }
 
 
+
+
+
+void ObjectClipper::on_update()
+{
+    const ModelObject* mo = get_pool()->selection_info()->model_object();
+    if (! mo)
+        return;
+
+    // which mesh should be cut?
+    const TriangleMesh* mesh = &mo->volumes.front()->mesh();
+    bool has_hollowed = get_pool()->hollowed_mesh() && get_pool()->hollowed_mesh()->get_hollowed_mesh();
+    if (has_hollowed)
+        mesh = get_pool()->hollowed_mesh()->get_hollowed_mesh();
+
+    if (mesh != m_old_mesh) {
+        m_clipper.reset(new MeshClipper);
+        m_clipper->set_mesh(*mesh);
+        m_old_mesh = mesh;
+        m_active_inst_bb_radius =
+            mo->instance_bounding_box(get_pool()->selection_info()->get_active_instance()).radius();
+        //if (has_hollowed && m_clp_ratio != 0.)
+        //    m_clp_ratio = 0.25;
+    }
+}
+
+
+void ObjectClipper::on_release()
+{
+    m_clipper.reset();
+    m_old_mesh = nullptr;
+    m_clp.reset();
+
+}
+
+void ObjectClipper::render_cut() const
+{
+    if (m_clp_ratio == 0.)
+        return;
+    const SelectionInfo* sel_info = get_pool()->selection_info();
+    const ModelObject* mo = sel_info->model_object();
+    Geometry::Transformation inst_trafo = mo->instances[sel_info->get_active_instance()]->get_transformation();
+    Geometry::Transformation vol_trafo  = mo->volumes.front()->get_transformation();
+    Geometry::Transformation trafo = inst_trafo * vol_trafo;
+    trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., sel_info->get_sla_shift()));
+
+    m_clipper->set_plane(*m_clp);
+    m_clipper->set_transformation(trafo);
+
+    if (! m_clipper->get_triangles().empty()) {
+        ::glPushMatrix();
+        ::glColor3f(1.0f, 0.37f, 0.0f);
+        ::glBegin(GL_TRIANGLES);
+        for (const Vec3f& point : m_clipper->get_triangles())
+            ::glVertex3f(point(0), point(1), point(2));
+        ::glEnd();
+        ::glPopMatrix();
+    }
+}
+
+
+void ObjectClipper::set_position(double pos, bool keep_normal)
+{
+    const ModelObject* mo = get_pool()->selection_info()->model_object();
+    int active_inst = get_pool()->selection_info()->get_active_instance();
+    double z_shift = get_pool()->selection_info()->get_sla_shift();
+
+    Vec3d normal = (keep_normal && m_clp) ? m_clp->get_normal() : -wxGetApp().plater()->get_camera().get_dir_forward();
+    const Vec3d& center = mo->instances[active_inst]->get_offset() + Vec3d(0., 0., z_shift);
+    float dist = normal.dot(center);
+
+    if (pos < 0.)
+        pos = m_clp_ratio;
+
+    m_clp_ratio = pos;
+    m_clp.reset(new ClippingPlane(normal, (dist - (-m_active_inst_bb_radius) - m_clp_ratio * 2*m_active_inst_bb_radius)));
+    get_pool()->get_canvas()->set_as_dirty();
+}
 
 
 

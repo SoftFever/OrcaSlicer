@@ -16,7 +16,7 @@ namespace GUI {
 class ClippingPlane;
 class MeshClipper;
 class MeshRaycaster;
-class CommonGizmosData;
+//class CommonGizmosData;
 enum class SLAGizmoEventType : unsigned char;
 
 class GLGizmoHollow : public GLGizmoBase
@@ -37,8 +37,7 @@ public:
     ClippingPlane get_sla_clipping_plane() const;
     
     bool is_selection_rectangle_dragging() const { return m_selection_rectangle.is_dragging(); }
-    void update_clipping_plane(bool keep_normal = false) const;
-    void set_common_data_ptr(CommonGizmosData* ptr) { m_c = ptr; }
+    //void set_common_data_ptr(CommonGizmosData* ptr) { m_c = ptr; }
 
 private:
     bool on_init() override;
@@ -68,7 +67,7 @@ private:
 
     sla::DrainHoles m_holes_stash;
 
-    CommonGizmosData* m_c = nullptr;
+    //CommonGizmosData* m_c = nullptr;
 
     //std::unique_ptr<ClippingPlane> m_clipping_plane;
     
@@ -101,6 +100,7 @@ protected:
     void on_start_dragging() override;
     void on_stop_dragging() override;
     void on_render_input_window(float x, float y, float bottom_limit) override;
+    virtual CommonGizmosDataID on_get_requirements() const override;
 
     std::string on_get_name() const override;
     bool on_is_activable() const override;

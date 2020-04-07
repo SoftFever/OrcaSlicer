@@ -15,12 +15,17 @@ namespace GUI {
 
 class GLCanvas3D;
 
+static constexpr float HoleStickOutLength = 1.f;
+
+
+
 class CommonGizmosDataBase;
 namespace CommonGizmosDataObjects {
     class SelectionInfo;
     class InstancesHider;
     class HollowedMesh;
     class Raycaster;
+    class ObjectClipper;
 }
 
 // Some of the gizmos use the same data that need to be updated ocassionally.
@@ -55,9 +60,10 @@ public:
     void update(CommonGizmosDataID required);
 
     // Getters for the data that need to be accessed from the gizmos directly.
-    CommonGizmosDataObjects::SelectionInfo* selection_info();
-    CommonGizmosDataObjects::HollowedMesh* hollowed_mesh();
-    CommonGizmosDataObjects::Raycaster* raycaster();
+    CommonGizmosDataObjects::SelectionInfo* selection_info() const;
+    CommonGizmosDataObjects::HollowedMesh* hollowed_mesh() const;
+    CommonGizmosDataObjects::Raycaster* raycaster() const;
+    CommonGizmosDataObjects::ObjectClipper* object_clipper() const;
 
 
     GLCanvas3D* get_canvas() const { return m_canvas; }
@@ -125,8 +131,9 @@ public:
     explicit SelectionInfo(CommonGizmosDataPool* cgdp)
         : CommonGizmosDataBase(cgdp) {}
 
-    ModelObject* model_object() { return m_model_object; }
-    int get_active_instance();
+    ModelObject* model_object() const { return m_model_object; }
+    int get_active_instance() const;
+    float get_sla_shift() const { return m_z_shift; }
 
 protected:
     void on_update() override;
@@ -135,6 +142,7 @@ protected:
 private:
     ModelObject* m_model_object = nullptr;
     int m_active_inst = -1;
+    float m_z_shift = 0.f;
 };
 
 
@@ -198,6 +206,37 @@ protected:
 private:
     std::vector<std::unique_ptr<MeshRaycaster>> m_raycasters;
     std::vector<const TriangleMesh*> m_old_meshes;
+};
+
+
+
+class ObjectClipper : public CommonGizmosDataBase
+{
+public:
+    explicit ObjectClipper(CommonGizmosDataPool* cgdp)
+        : CommonGizmosDataBase(cgdp) {}
+#ifndef NDEBUG
+    CommonGizmosDataID get_dependencies() const override { return CommonGizmosDataID::SelectionInfo; }
+#endif // NDEBUG
+
+    MeshClipper* get_clipper() const { return m_clipper.get(); }
+    void set_position(double pos, bool keep_normal);
+    double get_position() const { return m_clp_ratio; }
+    ClippingPlane* get_clipping_plane() const { return m_clp.get(); }
+    void render_cut() const;
+
+
+protected:
+    void on_update() override;
+    void on_release() override;
+
+private:
+    const TriangleMesh* m_old_mesh = nullptr;
+    std::unique_ptr<MeshClipper> m_clipper;
+    std::unique_ptr<ClippingPlane> m_clp;
+    double m_clp_ratio = 0.;
+    double m_active_inst_bb_radius = 0.;
+
 };
 
 /*
