@@ -9,10 +9,14 @@
 #include "slic3r/GUI/GUI_ObjectManipulation.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
-#include "libslic3r/SLAPrint.hpp"
-#include "slic3r/GUI/MeshUtils.hpp"
-#include "slic3r/GUI/Gizmos/GLGizmos.hpp"
-#include "slic3r/GUI/Camera.hpp"
+
+#include "slic3r/GUI/Gizmos/GLGizmoMove.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoScale.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoRotate.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoFlatten.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoSlaSupports.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoCut.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoHollow.hpp"
 
 #include <wx/glcanvas.h>
 
@@ -98,15 +102,18 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoHollow(m_parent, "hollow.svg", 5));
     m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", 6));
 
-    m_common_gizmos_data.reset(new CommonGizmosData());
-    dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get())->set_common_data_ptr(m_common_gizmos_data.get());
-    dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get())->set_common_data_ptr(m_common_gizmos_data.get());
+    //m_common_gizmos_data.reset(new CommonGizmosData());
+    //dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get())->set_common_data_ptr(m_common_gizmos_data.get());
+    //dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get())->set_common_data_ptr(m_common_gizmos_data.get());
+
+    m_common_gizmos_data.reset(new CommonGizmosDataPool(&m_parent));
 
     for (auto& gizmo : m_gizmos) {
         if (! gizmo->init()) {
             m_gizmos.clear();
             return false;
         }
+        gizmo->set_common_data_pool(m_common_gizmos_data.get());
     }
 
     m_current = Undefined;
@@ -197,6 +204,10 @@ void GLGizmosManager::update_data()
     {
         enable_grabber(Scale, i, enable_scale_xyz);
     }
+
+    m_common_gizmos_data->update(get_current()
+                           ? get_current()->get_requirements()
+                           : CommonGizmosDataID(0));
 
     if (selection.is_single_full_instance())
     {
@@ -358,15 +369,19 @@ void GLGizmosManager::set_sla_support_data(ModelObject* model_object)
      || wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
         return;
 
-    m_common_gizmos_data->update_from_backend(m_parent, model_object);
+    /*m_common_gizmos_data->update_from_backend(m_parent, model_object);
 
     auto* gizmo_supports = dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get());
-    auto* gizmo_hollow = dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get());
+
 
     // note: sla support gizmo takes care of updating the common data.
     // following lines are thus dependent
-    gizmo_supports->set_sla_support_data(model_object, m_parent.get_selection());
+    //gizmo_supports->set_sla_support_data(model_object, m_parent.get_selection());
+    */
+    auto* gizmo_hollow = dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get());
+    auto* gizmo_supports = dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get());
     gizmo_hollow->set_sla_support_data(model_object, m_parent.get_selection());
+    gizmo_supports->set_sla_support_data(model_object, m_parent.get_selection());
 }
 
 // Returns true if the gizmo used the event to do something, false otherwise.
@@ -384,13 +399,13 @@ bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_p
 
 ClippingPlane GLGizmosManager::get_sla_clipping_plane() const
 {
-    if (!m_enabled || (m_current != SlaSupports && m_current != Hollow) || m_gizmos.empty())
+    if (! m_common_gizmos_data->object_clipper()
+       || m_common_gizmos_data->object_clipper()->get_position() == 0.)
         return ClippingPlane::ClipsNothing();
-
-    if (m_current == SlaSupports)
-        return dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get())->get_sla_clipping_plane();
-    else
-        return dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get())->get_sla_clipping_plane();
+    else {
+        const ClippingPlane& clp = *m_common_gizmos_data->object_clipper()->get_clipping_plane();
+        return ClippingPlane(-clp.get_normal(), clp.get_data()[3]);
+    }
 }
 
 bool GLGizmosManager::wants_reslice_supports_on_undo() const
@@ -1188,10 +1203,13 @@ void GLGizmosManager::activate_gizmo(EType type)
             return; // gizmo refused to be turned off, do nothing.
     }
 
+    m_current = type;
+    m_common_gizmos_data->update(get_current()
+                           ? get_current()->get_requirements()
+                           : CommonGizmosDataID(0));
+
     if (type != Undefined)
         m_gizmos[type]->set_state(GLGizmoBase::On);
-
-    m_current = type;
 }
 
 
@@ -1202,136 +1220,6 @@ bool GLGizmosManager::grabber_contains_mouse() const
 
     GLGizmoBase* curr = get_current();
     return (curr != nullptr) ? (curr->get_hover_id() != -1) : false;
-}
-
-
-
-CommonGizmosData::CommonGizmosData()
-{
-    m_clipping_plane.reset(new ClippingPlane(Vec3d::Zero(), 0.));
-}
-
-
-
-bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas, ModelObject* model_object)
-{
-    recent_update = false;
-    bool object_changed = false;
-
-    if (m_model_object != model_object
-    || (model_object && m_model_object_id != model_object->id())) {
-        m_model_object = model_object;
-        m_print_object_idx = -1;
-        m_mesh_raycaster.reset();
-        m_object_clipper.reset();
-        m_supports_clipper.reset();
-        m_old_mesh = nullptr;
-        m_mesh = nullptr;
-        m_backend_mesh_transformed.clear();
-
-        object_changed = true;
-        recent_update = true;
-    }
-
-    if (m_model_object) {
-        int active_inst = canvas.get_selection().get_instance_idx();
-        if (m_active_instance != active_inst) {
-            m_active_instance = active_inst;
-            m_active_instance_bb_radius = m_model_object->instance_bounding_box(m_active_instance).radius();
-            recent_update = true;
-        }
-    }
-
-
-    if (! m_model_object || ! canvas.get_selection().is_from_single_instance())
-        return false;
-
-    int old_po_idx = m_print_object_idx;
-
-    // First we need a pointer to the respective SLAPrintObject. The index into objects vector is
-    // cached so we don't have todo it on each render. We only search for the po if needed:
-    if (m_print_object_idx < 0 || (int)canvas.sla_print()->objects().size() != m_print_objects_count) {
-        m_print_objects_count = canvas.sla_print()->objects().size();
-        m_print_object_idx = -1;
-        for (const SLAPrintObject* po : canvas.sla_print()->objects()) {
-            ++m_print_object_idx;
-            if (po->model_object()->id() == m_model_object->id())
-                break;
-        }
-    }
-
-    bool mesh_exchanged = false;
-    m_mesh = nullptr;
-    // Load either the model_object mesh, or one provided by the backend
-    // This mesh does not account for the possible Z up SLA offset.
-    // The backend mesh needs to be transformed and because a pointer to it is
-    // saved, a copy is stored as a member (FIXME)
-    if (m_print_object_idx >=0) {
-        const SLAPrintObject* po = canvas.sla_print()->objects()[m_print_object_idx];
-        if (po->is_step_done(slaposDrillHoles)) {
-            m_backend_mesh_transformed = po->get_mesh_to_print();
-            m_backend_mesh_transformed.transform(canvas.sla_print()->sla_trafo(*m_model_object).inverse());
-            m_mesh = &m_backend_mesh_transformed;
-            m_has_drilled_mesh = true;
-            mesh_exchanged = true;
-        }
-    }
-
-    if (! m_mesh) {
-        m_mesh = &m_model_object->volumes.front()->mesh();
-        m_backend_mesh_transformed.clear();
-        m_has_drilled_mesh = false;
-    }
-
-    m_model_object_id = m_model_object->id();
-
-    if (m_mesh != m_old_mesh) {
-        // Update clipping plane position.
-        float new_clp_pos = m_clipping_plane_distance;
-        if (object_changed) {
-            new_clp_pos = 0.f;
-            m_clipping_plane_was_moved = false;
-        } else {
-            // After we got a drilled mesh, move the cp to 25%. This only applies when
-            // the hollowing gizmo is active and hollowing is enabled
-            if (m_clipping_plane_distance == 0.f && mesh_exchanged && m_has_drilled_mesh) {
-                const DynamicPrintConfig& cfg =
-                    (m_model_object && m_model_object->config.has("hollowing_enable"))
-                    ? m_model_object->config
-                    : wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
-
-                if (cfg.has("hollowing_enable") && cfg.opt_bool("hollowing_enable")
-                 && canvas.get_gizmos_manager().get_current_type() == GLGizmosManager::Hollow) {
-                   new_clp_pos = 0.25f;
-                   m_clipping_plane_was_moved = false; // so it uses current camera direction
-                }
-            }
-        }
-        m_clipping_plane_distance = new_clp_pos;
-        m_clipping_plane_distance_stash = new_clp_pos;
-
-        m_schedule_aabb_calculation = true;
-        recent_update = true;
-        return true;
-    }
-    if (! recent_update)
-        recent_update = m_print_object_idx < 0 && old_po_idx >= 0;
-
-    return recent_update;
-}
-
-
-void CommonGizmosData::build_AABB_if_needed()
-{
-    if (! m_schedule_aabb_calculation)
-        return;
-
-    wxBusyCursor wait;
-    m_mesh_raycaster.reset(new MeshRaycaster(*m_mesh));
-    m_object_clipper.reset();
-    m_supports_clipper.reset();
-    m_old_mesh = m_mesh;
-    m_schedule_aabb_calculation = false;
 }
 
 } // namespace GUI
