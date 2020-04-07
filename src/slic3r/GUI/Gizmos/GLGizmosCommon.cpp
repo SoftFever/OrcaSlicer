@@ -306,6 +306,7 @@ void ObjectClipper::on_release()
     m_clipper.reset();
     m_old_mesh = nullptr;
     m_clp.reset();
+    m_clp_ratio = 0.;
 
 }
 

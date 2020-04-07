@@ -9,31 +9,19 @@
 namespace Slic3r {
 namespace GUI {
 
-/*class ClippingPlane;
-class MeshClipper;
-class MeshRaycaster;*/
 enum class SLAGizmoEventType : unsigned char;
 
 class GLGizmoFdmSupports : public GLGizmoBase
 {
 private:
-    /*ModelObject* m_model_object = nullptr;
-    ObjectID m_model_object_id = 0;
-    std::vector<ObjectID> m_volumes_ids;
-    int m_active_instance = -1;
-    float m_active_instance_bb_radius; // to cache the bb*/
     const ModelObject* m_old_mo = nullptr;
-    int m_old_volumes_size = 0;
-
+    size_t m_old_volumes_size = 0;
 
     GLUquadricObj* m_quadric;
 
-    //std::vector<std::unique_ptr<MeshRaycaster>> m_meshes_raycaster;
-    //std::vector<const TriangleMesh*> m_meshes;
-    //mutable std::vector<Vec2f> m_triangles;
     float m_cursor_radius = 2.f;
 
-    std::vector<std::vector<bool>> m_selected_facets;
+    std::vector<std::vector<int8_t>> m_selected_facets;
 
 public:
     GLGizmoFdmSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
@@ -49,9 +37,7 @@ private:
     void on_render_for_picking() const override;
 
     void render_triangles(const Selection& selection) const;
-    //void render_clipping_plane(const Selection& selection) const;
     void render_cursor_circle() const;
-    //bool is_mesh_update_necessary() const;
     void update_mesh();
 
     float m_clipping_plane_distance = 0.f;
@@ -64,11 +50,7 @@ private:
     bool m_wait_for_up_event = false;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
 
-    //mutable std::vector<std::unique_ptr<MeshClipper>> m_meshes_clipper;
-
     std::vector<std::vector<NeighborData>> m_neighbors; // pairs of vertex_index - facet_index for each mesh
-
-    //void update_clipping_plane(bool keep_normal = false) const;
 
 protected:
     void on_set_state() override;

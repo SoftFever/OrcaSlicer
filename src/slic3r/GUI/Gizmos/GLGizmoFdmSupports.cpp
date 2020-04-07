@@ -36,18 +36,15 @@ bool GLGizmoFdmSupports::on_init()
 {
     m_shortcut_key = WXK_CONTROL_L;
 
-    m_desc["head_diameter"]    = _(L("Head diameter")) + ": ";
-    m_desc["lock_supports"]    = _(L("Lock supports under new islands"));
-    m_desc["remove_selected"]  = _(L("Remove selected points"));
-    m_desc["remove_all"]       = _(L("Remove all points"));
-    m_desc["apply_changes"]    = _(L("Apply changes"));
-    m_desc["discard_changes"]  = _(L("Discard changes"));
-    m_desc["minimal_distance"] = _(L("Minimal points distance")) + ": ";
-    m_desc["points_density"]   = _(L("Support points density")) + ": ";
-    m_desc["auto_generate"]    = _(L("Auto-generate points"));
-    m_desc["manual_editing"]   = _(L("Manual editing"));
-    m_desc["clipping_of_view"] = _(L("Clipping of view"))+ ": ";
-    m_desc["reset_direction"]  = _(L("Reset direction"));
+    m_desc["clipping_of_view"] = _L("Clipping of view") + ": ";
+    m_desc["reset_direction"]  = _L("Reset direction");
+    m_desc["cursor_size"]      = _L("Cursor size") + ": ";
+    m_desc["enforce_caption"]  = _L("Left mouse button") + ": ";
+    m_desc["enforce"]          = _L("Enforce supports");
+    m_desc["block_caption"]    = _L("Alt + Left mouse button") + " ";
+    m_desc["block"]            = _L("Block supports");
+    m_desc["remove_caption"]   = _L("Shift + Left mouse button") + ": ";
+    m_desc["remove"]           = _L("Remove selection");
 
     return true;
 }
@@ -94,13 +91,12 @@ void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
             mo->volumes[mesh_id]->get_matrix();
         const TriangleMesh* mesh = &mo->volumes[mesh_id]->mesh();
 
-
-
-        ::glColor3f(0.0f, 0.37f, 1.0f);
-
         for (size_t facet_idx=0; facet_idx<m_selected_facets[mesh_id].size(); ++facet_idx) {
-            if (! m_selected_facets[mesh_id][facet_idx])
+            int8_t status = m_selected_facets[mesh_id][facet_idx];
+            if (status == 0)
                 continue;
+            ::glColor4f(status==1 ? 0.2f : 1.f, 0.2f, status==1 ? 1.0f : 0.2f, 0.5f);
+
             stl_normal normal = 0.01f * MeshRaycaster::get_triangle_normal(mesh->its, facet_idx);
             ::glPushMatrix();
             ::glTranslatef(normal(0), normal(1), normal(2));
@@ -182,7 +178,7 @@ void GLGizmoFdmSupports::update_mesh()
         // This mesh does not account for the possible Z up SLA offset.
         const TriangleMesh* mesh = &mo->volumes[volume_id]->mesh();
 
-        m_selected_facets[volume_id].assign(mesh->its.indices.size(), false);
+        m_selected_facets[volume_id].assign(mesh->its.indices.size(), 0);
         m_neighbors[volume_id].resize(3 * mesh->its.indices.size());
 
         // Prepare vector of vertex_index - facet_index pairs to quickly find adjacent facets
@@ -230,7 +226,7 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
     }
 
     if (action == SLAGizmoEventType::LeftDown || (action == SLAGizmoEventType::Dragging && m_wait_for_up_event)) {
-        bool select = ! shift_down;
+        int8_t new_state = shift_down ? 0 : (alt_down ? -1 : 1);
         const Camera& camera = wxGetApp().plater()->get_camera();
         const Selection& selection = m_parent.get_selection();
         const ModelInstance* mi = m_c->selection_info()->model_object()->instances[selection.get_instance_idx()];
@@ -338,7 +334,7 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 }
                 // Now just select all facets that passed
                 for (size_t next_facet : facets_to_select)
-                    m_selected_facets[mesh_id][next_facet] = select;
+                    m_selected_facets[mesh_id][next_facet] = new_state;
             }
         }
 
@@ -370,24 +366,45 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     const float approx_height = m_imgui->scaled(18.0f);
     y = std::min(y, bottom_limit - approx_height);
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
-    m_imgui->set_next_window_bg_alpha(0.5f);
     m_imgui->begin(on_get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
-
-    const float settings_sliders_left = std::max(m_imgui->calc_text_size(m_desc.at("minimal_distance")).x, m_imgui->calc_text_size(m_desc.at("points_density")).x) + m_imgui->scaled(1.f);
     const float clipping_slider_left = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x, m_imgui->calc_text_size(m_desc.at("reset_direction")).x) + m_imgui->scaled(1.5f);
-    const float diameter_slider_left = m_imgui->calc_text_size(m_desc.at("head_diameter")).x + m_imgui->scaled(1.f);
+    const float cursor_slider_left = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.f);
     const float minimal_slider_width = m_imgui->scaled(4.f);
-    const float buttons_width_approx = m_imgui->calc_text_size(m_desc.at("apply_changes")).x + m_imgui->calc_text_size(m_desc.at("discard_changes")).x + m_imgui->scaled(1.5f);
-    const float lock_supports_width_approx = m_imgui->calc_text_size(m_desc.at("lock_supports")).x + m_imgui->scaled(2.f);
 
-    float window_width = minimal_slider_width + std::max(std::max(settings_sliders_left, clipping_slider_left), diameter_slider_left);
-    window_width = std::max(std::max(window_width, buttons_width_approx), lock_supports_width_approx);
+    float caption_max = 0.f;
+    float total_text_max = 0.;
+    for (const std::string& t : {"enforce", "block", "remove"}) {
+        caption_max = std::max(caption_max, m_imgui->calc_text_size(m_desc.at(t+"_caption")).x);
+        total_text_max = std::max(total_text_max, caption_max + m_imgui->calc_text_size(m_desc.at(t)).x);
+    }
+    caption_max += m_imgui->scaled(1.f);
+    total_text_max += m_imgui->scaled(1.f);
 
+    float window_width = minimal_slider_width + std::max(cursor_slider_left, clipping_slider_left);
+    window_width = std::max(window_width, total_text_max);
 
-    // Following is rendered in both editing and non-editing mode:
+    auto draw_text_with_caption = [this, &caption_max](const wxString& caption, const wxString& text) {
+        static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
+        ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+        m_imgui->text(caption);
+        ImGui::PopStyleColor();
+        ImGui::SameLine(caption_max);
+        m_imgui->text(text);
+    };
+
+    for (const std::string& t : {"enforce", "block", "remove"})
+        draw_text_with_caption(m_desc.at(t + "_caption"), m_desc.at(t));
+
     m_imgui->text("");
+
+    m_imgui->text(m_desc.at("cursor_size"));
+    ImGui::SameLine(clipping_slider_left);
+    ImGui::PushItemWidth(window_width - clipping_slider_left);
+    ImGui::SliderFloat(" ", &m_cursor_radius, 0.f, 8.f, "%.2f");
+
+    ImGui::Separator();
     if (m_c->object_clipper()->get_position() == 0.f)
         m_imgui->text(m_desc.at("clipping_of_view"));
     else {
@@ -404,7 +421,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     if (ImGui::SliderFloat("  ", &clp_dist, 0.f, 1.f, "%.2f"))
         m_c->object_clipper()->set_position(clp_dist, true);
 
-     ImGui::SliderFloat(" ", &m_cursor_radius, 0.f, 8.f, "%.2f");
+
 
     m_imgui->end();
 }
@@ -414,7 +431,7 @@ bool GLGizmoFdmSupports::on_is_activable() const
     const Selection& selection = m_parent.get_selection();
 
     if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptFFF
-        || !selection.is_from_single_instance())
+        || !selection.is_single_full_instance())
         return false;
 
     // Check that none of the selected volumes is outside. Only SLA auxiliaries (supports) are allowed outside.
