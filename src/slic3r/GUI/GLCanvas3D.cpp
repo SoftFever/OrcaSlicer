@@ -1,5 +1,4 @@
 #include "libslic3r/libslic3r.h"
-#include "slic3r/GUI/Gizmos/GLGizmos.hpp"
 #include "GLCanvas3D.hpp"
 
 #include "admesh/stl.h"

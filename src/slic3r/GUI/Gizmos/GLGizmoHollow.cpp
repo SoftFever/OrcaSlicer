@@ -1,7 +1,6 @@
 #include "GLGizmoHollow.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/Camera.hpp"
-#include "slic3r/GUI/Gizmos/GLGizmos.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
 
 #include <GL/glew.h>
@@ -63,34 +62,6 @@ void GLGizmoHollow::set_sla_support_data(ModelObject*, const Selection&)
         if (m_c->hollowed_mesh()->get_hollowed_mesh())
             m_holes_in_drilled_mesh = mo->sla_drain_holes;
     }
-
-    /*if (m_c->recent_update) {
-
-        if (m_state == On)
-            m_c->build_AABB_if_needed();
-
-        update_clipping_plane(m_c->m_clipping_plane_was_moved);
-
-        // This is a temporary and not very nice hack, to make sure that
-        // if the cp was moved by the data returned by backend, it will
-        // remember its direction. FIXME: Refactor this mess and make
-        // the clipping plane itself part of the shared data.
-        if (! m_c->m_clipping_plane_was_moved && m_c->m_clipping_plane_distance == 0.25f)
-            m_c->m_clipping_plane_was_moved = true;
-
-
-        if (m_c->m_model_object) {
-            reload_cache();
-            if (m_c->has_drilled_mesh())
-                m_holes_in_drilled_mesh = m_c->m_model_object->sla_drain_holes;
-        }
-    }
-
-    if (m_state == On) {
-        m_parent.toggle_model_objects_visibility(false);
-        m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
-        m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, m_c->m_model_object, m_c->m_active_instance);
-    }*/
 }
 
 
@@ -111,94 +82,14 @@ void GLGizmoHollow::on_render() const
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    //m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
-
     if (m_quadric != nullptr && selection.is_from_single_instance())
         render_points(selection, false);
 
     m_selection_rectangle.render(m_parent);
-    //render_clipping_plane(selection);
     m_c->object_clipper()->render_cut();
     m_c->supports_clipper()->render_cut();
 
     glsafe(::glDisable(GL_BLEND));
-}
-
-
-
-void GLGizmoHollow::render_clipping_plane(const Selection& selection) const
-{
-    return;
-/*
-    if (m_c->m_clipping_plane_distance == 0.f)
-        return;
-
-    // Get transformation of the instance
-    const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
-    Geometry::Transformation trafo = vol->get_instance_transformation();
-    trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., m_z_shift));
-
-    // Get transformation of supports
-    Geometry::Transformation supports_trafo;
-    supports_trafo.set_offset(Vec3d(trafo.get_offset()(0), trafo.get_offset()(1), vol->get_sla_shift_z()));
-    supports_trafo.set_rotation(Vec3d(0., 0., trafo.get_rotation()(2)));
-    // I don't know why, but following seems to be correct.
-    supports_trafo.set_mirror(Vec3d(trafo.get_mirror()(0) * trafo.get_mirror()(1) * trafo.get_mirror()(2),
-                                    1,
-                                    1.));
-
-    // Now initialize the TMS for the object, perform the cut and save the result.
-    if (! m_c->m_object_clipper) {
-        m_c->m_object_clipper.reset(new MeshClipper);
-        m_c->m_object_clipper->set_mesh(*m_c->mesh());
-    }
-    m_c->m_object_clipper->set_plane(*m_c->m_clipping_plane);
-    m_c->m_object_clipper->set_transformation(trafo);
-
-    if (m_c->m_print_object_idx >= 0) {
-        const SLAPrintObject* print_object = m_parent.sla_print()->objects()[m_c->m_print_object_idx];
-
-        if (print_object->is_step_done(slaposSupportTree) && !print_object->get_mesh(slaposSupportTree).empty()) {
-            // If the supports are already calculated, save the timestamp of the respective step
-            // so we can later tell they were recalculated.
-            size_t timestamp = print_object->step_state_with_timestamp(slaposSupportTree).timestamp;
-
-            if (! m_c->m_supports_clipper || (int)timestamp != m_c->m_old_timestamp) {
-                // The timestamp has changed.
-                m_c->m_supports_clipper.reset(new MeshClipper);
-                // The mesh should already have the shared vertices calculated.
-                m_c->m_supports_clipper->set_mesh(print_object->support_mesh());
-                m_c->m_old_timestamp = timestamp;
-            }
-            m_c->m_supports_clipper->set_plane(*m_c->m_clipping_plane);
-            m_c->m_supports_clipper->set_transformation(supports_trafo);
-        }
-        else
-            // The supports are not valid. We better dump the cached data.
-            m_c->m_supports_clipper.reset();
-    }
-
-    // At this point we have the triangulated cuts for both the object and supports - let's render.
-    if (! m_c->m_object_clipper->get_triangles().empty()) {
-        ::glPushMatrix();
-        ::glColor3f(1.0f, 0.37f, 0.0f);
-        ::glBegin(GL_TRIANGLES);
-        for (const Vec3f& point : m_c->m_object_clipper->get_triangles())
-            ::glVertex3f(point(0), point(1), point(2));
-        ::glEnd();
-        ::glPopMatrix();
-    }
-
-    if (m_show_supports && m_c->m_supports_clipper && ! m_c->m_supports_clipper->get_triangles().empty()) {
-        ::glPushMatrix();
-        ::glColor3f(1.0f, 0.f, 0.37f);
-        ::glBegin(GL_TRIANGLES);
-        for (const Vec3f& point : m_c->m_supports_clipper->get_triangles())
-            ::glVertex3f(point(0), point(1), point(2));
-        ::glEnd();
-        ::glPopMatrix();
-    }
-*/
 }
 
 
@@ -272,7 +163,6 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
             glFrontFace(GL_CW);
 
         // Matrices set, we can render the point mark now.
-
         Eigen::Quaterniond q;
         q.setFromTwoVectors(Vec3d{0., 0., 1.}, instance_scaling_matrix_inverse * (-drain_hole.normal).cast<double>());
         Eigen::AngleAxisd aa(q);
@@ -456,13 +346,9 @@ bool GLGizmoHollow::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_pos
             points_inside.push_back(points[idx].cast<float>());
 
         // Only select/deselect points that are actually visible
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
         for (size_t idx : m_c->raycaster()->raycaster()->get_unobscured_idxs(
                  trafo, wxGetApp().plater()->get_camera(), points_inside,
                  m_c->object_clipper()->get_clipping_plane()))
-#else
-        for (size_t idx :  m_c->m_mesh_raycaster->get_unobscured_idxs(trafo, m_parent.get_camera(), points_inside, m_c->m_clipping_plane.get()))
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
         {
             if (rectangle_status == GLSelectionRectangle::Deselect)
                 unselect_point(points_idxs[idx]);
@@ -519,8 +405,6 @@ bool GLGizmoHollow::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_pos
         double pos = m_c->object_clipper()->get_position();
         pos = std::min(1., pos + 0.01);
         m_c->object_clipper()->set_position(pos, true);
-        //update_clipping_plane(/*m_c->m_clipping_plane_was_moved*/);
-        //m_c->m_clipping_plane_was_moved = true;
         return true;
     }
 
@@ -528,7 +412,6 @@ bool GLGizmoHollow::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_pos
         double pos = m_c->object_clipper()->get_position();
         pos = std::max(0., pos - 0.01);
         m_c->object_clipper()->set_position(pos, true);
-        //update_clipping_plane(true);
         return true;
     }
 
@@ -607,19 +490,6 @@ GLGizmoHollow::get_config_options(const std::vector<std::string>& keys) const
     return out;
 }
 
-/*
-ClippingPlane GLGizmoHollow::get_sla_clipping_plane() const
-{
-    if (! m_c->selection_info()->model_object()
-     || m_state == Off
-     || m_c->object_clipper()->get_position() == 0.)
-        return ClippingPlane::ClipsNothing();
-    else {
-        const ClippingPlane& clp = *m_c->object_clipper()->get_clipping_plane();
-        return ClippingPlane(-clp.get_normal(), clp.get_data()[3]);
-    }
-}
-*/
 
 void GLGizmoHollow::on_render_input_window(float x, float y, float bottom_limit)
 {
@@ -863,7 +733,6 @@ RENDER_AGAIN:
     // make sure supports are shown/hidden as appropriate
     bool show_sups = m_c->instances_hider()->are_supports_shown();
     if (m_imgui->checkbox(m_desc["show_supports"], show_sups)) {
-        //    m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, mo, m_c->m_active_instance);
         m_c->instances_hider()->show_supports(show_sups);
         force_refresh = true;
     }
@@ -937,51 +806,16 @@ CommonGizmosDataID GLGizmoHollow::on_get_requirements() const
 
 void GLGizmoHollow::on_set_state()
 {
-    // m_c->m_model_object pointer can be invalid (for instance because of undo/redo action),
-    // we should recover it from the object id
-    /*m_c->m_model_object = nullptr;
-    for (const auto mo : wxGetApp().model().objects) {
-        if (mo->id() == m_c->m_model_object_id) {
-            m_c->m_model_object = mo;
-            break;
-        }
-    }*/
-
     if (m_state == m_old_state)
         return;
 
     if (m_state == On && m_old_state != On) { // the gizmo was just turned on
-        //Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned on")));
-        //m_c->update_from_backend(m_parent, m_c->m_model_object);
-        //m_c->unstash_clipping_plane();
-        //update_clipping_plane(/*m_c->m_clipping_plane_was_moved*/);
-
-        //m_c->build_AABB_if_needed();
-
         // we'll now reload support points:
         if (m_c->selection_info()->model_object())
             reload_cache();
-
-        /*m_parent.toggle_model_objects_visibility(false);
-        if (m_c->m_model_object) {
-            m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
-            m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, m_c->m_model_object, m_c->m_active_instance);
-        }*/
     }
-    if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
-        //Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned off")));
+    if (m_state == Off && m_old_state != Off) // the gizmo was just turned Off
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_FORCE_UPDATE));
-        //m_parent.toggle_model_objects_visibility(true);
-        //m_c->stash_clipping_plane();
-        //m_c->m_clipping_plane_distance = 0.f;
-        //update_clipping_plane(true);
-        // Release clippers and the AABB raycaster.
-        //m_c->m_object_clipper.reset();
-        //m_c->m_supports_clipper.reset();
-        //m_c->m_mesh_raycaster.reset();
-        //m_c->m_cavity_mesh.reset();
-        //m_c->m_volume_with_cavity.reset();
-    }
     m_old_state = m_state;
 }
 

@@ -13,20 +13,12 @@
 namespace Slic3r {
 namespace GUI {
 
-class ClippingPlane;
-class MeshClipper;
-class MeshRaycaster;
-//class CommonGizmosData;
 enum class SLAGizmoEventType : unsigned char;
 
 class GLGizmoSlaSupports : public GLGizmoBase
 {
 private:
-    //ModelObject* m_model_object = nullptr;
-    //ObjectID m_model_object_id = 0;
-    //int m_active_instance = -1;
-    //float m_active_instance_bb_radius; // to cache the bb
-    //mutable double m_z_shift = 0.f;
+
     bool unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal);
 
     const float RenderPointScale = 1.f;
@@ -34,13 +26,6 @@ private:
     GLUquadricObj* m_quadric;
     typedef Eigen::Map<const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>> MapMatrixXfUnaligned;
     typedef Eigen::Map<const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>> MapMatrixXiUnaligned;
-
-    //std::unique_ptr<MeshRaycaster> m_mesh_raycaster;
-    //const TriangleMesh* m_mesh;
-    const indexed_triangle_set* m_its;
-    //mutable int m_old_timestamp = -1;
-    //mutable int m_print_object_idx = -1;
-    //mutable int m_print_objects_count = -1;
 
     class CacheEntry {
     public:
@@ -81,8 +66,6 @@ public:
     bool is_selection_rectangle_dragging() const { return m_selection_rectangle.is_dragging(); }
     bool has_backend_supports() const;
     void reslice_SLA_supports(bool postpone_error_messages = false) const;
-    //void update_clipping_plane(bool keep_normal = false) const;
-    //void set_common_data_ptr(CommonGizmosData* ptr) { m_c = ptr; }
 
 private:
     bool on_init() override;
@@ -90,9 +73,7 @@ private:
     void on_render() const override;
     void on_render_for_picking() const override;
 
-    //void render_selection_rectangle() const;
     void render_points(const Selection& selection, bool picking = false) const;
-    //void render_clipping_plane(const Selection& selection) const;
     bool unsaved_changes() const;
 
     bool m_lock_unique_islands = false;
@@ -106,8 +87,6 @@ private:
     std::vector<sla::SupportPoint> m_normal_cache; // to restore after discarding changes or undo/redo
     const ModelObject* m_old_mo = nullptr;
 
-    //std::unique_ptr<ClippingPlane> m_clipping_plane;
-
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.
     std::map<std::string, wxString> m_desc;
@@ -117,11 +96,6 @@ private:
     bool m_wait_for_up_event = false;
     bool m_selection_empty = true;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
-
-    //CommonGizmosData* m_c = nullptr;
-
-    //mutable std::unique_ptr<MeshClipper> m_object_clipper;
-    //mutable std::unique_ptr<MeshClipper> m_supports_clipper;
 
     std::vector<const ConfigOption*> get_config_options(const std::vector<std::string>& keys) const;
     bool is_mesh_point_clipped(const Vec3d& point) const;

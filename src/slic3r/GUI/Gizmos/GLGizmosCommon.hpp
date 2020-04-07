@@ -17,6 +17,24 @@ class GLCanvas3D;
 
 static constexpr float HoleStickOutLength = 1.f;
 
+enum class SLAGizmoEventType : unsigned char {
+    LeftDown = 1,
+    LeftUp,
+    RightDown,
+    Dragging,
+    Delete,
+    SelectAll,
+    ShiftUp,
+    AltUp,
+    ApplyChanges,
+    DiscardChanges,
+    AutomaticGeneration,
+    ManualEditing,
+    MouseWheelUp,
+    MouseWheelDown,
+    ResetClippingPlane
+};
+
 
 
 class CommonGizmosDataBase;
