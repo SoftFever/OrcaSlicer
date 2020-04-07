@@ -48,6 +48,14 @@ SelectionInfo* CommonGizmosDataPool::selection_info() const
     return sel_info->is_valid() ? sel_info : nullptr;
 }
 
+
+InstancesHider* CommonGizmosDataPool::instances_hider() const
+{
+    InstancesHider* inst_hider = dynamic_cast<InstancesHider*>(m_data.at(CommonGizmosDataID::InstancesHider).get());
+    assert(inst_hider);
+    return inst_hider->is_valid() ? inst_hider : nullptr;
+}
+
 HollowedMesh* CommonGizmosDataPool::hollowed_mesh() const
 {
     HollowedMesh* hol_mesh = dynamic_cast<HollowedMesh*>(m_data.at(CommonGizmosDataID::HollowedMesh).get());
@@ -130,6 +138,7 @@ void InstancesHider::on_update()
     if (mo && active_inst != -1) {
         canvas->toggle_model_objects_visibility(false);
         canvas->toggle_model_objects_visibility(true, mo, active_inst);
+        canvas->toggle_sla_auxiliaries_visibility(m_show_supports, mo, active_inst);
     }
     else
         canvas->toggle_model_objects_visibility(true);
@@ -138,6 +147,13 @@ void InstancesHider::on_update()
 void InstancesHider::on_release()
 {
     get_pool()->get_canvas()->toggle_model_objects_visibility(true);
+}
+
+void InstancesHider::show_supports(bool show) {
+    if (m_show_supports != show) {
+        m_show_supports = show;
+        on_update();
+    }
 }
 
 

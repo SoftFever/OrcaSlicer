@@ -50,7 +50,7 @@ private:
     void hollow_mesh(bool postpone_error_messages = false);
     bool unsaved_changes() const;
 
-    bool  m_show_supports = true;
+    // bool  m_show_supports = true;
     float m_new_hole_radius = 2.f;        // Size of a new hole.
     float m_new_hole_height = 6.f;
     mutable std::vector<bool> m_selected; // which holes are currently selected

@@ -61,6 +61,7 @@ public:
 
     // Getters for the data that need to be accessed from the gizmos directly.
     CommonGizmosDataObjects::SelectionInfo* selection_info() const;
+    CommonGizmosDataObjects::InstancesHider* instances_hider() const;
     CommonGizmosDataObjects::HollowedMesh* hollowed_mesh() const;
     CommonGizmosDataObjects::Raycaster* raycaster() const;
     CommonGizmosDataObjects::ObjectClipper* object_clipper() const;
@@ -156,9 +157,15 @@ public:
     CommonGizmosDataID get_dependencies() const override { return CommonGizmosDataID::SelectionInfo; }
 #endif // NDEBUG
 
+    void show_supports(bool show);
+    bool are_supports_shown() const { return m_show_supports; }
+
 protected:
     void on_update() override;
     void on_release() override;
+
+private:
+    bool m_show_supports = false;
 };
 
 

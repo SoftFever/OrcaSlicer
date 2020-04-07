@@ -54,6 +54,9 @@ bool GLGizmoHollow::on_init()
 
 void GLGizmoHollow::set_sla_support_data(ModelObject*, const Selection&)
 {
+    if (! m_c->selection_info())
+        return;
+
     const ModelObject* mo = m_c->selection_info()->model_object();
     if (mo) {
         reload_cache();
@@ -857,11 +860,12 @@ RENDER_AGAIN:
         m_c->object_clipper()->set_position(clp_dist, true);
 
     // make sure supports are shown/hidden as appropriate
-    // DODELAT
-    //if (m_imgui->checkbox(m_desc["show_supports"], m_show_supports)) {
-    //    m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, mo, m_c->m_active_instance);
-    //    force_refresh = true;
-    //}
+    bool show_sups = m_c->instances_hider()->are_supports_shown();
+    if (m_imgui->checkbox(m_desc["show_supports"], show_sups)) {
+        //    m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, mo, m_c->m_active_instance);
+        m_c->instances_hider()->show_supports(show_sups);
+        force_refresh = true;
+    }
 
     m_imgui->end();
 
