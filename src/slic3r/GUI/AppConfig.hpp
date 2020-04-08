@@ -60,7 +60,7 @@ public:
 		boost::trim_all(key_trimmed);
 		assert(key_trimmed == key);
 		assert(! key_trimmed.empty());
-#endif _NDEBUG
+#endif // _NDEBUG
 		std::string &old = m_storage[section][key];
 		if (old != value) {
 			old = value;
