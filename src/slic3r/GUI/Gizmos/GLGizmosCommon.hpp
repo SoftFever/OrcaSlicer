@@ -257,8 +257,8 @@ protected:
     void on_release() override;
 
 private:
-    const TriangleMesh* m_old_mesh = nullptr;
-    std::unique_ptr<MeshClipper> m_clipper;
+    std::vector<const TriangleMesh*> m_old_meshes;
+    std::vector<std::unique_ptr<MeshClipper>> m_clippers;
     std::unique_ptr<ClippingPlane> m_clp;
     double m_clp_ratio = 0.;
     double m_active_inst_bb_radius = 0.;

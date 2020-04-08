@@ -284,15 +284,24 @@ void ObjectClipper::on_update()
         return;
 
     // which mesh should be cut?
-    const TriangleMesh* mesh = &mo->volumes.front()->mesh();
+    std::vector<const TriangleMesh*> meshes;
     bool has_hollowed = get_pool()->hollowed_mesh() && get_pool()->hollowed_mesh()->get_hollowed_mesh();
     if (has_hollowed)
-        mesh = get_pool()->hollowed_mesh()->get_hollowed_mesh();
+        meshes.push_back(get_pool()->hollowed_mesh()->get_hollowed_mesh());
 
-    if (mesh != m_old_mesh) {
-        m_clipper.reset(new MeshClipper);
-        m_clipper->set_mesh(*mesh);
-        m_old_mesh = mesh;
+    if (meshes.empty()) {
+        for (const ModelVolume* mv : mo->volumes)
+            if (mv->is_model_part())
+                meshes.push_back(&mv->mesh());
+    }
+
+    if (meshes != m_old_meshes) {
+        m_clippers.clear();
+        for (const TriangleMesh* mesh : meshes) {
+            m_clippers.emplace_back(new MeshClipper);
+            m_clippers.back()->set_mesh(*mesh);
+        }
+        m_old_meshes = meshes;
         m_active_inst_bb_radius =
             mo->instance_bounding_box(get_pool()->selection_info()->get_active_instance()).radius();
         //if (has_hollowed && m_clp_ratio != 0.)
@@ -303,8 +312,8 @@ void ObjectClipper::on_update()
 
 void ObjectClipper::on_release()
 {
-    m_clipper.reset();
-    m_old_mesh = nullptr;
+    m_clippers.clear();
+    m_old_meshes.clear();
     m_clp.reset();
     m_clp_ratio = 0.;
 
@@ -317,21 +326,30 @@ void ObjectClipper::render_cut() const
     const SelectionInfo* sel_info = get_pool()->selection_info();
     const ModelObject* mo = sel_info->model_object();
     Geometry::Transformation inst_trafo = mo->instances[sel_info->get_active_instance()]->get_transformation();
-    Geometry::Transformation vol_trafo  = mo->volumes.front()->get_transformation();
-    Geometry::Transformation trafo = inst_trafo * vol_trafo;
-    trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., sel_info->get_sla_shift()));
 
-    m_clipper->set_plane(*m_clp);
-    m_clipper->set_transformation(trafo);
+    size_t clipper_id = 0;
+    for (const ModelVolume* mv : mo->volumes) {
+        if (! mv->is_model_part())
+            continue;
 
-    if (! m_clipper->get_triangles().empty()) {
-        ::glPushMatrix();
-        ::glColor3f(1.0f, 0.37f, 0.0f);
-        ::glBegin(GL_TRIANGLES);
-        for (const Vec3f& point : m_clipper->get_triangles())
-            ::glVertex3f(point(0), point(1), point(2));
-        ::glEnd();
-        ::glPopMatrix();
+        Geometry::Transformation vol_trafo  = mv->get_transformation();
+        Geometry::Transformation trafo = inst_trafo * vol_trafo;
+        trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., sel_info->get_sla_shift()));
+
+        auto& clipper = m_clippers[clipper_id];
+        clipper->set_plane(*m_clp);
+        clipper->set_transformation(trafo);
+
+        if (! clipper->get_triangles().empty()) {
+            ::glPushMatrix();
+            ::glColor3f(1.0f, 0.37f, 0.0f);
+            ::glBegin(GL_TRIANGLES);
+            for (const Vec3f& point : clipper->get_triangles())
+                ::glVertex3f(point(0), point(1), point(2));
+            ::glEnd();
+            ::glPopMatrix();
+        }
+        ++clipper_id;
     }
 }
 
