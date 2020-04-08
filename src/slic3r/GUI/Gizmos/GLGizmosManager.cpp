@@ -412,7 +412,8 @@ bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_p
 
 ClippingPlane GLGizmosManager::get_clipping_plane() const
 {
-    if (! m_common_gizmos_data->object_clipper()
+    if (! m_common_gizmos_data
+     || ! m_common_gizmos_data->object_clipper()
      || m_common_gizmos_data->object_clipper()->get_position() == 0.)
         return ClippingPlane::ClipsNothing();
     else {

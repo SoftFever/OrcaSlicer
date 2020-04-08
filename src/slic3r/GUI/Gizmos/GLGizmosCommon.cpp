@@ -73,8 +73,9 @@ Raycaster* CommonGizmosDataPool::raycaster() const
 ObjectClipper* CommonGizmosDataPool::object_clipper() const
 {
     ObjectClipper* oc = dynamic_cast<ObjectClipper*>(m_data.at(CommonGizmosDataID::ObjectClipper).get());
-    assert(oc);
-    return oc->is_valid() ? oc : nullptr;
+    // ObjectClipper is used from outside the gizmos to report current clipping plane.
+    // This function can be called when oc is nullptr.
+    return (oc && oc->is_valid()) ? oc : nullptr;
 }
 
 SupportsClipper* CommonGizmosDataPool::supports_clipper() const
