@@ -1291,9 +1291,13 @@ void PointCtrl::set_value(const boost::any& value, bool change_event)
 boost::any& PointCtrl::get_value()
 {
 	double x, y;
-	x_textctrl->GetValue().ToDouble(&x);
-	y_textctrl->GetValue().ToDouble(&y);
-
+	if (!x_textctrl->GetValue().ToDouble(&x) ||
+		!y_textctrl->GetValue().ToDouble(&y))
+	{
+		set_value(m_value.empty() ? Vec2d(0.0, 0.0) : m_value, true);
+		show_error(m_parent, _L("Invalid numeric input."));
+	}
+	else
 	if (m_opt.min > x || x > m_opt.max ||
 		m_opt.min > y || y > m_opt.max)
 	{		
@@ -1303,7 +1307,7 @@ boost::any& PointCtrl::get_value()
 		if (y > m_opt.max) y = m_opt.max;
 		set_value(Vec2d(x, y), true);
 
-		show_error(m_parent, _(L("Input value is out of range")));
+		show_error(m_parent, _L("Input value is out of range"));
 	}
 
 	return m_value = Vec2d(x, y);
