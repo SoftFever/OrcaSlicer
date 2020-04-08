@@ -84,12 +84,17 @@ void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
 {
     const ModelObject* mo = m_c->selection_info()->model_object();
 
-    for (size_t mesh_id=0; mesh_id<mo->volumes.size(); ++mesh_id) {
+    int mesh_id = -1;
+    for (const ModelVolume* mv : mo->volumes) {
+        if (! mv->is_model_part())
+            continue;
+
+        ++mesh_id;
 
         const Transform3d trafo_matrix =
             mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix() *
-            mo->volumes[mesh_id]->get_matrix();
-        const TriangleMesh* mesh = &mo->volumes[mesh_id]->mesh();
+            mv->get_matrix();
+        const TriangleMesh* mesh = &mv->mesh();
 
         for (size_t facet_idx=0; facet_idx<m_selected_facets[mesh_id].size(); ++facet_idx) {
             int8_t status = m_selected_facets[mesh_id][facet_idx];
@@ -170,13 +175,23 @@ void GLGizmoFdmSupports::update_mesh()
     wxBusyCursor wait;
 
     const ModelObject* mo = m_c->selection_info()->model_object();
-    size_t num_of_volumes = mo->volumes.size();
+    size_t num_of_volumes = 0;
+    for (const ModelVolume* mv : mo->volumes)
+        if (mv->is_model_part())
+            ++num_of_volumes;
+
     m_selected_facets.resize(num_of_volumes);
     m_neighbors.resize(num_of_volumes);
 
-    for (size_t volume_id=0; volume_id<num_of_volumes; ++volume_id) {
+    int volume_id = -1;
+    for (const ModelVolume* mv : mo->volumes) {
+        if (! mv->is_model_part())
+            continue;
+
+        ++volume_id;
+
         // This mesh does not account for the possible Z up SLA offset.
-        const TriangleMesh* mesh = &mo->volumes[volume_id]->mesh();
+        const TriangleMesh* mesh = &mv->mesh();
 
         m_selected_facets[volume_id].assign(mesh->its.indices.size(), 0);
         m_neighbors[volume_id].resize(3 * mesh->its.indices.size());
@@ -229,19 +244,13 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         int8_t new_state = shift_down ? 0 : (alt_down ? -1 : 1);
         const Camera& camera = wxGetApp().plater()->get_camera();
         const Selection& selection = m_parent.get_selection();
-        const ModelInstance* mi = m_c->selection_info()->model_object()->instances[selection.get_instance_idx()];
+        const ModelObject* mo = m_c->selection_info()->model_object();
+        const ModelInstance* mi = mo->instances[selection.get_instance_idx()];
         const Transform3d& instance_trafo = mi->get_transformation().get_matrix();
 
-        // Precalculate transformations of individual meshes
-        std::vector<Transform3d> trafo_matrices;
-        const std::vector<ModelVolume*>& volumes = m_c->selection_info()->model_object()->volumes;
-        for (const ModelVolume* mv : volumes)
-            trafo_matrices.push_back(instance_trafo * mv->get_matrix());
-
-        std::vector<std::vector<std::pair<Vec3f, size_t>>> hit_positions_and_facet_ids(volumes.size());
+        std::vector<std::vector<std::pair<Vec3f, size_t>>> hit_positions_and_facet_ids;
         bool some_mesh_was_hit = false;
 
-        // Cast a ray on all meshes, pick the closest hit and save it for the respective mesh
         Vec3f normal =  Vec3f::Zero();
         Vec3f hit = Vec3f::Zero();
         size_t facet = 0;
@@ -250,7 +259,19 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         size_t closest_facet = 0;
         size_t closest_hit_mesh_id = size_t(-1);
 
-        for (size_t mesh_id=0; mesh_id<volumes.size(); ++mesh_id) {
+        // Transformations of individual meshes
+        std::vector<Transform3d> trafo_matrices;
+
+        int mesh_id = -1;
+        // Cast a ray on all meshes, pick the closest hit and save it for the respective mesh
+        for (const ModelVolume* mv : mo->volumes) {
+            if (! mv->is_model_part())
+                continue;
+
+            ++mesh_id;
+
+            trafo_matrices.push_back(instance_trafo * mv->get_matrix());
+            hit_positions_and_facet_ids.push_back(std::vector<std::pair<Vec3f, size_t>>());
 
             if (m_c->raycaster()->raycasters()[mesh_id]->unproject_on_mesh(
                        mouse_position,
@@ -277,11 +298,18 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
 
         // Now propagate the hits
-        for (size_t mesh_id=0; mesh_id<volumes.size(); ++mesh_id) {
+        mesh_id = -1;
+        for (const ModelVolume* mv : mo->volumes) {
+
+            if (! mv->is_model_part())
+                continue;
+
+            ++mesh_id;
+
             // For all hits on this mesh...
             for (const std::pair<Vec3f, size_t>& hit_and_facet : hit_positions_and_facet_ids[mesh_id]) {
                 some_mesh_was_hit = true;
-                const TriangleMesh* mesh = &volumes[mesh_id]->mesh();
+                const TriangleMesh* mesh = &mv->mesh();
                 std::vector<NeighborData>& neighbors = m_neighbors[mesh_id];
 
                 // Calculate direction from camera to the hit (in mesh coords):
@@ -300,8 +328,8 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 };
 
                 // A lambda to determine whether this facet is potentionally visible (still can be obscured)
-                auto faces_camera = [&dir, &volumes](const size_t& mesh_id, const size_t& facet) -> bool {
-                    return (volumes[mesh_id]->mesh().stl.facet_start[facet].normal.dot(dir) > 0.);
+                auto faces_camera = [&dir](const ModelVolume* mv, const size_t& facet) -> bool {
+                    return (mv->mesh().stl.facet_start[facet].normal.dot(dir) > 0.);
                 };
                 // Now start with the facet the pointer points to and check all adjacent facets. neighbors vector stores
                 // pairs of vertex_idx - facet_idx and is sorted with respect to the former. Neighboring facet index can be
@@ -322,7 +350,7 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                             if (dist < limit) {
                                 it = std::lower_bound(neighbors.begin(), neighbors.end(), vertex);
                                 while (it != neighbors.end() && it->first == vertex.first) {
-                                    if (it->second != facet && faces_camera(mesh_id, it->second))
+                                    if (it->second != facet && faces_camera(mv, it->second))
                                         facets_to_select.push_back(it->second);
                                     ++it;
                                 }
