@@ -4489,7 +4489,7 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
     char *s = new char[255];
     strcpy(s, search_line.empty() ? _u8L("Type here to search").c_str() : search_line.c_str());
 
-    imgui->search_list(ImVec2(22 * em, 30 * em), &search_string_getter, s, selected, edited);
+    imgui->search_list(ImVec2(36 * em, 30 * em), &search_string_getter, s, selected, edited);
 
     search_line = s;
     delete [] s;
@@ -4499,7 +4499,9 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
 
     if (selected != size_t(-1))
     {
-        wxGetApp().sidebar().jump_to_option(selected);
+        // selected == 9999 means that Esc kye was pressed
+        if (selected != 9999)
+            wxGetApp().sidebar().jump_to_option(selected);
         action_taken = true;
     }
 

@@ -570,8 +570,21 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
         const ImGuiID id = ImGui::GetID(search_str);
         ImVec2 search_size = ImVec2(size.x, ImGui::GetTextLineHeightWithSpacing() + style.ItemSpacing.y);
 
+        if (!ImGui::IsAnyItemFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0))
+            ImGui::SetKeyboardFocusHere(0);
+
+        // The press on Esc key invokes editing of InputText (removes last changes)
+        // So we should save previous value...
+        std::string str = search_str;
         ImGui::InputTextEx("", NULL, search_str, 20, search_size, 0, NULL, NULL);
         edited = ImGui::IsItemEdited();
+
+        if (ImGui::IsItemDeactivated() && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
+            // use 9999 to mark selection as a Esc key
+            selected = 9999;
+            // ... and when Esc key was pressed, than revert search_str value
+            strcpy(search_str, str.c_str());
+        }
 
         ImGui::BeginChildFrame(id, frame_bb.GetSize());
     }
