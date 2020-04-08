@@ -221,11 +221,23 @@ bool operator<(const GLGizmoFdmSupports::NeighborData& a, const GLGizmoFdmSuppor
 // concludes that the event was not intended for it, it should return false.
 bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down)
 {
-    if (action == SLAGizmoEventType::MouseWheelUp && control_down) {
-        double pos = m_c->object_clipper()->get_position();
-        pos = std::min(1., pos + 0.01);
-        m_c->object_clipper()->set_position(pos, true);
-        return true;
+    if (action == SLAGizmoEventType::MouseWheelUp
+     || action == SLAGizmoEventType::MouseWheelDown) {
+        if (control_down) {
+            double pos = m_c->object_clipper()->get_position();
+            pos = action == SLAGizmoEventType::MouseWheelDown
+                      ? std::max(0., pos - 0.01)
+                      : std::min(1., pos + 0.01);
+            m_c->object_clipper()->set_position(pos, true);
+            return true;
+        }
+        else if (alt_down) {
+            m_cursor_radius = action == SLAGizmoEventType::MouseWheelDown
+                    ? std::max(m_cursor_radius - CursorRadiusStep, CursorRadiusMin)
+                    : std::min(m_cursor_radius + CursorRadiusStep, CursorRadiusMax);
+            m_parent.set_as_dirty();
+            return true;
+        }
     }
 
     if (action == SLAGizmoEventType::MouseWheelDown && control_down) {
@@ -442,7 +454,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     m_imgui->text(m_desc.at("cursor_size"));
     ImGui::SameLine(clipping_slider_left);
     ImGui::PushItemWidth(window_width - clipping_slider_left);
-    ImGui::SliderFloat(" ", &m_cursor_radius, 0.f, 8.f, "%.2f");
+    ImGui::SliderFloat(" ", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f");
 
     ImGui::Separator();
     if (m_c->object_clipper()->get_position() == 0.f)

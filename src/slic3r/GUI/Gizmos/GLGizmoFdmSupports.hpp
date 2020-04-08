@@ -20,6 +20,9 @@ private:
     GLUquadricObj* m_quadric;
 
     float m_cursor_radius = 2.f;
+    static constexpr float CursorRadiusMin  = 0.f;
+    static constexpr float CursorRadiusMax  = 8.f;
+    static constexpr float CursorRadiusStep = 0.2f;
 
     std::vector<std::vector<int8_t>> m_selected_facets;
 
