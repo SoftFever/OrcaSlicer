@@ -35,12 +35,16 @@ void main()
     intensity.y = 0.0;
 
     if (NdotL > 0.0)
-        intensity.y += LIGHT_TOP_SPECULAR * pow(max(dot(normal, reflect(-LIGHT_TOP_DIR, normal)), 0.0), LIGHT_TOP_SHININESS);
+    {    
+        vec3 position = (gl_ModelViewMatrix * gl_Vertex).xyz;
+        intensity.y += LIGHT_TOP_SPECULAR * pow(max(dot(-normalize(position), reflect(-LIGHT_TOP_DIR, normal)), 0.0), LIGHT_TOP_SHININESS);
+    }
 
     // Perform the same lighting calculation for the 2nd light source (no specular)
     NdotL = max(dot(normal, LIGHT_FRONT_DIR), 0.0);
     
-    intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
+    if (NdotL > 0.0)
+        intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
 
     // Scaled to widths of the Z texture.
     if (object_max_z > 0.0)
