@@ -3033,6 +3033,16 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 
 
 #ifdef __APPLE__
+        case 'f':
+        case 'F':
+#else /* __APPLE__ */
+        case WXK_CONTROL_F:
+#endif /* __APPLE__ */
+            _activate_search_toolbar_item();
+            break;
+
+
+#ifdef __APPLE__
         case 'y':
         case 'Y':
 #else /* __APPLE__ */
@@ -5029,7 +5039,7 @@ bool GLCanvas3D::_init_main_toolbar()
 
     item.name = "search";
     item.icon_filename = "search_.svg";
-    item.tooltip = _utf8(L("Search"));
+    item.tooltip = _utf8(L("Search")) + " [" + GUI::shortkey_ctrl_prefix() + "F]";
     item.sprite_id = 11;
     item.left.render_callback = [this](float left, float right, float, float) {
         if (m_canvas != nullptr)
@@ -7229,6 +7239,17 @@ bool GLCanvas3D::_deactivate_undo_redo_toolbar_items()
 bool GLCanvas3D::_deactivate_search_toolbar_item()
 {
     if (m_main_toolbar.is_item_pressed("search"))
+    {
+        m_main_toolbar.force_left_action(m_main_toolbar.get_item_id("search"), *this);
+        return true;
+    }
+
+    return false;
+}
+
+bool GLCanvas3D::_activate_search_toolbar_item()
+{
+    if (!m_main_toolbar.is_item_pressed("search"))
     {
         m_main_toolbar.force_left_action(m_main_toolbar.get_item_id("search"), *this);
         return true;

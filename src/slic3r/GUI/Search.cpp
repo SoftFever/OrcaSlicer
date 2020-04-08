@@ -219,7 +219,7 @@ const SearchOptions::Option& SearchOptions::get_option(size_t pos_in_filter) con
 //------------------------------------------
 
 SearchCtrl::SearchCtrl(wxWindow* parent) :
-    wxComboCtrl(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(25 * wxGetApp().em_unit(), -1), wxTE_PROCESS_ENTER)
+    wxComboCtrl(parent, wxID_ANY, _L("Type here to search"), wxDefaultPosition, wxSize(25 * wxGetApp().em_unit(), -1), wxTE_PROCESS_ENTER)
 {
     default_string = _L("Type here to search");
 
@@ -263,6 +263,9 @@ void SearchCtrl::OnInputText(wxCommandEvent& )
 void SearchCtrl::PopupList(wxCommandEvent& e)
 {
     update_list(wxGetApp().sidebar().get_search_list().filters);
+    if (e.GetEventType() == wxEVT_TEXT_ENTER)
+        this->Popup();
+
     e.Skip();
 }
 
