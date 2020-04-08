@@ -558,8 +558,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             processed = true;
             m_mouse_capture.right = false;
         }
-        else
-            return false;
+//        else
+//            return false;
     }
 #if ENABLE_GIZMO_TOOLBAR_DRAGGING_FIX
     else if (evt.Dragging() && !is_dragging())
@@ -666,11 +666,18 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
                 processed = true;
             }
         }
-        else if (evt.RightDown() && (selected_object_idx != -1) && (m_current == SlaSupports || m_current == Hollow) && gizmo_event(SLAGizmoEventType::RightDown))
+        else if (evt.RightDown() && (selected_object_idx != -1) && (m_current == SlaSupports || m_current == Hollow)
+              && gizmo_event(SLAGizmoEventType::RightDown, mouse_pos))
         {
             // we need to set the following right up as processed to avoid showing the context menu if the user release the mouse over the object
             pending_right_up = true;
             // event was taken care of by the SlaSupports gizmo
+            processed = true;
+        }
+        else if (evt.RightDown() && (selected_object_idx != -1) && m_current == FdmSupports
+              && gizmo_event(SLAGizmoEventType::RightDown, mouse_pos))
+        {
+            // event was taken care of by the FdmSupports gizmo
             processed = true;
         }
         else if (evt.Dragging() && (m_parent.get_move_volume_id() != -1) && (m_current == SlaSupports || m_current == Hollow))
@@ -764,6 +771,11 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         else if (evt.LeftUp() && (m_current == Flatten) && (m_gizmos[m_current]->get_hover_id() != -1))
         {
             // to avoid to loose the selection when user clicks an the white faces of a different object while the Flatten gizmo is active
+            processed = true;
+        }
+        else if (evt.RightUp() && m_current == FdmSupports && !m_parent.is_mouse_dragging())
+        {
+            gizmo_event(SLAGizmoEventType::RightUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown());
             processed = true;
         }
     }

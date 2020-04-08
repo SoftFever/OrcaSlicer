@@ -21,6 +21,7 @@ enum class SLAGizmoEventType : unsigned char {
     LeftDown = 1,
     LeftUp,
     RightDown,
+    RightUp,
     Dragging,
     Delete,
     SelectAll,

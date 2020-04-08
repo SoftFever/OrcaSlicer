@@ -47,7 +47,13 @@ private:
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.
     std::map<std::string, wxString> m_desc;
 
-    bool m_wait_for_up_event = false;
+    enum class Button {
+        None,
+        Left,
+        Right
+    };
+
+    Button m_button_down = Button::None;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
 
     std::vector<std::vector<NeighborData>> m_neighbors; // pairs of vertex_index - facet_index for each mesh

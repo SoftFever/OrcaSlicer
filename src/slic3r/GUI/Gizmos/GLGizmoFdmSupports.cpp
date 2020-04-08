@@ -41,7 +41,7 @@ bool GLGizmoFdmSupports::on_init()
     m_desc["cursor_size"]      = _L("Cursor size") + ": ";
     m_desc["enforce_caption"]  = _L("Left mouse button") + ": ";
     m_desc["enforce"]          = _L("Enforce supports");
-    m_desc["block_caption"]    = _L("Alt + Left mouse button") + " ";
+    m_desc["block_caption"]    = _L("Right mouse button") + " ";
     m_desc["block"]            = _L("Block supports");
     m_desc["remove_caption"]   = _L("Shift + Left mouse button") + ": ";
     m_desc["remove"]           = _L("Remove selection");
@@ -240,8 +240,18 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         return true;
     }
 
-    if (action == SLAGizmoEventType::LeftDown || (action == SLAGizmoEventType::Dragging && m_wait_for_up_event)) {
-        int8_t new_state = shift_down ? 0 : (alt_down ? -1 : 1);
+    if (action == SLAGizmoEventType::LeftDown
+     || action == SLAGizmoEventType::RightDown
+    || (action == SLAGizmoEventType::Dragging && m_button_down != Button::None)) {
+
+        int8_t new_state = 0;
+        if (! shift_down) {
+            if (action == SLAGizmoEventType::Dragging)
+                new_state = m_button_down == Button::Left ? 1 : -1;
+            else
+                new_state = action == SLAGizmoEventType::LeftDown ? 1 : -1;
+        }
+
         const Camera& camera = wxGetApp().plater()->get_camera();
         const Selection& selection = m_parent.get_selection();
         const ModelObject* mo = m_c->selection_info()->model_object();
@@ -368,16 +378,18 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
         if (some_mesh_was_hit)
         {
-            m_wait_for_up_event = true;
+            if (m_button_down == Button::None)
+                m_button_down = ((action == SLAGizmoEventType::LeftDown) ? Button::Left : Button::Right);
             m_parent.set_as_dirty();
             return true;
         }
-        if (action == SLAGizmoEventType::Dragging && m_wait_for_up_event)
+        if (action == SLAGizmoEventType::Dragging && m_button_down != Button::None)
             return true;
     }
 
-    if (action == SLAGizmoEventType::LeftUp && m_wait_for_up_event) {
-        m_wait_for_up_event = false;
+    if ((action == SLAGizmoEventType::LeftUp || action == SLAGizmoEventType::RightUp)
+      && m_button_down != Button::None) {
+        m_button_down = Button::None;
         return true;
     }
 
