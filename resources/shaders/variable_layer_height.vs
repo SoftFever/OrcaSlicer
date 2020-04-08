@@ -32,10 +32,8 @@ void main()
     float NdotL = max(dot(normal, LIGHT_TOP_DIR), 0.0);
 
     intensity.x = INTENSITY_AMBIENT + NdotL * LIGHT_TOP_DIFFUSE;
-    intensity.y = 0.0;
-
     vec3 position = (gl_ModelViewMatrix * gl_Vertex).xyz;
-    intensity.y += LIGHT_TOP_SPECULAR * pow(max(dot(-normalize(position), reflect(-LIGHT_TOP_DIR, normal)), 0.0), LIGHT_TOP_SHININESS);
+    intensity.y = LIGHT_TOP_SPECULAR * pow(max(dot(-normalize(position), reflect(-LIGHT_TOP_DIR, normal)), 0.0), LIGHT_TOP_SHININESS);
 
     // Perform the same lighting calculation for the 2nd light source (no specular)
     NdotL = max(dot(normal, LIGHT_FRONT_DIR), 0.0);
