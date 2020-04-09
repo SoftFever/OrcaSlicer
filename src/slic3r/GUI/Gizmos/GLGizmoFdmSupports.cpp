@@ -84,6 +84,10 @@ void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
 {
     const ModelObject* mo = m_c->selection_info()->model_object();
 
+    glsafe(::glEnable(GL_POLYGON_OFFSET_FILL));
+    ScopeGuard offset_fill_guard([]() { glsafe(::glDisable(GL_POLYGON_OFFSET_FILL)); } );
+    glsafe(::glPolygonOffset(-1.0, 1.0));
+
     int mesh_id = -1;
     for (const ModelVolume* mv : mo->volumes) {
         if (! mv->is_model_part())
@@ -94,26 +98,14 @@ void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
         const Transform3d trafo_matrix =
             mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix() *
             mv->get_matrix();
-        const TriangleMesh* mesh = &mv->mesh();
 
-        for (size_t facet_idx=0; facet_idx<m_selected_facets[mesh_id].size(); ++facet_idx) {
-            int8_t status = m_selected_facets[mesh_id][facet_idx];
-            if (status == 0)
-                continue;
-            ::glColor4f(status==1 ? 0.2f : 1.f, 0.2f, status==1 ? 1.0f : 0.2f, 0.5f);
-
-            stl_normal normal = 0.01f * MeshRaycaster::get_triangle_normal(mesh->its, facet_idx);
-            ::glPushMatrix();
-            ::glTranslatef(normal(0), normal(1), normal(2));
-            ::glMultMatrixd(trafo_matrix.data());
-
-            ::glBegin(GL_TRIANGLES);
-            ::glVertex3f(mesh->its.vertices[mesh->its.indices[facet_idx](0)](0), mesh->its.vertices[mesh->its.indices[facet_idx](0)](1), mesh->its.vertices[mesh->its.indices[facet_idx](0)](2));
-            ::glVertex3f(mesh->its.vertices[mesh->its.indices[facet_idx](1)](0), mesh->its.vertices[mesh->its.indices[facet_idx](1)](1), mesh->its.vertices[mesh->its.indices[facet_idx](1)](2));
-            ::glVertex3f(mesh->its.vertices[mesh->its.indices[facet_idx](2)](0), mesh->its.vertices[mesh->its.indices[facet_idx](2)](1), mesh->its.vertices[mesh->its.indices[facet_idx](2)](2));
-            ::glEnd();
-            ::glPopMatrix();
-        }
+        glsafe(::glPushMatrix());
+        glsafe(::glMultMatrixd(trafo_matrix.data()));
+        glsafe(::glColor4f(0.2f, 0.2f, 1.0f, 0.5f));
+        m_ivas[mesh_id][0].render();
+        glsafe(::glColor4f(1.f, 0.2f, 0.2f, 0.5f));
+        m_ivas[mesh_id][1].render();
+        glsafe(::glPopMatrix());
     }
 }
 
@@ -182,6 +174,8 @@ void GLGizmoFdmSupports::update_mesh()
 
     m_selected_facets.resize(num_of_volumes);
     m_neighbors.resize(num_of_volumes);
+    m_ivas.clear();
+    m_ivas.resize(num_of_volumes);
 
     int volume_id = -1;
     for (const ModelVolume* mv : mo->volumes) {
@@ -193,7 +187,7 @@ void GLGizmoFdmSupports::update_mesh()
         // This mesh does not account for the possible Z up SLA offset.
         const TriangleMesh* mesh = &mv->mesh();
 
-        m_selected_facets[volume_id].assign(mesh->its.indices.size(), 0);
+        m_selected_facets[volume_id].assign(mesh->its.indices.size(), SelType::NONE);
         m_neighbors[volume_id].resize(3 * mesh->its.indices.size());
 
         // Prepare vector of vertex_index - facet_index pairs to quickly find adjacent facets
@@ -240,13 +234,6 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         }
     }
 
-    if (action == SLAGizmoEventType::MouseWheelDown && control_down) {
-        double pos = m_c->object_clipper()->get_position();
-        pos = std::max(0., pos - 0.01);
-        m_c->object_clipper()->set_position(pos, true);
-        return true;
-    }
-
     if (action == SLAGizmoEventType::ResetClippingPlane) {
         m_c->object_clipper()->set_position(-1., false);
         return true;
@@ -256,12 +243,16 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
      || action == SLAGizmoEventType::RightDown
     || (action == SLAGizmoEventType::Dragging && m_button_down != Button::None)) {
 
-        int8_t new_state = 0;
+        SelType new_state = SelType::NONE;
         if (! shift_down) {
             if (action == SLAGizmoEventType::Dragging)
-                new_state = m_button_down == Button::Left ? 1 : -1;
+                new_state = m_button_down == Button::Left
+                        ? SelType::ENFORCER
+                        : SelType::BLOCKER;
             else
-                new_state = action == SLAGizmoEventType::LeftDown ? 1 : -1;
+                new_state = action == SLAGizmoEventType::LeftDown
+                        ? SelType::ENFORCER
+                        : SelType::BLOCKER;
         }
 
         const Camera& camera = wxGetApp().plater()->get_camera();
@@ -327,6 +318,7 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 continue;
 
             ++mesh_id;
+            bool update_both = false;
 
             // For all hits on this mesh...
             for (const std::pair<Vec3f, size_t>& hit_and_facet : hit_positions_and_facet_ids[mesh_id]) {
@@ -382,21 +374,41 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                     }
                     ++facet_idx;
                 }
-                // Now just select all facets that passed
-                for (size_t next_facet : facets_to_select)
-                    m_selected_facets[mesh_id][next_facet] = new_state;
+
+                // Now just select all facets that passed.
+                for (size_t next_facet : facets_to_select) {
+                    SelType& facet = m_selected_facets[mesh_id][next_facet];
+
+                    if (facet != new_state && facet != SelType::NONE) {
+                        // this triangle is currently in the other VBA.
+                        // Both VBAs need to be refreshed.
+                        update_both = true;
+                    }
+                    facet = new_state;
+                }
             }
+
+            update_vertex_buffers(mv, mesh_id,
+                                  new_state == SelType::ENFORCER || update_both,
+                                  new_state == SelType::BLOCKER || update_both
+                                  );
         }
 
         if (some_mesh_was_hit)
         {
             if (m_button_down == Button::None)
                 m_button_down = ((action == SLAGizmoEventType::LeftDown) ? Button::Left : Button::Right);
-            m_parent.set_as_dirty();
+            // Force rendering. In case the user is dragging, the queue can be
+            // flooded by wxEVT_MOVING event and rendering would be skipped.
+            m_parent.render();
             return true;
         }
-        if (action == SLAGizmoEventType::Dragging && m_button_down != Button::None)
+        if (action == SLAGizmoEventType::Dragging && m_button_down != Button::None) {
+            // Same as above. We don't want the cursor to freeze when we
+            // leave the mesh while painting.
+            m_parent.render();
             return true;
+        }
     }
 
     if ((action == SLAGizmoEventType::LeftUp || action == SLAGizmoEventType::RightUp)
@@ -408,6 +420,35 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
     return false;
 }
 
+
+void GLGizmoFdmSupports::update_vertex_buffers(const ModelVolume* mv,
+                                               int mesh_id,
+                                               bool update_enforcers,
+                                               bool update_blockers)
+{
+    const TriangleMesh* mesh = &mv->mesh();
+
+    for (SelType type : {SelType::ENFORCER, SelType::BLOCKER}) {
+        if ((type == SelType::ENFORCER && ! update_enforcers)
+         || (type == SelType::BLOCKER && ! update_blockers))
+            continue;
+
+        GLIndexedVertexArray& iva = m_ivas[mesh_id][type==SelType::ENFORCER ? 0 : 1];
+        iva.release_geometry();
+        size_t triangle_cnt=0;
+        for (size_t facet_idx=0; facet_idx<m_selected_facets[mesh_id].size(); ++facet_idx) {
+            SelType status = m_selected_facets[mesh_id][facet_idx];
+            if (status != type)
+                continue;
+            for (int i=0; i<3; ++i)
+                iva.push_geometry(mesh->its.vertices[mesh->its.indices[facet_idx](i)].cast<double>(),
+                                  MeshRaycaster::get_triangle_normal(mesh->its, facet_idx).cast<double>());
+            iva.push_triangle(3*triangle_cnt, 3*triangle_cnt+1, 3*triangle_cnt+2);
+            ++triangle_cnt;
+        }
+        iva.finalize_geometry(true);
+    }
+}
 
 
 void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_limit)
@@ -529,6 +570,10 @@ void GLGizmoFdmSupports::on_set_state()
     if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
         // we are actually shutting down
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("FDM gizmo turned off")));
+        m_old_mo = nullptr;
+        m_ivas.clear();
+        m_neighbors.clear();
+        m_selected_facets.clear();
     }
     m_old_state = m_state;
 }

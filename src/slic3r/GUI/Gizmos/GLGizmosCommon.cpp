@@ -232,6 +232,7 @@ const TriangleMesh* HollowedMesh::get_hollowed_mesh() const
 
 void Raycaster::on_update()
 {
+    wxBusyCursor wait;
     const ModelObject* mo = get_pool()->selection_info()->model_object();
 
     if (! mo)

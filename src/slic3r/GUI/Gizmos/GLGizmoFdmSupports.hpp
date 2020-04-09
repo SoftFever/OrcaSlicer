@@ -3,6 +3,8 @@
 
 #include "GLGizmoBase.hpp"
 
+#include "slic3r/GUI/3DScene.hpp"
+
 #include <cereal/types/vector.hpp>
 
 
@@ -24,7 +26,24 @@ private:
     static constexpr float CursorRadiusMax  = 8.f;
     static constexpr float CursorRadiusStep = 0.2f;
 
-    std::vector<std::vector<int8_t>> m_selected_facets;
+    enum class SelType : int8_t {
+        NONE,
+        ENFORCER,
+        BLOCKER
+    };
+
+    // For each model-part volume, store a list of statuses of
+    // individual facets (one of the enum values above).
+    std::vector<std::vector<SelType>> m_selected_facets;
+
+    // Store two vertex buffer arrays (for enforcers/blockers)
+    // for each model-part volume.
+    std::vector<std::array<GLIndexedVertexArray, 2>> m_ivas;
+
+    void update_vertex_buffers(const ModelVolume* mv,
+                               int mesh_id,
+                               bool update_enforcers,
+                               bool update_blockers);
 
 public:
     GLGizmoFdmSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
