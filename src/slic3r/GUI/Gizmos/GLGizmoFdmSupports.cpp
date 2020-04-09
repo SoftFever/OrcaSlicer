@@ -320,6 +320,14 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             ++mesh_id;
             bool update_both = false;
 
+            const Transform3d& trafo_matrix = trafo_matrices[mesh_id];
+
+            // Calculate how far can a point be from the line (in mesh coords).
+            // FIXME: The scaling of the mesh can be non-uniform.
+            const Vec3d sf = Geometry::Transformation(trafo_matrix).get_scaling_factor();
+            const float avg_scaling = (sf(0) + sf(1) + sf(2))/3.;
+            const float limit = pow(m_cursor_radius/avg_scaling , 2.f);
+
             // For all hits on this mesh...
             for (const std::pair<Vec3f, size_t>& hit_and_facet : hit_positions_and_facet_ids[mesh_id]) {
                 some_mesh_was_hit = true;
@@ -327,13 +335,7 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 std::vector<NeighborData>& neighbors = m_neighbors[mesh_id];
 
                 // Calculate direction from camera to the hit (in mesh coords):
-                const Transform3d& trafo_matrix = trafo_matrices[mesh_id];
-
                 Vec3f dir = ((trafo_matrix.inverse() * camera.get_position()).cast<float>() - hit_and_facet.first).normalized();
-
-                // Calculate how far can a point be from the line (in mesh coords).
-                // FIXME: This should account for (possibly non-uniform) scaling of the mesh.
-                float limit = pow(m_cursor_radius, 2.f);
 
                 // A lambda to calculate distance from the centerline:
                 auto squared_distance_from_line = [&hit_and_facet, &dir](const Vec3f point) -> float {
@@ -492,10 +494,19 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     m_imgui->text("");
 
+    const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
+
     m_imgui->text(m_desc.at("cursor_size"));
     ImGui::SameLine(clipping_slider_left);
     ImGui::PushItemWidth(window_width - clipping_slider_left);
     ImGui::SliderFloat(" ", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f");
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::PushTextWrapPos(max_tooltip_width);
+        ImGui::TextUnformatted(_L("Alt + Mouse wheel").ToUTF8().data());
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
 
     ImGui::Separator();
     if (m_c->object_clipper()->get_position() == 0.f)
@@ -512,7 +523,14 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     ImGui::PushItemWidth(window_width - clipping_slider_left);
     float clp_dist = m_c->object_clipper()->get_position();
     if (ImGui::SliderFloat("  ", &clp_dist, 0.f, 1.f, "%.2f"))
-        m_c->object_clipper()->set_position(clp_dist, true);
+    m_c->object_clipper()->set_position(clp_dist, true);
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::PushTextWrapPos(max_tooltip_width);
+        ImGui::TextUnformatted(_L("Ctrl + Mouse wheel").ToUTF8().data());
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
 
 
 
