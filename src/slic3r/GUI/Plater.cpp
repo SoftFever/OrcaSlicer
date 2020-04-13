@@ -27,6 +27,7 @@
 #include <wx/numdlg.h>
 #include <wx/debug.h>
 #include <wx/busyinfo.h>
+#include <wx/filename.h>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Format/STL.hpp"
@@ -72,6 +73,7 @@
 #include "../Utils/PrintHost.hpp"
 #include "../Utils/FixModelByWin10.hpp"
 #include "../Utils/UndoRedo.hpp"
+#include "../Utils/SLAZipFileImport.hpp"
 #include "RemovableDriveManager.hpp"
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
 #ifdef __APPLE__
@@ -4249,6 +4251,27 @@ void Plater::add_model()
 
     Plater::TakeSnapshot snapshot(this, snapshot_label);
     load_files(paths, true, false);
+}
+
+void Plater::import_sl1_archive()
+{
+    wxFileDialog dlg(this, _(L("Choose SL1 archive:")),
+                     from_u8(wxGetApp().app_config->get_last_dir()), "",
+                     "SL1 archive files (*.sl1)|*.sl1;*.SL1;*.zip;*.ZIP",
+                     wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    if (dlg.ShowModal() == wxID_OK) {
+        try {
+            TriangleMesh mesh = import_model_from_sla_zip(dlg.GetPath());
+            ModelObject * obj = p->model.add_object(wxFileName(dlg.GetPath()).GetName(), "", mesh);
+            if (obj) {
+                obj->add_instance();
+                update();                
+            }
+        } catch (std::exception &ex) {
+            show_error(this, ex.what());
+        }
+    }
 }
 
 void Plater::extract_config_from_project()

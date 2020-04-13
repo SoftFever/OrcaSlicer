@@ -159,6 +159,7 @@ public:
     void load_project();
     void load_project(const wxString& filename);
     void add_model();
+    void import_sl1_archive();
     void extract_config_from_project();
 
     std::vector<size_t> load_files(const std::vector<boost::filesystem::path>& input_files, bool load_model = true, bool load_config = true);

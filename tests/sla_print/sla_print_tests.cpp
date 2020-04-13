@@ -154,19 +154,12 @@ TEST_CASE("FloorSupportsDoNotPierceModel", "[SLASupportGeneration]") {
         test_support_model_collision(fname, supportcfg);
 }
 
-TEST_CASE("DefaultRasterShouldBeEmpty", "[SLARasterOutput]") {
-    sla::Raster raster;
-    REQUIRE(raster.empty());
-}
-
 TEST_CASE("InitializedRasterShouldBeNONEmpty", "[SLARasterOutput]") {
     // Default Prusa SL1 display parameters
-    sla::Raster::Resolution res{2560, 1440};
-    sla::Raster::PixelDim   pixdim{120. / res.width_px, 68. / res.height_px};
+    sla::RasterBase::Resolution res{2560, 1440};
+    sla::RasterBase::PixelDim   pixdim{120. / res.width_px, 68. / res.height_px};
     
-    sla::Raster raster;
-    raster.reset(res, pixdim);
-    REQUIRE_FALSE(raster.empty());
+    sla::RasterGrayscaleAAGammaPower raster(res, pixdim, {}, 1.);
     REQUIRE(raster.resolution().width_px == res.width_px);
     REQUIRE(raster.resolution().height_px == res.height_px);
     REQUIRE(raster.pixel_dimensions().w_mm == Approx(pixdim.w_mm));
@@ -174,13 +167,14 @@ TEST_CASE("InitializedRasterShouldBeNONEmpty", "[SLARasterOutput]") {
 }
 
 TEST_CASE("MirroringShouldBeCorrect", "[SLARasterOutput]") {
-    sla::Raster::TMirroring mirrorings[] = {sla::Raster::NoMirror,
-                                            sla::Raster::MirrorX,
-                                            sla::Raster::MirrorY,
-                                            sla::Raster::MirrorXY};
+    sla::RasterBase::TMirroring mirrorings[] = {sla::RasterBase::NoMirror,
+                                                sla::RasterBase::MirrorX,
+                                                sla::RasterBase::MirrorY,
+                                                sla::RasterBase::MirrorXY};
+
+    sla::RasterBase::Orientation orientations[] =
+        {sla::RasterBase::roLandscape, sla::RasterBase::roPortrait};
     
-    sla::Raster::Orientation orientations[] = {sla::Raster::roLandscape,
-                                               sla::Raster::roPortrait};
     for (auto orientation : orientations)
         for (auto &mirror : mirrorings)
             check_raster_transformations(orientation, mirror);
@@ -189,10 +183,11 @@ TEST_CASE("MirroringShouldBeCorrect", "[SLARasterOutput]") {
 
 TEST_CASE("RasterizedPolygonAreaShouldMatch", "[SLARasterOutput]") {
     double disp_w = 120., disp_h = 68.;
-    sla::Raster::Resolution res{2560, 1440};
-    sla::Raster::PixelDim pixdim{disp_w / res.width_px, disp_h / res.height_px};
+    sla::RasterBase::Resolution res{2560, 1440};
+    sla::RasterBase::PixelDim pixdim{disp_w / res.width_px, disp_h / res.height_px};
     
-    sla::Raster raster{res, pixdim};
+    double gamma = 1.;
+    sla::RasterGrayscaleAAGammaPower raster(res, pixdim, {}, gamma);
     auto bb = BoundingBox({0, 0}, {scaled(disp_w), scaled(disp_h)});
     
     ExPolygon poly = square_with_hole(10.);
@@ -215,6 +210,13 @@ TEST_CASE("RasterizedPolygonAreaShouldMatch", "[SLARasterOutput]") {
     diff = std::abs(a - ra);
     
     REQUIRE(diff <= predict_error(poly, pixdim));
+    
+    sla::RasterGrayscaleAA raster0(res, pixdim, {}, [](double) { return 0.; });
+    REQUIRE(raster_pxsum(raster0) == 0);
+    
+    raster0.draw(poly);
+    ra = raster_white_area(raster);
+    REQUIRE(raster_pxsum(raster0) == 0);
 }
 
 TEST_CASE("Triangle mesh conversions should be correct", "[SLAConversions]")

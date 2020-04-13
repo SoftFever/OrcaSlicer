@@ -42,6 +42,7 @@
 #include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Format/OBJ.hpp"
+#include "libslic3r/Format/SL1.hpp"
 #include "libslic3r/Utils.hpp"
 
 #include "PrusaSlicer.hpp"
@@ -422,7 +423,8 @@ int CLI::run(int argc, char **argv)
                 std::string outfile = m_config.opt_string("output");
                 Print       fff_print;
                 SLAPrint    sla_print;
-
+                SL1Archive  sla_archive(sla_print.printer_config());
+                sla_print.set_printer(&sla_archive);
                 sla_print.set_status_callback(
                             [](const PrintBase::SlicingStatus& s)
                 {
@@ -462,7 +464,7 @@ int CLI::run(int argc, char **argv)
                             outfile = sla_print.output_filepath(outfile);
                             // We need to finalize the filename beforehand because the export function sets the filename inside the zip metadata
                             outfile_final = sla_print.print_statistics().finalize_output_path(outfile);
-                            sla_print.export_raster(outfile_final);
+                            sla_archive.export_print(outfile_final, sla_print);
                         }
                         if (outfile != outfile_final && Slic3r::rename_file(outfile, outfile_final)) {
                             boost::nowide::cerr << "Renaming file " << outfile << " to " << outfile_final << " failed" << std::endl;

@@ -126,10 +126,10 @@ inline IntegerOnly<I, std::vector<T, Args...>> reserve_vector(I capacity)
 }
 
 /// Exactly like Matlab https://www.mathworks.com/help/matlab/ref/linspace.html
-template<class T, class I>
+template<class T, class I, class = IntegerOnly<I>>
 inline std::vector<T> linspace_vector(const ArithmeticOnly<T> &start, 
                                       const T &stop, 
-                                      const IntegerOnly<I> &n)
+                                      const I &n)
 {
     std::vector<T> vals(n, T());
 

@@ -182,6 +182,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/HexFile.cpp
     Utils/HexFile.hpp
     Utils/Thread.hpp
+    Utils/SLAZipFileImport.hpp
+    Utils/SLAZipFileImport.cpp
 )
 
 if (APPLE)

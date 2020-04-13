@@ -167,7 +167,7 @@ void Zipper::add_entry(const std::string &name)
     m_entry = name;
 }
 
-void Zipper::add_entry(const std::string &name, const uint8_t *data, size_t l)
+void Zipper::add_entry(const std::string &name, const void *data, size_t l)
 {
     if(!m_impl->is_alive()) return;
 
