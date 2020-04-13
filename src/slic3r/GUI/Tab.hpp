@@ -50,7 +50,7 @@ class Page : public wxScrolledWindow
 	wxBoxSizer*		m_vsizer;
     bool            m_show = true;
 public:
-    Page(wxWindow* parent, const wxString title, const int iconID, const std::vector<ScalableBitmap>& mode_bmp_cache) :
+    Page(wxWindow* parent, const wxString& title, const int iconID, const std::vector<ScalableBitmap>& mode_bmp_cache) :
 			m_parent(parent),
 			m_title(title),
 			m_iconID(iconID),
@@ -122,8 +122,7 @@ protected:
 	std::string			m_name;
 	const wxString		m_title;
 	PresetBitmapComboBox*	m_presets_choice;
-//	SearchComboBox*		m_search_cb;
-	SearchCtrl*			m_search;
+	Search::SearchCtrl*	m_search;
 	ScalableButton*		m_btn_save_preset;
 	ScalableButton*		m_btn_delete_preset;
 	ScalableButton*		m_btn_hide_incompatible_presets;

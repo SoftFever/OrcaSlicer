@@ -379,6 +379,9 @@ Option ConfigOptionsGroup::get_option(const std::string& opt_key, int opt_index 
 	std::pair<std::string, int> pair(opt_key, opt_index);
 	m_opt_map.emplace(opt_id, pair);
 
+	if (m_show_modified_btns) // fill group and category values just fro options from Settings Tab 
+	    wxGetApp().sidebar().get_searcher().add_key(opt_id, title, config_category);
+
 	return Option(*m_config->def()->get(opt_key), opt_id);
 }
 

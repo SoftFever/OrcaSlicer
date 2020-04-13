@@ -144,6 +144,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers after the first one. "
                    "Set this to zero to disable bed temperature control commands in the output.");
+    def->sidetext = L("°C");
     def->full_label = L("Bed temperature");
     def->min = 0;
     def->max = 300;
@@ -866,8 +867,10 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("first_layer_bed_temperature", coInts);
     def->label = L("First layer");
+    def->full_label = L("First layer bed temperature");
     def->tooltip = L("Heated build plate temperature for the first layer. Set this to zero to disable "
                    "bed temperature control commands in the output.");
+    def->sidetext = L("°C");
     def->max = 0;
     def->max = 300;
     def->set_default_value(new ConfigOptionInts { 0 });
@@ -908,8 +911,10 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("first_layer_temperature", coInts);
     def->label = L("First layer");
+    def->full_label = L("First layer extruder temperature");
     def->tooltip = L("Extruder temperature for first layer. If you want to control temperature manually "
                    "during print, set this to zero to disable temperature control commands in the output file.");
+    def->sidetext = L("°C");
     def->min = 0;
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 200 });
@@ -2071,7 +2076,8 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Other layers");
     def->tooltip = L("Extruder temperature for layers after the first one. Set this to zero to disable "
                    "temperature control commands in the output.");
-    def->full_label = L("Temperature");
+    def->sidetext = L("°C");
+    def->full_label = L("Extruder temperature");
     def->min = 0;
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 200 });

@@ -105,7 +105,7 @@ public:
     void update_mode_sizer() const;
     void update_reslice_btn_tooltip() const;
     void msw_rescale();
-    void apply_search_filter();
+    void search_and_apply_tab_search_lines();
     void jump_to_option(size_t selected);
 
     ObjectManipulation*     obj_manipul();
@@ -133,10 +133,10 @@ public:
     bool                    is_collapsed();
     void                    collapse(bool collapse);
     void                    apply_search_line_on_tabs();
-    void                    update_search_list();
+    void                    update_searcher();
 
     std::vector<PresetComboBox*>&   combos_filament();
-    SearchOptions&                  get_search_list();
+    Search::OptionsSearcher&        get_searcher();
     std::string&                    get_search_line();
 
 private:

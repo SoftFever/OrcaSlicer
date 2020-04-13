@@ -12,6 +12,7 @@
 
 #include "Field.hpp"
 #include "GUI_App.hpp"
+#include "I18N.hpp"
 
 // Translate the ifdef 
 #ifdef __WXOSX__
@@ -59,7 +60,7 @@ public:
 		m_extra_widgets.push_back(widget);
     }
 	Line(wxString label, wxString tooltip) :
-		label(label), label_tooltip(tooltip) {}
+		label(_(label)), label_tooltip(_(tooltip)) {}
 
     const std::vector<widget_t>&	get_extra_widgets() const {return m_extra_widgets;}
     const std::vector<Option>&		get_options() const { return m_options; }
@@ -78,7 +79,7 @@ class OptionsGroup {
 	wxStaticBox*	stb;
 public:
     const bool		staticbox {true};
-    const wxString	title {wxString("")};
+    const wxString	title;
     size_t			label_width = 20 ;// {200};
     wxSizer*		sizer {nullptr};
     column_t		extra_column {nullptr};
@@ -175,7 +176,7 @@ public:
                     m_show_modified_btns(is_tab_opt),
 					staticbox(title!=""), extra_column(extra_clmn) {
         if (staticbox) {
-            stb = new wxStaticBox(_parent, wxID_ANY, title);
+            stb = new wxStaticBox(_parent, wxID_ANY, _(title));
             if (!wxOSX) stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
             stb->SetFont(wxGetApp().bold_font());
         } else
@@ -247,6 +248,8 @@ public:
     DynamicPrintConfig*		m_config {nullptr};
     bool					m_full_labels {0};
 	t_opt_map				m_opt_map;
+
+    std::string             config_category;
 
     void        set_config(DynamicPrintConfig* config) { m_config = config; }
 	Option		get_option(const std::string& opt_key, int opt_index = -1);

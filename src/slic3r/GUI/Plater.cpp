@@ -722,8 +722,8 @@ struct Sidebar::priv
 	ScalableButton* btn_export_gcode_removable; //exports to removable drives (appears only if removable drive is connected)
 
     bool                is_collapsed {false};
-    SearchOptions		search_list;
-    std::string         search_line;
+    Search::OptionsSearcher     searcher;
+    std::string                 search_line;
 
     priv(Plater *plater) : plater(plater) {}
     ~priv();
@@ -1091,15 +1091,15 @@ void Sidebar::msw_rescale()
     p->scrolled->Layout();
 }
 
-void Sidebar::apply_search_filter()
+void Sidebar::search_and_apply_tab_search_lines()
 {
-    if (p->search_list.apply_filters(p->search_line))
+    if (p->searcher.search(p->search_line))
         apply_search_line_on_tabs();
 }
 
 void Sidebar::jump_to_option(size_t selected)
 {
-    const SearchOptions::Option& opt = p->search_list.get_option(selected);
+    const Search::Option& opt = p->searcher.get_option(selected);
     wxGetApp().get_tab(opt.type)->activate_option(opt.opt_key, opt.category);
 }
 
@@ -1360,15 +1360,15 @@ bool Sidebar::is_multifilament()
     return p->combos_filament.size() > 1;
 }
 
-static std::vector<SearchInput> get_search_inputs(ConfigOptionMode mode)
+static std::vector<Search::InputInfo> get_search_inputs(ConfigOptionMode mode)
 {
-    std::vector<SearchInput> ret {};
+    std::vector<Search::InputInfo> ret {};
 
     auto& tabs_list = wxGetApp().tabs_list;
     auto print_tech = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology();
     for (auto tab : tabs_list)
         if (tab->supports_printer_technology(print_tech))
-            ret.emplace_back(SearchInput{tab->get_config(), tab->type(), mode});
+            ret.emplace_back(Search::InputInfo {tab->get_config(), tab->type(), mode});
 
     return ret;
 }
@@ -1380,14 +1380,12 @@ void Sidebar::apply_search_line_on_tabs()
 
     for (auto tab : tabs_list)
         if (tab->supports_printer_technology(print_tech))
-            //tab->get_search_cb()->update_combobox();
             tab->set_search_line(p->search_line);
 }
 
-void Sidebar::update_search_list()
+void Sidebar::update_searcher()
 {
-    p->search_list.init(get_search_inputs(m_mode));
-//    apply_search_line_on_tabs();
+    p->searcher.init(get_search_inputs(m_mode));
 }
 
 void Sidebar::update_mode()
@@ -1396,7 +1394,7 @@ void Sidebar::update_mode()
 
     update_reslice_btn_tooltip();
     update_mode_sizer();
-    update_search_list();
+    update_searcher();
 
     wxWindowUpdateLocker noUpdates(this);
 
@@ -1428,9 +1426,9 @@ std::vector<PresetComboBox*>& Sidebar::combos_filament()
     return p->combos_filament;
 }
 
-SearchOptions& Sidebar::get_search_list()
+Search::OptionsSearcher& Sidebar::get_searcher()
 {
-    return p->search_list;
+    return p->searcher;
 }
 
 std::string& Sidebar::get_search_line()
@@ -3682,7 +3680,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
         wxGetApp().obj_list()->update_object_list_by_printer_technology();
 
         // print technology could be changed, so we should to update a search list
-        sidebar->update_search_list();
+        sidebar->update_searcher();
     }
 }
 
@@ -5347,7 +5345,7 @@ void Plater::undo_redo_topmost_string_getter(const bool is_undo, std::string& ou
 
 bool Plater::search_string_getter(int idx, const char** out_text)
 {
-    const SearchOptions& search_list = p->sidebar->get_search_list();
+    const Search::OptionsSearcher& search_list = p->sidebar->get_searcher();
     
     if (0 <= idx && (size_t)idx < search_list.size()) {
         search_list[idx].get_marked_label(out_text);

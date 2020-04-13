@@ -1,19 +1,9 @@
 #include "Search.hpp"
 
 #include <cstddef>
-#include <algorithm>
-#include <numeric>
-#include <vector>
 #include <string>
-#include <regex>
-#include <future>
-#include <boost/algorithm/string.hpp>
 #include <boost/optional.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <boost/log/trivial.hpp>
 
-//#include <wx/bmpcbox.h>
 #include "libslic3r/PrintConfig.hpp"
 #include "GUI_App.hpp"
 #include "Tab.hpp"
@@ -27,56 +17,76 @@
 using boost::optional;
 
 namespace Slic3r {
-namespace GUI {
 
-bool SearchOptions::Option::fuzzy_match_simple(char const * search_pattern) const
+using GUI::from_u8;
+using GUI::into_u8;
+
+namespace Search {
+
+FMFlag Option::fuzzy_match_simple(char const * search_pattern) const
 {
-    char const* opt_key_str    = opt_key.c_str();
-    char const* label_str      = label.utf8_str();
-
-    return  fts::fuzzy_match_simple(search_pattern, label_str   )   ||
-            fts::fuzzy_match_simple(search_pattern, opt_key_str )   ; 
+    return  fts::fuzzy_match_simple(search_pattern, label_local.utf8_str())     ? fmLabelLocal      :
+            fts::fuzzy_match_simple(search_pattern, group_local.utf8_str())     ? fmGroupLocal      :
+            fts::fuzzy_match_simple(search_pattern, category_local.utf8_str())  ? fmCategoryLocal   :
+            fts::fuzzy_match_simple(search_pattern, opt_key.c_str())            ? fmOptKey          :
+            fts::fuzzy_match_simple(search_pattern, label.utf8_str())           ? fmLabel           :
+            fts::fuzzy_match_simple(search_pattern, group.utf8_str())           ? fmGroup           :
+            fts::fuzzy_match_simple(search_pattern, category.utf8_str())        ? fmCategory        : fmUndef   ;
 }
 
-bool SearchOptions::Option::fuzzy_match_simple(const wxString& search) const
+FMFlag Option::fuzzy_match_simple(const wxString& search) const
 {
     char const* search_pattern = search.utf8_str();
     return fuzzy_match_simple(search_pattern);
 }
 
-bool SearchOptions::Option::fuzzy_match_simple(const std::string& search) const
+FMFlag Option::fuzzy_match_simple(const std::string& search) const
 {
     char const* search_pattern = search.c_str();
     return fuzzy_match_simple(search_pattern);
 }
 
-bool SearchOptions::Option::fuzzy_match(char const* search_pattern, int& outScore)
+FMFlag Option::fuzzy_match(char const* search_pattern, int& outScore) const
 {
-    char const* opt_key_str    = opt_key.c_str();
-    char const* label_str      = label.utf8_str();
+    FMFlag flag = fmUndef;
+    int score;
 
-    return (fts::fuzzy_match(search_pattern, label_str   , outScore)   ||
-            fts::fuzzy_match(search_pattern, opt_key_str , outScore)   ); 
+    if (fts::fuzzy_match(search_pattern, label_local.utf8_str(),    score) && outScore < score) {
+        outScore = score; flag = fmLabelLocal   ; }
+    if (fts::fuzzy_match(search_pattern, group_local.utf8_str(),    score) && outScore < score) {
+        outScore = score; flag = fmGroupLocal   ; }
+    if (fts::fuzzy_match(search_pattern, category_local.utf8_str(), score) && outScore < score) {
+        outScore = score; flag = fmCategoryLocal; }
+    if (fts::fuzzy_match(search_pattern, opt_key.c_str(),           score) && outScore < score) {
+        outScore = score; flag = fmOptKey       ; }
+    if (fts::fuzzy_match(search_pattern, label.utf8_str(),          score) && outScore < score) {
+        outScore = score; flag = fmLabel        ; }
+    if (fts::fuzzy_match(search_pattern, group.utf8_str(),          score) && outScore < score) {
+        outScore = score; flag = fmGroup        ; }
+    if (fts::fuzzy_match(search_pattern, category.utf8_str(),       score) && outScore < score) {
+        outScore = score; flag = fmCategory     ; }
+
+    return flag;
 }
 
-bool SearchOptions::Option::fuzzy_match(const wxString& search, int& outScore)
+FMFlag Option::fuzzy_match(const wxString& search, int& outScore) const
 {
     char const* search_pattern = search.utf8_str();
     return fuzzy_match(search_pattern, outScore); 
 }
 
-bool SearchOptions::Option::fuzzy_match(const std::string& search, int& outScore)
+FMFlag Option::fuzzy_match(const std::string& search, int& outScore) const
 {
     char const* search_pattern = search.c_str();
     return fuzzy_match(search_pattern, outScore);
 }
 
-void SearchOptions::Filter::get_label(const char** out_text) const
+void FoundOption::get_label(const char** out_text) const
 {
     *out_text = label.utf8_str();
 }
 
-void SearchOptions::Filter::get_marked_label(const char** out_text) const
+void FoundOption::get_marked_label(const char** out_text) const
 {
     *out_text = marked_label.utf8_str();
 }
@@ -89,8 +99,10 @@ void change_opt_key(std::string& opt_key, DynamicPrintConfig* config)
         opt_key += "#" + std::to_string(0);
 }
 
-void SearchOptions::append_options(DynamicPrintConfig* config, Preset::Type type, ConfigOptionMode mode)
+void OptionsSearcher::append_options(DynamicPrintConfig* config, Preset::Type type, ConfigOptionMode mode)
 {
+    std::vector<std::string> non_added_options {"printer_technology", "thumbnails" };
+
     for (std::string opt_key : config->keys())
     {
         const ConfigOptionDef& opt = config->def()->options.at(opt_key);
@@ -109,13 +121,15 @@ void SearchOptions::append_options(DynamicPrintConfig* config, Preset::Type type
             default:		break;
             }
 
-        wxString label;
-        if (!opt.category.empty())
-            label += _(opt.category) + " : ";
-        label += _(opt.full_label.empty() ? opt.label : opt.full_label);
+        wxString label = opt.full_label.empty() ? opt.label : opt.full_label;
+
+        const GroupAndCategory& gc = groups_and_categories[opt_key];
 
         if (!label.IsEmpty())
-            options.emplace_back(Option{ label, opt_key, opt.category, type });
+            options.emplace_back(Option{opt_key, type,
+                                        label, _(label),
+                                        gc.group, _(gc.group),
+                                        gc.category, _(gc.category) });
     }
 }
 
@@ -163,54 +177,69 @@ static void clear_marked_string(wxString& str)
     str.Replace(delete_string, wxEmptyString, true);
 }
 
-bool SearchOptions::apply_filters(const std::string& search, bool force/* = false*/)
+bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
 {
     if (search_line == search && !force)
         return false;
 
-    clear_filters();
+    found.clear();
 
     bool full_list = search.empty();
 
     for (size_t i=0; i < options.size(); i++)
     {
+        const Option &opt = options[i];
         if (full_list) {
-            filters.emplace_back(Filter{ options[i].label, options[i].label, i, 0 });
+            wxString label = opt.category_local + " > " + opt.group_local + " > " + opt.label_local;
+            found.emplace_back(FoundOption{ label, label, i, 0 });
             continue;
         }
 
         int score = 0;
-        if (options[i].fuzzy_match_simple(search)/*fuzzy_match(search, score)*/)
+
+        FMFlag fuzzy_match_flag = opt.fuzzy_match(search, score);
+        if (fuzzy_match_flag != fmUndef)
         {
-            wxString marked_label = options[i].label;
+            wxString label = opt.category_local + " > " + opt.group_local  + " > " + opt.label_local;
+            if (     fuzzy_match_flag == fmLabel   ) label += "(" + opt.label    + ")";
+            else if (fuzzy_match_flag == fmGroup   ) label += "(" + opt.group    + ")";
+            else if (fuzzy_match_flag == fmCategory) label += "(" + opt.category + ")";
+            else if (fuzzy_match_flag == fmOptKey  ) label += "(" + opt.opt_key  + ")";
+
+            wxString marked_label = label;
             mark_string(marked_label, from_u8(search));
             clear_marked_string(marked_label);
 
-            filters.emplace_back(Filter{ options[i].label, marked_label, i, score });
+            found.emplace_back(FoundOption{ label, marked_label, i, score });
         }
     }
 
     if (!full_list)
-        sort_filters();
+        sort_found();
 
     search_line = search;
     return true;
 }
 
-void SearchOptions::init(std::vector<SearchInput> input_values)
+void OptionsSearcher::init(std::vector<InputInfo> input_values)
 {
-    clear_options();
+    options.clear();
     for (auto i : input_values)
         append_options(i.config, i.type, i.mode);
     sort_options();
 
-    apply_filters(search_line, true);
+    search(search_line, true);
 }
 
-const SearchOptions::Option& SearchOptions::get_option(size_t pos_in_filter) const
+const Option& OptionsSearcher::get_option(size_t pos_in_filter) const
 {
-    assert(pos_in_filter != size_t(-1) && filters[pos_in_filter].option_idx != size_t(-1));
-    return options[filters[pos_in_filter].option_idx];
+    assert(pos_in_filter != size_t(-1) && found[pos_in_filter].option_idx != size_t(-1));
+    return options[found[pos_in_filter].option_idx];
+}
+
+void OptionsSearcher::add_key(const std::string& opt_key, const wxString& group, const wxString& category)
+{
+    groups_and_categories[opt_key] = GroupAndCategory{group, category};
 }
 
 
@@ -219,7 +248,7 @@ const SearchOptions::Option& SearchOptions::get_option(size_t pos_in_filter) con
 //------------------------------------------
 
 SearchCtrl::SearchCtrl(wxWindow* parent) :
-    wxComboCtrl(parent, wxID_ANY, _L("Type here to search"), wxDefaultPosition, wxSize(25 * wxGetApp().em_unit(), -1), wxTE_PROCESS_ENTER)
+    wxComboCtrl(parent, wxID_ANY, _L("Type here to search"), wxDefaultPosition, wxSize(25 * GUI::wxGetApp().em_unit(), -1), wxTE_PROCESS_ENTER)
 {
     default_string = _L("Type here to search");
 
@@ -253,16 +282,16 @@ void SearchCtrl::OnInputText(wxCommandEvent& )
     if (input_string == default_string)
         input_string.Clear();
 
-    wxGetApp().sidebar().get_search_line() = into_u8(input_string);
+    GUI::wxGetApp().sidebar().get_search_line() = into_u8(input_string);
 
     editing = true;
-    wxGetApp().sidebar().apply_search_filter();
+    GUI::wxGetApp().sidebar().search_and_apply_tab_search_lines();
     editing = false;
 }
 
 void SearchCtrl::PopupList(wxCommandEvent& e)
 {
-    update_list(wxGetApp().sidebar().get_search_list().filters);
+    update_list(GUI::wxGetApp().sidebar().get_searcher().found_options());
     if (e.GetEventType() == wxEVT_TEXT_ENTER)
         this->Popup();
 
@@ -278,7 +307,7 @@ void SearchCtrl::set_search_line(const std::string& line)
 
 void SearchCtrl::msw_rescale()
 {
-    wxSize size = wxSize(25 * wxGetApp().em_unit(), -1);
+    wxSize size = wxSize(25 * GUI::wxGetApp().em_unit(), -1);
     // Set rescaled min height to correct layout
     this->SetMinSize(size);
 
@@ -294,11 +323,11 @@ void SearchCtrl::OnSelect(wxCommandEvent& event)
         return;
 
     prevent_update = true;
-    wxGetApp().sidebar().jump_to_option(selection);
+    GUI::wxGetApp().sidebar().jump_to_option(selection);
     prevent_update = false;
 }
 
-void SearchCtrl::update_list(std::vector<SearchOptions::Filter>& filters)
+void SearchCtrl::update_list(const std::vector<FoundOption>& filters)
 {
     if (popupListBox->GetCount() == filters.size() &&
         popupListBox->GetString(0) == filters[0].label &&
@@ -306,7 +335,7 @@ void SearchCtrl::update_list(std::vector<SearchOptions::Filter>& filters)
         return;
 
     popupListBox->Clear();
-    for (const SearchOptions::Filter& item : filters)
+    for (const FoundOption& item : filters)
         popupListBox->Append(item.label);
 }
 
@@ -318,4 +347,6 @@ void SearchCtrl::OnLeftUpInTextCtrl(wxEvent &event)
     event.Skip();
 }
 
-}}    // namespace Slic3r::GUI
+}
+
+}    // namespace Slic3r::GUI

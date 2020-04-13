@@ -181,12 +181,14 @@ namespace fts {
                 // Check for bonuses based on neighbor character value
                 if (currIdx > 0) {
                     // Camel case
-                    char neighbor = strBegin[currIdx - 1];
-                    char curr = strBegin[currIdx];
-                    if (::islower(neighbor) && ::isupper(curr))
+                    // ::islower() expects an unsigned char in range of 0 to 255.
+                    unsigned char uneighbor = ((unsigned char *)strBegin)[currIdx - 1];
+                    unsigned char ucurr = ((unsigned char*)strBegin)[currIdx];
+                    if (::islower(uneighbor) && ::isupper(ucurr))
                         outScore += camel_bonus;
 
                     // Separator
+                    char neighbor = strBegin[currIdx - 1];
                     bool neighborSeparator = neighbor == '_' || neighbor == ' ';
                     if (neighborSeparator)
                         outScore += separator_bonus;

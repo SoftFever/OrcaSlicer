@@ -2,11 +2,10 @@
 #define slic3r_SearchComboBox_hpp_
 
 #include <vector>
+#include <map>
 
 #include <wx/panel.h>
 #include <wx/sizer.h>
-//#include <wx/bmpcbox.h>
-#include <wx/popupwin.h>
 #include <wx/listctrl.h>
 
 #include <wx/combo.h>
@@ -17,72 +16,98 @@
 
 namespace Slic3r {
 
-namespace GUI {
+namespace Search{
 
-struct SearchInput
+struct InputInfo
 {
     DynamicPrintConfig* config  {nullptr};
     Preset::Type        type    {Preset::TYPE_INVALID};
     ConfigOptionMode    mode    {comSimple};
 };
 
-class SearchOptions
+struct GroupAndCategory {
+    wxString        group;
+    wxString        category;
+};
+
+// fuzzy_match flag
+enum FMFlag
+{
+    fmUndef = 0, // didn't find 
+    fmOptKey,
+    fmLabel,
+    fmLabelLocal,
+    fmGroup,
+    fmGroupLocal,
+    fmCategory,
+    fmCategoryLocal
+};
+
+struct Option {
+    bool operator<(const Option& other) const { return other.label > this->label; }
+    bool operator>(const Option& other) const { return other.label < this->label; }
+
+    std::string     opt_key;
+    Preset::Type    type {Preset::TYPE_INVALID};
+    wxString        label;
+    wxString        label_local;
+    wxString        group;
+    wxString        group_local;
+    wxString        category;
+    wxString        category_local;
+
+    FMFlag fuzzy_match_simple(char const *search_pattern) const;
+    FMFlag fuzzy_match_simple(const wxString& search) const;
+    FMFlag fuzzy_match_simple(const std::string &search) const;
+    FMFlag fuzzy_match(char const *search_pattern, int &outScore) const;
+    FMFlag fuzzy_match(const wxString &search, int &outScore) const ;
+    FMFlag fuzzy_match(const std::string &search, int &outScore) const ;
+};
+
+struct FoundOption {
+    wxString        label;
+    wxString        marked_label;
+    size_t          option_idx {0};
+    int             outScore {0};
+
+    void get_label(const char** out_text) const;
+    void get_marked_label(const char** out_text) const;
+};
+
+class OptionsSearcher
 {
     std::string         search_line;
-public:
-    struct Option {
-        bool operator<(const Option& other) const { return other.label > this->label; }
-        bool operator>(const Option& other) const { return other.label < this->label; }
+    std::map<std::string, GroupAndCategory> groups_and_categories;
 
-        wxString        label;
-        std::string     opt_key;
-        wxString        category;
-        Preset::Type    type {Preset::TYPE_INVALID};
-        // wxString     grope;
-
-        bool fuzzy_match_simple(char const *search_pattern) const;
-        bool fuzzy_match_simple(const wxString& search) const;
-        bool fuzzy_match_simple(const std::string &search) const;
-        bool fuzzy_match(char const *search_pattern, int &outScore);
-        bool fuzzy_match(const wxString &search, int &outScore);
-        bool fuzzy_match(const std::string &search, int &outScore);
-    };
-    std::vector<Option> options {};
-
-    struct Filter {
-        wxString        label;
-        wxString        marked_label;
-        size_t          option_idx {0};
-        int             outScore {0};
-
-        void get_label(const char** out_text) const;
-        void get_marked_label(const char** out_text) const;
-    };
-    std::vector<Filter> filters {};
-
-    void clear_options() { options.clear(); }
-    void clear_filters() { filters.clear(); }
-
-    void init(std::vector<SearchInput> input_values);
+    std::vector<Option>         options {};
+    std::vector<FoundOption>    found {};
 
     void append_options(DynamicPrintConfig* config, Preset::Type type, ConfigOptionMode mode);
-    bool apply_filters(const std::string& search, bool force = false);
 
     void sort_options() {
         std::sort(options.begin(), options.end(), [](const Option& o1, const Option& o2) {
             return o1.label < o2.label; });
     }
-    void sort_filters() {
-        std::sort(filters.begin(), filters.end(), [](const Filter& f1, const Filter& f2) {
+    void sort_found() {
+        std::sort(found.begin(), found.end(), [](const FoundOption& f1, const FoundOption& f2) {
             return f1.outScore > f2.outScore; });
     };
 
     size_t options_size() const { return options.size(); }
-    size_t filters_size() const { return filters.size(); }
-    size_t size() const         { return filters_size(); }
+    size_t found_size() const { return found.size(); }
 
-    const Filter& operator[](const size_t pos) const noexcept { return filters[pos]; }
+public:
+    void init(std::vector<InputInfo> input_values);
+    bool search(const std::string& search, bool force = false);
+
+    void add_key(const std::string& opt_key, const wxString& group, const wxString& category);
+
+    size_t size() const         { return found_size(); }
+
+    const FoundOption& operator[](const size_t pos) const noexcept { return found[pos]; }
     const Option& get_option(size_t pos_in_filter) const;
+
+    const std::vector<FoundOption>& found_options() { return found; }
 };
 
 
@@ -146,7 +171,7 @@ class SearchCtrl : public wxComboCtrl
 {
     SearchComboPopup*   popupListBox {nullptr};
 
-    bool                prevent_update{ false };
+    bool                prevent_update { false };
     wxString            default_string;
     bool                editing {false};
 
@@ -163,10 +188,10 @@ public:
     void		set_search_line(const std::string& search_line);
     void        msw_rescale();
 
-    void        update_list(std::vector<SearchOptions::Filter>& filters);
+    void        update_list(const std::vector<FoundOption>& filters);
 };
 
-
-}}
+} // Search namespace
+}
 
 #endif //slic3r_SearchComboBox_hpp_

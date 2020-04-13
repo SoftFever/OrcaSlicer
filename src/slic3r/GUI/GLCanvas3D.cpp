@@ -4489,13 +4489,13 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
     char *s = new char[255];
     strcpy(s, search_line.empty() ? _u8L("Type here to search").c_str() : search_line.c_str());
 
-    imgui->search_list(ImVec2(36 * em, 30 * em), &search_string_getter, s, selected, edited);
+    imgui->search_list(ImVec2(45 * em, 30 * em), &search_string_getter, s, selected, edited);
 
     search_line = s;
     delete [] s;
 
     if (edited)
-        wxGetApp().sidebar().apply_search_filter();
+        wxGetApp().sidebar().search_and_apply_tab_search_lines();
 
     if (selected != size_t(-1))
     {
