@@ -24,6 +24,7 @@
 #include "libslic3r/Utils.hpp"
 #include "3DScene.hpp"
 #include "GUI.hpp"
+#include "I18N.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -538,7 +539,8 @@ static bool selectable(const char* label, bool selected, ImGuiSelectableFlags fl
     return pressed;
 }
 
-void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, const char**), char* search_str, size_t& selected, bool& edited)
+void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, const char**), char* search_str,
+                               bool& category, bool& group, size_t& selected, bool& edited, bool& check_changed)
 {
     // ImGui::ListBoxHeader("", size);
     {   
@@ -604,6 +606,23 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
     }
 
     ImGui::ListBoxFooter();
+
+    // add checkboxes for show/hide Categories and Groups
+    text(_L("Use for search")+":");
+    ImGui::SameLine();
+    bool cat = category;
+    checkbox(_L("Category"), cat);
+    if (ImGui::IsItemClicked()) {
+        category = !category;
+        check_changed = true;
+    }
+    ImGui::SameLine();
+    bool gr = group;
+    checkbox(_L("Group"), gr);
+    if (ImGui::IsItemClicked()) {
+        group = !group;
+        check_changed = true;
+    }
 }
 
 void ImGuiWrapper::disabled_begin(bool disabled)

@@ -74,7 +74,8 @@ public:
     bool slider_float(const wxString& label, float* v, float v_min, float v_max, const char* format = "%.3f", float power = 1.0f);
     bool combo(const wxString& label, const std::vector<std::string>& options, int& selection);   // Use -1 to not mark any option as selected
     bool undo_redo_list(const ImVec2& size, const bool is_undo, bool (*items_getter)(const bool, int, const char**), int& hovered, int& selected);
-    void search_list(const ImVec2& size, bool (*items_getter)(int, const char**), char* search_str, size_t& selected, bool& edited);
+    void search_list(const ImVec2& size, bool (*items_getter)(int, const char**), char* search_str, 
+                     bool& category, bool& group, size_t& selected, bool& edited, bool& check_changed);
 
     void disabled_begin(bool disabled);
     void disabled_end();

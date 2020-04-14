@@ -1091,9 +1091,9 @@ void Sidebar::msw_rescale()
     p->scrolled->Layout();
 }
 
-void Sidebar::search_and_apply_tab_search_lines()
+void Sidebar::search_and_apply_tab_search_lines(bool force/* = false*/)
 {
-    if (p->searcher.search(p->search_line))
+    if (p->searcher.search(p->search_line, force))
         apply_search_line_on_tabs();
 }
 

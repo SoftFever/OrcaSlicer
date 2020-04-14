@@ -186,11 +186,22 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
 
     bool full_list = search.empty();
 
+    auto get_label = [this](const Option& opt)
+    {
+        wxString label;
+        if (category)
+            label += opt.category_local + " > ";
+        if (group)
+            label += opt.group_local + " > ";
+        label += opt.label_local;
+        return label;
+    };
+
     for (size_t i=0; i < options.size(); i++)
     {
         const Option &opt = options[i];
         if (full_list) {
-            wxString label = opt.category_local + " > " + opt.group_local + " > " + opt.label_local;
+            wxString label = get_label(opt);
             found.emplace_back(FoundOption{ label, label, i, 0 });
             continue;
         }
@@ -200,7 +211,8 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
         FMFlag fuzzy_match_flag = opt.fuzzy_match(search, score);
         if (fuzzy_match_flag != fmUndef)
         {
-            wxString label = opt.category_local + " > " + opt.group_local  + " > " + opt.label_local;
+            wxString label = get_label(opt); //opt.category_local + " > " + opt.group_local  + " > " + opt.label_local;
+
             if (     fuzzy_match_flag == fmLabel   ) label += "(" + opt.label    + ")";
             else if (fuzzy_match_flag == fmGroup   ) label += "(" + opt.group    + ")";
             else if (fuzzy_match_flag == fmCategory) label += "(" + opt.category + ")";
@@ -244,6 +256,81 @@ void OptionsSearcher::add_key(const std::string& opt_key, const wxString& group,
 
 
 //------------------------------------------
+//          SearchComboPopup
+//------------------------------------------
+
+
+void SearchComboPopup::Init()
+{
+    this->Bind(wxEVT_MOTION,    &SearchComboPopup::OnMouseMove,     this);
+    this->Bind(wxEVT_LEFT_UP,   &SearchComboPopup::OnMouseClick,    this);
+    this->Bind(wxEVT_KEY_DOWN,  &SearchComboPopup::OnKeyDown,       this);
+}
+
+bool SearchComboPopup::Create(wxWindow* parent)
+{
+    return wxListBox::Create(parent, 1, wxPoint(0, 0), wxDefaultSize);
+}
+
+void SearchComboPopup::SetStringValue(const wxString& s)
+{
+    int n = wxListBox::FindString(s);
+    if (n >= 0 && n < wxListBox::GetCount())
+        wxListBox::Select(n);
+
+    // save a combo control's string
+    m_input_string = s;
+}
+
+void SearchComboPopup::ProcessSelection(int selection) 
+{
+    wxCommandEvent event(wxEVT_LISTBOX, GetId());
+    event.SetInt(selection);
+    event.SetEventObject(this);
+    ProcessEvent(event);
+
+    Dismiss();
+}
+
+void SearchComboPopup::OnMouseMove(wxMouseEvent& event)
+{
+    wxPoint pt = wxGetMousePosition() - this->GetScreenPosition();
+    int selection = this->HitTest(pt);
+    wxListBox::Select(selection);
+}
+
+void SearchComboPopup::OnMouseClick(wxMouseEvent&)
+{
+    int selection = wxListBox::GetSelection();
+    SetSelection(wxNOT_FOUND);
+    ProcessSelection(selection);
+}
+
+void SearchComboPopup::OnKeyDown(wxKeyEvent& event)
+{
+    int key = event.GetKeyCode();
+
+    // change selected item in the list
+    if (key == WXK_UP || key == WXK_DOWN)
+    {
+        int selection = wxListBox::GetSelection();
+
+        if (key == WXK_UP && selection > 0)
+            selection--;
+        int last_item_id = int(wxListBox::GetCount() - 1);
+        if (key == WXK_DOWN && selection < int(wxListBox::GetCount() - 1))
+            selection++;
+
+        wxListBox::Select(selection);
+    }
+    // send wxEVT_LISTBOX event if "Enter" was pushed
+    else if (key == WXK_NUMPAD_ENTER || key == WXK_RETURN)
+        ProcessSelection(wxListBox::GetSelection());
+    else
+        event.Skip(); // !Needed to have EVT_CHAR generated as well
+}
+
+//------------------------------------------
 //          SearchCtrl
 //------------------------------------------
 
@@ -266,7 +353,12 @@ SearchCtrl::SearchCtrl(wxWindow* parent) :
     this->Bind(wxEVT_TEXT,                 &SearchCtrl::OnInputText, this);
     this->Bind(wxEVT_TEXT_ENTER,           &SearchCtrl::PopupList, this);
     this->Bind(wxEVT_COMBOBOX_DROPDOWN,    &SearchCtrl::PopupList, this);
-
+/*
+    this->Bind(wxEVT_KEY_DOWN, [this](wxKeyEvent&e)
+    {
+        
+    });
+*/
     this->GetTextCtrl()->Bind(wxEVT_LEFT_UP,    &SearchCtrl::OnLeftUpInTextCtrl, this);
     popupListBox->Bind(wxEVT_LISTBOX,           &SearchCtrl::OnSelect,           this);
 }

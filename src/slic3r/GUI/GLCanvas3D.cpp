@@ -4480,28 +4480,39 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
 
     size_t selected = size_t(-1);
     bool edited = false;
+    bool check_changed = false;
     float em = static_cast<float>(wxGetApp().em_unit());
 #if ENABLE_RETINA_GL
 	em *= m_retina_helper->get_scale_factor();
 #endif
 
-    std::string& search_line = wxGetApp().sidebar().get_search_line();
+    Sidebar& sidebar = wxGetApp().sidebar();
+
+    std::string& search_line = sidebar.get_search_line();
     char *s = new char[255];
     strcpy(s, search_line.empty() ? _u8L("Type here to search").c_str() : search_line.c_str());
 
-    imgui->search_list(ImVec2(45 * em, 30 * em), &search_string_getter, s, selected, edited);
+    imgui->search_list(ImVec2(45 * em, 30 * em), &search_string_getter, s, 
+                       sidebar.get_searcher().category, sidebar.get_searcher().group, 
+                       selected, edited, check_changed);
 
     search_line = s;
     delete [] s;
 
     if (edited)
-        wxGetApp().sidebar().search_and_apply_tab_search_lines();
+        sidebar.search_and_apply_tab_search_lines();
+
+    if (check_changed) {
+        if (search_line == _u8L("Type here to search"))
+            search_line.clear();
+        sidebar.search_and_apply_tab_search_lines(true);
+    }
 
     if (selected != size_t(-1))
     {
         // selected == 9999 means that Esc kye was pressed
         if (selected != 9999)
-            wxGetApp().sidebar().jump_to_option(selected);
+            sidebar.jump_to_option(selected);
         action_taken = true;
     }
 

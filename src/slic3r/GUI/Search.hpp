@@ -97,6 +97,9 @@ class OptionsSearcher
     size_t found_size() const { return found.size(); }
 
 public:
+    bool                category{ false };
+    bool                group{ true };
+
     void init(std::vector<InputInfo> input_values);
     bool search(const std::string& search, bool force = false);
 
@@ -115,54 +118,30 @@ class SearchComboPopup : public wxListBox, public wxComboPopup
 {
 public:
     // Initialize member variables
-    virtual void Init()
-    {
-        this->Bind(wxEVT_MOTION, &SearchComboPopup::OnMouseMove, this);
-        this->Bind(wxEVT_LEFT_UP, &SearchComboPopup::OnMouseClick, this);
-    }
+    void Init();
 
     // Create popup control
-    virtual bool Create(wxWindow* parent)
-    {
-        return wxListBox::Create(parent, 1, wxPoint(0, 0), wxDefaultSize);
-    }
+    virtual bool Create(wxWindow* parent);
     // Return pointer to the created control
     virtual wxWindow* GetControl() { return this; }
-    // Translate string into a list selection
-    virtual void SetStringValue(const wxString& s)
-    {
-        int n = wxListBox::FindString(s);
-        if (n >= 0 && n < wxListBox::GetCount())
-            wxListBox::Select(n);
 
-        // save a combo control's string
-        m_input_string = s;
-    }
+    // Translate string into a list selection
+    virtual void SetStringValue(const wxString& s);
     // Get list selection as a string
-    virtual wxString GetStringValue() const
-    {
+    virtual wxString GetStringValue() const {
         // we shouldn't change a combo control's string
         return m_input_string;
     }
-    // Do mouse hot-tracking (which is typical in list popups)
-    void OnMouseMove(wxMouseEvent& event)
-    {
-        wxPoint pt = wxGetMousePosition() - this->GetScreenPosition();
-        int selection = this->HitTest(pt);
-        wxListBox::Select(selection);
-    }
-    // On mouse left up, set the value and close the popup
-    void OnMouseClick(wxMouseEvent& WXUNUSED(event))
-    {
-        int selection = wxListBox::GetSelection();
-        SetSelection(wxNOT_FOUND);
-        wxCommandEvent event(wxEVT_LISTBOX, GetId());
-        event.SetInt(selection);
-        event.SetEventObject(this);
-        ProcessEvent(event);
 
-        Dismiss();
-    }
+    void ProcessSelection(int selection);
+
+    // Do mouse hot-tracking (which is typical in list popups)
+    void OnMouseMove(wxMouseEvent& event);
+    // On mouse left up, set the value and close the popup
+    void OnMouseClick(wxMouseEvent& WXUNUSED(event));
+    // process Up/Down arrows and Enter press
+    void OnKeyDown(wxKeyEvent& event);
+
 protected:
     wxString m_input_string;
 };
