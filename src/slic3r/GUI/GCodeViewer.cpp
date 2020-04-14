@@ -8,6 +8,8 @@
 #include <boost/log/trivial.hpp>
 
 #include <array>
+#include <algorithm>
+#include <chrono>
 
 namespace Slic3r {
 namespace GUI {
@@ -20,15 +22,27 @@ static GCodeProcessor::EMoveType buffer_type(unsigned char id) {
     return static_cast<GCodeProcessor::EMoveType>(static_cast<unsigned char>(GCodeProcessor::EMoveType::Retract) + id);
 }
 
+void GCodeViewer::Buffer::reset()
+{
+    // release gpu memory
+    if (vbo_id > 0)
+        glsafe(::glDeleteBuffers(1, &vbo_id));
+
+    // release cpu memory
+    data = std::vector<float>();
+}
+
 void GCodeViewer::generate(const GCodeProcessor::Result& gcode_result)
 {
     if (m_last_result_id == gcode_result.id)
         return;
 
+    auto start_time = std::chrono::high_resolution_clock::now();
+
     m_last_result_id = gcode_result.id;
 
     // release gpu memory, if used
-    reset_buffers();
+    reset();
 
     // convert data
     size_t vertices_count = gcode_result.moves.size();
@@ -73,16 +87,49 @@ void GCodeViewer::generate(const GCodeProcessor::Result& gcode_result)
             continue;
         }
         }
+        if (curr.type == GCodeProcessor::EMoveType::Extrude)
+            m_layers_zs.emplace_back(curr.position[2]);
     }
+
+    std::sort(m_layers_zs.begin(), m_layers_zs.end());
+
+    // Replace intervals of layers with similar top positions with their average value.
+    int n = int(m_layers_zs.size());
+    int k = 0;
+    for (int i = 0; i < n;) {
+        int j = i + 1;
+        double zmax = m_layers_zs[i] + EPSILON;
+        for (; j < n && m_layers_zs[j] <= zmax; ++j);
+        m_layers_zs[k++] = (j > i + 1) ? (0.5 * (m_layers_zs[i] + m_layers_zs[j - 1])) : m_layers_zs[i];
+        i = j;
+    }
+    if (k < n)
+        m_layers_zs.erase(m_layers_zs.begin() + k, m_layers_zs.end());
 
     // send data to gpu
     for (Buffer& buffer : m_buffers)
     {
-        glsafe(::glGenBuffers(1, &buffer.vbo_id));
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, buffer.vbo_id));
-        glsafe(::glBufferData(GL_ARRAY_BUFFER, buffer.data.size() * sizeof(float), buffer.data.data(), GL_STATIC_DRAW));
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+        if (buffer.data.size() > 0)
+        {
+            glsafe(::glGenBuffers(1, &buffer.vbo_id));
+            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, buffer.vbo_id));
+            glsafe(::glBufferData(GL_ARRAY_BUFFER, buffer.data.size() * sizeof(float), buffer.data.data(), GL_STATIC_DRAW));
+            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+        }
     }
+
+    auto end_time = std::chrono::high_resolution_clock::now();
+    std::cout << "toolpaths generation time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() << "ms \n";
+}
+
+void GCodeViewer::reset()
+{
+    for (Buffer& buffer : m_buffers)
+    {
+        buffer.reset();
+    }
+
+    m_layers_zs = std::vector<double>();
 }
 
 void GCodeViewer::render() const
@@ -111,10 +158,12 @@ void GCodeViewer::render() const
         if (buffer.vbo_id == 0)
             continue;
 
-        const Shader& shader = m_shaders[i];
-        if (shader.is_initialized())
+        if (!buffer.visible)
+            continue;
+
+        if (buffer.shader.is_initialized())
         {
-            shader.start_using();
+            buffer.shader.start_using();
 
             GLint current_program_id;
             glsafe(::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id));
@@ -122,32 +171,50 @@ void GCodeViewer::render() const
             GCodeProcessor::EMoveType type = buffer_type(i);
 
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, buffer.vbo_id));
-            glsafe(::glVertexPointer(3, GL_FLOAT, Buffer::stride(type), (const void*)0));
+            glsafe(::glVertexPointer(3, GL_FLOAT, Buffer::vertex_size_bytes(), (const void*)0));
             glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
 
             switch (type)
             {
             case GCodeProcessor::EMoveType::Tool_change:
+            {
+                std::array<float, 4> color = { 1.0f, 1.0f, 1.0f, 1.0f };
+                set_color(current_program_id, color);
+                glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
+                glsafe(::glDrawArrays(GL_POINTS, 0, (GLsizei)buffer.data.size() / Buffer::vertex_size()));
+                glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+                break;
+            }
             case GCodeProcessor::EMoveType::Retract:
+            {
+                std::array<float, 4> color = { 1.0f, 0.0f, 1.0f, 1.0f };
+                set_color(current_program_id, color);
+                glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
+                glsafe(::glDrawArrays(GL_POINTS, 0, (GLsizei)buffer.data.size() / Buffer::vertex_size()));
+                glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+                break;
+            }
             case GCodeProcessor::EMoveType::Unretract:
             {
                 std::array<float, 4> color = { 0.0f, 1.0f, 0.0f, 1.0f };
                 set_color(current_program_id, color);
-                glsafe(::glDrawArrays(GL_POINTS, 0, (GLsizei)buffer.data.size() / Buffer::record_size(type)));
+                glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
+                glsafe(::glDrawArrays(GL_POINTS, 0, (GLsizei)buffer.data.size() / Buffer::vertex_size()));
+                glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
                 break;
             }
             case GCodeProcessor::EMoveType::Extrude:
             {
                 std::array<float, 4> color = { 1.0f, 0.0f, 0.0f, 1.0f };
                 set_color(current_program_id, color);
-                glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)buffer.data.size() / Buffer::record_size(type)));
+                glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)buffer.data.size() / Buffer::vertex_size()));
                 break;
             }
             case GCodeProcessor::EMoveType::Travel:
             {
                 std::array<float, 4> color = { 1.0f, 1.0f, 0.0f, 1.0f };
                 set_color(current_program_id, color);
-                glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)buffer.data.size() / Buffer::record_size(type)));
+                glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)buffer.data.size() / Buffer::vertex_size()));
                 break;
             }
             default:
@@ -159,9 +226,22 @@ void GCodeViewer::render() const
             glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
 
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-            shader.stop_using();
+            buffer.shader.stop_using();
         }
     }
+}
+
+bool GCodeViewer::is_toolpath_visible(GCodeProcessor::EMoveType type) const
+{
+    size_t id = static_cast<size_t>(buffer_id(type));
+    return (id < m_buffers.size()) ? m_buffers[id].visible : false;
+}
+
+void GCodeViewer::set_toolpath_visible(GCodeProcessor::EMoveType type, bool visible)
+{
+    size_t id = static_cast<size_t>(buffer_id(type));
+    if (id < m_buffers.size())
+        m_buffers[id].visible = visible;
 }
 
 bool GCodeViewer::init_shaders()
@@ -171,7 +251,7 @@ bool GCodeViewer::init_shaders()
 
     for (unsigned char i = begin_id; i < end_id; ++i)
     {
-        Shader& shader = m_shaders[i];
+        Shader& shader = m_buffers[i].shader;
         std::string vertex_shader_src;
         std::string fragment_shader_src;
         GCodeProcessor::EMoveType type = buffer_type(i);
@@ -221,19 +301,6 @@ bool GCodeViewer::init_shaders()
     }
 
     return true;
-}
-
-void GCodeViewer::reset_buffers()
-{
-    for (Buffer& buffer : m_buffers)
-    {
-        // release gpu memory
-        if (buffer.vbo_id > 0)
-            glsafe(::glDeleteBuffers(1, &buffer.vbo_id));
-
-        // release cpu memory
-        buffer.data = std::vector<float>();
-    }
 }
 
 } // namespace GUI

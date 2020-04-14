@@ -932,7 +932,11 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D
         std::vector<std::pair<double, double>> cp_values;
         cp_values.reserve(custom_gcode_per_print_z.size());
         
+#if ENABLE_GCODE_VIEWER
+        const std::vector<double>& print_zs = canvas.get_layers_zs();
+#else
         std::vector<double> print_zs = canvas.get_current_print_zs(true);
+#endif // ENABLE_GCODE_VIEWER
         for (auto custom_code : custom_gcode_per_print_z)
         {
             if (custom_code.gcode != ColorChangeCode)
@@ -2303,10 +2307,23 @@ void GLCanvas3D::ensure_on_bed(unsigned int object_idx)
     }
 }
 
+
+#if ENABLE_GCODE_VIEWER
+const std::vector<double>& GLCanvas3D::get_layers_zs() const
+{
+    return m_gcode_viewer.get_layers_zs();
+}
+
+void GLCanvas3D::set_toolpath_visible(GCodeProcessor::EMoveType type, bool visible)
+{
+    m_gcode_viewer.set_toolpath_visible(type, visible);
+}
+#else
 std::vector<double> GLCanvas3D::get_current_print_zs(bool active_only) const
 {
     return m_volumes.get_current_print_zs(active_only);
 }
+#endif // ENABLE_GCODE_VIEWER
 
 void GLCanvas3D::set_toolpaths_range(double low, double high)
 {
@@ -2786,14 +2803,19 @@ static void load_gcode_retractions(const GCodePreviewData::Retraction& retractio
 void GLCanvas3D::load_gcode_preview_2(const GCodeProcessor::Result& gcode_result)
 {
 #if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
-    boost::filesystem::path path("d:/processor.output");
-    boost::nowide::ofstream out;
-    out.open(path.string());
-    for (const GCodeProcessor::MoveVertex& v : gcode_result.moves)
+    static unsigned int last_result_id = 0;
+    if (last_result_id != gcode_result.id)
     {
-        out << v.to_string() << "\n";
+        last_result_id = gcode_result.id;
+        boost::filesystem::path path("d:/processor.output");
+        boost::nowide::ofstream out;
+        out.open(path.string());
+        for (const GCodeProcessor::MoveVertex& v : gcode_result.moves)
+        {
+            out << v.to_string() << "\n";
+        }
+        out.close();
     }
-    out.close();
 
     m_gcode_viewer.generate(gcode_result);
 #endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT

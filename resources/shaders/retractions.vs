@@ -12,4 +12,6 @@ void main()
 //    eye_normal = gl_NormalMatrix * gl_Normal;
 //	world_normal_z = gl_Normal.z;
     gl_Position = ftransform();
+    
+    gl_PointSize = 3.0;
 }

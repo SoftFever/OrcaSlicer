@@ -474,6 +474,9 @@ void Preview::reload_print(bool keep_volumes)
         !keep_volumes)
     {
         m_canvas->reset_volumes();
+#if ENABLE_GCODE_VIEWER
+        m_canvas->reset_gcode_toolpaths();
+#endif // ENABLE_GCODE_VIEWER
         m_canvas->reset_legend_texture();
         m_loaded = false;
 #ifdef __linux__
@@ -614,21 +617,34 @@ void Preview::on_combochecklist_features(wxCommandEvent& evt)
 
 void Preview::on_checkbox_travel(wxCommandEvent& evt)
 {
+#if ENABLE_GCODE_VIEWER
+    m_canvas->set_toolpath_visible(GCodeProcessor::EMoveType::Travel, m_checkbox_travel->IsChecked());
+    refresh_print();
+#else
     m_gcode_preview_data->travel.is_visible = m_checkbox_travel->IsChecked();
     m_gcode_preview_data->ranges.feedrate.set_mode(GCodePreviewData::FeedrateKind::TRAVEL, m_gcode_preview_data->travel.is_visible);
     // Rather than refresh, reload print so that speed color ranges get recomputed (affected by travel visibility)
     reload_print();
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void Preview::on_checkbox_retractions(wxCommandEvent& evt)
 {
+#if ENABLE_GCODE_VIEWER
+    m_canvas->set_toolpath_visible(GCodeProcessor::EMoveType::Retract, m_checkbox_retractions->IsChecked());
+#else
     m_gcode_preview_data->retraction.is_visible = m_checkbox_retractions->IsChecked();
+#endif // ENABLE_GCODE_VIEWER
     refresh_print();
 }
 
 void Preview::on_checkbox_unretractions(wxCommandEvent& evt)
 {
+#if ENABLE_GCODE_VIEWER
+    m_canvas->set_toolpath_visible(GCodeProcessor::EMoveType::Unretract, m_checkbox_unretractions->IsChecked());
+#else
     m_gcode_preview_data->unretraction.is_visible = m_checkbox_unretractions->IsChecked();
+#endif // ENABLE_GCODE_VIEWER
     refresh_print();
 }
 
@@ -958,7 +974,11 @@ void Preview::load_print_as_fff(bool keep_z_range)
         }
         show_hide_ui_elements(gcode_preview_data_valid ? "full" : "simple");
         // recalculates zs and update sliders accordingly
+#if ENABLE_GCODE_VIEWER
+        const std::vector<double>& zs = m_canvas->get_layers_zs();
+#else
         std::vector<double> zs = m_canvas->get_current_print_zs(true);
+#endif // ENABLE_GCODE_VIEWER
         if (zs.empty()) {
             // all layers filtered out
             reset_sliders(true);

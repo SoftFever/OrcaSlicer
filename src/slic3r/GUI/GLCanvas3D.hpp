@@ -549,6 +549,10 @@ public:
     void reset_volumes();
     int check_volumes_outside_state() const;
 
+#if ENABLE_GCODE_VIEWER
+    void reset_gcode_toolpaths() { m_gcode_viewer.reset(); }
+#endif // ENABLE_GCODE_VIEWER
+
     void toggle_sla_auxiliaries_visibility(bool visible, const ModelObject* mo = nullptr, int instance_idx = -1);
     void toggle_model_objects_visibility(bool visible, const ModelObject* mo = nullptr, int instance_idx = -1);
     void update_instance_printable_state_for_object(size_t obj_idx);
@@ -635,7 +639,12 @@ public:
     void delete_selected();
     void ensure_on_bed(unsigned int object_idx);
 
+#if ENABLE_GCODE_VIEWER
+    const std::vector<double>& get_layers_zs() const;
+    void set_toolpath_visible(GCodeProcessor::EMoveType type, bool visible);
+#else
     std::vector<double> get_current_print_zs(bool active_only) const;
+#endif // ENABLE_GCODE_VIEWER
     void set_toolpaths_range(double low, double high);
 
     std::vector<int> load_object(const ModelObject& model_object, int obj_idx, std::vector<int> instance_idxs);

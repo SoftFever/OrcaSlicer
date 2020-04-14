@@ -16,42 +16,38 @@ class GCodeViewer
     struct Buffer
     {
         unsigned int vbo_id{ 0 };
+        Shader shader;
         std::vector<float> data;
+        bool visible{ false };
 
-        static size_t stride(GCodeProcessor::EMoveType type)
-        {
-            return 3 * sizeof(float);
-        }
+        void reset();
 
-        static size_t record_size(GCodeProcessor::EMoveType type)
-        {
-            switch (type)
-            {
-            case GCodeProcessor::EMoveType::Tool_change:
-            case GCodeProcessor::EMoveType::Retract:
-            case GCodeProcessor::EMoveType::Unretract: { return 3; }
-            case GCodeProcessor::EMoveType::Extrude:
-            case GCodeProcessor::EMoveType::Travel: { return 6; }
-            default: { return 0; }
-            }
-        }
+        static size_t vertex_size() { return 3; }
+
+        static size_t vertex_size_bytes() { return vertex_size() * sizeof(float); }
     };
 
     std::vector<Buffer> m_buffers{ static_cast<size_t>(GCodeProcessor::EMoveType::Extrude) };
-    std::vector<Shader> m_shaders{ static_cast<size_t>(GCodeProcessor::EMoveType::Extrude) };
+
     unsigned int m_last_result_id{ 0 };
+    std::vector<double> m_layers_zs;
 
 public:
     GCodeViewer() = default;
-    ~GCodeViewer() { reset_buffers(); }
+    ~GCodeViewer() { reset(); }
 
-    bool init() { return init_shaders(); }
+    bool init() { set_toolpath_visible(GCodeProcessor::EMoveType::Extrude, true);  return init_shaders(); }
     void generate(const GCodeProcessor::Result& gcode_result);
+    void reset();
     void render() const;
+
+    const std::vector<double>& get_layers_zs() const { return m_layers_zs; };
+
+    bool is_toolpath_visible(GCodeProcessor::EMoveType type) const;
+    void set_toolpath_visible(GCodeProcessor::EMoveType type, bool visible);
 
 private:
     bool init_shaders();
-    void reset_buffers();
 };
 
 } // namespace GUI
