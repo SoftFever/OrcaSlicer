@@ -1027,6 +1027,8 @@ boost::any& Choice::get_value()
 		}
 		if (m_opt_id.compare("fill_pattern") == 0)
 			m_value = static_cast<InfillPattern>(ret_enum);
+		else if (m_opt_id.compare("ironing_type") == 0)
+			m_value = static_cast<IroningType>(ret_enum);
 		else if (m_opt_id.compare("gcode_flavor") == 0)
 			m_value = static_cast<GCodeFlavor>(ret_enum);
 		else if (m_opt_id.compare("support_material_pattern") == 0)

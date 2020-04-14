@@ -1076,6 +1076,53 @@ void PrintConfigDef::init_fff_params()
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("ironing", coBool);
+    def->label = L("Enable ironing");
+    def->tooltip = L("Enable ironing of the top layers with the hot print head for smooth surface");
+    def->category = L("Ironing");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("ironing_type", coEnum);
+    def->label = L("Ironingy Type");
+    def->tooltip = L("Ironingy Type");
+    def->enum_keys_map = &ConfigOptionEnum<IroningType>::get_enum_values();
+    def->enum_values.push_back("top");
+    def->enum_values.push_back("topmost");
+    def->enum_values.push_back("solid");
+    def->enum_labels.push_back("All top surfaces");
+    def->enum_labels.push_back("Topmost surface only");
+    def->enum_labels.push_back("All solid surfaces");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<IroningType>(IroningType::TopSurfaces));
+
+    def = this->add("ironing_flowrate", coPercent);
+    def->label = L("Flow rate");
+    def->category = L("Ironing");
+    def->tooltip = L("Percent of a flow rate relative to object's normal layer height.");
+    def->sidetext = L("%");
+    def->ratio_over = "layer_height";
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionPercent(15));
+
+    def = this->add("ironing_spacing", coFloat);
+    def->label = L("Spacing between ironing passes");
+    def->tooltip = L("Distance between ironing lins");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(0.1));
+
+    def = this->add("ironing_speed", coFloat);
+    def->label = L("Ironing speed");
+    def->category = L("Speed");
+    def->tooltip = L("Ironing speed");
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(60));
+
     def = this->add("layer_gcode", coString);
     def->label = L("After layer change G-code");
     def->tooltip = L("This custom code is inserted at every layer change, right after the Z move "
