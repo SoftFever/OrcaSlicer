@@ -38,6 +38,8 @@ void GCodeProcessor::CpColor::reset()
     current = 0;
 }
 
+unsigned int GCodeProcessor::Result::id = 0;
+
 void GCodeProcessor::apply_config(const PrintConfig& config)
 {
     m_parser.apply_config(config);

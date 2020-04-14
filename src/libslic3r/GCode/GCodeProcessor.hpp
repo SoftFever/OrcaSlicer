@@ -39,17 +39,6 @@ namespace Slic3r {
             Relative
         };
 
-        enum class EMoveType : unsigned char
-        {
-            Noop,
-            Retract,
-            Unretract,
-            Tool_change,
-            Travel,
-            Extrude,
-            Num_Types
-        };
-
         struct CachedPosition
         {
             AxisCoords position; // mm
@@ -67,6 +56,17 @@ namespace Slic3r {
         };
 
     public:
+        enum class EMoveType : unsigned char
+        {
+            Noop,
+            Retract,
+            Unretract,
+            Tool_change,
+            Travel,
+            Extrude,
+            Count
+        };
+
         struct MoveVertex
         {
             EMoveType type{ EMoveType::Noop };
@@ -98,8 +98,9 @@ namespace Slic3r {
 
         struct Result
         {
+            static unsigned int id;
             std::vector<MoveVertex> moves;
-            void reset() { moves = std::vector<MoveVertex>(); }
+            void reset() { ++id; moves = std::vector<MoveVertex>(); }
         };
 
     private:

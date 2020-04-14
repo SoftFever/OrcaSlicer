@@ -946,9 +946,10 @@ void Preview::load_print_as_fff(bool keep_z_range)
         m_canvas->set_selected_extruder(0);
         if (gcode_preview_data_valid) {
             // Load the real G-code preview.
-            m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
 #if ENABLE_GCODE_VIEWER
             m_canvas->load_gcode_preview_2(*m_gcode_result);
+#else
+            m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
 #endif // ENABLE_GCODE_VIEWER
             m_loaded = true;
         } else {

@@ -21,6 +21,7 @@
 #endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 #if ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/GCodeProcessor.hpp"
+#include "GCodeViewer.hpp"
 #endif // ENABLE_GCODE_VIEWER
 
 #include <float.h>
@@ -468,6 +469,10 @@ private:
     bool m_extra_frame_requested;
 
     mutable GLVolumeCollection m_volumes;
+#if ENABLE_GCODE_VIEWER
+    GCodeViewer m_gcode_viewer;
+#endif // ENABLE_GCODE_VIEWER
+
     Selection m_selection;
     const DynamicPrintConfig* m_config;
     Model* m_model;
@@ -764,6 +769,9 @@ private:
     void _render_background() const;
     void _render_bed(float theta, bool show_axes) const;
     void _render_objects() const;
+#if ENABLE_GCODE_VIEWER
+    void _render_gcode() const;
+#endif // ENABLE_GCODE_VIEWER
     void _render_selection() const;
 #if ENABLE_RENDER_SELECTION_CENTER
     void _render_selection_center() const;

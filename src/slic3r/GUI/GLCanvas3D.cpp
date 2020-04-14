@@ -1678,6 +1678,14 @@ bool GLCanvas3D::init()
         return false;
     }
 
+#if ENABLE_GCODE_VIEWER
+    if (!m_main_toolbar.is_enabled())
+    {
+        if (!m_gcode_viewer.init())
+            return false;
+    }
+#endif // ENABLE_GCODE_VIEWER
+
     // on linux the gl context is not valid until the canvas is not shown on screen
     // we defer the geometry finalization of volumes until the first call to render()
     m_volumes.finalize_geometry(true);
@@ -2109,6 +2117,9 @@ void GLCanvas3D::render()
     _render_background();
 
     _render_objects();
+#if ENABLE_GCODE_VIEWER
+    _render_gcode();
+#endif // ENABLE_GCODE_VIEWER
     _render_sla_slices();
     _render_selection();
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
@@ -2783,6 +2794,8 @@ void GLCanvas3D::load_gcode_preview_2(const GCodeProcessor::Result& gcode_result
         out << v.to_string() << "\n";
     }
     out.close();
+
+    m_gcode_viewer.generate(gcode_result);
 #endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
 }
 #endif // ENABLE_GCODE_VIEWER
@@ -5439,6 +5452,13 @@ void GLCanvas3D::_render_objects() const
 
     m_camera_clipping_plane = ClippingPlane::ClipsNothing();
 }
+
+#if ENABLE_GCODE_VIEWER
+void GLCanvas3D::_render_gcode() const
+{
+    m_gcode_viewer.render();
+}
+#endif // ENABLE_GCODE_VIEWER
 
 void GLCanvas3D::_render_selection() const
 {
