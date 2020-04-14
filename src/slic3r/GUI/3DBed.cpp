@@ -259,7 +259,8 @@ Point Bed3D::point_projection(const Point& point) const
     return m_polygon.point_projection(point);
 }
 
-void Bed3D::render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool show_axes) const
+void Bed3D::render(GLCanvas3D& canvas, bool bottom, float scale_factor,
+                   bool show_axes, bool show_texture) const
 {
     m_scale_factor = scale_factor;
 
@@ -270,9 +271,9 @@ void Bed3D::render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool sho
 
     switch (m_type)
     {
-    case System: { render_system(canvas, bottom); break; }
+    case System: { render_system(canvas, bottom, show_texture); break; }
     default:
-    case Custom: { render_custom(canvas, bottom); break; }
+    case Custom: { render_custom(canvas, bottom, show_texture); break; }
     }
 
     glsafe(::glDisable(GL_DEPTH_TEST));
@@ -384,12 +385,13 @@ void Bed3D::render_axes() const
         m_axes.render();
 }
 
-void Bed3D::render_system(GLCanvas3D& canvas, bool bottom) const
+void Bed3D::render_system(GLCanvas3D& canvas, bool bottom, bool show_texture) const
 {
     if (!bottom)
         render_model();
 
-    render_texture(bottom, canvas);
+    if (show_texture)
+        render_texture(bottom, canvas);
 }
 
 void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
@@ -564,7 +566,7 @@ void Bed3D::render_model() const
     }
 }
 
-void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom) const
+void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom, bool show_texture) const
 {
     if (m_texture_filename.empty() && m_model_filename.empty())
     {
@@ -575,7 +577,8 @@ void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom) const
     if (!bottom)
         render_model();
 
-    render_texture(bottom, canvas);
+    if (show_texture)
+        render_texture(bottom, canvas);
 }
 
 void Bed3D::render_default(bool bottom) const

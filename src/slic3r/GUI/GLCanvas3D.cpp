@@ -5339,14 +5339,19 @@ void GLCanvas3D::_render_background() const
     glsafe(::glPopMatrix());
 }
 
-void GLCanvas3D::_render_bed(float theta, bool show_axes) const
+void GLCanvas3D::_render_bed(bool bottom, bool show_axes) const
 {
     float scale_factor = 1.0;
 #if ENABLE_RETINA_GL
     scale_factor = m_retina_helper->get_scale_factor();
 #endif // ENABLE_RETINA_GL
+
+    bool show_texture = ! bottom ||
+            (m_gizmos.get_current_type() != GLGizmosManager::FdmSupports
+          && m_gizmos.get_current_type() != GLGizmosManager::SlaSupports);
+
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
-    wxGetApp().plater()->get_bed().render(const_cast<GLCanvas3D&>(*this), theta, scale_factor, show_axes);
+    wxGetApp().plater()->get_bed().render(const_cast<GLCanvas3D&>(*this), bottom, scale_factor, show_axes, show_texture);
 #else
     m_bed.render(const_cast<GLCanvas3D&>(*this), theta, scale_factor, show_axes);
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
