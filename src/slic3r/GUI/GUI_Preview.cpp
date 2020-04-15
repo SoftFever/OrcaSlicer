@@ -650,7 +650,11 @@ void Preview::on_checkbox_unretractions(wxCommandEvent& evt)
 
 void Preview::on_checkbox_shells(wxCommandEvent& evt)
 {
+#if ENABLE_GCODE_VIEWER
+    m_canvas->set_shells_visible(m_checkbox_shells->IsChecked());
+#else
     m_gcode_preview_data->shell.is_visible = m_checkbox_shells->IsChecked();
+#endif // ENABLE_GCODE_VIEWER
     refresh_print();
 }
 

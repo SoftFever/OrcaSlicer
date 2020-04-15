@@ -642,6 +642,7 @@ public:
 #if ENABLE_GCODE_VIEWER
     const std::vector<double>& get_layers_zs() const;
     void set_toolpath_visible(GCodeProcessor::EMoveType type, bool visible);
+    void set_shells_visible(bool visible);
 #else
     std::vector<double> get_current_print_zs(bool active_only) const;
 #endif // ENABLE_GCODE_VIEWER
@@ -656,9 +657,9 @@ public:
 
 #if ENABLE_GCODE_VIEWER
     void load_gcode_preview_2(const GCodeProcessor::Result& gcode_result);
-#endif // ENABLE_GCODE_VIEWER
-
+#else
     void load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors);
+#endif // ENABLE_GCODE_VIEWER
     void load_sla_preview();
     void load_preview(const std::vector<std::string>& str_tool_colors, const std::vector<CustomGCode::Item>& color_print_values);
     void bind_event_handlers();
@@ -833,12 +834,14 @@ private:
     // Create 3D thick extrusion lines for wipe tower extrusions
     void _load_wipe_tower_toolpaths(const std::vector<std::string>& str_tool_colors);
 
+#if !ENABLE_GCODE_VIEWER
     // generates gcode extrusion paths geometry
     void _load_gcode_extrusion_paths(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
     // generates gcode travel paths geometry
     void _load_gcode_travel_paths(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
     // generates objects and wipe tower geometry
     void _load_fff_shells();
+#endif // !ENABLE_GCODE_VIEWER
     // Load SLA objects and support structures for objects, for which the slaposSliceSupports step has been finished.
 	void _load_sla_shells();
     // sets gcode geometry visibility according to user selection

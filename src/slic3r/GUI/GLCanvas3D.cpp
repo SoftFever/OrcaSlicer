@@ -2122,7 +2122,8 @@ void GLCanvas3D::render()
 
     _render_objects();
 #if ENABLE_GCODE_VIEWER
-    _render_gcode();
+    if (!m_main_toolbar.is_enabled())
+        _render_gcode();
 #endif // ENABLE_GCODE_VIEWER
     _render_sla_slices();
     _render_selection();
@@ -2317,6 +2318,11 @@ const std::vector<double>& GLCanvas3D::get_layers_zs() const
 void GLCanvas3D::set_toolpath_visible(GCodeProcessor::EMoveType type, bool visible)
 {
     m_gcode_viewer.set_toolpath_visible(type, visible);
+}
+
+void GLCanvas3D::set_shells_visible(bool visible)
+{
+    m_gcode_viewer.set_shells_visible(visible);
 }
 #else
 std::vector<double> GLCanvas3D::get_current_print_zs(bool active_only) const
@@ -2768,6 +2774,7 @@ static void reserve_new_volume_finalize_old_volume(GLVolume& vol_new, GLVolume& 
 	vol_old.finalize_geometry(gl_initialized);
 }
 
+#if !ENABLE_GCODE_VIEWER
 static void load_gcode_retractions(const GCodePreviewData::Retraction& retractions, GLCanvas3D::GCodePreviewVolumeIndex::EType extrusion_type, GLVolumeCollection &volumes, GLCanvas3D::GCodePreviewVolumeIndex &volume_index, bool gl_initialized)
 {
 	// nothing to render, return
@@ -2798,6 +2805,7 @@ static void load_gcode_retractions(const GCodePreviewData::Retraction& retractio
 	}
 	volume->indexed_vertex_array.finalize_geometry(gl_initialized);
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 #if ENABLE_GCODE_VIEWER
 void GLCanvas3D::load_gcode_preview_2(const GCodeProcessor::Result& gcode_result)
@@ -2817,11 +2825,12 @@ void GLCanvas3D::load_gcode_preview_2(const GCodeProcessor::Result& gcode_result
         out.close();
     }
 
-    m_gcode_viewer.generate(gcode_result);
+    m_gcode_viewer.load(gcode_result , *this->fff_print(), m_initialized);
 #endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
 }
 #endif // ENABLE_GCODE_VIEWER
 
+#if !ENABLE_GCODE_VIEWER
 void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors)
 {
     const Print *print = this->fff_print();
@@ -2890,6 +2899,7 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
             _generate_legend_texture(preview_data, tool_colors);
     }
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 void GLCanvas3D::load_sla_preview()
 {
@@ -6547,6 +6557,7 @@ static inline int hex_digit_to_int(const char c)
         (c >= 'a' && c <= 'f') ? int(c - 'a') + 10 : -1;
 }
 
+#if !ENABLE_GCODE_VIEWER
 void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
 {
     BOOST_LOG_TRIVIAL(debug) << "Loading G-code extrusion paths - start" << m_volumes.log_memory_info() << log_memory_info();
@@ -6866,6 +6877,7 @@ void GLCanvas3D::_load_fff_shells()
         }
     }
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 // While it looks like we can call 
 // this->reload_scene(true, true)
