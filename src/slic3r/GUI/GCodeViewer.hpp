@@ -15,18 +15,30 @@ namespace GUI {
 
 class GCodeViewer
 {
-    struct Buffer
+    // buffer containing vertices data
+    struct VBuffer
     {
         unsigned int vbo_id{ 0 };
-        Shader shader;
-        std::vector<float> data;
-        size_t data_size{ 0 };
-        bool visible{ false };
+        size_t vertices_count{ 0 };
+
+        size_t data_size_bytes() { return vertices_count * vertex_size_bytes(); }
 
         void reset();
 
         static size_t vertex_size() { return 3; }
         static size_t vertex_size_bytes() { return vertex_size() * sizeof(float); }
+    };
+
+    // buffer containing indices data
+    struct IBuffer
+    {
+        unsigned int ibo_id{ 0 };
+        Shader shader;
+        std::vector<unsigned int> data;
+        size_t data_size{ 0 };
+        bool visible{ false };
+
+        void reset();
     };
 
     struct Shells
@@ -36,7 +48,8 @@ class GCodeViewer
         Shader shader;
     };
 
-    std::vector<Buffer> m_buffers{ static_cast<size_t>(GCodeProcessor::EMoveType::Extrude) };
+    VBuffer m_vertices;
+    std::vector<IBuffer> m_buffers{ static_cast<size_t>(GCodeProcessor::EMoveType::Extrude) };
 
     unsigned int m_last_result_id{ 0 };
     std::vector<double> m_layers_zs;

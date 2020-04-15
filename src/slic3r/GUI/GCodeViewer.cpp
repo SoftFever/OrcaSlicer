@@ -25,14 +25,23 @@ static GCodeProcessor::EMoveType buffer_type(unsigned char id) {
     return static_cast<GCodeProcessor::EMoveType>(static_cast<unsigned char>(GCodeProcessor::EMoveType::Retract) + id);
 }
 
-void GCodeViewer::Buffer::reset()
+void GCodeViewer::VBuffer::reset()
 {
     // release gpu memory
     if (vbo_id > 0)
         glsafe(::glDeleteBuffers(1, &vbo_id));
 
+    vertices_count = 0;
+}
+
+void GCodeViewer::IBuffer::reset()
+{
+    // release gpu memory
+    if (ibo_id > 0)
+        glsafe(::glDeleteBuffers(1, &ibo_id));
+
     // release cpu memory
-    data = std::vector<float>();
+    data = std::vector<unsigned int>();
     data_size = 0;
 }
 
@@ -52,7 +61,9 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
 
 void GCodeViewer::reset()
 {
-    for (Buffer& buffer : m_buffers)
+    m_vertices.reset();
+
+    for (IBuffer& buffer : m_buffers)
     {
         buffer.reset();
     }
@@ -150,9 +161,32 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 {
     auto start_time = std::chrono::high_resolution_clock::now();
 
-    // convert data
-    size_t vertices_count = gcode_result.moves.size();
-    for (size_t i = 0; i < vertices_count; ++i)
+    // vertex data
+    m_vertices.vertices_count = gcode_result.moves.size();
+    if (m_vertices.vertices_count == 0)
+        return;
+
+    // vertex data -> extract from result
+    std::vector<float> vertices_data;
+    for (const GCodeProcessor::MoveVertex& move : gcode_result.moves)
+    {
+        for (int j = 0; j < 3; ++j)
+        {
+            vertices_data.insert(vertices_data.end(), move.position[j]);
+        }
+    }
+
+    // vertex data -> send to gpu
+    glsafe(::glGenBuffers(1, &m_vertices.vbo_id));
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vertices.vbo_id));
+    glsafe(::glBufferData(GL_ARRAY_BUFFER, vertices_data.size() * sizeof(float), vertices_data.data(), GL_STATIC_DRAW));
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+
+    // vertex data -> free ram
+    vertices_data = std::vector<float>();
+
+    // indices data -> extract from result
+    for (size_t i = 0; i < m_vertices.vertices_count; ++i)
     {
         // skip first vertex
         if (i == 0)
@@ -161,7 +195,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         const GCodeProcessor::MoveVertex& prev = gcode_result.moves[i - 1];
         const GCodeProcessor::MoveVertex& curr = gcode_result.moves[i];
 
-        Buffer& buffer = m_buffers[buffer_id(curr.type)];
+        IBuffer& buffer = m_buffers[buffer_id(curr.type)];
 
         switch (curr.type)
         {
@@ -169,23 +203,14 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         case GCodeProcessor::EMoveType::Retract:
         case GCodeProcessor::EMoveType::Unretract:
         {
-            for (int j = 0; j < 3; ++j)
-            {
-                buffer.data.insert(buffer.data.end(), curr.position[j]);
-            }
+            buffer.data.push_back(static_cast<unsigned int>(i));
             break;
         }
         case GCodeProcessor::EMoveType::Extrude:
         case GCodeProcessor::EMoveType::Travel:
         {
-            for (int j = 0; j < 3; ++j)
-            {
-                buffer.data.insert(buffer.data.end(), prev.position[j]);
-            }
-            for (int j = 0; j < 3; ++j)
-            {
-                buffer.data.insert(buffer.data.end(), curr.position[j]);
-            }
+            buffer.data.push_back(static_cast<unsigned int>(i - 1));
+            buffer.data.push_back(static_cast<unsigned int>(i));
             break;
         }
         default:
@@ -193,14 +218,35 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             continue;
         }
         }
-
-        if (curr.type == GCodeProcessor::EMoveType::Extrude)
-            m_layers_zs.emplace_back(curr.position[2]);
     }
 
+    // indices data -> send data to gpu
+    for (IBuffer& buffer : m_buffers)
+    {
+        buffer.data_size = buffer.data.size();
+        if (buffer.data_size > 0)
+        {
+            glsafe(::glGenBuffers(1, &buffer.ibo_id));
+            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.ibo_id));
+            glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer.data_size * sizeof(unsigned int), buffer.data.data(), GL_STATIC_DRAW));
+            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
+            // indices data -> free ram
+            buffer.data = std::vector<unsigned int>();
+        }
+    }
+
+    // layers zs -> extract from result
+    for (const GCodeProcessor::MoveVertex& move : gcode_result.moves)
+    {
+        if (move.type == GCodeProcessor::EMoveType::Extrude)
+            m_layers_zs.emplace_back(move.position[2]);
+    }
+
+    // layers zs -> sort
     std::sort(m_layers_zs.begin(), m_layers_zs.end());
 
-    // Replace intervals of layers with similar top positions with their average value.
+    // layers zs -> replace intervals of layers with similar top positions with their average value.
     int n = int(m_layers_zs.size());
     int k = 0;
     for (int i = 0; i < n;) {
@@ -212,20 +258,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     }
     if (k < n)
         m_layers_zs.erase(m_layers_zs.begin() + k, m_layers_zs.end());
-
-    // send data to gpu
-    for (Buffer& buffer : m_buffers)
-    {
-        buffer.data_size = buffer.data.size();
-        if (buffer.data_size > 0)
-        {
-            glsafe(::glGenBuffers(1, &buffer.vbo_id));
-            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, buffer.vbo_id));
-            glsafe(::glBufferData(GL_ARRAY_BUFFER, buffer.data_size * sizeof(float), buffer.data.data(), GL_STATIC_DRAW));
-            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-            buffer.data = std::vector<float>();
-        }
-    }
 
     auto end_time = std::chrono::high_resolution_clock::now();
     std::cout << "toolpaths generation time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() << "ms \n";
@@ -285,11 +317,9 @@ void GCodeViewer::load_shells(const Print& print, bool initialized)
 void GCodeViewer::render_toolpaths() const
 {
     auto set_color = [](GLint current_program_id, const std::array<float, 4>& color) {
-        if (current_program_id > 0)
-        {
+        if (current_program_id > 0) {
             GLint color_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "uniform_color") : -1;
-            if (color_id >= 0)
-            {
+            if (color_id >= 0) {
                 glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)color.data()));
                 return;
             }
@@ -302,27 +332,29 @@ void GCodeViewer::render_toolpaths() const
     unsigned char begin_id = buffer_id(GCodeProcessor::EMoveType::Retract);
     unsigned char end_id = buffer_id(GCodeProcessor::EMoveType::Count);
 
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vertices.vbo_id));
+    glsafe(::glVertexPointer(3, GL_FLOAT, VBuffer::vertex_size_bytes(), (const void*)0));
+    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+
     for (unsigned char i = begin_id; i < end_id; ++i)
     {
-        const Buffer& buffer = m_buffers[i];
-        if (buffer.vbo_id == 0)
+        const IBuffer& buffer = m_buffers[i];
+        if (buffer.ibo_id == 0)
             continue;
-
+        
         if (!buffer.visible)
             continue;
 
         if (buffer.shader.is_initialized())
         {
-            buffer.shader.start_using();
+            GCodeProcessor::EMoveType type = buffer_type(i);
 
+            buffer.shader.start_using();
+            
             GLint current_program_id;
             glsafe(::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id));
 
-            GCodeProcessor::EMoveType type = buffer_type(i);
-
-            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, buffer.vbo_id));
-            glsafe(::glVertexPointer(3, GL_FLOAT, Buffer::vertex_size_bytes(), (const void*)0));
-            glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.ibo_id));
 
             switch (type)
             {
@@ -331,7 +363,7 @@ void GCodeViewer::render_toolpaths() const
                 std::array<float, 4> color = { 1.0f, 1.0f, 1.0f, 1.0f };
                 set_color(current_program_id, color);
                 glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
-                glsafe(::glDrawArrays(GL_POINTS, 0, (GLsizei)(buffer.data_size / Buffer::vertex_size())));
+                glsafe(::glDrawElements(GL_POINTS, (GLsizei)buffer.data_size, GL_UNSIGNED_INT, nullptr));
                 glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
                 break;
             }
@@ -340,7 +372,7 @@ void GCodeViewer::render_toolpaths() const
                 std::array<float, 4> color = { 1.0f, 0.0f, 1.0f, 1.0f };
                 set_color(current_program_id, color);
                 glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
-                glsafe(::glDrawArrays(GL_POINTS, 0, (GLsizei)(buffer.data_size / Buffer::vertex_size())));
+                glsafe(::glDrawElements(GL_POINTS, (GLsizei)buffer.data_size, GL_UNSIGNED_INT, nullptr));
                 glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
                 break;
             }
@@ -349,7 +381,7 @@ void GCodeViewer::render_toolpaths() const
                 std::array<float, 4> color = { 0.0f, 1.0f, 0.0f, 1.0f };
                 set_color(current_program_id, color);
                 glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
-                glsafe(::glDrawArrays(GL_POINTS, 0, (GLsizei)(buffer.data_size / Buffer::vertex_size())));
+                glsafe(::glDrawElements(GL_POINTS, (GLsizei)buffer.data_size, GL_UNSIGNED_INT, nullptr));
                 glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
                 break;
             }
@@ -357,28 +389,25 @@ void GCodeViewer::render_toolpaths() const
             {
                 std::array<float, 4> color = { 1.0f, 0.0f, 0.0f, 1.0f };
                 set_color(current_program_id, color);
-                glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)(buffer.data_size / Buffer::vertex_size())));
+                glsafe(::glDrawElements(GL_LINES, (GLsizei)buffer.data_size, GL_UNSIGNED_INT, nullptr));
                 break;
             }
             case GCodeProcessor::EMoveType::Travel:
             {
                 std::array<float, 4> color = { 1.0f, 1.0f, 0.0f, 1.0f };
                 set_color(current_program_id, color);
-                glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)(buffer.data_size / Buffer::vertex_size())));
-                break;
-            }
-            default:
-            {
+                glsafe(::glDrawElements(GL_LINES, (GLsizei)buffer.data_size, GL_UNSIGNED_INT, nullptr));
                 break;
             }
             }
 
-            glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-
-            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
             buffer.shader.stop_using();
         }
     }
+
+    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
 void GCodeViewer::render_shells() const

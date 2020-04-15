@@ -13,5 +13,5 @@ void main()
 //	world_normal_z = gl_Normal.z;
     gl_Position = ftransform();
     
-    gl_PointSize = 3.0;
+    gl_PointSize = 5.0;
 }
