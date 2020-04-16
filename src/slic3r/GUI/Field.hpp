@@ -191,20 +191,6 @@ public:
 		return false;
 	}
 
-	void	invalidate_attention_bmp() const {
-        m_find_image->SetBitmap(wxNullBitmap);
-		m_find_image->Show();
-    }
-
-	void	activate_attention_bmp() const {
-		m_find_image->SetBitmap(m_attention_bmp.bmp());
-	}
-
-	void	blink_attention_bmp() const {
-		bool is_shown = m_find_image->IsShown();
-		m_find_image->Show(!is_shown);
-	}
-
 	bool	set_label_colour_force(const wxColour *clr) {
 		if (m_Label == nullptr) return false;
 		m_Label->SetForegroundColour(*clr);
@@ -244,6 +230,8 @@ public:
 	static int def_width_wider()	;
 	static int def_width_thinner()	;
 
+	BlinkingBitmap*			blinking_bitmap() const { return m_blinking_bmp;}
+
 protected:
 	RevertButton*			m_Undo_btn = nullptr;
 	// Bitmap and Tooltip text for m_Undo_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
@@ -254,8 +242,7 @@ protected:
     const ScalableBitmap*   m_undo_to_sys_bitmap = nullptr;
 	const wxString*		    m_undo_to_sys_tooltip = nullptr;
 
-	ScalableBitmap			m_attention_bmp;
-	wxStaticBitmap*			m_find_image{ nullptr };
+	BlinkingBitmap*			m_blinking_bmp{ nullptr };
 
 	wxStaticText*		m_Label = nullptr;
 	// Color for Label. The wxColour will be updated only if the new wxColour pointer differs from the currently rendered one.

@@ -92,16 +92,35 @@ void FoundOption::get_marked_label(const char** out_text) const
 }
 
 template<class T>
-void change_opt_key(std::string& opt_key, DynamicPrintConfig* config)
+//void change_opt_key(std::string& opt_key, DynamicPrintConfig* config)
+void change_opt_key(std::string& opt_key, DynamicPrintConfig* config, int& cnt)
 {
     T* opt_cur = static_cast<T*>(config->option(opt_key));
+    cnt = opt_cur->values.size();
+    return;
+
     if (opt_cur->values.size() > 0)
         opt_key += "#" + std::to_string(0);
 }
 
 void OptionsSearcher::append_options(DynamicPrintConfig* config, Preset::Type type, ConfigOptionMode mode)
 {
-    std::vector<std::string> non_added_options {"printer_technology", "thumbnails" };
+    auto emplace = [this, type](const std::string opt_key, const wxString& label)
+    {
+        const GroupAndCategory& gc = groups_and_categories[opt_key];
+        if (gc.group.IsEmpty() || gc.category.IsEmpty())
+            return;
+
+        wxString suffix;
+        if (gc.category == "Machine limits")
+            suffix = opt_key.back()=='1' ? L("Stealth") : L("Normal");
+
+        if (!label.IsEmpty())
+            options.emplace_back(Option{ opt_key, type,
+                                        label+ " " + suffix, _(label)+ " " + _(suffix),
+                                        gc.group, _(gc.group),
+                                        gc.category, _(gc.category) });
+    };
 
     for (std::string opt_key : config->keys())
     {
@@ -109,27 +128,37 @@ void OptionsSearcher::append_options(DynamicPrintConfig* config, Preset::Type ty
         if (opt.mode > mode)
             continue;
 
-        if (type == Preset::TYPE_SLA_MATERIAL || type == Preset::TYPE_PRINTER)
+        int cnt = 0;
+
+        if ( (type == Preset::TYPE_SLA_MATERIAL || type == Preset::TYPE_PRINTER) && opt_key != "bed_shape")
             switch (config->option(opt_key)->type())
             {
-            case coInts:	change_opt_key<ConfigOptionInts		>(opt_key, config);	break;
-            case coBools:	change_opt_key<ConfigOptionBools	>(opt_key, config);	break;
-            case coFloats:	change_opt_key<ConfigOptionFloats	>(opt_key, config);	break;
-            case coStrings:	change_opt_key<ConfigOptionStrings	>(opt_key, config);	break;
-            case coPercents:change_opt_key<ConfigOptionPercents	>(opt_key, config);	break;
-            case coPoints:	change_opt_key<ConfigOptionPoints	>(opt_key, config);	break;
+            case coInts:	change_opt_key<ConfigOptionInts		>(opt_key, config, cnt);	break;
+            case coBools:	change_opt_key<ConfigOptionBools	>(opt_key, config, cnt);	break;
+            case coFloats:	change_opt_key<ConfigOptionFloats	>(opt_key, config, cnt);	break;
+            case coStrings:	change_opt_key<ConfigOptionStrings	>(opt_key, config, cnt);	break;
+            case coPercents:change_opt_key<ConfigOptionPercents	>(opt_key, config, cnt);	break;
+            case coPoints:	change_opt_key<ConfigOptionPoints	>(opt_key, config, cnt);	break;
             default:		break;
             }
 
         wxString label = opt.full_label.empty() ? opt.label : opt.full_label;
 
-        const GroupAndCategory& gc = groups_and_categories[opt_key];
+        if (cnt == 0)
+            emplace(opt_key, label);
+        else
+            for (int i = 0; i < cnt; ++i)
+                emplace(opt_key + "#" + std::to_string(i), label);
+
+        /*const GroupAndCategory& gc = groups_and_categories[opt_key];
+        if (gc.group.IsEmpty() || gc.category.IsEmpty())
+            continue;
 
         if (!label.IsEmpty())
             options.emplace_back(Option{opt_key, type,
                                         label, _(label),
                                         gc.group, _(gc.group),
-                                        gc.category, _(gc.category) });
+                                        gc.category, _(gc.category) });*/
     }
 }
 
@@ -238,6 +267,22 @@ void OptionsSearcher::init(std::vector<InputInfo> input_values)
     options.clear();
     for (auto i : input_values)
         append_options(i.config, i.type, i.mode);
+    sort_options();
+
+    search(search_line, true);
+}
+
+void OptionsSearcher::apply(DynamicPrintConfig* config, Preset::Type type, ConfigOptionMode mode)
+{
+    if (options.empty())
+        return;
+
+    options.erase(std::remove_if(options.begin(), options.end(), [type](Option opt) {
+            return opt.type == type;
+        }), options.end());
+
+    append_options(config, type, mode);
+
     sort_options();
 
     search(search_line, true);
@@ -353,12 +398,7 @@ SearchCtrl::SearchCtrl(wxWindow* parent) :
     this->Bind(wxEVT_TEXT,                 &SearchCtrl::OnInputText, this);
     this->Bind(wxEVT_TEXT_ENTER,           &SearchCtrl::PopupList, this);
     this->Bind(wxEVT_COMBOBOX_DROPDOWN,    &SearchCtrl::PopupList, this);
-/*
-    this->Bind(wxEVT_KEY_DOWN, [this](wxKeyEvent&e)
-    {
-        
-    });
-*/
+
     this->GetTextCtrl()->Bind(wxEVT_LEFT_UP,    &SearchCtrl::OnLeftUpInTextCtrl, this);
     popupListBox->Bind(wxEVT_LISTBOX,           &SearchCtrl::OnSelect,           this);
 }
@@ -421,7 +461,7 @@ void SearchCtrl::OnSelect(wxCommandEvent& event)
 
 void SearchCtrl::update_list(const std::vector<FoundOption>& filters)
 {
-    if (popupListBox->GetCount() == filters.size() &&
+    if (!filters.empty() && popupListBox->GetCount() == filters.size() &&
         popupListBox->GetString(0) == filters[0].label &&
         popupListBox->GetString(popupListBox->GetCount()-1) == filters[filters.size()-1].label)
         return;

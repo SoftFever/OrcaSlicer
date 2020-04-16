@@ -223,16 +223,20 @@ protected:
     bool                m_completed { false };
     ConfigOptionMode    m_mode = comExpert; // to correct first Tab update_visibility() set mode to Expert
 
-	wxTimer             m_highlighting_timer;
 	struct Highlighter
 	{
-		void init(Field* f);
-		void invalidate();
-		bool blink();
+		void set_timer_owner(wxEvtHandler* owner, int timerid = wxID_ANY);
+		void init(BlinkingBitmap* bmp);
+		void blink();
+
 	private:
-	    Field*	field {nullptr};
-		int		blink_counter {0};
-	} m_highlighter;
+		void invalidate();
+
+		BlinkingBitmap*	bbmp {nullptr};
+		int				blink_counter {0};
+	    wxTimer         timer;
+	} 
+    m_highlighter;
 
 public:
 	PresetBundle*		m_preset_bundle;
@@ -245,6 +249,10 @@ public:
 	// map of option name -> wxStaticText (colored label, associated with option) 
     // Used for options which don't have corresponded field
 	std::map<std::string, wxStaticText*>	m_colored_Labels;
+
+	// map of option name -> BlinkingBitmap (blinking ikon, associated with option) 
+    // Used for options which don't have corresponded field
+	std::map<std::string, BlinkingBitmap*>	m_blinking_ikons;
 
     // Counter for the updating (because of an update() function can have a recursive behavior):
     // 1. increase value from the very beginning of an update() function
@@ -328,6 +336,7 @@ public:
 
     void            update_wiping_button_visibility();
 	void			activate_option(const std::string& opt_key, const wxString& category);
+    void			apply_searcher();
 
 protected:
 	void			create_line_with_widget(ConfigOptionsGroup* optgroup, const std::string& opt_key, widget_t widget);

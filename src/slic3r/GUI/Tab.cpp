@@ -39,26 +39,41 @@ namespace GUI {
 wxDEFINE_EVENT(EVT_TAB_VALUE_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_TAB_PRESETS_CHANGED, SimpleEvent);
 
-void Tab::Highlighter::init(Field* f)
+void Tab::Highlighter::set_timer_owner(wxEvtHandler* owner, int timerid/* = wxID_ANY*/)
 {
-    field = f;
-    field->activate_attention_bmp();
+    timer.SetOwner(owner, timerid);
+}
+
+void Tab::Highlighter::init(BlinkingBitmap* bmp)
+{
+    if (timer.IsRunning())
+        invalidate();
+    if (!bmp)
+        return;
+
+    timer.Start(100, false);
+
+    bbmp = bmp;
+    bbmp->activate();
 }
 
 void Tab::Highlighter::invalidate()
 {
-    field->invalidate_attention_bmp();
-    field = nullptr;
+    timer.Stop();
+
+    bbmp->invalidate();
+    bbmp = nullptr;
     blink_counter = 0;
 }
 
-bool Tab::Highlighter::blink()
+void Tab::Highlighter::blink()
 {
-    field->blink_attention_bmp();
+    if (!bbmp)
+        return;
+
+    bbmp->blink();
     if ((++blink_counter) == 29)
         invalidate();
-
-    return blink_counter != 0;
 }
 
 Tab::Tab(wxNotebook* parent, const wxString& title, Preset::Type type) :
@@ -92,11 +107,10 @@ Tab::Tab(wxNotebook* parent, const wxString& title, Preset::Type type) :
         evt.Skip();
     }));
 
-    this->m_highlighting_timer.SetOwner(this, 0);
+    m_highlighter.set_timer_owner(this, 0);
     this->Bind(wxEVT_TIMER, [this](wxTimerEvent&)
     {
-        if (!m_highlighter.blink())
-            m_highlighting_timer.Stop();
+        m_highlighter.blink();
     });
 }
 
@@ -1021,19 +1035,28 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
     // focused selected field
     if (field) {
         field->getWindow()->SetFocus();
-        if (m_highlighting_timer.IsRunning()) {
-            m_highlighting_timer.Stop();
-            m_highlighter.invalidate();
+        m_highlighter.init(field->blinking_bitmap());
+    }
+    else if (category == "Single extruder MM setup")
+    {
+        // When we show and hide "Single extruder MM setup" page, 
+        // related options are still in the search list
+        // So, let's hightlighte a "single_extruder_multi_material" option, 
+        // as a "way" to show hidden page again
+        field = get_field("single_extruder_multi_material");
+        if (field) {
+            field->getWindow()->SetFocus();
+            m_highlighter.init(field->blinking_bitmap());
         }
-        m_highlighting_timer.Start(100, false);
-        m_highlighter.init(field);
     }
     else
-    {
-        // "bed_shape", "bed_custom_texture", "bed_custom_model"
+        m_highlighter.init(m_blinking_ikons[opt_key]);
 
+}
 
-    }
+void Tab::apply_searcher()
+{
+    wxGetApp().sidebar().get_searcher().apply(m_config, m_type, m_mode);
 }
 
 
@@ -2533,6 +2556,9 @@ void TabPrinter::build_unregular_pages()
 
     // Reload preset pages with current configuration values
     reload_config();
+
+    // apply searcher with current configuration
+    apply_searcher();
 }
 
 // this gets executed after preset is loaded and before GUI fields are updated
@@ -3321,7 +3347,10 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
     add_scaled_button(parent, &deps.btn, "printer_white", from_u8((boost::format(" %s %s") % _utf8(L("Set")) % std::string(dots.ToUTF8())).str()), wxBU_LEFT | wxBU_EXACTFIT);
     deps.btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
+    BlinkingBitmap* bbmp = new BlinkingBitmap(parent);
+
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(bbmp, 0, wxALIGN_CENTER_VERTICAL);
     sizer->Add((deps.checkbox), 0, wxALIGN_CENTER_VERTICAL);
     sizer->Add((deps.btn), 0, wxALIGN_CENTER_VERTICAL);
 
@@ -3381,6 +3410,12 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
             this->update_changed_ui();
         }
     }));
+
+    // fill m_blinking_ikons map with options
+    {
+        m_blinking_ikons[deps.key_list] = bbmp;
+    }
+
     return sizer;
 }
 
@@ -3391,8 +3426,11 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
     add_scaled_button(parent, &btn, "printer_white", " " + _(L("Set")) + " " + dots, wxBU_LEFT | wxBU_EXACTFIT);
     btn->SetFont(wxGetApp().normal_font());
 
+    BlinkingBitmap* bbmp = new BlinkingBitmap(parent);
+
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(btn);
+    sizer->Add(bbmp, 0, wxALIGN_CENTER_VERTICAL);
+    sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL);
 
     btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
         {
@@ -3413,6 +3451,21 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
                 }
             }
         }));
+
+    // may be it is not a best place, but 
+    // add information about Category/Grope for "bed_custom_texture" and "bed_custom_model" as a copy from "bed_shape" option
+    {
+        Search::OptionsSearcher& searcher = wxGetApp().sidebar().get_searcher();
+        const Search::GroupAndCategory& gc = searcher.get_group_and_category("bed_shape");
+        searcher.add_key("bed_custom_texture", gc.group, gc.category);
+        searcher.add_key("bed_custom_model", gc.group, gc.category);
+    }
+
+    // fill m_blinking_ikons map with options
+    {
+        for (const std::string opt : {"bed_shape", "bed_custom_texture", "bed_custom_model"})
+            m_blinking_ikons[opt] = bbmp;
+    }
 
     return sizer;
 }

@@ -76,11 +76,11 @@ struct FoundOption {
 
 class OptionsSearcher
 {
-    std::string         search_line;
+    std::string                             search_line;
     std::map<std::string, GroupAndCategory> groups_and_categories;
 
-    std::vector<Option>         options {};
-    std::vector<FoundOption>    found {};
+    std::vector<Option>                     options {};
+    std::vector<FoundOption>                found {};
 
     void append_options(DynamicPrintConfig* config, Preset::Type type, ConfigOptionMode mode);
 
@@ -101,6 +101,9 @@ public:
     bool                group{ true };
 
     void init(std::vector<InputInfo> input_values);
+    void apply(DynamicPrintConfig *config,
+               Preset::Type        type,
+               ConfigOptionMode    mode);
     bool search(const std::string& search, bool force = false);
 
     void add_key(const std::string& opt_key, const wxString& group, const wxString& category);
@@ -111,6 +114,7 @@ public:
     const Option& get_option(size_t pos_in_filter) const;
 
     const std::vector<FoundOption>& found_options() { return found; }
+    const GroupAndCategory&         get_group_and_category (const std::string& opt_key) { return groups_and_categories[opt_key]; }
 };
 
 
