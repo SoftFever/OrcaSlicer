@@ -971,6 +971,77 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
     std::vector<ExPolygons> enforcers = object.slice_support_enforcers();
     std::vector<ExPolygons> blockers  = object.slice_support_blockers();
 
+
+
+
+
+
+    ///////////////////////////////////////////////////////////////////////////
+    ///     TEMPORARY INLINE DRAFT PROJECTING CUSTOM SUPPORTS ON SLICES     ///
+    /// ///////////////////////////////////////////////////////////////////////
+    const auto& data = object.model_object()->volumes.front()->m_supported_facets;
+    const auto& custom_enf = data.get_facets(FacetSupportType::ENFORCER);
+    const TriangleMesh& mesh = object.model_object()->volumes.front()->mesh();
+    const Transform3f& tr1 = object.model_object()->volumes.front()->get_matrix().cast<float>();
+    const Transform3f& tr2 = object.trafo().cast<float>();
+
+    // Make a list of all layers.
+    const LayerPtrs& layers = object.layers();
+
+    // Make sure that enforcers vector can be used.
+    if (! custom_enf.empty())
+        enforcers.resize(layers.size());
+
+    // Iterate over all triangles.
+    for (int facet_idx : custom_enf) {
+
+        ExPolygon triangle; // To store horizontal projection of the triangle.
+
+        // Min and max z-coord of the triangle.
+        float max_z = std::numeric_limits<float>::min();
+        float min_z = std::numeric_limits<float>::max();
+
+        // This block transforms the triangle into worlds coords and
+        // calculates the projection and z-bounds.
+        {
+            std::array<Vec3f, 3> facet;
+            Points projection(3);
+            for (int i=0; i<3; ++i) {
+                facet[i] = tr2 * tr1 * mesh.its.vertices[mesh.its.indices[facet_idx](i)];
+                max_z = std::max(max_z, facet[i].z());
+                min_z = std::min(min_z, facet[i].z());
+                projection[i] = Point(scale_(facet[i].x()), scale_(facet[i].y()));
+                projection[i] = projection[i] - object.center_offset();
+            }
+            triangle = ExPolygon(projection);
+        }
+
+        // We now have the projection of the triangle.
+        // Find lowest slice not below the triangle.
+        auto it = std::lower_bound(layers.begin(), layers.end(), min_z,
+                      [](const Layer* l1, float z) {
+                           return l1->slice_z < z;
+                      });
+
+        // Project the triangles on all slices intersecting the triangle.
+        // FIXME: This ignores horizontal triangles and does not project
+        //         anything to the slice above max_z.
+        // FIXME: Each part of the projection should be assigned to one slice only.
+        // FIXME: The speed of the algorithm might be improved.
+        while (it != layers.end() && (*it)->slice_z < max_z) {
+            enforcers[it-layers.begin()].emplace_back(triangle);
+            ++it;
+        }
+    }
+    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
     // Output layers, sorted by top Z.
     MyLayersPtr contact_out;
 
