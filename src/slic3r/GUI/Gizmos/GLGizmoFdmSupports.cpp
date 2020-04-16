@@ -8,6 +8,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "slic3r/GUI/Camera.hpp"
+#include "libslic3r/Model.hpp"
 
 
 
@@ -187,7 +188,16 @@ void GLGizmoFdmSupports::update_mesh()
         // This mesh does not account for the possible Z up SLA offset.
         const TriangleMesh* mesh = &mv->mesh();
 
-        m_selected_facets[volume_id].assign(mesh->its.indices.size(), SelType::NONE);
+        m_selected_facets[volume_id].assign(mesh->its.indices.size(), FacetSupportType::NONE);
+
+        // Load current state from ModelVolume.
+        for (FacetSupportType type : {FacetSupportType::ENFORCER, FacetSupportType::BLOCKER}) {
+            const std::vector<int>& list = mv->m_supported_facets.get_facets(type);
+            for (int i : list)
+                m_selected_facets[volume_id][i] = type;
+        }
+        update_vertex_buffers(mv, volume_id, true, true);
+
         m_neighbors[volume_id].resize(3 * mesh->its.indices.size());
 
         // Prepare vector of vertex_index - facet_index pairs to quickly find adjacent facets
@@ -243,16 +253,16 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
      || action == SLAGizmoEventType::RightDown
     || (action == SLAGizmoEventType::Dragging && m_button_down != Button::None)) {
 
-        SelType new_state = SelType::NONE;
+        FacetSupportType new_state = FacetSupportType::NONE;
         if (! shift_down) {
             if (action == SLAGizmoEventType::Dragging)
                 new_state = m_button_down == Button::Left
-                        ? SelType::ENFORCER
-                        : SelType::BLOCKER;
+                        ? FacetSupportType::ENFORCER
+                        : FacetSupportType::BLOCKER;
             else
                 new_state = action == SLAGizmoEventType::LeftDown
-                        ? SelType::ENFORCER
-                        : SelType::BLOCKER;
+                        ? FacetSupportType::ENFORCER
+                        : FacetSupportType::BLOCKER;
         }
 
         const Camera& camera = wxGetApp().plater()->get_camera();
@@ -379,9 +389,9 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
                 // Now just select all facets that passed.
                 for (size_t next_facet : facets_to_select) {
-                    SelType& facet = m_selected_facets[mesh_id][next_facet];
+                    FacetSupportType& facet = m_selected_facets[mesh_id][next_facet];
 
-                    if (facet != new_state && facet != SelType::NONE) {
+                    if (facet != new_state && facet != FacetSupportType::NONE) {
                         // this triangle is currently in the other VBA.
                         // Both VBAs need to be refreshed.
                         update_both = true;
@@ -391,8 +401,8 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             }
 
             update_vertex_buffers(mv, mesh_id,
-                                  new_state == SelType::ENFORCER || update_both,
-                                  new_state == SelType::BLOCKER || update_both
+                                  new_state == FacetSupportType::ENFORCER || update_both,
+                                  new_state == FacetSupportType::BLOCKER || update_both
                                   );
         }
 
@@ -416,6 +426,18 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
     if ((action == SLAGizmoEventType::LeftUp || action == SLAGizmoEventType::RightUp)
       && m_button_down != Button::None) {
         m_button_down = Button::None;
+
+        // Synchronize gizmo with ModelVolume data.
+        ModelObject* mo = m_c->selection_info()->model_object();
+        int idx = -1;
+        for (ModelVolume* mv : mo->volumes) {
+            ++idx;
+            if (! mv->is_model_part())
+                continue;
+            for (int i=0; i<int(m_selected_facets[idx].size()); ++i)
+                mv->m_supported_facets.set_facet(i, m_selected_facets[idx][i]);
+        }
+
         return true;
     }
 
@@ -430,16 +452,16 @@ void GLGizmoFdmSupports::update_vertex_buffers(const ModelVolume* mv,
 {
     const TriangleMesh* mesh = &mv->mesh();
 
-    for (SelType type : {SelType::ENFORCER, SelType::BLOCKER}) {
-        if ((type == SelType::ENFORCER && ! update_enforcers)
-         || (type == SelType::BLOCKER && ! update_blockers))
+    for (FacetSupportType type : {FacetSupportType::ENFORCER, FacetSupportType::BLOCKER}) {
+        if ((type == FacetSupportType::ENFORCER && ! update_enforcers)
+         || (type == FacetSupportType::BLOCKER && ! update_blockers))
             continue;
 
-        GLIndexedVertexArray& iva = m_ivas[mesh_id][type==SelType::ENFORCER ? 0 : 1];
+        GLIndexedVertexArray& iva = m_ivas[mesh_id][type==FacetSupportType::ENFORCER ? 0 : 1];
         iva.release_geometry();
         size_t triangle_cnt=0;
         for (size_t facet_idx=0; facet_idx<m_selected_facets[mesh_id].size(); ++facet_idx) {
-            SelType status = m_selected_facets[mesh_id][facet_idx];
+            FacetSupportType status = m_selected_facets[mesh_id][facet_idx];
             if (status != type)
                 continue;
             for (int i=0; i<3; ++i)

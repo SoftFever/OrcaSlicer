@@ -19,6 +19,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <chrono>
 
 namespace cereal {
 	class BinaryInputArchive;
@@ -391,6 +392,35 @@ enum class ModelVolumeType : int {
     SUPPORT_BLOCKER,
 };
 
+enum class FacetSupportType : int8_t {
+    NONE      = 0,
+    ENFORCER  = 1,
+    BLOCKER   = 2
+};
+
+class FacetsAnnotation {
+public:
+    using ClockType = std::chrono::steady_clock;
+
+
+    std::vector<int> get_facets(FacetSupportType type) const;
+    void set_facet(int idx, FacetSupportType type);
+    void clear();
+
+    ClockType::time_point get_timestamp() const { return timestamp; }
+    bool is_newer_than(const FacetsAnnotation& other) const {
+        return timestamp > other.get_timestamp();
+    }
+
+private:
+    std::map<int, FacetSupportType> m_data;
+
+    ClockType::time_point timestamp;
+    void update_timestamp() {
+        timestamp = ClockType::now();
+    }
+};
+
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
 // ModelVolume instances are owned by a ModelObject.
 class ModelVolume final : public ObjectBase
@@ -420,6 +450,9 @@ public:
     // Configuration parameters specific to an object model geometry or a modifier volume, 
     // overriding the global Slic3r settings and the ModelObject settings.
     ModelConfig  		config;
+
+    // List of mesh facets to be supported/unsupported.
+    FacetsAnnotation    m_supported_facets;
 
     // A parent object owning this modifier volume.
     ModelObject*        get_object() const { return this->object; };
@@ -548,7 +581,9 @@ private:
     // Copying an existing volume, therefore this volume will get a copy of the ID assigned.
     ModelVolume(ModelObject *object, const ModelVolume &other) :
         ObjectBase(other),
-        name(other.name), source(other.source), m_mesh(other.m_mesh), m_convex_hull(other.m_convex_hull), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
+        name(other.name), source(other.source), m_mesh(other.m_mesh), m_convex_hull(other.m_convex_hull),
+        config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation),
+        m_supported_facets(other.m_supported_facets)
     {
 		assert(this->id().valid()); assert(this->config.id().valid()); assert(this->id() != this->config.id());
 		assert(this->id() == other.id() && this->config.id() == other.config.id());
@@ -565,6 +600,8 @@ private:
         if (mesh.stl.stats.number_of_facets > 1)
             calculate_convex_hull();
 		assert(this->config.id().valid()); assert(this->config.id() != other.config.id()); assert(this->id() != this->config.id());
+
+        m_supported_facets.clear();
     }
 
     ModelVolume& operator=(ModelVolume &rhs) = delete;

@@ -404,6 +404,7 @@ static inline void model_volume_list_copy_configs(ModelObject &model_object_dst,
         // Copy the ModelVolume data.
         mv_dst.name   = mv_src.name;
 		static_cast<DynamicPrintConfig&>(mv_dst.config) = static_cast<const DynamicPrintConfig&>(mv_src.config);
+        mv_dst.m_supported_facets = mv_src.m_supported_facets;
         //FIXME what to do with the materials?
         // mv_dst.m_material_id = mv_src.m_material_id;
         ++ i_src;
@@ -881,7 +882,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                     }
                 }
             }
-            // Synchronize (just copy) the remaining data of ModelVolumes (name, config).
+            // Synchronize (just copy) the remaining data of ModelVolumes (name, config, custom supports data).
             //FIXME What to do with m_material_id?
 			model_volume_list_copy_configs(model_object /* dst */, model_object_new /* src */, ModelVolumeType::MODEL_PART);
 			model_volume_list_copy_configs(model_object /* dst */, model_object_new /* src */, ModelVolumeType::PARAMETER_MODIFIER);
