@@ -6360,7 +6360,7 @@ msgstr "Redimensionner"
 
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:459
 msgid "Scale factors"
-msgstr "Facteurs de redimensionnement"
+msgstr "Échelle"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:196
 msgid ""
