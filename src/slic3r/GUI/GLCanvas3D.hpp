@@ -642,6 +642,7 @@ public:
 #if ENABLE_GCODE_VIEWER
     const std::vector<double>& get_layers_zs() const;
     void set_toolpath_visible(GCodeProcessor::EMoveType type, bool visible);
+    void set_toolpath_view_type(GCodeViewer::EViewType type);
     void set_shells_visible(bool visible);
 #else
     std::vector<double> get_current_print_zs(bool active_only) const;

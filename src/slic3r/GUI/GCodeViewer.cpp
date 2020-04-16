@@ -354,6 +354,35 @@ void GCodeViewer::load_shells(const Print& print, bool initialized)
 
 void GCodeViewer::render_toolpaths() const
 {
+    auto extrusion_color = [this](const Path& path) {
+        std::array<float, 4> color;
+        switch (m_view_type)
+        {
+        case EViewType::FeatureType:
+        {
+            unsigned int color_id = static_cast<unsigned int>(path.role);
+            if (color_id >= erCount)
+                color_id = 0;
+
+            color = m_extrusion_role_colors[color_id];
+            break;
+        }
+        case EViewType::Height:
+        case EViewType::Width:
+        case EViewType::Feedrate:
+        case EViewType::FanSpeed:
+        case EViewType::VolumetricRate:
+        case EViewType::Tool:
+        case EViewType::ColorPrint:
+        default:
+        {
+            color = { 1.0f, 1.0f, 1.0f, 1.0f };
+            break;
+        }
+        }
+        return color;
+    };
+
     auto set_color = [](GLint current_program_id, const std::array<float, 4>& color) {
         if (current_program_id > 0) {
             GLint color_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "uniform_color") : -1;
@@ -427,12 +456,7 @@ void GCodeViewer::render_toolpaths() const
             {
                 for (const Path& path : buffer.paths)
                 {
-                    unsigned int color_id = static_cast<unsigned int>(path.role);
-                    if (color_id >= erCount)
-                        color_id = 0;
-
-                    set_color(current_program_id, m_extrusion_role_colors[color_id]);
-
+                    set_color(current_program_id, extrusion_color(path));
                     glsafe(::glDrawElements(GL_LINE_STRIP, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
                 }
                 break;

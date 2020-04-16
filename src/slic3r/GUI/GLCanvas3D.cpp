@@ -2323,6 +2323,11 @@ void GLCanvas3D::set_toolpath_visible(GCodeProcessor::EMoveType type, bool visib
     m_gcode_viewer.set_toolpath_visible(type, visible);
 }
 
+void GLCanvas3D::set_toolpath_view_type(GCodeViewer::EViewType type)
+{
+    m_gcode_viewer.set_view_type(type);
+}
+
 void GLCanvas3D::set_shells_visible(bool visible)
 {
     m_gcode_viewer.set_shells_visible(visible);

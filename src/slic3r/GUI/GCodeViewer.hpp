@@ -62,6 +62,21 @@ class GCodeViewer
         Shader shader;
     };
 
+public:
+    enum class EViewType : unsigned char
+    {
+        FeatureType,
+        Height,
+        Width,
+        Feedrate,
+        FanSpeed,
+        VolumetricRate,
+        Tool,
+        ColorPrint,
+        Count
+    };
+
+private:
     VBuffer m_vertices;
     std::vector<IBuffer> m_buffers{ static_cast<size_t>(GCodeProcessor::EMoveType::Extrude) };
 
@@ -70,6 +85,8 @@ class GCodeViewer
     Shells m_shells;
 
     std::array<std::array<float, 4>, erCount> m_extrusion_role_colors;
+
+    EViewType m_view_type{ EViewType::FeatureType };
 
 public:
     GCodeViewer() = default;
@@ -85,6 +102,14 @@ public:
     void render() const;
 
     const std::vector<double>& get_layers_zs() const { return m_layers_zs; };
+
+    EViewType get_view_type() const { return m_view_type; }
+    void set_view_type(EViewType type) {
+        if (type == EViewType::Count)
+            type = EViewType::FeatureType;
+
+        m_view_type = type;
+    }
 
     bool is_toolpath_visible(GCodeProcessor::EMoveType type) const;
     void set_toolpath_visible(GCodeProcessor::EMoveType type, bool visible);

@@ -602,10 +602,17 @@ void Preview::on_choice_view_type(wxCommandEvent& evt)
 {
     m_preferred_color_mode = (m_choice_view_type->GetStringSelection() == L("Tool")) ? "tool" : "feature";
     int selection = m_choice_view_type->GetCurrentSelection();
+#if ENABLE_GCODE_VIEWER
+    if (0 <= selection && selection < static_cast<int>(GCodeViewer::EViewType::Count))
+        m_canvas->set_toolpath_view_type(static_cast<GCodeViewer::EViewType>(selection));
+
+    refresh_print();
+#else
     if ((0 <= selection) && (selection < (int)GCodePreviewData::Extrusion::Num_View_Types))
         m_gcode_preview_data->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)selection;
 
     reload_print();
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void Preview::on_combochecklist_features(wxCommandEvent& evt)
