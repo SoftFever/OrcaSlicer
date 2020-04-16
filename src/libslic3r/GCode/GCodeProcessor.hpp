@@ -2,9 +2,9 @@
 #define slic3r_GCodeProcessor_hpp_
 
 #if ENABLE_GCODE_VIEWER
-#include "../GCodeReader.hpp"
-#include "../Point.hpp"
-#include "../ExtrusionEntity.hpp"
+#include "libslic3r/GCodeReader.hpp"
+#include "libslic3r/Point.hpp"
+#include "libslic3r/ExtrusionEntity.hpp"
 
 #include <array>
 #include <vector>

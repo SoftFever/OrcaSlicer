@@ -2140,6 +2140,9 @@ void GLCanvas3D::render()
     // we need to set the mouse's scene position here because the depth buffer
     // could be invalidated by the following gizmo render methods
     // this position is used later into on_mouse() to drag the objects
+#if ENABLE_GCODE_VIEWER
+    if (m_picking_enabled)
+#endif // ENABLE_GCODE_VIEWER
     m_mouse.scene_position = _mouse_to_3d(m_mouse.position.cast<coord_t>());
 
     _render_current_gizmo();

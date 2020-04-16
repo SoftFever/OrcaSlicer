@@ -7,14 +7,14 @@
 #include "3DScene.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 
-#include <vector>
-
 namespace Slic3r {
 class Print;
 namespace GUI {
 
 class GCodeViewer
 {
+    static const std::array<std::array<float, 4>, erCount> Default_Extrusion_Role_Colors;
+
     // buffer containing vertices data
     struct VBuffer
     {
@@ -29,16 +29,30 @@ class GCodeViewer
         static size_t vertex_size_bytes() { return vertex_size() * sizeof(float); }
     };
 
-    // buffer containing indices data
+    struct Path
+    {
+        GCodeProcessor::EMoveType type{ GCodeProcessor::EMoveType::Noop };
+        ExtrusionRole role{ erNone };
+        unsigned int first{ 0 };
+        unsigned int last{ 0 };
+
+        bool matches(GCodeProcessor::EMoveType type, ExtrusionRole role) const { return this->type == type && this->role == role; }
+    };
+
+    // buffer containing indices data and shader for a specific toolpath type
     struct IBuffer
     {
         unsigned int ibo_id{ 0 };
         Shader shader;
         std::vector<unsigned int> data;
         size_t data_size{ 0 };
+        std::vector<Path> paths;
         bool visible{ false };
 
         void reset();
+        bool init_shader(const std::string& vertex_shader_src, const std::string& fragment_shader_src);
+
+        void add_path(GCodeProcessor::EMoveType type, ExtrusionRole role);
     };
 
     struct Shells
@@ -55,11 +69,17 @@ class GCodeViewer
     std::vector<double> m_layers_zs;
     Shells m_shells;
 
+    std::array<std::array<float, 4>, erCount> m_extrusion_role_colors;
+
 public:
     GCodeViewer() = default;
     ~GCodeViewer() { reset(); }
 
-    bool init() { set_toolpath_visible(GCodeProcessor::EMoveType::Extrude, true);  return init_shaders(); }
+    bool init() {
+        m_extrusion_role_colors = Default_Extrusion_Role_Colors;
+        set_toolpath_visible(GCodeProcessor::EMoveType::Extrude, true);
+        return init_shaders();
+    }
     void load(const GCodeProcessor::Result& gcode_result, const Print& print, bool initialized);
     void reset();
     void render() const;

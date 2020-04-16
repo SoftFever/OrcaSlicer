@@ -43,7 +43,43 @@ void GCodeViewer::IBuffer::reset()
     // release cpu memory
     data = std::vector<unsigned int>();
     data_size = 0;
+    paths = std::vector<Path>();
 }
+
+bool GCodeViewer::IBuffer::init_shader(const std::string& vertex_shader_src, const std::string& fragment_shader_src)
+{
+    if (!shader.init(vertex_shader_src, fragment_shader_src))
+    {
+        BOOST_LOG_TRIVIAL(error) << "Unable to initialize toolpaths shader: please, check that the files " << vertex_shader_src << " and " << fragment_shader_src << " are available";
+        return false;
+    }
+
+    return true;
+}
+
+void GCodeViewer::IBuffer::add_path(GCodeProcessor::EMoveType type, ExtrusionRole role)
+{
+    unsigned int id = static_cast<unsigned int>(data.size());
+    paths.push_back({ type, role, id, id });
+}
+
+const std::array<std::array<float, 4>, erCount> GCodeViewer::Default_Extrusion_Role_Colors {{
+    { 0.00f, 0.00f, 0.00f, 1.0f },   // erNone
+    { 1.00f, 1.00f, 0.40f, 1.0f },   // erPerimeter
+    { 1.00f, 0.65f, 0.00f, 1.0f },   // erExternalPerimeter
+    { 0.00f, 0.00f, 1.00f, 1.0f },   // erOverhangPerimeter
+    { 0.69f, 0.19f, 0.16f, 1.0f },   // erInternalInfill
+    { 0.84f, 0.20f, 0.84f, 1.0f },   // erSolidInfill
+    { 1.00f, 0.10f, 0.10f, 1.0f },   // erTopSolidInfill
+    { 0.60f, 0.60f, 1.00f, 1.0f },   // erBridgeInfill
+    { 1.00f, 1.00f, 1.00f, 1.0f },   // erGapFill
+    { 0.52f, 0.48f, 0.13f, 1.0f },   // erSkirt
+    { 0.00f, 1.00f, 0.00f, 1.0f },   // erSupportMaterial
+    { 0.00f, 0.50f, 0.00f, 1.0f },   // erSupportMaterialInterface
+    { 0.70f, 0.89f, 0.67f, 1.0f },   // erWipeTower
+    { 0.16f, 0.80f, 0.58f, 1.0f },   // erCustom
+    { 0.00f, 0.00f, 0.00f, 1.0f }    // erMixed
+}};
 
 void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& print, bool initialized)
 {
@@ -99,52 +135,47 @@ bool GCodeViewer::init_shaders()
 
     for (unsigned char i = begin_id; i < end_id; ++i)
     {
-        Shader& shader = m_buffers[i].shader;
-        std::string vertex_shader_src;
-        std::string fragment_shader_src;
-        GCodeProcessor::EMoveType type = buffer_type(i);
-        switch (type)
+        switch (buffer_type(i))
         {
         case GCodeProcessor::EMoveType::Tool_change:
         {
-            vertex_shader_src = "toolchanges.vs";
-            fragment_shader_src = "toolchanges.fs";
+            if (!m_buffers[i].init_shader("toolchanges.vs", "toolchanges.fs"))
+                return false;
+
             break;
         }
         case GCodeProcessor::EMoveType::Retract:
         {
-            vertex_shader_src = "retractions.vs";
-            fragment_shader_src = "retractions.fs";
+            if (!m_buffers[i].init_shader("retractions.vs", "retractions.fs"))
+                return false;
+
             break;
         }
         case GCodeProcessor::EMoveType::Unretract:
         {
-            vertex_shader_src = "unretractions.vs";
-            fragment_shader_src = "unretractions.fs";
+            if (!m_buffers[i].init_shader("unretractions.vs", "unretractions.fs"))
+                return false;
+
             break;
         }
         case GCodeProcessor::EMoveType::Extrude:
         {
-            vertex_shader_src = "extrusions.vs";
-            fragment_shader_src = "extrusions.fs";
+            if (!m_buffers[i].init_shader("extrusions.vs", "extrusions.fs"))
+                return false;
+
             break;
         }
         case GCodeProcessor::EMoveType::Travel:
         {
-            vertex_shader_src = "travels.vs";
-            fragment_shader_src = "travels.fs";
+            if (!m_buffers[i].init_shader("travels.vs", "travels.fs"))
+                return false;
+
             break;
         }
         default:
         {
             break;
         }
-        }
-
-        if (!shader.init(vertex_shader_src, fragment_shader_src))
-        {
-            BOOST_LOG_TRIVIAL(error) << "Unable to initialize toolpaths shader: please, check that the files " << vertex_shader_src << " and " << fragment_shader_src << " are available";
-            return false;
         }
     }
 
@@ -203,13 +234,20 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         case GCodeProcessor::EMoveType::Retract:
         case GCodeProcessor::EMoveType::Unretract:
         {
+            buffer.add_path(curr.type, curr.extrusion_role);
             buffer.data.push_back(static_cast<unsigned int>(i));
             break;
         }
         case GCodeProcessor::EMoveType::Extrude:
         case GCodeProcessor::EMoveType::Travel:
         {
-            buffer.data.push_back(static_cast<unsigned int>(i - 1));
+            if (prev.type != curr.type)
+            {
+                buffer.add_path(curr.type, curr.extrusion_role);
+                buffer.data.push_back(static_cast<unsigned int>(i - 1));
+            }
+            
+            buffer.paths.back().last = static_cast<unsigned int>(buffer.data.size());
             buffer.data.push_back(static_cast<unsigned int>(i));
             break;
         }
@@ -387,16 +425,26 @@ void GCodeViewer::render_toolpaths() const
             }
             case GCodeProcessor::EMoveType::Extrude:
             {
-                std::array<float, 4> color = { 1.0f, 0.0f, 0.0f, 1.0f };
-                set_color(current_program_id, color);
-                glsafe(::glDrawElements(GL_LINES, (GLsizei)buffer.data_size, GL_UNSIGNED_INT, nullptr));
+                for (const Path& path : buffer.paths)
+                {
+                    unsigned int color_id = static_cast<unsigned int>(path.role);
+                    if (color_id >= erCount)
+                        color_id = 0;
+
+                    set_color(current_program_id, m_extrusion_role_colors[color_id]);
+
+                    glsafe(::glDrawElements(GL_LINE_STRIP, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
+                }
                 break;
             }
             case GCodeProcessor::EMoveType::Travel:
             {
                 std::array<float, 4> color = { 1.0f, 1.0f, 0.0f, 1.0f };
                 set_color(current_program_id, color);
-                glsafe(::glDrawElements(GL_LINES, (GLsizei)buffer.data_size, GL_UNSIGNED_INT, nullptr));
+                for (const Path& path : buffer.paths)
+                {
+                    glsafe(::glDrawElements(GL_LINE_STRIP, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
+                }
                 break;
             }
             }

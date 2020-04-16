@@ -1,4 +1,4 @@
-#include "../libslic3r.h"
+#include "libslic3r/libslic3r.h"
 #include "GCodeProcessor.hpp"
 
 #include <boost/log/trivial.hpp>
