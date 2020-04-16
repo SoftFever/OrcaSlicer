@@ -160,6 +160,8 @@ void Tab::create_preset_tab()
 
     // search combox
     m_search = new Search::SearchCtrl(panel);
+    // search combox
+    m_search_btn = new Search::SearchButton(panel);
 
     auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
@@ -240,6 +242,8 @@ void Tab::create_preset_tab()
     m_hsizer->AddSpacer(int(/*32*/16 * scale_factor));
     m_hsizer->Add(m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
     m_hsizer->Add(m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
+    m_hsizer->AddSpacer(int(/*32*/16 * scale_factor));
+    m_hsizer->Add(m_search_btn, 0, wxALIGN_CENTER_VERTICAL);
     m_hsizer->AddSpacer(int(/*32*/16 * scale_factor));
     m_hsizer->Add(m_search, 0, wxALIGN_CENTER_VERTICAL);
     m_hsizer->AddSpacer(int(16 * scale_factor));

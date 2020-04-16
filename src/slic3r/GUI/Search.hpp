@@ -174,6 +174,47 @@ public:
     void        update_list(const std::vector<FoundOption>& filters);
 };
 
+
+#include <wx/popupwin.h>
+
+class PopupSearchList : public wxPopupTransientWindow
+{
+    wxString search_str; 
+public:
+    PopupSearchList(wxWindow* parent);
+    ~PopupSearchList() {}
+
+    // wxPopupTransientWindow virtual methods are all overridden to log them
+    void Popup(wxWindow* focus = NULL) wxOVERRIDE;
+    void OnDismiss() wxOVERRIDE;
+    bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;
+    bool Show(bool show = true) wxOVERRIDE;
+
+private:
+    wxWindow* panel;
+
+    wxTextCtrl* text {nullptr};
+    wxListBox*  list{ nullptr };
+    wxCheckBox* check {nullptr};
+
+    void OnSize(wxSizeEvent& event);
+    void OnSetFocus(wxFocusEvent& event);
+    void OnKillFocus(wxFocusEvent& event);
+};
+
+class SearchButton : public ScalableButton
+{
+    PopupSearchList* popup_win{ nullptr };
+
+    void PopupSearch(wxCommandEvent& event);
+public:
+    SearchButton(wxWindow* parent);
+    ~SearchButton() {}
+};
+
+
+
+
 } // Search namespace
 }
 
