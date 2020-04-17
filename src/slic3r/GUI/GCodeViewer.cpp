@@ -104,6 +104,7 @@ void GCodeViewer::reset()
         buffer.reset();
     }
 
+    m_bounding_box = BoundingBoxf3();
     m_extrusions.reset_role_visibility_flags();
     m_shells.volumes.clear();
     m_layers_zs = std::vector<double>();
@@ -198,13 +199,14 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     if (m_vertices.vertices_count == 0)
         return;
 
-    // vertex data -> extract from result
+    // vertex data / bounding box -> extract from result
     std::vector<float> vertices_data;
     for (const GCodeProcessor::MoveVertex& move : gcode_result.moves)
     {
         for (int j = 0; j < 3; ++j)
         {
             vertices_data.insert(vertices_data.end(), move.position[j]);
+            m_bounding_box.merge(move.position.cast<double>());
         }
     }
 

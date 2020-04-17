@@ -2841,9 +2841,8 @@ void GLCanvas3D::load_gcode_preview_2(const GCodeProcessor::Result& gcode_result
         }
         out.close();
     }
-
-    m_gcode_viewer.load(gcode_result , *this->fff_print(), m_initialized);
 #endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+    m_gcode_viewer.load(gcode_result, *this->fff_print(), m_initialized);
 }
 #endif // ENABLE_GCODE_VIEWER
 
@@ -5213,6 +5212,12 @@ BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_be
 #else
     bb.merge(m_bed.get_bounding_box(include_bed_model));
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
+
+#if ENABLE_GCODE_VIEWER
+    if (!m_main_toolbar.is_enabled())
+        bb.merge(m_gcode_viewer.get_bounding_box());
+#endif // ENABLE_GCODE_VIEWER
+
     return bb;
 }
 

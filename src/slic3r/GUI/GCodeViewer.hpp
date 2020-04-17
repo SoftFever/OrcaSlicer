@@ -97,6 +97,7 @@ public:
 private:
     VBuffer m_vertices;
     std::vector<IBuffer> m_buffers{ static_cast<size_t>(GCodeProcessor::EMoveType::Extrude) };
+    BoundingBoxf3 m_bounding_box;
 
     unsigned int m_last_result_id{ 0 };
     std::vector<double> m_layers_zs;
@@ -117,6 +118,7 @@ public:
     void reset();
     void render() const;
 
+    const BoundingBoxf3& get_bounding_box() const { return m_bounding_box; }
     const std::vector<double>& get_layers_zs() const { return m_layers_zs; };
 
     EViewType get_view_type() const { return m_view_type; }
