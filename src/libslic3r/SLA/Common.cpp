@@ -303,8 +303,10 @@ EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
         ret.m_t = double(hit.t);
         ret.m_dir = dir;
         ret.m_source = s;
-        if(!std::isinf(hit.t) && !std::isnan(hit.t))
+        if(!std::isinf(hit.t) && !std::isnan(hit.t)) {
             ret.m_normal = this->normal_by_face_id(hit.id);
+            ret.m_face_id = hit.id;
+        }
 
         return ret;
     }
@@ -340,8 +342,10 @@ EigenMesh3D::query_ray_hits(const Vec3d &s, const Vec3d &dir) const
         outs.back().m_t = double(hit.t);
         outs.back().m_dir = dir;
         outs.back().m_source = s;
-        if(!std::isinf(hit.t) && !std::isnan(hit.t))
+        if(!std::isinf(hit.t) && !std::isnan(hit.t)) {
             outs.back().m_normal = this->normal_by_face_id(hit.id);
+            outs.back().m_face_id = hit.id;
+        }
     }
 
     return outs;

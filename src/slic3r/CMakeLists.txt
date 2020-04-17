@@ -31,9 +31,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/GLCanvas3DManager.cpp
     GUI/Selection.hpp
     GUI/Selection.cpp    
-    GUI/Gizmos/GLGizmos.hpp
     GUI/Gizmos/GLGizmosManager.cpp
     GUI/Gizmos/GLGizmosManager.hpp
+    GUI/Gizmos/GLGizmosCommon.cpp
+    GUI/Gizmos/GLGizmosCommon.hpp
     GUI/Gizmos/GLGizmoBase.cpp
     GUI/Gizmos/GLGizmoBase.hpp
     GUI/Gizmos/GLGizmoMove.cpp
@@ -44,6 +45,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmoScale.hpp
     GUI/Gizmos/GLGizmoSlaSupports.cpp
     GUI/Gizmos/GLGizmoSlaSupports.hpp
+    GUI/Gizmos/GLGizmoFdmSupports.cpp
+    GUI/Gizmos/GLGizmoFdmSupports.hpp
     GUI/Gizmos/GLGizmoFlatten.cpp
     GUI/Gizmos/GLGizmoFlatten.hpp
     GUI/Gizmos/GLGizmoCut.cpp
