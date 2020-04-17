@@ -452,7 +452,7 @@ void GLGizmoFdmSupports::update_vertex_buffers(const ModelVolume* mv,
             iva.push_triangle(3*triangle_cnt, 3*triangle_cnt+1, 3*triangle_cnt+2);
             ++triangle_cnt;
         }
-        if (iva.has_VBOs())
+        if (! m_selected_facets[mesh_id].empty())
             iva.finalize_geometry(true);
     }
 }
