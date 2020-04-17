@@ -2322,9 +2322,14 @@ const std::vector<double>& GLCanvas3D::get_layers_zs() const
     return m_gcode_viewer.get_layers_zs();
 }
 
-void GLCanvas3D::set_toolpath_visible(GCodeProcessor::EMoveType type, bool visible)
+void GLCanvas3D::set_toolpath_move_type_visible(GCodeProcessor::EMoveType type, bool visible)
 {
-    m_gcode_viewer.set_toolpath_visible(type, visible);
+    m_gcode_viewer.set_toolpath_move_type_visible(type, visible);
+}
+
+void GLCanvas3D::set_toolpath_role_visibility_flags(unsigned int flags)
+{
+    m_gcode_viewer.set_toolpath_role_visibility_flags(flags);
 }
 
 void GLCanvas3D::set_toolpath_view_type(GCodeViewer::EViewType type)

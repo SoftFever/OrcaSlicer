@@ -308,6 +308,9 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
     m_combochecklist_features->Create(this, wxID_ANY, _(L("Feature types")), wxDefaultPosition, wxSize(15 * wxGetApp().em_unit(), -1), wxCB_READONLY);
     std::string feature_text = GUI::into_u8(_(L("Feature types")));
     std::string feature_items = GUI::into_u8(
+#if ENABLE_GCODE_VIEWER
+        _L("Unknown") + "|" +
+#endif // ENABLE_GCODE_VIEWER
         _(L("Perimeter")) + "|" +
         _(L("External perimeter")) + "|" +
         _(L("Overhang perimeter")) + "|" +
@@ -618,14 +621,18 @@ void Preview::on_choice_view_type(wxCommandEvent& evt)
 void Preview::on_combochecklist_features(wxCommandEvent& evt)
 {
     int flags = Slic3r::GUI::combochecklist_get_flags(m_combochecklist_features);
+#if ENABLE_GCODE_VIEWER
+    m_canvas->set_toolpath_role_visibility_flags(static_cast<unsigned int>(flags));
+#else
     m_gcode_preview_data->extrusion.role_flags = (unsigned int)flags;
+#endif // ENABLE_GCODE_VIEWER
     refresh_print();
 }
 
 void Preview::on_checkbox_travel(wxCommandEvent& evt)
 {
 #if ENABLE_GCODE_VIEWER
-    m_canvas->set_toolpath_visible(GCodeProcessor::EMoveType::Travel, m_checkbox_travel->IsChecked());
+    m_canvas->set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Travel, m_checkbox_travel->IsChecked());
     refresh_print();
 #else
     m_gcode_preview_data->travel.is_visible = m_checkbox_travel->IsChecked();
@@ -638,7 +645,7 @@ void Preview::on_checkbox_travel(wxCommandEvent& evt)
 void Preview::on_checkbox_retractions(wxCommandEvent& evt)
 {
 #if ENABLE_GCODE_VIEWER
-    m_canvas->set_toolpath_visible(GCodeProcessor::EMoveType::Retract, m_checkbox_retractions->IsChecked());
+    m_canvas->set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Retract, m_checkbox_retractions->IsChecked());
 #else
     m_gcode_preview_data->retraction.is_visible = m_checkbox_retractions->IsChecked();
 #endif // ENABLE_GCODE_VIEWER
@@ -648,7 +655,7 @@ void Preview::on_checkbox_retractions(wxCommandEvent& evt)
 void Preview::on_checkbox_unretractions(wxCommandEvent& evt)
 {
 #if ENABLE_GCODE_VIEWER
-    m_canvas->set_toolpath_visible(GCodeProcessor::EMoveType::Unretract, m_checkbox_unretractions->IsChecked());
+    m_canvas->set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Unretract, m_checkbox_unretractions->IsChecked());
 #else
     m_gcode_preview_data->unretraction.is_visible = m_checkbox_unretractions->IsChecked();
 #endif // ENABLE_GCODE_VIEWER

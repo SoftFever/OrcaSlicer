@@ -104,6 +104,7 @@ void GCodeViewer::reset()
         buffer.reset();
     }
 
+    m_extrusions.reset_role_visibility_flags();
     m_shells.volumes.clear();
     m_layers_zs = std::vector<double>();
 }
@@ -121,7 +122,7 @@ bool GCodeViewer::is_toolpath_visible(GCodeProcessor::EMoveType type) const
     return (id < m_buffers.size()) ? m_buffers[id].visible : false;
 }
 
-void GCodeViewer::set_toolpath_visible(GCodeProcessor::EMoveType type, bool visible)
+void GCodeViewer::set_toolpath_move_type_visible(GCodeProcessor::EMoveType type, bool visible)
 {
     size_t id = static_cast<size_t>(buffer_id(type));
     if (id < m_buffers.size())
@@ -364,7 +365,7 @@ void GCodeViewer::render_toolpaths() const
             if (color_id >= erCount)
                 color_id = 0;
 
-            color = m_extrusion_role_colors[color_id];
+            color = m_extrusions.role_colors[color_id];
             break;
         }
         case EViewType::Height:
@@ -392,6 +393,10 @@ void GCodeViewer::render_toolpaths() const
             }
         }
         BOOST_LOG_TRIVIAL(error) << "Unable to find uniform_color uniform";
+    };
+
+    auto is_path_visible = [](unsigned int flags, const Path& path) {
+        return Extrusions::is_role_visible(flags, path.role);
     };
 
     glsafe(::glCullFace(GL_BACK));
@@ -456,6 +461,9 @@ void GCodeViewer::render_toolpaths() const
             {
                 for (const Path& path : buffer.paths)
                 {
+                    if (!is_path_visible(m_extrusions.role_visibility_flags, path))
+                        continue;
+
                     set_color(current_program_id, extrusion_color(path));
                     glsafe(::glDrawElements(GL_LINE_STRIP, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
                 }
