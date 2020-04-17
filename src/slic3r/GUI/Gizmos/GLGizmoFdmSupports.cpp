@@ -102,10 +102,14 @@ void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
 
         glsafe(::glPushMatrix());
         glsafe(::glMultMatrixd(trafo_matrix.data()));
-        glsafe(::glColor4f(0.2f, 0.2f, 1.0f, 0.5f));
-        m_ivas[mesh_id][0].render();
-        glsafe(::glColor4f(1.f, 0.2f, 0.2f, 0.5f));
-        m_ivas[mesh_id][1].render();
+
+        // Now render both enforcers and blockers.
+        for (int i=0; i<2; ++i) {
+            if (m_ivas[mesh_id][i].has_VBOs()) {
+                glsafe(::glColor4f(i ? 1.f : 0.2f, 0.2f, i ? 0.2f : 1.0f, 0.5f));
+                m_ivas[mesh_id][i].render();
+            }
+        }
         glsafe(::glPopMatrix());
     }
 }
@@ -470,7 +474,8 @@ void GLGizmoFdmSupports::update_vertex_buffers(const ModelVolume* mv,
             iva.push_triangle(3*triangle_cnt, 3*triangle_cnt+1, 3*triangle_cnt+2);
             ++triangle_cnt;
         }
-        iva.finalize_geometry(true);
+        if (! m_selected_facets[mesh_id].empty())
+            iva.finalize_geometry(true);
     }
 }
 
