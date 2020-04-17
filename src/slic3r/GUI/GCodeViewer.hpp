@@ -62,6 +62,24 @@ class GCodeViewer
         Shader shader;
     };
 
+    struct Extrusions
+    {
+        std::array<std::array<float, 4>, erCount> role_colors;
+        unsigned int role_visibility_flags{ 0 };
+
+        void reset_role_visibility_flags() {
+            role_visibility_flags = 0;
+            for (unsigned int i = 0; i < erCount; ++i)
+            {
+                role_visibility_flags |= 1 << i;
+            }
+        }
+
+        static bool is_role_visible(unsigned int flags, ExtrusionRole role) {
+            return role < erCount && (flags & (1 << role)) != 0;
+        }
+    };
+
 public:
     enum class EViewType : unsigned char
     {
@@ -82,10 +100,8 @@ private:
 
     unsigned int m_last_result_id{ 0 };
     std::vector<double> m_layers_zs;
+    Extrusions m_extrusions;
     Shells m_shells;
-
-    std::array<std::array<float, 4>, erCount> m_extrusion_role_colors;
-
     EViewType m_view_type{ EViewType::FeatureType };
 
 public:
@@ -93,8 +109,8 @@ public:
     ~GCodeViewer() { reset(); }
 
     bool init() {
-        m_extrusion_role_colors = Default_Extrusion_Role_Colors;
-        set_toolpath_visible(GCodeProcessor::EMoveType::Extrude, true);
+        m_extrusions.role_colors = Default_Extrusion_Role_Colors;
+        set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Extrude, true);
         return init_shaders();
     }
     void load(const GCodeProcessor::Result& gcode_result, const Print& print, bool initialized);
@@ -112,7 +128,8 @@ public:
     }
 
     bool is_toolpath_visible(GCodeProcessor::EMoveType type) const;
-    void set_toolpath_visible(GCodeProcessor::EMoveType type, bool visible);
+    void set_toolpath_move_type_visible(GCodeProcessor::EMoveType type, bool visible);
+    void set_toolpath_role_visibility_flags(unsigned int flags) { m_extrusions.role_visibility_flags = flags; }
 
     bool are_shells_visible() const { return m_shells.visible; }
     void set_shells_visible(bool visible) { m_shells.visible = visible; }
