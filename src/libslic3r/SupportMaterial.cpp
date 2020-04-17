@@ -994,31 +994,24 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
 
     // Iterate over all triangles.
     for (int facet_idx : custom_enf) {
+        std::array<Vec3f, 3> facet;
 
-        ExPolygon triangle; // To store horizontal projection of the triangle.
-
-        // Min and max z-coord of the triangle.
-        float max_z = std::numeric_limits<float>::min();
-        float min_z = std::numeric_limits<float>::max();
-
-        // This block transforms the triangle into worlds coords and
-        // calculates the projection and z-bounds.
-        {
-            std::array<Vec3f, 3> facet;
-            Points projection(3);
-            for (int i=0; i<3; ++i) {
-                facet[i] = tr2 * tr1 * mesh.its.vertices[mesh.its.indices[facet_idx](i)];
-                max_z = std::max(max_z, facet[i].z());
-                min_z = std::min(min_z, facet[i].z());
-                projection[i] = Point(scale_(facet[i].x()), scale_(facet[i].y()));
-                projection[i] = projection[i] - object.center_offset();
-            }
-            triangle = ExPolygon(projection);
+        // Transform the triangle into worlds coords.
+        for (int i=0; i<3; ++i) {
+            facet[i] = tr2 * tr1 * mesh.its.vertices[mesh.its.indices[facet_idx](i)];
+            facet[i] -= Vec3f(unscale<double>(object.center_offset().x()),
+                              unscale<double>(object.center_offset().y()),
+                              0.f);
         }
 
-        // We now have the projection of the triangle.
+        // Sort the three vertices according the z-coordinate.
+        std::sort(facet.begin(), facet.end(),
+                  [](const Vec3f& pt1, const Vec3f&pt2) {
+                      return pt1.z() < pt2.z();
+                  });
+
         // Find lowest slice not below the triangle.
-        auto it = std::lower_bound(layers.begin(), layers.end(), min_z,
+        auto it = std::lower_bound(layers.begin(), layers.end(), facet[0].z(),
                       [](const Layer* l1, float z) {
                            return l1->slice_z < z;
                       });
@@ -1028,8 +1021,11 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
         //         anything to the slice above max_z.
         // FIXME: Each part of the projection should be assigned to one slice only.
         // FIXME: The speed of the algorithm might be improved.
-        while (it != layers.end() && (*it)->slice_z < max_z) {
-            enforcers[it-layers.begin()].emplace_back(triangle);
+        while (it != layers.end() && (*it)->slice_z < facet[2].z()) {
+            Polygon plg;
+            for (const Vec3f& vert : facet)
+                plg.append(Point::new_scale(vert.x(), vert.y()));
+            enforcers[it-layers.begin()].emplace_back(ExPolygon(std::move(plg)));
             ++it;
         }
     }
