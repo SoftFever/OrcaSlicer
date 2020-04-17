@@ -26,6 +26,8 @@
     #include "SVG.hpp"
 #endif
 
+#include "SVG.hpp"
+
 // #undef NDEBUG
 #include <cassert>
 
@@ -1021,19 +1023,100 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
         //         anything to the slice above max_z.
         // FIXME: Each part of the projection should be assigned to one slice only.
         // FIXME: The speed of the algorithm might be improved.
-        while (it != layers.end() && (*it)->slice_z < facet[2].z()) {
+
+        // Calculate how to move points on triangle sides per unit z increment.
+        Vec2f ta(facet[1].x()-facet[0].x(), facet[1].y()-facet[0].y());
+        Vec2f tb(facet[2].x()-facet[0].x(), facet[2].y()-facet[0].y());
+        ta /= (facet[1].z() - facet[0].z());
+        tb /= (facet[2].z() - facet[0].z());
+
+
+        std::vector<Vec2f> proj;
+        proj.emplace_back(facet[0].x(), facet[0].y());
+
+        Vec2f a(proj.back());
+        Vec2f b(proj.back());
+        float last_z = facet[0].z();
+        bool passed_first = false;
+        bool stop = false;
+
+        //////////////// debugging
+        Polygon trg;
+        for (const Vec3f& vert : facet)
+            trg.append(Point::new_scale(vert.x(), vert.y()));
+        ::Slic3r::SVG::export_expolygons("triangle.svg", trg.bounding_box(), {ExPolygon(trg)});
+        ///////////////////////////
+
+Polygons plgs;
+
+        while (it != layers.end()) {
+            const float z = (*it)->slice_z;
+
+            if (z > facet[1].z() && ! passed_first) {
+                a = Vec2f(facet[1].x(), facet[1].y());
+                proj.push_back(a);
+
+                ta = Vec2f(facet[2].x()-facet[1].x(), facet[2].y()-facet[1].y());
+                ta /= (facet[2].z() - facet[1].z());
+
+                passed_first = true;
+            }
+
+            a += ta * (z-last_z);
+
+
+            if (z > facet[2].z() || it+1 == layers.end()) {
+                b = Vec2f(facet[2].x(), facet[2].y());
+                stop = true;
+            }
+            else {
+                proj.push_back(a);
+                b += tb * (z-last_z);
+            }
+            proj.push_back(b);
+
             Polygon plg;
-            for (const Vec3f& vert : facet)
-                plg.append(Point::new_scale(vert.x(), vert.y()));
-            enforcers[it-layers.begin()].emplace_back(ExPolygon(std::move(plg)));
+            for (const Vec2f& vert : proj)
+               plg.append(Point::new_scale(vert.x(), vert.y()));
+
+           // plg = offset(plg, 100).front();
+            enforcers[it-layers.begin()].emplace_back(plg);
+
+            plgs.emplace_back(plg);
+
+            std::ostringstream ss;
+            ExPolygons explgs;
+            explgs.emplace_back(plg);
+            ss << std::setprecision(5) << std::setw(5) << (*it)->print_z;
+            ::Slic3r::SVG::export_expolygons(ss.str()+".svg", trg.bounding_box(), explgs);
+            ::Slic3r::SVG::export_expolygons(ss.str()+"_layer.svg", trg.bounding_box(), (*it)->lslices);
+
+            if (stop)
+                break;
+
+            proj.clear();
+            proj.push_back(b);
+            proj.push_back(a);
+
             ++it;
+            last_z = z;
         }
+
+        ExPolygons explgs;
+        for (const auto& plg : plgs)
+            explgs.emplace_back(plg);
+        ::Slic3r::SVG::export_expolygons("plgs.svg", trg.bounding_box(), explgs);
+        break;
     }
+
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
 
-
+/*
+ *  for (const Vec3f& vert : facet)
+            plg.append(Point::new_scale(vert.x(), vert.y()));
+            */
 
 
 
