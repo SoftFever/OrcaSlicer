@@ -20,11 +20,13 @@
 #include <cmath>
 #include <boost/algorithm/string/replace.hpp>
 #include "Field.hpp"
+#include "format.hpp"
 
 namespace Slic3r {
 
 using GUI::from_u8;
 using GUI::into_u8;
+using GUI::format_wxstr;
 
 namespace DoubleSlider {
 
@@ -530,7 +532,7 @@ wxString Control::get_label(int tick) const
     const wxString str = m_values.empty() ? 
                          wxNumberFormatter::ToString(m_label_koef*value, 2, wxNumberFormatter::Style_None) :
                          wxNumberFormatter::ToString(m_values[value], 2, wxNumberFormatter::Style_None);
-    return wxString::Format("%s\n(%d)", str, m_values.empty() ? value : value+1);
+    return format_wxstr("%1%\n(%2%)", str, m_values.empty() ? value : value+1);
 }
 
 void Control::draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, bool right_side/*=true*/) const
@@ -952,8 +954,8 @@ wxString Control::get_tooltip(int tick/*=-1*/)
         return _(L("Discard all custom changes"));
     if (m_focus == fiCogIcon)
         return m_mode == t_mode::MultiAsSingle                                                              ?
-               wxString::Format(_(L("Jump to height %s or "
-                                       "Set extruder sequence for the entire print")), " (Shift + G)\n") :
+               GUI::from_u8((boost::format(_utf8(L("Jump to height %s or "
+                                       "Set extruder sequence for the entire print"))) % " (Shift + G)\n").str()) :
                _(L("Jump to height")) + " (Shift + G)";
     if (m_focus == fiColorBand)
         return m_mode != t_mode::SingleExtruder ? "" :
@@ -1001,16 +1003,16 @@ wxString Control::get_tooltip(int tick/*=-1*/)
 
         // Show custom Gcode as a first string of tooltop
         tooltip = "    ";
-        tooltip +=  tick_code_it->gcode == ColorChangeCode ?    (   m_mode == t_mode::SingleExtruder                ? 
-                        from_u8((boost::format(_utf8(L("Color change (\"%1%\")"))) % tick_code_it->gcode ).str()) :
-                        from_u8((boost::format(_utf8(L("Color change (\"%1%\") for Extruder %2%"))) % 
-                                               tick_code_it->gcode % tick_code_it->extruder).str()) )                   :
-                    tick_code_it->gcode == PausePrintCode ?
-                        from_u8((boost::format(_utf8(L("Pause print (\"%1%\")"))) % tick_code_it->gcode ).str())      :
-                    tick_code_it->gcode == ToolChangeCode ?
-                        from_u8((boost::format(_utf8(L("Extruder (tool) is changed to Extruder \"%1%\""))) % 
-                                               tick_code_it->extruder ).str())                                          :
-                        from_u8(tick_code_it->gcode);
+        tooltip +=  
+        	tick_code_it->gcode == ColorChangeCode ?
+        		(m_mode == t_mode::SingleExtruder ?
+                	format_wxstr(_L("Color change (\"%1%\")"), tick_code_it->gcode) :
+                    format_wxstr(_L("Color change (\"%1%\") for Extruder %2%"), tick_code_it->gcode, tick_code_it->extruder)) :
+	            tick_code_it->gcode == PausePrintCode ?
+	                format_wxstr(_L("Pause print (\"%1%\")"), tick_code_it->gcode) :
+		            tick_code_it->gcode == ToolChangeCode ?
+		                format_wxstr(_L("Extruder (tool) is changed to Extruder \"%1%\""), tick_code_it->extruder) :
+		                from_u8(tick_code_it->gcode);
 
         // If tick is marked as a conflict (exclamation icon),
         // we should to explain why
@@ -1176,8 +1178,8 @@ void Control::append_add_color_change_menu_item(wxMenu* menu, bool switch_curren
         }
 
         const wxString menu_name = switch_current_code ? 
-                                   from_u8((boost::format(_utf8(L("Switch code to Color change (%1%) for:"))) % ColorChangeCode).str()) : 
-                                   from_u8((boost::format(_utf8(L("Add color change (%1%) for:"))) % ColorChangeCode).str());
+                                   format_wxstr(_L("Switch code to Color change (%1%) for:"), ColorChangeCode) : 
+                                   format_wxstr(_L("Add color change (%1%) for:"), ColorChangeCode);
         wxMenuItem* add_color_change_menu_item = menu->AppendSubMenu(add_color_change_menu, menu_name, "");
         add_color_change_menu_item->SetBitmap(create_scaled_bitmap("colorchange_add_m"));
     }
@@ -1615,8 +1617,8 @@ static void upgrade_text_entry_dialog(wxTextEntryDialog* dlg, double min = -1.0,
 
 static std::string get_custom_code(const std::string& code_in, double height)
 {
-    wxString msg_text = from_u8(_utf8(L("Enter custom G-code used on current layer"))) + ":";
-    wxString msg_header = from_u8((boost::format(_utf8(L("Custom G-code on current layer (%1% mm)."))) % height).str());
+    wxString msg_text = _L("Enter custom G-code used on current layer") + ":";
+    wxString msg_header = format_wxstr(_L("Custom G-code on current layer (%1% mm)."), height);
 
     // get custom gcode
     wxTextEntryDialog dlg(nullptr, msg_text, msg_header, code_in,
@@ -1631,8 +1633,8 @@ static std::string get_custom_code(const std::string& code_in, double height)
 
 static std::string get_pause_print_msg(const std::string& msg_in, double height)
 {
-    wxString msg_text = from_u8(_utf8(L("Enter short message shown on Printer display when a print is paused"))) + ":";
-    wxString msg_header = from_u8((boost::format(_utf8(L("Message for pause print on current layer (%1% mm)."))) % height).str());
+    wxString msg_text = _L("Enter short message shown on Printer display when a print is paused") + ":";
+    wxString msg_header = format_wxstr(_L("Message for pause print on current layer (%1% mm)."), height);
 
     // get custom gcode
     wxTextEntryDialog dlg(nullptr, msg_text, msg_header, from_u8(msg_in),
@@ -1914,8 +1916,8 @@ bool Control::check_ticks_changed_event(const std::string& gcode)
     {
         wxString message =  m_mode == t_mode::SingleExtruder ?                          (
                             _(L("The last color change data was saved for a multi extruder printing.")) + "\n\n" +
-                            _(L("Select YES if you want to delete all saved tool changes, \n\t"
-                                "NO if you want all tool changes switch to color changes, \n\t"
+                            _(L("Select YES if you want to delete all saved tool changes, \n"
+                                "NO if you want all tool changes switch to color changes, \n"
                                 "or CANCEL to leave it unchanged.")) + "\n\n\t" +
                             _(L("Do you want to delete all saved tool changes?"))  
                             ) : ( // t_mode::MultiExtruder

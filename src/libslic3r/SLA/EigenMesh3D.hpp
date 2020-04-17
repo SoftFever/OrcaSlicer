@@ -55,6 +55,7 @@ public:
     class hit_result {
         // m_t holds a distance from m_source to the intersection.
         double m_t = infty();
+        int m_face_id = -1;
         const EigenMesh3D *m_mesh = nullptr;
         Vec3d m_dir;
         Vec3d m_source;
@@ -74,6 +75,7 @@ public:
         inline const Vec3d& direction() const { return m_dir; }
         inline const Vec3d& source() const { return m_source; }
         inline Vec3d position() const { return m_source + m_dir * m_t; }
+        inline int face() const { return m_face_id; }
         inline bool is_valid() const { return m_mesh != nullptr; }
         inline bool is_hit() const { return !std::isinf(m_t); }
 
@@ -101,6 +103,9 @@ public:
 
     // Iterates over hits and holes and returns the true hit, possibly
     // on the inside of a hole.
+    // This function is currently not used anywhere, it was written when the
+    // holes were subtracted on slices, that is, before we started using CGAL
+    // to actually cut the holes into the mesh.
     hit_result filter_hits(const std::vector<EigenMesh3D::hit_result>& obj_hits) const;
 
     class si_result {

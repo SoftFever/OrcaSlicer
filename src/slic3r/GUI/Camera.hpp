@@ -2,9 +2,7 @@
 #define slic3r_Camera_hpp_
 
 #include "libslic3r/BoundingBox.hpp"
-#if ENABLE_THUMBNAIL_GENERATOR
 #include "3DScene.hpp"
-#endif // ENABLE_THUMBNAIL_GENERATOR
 #include <array>
 
 namespace Slic3r {
@@ -13,10 +11,8 @@ namespace GUI {
 struct Camera
 {
     static const double DefaultDistance;
-#if ENABLE_THUMBNAIL_GENERATOR
     static const double DefaultZoomToBoxMarginFactor;
     static const double DefaultZoomToVolumesMarginFactor;
-#endif // ENABLE_THUMBNAIL_GENERATOR
     static double FrustrumMinZRange;
     static double FrustrumMinNearZ;
     static double FrustrumZMargin;
@@ -97,12 +93,8 @@ public:
     // If larger z span is needed, pass the desired values of near and far z (negative values are ignored)
     void apply_projection(const BoundingBoxf3& box, double near_z = -1.0, double far_z = -1.0) const;
 
-#if ENABLE_THUMBNAIL_GENERATOR
     void zoom_to_box(const BoundingBoxf3& box, double margin_factor = DefaultZoomToBoxMarginFactor);
     void zoom_to_volumes(const GLVolumePtrs& volumes, double margin_factor = DefaultZoomToVolumesMarginFactor);
-#else
-    void zoom_to_box(const BoundingBoxf3& box, int canvas_w, int canvas_h);
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 #if ENABLE_CAMERA_STATISTICS
     void debug_render() const;
@@ -122,6 +114,15 @@ public:
     // returns true if the camera z axis (forward) is pointing in the negative direction of the world z axis
     bool is_looking_downward() const { return get_dir_forward().dot(Vec3d::UnitZ()) < 0.0; }
 
+    // forces camera right vector to be parallel to XY plane
+    void recover_from_free_camera()
+    {
+        if (std::abs(get_dir_right()(2)) > EPSILON)
+            look_at(get_position(), m_target, Vec3d::UnitZ());
+    }
+
+    void look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up);
+
     double max_zoom() const { return 100.0; }
     double min_zoom() const;
 
@@ -129,15 +130,10 @@ private:
     // returns tight values for nearZ and farZ plane around the given bounding box
     // the camera MUST be outside of the bounding box in eye coordinate of the given box
     std::pair<double, double> calc_tight_frustrum_zs_around(const BoundingBoxf3& box) const;
-#if ENABLE_THUMBNAIL_GENERATOR
     double calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, double margin_factor = DefaultZoomToBoxMarginFactor) const;
     double calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, Vec3d& center, double margin_factor = DefaultZoomToVolumesMarginFactor) const;
-#else
-    double calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, int canvas_w, int canvas_h) const;
-#endif // ENABLE_THUMBNAIL_GENERATOR
     void set_distance(double distance) const;
 
-    void look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up);
     void set_default_orientation();
     Vec3d validate_target(const Vec3d& target) const;
     void update_zenit();

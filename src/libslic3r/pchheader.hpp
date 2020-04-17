@@ -111,6 +111,7 @@
 #include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
 #include "Config.hpp"
+#include "format.hpp"
 #include "I18N.hpp"
 #include "MultiPoint.hpp"
 #include "Point.hpp"

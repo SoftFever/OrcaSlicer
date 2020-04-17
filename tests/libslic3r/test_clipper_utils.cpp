@@ -246,7 +246,7 @@ TEST_CASE("Traversing Clipper PolyTree", "[ClipperUtils]") {
     // Create a polygon representing unit box
     Polygon unitbox;
     const auto UNIT = coord_t(1. / SCALING_FACTOR);
-    unitbox.points = {{0, 0}, {UNIT, 0}, {UNIT, UNIT}, {0, UNIT}};
+    unitbox.points = { Vec2crd{0, 0}, Vec2crd{UNIT, 0}, Vec2crd{UNIT, UNIT}, Vec2crd{0, UNIT}};
     
     Polygon box_frame = unitbox;
     box_frame.scale(20, 10);

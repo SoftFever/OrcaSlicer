@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-08-06 09:54+0200\n"
-"PO-Revision-Date: 2019-08-25 09:43+0900\n"
+"PO-Revision-Date: 2020-02-28 09:34+0900\n"
 "Last-Translator: lee hak-min <hangmini12@naver.com>\n"
 "Language-Team: ulsanether\n"
 "Language: ko_KR\n"
@@ -385,7 +385,7 @@ msgid ""
 "(both support_material_extruder and support_material_interface_extruder need "
 "to be set to 0)."
 msgstr ""
-"와이프 타워는 현재 비수용성 지원만 지원합니다.\n"
+"와이프 타워(프라임 타워)는 현재 비수용성 지원만 지원합니다.\n"
 "공구 교환을 트리거하지 않고 현재 압출기로 인쇄된 경우\n"
 "(support_material_extruder support_material_interface_extruder 모두 0으로 설"
 "정해야 합니다)."
@@ -397,14 +397,14 @@ msgstr "와이프 타워를 활성화하기 위해 이러한 설정을 조정해
 #: src/slic3r/GUI/ConfigManipulation.cpp:112
 #: src/slic3r/GUI/ConfigManipulation.cpp:132
 msgid "Wipe Tower"
-msgstr "와이프 타워(Wipe Tower)"
+msgstr "와이프 타워(프라임 타워)"
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:128
 msgid ""
 "For the Wipe Tower to work with the soluble supports, the support layers\n"
 "need to be synchronized with the object layers."
 msgstr ""
-"와이프 타워가 가용성 지지체와 함께 작동 하려면 서포트 레이어를 객체(object) "
+"와이프 타워(프라임 타워)가 가용성 지지체와 함께 작동 하려면 서포트 레이어를 객체(object) "
 "레이어와 동기화 해야 합니다."
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:131
@@ -429,7 +429,7 @@ msgstr "서포트 생성"
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:200
 msgid "The %1% infill pattern is not supposed to work at 100%% density."
-msgstr "%1% 채우기 패턴은 100% 밀도로 작동하도록 되어 있지 않습니다."
+msgstr "%1% 채우기 패턴은 100%% 밀도로 작동하도록 되어 있지 않습니다."
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:202
 msgid "Shall I switch to rectilinear fill pattern?"
@@ -532,7 +532,7 @@ msgstr "변종"
 #: src/slic3r/GUI/ConfigSnapshotDialog.cpp:75
 #, c-format
 msgid "Incompatible with this %s"
-msgstr "%s 과 호환되지 않습니다"
+msgstr "%s 와 호환되지 않습니다"
 
 #: src/slic3r/GUI/ConfigSnapshotDialog.cpp:78
 msgid "Activate"
@@ -1207,13 +1207,13 @@ msgstr "다중 압출기 인쇄를 위해 마지막 색상 변경 데이터가 �
 
 #: src/slic3r/GUI/DoubleSlider.cpp:1889
 msgid ""
-"Select YES if you want to delete all saved tool changes, \n"
-"\tNO if you want all tool changes switch to color changes, \n"
-"\tor CANCEL for do nothing"
+"Select YES if you want to delete all saved tool changes,\n"
+"NO if you want all tool changes switch to color changes,\n"
+"or CANCEL for do nothing"
 msgstr ""
-"저장된 도구 변경 내용을 모두 삭제하려면 YES를 선택합니다. \n"
-"\t아니오 모든 도구 변경 이 색상 변경으로 전환하려면 \n"
-"\t또는 아무것도 하지 않는 취소"
+"저장된 도구 변경 내용을 모두 삭제하려면 YES를 선택합니다.\n"
+"아니오 모든 도구 변경 이 색상 변경으로 전환하려면\n"
+"또는 아무것도 하지 않는 취소"
 
 #: src/slic3r/GUI/DoubleSlider.cpp:1892
 msgid "Do you want to delete all saved tool changes?"
@@ -1751,7 +1751,7 @@ msgstr "이 개체를 비우기"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoHollow.cpp:42
 msgid "Preview hollowed and drilled model"
-msgstr "미리 보기 중이 비어 있고 드릴된 모델"
+msgstr "공동화된 모델 미리보기"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoHollow.cpp:43
 msgid "Offset"
@@ -1805,7 +1805,7 @@ msgstr "배수 구멍 삭제"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoHollow.cpp:786
 msgid "Hollowing parameter change"
-msgstr "공동화 매개변수 변경"
+msgstr "공동화 변수 변경"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoHollow.cpp:858
 msgid "Change drainage hole diameter"
@@ -5411,16 +5411,18 @@ msgstr "CA 인증서 파일 열기"
 #: src/slic3r/GUI/Tab.cpp:1741
 #, c-format
 msgid ""
-"HTTPS CA File:\n"
-"    \tOn this system, %s uses HTTPS certificates from the system Certificate "
+"On this system, %s uses HTTPS certificates from the system Certificate "
 "Store or Keychain.\n"
-"    \tTo use a custom CA file, please import your CA file into Certificate "
+msgstr ""
+"이 시스템에서 %s는 시스템 인증서 저장소나 키체인의 HTTPS 인증서를 사용 "
+"합니다.\n"
+
+#: src/slic3r/GUI/Tab.cpp:1741
+msgid ""
+"To use a custom CA file, please import your CA file into Certificate "
 "Store / Keychain."
 msgstr ""
-"HTTPS CA 파일:\n"
-"   \t이 시스템에서 %s는 시스템 인증서 저장소나 키체인의 HTTPS 인증서를 사용 "
-"합니다.\n"
-"   \t사용자 지정 CA 파일을 사용 하려면 CA 파일을 인증서 저장소/키체인에 가져"
+"사용자 지정 CA 파일을 사용 하려면 CA 파일을 인증서 저장소/키체인에 가져"
 "오십시오."
 
 #: src/slic3r/GUI/Tab.cpp:1781 src/slic3r/GUI/Tab.cpp:2025
@@ -5717,8 +5719,8 @@ msgstr "흰색 글머리 기호"
 #. TRN Description for "WHITE BULLET"
 #: src/slic3r/GUI/Tab.cpp:3235
 msgid ""
-"for the left button: \tindicates a non-system (or non-default) preset,\n"
-"for the right button: \tindicates that the settings hasn't been modified."
+"for the left button: indicates a non-system (or non-default) preset,\n"
+"for the right button: indicates that the settings hasn't been modified."
 msgstr ""
 "왼쪽 단추의 경우: 비시스템(또는 기본이 아닌) 사전 설정을 나타냅니다.\n"
 "오른쪽 버튼: 설정이 수정되지 않았음을 나타냅니다."
@@ -6478,7 +6480,7 @@ msgstr "인쇄 z"
 #: src/libslic3r/GCode.cpp:639
 msgid ""
 "This is usually caused by negligibly small extrusions or by a faulty model. "
-"Try to repair  the model or change its orientation on the bed."
+"Try to repair the model or change its orientation on the bed."
 msgstr ""
 "이는 일반적으로 무시할 수 있는 작은 돌출 또는 결함이 있는 모델에 의해 발생합"
 "니다. 모델을 수리하거나 배드에서 방향을 변경하십시오."
@@ -9346,7 +9348,7 @@ msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:2185
 msgid "Use volumetric E"
-msgstr "용적 E 사용"
+msgstr "용적(volumetric) E 사용"
 
 #: src/libslic3r/PrintConfig.cpp:2186
 msgid ""
@@ -9605,11 +9607,11 @@ msgstr "느리게"
 
 #: src/libslic3r/PrintConfig.cpp:2425
 msgid "Slow tilt"
-msgstr "슬로우 틸트"
+msgstr "천천히 기울이기"
 
 #: src/libslic3r/PrintConfig.cpp:2426
 msgid "Time of the slow tilt"
-msgstr "느린 기울기의 시간"
+msgstr "천천히 기울이는 속도"
 
 #: src/libslic3r/PrintConfig.cpp:2433
 msgid "Area fill"
@@ -9668,7 +9670,7 @@ msgstr "병 볼륨"
 
 #: src/libslic3r/PrintConfig.cpp:2492
 msgid "ml"
-msgstr "광년"
+msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:2497 src/libslic3r/PrintConfig.cpp:2498
 msgid "Bottle weight"
@@ -9684,7 +9686,7 @@ msgstr "g /ml"
 
 #: src/libslic3r/PrintConfig.cpp:2513
 msgid "money/bottle"
-msgstr "돈 /병"
+msgstr "가격 /병"
 
 #: src/libslic3r/PrintConfig.cpp:2518
 msgid "Faded layers"
@@ -10037,11 +10039,11 @@ msgid ""
 "Performance vs accuracy of calculation. Lower values may produce unwanted "
 "artifacts."
 msgstr ""
-"성능 대 계산의 정확성. 값이 낮을수록 원치 않는 아티팩트가 생성될 수 있습니다."
+"성능 계산의 정확성. 값이 낮을수록 원치 않는 아티팩트가 생성될 수 있습니다."
 
 #: src/libslic3r/PrintConfig.cpp:2935
 msgid "Hollowing closing distance"
-msgstr "공동화된 닫힘 반경"
+msgstr "속비움된 닫힘 반경"
 
 #: src/libslic3r/PrintConfig.cpp:3315
 msgid "Export OBJ"

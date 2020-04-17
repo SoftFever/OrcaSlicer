@@ -611,7 +611,7 @@ static inline SegmentPoint clip_start_segment_and_point(const Points &polyline, 
 	SegmentPoint out;
 	if (polyline.size() >= 2) {
 	    Vec2d pt_prev = polyline.front().cast<double>();
-		for (int i = 1; i < polyline.size(); ++ i) {
+        for (size_t i = 1; i < polyline.size(); ++ i) {
 			Vec2d pt = polyline[i].cast<double>();
 			Vec2d v = pt - pt_prev;
 	        double l2 = v.squaredNorm();
@@ -674,7 +674,7 @@ static inline double segment_point_distance_squared(const Vec2d &p1a, const Vec2
     if (l2 < EPSILON)
         // p1a == p1b
         return (p2  - p1a).squaredNorm();
-	return segment_point_distance_squared(p1a, p1b, v, v.squaredNorm(), p2);
+    return segment_point_distance_squared(p1a, p1b, v, v.squaredNorm(), p2);
 }
 
 // Distance to the closest point of line.
@@ -692,7 +692,7 @@ static inline double min_distance_of_segments(const Vec2d &p1a, const Vec2d &p1b
         // p2a == p2b: Return distance of p2a from the (p1a, p1b) segment.
         return segment_point_distance_squared(p1a, p1b, v1, l1_2, p2a);
 
-	return std::min(
+    return std::min(
 		std::min(segment_point_distance_squared(p1a, p1b, v1, l1_2, p2a), segment_point_distance_squared(p1a, p1b, v1, l1_2, p2b)),
 		std::min(segment_point_distance_squared(p2a, p2b, v2, l2_2, p1a), segment_point_distance_squared(p2a, p2b, v2, l2_2, p1b)));
 }

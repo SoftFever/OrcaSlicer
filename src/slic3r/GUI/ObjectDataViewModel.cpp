@@ -5,6 +5,8 @@
 #include "GUI_ObjectList.hpp"
 #include "I18N.hpp"
 
+#include "libslic3r/Model.hpp"
+
 #include <wx/bmpcbox.h>
 #include <wx/dc.h>
 

@@ -31,6 +31,7 @@ ExternalProject_Add(dep_libopenssl
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ./config
         "--prefix=${DESTDIR}/usr/local"
+        "--libdir=lib"
         no-shared
         no-ssl3-method
         no-dynamic-engine
@@ -54,7 +55,12 @@ ExternalProject_Add(dep_libcurl
         --enable-versioned-symbols
         --enable-threaded-resolver
         --with-random=/dev/urandom
-        --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt
+        
+        # CA root certificate paths will be set for openssl at runtime.
+        --without-ca-bundle
+        --without-ca-path
+        --with-ca-fallback # to look for the ssl backend's ca store
+
         --disable-ldap
         --disable-ldaps
         --disable-manual
@@ -93,6 +99,12 @@ else ()
     set(DEP_WX_TAG "v3.1.1-patched")
 endif()
 
+if (DEP_WX_GTK3)
+    set(WX_GTK_VERSION "3")
+else ()
+    set(WX_GTK_VERSION "2")
+endif()
+
 ExternalProject_Add(dep_wxwidgets
     EXCLUDE_FROM_ALL 1
     GIT_REPOSITORY "https://github.com/prusa3d/wxWidgets"
@@ -102,7 +114,7 @@ ExternalProject_Add(dep_wxwidgets
     CONFIGURE_COMMAND ./configure
         "--prefix=${DESTDIR}/usr/local"
         --disable-shared
-        --with-gtk=2
+        --with-gtk=${WX_GTK_VERSION}
         --with-opengl
         --enable-unicode
         --enable-graphics_ctx

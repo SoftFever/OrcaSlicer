@@ -1,4 +1,5 @@
 min_slic3r_version = 2.2.0-alpha3
+1.1.2 Added renamed_from fields for PETG filaments to indicate that they were renamed from PET.
 1.1.1 Added Verbatim and Fiberlogy PETG filament profiles. Updated auto cooling settings for ABS.
 1.1.1-beta Updated for PrusaSlicer 2.2.0-beta
 1.1.1-alpha4 Extended list of default filaments to be installed, top/bottom_solid_min_thickness defined, infill_acceleration changed etc

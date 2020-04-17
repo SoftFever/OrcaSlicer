@@ -115,11 +115,23 @@ ObjectList::ObjectList(wxWindow* parent) :
 
     // describe control behavior 
     Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxDataViewEvent& event) {
+        // detect the current mouse position here, to pass it to list_manipulation() method
+        // if we detect it later, the user may have moved the mouse pointer while calculations are performed, and this would mess-up the HitTest() call performed into list_manipulation()
+        // see: https://github.com/prusa3d/PrusaSlicer/issues/3802
+        const wxPoint mouse_pos = this->get_mouse_position_in_control();
+
 #ifndef __APPLE__
         // On Windows and Linux, forces a kill focus emulation on the object manipulator fields because this event handler is called
         // before the kill focus event handler on the object manipulator when changing selection in the list, invalidating the object
         // manipulator cache with the following call to selection_changed()
-        wxGetApp().obj_manipul()->emulate_kill_focus();
+//        wxGetApp().obj_manipul()->emulate_kill_focus(); // It's not necessury anymore #ys_FIXME delete after testing
+
+        // On Windows and Linux:
+        // It's not invoked KillFocus event for "temporary" panels (like "Manipulation panel", "Settings", "Layer ranges"),
+        // if we change selection in object list.
+        // see https://github.com/prusa3d/PrusaSlicer/issues/3303
+        // But, if we call SetFocus() for ObjectList it will cause an invoking of a KillFocus event for "temporary" panels  
+        this->SetFocus();
 #else
         // To avoid selection update from SetSelection() and UnselectAll() under osx
         if (m_prevent_list_events)
@@ -150,7 +162,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 			// Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.
 		    wxDataViewItem    item;
 		    wxDataViewColumn *col;
-		    this->HitTest(get_mouse_position_in_control(), item, col);
+		    this->HitTest(this->get_mouse_position_in_control(), item, col);
 		    new_selected_column = (col == nullptr) ? -1 : (int)col->GetModelColumn();
 	        if (new_selected_item == m_last_selected_item && m_last_selected_column != -1 && m_last_selected_column != new_selected_column) {
 	        	// Mouse clicked on another column of the active row. Simulate keyboard enter to enter the editing mode of the current column.
@@ -166,11 +178,11 @@ ObjectList::ObjectList(wxWindow* parent) :
 
         selection_changed();
 #ifndef __WXMSW__
-        set_tooltip_for_item(get_mouse_position_in_control());
+        set_tooltip_for_item(this->get_mouse_position_in_control());
 #endif //__WXMSW__
 
 #ifndef __WXOSX__
-        list_manipulation();
+        list_manipulation(mouse_pos);
 #endif //__WXOSX__
     });
 
@@ -206,7 +218,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 
 #ifdef __WXMSW__
     GetMainWindow()->Bind(wxEVT_MOTION, [this](wxMouseEvent& event) {
-        set_tooltip_for_item(get_mouse_position_in_control());
+        set_tooltip_for_item(this->get_mouse_position_in_control());
         event.Skip();
     });
 #endif //__WXMSW__
@@ -354,7 +366,7 @@ wxString ObjectList::get_mesh_errors_list(const int obj_idx, const int vol_idx /
 
     for (const auto& error : error_msg)
         if (error.second > 0)
-            tooltip += wxString::Format("\t%d %s\n", error.second, _(error.first));
+            tooltip += from_u8((boost::format("\t%1% %2%\n") % error.second % _utf8(error.first)).str());
 
     if (is_windows10())
         tooltip += _(L("Right button click the icon to fix STL through Netfabb"));
@@ -414,14 +426,6 @@ void ObjectList::set_tooltip_for_item(const wxPoint& pt)
     GetMainWindow()->SetToolTip(tooltip);
 }
 
-wxPoint ObjectList::get_mouse_position_in_control()
-{
-    const wxPoint& pt = wxGetMousePosition();
-//     wxWindow* win = GetMainWindow();
-//     wxPoint screen_pos = win->GetScreenPosition();
-    return wxPoint(pt.x - /*win->*/GetScreenPosition().x, pt.y - /*win->*/GetScreenPosition().y);
-}
-
 int ObjectList::get_selected_obj_idx() const
 {
     if (GetSelectedItemsCount() == 1)
@@ -479,7 +483,6 @@ void ObjectList::update_extruder_values_for_items(const size_t max_extruder)
 
 void ObjectList::update_objects_list_extruder_column(size_t extruders_count)
 {
-    if (!this) return; // #ys_FIXME
     if (printer_technology() == ptSLA)
         extruders_count = 1;
 
@@ -784,23 +787,31 @@ void ObjectList::OnChar(wxKeyEvent& event)
 */
 #endif /* __WXOSX__ */
 
-void ObjectList::OnContextMenu(wxDataViewEvent&)
+void ObjectList::OnContextMenu(wxDataViewEvent& evt)
 {
+    // The mouse position returned by get_mouse_position_in_control() here is the one at the time the mouse button is released (mouse up event)
+    wxPoint mouse_pos = this->get_mouse_position_in_control();
+
     // Do not show the context menu if the user pressed the right mouse button on the 3D scene and released it on the objects list
     GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
     bool evt_context_menu = (canvas != nullptr) ? !canvas->is_mouse_dragging() : true;
     if (!evt_context_menu)
         canvas->mouse_up_cleanup();
 
-    list_manipulation(evt_context_menu);
+    list_manipulation(mouse_pos, evt_context_menu);
 }
 
-void ObjectList::list_manipulation(bool evt_context_menu/* = false*/)
+void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_menu/* = false*/)
 {
+    // Interesting fact: when mouse_pos.x < 0, HitTest(mouse_pos, item, col) returns item = null, but column = last column.
+    // So, when mouse was moved to scene immediately after clicking in ObjectList, in the scene will be shown context menu for the Editing column.
+    // see: https://github.com/prusa3d/PrusaSlicer/issues/3802
+    if (mouse_pos.x < 0)
+        return;
+
     wxDataViewItem item;
     wxDataViewColumn* col = nullptr;
-    const wxPoint pt = get_mouse_position_in_control();
-    HitTest(pt, item, col);
+    HitTest(mouse_pos, item, col);
 
     if (m_extruder_editor)
         m_extruder_editor->Hide();
@@ -837,30 +848,32 @@ void ObjectList::list_manipulation(bool evt_context_menu/* = false*/)
             Select(item);
     }
 
-    const wxString title = col->GetTitle();
-
-    if (title == " ")
-        toggle_printable_state(item);
-    else if (title == _("Editing"))
-        show_context_menu(evt_context_menu);
-    else if (title == _("Name"))
+    if (col != nullptr) 
     {
-        if (wxOSX)
-            show_context_menu(evt_context_menu); // return context menu under OSX (related to #2909)
+	    const wxString title = col->GetTitle();
+	    if (title == " ")
+	        toggle_printable_state(item);
+	    else if (title == _("Editing"))
+	        show_context_menu(evt_context_menu);
+	    else if (title == _("Name"))
+	    {
+	        if (wxOSX)
+	            show_context_menu(evt_context_menu); // return context menu under OSX (related to #2909)
 
-        if (is_windows10())
-        {
-            int obj_idx, vol_idx;
-            get_selected_item_indexes(obj_idx, vol_idx, item);
+	        if (is_windows10())
+	        {
+	            int obj_idx, vol_idx;
+	            get_selected_item_indexes(obj_idx, vol_idx, item);
 
-            if (get_mesh_errors_count(obj_idx, vol_idx) > 0 && 
-                pt.x > 2*wxGetApp().em_unit() && pt.x < 4*wxGetApp().em_unit() )
-                fix_through_netfabb();
-        }
-    }
-    // workaround for extruder editing under OSX 
-    else if (wxOSX && evt_context_menu && title == _("Extruder"))
-        extruder_editing();
+	            if (get_mesh_errors_count(obj_idx, vol_idx) > 0 && 
+	                mouse_pos.x > 2 * wxGetApp().em_unit() && mouse_pos.x < 4 * wxGetApp().em_unit())
+	                fix_through_netfabb();
+	        }
+	    }
+	    // workaround for extruder editing under OSX 
+	    else if (wxOSX && evt_context_menu && title == _("Extruder"))
+	        extruder_editing();
+	}
 
 #ifndef __WXMSW__
     GetMainWindow()->SetToolTip(""); // hide tooltip
@@ -910,7 +923,7 @@ void ObjectList::extruder_editing()
 
     const int column_width = GetColumn(colExtruder)->GetWidth() + wxSystemSettings::GetMetric(wxSYS_VSCROLL_X) + 5;
 
-    wxPoint pos = get_mouse_position_in_control();
+    wxPoint pos = this->get_mouse_position_in_control();
     wxSize size = wxSize(column_width, -1);
     pos.x = GetColumn(colName)->GetWidth() + GetColumn(colPrint)->GetWidth() + 5;
     pos.y -= GetTextExtent("m").y;
@@ -1180,7 +1193,7 @@ const std::vector<std::string>& ObjectList::get_options_for_bundle(const wxStrin
 
     for (auto& it : bundle_quick)
     {
-        if ( bundle_name == wxString::Format(_(L("Quick Add Settings (%s)")), _(it.first)) )
+        if ( bundle_name == from_u8((boost::format(_utf8(L("Quick Add Settings (%s)"))) % _(it.first)).str()) )
             return it.second;
     }
 #endif
@@ -1528,13 +1541,13 @@ wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_)
 #if 0
     for (auto& it : m_freq_settings_fff)
     {
-        settings_id = menu->FindItem(wxString::Format(_(L("Quick Add Settings (%s)")), _(it.first)));
+        settings_id = menu->FindItem(from_u8((boost::format(_utf8(L("Quick Add Settings (%s)"))) % _(it.first)).str()));
         if (settings_id != wxNOT_FOUND)
             menu->Destroy(settings_id);
     }
     for (auto& it : m_freq_settings_sla)
     {
-        settings_id = menu->FindItem(wxString::Format(_(L("Quick Add Settings (%s)")), _(it.first)));
+        settings_id = menu->FindItem(from_u8((boost::format(_utf8(L("Quick Add Settings (%s)"))) % _(it.first)).str()));
         if (settings_id != wxNOT_FOUND)
             menu->Destroy(settings_id);
     }
@@ -1544,7 +1557,7 @@ wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_)
     // If there are selected more then one instance but not all of them
     // don't add settings menu items
     const Selection& selection = scene_selection();
-    if (selection.is_multiple_full_instance() && !selection.is_single_full_object() || 
+    if ((selection.is_multiple_full_instance() && !selection.is_single_full_object()) ||
         selection.is_multiple_volume() || selection.is_mixed() ) // more than one volume(part) is selected on the scene
         return nullptr;
 
@@ -1847,7 +1860,7 @@ void ObjectList::create_freq_settings_popupmenu(wxMenu *menu, const bool is_obje
         if (improper_category(it.first, extruders_cnt))
             continue;
 
-        append_menu_item(menu, wxID_ANY, wxString::Format(_(L("Quick Add Settings (%s)")), _(it.first)), "",
+        append_menu_item(menu, wxID_ANY, from_u8((boost::format(_utf8(L("Quick Add Settings (%s)"))) % _(it.first)).str()), "",
                         [menu, this](wxCommandEvent& event) { get_freq_settings_choice(menu->GetLabel(event.GetId())); }, 
                         CATEGORY_ICON.find(it.first) == CATEGORY_ICON.end() ? wxNullBitmap : CATEGORY_ICON.at(it.first), menu,
                         [this]() { return true; }, wxGetApp().plater());
@@ -2865,13 +2878,13 @@ void ObjectList::del_layer_range(const t_layer_height_range& range)
 static double get_min_layer_height(const int extruder_idx)
 {
     const DynamicPrintConfig& config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    return config.opt_float("min_layer_height", extruder_idx <= 0 ? 0 : extruder_idx-1);
+    return config.opt_float("min_layer_height", std::max(0, extruder_idx - 1));
 }
 
 static double get_max_layer_height(const int extruder_idx)
 {
     const DynamicPrintConfig& config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    int extruder_idx_zero_based = extruder_idx <= 0 ? 0 : extruder_idx-1;
+    int extruder_idx_zero_based = std::max(0, extruder_idx - 1);
     double max_layer_height = config.opt_float("max_layer_height", extruder_idx_zero_based);
 
     // In case max_layer_height is set to zero, it should default to 75 % of nozzle diameter:
@@ -2881,78 +2894,137 @@ static double get_max_layer_height(const int extruder_idx)
     return max_layer_height;
 }
 
-void ObjectList::add_layer_range_after_current(const t_layer_height_range& current_range)
+// When editing this function, please synchronize the conditions with can_add_new_range_after_current().
+void ObjectList::add_layer_range_after_current(const t_layer_height_range current_range)
 {
     const int obj_idx = get_selected_obj_idx();
-    if (obj_idx < 0) return;
+    assert(obj_idx >= 0);
+    if (obj_idx < 0) 
+        // This should not happen.
+        return;
 
     const wxDataViewItem layers_item = GetSelection();
 
     t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
+    auto it_range = ranges.find(current_range);
+    assert(it_range != ranges.end());
+    if (it_range == ranges.end())
+        // This shoudl not happen.
+        return;
 
-    const t_layer_height_range& last_range = (--ranges.end())->first;
-    
-    if (current_range == last_range)
+    auto it_next_range = it_range;
+    bool changed = false;
+    if (++ it_next_range == ranges.end())
     {
+        // Adding a new layer height range after the last one.
         take_snapshot(_(L("Add Height Range")));
+        changed = true;
 
-        const t_layer_height_range& new_range = { last_range.second, last_range.second + 2. };
+        const t_layer_height_range new_range = { current_range.second, current_range.second + 2. };
         ranges[new_range] = get_default_layer_config(obj_idx);
         add_layer_item(new_range, layers_item);
     }
-    else
+    else if (const std::pair<coordf_t, coordf_t> &next_range = it_next_range->first; current_range.second <= next_range.first)
     {
-        const t_layer_height_range& next_range = (++ranges.find(current_range))->first;
-
-        if (current_range.second > next_range.first)
-            return; // range division has no sense
-        
         const int layer_idx = m_objects_model->GetItemIdByLayerRange(obj_idx, next_range);
-        if (layer_idx < 0)
-            return;
-
-        if (current_range.second == next_range.first)
+        assert(layer_idx >= 0);
+        if (layer_idx >= 0) 
         {
-            const auto old_config = ranges.at(next_range);
+            if (current_range.second == next_range.first)
+            {
+                // Splitting the next layer height range to two.
+                const auto old_config = ranges.at(next_range);
+                const coordf_t delta = next_range.second - next_range.first;
+                // Layer height of the current layer.
+                const coordf_t old_min_layer_height = get_min_layer_height(old_config.opt_int("extruder"));
+                // Layer height of the layer to be inserted.
+                const coordf_t new_min_layer_height = get_min_layer_height(0);
+                if (delta >= old_min_layer_height + new_min_layer_height - EPSILON) {
+                    const coordf_t middle_layer_z = (new_min_layer_height > 0.5 * delta) ?
+	                    next_range.second - new_min_layer_height :
+                    	next_range.first + std::max(old_min_layer_height, 0.5 * delta);
+                    t_layer_height_range new_range = { middle_layer_z, next_range.second };
 
-            const coordf_t delta = (next_range.second - next_range.first);
-            if (delta < get_min_layer_height(old_config.opt_int("extruder"))/*0.05f*/) // next range division has no sense 
-                return; 
+                    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Add Height Range")));
+                    changed = true;
 
-            const coordf_t midl_layer = next_range.first + 0.5 * delta;
-            
-            t_layer_height_range new_range = { midl_layer, next_range.second };
+                    // create new 2 layers instead of deleted one
+                    // delete old layer
 
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Add Height Range")));
+                    wxDataViewItem layer_item = m_objects_model->GetItemByLayerRange(obj_idx, next_range);
+                    del_subobject_item(layer_item);
 
-            // create new 2 layers instead of deleted one
+                    ranges[new_range] = old_config;
+                    add_layer_item(new_range, layers_item, layer_idx);
 
-            // delete old layer
+                    new_range = { current_range.second, middle_layer_z };
+                    ranges[new_range] = get_default_layer_config(obj_idx);
+                    add_layer_item(new_range, layers_item, layer_idx);
+                }
+            }
+            else if (next_range.first - current_range.second >= get_min_layer_height(0) - EPSILON)
+            {
+                // Filling in a gap between the current and a new layer height range with a new one.
+                take_snapshot(_(L("Add Height Range")));
+                changed = true;
 
-            wxDataViewItem layer_item = m_objects_model->GetItemByLayerRange(obj_idx, next_range);
-            del_subobject_item(layer_item);
-
-            ranges[new_range] = old_config;
-            add_layer_item(new_range, layers_item, layer_idx);
-
-            new_range = { current_range.second, midl_layer };
-            ranges[new_range] = get_default_layer_config(obj_idx);
-            add_layer_item(new_range, layers_item, layer_idx);
+                const t_layer_height_range new_range = { current_range.second, next_range.first };
+                ranges[new_range] = get_default_layer_config(obj_idx);
+                add_layer_item(new_range, layers_item, layer_idx);
+            }
         }
-        else
-        {
-            take_snapshot(_(L("Add Height Range")));
-
-            const t_layer_height_range new_range = { current_range.second, next_range.first };
-            ranges[new_range] = get_default_layer_config(obj_idx);
-            add_layer_item(new_range, layers_item, layer_idx);
-        }        
     }
 
-    changed_object(obj_idx);
+    if (changed)
+        changed_object(obj_idx);
 
+    // The layer range panel is updated even if this function does not change the layer ranges, as the panel update
+    // may have been postponed from the "kill focus" event of a text field, if the focus was lost for the "add layer" button.
     // select item to update layers sizer
     select_item(layers_item);
+}
+
+// Returning an empty string means that the layer could be added after the current layer.
+// Otherwise an error tooltip is returned.
+// When editing this function, please synchronize the conditions with add_layer_range_after_current().
+wxString ObjectList::can_add_new_range_after_current(const t_layer_height_range current_range)
+{
+    const int obj_idx = get_selected_obj_idx();
+    assert(obj_idx >= 0);
+    if (obj_idx < 0)
+        // This should not happen.
+        return "ObjectList assert";
+
+    t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
+    auto it_range = ranges.find(current_range);
+    assert(it_range != ranges.end());
+    if (it_range == ranges.end())
+        // This shoudl not happen.
+        return "ObjectList assert";
+
+    auto it_next_range = it_range;
+    if (++ it_next_range == ranges.end())
+    	// Adding a layer after the last layer is always possible.
+        return "";
+    
+    if (const std::pair<coordf_t, coordf_t>& next_range = it_next_range->first; current_range.second <= next_range.first)
+    {
+        if (current_range.second == next_range.first) {
+            if (next_range.second - next_range.first < get_min_layer_height(it_next_range->second.opt_int("extruder")) + get_min_layer_height(0) - EPSILON)
+                return _(L("Cannot insert a new layer range after the current layer range.\n"
+                	       "The next layer range is too thin to be split to two\n"
+                	       "without violating the minimum layer height."));
+        } else if (next_range.first - current_range.second < get_min_layer_height(0) - EPSILON) {
+            return _(L("Cannot insert a new layer range between the current and the next layer range.\n"
+            	       "The gap between the current layer range and the next layer range\n"
+            	       "is thinner than the minimum layer height allowed."));
+        }
+    } else
+	    return _(L("Cannot insert a new layer range after the current layer range.\n"
+	    		   "Current layer range overlaps with the next layer range."));
+
+	// All right, new layer height range could be inserted.
+	return "";
 }
 
 void ObjectList::add_layer_item(const t_layer_height_range& range, 
@@ -2975,7 +3047,10 @@ void ObjectList::add_layer_item(const t_layer_height_range& range,
 
 bool ObjectList::edit_layer_range(const t_layer_height_range& range, coordf_t layer_height)
 {
-    const int obj_idx = get_selected_obj_idx();
+    // Use m_selected_object_id instead of get_selected_obj_idx()
+    // because of get_selected_obj_idx() return obj_idx for currently selected item.
+    // But edit_layer_range(...) function can be called, when Selection in ObjectList could be changed
+    const int obj_idx = m_selected_object_id ; 
     if (obj_idx < 0) 
         return false;
 
@@ -2996,9 +3071,12 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, coordf_t la
     return false;
 }
 
-bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_layer_height_range& new_range)
+bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_layer_height_range& new_range, bool dont_update_ui)
 {
-    const int obj_idx = get_selected_obj_idx();
+    // Use m_selected_object_id instead of get_selected_obj_idx()
+    // because of get_selected_obj_idx() return obj_idx for currently selected item.
+    // But edit_layer_range(...) function can be called, when Selection in ObjectList could be changed
+    const int obj_idx = m_selected_object_id;
     if (obj_idx < 0) return false;
 
     take_snapshot(_(L("Edit Height Range")));
@@ -3012,21 +3090,26 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_lay
     ranges.erase(range);
     ranges[new_range] = config;
     changed_object(obj_idx);
-
+    
     wxDataViewItem root_item = m_objects_model->GetLayerRootItem(m_objects_model->GetItemById(obj_idx));
     // To avoid update selection after deleting of a selected item (under GTK)
     // set m_prevent_list_events to true
     m_prevent_list_events = true;
     m_objects_model->DeleteChildren(root_item);
 
-    if (root_item.IsOk())
+    if (root_item.IsOk()) {
         // create Layer item(s) according to the layer_config_ranges
         for (const auto& r : ranges)
             add_layer_item(r.first, root_item);
+    }
 
-    select_item(sel_type&itLayer ? m_objects_model->GetItemByLayerRange(obj_idx, new_range) : root_item);
+    // if this function was invoked from wxEVT_CHANGE_SELECTION selected item could be other than itLayer or itLayerRoot      
+    if (!dont_update_ui && (sel_type & (itLayer | itLayerRoot)))
+        select_item(sel_type&itLayer ? m_objects_model->GetItemByLayerRange(obj_idx, new_range) : root_item);
+
     Expand(root_item);
 
+    m_prevent_list_events = false;
     return true;
 }
 
@@ -4091,9 +4174,9 @@ void ObjectList::toggle_printable_state(wxDataViewItem item)
         // get object's printable and change it
         const bool printable = !m_objects_model->IsPrintable(item);
 
-        const wxString snapshot_text = wxString::Format("%s %s", 
-                                                        printable ? _(L("Set Printable")) : _(L("Set Unprintable")), 
-                                                        object->name);
+        const wxString snapshot_text = from_u8((boost::format("%1% %2%")
+                                                  % (printable ? _(L("Set Printable")) : _(L("Set Unprintable")))
+                                                  % object->name).str());
         take_snapshot(snapshot_text);
 
         // set printable value for all instances in object

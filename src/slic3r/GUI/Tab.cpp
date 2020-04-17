@@ -4,6 +4,7 @@
 #include "PresetBundle.hpp"
 #include "PresetHints.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Model.hpp"
 
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/PrintHost.hpp"
@@ -130,7 +131,7 @@ void Tab::create_preset_tab()
     add_scaled_button(panel, &m_btn_hide_incompatible_presets, m_bmp_hide_incompatible_presets.name());
 
     // TRN "Save current Settings"
-    m_btn_save_preset->SetToolTip(wxString::Format(_(L("Save current %s")),m_title));
+    m_btn_save_preset->SetToolTip(from_u8((boost::format(_utf8(L("Save current %s"))) % m_title).str()));
     m_btn_delete_preset->SetToolTip(_(L("Delete this preset")));
     m_btn_delete_preset->Disable();
 
@@ -229,7 +230,13 @@ void Tab::create_preset_tab()
         //! but the OSX version derived from wxOwnerDrawnCombo, instead of:
         //! select_preset(m_presets_choice->GetStringSelection().ToUTF8().data()); 
         //! we doing next:
-        int selected_item = m_presets_choice->GetSelection();
+        // int selected_item = m_presets_choice->GetSelection();
+
+        // see https://github.com/prusa3d/PrusaSlicer/issues/3889
+        // Under OSX: in case of use of a same names written in different case (like "ENDER" and "Ender")
+        // m_presets_choice->GetSelection() will return first item, because search in PopupListCtrl is case-insensitive.
+        // So, use GetSelection() from event parameter 
+        int selected_item = e.GetSelection();
         if (m_selected_preset_item == size_t(selected_item) && !m_presets->current_is_dirty())
             return;
         if (selected_item >= 0) {
@@ -359,9 +366,10 @@ void Tab::update_labels_colour()
                 color = &m_modified_label_clr;
         }
         if (opt.first == "bed_shape" || opt.first == "compatible_prints" || opt.first == "compatible_printers") {
-            if (m_colored_Label != nullptr)	{
-                m_colored_Label->SetForegroundColour(*color);
-                m_colored_Label->Refresh(true);
+            wxStaticText* label = (m_colored_Labels.find(opt.first) == m_colored_Labels.end()) ? nullptr : m_colored_Labels.at(opt.first);
+            if (label) {
+                label->SetForegroundColour(*color);
+                label->Refresh(true);
             }
             continue;
         }
@@ -449,9 +457,10 @@ void Tab::update_changed_ui()
             tt = &m_tt_white_bullet;
         }
         if (opt.first == "bed_shape" || opt.first == "compatible_prints" || opt.first == "compatible_printers") {
-            if (m_colored_Label != nullptr)	{
-                m_colored_Label->SetForegroundColour(*color);
-                m_colored_Label->Refresh(true);
+            wxStaticText* label = (m_colored_Labels.find(opt.first) == m_colored_Labels.end()) ? nullptr : m_colored_Labels.at(opt.first);
+            if (label) {
+                label->SetForegroundColour(*color);
+                label->Refresh(true);
             }
             continue;
         }
@@ -668,7 +677,8 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
 
                 }
                 if (group->title == _("Profile dependencies")) {
-                    if (m_type != Slic3r::Preset::TYPE_PRINTER && (m_options_list["compatible_printers"] & os) == 0) {
+                    // "compatible_printers" option doesn't exists in Printer Settimgs Tab
+                    if (m_type != Preset::TYPE_PRINTER && (m_options_list["compatible_printers"] & os) == 0) {
                         to_sys ? group->back_to_sys_value("compatible_printers") : group->back_to_initial_value("compatible_printers");
                         load_key_value("compatible_printers", true/*some value*/, true);
 
@@ -676,7 +686,8 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
                         m_compatible_printers.checkbox->SetValue(is_empty);
                         is_empty ? m_compatible_printers.btn->Disable() : m_compatible_printers.btn->Enable();
                     }
-                    if ((m_type == Slic3r::Preset::TYPE_PRINT || m_type == Slic3r::Preset::TYPE_SLA_PRINT) && (m_options_list["compatible_prints"] & os) == 0) {
+                    // "compatible_prints" option exists only in Filament Settimgs and Materials Tabs
+                    if ((m_type == Preset::TYPE_FILAMENT || m_type == Preset::TYPE_SLA_MATERIAL) && (m_options_list["compatible_prints"] & os) == 0) {
                         to_sys ? group->back_to_sys_value("compatible_prints") : group->back_to_initial_value("compatible_prints");
                         load_key_value("compatible_prints", true/*some value*/, true);
 
@@ -754,9 +765,16 @@ void Tab::update_visibility()
 {
     Freeze(); // There is needed Freeze/Thaw to avoid a flashing after Show/Layout
 
+    // m_detach_preset_btn will be shown always after call page->update_visibility()
+    // So let save a "show state" of m_detach_preset_btn before update_visibility
+    bool was_shown = m_detach_preset_btn->IsShown();
+
     for (auto page : m_pages)
         page->update_visibility(m_mode);
     update_page_tree_visibility();
+
+    // update visibility for detach_preset_btn
+    m_detach_preset_btn->Show(was_shown);
 
     Layout();
     Thaw();
@@ -942,6 +960,52 @@ void Tab::on_presets_changed()
     m_dependent_tabs.clear();
 }
 
+void Tab::build_preset_description_line(ConfigOptionsGroup* optgroup)
+{
+    auto description_line = [this](wxWindow* parent) {
+        return description_line_widget(parent, &m_parent_preset_description_line);
+    };
+
+    auto detach_preset_btn = [this](wxWindow* parent) {
+        add_scaled_button(parent, &m_detach_preset_btn, "lock_open_sys", _(L("Detach from system preset")), wxBU_LEFT | wxBU_EXACTFIT);
+        ScalableButton* btn = m_detach_preset_btn;
+        btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+
+        auto sizer = new wxBoxSizer(wxHORIZONTAL);
+        sizer->Add(btn);
+
+        btn->Bind(wxEVT_BUTTON, [this, parent](wxCommandEvent&)
+        {
+        	bool system = m_presets->get_edited_preset().is_system;
+        	bool dirty  = m_presets->get_edited_preset().is_dirty;
+            wxString msg_text = system ? 
+            	_(L("A copy of the current system preset will be created, which will be detached from the system preset.")) :
+                _(L("The current custom preset will be detached from the parent system preset."));
+            if (dirty) {
+	            msg_text += "\n\n";
+            	msg_text += _(L("Modifications to the current profile will be saved."));
+            }
+            msg_text += "\n\n";
+            msg_text += _(L("This action is not revertable.\nDo you want to proceed?"));
+
+            wxMessageDialog dialog(parent, msg_text, _(L("Detach preset")), wxICON_WARNING | wxYES_NO | wxCANCEL);
+            if (dialog.ShowModal() == wxID_YES)
+                save_preset(m_presets->get_edited_preset().is_system ? std::string() : m_presets->get_edited_preset().name, true);
+        });
+
+        btn->Hide();
+
+        return sizer;
+    };
+
+    Line line = Line{ "", "" };
+    line.full_width = 1;
+
+    line.append_widget(description_line);
+    line.append_widget(detach_preset_btn);
+    optgroup->append_line(line);
+}
+
 void Tab::update_preset_description_line()
 {
     const Preset* parent = m_presets->get_selected_preset_parent();
@@ -956,8 +1020,7 @@ void Tab::update_preset_description_line()
     } else if (parent == nullptr) {
         description_line = _(L("Current preset is inherited from the default preset."));
     } else {
-        description_line = wxString::Format(
-            _(L("Current preset is inherited from:\n\t%s")), GUI::from_u8(parent->name));
+        description_line = _(L("Current preset is inherited from")) + ":\n\t" + parent->name;
     }
 
     if (preset.is_default || preset.is_system)
@@ -1008,14 +1071,18 @@ void Tab::update_preset_description_line()
             default: break;
             }
         }
-        else
+        else if (!preset.alias.empty())
         {
-            description_line += "\n\n\t" + _(L("full profile name")) + ": \n\t\t" + parent->name;
-            description_line += "\n\t" + _(L("symbolic profile name")) + ": \n\t\t" + parent->alias;
+            description_line += "\n\n\t" + _(L("full profile name"))     + ": \n\t\t" + preset.name;
+            description_line += "\n\t"   + _(L("symbolic profile name")) + ": \n\t\t" + preset.alias;
         }
     }
 
     m_parent_preset_description_line->SetText(description_line, false);
+
+    if (m_detach_preset_btn)
+        m_detach_preset_btn->Show(parent && parent->is_system && !preset.is_default);
+    Layout();
 }
 
 void Tab::update_frequently_changed_parameters()
@@ -1112,6 +1179,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("skirts");
         optgroup->append_single_option_line("skirt_distance");
         optgroup->append_single_option_line("skirt_height");
+        optgroup->append_single_option_line("draft_shield");
         optgroup->append_single_option_line("min_skirt_length");
 
         optgroup = page->new_optgroup(_(L("Brim")));
@@ -1257,21 +1325,16 @@ void TabPrint::build()
 
     page = add_options_page(_(L("Dependencies")), "wrench.png");
         optgroup = page->new_optgroup(_(L("Profile dependencies")));
-        line = optgroup->create_single_option_line("compatible_printers");
-        line.widget = [this](wxWindow* parent) {
+
+        create_line_with_widget(optgroup.get(), "compatible_printers", [this](wxWindow* parent) {
             return compatible_widget_create(parent, m_compatible_printers);
-        };
-        optgroup->append_line(line, &m_colored_Label);
+        });
+        
         option = optgroup->get_option("compatible_printers_condition");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
 
-        line = Line{ "", "" };
-        line.full_width = 1;
-        line.widget = [this](wxWindow* parent) {
-            return description_line_widget(parent, &m_parent_preset_description_line);
-        };
-        optgroup->append_line(line);
+        build_preset_description_line(optgroup.get());
 }
 
 // Reload current config (aka presets->edited_preset->config) into the UI fields.
@@ -1303,7 +1366,10 @@ void TabPrint::update()
     if (m_update_cnt==0) {
         m_config_manipulation.toggle_print_fff_options(m_config);
 
-        wxGetApp().obj_list()->update_and_show_object_settings_item();
+        // update() could be called during undo/redo execution
+        // Update of objectList can cause a crash in this case (because m_objects doesn't match ObjectList) 
+        if (!wxGetApp().plater()->inside_snapshot_capture())
+            wxGetApp().obj_list()->update_and_show_object_settings_item();
 
         wxGetApp().mainframe->on_config_changed(m_config);
     }
@@ -1547,31 +1613,23 @@ void TabFilament::build()
 
     page = add_options_page(_(L("Dependencies")), "wrench.png");
         optgroup = page->new_optgroup(_(L("Profile dependencies")));
-
-        line = optgroup->create_single_option_line("compatible_printers");
-        line.widget = [this](wxWindow* parent) {
+        create_line_with_widget(optgroup.get(), "compatible_printers", [this](wxWindow* parent) {
             return compatible_widget_create(parent, m_compatible_printers);
-        };
-        optgroup->append_line(line, &m_colored_Label);
+        });
+
         option = optgroup->get_option("compatible_printers_condition");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
 
-        line = optgroup->create_single_option_line("compatible_prints");
-        line.widget = [this](wxWindow* parent) {
+        create_line_with_widget(optgroup.get(), "compatible_prints", [this](wxWindow* parent) {
             return compatible_widget_create(parent, m_compatible_prints);
-        };
-        optgroup->append_line(line, &m_colored_Label);
+        });
+
         option = optgroup->get_option("compatible_prints_condition");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
 
-        line = Line{ "", "" };
-        line.full_width = 1;
-        line.widget = [this](wxWindow* parent) {
-            return description_line_widget(parent, &m_parent_preset_description_line);
-        };
-        optgroup->append_line(line);
+        build_preset_description_line(optgroup.get());
 }
 
 // Reload current config (aka presets->edited_preset->config) into the UI fields.
@@ -1683,8 +1741,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
         btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
             std::unique_ptr<PrintHost> host(PrintHost::get_print_host(m_config));
             if (! host) {
-                const auto text = wxString::Format("%s",
-                    _(L("Could not get a valid Printer Host reference")));
+                const wxString text = _(L("Could not get a valid Printer Host reference"));
                 show_error(this, text);
                 return;
             }
@@ -1710,7 +1767,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
     option.opt.width = Field::def_width_wider();
     optgroup->append_single_option_line(option);
 
-    const auto ca_file_hint = _(L("HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate."));
+    const auto ca_file_hint = _utf8(L("HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate."));
 
     if (Http::ca_file_supported()) {
         option = optgroup->get_option("printhost_cafile");
@@ -1752,15 +1809,19 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
         Line line { "", "" };
         line.full_width = 1;
 
-        line.widget = [this, ca_file_hint] (wxWindow* parent) {
-            auto txt = new wxStaticText(parent, wxID_ANY, wxString::Format("%s\n\n\t%s",
-    wxString::Format(_(L("HTTPS CA File:\n\
+        line.widget = [ca_file_hint] (wxWindow* parent) {
+            std::string info = _utf8(L("HTTPS CA File")) + ":\n\t" +
+                (boost::format(_utf8(L("On this system, %s uses HTTPS certificates from the system Certificate Store or Keychain."))) % SLIC3R_APP_NAME).str() +
+                "\n\t" + _utf8(L("To use a custom CA file, please import your CA file into Certificate Store / Keychain."));
+
+            auto txt = new wxStaticText(parent, wxID_ANY, from_u8((boost::format("%1%\n\n\t%2%") % info % ca_file_hint).str()));
+/*    % (boost::format(_utf8(L("HTTPS CA File:\n\
     \tOn this system, %s uses HTTPS certificates from the system Certificate Store or Keychain.\n\
-    \tTo use a custom CA file, please import your CA file into Certificate Store / Keychain.")), SLIC3R_APP_NAME),
-                ca_file_hint));
-            txt->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+    \tTo use a custom CA file, please import your CA file into Certificate Store / Keychain."))) % SLIC3R_APP_NAME).str()
+    % std::string(ca_file_hint.ToUTF8())).str()));
+*/            txt->SetFont(Slic3r::GUI::wxGetApp().normal_font());
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
-            sizer->Add(txt);
+            sizer->Add(txt, 1, wxEXPAND);
             return sizer;
         };
 
@@ -1796,38 +1857,10 @@ void TabPrinter::build_fff()
     auto page = add_options_page(_(L("General")), "printer");
         auto optgroup = page->new_optgroup(_(L("Size and coordinates")));
 
-        Line line = optgroup->create_single_option_line("bed_shape");//{ _(L("Bed shape")), "" };
-        line.widget = [this](wxWindow* parent) {
-            ScalableButton* btn;
-            add_scaled_button(parent, &btn, "printer_white",  " " + _(L("Set")) + " " + dots, wxBU_LEFT | wxBU_EXACTFIT);
-            btn->SetFont(wxGetApp().normal_font());
+        create_line_with_widget(optgroup.get(), "bed_shape", [this](wxWindow* parent) {
+            return 	create_bed_shape_widget(parent);
+        });
 
-            auto sizer = new wxBoxSizer(wxHORIZONTAL);
-            sizer->Add(btn);
-
-            btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
-            {
-                BedShapeDialog dlg(this);
-                dlg.build_dialog(*m_config->option<ConfigOptionPoints>("bed_shape"),
-                    *m_config->option<ConfigOptionString>("bed_custom_texture"),
-                    *m_config->option<ConfigOptionString>("bed_custom_model"));
-                if (dlg.ShowModal() == wxID_OK) {
-                    const std::vector<Vec2d>& shape = dlg.get_shape();
-                    const std::string& custom_texture = dlg.get_custom_texture();
-                    const std::string& custom_model = dlg.get_custom_model();
-                    if (!shape.empty())
-                    {
-                        load_key_value("bed_shape", shape);
-                        load_key_value("bed_custom_texture", custom_texture);
-                        load_key_value("bed_custom_model", custom_model);
-                        update_changed_ui();
-                    }
-                }
-            }));
-
-            return sizer;
-        };
-        optgroup->append_line(line, &m_colored_Label);
         optgroup->append_single_option_line("max_print_height");
         optgroup->append_single_option_line("z_offset");
 
@@ -2018,12 +2051,8 @@ void TabPrinter::build_fff()
 
     page = add_options_page(_(L("Dependencies")), "wrench.png");
         optgroup = page->new_optgroup(_(L("Profile dependencies")));
-        line = Line{ "", "" };
-        line.full_width = 1;
-        line.widget = [this](wxWindow* parent) {
-            return description_line_widget(parent, &m_parent_preset_description_line);
-        };
-        optgroup->append_line(line);
+
+        build_preset_description_line(optgroup.get());
 
     build_unregular_pages();
 
@@ -2040,39 +2069,9 @@ void TabPrinter::build_sla()
     auto page = add_options_page(_(L("General")), "printer");
     auto optgroup = page->new_optgroup(_(L("Size and coordinates")));
 
-    Line line = optgroup->create_single_option_line("bed_shape");//{ _(L("Bed shape")), "" };
-    line.widget = [this](wxWindow* parent) {
-        ScalableButton* btn;
-        add_scaled_button(parent, &btn, "printer_white", " " + _(L("Set")) + " " + dots, wxBU_LEFT | wxBU_EXACTFIT);
-        btn->SetFont(wxGetApp().normal_font());
-
-
-        auto sizer = new wxBoxSizer(wxHORIZONTAL);
-        sizer->Add(btn);
-
-        btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
-        {
-            BedShapeDialog dlg(this);
-            dlg.build_dialog(*m_config->option<ConfigOptionPoints>("bed_shape"),
-                *m_config->option<ConfigOptionString>("bed_custom_texture"),
-                *m_config->option<ConfigOptionString>("bed_custom_model"));
-            if (dlg.ShowModal() == wxID_OK) {
-                const std::vector<Vec2d>& shape = dlg.get_shape();
-                const std::string& custom_texture = dlg.get_custom_texture();
-                const std::string& custom_model = dlg.get_custom_model();
-                if (!shape.empty())
-                {
-                    load_key_value("bed_shape", shape);
-                    load_key_value("bed_custom_texture", custom_texture);
-                    load_key_value("bed_custom_model", custom_model);
-                    update_changed_ui();
-                }
-            }
-        }));
-
-        return sizer;
-    };
-    optgroup->append_line(line, &m_colored_Label);
+    create_line_with_widget(optgroup.get(), "bed_shape", [this](wxWindow* parent) {
+        return 	create_bed_shape_widget(parent);
+    });
     optgroup->append_single_option_line("max_print_height");
 
     optgroup = page->new_optgroup(_(L("Display")));
@@ -2080,7 +2079,7 @@ void TabPrinter::build_sla()
     optgroup->append_single_option_line("display_height");
 
     auto option = optgroup->get_option("display_pixels_x");
-    line = { _(option.opt.full_label), "" };
+    Line line = { _(option.opt.full_label), "" };
     line.append_option(option);
     line.append_option(optgroup->get_option("display_pixels_y"));
     optgroup->append_line(line);
@@ -2134,12 +2133,8 @@ void TabPrinter::build_sla()
 
     page = add_options_page(_(L("Dependencies")), "wrench.png");
     optgroup = page->new_optgroup(_(L("Profile dependencies")));
-    line = Line{ "", "" };
-    line.full_width = 1;
-    line.widget = [this](wxWindow* parent) {
-        return description_line_widget(parent, &m_parent_preset_description_line);
-    };
-    optgroup->append_line(line);
+
+    build_preset_description_line(optgroup.get());
 }
 
 void TabPrinter::update_serial_ports()
@@ -2602,6 +2597,15 @@ void TabPrinter::update_fff()
 void TabPrinter::update_sla()
 { ; }
 
+void Tab::update_ui_items_related_on_parent_preset(const Preset* selected_preset_parent)
+{
+    m_is_default_preset = selected_preset_parent != nullptr && selected_preset_parent->is_default;
+
+    m_bmp_non_system = selected_preset_parent ? &m_bmp_value_unlock : &m_bmp_white_bullet;
+    m_ttg_non_system = selected_preset_parent ? &m_ttg_value_unlock : &m_ttg_white_bullet_ns;
+    m_tt_non_system  = selected_preset_parent ? &m_tt_value_unlock  : &m_ttg_white_bullet_ns;
+}
+
 // Initialize the UI from the current preset
 void Tab::load_current_preset()
 {
@@ -2620,12 +2624,7 @@ void Tab::load_current_preset()
     // Reload preset pages with the new configuration values.
     reload_config();
 
-    const Preset* selected_preset_parent = m_presets->get_selected_preset_parent();
-    m_is_default_preset = selected_preset_parent != nullptr && selected_preset_parent->is_default;
-
-    m_bmp_non_system = selected_preset_parent ? &m_bmp_value_unlock : &m_bmp_white_bullet;
-    m_ttg_non_system = selected_preset_parent ? &m_ttg_value_unlock : &m_ttg_white_bullet_ns;
-    m_tt_non_system  = selected_preset_parent ? &m_tt_value_unlock  : &m_ttg_white_bullet_ns;
+    update_ui_items_related_on_parent_preset(m_presets->get_selected_preset_parent());
 
 //	m_undo_to_sys_btn->Enable(!preset.is_default);
 
@@ -2777,7 +2776,7 @@ void Tab::select_preset(std::string preset_name, bool delete_current)
     bool printer_tab   = m_presets->type() == Preset::TYPE_PRINTER;
     bool canceled      = false;
     bool technology_changed = false;
-    m_dependent_tabs = {};
+    m_dependent_tabs.clear();
     if (current_dirty && ! may_discard_current_dirty_preset()) {
         canceled = true;
     } else if (print_tab) {
@@ -2873,10 +2872,10 @@ void Tab::select_preset(std::string preset_name, bool delete_current)
         // Mark the print & filament enabled if they are compatible with the currently selected preset.
         // The following method should not discard changes of current print or filament presets on change of a printer profile,
         // if they are compatible with the current printer.
-        auto update_compatible_type = [](bool technology_changed, bool on_page, bool show_incompatible_presets) {
-        	return technology_changed ? PresetSelectCompatibleType::Always :
-        	       on_page            ? PresetSelectCompatibleType::Never  : 
-        	       (show_incompatible_presets ? PresetSelectCompatibleType::OnlyIfWasCompatible : PresetSelectCompatibleType::Always);
+        auto update_compatible_type = [delete_current](bool technology_changed, bool on_page, bool show_incompatible_presets) {
+        	return (delete_current || technology_changed) ? PresetSelectCompatibleType::Always :
+        	       on_page                                ? PresetSelectCompatibleType::Never  :
+        	       show_incompatible_presets              ? PresetSelectCompatibleType::OnlyIfWasCompatible : PresetSelectCompatibleType::Always;
         };
         if (current_dirty || delete_current || print_tab || printer_tab)
             m_preset_bundle->update_compatible(
@@ -2916,8 +2915,8 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
     std::string   type_name  = presets->name();
     wxString      tab        = "          ";
     wxString      name       = old_preset.is_default ?
-        wxString::Format(_(L("Default preset (%s)")), _(type_name)) :
-        wxString::Format(_(L("Preset (%s)")), _(type_name)) + "\n" + tab + old_preset.name;
+        from_u8((boost::format(_utf8(L("Default preset (%s)"))) % _utf8(type_name)).str()) :
+        from_u8((boost::format(_utf8(L("Preset (%s)"))) % _utf8(type_name)).str()) + "\n" + tab + old_preset.name;
 
     // Collect descriptions of the dirty options.
     wxString changes;
@@ -3031,18 +3030,20 @@ void Tab::OnKeyDown(wxKeyEvent& event)
 // and activates the new preset.
 // Wizard calls save_preset with a name "My Settings", otherwise no name is provided and this method
 // opens a Slic3r::GUI::SavePresetWindow dialog.
-void Tab::save_preset(std::string name /*= ""*/)
+void Tab::save_preset(std::string name /*= ""*/, bool detach)
 {
     // since buttons(and choices too) don't get focus on Mac, we set focus manually
     // to the treectrl so that the EVT_* events are fired for the input field having
     // focus currently.is there anything better than this ?
 //!	m_treectrl->OnSetFocus();
 
+    std::string suffix = detach ? _utf8(L("Detached")) : _CTX_utf8(L_CONTEXT("Copy", "PresetName"), "PresetName");
+
     if (name.empty()) {
         const Preset &preset = m_presets->get_selected_preset();
         auto default_name = preset.is_default ? "Untitled" :
-//                            preset.is_system ? (boost::format(_utf8(L("%1% - Copy"))) % preset.name).str() :
-                            preset.is_system ? (boost::format(_CTX_utf8(L_CONTEXT("%1% - Copy", "PresetName"), "PresetName")) % preset.name).str() :
+//                            preset.is_system ? (boost::format(_CTX_utf8(L_CONTEXT("%1% - Copy", "PresetName"), "PresetName")) % preset.name).str() :
+                            preset.is_system ? (boost::format(("%1% - %2%")) % preset.name % suffix).str() :
                             preset.name;
 
         bool have_extention = boost::iends_with(default_name, ".ini");
@@ -3092,8 +3093,9 @@ void Tab::save_preset(std::string name /*= ""*/)
     }
 
     // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
-    m_presets->save_current_preset(name);
+    m_presets->save_current_preset(name, detach);
     // Mark the print & filament enabled if they are compatible with the currently selected preset.
+    // If saving the preset changes compatibility with other presets, keep the now incompatible dependent presets selected, however with a "red flag" icon showing that they are no more compatible.
     m_preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
     // Add the new item into the UI component, remove dirty flags and activate the saved item.
     update_tab_ui();
@@ -3104,6 +3106,11 @@ void Tab::save_preset(std::string name /*= ""*/)
 
     if (m_type == Preset::TYPE_PRINTER)
         static_cast<TabPrinter*>(this)->m_initial_extruders_count = static_cast<TabPrinter*>(this)->m_extruders_count;
+
+    // Parent preset is "default" after detaching, so we should to update UI values, related on parent preset  
+    if (detach)
+        update_ui_items_related_on_parent_preset(m_presets->get_selected_preset_parent());
+
     update_changed_ui();
 
     /* If filament preset is saved for multi-material printer preset, 
@@ -3111,6 +3118,30 @@ void Tab::save_preset(std::string name /*= ""*/)
      * but in full_config a filament_colors option aren't.*/
     if (m_type == Preset::TYPE_FILAMENT && wxGetApp().extruders_edited_cnt() > 1)
         wxGetApp().plater()->force_filament_colors_update();
+
+    {
+    	// Profile compatiblity is updated first when the profile is saved.
+    	// Update profile selection combo boxes at the depending tabs to reflect modifications in profile compatibility.
+	    std::vector<Preset::Type> dependent;
+	    switch (m_type) {
+	    case Preset::TYPE_PRINT:
+	    	dependent = { Preset::TYPE_FILAMENT };
+	    	break;
+	    case Preset::TYPE_SLA_PRINT:
+	    	dependent = { Preset::TYPE_SLA_MATERIAL };
+	    	break;
+	    case Preset::TYPE_PRINTER:
+            if (static_cast<const TabPrinter*>(this)->m_printer_technology == ptFFF)
+                dependent = { Preset::TYPE_PRINT, Preset::TYPE_FILAMENT };
+            else
+                dependent = { Preset::TYPE_SLA_PRINT, Preset::TYPE_SLA_MATERIAL };
+	        break;
+        default:
+	        break;
+	    }
+	    for (Preset::Type preset_type : dependent)
+			wxGetApp().get_tab(preset_type)->update_tab_ui();
+	}
 }
 
 // Called for a currently selected preset.
@@ -3168,12 +3199,21 @@ void Tab::update_ui_from_settings()
     }
 }
 
+void Tab::create_line_with_widget(ConfigOptionsGroup* optgroup, const std::string& opt_key, widget_t widget)
+{
+    Line line = optgroup->create_single_option_line(opt_key);
+    line.widget = widget;
+
+    m_colored_Labels[opt_key] = nullptr;
+    optgroup->append_line(line, &m_colored_Labels[opt_key]);
+}
+
 // Return a callback to create a Tab widget to mark the preferences as compatible / incompatible to the current printer.
 wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &deps)
 {
     deps.checkbox = new wxCheckBox(parent, wxID_ANY, _(L("All")));
     deps.checkbox->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-    add_scaled_button(parent, &deps.btn, "printer_white", wxString::Format(" %s %s", _(L("Set")), dots), wxBU_LEFT | wxBU_EXACTFIT);
+    add_scaled_button(parent, &deps.btn, "printer_white", from_u8((boost::format(" %s %s") % _utf8(L("Set")) % std::string(dots.ToUTF8())).str()), wxBU_LEFT | wxBU_EXACTFIT);
     deps.btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -3239,6 +3279,39 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
     return sizer;
 }
 
+// Return a callback to create a TabPrinter widget to edit bed shape
+wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
+{
+    ScalableButton* btn;
+    add_scaled_button(parent, &btn, "printer_white", " " + _(L("Set")) + " " + dots, wxBU_LEFT | wxBU_EXACTFIT);
+    btn->SetFont(wxGetApp().normal_font());
+
+    auto sizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(btn);
+
+    btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
+        {
+            BedShapeDialog dlg(this);
+            dlg.build_dialog(*m_config->option<ConfigOptionPoints>("bed_shape"),
+                *m_config->option<ConfigOptionString>("bed_custom_texture"),
+                *m_config->option<ConfigOptionString>("bed_custom_model"));
+            if (dlg.ShowModal() == wxID_OK) {
+                const std::vector<Vec2d>& shape = dlg.get_shape();
+                const std::string& custom_texture = dlg.get_custom_texture();
+                const std::string& custom_model = dlg.get_custom_model();
+                if (!shape.empty())
+                {
+                    load_key_value("bed_shape", shape);
+                    load_key_value("bed_custom_texture", custom_texture);
+                    load_key_value("bed_custom_model", custom_model);
+                    update_changed_ui();
+                }
+            }
+        }));
+
+    return sizer;
+}
+
 void Tab::compatible_widget_reload(PresetDependencies &deps)
 {
     bool has_any = ! m_config->option<ConfigOptionStrings>(deps.key_list)->values.empty();
@@ -3262,8 +3335,8 @@ void Tab::fill_icon_descriptions()
 
     m_icon_descriptions.emplace_back(&m_bmp_white_bullet, L("WHITE BULLET"),
         // TRN Description for "WHITE BULLET"
-        L("for the left button: \tindicates a non-system (or non-default) preset,\n"
-        "for the right button: \tindicates that the settings hasn't been modified."));
+        L("for the left button: indicates a non-system (or non-default) preset,\n"
+          "for the right button: indicates that the settings hasn't been modified."));
 
     m_icon_descriptions.emplace_back(&m_bmp_value_revert, L("BACK ARROW"),
         // TRN Description for "BACK ARROW"
@@ -3414,7 +3487,7 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
 void SavePresetWindow::build(const wxString& title, const std::string& default_name, std::vector<std::string> &values)
 {
     // TRN Preset
-    auto text = new wxStaticText(this, wxID_ANY, wxString::Format(_(L("Save %s as:")), title),
+    auto text = new wxStaticText(this, wxID_ANY, from_u8((boost::format(_utf8(L("Save %s as:"))) % into_u8(title)).str()),
                                     wxDefaultPosition, wxDefaultSize);
     m_combo = new wxComboBox(this, wxID_ANY, from_u8(default_name),
                             wxDefaultPosition, wxDefaultSize, 0, 0, wxTE_PROCESS_ENTER);
@@ -3542,30 +3615,24 @@ void TabSLAMaterial::build()
 
     page = add_options_page(_(L("Dependencies")), "wrench.png");
     optgroup = page->new_optgroup(_(L("Profile dependencies")));
-    Line line = optgroup->create_single_option_line("compatible_printers");
-    line.widget = [this](wxWindow* parent) {
+
+    create_line_with_widget(optgroup.get(), "compatible_printers", [this](wxWindow* parent) {
         return compatible_widget_create(parent, m_compatible_printers);
-    };
-    optgroup->append_line(line, &m_colored_Label);
+    });
+    
     option = optgroup->get_option("compatible_printers_condition");
     option.opt.full_width = true;
     optgroup->append_single_option_line(option);
 
-    line = optgroup->create_single_option_line("compatible_prints");
-    line.widget = [this](wxWindow* parent) {
+    create_line_with_widget(optgroup.get(), "compatible_prints", [this](wxWindow* parent) {
         return compatible_widget_create(parent, m_compatible_prints);
-    };
-    optgroup->append_line(line, &m_colored_Label);
+    });
+
     option = optgroup->get_option("compatible_prints_condition");
     option.opt.full_width = true;
     optgroup->append_single_option_line(option);
 
-    line = Line{ "", "" };
-    line.full_width = 1;
-    line.widget = [this](wxWindow* parent) {
-        return description_line_widget(parent, &m_parent_preset_description_line);
-    };
-    optgroup->append_line(line);
+    build_preset_description_line(optgroup.get());
 }
 
 // Reload current config (aka presets->edited_preset->config) into the UI fields.
@@ -3672,22 +3739,16 @@ void TabSLAPrint::build()
 
     page = add_options_page(_(L("Dependencies")), "wrench");
     optgroup = page->new_optgroup(_(L("Profile dependencies")));
-    Line line = optgroup->create_single_option_line("compatible_printers");//Line { _(L("Compatible printers")), "" };
-    line.widget = [this](wxWindow* parent) {
+
+    create_line_with_widget(optgroup.get(), "compatible_printers", [this](wxWindow* parent) {
         return compatible_widget_create(parent, m_compatible_printers);
-    };
-    optgroup->append_line(line, &m_colored_Label);
+    });
 
     option = optgroup->get_option("compatible_printers_condition");
     option.opt.full_width = true;
     optgroup->append_single_option_line(option);
 
-    line = Line{ "", "" };
-    line.full_width = 1;
-    line.widget = [this](wxWindow* parent) {
-        return description_line_widget(parent, &m_parent_preset_description_line);
-    };
-    optgroup->append_line(line);
+    build_preset_description_line(optgroup.get());
 }
 
 // Reload current config (aka presets->edited_preset->config) into the UI fields.
@@ -3710,7 +3771,10 @@ void TabSLAPrint::update()
     if (m_update_cnt == 0) {
         m_config_manipulation.toggle_print_sla_options(m_config);
 
-        wxGetApp().obj_list()->update_and_show_object_settings_item();
+        // update() could be called during undo/redo execution
+        // Update of objectList can cause a crash in this case (because m_objects doesn't match ObjectList) 
+        if (!wxGetApp().plater()->inside_snapshot_capture())
+            wxGetApp().obj_list()->update_and_show_object_settings_item();
 
         wxGetApp().mainframe->on_config_changed(m_config);
     }

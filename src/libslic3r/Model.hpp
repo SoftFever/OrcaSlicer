@@ -668,7 +668,7 @@ public:
     arrangement::ArrangePolygon get_arrange_polygon() const;
     
     // Apply the arrange result on the ModelInstance
-    void apply_arrange_result(const Vec2crd& offs, double rotation)
+    void apply_arrange_result(const Vec2d& offs, double rotation)
     {
         // write the transformation data into the model instance
         set_rotation(Z, rotation);

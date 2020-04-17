@@ -11,9 +11,7 @@
 #include "Slicing.hpp"
 #include "GCode/ToolOrdering.hpp"
 #include "GCode/WipeTower.hpp"
-#if ENABLE_THUMBNAIL_GENERATOR
 #include "GCode/ThumbnailData.hpp"
-#endif // ENABLE_THUMBNAIL_GENERATOR
 #if ENABLE_GCODE_VIEWER
 #include "GCode/GCodeProcessor.hpp"
 #endif // ENABLE_GCODE_VIEWER
@@ -352,7 +350,7 @@ public:
     Print() = default;
 	virtual ~Print() { this->clear(); }
 
-	PrinterTechnology	technology() const noexcept { return ptFFF; }
+	PrinterTechnology	technology() const noexcept override { return ptFFF; }
 
     // Methods, which change the state of Print / PrintObject / PrintRegion.
     // The following methods are synchronized with process() and export_gcode(),
@@ -369,10 +367,8 @@ public:
     // If preview_data is not null, the preview_data is filled in for the G-code visualization (not used by the command line Slic3r).
 #if ENABLE_GCODE_VIEWER
     std::string         export_gcode(const std::string& path_template, GCodePreviewData* preview_data, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
-#elif ENABLE_THUMBNAIL_GENERATOR
-    std::string         export_gcode(const std::string& path_template, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
 #else
-    std::string         export_gcode(const std::string &path_template, GCodePreviewData *preview_data);
+    std::string         export_gcode(const std::string& path_template, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
 #endif // ENABLE_GCODE_VIEWER
 
     // methods for handling state

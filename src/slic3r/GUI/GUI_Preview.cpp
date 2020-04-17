@@ -27,31 +27,63 @@
 namespace Slic3r {
 namespace GUI {
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+View3D::View3D(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
+    : m_canvas_widget(nullptr)
+    , m_canvas(nullptr)
+{
+    init(parent, model, config, process);
+}
+#else
 View3D::View3D(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
     : m_canvas_widget(nullptr)
     , m_canvas(nullptr)
 {
     init(parent, bed, camera, view_toolbar, model, config, process);
 }
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 View3D::~View3D()
 {
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    if (m_canvas != nullptr)
+        delete m_canvas;
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
+
     if (m_canvas_widget != nullptr)
     {
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
         _3DScene::remove_canvas(m_canvas_widget);
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
         delete m_canvas_widget;
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
         m_canvas = nullptr;
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
     }
 }
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
+#else
 bool View3D::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 {
     if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 /* disable wxTAB_TRAVERSAL */))
         return false;
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    m_canvas_widget = GLCanvas3DManager::create_wxglcanvas(*this);
+    if (m_canvas_widget == nullptr)
+        return false;
+
+    m_canvas = new GLCanvas3D(m_canvas_widget);
+    m_canvas->set_context(wxGetApp().init_glcontext(*m_canvas_widget));
+    m_canvas->bind_event_handlers();
+#else
     m_canvas_widget = GLCanvas3DManager::create_wxglcanvas(this);
     _3DScene::add_canvas(m_canvas_widget, bed, camera, view_toolbar);
     m_canvas = _3DScene::get_canvas(this->m_canvas_widget);
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     m_canvas->allow_multisample(GLCanvas3DManager::can_multisample());
     // XXX: If have OpenGL
@@ -66,6 +98,9 @@ bool View3D::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_
     m_canvas->enable_main_toolbar(true);
     m_canvas->enable_undoredo_toolbar(true);
     m_canvas->enable_labels(true);
+#if ENABLE_SLOPE_RENDERING
+    m_canvas->enable_slope(true);
+#endif // ENABLE_SLOPE_RENDERING
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);
@@ -163,15 +198,27 @@ void View3D::render()
         m_canvas->set_as_dirty();
 }
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
 #if ENABLE_GCODE_VIEWER
 Preview::Preview(
-    wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, 
+    wxWindow* parent, Model* model, DynamicPrintConfig* config,
+    BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, GCodeProcessor::Result* gcode_result, std::function<void()> schedule_background_process_func)
+#else
+Preview::Preview(
+    wxWindow* parent, Model* model, DynamicPrintConfig* config,
+    BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process_func)
+#endif // ENABLE_GCODE_VIEWER
+#else
+#if ENABLE_GCODE_VIEWER
+Preview::Preview(
+    wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config,
     BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, GCodeProcessor::Result* gcode_result, std::function<void()> schedule_background_process_func)
 #else
 Preview::Preview(
     wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config,
     BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process_func)
 #endif // ENABLE_GCODE_VIEWER
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     : m_canvas_widget(nullptr)
     , m_canvas(nullptr)
     , m_double_slider_sizer(nullptr)
@@ -199,21 +246,39 @@ Preview::Preview(
     , m_volumes_cleanup_required(false)
 #endif // __linux__
 {
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    if (init(parent, model))
+#else
     if (init(parent, bed, camera, view_toolbar, model))
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     {
         show_hide_ui_elements("none");
         load_print();
     }
 }
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+bool Preview::init(wxWindow* parent, Model* model)
+#else
 bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model)
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 {
     if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 /* disable wxTAB_TRAVERSAL */))
         return false;
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    m_canvas_widget = GLCanvas3DManager::create_wxglcanvas(*this);
+    if (m_canvas_widget == nullptr)
+        return false;
+
+    m_canvas = new GLCanvas3D(m_canvas_widget);
+    m_canvas->set_context(wxGetApp().init_glcontext(*m_canvas_widget));
+    m_canvas->bind_event_handlers();
+#else
     m_canvas_widget = GLCanvas3DManager::create_wxglcanvas(this);
     _3DScene::add_canvas(m_canvas_widget, bed, camera, view_toolbar);
     m_canvas = _3DScene::get_canvas(this->m_canvas_widget);
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     m_canvas->allow_multisample(GLCanvas3DManager::can_multisample());
     m_canvas->set_config(m_config);
     m_canvas->set_model(model);
@@ -322,9 +387,16 @@ Preview::~Preview()
 {
     unbind_event_handlers();
 
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    if (m_canvas != nullptr)
+        delete m_canvas;
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
+
     if (m_canvas_widget != nullptr)
     {
-		_3DScene::remove_canvas(m_canvas_widget);
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
+        _3DScene::remove_canvas(m_canvas_widget);
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
         delete m_canvas_widget;
         m_canvas = nullptr;
     }
@@ -402,6 +474,9 @@ void Preview::reload_print(bool keep_volumes)
         !keep_volumes)
     {
         m_canvas->reset_volumes();
+#if ENABLE_GCODE_VIEWER
+        m_canvas->reset_gcode_toolpaths();
+#endif // ENABLE_GCODE_VIEWER
         m_canvas->reset_legend_texture();
         m_loaded = false;
 #ifdef __linux__
@@ -527,10 +602,17 @@ void Preview::on_choice_view_type(wxCommandEvent& evt)
 {
     m_preferred_color_mode = (m_choice_view_type->GetStringSelection() == L("Tool")) ? "tool" : "feature";
     int selection = m_choice_view_type->GetCurrentSelection();
+#if ENABLE_GCODE_VIEWER
+    if (0 <= selection && selection < static_cast<int>(GCodeViewer::EViewType::Count))
+        m_canvas->set_toolpath_view_type(static_cast<GCodeViewer::EViewType>(selection));
+
+    refresh_print();
+#else
     if ((0 <= selection) && (selection < (int)GCodePreviewData::Extrusion::Num_View_Types))
         m_gcode_preview_data->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)selection;
 
     reload_print();
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void Preview::on_combochecklist_features(wxCommandEvent& evt)
@@ -542,27 +624,44 @@ void Preview::on_combochecklist_features(wxCommandEvent& evt)
 
 void Preview::on_checkbox_travel(wxCommandEvent& evt)
 {
+#if ENABLE_GCODE_VIEWER
+    m_canvas->set_toolpath_visible(GCodeProcessor::EMoveType::Travel, m_checkbox_travel->IsChecked());
+    refresh_print();
+#else
     m_gcode_preview_data->travel.is_visible = m_checkbox_travel->IsChecked();
     m_gcode_preview_data->ranges.feedrate.set_mode(GCodePreviewData::FeedrateKind::TRAVEL, m_gcode_preview_data->travel.is_visible);
     // Rather than refresh, reload print so that speed color ranges get recomputed (affected by travel visibility)
     reload_print();
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void Preview::on_checkbox_retractions(wxCommandEvent& evt)
 {
+#if ENABLE_GCODE_VIEWER
+    m_canvas->set_toolpath_visible(GCodeProcessor::EMoveType::Retract, m_checkbox_retractions->IsChecked());
+#else
     m_gcode_preview_data->retraction.is_visible = m_checkbox_retractions->IsChecked();
+#endif // ENABLE_GCODE_VIEWER
     refresh_print();
 }
 
 void Preview::on_checkbox_unretractions(wxCommandEvent& evt)
 {
+#if ENABLE_GCODE_VIEWER
+    m_canvas->set_toolpath_visible(GCodeProcessor::EMoveType::Unretract, m_checkbox_unretractions->IsChecked());
+#else
     m_gcode_preview_data->unretraction.is_visible = m_checkbox_unretractions->IsChecked();
+#endif // ENABLE_GCODE_VIEWER
     refresh_print();
 }
 
 void Preview::on_checkbox_shells(wxCommandEvent& evt)
 {
+#if ENABLE_GCODE_VIEWER
+    m_canvas->set_shells_visible(m_checkbox_shells->IsChecked());
+#else
     m_gcode_preview_data->shell.is_visible = m_checkbox_shells->IsChecked();
+#endif // ENABLE_GCODE_VIEWER
     refresh_print();
 }
 
@@ -874,9 +973,10 @@ void Preview::load_print_as_fff(bool keep_z_range)
         m_canvas->set_selected_extruder(0);
         if (gcode_preview_data_valid) {
             // Load the real G-code preview.
-            m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
 #if ENABLE_GCODE_VIEWER
             m_canvas->load_gcode_preview_2(*m_gcode_result);
+#else
+            m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
 #endif // ENABLE_GCODE_VIEWER
             m_loaded = true;
         } else {
@@ -885,7 +985,11 @@ void Preview::load_print_as_fff(bool keep_z_range)
         }
         show_hide_ui_elements(gcode_preview_data_valid ? "full" : "simple");
         // recalculates zs and update sliders accordingly
+#if ENABLE_GCODE_VIEWER
+        const std::vector<double>& zs = m_canvas->get_layers_zs();
+#else
         std::vector<double> zs = m_canvas->get_current_print_zs(true);
+#endif // ENABLE_GCODE_VIEWER
         if (zs.empty()) {
             // all layers filtered out
             reset_sliders(true);

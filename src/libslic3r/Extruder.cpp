@@ -1,4 +1,5 @@
 #include "Extruder.hpp"
+#include "PrintConfig.hpp"
 
 namespace Slic3r {
 

@@ -94,7 +94,7 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
     // Reorder the extruders to minimize tool switches.
     this->reorder_extruders(first_extruder);
 
-    this->fill_wipe_tower_partitions(object.print()->config(), object.layers().front()->print_z - object.layers().front()->height);
+    this->fill_wipe_tower_partitions(object.print()->config(), object.layers().front()->print_z - object.layers().front()->height, object.config().layer_height);
 
     this->collect_extruder_statistics(prime_multi_material);
 }
@@ -107,6 +107,7 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
 
     // Initialize the print layers for all objects and all layers.
     coordf_t object_bottom_z = 0.;
+    coordf_t max_layer_height = 0.;
     {
         std::vector<coordf_t> zs;
         for (auto object : print.objects()) {
@@ -122,6 +123,8 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
                     object_bottom_z = layer->print_z - layer->height;
                     break;
                 }
+
+            max_layer_height = std::max(max_layer_height, object->config().layer_height.value);
         }
         this->initialize_layers(zs);
     }
@@ -144,7 +147,7 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
     // Reorder the extruders to minimize tool switches.
     this->reorder_extruders(first_extruder);
 
-    this->fill_wipe_tower_partitions(print.config(), object_bottom_z);
+    this->fill_wipe_tower_partitions(print.config(), object_bottom_z, max_layer_height);
 
     this->collect_extruder_statistics(prime_multi_material);
 }
@@ -212,10 +215,8 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                 if (m_print_config_ptr) { // in this case complete_objects is false (see ToolOrdering constructors)
                     something_nonoverriddable = false;
                     for (const auto& eec : layerm->perimeters.entities) // let's check if there are nonoverriddable entities
-                        if (!layer_tools.wiping_extrusions().is_overriddable_and_mark(dynamic_cast<const ExtrusionEntityCollection&>(*eec), *m_print_config_ptr, object, region)) {
+                        if (!layer_tools.wiping_extrusions().is_overriddable_and_mark(dynamic_cast<const ExtrusionEntityCollection&>(*eec), *m_print_config_ptr, object, region))
                             something_nonoverriddable = true;
-                            break;
-                        }
                 }
 
                 if (something_nonoverriddable)
@@ -237,7 +238,7 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                     has_infill = true;
 
                 if (m_print_config_ptr) {
-                    if (!something_nonoverriddable && !layer_tools.wiping_extrusions().is_overriddable_and_mark(*fill, *m_print_config_ptr, object, region))
+                    if (! layer_tools.wiping_extrusions().is_overriddable_and_mark(*fill, *m_print_config_ptr, object, region))
                         something_nonoverriddable = true;
                 }
             }
@@ -320,7 +321,7 @@ void ToolOrdering::reorder_extruders(unsigned int last_extruder_id)
         }    
 }
 
-void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z)
+void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z, coordf_t max_object_layer_height)
 {
     if (m_layer_tools.empty())
         return;
@@ -353,6 +354,10 @@ void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_
             mlh = 0.75 * config.nozzle_diameter.values[i];
         max_layer_height = std::min(max_layer_height, mlh);
     }
+    // The Prusa3D Fast (0.35mm layer height) print profile sets a higher layer height than what is normally allowed
+    // by the nozzle. This is a hack and it works by increasing extrusion width.
+    max_layer_height = std::max(max_layer_height, max_object_layer_height);
+
     for (size_t i = 0; i + 1 < m_layer_tools.size(); ++ i) {
         const LayerTools &lt      = m_layer_tools[i];
         const LayerTools &lt_next = m_layer_tools[i + 1];
@@ -395,21 +400,47 @@ void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_
     // and maybe other problems. We will therefore go through layer_tools and detect and fix this.
     // So, if there is a non-object layer starting with different extruder than the last one ended with (or containing more than one extruder),
     // we'll mark it with has_wipe tower.
-    for (unsigned int i=0; i+1<m_layer_tools.size(); ++i) {
-        LayerTools& lt = m_layer_tools[i];
-        LayerTools& lt_next = m_layer_tools[i+1];
-        if (lt.extruders.empty() || lt_next.extruders.empty())
-            break;
-        if (!lt_next.has_wipe_tower && (lt_next.extruders.front() != lt.extruders.back() || lt_next.extruders.size() > 1))
-            lt_next.has_wipe_tower = true;
-        // We should also check that the next wipe tower layer is no further than max_layer_height:
-        unsigned int j = i+1;
-        double last_wipe_tower_print_z = lt_next.print_z;
-        while (++j < m_layer_tools.size()-1 && !m_layer_tools[j].has_wipe_tower)
-            if (m_layer_tools[j+1].print_z - last_wipe_tower_print_z > max_layer_height) {
-                m_layer_tools[j].has_wipe_tower = true;
-                last_wipe_tower_print_z = m_layer_tools[j].print_z;
+    assert(! m_layer_tools.empty() && m_layer_tools.front().has_wipe_tower);
+    if (! m_layer_tools.empty() && m_layer_tools.front().has_wipe_tower) {
+        for (size_t i = 0; i + 1 < m_layer_tools.size();) {
+            const LayerTools &lt = m_layer_tools[i];
+            assert(lt.has_wipe_tower);
+            assert(! lt.extruders.empty());
+            // Find the next layer with wipe tower or mark a layer as such.
+            size_t j = i + 1;
+            for (; j < m_layer_tools.size() && ! m_layer_tools[j].has_wipe_tower; ++ j) {
+                LayerTools &lt_next = m_layer_tools[j];
+                if (lt_next.extruders.empty()) {
+                    //FIXME Vojtech: Lukasi, proc?
+                    j = m_layer_tools.size();
+                    break;
+                }
+                if (lt_next.extruders.front() != lt.extruders.back() || lt_next.extruders.size() > 1) {
+                    // Support only layer, soluble layers? Otherwise the layer should have been already marked as having wipe tower.
+                    assert(lt_next.has_support && ! lt_next.has_object);
+                    lt_next.has_wipe_tower = true;
+                    break;
+                }
             }
+            if (j == m_layer_tools.size())
+                // No wipe tower above layer i, therefore no need to add any wipe tower layer above i.
+                break;
+            // We should also check that the next wipe tower layer is no further than max_layer_height.
+            // This algorith may in theory create very thin wipe layer j if layer closely below j is marked as wipe tower.
+            // This may happen if printing with non-soluble break away supports.
+            // On the other side it should not hurt as there will be no wipe, just perimeter and sparse infill printed
+            // at that particular wipe tower layer without extruder change.
+            double last_wipe_tower_print_z = lt.print_z;
+            assert(m_layer_tools[j].has_wipe_tower);
+            for (size_t k = i + 1; k < j; ++k) {
+                assert(! m_layer_tools[k].has_wipe_tower);
+                if (m_layer_tools[k + 1].print_z - last_wipe_tower_print_z > max_layer_height + EPSILON) {
+                    m_layer_tools[k].has_wipe_tower = true;
+                    last_wipe_tower_print_z = m_layer_tools[k].print_z;
+                }
+            }
+            i = j;
+        }
     }
 
     // Calculate the wipe_tower_layer_height values.

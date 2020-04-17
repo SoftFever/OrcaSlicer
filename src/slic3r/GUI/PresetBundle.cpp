@@ -29,7 +29,9 @@
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Model.hpp"
 #include "GUI_App.hpp"
+
 
 // Store the print/filament/printer presets into a "presets" subdirectory of the Slic3rPE config dir.
 // This breaks compatibility with the upstream Slic3r if the --datadir is used to switch between the two versions.
@@ -289,17 +291,7 @@ std::string PresetBundle::load_system_presets()
 		this->reset(false);
 	}
 
-    this->prints 	   .update_map_system_profile_renamed();
-    this->sla_prints   .update_map_system_profile_renamed();
-    this->filaments    .update_map_system_profile_renamed();
-    this->sla_materials.update_map_system_profile_renamed();
-    this->printers     .update_map_system_profile_renamed();
-
-    this->prints       .update_map_alias_to_profile_name();
-    this->sla_prints   .update_map_alias_to_profile_name();
-    this->filaments    .update_map_alias_to_profile_name();
-    this->sla_materials.update_map_alias_to_profile_name();
-
+	this->update_system_maps();
     return errors_cummulative;
 }
 
@@ -324,6 +316,20 @@ std::vector<std::string> PresetBundle::merge_presets(PresetBundle &&other)
     return duplicate_prints;
 }
 
+void PresetBundle::update_system_maps()
+{
+    this->prints 	   .update_map_system_profile_renamed();
+    this->sla_prints   .update_map_system_profile_renamed();
+    this->filaments    .update_map_system_profile_renamed();
+    this->sla_materials.update_map_system_profile_renamed();
+    this->printers     .update_map_system_profile_renamed();
+
+    this->prints       .update_map_alias_to_profile_name();
+    this->sla_prints   .update_map_alias_to_profile_name();
+    this->filaments    .update_map_alias_to_profile_name();
+    this->sla_materials.update_map_alias_to_profile_name();
+}
+
 static inline std::string remove_ini_suffix(const std::string &name)
 {
     std::string out = name;
@@ -337,9 +343,9 @@ static inline std::string remove_ini_suffix(const std::string &name)
 // If the "vendor" section is missing, enable all models and variants of the particular vendor.
 void PresetBundle::load_installed_printers(const AppConfig &config)
 {
-    for (auto &preset : printers) {
+	this->update_system_maps();
+    for (auto &preset : printers)
         preset.set_visible_from_appconfig(config);
-    }
 }
 
 const std::string& PresetBundle::get_preset_name_by_alias( const Preset::Type& preset_type, const std::string& alias) const
@@ -367,7 +373,7 @@ void PresetBundle::load_installed_filaments(AppConfig &config)
             if (printer.is_visible && printer.printer_technology() == ptFFF) {
 				const PresetWithVendorProfile printer_with_vendor_profile = printers.get_preset_with_vendor_profile(printer);
 				for (const Preset &filament : filaments)
-					if (is_compatible_with_printer(filaments.get_preset_with_vendor_profile(filament), printer_with_vendor_profile))
+					if (filament.is_system && is_compatible_with_printer(filaments.get_preset_with_vendor_profile(filament), printer_with_vendor_profile))
 						compatible_filaments.insert(&filament);
 			}
 		// and mark these filaments as installed, therefore this code will not be executed at the next start of the application.
@@ -390,7 +396,7 @@ void PresetBundle::load_installed_sla_materials(AppConfig &config)
             if (printer.is_visible && printer.printer_technology() == ptSLA) {
 				const PresetWithVendorProfile printer_with_vendor_profile = printers.get_preset_with_vendor_profile(printer);
 				for (const Preset &material : sla_materials)
-					if (is_compatible_with_printer(sla_materials.get_preset_with_vendor_profile(material), printer_with_vendor_profile))
+					if (material.is_system && is_compatible_with_printer(sla_materials.get_preset_with_vendor_profile(material), printer_with_vendor_profile))
 						comp_sla_materials.insert(&material);
 			}
 		// and mark these SLA materials as installed, therefore this code will not be executed at the next start of the application.
@@ -703,7 +709,10 @@ void PresetBundle::load_config_file(const std::string &path)
         boost::nowide::ifstream ifs(path);
         boost::property_tree::read_ini(ifs, tree);
     } catch (const std::ifstream::failure &err) {
-        throw std::runtime_error(std::string("The config file cannot be loaded: ") + path + "\n\tReason: " + err.what());
+        throw std::runtime_error(std::string("The Config Bundle cannot be loaded: ") + path + "\n\tReason: " + err.what());
+    } catch (const boost::property_tree::file_parser_error &err) {
+        throw std::runtime_error((boost::format("Failed loading the Config Bundle \"%1%\": %2% at line %3%")
+        	% err.filename() % err.message() % err.line()).str());
     } catch (const std::runtime_error &err) {
         throw std::runtime_error(std::string("Failed loading the preset file: ") + path + "\n\tReason: " + err.what());
     }
@@ -964,8 +973,6 @@ static void flatten_configbundle_hierarchy(boost::property_tree::ptree &tree, co
 {
     namespace pt = boost::property_tree;
 
-    typedef std::pair<pt::ptree::key_type, pt::ptree> ptree_child_type;
-
     // 1) For the group given by group_name, initialize the presets.
     struct Prst {
         Prst(const std::string &name, pt::ptree *node) : name(name), node(node) {}
@@ -1066,7 +1073,11 @@ static void flatten_configbundle_hierarchy(boost::property_tree::ptree &tree, co
         // Iterate in a reverse order, so the last change will be placed first in merged.
         for (auto it_inherits = prst->inherits.rbegin(); it_inherits != prst->inherits.rend(); ++ it_inherits)
             for (auto it = (*it_inherits)->node->begin(); it != (*it_inherits)->node->end(); ++ it)
-                if (prst->node->find(it->first) == prst->node->not_found())
+				if (it->first == "renamed_from") {
+            		// Don't inherit "renamed_from" flag, it does not make sense. The "renamed_from" flag only makes sense for a concrete preset.
+            		if (boost::starts_with((*it_inherits)->name, "*"))
+			            BOOST_LOG_TRIVIAL(error) << boost::format("Nonpublic intermediate preset %1% contains a \"renamed_from\" field, which is ignored") % (*it_inherits)->name;
+				} else if (prst->node->find(it->first) == prst->node->not_found())
                     prst->node->add_child(it->first, it->second);
     }
 
@@ -1109,8 +1120,13 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
     const VendorProfile *vendor_profile = nullptr;
     if (flags & (LOAD_CFGBNDLE_SYSTEM | LOAD_CFGBUNDLE_VENDOR_ONLY)) {
         auto vp = VendorProfile::from_ini(tree, path);
-        if (vp.num_variants() == 0)
+        if (vp.models.size() == 0) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("Vendor bundle: `%1%`: No printer model defined.") % path;
             return 0;
+        } else if (vp.num_variants() == 0) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("Vendor bundle: `%1%`: No printer variant defined") % path;
+            return 0;
+        }
         vendor_profile = &this->vendors.insert({vp.id, vp}).first->second;
     }
 
@@ -1316,7 +1332,7 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
 
             // Derive the profile logical name aka alias from the preset name if the alias was not stated explicitely.
             if (alias_name.empty()) {
-	            int end_pos = preset_name.find_first_of("@");
+                size_t end_pos = preset_name.find_first_of("@");
 	            if (end_pos != std::string::npos) {
 	                alias_name = preset_name.substr(0, end_pos);
 	                if (renamed_from.empty())
@@ -1599,11 +1615,22 @@ void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::Pre
 
     // To avoid asserts, each added bitmap to wxBitmapCombobox should be the same size, so
     // set a bitmap height to m_bitmapLock->GetHeight()
-    // Note, under OSX we should use a ScaledHeight because of Retina scale
+    //
+    // To avoid asserts, each added bitmap to wxBitmapCombobox should be the same size. 
+    // But for some display scaling (for example 125% or 175%) normal_icon_width differs from icon width.
+    // So:
+    // for nonsystem presets set a width of empty bitmap to m_bitmapLock->GetWidth()
+    // for compatible presets set a width of empty bitmap to m_bitmapIncompatible->GetWidth()
+    //
+    // Note, under OSX we should use a Scaled Height/Width because of Retina scale
 #ifdef __APPLE__
     const int icon_height       = m_bitmapLock->GetScaledHeight();
+    const int lock_icon_width   = m_bitmapLock->GetScaledWidth();
+    const int flag_icon_width   = m_bitmapIncompatible->GetScaledWidth();
 #else
     const int icon_height       = m_bitmapLock->GetHeight();
+    const int lock_icon_width   = m_bitmapLock->GetWidth();
+    const int flag_icon_width   = m_bitmapIncompatible->GetWidth();
 #endif
 
     wxString tooltip = "";
@@ -1631,7 +1658,7 @@ void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::Pre
             std::vector<wxBitmap> bmps;
             if (wide_icons)
                 // Paint a red flag for incompatible presets.
-                bmps.emplace_back(preset.is_compatible ? m_bitmapCache->mkclear(normal_icon_width, icon_height) : *m_bitmapIncompatible);
+                bmps.emplace_back(preset.is_compatible ? m_bitmapCache->mkclear(flag_icon_width, icon_height) : *m_bitmapIncompatible);
             // Paint the color bars.
             m_bitmapCache->parse_color(filament_rgb, rgb);
             bmps.emplace_back(m_bitmapCache->mksolid(single_bar ? wide_icon_width : normal_icon_width, icon_height, rgb));
@@ -1641,9 +1668,7 @@ void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::Pre
             }
             // Paint a lock at the system presets.
             bmps.emplace_back(m_bitmapCache->mkclear(space_icon_width, icon_height));
-            // To avoid asserts, each added bitmap to wxBitmapCombobox should be the same size, so
-            // for nonsystem presets set a width of empty bitmap to m_bitmapLock->GetWidth()
-            bmps.emplace_back((preset.is_system || preset.is_default) ? *m_bitmapLock : m_bitmapCache->mkclear(m_bitmapLock->GetWidth(), icon_height));
+            bmps.emplace_back((preset.is_system || preset.is_default) ? *m_bitmapLock : m_bitmapCache->mkclear(lock_icon_width, icon_height));
 //                 (preset.is_dirty ? *m_bitmapLockOpen : *m_bitmapLock) : m_bitmapCache->mkclear(16, 16));
             bitmap = m_bitmapCache->insert(bitmap_key, bmps);
 		}
@@ -1695,7 +1720,7 @@ void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::Pre
         std::vector<wxBitmap> bmps;
         if (wide_icons)
             // Paint a red flag for incompatible presets.
-            bmps.emplace_back(m_bitmapCache->mkclear(normal_icon_width, icon_height));
+            bmps.emplace_back(m_bitmapCache->mkclear(flag_icon_width, icon_height));
         // Paint the color bars + a lock at the system presets.
         bmps.emplace_back(m_bitmapCache->mkclear(wide_icon_width+space_icon_width, icon_height));
         bmps.emplace_back(create_scaled_bitmap("edit_uni"));
@@ -1710,9 +1735,9 @@ void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::Pre
     if (selected_preset_item == INT_MAX)
         selected_preset_item = ui->GetCount() - 1;
 
-	ui->SetSelection(selected_preset_item);
+    ui->SetSelection(selected_preset_item);
 	ui->SetToolTip(tooltip.IsEmpty() ? ui->GetString(selected_preset_item) : tooltip);
-    ui->check_selection();
+    ui->check_selection(selected_preset_item);
     ui->Thaw();
 
     // Update control min size after rescale (changed Display DPI under MSW)

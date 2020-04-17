@@ -24,7 +24,7 @@ public:
     static const std::string Custom_Code_Tag;
     static const std::string End_Pause_Print_Or_Custom_Code_Tag;
 
-    static const double Default_mm3_per_mm;
+    static const float Default_mm3_per_mm;
     static const float Default_Width;
     static const float Default_Height;
 
@@ -53,7 +53,7 @@ public:
     {
         ExtrusionRole extrusion_role;
         unsigned int extruder_id;
-        double mm3_per_mm;
+        float mm3_per_mm;
         float width;     // mm
         float height;    // mm
         float feedrate;  // mm/s
@@ -61,7 +61,7 @@ public:
         unsigned int cp_color_id;
 
         Metadata();
-        Metadata(ExtrusionRole extrusion_role, unsigned int extruder_id, double mm3_per_mm, float width, float height, float feedrate, float fan_speed, unsigned int cp_color_id = 0);
+        Metadata(ExtrusionRole extrusion_role, unsigned int extruder_id, float mm3_per_mm, float width, float height, float feedrate, float fan_speed, unsigned int cp_color_id = 0);
 
         bool operator != (const Metadata& other) const;
     };
@@ -81,12 +81,12 @@ public:
 
         EType type;
         Metadata data;
-        Vec3d start_position;
-        Vec3d end_position;
+        Vec3f start_position;
+        Vec3f end_position;
         float delta_extruder;
 
-        GCodeMove(EType type, ExtrusionRole extrusion_role, unsigned int extruder_id, double mm3_per_mm, float width, float height, float feedrate, const Vec3d& start_position, const Vec3d& end_position, float delta_extruder, float fan_speed, unsigned int cp_color_id = 0);
-        GCodeMove(EType type, const Metadata& data, const Vec3d& start_position, const Vec3d& end_position, float delta_extruder);
+        GCodeMove(EType type, ExtrusionRole extrusion_role, unsigned int extruder_id, float mm3_per_mm, float width, float height, float feedrate, const Vec3f& start_position, const Vec3f& end_position, float delta_extruder, float fan_speed, unsigned int cp_color_id = 0);
+        GCodeMove(EType type, const Metadata& data, const Vec3f& start_position, const Vec3f& end_position, float delta_extruder);
     };
 
     typedef std::vector<GCodeMove> GCodeMovesList;
@@ -101,7 +101,7 @@ private:
         EPositioningType global_positioning_type;
         EPositioningType e_local_positioning_type;
         Metadata data;
-        Vec3d start_position = Vec3d::Zero();
+        Vec3f start_position = Vec3f::Zero();
         float cached_position[5];
         float start_extrusion;
         float position[Num_Axis];
@@ -146,6 +146,11 @@ public:
     size_t memory_used() const;
 
     static bool is_valid_extrusion_role(ExtrusionRole role);
+
+#if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+    void open_debug_output_file();
+    void close_debug_output_file();
+#endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
 
 private:
     // Processes the given gcode line
@@ -220,7 +225,7 @@ private:
     void _process_height_tag(const std::string& comment, size_t pos);
 
     // Processes color change tag
-    void _process_color_change_tag(int extruder);
+    void _process_color_change_tag(unsigned extruder);
 
     // Processes pause print and custom gcode tag
     void _process_pause_print_or_custom_code_tag();
@@ -246,8 +251,8 @@ private:
     void _set_cp_color_id(unsigned int id);
     unsigned int _get_cp_color_id() const;
 
-    void _set_mm3_per_mm(double value);
-    double _get_mm3_per_mm() const;
+    void _set_mm3_per_mm(float value);
+    float _get_mm3_per_mm() const;
 
     void _set_width(float width);
     float _get_width() const;
@@ -272,8 +277,8 @@ private:
     // Sets origin position to zero
     void _reset_axes_origin();
 
-    void _set_start_position(const Vec3d& position);
-    const Vec3d& _get_start_position() const;
+    void _set_start_position(const Vec3f& position);
+    const Vec3f& _get_start_position() const;
 
     void _set_cached_position(unsigned char axis, float position);
     float _get_cached_position(unsigned char axis) const;
@@ -285,7 +290,7 @@ private:
     float _get_delta_extrusion() const;
 
     // Returns current xyz position (from m_state.position[])
-    Vec3d _get_end_position() const;
+    Vec3f _get_end_position() const;
 
     // Adds a new move with the given data
     void _store_move(GCodeMove::EType type);

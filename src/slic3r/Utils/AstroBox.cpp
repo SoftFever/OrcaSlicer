@@ -13,6 +13,7 @@
 
 #include "libslic3r/PrintConfig.hpp"
 #include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/GUI.hpp"
 #include "Http.hpp"
 
 
@@ -65,7 +66,7 @@ bool AstroBox::test(wxString &msg) const
                 const auto text = ptree.get_optional<std::string>("text");
                 res = validate_version_text(text);
                 if (! res) {
-                    msg = wxString::Format(_(L("Mismatched type of print host: %s")), text ? *text : "AstroBox");
+                    msg = GUI::from_u8((boost::format(_utf8(L("Mismatched type of print host: %s"))) % (text ? *text : "AstroBox")).str());
                 }
             }
             catch (const std::exception &) {
@@ -85,8 +86,10 @@ wxString AstroBox::get_test_ok_msg () const
 
 wxString AstroBox::get_test_failed_msg (wxString &msg) const
 {
-    return wxString::Format("%s: %s\n\n%s",
-        _(L("Could not connect to AstroBox")), msg, _(L("Note: AstroBox version at least 1.1.0 is required.")));
+    return GUI::from_u8((boost::format("%s: %s\n\n%s")
+        % _utf8(L("Could not connect to AstroBox"))
+        % std::string(msg.ToUTF8())
+        % _utf8(L("Note: AstroBox version at least 1.1.0 is required."))).str());
 }
 
 bool AstroBox::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn) const

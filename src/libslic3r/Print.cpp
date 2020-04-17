@@ -161,6 +161,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         } else if (
                opt_key == "skirts"
             || opt_key == "skirt_height"
+            || opt_key == "draft_shield"
             || opt_key == "skirt_distance"
             || opt_key == "min_skirt_length"
             || opt_key == "ooze_prevention"
@@ -1146,14 +1147,12 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 
 bool Print::has_infinite_skirt() const
 {
-    return (m_config.skirt_height == -1 && m_config.skirts > 0)
-        || (m_config.ooze_prevention && this->extruders().size() > 1);
+    return (m_config.draft_shield && m_config.skirts > 0) || (m_config.ooze_prevention && this->extruders().size() > 1);
 }
 
 bool Print::has_skirt() const
 {
-    return (m_config.skirt_height > 0 && m_config.skirts > 0)
-        || this->has_infinite_skirt();
+    return (m_config.skirt_height > 0 && m_config.skirts > 0) || this->has_infinite_skirt();
 }
 
 static inline bool sequential_print_horizontal_clearance_valid(const Print &print)
@@ -1625,10 +1624,8 @@ void Print::process()
 // It is up to the caller to show an error message.
 #if ENABLE_GCODE_VIEWER
 std::string Print::export_gcode(const std::string& path_template, GCodePreviewData* preview_data, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb)
-#elif ENABLE_THUMBNAIL_GENERATOR
-std::string Print::export_gcode(const std::string& path_template, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb)
 #else
-std::string Print::export_gcode(const std::string &path_template, GCodePreviewData *preview_data)
+std::string Print::export_gcode(const std::string& path_template, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb)
 #endif // ENABLE_GCODE_VIEWER
 {
     // output everything to a G-code file
@@ -1648,10 +1645,8 @@ std::string Print::export_gcode(const std::string &path_template, GCodePreviewDa
     GCode gcode;
 #if ENABLE_GCODE_VIEWER
     gcode.do_export(this, path.c_str(), preview_data, result, thumbnail_cb);
-#elif ENABLE_THUMBNAIL_GENERATOR
-    gcode.do_export(this, path.c_str(), preview_data, thumbnail_cb);
 #else
-    gcode.do_export(this, path.c_str(), preview_data);
+    gcode.do_export(this, path.c_str(), preview_data, thumbnail_cb);
 #endif // ENABLE_GCODE_VIEWER
     return path.c_str();
 }
@@ -1940,7 +1935,7 @@ void Print::_make_brim()
 				// Find all pieces that the initial loop was split into.
 				size_t j = i + 1;
                 for (; j < loops_trimmed_order.size() && loops_trimmed_order[i].second == loops_trimmed_order[j].second; ++ j) ;
-				const ClipperLib_Z::Path &first_path = *loops_trimmed_order[i].first;
+                const ClipperLib_Z::Path &first_path = *loops_trimmed_order[i].first;
 				if (i + 1 == j && first_path.size() > 3 && first_path.front().X == first_path.back().X && first_path.front().Y == first_path.back().Y) {
 					auto *loop = new ExtrusionLoop();
 					m_brim.entities.emplace_back(loop);
@@ -2142,6 +2137,7 @@ std::string Print::output_filename(const std::string &filename_base) const
     // Set the placeholders for the data know first after the G-code export is finished.
     // These values will be just propagated into the output file name.
     DynamicConfig config = this->finished() ? this->print_statistics().config() : this->print_statistics().placeholders();
+    config.set_key_value("num_extruders", new ConfigOptionInt((int)m_config.nozzle_diameter.size()));
     return this->PrintBase::output_filename(m_config.output_filename_format.value, ".gcode", filename_base, &config);
 }
 

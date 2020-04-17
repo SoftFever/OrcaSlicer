@@ -25,10 +25,16 @@
 #include "wxExtensions.hpp"
 #include "GUI_ObjectList.hpp"
 #include "Mouse3DController.hpp"
+#include "RemovableDriveManager.hpp"
 #include "I18N.hpp"
 
 #include <fstream>
 #include "GUI_App.hpp"
+
+#ifdef _WIN32
+#include <dbt.h>
+#include <shlobj.h>
+#endif // _WIN32
 
 namespace Slic3r {
 namespace GUI {
@@ -103,33 +109,71 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     update_title();
 
     // declare events
+    Bind(wxEVT_CREATE, [this](wxWindowCreateEvent& event) {
+
+#ifdef _WIN32
+		//static GUID GUID_DEVINTERFACE_USB_DEVICE	= { 0xA5DCBF10, 0x6530, 0x11D2, 0x90, 0x1F, 0x00, 0xC0, 0x4F, 0xB9, 0x51, 0xED };
+		//static GUID GUID_DEVINTERFACE_DISK 		= { 0x53f56307, 0xb6bf, 0x11d0, 0x94, 0xf2, 0x00, 0xa0, 0xc9, 0x1e, 0xfb, 0x8b };
+		//static GUID GUID_DEVINTERFACE_VOLUME 	    = { 0x71a27cdd, 0x812a, 0x11d0, 0xbe, 0xc7, 0x08, 0x00, 0x2b, 0xe2, 0x09, 0x2f };
+		static GUID GUID_DEVINTERFACE_HID			= { 0x4D1E55B2, 0xF16F, 0x11CF, 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 };
+
+    	// Register USB HID (Human Interface Devices) notifications to trigger the 3DConnexion enumeration.
+		DEV_BROADCAST_DEVICEINTERFACE NotificationFilter = { 0 };
+		NotificationFilter.dbcc_size = sizeof(DEV_BROADCAST_DEVICEINTERFACE);
+		NotificationFilter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+		NotificationFilter.dbcc_classguid = GUID_DEVINTERFACE_HID;
+		m_hDeviceNotify = ::RegisterDeviceNotification(this->GetHWND(), &NotificationFilter, DEVICE_NOTIFY_WINDOW_HANDLE);
+
+// or register for file handle change?
+//		DEV_BROADCAST_HANDLE NotificationFilter = { 0 };
+//		NotificationFilter.dbch_size = sizeof(DEV_BROADCAST_HANDLE);
+//		NotificationFilter.dbch_devicetype = DBT_DEVTYP_HANDLE;
+
+		// Using Win32 Shell API to register for media insert / removal events.
+		LPITEMIDLIST ppidl;
+		if (SHGetSpecialFolderLocation(this->GetHWND(), CSIDL_DESKTOP, &ppidl) == NOERROR) {
+			SHChangeNotifyEntry shCNE;
+			shCNE.pidl       = ppidl;
+			shCNE.fRecursive = TRUE;
+			// Returns a positive integer registration identifier (ID).
+			// Returns zero if out of memory or in response to invalid parameters.
+			m_ulSHChangeNotifyRegister = SHChangeNotifyRegister(this->GetHWND(),		// Hwnd to receive notification
+				SHCNE_DISKEVENTS,														// Event types of interest (sources)
+				SHCNE_MEDIAINSERTED | SHCNE_MEDIAREMOVED,
+				//SHCNE_UPDATEITEM,														// Events of interest - use SHCNE_ALLEVENTS for all events
+				WM_USER_MEDIACHANGED,													// Notification message to be sent upon the event
+				1,																		// Number of entries in the pfsne array
+				&shCNE);																// Array of SHChangeNotifyEntry structures that 
+																						// contain the notifications. This array should 
+																						// always be set to one when calling SHChnageNotifyRegister
+																						// or SHChangeNotifyDeregister will not work properly.
+			assert(m_ulSHChangeNotifyRegister != 0);    // Shell notification failed
+		} else {
+			// Failed to get desktop location
+			assert(false); 
+		}
+
+		{
+			static constexpr int device_count = 1;
+			RAWINPUTDEVICE devices[device_count] = { 0 };
+			// multi-axis mouse (SpaceNavigator, etc.)
+			devices[0].usUsagePage = 0x01;
+			devices[0].usUsage = 0x08;
+			if (! RegisterRawInputDevices(devices, device_count, sizeof(RAWINPUTDEVICE)))
+				BOOST_LOG_TRIVIAL(error) << "RegisterRawInputDevices failed";
+		}
+#endif // _WIN32
+
+        // propagate event
+        event.Skip();
+    });
+
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
         if (event.CanVeto() && !wxGetApp().check_unsaved_changes()) {
             event.Veto();
             return;
         }
-        
-        if(m_plater) m_plater->stop_jobs();
-
-        // Weird things happen as the Paint messages are floating around the windows being destructed.
-        // Avoid the Paint messages by hiding the main window.
-        // Also the application closes much faster without these unnecessary screen refreshes.
-        // In addition, there were some crashes due to the Paint events sent to already destructed windows.
-        this->Show(false);
-
-        // Save the slic3r.ini.Usually the ini file is saved from "on idle" callback,
-        // but in rare cases it may not have been called yet.
-        wxGetApp().app_config->save();
-//         if (m_plater)
-//             m_plater->print = undef;
-        _3DScene::remove_all_canvases();
-//         Slic3r::GUI::deregister_on_request_update_callback();
-
-        // set to null tabs and a plater
-        // to avoid any manipulations with them from App->wxEVT_IDLE after of the mainframe closing 
-        wxGetApp().tabs_list.clear();
-        wxGetApp().plater_ = nullptr;
-
+        this->shutdown();
         // propagate event
         event.Skip();
     });
@@ -146,6 +190,65 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 
     if (m_plater != nullptr)
         m_plater->show_action_buttons(true);
+}
+
+// Called when closing the application and when switching the application language.
+void MainFrame::shutdown()
+{
+#ifdef _WIN32
+	if (m_hDeviceNotify) {
+		::UnregisterDeviceNotification(HDEVNOTIFY(m_hDeviceNotify));
+		m_hDeviceNotify = nullptr;
+	}
+ 	if (m_ulSHChangeNotifyRegister) {
+        SHChangeNotifyDeregister(m_ulSHChangeNotifyRegister);
+        m_ulSHChangeNotifyRegister = 0;
+ 	}
+#endif // _WIN32
+
+    if (m_plater)
+    	m_plater->stop_jobs();
+
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    // Unbinding of wxWidgets event handling in canvases needs to be done here because on MAC,
+    // when closing the application using Command+Q, a mouse event is triggered after this lambda is completed,
+    // causing a crash
+    if (m_plater) m_plater->unbind_canvas_event_handlers();
+
+    // Cleanup of canvases' volumes needs to be done here or a crash may happen on some Linux Debian flavours
+    // see: https://github.com/prusa3d/PrusaSlicer/issues/3964
+    if (m_plater) m_plater->reset_canvas_volumes();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
+
+    // Weird things happen as the Paint messages are floating around the windows being destructed.
+    // Avoid the Paint messages by hiding the main window.
+    // Also the application closes much faster without these unnecessary screen refreshes.
+    // In addition, there were some crashes due to the Paint events sent to already destructed windows.
+    this->Show(false);
+
+	// Stop the background thread (Windows and Linux).
+	// Disconnect from a 3DConnextion driver (OSX).
+    m_plater->get_mouse3d_controller().shutdown();
+	// Store the device parameter database back to appconfig.
+    m_plater->get_mouse3d_controller().save_config(*wxGetApp().app_config);
+
+    // Stop the background thread of the removable drive manager, so that no new updates will be sent to the Plater.
+    wxGetApp().removable_drive_manager()->shutdown();
+
+    // Save the slic3r.ini.Usually the ini file is saved from "on idle" callback,
+    // but in rare cases it may not have been called yet.
+    wxGetApp().app_config->save();
+//         if (m_plater)
+//             m_plater->print = undef;
+#if !ENABLE_NON_STATIC_CANVAS_MANAGER
+    _3DScene::remove_all_canvases();
+#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
+//         Slic3r::GUI::deregister_on_request_update_callback();
+
+    // set to null tabs and a plater
+    // to avoid any manipulations with them from App->wxEVT_IDLE after of the mainframe closing 
+    wxGetApp().tabs_list.clear();
+    wxGetApp().plater_ = nullptr;
 }
 
 void MainFrame::update_title()
@@ -165,7 +268,8 @@ void MainFrame::update_title()
     if (idx_plus != build_id.npos) {
     	// Parse what is behind the '+'. If there is a number, then it is a build number after the label, and full build ID is shown.
     	int commit_after_label;
-    	if (! boost::starts_with(build_id.data() + idx_plus + 1, "UNKNOWN") && sscanf(build_id.data() + idx_plus + 1, "%d-", &commit_after_label) == 0) {
+    	if (! boost::starts_with(build_id.data() + idx_plus + 1, "UNKNOWN") && 
+            (build_id.at(idx_plus + 1) == '-' || sscanf(build_id.data() + idx_plus + 1, "%d-", &commit_after_label) == 0)) {
     		// It is a release build.
     		build_id.erase(build_id.begin() + idx_plus, build_id.end());    		
 #if defined(_WIN32) && ! defined(_WIN64)
@@ -316,6 +420,27 @@ bool MainFrame::can_send_gcode() const
     return print_host_opt != nullptr && !print_host_opt->value.empty();
 }
 
+bool MainFrame::can_export_gcode_sd() const
+{
+	if (m_plater == nullptr)
+		return false;
+
+	if (m_plater->model().objects.empty())
+		return false;
+
+	if (m_plater->is_export_gcode_scheduled())
+		return false;
+
+	// TODO:: add other filters
+
+	return wxGetApp().removable_drive_manager()->status().has_removable_drives;
+}
+
+bool MainFrame::can_eject() const
+{
+	return wxGetApp().removable_drive_manager()->status().has_eject;
+}
+
 bool MainFrame::can_slice() const
 {
     bool bg_proc = wxGetApp().app_config->get("background_processing") == "1";
@@ -422,7 +547,7 @@ void MainFrame::init_menubar()
                 m_plater->load_project(filename);
             else
             {
-                wxMessageDialog msg(this, _(L("The selected project is no longer available.\nDo you want to remove it from the recent projects list ?")), _(L("Error")), wxYES_NO | wxYES_DEFAULT);
+                wxMessageDialog msg(this, _(L("The selected project is no longer available.\nDo you want to remove it from the recent projects list?")), _(L("Error")), wxYES_NO | wxYES_DEFAULT);
                 if (msg.ShowModal() == wxID_YES)
                 {
                     m_recent_projects.RemoveFileFromHistory(file_id);
@@ -486,6 +611,9 @@ void MainFrame::init_menubar()
             [this](wxCommandEvent&) { if (m_plater) m_plater->send_gcode(); }, "export_gcode", nullptr,
             [this](){return can_send_gcode(); }, this);
         m_changeable_menu_items.push_back(item_send_gcode);
+		append_menu_item(export_menu, wxID_ANY, _(L("Export G-code to SD card / Flash drive")) + dots + "\tCtrl+U", _(L("Export current plate as G-code to SD card / Flash drive")),
+			[this](wxCommandEvent&) { if (m_plater) m_plater->export_gcode(true); }, "export_to_sd", nullptr,
+			[this]() {return can_export_gcode_sd(); }, this);
         export_menu->AppendSeparator();
         append_menu_item(export_menu, wxID_ANY, _(L("Export plate as &STL")) + dots, _(L("Export current plate as STL")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(); }, "export_plater", nullptr,
@@ -508,6 +636,10 @@ void MainFrame::init_menubar()
             [this](wxCommandEvent&) { export_configbundle(); }, "export_config_bundle", nullptr,
             [this]() {return true; }, this);
         append_submenu(fileMenu, export_menu, wxID_ANY, _(L("&Export")), "");
+
+		append_menu_item(fileMenu, wxID_ANY, _(L("Ejec&t SD card / Flash drive")) + dots + "\tCtrl+T", _(L("Eject SD card / Flash drive after the G-code was exported to it.")),
+			[this](wxCommandEvent&) { if (m_plater) m_plater->eject_drive(); }, "eject_sd", nullptr,
+			[this]() {return can_eject(); }, this);
 
         fileMenu->AppendSeparator();
 
@@ -677,9 +809,20 @@ void MainFrame::init_menubar()
         append_menu_item(viewMenu, wxID_ANY, _(L("Right")) + sep + "&6", _(L("Right View")), [this](wxCommandEvent&) { select_view("right"); },
             "", nullptr, [this](){return can_change_view(); }, this);
         viewMenu->AppendSeparator();
+#if ENABLE_SLOPE_RENDERING
+        wxMenu* options_menu = new wxMenu();
+        append_menu_check_item(options_menu, wxID_ANY, _(L("Show &labels")) + sep + "E", _(L("Show object/instance labels in 3D scene")),
+            [this](wxCommandEvent&) { m_plater->show_view3D_labels(!m_plater->are_view3D_labels_shown()); }, this,
+            [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_labels_shown(); }, this);
+        append_menu_check_item(options_menu, wxID_ANY, _(L("Show &slope")) + sep + "D", _(L("Objects coloring using faces' slope")),
+            [this](wxCommandEvent&) { m_plater->show_view3D_slope(!m_plater->is_view3D_slope_shown()); }, this,
+            [this]() { return m_plater->is_view3D_shown() && !m_plater->is_view3D_layers_editing_enabled(); }, [this]() { return m_plater->is_view3D_slope_shown(); }, this);
+        append_submenu(viewMenu, options_menu, wxID_ANY, _(L("&Options")), "");
+#else
         append_menu_check_item(viewMenu, wxID_ANY, _(L("Show &labels")) + sep + "E", _(L("Show object/instance labels in 3D scene")),
             [this](wxCommandEvent&) { m_plater->show_view3D_labels(!m_plater->are_view3D_labels_shown()); }, this,
             [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_labels_shown(); }, this);
+#endif // ENABLE_SLOPE_RENDERING
     }
 
     // Help menu
@@ -827,7 +970,7 @@ void MainFrame::quick_slice(const int qs)
     } 
     else if (qs & qsSaveAs) {
         // The following line may die if the output_filename_format template substitution fails.
-        wxFileDialog dlg(this, wxString::Format(_(L("Save %s file as:")) , qs & qsExportSVG ? _(L("SVG")) : _(L("G-code")) ),
+        wxFileDialog dlg(this, from_u8((boost::format(_utf8(L("Save %s file as:"))) % ((qs & qsExportSVG) ? _(L("SVG")) : _(L("G-code")))).str()),
             wxGetApp().app_config->get_last_output_dir(get_dir_name(output_file)), get_base_name(input_file), 
             qs & qsExportSVG ? file_wildcards(FT_SVG) : file_wildcards(FT_GCODE),
             wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -850,7 +993,7 @@ void MainFrame::quick_slice(const int qs)
     // show processbar dialog
     m_progress_dialog = new wxProgressDialog(_(L("Slicing")) + dots, 
     // TRN "Processing input_file_basename"
-                                             wxString::Format(_(L("Processing %s")), input_file_basename + dots),
+                                             from_u8((boost::format(_utf8(L("Processing %s"))) % (input_file_basename + dots)).str()),
         100, this, 4);
     m_progress_dialog->Pulse();
     {
@@ -1029,7 +1172,7 @@ void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool re
 	wxGetApp().load_current_presets();
 
     const auto message = wxString::Format(_(L("%d presets successfully imported.")), presets_imported);
-    Slic3r::GUI::show_info(this, message, "Info");
+    Slic3r::GUI::show_info(this, message, wxString("Info"));
 }
 
 // Load a provied DynamicConfig into the Print / Filament / Printer tabs, thus modifying the active preset.

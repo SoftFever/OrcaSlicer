@@ -20,9 +20,7 @@
 #include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
-#if ENABLE_THUMBNAIL_GENERATOR
 #include <boost/beast/core/detail/base64.hpp>
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/cstdio.hpp>
@@ -291,7 +289,7 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
 
     std::string gcode;
 
-    // Toolchangeresult.gcode assumes the wipe tower corner is at the origin
+    // Toolchangeresult.gcode assumes the wipe tower corner is at the origin (except for priming lines)
     // We want to rotate and shift all extrusions (gcode postprocessing) and starting and ending position
     float alpha = m_wipe_tower_rotation/180.f * float(M_PI);
     Vec2f start_pos = tcr.start_pos;
@@ -431,7 +429,6 @@ std::string WipeTowerIntegration::post_process_wipe_tower_moves(const WipeTower:
     Vec2f pos = tcr.start_pos;
     Vec2f transformed_pos = pos;
     Vec2f old_pos(-1000.1f, -1000.1f);
-    std::string never_skip_tag = WipeTower::never_skip_tag();
 
     while (gcode_str) {
         std::getline(gcode_str, line);  // we read the gcode line by line
@@ -441,11 +438,11 @@ std::string WipeTowerIntegration::post_process_wipe_tower_moves(const WipeTower:
         // WT generator can override this by appending the never_skip_tag
         if (line.find("G1 ") == 0) {
             bool never_skip = false;
-            auto it = line.find(never_skip_tag);
+            auto it = line.find(WipeTower::never_skip_tag());
             if (it != std::string::npos) {
                 // remove the tag and remember we saw it
                 never_skip = true;
-                line.erase(it, it+never_skip_tag.size());
+                line.erase(it, it+WipeTower::never_skip_tag().size());
             }
             std::ostringstream line_out;
             std::istringstream line_str(line);
@@ -632,13 +629,16 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
             // Negative support_contact_z is not taken into account, it can result in false positives in cases
             // where previous layer has object extrusions too (https://github.com/prusa3d/PrusaSlicer/issues/2752)
 
+            // Only check this layer in case it has some extrusions.
+            bool has_extrusions = (layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
+                               || (layer_to_print.support_layer && layer_to_print.support_layer->has_extrusions());
 
-            if (layer_to_print.print_z() > maximal_print_z + 2. * EPSILON)
+            if (has_extrusions && layer_to_print.print_z() > maximal_print_z + 2. * EPSILON)
                 throw std::runtime_error(_(L("Empty layers detected, the output would not be printable.")) + "\n\n" +
                     _(L("Object name")) + ": " + object.model_object()->name + "\n" + _(L("Print z")) + ": " +
                     std::to_string(layers_to_print.back().print_z()) + "\n\n" + _(L("This is "
                     "usually caused by negligibly small extrusions or by a faulty model. Try to repair "
-                    " the model or change its orientation on the bed.")));
+                    "the model or change its orientation on the bed.")));
             // Remember last layer with extrusions.
             last_extrusion_layer = &layers_to_print.back();
         }
@@ -700,10 +700,8 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
 
 #if ENABLE_GCODE_VIEWER
 void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_data, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb)
-#elif ENABLE_THUMBNAIL_GENERATOR
-void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb)
 #else
-void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_data)
+void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb)
 #endif // ENABLE_GCODE_VIEWER
 {
     PROFILE_CLEAR();
@@ -730,11 +728,7 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
 
     try {
         m_placeholder_parser_failed_templates.clear();
-#if ENABLE_THUMBNAIL_GENERATOR
         this->_do_export(*print, file, thumbnail_cb);
-#else
-        this->_do_export(*print, file);
-#endif // ENABLE_THUMBNAIL_GENERATOR
         fflush(file);
         if (ferror(file)) {
             fclose(file);
@@ -786,6 +780,10 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
 
     // starts analyzer calculations
     if (m_enable_analyzer) {
+#if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+        m_analyzer.close_debug_output_file();
+#endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+
         BOOST_LOG_TRIVIAL(debug) << "Preparing G-code preview data" << log_memory_info();
         m_analyzer.calc_gcode_preview_data(*preview_data, [print]() { print->throw_if_canceled(); });
         m_analyzer.reset();
@@ -903,24 +901,17 @@ namespace DoExport {
 
 	    // tell analyzer about the gcode flavor
 	    analyzer.set_gcode_flavor(config.gcode_flavor);
-	}
+
+#if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+        analyzer.open_debug_output_file();
+#endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+    }
 
 #if ENABLE_GCODE_VIEWER
     static void init_gcode_processor(const PrintConfig& config, GCodeProcessor& processor)
     {
         processor.reset();
         processor.apply_config(config);
-
-        // send extruder offset data to processor
-        unsigned int num_extruders = static_cast<unsigned int>(config.nozzle_diameter.values.size());
-        GCodeProcessor::ExtruderOffsetsMap extruder_offsets;
-        for (unsigned int id = 0; id < num_extruders; ++id)
-        {
-            Vec2d offset = config.extruder_offset.get_at(id);
-            if (!offset.isApprox(Vec2d::Zero()))
-                extruder_offsets[id] = offset;
-        }
-        processor.set_extruder_offsets(extruder_offsets);
     }
 #endif // ENABLE_GCODE_VIEWER
 
@@ -999,7 +990,6 @@ namespace DoExport {
 	    }
 	}
 
-	#if ENABLE_THUMBNAIL_GENERATOR
 	template<typename WriteToOutput, typename ThrowIfCanceledCallback>
 	static void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb, const std::vector<Vec2d> &sizes, WriteToOutput output, ThrowIfCanceledCallback throw_if_canceled)
 	{
@@ -1043,7 +1033,6 @@ namespace DoExport {
 	        }
 	    }
 	}
-	#endif // ENABLE_THUMBNAIL_GENERATOR
 
 	// Fill in print_statistics and return formatted string containing filament statistics to be inserted into G-code comment section.
 	static std::string update_print_stats_and_format_filament_stats(
@@ -1149,11 +1138,7 @@ std::vector<const PrintInstance*> sort_object_instances_by_model_order(const Pri
     return instances;
 }
 
-#if ENABLE_THUMBNAIL_GENERATOR
 void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thumbnail_cb)
-#else
-void GCode::_do_export(Print& print, FILE* file)
-#endif // ENABLE_THUMBNAIL_GENERATOR
 {
     PROFILE_FUNC();
 
@@ -1352,6 +1337,11 @@ void GCode::_do_export(Print& print, FILE* file)
         // adds tag for analyzer
         _write_format(file, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erCustom);
 
+#if ENABLE_GCODE_VIEWER
+    // adds tag for processor
+    _write_format(file, ";%s%d\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), erCustom);
+#endif // ENABLE_GCODE_VIEWER
+
     // Write the custom start G-code
     _writeln(file, start_gcode);
 
@@ -1504,6 +1494,11 @@ void GCode::_do_export(Print& print, FILE* file)
     if (m_enable_analyzer)
         // adds tag for analyzer
         _write_format(file, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erCustom);
+
+#if ENABLE_GCODE_VIEWER
+    // adds tag for processor
+    _write_format(file, ";%s%d\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), erCustom);
+#endif // ENABLE_GCODE_VIEWER
 
     // Process filament-specific gcode in extruder order.
     {
@@ -1779,7 +1774,6 @@ std::vector<GCode::InstanceToPrint> GCode::sort_print_object_instances(
 		std::sort(sorted.begin(), sorted.end());
 
 		if (! sorted.empty()) {
-			const Print &print = *sorted.front().first->print();
 		    out.reserve(sorted.size());
 		    for (const PrintInstance *instance : *ordering) {
 		    	const PrintObject &print_object = *instance->print_object;
@@ -1825,13 +1819,18 @@ namespace ProcessLayer
 		    // we should add or not colorprint_change in respect to nozzle_diameter count instead of really used extruders count
 	        if (color_change || tool_change)
 	        {
+                assert(m600_extruder_before_layer >= 0);
 		        // Color Change or Tool Change as Color Change.
 	            // add tag for analyzer
 	            gcode += "; " + GCodeAnalyzer::Color_Change_Tag + ",T" + std::to_string(m600_extruder_before_layer) + "\n";
-	            // add tag for time estimator
+#if ENABLE_GCODE_VIEWER
+                // add tag for processor
+                gcode += "; " + GCodeProcessor::Color_Change_Tag + ",T" + std::to_string(m600_extruder_before_layer) + "\n";
+#endif // ENABLE_GCODE_VIEWER
+                // add tag for time estimator
 	            gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
 
-	            if (!single_extruder_printer && m600_extruder_before_layer >= 0 && first_extruder_id != m600_extruder_before_layer
+                if (!single_extruder_printer && m600_extruder_before_layer >= 0 && first_extruder_id != (unsigned)m600_extruder_before_layer
 	                // && !MMU1
 	                ) {
 	                //! FIXME_in_fw show message during print pause
@@ -1849,7 +1848,11 @@ namespace ProcessLayer
 	            {
 	                // add tag for analyzer
 	                gcode += "; " + GCodeAnalyzer::Pause_Print_Tag + "\n";
-	                //! FIXME_in_fw show message during print pause
+#if ENABLE_GCODE_VIEWER
+                    // add tag for processor
+                    gcode += "; " + GCodeProcessor::Pause_Print_Tag + "\n";
+#endif // ENABLE_GCODE_VIEWER
+                    //! FIXME_in_fw show message during print pause
 	                if (!pause_print_msg.empty())
 	                    gcode += "M117 " + pause_print_msg + "\n";
 	                // add tag for time estimator
@@ -1859,7 +1862,11 @@ namespace ProcessLayer
 	            {
 	                // add tag for analyzer
 	                gcode += "; " + GCodeAnalyzer::Custom_Code_Tag + "\n";
-	                // add tag for time estimator
+#if ENABLE_GCODE_VIEWER
+                    // add tag for processor
+                    gcode += "; " + GCodeProcessor::Custom_Code_Tag + "\n";
+#endif // ENABLE_GCODE_VIEWER
+                    // add tag for time estimator
 	                //gcode += "; " + GCodeTimeEstimator::Custom_Code_Tag + "\n";
 	            }
 	            gcode += custom_code + "\n";
@@ -2320,6 +2327,14 @@ void GCode::process_layer(
         gcode += "\n; " + GCodeAnalyzer::End_Pause_Print_Or_Custom_Code_Tag + "\n";
     else if (gcode.find(GCodeAnalyzer::Custom_Code_Tag) != gcode.npos)
         gcode += "\n; " + GCodeAnalyzer::End_Pause_Print_Or_Custom_Code_Tag + "\n";
+
+#if ENABLE_GCODE_VIEWER
+    // add tag for processor
+    if (gcode.find(GCodeProcessor::Pause_Print_Tag) != gcode.npos)
+        gcode += "\n; " + GCodeProcessor::End_Pause_Print_Or_Custom_Code_Tag + "\n";
+    else if (gcode.find(GCodeProcessor::Custom_Code_Tag) != gcode.npos)
+        gcode += "\n; " + GCodeProcessor::End_Pause_Print_Or_Custom_Code_Tag + "\n";
+#endif // ENABLE_GCODE_VIEWER
 
 #ifdef HAS_PRESSURE_EQUALIZER
     // Apply pressure equalization if enabled;
@@ -2907,11 +2922,12 @@ std::string GCode::extrude_path(ExtrusionPath path, std::string description, dou
 std::string GCode::extrude_perimeters(const Print &print, const std::vector<ObjectByExtruder::Island::Region> &by_region, std::unique_ptr<EdgeGrid::Grid> &lower_layer_edge_grid)
 {
     std::string gcode;
-    for (const ObjectByExtruder::Island::Region &region : by_region) {
-        m_config.apply(print.regions()[&region - &by_region.front()]->config());
-        for (const ExtrusionEntity *ee : region.perimeters)
-            gcode += this->extrude_entity(*ee, "perimeter", -1., &lower_layer_edge_grid);
-    }
+    for (const ObjectByExtruder::Island::Region &region : by_region)
+        if (! region.perimeters.empty()) {
+            m_config.apply(print.regions()[&region - &by_region.front()]->config());
+            for (const ExtrusionEntity *ee : region.perimeters)
+                gcode += this->extrude_entity(*ee, "perimeter", -1., &lower_layer_edge_grid);
+        }
     return gcode;
 }
 
@@ -2919,19 +2935,20 @@ std::string GCode::extrude_perimeters(const Print &print, const std::vector<Obje
 std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectByExtruder::Island::Region> &by_region)
 {
     std::string gcode;
-    for (const ObjectByExtruder::Island::Region &region : by_region) {
-        m_config.apply(print.regions()[&region - &by_region.front()]->config());
-		ExtrusionEntitiesPtr extrusions { region.infills };
-		chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
-        for (const ExtrusionEntity *fill : extrusions) {
-            auto *eec = dynamic_cast<const ExtrusionEntityCollection*>(fill);
-            if (eec) {
-				for (ExtrusionEntity *ee : eec->chained_path_from(m_last_pos).entities)
-                    gcode += this->extrude_entity(*ee, "infill");
-            } else
-                gcode += this->extrude_entity(*fill, "infill");
+    for (const ObjectByExtruder::Island::Region &region : by_region)
+        if (! region.infills.empty()) {
+            m_config.apply(print.regions()[&region - &by_region.front()]->config());
+		    ExtrusionEntitiesPtr extrusions { region.infills };
+		    chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
+            for (const ExtrusionEntity *fill : extrusions) {
+                auto *eec = dynamic_cast<const ExtrusionEntityCollection*>(fill);
+                if (eec) {
+				    for (ExtrusionEntity *ee : eec->chained_path_from(m_last_pos).entities)
+                        gcode += this->extrude_entity(*ee, "infill");
+                } else
+                    gcode += this->extrude_entity(*fill, "infill");
+            }
         }
-    }
     return gcode;
 }
 
@@ -3122,6 +3139,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         {
             m_last_analyzer_extrusion_role = path.role();
             sprintf(buf, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), int(m_last_analyzer_extrusion_role));
+#if ENABLE_GCODE_VIEWER
+            gcode += buf;
+            sprintf(buf, ";%s%d\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), int(m_last_analyzer_extrusion_role));
+#endif // ENABLE_GCODE_VIEWER
             gcode += buf;
         }
 
@@ -3130,6 +3151,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             m_last_mm3_per_mm = path.mm3_per_mm;
             sprintf(buf, ";%s%f\n", GCodeAnalyzer::Mm3_Per_Mm_Tag.c_str(), m_last_mm3_per_mm);
             gcode += buf;
+#if ENABLE_GCODE_VIEWER
+            sprintf(buf, ";%s%f\n", GCodeProcessor::Mm3_Per_Mm_Tag.c_str(), m_last_mm3_per_mm);
+            gcode += buf;
+#endif // ENABLE_GCODE_VIEWER
         }
 
         if (last_was_wipe_tower || (m_last_width != path.width))
@@ -3137,6 +3162,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             m_last_width = path.width;
             sprintf(buf, ";%s%f\n", GCodeAnalyzer::Width_Tag.c_str(), m_last_width);
             gcode += buf;
+#if ENABLE_GCODE_VIEWER
+            sprintf(buf, ";%s%f\n", GCodeProcessor::Width_Tag.c_str(), m_last_width);
+            gcode += buf;
+#endif // ENABLE_GCODE_VIEWER
         }
 
         if (last_was_wipe_tower || (m_last_height != path.height))
@@ -3144,6 +3173,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             m_last_height = path.height;
             sprintf(buf, ";%s%f\n", GCodeAnalyzer::Height_Tag.c_str(), m_last_height);
             gcode += buf;
+#if ENABLE_GCODE_VIEWER
+            sprintf(buf, ";%s%f\n", GCodeProcessor::Height_Tag.c_str(), m_last_height);
+            gcode += buf;
+#endif // ENABLE_GCODE_VIEWER
         }
     }
 
@@ -3397,16 +3430,17 @@ const std::vector<GCode::ObjectByExtruder::Island::Region>& GCode::ObjectByExtru
     		has_overrides = true;
     		break;
     	}
+
+	// Data is cleared, but the memory is not.
+    by_region_per_copy_cache.clear();
+
     if (! has_overrides)
     	// Simple case. No need to copy the regions.
-    	return this->by_region;
+    	return wiping_entities ? by_region_per_copy_cache : this->by_region;
 
     // Complex case. Some of the extrusions of some object instances are to be printed first - those are the wiping extrusions.
     // Some of the extrusions of some object instances are printed later - those are the clean print extrusions.
     // Filter out the extrusions based on the infill_overrides / perimeter_overrides:
-
-	// Data is cleared, but the memory is not.
-    by_region_per_copy_cache.clear();
 
     for (const auto& reg : by_region) {
         by_region_per_copy_cache.emplace_back(); // creates a region in the newly created Island
@@ -3468,15 +3502,17 @@ void GCode::ObjectByExtruder::Island::Region::append(const Type type, const Extr
 
     // First we append the entities, there are eec->entities.size() of them:
     size_t old_size = perimeters_or_infills->size();
-    perimeters_or_infills->reserve(perimeters_or_infills->size() + eec->entities.size());
+    size_t new_size = old_size + eec->entities.size();
+    perimeters_or_infills->reserve(new_size);
     for (auto* ee : eec->entities)
         perimeters_or_infills->emplace_back(ee);
 
     if (copies_extruder != nullptr) {
-    	perimeters_or_infills_overrides->reserve(old_size + eec->entities.size());
-    	perimeters_or_infills_overrides->resize(old_size, nullptr);
-	    for (unsigned int i = 0; i < eec->entities.size(); ++ i)
-	        perimeters_or_infills_overrides->emplace_back(copies_extruder);
+    	// Don't reallocate overrides if not needed.
+    	// Missing overrides are implicitely considered non-overridden.
+        perimeters_or_infills_overrides->reserve(new_size);
+        perimeters_or_infills_overrides->resize(old_size, nullptr);
+        perimeters_or_infills_overrides->resize(new_size, copies_extruder);
 	}
 }
 

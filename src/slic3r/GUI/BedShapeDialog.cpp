@@ -74,6 +74,8 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const Conf
 	ConfigOptionDef def;
 	def.type = coPoints;
 	def.set_default_value(new ConfigOptionPoints{ Vec2d(200, 200) });
+    def.min = 0;
+    def.max = 1200;
 	def.label = L("Size");
 	def.tooltip = L("Size in X and Y of the rectangular plate.");
 	Option option(def, "rect_size");
@@ -81,6 +83,8 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const Conf
 
 	def.type = coPoints;
 	def.set_default_value(new ConfigOptionPoints{ Vec2d(0, 0) });
+    def.min = -600;
+    def.max = 600;
 	def.label = L("Origin");
 	def.tooltip = L("Distance of the 0,0 G-code coordinate from the front left corner of the rectangle.");
 	option = Option(def, "rect_origin");

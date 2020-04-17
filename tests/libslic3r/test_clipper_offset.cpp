@@ -15,7 +15,7 @@ SCENARIO("Constant offset", "[ClipperUtils]") {
 	coord_t s = 1000000;
 	GIVEN("20mm box") {
 		ExPolygon box20mm;
-		box20mm.contour.points = { { 0, 0 }, { 20 * s, 0 }, { 20 * s, 20 * s}, { 0, 20 * s} };
+		box20mm.contour.points = { Vec2crd{ 0, 0 }, Vec2crd{ 20 * s, 0 }, Vec2crd{ 20 * s, 20 * s}, Vec2crd{ 0, 20 * s} };
 		std::vector<float> deltas_plus(box20mm.contour.points.size(), 1. * s);
 		std::vector<float> deltas_minus(box20mm.contour.points.size(), - 1. * s);
 		Polygons output;
@@ -87,8 +87,8 @@ SCENARIO("Constant offset", "[ClipperUtils]") {
 
 	GIVEN("20mm box with 10mm hole") {
 		ExPolygon box20mm;
-		box20mm.contour.points = { { 0, 0 }, { 20 * s, 0 }, { 20 * s, 20 * s}, { 0, 20 * s} };
-		box20mm.holes.emplace_back(Slic3r::Polygon({ { 5 * s, 5 * s }, { 5 * s, 15 * s}, { 15 * s, 15 * s}, { 15 * s, 5 * s }  }));
+		box20mm.contour.points = { Vec2crd{ 0, 0 }, Vec2crd{ 20 * s, 0 }, Vec2crd{ 20 * s, 20 * s}, Vec2crd{ 0, 20 * s} };
+		box20mm.holes.emplace_back(Slic3r::Polygon({ Vec2crd{ 5 * s, 5 * s }, Vec2crd{ 5 * s, 15 * s}, Vec2crd{ 15 * s, 15 * s}, Vec2crd{ 15 * s, 5 * s } }));
 		std::vector<float> deltas_plus(box20mm.contour.points.size(), 1. * s);
 		std::vector<float> deltas_minus(box20mm.contour.points.size(), -1. * s);
 		ExPolygons output;
@@ -164,7 +164,7 @@ SCENARIO("Constant offset", "[ClipperUtils]") {
 
 	GIVEN("20mm right angle triangle") {
 		ExPolygon triangle20mm;
-		triangle20mm.contour.points = { { 0, 0 }, { 20 * s, 0 }, { 0, 20 * s} };
+		triangle20mm.contour.points = { Vec2crd{ 0, 0 }, Vec2crd{ 20 * s, 0 }, Vec2crd{ 0, 20 * s } };
 		Polygons output;
 		double offset = 1.;
 		// Angle of the sharp corner bisector.

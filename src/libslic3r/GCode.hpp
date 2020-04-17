@@ -20,9 +20,7 @@
 #include "GCodeTimeEstimator.hpp"
 #include "EdgeGrid.hpp"
 #include "GCode/Analyzer.hpp"
-#if ENABLE_THUMBNAIL_GENERATOR
 #include "GCode/ThumbnailData.hpp"
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 #include <memory>
 #include <string>
@@ -171,10 +169,8 @@ public:
     // throws CanceledException through print->throw_if_canceled().
 #if ENABLE_GCODE_VIEWER
     void            do_export(Print* print, const char* path, GCodePreviewData* preview_data = nullptr, GCodeProcessor::Result* result = nullptr, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
-#elif ENABLE_THUMBNAIL_GENERATOR
-    void            do_export(Print* print, const char* path, GCodePreviewData* preview_data = nullptr, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
 #else
-    void            do_export(Print *print, const char *path, GCodePreviewData *preview_data = nullptr);
+    void            do_export(Print* print, const char* path, GCodePreviewData* preview_data = nullptr, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
 #endif // ENABLE_GCODE_VIEWER
 
     // Exported for the helper classes (OozePrevention, Wipe) and for the Perl binding for unit tests.
@@ -215,11 +211,7 @@ public:
     };
 
 private:
-#if ENABLE_THUMBNAIL_GENERATOR
     void            _do_export(Print &print, FILE *file, ThumbnailsGeneratorCallback thumbnail_cb);
-#else
-    void            _do_export(Print &print, FILE *file);
-#endif //ENABLE_THUMBNAIL_GENERATOR
 
     static std::vector<LayerToPrint>        		                   collect_layers_to_print(const PrintObject &object);
     static std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> collect_layers_to_print(const Print &print);

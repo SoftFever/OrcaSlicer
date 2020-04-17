@@ -1,4 +1,5 @@
 #include "Config.hpp"
+#include "format.hpp"
 #include "Utils.hpp"
 #include <assert.h>
 #include <fstream>
@@ -464,7 +465,7 @@ bool ConfigBase::set_deserialize_nothrow(const t_config_option_key &opt_key_src,
 void ConfigBase::set_deserialize(const t_config_option_key &opt_key_src, const std::string &value_src, bool append)
 {
 	if (! this->set_deserialize_nothrow(opt_key_src, value_src, append))
-		throw BadOptionTypeException("ConfigBase::set_deserialize() failed");
+		throw BadOptionTypeException(format("ConfigBase::set_deserialize() failed for parameter \"%1%\", value \"%2%\"", opt_key_src,  value_src));
 }
 
 void ConfigBase::set_deserialize(std::initializer_list<SetDeserializeItem> items)
@@ -620,7 +621,7 @@ void ConfigBase::load_from_gcode_file(const std::string &file)
 
     size_t key_value_pairs = load_from_gcode_string(data.data());
     if (key_value_pairs < 80)
-        throw std::runtime_error((boost::format("Suspiciously low number of configuration values extracted from %1%: %2%") % file % key_value_pairs).str());
+        throw std::runtime_error(format("Suspiciously low number of configuration values extracted from %1%: %2%", file, key_value_pairs));
 }
 
 // Load the config keys from the given string.
