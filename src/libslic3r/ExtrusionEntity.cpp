@@ -306,7 +306,11 @@ double ExtrusionLoop::min_mm3_per_mm() const
 std::string ExtrusionEntity::role_to_string(ExtrusionRole role)
 {
     switch (role) {
+#if ENABLE_GCODE_VIEWER
+        case erNone                         : return L("Unknown");
+#else
         case erNone                         : return L("None");
+#endif // ENABLE_GCODE_VIEWER
         case erPerimeter                    : return L("Perimeter");
         case erExternalPerimeter            : return L("External perimeter");
         case erOverhangPerimeter            : return L("Overhang perimeter");

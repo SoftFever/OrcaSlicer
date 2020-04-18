@@ -101,9 +101,11 @@ private:
 
     unsigned int m_last_result_id{ 0 };
     std::vector<double> m_layers_zs;
+    std::vector<ExtrusionRole> m_roles;
     Extrusions m_extrusions;
     Shells m_shells;
     EViewType m_view_type{ EViewType::FeatureType };
+    bool m_legend_enabled{ true };
 
 public:
     GCodeViewer() = default;
@@ -136,12 +138,16 @@ public:
     bool are_shells_visible() const { return m_shells.visible; }
     void set_shells_visible(bool visible) { m_shells.visible = visible; }
 
+    bool is_legend_enabled() const { return m_legend_enabled; }
+    void enable_legend(bool enable) { m_legend_enabled = enable; }
+
 private:
     bool init_shaders();
     void load_toolpaths(const GCodeProcessor::Result& gcode_result);
     void load_shells(const Print& print, bool initialized);
     void render_toolpaths() const;
     void render_shells() const;
+    void render_overlay() const;
 };
 
 } // namespace GUI

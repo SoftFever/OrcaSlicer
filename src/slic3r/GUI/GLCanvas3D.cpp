@@ -1941,7 +1941,11 @@ void GLCanvas3D::enable_layers_editing(bool enable)
 
 void GLCanvas3D::enable_legend_texture(bool enable)
 {
+#if ENABLE_GCODE_VIEWER
+    m_gcode_viewer.enable_legend(enable);
+#else
     m_legend_texture_enabled = enable;
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void GLCanvas3D::enable_picking(bool enable)

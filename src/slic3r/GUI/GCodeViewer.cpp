@@ -6,6 +6,8 @@
 #include "GUI_App.hpp"
 #include "PresetBundle.hpp"
 #include "Camera.hpp"
+#include "I18N.hpp"
+#include "libslic3r/I18N.hpp"
 
 #include <GL/glew.h>
 #include <boost/log/trivial.hpp>
@@ -108,6 +110,7 @@ void GCodeViewer::reset()
     m_extrusions.reset_role_visibility_flags();
     m_shells.volumes.clear();
     m_layers_zs = std::vector<double>();
+    m_roles = std::vector<ExtrusionRole>();
 }
 
 void GCodeViewer::render() const
@@ -115,6 +118,7 @@ void GCodeViewer::render() const
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_toolpaths();
     render_shells();
+    render_overlay();
 }
 
 bool GCodeViewer::is_toolpath_visible(GCodeProcessor::EMoveType type) const
@@ -277,17 +281,17 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         }
     }
 
-    // layers zs -> extract from result
+    // layers zs / roles -> extract from result
     for (const GCodeProcessor::MoveVertex& move : gcode_result.moves)
     {
         if (move.type == GCodeProcessor::EMoveType::Extrude)
             m_layers_zs.emplace_back(move.position[2]);
+
+        m_roles.emplace_back(move.extrusion_role);
     }
 
-    // layers zs -> sort
-    std::sort(m_layers_zs.begin(), m_layers_zs.end());
-
     // layers zs -> replace intervals of layers with similar top positions with their average value.
+    std::sort(m_layers_zs.begin(), m_layers_zs.end());
     int n = int(m_layers_zs.size());
     int k = 0;
     for (int i = 0; i < n;) {
@@ -299,6 +303,10 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     }
     if (k < n)
         m_layers_zs.erase(m_layers_zs.begin() + k, m_layers_zs.end());
+
+    // roles -> remove duplicates
+    std::sort(m_roles.begin(), m_roles.end());
+    m_roles.erase(std::unique(m_roles.begin(), m_roles.end()), m_roles.end());
 
     auto end_time = std::chrono::high_resolution_clock::now();
     std::cout << "toolpaths generation time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() << "ms \n";
@@ -363,11 +371,7 @@ void GCodeViewer::render_toolpaths() const
         {
         case EViewType::FeatureType:
         {
-            unsigned int color_id = static_cast<unsigned int>(path.role);
-            if (color_id >= erCount)
-                color_id = 0;
-
-            color = m_extrusions.role_colors[color_id];
+            color = m_extrusions.role_colors[static_cast<unsigned int>(path.role)];
             break;
         }
         case EViewType::Height:
@@ -504,6 +508,69 @@ void GCodeViewer::render_shells() const
     m_shells.shader.stop_using();
 
 //    glsafe(::glDepthMask(GL_TRUE));
+}
+
+void GCodeViewer::render_overlay() const
+{
+    static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
+    static const float ICON_SIZE = 20.0f;
+    static const ImU32 ICON_BORDER_COLOR = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+
+    if (!m_legend_enabled || m_roles.empty())
+        return;
+
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+
+    imgui.set_next_window_pos(0, 0, ImGuiCond_Always);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    imgui.begin(_L("Legend"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    switch (m_view_type)
+    {
+    case EViewType::FeatureType:    { imgui.text(Slic3r::I18N::translate(L("Feature type"))); break; }
+    case EViewType::Height:         { imgui.text(Slic3r::I18N::translate(L("Height (mm)"))); break; }
+    case EViewType::Width:          { imgui.text(Slic3r::I18N::translate(L("Width (mm)"))); break; }
+    case EViewType::Feedrate:       { imgui.text(Slic3r::I18N::translate(L("Speed (mm/s)"))); break; }
+    case EViewType::FanSpeed:       { imgui.text(Slic3r::I18N::translate(L("Fan Speed (%)"))); break; }
+    case EViewType::VolumetricRate: { imgui.text(Slic3r::I18N::translate(L("Volumetric flow rate (mm³/s)"))); break; }
+    case EViewType::Tool:           { imgui.text(Slic3r::I18N::translate(L("Tool"))); break; }
+    case EViewType::ColorPrint:     { imgui.text(Slic3r::I18N::translate(L("Color Print"))); break; }
+    }
+    ImGui::PopStyleColor();
+
+    ImGui::Separator();
+
+    switch (m_view_type)
+    {
+    case EViewType::FeatureType:
+    {
+        for (ExtrusionRole role : m_roles)
+        {
+            ImVec2 pos(ImGui::GetCursorPosX() + 2.0f, ImGui::GetCursorPosY() + 2.0f);
+            draw_list->AddRect(ImVec2(pos.x, pos.y), ImVec2(pos.x + ICON_SIZE, pos.y + ICON_SIZE), ICON_BORDER_COLOR, 0.0f, 0);
+            const std::array<float, 4>& role_color = m_extrusions.role_colors[static_cast<unsigned int>(role)];
+            ImU32 fill_color = ImGui::GetColorU32(ImVec4(role_color[0], role_color[1], role_color[2], role_color[3]));
+            draw_list->AddRectFilled(ImVec2(pos.x + 1.0f, pos.y + 1.0f), ImVec2(pos.x + ICON_SIZE - 1.0f, pos.y + ICON_SIZE - 1.0f), fill_color);
+            ImGui::SetCursorPosX(pos.x + ICON_SIZE + 4.0f);
+            ImGui::AlignTextToFramePadding();
+            imgui.text(Slic3r::I18N::translate(ExtrusionEntity::role_to_string(role)));
+        }
+        break;
+    }
+    case EViewType::Height: { break; }
+    case EViewType::Width: { break; }
+    case EViewType::Feedrate: { break; }
+    case EViewType::FanSpeed: { break; }
+    case EViewType::VolumetricRate: { break; }
+    case EViewType::Tool: { break; }
+    case EViewType::ColorPrint: { break; }
+    }
+
+    imgui.end();
+    ImGui::PopStyleVar();
 }
 
 } // namespace GUI
