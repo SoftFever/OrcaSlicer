@@ -479,8 +479,9 @@ void Preview::reload_print(bool keep_volumes)
         m_canvas->reset_volumes();
 #if ENABLE_GCODE_VIEWER
         m_canvas->reset_gcode_toolpaths();
-#endif // ENABLE_GCODE_VIEWER
+#else
         m_canvas->reset_legend_texture();
+#endif // ENABLE_GCODE_VIEWER
         m_loaded = false;
 #ifdef __linux__
         m_volumes_cleanup_required = false;
@@ -937,7 +938,9 @@ void Preview::load_print_as_fff(bool keep_z_range)
     if (! has_layers)
     {
         reset_sliders(true);
+#if !ENABLE_GCODE_VIEWER
         m_canvas->reset_legend_texture();
+#endif // !ENABLE_GCODE_VIEWER
         m_canvas_widget->Refresh();
         return;
     }

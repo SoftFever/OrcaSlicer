@@ -513,7 +513,7 @@ void GCodeViewer::render_shells() const
 void GCodeViewer::render_overlay() const
 {
     static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
-    static const float ICON_SIZE = 20.0f;
+    static const float ICON_BORDER_SIZE = 20.0f;
     static const ImU32 ICON_BORDER_COLOR = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
 
     if (!m_legend_enabled || m_roles.empty())
@@ -550,11 +550,11 @@ void GCodeViewer::render_overlay() const
         for (ExtrusionRole role : m_roles)
         {
             ImVec2 pos(ImGui::GetCursorPosX() + 2.0f, ImGui::GetCursorPosY() + 2.0f);
-            draw_list->AddRect(ImVec2(pos.x, pos.y), ImVec2(pos.x + ICON_SIZE, pos.y + ICON_SIZE), ICON_BORDER_COLOR, 0.0f, 0);
+            draw_list->AddRect(ImVec2(pos.x, pos.y), ImVec2(pos.x + ICON_BORDER_SIZE, pos.y + ICON_BORDER_SIZE), ICON_BORDER_COLOR, 0.0f, 0);
             const std::array<float, 4>& role_color = m_extrusions.role_colors[static_cast<unsigned int>(role)];
             ImU32 fill_color = ImGui::GetColorU32(ImVec4(role_color[0], role_color[1], role_color[2], role_color[3]));
-            draw_list->AddRectFilled(ImVec2(pos.x + 1.0f, pos.y + 1.0f), ImVec2(pos.x + ICON_SIZE - 1.0f, pos.y + ICON_SIZE - 1.0f), fill_color);
-            ImGui::SetCursorPosX(pos.x + ICON_SIZE + 4.0f);
+            draw_list->AddRectFilled(ImVec2(pos.x + 1.0f, pos.y + 1.0f), ImVec2(pos.x + ICON_BORDER_SIZE - 1.0f, pos.y + ICON_BORDER_SIZE - 1.0f), fill_color);
+            ImGui::SetCursorPosX(pos.x + ICON_BORDER_SIZE + 4.0f);
             ImGui::AlignTextToFramePadding();
             imgui.text(Slic3r::I18N::translate(ExtrusionEntity::role_to_string(role)));
         }

@@ -901,6 +901,7 @@ void GLCanvas3D::WarningTexture::msw_rescale(const GLCanvas3D& canvas)
     generate(m_msg_text, canvas, true, m_is_colored_red);
 }
 
+#if !ENABLE_GCODE_VIEWER
 const unsigned char GLCanvas3D::LegendTexture::Squares_Border_Color[3] = { 64, 64, 64 };
 const unsigned char GLCanvas3D::LegendTexture::Default_Background_Color[3] = { (unsigned char)(DEFAULT_BG_LIGHT_COLOR[0] * 255.0f), (unsigned char)(DEFAULT_BG_LIGHT_COLOR[1] * 255.0f), (unsigned char)(DEFAULT_BG_LIGHT_COLOR[2] * 255.0f) };
 const unsigned char GLCanvas3D::LegendTexture::Error_Background_Color[3] = { (unsigned char)(ERROR_BG_LIGHT_COLOR[0] * 255.0f), (unsigned char)(ERROR_BG_LIGHT_COLOR[1] * 255.0f), (unsigned char)(ERROR_BG_LIGHT_COLOR[2] * 255.0f) };
@@ -1267,6 +1268,7 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
         GLTexture::render_sub_texture(m_id, left, right, bottom, top, uvs);
     }
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_instances) const
 {
@@ -1574,7 +1576,9 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
     , m_dirty(true)
     , m_initialized(false)
     , m_apply_zoom_to_volumes_filter(false)
+#if !ENABLE_GCODE_VIEWER
     , m_legend_texture_enabled(false)
+#endif // !ENABLE_GCODE_VIEWER
     , m_picking_enabled(false)
     , m_moving_enabled(false)
     , m_dynamic_background_enabled(false)
@@ -2953,6 +2957,7 @@ void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors, c
 
     _update_toolpath_volumes_outside_state();
     _show_warning_texture_if_needed(WarningTexture::ToolpathOutside);
+#if !ENABLE_GCODE_VIEWER
     if (color_print_values.empty())
         reset_legend_texture();
     else {
@@ -2961,6 +2966,7 @@ void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors, c
         const std::vector<float> tool_colors = _parse_colors(str_tool_colors);
         _generate_legend_texture(preview_data, tool_colors);
     }
+#endif // !ENABLE_GCODE_VIEWER
 }
 
 void GLCanvas3D::bind_event_handlers()
@@ -4080,6 +4086,7 @@ Vec2d GLCanvas3D::get_local_mouse_position() const
     return Vec2d(factor * mouse_pos.x, factor * mouse_pos.y);
 }
 
+#if !ENABLE_GCODE_VIEWER
 void GLCanvas3D::reset_legend_texture()
 {
     if (m_legend_texture.get_id() != 0)
@@ -4088,6 +4095,7 @@ void GLCanvas3D::reset_legend_texture()
         m_legend_texture.reset();
     }
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 void GLCanvas3D::set_tooltip(const std::string& tooltip) const
 {
@@ -5556,7 +5564,9 @@ void GLCanvas3D::_render_overlays() const
 
     _render_gizmos_overlay();
     _render_warning_texture();
+#if !ENABLE_GCODE_VIEWER
     _render_legend_texture();
+#endif // !ENABLE_GCODE_VIEWER
 
     // main toolbar and undoredo toolbar need to be both updated before rendering because both their sizes are needed
     // to correctly place them
@@ -5600,6 +5610,7 @@ void GLCanvas3D::_render_warning_texture() const
     m_warning_texture.render(*this);
 }
 
+#if !ENABLE_GCODE_VIEWER
 void GLCanvas3D::_render_legend_texture() const
 {
     if (!m_legend_texture_enabled)
@@ -5607,6 +5618,7 @@ void GLCanvas3D::_render_legend_texture() const
 
     m_legend_texture.render(*this);
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 void GLCanvas3D::_render_volumes_for_picking() const
 {
@@ -7096,10 +7108,12 @@ std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& col
     return output;
 }
 
+#if !ENABLE_GCODE_VIEWER
 void GLCanvas3D::_generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
 {
     m_legend_texture.generate(preview_data, tool_colors, *this, true);
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 void GLCanvas3D::_set_warning_texture(WarningTexture::Warning warning, bool state)
 {
