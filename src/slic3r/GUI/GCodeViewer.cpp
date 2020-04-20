@@ -59,14 +59,38 @@ bool GCodeViewer::IBuffer::init_shader(const std::string& vertex_shader_src, con
     return true;
 }
 
-void GCodeViewer::IBuffer::add_path(GCodeProcessor::EMoveType type, ExtrusionRole role)
+void GCodeViewer::IBuffer::add_path(GCodeProcessor::EMoveType type, ExtrusionRole role, float height)
 {
     unsigned int id = static_cast<unsigned int>(data.size());
-    paths.push_back({ type, role, id, id });
+    paths.push_back({ type, role, id, id, height });
+}
+
+std::array<float, 4> GCodeViewer::Extrusions::Range::get_color_at(float value, const std::array<std::array<float, 4>, Default_Range_Colors_Count>& colors) const
+{
+    // Input value scaled to the color range
+    const float step = step_size();
+    const float global_t = (step != 0.0f) ? std::max(0.0f, value - min) / step : 0.0f; // lower limit of 0.0f
+
+    const size_t color_max_idx = colors.size() - 1;
+
+    // Compute the two colors just below (low) and above (high) the input value
+    const size_t color_low_idx = std::clamp(static_cast<std::size_t>(global_t), std::size_t{ 0 }, color_max_idx);
+    const size_t color_high_idx = std::clamp(color_low_idx + 1, std::size_t{ 0 }, color_max_idx);
+
+    // Compute how far the value is between the low and high colors so that they can be interpolated
+    const float local_t = std::min(global_t - static_cast<float>(color_low_idx), 1.0f); // upper limit of 1.0f
+
+    // Interpolate between the low and high colors in RGB space to find exactly which color the input value should get
+    std::array<float, 4> ret;
+    for (unsigned int i = 0; i < 4; ++i)
+    {
+        ret[i] = lerp(colors[color_low_idx][i], colors[color_high_idx][i], local_t);
+    }
+    return ret;
 }
 
 const std::array<std::array<float, 4>, erCount> GCodeViewer::Default_Extrusion_Role_Colors {{
-    { 0.00f, 0.00f, 0.00f, 1.0f },   // erNone
+    { 1.00f, 1.00f, 1.00f, 1.0f },   // erNone
     { 1.00f, 1.00f, 0.40f, 1.0f },   // erPerimeter
     { 1.00f, 0.65f, 0.00f, 1.0f },   // erExternalPerimeter
     { 0.00f, 0.00f, 1.00f, 1.0f },   // erOverhangPerimeter
@@ -81,6 +105,19 @@ const std::array<std::array<float, 4>, erCount> GCodeViewer::Default_Extrusion_R
     { 0.70f, 0.89f, 0.67f, 1.0f },   // erWipeTower
     { 0.16f, 0.80f, 0.58f, 1.0f },   // erCustom
     { 0.00f, 0.00f, 0.00f, 1.0f }    // erMixed
+}};
+
+const std::array<std::array<float, 4>, GCodeViewer::Default_Range_Colors_Count> GCodeViewer::Default_Range_Colors {{
+    { 0.043f, 0.173f, 0.478f, 1.0f },
+    { 0.075f, 0.349f, 0.522f, 1.0f },
+    { 0.110f, 0.533f, 0.569f, 1.0f },
+    { 0.016f, 0.839f, 0.059f, 1.0f },
+    { 0.667f, 0.949f, 0.000f, 1.0f },
+    { 0.988f, 0.975f, 0.012f, 1.0f },
+    { 0.961f, 0.808f, 0.039f, 1.0f },
+    { 0.890f, 0.533f, 0.125f, 1.0f },
+    { 0.820f, 0.408f, 0.188f, 1.0f },
+    { 0.761f, 0.322f, 0.235f, 1.0f }
 }};
 
 void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& print, bool initialized)
@@ -108,6 +145,7 @@ void GCodeViewer::reset()
 
     m_bounding_box = BoundingBoxf3();
     m_extrusions.reset_role_visibility_flags();
+    m_extrusions.reset_ranges();
     m_shells.volumes.clear();
     m_layers_zs = std::vector<double>();
     m_roles = std::vector<ExtrusionRole>();
@@ -241,17 +279,22 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         case GCodeProcessor::EMoveType::Retract:
         case GCodeProcessor::EMoveType::Unretract:
         {
-            buffer.add_path(curr.type, curr.extrusion_role);
+            buffer.add_path(curr.type, curr.extrusion_role, curr.height);
             buffer.data.push_back(static_cast<unsigned int>(i));
             break;
         }
         case GCodeProcessor::EMoveType::Extrude:
         case GCodeProcessor::EMoveType::Travel:
         {
-            if (prev.type != curr.type)
+            if (prev.type != curr.type || !buffer.paths.back().matches(curr))
             {
-                buffer.add_path(curr.type, curr.extrusion_role);
+                buffer.add_path(curr.type, curr.extrusion_role, curr.height);
                 buffer.data.push_back(static_cast<unsigned int>(i - 1));
+
+                if (curr.type == GCodeProcessor::EMoveType::Extrude)
+                {
+                    m_extrusions.ranges.height.update_from(curr.height);
+                }
             }
             
             buffer.paths.back().last = static_cast<unsigned int>(buffer.data.size());
@@ -375,6 +418,10 @@ void GCodeViewer::render_toolpaths() const
             break;
         }
         case EViewType::Height:
+        {
+            color = m_extrusions.ranges.height.get_color_at(path.height, m_extrusions.ranges.colors);
+            break;
+        }
         case EViewType::Width:
         case EViewType::Feedrate:
         case EViewType::FanSpeed:
@@ -513,8 +560,9 @@ void GCodeViewer::render_shells() const
 void GCodeViewer::render_overlay() const
 {
     static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
-    static const float ICON_BORDER_SIZE = 20.0f;
+    static const float ICON_BORDER_SIZE = 25.0f;
     static const ImU32 ICON_BORDER_COLOR = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+    static const float GAP_ICON_TEXT = 5.0f;
 
     if (!m_legend_enabled || m_roles.empty())
         return;
@@ -551,16 +599,34 @@ void GCodeViewer::render_overlay() const
         {
             ImVec2 pos(ImGui::GetCursorPosX() + 2.0f, ImGui::GetCursorPosY() + 2.0f);
             draw_list->AddRect(ImVec2(pos.x, pos.y), ImVec2(pos.x + ICON_BORDER_SIZE, pos.y + ICON_BORDER_SIZE), ICON_BORDER_COLOR, 0.0f, 0);
-            const std::array<float, 4>& role_color = m_extrusions.role_colors[static_cast<unsigned int>(role)];
-            ImU32 fill_color = ImGui::GetColorU32(ImVec4(role_color[0], role_color[1], role_color[2], role_color[3]));
+            const std::array<float, 4>& color = m_extrusions.role_colors[static_cast<unsigned int>(role)];
+            ImU32 fill_color = ImGui::GetColorU32(ImVec4(color[0], color[1], color[2], color[3]));
             draw_list->AddRectFilled(ImVec2(pos.x + 1.0f, pos.y + 1.0f), ImVec2(pos.x + ICON_BORDER_SIZE - 1.0f, pos.y + ICON_BORDER_SIZE - 1.0f), fill_color);
-            ImGui::SetCursorPosX(pos.x + ICON_BORDER_SIZE + 4.0f);
+            ImGui::SetCursorPosX(pos.x + ICON_BORDER_SIZE + GAP_ICON_TEXT);
             ImGui::AlignTextToFramePadding();
             imgui.text(Slic3r::I18N::translate(ExtrusionEntity::role_to_string(role)));
         }
         break;
     }
-    case EViewType::Height: { break; }
+    case EViewType::Height:
+    {
+        float step_size = m_extrusions.ranges.height.step_size();
+        for (int i = Default_Range_Colors_Count - 1; i >= 0; --i)
+        {
+            ImVec2 pos(ImGui::GetCursorPosX() + 2.0f, ImGui::GetCursorPosY() + 2.0f);
+            draw_list->AddRect(ImVec2(pos.x, pos.y), ImVec2(pos.x + ICON_BORDER_SIZE, pos.y + ICON_BORDER_SIZE), ICON_BORDER_COLOR, 0.0f, 0);
+            const std::array<float, 4>& color = m_extrusions.ranges.colors[i];
+            ImU32 fill_color = ImGui::GetColorU32(ImVec4(color[0], color[1], color[2], color[3]));
+            draw_list->AddRectFilled(ImVec2(pos.x + 1.0f, pos.y + 1.0f), ImVec2(pos.x + ICON_BORDER_SIZE - 1.0f, pos.y + ICON_BORDER_SIZE - 1.0f), fill_color);
+            ImGui::SetCursorPosX(pos.x + ICON_BORDER_SIZE + GAP_ICON_TEXT);
+            ImGui::AlignTextToFramePadding();
+            char buf[1024];
+            ::sprintf(buf, "%.*f", 3, m_extrusions.ranges.height.min + static_cast<float>(i) * step_size);
+            imgui.text(buf);
+        }
+
+        break;
+    }
     case EViewType::Width: { break; }
     case EViewType::Feedrate: { break; }
     case EViewType::FanSpeed: { break; }

@@ -7,6 +7,8 @@
 #include "3DScene.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 
+#include <float.h>
+
 namespace Slic3r {
 class Print;
 namespace GUI {
@@ -14,6 +16,8 @@ namespace GUI {
 class GCodeViewer
 {
     static const std::array<std::array<float, 4>, erCount> Default_Extrusion_Role_Colors;
+    static const size_t Default_Range_Colors_Count = 10;
+    static const std::array<std::array<float, 4>, Default_Range_Colors_Count> Default_Range_Colors;
 
     // buffer containing vertices data
     struct VBuffer
@@ -29,14 +33,16 @@ class GCodeViewer
         static size_t vertex_size_bytes() { return vertex_size() * sizeof(float); }
     };
 
+    // Used to identify different toolpath sub-types inside a IBuffer
     struct Path
     {
         GCodeProcessor::EMoveType type{ GCodeProcessor::EMoveType::Noop };
         ExtrusionRole role{ erNone };
         unsigned int first{ 0 };
         unsigned int last{ 0 };
+        float height{ 0.0f };
 
-        bool matches(GCodeProcessor::EMoveType type, ExtrusionRole role) const { return this->type == type && this->role == role; }
+        bool matches(const GCodeProcessor::MoveVertex& move) const { return type == move.type && role == move.extrusion_role && height == move.height; }
     };
 
     // buffer containing indices data and shader for a specific toolpath type
@@ -52,7 +58,7 @@ class GCodeViewer
         void reset();
         bool init_shader(const std::string& vertex_shader_src, const std::string& fragment_shader_src);
 
-        void add_path(GCodeProcessor::EMoveType type, ExtrusionRole role);
+        void add_path(GCodeProcessor::EMoveType type, ExtrusionRole role, float height);
     };
 
     struct Shells
@@ -62,10 +68,55 @@ class GCodeViewer
         Shader shader;
     };
 
+    // helper to render extrusion paths
     struct Extrusions
     {
+        struct Range
+        {
+            float min;
+            float max;
+
+            Range() { reset(); }
+
+            void update_from(const float value)
+            {
+                min = std::min(min, value);
+                max = std::max(max, value);
+            }
+
+            void reset()
+            {
+                min = FLT_MAX;
+                max = -FLT_MAX;
+            }
+
+            float step_size() const { return (max - min) / static_cast<float>(Default_Range_Colors_Count); }
+            std::array<float, 4> get_color_at(float value, const std::array<std::array<float, 4>, Default_Range_Colors_Count>& colors) const;
+        };
+
+        struct Ranges
+        {
+            std::array<std::array<float, 4>, Default_Range_Colors_Count> colors;
+
+            // Color mapping by layer height.
+            Range height;
+//        // Color mapping by extrusion width.
+//        Range width;
+//        // Color mapping by feedrate.
+//        MultiRange<FeedrateKind> feedrate;
+//        // Color mapping by fan speed.
+//        Range fan_speed;
+//        // Color mapping by volumetric extrusion rate.
+//        Range volumetric_rate;
+
+            void reset() {
+                height.reset();
+            }
+        };
+
         std::array<std::array<float, 4>, erCount> role_colors;
         unsigned int role_visibility_flags{ 0 };
+        Ranges ranges;
 
         void reset_role_visibility_flags() {
             role_visibility_flags = 0;
@@ -74,6 +125,8 @@ class GCodeViewer
                 role_visibility_flags |= 1 << i;
             }
         }
+
+        void reset_ranges() { ranges.reset(); }
 
         static bool is_role_visible(unsigned int flags, ExtrusionRole role) {
             return role < erCount && (flags & (1 << role)) != 0;
@@ -113,6 +166,7 @@ public:
 
     bool init() {
         m_extrusions.role_colors = Default_Extrusion_Role_Colors;
+        m_extrusions.ranges.colors = Default_Range_Colors;
         set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Extrude, true);
         return init_shaders();
     }
