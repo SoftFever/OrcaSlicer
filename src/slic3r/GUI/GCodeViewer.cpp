@@ -62,7 +62,7 @@ bool GCodeViewer::IBuffer::init_shader(const std::string& vertex_shader_src, con
 void GCodeViewer::IBuffer::add_path(const GCodeProcessor::MoveVertex& move)
 {
     unsigned int id = static_cast<unsigned int>(data.size());
-    paths.push_back({ move.type, move.extrusion_role, id, id, move.height, move.width });
+    paths.push_back({ move.type, move.extrusion_role, id, id, move.height, move.width, move.feedrate });
 }
 
 std::array<float, 3> GCodeViewer::Extrusions::Range::get_color_at(float value, const std::array<std::array<float, 3>, Default_Range_Colors_Count>& colors) const
@@ -78,7 +78,7 @@ std::array<float, 3> GCodeViewer::Extrusions::Range::get_color_at(float value, c
     const size_t color_high_idx = std::clamp<size_t>(color_low_idx + 1, 0, color_max_idx);
 
     // Compute how far the value is between the low and high colors so that they can be interpolated
-    const float local_t = std::min(global_t - static_cast<float>(color_low_idx), 1.0f); // upper limit of 1.0f
+    const float local_t = std::clamp(global_t - static_cast<float>(color_low_idx), 0.0f, 1.0f);
 
     // Interpolate between the low and high colors in RGB space to find exactly which color the input value should get
     std::array<float, 3> ret;
@@ -132,6 +132,42 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
 
     load_toolpaths(gcode_result);
     load_shells(print, initialized);
+}
+
+void GCodeViewer::refresh_toolpaths_ranges(const GCodeProcessor::Result& gcode_result)
+{
+    if (m_vertices.vertices_count == 0)
+        return;
+
+    m_extrusions.reset_ranges();
+
+    for (size_t i = 0; i < m_vertices.vertices_count; ++i)
+    {
+        // skip first vertex
+        if (i == 0)
+            continue;
+
+        const GCodeProcessor::MoveVertex& curr = gcode_result.moves[i];
+
+        switch (curr.type)
+        {
+        case GCodeProcessor::EMoveType::Extrude:
+        case GCodeProcessor::EMoveType::Travel:
+        {
+            if (m_buffers[buffer_id(curr.type)].visible)
+            {
+                m_extrusions.ranges.height.update_from(curr.height);
+                m_extrusions.ranges.width.update_from(curr.width);
+                m_extrusions.ranges.feedrate.update_from(curr.feedrate);
+            }
+            break;
+        }
+        default:
+        {
+            break;
+        }
+        }
+    }
 }
 
 void GCodeViewer::reset()
@@ -290,12 +326,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             {
                 buffer.add_path(curr);
                 buffer.data.push_back(static_cast<unsigned int>(i - 1));
-
-                if (curr.type == GCodeProcessor::EMoveType::Extrude)
-                {
-                    m_extrusions.ranges.height.update_from(curr.height);
-                    m_extrusions.ranges.width.update_from(curr.width);
-                }
             }
             
             buffer.paths.back().last = static_cast<unsigned int>(buffer.data.size());
@@ -413,19 +443,15 @@ void GCodeViewer::render_toolpaths() const
         std::array<float, 3> color;
         switch (m_view_type)
         {
-        case EViewType::FeatureType: { color = m_extrusions.role_colors[static_cast<unsigned int>(path.role)]; break; }
-        case EViewType::Height:      { color = m_extrusions.ranges.height.get_color_at(path.height, m_extrusions.ranges.colors); break; }
-        case EViewType::Width:       { color = m_extrusions.ranges.width.get_color_at(path.width, m_extrusions.ranges.colors); break; }
-        case EViewType::Feedrate:
+        case EViewType::FeatureType:    { color = m_extrusions.role_colors[static_cast<unsigned int>(path.role)]; break; }
+        case EViewType::Height:         { color = m_extrusions.ranges.height.get_color_at(path.height, m_extrusions.ranges.colors); break; }
+        case EViewType::Width:          { color = m_extrusions.ranges.width.get_color_at(path.width, m_extrusions.ranges.colors); break; }
+        case EViewType::Feedrate:       { color = m_extrusions.ranges.feedrate.get_color_at(path.feedrate, m_extrusions.ranges.colors); break; }
         case EViewType::FanSpeed:
         case EViewType::VolumetricRate:
         case EViewType::Tool:
         case EViewType::ColorPrint:
-        default:
-        {
-            color = { 1.0f, 1.0f, 1.0f };
-            break;
-        }
+        default:                        { color = { 1.0f, 1.0f, 1.0f }; break; }
         }
         return color;
     };
@@ -568,8 +594,8 @@ void GCodeViewer::render_overlay() const
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-    auto add_range = [this, draw_list, &imgui](const Extrusions::Range& range) {
-        auto add_item = [this, draw_list, &imgui](int i, float value) {
+    auto add_range = [this, draw_list, &imgui](const Extrusions::Range& range, unsigned int decimals) {
+        auto add_item = [this, draw_list, &imgui](int i, float value, unsigned int decimals) {
             ImVec2 pos(ImGui::GetCursorPosX() + 2.0f, ImGui::GetCursorPosY() + 2.0f);
             draw_list->AddRect(ImVec2(pos.x, pos.y), ImVec2(pos.x + ICON_BORDER_SIZE, pos.y + ICON_BORDER_SIZE), ICON_BORDER_COLOR, 0.0f, 0);
             const std::array<float, 3>& color = m_extrusions.ranges.colors[i];
@@ -578,18 +604,18 @@ void GCodeViewer::render_overlay() const
             ImGui::SetCursorPosX(pos.x + ICON_BORDER_SIZE + GAP_ICON_TEXT);
             ImGui::AlignTextToFramePadding();
             char buf[1024];
-            ::sprintf(buf, "%.*f", 3, value);
+            ::sprintf(buf, "%.*f", decimals, value);
             imgui.text(buf);
         };
 
         float step_size = range.step_size();
         if (step_size == 0.0f)
-            add_item(0, range.min);
+            add_item(0, range.min, decimals);
         else
         {
             for (int i = Default_Range_Colors_Count - 1; i >= 0; --i)
             {
-                add_item(i, range.min + static_cast<float>(i) * step_size);
+                add_item(i, range.min + static_cast<float>(i) * step_size, decimals);
             }
         }
     };
@@ -619,7 +645,7 @@ void GCodeViewer::render_overlay() const
             ImVec2 pos(ImGui::GetCursorPosX() + 2.0f, ImGui::GetCursorPosY() + 2.0f);
             draw_list->AddRect(ImVec2(pos.x, pos.y), ImVec2(pos.x + ICON_BORDER_SIZE, pos.y + ICON_BORDER_SIZE), ICON_BORDER_COLOR, 0.0f, 0);
             const std::array<float, 3>& color = m_extrusions.role_colors[static_cast<unsigned int>(role)];
-            ImU32 fill_color = ImGui::GetColorU32(ImVec4(color[0], color[1], color[2], color[3]));
+            ImU32 fill_color = ImGui::GetColorU32(ImVec4(color[0], color[1], color[2], 1.0));
             draw_list->AddRectFilled(ImVec2(pos.x + 1.0f, pos.y + 1.0f), ImVec2(pos.x + ICON_BORDER_SIZE - 1.0f, pos.y + ICON_BORDER_SIZE - 1.0f), fill_color);
             ImGui::SetCursorPosX(pos.x + ICON_BORDER_SIZE + GAP_ICON_TEXT);
             ImGui::AlignTextToFramePadding();
@@ -629,15 +655,19 @@ void GCodeViewer::render_overlay() const
     }
     case EViewType::Height:
     {
-        add_range(m_extrusions.ranges.height);
+        add_range(m_extrusions.ranges.height, 3);
         break;
     }
     case EViewType::Width:
     {
-        add_range(m_extrusions.ranges.width);
+        add_range(m_extrusions.ranges.width, 3);
         break;
     }
-    case EViewType::Feedrate: { break; }
+    case EViewType::Feedrate:
+    {
+        add_range(m_extrusions.ranges.feedrate, 1);
+        break;
+    }
     case EViewType::FanSpeed: { break; }
     case EViewType::VolumetricRate: { break; }
     case EViewType::Tool: { break; }
