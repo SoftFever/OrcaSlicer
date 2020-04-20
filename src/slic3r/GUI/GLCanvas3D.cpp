@@ -4463,9 +4463,9 @@ bool GLCanvas3D::_render_undo_redo_stack(const bool is_undo, float pos_x) const
 }
 
 // Getter for the const char*[] for the search list 
-static bool search_string_getter(int idx, const char** out_text)
+static bool search_string_getter(int idx, const char** label, const char** tooltip)
 {
-    return wxGetApp().plater()->search_string_getter(idx, out_text);
+    return wxGetApp().plater()->search_string_getter(idx, label, tooltip);
 }
 
 bool GLCanvas3D::_render_search_list(float pos_x) const
@@ -4482,7 +4482,7 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
     std::string title = L("Search");
     imgui->begin(_(title), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
-    size_t selected = size_t(-1);
+    int selected = -1;
     bool edited = false;
     bool check_changed = false;
     float em = static_cast<float>(wxGetApp().em_unit());
@@ -4497,17 +4497,14 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
     strcpy(s, search_line.empty() ? _u8L("Type here to search").c_str() : search_line.c_str());
 
     imgui->search_list(ImVec2(45 * em, 30 * em), &search_string_getter, s, 
-                       sidebar.get_searcher().category, sidebar.get_searcher().group,
-                       m_imgui_search_hovered_pos,
+                       sidebar.get_searcher().view_params,
                        selected, edited, check_changed);
 
     search_line = s;
     delete [] s;
 
-    if (edited) {
+    if (edited)
         sidebar.search_and_apply_tab_search_lines();
-        m_imgui_search_hovered_pos = -1;
-    }
 
     if (check_changed) {
         if (search_line == _u8L("Type here to search"))
@@ -5068,7 +5065,7 @@ bool GLCanvas3D::_init_main_toolbar()
                 _deactivate_search_toolbar_item();
         }
     };
-    item.left.action_callback   = [this]() { m_imgui_search_hovered_pos = -1; }; //GLToolbarItem::Default_Action_Callback;
+    item.left.action_callback   = GLToolbarItem::Default_Action_Callback;
     item.visibility_callback    = GLToolbarItem::Default_Visibility_Callback;
     item.enabling_callback      = GLToolbarItem::Default_Enabling_Callback;
     if (!m_main_toolbar.add_item(item))

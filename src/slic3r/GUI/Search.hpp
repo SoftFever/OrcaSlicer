@@ -11,6 +11,7 @@
 #include <wx/combo.h>
 
 #include <wx/popupwin.h>
+#include <wx/checkbox.h>
 
 #include "Preset.hpp"
 #include "wxExtensions.hpp"
@@ -69,11 +70,21 @@ struct Option {
 struct FoundOption {
     wxString        label;
     wxString        marked_label;
+    wxString        tooltip;
     size_t          option_idx {0};
     int             outScore {0};
 
     void get_label(const char** out_text) const;
-    void get_marked_label(const char** out_text) const;
+    void get_marked_label_and_tooltip(const char** label, const char** tooltip) const;
+};
+
+struct OptionViewParameters
+{
+    bool type       {false};
+    bool category   {false};
+    bool group      {true };
+
+    int  hovered_id {-1};
 };
 
 class OptionsSearcher
@@ -96,11 +107,10 @@ class OptionsSearcher
     };
 
     size_t options_size() const { return options.size(); }
-    size_t found_size() const { return found.size(); }
+    size_t found_size()   const { return found.size(); }
 
 public:
-    bool                category{ false };
-    bool                group{ true };
+    OptionViewParameters                    view_params;
 
     void init(std::vector<InputInfo> input_values);
     void apply(DynamicPrintConfig *config,

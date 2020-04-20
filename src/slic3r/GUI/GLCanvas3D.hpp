@@ -505,7 +505,6 @@ private:
 #endif // ENABLE_RENDER_STATISTICS
 
     mutable int m_imgui_undo_redo_hovered_pos{ -1 };
-    mutable size_t m_imgui_search_hovered_pos{ size_t(-1) };
     int m_selected_extruder;
 
     Labels m_labels;

@@ -23,6 +23,14 @@ using GUI::into_u8;
 
 namespace Search {
 
+static std::map<Preset::Type, std::string> NameByType = {
+    { Preset::TYPE_PRINT,           L("Print")     },
+    { Preset::TYPE_FILAMENT,        L("Filament")  },
+    { Preset::TYPE_SLA_MATERIAL,    L("Material")  },
+    { Preset::TYPE_SLA_PRINT,       L("Print")     },
+    { Preset::TYPE_PRINTER,         L("Printer")   }
+};
+
 FMFlag Option::fuzzy_match_simple(char const * search_pattern) const
 {
     return  fts::fuzzy_match_simple(search_pattern, label_local.utf8_str())     ? fmLabelLocal      :
@@ -86,9 +94,10 @@ void FoundOption::get_label(const char** out_text) const
     *out_text = label.utf8_str();
 }
 
-void FoundOption::get_marked_label(const char** out_text) const
+void FoundOption::get_marked_label_and_tooltip(const char** label_, const char** tooltip_) const
 {
-    *out_text = marked_label.utf8_str();
+    *label_   = marked_label.utf8_str();
+    *tooltip_ = tooltip.utf8_str();
 }
 
 template<class T>
@@ -214,16 +223,26 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
     found.clear();
 
     bool full_list = search.empty();
+    wxString sep = " : ";
 
-    auto get_label = [this](const Option& opt)
+    auto get_label = [this, sep](const Option& opt)
     {
         wxString label;
-        if (category)
-            label += opt.category_local + " > ";
-        if (group)
-            label += opt.group_local + " > ";
+        if (view_params.type)
+            label += _(NameByType[opt.type]) + sep;
+        if (view_params.category)
+            label += opt.category_local + sep;
+        if (view_params.group)
+            label += opt.group_local + sep;
         label += opt.label_local;
         return label;
+    };
+
+    auto get_tooltip = [this, sep](const Option& opt)
+    {
+        return  _(NameByType[opt.type]) + sep +
+                opt.category_local + sep +
+                opt.group_local + sep + opt.label_local;
     };
 
     for (size_t i=0; i < options.size(); i++)
@@ -231,7 +250,7 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
         const Option &opt = options[i];
         if (full_list) {
             wxString label = get_label(opt);
-            found.emplace_back(FoundOption{ label, label, i, 0 });
+            found.emplace_back(FoundOption{ label, label, get_tooltip(opt), i, 0 });
             continue;
         }
 
@@ -240,7 +259,7 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
         FMFlag fuzzy_match_flag = opt.fuzzy_match(search, score);
         if (fuzzy_match_flag != fmUndef)
         {
-            wxString label = get_label(opt); //opt.category_local + " > " + opt.group_local  + " > " + opt.label_local;
+            wxString label = get_label(opt);
 
             if (     fuzzy_match_flag == fmLabel   ) label += "(" + opt.label    + ")";
             else if (fuzzy_match_flag == fmGroup   ) label += "(" + opt.group    + ")";
@@ -251,7 +270,7 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
             mark_string(marked_label, from_u8(search));
             clear_marked_string(marked_label);
 
-            found.emplace_back(FoundOption{ label, marked_label, i, score });
+            found.emplace_back(FoundOption{ label, marked_label, get_tooltip(opt), i, score });
         }
     }
 

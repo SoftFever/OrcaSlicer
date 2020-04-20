@@ -5343,12 +5343,12 @@ void Plater::undo_redo_topmost_string_getter(const bool is_undo, std::string& ou
     out_text = "";
 }
 
-bool Plater::search_string_getter(int idx, const char** out_text)
+bool Plater::search_string_getter(int idx, const char** label, const char** tooltip)
 {
     const Search::OptionsSearcher& search_list = p->sidebar->get_searcher();
     
     if (0 <= idx && (size_t)idx < search_list.size()) {
-        search_list[idx].get_marked_label(out_text);
+        search_list[idx].get_marked_label_and_tooltip(label, tooltip);
         return true;
     }
 

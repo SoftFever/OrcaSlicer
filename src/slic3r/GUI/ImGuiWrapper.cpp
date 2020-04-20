@@ -25,6 +25,7 @@
 #include "3DScene.hpp"
 #include "GUI.hpp"
 #include "I18N.hpp"
+#include "Search.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -600,8 +601,8 @@ static void process_key_down(ImGuiKey imgui_key, std::function<void()> f)
     }
 }
 
-void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, const char**), char* search_str,
-                               bool& category, bool& group, size_t& hovered_id, size_t& selected, bool& edited, bool& check_changed)
+void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, const char** label, const char** tooltip), char* search_str,
+                               Search::OptionViewParameters& view_params, int& selected, bool& edited, bool& check_changed)
 {
     // ImGui::ListBoxHeader("", size);
     {   
@@ -641,6 +642,8 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
         std::string str = search_str;
         ImGui::InputTextEx("", NULL, search_str, 20, search_size, 0, NULL, NULL);
         edited = ImGui::IsItemEdited();
+        if (edited)
+            view_params.hovered_id = -1;
 
         process_key_down(ImGuiKey_Escape, [&selected, search_str, str]() {
             // use 9999 to mark selection as a Esc key
@@ -652,17 +655,19 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
         ImGui::BeginChildFrame(id, frame_bb.GetSize());
     }
 
-    size_t i = 0;
+    int i = 0;
     const char* item_text;
+    const char* tooltip;
     int mouse_hovered = -1;
+    int& hovered_id = view_params.hovered_id;
 
-    while (items_getter(i, &item_text))
+    while (items_getter(i, &item_text, &tooltip))
     {
         selectable(item_text, i == hovered_id);
 
         if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("%s", item_text);
-            hovered_id = size_t(-1);
+            ImGui::SetTooltip("%s", /*item_text*/tooltip);
+            view_params.hovered_id = -1;
             mouse_hovered = i;
         }
 
@@ -702,22 +707,21 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
 
     ImGui::ListBoxFooter();
 
+    auto check_box = [&check_changed, this](const wxString& label, bool& check) {
+        ImGui::SameLine();
+        bool ch = check;
+        checkbox(label, ch);
+        if (ImGui::IsItemClicked()) {
+            check = !check;
+            check_changed = true;
+        }
+    };
+
     // add checkboxes for show/hide Categories and Groups
     text(_L("Use for search")+":");
-    ImGui::SameLine();
-    bool cat = category;
-    checkbox(_L("Category"), cat);
-    if (ImGui::IsItemClicked()) {
-        category = !category;
-        check_changed = true;
-    }
-    ImGui::SameLine();
-    bool gr = group;
-    checkbox(_L("Group"), gr);
-    if (ImGui::IsItemClicked()) {
-        group = !group;
-        check_changed = true;
-    }
+    check_box(_L("Type"),       view_params.type);
+    check_box(_L("Category"),   view_params.category);
+    check_box(_L("Group"),      view_params.group);
 }
 
 void ImGuiWrapper::disabled_begin(bool disabled)
