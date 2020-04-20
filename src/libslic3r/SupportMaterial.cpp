@@ -26,8 +26,6 @@
     #include "SVG.hpp"
 #endif
 
-#include "SVG.hpp"
-
 // #undef NDEBUG
 #include <cassert>
 
@@ -997,99 +995,74 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
     // Iterate over all triangles.
     for (int facet_idx : custom_enf) {
         std::array<Vec3f, 3> facet;
+        std::array<float, 3> z_heights;
 
         // Transform the triangle into worlds coords.
-        for (int i=0; i<3; ++i) {
+        for (int i=0; i<3; ++i)
             facet[i] = tr2 * tr1 * mesh.its.vertices[mesh.its.indices[facet_idx](i)];
-            facet[i] -= Vec3f(unscale<double>(object.center_offset().x()),
-                              unscale<double>(object.center_offset().y()),
-                              0.f);
-        }
 
-        // Sort the three vertices according the z-coordinate.
+        // Sort the three vertices according to z-coordinate.
         std::sort(facet.begin(), facet.end(),
                   [](const Vec3f& pt1, const Vec3f&pt2) {
                       return pt1.z() < pt2.z();
                   });
 
+        Polygon triangle;
+        for (int i=0; i<3; ++i) {
+            z_heights[i] = facet[i].z();
+            triangle.append(Point::new_scale(facet[i].x(), facet[i].y()));
+            triangle.translate(object.center_offset());
+        }
+
         // Find lowest slice not below the triangle.
-        auto it = std::lower_bound(layers.begin(), layers.end(), facet[0].z(),
+        auto it = std::lower_bound(layers.begin(), layers.end(), z_heights[0],
                       [](const Layer* l1, float z) {
                            return l1->slice_z < z;
                       });
 
-        // Project the triangles on all slices intersecting the triangle.
-        // FIXME: This ignores horizontal triangles and does not project
-        //         anything to the slice above max_z.
-        // FIXME: Each part of the projection should be assigned to one slice only.
-        // FIXME: The speed of the algorithm might be improved.
 
         // Calculate how to move points on triangle sides per unit z increment.
-        Vec2f ta(facet[1].x()-facet[0].x(), facet[1].y()-facet[0].y());
-        Vec2f tb(facet[2].x()-facet[0].x(), facet[2].y()-facet[0].y());
-        ta /= (facet[1].z() - facet[0].z());
-        tb /= (facet[2].z() - facet[0].z());
+        Point ta(triangle.points[1] - triangle.points[0]);
+        Point tb(triangle.points[2] - triangle.points[0]);
 
+        ta *= 1./(z_heights[1] - z_heights[0]);
+        tb *= 1./(z_heights[2] - z_heights[0]);
 
-        std::vector<Vec2f> proj;
-        proj.emplace_back(facet[0].x(), facet[0].y());
+        Points proj;
+        proj.emplace_back(triangle.points[0]);
 
-        Vec2f a(proj.back());
-        Vec2f b(proj.back());
+        Point a(proj.back());
+        Point b(proj.back());
         float last_z = facet[0].z();
         bool passed_first = false;
         bool stop = false;
 
-        //////////////// debugging
-        Polygon trg;
-        for (const Vec3f& vert : facet)
-            trg.append(Point::new_scale(vert.x(), vert.y()));
-        ::Slic3r::SVG::export_expolygons("triangle.svg", trg.bounding_box(), {ExPolygon(trg)});
-        ///////////////////////////
-
-Polygons plgs;
-
+        // Project a sub-triangle on all slices intersecting the triangle.
         while (it != layers.end()) {
             const float z = (*it)->slice_z;
 
-            if (z > facet[1].z() && ! passed_first) {
-                a = Vec2f(facet[1].x(), facet[1].y());
+            if (z > z_heights[1] && ! passed_first) {
+                a = triangle.points[1];
+                ta = triangle.points[2]-triangle.points[1];
+                ta *= 1./(z_heights[2] - z_heights[1]);
                 proj.push_back(a);
-
-                ta = Vec2f(facet[2].x()-facet[1].x(), facet[2].y()-facet[1].y());
-                ta /= (facet[2].z() - facet[1].z());
-
                 passed_first = true;
             }
-
             a += ta * (z-last_z);
 
-
-            if (z > facet[2].z() || it+1 == layers.end()) {
-                b = Vec2f(facet[2].x(), facet[2].y());
+            if (z > z_heights[2] || it+1 == layers.end()) {
+                b = triangle.points[2];
+                proj.push_back(b);
                 stop = true;
             }
             else {
-                proj.push_back(a);
                 b += tb * (z-last_z);
+                proj.push_back(a+ta);
+                proj.push_back(b+tb);
             }
-            proj.push_back(b);
 
-            Polygon plg;
-            for (const Vec2f& vert : proj)
-               plg.append(Point::new_scale(vert.x(), vert.y()));
-
-           // plg = offset(plg, 100).front();
-            enforcers[it-layers.begin()].emplace_back(plg);
-
-            plgs.emplace_back(plg);
-
-            std::ostringstream ss;
-            ExPolygons explgs;
-            explgs.emplace_back(plg);
-            ss << std::setprecision(5) << std::setw(5) << (*it)->print_z;
-            ::Slic3r::SVG::export_expolygons(ss.str()+".svg", trg.bounding_box(), explgs);
-            ::Slic3r::SVG::export_expolygons(ss.str()+"_layer.svg", trg.bounding_box(), (*it)->lslices);
+            if (it != layers.begin())
+                enforcers[it-layers.begin()-1].emplace_back(proj);
 
             if (stop)
                 break;
@@ -1101,24 +1074,11 @@ Polygons plgs;
             ++it;
             last_z = z;
         }
-
-        ExPolygons explgs;
-        for (const auto& plg : plgs)
-            explgs.emplace_back(plg);
-        ::Slic3r::SVG::export_expolygons("plgs.svg", trg.bounding_box(), explgs);
-        break;
     }
 
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
-
-/*
- *  for (const Vec3f& vert : facet)
-            plg.append(Point::new_scale(vert.x(), vert.y()));
-            */
-
-
 
 
     // Output layers, sorted by top Z.
