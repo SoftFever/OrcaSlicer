@@ -41,8 +41,11 @@ class GCodeViewer
         unsigned int first{ 0 };
         unsigned int last{ 0 };
         float height{ 0.0f };
+        float width{ 0.0f };
 
-        bool matches(const GCodeProcessor::MoveVertex& move) const { return type == move.type && role == move.extrusion_role && height == move.height; }
+        bool matches(const GCodeProcessor::MoveVertex& move) const {
+            return type == move.type && role == move.extrusion_role && height == move.height && width == move.width;
+        }
     };
 
     // buffer containing indices data and shader for a specific toolpath type
@@ -57,8 +60,7 @@ class GCodeViewer
 
         void reset();
         bool init_shader(const std::string& vertex_shader_src, const std::string& fragment_shader_src);
-
-        void add_path(GCodeProcessor::EMoveType type, ExtrusionRole role, float height);
+        void add_path(const GCodeProcessor::MoveVertex& move);
     };
 
     struct Shells
@@ -90,7 +92,7 @@ class GCodeViewer
                 max = -FLT_MAX;
             }
 
-            float step_size() const { return (max - min) / static_cast<float>(Default_Range_Colors_Count); }
+            float step_size() const { return (max - min) / (static_cast<float>(Default_Range_Colors_Count) - 1.0f); }
             std::array<float, 4> get_color_at(float value, const std::array<std::array<float, 4>, Default_Range_Colors_Count>& colors) const;
         };
 
@@ -100,8 +102,8 @@ class GCodeViewer
 
             // Color mapping by layer height.
             Range height;
-//        // Color mapping by extrusion width.
-//        Range width;
+            // Color mapping by extrusion width.
+            Range width;
 //        // Color mapping by feedrate.
 //        MultiRange<FeedrateKind> feedrate;
 //        // Color mapping by fan speed.
@@ -111,6 +113,7 @@ class GCodeViewer
 
             void reset() {
                 height.reset();
+                width.reset();
             }
         };
 

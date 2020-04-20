@@ -59,10 +59,10 @@ bool GCodeViewer::IBuffer::init_shader(const std::string& vertex_shader_src, con
     return true;
 }
 
-void GCodeViewer::IBuffer::add_path(GCodeProcessor::EMoveType type, ExtrusionRole role, float height)
+void GCodeViewer::IBuffer::add_path(const GCodeProcessor::MoveVertex& move)
 {
     unsigned int id = static_cast<unsigned int>(data.size());
-    paths.push_back({ type, role, id, id, height });
+    paths.push_back({ move.type, move.extrusion_role, id, id, move.height, move.width });
 }
 
 std::array<float, 4> GCodeViewer::Extrusions::Range::get_color_at(float value, const std::array<std::array<float, 4>, Default_Range_Colors_Count>& colors) const
@@ -74,8 +74,8 @@ std::array<float, 4> GCodeViewer::Extrusions::Range::get_color_at(float value, c
     const size_t color_max_idx = colors.size() - 1;
 
     // Compute the two colors just below (low) and above (high) the input value
-    const size_t color_low_idx = std::clamp(static_cast<std::size_t>(global_t), std::size_t{ 0 }, color_max_idx);
-    const size_t color_high_idx = std::clamp(color_low_idx + 1, std::size_t{ 0 }, color_max_idx);
+    const size_t color_low_idx = std::clamp<size_t>(static_cast<size_t>(global_t), 0, color_max_idx);
+    const size_t color_high_idx = std::clamp<size_t>(color_low_idx + 1, 0, color_max_idx);
 
     // Compute how far the value is between the low and high colors so that they can be interpolated
     const float local_t = std::min(global_t - static_cast<float>(color_low_idx), 1.0f); // upper limit of 1.0f
@@ -279,7 +279,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         case GCodeProcessor::EMoveType::Retract:
         case GCodeProcessor::EMoveType::Unretract:
         {
-            buffer.add_path(curr.type, curr.extrusion_role, curr.height);
+            buffer.add_path(curr);
             buffer.data.push_back(static_cast<unsigned int>(i));
             break;
         }
@@ -288,12 +288,13 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         {
             if (prev.type != curr.type || !buffer.paths.back().matches(curr))
             {
-                buffer.add_path(curr.type, curr.extrusion_role, curr.height);
+                buffer.add_path(curr);
                 buffer.data.push_back(static_cast<unsigned int>(i - 1));
 
                 if (curr.type == GCodeProcessor::EMoveType::Extrude)
                 {
                     m_extrusions.ranges.height.update_from(curr.height);
+                    m_extrusions.ranges.width.update_from(curr.width);
                 }
             }
             
@@ -412,17 +413,9 @@ void GCodeViewer::render_toolpaths() const
         std::array<float, 4> color;
         switch (m_view_type)
         {
-        case EViewType::FeatureType:
-        {
-            color = m_extrusions.role_colors[static_cast<unsigned int>(path.role)];
-            break;
-        }
-        case EViewType::Height:
-        {
-            color = m_extrusions.ranges.height.get_color_at(path.height, m_extrusions.ranges.colors);
-            break;
-        }
-        case EViewType::Width:
+        case EViewType::FeatureType: { color = m_extrusions.role_colors[static_cast<unsigned int>(path.role)]; break; }
+        case EViewType::Height:      { color = m_extrusions.ranges.height.get_color_at(path.height, m_extrusions.ranges.colors); break; }
+        case EViewType::Width:       { color = m_extrusions.ranges.width.get_color_at(path.width, m_extrusions.ranges.colors); break; }
         case EViewType::Feedrate:
         case EViewType::FanSpeed:
         case EViewType::VolumetricRate:
@@ -575,6 +568,32 @@ void GCodeViewer::render_overlay() const
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
+    auto add_range = [this, draw_list, &imgui](const Extrusions::Range& range) {
+        auto add_item = [this, draw_list, &imgui](int i, float value) {
+            ImVec2 pos(ImGui::GetCursorPosX() + 2.0f, ImGui::GetCursorPosY() + 2.0f);
+            draw_list->AddRect(ImVec2(pos.x, pos.y), ImVec2(pos.x + ICON_BORDER_SIZE, pos.y + ICON_BORDER_SIZE), ICON_BORDER_COLOR, 0.0f, 0);
+            const std::array<float, 4>& color = m_extrusions.ranges.colors[i];
+            ImU32 fill_color = ImGui::GetColorU32(ImVec4(color[0], color[1], color[2], color[3]));
+            draw_list->AddRectFilled(ImVec2(pos.x + 1.0f, pos.y + 1.0f), ImVec2(pos.x + ICON_BORDER_SIZE - 1.0f, pos.y + ICON_BORDER_SIZE - 1.0f), fill_color);
+            ImGui::SetCursorPosX(pos.x + ICON_BORDER_SIZE + GAP_ICON_TEXT);
+            ImGui::AlignTextToFramePadding();
+            char buf[1024];
+            ::sprintf(buf, "%.*f", 3, value);
+            imgui.text(buf);
+        };
+
+        float step_size = range.step_size();
+        if (step_size == 0.0f)
+            add_item(0, range.min);
+        else
+        {
+            for (int i = Default_Range_Colors_Count - 1; i >= 0; --i)
+            {
+                add_item(i, range.min + static_cast<float>(i) * step_size);
+            }
+        }
+    };
+
     ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
     switch (m_view_type)
     {
@@ -610,24 +629,14 @@ void GCodeViewer::render_overlay() const
     }
     case EViewType::Height:
     {
-        float step_size = m_extrusions.ranges.height.step_size();
-        for (int i = Default_Range_Colors_Count - 1; i >= 0; --i)
-        {
-            ImVec2 pos(ImGui::GetCursorPosX() + 2.0f, ImGui::GetCursorPosY() + 2.0f);
-            draw_list->AddRect(ImVec2(pos.x, pos.y), ImVec2(pos.x + ICON_BORDER_SIZE, pos.y + ICON_BORDER_SIZE), ICON_BORDER_COLOR, 0.0f, 0);
-            const std::array<float, 4>& color = m_extrusions.ranges.colors[i];
-            ImU32 fill_color = ImGui::GetColorU32(ImVec4(color[0], color[1], color[2], color[3]));
-            draw_list->AddRectFilled(ImVec2(pos.x + 1.0f, pos.y + 1.0f), ImVec2(pos.x + ICON_BORDER_SIZE - 1.0f, pos.y + ICON_BORDER_SIZE - 1.0f), fill_color);
-            ImGui::SetCursorPosX(pos.x + ICON_BORDER_SIZE + GAP_ICON_TEXT);
-            ImGui::AlignTextToFramePadding();
-            char buf[1024];
-            ::sprintf(buf, "%.*f", 3, m_extrusions.ranges.height.min + static_cast<float>(i) * step_size);
-            imgui.text(buf);
-        }
-
+        add_range(m_extrusions.ranges.height);
         break;
     }
-    case EViewType::Width: { break; }
+    case EViewType::Width:
+    {
+        add_range(m_extrusions.ranges.width);
+        break;
+    }
     case EViewType::Feedrate: { break; }
     case EViewType::FanSpeed: { break; }
     case EViewType::VolumetricRate: { break; }
