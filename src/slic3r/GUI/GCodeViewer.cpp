@@ -65,7 +65,7 @@ void GCodeViewer::IBuffer::add_path(const GCodeProcessor::MoveVertex& move)
     paths.push_back({ move.type, move.extrusion_role, id, id, move.height, move.width });
 }
 
-std::array<float, 4> GCodeViewer::Extrusions::Range::get_color_at(float value, const std::array<std::array<float, 4>, Default_Range_Colors_Count>& colors) const
+std::array<float, 3> GCodeViewer::Extrusions::Range::get_color_at(float value, const std::array<std::array<float, 3>, Default_Range_Colors_Count>& colors) const
 {
     // Input value scaled to the color range
     const float step = step_size();
@@ -81,43 +81,43 @@ std::array<float, 4> GCodeViewer::Extrusions::Range::get_color_at(float value, c
     const float local_t = std::min(global_t - static_cast<float>(color_low_idx), 1.0f); // upper limit of 1.0f
 
     // Interpolate between the low and high colors in RGB space to find exactly which color the input value should get
-    std::array<float, 4> ret;
-    for (unsigned int i = 0; i < 4; ++i)
+    std::array<float, 3> ret;
+    for (unsigned int i = 0; i < 3; ++i)
     {
         ret[i] = lerp(colors[color_low_idx][i], colors[color_high_idx][i], local_t);
     }
     return ret;
 }
 
-const std::array<std::array<float, 4>, erCount> GCodeViewer::Default_Extrusion_Role_Colors {{
-    { 1.00f, 1.00f, 1.00f, 1.0f },   // erNone
-    { 1.00f, 1.00f, 0.40f, 1.0f },   // erPerimeter
-    { 1.00f, 0.65f, 0.00f, 1.0f },   // erExternalPerimeter
-    { 0.00f, 0.00f, 1.00f, 1.0f },   // erOverhangPerimeter
-    { 0.69f, 0.19f, 0.16f, 1.0f },   // erInternalInfill
-    { 0.84f, 0.20f, 0.84f, 1.0f },   // erSolidInfill
-    { 1.00f, 0.10f, 0.10f, 1.0f },   // erTopSolidInfill
-    { 0.60f, 0.60f, 1.00f, 1.0f },   // erBridgeInfill
-    { 1.00f, 1.00f, 1.00f, 1.0f },   // erGapFill
-    { 0.52f, 0.48f, 0.13f, 1.0f },   // erSkirt
-    { 0.00f, 1.00f, 0.00f, 1.0f },   // erSupportMaterial
-    { 0.00f, 0.50f, 0.00f, 1.0f },   // erSupportMaterialInterface
-    { 0.70f, 0.89f, 0.67f, 1.0f },   // erWipeTower
-    { 0.16f, 0.80f, 0.58f, 1.0f },   // erCustom
-    { 0.00f, 0.00f, 0.00f, 1.0f }    // erMixed
+const std::array<std::array<float, 3>, erCount> GCodeViewer::Default_Extrusion_Role_Colors {{
+    { 1.00f, 1.00f, 1.00f },   // erNone
+    { 1.00f, 1.00f, 0.40f },   // erPerimeter
+    { 1.00f, 0.65f, 0.00f },   // erExternalPerimeter
+    { 0.00f, 0.00f, 1.00f },   // erOverhangPerimeter
+    { 0.69f, 0.19f, 0.16f },   // erInternalInfill
+    { 0.84f, 0.20f, 0.84f },   // erSolidInfill
+    { 1.00f, 0.10f, 0.10f },   // erTopSolidInfill
+    { 0.60f, 0.60f, 1.00f },   // erBridgeInfill
+    { 1.00f, 1.00f, 1.00f },   // erGapFill
+    { 0.52f, 0.48f, 0.13f },   // erSkirt
+    { 0.00f, 1.00f, 0.00f },   // erSupportMaterial
+    { 0.00f, 0.50f, 0.00f },   // erSupportMaterialInterface
+    { 0.70f, 0.89f, 0.67f },   // erWipeTower
+    { 0.16f, 0.80f, 0.58f },   // erCustom
+    { 0.00f, 0.00f, 0.00f }    // erMixed
 }};
 
-const std::array<std::array<float, 4>, GCodeViewer::Default_Range_Colors_Count> GCodeViewer::Default_Range_Colors {{
-    { 0.043f, 0.173f, 0.478f, 1.0f },
-    { 0.075f, 0.349f, 0.522f, 1.0f },
-    { 0.110f, 0.533f, 0.569f, 1.0f },
-    { 0.016f, 0.839f, 0.059f, 1.0f },
-    { 0.667f, 0.949f, 0.000f, 1.0f },
-    { 0.988f, 0.975f, 0.012f, 1.0f },
-    { 0.961f, 0.808f, 0.039f, 1.0f },
-    { 0.890f, 0.533f, 0.125f, 1.0f },
-    { 0.820f, 0.408f, 0.188f, 1.0f },
-    { 0.761f, 0.322f, 0.235f, 1.0f }
+const std::array<std::array<float, 3>, GCodeViewer::Default_Range_Colors_Count> GCodeViewer::Default_Range_Colors {{
+    { 0.043f, 0.173f, 0.478f },
+    { 0.075f, 0.349f, 0.522f },
+    { 0.110f, 0.533f, 0.569f },
+    { 0.016f, 0.839f, 0.059f },
+    { 0.667f, 0.949f, 0.000f },
+    { 0.988f, 0.975f, 0.012f },
+    { 0.961f, 0.808f, 0.039f },
+    { 0.890f, 0.533f, 0.125f },
+    { 0.820f, 0.408f, 0.188f },
+    { 0.761f, 0.322f, 0.235f }
 }};
 
 void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& print, bool initialized)
@@ -410,7 +410,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized)
 void GCodeViewer::render_toolpaths() const
 {
     auto extrusion_color = [this](const Path& path) {
-        std::array<float, 4> color;
+        std::array<float, 3> color;
         switch (m_view_type)
         {
         case EViewType::FeatureType: { color = m_extrusions.role_colors[static_cast<unsigned int>(path.role)]; break; }
@@ -423,18 +423,18 @@ void GCodeViewer::render_toolpaths() const
         case EViewType::ColorPrint:
         default:
         {
-            color = { 1.0f, 1.0f, 1.0f, 1.0f };
+            color = { 1.0f, 1.0f, 1.0f };
             break;
         }
         }
         return color;
     };
 
-    auto set_color = [](GLint current_program_id, const std::array<float, 4>& color) {
+    auto set_color = [](GLint current_program_id, const std::array<float, 3>& color) {
         if (current_program_id > 0) {
             GLint color_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "uniform_color") : -1;
             if (color_id >= 0) {
-                glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)color.data()));
+                glsafe(::glUniform3fv(color_id, 1, (const GLfloat*)color.data()));
                 return;
             }
         }
@@ -478,7 +478,7 @@ void GCodeViewer::render_toolpaths() const
             {
             case GCodeProcessor::EMoveType::Tool_change:
             {
-                std::array<float, 4> color = { 1.0f, 1.0f, 1.0f, 1.0f };
+                std::array<float, 3> color = { 1.0f, 1.0f, 1.0f };
                 set_color(current_program_id, color);
                 glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
                 glsafe(::glDrawElements(GL_POINTS, (GLsizei)buffer.data_size, GL_UNSIGNED_INT, nullptr));
@@ -487,7 +487,7 @@ void GCodeViewer::render_toolpaths() const
             }
             case GCodeProcessor::EMoveType::Retract:
             {
-                std::array<float, 4> color = { 1.0f, 0.0f, 1.0f, 1.0f };
+                std::array<float, 3> color = { 1.0f, 0.0f, 1.0f };
                 set_color(current_program_id, color);
                 glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
                 glsafe(::glDrawElements(GL_POINTS, (GLsizei)buffer.data_size, GL_UNSIGNED_INT, nullptr));
@@ -496,7 +496,7 @@ void GCodeViewer::render_toolpaths() const
             }
             case GCodeProcessor::EMoveType::Unretract:
             {
-                std::array<float, 4> color = { 0.0f, 1.0f, 0.0f, 1.0f };
+                std::array<float, 3> color = { 0.0f, 1.0f, 0.0f };
                 set_color(current_program_id, color);
                 glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
                 glsafe(::glDrawElements(GL_POINTS, (GLsizei)buffer.data_size, GL_UNSIGNED_INT, nullptr));
@@ -517,7 +517,7 @@ void GCodeViewer::render_toolpaths() const
             }
             case GCodeProcessor::EMoveType::Travel:
             {
-                std::array<float, 4> color = { 1.0f, 1.0f, 0.0f, 1.0f };
+                std::array<float, 3> color = { 1.0f, 1.0f, 0.0f };
                 set_color(current_program_id, color);
                 for (const Path& path : buffer.paths)
                 {
@@ -572,8 +572,8 @@ void GCodeViewer::render_overlay() const
         auto add_item = [this, draw_list, &imgui](int i, float value) {
             ImVec2 pos(ImGui::GetCursorPosX() + 2.0f, ImGui::GetCursorPosY() + 2.0f);
             draw_list->AddRect(ImVec2(pos.x, pos.y), ImVec2(pos.x + ICON_BORDER_SIZE, pos.y + ICON_BORDER_SIZE), ICON_BORDER_COLOR, 0.0f, 0);
-            const std::array<float, 4>& color = m_extrusions.ranges.colors[i];
-            ImU32 fill_color = ImGui::GetColorU32(ImVec4(color[0], color[1], color[2], color[3]));
+            const std::array<float, 3>& color = m_extrusions.ranges.colors[i];
+            ImU32 fill_color = ImGui::GetColorU32(ImVec4(color[0], color[1], color[2], 1.0f));
             draw_list->AddRectFilled(ImVec2(pos.x + 1.0f, pos.y + 1.0f), ImVec2(pos.x + ICON_BORDER_SIZE - 1.0f, pos.y + ICON_BORDER_SIZE - 1.0f), fill_color);
             ImGui::SetCursorPosX(pos.x + ICON_BORDER_SIZE + GAP_ICON_TEXT);
             ImGui::AlignTextToFramePadding();
@@ -618,7 +618,7 @@ void GCodeViewer::render_overlay() const
         {
             ImVec2 pos(ImGui::GetCursorPosX() + 2.0f, ImGui::GetCursorPosY() + 2.0f);
             draw_list->AddRect(ImVec2(pos.x, pos.y), ImVec2(pos.x + ICON_BORDER_SIZE, pos.y + ICON_BORDER_SIZE), ICON_BORDER_COLOR, 0.0f, 0);
-            const std::array<float, 4>& color = m_extrusions.role_colors[static_cast<unsigned int>(role)];
+            const std::array<float, 3>& color = m_extrusions.role_colors[static_cast<unsigned int>(role)];
             ImU32 fill_color = ImGui::GetColorU32(ImVec4(color[0], color[1], color[2], color[3]));
             draw_list->AddRectFilled(ImVec2(pos.x + 1.0f, pos.y + 1.0f), ImVec2(pos.x + ICON_BORDER_SIZE - 1.0f, pos.y + ICON_BORDER_SIZE - 1.0f), fill_color);
             ImGui::SetCursorPosX(pos.x + ICON_BORDER_SIZE + GAP_ICON_TEXT);

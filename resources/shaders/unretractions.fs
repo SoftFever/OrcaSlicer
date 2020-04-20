@@ -13,7 +13,7 @@ const vec3 LIGHT_TOP_DIR = vec3(-0.4574957, 0.4574957, 0.7624929);
 const vec3 LIGHT_FRONT_DIR = vec3(0.0, 0.0, 1.0);
 #define LIGHT_FRONT_DIFFUSE  (0.3 * INTENSITY_CORRECTION)
 
-uniform vec4 uniform_color;
+uniform vec3 uniform_color;
 
 varying vec3 eye_position;
 varying vec3 eye_normal;
@@ -41,5 +41,5 @@ void main()
 //    if (world_normal_z < 0.0)
 //        intensity.x *= (1.0 + world_normal_z * (1.0 - INTENSITY_AMBIENT));
 
-    gl_FragColor = vec4(vec3(intensity.y, intensity.y, intensity.y) + uniform_color.rgb * intensity.x, uniform_color.a);
+    gl_FragColor = vec4(vec3(intensity.y, intensity.y, intensity.y) + uniform_color * intensity.x, 1.0);
 }

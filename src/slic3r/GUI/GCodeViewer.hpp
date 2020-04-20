@@ -15,9 +15,9 @@ namespace GUI {
 
 class GCodeViewer
 {
-    static const std::array<std::array<float, 4>, erCount> Default_Extrusion_Role_Colors;
+    static const std::array<std::array<float, 3>, erCount> Default_Extrusion_Role_Colors;
     static const size_t Default_Range_Colors_Count = 10;
-    static const std::array<std::array<float, 4>, Default_Range_Colors_Count> Default_Range_Colors;
+    static const std::array<std::array<float, 3>, Default_Range_Colors_Count> Default_Range_Colors;
 
     // buffer containing vertices data
     struct VBuffer
@@ -93,12 +93,12 @@ class GCodeViewer
             }
 
             float step_size() const { return (max - min) / (static_cast<float>(Default_Range_Colors_Count) - 1.0f); }
-            std::array<float, 4> get_color_at(float value, const std::array<std::array<float, 4>, Default_Range_Colors_Count>& colors) const;
+            std::array<float, 3> get_color_at(float value, const std::array<std::array<float, 3>, Default_Range_Colors_Count>& colors) const;
         };
 
         struct Ranges
         {
-            std::array<std::array<float, 4>, Default_Range_Colors_Count> colors;
+            std::array<std::array<float, 3>, Default_Range_Colors_Count> colors;
 
             // Color mapping by layer height.
             Range height;
@@ -117,7 +117,7 @@ class GCodeViewer
             }
         };
 
-        std::array<std::array<float, 4>, erCount> role_colors;
+        std::array<std::array<float, 3>, erCount> role_colors;
         unsigned int role_visibility_flags{ 0 };
         Ranges ranges;
 
