@@ -345,6 +345,7 @@ private:
         bool generate(const std::string& msg, const GLCanvas3D& canvas, bool compress, bool red_colored = false);
     };
 
+#if !ENABLE_GCODE_VIEWER
     class LegendTexture : public GUI::GLTexture
     {
         static const int Px_Title_Offset = 5;
@@ -371,6 +372,7 @@ private:
 
         void render(const GLCanvas3D& canvas) const;
     };
+#endif // !ENABLE_GCODE_VIEWER
 
 #if ENABLE_RENDER_STATISTICS
     struct RenderStats
@@ -445,7 +447,9 @@ private:
     std::unique_ptr<RetinaHelper> m_retina_helper;
 #endif
     bool m_in_render;
+#if !ENABLE_GCODE_VIEWER
     LegendTexture m_legend_texture;
+#endif // !ENABLE_GCODE_VIEWER
     WarningTexture m_warning_texture;
     wxTimer m_timer;
 #if !ENABLE_NON_STATIC_CANVAS_MANAGER
@@ -483,7 +487,9 @@ private:
     bool m_initialized;
     bool m_apply_zoom_to_volumes_filter;
     mutable std::vector<int> m_hover_volume_idxs;
+#if !ENABLE_GCODE_VIEWER
     bool m_legend_texture_enabled;
+#endif // !ENABLE_GCODE_VIEWER
     bool m_picking_enabled;
     bool m_moving_enabled;
     bool m_dynamic_background_enabled;
@@ -658,7 +664,8 @@ public:
     void reload_scene(bool refresh_immediately, bool force_full_scene_refresh = false);
 
 #if ENABLE_GCODE_VIEWER
-    void load_gcode_preview_2(const GCodeProcessor::Result& gcode_result);
+    void load_gcode_preview(const GCodeProcessor::Result& gcode_result);
+    void refresh_toolpaths_ranges(const GCodeProcessor::Result& gcode_result);
 #else
     void load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors);
 #endif // ENABLE_GCODE_VIEWER
@@ -679,7 +686,9 @@ public:
     Size get_canvas_size() const;
     Vec2d get_local_mouse_position() const;
 
+#if !ENABLE_GCODE_VIEWER
     void reset_legend_texture();
+#endif // !ENABLE_GCODE_VIEWER
 
     void set_tooltip(const std::string& tooltip) const;
 
@@ -790,7 +799,9 @@ private:
 #endif // ENABLE_RENDER_SELECTION_CENTER
     void _render_overlays() const;
     void _render_warning_texture() const;
+#if !ENABLE_GCODE_VIEWER
     void _render_legend_texture() const;
+#endif // !ENABLE_GCODE_VIEWER
     void _render_volumes_for_picking() const;
     void _render_current_gizmo() const;
     void _render_gizmos_overlay() const;
@@ -852,8 +863,10 @@ private:
     void _update_sla_shells_outside_state();
     void _show_warning_texture_if_needed(WarningTexture::Warning warning);
 
+#if !ENABLE_GCODE_VIEWER
     // generates the legend texture in dependence of the current shown view type
     void _generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
+#endif // !ENABLE_GCODE_VIEWER
 
     // generates a warning texture containing the given message
     void _set_warning_texture(WarningTexture::Warning warning, bool state);

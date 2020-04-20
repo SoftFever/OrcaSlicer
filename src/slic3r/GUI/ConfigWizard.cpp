@@ -2096,7 +2096,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     p->add_page(p->page_filaments = new PageMaterials(this, &p->filaments,
         _(L("Filament Profiles Selection")), _(L("Filaments")), _(L("Type:")) ));
     p->add_page(p->page_sla_materials = new PageMaterials(this, &p->sla_materials,
-        _(L("SLA Material Profiles Selection")) + " ", _(L("SLA Materials")), _(L("Layer height:")) ));
+        _(L("SLA Material Profiles Selection")) + " ", _(L("SLA Materials")), _(L("Type:")) ));
 
     
     p->add_page(p->page_update   = new PageUpdate(this));
