@@ -10,6 +10,8 @@
 
 #include <wx/combo.h>
 
+#include <wx/popupwin.h>
+
 #include "Preset.hpp"
 #include "wxExtensions.hpp"
 
@@ -175,7 +177,6 @@ public:
 };
 
 
-#include <wx/popupwin.h>
 
 class PopupSearchList : public wxPopupTransientWindow
 {

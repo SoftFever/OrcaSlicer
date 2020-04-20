@@ -4497,14 +4497,17 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
     strcpy(s, search_line.empty() ? _u8L("Type here to search").c_str() : search_line.c_str());
 
     imgui->search_list(ImVec2(45 * em, 30 * em), &search_string_getter, s, 
-                       sidebar.get_searcher().category, sidebar.get_searcher().group, 
+                       sidebar.get_searcher().category, sidebar.get_searcher().group,
+                       m_imgui_search_hovered_pos,
                        selected, edited, check_changed);
 
     search_line = s;
     delete [] s;
 
-    if (edited)
+    if (edited) {
         sidebar.search_and_apply_tab_search_lines();
+        m_imgui_search_hovered_pos = -1;
+    }
 
     if (check_changed) {
         if (search_line == _u8L("Type here to search"))
@@ -5065,7 +5068,7 @@ bool GLCanvas3D::_init_main_toolbar()
                 _deactivate_search_toolbar_item();
         }
     };
-    item.left.action_callback   = GLToolbarItem::Default_Action_Callback;
+    item.left.action_callback   = [this]() { m_imgui_search_hovered_pos = -1; }; //GLToolbarItem::Default_Action_Callback;
     item.visibility_callback    = GLToolbarItem::Default_Visibility_Callback;
     item.enabling_callback      = GLToolbarItem::Default_Enabling_Callback;
     if (!m_main_toolbar.add_item(item))

@@ -539,8 +539,69 @@ static bool selectable(const char* label, bool selected, ImGuiSelectableFlags fl
     return pressed;
 }
 
+// Scroll so that the hovered item is at the top of the window
+static void scroll_y(int hover_id)
+{
+    if (hover_id < 0)
+        return;
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = g.CurrentWindow;
+
+    float item_size_y = window->DC.PrevLineSize.y + g.Style.ItemSpacing.y;
+    float item_delta = 0.5 * item_size_y;
+
+    float item_top = item_size_y * hover_id;
+    float item_bottom = item_top + item_size_y;
+
+    float win_top = window->Scroll.y;
+    float win_bottom = window->Scroll.y + window->Size.y;
+
+    if (item_bottom + item_delta >= win_bottom)
+        ImGui::SetScrollY(win_top + item_size_y);
+    else if (item_top - item_delta <= win_top)
+        ImGui::SetScrollY(win_top - item_size_y);
+}
+
+// Scroll up for one item 
+static void scroll_up()
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = g.CurrentWindow;
+
+    float item_size_y = window->DC.PrevLineSize.y + g.Style.ItemSpacing.y;
+    float win_top = window->Scroll.y;
+
+    ImGui::SetScrollY(win_top - item_size_y);
+}
+
+// Scroll down for one item 
+static void scroll_down()
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = g.CurrentWindow;
+
+    float item_size_y = window->DC.PrevLineSize.y + g.Style.ItemSpacing.y;
+    float win_top = window->Scroll.y;
+
+    ImGui::SetScrollY(win_top + item_size_y);
+}
+
+// Use this function instead of ImGui::IsKeyPressed.
+// ImGui::IsKeyPressed is related for *GImGui.IO.KeysDownDuration[user_key_index]
+// And after first key pressing IsKeyPressed() return "true" always even if key wasn't pressed
+static void process_key_down(ImGuiKey imgui_key, std::function<void()> f)
+{
+    if (ImGui::IsKeyDown(ImGui::GetKeyIndex(imgui_key)))
+    {
+        f();
+        // set KeysDown to false to avoid redundant key down processing
+        ImGuiContext& g = *GImGui;
+        g.IO.KeysDown[ImGui::GetKeyIndex(imgui_key)] = false;
+    }
+}
+
 void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, const char**), char* search_str,
-                               bool& category, bool& group, size_t& selected, bool& edited, bool& check_changed)
+                               bool& category, bool& group, size_t& hovered_id, size_t& selected, bool& edited, bool& check_changed)
 {
     // ImGui::ListBoxHeader("", size);
     {   
@@ -581,29 +642,63 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
         ImGui::InputTextEx("", NULL, search_str, 20, search_size, 0, NULL, NULL);
         edited = ImGui::IsItemEdited();
 
-        if (ImGui::IsItemDeactivated() && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
+        process_key_down(ImGuiKey_Escape, [&selected, search_str, str]() {
             // use 9999 to mark selection as a Esc key
             selected = 9999;
             // ... and when Esc key was pressed, than revert search_str value
             strcpy(search_str, str.c_str());
-        }
+        });
 
         ImGui::BeginChildFrame(id, frame_bb.GetSize());
     }
 
     size_t i = 0;
     const char* item_text;
+    int mouse_hovered = -1;
+
     while (items_getter(i, &item_text))
     {
-        selectable(item_text, false);
+        selectable(item_text, i == hovered_id);
 
-        if (ImGui::IsItemHovered())
+        if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("%s", item_text);
+            hovered_id = size_t(-1);
+            mouse_hovered = i;
+        }
 
         if (ImGui::IsItemClicked())
             selected = i;
         i++;
     }
+
+    scroll_y(mouse_hovered);
+
+    // process Up/DownArrows and Enter
+    process_key_down(ImGuiKey_UpArrow, [&hovered_id, mouse_hovered]() {
+        if (mouse_hovered > 0)
+            scroll_up();
+        else {
+            if (hovered_id > 0 && hovered_id != size_t(-1))
+                --hovered_id;
+            scroll_y(hovered_id);
+        }
+    });
+
+    process_key_down(ImGuiKey_DownArrow, [&hovered_id, mouse_hovered, i]() {
+        if (mouse_hovered > 0)
+            scroll_down();
+        else {
+            if (hovered_id == size_t(-1))
+                hovered_id = 0;
+            else if (hovered_id < size_t(i - 1))
+                ++hovered_id;
+            scroll_y(hovered_id);
+        }
+    });
+
+    process_key_down(ImGuiKey_Enter, [&selected, hovered_id]() {
+        selected = hovered_id;
+    });
 
     ImGui::ListBoxFooter();
 
