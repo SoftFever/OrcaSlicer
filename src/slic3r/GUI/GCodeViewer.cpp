@@ -62,12 +62,12 @@ bool GCodeViewer::IBuffer::init_shader(const std::string& vertex_shader_src, con
 void GCodeViewer::IBuffer::add_path(const GCodeProcessor::MoveVertex& move)
 {
     unsigned int id = static_cast<unsigned int>(data.size());
-    paths.push_back({ move.type, move.extrusion_role, id, id, move.height, move.width, move.feedrate });
+    paths.push_back({ move.type, move.extrusion_role, id, id, move.height, move.width, move.feedrate, move.fan_speed });
 }
 
 std::array<float, 3> GCodeViewer::Extrusions::Range::get_color_at(float value, const std::array<std::array<float, 3>, Default_Range_Colors_Count>& colors) const
 {
-    // Input value scaled to the color range
+    // Input value scaled to the colors range
     const float step = step_size();
     const float global_t = (step != 0.0f) ? std::max(0.0f, value - min) / step : 0.0f; // lower limit of 0.0f
 
@@ -80,7 +80,7 @@ std::array<float, 3> GCodeViewer::Extrusions::Range::get_color_at(float value, c
     // Compute how far the value is between the low and high colors so that they can be interpolated
     const float local_t = std::clamp(global_t - static_cast<float>(color_low_idx), 0.0f, 1.0f);
 
-    // Interpolate between the low and high colors in RGB space to find exactly which color the input value should get
+    // Interpolate between the low and high colors to find exactly which color the input value should get
     std::array<float, 3> ret;
     for (unsigned int i = 0; i < 3; ++i)
     {
@@ -108,7 +108,7 @@ const std::array<std::array<float, 3>, erCount> GCodeViewer::Default_Extrusion_R
 }};
 
 const std::array<std::array<float, 3>, GCodeViewer::Default_Range_Colors_Count> GCodeViewer::Default_Range_Colors {{
-    { 0.043f, 0.173f, 0.478f },
+    { 0.043f, 0.173f, 0.478f }, // bluish
     { 0.075f, 0.349f, 0.522f },
     { 0.110f, 0.533f, 0.569f },
     { 0.016f, 0.839f, 0.059f },
@@ -117,7 +117,7 @@ const std::array<std::array<float, 3>, GCodeViewer::Default_Range_Colors_Count> 
     { 0.961f, 0.808f, 0.039f },
     { 0.890f, 0.533f, 0.125f },
     { 0.820f, 0.408f, 0.188f },
-    { 0.761f, 0.322f, 0.235f }
+    { 0.761f, 0.322f, 0.235f }  // reddish
 }};
 
 void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& print, bool initialized)
@@ -159,6 +159,7 @@ void GCodeViewer::refresh_toolpaths_ranges(const GCodeProcessor::Result& gcode_r
                 m_extrusions.ranges.height.update_from(curr.height);
                 m_extrusions.ranges.width.update_from(curr.width);
                 m_extrusions.ranges.feedrate.update_from(curr.feedrate);
+                m_extrusions.ranges.fan_speed.update_from(curr.fan_speed);
             }
             break;
         }
@@ -447,7 +448,7 @@ void GCodeViewer::render_toolpaths() const
         case EViewType::Height:         { color = m_extrusions.ranges.height.get_color_at(path.height, m_extrusions.ranges.colors); break; }
         case EViewType::Width:          { color = m_extrusions.ranges.width.get_color_at(path.width, m_extrusions.ranges.colors); break; }
         case EViewType::Feedrate:       { color = m_extrusions.ranges.feedrate.get_color_at(path.feedrate, m_extrusions.ranges.colors); break; }
-        case EViewType::FanSpeed:
+        case EViewType::FanSpeed:       { color = m_extrusions.ranges.fan_speed.get_color_at(path.fan_speed, m_extrusions.ranges.colors); break; }
         case EViewType::VolumetricRate:
         case EViewType::Tool:
         case EViewType::ColorPrint:
@@ -653,22 +654,10 @@ void GCodeViewer::render_overlay() const
         }
         break;
     }
-    case EViewType::Height:
-    {
-        add_range(m_extrusions.ranges.height, 3);
-        break;
-    }
-    case EViewType::Width:
-    {
-        add_range(m_extrusions.ranges.width, 3);
-        break;
-    }
-    case EViewType::Feedrate:
-    {
-        add_range(m_extrusions.ranges.feedrate, 1);
-        break;
-    }
-    case EViewType::FanSpeed: { break; }
+    case EViewType::Height:   { add_range(m_extrusions.ranges.height, 3); break; }
+    case EViewType::Width:    { add_range(m_extrusions.ranges.width, 3); break; }
+    case EViewType::Feedrate: { add_range(m_extrusions.ranges.feedrate, 1); break; }
+    case EViewType::FanSpeed: { add_range(m_extrusions.ranges.fan_speed, 0); break; }
     case EViewType::VolumetricRate: { break; }
     case EViewType::Tool: { break; }
     case EViewType::ColorPrint: { break; }

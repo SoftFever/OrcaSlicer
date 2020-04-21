@@ -43,9 +43,10 @@ class GCodeViewer
         float height{ 0.0f };
         float width{ 0.0f };
         float feedrate{ 0.0f };
+        float fan_speed{ 0.0f };
 
         bool matches(const GCodeProcessor::MoveVertex& move) const {
-            return type == move.type && role == move.extrusion_role && height == move.height && width == move.width && feedrate == move.feedrate;
+            return type == move.type && role == move.extrusion_role && height == move.height && width == move.width && feedrate == move.feedrate && fan_speed == move.fan_speed;
         }
     };
 
@@ -107,8 +108,8 @@ class GCodeViewer
             Range width;
             // Color mapping by feedrate.
             Range feedrate;
-//        // Color mapping by fan speed.
-//        Range fan_speed;
+            // Color mapping by fan speed.
+            Range fan_speed;
 //        // Color mapping by volumetric extrusion rate.
 //        Range volumetric_rate;
 
@@ -116,6 +117,7 @@ class GCodeViewer
                 height.reset();
                 width.reset();
                 feedrate.reset();
+                fan_speed.reset();
             }
         };
 
