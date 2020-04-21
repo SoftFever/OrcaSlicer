@@ -44,9 +44,11 @@ class GCodeViewer
         float width{ 0.0f };
         float feedrate{ 0.0f };
         float fan_speed{ 0.0f };
+        float volumetric_rate{ 0.0f };
 
         bool matches(const GCodeProcessor::MoveVertex& move) const {
-            return type == move.type && role == move.extrusion_role && height == move.height && width == move.width && feedrate == move.feedrate && fan_speed == move.fan_speed;
+            return type == move.type && role == move.extrusion_role && height == move.height && width == move.width &&
+                feedrate == move.feedrate && fan_speed == move.fan_speed && volumetric_rate == move.volumetric_rate();
         }
     };
 
@@ -82,17 +84,8 @@ class GCodeViewer
 
             Range() { reset(); }
 
-            void update_from(const float value)
-            {
-                min = std::min(min, value);
-                max = std::max(max, value);
-            }
-
-            void reset()
-            {
-                min = FLT_MAX;
-                max = -FLT_MAX;
-            }
+            void update_from(const float value) { min = std::min(min, value); max = std::max(max, value); }
+            void reset() { min = FLT_MAX; max = -FLT_MAX; }
 
             float step_size() const { return (max - min) / (static_cast<float>(Default_Range_Colors_Count) - 1.0f); }
             std::array<float, 3> get_color_at(float value, const std::array<std::array<float, 3>, Default_Range_Colors_Count>& colors) const;
@@ -110,14 +103,15 @@ class GCodeViewer
             Range feedrate;
             // Color mapping by fan speed.
             Range fan_speed;
-//        // Color mapping by volumetric extrusion rate.
-//        Range volumetric_rate;
+            // Color mapping by volumetric extrusion rate.
+            Range volumetric_rate;
 
             void reset() {
                 height.reset();
                 width.reset();
                 feedrate.reset();
                 fan_speed.reset();
+                volumetric_rate.reset();
             }
         };
 
