@@ -2645,4 +2645,107 @@ void PrintObject::_generate_support_material()
     support_material.generate(*this);
 }
 
+
+void PrintObject::project_and_append_custom_supports(
+        FacetSupportType type, std::vector<ExPolygons>& expolys) const
+{
+    for (const ModelVolume* mv : this->model_object()->volumes) {
+        const auto& custom_facets = mv->m_supported_facets.get_facets(type);
+        const TriangleMesh& mesh = mv->mesh();
+        const Transform3f& tr1 = mv->get_matrix().cast<float>();
+        const Transform3f& tr2 = this->trafo().cast<float>();
+
+        // List of all layers.
+        const LayerPtrs& layers = this->layers();
+
+        // Make sure that enforcers vector can be used.
+        if (! custom_facets.empty())
+        expolys.resize(layers.size());
+
+        // Iterate over all triangles.
+        for (int facet_idx : custom_facets) {
+            std::array<Vec3f, 3> facet;
+            std::array<float, 3> z_heights;
+
+            // Transform the triangle into worlds coords.
+            for (int i=0; i<3; ++i)
+                facet[i] = tr2 * tr1 * mesh.its.vertices[mesh.its.indices[facet_idx](i)];
+
+            // Sort the three vertices according to z-coordinate.
+            std::sort(facet.begin(), facet.end(),
+                      [](const Vec3f& pt1, const Vec3f&pt2) {
+                          return pt1.z() < pt2.z();
+                      });
+
+            Polygon triangle;
+            for (int i=0; i<3; ++i) {
+                z_heights[i] = facet[i].z();
+                triangle.append(Point::new_scale(facet[i].x(), facet[i].y()));
+                triangle.translate(this->center_offset());
+            }
+
+            // Find lowest slice not below the triangle.
+            auto it = std::lower_bound(layers.begin(), layers.end(), z_heights[0],
+                          [](const Layer* l1, float z) {
+                               return l1->slice_z < z;
+                          });
+
+
+            // Calculate how to move points on triangle sides per unit z increment.
+            Point ta(triangle.points[1] - triangle.points[0]);
+            Point tb(triangle.points[2] - triangle.points[0]);
+
+            ta *= 1./(z_heights[1] - z_heights[0]);
+            tb *= 1./(z_heights[2] - z_heights[0]);
+
+            Points proj;
+            proj.emplace_back(triangle.points[0]);
+
+            Point a(proj.back());
+            Point b(proj.back());
+            float last_z = facet[0].z();
+            bool passed_first = false;
+            bool stop = false;
+
+            // Project a sub-triangle on all slices intersecting the triangle.
+            while (it != layers.end()) {
+                const float z = (*it)->slice_z;
+
+                if (z > z_heights[1] && ! passed_first) {
+                    a = triangle.points[1];
+                    ta = triangle.points[2]-triangle.points[1];
+                    ta *= 1./(z_heights[2] - z_heights[1]);
+                    proj.push_back(a);
+                    passed_first = true;
+                }
+                a += ta * (z-last_z);
+
+                if (z > z_heights[2] || it+1 == layers.end()) {
+                    b = triangle.points[2];
+                    proj.push_back(b);
+                    stop = true;
+                }
+                else {
+                    b += tb * (z-last_z);
+                    proj.push_back(a+ta);
+                    proj.push_back(b+tb);
+                }
+
+                if (it != layers.begin())
+                    expolys[it-layers.begin()-1].emplace_back(proj);
+
+                if (stop)
+                    break;
+
+                proj.clear();
+                proj.push_back(b);
+                proj.push_back(a);
+
+                ++it;
+                last_z = z;
+            }
+        }
+    }
+}
+
 } // namespace Slic3r
