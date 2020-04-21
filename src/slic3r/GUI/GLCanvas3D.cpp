@@ -2835,7 +2835,7 @@ static void load_gcode_retractions(const GCodePreviewData::Retraction& retractio
 #endif // !ENABLE_GCODE_VIEWER
 
 #if ENABLE_GCODE_VIEWER
-void GLCanvas3D::load_gcode_preview(const GCodeProcessor::Result& gcode_result)
+void GLCanvas3D::load_gcode_preview(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors)
 {
 #if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
     static unsigned int last_result_id = 0;
@@ -2852,7 +2852,7 @@ void GLCanvas3D::load_gcode_preview(const GCodeProcessor::Result& gcode_result)
         out.close();
     }
 #endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
-    m_gcode_viewer.load(gcode_result, *this->fff_print(), m_initialized);
+    m_gcode_viewer.load(gcode_result, str_tool_colors , *this->fff_print(), m_initialized);
 }
 
 void GLCanvas3D::refresh_toolpaths_ranges(const GCodeProcessor::Result& gcode_result)
@@ -6594,6 +6594,7 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - end" << m_volumes.log_memory_info() << log_memory_info();
 }
 
+#if !ENABLE_GCODE_VIEWER
 static inline int hex_digit_to_int(const char c)
 {
     return
@@ -6602,7 +6603,6 @@ static inline int hex_digit_to_int(const char c)
         (c >= 'a' && c <= 'f') ? int(c - 'a') + 10 : -1;
 }
 
-#if !ENABLE_GCODE_VIEWER
 void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
 {
     BOOST_LOG_TRIVIAL(debug) << "Loading G-code extrusion paths - start" << m_volumes.log_memory_info() << log_memory_info();

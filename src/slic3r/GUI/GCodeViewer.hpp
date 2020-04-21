@@ -45,10 +45,12 @@ class GCodeViewer
         float feedrate{ 0.0f };
         float fan_speed{ 0.0f };
         float volumetric_rate{ 0.0f };
+        unsigned char extruder_id{ 0 };
 
         bool matches(const GCodeProcessor::MoveVertex& move) const {
             return type == move.type && role == move.extrusion_role && height == move.height && width == move.width &&
-                feedrate == move.feedrate && fan_speed == move.fan_speed && volumetric_rate == move.volumetric_rate();
+                feedrate == move.feedrate && fan_speed == move.fan_speed && volumetric_rate == move.volumetric_rate() &&
+                extruder_id == move.extruder_id;
         }
     };
 
@@ -146,11 +148,11 @@ public:
     };
 
 private:
+    unsigned int m_last_result_id{ 0 };
     VBuffer m_vertices;
     std::vector<IBuffer> m_buffers{ static_cast<size_t>(GCodeProcessor::EMoveType::Extrude) };
     BoundingBoxf3 m_bounding_box;
-
-    unsigned int m_last_result_id{ 0 };
+    std::vector<std::array<float, 3>> m_tool_colors;
     std::vector<double> m_layers_zs;
     std::vector<ExtrusionRole> m_roles;
     Extrusions m_extrusions;
@@ -167,7 +169,9 @@ public:
         return init_shaders();
     }
 
-    void load(const GCodeProcessor::Result& gcode_result, const Print& print, bool initialized);
+    // extract rendering data from the given parameters
+    void load(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors, const Print& print, bool initialized);
+    // recalculate ranges in dependence of what is visible
     void refresh_toolpaths_ranges(const GCodeProcessor::Result& gcode_result);
 
     void reset();

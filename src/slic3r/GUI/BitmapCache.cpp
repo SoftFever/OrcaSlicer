@@ -3,6 +3,9 @@
 #include "libslic3r/Utils.hpp"
 #include "../Utils/MacDarkMode.hpp"
 #include "GUI.hpp"
+#if ENABLE_GCODE_VIEWER
+#include "GUI_Utils.hpp"
+#endif // ENABLE_GCODE_VIEWER
 
 #include <boost/filesystem.hpp>
 
@@ -352,6 +355,7 @@ wxBitmap BitmapCache::mksolid(size_t width, size_t height, unsigned char r, unsi
 }
 
 
+#if !ENABLE_GCODE_VIEWER
 static inline int hex_digit_to_int(const char c)
 {
     return
@@ -359,6 +363,7 @@ static inline int hex_digit_to_int(const char c)
         (c >= 'A' && c <= 'F') ? int(c - 'A') + 10 :
         (c >= 'a' && c <= 'f') ? int(c - 'a') + 10 : -1;
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 bool BitmapCache::parse_color(const std::string& scolor, unsigned char* rgb_out)
 {
