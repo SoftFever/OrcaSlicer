@@ -31,7 +31,10 @@ void GCodeViewer::VBuffer::reset()
 {
     // release gpu memory
     if (vbo_id > 0)
+    {
         glsafe(::glDeleteBuffers(1, &vbo_id));
+        vbo_id = 0;
+    }
 
     vertices_count = 0;
 }
@@ -40,7 +43,10 @@ void GCodeViewer::IBuffer::reset()
 {
     // release gpu memory
     if (ibo_id > 0)
+    {
         glsafe(::glDeleteBuffers(1, &ibo_id));
+        ibo_id = 0;
+    }
 
     // release cpu memory
     data = std::vector<unsigned int>();
@@ -62,7 +68,7 @@ bool GCodeViewer::IBuffer::init_shader(const std::string& vertex_shader_src, con
 void GCodeViewer::IBuffer::add_path(const GCodeProcessor::MoveVertex& move)
 {
     unsigned int id = static_cast<unsigned int>(data.size());
-    paths.push_back({ move.type, move.extrusion_role, id, id, move.height, move.width, move.feedrate, move.fan_speed });
+    paths.push_back({ move.type, move.extrusion_role, id, id, move.height, move.width, move.feedrate, move.fan_speed, move.volumetric_rate() });
 }
 
 std::array<float, 3> GCodeViewer::Extrusions::Range::get_color_at(float value, const std::array<std::array<float, 3>, Default_Range_Colors_Count>& colors) const
@@ -160,6 +166,7 @@ void GCodeViewer::refresh_toolpaths_ranges(const GCodeProcessor::Result& gcode_r
                 m_extrusions.ranges.width.update_from(curr.width);
                 m_extrusions.ranges.feedrate.update_from(curr.feedrate);
                 m_extrusions.ranges.fan_speed.update_from(curr.fan_speed);
+                m_extrusions.ranges.volumetric_rate.update_from(curr.volumetric_rate());
             }
             break;
         }
@@ -216,48 +223,21 @@ bool GCodeViewer::init_shaders()
 
     for (unsigned char i = begin_id; i < end_id; ++i)
     {
+        std::string vertex_shader;
+        std::string fragment_shader;
+
         switch (buffer_type(i))
         {
-        case GCodeProcessor::EMoveType::Tool_change:
-        {
-            if (!m_buffers[i].init_shader("toolchanges.vs", "toolchanges.fs"))
-                return false;
+        case GCodeProcessor::EMoveType::Tool_change: { vertex_shader = "toolchanges.vs"; fragment_shader = "toolchanges.fs"; break; }
+        case GCodeProcessor::EMoveType::Retract:     { vertex_shader = "retractions.vs"; fragment_shader = "retractions.fs"; break; }
+        case GCodeProcessor::EMoveType::Unretract:   { vertex_shader = "unretractions.vs"; fragment_shader = "unretractions.fs"; break; }
+        case GCodeProcessor::EMoveType::Extrude:     { vertex_shader = "extrusions.vs"; fragment_shader = "extrusions.fs"; break; }
+        case GCodeProcessor::EMoveType::Travel:      { vertex_shader = "travels.vs"; fragment_shader = "travels.fs"; break; }
+        default: { break; }
+        }
 
-            break;
-        }
-        case GCodeProcessor::EMoveType::Retract:
-        {
-            if (!m_buffers[i].init_shader("retractions.vs", "retractions.fs"))
-                return false;
-
-            break;
-        }
-        case GCodeProcessor::EMoveType::Unretract:
-        {
-            if (!m_buffers[i].init_shader("unretractions.vs", "unretractions.fs"))
-                return false;
-
-            break;
-        }
-        case GCodeProcessor::EMoveType::Extrude:
-        {
-            if (!m_buffers[i].init_shader("extrusions.vs", "extrusions.fs"))
-                return false;
-
-            break;
-        }
-        case GCodeProcessor::EMoveType::Travel:
-        {
-            if (!m_buffers[i].init_shader("travels.vs", "travels.fs"))
-                return false;
-
-            break;
-        }
-        default:
-        {
-            break;
-        }
-        }
+        if (vertex_shader.empty() || fragment_shader.empty() || !m_buffers[i].init_shader(vertex_shader, fragment_shader))
+            return false;
     }
 
     if (!m_shells.shader.init("shells.vs", "shells.fs"))
@@ -449,7 +429,7 @@ void GCodeViewer::render_toolpaths() const
         case EViewType::Width:          { color = m_extrusions.ranges.width.get_color_at(path.width, m_extrusions.ranges.colors); break; }
         case EViewType::Feedrate:       { color = m_extrusions.ranges.feedrate.get_color_at(path.feedrate, m_extrusions.ranges.colors); break; }
         case EViewType::FanSpeed:       { color = m_extrusions.ranges.fan_speed.get_color_at(path.fan_speed, m_extrusions.ranges.colors); break; }
-        case EViewType::VolumetricRate:
+        case EViewType::VolumetricRate: { color = m_extrusions.ranges.volumetric_rate.get_color_at(path.volumetric_rate, m_extrusions.ranges.colors); break; }
         case EViewType::Tool:
         case EViewType::ColorPrint:
         default:                        { color = { 1.0f, 1.0f, 1.0f }; break; }
@@ -654,11 +634,11 @@ void GCodeViewer::render_overlay() const
         }
         break;
     }
-    case EViewType::Height:   { add_range(m_extrusions.ranges.height, 3); break; }
-    case EViewType::Width:    { add_range(m_extrusions.ranges.width, 3); break; }
-    case EViewType::Feedrate: { add_range(m_extrusions.ranges.feedrate, 1); break; }
-    case EViewType::FanSpeed: { add_range(m_extrusions.ranges.fan_speed, 0); break; }
-    case EViewType::VolumetricRate: { break; }
+    case EViewType::Height:         { add_range(m_extrusions.ranges.height, 3); break; }
+    case EViewType::Width:          { add_range(m_extrusions.ranges.width, 3); break; }
+    case EViewType::Feedrate:       { add_range(m_extrusions.ranges.feedrate, 1); break; }
+    case EViewType::FanSpeed:       { add_range(m_extrusions.ranges.fan_speed, 0); break; }
+    case EViewType::VolumetricRate: { add_range(m_extrusions.ranges.volumetric_rate, 3); break; }
     case EViewType::Tool: { break; }
     case EViewType::ColorPrint: { break; }
     }

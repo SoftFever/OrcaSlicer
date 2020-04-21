@@ -80,6 +80,8 @@ namespace Slic3r {
             float mm3_per_mm{ 0.0f };
             float fan_speed{ 0.0f }; // percentage
 
+            float volumetric_rate() const { return feedrate * mm3_per_mm; }
+
             std::string to_string() const
             {
                 std::string str = std::to_string((int)type);
