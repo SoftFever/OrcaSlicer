@@ -8,6 +8,9 @@
 #include "Camera.hpp"
 #include "I18N.hpp"
 #include "libslic3r/I18N.hpp"
+#if ENABLE_GCODE_VIEWER
+#include "GUI_Utils.hpp"
+#endif // ENABLE_GCODE_VIEWER
 
 #include <GL/glew.h>
 #include <boost/log/trivial.hpp>
@@ -25,6 +28,31 @@ static unsigned char buffer_id(GCodeProcessor::EMoveType type) {
 
 static GCodeProcessor::EMoveType buffer_type(unsigned char id) {
     return static_cast<GCodeProcessor::EMoveType>(static_cast<unsigned char>(GCodeProcessor::EMoveType::Retract) + id);
+}
+
+std::vector<std::array<float, 3>> decode_colors(const std::vector<std::string>& colors)
+{
+    static const float INV_255 = 1.0f / 255.0f;
+
+    std::vector<std::array<float, 3>> output(colors.size(), {0.0f, 0.0f, 0.0f} );
+    for (size_t i = 0; i < colors.size(); ++i)
+    {
+        const std::string& color = colors[i];
+        const char* c = color.data() + 1;
+        if ((color.size() == 7) && (color.front() == '#'))
+        {
+            for (size_t j = 0; j < 3; ++j)
+            {
+                int digit1 = hex_digit_to_int(*c++);
+                int digit2 = hex_digit_to_int(*c++);
+                if ((digit1 == -1) || (digit2 == -1))
+                    break;
+
+                output[i][j] = float(digit1 * 16 + digit2) * INV_255;
+            }
+        }
+    }
+    return output;
 }
 
 void GCodeViewer::VBuffer::reset()
@@ -68,7 +96,7 @@ bool GCodeViewer::IBuffer::init_shader(const std::string& vertex_shader_src, con
 void GCodeViewer::IBuffer::add_path(const GCodeProcessor::MoveVertex& move)
 {
     unsigned int id = static_cast<unsigned int>(data.size());
-    paths.push_back({ move.type, move.extrusion_role, id, id, move.height, move.width, move.feedrate, move.fan_speed, move.volumetric_rate() });
+    paths.push_back({ move.type, move.extrusion_role, id, id, move.height, move.width, move.feedrate, move.fan_speed, move.volumetric_rate(), move.extruder_id });
 }
 
 std::array<float, 3> GCodeViewer::Extrusions::Range::get_color_at(float value) const
@@ -95,7 +123,7 @@ std::array<float, 3> GCodeViewer::Extrusions::Range::get_color_at(float value) c
     return ret;
 }
 
-const std::array<std::array<float, 3>, erCount> GCodeViewer::Extrusion_Role_Colors{ {
+const std::array<std::array<float, 3>, erCount> GCodeViewer::Extrusion_Role_Colors {{
     { 1.00f, 1.00f, 1.00f },   // erNone
     { 1.00f, 1.00f, 0.40f },   // erPerimeter
     { 1.00f, 0.65f, 0.00f },   // erExternalPerimeter
@@ -113,7 +141,7 @@ const std::array<std::array<float, 3>, erCount> GCodeViewer::Extrusion_Role_Colo
     { 0.00f, 0.00f, 0.00f }    // erMixed
 }};
 
-const std::array<std::array<float, 3>, GCodeViewer::Range_Colors_Count> GCodeViewer::Range_Colors{ {
+const std::array<std::array<float, 3>, GCodeViewer::Range_Colors_Count> GCodeViewer::Range_Colors {{
     { 0.043f, 0.173f, 0.478f }, // bluish
     { 0.075f, 0.349f, 0.522f },
     { 0.110f, 0.533f, 0.569f },
@@ -126,8 +154,9 @@ const std::array<std::array<float, 3>, GCodeViewer::Range_Colors_Count> GCodeVie
     { 0.761f, 0.322f, 0.235f }  // reddish
 }};
 
-void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& print, bool initialized)
+void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors, const Print& print, bool initialized)
 {
+    // avoid processing if called with the same gcode_result
     if (m_last_result_id == gcode_result.id)
         return;
 
@@ -135,6 +164,8 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
 
     // release gpu memory, if used
     reset();
+
+    m_tool_colors = decode_colors(str_tool_colors);
 
     load_toolpaths(gcode_result);
     load_shells(print, initialized);
@@ -170,10 +201,7 @@ void GCodeViewer::refresh_toolpaths_ranges(const GCodeProcessor::Result& gcode_r
             }
             break;
         }
-        default:
-        {
-            break;
-        }
+        default: { break; }
         }
     }
 }
@@ -188,6 +216,7 @@ void GCodeViewer::reset()
     }
 
     m_bounding_box = BoundingBoxf3();
+    m_tool_colors = std::vector<std::array<float, 3>>();
     m_extrusions.reset_role_visibility_flags();
     m_extrusions.reset_ranges();
     m_shells.volumes.clear();
@@ -430,7 +459,7 @@ void GCodeViewer::render_toolpaths() const
         case EViewType::Feedrate:       { color = m_extrusions.ranges.feedrate.get_color_at(path.feedrate); break; }
         case EViewType::FanSpeed:       { color = m_extrusions.ranges.fan_speed.get_color_at(path.fan_speed); break; }
         case EViewType::VolumetricRate: { color = m_extrusions.ranges.volumetric_rate.get_color_at(path.volumetric_rate); break; }
-        case EViewType::Tool:
+        case EViewType::Tool:           { color = m_tool_colors[path.extruder_id]; break; }
         case EViewType::ColorPrint:
         default:                        { color = { 1.0f, 1.0f, 1.0f }; break; }
         }
@@ -640,7 +669,22 @@ void GCodeViewer::render_overlay() const
     case EViewType::Feedrate:       { add_range(m_extrusions.ranges.feedrate, 1); break; }
     case EViewType::FanSpeed:       { add_range(m_extrusions.ranges.fan_speed, 0); break; }
     case EViewType::VolumetricRate: { add_range(m_extrusions.ranges.volumetric_rate, 3); break; }
-    case EViewType::Tool: { break; }
+    case EViewType::Tool:
+    {
+        size_t tools_count = m_tool_colors.size();
+        for (size_t i = 0; i < tools_count; ++i)
+        {
+            ImVec2 pos(ImGui::GetCursorPosX() + 2.0f, ImGui::GetCursorPosY() + 2.0f);
+            draw_list->AddRect(ImVec2(pos.x, pos.y), ImVec2(pos.x + ICON_BORDER_SIZE, pos.y + ICON_BORDER_SIZE), ICON_BORDER_COLOR, 0.0f, 0);
+            const std::array<float, 3>& color = m_tool_colors[i];
+            ImU32 fill_color = ImGui::GetColorU32(ImVec4(color[0], color[1], color[2], 1.0));
+            draw_list->AddRectFilled(ImVec2(pos.x + 1.0f, pos.y + 1.0f), ImVec2(pos.x + ICON_BORDER_SIZE - 1.0f, pos.y + ICON_BORDER_SIZE - 1.0f), fill_color);
+            ImGui::SetCursorPosX(pos.x + ICON_BORDER_SIZE + GAP_ICON_TEXT);
+            ImGui::AlignTextToFramePadding();
+            imgui.text((boost::format(Slic3r::I18N::translate(L("Extruder %d"))) % (i + 1)).str());
+        }
+        break;
+    }
     case EViewType::ColorPrint: { break; }
     }
 

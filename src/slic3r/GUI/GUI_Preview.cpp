@@ -984,7 +984,7 @@ void Preview::load_print_as_fff(bool keep_z_range)
         if (gcode_preview_data_valid) {
             // Load the real G-code preview.
 #if ENABLE_GCODE_VIEWER
-            m_canvas->load_gcode_preview(*m_gcode_result);
+            m_canvas->load_gcode_preview(*m_gcode_result, colors);
             m_canvas->refresh_toolpaths_ranges(*m_gcode_result);
 #else
             m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
