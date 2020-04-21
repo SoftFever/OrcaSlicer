@@ -71,13 +71,13 @@ void GCodeViewer::IBuffer::add_path(const GCodeProcessor::MoveVertex& move)
     paths.push_back({ move.type, move.extrusion_role, id, id, move.height, move.width, move.feedrate, move.fan_speed, move.volumetric_rate() });
 }
 
-std::array<float, 3> GCodeViewer::Extrusions::Range::get_color_at(float value, const std::array<std::array<float, 3>, Default_Range_Colors_Count>& colors) const
+std::array<float, 3> GCodeViewer::Extrusions::Range::get_color_at(float value) const
 {
     // Input value scaled to the colors range
     const float step = step_size();
     const float global_t = (step != 0.0f) ? std::max(0.0f, value - min) / step : 0.0f; // lower limit of 0.0f
 
-    const size_t color_max_idx = colors.size() - 1;
+    const size_t color_max_idx = Range_Colors.size() - 1;
 
     // Compute the two colors just below (low) and above (high) the input value
     const size_t color_low_idx = std::clamp<size_t>(static_cast<size_t>(global_t), 0, color_max_idx);
@@ -90,12 +90,12 @@ std::array<float, 3> GCodeViewer::Extrusions::Range::get_color_at(float value, c
     std::array<float, 3> ret;
     for (unsigned int i = 0; i < 3; ++i)
     {
-        ret[i] = lerp(colors[color_low_idx][i], colors[color_high_idx][i], local_t);
+        ret[i] = lerp(Range_Colors[color_low_idx][i], Range_Colors[color_high_idx][i], local_t);
     }
     return ret;
 }
 
-const std::array<std::array<float, 3>, erCount> GCodeViewer::Default_Extrusion_Role_Colors {{
+const std::array<std::array<float, 3>, erCount> GCodeViewer::Extrusion_Role_Colors{ {
     { 1.00f, 1.00f, 1.00f },   // erNone
     { 1.00f, 1.00f, 0.40f },   // erPerimeter
     { 1.00f, 0.65f, 0.00f },   // erExternalPerimeter
@@ -113,7 +113,7 @@ const std::array<std::array<float, 3>, erCount> GCodeViewer::Default_Extrusion_R
     { 0.00f, 0.00f, 0.00f }    // erMixed
 }};
 
-const std::array<std::array<float, 3>, GCodeViewer::Default_Range_Colors_Count> GCodeViewer::Default_Range_Colors {{
+const std::array<std::array<float, 3>, GCodeViewer::Range_Colors_Count> GCodeViewer::Range_Colors{ {
     { 0.043f, 0.173f, 0.478f }, // bluish
     { 0.075f, 0.349f, 0.522f },
     { 0.110f, 0.533f, 0.569f },
@@ -424,12 +424,12 @@ void GCodeViewer::render_toolpaths() const
         std::array<float, 3> color;
         switch (m_view_type)
         {
-        case EViewType::FeatureType:    { color = m_extrusions.role_colors[static_cast<unsigned int>(path.role)]; break; }
-        case EViewType::Height:         { color = m_extrusions.ranges.height.get_color_at(path.height, m_extrusions.ranges.colors); break; }
-        case EViewType::Width:          { color = m_extrusions.ranges.width.get_color_at(path.width, m_extrusions.ranges.colors); break; }
-        case EViewType::Feedrate:       { color = m_extrusions.ranges.feedrate.get_color_at(path.feedrate, m_extrusions.ranges.colors); break; }
-        case EViewType::FanSpeed:       { color = m_extrusions.ranges.fan_speed.get_color_at(path.fan_speed, m_extrusions.ranges.colors); break; }
-        case EViewType::VolumetricRate: { color = m_extrusions.ranges.volumetric_rate.get_color_at(path.volumetric_rate, m_extrusions.ranges.colors); break; }
+        case EViewType::FeatureType:    { color = Extrusion_Role_Colors[static_cast<unsigned int>(path.role)]; break; }
+        case EViewType::Height:         { color = m_extrusions.ranges.height.get_color_at(path.height); break; }
+        case EViewType::Width:          { color = m_extrusions.ranges.width.get_color_at(path.width); break; }
+        case EViewType::Feedrate:       { color = m_extrusions.ranges.feedrate.get_color_at(path.feedrate); break; }
+        case EViewType::FanSpeed:       { color = m_extrusions.ranges.fan_speed.get_color_at(path.fan_speed); break; }
+        case EViewType::VolumetricRate: { color = m_extrusions.ranges.volumetric_rate.get_color_at(path.volumetric_rate); break; }
         case EViewType::Tool:
         case EViewType::ColorPrint:
         default:                        { color = { 1.0f, 1.0f, 1.0f }; break; }
@@ -453,6 +453,7 @@ void GCodeViewer::render_toolpaths() const
     };
 
     glsafe(::glCullFace(GL_BACK));
+    glsafe(::glLineWidth(1.0f));
 
     unsigned char begin_id = buffer_id(GCodeProcessor::EMoveType::Retract);
     unsigned char end_id = buffer_id(GCodeProcessor::EMoveType::Count);
@@ -579,7 +580,7 @@ void GCodeViewer::render_overlay() const
         auto add_item = [this, draw_list, &imgui](int i, float value, unsigned int decimals) {
             ImVec2 pos(ImGui::GetCursorPosX() + 2.0f, ImGui::GetCursorPosY() + 2.0f);
             draw_list->AddRect(ImVec2(pos.x, pos.y), ImVec2(pos.x + ICON_BORDER_SIZE, pos.y + ICON_BORDER_SIZE), ICON_BORDER_COLOR, 0.0f, 0);
-            const std::array<float, 3>& color = m_extrusions.ranges.colors[i];
+            const std::array<float, 3>& color = Range_Colors[i];
             ImU32 fill_color = ImGui::GetColorU32(ImVec4(color[0], color[1], color[2], 1.0f));
             draw_list->AddRectFilled(ImVec2(pos.x + 1.0f, pos.y + 1.0f), ImVec2(pos.x + ICON_BORDER_SIZE - 1.0f, pos.y + ICON_BORDER_SIZE - 1.0f), fill_color);
             ImGui::SetCursorPosX(pos.x + ICON_BORDER_SIZE + GAP_ICON_TEXT);
@@ -594,7 +595,7 @@ void GCodeViewer::render_overlay() const
             add_item(0, range.min, decimals);
         else
         {
-            for (int i = Default_Range_Colors_Count - 1; i >= 0; --i)
+            for (int i = Range_Colors_Count - 1; i >= 0; --i)
             {
                 add_item(i, range.min + static_cast<float>(i) * step_size, decimals);
             }
@@ -625,7 +626,7 @@ void GCodeViewer::render_overlay() const
         {
             ImVec2 pos(ImGui::GetCursorPosX() + 2.0f, ImGui::GetCursorPosY() + 2.0f);
             draw_list->AddRect(ImVec2(pos.x, pos.y), ImVec2(pos.x + ICON_BORDER_SIZE, pos.y + ICON_BORDER_SIZE), ICON_BORDER_COLOR, 0.0f, 0);
-            const std::array<float, 3>& color = m_extrusions.role_colors[static_cast<unsigned int>(role)];
+            const std::array<float, 3>& color = Extrusion_Role_Colors[static_cast<unsigned int>(role)];
             ImU32 fill_color = ImGui::GetColorU32(ImVec4(color[0], color[1], color[2], 1.0));
             draw_list->AddRectFilled(ImVec2(pos.x + 1.0f, pos.y + 1.0f), ImVec2(pos.x + ICON_BORDER_SIZE - 1.0f, pos.y + ICON_BORDER_SIZE - 1.0f), fill_color);
             ImGui::SetCursorPosX(pos.x + ICON_BORDER_SIZE + GAP_ICON_TEXT);
