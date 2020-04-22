@@ -159,7 +159,7 @@ void Tab::create_preset_tab()
     m_presets_choice = new PresetBitmapComboBox(panel, wxSize(35 * m_em_unit, -1));
 
     // search combox
-    m_search = new Search::SearchCtrl(panel);
+//    m_search = new Search::SearchCtrl(panel);
 
     auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
@@ -240,16 +240,11 @@ void Tab::create_preset_tab()
     m_hsizer->Add(m_btn_hide_incompatible_presets, 0, wxALIGN_CENTER_VERTICAL);
     m_hsizer->AddSpacer(int(8 * scale_factor));
     m_hsizer->Add(m_question_btn, 0, wxALIGN_CENTER_VERTICAL);
-    m_hsizer->AddSpacer(int(/*32*/16 * scale_factor));
+    m_hsizer->AddSpacer(int(32 * scale_factor));
     m_hsizer->Add(m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
     m_hsizer->Add(m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
-    m_hsizer->AddSpacer(int(/*32*/16 * scale_factor));
+    m_hsizer->AddSpacer(int(48 * scale_factor));
     m_hsizer->Add(m_search_btn, 0, wxALIGN_CENTER_VERTICAL);
-    m_hsizer->AddSpacer(int(/*32*/16 * scale_factor));
-    m_hsizer->Add(m_search, 0, wxALIGN_CENTER_VERTICAL);
-    m_hsizer->AddSpacer(int(16 * scale_factor));
-//    m_hsizer->AddSpacer(int(32 * scale_factor));
-//    m_hsizer->Add(m_question_btn, 0, wxALIGN_CENTER_VERTICAL);
     // m_hsizer->AddStretchSpacer(32);
     // StretchSpacer has a strange behavior under OSX, so
     // There is used just additional sizer for m_mode_sizer with right alignment

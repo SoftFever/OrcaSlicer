@@ -1094,7 +1094,7 @@ void Sidebar::msw_rescale()
 void Sidebar::search_and_apply_tab_search_lines(bool force/* = false*/)
 {
     if (p->searcher.search(p->search_line, force))
-        apply_search_line_on_tabs();
+        ;//apply_search_line_on_tabs();
 }
 
 void Sidebar::jump_to_option(size_t selected)

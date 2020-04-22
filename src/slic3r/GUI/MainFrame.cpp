@@ -734,7 +734,7 @@ void MainFrame::init_menubar()
             "", nullptr, [this]() {return !m_plater->model().objects.empty(); }, this);
 
         editMenu->AppendSeparator();
-        append_menu_item(editMenu, wxID_ANY, _(L("Searc&h")) + "\t" + GUI::shortkey_ctrl_prefix() + "F",
+        append_menu_item(editMenu, wxID_ANY, _(L("Searc&h")) + "\tCtrl+F",
             _(L("Find option")), [this](wxCommandEvent&) { m_plater->search(m_tabpanel->GetCurrentPage() == m_plater); },
             "search", nullptr, [this]() {return true; }, this);
     }
