@@ -2655,17 +2655,13 @@ void PrintObject::project_and_append_custom_supports(
         const Transform3f& tr1 = mv->get_matrix().cast<float>();
         const Transform3f& tr2 = this->trafo().cast<float>();
 
-        // List of all layers.
-        const LayerPtrs& layers = this->layers();
-
-        // Make sure that enforcers vector can be used.
+        // Make sure that the output vector can be used.
         if (! custom_facets.empty())
-        expolys.resize(layers.size());
+            expolys.resize(layers().size());
 
         // Iterate over all triangles.
         for (int facet_idx : custom_facets) {
             std::array<Vec3f, 3> facet;
-            std::array<float, 3> z_heights;
 
             // Transform the triangle into worlds coords.
             for (int i=0; i<3; ++i)
@@ -2677,72 +2673,84 @@ void PrintObject::project_and_append_custom_supports(
                           return pt1.z() < pt2.z();
                       });
 
-            Polygon triangle;
+            std::array<Vec2f, 3> trianglef;
             for (int i=0; i<3; ++i) {
-                z_heights[i] = facet[i].z();
-                triangle.append(Point::new_scale(facet[i].x(), facet[i].y()));
-                triangle.translate(this->center_offset());
+                trianglef[i] = Vec2f(facet[i].x(), facet[i].y());
+                trianglef[i] += Vec2f(unscale<float>(this->center_offset().x()),
+                                      unscale<float>(this->center_offset().y()));
             }
 
             // Find lowest slice not below the triangle.
-            auto it = std::lower_bound(layers.begin(), layers.end(), z_heights[0],
+            auto it = std::lower_bound(layers().begin(), layers().end(), facet[0].z()+EPSILON,
                           [](const Layer* l1, float z) {
                                return l1->slice_z < z;
                           });
 
-
             // Calculate how to move points on triangle sides per unit z increment.
-            Point ta(triangle.points[1] - triangle.points[0]);
-            Point tb(triangle.points[2] - triangle.points[0]);
+            Vec2f ta(trianglef[1] - trianglef[0]);
+            Vec2f tb(trianglef[2] - trianglef[0]);
+            ta *= 1./(facet[1].z() - facet[0].z());
+            tb *= 1./(facet[2].z() - facet[0].z());
 
-            ta *= 1./(z_heights[1] - z_heights[0]);
-            tb *= 1./(z_heights[2] - z_heights[0]);
+            // Projection on current slice.
+            std::vector<Vec2f> proj;
+            proj.emplace_back(trianglef[0]);
 
-            Points proj;
-            proj.emplace_back(triangle.points[0]);
-
-            Point a(proj.back());
-            Point b(proj.back());
-            float last_z = facet[0].z();
+            // Projections of triangle sides intersections with slices.
+            // a moves along one side, b tracks the other.
+            Vec2f a(proj.back());
+            Vec2f b(proj.back());
             bool passed_first = false;
             bool stop = false;
 
             // Project a sub-triangle on all slices intersecting the triangle.
-            while (it != layers.end()) {
+            while (it != layers().end()) {
                 const float z = (*it)->slice_z;
 
-                if (z > z_heights[1] && ! passed_first) {
-                    a = triangle.points[1];
-                    ta = triangle.points[2]-triangle.points[1];
-                    ta *= 1./(z_heights[2] - z_heights[1]);
-                    proj.push_back(a);
+                // If the middle vertex was already passed, append the vertex
+                // and make it track the remaining side.
+                if (z > facet[1].z() && ! passed_first) {
+                    proj.push_back(trianglef[1]);
+                    a = trianglef[1];
+                    ta = trianglef[2]-trianglef[1];
+                    ta *= 1./(facet[2].z() - facet[1].z());
                     passed_first = true;
                 }
-                a += ta * (z-last_z);
 
-                if (z > z_heights[2] || it+1 == layers.end()) {
-                    b = triangle.points[2];
+                // Move a along the side it currently tracks to get
+                // projected intersection with current slice.
+                a = passed_first ? (trianglef[1]+ta*(z-facet[1].z()))
+                                 : (trianglef[0]+ta*(z-facet[0].z()));
+
+                // This slice is above the triangle already.
+                if (z > facet[2].z() || it+1 == layers().end()) {
+                    b = trianglef[2];
                     proj.push_back(b);
                     stop = true;
                 }
                 else {
-                    b += tb * (z-last_z);
-                    proj.push_back(a+ta);
+                    b = trianglef[0]+tb*(z-facet[0].z());
+                    proj.push_back(a);
                     proj.push_back(b+tb);
                 }
 
-                if (it != layers.begin())
-                    expolys[it-layers.begin()-1].emplace_back(proj);
+                if (it != layers().begin()) {
+                    Points pts;
+                    for (const Vec2f& pt : proj)
+                        pts.emplace_back(scale_(pt.x()), scale_(pt.y()));
+                    expolys[it-layers().begin()-1].emplace_back(pts);
+                }
 
                 if (stop)
                     break;
 
+                // Use a and b as first two points of the polygon
+                // for the next layer.
                 proj.clear();
                 proj.push_back(b);
                 proj.push_back(a);
 
                 ++it;
-                last_z = z;
             }
         }
     }
