@@ -160,8 +160,6 @@ void Tab::create_preset_tab()
 
     // search combox
     m_search = new Search::SearchCtrl(panel);
-    // search combox
-    m_search_btn = new Search::SearchButton(panel);
 
     auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
@@ -184,9 +182,11 @@ void Tab::create_preset_tab()
     m_btn_delete_preset->Disable();
 
     add_scaled_button(panel, &m_question_btn, "question");
-
     m_question_btn->SetToolTip(_(L("Hover the cursor over buttons to find more information \n"
                                    "or click this button.")));
+
+    add_scaled_button(panel, &m_search_btn, "search");
+    m_question_btn->SetToolTip(_L("Find option"));
 
     // Determine the theme color of OS (dark or light)
     auto luma = wxGetApp().get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
@@ -218,6 +218,7 @@ void Tab::create_preset_tab()
             }
         }
     }));
+    m_search_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent) { wxGetApp().plater()->search(false); });
 
     // Colors for ui "decoration"
     m_sys_label_clr			= wxGetApp().get_label_clr_sys();

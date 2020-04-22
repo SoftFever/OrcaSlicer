@@ -10,9 +10,10 @@
 
 #include <wx/combo.h>
 
-#include <wx/popupwin.h>
 #include <wx/checkbox.h>
+#include <wx/dialog.h>
 
+#include "GUI_Utils.hpp"
 #include "Preset.hpp"
 #include "wxExtensions.hpp"
 
@@ -20,6 +21,8 @@
 namespace Slic3r {
 
 namespace Search{
+
+class SearchDialog;
 
 struct InputInfo
 {
@@ -112,6 +115,11 @@ class OptionsSearcher
 public:
     OptionViewParameters                    view_params;
 
+    SearchDialog*                           search_dialog { nullptr };
+
+    OptionsSearcher();
+    ~OptionsSearcher();
+
     void init(std::vector<InputInfo> input_values);
     void apply(DynamicPrintConfig *config,
                Preset::Type        type,
@@ -127,6 +135,7 @@ public:
 
     const std::vector<FoundOption>& found_options() { return found; }
     const GroupAndCategory&         get_group_and_category (const std::string& opt_key) { return groups_and_categories[opt_key]; }
+    const std::string& search_string() { return search_line; }
 };
 
 
@@ -187,43 +196,45 @@ public:
 };
 
 
+//------------------------------------------
+//          SearchDialog
+//------------------------------------------
 
-class PopupSearchList : public wxPopupTransientWindow
+class SearchDialog : public GUI::DPIDialog
 {
-    wxString search_str; 
+    wxString search_str;
+    wxString default_string;
+
+    wxTextCtrl*     search_line    { nullptr };
+    wxListBox*      search_list    { nullptr };
+    wxCheckBox*     check_type     { nullptr };
+    wxCheckBox*     check_category { nullptr };
+    wxCheckBox*     check_group    { nullptr };
+
+    OptionsSearcher* searcher;
+
+    void update_list();
+
+    void OnInputText(wxCommandEvent& event);
+    void OnLeftUpInTextCtrl(wxEvent& event);
+    
+    void OnMouseMove(wxMouseEvent& event); 
+    void OnMouseClick(wxMouseEvent& event);
+    void OnSelect(wxCommandEvent& event);
+    void OnKeyDown(wxKeyEvent& event);
+
+    void OnCheck(wxCommandEvent& event);
+
 public:
-    PopupSearchList(wxWindow* parent);
-    ~PopupSearchList() {}
+    SearchDialog(OptionsSearcher* searcher);
+    ~SearchDialog() {}
 
-    // wxPopupTransientWindow virtual methods are all overridden to log them
-    void Popup(wxWindow* focus = NULL) wxOVERRIDE;
-    void OnDismiss() wxOVERRIDE;
-    bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;
-    bool Show(bool show = true) wxOVERRIDE;
+    void Popup(wxPoint position = wxDefaultPosition);
+    void ProcessSelection(int selection);
 
-private:
-    wxWindow* panel;
-
-    wxTextCtrl* text {nullptr};
-    wxListBox*  list{ nullptr };
-    wxCheckBox* check {nullptr};
-
-    void OnSize(wxSizeEvent& event);
-    void OnSetFocus(wxFocusEvent& event);
-    void OnKillFocus(wxFocusEvent& event);
+protected:
+    void on_dpi_changed(const wxRect& suggested_rect) override;
 };
-
-class SearchButton : public ScalableButton
-{
-    PopupSearchList* popup_win{ nullptr };
-
-    void PopupSearch(wxCommandEvent& event);
-public:
-    SearchButton(wxWindow* parent);
-    ~SearchButton() {}
-};
-
-
 
 
 } // Search namespace

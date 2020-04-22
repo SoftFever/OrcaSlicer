@@ -123,7 +123,7 @@ protected:
 	const wxString		m_title;
 	PresetBitmapComboBox*	m_presets_choice;
 	Search::SearchCtrl*	m_search;
-	Search::SearchButton*	m_search_btn;
+	ScalableButton*		m_search_btn;
 	ScalableButton*		m_btn_save_preset;
 	ScalableButton*		m_btn_delete_preset;
 	ScalableButton*		m_btn_hide_incompatible_presets;

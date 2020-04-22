@@ -281,6 +281,17 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
     return true;
 }
 
+OptionsSearcher::OptionsSearcher()
+{
+    search_dialog = new SearchDialog(this);
+}
+
+OptionsSearcher::~OptionsSearcher()
+{
+    if (search_dialog)
+        search_dialog->Destroy();
+}
+
 void OptionsSearcher::init(std::vector<InputInfo> input_values)
 {
     options.clear();
@@ -499,200 +510,195 @@ void SearchCtrl::OnLeftUpInTextCtrl(wxEvent &event)
 
 
 //------------------------------------------
-//          PopupSearchList
+//          SearchDialog
 //------------------------------------------
 
-PopupSearchList::PopupSearchList(wxWindow* parent) :
-    wxPopupTransientWindow(parent, /*wxSTAY_ON_TOP*/wxWANTS_CHARS | wxBORDER_NONE)
+SearchDialog::SearchDialog(OptionsSearcher* searcher)
+    : GUI::DPIDialog(NULL, wxID_ANY, _L("Search"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
+    searcher(searcher)
 {
-    panel = new wxPanel(this, wxID_ANY);
+    SetFont(GUI::wxGetApp().normal_font());
+    wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+    SetBackgroundColour(bgr_clr);
 
-    text = new wxTextCtrl(panel, 1);
-    list = new wxListBox(panel, 2, wxDefaultPosition, wxSize(GUI::wxGetApp().em_unit() * 40, -1));
-    check = new wxCheckBox(panel, 3, "Group");
+    default_string = _L("Type here to search");
+    int border = 10;
+
+    search_line = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+
+    // wxWANTS_CHARS style is neede for process Enter key press
+    search_list = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(em_unit() * 40, em_unit() * 30), 0, NULL, wxWANTS_CHARS);
+
+    wxBoxSizer* check_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    check_type      = new wxCheckBox(this, wxID_ANY, _L("Type"));
+    check_category  = new wxCheckBox(this, wxID_ANY, _L("Category"));
+    check_group     = new wxCheckBox(this, wxID_ANY, _L("Group"));
+
+    wxStdDialogButtonSizer* cancel_btn = this->CreateStdDialogButtonSizer(wxCANCEL);
+
+    check_sizer->Add(check_type,     0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
+    check_sizer->Add(check_category, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
+    check_sizer->Add(check_group,    0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
+    check_sizer->AddStretchSpacer(border);
+    check_sizer->Add(cancel_btn,     0, wxALIGN_CENTER_VERTICAL);
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
-    text->Bind(wxEVT_MOUSE_CAPTURE_CHANGED, [](wxEvent& e) {
-        int i = 0; });
+    topSizer->Add(search_line, 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
+    topSizer->Add(search_list, 1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
+    topSizer->Add(check_sizer, 0, wxEXPAND | wxALL, border);
 
-//    text->Bind(wxEVT_LEFT_DOWN, [this](wxEvent& e) {
-    text->Bind(wxEVT_LEFT_UP, [this](wxEvent& e) {
-        text->SetValue("mrrrrrty");
-    });
+    search_line->Bind(wxEVT_TEXT,    &SearchDialog::OnInputText, this);
+    search_line->Bind(wxEVT_LEFT_UP, &SearchDialog::OnLeftUpInTextCtrl, this);
+    // process wxEVT_KEY_DOWN to navigate inside search_list, if ArrowUp/Down was pressed
+    search_line->Bind(wxEVT_KEY_DOWN,&SearchDialog::OnKeyDown, this);
 
-    text->Bind(wxEVT_MOTION, [this](wxMouseEvent& evt)
-    {
-        wxPoint pt = wxGetMousePosition() - text->GetScreenPosition();
-        long pos;
-        text->HitTest(pt, &pos);
+    search_list->Bind(wxEVT_MOTION,  &SearchDialog::OnMouseMove, this);
+    search_list->Bind(wxEVT_LEFT_UP, &SearchDialog::OnMouseClick, this);
+    search_list->Bind(wxEVT_KEY_DOWN,&SearchDialog::OnKeyDown, this);
 
-        if (pos == wxTE_HT_UNKNOWN)
-            return;
+    check_type    ->Bind(wxEVT_CHECKBOX, &SearchDialog::OnCheck, this);
+    check_category->Bind(wxEVT_CHECKBOX, &SearchDialog::OnCheck, this);
+    check_group   ->Bind(wxEVT_CHECKBOX, &SearchDialog::OnCheck, this);
 
-        list->SetSelection(wxNOT_FOUND);
-        text->SetSelection(0, pos);
-    });
+    this->Bind(wxEVT_LISTBOX, &SearchDialog::OnSelect, this);
 
-    text->Bind(wxEVT_TEXT, [this](wxCommandEvent& e)
-    {
-        text->SetSelection(0, 3);
-    });
-
-    this->Bind(wxEVT_KEY_DOWN, [this](wxKeyEvent& event) {
-        int key = event.GetKeyCode();
-
-        // change selected item in the list
-        if (key == WXK_UP || key == WXK_DOWN)
-        {
-            int selection = list->GetSelection();
-
-            if (key == WXK_UP && selection > 0)
-                selection--;
-            if (key == WXK_DOWN && selection < int(list->GetCount() - 1))
-                selection++;
-
-            list->Select(selection);
-        }
-        else
-            event.Skip(); // !Needed to have EVT_CHAR generated as well
-    });
-
-    this->Bind(wxEVT_CHAR, [this](wxKeyEvent& e) {
-        int key = e.GetKeyCode();
-        wxChar symbol = e.GetUnicodeKey();
-        search_str += symbol;
-
-        text->SetValue(search_str);
-    });
-
-
-    list->Append("One");
-    list->Append("Two");
-    list->Append("Three");
-
-    list->Bind(wxEVT_LISTBOX, [this](wxCommandEvent& evt)
-        {
-            int selection = list->GetSelection();
-        });
-
-    list->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& evt)
-    {
-        int selection = list->GetSelection();
-        list->SetSelection(wxNOT_FOUND);
-
-        wxCommandEvent event(wxEVT_LISTBOX, list->GetId());
-        event.SetInt(selection);
-        event.SetEventObject(this);
-        ProcessEvent(event);
-
-        Dismiss();
-    });
-
-    list->Bind(wxEVT_MOTION, [this](wxMouseEvent& evt)
-    {
-        wxPoint pt = wxGetMousePosition() - list->GetScreenPosition();
-        int selection = list->HitTest(pt);
-        list->Select(selection);
-    });
-
-    list->Bind(wxEVT_KEY_DOWN, [this](wxKeyEvent& event) {
-        int key = event.GetKeyCode();
-
-        // change selected item in the list
-        if (key == WXK_UP || key == WXK_DOWN)
-        {
-            int selection = list->GetSelection();
-
-            if (key == WXK_UP && selection > 0)
-                selection--;
-            if (key == WXK_DOWN && selection < int(list->GetCount() - 1))
-                selection++;
-
-            list->Select(selection);
-        }
-        // send wxEVT_LISTBOX event if "Enter" was pushed
-        else if (key == WXK_NUMPAD_ENTER || key == WXK_RETURN)
-        {
-            int selection = list->GetSelection();
-
-            wxCommandEvent event(wxEVT_LISTBOX, list->GetId());
-            event.SetInt(selection);
-            event.SetEventObject(this);
-            ProcessEvent(event);
-
-            Dismiss();
-        }
-        else
-            event.Skip(); // !Needed to have EVT_CHAR generated as well
-    });
-
-    topSizer->Add(text, 0, wxEXPAND | wxALL, 2);
-    topSizer->Add(list, 0, wxEXPAND | wxALL, 2);
-    topSizer->Add(check, 0, wxEXPAND | wxALL, 2);
-
-    panel->SetSizer(topSizer);
-
-    topSizer->Fit(panel);
-    SetClientSize(panel->GetSize());
+    SetSizer(topSizer);
+    topSizer->SetSizeHints(this);
 }
 
-void PopupSearchList::Popup(wxWindow* WXUNUSED(focus))
+void SearchDialog::Popup(wxPoint position /*= wxDefaultPosition*/)
 {
-    wxPopupTransientWindow::Popup();
+    const std::string& line = searcher->search_string();
+    search_line->SetValue(line.empty() ? default_string : from_u8(line));
+    search_line->SetFocus();
+    search_line->SelectAll();
+
+    update_list();
+
+    const OptionViewParameters& params = searcher->view_params;
+    check_type->SetValue(params.type);
+    check_category->SetValue(params.category);
+    check_group->SetValue(params.group);
+
+    this->SetPosition(position);
+    this->ShowModal();
 }
 
-void PopupSearchList::OnDismiss()
+void SearchDialog::ProcessSelection(int selection)
 {
-    wxPopupTransientWindow::OnDismiss();
+    if (selection < 0)
+        return;
+
+    GUI::wxGetApp().sidebar().jump_to_option(selection);
+    this->EndModal(wxID_CLOSE);
 }
 
-bool PopupSearchList::ProcessLeftDown(wxMouseEvent& event)
+void SearchDialog::OnInputText(wxCommandEvent&)
 {
-    return wxPopupTransientWindow::ProcessLeftDown(event);
-}
-bool PopupSearchList::Show(bool show)
-{
-    return wxPopupTransientWindow::Show(show);
+    search_line->SetInsertionPointEnd();
+
+    wxString input_string = search_line->GetValue();
+    if (input_string == default_string)
+        input_string.Clear();
+
+    GUI::wxGetApp().sidebar().get_search_line() = into_u8(input_string);
+
+    GUI::wxGetApp().sidebar().search_and_apply_tab_search_lines();
+
+    update_list();
 }
 
-void PopupSearchList::OnSize(wxSizeEvent& event)
+void SearchDialog::OnLeftUpInTextCtrl(wxEvent& event)
 {
+    if (search_line->GetValue() == default_string)
+        search_line->SetValue("");
+
     event.Skip();
 }
 
-void PopupSearchList::OnSetFocus(wxFocusEvent& event)
+void SearchDialog::OnMouseMove(wxMouseEvent& event)
 {
-    event.Skip();
+    wxPoint pt = wxGetMousePosition() - search_list->GetScreenPosition();
+    int selection = search_list->HitTest(pt);
+    search_list->Select(selection);
 }
 
-void PopupSearchList::OnKillFocus(wxFocusEvent& event)
+void SearchDialog::OnMouseClick(wxMouseEvent&)
 {
-    event.Skip();
+    int selection = search_list->GetSelection();
+    search_list->SetSelection(wxNOT_FOUND);
+
+    wxCommandEvent event(wxEVT_LISTBOX, search_list->GetId());
+    event.SetInt(selection);
+    event.SetEventObject(search_list);
+    ProcessEvent(event);
 }
 
-
-//------------------------------------------
-//          SearchCtrl
-//------------------------------------------
-
-SearchButton::SearchButton(wxWindow* parent) :
-    ScalableButton(parent, wxID_ANY, "search")
+void SearchDialog::OnSelect(wxCommandEvent& event)
 {
-    popup_win = new PopupSearchList(parent);
-    this->Bind(wxEVT_BUTTON, &SearchButton::PopupSearch, this);
+    int selection = event.GetSelection();
+    ProcessSelection(selection);
 }
-    
-void SearchButton::PopupSearch(wxCommandEvent& e)
+
+void SearchDialog::update_list()
 {
-//    popup_win->update_list(wxGetApp().sidebar().get_search_list().filters);
-    wxPoint pos = this->ClientToScreen(wxPoint(0, 0));
-    wxSize sz = wxSize(GUI::wxGetApp().em_unit()*40, -1);
-    pos.x -= sz.GetWidth();
-    pos.y += this->GetSize().y;
-    popup_win->Position(pos, sz);
-    popup_win->Popup();
-    e.Skip();
+    search_list->Clear();
+
+    const std::vector<FoundOption>& filters = searcher->found_options();
+    for (const FoundOption& item : filters)
+        search_list->Append(item.label);
+}
+
+void SearchDialog::OnKeyDown(wxKeyEvent& event)
+{
+    int key = event.GetKeyCode();
+
+    // change selected item in the list
+    if (key == WXK_UP || key == WXK_DOWN)
+    {
+        int selection = search_list->GetSelection();
+
+        if (key == WXK_UP && selection > 0)
+            selection--;
+        if (key == WXK_DOWN && selection < int(search_list->GetCount() - 1))
+            selection++;
+
+        search_list->Select(selection);
+        // This function could be called from search_line,
+        // So, for the next correct navigation, set focus on the search_list
+        search_list->SetFocus();
+    }
+    // process "Enter" pressed
+    else if (key == WXK_NUMPAD_ENTER || key == WXK_RETURN)
+        ProcessSelection(search_list->GetSelection());
+    else
+        event.Skip(); // !Needed to have EVT_CHAR generated as well
+}
+
+void SearchDialog::OnCheck(wxCommandEvent& event)
+{
+    OptionViewParameters& params = searcher->view_params;
+    params.type     = check_type->GetValue();
+    params.category = check_category->GetValue();
+    params.group    = check_group->GetValue();
+
+    searcher->search(searcher->search_string(), true);
+    update_list();
+}
+
+void SearchDialog::on_dpi_changed(const wxRect& suggested_rect)
+{
+    const int& em = em_unit();
+
+    msw_buttons_rescale(this, em, { wxID_CANCEL });
+
+    const wxSize& size = wxSize(40 * em, 30 * em);
+    SetMinSize(size);
+
+    Fit();
+    Refresh();
 }
 
 

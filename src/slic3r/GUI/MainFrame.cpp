@@ -732,6 +732,11 @@ void MainFrame::init_menubar()
         append_menu_item(editMenu, wxID_ANY, _(L("Re&load from disk")) + sep + "F5",
             _(L("Reload the plater from disk")), [this](wxCommandEvent&) { m_plater->reload_all_from_disk(); },
             "", nullptr, [this]() {return !m_plater->model().objects.empty(); }, this);
+
+        editMenu->AppendSeparator();
+        append_menu_item(editMenu, wxID_ANY, _(L("Searc&h")) + "\t" + GUI::shortkey_ctrl_prefix() + "F",
+            _(L("Find option")), [this](wxCommandEvent&) { m_plater->search(m_tabpanel->GetCurrentPage() == m_plater); },
+            "search", nullptr, [this]() {return true; }, this);
     }
 
     // Window menu

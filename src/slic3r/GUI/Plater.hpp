@@ -284,6 +284,7 @@ public:
 
     void copy_selection_to_clipboard();
     void paste_from_clipboard();
+    void search(bool plater_is_active);
 
     bool can_delete() const;
     bool can_delete_all() const;

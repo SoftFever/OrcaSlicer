@@ -5713,6 +5713,27 @@ void Plater::paste_from_clipboard()
     p->view3D->get_canvas3d()->get_selection().paste_from_clipboard();
 }
 
+void Plater::search(bool plater_is_active)
+{
+    if (plater_is_active) {
+        wxKeyEvent evt;
+#ifdef __APPLE__
+        evt.m_keyCode = 'f';
+#else /* __APPLE__ */
+        evt.m_keyCode = WXK_CONTROL_F;
+#endif /* __APPLE__ */
+        evt.SetControlDown(true);
+        canvas3D()->on_char(evt);
+    }
+    else
+    {
+        wxPoint pos = this->ClientToScreen(wxPoint(0, 0));
+        pos.x += em_unit(this) * 40;
+        pos.y += em_unit(this) * 4;
+        p->sidebar->get_searcher().search_dialog->Popup(pos);
+    }
+}
+
 void Plater::msw_rescale()
 {
     p->preview->msw_rescale();
