@@ -962,7 +962,7 @@ void PresetCollection::load_bitmap_add(const std::string &file_name)
 
 const Preset* PresetCollection::get_selected_preset_parent() const
 {
-    if (this->get_selected_idx() == -1)
+    if (this->get_selected_idx() == size_t(-1))
         // This preset collection has no preset activated yet. Only the get_edited_preset() is valid.
         return nullptr;
 

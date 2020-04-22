@@ -901,7 +901,7 @@ static void connect_segment_intersections_by_contours(
 	    const SegmentedIntersectionLine *il_prev = i_vline > 0 ? &segs[i_vline - 1] : nullptr;
 	    const SegmentedIntersectionLine *il_next = i_vline + 1 < segs.size() ? &segs[i_vline + 1] : nullptr;
 
-        for (int i_intersection = 0; i_intersection < il.intersections.size(); ++ i_intersection) {
+        for (int i_intersection = 0; i_intersection < int(il.intersections.size()); ++ i_intersection) {
 		    SegmentIntersection &itsct   = il.intersections[i_intersection];
 	        const Polygon 		&poly    = poly_with_offset.contour(itsct.iContour);
             const bool           forward = itsct.is_low(); // == poly_with_offset.is_contour_ccw(intrsctn->iContour);
@@ -914,7 +914,7 @@ static void connect_segment_intersections_by_contours(
 		    int iprev  = -1;
             int d_prev = std::numeric_limits<int>::max();
 		    if (il_prev) {
-			    for (int i = 0; i < il_prev->intersections.size(); ++ i) {
+                for (int i = 0; i < int(il_prev->intersections.size()); ++ i) {
 			        const SegmentIntersection &itsct2 = il_prev->intersections[i];
 			        if (itsct.iContour == itsct2.iContour && itsct.type == itsct2.type) {
 			            // The intersection points lie on the same contour and have the same orientation.
@@ -932,7 +932,7 @@ static void connect_segment_intersections_by_contours(
 		    int inext  = -1;
             int d_next = std::numeric_limits<int>::max();
             if (il_next) {
-			    for (int i = 0; i < il_next->intersections.size(); ++ i) {
+                for (int i = 0; i < int(il_next->intersections.size()); ++ i) {
 			        const SegmentIntersection &itsct2 = il_next->intersections[i];
 			        if (itsct.iContour == itsct2.iContour && itsct.type == itsct2.type) {
 			            // The intersection points lie on the same contour and have the same orientation.
@@ -950,7 +950,7 @@ static void connect_segment_intersections_by_contours(
             bool same_prev = false;
             bool same_next = false;
             // Does the perimeter intersect the current vertical line above intrsctn?
-            for (int i = 0; i < il.intersections.size(); ++ i)
+            for (int i = 0; i < int(il.intersections.size()); ++ i)
                 if (const SegmentIntersection &it2 = il.intersections[i];
                     i != i_intersection && it2.iContour == itsct.iContour && it2.type != itsct.type) {
                     int d = distance_of_segmens(poly, it2.iSegment, itsct.iSegment, forward);
@@ -1040,7 +1040,7 @@ static void connect_segment_intersections_by_contours(
 	    }
 
 	    // Make the LinkQuality::Invalid symmetric on vertical connections.
-        for (int i_intersection = 0; i_intersection < il.intersections.size(); ++ i_intersection) {
+        for (int i_intersection = 0; i_intersection < int(il.intersections.size()); ++ i_intersection) {
 		    SegmentIntersection &it = il.intersections[i_intersection];
             if (it.has_left_vertical() && it.prev_on_contour_quality == SegmentIntersection::LinkQuality::Invalid) {
 			    SegmentIntersection &it2 = il.intersections[it.left_vertical()];
@@ -1157,9 +1157,9 @@ static void traverse_graph_generate_polylines(
 {
     // For each outer only chords, measure their maximum distance to the bow of the outer contour.
     // Mark an outer only chord as consumed, if the distance is low.
-    for (int i_vline = 0; i_vline < segs.size(); ++ i_vline) {
+    for (int i_vline = 0; i_vline < int(segs.size()); ++ i_vline) {
         SegmentedIntersectionLine &vline = segs[i_vline];
-        for (int i_intersection = 0; i_intersection + 1 < vline.intersections.size(); ++ i_intersection) {
+        for (int i_intersection = 0; i_intersection + 1 < int(vline.intersections.size()); ++ i_intersection) {
             if (vline.intersections[i_intersection].type == SegmentIntersection::OUTER_LOW &&
                 vline.intersections[i_intersection + 1].type == SegmentIntersection::OUTER_HIGH) {
                 bool consumed = false;
@@ -1189,14 +1189,14 @@ static void traverse_graph_generate_polylines(
         if (i_intersection == -1) {
             // The path has been interrupted. Find a next starting point, closest to the previous extruder position.
             coordf_t dist2min = std::numeric_limits<coordf_t>().max();
-            for (int i_vline2 = 0; i_vline2 < segs.size(); ++ i_vline2) {
+            for (int i_vline2 = 0; i_vline2 < int(segs.size()); ++ i_vline2) {
                 const SegmentedIntersectionLine &vline = segs[i_vline2];
                 if (! vline.intersections.empty()) {
                     assert(vline.intersections.size() > 1);
                     // Even number of intersections with the loops.
                     assert((vline.intersections.size() & 1) == 0);
                     assert(vline.intersections.front().type == SegmentIntersection::OUTER_LOW);
-                    for (int i = 0; i < vline.intersections.size(); ++ i) {
+                    for (int i = 0; i < int(vline.intersections.size()); ++ i) {
                         const SegmentIntersection& intrsctn = vline.intersections[i];
                         if (intrsctn.is_outer()) {
                             assert(intrsctn.is_low() || i > 0);
@@ -1674,13 +1674,13 @@ static std::vector<MonotonousRegion> generate_montonous_regions(std::vector<Segm
     auto test_overlap = [](int, int, int) { return false; };
 #endif
 
-    for (int i_vline_seed = 0; i_vline_seed < segs.size(); ++ i_vline_seed) {
+    for (int i_vline_seed = 0; i_vline_seed < int(segs.size()); ++ i_vline_seed) {
         SegmentedIntersectionLine  &vline_seed = segs[i_vline_seed];
-    	for (int i_intersection_seed = 1; i_intersection_seed + 1 < vline_seed.intersections.size(); ) {
-	        while (i_intersection_seed < vline_seed.intersections.size() &&
+        for (int i_intersection_seed = 1; i_intersection_seed + 1 < int(vline_seed.intersections.size()); ) {
+            while (i_intersection_seed < int(vline_seed.intersections.size()) &&
 	        	   vline_seed.intersections[i_intersection_seed].type != SegmentIntersection::INNER_LOW)
 	        	++ i_intersection_seed;
-            if (i_intersection_seed == vline_seed.intersections.size())
+            if (i_intersection_seed == int(vline_seed.intersections.size()))
                 break;
 			SegmentIntersection *start = &vline_seed.intersections[i_intersection_seed];
             SegmentIntersection *end   = &end_of_vertical_run(vline_seed, *start);
@@ -1697,7 +1697,7 @@ static std::vector<MonotonousRegion> generate_montonous_regions(std::vector<Segm
                 assert(! test_overlap(region.left.vline, region.left.low, region.left.high));
 				start->consumed_vertical_up = true;
 				int num_lines = 1;
-				while (++ i_vline < segs.size()) {
+                while (++ i_vline < int(segs.size())) {
 			        SegmentedIntersectionLine  &vline_left	= segs[i_vline - 1];
 			        SegmentedIntersectionLine  &vline_right = segs[i_vline];
 					std::pair<SegmentIntersection*, SegmentIntersection*> right 	      = right_overlap(left, vline_left, vline_right);
@@ -1860,7 +1860,7 @@ static void connect_monotonous_regions(std::vector<MonotonousRegion> &regions, c
 			    }
             }
 		}
-		if (region.right.vline + 1 < segs.size()) {
+        if (region.right.vline + 1 < int(segs.size())) {
 			auto &vline = segs[region.right.vline];
             auto &vline_right = segs[region.right.vline + 1];
             auto [rbegin, rend] = right_overlap(vline.intersections[region.right.low], vline.intersections[region.right.high], vline, vline_right);
@@ -2100,7 +2100,7 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
                     AntPath &path2 = path_matrix(region, dir, *next, true);
                     if (path1.visibility > next_candidate.probability)
                         next_candidate = { next, &path1, &path1, path1.visibility, false };
-	                if (path2.visibility > next_candidate.probability)
+                    if (path2.visibility > next_candidate.probability)
                         next_candidate = { next, &path2, &path2, path2.visibility, true  };
 				}
 			}
@@ -2111,7 +2111,7 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
                     AntPath &path2 = path_matrix(region, dir, *next, true);
                     if (path1.visibility > next_candidate.probability)
                         next_candidate = { next, &path1, &path1, path1.visibility, false };
-	                if (path2.visibility > next_candidate.probability)
+                    if (path2.visibility > next_candidate.probability)
                         next_candidate = { next, &path2, &path2, path2.visibility, true  };
                 }
             }

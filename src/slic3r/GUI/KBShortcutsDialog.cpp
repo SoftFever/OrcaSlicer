@@ -25,15 +25,6 @@
 #include <wx/choicebk.h>
 #endif // BOOK_TYPE 
 
-#if ENABLE_SCROLLABLE
-static wxSize get_screen_size(wxWindow* window)
-{
-    const auto idx = wxDisplay::GetFromWindow(window);
-    wxDisplay display(idx != wxNOT_FOUND ? idx : 0u);
-    return display.GetClientArea().GetSize();
-}
-#endif // ENABLE_SCROLLABLE
-
 namespace Slic3r {
 namespace GUI {
 
