@@ -215,8 +215,8 @@ public:
         when user expects that. */
     Vec3d                   origin_translation;
 
-    Model*                  get_model() { return m_model; };
-	const Model*            get_model() const { return m_model; };
+    Model*                  get_model() { return m_model; }
+    const Model*            get_model() const { return m_model; }
 
     ModelVolume*            add_volume(const TriangleMesh &mesh);
     ModelVolume*            add_volume(TriangleMesh &&mesh);
@@ -402,14 +402,13 @@ class FacetsAnnotation {
 public:
     using ClockType = std::chrono::steady_clock;
 
-
     std::vector<int> get_facets(FacetSupportType type) const;
     void set_facet(int idx, FacetSupportType type);
     void clear();
 
     ClockType::time_point get_timestamp() const { return timestamp; }
-    bool is_newer_than(const FacetsAnnotation& other) const {
-        return timestamp > other.get_timestamp();
+    bool is_same_as(const FacetsAnnotation& other) const {
+        return timestamp == other.get_timestamp();
     }
 
 private:
@@ -455,7 +454,7 @@ public:
     FacetsAnnotation    m_supported_facets;
 
     // A parent object owning this modifier volume.
-    ModelObject*        get_object() const { return this->object; };
+    ModelObject*        get_object() const { return this->object; }
     ModelVolumeType     type() const { return m_type; }
     void                set_type(const ModelVolumeType t) { m_type = t; }
 	bool                is_model_part()         const { return m_type == ModelVolumeType::MODEL_PART; }
@@ -859,7 +858,7 @@ public:
     std::string   propose_export_file_name_and_path(const std::string &new_extension) const;
 
 private:
-	explicit Model(int) : ObjectBase(-1) { assert(this->id().invalid()); };
+    explicit Model(int) : ObjectBase(-1) { assert(this->id().invalid()); }
 	void assign_new_unique_ids_recursive();
 	void update_links_bottom_up_recursive();
 
@@ -885,6 +884,10 @@ extern bool model_object_list_extended(const Model &model_old, const Model &mode
 // Test whether the new ModelObject contains a different set of volumes (or sorted in a different order)
 // than the old ModelObject.
 extern bool model_volume_list_changed(const ModelObject &model_object_old, const ModelObject &model_object_new, const ModelVolumeType type);
+
+// Test whether the now ModelObject has newer custom supports data than the old one.
+// The function assumes that volumes list is synchronized.
+extern bool model_custom_supports_data_changed(const ModelObject& mo, const ModelObject& mo_new);
 
 // If the model has multi-part objects, then it is currently not supported by the SLA mode.
 // Either the model cannot be loaded, or a SLA printer has to be activated.
