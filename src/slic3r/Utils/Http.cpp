@@ -18,6 +18,8 @@
 #include <openssl/x509.h>
 #endif
 
+#define L(s) s
+
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
 
@@ -32,7 +34,8 @@ namespace Slic3r {
 struct CurlGlobalInit
 {
     static std::unique_ptr<CurlGlobalInit> instance;
-
+    std::string message;
+    
 	CurlGlobalInit()
     {
 #ifdef OPENSSL_CERT_OVERRIDE // defined if SLIC3R_STATIC=ON
@@ -57,21 +60,39 @@ struct CurlGlobalInit
             ssl_cafile = X509_get_default_cert_file();
         
         int replace = true;
-        
-        if (!ssl_cafile || !fs::exists(fs::path(ssl_cafile)))
-            for (const char * bundle : CA_BUNDLES) {
-                if (fs::exists(fs::path(bundle))) {
-                    ::setenv(SSL_CA_FILE, bundle, replace);
+        if (!ssl_cafile || !fs::exists(fs::path(ssl_cafile))) {
+            const char * bundle = nullptr;
+            for (const char * b : CA_BUNDLES) {
+                if (fs::exists(fs::path(b))) {
+                    ::setenv(SSL_CA_FILE, bundle = b, replace);
                     break;
                 }
             }
 
-        BOOST_LOG_TRIVIAL(info)
-            << "Detected OpenSSL root CA store: " << ::getenv(SSL_CA_FILE);
+            if (!bundle)
+                message = L("Could not detect system SSL certificate store. "
+                            "PrusaSlicer will be unable to establish secure "
+                            "network connections.");
+            else
+                message = string_printf(
+                    L("PrusaSlicer detected system SSL certificate store in: %s"),
+                    bundle);
 
-#endif
+            message += string_printf(
+                L("\nTo specify the system certificate store manually, please "
+                  "set the %s environment variable to the correct CA bundle "
+                  "and restart the application."),
+                SSL_CA_FILE);
+        }
+
+#endif // OPENSSL_CERT_OVERRIDE
         
-        ::curl_global_init(CURL_GLOBAL_DEFAULT);
+        if (CURLcode ec = ::curl_global_init(CURL_GLOBAL_DEFAULT)) {
+            message = L("CURL init has failed. PrusaSlicer will be unable to establish "
+                        "network connections. See logs for additional details.");
+            
+            BOOST_LOG_TRIVIAL(error) << ::curl_easy_strerror(ec);
+        }
     }
     
 	~CurlGlobalInit() { ::curl_global_cleanup(); }
@@ -132,8 +153,7 @@ Http::priv::priv(const std::string &url)
 	, limit(0)
 	, cancel(false)
 {
-    if (!CurlGlobalInit::instance)
-        CurlGlobalInit::instance = std::make_unique<CurlGlobalInit>();
+    Http::tls_global_init();
     
 	if (curl == nullptr) {
 		throw std::runtime_error(std::string("Could not construct Curl object"));
@@ -494,7 +514,26 @@ bool Http::ca_file_supported()
 	::CURL *curl = ::curl_easy_init();
 	bool res = priv::ca_file_supported(curl);
 	if (curl != nullptr) { ::curl_easy_cleanup(curl); }
-	return res;
+    return res;
+}
+
+std::string Http::tls_global_init()
+{
+    if (!CurlGlobalInit::instance)
+        CurlGlobalInit::instance = std::make_unique<CurlGlobalInit>();
+    
+    return CurlGlobalInit::instance->message;
+}
+
+std::string Http::tls_system_cert_store()
+{
+    std::string ret;
+
+#ifdef OPENSSL_CERT_OVERRIDE
+    ret = ::getenv(X509_get_default_cert_file_env());
+#endif
+    
+    return ret;
 }
 
 std::string Http::url_encode(const std::string &str)
