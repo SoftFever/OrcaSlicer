@@ -2667,6 +2667,10 @@ void PrintObject::project_and_append_custom_supports(
             for (int i=0; i<3; ++i)
                 facet[i] = tr2 * tr1 * mesh.its.vertices[mesh.its.indices[facet_idx](i)];
 
+            // Ignore triangles with upward-pointing normal.
+            if ((facet[1]-facet[0]).cross(facet[2]-facet[0]).z() > 0.)
+                continue;
+
             // Sort the three vertices according to z-coordinate.
             std::sort(facet.begin(), facet.end(),
                       [](const Vec3f& pt1, const Vec3f&pt2) {
