@@ -46,6 +46,7 @@ bool GLGizmoFdmSupports::on_init()
     m_desc["block"]            = _L("Block supports");
     m_desc["remove_caption"]   = _L("Shift + Left mouse button") + ": ";
     m_desc["remove"]           = _L("Remove selection");
+    m_desc["remove_all"]       = _L("Remove all");
 
     return true;
 }
@@ -493,6 +494,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
     const float clipping_slider_left = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x, m_imgui->calc_text_size(m_desc.at("reset_direction")).x) + m_imgui->scaled(1.5f);
     const float cursor_slider_left = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.f);
+    const float button_width = m_imgui->calc_text_size(m_desc.at("remove_all")).x + m_imgui->scaled(1.f);
     const float minimal_slider_width = m_imgui->scaled(4.f);
 
     float caption_max = 0.f;
@@ -506,6 +508,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     float window_width = minimal_slider_width + std::max(cursor_slider_left, clipping_slider_left);
     window_width = std::max(window_width, total_text_max);
+    window_width = std::max(window_width, button_width);
 
     auto draw_text_with_caption = [this, &caption_max](const wxString& caption, const wxString& text) {
         static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
@@ -520,6 +523,20 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         draw_text_with_caption(m_desc.at(t + "_caption"), m_desc.at(t));
 
     m_imgui->text("");
+
+    if (m_imgui->button(m_desc.at("remove_all"))) {
+        ModelObject* mo = m_c->selection_info()->model_object();
+        int idx = -1;
+        for (ModelVolume* mv : mo->volumes) {
+            ++idx;
+            if (mv->is_model_part()) {
+                m_selected_facets[idx].assign(m_selected_facets[idx].size(), FacetSupportType::NONE);
+                mv->m_supported_facets.clear();
+                update_vertex_buffers(mv, idx, true, true);
+                m_parent.set_as_dirty();
+            }
+        }
+    }
 
     const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
 
