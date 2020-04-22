@@ -2835,7 +2835,7 @@ static void load_gcode_retractions(const GCodePreviewData::Retraction& retractio
 #endif // !ENABLE_GCODE_VIEWER
 
 #if ENABLE_GCODE_VIEWER
-void GLCanvas3D::load_gcode_preview(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors)
+void GLCanvas3D::load_gcode_preview(const GCodeProcessor::Result& gcode_result)
 {
 #if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
     static unsigned int last_result_id = 0;
@@ -2852,12 +2852,12 @@ void GLCanvas3D::load_gcode_preview(const GCodeProcessor::Result& gcode_result, 
         out.close();
     }
 #endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
-    m_gcode_viewer.load(gcode_result, str_tool_colors , *this->fff_print(), m_initialized);
+    m_gcode_viewer.load(gcode_result, *this->fff_print(), m_initialized);
 }
 
-void GLCanvas3D::refresh_toolpaths_ranges(const GCodeProcessor::Result& gcode_result)
+void GLCanvas3D::refresh_gcode_preview(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors)
 {
-    m_gcode_viewer.refresh_toolpaths_ranges(gcode_result);
+    m_gcode_viewer.refresh(gcode_result, str_tool_colors);
 }
 #endif // ENABLE_GCODE_VIEWER
 

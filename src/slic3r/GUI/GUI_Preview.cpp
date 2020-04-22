@@ -229,6 +229,12 @@ Preview::Preview(
     , m_checkbox_travel(nullptr)
     , m_checkbox_retractions(nullptr)
     , m_checkbox_unretractions(nullptr)
+#if ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
+    , m_checkbox_tool_changes(nullptr)
+    , m_checkbox_color_changes(nullptr)
+    , m_checkbox_pause_prints(nullptr)
+    , m_checkbox_custom_gcodes(nullptr)
+#endif // ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
     , m_checkbox_shells(nullptr)
     , m_checkbox_legend(nullptr)
     , m_config(config)
@@ -330,6 +336,12 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
     m_checkbox_travel = new wxCheckBox(this, wxID_ANY, _(L("Travel")));
     m_checkbox_retractions = new wxCheckBox(this, wxID_ANY, _(L("Retractions")));
     m_checkbox_unretractions = new wxCheckBox(this, wxID_ANY, _(L("Unretractions")));
+#if ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
+    m_checkbox_tool_changes = new wxCheckBox(this, wxID_ANY, _(L("Tool changes")));
+    m_checkbox_color_changes = new wxCheckBox(this, wxID_ANY, _(L("Color changes")));
+    m_checkbox_pause_prints = new wxCheckBox(this, wxID_ANY, _(L("Pause prints")));
+    m_checkbox_custom_gcodes = new wxCheckBox(this, wxID_ANY, _(L("Custom GCodes")));
+#endif // ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
     m_checkbox_shells = new wxCheckBox(this, wxID_ANY, _(L("Shells")));
     m_checkbox_legend = new wxCheckBox(this, wxID_ANY, _(L("Legend")));
     m_checkbox_legend->SetValue(true);
@@ -351,6 +363,16 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
     bottom_sizer->AddSpacer(10);
     bottom_sizer->Add(m_checkbox_unretractions, 0, wxEXPAND | wxALL, 5);
     bottom_sizer->AddSpacer(10);
+#if ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
+    bottom_sizer->Add(m_checkbox_tool_changes, 0, wxEXPAND | wxALL, 5);
+    bottom_sizer->AddSpacer(10);
+    bottom_sizer->Add(m_checkbox_color_changes, 0, wxEXPAND | wxALL, 5);
+    bottom_sizer->AddSpacer(10);
+    bottom_sizer->Add(m_checkbox_pause_prints, 0, wxEXPAND | wxALL, 5);
+    bottom_sizer->AddSpacer(10);
+    bottom_sizer->Add(m_checkbox_custom_gcodes, 0, wxEXPAND | wxALL, 5);
+    bottom_sizer->AddSpacer(10);
+#endif // ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
     bottom_sizer->Add(m_checkbox_shells, 0, wxEXPAND | wxALL, 5);
     bottom_sizer->AddSpacer(20);
     bottom_sizer->Add(m_checkbox_legend, 0, wxEXPAND | wxALL, 5);
@@ -533,6 +555,12 @@ void Preview::bind_event_handlers()
     m_checkbox_travel->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_travel, this);
     m_checkbox_retractions->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_retractions, this);
     m_checkbox_unretractions->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_unretractions, this);
+#if ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
+    m_checkbox_tool_changes->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_tool_changes, this);
+    m_checkbox_color_changes->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_color_changes, this);
+    m_checkbox_pause_prints->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_pause_prints, this);
+    m_checkbox_custom_gcodes->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_custom_gcodes, this);
+#endif // ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
     m_checkbox_shells->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_shells, this);
     m_checkbox_legend->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_legend, this);
 }
@@ -545,6 +573,12 @@ void Preview::unbind_event_handlers()
     m_checkbox_travel->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_travel, this);
     m_checkbox_retractions->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_retractions, this);
     m_checkbox_unretractions->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_unretractions, this);
+#if ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
+    m_checkbox_tool_changes->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_tool_changes, this);
+    m_checkbox_color_changes->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_color_changes, this);
+    m_checkbox_pause_prints->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_pause_prints, this);
+    m_checkbox_custom_gcodes->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_custom_gcodes, this);
+#endif // ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
     m_checkbox_shells->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_shells, this);
     m_checkbox_legend->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_legend, this);
 }
@@ -557,6 +591,12 @@ void Preview::show_hide_ui_elements(const std::string& what)
     m_checkbox_travel->Enable(enable); 
     m_checkbox_retractions->Enable(enable);
     m_checkbox_unretractions->Enable(enable);
+#if ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
+    m_checkbox_tool_changes->Enable(enable);
+    m_checkbox_color_changes->Enable(enable);
+    m_checkbox_pause_prints->Enable(enable);
+    m_checkbox_custom_gcodes->Enable(enable);
+#endif // ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
     m_checkbox_shells->Enable(enable);
     m_checkbox_legend->Enable(enable);
 
@@ -570,6 +610,12 @@ void Preview::show_hide_ui_elements(const std::string& what)
     m_checkbox_travel->Show(visible);
     m_checkbox_retractions->Show(visible);
     m_checkbox_unretractions->Show(visible);
+#if ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
+    m_checkbox_tool_changes->Show(visible);
+    m_checkbox_color_changes->Show(visible);
+    m_checkbox_pause_prints->Show(visible);
+    m_checkbox_custom_gcodes->Show(visible);
+#endif // ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
     m_checkbox_shells->Show(visible);
     m_checkbox_legend->Show(visible);
     m_label_view_type->Show(visible);
@@ -662,6 +708,32 @@ void Preview::on_checkbox_unretractions(wxCommandEvent& evt)
 #endif // ENABLE_GCODE_VIEWER
     refresh_print();
 }
+
+#if ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
+void Preview::on_checkbox_tool_changes(wxCommandEvent& evt)
+{
+    m_canvas->set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Tool_change, m_checkbox_tool_changes->IsChecked());
+    refresh_print();
+}
+
+void Preview::on_checkbox_color_changes(wxCommandEvent& evt)
+{
+    m_canvas->set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Color_change, m_checkbox_color_changes->IsChecked());
+    refresh_print();
+}
+
+void Preview::on_checkbox_pause_prints(wxCommandEvent& evt)
+{
+    m_canvas->set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Pause_Print, m_checkbox_pause_prints->IsChecked());
+    refresh_print();
+}
+
+void Preview::on_checkbox_custom_gcodes(wxCommandEvent& evt)
+{
+    m_canvas->set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Custom_GCode, m_checkbox_custom_gcodes->IsChecked());
+    refresh_print();
+}
+#endif // ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
 
 void Preview::on_checkbox_shells(wxCommandEvent& evt)
 {
@@ -953,26 +1025,46 @@ void Preview::load_print_as_fff(bool keep_z_range)
         int tool_idx = m_choice_view_type->FindString(_(L("Tool")));
         int type = (number_extruders > 1) ? tool_idx /* color by a tool number */ : 0; // color by a feature type
         m_choice_view_type->SetSelection(type);
+#if ENABLE_GCODE_VIEWER
+        if (0 <= type && type < static_cast<int>(GCodeViewer::EViewType::Count))
+            m_canvas->set_gcode_view_preview_type(static_cast<GCodeViewer::EViewType>(type));
+#else
         if ((0 <= type) && (type < (int)GCodePreviewData::Extrusion::Num_View_Types))
             m_gcode_preview_data->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)type;
+#endif // ENABLE_GCODE_VIEWER
         // If the->SetSelection changed the following line, revert it to "decide yourself".
         m_preferred_color_mode = "tool_or_feature";
     }
 
+#if ENABLE_GCODE_VIEWER
+    GCodeViewer::EViewType gcode_view_type = m_canvas->get_gcode_view_preview_type();
+    bool gcode_preview_data_valid = print->is_step_done(psGCodeExport);
+#else
     bool gcode_preview_data_valid = print->is_step_done(psGCodeExport) && ! m_gcode_preview_data->empty();
+#endif // ENABLE_GCODE_VIEWER
     // Collect colors per extruder.
     std::vector<std::string> colors;
     std::vector<CustomGCode::Item> color_print_values = {};
     // set color print values, if it si selected "ColorPrint" view type
+#if ENABLE_GCODE_VIEWER
+    if (gcode_view_type == GCodeViewer::EViewType::ColorPrint)
+#else
     if (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint)
+#endif // ENABLE_GCODE_VIEWER
     {
         colors = wxGetApp().plater()->get_colors_for_color_print();
+#if !ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
         colors.push_back("#808080"); // gray color for pause print or custom G-code 
+#endif // !ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
 
         if (!gcode_preview_data_valid)
             color_print_values = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
     }
+#if ENABLE_GCODE_VIEWER
+    else if (gcode_preview_data_valid || gcode_view_type == GCodeViewer::EViewType::Tool)
+#else
     else if (gcode_preview_data_valid || (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::Tool) )
+#endif // ENABLE_GCODE_VIEWER
     {
         colors = wxGetApp().plater()->get_extruder_colors_from_plater_config();
         color_print_values.clear();
@@ -984,8 +1076,8 @@ void Preview::load_print_as_fff(bool keep_z_range)
         if (gcode_preview_data_valid) {
             // Load the real G-code preview.
 #if ENABLE_GCODE_VIEWER
-            m_canvas->load_gcode_preview(*m_gcode_result, colors);
-            m_canvas->refresh_toolpaths_ranges(*m_gcode_result);
+            m_canvas->load_gcode_preview(*m_gcode_result);
+            m_canvas->refresh_gcode_preview(*m_gcode_result, colors);
 #else
             m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
 #endif // ENABLE_GCODE_VIEWER

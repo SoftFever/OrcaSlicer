@@ -15,9 +15,8 @@ namespace GUI {
 
 class GCodeViewer
 {
-    static const std::array<std::array<float, 3>, erCount> Extrusion_Role_Colors;
-    static const size_t Range_Colors_Count = 10;
-    static const std::array<std::array<float, 3>, Range_Colors_Count> Range_Colors;
+    static const std::vector<std::array<float, 3>> Extrusion_Role_Colors;
+    static const std::vector<std::array<float, 3>> Range_Colors;
 
     // buffer containing vertices data
     struct VBuffer
@@ -46,11 +45,12 @@ class GCodeViewer
         float fan_speed{ 0.0f };
         float volumetric_rate{ 0.0f };
         unsigned char extruder_id{ 0 };
+        unsigned char cp_color_id{ 0 };
 
         bool matches(const GCodeProcessor::MoveVertex& move) const {
             return type == move.type && role == move.extrusion_role && height == move.height && width == move.width &&
                 feedrate == move.feedrate && fan_speed == move.fan_speed && volumetric_rate == move.volumetric_rate() &&
-                extruder_id == move.extruder_id;
+                extruder_id == move.extruder_id && cp_color_id == move.cp_color_id;
         }
     };
 
@@ -89,7 +89,7 @@ class GCodeViewer
             void update_from(const float value) { min = std::min(min, value); max = std::max(max, value); }
             void reset() { min = FLT_MAX; max = -FLT_MAX; }
 
-            float step_size() const { return (max - min) / (static_cast<float>(Range_Colors_Count) - 1.0f); }
+            float step_size() const { return (max - min) / (static_cast<float>(Range_Colors.size()) - 1.0f); }
             std::array<float, 3> get_color_at(float value) const;
         };
 
@@ -155,6 +155,8 @@ private:
     std::vector<std::array<float, 3>> m_tool_colors;
     std::vector<double> m_layers_zs;
     std::vector<ExtrusionRole> m_roles;
+    std::vector<unsigned char> m_extruder_ids;
+//    std::vector<unsigned char> m_cp_color_ids;
     Extrusions m_extrusions;
     Shells m_shells;
     EViewType m_view_type{ EViewType::FeatureType };
@@ -170,9 +172,9 @@ public:
     }
 
     // extract rendering data from the given parameters
-    void load(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors, const Print& print, bool initialized);
-    // recalculate ranges in dependence of what is visible
-    void refresh_toolpaths_ranges(const GCodeProcessor::Result& gcode_result);
+    void load(const GCodeProcessor::Result& gcode_result, const Print& print, bool initialized);
+    // recalculate ranges in dependence of what is visible and sets tool/print colors
+    void refresh(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors);
 
     void reset();
     void render() const;

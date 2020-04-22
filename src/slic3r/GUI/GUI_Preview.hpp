@@ -98,6 +98,12 @@ class Preview : public wxPanel
     wxCheckBox* m_checkbox_travel;
     wxCheckBox* m_checkbox_retractions;
     wxCheckBox* m_checkbox_unretractions;
+#if ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
+    wxCheckBox* m_checkbox_tool_changes;
+    wxCheckBox* m_checkbox_color_changes;
+    wxCheckBox* m_checkbox_pause_prints;
+    wxCheckBox* m_checkbox_custom_gcodes;
+#endif // ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
     wxCheckBox* m_checkbox_shells;
     wxCheckBox* m_checkbox_legend;
 
@@ -189,6 +195,12 @@ private:
     void on_checkbox_travel(wxCommandEvent& evt);
     void on_checkbox_retractions(wxCommandEvent& evt);
     void on_checkbox_unretractions(wxCommandEvent& evt);
+#if ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
+    void on_checkbox_tool_changes(wxCommandEvent& evt);
+    void on_checkbox_color_changes(wxCommandEvent& evt);
+    void on_checkbox_pause_prints(wxCommandEvent& evt);
+    void on_checkbox_custom_gcodes(wxCommandEvent& evt);
+#endif // ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
     void on_checkbox_shells(wxCommandEvent& evt);
     void on_checkbox_legend(wxCommandEvent& evt);
 

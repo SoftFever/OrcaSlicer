@@ -7,9 +7,10 @@
 #include "PresetBundle.hpp"
 #include "Camera.hpp"
 #include "I18N.hpp"
-#include "libslic3r/I18N.hpp"
 #if ENABLE_GCODE_VIEWER
 #include "GUI_Utils.hpp"
+#include "DoubleSlider.hpp"
+#include "libslic3r/Model.hpp"
 #endif // ENABLE_GCODE_VIEWER
 
 #include <GL/glew.h>
@@ -96,7 +97,7 @@ bool GCodeViewer::IBuffer::init_shader(const std::string& vertex_shader_src, con
 void GCodeViewer::IBuffer::add_path(const GCodeProcessor::MoveVertex& move)
 {
     unsigned int id = static_cast<unsigned int>(data.size());
-    paths.push_back({ move.type, move.extrusion_role, id, id, move.height, move.width, move.feedrate, move.fan_speed, move.volumetric_rate(), move.extruder_id });
+    paths.push_back({ move.type, move.extrusion_role, id, id, move.height, move.width, move.feedrate, move.fan_speed, move.volumetric_rate(), move.extruder_id, move.cp_color_id });
 }
 
 std::array<float, 3> GCodeViewer::Extrusions::Range::get_color_at(float value) const
@@ -123,8 +124,8 @@ std::array<float, 3> GCodeViewer::Extrusions::Range::get_color_at(float value) c
     return ret;
 }
 
-const std::array<std::array<float, 3>, erCount> GCodeViewer::Extrusion_Role_Colors {{
-    { 1.00f, 1.00f, 1.00f },   // erNone
+const std::vector<std::array<float, 3>> GCodeViewer::Extrusion_Role_Colors {{
+    { 0.50f, 0.50f, 0.50f },   // erNone
     { 1.00f, 1.00f, 0.40f },   // erPerimeter
     { 1.00f, 0.65f, 0.00f },   // erExternalPerimeter
     { 0.00f, 0.00f, 1.00f },   // erOverhangPerimeter
@@ -141,7 +142,7 @@ const std::array<std::array<float, 3>, erCount> GCodeViewer::Extrusion_Role_Colo
     { 0.00f, 0.00f, 0.00f }    // erMixed
 }};
 
-const std::array<std::array<float, 3>, GCodeViewer::Range_Colors_Count> GCodeViewer::Range_Colors {{
+const std::vector<std::array<float, 3>> GCodeViewer::Range_Colors {{
     { 0.043f, 0.173f, 0.478f }, // bluish
     { 0.075f, 0.349f, 0.522f },
     { 0.110f, 0.533f, 0.569f },
@@ -154,7 +155,7 @@ const std::array<std::array<float, 3>, GCodeViewer::Range_Colors_Count> GCodeVie
     { 0.761f, 0.322f, 0.235f }  // reddish
 }};
 
-void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors, const Print& print, bool initialized)
+void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& print, bool initialized)
 {
     // avoid processing if called with the same gcode_result
     if (m_last_result_id == gcode_result.id)
@@ -165,16 +166,16 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const std::ve
     // release gpu memory, if used
     reset();
 
-    m_tool_colors = decode_colors(str_tool_colors);
-
     load_toolpaths(gcode_result);
     load_shells(print, initialized);
 }
 
-void GCodeViewer::refresh_toolpaths_ranges(const GCodeProcessor::Result& gcode_result)
+void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors)
 {
     if (m_vertices.vertices_count == 0)
         return;
+
+    m_tool_colors = decode_colors(str_tool_colors);
 
     m_extrusions.reset_ranges();
 
@@ -217,6 +218,8 @@ void GCodeViewer::reset()
 
     m_bounding_box = BoundingBoxf3();
     m_tool_colors = std::vector<std::array<float, 3>>();
+    m_extruder_ids = std::vector<unsigned char>();
+//    m_cp_color_ids = std::vector<unsigned char>();
     m_extrusions.reset_role_visibility_flags();
     m_extrusions.reset_ranges();
     m_shells.volumes.clear();
@@ -257,11 +260,16 @@ bool GCodeViewer::init_shaders()
 
         switch (buffer_type(i))
         {
-        case GCodeProcessor::EMoveType::Tool_change: { vertex_shader = "toolchanges.vs"; fragment_shader = "toolchanges.fs"; break; }
-        case GCodeProcessor::EMoveType::Retract:     { vertex_shader = "retractions.vs"; fragment_shader = "retractions.fs"; break; }
-        case GCodeProcessor::EMoveType::Unretract:   { vertex_shader = "unretractions.vs"; fragment_shader = "unretractions.fs"; break; }
-        case GCodeProcessor::EMoveType::Extrude:     { vertex_shader = "extrusions.vs"; fragment_shader = "extrusions.fs"; break; }
-        case GCodeProcessor::EMoveType::Travel:      { vertex_shader = "travels.vs"; fragment_shader = "travels.fs"; break; }
+        case GCodeProcessor::EMoveType::Tool_change:  { vertex_shader = "toolchanges.vs"; fragment_shader = "toolchanges.fs"; break; }
+#if ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
+        case GCodeProcessor::EMoveType::Color_change: { vertex_shader = "colorchanges.vs"; fragment_shader = "colorchanges.fs"; break; }
+        case GCodeProcessor::EMoveType::Pause_Print:  { vertex_shader = "pauses.vs"; fragment_shader = "pauses.fs"; break; }
+        case GCodeProcessor::EMoveType::Custom_GCode: { vertex_shader = "customs.vs"; fragment_shader = "customs.fs"; break; }
+#endif // ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
+        case GCodeProcessor::EMoveType::Retract:      { vertex_shader = "retractions.vs"; fragment_shader = "retractions.fs"; break; }
+        case GCodeProcessor::EMoveType::Unretract:    { vertex_shader = "unretractions.vs"; fragment_shader = "unretractions.fs"; break; }
+        case GCodeProcessor::EMoveType::Extrude:      { vertex_shader = "extrusions.vs"; fragment_shader = "extrusions.fs"; break; }
+        case GCodeProcessor::EMoveType::Travel:       { vertex_shader = "travels.vs"; fragment_shader = "travels.fs"; break; }
         default: { break; }
         }
 
@@ -322,6 +330,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         switch (curr.type)
         {
         case GCodeProcessor::EMoveType::Tool_change:
+#if ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
+        case GCodeProcessor::EMoveType::Color_change:
+        case GCodeProcessor::EMoveType::Pause_Print:
+        case GCodeProcessor::EMoveType::Custom_GCode:
+#endif // ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
         case GCodeProcessor::EMoveType::Retract:
         case GCodeProcessor::EMoveType::Unretract:
         {
@@ -365,13 +378,15 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         }
     }
 
-    // layers zs / roles -> extract from result
+    // layers zs / roles / extruder ids / cp color ids -> extract from result
     for (const GCodeProcessor::MoveVertex& move : gcode_result.moves)
     {
         if (move.type == GCodeProcessor::EMoveType::Extrude)
             m_layers_zs.emplace_back(move.position[2]);
 
         m_roles.emplace_back(move.extrusion_role);
+        m_extruder_ids.emplace_back(move.extruder_id);
+//        m_cp_color_ids.emplace_back(move.cp_color_id);
     }
 
     // layers zs -> replace intervals of layers with similar top positions with their average value.
@@ -391,6 +406,14 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     // roles -> remove duplicates
     std::sort(m_roles.begin(), m_roles.end());
     m_roles.erase(std::unique(m_roles.begin(), m_roles.end()), m_roles.end());
+
+    // extruder ids -> remove duplicates
+    std::sort(m_extruder_ids.begin(), m_extruder_ids.end());
+    m_extruder_ids.erase(std::unique(m_extruder_ids.begin(), m_extruder_ids.end()), m_extruder_ids.end());
+
+//    // cp color ids -> remove duplicates
+//    std::sort(m_cp_color_ids.begin(), m_cp_color_ids.end());
+//    m_cp_color_ids.erase(std::unique(m_cp_color_ids.begin(), m_cp_color_ids.end()), m_cp_color_ids.end());
 
     auto end_time = std::chrono::high_resolution_clock::now();
     std::cout << "toolpaths generation time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() << "ms \n";
@@ -460,7 +483,7 @@ void GCodeViewer::render_toolpaths() const
         case EViewType::FanSpeed:       { color = m_extrusions.ranges.fan_speed.get_color_at(path.fan_speed); break; }
         case EViewType::VolumetricRate: { color = m_extrusions.ranges.volumetric_rate.get_color_at(path.volumetric_rate); break; }
         case EViewType::Tool:           { color = m_tool_colors[path.extruder_id]; break; }
-        case EViewType::ColorPrint:
+        case EViewType::ColorPrint:     { color = m_tool_colors[path.cp_color_id]; break; }
         default:                        { color = { 1.0f, 1.0f, 1.0f }; break; }
         }
         return color;
@@ -482,7 +505,7 @@ void GCodeViewer::render_toolpaths() const
     };
 
     glsafe(::glCullFace(GL_BACK));
-    glsafe(::glLineWidth(1.0f));
+    glsafe(::glLineWidth(3.0f));
 
     unsigned char begin_id = buffer_id(GCodeProcessor::EMoveType::Retract);
     unsigned char end_id = buffer_id(GCodeProcessor::EMoveType::Count);
@@ -522,6 +545,35 @@ void GCodeViewer::render_toolpaths() const
                 glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
                 break;
             }
+#if ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
+            case GCodeProcessor::EMoveType::Color_change:
+            {
+                std::array<float, 3> color = { 1.0f, 0.0f, 0.0f };
+                set_color(current_program_id, color);
+                glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
+                glsafe(::glDrawElements(GL_POINTS, (GLsizei)buffer.data_size, GL_UNSIGNED_INT, nullptr));
+                glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+                break;
+            }
+            case GCodeProcessor::EMoveType::Pause_Print:
+            {
+                std::array<float, 3> color = { 0.0f, 1.0f, 0.0f };
+                set_color(current_program_id, color);
+                glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
+                glsafe(::glDrawElements(GL_POINTS, (GLsizei)buffer.data_size, GL_UNSIGNED_INT, nullptr));
+                glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+                break;
+            }
+            case GCodeProcessor::EMoveType::Custom_GCode:
+            {
+                std::array<float, 3> color = { 0.0f, 0.0f, 1.0f };
+                set_color(current_program_id, color);
+                glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
+                glsafe(::glDrawElements(GL_POINTS, (GLsizei)buffer.data_size, GL_UNSIGNED_INT, nullptr));
+                glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+                break;
+            }
+#endif // ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
             case GCodeProcessor::EMoveType::Retract:
             {
                 std::array<float, 3> color = { 1.0f, 0.0f, 1.0f };
@@ -533,7 +585,7 @@ void GCodeViewer::render_toolpaths() const
             }
             case GCodeProcessor::EMoveType::Unretract:
             {
-                std::array<float, 3> color = { 0.0f, 1.0f, 0.0f };
+                std::array<float, 3> color = { 0.0f, 1.0f, 1.0f };
                 set_color(current_program_id, color);
                 glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
                 glsafe(::glDrawElements(GL_POINTS, (GLsizei)buffer.data_size, GL_UNSIGNED_INT, nullptr));
@@ -605,28 +657,32 @@ void GCodeViewer::render_overlay() const
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-    auto add_range = [this, draw_list, &imgui](const Extrusions::Range& range, unsigned int decimals) {
-        auto add_item = [this, draw_list, &imgui](int i, float value, unsigned int decimals) {
-            ImVec2 pos(ImGui::GetCursorPosX() + 2.0f, ImGui::GetCursorPosY() + 2.0f);
-            draw_list->AddRect(ImVec2(pos.x, pos.y), ImVec2(pos.x + ICON_BORDER_SIZE, pos.y + ICON_BORDER_SIZE), ICON_BORDER_COLOR, 0.0f, 0);
-            const std::array<float, 3>& color = Range_Colors[i];
-            ImU32 fill_color = ImGui::GetColorU32(ImVec4(color[0], color[1], color[2], 1.0f));
-            draw_list->AddRectFilled(ImVec2(pos.x + 1.0f, pos.y + 1.0f), ImVec2(pos.x + ICON_BORDER_SIZE - 1.0f, pos.y + ICON_BORDER_SIZE - 1.0f), fill_color);
-            ImGui::SetCursorPosX(pos.x + ICON_BORDER_SIZE + GAP_ICON_TEXT);
-            ImGui::AlignTextToFramePadding();
+    auto add_item = [draw_list, &imgui](const std::array<float, 3>& color, const std::string& label) {
+        ImVec2 pos(ImGui::GetCursorPosX() + 2.0f, ImGui::GetCursorPosY() + 2.0f);
+        draw_list->AddRect(ImVec2(pos.x, pos.y), ImVec2(pos.x + ICON_BORDER_SIZE, pos.y + ICON_BORDER_SIZE), ICON_BORDER_COLOR, 0.0f, 0);
+        ImU32 fill_color = ImGui::GetColorU32(ImVec4(color[0], color[1], color[2], 1.0f));
+        draw_list->AddRectFilled(ImVec2(pos.x + 1.0f, pos.y + 1.0f), ImVec2(pos.x + ICON_BORDER_SIZE - 1.0f, pos.y + ICON_BORDER_SIZE - 1.0f), fill_color);
+        ImGui::SetCursorPosX(pos.x + ICON_BORDER_SIZE + GAP_ICON_TEXT);
+        ImGui::AlignTextToFramePadding();
+        imgui.text(label);
+    };
+
+    auto add_range = [this, draw_list, &imgui, add_item](const Extrusions::Range& range, unsigned int decimals) {
+        auto add_range_item = [this, draw_list, &imgui, add_item](int i, float value, unsigned int decimals) {
             char buf[1024];
             ::sprintf(buf, "%.*f", decimals, value);
-            imgui.text(buf);
+            add_item(Range_Colors[i], buf);
         };
 
         float step_size = range.step_size();
         if (step_size == 0.0f)
-            add_item(0, range.min, decimals);
+            // single item use case
+            add_range_item(0, range.min, decimals);
         else
         {
-            for (int i = Range_Colors_Count - 1; i >= 0; --i)
+            for (int i = static_cast<int>(Range_Colors.size()) - 1; i >= 0; --i)
             {
-                add_item(i, range.min + static_cast<float>(i) * step_size, decimals);
+                add_range_item(i, range.min + static_cast<float>(i) * step_size, decimals);
             }
         }
     };
@@ -634,14 +690,15 @@ void GCodeViewer::render_overlay() const
     ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
     switch (m_view_type)
     {
-    case EViewType::FeatureType:    { imgui.text(Slic3r::I18N::translate(L("Feature type"))); break; }
-    case EViewType::Height:         { imgui.text(Slic3r::I18N::translate(L("Height (mm)"))); break; }
-    case EViewType::Width:          { imgui.text(Slic3r::I18N::translate(L("Width (mm)"))); break; }
-    case EViewType::Feedrate:       { imgui.text(Slic3r::I18N::translate(L("Speed (mm/s)"))); break; }
-    case EViewType::FanSpeed:       { imgui.text(Slic3r::I18N::translate(L("Fan Speed (%)"))); break; }
-    case EViewType::VolumetricRate: { imgui.text(Slic3r::I18N::translate(L("Volumetric flow rate (mm³/s)"))); break; }
-    case EViewType::Tool:           { imgui.text(Slic3r::I18N::translate(L("Tool"))); break; }
-    case EViewType::ColorPrint:     { imgui.text(Slic3r::I18N::translate(L("Color Print"))); break; }
+    case EViewType::FeatureType:    { imgui.text(I18N::translate_utf8(L("Feature type"))); break; }
+    case EViewType::Height:         { imgui.text(I18N::translate_utf8(L("Height (mm)"))); break; }
+    case EViewType::Width:          { imgui.text(I18N::translate_utf8(L("Width (mm)"))); break; }
+    case EViewType::Feedrate:       { imgui.text(I18N::translate_utf8(L("Speed (mm/s)"))); break; }
+    case EViewType::FanSpeed:       { imgui.text(I18N::translate_utf8(L("Fan Speed (%)"))); break; }
+    case EViewType::VolumetricRate: { imgui.text(I18N::translate_utf8(L("Volumetric flow rate (mm³/s)"))); break; }
+    case EViewType::Tool:           { imgui.text(I18N::translate_utf8(L("Tool"))); break; }
+    case EViewType::ColorPrint:     { imgui.text(I18N::translate_utf8(L("Color Print"))); break; }
+    default:                        { break; }
     }
     ImGui::PopStyleColor();
 
@@ -653,14 +710,7 @@ void GCodeViewer::render_overlay() const
     {
         for (ExtrusionRole role : m_roles)
         {
-            ImVec2 pos(ImGui::GetCursorPosX() + 2.0f, ImGui::GetCursorPosY() + 2.0f);
-            draw_list->AddRect(ImVec2(pos.x, pos.y), ImVec2(pos.x + ICON_BORDER_SIZE, pos.y + ICON_BORDER_SIZE), ICON_BORDER_COLOR, 0.0f, 0);
-            const std::array<float, 3>& color = Extrusion_Role_Colors[static_cast<unsigned int>(role)];
-            ImU32 fill_color = ImGui::GetColorU32(ImVec4(color[0], color[1], color[2], 1.0));
-            draw_list->AddRectFilled(ImVec2(pos.x + 1.0f, pos.y + 1.0f), ImVec2(pos.x + ICON_BORDER_SIZE - 1.0f, pos.y + ICON_BORDER_SIZE - 1.0f), fill_color);
-            ImGui::SetCursorPosX(pos.x + ICON_BORDER_SIZE + GAP_ICON_TEXT);
-            ImGui::AlignTextToFramePadding();
-            imgui.text(Slic3r::I18N::translate(ExtrusionEntity::role_to_string(role)));
+            add_item(Extrusion_Role_Colors[static_cast<unsigned int>(role)], I18N::translate_utf8(ExtrusionEntity::role_to_string(role)));
         }
         break;
     }
@@ -674,18 +724,82 @@ void GCodeViewer::render_overlay() const
         size_t tools_count = m_tool_colors.size();
         for (size_t i = 0; i < tools_count; ++i)
         {
-            ImVec2 pos(ImGui::GetCursorPosX() + 2.0f, ImGui::GetCursorPosY() + 2.0f);
-            draw_list->AddRect(ImVec2(pos.x, pos.y), ImVec2(pos.x + ICON_BORDER_SIZE, pos.y + ICON_BORDER_SIZE), ICON_BORDER_COLOR, 0.0f, 0);
-            const std::array<float, 3>& color = m_tool_colors[i];
-            ImU32 fill_color = ImGui::GetColorU32(ImVec4(color[0], color[1], color[2], 1.0));
-            draw_list->AddRectFilled(ImVec2(pos.x + 1.0f, pos.y + 1.0f), ImVec2(pos.x + ICON_BORDER_SIZE - 1.0f, pos.y + ICON_BORDER_SIZE - 1.0f), fill_color);
-            ImGui::SetCursorPosX(pos.x + ICON_BORDER_SIZE + GAP_ICON_TEXT);
-            ImGui::AlignTextToFramePadding();
-            imgui.text((boost::format(Slic3r::I18N::translate(L("Extruder %d"))) % (i + 1)).str());
+            auto it = std::find(m_extruder_ids.begin(), m_extruder_ids.end(), static_cast<unsigned char>(i));
+            if (it == m_extruder_ids.end())
+                continue;
+
+            add_item(m_tool_colors[i], (boost::format(I18N::translate_utf8(L("Extruder %d"))) % (i + 1)).str());
         }
         break;
     }
-    case EViewType::ColorPrint: { break; }
+    case EViewType::ColorPrint:
+    {
+        const std::vector<CustomGCode::Item>& custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
+        const int extruders_count = wxGetApp().extruders_edited_cnt();
+        if (extruders_count == 1) // single extruder use case
+        {
+            if (custom_gcode_per_print_z.empty())
+                // no data to show
+                add_item(m_tool_colors.front(), I18N::translate_utf8(L("Default print color")));
+            else
+            {
+                std::vector<std::pair<double, double>> cp_values;
+                cp_values.reserve(custom_gcode_per_print_z.size());
+
+                for (auto custom_code : custom_gcode_per_print_z)
+                {
+                    if (custom_code.gcode != ColorChangeCode)
+                        continue;
+
+                    auto lower_b = std::lower_bound(m_layers_zs.begin(), m_layers_zs.end(), custom_code.print_z - Slic3r::DoubleSlider::epsilon());
+
+                    if (lower_b == m_layers_zs.end())
+                        continue;
+
+                    double current_z = *lower_b;
+                    double previous_z = lower_b == m_layers_zs.begin() ? 0.0 : *(--lower_b);
+
+                    // to avoid duplicate values, check adding values
+                    if (cp_values.empty() ||
+                        !(cp_values.back().first == previous_z && cp_values.back().second == current_z))
+                        cp_values.emplace_back(std::make_pair(previous_z, current_z));
+                }
+
+                const int items_cnt = static_cast<int>(cp_values.size());
+                if (items_cnt == 0) // There is no one color change, but there are some pause print or custom Gcode
+                {
+                    add_item(m_tool_colors.front(), I18N::translate_utf8(L("Default print color")));
+#if !ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
+                    add_item(m_tool_colors.back(), I18N::translate_utf8(L("Pause print or custom G-code")));
+#endif // !ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
+                }
+                else
+                {
+                    for (int i = items_cnt; i >= 0; --i)
+                    {
+                        // create label for color print item
+                        std::string id_str = std::to_string(i + 1) + ": ";
+
+                        if (i == 0) {
+                            add_item(m_tool_colors[i], id_str + (boost::format(I18N::translate_utf8(L("up to %.2f mm"))) % cp_values.front().first).str());
+                            break;
+                        }
+                        else if (i == items_cnt) {
+                            add_item(m_tool_colors[i], id_str + (boost::format(I18N::translate_utf8(L("above %.2f mm"))) % cp_values[i - 1].second).str());
+                            continue;
+                        }
+                        add_item(m_tool_colors[i], id_str + (boost::format(I18N::translate_utf8(L("%.2f - %.2f mm"))) % cp_values[i - 1].second % cp_values[i].first).str());
+                    }
+                }
+            }
+        }
+        else
+        {
+        }
+
+        break;
+    }
+    default: { break; }
     }
 
     imgui.end();

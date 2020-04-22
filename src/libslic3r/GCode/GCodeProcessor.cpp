@@ -24,7 +24,9 @@ const std::string GCodeProcessor::Mm3_Per_Mm_Tag     = "_PROCESSOR_MM3_PER_MM:";
 const std::string GCodeProcessor::Color_Change_Tag   = "_PROCESSOR_COLOR_CHANGE";
 const std::string GCodeProcessor::Pause_Print_Tag    = "_PROCESSOR_PAUSE_PRINT";
 const std::string GCodeProcessor::Custom_Code_Tag    = "_PROCESSOR_CUSTOM_CODE";
+#if !ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
 const std::string GCodeProcessor::End_Pause_Print_Or_Custom_Code_Tag = "_PROCESSOR_END_PAUSE_PRINT_OR_CUSTOM_CODE";
+#endif // !ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
 
 void GCodeProcessor::CachedPosition::reset()
 {
@@ -236,13 +238,20 @@ void GCodeProcessor::process_tags(const std::string& comment)
         pos = comment.find_last_of(",T");
         try
         {
-            unsigned char extruder_id = (pos == comment.npos) ? 0 : static_cast<unsigned char>(std::stoi(comment.substr(pos + 1, comment.npos)));
+            unsigned char extruder_id = (pos == comment.npos) ? 0 : static_cast<unsigned char>(std::stoi(comment.substr(pos + 1)));
 
             m_extruders_color[extruder_id] = static_cast<unsigned char>(m_extruder_offsets.size()) + m_cp_color.counter; // color_change position in list of color for preview
             ++m_cp_color.counter;
+            if (m_cp_color.counter == UCHAR_MAX)
+                m_cp_color.counter = 0;
 
             if (m_extruder_id == extruder_id)
+            {
                 m_cp_color.current = m_extruders_color[extruder_id];
+#if ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
+                store_move_vertex(EMoveType::Color_change);
+#endif // ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
+            }
         }
         catch (...)
         {
@@ -256,7 +265,11 @@ void GCodeProcessor::process_tags(const std::string& comment)
     pos = comment.find(Pause_Print_Tag);
     if (pos != comment.npos)
     {
-        m_cp_color.current = 255;
+#if ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
+        store_move_vertex(EMoveType::Pause_Print);
+#else
+        m_cp_color.current = UCHAR_MAX; 
+#endif // ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
         return;
     }
 
@@ -264,19 +277,25 @@ void GCodeProcessor::process_tags(const std::string& comment)
     pos = comment.find(Custom_Code_Tag);
     if (pos != comment.npos)
     {
-        m_cp_color.current = 255;
+#if ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
+        store_move_vertex(EMoveType::Custom_GCode);
+#else
+        m_cp_color.current = UCHAR_MAX;
+#endif // ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
         return;
     }
 
+#if !ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
     // end pause print or custom code tag
     pos = comment.find(End_Pause_Print_Or_Custom_Code_Tag);
     if (pos != comment.npos)
     {
-        if (m_cp_color.current == 255)
+        if (m_cp_color.current == UCHAR_MAX)
             m_cp_color.current = m_extruders_color[m_extruder_id];
 
         return;
     }
+#endif // !ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
 }
 
 void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
@@ -569,7 +588,9 @@ void GCodeProcessor::process_T(const std::string& command)
                 else
                 {
                     m_extruder_id = id;
-                    if (m_cp_color.current != 255)
+#if !ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT                    
+                    if (m_cp_color.current != UCHAR_MAX)
+#endif // !ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
                         m_cp_color.current = m_extruders_color[id];
                 }
 
