@@ -5,6 +5,7 @@
 #include <memory.h>
 #include <float.h>
 #include <stdint.h>
+#include <stdexcept>
 
 #include <type_traits>
 
@@ -17,6 +18,11 @@ namespace Slic3r {
 
 class ExPolygon;
 class Surface;
+
+class InfillFailedException : public std::runtime_error {
+public:
+    InfillFailedException() : std::runtime_error("Infill failed") {}
+};
 
 struct FillParams
 {
