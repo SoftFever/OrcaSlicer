@@ -2650,22 +2650,32 @@ void PrintObject::project_and_append_custom_supports(
         FacetSupportType type, std::vector<ExPolygons>& expolys) const
 {
     for (const ModelVolume* mv : this->model_object()->volumes) {
-        const auto& custom_facets = mv->m_supported_facets.get_facets(type);
+        const std::vector<int>& custom_facets = mv->m_supported_facets.get_facets(type);
         const TriangleMesh& mesh = mv->mesh();
         const Transform3f& tr1 = mv->get_matrix().cast<float>();
         const Transform3f& tr2 = this->trafo().cast<float>();
 
+        // Structure to collect projected polygons. One element for each triangle.
+        // Saves list of (layer_id, polygon) pair.
+        std::vector<std::vector<std::pair<int, ExPolygon>>> layer_polygon_pairs_per_triangle(custom_facets.size());
+
         // Make sure that the output vector can be used.
-        if (! custom_facets.empty())
+        if (custom_facets.empty())
+            continue;
+        else
             expolys.resize(layers().size());
 
         // Iterate over all triangles.
-        for (int facet_idx : custom_facets) {
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(0, custom_facets.size() - 1),
+            [&](const tbb::blocked_range<size_t>& range) {
+            for (size_t idx = range.begin(); idx < range.end(); ++ idx) {
+
             std::array<Vec3f, 3> facet;
 
             // Transform the triangle into worlds coords.
             for (int i=0; i<3; ++i)
-                facet[i] = tr2 * tr1 * mesh.its.vertices[mesh.its.indices[facet_idx](i)];
+                facet[i] = tr2 * tr1 * mesh.its.vertices[mesh.its.indices[custom_facets[idx]](i)];
 
             // Ignore triangles with upward-pointing normal.
             if ((facet[1]-facet[0]).cross(facet[2]-facet[0]).z() > 0.)
@@ -2739,10 +2749,10 @@ void PrintObject::project_and_append_custom_supports(
                 }
 
                 if (it != layers().begin()) {
-                    Points pts;
+                    ExPolygon explg;
                     for (const Vec2f& pt : proj)
-                        pts.emplace_back(scale_(pt.x()), scale_(pt.y()));
-                    expolys[it-layers().begin()-1].emplace_back(pts);
+                        explg.contour.points.emplace_back(scale_(pt.x()), scale_(pt.y()));
+                    layer_polygon_pairs_per_triangle[idx].emplace_back(int(it-layers().begin()-1), std::move(explg));
                 }
 
                 if (stop)
@@ -2757,7 +2767,16 @@ void PrintObject::project_and_append_custom_supports(
                 ++it;
             }
         }
-    }
+        }); // end of parallel_for
+
+        // Now append the collected polygons to respective layers.
+        for (auto& trg : layer_polygon_pairs_per_triangle) {
+            for (auto& [layer_id, expolygon] : trg) {
+                expolys[layer_id].emplace_back(std::move(expolygon));
+            }
+        }
+
+    } // loop over ModelVolumes
 }
 
 } // namespace Slic3r
