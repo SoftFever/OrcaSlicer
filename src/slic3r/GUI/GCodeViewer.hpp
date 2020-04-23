@@ -156,10 +156,9 @@ private:
     std::vector<double> m_layers_zs;
     std::vector<ExtrusionRole> m_roles;
     std::vector<unsigned char> m_extruder_ids;
-//    std::vector<unsigned char> m_cp_color_ids;
     Extrusions m_extrusions;
     Shells m_shells;
-    EViewType m_view_type{ EViewType::FeatureType };
+    mutable EViewType m_view_type{ EViewType::FeatureType };
     bool m_legend_enabled{ true };
 
 public:
@@ -207,6 +206,8 @@ private:
     void render_toolpaths() const;
     void render_shells() const;
     void render_overlay() const;
+    void render_legend() const;
+    void render_toolbar() const;
 };
 
 } // namespace GUI

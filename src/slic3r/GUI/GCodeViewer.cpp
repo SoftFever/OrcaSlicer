@@ -10,6 +10,8 @@
 #if ENABLE_GCODE_VIEWER
 #include "GUI_Utils.hpp"
 #include "DoubleSlider.hpp"
+#include "GLToolbar.hpp"
+#include "GLCanvas3D.hpp"
 #include "libslic3r/Model.hpp"
 #endif // ENABLE_GCODE_VIEWER
 
@@ -211,7 +213,6 @@ void GCodeViewer::reset()
     m_bounding_box = BoundingBoxf3();
     m_tool_colors = std::vector<std::array<float, 3>>();
     m_extruder_ids = std::vector<unsigned char>();
-//    m_cp_color_ids = std::vector<unsigned char>();
     m_extrusions.reset_role_visibility_flags();
     m_extrusions.reset_ranges();
     m_shells.volumes.clear();
@@ -372,7 +373,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
         m_roles.emplace_back(move.extrusion_role);
         m_extruder_ids.emplace_back(move.extruder_id);
-//        m_cp_color_ids.emplace_back(move.cp_color_id);
     }
 
     // layers zs -> replace intervals of layers with similar top positions with their average value.
@@ -396,10 +396,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     // extruder ids -> remove duplicates
     std::sort(m_extruder_ids.begin(), m_extruder_ids.end());
     m_extruder_ids.erase(std::unique(m_extruder_ids.begin(), m_extruder_ids.end()), m_extruder_ids.end());
-
-//    // cp color ids -> remove duplicates
-//    std::sort(m_cp_color_ids.begin(), m_cp_color_ids.end());
-//    m_cp_color_ids.erase(std::unique(m_cp_color_ids.begin(), m_cp_color_ids.end()), m_cp_color_ids.end());
 
     auto end_time = std::chrono::high_resolution_clock::now();
     std::cout << "toolpaths generation time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() << "ms \n";
@@ -621,10 +617,16 @@ void GCodeViewer::render_shells() const
 
 void GCodeViewer::render_overlay() const
 {
+    render_legend();
+    render_toolbar();
+}
+
+void GCodeViewer::render_legend() const
+{
     static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
     static const float ICON_BORDER_SIZE = 25.0f;
     static const ImU32 ICON_BORDER_COLOR = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
-    static const float GAP_ICON_TEXT = 5.0f;
+    static const float GAP_ICON_TEXT = 7.5f;
 
     if (!m_legend_enabled || m_roles.empty())
         return;
@@ -633,17 +635,19 @@ void GCodeViewer::render_overlay() const
 
     imgui.set_next_window_pos(0, 0, ImGuiCond_Always);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    imgui.begin(_L("Legend"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+    imgui.begin(std::string("Legend"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
     auto add_item = [draw_list, &imgui](const std::array<float, 3>& color, const std::string& label) {
+        // draw icon
         ImVec2 pos(ImGui::GetCursorPosX() + 2.0f, ImGui::GetCursorPosY() + 2.0f);
-        draw_list->AddRect(ImVec2(pos.x, pos.y), ImVec2(pos.x + ICON_BORDER_SIZE, pos.y + ICON_BORDER_SIZE), ICON_BORDER_COLOR, 0.0f, 0);
-        ImU32 fill_color = ImGui::GetColorU32(ImVec4(color[0], color[1], color[2], 1.0f));
-        draw_list->AddRectFilled(ImVec2(pos.x + 1.0f, pos.y + 1.0f), ImVec2(pos.x + ICON_BORDER_SIZE - 1.0f, pos.y + ICON_BORDER_SIZE - 1.0f), fill_color);
-        ImGui::SetCursorPosX(pos.x + ICON_BORDER_SIZE + GAP_ICON_TEXT);
-        ImGui::AlignTextToFramePadding();
+        draw_list->AddRect({ pos.x, pos.y }, { pos.x + ICON_BORDER_SIZE, pos.y + ICON_BORDER_SIZE }, ICON_BORDER_COLOR, 0.0f, 0);
+        draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f },
+                                 { pos.x + ICON_BORDER_SIZE - 1.0f, pos.y + ICON_BORDER_SIZE - 1.0f },
+                                 ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
+        // draw text
+        ImGui::SetCursorPos({ pos.x + ICON_BORDER_SIZE + GAP_ICON_TEXT, pos.y + 0.5f * (ICON_BORDER_SIZE - ImGui::GetTextLineHeight()) });
         imgui.text(label);
     };
 
@@ -673,7 +677,7 @@ void GCodeViewer::render_overlay() const
     case EViewType::Height:         { imgui.text(I18N::translate_utf8(L("Height (mm)"))); break; }
     case EViewType::Width:          { imgui.text(I18N::translate_utf8(L("Width (mm)"))); break; }
     case EViewType::Feedrate:       { imgui.text(I18N::translate_utf8(L("Speed (mm/s)"))); break; }
-    case EViewType::FanSpeed:       { imgui.text(I18N::translate_utf8(L("Fan Speed (%)"))); break; }
+    case EViewType::FanSpeed:       { imgui.text(I18N::translate_utf8(L("Fan Speed (%%)"))); break; }
     case EViewType::VolumetricRate: { imgui.text(I18N::translate_utf8(L("Volumetric flow rate (mm³/s)"))); break; }
     case EViewType::Tool:           { imgui.text(I18N::translate_utf8(L("Tool"))); break; }
     case EViewType::ColorPrint:     { imgui.text(I18N::translate_utf8(L("Color Print"))); break; }
@@ -792,6 +796,10 @@ void GCodeViewer::render_overlay() const
 
     imgui.end();
     ImGui::PopStyleVar();
+}
+
+void GCodeViewer::render_toolbar() const
+{
 }
 
 } // namespace GUI
