@@ -400,9 +400,7 @@ void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_
     // and maybe other problems. We will therefore go through layer_tools and detect and fix this.
     // So, if there is a non-object layer starting with different extruder than the last one ended with (or containing more than one extruder),
     // we'll mark it with has_wipe tower.
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//    assert(! m_layer_tools.empty() && m_layer_tools.front().has_wipe_tower);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    assert(! m_layer_tools.empty() && m_layer_tools.front().has_wipe_tower);
     if (! m_layer_tools.empty() && m_layer_tools.front().has_wipe_tower) {
         for (size_t i = 0; i + 1 < m_layer_tools.size();) {
             const LayerTools &lt = m_layer_tools[i];
