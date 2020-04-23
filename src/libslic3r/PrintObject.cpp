@@ -2650,20 +2650,39 @@ void PrintObject::project_and_append_custom_supports(
         FacetSupportType type, std::vector<ExPolygons>& expolys) const
 {
     for (const ModelVolume* mv : this->model_object()->volumes) {
-        const std::vector<int>& custom_facets = mv->m_supported_facets.get_facets(type);
+        const std::vector<int> custom_facets = mv->m_supported_facets.get_facets(type);
+        if (custom_facets.empty())
+            continue;
+
         const TriangleMesh& mesh = mv->mesh();
         const Transform3f& tr1 = mv->get_matrix().cast<float>();
         const Transform3f& tr2 = this->trafo().cast<float>();
+        const Transform3f  tr  = tr2 * tr1;
+
+
+        // The projection will be at most a pentagon. Let's minimize heap
+        // reallocations by saving in in the following struct.
+        // Points are used so that scaling can be done in parallel
+        // and they can be moved from to create an ExPolygon later.
+        struct LightPolygon {
+            LightPolygon() { pts.reserve(5); }
+            Points pts;
+
+            void add(const Vec2f& pt) {
+                pts.emplace_back(scale_(pt.x()), scale_(pt.y()));
+                assert(pts.size <= 5);
+            }
+        };
 
         // Structure to collect projected polygons. One element for each triangle.
-        // Saves list of (layer_id, polygon) pair.
-        std::vector<std::vector<std::pair<int, ExPolygon>>> layer_polygon_pairs_per_triangle(custom_facets.size());
+        // Saves vector of polygons and layer_id of the first one.
+        struct TriangleProjections {
+            size_t first_layer_id;
+            std::vector<LightPolygon> polygons;
+        };
 
-        // Make sure that the output vector can be used.
-        if (custom_facets.empty())
-            continue;
-        else
-            expolys.resize(layers().size());
+        // Vector to collect resulting projections from each triangle.
+        std::vector<TriangleProjections> projections_of_triangles(custom_facets.size());
 
         // Iterate over all triangles.
         tbb::parallel_for(
@@ -2675,7 +2694,7 @@ void PrintObject::project_and_append_custom_supports(
 
             // Transform the triangle into worlds coords.
             for (int i=0; i<3; ++i)
-                facet[i] = tr2 * tr1 * mesh.its.vertices[mesh.its.indices[custom_facets[idx]](i)];
+                facet[i] = tr * mesh.its.vertices[mesh.its.indices[custom_facets[idx]](i)];
 
             // Ignore triangles with upward-pointing normal.
             if ((facet[1]-facet[0]).cross(facet[2]-facet[0]).z() > 0.)
@@ -2700,79 +2719,91 @@ void PrintObject::project_and_append_custom_supports(
                                return l1->slice_z < z;
                           });
 
+            // Count how many projections will be generated for this triangle
+            // and allocate respective amount in projections_of_triangles.
+            projections_of_triangles[idx].first_layer_id = it-layers().begin();
+            size_t last_layer_id = projections_of_triangles[idx].first_layer_id;
+            // The cast in the condition below is important. The comparison must
+            // be an exact opposite of the one lower in the code where
+            // the polygons are appended. And that one is on floats.
+            while (last_layer_id + 1 < layers().size()
+                && float(layers()[last_layer_id]->slice_z) <= facet[2].z())
+                ++last_layer_id;
+            projections_of_triangles[idx].polygons.resize(
+                last_layer_id - projections_of_triangles[idx].first_layer_id + 1);
+
             // Calculate how to move points on triangle sides per unit z increment.
             Vec2f ta(trianglef[1] - trianglef[0]);
             Vec2f tb(trianglef[2] - trianglef[0]);
             ta *= 1./(facet[1].z() - facet[0].z());
             tb *= 1./(facet[2].z() - facet[0].z());
 
-            // Projection on current slice.
-            std::vector<Vec2f> proj;
-            proj.emplace_back(trianglef[0]);
+            // Projection on current slice will be build directly in place.
+            LightPolygon* proj = &projections_of_triangles[idx].polygons[0];
+            proj->add(trianglef[0]);
 
-            // Projections of triangle sides intersections with slices.
-            // a moves along one side, b tracks the other.
-            Vec2f a(proj.back());
-            Vec2f b(proj.back());
             bool passed_first = false;
             bool stop = false;
 
-            // Project a sub-triangle on all slices intersecting the triangle.
+            // Project a sub-polygon on all slices intersecting the triangle.
             while (it != layers().end()) {
                 const float z = (*it)->slice_z;
 
+                // Projections of triangle sides intersections with slices.
+                // a moves along one side, b tracks the other.
+                Vec2f a;
+                Vec2f b;
+
                 // If the middle vertex was already passed, append the vertex
-                // and make it track the remaining side.
+                // and use ta for tracking the remaining side.
                 if (z > facet[1].z() && ! passed_first) {
-                    proj.push_back(trianglef[1]);
-                    a = trianglef[1];
+                    proj->add(trianglef[1]);
                     ta = trianglef[2]-trianglef[1];
                     ta *= 1./(facet[2].z() - facet[1].z());
                     passed_first = true;
                 }
 
-                // Move a along the side it currently tracks to get
-                // projected intersection with current slice.
-                a = passed_first ? (trianglef[1]+ta*(z-facet[1].z()))
-                                 : (trianglef[0]+ta*(z-facet[0].z()));
-
                 // This slice is above the triangle already.
                 if (z > facet[2].z() || it+1 == layers().end()) {
-                    b = trianglef[2];
-                    proj.push_back(b);
+                    proj->add(trianglef[2]);
                     stop = true;
                 }
                 else {
+                    // Move a, b along the side it currently tracks to get
+                    // projected intersection with current slice.
+                    a = passed_first ? (trianglef[1]+ta*(z-facet[1].z()))
+                                     : (trianglef[0]+ta*(z-facet[0].z()));
                     b = trianglef[0]+tb*(z-facet[0].z());
-                    proj.push_back(a);
-                    proj.push_back(b+tb);
+                    proj->add(a);
+                    proj->add(b);
                 }
 
-                if (it != layers().begin()) {
-                    ExPolygon explg;
-                    for (const Vec2f& pt : proj)
-                        explg.contour.points.emplace_back(scale_(pt.x()), scale_(pt.y()));
-                    layer_polygon_pairs_per_triangle[idx].emplace_back(int(it-layers().begin()-1), std::move(explg));
-                }
-
-                if (stop)
+               if (stop)
                     break;
 
-                // Use a and b as first two points of the polygon
-                // for the next layer.
-                proj.clear();
-                proj.push_back(b);
-                proj.push_back(a);
-
+                // Advance to the next layer.
                 ++it;
+                ++proj;
+                assert(proj <= &projections_of_triangles[idx].polygons.back() );
+
+                // a, b are first two points of the polygon for the next layer.
+                proj->add(b);
+                proj->add(a);
             }
         }
         }); // end of parallel_for
 
+        // Make sure that the output vector can be used.
+        expolys.resize(layers().size());
+
         // Now append the collected polygons to respective layers.
-        for (auto& trg : layer_polygon_pairs_per_triangle) {
-            for (auto& [layer_id, expolygon] : trg) {
-                expolys[layer_id].emplace_back(std::move(expolygon));
+        for (auto& trg : projections_of_triangles) {
+            int layer_id = trg.first_layer_id;
+            if (layer_id == 0)
+                continue;
+            for (const LightPolygon& poly : trg.polygons) {
+                expolys[layer_id-1].emplace_back(std::move(poly.pts));
+                ++layer_id;
             }
         }
 
