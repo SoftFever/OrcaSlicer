@@ -4,7 +4,7 @@
 #include "libslic3r/SLA/Rotfinder.hpp"
 #include "libslic3r/MinAreaBoundingBox.hpp"
 
-#include "Plater.hpp"
+#include "slic3r/GUI/Plater.hpp"
 
 namespace Slic3r { namespace GUI {
 

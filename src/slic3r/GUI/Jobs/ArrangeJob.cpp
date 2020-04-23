@@ -2,9 +2,9 @@
 
 #include "libslic3r/MTUtils.hpp"
 
-#include "Plater.hpp"
-#include "GLCanvas3D.hpp"
-#include "GUI.hpp"
+#include "slic3r/GUI/Plater.hpp"
+#include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/GUI.hpp"
 
 namespace Slic3r { namespace GUI {
 

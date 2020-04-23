@@ -5,7 +5,8 @@
 
 #include <slic3r/Utils/Thread.hpp>
 #include <slic3r/GUI/I18N.hpp>
-#include <slic3r/GUI/ProgressIndicator.hpp>
+
+#include "ProgressIndicator.hpp"
 
 #include <wx/event.h>
 

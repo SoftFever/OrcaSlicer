@@ -12,7 +12,7 @@
 #include "Selection.hpp"
 
 #include "libslic3r/BoundingBox.hpp"
-#include "Job.hpp"
+#include "Jobs/Job.hpp"
 #include "wxExtensions.hpp"
 
 class wxButton;
