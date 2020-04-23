@@ -24,6 +24,7 @@ class ConfigOptionsGroup;
 class DynamicPrintConfig;
 class ModelObject;
 class ModelVolume;
+class TriangleMesh;
 enum class ModelVolumeType : int;
 
 // FIXME: broken build on mac os because of this is missing:
@@ -265,6 +266,7 @@ public:
     void                load_part(ModelObject* model_object, std::vector<std::pair<wxString, bool>> &volumes_info, ModelVolumeType type);
 	void                load_generic_subobject(const std::string& type_name, const ModelVolumeType type);
     void                load_shape_object(const std::string &type_name);
+    void                load_mesh_object(const TriangleMesh &mesh, const wxString &name);  
     void                del_object(const int obj_idx);
     void                del_subobject_item(wxDataViewItem& item);
     void                del_settings_from_config(const wxDataViewItem& parent_item);

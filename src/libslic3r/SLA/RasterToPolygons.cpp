@@ -33,15 +33,15 @@ template<class Fn> void foreach_vertex(ExPolygon &poly, Fn &&fn)
         for (auto &p : h.points) fn(p);
 }
 
-ExPolygons raster_to_polygons(const RasterGrayscaleAA &rst, float accuracy)
+ExPolygons raster_to_polygons(const RasterGrayscaleAA &rst, Vec2i windowsize)
 {    
     size_t rows = rst.resolution().height_px, cols = rst.resolution().width_px;
     
     if (rows < 2 || cols < 2) return {};
     
     Polygons polys;
-    size_t w_rows = (2 + rows / 8) - size_t(accuracy * rows / 8);
-    size_t w_cols = std::max(size_t(2), w_rows * cols / rows);
+    long w_rows = std::max(2l, long(windowsize.y()));
+    long w_cols = std::max(2l, long(windowsize.x()));
     
     std::vector<marchsq::Ring> rings =
         marchsq::execute(rst, 128, {w_rows, w_cols});
@@ -49,6 +49,9 @@ ExPolygons raster_to_polygons(const RasterGrayscaleAA &rst, float accuracy)
     polys.reserve(rings.size());
     
     auto pxd = rst.pixel_dimensions();
+    pxd.w_mm = (rst.resolution().width_px * pxd.w_mm) / (rst.resolution().width_px - 1);
+    pxd.h_mm = (rst.resolution().height_px * pxd.h_mm) / (rst.resolution().height_px - 1);
+    
     for (const marchsq::Ring &ring : rings) {
         Polygon poly; Points &pts = poly.points;
         pts.reserve(ring.size());

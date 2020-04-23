@@ -1,3 +1,5 @@
+#define NOMINMAX
+
 #include <catch2/catch.hpp>
 #include <test_utils.hpp>
 
@@ -5,6 +7,7 @@
 
 #include <libslic3r/MarchingSquares.hpp>
 #include <libslic3r/SLA/RasterToPolygons.hpp>
+
 #include <libslic3r/SLA/AGGRaster.hpp>
 #include <libslic3r/MTUtils.hpp>
 #include <libslic3r/SVG.hpp>
@@ -17,6 +20,11 @@
 
 using namespace Slic3r;
 
+static double area(const sla::RasterBase::PixelDim &pxd)
+{
+    return pxd.w_mm * pxd.h_mm;
+}
+
 static Slic3r::sla::RasterGrayscaleAA create_raster(
     const sla::RasterBase::Resolution &res,
     double                             disp_w = 100.,
@@ -26,10 +34,8 @@ static Slic3r::sla::RasterGrayscaleAA create_raster(
     
     auto bb = BoundingBox({0, 0}, {scaled(disp_w), scaled(disp_h)});
     sla::RasterBase::Trafo trafo;
-//    trafo.center_x = bb.center().x();
-//    trafo.center_y = bb.center().y();
-//    trafo.center_x = scaled(pixdim.w_mm);
-//    trafo.center_y = scaled(pixdim.h_mm);
+    trafo.center_x = bb.center().x();
+    trafo.center_y = bb.center().y();
 
     return sla::RasterGrayscaleAA{res, pixdim, trafo, agg::gamma_threshold(.5)};
 }
@@ -78,10 +84,13 @@ static ExPolygons circle_with_hole(double r, Point center = {0, 0}) {
     return {poly};
 }
 
+static const Vec2i W4x4 = {4, 4};
+static const Vec2i W2x2 = {2, 2};
+
 template<class Rst>
 static void test_expolys(Rst &&             rst,
                          const ExPolygons & ref,
-                         float accuracy,
+                         Vec2i window,
                          const std::string &name = "test")
 {
     for (const ExPolygon &expoly : ref) rst.draw(expoly);
@@ -90,11 +99,22 @@ static void test_expolys(Rst &&             rst,
     out << rst.encode(sla::PNGRasterEncoder{});
     out.close();
     
-    ExPolygons extracted = sla::raster_to_polygons(rst, accuracy);
+    ExPolygons extracted = sla::raster_to_polygons(rst, window);
     
     SVG svg(name + ".svg");
     svg.draw(extracted);
+    svg.draw(ref, "green");
     svg.Close();
+    
+    double max_rel_err = 0.1;
+    sla::RasterBase::PixelDim pxd = rst.pixel_dimensions();
+    double max_abs_err = area(pxd) * scaled(1.) * scaled(1.);
+    
+    BoundingBox ref_bb;
+    for (auto &expoly : ref) ref_bb.merge(expoly.contour.bounding_box());
+    
+    double max_displacement = 4. * (std::pow(pxd.h_mm, 2) + std::pow(pxd.w_mm, 2));
+    max_displacement *= scaled<double>(1.) * scaled(1.);
     
     REQUIRE(extracted.size() == ref.size());
     for (size_t i = 0; i < ref.size(); ++i) {
@@ -104,7 +124,16 @@ static void test_expolys(Rst &&             rst,
         for (auto &h : extracted[i].holes) REQUIRE(h.is_clockwise());
         
         double refa = ref[i].area();
-        REQUIRE(std::abs(extracted[i].area() - refa) < 0.1 * refa);
+        double abs_err = std::abs(extracted[i].area() - refa);
+        double rel_err = abs_err / refa;
+        
+        REQUIRE((rel_err <= max_rel_err || abs_err <= max_abs_err));
+        
+        BoundingBox bb;
+        for (auto &expoly : extracted) bb.merge(expoly.contour.bounding_box());
+        
+        Point d = bb.center() - ref_bb.center();
+        REQUIRE(double(d.transpose() * d) <= max_displacement);
     }
 }
 
@@ -130,22 +159,36 @@ TEST_CASE("Marching squares directions", "[MarchingSquares]") {
     REQUIRE(step(crd, marchsq::__impl::Dir::up).c == 1);
 }
 
+TEST_CASE("Fully covered raster should result in a rectangle", "[MarchingSquares]") {
+    auto rst = create_raster({4, 4}, 4., 4.);
+    
+    ExPolygon rect = square(4);
+
+    SECTION("Full accuracy") {
+        test_expolys(rst, {rect}, W2x2, "fully_covered_full_acc");
+    }
+    
+    SECTION("Half accuracy") {
+        test_expolys(rst, {rect}, W4x4, "fully_covered_half_acc");
+    }
+}
+
 TEST_CASE("4x4 raster with one ring", "[MarchingSquares]") {
     
     sla::RasterBase::PixelDim pixdim{1, 1};
     
     // We need one additional row and column to detect edges
-    sla::RasterGrayscaleAA rst{{5, 5}, pixdim, {}, agg::gamma_threshold(.5)};
+    sla::RasterGrayscaleAA rst{{4, 4}, pixdim, {}, agg::gamma_threshold(.5)};
     
     // Draw a triangle from individual pixels
+    rst.draw(square(1., {0500000, 0500000}));
+    rst.draw(square(1., {1500000, 0500000}));
+    rst.draw(square(1., {2500000, 0500000}));
+    
     rst.draw(square(1., {1500000, 1500000}));
     rst.draw(square(1., {2500000, 1500000}));
-    rst.draw(square(1., {3500000, 1500000}));
     
     rst.draw(square(1., {2500000, 2500000}));
-    rst.draw(square(1., {3500000, 2500000}));
-    
-    rst.draw(square(1., {3500000, 3500000}));
     
     std::fstream out("4x4.png", std::ios::out);
     out << rst.encode(sla::PNGRasterEncoder{});
@@ -222,73 +265,59 @@ TEST_CASE("Square with hole in the middle", "[MarchingSquares]") {
     ExPolygons inp = {square_with_hole(50.)};
     
     SECTION("Proportional raster, 1x1 mm pixel size, full accuracy") {
-        test_expolys(create_raster({100, 100}, 100., 100.), inp, 1.f, "square_with_hole_proportional_1x1_mm_px_full");
+        test_expolys(create_raster({100, 100}, 100., 100.), inp, W2x2, "square_with_hole_proportional_1x1_mm_px_full");
     }
     
     SECTION("Proportional raster, 1x1 mm pixel size, half accuracy") {
-        test_expolys(create_raster({100, 100}, 100., 100.), inp, .5f, "square_with_hole_proportional_1x1_mm_px_half");
+        test_expolys(create_raster({100, 100}, 100., 100.), inp, W4x4, "square_with_hole_proportional_1x1_mm_px_half");
     }
     
     SECTION("Landscape raster, 1x1 mm pixel size, full accuracy") {
-        test_expolys(create_raster({150, 100}, 150., 100.), inp, 1.f, "square_with_hole_landsc_1x1_mm_px_full");
+        test_expolys(create_raster({150, 100}, 150., 100.), inp, W2x2, "square_with_hole_landsc_1x1_mm_px_full");
     }
     
     SECTION("Landscape raster, 1x1 mm pixel size, half accuracy") {
-        test_expolys(create_raster({150, 100}, 150., 100.), inp, .5f, "square_with_hole_landsc_1x1_mm_px_half");
+        test_expolys(create_raster({150, 100}, 150., 100.), inp, W4x4, "square_with_hole_landsc_1x1_mm_px_half");
     }
     
     SECTION("Portrait raster, 1x1 mm pixel size, full accuracy") {
-        test_expolys(create_raster({100, 150}, 100., 150.), inp, 1.f, "square_with_hole_portrait_1x1_mm_px_full");
+        test_expolys(create_raster({100, 150}, 100., 150.), inp, W2x2, "square_with_hole_portrait_1x1_mm_px_full");
     }
     
     SECTION("Portrait raster, 1x1 mm pixel size, half accuracy") {
-        test_expolys(create_raster({100, 150}, 100., 150.), inp, .5f, "square_with_hole_portrait_1x1_mm_px_half");
+        test_expolys(create_raster({100, 150}, 100., 150.), inp, W4x4, "square_with_hole_portrait_1x1_mm_px_half");
     }
     
     SECTION("Proportional raster, 2x2 mm pixel size, full accuracy") {
-        test_expolys(create_raster({200, 200}, 100., 100.), inp, 1.f, "square_with_hole_proportional_2x2_mm_px_full");
+        test_expolys(create_raster({200, 200}, 100., 100.), inp, W2x2, "square_with_hole_proportional_2x2_mm_px_full");
     }
     
     SECTION("Proportional raster, 2x2 mm pixel size, half accuracy") {
-        test_expolys(create_raster({200, 200}, 100., 100.), inp, .5f, "square_with_hole_proportional_2x2_mm_px_half");
+        test_expolys(create_raster({200, 200}, 100., 100.), inp, W4x4, "square_with_hole_proportional_2x2_mm_px_half");
     }
     
     SECTION("Proportional raster, 0.5x0.5 mm pixel size, full accuracy") {
-        test_expolys(create_raster({50, 50}, 100., 100.), inp, 1.f, "square_with_hole_proportional_0.5x0.5_mm_px_full");
+        test_expolys(create_raster({50, 50}, 100., 100.), inp, W2x2, "square_with_hole_proportional_0.5x0.5_mm_px_full");
     }
     
     SECTION("Proportional raster, 0.5x0.5 mm pixel size, half accuracy") {
-        test_expolys(create_raster({50, 50}, 100., 100.), inp, .5f, "square_with_hole_proportional_0.5x0.5_mm_px_half");
+        test_expolys(create_raster({50, 50}, 100., 100.), inp, W4x4, "square_with_hole_proportional_0.5x0.5_mm_px_half");
     }
 }
 
 TEST_CASE("Circle with hole in the middle", "[MarchingSquares]") {
     using namespace Slic3r;
     
-    test_expolys(create_raster({100, 100}), circle_with_hole(25.), 1.f, "circle_with_hole");   
-}
-
-static void recreate_object_from_slices(const std::string &objname, float lh) {
-    TriangleMesh mesh = load_model(objname);
-    mesh.require_shared_vertices();
-    
-    auto bb = mesh.bounding_box();
-    std::vector<ExPolygons> layers;
-    slice_mesh(mesh, grid(float(bb.min.z()), float(bb.max.z()), lh), layers, 0.f, []{});
-    
-    TriangleMesh out = slices_to_triangle_mesh(layers, bb.min.z(), double(lh), double(lh));
-    
-    out.require_shared_vertices();
-    out.WriteOBJFile("out_from_slices.obj");
+    test_expolys(create_raster({1000, 1000}), circle_with_hole(25.), W2x2, "circle_with_hole");   
 }
 
 static void recreate_object_from_rasters(const std::string &objname, float lh) {
     TriangleMesh mesh = load_model(objname);
     
     auto bb = mesh.bounding_box();
-//    Vec3f tr = -bb.center().cast<float>();
-//    mesh.translate(tr.x(), tr.y(), tr.z());
-//    bb = mesh.bounding_box();
+    Vec3f tr = -bb.center().cast<float>();
+    mesh.translate(tr.x(), tr.y(), tr.z());
+    bb = mesh.bounding_box();
     
     std::vector<ExPolygons> layers;
     slice_mesh(mesh, grid(float(bb.min.z()) + lh, float(bb.max.z()), lh), layers, 0.f, []{});
@@ -311,7 +340,7 @@ static void recreate_object_from_rasters(const std::string &objname, float lh) {
         
         ExPolygons layer_ = sla::raster_to_polygons(rst);
 //        float delta = scaled(std::min(rst.pixel_dimensions().h_mm,
-//                                      rst.pixel_dimensions().w_mm));
+//                                      rst.pixel_dimensions().w_mm)) / 2;
         
 //        layer_ = expolygons_simplify(layer_, delta);
         
@@ -338,5 +367,5 @@ static void recreate_object_from_rasters(const std::string &objname, float lh) {
 }
 
 TEST_CASE("Recreate object from rasters", "[SL1Import]") {
-    recreate_object_from_rasters("triang.obj", 0.05f);
+    recreate_object_from_rasters("frog_legs.obj", 0.05f);
 }
