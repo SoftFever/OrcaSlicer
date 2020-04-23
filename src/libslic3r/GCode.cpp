@@ -2329,11 +2329,13 @@ void GCode::process_layer(
         gcode += "\n; " + GCodeAnalyzer::End_Pause_Print_Or_Custom_Code_Tag + "\n";
 
 #if ENABLE_GCODE_VIEWER
+#if !ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
     // add tag for processor
     if (gcode.find(GCodeProcessor::Pause_Print_Tag) != gcode.npos)
         gcode += "\n; " + GCodeProcessor::End_Pause_Print_Or_Custom_Code_Tag + "\n";
     else if (gcode.find(GCodeProcessor::Custom_Code_Tag) != gcode.npos)
         gcode += "\n; " + GCodeProcessor::End_Pause_Print_Or_Custom_Code_Tag + "\n";
+#endif // !ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
 #endif // ENABLE_GCODE_VIEWER
 
 #ifdef HAS_PRESSURE_EQUALIZER

@@ -664,8 +664,10 @@ public:
     void reload_scene(bool refresh_immediately, bool force_full_scene_refresh = false);
 
 #if ENABLE_GCODE_VIEWER
-    void load_gcode_preview(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors);
-    void refresh_toolpaths_ranges(const GCodeProcessor::Result& gcode_result);
+    void load_gcode_preview(const GCodeProcessor::Result& gcode_result);
+    void refresh_gcode_preview(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors);
+    void set_gcode_view_preview_type(GCodeViewer::EViewType type) { return m_gcode_viewer.set_view_type(type); }
+    GCodeViewer::EViewType get_gcode_view_preview_type() const { return m_gcode_viewer.get_view_type(); }
 #else
     void load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors);
 #endif // ENABLE_GCODE_VIEWER
