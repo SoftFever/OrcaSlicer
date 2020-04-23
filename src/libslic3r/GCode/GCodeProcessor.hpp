@@ -21,9 +21,6 @@ namespace Slic3r {
         static const std::string Color_Change_Tag;
         static const std::string Pause_Print_Tag;
         static const std::string Custom_Code_Tag;
-#if !ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
-        static const std::string End_Pause_Print_Or_Custom_Code_Tag;
-#endif // !ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
 
     private:
         using AxisCoords = std::array<float, 4>;
@@ -64,11 +61,9 @@ namespace Slic3r {
             Retract,
             Unretract,
             Tool_change,
-#if ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
             Color_change,
             Pause_Print,
             Custom_GCode,
-#endif // ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
             Travel,
             Extrude,
             Count

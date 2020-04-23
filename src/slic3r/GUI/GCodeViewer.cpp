@@ -254,11 +254,9 @@ bool GCodeViewer::init_shaders()
         switch (buffer_type(i))
         {
         case GCodeProcessor::EMoveType::Tool_change:  { vertex_shader = "toolchanges.vs"; fragment_shader = "toolchanges.fs"; break; }
-#if ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
         case GCodeProcessor::EMoveType::Color_change: { vertex_shader = "colorchanges.vs"; fragment_shader = "colorchanges.fs"; break; }
         case GCodeProcessor::EMoveType::Pause_Print:  { vertex_shader = "pauses.vs"; fragment_shader = "pauses.fs"; break; }
         case GCodeProcessor::EMoveType::Custom_GCode: { vertex_shader = "customs.vs"; fragment_shader = "customs.fs"; break; }
-#endif // ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
         case GCodeProcessor::EMoveType::Retract:      { vertex_shader = "retractions.vs"; fragment_shader = "retractions.fs"; break; }
         case GCodeProcessor::EMoveType::Unretract:    { vertex_shader = "unretractions.vs"; fragment_shader = "unretractions.fs"; break; }
         case GCodeProcessor::EMoveType::Extrude:      { vertex_shader = "extrusions.vs"; fragment_shader = "extrusions.fs"; break; }
@@ -320,11 +318,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         switch (curr.type)
         {
         case GCodeProcessor::EMoveType::Tool_change:
-#if ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
         case GCodeProcessor::EMoveType::Color_change:
         case GCodeProcessor::EMoveType::Pause_Print:
         case GCodeProcessor::EMoveType::Custom_GCode:
-#endif // ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
         case GCodeProcessor::EMoveType::Retract:
         case GCodeProcessor::EMoveType::Unretract:
         {
@@ -523,7 +519,6 @@ void GCodeViewer::render_toolpaths() const
                 glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
                 break;
             }
-#if ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
             case GCodeProcessor::EMoveType::Color_change:
             {
                 std::array<float, 3> color = { 1.0f, 0.0f, 0.0f };
@@ -551,7 +546,6 @@ void GCodeViewer::render_toolpaths() const
                 glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
                 break;
             }
-#endif // ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
             case GCodeProcessor::EMoveType::Retract:
             {
                 std::array<float, 3> color = { 1.0f, 0.0f, 1.0f };
@@ -746,9 +740,6 @@ void GCodeViewer::render_legend() const
                 const int items_cnt = static_cast<int>(cp_values.size());
                 if (items_cnt == 0) { // There is no one color change, but there are some pause print or custom Gcode
                     add_item(m_tool_colors.front(), I18N::translate_utf8(L("Default print color")));
-#if !ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
-                    add_item(m_tool_colors.back(), I18N::translate_utf8(L("Pause print or custom G-code")));
-#endif // !ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
                 }
                 else {
                     for (int i = items_cnt; i >= 0; --i) {
