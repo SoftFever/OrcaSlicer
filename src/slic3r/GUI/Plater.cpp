@@ -27,7 +27,6 @@
 #include <wx/numdlg.h>
 #include <wx/debug.h>
 #include <wx/busyinfo.h>
-#include <wx/filename.h>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Format/STL.hpp"
@@ -64,6 +63,7 @@
 #include "Tab.hpp"
 #include "Jobs/ArrangeJob.hpp"
 #include "Jobs/RotoptimizeJob.hpp"
+#include "Jobs/SLAImportJob.hpp"
 #include "PresetBundle.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "ProgressStatusBar.hpp"
@@ -73,7 +73,6 @@
 #include "../Utils/PrintHost.hpp"
 #include "../Utils/FixModelByWin10.hpp"
 #include "../Utils/UndoRedo.hpp"
-#include "../Utils/SLAImport.hpp"
 #include "RemovableDriveManager.hpp"
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
 #ifdef __APPLE__
@@ -1487,7 +1486,7 @@ struct Plater::priv
     class Jobs: public ExclusiveJobGroup
     {
         priv *m;
-        size_t m_arrange_id, m_rotoptimize_id;
+        size_t m_arrange_id, m_rotoptimize_id, m_sla_import_id;
         
         void before_start() override { m->background_process.stop(); }
         
@@ -1496,6 +1495,7 @@ struct Plater::priv
         {
             m_arrange_id = add_job(std::make_unique<ArrangeJob>(m->statusbar(), m->q));
             m_rotoptimize_id = add_job(std::make_unique<RotoptimizeJob>(m->statusbar(), m->q));
+            m_sla_import_id = add_job(std::make_unique<SLAImportJob>(m->statusbar(), m->q));
         }
         
         void arrange()
@@ -1508,6 +1508,12 @@ struct Plater::priv
         {
             m->take_snapshot(_(L("Optimize Rotation")));
             start(m_rotoptimize_id);
+        }
+        
+        void import_sla_arch()
+        {
+            m->take_snapshot(_(L("Import SLA archive")));
+            start(m_sla_import_id);
         }
         
     } m_ui_jobs;
@@ -4255,19 +4261,7 @@ void Plater::add_model()
 
 void Plater::import_sl1_archive()
 {
-    wxFileDialog dlg(this, _(L("Choose SL1 archive:")),
-                     from_u8(wxGetApp().app_config->get_last_dir()), "",
-                     "SL1 archive files (*.sl1)|*.sl1;*.SL1;*.zip;*.ZIP",
-                     wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-
-    if (dlg.ShowModal() == wxID_OK) {
-        try {
-            TriangleMesh mesh = import_model_from_sla_zip(dlg.GetPath());
-            p->sidebar->obj_list()->load_mesh_object(mesh, wxFileName(dlg.GetPath()).GetName());
-        } catch (std::exception &ex) {
-            show_error(this, ex.what());
-        }
-    }
+    p->m_ui_jobs.import_sla_arch();
 }
 
 void Plater::extract_config_from_project()

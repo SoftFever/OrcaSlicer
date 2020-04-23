@@ -150,6 +150,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Jobs/ArrangeJob.cpp
     GUI/Jobs/RotoptimizeJob.hpp
     GUI/Jobs/RotoptimizeJob.cpp
+    GUI/Jobs/SLAImportJob.hpp
+    GUI/Jobs/SLAImportJob.cpp
     GUI/Jobs/ProgressIndicator.hpp
     GUI/ProgressStatusBar.hpp
     GUI/ProgressStatusBar.cpp
