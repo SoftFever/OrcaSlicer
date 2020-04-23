@@ -89,6 +89,8 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 
     // initialize layout
     auto sizer = new wxBoxSizer(wxVERTICAL);
+    if (m_plater)
+        sizer->Add(m_plater, 1, wxEXPAND);
     if (m_tabpanel)
         sizer->Add(m_tabpanel, 1, wxEXPAND);
     sizer->SetSizeHints(this);
@@ -306,9 +308,11 @@ void MainFrame::init_tabpanel()
         }
     });
 
-    m_plater = new Slic3r::GUI::Plater(m_tabpanel, this);
+//!    m_plater = new Slic3r::GUI::Plater(m_tabpanel, this);
+    m_plater = new Plater(this, this);
+
     wxGetApp().plater_ = m_plater;
-    m_tabpanel->AddPage(m_plater, _(L("Plater")));
+//    m_tabpanel->AddPage(m_plater, _(L("Plater")));
 
     wxGetApp().obj_list()->create_popup_menus();
 
@@ -332,6 +336,13 @@ void MainFrame::init_tabpanel()
             m_plater->on_extruders_change(full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size());
         }
     }
+}
+
+void MainFrame::switch_to(bool plater)
+{
+    this->m_plater->Show(plater);
+    this->m_tabpanel->Show(!plater);
+    this->Layout();
 }
 
 void MainFrame::create_preset_tabs()
@@ -735,33 +746,34 @@ void MainFrame::init_menubar()
 
         editMenu->AppendSeparator();
         append_menu_item(editMenu, wxID_ANY, _(L("Searc&h")) + "\tCtrl+F",
-            _(L("Find option")), [this](wxCommandEvent&) { m_plater->search(m_tabpanel->GetCurrentPage() == m_plater); },
+            _(L("Find option")), [this](wxCommandEvent&) { m_plater->search(/*m_tabpanel->GetCurrentPage() == */m_plater->IsShown()); },
             "search", nullptr, [this]() {return true; }, this);
     }
 
     // Window menu
     auto windowMenu = new wxMenu();
     {
-        size_t tab_offset = 0;
+//!        size_t tab_offset = 0;
         if (m_plater) {
             append_menu_item(windowMenu, wxID_HIGHEST + 1, _(L("&Plater Tab")) + "\tCtrl+1", _(L("Show the plater")),
-                [this](wxCommandEvent&) { select_tab(0); }, "plater", nullptr,
+                [this/*, tab_offset*/](wxCommandEvent&) { select_tab((size_t)(-1)); }, "plater", nullptr,
                 [this]() {return true; }, this);
-            tab_offset += 1;
-        }
-        if (tab_offset > 0) {
+//!            tab_offset += 1;
+//!        }
+//!        if (tab_offset > 0) {
             windowMenu->AppendSeparator();
         }
         append_menu_item(windowMenu, wxID_HIGHEST + 2, _(L("P&rint Settings Tab")) + "\tCtrl+2", _(L("Show the print settings")),
-            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 0); }, "cog", nullptr,
+            [this/*, tab_offset*/](wxCommandEvent&) { select_tab(/*tab_offset + */0); }, "cog", nullptr,
             [this]() {return true; }, this);
         wxMenuItem* item_material_tab = append_menu_item(windowMenu, wxID_HIGHEST + 3, _(L("&Filament Settings Tab")) + "\tCtrl+3", _(L("Show the filament settings")),
-            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 1); }, "spool", nullptr,
+            [this/*, tab_offset*/](wxCommandEvent&) { select_tab(/*tab_offset + */1); }, "spool", nullptr,
             [this]() {return true; }, this);
         m_changeable_menu_items.push_back(item_material_tab);
-        append_menu_item(windowMenu, wxID_HIGHEST + 4, _(L("Print&er Settings Tab")) + "\tCtrl+4", _(L("Show the printer settings")),
-            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 2); }, "printer", nullptr,
+        wxMenuItem* item_printer_tab = append_menu_item(windowMenu, wxID_HIGHEST + 4, _(L("Print&er Settings Tab")) + "\tCtrl+4", _(L("Show the printer settings")),
+            [this/*, tab_offset*/](wxCommandEvent&) { select_tab(/*tab_offset + */2); }, "printer", nullptr,
             [this]() {return true; }, this);
+        m_changeable_menu_items.push_back(item_printer_tab);
         if (m_plater) {
             windowMenu->AppendSeparator();
             append_menu_item(windowMenu, wxID_HIGHEST + 5, _(L("3&D")) + "\tCtrl+5", _(L("Show the 3D editing view")),
@@ -905,7 +917,9 @@ void MainFrame::update_menubar()
     m_changeable_menu_items[miSend]         ->SetItemLabel((is_fff ? _(L("S&end G-code"))           : _(L("S&end to print"))) + dots    + "\tCtrl+Shift+G");
 
     m_changeable_menu_items[miMaterialTab]  ->SetItemLabel((is_fff ? _(L("&Filament Settings Tab")) : _(L("Mate&rial Settings Tab")))   + "\tCtrl+3");
-    m_changeable_menu_items[miMaterialTab]  ->SetBitmap(create_scaled_bitmap(is_fff ? "spool": "resin"));
+    m_changeable_menu_items[miMaterialTab]  ->SetBitmap(create_scaled_bitmap(is_fff ? "spool"   : "resin"));
+
+    m_changeable_menu_items[miPrinterTab]   ->SetBitmap(create_scaled_bitmap(is_fff ? "printer" : "sla_printer"));
 }
 
 // To perform the "Quck Slice", "Quick Slice and Save As", "Repeat last Quick Slice" and "Slice to SVG".
@@ -1221,9 +1235,17 @@ void MainFrame::load_config(const DynamicPrintConfig& config)
 #endif
 }
 
-void MainFrame::select_tab(size_t tab) const
+void MainFrame::select_tab(size_t tab)
 {
-    m_tabpanel->SetSelection(tab);
+    if (tab == (size_t)(-1)) {
+        if (m_plater && !m_plater->IsShown())
+            this->switch_to(true);
+    }
+    else {
+        if (m_plater && m_plater->IsShown())
+            switch_to(false);
+        m_tabpanel->SetSelection(tab);
+    }
 }
 
 // Set a camera direction, zoom to all objects.

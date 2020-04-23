@@ -160,8 +160,8 @@ private:
             Num_States
         };
 
-    private:
         static const float THICKNESS_BAR_WIDTH;
+    private:
 
         bool                        m_enabled;
         Shader                      m_shader;
@@ -456,6 +456,7 @@ private:
     mutable GLGizmosManager m_gizmos;
     mutable GLToolbar m_main_toolbar;
     mutable GLToolbar m_undoredo_toolbar;
+    mutable GLToolbar m_collapse_toolbar;
     ClippingPlane m_clipping_planes[2];
     mutable ClippingPlane m_camera_clipping_plane;
     bool m_use_clipping_planes;
@@ -602,6 +603,7 @@ public:
     void enable_selection(bool enable);
     void enable_main_toolbar(bool enable);
     void enable_undoredo_toolbar(bool enable);
+    void enable_collapse_toolbar(bool enable);
     void enable_dynamic_background(bool enable);
     void enable_labels(bool enable) { m_labels.enable(enable); }
 #if ENABLE_SLOPE_RENDERING
@@ -742,6 +744,7 @@ private:
     bool _init_main_toolbar();
     bool _init_undoredo_toolbar();
     bool _init_view_toolbar();
+    bool _init_collapse_toolbar();
 
     bool _set_current();
     void _resize(unsigned int w, unsigned int h);
@@ -770,6 +773,7 @@ private:
     void _render_gizmos_overlay() const;
     void _render_main_toolbar() const;
     void _render_undoredo_toolbar() const;
+    void _render_collapse_toolbar() const;
     void _render_view_toolbar() const;
 #if ENABLE_SHOW_CAMERA_TARGET
     void _render_camera_target() const;
@@ -839,6 +843,7 @@ private:
     bool _deactivate_undo_redo_toolbar_items();
     bool _deactivate_search_toolbar_item();
     bool _activate_search_toolbar_item();
+    bool _deactivate_collapse_toolbar_items();
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 

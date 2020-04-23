@@ -424,6 +424,8 @@ bool GUI_App::on_init_inner()
 
     update_mode(); // update view mode after fix of the object_list size
 
+    mainframe->switch_to(true); // hide settings tabs after mode updating
+
     m_initialized = true;
     return true;
 }

@@ -31,6 +31,7 @@
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "ConfigWizard.hpp"
+#include "format.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -186,7 +187,10 @@ void Tab::create_preset_tab()
                                    "or click this button.")));
 
     add_scaled_button(panel, &m_search_btn, "search");
-    m_question_btn->SetToolTip(_L("Find option"));
+    m_search_btn->SetToolTip(format_wxstr(_L("Click to start a search or use %1% shortcut"), "Ctrl+F"));
+
+    add_scaled_button(panel, &m_to_plater_btn, "plater");
+    m_to_plater_btn->SetToolTip(_L("Switch to the Plater"));
 
     // Determine the theme color of OS (dark or light)
     auto luma = wxGetApp().get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
@@ -219,6 +223,7 @@ void Tab::create_preset_tab()
         }
     }));
     m_search_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent) { wxGetApp().plater()->search(false); });
+    m_to_plater_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent) { wxGetApp().mainframe->switch_to(true); });
 
     // Colors for ui "decoration"
     m_sys_label_clr			= wxGetApp().get_label_clr_sys();
@@ -243,13 +248,17 @@ void Tab::create_preset_tab()
     m_hsizer->AddSpacer(int(32 * scale_factor));
     m_hsizer->Add(m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
     m_hsizer->Add(m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
-    m_hsizer->AddSpacer(int(48 * scale_factor));
+    m_hsizer->AddSpacer(int(32 * scale_factor));
     m_hsizer->Add(m_search_btn, 0, wxALIGN_CENTER_VERTICAL);
     // m_hsizer->AddStretchSpacer(32);
     // StretchSpacer has a strange behavior under OSX, so
     // There is used just additional sizer for m_mode_sizer with right alignment
+    wxBoxSizer* top_right_sizer = new wxBoxSizer(wxHORIZONTAL);
+    top_right_sizer->Add(m_to_plater_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, wxOSX ? 15 : 10);
+    top_right_sizer->Add(m_mode_sizer, 0, wxALIGN_CENTER_VERTICAL);
     auto mode_sizer = new wxBoxSizer(wxVERTICAL);
-    mode_sizer->Add(m_mode_sizer, 1, wxALIGN_RIGHT);
+//    mode_sizer->Add(m_mode_sizer, 1, wxALIGN_RIGHT);
+    mode_sizer->Add(top_right_sizer, 1, wxALIGN_RIGHT);
     m_hsizer->Add(mode_sizer, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, wxOSX ? 15 : 10);
 
     //Horizontal sizer to hold the tree and the selected page.

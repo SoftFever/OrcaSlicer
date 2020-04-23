@@ -362,6 +362,9 @@ PresetBitmapComboBox(parent, wxSize(15 * wxGetApp().em_unit(), -1)),
 
         wxGetApp().tab_panel()->ChangeSelection(page_id);
 
+        // Switch to Settings NotePad
+        wxGetApp().mainframe->switch_to(false);
+
         /* In a case of a multi-material printing, for editing another Filament Preset
          * it's needed to select this preset for the "Filament settings" Tab
          */
@@ -773,6 +776,8 @@ Sidebar::Sidebar(Plater *parent)
     p->scrolled = new wxScrolledWindow(this);
     p->scrolled->SetScrollbars(0, 100, 1, 2);
 
+    SetFont(wxGetApp().normal_font());
+    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 
     // Sizer in the scrolled area
     auto *scrolled_sizer = new wxBoxSizer(wxVERTICAL);
@@ -1101,6 +1106,10 @@ void Sidebar::jump_to_option(size_t selected)
 {
     const Search::Option& opt = p->searcher.get_option(selected);
     wxGetApp().get_tab(opt.type)->activate_option(opt.opt_key, opt.category);
+
+    // Switch to the Settings NotePad, if plater is shown
+    if (p->plater->IsShown())
+        wxGetApp().mainframe->switch_to(false);
 }
 
 ObjectManipulation* Sidebar::obj_manipul()
