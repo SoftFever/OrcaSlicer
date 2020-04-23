@@ -40,10 +40,8 @@ std::vector<std::array<float, 3>> decode_colors(const std::vector<std::string>& 
     {
         const std::string& color = colors[i];
         const char* c = color.data() + 1;
-        if ((color.size() == 7) && (color.front() == '#'))
-        {
-            for (size_t j = 0; j < 3; ++j)
-            {
+        if ((color.size() == 7) && (color.front() == '#')) {
+            for (size_t j = 0; j < 3; ++j) {
                 int digit1 = hex_digit_to_int(*c++);
                 int digit2 = hex_digit_to_int(*c++);
                 if ((digit1 == -1) || (digit2 == -1))
@@ -59,8 +57,7 @@ std::vector<std::array<float, 3>> decode_colors(const std::vector<std::string>& 
 void GCodeViewer::VBuffer::reset()
 {
     // release gpu memory
-    if (vbo_id > 0)
-    {
+    if (vbo_id > 0) {
         glsafe(::glDeleteBuffers(1, &vbo_id));
         vbo_id = 0;
     }
@@ -71,8 +68,7 @@ void GCodeViewer::VBuffer::reset()
 void GCodeViewer::IBuffer::reset()
 {
     // release gpu memory
-    if (ibo_id > 0)
-    {
+    if (ibo_id > 0) {
         glsafe(::glDeleteBuffers(1, &ibo_id));
         ibo_id = 0;
     }
@@ -85,8 +81,7 @@ void GCodeViewer::IBuffer::reset()
 
 bool GCodeViewer::IBuffer::init_shader(const std::string& vertex_shader_src, const std::string& fragment_shader_src)
 {
-    if (!shader.init(vertex_shader_src, fragment_shader_src))
-    {
+    if (!shader.init(vertex_shader_src, fragment_shader_src)) {
         BOOST_LOG_TRIVIAL(error) << "Unable to initialize toolpaths shader: please, check that the files " << vertex_shader_src << " and " << fragment_shader_src << " are available";
         return false;
     }
@@ -117,8 +112,7 @@ std::array<float, 3> GCodeViewer::Extrusions::Range::get_color_at(float value) c
 
     // Interpolate between the low and high colors to find exactly which color the input value should get
     std::array<float, 3> ret;
-    for (unsigned int i = 0; i < 3; ++i)
-    {
+    for (unsigned int i = 0; i < 3; ++i) {
         ret[i] = lerp(Range_Colors[color_low_idx][i], Range_Colors[color_high_idx][i], local_t);
     }
     return ret;
@@ -192,8 +186,7 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
         case GCodeProcessor::EMoveType::Extrude:
         case GCodeProcessor::EMoveType::Travel:
         {
-            if (m_buffers[buffer_id(curr.type)].visible)
-            {
+            if (m_buffers[buffer_id(curr.type)].visible) {
                 m_extrusions.ranges.height.update_from(curr.height);
                 m_extrusions.ranges.width.update_from(curr.width);
                 m_extrusions.ranges.feedrate.update_from(curr.feedrate);
@@ -211,8 +204,7 @@ void GCodeViewer::reset()
 {
     m_vertices.reset();
 
-    for (IBuffer& buffer : m_buffers)
-    {
+    for (IBuffer& buffer : m_buffers) {
         buffer.reset();
     }
 
@@ -235,7 +227,7 @@ void GCodeViewer::render() const
     render_overlay();
 }
 
-bool GCodeViewer::is_toolpath_visible(GCodeProcessor::EMoveType type) const
+bool GCodeViewer::is_toolpath_move_type_visible(GCodeProcessor::EMoveType type) const
 {
     size_t id = static_cast<size_t>(buffer_id(type));
     return (id < m_buffers.size()) ? m_buffers[id].visible : false;
@@ -277,8 +269,7 @@ bool GCodeViewer::init_shaders()
             return false;
     }
 
-    if (!m_shells.shader.init("shells.vs", "shells.fs"))
-    {
+    if (!m_shells.shader.init("shells.vs", "shells.fs")) {
         BOOST_LOG_TRIVIAL(error) << "Unable to initialize shells shader: please, check that the files shells.vs and shells.fs are available";
         return false;
     }
@@ -297,10 +288,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
     // vertex data / bounding box -> extract from result
     std::vector<float> vertices_data;
-    for (const GCodeProcessor::MoveVertex& move : gcode_result.moves)
-    {
-        for (int j = 0; j < 3; ++j)
-        {
+    for (const GCodeProcessor::MoveVertex& move : gcode_result.moves) {
+        for (int j = 0; j < 3; ++j) {
             vertices_data.insert(vertices_data.end(), move.position[j]);
             m_bounding_box.merge(move.position.cast<double>());
         }
@@ -345,8 +334,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         case GCodeProcessor::EMoveType::Extrude:
         case GCodeProcessor::EMoveType::Travel:
         {
-            if (prev.type != curr.type || !buffer.paths.back().matches(curr))
-            {
+            if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
                 buffer.add_path(curr);
                 buffer.data.push_back(static_cast<unsigned int>(i - 1));
             }
@@ -366,8 +354,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     for (IBuffer& buffer : m_buffers)
     {
         buffer.data_size = buffer.data.size();
-        if (buffer.data_size > 0)
-        {
+        if (buffer.data_size > 0) {
             glsafe(::glGenBuffers(1, &buffer.ibo_id));
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.ibo_id));
             glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer.data_size * sizeof(unsigned int), buffer.data.data(), GL_STATIC_DRAW));
@@ -379,8 +366,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     }
 
     // layers zs / roles / extruder ids / cp color ids -> extract from result
-    for (const GCodeProcessor::MoveVertex& move : gcode_result.moves)
-    {
+    for (const GCodeProcessor::MoveVertex& move : gcode_result.moves) {
         if (move.type == GCodeProcessor::EMoveType::Extrude)
             m_layers_zs.emplace_back(move.position[2]);
 
@@ -432,8 +418,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized)
         const ModelObject* model_obj = obj->model_object();
 
         std::vector<int> instance_ids(model_obj->instances.size());
-        for (int i = 0; i < (int)model_obj->instances.size(); ++i)
-        {
+        for (int i = 0; i < (int)model_obj->instances.size(); ++i) {
             instance_ids[i] = i;
         }
 
@@ -448,7 +433,6 @@ void GCodeViewer::load_shells(const Print& print, bool initialized)
         const PrintConfig& config = print.config();
         size_t extruders_count = config.nozzle_diameter.size();
         if ((extruders_count > 1) && config.wipe_tower && !config.complete_objects) {
-
             const DynamicPrintConfig& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
             double layer_height = print_config.opt_float("layer_height");
             double first_layer_height = print_config.get_abs_value("first_layer_height", layer_height);
@@ -514,8 +498,7 @@ void GCodeViewer::render_toolpaths() const
     glsafe(::glVertexPointer(3, GL_FLOAT, VBuffer::vertex_size_bytes(), (const void*)0));
     glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
 
-    for (unsigned char i = begin_id; i < end_id; ++i)
-    {
+    for (unsigned char i = begin_id; i < end_id; ++i) {
         const IBuffer& buffer = m_buffers[i];
         if (buffer.ibo_id == 0)
             continue;
@@ -523,8 +506,7 @@ void GCodeViewer::render_toolpaths() const
         if (!buffer.visible)
             continue;
 
-        if (buffer.shader.is_initialized())
-        {
+        if (buffer.shader.is_initialized()) {
             GCodeProcessor::EMoveType type = buffer_type(i);
 
             buffer.shader.start_using();
@@ -594,8 +576,7 @@ void GCodeViewer::render_toolpaths() const
             }
             case GCodeProcessor::EMoveType::Extrude:
             {
-                for (const Path& path : buffer.paths)
-                {
+                for (const Path& path : buffer.paths) {
                     if (!is_path_visible(m_extrusions.role_visibility_flags, path))
                         continue;
 
@@ -608,8 +589,7 @@ void GCodeViewer::render_toolpaths() const
             {
                 std::array<float, 3> color = { 1.0f, 1.0f, 0.0f };
                 set_color(current_program_id, color);
-                for (const Path& path : buffer.paths)
-                {
+                for (const Path& path : buffer.paths) {
                     glsafe(::glDrawElements(GL_LINE_STRIP, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
                 }
                 break;
@@ -680,8 +660,7 @@ void GCodeViewer::render_overlay() const
             add_range_item(0, range.min, decimals);
         else
         {
-            for (int i = static_cast<int>(Range_Colors.size()) - 1; i >= 0; --i)
-            {
+            for (int i = static_cast<int>(Range_Colors.size()) - 1; i >= 0; --i) {
                 add_range_item(i, range.min + static_cast<float>(i) * step_size, decimals);
             }
         }
@@ -708,8 +687,7 @@ void GCodeViewer::render_overlay() const
     {
     case EViewType::FeatureType:
     {
-        for (ExtrusionRole role : m_roles)
-        {
+        for (ExtrusionRole role : m_roles) {
             add_item(Extrusion_Role_Colors[static_cast<unsigned int>(role)], I18N::translate_utf8(ExtrusionEntity::role_to_string(role)));
         }
         break;
@@ -722,8 +700,8 @@ void GCodeViewer::render_overlay() const
     case EViewType::Tool:
     {
         size_t tools_count = m_tool_colors.size();
-        for (size_t i = 0; i < tools_count; ++i)
-        {
+        for (size_t i = 0; i < tools_count; ++i) {
+            // shows only extruders actually used
             auto it = std::find(m_extruder_ids.begin(), m_extruder_ids.end(), static_cast<unsigned char>(i));
             if (it == m_extruder_ids.end())
                 continue;
@@ -736,18 +714,15 @@ void GCodeViewer::render_overlay() const
     {
         const std::vector<CustomGCode::Item>& custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
         const int extruders_count = wxGetApp().extruders_edited_cnt();
-        if (extruders_count == 1) // single extruder use case
-        {
+        if (extruders_count == 1) { // single extruder use case
             if (custom_gcode_per_print_z.empty())
                 // no data to show
                 add_item(m_tool_colors.front(), I18N::translate_utf8(L("Default print color")));
-            else
-            {
+            else {
                 std::vector<std::pair<double, double>> cp_values;
                 cp_values.reserve(custom_gcode_per_print_z.size());
 
-                for (auto custom_code : custom_gcode_per_print_z)
-                {
+                for (auto custom_code : custom_gcode_per_print_z) {
                     if (custom_code.gcode != ColorChangeCode)
                         continue;
 
@@ -760,41 +735,54 @@ void GCodeViewer::render_overlay() const
                     double previous_z = lower_b == m_layers_zs.begin() ? 0.0 : *(--lower_b);
 
                     // to avoid duplicate values, check adding values
-                    if (cp_values.empty() ||
-                        !(cp_values.back().first == previous_z && cp_values.back().second == current_z))
+                    if (cp_values.empty() || !(cp_values.back().first == previous_z && cp_values.back().second == current_z))
                         cp_values.emplace_back(std::make_pair(previous_z, current_z));
                 }
 
                 const int items_cnt = static_cast<int>(cp_values.size());
-                if (items_cnt == 0) // There is no one color change, but there are some pause print or custom Gcode
-                {
+                if (items_cnt == 0) { // There is no one color change, but there are some pause print or custom Gcode
                     add_item(m_tool_colors.front(), I18N::translate_utf8(L("Default print color")));
 #if !ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
                     add_item(m_tool_colors.back(), I18N::translate_utf8(L("Pause print or custom G-code")));
 #endif // !ENABLE_GCODE_VIEWER_SEPARATE_PAUSE_PRINT
                 }
-                else
-                {
-                    for (int i = items_cnt; i >= 0; --i)
-                    {
-                        // create label for color print item
-                        std::string id_str = std::to_string(i + 1) + ": ";
+                else {
+                    for (int i = items_cnt; i >= 0; --i) {
+                        // create label for color change item
+                        std::string id_str = " (" + std::to_string(i + 1) + ")";
 
                         if (i == 0) {
-                            add_item(m_tool_colors[i], id_str + (boost::format(I18N::translate_utf8(L("up to %.2f mm"))) % cp_values.front().first).str());
+                            add_item(m_tool_colors[i], (boost::format(I18N::translate_utf8(L("up to %.2f mm"))) % cp_values.front().first).str() + id_str);
                             break;
                         }
                         else if (i == items_cnt) {
-                            add_item(m_tool_colors[i], id_str + (boost::format(I18N::translate_utf8(L("above %.2f mm"))) % cp_values[i - 1].second).str());
+                            add_item(m_tool_colors[i], (boost::format(I18N::translate_utf8(L("above %.2f mm"))) % cp_values[i - 1].second).str() + id_str);
                             continue;
                         }
-                        add_item(m_tool_colors[i], id_str + (boost::format(I18N::translate_utf8(L("%.2f - %.2f mm"))) % cp_values[i - 1].second % cp_values[i].first).str());
+                        add_item(m_tool_colors[i], (boost::format(I18N::translate_utf8(L("%.2f - %.2f mm"))) % cp_values[i - 1].second % cp_values[i].first).str() + id_str);
                     }
                 }
             }
         }
-        else
+        else // multi extruder use case
         {
+            // extruders
+            for (unsigned int i = 0; i < (unsigned int)extruders_count; ++i) {
+                add_item(m_tool_colors[i], (boost::format(I18N::translate_utf8(L("Extruder %d"))) % (i + 1)).str());
+            }
+
+            // color changes
+            int color_change_idx = 1 + static_cast<int>(m_tool_colors.size()) - extruders_count;
+            size_t last_color_id = m_tool_colors.size() - 1;
+            for (int i = static_cast<int>(custom_gcode_per_print_z.size()) - 1; i >= 0; --i) {
+                if (custom_gcode_per_print_z[i].gcode == ColorChangeCode) {
+                    // create label for color change item
+                    std::string id_str = " (" + std::to_string(color_change_idx--) + ")";
+
+                    add_item(m_tool_colors[last_color_id--],
+                             (boost::format(I18N::translate_utf8(L("Color change for Extruder %d at %.2f mm"))) % custom_gcode_per_print_z[i].extruder % custom_gcode_per_print_z[i].print_z).str() + id_str);
+                }
+            }
         }
 
         break;

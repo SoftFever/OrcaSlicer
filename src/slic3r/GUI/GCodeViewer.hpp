@@ -150,7 +150,7 @@ public:
 private:
     unsigned int m_last_result_id{ 0 };
     VBuffer m_vertices;
-    std::vector<IBuffer> m_buffers{ static_cast<size_t>(GCodeProcessor::EMoveType::Extrude) };
+    mutable std::vector<IBuffer> m_buffers{ static_cast<size_t>(GCodeProcessor::EMoveType::Extrude) };
     BoundingBoxf3 m_bounding_box;
     std::vector<std::array<float, 3>> m_tool_colors;
     std::vector<double> m_layers_zs;
@@ -190,7 +190,7 @@ public:
         m_view_type = type;
     }
 
-    bool is_toolpath_visible(GCodeProcessor::EMoveType type) const;
+    bool is_toolpath_move_type_visible(GCodeProcessor::EMoveType type) const;
     void set_toolpath_move_type_visible(GCodeProcessor::EMoveType type, bool visible);
     void set_toolpath_role_visibility_flags(unsigned int flags) { m_extrusions.role_visibility_flags = flags; }
 
