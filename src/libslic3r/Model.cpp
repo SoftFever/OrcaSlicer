@@ -1,4 +1,5 @@
 #include "Model.hpp"
+#include "ModelArrange.hpp"
 #include "Geometry.hpp"
 #include "MTUtils.hpp"
 
@@ -353,116 +354,6 @@ TriangleMesh Model::mesh() const
     for (const ModelObject *o : this->objects)
         mesh.merge(o->mesh());
     return mesh;
-}
-
-static bool _arrange(const Pointfs &sizes, coordf_t dist, const BoundingBoxf* bb, Pointfs &out)
-{
-    if (sizes.empty())
-        // return if the list is empty or the following call to BoundingBoxf constructor will lead to a crash
-        return true;
-
-    // we supply unscaled data to arrange()
-    bool result = Slic3r::Geometry::arrange(
-        sizes.size(),               // number of parts
-        BoundingBoxf(sizes).max,    // width and height of a single cell
-        dist,                       // distance between cells
-        bb,                         // bounding box of the area to fill
-        out                         // output positions
-    );
-
-    if (!result && bb != nullptr) {
-        // Try to arrange again ignoring bb
-        result = Slic3r::Geometry::arrange(
-            sizes.size(),               // number of parts
-            BoundingBoxf(sizes).max,    // width and height of a single cell
-            dist,                       // distance between cells
-            nullptr,                    // bounding box of the area to fill
-            out                         // output positions
-        );
-    }
-    
-    return result;
-}
-
-/*  arrange objects preserving their instance count
-    but altering their instance positions */
-bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
-{    
-    size_t count = 0;
-    for (auto obj : objects) count += obj->instances.size();
-    
-    arrangement::ArrangePolygons input;
-    ModelInstancePtrs instances;
-    input.reserve(count);
-    instances.reserve(count);
-    for (ModelObject *mo : objects)
-        for (ModelInstance *minst : mo->instances) {
-            input.emplace_back(minst->get_arrange_polygon());
-            instances.emplace_back(minst);
-        }
-    
-    arrangement::BedShapeHint bedhint;
-    coord_t bedwidth = 0;
-    
-    if (bb) {
-        bedwidth = scaled(bb->size().x());
-        bedhint = arrangement::BedShapeHint(
-            BoundingBox(scaled(bb->min), scaled(bb->max)));
-    }
-
-    arrangement::arrange(input, scaled(dist), bedhint);
-    
-    bool ret = true;
-    coord_t stride = bedwidth + bedwidth / 5;
-    
-    for(size_t i = 0; i < input.size(); ++i) {
-        if (input[i].bed_idx != 0) ret = false;
-        if (input[i].bed_idx >= 0) {
-            input[i].translation += Vec2crd{input[i].bed_idx * stride, 0};
-            instances[i]->apply_arrange_result(input[i].translation.cast<double>(),
-                                               input[i].rotation);
-        }
-    }
-    
-    return ret;
-}
-
-// Duplicate the entire model preserving instance relative positions.
-void Model::duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb)
-{
-    Pointfs model_sizes(copies_num-1, to_2d(this->bounding_box().size()));
-    Pointfs positions;
-    if (! _arrange(model_sizes, dist, bb, positions))
-        throw std::invalid_argument("Cannot duplicate part as the resulting objects would not fit on the print bed.\n");
-    
-    // note that this will leave the object count unaltered
-    
-    for (ModelObject *o : this->objects) {
-        // make a copy of the pointers in order to avoid recursion when appending their copies
-        ModelInstancePtrs instances = o->instances;
-        for (const ModelInstance *i : instances) {
-            for (const Vec2d &pos : positions) {
-                ModelInstance *instance = o->add_instance(*i);
-                instance->set_offset(instance->get_offset() + Vec3d(pos(0), pos(1), 0.0));
-            }
-        }
-        o->invalidate_bounding_box();
-    }
-}
-
-/*  this will append more instances to each object
-    and then automatically rearrange everything */
-void Model::duplicate_objects(size_t copies_num, coordf_t dist, const BoundingBoxf* bb)
-{
-    for (ModelObject *o : this->objects) {
-        // make a copy of the pointers in order to avoid recursion when appending their copies
-        ModelInstancePtrs instances = o->instances;
-        for (const ModelInstance *i : instances)
-            for (size_t k = 2; k <= copies_num; ++ k)
-                o->add_instance(*i);
-    }
-    
-    this->arrange_objects(dist, bb);
 }
 
 void Model::duplicate_objects_grid(size_t x, size_t y, coordf_t dist)
@@ -1991,6 +1882,7 @@ void check_model_ids_equal(const Model &model1, const Model &model2)
         }
     }
 }
+
 #endif /* NDEBUG */
 
 }

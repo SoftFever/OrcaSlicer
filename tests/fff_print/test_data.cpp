@@ -12,6 +12,7 @@
 
 #include <boost/nowide/cstdio.hpp>
 #include <boost/filesystem.hpp>
+#include <libslic3r/ModelArrange.hpp>
 
 using namespace std;
 
@@ -167,8 +168,7 @@ void init_print(std::vector<TriangleMesh> &&meshes, Slic3r::Print &print, Slic3r
 		object->add_volume(std::move(t));
 		object->add_instance();
 	}
-	model.arrange_objects(min_object_distance(config));
-	model.center_instances_around_point(Slic3r::Vec2d(100, 100));
+    arrange_objects(model, InfiniteBed{}, ArrangeParams{ scaled(min_object_distance(config))});
 	for (ModelObject *mo : model.objects) {
         mo->ensure_on_bed();
 		print.auto_assign_extruders(mo);

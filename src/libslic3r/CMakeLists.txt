@@ -120,6 +120,8 @@ add_library(libslic3r STATIC
     Line.hpp
     Model.cpp
     Model.hpp
+    ModelArrange.hpp
+    ModelArrange.cpp
     CustomGCode.cpp
     CustomGCode.hpp
     Arrange.hpp

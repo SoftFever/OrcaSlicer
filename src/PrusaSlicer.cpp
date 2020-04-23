@@ -34,6 +34,7 @@
 #include "libslic3r/Config.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/Model.hpp"
+#include "libslic3r/ModelArrange.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/TriangleMesh.hpp"
@@ -52,12 +53,6 @@
 #endif /* SLIC3R_GUI */
 
 using namespace Slic3r;
-
-PrinterTechnology get_printer_technology(const DynamicConfig &config)
-{
-    const ConfigOptionEnum<PrinterTechnology> *opt = config.option<ConfigOptionEnum<PrinterTechnology>>("printer_technology");
-    return (opt == nullptr) ? ptUnknown : opt->value;
-}
 
 int CLI::run(int argc, char **argv)
 {
@@ -86,13 +81,15 @@ int CLI::run(int argc, char **argv)
 
     m_extra_config.apply(m_config, true);
     m_extra_config.normalize();
+    
+    PrinterTechnology printer_technology = Slic3r::printer_technology(m_config);
 
     bool							start_gui			= m_actions.empty() &&
         // cutting transformations are setting an "export" action.
         std::find(m_transforms.begin(), m_transforms.end(), "cut") == m_transforms.end() &&
         std::find(m_transforms.begin(), m_transforms.end(), "cut_x") == m_transforms.end() &&
         std::find(m_transforms.begin(), m_transforms.end(), "cut_y") == m_transforms.end();
-    PrinterTechnology				printer_technology	= get_printer_technology(m_extra_config);
+    
     const std::vector<std::string> &load_configs		= m_config.option<ConfigOptionStrings>("load", true)->values;
 
     // load config files supplied via --load
@@ -113,7 +110,7 @@ int CLI::run(int argc, char **argv)
             return 1;
         }
         config.normalize();
-        PrinterTechnology other_printer_technology = get_printer_technology(config);
+        PrinterTechnology other_printer_technology = Slic3r::printer_technology(config);
         if (printer_technology == ptUnknown) {
             printer_technology = other_printer_technology;
         } else if (printer_technology != other_printer_technology && other_printer_technology != ptUnknown) {
@@ -134,7 +131,7 @@ int CLI::run(int argc, char **argv)
             // When loading an AMF or 3MF, config is imported as well, including the printer technology.
             DynamicPrintConfig config;
             model = Model::read_from_file(file, &config, true);
-            PrinterTechnology other_printer_technology = get_printer_technology(config);
+            PrinterTechnology other_printer_technology = Slic3r::printer_technology(config);
             if (printer_technology == ptUnknown) {
                 printer_technology = other_printer_technology;
             } else if (printer_technology != other_printer_technology && other_printer_technology != ptUnknown) {
@@ -161,9 +158,6 @@ int CLI::run(int argc, char **argv)
     // Normalizing after importing the 3MFs / AMFs
     m_print_config.normalize();
 
-    if (printer_technology == ptUnknown)
-        printer_technology = std::find(m_actions.begin(), m_actions.end(), "export_sla") == m_actions.end() ? ptFFF : ptSLA;
-
     // Initialize full print configs for both the FFF and SLA technologies.
     FullPrintConfig    fff_print_config;
     SLAFullPrintConfig sla_print_config;
@@ -187,10 +181,18 @@ int CLI::run(int argc, char **argv)
         m_print_config.apply(sla_print_config, true);
     }
     
-    double min_obj_dist = min_object_distance(m_print_config);
-        
+    std::string validity = m_print_config.validate();
+    if (!validity.empty()) {
+        boost::nowide::cerr << "error: " << validity << std::endl;
+        return 1;
+    }
+    
     // Loop through transform options.
     bool user_center_specified = false;
+    Points bed = get_bed_shape(m_print_config);
+    ArrangeParams arrange_cfg;
+    arrange_cfg.min_obj_distance = scaled(min_object_distance(m_print_config));
+    
     for (auto const &opt_key : m_transforms) {
         if (opt_key == "merge") {
             Model m;
@@ -200,29 +202,33 @@ int CLI::run(int argc, char **argv)
             // Rearrange instances unless --dont-arrange is supplied
             if (! m_config.opt_bool("dont_arrange")) {
                 m.add_default_instances();
-                const BoundingBoxf &bb = fff_print_config.bed_shape.values;
-                m.arrange_objects(
-                    min_obj_dist,
-                    // If we are going to use the merged model for printing, honor
-                    // the configured print bed for arranging, otherwise do it freely.
-                    this->has_print_action() ? &bb : nullptr
-                );
+                if (this->has_print_action())
+                    arrange_objects(m, bed, arrange_cfg);
+                else
+                    arrange_objects(m, InfiniteBed{}, arrange_cfg);
             }
             m_models.clear();
             m_models.emplace_back(std::move(m));
         } else if (opt_key == "duplicate") {
-            const BoundingBoxf &bb = fff_print_config.bed_shape.values;
             for (auto &model : m_models) {
                 const bool all_objects_have_instances = std::none_of(
                     model.objects.begin(), model.objects.end(),
                     [](ModelObject* o){ return o->instances.empty(); }
                 );
-                if (all_objects_have_instances) {
-                    // if all input objects have defined position(s) apply duplication to the whole model
-                    model.duplicate(m_config.opt_int("duplicate"), min_obj_dist, &bb);
-                } else {
-                    model.add_default_instances();
-                    model.duplicate_objects(m_config.opt_int("duplicate"), min_obj_dist, &bb);
+                
+                int dups = m_config.opt_int("duplicate");
+                if (!all_objects_have_instances) model.add_default_instances();
+                
+                try {
+                    if (dups > 1) {
+                        // if all input objects have defined position(s) apply duplication to the whole model
+                        duplicate(model, size_t(dups), bed, arrange_cfg);
+                    } else {
+                        arrange_objects(model, bed, arrange_cfg);
+                    }
+                } catch (std::exception &ex) {
+                    boost::nowide::cerr << "error: " << ex.what() << std::endl;
+                    return 1;
                 }
             }
         } else if (opt_key == "duplicate_grid") {
@@ -426,11 +432,11 @@ int CLI::run(int argc, char **argv)
 
                 PrintBase  *print = (printer_technology == ptFFF) ? static_cast<PrintBase*>(&fff_print) : static_cast<PrintBase*>(&sla_print);
                 if (! m_config.opt_bool("dont_arrange")) {
-                    //FIXME make the min_object_distance configurable.
-                    model.arrange_objects(min_obj_dist);
-                    model.center_instances_around_point((! user_center_specified && m_print_config.has("bed_shape")) ? 
-                    	BoundingBoxf(m_print_config.opt<ConfigOptionPoints>("bed_shape")->values).center() : 
-                    	m_config.option<ConfigOptionPoint>("center")->value);
+                    if (user_center_specified) {
+                        Vec2d c = m_config.option<ConfigOptionPoint>("center")->value;
+                        arrange_objects(model, InfiniteBed{scaled(c)}, arrange_cfg);
+                    } else
+                        arrange_objects(model, bed, arrange_cfg);
                 }
                 if (printer_technology == ptFFF) {
                     for (auto* mo : model.objects)
@@ -612,6 +618,8 @@ bool CLI::setup(int argc, char **argv)
         if (opt_loglevel != 0)
             set_logging_level(opt_loglevel->value);
     }
+    
+    std::string validity = m_config.validate();
 
     // Initialize with defaults.
     for (const t_optiondef_map *options : { &cli_actions_config_def.options, &cli_transform_config_def.options, &cli_misc_config_def.options })
@@ -619,6 +627,11 @@ bool CLI::setup(int argc, char **argv)
             m_config.option(optdef.first, true);
 
     set_data_dir(m_config.opt_string("datadir"));
+    
+    if (!validity.empty()) {
+        boost::nowide::cerr << "error: " << validity << std::endl;
+        return false;
+    }
 
     return true;
 }
