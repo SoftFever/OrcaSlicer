@@ -27,7 +27,7 @@ bool apply_arrange_polys(ArrangePolygons &input, ModelInstancePtrs &instances, V
     for(size_t i = 0; i < input.size(); ++i) {
         if (input[i].bed_idx != 0) { ret = false; if (vfn) vfn(input[i]); }
         if (input[i].bed_idx >= 0)
-            instances[i]->apply_arrange_result(input[i].translation,
+            instances[i]->apply_arrange_result(input[i].translation.cast<double>(),
                                                input[i].rotation);
     }
     

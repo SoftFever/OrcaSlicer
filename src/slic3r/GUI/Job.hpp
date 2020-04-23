@@ -31,62 +31,25 @@ class Job : public wxEvtHandler
     bool              m_finalized = false;
     std::shared_ptr<ProgressIndicator> m_progress;
     
-    void run()
-    {
-        m_running.store(true);
-        process();
-        m_running.store(false);
-        
-        // ensure to call the last status to finalize the job
-        update_status(status_range(), "");
-    }
+    void run();
     
 protected:
     // status range for a particular job
     virtual int status_range() const { return 100; }
     
     // status update, to be used from the work thread (process() method)
-    void update_status(int st, const wxString &msg = "")
-    {
-        auto evt = new wxThreadEvent();
-        evt->SetInt(st);
-        evt->SetString(msg);
-        wxQueueEvent(this, evt);
-    }
-    
-    bool        was_canceled() const { return m_canceled.load(); }
-    
+    void update_status(int st, const wxString &msg = "");
+
+    bool was_canceled() const { return m_canceled.load(); }
+
     // Launched just before start(), a job can use it to prepare internals
     virtual void prepare() {}
     
     // Launched when the job is finished. It refreshes the 3Dscene by def.
     virtual void finalize() { m_finalized = true; }
-    
-    
+   
 public:
-    Job(std::shared_ptr<ProgressIndicator> pri) : m_progress(pri)
-    {
-        Bind(wxEVT_THREAD, [this](const wxThreadEvent &evt) {
-            auto msg = evt.GetString();
-            if (!msg.empty())
-                m_progress->set_status_text(msg.ToUTF8().data());
-            
-            if (m_finalized) return;
-            
-            m_progress->set_progress(evt.GetInt());
-            if (evt.GetInt() == status_range()) {
-                // set back the original range and cancel callback
-                m_progress->set_range(m_range);
-                m_progress->set_cancel_callback();
-                wxEndBusyCursor();
-                
-                finalize();
-                
-                // dont do finalization again for the same process
-                m_finalized = true;
-            }
-        });
-    }
+    Job(std::shared_ptr<ProgressIndicator> pri);
     
     bool is_finalized() const { return m_finalized; }
     
@@ -97,59 +60,50 @@ public:
     
     virtual void process() = 0;
     
-    void start()
-    { // Start the job. No effect if the job is already running
-        if (!m_running.load()) {
-            prepare();
-            
-            // Save the current status indicatior range and push the new one
-            m_range = m_progress->get_range();
-            m_progress->set_range(status_range());
-            
-            // init cancellation flag and set the cancel callback
-            m_canceled.store(false);
-            m_progress->set_cancel_callback(
-                [this]() { m_canceled.store(true); });
-            
-            m_finalized = false;
-            
-            // Changing cursor to busy
-            wxBeginBusyCursor();
-            
-            try { // Execute the job
-                m_thread = create_thread([this] { this->run(); });
-            } catch (std::exception &) {
-                update_status(status_range(),
-                              _(L("ERROR: not enough resources to "
-                                  "execute a new job.")));
-            }
-            
-            // The state changes will be undone when the process hits the
-            // last status value, in the status update handler (see ctor)
-        }
-    }
+    void start();
     
     // To wait for the running job and join the threads. False is
     // returned if the timeout has been reached and the job is still
     // running. Call cancel() before this fn if you want to explicitly
     // end the job.
-    bool join(int timeout_ms = 0)
-    {
-        if (!m_thread.joinable()) return true;
-        
-        if (timeout_ms <= 0)
-            m_thread.join();
-        else if (!m_thread.try_join_for(boost::chrono::milliseconds(timeout_ms)))
-            return false;
-        
-        return true;
-    }
+    bool join(int timeout_ms = 0);
     
     bool is_running() const { return m_running.load(); }
     void cancel() { m_canceled.store(true); }
 };
 
-}
-}
+// Jobs defined inside the group class will be managed so that only one can
+// run at a time. Also, the background process will be stopped if a job is
+// started.
+class ExclusiveJobGroup
+{
+    static const int ABORT_WAIT_MAX_MS = 10000;
+    
+    std::vector<std::unique_ptr<GUI::Job>> m_jobs;
+    
+protected:
+    virtual void before_start() {}
+    
+public:
+    virtual ~ExclusiveJobGroup() = default;
+    
+    size_t add_job(std::unique_ptr<GUI::Job> &&job)
+    {
+        m_jobs.emplace_back(std::move(job));
+        return m_jobs.size() - 1;
+    }
+    
+    void start(size_t jid);
+    
+    void cancel_all() { for (auto& j : m_jobs) j->cancel(); }
+    
+    void join_all(int wait_ms = 0);
+    
+    void stop_all() { cancel_all(); join_all(ABORT_WAIT_MAX_MS); }
+    
+    bool is_any_running() const;
+};
+
+}} // namespace Slic3r::GUI
 
 #endif // JOB_HPP

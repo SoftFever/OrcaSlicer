@@ -148,6 +148,11 @@ set(SLIC3R_GUI_SOURCES
     GUI/PrintHostDialogs.cpp
     GUI/PrintHostDialogs.hpp
     GUI/Job.hpp
+    GUI/Job.cpp
+    GUI/ArrangeJob.hpp
+    GUI/ArrangeJob.cpp
+    GUI/RotoptimizeJob.hpp
+    GUI/RotoptimizeJob.cpp
     GUI/Mouse3DController.cpp
     GUI/Mouse3DController.hpp
     GUI/DoubleSlider.cpp
