@@ -3060,6 +3060,42 @@ DynamicPrintConfig* DynamicPrintConfig::new_from_defaults_keys(const std::vector
     return out;
 }
 
+double min_object_distance(const ConfigBase &cfg)
+{   
+    double ret = 0.;
+    
+    if (printer_technology(cfg) == ptSLA) ret = 6.;
+    else {
+        auto ecr_opt = cfg.option<ConfigOptionFloat>("extruder_clearance_radius");
+        auto dd_opt  = cfg.option<ConfigOptionFloat>("duplicate_distance");
+        auto co_opt  = cfg.option<ConfigOptionBool>("complete_objects");
+
+        if (!ecr_opt || !dd_opt || !co_opt) ret = 0.;
+        else {
+            // min object distance is max(duplicate_distance, clearance_radius)
+            ret = (co_opt->value && ecr_opt->value > dd_opt->value) ?
+                      ecr_opt->value : dd_opt->value;
+        }
+    }
+
+    return ret;
+}
+
+PrinterTechnology printer_technology(const ConfigBase &cfg)
+{
+    const ConfigOptionEnum<PrinterTechnology> *opt = cfg.option<ConfigOptionEnum<PrinterTechnology>>("printer_technology");
+    
+    if (opt) return opt->value;
+    
+    const ConfigOptionBool *export_opt = cfg.option<ConfigOptionBool>("export_sla");
+    if (export_opt && export_opt->getBool()) return ptSLA;
+    
+    export_opt = cfg.option<ConfigOptionBool>("export_gcode");
+    if (export_opt && export_opt->getBool()) return ptFFF;    
+    
+    return ptUnknown;
+}
+
 void DynamicPrintConfig::normalize()
 {
     if (this->has("extruder")) {
@@ -3128,22 +3164,6 @@ std::string DynamicPrintConfig::validate()
         //FIXME no validation on SLA data?
         return std::string();
     }
-}
-
-double PrintConfig::min_object_distance() const
-{
-    return PrintConfig::min_object_distance(static_cast<const ConfigBase*>(this));
-}
-
-double PrintConfig::min_object_distance(const ConfigBase *config)
-{
-    double extruder_clearance_radius = config->option("extruder_clearance_radius")->getFloat();
-    double duplicate_distance = config->option("duplicate_distance")->getFloat();
-
-    // min object distance is max(duplicate_distance, clearance_radius)
-    return (config->option("complete_objects")->getBool() && extruder_clearance_radius > duplicate_distance)
-        ? extruder_clearance_radius
-        : duplicate_distance;
 }
 
 //FIXME localize this function.

@@ -2868,13 +2868,8 @@ void Plater::priv::find_new_position(const ModelInstancePtrs &instances,
 void Plater::priv::ArrangeJob::process() {
     static const auto arrangestr = _L("Arranging");
 
-    // FIXME: I don't know how to obtain the minimum distance, it depends
-    // on printer technology. I guess the following should work but it crashes.
-    double dist = 6; // PrintConfig::min_object_distance(config);
-    if (plater().printer_technology == ptFFF) {
-        dist = PrintConfig::min_object_distance(plater().config);
-    }
-
+    double dist = min_object_distance(*plater().config);
+    
     coord_t min_d = scaled(dist);
     auto count = unsigned(m_selected.size() + m_unprintable.size());
     arrangement::BedShapeHint bedshape = plater().get_bed_shape_hint();

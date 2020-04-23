@@ -41,7 +41,7 @@ SCENARIO("Model construction", "[Model]") {
 				}
             }
             model_object->add_instance();
-			model.arrange_objects(PrintConfig::min_object_distance(&config));
+			model.arrange_objects(min_object_distance(config));
 			model.center_instances_around_point(Slic3r::Vec2d(100, 100));
 			model_object->ensure_on_bed();
 			print.auto_assign_extruders(model_object);

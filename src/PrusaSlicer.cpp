@@ -174,6 +174,7 @@ int CLI::run(int argc, char **argv)
         m_print_config.apply(fff_print_config, true);
     } else if (printer_technology == ptSLA) {
         // The default value has to be different from the one in fff mode.
+        sla_print_config.printer_technology.value = ptSLA;
         sla_print_config.output_filename_format.value = "[input_filename_base].sl1";
         
         // The default bed shape should reflect the default display parameters
@@ -186,6 +187,8 @@ int CLI::run(int argc, char **argv)
         m_print_config.apply(sla_print_config, true);
     }
     
+    double min_obj_dist = min_object_distance(m_print_config);
+        
     // Loop through transform options.
     bool user_center_specified = false;
     for (auto const &opt_key : m_transforms) {
@@ -199,7 +202,7 @@ int CLI::run(int argc, char **argv)
                 m.add_default_instances();
                 const BoundingBoxf &bb = fff_print_config.bed_shape.values;
                 m.arrange_objects(
-                    fff_print_config.min_object_distance(),
+                    min_obj_dist,
                     // If we are going to use the merged model for printing, honor
                     // the configured print bed for arranging, otherwise do it freely.
                     this->has_print_action() ? &bb : nullptr
@@ -216,10 +219,10 @@ int CLI::run(int argc, char **argv)
                 );
                 if (all_objects_have_instances) {
                     // if all input objects have defined position(s) apply duplication to the whole model
-                    model.duplicate(m_config.opt_int("duplicate"), fff_print_config.min_object_distance(), &bb);
+                    model.duplicate(m_config.opt_int("duplicate"), min_obj_dist, &bb);
                 } else {
                     model.add_default_instances();
-                    model.duplicate_objects(m_config.opt_int("duplicate"), fff_print_config.min_object_distance(), &bb);
+                    model.duplicate_objects(m_config.opt_int("duplicate"), min_obj_dist, &bb);
                 }
             }
         } else if (opt_key == "duplicate_grid") {
@@ -424,7 +427,7 @@ int CLI::run(int argc, char **argv)
                 PrintBase  *print = (printer_technology == ptFFF) ? static_cast<PrintBase*>(&fff_print) : static_cast<PrintBase*>(&sla_print);
                 if (! m_config.opt_bool("dont_arrange")) {
                     //FIXME make the min_object_distance configurable.
-                    model.arrange_objects(fff_print.config().min_object_distance());
+                    model.arrange_objects(min_obj_dist);
                     model.center_instances_around_point((! user_center_specified && m_print_config.has("bed_shape")) ? 
                     	BoundingBoxf(m_print_config.opt<ConfigOptionPoints>("bed_shape")->values).center() : 
                     	m_config.option<ConfigOptionPoint>("center")->value);

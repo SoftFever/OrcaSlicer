@@ -194,6 +194,9 @@ extern const PrintConfigDef print_config_def;
 
 class StaticPrintConfig;
 
+PrinterTechnology printer_technology(const ConfigBase &cfg);
+double min_object_distance(const ConfigBase &cfg);
+
 // Slic3r dynamic configuration, used to override the configuration
 // per object, per modification volume or per printing material.
 // The dynamic configuration is also used to store user modifications of the print global parameters,
@@ -749,8 +752,6 @@ class PrintConfig : public MachineEnvelopeConfig, public GCodeConfig
     STATIC_PRINT_CONFIG_CACHE_DERIVED(PrintConfig)
     PrintConfig() : MachineEnvelopeConfig(0), GCodeConfig(0) { initialize_cache(); *this = s_cache_PrintConfig.defaults(); }
 public:
-    double                          min_object_distance() const;
-    static double                   min_object_distance(const ConfigBase *config);
 
     ConfigOptionBool                avoid_crossing_perimeters;
     ConfigOptionPoints              bed_shape;
