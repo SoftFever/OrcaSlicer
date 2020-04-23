@@ -3687,9 +3687,6 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
      * and for SLA presets they should be deleted
      */
         wxGetApp().obj_list()->update_object_list_by_printer_technology();
-
-        // print technology could be changed, so we should to update a search list
-        sidebar->update_searcher();
     }
 }
 
@@ -5423,8 +5420,11 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         }
         
         p->config->set_key_value(opt_key, config.option(opt_key)->clone());
-        if (opt_key == "printer_technology")
+        if (opt_key == "printer_technology") {
             this->set_printer_technology(config.opt_enum<PrinterTechnology>(opt_key));
+            // print technology is changed, so we should to update a search list
+            p->sidebar->update_searcher();
+        }
         else if ((opt_key == "bed_shape") || (opt_key == "bed_custom_texture") || (opt_key == "bed_custom_model")) {
             bed_shape_changed = true;
             update_scheduled = true;
