@@ -373,6 +373,8 @@ bool GUI_App::on_init_inner()
     if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
         wxImage::AddHandler(new wxPNGHandler());
     mainframe = new MainFrame();
+    mainframe->switch_to(true); // hide settings tabs after first Layout
+
     sidebar().obj_list()->init_objects(); // propagate model objects to object list
 //     update_mode(); // !!! do that later
     SetTopWindow(mainframe);
@@ -423,8 +425,6 @@ bool GUI_App::on_init_inner()
         obj_list()->SetMinSize(wxSize(-1, list_min_height));
 
     update_mode(); // update view mode after fix of the object_list size
-
-    mainframe->switch_to(true); // hide settings tabs after mode updating
 
     m_initialized = true;
     return true;
