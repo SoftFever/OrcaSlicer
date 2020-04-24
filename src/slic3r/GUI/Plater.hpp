@@ -9,8 +9,10 @@
 #include <wx/bmpcbox.h>
 
 #include "Preset.hpp"
+#include "Selection.hpp"
 
 #include "libslic3r/BoundingBox.hpp"
+#include "Jobs/Job.hpp"
 #include "wxExtensions.hpp"
 
 class wxButton;
@@ -157,6 +159,7 @@ public:
     void load_project();
     void load_project(const wxString& filename);
     void add_model();
+    void import_sl1_archive();
     void extract_config_from_project();
 
     std::vector<size_t> load_files(const std::vector<boost::filesystem::path>& input_files, bool load_model = true, bool load_config = true);
@@ -252,12 +255,16 @@ public:
     void set_project_filename(const wxString& filename);
 
     bool is_export_gcode_scheduled() const;
-
+    
+    const Selection& get_selection() const;
     int get_selected_object_idx();
     bool is_single_full_object_selection() const;
     GLCanvas3D* canvas3D();
     GLCanvas3D* get_current_canvas3D();
     BoundingBoxf bed_shape_bb() const;
+    
+    void arrange();
+    void find_new_position(const ModelInstancePtrs  &instances, coord_t min_d);
 
     void set_current_canvas_as_dirty();
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
@@ -266,6 +273,7 @@ public:
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     PrinterTechnology   printer_technology() const;
+    const DynamicPrintConfig * config() const;
     void                set_printer_technology(PrinterTechnology printer_technology);
 
     void copy_selection_to_clipboard();
@@ -371,6 +379,7 @@ private:
     bool m_was_scheduled;
 };
 
-}}
+} // namespace GUI
+} // namespace Slic3r
 
 #endif

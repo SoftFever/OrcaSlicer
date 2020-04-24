@@ -94,7 +94,7 @@ bool GCodeViewer::IBuffer::init_shader(const std::string& vertex_shader_src, con
 void GCodeViewer::IBuffer::add_path(const GCodeProcessor::MoveVertex& move)
 {
     unsigned int id = static_cast<unsigned int>(data.size());
-    paths.push_back({ move.type, move.extrusion_role, id, id, move.height, move.width, move.feedrate, move.fan_speed, move.volumetric_rate(), move.extruder_id, move.cp_color_id });
+    paths.push_back({ move.type, move.extrusion_role, id, id, move.delta_extruder, move.height, move.width, move.feedrate, move.fan_speed, move.volumetric_rate(), move.extruder_id, move.cp_color_id });
 }
 
 std::array<float, 3> GCodeViewer::Extrusions::Range::get_color_at(float value) const
@@ -136,6 +136,12 @@ const std::vector<std::array<float, 3>> GCodeViewer::Extrusion_Role_Colors {{
     { 0.70f, 0.89f, 0.67f },   // erWipeTower
     { 0.16f, 0.80f, 0.58f },   // erCustom
     { 0.00f, 0.00f, 0.00f }    // erMixed
+}};
+
+const std::vector<std::array<float, 3>> GCodeViewer::Travel_Colors {{
+    { 0.0f, 0.0f, 0.5f }, // Move
+    { 0.0f, 0.5f, 0.0f }, // Extrude
+    { 0.5f, 0.0f, 0.0f }  // Retract
 }};
 
 const std::vector<std::array<float, 3>> GCodeViewer::Range_Colors {{
@@ -186,14 +192,17 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
         switch (curr.type)
         {
         case GCodeProcessor::EMoveType::Extrude:
+        {
+            m_extrusions.ranges.height.update_from(curr.height);
+            m_extrusions.ranges.width.update_from(curr.width);
+            m_extrusions.ranges.fan_speed.update_from(curr.fan_speed);
+            m_extrusions.ranges.volumetric_rate.update_from(curr.volumetric_rate());
+            [[fallthrough]];
+        }
         case GCodeProcessor::EMoveType::Travel:
         {
             if (m_buffers[buffer_id(curr.type)].visible) {
-                m_extrusions.ranges.height.update_from(curr.height);
-                m_extrusions.ranges.width.update_from(curr.width);
                 m_extrusions.ranges.feedrate.update_from(curr.feedrate);
-                m_extrusions.ranges.fan_speed.update_from(curr.fan_speed);
-                m_extrusions.ranges.volumetric_rate.update_from(curr.volumetric_rate());
             }
             break;
         }
@@ -465,6 +474,12 @@ void GCodeViewer::render_toolpaths() const
         return color;
     };
 
+    auto travel_color = [this](const Path& path) {
+        return (path.delta_extruder < 0.0f) ? Travel_Colors[2] /* Retract */ :
+              ((path.delta_extruder > 0.0f) ? Travel_Colors[1] /* Extrude */ :
+                Travel_Colors[0] /* Move */);
+    };
+
     auto set_color = [](GLint current_program_id, const std::array<float, 3>& color) {
         if (current_program_id > 0) {
             GLint color_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "uniform_color") : -1;
@@ -577,9 +592,8 @@ void GCodeViewer::render_toolpaths() const
             }
             case GCodeProcessor::EMoveType::Travel:
             {
-                std::array<float, 3> color = { 1.0f, 1.0f, 0.0f };
-                set_color(current_program_id, color);
                 for (const Path& path : buffer.paths) {
+                    set_color(current_program_id, (m_view_type == EViewType::Feedrate || m_view_type == EViewType::Tool || m_view_type == EViewType::ColorPrint) ? extrusion_color(path) : travel_color(path));
                     glsafe(::glDrawElements(GL_LINE_STRIP, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
                 }
                 break;
@@ -610,12 +624,6 @@ void GCodeViewer::render_shells() const
 }
 
 void GCodeViewer::render_overlay() const
-{
-    render_legend();
-    render_toolbar();
-}
-
-void GCodeViewer::render_legend() const
 {
     static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
     static const float ICON_BORDER_SIZE = 25.0f;
@@ -787,10 +795,6 @@ void GCodeViewer::render_legend() const
 
     imgui.end();
     ImGui::PopStyleVar();
-}
-
-void GCodeViewer::render_toolbar() const
-{
 }
 
 } // namespace GUI

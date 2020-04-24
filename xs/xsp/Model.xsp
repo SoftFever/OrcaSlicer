@@ -3,6 +3,7 @@
 %{
 #include <xsinit.h>
 #include "libslic3r/Model.hpp"
+#include "libslic3r/ModelArrange.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Slicing.hpp"
@@ -80,9 +81,9 @@
     ModelObjectPtrs* objects()
         %code%{ RETVAL = &THIS->objects; %};
     
-    bool arrange_objects(double dist, BoundingBoxf* bb = NULL);
-    void duplicate(unsigned int copies_num, double dist, BoundingBoxf* bb = NULL);
-    void duplicate_objects(unsigned int copies_num, double dist, BoundingBoxf* bb = NULL);
+    bool arrange_objects(double dist, BoundingBoxf* bb = NULL) %code%{ ArrangeParams ap{scaled(dist)}; if (bb) arrange_objects(*THIS, scaled(*bb), ap); else arrange_objects(*THIS, InfiniteBed{}, ap); %};
+    void duplicate(unsigned int copies_num, double dist, BoundingBoxf* bb = NULL) %code%{ ArrangeParams ap{scaled(dist)}; if (bb) duplicate(*THIS, copies_num, scaled(*bb), ap); else duplicate(*THIS, copies_num, InfiniteBed{}, ap); %};
+    void duplicate_objects(unsigned int copies_num, double dist, BoundingBoxf* bb = NULL) %code%{ ArrangeParams ap{scaled(dist)}; if (bb) duplicate_objects(*THIS, copies_num, scaled(*bb), ap); else duplicate_objects(*THIS, copies_num, InfiniteBed{}, ap); %};
     void duplicate_objects_grid(unsigned int x, unsigned int y, double dist);
 
     bool looks_like_multipart_object() const;

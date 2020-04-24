@@ -16,6 +16,7 @@ namespace GUI {
 class GCodeViewer
 {
     static const std::vector<std::array<float, 3>> Extrusion_Role_Colors;
+    static const std::vector<std::array<float, 3>> Travel_Colors;
     static const std::vector<std::array<float, 3>> Range_Colors;
 
     // buffer containing vertices data
@@ -39,6 +40,7 @@ class GCodeViewer
         ExtrusionRole role{ erNone };
         unsigned int first{ 0 };
         unsigned int last{ 0 };
+        float delta_extruder{ 0.0f };
         float height{ 0.0f };
         float width{ 0.0f };
         float feedrate{ 0.0f };
@@ -158,7 +160,7 @@ private:
     std::vector<unsigned char> m_extruder_ids;
     Extrusions m_extrusions;
     Shells m_shells;
-    mutable EViewType m_view_type{ EViewType::FeatureType };
+    EViewType m_view_type{ EViewType::FeatureType };
     bool m_legend_enabled{ true };
 
 public:
@@ -206,8 +208,6 @@ private:
     void render_toolpaths() const;
     void render_shells() const;
     void render_overlay() const;
-    void render_legend() const;
-    void render_toolbar() const;
 };
 
 } // namespace GUI

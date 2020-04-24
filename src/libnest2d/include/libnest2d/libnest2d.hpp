@@ -27,6 +27,7 @@ using Coord = TCoord<PointImpl>;
 using Box = _Box<PointImpl>;
 using Segment = _Segment<PointImpl>;
 using Circle = _Circle<PointImpl>;
+using MultiPolygon = TMultiShape<PolygonImpl>; 
 
 using Item = _Item<PolygonImpl>;
 using Rectangle = _Rectangle<PolygonImpl>;

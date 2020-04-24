@@ -11,6 +11,7 @@
 
 #include "libslic3r.h"
 #include "Point.hpp"
+#include "BoundingBox.hpp"
 
 namespace Slic3r {
 
@@ -75,143 +76,6 @@ public:
     }
 };
 
-/// An std compatible random access iterator which uses indices to the
-/// source vector thus resistant to invalidation caused by relocations. It
-/// also "knows" its container. No comparison is neccesary to the container
-/// "end()" iterator. The template can be instantiated with a different
-/// value type than that of the container's but the types must be
-/// compatible. E.g. a base class of the contained objects is compatible.
-///
-/// For a constant iterator, one can instantiate this template with a value
-/// type preceded with 'const'.
-template<class Vector, // The container type, must be random access...
-         class Value = typename Vector::value_type // The value type
-         >
-class IndexBasedIterator
-{
-    static const size_t NONE = size_t(-1);
-
-    std::reference_wrapper<Vector> m_index_ref;
-    size_t                         m_idx = NONE;
-
-public:
-    using value_type        = Value;
-    using pointer           = Value *;
-    using reference         = Value &;
-    using difference_type   = long;
-    using iterator_category = std::random_access_iterator_tag;
-
-    inline explicit IndexBasedIterator(Vector &index, size_t idx)
-        : m_index_ref(index), m_idx(idx)
-    {}
-
-    // Post increment
-    inline IndexBasedIterator operator++(int)
-    {
-        IndexBasedIterator cpy(*this);
-        ++m_idx;
-        return cpy;
-    }
-
-    inline IndexBasedIterator operator--(int)
-    {
-        IndexBasedIterator cpy(*this);
-        --m_idx;
-        return cpy;
-    }
-
-    inline IndexBasedIterator &operator++()
-    {
-        ++m_idx;
-        return *this;
-    }
-
-    inline IndexBasedIterator &operator--()
-    {
-        --m_idx;
-        return *this;
-    }
-
-    inline IndexBasedIterator &operator+=(difference_type l)
-    {
-        m_idx += size_t(l);
-        return *this;
-    }
-
-    inline IndexBasedIterator operator+(difference_type l)
-    {
-        auto cpy = *this;
-        cpy += l;
-        return cpy;
-    }
-
-    inline IndexBasedIterator &operator-=(difference_type l)
-    {
-        m_idx -= size_t(l);
-        return *this;
-    }
-
-    inline IndexBasedIterator operator-(difference_type l)
-    {
-        auto cpy = *this;
-        cpy -= l;
-        return cpy;
-    }
-
-    operator difference_type() { return difference_type(m_idx); }
-
-    /// Tesing the end of the container... this is not possible with std
-    /// iterators.
-    inline bool is_end() const
-    {
-        return m_idx >= m_index_ref.get().size();
-    }
-
-    inline Value &operator*() const
-    {
-        assert(m_idx < m_index_ref.get().size());
-        return m_index_ref.get().operator[](m_idx);
-    }
-
-    inline Value *operator->() const
-    {
-        assert(m_idx < m_index_ref.get().size());
-        return &m_index_ref.get().operator[](m_idx);
-    }
-
-    /// If both iterators point past the container, they are equal...
-    inline bool operator==(const IndexBasedIterator &other)
-    {
-        size_t e = m_index_ref.get().size();
-        return m_idx == other.m_idx || (m_idx >= e && other.m_idx >= e);
-    }
-
-    inline bool operator!=(const IndexBasedIterator &other)
-    {
-        return !(*this == other);
-    }
-
-    inline bool operator<=(const IndexBasedIterator &other)
-    {
-        return (m_idx < other.m_idx) || (*this == other);
-    }
-
-    inline bool operator<(const IndexBasedIterator &other)
-    {
-        return m_idx < other.m_idx && (*this != other);
-    }
-
-    inline bool operator>=(const IndexBasedIterator &other)
-    {
-        return m_idx > other.m_idx || *this == other;
-    }
-
-    inline bool operator>(const IndexBasedIterator &other)
-    {
-        return m_idx > other.m_idx && *this != other;
-    }
-};
-
 /// A very simple range concept implementation with iterator-like objects.
 template<class It> class Range
 {
@@ -252,97 +116,6 @@ template<class T> struct remove_cvref
 
 template<class T> using remove_cvref_t = typename remove_cvref<T>::type;
 
-// A shorter C++14 style form of the enable_if metafunction
-template<bool B, class T>
-using enable_if_t = typename std::enable_if<B, T>::type;
-
-// /////////////////////////////////////////////////////////////////////////////
-// Type safe conversions to and from scaled and unscaled coordinates
-// /////////////////////////////////////////////////////////////////////////////
-
-// A meta-predicate which is true for integers wider than or equal to coord_t
-template<class I> struct is_scaled_coord
-{
-    static const SLIC3R_CONSTEXPR bool value =
-        std::is_integral<I>::value &&
-        std::numeric_limits<I>::digits >=
-            std::numeric_limits<coord_t>::digits;
-};
-
-// Meta predicates for floating, 'scaled coord' and generic arithmetic types
-template<class T, class O = T>
-using FloatingOnly = enable_if_t<std::is_floating_point<T>::value, O>;
-
-template<class T, class O = T>
-using ScaledCoordOnly = enable_if_t<is_scaled_coord<T>::value, O>;
-
-template<class T, class O = T>
-using IntegerOnly = enable_if_t<std::is_integral<T>::value, O>;
-
-template<class T, class O = T>
-using ArithmeticOnly = enable_if_t<std::is_arithmetic<T>::value, O>;
-
-// Semantics are the following:
-// Upscaling (scaled()): only from floating point types (or Vec) to either
-//                       floating point or integer 'scaled coord' coordinates.
-// Downscaling (unscaled()): from arithmetic (or Vec) to floating point only
-
-// Conversion definition from unscaled to floating point scaled
-template<class Tout,
-         class Tin,
-         class = FloatingOnly<Tin>>
-inline constexpr FloatingOnly<Tout> scaled(const Tin &v) noexcept
-{
-    return Tout(v / Tin(SCALING_FACTOR));
-}
-
-// Conversion definition from unscaled to integer 'scaled coord'.
-// TODO: is the rounding necessary? Here it is commented  out to show that
-// it can be different for integers but it does not have to be. Using
-// std::round means loosing noexcept and constexpr modifiers
-template<class Tout = coord_t, class Tin, class = FloatingOnly<Tin>>
-inline constexpr ScaledCoordOnly<Tout> scaled(const Tin &v) noexcept
-{
-    //return static_cast<Tout>(std::round(v / SCALING_FACTOR));
-    return Tout(v / Tin(SCALING_FACTOR));
-}
-
-// Conversion for Eigen vectors (N dimensional points)
-template<class Tout = coord_t,
-         class Tin,
-         int N,
-         class = FloatingOnly<Tin>,
-         int...EigenArgs>
-inline Eigen::Matrix<ArithmeticOnly<Tout>, N, EigenArgs...>
-scaled(const Eigen::Matrix<Tin, N, EigenArgs...> &v)
-{
-    return (v / SCALING_FACTOR).template cast<Tout>();
-}
-
-// Conversion from arithmetic scaled type to floating point unscaled
-template<class Tout = double,
-         class Tin,
-         class = ArithmeticOnly<Tin>,
-         class = FloatingOnly<Tout>>
-inline constexpr Tout unscaled(const Tin &v) noexcept
-{
-    return Tout(v * Tout(SCALING_FACTOR));
-}
-
-// Unscaling for Eigen vectors. Input base type can be arithmetic, output base
-// type can only be floating point.
-template<class Tout = double,
-         class Tin,
-         int N,
-         class = ArithmeticOnly<Tin>,
-         class = FloatingOnly<Tout>,
-         int...EigenArgs>
-inline constexpr Eigen::Matrix<Tout, N, EigenArgs...>
-unscaled(const Eigen::Matrix<Tin, N, EigenArgs...> &v) noexcept
-{
-    return v.template cast<Tout>() * SCALING_FACTOR;
-}
-
 template<class T, class I, class... Args> // Arbitrary allocator can be used
 inline IntegerOnly<I, std::vector<T, Args...>> reserve_vector(I capacity)
 {
@@ -353,10 +126,10 @@ inline IntegerOnly<I, std::vector<T, Args...>> reserve_vector(I capacity)
 }
 
 /// Exactly like Matlab https://www.mathworks.com/help/matlab/ref/linspace.html
-template<class T, class I>
+template<class T, class I, class = IntegerOnly<I>>
 inline std::vector<T> linspace_vector(const ArithmeticOnly<T> &start, 
                                       const T &stop, 
-                                      const IntegerOnly<I> &n)
+                                      const I &n)
 {
     std::vector<T> vals(n, T());
 

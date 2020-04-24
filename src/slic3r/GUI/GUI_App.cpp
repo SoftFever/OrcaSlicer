@@ -24,6 +24,7 @@
 #include <wx/filefn.h>
 #include <wx/sysopt.h>
 #include <wx/msgdlg.h>
+#include <wx/richmsgdlg.h>
 #include <wx/log.h>
 #include <wx/intl.h>
 
@@ -321,20 +322,41 @@ bool GUI_App::on_init_inner()
         set_data_dir(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data());
 
     app_config = new AppConfig();
-    preset_bundle = new PresetBundle();
-
-    // just checking for existence of Slic3r::data_dir is not enough : it may be an empty directory
-    // supplied as argument to --datadir; in that case we should still run the wizard
-    preset_bundle->setup_directories();
 
     // load settings
     app_conf_exists = app_config->exists();
     if (app_conf_exists) {
         app_config->load();
     }
+    
+    std::string msg = Http::tls_global_init();
+    wxRichMessageDialog
+        dlg(nullptr,
+            wxString::Format(_(L("%s\nDo you want to continue?")), _(msg)),
+            "PrusaSlicer", wxICON_QUESTION | wxYES_NO);
+    
+    bool ssl_accept = app_config->get("tls_cert_store_accepted") == "yes";
+    std::string ssl_cert_store = app_config->get("tls_accepted_cert_store_location");
+    ssl_accept = ssl_accept && ssl_cert_store == Http::tls_system_cert_store();
+    
+    dlg.ShowCheckBox(_(L("Remember my choice")));
+    if (!msg.empty() && !ssl_accept) {
+        if (dlg.ShowModal() != wxID_YES) return false;
 
+        app_config->set("tls_cert_store_accepted",
+                        dlg.IsCheckBoxChecked() ? "yes" : "no");
+        app_config->set("tls_accepted_cert_store_location",
+                        dlg.IsCheckBoxChecked() ? Http::tls_system_cert_store() : "");
+    }
+    
     app_config->set("version", SLIC3R_VERSION);
     app_config->save();
+    
+    preset_bundle = new PresetBundle();
+    
+    // just checking for existence of Slic3r::data_dir is not enough : it may be an empty directory
+    // supplied as argument to --datadir; in that case we should still run the wizard
+    preset_bundle->setup_directories();
 
 #ifdef __WXMSW__
     associate_3mf_files();

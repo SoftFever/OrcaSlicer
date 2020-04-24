@@ -582,7 +582,8 @@ void GCodeProcessor::store_move_vertex(EMoveType type)
     MoveVertex vertex;
     vertex.type = type;
     vertex.extrusion_role = m_extrusion_role;
-    vertex.position = Vec3f(m_end_position[0], m_end_position[1], m_end_position[2]) + m_extruder_offsets[m_extruder_id];
+    vertex.position = Vec3f(m_end_position[X], m_end_position[Y], m_end_position[Z]) + m_extruder_offsets[m_extruder_id];
+    vertex.delta_extruder = m_end_position[E] - m_start_position[E];
     vertex.feedrate = m_feedrate;
     vertex.width = m_width;
     vertex.height = m_height;

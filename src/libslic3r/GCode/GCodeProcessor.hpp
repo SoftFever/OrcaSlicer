@@ -76,6 +76,7 @@ namespace Slic3r {
             unsigned char extruder_id{ 0 };
             unsigned char cp_color_id{ 0 };
             Vec3f position{ Vec3f::Zero() }; // mm
+            float delta_extruder{ 0.0f }; // mm
             float feedrate{ 0.0f }; // mm/s
             float width{ 0.0f }; // mm
             float height{ 0.0f }; // mm

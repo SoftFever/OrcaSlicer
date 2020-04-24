@@ -2071,37 +2071,40 @@ void ObjectList::load_shape_object(const std::string& type_name)
     // Create mesh
     BoundingBoxf3 bb;
     TriangleMesh mesh = create_mesh(type_name, bb);
+    load_mesh_object(mesh, _(L("Shape")) + "-" + _(type_name));
+}
 
+void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name)
+{   
     // Add mesh to model as a new object
     Model& model = wxGetApp().plater()->model();
-    const wxString name = _(L("Shape")) + "-" + _(type_name);
 
 #ifdef _DEBUG
     check_model_ids_validity(model);
 #endif /* _DEBUG */
-
+    
     std::vector<size_t> object_idxs;
     ModelObject* new_object = model.add_object();
     new_object->name = into_u8(name);
     new_object->add_instance(); // each object should have at list one instance
-
+    
     ModelVolume* new_volume = new_object->add_volume(mesh);
     new_volume->name = into_u8(name);
     // set a default extruder value, since user can't add it manually
     new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
     new_object->invalidate_bounding_box();
-
+    
     new_object->center_around_origin();
     new_object->ensure_on_bed();
-
+    
     const BoundingBoxf bed_shape = wxGetApp().plater()->bed_shape_bb();
     new_object->instances[0]->set_offset(Slic3r::to_3d(bed_shape.center().cast<double>(), -new_object->origin_translation(2)));
-
+    
     object_idxs.push_back(model.objects.size() - 1);
 #ifdef _DEBUG
     check_model_ids_validity(model);
 #endif /* _DEBUG */
-
+    
     paste_objects_into_list(object_idxs);
 
 #ifdef _DEBUG

@@ -2,6 +2,7 @@
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Model.hpp"
+#include "libslic3r/ModelArrange.hpp"
 
 #include <boost/nowide/cstdio.hpp>
 #include <boost/filesystem.hpp>
@@ -41,8 +42,7 @@ SCENARIO("Model construction", "[Model]") {
 				}
             }
             model_object->add_instance();
-			model.arrange_objects(PrintConfig::min_object_distance(&config));
-			model.center_instances_around_point(Slic3r::Vec2d(100, 100));
+            arrange_objects(model, InfiniteBed{scaled(Vec2d(100, 100))}, ArrangeParams{scaled(min_object_distance(config))});
 			model_object->ensure_on_bed();
 			print.auto_assign_extruders(model_object);
 			THEN("Print works?") {
