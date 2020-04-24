@@ -93,19 +93,17 @@ class Preview : public wxPanel
     wxBoxSizer* m_double_slider_sizer;
     wxStaticText* m_label_view_type;
     wxChoice* m_choice_view_type;
-    wxStaticText* m_label_show_features;
+    wxStaticText* m_label_show;
     wxComboCtrl* m_combochecklist_features;
+#if ENABLE_GCODE_VIEWER
+    wxComboCtrl* m_combochecklist_options;
+#else
     wxCheckBox* m_checkbox_travel;
     wxCheckBox* m_checkbox_retractions;
     wxCheckBox* m_checkbox_unretractions;
-#if ENABLE_GCODE_VIEWER
-    wxCheckBox* m_checkbox_tool_changes;
-    wxCheckBox* m_checkbox_color_changes;
-    wxCheckBox* m_checkbox_pause_prints;
-    wxCheckBox* m_checkbox_custom_gcodes;
-#endif // ENABLE_GCODE_VIEWER
     wxCheckBox* m_checkbox_shells;
     wxCheckBox* m_checkbox_legend;
+#endif // ENABLE_GCODE_VIEWER
 
     DynamicPrintConfig* m_config;
     BackgroundSlicingProcess* m_process;
@@ -192,17 +190,15 @@ private:
     void on_size(wxSizeEvent& evt);
     void on_choice_view_type(wxCommandEvent& evt);
     void on_combochecklist_features(wxCommandEvent& evt);
+#if ENABLE_GCODE_VIEWER
+    void on_combochecklist_options(wxCommandEvent& evt);
+#else
     void on_checkbox_travel(wxCommandEvent& evt);
     void on_checkbox_retractions(wxCommandEvent& evt);
     void on_checkbox_unretractions(wxCommandEvent& evt);
-#if ENABLE_GCODE_VIEWER
-    void on_checkbox_tool_changes(wxCommandEvent& evt);
-    void on_checkbox_color_changes(wxCommandEvent& evt);
-    void on_checkbox_pause_prints(wxCommandEvent& evt);
-    void on_checkbox_custom_gcodes(wxCommandEvent& evt);
-#endif // ENABLE_GCODE_VIEWER
     void on_checkbox_shells(wxCommandEvent& evt);
     void on_checkbox_legend(wxCommandEvent& evt);
+#endif // ENABLE_GCODE_VIEWER
 
     // Create/Update/Reset double slider on 3dPreview
     void create_double_slider();

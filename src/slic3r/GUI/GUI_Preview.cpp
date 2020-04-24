@@ -224,19 +224,17 @@ Preview::Preview(
     , m_double_slider_sizer(nullptr)
     , m_label_view_type(nullptr)
     , m_choice_view_type(nullptr)
-    , m_label_show_features(nullptr)
+    , m_label_show(nullptr)
     , m_combochecklist_features(nullptr)
+#if ENABLE_GCODE_VIEWER
+    , m_combochecklist_options(nullptr)
+#else
     , m_checkbox_travel(nullptr)
     , m_checkbox_retractions(nullptr)
     , m_checkbox_unretractions(nullptr)
-#if ENABLE_GCODE_VIEWER
-    , m_checkbox_tool_changes(nullptr)
-    , m_checkbox_color_changes(nullptr)
-    , m_checkbox_pause_prints(nullptr)
-    , m_checkbox_custom_gcodes(nullptr)
-#endif // ENABLE_GCODE_VIEWER
     , m_checkbox_shells(nullptr)
     , m_checkbox_legend(nullptr)
+#endif // ENABLE_GCODE_VIEWER
     , m_config(config)
     , m_process(process)
     , m_gcode_preview_data(gcode_preview_data)
@@ -308,43 +306,53 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
     m_choice_view_type->Append(_(L("Color Print")));
     m_choice_view_type->SetSelection(0);
 
-    m_label_show_features = new wxStaticText(this, wxID_ANY, _(L("Show")));
+    m_label_show = new wxStaticText(this, wxID_ANY, _(L("Show")));
 
     m_combochecklist_features = new wxComboCtrl();
     m_combochecklist_features->Create(this, wxID_ANY, _(L("Feature types")), wxDefaultPosition, wxSize(15 * wxGetApp().em_unit(), -1), wxCB_READONLY);
-    std::string feature_text = GUI::into_u8(_(L("Feature types")));
     std::string feature_items = GUI::into_u8(
 #if ENABLE_GCODE_VIEWER
-        _L("Unknown") + "|" +
+        _L("Unknown") + "|1|" +
 #endif // ENABLE_GCODE_VIEWER
-        _(L("Perimeter")) + "|" +
-        _(L("External perimeter")) + "|" +
-        _(L("Overhang perimeter")) + "|" +
-        _(L("Internal infill")) + "|" +
-        _(L("Solid infill")) + "|" +
-        _(L("Top solid infill")) + "|" +
-        _(L("Bridge infill")) + "|" +
-        _(L("Gap fill")) + "|" +
-        _(L("Skirt")) + "|" +
-        _(L("Support material")) + "|" +
-        _(L("Support material interface")) + "|" +
-        _(L("Wipe tower")) + "|" +
-        _(L("Custom"))
+        _(L("Perimeter")) + "|1|" +
+        _(L("External perimeter")) + "|1|" +
+        _(L("Overhang perimeter")) + "|1|" +
+        _(L("Internal infill")) + "|1|" +
+        _(L("Solid infill")) + "|1|" +
+        _(L("Top solid infill")) + "|1|" +
+        _(L("Bridge infill")) + "|1|" +
+        _(L("Gap fill")) + "|1|" +
+        _(L("Skirt")) + "|1|" +
+        _(L("Support material")) + "|1|" +
+        _(L("Support material interface")) + "|1|" +
+        _(L("Wipe tower")) + "|1|" +
+        _(L("Custom")) + "|1"
     );
-    Slic3r::GUI::create_combochecklist(m_combochecklist_features, feature_text, feature_items, true);
+    Slic3r::GUI::create_combochecklist(m_combochecklist_features, GUI::into_u8(_(L("Feature types"))), feature_items);
 
+#if ENABLE_GCODE_VIEWER
+    m_combochecklist_options = new wxComboCtrl();
+    m_combochecklist_options->Create(this, wxID_ANY, _(L("Options")), wxDefaultPosition, wxSize(15 * wxGetApp().em_unit(), -1), wxCB_READONLY);
+    std::string options_items = GUI::into_u8(
+        _(L("Travel")) + "|0|" +
+        _(L("Retractions")) + "|0|" +
+        _(L("Unretractions")) + "|0|" +
+        _(L("Tool changes")) + "|0|" +
+        _(L("Color changes")) + "|0|" +
+        _(L("Pause prints")) + "|0|" +
+        _(L("Custom GCodes")) + "|0|" +
+        _(L("Shells")) + "|0|" +
+        _(L("Legend")) + "|1"
+    );
+    Slic3r::GUI::create_combochecklist(m_combochecklist_options, GUI::into_u8(_(L("Options"))), options_items);
+#else
     m_checkbox_travel = new wxCheckBox(this, wxID_ANY, _(L("Travel")));
     m_checkbox_retractions = new wxCheckBox(this, wxID_ANY, _(L("Retractions")));
     m_checkbox_unretractions = new wxCheckBox(this, wxID_ANY, _(L("Unretractions")));
-#if ENABLE_GCODE_VIEWER
-    m_checkbox_tool_changes = new wxCheckBox(this, wxID_ANY, _(L("Tool changes")));
-    m_checkbox_color_changes = new wxCheckBox(this, wxID_ANY, _(L("Color changes")));
-    m_checkbox_pause_prints = new wxCheckBox(this, wxID_ANY, _(L("Pause prints")));
-    m_checkbox_custom_gcodes = new wxCheckBox(this, wxID_ANY, _(L("Custom GCodes")));
-#endif // ENABLE_GCODE_VIEWER
     m_checkbox_shells = new wxCheckBox(this, wxID_ANY, _(L("Shells")));
     m_checkbox_legend = new wxCheckBox(this, wxID_ANY, _(L("Legend")));
     m_checkbox_legend->SetValue(true);
+#endif // ENABLE_GCODE_VIEWER
 
     wxBoxSizer* top_sizer = new wxBoxSizer(wxHORIZONTAL);
     top_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);
@@ -354,8 +362,11 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
     bottom_sizer->Add(m_label_view_type, 0, wxALIGN_CENTER_VERTICAL, 5);
     bottom_sizer->Add(m_choice_view_type, 0, wxEXPAND | wxALL, 5);
     bottom_sizer->AddSpacer(10);
-    bottom_sizer->Add(m_label_show_features, 0, wxALIGN_CENTER_VERTICAL, 5);
+    bottom_sizer->Add(m_label_show, 0, wxALIGN_CENTER_VERTICAL, 5);
     bottom_sizer->Add(m_combochecklist_features, 0, wxEXPAND | wxALL, 5);
+#if ENABLE_GCODE_VIEWER
+    bottom_sizer->Add(m_combochecklist_options, 0, wxEXPAND | wxALL, 5);
+#else
     bottom_sizer->AddSpacer(20);
     bottom_sizer->Add(m_checkbox_travel, 0, wxEXPAND | wxALL, 5);
     bottom_sizer->AddSpacer(10);
@@ -363,19 +374,10 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
     bottom_sizer->AddSpacer(10);
     bottom_sizer->Add(m_checkbox_unretractions, 0, wxEXPAND | wxALL, 5);
     bottom_sizer->AddSpacer(10);
-#if ENABLE_GCODE_VIEWER
-    bottom_sizer->Add(m_checkbox_tool_changes, 0, wxEXPAND | wxALL, 5);
-    bottom_sizer->AddSpacer(10);
-    bottom_sizer->Add(m_checkbox_color_changes, 0, wxEXPAND | wxALL, 5);
-    bottom_sizer->AddSpacer(10);
-    bottom_sizer->Add(m_checkbox_pause_prints, 0, wxEXPAND | wxALL, 5);
-    bottom_sizer->AddSpacer(10);
-    bottom_sizer->Add(m_checkbox_custom_gcodes, 0, wxEXPAND | wxALL, 5);
-    bottom_sizer->AddSpacer(10);
-#endif // ENABLE_GCODE_VIEWER
     bottom_sizer->Add(m_checkbox_shells, 0, wxEXPAND | wxALL, 5);
     bottom_sizer->AddSpacer(20);
     bottom_sizer->Add(m_checkbox_legend, 0, wxEXPAND | wxALL, 5);
+#endif // ENABLE_GCODE_VIEWER
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(top_sizer, 1, wxALL | wxEXPAND, 0);
@@ -552,17 +554,15 @@ void Preview::bind_event_handlers()
     this->Bind(wxEVT_SIZE, &Preview::on_size, this);
     m_choice_view_type->Bind(wxEVT_CHOICE, &Preview::on_choice_view_type, this);
     m_combochecklist_features->Bind(wxEVT_CHECKLISTBOX, &Preview::on_combochecklist_features, this);
+#if ENABLE_GCODE_VIEWER
+    m_combochecklist_options->Bind(wxEVT_CHECKLISTBOX, &Preview::on_combochecklist_options, this);
+#else
     m_checkbox_travel->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_travel, this);
     m_checkbox_retractions->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_retractions, this);
     m_checkbox_unretractions->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_unretractions, this);
-#if ENABLE_GCODE_VIEWER
-    m_checkbox_tool_changes->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_tool_changes, this);
-    m_checkbox_color_changes->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_color_changes, this);
-    m_checkbox_pause_prints->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_pause_prints, this);
-    m_checkbox_custom_gcodes->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_custom_gcodes, this);
-#endif // ENABLE_GCODE_VIEWER
     m_checkbox_shells->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_shells, this);
     m_checkbox_legend->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_legend, this);
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void Preview::unbind_event_handlers()
@@ -570,54 +570,48 @@ void Preview::unbind_event_handlers()
     this->Unbind(wxEVT_SIZE, &Preview::on_size, this);
     m_choice_view_type->Unbind(wxEVT_CHOICE, &Preview::on_choice_view_type, this);
     m_combochecklist_features->Unbind(wxEVT_CHECKLISTBOX, &Preview::on_combochecklist_features, this);
+#if ENABLE_GCODE_VIEWER
+    m_combochecklist_options->Unbind(wxEVT_CHECKLISTBOX, &Preview::on_combochecklist_options, this);
+#else
     m_checkbox_travel->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_travel, this);
     m_checkbox_retractions->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_retractions, this);
     m_checkbox_unretractions->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_unretractions, this);
-#if ENABLE_GCODE_VIEWER
-    m_checkbox_tool_changes->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_tool_changes, this);
-    m_checkbox_color_changes->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_color_changes, this);
-    m_checkbox_pause_prints->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_pause_prints, this);
-    m_checkbox_custom_gcodes->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_custom_gcodes, this);
-#endif // ENABLE_GCODE_VIEWER
     m_checkbox_shells->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_shells, this);
     m_checkbox_legend->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_legend, this);
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void Preview::show_hide_ui_elements(const std::string& what)
 {
     bool enable = (what == "full");
-    m_label_show_features->Enable(enable);
+    m_label_show->Enable(enable);
     m_combochecklist_features->Enable(enable);
-    m_checkbox_travel->Enable(enable); 
+#if ENABLE_GCODE_VIEWER
+    m_combochecklist_options->Enable(enable);
+#else
+    m_checkbox_travel->Enable(enable);
     m_checkbox_retractions->Enable(enable);
     m_checkbox_unretractions->Enable(enable);
-#if ENABLE_GCODE_VIEWER
-    m_checkbox_tool_changes->Enable(enable);
-    m_checkbox_color_changes->Enable(enable);
-    m_checkbox_pause_prints->Enable(enable);
-    m_checkbox_custom_gcodes->Enable(enable);
-#endif // ENABLE_GCODE_VIEWER
     m_checkbox_shells->Enable(enable);
     m_checkbox_legend->Enable(enable);
+#endif // ENABLE_GCODE_VIEWER
 
     enable = (what != "none");
     m_label_view_type->Enable(enable);
     m_choice_view_type->Enable(enable);
 
     bool visible = (what != "none");
-    m_label_show_features->Show(visible);
+    m_label_show->Show(visible);
     m_combochecklist_features->Show(visible);
+#if ENABLE_GCODE_VIEWER
+    m_combochecklist_options->Show(visible);
+#else
     m_checkbox_travel->Show(visible);
     m_checkbox_retractions->Show(visible);
     m_checkbox_unretractions->Show(visible);
-#if ENABLE_GCODE_VIEWER
-    m_checkbox_tool_changes->Show(visible);
-    m_checkbox_color_changes->Show(visible);
-    m_checkbox_pause_prints->Show(visible);
-    m_checkbox_custom_gcodes->Show(visible);
-#endif // ENABLE_GCODE_VIEWER
     m_checkbox_shells->Show(visible);
     m_checkbox_legend->Show(visible);
+#endif // ENABLE_GCODE_VIEWER
     m_label_view_type->Show(visible);
     m_choice_view_type->Show(visible);
 }
@@ -676,72 +670,36 @@ void Preview::on_combochecklist_features(wxCommandEvent& evt)
     refresh_print();
 }
 
+#if ENABLE_GCODE_VIEWER
+void Preview::on_combochecklist_options(wxCommandEvent& evt)
+{
+    m_canvas->set_gcode_options_visibility_from_flags(static_cast<unsigned int>(Slic3r::GUI::combochecklist_get_flags(m_combochecklist_options)));
+    refresh_print();
+}
+#else
 void Preview::on_checkbox_travel(wxCommandEvent& evt)
 {
-#if ENABLE_GCODE_VIEWER
-    m_canvas->set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Travel, m_checkbox_travel->IsChecked());
-    refresh_print();
-#else
     m_gcode_preview_data->travel.is_visible = m_checkbox_travel->IsChecked();
     m_gcode_preview_data->ranges.feedrate.set_mode(GCodePreviewData::FeedrateKind::TRAVEL, m_gcode_preview_data->travel.is_visible);
     // Rather than refresh, reload print so that speed color ranges get recomputed (affected by travel visibility)
     reload_print();
-#endif // ENABLE_GCODE_VIEWER
 }
 
 void Preview::on_checkbox_retractions(wxCommandEvent& evt)
 {
-#if ENABLE_GCODE_VIEWER
-    m_canvas->set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Retract, m_checkbox_retractions->IsChecked());
-#else
     m_gcode_preview_data->retraction.is_visible = m_checkbox_retractions->IsChecked();
-#endif // ENABLE_GCODE_VIEWER
     refresh_print();
 }
 
 void Preview::on_checkbox_unretractions(wxCommandEvent& evt)
 {
-#if ENABLE_GCODE_VIEWER
-    m_canvas->set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Unretract, m_checkbox_unretractions->IsChecked());
-#else
     m_gcode_preview_data->unretraction.is_visible = m_checkbox_unretractions->IsChecked();
-#endif // ENABLE_GCODE_VIEWER
     refresh_print();
 }
-
-#if ENABLE_GCODE_VIEWER
-void Preview::on_checkbox_tool_changes(wxCommandEvent& evt)
-{
-    m_canvas->set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Tool_change, m_checkbox_tool_changes->IsChecked());
-    refresh_print();
-}
-
-void Preview::on_checkbox_color_changes(wxCommandEvent& evt)
-{
-    m_canvas->set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Color_change, m_checkbox_color_changes->IsChecked());
-    refresh_print();
-}
-
-void Preview::on_checkbox_pause_prints(wxCommandEvent& evt)
-{
-    m_canvas->set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Pause_Print, m_checkbox_pause_prints->IsChecked());
-    refresh_print();
-}
-
-void Preview::on_checkbox_custom_gcodes(wxCommandEvent& evt)
-{
-    m_canvas->set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Custom_GCode, m_checkbox_custom_gcodes->IsChecked());
-    refresh_print();
-}
-#endif // ENABLE_GCODE_VIEWER
 
 void Preview::on_checkbox_shells(wxCommandEvent& evt)
 {
-#if ENABLE_GCODE_VIEWER
-    m_canvas->set_shells_visible(m_checkbox_shells->IsChecked());
-#else
     m_gcode_preview_data->shell.is_visible = m_checkbox_shells->IsChecked();
-#endif // ENABLE_GCODE_VIEWER
     refresh_print();
 }
 
@@ -750,6 +708,7 @@ void Preview::on_checkbox_legend(wxCommandEvent& evt)
     m_canvas->enable_legend_texture(m_checkbox_legend->IsChecked());
     m_canvas_widget->Refresh();
 }
+#endif // ENABLE_GCODE_VIEWER
 
 void Preview::update_view_type(bool slice_completed)
 {
@@ -969,11 +928,13 @@ void Preview::update_double_slider_from_canvas(wxKeyEvent& event)
         m_slider->SetHigherValue(new_pos);
 		if (event.ShiftDown() || m_slider->is_one_layer()) m_slider->SetLowerValue(m_slider->GetHigherValue());
     }
+#if !ENABLE_GCODE_VIEWER
     else if (key == 'L') {
         m_checkbox_legend->SetValue(!m_checkbox_legend->GetValue());
         auto evt = wxCommandEvent();
         on_checkbox_legend(evt);
     }
+#endif // !ENABLE_GCODE_VIEWER
     else if (key == 'S')
         m_slider->ChangeOneLayerLock();
     else if (key == WXK_SHIFT)
@@ -1078,6 +1039,7 @@ void Preview::load_print_as_fff(bool keep_z_range)
 #if ENABLE_GCODE_VIEWER
             m_canvas->load_gcode_preview(*m_gcode_result);
             m_canvas->refresh_gcode_preview(*m_gcode_result, colors);
+            show_hide_ui_elements(gcode_preview_data_valid ? "full" : "simple");
 #else
             m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
 #endif // ENABLE_GCODE_VIEWER
@@ -1085,12 +1047,14 @@ void Preview::load_print_as_fff(bool keep_z_range)
         } else {
             // Load the initial preview based on slices, not the final G-code.
             m_canvas->load_preview(colors, color_print_values);
+#if ENABLE_GCODE_VIEWER
+            show_hide_ui_elements("none");
+#endif // ENABLE_GCODE_VIEWER
         }
-        show_hide_ui_elements(gcode_preview_data_valid ? "full" : "simple");
-        // recalculates zs and update sliders accordingly
 #if ENABLE_GCODE_VIEWER
         const std::vector<double>& zs = m_canvas->get_layers_zs();
 #else
+        show_hide_ui_elements(gcode_preview_data_valid ? "full" : "simple");
         std::vector<double> zs = m_canvas->get_current_print_zs(true);
 #endif // ENABLE_GCODE_VIEWER
         if (zs.empty()) {

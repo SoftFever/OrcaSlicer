@@ -194,9 +194,7 @@ public:
     bool is_toolpath_move_type_visible(GCodeProcessor::EMoveType type) const;
     void set_toolpath_move_type_visible(GCodeProcessor::EMoveType type, bool visible);
     void set_toolpath_role_visibility_flags(unsigned int flags) { m_extrusions.role_visibility_flags = flags; }
-
-    bool are_shells_visible() const { return m_shells.visible; }
-    void set_shells_visible(bool visible) { m_shells.visible = visible; }
+    void set_options_visibility_from_flags(unsigned int flags);
 
     bool is_legend_enabled() const { return m_legend_enabled; }
     void enable_legend(bool enable) { m_legend_enabled = enable; }

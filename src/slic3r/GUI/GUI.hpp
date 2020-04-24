@@ -49,9 +49,9 @@ inline void show_info(wxWindow* parent, const std::string& message,const std::st
 void warning_catcher(wxWindow* parent, const wxString& message);
 
 // Creates a wxCheckListBoxComboPopup inside the given wxComboCtrl, filled with the given text and items.
-// Items are all initialized to the given value.
-// Items must be separated by '|', for example "Item1|Item2|Item3", and so on.
-void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string items, bool initial_value);
+// Items data must be separated by '|', and contain the item name to be shown followed by its initial value (0 for false, 1 for true).
+// For example "Item1|0|Item2|1|Item3|0", and so on.
+void create_combochecklist(wxComboCtrl* comboCtrl, const std::string& text, const std::string& items);
 
 // Returns the current state of the items listed in the wxCheckListBoxComboPopup contained in the given wxComboCtrl,
 // encoded inside an int.

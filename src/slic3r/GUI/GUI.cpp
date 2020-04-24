@@ -259,7 +259,7 @@ void warning_catcher(wxWindow* parent, const wxString& message)
 	msg.ShowModal();
 }
 
-void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string items, bool initial_value)
+void create_combochecklist(wxComboCtrl* comboCtrl, const std::string& text, const std::string& items)
 {
     if (comboCtrl == nullptr)
         return;
@@ -273,8 +273,9 @@ void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string
 
         comboCtrl->EnablePopupAnimation(false);
         comboCtrl->SetPopupControl(popup);
-        popup->SetStringValue(from_u8(text));
-        popup->Bind(wxEVT_CHECKLISTBOX, [popup](wxCommandEvent& evt) { popup->OnCheckListBox(evt); });
+		wxString title = from_u8(text);
+		popup->SetStringValue(title);
+		popup->Bind(wxEVT_CHECKLISTBOX, [popup](wxCommandEvent& evt) { popup->OnCheckListBox(evt); });
         popup->Bind(wxEVT_LISTBOX, [popup](wxCommandEvent& evt) { popup->OnListBoxSelection(evt); });
         popup->Bind(wxEVT_KEY_DOWN, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
         popup->Bind(wxEVT_KEY_UP, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
@@ -282,16 +283,16 @@ void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string
         std::vector<std::string> items_str;
         boost::split(items_str, items, boost::is_any_of("|"), boost::token_compress_off);
 
-        for (const std::string& item : items_str)
-        {
-            popup->Append(from_u8(item));
-        }
+		// each item must be composed by 2 parts
+		assert(items_str.size() %2 == 0);
 
-        for (unsigned int i = 0; i < popup->GetCount(); ++i)
-        {
-            popup->Check(i, initial_value);
-        }
-    }
+		for (size_t i = 0; i < items_str.size(); i += 2)
+		{
+			wxString label = from_u8(items_str[i]);
+			popup->Append(label);
+			popup->Check(i / 2, items_str[i + 1] == "1");
+		}
+	}
 }
 
 int combochecklist_get_flags(wxComboCtrl* comboCtrl)
