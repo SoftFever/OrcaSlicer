@@ -250,6 +250,23 @@ void GCodeViewer::set_toolpath_move_type_visible(GCodeProcessor::EMoveType type,
         m_buffers[id].visible = visible;
 }
 
+void GCodeViewer::set_options_visibility_from_flags(unsigned int flags)
+{
+    auto is_flag_set = [flags](unsigned int flag) {
+        return (flags& (1 << flag)) != 0;
+    };
+
+    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Travel, is_flag_set(0));
+    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Retract, is_flag_set(1));
+    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Unretract, is_flag_set(2));
+    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Tool_change, is_flag_set(3));
+    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Color_change, is_flag_set(4));
+    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Pause_Print, is_flag_set(5));
+    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Custom_GCode, is_flag_set(6));
+    m_shells.visible = is_flag_set(7);
+    enable_legend(is_flag_set(8));
+}
+
 bool GCodeViewer::init_shaders()
 {
     unsigned char begin_id = buffer_id(GCodeProcessor::EMoveType::Retract);
