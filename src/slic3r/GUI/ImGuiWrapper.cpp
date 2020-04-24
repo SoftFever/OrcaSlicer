@@ -602,7 +602,7 @@ static void process_key_down(ImGuiKey imgui_key, std::function<void()> f)
 }
 
 void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, const char** label, const char** tooltip), char* search_str,
-                               Search::OptionViewParameters& view_params, int& selected, bool& edited, bool& check_changed)
+                               Search::OptionViewParameters& view_params, int& selected, bool& edited)
 {
     // ImGui::ListBoxHeader("", size);
     {   
@@ -707,13 +707,13 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
 
     ImGui::ListBoxFooter();
 
-    auto check_box = [&check_changed, this](const wxString& label, bool& check) {
+    auto check_box = [&edited, this](const wxString& label, bool& check) {
         ImGui::SameLine();
         bool ch = check;
         checkbox(label, ch);
         if (ImGui::IsItemClicked()) {
             check = !check;
-            check_changed = true;
+            edited = true;
         }
     };
 

@@ -122,7 +122,6 @@ protected:
 	std::string			m_name;
 	const wxString		m_title;
 	PresetBitmapComboBox*	m_presets_choice;
-	Search::SearchCtrl*	m_search;
 	ScalableButton*		m_search_btn;
 	ScalableButton*		m_btn_save_preset;
 	ScalableButton*		m_btn_delete_preset;
@@ -330,8 +329,6 @@ public:
 	DynamicPrintConfig*	get_config() { return m_config; }
 	PresetCollection*	get_presets() { return m_presets; }
 	size_t				get_selected_preset_item() { return m_selected_preset_item; }
-
-	void			set_search_line(const std::string& search_line);
 
 	void			on_value_change(const std::string& opt_key, const boost::any& value);
 

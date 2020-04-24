@@ -4519,18 +4519,15 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
 
     imgui->search_list(ImVec2(45 * em, 30 * em), &search_string_getter, s, 
                        sidebar.get_searcher().view_params,
-                       selected, edited, check_changed);
+                       selected, edited);
 
     search_line = s;
     delete [] s;
 
-    if (edited)
-        sidebar.search_and_apply_tab_search_lines();
-
-    if (check_changed) {
+    if (edited) {
         if (search_line == _u8L("Type here to search"))
             search_line.clear();
-        sidebar.search_and_apply_tab_search_lines(true);
+        sidebar.search();
     }
 
     if (selected != size_t(-1))
@@ -5259,6 +5256,9 @@ bool GLCanvas3D::_init_collapse_toolbar()
     };
 
     if (!m_collapse_toolbar.add_item(item))
+        return false;
+
+    if (!m_collapse_toolbar.add_separator())
         return false;
 
     item.name = "print";

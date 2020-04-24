@@ -726,7 +726,6 @@ struct Sidebar::priv
 
     bool                is_collapsed {false};
     Search::OptionsSearcher     searcher;
-    std::string                 search_line;
 
     priv(Plater *plater) : plater(plater) {}
     ~priv();
@@ -1096,10 +1095,9 @@ void Sidebar::msw_rescale()
     p->scrolled->Layout();
 }
 
-void Sidebar::search_and_apply_tab_search_lines(bool force/* = false*/)
+void Sidebar::search()
 {
-    if (p->searcher.search(p->search_line, force))
-        ;//apply_search_line_on_tabs();
+    p->searcher.search();
 }
 
 void Sidebar::jump_to_option(size_t selected)
@@ -1382,16 +1380,6 @@ static std::vector<Search::InputInfo> get_search_inputs(ConfigOptionMode mode)
     return ret;
 }
 
-void Sidebar::apply_search_line_on_tabs()
-{
-    auto& tabs_list = wxGetApp().tabs_list;
-    auto print_tech = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology();
-
-    for (auto tab : tabs_list)
-        if (tab->supports_printer_technology(print_tech))
-            tab->set_search_line(p->search_line);
-}
-
 void Sidebar::update_searcher()
 {
     p->searcher.init(get_search_inputs(m_mode));
@@ -1442,7 +1430,7 @@ Search::OptionsSearcher& Sidebar::get_searcher()
 
 std::string& Sidebar::get_search_line()
 {
-    return p->search_line;
+    return p->searcher.search_string();
 }
 
 // Plater::DropTarget

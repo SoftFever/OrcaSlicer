@@ -845,8 +845,6 @@ void Tab::msw_rescale()
     m_em_unit = wxGetApp().em_unit();
 
     m_mode_sizer->msw_rescale();
-//    m_search_cb->msw_rescale();
-    m_search->msw_rescale();
 
     m_presets_choice->SetSize(35 * m_em_unit, -1);
     m_treectrl->SetMinSize(wxSize(20 * m_em_unit, -1));
@@ -947,11 +945,6 @@ static wxString support_combo_value_for_config(const DynamicPrintConfig &config,
 static wxString pad_combo_value_for_config(const DynamicPrintConfig &config)
 {
     return config.opt_bool("pad_enable") ? (config.opt_bool("pad_around_object") ? _("Around object") : _("Below object")) : _("None");
-}
-
-void Tab::set_search_line(const std::string& search_line)
-{
-    m_search->set_search_line(search_line);
 }
 
 void Tab::on_value_change(const std::string& opt_key, const boost::any& value)

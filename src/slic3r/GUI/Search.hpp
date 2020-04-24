@@ -124,6 +124,7 @@ public:
     void apply(DynamicPrintConfig *config,
                Preset::Type        type,
                ConfigOptionMode    mode);
+    bool search();
     bool search(const std::string& search, bool force = false);
 
     void add_key(const std::string& opt_key, const wxString& group, const wxString& category);
@@ -135,7 +136,7 @@ public:
 
     const std::vector<FoundOption>& found_options() { return found; }
     const GroupAndCategory&         get_group_and_category (const std::string& opt_key) { return groups_and_categories[opt_key]; }
-    const std::string& search_string() { return search_line; }
+    std::string& search_string() { return search_line; }
 };
 
 
@@ -169,30 +170,6 @@ public:
 
 protected:
     wxString m_input_string;
-};
-
-class SearchCtrl : public wxComboCtrl
-{
-    SearchComboPopup*   popupListBox {nullptr};
-
-    bool                prevent_update { false };
-    wxString            default_string;
-    bool                editing {false};
-
-    void PopupList(wxCommandEvent& event);
-    void OnInputText(wxCommandEvent& event);
-
-    void OnSelect(wxCommandEvent& event);
-    void OnLeftUpInTextCtrl(wxEvent& event);
-
-public:
-    SearchCtrl(wxWindow* parent);
-    ~SearchCtrl() {}
-
-    void		set_search_line(const std::string& search_line);
-    void        msw_rescale();
-
-    void        update_list(const std::vector<FoundOption>& filters);
 };
 
 

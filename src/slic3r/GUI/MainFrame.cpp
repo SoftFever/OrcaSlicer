@@ -306,6 +306,8 @@ void MainFrame::init_tabpanel()
             // before the MainFrame is fully set up.
             static_cast<Tab*>(panel)->OnActivate();
         }
+        else
+            select_tab(0);
     });
 
 //!    m_plater = new Slic3r::GUI::Plater(m_tabpanel, this);
@@ -313,6 +315,7 @@ void MainFrame::init_tabpanel()
 
     wxGetApp().plater_ = m_plater;
 //    m_tabpanel->AddPage(m_plater, _(L("Plater")));
+    m_tabpanel->AddPage(new wxPanel(m_tabpanel), _L("Plater")); // empty panel just for Plater tab
 
     wxGetApp().obj_list()->create_popup_menus();
 
@@ -756,7 +759,7 @@ void MainFrame::init_menubar()
 //!        size_t tab_offset = 0;
         if (m_plater) {
             append_menu_item(windowMenu, wxID_HIGHEST + 1, _(L("&Plater Tab")) + "\tCtrl+1", _(L("Show the plater")),
-                [this/*, tab_offset*/](wxCommandEvent&) { select_tab((size_t)(-1)); }, "plater", nullptr,
+                [this/*, tab_offset*/](wxCommandEvent&) { select_tab(/*(size_t)(-1)*/0); }, "plater", nullptr,
                 [this]() {return true; }, this);
 //!            tab_offset += 1;
 //!        }
@@ -764,14 +767,14 @@ void MainFrame::init_menubar()
             windowMenu->AppendSeparator();
         }
         append_menu_item(windowMenu, wxID_HIGHEST + 2, _(L("P&rint Settings Tab")) + "\tCtrl+2", _(L("Show the print settings")),
-            [this/*, tab_offset*/](wxCommandEvent&) { select_tab(/*tab_offset + */0); }, "cog", nullptr,
+            [this/*, tab_offset*/](wxCommandEvent&) { select_tab(/*tab_offset + 0*/1); }, "cog", nullptr,
             [this]() {return true; }, this);
         wxMenuItem* item_material_tab = append_menu_item(windowMenu, wxID_HIGHEST + 3, _(L("&Filament Settings Tab")) + "\tCtrl+3", _(L("Show the filament settings")),
-            [this/*, tab_offset*/](wxCommandEvent&) { select_tab(/*tab_offset + */1); }, "spool", nullptr,
+            [this/*, tab_offset*/](wxCommandEvent&) { select_tab(/*tab_offset + 1*/2); }, "spool", nullptr,
             [this]() {return true; }, this);
         m_changeable_menu_items.push_back(item_material_tab);
         wxMenuItem* item_printer_tab = append_menu_item(windowMenu, wxID_HIGHEST + 4, _(L("Print&er Settings Tab")) + "\tCtrl+4", _(L("Show the printer settings")),
-            [this/*, tab_offset*/](wxCommandEvent&) { select_tab(/*tab_offset + */2); }, "printer", nullptr,
+            [this/*, tab_offset*/](wxCommandEvent&) { select_tab(/*tab_offset + 2*/3); }, "printer", nullptr,
             [this]() {return true; }, this);
         m_changeable_menu_items.push_back(item_printer_tab);
         if (m_plater) {
@@ -1237,7 +1240,7 @@ void MainFrame::load_config(const DynamicPrintConfig& config)
 
 void MainFrame::select_tab(size_t tab)
 {
-    if (tab == (size_t)(-1)) {
+    if (tab == /*(size_t)(-1)*/0) {
         if (m_plater && !m_plater->IsShown())
             this->switch_to(true);
     }

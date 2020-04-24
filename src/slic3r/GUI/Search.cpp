@@ -215,6 +215,11 @@ static void clear_marked_string(wxString& str)
     str.Replace(delete_string, wxEmptyString, true);
 }
 
+bool OptionsSearcher::search()
+{
+    return search(search_line, true);
+}
+
 bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
 {
     if (search_line == search && !force)
@@ -277,7 +282,9 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
     if (!full_list)
         sort_found();
 
-    search_line = search;
+    if (search_line != search)
+        search_line = search;
+
     return true;
 }
 
@@ -404,110 +411,6 @@ void SearchComboPopup::OnKeyDown(wxKeyEvent& event)
         event.Skip(); // !Needed to have EVT_CHAR generated as well
 }
 
-//------------------------------------------
-//          SearchCtrl
-//------------------------------------------
-
-SearchCtrl::SearchCtrl(wxWindow* parent) :
-    wxComboCtrl(parent, wxID_ANY, _L("Type here to search"), wxDefaultPosition, wxSize(25 * GUI::wxGetApp().em_unit(), -1), wxTE_PROCESS_ENTER)
-{
-    default_string = _L("Type here to search");
-
-    this->UseAltPopupWindow();
-
-    wxBitmap bmp_norm = create_scaled_bitmap("search_gray");
-    wxBitmap bmp_hov = create_scaled_bitmap("search");
-    this->SetButtonBitmaps(bmp_norm, true, bmp_hov, bmp_hov, bmp_norm);
-
-    popupListBox = new SearchComboPopup();
-
-    // It is important to call SetPopupControl() as soon as possible
-    this->SetPopupControl(popupListBox);
-
-    this->Bind(wxEVT_TEXT,                 &SearchCtrl::OnInputText, this);
-    this->Bind(wxEVT_TEXT_ENTER,           &SearchCtrl::PopupList, this);
-    this->Bind(wxEVT_COMBOBOX_DROPDOWN,    &SearchCtrl::PopupList, this);
-
-    this->GetTextCtrl()->Bind(wxEVT_LEFT_UP,    &SearchCtrl::OnLeftUpInTextCtrl, this);
-    popupListBox->Bind(wxEVT_LISTBOX,           &SearchCtrl::OnSelect,           this);
-}
-
-void SearchCtrl::OnInputText(wxCommandEvent& )
-{
-    if (prevent_update)
-        return;
-
-    this->GetTextCtrl()->SetInsertionPointEnd();
-
-    wxString input_string = this->GetValue();
-    if (input_string == default_string)
-        input_string.Clear();
-
-    GUI::wxGetApp().sidebar().get_search_line() = into_u8(input_string);
-
-    editing = true;
-    GUI::wxGetApp().sidebar().search_and_apply_tab_search_lines();
-    editing = false;
-}
-
-void SearchCtrl::PopupList(wxCommandEvent& e)
-{
-    update_list(GUI::wxGetApp().sidebar().get_searcher().found_options());
-    if (e.GetEventType() == wxEVT_TEXT_ENTER)
-        this->Popup();
-
-    e.Skip();
-}
-
-void SearchCtrl::set_search_line(const std::string& line)
-{
-    prevent_update = true;
-    this->SetValue(line.empty() && !editing ? default_string : from_u8(line));
-    prevent_update = false;
-}
-
-void SearchCtrl::msw_rescale()
-{
-    wxSize size = wxSize(25 * GUI::wxGetApp().em_unit(), -1);
-    // Set rescaled min height to correct layout
-    this->SetMinSize(size);
-
-    wxBitmap bmp_norm = create_scaled_bitmap("search_gray");
-    wxBitmap bmp_hov = create_scaled_bitmap("search");
-    this->SetButtonBitmaps(bmp_norm, true, bmp_hov, bmp_hov, bmp_norm);
-}
-
-void SearchCtrl::OnSelect(wxCommandEvent& event)
-{
-    int selection = event.GetSelection();
-    if (selection < 0)
-        return;
-
-    prevent_update = true;
-    GUI::wxGetApp().sidebar().jump_to_option(selection);
-    prevent_update = false;
-}
-
-void SearchCtrl::update_list(const std::vector<FoundOption>& filters)
-{
-    if (!filters.empty() && popupListBox->GetCount() == filters.size() &&
-        popupListBox->GetString(0) == filters[0].label &&
-        popupListBox->GetString(popupListBox->GetCount()-1) == filters[filters.size()-1].label)
-        return;
-
-    popupListBox->Clear();
-    for (const FoundOption& item : filters)
-        popupListBox->Append(item.label);
-}
-
-void SearchCtrl::OnLeftUpInTextCtrl(wxEvent &event)
-{
-    if (this->GetValue() == default_string)
-        this->SetValue("");
-
-    event.Skip();
-}
-
 
 //------------------------------------------
 //          SearchDialog
@@ -603,9 +506,7 @@ void SearchDialog::OnInputText(wxCommandEvent&)
     if (input_string == default_string)
         input_string.Clear();
 
-    GUI::wxGetApp().sidebar().get_search_line() = into_u8(input_string);
-
-    GUI::wxGetApp().sidebar().search_and_apply_tab_search_lines();
+    searcher->search(into_u8(input_string));
 
     update_list();
 }
@@ -684,7 +585,7 @@ void SearchDialog::OnCheck(wxCommandEvent& event)
     params.category = check_category->GetValue();
     params.group    = check_group->GetValue();
 
-    searcher->search(searcher->search_string(), true);
+    searcher->search();
     update_list();
 }
 
