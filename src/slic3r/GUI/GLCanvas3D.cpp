@@ -5265,7 +5265,7 @@ bool GLCanvas3D::_init_collapse_toolbar()
     item.icon_filename = "cog.svg";
     item.tooltip = _utf8(L("Switch to Print Settings")) + " [" + GUI::shortkey_ctrl_prefix() + "2]";
     item.sprite_id = 1;
-    item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(0); };
+    item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(/*0*/1); };
     item.visibility_callback  = [this]() { return wxGetApp().plater()->is_sidebar_collapsed(); };
 
     if (!m_collapse_toolbar.add_item(item))
@@ -5275,7 +5275,7 @@ bool GLCanvas3D::_init_collapse_toolbar()
     item.icon_filename = "spool.svg";
     item.tooltip = _utf8(L("Switch to Filament Settings")) + " [" + GUI::shortkey_ctrl_prefix() + "3]";
     item.sprite_id = 2;
-    item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(1); };
+    item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(/*1*/2); };
     item.visibility_callback  = [this]() { return wxGetApp().plater()->is_sidebar_collapsed() &&
                                                   wxGetApp().plater()->printer_technology() == ptFFF; };
 
@@ -5286,7 +5286,7 @@ bool GLCanvas3D::_init_collapse_toolbar()
     item.icon_filename = "printer.svg";
     item.tooltip = _utf8(L("Switch to Printer Settings")) + " [" + GUI::shortkey_ctrl_prefix() + "4]";
     item.sprite_id = 3;
-    item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(2); };
+    item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(/*2*/3); };
 
     if (!m_collapse_toolbar.add_item(item))
         return false;
@@ -5295,7 +5295,7 @@ bool GLCanvas3D::_init_collapse_toolbar()
     item.icon_filename = "resin.svg";
     item.tooltip = _utf8(L("Switch to SLA Material Settings")) + " [" + GUI::shortkey_ctrl_prefix() + "3]";
     item.sprite_id = 4;
-    item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(1); };
+    item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(/*1*/2); };
     item.visibility_callback  = [this]() { return wxGetApp().plater()->is_sidebar_collapsed() &&
                                                   (m_process->current_printer_technology() == ptSLA); };
 
@@ -5306,7 +5306,7 @@ bool GLCanvas3D::_init_collapse_toolbar()
     item.icon_filename = "sla_printer.svg";
     item.tooltip = _utf8(L("Switch to Printer Settings")) + " [" + GUI::shortkey_ctrl_prefix() + "4]";
     item.sprite_id = 5;
-    item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(2); };
+    item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(/*2*/3); };
 
     if (!m_collapse_toolbar.add_item(item))
         return false;
