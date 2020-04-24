@@ -43,9 +43,11 @@ namespace Slic3r {
 
 namespace {
 
+struct PNGBuffer { std::vector<uint8_t> buf; std::string fname; };
+
 struct ArchiveData {
     boost::property_tree::ptree profile, config;
-    std::vector<sla::EncodedRaster> images;
+    std::vector<PNGBuffer> images;
 };
 
 static const constexpr char *CONFIG_FNAME  = "config.ini";
@@ -66,7 +68,7 @@ boost::property_tree::ptree read_ini(const mz_zip_archive_file_stat &entry,
     return tree;
 }
 
-sla::EncodedRaster read_png(const mz_zip_archive_file_stat &entry,
+PNGBuffer read_png(const mz_zip_archive_file_stat &entry,
                             MZ_Archive &                    zip,
                             const std::string &             name)
 {
@@ -75,9 +77,8 @@ sla::EncodedRaster read_png(const mz_zip_archive_file_stat &entry,
     if (!mz_zip_reader_extract_file_to_mem(&zip.arch, entry.m_filename,
                                            buf.data(), buf.size(), 0))
         throw std::runtime_error(zip.get_errorstr());
-
-    return sla::EncodedRaster(std::move(buf),
-                              name.empty() ? entry.m_filename : name);
+    
+    return {std::move(buf), (name.empty() ? entry.m_filename : name)};
 }
 
 ArchiveData extract_sla_archive(const std::string &zipfname,
@@ -113,9 +114,9 @@ ArchiveData extract_sla_archive(const std::string &zipfname,
             
             if (boost::filesystem::path(name).extension().string() == ".png") {
                 auto it = std::lower_bound(
-                    arch.images.begin(), arch.images.end(), sla::EncodedRaster({}, name),
-                    [](const sla::EncodedRaster &r1, const sla::EncodedRaster &r2) {
-                        return std::less<std::string>()(r1.extension(), r2.extension());
+                    arch.images.begin(), arch.images.end(), PNGBuffer{{}, name},
+                    [](const PNGBuffer &r1, const PNGBuffer &r2) {
+                        return std::less<std::string>()(r1.fname, r2.fname);
                     });
                 
                 arch.images.insert(it, read_png(entry, zip, name));
@@ -258,8 +259,8 @@ std::vector<ExPolygons> extract_slices_from_sla_archive(
             }
         }
         
-        auto &buf = arch.images[i];
-        wxMemoryInputStream   stream{buf.data(), buf.size()};
+        PNGBuffer &png = arch.images[i];
+        wxMemoryInputStream   stream{png.buf.data(), png.buf.size()};
         wxImage               img{stream};
     
         auto rings = marchsq::execute(img, 128, rstp.win);

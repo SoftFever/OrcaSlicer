@@ -128,12 +128,13 @@ protected:
     }
     
 public:
-    template<class GammaFn> AGGRaster(const Resolution &res,
+    template<class GammaFn>
+    AGGRaster(const Resolution &res,
               const PixelDim &  pd,
               const Trafo &     trafo,
-              const TColor &            foreground,
-              const TColor &            background,
-              GammaFn &&                gammafn)
+              const TColor &    foreground,
+              const TColor &    background,
+              GammaFn &&        gammafn)
         : m_resolution(res)
         , m_pxdim_scaled(SCALING_FACTOR / pd.w_mm, SCALING_FACTOR / pd.h_mm)
         , m_buf(res.pixels())
