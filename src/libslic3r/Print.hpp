@@ -192,6 +192,11 @@ public:
     std::vector<ExPolygons>     slice_support_blockers() const { return this->slice_support_volumes(ModelVolumeType::SUPPORT_BLOCKER); }
     std::vector<ExPolygons>     slice_support_enforcers() const { return this->slice_support_volumes(ModelVolumeType::SUPPORT_ENFORCER); }
 
+    // Helpers to project custom supports on slices
+    void project_and_append_custom_supports(FacetSupportType type, std::vector<ExPolygons>& expolys) const;
+    void project_and_append_custom_enforcers(std::vector<ExPolygons>& enforcers) const { project_and_append_custom_supports(FacetSupportType::ENFORCER, enforcers); }
+    void project_and_append_custom_blockers(std::vector<ExPolygons>& blockers) const { project_and_append_custom_supports(FacetSupportType::BLOCKER, blockers); }
+
 private:
     // to be called from Print only.
     friend class Print;
