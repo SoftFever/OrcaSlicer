@@ -48,18 +48,23 @@ int64_t Polygon::area2x() const
 }
 */
 
-double Polygon::area() const
+double Polygon::area(const Points &points)
 {
     size_t n = points.size();
     if (n < 3) 
         return 0.;
-
+    
     double a = 0.;
     for (size_t i = 0, j = n - 1; i < n; ++i) {
         a += ((double)points[j](0) + (double)points[i](0)) * ((double)points[i](1) - (double)points[j](1));
         j = i;
     }
     return 0.5 * a;
+}
+
+double Polygon::area() const
+{
+    return Polygon::area(points);
 }
 
 bool Polygon::is_counter_clockwise() const

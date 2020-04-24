@@ -160,7 +160,7 @@ private:
     std::vector<unsigned char> m_extruder_ids;
     Extrusions m_extrusions;
     Shells m_shells;
-    mutable EViewType m_view_type{ EViewType::FeatureType };
+    EViewType m_view_type{ EViewType::FeatureType };
     bool m_legend_enabled{ true };
 
 public:
@@ -208,8 +208,6 @@ private:
     void render_toolpaths() const;
     void render_shells() const;
     void render_overlay() const;
-    void render_legend() const;
-    void render_toolbar() const;
 };
 
 } // namespace GUI

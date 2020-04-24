@@ -625,12 +625,6 @@ void GCodeViewer::render_shells() const
 
 void GCodeViewer::render_overlay() const
 {
-    render_legend();
-    render_toolbar();
-}
-
-void GCodeViewer::render_legend() const
-{
     static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
     static const float ICON_BORDER_SIZE = 25.0f;
     static const ImU32 ICON_BORDER_COLOR = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
@@ -801,10 +795,6 @@ void GCodeViewer::render_legend() const
 
     imgui.end();
     ImGui::PopStyleVar();
-}
-
-void GCodeViewer::render_toolbar() const
-{
 }
 
 } // namespace GUI

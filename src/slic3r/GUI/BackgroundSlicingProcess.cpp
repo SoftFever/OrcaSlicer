@@ -19,6 +19,7 @@
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/GCode/PostProcessor.hpp"
 #include "libslic3r/GCode/PreviewData.hpp"
+#include "libslic3r/Format/SL1.hpp"
 #include "libslic3r/libslic3r.h"
 
 #include <cassert>
@@ -153,7 +154,7 @@ void BackgroundSlicingProcess::process_sla()
             const std::string export_path = m_sla_print->print_statistics().finalize_output_path(m_export_path);
 
             Zipper zipper(export_path);
-            m_sla_print->export_raster(zipper);
+            m_sla_archive.export_print(zipper, *m_sla_print);
 
             if (m_thumbnail_cb != nullptr)
             {
@@ -491,9 +492,9 @@ void BackgroundSlicingProcess::prepare_upload()
         m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
     } else {
         m_upload_job.upload_data.upload_path = m_sla_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
-
+        
         Zipper zipper{source_path.string()};
-        m_sla_print->export_raster(zipper, m_upload_job.upload_data.upload_path.string());
+        m_sla_archive.export_print(zipper, *m_sla_print, m_upload_job.upload_data.upload_path.string());
         if (m_thumbnail_cb != nullptr)
         {
             ThumbnailsList thumbnails;

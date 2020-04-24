@@ -144,12 +144,19 @@ set(SLIC3R_GUI_SOURCES
     GUI/UpdateDialogs.hpp
     GUI/FirmwareDialog.cpp
     GUI/FirmwareDialog.hpp
-    GUI/ProgressIndicator.hpp
-    GUI/ProgressStatusBar.hpp
-    GUI/ProgressStatusBar.cpp
     GUI/PrintHostDialogs.cpp
     GUI/PrintHostDialogs.hpp
-    GUI/Job.hpp
+    GUI/Jobs/Job.hpp
+    GUI/Jobs/Job.cpp
+    GUI/Jobs/ArrangeJob.hpp
+    GUI/Jobs/ArrangeJob.cpp
+    GUI/Jobs/RotoptimizeJob.hpp
+    GUI/Jobs/RotoptimizeJob.cpp
+    GUI/Jobs/SLAImportJob.hpp
+    GUI/Jobs/SLAImportJob.cpp
+    GUI/Jobs/ProgressIndicator.hpp
+    GUI/ProgressStatusBar.hpp
+    GUI/ProgressStatusBar.cpp
     GUI/Mouse3DController.cpp
     GUI/Mouse3DController.hpp
     GUI/DoubleSlider.cpp
@@ -179,6 +186,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/HexFile.cpp
     Utils/HexFile.hpp
     Utils/Thread.hpp
+    Utils/SLAImport.hpp
+    Utils/SLAImport.cpp
 )
 
 if (APPLE)
