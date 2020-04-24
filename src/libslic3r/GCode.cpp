@@ -3439,10 +3439,13 @@ void GCode::ObjectByExtruder::Island::Region::append(const Type type, const Extr
 
     // First we append the entities, there are eec->entities.size() of them:
     size_t old_size = perimeters_or_infills->size();
-    size_t new_size = old_size + eec->entities.size();
+    size_t new_size = old_size + (eec->can_reverse() ? eec->entities.size() : 1);
     perimeters_or_infills->reserve(new_size);
-    for (auto* ee : eec->entities)
-        perimeters_or_infills->emplace_back(ee);
+    if (eec->can_reverse()) {
+	    for (auto* ee : eec->entities)
+	        perimeters_or_infills->emplace_back(ee);
+	} else
+		perimeters_or_infills->emplace_back(const_cast<ExtrusionEntityCollection*>(eec));
 
     if (copies_extruder != nullptr) {
     	// Don't reallocate overrides if not needed.
