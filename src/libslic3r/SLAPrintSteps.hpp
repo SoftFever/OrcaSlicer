@@ -46,7 +46,7 @@ private:
     void apply_printer_corrections(SLAPrintObject &po, SliceOrigin o);
     
 public:
-    Steps(SLAPrint *print);
+    explicit Steps(SLAPrint *print);
     
     void hollow_model(SLAPrintObject &po);
     void drill_holes (SLAPrintObject &po);

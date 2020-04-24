@@ -77,6 +77,8 @@ add_library(libslic3r STATIC
     Format/PRUS.hpp
     Format/STL.cpp
     Format/STL.hpp
+    Format/SL1.hpp
+    Format/SL1.cpp
     GCode/Analyzer.cpp
     GCode/Analyzer.hpp
     GCode/ThumbnailData.cpp
@@ -120,6 +122,8 @@ add_library(libslic3r STATIC
     Line.hpp
     Model.cpp
     Model.hpp
+    ModelArrange.hpp
+    ModelArrange.cpp
     CustomGCode.cpp
     CustomGCode.hpp
     Arrange.hpp
@@ -160,6 +164,8 @@ add_library(libslic3r STATIC
     SLAPrint.hpp
     Slicing.cpp
     Slicing.hpp
+    SlicesToTriangleMesh.hpp
+    SlicesToTriangleMesh.cpp
     SlicingAdaptive.cpp
     SlicingAdaptive.hpp
     SupportMaterial.cpp
@@ -175,6 +181,8 @@ add_library(libslic3r STATIC
     Tesselate.hpp
     TriangleMesh.cpp
     TriangleMesh.hpp
+    TriangulateWall.hpp
+    TriangulateWall.cpp
     utils.cpp
     Utils.hpp
     Time.cpp
@@ -189,6 +197,7 @@ add_library(libslic3r STATIC
     SimplifyMesh.hpp
     SimplifyMeshImpl.hpp
     SimplifyMesh.cpp
+    MarchingSquares.hpp
     ${OpenVDBUtils_SOURCES}
     SLA/Common.hpp
     SLA/Common.cpp
@@ -206,10 +215,11 @@ add_library(libslic3r STATIC
     SLA/Rotfinder.cpp
     SLA/BoostAdapter.hpp
     SLA/SpatIndex.hpp
-    SLA/Raster.hpp
-    SLA/Raster.cpp
-    SLA/RasterWriter.hpp
-    SLA/RasterWriter.cpp
+    SLA/RasterBase.hpp
+    SLA/RasterBase.cpp
+    SLA/AGGRaster.hpp
+    SLA/RasterToPolygons.hpp
+    SLA/RasterToPolygons.cpp
     SLA/ConcaveHull.hpp
     SLA/ConcaveHull.cpp
     SLA/Hollowing.hpp

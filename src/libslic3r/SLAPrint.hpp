@@ -3,7 +3,7 @@
 
 #include <mutex>
 #include "PrintBase.hpp"
-#include "SLA/RasterWriter.hpp"
+#include "SLA/RasterBase.hpp"
 #include "SLA/SupportTree.hpp"
 #include "Point.hpp"
 #include "MTUtils.hpp"
@@ -369,6 +369,31 @@ struct SLAPrintStatistics
     }
 };
 
+class SLAPrinter {
+protected:
+    std::vector<sla::EncodedRaster> m_layers;
+    
+    virtual uqptr<sla::RasterBase> create_raster() const = 0;
+    virtual sla::EncodedRaster encode_raster(const sla::RasterBase &rst) const = 0;
+    
+public:
+    virtual ~SLAPrinter() = default;
+    
+    virtual void apply(const SLAPrinterConfig &cfg) = 0;
+    
+    // Fn have to be thread safe: void(sla::RasterBase& raster, size_t lyrid);
+    template<class Fn> void draw_layers(size_t layer_num, Fn &&drawfn)
+    {
+        m_layers.resize(layer_num);
+        sla::ccr::enumerate(m_layers.begin(), m_layers.end(),
+                            [this, &drawfn](sla::EncodedRaster& enc, size_t idx) {
+                                auto rst = create_raster();
+                                drawfn(*rst, idx);
+                                enc = encode_raster(*rst);
+                            });
+    }
+};
+
 /**
  * @brief This class is the high level FSM for the SLA printing process.
  *
@@ -403,18 +428,6 @@ public:
     // Returns true if the last step was finished with success.
     bool                finished() const override { return this->is_step_done(slaposSliceSupports) && this->Inherited::is_step_done(slapsRasterize); }
 
-    inline void export_raster(const std::string& fpath,
-                              const std::string& projectname = "")
-    {
-        if(m_printer) m_printer->save(fpath, projectname);
-    }
-
-    inline void export_raster(Zipper &zipper,
-                              const std::string& projectname = "")
-    {
-        if(m_printer) m_printer->save(zipper, projectname);
-    }
-
     const PrintObjects& objects() const { return m_objects; }
 
     const SLAPrintConfig&       print_config() const { return m_print_config; }
@@ -445,14 +458,15 @@ public:
 
         std::vector<ClipperLib::Polygon> m_transformed_slices;
 
-        template<class Container> void transformed_slices(Container&& c) {
+        template<class Container> void transformed_slices(Container&& c)
+        {
             m_transformed_slices = std::forward<Container>(c);
         }
         
         friend class SLAPrint::Steps;
 
     public:
-
+        
         explicit PrintLayer(coord_t lvl) : m_level(lvl) {}
 
         // for being sorted in their container (see m_printer_input)
@@ -474,8 +488,11 @@ public:
     // The aggregated and leveled print records from various objects.
     // TODO: use this structure for the preview in the future.
     const std::vector<PrintLayer>& print_layers() const { return m_printer_input; }
-
+    
+    void set_printer(SLAPrinter *archiver);
+    
 private:
+    
     // Implement same logic as in SLAPrintObject
     bool invalidate_step(SLAPrintStep st);
 
@@ -491,13 +508,13 @@ private:
     std::vector<bool>               m_stepmask;
 
     // Ready-made data for rasterization.
-    std::vector<PrintLayer>                 m_printer_input;
-
-    // The printer itself
-    std::unique_ptr<sla::RasterWriter>   m_printer;
-
+    std::vector<PrintLayer>         m_printer_input;
+    
+    // The archive object which collects the raster images after slicing
+    SLAPrinter                     *m_printer = nullptr;
+    
     // Estimated print time, material consumed.
-    SLAPrintStatistics                      m_print_statistics;
+    SLAPrintStatistics              m_print_statistics;
     
     class StatusReporter
     {
@@ -512,15 +529,6 @@ private:
         
         double status() const { return m_st; }
     } m_report_status;
-    
-    sla::RasterWriter &init_printer();
-    
-    inline sla::Raster::Orientation get_printer_orientation() const
-    {
-        auto ro = m_printer_config.display_orientation.getInt();
-        return ro == sla::Raster::roPortrait ? sla::Raster::roPortrait :
-                                               sla::Raster::roLandscape;
-    }
 
 	friend SLAPrintObject;
 };

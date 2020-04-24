@@ -982,6 +982,9 @@ template<class S> inline double area(const S& poly, const PolygonTag& )
     });
 }
 
+template<class RawShapes>
+inline double area(const RawShapes& shapes, const MultiPolygonTag&);
+
 template<class S> // Dispatching function
 inline double area(const S& sh)
 {

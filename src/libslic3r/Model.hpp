@@ -802,11 +802,9 @@ public:
     bool 		  center_instances_around_point(const Vec2d &point);
     void 		  translate(coordf_t x, coordf_t y, coordf_t z) { for (ModelObject *o : this->objects) o->translate(x, y, z); }
     TriangleMesh  mesh() const;
-    bool 		  arrange_objects(coordf_t dist, const BoundingBoxf* bb = NULL);
+    
     // Croaks if the duplicated objects do not fit the print bed.
-    void 		  duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
-    void 	      duplicate_objects(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
-    void 		  duplicate_objects_grid(size_t x, size_t y, coordf_t dist);
+    void duplicate_objects_grid(size_t x, size_t y, coordf_t dist);
 
     bool 		  looks_like_multipart_object() const;
     void 		  convert_multipart_object(unsigned int max_extruders);
@@ -822,6 +820,7 @@ public:
     std::string   propose_export_file_name_and_path(const std::string &new_extension) const;
 
 private:
+    
 	explicit Model(int) : ObjectBase(-1) { assert(this->id().invalid()); };
 	void assign_new_unique_ids_recursive();
 	void update_links_bottom_up_recursive();
@@ -831,7 +830,7 @@ private:
 	template<class Archive> void serialize(Archive &ar) {
 		Internal::StaticSerializationWrapper<ModelWipeTower> wipe_tower_wrapper(wipe_tower);
 		ar(materials, objects, wipe_tower_wrapper);
-	}
+    }
 };
 
 #undef OBJECTBASE_DERIVED_COPY_MOVE_CLONE
