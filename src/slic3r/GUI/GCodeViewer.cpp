@@ -177,10 +177,11 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
     if (m_vertices.vertices_count == 0)
         return;
 
+    // update tool colors
     m_tool_colors = decode_colors(str_tool_colors);
 
+    // update ranges
     m_extrusions.reset_ranges();
-
     for (size_t i = 0; i < m_vertices.vertices_count; ++i)
     {
         // skip first vertex
@@ -201,9 +202,9 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
         }
         case GCodeProcessor::EMoveType::Travel:
         {
-            if (m_buffers[buffer_id(curr.type)].visible) {
+            if (m_buffers[buffer_id(curr.type)].visible)
                 m_extrusions.ranges.feedrate.update_from(curr.feedrate);
-            }
+
             break;
         }
         default: { break; }
@@ -689,6 +690,7 @@ void GCodeViewer::render_overlay() const
         }
     };
 
+    // extrusion paths -> title
     ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
     switch (m_view_type)
     {
@@ -703,9 +705,9 @@ void GCodeViewer::render_overlay() const
     default:                        { break; }
     }
     ImGui::PopStyleColor();
-
     ImGui::Separator();
 
+    // extrusion paths -> items
     switch (m_view_type)
     {
     case EViewType::FeatureType:
@@ -808,6 +810,37 @@ void GCodeViewer::render_overlay() const
         break;
     }
     default: { break; }
+    }
+
+    // travel paths
+    if (m_buffers[buffer_id(GCodeProcessor::EMoveType::Travel)].visible)
+    {
+        switch (m_view_type)
+        {
+        case EViewType::Feedrate:
+        case EViewType::Tool:
+        case EViewType::ColorPrint:
+        {
+            break;
+        }
+        default:
+        {
+            // title
+            ImGui::Spacing();
+            ImGui::Spacing();
+            ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+            imgui.text(I18N::translate_utf8(L("Travel")));
+            ImGui::PopStyleColor();
+            ImGui::Separator();
+
+            // items
+            add_item(Travel_Colors[0], I18N::translate_utf8(L("Movement")));
+            add_item(Travel_Colors[1], I18N::translate_utf8(L("Extrusion")));
+            add_item(Travel_Colors[2], I18N::translate_utf8(L("Retraction")));
+
+            break;
+        }
+        }
     }
 
     imgui.end();
