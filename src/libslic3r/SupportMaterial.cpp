@@ -2317,10 +2317,15 @@ static inline void fill_expolygons_generate_paths(
     fill_params.dont_adjust = true;
     for (const ExPolygon &expoly : expolygons) {
         Surface surface(stInternal, expoly);
+        Polylines polylines;
+    	try {
+            polylines = filler->fill_surface(&surface, fill_params);
+		} catch (InfillFailedException &) {
+		}
         extrusion_entities_append_paths(
             dst,
-            filler->fill_surface(&surface, fill_params),
-            role, 
+            std::move(polylines),
+            role,
             flow.mm3_per_mm(), flow.width, flow.height);
     }
 }
@@ -2339,9 +2344,14 @@ static inline void fill_expolygons_generate_paths(
     fill_params.dont_adjust = true;
     for (ExPolygon &expoly : expolygons) {
         Surface surface(stInternal, std::move(expoly));
+        Polylines polylines;
+    	try {
+            polylines = filler->fill_surface(&surface, fill_params);
+		} catch (InfillFailedException &) {
+		}
         extrusion_entities_append_paths(
             dst,
-            filler->fill_surface(&surface, fill_params),
+            std::move(polylines),
             role,
             flow.mm3_per_mm(), flow.width, flow.height);
     }

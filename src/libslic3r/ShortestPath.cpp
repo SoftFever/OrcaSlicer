@@ -38,7 +38,7 @@ std::vector<std::pair<size_t, bool>> chain_segments_closest_point(std::vector<En
     	// Ignore the starting point as the starting point is considered to be occupied, no end point coud connect to it.
 		size_t next_idx = find_closest_point(kdtree, this_point.pos,
 			[this_idx, &end_points, &could_reverse_func](size_t idx) {
-				return (idx ^ this_idx) > 1 && end_points[idx].chain_id == 0 && ((idx ^ 1) == 0 || could_reverse_func(idx >> 1));
+				return (idx ^ this_idx) > 1 && end_points[idx].chain_id == 0 && ((idx & 1) == 0 || could_reverse_func(idx >> 1));
 		});
 		assert(next_idx < end_points.size());
 		EndPointType &end_point = end_points[next_idx];

@@ -373,7 +373,11 @@ void Layer::make_fills()
 			// Spacing is modified by the filler to indicate adjustments. Reset it for each expolygon.
 			f->spacing = surface_fill.params.spacing;
 			surface_fill.surface.expolygon = std::move(expoly);
-			Polylines polylines = f->fill_surface(&surface_fill.surface, params);
+			Polylines polylines;
+			try {
+				polylines = f->fill_surface(&surface_fill.surface, params);
+			} catch (InfillFailedException &) {
+			}
 	        if (! polylines.empty()) {
 		        // calculate actual flow from spacing (which might have been adjusted by the infill
 		        // pattern generator)
@@ -496,10 +500,11 @@ void Layer::make_ironing()
 		if (! layerm->slices.empty()) {
 			IroningParams ironing_params;
 			const PrintRegionConfig &config = layerm->region()->config();
-			if (config.ironing_type == IroningType::AllSolid ||
-				(config.top_solid_layers > 0 && 
-					(config.ironing_type == IroningType::TopSurfaces ||
-					 (config.ironing_type == IroningType::TopmostOnly && layerm->layer()->upper_layer == nullptr)))) {
+			if (config.ironing && 
+				(config.ironing_type == IroningType::AllSolid ||
+				 	(config.top_solid_layers > 0 && 
+						(config.ironing_type == IroningType::TopSurfaces ||
+					 	(config.ironing_type == IroningType::TopmostOnly && layerm->layer()->upper_layer == nullptr))))) {
 				if (config.perimeter_extruder == config.solid_infill_extruder || config.perimeters == 0) {
 					// Iron the whole face.
 					ironing_params.extruder = config.solid_infill_extruder;
@@ -528,6 +533,7 @@ void Layer::make_ironing()
     fill.overlap 			 = 0;
     fill_params.density 	 = 1.;
     fill_params.dont_connect = true;
+    fill_params.monotonous   = true;
 
 	for (size_t i = 0; i < by_extruder.size(); ++ i) {
 		// Find span of regions equivalent to the ironing operation.
@@ -562,13 +568,17 @@ void Layer::make_ironing()
         Surface surface_fill(stTop, ExPolygon());
         for (ExPolygon &expoly : ironing_areas) {
 			surface_fill.expolygon = std::move(expoly);
-			Polylines polylines = fill.fill_surface(&surface_fill, fill_params);
+			Polylines polylines;
+			try {
+				polylines = fill.fill_surface(&surface_fill, fill_params);
+			} catch (InfillFailedException &) {
+			}
 	        if (! polylines.empty()) {
 		        // Save into layer.
 				ExtrusionEntityCollection *eec = nullptr;
 		        ironing_params.layerm->fills.entities.push_back(eec = new ExtrusionEntityCollection());
-		        //FIXME we may not want to sort a monotonous infill.
-		        eec->no_sort = false;
+		        // Don't sort the ironing infill lines as they are monotonously ordered.
+				eec->no_sort = true;
 		        extrusion_entities_append_paths(
 		            eec->entities, std::move(polylines),
 		            erIroning,
