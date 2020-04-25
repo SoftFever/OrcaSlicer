@@ -338,8 +338,11 @@ static std::string system_print_bed_model(const Preset &preset)
 {
 	std::string out;
 	const VendorProfile::PrinterModel *pm = PresetUtils::system_printer_model(preset);
-	if (pm != nullptr && ! pm->bed_model.empty())
+	if (pm != nullptr && ! pm->bed_model.empty()) {
+	    out = Slic3r::data_dir() + "/vendor/" + preset.vendor->id + "/" + pm->bed_model;
+	    if (! boost::filesystem::exists(boost::filesystem::path(out)))
 		out = Slic3r::resources_dir() + "/profiles/" + preset.vendor->id + "/" + pm->bed_model;
+	}
 	return out;
 }
 
@@ -347,8 +350,11 @@ static std::string system_print_bed_texture(const Preset &preset)
 {
 	std::string out;
 	const VendorProfile::PrinterModel *pm = PresetUtils::system_printer_model(preset);
-	if (pm != nullptr && ! pm->bed_texture.empty())
+	if (pm != nullptr && ! pm->bed_texture.empty()) {
+	    out = Slic3r::data_dir() + "/vendor/" + preset.vendor->id + "/" + pm->bed_texture;
+	    if (! boost::filesystem::exists(boost::filesystem::path(out)))
 		out = Slic3r::resources_dir() + "/profiles/" + preset.vendor->id + "/" + pm->bed_texture;
+	}
 	return out;
 }
 

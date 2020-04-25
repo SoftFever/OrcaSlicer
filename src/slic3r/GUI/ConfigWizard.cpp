@@ -188,22 +188,28 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
 
         wxBitmap bitmap;
         int bitmap_width = 0;
-        const wxString bitmap_file = GUI::from_u8(Slic3r::resources_dir() + "/profiles/" + vendor.id + "/" + model.id + "_thumbnail.png");
-        if (wxFileExists(bitmap_file)) {
+	const wxString bitmap_file = GUI::from_u8(Slic3r::data_dir() + "/vendor/" + vendor.id + "/" + model.id + "_thumbnail.png");
+	if (wxFileExists(bitmap_file)) {
             bitmap.LoadFile(bitmap_file, wxBITMAP_TYPE_PNG);
             bitmap_width = bitmap.GetWidth();
         } else {
-            BOOST_LOG_TRIVIAL(warning) << boost::format("Can't find bitmap file `%1%` for vendor `%2%`, printer `%3%`, using placeholder icon instead")
-                % bitmap_file
-                % vendor.id
-                % model.id;
+ 	    const wxString bitmap_file = GUI::from_u8(Slic3r::resources_dir() + "/profiles/" + vendor.id + "/" + model.id + "_thumbnail.png");
+	    if (wxFileExists(bitmap_file)) {
+		bitmap.LoadFile(bitmap_file, wxBITMAP_TYPE_PNG);
+		bitmap_width = bitmap.GetWidth();
+	    } else {
+		BOOST_LOG_TRIVIAL(warning) << boost::format("Can't find bitmap file `%1%` for vendor `%2%`, printer `%3%`, using placeholder icon instead")
+		    % bitmap_file
+		    % vendor.id
+		    % model.id;
 
-            const wxString placeholder_file = GUI::from_u8(Slic3r::var(PRINTER_PLACEHOLDER));
-            if (wxFileExists(placeholder_file)) {
-                bitmap.LoadFile(placeholder_file, wxBITMAP_TYPE_PNG);
-                bitmap_width = bitmap.GetWidth();
-            }
-        }
+		const wxString placeholder_file = GUI::from_u8(Slic3r::var(PRINTER_PLACEHOLDER));
+		if (wxFileExists(placeholder_file)) {
+		    bitmap.LoadFile(placeholder_file, wxBITMAP_TYPE_PNG);
+		    bitmap_width = bitmap.GetWidth();
+		}
+	    }
+	}
 
         auto *title = new wxStaticText(this, wxID_ANY, model.name, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
         title->SetFont(font_name);
