@@ -33,8 +33,7 @@ static GCodeProcessor::EMoveType buffer_type(unsigned char id) {
     return static_cast<GCodeProcessor::EMoveType>(static_cast<unsigned char>(GCodeProcessor::EMoveType::Retract) + id);
 }
 
-std::vector<std::array<float, 3>> decode_colors(const std::vector<std::string>& colors)
-{
+std::vector<std::array<float, 3>> decode_colors(const std::vector<std::string>& colors) {
     static const float INV_255 = 1.0f / 255.0f;
 
     std::vector<std::array<float, 3>> output(colors.size(), {0.0f, 0.0f, 0.0f} );
@@ -66,6 +65,10 @@ void GCodeViewer::VBuffer::reset()
 
     vertices_count = 0;
 }
+
+bool GCodeViewer::Path::is_path_visible(unsigned int flags, const Path& path) {
+    return Extrusions::is_role_visible(flags, path.role);
+};
 
 void GCodeViewer::IBuffer::reset()
 {
@@ -509,10 +512,6 @@ void GCodeViewer::render_toolpaths() const
         BOOST_LOG_TRIVIAL(error) << "Unable to find uniform_color uniform";
     };
 
-    auto is_path_visible = [](unsigned int flags, const Path& path) {
-        return Extrusions::is_role_visible(flags, path.role);
-    };
-
     glsafe(::glCullFace(GL_BACK));
     glsafe(::glLineWidth(3.0f));
 
@@ -600,7 +599,7 @@ void GCodeViewer::render_toolpaths() const
             case GCodeProcessor::EMoveType::Extrude:
             {
                 for (const Path& path : buffer.paths) {
-                    if (!is_path_visible(m_extrusions.role_visibility_flags, path))
+                    if (!Path::is_path_visible(m_extrusions.role_visibility_flags, path))
                         continue;
 
                     set_color(current_program_id, extrusion_color(path));
@@ -713,7 +712,13 @@ void GCodeViewer::render_overlay() const
     case EViewType::FeatureType:
     {
         for (ExtrusionRole role : m_roles) {
+            bool visible = m_extrusions.is_role_visible(role);
+            if (!visible)
+                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
+
             add_item(Extrusion_Role_Colors[static_cast<unsigned int>(role)], I18N::translate_utf8(ExtrusionEntity::role_to_string(role)));
+            if (!visible)
+                ImGui::PopStyleVar();
         }
         break;
     }

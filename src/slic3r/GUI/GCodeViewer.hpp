@@ -54,6 +54,8 @@ class GCodeViewer
                 feedrate == move.feedrate && fan_speed == move.fan_speed && volumetric_rate == move.volumetric_rate() &&
                 extruder_id == move.extruder_id && cp_color_id == move.cp_color_id;
         }
+
+        static bool is_path_visible(unsigned int flags, const Path& path);
     };
 
     // buffer containing indices data and shader for a specific toolpath type
@@ -129,6 +131,10 @@ class GCodeViewer
         }
 
         void reset_ranges() { ranges.reset(); }
+
+        bool is_role_visible(ExtrusionRole role) const {
+            return role < erCount && (role_visibility_flags & (1 << role)) != 0;
+        }
 
         static bool is_role_visible(unsigned int flags, ExtrusionRole role) {
             return role < erCount && (flags & (1 << role)) != 0;
