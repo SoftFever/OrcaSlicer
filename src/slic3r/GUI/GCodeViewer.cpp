@@ -7,12 +7,13 @@
 #include "PresetBundle.hpp"
 #include "Camera.hpp"
 #include "I18N.hpp"
-#if ENABLE_GCODE_VIEWER
 #include "GUI_Utils.hpp"
 #include "DoubleSlider.hpp"
 #include "GLCanvas3D.hpp"
 #include "libslic3r/Model.hpp"
-#endif // ENABLE_GCODE_VIEWER
+#if ENABLE_GCODE_VIEWER_STATISTICS
+#include <imgui/imgui_internal.h>
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
 
 #include <GL/glew.h>
 #include <boost/log/trivial.hpp>
@@ -173,7 +174,9 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
 
 void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors)
 {
+#if ENABLE_GCODE_VIEWER_STATISTICS
     auto start_time = std::chrono::high_resolution_clock::now();
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     if (m_vertices.vertices_count == 0)
         return;
@@ -212,8 +215,9 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
         }
     }
 
-    auto end_time = std::chrono::high_resolution_clock::now();
-    std::cout << "refresh: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() << "ms \n";
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    m_statistics.refresh_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
 }
 
 void GCodeViewer::reset()
@@ -233,14 +237,25 @@ void GCodeViewer::reset()
     m_layers_zs = std::vector<double>();
     m_layers_z_range = { 0.0, 0.0 };
     m_roles = std::vector<ExtrusionRole>();
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    m_statistics.reset_all();
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
 }
 
 void GCodeViewer::render() const
 {
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    m_statistics.reset_opengl();
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_toolpaths();
     render_shells();
-    render_overlay();
+    render_legend();
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    render_statistics();
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
 }
 
 bool GCodeViewer::is_toolpath_move_type_visible(GCodeProcessor::EMoveType type) const
@@ -310,7 +325,9 @@ bool GCodeViewer::init_shaders()
 
 void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 {
+#if ENABLE_GCODE_VIEWER_STATISTICS
     auto start_time = std::chrono::high_resolution_clock::now();
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     // vertex data
     m_vertices.vertices_count = gcode_result.moves.size();
@@ -325,6 +342,10 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             m_bounding_box.merge(move.position.cast<double>());
         }
     }
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    m_statistics.vertices_size = vertices_data.size() * sizeof(float);
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     // vertex data -> send to gpu
     glsafe(::glGenBuffers(1, &m_vertices.vbo_id));
@@ -383,6 +404,10 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     for (IBuffer& buffer : m_buffers)
     {
         buffer.data_size = buffer.data.size();
+#if ENABLE_GCODE_VIEWER_STATISTICS
+        m_statistics.indices_size += buffer.data_size * sizeof(unsigned int);
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+
         if (buffer.data_size > 0) {
             glsafe(::glGenBuffers(1, &buffer.ibo_id));
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.ibo_id));
@@ -428,8 +453,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     std::sort(m_extruder_ids.begin(), m_extruder_ids.end());
     m_extruder_ids.erase(std::unique(m_extruder_ids.begin(), m_extruder_ids.end()), m_extruder_ids.end());
 
-    auto end_time = std::chrono::high_resolution_clock::now();
-    std::cout << "toolpaths generation time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() << "ms \n";
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    m_statistics.load_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
 }
 
 void GCodeViewer::load_shells(const Print& print, bool initialized)
@@ -558,6 +584,10 @@ void GCodeViewer::render_toolpaths() const
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
                     glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
                     glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+                    ++m_statistics.gl_points_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
                 }
                 break;
             }
@@ -572,6 +602,10 @@ void GCodeViewer::render_toolpaths() const
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
                     glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
                     glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+                    ++m_statistics.gl_points_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
                 }
                 break;
             }
@@ -586,6 +620,10 @@ void GCodeViewer::render_toolpaths() const
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
                     glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
                     glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+                    ++m_statistics.gl_points_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
                 }
                 break;
             }
@@ -600,6 +638,10 @@ void GCodeViewer::render_toolpaths() const
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
                     glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
                     glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+                    ++m_statistics.gl_points_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
                 }
                 break;
             }
@@ -614,6 +656,10 @@ void GCodeViewer::render_toolpaths() const
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
                     glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
                     glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+                    ++m_statistics.gl_points_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
                 }
                 break;
             }
@@ -628,6 +674,10 @@ void GCodeViewer::render_toolpaths() const
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
                     glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
                     glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+                    ++m_statistics.gl_points_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
                 }
                 break;
             }
@@ -639,6 +689,10 @@ void GCodeViewer::render_toolpaths() const
 
                     set_color(current_program_id, extrusion_color(path));
                     glsafe(::glDrawElements(GL_LINE_STRIP, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+                    ++m_statistics.gl_line_strip_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
                 }
                 break;
             }
@@ -650,6 +704,10 @@ void GCodeViewer::render_toolpaths() const
 
                     set_color(current_program_id, (m_view_type == EViewType::Feedrate || m_view_type == EViewType::Tool || m_view_type == EViewType::ColorPrint) ? extrusion_color(path) : travel_color(path));
                     glsafe(::glDrawElements(GL_LINE_STRIP, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+                    ++m_statistics.gl_line_strip_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
                 }
                 break;
             }
@@ -678,7 +736,7 @@ void GCodeViewer::render_shells() const
 //    glsafe(::glDepthMask(GL_TRUE));
 }
 
-void GCodeViewer::render_overlay() const
+void GCodeViewer::render_legend() const
 {
     static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
     static const ImU32 ICON_BORDER_COLOR = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
@@ -691,10 +749,6 @@ void GCodeViewer::render_overlay() const
     imgui.set_next_window_pos(0, 0, ImGuiCond_Always);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     imgui.begin(std::string("Legend"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-
-    if (ImGui::IsWindowAppearing())
-        // force an extra farme
-        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
@@ -892,6 +946,64 @@ void GCodeViewer::render_overlay() const
     imgui.end();
     ImGui::PopStyleVar();
 }
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+void GCodeViewer::render_statistics() const
+{
+    static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
+    static const float offset = 250.0f;
+
+    if (!m_legend_enabled || m_roles.empty())
+        return;
+
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+
+    imgui.begin(std::string("Statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    imgui.text(std::string("Load time:"));
+    ImGui::PopStyleColor();
+    ImGui::SameLine(offset);
+    imgui.text(std::to_string(m_statistics.load_time) + "ms");
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    imgui.text(std::string("Resfresh time:"));
+    ImGui::PopStyleColor();
+    ImGui::SameLine(offset);
+    imgui.text(std::to_string(m_statistics.refresh_time) + "ms");
+
+    ImGui::Separator();
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    imgui.text(std::string("GL_POINTS calls:"));
+    ImGui::PopStyleColor();
+    ImGui::SameLine(offset);
+    imgui.text(std::to_string(m_statistics.gl_points_calls_count));
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    imgui.text(std::string("GL_LINE_STRIP calls:"));
+    ImGui::PopStyleColor();
+    ImGui::SameLine(offset);
+    imgui.text(std::to_string(m_statistics.gl_line_strip_calls_count));
+
+    ImGui::Separator();
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    imgui.text(std::string("Vertices:"));
+    ImGui::PopStyleColor();
+    ImGui::SameLine(offset);
+    imgui.text(std::to_string(m_statistics.vertices_size) + " bytes");
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    imgui.text(std::string("Indices:"));
+    ImGui::PopStyleColor();
+    ImGui::SameLine(offset);
+    imgui.text(std::to_string(m_statistics.indices_size) + " bytes");
+
+    imgui.end();
+}
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
 
 } // namespace GUI
 } // namespace Slic3r
