@@ -2346,17 +2346,22 @@ void GLCanvas3D::set_toolpath_view_type(GCodeViewer::EViewType type)
 {
     m_gcode_viewer.set_view_type(type);
 }
+
+void GLCanvas3D::set_toolpaths_z_range(const std::array<double, 2>& range)
+{
+    m_gcode_viewer.set_layers_z_range(range);
+}
 #else
 std::vector<double> GLCanvas3D::get_current_print_zs(bool active_only) const
 {
     return m_volumes.get_current_print_zs(active_only);
 }
-#endif // ENABLE_GCODE_VIEWER
 
 void GLCanvas3D::set_toolpaths_range(double low, double high)
 {
     m_volumes.set_range(low, high);
 }
+#endif // ENABLE_GCODE_VIEWER
 
 std::vector<int> GLCanvas3D::load_object(const ModelObject& model_object, int obj_idx, std::vector<int> instance_idxs)
 {
@@ -2853,6 +2858,8 @@ void GLCanvas3D::load_gcode_preview(const GCodeProcessor::Result& gcode_result)
 void GLCanvas3D::refresh_gcode_preview(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors)
 {
     m_gcode_viewer.refresh(gcode_result, str_tool_colors);
+    set_as_dirty();
+    request_extra_frame();
 }
 #endif // ENABLE_GCODE_VIEWER
 
@@ -3202,6 +3209,17 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #else
         case 'k': { m_camera.select_next_type(); m_dirty = true; break; }
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
+#if ENABLE_GCODE_VIEWER
+        case 'L':
+        case 'l': {
+                    if (!m_main_toolbar.is_enabled())
+                    {
+                        m_gcode_viewer.enable_legend(!m_gcode_viewer.is_legend_enabled());
+                        m_dirty = true;
+                    }
+                    break;
+                  }
+#endif // ENABLE_GCODE_VIEWER
         case 'O':
         case 'o': { _update_camera_zoom(-1.0); break; }
 #if ENABLE_RENDER_PICKING_PASS

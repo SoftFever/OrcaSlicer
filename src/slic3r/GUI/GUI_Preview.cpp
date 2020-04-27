@@ -332,7 +332,7 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
 
 #if ENABLE_GCODE_VIEWER
     m_combochecklist_options = new wxComboCtrl();
-    m_combochecklist_options->Create(this, wxID_ANY, _(L("Options")), wxDefaultPosition, wxSize(15 * wxGetApp().em_unit(), -1), wxCB_READONLY);
+    m_combochecklist_options->Create(this, wxID_ANY, _(L("Others")), wxDefaultPosition, wxSize(15 * wxGetApp().em_unit(), -1), wxCB_READONLY);
     std::string options_items = GUI::into_u8(
         _(L("Travel")) + "|0|" +
         _(L("Retractions")) + "|0|" +
@@ -344,7 +344,7 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
         _(L("Shells")) + "|0|" +
         _(L("Legend")) + "|1"
     );
-    Slic3r::GUI::create_combochecklist(m_combochecklist_options, GUI::into_u8(_(L("Options"))), options_items);
+    Slic3r::GUI::create_combochecklist(m_combochecklist_options, GUI::into_u8(_(L("Others"))), options_items);
 #else
     m_checkbox_travel = new wxCheckBox(this, wxID_ANY, _(L("Travel")));
     m_checkbox_retractions = new wxCheckBox(this, wxID_ANY, _(L("Retractions")));
@@ -1113,9 +1113,14 @@ void Preview::on_sliders_scroll_changed(wxCommandEvent& event)
         PrinterTechnology tech = m_process->current_printer_technology();
         if (tech == ptFFF)
         {
+#if ENABLE_GCODE_VIEWER
+            m_canvas->set_toolpaths_z_range({ m_slider->GetLowerValueD(), m_slider->GetHigherValueD() });
+            m_canvas->set_as_dirty();
+#else
             m_canvas->set_toolpaths_range(m_slider->GetLowerValueD() - 1e-6, m_slider->GetHigherValueD() + 1e-6);
             m_canvas->render();
             m_canvas->set_use_clipping_planes(false);
+#endif // ENABLE_GCODE_VIEWER
         }
         else if (tech == ptSLA)
         {

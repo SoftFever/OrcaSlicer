@@ -197,8 +197,8 @@ wxString wxCheckListBoxComboPopup::GetStringValue() const
 
 wxSize wxCheckListBoxComboPopup::GetAdjustedSize(int minWidth, int prefHeight, int maxHeight)
 {
-    // matches owner wxComboCtrl's width
-    // and sets height dinamically in dependence of contained items count
+    // set width dinamically in dependence of items text
+    // and set height dinamically in dependence of items count
 
     wxComboCtrl* cmb = GetComboCtrl();
     if (cmb != nullptr)
@@ -207,7 +207,15 @@ wxSize wxCheckListBoxComboPopup::GetAdjustedSize(int minWidth, int prefHeight, i
 
         unsigned int count = GetCount();
         if (count > 0)
-            size.SetHeight(count * DefaultItemHeight);
+        {
+            int max_width = size.x;
+            for (unsigned int i = 0; i < count; ++i)
+            {
+                max_width = std::max(max_width, 60 + GetTextExtent(GetString(i)).x);
+            }
+            size.SetWidth(max_width);
+            size.SetHeight(count * GetTextExtent(GetString(0)).y);
+        }
         else
             size.SetHeight(DefaultHeight);
 

@@ -271,9 +271,12 @@ void create_combochecklist(wxComboCtrl* comboCtrl, const std::string& text, cons
         //  On the other side, with this line the combo box popup cannot be closed by clicking on the combo button on Windows 10.
         comboCtrl->UseAltPopupWindow();
 
+		int max_width = 0;
+
         comboCtrl->EnablePopupAnimation(false);
         comboCtrl->SetPopupControl(popup);
 		wxString title = from_u8(text);
+		max_width = std::max(max_width, 60 + comboCtrl->GetTextExtent(title).x);
 		popup->SetStringValue(title);
 		popup->Bind(wxEVT_CHECKLISTBOX, [popup](wxCommandEvent& evt) { popup->OnCheckListBox(evt); });
         popup->Bind(wxEVT_LISTBOX, [popup](wxCommandEvent& evt) { popup->OnListBoxSelection(evt); });
@@ -289,9 +292,12 @@ void create_combochecklist(wxComboCtrl* comboCtrl, const std::string& text, cons
 		for (size_t i = 0; i < items_str.size(); i += 2)
 		{
 			wxString label = from_u8(items_str[i]);
+			max_width = std::max(max_width, 60 + popup->GetTextExtent(label).x);
 			popup->Append(label);
 			popup->Check(i / 2, items_str[i + 1] == "1");
 		}
+
+		comboCtrl->SetMinClientSize(wxSize(max_width, -1));
 	}
 }
 

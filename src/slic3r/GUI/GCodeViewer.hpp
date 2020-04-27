@@ -40,6 +40,8 @@ class GCodeViewer
         ExtrusionRole role{ erNone };
         unsigned int first{ 0 };
         unsigned int last{ 0 };
+        double first_z{ 0.0f };
+        double last_z{ 0.0f };
         float delta_extruder{ 0.0f };
         float height{ 0.0f };
         float width{ 0.0f };
@@ -129,10 +131,6 @@ class GCodeViewer
         }
 
         void reset_ranges() { ranges.reset(); }
-
-        static bool is_role_visible(unsigned int flags, ExtrusionRole role) {
-            return role < erCount && (flags & (1 << role)) != 0;
-        }
     };
 
 public:
@@ -156,6 +154,7 @@ private:
     BoundingBoxf3 m_bounding_box;
     std::vector<std::array<float, 3>> m_tool_colors;
     std::vector<double> m_layers_zs;
+    std::array<double, 2> m_layers_z_range;
     std::vector<ExtrusionRole> m_roles;
     std::vector<unsigned char> m_extruder_ids;
     Extrusions m_extrusions;
@@ -195,6 +194,7 @@ public:
     void set_toolpath_move_type_visible(GCodeProcessor::EMoveType type, bool visible);
     void set_toolpath_role_visibility_flags(unsigned int flags) { m_extrusions.role_visibility_flags = flags; }
     void set_options_visibility_from_flags(unsigned int flags);
+    void set_layers_z_range(const std::array<double, 2>& layers_z_range) { m_layers_z_range = layers_z_range; }
 
     bool is_legend_enabled() const { return m_legend_enabled; }
     void enable_legend(bool enable) { m_legend_enabled = enable; }
@@ -206,6 +206,17 @@ private:
     void render_toolpaths() const;
     void render_shells() const;
     void render_overlay() const;
+    bool is_visible(ExtrusionRole role) const {
+        return role < erCount && (m_extrusions.role_visibility_flags & (1 << role)) != 0;
+    }
+    bool is_visible(const Path& path) const { return is_visible(path.role); }
+    bool is_in_z_range(const Path& path) const {
+        auto in_z_range = [this](double z) {
+            return z > m_layers_z_range[0] - EPSILON && z < m_layers_z_range[1] + EPSILON;
+        };
+
+        return in_z_range(path.first_z) || in_z_range(path.last_z);
+    }
 };
 
 } // namespace GUI

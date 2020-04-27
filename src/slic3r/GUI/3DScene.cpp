@@ -341,6 +341,7 @@ BoundingBoxf3 GLVolume::transformed_convex_hull_bounding_box(const Transform3d &
 }
 
 
+#if !ENABLE_GCODE_VIEWER
 void GLVolume::set_range(double min_z, double max_z)
 {
     this->qverts_range.first = 0;
@@ -375,6 +376,7 @@ void GLVolume::set_range(double min_z, double max_z)
         }
     }
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 void GLVolume::render() const
 {
