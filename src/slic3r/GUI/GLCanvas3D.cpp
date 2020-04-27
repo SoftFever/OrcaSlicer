@@ -3202,6 +3202,17 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #else
         case 'k': { m_camera.select_next_type(); m_dirty = true; break; }
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
+#if ENABLE_GCODE_VIEWER
+        case 'L':
+        case 'l': {
+                    if (!m_main_toolbar.is_enabled())
+                    {
+                        m_gcode_viewer.enable_legend(!m_gcode_viewer.is_legend_enabled());
+                        m_dirty = true;
+                    }
+                    break;
+                  }
+#endif // ENABLE_GCODE_VIEWER
         case 'O':
         case 'o': { _update_camera_zoom(-1.0); break; }
 #if ENABLE_RENDER_PICKING_PASS

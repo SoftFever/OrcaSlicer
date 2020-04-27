@@ -10,7 +10,6 @@
 #if ENABLE_GCODE_VIEWER
 #include "GUI_Utils.hpp"
 #include "DoubleSlider.hpp"
-#include "GLToolbar.hpp"
 #include "GLCanvas3D.hpp"
 #include "libslic3r/Model.hpp"
 #endif // ENABLE_GCODE_VIEWER
