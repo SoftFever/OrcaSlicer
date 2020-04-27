@@ -2,7 +2,6 @@
 #define slic3r_GCodeViewer_hpp_
 
 #if ENABLE_GCODE_VIEWER
-
 #include "GLShader.hpp"
 #include "3DScene.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
@@ -133,6 +132,39 @@ class GCodeViewer
         void reset_ranges() { ranges.reset(); }
     };
 
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    struct Statistics
+    {
+        long long load_time{ 0 };
+        long long refresh_time{ 0 };
+        long long gl_points_calls_count{ 0 };
+        long long gl_line_strip_calls_count{ 0 };
+        long long vertices_size{ 0 };
+        long long indices_size{ 0 };
+
+        void reset_all() {
+            reset_times();
+            reset_opengl();
+            reset_sizes();
+        }
+
+        void reset_times() {
+            load_time = 0;
+            refresh_time = 0;
+        }
+
+        void reset_opengl() {
+            gl_points_calls_count = 0;
+            gl_line_strip_calls_count = 0;
+        }
+
+        void reset_sizes() {
+            vertices_size = 0;
+            indices_size = 0;
+        }
+    };
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+
 public:
     enum class EViewType : unsigned char
     {
@@ -161,6 +193,9 @@ private:
     Shells m_shells;
     EViewType m_view_type{ EViewType::FeatureType };
     bool m_legend_enabled{ true };
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    mutable Statistics m_statistics;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
 
 public:
     GCodeViewer() = default;
@@ -205,7 +240,10 @@ private:
     void load_shells(const Print& print, bool initialized);
     void render_toolpaths() const;
     void render_shells() const;
-    void render_overlay() const;
+    void render_legend() const;
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    void render_statistics() const;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
     bool is_visible(ExtrusionRole role) const {
         return role < erCount && (m_extrusions.role_visibility_flags & (1 << role)) != 0;
     }

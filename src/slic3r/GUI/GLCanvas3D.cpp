@@ -4050,9 +4050,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         if (m_selection.is_empty())
             m_gizmos.reset_all_states();
 
+#if ENABLE_GCODE_VIEWER
+        m_dirty = true;
+#else
         // Only refresh if picking is enabled, in that case the objects may get highlighted if the mouse cursor hovers over.
         if (m_picking_enabled)
             m_dirty = true;
+#endif // ENABLE_GCODE_VIEWER
     }
     else
         evt.Skip();
