@@ -3458,6 +3458,15 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
         }
     }
 
+    // If the Search window or Undo/Redo list is opened, 
+    // update them according to the event
+    if (m_main_toolbar.is_item_pressed("search")    || 
+        m_undoredo_toolbar.is_item_pressed("undo")  || 
+        m_undoredo_toolbar.is_item_pressed("redo")) {
+        m_mouse_wheel = int((double)evt.GetWheelRotation() / (double)evt.GetWheelDelta());
+        return;
+    }
+
     // Inform gizmos about the event so they have the opportunity to react.
     if (m_gizmos.on_mouse_wheel(evt))
         return;
@@ -4465,7 +4474,7 @@ bool GLCanvas3D::_render_undo_redo_stack(const bool is_undo, float pos_x) const
 	em *= m_retina_helper->get_scale_factor();
 #endif
 
-    if (imgui->undo_redo_list(ImVec2(18 * em, 26 * em), is_undo, &string_getter, hovered, selected))
+    if (imgui->undo_redo_list(ImVec2(18 * em, 26 * em), is_undo, &string_getter, hovered, selected, m_mouse_wheel))
         m_imgui_undo_redo_hovered_pos = hovered;
     else
         m_imgui_undo_redo_hovered_pos = -1;
@@ -4519,7 +4528,7 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
 
     imgui->search_list(ImVec2(45 * em, 30 * em), &search_string_getter, s, 
                        sidebar.get_searcher().view_params,
-                       selected, edited);
+                       selected, edited, m_mouse_wheel);
 
     search_line = s;
     delete [] s;

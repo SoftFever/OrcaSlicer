@@ -379,7 +379,40 @@ bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& 
     return res;
 }
 
-bool ImGuiWrapper::undo_redo_list(const ImVec2& size, const bool is_undo, bool (*items_getter)(const bool , int , const char**), int& hovered, int& selected)
+// Scroll up for one item 
+static void scroll_up()
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = g.CurrentWindow;
+
+    float item_size_y = window->DC.PrevLineSize.y + g.Style.ItemSpacing.y;
+    float win_top = window->Scroll.y;
+
+    ImGui::SetScrollY(win_top - item_size_y);
+}
+
+// Scroll down for one item 
+static void scroll_down()
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = g.CurrentWindow;
+
+    float item_size_y = window->DC.PrevLineSize.y + g.Style.ItemSpacing.y;
+    float win_top = window->Scroll.y;
+
+    ImGui::SetScrollY(win_top + item_size_y);
+}
+
+static void process_mouse_wheel(int& mouse_wheel)
+{
+    if (mouse_wheel > 0)
+        scroll_up();
+    else if (mouse_wheel < 0)
+        scroll_down();
+    mouse_wheel = 0;
+}
+
+bool ImGuiWrapper::undo_redo_list(const ImVec2& size, const bool is_undo, bool (*items_getter)(const bool , int , const char**), int& hovered, int& selected, int& mouse_wheel)
 {
     bool is_hovered = false;
     ImGui::ListBoxHeader("", size);
@@ -400,6 +433,9 @@ bool ImGuiWrapper::undo_redo_list(const ImVec2& size, const bool is_undo, bool (
             selected = i;
         i++;
     }
+
+    if (is_hovered)
+        process_mouse_wheel(mouse_wheel);
 
     ImGui::ListBoxFooter();
     return is_hovered;
@@ -563,30 +599,6 @@ static void scroll_y(int hover_id)
         ImGui::SetScrollY(win_top - item_size_y);
 }
 
-// Scroll up for one item 
-static void scroll_up()
-{
-    ImGuiContext& g = *GImGui;
-    ImGuiWindow* window = g.CurrentWindow;
-
-    float item_size_y = window->DC.PrevLineSize.y + g.Style.ItemSpacing.y;
-    float win_top = window->Scroll.y;
-
-    ImGui::SetScrollY(win_top - item_size_y);
-}
-
-// Scroll down for one item 
-static void scroll_down()
-{
-    ImGuiContext& g = *GImGui;
-    ImGuiWindow* window = g.CurrentWindow;
-
-    float item_size_y = window->DC.PrevLineSize.y + g.Style.ItemSpacing.y;
-    float win_top = window->Scroll.y;
-
-    ImGui::SetScrollY(win_top + item_size_y);
-}
-
 // Use this function instead of ImGui::IsKeyPressed.
 // ImGui::IsKeyPressed is related for *GImGui.IO.KeysDownDuration[user_key_index]
 // And after first key pressing IsKeyPressed() return "true" always even if key wasn't pressed
@@ -602,7 +614,7 @@ static void process_key_down(ImGuiKey imgui_key, std::function<void()> f)
 }
 
 void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, const char** label, const char** tooltip), char* search_str,
-                               Search::OptionViewParameters& view_params, int& selected, bool& edited)
+                               Search::OptionViewParameters& view_params, int& selected, bool& edited, int& mouse_wheel)
 {
     // ImGui::ListBoxHeader("", size);
     {   
@@ -677,6 +689,10 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
     }
 
     scroll_y(mouse_hovered);
+
+    // Process mouse wheel
+    if (mouse_hovered > 0)
+        process_mouse_wheel(mouse_wheel);
 
     // process Up/DownArrows and Enter
     process_key_down(ImGuiKey_UpArrow, [&hovered_id, mouse_hovered]() {

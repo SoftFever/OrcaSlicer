@@ -506,6 +506,7 @@ private:
 #endif // ENABLE_RENDER_STATISTICS
 
     mutable int m_imgui_undo_redo_hovered_pos{ -1 };
+    mutable int m_mouse_wheel {0};
     int m_selected_extruder;
 
     Labels m_labels;
