@@ -65,9 +65,18 @@ void GCodeViewer::VBuffer::reset()
     vertices_count = 0;
 }
 
-bool GCodeViewer::Path::is_path_visible(unsigned int flags, const Path& path) {
+bool GCodeViewer::Path::is_path_visible(const Path& path, unsigned int flags) {
     return Extrusions::is_role_visible(flags, path.role);
 };
+
+bool GCodeViewer::Path::is_path_in_z_range(const Path& path, const std::array<double, 2>& z_range)
+{
+    auto in_z_range = [z_range](double z) {
+        return z > z_range[0] - EPSILON && z < z_range[1] + EPSILON;
+    };
+    
+    return in_z_range(path.first_z) || in_z_range(path.last_z);
+}
 
 void GCodeViewer::IBuffer::reset()
 {
@@ -96,7 +105,8 @@ bool GCodeViewer::IBuffer::init_shader(const std::string& vertex_shader_src, con
 void GCodeViewer::IBuffer::add_path(const GCodeProcessor::MoveVertex& move)
 {
     unsigned int id = static_cast<unsigned int>(data.size());
-    paths.push_back({ move.type, move.extrusion_role, id, id, move.delta_extruder, move.height, move.width, move.feedrate, move.fan_speed, move.volumetric_rate(), move.extruder_id, move.cp_color_id });
+    double z = static_cast<double>(move.position[2]);
+    paths.push_back({ move.type, move.extrusion_role, id, id, z, z, move.delta_extruder, move.height, move.width, move.feedrate, move.fan_speed, move.volumetric_rate(), move.extruder_id, move.cp_color_id });
 }
 
 std::array<float, 3> GCodeViewer::Extrusions::Range::get_color_at(float value) const
@@ -182,7 +192,7 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
     // update tool colors
     m_tool_colors = decode_colors(str_tool_colors);
 
-    // update ranges
+    // update ranges for coloring / legend
     m_extrusions.reset_ranges();
     for (size_t i = 0; i < m_vertices.vertices_count; ++i)
     {
@@ -229,6 +239,7 @@ void GCodeViewer::reset()
     m_extrusions.reset_ranges();
     m_shells.volumes.clear();
     m_layers_zs = std::vector<double>();
+    m_layers_z_range = { 0.0, 0.0 };
     m_roles = std::vector<ExtrusionRole>();
 }
 
@@ -394,7 +405,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     // layers zs / roles / extruder ids / cp color ids -> extract from result
     for (const GCodeProcessor::MoveVertex& move : gcode_result.moves) {
         if (move.type == GCodeProcessor::EMoveType::Extrude)
-            m_layers_zs.emplace_back(move.position[2]);
+            m_layers_zs.emplace_back(static_cast<double>(move.position[2]));
 
         m_roles.emplace_back(move.extrusion_role);
         m_extruder_ids.emplace_back(move.extruder_id);
@@ -413,6 +424,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     }
     if (k < n)
         m_layers_zs.erase(m_layers_zs.begin() + k, m_layers_zs.end());
+
+    // set layers z range
+    m_layers_z_range = { m_layers_zs.front(), m_layers_zs.back() };
 
     // roles -> remove duplicates
     std::sort(m_roles.begin(), m_roles.end());
@@ -545,60 +559,90 @@ void GCodeViewer::render_toolpaths() const
             {
                 std::array<float, 3> color = { 1.0f, 1.0f, 1.0f };
                 set_color(current_program_id, color);
-                glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
-                glsafe(::glDrawElements(GL_POINTS, (GLsizei)buffer.data_size, GL_UNSIGNED_INT, nullptr));
-                glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+                for (const Path& path : buffer.paths) {
+                    if (!Path::is_path_in_z_range(path, m_layers_z_range))
+                        continue;
+
+                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
+                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
+                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+                }
                 break;
             }
             case GCodeProcessor::EMoveType::Color_change:
             {
                 std::array<float, 3> color = { 1.0f, 0.0f, 0.0f };
                 set_color(current_program_id, color);
-                glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
-                glsafe(::glDrawElements(GL_POINTS, (GLsizei)buffer.data_size, GL_UNSIGNED_INT, nullptr));
-                glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+                for (const Path& path : buffer.paths) {
+                    if (!Path::is_path_in_z_range(path, m_layers_z_range))
+                        continue;
+
+                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
+                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
+                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+                }
                 break;
             }
             case GCodeProcessor::EMoveType::Pause_Print:
             {
                 std::array<float, 3> color = { 0.0f, 1.0f, 0.0f };
                 set_color(current_program_id, color);
-                glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
-                glsafe(::glDrawElements(GL_POINTS, (GLsizei)buffer.data_size, GL_UNSIGNED_INT, nullptr));
-                glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+                for (const Path& path : buffer.paths) {
+                    if (!Path::is_path_in_z_range(path, m_layers_z_range))
+                        continue;
+
+                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
+                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
+                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+                }
                 break;
             }
             case GCodeProcessor::EMoveType::Custom_GCode:
             {
                 std::array<float, 3> color = { 0.0f, 0.0f, 1.0f };
                 set_color(current_program_id, color);
-                glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
-                glsafe(::glDrawElements(GL_POINTS, (GLsizei)buffer.data_size, GL_UNSIGNED_INT, nullptr));
-                glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+                for (const Path& path : buffer.paths) {
+                    if (!Path::is_path_in_z_range(path, m_layers_z_range))
+                        continue;
+
+                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
+                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
+                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+                }
                 break;
             }
             case GCodeProcessor::EMoveType::Retract:
             {
                 std::array<float, 3> color = { 1.0f, 0.0f, 1.0f };
                 set_color(current_program_id, color);
-                glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
-                glsafe(::glDrawElements(GL_POINTS, (GLsizei)buffer.data_size, GL_UNSIGNED_INT, nullptr));
-                glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+                for (const Path& path : buffer.paths) {
+                    if (!Path::is_path_in_z_range(path, m_layers_z_range))
+                        continue;
+
+                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
+                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
+                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+                }
                 break;
             }
             case GCodeProcessor::EMoveType::Unretract:
             {
                 std::array<float, 3> color = { 0.0f, 1.0f, 1.0f };
                 set_color(current_program_id, color);
-                glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
-                glsafe(::glDrawElements(GL_POINTS, (GLsizei)buffer.data_size, GL_UNSIGNED_INT, nullptr));
-                glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+                for (const Path& path : buffer.paths) {
+                    if (!Path::is_path_in_z_range(path, m_layers_z_range))
+                        continue;
+
+                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
+                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
+                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+                }
                 break;
             }
             case GCodeProcessor::EMoveType::Extrude:
             {
                 for (const Path& path : buffer.paths) {
-                    if (!Path::is_path_visible(m_extrusions.role_visibility_flags, path))
+                    if (!Path::is_path_visible(path, m_extrusions.role_visibility_flags) || !Path::is_path_in_z_range(path, m_layers_z_range))
                         continue;
 
                     set_color(current_program_id, extrusion_color(path));
@@ -609,6 +653,9 @@ void GCodeViewer::render_toolpaths() const
             case GCodeProcessor::EMoveType::Travel:
             {
                 for (const Path& path : buffer.paths) {
+                    if (!Path::is_path_in_z_range(path, m_layers_z_range))
+                        continue;
+
                     set_color(current_program_id, (m_view_type == EViewType::Feedrate || m_view_type == EViewType::Tool || m_view_type == EViewType::ColorPrint) ? extrusion_color(path) : travel_color(path));
                     glsafe(::glDrawElements(GL_LINE_STRIP, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
                 }
@@ -654,6 +701,10 @@ void GCodeViewer::render_overlay() const
     imgui.set_next_window_pos(0, 0, ImGuiCond_Always);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     imgui.begin(std::string("Legend"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+
+    if (ImGui::IsWindowAppearing())
+        // force an extra farme
+        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 

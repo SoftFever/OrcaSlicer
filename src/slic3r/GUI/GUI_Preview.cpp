@@ -1113,9 +1113,14 @@ void Preview::on_sliders_scroll_changed(wxCommandEvent& event)
         PrinterTechnology tech = m_process->current_printer_technology();
         if (tech == ptFFF)
         {
+#if ENABLE_GCODE_VIEWER
+            m_canvas->set_toolpaths_z_range({ m_slider->GetLowerValueD(), m_slider->GetHigherValueD() });
+            m_canvas->set_as_dirty();
+#else
             m_canvas->set_toolpaths_range(m_slider->GetLowerValueD() - 1e-6, m_slider->GetHigherValueD() + 1e-6);
             m_canvas->render();
             m_canvas->set_use_clipping_planes(false);
+#endif // ENABLE_GCODE_VIEWER
         }
         else if (tech == ptSLA)
         {

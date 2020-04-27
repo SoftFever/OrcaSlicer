@@ -40,6 +40,8 @@ class GCodeViewer
         ExtrusionRole role{ erNone };
         unsigned int first{ 0 };
         unsigned int last{ 0 };
+        double first_z{ 0.0f };
+        double last_z{ 0.0f };
         float delta_extruder{ 0.0f };
         float height{ 0.0f };
         float width{ 0.0f };
@@ -55,7 +57,8 @@ class GCodeViewer
                 extruder_id == move.extruder_id && cp_color_id == move.cp_color_id;
         }
 
-        static bool is_path_visible(unsigned int flags, const Path& path);
+        static bool is_path_visible(const Path& path, unsigned int flags);
+        static bool is_path_in_z_range(const Path& path, const std::array<double, 2>& z_range);
     };
 
     // buffer containing indices data and shader for a specific toolpath type
@@ -162,6 +165,7 @@ private:
     BoundingBoxf3 m_bounding_box;
     std::vector<std::array<float, 3>> m_tool_colors;
     std::vector<double> m_layers_zs;
+    std::array<double, 2> m_layers_z_range;
     std::vector<ExtrusionRole> m_roles;
     std::vector<unsigned char> m_extruder_ids;
     Extrusions m_extrusions;
@@ -201,6 +205,7 @@ public:
     void set_toolpath_move_type_visible(GCodeProcessor::EMoveType type, bool visible);
     void set_toolpath_role_visibility_flags(unsigned int flags) { m_extrusions.role_visibility_flags = flags; }
     void set_options_visibility_from_flags(unsigned int flags);
+    void set_layers_z_range(const std::array<double, 2>& layers_z_range) { m_layers_z_range = layers_z_range; }
 
     bool is_legend_enabled() const { return m_legend_enabled; }
     void enable_legend(bool enable) { m_legend_enabled = enable; }

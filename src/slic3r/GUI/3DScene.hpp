@@ -442,7 +442,9 @@ public:
 
     bool                empty() const { return this->indexed_vertex_array.empty(); }
 
+#if !ENABLE_GCODE_VIEWER
     void                set_range(double low, double high);
+#endif // !ENABLE_GCODE_VIEWER
 
     void                render() const;
 #if !ENABLE_SLOPE_RENDERING
@@ -560,7 +562,9 @@ public:
     void clear() { for (auto *v : volumes) delete v; volumes.clear(); }
 
     bool empty() const { return volumes.empty(); }
+#if !ENABLE_GCODE_VIEWER
     void set_range(double low, double high) { for (GLVolume *vol : this->volumes) vol->set_range(low, high); }
+#endif // !ENABLE_GCODE_VIEWER
 
     void set_print_box(float min_x, float min_y, float min_z, float max_x, float max_y, float max_z) {
         m_print_box_min[0] = min_x; m_print_box_min[1] = min_y; m_print_box_min[2] = min_z;
