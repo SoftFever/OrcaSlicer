@@ -189,9 +189,6 @@ void Tab::create_preset_tab()
     add_scaled_button(panel, &m_search_btn, "search");
     m_search_btn->SetToolTip(format_wxstr(_L("Click to start a search or use %1% shortcut"), "Ctrl+F"));
 
-    add_scaled_button(panel, &m_to_plater_btn, "plater");
-    m_to_plater_btn->SetToolTip(_L("Switch to the Plater"));
-
     // Determine the theme color of OS (dark or light)
     auto luma = wxGetApp().get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
     // Bitmaps to be shown on the "Revert to system" aka "Lock to system" button next to each input field.
@@ -223,7 +220,6 @@ void Tab::create_preset_tab()
         }
     }));
     m_search_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent) { wxGetApp().plater()->search(false); });
-    m_to_plater_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent) { wxGetApp().mainframe->switch_to(true); });
 
     // Colors for ui "decoration"
     m_sys_label_clr			= wxGetApp().get_label_clr_sys();
@@ -253,12 +249,8 @@ void Tab::create_preset_tab()
     // m_hsizer->AddStretchSpacer(32);
     // StretchSpacer has a strange behavior under OSX, so
     // There is used just additional sizer for m_mode_sizer with right alignment
-    wxBoxSizer* top_right_sizer = new wxBoxSizer(wxHORIZONTAL);
-    top_right_sizer->Add(m_to_plater_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, wxOSX ? 15 : 10);
-    top_right_sizer->Add(m_mode_sizer, 0, wxALIGN_CENTER_VERTICAL);
     auto mode_sizer = new wxBoxSizer(wxVERTICAL);
-//    mode_sizer->Add(m_mode_sizer, 1, wxALIGN_RIGHT);
-    mode_sizer->Add(top_right_sizer, 1, wxALIGN_RIGHT);
+    mode_sizer->Add(m_mode_sizer, 1, wxALIGN_RIGHT);
     m_hsizer->Add(mode_sizer, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, wxOSX ? 15 : 10);
 
     //Horizontal sizer to hold the tree and the selected page.

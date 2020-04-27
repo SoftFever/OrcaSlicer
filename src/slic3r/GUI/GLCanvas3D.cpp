@@ -4523,15 +4523,13 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
 
     search_line = s;
     delete [] s;
+    if (search_line == _u8L("Type here to search"))
+        search_line.clear();
 
-    if (edited) {
-        if (search_line == _u8L("Type here to search"))
-            search_line.clear();
+    if (edited)
         sidebar.search();
-    }
 
-    if (selected != size_t(-1))
-    {
+    if (selected != size_t(-1)) {
         // selected == 9999 means that Esc kye was pressed
         if (selected != 9999)
             sidebar.jump_to_option(selected);
@@ -5252,7 +5250,7 @@ bool GLCanvas3D::_init_collapse_toolbar()
         m_collapse_toolbar.set_tooltip(id, new_tooltip);
         set_tooltip("");
 
-        post_event(SimpleEvent(EVT_GLCANVAS_COLLAPSE_SIDEBAR));
+        wxGetApp().plater()->collapse_sidebur(!wxGetApp().plater()->is_sidebar_collapsed());
     };
 
     if (!m_collapse_toolbar.add_item(item))
@@ -5266,7 +5264,6 @@ bool GLCanvas3D::_init_collapse_toolbar()
     item.tooltip = _utf8(L("Switch to Print Settings")) + " [" + GUI::shortkey_ctrl_prefix() + "2]";
     item.sprite_id = 1;
     item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(/*0*/1); };
-    item.visibility_callback  = [this]() { return wxGetApp().plater()->is_sidebar_collapsed(); };
 
     if (!m_collapse_toolbar.add_item(item))
         return false;
@@ -5276,8 +5273,7 @@ bool GLCanvas3D::_init_collapse_toolbar()
     item.tooltip = _utf8(L("Switch to Filament Settings")) + " [" + GUI::shortkey_ctrl_prefix() + "3]";
     item.sprite_id = 2;
     item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(/*1*/2); };
-    item.visibility_callback  = [this]() { return wxGetApp().plater()->is_sidebar_collapsed() &&
-                                                  wxGetApp().plater()->printer_technology() == ptFFF; };
+    item.visibility_callback  = [this]() { return wxGetApp().plater()->printer_technology() == ptFFF; };
 
     if (!m_collapse_toolbar.add_item(item))
         return false;
@@ -5296,8 +5292,7 @@ bool GLCanvas3D::_init_collapse_toolbar()
     item.tooltip = _utf8(L("Switch to SLA Material Settings")) + " [" + GUI::shortkey_ctrl_prefix() + "3]";
     item.sprite_id = 4;
     item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(/*1*/2); };
-    item.visibility_callback  = [this]() { return wxGetApp().plater()->is_sidebar_collapsed() &&
-                                                  (m_process->current_printer_technology() == ptSLA); };
+    item.visibility_callback  = [this]() { return m_process->current_printer_technology() == ptSLA; };
 
     if (!m_collapse_toolbar.add_item(item))
         return false;
