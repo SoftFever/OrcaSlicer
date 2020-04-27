@@ -57,6 +57,14 @@ using namespace Slic3r;
 
 int CLI::run(int argc, char **argv)
 {
+
+#ifdef __WXGTK__
+    // On Linux, wxGTK has no support for Wayland, and the app crashes on
+    // startup if gtk3 is used. This env var has to be set explicitly to
+    // instruct the window manager to fall back to X server mode.
+    ::setenv("GDK_BACKEND", "x11", /* replace */ true);
+#endif
+
 	// Switch boost::filesystem to utf8.
     try {
         boost::nowide::nowide_filesystem();
