@@ -2858,6 +2858,8 @@ void GLCanvas3D::load_gcode_preview(const GCodeProcessor::Result& gcode_result)
 void GLCanvas3D::refresh_gcode_preview(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors)
 {
     m_gcode_viewer.refresh(gcode_result, str_tool_colors);
+    set_as_dirty();
+    request_extra_frame();
 }
 #endif // ENABLE_GCODE_VIEWER
 

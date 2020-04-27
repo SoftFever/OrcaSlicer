@@ -56,9 +56,6 @@ class GCodeViewer
                 feedrate == move.feedrate && fan_speed == move.fan_speed && volumetric_rate == move.volumetric_rate() &&
                 extruder_id == move.extruder_id && cp_color_id == move.cp_color_id;
         }
-
-        static bool is_path_visible(const Path& path, unsigned int flags);
-        static bool is_path_in_z_range(const Path& path, const std::array<double, 2>& z_range);
     };
 
     // buffer containing indices data and shader for a specific toolpath type
@@ -134,14 +131,6 @@ class GCodeViewer
         }
 
         void reset_ranges() { ranges.reset(); }
-
-        bool is_role_visible(ExtrusionRole role) const {
-            return role < erCount && (role_visibility_flags & (1 << role)) != 0;
-        }
-
-        static bool is_role_visible(unsigned int flags, ExtrusionRole role) {
-            return role < erCount && (flags & (1 << role)) != 0;
-        }
     };
 
 public:
@@ -217,6 +206,17 @@ private:
     void render_toolpaths() const;
     void render_shells() const;
     void render_overlay() const;
+    bool is_visible(ExtrusionRole role) const {
+        return role < erCount && (m_extrusions.role_visibility_flags & (1 << role)) != 0;
+    }
+    bool is_visible(const Path& path) const { return is_visible(path.role); }
+    bool is_in_z_range(const Path& path) const {
+        auto in_z_range = [this](double z) {
+            return z > m_layers_z_range[0] - EPSILON && z < m_layers_z_range[1] + EPSILON;
+        };
+
+        return in_z_range(path.first_z) || in_z_range(path.last_z);
+    }
 };
 
 } // namespace GUI

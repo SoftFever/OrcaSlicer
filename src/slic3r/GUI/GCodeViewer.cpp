@@ -65,19 +65,6 @@ void GCodeViewer::VBuffer::reset()
     vertices_count = 0;
 }
 
-bool GCodeViewer::Path::is_path_visible(const Path& path, unsigned int flags) {
-    return Extrusions::is_role_visible(flags, path.role);
-};
-
-bool GCodeViewer::Path::is_path_in_z_range(const Path& path, const std::array<double, 2>& z_range)
-{
-    auto in_z_range = [z_range](double z) {
-        return z > z_range[0] - EPSILON && z < z_range[1] + EPSILON;
-    };
-    
-    return in_z_range(path.first_z) || in_z_range(path.last_z);
-}
-
 void GCodeViewer::IBuffer::reset()
 {
     // release gpu memory
@@ -186,6 +173,8 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
 
 void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors)
 {
+    auto start_time = std::chrono::high_resolution_clock::now();
+
     if (m_vertices.vertices_count == 0)
         return;
 
@@ -222,6 +211,9 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
         default: { break; }
         }
     }
+
+    auto end_time = std::chrono::high_resolution_clock::now();
+    std::cout << "refresh: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() << "ms \n";
 }
 
 void GCodeViewer::reset()
@@ -560,7 +552,7 @@ void GCodeViewer::render_toolpaths() const
                 std::array<float, 3> color = { 1.0f, 1.0f, 1.0f };
                 set_color(current_program_id, color);
                 for (const Path& path : buffer.paths) {
-                    if (!Path::is_path_in_z_range(path, m_layers_z_range))
+                    if (!is_in_z_range(path))
                         continue;
 
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
@@ -574,7 +566,7 @@ void GCodeViewer::render_toolpaths() const
                 std::array<float, 3> color = { 1.0f, 0.0f, 0.0f };
                 set_color(current_program_id, color);
                 for (const Path& path : buffer.paths) {
-                    if (!Path::is_path_in_z_range(path, m_layers_z_range))
+                    if (!is_in_z_range(path))
                         continue;
 
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
@@ -588,7 +580,7 @@ void GCodeViewer::render_toolpaths() const
                 std::array<float, 3> color = { 0.0f, 1.0f, 0.0f };
                 set_color(current_program_id, color);
                 for (const Path& path : buffer.paths) {
-                    if (!Path::is_path_in_z_range(path, m_layers_z_range))
+                    if (!is_in_z_range(path))
                         continue;
 
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
@@ -602,7 +594,7 @@ void GCodeViewer::render_toolpaths() const
                 std::array<float, 3> color = { 0.0f, 0.0f, 1.0f };
                 set_color(current_program_id, color);
                 for (const Path& path : buffer.paths) {
-                    if (!Path::is_path_in_z_range(path, m_layers_z_range))
+                    if (!is_in_z_range(path))
                         continue;
 
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
@@ -616,7 +608,7 @@ void GCodeViewer::render_toolpaths() const
                 std::array<float, 3> color = { 1.0f, 0.0f, 1.0f };
                 set_color(current_program_id, color);
                 for (const Path& path : buffer.paths) {
-                    if (!Path::is_path_in_z_range(path, m_layers_z_range))
+                    if (!is_in_z_range(path))
                         continue;
 
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
@@ -630,7 +622,7 @@ void GCodeViewer::render_toolpaths() const
                 std::array<float, 3> color = { 0.0f, 1.0f, 1.0f };
                 set_color(current_program_id, color);
                 for (const Path& path : buffer.paths) {
-                    if (!Path::is_path_in_z_range(path, m_layers_z_range))
+                    if (!is_in_z_range(path))
                         continue;
 
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
@@ -642,7 +634,7 @@ void GCodeViewer::render_toolpaths() const
             case GCodeProcessor::EMoveType::Extrude:
             {
                 for (const Path& path : buffer.paths) {
-                    if (!Path::is_path_visible(path, m_extrusions.role_visibility_flags) || !Path::is_path_in_z_range(path, m_layers_z_range))
+                    if (!is_visible(path) || !is_in_z_range(path))
                         continue;
 
                     set_color(current_program_id, extrusion_color(path));
@@ -653,7 +645,7 @@ void GCodeViewer::render_toolpaths() const
             case GCodeProcessor::EMoveType::Travel:
             {
                 for (const Path& path : buffer.paths) {
-                    if (!Path::is_path_in_z_range(path, m_layers_z_range))
+                    if (!is_in_z_range(path))
                         continue;
 
                     set_color(current_program_id, (m_view_type == EViewType::Feedrate || m_view_type == EViewType::Tool || m_view_type == EViewType::ColorPrint) ? extrusion_color(path) : travel_color(path));
@@ -689,9 +681,7 @@ void GCodeViewer::render_shells() const
 void GCodeViewer::render_overlay() const
 {
     static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
-    static const float ICON_BORDER_SIZE = 25.0f;
     static const ImU32 ICON_BORDER_COLOR = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
-    static const float GAP_ICON_TEXT = 7.5f;
 
     if (!m_legend_enabled || m_roles.empty())
         return;
@@ -709,14 +699,15 @@ void GCodeViewer::render_overlay() const
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
     auto add_item = [draw_list, &imgui](const std::array<float, 3>& color, const std::string& label) {
-        // draw icon
-        ImVec2 pos(ImGui::GetCursorPosX() + 2.0f, ImGui::GetCursorPosY() + 2.0f);
-        draw_list->AddRect({ pos.x, pos.y }, { pos.x + ICON_BORDER_SIZE, pos.y + ICON_BORDER_SIZE }, ICON_BORDER_COLOR, 0.0f, 0);
-        draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f },
-                                 { pos.x + ICON_BORDER_SIZE - 1.0f, pos.y + ICON_BORDER_SIZE - 1.0f },
-                                 ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
+        float icon_size = ImGui::GetTextLineHeight();
+        ImVec2 pos = ImGui::GetCursorPos();
+        draw_list->AddRect({ pos.x, pos.y }, { pos.x + icon_size, pos.y + icon_size }, ICON_BORDER_COLOR, 0.0f, 0);
+        draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
+            ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
+
         // draw text
-        ImGui::SetCursorPos({ pos.x + ICON_BORDER_SIZE + GAP_ICON_TEXT, pos.y + 0.5f * (ICON_BORDER_SIZE - ImGui::GetTextLineHeight()) });
+        ImGui::Dummy({ icon_size, icon_size });
+        ImGui::SameLine();
         imgui.text(label);
     };
 
@@ -762,7 +753,7 @@ void GCodeViewer::render_overlay() const
     case EViewType::FeatureType:
     {
         for (ExtrusionRole role : m_roles) {
-            bool visible = m_extrusions.is_role_visible(role);
+            bool visible = is_visible(role);
             if (!visible)
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
 
