@@ -9,32 +9,31 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/SLA/RasterBase.hpp"
 #include "libslic3r/miniz_extension.hpp"
+#include "libslic3r/PNGRead.hpp"
 
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/algorithm/string.hpp>
 
-#include <wx/image.h>
 #include <wx/mstream.h>
 
 namespace marchsq {
 
-// Specialize this struct to register a raster type for the Marching squares alg
-template<> struct _RasterTraits<wxImage> {
-    using Rst = wxImage;
-    
+template<> struct _RasterTraits<Slic3r::png::ImageGreyscale> {
+    using Rst = Slic3r::png::ImageGreyscale;
+
     // The type of pixel cell in the raster
     using ValueType = uint8_t;
-    
+
     // Value at a given position
     static uint8_t get(const Rst &rst, size_t row, size_t col)
     {
-        return rst.GetRed(col, row);
+        return rst.get(row, col);
     }
 
     // Number of rows and cols of the raster
-    static size_t rows(const Rst &rst) { return rst.GetHeight(); }
-    static size_t cols(const Rst &rst) { return rst.GetWidth(); }
+    static size_t rows(const Rst &rst) { return rst.rows; }
+    static size_t cols(const Rst &rst) { return rst.cols; }
 };
 
 } // namespace marchsq
@@ -44,7 +43,6 @@ namespace Slic3r {
 namespace {
 
 struct PNGBuffer { std::vector<uint8_t> buf; std::string fname; };
-
 struct ArchiveData {
     boost::property_tree::ptree profile, config;
     std::vector<PNGBuffer> images;
@@ -69,8 +67,8 @@ boost::property_tree::ptree read_ini(const mz_zip_archive_file_stat &entry,
 }
 
 PNGBuffer read_png(const mz_zip_archive_file_stat &entry,
-                            MZ_Archive &                    zip,
-                            const std::string &             name)
+                   MZ_Archive &                    zip,
+                   const std::string &             name)
 {
     std::vector<uint8_t> buf(entry.m_uncomp_size);
 
@@ -259,9 +257,13 @@ std::vector<ExPolygons> extract_slices_from_sla_archive(
             }
         }
         
-        PNGBuffer &png = arch.images[i];
-        wxMemoryInputStream   stream{png.buf.data(), png.buf.size()};
-        wxImage               img{stream};
+//        PNGBuffer &png = arch.images[i];
+//        wxMemoryInputStream   stream{png.buf.data(), png.buf.size()};
+//        wxImage               img{stream};
+
+        png::ImageGreyscale img;
+        png::ReadBuf rb{arch.images[i].buf.data(), arch.images[i].buf.size()};
+        png::decode_png(rb, img);
     
         auto rings = marchsq::execute(img, 128, rstp.win);
         ExPolygons expolys = rings_to_expolygons(rings, rstp.px_w, rstp.px_h);
