@@ -2686,7 +2686,7 @@ void PrintObject::project_and_append_custom_supports(
 
         // Iterate over all triangles.
         tbb::parallel_for(
-            tbb::blocked_range<size_t>(0, custom_facets.size() - 1),
+            tbb::blocked_range<size_t>(0, custom_facets.size()),
             [&](const tbb::blocked_range<size_t>& range) {
             for (size_t idx = range.begin(); idx < range.end(); ++ idx) {
 
@@ -2799,10 +2799,9 @@ void PrintObject::project_and_append_custom_supports(
         // Now append the collected polygons to respective layers.
         for (auto& trg : projections_of_triangles) {
             int layer_id = trg.first_layer_id;
-            if (layer_id == 0)
-                continue;
+
             for (const LightPolygon& poly : trg.polygons) {
-                expolys[layer_id-1].emplace_back(std::move(poly.pts));
+                expolys[layer_id].emplace_back(std::move(poly.pts));
                 ++layer_id;
             }
         }
