@@ -2670,7 +2670,7 @@ void PrintObject::project_and_append_custom_supports(
 
             void add(const Vec2f& pt) {
                 pts.emplace_back(scale_(pt.x()), scale_(pt.y()));
-                assert(pts.size <= 5);
+                assert(pts.size() <= 5);
             }
         };
 
