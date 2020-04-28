@@ -7,11 +7,21 @@
 
 namespace Slic3r { namespace png {
 
-struct png_deleter { void operator()(png_struct *p) {
-    png_destroy_read_struct( &p, nullptr, nullptr); }
-};
+struct PNGDescr {
+    png_struct *png = nullptr; png_info *info = nullptr;
 
-using png_ptr_t = std::unique_ptr<png_struct_def, png_deleter>;
+    PNGDescr() = default;
+    PNGDescr(const PNGDescr&) = delete;
+    PNGDescr(PNGDescr&&) = delete;
+    PNGDescr& operator=(const PNGDescr&) = delete;
+    PNGDescr& operator=(PNGDescr&&) = delete;
+
+    ~PNGDescr()
+    {
+        if (png && info) png_destroy_info_struct(png, &info);
+        if (png) png_destroy_read_struct( &png, nullptr, nullptr);
+    }
+};
 
 bool is_png(const ReadBuf &rb)
 {
@@ -25,22 +35,23 @@ bool decode_png(const ReadBuf &rb, ImageGreyscale &img)
 {
     if (!is_png(rb)) return false;
 
-    png_ptr_t png{png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr)};
+    PNGDescr dsc;
+    dsc.png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
 
-    if(!png) return false;
+    if(!dsc.png) return false;
 
-    png_infop info = png_create_info_struct(png.get());
-    if(!info) return {};
+    dsc.info = png_create_info_struct(dsc.png);
+    if(!dsc.info) return {};
 
     FILE *io = ::fmemopen(const_cast<void *>(rb.buf), rb.sz, "rb");
-    png_init_io(png.get(), io);
+    png_init_io(dsc.png, io);
 
-    png_read_info(png.get(), info);
+    png_read_info(dsc.png, dsc.info);
 
-    img.cols = png_get_image_width(png.get(), info);
-    img.rows = png_get_image_height(png.get(), info);
-    size_t color_type = png_get_color_type(png.get(), info);
-    size_t bit_depth  = png_get_bit_depth(png.get(), info);
+    img.cols = png_get_image_width(dsc.png, dsc.info);
+    img.rows = png_get_image_height(dsc.png, dsc.info);
+    size_t color_type = png_get_color_type(dsc.png, dsc.info);
+    size_t bit_depth  = png_get_bit_depth(dsc.png, dsc.info);
 
     if (color_type != PNG_COLOR_TYPE_GRAY || bit_depth != 8)
         return false;
@@ -49,7 +60,7 @@ bool decode_png(const ReadBuf &rb, ImageGreyscale &img)
 
     auto readbuf = static_cast<png_bytep>(img.buf.data());
     for (size_t r = 0; r < img.rows; ++r)
-        png_read_row(png.get(), readbuf + r * img.cols, nullptr);
+        png_read_row(dsc.png, readbuf + r * img.cols, nullptr);
 
     fclose(io);
 

@@ -1,10 +1,11 @@
 #include "SLAImportJob.hpp"
 
+#include "libslic3r/Format/SL1.hpp"
+
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
-#include "slic3r/Utils/SLAImport.hpp"
 
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"

@@ -19,12 +19,14 @@ struct RGB { uint8_t r, g, b; };
 using ImageRGB = Image<RGB>;
 using ImageGreyscale = Image<uint8_t>;
 
-// TODO
-// bool decode_png(Buffer &&pngbuf, ImageRGB &img);
-
 bool is_png(const ReadBuf &pngbuf);
 
+// Only decodes true 8 bit grayscale png images. Returns false for other formats
+// TODO: implement transformation of rgb images into grayscale...
 bool decode_png(const ReadBuf &pngbuf, ImageGreyscale &img);
+
+// TODO
+// bool decode_png(Buffer &&pngbuf, ImageRGB &img);
 
 }}
 #endif // PNGREAD_HPP
