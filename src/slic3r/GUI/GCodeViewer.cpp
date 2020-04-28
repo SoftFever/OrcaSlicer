@@ -271,10 +271,29 @@ void GCodeViewer::set_toolpath_move_type_visible(GCodeProcessor::EMoveType type,
         m_buffers[id].visible = visible;
 }
 
+unsigned int GCodeViewer::get_options_visibility_flags() const
+{
+    auto set_flag = [](unsigned int flags, unsigned int flag, bool active) {
+        return active ? (flags | (1 << flag)) : flags;
+    };
+
+    unsigned int flags = 0;
+    flags = set_flag(flags, 0, is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Travel));
+    flags = set_flag(flags, 1, is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Retract));
+    flags = set_flag(flags, 2, is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Unretract));
+    flags = set_flag(flags, 3, is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Tool_change));
+    flags = set_flag(flags, 4, is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Color_change));
+    flags = set_flag(flags, 5, is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Pause_Print));
+    flags = set_flag(flags, 6, is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Custom_GCode));
+    flags = set_flag(flags, 7, m_shells.visible);
+    flags = set_flag(flags, 8, is_legend_enabled());
+    return flags;
+}
+
 void GCodeViewer::set_options_visibility_from_flags(unsigned int flags)
 {
     auto is_flag_set = [flags](unsigned int flag) {
-        return (flags& (1 << flag)) != 0;
+        return (flags & (1 << flag)) != 0;
     };
 
     set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Travel, is_flag_set(0));
@@ -752,7 +771,7 @@ void GCodeViewer::render_legend() const
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-    auto add_item = [draw_list, &imgui](const std::array<float, 3>& color, const std::string& label) {
+    auto add_item = [draw_list, &imgui](const std::array<float, 3>& color, const std::string& label, std::function<void()> callback = nullptr) {
         float icon_size = ImGui::GetTextLineHeight();
         ImVec2 pos = ImGui::GetCursorPos();
         draw_list->AddRect({ pos.x, pos.y }, { pos.x + icon_size, pos.y + icon_size }, ICON_BORDER_COLOR, 0.0f, 0);
@@ -762,7 +781,13 @@ void GCodeViewer::render_legend() const
         // draw text
         ImGui::Dummy({ icon_size, icon_size });
         ImGui::SameLine();
-        imgui.text(label);
+        if (callback != nullptr)
+        {
+            if (ImGui::MenuItem(label.c_str()))
+                callback();
+        }
+        else
+            imgui.text(label);
     };
 
     auto add_range = [this, draw_list, &imgui, add_item](const Extrusions::Range& range, unsigned int decimals) {
@@ -811,7 +836,15 @@ void GCodeViewer::render_legend() const
             if (!visible)
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
 
-            add_item(Extrusion_Role_Colors[static_cast<unsigned int>(role)], I18N::translate_utf8(ExtrusionEntity::role_to_string(role)));
+            add_item(Extrusion_Role_Colors[static_cast<unsigned int>(role)], I18N::translate_utf8(ExtrusionEntity::role_to_string(role)), [this, role]() {
+                if (role < erCount)
+                {
+                    m_extrusions.role_visibility_flags = is_visible(role) ? m_extrusions.role_visibility_flags & ~(1 << role) : m_extrusions.role_visibility_flags | (1 << role);
+                    wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
+                    wxGetApp().plater()->update_preview_bottom_toolbar();
+                }
+                });
+
             if (!visible)
                 ImGui::PopStyleVar();
         }

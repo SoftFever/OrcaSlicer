@@ -301,21 +301,33 @@ void create_combochecklist(wxComboCtrl* comboCtrl, const std::string& text, cons
 	}
 }
 
-int combochecklist_get_flags(wxComboCtrl* comboCtrl)
+unsigned int combochecklist_get_flags(wxComboCtrl* comboCtrl)
 {
-    int flags = 0;
+	unsigned int flags = 0;
 
-    wxCheckListBoxComboPopup* popup = wxDynamicCast(comboCtrl->GetPopupControl(), wxCheckListBoxComboPopup);
-    if (popup != nullptr)
-    {
-        for (unsigned int i = 0; i < popup->GetCount(); ++i)
-        {
-            if (popup->IsChecked(i))
-                flags |= 1 << i;
-        }
-    }
+	wxCheckListBoxComboPopup* popup = wxDynamicCast(comboCtrl->GetPopupControl(), wxCheckListBoxComboPopup);
+	if (popup != nullptr)
+	{
+		for (unsigned int i = 0; i < popup->GetCount(); ++i)
+		{
+			if (popup->IsChecked(i))
+				flags |= 1 << i;
+		}
+	}
 
-    return flags;
+	return flags;
+}
+
+void combochecklist_set_flags(wxComboCtrl* comboCtrl, unsigned int flags)
+{
+	wxCheckListBoxComboPopup* popup = wxDynamicCast(comboCtrl->GetPopupControl(), wxCheckListBoxComboPopup);
+	if (popup != nullptr)
+	{
+		for (unsigned int i = 0; i < popup->GetCount(); ++i)
+		{
+			popup->Check(i, (flags & (1 << i)) != 0);
+		}
+	}
 }
 
 AppConfig* get_app_config()

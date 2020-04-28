@@ -646,8 +646,11 @@ public:
     void ensure_on_bed(unsigned int object_idx);
 
 #if ENABLE_GCODE_VIEWER
+    GCodeViewer::EViewType get_gcode_view_type() const { return m_gcode_viewer.get_view_type(); }
     const std::vector<double>& get_layers_zs() const;
+    unsigned int get_gcode_options_visibility_flags() const { return m_gcode_viewer.get_options_visibility_flags(); }
     void set_gcode_options_visibility_from_flags(unsigned int flags);
+    unsigned int get_toolpath_role_visibility_flags() const { return m_gcode_viewer.get_toolpath_role_visibility_flags(); }
     void set_toolpath_role_visibility_flags(unsigned int flags);
     void set_toolpath_view_type(GCodeViewer::EViewType type);
     void set_toolpaths_z_range(const std::array<double, 2>& range);
