@@ -214,6 +214,11 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
         }
     }
 
+#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+    // update buffers' render paths
+    refresh_render_paths();
+#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.refresh_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -345,7 +350,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 {
 #if ENABLE_GCODE_VIEWER_STATISTICS
     auto start_time = std::chrono::high_resolution_clock::now();
-    m_statistics.results_size = gcode_result.moves.size() * sizeof(GCodeProcessor::MoveVertex);
+    m_statistics.results_size = SLIC3R_STDVEC_MEMSIZE(gcode_result.moves, GCodeProcessor::MoveVertex);
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     // vertex data
@@ -363,7 +368,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     }
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
-    m_statistics.vertices_size = vertices_data.size() * sizeof(float);
+    m_statistics.vertices_size = SLIC3R_STDVEC_MEMSIZE(vertices_data, float);
+    m_statistics.vertices_gpu_size = vertices_data.size() * sizeof(float);
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     // vertex data -> send to gpu
@@ -424,7 +430,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     {
         buffer.data_size = buffer.data.size();
 #if ENABLE_GCODE_VIEWER_STATISTICS
-        m_statistics.indices_size += buffer.data_size * sizeof(unsigned int);
+        m_statistics.indices_size += SLIC3R_STDVEC_MEMSIZE(buffer.data, unsigned int);
+        m_statistics.indices_gpu_size += buffer.data_size * sizeof(unsigned int);
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
         if (buffer.data_size > 0) {
@@ -526,7 +533,8 @@ void GCodeViewer::load_shells(const Print& print, bool initialized)
     }
 }
 
-void GCodeViewer::render_toolpaths() const
+#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+void GCodeViewer::refresh_render_paths() const
 {
     auto extrusion_color = [this](const Path& path) {
         std::array<float, 3> color;
@@ -550,6 +558,65 @@ void GCodeViewer::render_toolpaths() const
               ((path.delta_extruder > 0.0f) ? Travel_Colors[1] /* Extrude */ :
                 Travel_Colors[0] /* Move */);
     };
+
+
+    for (IBuffer& buffer : m_buffers) {
+        buffer.render_paths = std::vector<RenderPath>();
+        for (const Path& path : buffer.paths)
+        {
+            if (!is_in_z_range(path))
+                continue;
+
+            if (path.type == GCodeProcessor::EMoveType::Extrude && !is_visible(path))
+                continue;
+
+            std::array<float, 3> color = { 0.0f, 0.0f, 0.0f };
+            switch (path.type)
+            {
+            case GCodeProcessor::EMoveType::Extrude: { color = extrusion_color(path); break; }
+            case GCodeProcessor::EMoveType::Travel:  { color = (m_view_type == EViewType::Feedrate || m_view_type == EViewType::Tool || m_view_type == EViewType::ColorPrint) ? extrusion_color(path) : travel_color(path); break; }
+            }
+
+            auto it = std::find_if(buffer.render_paths.begin(), buffer.render_paths.end(), [color](const RenderPath& path) { return path.color == color; });
+            if (it == buffer.render_paths.end())
+            {
+                it = buffer.render_paths.insert(buffer.render_paths.end(), RenderPath());
+                it->color = color;
+            }
+
+            it->sizes.push_back(path.last.id - path.first.id + 1);
+            it->offsets.push_back(static_cast<size_t>(path.first.id * sizeof(unsigned int)));
+        }
+    }
+}
+#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+
+void GCodeViewer::render_toolpaths() const
+{
+#if !ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+    auto extrusion_color = [this](const Path& path) {
+        std::array<float, 3> color;
+        switch (m_view_type)
+        {
+        case EViewType::FeatureType:    { color = Extrusion_Role_Colors[static_cast<unsigned int>(path.role)]; break; }
+        case EViewType::Height:         { color = m_extrusions.ranges.height.get_color_at(path.height); break; }
+        case EViewType::Width:          { color = m_extrusions.ranges.width.get_color_at(path.width); break; }
+        case EViewType::Feedrate:       { color = m_extrusions.ranges.feedrate.get_color_at(path.feedrate); break; }
+        case EViewType::FanSpeed:       { color = m_extrusions.ranges.fan_speed.get_color_at(path.fan_speed); break; }
+        case EViewType::VolumetricRate: { color = m_extrusions.ranges.volumetric_rate.get_color_at(path.volumetric_rate); break; }
+        case EViewType::Tool:           { color = m_tool_colors[path.extruder_id]; break; }
+        case EViewType::ColorPrint:     { color = m_tool_colors[path.cp_color_id]; break; }
+        default:                        { color = { 1.0f, 1.0f, 1.0f }; break; }
+        }
+        return color;
+    };
+
+    auto travel_color = [this](const Path& path) {
+        return (path.delta_extruder < 0.0f) ? Travel_Colors[2] /* Retract */ :
+              ((path.delta_extruder > 0.0f) ? Travel_Colors[1] /* Extrude */ :
+                Travel_Colors[0] /* Move */);
+    };
+#endif // !ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
 
     auto set_color = [](GLint current_program_id, const std::array<float, 3>& color) {
         if (current_program_id > 0) {
@@ -702,6 +769,17 @@ void GCodeViewer::render_toolpaths() const
             }
             case GCodeProcessor::EMoveType::Extrude:
             {
+#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+                for (const RenderPath& path : buffer.render_paths)
+                {
+                    set_color(current_program_id, path.color);
+                    glsafe(::glMultiDrawElements(GL_LINE_STRIP, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
+#if ENABLE_GCODE_VIEWER_STATISTICS
+                    ++m_statistics.gl_multi_line_strip_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+
+                }
+#else
                 for (const Path& path : buffer.paths) {
                     if (!is_visible(path) || !is_in_z_range(path))
                         continue;
@@ -713,10 +791,22 @@ void GCodeViewer::render_toolpaths() const
                     ++m_statistics.gl_line_strip_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
                 }
+#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 break;
             }
             case GCodeProcessor::EMoveType::Travel:
             {
+#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+                for (const RenderPath& path : buffer.render_paths)
+                {
+                    set_color(current_program_id, path.color);
+                    glsafe(::glMultiDrawElements(GL_LINE_STRIP, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
+#if ENABLE_GCODE_VIEWER_STATISTICS
+                    ++m_statistics.gl_multi_line_strip_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+
+                }
+#else
                 for (const Path& path : buffer.paths) {
                     if (!is_in_z_range(path))
                         continue;
@@ -728,6 +818,7 @@ void GCodeViewer::render_toolpaths() const
                     ++m_statistics.gl_line_strip_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
                 }
+#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 break;
             }
             }
@@ -840,6 +931,10 @@ void GCodeViewer::render_legend() const
                 if (role < erCount)
                 {
                     m_extrusions.role_visibility_flags = is_visible(role) ? m_extrusions.role_visibility_flags & ~(1 << role) : m_extrusions.role_visibility_flags | (1 << role);
+#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+                    // update buffers' render paths
+                    refresh_render_paths();
+#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                     wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
                     wxGetApp().plater()->update_preview_bottom_toolbar();
                 }
@@ -986,7 +1081,7 @@ void GCodeViewer::render_statistics() const
     static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
     static const float offset = 250.0f;
 
-    if (!m_legend_enabled || m_roles.empty())
+    if (m_roles.empty())
         return;
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
@@ -1020,6 +1115,20 @@ void GCodeViewer::render_statistics() const
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.gl_line_strip_calls_count));
 
+#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    imgui.text(std::string("Multi GL_POINTS calls:"));
+    ImGui::PopStyleColor();
+    ImGui::SameLine(offset);
+    imgui.text(std::to_string(m_statistics.gl_multi_points_calls_count));
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    imgui.text(std::string("Multi GL_LINE_STRIP calls:"));
+    ImGui::PopStyleColor();
+    ImGui::SameLine(offset);
+    imgui.text(std::to_string(m_statistics.gl_multi_line_strip_calls_count));
+#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+
     ImGui::Separator();
 
     ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
@@ -1029,16 +1138,28 @@ void GCodeViewer::render_statistics() const
     imgui.text(std::to_string(m_statistics.results_size) + " bytes");
 
     ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
-    imgui.text(std::string("Vertices:"));
+    imgui.text(std::string("Vertices CPU:"));
     ImGui::PopStyleColor();
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.vertices_size) + " bytes");
 
     ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
-    imgui.text(std::string("Indices:"));
+    imgui.text(std::string("Vertices GPU:"));
+    ImGui::PopStyleColor();
+    ImGui::SameLine(offset);
+    imgui.text(std::to_string(m_statistics.vertices_gpu_size) + " bytes");
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    imgui.text(std::string("Indices CPU:"));
     ImGui::PopStyleColor();
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.indices_size) + " bytes");
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    imgui.text(std::string("Indices GPU:"));
+    ImGui::PopStyleColor();
+    ImGui::SameLine(offset);
+    imgui.text(std::to_string(m_statistics.indices_gpu_size) + " bytes");
 
     imgui.end();
 }

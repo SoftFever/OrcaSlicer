@@ -61,6 +61,16 @@ class GCodeViewer
         }
     };
 
+#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+    // Used to batch the indices needed to render paths
+    struct RenderPath
+    {
+        std::array<float, 3> color;
+        std::vector<unsigned int> sizes;
+        std::vector<size_t> offsets; // use size_t because we need the pointer's size (used in the call glMultiDrawElements())
+    };
+#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+
     // buffer containing indices data and shader for a specific toolpath type
     struct IBuffer
     {
@@ -69,6 +79,9 @@ class GCodeViewer
         std::vector<unsigned int> data;
         size_t data_size{ 0 };
         std::vector<Path> paths;
+#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+        std::vector<RenderPath> render_paths;
+#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
         bool visible{ false };
 
         void reset();
@@ -143,9 +156,15 @@ class GCodeViewer
         long long refresh_time{ 0 };
         long long gl_points_calls_count{ 0 };
         long long gl_line_strip_calls_count{ 0 };
+#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+        long long gl_multi_points_calls_count{ 0 };
+        long long gl_multi_line_strip_calls_count{ 0 };
+#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
         long long results_size{ 0 };
         long long vertices_size{ 0 };
+        long long vertices_gpu_size{ 0 };
         long long indices_size{ 0 };
+        long long indices_gpu_size{ 0 };
 
         void reset_all() {
             reset_times();
@@ -161,12 +180,18 @@ class GCodeViewer
         void reset_opengl() {
             gl_points_calls_count = 0;
             gl_line_strip_calls_count = 0;
+#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+            gl_multi_points_calls_count = 0;
+            gl_multi_line_strip_calls_count = 0;
+#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
         }
 
         void reset_sizes() {
             results_size = 0;
             vertices_size = 0;
+            vertices_gpu_size = 0;
             indices_size = 0;
+            indices_gpu_size = 0;
         }
     };
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -246,6 +271,9 @@ private:
     bool init_shaders();
     void load_toolpaths(const GCodeProcessor::Result& gcode_result);
     void load_shells(const Print& print, bool initialized);
+#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+    void refresh_render_paths() const;
+#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
     void render_toolpaths() const;
     void render_shells() const;
     void render_legend() const;
