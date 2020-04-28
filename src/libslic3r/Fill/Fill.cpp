@@ -532,7 +532,8 @@ void Layer::make_ironing()
     fill.z 					 = this->print_z;
     fill.overlap 			 = 0;
     fill_params.density 	 = 1.;
-    fill_params.dont_connect = true;
+//    fill_params.dont_connect = true;
+    fill_params.dont_connect = false;
     fill_params.monotonous   = true;
 
 	for (size_t i = 0; i < by_extruder.size(); ++ i) {
