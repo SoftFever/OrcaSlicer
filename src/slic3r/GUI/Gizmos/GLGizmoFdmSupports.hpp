@@ -9,6 +9,9 @@
 
 
 namespace Slic3r {
+
+enum class FacetSupportType : int8_t;
+
 namespace GUI {
 
 enum class SLAGizmoEventType : unsigned char;
@@ -26,15 +29,9 @@ private:
     static constexpr float CursorRadiusMax  = 8.f;
     static constexpr float CursorRadiusStep = 0.2f;
 
-    enum class SelType : int8_t {
-        NONE,
-        ENFORCER,
-        BLOCKER
-    };
-
     // For each model-part volume, store a list of statuses of
     // individual facets (one of the enum values above).
-    std::vector<std::vector<SelType>> m_selected_facets;
+    std::vector<std::vector<FacetSupportType>> m_selected_facets;
 
     // Store two vertex buffer arrays (for enforcers/blockers)
     // for each model-part volume.

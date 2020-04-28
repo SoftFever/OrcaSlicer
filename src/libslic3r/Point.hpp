@@ -114,6 +114,7 @@ public:
     Point& operator+=(const Point& rhs) { (*this)(0) += rhs(0); (*this)(1) += rhs(1); return *this; }
     Point& operator-=(const Point& rhs) { (*this)(0) -= rhs(0); (*this)(1) -= rhs(1); return *this; }
 	Point& operator*=(const double &rhs) { (*this)(0) = coord_t((*this)(0) * rhs); (*this)(1) = coord_t((*this)(1) * rhs); return *this; }
+    Point operator*(const double &rhs) { return Point((*this)(0) * rhs, (*this)(1) * rhs); }
 
     void   rotate(double angle);
     void   rotate(double angle, const Point &center);

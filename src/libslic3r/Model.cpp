@@ -1040,6 +1040,8 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
     for (ModelVolume *volume : volumes) {
         const auto volume_matrix = volume->get_matrix();
 
+        volume->m_supported_facets.clear();
+
         if (! volume->is_model_part()) {
             // Modifiers are not cut, but we still need to add the instance transformation
             // to the modifier volume transformation to preserve their shape properly.
@@ -1739,6 +1741,41 @@ arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
     return ret;
 }
 
+
+std::vector<int> FacetsAnnotation::get_facets(FacetSupportType type) const
+{
+    std::vector<int> out;
+    for (auto& [facet_idx, this_type] : m_data)
+        if (this_type == type)
+            out.push_back(facet_idx);
+    return out;
+}
+
+
+
+void FacetsAnnotation::set_facet(int idx, FacetSupportType type)
+{
+    bool changed = true;
+
+    if (type == FacetSupportType::NONE)
+        changed = m_data.erase(idx) != 0;
+    else
+        m_data[idx] = type;
+
+    if (changed)
+        update_timestamp();
+}
+
+
+
+void FacetsAnnotation::clear()
+{
+    m_data.clear();
+    update_timestamp();
+}
+
+
+
 // Test whether the two models contain the same number of ModelObjects with the same set of IDs
 // ordered in the same order. In that case it is not necessary to kill the background processing.
 bool model_object_list_equal(const Model &model_old, const Model &model_new)
@@ -1801,6 +1838,16 @@ bool model_volume_list_changed(const ModelObject &model_object_old, const ModelO
     }
     return false;
 }
+
+bool model_custom_supports_data_changed(const ModelObject& mo, const ModelObject& mo_new) {
+    assert(! model_volume_list_changed(mo, mo_new, ModelVolumeType::MODEL_PART));
+    assert(mo.volumes.size() == mo_new.volumes.size());
+    for (size_t i=0; i<mo.volumes.size(); ++i) {
+        if (! mo_new.volumes[i]->m_supported_facets.is_same_as(mo.volumes[i]->m_supported_facets))
+            return true;
+    }
+    return false;
+};
 
 extern bool model_has_multi_part_objects(const Model &model)
 {

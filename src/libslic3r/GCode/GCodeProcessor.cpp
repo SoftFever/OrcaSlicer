@@ -591,6 +591,7 @@ void GCodeProcessor::store_move_vertex(EMoveType type)
     vertex.fan_speed = m_fan_speed;
     vertex.extruder_id = m_extruder_id;
     vertex.cp_color_id = m_cp_color.current;
+    vertex.time = static_cast<float>(m_result.moves.size());
     m_result.moves.emplace_back(vertex);
 }
 
