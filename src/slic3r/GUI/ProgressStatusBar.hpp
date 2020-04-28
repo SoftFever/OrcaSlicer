@@ -6,7 +6,7 @@
 #include <functional>
 #include <string>
 
-#include "ProgressIndicator.hpp"
+#include "Jobs/ProgressIndicator.hpp"
 
 class wxTimer;
 class wxGauge;

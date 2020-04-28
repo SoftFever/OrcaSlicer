@@ -1,4 +1,5 @@
 #include "sla_test_utils.hpp"
+#include "libslic3r/SLA/AGGRaster.hpp"
 
 void test_support_model_collision(const std::string          &obj_filename,
                                   const sla::SupportConfig   &input_supportcfg,
@@ -293,18 +294,19 @@ void check_validity(const TriangleMesh &input_mesh, int flags)
     }
 }
 
-void check_raster_transformations(sla::Raster::Orientation o, sla::Raster::TMirroring mirroring)
+void check_raster_transformations(sla::RasterBase::Orientation o, sla::RasterBase::TMirroring mirroring)
 {
     double disp_w = 120., disp_h = 68.;
-    sla::Raster::Resolution res{2560, 1440};
-    sla::Raster::PixelDim pixdim{disp_w / res.width_px, disp_h / res.height_px};
+    sla::RasterBase::Resolution res{2560, 1440};
+    sla::RasterBase::PixelDim pixdim{disp_w / res.width_px, disp_h / res.height_px};
     
     auto bb = BoundingBox({0, 0}, {scaled(disp_w), scaled(disp_h)});
-    sla::Raster::Trafo trafo{o, mirroring};
-    trafo.origin_x = bb.center().x();
-    trafo.origin_y = bb.center().y();
+    sla::RasterBase::Trafo trafo{o, mirroring};
+    trafo.center_x = bb.center().x();
+    trafo.center_y = bb.center().y();
+    double gamma = 1.;
     
-    sla::Raster raster{res, pixdim, trafo};
+    sla::RasterGrayscaleAAGammaPower raster{res, pixdim, trafo, gamma};
     
     // create box of size 32x32 pixels (not 1x1 to avoid antialiasing errors)
     coord_t pw = 32 * coord_t(std::ceil(scaled<double>(pixdim.w_mm)));
@@ -319,7 +321,7 @@ void check_raster_transformations(sla::Raster::Orientation o, sla::Raster::TMirr
     
     // Now calculate the position of the translated box according to output
     // trafo.
-    if (o == sla::Raster::Orientation::roPortrait) expected_box.rotate(PI / 2.);
+    if (o == sla::RasterBase::Orientation::roPortrait) expected_box.rotate(PI / 2.);
     
     if (mirroring[X])
         for (auto &p : expected_box.contour.points) p.x() = -p.x();
@@ -340,10 +342,9 @@ void check_raster_transformations(sla::Raster::Orientation o, sla::Raster::TMirr
     auto px = raster.read_pixel(w, h);
     
     if (px != FullWhite) {
-        sla::PNGImage img;
         std::fstream outf("out.png", std::ios::out);
         
-        outf << img.serialize(raster);
+        outf << raster.encode(sla::PNGRasterEncoder());
     }
     
     REQUIRE(px == FullWhite);
@@ -361,9 +362,21 @@ ExPolygon square_with_hole(double v)
     return poly;
 }
 
-double raster_white_area(const sla::Raster &raster)
+long raster_pxsum(const sla::RasterGrayscaleAA &raster)
 {
-    if (raster.empty()) return std::nan("");
+    auto res = raster.resolution();
+    long a = 0;
+    
+    for (size_t x = 0; x < res.width_px; ++x)
+        for (size_t y = 0; y < res.height_px; ++y)
+            a += raster.read_pixel(x, y);
+        
+    return a;
+}
+
+double raster_white_area(const sla::RasterGrayscaleAA &raster)
+{
+    if (raster.resolution().pixels() == 0) return std::nan("");
     
     auto res = raster.resolution();
     double a = 0;
@@ -377,7 +390,7 @@ double raster_white_area(const sla::Raster &raster)
     return a;
 }
 
-double predict_error(const ExPolygon &p, const sla::Raster::PixelDim &pd)
+double predict_error(const ExPolygon &p, const sla::RasterBase::PixelDim &pd)
 {
     auto lines = p.lines();
     double pix_err = pixel_area(FullWhite, pd)  / 2.;

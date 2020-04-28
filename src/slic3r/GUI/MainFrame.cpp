@@ -589,6 +589,11 @@ void MainFrame::init_menubar()
         append_menu_item(import_menu, wxID_ANY, _(L("Import STL/OBJ/AM&F/3MF")) + dots + "\tCtrl+I", _(L("Load a model")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(); }, "import_plater", nullptr,
             [this](){return m_plater != nullptr; }, this);
+        
+        append_menu_item(import_menu, wxID_ANY, _(L("Import SL1 archive")) + dots, _(L("Load an SL1 output archive")),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->import_sl1_archive(); }, "import_plater", nullptr,
+            [this](){return m_plater != nullptr; }, this);    
+    
         import_menu->AppendSeparator();
         append_menu_item(import_menu, wxID_ANY, _(L("Import &Config")) + dots + "\tCtrl+L", _(L("Load exported configuration file")),
             [this](wxCommandEvent&) { load_config_file(); }, "import_config", nullptr,

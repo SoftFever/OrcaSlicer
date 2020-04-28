@@ -19,6 +19,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <chrono>
 
 namespace cereal {
 	class BinaryInputArchive;
@@ -214,8 +215,8 @@ public:
         when user expects that. */
     Vec3d                   origin_translation;
 
-    Model*                  get_model() { return m_model; };
-	const Model*            get_model() const { return m_model; };
+    Model*                  get_model() { return m_model; }
+    const Model*            get_model() const { return m_model; }
 
     ModelVolume*            add_volume(const TriangleMesh &mesh);
     ModelVolume*            add_volume(TriangleMesh &&mesh);
@@ -391,6 +392,34 @@ enum class ModelVolumeType : int {
     SUPPORT_BLOCKER,
 };
 
+enum class FacetSupportType : int8_t {
+    NONE      = 0,
+    ENFORCER  = 1,
+    BLOCKER   = 2
+};
+
+class FacetsAnnotation {
+public:
+    using ClockType = std::chrono::steady_clock;
+
+    std::vector<int> get_facets(FacetSupportType type) const;
+    void set_facet(int idx, FacetSupportType type);
+    void clear();
+
+    ClockType::time_point get_timestamp() const { return timestamp; }
+    bool is_same_as(const FacetsAnnotation& other) const {
+        return timestamp == other.get_timestamp();
+    }
+
+private:
+    std::map<int, FacetSupportType> m_data;
+
+    ClockType::time_point timestamp;
+    void update_timestamp() {
+        timestamp = ClockType::now();
+    }
+};
+
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
 // ModelVolume instances are owned by a ModelObject.
 class ModelVolume final : public ObjectBase
@@ -421,8 +450,11 @@ public:
     // overriding the global Slic3r settings and the ModelObject settings.
     ModelConfig  		config;
 
+    // List of mesh facets to be supported/unsupported.
+    FacetsAnnotation    m_supported_facets;
+
     // A parent object owning this modifier volume.
-    ModelObject*        get_object() const { return this->object; };
+    ModelObject*        get_object() const { return this->object; }
     ModelVolumeType     type() const { return m_type; }
     void                set_type(const ModelVolumeType t) { m_type = t; }
 	bool                is_model_part()         const { return m_type == ModelVolumeType::MODEL_PART; }
@@ -548,7 +580,9 @@ private:
     // Copying an existing volume, therefore this volume will get a copy of the ID assigned.
     ModelVolume(ModelObject *object, const ModelVolume &other) :
         ObjectBase(other),
-        name(other.name), source(other.source), m_mesh(other.m_mesh), m_convex_hull(other.m_convex_hull), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
+        name(other.name), source(other.source), m_mesh(other.m_mesh), m_convex_hull(other.m_convex_hull),
+        config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation),
+        m_supported_facets(other.m_supported_facets)
     {
 		assert(this->id().valid()); assert(this->config.id().valid()); assert(this->id() != this->config.id());
 		assert(this->id() == other.id() && this->config.id() == other.config.id());
@@ -565,6 +599,8 @@ private:
         if (mesh.stl.stats.number_of_facets > 1)
             calculate_convex_hull();
 		assert(this->config.id().valid()); assert(this->config.id() != other.config.id()); assert(this->id() != this->config.id());
+
+        m_supported_facets.clear();
     }
 
     ModelVolume& operator=(ModelVolume &rhs) = delete;
@@ -802,11 +838,9 @@ public:
     bool 		  center_instances_around_point(const Vec2d &point);
     void 		  translate(coordf_t x, coordf_t y, coordf_t z) { for (ModelObject *o : this->objects) o->translate(x, y, z); }
     TriangleMesh  mesh() const;
-    bool 		  arrange_objects(coordf_t dist, const BoundingBoxf* bb = NULL);
+    
     // Croaks if the duplicated objects do not fit the print bed.
-    void 		  duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
-    void 	      duplicate_objects(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
-    void 		  duplicate_objects_grid(size_t x, size_t y, coordf_t dist);
+    void duplicate_objects_grid(size_t x, size_t y, coordf_t dist);
 
     bool 		  looks_like_multipart_object() const;
     void 		  convert_multipart_object(unsigned int max_extruders);
@@ -822,7 +856,7 @@ public:
     std::string   propose_export_file_name_and_path(const std::string &new_extension) const;
 
 private:
-	explicit Model(int) : ObjectBase(-1) { assert(this->id().invalid()); };
+    explicit Model(int) : ObjectBase(-1) { assert(this->id().invalid()); }
 	void assign_new_unique_ids_recursive();
 	void update_links_bottom_up_recursive();
 
@@ -831,7 +865,7 @@ private:
 	template<class Archive> void serialize(Archive &ar) {
 		Internal::StaticSerializationWrapper<ModelWipeTower> wipe_tower_wrapper(wipe_tower);
 		ar(materials, objects, wipe_tower_wrapper);
-	}
+    }
 };
 
 #undef OBJECTBASE_DERIVED_COPY_MOVE_CLONE
@@ -848,6 +882,10 @@ extern bool model_object_list_extended(const Model &model_old, const Model &mode
 // Test whether the new ModelObject contains a different set of volumes (or sorted in a different order)
 // than the old ModelObject.
 extern bool model_volume_list_changed(const ModelObject &model_object_old, const ModelObject &model_object_new, const ModelVolumeType type);
+
+// Test whether the now ModelObject has newer custom supports data than the old one.
+// The function assumes that volumes list is synchronized.
+extern bool model_custom_supports_data_changed(const ModelObject& mo, const ModelObject& mo_new);
 
 // If the model has multi-part objects, then it is currently not supported by the SLA mode.
 // Either the model cannot be loaded, or a SLA printer has to be activated.

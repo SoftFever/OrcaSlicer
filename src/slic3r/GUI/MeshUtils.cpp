@@ -85,19 +85,25 @@ void MeshClipper::recalculate_triangles()
     tr = m_trafo.get_matrix().cast<float>() * tr;
 
     m_triangles3d.clear();
-    m_triangles3d.reserve(m_triangles2d.size());
-    for (const Vec2f& pt : m_triangles2d) {
-        m_triangles3d.push_back(Vec3f(pt(0), pt(1), height_mesh+0.001f));
-        m_triangles3d.back() = tr * m_triangles3d.back();
-    }
+        m_triangles3d.reserve(m_triangles2d.size());
+        for (const Vec2f& pt : m_triangles2d) {
+            m_triangles3d.push_back(Vec3f(pt(0), pt(1), height_mesh+0.001f));
+            m_triangles3d.back() = tr * m_triangles3d.back();
+        }
 
     m_triangles_valid = true;
 }
 
 
+Vec3f MeshRaycaster::get_triangle_normal(const indexed_triangle_set& its, size_t facet_idx)
+{
+    Vec3f a(its.vertices[its.indices[facet_idx](1)] - its.vertices[its.indices[facet_idx](0)]);
+    Vec3f b(its.vertices[its.indices[facet_idx](2)] - its.vertices[its.indices[facet_idx](0)]);
+    return Vec3f(a.cross(b)).normalized();
+}
 
-bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
-                                      Vec3f& position, Vec3f& normal, const ClippingPlane* clipping_plane) const
+void MeshRaycaster::line_from_mouse_pos(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
+                                        Vec3d& point, Vec3d& direction) const
 {
     const std::array<int, 4>& viewport = camera.get_viewport();
     const Transform3d& model_mat = camera.get_view_matrix();
@@ -112,7 +118,21 @@ bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d&
     pt1 = inv * pt1;
     pt2 = inv * pt2;
 
-    std::vector<sla::EigenMesh3D::hit_result> hits = m_emesh.query_ray_hits(pt1, pt2-pt1);
+    point = pt1;
+    direction = pt2-pt1;
+}
+
+
+bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
+                                      Vec3f& position, Vec3f& normal, const ClippingPlane* clipping_plane,
+                                      size_t* facet_idx) const
+{
+    Vec3d point;
+    Vec3d direction;
+    line_from_mouse_pos(mouse_pos, trafo, camera, point, direction);
+
+    std::vector<sla::EigenMesh3D::hit_result> hits = m_emesh.query_ray_hits(point, direction);
+
     if (hits.empty())
         return false; // no intersection found
 
@@ -134,6 +154,10 @@ bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d&
     // Now stuff the points in the provided vector and calculate normals if asked about them:
     position = hits[i].position().cast<float>();
     normal = hits[i].normal().cast<float>();
+
+    if (facet_idx)
+        *facet_idx = hits[i].face();
+
     return true;
 }
 

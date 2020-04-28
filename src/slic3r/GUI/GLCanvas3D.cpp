@@ -1,5 +1,4 @@
 #include "libslic3r/libslic3r.h"
-#include "slic3r/GUI/Gizmos/GLGizmos.hpp"
 #include "GLCanvas3D.hpp"
 
 #include "admesh/stl.h"
@@ -1744,6 +1743,8 @@ void GLCanvas3D::toggle_sla_auxiliaries_visibility(bool visible, const ModelObje
     m_render_sla_auxiliaries = visible;
 
     for (GLVolume* vol : m_volumes.volumes) {
+        if (vol->composite_id.object_id == 1000)
+            continue; // the wipe tower
         if ((mo == nullptr || m_model->objects[vol->composite_id.object_id] == mo)
         && (instance_idx == -1 || vol->composite_id.instance_id == instance_idx)
         && vol->composite_id.volume_id < 0)
@@ -1754,10 +1755,15 @@ void GLCanvas3D::toggle_sla_auxiliaries_visibility(bool visible, const ModelObje
 void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject* mo, int instance_idx)
 {
     for (GLVolume* vol : m_volumes.volumes) {
-        if ((mo == nullptr || m_model->objects[vol->composite_id.object_id] == mo)
-        && (instance_idx == -1 || vol->composite_id.instance_id == instance_idx)) {
-            vol->is_active = visible;
-            vol->force_native_color = (instance_idx != -1);
+        if (vol->composite_id.object_id == 1000) { // wipe tower
+                vol->is_active = (visible && mo == nullptr);
+        }
+        else {
+            if ((mo == nullptr || m_model->objects[vol->composite_id.object_id] == mo)
+            && (instance_idx == -1 || vol->composite_id.instance_id == instance_idx)) {
+                vol->is_active = visible;
+                vol->force_native_color = (instance_idx != -1);
+            }
         }
     }
     if (visible && !mo)
@@ -5186,7 +5192,7 @@ void GLCanvas3D::_picking_pass() const
 
         glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-        m_camera_clipping_plane = m_gizmos.get_sla_clipping_plane();
+        m_camera_clipping_plane = m_gizmos.get_clipping_plane();
         if (m_camera_clipping_plane.is_active()) {
             ::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)m_camera_clipping_plane.get_data());
             ::glEnable(GL_CLIP_PLANE0);
@@ -5335,14 +5341,19 @@ void GLCanvas3D::_render_background() const
     glsafe(::glPopMatrix());
 }
 
-void GLCanvas3D::_render_bed(float theta, bool show_axes) const
+void GLCanvas3D::_render_bed(bool bottom, bool show_axes) const
 {
     float scale_factor = 1.0;
 #if ENABLE_RETINA_GL
     scale_factor = m_retina_helper->get_scale_factor();
 #endif // ENABLE_RETINA_GL
+
+    bool show_texture = ! bottom ||
+            (m_gizmos.get_current_type() != GLGizmosManager::FdmSupports
+          && m_gizmos.get_current_type() != GLGizmosManager::SlaSupports);
+
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
-    wxGetApp().plater()->get_bed().render(const_cast<GLCanvas3D&>(*this), theta, scale_factor, show_axes);
+    wxGetApp().plater()->get_bed().render(const_cast<GLCanvas3D&>(*this), bottom, scale_factor, show_axes, show_texture);
 #else
     m_bed.render(const_cast<GLCanvas3D&>(*this), theta, scale_factor, show_axes);
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
@@ -5355,7 +5366,7 @@ void GLCanvas3D::_render_objects() const
 
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    m_camera_clipping_plane = m_gizmos.get_sla_clipping_plane();
+    m_camera_clipping_plane = m_gizmos.get_clipping_plane();
 
     if (m_picking_enabled)
     {

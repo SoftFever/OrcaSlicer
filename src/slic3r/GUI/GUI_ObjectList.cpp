@@ -1209,6 +1209,13 @@ static bool improper_category(const std::string& category, const int extruders_c
             (!is_object_settings && category == "Support material");
 }
 
+static bool is_object_item(ItemType item_type)
+{
+    return item_type & itObject || item_type & itInstance ||
+            // multi-selection in ObjectList, but full_object in Selection
+            (item_type == itUndef && scene_selection().is_single_full_object());
+}
+
 void ObjectList::get_options_menu(settings_menu_hierarchy& settings_menu, const bool is_part)
 {
     auto options = get_options(is_part);
@@ -1579,9 +1586,7 @@ wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_)
     const ItemType item_type = m_objects_model->GetItemType(GetSelection());
     if (item_type == itUndef && !selection.is_single_full_object())
         return nullptr;
-    const bool is_object_settings = item_type & itObject || item_type & itInstance ||
-                                    // multi-selection in ObjectList, but full_object in Selection
-                                    (item_type == itUndef && selection.is_single_full_object()); 
+    const bool is_object_settings = is_object_item(item_type);
     create_freq_settings_popupmenu(menu, is_object_settings);
 
     if (mode == comAdvanced)
@@ -1821,8 +1826,7 @@ wxMenu* ObjectList::create_settings_popupmenu(wxMenu *parent_menu)
     const wxDataViewItem selected_item = GetSelection();
     wxDataViewItem item = m_objects_model->GetItemType(selected_item) & itSettings ? m_objects_model->GetParent(selected_item) : selected_item;
 
-    const bool is_part = !(m_objects_model->GetItemType(item) == itObject || scene_selection().is_single_full_object());
-    get_options_menu(settings_menu, is_part);
+    get_options_menu(settings_menu, !is_object_item(m_objects_model->GetItemType(item)));
 
     for (auto cat : settings_menu) {
         append_menu_item(menu, wxID_ANY, _(cat.first), "",
@@ -2067,37 +2071,40 @@ void ObjectList::load_shape_object(const std::string& type_name)
     // Create mesh
     BoundingBoxf3 bb;
     TriangleMesh mesh = create_mesh(type_name, bb);
+    load_mesh_object(mesh, _(L("Shape")) + "-" + _(type_name));
+}
 
+void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name)
+{   
     // Add mesh to model as a new object
     Model& model = wxGetApp().plater()->model();
-    const wxString name = _(L("Shape")) + "-" + _(type_name);
 
 #ifdef _DEBUG
     check_model_ids_validity(model);
 #endif /* _DEBUG */
-
+    
     std::vector<size_t> object_idxs;
     ModelObject* new_object = model.add_object();
     new_object->name = into_u8(name);
     new_object->add_instance(); // each object should have at list one instance
-
+    
     ModelVolume* new_volume = new_object->add_volume(mesh);
     new_volume->name = into_u8(name);
     // set a default extruder value, since user can't add it manually
     new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
     new_object->invalidate_bounding_box();
-
+    
     new_object->center_around_origin();
     new_object->ensure_on_bed();
-
+    
     const BoundingBoxf bed_shape = wxGetApp().plater()->bed_shape_bb();
     new_object->instances[0]->set_offset(Slic3r::to_3d(bed_shape.center().cast<double>(), -new_object->origin_translation(2)));
-
+    
     object_idxs.push_back(model.objects.size() - 1);
 #ifdef _DEBUG
     check_model_ids_validity(model);
 #endif /* _DEBUG */
-
+    
     paste_objects_into_list(object_idxs);
 
 #ifdef _DEBUG

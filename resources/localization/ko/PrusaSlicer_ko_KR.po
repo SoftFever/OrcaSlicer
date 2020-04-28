@@ -429,7 +429,7 @@ msgstr "서포트 생성"
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:200
 msgid "The %1% infill pattern is not supposed to work at 100%% density."
-msgstr "%1% 채우기 패턴은 100% 밀도로 작동하도록 되어 있지 않습니다."
+msgstr "%1% 채우기 패턴은 100%% 밀도로 작동하도록 되어 있지 않습니다."
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:202
 msgid "Shall I switch to rectilinear fill pattern?"

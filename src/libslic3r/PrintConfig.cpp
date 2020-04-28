@@ -3109,6 +3109,42 @@ DynamicPrintConfig* DynamicPrintConfig::new_from_defaults_keys(const std::vector
     return out;
 }
 
+double min_object_distance(const ConfigBase &cfg)
+{   
+    double ret = 0.;
+    
+    if (printer_technology(cfg) == ptSLA) ret = 6.;
+    else {
+        auto ecr_opt = cfg.option<ConfigOptionFloat>("extruder_clearance_radius");
+        auto dd_opt  = cfg.option<ConfigOptionFloat>("duplicate_distance");
+        auto co_opt  = cfg.option<ConfigOptionBool>("complete_objects");
+
+        if (!ecr_opt || !dd_opt || !co_opt) ret = 0.;
+        else {
+            // min object distance is max(duplicate_distance, clearance_radius)
+            ret = (co_opt->value && ecr_opt->value > dd_opt->value) ?
+                      ecr_opt->value : dd_opt->value;
+        }
+    }
+
+    return ret;
+}
+
+PrinterTechnology printer_technology(const ConfigBase &cfg)
+{
+    const ConfigOptionEnum<PrinterTechnology> *opt = cfg.option<ConfigOptionEnum<PrinterTechnology>>("printer_technology");
+    
+    if (opt) return opt->value;
+    
+    const ConfigOptionBool *export_opt = cfg.option<ConfigOptionBool>("export_sla");
+    if (export_opt && export_opt->getBool()) return ptSLA;
+    
+    export_opt = cfg.option<ConfigOptionBool>("export_gcode");
+    if (export_opt && export_opt->getBool()) return ptFFF;    
+    
+    return ptUnknown;
+}
+
 void DynamicPrintConfig::normalize()
 {
     if (this->has("extruder")) {
@@ -3177,22 +3213,6 @@ std::string DynamicPrintConfig::validate()
         //FIXME no validation on SLA data?
         return std::string();
     }
-}
-
-double PrintConfig::min_object_distance() const
-{
-    return PrintConfig::min_object_distance(static_cast<const ConfigBase*>(this));
-}
-
-double PrintConfig::min_object_distance(const ConfigBase *config)
-{
-    double extruder_clearance_radius = config->option("extruder_clearance_radius")->getFloat();
-    double duplicate_distance = config->option("duplicate_distance")->getFloat();
-
-    // min object distance is max(duplicate_distance, clearance_radius)
-    return (config->option("complete_objects")->getBool() && extruder_clearance_radius > duplicate_distance)
-        ? extruder_clearance_radius
-        : duplicate_distance;
 }
 
 //FIXME localize this function.
@@ -3604,7 +3624,38 @@ void DynamicPrintAndCLIConfig::handle_legacy(t_config_option_key &opt_key, std::
     }
 }
 
+static Points to_points(const std::vector<Vec2d> &dpts)
+{
+    Points pts; pts.reserve(dpts.size());
+    for (auto &v : dpts)
+        pts.emplace_back( coord_t(scale_(v.x())), coord_t(scale_(v.y())) );
+    return pts;    
 }
+
+Points get_bed_shape(const DynamicPrintConfig &config)
+{
+    const auto *bed_shape_opt = config.opt<ConfigOptionPoints>("bed_shape");
+    if (!bed_shape_opt) {
+        
+        // Here, it is certain that the bed shape is missing, so an infinite one
+        // has to be used, but still, the center of bed can be queried
+        if (auto center_opt = config.opt<ConfigOptionPoint>("center"))
+            return { scaled(center_opt->value) };
+        
+        return {};
+    }
+    
+    return to_points(bed_shape_opt->values);
+}
+
+Points get_bed_shape(const PrintConfig &cfg)
+{
+    return to_points(cfg.bed_shape.values);
+}
+
+Points get_bed_shape(const SLAPrinterConfig &cfg) { return to_points(cfg.bed_shape.values); }
+
+} // namespace Slic3r
 
 #include <cereal/types/polymorphic.hpp>
 CEREAL_REGISTER_TYPE(Slic3r::DynamicPrintConfig)

@@ -36,20 +36,12 @@
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/SLA/Hollowing.hpp"
-#include "libslic3r/SLA/Rotfinder.hpp"
 #include "libslic3r/SLA/SupportPoint.hpp"
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/Utils.hpp"
-
-//#include "libslic3r/ClipperUtils.hpp"
-
-// #include "libnest2d/optimizers/nlopt/genetic.hpp"
-// #include "libnest2d/backends/clipper/geometries.hpp"
-// #include "libnest2d/utils/rotcalipers.hpp"
-#include "libslic3r/MinAreaBoundingBox.hpp"
 
 #include "GUI.hpp"
 #include "GUI_App.hpp"
@@ -69,7 +61,9 @@
 #include "Camera.hpp"
 #include "Mouse3DController.hpp"
 #include "Tab.hpp"
-#include "Job.hpp"
+#include "Jobs/ArrangeJob.hpp"
+#include "Jobs/RotoptimizeJob.hpp"
+#include "Jobs/SLAImportJob.hpp"
 #include "PresetBundle.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "ProgressStatusBar.hpp"
@@ -1485,311 +1479,44 @@ struct Plater::priv
     BackgroundSlicingProcess    background_process;
     bool suppressed_backround_processing_update { false };
 
-    // Cache the wti info
-    class WipeTower: public GLCanvas3D::WipeTowerInfo {
-        using ArrangePolygon = arrangement::ArrangePolygon;
-        friend priv;
-    public:
-
-        void apply_arrange_result(const Vec2d& tr, double rotation)
-        {
-            m_pos = unscaled(tr); m_rotation = rotation;
-            apply_wipe_tower();
-        }
-
-        ArrangePolygon get_arrange_polygon() const
-        {
-            Polygon p({
-                {coord_t(0), coord_t(0)},
-                {scaled(m_bb_size(X)), coord_t(0)},
-                {scaled(m_bb_size)},
-                {coord_t(0), scaled(m_bb_size(Y))},
-                {coord_t(0), coord_t(0)},
-                });
-
-            ArrangePolygon ret;
-            ret.poly.contour = std::move(p);
-            ret.translation  = scaled(m_pos);
-            ret.rotation     = m_rotation;
-            ret.priority++;
-            return ret;
-        }
-    } wipetower;
-
-    WipeTower& updated_wipe_tower() {
-        auto wti = view3D->get_canvas3d()->get_wipe_tower_info();
-        wipetower.m_pos = wti.pos();
-        wipetower.m_rotation = wti.rotation();
-        wipetower.m_bb_size  = wti.bb_size();
-        return wipetower;
-    }
-
-    // A class to handle UI jobs like arranging and optimizing rotation.
-    // These are not instant jobs, the user has to be informed about their
-    // state in the status progress indicator. On the other hand they are
-    // separated from the background slicing process. Ideally, these jobs should
-    // run when the background process is not running.
-    //
-    // TODO: A mechanism would be useful for blocking the plater interactions:
-    // objects would be frozen for the user. In case of arrange, an animation
-    // could be shown, or with the optimize orientations, partial results
-    // could be displayed.
-    class PlaterJob: public Job
-    {
-        priv *m_plater;
-    protected:
-
-        priv &      plater() { return *m_plater; }
-        const priv &plater() const { return *m_plater; }
-
-        // Launched when the job is finished. It refreshes the 3Dscene by def.
-        void finalize() override
-        {
-            // Do a full refresh of scene tree, including regenerating
-            // all the GLVolumes. FIXME The update function shall just
-            // reload the modified matrices.
-            if (!Job::was_canceled())
-                plater().update(unsigned(UpdateParams::FORCE_FULL_SCREEN_REFRESH));
-            
-            Job::finalize();
-        }
-
-    public:
-        PlaterJob(priv *_plater)
-            : Job(_plater->statusbar()), m_plater(_plater)
-        {}
-    };
-
-    enum class Jobs : size_t {
-        Arrange,
-        Rotoptimize
-    };
-
-    class ArrangeJob : public PlaterJob
-    {
-        using ArrangePolygon = arrangement::ArrangePolygon;
-        using ArrangePolygons = arrangement::ArrangePolygons;
-
-        // The gap between logical beds in the x axis expressed in ratio of
-        // the current bed width.
-        static const constexpr double LOGICAL_BED_GAP = 1. / 5.;
-
-        ArrangePolygons m_selected, m_unselected, m_unprintable;
-
-        // clear m_selected and m_unselected, reserve space for next usage
-        void clear_input() {
-            const Model &model = plater().model;
-
-            size_t count = 0, cunprint = 0; // To know how much space to reserve
-            for (auto obj : model.objects)
-                for (auto mi : obj->instances)
-                    mi->printable ? count++ : cunprint++;
-            
-            m_selected.clear();
-            m_unselected.clear();
-            m_unprintable.clear();
-            m_selected.reserve(count + 1 /* for optional wti */);
-            m_unselected.reserve(count + 1 /* for optional wti */);
-            m_unprintable.reserve(cunprint /* for optional wti */);
-        }
-
-        // Stride between logical beds
-        double bed_stride() const {
-            double bedwidth = plater().bed_shape_bb().size().x();
-            return scaled<double>((1. + LOGICAL_BED_GAP) * bedwidth);
-        }
-
-        // Set up arrange polygon for a ModelInstance and Wipe tower
-        template<class T> ArrangePolygon get_arrange_poly(T *obj) const {
-            ArrangePolygon ap = obj->get_arrange_polygon();
-            ap.priority       = 0;
-            ap.bed_idx        = ap.translation.x() / bed_stride();
-            ap.setter         = [obj, this](const ArrangePolygon &p) {
-                if (p.is_arranged()) {
-                    Vec2d t = p.translation.cast<double>();
-                    t.x() += p.bed_idx * bed_stride();
-                    obj->apply_arrange_result(t, p.rotation);
-                }
-            };
-            return ap;
-        }
-
-        // Prepare all objects on the bed regardless of the selection
-        void prepare_all() {
-            clear_input();
-
-            for (ModelObject *obj: plater().model.objects)
-                for (ModelInstance *mi : obj->instances) {
-                    ArrangePolygons & cont = mi->printable ? m_selected : m_unprintable;
-                    cont.emplace_back(get_arrange_poly(mi));
-                }
-
-            auto& wti = plater().updated_wipe_tower();
-            if (wti) m_selected.emplace_back(get_arrange_poly(&wti));
-        }
-
-        // Prepare the selected and unselected items separately. If nothing is
-        // selected, behaves as if everything would be selected.
-        void prepare_selected() {
-            clear_input();
-
-            Model &model = plater().model;
-            coord_t stride = bed_stride();
-
-            std::vector<const Selection::InstanceIdxsList *>
-                obj_sel(model.objects.size(), nullptr);
-
-            for (auto &s : plater().get_selection().get_content())
-                if (s.first < int(obj_sel.size()))
-                    obj_sel[size_t(s.first)] = &s.second;
-
-            // Go through the objects and check if inside the selection
-            for (size_t oidx = 0; oidx < model.objects.size(); ++oidx) {
-                const Selection::InstanceIdxsList * instlist = obj_sel[oidx];
-                ModelObject *mo = model.objects[oidx];
-
-                std::vector<bool> inst_sel(mo->instances.size(), false);
-
-                if (instlist)
-                    for (auto inst_id : *instlist)
-                        inst_sel[size_t(inst_id)] = true;
-
-                for (size_t i = 0; i < inst_sel.size(); ++i) {
-                    ArrangePolygon &&ap = get_arrange_poly(mo->instances[i]);
-
-                    ArrangePolygons &cont = mo->instances[i]->printable ?
-                                                (inst_sel[i] ? m_selected :
-                                                               m_unselected) :
-                                                m_unprintable;
-                    
-                    cont.emplace_back(std::move(ap));
-                }
-            }
-
-            auto& wti = plater().updated_wipe_tower();
-            if (wti) {
-                ArrangePolygon &&ap = get_arrange_poly(&wti);
-
-                plater().get_selection().is_wipe_tower() ?
-                    m_selected.emplace_back(std::move(ap)) :
-                    m_unselected.emplace_back(std::move(ap));
-            }
-
-            // If the selection was empty arrange everything
-            if (m_selected.empty()) m_selected.swap(m_unselected);
-
-            // The strides have to be removed from the fixed items. For the
-            // arrangeable (selected) items bed_idx is ignored and the
-            // translation is irrelevant.
-            for (auto &p : m_unselected) p.translation(X) -= p.bed_idx * stride;
-        }
-
-    protected:
-
-        void prepare() override
-        {
-            wxGetKeyState(WXK_SHIFT) ? prepare_selected() : prepare_all();
-        }
-
-    public:
-        using PlaterJob::PlaterJob;
-
-        int status_range() const override
-        {
-            return int(m_selected.size() + m_unprintable.size());
-        }
-
-        void process() override;
-
-        void finalize() override {
-            // Ignore the arrange result if aborted.
-            if (was_canceled()) return;
-            
-            // Unprintable items go to the last virtual bed
-            int beds = 0;
-            
-            // Apply the arrange result to all selected objects
-            for (ArrangePolygon &ap : m_selected) {
-                beds = std::max(ap.bed_idx, beds);
-                ap.apply();
-            }
-            
-            // Get the virtual beds from the unselected items
-            for (ArrangePolygon &ap : m_unselected)
-                beds = std::max(ap.bed_idx, beds);
-            
-            // Move the unprintable items to the last virtual bed.
-            for (ArrangePolygon &ap : m_unprintable) {
-                ap.bed_idx += beds + 1;
-                ap.apply();
-            }
-
-            plater().update();
-        }
-    };
-
-    class RotoptimizeJob : public PlaterJob
-    {
-    public:
-        using PlaterJob::PlaterJob;
-        void process() override;
-    };
-
-
     // Jobs defined inside the group class will be managed so that only one can
     // run at a time. Also, the background process will be stopped if a job is
-    // started.
-    class ExclusiveJobGroup {
-
-        static const int ABORT_WAIT_MAX_MS = 10000;
-
-        priv * m_plater;
-
-        ArrangeJob arrange_job{m_plater};
-        RotoptimizeJob rotoptimize_job{m_plater};
-
-        // To create a new job, just define a new subclass of Job, implement
-        // the process and the optional prepare() and finalize() methods
-        // Register the instance of the class in the m_jobs container
-        // if it cannot run concurrently with other jobs in this group
-
-        std::vector<std::reference_wrapper<Job>> m_jobs{arrange_job,
-                                                        rotoptimize_job};
-
+    // started. It is up the the plater to ensure that the background slicing
+    // can't be restarted while a ui job is still running.
+    class Jobs: public ExclusiveJobGroup
+    {
+        priv *m;
+        size_t m_arrange_id, m_rotoptimize_id, m_sla_import_id;
+        
+        void before_start() override { m->background_process.stop(); }
+        
     public:
-        ExclusiveJobGroup(priv *_plater) : m_plater(_plater) {}
-
-        void start(Jobs jid) {
-            m_plater->background_process.stop();
-            stop_all();
-            m_jobs[size_t(jid)].get().start();
-        }
-
-        void cancel_all() { for (Job& j : m_jobs) j.cancel(); }
-
-        void join_all(int wait_ms = 0)
+        Jobs(priv *_m) : m(_m)
         {
-            std::vector<bool> aborted(m_jobs.size(), false);
-
-            for (size_t jid = 0; jid < m_jobs.size(); ++jid)
-                aborted[jid] = m_jobs[jid].get().join(wait_ms);
-
-            if (!all_of(aborted))
-                BOOST_LOG_TRIVIAL(error) << "Could not abort a job!";
+            m_arrange_id = add_job(std::make_unique<ArrangeJob>(m->statusbar(), m->q));
+            m_rotoptimize_id = add_job(std::make_unique<RotoptimizeJob>(m->statusbar(), m->q));
+            m_sla_import_id = add_job(std::make_unique<SLAImportJob>(m->statusbar(), m->q));
         }
-
-        void stop_all() { cancel_all(); join_all(ABORT_WAIT_MAX_MS); }
-
-        const Job& get(Jobs jobid) const { return m_jobs[size_t(jobid)]; }
-
-        bool is_any_running() const
+        
+        void arrange()
         {
-            return std::any_of(m_jobs.begin(),
-                               m_jobs.end(),
-                               [](const Job &j) { return j.is_running(); });
+            m->take_snapshot(_(L("Arrange")));
+            start(m_arrange_id);
         }
-
-    } m_ui_jobs{this};
+        
+        void optimize_rotation()
+        {
+            m->take_snapshot(_(L("Optimize Rotation")));
+            start(m_rotoptimize_id);
+        }
+        
+        void import_sla_arch()
+        {
+            m->take_snapshot(_(L("Import SLA archive")));
+            start(m_sla_import_id);
+        }
+        
+    } m_ui_jobs;
 
     bool                        delayed_scene_refresh;
     std::string                 delayed_error_message;
@@ -1808,10 +1535,10 @@ struct Plater::priv
     priv(Plater *q, MainFrame *main_frame);
     ~priv();
 
-	enum class UpdateParams {
-    	FORCE_FULL_SCREEN_REFRESH 			= 1,
-    	FORCE_BACKGROUND_PROCESSING_UPDATE 	= 2,
-    	POSTPONE_VALIDATION_ERROR_MESSAGE	= 4,
+    enum class UpdateParams {
+        FORCE_FULL_SCREEN_REFRESH          = 1,
+        FORCE_BACKGROUND_PROCESSING_UPDATE = 2,
+        POSTPONE_VALIDATION_ERROR_MESSAGE  = 4,
     };
     void update(unsigned int flags = 0);
     void select_view(const std::string& direction);
@@ -1847,9 +1574,7 @@ struct Plater::priv
     std::string get_config(const std::string &key) const;
     BoundingBoxf bed_shape_bb() const;
     BoundingBox scaled_bed_shape_bb() const;
-    arrangement::BedShapeHint get_bed_shape_hint() const;
 
-    void find_new_position(const ModelInstancePtrs  &instances, coord_t min_d);
     std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config);
     std::vector<size_t> load_model_objects(const ModelObjectPtrs &model_objects);
     wxString get_export_file(GUI::FileType file_type);
@@ -1867,8 +1592,6 @@ struct Plater::priv
     void delete_object_from_model(size_t obj_idx);
     void reset();
     void mirror(Axis axis);
-    void arrange();
-    void sla_optimize_rotation();
     void split_object();
     void split_volume();
     void scale_selection_to_fit_print_volume();
@@ -2035,6 +1758,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         "support_material", "support_material_extruder", "support_material_interface_extruder", "support_material_contact_distance", "raft_layers"
         }))
     , sidebar(new Sidebar(q))
+    , m_ui_jobs(this)
     , delayed_scene_refresh(false)
     , view_toolbar(GLToolbar::Radio, "View")
     , m_project_filename(wxEmptyString)
@@ -2110,14 +1834,15 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     sidebar->Bind(EVT_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { this->schedule_background_process(); });
 
     wxGLCanvas* view3D_canvas = view3D->get_wxglcanvas();
+    
     // 3DScene events:
     view3D_canvas->Bind(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { this->schedule_background_process(); });
     view3D_canvas->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
     view3D_canvas->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
     view3D_canvas->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
-    view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { arrange(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { this->q->arrange(); });
     view3D_canvas->Bind(EVT_GLCANVAS_SELECT_ALL, [this](SimpleEvent&) { this->q->select_all(); });
-    view3D_canvas->Bind(EVT_GLCANVAS_QUESTION_MARK, [this](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_QUESTION_MARK, [](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
     view3D_canvas->Bind(EVT_GLCANVAS_INCREASE_INSTANCES, [this](Event<int> &evt)
         { if (evt.data == 1) this->q->increase_instances(); else if (this->can_decrease_instances()) this->q->decrease_instances(); });
     view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) { update(); });
@@ -2142,7 +1867,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
     view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE, [q](SimpleEvent&) { q->remove_selected(); });
     view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE_ALL, [q](SimpleEvent&) { q->reset_with_confirm(); });
-    view3D_canvas->Bind(EVT_GLTOOLBAR_ARRANGE, [this](SimpleEvent&) { arrange(); });
+    view3D_canvas->Bind(EVT_GLTOOLBAR_ARRANGE, [this](SimpleEvent&) { this->q->arrange(); });
     view3D_canvas->Bind(EVT_GLTOOLBAR_COPY, [q](SimpleEvent&) { q->copy_selection_to_clipboard(); });
     view3D_canvas->Bind(EVT_GLTOOLBAR_PASTE, [q](SimpleEvent&) { q->paste_from_clipboard(); });
     view3D_canvas->Bind(EVT_GLTOOLBAR_MORE, [q](SimpleEvent&) { q->increase_instances(); });
@@ -2810,40 +2535,12 @@ void Plater::priv::mirror(Axis axis)
     view3D->mirror_selection(axis);
 }
 
-void Plater::priv::arrange()
-{
-    this->take_snapshot(_L("Arrange"));
-    m_ui_jobs.start(Jobs::Arrange);
-}
-
-
-// This method will find an optimal orientation for the currently selected item
-// Very similar in nature to the arrange method above...
-void Plater::priv::sla_optimize_rotation() {
-    this->take_snapshot(_L("Optimize Rotation"));
-    m_ui_jobs.start(Jobs::Rotoptimize);
-}
-
-arrangement::BedShapeHint Plater::priv::get_bed_shape_hint() const {
-
-    const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
-    assert(bed_shape_opt);
-
-    if (!bed_shape_opt) return {};
-
-    auto &bedpoints = bed_shape_opt->values;
-    Polyline bedpoly; bedpoly.points.reserve(bedpoints.size());
-    for (auto &v : bedpoints) bedpoly.append(scaled(v));
-
-    return arrangement::BedShapeHint(bedpoly);
-}
-
-void Plater::priv::find_new_position(const ModelInstancePtrs &instances,
+void Plater::find_new_position(const ModelInstancePtrs &instances,
                                      coord_t min_d)
 {
     arrangement::ArrangePolygons movable, fixed;
-
-    for (const ModelObject *mo : model.objects)
+    
+    for (const ModelObject *mo : p->model.objects)
         for (const ModelInstance *inst : mo->instances) {
             auto it = std::find(instances.begin(), instances.end(), inst);
             auto arrpoly = inst->get_arrange_polygon();
@@ -2853,106 +2550,18 @@ void Plater::priv::find_new_position(const ModelInstancePtrs &instances,
             else
                 movable.emplace_back(std::move(arrpoly));
         }
-
-    if (updated_wipe_tower())
-        fixed.emplace_back(wipetower.get_arrange_polygon());
-
-    arrangement::arrange(movable, fixed, min_d, get_bed_shape_hint());
+    
+    if (p->view3D->get_canvas3d()->get_wipe_tower_info())
+        fixed.emplace_back(get_wipe_tower_arrangepoly(*this));
+    
+    arrangement::arrange(movable, fixed, get_bed_shape(*config()),
+                         arrangement::ArrangeParams{min_d});
 
     for (size_t i = 0; i < instances.size(); ++i)
         if (movable[i].bed_idx == 0)
             instances[i]->apply_arrange_result(movable[i].translation.cast<double>(),
                                                movable[i].rotation);
 }
-
-void Plater::priv::ArrangeJob::process() {
-    static const auto arrangestr = _L("Arranging");
-
-    // FIXME: I don't know how to obtain the minimum distance, it depends
-    // on printer technology. I guess the following should work but it crashes.
-    double dist = 6; // PrintConfig::min_object_distance(config);
-    if (plater().printer_technology == ptFFF) {
-        dist = PrintConfig::min_object_distance(plater().config);
-    }
-
-    coord_t min_d = scaled(dist);
-    auto count = unsigned(m_selected.size() + m_unprintable.size());
-    arrangement::BedShapeHint bedshape = plater().get_bed_shape_hint();
-    
-    auto stopfn = [this]() { return was_canceled(); };
-    
-    try {
-        arrangement::arrange(m_selected, m_unselected, min_d, bedshape,
-            [this, count](unsigned st) {
-                st += m_unprintable.size();
-                if (st > 0) update_status(int(count - st), arrangestr);
-            }, stopfn);
-        arrangement::arrange(m_unprintable, {}, min_d, bedshape,
-            [this, count](unsigned st) {
-                if (st > 0) update_status(int(count - st), arrangestr);
-            }, stopfn);
-    } catch (std::exception & /*e*/) {
-        GUI::show_error(plater().q,
-                        _L("Could not arrange model objects! "
-                           "Some geometries may be invalid."));
-    }
-
-    // finalize just here.
-    update_status(int(count),
-                  was_canceled() ? _L("Arranging canceled.")
-                                 : _L("Arranging done."));
-}
-
-void Plater::priv::RotoptimizeJob::process()
-{
-    int obj_idx = plater().get_selected_object_idx();
-    if (obj_idx < 0) { return; }
-
-    ModelObject *o = plater().model.objects[size_t(obj_idx)];
-
-    auto r = sla::find_best_rotation(
-        *o,
-        .005f,
-        [this](unsigned s) {
-            if (s < 100)
-                update_status(int(s),
-                              _L("Searching for optimal orientation"));
-        },
-        [this]() { return was_canceled(); });
-
-
-    double mindist = 6.0; // FIXME
-
-    if (!was_canceled()) {
-        for(ModelInstance * oi : o->instances) {
-            oi->set_rotation({r[X], r[Y], r[Z]});
-
-            auto    trmatrix = oi->get_transformation().get_matrix();
-            Polygon trchull  = o->convex_hull_2d(trmatrix);
-
-            MinAreaBoundigBox rotbb(trchull, MinAreaBoundigBox::pcConvex);
-            double            r = rotbb.angle_to_X();
-
-            // The box should be landscape
-            if(rotbb.width() < rotbb.height()) r += PI / 2;
-
-            Vec3d rt = oi->get_rotation(); rt(Z) += r;
-
-            oi->set_rotation(rt);
-        }
-
-        plater().find_new_position(o->instances, scaled(mindist));
-
-        // Correct the z offset of the object which was corrupted be
-        // the rotation
-        o->ensure_on_bed();
-    }
-
-    update_status(100,
-                  was_canceled() ? _L("Orientation search canceled.")
-                                 : _L("Orientation found."));
-}
-
 
 void Plater::priv::split_object()
 {
@@ -3594,7 +3203,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     }
 
     // update plater with new config
-    wxGetApp().plater()->on_config_change(wxGetApp().preset_bundle->full_config());
+    q->on_config_change(wxGetApp().preset_bundle->full_config());
     /* Settings list can be changed after printer preset changing, so
      * update all settings items for all item had it.
      * Furthermore, Layers editing is implemented only for FFF printers
@@ -4041,8 +3650,12 @@ bool Plater::priv::complit_init_sla_object_menu()
     sla_object_menu.AppendSeparator();
 
     // Add the automatic rotation sub-menu
-    append_menu_item(&sla_object_menu, wxID_ANY, _L("Optimize orientation"), _L("Optimize the rotation of the object for better print results."),
-        [this](wxCommandEvent&) { sla_optimize_rotation(); });
+    append_menu_item(
+        &sla_object_menu, wxID_ANY, _(L("Optimize orientation")),
+        _(L("Optimize the rotation of the object for better print results.")),
+        [this](wxCommandEvent &) {
+            m_ui_jobs.optimize_rotation();
+        });
 
     return true;
 }
@@ -4646,6 +4259,11 @@ void Plater::add_model()
     load_files(paths, true, false);
 }
 
+void Plater::import_sl1_archive()
+{
+    p->m_ui_jobs.import_sla_arch();
+}
+
 void Plater::extract_config_from_project()
 {
     wxString input_file;
@@ -4738,7 +4356,7 @@ void Plater::increase_instances(size_t num)
     sidebar().obj_list()->increase_object_instances(obj_idx, was_one_instance ? num + 1 : num);
 
     if (p->get_config("autocenter") == "1")
-        p->arrange();
+        arrange();
 
     p->update();
 
@@ -5472,6 +5090,11 @@ bool Plater::is_export_gcode_scheduled() const
     return p->background_process.is_export_scheduled();
 }
 
+const Selection &Plater::get_selection() const
+{
+    return p->get_selection();
+}
+
 int Plater::get_selected_object_idx()
 {
     return p->get_selected_object_idx();
@@ -5497,6 +5120,11 @@ BoundingBoxf Plater::bed_shape_bb() const
     return p->bed_shape_bb();
 }
 
+void Plater::arrange()
+{
+    p->m_ui_jobs.arrange();
+}
+
 void Plater::set_current_canvas_as_dirty()
 {
     p->set_current_canvas_as_dirty();
@@ -5518,6 +5146,8 @@ PrinterTechnology Plater::printer_technology() const
 {
     return p->printer_technology;
 }
+
+const DynamicPrintConfig * Plater::config() const { return p->config; }
 
 void Plater::set_printer_technology(PrinterTechnology printer_technology)
 {

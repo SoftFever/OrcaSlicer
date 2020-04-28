@@ -2,6 +2,7 @@
 #include "GLGizmoFlatten.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
 
 #include <numeric>
 
@@ -26,18 +27,13 @@ bool GLGizmoFlatten::on_init()
 
 void GLGizmoFlatten::on_set_state()
 {
-    // m_model_object pointer can be invalid (for instance because of undo/redo action),
-    // we should recover it from the object id
-    m_model_object = nullptr;
-    for (const auto mo : wxGetApp().model().objects) {
-        if (mo->id() == m_model_object_id) {
-            m_model_object = mo;
-            break;
-        }
-    }
-
     if (m_state == On && is_plane_update_necessary())
         update_planes();
+}
+
+CommonGizmosDataID GLGizmoFlatten::on_get_requirements() const
+{
+    return CommonGizmosDataID::SelectionInfo;
 }
 
 std::string GLGizmoFlatten::on_get_name() const
@@ -132,18 +128,17 @@ void GLGizmoFlatten::on_render_for_picking() const
 void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
 {
     m_starting_center = Vec3d::Zero();
-    if (m_model_object != model_object) {
+    if (model_object != m_old_model_object) {
         m_planes.clear();
         m_planes_valid = false;
     }
-    m_model_object = model_object;
-    m_model_object_id = model_object ? model_object->id() : 0;
 }
 
 void GLGizmoFlatten::update_planes()
 {
+    const ModelObject* mo = m_c->selection_info()->model_object();
     TriangleMesh ch;
-    for (const ModelVolume* vol : m_model_object->volumes)
+    for (const ModelVolume* vol : mo->volumes)
     {
         if (vol->type() != ModelVolumeType::MODEL_PART)
             continue;
@@ -153,7 +148,7 @@ void GLGizmoFlatten::update_planes()
     }
     ch = ch.convex_hull_3d();
     m_planes.clear();
-    const Transform3d& inst_matrix = m_model_object->instances.front()->get_matrix(true);
+    const Transform3d& inst_matrix = mo->instances.front()->get_matrix(true);
 
     // Following constants are used for discarding too small polygons.
     const float minimal_area = 5.f; // in square mm (world coordinates)
@@ -331,12 +326,13 @@ void GLGizmoFlatten::update_planes()
     // Planes are finished - let's save what we calculated it from:
     m_volumes_matrices.clear();
     m_volumes_types.clear();
-    for (const ModelVolume* vol : m_model_object->volumes) {
+    for (const ModelVolume* vol : mo->volumes) {
         m_volumes_matrices.push_back(vol->get_matrix());
         m_volumes_types.push_back(vol->type());
     }
-    m_first_instance_scale = m_model_object->instances.front()->get_scaling_factor();
-    m_first_instance_mirror = m_model_object->instances.front()->get_mirror();
+    m_first_instance_scale = mo->instances.front()->get_scaling_factor();
+    m_first_instance_mirror = mo->instances.front()->get_mirror();
+    m_old_model_object = mo;
 
     m_planes_valid = true;
 }
@@ -344,20 +340,22 @@ void GLGizmoFlatten::update_planes()
 
 bool GLGizmoFlatten::is_plane_update_necessary() const
 {
-    if (m_state != On || !m_model_object || m_model_object->instances.empty())
+    const ModelObject* mo = m_c->selection_info()->model_object();
+    if (m_state != On || ! mo || mo->instances.empty())
         return false;
 
-    if (! m_planes_valid || m_model_object->volumes.size() != m_volumes_matrices.size())
+    if (! m_planes_valid || mo != m_old_model_object
+     || mo->volumes.size() != m_volumes_matrices.size())
         return true;
 
     // We want to recalculate when the scale changes - some planes could (dis)appear.
-    if (! m_model_object->instances.front()->get_scaling_factor().isApprox(m_first_instance_scale)
-     || ! m_model_object->instances.front()->get_mirror().isApprox(m_first_instance_mirror))
+    if (! mo->instances.front()->get_scaling_factor().isApprox(m_first_instance_scale)
+     || ! mo->instances.front()->get_mirror().isApprox(m_first_instance_mirror))
         return true;
 
-    for (unsigned int i=0; i < m_model_object->volumes.size(); ++i)
-        if (! m_model_object->volumes[i]->get_matrix().isApprox(m_volumes_matrices[i])
-         || m_model_object->volumes[i]->type() != m_volumes_types[i])
+    for (unsigned int i=0; i < mo->volumes.size(); ++i)
+        if (! mo->volumes[i]->get_matrix().isApprox(m_volumes_matrices[i])
+         || mo->volumes[i]->type() != m_volumes_types[i])
             return true;
 
     return false;

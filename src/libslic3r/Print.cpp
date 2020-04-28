@@ -404,6 +404,7 @@ static inline void model_volume_list_copy_configs(ModelObject &model_object_dst,
         // Copy the ModelVolume data.
         mv_dst.name   = mv_src.name;
 		static_cast<DynamicPrintConfig&>(mv_dst.config) = static_cast<const DynamicPrintConfig&>(mv_src.config);
+        mv_dst.m_supported_facets = mv_src.m_supported_facets;
         //FIXME what to do with the materials?
         // mv_dst.m_material_id = mv_src.m_material_id;
         ++ i_src;
@@ -854,7 +855,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             }
             // Copy content of the ModelObject including its ID, do not change the parent.
             model_object.assign_copy(model_object_new);
-        } else if (support_blockers_differ || support_enforcers_differ) {
+        } else if (support_blockers_differ || support_enforcers_differ || model_custom_supports_data_changed(model_object, model_object_new)) {
             // First stop background processing before shuffling or deleting the ModelVolumes in the ModelObject's list.
             this->call_cancel_callback();
             update_apply_status(false);
@@ -862,8 +863,10 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
             for (auto it = range.first; it != range.second; ++ it)
                 update_apply_status(it->print_object->invalidate_step(posSupportMaterial));
-            // Copy just the support volumes.
-            model_volume_list_update_supports(model_object, model_object_new);
+            if (support_enforcers_differ || support_blockers_differ) {
+                // Copy just the support volumes.
+                model_volume_list_update_supports(model_object, model_object_new);
+            }
         }
         if (! model_parts_differ && ! modifiers_differ) {
             // Synchronize Object's config.
@@ -881,7 +884,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                     }
                 }
             }
-            // Synchronize (just copy) the remaining data of ModelVolumes (name, config).
+            // Synchronize (just copy) the remaining data of ModelVolumes (name, config, custom supports data).
             //FIXME What to do with m_material_id?
 			model_volume_list_copy_configs(model_object /* dst */, model_object_new /* src */, ModelVolumeType::MODEL_PART);
 			model_volume_list_copy_configs(model_object /* dst */, model_object_new /* src */, ModelVolumeType::PARAMETER_MODIFIER);

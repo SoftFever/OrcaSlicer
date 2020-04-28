@@ -22,6 +22,7 @@ public:
     const Point& operator[](Points::size_type idx) const { return this->points[idx]; }
 
     Polygon() {}
+    virtual ~Polygon() = default;
     explicit Polygon(const Points &points) : MultiPoint(points) {}
 	Polygon(std::initializer_list<Point> points) : MultiPoint(points) {}
     Polygon(const Polygon &other) : MultiPoint(other.points) {}
@@ -46,7 +47,8 @@ public:
     // Split a closed polygon into an open polyline, with the split point duplicated at both ends.
     Polyline split_at_first_point() const { return this->split_at_index(0); }
     Points   equally_spaced_points(double distance) const { return this->split_at_first_point().equally_spaced_points(distance); }
-
+    
+    static double area(const Points &pts);
     double area() const;
     bool is_counter_clockwise() const;
     bool is_clockwise() const;
