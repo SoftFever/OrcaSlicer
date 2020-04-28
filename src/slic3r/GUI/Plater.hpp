@@ -310,6 +310,10 @@ public:
     GLToolbar& get_view_toolbar();
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
+#if ENABLE_GCODE_VIEWER
+    void update_preview_bottom_toolbar();
+#endif // ENABLE_GCODE_VIEWER
+
     const Mouse3DController& get_mouse3d_controller() const;
     Mouse3DController& get_mouse3d_controller();
 

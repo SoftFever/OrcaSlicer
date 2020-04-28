@@ -189,7 +189,7 @@ private:
     std::array<double, 2> m_layers_z_range;
     std::vector<ExtrusionRole> m_roles;
     std::vector<unsigned char> m_extruder_ids;
-    Extrusions m_extrusions;
+    mutable Extrusions m_extrusions;
     Shells m_shells;
     EViewType m_view_type{ EViewType::FeatureType };
     bool m_legend_enabled{ true };
@@ -227,7 +227,9 @@ public:
 
     bool is_toolpath_move_type_visible(GCodeProcessor::EMoveType type) const;
     void set_toolpath_move_type_visible(GCodeProcessor::EMoveType type, bool visible);
+    unsigned int get_toolpath_role_visibility_flags() const { return m_extrusions.role_visibility_flags; }
     void set_toolpath_role_visibility_flags(unsigned int flags) { m_extrusions.role_visibility_flags = flags; }
+    unsigned int get_options_visibility_flags() const;
     void set_options_visibility_from_flags(unsigned int flags);
     void set_layers_z_range(const std::array<double, 2>& layers_z_range) { m_layers_z_range = layers_z_range; }
 

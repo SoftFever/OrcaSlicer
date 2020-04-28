@@ -222,6 +222,9 @@ Preview::Preview(
     : m_canvas_widget(nullptr)
     , m_canvas(nullptr)
     , m_double_slider_sizer(nullptr)
+#if ENABLE_GCODE_VIEWER
+    , m_bottom_toolbar_sizer(nullptr)
+#endif // ENABLE_GCODE_VIEWER
     , m_label_view_type(nullptr)
     , m_choice_view_type(nullptr)
     , m_label_show(nullptr)
@@ -256,7 +259,9 @@ Preview::Preview(
     if (init(parent, bed, camera, view_toolbar, model))
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     {
+#if !ENABLE_GCODE_VIEWER
         show_hide_ui_elements("none");
+#endif // !ENABLE_GCODE_VIEWER
         load_print();
     }
 }
@@ -358,15 +363,21 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
     top_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);
     top_sizer->Add(m_double_slider_sizer, 0, wxEXPAND, 0);
 
+#if ENABLE_GCODE_VIEWER
+    m_bottom_toolbar_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_bottom_toolbar_sizer->Add(m_label_view_type, 0, wxALIGN_CENTER_VERTICAL, 5);
+    m_bottom_toolbar_sizer->Add(m_choice_view_type, 0, wxEXPAND | wxALL, 5);
+    m_bottom_toolbar_sizer->AddSpacer(10);
+    m_bottom_toolbar_sizer->Add(m_label_show, 0, wxALIGN_CENTER_VERTICAL, 5);
+    m_bottom_toolbar_sizer->Add(m_combochecklist_features, 0, wxEXPAND | wxALL, 5);
+    m_bottom_toolbar_sizer->Add(m_combochecklist_options, 0, wxEXPAND | wxALL, 5);
+#else
     wxBoxSizer* bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
     bottom_sizer->Add(m_label_view_type, 0, wxALIGN_CENTER_VERTICAL, 5);
     bottom_sizer->Add(m_choice_view_type, 0, wxEXPAND | wxALL, 5);
     bottom_sizer->AddSpacer(10);
     bottom_sizer->Add(m_label_show, 0, wxALIGN_CENTER_VERTICAL, 5);
     bottom_sizer->Add(m_combochecklist_features, 0, wxEXPAND | wxALL, 5);
-#if ENABLE_GCODE_VIEWER
-    bottom_sizer->Add(m_combochecklist_options, 0, wxEXPAND | wxALL, 5);
-#else
     bottom_sizer->AddSpacer(20);
     bottom_sizer->Add(m_checkbox_travel, 0, wxEXPAND | wxALL, 5);
     bottom_sizer->AddSpacer(10);
@@ -381,8 +392,12 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(top_sizer, 1, wxALL | wxEXPAND, 0);
+#if ENABLE_GCODE_VIEWER
+    main_sizer->Add(m_bottom_toolbar_sizer, 0, wxALL | wxEXPAND, 0);
+    main_sizer->Hide(m_bottom_toolbar_sizer);
+#else
     main_sizer->Add(bottom_sizer, 0, wxALL | wxEXPAND, 0);
-
+#endif // ENABLE_GCODE_VIEWER
     SetSizer(main_sizer);
     SetMinSize(GetSize());
     GetSizer()->SetSizeHints(this);
@@ -480,6 +495,9 @@ void Preview::load_print(bool keep_z_range)
     else if (tech == ptSLA)
         load_print_as_sla();
 
+#if ENABLE_GCODE_VIEWER
+    update_bottom_toolbar();
+#endif // ENABLE_GCODE_VIEWER
     Layout();
 }
 
@@ -581,6 +599,7 @@ void Preview::unbind_event_handlers()
 #endif // ENABLE_GCODE_VIEWER
 }
 
+#if !ENABLE_GCODE_VIEWER
 void Preview::show_hide_ui_elements(const std::string& what)
 {
     bool enable = (what == "full");
@@ -615,6 +634,7 @@ void Preview::show_hide_ui_elements(const std::string& what)
     m_label_view_type->Show(visible);
     m_choice_view_type->Show(visible);
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 void Preview::reset_sliders(bool reset_all)
 {
@@ -661,11 +681,11 @@ void Preview::on_choice_view_type(wxCommandEvent& evt)
 
 void Preview::on_combochecklist_features(wxCommandEvent& evt)
 {
-    int flags = Slic3r::GUI::combochecklist_get_flags(m_combochecklist_features);
+    unsigned int flags = Slic3r::GUI::combochecklist_get_flags(m_combochecklist_features);
 #if ENABLE_GCODE_VIEWER
-    m_canvas->set_toolpath_role_visibility_flags(static_cast<unsigned int>(flags));
+    m_canvas->set_toolpath_role_visibility_flags(flags);
 #else
-    m_gcode_preview_data->extrusion.role_flags = (unsigned int)flags;
+    m_gcode_preview_data->extrusion.role_flags = flags;
 #endif // ENABLE_GCODE_VIEWER
     refresh_print();
 }
@@ -673,7 +693,7 @@ void Preview::on_combochecklist_features(wxCommandEvent& evt)
 #if ENABLE_GCODE_VIEWER
 void Preview::on_combochecklist_options(wxCommandEvent& evt)
 {
-    m_canvas->set_gcode_options_visibility_from_flags(static_cast<unsigned int>(Slic3r::GUI::combochecklist_get_flags(m_combochecklist_options)));
+    m_canvas->set_gcode_options_visibility_from_flags(Slic3r::GUI::combochecklist_get_flags(m_combochecklist_options));
     refresh_print();
 }
 #else
@@ -729,6 +749,17 @@ void Preview::update_view_type(bool slice_completed)
         m_preferred_color_mode = "feature";
     }
 }
+
+#if ENABLE_GCODE_VIEWER
+void Preview::update_bottom_toolbar()
+{
+    combochecklist_set_flags(m_combochecklist_features, m_canvas->get_toolpath_role_visibility_flags());
+    combochecklist_set_flags(m_combochecklist_options, m_canvas->get_gcode_options_visibility_flags());
+
+    m_bottom_toolbar_sizer->Show(m_combochecklist_features, m_canvas->get_gcode_view_type() != GCodeViewer::EViewType::FeatureType);
+    m_bottom_toolbar_sizer->Layout();
+}
+#endif // ENABLE_GCODE_VIEWER
 
 void Preview::create_double_slider()
 {
@@ -1039,7 +1070,8 @@ void Preview::load_print_as_fff(bool keep_z_range)
 #if ENABLE_GCODE_VIEWER
             m_canvas->load_gcode_preview(*m_gcode_result);
             m_canvas->refresh_gcode_preview(*m_gcode_result, colors);
-            show_hide_ui_elements(gcode_preview_data_valid ? "full" : "simple");
+            GetSizer()->Show(m_bottom_toolbar_sizer);
+            GetSizer()->Layout();
 #else
             m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
 #endif // ENABLE_GCODE_VIEWER
@@ -1048,7 +1080,8 @@ void Preview::load_print_as_fff(bool keep_z_range)
             // Load the initial preview based on slices, not the final G-code.
             m_canvas->load_preview(colors, color_print_values);
 #if ENABLE_GCODE_VIEWER
-            show_hide_ui_elements("none");
+            GetSizer()->Hide(m_bottom_toolbar_sizer);
+            GetSizer()->Layout();
 #endif // ENABLE_GCODE_VIEWER
         }
 #if ENABLE_GCODE_VIEWER
@@ -1097,7 +1130,12 @@ void Preview::load_print_as_sla()
     if (IsShown())
     {
         m_canvas->load_sla_preview();
+#if ENABLE_GCODE_VIEWER
+        GetSizer()->Hide(m_bottom_toolbar_sizer);
+        GetSizer()->Layout();
+#else
         show_hide_ui_elements("none");
+#endif // ENABLE_GCODE_VIEWER
 
         if (n_layers > 0)
             update_sliders(zs);
@@ -1131,7 +1169,6 @@ void Preview::on_sliders_scroll_changed(wxCommandEvent& event)
         }
     }
 }
-
 
 } // namespace GUI
 } // namespace Slic3r

@@ -1570,6 +1570,9 @@ struct Plater::priv
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     bool init_view_toolbar();
+#if ENABLE_GCODE_VIEWER
+    void update_preview_bottom_toolbar();
+#endif // ENABLE_GCODE_VIEWER
 
     void reset_all_gizmos();
     void update_ui_from_settings();
@@ -3765,6 +3768,13 @@ bool Plater::priv::init_view_toolbar()
     return true;
 }
 
+#if ENABLE_GCODE_VIEWER
+void Plater::priv::update_preview_bottom_toolbar()
+{
+    preview->update_bottom_toolbar();
+}
+#endif // ENABLE_GCODE_VIEWER
+
 bool Plater::priv::can_set_instance_to_object() const
 {
     const int obj_idx = get_selected_object_idx();
@@ -5312,6 +5322,13 @@ GLToolbar& Plater::get_view_toolbar()
     return p->view_toolbar;
 }
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
+
+#if ENABLE_GCODE_VIEWER
+void Plater::update_preview_bottom_toolbar()
+{
+    p->update_preview_bottom_toolbar();
+}
+#endif // ENABLE_GCODE_VIEWER
 
 const Mouse3DController& Plater::get_mouse3d_controller() const
 {

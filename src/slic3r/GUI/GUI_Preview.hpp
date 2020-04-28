@@ -91,6 +91,9 @@ class Preview : public wxPanel
     wxGLCanvas* m_canvas_widget;
     GLCanvas3D* m_canvas;
     wxBoxSizer* m_double_slider_sizer;
+#if ENABLE_GCODE_VIEWER
+    wxBoxSizer* m_bottom_toolbar_sizer;
+#endif // ENABLE_GCODE_VIEWER
     wxStaticText* m_label_view_type;
     wxChoice* m_choice_view_type;
     wxStaticText* m_label_show;
@@ -172,6 +175,10 @@ public:
 
     bool is_loaded() const { return m_loaded; }
 
+#if ENABLE_GCODE_VIEWER
+    void update_bottom_toolbar();
+#endif // ENABLE_GCODE_VIEWER
+
 private:
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
     bool init(wxWindow* parent, Model* model);
@@ -182,7 +189,9 @@ private:
     void bind_event_handlers();
     void unbind_event_handlers();
 
+#if !ENABLE_GCODE_VIEWER
     void show_hide_ui_elements(const std::string& what);
+#endif // !ENABLE_GCODE_VIEWER
 
     void reset_sliders(bool reset_all);
     void update_sliders(const std::vector<double>& layers_z, bool keep_z_range = false);

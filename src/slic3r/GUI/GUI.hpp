@@ -54,8 +54,12 @@ void warning_catcher(wxWindow* parent, const wxString& message);
 void create_combochecklist(wxComboCtrl* comboCtrl, const std::string& text, const std::string& items);
 
 // Returns the current state of the items listed in the wxCheckListBoxComboPopup contained in the given wxComboCtrl,
-// encoded inside an int.
-int combochecklist_get_flags(wxComboCtrl* comboCtrl);
+// encoded inside an unsigned int.
+unsigned int combochecklist_get_flags(wxComboCtrl* comboCtrl);
+
+// Sets the current state of the items listed in the wxCheckListBoxComboPopup contained in the given wxComboCtrl,
+// with the flags encoded in the given unsigned int.
+void combochecklist_set_flags(wxComboCtrl* comboCtrl, unsigned int flags);
 
 // wxString conversions:
 
