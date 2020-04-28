@@ -971,6 +971,10 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
     std::vector<ExPolygons> enforcers = object.slice_support_enforcers();
     std::vector<ExPolygons> blockers  = object.slice_support_blockers();
 
+    // Append custom supports.
+    object.project_and_append_custom_enforcers(enforcers);
+    object.project_and_append_custom_blockers(blockers);
+
     // Output layers, sorted by top Z.
     MyLayersPtr contact_out;
 
@@ -1097,10 +1101,10 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                             if (! enforcers.empty()) {
                                 // Apply the "support enforcers".
                                 //FIXME add the "enforcers" to the sparse support regions only.
-                                const ExPolygons &enforcer = enforcers[layer_id - 1];
+                                const ExPolygons &enforcer = enforcers[layer_id];
                                 if (! enforcer.empty()) {
                                     // Enforce supports (as if with 90 degrees of slope) for the regions covered by the enforcer meshes.
-                                    Polygons new_contacts = diff(intersection(layerm_polygons, to_polygons(enforcer)),
+                                    Polygons new_contacts = diff(intersection(layerm_polygons, to_polygons(std::move(enforcer))),
                                             offset(lower_layer_polygons, 0.05f * fw, SUPPORT_SURFACES_OFFSET_PARAMETERS));
                                     if (! new_contacts.empty()) {
                                         if (diff_polygons.empty())
@@ -1111,19 +1115,26 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                                 }
                             }
                         }
-                        // Apply the "support blockers".
-                        if (! diff_polygons.empty() && ! blockers.empty() && ! blockers[layer_id].empty()) {
-                            // Enforce supports (as if with 90 degrees of slope) for the regions covered by the enforcer meshes.
-                            diff_polygons = diff(diff_polygons, to_polygons(blockers[layer_id]));
-                        }
+
                         if (diff_polygons.empty())
                             continue;
+
+                        // Apply the "support blockers".
+                        if (! blockers.empty() && ! blockers[layer_id].empty()) {
+                            // Expand the blocker a bit. Custom blockers produce strips
+                            // spanning just the projection between the two slices.
+                            // Subtracting them as they are may leave unwanted narrow
+                            // residues of diff_polygons that would then be supported.
+                            diff_polygons = diff(diff_polygons,
+                                offset(union_(to_polygons(std::move(blockers[layer_id]))),
+                                       1000.*SCALED_EPSILON));
+                        }
 
                         #ifdef SLIC3R_DEBUG
                         {
                             ::Slic3r::SVG svg(debug_out_path("support-top-contacts-raw-run%d-layer%d-region%d.svg", 
                                 iRun, layer_id, 
-                                std::find_if(layer.regions.begin(), layer.regions.end(), [layerm](const LayerRegion* other){return other == layerm;}) - layer.regions.begin()), 
+                                std::find_if(layer.regions.begin(), layer.regions.end(), [layerm](const LayerRegion* other){return other == layerm;}) - layer.regions.begin()),
                             get_extents(diff_polygons));
                             Slic3r::ExPolygons expolys = union_ex(diff_polygons, false);
                             svg.draw(expolys);

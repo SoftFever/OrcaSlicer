@@ -103,11 +103,15 @@ public:
     // Return true if the bed shape changed, so the calee will update the UI.
     bool set_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model);
 
-    const BoundingBoxf3& get_bounding_box(bool extended) const { return extended ? m_extended_bounding_box : m_bounding_box; }
+    const BoundingBoxf3& get_bounding_box(bool extended) const {
+        return extended ? m_extended_bounding_box : m_bounding_box;
+    }
+
     bool contains(const Point& point) const;
     Point point_projection(const Point& point) const;
 
-    void render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool show_axes) const;
+    void render(GLCanvas3D& canvas, bool bottom, float scale_factor,
+                bool show_axes, bool show_texture) const;
 
 private:
     void calc_bounding_boxes() const;
@@ -115,10 +119,10 @@ private:
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
     std::tuple<EType, std::string, std::string> detect_type(const Pointfs& shape) const;
     void render_axes() const;
-    void render_system(GLCanvas3D& canvas, bool bottom) const;
+    void render_system(GLCanvas3D& canvas, bool bottom, bool show_texture) const;
     void render_texture(bool bottom, GLCanvas3D& canvas) const;
     void render_model() const;
-    void render_custom(GLCanvas3D& canvas, bool bottom) const;
+    void render_custom(GLCanvas3D& canvas, bool bottom, bool show_texture) const;
     void render_default(bool bottom) const;
     void reset();
 };
