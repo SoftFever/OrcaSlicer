@@ -92,9 +92,8 @@ bool GCodeViewer::IBuffer::init_shader(const std::string& vertex_shader_src, con
 
 void GCodeViewer::IBuffer::add_path(const GCodeProcessor::MoveVertex& move)
 {
-    unsigned int id = static_cast<unsigned int>(data.size());
-    double z = static_cast<double>(move.position[2]);
-    paths.push_back({ move.type, move.extrusion_role, id, id, z, z, move.delta_extruder, move.height, move.width, move.feedrate, move.fan_speed, move.volumetric_rate(), move.extruder_id, move.cp_color_id });
+    Path::Endpoint endpoint = { static_cast<unsigned int>(data.size()), static_cast<double>(move.position[2]) };
+    paths.push_back({ move.type, move.extrusion_role, endpoint, endpoint, move.delta_extruder, move.height, move.width, move.feedrate, move.fan_speed, move.volumetric_rate(), move.extruder_id, move.cp_color_id });
 }
 
 std::array<float, 3> GCodeViewer::Extrusions::Range::get_color_at(float value) const
@@ -409,13 +408,13 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                 buffer.data.push_back(static_cast<unsigned int>(i - 1));
             }
             
-            buffer.paths.back().last = static_cast<unsigned int>(buffer.data.size());
+            buffer.paths.back().last.id = static_cast<unsigned int>(buffer.data.size());
             buffer.data.push_back(static_cast<unsigned int>(i));
             break;
         }
         default:
         {
-            continue;
+            break;
         }
         }
     }
@@ -602,7 +601,7 @@ void GCodeViewer::render_toolpaths() const
                         continue;
 
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
-                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
+                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last.id - path.first.id + 1), GL_UNSIGNED_INT, (const void*)(path.first.id * sizeof(GLuint))));
                     glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -620,7 +619,7 @@ void GCodeViewer::render_toolpaths() const
                         continue;
 
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
-                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
+                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last.id - path.first.id + 1), GL_UNSIGNED_INT, (const void*)(path.first.id * sizeof(GLuint))));
                     glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -638,7 +637,7 @@ void GCodeViewer::render_toolpaths() const
                         continue;
 
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
-                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
+                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last.id - path.first.id + 1), GL_UNSIGNED_INT, (const void*)(path.first.id * sizeof(GLuint))));
                     glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -656,7 +655,7 @@ void GCodeViewer::render_toolpaths() const
                         continue;
 
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
-                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
+                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last.id - path.first.id + 1), GL_UNSIGNED_INT, (const void*)(path.first.id * sizeof(GLuint))));
                     glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -674,7 +673,7 @@ void GCodeViewer::render_toolpaths() const
                         continue;
 
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
-                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
+                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last.id - path.first.id + 1), GL_UNSIGNED_INT, (const void*)(path.first.id * sizeof(GLuint))));
                     glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -692,7 +691,7 @@ void GCodeViewer::render_toolpaths() const
                         continue;
 
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
-                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
+                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last.id - path.first.id + 1), GL_UNSIGNED_INT, (const void*)(path.first.id * sizeof(GLuint))));
                     glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -708,7 +707,7 @@ void GCodeViewer::render_toolpaths() const
                         continue;
 
                     set_color(current_program_id, extrusion_color(path));
-                    glsafe(::glDrawElements(GL_LINE_STRIP, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
+                    glsafe(::glDrawElements(GL_LINE_STRIP, GLsizei(path.last.id - path.first.id + 1), GL_UNSIGNED_INT, (const void*)(path.first.id * sizeof(GLuint))));
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
                     ++m_statistics.gl_line_strip_calls_count;
@@ -723,7 +722,7 @@ void GCodeViewer::render_toolpaths() const
                         continue;
 
                     set_color(current_program_id, (m_view_type == EViewType::Feedrate || m_view_type == EViewType::Tool || m_view_type == EViewType::ColorPrint) ? extrusion_color(path) : travel_color(path));
-                    glsafe(::glDrawElements(GL_LINE_STRIP, GLsizei(path.last - path.first + 1), GL_UNSIGNED_INT, (const void*)(path.first * sizeof(GLuint))));
+                    glsafe(::glDrawElements(GL_LINE_STRIP, GLsizei(path.last.id - path.first.id + 1), GL_UNSIGNED_INT, (const void*)(path.first.id * sizeof(GLuint))));
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
                     ++m_statistics.gl_line_strip_calls_count;

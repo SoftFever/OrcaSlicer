@@ -314,7 +314,7 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
     m_label_show = new wxStaticText(this, wxID_ANY, _(L("Show")));
 
     m_combochecklist_features = new wxComboCtrl();
-    m_combochecklist_features->Create(this, wxID_ANY, _(L("Feature types")), wxDefaultPosition, wxSize(15 * wxGetApp().em_unit(), -1), wxCB_READONLY);
+    m_combochecklist_features->Create(this, wxID_ANY, _(L("Feature types")), wxDefaultPosition, wxDefaultSize, wxCB_READONLY);
     std::string feature_items = GUI::into_u8(
 #if ENABLE_GCODE_VIEWER
         _L("Unknown") + "|1|" +
@@ -337,7 +337,7 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
 
 #if ENABLE_GCODE_VIEWER
     m_combochecklist_options = new wxComboCtrl();
-    m_combochecklist_options->Create(this, wxID_ANY, _(L("Others")), wxDefaultPosition, wxSize(15 * wxGetApp().em_unit(), -1), wxCB_READONLY);
+    m_combochecklist_options->Create(this, wxID_ANY, _(L("Options")), wxDefaultPosition, wxDefaultSize, wxCB_READONLY);
     std::string options_items = GUI::into_u8(
         _(L("Travel")) + "|0|" +
         _(L("Retractions")) + "|0|" +
@@ -349,7 +349,7 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
         _(L("Shells")) + "|0|" +
         _(L("Legend")) + "|1"
     );
-    Slic3r::GUI::create_combochecklist(m_combochecklist_options, GUI::into_u8(_(L("Others"))), options_items);
+    Slic3r::GUI::create_combochecklist(m_combochecklist_options, GUI::into_u8(_(L("Options"))), options_items);
 #else
     m_checkbox_travel = new wxCheckBox(this, wxID_ANY, _(L("Travel")));
     m_checkbox_retractions = new wxCheckBox(this, wxID_ANY, _(L("Retractions")));
@@ -605,15 +605,11 @@ void Preview::show_hide_ui_elements(const std::string& what)
     bool enable = (what == "full");
     m_label_show->Enable(enable);
     m_combochecklist_features->Enable(enable);
-#if ENABLE_GCODE_VIEWER
-    m_combochecklist_options->Enable(enable);
-#else
     m_checkbox_travel->Enable(enable);
     m_checkbox_retractions->Enable(enable);
     m_checkbox_unretractions->Enable(enable);
     m_checkbox_shells->Enable(enable);
     m_checkbox_legend->Enable(enable);
-#endif // ENABLE_GCODE_VIEWER
 
     enable = (what != "none");
     m_label_view_type->Enable(enable);
@@ -622,15 +618,11 @@ void Preview::show_hide_ui_elements(const std::string& what)
     bool visible = (what != "none");
     m_label_show->Show(visible);
     m_combochecklist_features->Show(visible);
-#if ENABLE_GCODE_VIEWER
-    m_combochecklist_options->Show(visible);
-#else
     m_checkbox_travel->Show(visible);
     m_checkbox_retractions->Show(visible);
     m_checkbox_unretractions->Show(visible);
     m_checkbox_shells->Show(visible);
     m_checkbox_legend->Show(visible);
-#endif // ENABLE_GCODE_VIEWER
     m_label_view_type->Show(visible);
     m_choice_view_type->Show(visible);
 }

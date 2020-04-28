@@ -35,12 +35,16 @@ class GCodeViewer
     // Used to identify different toolpath sub-types inside a IBuffer
     struct Path
     {
+        struct Endpoint
+        {
+            unsigned int id{ 0u };
+            double z{ 0.0 };
+        };
+
         GCodeProcessor::EMoveType type{ GCodeProcessor::EMoveType::Noop };
         ExtrusionRole role{ erNone };
-        unsigned int first{ 0 };
-        unsigned int last{ 0 };
-        double first_z{ 0.0f };
-        double last_z{ 0.0f };
+        Endpoint first;
+        Endpoint last;
         float delta_extruder{ 0.0f };
         float height{ 0.0f };
         float width{ 0.0f };
@@ -257,7 +261,7 @@ private:
             return z > m_layers_z_range[0] - EPSILON && z < m_layers_z_range[1] + EPSILON;
         };
 
-        return in_z_range(path.first_z) || in_z_range(path.last_z);
+        return in_z_range(path.first.z) || in_z_range(path.last.z);
     }
 };
 
