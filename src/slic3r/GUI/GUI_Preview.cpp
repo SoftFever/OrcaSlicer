@@ -369,8 +369,8 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
     m_bottom_toolbar_sizer->Add(m_choice_view_type, 0, wxEXPAND | wxALL, 5);
     m_bottom_toolbar_sizer->AddSpacer(10);
     m_bottom_toolbar_sizer->Add(m_label_show, 0, wxALIGN_CENTER_VERTICAL, 5);
-    m_bottom_toolbar_sizer->Add(m_combochecklist_features, 0, wxEXPAND | wxALL, 5);
     m_bottom_toolbar_sizer->Add(m_combochecklist_options, 0, wxEXPAND | wxALL, 5);
+    m_bottom_toolbar_sizer->Add(m_combochecklist_features, 0, wxEXPAND | wxALL, 5);
 #else
     wxBoxSizer* bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
     bottom_sizer->Add(m_label_view_type, 0, wxALIGN_CENTER_VERTICAL, 5);
@@ -756,7 +756,8 @@ void Preview::update_bottom_toolbar()
     combochecklist_set_flags(m_combochecklist_features, m_canvas->get_toolpath_role_visibility_flags());
     combochecklist_set_flags(m_combochecklist_options, m_canvas->get_gcode_options_visibility_flags());
 
-    m_bottom_toolbar_sizer->Show(m_combochecklist_features, m_canvas->get_gcode_view_type() != GCodeViewer::EViewType::FeatureType);
+    m_bottom_toolbar_sizer->Show(m_combochecklist_features, 
+        !m_canvas->is_gcode_legend_enabled() || m_canvas->get_gcode_view_type() != GCodeViewer::EViewType::FeatureType);
     m_bottom_toolbar_sizer->Layout();
 }
 #endif // ENABLE_GCODE_VIEWER
