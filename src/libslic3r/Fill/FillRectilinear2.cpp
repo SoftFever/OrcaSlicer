@@ -133,11 +133,11 @@ struct SegmentIntersection
     // but it could be intersected with OUTER_LOW, INNER_LOW, INNER_HIGH, OUTER_HIGH,
     // and there may be more than one pair of INNER_LOW, INNER_HIGH between OUTER_LOW, OUTER_HIGH.
     enum SegmentIntersectionType : char {
-        OUTER_LOW   = 0,
-        OUTER_HIGH  = 1,
-        INNER_LOW   = 2,
-        INNER_HIGH  = 3,
-        UNKNOWN     = -1
+        UNKNOWN,
+        OUTER_LOW,
+        OUTER_HIGH,
+        INNER_LOW,
+        INNER_HIGH,
     };
     SegmentIntersectionType type { UNKNOWN };
 
