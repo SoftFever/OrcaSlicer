@@ -661,6 +661,20 @@ void GCodeViewer::render_toolpaths() const
             {
             case GCodeProcessor::EMoveType::Tool_change:
             {
+#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+                std::array<float, 3> color = { 1.0f, 1.0f, 1.0f };
+                set_color(current_program_id, color);
+                for (const RenderPath& path : buffer.render_paths)
+                {
+                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
+                    glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
+                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+                    ++m_statistics.gl_multi_points_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+                }
+#else
                 std::array<float, 3> color = { 1.0f, 1.0f, 1.0f };
                 set_color(current_program_id, color);
                 for (const Path& path : buffer.paths) {
@@ -675,10 +689,25 @@ void GCodeViewer::render_toolpaths() const
                     ++m_statistics.gl_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
                 }
+#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 break;
             }
             case GCodeProcessor::EMoveType::Color_change:
             {
+#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+                std::array<float, 3> color = { 1.0f, 0.0f, 0.0f };
+                set_color(current_program_id, color);
+                for (const RenderPath& path : buffer.render_paths)
+                {
+                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
+                    glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
+                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+                    ++m_statistics.gl_multi_points_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+                }
+#else
                 std::array<float, 3> color = { 1.0f, 0.0f, 0.0f };
                 set_color(current_program_id, color);
                 for (const Path& path : buffer.paths) {
@@ -693,10 +722,25 @@ void GCodeViewer::render_toolpaths() const
                     ++m_statistics.gl_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
                 }
+#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 break;
             }
             case GCodeProcessor::EMoveType::Pause_Print:
             {
+#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+                std::array<float, 3> color = { 0.0f, 1.0f, 0.0f };
+                set_color(current_program_id, color);
+                for (const RenderPath& path : buffer.render_paths)
+                {
+                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
+                    glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
+                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+                    ++m_statistics.gl_multi_points_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+                }
+#else
                 std::array<float, 3> color = { 0.0f, 1.0f, 0.0f };
                 set_color(current_program_id, color);
                 for (const Path& path : buffer.paths) {
@@ -711,10 +755,25 @@ void GCodeViewer::render_toolpaths() const
                     ++m_statistics.gl_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
                 }
+#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 break;
             }
             case GCodeProcessor::EMoveType::Custom_GCode:
             {
+#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+                std::array<float, 3> color = { 0.0f, 0.0f, 1.0f };
+                set_color(current_program_id, color);
+                for (const RenderPath& path : buffer.render_paths)
+                {
+                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
+                    glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
+                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+                    ++m_statistics.gl_multi_points_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+                }
+#else
                 std::array<float, 3> color = { 0.0f, 0.0f, 1.0f };
                 set_color(current_program_id, color);
                 for (const Path& path : buffer.paths) {
@@ -729,10 +788,25 @@ void GCodeViewer::render_toolpaths() const
                     ++m_statistics.gl_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
                 }
+#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 break;
             }
             case GCodeProcessor::EMoveType::Retract:
             {
+#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+                std::array<float, 3> color = { 1.0f, 0.0f, 1.0f };
+                set_color(current_program_id, color);
+                for (const RenderPath& path : buffer.render_paths)
+                {
+                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
+                    glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
+                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+                    ++m_statistics.gl_multi_points_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+                }
+#else
                 std::array<float, 3> color = { 1.0f, 0.0f, 1.0f };
                 set_color(current_program_id, color);
                 for (const Path& path : buffer.paths) {
@@ -747,10 +821,25 @@ void GCodeViewer::render_toolpaths() const
                     ++m_statistics.gl_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
                 }
+#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 break;
             }
             case GCodeProcessor::EMoveType::Unretract:
             {
+#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+                std::array<float, 3> color = { 0.0f, 1.0f, 1.0f };
+                set_color(current_program_id, color);
+                for (const RenderPath& path : buffer.render_paths)
+                {
+                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
+                    glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
+                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+                    ++m_statistics.gl_multi_points_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+                }
+#else
                 std::array<float, 3> color = { 0.0f, 1.0f, 1.0f };
                 set_color(current_program_id, color);
                 for (const Path& path : buffer.paths) {
@@ -765,6 +854,7 @@ void GCodeViewer::render_toolpaths() const
                     ++m_statistics.gl_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
                 }
+#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 break;
             }
             case GCodeProcessor::EMoveType::Extrude:
@@ -1132,7 +1222,7 @@ void GCodeViewer::render_statistics() const
     ImGui::Separator();
 
     ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
-    imgui.text(std::string("Results:"));
+    imgui.text(std::string("GCodeProcessor results:"));
     ImGui::PopStyleColor();
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.results_size) + " bytes");
