@@ -139,6 +139,7 @@ class GCodeViewer
         long long refresh_time{ 0 };
         long long gl_points_calls_count{ 0 };
         long long gl_line_strip_calls_count{ 0 };
+        long long results_size{ 0 };
         long long vertices_size{ 0 };
         long long indices_size{ 0 };
 
@@ -159,6 +160,7 @@ class GCodeViewer
         }
 
         void reset_sizes() {
+            results_size = 0;
             vertices_size = 0;
             indices_size = 0;
         }

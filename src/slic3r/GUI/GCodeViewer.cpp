@@ -346,6 +346,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 {
 #if ENABLE_GCODE_VIEWER_STATISTICS
     auto start_time = std::chrono::high_resolution_clock::now();
+    m_statistics.results_size = gcode_result.moves.size() * sizeof(GCodeProcessor::MoveVertex);
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     // vertex data
@@ -1021,6 +1022,12 @@ void GCodeViewer::render_statistics() const
     imgui.text(std::to_string(m_statistics.gl_line_strip_calls_count));
 
     ImGui::Separator();
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    imgui.text(std::string("Results:"));
+    ImGui::PopStyleColor();
+    ImGui::SameLine(offset);
+    imgui.text(std::to_string(m_statistics.results_size) + " bytes");
 
     ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
     imgui.text(std::string("Vertices:"));

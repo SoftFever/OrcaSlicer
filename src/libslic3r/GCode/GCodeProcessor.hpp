@@ -82,6 +82,7 @@ namespace Slic3r {
             float height{ 0.0f }; // mm
             float mm3_per_mm{ 0.0f };
             float fan_speed{ 0.0f }; // percentage
+            float time{ 0.0f }; // s
 
             float volumetric_rate() const { return feedrate * mm3_per_mm; }
 
