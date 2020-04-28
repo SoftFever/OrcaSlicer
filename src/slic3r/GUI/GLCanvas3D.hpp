@@ -646,6 +646,7 @@ public:
     void ensure_on_bed(unsigned int object_idx);
 
 #if ENABLE_GCODE_VIEWER
+    bool is_gcode_legend_enabled() const { return m_gcode_viewer.is_legend_enabled(); }
     GCodeViewer::EViewType get_gcode_view_type() const { return m_gcode_viewer.get_view_type(); }
     const std::vector<double>& get_layers_zs() const;
     unsigned int get_gcode_options_visibility_flags() const { return m_gcode_viewer.get_options_visibility_flags(); }

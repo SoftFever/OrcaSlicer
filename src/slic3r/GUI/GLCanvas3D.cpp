@@ -3216,6 +3216,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                     {
                         m_gcode_viewer.enable_legend(!m_gcode_viewer.is_legend_enabled());
                         m_dirty = true;
+                        wxGetApp().plater()->update_preview_bottom_toolbar();
                     }
                     break;
                   }
