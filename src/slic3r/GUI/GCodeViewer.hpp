@@ -262,7 +262,15 @@ public:
     void set_toolpath_role_visibility_flags(unsigned int flags) { m_extrusions.role_visibility_flags = flags; }
     unsigned int get_options_visibility_flags() const;
     void set_options_visibility_from_flags(unsigned int flags);
+#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
+    void set_layers_z_range(const std::array<double, 2>& layers_z_range)
+    {
+        m_layers_z_range = layers_z_range;
+        refresh_render_paths();
+    }
+#else
     void set_layers_z_range(const std::array<double, 2>& layers_z_range) { m_layers_z_range = layers_z_range; }
+#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
 
     bool is_legend_enabled() const { return m_legend_enabled; }
     void enable_legend(bool enable) { m_legend_enabled = enable; }
