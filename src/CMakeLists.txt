@@ -59,6 +59,10 @@ if (SLIC3R_GUI)
 
     include(${wxWidgets_USE_FILE})
 
+    list(FILTER wxWidgets_LIBRARIES EXCLUDE REGEX png)
+    list(FILTER wxWidgets_LIBRARIES EXCLUDE REGEX expat)
+    list(APPEND wxWidgets_LIBRARIES ${PNG_LIBRARIES} ${EXPAT_LIBRARIES})
+
 #    list(REMOVE_ITEM wxWidgets_LIBRARIES oleacc)
     message(STATUS "wx libs: ${wxWidgets_LIBRARIES}")
 
