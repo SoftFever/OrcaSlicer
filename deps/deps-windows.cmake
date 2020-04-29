@@ -149,38 +149,6 @@ ExternalProject_Add(dep_nlopt
 
 add_debug_dep(dep_nlopt)
 
-include(ZLIB/ZLIB.cmake)
-# ExternalProject_Add(dep_zlib
-#     EXCLUDE_FROM_ALL 1
-#     URL "https://zlib.net/zlib-1.2.11.tar.xz"
-#     URL_HASH SHA256=4ff941449631ace0d4d203e3483be9dbc9da454084111f97ea0a2114e19bf066
-#     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
-#     CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
-#     CMAKE_ARGS
-#         -DSKIP_INSTALL_FILES=ON                                    # Prevent installation of man pages et al.
-#         "-DINSTALL_BIN_DIR=${CMAKE_CURRENT_BINARY_DIR}\\fallout"   # I found no better way of preventing zlib from creating & installing DLLs :-/
-#         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-#         "-DCMAKE_INSTALL_PREFIX:PATH=${DESTDIR}\\usr\\local"
-#     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
-#     INSTALL_COMMAND ""
-# )
-
-add_debug_dep(dep_ZLIB)
-
-# The following steps are unfortunately needed to remove the _static suffix on libraries
-# ExternalProject_Add_Step(dep_zlib fix_static
-#     DEPENDEES install
-#     COMMAND "${CMAKE_COMMAND}" -E rename zlibstatic.lib zlib.lib
-#     WORKING_DIRECTORY "${DESTDIR}\\usr\\local\\lib\\"
-# )
-# if (${DEP_DEBUG})
-#     ExternalProject_Add_Step(dep_zlib fix_static_debug
-#         DEPENDEES install
-#         COMMAND "${CMAKE_COMMAND}" -E rename zlibstaticd.lib zlibd.lib
-#         WORKING_DIRECTORY "${DESTDIR}\\usr\\local\\lib\\"
-#     )
-# endif ()
-
 if (${DEPS_BITS} EQUAL 32)
     set(DEP_LIBCURL_TARGET "x86")
 else ()
@@ -243,36 +211,13 @@ endif ()
 
 find_package(Git REQUIRED)
 
-ExternalProject_Add(dep_wxwidgets
-    EXCLUDE_FROM_ALL 1
-    GIT_REPOSITORY "https://github.com/prusa3d/wxWidgets"
-    GIT_TAG v3.1.1-patched
-#    URL "https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.1/wxWidgets-3.1.1.tar.bz2"
-#    URL_HASH SHA256=c925dfe17e8f8b09eb7ea9bfdcfcc13696a3e14e92750effd839f5e10726159e
-    BUILD_IN_SOURCE 1
-#    PATCH_COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_SOURCE_DIR}\\wxwidgets-pngprefix.h" src\\png\\pngprefix.h
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND cd build\\msw && nmake /f makefile.vc BUILD=release SHARED=0 UNICODE=1 USE_GUI=1 "${DEP_WXWIDGETS_TARGET}"
-    INSTALL_COMMAND "${CMAKE_COMMAND}" -E copy_directory include "${DESTDIR}\\usr\\local\\include"
-        && "${CMAKE_COMMAND}" -E copy_directory "lib\\${DEP_WXWIDGETS_LIBDIR}" "${DESTDIR}\\usr\\local\\lib\\${DEP_WXWIDGETS_LIBDIR}"
-)
-if (${DEP_DEBUG})
-    ExternalProject_Get_Property(dep_wxwidgets SOURCE_DIR)
-    ExternalProject_Add_Step(dep_wxwidgets build_debug
-        DEPENDEES build
-        DEPENDERS install
-        COMMAND cd build\\msw && nmake /f makefile.vc BUILD=debug SHARED=0 UNICODE=1 USE_GUI=1 "${DEP_WXWIDGETS_TARGET}"
-        WORKING_DIRECTORY "${SOURCE_DIR}"
-    )
-endif ()
-
 ExternalProject_Add(dep_blosc
     EXCLUDE_FROM_ALL 1
     #URL https://github.com/Blosc/c-blosc/archive/v1.17.0.zip
     #URL_HASH SHA256=7463a1df566704f212263312717ab2c36b45d45cba6cd0dccebf91b2cc4b4da9
     GIT_REPOSITORY https://github.com/Blosc/c-blosc.git
     GIT_TAG e63775855294b50820ef44d1b157f4de1cc38d3e #v1.17.0
-    DEPENDS dep_ZLIB
+    DEPENDS ${ZLIB_PKG}
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
     CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
     CMAKE_ARGS
@@ -299,7 +244,7 @@ ExternalProject_Add(dep_openexr
     EXCLUDE_FROM_ALL 1
     GIT_REPOSITORY https://github.com/openexr/openexr.git
     GIT_TAG eae0e337c9f5117e78114fd05f7a415819df413a #v2.4.0 
-    DEPENDS dep_ZLIB
+    DEPENDS ${ZLIB_PKG}
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
     CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
     CMAKE_ARGS

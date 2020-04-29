@@ -298,6 +298,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     toggle_field("support_material_extruder", have_support_material || have_skirt);
     toggle_field("support_material_speed", have_support_material || have_brim || have_skirt);
 
+    bool has_ironing = config->opt_bool("ironing");
+    for (auto el : { "ironing_type", "ironing_flowrate", "ironing_spacing", "ironing_speed" })
+    	toggle_field(el, has_ironing);
+
     bool have_sequential_printing = config->opt_bool("complete_objects");
     for (auto el : { "extruder_clearance_radius", "extruder_clearance_height" })
         toggle_field(el, have_sequential_printing);

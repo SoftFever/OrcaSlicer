@@ -39,6 +39,11 @@ void PrintConfigDef::init_common_params()
 {
     ConfigOptionDef* def;
 
+	def = this->add("single_instance", coBool);
+	def->label = L("Single Instance");
+	def->mode = comAdvanced;
+	def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("printer_technology", coEnum);
     def->label = L("Printer technology");
     def->tooltip = L("Printer technology");
@@ -418,18 +423,20 @@ void PrintConfigDef::init_fff_params()
     def->cli = "top-fill-pattern|external-fill-pattern|solid-fill-pattern";
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values.push_back("rectilinear");
+    def->enum_values.push_back("monotonous");
     def->enum_values.push_back("concentric");
     def->enum_values.push_back("hilbertcurve");
     def->enum_values.push_back("archimedeanchords");
     def->enum_values.push_back("octagramspiral");
     def->enum_labels.push_back(L("Rectilinear"));
+    def->enum_labels.push_back(L("Monotonous"));
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Hilbert Curve"));
     def->enum_labels.push_back(L("Archimedean Chords"));
     def->enum_labels.push_back(L("Octagram Spiral"));
     // solid_fill_pattern is an obsolete equivalent to top_fill_pattern/bottom_fill_pattern.
     def->aliases = { "solid_fill_pattern", "external_fill_pattern" };
-    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
+    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipMonotonous));
 
     def = this->add("bottom_fill_pattern", coEnum);
     def->label = L("Bottom fill pattern");
@@ -1075,6 +1082,53 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Layers and Perimeters");
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("ironing", coBool);
+    def->label = L("Enable ironing");
+    def->tooltip = L("Enable ironing of the top layers with the hot print head for smooth surface");
+    def->category = L("Ironing");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("ironing_type", coEnum);
+    def->label = L("Ironingy Type");
+    def->tooltip = L("Ironingy Type");
+    def->enum_keys_map = &ConfigOptionEnum<IroningType>::get_enum_values();
+    def->enum_values.push_back("top");
+    def->enum_values.push_back("topmost");
+    def->enum_values.push_back("solid");
+    def->enum_labels.push_back("All top surfaces");
+    def->enum_labels.push_back("Topmost surface only");
+    def->enum_labels.push_back("All solid surfaces");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<IroningType>(IroningType::TopSurfaces));
+
+    def = this->add("ironing_flowrate", coPercent);
+    def->label = L("Flow rate");
+    def->category = L("Ironing");
+    def->tooltip = L("Percent of a flow rate relative to object's normal layer height.");
+    def->sidetext = L("%");
+    def->ratio_over = "layer_height";
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionPercent(15));
+
+    def = this->add("ironing_spacing", coFloat);
+    def->label = L("Spacing between ironing passes");
+    def->tooltip = L("Distance between ironing lins");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(0.1));
+
+    def = this->add("ironing_speed", coFloat);
+    def->label = L("Ironing speed");
+    def->category = L("Speed");
+    def->tooltip = L("Ironing speed");
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(15));
 
     def = this->add("layer_gcode", coString);
     def->label = L("After layer change G-code");

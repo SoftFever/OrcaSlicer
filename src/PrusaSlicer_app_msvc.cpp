@@ -7,6 +7,8 @@
 #include <shellapi.h>
 #include <wchar.h>
 
+
+
 #ifdef SLIC3R_GUI
 extern "C"
 {
@@ -216,7 +218,6 @@ int APIENTRY wWinMain(HINSTANCE /* hInstance */, HINSTANCE /* hPrevInstance */, 
 int wmain(int argc, wchar_t **argv)
 {
 #endif
-
     std::vector<wchar_t*> argv_extended;
     argv_extended.emplace_back(argv[0]);
 

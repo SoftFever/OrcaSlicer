@@ -387,6 +387,25 @@ void PrintObject::infill()
     }
 }
 
+void PrintObject::ironing()
+{
+    if (this->set_started(posIroning)) {
+        BOOST_LOG_TRIVIAL(debug) << "Ironing in parallel - start";
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(1, m_layers.size()),
+            [this](const tbb::blocked_range<size_t>& range) {
+                for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
+                    m_print->throw_if_canceled();
+                    m_layers[layer_idx]->make_ironing();
+                }
+            }
+        );
+        m_print->throw_if_canceled();
+        BOOST_LOG_TRIVIAL(debug) << "Ironing in parallel - end";
+        this->set_done(posIroning);
+    }
+}
+
 void PrintObject::generate_support_material()
 {
     if (this->set_started(posSupportMaterial)) {
@@ -2610,6 +2629,7 @@ void PrintObject::combine_infill()
              // Because fill areas for rectilinear and honeycomb are grown 
              // later to overlap perimeters, we need to counteract that too.
                 ((region->config().fill_pattern == ipRectilinear   ||
+                  region->config().fill_pattern == ipMonotonous    ||
                   region->config().fill_pattern == ipGrid          ||
                   region->config().fill_pattern == ipLine          ||
                   region->config().fill_pattern == ipHoneycomb) ? 1.5f : 0.5f) * 

@@ -3,6 +3,13 @@ set(DEP_CMAKE_OPTS "-DCMAKE_POSITION_INDEPENDENT_CODE=ON")
 
 include("deps-unix-common.cmake")
 
+find_package(PNG QUIET)
+if (NOT PNG_FOUND)
+    message(WARNING "No PNG dev package found in system, building static library. You should install the system package.")
+endif ()
+
+#TODO UDEV
+
 ExternalProject_Add(dep_boost
     EXCLUDE_FROM_ALL 1
     URL "https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz"
@@ -91,47 +98,6 @@ ExternalProject_Add(dep_libcurl
         --without-zsh-functions-dir
     BUILD_COMMAND make "-j${NPROC}"
     INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
-)
-
-if (DEP_WX_STABLE)
-    set(DEP_WX_TAG "v3.0.4")
-else ()
-    set(DEP_WX_TAG "v3.1.1-patched")
-endif()
-
-if (DEP_WX_GTK3)
-    set(WX_GTK_VERSION "3")
-else ()
-    set(WX_GTK_VERSION "2")
-endif()
-
-ExternalProject_Add(dep_wxwidgets
-    EXCLUDE_FROM_ALL 1
-    GIT_REPOSITORY "https://github.com/prusa3d/wxWidgets"
-    GIT_TAG "${DEP_WX_TAG}"
-    BUILD_IN_SOURCE 1
-    # PATCH_COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_SOURCE_DIR}/wxwidgets-pngprefix.h" src/png/pngprefix.h
-    CONFIGURE_COMMAND ./configure
-        "--prefix=${DESTDIR}/usr/local"
-        --disable-shared
-        --with-gtk=${WX_GTK_VERSION}
-        --with-opengl
-        --enable-unicode
-        --enable-graphics_ctx
-        --with-regex=builtin
-        --with-libpng=builtin
-        --with-libxpm=builtin
-        --with-libjpeg=builtin
-        --with-libtiff=builtin
-        --with-zlib
-        --with-expat=builtin
-        --disable-precomp-headers
-        --enable-debug_info
-        --enable-debug_gdb
-        --disable-debug
-        --disable-debug_flag
-    BUILD_COMMAND make "-j${NPROC}" && make -C locale allmo
-    INSTALL_COMMAND make install
 )
 
 add_dependencies(dep_openvdb dep_boost)

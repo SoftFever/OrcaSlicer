@@ -35,6 +35,7 @@ class PrintHostJobQueue;
 
 namespace GUI{
 class RemovableDriveManager;
+class OtherInstanceMessageHandler;
 enum FileType
 {
     FT_STL,
@@ -108,7 +109,7 @@ class GUI_App : public wxApp
     std::unique_ptr<ImGuiWrapper> m_imgui;
     std::unique_ptr<PrintHostJobQueue> m_printhost_job_queue;
     ConfigWizard* m_wizard;    // Managed by wxWindow tree
-
+	std::unique_ptr <OtherInstanceMessageHandler> m_other_instance_message_handler;
 public:
     bool            OnInit() override;
     bool            initialized() const { return m_initialized; }
@@ -196,6 +197,7 @@ public:
     std::vector<Tab *>      tabs_list;
 
 	RemovableDriveManager* removable_drive_manager() { return m_removable_drive_manager.get(); }
+	OtherInstanceMessageHandler* other_instance_message_handler() { return m_other_instance_message_handler.get(); }
 
     ImGuiWrapper* imgui() { return m_imgui.get(); }
 
@@ -211,6 +213,7 @@ public:
 
 private:
     bool            on_init_inner();
+	void            init_app_config();
     void            window_pos_save(wxTopLevelWindow* window, const std::string &name);
     void            window_pos_restore(wxTopLevelWindow* window, const std::string &name, bool default_maximized = false);
     void            window_pos_sanitize(wxTopLevelWindow* window);
