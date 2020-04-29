@@ -161,6 +161,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/DoubleSlider.hpp
     GUI/ObjectDataViewModel.cpp
     GUI/ObjectDataViewModel.hpp
+    GUI/InstanceCheck.cpp
+    GUI/InstanceCheck.hpp
     Utils/Http.cpp
     Utils/Http.hpp
     Utils/FixModelByWin10.cpp
@@ -195,6 +197,8 @@ if (APPLE)
             GUI/RemovableDriveManagerMM.mm
             GUI/RemovableDriveManagerMM.h
             GUI/Mouse3DHandlerMac.mm
+            GUI/InstanceCheckMac.mm
+            GUI/InstanceCheckMac.h
         )
     FIND_LIBRARY(DISKARBITRATION_LIBRARY DiskArbitration)
 
@@ -205,6 +209,10 @@ add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
 encoding_check(libslic3r_gui)
 
 target_link_libraries(libslic3r_gui libslic3r avrdude cereal imgui GLEW::GLEW OpenGL::GL OpenGL::GLU hidapi libcurl ${wxWidgets_LIBRARIES})
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    target_link_libraries(libslic3r_gui ${DBUS_LIBRARIES}) 
+endif()
 
 if(APPLE)
     target_link_libraries(libslic3r_gui ${DISKARBITRATION_LIBRARY})

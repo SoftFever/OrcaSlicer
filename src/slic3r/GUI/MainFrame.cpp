@@ -26,6 +26,7 @@
 #include "GUI_ObjectList.hpp"
 #include "Mouse3DController.hpp"
 #include "RemovableDriveManager.hpp"
+#include "InstanceCheck.hpp"
 #include "I18N.hpp"
 
 #include <fstream>
@@ -234,7 +235,8 @@ void MainFrame::shutdown()
 
     // Stop the background thread of the removable drive manager, so that no new updates will be sent to the Plater.
     wxGetApp().removable_drive_manager()->shutdown();
-
+	//stop listening for messages from other instances
+	wxGetApp().other_instance_message_handler()->shutdown();
     // Save the slic3r.ini.Usually the ini file is saved from "on idle" callback,
     // but in rare cases it may not have been called yet.
     wxGetApp().app_config->save();
