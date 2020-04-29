@@ -41,7 +41,7 @@ enum PrintStep {
 
 enum PrintObjectStep {
     posSlice, posPerimeters, posPrepareInfill,
-    posInfill, posSupportMaterial, posCount,
+    posInfill, posIroning, posSupportMaterial, posCount,
 };
 
 // A PrintRegion object represents a group of volumes to print
@@ -192,6 +192,11 @@ public:
     std::vector<ExPolygons>     slice_support_blockers() const { return this->slice_support_volumes(ModelVolumeType::SUPPORT_BLOCKER); }
     std::vector<ExPolygons>     slice_support_enforcers() const { return this->slice_support_volumes(ModelVolumeType::SUPPORT_ENFORCER); }
 
+    // Helpers to project custom supports on slices
+    void project_and_append_custom_supports(FacetSupportType type, std::vector<ExPolygons>& expolys) const;
+    void project_and_append_custom_enforcers(std::vector<ExPolygons>& enforcers) const { project_and_append_custom_supports(FacetSupportType::ENFORCER, enforcers); }
+    void project_and_append_custom_blockers(std::vector<ExPolygons>& blockers) const { project_and_append_custom_supports(FacetSupportType::BLOCKER, blockers); }
+
 private:
     // to be called from Print only.
     friend class Print;
@@ -218,6 +223,7 @@ private:
     void make_perimeters();
     void prepare_infill();
     void infill();
+    void ironing();
     void generate_support_material();
 
     void _slice(const std::vector<coordf_t> &layer_height_profile);

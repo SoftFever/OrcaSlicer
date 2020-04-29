@@ -10,6 +10,7 @@
 #include <wx/event.h>
 
 #include "libslic3r/Print.hpp"
+#include "libslic3r/Format/SL1.hpp"
 #include "slic3r/Utils/PrintHost.hpp"
 
 
@@ -19,6 +20,7 @@ class DynamicPrintConfig;
 class GCodePreviewData;
 class Model;
 class SLAPrint;
+class SL1Archive;
 
 class SlicingStatusEvent : public wxEvent
 {
@@ -47,7 +49,7 @@ public:
 	~BackgroundSlicingProcess();
 
 	void set_fff_print(Print *print) { m_fff_print = print; }
-	void set_sla_print(SLAPrint *print) { m_sla_print = print; }
+    void set_sla_print(SLAPrint *print) { m_sla_print = print; m_sla_print->set_printer(&m_sla_archive); }
 	void set_gcode_preview_data(GCodePreviewData *gpd) { m_gcode_preview_data = gpd; }
     void set_thumbnail_cb(ThumbnailsGeneratorCallback cb) { m_thumbnail_cb = cb; }
 
@@ -155,6 +157,7 @@ private:
 	GCodePreviewData 		   *m_gcode_preview_data = nullptr;
     // Callback function, used to write thumbnails into gcode.
     ThumbnailsGeneratorCallback m_thumbnail_cb 		 = nullptr;
+    SL1Archive                  m_sla_archive;
 	// Temporary G-code, there is one defined for the BackgroundSlicingProcess, differentiated from the other processes by a process ID.
 	std::string 				m_temp_output_path;
 	// Output path provided by the user. The output path may be set even if the slicing is running,

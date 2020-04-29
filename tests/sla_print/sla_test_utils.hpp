@@ -16,7 +16,7 @@
 #include "libslic3r/SLA/SupportTreeBuilder.hpp"
 #include "libslic3r/SLA/SupportTreeBuildsteps.hpp"
 #include "libslic3r/SLA/SupportPointGenerator.hpp"
-#include "libslic3r/SLA/Raster.hpp"
+#include "libslic3r/SLA/AGGRaster.hpp"
 #include "libslic3r/SLA/ConcaveHull.hpp"
 #include "libslic3r/MTUtils.hpp"
 
@@ -170,18 +170,19 @@ static constexpr const TPixel FullBlack = 0;
 
 template <class A, int N> constexpr int arraysize(const A (&)[N]) { return N; }
 
-void check_raster_transformations(sla::Raster::Orientation o,
-                                         sla::Raster::TMirroring  mirroring);
+void check_raster_transformations(sla::RasterBase::Orientation o,
+                                  sla::RasterBase::TMirroring  mirroring);
 
 ExPolygon square_with_hole(double v);
 
-inline double pixel_area(TPixel px, const sla::Raster::PixelDim &pxdim)
+inline double pixel_area(TPixel px, const sla::RasterBase::PixelDim &pxdim)
 {
     return (pxdim.h_mm * pxdim.w_mm) * px * 1. / (FullWhite - FullBlack);
 }
 
-double raster_white_area(const sla::Raster &raster);
+double raster_white_area(const sla::RasterGrayscaleAA &raster);
+long raster_pxsum(const sla::RasterGrayscaleAA &raster);
 
-double predict_error(const ExPolygon &p, const sla::Raster::PixelDim &pd);
+double predict_error(const ExPolygon &p, const sla::RasterBase::PixelDim &pd);
 
 #endif // SLA_TEST_UTILS_HPP

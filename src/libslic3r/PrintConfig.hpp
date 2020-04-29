@@ -34,8 +34,15 @@ enum PrintHostType {
 };
 
 enum InfillPattern {
-    ipRectilinear, ipGrid, ipTriangles, ipStars, ipCubic, ipLine, ipConcentric, ipHoneycomb, ip3DHoneycomb,
+    ipRectilinear, ipMonotonous, ipGrid, ipTriangles, ipStars, ipCubic, ipLine, ipConcentric, ipHoneycomb, ip3DHoneycomb,
     ipGyroid, ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipCount,
+};
+
+enum class IroningType {
+	TopSurfaces,
+	TopmostOnly,
+	AllSolid,
+	Count,
 };
 
 enum SupportMaterialPattern {
@@ -106,6 +113,7 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<InfillPattern>::g
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
         keys_map["rectilinear"]         = ipRectilinear;
+        keys_map["monotonous"]          = ipMonotonous;
         keys_map["grid"]                = ipGrid;
         keys_map["triangles"]           = ipTriangles;
         keys_map["stars"]               = ipStars;
@@ -118,6 +126,16 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<InfillPattern>::g
         keys_map["hilbertcurve"]        = ipHilbertCurve;
         keys_map["archimedeanchords"]   = ipArchimedeanChords;
         keys_map["octagramspiral"]      = ipOctagramSpiral;
+    }
+    return keys_map;
+}
+
+template<> inline const t_config_enum_values& ConfigOptionEnum<IroningType>::get_enum_values() {
+    static t_config_enum_values keys_map;
+    if (keys_map.empty()) {
+        keys_map["top"]                 = int(IroningType::TopSurfaces);
+        keys_map["topmost"]             = int(IroningType::TopmostOnly);
+        keys_map["solid"]               = int(IroningType::AllSolid);
     }
     return keys_map;
 }
@@ -193,6 +211,9 @@ private:
 extern const PrintConfigDef print_config_def;
 
 class StaticPrintConfig;
+
+PrinterTechnology printer_technology(const ConfigBase &cfg);
+double min_object_distance(const ConfigBase &cfg);
 
 // Slic3r dynamic configuration, used to override the configuration
 // per object, per modification volume or per printing material.
@@ -485,6 +506,12 @@ public:
     ConfigOptionInt                 infill_every_layers;
     ConfigOptionFloatOrPercent      infill_overlap;
     ConfigOptionFloat               infill_speed;
+    // Ironing options
+    ConfigOptionBool 				ironing;
+    ConfigOptionEnum<IroningType> 	ironing_type;
+    ConfigOptionPercent 			ironing_flowrate;
+    ConfigOptionFloat 				ironing_spacing;
+    ConfigOptionFloat 				ironing_speed;
     // Detect bridging perimeters
     ConfigOptionBool                overhangs;
     ConfigOptionInt                 perimeter_extruder;
@@ -530,6 +557,11 @@ protected:
         OPT_PTR(infill_every_layers);
         OPT_PTR(infill_overlap);
         OPT_PTR(infill_speed);
+        OPT_PTR(ironing);
+        OPT_PTR(ironing_type);
+        OPT_PTR(ironing_flowrate);
+        OPT_PTR(ironing_spacing);
+        OPT_PTR(ironing_speed);
         OPT_PTR(overhangs);
         OPT_PTR(perimeter_extruder);
         OPT_PTR(perimeter_extrusion_width);
@@ -749,8 +781,6 @@ class PrintConfig : public MachineEnvelopeConfig, public GCodeConfig
     STATIC_PRINT_CONFIG_CACHE_DERIVED(PrintConfig)
     PrintConfig() : MachineEnvelopeConfig(0), GCodeConfig(0) { initialize_cache(); *this = s_cache_PrintConfig.defaults(); }
 public:
-    double                          min_object_distance() const;
-    static double                   min_object_distance(const ConfigBase *config);
 
     ConfigOptionBool                avoid_crossing_perimeters;
     ConfigOptionPoints              bed_shape;
@@ -1304,6 +1334,10 @@ private:
     };
     static PrintAndCLIConfigDef s_def;
 };
+
+Points get_bed_shape(const DynamicPrintConfig &cfg);
+Points get_bed_shape(const PrintConfig &cfg);
+Points get_bed_shape(const SLAPrinterConfig &cfg);
 
 } // namespace Slic3r
 

@@ -24,6 +24,7 @@
 #include <wx/filefn.h>
 #include <wx/sysopt.h>
 #include <wx/msgdlg.h>
+#include <wx/richmsgdlg.h>
 #include <wx/log.h>
 #include <wx/intl.h>
 
@@ -49,6 +50,7 @@
 #include "UpdateDialogs.hpp"
 #include "Mouse3DController.hpp"
 #include "RemovableDriveManager.hpp"
+#include "InstanceCheck.hpp"
 
 #ifdef __WXMSW__
 #include <dbt.h>
@@ -208,6 +210,17 @@ static void register_win32_device_notification_event()
 		}
         return false;
     });
+
+	wxWindow::MSWRegisterMessageHandler(WM_COPYDATA, [](wxWindow* win, WXUINT /* nMsg */, WXWPARAM wParam, WXLPARAM lParam) {
+
+		COPYDATASTRUCT* copy_data_structure = { 0 };
+		copy_data_structure = (COPYDATASTRUCT*)lParam;
+		if (copy_data_structure->dwData == 1) {
+			LPCWSTR arguments = (LPCWSTR)copy_data_structure->lpData;
+			Slic3r::GUI::wxGetApp().other_instance_message_handler()->handle_message(boost::nowide::narrow(arguments));
+		}
+		return true;
+		});
 }
 #endif // WIN32
 
@@ -252,7 +265,11 @@ GUI_App::GUI_App()
     , m_imgui(new ImGuiWrapper())
     , m_wizard(nullptr)
 	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
-{}
+	, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
+{
+	//app config initializes early becasuse it is used in instance checking in PrusaSlicer.cpp
+	this->init_app_config();
+}
 
 GUI_App::~GUI_App()
 {
@@ -283,6 +300,30 @@ bool GUI_App::init_opengl()
 }
 #endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
+void GUI_App::init_app_config()
+{
+	// Profiles for the alpha are stored into the PrusaSlicer-alpha directory to not mix with the current release.
+	SetAppName(SLIC3R_APP_KEY);
+	//SetAppName(SLIC3R_APP_KEY "-beta");
+	SetAppDisplayName(SLIC3R_APP_NAME);
+
+	// Set the Slic3r data directory at the Slic3r XS module.
+	// Unix: ~/ .Slic3r
+	// Windows : "C:\Users\username\AppData\Roaming\Slic3r" or "C:\Documents and Settings\username\Application Data\Slic3r"
+	// Mac : "~/Library/Application Support/Slic3r"
+
+	if (data_dir().empty())
+		set_data_dir(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data());
+
+	if (!app_config)
+		app_config = new AppConfig();
+
+	// load settings
+	app_conf_exists = app_config->exists();
+	if (app_conf_exists) {
+		app_config->load();
+	}
+}
 bool GUI_App::OnInit()
 {
     try {
@@ -300,41 +341,40 @@ bool GUI_App::on_init_inner()
     wxCHECK_MSG(wxDirExists(resources_dir), false,
         wxString::Format("Resources path does not exist or is not a directory: %s", resources_dir));
 
-    // Profiles for the alpha are stored into the PrusaSlicer-alpha directory to not mix with the current release.
-    SetAppName(SLIC3R_APP_KEY);
-//    SetAppName(SLIC3R_APP_KEY "-beta");
-    SetAppDisplayName(SLIC3R_APP_NAME);
-
-// Enable this to get the default Win32 COMCTRL32 behavior of static boxes.
+     // Enable this to get the default Win32 COMCTRL32 behavior of static boxes.
 //    wxSystemOptions::SetOption("msw.staticbox.optimized-paint", 0);
-// Enable this to disable Windows Vista themes for all wxNotebooks. The themes seem to lead to terrible
-// performance when working on high resolution multi-display setups.
+    // Enable this to disable Windows Vista themes for all wxNotebooks. The themes seem to lead to terrible
+    // performance when working on high resolution multi-display setups.
 //    wxSystemOptions::SetOption("msw.notebook.themed-background", 0);
 
 //     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", wxVERSION_STRING, wxVERSION;
+   
+    std::string msg = Http::tls_global_init();
+    std::string ssl_cert_store = app_config->get("tls_accepted_cert_store_location");
+    bool ssl_accept = app_config->get("tls_cert_store_accepted") == "yes" && ssl_cert_store == Http::tls_system_cert_store();
+    
+    if (!msg.empty() && !ssl_accept) {
+        wxRichMessageDialog
+            dlg(nullptr,
+                wxString::Format(_(L("%s\nDo you want to continue?")), msg),
+                "PrusaSlicer", wxICON_QUESTION | wxYES_NO);
+        dlg.ShowCheckBox(_(L("Remember my choice")));
+        if (dlg.ShowModal() != wxID_YES) return false;
 
-    // Set the Slic3r data directory at the Slic3r XS module.
-    // Unix: ~/ .Slic3r
-    // Windows : "C:\Users\username\AppData\Roaming\Slic3r" or "C:\Documents and Settings\username\Application Data\Slic3r"
-    // Mac : "~/Library/Application Support/Slic3r"
-    if (data_dir().empty())
-        set_data_dir(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data());
-
-    app_config = new AppConfig();
+        app_config->set("tls_cert_store_accepted",
+                        dlg.IsCheckBoxChecked() ? "yes" : "no");
+        app_config->set("tls_accepted_cert_store_location",
+                        dlg.IsCheckBoxChecked() ? Http::tls_system_cert_store() : "");
+    }
+    
+    app_config->set("version", SLIC3R_VERSION);
+    app_config->save();
+    
     preset_bundle = new PresetBundle();
-
+    
     // just checking for existence of Slic3r::data_dir is not enough : it may be an empty directory
     // supplied as argument to --datadir; in that case we should still run the wizard
     preset_bundle->setup_directories();
-
-    // load settings
-    app_conf_exists = app_config->exists();
-    if (app_conf_exists) {
-        app_config->load();
-    }
-
-    app_config->set("version", SLIC3R_VERSION);
-    app_config->save();
 
 #ifdef __WXMSW__
     associate_3mf_files();
@@ -386,6 +426,8 @@ bool GUI_App::on_init_inner()
     {
         if (! plater_)
             return;
+
+		//m_other_instance_message_handler->report();
 
         if (app_config->dirty() && app_config->get("autosave") == "1")
             app_config->save();

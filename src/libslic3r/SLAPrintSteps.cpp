@@ -816,16 +816,7 @@ void SLAPrint::Steps::merge_slices_and_eval_stats() {
 // Rasterizing the model objects, and their supports
 void SLAPrint::Steps::rasterize()
 {
-    if(canceled()) return;
-    
-    auto &print_statistics = m_print->m_print_statistics;
-    auto &printer_input    = m_print->m_printer_input;
-    
-    // Set up the printer, allocate space for all the layers
-    sla::RasterWriter &printer = m_print->init_printer();
-    
-    auto lvlcnt = unsigned(printer_input.size());
-    printer.layers(lvlcnt);
+    if(canceled() || !m_print->m_printer) return;
     
     // coefficient to map the rasterization state (0-99) to the allocated
     // portion (slot) of the process state
@@ -837,7 +828,7 @@ void SLAPrint::Steps::rasterize()
     // pst: previous state
     double pst = current_status();
     
-    double increment = (slot * sd) / printer_input.size();
+    double increment = (slot * sd) / m_print->m_printer_input.size();
     double dstatus = current_status();
     
     sla::ccr::SpinningMutex slck;
@@ -845,20 +836,14 @@ void SLAPrint::Steps::rasterize()
     
     // procedure to process one height level. This will run in parallel
     auto lvlfn =
-        [this, &slck, &printer, increment, &dstatus, &pst]
-        (PrintLayer& printlayer, size_t idx)
+        [this, &slck, increment, &dstatus, &pst]
+        (sla::RasterBase& raster, size_t idx)
     {
+        PrintLayer& printlayer = m_print->m_printer_input[idx];
         if(canceled()) return;
-        auto level_id = unsigned(idx);
         
-        // Switch to the appropriate layer in the printer
-        printer.begin_layer(level_id);
-        
-        for(const ClipperLib::Polygon& poly : printlayer.transformed_slices())
-            printer.draw_polygon(poly, level_id);
-        
-        // Finish the layer for later saving it.
-        printer.finish_layer(level_id);
+        for (const ClipperLib::Polygon& poly : printlayer.transformed_slices())
+            raster.draw(poly);
         
         // Status indication guarded with the spinlock
         {
@@ -875,24 +860,8 @@ void SLAPrint::Steps::rasterize()
     // last minute escape
     if(canceled()) return;
     
-    // Sequential version (for testing)
-    // for(unsigned l = 0; l < lvlcnt; ++l) lvlfn(l);
-    
     // Print all the layers in parallel
-    sla::ccr::enumerate(printer_input.begin(), printer_input.end(), lvlfn);
-    
-    // Set statistics values to the printer
-    sla::RasterWriter::PrintStatistics stats;
-    stats.used_material = (print_statistics.objects_used_material +
-                           print_statistics.support_used_material) / 1000;
-    
-    int num_fade = m_print->m_default_object_config.faded_layers.getInt();
-    stats.num_fade = num_fade >= 0 ? size_t(num_fade) : size_t(0);
-    stats.num_fast = print_statistics.fast_layers_count;
-    stats.num_slow = print_statistics.slow_layers_count;
-    stats.estimated_print_time_s = print_statistics.estimated_print_time;
-    
-    printer.set_statistics(stats);
+    m_print->m_printer->draw_layers(m_print->m_printer_input.size(), lvlfn);
 }
 
 std::string SLAPrint::Steps::label(SLAPrintObjectStep step)
