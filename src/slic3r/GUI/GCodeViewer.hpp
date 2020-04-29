@@ -61,7 +61,6 @@ class GCodeViewer
         }
     };
 
-#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
     // Used to batch the indices needed to render paths
     struct RenderPath
     {
@@ -69,7 +68,6 @@ class GCodeViewer
         std::vector<unsigned int> sizes;
         std::vector<size_t> offsets; // use size_t because we need the pointer's size (used in the call glMultiDrawElements())
     };
-#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
 
     // buffer containing indices data and shader for a specific toolpath type
     struct IBuffer
@@ -79,9 +77,7 @@ class GCodeViewer
         std::vector<unsigned int> data;
         size_t data_size{ 0 };
         std::vector<Path> paths;
-#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
         std::vector<RenderPath> render_paths;
-#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
         bool visible{ false };
 
         void reset();
@@ -154,12 +150,8 @@ class GCodeViewer
     {
         long long load_time{ 0 };
         long long refresh_time{ 0 };
-        long long gl_points_calls_count{ 0 };
-        long long gl_line_strip_calls_count{ 0 };
-#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
         long long gl_multi_points_calls_count{ 0 };
         long long gl_multi_line_strip_calls_count{ 0 };
-#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
         long long results_size{ 0 };
         long long vertices_size{ 0 };
         long long vertices_gpu_size{ 0 };
@@ -178,12 +170,8 @@ class GCodeViewer
         }
 
         void reset_opengl() {
-            gl_points_calls_count = 0;
-            gl_line_strip_calls_count = 0;
-#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
             gl_multi_points_calls_count = 0;
             gl_multi_line_strip_calls_count = 0;
-#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
         }
 
         void reset_sizes() {
@@ -262,15 +250,11 @@ public:
     void set_toolpath_role_visibility_flags(unsigned int flags) { m_extrusions.role_visibility_flags = flags; }
     unsigned int get_options_visibility_flags() const;
     void set_options_visibility_from_flags(unsigned int flags);
-#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
     void set_layers_z_range(const std::array<double, 2>& layers_z_range)
     {
         m_layers_z_range = layers_z_range;
         refresh_render_paths();
     }
-#else
-    void set_layers_z_range(const std::array<double, 2>& layers_z_range) { m_layers_z_range = layers_z_range; }
-#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
 
     bool is_legend_enabled() const { return m_legend_enabled; }
     void enable_legend(bool enable) { m_legend_enabled = enable; }
@@ -279,9 +263,7 @@ private:
     bool init_shaders();
     void load_toolpaths(const GCodeProcessor::Result& gcode_result);
     void load_shells(const Print& print, bool initialized);
-#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
     void refresh_render_paths() const;
-#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
     void render_toolpaths() const;
     void render_shells() const;
     void render_legend() const;

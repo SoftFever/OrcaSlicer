@@ -214,10 +214,8 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
         }
     }
 
-#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
     // update buffers' render paths
     refresh_render_paths();
-#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.refresh_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
@@ -533,7 +531,6 @@ void GCodeViewer::load_shells(const Print& print, bool initialized)
     }
 }
 
-#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
 void GCodeViewer::refresh_render_paths() const
 {
     auto extrusion_color = [this](const Path& path) {
@@ -589,35 +586,9 @@ void GCodeViewer::refresh_render_paths() const
         }
     }
 }
-#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
 
 void GCodeViewer::render_toolpaths() const
 {
-#if !ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
-    auto extrusion_color = [this](const Path& path) {
-        std::array<float, 3> color;
-        switch (m_view_type)
-        {
-        case EViewType::FeatureType:    { color = Extrusion_Role_Colors[static_cast<unsigned int>(path.role)]; break; }
-        case EViewType::Height:         { color = m_extrusions.ranges.height.get_color_at(path.height); break; }
-        case EViewType::Width:          { color = m_extrusions.ranges.width.get_color_at(path.width); break; }
-        case EViewType::Feedrate:       { color = m_extrusions.ranges.feedrate.get_color_at(path.feedrate); break; }
-        case EViewType::FanSpeed:       { color = m_extrusions.ranges.fan_speed.get_color_at(path.fan_speed); break; }
-        case EViewType::VolumetricRate: { color = m_extrusions.ranges.volumetric_rate.get_color_at(path.volumetric_rate); break; }
-        case EViewType::Tool:           { color = m_tool_colors[path.extruder_id]; break; }
-        case EViewType::ColorPrint:     { color = m_tool_colors[path.cp_color_id]; break; }
-        default:                        { color = { 1.0f, 1.0f, 1.0f }; break; }
-        }
-        return color;
-    };
-
-    auto travel_color = [this](const Path& path) {
-        return (path.delta_extruder < 0.0f) ? Travel_Colors[2] /* Retract */ :
-              ((path.delta_extruder > 0.0f) ? Travel_Colors[1] /* Extrude */ :
-                Travel_Colors[0] /* Move */);
-    };
-#endif // !ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
-
     auto set_color = [](GLint current_program_id, const std::array<float, 3>& color) {
         if (current_program_id > 0) {
             GLint color_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "uniform_color") : -1;
@@ -661,7 +632,6 @@ void GCodeViewer::render_toolpaths() const
             {
             case GCodeProcessor::EMoveType::Tool_change:
             {
-#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 std::array<float, 3> color = { 1.0f, 1.0f, 1.0f };
                 set_color(current_program_id, color);
                 for (const RenderPath& path : buffer.render_paths)
@@ -674,27 +644,10 @@ void GCodeViewer::render_toolpaths() const
                     ++m_statistics.gl_multi_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
                 }
-#else
-                std::array<float, 3> color = { 1.0f, 1.0f, 1.0f };
-                set_color(current_program_id, color);
-                for (const Path& path : buffer.paths) {
-                    if (!is_in_z_range(path))
-                        continue;
-
-                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
-                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last.id - path.first.id + 1), GL_UNSIGNED_INT, (const void*)(path.first.id * sizeof(GLuint))));
-                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
-
-#if ENABLE_GCODE_VIEWER_STATISTICS
-                    ++m_statistics.gl_points_calls_count;
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-                }
-#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 break;
             }
             case GCodeProcessor::EMoveType::Color_change:
             {
-#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 std::array<float, 3> color = { 1.0f, 0.0f, 0.0f };
                 set_color(current_program_id, color);
                 for (const RenderPath& path : buffer.render_paths)
@@ -707,27 +660,10 @@ void GCodeViewer::render_toolpaths() const
                     ++m_statistics.gl_multi_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
                 }
-#else
-                std::array<float, 3> color = { 1.0f, 0.0f, 0.0f };
-                set_color(current_program_id, color);
-                for (const Path& path : buffer.paths) {
-                    if (!is_in_z_range(path))
-                        continue;
-
-                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
-                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last.id - path.first.id + 1), GL_UNSIGNED_INT, (const void*)(path.first.id * sizeof(GLuint))));
-                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
-
-#if ENABLE_GCODE_VIEWER_STATISTICS
-                    ++m_statistics.gl_points_calls_count;
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-                }
-#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 break;
             }
             case GCodeProcessor::EMoveType::Pause_Print:
             {
-#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 std::array<float, 3> color = { 0.0f, 1.0f, 0.0f };
                 set_color(current_program_id, color);
                 for (const RenderPath& path : buffer.render_paths)
@@ -740,27 +676,10 @@ void GCodeViewer::render_toolpaths() const
                     ++m_statistics.gl_multi_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
                 }
-#else
-                std::array<float, 3> color = { 0.0f, 1.0f, 0.0f };
-                set_color(current_program_id, color);
-                for (const Path& path : buffer.paths) {
-                    if (!is_in_z_range(path))
-                        continue;
-
-                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
-                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last.id - path.first.id + 1), GL_UNSIGNED_INT, (const void*)(path.first.id * sizeof(GLuint))));
-                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
-
-#if ENABLE_GCODE_VIEWER_STATISTICS
-                    ++m_statistics.gl_points_calls_count;
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-                }
-#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 break;
             }
             case GCodeProcessor::EMoveType::Custom_GCode:
             {
-#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 std::array<float, 3> color = { 0.0f, 0.0f, 1.0f };
                 set_color(current_program_id, color);
                 for (const RenderPath& path : buffer.render_paths)
@@ -773,27 +692,10 @@ void GCodeViewer::render_toolpaths() const
                     ++m_statistics.gl_multi_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
                 }
-#else
-                std::array<float, 3> color = { 0.0f, 0.0f, 1.0f };
-                set_color(current_program_id, color);
-                for (const Path& path : buffer.paths) {
-                    if (!is_in_z_range(path))
-                        continue;
-
-                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
-                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last.id - path.first.id + 1), GL_UNSIGNED_INT, (const void*)(path.first.id * sizeof(GLuint))));
-                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
-
-#if ENABLE_GCODE_VIEWER_STATISTICS
-                    ++m_statistics.gl_points_calls_count;
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-                }
-#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 break;
             }
             case GCodeProcessor::EMoveType::Retract:
             {
-#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 std::array<float, 3> color = { 1.0f, 0.0f, 1.0f };
                 set_color(current_program_id, color);
                 for (const RenderPath& path : buffer.render_paths)
@@ -806,27 +708,10 @@ void GCodeViewer::render_toolpaths() const
                     ++m_statistics.gl_multi_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
                 }
-#else
-                std::array<float, 3> color = { 1.0f, 0.0f, 1.0f };
-                set_color(current_program_id, color);
-                for (const Path& path : buffer.paths) {
-                    if (!is_in_z_range(path))
-                        continue;
-
-                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
-                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last.id - path.first.id + 1), GL_UNSIGNED_INT, (const void*)(path.first.id * sizeof(GLuint))));
-                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
-
-#if ENABLE_GCODE_VIEWER_STATISTICS
-                    ++m_statistics.gl_points_calls_count;
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-                }
-#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 break;
             }
             case GCodeProcessor::EMoveType::Unretract:
             {
-#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 std::array<float, 3> color = { 0.0f, 1.0f, 1.0f };
                 set_color(current_program_id, color);
                 for (const RenderPath& path : buffer.render_paths)
@@ -839,27 +724,10 @@ void GCodeViewer::render_toolpaths() const
                     ++m_statistics.gl_multi_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
                 }
-#else
-                std::array<float, 3> color = { 0.0f, 1.0f, 1.0f };
-                set_color(current_program_id, color);
-                for (const Path& path : buffer.paths) {
-                    if (!is_in_z_range(path))
-                        continue;
-
-                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
-                    glsafe(::glDrawElements(GL_POINTS, GLsizei(path.last.id - path.first.id + 1), GL_UNSIGNED_INT, (const void*)(path.first.id * sizeof(GLuint))));
-                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
-
-#if ENABLE_GCODE_VIEWER_STATISTICS
-                    ++m_statistics.gl_points_calls_count;
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-                }
-#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 break;
             }
             case GCodeProcessor::EMoveType::Extrude:
             {
-#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 for (const RenderPath& path : buffer.render_paths)
                 {
                     set_color(current_program_id, path.color);
@@ -869,24 +737,10 @@ void GCodeViewer::render_toolpaths() const
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
                 }
-#else
-                for (const Path& path : buffer.paths) {
-                    if (!is_visible(path) || !is_in_z_range(path))
-                        continue;
-
-                    set_color(current_program_id, extrusion_color(path));
-                    glsafe(::glDrawElements(GL_LINE_STRIP, GLsizei(path.last.id - path.first.id + 1), GL_UNSIGNED_INT, (const void*)(path.first.id * sizeof(GLuint))));
-
-#if ENABLE_GCODE_VIEWER_STATISTICS
-                    ++m_statistics.gl_line_strip_calls_count;
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-                }
-#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 break;
             }
             case GCodeProcessor::EMoveType::Travel:
             {
-#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 for (const RenderPath& path : buffer.render_paths)
                 {
                     set_color(current_program_id, path.color);
@@ -896,19 +750,6 @@ void GCodeViewer::render_toolpaths() const
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
                 }
-#else
-                for (const Path& path : buffer.paths) {
-                    if (!is_in_z_range(path))
-                        continue;
-
-                    set_color(current_program_id, (m_view_type == EViewType::Feedrate || m_view_type == EViewType::Tool || m_view_type == EViewType::ColorPrint) ? extrusion_color(path) : travel_color(path));
-                    glsafe(::glDrawElements(GL_LINE_STRIP, GLsizei(path.last.id - path.first.id + 1), GL_UNSIGNED_INT, (const void*)(path.first.id * sizeof(GLuint))));
-
-#if ENABLE_GCODE_VIEWER_STATISTICS
-                    ++m_statistics.gl_line_strip_calls_count;
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-                }
-#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                 break;
             }
             }
@@ -1021,10 +862,8 @@ void GCodeViewer::render_legend() const
                 if (role < erCount)
                 {
                     m_extrusions.role_visibility_flags = is_visible(role) ? m_extrusions.role_visibility_flags & ~(1 << role) : m_extrusions.role_visibility_flags | (1 << role);
-#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                     // update buffers' render paths
                     refresh_render_paths();
-#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
                     wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
                     wxGetApp().plater()->update_preview_bottom_toolbar();
                 }
@@ -1194,19 +1033,6 @@ void GCodeViewer::render_statistics() const
     ImGui::Separator();
 
     ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
-    imgui.text(std::string("GL_POINTS calls:"));
-    ImGui::PopStyleColor();
-    ImGui::SameLine(offset);
-    imgui.text(std::to_string(m_statistics.gl_points_calls_count));
-
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
-    imgui.text(std::string("GL_LINE_STRIP calls:"));
-    ImGui::PopStyleColor();
-    ImGui::SameLine(offset);
-    imgui.text(std::to_string(m_statistics.gl_line_strip_calls_count));
-
-#if ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
     imgui.text(std::string("Multi GL_POINTS calls:"));
     ImGui::PopStyleColor();
     ImGui::SameLine(offset);
@@ -1217,7 +1043,6 @@ void GCodeViewer::render_statistics() const
     ImGui::PopStyleColor();
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.gl_multi_line_strip_calls_count));
-#endif // ENABLE_GCODE_VIEWER_GL_OPTIMIZATION
 
     ImGui::Separator();
 
