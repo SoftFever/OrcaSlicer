@@ -58,19 +58,3 @@ ExternalProject_Add(dep_libcurl
         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
         ${DEP_CMAKE_OPTS}
 )
-
-ExternalProject_Add(dep_wxwidgets
-    EXCLUDE_FROM_ALL 1
-    GIT_REPOSITORY "https://github.com/prusa3d/wxWidgets"
-    GIT_TAG v3.1.1-patched
-#    URL "https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.1/wxWidgets-3.1.1.tar.bz2"
-#    URL_HASH SHA256=c925dfe17e8f8b09eb7ea9bfdcfcc13696a3e14e92750effd839f5e10726159e
-#    PATCH_COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_SOURCE_DIR}\\wxwidgets-pngprefix.h" src\\png\\pngprefix.h
-    CMAKE_ARGS
-        -DBUILD_SHARED_LIBS=OFF
-        -DwxUSE_LIBPNG=builtin
-        -DwxUSE_ZLIB=builtin
-        -DwxUSE_OPENGL=ON
-        -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
-        ${DEP_CMAKE_OPTS}
-)

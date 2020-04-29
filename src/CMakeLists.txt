@@ -59,6 +59,29 @@ if (SLIC3R_GUI)
 
     include(${wxWidgets_USE_FILE})
 
+    string(REGEX MATCH "wxpng" WX_PNG_BUILTIN ${wxWidgets_LIBRARIES})
+    if (PNG_FOUND AND NOT WX_PNG_BUILTIN)
+        list(FILTER wxWidgets_LIBRARIES EXCLUDE REGEX png)
+        list(APPEND wxWidgets_LIBRARIES ${PNG_LIBRARIES})
+    endif ()
+
+    string(REGEX MATCH "wxexpat" WX_EXPAT_BUILTIN ${wxWidgets_LIBRARIES})
+    if (EXPAT_FOUND AND NOT WX_EXPAT_BUILTIN)
+        list(FILTER wxWidgets_LIBRARIES EXCLUDE REGEX expat)
+        list(APPEND wxWidgets_LIBRARIES ${EXPAT_LIBRARIES})
+    endif ()
+
+    # This is an issue in the new wxWidgets cmake build, doesn't deal with librt
+    find_library(LIBRT rt)
+    if(LIBRT)
+        list(APPEND wxWidgets_LIBRARIES ${LIBRT})
+    endif()
+
+    # This fixes a OpenGL linking issue on OSX. wxWidgets cmake build includes
+    # wrong libs for opengl in the link line and it does not link to it by himself.
+    # libslic3r_gui will link to opengl anyway, so lets override wx
+    list(FILTER wxWidgets_LIBRARIES EXCLUDE REGEX OpenGL)
+
 #    list(REMOVE_ITEM wxWidgets_LIBRARIES oleacc)
     message(STATUS "wx libs: ${wxWidgets_LIBRARIES}")
 
@@ -178,13 +201,13 @@ if (WIN32)
 elseif (XCODE)
     # Because of Debug/Release/etc. configurations (similar to MSVC) the slic3r binary is located in an extra level
     add_custom_command(TARGET PrusaSlicer POST_BUILD
-        COMMAND ln -sf "${SLIC3R_RESOURCES_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/resources"
+        COMMAND ln -sfn "${SLIC3R_RESOURCES_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/resources"
         COMMENT "Symlinking the resources directory into the build tree"
         VERBATIM
     )
 else ()
     add_custom_command(TARGET PrusaSlicer POST_BUILD
-        COMMAND ln -sf "${SLIC3R_RESOURCES_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/../resources"
+        COMMAND ln -sfn "${SLIC3R_RESOURCES_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/../resources"
         COMMENT "Symlinking the resources directory into the build tree"
         VERBATIM
     )

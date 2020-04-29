@@ -100,6 +100,13 @@ void PreferencesDialog::build()
 	option = Option (def,"show_incompatible_presets");
 	m_optgroup_general->append_single_option_line(option);
 
+	def.label = L("Single Instance");
+	def.type = coBool;
+	def.tooltip = L("If this is enabled, when staring PrusaSlicer and another instance is running, that instance will be reactivated instead.");
+	def.set_default_value(new ConfigOptionBool{ app_config->has("single_instance") ? app_config->get("single_instance") == "1" : false });
+	option = Option(def, "single_instance");
+	m_optgroup_general->append_single_option_line(option);
+
 #if __APPLE__
 	def.label = L("Use Retina resolution for the 3D scene");
 	def.type = coBool;
@@ -185,6 +192,8 @@ void PreferencesDialog::accept()
 	for (std::map<std::string, std::string>::iterator it = m_values.begin(); it != m_values.end(); ++it) {
 		app_config->set(it->first, it->second);
 	}
+
+	app_config->save();
 
 	EndModal(wxID_OK);
 

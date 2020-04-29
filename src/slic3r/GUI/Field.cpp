@@ -57,6 +57,8 @@ void Field::PostInitialize()
     m_Undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_back_to_initial_value(); }));
 	m_Undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_back_to_sys_value(); }));
 
+	m_blinking_bmp		= new BlinkingBitmap(m_parent);
+
 	switch (m_opt.type)
 	{
 	case coPercents:
@@ -943,7 +945,7 @@ void Choice::set_value(const boost::any& value, bool change_event)
 	}
 	case coEnum: {
 		int val = boost::any_cast<int>(value);
-		if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_fill_pattern")
+		if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_fill_pattern" || m_opt_id == "fill_pattern")
 		{
 			if (!m_opt.enum_values.empty()) {
 				std::string key;
@@ -1013,7 +1015,7 @@ boost::any& Choice::get_value()
 	if (m_opt.type == coEnum)
 	{
 		int ret_enum = field->GetSelection(); 
-		if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_fill_pattern")
+		if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_fill_pattern" || m_opt_id == "fill_pattern")
 		{
 			if (!m_opt.enum_values.empty()) {
 				std::string key = m_opt.enum_values[ret_enum];
@@ -1025,8 +1027,8 @@ boost::any& Choice::get_value()
 			else
 				m_value = static_cast<InfillPattern>(0);
 		}
-		if (m_opt_id.compare("fill_pattern") == 0)
-			m_value = static_cast<InfillPattern>(ret_enum);
+		else if (m_opt_id.compare("ironing_type") == 0)
+			m_value = static_cast<IroningType>(ret_enum);
 		else if (m_opt_id.compare("gcode_flavor") == 0)
 			m_value = static_cast<GCodeFlavor>(ret_enum);
 		else if (m_opt_id.compare("support_material_pattern") == 0)

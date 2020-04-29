@@ -108,6 +108,7 @@ void OptionsGroup::add_undo_buttuns_to_sizer(wxSizer* sizer, const t_field& fiel
 		return;
 	}
 
+    sizer->Add(field->m_blinking_bmp, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 2);
 	sizer->Add(field->m_Undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
 	sizer->Add(field->m_Undo_btn, 0, wxALIGN_CENTER_VERTICAL);
 }
@@ -377,6 +378,9 @@ Option ConfigOptionsGroup::get_option(const std::string& opt_key, int opt_index 
 	std::string opt_id = opt_index == -1 ? opt_key : opt_key + "#" + std::to_string(opt_index);
 	std::pair<std::string, int> pair(opt_key, opt_index);
 	m_opt_map.emplace(opt_id, pair);
+
+	if (m_show_modified_btns) // fill group and category values just fro options from Settings Tab 
+	    wxGetApp().sidebar().get_searcher().add_key(opt_id, title, config_category);
 
 	return Option(*m_config->def()->get(opt_key), opt_id);
 }
@@ -679,6 +683,9 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 			opt_key == "bottom_fill_pattern" ||
 			opt_key == "fill_pattern" ) {
 			ret = static_cast<int>(config.option<ConfigOptionEnum<InfillPattern>>(opt_key)->value);
+		}
+		else if (opt_key.compare("ironing_type") == 0 ) {
+			ret = static_cast<int>(config.option<ConfigOptionEnum<IroningType>>(opt_key)->value);
 		}
 		else if (opt_key.compare("gcode_flavor") == 0 ) {
 			ret = static_cast<int>(config.option<ConfigOptionEnum<GCodeFlavor>>(opt_key)->value);

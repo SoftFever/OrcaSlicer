@@ -41,7 +41,7 @@ enum PrintStep {
 
 enum PrintObjectStep {
     posSlice, posPerimeters, posPrepareInfill,
-    posInfill, posSupportMaterial, posCount,
+    posInfill, posIroning, posSupportMaterial, posCount,
 };
 
 // A PrintRegion object represents a group of volumes to print
@@ -223,6 +223,7 @@ private:
     void make_perimeters();
     void prepare_infill();
     void infill();
+    void ironing();
     void generate_support_material();
 
     void _slice(const std::vector<coordf_t> &layer_height_profile);

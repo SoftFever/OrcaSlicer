@@ -2246,12 +2246,14 @@ void GCode::process_layer(
                     const auto& by_region_specific = is_anything_overridden ? island.by_region_per_copy(by_region_per_copy_cache, static_cast<unsigned int>(instance_to_print.instance_id), extruder_id, print_wipe_extrusions != 0) : island.by_region;
                 	//FIXME the following code prints regions in the order they are defined, the path is not optimized in any way.
                     if (print.config().infill_first) {
-                        gcode += this->extrude_infill(print, by_region_specific);
+                        gcode += this->extrude_infill(print, by_region_specific, false);
                         gcode += this->extrude_perimeters(print, by_region_specific, lower_layer_edge_grids[instance_to_print.layer_id]);
                     } else {
                         gcode += this->extrude_perimeters(print, by_region_specific, lower_layer_edge_grids[instance_to_print.layer_id]);
-                        gcode += this->extrude_infill(print,by_region_specific);
+                        gcode += this->extrude_infill(print,by_region_specific, false);
                     }
+                    // ironing
+                    gcode += this->extrude_infill(print,by_region_specific, true);
                 }
                 if (this->config().gcode_label_objects)
 					gcode += std::string("; stop printing object ") + instance_to_print.print_object.model_object()->name + " id:" + std::to_string(instance_to_print.layer_id) + " copy " + std::to_string(instance_to_print.instance_id) + "\n";
@@ -2873,22 +2875,30 @@ std::string GCode::extrude_perimeters(const Print &print, const std::vector<Obje
 }
 
 // Chain the paths hierarchically by a greedy algorithm to minimize a travel distance.
-std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectByExtruder::Island::Region> &by_region)
+std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectByExtruder::Island::Region> &by_region, bool ironing)
 {
-    std::string gcode;
+    std::string 		 gcode;
+    ExtrusionEntitiesPtr extrusions;
+    const char*          extrusion_name = ironing ? "ironing" : "infill";
     for (const ObjectByExtruder::Island::Region &region : by_region)
         if (! region.infills.empty()) {
-            m_config.apply(print.regions()[&region - &by_region.front()]->config());
-		    ExtrusionEntitiesPtr extrusions { region.infills };
-		    chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
-            for (const ExtrusionEntity *fill : extrusions) {
-                auto *eec = dynamic_cast<const ExtrusionEntityCollection*>(fill);
-                if (eec) {
-				    for (ExtrusionEntity *ee : eec->chained_path_from(m_last_pos).entities)
-                        gcode += this->extrude_entity(*ee, "infill");
-                } else
-                    gcode += this->extrude_entity(*fill, "infill");
-            }
+        	extrusions.clear();
+        	extrusions.reserve(region.infills.size());
+        	for (ExtrusionEntity *ee : region.infills)
+        		if ((ee->role() == erIroning) == ironing)
+        			extrusions.emplace_back(ee);
+        	if (! extrusions.empty()) {
+	            m_config.apply(print.regions()[&region - &by_region.front()]->config());
+			    chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
+	            for (const ExtrusionEntity *fill : extrusions) {
+	                auto *eec = dynamic_cast<const ExtrusionEntityCollection*>(fill);
+	                if (eec) {
+					    for (ExtrusionEntity *ee : eec->chained_path_from(m_last_pos).entities)
+	                        gcode += this->extrude_entity(*ee, extrusion_name);
+	                } else
+	                    gcode += this->extrude_entity(*fill, extrusion_name);
+	            }
+	        }
         }
     return gcode;
 }
@@ -3027,6 +3037,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             speed = m_config.get_abs_value("solid_infill_speed");
         } else if (path.role() == erTopSolidInfill) {
             speed = m_config.get_abs_value("top_solid_infill_speed");
+        } else if (path.role() == erIroning) {
+            speed = m_config.get_abs_value("ironing_speed");
         } else if (path.role() == erGapFill) {
             speed = m_config.get_abs_value("gap_fill_speed");
         } else {
@@ -3427,10 +3439,13 @@ void GCode::ObjectByExtruder::Island::Region::append(const Type type, const Extr
 
     // First we append the entities, there are eec->entities.size() of them:
     size_t old_size = perimeters_or_infills->size();
-    size_t new_size = old_size + eec->entities.size();
+    size_t new_size = old_size + (eec->can_reverse() ? eec->entities.size() : 1);
     perimeters_or_infills->reserve(new_size);
-    for (auto* ee : eec->entities)
-        perimeters_or_infills->emplace_back(ee);
+    if (eec->can_reverse()) {
+	    for (auto* ee : eec->entities)
+	        perimeters_or_infills->emplace_back(ee);
+	} else
+		perimeters_or_infills->emplace_back(const_cast<ExtrusionEntityCollection*>(eec));
 
     if (copies_extruder != nullptr) {
     	// Don't reallocate overrides if not needed.

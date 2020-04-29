@@ -160,6 +160,9 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # Boost on Raspberry-Pi does not link to pthreads.
     set(THREADS_PREFER_PTHREAD_FLAG ON)
     find_package(Threads REQUIRED)
+
+    find_package(DBus REQUIRED)
+    include_directories(${DBUS_INCLUDE_DIRS})
 endif()
 
 if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUXX)
@@ -369,9 +372,9 @@ include_directories(BEFORE SYSTEM ${EIGEN3_INCLUDE_DIR})
 
 # Find expat or use bundled version
 # Always use the system libexpat on Linux.
-if (NOT SLIC3R_STATIC OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    find_package(EXPAT)
-endif ()
+
+find_package(EXPAT)
+
 if (NOT EXPAT_FOUND)
     add_library(expat STATIC
         ${LIBDIR}/expat/xmlparse.c
@@ -382,7 +385,8 @@ if (NOT EXPAT_FOUND)
     set(EXPAT_INCLUDE_DIRS ${LIBDIR}/expat/)
     set(EXPAT_LIBRARIES expat)
 endif ()
-include_directories(${EXPAT_INCLUDE_DIRS})
+
+find_package(PNG)
 
 find_package(OpenGL REQUIRED)
 

@@ -38,11 +38,12 @@ std::vector<std::pair<size_t, bool>> chain_segments_closest_point(std::vector<En
     	// Ignore the starting point as the starting point is considered to be occupied, no end point coud connect to it.
 		size_t next_idx = find_closest_point(kdtree, this_point.pos,
 			[this_idx, &end_points, &could_reverse_func](size_t idx) {
-				return (idx ^ this_idx) > 1 && end_points[idx].chain_id == 0 && ((idx ^ 1) == 0 || could_reverse_func(idx >> 1));
+				return (idx ^ this_idx) > 1 && end_points[idx].chain_id == 0 && ((idx & 1) == 0 || could_reverse_func(idx >> 1));
 		});
 		assert(next_idx < end_points.size());
 		EndPointType &end_point = end_points[next_idx];
 		end_point.chain_id = 1;
+		assert((next_idx & 1) == 0 || could_reverse_func(next_idx >> 1));
 		out.emplace_back(next_idx / 2, (next_idx & 1) != 0);
 		this_idx = next_idx ^ 1;
 	}
@@ -165,7 +166,9 @@ std::vector<std::pair<size_t, bool>> chain_segments_greedy_constrained_reversals
 		EndPoint *first_point = nullptr;
 		size_t    first_point_idx = std::numeric_limits<size_t>::max();
 		if (start_near != nullptr) {
-            size_t idx = find_closest_point(kdtree, start_near->template cast<double>());
+            size_t idx = find_closest_point(kdtree, start_near->template cast<double>(),
+				// Don't start with a reverse segment, if flipping of the segment is not allowed.
+				[&could_reverse_func](size_t idx) { return (idx & 1) == 0 || could_reverse_func(idx >> 1); });
 			assert(idx < end_points.size());
 			first_point = &end_points[idx];
 			first_point->distance_out = 0.;

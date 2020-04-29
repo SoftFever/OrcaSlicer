@@ -69,6 +69,9 @@ void AppConfig::set_defaults()
         set("use_retina_opengl", "1");
 #endif
 
+	if (get("single_instance").empty())
+		set("single_instance", "0");
+
     if (get("remember_output_path").empty())
         set("remember_output_path", "1");
 
