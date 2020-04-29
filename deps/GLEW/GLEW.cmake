@@ -1,6 +1,6 @@
 # We have to check for OpenGL to compile GLEW
 set(OpenGL_GL_PREFERENCE "LEGACY") # to prevent a nasty warning by cmake
-find_package(OpenGL QUIET)
+find_package(OpenGL QUIET REQUIRED)
 
 prusaslicer_add_cmake_project(
   GLEW
