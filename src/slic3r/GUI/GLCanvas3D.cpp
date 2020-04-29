@@ -5261,7 +5261,7 @@ bool GLCanvas3D::_init_collapse_toolbar()
         m_collapse_toolbar.set_tooltip(id, new_tooltip);
         set_tooltip("");
 
-        wxGetApp().plater()->collapse_sidebur(!wxGetApp().plater()->is_sidebar_collapsed());
+        wxGetApp().plater()->collapse_sidebar(!wxGetApp().plater()->is_sidebar_collapsed());
     };
 
     if (!m_collapse_toolbar.add_item(item))

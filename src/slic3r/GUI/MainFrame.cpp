@@ -851,7 +851,7 @@ void MainFrame::init_menubar()
             [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_labels_shown(); }, this);
 #endif // ENABLE_SLOPE_RENDERING
         append_menu_check_item(viewMenu, wxID_ANY, _(L("&Collapse sidebar")), _(L("Collapse sidebar")),
-            [this](wxCommandEvent&) { m_plater->collapse_sidebur(!m_plater->is_sidebar_collapsed()); }, this,
+            [this](wxCommandEvent&) { m_plater->collapse_sidebar(!m_plater->is_sidebar_collapsed()); }, this,
             [this]() { return true; }, [this]() { return m_plater->is_sidebar_collapsed(); }, this);
     }
 

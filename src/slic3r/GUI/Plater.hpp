@@ -188,7 +188,7 @@ public:
     void show_view3D_labels(bool show);
 
     bool is_sidebar_collapsed() const;
-    void collapse_sidebur(bool show);
+    void collapse_sidebar(bool show);
 
 #if ENABLE_SLOPE_RENDERING
     bool is_view3D_slope_shown() const;
