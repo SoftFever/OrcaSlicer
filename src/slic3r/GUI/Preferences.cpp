@@ -109,7 +109,16 @@ void PreferencesDialog::build()
 	option = Option (def, "use_retina_opengl");
 	m_optgroup_general->append_single_option_line(option);
 #endif
-
+/*  // ysFIXME THis part is temporary commented
+    // The using of inches is implemented just for object's size and position
+    
+	def.label = L("Use inches instead of millimeters");
+	def.type = coBool;
+	def.tooltip = L("Use inches instead of millimeters for the object's size");
+	def.set_default_value(new ConfigOptionBool{ app_config->get("use_inches") == "1" });
+	option = Option(def, "use_inches");
+	m_optgroup_general->append_single_option_line(option);
+*/
 	m_optgroup_camera = std::make_shared<ConfigOptionsGroup>(this, _(L("Camera")));
 	m_optgroup_camera->label_width = 40;
 	m_optgroup_camera->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
