@@ -33,6 +33,7 @@
 #include "Event.hpp"
 #include "wxExtensions.hpp"
 #include "ConfigManipulation.hpp"
+#include "Search.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -49,7 +50,7 @@ class Page : public wxScrolledWindow
 	wxBoxSizer*		m_vsizer;
     bool            m_show = true;
 public:
-    Page(wxWindow* parent, const wxString title, const int iconID, const std::vector<ScalableBitmap>& mode_bmp_cache) :
+    Page(wxWindow* parent, const wxString& title, const int iconID, const std::vector<ScalableBitmap>& mode_bmp_cache) :
 			m_parent(parent),
 			m_title(title),
 			m_iconID(iconID),
@@ -121,6 +122,7 @@ protected:
 	std::string			m_name;
 	const wxString		m_title;
 	PresetBitmapComboBox*	m_presets_choice;
+	ScalableButton*		m_search_btn;
 	ScalableButton*		m_btn_save_preset;
 	ScalableButton*		m_btn_delete_preset;
 	ScalableButton*		m_btn_hide_incompatible_presets;
@@ -221,6 +223,21 @@ protected:
     bool                m_completed { false };
     ConfigOptionMode    m_mode = comExpert; // to correct first Tab update_visibility() set mode to Expert
 
+	struct Highlighter
+	{
+		void set_timer_owner(wxEvtHandler* owner, int timerid = wxID_ANY);
+		void init(BlinkingBitmap* bmp);
+		void blink();
+
+	private:
+		void invalidate();
+
+		BlinkingBitmap*	bbmp {nullptr};
+		int				blink_counter {0};
+	    wxTimer         timer;
+	} 
+    m_highlighter;
+
 public:
 	PresetBundle*		m_preset_bundle;
 	bool				m_show_btn_incompatible_presets = false;
@@ -232,6 +249,10 @@ public:
 	// map of option name -> wxStaticText (colored label, associated with option) 
     // Used for options which don't have corresponded field
 	std::map<std::string, wxStaticText*>	m_colored_Labels;
+
+	// map of option name -> BlinkingBitmap (blinking ikon, associated with option) 
+    // Used for options which don't have corresponded field
+	std::map<std::string, BlinkingBitmap*>	m_blinking_ikons;
 
     // Counter for the updating (because of an update() function can have a recursive behavior):
     // 1. increase value from the very beginning of an update() function
@@ -299,6 +320,7 @@ public:
     void            update_visibility();
     virtual void    msw_rescale();
 	Field*			get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
+    Field*          get_field(const t_config_option_key &opt_key, Page** selected_page, int opt_index = -1);
 	bool			set_value(const t_config_option_key& opt_key, const boost::any& value);
 	wxSizer*		description_line_widget(wxWindow* parent, ogStaticText** StaticText);
 	bool			current_preset_is_dirty();
@@ -310,6 +332,8 @@ public:
 	void			on_value_change(const std::string& opt_key, const boost::any& value);
 
     void            update_wiping_button_visibility();
+	void			activate_option(const std::string& opt_key, const wxString& category);
+    void			apply_searcher();
 
 protected:
 	void			create_line_with_widget(ConfigOptionsGroup* optgroup, const std::string& opt_key, widget_t widget);

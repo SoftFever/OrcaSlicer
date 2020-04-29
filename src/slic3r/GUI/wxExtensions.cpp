@@ -943,5 +943,40 @@ void ScalableButton::msw_rescale()
 }
 
 
+// ----------------------------------------------------------------------------
+// BlinkingBitmap
+// ----------------------------------------------------------------------------
+
+BlinkingBitmap::BlinkingBitmap(wxWindow* parent, const std::string& icon_name) :
+    wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(int(1.6 * Slic3r::GUI::wxGetApp().em_unit()), -1))
+{
+    bmp = ScalableBitmap(parent, icon_name);
+}
+
+void BlinkingBitmap::msw_rescale()
+{
+    bmp.msw_rescale();
+    this->SetSize(bmp.GetBmpSize());
+    this->SetMinSize(bmp.GetBmpSize());
+}
+
+void BlinkingBitmap::invalidate()
+{
+    this->SetBitmap(wxNullBitmap);
+}
+
+void BlinkingBitmap::activate()
+{
+    this->SetBitmap(bmp.bmp());
+    show = true;
+}
+
+void BlinkingBitmap::blink()
+{
+    show = !show;
+    this->SetBitmap(show ? bmp.bmp() : wxNullBitmap);
+}
+
+
 
 
