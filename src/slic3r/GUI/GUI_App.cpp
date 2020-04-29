@@ -350,17 +350,15 @@ bool GUI_App::on_init_inner()
 //     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", wxVERSION_STRING, wxVERSION;
    
     std::string msg = Http::tls_global_init();
-    wxRichMessageDialog
-        dlg(nullptr,
-            wxString::Format(_(L("%s\nDo you want to continue?")), _(msg)),
-            "PrusaSlicer", wxICON_QUESTION | wxYES_NO);
-    
-    bool ssl_accept = app_config->get("tls_cert_store_accepted") == "yes";
     std::string ssl_cert_store = app_config->get("tls_accepted_cert_store_location");
-    ssl_accept = ssl_accept && ssl_cert_store == Http::tls_system_cert_store();
+    bool ssl_accept = app_config->get("tls_cert_store_accepted") == "yes" && ssl_cert_store == Http::tls_system_cert_store();
     
-    dlg.ShowCheckBox(_(L("Remember my choice")));
     if (!msg.empty() && !ssl_accept) {
+        wxRichMessageDialog
+            dlg(nullptr,
+                wxString::Format(_(L("%s\nDo you want to continue?")), msg),
+                "PrusaSlicer", wxICON_QUESTION | wxYES_NO);
+        dlg.ShowCheckBox(_(L("Remember my choice")));
         if (dlg.ShowModal() != wxID_YES) return false;
 
         app_config->set("tls_cert_store_accepted",
