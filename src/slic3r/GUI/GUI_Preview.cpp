@@ -298,58 +298,59 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
     m_double_slider_sizer = new wxBoxSizer(wxHORIZONTAL);
     create_double_slider();
 
-    m_label_view_type = new wxStaticText(this, wxID_ANY, _(L("View")));
+    m_label_view_type = new wxStaticText(this, wxID_ANY, _L("View"));
 
     m_choice_view_type = new wxChoice(this, wxID_ANY);
-    m_choice_view_type->Append(_(L("Feature type")));
-    m_choice_view_type->Append(_(L("Height")));
-    m_choice_view_type->Append(_(L("Width")));
-    m_choice_view_type->Append(_(L("Speed")));
-    m_choice_view_type->Append(_(L("Fan speed")));
-    m_choice_view_type->Append(_(L("Volumetric flow rate")));
-    m_choice_view_type->Append(_(L("Tool")));
-    m_choice_view_type->Append(_(L("Color Print")));
+    m_choice_view_type->Append(_L("Feature type"));
+    m_choice_view_type->Append(_L("Height"));
+    m_choice_view_type->Append(_L("Width"));
+    m_choice_view_type->Append(_L("Speed"));
+    m_choice_view_type->Append(_L("Fan speed"));
+    m_choice_view_type->Append(_L("Volumetric flow rate"));
+    m_choice_view_type->Append(_L("Tool"));
+    m_choice_view_type->Append(_L("Color Print"));
     m_choice_view_type->SetSelection(0);
 
-    m_label_show = new wxStaticText(this, wxID_ANY, _(L("Show")));
+    m_label_show = new wxStaticText(this, wxID_ANY, _L("Show"));
 
     m_combochecklist_features = new wxComboCtrl();
-    m_combochecklist_features->Create(this, wxID_ANY, _(L("Feature types")), wxDefaultPosition, wxDefaultSize, wxCB_READONLY);
+    m_combochecklist_features->Create(this, wxID_ANY, _L("Feature types"), wxDefaultPosition, wxDefaultSize, wxCB_READONLY);
     std::string feature_items = GUI::into_u8(
 #if ENABLE_GCODE_VIEWER
         _L("Unknown") + "|1|" +
 #endif // ENABLE_GCODE_VIEWER
-        _(L("Perimeter")) + "|1|" +
-        _(L("External perimeter")) + "|1|" +
-        _(L("Overhang perimeter")) + "|1|" +
-        _(L("Internal infill")) + "|1|" +
-        _(L("Solid infill")) + "|1|" +
-        _(L("Top solid infill")) + "|1|" +
-        _(L("Bridge infill")) + "|1|" +
-        _(L("Gap fill")) + "|1|" +
-        _(L("Skirt")) + "|1|" +
-        _(L("Support material")) + "|1|" +
-        _(L("Support material interface")) + "|1|" +
-        _(L("Wipe tower")) + "|1|" +
-        _(L("Custom")) + "|1"
+        _L("Perimeter") + "|1|" +
+        _L("External perimeter") + "|1|" +
+        _L("Overhang perimeter") + "|1|" +
+        _L("Internal infill") + "|1|" +
+        _L("Solid infill") + "|1|" +
+        _L("Top solid infill") + "|1|" +
+        _L("Ironing") + "|1|" +
+        _L("Bridge infill") + "|1|" +
+        _L("Gap fill") + "|1|" +
+        _L("Skirt") + "|1|" +
+        _L("Support material") + "|1|" +
+        _L("Support material interface") + "|1|" +
+        _L("Wipe tower") + "|1|" +
+        _L("Custom") + "|1"
     );
-    Slic3r::GUI::create_combochecklist(m_combochecklist_features, GUI::into_u8(_(L("Feature types"))), feature_items);
+    Slic3r::GUI::create_combochecklist(m_combochecklist_features, GUI::into_u8(_L("Feature types")), feature_items);
 
 #if ENABLE_GCODE_VIEWER
     m_combochecklist_options = new wxComboCtrl();
-    m_combochecklist_options->Create(this, wxID_ANY, _(L("Options")), wxDefaultPosition, wxDefaultSize, wxCB_READONLY);
+    m_combochecklist_options->Create(this, wxID_ANY, _L("Options"), wxDefaultPosition, wxDefaultSize, wxCB_READONLY);
     std::string options_items = GUI::into_u8(
-        _(L("Travel")) + "|0|" +
-        _(L("Retractions")) + "|0|" +
-        _(L("Unretractions")) + "|0|" +
-        _(L("Tool changes")) + "|0|" +
-        _(L("Color changes")) + "|0|" +
-        _(L("Pause prints")) + "|0|" +
-        _(L("Custom GCodes")) + "|0|" +
-        _(L("Shells")) + "|0|" +
-        _(L("Legend")) + "|1"
+        _L("Travel") + "|0|" +
+        _L("Retractions") + "|0|" +
+        _L("Unretractions") + "|0|" +
+        _L("Tool changes") + "|0|" +
+        _L("Color changes") + "|0|" +
+        _L("Pause prints") + "|0|" +
+        _L("Custom GCodes") + "|0|" +
+        _L("Shells") + "|0|" +
+        _L("Legend") + "|1"
     );
-    Slic3r::GUI::create_combochecklist(m_combochecklist_options, GUI::into_u8(_(L("Options"))), options_items);
+    Slic3r::GUI::create_combochecklist(m_combochecklist_options, GUI::into_u8(_L("Options")), options_items);
 #else
     m_checkbox_travel = new wxCheckBox(this, wxID_ANY, _(L("Travel")));
     m_checkbox_retractions = new wxCheckBox(this, wxID_ANY, _(L("Retractions")));
