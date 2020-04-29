@@ -4377,8 +4377,6 @@ void Plater::increase_instances(size_t num)
 //        p->print.get_object(obj_idx)->add_copy(Slic3r::to_2d(offset_vec));
     }
 
-    sidebar().obj_list()->increase_object_instances(obj_idx, was_one_instance ? num + 1 : num);
-
     if (p->get_config("autocenter") == "1")
         arrange();
 
@@ -4386,8 +4384,9 @@ void Plater::increase_instances(size_t num)
 
     p->get_selection().add_instance(obj_idx, (int)model_object->instances.size() - 1);
 
-    p->selection_changed();
+    sidebar().obj_list()->increase_object_instances(obj_idx, was_one_instance ? num + 1 : num);
 
+    p->selection_changed();
     this->p->schedule_background_process();
 }
 
