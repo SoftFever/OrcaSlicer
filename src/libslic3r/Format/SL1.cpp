@@ -162,6 +162,8 @@ void invert_raster_trafo(ExPolygons &                  expolys,
                          coord_t                       width,
                          coord_t                       height)
 {
+    if (trafo.flipXY) std::swap(height, width);
+
     for (auto &expoly : expolys) {
         if (trafo.mirror_y)
             foreach_vertex(expoly, [height](Point &p) {p.y() = height - p.y(); });

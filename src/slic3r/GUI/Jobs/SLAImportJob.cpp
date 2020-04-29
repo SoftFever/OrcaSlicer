@@ -219,8 +219,10 @@ void SLAImportJob::finalize()
         wxGetApp().load_current_presets();
     }
     
-    if (!p->mesh.empty())
-        p->plater->sidebar().obj_list()->load_mesh_object(p->mesh, name);
+    if (!p->mesh.empty()) {
+        bool is_centered = false;
+        p->plater->sidebar().obj_list()->load_mesh_object(p->mesh, name, is_centered);
+    }
     
     reset();
 }

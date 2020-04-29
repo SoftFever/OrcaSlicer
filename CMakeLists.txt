@@ -386,7 +386,7 @@ if (NOT EXPAT_FOUND)
     set(EXPAT_LIBRARIES expat)
 endif ()
 
-find_package(PNG)
+find_package(PNG REQUIRED)
 
 find_package(OpenGL REQUIRED)
 
