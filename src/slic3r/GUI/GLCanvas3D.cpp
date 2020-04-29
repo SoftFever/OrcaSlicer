@@ -3658,7 +3658,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
         else if (evt.LeftDown() && (evt.ShiftDown() || evt.AltDown()) && m_picking_enabled)
         {
-            if (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports)
+            if (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports
+             && m_gizmos.get_current_type() != GLGizmosManager::FdmSupports)
             {
                 m_rectangle_selection.start_dragging(m_mouse.position, evt.ShiftDown() ? GLSelectionRectangle::Select : GLSelectionRectangle::Deselect);
                 m_dirty = true;
