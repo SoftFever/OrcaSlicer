@@ -932,11 +932,7 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D
         std::vector<std::pair<double, double>> cp_values;
         cp_values.reserve(custom_gcode_per_print_z.size());
         
-#if ENABLE_GCODE_VIEWER
-        const std::vector<double>& print_zs = canvas.get_layers_zs();
-#else
         std::vector<double> print_zs = canvas.get_current_print_zs(true);
-#endif // ENABLE_GCODE_VIEWER
         for (auto custom_code : custom_gcode_per_print_z)
         {
             if (custom_code.gcode != ColorChangeCode)
@@ -2327,9 +2323,14 @@ void GLCanvas3D::ensure_on_bed(unsigned int object_idx)
 
 
 #if ENABLE_GCODE_VIEWER
-const std::vector<double>& GLCanvas3D::get_layers_zs() const
+const std::vector<double>& GLCanvas3D::get_gcode_layers_zs() const
 {
     return m_gcode_viewer.get_layers_zs();
+}
+
+std::vector<double> GLCanvas3D::get_volumes_print_zs(bool active_only) const
+{
+    return m_volumes.get_current_print_zs(active_only);
 }
 
 void GLCanvas3D::set_gcode_options_visibility_from_flags(unsigned int flags)
@@ -2350,6 +2351,7 @@ void GLCanvas3D::set_toolpath_view_type(GCodeViewer::EViewType type)
 void GLCanvas3D::set_toolpaths_z_range(const std::array<double, 2>& range)
 {
     m_gcode_viewer.set_layers_z_range(range);
+    m_volumes.set_range(range[0] - 1e-6, range[1] + 1e-6);
 }
 #else
 std::vector<double> GLCanvas3D::get_current_print_zs(bool active_only) const
