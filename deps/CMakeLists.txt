@@ -34,8 +34,10 @@ endif ()
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
 
 option(DEP_DEBUG "Build debug variants (only applicable on Windows)" ON)
-option(DEP_WX_STABLE "Build against wxWidgets stable 3.0 as opposed to default 3.1 (Linux only)" OFF)
-option(DEP_WX_GTK3 "Build wxWidgets against GTK3" OFF)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    option(DEP_WX_GTK3 "Build wxWidgets against GTK3" OFF)
+endif()
 
 # On developer machines, it can be enabled to speed up compilation and suppress warnings coming from IGL. 
 # FIXME:
@@ -127,12 +129,28 @@ else()
     include("deps-linux.cmake")
 endif()
 
+set(ZLIB_PKG "")
+if (NOT ZLIB_FOUND) 
+    include(ZLIB/ZLIB.cmake)
+    set(ZLIB_PKG dep_ZLIB)
+endif ()
+set(PNG_PKG "")
+if (NOT PNG_FOUND) 
+    include(PNG/PNG.cmake)
+    set(PNG_PKG dep_PNG)
+endif ()
+set(EXPAT_PKG "")
+if (NOT EXPAT_FOUND) 
+    include(EXPAT/EXPAT.cmake)
+    set(EXPAT_PKG dep_EXPAT)
+endif ()
+
 include(GLEW/GLEW.cmake)
 include(OpenCSG/OpenCSG.cmake)
-
 include(GMP/GMP.cmake)
 include(MPFR/MPFR.cmake)
 include(CGAL/CGAL.cmake)
+include(wxWidgets/wxWidgets.cmake)
 
 if (MSVC)
 
@@ -141,15 +159,17 @@ if (MSVC)
         dep_boost
         dep_tbb
         dep_libcurl
-        dep_wxwidgets
+        dep_wxWidgets
         dep_gtest
         dep_cereal
         dep_nlopt
         # dep_qhull # Experimental
-        dep_ZLIB    # on Windows we still need zlib
         dep_openvdb
         dep_OpenCSG
         dep_CGAL
+        ${PNG_PKG}
+        ${ZLIB_PKG}
+        ${EXPAT_PKG}
     )
 
 else()
@@ -159,7 +179,7 @@ else()
         dep_boost
         dep_tbb
         dep_libcurl
-        dep_wxwidgets
+        dep_wxWidgets
         dep_gtest
         dep_cereal
         dep_nlopt
@@ -167,6 +187,9 @@ else()
         dep_openvdb
         dep_OpenCSG
         dep_CGAL
+        ${PNG_PKG}
+        ${ZLIB_PKG}
+        ${EXPAT_PKG}
         # dep_libigl # Not working, static build has different Eigen
     )
 

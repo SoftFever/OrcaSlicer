@@ -1057,6 +1057,10 @@ void Preview::load_print_as_fff(bool keep_z_range)
 
     if (IsShown())
     {
+#if ENABLE_GCODE_VIEWER
+        std::vector<double> zs;
+#endif // ENABLE_GCODE_VIEWER
+
         m_canvas->set_selected_extruder(0);
         if (gcode_preview_data_valid) {
             // Load the real G-code preview.
@@ -1065,6 +1069,7 @@ void Preview::load_print_as_fff(bool keep_z_range)
             m_canvas->refresh_gcode_preview(*m_gcode_result, colors);
             GetSizer()->Show(m_bottom_toolbar_sizer);
             GetSizer()->Layout();
+            zs = m_canvas->get_gcode_layers_zs();
 #else
             m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
 #endif // ENABLE_GCODE_VIEWER
@@ -1075,14 +1080,13 @@ void Preview::load_print_as_fff(bool keep_z_range)
 #if ENABLE_GCODE_VIEWER
             GetSizer()->Hide(m_bottom_toolbar_sizer);
             GetSizer()->Layout();
+            zs = m_canvas->get_volumes_print_zs(true);
 #endif // ENABLE_GCODE_VIEWER
         }
-#if ENABLE_GCODE_VIEWER
-        const std::vector<double>& zs = m_canvas->get_layers_zs();
-#else
+#if !ENABLE_GCODE_VIEWER
         show_hide_ui_elements(gcode_preview_data_valid ? "full" : "simple");
         std::vector<double> zs = m_canvas->get_current_print_zs(true);
-#endif // ENABLE_GCODE_VIEWER
+#endif // !ENABLE_GCODE_VIEWER
         if (zs.empty()) {
             // all layers filtered out
             reset_sliders(true);

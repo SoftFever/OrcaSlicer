@@ -1162,6 +1162,12 @@ void TabPrint::build()
         optgroup->append_single_option_line("top_fill_pattern");
         optgroup->append_single_option_line("bottom_fill_pattern");
 
+        optgroup = page->new_optgroup(_(L("Ironing")));
+        optgroup->append_single_option_line("ironing");
+        optgroup->append_single_option_line("ironing_type");
+        optgroup->append_single_option_line("ironing_flowrate");
+        optgroup->append_single_option_line("ironing_spacing");
+
         optgroup = page->new_optgroup(_(L("Reducing printing time")));
         optgroup->append_single_option_line("infill_every_layers");
         optgroup->append_single_option_line("infill_only_where_needed");
@@ -1222,6 +1228,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_material_interface_speed");
         optgroup->append_single_option_line("bridge_speed");
         optgroup->append_single_option_line("gap_fill_speed");
+        optgroup->append_single_option_line("ironing_speed");
 
         optgroup = page->new_optgroup(_(L("Speed for non-print moves")));
         optgroup->append_single_option_line("travel_speed");

@@ -680,6 +680,9 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 			opt_key == "fill_pattern" ) {
 			ret = static_cast<int>(config.option<ConfigOptionEnum<InfillPattern>>(opt_key)->value);
 		}
+		else if (opt_key.compare("ironing_type") == 0 ) {
+			ret = static_cast<int>(config.option<ConfigOptionEnum<IroningType>>(opt_key)->value);
+		}
 		else if (opt_key.compare("gcode_flavor") == 0 ) {
 			ret = static_cast<int>(config.option<ConfigOptionEnum<GCodeFlavor>>(opt_key)->value);
 		}

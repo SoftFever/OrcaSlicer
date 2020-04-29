@@ -36,11 +36,6 @@ public:
     // collection of surfaces for infill generation
     SurfaceCollection           fill_surfaces;
 
-    // Collection of perimeter surfaces. This is a cached result of diff(slices, fill_surfaces).
-    // While not necessary, the memory consumption is meager and it speeds up calculation.
-    // The perimeter_surfaces keep the IDs of the slices (top/bottom/)
-    SurfaceCollection           perimeter_surfaces;
-
     // collection of expolygons representing the bridged areas (thus not
     // needing support material)
     Polygons                    bridged;
@@ -140,6 +135,7 @@ public:
     }
     void                    make_perimeters();
     void                    make_fills();
+    void 					make_ironing();
 
     void                    export_region_slices_to_svg(const char *path) const;
     void                    export_region_fill_surfaces_to_svg(const char *path) const;

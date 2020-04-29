@@ -26,6 +26,7 @@
 // Saves around 32% RAM after slicing step, 6.7% after G-code export (tested on PrusaSlicer 2.2.0 final).
 typedef int32_t coord_t;
 #else
+//FIXME At least FillRectilinear2 requires coord_t to be 32bit.
 typedef int64_t coord_t;
 #endif
 
