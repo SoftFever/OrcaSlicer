@@ -59,6 +59,8 @@ private:
     void render_cursor_circle() const;
     void update_mesh();
 
+    bool is_mesh_point_clipped(const Vec3d& point) const;
+
     float m_clipping_plane_distance = 0.f;
     std::unique_ptr<ClippingPlane> m_clipping_plane;
 

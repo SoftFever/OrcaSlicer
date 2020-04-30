@@ -90,6 +90,20 @@ void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
     ScopeGuard offset_fill_guard([]() { glsafe(::glDisable(GL_POLYGON_OFFSET_FILL)); } );
     glsafe(::glPolygonOffset(-1.0, 1.0));
 
+    // Take care of the clipping plane. The normal of the clipping plane is
+    // saved with opposite sign than we need to pass to OpenGL (FIXME)
+    bool clipping_plane_active = m_c->object_clipper()->get_position() != 0.;
+    if (clipping_plane_active) {
+        const ClippingPlane* clp = m_c->object_clipper()->get_clipping_plane();
+        double clp_data[4];
+        memcpy(clp_data, clp->get_data(), 4 * sizeof(double));
+        for (int i=0; i<3; ++i)
+            clp_data[i] = -1. * clp_data[i];
+
+        glsafe(::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)clp_data));
+        glsafe(::glEnable(GL_CLIP_PLANE0));
+    }
+
     int mesh_id = -1;
     for (const ModelVolume* mv : mo->volumes) {
         if (! mv->is_model_part())
@@ -113,6 +127,8 @@ void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
         }
         glsafe(::glPopMatrix());
     }
+    if (clipping_plane_active)
+        glsafe(::glDisable(GL_CLIP_PLANE0));
 }
 
 
@@ -218,6 +234,21 @@ void GLGizmoFdmSupports::update_mesh()
 
 
 
+bool GLGizmoFdmSupports::is_mesh_point_clipped(const Vec3d& point) const
+{
+    if (m_c->object_clipper()->get_position() == 0.)
+        return false;
+
+    auto sel_info = m_c->selection_info();
+    int active_inst = m_c->selection_info()->get_active_instance();
+    const ModelInstance* mi = sel_info->model_object()->instances[active_inst];
+    const Transform3d& trafo = mi->get_transformation().get_matrix();
+
+    Vec3d transformed_point =  trafo * point;
+    transformed_point(2) += sel_info->get_sla_shift();
+    return m_c->object_clipper()->get_clipping_plane()->is_point_clipped(transformed_point);
+}
+
 
 bool operator<(const GLGizmoFdmSupports::NeighborData& a, const GLGizmoFdmSupports::NeighborData& b) {
     return a.first < b.first;
@@ -230,6 +261,8 @@ bool operator<(const GLGizmoFdmSupports::NeighborData& a, const GLGizmoFdmSuppor
 // concludes that the event was not intended for it, it should return false.
 bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down)
 {
+    bool processed = false;
+
     if (action == SLAGizmoEventType::MouseWheelUp
      || action == SLAGizmoEventType::MouseWheelDown) {
         if (control_down) {
@@ -310,6 +343,12 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                        m_clipping_plane.get(),
                        &facet))
             {
+                // In case this hit is clipped, skip it.
+                if (is_mesh_point_clipped(hit.cast<double>())) {
+                    processed = true;
+                    continue;
+                }
+
                 // Is this hit the closest to the camera so far?
                 double hit_squared_distance = (camera.get_position()-trafo_matrices[mesh_id]*hit.cast<double>()).squaredNorm();
                 if (hit_squared_distance < closest_hit_squared_distance) {
@@ -446,7 +485,7 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         return true;
     }
 
-    return false;
+    return processed;
 }
 
 
