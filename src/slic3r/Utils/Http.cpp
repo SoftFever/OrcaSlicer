@@ -74,11 +74,11 @@ struct CurlGlobalInit
                                "PrusaSlicer will be unable to establish secure "
                                "network connections.");
             else
-                message = Slic3r::format(
+                message = Slic3r::GUI::format(
 					_L("PrusaSlicer detected system SSL certificate store in: %1%"),
                     bundle);
 
-            message += "\n" + Slic3r::format(
+            message += "\n" + Slic3r::GUI::format(
 				_L("To specify the system certificate store manually, please "
                    "set the %1% environment variable to the correct CA bundle "
                    "and restart the application."),
