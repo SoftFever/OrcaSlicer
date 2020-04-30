@@ -33,7 +33,6 @@
 #include "Event.hpp"
 #include "wxExtensions.hpp"
 #include "ConfigManipulation.hpp"
-#include "Search.hpp"
 
 namespace Slic3r {
 namespace GUI {

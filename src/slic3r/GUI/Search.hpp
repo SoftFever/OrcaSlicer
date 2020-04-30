@@ -71,13 +71,13 @@ struct Option {
 };
 
 struct FoundOption {
-    wxString        label;
-    wxString        marked_label;
-    wxString        tooltip;
+    std::string     label;
+    std::string     marked_label;
+    std::string     tooltip;
     size_t          option_idx {0};
     int             outScore {0};
 
-    void get_label(const char** out_text) const;
+    // Returning pointers to contents of std::string members, to be used by ImGUI for rendering.
     void get_marked_label_and_tooltip(const char** label, const char** tooltip) const;
 };
 

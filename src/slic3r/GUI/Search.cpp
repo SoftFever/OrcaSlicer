@@ -89,15 +89,10 @@ FMFlag Option::fuzzy_match(const std::string& search, int& outScore) const
     return fuzzy_match(search_pattern, outScore);
 }
 
-void FoundOption::get_label(const char** out_text) const
-{
-    *out_text = label.utf8_str();
-}
-
 void FoundOption::get_marked_label_and_tooltip(const char** label_, const char** tooltip_) const
 {
-    *label_   = marked_label.utf8_str();
-    *tooltip_ = tooltip.utf8_str();
+    *label_   = marked_label.c_str();
+    *tooltip_ = tooltip.c_str();
 }
 
 template<class T>
@@ -254,8 +249,8 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
     {
         const Option &opt = options[i];
         if (full_list) {
-            wxString label = get_label(opt);
-            found.emplace_back(FoundOption{ label, label, get_tooltip(opt), i, 0 });
+            std::string label = into_u8(get_label(opt));
+            found.emplace_back(FoundOption{ label, label, into_u8(get_tooltip(opt)), i, 0 });
             continue;
         }
 
@@ -275,7 +270,7 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
             mark_string(marked_label, from_u8(search));
             clear_marked_string(marked_label);
 
-            found.emplace_back(FoundOption{ label, marked_label, get_tooltip(opt), i, score });
+            found.emplace_back(FoundOption{ into_u8(label), into_u8(marked_label), into_u8(get_tooltip(opt)), i, score });
         }
     }
 
@@ -357,7 +352,7 @@ bool SearchComboPopup::Create(wxWindow* parent)
 void SearchComboPopup::SetStringValue(const wxString& s)
 {
     int n = wxListBox::FindString(s);
-    if (n >= 0 && n < wxListBox::GetCount())
+    if (n >= 0 && n < int(wxListBox::GetCount()))
         wxListBox::Select(n);
 
     // save a combo control's string
@@ -549,7 +544,7 @@ void SearchDialog::update_list()
 
     const std::vector<FoundOption>& filters = searcher->found_options();
     for (const FoundOption& item : filters)
-        search_list->Append(item.label);
+        search_list->Append(from_u8(item.label));
 }
 
 void SearchDialog::OnKeyDown(wxKeyEvent& event)
