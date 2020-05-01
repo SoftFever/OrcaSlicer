@@ -2,7 +2,9 @@
 
 #include <cstddef>
 #include <string>
+#include <boost/algorithm/string.hpp>
 #include <boost/optional.hpp>
+#include <boost/nowide/convert.hpp>
 
 #include "libslic3r/PrintConfig.hpp"
 #include "GUI_App.hpp"
@@ -31,62 +33,33 @@ static std::map<Preset::Type, std::string> NameByType = {
     { Preset::TYPE_PRINTER,         L("Printer")   }
 };
 
-FMFlag Option::fuzzy_match_simple(char const * search_pattern) const
-{
-    return  fts::fuzzy_match_simple(search_pattern, label_local.utf8_str())     ? fmLabelLocal      :
-            fts::fuzzy_match_simple(search_pattern, group_local.utf8_str())     ? fmGroupLocal      :
-            fts::fuzzy_match_simple(search_pattern, category_local.utf8_str())  ? fmCategoryLocal   :
-            fts::fuzzy_match_simple(search_pattern, opt_key.c_str())            ? fmOptKey          :
-            fts::fuzzy_match_simple(search_pattern, label.utf8_str())           ? fmLabel           :
-            fts::fuzzy_match_simple(search_pattern, group.utf8_str())           ? fmGroup           :
-            fts::fuzzy_match_simple(search_pattern, category.utf8_str())        ? fmCategory        : fmUndef   ;
-}
-
-FMFlag Option::fuzzy_match_simple(const wxString& search) const
-{
-    char const* search_pattern = search.utf8_str();
-    return fuzzy_match_simple(search_pattern);
-}
-
-FMFlag Option::fuzzy_match_simple(const std::string& search) const
-{
-    char const* search_pattern = search.c_str();
-    return fuzzy_match_simple(search_pattern);
-}
-
-FMFlag Option::fuzzy_match(char const* search_pattern, int& outScore) const
+FMFlag Option::fuzzy_match(wchar_t const* search_pattern, int& outScore, std::vector<uint16_t> &out_matches) const
 {
     FMFlag flag = fmUndef;
     int score;
 
-    if (fts::fuzzy_match(search_pattern, label_local.utf8_str(),    score) && outScore < score) {
-        outScore = score; flag = fmLabelLocal   ; }
-    if (fts::fuzzy_match(search_pattern, group_local.utf8_str(),    score) && outScore < score) {
-        outScore = score; flag = fmGroupLocal   ; }
-    if (fts::fuzzy_match(search_pattern, category_local.utf8_str(), score) && outScore < score) {
-        outScore = score; flag = fmCategoryLocal; }
-    if (fts::fuzzy_match(search_pattern, opt_key.c_str(),           score) && outScore < score) {
-        outScore = score; flag = fmOptKey       ; }
-    if (fts::fuzzy_match(search_pattern, label.utf8_str(),          score) && outScore < score) {
-        outScore = score; flag = fmLabel        ; }
-    if (fts::fuzzy_match(search_pattern, group.utf8_str(),          score) && outScore < score) {
-        outScore = score; flag = fmGroup        ; }
-    if (fts::fuzzy_match(search_pattern, category.utf8_str(),       score) && outScore < score) {
-        outScore = score; flag = fmCategory     ; }
+    uint16_t matches[fts::max_matches + 1]; // +1 for the stopper
+    auto save_matches = [&matches, &out_matches]() {
+        size_t cnt = 0;
+        for (; matches[cnt] != fts::stopper; ++cnt);
+        out_matches.assign(matches, matches + cnt);
+    };
+    if (fts::fuzzy_match(search_pattern, label_local.c_str(),    score, matches) && outScore < score) {
+        outScore = score; flag = fmLabelLocal   ; save_matches(); }
+    if (fts::fuzzy_match(search_pattern, group_local.c_str(),    score, matches) && outScore < score) {
+        outScore = score; flag = fmGroupLocal   ; save_matches(); }
+    if (fts::fuzzy_match(search_pattern, category_local.c_str(), score, matches) && outScore < score) {
+        outScore = score; flag = fmCategoryLocal; save_matches(); }
+    if (fts::fuzzy_match(search_pattern, opt_key.c_str(),        score, matches) && outScore < score) {
+        outScore = score; flag = fmOptKey       ; save_matches(); }
+    if (fts::fuzzy_match(search_pattern, label.c_str(),          score, matches) && outScore < score) {
+        outScore = score; flag = fmLabel        ; save_matches(); }
+    if (fts::fuzzy_match(search_pattern, group.c_str(),          score, matches) && outScore < score) {
+        outScore = score; flag = fmGroup        ; save_matches(); }
+    if (fts::fuzzy_match(search_pattern, category.c_str(),       score, matches) && outScore < score) {
+        outScore = score; flag = fmCategory     ; save_matches(); }
 
     return flag;
-}
-
-FMFlag Option::fuzzy_match(const wxString& search, int& outScore) const
-{
-    char const* search_pattern = search.utf8_str();
-    return fuzzy_match(search_pattern, outScore); 
-}
-
-FMFlag Option::fuzzy_match(const std::string& search, int& outScore) const
-{
-    char const* search_pattern = search.c_str();
-    return fuzzy_match(search_pattern, outScore);
 }
 
 void FoundOption::get_marked_label_and_tooltip(const char** label_, const char** tooltip_) const
@@ -120,10 +93,10 @@ void OptionsSearcher::append_options(DynamicPrintConfig* config, Preset::Type ty
             suffix = opt_key.back()=='1' ? L("Stealth") : L("Normal");
 
         if (!label.IsEmpty())
-            options.emplace_back(Option{ opt_key, type,
-                                        label+ " " + suffix, _(label)+ " " + _(suffix),
-                                        gc.group, _(gc.group),
-                                        gc.category, _(gc.category) });
+            options.emplace_back(Option{ boost::nowide::widen(opt_key), type,
+                                        (label+ " " + suffix).ToStdWstring(), (_(label)+ " " + _(suffix)).ToStdWstring(),
+                                        gc.group.ToStdWstring(), _(gc.group).ToStdWstring(),
+                                        gc.category.ToStdWstring(), _(gc.category).ToStdWstring() });
     };
 
     for (std::string opt_key : config->keys())
@@ -173,41 +146,32 @@ static wxString wrap_string(const wxString& str)
 }
 
 // Mark a string using ColorMarkerStart and ColorMarkerEnd symbols
-static void mark_string(wxString& str, const wxString& search_str)
+static std::wstring mark_string(const std::wstring &str, const std::vector<uint16_t> &matches)
 {
-    // Try to find whole search string
-    if (str.Replace(search_str, wrap_string(search_str), false) != 0)
-        return;
-
-    // Try to find whole capitalized search string
-    wxString search_str_capitalized = search_str.Capitalize();
-    if (str.Replace(search_str_capitalized, wrap_string(search_str_capitalized), false) != 0)
-        return;
-
-    // if search string is just a one letter now, there is no reason to continue 
-    if (search_str.Len()==1)
-        return;
-
-    // Split a search string for two strings (string without last letter and last letter)
-    // and repeat a function with new search strings
-    mark_string(str, search_str.SubString(0, search_str.Len() - 2));
-    mark_string(str, search_str.Last());
-}
-
-// clear marked string from a redundant use of ColorMarkers
-static void clear_marked_string(wxString& str)
-{
-    // Check if the string has a several ColorMarkerStart in a row and replace them to only one, if any
-    wxString delete_string = wxString::Format("%c%c", ImGui::ColorMarkerStart, ImGui::ColorMarkerStart);
-    str.Replace(delete_string, ImGui::ColorMarkerStart, true);
-    // If there were several ColorMarkerStart in a row, it means there should be a several ColorMarkerStop in a row,
-    // replace them to only one
-    delete_string = wxString::Format("%c%c", ImGui::ColorMarkerEnd, ImGui::ColorMarkerEnd);
-    str.Replace(delete_string, ImGui::ColorMarkerEnd, true);
-
-    // And we should to remove redundant ColorMarkers, if they are in "End, Start" sequence in a row
-    delete_string = wxString::Format("%c%c", ImGui::ColorMarkerEnd, ImGui::ColorMarkerStart);
-    str.Replace(delete_string, wxEmptyString, true);
+	std::wstring out;
+	if (matches.empty())
+		out = str;
+	else {
+		out.reserve(str.size() * 2);
+		if (matches.front() > 0)
+			out += str.substr(0, matches.front());
+		for (size_t i = 0;;) {
+			// Find the longest string of successive indices.
+			size_t j = i + 1;
+            while (j < matches.size() && matches[j] == matches[j - 1] + 1)
+                ++ j;
+            out += ImGui::ColorMarkerStart;
+            out += str.substr(matches[i], matches[j - 1] - matches[i] + 1);
+            out += ImGui::ColorMarkerEnd;
+            if (j == matches.size()) {
+				out += str.substr(matches[j - 1] + 1);
+				break;
+			}
+            out += str.substr(matches[j - 1] + 1, matches[j] - matches[j - 1] - 1);
+            i = j;
+		}
+	}
+	return out;
 }
 
 bool OptionsSearcher::search()
@@ -245,32 +209,50 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
                 opt.group_local + sep + opt.label_local;
     };
 
+    std::vector<uint16_t> matches;
     for (size_t i=0; i < options.size(); i++)
     {
         const Option &opt = options[i];
         if (full_list) {
             std::string label = into_u8(get_label(opt));
-            found.emplace_back(FoundOption{ label, label, into_u8(get_tooltip(opt)), i, 0 });
+            found.emplace_back(FoundOption{ label, label, into_u8(get_tooltip(opt)), i, fmUndef, 0 });
             continue;
         }
 
         int score = 0;
-
-        FMFlag fuzzy_match_flag = opt.fuzzy_match(search, score);
+        FMFlag fuzzy_match_flag = opt.fuzzy_match(boost::nowide::widen(search).c_str(), score, matches);
         if (fuzzy_match_flag != fmUndef)
         {
-            wxString label = get_label(opt);
+            wxString label;
 
-            if (     fuzzy_match_flag == fmLabel   ) label += "(" + opt.label    + ")";
-            else if (fuzzy_match_flag == fmGroup   ) label += "(" + opt.group    + ")";
-            else if (fuzzy_match_flag == fmCategory) label += "(" + opt.category + ")";
-            else if (fuzzy_match_flag == fmOptKey  ) label += "(" + opt.opt_key  + ")";
+	        if (view_params.type)
+	            label += _(NameByType[opt.type]) + sep;
+	        if (fuzzy_match_flag == fmCategoryLocal)
+	            label += mark_string(opt.category_local, matches) + sep;
+	        else if (view_params.category)
+			    label += opt.category_local + sep;
+			if (fuzzy_match_flag == fmGroupLocal)
+	            label += mark_string(opt.group_local, matches) + sep;
+	        else if (view_params.group)
+	            label += opt.group_local + sep;
+            label += ((fuzzy_match_flag == fmLabelLocal) ? mark_string(opt.label_local, matches) : opt.label_local) + sep;
 
-            wxString marked_label = label;
-            mark_string(marked_label, from_u8(search));
-            clear_marked_string(marked_label);
+            switch (fuzzy_match_flag) {
+            	case fmLabelLocal:
+			    case fmGroupLocal:
+			    case fmCategoryLocal:
+			        break;
+            	case fmLabel: 		label = get_label(opt) + "(" + mark_string(opt.label,    matches) + ")"; break;
+            	case fmGroup:		label = get_label(opt) + "(" + mark_string(opt.group,    matches) + ")"; break;
+            	case fmCategory:	label = get_label(opt) + "(" + mark_string(opt.category, matches) + ")"; break;
+            	case fmOptKey:		label = get_label(opt) + "(" + mark_string(opt.opt_key,  matches) + ")"; break;
+            	case fmUndef: 		assert(false); break;
+            }
 
-            found.emplace_back(FoundOption{ into_u8(label), into_u8(marked_label), into_u8(get_tooltip(opt)), i, score });
+		    std::string label_plain = into_u8(label);
+		    boost::erase_all(label_plain, std::wstring(1, wchar_t(ImGui::ColorMarkerStart)));
+		    boost::erase_all(label_plain, std::wstring(1, wchar_t(ImGui::ColorMarkerEnd)));
+            found.emplace_back(FoundOption{ label_plain, into_u8(label), into_u8(get_tooltip(opt)), i, fuzzy_match_flag, score });
         }
     }
 

@@ -1,4 +1,4 @@
-  // LICENSE
+// LICENSE
 //
 //   This software is dual-licensed to the public domain and under the following
 //   license: you are granted a perpetual, irrevocable license to copy, modify,
@@ -23,7 +23,7 @@
 //     Performs exhaustive search via recursion to find all possible matches and match with highest score.
 //     Scores values have no intrinsic meaning. Possible score range is not normalized and varies with pattern.
 //     Recursion is limited internally (default=10) to prevent degenerate cases (pattern="aaaaaa" str="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-//     Uses uint8_t for match indices. Therefore patterns are limited to 256 characters.
+//     Uses uint8_t for match indices. Therefore patterns are limited to max_matches characters.
 //     Score system should be tuned for YOUR use case. Words, sentences, file names, or method names all prefer different tuning.
 
 
@@ -39,54 +39,61 @@
 
 // Public interface
 namespace fts {
-    static bool fuzzy_match_simple(char const * pattern, char const * str);
-    static bool fuzzy_match(char const * pattern, char const * str, int & outScore);
-    static bool fuzzy_match(char const * pattern, char const * str, int & outScore, uint8_t * matches, int maxMatches);
-}
+	using 						char_type 	= wchar_t;
+	using 						pos_type  	= uint16_t;
+	static constexpr pos_type 	stopper 	= pos_type(-1);
+	static constexpr int 		max_matches = 255;
 
+    static bool fuzzy_match(char_type const * pattern, char_type const * str, int & outScore);
+    static bool fuzzy_match(char_type const * pattern, char_type const * str, int & outScore, pos_type * matches);
+}
 
 #ifdef FTS_FUZZY_MATCH_IMPLEMENTATION
 namespace fts {
 
     // Forward declarations for "private" implementation
     namespace fuzzy_internal {
-        static bool fuzzy_match_recursive(const char * pattern, const char * str, int & outScore, const char * strBegin,          
-            uint8_t const * srcMatches,  uint8_t * newMatches,  int maxMatches, int nextMatch, 
+        static bool fuzzy_match_recursive(const char_type * pattern, const char_type * str, int & outScore, const char_type * strBegin,          
+            pos_type const * srcMatches,  pos_type * newMatches, int nextMatch, 
             int & recursionCount, int recursionLimit);
+        static void copy_matches(pos_type * dst, pos_type const* src);
     }
 
     // Public interface
-    static bool fuzzy_match_simple(char const * pattern, char const * str) {
-        while (*pattern != '\0' && *str != '\0')  {
-            if (tolower(*pattern) == tolower(*str))
-                ++pattern;
-            ++str;
-        }
-
-        return *pattern == '\0' ? true : false;
-    }
-
-    static bool fuzzy_match(char const * pattern, char const * str, int & outScore) {
+    static bool fuzzy_match(char_type const * pattern, char_type const * str, int & outScore) {
         
-        uint8_t matches[256];
-        return fuzzy_match(pattern, str, outScore, matches, sizeof(matches));
+        pos_type matches[max_matches + 1]; // with the room for the stopper
+        matches[0] = stopper;
+        return fuzzy_match(pattern, str, outScore, matches);
     }
 
-    static bool fuzzy_match(char const * pattern, char const * str, int & outScore, uint8_t * matches, int maxMatches) {
+    static bool fuzzy_match(char_type const * pattern, char_type const * str, int & outScore, pos_type * matches) {
         int recursionCount = 0;
         int recursionLimit = 10;
-
-        return fuzzy_internal::fuzzy_match_recursive(pattern, str, outScore, str, nullptr, matches, maxMatches, 0, recursionCount, recursionLimit);
+        return fuzzy_internal::fuzzy_match_recursive(pattern, str, outScore, str, nullptr, matches, 0, recursionCount, recursionLimit);
     }
 
     // Private implementation
-    static bool fuzzy_internal::fuzzy_match_recursive(const char * pattern, const char * str, int & outScore, 
-        const char * strBegin, uint8_t const * srcMatches, uint8_t * matches, int maxMatches, 
-        int nextMatch, int & recursionCount, int recursionLimit)
+    static bool fuzzy_internal::fuzzy_match_recursive(
+    	// Pattern to match over str.
+    	const char_type * 		pattern, 
+    	// Text to match the pattern over.
+    	const char_type * 		str, 
+    	// Score of the pattern matching str. Output variable.
+    	int & 					outScore, 
+        const char_type * 		strBegin, 
+        // Matches when entering this function.
+        pos_type const * 		srcMatches,
+        // Output matches.
+        pos_type * 				matches,
+        // Number of matched characters stored in srcMatches when entering this function, also tracking the successive matches.
+        int 					nextMatch,
+        // Recursion count is input / output to track the maximum depth reached.
+        int & 					recursionCount, 
+        int 					recursionLimit)
     {
         // Count recursions
-        ++recursionCount;
-        if (recursionCount >= recursionLimit)
+        if (++ recursionCount >= recursionLimit)
             return false;
 
         // Detect end of strings
@@ -95,7 +102,7 @@ namespace fts {
 
         // Recursion params
         bool recursiveMatch = false;
-        uint8_t bestRecursiveMatches[256];
+        pos_type bestRecursiveMatches[max_matches + 1]; // with the room for the stopper
         int bestRecursiveScore = 0;
 
         // Loop through pattern and str looking for a match
@@ -106,30 +113,32 @@ namespace fts {
             if (tolower(*pattern) == tolower(*str)) {
 
                 // Supplied matches buffer was too short
-                if (nextMatch >= maxMatches)
+                if (nextMatch >= max_matches)
                     return false;
                 
                 // "Copy-on-Write" srcMatches into matches
                 if (first_match && srcMatches) {
-                    memcpy(matches, srcMatches, nextMatch);
+                    memcpy(matches, srcMatches, sizeof(pos_type) * (nextMatch + 1)); // including the stopper
                     first_match = false;
                 }
 
                 // Recursive call that "skips" this match
-                uint8_t recursiveMatches[256];
+                pos_type recursiveMatches[max_matches];
                 int recursiveScore;
-                if (fuzzy_match_recursive(pattern, str + 1, recursiveScore, strBegin, matches, recursiveMatches, sizeof(recursiveMatches), nextMatch, recursionCount, recursionLimit)) {
+                if (fuzzy_match_recursive(pattern, str + 1, recursiveScore, strBegin, matches, recursiveMatches, nextMatch, recursionCount, recursionLimit)) {
                     
                     // Pick best recursive score
                     if (!recursiveMatch || recursiveScore > bestRecursiveScore) {
-                        memcpy(bestRecursiveMatches, recursiveMatches, 256);
-                        bestRecursiveScore = recursiveScore;
+                    	copy_matches(bestRecursiveMatches, recursiveMatches);
+                		bestRecursiveScore = recursiveScore;
                     }
                     recursiveMatch = true;
                 }
 
                 // Advance
-                matches[nextMatch++] = (uint8_t)(str - strBegin);
+                matches[nextMatch++] = (pos_type)(str - strBegin);
+                // Write a stopper sign.
+                matches[nextMatch] = stopper;
                 ++pattern;
             }
             ++str;
@@ -168,10 +177,10 @@ namespace fts {
 
             // Apply ordering bonuses
             for (int i = 0; i < nextMatch; ++i) {
-                uint8_t currIdx = matches[i];
+                pos_type currIdx = matches[i];
 
                 if (i > 0) {
-                    uint8_t prevIdx = matches[i - 1];
+                    pos_type prevIdx = matches[i - 1];
 
                     // Sequential
                     if (currIdx == (prevIdx + 1))
@@ -182,13 +191,13 @@ namespace fts {
                 if (currIdx > 0) {
                     // Camel case
                     // ::islower() expects an unsigned char in range of 0 to 255.
-                    unsigned char uneighbor = ((unsigned char *)strBegin)[currIdx - 1];
-                    unsigned char ucurr = ((unsigned char*)strBegin)[currIdx];
-                    if (::islower(uneighbor) && ::isupper(ucurr))
+                    char_type uneighbor = strBegin[currIdx - 1];
+                    char_type ucurr = strBegin[currIdx];
+                    if (std::islower(uneighbor) && std::isupper(ucurr))
                         outScore += camel_bonus;
 
                     // Separator
-                    char neighbor = strBegin[currIdx - 1];
+                    char_type neighbor = strBegin[currIdx - 1];
                     bool neighborSeparator = neighbor == '_' || neighbor == ' ';
                     if (neighborSeparator)
                         outScore += separator_bonus;
@@ -203,7 +212,7 @@ namespace fts {
         // Return best result
         if (recursiveMatch && (!matched || bestRecursiveScore > outScore)) {
             // Recursive score is better than "this"
-            memcpy(matches, bestRecursiveMatches, maxMatches);
+            copy_matches(matches, bestRecursiveMatches);
             outScore = bestRecursiveScore;
             return true;
         }
@@ -216,6 +225,15 @@ namespace fts {
             return false;
         }
     }
+
+    // Copy matches up to a stopper.
+    static void fuzzy_internal::copy_matches(pos_type * dst, pos_type const* src)
+    {
+        while (*src != stopper)
+            *dst++ = *src++;
+        *dst = stopper;
+    }
+
 } // namespace fts
 
 #endif // FTS_FUZZY_MATCH_IMPLEMENTATION

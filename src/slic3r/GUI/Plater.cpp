@@ -12,6 +12,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/nowide/convert.hpp>
 
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -1098,7 +1099,7 @@ void Sidebar::search()
 void Sidebar::jump_to_option(size_t selected)
 {
     const Search::Option& opt = p->searcher.get_option(selected);
-    wxGetApp().get_tab(opt.type)->activate_option(opt.opt_key, opt.category);
+    wxGetApp().get_tab(opt.type)->activate_option(boost::nowide::narrow(opt.opt_key), boost::nowide::narrow(opt.category));
 
     // Switch to the Settings NotePad, if plater is shown
     if (p->plater->IsShown())
