@@ -53,7 +53,7 @@ namespace fts {
 
     // Forward declarations for "private" implementation
     namespace fuzzy_internal {
-        static bool fuzzy_match_recursive(const char_type * pattern, const char_type * str, int & outScore, const char_type * strBegin,          
+        static bool fuzzy_match_recursive(const char_type * pattern, const char_type * str, int & outScore, const char_type * const strBegin,          
             pos_type const * srcMatches,  pos_type * newMatches, int nextMatch, 
             int & recursionCount, int recursionLimit);
         static void copy_matches(pos_type * dst, pos_type const* src);
@@ -61,7 +61,6 @@ namespace fts {
 
     // Public interface
     static bool fuzzy_match(char_type const * pattern, char_type const * str, int & outScore) {
-        
         pos_type matches[max_matches + 1]; // with the room for the stopper
         matches[0] = stopper;
         return fuzzy_match(pattern, str, outScore, matches);
@@ -69,7 +68,7 @@ namespace fts {
 
     static bool fuzzy_match(char_type const * pattern, char_type const * str, int & outScore, pos_type * matches) {
         int recursionCount = 0;
-        int recursionLimit = 10;
+        static constexpr int recursionLimit = 10;
         return fuzzy_internal::fuzzy_match_recursive(pattern, str, outScore, str, nullptr, matches, 0, recursionCount, recursionLimit);
     }
 
@@ -81,7 +80,8 @@ namespace fts {
     	const char_type * 		str, 
     	// Score of the pattern matching str. Output variable.
     	int & 					outScore, 
-        const char_type * 		strBegin, 
+    	// The very start of str, for calculating indices of matches and for calculating matches from the start of the input string.
+        const char_type * const	strBegin, 
         // Matches when entering this function.
         pos_type const * 		srcMatches,
         // Output matches.
@@ -89,6 +89,8 @@ namespace fts {
         // Number of matched characters stored in srcMatches when entering this function, also tracking the successive matches.
         int 					nextMatch,
         // Recursion count is input / output to track the maximum depth reached.
+        // Was given by reference &recursionCount, see discussion in https://github.com/forrestthewoods/lib_fts/issues/21
+//        int & 					recursionCount, 
         int & 					recursionCount, 
         int 					recursionLimit)
     {
@@ -123,7 +125,7 @@ namespace fts {
                 }
 
                 // Recursive call that "skips" this match
-                pos_type recursiveMatches[max_matches];
+                pos_type recursiveMatches[max_matches + 1]; // with the room for the stopper
                 int recursiveScore;
                 if (fuzzy_match_recursive(pattern, str + 1, recursiveScore, strBegin, matches, recursiveMatches, nextMatch, recursionCount, recursionLimit)) {
                     
@@ -145,18 +147,18 @@ namespace fts {
         }
 
         // Determine if full pattern was matched
-        bool matched = *pattern == '\0' ? true : false;
+        bool matched = *pattern == '\0';
 
         // Calculate score
         if (matched) {
-            const int sequential_bonus = 15;            // bonus for adjacent matches
-            const int separator_bonus = 30;             // bonus if match occurs after a separator
-            const int camel_bonus = 30;                 // bonus if match is uppercase and prev is lower
-            const int first_letter_bonus = 15;          // bonus if the first letter is matched
+            static constexpr int sequential_bonus = 15;            // bonus for adjacent matches
+            static constexpr int separator_bonus = 30;             // bonus if match occurs after a separator
+            static constexpr int camel_bonus = 30;                 // bonus if match is uppercase and prev is lower
+            static constexpr int first_letter_bonus = 15;          // bonus if the first letter is matched
 
-            const int leading_letter_penalty = -5;      // penalty applied for every letter in str before the first match
-            const int max_leading_letter_penalty = -15; // maximum penalty for leading letters
-            const int unmatched_letter_penalty = -1;    // penalty for every letter that doesn't matter
+            static constexpr int leading_letter_penalty = -5;      // penalty applied for every letter in str before the first match
+            static constexpr int max_leading_letter_penalty = -15; // maximum penalty for leading letters
+            static constexpr int unmatched_letter_penalty = -1;    // penalty for every letter that doesn't matter
 
             // Iterate str to end
             while (*str != '\0')
@@ -165,46 +167,30 @@ namespace fts {
             // Initialize score
             outScore = 100;
 
-            // Apply leading letter penalty
-            int penalty = leading_letter_penalty * matches[0];
-            if (penalty < max_leading_letter_penalty)
-                penalty = max_leading_letter_penalty;
-            outScore += penalty;
+            // Apply leading letter penalty or bonus.
+            outScore += matches[0] == 0 ?
+            	first_letter_bonus :
+            	std::max(matches[0] * leading_letter_penalty, max_leading_letter_penalty);
 
             // Apply unmatched penalty
-            int unmatched = (int)(str - strBegin) - nextMatch;
-            outScore += unmatched_letter_penalty * unmatched;
+            outScore += (int(str - strBegin) - matches[nextMatch-1] + 1) * unmatched_letter_penalty;
 
             // Apply ordering bonuses
             for (int i = 0; i < nextMatch; ++i) {
                 pos_type currIdx = matches[i];
 
-                if (i > 0) {
-                    pos_type prevIdx = matches[i - 1];
-
-                    // Sequential
-                    if (currIdx == (prevIdx + 1))
-                        outScore += sequential_bonus;
-                }
-
                 // Check for bonuses based on neighbor character value
                 if (currIdx > 0) {
+                    if (i > 0 && currIdx == matches[i - 1] + 1)
+	                    // Sequential
+                        outScore += sequential_bonus;
                     // Camel case
-                    // ::islower() expects an unsigned char in range of 0 to 255.
-                    char_type uneighbor = strBegin[currIdx - 1];
-                    char_type ucurr = strBegin[currIdx];
-                    if (std::islower(uneighbor) && std::isupper(ucurr))
+					char_type prev = strBegin[currIdx - 1];
+                    if (std::islower(prev) && std::isupper(strBegin[currIdx]))
                         outScore += camel_bonus;
-
                     // Separator
-                    char_type neighbor = strBegin[currIdx - 1];
-                    bool neighborSeparator = neighbor == '_' || neighbor == ' ';
-                    if (neighborSeparator)
+                    if (prev == '_' || prev == ' ')
                         outScore += separator_bonus;
-                }
-                else {
-                    // First letter
-                    outScore += first_letter_bonus;
                 }
             }
         }
