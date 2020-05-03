@@ -37,6 +37,8 @@
 
 #include <cstdio>
 
+#include "../Utils/ASCIIFolding.hpp"
+
 // Public interface
 namespace fts {
 	using 						char_type 	= wchar_t;
@@ -110,14 +112,27 @@ namespace fts {
         // Loop through pattern and str looking for a match
         bool first_match = true;
         while (*pattern != '\0' && *str != '\0') {
+
+        	int  num_matched  = std::tolower(*pattern) == std::tolower(*str) ? 1 : 0;
+        	bool folded_match = false;
+        	if (! num_matched) {
+        		char tmp[4];
+        		char *end = Slic3r::fold_to_ascii(*str, tmp);
+        		char *c = tmp;
+                for (const wchar_t* d = pattern; c != end && *d != 0 && wchar_t(std::tolower(*c)) == std::tolower(*d); ++c, ++d);
+        		if (c == end) {
+        			folded_match = true;
+        			num_matched = end - tmp;
+        		}
+	        }
             
             // Found match
-            if (tolower(*pattern) == tolower(*str)) {
+            if (num_matched) {
 
                 // Supplied matches buffer was too short
-                if (nextMatch >= max_matches)
+                if (nextMatch + num_matched > max_matches)
                     return false;
-                
+
                 // "Copy-on-Write" srcMatches into matches
                 if (first_match && srcMatches) {
                     memcpy(matches, srcMatches, sizeof(pos_type) * (nextMatch + 1)); // including the stopper
@@ -141,8 +156,9 @@ namespace fts {
                 matches[nextMatch++] = (pos_type)(str - strBegin);
                 // Write a stopper sign.
                 matches[nextMatch] = stopper;
-                ++pattern;
-            }
+                // Advance pattern by the number of matched characters (could be more if ASCII folding triggers in).
+                pattern += num_matched;
+            } 
             ++str;
         }
 
@@ -172,8 +188,10 @@ namespace fts {
             	first_letter_bonus :
             	std::max(matches[0] * leading_letter_penalty, max_leading_letter_penalty);
 
+            // Apply unmatched letters after the end penalty
+//            outScore += (int(str - strBegin) - matches[nextMatch-1] + 1) * unmatched_letter_penalty;
             // Apply unmatched penalty
-            outScore += (int(str - strBegin) - matches[nextMatch-1] + 1) * unmatched_letter_penalty;
+            outScore += (int(str - strBegin) - nextMatch) * unmatched_letter_penalty;
 
             // Apply ordering bonuses
             for (int i = 0; i < nextMatch; ++i) {
