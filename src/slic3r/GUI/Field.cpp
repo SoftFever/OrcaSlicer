@@ -57,6 +57,8 @@ void Field::PostInitialize()
     m_Undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_back_to_initial_value(); }));
 	m_Undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_back_to_sys_value(); }));
 
+	m_blinking_bmp		= new BlinkingBitmap(m_parent);
+
 	switch (m_opt.type)
 	{
 	case coPercents:

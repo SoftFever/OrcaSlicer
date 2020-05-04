@@ -66,6 +66,30 @@ void GCodeViewer::VBuffer::reset()
     vertices_count = 0;
 }
 
+bool GCodeViewer::Path::matches(const GCodeProcessor::MoveVertex& move) const
+{
+    switch (move.type)
+    {
+    case GCodeProcessor::EMoveType::Tool_change:
+    case GCodeProcessor::EMoveType::Color_change:
+    case GCodeProcessor::EMoveType::Pause_Print:
+    case GCodeProcessor::EMoveType::Custom_GCode:
+    case GCodeProcessor::EMoveType::Retract:
+    case GCodeProcessor::EMoveType::Unretract:
+    case GCodeProcessor::EMoveType::Extrude:
+    {
+        return type == move.type && role == move.extrusion_role && height == move.height && width == move.width &&
+            feedrate == move.feedrate && fan_speed == move.fan_speed && volumetric_rate == move.volumetric_rate() &&
+            extruder_id == move.extruder_id && cp_color_id == move.cp_color_id;
+    }
+    case GCodeProcessor::EMoveType::Travel:
+    {
+        return type == move.type && feedrate == move.feedrate && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id;
+    }
+    default: { return false; }
+    }
+}
+
 void GCodeViewer::IBuffer::reset()
 {
     // release gpu memory
@@ -92,7 +116,7 @@ bool GCodeViewer::IBuffer::init_shader(const std::string& vertex_shader_src, con
 
 void GCodeViewer::IBuffer::add_path(const GCodeProcessor::MoveVertex& move)
 {
-    Path::Endpoint endpoint = { static_cast<unsigned int>(data.size()), static_cast<double>(move.position[2]) };
+    Path::Endpoint endpoint = { static_cast<unsigned int>(data.size()), move.position };
     paths.push_back({ move.type, move.extrusion_role, endpoint, endpoint, move.delta_extruder, move.height, move.width, move.feedrate, move.fan_speed, move.volumetric_rate(), move.extruder_id, move.cp_color_id });
 }
 
@@ -410,10 +434,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         {
             if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
                 buffer.add_path(curr);
+                buffer.paths.back().first.position = prev.position;
                 buffer.data.push_back(static_cast<unsigned int>(i - 1));
             }
             
-            buffer.paths.back().last.id = static_cast<unsigned int>(buffer.data.size());
+            buffer.paths.back().last = { static_cast<unsigned int>(buffer.data.size()), curr.position };
             buffer.data.push_back(static_cast<unsigned int>(i));
             break;
         }
@@ -423,6 +448,13 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         }
         }
     }
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    for (IBuffer& buffer : m_buffers)
+    {
+        m_statistics.paths_size += SLIC3R_STDVEC_MEMSIZE(buffer.paths, Path);
+    }
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     // indices data -> send data to gpu
     for (IBuffer& buffer : m_buffers)
@@ -445,12 +477,16 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     }
 
     // layers zs / roles / extruder ids / cp color ids -> extract from result
-    for (const GCodeProcessor::MoveVertex& move : gcode_result.moves) {
+    for (size_t i = 0; i < m_vertices.vertices_count; ++i)
+    {
+        const GCodeProcessor::MoveVertex& move = gcode_result.moves[i];
         if (move.type == GCodeProcessor::EMoveType::Extrude)
             m_layers_zs.emplace_back(static_cast<double>(move.position[2]));
 
-        m_roles.emplace_back(move.extrusion_role);
         m_extruder_ids.emplace_back(move.extruder_id);
+
+        if (i > 0)
+            m_roles.emplace_back(move.extrusion_role);
     }
 
     // layers zs -> replace intervals of layers with similar top positions with their average value.
@@ -560,9 +596,13 @@ void GCodeViewer::refresh_render_paths() const
 
     for (IBuffer& buffer : m_buffers) {
         buffer.render_paths = std::vector<RenderPath>();
-        for (const Path& path : buffer.paths)
-        {
-            if (!is_in_z_range(path))
+        for (size_t i = 0; i < buffer.paths.size(); ++i) {
+            const Path& path = buffer.paths[i];
+            if (path.type == GCodeProcessor::EMoveType::Travel) {
+                if (!is_travel_in_z_range(i))
+                    continue;
+            }
+            else if (!is_in_z_range(path))
                 continue;
 
             if (path.type == GCodeProcessor::EMoveType::Extrude && !is_visible(path))
@@ -576,8 +616,7 @@ void GCodeViewer::refresh_render_paths() const
             }
 
             auto it = std::find_if(buffer.render_paths.begin(), buffer.render_paths.end(), [color](const RenderPath& path) { return path.color == color; });
-            if (it == buffer.render_paths.end())
-            {
+            if (it == buffer.render_paths.end()) {
                 it = buffer.render_paths.insert(buffer.render_paths.end(), RenderPath());
                 it->color = color;
             }
@@ -1053,17 +1092,13 @@ void GCodeViewer::render_statistics() const
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.results_size) + " bytes");
 
+    ImGui::Separator();
+
     ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
     imgui.text(std::string("Vertices CPU:"));
     ImGui::PopStyleColor();
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.vertices_size) + " bytes");
-
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
-    imgui.text(std::string("Vertices GPU:"));
-    ImGui::PopStyleColor();
-    ImGui::SameLine(offset);
-    imgui.text(std::to_string(m_statistics.vertices_gpu_size) + " bytes");
 
     ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
     imgui.text(std::string("Indices CPU:"));
@@ -1072,14 +1107,63 @@ void GCodeViewer::render_statistics() const
     imgui.text(std::to_string(m_statistics.indices_size) + " bytes");
 
     ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    imgui.text(std::string("Paths CPU:"));
+    ImGui::PopStyleColor();
+    ImGui::SameLine(offset);
+    imgui.text(std::to_string(m_statistics.paths_size) + " bytes");
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    imgui.text(std::string("TOTAL CPU:"));
+    ImGui::PopStyleColor();
+    ImGui::SameLine(offset);
+    imgui.text(std::to_string(m_statistics.vertices_size + m_statistics.indices_size + m_statistics.paths_size) + " bytes");
+
+    ImGui::Separator();
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    imgui.text(std::string("Vertices GPU:"));
+    ImGui::PopStyleColor();
+    ImGui::SameLine(offset);
+    imgui.text(std::to_string(m_statistics.vertices_gpu_size) + " bytes");
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
     imgui.text(std::string("Indices GPU:"));
     ImGui::PopStyleColor();
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.indices_gpu_size) + " bytes");
 
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    imgui.text(std::string("TOTAL GPU:"));
+    ImGui::PopStyleColor();
+    ImGui::SameLine(offset);
+    imgui.text(std::to_string(m_statistics.vertices_gpu_size + m_statistics.indices_gpu_size) + " bytes");
+
     imgui.end();
 }
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+
+bool GCodeViewer::is_travel_in_z_range(size_t id) const
+{
+    const IBuffer& buffer = m_buffers[buffer_id(GCodeProcessor::EMoveType::Travel)];
+    if (id >= buffer.paths.size())
+        return false;
+
+    Path path = buffer.paths[id];
+    int first = static_cast<int>(id);
+    unsigned int last = static_cast<unsigned int>(id);
+
+    // check adjacent paths
+    while (first > 0 && path.first.position.isApprox(buffer.paths[first - 1].last.position)) {
+        --first;
+        path.first = buffer.paths[first].first;
+    }
+    while (last < static_cast<unsigned int>(buffer.paths.size() - 1) && path.last.position.isApprox(buffer.paths[last + 1].first.position)) {
+        ++last;
+        path.last = buffer.paths[last].last;
+    }
+
+    return is_in_z_range(path);
+}
 
 } // namespace GUI
 } // namespace Slic3r

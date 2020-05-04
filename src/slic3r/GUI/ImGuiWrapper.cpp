@@ -15,12 +15,17 @@
 
 #include <GL/glew.h>
 
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
 #include <imgui/imgui_internal.h>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
 #include "3DScene.hpp"
 #include "GUI.hpp"
+#include "I18N.hpp"
+#include "Search.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -374,7 +379,40 @@ bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& 
     return res;
 }
 
-bool ImGuiWrapper::undo_redo_list(const ImVec2& size, const bool is_undo, bool (*items_getter)(const bool , int , const char**), int& hovered, int& selected)
+// Scroll up for one item 
+static void scroll_up()
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = g.CurrentWindow;
+
+    float item_size_y = window->DC.PrevLineSize.y + g.Style.ItemSpacing.y;
+    float win_top = window->Scroll.y;
+
+    ImGui::SetScrollY(win_top - item_size_y);
+}
+
+// Scroll down for one item 
+static void scroll_down()
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = g.CurrentWindow;
+
+    float item_size_y = window->DC.PrevLineSize.y + g.Style.ItemSpacing.y;
+    float win_top = window->Scroll.y;
+
+    ImGui::SetScrollY(win_top + item_size_y);
+}
+
+static void process_mouse_wheel(int& mouse_wheel)
+{
+    if (mouse_wheel > 0)
+        scroll_up();
+    else if (mouse_wheel < 0)
+        scroll_down();
+    mouse_wheel = 0;
+}
+
+bool ImGuiWrapper::undo_redo_list(const ImVec2& size, const bool is_undo, bool (*items_getter)(const bool , int , const char**), int& hovered, int& selected, int& mouse_wheel)
 {
     bool is_hovered = false;
     ImGui::ListBoxHeader("", size);
@@ -396,8 +434,310 @@ bool ImGuiWrapper::undo_redo_list(const ImVec2& size, const bool is_undo, bool (
         i++;
     }
 
+    if (is_hovered)
+        process_mouse_wheel(mouse_wheel);
+
     ImGui::ListBoxFooter();
     return is_hovered;
+}
+
+// It's a copy of IMGui::Selactable function.
+// But a little beat modified to change a label text.
+// If item is hovered we should use another color for highlighted letters.
+// To do that we push a ColorMarkerHovered symbol at the very beginning of the label
+// This symbol will be used to a color selection for the highlighted letters.
+// see imgui_draw.cpp, void ImFont::RenderText()
+static bool selectable(const char* label, bool selected, ImGuiSelectableFlags flags = 0, const ImVec2& size_arg = ImVec2(0, 0))
+{
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+
+    if ((flags & ImGuiSelectableFlags_SpanAllColumns) && window->DC.CurrentColumns) // FIXME-OPT: Avoid if vertically clipped.
+        ImGui::PushColumnsBackground();
+
+    ImGuiID id = window->GetID(label);
+    ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
+    ImVec2 size(size_arg.x != 0.0f ? size_arg.x : label_size.x, size_arg.y != 0.0f ? size_arg.y : label_size.y);
+    ImVec2 pos = window->DC.CursorPos;
+    pos.y += window->DC.CurrLineTextBaseOffset;
+    ImRect bb_inner(pos, pos + size);
+    ImGui::ItemSize(size, 0.0f);
+
+    // Fill horizontal space.
+    ImVec2 window_padding = window->WindowPadding;
+    float max_x = (flags & ImGuiSelectableFlags_SpanAllColumns) ? ImGui::GetWindowContentRegionMax().x : ImGui::GetContentRegionMax().x;
+    float w_draw = ImMax(label_size.x, window->Pos.x + max_x - window_padding.x - pos.x);
+    ImVec2 size_draw((size_arg.x != 0 && !(flags & ImGuiSelectableFlags_DrawFillAvailWidth)) ? size_arg.x : w_draw, size_arg.y != 0.0f ? size_arg.y : size.y);
+    ImRect bb(pos, pos + size_draw);
+    if (size_arg.x == 0.0f || (flags & ImGuiSelectableFlags_DrawFillAvailWidth))
+        bb.Max.x += window_padding.x;
+
+    // Selectables are tightly packed together so we extend the box to cover spacing between selectable.
+    const float spacing_x = style.ItemSpacing.x;
+    const float spacing_y = style.ItemSpacing.y;
+    const float spacing_L = IM_FLOOR(spacing_x * 0.50f);
+    const float spacing_U = IM_FLOOR(spacing_y * 0.50f);
+    bb.Min.x -= spacing_L;
+    bb.Min.y -= spacing_U;
+    bb.Max.x += (spacing_x - spacing_L);
+    bb.Max.y += (spacing_y - spacing_U);
+
+    bool item_add;
+    if (flags & ImGuiSelectableFlags_Disabled)
+    {
+        ImGuiItemFlags backup_item_flags = window->DC.ItemFlags;
+        window->DC.ItemFlags |= ImGuiItemFlags_Disabled | ImGuiItemFlags_NoNavDefaultFocus;
+        item_add = ImGui::ItemAdd(bb, id);
+        window->DC.ItemFlags = backup_item_flags;
+    }
+    else
+    {
+        item_add = ImGui::ItemAdd(bb, id);
+    }
+    if (!item_add)
+    {
+        if ((flags & ImGuiSelectableFlags_SpanAllColumns) && window->DC.CurrentColumns)
+            ImGui::PopColumnsBackground();
+        return false;
+    }
+
+    // We use NoHoldingActiveID on menus so user can click and _hold_ on a menu then drag to browse child entries
+    ImGuiButtonFlags button_flags = 0;
+    if (flags & ImGuiSelectableFlags_NoHoldingActiveID) { button_flags |= ImGuiButtonFlags_NoHoldingActiveId; }
+    if (flags & ImGuiSelectableFlags_PressedOnClick) { button_flags |= ImGuiButtonFlags_PressedOnClick; }
+    if (flags & ImGuiSelectableFlags_PressedOnRelease) { button_flags |= ImGuiButtonFlags_PressedOnRelease; }
+    if (flags & ImGuiSelectableFlags_Disabled) { button_flags |= ImGuiButtonFlags_Disabled; }
+    if (flags & ImGuiSelectableFlags_AllowDoubleClick) { button_flags |= ImGuiButtonFlags_PressedOnClickRelease | ImGuiButtonFlags_PressedOnDoubleClick; }
+    if (flags & ImGuiSelectableFlags_AllowItemOverlap) { button_flags |= ImGuiButtonFlags_AllowItemOverlap; }
+
+    if (flags & ImGuiSelectableFlags_Disabled)
+        selected = false;
+
+    const bool was_selected = selected;
+    bool hovered, held;
+    bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, button_flags);
+
+    // Update NavId when clicking or when Hovering (this doesn't happen on most widgets), so navigation can be resumed with gamepad/keyboard
+    if (pressed || (hovered && (flags & ImGuiSelectableFlags_SetNavIdOnHover)))
+    {
+        if (!g.NavDisableMouseHover && g.NavWindow == window && g.NavLayer == window->DC.NavLayerCurrent)
+        {
+            g.NavDisableHighlight = true;
+            ImGui::SetNavID(id, window->DC.NavLayerCurrent, window->DC.NavFocusScopeIdCurrent);
+        }
+    }
+    if (pressed)
+        ImGui::MarkItemEdited(id);
+
+    if (flags & ImGuiSelectableFlags_AllowItemOverlap)
+        ImGui::SetItemAllowOverlap();
+
+    // In this branch, Selectable() cannot toggle the selection so this will never trigger.
+    if (selected != was_selected) //-V547
+        window->DC.LastItemStatusFlags |= ImGuiItemStatusFlags_ToggledSelection;
+
+    // Render
+    if (held && (flags & ImGuiSelectableFlags_DrawHoveredWhenHeld))
+        hovered = true;
+    if (hovered || selected)
+    {
+        const ImU32 col = ImGui::GetColorU32((held && hovered) ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
+        ImGui::RenderFrame(bb.Min, bb.Max, col, false, 0.0f);
+        ImGui::RenderNavHighlight(bb, id, ImGuiNavHighlightFlags_TypeThin | ImGuiNavHighlightFlags_NoRounding);
+    }
+
+    if ((flags & ImGuiSelectableFlags_SpanAllColumns) && window->DC.CurrentColumns)
+    {
+        ImGui::PopColumnsBackground();
+        bb.Max.x -= (ImGui::GetContentRegionMax().x - max_x);
+    }
+
+    // mark a label with a ImGui::ColorMarkerHovered, if item is hovered
+    char* marked_label = new char[255];
+    if (hovered)
+        sprintf(marked_label, "%c%s", ImGui::ColorMarkerHovered, label);
+    else
+        strcpy(marked_label, label);
+
+    if (flags & ImGuiSelectableFlags_Disabled) ImGui::PushStyleColor(ImGuiCol_Text, style.Colors[ImGuiCol_TextDisabled]);
+    ImGui::RenderTextClipped(bb_inner.Min, bb_inner.Max, marked_label, NULL, &label_size, style.SelectableTextAlign, &bb);
+    if (flags & ImGuiSelectableFlags_Disabled) ImGui::PopStyleColor();
+
+    delete[] marked_label;
+
+    // Automatically close popups
+    if (pressed && (window->Flags & ImGuiWindowFlags_Popup) && !(flags & ImGuiSelectableFlags_DontClosePopups) && !(window->DC.ItemFlags & ImGuiItemFlags_SelectableDontClosePopup)) ImGui::CloseCurrentPopup();
+
+    IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.ItemFlags);
+    return pressed;
+}
+
+// Scroll so that the hovered item is at the top of the window
+static void scroll_y(int hover_id)
+{
+    if (hover_id < 0)
+        return;
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = g.CurrentWindow;
+
+    float item_size_y = window->DC.PrevLineSize.y + g.Style.ItemSpacing.y;
+    float item_delta = 0.5 * item_size_y;
+
+    float item_top = item_size_y * hover_id;
+    float item_bottom = item_top + item_size_y;
+
+    float win_top = window->Scroll.y;
+    float win_bottom = window->Scroll.y + window->Size.y;
+
+    if (item_bottom + item_delta >= win_bottom)
+        ImGui::SetScrollY(win_top + item_size_y);
+    else if (item_top - item_delta <= win_top)
+        ImGui::SetScrollY(win_top - item_size_y);
+}
+
+// Use this function instead of ImGui::IsKeyPressed.
+// ImGui::IsKeyPressed is related for *GImGui.IO.KeysDownDuration[user_key_index]
+// And after first key pressing IsKeyPressed() return "true" always even if key wasn't pressed
+static void process_key_down(ImGuiKey imgui_key, std::function<void()> f)
+{
+    if (ImGui::IsKeyDown(ImGui::GetKeyIndex(imgui_key)))
+    {
+        f();
+        // set KeysDown to false to avoid redundant key down processing
+        ImGuiContext& g = *GImGui;
+        g.IO.KeysDown[ImGui::GetKeyIndex(imgui_key)] = false;
+    }
+}
+
+void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, const char** label, const char** tooltip), char* search_str,
+                               Search::OptionViewParameters& view_params, int& selected, bool& edited, int& mouse_wheel)
+{
+    // ImGui::ListBoxHeader("", size);
+    {   
+        // rewrote part of function to add a TextInput instead of label Text
+        ImGuiContext& g = *GImGui;
+        ImGuiWindow* window = ImGui::GetCurrentWindow();
+        if (window->SkipItems)
+            return ;
+
+        const ImGuiStyle& style = g.Style;
+
+        // Size default to hold ~7 items. Fractional number of items helps seeing that we can scroll down/up without looking at scrollbar.
+        ImVec2 size = ImGui::CalcItemSize(size_, ImGui::CalcItemWidth(), ImGui::GetTextLineHeightWithSpacing() * 7.4f + style.ItemSpacing.y);
+        ImRect frame_bb(window->DC.CursorPos, ImVec2(window->DC.CursorPos.x + size.x, window->DC.CursorPos.y + size.y));
+
+        ImRect bb(frame_bb.Min, frame_bb.Max);
+        window->DC.LastItemRect = bb; // Forward storage for ListBoxFooter.. dodgy.
+        g.NextItemData.ClearFlags();
+
+        if (!ImGui::IsRectVisible(bb.Min, bb.Max))
+        {
+            ImGui::ItemSize(bb.GetSize(), style.FramePadding.y);
+            ImGui::ItemAdd(bb, 0, &frame_bb);
+            return ;
+        }
+
+        ImGui::BeginGroup();
+
+        const ImGuiID id = ImGui::GetID(search_str);
+        ImVec2 search_size = ImVec2(size.x, ImGui::GetTextLineHeightWithSpacing() + style.ItemSpacing.y);
+
+        if (!ImGui::IsAnyItemFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0))
+            ImGui::SetKeyboardFocusHere(0);
+
+        // The press on Esc key invokes editing of InputText (removes last changes)
+        // So we should save previous value...
+        std::string str = search_str;
+        ImGui::InputTextEx("", NULL, search_str, 20, search_size, ImGuiInputTextFlags_AutoSelectAll, NULL, NULL);
+        edited = ImGui::IsItemEdited();
+        if (edited)
+            view_params.hovered_id = -1;
+
+        process_key_down(ImGuiKey_Escape, [&selected, search_str, str]() {
+            // use 9999 to mark selection as a Esc key
+            selected = 9999;
+            // ... and when Esc key was pressed, than revert search_str value
+            strcpy(search_str, str.c_str());
+        });
+
+        ImGui::BeginChildFrame(id, frame_bb.GetSize());
+    }
+
+    int i = 0;
+    const char* item_text;
+    const char* tooltip;
+    int mouse_hovered = -1;
+    int& hovered_id = view_params.hovered_id;
+
+    while (items_getter(i, &item_text, &tooltip))
+    {
+        selectable(item_text, i == hovered_id);
+
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("%s", /*item_text*/tooltip);
+            view_params.hovered_id = -1;
+            mouse_hovered = i;
+        }
+
+        if (ImGui::IsItemClicked())
+            selected = i;
+        i++;
+    }
+
+    scroll_y(mouse_hovered);
+
+    // Process mouse wheel
+    if (mouse_hovered > 0)
+        process_mouse_wheel(mouse_wheel);
+
+    // process Up/DownArrows and Enter
+    process_key_down(ImGuiKey_UpArrow, [&hovered_id, mouse_hovered]() {
+        if (mouse_hovered > 0)
+            scroll_up();
+        else {
+            if (hovered_id > 0 && hovered_id != size_t(-1))
+                --hovered_id;
+            scroll_y(hovered_id);
+        }
+    });
+
+    process_key_down(ImGuiKey_DownArrow, [&hovered_id, mouse_hovered, i]() {
+        if (mouse_hovered > 0)
+            scroll_down();
+        else {
+            if (hovered_id == size_t(-1))
+                hovered_id = 0;
+            else if (hovered_id < size_t(i - 1))
+                ++hovered_id;
+            scroll_y(hovered_id);
+        }
+    });
+
+    process_key_down(ImGuiKey_Enter, [&selected, hovered_id]() {
+        selected = hovered_id;
+    });
+
+    ImGui::ListBoxFooter();
+
+    auto check_box = [&edited, this](const wxString& label, bool& check) {
+        ImGui::SameLine();
+        bool ch = check;
+        checkbox(label, ch);
+        if (ImGui::IsItemClicked()) {
+            check = !check;
+            edited = true;
+        }
+    };
+
+    // add checkboxes for show/hide Categories and Groups
+    text(_L("Use for search")+":");
+    check_box(_L("Type"),       view_params.type);
+    check_box(_L("Category"),   view_params.category);
+    check_box(_L("Group"),      view_params.group);
 }
 
 void ImGuiWrapper::disabled_begin(bool disabled)

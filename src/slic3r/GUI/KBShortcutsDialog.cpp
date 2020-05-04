@@ -134,6 +134,7 @@ void KBShortcutsDialog::fill_shortcuts()
         { ctrl + "C", L("Copy to clipboard") },
         { ctrl + "V", L("Paste from clipboard") },
         { "F5", L("Reload plater from disk") },
+        { ctrl + "F", L("Search") },
         // Window
         { ctrl + "1", L("Select Plater Tab") },
         { ctrl + "2", L("Select Print Settings Tab") },

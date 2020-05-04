@@ -97,6 +97,7 @@ bool View3D::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_
     m_canvas->enable_selection(true);
     m_canvas->enable_main_toolbar(true);
     m_canvas->enable_undoredo_toolbar(true);
+    m_canvas->enable_collapse_toolbar(true);
     m_canvas->enable_labels(true);
 #if ENABLE_SLOPE_RENDERING
     m_canvas->enable_slope(true);
@@ -294,6 +295,7 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
     m_canvas->set_process(m_process);
     m_canvas->enable_legend_texture(true);
     m_canvas->enable_dynamic_background(true);
+    m_canvas->enable_collapse_toolbar(true);
 
     m_double_slider_sizer = new wxBoxSizer(wxHORIZONTAL);
     create_double_slider();
@@ -405,6 +407,7 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
 
     bind_event_handlers();
     
+#if !ENABLE_GCODE_VIEWER
     // sets colors for gcode preview extrusion roles
     std::vector<std::string> extrusion_roles_colors = {
         "Perimeter", "FFFF66",
@@ -422,6 +425,7 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
         "Custom", "28CC94"
     };
     m_gcode_preview_data->set_extrusion_paths_colors(extrusion_roles_colors);
+#endif // !ENABLE_GCODE_VIEWER
 
     return true;
 }

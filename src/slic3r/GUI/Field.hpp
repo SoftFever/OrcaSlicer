@@ -230,6 +230,8 @@ public:
 	static int def_width_wider()	;
 	static int def_width_thinner()	;
 
+	BlinkingBitmap*			blinking_bitmap() const { return m_blinking_bmp;}
+
 protected:
 	RevertButton*			m_Undo_btn = nullptr;
 	// Bitmap and Tooltip text for m_Undo_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
@@ -239,6 +241,8 @@ protected:
 	// Bitmap and Tooltip text for m_Undo_to_sys_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
     const ScalableBitmap*   m_undo_to_sys_bitmap = nullptr;
 	const wxString*		    m_undo_to_sys_tooltip = nullptr;
+
+	BlinkingBitmap*			m_blinking_bmp{ nullptr };
 
 	wxStaticText*		m_Label = nullptr;
 	// Color for Label. The wxColour will be updated only if the new wxColour pointer differs from the currently rendered one.
@@ -461,6 +465,7 @@ public:
 		x_textctrl->Disable();
 		y_textctrl->Disable(); }
 	wxSizer*		getSizer() override { return sizer; }
+	wxWindow*		getWindow() override { return dynamic_cast<wxWindow*>(x_textctrl); }
 };
 
 class StaticText : public Field {
