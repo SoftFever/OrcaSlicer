@@ -36,20 +36,6 @@ struct GroupAndCategory {
     wxString        category;
 };
 
-// fuzzy_match flag
-// Sorted by the order of importance. The outputs will be sorted by the importance if the match value given by fuzzy_match is equal.
-enum FMFlag
-{
-    fmUndef = 0, // didn't find 
-    fmOptKey,
-    fmLabel,
-    fmLabelLocal,
-    fmGroup,
-    fmGroupLocal,
-    fmCategory,
-    fmCategoryLocal
-};
-
 struct Option {
     bool operator<(const Option& other) const { return other.label > this->label; }
     bool operator>(const Option& other) const { return other.label < this->label; }
@@ -64,8 +50,6 @@ struct Option {
     std::wstring    group_local;
     std::wstring    category;
     std::wstring    category_local;
-
-    FMFlag fuzzy_match(wchar_t const *search_pattern, int &outScore, std::vector<uint16_t> &out_matches) const;
 };
 
 struct FoundOption {
@@ -74,7 +58,6 @@ struct FoundOption {
     std::string     marked_label;
     std::string     tooltip;
     size_t          option_idx {0};
-    FMFlag 			category {fmUndef};
     int             outScore {0};
 
     // Returning pointers to contents of std::string members, to be used by ImGUI for rendering.
@@ -106,7 +89,7 @@ class OptionsSearcher
     }
     void sort_found() {
         std::sort(found.begin(), found.end(), [](const FoundOption& f1, const FoundOption& f2) {
-            return f1.outScore > f2.outScore || (f1.outScore == f2.outScore && int(f1.category) < int(f2.category)); });
+            return f1.outScore > f2.outScore || (f1.outScore == f2.outScore && f1.label < f2.label); });
     };
 
     size_t options_size() const { return options.size(); }

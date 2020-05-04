@@ -57,7 +57,7 @@ namespace fts {
     namespace fuzzy_internal {
         static bool fuzzy_match_recursive(const char_type * pattern, const char_type * str, int & outScore, const char_type * const strBegin,          
             pos_type const * srcMatches,  pos_type * newMatches, int nextMatch, 
-            int & recursionCount, int recursionLimit);
+            int recursionCount, const int recursionLimit);
         static void copy_matches(pos_type * dst, pos_type const* src);
     }
 
@@ -93,8 +93,8 @@ namespace fts {
         // Recursion count is input / output to track the maximum depth reached.
         // Was given by reference &recursionCount, see discussion in https://github.com/forrestthewoods/lib_fts/issues/21
 //        int & 					recursionCount, 
-        int 					recursionCount, 
-        int 					recursionLimit)
+        int				        recursionCount, 
+        const int				recursionLimit)
     {
         // Count recursions
         if (++ recursionCount >= recursionLimit)
@@ -183,28 +183,41 @@ namespace fts {
             // Initialize score
             outScore = 100;
 
+            // Start of the first group that contains matches[0].
+            const char_type *group_start = strBegin + matches[0];
+            for (const char_type *c = group_start; c >= strBegin && *c != ':'; -- c)
+            	if (*c != ' ' && *c != '\t')
+            		group_start = c;
+
             // Apply leading letter penalty or bonus.
-            outScore += matches[0] == 0 ?
+            outScore += matches[0] == int(group_start - strBegin) ?
             	first_letter_bonus :
-            	std::max(matches[0] * leading_letter_penalty, max_leading_letter_penalty);
+            	std::max((matches[0] - int(group_start - strBegin)) * leading_letter_penalty, max_leading_letter_penalty);
 
             // Apply unmatched letters after the end penalty
-//            outScore += (int(str - strBegin) - matches[nextMatch-1] + 1) * unmatched_letter_penalty;
+//            outScore += (int(str - group_start) - matches[nextMatch-1] + 1) * unmatched_letter_penalty;
             // Apply unmatched penalty
-            outScore += (int(str - strBegin) - nextMatch) * unmatched_letter_penalty;
+            outScore += (int(str - group_start) - nextMatch) * unmatched_letter_penalty;
 
             // Apply ordering bonuses
+            int sequential_state = sequential_bonus;
             for (int i = 0; i < nextMatch; ++i) {
                 pos_type currIdx = matches[i];
 
                 // Check for bonuses based on neighbor character value
                 if (currIdx > 0) {
-                    if (i > 0 && currIdx == matches[i - 1] + 1)
+                    if (i > 0 && currIdx == matches[i - 1] + 1) {
 	                    // Sequential
-                        outScore += sequential_bonus;
+                        outScore += sequential_state;
+                        // Exponential grow of the sequential bonus.
+                    	sequential_state = std::min(5 * sequential_bonus, sequential_state + sequential_state / 3);
+                    } else {
+                    	// Reset the sequential bonus exponential grow.
+                    	sequential_state = sequential_bonus;
+                    }
+					char_type prev = strBegin[currIdx - 1];
 /*
                     // Camel case
-					char_type prev = strBegin[currIdx - 1];
                     if (std::islower(prev) && std::isupper(strBegin[currIdx]))
                         outScore += camel_bonus;
 */
