@@ -4362,6 +4362,9 @@ void GLCanvas3D::update_ui_from_settings()
         _refresh_if_shown_on_screen();
     }
 #endif
+
+    bool enable_collapse = wxGetApp().app_config->get("show_collapse_button") == "1";
+    enable_collapse_toolbar(enable_collapse);
 }
 
 
@@ -5062,10 +5065,23 @@ bool GLCanvas3D::_init_main_toolbar()
     if (!m_main_toolbar.add_separator())
         return false;
 
+    item.name = "settings";
+    item.icon_filename = "cog.svg";
+    item.tooltip = _utf8(L("Switch to Settings"));
+    item.sprite_id = 10;
+    item.enabling_callback    = GLToolbarItem::Default_Enabling_Callback;
+    item.visibility_callback  = [this]() { return wxGetApp().app_config->get("old_settings_layout_mode") != "1"; };
+    item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(); };
+    if (!m_main_toolbar.add_item(item))
+        return false;
+
+    if (!m_main_toolbar.add_separator())
+        return false;
+
     item.name = "layersediting";
     item.icon_filename = "layers_white.svg";
     item.tooltip = _utf8(L("Variable layer height"));
-    item.sprite_id = 10;
+    item.sprite_id = /*10*/11;
     item.left.toggable = true;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING)); };
     item.visibility_callback = [this]()->bool
@@ -5087,7 +5103,7 @@ bool GLCanvas3D::_init_main_toolbar()
     item.name = "search";
     item.icon_filename = "search_.svg";
     item.tooltip = _utf8(L("Search")) + " [" + GUI::shortkey_ctrl_prefix() + "F]";
-    item.sprite_id = 11;
+    item.sprite_id = /*11*/12;
     item.left.render_callback = [this](float left, float right, float, float) {
         if (m_canvas != nullptr)
         {
@@ -5267,58 +5283,7 @@ bool GLCanvas3D::_init_collapse_toolbar()
     if (!m_collapse_toolbar.add_item(item))
         return false;
 
-    if (!m_collapse_toolbar.add_separator())
-        return false;
-
-    item.name = "print";
-    item.icon_filename = "cog.svg";
-    item.tooltip = _utf8(L("Switch to Print Settings")) + " [" + GUI::shortkey_ctrl_prefix() + "2]";
-    item.sprite_id = 1;
-    item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(/*0*/1); };
-
-    if (!m_collapse_toolbar.add_item(item))
-        return false;
-
-    item.name = "filament";
-    item.icon_filename = "spool.svg";
-    item.tooltip = _utf8(L("Switch to Filament Settings")) + " [" + GUI::shortkey_ctrl_prefix() + "3]";
-    item.sprite_id = 2;
-    item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(/*1*/2); };
-    item.visibility_callback  = [this]() { return wxGetApp().plater()->printer_technology() == ptFFF; };
-
-    if (!m_collapse_toolbar.add_item(item))
-        return false;
-
-    item.name = "printer";
-    item.icon_filename = "printer.svg";
-    item.tooltip = _utf8(L("Switch to Printer Settings")) + " [" + GUI::shortkey_ctrl_prefix() + "4]";
-    item.sprite_id = 3;
-    item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(/*2*/3); };
-
-    if (!m_collapse_toolbar.add_item(item))
-        return false;
-
-    item.name = "resin";
-    item.icon_filename = "resin.svg";
-    item.tooltip = _utf8(L("Switch to SLA Material Settings")) + " [" + GUI::shortkey_ctrl_prefix() + "3]";
-    item.sprite_id = 4;
-    item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(/*1*/2); };
-    item.visibility_callback  = [this]() { return m_process->current_printer_technology() == ptSLA; };
-
-    if (!m_collapse_toolbar.add_item(item))
-        return false;
-
-    item.name = "sla_printer";
-    item.icon_filename = "sla_printer.svg";
-    item.tooltip = _utf8(L("Switch to Printer Settings")) + " [" + GUI::shortkey_ctrl_prefix() + "4]";
-    item.sprite_id = 5;
-    item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(/*2*/3); };
-
-    if (!m_collapse_toolbar.add_item(item))
-        return false;
-
     return true;
-
 }
 
 bool GLCanvas3D::_set_current()

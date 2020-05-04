@@ -31,6 +31,7 @@ protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void layout();
     void create_icon_size_slider();
+    void create_settings_mode_widget();
 };
 
 } // GUI

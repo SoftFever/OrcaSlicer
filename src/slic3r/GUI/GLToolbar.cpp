@@ -252,7 +252,7 @@ bool GLToolbar::is_enabled() const
 
 void GLToolbar::set_enabled(bool enable)
 {
-    m_enabled = true;
+    m_enabled = enable;//true; etFIXME
 }
 
 bool GLToolbar::add_item(const GLToolbarItem::Data& data)

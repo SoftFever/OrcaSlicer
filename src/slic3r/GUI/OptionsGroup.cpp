@@ -105,6 +105,7 @@ void OptionsGroup::add_undo_buttuns_to_sizer(wxSizer* sizer, const t_field& fiel
 	if (!m_show_modified_btns) {
         field->m_Undo_btn->set_as_hidden();
 		field->m_Undo_to_sys_btn->set_as_hidden();
+		field->m_blinking_bmp->Hide();
 		return;
 	}
 

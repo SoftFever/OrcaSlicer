@@ -413,7 +413,8 @@ bool GUI_App::on_init_inner()
     if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
         wxImage::AddHandler(new wxPNGHandler());
     mainframe = new MainFrame();
-    mainframe->switch_to(true); // hide settings tabs after first Layout
+    // hide settings tabs after first Layout
+    mainframe->select_tab(0);
 
     sidebar().obj_list()->init_objects(); // propagate model objects to object list
 //     update_mode(); // !!! do that later
@@ -602,6 +603,8 @@ void GUI_App::recreate_GUI()
 
     MainFrame *old_main_frame = mainframe;
     mainframe = new MainFrame();
+    // hide settings tabs after first Layout
+    mainframe->select_tab(0);
     // Propagate model objects to object list.
     sidebar().obj_list()->init_objects();
     SetTopWindow(mainframe);

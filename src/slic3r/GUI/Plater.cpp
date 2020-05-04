@@ -355,10 +355,10 @@ PresetBitmapComboBox(parent, wxSize(15 * wxGetApp().em_unit(), -1)),
         if (page_id == wxNOT_FOUND)
             return;
 
-        wxGetApp().tab_panel()->ChangeSelection(page_id);
+        wxGetApp().tab_panel()->SetSelection(page_id);
 
         // Switch to Settings NotePad
-        wxGetApp().mainframe->switch_to(false);
+        wxGetApp().mainframe->select_tab();
 
         /* In a case of a multi-material printing, for editing another Filament Preset
          * it's needed to select this preset for the "Filament settings" Tab
@@ -1100,9 +1100,8 @@ void Sidebar::jump_to_option(size_t selected)
     const Search::Option& opt = p->searcher.get_option(selected);
     wxGetApp().get_tab(opt.type)->activate_option(opt.opt_key, opt.category);
 
-    // Switch to the Settings NotePad, if plater is shown
-    if (p->plater->IsShown())
-        wxGetApp().mainframe->switch_to(false);
+    // Switch to the Settings NotePad
+    wxGetApp().mainframe->select_tab();
 }
 
 ObjectManipulation* Sidebar::obj_manipul()
