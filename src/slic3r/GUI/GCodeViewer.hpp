@@ -38,7 +38,7 @@ class GCodeViewer
         struct Endpoint
         {
             unsigned int id{ 0u };
-            double z{ 0.0 };
+            Vec3f position{ Vec3f::Zero() };
         };
 
         GCodeProcessor::EMoveType type{ GCodeProcessor::EMoveType::Noop };
@@ -54,11 +54,7 @@ class GCodeViewer
         unsigned char extruder_id{ 0 };
         unsigned char cp_color_id{ 0 };
 
-        bool matches(const GCodeProcessor::MoveVertex& move) const {
-            return type == move.type && role == move.extrusion_role && height == move.height && width == move.width &&
-                feedrate == move.feedrate && fan_speed == move.fan_speed && volumetric_rate == move.volumetric_rate() &&
-                extruder_id == move.extruder_id && cp_color_id == move.cp_color_id;
-        }
+        bool matches(const GCodeProcessor::MoveVertex& move) const;
     };
 
     // Used to batch the indices needed to render paths
@@ -157,6 +153,7 @@ class GCodeViewer
         long long vertices_gpu_size{ 0 };
         long long indices_size{ 0 };
         long long indices_gpu_size{ 0 };
+        long long paths_size{ 0 };
 
         void reset_all() {
             reset_times();
@@ -180,6 +177,7 @@ class GCodeViewer
             vertices_gpu_size = 0;
             indices_size = 0;
             indices_gpu_size = 0;
+            paths_size =  0;
         }
     };
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -279,8 +277,9 @@ private:
             return z > m_layers_z_range[0] - EPSILON && z < m_layers_z_range[1] + EPSILON;
         };
 
-        return in_z_range(path.first.z) || in_z_range(path.last.z);
+        return in_z_range(path.first.position[2]) || in_z_range(path.last.position[2]);
     }
+    bool is_travel_in_z_range(size_t id) const;
 };
 
 } // namespace GUI

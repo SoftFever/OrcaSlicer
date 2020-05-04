@@ -405,6 +405,7 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
 
     bind_event_handlers();
     
+#if !ENABLE_GCODE_VIEWER
     // sets colors for gcode preview extrusion roles
     std::vector<std::string> extrusion_roles_colors = {
         "Perimeter", "FFFF66",
@@ -422,6 +423,7 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
         "Custom", "28CC94"
     };
     m_gcode_preview_data->set_extrusion_paths_colors(extrusion_roles_colors);
+#endif // !ENABLE_GCODE_VIEWER
 
     return true;
 }
