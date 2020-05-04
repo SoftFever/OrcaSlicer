@@ -93,7 +93,7 @@ namespace fts {
         // Recursion count is input / output to track the maximum depth reached.
         // Was given by reference &recursionCount, see discussion in https://github.com/forrestthewoods/lib_fts/issues/21
 //        int & 					recursionCount, 
-        int & 					recursionCount, 
+        int 					recursionCount, 
         int 					recursionLimit)
     {
         // Count recursions
@@ -202,10 +202,12 @@ namespace fts {
                     if (i > 0 && currIdx == matches[i - 1] + 1)
 	                    // Sequential
                         outScore += sequential_bonus;
+/*
                     // Camel case
 					char_type prev = strBegin[currIdx - 1];
                     if (std::islower(prev) && std::isupper(strBegin[currIdx]))
                         outScore += camel_bonus;
+*/
                     // Separator
                     if (prev == '_' || prev == ' ')
                         outScore += separator_bonus;
