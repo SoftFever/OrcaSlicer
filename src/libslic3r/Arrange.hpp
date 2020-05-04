@@ -67,7 +67,7 @@ struct ArrangeParams {
     
     /// The minimum distance which is allowed for any 
     /// pair of items on the print bed in any direction.
-    coord_t min_obj_distance = 0.;
+    coord_t min_obj_distance = 0;
     
     /// The accuracy of optimization.
     /// Goes from 0.0 to 1.0 and scales performance as well

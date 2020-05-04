@@ -114,6 +114,7 @@ wxDECLARE_EVENT(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, wxKeyEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_EDIT_COLOR_CHANGE, wxKeyEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_UNDO, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_COLLAPSE_SIDEBAR, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
 wxDECLARE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
@@ -163,8 +164,8 @@ private:
             Num_States
         };
 
-    private:
         static const float THICKNESS_BAR_WIDTH;
+    private:
 
         bool                        m_enabled;
         Shader                      m_shader;
@@ -463,6 +464,7 @@ private:
     mutable GLGizmosManager m_gizmos;
     mutable GLToolbar m_main_toolbar;
     mutable GLToolbar m_undoredo_toolbar;
+    mutable GLToolbar m_collapse_toolbar;
     ClippingPlane m_clipping_planes[2];
     mutable ClippingPlane m_camera_clipping_plane;
     bool m_use_clipping_planes;
@@ -518,6 +520,7 @@ private:
 #endif // ENABLE_RENDER_STATISTICS
 
     mutable int m_imgui_undo_redo_hovered_pos{ -1 };
+    mutable int m_mouse_wheel {0};
     int m_selected_extruder;
 
     Labels m_labels;
@@ -619,6 +622,7 @@ public:
     void enable_selection(bool enable);
     void enable_main_toolbar(bool enable);
     void enable_undoredo_toolbar(bool enable);
+    void enable_collapse_toolbar(bool enable);
     void enable_dynamic_background(bool enable);
     void enable_labels(bool enable) { m_labels.enable(enable); }
 #if ENABLE_SLOPE_RENDERING
@@ -782,6 +786,7 @@ private:
     bool _init_main_toolbar();
     bool _init_undoredo_toolbar();
     bool _init_view_toolbar();
+    bool _init_collapse_toolbar();
 
     bool _set_current();
     void _resize(unsigned int w, unsigned int h);
@@ -815,6 +820,7 @@ private:
     void _render_gizmos_overlay() const;
     void _render_main_toolbar() const;
     void _render_undoredo_toolbar() const;
+    void _render_collapse_toolbar() const;
     void _render_view_toolbar() const;
 #if ENABLE_SHOW_CAMERA_TARGET
     void _render_camera_target() const;
@@ -822,6 +828,7 @@ private:
     void _render_sla_slices() const;
     void _render_selection_sidebar_hints() const;
     bool _render_undo_redo_stack(const bool is_undo, float pos_x) const;
+    bool _render_search_list(float pos_x) const;
     void _render_thumbnail_internal(ThumbnailData& thumbnail_data, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) const;
     // render thumbnail using an off-screen framebuffer
     void _render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) const;
@@ -885,6 +892,9 @@ private:
     void _update_selection_from_hover();
 
     bool _deactivate_undo_redo_toolbar_items();
+    bool _deactivate_search_toolbar_item();
+    bool _activate_search_toolbar_item();
+    bool _deactivate_collapse_toolbar_items();
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 
