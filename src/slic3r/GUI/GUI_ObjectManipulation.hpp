@@ -10,6 +10,7 @@ class wxBitmapComboBox;
 class wxStaticText;
 class LockButton;
 class wxStaticBitmap;
+class wxCheckBox;
 
 namespace Slic3r {
 namespace GUI {
