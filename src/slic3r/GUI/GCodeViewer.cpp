@@ -1099,7 +1099,13 @@ void GCodeViewer::render_legend() const
 
 void GCodeViewer::render_sequential_dlg() const
 {
-    static const float margin = 125.0f;
+    static const float MARGIN = 125.0f;
+    static const float BUTTON_W = 50.0f;
+
+    auto apply_button_action = [this](unsigned int value) {
+        m_sequential_view.current = std::clamp(value, m_sequential_view.first, m_sequential_view.last);
+        refresh_render_paths(true);
+    };
 
     if (m_roles.empty())
         return;
@@ -1110,10 +1116,9 @@ void GCodeViewer::render_sequential_dlg() const
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     const ImGuiStyle& style = ImGui::GetStyle();
 
-    const GLToolbar& view_toolbar = wxGetApp().plater()->get_view_toolbar();
     Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
 
-    float left = view_toolbar.get_width();
+    float left = wxGetApp().plater()->get_view_toolbar().get_width();
     float width = static_cast<float>(cnv_size.get_width()) - left;
 
     ImGui::SetNextWindowBgAlpha(0.5f);
@@ -1122,21 +1127,59 @@ void GCodeViewer::render_sequential_dlg() const
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     imgui.begin(std::string("Sequential"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
 
-    std::string low_str = std::to_string(m_sequential_view.first);
-    ImGui::SetCursorPosX(margin - style.ItemSpacing.x - ImGui::CalcTextSize(low_str.c_str()).x);
+    ImGui::SetCursorPosX(MARGIN);
+    imgui.disabled_begin(m_sequential_view.first == m_sequential_view.current);
+    if (ImGui::Button("< 1", { BUTTON_W, 0.0f }))
+        apply_button_action(m_sequential_view.current - 1);
+    imgui.disabled_end();
+
+    ImGui::SameLine();
+    imgui.disabled_begin(m_sequential_view.current - m_sequential_view.first < 10);
+    if (ImGui::Button("< 10", { BUTTON_W, 0.0f }))
+        apply_button_action(m_sequential_view.current - 10);
+    imgui.disabled_end();
+
+    ImGui::SameLine();
+    imgui.disabled_begin(m_sequential_view.current - m_sequential_view.first < 100);
+    if (ImGui::Button("< 100", { BUTTON_W, 0.0f }))
+        apply_button_action(m_sequential_view.current - 100);
+    imgui.disabled_end();
+
+    ImGui::SameLine(width - MARGIN - 3 * BUTTON_W - 2 * style.ItemSpacing.x - style.WindowPadding.x);
+    imgui.disabled_begin(m_sequential_view.last - m_sequential_view.current < 100);
+    if (ImGui::Button("> 100", { BUTTON_W, 0.0f }))
+        apply_button_action(m_sequential_view.current + 100);
+    imgui.disabled_end();
+
+    ImGui::SameLine();
+    imgui.disabled_begin(m_sequential_view.last - m_sequential_view.current < 10);
+    if (ImGui::Button("> 10", { BUTTON_W, 0.0f }))
+        apply_button_action(m_sequential_view.current + 10);
+    imgui.disabled_end();
+
+    ImGui::SameLine();
+    imgui.disabled_begin(m_sequential_view.last == m_sequential_view.current);
+    if (ImGui::Button("> 1", { BUTTON_W, 0.0f }))
+        apply_button_action(m_sequential_view.current + 1);
+    imgui.disabled_end();
+
+    int index = 1 + static_cast<int>(m_sequential_view.current);
+    int i_min = 1 + static_cast<int>(m_sequential_view.first);
+    int i_max = 1 + static_cast<int>(m_sequential_view.last);
+
+    std::string low_str = std::to_string(i_min);
+    ImGui::SetCursorPosX(MARGIN - style.ItemSpacing.x - ImGui::CalcTextSize(low_str.c_str()).x);
     ImGui::AlignTextToFramePadding();
     imgui.text(low_str);
-    ImGui::SameLine(margin);
-    ImGui::PushItemWidth(-margin);
-    int index = static_cast<int>(m_sequential_view.current);
-    if (ImGui::SliderInt("##slider int", &index, static_cast<int>(m_sequential_view.first), static_cast<int>(m_sequential_view.last)))
-    {
-        m_sequential_view.current = static_cast<unsigned int>(index);
+    ImGui::SameLine(MARGIN);
+    ImGui::PushItemWidth(-MARGIN);
+    if (ImGui::SliderInt("##slider int", &index, i_min, i_max)) {
+        m_sequential_view.current = static_cast<unsigned int>(index - 1);
         refresh_render_paths(true);
     }
     ImGui::PopItemWidth();
     ImGui::SameLine();
-    imgui.text(std::to_string(m_sequential_view.last));
+    imgui.text(std::to_string(i_max));
 
     imgui.end();
     ImGui::PopStyleVar();
