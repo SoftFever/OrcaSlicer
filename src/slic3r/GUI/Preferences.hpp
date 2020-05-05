@@ -19,6 +19,7 @@ class PreferencesDialog : public DPIDialog
 	std::shared_ptr<ConfigOptionsGroup>	m_optgroup_camera;
 	std::shared_ptr<ConfigOptionsGroup>	m_optgroup_gui;
 	wxSizer*                            m_icon_size_sizer;
+	wxRadioBox*							m_layout_mode_box;
     bool                                isOSX {false};
 public:
 	PreferencesDialog(wxWindow* parent);

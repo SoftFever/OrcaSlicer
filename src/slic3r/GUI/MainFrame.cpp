@@ -302,7 +302,7 @@ void MainFrame::init_tabpanel()
     m_last_selected_tab = m_layout == slDlg ? 0 : 1;
 
     if (m_layout == slDlg) {
-        m_settings_dialog = new SettingsDialog();
+        m_settings_dialog = new SettingsDialog(this);
         m_tabpanel = m_settings_dialog->get_tabpanel();
     }
     else {
@@ -1260,8 +1260,11 @@ void MainFrame::load_config(const DynamicPrintConfig& config)
 void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
 {
     if (m_layout == slDlg) {
-        if (tab==0)
+        if (tab==0) {
+            if (m_settings_dialog->IsShown())
+                this->SetFocus();
             return;
+        }
         // Show/Activate Settings Dialog
         if (m_settings_dialog->IsShown())
             m_settings_dialog->SetFocus();
@@ -1385,8 +1388,9 @@ std::string MainFrame::get_dir_name(const wxString &full_name) const
 // SettingsDialog
 // ----------------------------------------------------------------------------
 
-SettingsDialog::SettingsDialog()
-: DPIDialog(nullptr, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _L("Settings"))
+SettingsDialog::SettingsDialog(MainFrame* mainframe)
+: DPIDialog(nullptr, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _L("Settings")),
+    m_main_frame(mainframe)
 {
     this->SetFont(wxGetApp().normal_font());
 
@@ -1410,6 +1414,18 @@ SettingsDialog::SettingsDialog()
 #ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList
     m_tabpanel->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 #endif
+
+    m_tabpanel->Bind(wxEVT_KEY_UP, [this](wxKeyEvent& evt) {
+        if ((evt.GetModifiers() & wxMOD_CONTROL) != 0) {
+            switch (evt.GetKeyCode()) {
+            case '1': { m_main_frame->select_tab(0); break; }
+            case '2': { m_main_frame->select_tab(1); break; }
+            case '3': { m_main_frame->select_tab(2); break; }
+            case '4': { m_main_frame->select_tab(3); break; }
+            default:break;
+            }
+        }
+    });
 
     // initialize layout
     auto sizer = new wxBoxSizer(wxVERTICAL);

@@ -188,11 +188,12 @@ void PreferencesDialog::accept()
         warning_catcher(this, wxString::Format(_(L("You need to restart %s to make the changes effective.")), SLIC3R_APP_NAME));
 	}
 
+    auto app_config = get_app_config();
+
 	bool settings_layout_changed =	m_values.find("old_settings_layout_mode") != m_values.end() ||
 		                            m_values.find("new_settings_layout_mode") != m_values.end() ||
 		                            m_values.find("dlg_settings_layout_mode") != m_values.end();
 
-	bool canceled = false;
 	if (settings_layout_changed) {
 		// the dialog needs to be destroyed before the call to recreate_gui()
 		// or sometimes the application crashes into wxDialogBase() destructor
@@ -205,24 +206,23 @@ void PreferencesDialog::accept()
 			wxICON_QUESTION | wxOK | wxCANCEL);
 
 		if (dialog.ShowModal() == wxID_CANCEL)
-			canceled = true;
+		{
+			int selection = app_config->get("old_settings_layout_mode") == "1" ? 0 :
+				            app_config->get("new_settings_layout_mode") == "1" ? 1 :
+				            app_config->get("dlg_settings_layout_mode") == "1" ? 2 : 0;
+
+			m_layout_mode_box->SetSelection(selection);
+			return;
+		}
 	}
 
-    auto app_config = get_app_config();
 	for (std::map<std::string, std::string>::iterator it = m_values.begin(); it != m_values.end(); ++it)
-	{
-		if (canceled && (it->first == "old_settings_layout_mode" ||
-			             it->first == "new_settings_layout_mode" ||
-			             it->first == "dlg_settings_layout_mode" ))
-			continue;
 		app_config->set(it->first, it->second);
-	}
 
 	app_config->save();
-
 	EndModal(wxID_OK);
 
-	if (settings_layout_changed && !canceled)
+	if (settings_layout_changed)
 		// recreate application, if settings layout was changed
 		wxGetApp().recreate_GUI();
 	else
@@ -323,12 +323,12 @@ void PreferencesDialog::create_settings_mode_widget()
 
 	wxWindow* parent = m_optgroup_gui->ctrl_parent();
 
-	wxRadioBox* box = new wxRadioBox(parent, wxID_ANY, _L("Settings layout mode"), wxDefaultPosition, wxDefaultSize, WXSIZEOF(choices), choices,
+	m_layout_mode_box = new wxRadioBox(parent, wxID_ANY, _L("Settings layout mode"), wxDefaultPosition, wxDefaultSize, WXSIZEOF(choices), choices,
 		3, wxRA_SPECIFY_ROWS);
-	box->SetFont(wxGetApp().normal_font());
-	box->SetSelection(selection);
+	m_layout_mode_box->SetFont(wxGetApp().normal_font());
+	m_layout_mode_box->SetSelection(selection);
 
-	box->Bind(wxEVT_RADIOBOX, [this](wxCommandEvent& e) {
+	m_layout_mode_box->Bind(wxEVT_RADIOBOX, [this](wxCommandEvent& e) {
 		int selection = e.GetSelection();
 
 		m_values["old_settings_layout_mode"] = boost::any_cast<bool>(selection == 0) ? "1" : "0";
@@ -337,7 +337,7 @@ void PreferencesDialog::create_settings_mode_widget()
 	});
 
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
-	sizer->Add(box, 1, wxALIGN_CENTER_VERTICAL);
+	sizer->Add(m_layout_mode_box, 1, wxALIGN_CENTER_VERTICAL);
 
 	m_optgroup_gui->sizer->Add(sizer, 0, wxEXPAND);
 }

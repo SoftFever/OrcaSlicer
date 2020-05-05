@@ -50,8 +50,9 @@ struct PresetTab {
 class SettingsDialog : public DPIDialog
 {
     wxNotebook* m_tabpanel { nullptr };
+    MainFrame*  m_main_frame {nullptr };
 public:
-    SettingsDialog();
+    SettingsDialog(MainFrame* mainframe);
     ~SettingsDialog() {}
     wxNotebook* get_tabpanel() { return m_tabpanel; }
 
