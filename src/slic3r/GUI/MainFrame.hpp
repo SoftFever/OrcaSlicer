@@ -73,7 +73,7 @@ class MainFrame : public DPIFrame
 
     PrintHostQueueDialog *m_printhost_queue_dlg;
 
-    size_t      m_last_selected_tab {1};
+    size_t      m_last_selected_tab;
 
     std::string     get_base_name(const wxString &full_name, const char *extension = nullptr) const;
     std::string     get_dir_name(const wxString &full_name) const;

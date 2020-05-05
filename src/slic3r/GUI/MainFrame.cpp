@@ -231,6 +231,9 @@ void MainFrame::shutdown()
     // In addition, there were some crashes due to the Paint events sent to already destructed windows.
     this->Show(false);
 
+    if (m_settings_dialog)
+        m_settings_dialog->Destroy();
+
 	// Stop the background thread (Windows and Linux).
 	// Disconnect from a 3DConnextion driver (OSX).
     m_plater->get_mouse3d_controller().shutdown();
@@ -294,6 +297,9 @@ void MainFrame::init_tabpanel()
     m_layout = wxGetApp().app_config->get("old_settings_layout_mode") == "1" ? slOld :
                wxGetApp().app_config->get("new_settings_layout_mode") == "1" ? slNew :
                wxGetApp().app_config->get("dlg_settings_layout_mode") == "1" ? slDlg : slOld;
+
+    // From the very beginning the Print settings should be selected
+    m_last_selected_tab = m_layout == slDlg ? 0 : 1;
 
     if (m_layout == slDlg) {
         m_settings_dialog = new SettingsDialog();

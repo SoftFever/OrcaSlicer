@@ -325,7 +325,7 @@ void PreferencesDialog::create_settings_mode_widget()
 
 	wxRadioBox* box = new wxRadioBox(parent, wxID_ANY, _L("Settings layout mode"), wxDefaultPosition, wxDefaultSize, WXSIZEOF(choices), choices,
 		3, wxRA_SPECIFY_ROWS);
-	box->SetButtonFont(wxGetApp().normal_font());
+	box->SetFont(wxGetApp().normal_font());
 	box->SetSelection(selection);
 
 	box->Bind(wxEVT_RADIOBOX, [this](wxCommandEvent& e) {
@@ -339,7 +339,7 @@ void PreferencesDialog::create_settings_mode_widget()
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(box, 1, wxALIGN_CENTER_VERTICAL);
 
-	m_optgroup_gui->sizer->Add(sizer, 0, wxEXPAND | wxALL, em_unit());
+	m_optgroup_gui->sizer->Add(sizer, 0, wxEXPAND);
 }
 
 
