@@ -371,15 +371,6 @@ void GLGizmosManager::set_sla_support_data(ModelObject* model_object)
      || wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
         return;
 
-    /*m_common_gizmos_data->update_from_backend(m_parent, model_object);
-
-    auto* gizmo_supports = dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get());
-
-
-    // note: sla support gizmo takes care of updating the common data.
-    // following lines are thus dependent
-    //gizmo_supports->set_sla_support_data(model_object, m_parent.get_selection());
-    */
     auto* gizmo_hollow = dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get());
     auto* gizmo_supports = dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get());
     gizmo_hollow->set_sla_support_data(model_object, m_parent.get_selection());

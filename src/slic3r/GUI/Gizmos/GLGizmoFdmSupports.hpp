@@ -19,7 +19,7 @@ enum class SLAGizmoEventType : unsigned char;
 class GLGizmoFdmSupports : public GLGizmoBase
 {
 private:
-    const ModelObject* m_old_mo = nullptr;
+    ObjectID m_old_mo_id;
     size_t m_old_volumes_size = 0;
 
     GLUquadricObj* m_quadric;
@@ -53,11 +53,13 @@ public:
 private:
     bool on_init() override;
     void on_render() const override;
-    void on_render_for_picking() const override;
+    void on_render_for_picking() const override {}
 
     void render_triangles(const Selection& selection) const;
     void render_cursor_circle() const;
-    void update_mesh();
+
+    void update_model_object() const;
+    void update_from_model_object();
 
     bool is_mesh_point_clipped(const Vec3d& point) const;
 

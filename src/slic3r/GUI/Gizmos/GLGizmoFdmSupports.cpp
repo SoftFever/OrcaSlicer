@@ -58,10 +58,10 @@ void GLGizmoFdmSupports::set_fdm_support_data(ModelObject* model_object, const S
         return;
 
     if (mo && selection.is_from_single_instance()
-     && (mo != m_old_mo || mo->volumes.size() != m_old_volumes_size))
+     && (mo->id() != m_old_mo_id || mo->volumes.size() != m_old_volumes_size))
     {
-        update_mesh();
-        m_old_mo = mo;
+        update_from_model_object();
+        m_old_mo_id = mo->id();
         m_old_volumes_size = mo->volumes.size();
     }
 }
@@ -177,14 +177,21 @@ void GLGizmoFdmSupports::render_cursor_circle() const
 }
 
 
-void GLGizmoFdmSupports::on_render_for_picking() const
+void GLGizmoFdmSupports::update_model_object() const
 {
-
+    ModelObject* mo = m_c->selection_info()->model_object();
+    int idx = -1;
+    for (ModelVolume* mv : mo->volumes) {
+        ++idx;
+        if (! mv->is_model_part())
+            continue;
+        for (int i=0; i<int(m_selected_facets[idx].size()); ++i)
+            mv->m_supported_facets.set_facet(i, m_selected_facets[idx][i]);
+    }
 }
 
 
-
-void GLGizmoFdmSupports::update_mesh()
+void GLGizmoFdmSupports::update_from_model_object()
 {
     wxBusyCursor wait;
 
@@ -193,7 +200,6 @@ void GLGizmoFdmSupports::update_mesh()
     for (const ModelVolume* mv : mo->volumes)
         if (mv->is_model_part())
             ++num_of_volumes;
-
     m_selected_facets.resize(num_of_volumes);
     m_neighbors.resize(num_of_volumes);
     m_ivas.clear();
@@ -469,19 +475,16 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
     if ((action == SLAGizmoEventType::LeftUp || action == SLAGizmoEventType::RightUp)
       && m_button_down != Button::None) {
+        // Take snapshot and update ModelVolume data.
+        wxString action_name = shift_down
+                ? _L("Remove selection")
+                : (m_button_down == Button::Left
+                   ? _L("Add supports")
+                   : _L("Block supports"));
+        Plater::TakeSnapshot(wxGetApp().plater(), action_name);
+        update_model_object();
+
         m_button_down = Button::None;
-
-        // Synchronize gizmo with ModelVolume data.
-        ModelObject* mo = m_c->selection_info()->model_object();
-        int idx = -1;
-        for (ModelVolume* mv : mo->volumes) {
-            ++idx;
-            if (! mv->is_model_part())
-                continue;
-            for (int i=0; i<int(m_selected_facets[idx].size()); ++i)
-                mv->m_supported_facets.set_facet(i, m_selected_facets[idx][i]);
-        }
-
         return true;
     }
 
@@ -666,12 +669,22 @@ void GLGizmoFdmSupports::on_set_state()
         return;
 
     if (m_state == On && m_old_state != On) { // the gizmo was just turned on
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("FDM gizmo turned on")));
+        {
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("FDM gizmo turned on")));
+        }
+        if (! m_parent.get_gizmos_manager().is_serializing()) {
+            wxGetApp().CallAfter([]() {
+                wxGetApp().plater()->enter_gizmos_stack();
+            });
+        }
     }
     if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
         // we are actually shutting down
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("FDM gizmo turned off")));
-        m_old_mo = nullptr;
+        wxGetApp().plater()->leave_gizmos_stack();
+        {
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("FDM gizmo turned off")));
+        }
+        m_old_mo_id = -1;
         m_ivas.clear();
         m_neighbors.clear();
         m_selected_facets.clear();
@@ -696,7 +709,7 @@ void GLGizmoFdmSupports::on_stop_dragging()
 
 void GLGizmoFdmSupports::on_load(cereal::BinaryInputArchive& ar)
 {
-
+    update_from_model_object();
 }
 
 
