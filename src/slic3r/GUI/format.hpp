@@ -29,7 +29,7 @@ inline wxString format_wxstr(const wxString& fmt, TArgs&&... args) {
 }
 template<typename... TArgs>
 inline std::string format(const wxString& fmt, TArgs&&... args) {
-	return format(fmt.ToUTF8().data(), std::forward<TArgs>(args)...);
+    return Slic3r::format(fmt.ToUTF8().data(), std::forward<TArgs>(args)...);
 }
 
 } // namespace GUI

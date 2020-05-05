@@ -11,6 +11,7 @@
 #include "BonjourDialog.hpp"
 #include "WipeTowerDialog.hpp"
 #include "ButtonsDescription.hpp"
+#include "Search.hpp"
 
 #include <wx/app.h>
 #include <wx/button.h>
