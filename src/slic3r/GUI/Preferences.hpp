@@ -7,6 +7,8 @@
 #include <wx/dialog.h>
 #include <map>
 
+class wxRadioBox;
+
 namespace Slic3r {
 namespace GUI {
 
