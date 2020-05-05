@@ -14,6 +14,7 @@
 #include "libslic3r/BoundingBox.hpp"
 #include "Jobs/Job.hpp"
 #include "wxExtensions.hpp"
+#include "Search.hpp"
 
 class wxButton;
 class ScalableButton;
@@ -106,6 +107,8 @@ public:
     void update_mode_sizer() const;
     void update_reslice_btn_tooltip() const;
     void msw_rescale();
+    void search();
+    void jump_to_option(size_t selected);
 
     ObjectManipulation*     obj_manipul();
     ObjectList*             obj_list();
@@ -129,8 +132,14 @@ public:
 	bool                    show_export_removable(bool show) const;
     bool                    is_multifilament();
     void                    update_mode();
+    bool                    is_collapsed();
+    void                    collapse(bool collapse);
+    void                    update_searcher();
 
-    std::vector<PresetComboBox*>& combos_filament();
+    std::vector<PresetComboBox*>&   combos_filament();
+    Search::OptionsSearcher&        get_searcher();
+    std::string&                    get_search_line();
+
 private:
     struct priv;
     std::unique_ptr<priv> p;
@@ -177,6 +186,9 @@ public:
 
     bool are_view3D_labels_shown() const;
     void show_view3D_labels(bool show);
+
+    bool is_sidebar_collapsed() const;
+    void collapse_sidebar(bool show);
 
 #if ENABLE_SLOPE_RENDERING
     bool is_view3D_slope_shown() const;
@@ -233,6 +245,7 @@ public:
     void redo_to(int selection);
     bool undo_redo_string_getter(const bool is_undo, int idx, const char** out_text);
     void undo_redo_topmost_string_getter(const bool is_undo, std::string& out_text);
+    bool search_string_getter(int idx, const char** label, const char** tooltip);
     // For the memory statistics. 
     const Slic3r::UndoRedo::Stack& undo_redo_stack_main() const;
     // Enter / leave the Gizmos specific Undo / Redo stack. To be used by the SLA support point editing gizmo.
@@ -278,6 +291,7 @@ public:
 
     void copy_selection_to_clipboard();
     void paste_from_clipboard();
+    void search(bool plater_is_active);
 
     bool can_delete() const;
     bool can_delete_all() const;

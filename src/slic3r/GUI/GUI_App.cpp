@@ -304,8 +304,8 @@ void GUI_App::init_app_config()
 {
 	// Profiles for the alpha are stored into the PrusaSlicer-alpha directory to not mix with the current release.
 	SetAppName(SLIC3R_APP_KEY);
-	//SetAppName(SLIC3R_APP_KEY "-beta");
-	SetAppDisplayName(SLIC3R_APP_NAME);
+	SetAppName(SLIC3R_APP_KEY "-alpha");
+//	SetAppDisplayName(SLIC3R_APP_NAME);
 
 	// Set the Slic3r data directory at the Slic3r XS module.
 	// Unix: ~/ .Slic3r
@@ -350,17 +350,15 @@ bool GUI_App::on_init_inner()
 //     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", wxVERSION_STRING, wxVERSION;
    
     std::string msg = Http::tls_global_init();
-    wxRichMessageDialog
-        dlg(nullptr,
-            wxString::Format(_(L("%s\nDo you want to continue?")), _(msg)),
-            "PrusaSlicer", wxICON_QUESTION | wxYES_NO);
-    
-    bool ssl_accept = app_config->get("tls_cert_store_accepted") == "yes";
     std::string ssl_cert_store = app_config->get("tls_accepted_cert_store_location");
-    ssl_accept = ssl_accept && ssl_cert_store == Http::tls_system_cert_store();
+    bool ssl_accept = app_config->get("tls_cert_store_accepted") == "yes" && ssl_cert_store == Http::tls_system_cert_store();
     
-    dlg.ShowCheckBox(_(L("Remember my choice")));
     if (!msg.empty() && !ssl_accept) {
+        wxRichMessageDialog
+            dlg(nullptr,
+                wxString::Format(_(L("%s\nDo you want to continue?")), msg),
+                "PrusaSlicer", wxICON_QUESTION | wxYES_NO);
+        dlg.ShowCheckBox(_(L("Remember my choice")));
         if (dlg.ShowModal() != wxID_YES) return false;
 
         app_config->set("tls_cert_store_accepted",
@@ -415,6 +413,8 @@ bool GUI_App::on_init_inner()
     if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
         wxImage::AddHandler(new wxPNGHandler());
     mainframe = new MainFrame();
+    mainframe->switch_to(true); // hide settings tabs after first Layout
+
     sidebar().obj_list()->init_objects(); // propagate model objects to object list
 //     update_mode(); // !!! do that later
     SetTopWindow(mainframe);

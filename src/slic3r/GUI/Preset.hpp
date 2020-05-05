@@ -125,6 +125,7 @@ public:
         TYPE_FILAMENT,
         TYPE_SLA_MATERIAL,
         TYPE_PRINTER,
+        TYPE_COUNT,
     };
 
     Preset(Type type, const std::string &name, bool is_default = false) : type(type), is_default(is_default), name(name) {}

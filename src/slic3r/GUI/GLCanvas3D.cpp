@@ -1531,6 +1531,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, wxKeyEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_EDIT_COLOR_CHANGE, wxKeyEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UNDO, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_COLLAPSE_SIDEBAR, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
 wxDEFINE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
@@ -1556,6 +1557,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
 #endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
     , m_main_toolbar(GLToolbar::Normal, "Top")
     , m_undoredo_toolbar(GLToolbar::Normal, "Top")
+    , m_collapse_toolbar(GLToolbar::Normal, "Top")
     , m_gizmos(*this)
     , m_use_clipping_planes(false)
     , m_sidebar_field("")
@@ -1961,6 +1963,11 @@ void GLCanvas3D::enable_undoredo_toolbar(bool enable)
     m_undoredo_toolbar.set_enabled(enable);
 }
 
+void GLCanvas3D::enable_collapse_toolbar(bool enable)
+{
+    m_collapse_toolbar.set_enabled(enable);
+}
+
 void GLCanvas3D::enable_dynamic_background(bool enable)
 {
     m_dynamic_background_enabled = enable;
@@ -2186,6 +2193,9 @@ void GLCanvas3D::render()
 	        tooltip = m_undoredo_toolbar.get_tooltip();
 
 	    if (tooltip.empty())
+	        tooltip = m_collapse_toolbar.get_tooltip();
+
+	    if (tooltip.empty())
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
             tooltip = wxGetApp().plater()->get_view_toolbar().get_tooltip();
 #else
@@ -2223,6 +2233,9 @@ void GLCanvas3D::render()
 
     if (tooltip.empty())
         tooltip = m_undoredo_toolbar.get_tooltip();
+
+    if (tooltip.empty())
+        tooltip = m_collapse_toolbar.get_tooltip();
 
     if (tooltip.empty())
         tooltip = m_view_toolbar.get_tooltip();
@@ -2950,6 +2963,7 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
 
     m_dirty |= m_main_toolbar.update_items_state();
     m_dirty |= m_undoredo_toolbar.update_items_state();
+    m_dirty |= m_collapse_toolbar.update_items_state();
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
     m_dirty |= wxGetApp().plater()->get_view_toolbar().update_items_state();
     bool mouse3d_controller_applied = wxGetApp().plater()->get_mouse3d_controller().apply(wxGetApp().plater()->get_camera());
@@ -2989,7 +3003,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         return;
     }
 
-    if ((keyCode == WXK_ESCAPE) && _deactivate_undo_redo_toolbar_items())
+    if ((keyCode == WXK_ESCAPE) && (_deactivate_undo_redo_toolbar_items() || _deactivate_search_toolbar_item()))
         return;
 
     if (m_gizmos.on_char(evt))
@@ -3035,6 +3049,16 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #endif /* __APPLE__ */
             post_event(SimpleEvent(EVT_GLTOOLBAR_PASTE));
         break;
+
+
+#ifdef __APPLE__
+        case 'f':
+        case 'F':
+#else /* __APPLE__ */
+        case WXK_CONTROL_F:
+#endif /* __APPLE__ */
+            _activate_search_toolbar_item();
+            break;
 
 
 #ifdef __APPLE__
@@ -3436,6 +3460,15 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
         }
     }
 
+    // If the Search window or Undo/Redo list is opened, 
+    // update them according to the event
+    if (m_main_toolbar.is_item_pressed("search")    || 
+        m_undoredo_toolbar.is_item_pressed("undo")  || 
+        m_undoredo_toolbar.is_item_pressed("redo")) {
+        m_mouse_wheel = int((double)evt.GetWheelRotation() / (double)evt.GetWheelDelta());
+        return;
+    }
+
     // Inform gizmos about the event so they have the opportunity to react.
     if (m_gizmos.on_mouse_wheel(evt))
         return;
@@ -3571,6 +3604,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         return;
     }
 
+    if (m_collapse_toolbar.on_mouse(evt, *this))
+    {
+        if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
+            mouse_up_cleanup();
+        m_mouse.set_start_position_3D_as_invalid();
+        return;
+    }
+
 #if ENABLE_NON_STATIC_CANVAS_MANAGER
     if (wxGetApp().plater()->get_view_toolbar().on_mouse(evt, *this))
 #else
@@ -3636,6 +3677,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     else if (evt.Leaving())
     {
         _deactivate_undo_redo_toolbar_items();
+        _deactivate_search_toolbar_item();
 
         // to remove hover on objects when the mouse goes out of this canvas
         m_mouse.position = Vec2d(-1.0, -1.0);
@@ -3643,7 +3685,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
     else if (evt.LeftDown() || evt.RightDown() || evt.MiddleDown())
     {
-        if (_deactivate_undo_redo_toolbar_items())
+        if (_deactivate_undo_redo_toolbar_items() || _deactivate_search_toolbar_item())
             return;
 
         // If user pressed left or right button we first check whether this happened
@@ -4435,7 +4477,7 @@ bool GLCanvas3D::_render_undo_redo_stack(const bool is_undo, float pos_x) const
 	em *= m_retina_helper->get_scale_factor();
 #endif
 
-    if (imgui->undo_redo_list(ImVec2(18 * em, 26 * em), is_undo, &string_getter, hovered, selected))
+    if (imgui->undo_redo_list(ImVec2(18 * em, 26 * em), is_undo, &string_getter, hovered, selected, m_mouse_wheel))
         m_imgui_undo_redo_hovered_pos = hovered;
     else
         m_imgui_undo_redo_hovered_pos = -1;
@@ -4447,6 +4489,64 @@ bool GLCanvas3D::_render_undo_redo_stack(const bool is_undo, float pos_x) const
     }
 
     imgui->text(wxString::Format(is_undo ? _L_PLURAL("Undo %1$d Action", "Undo %1$d Actions", hovered + 1) : _L_PLURAL("Redo %1$d Action", "Redo %1$d Actions", hovered + 1), hovered + 1));
+
+    imgui->end();
+
+    return action_taken;
+}
+
+// Getter for the const char*[] for the search list 
+static bool search_string_getter(int idx, const char** label, const char** tooltip)
+{
+    return wxGetApp().plater()->search_string_getter(idx, label, tooltip);
+}
+
+bool GLCanvas3D::_render_search_list(float pos_x) const
+{
+    bool action_taken = false;
+    ImGuiWrapper* imgui = wxGetApp().imgui();
+
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    const float x = pos_x * (float)wxGetApp().plater()->get_camera().get_zoom() + 0.5f * (float)get_canvas_size().get_width();
+#else
+    const float x = pos_x * (float)get_camera().get_zoom() + 0.5f * (float)get_canvas_size().get_width();
+#endif
+    imgui->set_next_window_pos(x, m_main_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
+    std::string title = L("Search");
+    imgui->begin(_(title), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+
+    int selected = -1;
+    bool edited = false;
+    bool check_changed = false;
+    float em = static_cast<float>(wxGetApp().em_unit());
+#if ENABLE_RETINA_GL
+	em *= m_retina_helper->get_scale_factor();
+#endif
+
+    Sidebar& sidebar = wxGetApp().sidebar();
+
+    std::string& search_line = sidebar.get_search_line();
+    char *s = new char[255];
+    strcpy(s, search_line.empty() ? _u8L("Type here to search").c_str() : search_line.c_str());
+
+    imgui->search_list(ImVec2(45 * em, 30 * em), &search_string_getter, s, 
+                       sidebar.get_searcher().view_params,
+                       selected, edited, m_mouse_wheel);
+
+    search_line = s;
+    delete [] s;
+    if (search_line == _u8L("Type here to search"))
+        search_line.clear();
+
+    if (edited)
+        sidebar.search();
+
+    if (selected != size_t(-1)) {
+        // selected == 9999 means that Esc kye was pressed
+        if (selected != 9999)
+            sidebar.jump_to_option(selected);
+        action_taken = true;
+    }
 
     imgui->end();
 
@@ -4822,6 +4922,9 @@ bool GLCanvas3D::_init_toolbars()
     if (!_init_view_toolbar())
         return false;
 
+    if (!_init_collapse_toolbar())
+        return false;
+
     return true;
 }
 
@@ -4979,6 +5082,26 @@ bool GLCanvas3D::_init_main_toolbar()
     if (!m_main_toolbar.add_item(item))
         return false;
 
+    if (!m_main_toolbar.add_separator())
+        return false;
+
+    item.name = "search";
+    item.icon_filename = "search_.svg";
+    item.tooltip = _utf8(L("Search")) + " [" + GUI::shortkey_ctrl_prefix() + "F]";
+    item.sprite_id = 11;
+    item.left.render_callback = [this](float left, float right, float, float) {
+        if (m_canvas != nullptr)
+        {
+            if (_render_search_list(0.5f * (left + right)))
+                _deactivate_search_toolbar_item();
+        }
+    };
+    item.left.action_callback   = GLToolbarItem::Default_Action_Callback;
+    item.visibility_callback    = GLToolbarItem::Default_Visibility_Callback;
+    item.enabling_callback      = GLToolbarItem::Default_Enabling_Callback;
+    if (!m_main_toolbar.add_item(item))
+        return false;
+
     return true;
 }
 
@@ -5088,12 +5211,115 @@ bool GLCanvas3D::_init_undoredo_toolbar()
     if (!m_undoredo_toolbar.add_item(item))
         return false;
 
+    if (!m_undoredo_toolbar.add_separator())
+        return false;
+
     return true;
 }
 
 bool GLCanvas3D::_init_view_toolbar()
 {
     return wxGetApp().plater()->init_view_toolbar();
+}
+
+bool GLCanvas3D::_init_collapse_toolbar()
+{
+    if (!m_collapse_toolbar.is_enabled())
+        return true;
+
+    BackgroundTexture::Metadata background_data;
+    background_data.filename = "toolbar_background.png";
+    background_data.left = 16;
+    background_data.top = 16;
+    background_data.right = 16;
+    background_data.bottom = 16;
+
+    if (!m_collapse_toolbar.init(background_data))
+    {
+        // unable to init the toolbar texture, disable it
+        m_collapse_toolbar.set_enabled(false);
+        return true;
+    }
+
+    m_collapse_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
+    m_collapse_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Right);
+    m_collapse_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
+    m_collapse_toolbar.set_border(5.0f);
+    m_collapse_toolbar.set_separator_size(5);
+    m_collapse_toolbar.set_gap_size(2);
+
+    GLToolbarItem::Data item;
+
+    item.name = "collapse_sidebar";
+    item.icon_filename = "collapse.svg";
+    item.tooltip =  wxGetApp().plater()->is_sidebar_collapsed() ? _utf8(L("Expand right panel")) : _utf8(L("Collapse right panel"));
+    item.sprite_id = 0;
+    item.left.action_callback = [this, item]() {
+        std::string new_tooltip = wxGetApp().plater()->is_sidebar_collapsed() ?
+            _utf8(L("Collapse right panel")) : _utf8(L("Expand right panel"));
+
+        int id = m_collapse_toolbar.get_item_id("collapse_sidebar");
+        m_collapse_toolbar.set_tooltip(id, new_tooltip);
+        set_tooltip("");
+
+        wxGetApp().plater()->collapse_sidebar(!wxGetApp().plater()->is_sidebar_collapsed());
+    };
+
+    if (!m_collapse_toolbar.add_item(item))
+        return false;
+
+    if (!m_collapse_toolbar.add_separator())
+        return false;
+
+    item.name = "print";
+    item.icon_filename = "cog.svg";
+    item.tooltip = _utf8(L("Switch to Print Settings")) + " [" + GUI::shortkey_ctrl_prefix() + "2]";
+    item.sprite_id = 1;
+    item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(/*0*/1); };
+
+    if (!m_collapse_toolbar.add_item(item))
+        return false;
+
+    item.name = "filament";
+    item.icon_filename = "spool.svg";
+    item.tooltip = _utf8(L("Switch to Filament Settings")) + " [" + GUI::shortkey_ctrl_prefix() + "3]";
+    item.sprite_id = 2;
+    item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(/*1*/2); };
+    item.visibility_callback  = [this]() { return wxGetApp().plater()->printer_technology() == ptFFF; };
+
+    if (!m_collapse_toolbar.add_item(item))
+        return false;
+
+    item.name = "printer";
+    item.icon_filename = "printer.svg";
+    item.tooltip = _utf8(L("Switch to Printer Settings")) + " [" + GUI::shortkey_ctrl_prefix() + "4]";
+    item.sprite_id = 3;
+    item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(/*2*/3); };
+
+    if (!m_collapse_toolbar.add_item(item))
+        return false;
+
+    item.name = "resin";
+    item.icon_filename = "resin.svg";
+    item.tooltip = _utf8(L("Switch to SLA Material Settings")) + " [" + GUI::shortkey_ctrl_prefix() + "3]";
+    item.sprite_id = 4;
+    item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(/*1*/2); };
+    item.visibility_callback  = [this]() { return m_process->current_printer_technology() == ptSLA; };
+
+    if (!m_collapse_toolbar.add_item(item))
+        return false;
+
+    item.name = "sla_printer";
+    item.icon_filename = "sla_printer.svg";
+    item.tooltip = _utf8(L("Switch to Printer Settings")) + " [" + GUI::shortkey_ctrl_prefix() + "4]";
+    item.sprite_id = 5;
+    item.left.action_callback = [this]() { wxGetApp().mainframe->select_tab(/*2*/3); };
+
+    if (!m_collapse_toolbar.add_item(item))
+        return false;
+
+    return true;
+
 }
 
 bool GLCanvas3D::_set_current()
@@ -5478,14 +5704,17 @@ void GLCanvas3D::_render_overlays() const
     const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale(true);
     m_main_toolbar.set_scale(scale);
     m_undoredo_toolbar.set_scale(scale);
+    m_collapse_toolbar.set_scale(scale);
 #else
     const float size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(true));
     m_main_toolbar.set_icons_size(size);
     m_undoredo_toolbar.set_icons_size(size);
+    m_collapse_toolbar.set_icons_size(size);
 #endif // ENABLE_RETINA_GL
 
     _render_main_toolbar();
     _render_undoredo_toolbar();
+    _render_collapse_toolbar();
     _render_view_toolbar();
 
     if ((m_layers_editing.last_object_id >= 0) && (m_layers_editing.object_max_z() > 0.0f))
@@ -5614,6 +5843,27 @@ void GLCanvas3D::_render_undoredo_toolbar() const
     float left = (m_main_toolbar.get_width() - 0.5f * (m_main_toolbar.get_width() + m_undoredo_toolbar.get_width())) * inv_zoom;
     m_undoredo_toolbar.set_position(top, left);
     m_undoredo_toolbar.render(*this);
+}
+
+void GLCanvas3D::_render_collapse_toolbar() const
+{
+    if (!m_collapse_toolbar.is_enabled())
+        return;
+
+    Size cnv_size = get_canvas_size();
+#if ENABLE_NON_STATIC_CANVAS_MANAGER
+    float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
+#else
+    float inv_zoom = (float)m_camera.get_inv_zoom();
+#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
+
+    float band = m_layers_editing.is_enabled() ? (wxGetApp().imgui()->get_style_scaling() * LayersEditing::THICKNESS_BAR_WIDTH) : 0.0;
+
+    float top  = 0.5f * (float)cnv_size.get_height() * inv_zoom;
+    float left = (0.5f * (float)cnv_size.get_width() - (float)m_collapse_toolbar.get_width() - band) * inv_zoom;
+
+    m_collapse_toolbar.set_position(top, left);
+    m_collapse_toolbar.render(*this);
 }
 
 void GLCanvas3D::_render_view_toolbar() const
@@ -7137,6 +7387,39 @@ bool GLCanvas3D::_deactivate_undo_redo_toolbar_items()
     else if (m_undoredo_toolbar.is_item_pressed("redo"))
     {
         m_undoredo_toolbar.force_right_action(m_undoredo_toolbar.get_item_id("redo"), *this);
+        return true;
+    }
+
+    return false;
+}
+
+bool GLCanvas3D::_deactivate_search_toolbar_item()
+{
+    if (m_main_toolbar.is_item_pressed("search"))
+    {
+        m_main_toolbar.force_left_action(m_main_toolbar.get_item_id("search"), *this);
+        return true;
+    }
+
+    return false;
+}
+
+bool GLCanvas3D::_activate_search_toolbar_item()
+{
+    if (!m_main_toolbar.is_item_pressed("search"))
+    {
+        m_main_toolbar.force_left_action(m_main_toolbar.get_item_id("search"), *this);
+        return true;
+    }
+
+    return false;
+}
+
+bool GLCanvas3D::_deactivate_collapse_toolbar_items()
+{
+    if (m_collapse_toolbar.is_item_pressed("print"))
+    {
+        m_collapse_toolbar.force_left_action(m_collapse_toolbar.get_item_id("print"), *this);
         return true;
     }
 

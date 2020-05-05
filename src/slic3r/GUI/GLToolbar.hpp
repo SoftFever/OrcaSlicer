@@ -118,6 +118,7 @@ public:
     const std::string& get_tooltip() const { return m_data.tooltip; }
     const std::string& get_additional_tooltip() const { return m_data.additional_tooltip; }
     void set_additional_tooltip(const std::string& text) { m_data.additional_tooltip = text; }
+    void set_tooltip(const std::string& text)            { m_data.tooltip = text; }
 
     void do_left_action() { m_last_action_type = Left; m_data.left.action_callback(); }
     void do_right_action() { m_last_action_type = Right; m_data.right.action_callback(); }
@@ -317,6 +318,7 @@ public:
 
     void get_additional_tooltip(int item_id, std::string& text);
     void set_additional_tooltip(int item_id, const std::string& text);
+    void set_tooltip(int item_id, const std::string& text);
 
     // returns true if any item changed its state
     bool update_items_state();

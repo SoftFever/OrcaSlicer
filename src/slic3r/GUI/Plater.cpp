@@ -12,6 +12,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/nowide/convert.hpp>
 
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -356,6 +357,9 @@ PresetBitmapComboBox(parent, wxSize(15 * wxGetApp().em_unit(), -1)),
             return;
 
         wxGetApp().tab_panel()->ChangeSelection(page_id);
+
+        // Switch to Settings NotePad
+        wxGetApp().mainframe->switch_to(false);
 
         /* In a case of a multi-material printing, for editing another Filament Preset
          * it's needed to select this preset for the "Filament settings" Tab
@@ -716,6 +720,9 @@ struct Sidebar::priv
     ScalableButton *btn_remove_device;
 	ScalableButton* btn_export_gcode_removable; //exports to removable drives (appears only if removable drive is connected)
 
+    bool                is_collapsed {false};
+    Search::OptionsSearcher     searcher;
+
     priv(Plater *plater) : plater(plater) {}
     ~priv();
 
@@ -764,6 +771,8 @@ Sidebar::Sidebar(Plater *parent)
     p->scrolled = new wxScrolledWindow(this);
     p->scrolled->SetScrollbars(0, 100, 1, 2);
 
+    SetFont(wxGetApp().normal_font());
+    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 
     // Sizer in the scrolled area
     auto *scrolled_sizer = new wxBoxSizer(wxVERTICAL);
@@ -1082,6 +1091,21 @@ void Sidebar::msw_rescale()
     p->scrolled->Layout();
 }
 
+void Sidebar::search()
+{
+    p->searcher.search();
+}
+
+void Sidebar::jump_to_option(size_t selected)
+{
+    const Search::Option& opt = p->searcher.get_option(selected);
+    wxGetApp().get_tab(opt.type)->activate_option(boost::nowide::narrow(opt.opt_key), boost::nowide::narrow(opt.category));
+
+    // Switch to the Settings NotePad, if plater is shown
+    if (p->plater->IsShown())
+        wxGetApp().mainframe->switch_to(false);
+}
+
 ObjectManipulation* Sidebar::obj_manipul()
 {
     return p->object_manipulation;
@@ -1339,6 +1363,23 @@ bool Sidebar::is_multifilament()
     return p->combos_filament.size() > 1;
 }
 
+static std::vector<Search::InputInfo> get_search_inputs(ConfigOptionMode mode)
+{
+    std::vector<Search::InputInfo> ret {};
+
+    auto& tabs_list = wxGetApp().tabs_list;
+    auto print_tech = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology();
+    for (auto tab : tabs_list)
+        if (tab->supports_printer_technology(print_tech))
+            ret.emplace_back(Search::InputInfo {tab->get_config(), tab->type(), mode});
+
+    return ret;
+}
+
+void Sidebar::update_searcher()
+{
+    p->searcher.init(get_search_inputs(m_mode));
+}
 
 void Sidebar::update_mode()
 {
@@ -1346,6 +1387,7 @@ void Sidebar::update_mode()
 
     update_reslice_btn_tooltip();
     update_mode_sizer();
+    update_searcher();
 
     wxWindowUpdateLocker noUpdates(this);
 
@@ -1358,9 +1400,33 @@ void Sidebar::update_mode()
     Layout();
 }
 
+bool Sidebar::is_collapsed() { return p->is_collapsed; }
+
+void Sidebar::collapse(bool collapse)
+{
+    p->is_collapsed = collapse;
+
+    this->Show(!collapse);
+    p->plater->Layout();
+
+    // save collapsing state to the AppConfig
+    wxGetApp().app_config->set("collapsed_sidebar", collapse ? "1" : "0");
+}
+
+
 std::vector<PresetComboBox*>& Sidebar::combos_filament()
 {
     return p->combos_filament;
+}
+
+Search::OptionsSearcher& Sidebar::get_searcher()
+{
+    return p->searcher;
+}
+
+std::string& Sidebar::get_search_line()
+{
+    return p->searcher.search_string();
 }
 
 // Plater::DropTarget
@@ -1553,6 +1619,9 @@ struct Plater::priv
 
     bool are_view3D_labels_shown() const { return (current_panel == view3D) && view3D->get_canvas3d()->are_labels_shown(); }
     void show_view3D_labels(bool show) { if (current_panel == view3D) view3D->get_canvas3d()->show_labels(show); }
+
+    bool is_sidebar_collapsed() const   { return sidebar->is_collapsed(); }
+    void collapse_sidebar(bool show)    { sidebar->collapse(show); }
 
 #if ENABLE_SLOPE_RENDERING
     bool is_view3D_slope_shown() const { return (current_panel == view3D) && view3D->get_canvas3d()->is_slope_shown(); }
@@ -1860,6 +1929,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLCANVAS_RESETGIZMOS, [this](SimpleEvent&) { reset_all_gizmos(); });
     view3D_canvas->Bind(EVT_GLCANVAS_UNDO, [this](SimpleEvent&) { this->undo(); });
     view3D_canvas->Bind(EVT_GLCANVAS_REDO, [this](SimpleEvent&) { this->redo(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_COLLAPSE_SIDEBAR, [this](SimpleEvent&) { this->q->collapse_sidebar(!this->q->is_sidebar_collapsed());  });
     view3D_canvas->Bind(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, [this](SimpleEvent&) { this->view3D->get_canvas3d()->reset_layer_height_profile(); });
     view3D_canvas->Bind(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, [this](Event<float>& evt) { this->view3D->get_canvas3d()->adaptive_layer_height_profile(evt.data); });
     view3D_canvas->Bind(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, [this](HeightProfileSmoothEvent& evt) { this->view3D->get_canvas3d()->smooth_layer_height_profile(evt.data); });
@@ -1970,6 +2040,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     });
 	wxGetApp().other_instance_message_handler()->init(this->q);
 
+
+    // collapse sidebar according to saved value
+    sidebar->collapse(wxGetApp().app_config->get("collapsed_sidebar") == "1");
 }
 
 Plater::priv::~priv()
@@ -3228,13 +3301,14 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 
     // update plater with new config
     q->on_config_change(wxGetApp().preset_bundle->full_config());
+    if (preset_type == Preset::TYPE_PRINTER) {
     /* Settings list can be changed after printer preset changing, so
      * update all settings items for all item had it.
      * Furthermore, Layers editing is implemented only for FFF printers
      * and for SLA presets they should be deleted
      */
-    if (preset_type == Preset::TYPE_PRINTER)
         wxGetApp().obj_list()->update_object_list_by_printer_technology();
+    }
 }
 
 void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
@@ -4330,6 +4404,9 @@ bool Plater::is_view3D_shown() const { return p->is_view3D_shown(); }
 bool Plater::are_view3D_labels_shown() const { return p->are_view3D_labels_shown(); }
 void Plater::show_view3D_labels(bool show) { p->show_view3D_labels(show); }
 
+bool Plater::is_sidebar_collapsed() const { return p->is_sidebar_collapsed(); }
+void Plater::collapse_sidebar(bool show) { p->collapse_sidebar(show); }
+
 #if ENABLE_SLOPE_RENDERING
 bool Plater::is_view3D_slope_shown() const { return p->is_view3D_slope_shown(); }
 void Plater::show_view3D_slope(bool show) { p->show_view3D_slope(show); }
@@ -4901,6 +4978,18 @@ void Plater::undo_redo_topmost_string_getter(const bool is_undo, std::string& ou
     out_text = "";
 }
 
+bool Plater::search_string_getter(int idx, const char** label, const char** tooltip)
+{
+    const Search::OptionsSearcher& search_list = p->sidebar->get_searcher();
+    
+    if (0 <= idx && (size_t)idx < search_list.size()) {
+        search_list[idx].get_marked_label_and_tooltip(label, tooltip);
+        return true;
+    }
+
+    return false;
+}
+
 void Plater::on_extruders_change(size_t num_extruders)
 {
     auto& choices = sidebar().combos_filament();
@@ -4960,8 +5049,11 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         }
         
         p->config->set_key_value(opt_key, config.option(opt_key)->clone());
-        if (opt_key == "printer_technology")
+        if (opt_key == "printer_technology") {
             this->set_printer_technology(config.opt_enum<PrinterTechnology>(opt_key));
+            // print technology is changed, so we should to update a search list
+            p->sidebar->update_searcher();
+        }
         else if ((opt_key == "bed_shape") || (opt_key == "bed_custom_texture") || (opt_key == "bed_custom_model")) {
             bed_shape_changed = true;
             update_scheduled = true;
@@ -5269,6 +5361,27 @@ void Plater::paste_from_clipboard()
 
     Plater::TakeSnapshot snapshot(this, _L("Paste From Clipboard"));
     p->view3D->get_canvas3d()->get_selection().paste_from_clipboard();
+}
+
+void Plater::search(bool plater_is_active)
+{
+    if (plater_is_active) {
+        wxKeyEvent evt;
+#ifdef __APPLE__
+        evt.m_keyCode = 'f';
+#else /* __APPLE__ */
+        evt.m_keyCode = WXK_CONTROL_F;
+#endif /* __APPLE__ */
+        evt.SetControlDown(true);
+        canvas3D()->on_char(evt);
+    }
+    else
+    {
+        wxPoint pos = this->ClientToScreen(wxPoint(0, 0));
+        pos.x += em_unit(this) * 40;
+        pos.y += em_unit(this) * 4;
+        p->sidebar->get_searcher().search_dialog->Popup(pos);
+    }
 }
 
 void Plater::msw_rescale()

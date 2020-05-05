@@ -406,6 +406,12 @@ void GLToolbar::set_additional_tooltip(int item_id, const std::string& text)
         m_items[item_id]->set_additional_tooltip(text);
 }
 
+void GLToolbar::set_tooltip(int item_id, const std::string& text)
+{
+    if (0 <= item_id && item_id < (int)m_items.size())
+        m_items[item_id]->set_tooltip(text);
+}
+
 bool GLToolbar::update_items_state()
 {
     bool ret = false;

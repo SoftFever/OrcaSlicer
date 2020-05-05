@@ -8,6 +8,7 @@
 #include <wx/sizer.h>
 #include <wx/menu.h>
 #include <wx/bmpcbox.h>
+#include <wx/statbmp.h>
 
 #include <vector>
 #include <functional>
@@ -352,6 +353,29 @@ public:
 private:
     wxMenuItem* m_separator_frst { nullptr };    // use like separator before settings item
     wxMenuItem* m_separator_scnd { nullptr };   // use like separator between settings items
+};
+
+
+// ----------------------------------------------------------------------------
+// BlinkingBitmap
+// ----------------------------------------------------------------------------
+
+class BlinkingBitmap : public wxStaticBitmap
+{
+public:
+    BlinkingBitmap() {};
+    BlinkingBitmap(wxWindow* parent, const std::string& icon_name = "redo_toolbar");
+
+    ~BlinkingBitmap() {}
+
+    void    msw_rescale();
+    void    invalidate();
+    void    activate();
+    void    blink();
+
+private:
+    ScalableBitmap  bmp;
+    bool            show {false};
 };
 
 
