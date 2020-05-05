@@ -36,48 +36,31 @@ struct GroupAndCategory {
     wxString        category;
 };
 
-// fuzzy_match flag
-enum FMFlag
-{
-    fmUndef = 0, // didn't find 
-    fmOptKey,
-    fmLabel,
-    fmLabelLocal,
-    fmGroup,
-    fmGroupLocal,
-    fmCategory,
-    fmCategoryLocal
-};
-
 struct Option {
     bool operator<(const Option& other) const { return other.label > this->label; }
     bool operator>(const Option& other) const { return other.label < this->label; }
 
-    std::string     opt_key;
+    // Fuzzy matching works at a character level. Thus matching with wide characters is a safer bet than with short characters,
+    // though for some languages (Chinese?) it may not work correctly.
+    std::wstring    opt_key;
     Preset::Type    type {Preset::TYPE_INVALID};
-    wxString        label;
-    wxString        label_local;
-    wxString        group;
-    wxString        group_local;
-    wxString        category;
-    wxString        category_local;
-
-    FMFlag fuzzy_match_simple(char const *search_pattern) const;
-    FMFlag fuzzy_match_simple(const wxString& search) const;
-    FMFlag fuzzy_match_simple(const std::string &search) const;
-    FMFlag fuzzy_match(char const *search_pattern, int &outScore) const;
-    FMFlag fuzzy_match(const wxString &search, int &outScore) const ;
-    FMFlag fuzzy_match(const std::string &search, int &outScore) const ;
+    std::wstring    label;
+    std::wstring    label_local;
+    std::wstring    group;
+    std::wstring    group_local;
+    std::wstring    category;
+    std::wstring    category_local;
 };
 
 struct FoundOption {
-    wxString        label;
-    wxString        marked_label;
-    wxString        tooltip;
+	// UTF8 encoding, to be consumed by ImGUI by reference.
+    std::string     label;
+    std::string     marked_label;
+    std::string     tooltip;
     size_t          option_idx {0};
     int             outScore {0};
 
-    void get_label(const char** out_text) const;
+    // Returning pointers to contents of std::string members, to be used by ImGUI for rendering.
     void get_marked_label_and_tooltip(const char** label, const char** tooltip) const;
 };
 
@@ -106,7 +89,7 @@ class OptionsSearcher
     }
     void sort_found() {
         std::sort(found.begin(), found.end(), [](const FoundOption& f1, const FoundOption& f2) {
-            return f1.outScore > f2.outScore; });
+            return f1.outScore > f2.outScore || (f1.outScore == f2.outScore && f1.label < f2.label); });
     };
 
     size_t options_size() const { return options.size(); }

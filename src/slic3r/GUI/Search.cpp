@@ -2,7 +2,9 @@
 
 #include <cstddef>
 #include <string>
+#include <boost/algorithm/string.hpp>
 #include <boost/optional.hpp>
+#include <boost/nowide/convert.hpp>
 
 #include "libslic3r/PrintConfig.hpp"
 #include "GUI_App.hpp"
@@ -23,81 +25,24 @@ using GUI::into_u8;
 
 namespace Search {
 
-static std::map<Preset::Type, std::string> NameByType = {
-    { Preset::TYPE_PRINT,           L("Print")     },
-    { Preset::TYPE_FILAMENT,        L("Filament")  },
-    { Preset::TYPE_SLA_MATERIAL,    L("Material")  },
-    { Preset::TYPE_SLA_PRINT,       L("Print")     },
-    { Preset::TYPE_PRINTER,         L("Printer")   }
-};
-
-FMFlag Option::fuzzy_match_simple(char const * search_pattern) const
+static const std::vector<std::wstring>& NameByType()
 {
-    return  fts::fuzzy_match_simple(search_pattern, label_local.utf8_str())     ? fmLabelLocal      :
-            fts::fuzzy_match_simple(search_pattern, group_local.utf8_str())     ? fmGroupLocal      :
-            fts::fuzzy_match_simple(search_pattern, category_local.utf8_str())  ? fmCategoryLocal   :
-            fts::fuzzy_match_simple(search_pattern, opt_key.c_str())            ? fmOptKey          :
-            fts::fuzzy_match_simple(search_pattern, label.utf8_str())           ? fmLabel           :
-            fts::fuzzy_match_simple(search_pattern, group.utf8_str())           ? fmGroup           :
-            fts::fuzzy_match_simple(search_pattern, category.utf8_str())        ? fmCategory        : fmUndef   ;
-}
-
-FMFlag Option::fuzzy_match_simple(const wxString& search) const
-{
-    char const* search_pattern = search.utf8_str();
-    return fuzzy_match_simple(search_pattern);
-}
-
-FMFlag Option::fuzzy_match_simple(const std::string& search) const
-{
-    char const* search_pattern = search.c_str();
-    return fuzzy_match_simple(search_pattern);
-}
-
-FMFlag Option::fuzzy_match(char const* search_pattern, int& outScore) const
-{
-    FMFlag flag = fmUndef;
-    int score;
-
-    if (fts::fuzzy_match(search_pattern, label_local.utf8_str(),    score) && outScore < score) {
-        outScore = score; flag = fmLabelLocal   ; }
-    if (fts::fuzzy_match(search_pattern, group_local.utf8_str(),    score) && outScore < score) {
-        outScore = score; flag = fmGroupLocal   ; }
-    if (fts::fuzzy_match(search_pattern, category_local.utf8_str(), score) && outScore < score) {
-        outScore = score; flag = fmCategoryLocal; }
-    if (fts::fuzzy_match(search_pattern, opt_key.c_str(),           score) && outScore < score) {
-        outScore = score; flag = fmOptKey       ; }
-    if (fts::fuzzy_match(search_pattern, label.utf8_str(),          score) && outScore < score) {
-        outScore = score; flag = fmLabel        ; }
-    if (fts::fuzzy_match(search_pattern, group.utf8_str(),          score) && outScore < score) {
-        outScore = score; flag = fmGroup        ; }
-    if (fts::fuzzy_match(search_pattern, category.utf8_str(),       score) && outScore < score) {
-        outScore = score; flag = fmCategory     ; }
-
-    return flag;
-}
-
-FMFlag Option::fuzzy_match(const wxString& search, int& outScore) const
-{
-    char const* search_pattern = search.utf8_str();
-    return fuzzy_match(search_pattern, outScore); 
-}
-
-FMFlag Option::fuzzy_match(const std::string& search, int& outScore) const
-{
-    char const* search_pattern = search.c_str();
-    return fuzzy_match(search_pattern, outScore);
-}
-
-void FoundOption::get_label(const char** out_text) const
-{
-    *out_text = label.utf8_str();
+    static std::vector<std::wstring> data;
+    if (data.empty()) {
+        data.assign(Preset::TYPE_COUNT, std::wstring());
+        data[Preset::TYPE_PRINT         ] = _L("Print"      ).ToStdWstring();
+        data[Preset::TYPE_FILAMENT      ] = _L("Filament"   ).ToStdWstring();
+        data[Preset::TYPE_SLA_MATERIAL  ] = _L("Material"   ).ToStdWstring();
+        data[Preset::TYPE_SLA_PRINT     ] = _L("Print"      ).ToStdWstring();
+        data[Preset::TYPE_PRINTER       ] = _L("Printer"    ).ToStdWstring();
+	};
+	return data;
 }
 
 void FoundOption::get_marked_label_and_tooltip(const char** label_, const char** tooltip_) const
 {
-    *label_   = marked_label.utf8_str();
-    *tooltip_ = tooltip.utf8_str();
+    *label_   = marked_label.c_str();
+    *tooltip_ = tooltip.c_str();
 }
 
 template<class T>
@@ -121,14 +66,18 @@ void OptionsSearcher::append_options(DynamicPrintConfig* config, Preset::Type ty
             return;
 
         wxString suffix;
-        if (gc.category == "Machine limits")
+        wxString suffix_local;
+        if (gc.category == "Machine limits") {
             suffix = opt_key.back()=='1' ? L("Stealth") : L("Normal");
+            suffix_local = " " + _(suffix);
+            suffix = " " + suffix;
+        }
 
         if (!label.IsEmpty())
-            options.emplace_back(Option{ opt_key, type,
-                                        label+ " " + suffix, _(label)+ " " + _(suffix),
-                                        gc.group, _(gc.group),
-                                        gc.category, _(gc.category) });
+            options.emplace_back(Option{ boost::nowide::widen(opt_key), type,
+                                        (label + suffix).ToStdWstring(), (_(label) + suffix_local).ToStdWstring(),
+                                        gc.group.ToStdWstring(), _(gc.group).ToStdWstring(),
+                                        gc.category.ToStdWstring(), _(gc.category).ToStdWstring() });
     };
 
     for (std::string opt_key : config->keys())
@@ -157,7 +106,7 @@ void OptionsSearcher::append_options(DynamicPrintConfig* config, Preset::Type ty
             emplace(opt_key, label);
         else
             for (int i = 0; i < cnt; ++i)
-                emplace(opt_key + "#" + std::to_string(i), label);
+                emplace(opt_key + "[" + std::to_string(i) + "]", label);
 
         /*const GroupAndCategory& gc = groups_and_categories[opt_key];
         if (gc.group.IsEmpty() || gc.category.IsEmpty())
@@ -178,46 +127,51 @@ static wxString wrap_string(const wxString& str)
 }
 
 // Mark a string using ColorMarkerStart and ColorMarkerEnd symbols
-static void mark_string(wxString& str, const wxString& search_str)
+static std::wstring mark_string(const std::wstring &str, const std::vector<uint16_t> &matches)
 {
-    // Try to find whole search string
-    if (str.Replace(search_str, wrap_string(search_str), false) != 0)
-        return;
-
-    // Try to find whole capitalized search string
-    wxString search_str_capitalized = search_str.Capitalize();
-    if (str.Replace(search_str_capitalized, wrap_string(search_str_capitalized), false) != 0)
-        return;
-
-    // if search string is just a one letter now, there is no reason to continue 
-    if (search_str.Len()==1)
-        return;
-
-    // Split a search string for two strings (string without last letter and last letter)
-    // and repeat a function with new search strings
-    mark_string(str, search_str.SubString(0, search_str.Len() - 2));
-    mark_string(str, search_str.Last());
-}
-
-// clear marked string from a redundant use of ColorMarkers
-static void clear_marked_string(wxString& str)
-{
-    // Check if the string has a several ColorMarkerStart in a row and replace them to only one, if any
-    wxString delete_string = wxString::Format("%c%c", ImGui::ColorMarkerStart, ImGui::ColorMarkerStart);
-    str.Replace(delete_string, ImGui::ColorMarkerStart, true);
-    // If there were several ColorMarkerStart in a row, it means there should be a several ColorMarkerStop in a row,
-    // replace them to only one
-    delete_string = wxString::Format("%c%c", ImGui::ColorMarkerEnd, ImGui::ColorMarkerEnd);
-    str.Replace(delete_string, ImGui::ColorMarkerEnd, true);
-
-    // And we should to remove redundant ColorMarkers, if they are in "End, Start" sequence in a row
-    delete_string = wxString::Format("%c%c", ImGui::ColorMarkerEnd, ImGui::ColorMarkerStart);
-    str.Replace(delete_string, wxEmptyString, true);
+	std::wstring out;
+	if (matches.empty())
+		out = str;
+	else {
+		out.reserve(str.size() * 2);
+		if (matches.front() > 0)
+			out += str.substr(0, matches.front());
+		for (size_t i = 0;;) {
+			// Find the longest string of successive indices.
+			size_t j = i + 1;
+            while (j < matches.size() && matches[j] == matches[j - 1] + 1)
+                ++ j;
+            out += ImGui::ColorMarkerStart;
+            out += str.substr(matches[i], matches[j - 1] - matches[i] + 1);
+            out += ImGui::ColorMarkerEnd;
+            if (j == matches.size()) {
+				out += str.substr(matches[j - 1] + 1);
+				break;
+			}
+            out += str.substr(matches[j - 1] + 1, matches[j] - matches[j - 1] - 1);
+            i = j;
+		}
+	}
+	return out;
 }
 
 bool OptionsSearcher::search()
 {
     return search(search_line, true);
+}
+
+static bool fuzzy_match(const std::wstring &search_pattern, const std::wstring &label, int& out_score, std::vector<uint16_t> &out_matches)
+{
+    uint16_t matches[fts::max_matches + 1]; // +1 for the stopper
+    int score;
+    if (fts::fuzzy_match(search_pattern.c_str(), label.c_str(), score, matches)) {
+	    size_t cnt = 0;
+	    for (; matches[cnt] != fts::stopper; ++cnt);
+	    out_matches.assign(matches, matches + cnt);
+		out_score = score;
+		return true;
+	} else
+		return false;
 }
 
 bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
@@ -228,60 +182,95 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
     found.clear();
 
     bool full_list = search.empty();
-    wxString sep = " : ";
+    std::wstring sep = L" : ";
+    const std::vector<std::wstring>& name_by_type = NameByType();
 
-    auto get_label = [this, sep](const Option& opt)
+    auto get_label = [this, &name_by_type, &sep](const Option& opt)
     {
-        wxString label;
-        if (view_params.type)
-            label += _(NameByType[opt.type]) + sep;
-        if (view_params.category)
-            label += opt.category_local + sep;
-        if (view_params.group)
-            label += opt.group_local + sep;
-        label += opt.label_local;
-        return label;
+        std::wstring out;
+    	const std::wstring *prev = nullptr;
+    	for (const std::wstring * const s : {
+	        view_params.type 		? &(name_by_type[opt.type]) : nullptr,
+	        view_params.category 	? &opt.category_local 		: nullptr,
+	        view_params.group 		? &opt.group_local			: nullptr,
+	        &opt.label_local })
+    		if (s != nullptr && (prev == nullptr || *prev != *s)) {
+    			if (! out.empty())
+    				out += sep;
+    			out += *s;
+    			prev = s;
+    		}
+        return out;
     };
 
-    auto get_tooltip = [this, sep](const Option& opt)
+    auto get_label_english = [this, &name_by_type, &sep](const Option& opt)
     {
-        return  _(NameByType[opt.type]) + sep +
+        std::wstring out;
+    	const std::wstring*prev = nullptr;
+    	for (const std::wstring * const s : {
+	        view_params.type 		? &name_by_type[opt.type] 	: nullptr,
+	        view_params.category 	? &opt.category 			: nullptr,
+	        view_params.group 		? &opt.group				: nullptr,
+	        &opt.label })
+    		if (s != nullptr && (prev == nullptr || *prev != *s)) {
+    			if (! out.empty())
+    				out += sep;
+    			out += *s;
+    			prev = s;
+    		}
+        return out;
+    };
+
+    auto get_tooltip = [this, &name_by_type, &sep](const Option& opt)
+    {
+        return  name_by_type[opt.type] + sep +
                 opt.category_local + sep +
                 opt.group_local + sep + opt.label_local;
     };
 
+    std::vector<uint16_t> matches, matches2;
     for (size_t i=0; i < options.size(); i++)
     {
         const Option &opt = options[i];
         if (full_list) {
-            wxString label = get_label(opt);
-            found.emplace_back(FoundOption{ label, label, get_tooltip(opt), i, 0 });
+            std::string label = into_u8(get_label(opt));
+            found.emplace_back(FoundOption{ label, label, boost::nowide::narrow(get_tooltip(opt)), i, 0 });
             continue;
         }
 
-        int score = 0;
-
-        FMFlag fuzzy_match_flag = opt.fuzzy_match(search, score);
-        if (fuzzy_match_flag != fmUndef)
-        {
-            wxString label = get_label(opt);
-
-            if (     fuzzy_match_flag == fmLabel   ) label += "(" + opt.label    + ")";
-            else if (fuzzy_match_flag == fmGroup   ) label += "(" + opt.group    + ")";
-            else if (fuzzy_match_flag == fmCategory) label += "(" + opt.category + ")";
-            else if (fuzzy_match_flag == fmOptKey  ) label += "(" + opt.opt_key  + ")";
-
-            wxString marked_label = label;
-            mark_string(marked_label, from_u8(search));
-            clear_marked_string(marked_label);
-
-            found.emplace_back(FoundOption{ label, marked_label, get_tooltip(opt), i, score });
+        std::wstring wsearch       = boost::nowide::widen(search);
+        boost::trim_left(wsearch);
+        std::wstring label         = get_label(opt);
+        std::wstring label_english = get_label_english(opt);
+        int score = std::numeric_limits<int>::min();
+        int score2;
+        matches.clear();
+        fuzzy_match(wsearch, label, score, matches);
+        if (fuzzy_match(wsearch, opt.opt_key, score2, matches2) && score2 > score) {
+        	for (fts::pos_type &pos : matches2)
+        		pos += label.size() + 1;
+        	label += L"(" + opt.opt_key + L")";
+        	append(matches, matches2);
+        	score = score2;
+        }
+        if (fuzzy_match(wsearch, label_english, score2, matches2) && score2 > score) {
+        	label   = std::move(label_english);
+        	matches = std::move(matches2);
+        	score   = score2;
+        }
+        if (score > std::numeric_limits<int>::min()) {
+		    label = mark_string(label, matches);
+	        std::string label_u8 = into_u8(label);
+	        std::string label_plain = label_u8;
+	        boost::erase_all(label_plain, std::string(1, char(ImGui::ColorMarkerStart)));
+	        boost::erase_all(label_plain, std::string(1, char(ImGui::ColorMarkerEnd)));
+            found.emplace_back(FoundOption{ label_plain, label_u8, boost::nowide::narrow(get_tooltip(opt)), i, score });
         }
     }
 
     if (!full_list)
         sort_found();
-
+ 
     if (search_line != search)
         search_line = search;
 
@@ -357,7 +346,7 @@ bool SearchComboPopup::Create(wxWindow* parent)
 void SearchComboPopup::SetStringValue(const wxString& s)
 {
     int n = wxListBox::FindString(s);
-    if (n >= 0 && n < wxListBox::GetCount())
+    if (n >= 0 && n < int(wxListBox::GetCount()))
         wxListBox::Select(n);
 
     // save a combo control's string
@@ -549,7 +538,7 @@ void SearchDialog::update_list()
 
     const std::vector<FoundOption>& filters = searcher->found_options();
     for (const FoundOption& item : filters)
-        search_list->Append(item.label);
+        search_list->Append(from_u8(item.label));
 }
 
 void SearchDialog::OnKeyDown(wxKeyEvent& event)

@@ -134,11 +134,8 @@ wxFont get_default_font_for_dpi(int dpi)
         NONCLIENTMETRICS nm;
         memset(&nm, 0, sizeof(NONCLIENTMETRICS));
         nm.cbSize = sizeof(NONCLIENTMETRICS);
-		if (SystemParametersInfoForDpi_fn(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &nm, 0, dpi)) {
-            wxNativeFontInfo info;
-            info.lf = nm.lfMessageFont;
-            return wxFont(info);
-        }
+        if (SystemParametersInfoForDpi_fn(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &nm, 0, dpi))
+            return wxFont(wxNativeFontInfo(nm.lfMessageFont));
     }
     // Then try to guesstimate the font DPI scaling on Windows 8.
     // Let's hope that the font returned by the SystemParametersInfo(), which is used by wxWidgets internally, makes sense.

@@ -5,12 +5,16 @@
 #include <locale>
 #include <boost/locale/encoding_utf.hpp>
 
+namespace Slic3r {
+
 // Based on http://svn.apache.org/repos/asf/lucene/java/tags/lucene_solr_4_5_1/lucene/analysis/common/src/java/org/apache/lucene/analysis/miscellaneous/ASCIIFoldingFilter.java
-template<typename OUTPUT_ITERATOR>
-static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
+// Convert the input UNICODE character to a string of maximum 4 output ASCII characters.	
+// Return the end of the string written to the output.
+// The output buffer must be at least 4 characters long.
+char* fold_to_ascii(wchar_t c, char *out)
 {
 	if (c < 0x080) {
-	    *out = c;
+	    *out ++ = c;
 	} else {
 		switch (c) {
 		case L'\u00C0': // [LATIN CAPITAL LETTER A WITH GRAVE]
@@ -47,7 +51,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u1EB6': // [LATIN CAPITAL LETTER A WITH BREVE AND DOT BELOW]
 		case L'\u24B6': // [CIRCLED LATIN CAPITAL LETTER A]
 		case L'\uFF21': // [FULLWIDTH LATIN CAPITAL LETTER A]
-		    *out = 'A';
+		    *out ++ = 'A';
 		    break;
 		case L'\u00E0': // [LATIN SMALL LETTER A WITH GRAVE]
 		case L'\u00E1': // [LATIN SMALL LETTER A WITH ACUTE]
@@ -90,68 +94,68 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u2C65': // [LATIN SMALL LETTER A WITH STROKE]
 		case L'\u2C6F': // [LATIN CAPITAL LETTER TURNED A]
 		case L'\uFF41': // [FULLWIDTH LATIN SMALL LETTER A]
-		    *out = 'a';
+		    *out ++ = 'a';
 		    break;
 		case L'\uA732': // [LATIN CAPITAL LETTER AA]
-		    *out = 'A';
-		    *out = 'A';
+		    *out ++ = 'A';
+		    *out ++ = 'A';
 		    break;
 		case L'\u00C6': // [LATIN CAPITAL LETTER AE]
 		case L'\u01E2': // [LATIN CAPITAL LETTER AE WITH MACRON]
 		case L'\u01FC': // [LATIN CAPITAL LETTER AE WITH ACUTE]
 		case L'\u1D01': // [LATIN LETTER SMALL CAPITAL AE]
-		    *out = 'A';
-		    *out = 'E';
+		    *out ++ = 'A';
+		    *out ++ = 'E';
 		    break;
 		case L'\uA734': // [LATIN CAPITAL LETTER AO]
-		    *out = 'A';                    
-		    *out = 'O';
+		    *out ++ = 'A';                    
+		    *out ++ = 'O';
 		    break;
 		case L'\uA736': // [LATIN CAPITAL LETTER AU]
-		    *out = 'A';
-		    *out = 'U';
+		    *out ++ = 'A';
+		    *out ++ = 'U';
 		    break;
 		case L'\uA738': // [LATIN CAPITAL LETTER AV]
 		case L'\uA73A': // [LATIN CAPITAL LETTER AV WITH HORIZONTAL BAR]
-		    *out = 'A';
-		    *out = 'V';
+		    *out ++ = 'A';
+		    *out ++ = 'V';
 		    break;
 		case L'\uA73C': // [LATIN CAPITAL LETTER AY]
-		    *out = 'A';
-		    *out = 'Y';
+		    *out ++ = 'A';
+		    *out ++ = 'Y';
 		    break;
 		case L'\u249C': // [PARENTHESIZED LATIN SMALL LETTER A]
-		    *out = '(';
-		    *out = 'a';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'a';
+		    *out ++ = ')';
 		    break;
 		case L'\uA733': // [LATIN SMALL LETTER AA]
-		    *out = 'a';
-		    *out = 'a';
+		    *out ++ = 'a';
+		    *out ++ = 'a';
 		    break;
 		case L'\u00E6': // [LATIN SMALL LETTER AE]
 		case L'\u01E3': // [LATIN SMALL LETTER AE WITH MACRON]
 		case L'\u01FD': // [LATIN SMALL LETTER AE WITH ACUTE]
 		case L'\u1D02': // [LATIN SMALL LETTER TURNED AE]
-		    *out = 'a';
-		    *out = 'e';
+		    *out ++ = 'a';
+		    *out ++ = 'e';
 		    break;
 		case L'\uA735': // [LATIN SMALL LETTER AO]
-		    *out = 'a';
-		    *out = 'o';
+		    *out ++ = 'a';
+		    *out ++ = 'o';
 		    break;
 		case L'\uA737': // [LATIN SMALL LETTER AU]
-		    *out = 'a';
-		    *out = 'u';
+		    *out ++ = 'a';
+		    *out ++ = 'u';
 		    break;
 		case L'\uA739': // [LATIN SMALL LETTER AV]
 		case L'\uA73B': // [LATIN SMALL LETTER AV WITH HORIZONTAL BAR]
-		    *out = 'a';
-		    *out = 'v';
+		    *out ++ = 'a';
+		    *out ++ = 'v';
 		    break;
 		case L'\uA73D': // [LATIN SMALL LETTER AY]
-		    *out = 'a';
-		    *out = 'y';
+		    *out ++ = 'a';
+		    *out ++ = 'y';
 		    break;
 		case L'\u0181': // [LATIN CAPITAL LETTER B WITH HOOK]
 		case L'\u0182': // [LATIN CAPITAL LETTER B WITH TOPBAR]
@@ -163,7 +167,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u1E06': // [LATIN CAPITAL LETTER B WITH LINE BELOW]
 		case L'\u24B7': // [CIRCLED LATIN CAPITAL LETTER B]
 		case L'\uFF22': // [FULLWIDTH LATIN CAPITAL LETTER B]
-		    *out = 'B';
+		    *out ++ = 'B';
 		    break;
 		case L'\u0180': // [LATIN SMALL LETTER B WITH STROKE]
 		case L'\u0183': // [LATIN SMALL LETTER B WITH TOPBAR]
@@ -175,12 +179,12 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u1E07': // [LATIN SMALL LETTER B WITH LINE BELOW]
 		case L'\u24D1': // [CIRCLED LATIN SMALL LETTER B]
 		case L'\uFF42': // [FULLWIDTH LATIN SMALL LETTER B]
-		    *out = 'b';
+		    *out ++ = 'b';
 		    break;
 		case L'\u249D': // [PARENTHESIZED LATIN SMALL LETTER B]
-		    *out = '(';                    
-		    *out = 'b';
-		    *out = ')';
+		    *out ++ = '(';                    
+		    *out ++ = 'b';
+		    *out ++ = ')';
 		    break;
 		case L'\u00C7': // [LATIN CAPITAL LETTER C WITH CEDILLA]
 		case L'\u0106': // [LATIN CAPITAL LETTER C WITH ACUTE]
@@ -194,7 +198,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u1E08': // [LATIN CAPITAL LETTER C WITH CEDILLA AND ACUTE]
 		case L'\u24B8': // [CIRCLED LATIN CAPITAL LETTER C]
 		case L'\uFF23': // [FULLWIDTH LATIN CAPITAL LETTER C]
-		    *out = 'C';
+		    *out ++ = 'C';
 		    break;
 		case L'\u00E7': // [LATIN SMALL LETTER C WITH CEDILLA]
 		case L'\u0107': // [LATIN SMALL LETTER C WITH ACUTE]
@@ -210,12 +214,12 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\uA73E': // [LATIN CAPITAL LETTER REVERSED C WITH DOT]
 		case L'\uA73F': // [LATIN SMALL LETTER REVERSED C WITH DOT]
 		case L'\uFF43': // [FULLWIDTH LATIN SMALL LETTER C]
-		    *out = 'c';
+		    *out ++ = 'c';
 		    break;
 		case L'\u249E': // [PARENTHESIZED LATIN SMALL LETTER C]
-		    *out = '(';
-		    *out = 'c';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'c';
+		    *out ++ = ')';
 		    break;
 		case L'\u00D0': // [LATIN CAPITAL LETTER ETH]
 		case L'\u010E': // [LATIN CAPITAL LETTER D WITH CARON]
@@ -233,7 +237,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u24B9': // [CIRCLED LATIN CAPITAL LETTER D]
 		case L'\uA779': // [LATIN CAPITAL LETTER INSULAR D]
 		case L'\uFF24': // [FULLWIDTH LATIN CAPITAL LETTER D]
-		    *out = 'D';
+		    *out ++ = 'D';
 		    break;
 		case L'\u00F0': // [LATIN SMALL LETTER ETH]
 		case L'\u010F': // [LATIN SMALL LETTER D WITH CARON]
@@ -253,33 +257,33 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u24D3': // [CIRCLED LATIN SMALL LETTER D]
 		case L'\uA77A': // [LATIN SMALL LETTER INSULAR D]
 		case L'\uFF44': // [FULLWIDTH LATIN SMALL LETTER D]
-		    *out = 'd';
+		    *out ++ = 'd';
 		    break;
 		case L'\u01C4': // [LATIN CAPITAL LETTER DZ WITH CARON]
 		case L'\u01F1': // [LATIN CAPITAL LETTER DZ]
-		    *out = 'D';
-		    *out = 'Z';
+		    *out ++ = 'D';
+		    *out ++ = 'Z';
 		    break;
 		case L'\u01C5': // [LATIN CAPITAL LETTER D WITH SMALL LETTER Z WITH CARON]
 		case L'\u01F2': // [LATIN CAPITAL LETTER D WITH SMALL LETTER Z]
-		    *out = 'D';
-		    *out = 'z';
+		    *out ++ = 'D';
+		    *out ++ = 'z';
 		    break;
 		case L'\u249F': // [PARENTHESIZED LATIN SMALL LETTER D]
-		    *out = '(';
-		    *out = 'd';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'd';
+		    *out ++ = ')';
 		    break;
 		case L'\u0238': // [LATIN SMALL LETTER DB DIGRAPH]
-		    *out = 'd';
-		    *out = 'b';
+		    *out ++ = 'd';
+		    *out ++ = 'b';
 		    break;
 		case L'\u01C6': // [LATIN SMALL LETTER DZ WITH CARON]
 		case L'\u01F3': // [LATIN SMALL LETTER DZ]
 		case L'\u02A3': // [LATIN SMALL LETTER DZ DIGRAPH]
 		case L'\u02A5': // [LATIN SMALL LETTER DZ DIGRAPH WITH CURL]
-		    *out = 'd';
-		    *out = 'z';
+		    *out ++ = 'd';
+		    *out ++ = 'z';
 		    break;
 		case L'\u00C8': // [LATIN CAPITAL LETTER E WITH GRAVE]
 		case L'\u00C9': // [LATIN CAPITAL LETTER E WITH ACUTE]
@@ -313,7 +317,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u24BA': // [CIRCLED LATIN CAPITAL LETTER E]
 		case L'\u2C7B': // [LATIN LETTER SMALL CAPITAL TURNED E]
 		case L'\uFF25': // [FULLWIDTH LATIN CAPITAL LETTER E]
-		    *out = 'E';
+		    *out ++ = 'E';
 		    break;
 		case L'\u00E8': // [LATIN SMALL LETTER E WITH GRAVE]
 		case L'\u00E9': // [LATIN SMALL LETTER E WITH ACUTE]
@@ -356,12 +360,12 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u24D4': // [CIRCLED LATIN SMALL LETTER E]
 		case L'\u2C78': // [LATIN SMALL LETTER E WITH NOTCH]
 		case L'\uFF45': // [FULLWIDTH LATIN SMALL LETTER E]
-		    *out = 'e';
+		    *out ++ = 'e';
 		    break;
 		case L'\u24A0': // [PARENTHESIZED LATIN SMALL LETTER E]
-		    *out = '(';
-		    *out = 'e';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'e';
+		    *out ++ = ')';
 		    break;
 		case L'\u0191': // [LATIN CAPITAL LETTER F WITH HOOK]
 		case L'\u1E1E': // [LATIN CAPITAL LETTER F WITH DOT ABOVE]
@@ -370,7 +374,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\uA77B': // [LATIN CAPITAL LETTER INSULAR F]
 		case L'\uA7FB': // [LATIN EPIGRAPHIC LETTER REVERSED F]
 		case L'\uFF26': // [FULLWIDTH LATIN CAPITAL LETTER F]
-		    *out = 'F';
+		    *out ++ = 'F';
 		    break;
 		case L'\u0192': // [LATIN SMALL LETTER F WITH HOOK]
 		case L'\u1D6E': // [LATIN SMALL LETTER F WITH MIDDLE TILDE]
@@ -380,34 +384,34 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u24D5': // [CIRCLED LATIN SMALL LETTER F]
 		case L'\uA77C': // [LATIN SMALL LETTER INSULAR F]
 		case L'\uFF46': // [FULLWIDTH LATIN SMALL LETTER F]
-		    *out = 'f';
+		    *out ++ = 'f';
 		    break;
 		case L'\u24A1': // [PARENTHESIZED LATIN SMALL LETTER F]
-		    *out = '(';
-		    *out = 'f';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'f';
+		    *out ++ = ')';
 		    break;
 		case L'\uFB00': // [LATIN SMALL LIGATURE FF]
-		    *out = 'f';
-		    *out = 'f';
+		    *out ++ = 'f';
+		    *out ++ = 'f';
 		    break;
 		case L'\uFB03': // [LATIN SMALL LIGATURE FFI]
-		    *out = 'f';
-		    *out = 'f';
-		    *out = 'i';
+		    *out ++ = 'f';
+		    *out ++ = 'f';
+		    *out ++ = 'i';
 		    break;
 		case L'\uFB04': // [LATIN SMALL LIGATURE FFL]
-		    *out = 'f';
-		    *out = 'f';
-		    *out = 'l';
+		    *out ++ = 'f';
+		    *out ++ = 'f';
+		    *out ++ = 'l';
 		    break;
 		case L'\uFB01': // [LATIN SMALL LIGATURE FI]
-		    *out = 'f';
-		    *out = 'i';
+		    *out ++ = 'f';
+		    *out ++ = 'i';
 		    break;
 		case L'\uFB02': // [LATIN SMALL LIGATURE FL]
-		    *out = 'f';
-		    *out = 'l';
+		    *out ++ = 'f';
+		    *out ++ = 'l';
 		    break;
 		case L'\u011C': // [LATIN CAPITAL LETTER G WITH CIRCUMFLEX]
 		case L'\u011E': // [LATIN CAPITAL LETTER G WITH BREVE]
@@ -426,7 +430,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\uA77D': // [LATIN CAPITAL LETTER INSULAR G]
 		case L'\uA77E': // [LATIN CAPITAL LETTER TURNED INSULAR G]
 		case L'\uFF27': // [FULLWIDTH LATIN CAPITAL LETTER G]
-		    *out = 'G';
+		    *out ++ = 'G';
 		    break;
 		case L'\u011D': // [LATIN SMALL LETTER G WITH CIRCUMFLEX]
 		case L'\u011F': // [LATIN SMALL LETTER G WITH BREVE]
@@ -442,12 +446,12 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u24D6': // [CIRCLED LATIN SMALL LETTER G]
 		case L'\uA77F': // [LATIN SMALL LETTER TURNED INSULAR G]
 		case L'\uFF47': // [FULLWIDTH LATIN SMALL LETTER G]
-		    *out = 'g';
+		    *out ++ = 'g';
 		    break;
 		case L'\u24A2': // [PARENTHESIZED LATIN SMALL LETTER G]
-		    *out = '(';
-		    *out = 'g';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'g';
+		    *out ++ = ')';
 		    break;
 		case L'\u0124': // [LATIN CAPITAL LETTER H WITH CIRCUMFLEX]
 		case L'\u0126': // [LATIN CAPITAL LETTER H WITH STROKE]
@@ -462,7 +466,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u2C67': // [LATIN CAPITAL LETTER H WITH DESCENDER]
 		case L'\u2C75': // [LATIN CAPITAL LETTER HALF H]
 		case L'\uFF28': // [FULLWIDTH LATIN CAPITAL LETTER H]
-		    *out = 'H';
+		    *out ++ = 'H';
 		    break;
 		case L'\u0125': // [LATIN SMALL LETTER H WITH CIRCUMFLEX]
 		case L'\u0127': // [LATIN SMALL LETTER H WITH STROKE]
@@ -481,20 +485,20 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u2C68': // [LATIN SMALL LETTER H WITH DESCENDER]
 		case L'\u2C76': // [LATIN SMALL LETTER HALF H]
 		case L'\uFF48': // [FULLWIDTH LATIN SMALL LETTER H]
-		    *out = 'h';
+		    *out ++ = 'h';
 		    break;
 		case L'\u01F6': // [LATIN CAPITAL LETTER HWAIR]
-		    *out = 'H';
-		    *out = 'V';
+		    *out ++ = 'H';
+		    *out ++ = 'V';
 		    break;
 		case L'\u24A3': // [PARENTHESIZED LATIN SMALL LETTER H]
-		    *out = '(';
-		    *out = 'h';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'h';
+		    *out ++ = ')';
 		    break;
 		case L'\u0195': // [LATIN SMALL LETTER HV]
-		    *out = 'h';
-		    *out = 'v';
+		    *out ++ = 'h';
+		    *out ++ = 'v';
 		    break;
 		case L'\u00CC': // [LATIN CAPITAL LETTER I WITH GRAVE]
 		case L'\u00CD': // [LATIN CAPITAL LETTER I WITH ACUTE]
@@ -519,7 +523,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u24BE': // [CIRCLED LATIN CAPITAL LETTER I]
 		case L'\uA7FE': // [LATIN EPIGRAPHIC LETTER I LONGA]
 		case L'\uFF29': // [FULLWIDTH LATIN CAPITAL LETTER I]
-		    *out = 'I';
+		    *out ++ = 'I';
 		    break;
 		case L'\u00EC': // [LATIN SMALL LETTER I WITH GRAVE]
 		case L'\u00ED': // [LATIN SMALL LETTER I WITH ACUTE]
@@ -545,27 +549,27 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u2071': // [SUPERSCRIPT LATIN SMALL LETTER I]
 		case L'\u24D8': // [CIRCLED LATIN SMALL LETTER I]
 		case L'\uFF49': // [FULLWIDTH LATIN SMALL LETTER I]
-		    *out = 'i';
+		    *out ++ = 'i';
 		    break;
 		case L'\u0132': // [LATIN CAPITAL LIGATURE IJ]
-		    *out = 'I';
-		    *out = 'J';
+		    *out ++ = 'I';
+		    *out ++ = 'J';
 		    break;
 		case L'\u24A4': // [PARENTHESIZED LATIN SMALL LETTER I]
-		    *out = '(';
-		    *out = 'i';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'i';
+		    *out ++ = ')';
 		    break;
 		case L'\u0133': // [LATIN SMALL LIGATURE IJ]
-		    *out = 'i';
-		    *out = 'j';
+		    *out ++ = 'i';
+		    *out ++ = 'j';
 		    break;
 		case L'\u0134': // [LATIN CAPITAL LETTER J WITH CIRCUMFLEX]
 		case L'\u0248': // [LATIN CAPITAL LETTER J WITH STROKE]
 		case L'\u1D0A': // [LATIN LETTER SMALL CAPITAL J]
 		case L'\u24BF': // [CIRCLED LATIN CAPITAL LETTER J]
 		case L'\uFF2A': // [FULLWIDTH LATIN CAPITAL LETTER J]
-		    *out = 'J';
+		    *out ++ = 'J';
 		    break;
 		case L'\u0135': // [LATIN SMALL LETTER J WITH CIRCUMFLEX]
 		case L'\u01F0': // [LATIN SMALL LETTER J WITH CARON]
@@ -577,12 +581,12 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u24D9': // [CIRCLED LATIN SMALL LETTER J]
 		case L'\u2C7C': // [LATIN SUBSCRIPT SMALL LETTER J]
 		case L'\uFF4A': // [FULLWIDTH LATIN SMALL LETTER J]
-		    *out = 'j';
+		    *out ++ = 'j';
 		    break;
 		case L'\u24A5': // [PARENTHESIZED LATIN SMALL LETTER J]
-		    *out = '(';
-		    *out = 'j';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'j';
+		    *out ++ = ')';
 		    break;
 		case L'\u0136': // [LATIN CAPITAL LETTER K WITH CEDILLA]
 		case L'\u0198': // [LATIN CAPITAL LETTER K WITH HOOK]
@@ -597,7 +601,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\uA742': // [LATIN CAPITAL LETTER K WITH DIAGONAL STROKE]
 		case L'\uA744': // [LATIN CAPITAL LETTER K WITH STROKE AND DIAGONAL STROKE]
 		case L'\uFF2B': // [FULLWIDTH LATIN CAPITAL LETTER K]
-		    *out = 'K';
+		    *out ++ = 'K';
 		    break;
 		case L'\u0137': // [LATIN SMALL LETTER K WITH CEDILLA]
 		case L'\u0199': // [LATIN SMALL LETTER K WITH HOOK]
@@ -613,12 +617,12 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\uA743': // [LATIN SMALL LETTER K WITH DIAGONAL STROKE]
 		case L'\uA745': // [LATIN SMALL LETTER K WITH STROKE AND DIAGONAL STROKE]
 		case L'\uFF4B': // [FULLWIDTH LATIN SMALL LETTER K]
-		    *out = 'k';
+		    *out ++ = 'k';
 		    break;
 		case L'\u24A6': // [PARENTHESIZED LATIN SMALL LETTER K]
-		    *out = '(';
-		    *out = 'k';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'k';
+		    *out ++ = ')';
 		    break;
 		case L'\u0139': // [LATIN CAPITAL LETTER L WITH ACUTE]
 		case L'\u013B': // [LATIN CAPITAL LETTER L WITH CEDILLA]
@@ -639,7 +643,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\uA748': // [LATIN CAPITAL LETTER L WITH HIGH STROKE]
 		case L'\uA780': // [LATIN CAPITAL LETTER TURNED L]
 		case L'\uFF2C': // [FULLWIDTH LATIN CAPITAL LETTER L]
-		    *out = 'L';
+		    *out ++ = 'L';
 		    break;
 		case L'\u013A': // [LATIN SMALL LETTER L WITH ACUTE]
 		case L'\u013C': // [LATIN SMALL LETTER L WITH CEDILLA]
@@ -662,40 +666,40 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\uA749': // [LATIN SMALL LETTER L WITH HIGH STROKE]
 		case L'\uA781': // [LATIN SMALL LETTER TURNED L]
 		case L'\uFF4C': // [FULLWIDTH LATIN SMALL LETTER L]
-		    *out = 'l';
+		    *out ++ = 'l';
 		    break;
 		case L'\u01C7': // [LATIN CAPITAL LETTER LJ]
-		    *out = 'L';
-		    *out = 'J';
+		    *out ++ = 'L';
+		    *out ++ = 'J';
 		    break;
 		case L'\u1EFA': // [LATIN CAPITAL LETTER MIDDLE-WELSH LL]
-		    *out = 'L';
-		    *out = 'L';
+		    *out ++ = 'L';
+		    *out ++ = 'L';
 		    break;
 		case L'\u01C8': // [LATIN CAPITAL LETTER L WITH SMALL LETTER J]
-		    *out = 'L';
-		    *out = 'j';
+		    *out ++ = 'L';
+		    *out ++ = 'j';
 		    break;
 		case L'\u24A7': // [PARENTHESIZED LATIN SMALL LETTER L]
-		    *out = '(';
-		    *out = 'l';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'l';
+		    *out ++ = ')';
 		    break;
 		case L'\u01C9': // [LATIN SMALL LETTER LJ]
-		    *out = 'l';
-		    *out = 'j';
+		    *out ++ = 'l';
+		    *out ++ = 'j';
 		    break;
 		case L'\u1EFB': // [LATIN SMALL LETTER MIDDLE-WELSH LL]
-		    *out = 'l';
-		    *out = 'l';
+		    *out ++ = 'l';
+		    *out ++ = 'l';
 		    break;
 		case L'\u02AA': // [LATIN SMALL LETTER LS DIGRAPH]
-		    *out = 'l';
-		    *out = 's';
+		    *out ++ = 'l';
+		    *out ++ = 's';
 		    break;
 		case L'\u02AB': // [LATIN SMALL LETTER LZ DIGRAPH]
-		    *out = 'l';
-		    *out = 'z';
+		    *out ++ = 'l';
+		    *out ++ = 'z';
 		    break;
 		case L'\u019C': // [LATIN CAPITAL LETTER TURNED M]
 		case L'\u1D0D': // [LATIN LETTER SMALL CAPITAL M]
@@ -707,7 +711,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\uA7FD': // [LATIN EPIGRAPHIC LETTER INVERTED M]
 		case L'\uA7FF': // [LATIN EPIGRAPHIC LETTER ARCHAIC M]
 		case L'\uFF2D': // [FULLWIDTH LATIN CAPITAL LETTER M]
-		    *out = 'M';
+		    *out ++ = 'M';
 		    break;
 		case L'\u026F': // [LATIN SMALL LETTER TURNED M]
 		case L'\u0270': // [LATIN SMALL LETTER TURNED M WITH LONG LEG]
@@ -719,12 +723,12 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u1E43': // [LATIN SMALL LETTER M WITH DOT BELOW]
 		case L'\u24DC': // [CIRCLED LATIN SMALL LETTER M]
 		case L'\uFF4D': // [FULLWIDTH LATIN SMALL LETTER M]
-		    *out = 'm';
+		    *out ++ = 'm';
 		    break;
 		case L'\u24A8': // [PARENTHESIZED LATIN SMALL LETTER M]
-		    *out = '(';
-		    *out = 'm';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'm';
+		    *out ++ = ')';
 		    break;
 		case L'\u00D1': // [LATIN CAPITAL LETTER N WITH TILDE]
 		case L'\u0143': // [LATIN CAPITAL LETTER N WITH ACUTE]
@@ -742,7 +746,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u1E4A': // [LATIN CAPITAL LETTER N WITH CIRCUMFLEX BELOW]
 		case L'\u24C3': // [CIRCLED LATIN CAPITAL LETTER N]
 		case L'\uFF2E': // [FULLWIDTH LATIN CAPITAL LETTER N]
-		    *out = 'N';
+		    *out ++ = 'N';
 		    break;
 		case L'\u00F1': // [LATIN SMALL LETTER N WITH TILDE]
 		case L'\u0144': // [LATIN SMALL LETTER N WITH ACUTE]
@@ -764,24 +768,24 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u207F': // [SUPERSCRIPT LATIN SMALL LETTER N]
 		case L'\u24DD': // [CIRCLED LATIN SMALL LETTER N]
 		case L'\uFF4E': // [FULLWIDTH LATIN SMALL LETTER N]
-		    *out = 'n';
+		    *out ++ = 'n';
 		    break;
 		case L'\u01CA': // [LATIN CAPITAL LETTER NJ]
-		    *out = 'N';
-		    *out = 'J';
+		    *out ++ = 'N';
+		    *out ++ = 'J';
 		    break;
 		case L'\u01CB': // [LATIN CAPITAL LETTER N WITH SMALL LETTER J]
-		    *out = 'N';
-		    *out = 'j';
+		    *out ++ = 'N';
+		    *out ++ = 'j';
 		    break;
 		case L'\u24A9': // [PARENTHESIZED LATIN SMALL LETTER N]
-		    *out = '(';
-		    *out = 'n';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'n';
+		    *out ++ = ')';
 		    break;
 		case L'\u01CC': // [LATIN SMALL LETTER NJ]
-		    *out = 'n';
-		    *out = 'j';
+		    *out ++ = 'n';
+		    *out ++ = 'j';
 		    break;
 		case L'\u00D2': // [LATIN CAPITAL LETTER O WITH GRAVE]
 		case L'\u00D3': // [LATIN CAPITAL LETTER O WITH ACUTE]
@@ -827,7 +831,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\uA74A': // [LATIN CAPITAL LETTER O WITH LONG STROKE OVERLAY]
 		case L'\uA74C': // [LATIN CAPITAL LETTER O WITH LOOP]
 		case L'\uFF2F': // [FULLWIDTH LATIN CAPITAL LETTER O]
-		    *out = 'O';
+		    *out ++ = 'O';
 		    break;
 		case L'\u00F2': // [LATIN SMALL LETTER O WITH GRAVE]
 		case L'\u00F3': // [LATIN SMALL LETTER O WITH ACUTE]
@@ -876,39 +880,39 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\uA74B': // [LATIN SMALL LETTER O WITH LONG STROKE OVERLAY]
 		case L'\uA74D': // [LATIN SMALL LETTER O WITH LOOP]
 		case L'\uFF4F': // [FULLWIDTH LATIN SMALL LETTER O]
-		    *out = 'o';
+		    *out ++ = 'o';
 		    break;
 		case L'\u0152': // [LATIN CAPITAL LIGATURE OE]
 		case L'\u0276': // [LATIN LETTER SMALL CAPITAL OE]
-		    *out = 'O';
-		    *out = 'E';
+		    *out ++ = 'O';
+		    *out ++ = 'E';
 		    break;
 		case L'\uA74E': // [LATIN CAPITAL LETTER OO]
-		    *out = 'O';
-		    *out = 'O';
+		    *out ++ = 'O';
+		    *out ++ = 'O';
 		    break;
 		case L'\u0222': // [LATIN CAPITAL LETTER OU]
 		case L'\u1D15': // [LATIN LETTER SMALL CAPITAL OU]
-		    *out = 'O';
-		    *out = 'U';
+		    *out ++ = 'O';
+		    *out ++ = 'U';
 		    break;
 		case L'\u24AA': // [PARENTHESIZED LATIN SMALL LETTER O]
-		    *out = '(';
-		    *out = 'o';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'o';
+		    *out ++ = ')';
 		    break;
 		case L'\u0153': // [LATIN SMALL LIGATURE OE]
 		case L'\u1D14': // [LATIN SMALL LETTER TURNED OE]
-		    *out = 'o';
-		    *out = 'e';
+		    *out ++ = 'o';
+		    *out ++ = 'e';
 		    break;
 		case L'\uA74F': // [LATIN SMALL LETTER OO]
-		    *out = 'o';
-		    *out = 'o';
+		    *out ++ = 'o';
+		    *out ++ = 'o';
 		    break;
 		case L'\u0223': // [LATIN SMALL LETTER OU]
-		    *out = 'o';
-		    *out = 'u';
+		    *out ++ = 'o';
+		    *out ++ = 'u';
 		    break;
 		case L'\u01A4': // [LATIN CAPITAL LETTER P WITH HOOK]
 		case L'\u1D18': // [LATIN LETTER SMALL CAPITAL P]
@@ -920,7 +924,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\uA752': // [LATIN CAPITAL LETTER P WITH FLOURISH]
 		case L'\uA754': // [LATIN CAPITAL LETTER P WITH SQUIRREL TAIL]
 		case L'\uFF30': // [FULLWIDTH LATIN CAPITAL LETTER P]
-		    *out = 'P';
+		    *out ++ = 'P';
 		    break;
 		case L'\u01A5': // [LATIN SMALL LETTER P WITH HOOK]
 		case L'\u1D71': // [LATIN SMALL LETTER P WITH MIDDLE TILDE]
@@ -934,19 +938,19 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\uA755': // [LATIN SMALL LETTER P WITH SQUIRREL TAIL]
 		case L'\uA7FC': // [LATIN EPIGRAPHIC LETTER REVERSED P]
 		case L'\uFF50': // [FULLWIDTH LATIN SMALL LETTER P]
-		    *out = 'p';
+		    *out ++ = 'p';
 		    break;
 		case L'\u24AB': // [PARENTHESIZED LATIN SMALL LETTER P]
-		    *out = '(';
-		    *out = 'p';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'p';
+		    *out ++ = ')';
 		    break;
 		case L'\u024A': // [LATIN CAPITAL LETTER SMALL Q WITH HOOK TAIL]
 		case L'\u24C6': // [CIRCLED LATIN CAPITAL LETTER Q]
 		case L'\uA756': // [LATIN CAPITAL LETTER Q WITH STROKE THROUGH DESCENDER]
 		case L'\uA758': // [LATIN CAPITAL LETTER Q WITH DIAGONAL STROKE]
 		case L'\uFF31': // [FULLWIDTH LATIN CAPITAL LETTER Q]
-		    *out = 'Q';
+		    *out ++ = 'Q';
 		    break;
 		case L'\u0138': // [LATIN SMALL LETTER KRA]
 		case L'\u024B': // [LATIN SMALL LETTER Q WITH HOOK TAIL]
@@ -955,16 +959,16 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\uA757': // [LATIN SMALL LETTER Q WITH STROKE THROUGH DESCENDER]
 		case L'\uA759': // [LATIN SMALL LETTER Q WITH DIAGONAL STROKE]
 		case L'\uFF51': // [FULLWIDTH LATIN SMALL LETTER Q]
-		    *out = 'q';
+		    *out ++ = 'q';
 		    break;
 		case L'\u24AC': // [PARENTHESIZED LATIN SMALL LETTER Q]
-		    *out = '(';
-		    *out = 'q';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'q';
+		    *out ++ = ')';
 		    break;
 		case L'\u0239': // [LATIN SMALL LETTER QP DIGRAPH]
-		    *out = 'q';
-		    *out = 'p';
+		    *out ++ = 'q';
+		    *out ++ = 'p';
 		    break;
 		case L'\u0154': // [LATIN CAPITAL LETTER R WITH ACUTE]
 		case L'\u0156': // [LATIN CAPITAL LETTER R WITH CEDILLA]
@@ -985,7 +989,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\uA75A': // [LATIN CAPITAL LETTER R ROTUNDA]
 		case L'\uA782': // [LATIN CAPITAL LETTER INSULAR R]
 		case L'\uFF32': // [FULLWIDTH LATIN CAPITAL LETTER R]
-		    *out = 'R';
+		    *out ++ = 'R';
 		    break;
 		case L'\u0155': // [LATIN SMALL LETTER R WITH ACUTE]
 		case L'\u0157': // [LATIN SMALL LETTER R WITH CEDILLA]
@@ -1009,12 +1013,12 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\uA75B': // [LATIN SMALL LETTER R ROTUNDA]
 		case L'\uA783': // [LATIN SMALL LETTER INSULAR R]
 		case L'\uFF52': // [FULLWIDTH LATIN SMALL LETTER R]
-		    *out = 'r';
+		    *out ++ = 'r';
 		    break;
 		case L'\u24AD': // [PARENTHESIZED LATIN SMALL LETTER R]
-		    *out = '(';
-		    *out = 'r';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'r';
+		    *out ++ = ')';
 		    break;
 		case L'\u015A': // [LATIN CAPITAL LETTER S WITH ACUTE]
 		case L'\u015C': // [LATIN CAPITAL LETTER S WITH CIRCUMFLEX]
@@ -1030,7 +1034,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\uA731': // [LATIN LETTER SMALL CAPITAL S]
 		case L'\uA785': // [LATIN SMALL LETTER INSULAR S]
 		case L'\uFF33': // [FULLWIDTH LATIN CAPITAL LETTER S]
-		    *out = 'S';
+		    *out ++ = 'S';
 		    break;
 		case L'\u015B': // [LATIN SMALL LETTER S WITH ACUTE]
 		case L'\u015D': // [LATIN SMALL LETTER S WITH CIRCUMFLEX]
@@ -1052,24 +1056,24 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u24E2': // [CIRCLED LATIN SMALL LETTER S]
 		case L'\uA784': // [LATIN CAPITAL LETTER INSULAR S]
 		case L'\uFF53': // [FULLWIDTH LATIN SMALL LETTER S]
-		    *out = 's';
+		    *out ++ = 's';
 		    break;
 		case L'\u1E9E': // [LATIN CAPITAL LETTER SHARP S]
-		    *out = 'S';
-		    *out = 'S';
+		    *out ++ = 'S';
+		    *out ++ = 'S';
 		    break;
 		case L'\u24AE': // [PARENTHESIZED LATIN SMALL LETTER S]
-		    *out = '(';
-		    *out = 's';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 's';
+		    *out ++ = ')';
 		    break;
 		case L'\u00DF': // [LATIN SMALL LETTER SHARP S]
-		    *out = 's';
-		    *out = 's';
+		    *out ++ = 's';
+		    *out ++ = 's';
 		    break;
 		case L'\uFB06': // [LATIN SMALL LIGATURE ST]
-		    *out = 's';
-		    *out = 't';
+		    *out ++ = 's';
+		    *out ++ = 't';
 		    break;
 		case L'\u0162': // [LATIN CAPITAL LETTER T WITH CEDILLA]
 		case L'\u0164': // [LATIN CAPITAL LETTER T WITH CARON]
@@ -1086,7 +1090,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u24C9': // [CIRCLED LATIN CAPITAL LETTER T]
 		case L'\uA786': // [LATIN CAPITAL LETTER INSULAR T]
 		case L'\uFF34': // [FULLWIDTH LATIN CAPITAL LETTER T]
-		    *out = 'T';
+		    *out ++ = 'T';
 		    break;
 		case L'\u0163': // [LATIN SMALL LETTER T WITH CEDILLA]
 		case L'\u0165': // [LATIN SMALL LETTER T WITH CARON]
@@ -1106,39 +1110,39 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u24E3': // [CIRCLED LATIN SMALL LETTER T]
 		case L'\u2C66': // [LATIN SMALL LETTER T WITH DIAGONAL STROKE]
 		case L'\uFF54': // [FULLWIDTH LATIN SMALL LETTER T]
-		    *out = 't';
+		    *out ++ = 't';
 		    break;
 		case L'\u00DE': // [LATIN CAPITAL LETTER THORN]
 		case L'\uA766': // [LATIN CAPITAL LETTER THORN WITH STROKE THROUGH DESCENDER]
-		    *out = 'T';
-		    *out = 'H';
+		    *out ++ = 'T';
+		    *out ++ = 'H';
 		    break;
 		case L'\uA728': // [LATIN CAPITAL LETTER TZ]
-		    *out = 'T';
-		    *out = 'Z';
+		    *out ++ = 'T';
+		    *out ++ = 'Z';
 		    break;
 		case L'\u24AF': // [PARENTHESIZED LATIN SMALL LETTER T]
-		    *out = '(';
-		    *out = 't';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 't';
+		    *out ++ = ')';
 		    break;
 		case L'\u02A8': // [LATIN SMALL LETTER TC DIGRAPH WITH CURL]
-		    *out = 't';
-		    *out = 'c';
+		    *out ++ = 't';
+		    *out ++ = 'c';
 		    break;
 		case L'\u00FE': // [LATIN SMALL LETTER THORN]
 		case L'\u1D7A': // [LATIN SMALL LETTER TH WITH STRIKETHROUGH]
 		case L'\uA767': // [LATIN SMALL LETTER THORN WITH STROKE THROUGH DESCENDER]
-		    *out = 't';
-		    *out = 'h';
+		    *out ++ = 't';
+		    *out ++ = 'h';
 		    break;
 		case L'\u02A6': // [LATIN SMALL LETTER TS DIGRAPH]
-		    *out = 't';
-		    *out = 's';
+		    *out ++ = 't';
+		    *out ++ = 's';
 		    break;
 		case L'\uA729': // [LATIN SMALL LETTER TZ]
-		    *out = 't';
-		    *out = 'z';
+		    *out ++ = 't';
+		    *out ++ = 'z';
 		    break;
 		case L'\u00D9': // [LATIN CAPITAL LETTER U WITH GRAVE]
 		case L'\u00DA': // [LATIN CAPITAL LETTER U WITH ACUTE]
@@ -1175,7 +1179,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u1EF0': // [LATIN CAPITAL LETTER U WITH HORN AND DOT BELOW]
 		case L'\u24CA': // [CIRCLED LATIN CAPITAL LETTER U]
 		case L'\uFF35': // [FULLWIDTH LATIN CAPITAL LETTER U]
-		    *out = 'U';
+		    *out ++ = 'U';
 		    break;
 		case L'\u00F9': // [LATIN SMALL LETTER U WITH GRAVE]
 		case L'\u00FA': // [LATIN SMALL LETTER U WITH ACUTE]
@@ -1212,16 +1216,16 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u1EF1': // [LATIN SMALL LETTER U WITH HORN AND DOT BELOW]
 		case L'\u24E4': // [CIRCLED LATIN SMALL LETTER U]
 		case L'\uFF55': // [FULLWIDTH LATIN SMALL LETTER U]
-		    *out = 'u';
+		    *out ++ = 'u';
 		    break;
 		case L'\u24B0': // [PARENTHESIZED LATIN SMALL LETTER U]
-		    *out = '(';
-		    *out = 'u';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'u';
+		    *out ++ = ')';
 		    break;
 		case L'\u1D6B': // [LATIN SMALL LETTER UE]
-		    *out = 'u';
-		    *out = 'e';
+		    *out ++ = 'u';
+		    *out ++ = 'e';
 		    break;
 		case L'\u01B2': // [LATIN CAPITAL LETTER V WITH HOOK]
 		case L'\u0245': // [LATIN CAPITAL LETTER TURNED V]
@@ -1233,7 +1237,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\uA75E': // [LATIN CAPITAL LETTER V WITH DIAGONAL STROKE]
 		case L'\uA768': // [LATIN CAPITAL LETTER VEND]
 		case L'\uFF36': // [FULLWIDTH LATIN CAPITAL LETTER V]
-		    *out = 'V';
+		    *out ++ = 'V';
 		    break;
 		case L'\u028B': // [LATIN SMALL LETTER V WITH HOOK]
 		case L'\u028C': // [LATIN SMALL LETTER TURNED V]
@@ -1246,20 +1250,20 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u2C74': // [LATIN SMALL LETTER V WITH CURL]
 		case L'\uA75F': // [LATIN SMALL LETTER V WITH DIAGONAL STROKE]
 		case L'\uFF56': // [FULLWIDTH LATIN SMALL LETTER V]
-		    *out = 'v';
+		    *out ++ = 'v';
 		    break;
 		case L'\uA760': // [LATIN CAPITAL LETTER VY]
-		    *out = 'V';
-		    *out = 'Y';
+		    *out ++ = 'V';
+		    *out ++ = 'Y';
 		    break;
 		case L'\u24B1': // [PARENTHESIZED LATIN SMALL LETTER V]
-		    *out = '(';
-		    *out = 'v';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'v';
+		    *out ++ = ')';
 		    break;
 		case L'\uA761': // [LATIN SMALL LETTER VY]
-		    *out = 'v';
-		    *out = 'y';
+		    *out ++ = 'v';
+		    *out ++ = 'y';
 		    break;
 		case L'\u0174': // [LATIN CAPITAL LETTER W WITH CIRCUMFLEX]
 		case L'\u01F7': // [LATIN CAPITAL LETTER WYNN]
@@ -1272,7 +1276,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u24CC': // [CIRCLED LATIN CAPITAL LETTER W]
 		case L'\u2C72': // [LATIN CAPITAL LETTER W WITH HOOK]
 		case L'\uFF37': // [FULLWIDTH LATIN CAPITAL LETTER W]
-		    *out = 'W';
+		    *out ++ = 'W';
 		    break;
 		case L'\u0175': // [LATIN SMALL LETTER W WITH CIRCUMFLEX]
 		case L'\u01BF': // [LATIN LETTER WYNN]
@@ -1286,18 +1290,18 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u24E6': // [CIRCLED LATIN SMALL LETTER W]
 		case L'\u2C73': // [LATIN SMALL LETTER W WITH HOOK]
 		case L'\uFF57': // [FULLWIDTH LATIN SMALL LETTER W]
-		    *out = 'w';
+		    *out ++ = 'w';
 		    break;
 		case L'\u24B2': // [PARENTHESIZED LATIN SMALL LETTER W]
-		    *out = '(';
-		    *out = 'w';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'w';
+		    *out ++ = ')';
 		    break;
 		case L'\u1E8A': // [LATIN CAPITAL LETTER X WITH DOT ABOVE]
 		case L'\u1E8C': // [LATIN CAPITAL LETTER X WITH DIAERESIS]
 		case L'\u24CD': // [CIRCLED LATIN CAPITAL LETTER X]
 		case L'\uFF38': // [FULLWIDTH LATIN CAPITAL LETTER X]
-		    *out = 'X';
+		    *out ++ = 'X';
 		    break;
 		case L'\u1D8D': // [LATIN SMALL LETTER X WITH PALATAL HOOK]
 		case L'\u1E8B': // [LATIN SMALL LETTER X WITH DOT ABOVE]
@@ -1305,12 +1309,12 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u2093': // [LATIN SUBSCRIPT SMALL LETTER X]
 		case L'\u24E7': // [CIRCLED LATIN SMALL LETTER X]
 		case L'\uFF58': // [FULLWIDTH LATIN SMALL LETTER X]
-		    *out = 'x';
+		    *out ++ = 'x';
 		    break;
 		case L'\u24B3': // [PARENTHESIZED LATIN SMALL LETTER X]
-		    *out = '(';
-		    *out = 'x';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'x';
+		    *out ++ = ')';
 		    break;
 		case L'\u00DD': // [LATIN CAPITAL LETTER Y WITH ACUTE]
 		case L'\u0176': // [LATIN CAPITAL LETTER Y WITH CIRCUMFLEX]
@@ -1327,7 +1331,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u1EFE': // [LATIN CAPITAL LETTER Y WITH LOOP]
 		case L'\u24CE': // [CIRCLED LATIN CAPITAL LETTER Y]
 		case L'\uFF39': // [FULLWIDTH LATIN CAPITAL LETTER Y]
-		    *out = 'Y';
+		    *out ++ = 'Y';
 		    break;
 		case L'\u00FD': // [LATIN SMALL LETTER Y WITH ACUTE]
 		case L'\u00FF': // [LATIN SMALL LETTER Y WITH DIAERESIS]
@@ -1345,12 +1349,12 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u1EFF': // [LATIN SMALL LETTER Y WITH LOOP]
 		case L'\u24E8': // [CIRCLED LATIN SMALL LETTER Y]
 		case L'\uFF59': // [FULLWIDTH LATIN SMALL LETTER Y]
-		    *out = 'y';
+		    *out ++ = 'y';
 		    break;
 		case L'\u24B4': // [PARENTHESIZED LATIN SMALL LETTER Y]
-		    *out = '(';
-		    *out = 'y';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'y';
+		    *out ++ = ')';
 		    break;
 		case L'\u0179': // [LATIN CAPITAL LETTER Z WITH ACUTE]
 		case L'\u017B': // [LATIN CAPITAL LETTER Z WITH DOT ABOVE]
@@ -1366,7 +1370,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u2C6B': // [LATIN CAPITAL LETTER Z WITH DESCENDER]
 		case L'\uA762': // [LATIN CAPITAL LETTER VISIGOTHIC Z]
 		case L'\uFF3A': // [FULLWIDTH LATIN CAPITAL LETTER Z]
-		    *out = 'Z';
+		    *out ++ = 'Z';
 		    break;
 		case L'\u017A': // [LATIN SMALL LETTER Z WITH ACUTE]
 		case L'\u017C': // [LATIN SMALL LETTER Z WITH DOT ABOVE]
@@ -1386,19 +1390,19 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u2C6C': // [LATIN SMALL LETTER Z WITH DESCENDER]
 		case L'\uA763': // [LATIN SMALL LETTER VISIGOTHIC Z]
 		case L'\uFF5A': // [FULLWIDTH LATIN SMALL LETTER Z]
-		    *out = 'z';
+		    *out ++ = 'z';
 		    break;
 		case L'\u24B5': // [PARENTHESIZED LATIN SMALL LETTER Z]
-		    *out = '(';
-		    *out = 'z';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = 'z';
+		    *out ++ = ')';
 		    break;
 		case L'\u2070': // [SUPERSCRIPT ZERO]
 		case L'\u2080': // [SUBSCRIPT ZERO]
 		case L'\u24EA': // [CIRCLED DIGIT ZERO]
 		case L'\u24FF': // [NEGATIVE CIRCLED DIGIT ZERO]
 		case L'\uFF10': // [FULLWIDTH DIGIT ZERO]
-		    *out = '0';
+		    *out ++ = '0';
 		    break;
 		case L'\u00B9': // [SUPERSCRIPT ONE]
 		case L'\u2081': // [SUBSCRIPT ONE]
@@ -1408,16 +1412,16 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u2780': // [DINGBAT CIRCLED SANS-SERIF DIGIT ONE]
 		case L'\u278A': // [DINGBAT NEGATIVE CIRCLED SANS-SERIF DIGIT ONE]
 		case L'\uFF11': // [FULLWIDTH DIGIT ONE]
-		    *out = '1';
+		    *out ++ = '1';
 		    break;
 		case L'\u2488': // [DIGIT ONE FULL STOP]
-		    *out = '1';
-		    *out = '.';
+		    *out ++ = '1';
+		    *out ++ = '.';
 		    break;
 		case L'\u2474': // [PARENTHESIZED DIGIT ONE]
-		    *out = '(';
-		    *out = '1';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = '1';
+		    *out ++ = ')';
 		    break;
 		case L'\u00B2': // [SUPERSCRIPT TWO]
 		case L'\u2082': // [SUBSCRIPT TWO]
@@ -1427,16 +1431,16 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u2781': // [DINGBAT CIRCLED SANS-SERIF DIGIT TWO]
 		case L'\u278B': // [DINGBAT NEGATIVE CIRCLED SANS-SERIF DIGIT TWO]
 		case L'\uFF12': // [FULLWIDTH DIGIT TWO]
-		    *out = '2';
+		    *out ++ = '2';
 		    break;
 		case L'\u2489': // [DIGIT TWO FULL STOP]
-		    *out = '2';
-		    *out = '.';
+		    *out ++ = '2';
+		    *out ++ = '.';
 		    break;
 		case L'\u2475': // [PARENTHESIZED DIGIT TWO]
-		    *out = '(';
-		    *out = '2';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = '2';
+		    *out ++ = ')';
 		    break;
 		case L'\u00B3': // [SUPERSCRIPT THREE]
 		case L'\u2083': // [SUBSCRIPT THREE]
@@ -1446,16 +1450,16 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u2782': // [DINGBAT CIRCLED SANS-SERIF DIGIT THREE]
 		case L'\u278C': // [DINGBAT NEGATIVE CIRCLED SANS-SERIF DIGIT THREE]
 		case L'\uFF13': // [FULLWIDTH DIGIT THREE]
-		    *out = '3';
+		    *out ++ = '3';
 		    break;
 		case L'\u248A': // [DIGIT THREE FULL STOP]
-		    *out = '3';
-		    *out = '.';
+		    *out ++ = '3';
+		    *out ++ = '.';
 		    break;
 		case L'\u2476': // [PARENTHESIZED DIGIT THREE]
-		    *out = '(';
-		    *out = '3';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = '3';
+		    *out ++ = ')';
 		    break;
 		case L'\u2074': // [SUPERSCRIPT FOUR]
 		case L'\u2084': // [SUBSCRIPT FOUR]
@@ -1465,16 +1469,16 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u2783': // [DINGBAT CIRCLED SANS-SERIF DIGIT FOUR]
 		case L'\u278D': // [DINGBAT NEGATIVE CIRCLED SANS-SERIF DIGIT FOUR]
 		case L'\uFF14': // [FULLWIDTH DIGIT FOUR]
-		    *out = '4';
+		    *out ++ = '4';
 		    break;
 		case L'\u248B': // [DIGIT FOUR FULL STOP]
-		    *out = '4';
-		    *out = '.';
+		    *out ++ = '4';
+		    *out ++ = '.';
 		    break;
 		case L'\u2477': // [PARENTHESIZED DIGIT FOUR]
-		    *out = '(';
-		    *out = '4';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = '4';
+		    *out ++ = ')';
 		    break;
 		case L'\u2075': // [SUPERSCRIPT FIVE]
 		case L'\u2085': // [SUBSCRIPT FIVE]
@@ -1484,16 +1488,16 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u2784': // [DINGBAT CIRCLED SANS-SERIF DIGIT FIVE]
 		case L'\u278E': // [DINGBAT NEGATIVE CIRCLED SANS-SERIF DIGIT FIVE]
 		case L'\uFF15': // [FULLWIDTH DIGIT FIVE]
-		    *out = '5';
+		    *out ++ = '5';
 		    break;
 		case L'\u248C': // [DIGIT FIVE FULL STOP]
-		    *out = '5';
-		    *out = '.';
+		    *out ++ = '5';
+		    *out ++ = '.';
 		    break;
 		case L'\u2478': // [PARENTHESIZED DIGIT FIVE]
-		    *out = '(';
-		    *out = '5';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = '5';
+		    *out ++ = ')';
 		    break;
 		case L'\u2076': // [SUPERSCRIPT SIX]
 		case L'\u2086': // [SUBSCRIPT SIX]
@@ -1503,16 +1507,16 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u2785': // [DINGBAT CIRCLED SANS-SERIF DIGIT SIX]
 		case L'\u278F': // [DINGBAT NEGATIVE CIRCLED SANS-SERIF DIGIT SIX]
 		case L'\uFF16': // [FULLWIDTH DIGIT SIX]
-		    *out = '6';
+		    *out ++ = '6';
 		    break;
 		case L'\u248D': // [DIGIT SIX FULL STOP]
-		    *out = '6';
-		    *out = '.';
+		    *out ++ = '6';
+		    *out ++ = '.';
 		    break;
 		case L'\u2479': // [PARENTHESIZED DIGIT SIX]
-		    *out = '(';
-		    *out = '6';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = '6';
+		    *out ++ = ')';
 		    break;
 		case L'\u2077': // [SUPERSCRIPT SEVEN]
 		case L'\u2087': // [SUBSCRIPT SEVEN]
@@ -1522,16 +1526,16 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u2786': // [DINGBAT CIRCLED SANS-SERIF DIGIT SEVEN]
 		case L'\u2790': // [DINGBAT NEGATIVE CIRCLED SANS-SERIF DIGIT SEVEN]
 		case L'\uFF17': // [FULLWIDTH DIGIT SEVEN]
-		    *out = '7';
+		    *out ++ = '7';
 		    break;
 		case L'\u248E': // [DIGIT SEVEN FULL STOP]
-		    *out = '7';
-		    *out = '.';
+		    *out ++ = '7';
+		    *out ++ = '.';
 		    break;
 		case L'\u247A': // [PARENTHESIZED DIGIT SEVEN]
-		    *out = '(';
-		    *out = '7';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = '7';
+		    *out ++ = ')';
 		    break;
 		case L'\u2078': // [SUPERSCRIPT EIGHT]
 		case L'\u2088': // [SUBSCRIPT EIGHT]
@@ -1541,16 +1545,16 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u2787': // [DINGBAT CIRCLED SANS-SERIF DIGIT EIGHT]
 		case L'\u2791': // [DINGBAT NEGATIVE CIRCLED SANS-SERIF DIGIT EIGHT]
 		case L'\uFF18': // [FULLWIDTH DIGIT EIGHT]
-		    *out = '8';
+		    *out ++ = '8';
 		    break;
 		case L'\u248F': // [DIGIT EIGHT FULL STOP]
-		    *out = '8';
-		    *out = '.';
+		    *out ++ = '8';
+		    *out ++ = '.';
 		    break;
 		case L'\u247B': // [PARENTHESIZED DIGIT EIGHT]
-		    *out = '(';
-		    *out = '8';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = '8';
+		    *out ++ = ')';
 		    break;
 		case L'\u2079': // [SUPERSCRIPT NINE]
 		case L'\u2089': // [SUBSCRIPT NINE]
@@ -1560,195 +1564,195 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u2788': // [DINGBAT CIRCLED SANS-SERIF DIGIT NINE]
 		case L'\u2792': // [DINGBAT NEGATIVE CIRCLED SANS-SERIF DIGIT NINE]
 		case L'\uFF19': // [FULLWIDTH DIGIT NINE]
-		    *out = '9';
+		    *out ++ = '9';
 		    break;
 		case L'\u2490': // [DIGIT NINE FULL STOP]
-		    *out = '9';
-		    *out = '.';
+		    *out ++ = '9';
+		    *out ++ = '.';
 		    break;
 		case L'\u247C': // [PARENTHESIZED DIGIT NINE]
-		    *out = '(';
-		    *out = '9';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = '9';
+		    *out ++ = ')';
 		    break;
 		case L'\u2469': // [CIRCLED NUMBER TEN]
 		case L'\u24FE': // [DOUBLE CIRCLED NUMBER TEN]
 		case L'\u277F': // [DINGBAT NEGATIVE CIRCLED NUMBER TEN]
 		case L'\u2789': // [DINGBAT CIRCLED SANS-SERIF NUMBER TEN]
 		case L'\u2793': // [DINGBAT NEGATIVE CIRCLED SANS-SERIF NUMBER TEN]
-		    *out = '1';
-		    *out = '0';
+		    *out ++ = '1';
+		    *out ++ = '0';
 		    break;
 		case L'\u2491': // [NUMBER TEN FULL STOP]
-		    *out = '1';
-		    *out = '0';
-		    *out = '.';
+		    *out ++ = '1';
+		    *out ++ = '0';
+		    *out ++ = '.';
 		    break;
 		case L'\u247D': // [PARENTHESIZED NUMBER TEN]
-		    *out = '(';
-		    *out = '1';
-		    *out = '0';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = '1';
+		    *out ++ = '0';
+		    *out ++ = ')';
 		    break;
 		case L'\u246A': // [CIRCLED NUMBER ELEVEN]
 		case L'\u24EB': // [NEGATIVE CIRCLED NUMBER ELEVEN]
-		    *out = '1';
-		    *out = '1';
+		    *out ++ = '1';
+		    *out ++ = '1';
 		    break;
 		case L'\u2492': // [NUMBER ELEVEN FULL STOP]
-		    *out = '1';
-		    *out = '1';
-		    *out = '.';
+		    *out ++ = '1';
+		    *out ++ = '1';
+		    *out ++ = '.';
 		    break;
 		case L'\u247E': // [PARENTHESIZED NUMBER ELEVEN]
-		    *out = '(';
-		    *out = '1';
-		    *out = '1';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = '1';
+		    *out ++ = '1';
+		    *out ++ = ')';
 		    break;
 		case L'\u246B': // [CIRCLED NUMBER TWELVE]
 		case L'\u24EC': // [NEGATIVE CIRCLED NUMBER TWELVE]
-		    *out = '1';
-		    *out = '2';
+		    *out ++ = '1';
+		    *out ++ = '2';
 		    break;
 		case L'\u2493': // [NUMBER TWELVE FULL STOP]
-		    *out = '1';
-		    *out = '2';
-		    *out = '.';
+		    *out ++ = '1';
+		    *out ++ = '2';
+		    *out ++ = '.';
 		    break;
 		case L'\u247F': // [PARENTHESIZED NUMBER TWELVE]
-		    *out = '(';
-		    *out = '1';
-		    *out = '2';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = '1';
+		    *out ++ = '2';
+		    *out ++ = ')';
 		    break;
 		case L'\u246C': // [CIRCLED NUMBER THIRTEEN]
 		case L'\u24ED': // [NEGATIVE CIRCLED NUMBER THIRTEEN]
-		    *out = '1';
-		    *out = '3';
+		    *out ++ = '1';
+		    *out ++ = '3';
 		    break;
 		case L'\u2494': // [NUMBER THIRTEEN FULL STOP]
-		    *out = '1';
-		    *out = '3';
-		    *out = '.';
+		    *out ++ = '1';
+		    *out ++ = '3';
+		    *out ++ = '.';
 		    break;
 		case L'\u2480': // [PARENTHESIZED NUMBER THIRTEEN]
-		    *out = '(';
-		    *out = '1';
-		    *out = '3';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = '1';
+		    *out ++ = '3';
+		    *out ++ = ')';
 		    break;
 		case L'\u246D': // [CIRCLED NUMBER FOURTEEN]
 		case L'\u24EE': // [NEGATIVE CIRCLED NUMBER FOURTEEN]
-		    *out = '1';
-		    *out = '4';
+		    *out ++ = '1';
+		    *out ++ = '4';
 		    break;
 		case L'\u2495': // [NUMBER FOURTEEN FULL STOP]
-		    *out = '1';
-		    *out = '4';
-		    *out = '.';
+		    *out ++ = '1';
+		    *out ++ = '4';
+		    *out ++ = '.';
 		    break;
 		case L'\u2481': // [PARENTHESIZED NUMBER FOURTEEN]
-		    *out = '(';
-		    *out = '1';
-		    *out = '4';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = '1';
+		    *out ++ = '4';
+		    *out ++ = ')';
 		    break;
 		case L'\u246E': // [CIRCLED NUMBER FIFTEEN]
 		case L'\u24EF': // [NEGATIVE CIRCLED NUMBER FIFTEEN]
-		    *out = '1';
-		    *out = '5';
+		    *out ++ = '1';
+		    *out ++ = '5';
 		    break;
 		case L'\u2496': // [NUMBER FIFTEEN FULL STOP]
-		    *out = '1';
-		    *out = '5';
-		    *out = '.';
+		    *out ++ = '1';
+		    *out ++ = '5';
+		    *out ++ = '.';
 		    break;
 		case L'\u2482': // [PARENTHESIZED NUMBER FIFTEEN]
-		    *out = '(';
-		    *out = '1';
-		    *out = '5';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = '1';
+		    *out ++ = '5';
+		    *out ++ = ')';
 		    break;
 		case L'\u246F': // [CIRCLED NUMBER SIXTEEN]
 		case L'\u24F0': // [NEGATIVE CIRCLED NUMBER SIXTEEN]
-		    *out = '1';
-		    *out = '6';
+		    *out ++ = '1';
+		    *out ++ = '6';
 		    break;
 		case L'\u2497': // [NUMBER SIXTEEN FULL STOP]
-		    *out = '1';
-		    *out = '6';
-		    *out = '.';
+		    *out ++ = '1';
+		    *out ++ = '6';
+		    *out ++ = '.';
 		    break;
 		case L'\u2483': // [PARENTHESIZED NUMBER SIXTEEN]
-		    *out = '(';
-		    *out = '1';
-		    *out = '6';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = '1';
+		    *out ++ = '6';
+		    *out ++ = ')';
 		    break;
 		case L'\u2470': // [CIRCLED NUMBER SEVENTEEN]
 		case L'\u24F1': // [NEGATIVE CIRCLED NUMBER SEVENTEEN]
-		    *out = '1';
-		    *out = '7';
+		    *out ++ = '1';
+		    *out ++ = '7';
 		    break;
 		case L'\u2498': // [NUMBER SEVENTEEN FULL STOP]
-		    *out = '1';
-		    *out = '7';
-		    *out = '.';
+		    *out ++ = '1';
+		    *out ++ = '7';
+		    *out ++ = '.';
 		    break;
 		case L'\u2484': // [PARENTHESIZED NUMBER SEVENTEEN]
-		    *out = '(';
-		    *out = '1';
-		    *out = '7';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = '1';
+		    *out ++ = '7';
+		    *out ++ = ')';
 		    break;
 		case L'\u2471': // [CIRCLED NUMBER EIGHTEEN]
 		case L'\u24F2': // [NEGATIVE CIRCLED NUMBER EIGHTEEN]
-		    *out = '1';
-		    *out = '8';
+		    *out ++ = '1';
+		    *out ++ = '8';
 		    break;
 		case L'\u2499': // [NUMBER EIGHTEEN FULL STOP]
-		    *out = '1';
-		    *out = '8';
-		    *out = '.';
+		    *out ++ = '1';
+		    *out ++ = '8';
+		    *out ++ = '.';
 		    break;
 		case L'\u2485': // [PARENTHESIZED NUMBER EIGHTEEN]
-		    *out = '(';
-		    *out = '1';
-		    *out = '8';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = '1';
+		    *out ++ = '8';
+		    *out ++ = ')';
 		    break;
 		case L'\u2472': // [CIRCLED NUMBER NINETEEN]
 		case L'\u24F3': // [NEGATIVE CIRCLED NUMBER NINETEEN]
-		    *out = '1';
-		    *out = '9';
+		    *out ++ = '1';
+		    *out ++ = '9';
 		    break;
 		case L'\u249A': // [NUMBER NINETEEN FULL STOP]
-		    *out = '1';
-		    *out = '9';
-		    *out = '.';
+		    *out ++ = '1';
+		    *out ++ = '9';
+		    *out ++ = '.';
 		    break;
 		case L'\u2486': // [PARENTHESIZED NUMBER NINETEEN]
-		    *out = '(';
-		    *out = '1';
-		    *out = '9';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = '1';
+		    *out ++ = '9';
+		    *out ++ = ')';
 		    break;
 		case L'\u2473': // [CIRCLED NUMBER TWENTY]
 		case L'\u24F4': // [NEGATIVE CIRCLED NUMBER TWENTY]
-		    *out = '2';
-		    *out = '0';
+		    *out ++ = '2';
+		    *out ++ = '0';
 		    break;
 		case L'\u249B': // [NUMBER TWENTY FULL STOP]
-		    *out = '2';
-		    *out = '0';
-		    *out = '.';
+		    *out ++ = '2';
+		    *out ++ = '0';
+		    *out ++ = '.';
 		    break;
 		case L'\u2487': // [PARENTHESIZED NUMBER TWENTY]
-		    *out = '(';
-		    *out = '2';
-		    *out = '0';
-		    *out = ')';
+		    *out ++ = '(';
+		    *out ++ = '2';
+		    *out ++ = '0';
+		    *out ++ = ')';
 		    break;
 		case L'\u00AB': // [LEFT-POINTING DOUBLE ANGLE QUOTATION MARK]
 		case L'\u00BB': // [RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK]
@@ -1762,7 +1766,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u276E': // [HEAVY LEFT-POINTING ANGLE QUOTATION MARK ORNAMENT]
 		case L'\u276F': // [HEAVY RIGHT-POINTING ANGLE QUOTATION MARK ORNAMENT]
 		case L'\uFF02': // [FULLWIDTH QUOTATION MARK]
-		    *out = '"';
+		    *out ++ = '"';
 		    break;
 		case L'\u2018': // [LEFT SINGLE QUOTATION MARK]
 		case L'\u2019': // [RIGHT SINGLE QUOTATION MARK]
@@ -1775,7 +1779,7 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u275B': // [HEAVY SINGLE TURNED COMMA QUOTATION MARK ORNAMENT]
 		case L'\u275C': // [HEAVY SINGLE COMMA QUOTATION MARK ORNAMENT]
 		case L'\uFF07': // [FULLWIDTH APOSTROPHE]
-		    *out = '\'';
+		    *out ++ = '\'';
 		    break;
 		case L'\u2010': // [HYPHEN]
 		case L'\u2011': // [NON-BREAKING HYPHEN]
@@ -1785,149 +1789,150 @@ static void fold_to_ascii(wchar_t c, OUTPUT_ITERATOR out)
 		case L'\u207B': // [SUPERSCRIPT MINUS]
 		case L'\u208B': // [SUBSCRIPT MINUS]
 		case L'\uFF0D': // [FULLWIDTH HYPHEN-MINUS]
-		    *out = '-';
+		    *out ++ = '-';
 		    break;
 		case L'\u2045': // [LEFT SQUARE BRACKET WITH QUILL]
 		case L'\u2772': // [LIGHT LEFT TORTOISE SHELL BRACKET ORNAMENT]
 		case L'\uFF3B': // [FULLWIDTH LEFT SQUARE BRACKET]
-		    *out = '[';
+		    *out ++ = '[';
 		    break;
 		case L'\u2046': // [RIGHT SQUARE BRACKET WITH QUILL]
 		case L'\u2773': // [LIGHT RIGHT TORTOISE SHELL BRACKET ORNAMENT]
 		case L'\uFF3D': // [FULLWIDTH RIGHT SQUARE BRACKET]
-		    *out = ']';
+		    *out ++ = ']';
 		    break;
 		case L'\u207D': // [SUPERSCRIPT LEFT PARENTHESIS]
 		case L'\u208D': // [SUBSCRIPT LEFT PARENTHESIS]
 		case L'\u2768': // [MEDIUM LEFT PARENTHESIS ORNAMENT]
 		case L'\u276A': // [MEDIUM FLATTENED LEFT PARENTHESIS ORNAMENT]
 		case L'\uFF08': // [FULLWIDTH LEFT PARENTHESIS]
-		    *out = '(';
+		    *out ++ = '(';
 		    break;
 		case L'\u2E28': // [LEFT DOUBLE PARENTHESIS]
-		    *out = '(';
-		    *out = '(';
+		    *out ++ = '(';
+		    *out ++ = '(';
 		    break;
 		case L'\u207E': // [SUPERSCRIPT RIGHT PARENTHESIS]
 		case L'\u208E': // [SUBSCRIPT RIGHT PARENTHESIS]
 		case L'\u2769': // [MEDIUM RIGHT PARENTHESIS ORNAMENT]
 		case L'\u276B': // [MEDIUM FLATTENED RIGHT PARENTHESIS ORNAMENT]
 		case L'\uFF09': // [FULLWIDTH RIGHT PARENTHESIS]
-		    *out = ')';
+		    *out ++ = ')';
 		    break;
 		case L'\u2E29': // [RIGHT DOUBLE PARENTHESIS]
-		    *out = ')';
-		    *out = ')';
+		    *out ++ = ')';
+		    *out ++ = ')';
 		    break;
 		case L'\u276C': // [MEDIUM LEFT-POINTING ANGLE BRACKET ORNAMENT]
 		case L'\u2770': // [HEAVY LEFT-POINTING ANGLE BRACKET ORNAMENT]
 		case L'\uFF1C': // [FULLWIDTH LESS-THAN SIGN]
-		    *out = '<';
+		    *out ++ = '<';
 		    break;
 		case L'\u276D': // [MEDIUM RIGHT-POINTING ANGLE BRACKET ORNAMENT]
 		case L'\u2771': // [HEAVY RIGHT-POINTING ANGLE BRACKET ORNAMENT]
 		case L'\uFF1E': // [FULLWIDTH GREATER-THAN SIGN]
-		    *out = '>';
+		    *out ++ = '>';
 		    break;
 		case L'\u2774': // [MEDIUM LEFT CURLY BRACKET ORNAMENT]
 		case L'\uFF5B': // [FULLWIDTH LEFT CURLY BRACKET]
-		    *out = '{';
+		    *out ++ = '{';
 		    break;
 		case L'\u2775': // [MEDIUM RIGHT CURLY BRACKET ORNAMENT]
 		case L'\uFF5D': // [FULLWIDTH RIGHT CURLY BRACKET]
-		    *out = '}';
+		    *out ++ = '}';
 		    break;
 		case L'\u207A': // [SUPERSCRIPT PLUS SIGN]
 		case L'\u208A': // [SUBSCRIPT PLUS SIGN]
 		case L'\uFF0B': // [FULLWIDTH PLUS SIGN]
-		    *out = '+';
+		    *out ++ = '+';
 		    break;
 		case L'\u207C': // [SUPERSCRIPT EQUALS SIGN]
 		case L'\u208C': // [SUBSCRIPT EQUALS SIGN]
 		case L'\uFF1D': // [FULLWIDTH EQUALS SIGN]
-		    *out = '=';
+		    *out ++ = '=';
 		    break;
 		case L'\uFF01': // [FULLWIDTH EXCLAMATION MARK]
-		    *out = '!';
+		    *out ++ = '!';
 		    break;
 		case L'\u203C': // [DOUBLE EXCLAMATION MARK]
-		    *out = '!';
-		    *out = '!';
+		    *out ++ = '!';
+		    *out ++ = '!';
 		    break;
 		case L'\u2049': // [EXCLAMATION QUESTION MARK]
-		    *out = '!';
-		    *out = '?';
+		    *out ++ = '!';
+		    *out ++ = '?';
 		    break;
 		case L'\uFF03': // [FULLWIDTH NUMBER SIGN]
-		    *out = '#';
+		    *out ++ = '#';
 		    break;
 		case L'\uFF04': // [FULLWIDTH DOLLAR SIGN]
-		    *out = '$';
+		    *out ++ = '$';
 		    break;
 		case L'\u2052': // [COMMERCIAL MINUS SIGN]
 		case L'\uFF05': // [FULLWIDTH PERCENT SIGN]
-		    *out = '%';
+		    *out ++ = '%';
 		    break;
 		case L'\uFF06': // [FULLWIDTH AMPERSAND]
-		    *out = '&';
+		    *out ++ = '&';
 		    break;
 		case L'\u204E': // [LOW ASTERISK]
 		case L'\uFF0A': // [FULLWIDTH ASTERISK]
-		    *out = '*';
+		    *out ++ = '*';
 		    break;
 		case L'\uFF0C': // [FULLWIDTH COMMA]
-		    *out = ',';
+		    *out ++ = ',';
 		    break;
 		case L'\uFF0E': // [FULLWIDTH FULL STOP]
-		    *out = '.';
+		    *out ++ = '.';
 		    break;
 		case L'\u2044': // [FRACTION SLASH]
 		case L'\uFF0F': // [FULLWIDTH SOLIDUS]
-		    *out = '/';
+		    *out ++ = '/';
 		    break;
 		case L'\uFF1A': // [FULLWIDTH COLON]
-		    *out = ':';
+		    *out ++ = ':';
 		    break;
 		case L'\u204F': // [REVERSED SEMICOLON]
 		case L'\uFF1B': // [FULLWIDTH SEMICOLON]
-		    *out = ';';
+		    *out ++ = ';';
 		    break;
 		case L'\uFF1F': // [FULLWIDTH QUESTION MARK]
-		    *out = '?';
+		    *out ++ = '?';
 		    break;
 		case L'\u2047': // [DOUBLE QUESTION MARK]
-		    *out = '?';
-		    *out = '?';
+		    *out ++ = '?';
+		    *out ++ = '?';
 		    break;
 		case L'\u2048': // [QUESTION EXCLAMATION MARK]
-		    *out = '?';
-		    *out = '!';
+		    *out ++ = '?';
+		    *out ++ = '!';
 		    break;
 		case L'\uFF20': // [FULLWIDTH COMMERCIAL AT]
-		    *out = '@';
+		    *out ++ = '@';
 		    break;
 		case L'\uFF3C': // [FULLWIDTH REVERSE SOLIDUS]
-		    *out = '\\';
+		    *out ++ = '\\';
 		    break;
 		case L'\u2038': // [CARET]
 		case L'\uFF3E': // [FULLWIDTH CIRCUMFLEX ACCENT]
-		    *out = '^';
+		    *out ++ = '^';
 		    break;
 		case L'\uFF3F': // [FULLWIDTH LOW LINE]
-		    *out = '_';
+		    *out ++ = '_';
 		    break;
 		case L'\u2053': // [SWUNG DASH]
 		case L'\uFF5E': // [FULLWIDTH TILDE]
-		    *out = '~';
+		    *out ++ = '~';
 		    break;
 		default:
-		    *out = c;
+		    *out ++ = c;
 		    break;
 		}
 	}
-}
 
-namespace Slic3r {
+	// Return end of the output string.
+	return out;
+}
 
 std::string fold_utf8_to_ascii(const std::string &src)
 {
