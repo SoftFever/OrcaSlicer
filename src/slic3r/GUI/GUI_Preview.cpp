@@ -368,6 +368,7 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
 
 #if ENABLE_GCODE_VIEWER
     m_bottom_toolbar_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_bottom_toolbar_sizer->AddSpacer(10);
     m_bottom_toolbar_sizer->Add(m_label_view_type, 0, wxALIGN_CENTER_VERTICAL, 5);
     m_bottom_toolbar_sizer->Add(m_choice_view_type, 0, wxEXPAND | wxALL, 5);
     m_bottom_toolbar_sizer->AddSpacer(10);

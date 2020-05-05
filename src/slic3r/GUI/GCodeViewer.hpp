@@ -14,9 +14,10 @@ namespace GUI {
 
 class GCodeViewer
 {
-    static const std::vector<std::array<float, 3>> Extrusion_Role_Colors;
-    static const std::vector<std::array<float, 3>> Travel_Colors;
-    static const std::vector<std::array<float, 3>> Range_Colors;
+    using Color = std::array<float, 3>;
+    static const std::vector<Color> Extrusion_Role_Colors;
+    static const std::vector<Color> Travel_Colors;
+    static const std::vector<Color> Range_Colors;
 
     // buffer containing vertices data
     struct VBuffer
@@ -37,7 +38,10 @@ class GCodeViewer
     {
         struct Endpoint
         {
-            unsigned int id{ 0u };
+            // index into the buffer indices ibo
+            unsigned int i_id{ 0u };
+            // sequential id (same as index into the vertices vbo)
+            unsigned int s_id{ 0u };
             Vec3f position{ Vec3f::Zero() };
         };
 
@@ -60,7 +64,7 @@ class GCodeViewer
     // Used to batch the indices needed to render paths
     struct RenderPath
     {
-        std::array<float, 3> color;
+        Color color;
         std::vector<unsigned int> sizes;
         std::vector<size_t> offsets; // use size_t because we need the pointer's size (used in the call glMultiDrawElements())
     };
@@ -78,8 +82,9 @@ class GCodeViewer
 
         void reset();
         bool init_shader(const std::string& vertex_shader_src, const std::string& fragment_shader_src);
-        void add_path(const GCodeProcessor::MoveVertex& move);
+        void add_path(const GCodeProcessor::MoveVertex& move, unsigned int s_id);
     };
+
 
     struct Shells
     {
@@ -102,7 +107,7 @@ class GCodeViewer
             void reset() { min = FLT_MAX; max = -FLT_MAX; }
 
             float step_size() const { return (max - min) / (static_cast<float>(Range_Colors.size()) - 1.0f); }
-            std::array<float, 3> get_color_at(float value) const;
+            Color get_color_at(float value) const;
         };
 
         struct Ranges
@@ -141,11 +146,19 @@ class GCodeViewer
         void reset_ranges() { ranges.reset(); }
     };
 
+    struct SequentialView
+    {
+        unsigned int first{ 0 };
+        unsigned int last{ 0 };
+        unsigned int current{ 0 };
+    };
+
 #if ENABLE_GCODE_VIEWER_STATISTICS
     struct Statistics
     {
         long long load_time{ 0 };
         long long refresh_time{ 0 };
+        long long refresh_paths_time{ 0 };
         long long gl_multi_points_calls_count{ 0 };
         long long gl_multi_line_strip_calls_count{ 0 };
         long long results_size{ 0 };
@@ -154,6 +167,7 @@ class GCodeViewer
         long long indices_size{ 0 };
         long long indices_gpu_size{ 0 };
         long long paths_size{ 0 };
+        long long render_paths_size{ 0 };
 
         void reset_all() {
             reset_times();
@@ -164,6 +178,7 @@ class GCodeViewer
         void reset_times() {
             load_time = 0;
             refresh_time = 0;
+            refresh_paths_time = 0;
         }
 
         void reset_opengl() {
@@ -178,6 +193,7 @@ class GCodeViewer
             indices_size = 0;
             indices_gpu_size = 0;
             paths_size =  0;
+            render_paths_size = 0;
         }
     };
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -201,12 +217,13 @@ private:
     VBuffer m_vertices;
     mutable std::vector<IBuffer> m_buffers{ static_cast<size_t>(GCodeProcessor::EMoveType::Extrude) };
     BoundingBoxf3 m_bounding_box;
-    std::vector<std::array<float, 3>> m_tool_colors;
+    std::vector<Color> m_tool_colors;
     std::vector<double> m_layers_zs;
     std::array<double, 2> m_layers_z_range;
     std::vector<ExtrusionRole> m_roles;
     std::vector<unsigned char> m_extruder_ids;
     mutable Extrusions m_extrusions;
+    mutable SequentialView m_sequential_view;
     Shells m_shells;
     EViewType m_view_type{ EViewType::FeatureType };
     bool m_legend_enabled{ true };
@@ -231,6 +248,8 @@ public:
     void reset();
     void render() const;
 
+    bool has_data() const { return !m_roles.empty(); }
+
     const BoundingBoxf3& get_bounding_box() const { return m_bounding_box; }
     const std::vector<double>& get_layers_zs() const { return m_layers_zs; };
 
@@ -250,8 +269,9 @@ public:
     void set_options_visibility_from_flags(unsigned int flags);
     void set_layers_z_range(const std::array<double, 2>& layers_z_range)
     {
+        bool keep_sequential_current = layers_z_range[1] <= m_layers_z_range[1];
         m_layers_z_range = layers_z_range;
-        refresh_render_paths();
+        refresh_render_paths(keep_sequential_current);
     }
 
     bool is_legend_enabled() const { return m_legend_enabled; }
@@ -261,10 +281,11 @@ private:
     bool init_shaders();
     void load_toolpaths(const GCodeProcessor::Result& gcode_result);
     void load_shells(const Print& print, bool initialized);
-    void refresh_render_paths() const;
+    void refresh_render_paths(bool keep_sequential_current) const;
     void render_toolpaths() const;
     void render_shells() const;
     void render_legend() const;
+    void render_sequential_dlg() const;
 #if ENABLE_GCODE_VIEWER_STATISTICS
     void render_statistics() const;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
