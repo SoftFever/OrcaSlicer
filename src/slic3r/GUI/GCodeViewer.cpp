@@ -385,12 +385,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         return;
 
     // vertex data / bounding box -> extract from result
-    std::vector<float> vertices_data;
-    for (const GCodeProcessor::MoveVertex& move : gcode_result.moves) {
-        for (int j = 0; j < 3; ++j) {
-            vertices_data.insert(vertices_data.end(), move.position[j]);
-            m_bounding_box.merge(move.position.cast<double>());
-        }
+    std::vector<float> vertices_data(m_vertices.vertices_count * 3);
+    for (size_t i = 0; i < m_vertices.vertices_count; ++i) {
+        const GCodeProcessor::MoveVertex& move = gcode_result.moves[i];
+        m_bounding_box.merge(move.position.cast<double>());
+        ::memcpy(static_cast<void*>(&vertices_data[i * 3]), static_cast<const void*>(move.position.data()), 3 * sizeof(float));
     }
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -575,6 +574,10 @@ void GCodeViewer::load_shells(const Print& print, bool initialized)
 
 void GCodeViewer::refresh_render_paths(bool keep_sequential_current) const
 {
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    auto start_time = std::chrono::high_resolution_clock::now();
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+
     auto extrusion_color = [this](const Path& path) {
         Color color;
         switch (m_view_type)
@@ -598,20 +601,6 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current) const
                 Travel_Colors[0] /* Move */);
     };
 
-    auto is_valid_path = [this](const Path& path, size_t id) {
-        if (path.type == GCodeProcessor::EMoveType::Travel) {
-            if (!is_travel_in_z_range(id))
-                return false;
-        }
-        else if (!is_in_z_range(path))
-            return false;
-
-        if (path.type == GCodeProcessor::EMoveType::Extrude && !is_visible(path))
-            return false;
-
-        return true;
-    };
-
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.render_paths_size = 0;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -621,74 +610,60 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current) const
     if (!keep_sequential_current)
         m_sequential_view.current = m_vertices.vertices_count;
 
-    // first, detect current values for the sequential view
-    // to be used later to filter the paths
+    // first pass: collect visible paths and update sequential view data
+    std::vector<std::pair<IBuffer*, size_t>> paths;
     for (IBuffer& buffer : m_buffers) {
+        // reset render paths
+        buffer.render_paths = std::vector<RenderPath>();
+
         if (!buffer.visible)
             continue;
 
         for (size_t i = 0; i < buffer.paths.size(); ++i) {
             const Path& path = buffer.paths[i];
-            if (!is_valid_path(path, i))
+            if (path.type == GCodeProcessor::EMoveType::Travel) {
+                if (!is_travel_in_z_range(i))
+                    continue;
+            }
+            else if (!is_in_z_range(path))
                 continue;
-//            if (path.type == GCodeProcessor::EMoveType::Travel) {
-//                if (!is_travel_in_z_range(i))
-//                    continue;
-//            }
-//            else if (!is_in_z_range(path))
-//                continue;
-//
-//            if (path.type == GCodeProcessor::EMoveType::Extrude && !is_visible(path))
-//                continue;
+
+            if (path.type == GCodeProcessor::EMoveType::Extrude && !is_visible(path))
+                continue;
+
+            // store valid path
+            paths.push_back({ &buffer, i });
 
             m_sequential_view.first = std::min(m_sequential_view.first, path.first.s_id);
             m_sequential_view.last = std::max(m_sequential_view.last, path.last.s_id);
         }
     }
 
-    if (keep_sequential_current)
-        m_sequential_view.clamp_current();
-    else
-        m_sequential_view.current = m_sequential_view.last;
+    // update current sequential position
+    m_sequential_view.current = keep_sequential_current ? std::clamp(m_sequential_view.current, m_sequential_view.first, m_sequential_view.last) : m_sequential_view.last;
 
-    for (IBuffer& buffer : m_buffers) {
-        buffer.render_paths = std::vector<RenderPath>();
-        if (!buffer.visible)
+    // second pass: filter paths by sequential data
+    for (auto&& [buffer, id] : paths) {
+        const Path& path = buffer->paths[id];
+        if ((m_sequential_view.current < path.first.s_id) || (path.last.s_id < m_sequential_view.first))
             continue;
-        for (size_t i = 0; i < buffer.paths.size(); ++i) {
-            const Path& path = buffer.paths[i];
-            if (!is_valid_path(path, i))
-                continue;
-//            if (path.type == GCodeProcessor::EMoveType::Travel) {
-//                if (!is_travel_in_z_range(i))
-//                    continue;
-//            }
-//            else if (!is_in_z_range(path))
-//                continue;
-//
-//            if (path.type == GCodeProcessor::EMoveType::Extrude && !is_visible(path))
-//                continue;
 
-            if ((m_sequential_view.current < path.first.s_id) || (path.last.s_id < m_sequential_view.first))
-                continue;
-
-            Color color;
-            switch (path.type)
-            {
-            case GCodeProcessor::EMoveType::Extrude: { color = extrusion_color(path); break; }
-            case GCodeProcessor::EMoveType::Travel:  { color = (m_view_type == EViewType::Feedrate || m_view_type == EViewType::Tool || m_view_type == EViewType::ColorPrint) ? extrusion_color(path) : travel_color(path); break; }
-            default:                                 { color = { 0.0f, 0.0f, 0.0f }; break; }
-            }
-
-            auto it = std::find_if(buffer.render_paths.begin(), buffer.render_paths.end(), [color](const RenderPath& path) { return path.color == color; });
-            if (it == buffer.render_paths.end()) {
-                it = buffer.render_paths.insert(buffer.render_paths.end(), RenderPath());
-                it->color = color;
-            }
-
-            it->sizes.push_back(std::min(m_sequential_view.current, path.last.s_id) - path.first.s_id + 1);
-            it->offsets.push_back(static_cast<size_t>(path.first.i_id * sizeof(unsigned int)));
+        Color color;
+        switch (path.type)
+        {
+        case GCodeProcessor::EMoveType::Extrude: { color = extrusion_color(path); break; }
+        case GCodeProcessor::EMoveType::Travel:  { color = (m_view_type == EViewType::Feedrate || m_view_type == EViewType::Tool || m_view_type == EViewType::ColorPrint) ? extrusion_color(path) : travel_color(path); break; }
+        default:                                 { color = { 0.0f, 0.0f, 0.0f }; break; }
         }
+
+        auto it = std::find_if(buffer->render_paths.begin(), buffer->render_paths.end(), [color](const RenderPath& path) { return path.color == color; });
+        if (it == buffer->render_paths.end()) {
+            it = buffer->render_paths.insert(buffer->render_paths.end(), RenderPath());
+            it->color = color;
+        }
+
+        it->sizes.push_back(std::min(m_sequential_view.current, path.last.s_id) - path.first.s_id + 1);
+        it->offsets.push_back(static_cast<size_t>(path.first.i_id * sizeof(unsigned int)));
     }
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -699,6 +674,8 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current) const
             m_statistics.render_paths_size += SLIC3R_STDVEC_MEMSIZE(path.offsets, size_t);
         }
     }
+
+    m_statistics.refresh_paths_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 }
 
@@ -1191,6 +1168,12 @@ void GCodeViewer::render_statistics() const
     ImGui::PopStyleColor();
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.refresh_time) + "ms");
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    imgui.text(std::string("Resfresh paths time:"));
+    ImGui::PopStyleColor();
+    ImGui::SameLine(offset);
+    imgui.text(std::to_string(m_statistics.refresh_paths_time) + "ms");
 
     ImGui::Separator();
 

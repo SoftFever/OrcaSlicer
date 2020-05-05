@@ -38,9 +38,9 @@ class GCodeViewer
     {
         struct Endpoint
         {
-            // index into the ibo
+            // index into the buffer indices ibo
             unsigned int i_id{ 0u };
-            // sequential id
+            // sequential id (same as index into the vertices vbo)
             unsigned int s_id{ 0u };
             Vec3f position{ Vec3f::Zero() };
         };
@@ -59,8 +59,6 @@ class GCodeViewer
         unsigned char cp_color_id{ 0 };
 
         bool matches(const GCodeProcessor::MoveVertex& move) const;
-
-        unsigned int size() const { return last.i_id - first.i_id + 1; }
     };
 
     // Used to batch the indices needed to render paths
@@ -153,8 +151,6 @@ class GCodeViewer
         unsigned int first{ 0 };
         unsigned int last{ 0 };
         unsigned int current{ 0 };
-
-        void clamp_current() { current = std::clamp(current, first, last); }
     };
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -162,6 +158,7 @@ class GCodeViewer
     {
         long long load_time{ 0 };
         long long refresh_time{ 0 };
+        long long refresh_paths_time{ 0 };
         long long gl_multi_points_calls_count{ 0 };
         long long gl_multi_line_strip_calls_count{ 0 };
         long long results_size{ 0 };
@@ -181,6 +178,7 @@ class GCodeViewer
         void reset_times() {
             load_time = 0;
             refresh_time = 0;
+            refresh_paths_time = 0;
         }
 
         void reset_opengl() {
