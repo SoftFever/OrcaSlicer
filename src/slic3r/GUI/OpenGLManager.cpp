@@ -12,6 +12,7 @@
 #include <boost/log/trivial.hpp>
 
 #include <wx/glcanvas.h>
+#include <wx/msgdlg.h>
 
 #if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
 #ifdef __APPLE__
