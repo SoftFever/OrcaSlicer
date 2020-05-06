@@ -214,7 +214,7 @@ wxSize wxCheckListBoxComboPopup::GetAdjustedSize(int minWidth, int prefHeight, i
                 max_width = std::max(max_width, 60 + GetTextExtent(GetString(i)).x);
             }
             size.SetWidth(max_width);
-            size.SetHeight(count * GetTextExtent(GetString(0)).y);
+            size.SetHeight(4 + count * (2 + GetTextExtent(GetString(0)).y));
         }
         else
             size.SetHeight(DefaultHeight);
