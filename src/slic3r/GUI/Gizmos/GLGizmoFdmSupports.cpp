@@ -84,6 +84,9 @@ void GLGizmoFdmSupports::on_render() const
 
 void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
 {
+    if (m_setting_angle)
+        return;
+
     const ModelObject* mo = m_c->selection_info()->model_object();
 
     glsafe(::glEnable(GL_POLYGON_OFFSET_FILL));
@@ -667,27 +670,34 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         }
 
         m_imgui->end();
-        if (m_setting_angle)
+        if (m_setting_angle) {
+            m_parent.show_slope(false);
+            m_parent.set_slope_range({m_angle_threshold_deg, m_angle_threshold_deg});
+            m_parent.use_slope(true);
             m_parent.set_as_dirty();
+        }
     }
     else {
         std::string name = "Autoset custom supports";
         m_imgui->begin(wxString(name), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
         m_imgui->text("Threshold:");
         ImGui::SameLine();
-        m_imgui->slider_float("", &m_angle_threshold_deg, 0.f, 90.f, "%.f");
+        if (m_imgui->slider_float("", &m_angle_threshold_deg, 0.f, 90.f, "%.f"))
+            m_parent.set_slope_range({m_angle_threshold_deg, m_angle_threshold_deg});
         m_imgui->checkbox(wxString("Overwrite already selected facets"), m_overwrite_selected);
         if (m_imgui->button("Enforce"))
-            select_facets_by_angle(m_angle_threshold_deg, m_overwrite_selected, false);
+            select_facets_by_angle(90.f - m_angle_threshold_deg, m_overwrite_selected, false);
         ImGui::SameLine();
         if (m_imgui->button("Block"))
-            select_facets_by_angle(m_angle_threshold_deg, m_overwrite_selected, true);
+            select_facets_by_angle(90.f - m_angle_threshold_deg, m_overwrite_selected, true);
         ImGui::SameLine();
         if (m_imgui->button("Cancel"))
             m_setting_angle = false;
         m_imgui->end();
-        if (! m_setting_angle)
+        if (! m_setting_angle) {
+            m_parent.use_slope(false);
             m_parent.set_as_dirty();
+        }
     }
 }
 

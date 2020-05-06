@@ -1454,7 +1454,7 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas
 #if ENABLE_SLOPE_RENDERING
 void GLCanvas3D::Slope::render() const
 {
-    if (is_shown())
+    if (m_dialog_shown)
     {
         const std::array<float, 2>& z_range = m_volumes.get_slope_z_range();
         std::array<float, 2> angle_range = { Geometry::rad2deg(::acos(z_range[0])) - 90.0f, Geometry::rad2deg(::acos(z_range[1])) - 90.0f };
@@ -1502,7 +1502,7 @@ void GLCanvas3D::Slope::render() const
         imgui.end();
 
         if (modified)
-            m_volumes.set_slope_z_range({ -::cos(Geometry::deg2rad(90.0f - angle_range[0])), -::cos(Geometry::deg2rad(90.0f - angle_range[1])) });
+            set_range(angle_range);
     }
     }
 #endif // ENABLE_SLOPE_RENDERING
@@ -1911,8 +1911,8 @@ bool GLCanvas3D::is_reload_delayed() const
 void GLCanvas3D::enable_layers_editing(bool enable)
 {
 #if ENABLE_SLOPE_RENDERING
-    if (enable && m_slope.is_shown())
-        m_slope.show(false);
+    if (enable && m_slope.is_dialog_shown())
+        m_slope.show_dialog(false);
 #endif // ENABLE_SLOPE_RENDERING
 
     m_layers_editing.set_enabled(enable);
@@ -3123,7 +3123,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'd': {
                     if (!is_layers_editing_enabled())
                     {
-                        m_slope.show(!m_slope.is_shown());
+                        m_slope.show_dialog(!m_slope.is_dialog_shown());
                         m_dirty = true;
                     }
                     break;
