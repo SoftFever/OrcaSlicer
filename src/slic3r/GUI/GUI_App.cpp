@@ -283,7 +283,6 @@ GUI_App::~GUI_App()
         delete preset_updater;
 }
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 std::string GUI_App::get_gl_info(bool format_as_html, bool extensions)
 {
     return GLCanvas3DManager::get_gl_info().to_string(format_as_html, extensions);
@@ -298,7 +297,6 @@ bool GUI_App::init_opengl()
 {
     return m_canvas_mgr.init_gl();
 }
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 void GUI_App::init_app_config()
 {
