@@ -28,6 +28,7 @@
 #include "I18N.hpp"
 #include "Search.hpp"
 
+#include "../Utils/MacDarkMode.hpp"
 #include "nanosvg/nanosvg.h"
 #include "nanosvg/nanosvgrast.h"
 
