@@ -7,6 +7,7 @@
 
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/filesystem.hpp>
 
 #include <wx/string.h>
 #include <wx/event.h>
@@ -27,9 +28,20 @@
 #include "I18N.hpp"
 #include "Search.hpp"
 
+#include "nanosvg/nanosvg.h"
+#include "nanosvg/nanosvgrast.h"
+
 namespace Slic3r {
 namespace GUI {
 
+
+static const std::map<const char, std::string> font_icons = {
+    {ImGui::PrintIconMarker     , "cog"        },
+    {ImGui::PrinterIconMarker   , "printer"    },
+    {ImGui::PrinterSlaIconMarker, "sla_printer"},
+    {ImGui::FilamentIconMarker  , "spool"      },
+    {ImGui::MaterialIconMarker  , "resin"      }
+};
 
 ImGuiWrapper::ImGuiWrapper()
     : m_glyph_ranges(nullptr)
@@ -735,9 +747,9 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
 
     // add checkboxes for show/hide Categories and Groups
     text(_L("Use for search")+":");
-    check_box(_L("Type"),       view_params.type);
     check_box(_L("Category"),   view_params.category);
     check_box(_L("Group"),      view_params.group);
+    check_box(_L("Search in English"), view_params.english);
 }
 
 void ImGuiWrapper::disabled_begin(bool disabled)
@@ -791,6 +803,59 @@ static const ImWchar ranges_keyboard_shortcuts[] =
 };
 #endif // __APPLE__
 
+
+std::vector<unsigned char> ImGuiWrapper::load_svg(const std::string& bitmap_name, unsigned target_width, unsigned target_height)
+{
+#ifdef __APPLE__
+    // Note: win->GetContentScaleFactor() is not used anymore here because it tends to
+    // return bogus results quite often (such as 1.0 on Retina or even 0.0).
+    // We're using the max scaling factor across all screens because it's very likely to be good enough.
+    double	scale = mac_max_scaling_factor();
+#else
+    double	scale = 1.0;
+#endif
+    std::vector<unsigned char> empty_vector;
+
+#ifdef __WXMSW__
+    std::string folder = "white\\";
+#else
+    std::string folder = "white/";
+#endif        
+    if (!boost::filesystem::exists(Slic3r::var(folder + bitmap_name + ".svg")))
+        folder.clear();
+
+    NSVGimage* image = ::nsvgParseFromFile(Slic3r::var(folder + bitmap_name + ".svg").c_str(), "px", 96.0f);
+    if (image == nullptr)
+        return empty_vector;
+
+    target_height != 0 ? target_height *= scale : target_width *= scale;
+
+    float svg_scale = target_height != 0 ?
+        (float)target_height / image->height : target_width != 0 ?
+        (float)target_width / image->width : 1;
+
+    int   width = (int)(svg_scale * image->width + 0.5f);
+    int   height = (int)(svg_scale * image->height + 0.5f);
+    int   n_pixels = width * height;
+    if (n_pixels <= 0) {
+        ::nsvgDelete(image);
+        return empty_vector;
+    }
+
+    NSVGrasterizer* rast = ::nsvgCreateRasterizer();
+    if (rast == nullptr) {
+        ::nsvgDelete(image);
+        return empty_vector;
+    }
+
+    std::vector<unsigned char> data(n_pixels * 4, 0);
+    ::nsvgRasterize(rast, image, 0, 0, svg_scale, data.data(), width, height, width * 4);
+    ::nsvgDeleteRasterizer(rast);
+    ::nsvgDelete(image);
+
+    return data;
+}
+
 void ImGuiWrapper::init_font(bool compress)
 {
     destroy_font();
@@ -829,10 +894,32 @@ void ImGuiWrapper::init_font(bool compress)
     }
 #endif
 
+    float font_scale = m_font_size/15;
+    int icon_sz = lround(16 * font_scale); // default size of icon is 16 px
+
+    int rect_id = io.Fonts->CustomRects.Size;  // id of the rectangle added next
+    // add rectangles for the icons to the font atlas
+    for (auto& icon : font_icons)
+        io.Fonts->AddCustomRectFontGlyph(font, icon.first, icon_sz, icon_sz, 3.0 * font_scale + icon_sz);
+
     // Build texture atlas
     unsigned char* pixels;
     int width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);   // Load as RGBA 32-bits (75% of the memory is wasted, but default font is so small) because it is more likely to be compatible with user's existing shaders. If your ImTextureId represent a higher-level concept than just a GL texture id, consider calling GetTexDataAsAlpha8() instead to save on GPU memory.
+
+    // Fill rectangles from the SVG-icons
+    for (auto icon : font_icons) {
+        if (const ImFontAtlas::CustomRect* rect = io.Fonts->GetCustomRectByIndex(rect_id)) {
+            std::vector<unsigned char> raw_data = load_svg(icon.second, icon_sz, icon_sz);
+            const ImU32* pIn = (ImU32*)raw_data.data();
+            for (int y = 0; y < icon_sz; y++) {
+                ImU32* pOut = (ImU32*)pixels + (rect->Y + y) * width + (rect->X);
+                for (int x = 0; x < icon_sz; x++)
+                    *pOut++ = *pIn++;
+            }
+        }
+        rect_id++;
+    }
 
     // Upload texture to graphics system
     GLint last_texture;

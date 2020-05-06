@@ -5275,6 +5275,8 @@ void Plater::set_printer_technology(PrinterTechnology printer_technology)
         wxGetApp().mainframe->update_menubar();
 
     p->update_main_toolbar_tooltips();
+
+    p->sidebar->get_searcher().set_printer_technology(printer_technology);
 }
 
 void Plater::changed_object(int obj_idx)
