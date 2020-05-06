@@ -1,6 +1,7 @@
 #ifndef slic3r_OpenGLManager_hpp_
 #define slic3r_OpenGLManager_hpp_
 
+class wxWindow;
 class wxGLCanvas;
 class wxGLContext;
 
