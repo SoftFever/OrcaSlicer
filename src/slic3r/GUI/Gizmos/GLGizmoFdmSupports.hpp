@@ -61,10 +61,15 @@ private:
     void update_model_object() const;
     void update_from_model_object();
 
+    void select_facets_by_angle(float threshold, bool overwrite, bool block);
+    bool m_overwrite_selected = false;
+    float m_angle_threshold_deg = 45.f;
+
     bool is_mesh_point_clipped(const Vec3d& point) const;
 
     float m_clipping_plane_distance = 0.f;
     std::unique_ptr<ClippingPlane> m_clipping_plane;
+    bool m_setting_angle = false;
 
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.
