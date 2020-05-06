@@ -1,21 +1,18 @@
 #include "libslic3r/libslic3r.h"
-#include "GLCanvas3DManager.hpp"
-#include "../../slic3r/GUI/GUI.hpp"
-#include "../../slic3r/GUI/AppConfig.hpp"
-#include "../../slic3r/GUI/GLCanvas3D.hpp"
+#include "OpenGLManager.hpp"
+
+#include "GUI.hpp"
+#include "I18N.hpp"
+#include "3DScene.hpp"
 
 #include <GL/glew.h>
 
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/log/trivial.hpp>
-#include <wx/glcanvas.h>
-#include <wx/timer.h>
-#include <wx/msgdlg.h>
 
-#include <vector>
-#include <string>
-#include <iostream>
+#include <wx/glcanvas.h>
+#include <wx/msgdlg.h>
 
 #if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
 #ifdef __APPLE__
@@ -31,7 +28,7 @@
 namespace Slic3r {
 namespace GUI {
 
-const std::string& GLCanvas3DManager::GLInfo::get_version() const
+const std::string& OpenGLManager::GLInfo::get_version() const
 {
     if (!m_detected)
         detect();
@@ -39,7 +36,7 @@ const std::string& GLCanvas3DManager::GLInfo::get_version() const
     return m_version;
 }
 
-const std::string& GLCanvas3DManager::GLInfo::get_glsl_version() const
+const std::string& OpenGLManager::GLInfo::get_glsl_version() const
 {
     if (!m_detected)
         detect();
@@ -47,7 +44,7 @@ const std::string& GLCanvas3DManager::GLInfo::get_glsl_version() const
     return m_glsl_version;
 }
 
-const std::string& GLCanvas3DManager::GLInfo::get_vendor() const
+const std::string& OpenGLManager::GLInfo::get_vendor() const
 {
     if (!m_detected)
         detect();
@@ -55,7 +52,7 @@ const std::string& GLCanvas3DManager::GLInfo::get_vendor() const
     return m_vendor;
 }
 
-const std::string& GLCanvas3DManager::GLInfo::get_renderer() const
+const std::string& OpenGLManager::GLInfo::get_renderer() const
 {
     if (!m_detected)
         detect();
@@ -63,7 +60,7 @@ const std::string& GLCanvas3DManager::GLInfo::get_renderer() const
     return m_renderer;
 }
 
-int GLCanvas3DManager::GLInfo::get_max_tex_size() const
+int OpenGLManager::GLInfo::get_max_tex_size() const
 {
     if (!m_detected)
         detect();
@@ -78,7 +75,7 @@ int GLCanvas3DManager::GLInfo::get_max_tex_size() const
 #endif // __APPLE__
 }
 
-float GLCanvas3DManager::GLInfo::get_max_anisotropy() const
+float OpenGLManager::GLInfo::get_max_anisotropy() const
 {
     if (!m_detected)
         detect();
@@ -86,7 +83,7 @@ float GLCanvas3DManager::GLInfo::get_max_anisotropy() const
     return m_max_anisotropy;
 }
 
-void GLCanvas3DManager::GLInfo::detect() const
+void OpenGLManager::GLInfo::detect() const
 {
     const char* data = (const char*)::glGetString(GL_VERSION);
     if (data != nullptr)
@@ -117,7 +114,7 @@ void GLCanvas3DManager::GLInfo::detect() const
     m_detected = true;
 }
 
-bool GLCanvas3DManager::GLInfo::is_version_greater_or_equal_to(unsigned int major, unsigned int minor) const
+bool OpenGLManager::GLInfo::is_version_greater_or_equal_to(unsigned int major, unsigned int minor) const
 {
     if (!m_detected)
         detect();
@@ -148,7 +145,7 @@ bool GLCanvas3DManager::GLInfo::is_version_greater_or_equal_to(unsigned int majo
         return gl_minor >= minor;
 }
 
-std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool extensions) const
+std::string OpenGLManager::GLInfo::to_string(bool format_as_html, bool extensions) const
 {
     if (!m_detected)
         detect();
@@ -188,19 +185,19 @@ std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool exten
     return out.str();
 }
 
-GLCanvas3DManager::GLInfo GLCanvas3DManager::s_gl_info;
-bool GLCanvas3DManager::s_compressed_textures_supported = false;
-GLCanvas3DManager::EMultisampleState GLCanvas3DManager::s_multisample = GLCanvas3DManager::EMultisampleState::Unknown;
-GLCanvas3DManager::EFramebufferType GLCanvas3DManager::s_framebuffers_type = GLCanvas3DManager::EFramebufferType::Unknown;
+OpenGLManager::GLInfo OpenGLManager::s_gl_info;
+bool OpenGLManager::s_compressed_textures_supported = false;
+OpenGLManager::EMultisampleState OpenGLManager::s_multisample = OpenGLManager::EMultisampleState::Unknown;
+OpenGLManager::EFramebufferType OpenGLManager::s_framebuffers_type = OpenGLManager::EFramebufferType::Unknown;
 
 #if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
 #ifdef __APPLE__ 
 // Part of hack to remove crash when closing the application on OSX 10.9.5 when building against newer wxWidgets
-GLCanvas3DManager::OSInfo GLCanvas3DManager::s_os_info;
+OpenGLManager::OSInfo OpenGLManager::s_os_info;
 #endif // __APPLE__ 
 #endif // ENABLE_HACK_CLOSING_ON_OSX_10_9_5
 
-GLCanvas3DManager::~GLCanvas3DManager()
+OpenGLManager::~OpenGLManager()
 {
 #if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
 #ifdef __APPLE__ 
@@ -221,7 +218,7 @@ GLCanvas3DManager::~GLCanvas3DManager()
 #endif // ENABLE_HACK_CLOSING_ON_OSX_10_9_5
 }
 
-bool GLCanvas3DManager::init_gl()
+bool OpenGLManager::init_gl()
 {
     if (!m_gl_initialized)
     {
@@ -249,19 +246,19 @@ bool GLCanvas3DManager::init_gl()
                 _utf8(L("PrusaSlicer requires OpenGL 2.0 capable graphics driver to run correctly, \n"
                     "while OpenGL version %s, render %s, vendor %s was detected."))) % s_gl_info.get_version() % s_gl_info.get_renderer() % s_gl_info.get_vendor()).str());
         	message += "\n";
-        	message += _(L("You may need to update your graphics card driver."));
+        	message += _L("You may need to update your graphics card driver.");
 #ifdef _WIN32
         	message += "\n";
-        	message += _(L("As a workaround, you may run PrusaSlicer with a software rendered 3D graphics by running prusa-slicer.exe with the --sw_renderer parameter."));
+        	message += _L("As a workaround, you may run PrusaSlicer with a software rendered 3D graphics by running prusa-slicer.exe with the --sw_renderer parameter.");
 #endif
-        	wxMessageBox(message, wxString("PrusaSlicer - ") + _(L("Unsupported OpenGL version")), wxOK | wxICON_ERROR);
+        	wxMessageBox(message, wxString("PrusaSlicer - ") + _L("Unsupported OpenGL version"), wxOK | wxICON_ERROR);
         }
     }
 
     return true;
 }
 
-wxGLContext* GLCanvas3DManager::init_glcontext(wxGLCanvas& canvas)
+wxGLContext* OpenGLManager::init_glcontext(wxGLCanvas& canvas)
 {
     if (m_context == nullptr)
     {
@@ -279,7 +276,7 @@ wxGLContext* GLCanvas3DManager::init_glcontext(wxGLCanvas& canvas)
     return m_context;
 }
 
-wxGLCanvas* GLCanvas3DManager::create_wxglcanvas(wxWindow& parent)
+wxGLCanvas* OpenGLManager::create_wxglcanvas(wxWindow& parent)
 {
     int attribList[] = { 
     	WX_GL_RGBA,
@@ -310,7 +307,7 @@ wxGLCanvas* GLCanvas3DManager::create_wxglcanvas(wxWindow& parent)
     return new wxGLCanvas(&parent, wxID_ANY, attribList, wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
 }
 
-void GLCanvas3DManager::detect_multisample(int* attribList)
+void OpenGLManager::detect_multisample(int* attribList)
 {
     int wxVersion = wxMAJOR_VERSION * 10000 + wxMINOR_VERSION * 100 + wxRELEASE_NUMBER;
     bool enable_multisample = wxVersion >= 30003;

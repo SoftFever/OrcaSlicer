@@ -1,30 +1,14 @@
-#ifndef slic3r_GLCanvas3DManager_hpp_
-#define slic3r_GLCanvas3DManager_hpp_
-
-#include "libslic3r/BoundingBox.hpp"
-
-#include <map>
-#include <vector>
+#ifndef slic3r_OpenGLManager_hpp_
+#define slic3r_OpenGLManager_hpp_
 
 class wxWindow;
 class wxGLCanvas;
 class wxGLContext;
 
 namespace Slic3r {
-
-class BackgroundSlicingProcess;
-class DynamicPrintConfig;
-class Model;
-class ExPolygon;
-typedef std::vector<ExPolygon> ExPolygons;
-class ModelObject;
-class PrintObject;
-
 namespace GUI {
 
-class GLCanvas3D;
-
-class GLCanvas3DManager
+class OpenGLManager
 {
 public:
     enum class EFramebufferType : unsigned char
@@ -98,8 +82,8 @@ private:
     static EFramebufferType s_framebuffers_type;
 
 public:
-    GLCanvas3DManager() = default;
-    ~GLCanvas3DManager();
+    OpenGLManager() = default;
+    ~OpenGLManager();
 
     bool init_gl();
 
@@ -119,4 +103,4 @@ private:
 } // namespace GUI
 } // namespace Slic3r
 
-#endif // slic3r_GLCanvas3DManager_hpp_
+#endif // slic3r_OpenGLManager_hpp_

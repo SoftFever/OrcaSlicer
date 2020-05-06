@@ -19,7 +19,7 @@
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "slic3r/GUI/Tab.hpp"
 #include "slic3r/GUI/GUI_Preview.hpp"
-#include "slic3r/GUI/GLCanvas3DManager.hpp"
+#include "slic3r/GUI/OpenGLManager.hpp"
 #include "slic3r/GUI/3DBed.hpp"
 #include "slic3r/GUI/Camera.hpp"
 
@@ -2070,10 +2070,10 @@ void GLCanvas3D::render()
     ImGui::Separator();
     imgui.text("Compressed textures: ");
     ImGui::SameLine();
-    imgui.text(GLCanvas3DManager::are_compressed_textures_supported() ? "supported" : "not supported");
+    imgui.text(OpenGLManager::are_compressed_textures_supported() ? "supported" : "not supported");
     imgui.text("Max texture size: ");
     ImGui::SameLine();
-    imgui.text(std::to_string(GLCanvas3DManager::get_gl_info().get_max_tex_size()));
+    imgui.text(std::to_string(OpenGLManager::get_gl_info().get_max_tex_size()));
     imgui.end();
 #endif // ENABLE_RENDER_STATISTICS
 
@@ -2150,10 +2150,10 @@ void GLCanvas3D::render()
 
 void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) const
 {
-    switch (GLCanvas3DManager::get_framebuffers_type())
+    switch (OpenGLManager::get_framebuffers_type())
     {
-    case GLCanvas3DManager::EFramebufferType::Arb: { _render_thumbnail_framebuffer(thumbnail_data, w, h, printable_only, parts_only, show_bed, transparent_background); break; }
-    case GLCanvas3DManager::EFramebufferType::Ext: { _render_thumbnail_framebuffer_ext(thumbnail_data, w, h, printable_only, parts_only, show_bed, transparent_background); break; }
+    case OpenGLManager::EFramebufferType::Arb: { _render_thumbnail_framebuffer(thumbnail_data, w, h, printable_only, parts_only, show_bed, transparent_background); break; }
+    case OpenGLManager::EFramebufferType::Ext: { _render_thumbnail_framebuffer_ext(thumbnail_data, w, h, printable_only, parts_only, show_bed, transparent_background); break; }
     default: { _render_thumbnail_legacy(thumbnail_data, w, h, printable_only, parts_only, show_bed, transparent_background); break; }
     }
 }

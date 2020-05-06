@@ -7,7 +7,7 @@
 #include "MainFrame.hpp"
 #include "ImGuiWrapper.hpp"
 #include "ConfigWizard.hpp"
-#include "GLCanvas3DManager.hpp"
+#include "OpenGLManager.hpp"
 
 #include <wx/app.h>
 #include <wx/colour.h>
@@ -98,7 +98,7 @@ class GUI_App : public wxApp
     // Best translation language, provided by Windows or OSX, owned by wxWidgets.
     const wxLanguageInfo		 *m_language_info_best   = nullptr;
 
-    GLCanvas3DManager m_canvas_mgr;
+    OpenGLManager m_opengl_mgr;
 
     std::unique_ptr<RemovableDriveManager> m_removable_drive_manager;
 

@@ -410,7 +410,7 @@ void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
         if (boost::algorithm::iends_with(m_texture_filename, ".svg"))
         {
             // use higher resolution images if graphic card and opengl version allow
-            GLint max_tex_size = GLCanvas3DManager::get_gl_info().get_max_tex_size();
+            GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
             if ((m_temp_texture.get_id() == 0) || (m_temp_texture.get_source() != m_texture_filename))
             {
                 // generate a temporary lower resolution texture to show while no main texture levels have been compressed
