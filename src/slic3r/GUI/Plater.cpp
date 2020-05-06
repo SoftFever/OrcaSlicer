@@ -354,10 +354,10 @@ PresetBitmapComboBox(parent, wxSize(15 * wxGetApp().em_unit(), -1)),
         if (page_id == wxNOT_FOUND)
             return;
 
-        wxGetApp().tab_panel()->ChangeSelection(page_id);
+        wxGetApp().tab_panel()->SetSelection(page_id);
 
         // Switch to Settings NotePad
-        wxGetApp().mainframe->switch_to(false);
+        wxGetApp().mainframe->select_tab();
 
         /* In a case of a multi-material printing, for editing another Filament Preset
          * it's needed to select this preset for the "Filament settings" Tab
@@ -1099,9 +1099,8 @@ void Sidebar::jump_to_option(size_t selected)
     const Search::Option& opt = p->searcher.get_option(selected);
     wxGetApp().get_tab(opt.type)->activate_option(boost::nowide::narrow(opt.opt_key), boost::nowide::narrow(opt.category));
 
-    // Switch to the Settings NotePad, if plater is shown
-    if (p->plater->IsShown())
-        wxGetApp().mainframe->switch_to(false);
+    // Switch to the Settings NotePad
+    wxGetApp().mainframe->select_tab();
 }
 
 ObjectManipulation* Sidebar::obj_manipul()
@@ -1637,6 +1636,7 @@ struct Plater::priv
 
     void reset_all_gizmos();
     void update_ui_from_settings();
+    void update_main_toolbar_tooltips();
     std::shared_ptr<ProgressStatusBar> statusbar();
     std::string get_config(const std::string &key) const;
     BoundingBoxf bed_shape_bb() const;
@@ -2029,7 +2029,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
 
     // collapse sidebar according to saved value
-    sidebar->collapse(wxGetApp().app_config->get("collapsed_sidebar") == "1");
+    bool is_collapsed = wxGetApp().app_config->get("collapsed_sidebar") == "1";
+    sidebar->collapse(is_collapsed);
+    // Update an enable of the collapse_toolbar: if sidebar is collapsed, then collapse_toolbar should be visible
+    if (is_collapsed)
+        wxGetApp().app_config->set("show_collapse_button", "1");
 }
 
 Plater::priv::~priv()
@@ -2102,6 +2106,13 @@ void Plater::priv::update_ui_from_settings()
 
     view3D->get_canvas3d()->update_ui_from_settings();
     preview->get_canvas3d()->update_ui_from_settings();
+}
+
+// Called after the print technology was changed.
+// Update the tooltips for "Switch to Settings" button in maintoolbar
+void Plater::priv::update_main_toolbar_tooltips()
+{
+    view3D->get_canvas3d()->update_tooltip_for_settings_item_in_main_toolbar();
 }
 
 std::shared_ptr<ProgressStatusBar> Plater::priv::statusbar()
@@ -5262,6 +5273,8 @@ void Plater::set_printer_technology(PrinterTechnology printer_technology)
 
     if (wxGetApp().mainframe)
         wxGetApp().mainframe->update_menubar();
+
+    p->update_main_toolbar_tooltips();
 }
 
 void Plater::changed_object(int obj_idx)
