@@ -285,17 +285,17 @@ GUI_App::~GUI_App()
 
 std::string GUI_App::get_gl_info(bool format_as_html, bool extensions)
 {
-    return GLCanvas3DManager::get_gl_info().to_string(format_as_html, extensions);
+    return OpenGLManager::get_gl_info().to_string(format_as_html, extensions);
 }
 
 wxGLContext* GUI_App::init_glcontext(wxGLCanvas& canvas)
 {
-    return m_canvas_mgr.init_glcontext(canvas);
+    return m_opengl_mgr.init_glcontext(canvas);
 }
 
 bool GUI_App::init_opengl()
 {
-    return m_canvas_mgr.init_gl();
+    return m_opengl_mgr.init_gl();
 }
 
 void GUI_App::init_app_config()
@@ -322,6 +322,7 @@ void GUI_App::init_app_config()
 		app_config->load();
 	}
 }
+
 bool GUI_App::OnInit()
 {
     try {

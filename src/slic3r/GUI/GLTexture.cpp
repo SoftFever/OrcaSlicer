@@ -2,7 +2,7 @@
 #include "GLTexture.hpp"
 
 #include "3DScene.hpp"
-#include "GLCanvas3DManager.hpp"
+#include "OpenGLManager.hpp"
 
 #include <GL/glew.h>
 
@@ -441,7 +441,7 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps, ECo
 
     if (apply_anisotropy)
     {
-        GLfloat max_anisotropy = GLCanvas3DManager::get_gl_info().get_max_anisotropy();
+        GLfloat max_anisotropy = OpenGLManager::get_gl_info().get_max_anisotropy();
         if (max_anisotropy > 1.0f)
             glsafe(::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy));
     }
@@ -590,7 +590,7 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, boo
 
     if (apply_anisotropy)
     {
-        GLfloat max_anisotropy = GLCanvas3DManager::get_gl_info().get_max_anisotropy();
+        GLfloat max_anisotropy = OpenGLManager::get_gl_info().get_max_anisotropy();
         if (max_anisotropy > 1.0f)
             glsafe(::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy));
     }

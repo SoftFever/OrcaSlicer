@@ -7,7 +7,7 @@
 #include "AppConfig.hpp"
 #include "3DScene.hpp"
 #include "BackgroundSlicingProcess.hpp"
-#include "GLCanvas3DManager.hpp"
+#include "OpenGLManager.hpp"
 #include "GLCanvas3D.hpp"
 #include "PresetBundle.hpp"
 #include "DoubleSlider.hpp"
@@ -48,7 +48,7 @@ bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, Ba
     if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 /* disable wxTAB_TRAVERSAL */))
         return false;
 
-    m_canvas_widget = GLCanvas3DManager::create_wxglcanvas(*this);
+    m_canvas_widget = OpenGLManager::create_wxglcanvas(*this);
     if (m_canvas_widget == nullptr)
         return false;
 
@@ -56,7 +56,7 @@ bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, Ba
     m_canvas->set_context(wxGetApp().init_glcontext(*m_canvas_widget));
     m_canvas->bind_event_handlers();
 
-    m_canvas->allow_multisample(GLCanvas3DManager::can_multisample());
+    m_canvas->allow_multisample(OpenGLManager::can_multisample());
     // XXX: If have OpenGL
     m_canvas->enable_picking(true);
     m_canvas->enable_moving(true);
@@ -227,14 +227,14 @@ bool Preview::init(wxWindow* parent, Model* model)
     if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 /* disable wxTAB_TRAVERSAL */))
         return false;
 
-    m_canvas_widget = GLCanvas3DManager::create_wxglcanvas(*this);
+    m_canvas_widget = OpenGLManager::create_wxglcanvas(*this);
     if (m_canvas_widget == nullptr)
         return false;
 
     m_canvas = new GLCanvas3D(m_canvas_widget);
     m_canvas->set_context(wxGetApp().init_glcontext(*m_canvas_widget));
     m_canvas->bind_event_handlers();
-    m_canvas->allow_multisample(GLCanvas3DManager::can_multisample());
+    m_canvas->allow_multisample(OpenGLManager::can_multisample());
     m_canvas->set_config(m_config);
     m_canvas->set_model(model);
     m_canvas->set_process(m_process);
