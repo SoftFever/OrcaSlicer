@@ -2,9 +2,7 @@
 #include "GLTexture.hpp"
 
 #include "3DScene.hpp"
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 #include "GLCanvas3DManager.hpp"
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 #include <GL/glew.h>
 

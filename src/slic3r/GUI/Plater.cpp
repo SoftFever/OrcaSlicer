@@ -77,11 +77,9 @@
 #include "RemovableDriveManager.hpp"
 #include "InstanceCheck.hpp"
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 #ifdef __APPLE__
 #include "Gizmos/GLGizmosManager.hpp"
 #endif // __APPLE__
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
 #include "WipeTowerDialog.hpp"
@@ -1635,10 +1633,8 @@ struct Plater::priv
 
     void set_current_canvas_as_dirty();
     GLCanvas3D* get_current_canvas3D();
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     void unbind_canvas_event_handlers();
     void reset_canvas_volumes();
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     bool init_view_toolbar();
 #if ENABLE_GCODE_VIEWER
@@ -1870,7 +1866,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     sla_print.set_status_callback(statuscb);
     this->q->Bind(EVT_SLICING_UPDATE, &priv::on_slicing_update, this);
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     view3D = new View3D(q, &model, config, &background_process);
 #if ENABLE_GCODE_VIEWER
     preview = new Preview(q, &model, config, &background_process, &gcode_preview_data, &gcode_result, [this]() { schedule_background_process(); });
@@ -1882,14 +1877,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     // set default view_toolbar icons size equal to GLGizmosManager::Default_Icons_Size
     view_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size);
 #endif // __APPLE__
-#else
-    view3D = new View3D(q, bed, camera, view_toolbar, &model, config, &background_process);
-#if ENABLE_GCODE_VIEWER
-    preview = new Preview(q, bed, camera, view_toolbar, &model, config, &background_process, &gcode_preview_data, &gcode_result, [this]() { schedule_background_process(); });
-#else
-    preview = new Preview(q, bed, camera, view_toolbar, &model, config, &background_process, &gcode_preview_data, [this]() { schedule_background_process(); });
-#endif // ENABLE_GCODE_VIEWER
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     panels.push_back(view3D);
     panels.push_back(preview);
@@ -1990,10 +1977,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     // Drop target:
     q->SetDropTarget(new PlaterDropTarget(q));   // if my understanding is right, wxWindow takes the owenership
-
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-    update_ui_from_settings();
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
     q->Layout();
 
     set_current_panel(view3D);
@@ -3801,7 +3784,6 @@ GLCanvas3D* Plater::priv::get_current_canvas3D()
     return (current_panel == view3D) ? view3D->get_canvas3d() : ((current_panel == preview) ? preview->get_canvas3d() : nullptr);
 }
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 void Plater::priv::unbind_canvas_event_handlers()
 {
     if (view3D != nullptr)
@@ -3819,7 +3801,6 @@ void Plater::priv::reset_canvas_volumes()
     if (preview != nullptr)
         preview->get_canvas3d()->reset_volumes();
 }
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 bool Plater::priv::init_view_toolbar()
 {
@@ -5270,7 +5251,6 @@ void Plater::set_current_canvas_as_dirty()
     p->set_current_canvas_as_dirty();
 }
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 void Plater::unbind_canvas_event_handlers()
 {
     p->unbind_canvas_event_handlers();
@@ -5280,7 +5260,6 @@ void Plater::reset_canvas_volumes()
 {
     p->reset_canvas_volumes();
 }
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 PrinterTechnology Plater::printer_technology() const
 {
@@ -5438,7 +5417,6 @@ Camera& Plater::get_camera()
     return p->camera;
 }
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 const Bed3D& Plater::get_bed() const
 {
     return p->bed;
@@ -5458,7 +5436,6 @@ GLToolbar& Plater::get_view_toolbar()
 {
     return p->view_toolbar;
 }
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 #if ENABLE_GCODE_VIEWER
 void Plater::update_preview_bottom_toolbar()

@@ -8,9 +8,7 @@
 
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 #include <boost/log/trivial.hpp>
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 #include <wx/glcanvas.h>
 #include <wx/timer.h>
 #include <wx/msgdlg.h>
@@ -32,19 +30,6 @@
 
 namespace Slic3r {
 namespace GUI {
-
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-GLCanvas3DManager::GLInfo::GLInfo()
-    : m_detected(false)
-    , m_version("")
-    , m_glsl_version("")
-    , m_vendor("")
-    , m_renderer("")
-    , m_max_tex_size(0)
-    , m_max_anisotropy(0.0f)
-{
-}
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 
 const std::string& GLCanvas3DManager::GLInfo::get_version() const
 {
@@ -205,13 +190,8 @@ std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool exten
 
 GLCanvas3DManager::GLInfo GLCanvas3DManager::s_gl_info;
 bool GLCanvas3DManager::s_compressed_textures_supported = false;
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 GLCanvas3DManager::EMultisampleState GLCanvas3DManager::s_multisample = GLCanvas3DManager::EMultisampleState::Unknown;
 GLCanvas3DManager::EFramebufferType GLCanvas3DManager::s_framebuffers_type = GLCanvas3DManager::EFramebufferType::Unknown;
-#else
-GLCanvas3DManager::EMultisampleState GLCanvas3DManager::s_multisample = GLCanvas3DManager::MS_Unknown;
-GLCanvas3DManager::EFramebufferType GLCanvas3DManager::s_framebuffers_type = GLCanvas3DManager::FB_None;
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 #if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
 #ifdef __APPLE__ 
@@ -220,17 +200,8 @@ GLCanvas3DManager::OSInfo GLCanvas3DManager::s_os_info;
 #endif // __APPLE__ 
 #endif // ENABLE_HACK_CLOSING_ON_OSX_10_9_5
 
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-GLCanvas3DManager::GLCanvas3DManager()
-    : m_context(nullptr)
-    , m_gl_initialized(false)
-{
-}
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
-
 GLCanvas3DManager::~GLCanvas3DManager()
 {
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 #if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
 #ifdef __APPLE__ 
     // This is an ugly hack needed to solve the crash happening when closing the application on OSX 10.9.5 with newer wxWidgets
@@ -248,116 +219,29 @@ GLCanvas3DManager::~GLCanvas3DManager()
     }
 #endif //__APPLE__
 #endif // ENABLE_HACK_CLOSING_ON_OSX_10_9_5
-#else
-    this->destroy();
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 }
 
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-bool GLCanvas3DManager::add(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar)
-{
-    if (canvas == nullptr)
-        return false;
-
-    if (do_get_canvas(canvas) != m_canvases.end())
-        return false;
-
-    GLCanvas3D* canvas3D = new GLCanvas3D(canvas, bed, camera, view_toolbar);
-    if (canvas3D == nullptr)
-        return false;
-
-    canvas3D->bind_event_handlers();
-
-    if (m_context == nullptr)
-    {
-        m_context = new wxGLContext(canvas);
-        if (m_context == nullptr)
-            return false;
-
-#if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
-#ifdef __APPLE__ 
-        // Part of hack to remove crash when closing the application on OSX 10.9.5 when building against newer wxWidgets
-        s_os_info.major = wxPlatformInfo::Get().GetOSMajorVersion();
-        s_os_info.minor = wxPlatformInfo::Get().GetOSMinorVersion();
-        s_os_info.micro = wxPlatformInfo::Get().GetOSMicroVersion();
-#endif //__APPLE__
-#endif // ENABLE_HACK_CLOSING_ON_OSX_10_9_5
-    }
-
-    canvas3D->set_context(m_context);
-
-    m_canvases.insert(CanvasesMap::value_type(canvas, canvas3D));
-
-    return true;
-}
-
-bool GLCanvas3DManager::remove(wxGLCanvas* canvas)
-{
-    CanvasesMap::iterator it = do_get_canvas(canvas);
-    if (it == m_canvases.end())
-        return false;
-
-    it->second->unbind_event_handlers();
-    delete it->second;
-    m_canvases.erase(it);
-
-    return true;
-}
-
-void GLCanvas3DManager::remove_all()
-{
-    for (CanvasesMap::value_type& item : m_canvases)
-    {
-        item.second->unbind_event_handlers();
-        delete item.second;
-    }
-    m_canvases.clear();
-}
-
-size_t GLCanvas3DManager::count() const
-{
-    return m_canvases.size();
-}
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
-
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 bool GLCanvas3DManager::init_gl()
-#else
-void GLCanvas3DManager::init_gl()
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 {
     if (!m_gl_initialized)
     {
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
         if (glewInit() != GLEW_OK)
         {
             BOOST_LOG_TRIVIAL(error) << "Unable to init glew library";
             return false;
         }
-#else
-        glewInit();
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
         m_gl_initialized = true;
         if (GLEW_EXT_texture_compression_s3tc)
             s_compressed_textures_supported = true;
         else
             s_compressed_textures_supported = false;
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
         if (GLEW_ARB_framebuffer_object)
             s_framebuffers_type = EFramebufferType::Arb;
         else if (GLEW_EXT_framebuffer_object)
             s_framebuffers_type = EFramebufferType::Ext;
         else
             s_framebuffers_type = EFramebufferType::Unknown;
-#else
-        if (GLEW_ARB_framebuffer_object)
-            s_framebuffers_type = FB_Arb;
-        else if (GLEW_EXT_framebuffer_object)
-            s_framebuffers_type = FB_Ext;
-        else
-            s_framebuffers_type = FB_None;
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
         if (! s_gl_info.is_version_greater_or_equal_to(2, 0)) {
         	// Complain about the OpenGL version.
@@ -374,12 +258,9 @@ void GLCanvas3DManager::init_gl()
         }
     }
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     return true;
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 }
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 wxGLContext* GLCanvas3DManager::init_glcontext(wxGLCanvas& canvas)
 {
     if (m_context == nullptr)
@@ -397,48 +278,8 @@ wxGLContext* GLCanvas3DManager::init_glcontext(wxGLCanvas& canvas)
     }
     return m_context;
 }
-#else
-bool GLCanvas3DManager::init(wxGLCanvas* canvas)
-{
-    CanvasesMap::const_iterator it = do_get_canvas(canvas);
-    if (it != m_canvases.end())
-        return (it->second != nullptr) ? init(*it->second) : false;
-    else
-        return false;
-}
 
-void GLCanvas3DManager::destroy()
-{
-    if (m_context != nullptr)
-    {
-#if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
-#ifdef __APPLE__ 
-        // this is an ugly hack needed to solve the crash happening when closing the application on OSX 10.9.5
-        // the crash is inside wxGLContext destructor
-        if (s_os_info.major == 10 && s_os_info.minor == 9 && s_os_info.micro == 5)
-            return;
-#endif //__APPLE__
-#endif // ENABLE_HACK_CLOSING_ON_OSX_10_9_5
-
-        delete m_context;
-        m_context = nullptr;
-    }
-}
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
-
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-GLCanvas3D* GLCanvas3DManager::get_canvas(wxGLCanvas* canvas)
-{
-    CanvasesMap::const_iterator it = do_get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second : nullptr;
-}
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
-
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 wxGLCanvas* GLCanvas3DManager::create_wxglcanvas(wxWindow& parent)
-#else
-wxGLCanvas* GLCanvas3DManager::create_wxglcanvas(wxWindow *parent)
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 {
     int attribList[] = { 
     	WX_GL_RGBA,
@@ -456,11 +297,7 @@ wxGLCanvas* GLCanvas3DManager::create_wxglcanvas(wxWindow *parent)
     	0
     };
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     if (s_multisample == EMultisampleState::Unknown)
-#else
-    if (s_multisample == MS_Unknown)
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     {
         detect_multisample(attribList);
 //        // debug output
@@ -470,42 +307,14 @@ wxGLCanvas* GLCanvas3DManager::create_wxglcanvas(wxWindow *parent)
     if (! can_multisample())
         attribList[12] = 0;
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     return new wxGLCanvas(&parent, wxID_ANY, attribList, wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
-#else
-    return new wxGLCanvas(parent, wxID_ANY, attribList, wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 }
-
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-GLCanvas3DManager::CanvasesMap::iterator GLCanvas3DManager::do_get_canvas(wxGLCanvas* canvas)
-{
-    return (canvas == nullptr) ? m_canvases.end() : m_canvases.find(canvas);
-}
-
-GLCanvas3DManager::CanvasesMap::const_iterator GLCanvas3DManager::do_get_canvas(wxGLCanvas* canvas) const
-{
-    return (canvas == nullptr) ? m_canvases.end() : m_canvases.find(canvas);
-}
-
-bool GLCanvas3DManager::init(GLCanvas3D& canvas)
-{
-    if (!m_gl_initialized)
-        init_gl();
-
-    return canvas.init();
-}
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 
 void GLCanvas3DManager::detect_multisample(int* attribList)
 {
     int wxVersion = wxMAJOR_VERSION * 10000 + wxMINOR_VERSION * 100 + wxRELEASE_NUMBER;
     bool enable_multisample = wxVersion >= 30003;
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     s_multisample = (enable_multisample && wxGLCanvas::IsDisplaySupported(attribList)) ? EMultisampleState::Enabled : EMultisampleState::Disabled;
-#else
-    s_multisample = (enable_multisample && wxGLCanvas::IsDisplaySupported(attribList)) ? MS_Enabled : MS_Disabled;
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     // Alternative method: it was working on previous version of wxWidgets but not with the latest, at least on Windows
     // s_multisample = enable_multisample && wxGLCanvas::IsExtensionSupported("WGL_ARB_multisample");
 }

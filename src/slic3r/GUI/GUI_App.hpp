@@ -7,9 +7,7 @@
 #include "MainFrame.hpp"
 #include "ImGuiWrapper.hpp"
 #include "ConfigWizard.hpp"
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 #include "GLCanvas3DManager.hpp"
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 #include <wx/app.h>
 #include <wx/colour.h>
@@ -100,9 +98,7 @@ class GUI_App : public wxApp
     // Best translation language, provided by Windows or OSX, owned by wxWidgets.
     const wxLanguageInfo		 *m_language_info_best   = nullptr;
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     GLCanvas3DManager m_canvas_mgr;
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     std::unique_ptr<RemovableDriveManager> m_removable_drive_manager;
 
@@ -117,11 +113,9 @@ public:
     GUI_App();
     ~GUI_App() override;
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     static std::string get_gl_info(bool format_as_html, bool extensions);
     wxGLContext* init_glcontext(wxGLCanvas& canvas);
     bool init_opengl();
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     static unsigned get_colour_approx_luma(const wxColour &colour);
     static bool     dark_mode();

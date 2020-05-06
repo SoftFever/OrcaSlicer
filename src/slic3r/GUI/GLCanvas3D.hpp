@@ -16,9 +16,6 @@
 #include "GUI_ObjectLayers.hpp"
 #include "GLSelectionRectangle.hpp"
 #include "MeshUtils.hpp"
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-#include "Camera.hpp"
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 #if ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "GCodeViewer.hpp"
@@ -35,9 +32,7 @@ class wxMouseEvent;
 class wxTimerEvent;
 class wxPaintEvent;
 class wxGLCanvas;
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 class wxGLContext;
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 // Support for Retina OpenGL on Mac OS
 #define ENABLE_RETINA_GL __APPLE__
@@ -453,11 +448,6 @@ private:
 #endif // !ENABLE_GCODE_VIEWER
     WarningTexture m_warning_texture;
     wxTimer m_timer;
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-    Bed3D& m_bed;
-    Camera& m_camera;
-    GLToolbar& m_view_toolbar;
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
     LayersEditing m_layers_editing;
     Shader m_shader;
     Mouse m_mouse;
@@ -532,16 +522,10 @@ private:
 #endif // ENABLE_SLOPE_RENDERING
 
 public:
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     explicit GLCanvas3D(wxGLCanvas* canvas);
-#else
-    GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar);
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     ~GLCanvas3D();
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     bool is_initialized() const { return m_initialized; }
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     void set_context(wxGLContext* context) { m_context = context; }
 
@@ -593,13 +577,7 @@ public:
 
     void set_color_by(const std::string& value);
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     void refresh_camera_scene_box();
-#else
-    void refresh_camera_scene_box() { m_camera.set_scene_box(scene_bounding_box()); }
-    const Camera& get_camera() const { return m_camera; }
-    Camera& get_camera() { return m_camera; }
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     const Shader& get_shader() const { return m_shader; }
 
     BoundingBoxf3 volumes_bounding_box() const;
@@ -718,10 +696,6 @@ public:
     void handle_layers_data_focus_event(const t_layer_height_range range, const EditorType type);
 
     void update_ui_from_settings();
-
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-    float get_view_toolbar_height() const { return m_view_toolbar.get_height(); }
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 
     int get_move_volume_id() const { return m_mouse.drag.move_volume_idx; }
     int get_first_hover_volume_idx() const { return m_hover_volume_idxs.empty() ? -1 : m_hover_volume_idxs.front(); }
