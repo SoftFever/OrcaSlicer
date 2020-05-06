@@ -100,8 +100,7 @@ void GCodeViewer::IBuffer::reset()
     }
 
     // release cpu memory
-    data = std::vector<unsigned int>();
-    data_size = 0;
+    indices_count = 0;
     paths = std::vector<Path>();
     render_paths = std::vector<RenderPath>();
 }
@@ -116,9 +115,9 @@ bool GCodeViewer::IBuffer::init_shader(const std::string& vertex_shader_src, con
     return true;
 }
 
-void GCodeViewer::IBuffer::add_path(const GCodeProcessor::MoveVertex& move, unsigned int v_id)
+void GCodeViewer::IBuffer::add_path(const GCodeProcessor::MoveVertex& move, unsigned int i_id, unsigned int s_id)
 {
-    Path::Endpoint endpoint = { static_cast<unsigned int>(data.size()), v_id, move.position };
+    Path::Endpoint endpoint = { i_id, s_id, move.position };
     paths.push_back({ move.type, move.extrusion_role, endpoint, endpoint, move.delta_extruder, move.height, move.width, move.feedrate, move.fan_speed, move.volumetric_rate(), move.extruder_id, move.cp_color_id });
 }
 
@@ -143,6 +142,21 @@ GCodeViewer::Color GCodeViewer::Extrusions::Range::get_color_at(float value) con
         ret[i] = lerp(Range_Colors[color_low_idx][i], Range_Colors[color_high_idx][i], local_t);
     }
     return ret;
+}
+
+void GCodeViewer::SequentialView::Marker::init()
+{
+    if (m_initialized)
+        return;
+
+}
+
+void GCodeViewer::SequentialView::Marker::render() const
+{
+    if (!m_initialized)
+        return;
+
+
 }
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors{ {
@@ -280,9 +294,11 @@ void GCodeViewer::render() const
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_toolpaths();
+    if (m_sequential_view.marker.visible)
+        m_sequential_view.marker.render();
     render_shells();
     render_legend();
-    render_sequential_dlg();
+    render_sequential_bar();
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -403,10 +419,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     glsafe(::glBufferData(GL_ARRAY_BUFFER, vertices_data.size() * sizeof(float), vertices_data.data(), GL_STATIC_DRAW));
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 
-    // vertex data -> free ram
+    // vertex data -> no more needed, free ram
     vertices_data = std::vector<float>();
 
     // indices data -> extract from result
+    std::vector<std::vector<unsigned int>> indices(m_buffers.size());
     for (size_t i = 0; i < m_vertices.vertices_count; ++i)
     {
         // skip first vertex
@@ -416,7 +433,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         const GCodeProcessor::MoveVertex& prev = gcode_result.moves[i - 1];
         const GCodeProcessor::MoveVertex& curr = gcode_result.moves[i];
 
-        IBuffer& buffer = m_buffers[buffer_id(curr.type)];
+        unsigned char id = buffer_id(curr.type);
+        IBuffer& buffer = m_buffers[id];
+        std::vector<unsigned int>& buffer_indices = indices[id];
 
         switch (curr.type)
         {
@@ -427,23 +446,23 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         case GCodeProcessor::EMoveType::Retract:
         case GCodeProcessor::EMoveType::Unretract:
         {
-            buffer.add_path(curr, static_cast<unsigned int>(i));
-            buffer.data.push_back(static_cast<unsigned int>(i));
+            buffer.add_path(curr, static_cast<unsigned int>(buffer_indices.size()), static_cast<unsigned int>(i));
+            buffer_indices.push_back(static_cast<unsigned int>(i));
             break;
         }
         case GCodeProcessor::EMoveType::Extrude:
         case GCodeProcessor::EMoveType::Travel:
         {
             if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
-                buffer.add_path(curr, static_cast<unsigned int>(i));
+                buffer.add_path(curr, static_cast<unsigned int>(buffer_indices.size()), static_cast<unsigned int>(i));
                 Path& last_path = buffer.paths.back();
                 last_path.first.position = prev.position;
                 last_path.first.s_id = static_cast<unsigned int>(i - 1);
-                buffer.data.push_back(static_cast<unsigned int>(i - 1));
+                buffer_indices.push_back(static_cast<unsigned int>(i - 1));
             }
             
-            buffer.paths.back().last = { static_cast<unsigned int>(buffer.data.size()), static_cast<unsigned int>(i), curr.position };
-            buffer.data.push_back(static_cast<unsigned int>(i));
+            buffer.paths.back().last = { static_cast<unsigned int>(buffer_indices.size()), static_cast<unsigned int>(i), curr.position };
+            buffer_indices.push_back(static_cast<unsigned int>(i));
             break;
         }
         default:
@@ -461,22 +480,21 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     // indices data -> send data to gpu
-    for (IBuffer& buffer : m_buffers)
+    for (size_t i = 0; i < m_buffers.size(); ++i)
     {
-        buffer.data_size = buffer.data.size();
+        IBuffer& buffer = m_buffers[i];
+        std::vector<unsigned int>& buffer_indices = indices[i];
+        buffer.indices_count = buffer_indices.size();
 #if ENABLE_GCODE_VIEWER_STATISTICS
-        m_statistics.indices_size += SLIC3R_STDVEC_MEMSIZE(buffer.data, unsigned int);
-        m_statistics.indices_gpu_size += buffer.data_size * sizeof(unsigned int);
+        m_statistics.indices_size += SLIC3R_STDVEC_MEMSIZE(buffer_indices, unsigned int);
+        m_statistics.indices_gpu_size += buffer.indices_count * sizeof(unsigned int);
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
-        if (buffer.data_size > 0) {
+        if (buffer.indices_count > 0) {
             glsafe(::glGenBuffers(1, &buffer.ibo_id));
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.ibo_id));
-            glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer.data_size * sizeof(unsigned int), buffer.data.data(), GL_STATIC_DRAW));
+            glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer.indices_count * sizeof(unsigned int), buffer_indices.data(), GL_STATIC_DRAW));
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-
-            // indices data -> free ram
-            buffer.data = std::vector<unsigned int>();
         }
     }
 
@@ -641,6 +659,10 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current) const
 
     // update current sequential position
     m_sequential_view.current = keep_sequential_current ? std::clamp(m_sequential_view.current, m_sequential_view.first, m_sequential_view.last) : m_sequential_view.last;
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vertices.vbo_id));
+    size_t v_size = VBuffer::vertex_size_bytes();
+    glsafe(::glGetBufferSubData(GL_ARRAY_BUFFER, static_cast<GLintptr>(m_sequential_view.current * v_size), static_cast<GLsizeiptr>(v_size), static_cast<void*>(m_sequential_view.current_position.data())));
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 
     // second pass: filter paths by sequential data
     for (auto&& [buffer, id] : paths) {
@@ -1097,7 +1119,7 @@ void GCodeViewer::render_legend() const
     ImGui::PopStyleVar();
 }
 
-void GCodeViewer::render_sequential_dlg() const
+void GCodeViewer::render_sequential_bar() const
 {
     static const float MARGIN = 125.0f;
     static const float BUTTON_W = 50.0f;
@@ -1180,6 +1202,9 @@ void GCodeViewer::render_sequential_dlg() const
     ImGui::PopItemWidth();
     ImGui::SameLine();
     imgui.text(std::to_string(i_max));
+
+    ImGui::Separator();
+    ImGui::Checkbox(I18N::translate_utf8(L("Show marker")).c_str(), &m_sequential_view.marker.visible);
 
     imgui.end();
     ImGui::PopStyleVar();

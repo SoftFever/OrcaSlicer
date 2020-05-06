@@ -74,18 +74,17 @@ class GCodeViewer
     {
         unsigned int ibo_id{ 0 };
         Shader shader;
-        std::vector<unsigned int> data;
-        size_t data_size{ 0 };
+        size_t indices_count{ 0 };
         std::vector<Path> paths;
         std::vector<RenderPath> render_paths;
         bool visible{ false };
 
         void reset();
         bool init_shader(const std::string& vertex_shader_src, const std::string& fragment_shader_src);
-        void add_path(const GCodeProcessor::MoveVertex& move, unsigned int s_id);
+        void add_path(const GCodeProcessor::MoveVertex& move, unsigned int i_id, unsigned int s_id);
     };
 
-
+    // helper to render shells
     struct Shells
     {
         GLVolumeCollection volumes;
@@ -148,9 +147,26 @@ class GCodeViewer
 
     struct SequentialView
     {
+        struct Marker
+        {
+        private:
+            bool m_initialized{ false };
+
+        public:
+            unsigned int vbo_id{ 0 };
+            unsigned int ibo_id{ 0 };
+            bool visible{ false };
+            Shader shader;
+
+            void init();
+            void render() const;
+        };
+
         unsigned int first{ 0 };
         unsigned int last{ 0 };
         unsigned int current{ 0 };
+        Vec3f current_position{ Vec3f::Zero() };
+        Marker marker;
     };
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -237,6 +253,7 @@ public:
 
     bool init() {
         set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Extrude, true);
+        m_sequential_view.marker.init();
         return init_shaders();
     }
 
@@ -285,7 +302,7 @@ private:
     void render_toolpaths() const;
     void render_shells() const;
     void render_legend() const;
-    void render_sequential_dlg() const;
+    void render_sequential_bar() const;
 #if ENABLE_GCODE_VIEWER_STATISTICS
     void render_statistics() const;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
