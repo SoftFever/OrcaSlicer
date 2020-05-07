@@ -1267,7 +1267,12 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
         }
         // Show/Activate Settings Dialog
         if (m_settings_dialog->IsShown())
+#ifdef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList
             m_settings_dialog->Hide();
+#else
+            m_settings_dialog->SetFocus();
+        else
+#endif
         m_settings_dialog->Show();
     }
     else if (m_layout == slNew) {

@@ -627,8 +627,9 @@ static void process_key_down(ImGuiKey imgui_key, std::function<void()> f)
 }
 
 void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, const char** label, const char** tooltip), char* search_str,
-                               Search::OptionViewParameters& view_params, int& selected, bool& edited, int& mouse_wheel)
+                               Search::OptionViewParameters& view_params, int& selected, bool& edited, int& mouse_wheel, bool is_localized)
 {
+    int& hovered_id = view_params.hovered_id;
     // ImGui::ListBoxHeader("", size);
     {   
         // rewrote part of function to add a TextInput instead of label Text
@@ -668,7 +669,7 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
         ImGui::InputTextEx("", NULL, search_str, 20, search_size, ImGuiInputTextFlags_AutoSelectAll, NULL, NULL);
         edited = ImGui::IsItemEdited();
         if (edited)
-            view_params.hovered_id = -1;
+            hovered_id = 0;
 
         process_key_down(ImGuiKey_Escape, [&selected, search_str, str]() {
             // use 9999 to mark selection as a Esc key
@@ -684,7 +685,6 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
     const char* item_text;
     const char* tooltip;
     int mouse_hovered = -1;
-    int& hovered_id = view_params.hovered_id;
 
     while (items_getter(i, &item_text, &tooltip))
     {
@@ -692,7 +692,7 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
 
         if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("%s", /*item_text*/tooltip);
-            view_params.hovered_id = -1;
+                hovered_id = -1;
             mouse_hovered = i;
         }
 
@@ -700,8 +700,6 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
             selected = i;
         i++;
     }
-
-    scroll_y(mouse_hovered);
 
     // Process mouse wheel
     if (mouse_hovered > 0)
@@ -712,7 +710,7 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
         if (mouse_hovered > 0)
             scroll_up();
         else {
-            if (hovered_id > 0 && hovered_id != size_t(-1))
+            if (hovered_id > 0)
                 --hovered_id;
             scroll_y(hovered_id);
         }
@@ -722,9 +720,9 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
         if (mouse_hovered > 0)
             scroll_down();
         else {
-            if (hovered_id == size_t(-1))
+            if (hovered_id < 0)
                 hovered_id = 0;
-            else if (hovered_id < size_t(i - 1))
+            else if (hovered_id < i - 1)
                 ++hovered_id;
             scroll_y(hovered_id);
         }
@@ -750,7 +748,8 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
     text(_L("Use for search")+":");
     check_box(_L("Category"),   view_params.category);
     check_box(_L("Group"),      view_params.group);
-    check_box(_L("Search in English"), view_params.english);
+    if (is_localized)
+        check_box(_L("Search in English"), view_params.english);
 }
 
 void ImGuiWrapper::disabled_begin(bool disabled)

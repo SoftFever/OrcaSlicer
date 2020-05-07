@@ -70,7 +70,7 @@ struct OptionViewParameters
     bool group      {true };
     bool english    {false};
 
-    int  hovered_id {-1};
+    int  hovered_id {0};
 };
 
 class OptionsSearcher

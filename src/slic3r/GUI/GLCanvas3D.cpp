@@ -3567,7 +3567,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     else if (evt.Leaving())
     {
         _deactivate_undo_redo_toolbar_items();
-        _deactivate_search_toolbar_item();
 
         // to remove hover on objects when the mouse goes out of this canvas
         m_mouse.position = Vec2d(-1.0, -1.0);
@@ -4386,7 +4385,6 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
 
     int selected = -1;
     bool edited = false;
-    bool check_changed = false;
     float em = static_cast<float>(wxGetApp().em_unit());
 #if ENABLE_RETINA_GL
 	em *= m_retina_helper->get_scale_factor();
@@ -4400,7 +4398,7 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
 
     imgui->search_list(ImVec2(45 * em, 30 * em), &search_string_getter, s, 
                        sidebar.get_searcher().view_params,
-                       selected, edited, m_mouse_wheel);
+                       selected, edited, m_mouse_wheel, wxGetApp().is_localized());
 
     search_line = s;
     delete [] s;
@@ -4410,11 +4408,12 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
     if (edited)
         sidebar.search();
 
-    if (selected != size_t(-1)) {
+    if (selected >= 0) {
         // selected == 9999 means that Esc kye was pressed
-        if (selected != 9999)
+        if (selected == 9999)
+            action_taken = true;
+        else
             sidebar.jump_to_option(selected);
-        action_taken = true;
     }
 
     imgui->end();
