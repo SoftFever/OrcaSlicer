@@ -502,6 +502,7 @@ private:
     Labels m_labels;
 #if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     mutable Tooltip m_tooltip;
+    mutable bool m_tooltip_enabled{ true };
 #endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 #if ENABLE_SLOPE_RENDERING
     Slope m_slope;
@@ -633,6 +634,9 @@ public:
     void on_timer(wxTimerEvent& evt);
     void on_mouse(wxMouseEvent& evt);
     void on_paint(wxPaintEvent& evt);
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+    void on_set_focus(wxFocusEvent& evt);
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
     Size get_canvas_size() const;
     Vec2d get_local_mouse_position() const;
