@@ -2134,7 +2134,8 @@ void GLCanvas3D::render()
 
     set_tooltip(tooltip);
 
-    m_tooltip.render(m_mouse.position, *this);
+    if (m_tooltip_enabled)
+        m_tooltip.render(m_mouse.position, *this);
 #endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
     wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog(*this);
@@ -2894,6 +2895,9 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_MIDDLE_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_PAINT, &GLCanvas3D::on_paint, this);
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+        m_canvas->Bind(wxEVT_SET_FOCUS, &GLCanvas3D::on_set_focus, this);
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     }
 }
 
@@ -2921,6 +2925,9 @@ void GLCanvas3D::unbind_event_handlers()
         m_canvas->Unbind(wxEVT_MIDDLE_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_PAINT, &GLCanvas3D::on_paint, this);
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+        m_canvas->Unbind(wxEVT_SET_FOCUS, &GLCanvas3D::on_set_focus, this);
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     }
 }
 
@@ -3649,12 +3656,18 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (top_level_wnd && top_level_wnd->IsActive())
                 m_canvas->SetFocus();
             m_mouse.position = pos.cast<double>();
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+            m_tooltip_enabled = false;
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
             // 1) forces a frame render to ensure that m_hover_volume_idxs is updated even when the user right clicks while
             // the context menu is shown, ensuring it to disappear if the mouse is outside any volume and to
             // change the volume hover state if any is under the mouse 
             // 2) when switching between 3d view and preview the size of the canvas changes if the side panels are visible,
             // so forces a resize to avoid multiple renders with different sizes (seen as flickering)
             _refresh_if_shown_on_screen();
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+            m_tooltip_enabled = true;
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
         }
         m_mouse.set_start_position_2D_as_invalid();
 //#endif
@@ -3971,6 +3984,15 @@ void GLCanvas3D::on_paint(wxPaintEvent& evt)
         // Call render directly, so it gets initialized immediately, not from On Idle handler.
         this->render();
 }
+
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+void GLCanvas3D::on_set_focus(wxFocusEvent& evt)
+{
+    m_tooltip_enabled = false;
+    _refresh_if_shown_on_screen();
+    m_tooltip_enabled = true;
+}
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
 Size GLCanvas3D::get_canvas_size() const
 {

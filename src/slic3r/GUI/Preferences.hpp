@@ -23,9 +23,12 @@ class PreferencesDialog : public DPIDialog
 	wxSizer*                            m_icon_size_sizer;
 	wxRadioBox*							m_layout_mode_box;
     bool                                isOSX {false};
+	bool								m_settings_layout_changed {false};
 public:
 	PreferencesDialog(wxWindow* parent);
 	~PreferencesDialog() {}
+
+	bool settings_layout_changed() { return m_settings_layout_changed; }
 
 	void	build();
 	void	accept();
