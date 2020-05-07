@@ -25,7 +25,7 @@ namespace Slic3r {
 namespace GUI {
 
 
-static const char* URL_CHANGELOG = "http://files.prusa3d.com/?latest=slicer-stable&lng=%1%";
+static const char* URL_CHANGELOG = "https://files.prusa3d.com/?latest=slicer-stable&lng=%1%";
 static const char* URL_DOWNLOAD = "https://www.prusa3d.com/downloads&lng=%1%";
 static const char* URL_DEV = "https://github.com/prusa3d/PrusaSlicer/releases/tag/version_%1%";
 
