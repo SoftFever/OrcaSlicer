@@ -1,3 +1,6 @@
+#if ENABLE_GCODE_VIEWER
+#include "libslic3r/libslic3r.h"
+#endif // ENABLE_GCODE_VIEWER
 #include "wxExtensions.hpp"
 #if ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode.hpp"
@@ -1950,7 +1953,7 @@ std::string TickCodeInfo::get_color_for_tick(TickCode tick, const std::string& c
     if (mode == t_mode::SingleExtruder && code == ColorChangeCode && m_use_default_colors)
     {
 #if ENABLE_GCODE_VIEWER
-        const std::vector<std::string>& colors = Slic3r::ColorPrintColors::get();
+        const std::vector<std::string>& colors = ColorPrintColors::get();
 #else
         const std::vector<std::string>& colors = GCodePreviewData::ColorPrintColors();
 #endif // ENABLE_GCODE_VIEWER

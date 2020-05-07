@@ -26,7 +26,6 @@
                 croak("%s\n", e.what());
             }
         %};
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 //    void do_export_w_preview(Print *print, const char *path, GCodePreviewData *preview_data)
 //        %code%{
 //            try {
@@ -35,7 +34,6 @@
 //                croak("%s\n", e.what());
 //            }
 //        %};
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     Ref<Vec2d> origin()
         %code{% RETVAL = &(THIS->origin()); %};
@@ -62,7 +60,6 @@
         %code{% RETVAL = const_cast<StaticPrintConfig*>(static_cast<const StaticPrintConfig*>(static_cast<const PrintObjectConfig*>(&THIS->config()))); %};
 };
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 //%name{Slic3r::GCode::PreviewData} class GCodePreviewData {
 //    GCodePreviewData();
 //    ~GCodePreviewData();
@@ -86,4 +83,3 @@
 //        %code%{ THIS->shell.is_visible = visible; %};
 //    void set_extrusion_paths_colors(std::vector<std::string> colors);
 //};
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
