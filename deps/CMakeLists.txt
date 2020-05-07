@@ -152,8 +152,10 @@ include(MPFR/MPFR.cmake)
 include(CGAL/CGAL.cmake)
 include(wxWidgets/wxWidgets.cmake)
 
-add_dependencies(dep_blosc ${ZLIB_PKG})
-add_dependencies(dep_openexr ${ZLIB_PKG})
+if (ZLIB_PKG)
+    add_dependencies(dep_blosc ${ZLIB_PKG})
+    add_dependencies(dep_openexr ${ZLIB_PKG})
+endif ()
 
 if (MSVC)
 
