@@ -476,6 +476,11 @@ bool MainFrame::can_slice() const
 
 bool MainFrame::can_change_view() const
 {
+    if (m_layout == slNew)
+        return m_plater->IsShown();
+    if (m_layout == slDlg)
+        return true;
+    // slOld layout mode
     int page_id = m_tabpanel->GetSelection();
     return page_id != wxNOT_FOUND && dynamic_cast<const Slic3r::GUI::Plater*>(m_tabpanel->GetPage((size_t)page_id)) != nullptr;
 }
