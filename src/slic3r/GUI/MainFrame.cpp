@@ -1267,9 +1267,8 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
         }
         // Show/Activate Settings Dialog
         if (m_settings_dialog->IsShown())
-            m_settings_dialog->SetFocus();
-        else
-            m_settings_dialog->Show();
+            m_settings_dialog->Hide();
+        m_settings_dialog->Show();
     }
     else if (m_layout == slNew) {
         m_plater->Show(tab == 0);

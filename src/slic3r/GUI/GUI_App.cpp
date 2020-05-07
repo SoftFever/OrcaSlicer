@@ -591,11 +591,10 @@ float GUI_App::toolbar_icon_scale(const bool is_limited/* = false*/) const
     return 0.01f * int_val * icon_sc;
 }
 
-void GUI_App::recreate_GUI()
+void GUI_App::recreate_GUI(const wxString& msg_name)
 {
     mainframe->shutdown();
 
-    const auto msg_name = _(L("Changing of an application language")) + dots;
     wxProgressDialog dlg(msg_name, msg_name);
     dlg.Pulse();
     dlg.Update(10, _(L("Recreating")) + dots);
@@ -720,7 +719,7 @@ void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files) const
 bool GUI_App::switch_language()
 {
     if (select_language()) {
-        recreate_GUI();
+        recreate_GUI(_L("Changing of an application language") + dots);
         return true;
     } else {
         return false;
@@ -1024,8 +1023,17 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
             break;
         case ConfigMenuPreferences:
         {
-            PreferencesDialog dlg(mainframe);
-            dlg.ShowModal();
+            bool recreate_app = false;
+            {
+                // the dialog needs to be destroyed before the call to recreate_GUI()
+                // or sometimes the application crashes into wxDialogBase() destructor
+                // so we put it into an inner scope
+                PreferencesDialog dlg(mainframe);
+                dlg.ShowModal();
+                recreate_app = dlg.settings_layout_changed();
+            }
+            if (recreate_app)
+                recreate_GUI(_L("Changing of the settings layout") + dots);
             break;
         }
         case ConfigMenuLanguage:
