@@ -4,7 +4,9 @@
 #include "libslic3r/CustomGCode.hpp"
 #include "wxExtensions.hpp"
 
+#if !ENABLE_GCODE_VIEWER
 #include <wx/wx.h>
+#endif // !ENABLE_GCODE_VIEWER
 #include <wx/window.h>
 #include <wx/control.h>
 #include <wx/dc.h>
