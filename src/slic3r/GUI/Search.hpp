@@ -66,9 +66,9 @@ struct FoundOption {
 
 struct OptionViewParameters
 {
-    bool type       {false};
     bool category   {false};
     bool group      {true };
+    bool english    {false};
 
     int  hovered_id {-1};
 };
@@ -77,6 +77,7 @@ class OptionsSearcher
 {
     std::string                             search_line;
     std::map<std::string, GroupAndCategory> groups_and_categories;
+    PrinterTechnology                       printer_technology;
 
     std::vector<Option>                     options {};
     std::vector<FoundOption>                found {};
@@ -120,6 +121,8 @@ public:
     const std::vector<FoundOption>& found_options() { return found; }
     const GroupAndCategory&         get_group_and_category (const std::string& opt_key) { return groups_and_categories[opt_key]; }
     std::string& search_string() { return search_line; }
+
+    void set_printer_technology(PrinterTechnology pt) { printer_technology = pt; }
 };
 
 
@@ -167,9 +170,9 @@ class SearchDialog : public GUI::DPIDialog
 
     wxTextCtrl*     search_line    { nullptr };
     wxListBox*      search_list    { nullptr };
-    wxCheckBox*     check_type     { nullptr };
     wxCheckBox*     check_category { nullptr };
     wxCheckBox*     check_group    { nullptr };
+    wxCheckBox*     check_english  { nullptr };
 
     OptionsSearcher* searcher;
 

@@ -7,6 +7,8 @@
 #include <wx/dialog.h>
 #include <map>
 
+class wxRadioBox;
+
 namespace Slic3r {
 namespace GUI {
 
@@ -19,6 +21,7 @@ class PreferencesDialog : public DPIDialog
 	std::shared_ptr<ConfigOptionsGroup>	m_optgroup_camera;
 	std::shared_ptr<ConfigOptionsGroup>	m_optgroup_gui;
 	wxSizer*                            m_icon_size_sizer;
+	wxRadioBox*							m_layout_mode_box;
     bool                                isOSX {false};
 public:
 	PreferencesDialog(wxWindow* parent);
@@ -31,6 +34,7 @@ protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void layout();
     void create_icon_size_slider();
+    void create_settings_mode_widget();
 };
 
 } // GUI

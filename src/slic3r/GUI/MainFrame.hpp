@@ -43,6 +43,23 @@ struct PresetTab {
     PrinterTechnology technology;
 };
 
+// ----------------------------------------------------------------------------
+// SettingsDialog
+// ----------------------------------------------------------------------------
+
+class SettingsDialog : public DPIDialog
+{
+    wxNotebook* m_tabpanel { nullptr };
+    MainFrame*  m_main_frame {nullptr };
+public:
+    SettingsDialog(MainFrame* mainframe);
+    ~SettingsDialog() {}
+    wxNotebook* get_tabpanel() { return m_tabpanel; }
+
+protected:
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+};
+
 class MainFrame : public DPIFrame
 {
     bool        m_loaded {false};
@@ -56,6 +73,8 @@ class MainFrame : public DPIFrame
     wxMenuItem* m_menu_item_reslice_now { nullptr };
 
     PrintHostQueueDialog *m_printhost_queue_dlg;
+
+    size_t      m_last_selected_tab;
 
     std::string     get_base_name(const wxString &full_name, const char *extension = nullptr) const;
     std::string     get_dir_name(const wxString &full_name) const;
@@ -94,6 +113,12 @@ class MainFrame : public DPIFrame
 
     wxFileHistory m_recent_projects;
 
+    enum SettingsLayout {
+        slOld = 0,
+        slNew,
+        slDlg,
+    }               m_layout;
+
 protected:
     virtual void on_dpi_changed(const wxRect &suggested_rect);
 
@@ -109,7 +134,6 @@ public:
     void        update_title();
 
     void        init_tabpanel();
-    void        switch_to(bool plater);
     void        create_preset_tabs();
     void        add_created_tab(Tab* panel);
     void        init_menubar();
@@ -130,7 +154,9 @@ public:
     void        export_configbundle();
     void        load_configbundle(wxString file = wxEmptyString);
     void        load_config(const DynamicPrintConfig& config);
-    void        select_tab(size_t tab);
+    // Select tab in m_tabpanel
+    // When tab == -1, will be selected last selected tab
+    void        select_tab(size_t tab = size_t(-1));
     void        select_view(const std::string& direction);
     // Propagate changed configuration from the Tab to the Plater and save changes to the AppConfig
     void        on_config_changed(DynamicPrintConfig* cfg) const ;
@@ -141,6 +167,7 @@ public:
 
     Plater*             m_plater { nullptr };
     wxNotebook*         m_tabpanel { nullptr };
+    SettingsDialog*     m_settings_dialog { nullptr };
     wxProgressDialog*   m_progress_dialog { nullptr };
     std::shared_ptr<ProgressStatusBar>  m_statusbar;
 

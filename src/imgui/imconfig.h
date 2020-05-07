@@ -107,6 +107,13 @@ namespace ImGui
     const char ColorMarkerStart = 0x2; // STX
     const char ColorMarkerEnd   = 0x3; // ETX
 
+    // Special ASCII characters are used here as a ikons markers 
+    const char PrintIconMarker      = 0x4; 
+    const char PrinterIconMarker    = 0x5; 
+    const char PrinterSlaIconMarker = 0x6; 
+    const char FilamentIconMarker   = 0x7; 
+    const char MaterialIconMarker   = 0x8;
+
 //    void MyFunction(const char* name, const MyMatrix44& v);
 
 }
