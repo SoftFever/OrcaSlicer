@@ -1628,7 +1628,7 @@ void Print::process()
 // write error into the G-code, cannot execute post-processing scripts).
 // It is up to the caller to show an error message.
 #if ENABLE_GCODE_VIEWER
-std::string Print::export_gcode(const std::string& path_template, GCodePreviewData* preview_data, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb)
+std::string Print::export_gcode(const std::string& path_template, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb)
 #else
 std::string Print::export_gcode(const std::string& path_template, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb)
 #endif // ENABLE_GCODE_VIEWER
@@ -1637,7 +1637,11 @@ std::string Print::export_gcode(const std::string& path_template, GCodePreviewDa
     // The following call may die if the output_filename_format template substitution fails.
     std::string path = this->output_filepath(path_template);
     std::string message;
+#if ENABLE_GCODE_VIEWER
+    if (!path.empty() && result == nullptr) {
+#else
     if (! path.empty() && preview_data == nullptr) {
+#endif // ENABLE_GCODE_VIEWER
         // Only show the path if preview_data is not set -> running from command line.
         message = L("Exporting G-code");
         message += " to ";
@@ -1649,7 +1653,7 @@ std::string Print::export_gcode(const std::string& path_template, GCodePreviewDa
     // The following line may die for multiple reasons.
     GCode gcode;
 #if ENABLE_GCODE_VIEWER
-    gcode.do_export(this, path.c_str(), preview_data, result, thumbnail_cb);
+    gcode.do_export(this, path.c_str(), result, thumbnail_cb);
 #else
     gcode.do_export(this, path.c_str(), preview_data, thumbnail_cb);
 #endif // ENABLE_GCODE_VIEWER

@@ -1,6 +1,8 @@
 #ifndef slic3r_GCode_PreviewData_hpp_
 #define slic3r_GCode_PreviewData_hpp_
 
+#if !ENABLE_GCODE_VIEWER
+
 #include "../libslic3r.h"
 #include "../ExtrusionEntity.hpp"
 #include "../Point.hpp"
@@ -390,5 +392,7 @@ public:
 };
 
 } // namespace Slic3r
+
+#endif // !ENABLE_GCODE_VIEWER
 
 #endif /* slic3r_GCode_PreviewData_hpp_ */

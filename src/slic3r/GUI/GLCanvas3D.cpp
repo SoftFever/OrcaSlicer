@@ -5,7 +5,9 @@
 #include "polypartition.h"
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/PrintConfig.hpp"
+#if !ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/PreviewData.hpp"
+#endif // !ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/ExtrusionEntity.hpp"
@@ -55,10 +57,6 @@
 
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-
-#if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
-#include <boost/nowide/fstream.hpp>
-#endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
 
 #include <iostream>
 #include <float.h>
@@ -2747,22 +2745,8 @@ static void load_gcode_retractions(const GCodePreviewData::Retraction& retractio
 #if ENABLE_GCODE_VIEWER
 void GLCanvas3D::load_gcode_preview(const GCodeProcessor::Result& gcode_result)
 {
-#if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
-    static unsigned int last_result_id = 0;
-    if (last_result_id != gcode_result.id)
-    {
-        last_result_id = gcode_result.id;
-        boost::filesystem::path path("d:/processor.output");
-        boost::nowide::ofstream out;
-        out.open(path.string());
-        for (const GCodeProcessor::MoveVertex& v : gcode_result.moves)
-        {
-            out << v.to_string() << "\n";
-        }
-        out.close();
-    }
-#endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
     m_gcode_viewer.load(gcode_result, *this->fff_print(), m_initialized);
+    _show_warning_texture_if_needed(WarningTexture::ToolpathOutside);
 }
 
 void GLCanvas3D::refresh_gcode_preview(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors)
@@ -2771,9 +2755,7 @@ void GLCanvas3D::refresh_gcode_preview(const GCodeProcessor::Result& gcode_resul
     set_as_dirty();
     request_extra_frame();
 }
-#endif // ENABLE_GCODE_VIEWER
-
-#if !ENABLE_GCODE_VIEWER
+#else
 void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors)
 {
     const Print *print = this->fff_print();
@@ -2842,7 +2824,7 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
             _generate_legend_texture(preview_data, tool_colors);
     }
 }
-#endif // !ENABLE_GCODE_VIEWER
+#endif // ENABLE_GCODE_VIEWER
 
 void GLCanvas3D::load_sla_preview()
 {
@@ -3144,7 +3126,24 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         }
 #endif // ENABLE_RENDER_PICKING_PASS
         case 'Z':
+#if ENABLE_GCODE_VIEWER
+        case 'z':
+        {
+            if (!m_selection.is_empty())
+                zoom_to_selection();
+            else
+            {
+                if (!m_volumes.empty())
+                    zoom_to_volumes();
+                else
+                    _zoom_to_box(m_gcode_viewer.get_bounding_box());
+            }
+
+            break;
+        }
+#else
         case 'z': { m_selection.is_empty() ? zoom_to_volumes() : zoom_to_selection(); break; }
+#endif // ENABLE_GCODE_VIEWER
         default:  { evt.Skip(); break; }
         }
     }
@@ -5467,8 +5466,39 @@ void GLCanvas3D::_rectangular_selection_picking_pass() const
     _update_volumes_hover_state();
 }
 
+#if ENABLE_GCODE_VIEWER
+static BoundingBoxf3 print_volume(const DynamicPrintConfig& config)
+{
+    // tolerance to avoid false detection at bed edges
+    const double tolerance_x = 0.05;
+    const double tolerance_y = 0.05;
+
+    BoundingBoxf3 ret;
+    const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(config.option("bed_shape"));
+    if (opt != nullptr)
+    {
+        BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
+        ret = BoundingBoxf3(Vec3d(unscale<double>(bed_box_2D.min(0)) - tolerance_x, unscale<double>(bed_box_2D.min(1)) - tolerance_y, 0.0), Vec3d(unscale<double>(bed_box_2D.max(0)) + tolerance_x, unscale<double>(bed_box_2D.max(1)) + tolerance_y, config.opt_float("max_print_height")));
+        // Allow the objects to protrude below the print bed
+        ret.min(2) = -1e10;
+    }
+    return ret;
+}
+#endif // ENABLE_GCODE_VIEWER
+
 void GLCanvas3D::_render_background() const
 {
+#if ENABLE_GCODE_VIEWER
+    bool use_error_color = m_dynamic_background_enabled;
+    if (!m_volumes.empty())
+        use_error_color &= _is_any_volume_outside();
+    else
+    {
+        BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
+        use_error_color &= (test_volume.radius() > 0.0) ? !test_volume.contains(m_gcode_viewer.get_bounding_box()) : false;
+    }
+#endif // ENABLE_GCODE_VIEWER
+
     glsafe(::glPushMatrix());
     glsafe(::glLoadIdentity());
     glsafe(::glMatrixMode(GL_PROJECTION));
@@ -5479,7 +5509,11 @@ void GLCanvas3D::_render_background() const
     glsafe(::glDisable(GL_DEPTH_TEST));
 
     ::glBegin(GL_QUADS);
+#if ENABLE_GCODE_VIEWER
+    if (use_error_color)
+#else
     if (m_dynamic_background_enabled && _is_any_volume_outside())
+#endif // ENABLE_GCODE_VIEWER
         ::glColor3fv(ERROR_BG_DARK_COLOR);
     else
         ::glColor3fv(DEFAULT_BG_DARK_COLOR);
@@ -5487,8 +5521,12 @@ void GLCanvas3D::_render_background() const
     ::glVertex2f(-1.0f, -1.0f);
     ::glVertex2f(1.0f, -1.0f);
 
+#if ENABLE_GCODE_VIEWER
+    if (use_error_color)
+#else
     if (m_dynamic_background_enabled && _is_any_volume_outside())
-        ::glColor3fv(ERROR_BG_LIGHT_COLOR);
+#endif // ENABLE_GCODE_VIEWER
+::glColor3fv(ERROR_BG_LIGHT_COLOR);
     else
         ::glColor3fv(DEFAULT_BG_LIGHT_COLOR);
 
@@ -6991,6 +7029,7 @@ void GLCanvas3D::_load_sla_shells()
     update_volumes_colors_by_extruder();
 }
 
+#if !ENABLE_GCODE_VIEWER
 void GLCanvas3D::_update_gcode_volumes_visibility(const GCodePreviewData& preview_data)
 {
     unsigned int size = (unsigned int)m_gcode_preview_volume_index.first_volumes.size();
@@ -7048,9 +7087,13 @@ void GLCanvas3D::_update_gcode_volumes_visibility(const GCodePreviewData& previe
         }
     }
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 void GLCanvas3D::_update_toolpath_volumes_outside_state()
 {
+#if ENABLE_GCODE_VIEWER
+    BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
+#else
     // tolerance to avoid false detection at bed edges
     static const double tolerance_x = 0.05;
     static const double tolerance_y = 0.05;
@@ -7067,15 +7110,23 @@ void GLCanvas3D::_update_toolpath_volumes_outside_state()
             print_volume.min(2) = -1e10;
         }
     }
+#endif // ENABLE_GCODE_VIEWER
 
     for (GLVolume* volume : m_volumes.volumes)
     {
+#if ENABLE_GCODE_VIEWER
+        volume->is_outside = ((test_volume.radius() > 0.0) && volume->is_extrusion_path) ? !test_volume.contains(volume->bounding_box()) : false;
+#else
         volume->is_outside = ((print_volume.radius() > 0.0) && volume->is_extrusion_path) ? !print_volume.contains(volume->bounding_box()) : false;
+#endif // ENABLE_GCODE_VIEWER
     }
 }
 
 void GLCanvas3D::_update_sla_shells_outside_state()
 {
+#if ENABLE_GCODE_VIEWER
+    BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
+#else
     // tolerance to avoid false detection at bed edges
     static const double tolerance_x = 0.05;
     static const double tolerance_y = 0.05;
@@ -7092,17 +7143,34 @@ void GLCanvas3D::_update_sla_shells_outside_state()
             print_volume.min(2) = -1e10;
         }
     }
+#endif // ENABLE_GCODE_VIEWER
 
     for (GLVolume* volume : m_volumes.volumes)
     {
+#if ENABLE_GCODE_VIEWER
+        volume->is_outside = ((test_volume.radius() > 0.0) && volume->shader_outside_printer_detection_enabled) ? !test_volume.contains(volume->transformed_convex_hull_bounding_box()) : false;
+#else
         volume->is_outside = ((print_volume.radius() > 0.0) && volume->shader_outside_printer_detection_enabled) ? !print_volume.contains(volume->transformed_convex_hull_bounding_box()) : false;
+#endif // ENABLE_GCODE_VIEWER
     }
 }
 
 void GLCanvas3D::_show_warning_texture_if_needed(WarningTexture::Warning warning)
 {
     _set_current();
+#if ENABLE_GCODE_VIEWER
+    bool show = false;
+    if (!m_volumes.empty())
+        show = _is_any_volume_outside();
+    else
+    {
+        BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
+        show = (test_volume.radius() > 0.0) ? !test_volume.contains(m_gcode_viewer.get_bounding_box()) : false;
+    }
+    _set_warning_texture(warning, show);
+#else
     _set_warning_texture(warning, _is_any_volume_outside());
+#endif // ENABLE_GCODE_VIEWER
 }
 
 std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& colors)

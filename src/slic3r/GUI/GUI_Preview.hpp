@@ -124,8 +124,8 @@ class Preview : public wxPanel
 
 public:
 #if ENABLE_GCODE_VIEWER
-Preview(wxWindow * parent, Model * model, DynamicPrintConfig * config,
-    BackgroundSlicingProcess * process, GCodePreviewData * gcode_preview_data, GCodeProcessor::Result * gcode_result, std::function<void()> schedule_background_process = []() {});
+Preview(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process, 
+    GCodeProcessor::Result* gcode_result, std::function<void()> schedule_background_process = []() {});
 #else
 Preview(wxWindow* parent, Model* model, DynamicPrintConfig* config,
         BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process = []() {});

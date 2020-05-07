@@ -167,7 +167,7 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors{ {
     { 0.69f, 0.19f, 0.16f },   // erInternalInfill
     { 0.84f, 0.20f, 0.84f },   // erSolidInfill
     { 1.00f, 0.10f, 0.10f },   // erTopSolidInfill
-    { 0.00f, 1.00f, 1.00f },   // erIroning    
+    { 1.00f, 0.55f, 0.41f },   // erIroning    
     { 0.60f, 0.60f, 1.00f },   // erBridgeInfill
     { 1.00f, 1.00f, 1.00f },   // erGapFill
     { 0.52f, 0.48f, 0.13f },   // erSkirt
@@ -404,7 +404,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     std::vector<float> vertices_data(m_vertices.vertices_count * 3);
     for (size_t i = 0; i < m_vertices.vertices_count; ++i) {
         const GCodeProcessor::MoveVertex& move = gcode_result.moves[i];
-        m_bounding_box.merge(move.position.cast<double>());
+        if (move.type == GCodeProcessor::EMoveType::Extrude)
+            m_bounding_box.merge(move.position.cast<double>());
         ::memcpy(static_cast<void*>(&vertices_data[i * 3]), static_cast<const void*>(move.position.data()), 3 * sizeof(float));
     }
 

@@ -572,6 +572,10 @@ std::string WipeTowerIntegration::finalize(GCode &gcodegen)
     return gcode;
 }
 
+#if ENABLE_GCODE_VIEWER
+const std::vector<std::string> ColorPrintColors::Colors = { "#C0392B", "#E67E22", "#F1C40F", "#27AE60", "#1ABC9C", "#2980B9", "#9B59B6" };
+#endif // ENABLE_GCODE_VIEWER
+
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_writer.extruder()->id())
 
 // Collect pairs of object_layer + support_layer sorted by print_z.
@@ -699,7 +703,7 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
 }
 
 #if ENABLE_GCODE_VIEWER
-void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_data, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb)
+void GCode::do_export(Print* print, const char* path, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb)
 #else
 void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb)
 #endif // ENABLE_GCODE_VIEWER
@@ -724,7 +728,9 @@ void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_
     if (file == nullptr)
         throw std::runtime_error(std::string("G-code export to ") + path + " failed.\nCannot open the file for writing.\n");
 
+#if !ENABLE_GCODE_VIEWER
     m_enable_analyzer = preview_data != nullptr;
+#endif // !ENABLE_GCODE_VIEWER
 
     try {
         m_placeholder_parser_failed_templates.clear();
@@ -778,16 +784,14 @@ void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_
             m_silent_time_estimator.reset();
     }
 
+#if !ENABLE_GCODE_VIEWER
     // starts analyzer calculations
     if (m_enable_analyzer) {
-#if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
-        m_analyzer.close_debug_output_file();
-#endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
-
         BOOST_LOG_TRIVIAL(debug) << "Preparing G-code preview data" << log_memory_info();
         m_analyzer.calc_gcode_preview_data(*preview_data, [print]() { print->throw_if_canceled(); });
         m_analyzer.reset();
     }
+#endif // !ENABLE_GCODE_VIEWER
 
     if (rename_file(path_tmp, path))
         throw std::runtime_error(
@@ -877,7 +881,14 @@ namespace DoExport {
 	    }
 	}
 
-	static void init_gcode_analyzer(const PrintConfig &config, GCodeAnalyzer &analyzer)
+#if ENABLE_GCODE_VIEWER
+    static void init_gcode_processor(const PrintConfig& config, GCodeProcessor& processor)
+    {
+        processor.reset();
+        processor.apply_config(config);
+    }
+#else
+    static void init_gcode_analyzer(const PrintConfig &config, GCodeAnalyzer &analyzer)
 	{
 	    // resets analyzer
 	    analyzer.reset();
@@ -901,17 +912,6 @@ namespace DoExport {
 
 	    // tell analyzer about the gcode flavor
 	    analyzer.set_gcode_flavor(config.gcode_flavor);
-
-#if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
-        analyzer.open_debug_output_file();
-#endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
-    }
-
-#if ENABLE_GCODE_VIEWER
-    static void init_gcode_processor(const PrintConfig& config, GCodeProcessor& processor)
-    {
-        processor.reset();
-        processor.apply_config(config);
     }
 #endif // ENABLE_GCODE_VIEWER
 
@@ -1145,15 +1145,22 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
     DoExport::init_time_estimators(print.config(), 
     	// modifies the following:
     	m_normal_time_estimator, m_silent_time_estimator, m_silent_time_estimator_enabled);
-    DoExport::init_gcode_analyzer(print.config(), m_analyzer);
 #if ENABLE_GCODE_VIEWER
     DoExport::init_gcode_processor(print.config(), m_processor);
+#else
+    DoExport::init_gcode_analyzer(print.config(), m_analyzer);
 #endif // ENABLE_GCODE_VIEWER
 
     // resets analyzer's tracking data
+#if ENABLE_GCODE_VIEWER
+    m_last_mm3_per_mm = 0.0f;
+    m_last_width = 0.0f;
+    m_last_height = 0.0f;
+#else
     m_last_mm3_per_mm = GCodeAnalyzer::Default_mm3_per_mm;
     m_last_width = GCodeAnalyzer::Default_Width;
     m_last_height = GCodeAnalyzer::Default_Height;
+#endif // ENABLE_GCODE_VIEWER
 
     // How many times will be change_layer() called?
     // change_layer() in turn increments the progress bar status.
@@ -1333,13 +1340,13 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
     // Set extruder(s) temperature before and after start G-code.
     this->_print_first_layer_extruder_temperatures(file, print, start_gcode, initial_extruder_id, false);
 
-    if (m_enable_analyzer)
-        // adds tag for analyzer
-        _write_format(file, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erCustom);
-
 #if ENABLE_GCODE_VIEWER
     // adds tag for processor
     _write_format(file, ";%s%d\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), erCustom);
+#else
+    if (m_enable_analyzer)
+        // adds tag for analyzer
+        _write_format(file, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erCustom);
 #endif // ENABLE_GCODE_VIEWER
 
     // Write the custom start G-code
@@ -1491,13 +1498,13 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
     _write(file, this->retract());
     _write(file, m_writer.set_fan(false));
 
-    if (m_enable_analyzer)
-        // adds tag for analyzer
-        _write_format(file, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erCustom);
-
 #if ENABLE_GCODE_VIEWER
     // adds tag for processor
     _write_format(file, ";%s%d\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), erCustom);
+#else
+    if (m_enable_analyzer)
+        // adds tag for analyzer
+        _write_format(file, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erCustom);
 #endif // ENABLE_GCODE_VIEWER
 
     // Process filament-specific gcode in extruder order.
@@ -1821,11 +1828,12 @@ namespace ProcessLayer
 	        {
                 assert(m600_extruder_before_layer >= 0);
 		        // Color Change or Tool Change as Color Change.
-	            // add tag for analyzer
-	            gcode += "; " + GCodeAnalyzer::Color_Change_Tag + ",T" + std::to_string(m600_extruder_before_layer) + "\n";
 #if ENABLE_GCODE_VIEWER
                 // add tag for processor
                 gcode += "; " + GCodeProcessor::Color_Change_Tag + ",T" + std::to_string(m600_extruder_before_layer) + "\n";
+#else
+                // add tag for analyzer
+                gcode += "; " + GCodeAnalyzer::Color_Change_Tag + ",T" + std::to_string(m600_extruder_before_layer) + "\n";
 #endif // ENABLE_GCODE_VIEWER
                 // add tag for time estimator
 	            gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
@@ -1846,11 +1854,12 @@ namespace ProcessLayer
 	        {
 	            if (custom_code == PausePrintCode) // Pause print
 	            {
-	                // add tag for analyzer
-	                gcode += "; " + GCodeAnalyzer::Pause_Print_Tag + "\n";
 #if ENABLE_GCODE_VIEWER
                     // add tag for processor
                     gcode += "; " + GCodeProcessor::Pause_Print_Tag + "\n";
+#else
+                    // add tag for analyzer
+                    gcode += "; " + GCodeAnalyzer::Pause_Print_Tag + "\n";
 #endif // ENABLE_GCODE_VIEWER
                     //! FIXME_in_fw show message during print pause
 	                if (!pause_print_msg.empty())
@@ -1860,11 +1869,12 @@ namespace ProcessLayer
 	            }
 	            else // custom Gcode
 	            {
-	                // add tag for analyzer
-	                gcode += "; " + GCodeAnalyzer::Custom_Code_Tag + "\n";
 #if ENABLE_GCODE_VIEWER
                     // add tag for processor
                     gcode += "; " + GCodeProcessor::Custom_Code_Tag + "\n";
+#else
+                    // add tag for analyzer
+                    gcode += "; " + GCodeAnalyzer::Custom_Code_Tag + "\n";
 #endif // ENABLE_GCODE_VIEWER
                     // add tag for time estimator
 	                //gcode += "; " + GCodeTimeEstimator::Custom_Code_Tag + "\n";
@@ -2218,9 +2228,15 @@ void GCode::process_layer(
             m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back()) :
             this->set_extruder(extruder_id, print_z);
 
+#if ENABLE_GCODE_VIEWER
+        // let analyzer tag generator aware of a role type change
+        if (layer_tools.has_wipe_tower && m_wipe_tower)
+            m_last_processor_extrusion_role = erWipeTower;
+#else
         // let analyzer tag generator aware of a role type change
         if (m_enable_analyzer && layer_tools.has_wipe_tower && m_wipe_tower)
             m_last_analyzer_extrusion_role = erWipeTower;
+#endif // ENABLE_GCODE_VIEWER
 
         if (auto loops_it = skirt_loops_per_extruder.find(extruder_id); loops_it != skirt_loops_per_extruder.end()) {
             const std::pair<size_t, size_t> loops = loops_it->second;
@@ -2324,11 +2340,13 @@ void GCode::process_layer(
     if (m_cooling_buffer)
         gcode = m_cooling_buffer->process_layer(gcode, layer.id());
 
+#if !ENABLE_GCODE_VIEWER
     // add tag for analyzer
     if (gcode.find(GCodeAnalyzer::Pause_Print_Tag) != gcode.npos)
         gcode += "\n; " + GCodeAnalyzer::End_Pause_Print_Or_Custom_Code_Tag + "\n";
     else if (gcode.find(GCodeAnalyzer::Custom_Code_Tag) != gcode.npos)
         gcode += "\n; " + GCodeAnalyzer::End_Pause_Print_Or_Custom_Code_Tag + "\n";
+#endif // !ENABLE_GCODE_VIEWER
 
 #ifdef HAS_PRESSURE_EQUALIZER
     // Apply pressure equalization if enabled;
@@ -2342,9 +2360,11 @@ void GCode::process_layer(
     BOOST_LOG_TRIVIAL(trace) << "Exported layer " << layer.id() << " print_z " << print_z << 
         ", time estimator memory: " <<
             format_memsize_MB(m_normal_time_estimator.memory_used() + (m_silent_time_estimator_enabled ? m_silent_time_estimator.memory_used() : 0)) <<
-        ", analyzer memory: " <<
+#if !ENABLE_GCODE_VIEWER
+            ", analyzer memory: " <<
             format_memsize_MB(m_analyzer.memory_used()) <<
-        log_memory_info();
+#endif // !ENABLE_GCODE_VIEWER
+            log_memory_info();
 }
 
 void GCode::apply_print_config(const PrintConfig &print_config)
@@ -2984,8 +3004,12 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
 void GCode::_write(FILE* file, const char *what)
 {
     if (what != nullptr) {
+#if ENABLE_GCODE_VIEWER
+        const char* gcode = what;
+#else
         // apply analyzer, if enabled
         const char* gcode = m_enable_analyzer ? m_analyzer.process_gcode(what).c_str() : what;
+#endif // !ENABLE_GCODE_VIEWER
 
         // writes string to file
         fwrite(gcode, 1, ::strlen(gcode), file);
@@ -3132,31 +3156,43 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
 
     // adds analyzer tags and updates analyzer's tracking data
+#if !ENABLE_GCODE_VIEWER
     if (m_enable_analyzer)
     {
+#endif // !ENABLE_GCODE_VIEWER
         // PrusaMultiMaterial::Writer may generate GCodeAnalyzer::Height_Tag and GCodeAnalyzer::Width_Tag lines without updating m_last_height and m_last_width
         // so, if the last role was erWipeTower we force export of GCodeAnalyzer::Height_Tag and GCodeAnalyzer::Width_Tag lines
+#if ENABLE_GCODE_VIEWER
+        bool last_was_wipe_tower = (m_last_processor_extrusion_role == erWipeTower);
+#else
         bool last_was_wipe_tower = (m_last_analyzer_extrusion_role == erWipeTower);
+#endif // ENABLE_GCODE_VIEWER
         char buf[64];
 
+#if ENABLE_GCODE_VIEWER
+        if (path.role() != m_last_processor_extrusion_role)
+        {
+            m_last_processor_extrusion_role = path.role();
+            sprintf(buf, ";%s%d\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), int(m_last_processor_extrusion_role));
+            gcode += buf;
+        }
+#else
         if (path.role() != m_last_analyzer_extrusion_role)
         {
             m_last_analyzer_extrusion_role = path.role();
             sprintf(buf, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), int(m_last_analyzer_extrusion_role));
-#if ENABLE_GCODE_VIEWER
-            gcode += buf;
-            sprintf(buf, ";%s%d\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), int(m_last_analyzer_extrusion_role));
-#endif // ENABLE_GCODE_VIEWER
             gcode += buf;
         }
+#endif // ENABLE_GCODE_VIEWER
 
         if (last_was_wipe_tower || (m_last_mm3_per_mm != path.mm3_per_mm))
         {
             m_last_mm3_per_mm = path.mm3_per_mm;
-            sprintf(buf, ";%s%f\n", GCodeAnalyzer::Mm3_Per_Mm_Tag.c_str(), m_last_mm3_per_mm);
-            gcode += buf;
 #if ENABLE_GCODE_VIEWER
             sprintf(buf, ";%s%f\n", GCodeProcessor::Mm3_Per_Mm_Tag.c_str(), m_last_mm3_per_mm);
+            gcode += buf;
+#else
+            sprintf(buf, ";%s%f\n", GCodeAnalyzer::Mm3_Per_Mm_Tag.c_str(), m_last_mm3_per_mm);
             gcode += buf;
 #endif // ENABLE_GCODE_VIEWER
         }
@@ -3164,10 +3200,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         if (last_was_wipe_tower || (m_last_width != path.width))
         {
             m_last_width = path.width;
-            sprintf(buf, ";%s%f\n", GCodeAnalyzer::Width_Tag.c_str(), m_last_width);
-            gcode += buf;
 #if ENABLE_GCODE_VIEWER
             sprintf(buf, ";%s%f\n", GCodeProcessor::Width_Tag.c_str(), m_last_width);
+            gcode += buf;
+#else
+            sprintf(buf, ";%s%f\n", GCodeAnalyzer::Width_Tag.c_str(), m_last_width);
             gcode += buf;
 #endif // ENABLE_GCODE_VIEWER
         }
@@ -3175,14 +3212,17 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         if (last_was_wipe_tower || (m_last_height != path.height))
         {
             m_last_height = path.height;
-            sprintf(buf, ";%s%f\n", GCodeAnalyzer::Height_Tag.c_str(), m_last_height);
-            gcode += buf;
 #if ENABLE_GCODE_VIEWER
             sprintf(buf, ";%s%f\n", GCodeProcessor::Height_Tag.c_str(), m_last_height);
             gcode += buf;
+#else
+            sprintf(buf, ";%s%f\n", GCodeAnalyzer::Height_Tag.c_str(), m_last_height);
+            gcode += buf;
 #endif // ENABLE_GCODE_VIEWER
         }
+#if !ENABLE_GCODE_VIEWER
     }
+#endif // !ENABLE_GCODE_VIEWER
 
     std::string comment;
     if (m_enable_cooling_markers) {

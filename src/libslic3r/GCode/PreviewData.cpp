@@ -5,6 +5,8 @@
 
 #include <boost/format.hpp>
 
+#if !ENABLE_GCODE_VIEWER
+
 //! macro used to mark string used at localization, 
 #define L(s) (s)
 
@@ -515,3 +517,5 @@ Color operator * (float f, const Color& color)
 }
 
 } // namespace Slic3r
+
+#endif // !ENABLE_GCODE_VIEWER

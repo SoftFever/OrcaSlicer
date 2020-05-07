@@ -1,5 +1,7 @@
 #include "libslic3r/libslic3r.h"
+#if !ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/PreviewData.hpp"
+#endif // !ENABLE_GCODE_VIEWER
 #include "GUI_Preview.hpp"
 #include "GUI_App.hpp"
 #include "GUI.hpp"
@@ -172,8 +174,8 @@ void View3D::render()
 
 #if ENABLE_GCODE_VIEWER
 Preview::Preview(
-    wxWindow * parent, Model * model, DynamicPrintConfig * config,
-    BackgroundSlicingProcess * process, GCodePreviewData * gcode_preview_data, GCodeProcessor::Result * gcode_result, std::function<void()> schedule_background_process_func)
+    wxWindow* parent, Model* model, DynamicPrintConfig* config,
+    BackgroundSlicingProcess* process, GCodeProcessor::Result* gcode_result, std::function<void()> schedule_background_process_func)
 #else
 Preview::Preview(
     wxWindow* parent, Model* model, DynamicPrintConfig* config,
@@ -200,9 +202,10 @@ Preview::Preview(
 #endif // ENABLE_GCODE_VIEWER
     , m_config(config)
     , m_process(process)
-    , m_gcode_preview_data(gcode_preview_data)
 #if ENABLE_GCODE_VIEWER
     , m_gcode_result(gcode_result)
+#else
+    , m_gcode_preview_data(gcode_preview_data)
 #endif // ENABLE_GCODE_VIEWER
     , m_number_extruders(1)
     , m_preferred_color_mode("feature")
@@ -401,8 +404,13 @@ void Preview::set_number_extruders(unsigned int number_extruders)
         int tool_idx = m_choice_view_type->FindString(_(L("Tool")));
         int type = (number_extruders > 1) ? tool_idx /* color by a tool number */  : 0; // color by a feature type
         m_choice_view_type->SetSelection(type);
+#if ENABLE_GCODE_VIEWER
+        if ((0 <= type) && (type < static_cast<int>(GCodeViewer::EViewType::Count)))
+            m_canvas->set_gcode_view_preview_type(static_cast<GCodeViewer::EViewType>(type));
+#else
         if ((0 <= type) && (type < (int)GCodePreviewData::Extrusion::Num_View_Types))
             m_gcode_preview_data->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)type;
+#endif // ENABLE_GCODE_VIEWER
 
         m_preferred_color_mode = (type == tool_idx) ? "tool_or_feature" : "feature";
     }
@@ -679,8 +687,13 @@ void Preview::update_view_type(bool slice_completed)
     int type = m_choice_view_type->FindString(choice);
     if (m_choice_view_type->GetSelection() != type) {
         m_choice_view_type->SetSelection(type);
+#if ENABLE_GCODE_VIEWER
+        if ((0 <= type) && (type < static_cast<int>(GCodeViewer::EViewType::Count)))
+            m_canvas->set_gcode_view_preview_type(static_cast<GCodeViewer::EViewType>(type));
+#else
         if (0 <= type && type < (int)GCodePreviewData::Extrusion::Num_View_Types)
             m_gcode_preview_data->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)type;
+#endif // ENABLE_GCODE_VIEWER
         m_preferred_color_mode = "feature";
     }
 }

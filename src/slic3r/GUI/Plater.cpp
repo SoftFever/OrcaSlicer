@@ -33,7 +33,9 @@
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Format/AMF.hpp"
 #include "libslic3r/Format/3mf.hpp"
+#if !ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/PreviewData.hpp"
+#endif // !ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/SLA/Hollowing.hpp"
@@ -1528,9 +1530,10 @@ struct Plater::priv
     Slic3r::SLAPrint            sla_print;
     Slic3r::Model               model;
     PrinterTechnology           printer_technology = ptFFF;
-    Slic3r::GCodePreviewData    gcode_preview_data;
 #if ENABLE_GCODE_VIEWER
     Slic3r::GCodeProcessor::Result gcode_result;
+#else
+    Slic3r::GCodePreviewData    gcode_preview_data;
 #endif // ENABLE_GCODE_VIEWER
 
     // GUI elements
@@ -1840,9 +1843,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     background_process.set_fff_print(&fff_print);
     background_process.set_sla_print(&sla_print);
-    background_process.set_gcode_preview_data(&gcode_preview_data);
 #if ENABLE_GCODE_VIEWER
     background_process.set_gcode_result(&gcode_result);
+#else
+    background_process.set_gcode_preview_data(&gcode_preview_data);
 #endif // ENABLE_GCODE_VIEWER
     background_process.set_thumbnail_cb([this](ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
         {
@@ -1868,7 +1872,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     view3D = new View3D(q, &model, config, &background_process);
 #if ENABLE_GCODE_VIEWER
-    preview = new Preview(q, &model, config, &background_process, &gcode_preview_data, &gcode_result, [this]() { schedule_background_process(); });
+    preview = new Preview(q, &model, config, &background_process, &gcode_result, [this]() { schedule_background_process(); });
 #else
     preview = new Preview(q, &model, config, &background_process, &gcode_preview_data, [this]() { schedule_background_process(); });
 #endif // ENABLE_GCODE_VIEWER

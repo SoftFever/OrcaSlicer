@@ -846,8 +846,10 @@ private:
 #endif // !ENABLE_GCODE_VIEWER
     // Load SLA objects and support structures for objects, for which the slaposSliceSupports step has been finished.
 	void _load_sla_shells();
+#if !ENABLE_GCODE_VIEWER
     // sets gcode geometry visibility according to user selection
     void _update_gcode_volumes_visibility(const GCodePreviewData& preview_data);
+#endif // !ENABLE_GCODE_VIEWER
     void _update_toolpath_volumes_outside_state();
     void _update_sla_shells_outside_state();
     void _show_warning_texture_if_needed(WarningTexture::Warning warning);
