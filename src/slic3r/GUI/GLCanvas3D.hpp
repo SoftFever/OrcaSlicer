@@ -640,7 +640,6 @@ public:
     void set_toolpaths_z_range(const std::array<double, 2>& range);
 #else
     std::vector<double> get_current_print_zs(bool active_only) const;
-    void set_toolpaths_range(double low, double high);
 #endif // ENABLE_GCODE_VIEWER
     void set_toolpaths_range(double low, double high);
 

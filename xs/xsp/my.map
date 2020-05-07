@@ -191,9 +191,11 @@ GCode*                      O_OBJECT_SLIC3R
 Ref<GCode>                  O_OBJECT_SLIC3R_T
 Clone<GCode>                O_OBJECT_SLIC3R_T
 
-GCodePreviewData*			O_OBJECT_SLIC3R
-Ref<GCodePreviewData>		O_OBJECT_SLIC3R_T
-Clone<GCodePreviewData>		O_OBJECT_SLIC3R_T
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//GCodePreviewData*			O_OBJECT_SLIC3R
+//Ref<GCodePreviewData>		O_OBJECT_SLIC3R_T
+//Clone<GCodePreviewData>		O_OBJECT_SLIC3R_T
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 MotionPlanner*             O_OBJECT_SLIC3R
 Ref<MotionPlanner>         O_OBJECT_SLIC3R_T

@@ -26,14 +26,16 @@
                 croak("%s\n", e.what());
             }
         %};
-    void do_export_w_preview(Print *print, const char *path, GCodePreviewData *preview_data)
-        %code%{
-            try {
-                THIS->do_export(print, path, preview_data);
-            } catch (std::exception& e) {
-                croak("%s\n", e.what());
-            }
-        %};
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//    void do_export_w_preview(Print *print, const char *path, GCodePreviewData *preview_data)
+//        %code%{
+//            try {
+//                THIS->do_export(print, path, preview_data);
+//            } catch (std::exception& e) {
+//                croak("%s\n", e.what());
+//            }
+//        %};
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     Ref<Vec2d> origin()
         %code{% RETVAL = &(THIS->origin()); %};
@@ -60,26 +62,28 @@
         %code{% RETVAL = const_cast<StaticPrintConfig*>(static_cast<const StaticPrintConfig*>(static_cast<const PrintObjectConfig*>(&THIS->config()))); %};
 };
 
-%name{Slic3r::GCode::PreviewData} class GCodePreviewData {
-    GCodePreviewData();
-    ~GCodePreviewData();
-    void reset();
-    bool empty() const;
-    void set_type(int type)
-        %code%{
-            if ((0 <= type) && (type < GCodePreviewData::Extrusion::Num_View_Types)) 
-                THIS->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)type;
-        %};
-    int type() %code%{ RETVAL = (int)THIS->extrusion.view_type; %};
-    void set_extrusion_flags(int flags)
-        %code%{ THIS->extrusion.role_flags = (unsigned int)flags; %};
-    void set_travel_visible(bool visible)
-        %code%{ THIS->travel.is_visible = visible; %};
-    void set_retractions_visible(bool visible)
-        %code%{ THIS->retraction.is_visible = visible; %};
-    void set_unretractions_visible(bool visible)
-        %code%{ THIS->unretraction.is_visible = visible; %};
-    void set_shells_visible(bool visible)
-        %code%{ THIS->shell.is_visible = visible; %};
-    void set_extrusion_paths_colors(std::vector<std::string> colors);
-};
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//%name{Slic3r::GCode::PreviewData} class GCodePreviewData {
+//    GCodePreviewData();
+//    ~GCodePreviewData();
+//    void reset();
+//    bool empty() const;
+//    void set_type(int type)
+//        %code%{
+//            if ((0 <= type) && (type < GCodePreviewData::Extrusion::Num_View_Types)) 
+//                THIS->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)type;
+//        %};
+//    int type() %code%{ RETVAL = (int)THIS->extrusion.view_type; %};
+//    void set_extrusion_flags(int flags)
+//        %code%{ THIS->extrusion.role_flags = (unsigned int)flags; %};
+//    void set_travel_visible(bool visible)
+//        %code%{ THIS->travel.is_visible = visible; %};
+//    void set_retractions_visible(bool visible)
+//        %code%{ THIS->retraction.is_visible = visible; %};
+//    void set_unretractions_visible(bool visible)
+//        %code%{ THIS->unretraction.is_visible = visible; %};
+//    void set_shells_visible(bool visible)
+//        %code%{ THIS->shell.is_visible = visible; %};
+//    void set_extrusion_paths_colors(std::vector<std::string> colors);
+//};
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@

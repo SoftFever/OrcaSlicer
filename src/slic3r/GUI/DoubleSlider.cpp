@@ -1950,7 +1950,7 @@ std::string TickCodeInfo::get_color_for_tick(TickCode tick, const std::string& c
     if (mode == t_mode::SingleExtruder && code == ColorChangeCode && m_use_default_colors)
     {
 #if ENABLE_GCODE_VIEWER
-        const std::vector<std::string>& colors = ColorPrintColors::get();
+        const std::vector<std::string>& colors = Slic3r::ColorPrintColors::get();
 #else
         const std::vector<std::string>& colors = GCodePreviewData::ColorPrintColors();
 #endif // ENABLE_GCODE_VIEWER
