@@ -216,7 +216,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_link_libraries(libslic3r_gui ${DBUS_LIBRARIES}) 
 endif()
 
-if (SLIC3R_STATIC AND UNIX)
+if (SLIC3R_STATIC)
     # FIXME: This was previously exported by wx-config but the wxWidgets
     # cmake build forgets this and the build fails in debug mode (or on raspberry release)
     target_compile_definitions(libslic3r_gui PUBLIC -DwxDEBUG_LEVEL=0)
