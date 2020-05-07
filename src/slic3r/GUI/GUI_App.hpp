@@ -136,7 +136,7 @@ public:
     int             em_unit() const         { return m_em_unit; }
     float           toolbar_icon_scale(const bool is_limited = false) const;
 
-    void            recreate_GUI();
+    void            recreate_GUI(const wxString& message);
     void            system_info();
     void            keyboard_shortcuts();
     void            load_project(wxWindow *parent, wxString& input_file) const;

@@ -117,13 +117,6 @@ void PreferencesDialog::build()
 	m_optgroup_general->append_single_option_line(option);
 #endif
 
-	def.label = L("Show the button for the collapse sidebar");
-	def.type = coBool;
-	def.tooltip = L("If enabled, the button for the collapse sidebar will be appeared in top right corner of the 3D Scene");
-	def.set_default_value(new ConfigOptionBool{ app_config->get("show_collapse_button") == "1" });
-	option = Option(def, "show_collapse_button");
-	m_optgroup_general->append_single_option_line(option);
-
 	m_optgroup_camera = std::make_shared<ConfigOptionsGroup>(this, _(L("Camera")));
 	m_optgroup_camera->label_width = 40;
 	m_optgroup_camera->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
@@ -153,6 +146,13 @@ void PreferencesDialog::build()
 			this->layout();
 		}
 	};
+
+	def.label = L("Show the button for the collapse sidebar");
+	def.type = coBool;
+	def.tooltip = L("If enabled, the button for the collapse sidebar will be appeared in top right corner of the 3D Scene");
+	def.set_default_value(new ConfigOptionBool{ app_config->get("show_collapse_button") == "1" });
+	option = Option(def, "show_collapse_button");
+	m_optgroup_gui->append_single_option_line(option);
 
 	def.label = L("Use custom size for toolbar icons");
 	def.type = coBool;
@@ -190,11 +190,11 @@ void PreferencesDialog::accept()
 
     auto app_config = get_app_config();
 
-	bool settings_layout_changed =	m_values.find("old_settings_layout_mode") != m_values.end() ||
-		                            m_values.find("new_settings_layout_mode") != m_values.end() ||
-		                            m_values.find("dlg_settings_layout_mode") != m_values.end();
+	m_settings_layout_changed =	m_values.find("old_settings_layout_mode") != m_values.end() ||
+		                        m_values.find("new_settings_layout_mode") != m_values.end() ||
+		                        m_values.find("dlg_settings_layout_mode") != m_values.end();
 
-	if (settings_layout_changed) {
+	if (m_settings_layout_changed) {
 		// the dialog needs to be destroyed before the call to recreate_gui()
 		// or sometimes the application crashes into wxDialogBase() destructor
 		// so we put it into an inner scope
@@ -222,9 +222,8 @@ void PreferencesDialog::accept()
 	app_config->save();
 	EndModal(wxID_OK);
 
-	if (settings_layout_changed)
-		// recreate application, if settings layout was changed
-		wxGetApp().recreate_GUI();
+	if (m_settings_layout_changed)
+		;// application will be recreated after Preference dialog will be destroyed
 	else
 	    // Nothify the UI to update itself from the ini file.
         wxGetApp().update_ui_from_settings();
