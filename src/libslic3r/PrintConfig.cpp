@@ -1096,8 +1096,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("ironing_type", coEnum);
-    def->label = L("Ironingy Type");
-    def->tooltip = L("Ironingy Type");
+    def->label = L("Ironing Type");
+    def->tooltip = L("Ironing Type");
     def->enum_keys_map = &ConfigOptionEnum<IroningType>::get_enum_values();
     def->enum_values.push_back("top");
     def->enum_values.push_back("topmost");
