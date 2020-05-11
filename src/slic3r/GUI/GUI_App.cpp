@@ -283,22 +283,20 @@ GUI_App::~GUI_App()
         delete preset_updater;
 }
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 std::string GUI_App::get_gl_info(bool format_as_html, bool extensions)
 {
-    return GLCanvas3DManager::get_gl_info().to_string(format_as_html, extensions);
+    return OpenGLManager::get_gl_info().to_string(format_as_html, extensions);
 }
 
 wxGLContext* GUI_App::init_glcontext(wxGLCanvas& canvas)
 {
-    return m_canvas_mgr.init_glcontext(canvas);
+    return m_opengl_mgr.init_glcontext(canvas);
 }
 
 bool GUI_App::init_opengl()
 {
-    return m_canvas_mgr.init_gl();
+    return m_opengl_mgr.init_gl();
 }
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 void GUI_App::init_app_config()
 {
@@ -324,6 +322,7 @@ void GUI_App::init_app_config()
 		app_config->load();
 	}
 }
+
 bool GUI_App::OnInit()
 {
     try {
@@ -413,7 +412,8 @@ bool GUI_App::on_init_inner()
     if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
         wxImage::AddHandler(new wxPNGHandler());
     mainframe = new MainFrame();
-    mainframe->switch_to(true); // hide settings tabs after first Layout
+    // hide settings tabs after first Layout
+    mainframe->select_tab(0);
 
     sidebar().obj_list()->init_objects(); // propagate model objects to object list
 //     update_mode(); // !!! do that later
@@ -591,17 +591,18 @@ float GUI_App::toolbar_icon_scale(const bool is_limited/* = false*/) const
     return 0.01f * int_val * icon_sc;
 }
 
-void GUI_App::recreate_GUI()
+void GUI_App::recreate_GUI(const wxString& msg_name)
 {
     mainframe->shutdown();
 
-    const auto msg_name = _(L("Changing of an application language")) + dots;
     wxProgressDialog dlg(msg_name, msg_name);
     dlg.Pulse();
     dlg.Update(10, _(L("Recreating")) + dots);
 
     MainFrame *old_main_frame = mainframe;
     mainframe = new MainFrame();
+    // hide settings tabs after first Layout
+    mainframe->select_tab(0);
     // Propagate model objects to object list.
     sidebar().obj_list()->init_objects();
     SetTopWindow(mainframe);
@@ -705,12 +706,6 @@ void GUI_App::load_project(wxWindow *parent, wxString& input_file) const
 
 void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files) const
 {
-#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
-    if (this->plater_ != nullptr)
-        // hides the tooltip
-        plater_->get_current_canvas3D()->set_tooltip("");
-#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
-
     input_files.Clear();
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
         _(L("Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):")),
@@ -724,7 +719,7 @@ void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files) const
 bool GUI_App::switch_language()
 {
     if (select_language()) {
-        recreate_GUI();
+        recreate_GUI(_L("Changing of an application language") + dots);
         return true;
     } else {
         return false;
@@ -1028,8 +1023,17 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
             break;
         case ConfigMenuPreferences:
         {
-            PreferencesDialog dlg(mainframe);
-            dlg.ShowModal();
+            bool recreate_app = false;
+            {
+                // the dialog needs to be destroyed before the call to recreate_GUI()
+                // or sometimes the application crashes into wxDialogBase() destructor
+                // so we put it into an inner scope
+                PreferencesDialog dlg(mainframe);
+                dlg.ShowModal();
+                recreate_app = dlg.settings_layout_changed();
+            }
+            if (recreate_app)
+                recreate_GUI(_L("Changing of the settings layout") + dots);
             break;
         }
         case ConfigMenuLanguage:

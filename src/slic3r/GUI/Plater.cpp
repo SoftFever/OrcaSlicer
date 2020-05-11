@@ -77,11 +77,9 @@
 #include "RemovableDriveManager.hpp"
 #include "InstanceCheck.hpp"
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 #ifdef __APPLE__
 #include "Gizmos/GLGizmosManager.hpp"
 #endif // __APPLE__
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
 #include "WipeTowerDialog.hpp"
@@ -356,10 +354,10 @@ PresetBitmapComboBox(parent, wxSize(15 * wxGetApp().em_unit(), -1)),
         if (page_id == wxNOT_FOUND)
             return;
 
-        wxGetApp().tab_panel()->ChangeSelection(page_id);
+        wxGetApp().tab_panel()->SetSelection(page_id);
 
         // Switch to Settings NotePad
-        wxGetApp().mainframe->switch_to(false);
+        wxGetApp().mainframe->select_tab();
 
         /* In a case of a multi-material printing, for editing another Filament Preset
          * it's needed to select this preset for the "Filament settings" Tab
@@ -1101,9 +1099,8 @@ void Sidebar::jump_to_option(size_t selected)
     const Search::Option& opt = p->searcher.get_option(selected);
     wxGetApp().get_tab(opt.type)->activate_option(boost::nowide::narrow(opt.opt_key), boost::nowide::narrow(opt.category));
 
-    // Switch to the Settings NotePad, if plater is shown
-    if (p->plater->IsShown())
-        wxGetApp().mainframe->switch_to(false);
+    // Switch to the Settings NotePad
+    wxGetApp().mainframe->select_tab();
 }
 
 ObjectManipulation* Sidebar::obj_manipul()
@@ -1632,15 +1629,14 @@ struct Plater::priv
 
     void set_current_canvas_as_dirty();
     GLCanvas3D* get_current_canvas3D();
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     void unbind_canvas_event_handlers();
     void reset_canvas_volumes();
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     bool init_view_toolbar();
 
     void reset_all_gizmos();
     void update_ui_from_settings();
+    void update_main_toolbar_tooltips();
     std::shared_ptr<ProgressStatusBar> statusbar();
     std::string get_config(const std::string &key) const;
     BoundingBoxf bed_shape_bb() const;
@@ -1861,7 +1857,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     sla_print.set_status_callback(statuscb);
     this->q->Bind(EVT_SLICING_UPDATE, &priv::on_slicing_update, this);
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     view3D = new View3D(q, &model, config, &background_process);
     preview = new Preview(q, &model, config, &background_process, &gcode_preview_data, [this]() { schedule_background_process(); });
 
@@ -1869,10 +1864,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     // set default view_toolbar icons size equal to GLGizmosManager::Default_Icons_Size
     view_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size);
 #endif // __APPLE__
-#else
-    view3D = new View3D(q, bed, camera, view_toolbar, &model, config, &background_process);
-    preview = new Preview(q, bed, camera, view_toolbar, &model, config, &background_process, &gcode_preview_data, [this](){ schedule_background_process(); });
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     panels.push_back(view3D);
     panels.push_back(preview);
@@ -1973,10 +1964,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     // Drop target:
     q->SetDropTarget(new PlaterDropTarget(q));   // if my understanding is right, wxWindow takes the owenership
-
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-    update_ui_from_settings();
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
     q->Layout();
 
     set_current_panel(view3D);
@@ -2042,7 +2029,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
 
     // collapse sidebar according to saved value
-    sidebar->collapse(wxGetApp().app_config->get("collapsed_sidebar") == "1");
+    bool is_collapsed = wxGetApp().app_config->get("collapsed_sidebar") == "1";
+    sidebar->collapse(is_collapsed);
+    // Update an enable of the collapse_toolbar: if sidebar is collapsed, then collapse_toolbar should be visible
+    if (is_collapsed)
+        wxGetApp().app_config->set("show_collapse_button", "1");
 }
 
 Plater::priv::~priv()
@@ -2115,6 +2106,13 @@ void Plater::priv::update_ui_from_settings()
 
     view3D->get_canvas3d()->update_ui_from_settings();
     preview->get_canvas3d()->update_ui_from_settings();
+}
+
+// Called after the print technology was changed.
+// Update the tooltips for "Switch to Settings" button in maintoolbar
+void Plater::priv::update_main_toolbar_tooltips()
+{
+    view3D->get_canvas3d()->update_tooltip_for_settings_item_in_main_toolbar();
 }
 
 std::shared_ptr<ProgressStatusBar> Plater::priv::statusbar()
@@ -3784,7 +3782,6 @@ GLCanvas3D* Plater::priv::get_current_canvas3D()
     return (current_panel == view3D) ? view3D->get_canvas3d() : ((current_panel == preview) ? preview->get_canvas3d() : nullptr);
 }
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 void Plater::priv::unbind_canvas_event_handlers()
 {
     if (view3D != nullptr)
@@ -3802,7 +3799,6 @@ void Plater::priv::reset_canvas_volumes()
     if (preview != nullptr)
         preview->get_canvas3d()->reset_volumes();
 }
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 bool Plater::priv::init_view_toolbar()
 {
@@ -5245,7 +5241,6 @@ void Plater::set_current_canvas_as_dirty()
     p->set_current_canvas_as_dirty();
 }
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 void Plater::unbind_canvas_event_handlers()
 {
     p->unbind_canvas_event_handlers();
@@ -5255,7 +5250,6 @@ void Plater::reset_canvas_volumes()
 {
     p->reset_canvas_volumes();
 }
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 PrinterTechnology Plater::printer_technology() const
 {
@@ -5278,6 +5272,10 @@ void Plater::set_printer_technology(PrinterTechnology printer_technology)
 
     if (wxGetApp().mainframe)
         wxGetApp().mainframe->update_menubar();
+
+    p->update_main_toolbar_tooltips();
+
+    p->sidebar->get_searcher().set_printer_technology(printer_technology);
 }
 
 void Plater::changed_object(int obj_idx)
@@ -5413,7 +5411,6 @@ Camera& Plater::get_camera()
     return p->camera;
 }
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 const Bed3D& Plater::get_bed() const
 {
     return p->bed;
@@ -5433,7 +5430,6 @@ GLToolbar& Plater::get_view_toolbar()
 {
     return p->view_toolbar;
 }
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 const Mouse3DController& Plater::get_mouse3d_controller() const
 {

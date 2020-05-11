@@ -35,8 +35,6 @@ else ()
     set(DEP_PLATFORM "x64")
 endif ()
 
-
-
 if (${DEP_DEBUG})
     set(DEP_BOOST_DEBUG "debug")
 else ()
@@ -217,7 +215,6 @@ ExternalProject_Add(dep_blosc
     #URL_HASH SHA256=7463a1df566704f212263312717ab2c36b45d45cba6cd0dccebf91b2cc4b4da9
     GIT_REPOSITORY https://github.com/Blosc/c-blosc.git
     GIT_TAG e63775855294b50820ef44d1b157f4de1cc38d3e #v1.17.0
-    DEPENDS ${ZLIB_PKG}
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
     CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
     CMAKE_ARGS
@@ -243,8 +240,7 @@ add_debug_dep(dep_blosc)
 ExternalProject_Add(dep_openexr
     EXCLUDE_FROM_ALL 1
     GIT_REPOSITORY https://github.com/openexr/openexr.git
-    GIT_TAG eae0e337c9f5117e78114fd05f7a415819df413a #v2.4.0 
-    DEPENDS ${ZLIB_PKG}
+    GIT_TAG eae0e337c9f5117e78114fd05f7a415819df413a #v2.4.0
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
     CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
     CMAKE_ARGS

@@ -1292,7 +1292,7 @@ void SupportTreeBuildsteps::routing_headless()
         m_thr();
         
         const auto R = double(m_support_pts[i].head_front_radius);
-        const double HWIDTH_MM = m_cfg.head_penetration_mm;
+        const double HWIDTH_MM = std::min(R, m_cfg.head_penetration_mm);
         
         // Exact support position
         Vec3d sph = m_support_pts[i].pos.cast<double>();

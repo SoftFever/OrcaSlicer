@@ -178,7 +178,7 @@ public:
         if (staticbox) {
             stb = new wxStaticBox(_parent, wxID_ANY, _(title));
             if (!wxOSX) stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
-            stb->SetFont(wxGetApp().bold_font());
+            stb->SetFont(wxOSX ? wxGetApp().normal_font() : wxGetApp().bold_font());
         } else
         	stb = nullptr;
         sizer = (staticbox ? new wxStaticBoxSizer(stb, wxVERTICAL) : new wxBoxSizer(wxVERTICAL));

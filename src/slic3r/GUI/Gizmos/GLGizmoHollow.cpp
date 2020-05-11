@@ -220,11 +220,7 @@ bool GLGizmoHollow::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, V
     if (! m_c->raycaster()->raycaster())
         return false;
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     const Camera& camera = wxGetApp().plater()->get_camera();
-#else
-    const Camera& camera = m_parent.get_camera();
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     const Selection& selection = m_parent.get_selection();
     const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
     Geometry::Transformation trafo = volume->get_instance_transformation();

@@ -39,6 +39,23 @@ static const std::vector<std::wstring>& NameByType()
 	return data;
 }
 
+static char marker_by_type(Preset::Type type, PrinterTechnology pt)
+{
+    switch(type) {
+    case Preset::TYPE_PRINT:
+    case Preset::TYPE_SLA_PRINT:
+        return ImGui::PrintIconMarker;
+    case Preset::TYPE_FILAMENT:
+        return ImGui::FilamentIconMarker;
+    case Preset::TYPE_SLA_MATERIAL:
+        return ImGui::MaterialIconMarker;
+    case Preset::TYPE_PRINTER:
+        return pt == ptSLA ? ImGui::PrinterSlaIconMarker : ImGui::PrinterIconMarker;
+    default:
+        return ' ';
+	}
+}
+
 void FoundOption::get_marked_label_and_tooltip(const char** label_, const char** tooltip_) const
 {
     *label_   = marked_label.c_str();
@@ -106,17 +123,8 @@ void OptionsSearcher::append_options(DynamicPrintConfig* config, Preset::Type ty
             emplace(opt_key, label);
         else
             for (int i = 0; i < cnt; ++i)
-                emplace(opt_key + "[" + std::to_string(i) + "]", label);
-
-        /*const GroupAndCategory& gc = groups_and_categories[opt_key];
-        if (gc.group.IsEmpty() || gc.category.IsEmpty())
-            continue;
-
-        if (!label.IsEmpty())
-            options.emplace_back(Option{opt_key, type,
-                                        label, _(label),
-                                        gc.group, _(gc.group),
-                                        gc.category, _(gc.category) });*/
+                // ! It's very important to use "#". opt_key#n is a real option key used in GroupAndCategory
+                emplace(opt_key + "#" + std::to_string(i), label); 
     }
 }
 
@@ -183,19 +191,19 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
 
     bool full_list = search.empty();
     std::wstring sep = L" : ";
-    const std::vector<std::wstring>& name_by_type = NameByType();
 
-    auto get_label = [this, &name_by_type, &sep](const Option& opt)
+    auto get_label = [this, &sep](const Option& opt)
     {
         std::wstring out;
+        out += marker_by_type(opt.type, printer_technology);
     	const std::wstring *prev = nullptr;
     	for (const std::wstring * const s : {
-	        view_params.type 		? &(name_by_type[opt.type]) : nullptr,
 	        view_params.category 	? &opt.category_local 		: nullptr,
 	        view_params.group 		? &opt.group_local			: nullptr,
 	        &opt.label_local })
     		if (s != nullptr && (prev == nullptr || *prev != *s)) {
-    			if (! out.empty())
+//    			if (! out.empty())
+      			if (out.size()>2)
     				out += sep;
     			out += *s;
     			prev = s;
@@ -203,17 +211,18 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
         return out;
     };
 
-    auto get_label_english = [this, &name_by_type, &sep](const Option& opt)
+    auto get_label_english = [this, &sep](const Option& opt)
     {
         std::wstring out;
+        out += marker_by_type(opt.type, printer_technology);
     	const std::wstring*prev = nullptr;
     	for (const std::wstring * const s : {
-	        view_params.type 		? &name_by_type[opt.type] 	: nullptr,
 	        view_params.category 	? &opt.category 			: nullptr,
 	        view_params.group 		? &opt.group				: nullptr,
 	        &opt.label })
     		if (s != nullptr && (prev == nullptr || *prev != *s)) {
-    			if (! out.empty())
+//    			if (! out.empty())
+      			if (out.size()>2)
     				out += sep;
     			out += *s;
     			prev = s;
@@ -221,9 +230,9 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
         return out;
     };
 
-    auto get_tooltip = [this, &name_by_type, &sep](const Option& opt)
+    auto get_tooltip = [this, &sep](const Option& opt)
     {
-        return  name_by_type[opt.type] + sep +
+        return  marker_by_type(opt.type, printer_technology) +
                 opt.category_local + sep +
                 opt.group_local + sep + opt.label_local;
     };
@@ -423,15 +432,17 @@ SearchDialog::SearchDialog(OptionsSearcher* searcher)
 
     wxBoxSizer* check_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    check_type      = new wxCheckBox(this, wxID_ANY, _L("Type"));
     check_category  = new wxCheckBox(this, wxID_ANY, _L("Category"));
     check_group     = new wxCheckBox(this, wxID_ANY, _L("Group"));
+    if (GUI::wxGetApp().is_localized())
+        check_english   = new wxCheckBox(this, wxID_ANY, _L("Search in English"));
 
     wxStdDialogButtonSizer* cancel_btn = this->CreateStdDialogButtonSizer(wxCANCEL);
 
-    check_sizer->Add(check_type,     0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
     check_sizer->Add(check_category, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
-    check_sizer->Add(check_group,    0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
+    check_sizer->Add(check_group,    0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border); 
+    if (GUI::wxGetApp().is_localized())
+        check_sizer->Add(check_english,  0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
     check_sizer->AddStretchSpacer(border);
     check_sizer->Add(cancel_btn,     0, wxALIGN_CENTER_VERTICAL);
 
@@ -450,7 +461,8 @@ SearchDialog::SearchDialog(OptionsSearcher* searcher)
     search_list->Bind(wxEVT_LEFT_UP, &SearchDialog::OnMouseClick, this);
     search_list->Bind(wxEVT_KEY_DOWN,&SearchDialog::OnKeyDown, this);
 
-    check_type    ->Bind(wxEVT_CHECKBOX, &SearchDialog::OnCheck, this);
+    if (GUI::wxGetApp().is_localized())
+        check_english ->Bind(wxEVT_CHECKBOX, &SearchDialog::OnCheck, this);
     check_category->Bind(wxEVT_CHECKBOX, &SearchDialog::OnCheck, this);
     check_group   ->Bind(wxEVT_CHECKBOX, &SearchDialog::OnCheck, this);
 
@@ -470,9 +482,9 @@ void SearchDialog::Popup(wxPoint position /*= wxDefaultPosition*/)
     update_list();
 
     const OptionViewParameters& params = searcher->view_params;
-    check_type->SetValue(params.type);
     check_category->SetValue(params.category);
     check_group->SetValue(params.group);
+    check_english->SetValue(params.english);
 
     this->SetPosition(position);
     this->ShowModal();
@@ -538,7 +550,7 @@ void SearchDialog::update_list()
 
     const std::vector<FoundOption>& filters = searcher->found_options();
     for (const FoundOption& item : filters)
-        search_list->Append(from_u8(item.label));
+        search_list->Append(from_u8(item.label).Remove(0, 1));
 }
 
 void SearchDialog::OnKeyDown(wxKeyEvent& event)
@@ -570,7 +582,7 @@ void SearchDialog::OnKeyDown(wxKeyEvent& event)
 void SearchDialog::OnCheck(wxCommandEvent& event)
 {
     OptionViewParameters& params = searcher->view_params;
-    params.type     = check_type->GetValue();
+    params.english  = check_english->GetValue();
     params.category = check_category->GetValue();
     params.group    = check_group->GetValue();
 

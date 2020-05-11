@@ -45,10 +45,8 @@ class ObjectList;
 class GLCanvas3D;
 class Mouse3DController;
 struct Camera;
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 class Bed3D;
 class GLToolbar;
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
@@ -280,10 +278,8 @@ public:
     void find_new_position(const ModelInstancePtrs  &instances, coord_t min_d);
 
     void set_current_canvas_as_dirty();
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     void unbind_canvas_event_handlers();
     void reset_canvas_volumes();
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     PrinterTechnology   printer_technology() const;
     const DynamicPrintConfig * config() const;
@@ -316,13 +312,11 @@ public:
     const Camera& get_camera() const;
     Camera& get_camera();
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     const Bed3D& get_bed() const;
     Bed3D& get_bed();
 
     const GLToolbar& get_view_toolbar() const;
     GLToolbar& get_view_toolbar();
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     const Mouse3DController& get_mouse3d_controller() const;
     Mouse3DController& get_mouse3d_controller();
