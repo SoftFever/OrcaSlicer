@@ -3,7 +3,6 @@
 
 #if ENABLE_GCODE_VIEWER
 #include "libslic3r/Print.hpp"
-#include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "GUI_App.hpp"
 #include "PresetBundle.hpp"
@@ -148,92 +147,8 @@ GCodeViewer::Color GCodeViewer::Extrusions::Range::get_color_at(float value) con
 
 void GCodeViewer::SequentialView::Marker::init()
 {
-    Pointf3s vertices;
-    std::vector<Vec3i> triangles;
-
-    // arrow tip
-    vertices.emplace_back(0.0, 0.0, 0.0);
-    vertices.emplace_back(0.5, -0.5, 1.0);
-    vertices.emplace_back(0.5, 0.5, 1.0);
-    vertices.emplace_back(-0.5, 0.5, 1.0);
-    vertices.emplace_back(-0.5, -0.5, 1.0);
-
-    triangles.emplace_back(0, 1, 4);
-    triangles.emplace_back(0, 2, 1);
-    triangles.emplace_back(0, 3, 2);
-    triangles.emplace_back(0, 4, 3);
-    triangles.emplace_back(1, 2, 4);
-    triangles.emplace_back(2, 3, 4);
-
-    // arrow stem
-    vertices.emplace_back(0.25, -0.25, 1.0);
-    vertices.emplace_back(0.25, 0.25, 1.0);
-    vertices.emplace_back(-0.25, 0.25, 1.0);
-    vertices.emplace_back(-0.25, -0.25, 1.0);
-    vertices.emplace_back(0.25, -0.25, 3.0);
-    vertices.emplace_back(0.25, 0.25, 3.0);
-    vertices.emplace_back(-0.25, 0.25, 3.0);
-    vertices.emplace_back(-0.25, -0.25, 3.0);
-
-    triangles.emplace_back(5, 9, 8);
-    triangles.emplace_back(8, 9, 12);
-    triangles.emplace_back(6, 10, 5);
-    triangles.emplace_back(5, 10, 9);
-    triangles.emplace_back(7, 11, 6);
-    triangles.emplace_back(6, 11, 10);
-    triangles.emplace_back(8, 12, 7);
-    triangles.emplace_back(7, 12, 11);
-    triangles.emplace_back(9, 10, 12);
-    triangles.emplace_back(12, 10, 11);
-
-    TriangleMesh mesh(vertices, triangles);
-    mesh.require_shared_vertices();
-
-    init_from_mesh(mesh);
-}
-
-bool GCodeViewer::SequentialView::Marker::init_from_mesh(const TriangleMesh& mesh)
-{
-    auto get_normal = [](const std::array<stl_vertex, 3>& triangle) {
-        return (triangle[1] - triangle[0]).cross(triangle[2] - triangle[0]).normalized();
-    };
-
-    reset();
-
-    // vertex data -> load from mesh
-    std::vector<float> vertices(6 * mesh.its.vertices.size());
-    for (size_t i = 0; i < mesh.its.vertices.size(); ++i) {
-        ::memcpy(static_cast<void*>(&vertices[i * 6]), static_cast<const void*>(mesh.its.vertices[i].data()), 3 * sizeof(float));
-    }
-
-    // indices/normals data -> load from mesh
-    std::vector<unsigned int> indices(3 * mesh.its.indices.size());
-    for (size_t i = 0; i < mesh.its.indices.size(); ++i) {
-        const stl_triangle_vertex_indices& triangle = mesh.its.indices[i];
-        for (size_t j = 0; j < 3; ++j) {
-            indices[i * 3 + j] = static_cast<unsigned int>(triangle[j]);
-        }
-        Vec3f normal = get_normal({ mesh.its.vertices[triangle[0]], mesh.its.vertices[triangle[1]], mesh.its.vertices[triangle[2]] });
-        ::memcpy(static_cast<void*>(&vertices[3 + static_cast<size_t>(triangle[0]) * 6]), static_cast<const void*>(normal.data()), 3 * sizeof(float));
-        ::memcpy(static_cast<void*>(&vertices[3 + static_cast<size_t>(triangle[1]) * 6]), static_cast<const void*>(normal.data()), 3 * sizeof(float));
-        ::memcpy(static_cast<void*>(&vertices[3 + static_cast<size_t>(triangle[2]) * 6]), static_cast<const void*>(normal.data()), 3 * sizeof(float));
-    }
-
-    m_indices_count = static_cast<unsigned int>(indices.size());
-
-    // vertex data -> send to gpu
-    glsafe(::glGenBuffers(1, &m_vbo_id));
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vbo_id));
-    glsafe(::glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW));
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-
-    // indices data -> send to gpu
-    glsafe(::glGenBuffers(1, &m_ibo_id));
-    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo_id));
-    glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW));
-    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-
-    return init_shader();
+    m_model.init_from(stilized_arrow(16, 0.5f, 1.0f, 0.25f, 2.0f));
+    init_shader();
 }
 
 void GCodeViewer::SequentialView::Marker::render() const
@@ -249,56 +164,22 @@ void GCodeViewer::SequentialView::Marker::render() const
     if (color_id >= 0)
         glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)m_color.data()));
 
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vbo_id));
-    glsafe(::glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), (const void*)0));
-    glsafe(::glNormalPointer(GL_FLOAT, 6 * sizeof(float), (const void*)(3 * sizeof(float))));
-
-    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-    glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
-
     glsafe(::glPushMatrix());
     glsafe(::glMultMatrixf(m_world_transform.data()));
 
-    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo_id));
-    glsafe(::glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices_count), GL_UNSIGNED_INT, (const void*)0));
-    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+    m_model.render();
 
     glsafe(::glPopMatrix());
-
-    glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
-    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 
     m_shader.stop_using();
 
     glsafe(::glDisable(GL_BLEND));
 }
 
-void GCodeViewer::SequentialView::Marker::reset()
+void GCodeViewer::SequentialView::Marker::init_shader()
 {
-    // release gpu memory
-    if (m_ibo_id > 0) {
-        glsafe(::glDeleteBuffers(1, &m_ibo_id));
-        m_ibo_id = 0;
-    }
-
-    if (m_vbo_id > 0) {
-        glsafe(::glDeleteBuffers(1, &m_vbo_id));
-        m_vbo_id = 0;
-    }
-
-    m_indices_count = 0;
-}
-
-bool GCodeViewer::SequentialView::Marker::init_shader()
-{
-    if (!m_shader.init("gouraud_light.vs", "gouraud_light.fs")) {
+    if (!m_shader.init("gouraud_light.vs", "gouraud_light.fs"))
         BOOST_LOG_TRIVIAL(error) << "Unable to initialize gouraud_light shader: please, check that the files gouraud_light.vs and gouraud_light.fs are available";
-        return false;
-    }
-
-    return true;
 }
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{

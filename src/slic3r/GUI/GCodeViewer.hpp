@@ -5,6 +5,7 @@
 #include "GLShader.hpp"
 #include "3DScene.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
+#include "GLModel.hpp"
 
 #include <float.h>
 
@@ -152,31 +153,25 @@ class GCodeViewer
     {
         class Marker
         {
-            unsigned int m_vbo_id{ 0 };
-            unsigned int m_ibo_id{ 0 };
-            size_t m_indices_count{ 0 };
+            GL_Model m_model;
             Transform3f m_world_transform;
             std::array<float, 4> m_color{ 1.0f, 1.0f, 1.0f, 1.0f };
             bool m_visible{ false };
             Shader m_shader;
 
         public:
-            ~Marker() { reset(); }
-
             void init();
-            bool init_from_mesh(const TriangleMesh& mesh);
 
             void set_world_transform(const Transform3f& transform) { m_world_transform = transform; }
-
             void set_color(const std::array<float, 4>& color) { m_color = color; }
 
             bool is_visible() const { return m_visible; }
             void set_visible(bool visible) { m_visible = visible; }
+
             void render() const;
-            void reset();
 
         private:
-            bool init_shader();
+            void init_shader();
         };
 
         unsigned int first{ 0 };
