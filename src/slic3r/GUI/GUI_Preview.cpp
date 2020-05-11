@@ -298,8 +298,9 @@ bool Preview::init(wxWindow* parent, Model* model)
         _L("Pause prints") + "|0|" +
         _L("Custom GCodes") + "|0|" +
         _L("Shells") + "|0|" +
+        _L("Tool marker") + "|1|" +
         _L("Legend") + "|1"
-    );
+);
     Slic3r::GUI::create_combochecklist(m_combochecklist_options, GUI::into_u8(_L("Options")), options_items);
 #else
     m_checkbox_travel = new wxCheckBox(this, wxID_ANY, _(L("Travel")));

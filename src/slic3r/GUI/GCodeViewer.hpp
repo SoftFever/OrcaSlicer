@@ -9,7 +9,10 @@
 #include <float.h>
 
 namespace Slic3r {
+
 class Print;
+class TriangleMesh;
+
 namespace GUI {
 
 class GCodeViewer
@@ -73,8 +76,8 @@ class GCodeViewer
     struct IBuffer
     {
         unsigned int ibo_id{ 0 };
-        Shader shader;
         size_t indices_count{ 0 };
+        Shader shader;
         std::vector<Path> paths;
         std::vector<RenderPath> render_paths;
         bool visible{ false };
@@ -147,19 +150,33 @@ class GCodeViewer
 
     struct SequentialView
     {
-        struct Marker
+        class Marker
         {
-        private:
-            bool m_initialized{ false };
+            unsigned int m_vbo_id{ 0 };
+            unsigned int m_ibo_id{ 0 };
+            size_t m_indices_count{ 0 };
+            Transform3f m_world_transform;
+            std::array<float, 4> m_color{ 1.0f, 1.0f, 1.0f, 1.0f };
+            bool m_visible{ false };
+            Shader m_shader;
 
         public:
-            unsigned int vbo_id{ 0 };
-            unsigned int ibo_id{ 0 };
-            bool visible{ false };
-            Shader shader;
+            ~Marker() { reset(); }
 
             void init();
+            bool init_from_mesh(const TriangleMesh& mesh);
+
+            void set_world_transform(const Transform3f& transform) { m_world_transform = transform; }
+
+            void set_color(const std::array<float, 4>& color) { m_color = color; }
+
+            bool is_visible() const { return m_visible; }
+            void set_visible(bool visible) { m_visible = visible; }
             void render() const;
+            void reset();
+
+        private:
+            bool init_shader();
         };
 
         unsigned int first{ 0 };
