@@ -4391,7 +4391,7 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
     bool action_taken = false;
     ImGuiWrapper* imgui = wxGetApp().imgui();
 
-    const float x = pos_x * (float)wxGetApp().plater()->get_camera().get_zoom() + 0.5f * (float)get_canvas_size().get_width();
+    const float x = /*pos_x * (float)wxGetApp().plater()->get_camera().get_zoom() + */0.5f * (float)get_canvas_size().get_width();
     imgui->set_next_window_pos(x, m_main_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
     std::string title = L("Search");
     imgui->begin(_(title), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
@@ -7143,9 +7143,14 @@ bool GLCanvas3D::_deactivate_undo_redo_toolbar_items()
     return false;
 }
 
+bool GLCanvas3D::is_search_pressed() const
+{
+    return m_main_toolbar.is_item_pressed("search");
+}
+
 bool GLCanvas3D::_deactivate_search_toolbar_item()
 {
-    if (m_main_toolbar.is_item_pressed("search"))
+    if (is_search_pressed())
     {
         m_main_toolbar.force_left_action(m_main_toolbar.get_item_id("search"), *this);
         return true;

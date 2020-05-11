@@ -574,6 +574,7 @@ public:
 
     bool is_layers_editing_enabled() const;
     bool is_layers_editing_allowed() const;
+    bool is_search_pressed() const;
 
     void reset_layer_height_profile();
     void adaptive_layer_height_profile(float quality_factor);

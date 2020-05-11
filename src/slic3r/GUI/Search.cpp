@@ -262,13 +262,14 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
         	append(matches, matches2);
         	score = score2;
         }
-        if (fuzzy_match(wsearch, label_english, score2, matches2) && score2 > score) {
+        if (view_params.english && fuzzy_match(wsearch, label_english, score2, matches2) && score2 > score) {
         	label   = std::move(label_english);
         	matches = std::move(matches2);
         	score   = score2;
         }
         if (score > std::numeric_limits<int>::min()) {
-		    label = mark_string(label, matches);
+		    label = mark_string(label, matches);            
+            label += L"  [" + std::to_wstring(score) + L"]";// add score value
 	        std::string label_u8 = into_u8(label);
 	        std::string label_plain = label_u8;
 	        boost::erase_all(label_plain, std::string(1, char(ImGui::ColorMarkerStart)));

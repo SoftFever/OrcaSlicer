@@ -28,6 +28,7 @@
 #include "RemovableDriveManager.hpp"
 #include "InstanceCheck.hpp"
 #include "I18N.hpp"
+#include "GLCanvas3D.hpp"
 
 #include <fstream>
 #include "GUI_App.hpp"
@@ -1263,6 +1264,9 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
         if (tab==0) {
             if (m_settings_dialog->IsShown())
                 this->SetFocus();
+            // plater should be focused for correct navigation inside search window
+            if (m_plater->canvas3D()->is_search_pressed())
+                m_plater->SetFocus();
             return;
         }
         // Show/Activate Settings Dialog
@@ -1278,6 +1282,10 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
     else if (m_layout == slNew) {
         m_plater->Show(tab == 0);
         m_tabpanel->Show(tab != 0);
+
+        // plater should be focused for correct navigation inside search window
+        if (tab == 0 && m_plater->canvas3D()->is_search_pressed())
+            m_plater->SetFocus();
         Layout();
     }
 

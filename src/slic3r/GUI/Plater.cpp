@@ -5364,6 +5364,9 @@ void Plater::paste_from_clipboard()
 void Plater::search(bool plater_is_active)
 {
     if (plater_is_active) {
+        // plater should be focused for correct navigation inside search window 
+        this->SetFocus();
+
         wxKeyEvent evt;
 #ifdef __APPLE__
         evt.m_keyCode = 'f';
