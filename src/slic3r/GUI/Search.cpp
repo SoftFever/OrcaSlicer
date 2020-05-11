@@ -434,13 +434,15 @@ SearchDialog::SearchDialog(OptionsSearcher* searcher)
 
     check_category  = new wxCheckBox(this, wxID_ANY, _L("Category"));
     check_group     = new wxCheckBox(this, wxID_ANY, _L("Group"));
-    check_english   = new wxCheckBox(this, wxID_ANY, _L("Search in English"));
+    if (GUI::wxGetApp().is_localized())
+        check_english   = new wxCheckBox(this, wxID_ANY, _L("Search in English"));
 
     wxStdDialogButtonSizer* cancel_btn = this->CreateStdDialogButtonSizer(wxCANCEL);
 
     check_sizer->Add(check_category, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
-    check_sizer->Add(check_group,    0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
-    check_sizer->Add(check_english,  0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
+    check_sizer->Add(check_group,    0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border); 
+    if (GUI::wxGetApp().is_localized())
+        check_sizer->Add(check_english,  0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
     check_sizer->AddStretchSpacer(border);
     check_sizer->Add(cancel_btn,     0, wxALIGN_CENTER_VERTICAL);
 
@@ -459,7 +461,8 @@ SearchDialog::SearchDialog(OptionsSearcher* searcher)
     search_list->Bind(wxEVT_LEFT_UP, &SearchDialog::OnMouseClick, this);
     search_list->Bind(wxEVT_KEY_DOWN,&SearchDialog::OnKeyDown, this);
 
-    check_english ->Bind(wxEVT_CHECKBOX, &SearchDialog::OnCheck, this);
+    if (GUI::wxGetApp().is_localized())
+        check_english ->Bind(wxEVT_CHECKBOX, &SearchDialog::OnCheck, this);
     check_category->Bind(wxEVT_CHECKBOX, &SearchDialog::OnCheck, this);
     check_group   ->Bind(wxEVT_CHECKBOX, &SearchDialog::OnCheck, this);
 

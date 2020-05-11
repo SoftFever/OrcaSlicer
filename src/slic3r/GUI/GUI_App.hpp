@@ -162,6 +162,7 @@ public:
     wxString        current_language_code() const { return m_wxLocale->GetCanonicalName(); }
 	// Translate the language code to a code, for which Prusa Research maintains translations. Defaults to "en_US".
     wxString 		current_language_code_safe() const;
+    bool            is_localized() const { return m_wxLocale->GetLocale() != "English"; }
 
     virtual bool OnExceptionInMainLoop() override;
 
