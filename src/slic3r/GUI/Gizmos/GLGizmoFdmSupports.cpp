@@ -270,8 +270,6 @@ bool operator<(const GLGizmoFdmSupports::NeighborData& a, const GLGizmoFdmSuppor
 // concludes that the event was not intended for it, it should return false.
 bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down)
 {
-    bool processed = false;
-
     if (action == SLAGizmoEventType::MouseWheelUp
      || action == SLAGizmoEventType::MouseWheelDown) {
         if (control_down) {
@@ -354,7 +352,7 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             {
                 // In case this hit is clipped, skip it.
                 if (is_mesh_point_clipped(hit.cast<double>())) {
-                    processed = true;
+                    some_mesh_was_hit = true;
                     continue;
                 }
 
@@ -491,7 +489,7 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         return true;
     }
 
-    return processed;
+    return false;
 }
 
 
