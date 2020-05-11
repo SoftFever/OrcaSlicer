@@ -1,6 +1,9 @@
 #ifndef slic3r_GLModel_hpp_
 #define slic3r_GLModel_hpp_
 
+#include "libslic3r/Point.hpp"
+#include <vector>
+
 namespace Slic3r {
 
 class TriangleMesh;
