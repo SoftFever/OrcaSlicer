@@ -83,7 +83,7 @@ private:
     float m_density_stash = 0.f;                // and again
     mutable std::vector<CacheEntry> m_editing_cache; // a support point and whether it is currently selected
     std::vector<sla::SupportPoint> m_normal_cache; // to restore after discarding changes or undo/redo
-    const ModelObject* m_old_mo = nullptr;
+    ObjectID m_old_mo_id;
 
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.

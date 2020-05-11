@@ -409,6 +409,7 @@ private:
     class Slope
     {
         bool m_enabled{ false };
+        bool m_dialog_shown{ false };
         GLCanvas3D& m_canvas;
         GLVolumeCollection& m_volumes;
 
@@ -417,9 +418,14 @@ private:
 
         void enable(bool enable) { m_enabled = enable; }
         bool is_enabled() const { return m_enabled; }
-        void show(bool show) { m_volumes.set_slope_active(m_enabled ? show : false); }
-        bool is_shown() const { return m_volumes.is_slope_active(); }
+        void use(bool use) { m_volumes.set_slope_active(m_enabled ? use : false); }
+        bool is_used() const { return m_volumes.is_slope_active(); }
+        void show_dialog(bool show) { if (show && is_used()) return; use(show); m_dialog_shown = show; }
+        bool is_dialog_shown() const { return m_dialog_shown; }
         void render() const;
+        void set_range(const std::array<float, 2>& range) const {
+            m_volumes.set_slope_z_range({ -::cos(Geometry::deg2rad(90.0f - range[0])), -::cos(Geometry::deg2rad(90.0f - range[1])) });
+        }
     };
 #endif // ENABLE_SLOPE_RENDERING
 
@@ -713,8 +719,10 @@ public:
     void show_labels(bool show) { m_labels.show(show); }
 
 #if ENABLE_SLOPE_RENDERING
-    bool is_slope_shown() const { return m_slope.is_shown(); }
-    void show_slope(bool show) { m_slope.show(show); }
+    bool is_slope_shown() const { return m_slope.is_dialog_shown(); }
+    void use_slope(bool use) { m_slope.use(use); }
+    void show_slope(bool show) { m_slope.show_dialog(show); }
+    void set_slope_range(const std::array<float, 2>& range) { m_slope.set_range(range); }
 #endif // ENABLE_SLOPE_RENDERING
 
 private:

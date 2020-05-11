@@ -66,11 +66,10 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const S
 
     ModelObject* mo = m_c->selection_info()->model_object();
 
-    if (mo != m_old_mo) {
+    if (mo && mo->id() != m_old_mo_id) {
         disable_editing_mode();
-        if (mo)
-            reload_cache();
-        m_old_mo = mo;
+        reload_cache();
+        m_old_mo_id = mo->id();
     }
 
     // If we triggered autogeneration before, check backend and fetch results if they are there
