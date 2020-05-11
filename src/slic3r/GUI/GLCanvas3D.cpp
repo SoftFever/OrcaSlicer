@@ -1465,29 +1465,41 @@ void GLCanvas3D::Slope::render() const
         imgui.set_next_window_pos((float)cnv_size.get_width(), (float)cnv_size.get_height(), ImGuiCond_Always, 1.0f, 1.0f);
         imgui.begin(_(L("Slope visualization")), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
-        imgui.text(_(L("Facets' normal angle range (degrees)")) + ":");
+        imgui.text(_(L("Facets' slope range (degrees)")) + ":");
 
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.75f, 0.75f, 0.0f, 0.5f));
-        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(1.0f, 1.0f, 0.0f, 0.5f));
-        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.85f, 0.85f, 0.0f, 0.5f));
-        ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.25f, 0.25f, 0.0f, 1.0f));
-        if (ImGui::SliderFloat("##yellow", &angle_range[0], 0.0f, 90.0f, "%.1f"))
-        {
-            modified = true;
-            if (angle_range[1] < angle_range[0])
-                angle_range[1] = angle_range[0];
-        }
-        ImGui::PopStyleColor(4);
         ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.75f, 0.0f, 0.0f, 0.5f));
         ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(1.0f, 0.0f, 0.0f, 0.5f));
         ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.85f, 0.0f, 0.0f, 0.5f));
         ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.25f, 0.0f, 0.0f, 1.0f));
-        if (ImGui::SliderFloat("##red", &angle_range[1], 0.0f, 90.0f, "%.1f"))
+
+        // angle_range is range of normal angle, GUI should
+        // show facet slope angle
+        float slope_bound = 90.f - angle_range[1];
+        bool mod = ImGui::SliderFloat("##red", &slope_bound, 0.0f, 90.0f, "%.1f");
+        angle_range[1] = 90.f - slope_bound;
+        if (mod)
         {
             modified = true;
             if (angle_range[0] > angle_range[1])
                 angle_range[0] = angle_range[1];
         }
+
+        ImGui::PopStyleColor(4);
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.75f, 0.75f, 0.0f, 0.5f));
+                ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(1.0f, 1.0f, 0.0f, 0.5f));
+                ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.85f, 0.85f, 0.0f, 0.5f));
+                ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.25f, 0.25f, 0.0f, 1.0f));
+
+        slope_bound = 90.f - angle_range[0];
+        mod = ImGui::SliderFloat("##yellow", &slope_bound, 0.0f, 90.0f, "%.1f");
+        angle_range[0] = 90.f - slope_bound;
+        if (mod)
+        {
+            modified = true;
+            if (angle_range[1] < angle_range[0])
+                angle_range[1] = angle_range[0];
+        }
+
         ImGui::PopStyleColor(4);
 
         ImGui::Separator();
