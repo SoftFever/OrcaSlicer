@@ -13,6 +13,9 @@
 #include <GL/glew.h>
 
 #include <boost/algorithm/string/predicate.hpp>
+#if ENABLE_GCODE_VIEWER
+#include <boost/log/trivial.hpp>
+#endif // ENABLE_GCODE_VIEWER
 
 static const float UNIFORM_SCALE_COLOR[3] = { 1.0f, 0.38f, 0.0f };
 
@@ -76,7 +79,9 @@ Selection::Selection()
     , m_mode(Instance)
     , m_type(Empty)
     , m_valid(false)
+#if !ENABLE_GCODE_VIEWER
     , m_curved_arrow(16)
+#endif // !ENABLE_GCODE_VIEWER
     , m_scale_factor(1.0f)
 {
     this->set_bounding_boxes_dirty();
@@ -109,10 +114,21 @@ bool Selection::init()
 
     m_arrow.set_scale(5.0 * Vec3d::Ones());
 
+#if ENABLE_GCODE_VIEWER
+    m_curved_arrow.init_from(circular_arrow(16, 10.0f, 5.0f, 10.0f, 5.0f, 1.0f));
+
+    if (!m_arrows_shader.init("gouraud_light.vs", "gouraud_light.fs"))
+    {
+        BOOST_LOG_TRIVIAL(error) << "Unable to initialize gouraud_light shader: please, check that the files gouraud_light.vs and gouraud_light.fs are available";
+        return false;
+    }
+#else
     if (!m_curved_arrow.init())
         return false;
 
     m_curved_arrow.set_scale(5.0 * Vec3d::Ones());
+#endif //ENABLE_GCODE_VIEWER
+
     return true;
 }
 
@@ -1927,6 +1943,40 @@ void Selection::render_sidebar_position_hints(const std::string& sidebar_field) 
 
 void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) const
 {
+#if ENABLE_GCODE_VIEWER
+    if (!m_arrows_shader.is_initialized())
+        return;
+
+    m_arrows_shader.start_using();
+    GLint color_id = ::glGetUniformLocation(m_arrows_shader.get_shader_program_id(), "uniform_color");
+
+    if (boost::ends_with(sidebar_field, "x"))
+    {
+        if (color_id >= 0)
+            glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)AXES_COLOR[0]));
+
+        glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
+        render_sidebar_rotation_hint(X);
+    }
+    else if (boost::ends_with(sidebar_field, "y"))
+    {
+        if (color_id >= 0)
+            glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)AXES_COLOR[1]));
+
+        glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
+        render_sidebar_rotation_hint(Y);
+    }
+    else if (boost::ends_with(sidebar_field, "z"))
+    {
+        if (color_id >= 0)
+            glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)AXES_COLOR[2]));
+
+        render_sidebar_rotation_hint(Z);
+    }
+
+    m_arrows_shader.stop_using();
+
+#else
     if (boost::ends_with(sidebar_field, "x"))
     {
         glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
@@ -1939,6 +1989,7 @@ void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) 
     }
     else if (boost::ends_with(sidebar_field, "z"))
         render_sidebar_rotation_hint(Z);
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void Selection::render_sidebar_scale_hints(const std::string& sidebar_field) const
@@ -2054,9 +2105,10 @@ void Selection::render_sidebar_position_hint(Axis axis) const
 
 void Selection::render_sidebar_rotation_hint(Axis axis) const
 {
+#if !ENABLE_GCODE_VIEWER
     m_curved_arrow.set_color(AXES_COLOR[axis], 3);
+#endif // !ENABLE_GCODE_VIEWER
     m_curved_arrow.render();
-
     glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
     m_curved_arrow.render();
 }

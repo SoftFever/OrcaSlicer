@@ -11,7 +11,6 @@ namespace GUI {
 
 void GL_Model::init_from(const GLModelInitializationData& data)
 {
-
     assert(!data.positions.empty() && !data.triangles.empty());
     assert(data.positions.size() == data.normals.size());
 
@@ -134,9 +133,16 @@ void GL_Model::send_to_gpu(const std::vector<float>& vertices, const std::vector
 
 GLModelInitializationData stilized_arrow(int resolution, float tip_radius, float tip_height, float stem_radius, float stem_height)
 {
+    auto append_vertex = [](GLModelInitializationData& data, const Vec3f& position, const Vec3f& normal) {
+        data.positions.emplace_back(position);
+        data.normals.emplace_back(normal);
+    };
+
+    resolution = std::max(4, resolution);
+
     GLModelInitializationData data;
 
-    float angle_step = 2.0f * M_PI / static_cast<float>(resolution);
+    const float angle_step = 2.0f * M_PI / static_cast<float>(resolution);
     std::vector<float> cosines(resolution);
     std::vector<float> sines(resolution);
 
@@ -147,15 +153,13 @@ GLModelInitializationData stilized_arrow(int resolution, float tip_radius, float
         sines[i] = -::sin(angle);
     }
 
-    float total_height = tip_height + stem_height;
+    const float total_height = tip_height + stem_height;
 
     // tip vertices/normals
-    data.positions.emplace_back(0.0f, 0.0f, total_height);
-    data.normals.emplace_back(Vec3f::UnitZ());
+    append_vertex(data, { 0.0f, 0.0f, total_height }, Vec3f::UnitZ());
     for (int i = 0; i < resolution; ++i)
     {
-        data.positions.emplace_back(tip_radius * sines[i], tip_radius * cosines[i], stem_height);
-        data.normals.emplace_back(sines[i], cosines[i], 0.0f);
+        append_vertex(data, { tip_radius * sines[i], tip_radius * cosines[i], stem_height }, { sines[i], cosines[i], 0.0f });
     }
 
     // tip triangles
@@ -168,15 +172,13 @@ GLModelInitializationData stilized_arrow(int resolution, float tip_radius, float
     // tip cap outer perimeter vertices
     for (int i = 0; i < resolution; ++i)
     {
-        data.positions.emplace_back(tip_radius * sines[i], tip_radius * cosines[i], stem_height);
-        data.normals.emplace_back(-Vec3f::UnitZ());
+        append_vertex(data, { tip_radius * sines[i], tip_radius * cosines[i], stem_height }, -Vec3f::UnitZ());
     }
 
     // tip cap inner perimeter vertices
     for (int i = 0; i < resolution; ++i)
     {
-        data.positions.emplace_back(stem_radius * sines[i], stem_radius * cosines[i], stem_height);
-        data.normals.emplace_back(-Vec3f::UnitZ());
+        append_vertex(data, { stem_radius * sines[i], stem_radius * cosines[i], stem_height }, -Vec3f::UnitZ());
     }
 
     // tip cap triangles
@@ -191,15 +193,13 @@ GLModelInitializationData stilized_arrow(int resolution, float tip_radius, float
     // stem bottom vertices
     for (int i = 0; i < resolution; ++i)
     {
-        data.positions.emplace_back(stem_radius * sines[i], stem_radius * cosines[i], stem_height);
-        data.normals.emplace_back(sines[i], cosines[i], 0.0f);
+        append_vertex(data, { stem_radius * sines[i], stem_radius * cosines[i], stem_height }, { sines[i], cosines[i], 0.0f });
     }
 
     // stem top vertices
     for (int i = 0; i < resolution; ++i)
     {
-        data.positions.emplace_back(stem_radius * sines[i], stem_radius * cosines[i], 0.0f);
-        data.normals.emplace_back(sines[i], cosines[i], 0.0f);
+        append_vertex(data, { stem_radius * sines[i], stem_radius * cosines[i], 0.0f }, { sines[i], cosines[i], 0.0f });
     }
 
     // stem triangles
@@ -212,12 +212,10 @@ GLModelInitializationData stilized_arrow(int resolution, float tip_radius, float
     }
 
     // stem cap vertices
-    data.positions.emplace_back(0.0f, 0.0f, 0.0f);
-    data.normals.emplace_back(-Vec3f::UnitZ());
+    append_vertex(data, Vec3f::Zero(), -Vec3f::UnitZ());
     for (int i = 0; i < resolution; ++i)
     {
-        data.positions.emplace_back(stem_radius* sines[i], stem_radius* cosines[i], 0.0f);
-        data.normals.emplace_back(-Vec3f::UnitZ());
+        append_vertex(data, { stem_radius * sines[i], stem_radius * cosines[i], 0.0f }, -Vec3f::UnitZ());
     }
 
     // stem cap triangles
@@ -225,6 +223,154 @@ GLModelInitializationData stilized_arrow(int resolution, float tip_radius, float
     {
         int v3 = (i < resolution - 1) ? i + 5 * resolution + 3 : 5 * resolution + 2;
         data.triangles.emplace_back(5 * resolution + 1, v3, i + 5 * resolution + 2);
+    }
+
+    return data;
+}
+
+GLModelInitializationData circular_arrow(int resolution, float radius, float tip_height, float tip_width, float stem_width, float thickness)
+{
+    auto append_vertex = [](GLModelInitializationData& data, const Vec3f& position, const Vec3f& normal) {
+        data.positions.emplace_back(position);
+        data.normals.emplace_back(normal);
+    };
+
+    resolution = std::max(2, resolution);
+
+    GLModelInitializationData data;
+
+    const float half_thickness = 0.5f * thickness;
+    const float half_stem_width = 0.5f * stem_width;
+    const float half_tip_width = 0.5f * tip_width;
+
+    const float outer_radius = radius + half_stem_width;
+    const float inner_radius = radius - half_stem_width;
+    const float step_angle = 0.5f * PI / static_cast<float>(resolution);
+
+    // tip
+    // top face vertices
+    append_vertex(data, { 0.0f, outer_radius, half_thickness }, Vec3f::UnitZ());
+    append_vertex(data, { 0.0f, radius + half_tip_width, half_thickness }, Vec3f::UnitZ());
+    append_vertex(data, { -tip_height, radius, half_thickness }, Vec3f::UnitZ());
+    append_vertex(data, { 0.0f, radius - half_tip_width, half_thickness }, Vec3f::UnitZ());
+    append_vertex(data, { 0.0f, inner_radius, half_thickness }, Vec3f::UnitZ());
+
+    // top face triangles
+    data.triangles.emplace_back(0, 1, 2);
+    data.triangles.emplace_back(0, 2, 4);
+    data.triangles.emplace_back(4, 2, 3);
+
+    // bottom face vertices
+    append_vertex(data, { 0.0f, outer_radius, -half_thickness }, -Vec3f::UnitZ());
+    append_vertex(data, { 0.0f, radius + half_tip_width, -half_thickness }, -Vec3f::UnitZ());
+    append_vertex(data, { -tip_height, radius, -half_thickness }, -Vec3f::UnitZ());
+    append_vertex(data, { 0.0f, radius - half_tip_width, -half_thickness }, -Vec3f::UnitZ());
+    append_vertex(data, { 0.0f, inner_radius, -half_thickness }, -Vec3f::UnitZ());
+
+    // bottom face triangles
+    data.triangles.emplace_back(5, 7, 6);
+    data.triangles.emplace_back(5, 9, 7);
+    data.triangles.emplace_back(9, 8, 7);
+
+    // side faces vertices
+    append_vertex(data, { 0.0f, outer_radius, half_thickness }, Vec3f::UnitX());
+    append_vertex(data, { 0.0f, radius + half_tip_width, half_thickness }, Vec3f::UnitY());
+    append_vertex(data, { -tip_height, radius, half_thickness }, -Vec3f::UnitX());
+    append_vertex(data, { 0.0f, radius - half_tip_width, half_thickness }, -Vec3f::UnitY());
+    append_vertex(data, { 0.0f, inner_radius, half_thickness }, Vec3f::UnitX());
+
+    append_vertex(data, { 0.0f, outer_radius, -half_thickness }, Vec3f::UnitX());
+    append_vertex(data, { 0.0f, radius + half_tip_width, -half_thickness }, Vec3f::UnitY());
+    append_vertex(data, { -tip_height, radius, -half_thickness }, -Vec3f::UnitX());
+    append_vertex(data, { 0.0f, radius - half_tip_width, -half_thickness }, -Vec3f::UnitY());
+    append_vertex(data, { 0.0f, inner_radius, -half_thickness }, Vec3f::UnitX());
+
+    // side faces triangles
+    for (int i = 0; i < 4; ++i)
+    {
+        data.triangles.emplace_back(15 + i, 11 + i, 10 + i);
+        data.triangles.emplace_back(15 + i, 16 + i, 11 + i);
+    }
+
+    // stem
+    // top face vertices
+    for (int i = 0; i <= resolution; ++i)
+    {
+        float angle = static_cast<float>(i) * step_angle;
+        append_vertex(data, { inner_radius * ::sin(angle), inner_radius * ::cos(angle), half_thickness }, Vec3f::UnitZ());
+    }
+
+    for (int i = 0; i <= resolution; ++i)
+    {
+        float angle = static_cast<float>(i) * step_angle;
+        append_vertex(data, { outer_radius * ::sin(angle), outer_radius * ::cos(angle), half_thickness }, Vec3f::UnitZ());
+    }
+
+    // top face triangles
+    for (int i = 0; i < resolution; ++i)
+    {
+        data.triangles.emplace_back(20 + i, 21 + i, 21 + resolution + i);
+        data.triangles.emplace_back(21 + i, 22 + resolution + i, 21 + resolution + i);
+    }
+
+    // bottom face vertices
+    for (int i = 0; i <= resolution; ++i)
+    {
+        float angle = static_cast<float>(i) * step_angle;
+        append_vertex(data, { inner_radius * ::sin(angle), inner_radius * ::cos(angle), -half_thickness }, -Vec3f::UnitZ());
+    }
+
+    for (int i = 0; i <= resolution; ++i)
+    {
+        float angle = static_cast<float>(i) * step_angle;
+        append_vertex(data, { outer_radius * ::sin(angle), outer_radius * ::cos(angle), -half_thickness }, -Vec3f::UnitZ());
+    }
+
+    // bottom face triangles
+    for (int i = 0; i < resolution; ++i)
+    {
+        data.triangles.emplace_back(22 + 2 * resolution + i, 23 + 3 * resolution + i, 23 + 2 * resolution + i);
+        data.triangles.emplace_back(23 + 2 * resolution + i, 23 + 3 * resolution + i, 24 + 3 * resolution + i);
+    }
+
+    // side faces vertices
+    for (int i = 0; i <= resolution; ++i)
+    {
+        float angle = static_cast<float>(i) * step_angle;
+        float c = ::cos(angle);
+        float s = ::sin(angle);
+        append_vertex(data, { inner_radius * s, inner_radius * c, half_thickness }, { -s, -c, 0.0f});
+    }
+
+    for (int i = resolution; i >= 0; --i)
+    {
+        float angle = static_cast<float>(i) * step_angle;
+        float c = ::cos(angle);
+        float s = ::sin(angle);
+        append_vertex(data, { outer_radius * s, outer_radius * c, half_thickness }, { s, c, 0.0f });
+    }
+
+    for (int i = 0; i <= resolution; ++i)
+    {
+        float angle = static_cast<float>(i) * step_angle;
+        float c = ::cos(angle);
+        float s = ::sin(angle);
+        append_vertex(data, { inner_radius * s, inner_radius * c, -half_thickness }, { -s, -c, 0.0f });
+    }
+
+    for (int i = resolution; i >= 0; --i)
+    {
+        float angle = static_cast<float>(i) * step_angle;
+        float c = ::cos(angle);
+        float s = ::sin(angle);
+        append_vertex(data, { outer_radius * s, outer_radius * c, -half_thickness }, { s, c, 0.0f });
+    }
+
+    // side faces triangles
+    for (int i = 0; i < 2 * resolution + 1; ++i)
+    {
+        data.triangles.emplace_back(20 + 6 * (resolution + 1) + i, 21 + 6 * (resolution + 1) + i, 21 + 4 * (resolution + 1) + i);
+        data.triangles.emplace_back(20 + 6 * (resolution + 1) + i, 21 + 4 * (resolution + 1) + i, 20 + 4 * (resolution + 1) + i);
     }
 
     return data;

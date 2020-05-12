@@ -47,6 +47,11 @@ namespace GUI {
     GLModelInitializationData stilized_arrow(int resolution, float tip_radius, float tip_height,
         float stem_radius, float stem_height);
 
+    // create an arrow whose stem is a quarter of circle, with the given dimensions and resolution
+    // the origin of the arrow is in the center of the circle
+    // the arrow is contained in the 1st quadrant and is pointing counterclockwise
+    GLModelInitializationData circular_arrow(int resolution, float radius, float tip_height, float tip_width, float stem_width, float thickness);
+
 } // namespace GUI
 } // namespace Slic3r
 

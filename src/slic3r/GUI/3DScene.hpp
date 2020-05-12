@@ -648,6 +648,7 @@ protected:
     bool on_init() override;
 };
 
+#if !ENABLE_GCODE_VIEWER
 class GLCurvedArrow : public GLModel
 {
     unsigned int m_resolution;
@@ -658,6 +659,7 @@ public:
 protected:
     bool on_init() override;
 };
+#endif // !ENABLE_GCODE_VIEWER
 
 class GLBed : public GLModel
 {

@@ -4,6 +4,10 @@
 #include <set>
 #include "libslic3r/Geometry.hpp"
 #include "3DScene.hpp"
+#if ENABLE_GCODE_VIEWER
+#include "GLModel.hpp"
+#include "GLShader.hpp"
+#endif // ENABLE_GCODE_VIEWER
 
 #if ENABLE_RENDER_SELECTION_CENTER
 class GLUquadric;
@@ -201,7 +205,12 @@ private:
     GLUquadricObj* m_quadric;
 #endif // ENABLE_RENDER_SELECTION_CENTER
     mutable GLArrow m_arrow;
+#if ENABLE_GCODE_VIEWER
+    GL_Model m_curved_arrow;
+    Shader m_arrows_shader;
+#else
     mutable GLCurvedArrow m_curved_arrow;
+#endif // ENABLE_GCODE_VIEWER
 
     mutable float m_scale_factor;
 

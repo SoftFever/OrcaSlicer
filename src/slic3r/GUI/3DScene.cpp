@@ -2002,6 +2002,7 @@ bool GLArrow::on_init()
     return true;
 }
 
+#if !ENABLE_GCODE_VIEWER
 GLCurvedArrow::GLCurvedArrow(unsigned int resolution)
     : GLModel()
     , m_resolution(resolution)
@@ -2115,6 +2116,7 @@ bool GLCurvedArrow::on_init()
 	m_volume.indexed_vertex_array.finalize_geometry(true);
     return true;
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 bool GLBed::on_init_from_file(const std::string& filename)
 {
