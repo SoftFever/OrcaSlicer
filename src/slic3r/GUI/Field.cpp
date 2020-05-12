@@ -9,6 +9,7 @@
 #include <regex>
 #include <wx/numformatter.h>
 #include <wx/tooltip.h>
+#include <wx/notebook.h>
 #include <boost/algorithm/string/predicate.hpp>
 
 #ifdef __WXOSX__
