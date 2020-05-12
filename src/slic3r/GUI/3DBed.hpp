@@ -4,11 +4,16 @@
 #include "GLTexture.hpp"
 #include "3DScene.hpp"
 #include "GLShader.hpp"
+#if ENABLE_GCODE_VIEWER
+#include "GLModel.hpp"
+#endif // ENABLE_GCODE_VIEWER
 
 #include <tuple>
 
+#if !ENABLE_GCODE_VIEWER
 class GLUquadric;
 typedef class GLUquadric GLUquadricObj;
+#endif // !ENABLE_GCODE_VIEWER
 
 namespace Slic3r {
 namespace GUI {
@@ -45,22 +50,50 @@ public:
 
 class Bed3D
 {
+#if ENABLE_GCODE_VIEWER
+    class Axes
+    {
+        static const float DefaultStemRadius;
+        static const float DefaultStemLength;
+        static const float DefaultTipRadius;
+        static const float DefaultTipLength;
+#else
     struct Axes
     {
         static const double Radius;
         static const double ArrowBaseRadius;
         static const double ArrowLength;
+#endif // ENABLE_GCODE_VIEWER
+
+#if ENABLE_GCODE_VIEWER
+        Vec3d m_origin{ Vec3d::Zero() };
+        float m_stem_length{ DefaultStemLength };
+        mutable GL_Model m_arrow;
+        mutable Shader m_shader;
+
+    public:
+#else
         Vec3d origin;
         Vec3d length;
         GLUquadricObj* m_quadric;
+#endif // ENABLE_GCODE_VIEWER
 
+#if !ENABLE_GCODE_VIEWER
         Axes();
         ~Axes();
+#endif // !ENABLE_GCODE_VIEWER
 
+#if ENABLE_GCODE_VIEWER
+        void set_origin(const Vec3d& origin) { m_origin = origin; }
+        void set_stem_length(float length);
+        float get_total_length() const { return m_stem_length + DefaultTipLength; }
+#endif // ENABLE_GCODE_VIEWER
         void render() const;
 
+#if !ENABLE_GCODE_VIEWER
     private:
         void render_axis(double length) const;
+#endif // !ENABLE_GCODE_VIEWER
     };
 
 public:

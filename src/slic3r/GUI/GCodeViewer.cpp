@@ -147,7 +147,7 @@ GCodeViewer::Color GCodeViewer::Extrusions::Range::get_color_at(float value) con
 
 void GCodeViewer::SequentialView::Marker::init()
 {
-    m_model.init_from(stilized_arrow(16, 0.5f, 1.0f, 0.25f, 2.0f));
+    m_model.init_from(stilized_arrow(16, 2.0f, 4.0f, 1.0f, 8.0f));
     init_shader();
 }
 
@@ -320,7 +320,7 @@ void GCodeViewer::render() const
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_toolpaths();
-    m_sequential_view.marker.set_world_transform(Geometry::assemble_transform(m_sequential_view.current_position.cast<double>() + 0.5 * Vec3d::UnitZ(), { 0.0, 0.0, 0.0 }, { 4.0, 4.0, 4.0 }, { 1.0, 1.0, 1.0 }).cast<float>());
+    m_sequential_view.marker.set_world_transform(Geometry::assemble_transform(m_sequential_view.current_position.cast<double>() + (0.5 + 12.0) * Vec3d::UnitZ(), { M_PI, 0.0, 0.0 }).cast<float>());
     m_sequential_view.marker.render();
     render_shells();
     render_legend();
@@ -436,6 +436,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             m_bounding_box.merge(move.position.cast<double>());
         ::memcpy(static_cast<void*>(&vertices_data[i * 3]), static_cast<const void*>(move.position.data()), 3 * sizeof(float));
     }
+
+    m_bounding_box.merge(m_bounding_box.max + m_sequential_view.marker.get_bounding_box().max[2] * Vec3d::UnitZ());
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.vertices_size = SLIC3R_STDVEC_MEMSIZE(vertices_data, float);

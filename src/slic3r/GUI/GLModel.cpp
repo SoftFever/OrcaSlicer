@@ -9,12 +9,14 @@
 namespace Slic3r {
 namespace GUI {
 
-bool GL_Model::init_from(const GLModelInitializationData& data)
+void GL_Model::init_from(const GLModelInitializationData& data)
 {
+
     assert(!data.positions.empty() && !data.triangles.empty());
     assert(data.positions.size() == data.normals.size());
 
-    reset();
+    if (m_vbo_id > 0) // call reset() if you want to reuse this model
+        return;
 
     // vertices/normals data
     std::vector<float> vertices(6 * data.positions.size());
@@ -32,19 +34,22 @@ bool GL_Model::init_from(const GLModelInitializationData& data)
     }
 
     m_indices_count = static_cast<unsigned int>(indices.size());
+    m_bounding_box = BoundingBoxf3();
+    for (size_t i = 0; i < data.positions.size(); ++i) {
+        m_bounding_box.merge(data.positions[i].cast<double>());
+    }
 
     send_to_gpu(vertices, indices);
-
-    return true;
 }
 
-bool GL_Model::init_from(const TriangleMesh& mesh)
+void GL_Model::init_from(const TriangleMesh& mesh)
 {
     auto get_normal = [](const std::array<stl_vertex, 3>& triangle) {
         return (triangle[1] - triangle[0]).cross(triangle[2] - triangle[0]).normalized();
     };
 
-    reset();
+    if (m_vbo_id > 0) // call reset() if you want to reuse this model
+        return;
 
     assert(!mesh.its.vertices.empty() && !mesh.its.indices.empty()); // call require_shared_vertices() before to pass the mesh to this method
 
@@ -68,10 +73,9 @@ bool GL_Model::init_from(const TriangleMesh& mesh)
     }
 
     m_indices_count = static_cast<unsigned int>(indices.size());
+    m_bounding_box = mesh.bounding_box();
 
     send_to_gpu(vertices, indices);
-
-    return true;
 }
 
 void GL_Model::reset()
@@ -88,6 +92,7 @@ void GL_Model::reset()
     }
 
     m_indices_count = 0;
+    m_bounding_box = BoundingBoxf3();
 }
 
 void GL_Model::render() const
@@ -142,12 +147,14 @@ GLModelInitializationData stilized_arrow(int resolution, float tip_radius, float
         sines[i] = -::sin(angle);
     }
 
+    float total_height = tip_height + stem_height;
+
     // tip vertices/normals
-    data.positions.emplace_back(0.0f, 0.0f, 0.0f);
-    data.normals.emplace_back(-Vec3f::UnitZ());
+    data.positions.emplace_back(0.0f, 0.0f, total_height);
+    data.normals.emplace_back(Vec3f::UnitZ());
     for (int i = 0; i < resolution; ++i)
     {
-        data.positions.emplace_back(tip_radius * sines[i], tip_radius * cosines[i], tip_height);
+        data.positions.emplace_back(tip_radius * sines[i], tip_radius * cosines[i], stem_height);
         data.normals.emplace_back(sines[i], cosines[i], 0.0f);
     }
 
@@ -155,21 +162,21 @@ GLModelInitializationData stilized_arrow(int resolution, float tip_radius, float
     for (int i = 0; i < resolution; ++i)
     {
         int v3 = (i < resolution - 1) ? i + 2 : 1;
-        data.triangles.emplace_back(0, v3, i + 1);
+        data.triangles.emplace_back(0, i + 1, v3);
     }
 
     // tip cap outer perimeter vertices
     for (int i = 0; i < resolution; ++i)
     {
-        data.positions.emplace_back(tip_radius * sines[i], tip_radius * cosines[i], tip_height);
-        data.normals.emplace_back(Vec3f::UnitZ());
+        data.positions.emplace_back(tip_radius * sines[i], tip_radius * cosines[i], stem_height);
+        data.normals.emplace_back(-Vec3f::UnitZ());
     }
 
     // tip cap inner perimeter vertices
     for (int i = 0; i < resolution; ++i)
     {
-        data.positions.emplace_back(stem_radius * sines[i], stem_radius * cosines[i], tip_height);
-        data.normals.emplace_back(Vec3f::UnitZ());
+        data.positions.emplace_back(stem_radius * sines[i], stem_radius * cosines[i], stem_height);
+        data.normals.emplace_back(-Vec3f::UnitZ());
     }
 
     // tip cap triangles
@@ -177,23 +184,21 @@ GLModelInitializationData stilized_arrow(int resolution, float tip_radius, float
     {
         int v2 = (i < resolution - 1) ? i + resolution + 2 : resolution + 1;
         int v3 = (i < resolution - 1) ? i + 2 * resolution + 2 : 2 * resolution + 1;
-        data.triangles.emplace_back(i + resolution + 1, v2, v3);
-        data.triangles.emplace_back(i + resolution + 1, v3, i + 2 * resolution + 1);
+        data.triangles.emplace_back(i + resolution + 1, v3, v2);
+        data.triangles.emplace_back(i + resolution + 1, i + 2 * resolution + 1, v3);
     }
 
     // stem bottom vertices
     for (int i = 0; i < resolution; ++i)
     {
-        data.positions.emplace_back(stem_radius * sines[i], stem_radius * cosines[i], tip_height);
+        data.positions.emplace_back(stem_radius * sines[i], stem_radius * cosines[i], stem_height);
         data.normals.emplace_back(sines[i], cosines[i], 0.0f);
     }
-
-    float total_height = tip_height + stem_height;
 
     // stem top vertices
     for (int i = 0; i < resolution; ++i)
     {
-        data.positions.emplace_back(stem_radius * sines[i], stem_radius * cosines[i], total_height);
+        data.positions.emplace_back(stem_radius * sines[i], stem_radius * cosines[i], 0.0f);
         data.normals.emplace_back(sines[i], cosines[i], 0.0f);
     }
 
@@ -202,24 +207,24 @@ GLModelInitializationData stilized_arrow(int resolution, float tip_radius, float
     {
         int v2 = (i < resolution - 1) ? i + 3 * resolution + 2 : 3 * resolution + 1;
         int v3 = (i < resolution - 1) ? i + 4 * resolution + 2 : 4 * resolution + 1;
-        data.triangles.emplace_back(i + 3 * resolution + 1, v2, v3);
-        data.triangles.emplace_back(i + 3 * resolution + 1, v3, i + 4 * resolution + 1);
+        data.triangles.emplace_back(i + 3 * resolution + 1, v3, v2);
+        data.triangles.emplace_back(i + 3 * resolution + 1, i + 4 * resolution + 1, v3);
     }
 
     // stem cap vertices
-    data.positions.emplace_back(0.0f, 0.0f, total_height);
-    data.normals.emplace_back(Vec3f::UnitZ());
+    data.positions.emplace_back(0.0f, 0.0f, 0.0f);
+    data.normals.emplace_back(-Vec3f::UnitZ());
     for (int i = 0; i < resolution; ++i)
     {
-        data.positions.emplace_back(stem_radius * sines[i], stem_radius * cosines[i], total_height);
-        data.normals.emplace_back(Vec3f::UnitZ());
+        data.positions.emplace_back(stem_radius* sines[i], stem_radius* cosines[i], 0.0f);
+        data.normals.emplace_back(-Vec3f::UnitZ());
     }
 
     // stem cap triangles
     for (int i = 0; i < resolution; ++i)
     {
         int v3 = (i < resolution - 1) ? i + 5 * resolution + 3 : 5 * resolution + 2;
-        data.triangles.emplace_back(5 * resolution + 1, i + 5 * resolution + 2, v3);
+        data.triangles.emplace_back(5 * resolution + 1, v3, i + 5 * resolution + 2);
     }
 
     return data;

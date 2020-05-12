@@ -162,6 +162,8 @@ class GCodeViewer
         public:
             void init();
 
+            const BoundingBoxf3& get_bounding_box() const { return m_model.get_bounding_box(); }
+
             void set_world_transform(const Transform3f& transform) { m_world_transform = transform; }
             void set_color(const std::array<float, 4>& color) { m_color = color; }
 
