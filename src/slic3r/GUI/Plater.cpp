@@ -38,6 +38,7 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/SLA/Hollowing.hpp"
 #include "libslic3r/SLA/SupportPoint.hpp"
+#include "libslic3r/SLA/ReprojectPointsOnMesh.hpp"
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/PrintConfig.hpp"
@@ -3122,6 +3123,17 @@ void Plater::priv::reload_from_disk()
                     std::swap(old_model_object->volumes[sel_v.volume_idx], old_model_object->volumes.back());
                     old_model_object->delete_volume(old_model_object->volumes.size() - 1);
                     old_model_object->ensure_on_bed();
+
+                    std::unique_ptr<sla::EigenMesh3D> emesh;
+                    if (!old_model_object->sla_support_points.empty()) {
+                        emesh = std::make_unique<sla::EigenMesh3D>(old_model_object->raw_mesh());
+                        sla::reproject_support_points(*emesh, old_model_object->sla_support_points);
+                    }
+
+                    if (!old_model_object->sla_drain_holes.empty()) {
+                        if (!emesh) emesh = std::make_unique<sla::EigenMesh3D>(old_model_object->raw_mesh());
+                        sla::reproject_support_points(*emesh, old_model_object->sla_drain_holes);
+                    }
                 }
             }
         }
