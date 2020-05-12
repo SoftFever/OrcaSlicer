@@ -754,6 +754,7 @@ private:
 #if ENABLE_RENDER_SELECTION_CENTER
     void _render_selection_center() const;
 #endif // ENABLE_RENDER_SELECTION_CENTER
+    void _check_and_update_toolbar_icon_scale() const;
     void _render_overlays() const;
     void _render_warning_texture() const;
     void _render_legend_texture() const;

@@ -627,6 +627,16 @@ float GLToolbar::get_main_size() const
     return size * m_layout.scale;
 }
 
+int GLToolbar::get_visible_items_cnt() const
+{
+    int cnt = 0;
+    for (unsigned int i = 0; i < (unsigned int)m_items.size(); ++i)
+        if (m_items[i]->is_visible() && !m_items[i]->is_separator())
+            cnt++;
+
+    return cnt;
+}
+
 void GLToolbar::do_action(GLToolbarItem::EActionType type, int item_id, GLCanvas3D& parent, bool check_hover)
 {
     if ((m_pressed_toggable_id == -1) || (m_pressed_toggable_id == item_id))

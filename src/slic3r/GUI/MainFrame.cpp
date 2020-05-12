@@ -7,7 +7,7 @@
 #include <wx/menu.h>
 #include <wx/progdlg.h>
 #include <wx/tooltip.h>
-#include <wx/glcanvas.h>
+//#include <wx/glcanvas.h>
 #include <wx/debug.h>
 
 #include <boost/algorithm/string/predicate.hpp>

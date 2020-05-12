@@ -226,6 +226,8 @@ public:
 
     void update_after_undo_redo(const UndoRedo::Snapshot& snapshot);
 
+    int get_selectable_icons_cnt() const { return get_selectable_idxs().size(); }
+
 private:
     void render_background(float left, float top, float right, float bottom, float border) const;
     void do_render_overlay() const;
