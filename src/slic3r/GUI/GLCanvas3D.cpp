@@ -5976,7 +5976,11 @@ void GLCanvas3D::_render_sla_slices() const
 
 void GLCanvas3D::_render_selection_sidebar_hints() const
 {
+#if ENABLE_GCODE_VIEWER
+    m_selection.render_sidebar_hints(m_sidebar_field);
+#else
     m_selection.render_sidebar_hints(m_sidebar_field, m_shader);
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void GLCanvas3D::_update_volumes_hover_state() const

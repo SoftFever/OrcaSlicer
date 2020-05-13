@@ -376,5 +376,102 @@ GLModelInitializationData circular_arrow(int resolution, float radius, float tip
     return data;
 }
 
+GLModelInitializationData straight_arrow(float tip_width, float tip_height, float stem_width, float stem_height, float thickness)
+{
+    auto append_vertex = [](GLModelInitializationData& data, const Vec3f& position, const Vec3f& normal) {
+        data.positions.emplace_back(position);
+        data.normals.emplace_back(normal);
+    };
+
+    GLModelInitializationData data;
+
+    const float half_thickness = 0.5f * thickness;
+    const float half_stem_width = 0.5f * stem_width;
+    const float half_tip_width = 0.5f * tip_width;
+    const float total_height = tip_height + stem_height;
+
+    // top face vertices
+    append_vertex(data, { half_stem_width, 0.0, half_thickness }, Vec3f::UnitZ());
+    append_vertex(data, { half_stem_width, stem_height, half_thickness }, Vec3f::UnitZ());
+    append_vertex(data, { half_tip_width, stem_height, half_thickness }, Vec3f::UnitZ());
+    append_vertex(data, { 0.0, total_height, half_thickness }, Vec3f::UnitZ());
+    append_vertex(data, { -half_tip_width, stem_height, half_thickness }, Vec3f::UnitZ());
+    append_vertex(data, { -half_stem_width, stem_height, half_thickness }, Vec3f::UnitZ());
+    append_vertex(data, { -half_stem_width, 0.0, half_thickness }, Vec3f::UnitZ());
+
+    // top face triangles
+    data.triangles.emplace_back(0, 1, 6);
+    data.triangles.emplace_back(6, 1, 5);
+    data.triangles.emplace_back(4, 5, 3);
+    data.triangles.emplace_back(5, 1, 3);
+    data.triangles.emplace_back(1, 2, 3);
+
+    // bottom face vertices
+    append_vertex(data, { half_stem_width, 0.0, -half_thickness }, -Vec3f::UnitZ());
+    append_vertex(data, { half_stem_width, stem_height, -half_thickness }, -Vec3f::UnitZ());
+    append_vertex(data, { half_tip_width, stem_height, -half_thickness }, -Vec3f::UnitZ());
+    append_vertex(data, { 0.0, total_height, -half_thickness }, -Vec3f::UnitZ());
+    append_vertex(data, { -half_tip_width, stem_height, -half_thickness }, -Vec3f::UnitZ());
+    append_vertex(data, { -half_stem_width, stem_height, -half_thickness }, -Vec3f::UnitZ());
+    append_vertex(data, { -half_stem_width, 0.0, -half_thickness }, -Vec3f::UnitZ());
+
+    // bottom face triangles
+    data.triangles.emplace_back(7, 13, 8);
+    data.triangles.emplace_back(13, 12, 8);
+    data.triangles.emplace_back(12, 11, 10);
+    data.triangles.emplace_back(8, 12, 10);
+    data.triangles.emplace_back(9, 8, 10);
+
+    // side faces vertices
+    append_vertex(data, { half_stem_width, 0.0, -half_thickness }, Vec3f::UnitX());
+    append_vertex(data, { half_stem_width, stem_height, -half_thickness }, Vec3f::UnitX());
+    append_vertex(data, { half_stem_width, 0.0, half_thickness }, Vec3f::UnitX());
+    append_vertex(data, { half_stem_width, stem_height, half_thickness }, Vec3f::UnitX());
+
+    append_vertex(data, { half_stem_width, stem_height, -half_thickness }, -Vec3f::UnitY());
+    append_vertex(data, { half_tip_width, stem_height, -half_thickness }, -Vec3f::UnitY());
+    append_vertex(data, { half_stem_width, stem_height, half_thickness }, -Vec3f::UnitY());
+    append_vertex(data, { half_tip_width, stem_height, half_thickness }, -Vec3f::UnitY());
+
+    Vec3f normal(tip_height, half_tip_width, 0.0f);
+    normal.normalize();
+    append_vertex(data, { half_tip_width, stem_height, -half_thickness }, normal);
+    append_vertex(data, { 0.0, total_height, -half_thickness }, normal);
+    append_vertex(data, { half_tip_width, stem_height, half_thickness }, normal);
+    append_vertex(data, { 0.0, total_height, half_thickness }, normal);
+
+    normal = Vec3f(-tip_height, half_tip_width, 0.0f);
+    normal.normalize();
+    append_vertex(data, { 0.0, total_height, -half_thickness }, normal);
+    append_vertex(data, { -half_tip_width, stem_height, -half_thickness }, normal);
+    append_vertex(data, { 0.0, total_height, half_thickness }, normal);
+    append_vertex(data, { -half_tip_width, stem_height, half_thickness }, normal);
+
+    append_vertex(data, { -half_tip_width, stem_height, -half_thickness }, -Vec3f::UnitY());
+    append_vertex(data, { -half_stem_width, stem_height, -half_thickness }, -Vec3f::UnitY());
+    append_vertex(data, { -half_tip_width, stem_height, half_thickness }, -Vec3f::UnitY());
+    append_vertex(data, { -half_stem_width, stem_height, half_thickness }, -Vec3f::UnitY());
+
+    append_vertex(data, { -half_stem_width, stem_height, -half_thickness }, -Vec3f::UnitX());
+    append_vertex(data, { -half_stem_width, 0.0, -half_thickness }, -Vec3f::UnitX());
+    append_vertex(data, { -half_stem_width, stem_height, half_thickness }, -Vec3f::UnitX());
+    append_vertex(data, { -half_stem_width, 0.0, half_thickness }, -Vec3f::UnitX());
+
+    append_vertex(data, { -half_stem_width, 0.0, -half_thickness }, -Vec3f::UnitY());
+    append_vertex(data, { half_stem_width, 0.0, -half_thickness }, -Vec3f::UnitY());
+    append_vertex(data, { -half_stem_width, 0.0, half_thickness }, -Vec3f::UnitY());
+    append_vertex(data, { half_stem_width, 0.0, half_thickness }, -Vec3f::UnitY());
+
+    // side face triangles
+    for (int i = 0; i < 7; ++i)
+    {
+        int ii = i * 4;
+        data.triangles.emplace_back(14 + ii, 15 + ii, 17 + ii);
+        data.triangles.emplace_back(14 + ii, 17 + ii, 16 + ii);
+    }
+
+    return data;
+}
+
 } // namespace GUI
 } // namespace Slic3r

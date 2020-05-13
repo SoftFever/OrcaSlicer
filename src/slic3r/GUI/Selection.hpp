@@ -204,11 +204,12 @@ private:
 #if ENABLE_RENDER_SELECTION_CENTER
     GLUquadricObj* m_quadric;
 #endif // ENABLE_RENDER_SELECTION_CENTER
-    mutable GLArrow m_arrow;
 #if ENABLE_GCODE_VIEWER
+    GL_Model m_arrow;
     GL_Model m_curved_arrow;
     Shader m_arrows_shader;
 #else
+    mutable GLArrow m_arrow;
     mutable GLCurvedArrow m_curved_arrow;
 #endif // ENABLE_GCODE_VIEWER
 
@@ -325,7 +326,11 @@ public:
 #if ENABLE_RENDER_SELECTION_CENTER
     void render_center(bool gizmo_is_dragging) const;
 #endif // ENABLE_RENDER_SELECTION_CENTER
+#if ENABLE_GCODE_VIEWER
+    void render_sidebar_hints(const std::string& sidebar_field) const;
+#else
     void render_sidebar_hints(const std::string& sidebar_field, const Shader& shader) const;
+#endif // ENABLE_GCODE_VIEWER
 
     bool requires_local_axes() const;
 
@@ -368,10 +373,14 @@ private:
     void render_sidebar_scale_hints(const std::string& sidebar_field) const;
     void render_sidebar_size_hints(const std::string& sidebar_field) const;
     void render_sidebar_layers_hints(const std::string& sidebar_field) const;
+#if !ENABLE_GCODE_VIEWER
     void render_sidebar_position_hint(Axis axis) const;
+#endif // !ENABLE_GCODE_VIEWER
     void render_sidebar_rotation_hint(Axis axis) const;
     void render_sidebar_scale_hint(Axis axis) const;
+#if !ENABLE_GCODE_VIEWER
     void render_sidebar_size_hint(Axis axis, double length) const;
+#endif // !ENABLE_GCODE_VIEWER
 
 public:
     enum SyncRotationType {

@@ -109,12 +109,8 @@ void Selection::set_volumes(GLVolumePtrs* volumes)
 // Init shall be called from the OpenGL render function, so that the OpenGL context is initialized!
 bool Selection::init()
 {
-    if (!m_arrow.init())
-        return false;
-
-    m_arrow.set_scale(5.0 * Vec3d::Ones());
-
 #if ENABLE_GCODE_VIEWER
+    m_arrow.init_from(straight_arrow(10.0f, 5.0f, 5.0f, 10.0f, 1.0f));
     m_curved_arrow.init_from(circular_arrow(16, 10.0f, 5.0f, 10.0f, 5.0f, 1.0f));
 
     if (!m_arrows_shader.init("gouraud_light.vs", "gouraud_light.fs"))
@@ -123,6 +119,11 @@ bool Selection::init()
         return false;
     }
 #else
+    if (!m_arrow.init())
+        return false;
+
+    m_arrow.set_scale(5.0 * Vec3d::Ones());
+
     if (!m_curved_arrow.init())
         return false;
 
@@ -1243,16 +1244,28 @@ void Selection::render_center(bool gizmo_is_dragging) const
 }
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
+#if ENABLE_GCODE_VIEWER
+void Selection::render_sidebar_hints(const std::string& sidebar_field) const
+#else
 void Selection::render_sidebar_hints(const std::string& sidebar_field, const Shader& shader) const
+#endif // ENABLE_GCODE_VIEWER
 {
     if (sidebar_field.empty())
         return;
 
     if (!boost::starts_with(sidebar_field, "layer"))
     {
+#if ENABLE_GCODE_VIEWER
+        if (!m_arrows_shader.is_initialized())
+            return;
+
+        m_arrows_shader.start_using();
+        glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
+#else
         shader.start_using();
         glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
         glsafe(::glEnable(GL_LIGHTING));
+#endif // ENABLE_GCODE_VIEWER
     }
 
     glsafe(::glEnable(GL_DEPTH_TEST));
@@ -1323,8 +1336,12 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, const Sha
 
     if (!boost::starts_with(sidebar_field, "layer"))
     {
+#if ENABLE_GCODE_VIEWER
+        m_arrows_shader.stop_using();
+#else
         glsafe(::glDisable(GL_LIGHTING));
         shader.stop_using();
+#endif // ENABLE_GCODE_VIEWER
     }
 }
 
@@ -1927,6 +1944,33 @@ void Selection::render_bounding_box(const BoundingBoxf3& box, float* color) cons
 
 void Selection::render_sidebar_position_hints(const std::string& sidebar_field) const
 {
+#if ENABLE_GCODE_VIEWER
+    GLint color_id = ::glGetUniformLocation(m_arrows_shader.get_shader_program_id(), "uniform_color");
+
+    if (boost::ends_with(sidebar_field, "x"))
+    {
+        if (color_id >= 0)
+            glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)AXES_COLOR[0]));
+
+        glsafe(::glRotated(-90.0, 0.0, 0.0, 1.0));
+        m_arrow.render();
+    }
+    else if (boost::ends_with(sidebar_field, "y"))
+    {
+        if (color_id >= 0)
+            glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)AXES_COLOR[1]));
+
+        m_arrow.render();
+    }
+    else if (boost::ends_with(sidebar_field, "z"))
+    {
+        if (color_id >= 0)
+            glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)AXES_COLOR[2]));
+
+        glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
+        m_arrow.render();
+    }
+#else
     if (boost::ends_with(sidebar_field, "x"))
     {
         glsafe(::glRotated(-90.0, 0.0, 0.0, 1.0));
@@ -1939,15 +1983,12 @@ void Selection::render_sidebar_position_hints(const std::string& sidebar_field) 
         glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
         render_sidebar_position_hint(Z);
     }
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) const
 {
 #if ENABLE_GCODE_VIEWER
-    if (!m_arrows_shader.is_initialized())
-        return;
-
-    m_arrows_shader.start_using();
     GLint color_id = ::glGetUniformLocation(m_arrows_shader.get_shader_program_id(), "uniform_color");
 
     if (boost::ends_with(sidebar_field, "x"))
@@ -1973,9 +2014,6 @@ void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) 
 
         render_sidebar_rotation_hint(Z);
     }
-
-    m_arrows_shader.stop_using();
-
 #else
     if (boost::ends_with(sidebar_field, "x"))
     {
@@ -1996,6 +2034,7 @@ void Selection::render_sidebar_scale_hints(const std::string& sidebar_field) con
 {
     bool uniform_scale = requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling();
 
+#if ENABLE_GCODE_VIEWER
     if (boost::ends_with(sidebar_field, "x") || uniform_scale)
     {
         glsafe(::glPushMatrix());
@@ -2018,6 +2057,30 @@ void Selection::render_sidebar_scale_hints(const std::string& sidebar_field) con
         render_sidebar_scale_hint(Z);
         glsafe(::glPopMatrix());
     }
+#else
+    if (boost::ends_with(sidebar_field, "x") || uniform_scale)
+    {
+        glsafe(::glPushMatrix());
+        glsafe(::glRotated(-90.0, 0.0, 0.0, 1.0));
+        render_sidebar_scale_hint(X);
+        glsafe(::glPopMatrix());
+    }
+
+    if (boost::ends_with(sidebar_field, "y") || uniform_scale)
+    {
+        glsafe(::glPushMatrix());
+        render_sidebar_scale_hint(Y);
+        glsafe(::glPopMatrix());
+    }
+
+    if (boost::ends_with(sidebar_field, "z") || uniform_scale)
+    {
+        glsafe(::glPushMatrix());
+        glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
+        render_sidebar_scale_hint(Z);
+        glsafe(::glPopMatrix());
+    }
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void Selection::render_sidebar_size_hints(const std::string& sidebar_field) const
@@ -2097,11 +2160,13 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
     glsafe(::glDisable(GL_BLEND));
 }
 
+#if !ENABLE_GCODE_VIEWER
 void Selection::render_sidebar_position_hint(Axis axis) const
 {
     m_arrow.set_color(AXES_COLOR[axis], 3);
     m_arrow.render();
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 void Selection::render_sidebar_rotation_hint(Axis axis) const
 {
@@ -2115,7 +2180,14 @@ void Selection::render_sidebar_rotation_hint(Axis axis) const
 
 void Selection::render_sidebar_scale_hint(Axis axis) const
 {
+#if ENABLE_GCODE_VIEWER
+    GLint color_id = ::glGetUniformLocation(m_arrows_shader.get_shader_program_id(), "uniform_color");
+
+    if (color_id >= 0)
+        glsafe(::glUniform4fv(color_id, 1, (requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling()) ? (const GLfloat*)UNIFORM_SCALE_COLOR : (const GLfloat*)AXES_COLOR[axis]));
+#else
     m_arrow.set_color(((requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling()) ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis]), 3);
+#endif // ENABLE_GCODE_VIEWER
 
     glsafe(::glTranslated(0.0, 5.0, 0.0));
     m_arrow.render();
@@ -2125,9 +2197,11 @@ void Selection::render_sidebar_scale_hint(Axis axis) const
     m_arrow.render();
 }
 
+#if !ENABLE_GCODE_VIEWER
 void Selection::render_sidebar_size_hint(Axis axis, double length) const
 {
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 #ifndef NDEBUG
 static bool is_rotation_xy_synchronized(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)

@@ -49,8 +49,13 @@ namespace GUI {
 
     // create an arrow whose stem is a quarter of circle, with the given dimensions and resolution
     // the origin of the arrow is in the center of the circle
-    // the arrow is contained in the 1st quadrant and is pointing counterclockwise
+    // the arrow is contained in the 1st quadrant of the XY plane and is pointing counterclockwise
     GLModelInitializationData circular_arrow(int resolution, float radius, float tip_height, float tip_width, float stem_width, float thickness);
+
+    // create an arrow with the given dimensions
+    // the origin of the arrow is in the center of the stem cap
+    // the arrow is contained in XY plane and has its main axis along the Y axis
+    GLModelInitializationData straight_arrow(float tip_width, float tip_height, float stem_width, float stem_height, float thickness);
 
 } // namespace GUI
 } // namespace Slic3r
