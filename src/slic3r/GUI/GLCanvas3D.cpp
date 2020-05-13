@@ -1438,7 +1438,7 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas
 #if ENABLE_SLOPE_RENDERING
 void GLCanvas3D::Slope::render() const
 {
-    if (is_shown())
+    if (m_dialog_shown)
     {
         const std::array<float, 2>& z_range = m_volumes.get_slope_z_range();
         std::array<float, 2> angle_range = { Geometry::rad2deg(::acos(z_range[0])) - 90.0f, Geometry::rad2deg(::acos(z_range[1])) - 90.0f };
@@ -1449,29 +1449,41 @@ void GLCanvas3D::Slope::render() const
         imgui.set_next_window_pos((float)cnv_size.get_width(), (float)cnv_size.get_height(), ImGuiCond_Always, 1.0f, 1.0f);
         imgui.begin(_(L("Slope visualization")), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
-        imgui.text(_(L("Facets' normal angle range (degrees)")) + ":");
+        imgui.text(_(L("Facets' slope range (degrees)")) + ":");
 
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.75f, 0.75f, 0.0f, 0.5f));
-        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(1.0f, 1.0f, 0.0f, 0.5f));
-        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.85f, 0.85f, 0.0f, 0.5f));
-        ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.25f, 0.25f, 0.0f, 1.0f));
-        if (ImGui::SliderFloat("##yellow", &angle_range[0], 0.0f, 90.0f, "%.1f"))
-        {
-            modified = true;
-            if (angle_range[1] < angle_range[0])
-                angle_range[1] = angle_range[0];
-        }
-        ImGui::PopStyleColor(4);
         ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.75f, 0.0f, 0.0f, 0.5f));
         ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(1.0f, 0.0f, 0.0f, 0.5f));
         ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.85f, 0.0f, 0.0f, 0.5f));
         ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.25f, 0.0f, 0.0f, 1.0f));
-        if (ImGui::SliderFloat("##red", &angle_range[1], 0.0f, 90.0f, "%.1f"))
+
+        // angle_range is range of normal angle, GUI should
+        // show facet slope angle
+        float slope_bound = 90.f - angle_range[1];
+        bool mod = ImGui::SliderFloat("##red", &slope_bound, 0.0f, 90.0f, "%.1f");
+        angle_range[1] = 90.f - slope_bound;
+        if (mod)
         {
             modified = true;
             if (angle_range[0] > angle_range[1])
                 angle_range[0] = angle_range[1];
         }
+
+        ImGui::PopStyleColor(4);
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.75f, 0.75f, 0.0f, 0.5f));
+                ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(1.0f, 1.0f, 0.0f, 0.5f));
+                ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.85f, 0.85f, 0.0f, 0.5f));
+                ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.25f, 0.25f, 0.0f, 1.0f));
+
+        slope_bound = 90.f - angle_range[0];
+        mod = ImGui::SliderFloat("##yellow", &slope_bound, 0.0f, 90.0f, "%.1f");
+        angle_range[0] = 90.f - slope_bound;
+        if (mod)
+        {
+            modified = true;
+            if (angle_range[1] < angle_range[0])
+                angle_range[1] = angle_range[0];
+        }
+
         ImGui::PopStyleColor(4);
 
         ImGui::Separator();
@@ -1486,7 +1498,7 @@ void GLCanvas3D::Slope::render() const
         imgui.end();
 
         if (modified)
-            m_volumes.set_slope_z_range({ -::cos(Geometry::deg2rad(90.0f - angle_range[0])), -::cos(Geometry::deg2rad(90.0f - angle_range[1])) });
+            set_range(angle_range);
     }
     }
 #endif // ENABLE_SLOPE_RENDERING
@@ -1868,8 +1880,8 @@ bool GLCanvas3D::is_reload_delayed() const
 void GLCanvas3D::enable_layers_editing(bool enable)
 {
 #if ENABLE_SLOPE_RENDERING
-    if (enable && m_slope.is_shown())
-        m_slope.show(false);
+    if (enable && m_slope.is_dialog_shown())
+        m_slope.show_dialog(false);
 #endif // ENABLE_SLOPE_RENDERING
 
     m_layers_editing.set_enabled(enable);
@@ -3098,7 +3110,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'd': {
                     if (!is_layers_editing_enabled())
                     {
-                        m_slope.show(!m_slope.is_shown());
+                        m_slope.show_dialog(!m_slope.is_dialog_shown());
                         m_dirty = true;
                     }
                     break;
@@ -3697,7 +3709,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
         else if (evt.LeftDown() && (evt.ShiftDown() || evt.AltDown()) && m_picking_enabled)
         {
-            if (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports)
+            if (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports
+             && m_gizmos.get_current_type() != GLGizmosManager::FdmSupports)
             {
                 m_rectangle_selection.start_dragging(m_mouse.position, evt.ShiftDown() ? GLSelectionRectangle::Select : GLSelectionRectangle::Deselect);
                 m_dirty = true;
@@ -4492,7 +4505,7 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
     bool action_taken = false;
     ImGuiWrapper* imgui = wxGetApp().imgui();
 
-    const float x = pos_x * (float)wxGetApp().plater()->get_camera().get_zoom() + 0.5f * (float)get_canvas_size().get_width();
+    const float x = /*pos_x * (float)wxGetApp().plater()->get_camera().get_zoom() + */0.5f * (float)get_canvas_size().get_width();
     imgui->set_next_window_pos(x, m_main_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
     std::string title = L("Search");
     imgui->begin(_(title), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
@@ -5630,6 +5643,44 @@ void GLCanvas3D::_render_selection_center() const
 }
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
+void GLCanvas3D::_check_and_update_toolbar_icon_scale() const
+{
+    float scale = wxGetApp().toolbar_icon_scale();
+    Size cnv_size = get_canvas_size();
+
+    float size = GLToolbar::Default_Icons_Size * scale;
+
+    // Set current size for all top toolbars. It will be used for next calculations
+#if ENABLE_RETINA_GL
+    const float sc = m_retina_helper->get_scale_factor() * scale;
+    m_main_toolbar.set_scale(sc);
+    m_undoredo_toolbar.set_scale(sc);
+    m_collapse_toolbar.set_scale(sc);
+#else
+    m_main_toolbar.set_icons_size(size);
+    m_undoredo_toolbar.set_icons_size(size);
+    m_collapse_toolbar.set_icons_size(size);
+#endif // ENABLE_RETINA_GL
+
+    float top_tb_width  = m_main_toolbar.get_width() + m_undoredo_toolbar.get_width() + m_collapse_toolbar.get_width();
+    int   items_cnt     = m_main_toolbar.get_visible_items_cnt() + m_undoredo_toolbar.get_visible_items_cnt() + m_collapse_toolbar.get_visible_items_cnt();
+    float noitems_width = top_tb_width - size * items_cnt; // width of separators and borders in top toolbars 
+
+    // calculate scale needed for items in all top toolbars
+    float new_h_scale = (cnv_size.get_width() - noitems_width) / (items_cnt * GLToolbar::Default_Icons_Size);
+
+    items_cnt = m_gizmos.get_selectable_icons_cnt() + 3; // +3 means a place for top and view toolbars and separators in gizmos toolbar
+
+    // calculate scale needed for items in the gizmos toolbar
+    float new_v_scale = cnv_size.get_height() / (items_cnt * GLGizmosManager::Default_Icons_Size);
+
+    // set minimum scale as a auto scale for the toolbars
+    float new_scale = std::min(new_h_scale, new_v_scale);
+    if (fabs(new_scale - scale) > EPSILON)
+        wxGetApp().set_auto_toolbar_icon_scale(new_scale);
+}
+
+
 void GLCanvas3D::_render_overlays() const
 {
     glsafe(::glDisable(GL_DEPTH_TEST));
@@ -5642,6 +5693,8 @@ void GLCanvas3D::_render_overlays() const
     double gui_scale = camera.get_gui_scale();
     glsafe(::glScaled(gui_scale, gui_scale, 1.0));
 
+    _check_and_update_toolbar_icon_scale();
+
     _render_gizmos_overlay();
     _render_warning_texture();
 #if !ENABLE_GCODE_VIEWER
@@ -5651,12 +5704,12 @@ void GLCanvas3D::_render_overlays() const
     // main toolbar and undoredo toolbar need to be both updated before rendering because both their sizes are needed
     // to correctly place them
 #if ENABLE_RETINA_GL
-    const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale(true);
+    const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale(/*true*/);
     m_main_toolbar.set_scale(scale);
     m_undoredo_toolbar.set_scale(scale);
     m_collapse_toolbar.set_scale(scale);
 #else
-    const float size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(true));
+    const float size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(/*true*/));
     m_main_toolbar.set_icons_size(size);
     m_undoredo_toolbar.set_icons_size(size);
     m_collapse_toolbar.set_icons_size(size);
@@ -5765,7 +5818,8 @@ void GLCanvas3D::_render_main_toolbar() const
     float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
 
     float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
-    float left = -0.5f * (m_main_toolbar.get_width() + m_undoredo_toolbar.get_width()) * inv_zoom;
+    float collapse_toolbar_width = m_collapse_toolbar.is_enabled() ? m_collapse_toolbar.get_width() : 0.0f;
+    float left = -0.5f * (m_main_toolbar.get_width() + m_undoredo_toolbar.get_width() + collapse_toolbar_width) * inv_zoom;
 
     m_main_toolbar.set_position(top, left);
     m_main_toolbar.render(*this);
@@ -5780,7 +5834,8 @@ void GLCanvas3D::_render_undoredo_toolbar() const
     float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
 
     float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
-    float left = (m_main_toolbar.get_width() - 0.5f * (m_main_toolbar.get_width() + m_undoredo_toolbar.get_width())) * inv_zoom;
+    float collapse_toolbar_width = m_collapse_toolbar.is_enabled() ? m_collapse_toolbar.get_width() : 0.0f;
+    float left = (m_main_toolbar.get_width() - 0.5f * (m_main_toolbar.get_width() + m_undoredo_toolbar.get_width() + collapse_toolbar_width)) * inv_zoom;
     m_undoredo_toolbar.set_position(top, left);
     m_undoredo_toolbar.render(*this);
 }
@@ -7338,9 +7393,14 @@ bool GLCanvas3D::_deactivate_undo_redo_toolbar_items()
     return false;
 }
 
+bool GLCanvas3D::is_search_pressed() const
+{
+    return m_main_toolbar.is_item_pressed("search");
+}
+
 bool GLCanvas3D::_deactivate_search_toolbar_item()
 {
-    if (m_main_toolbar.is_item_pressed("search"))
+    if (is_search_pressed())
     {
         m_main_toolbar.force_left_action(m_main_toolbar.get_item_id("search"), *this);
         return true;

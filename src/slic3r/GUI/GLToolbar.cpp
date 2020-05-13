@@ -532,7 +532,12 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
             m_mouse_capture.left = true;
             m_mouse_capture.parent = &parent;
             processed = true;
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+            if ((item_id != -2) && !m_items[item_id]->is_separator() && !m_items[item_id]->is_disabled() &&
+                ((m_pressed_toggable_id == -1) || (m_items[item_id]->get_last_action_type() == GLToolbarItem::Left)))
+#else
             if ((item_id != -2) && !m_items[item_id]->is_separator() && ((m_pressed_toggable_id == -1) || (m_items[item_id]->get_last_action_type() == GLToolbarItem::Left)))
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
             {
                 // mouse is inside an icon
                 do_action(GLToolbarItem::Left, item_id, parent, true);
@@ -549,7 +554,12 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
             m_mouse_capture.right = true;
             m_mouse_capture.parent = &parent;
             processed = true;
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+            if ((item_id != -2) && !m_items[item_id]->is_separator() && !m_items[item_id]->is_disabled() &&
+                ((m_pressed_toggable_id == -1) || (m_items[item_id]->get_last_action_type() == GLToolbarItem::Right)))
+#else
             if ((item_id != -2) && !m_items[item_id]->is_separator() && ((m_pressed_toggable_id == -1) || (m_items[item_id]->get_last_action_type() == GLToolbarItem::Right)))
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
             {
                 // mouse is inside an icon
                 do_action(GLToolbarItem::Right, item_id, parent, true);
@@ -627,6 +637,16 @@ float GLToolbar::get_main_size() const
     return size * m_layout.scale;
 }
 
+int GLToolbar::get_visible_items_cnt() const
+{
+    int cnt = 0;
+    for (unsigned int i = 0; i < (unsigned int)m_items.size(); ++i)
+        if (m_items[i]->is_visible() && !m_items[i]->is_separator())
+            cnt++;
+
+    return cnt;
+}
+
 void GLToolbar::do_action(GLToolbarItem::EActionType type, int item_id, GLCanvas3D& parent, bool check_hover)
 {
     if ((m_pressed_toggable_id == -1) || (m_pressed_toggable_id == item_id))
@@ -634,7 +654,11 @@ void GLToolbar::do_action(GLToolbarItem::EActionType type, int item_id, GLCanvas
         if ((0 <= item_id) && (item_id < (int)m_items.size()))
         {
             GLToolbarItem* item = m_items[item_id];
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+            if ((item != nullptr) && !item->is_separator() && !item->is_disabled() && (!check_hover || item->is_hovered()))
+#else
             if ((item != nullptr) && !item->is_separator() && (!check_hover || item->is_hovered()))
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
             {
                 if (((type == GLToolbarItem::Right) && item->is_right_toggable()) ||
                     ((type == GLToolbarItem::Left) && item->is_left_toggable()))

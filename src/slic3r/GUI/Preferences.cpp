@@ -190,9 +190,17 @@ void PreferencesDialog::accept()
 
     auto app_config = get_app_config();
 
-	m_settings_layout_changed =	m_values.find("old_settings_layout_mode") != m_values.end() ||
-		                        m_values.find("new_settings_layout_mode") != m_values.end() ||
-		                        m_values.find("dlg_settings_layout_mode") != m_values.end();
+	m_settings_layout_changed = false;
+	for (const std::string& key : {"old_settings_layout_mode",
+								   "new_settings_layout_mode",
+								   "dlg_settings_layout_mode" })
+	{
+	    auto it = m_values.find(key);
+	    if (it != m_values.end() && app_config->get(key) != it->second) {
+			m_settings_layout_changed = true;
+			break;
+	    }
+	}
 
 	if (m_settings_layout_changed) {
 		// the dialog needs to be destroyed before the call to recreate_gui()

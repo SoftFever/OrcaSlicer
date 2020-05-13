@@ -58,7 +58,10 @@ void GLGizmoHollow::set_sla_support_data(ModelObject*, const Selection&)
 
     const ModelObject* mo = m_c->selection_info()->model_object();
     if (mo) {
-        reload_cache();
+        if (m_old_mo_id != mo->id()) {
+            reload_cache();
+            m_old_mo_id = mo->id();
+        }
         if (m_c->hollowed_mesh() && m_c->hollowed_mesh()->get_hollowed_mesh())
             m_holes_in_drilled_mesh = mo->sla_drain_holes;
     }

@@ -580,15 +580,33 @@ float GUI_App::toolbar_icon_scale(const bool is_limited/* = false*/) const
 
     const std::string& use_val  = app_config->get("use_custom_toolbar_size");
     const std::string& val      = app_config->get("custom_toolbar_size");
+    const std::string& auto_val = app_config->get("auto_toolbar_size");
 
-    if (val.empty() || use_val.empty() || use_val == "0")
+    if (val.empty() || auto_val.empty() || use_val.empty())
         return icon_sc;
 
-    int int_val = atoi(val.c_str());
+    int int_val = use_val == "0" ? 100 : atoi(val.c_str());
+    // correct value in respect to auto_toolbar_size
+    int_val = std::min(atoi(auto_val.c_str()), int_val);
+
     if (is_limited && int_val < 50)
         int_val = 50;
 
     return 0.01f * int_val * icon_sc;
+}
+
+void GUI_App::set_auto_toolbar_icon_scale(float scale) const
+{
+#ifdef __APPLE__
+    const float icon_sc = 1.0f; // for Retina display will be used its own scale
+#else
+    const float icon_sc = m_em_unit * 0.1f;
+#endif // __APPLE__
+
+    int int_val = std::min(int(scale / icon_sc * 100), 100);
+    std::string val = std::to_string(int_val);
+
+    app_config->set("auto_toolbar_size", val);
 }
 
 void GUI_App::recreate_GUI(const wxString& msg_name)
