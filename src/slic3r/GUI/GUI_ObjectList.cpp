@@ -94,6 +94,7 @@ ObjectList::ObjectList(wxWindow* parent) :
         // ptFFF
         CATEGORY_ICON[L("Layers and Perimeters")]    = create_scaled_bitmap("layers");
         CATEGORY_ICON[L("Infill")]                   = create_scaled_bitmap("infill");
+        CATEGORY_ICON[L("Ironing")]                  = create_scaled_bitmap("infill"); // FIXME when the ironing icon is available
         CATEGORY_ICON[L("Support material")]         = create_scaled_bitmap("support");
         CATEGORY_ICON[L("Speed")]                    = create_scaled_bitmap("time");
         CATEGORY_ICON[L("Extruders")]                = create_scaled_bitmap("funnel");
@@ -644,6 +645,7 @@ void ObjectList::msw_rescale_icons()
         // ptFFF
         CATEGORY_ICON[L("Layers and Perimeters")]    = create_scaled_bitmap("layers");
         CATEGORY_ICON[L("Infill")]                   = create_scaled_bitmap("infill");
+        CATEGORY_ICON[L("Ironing")]                  = create_scaled_bitmap("infill"); // FIXME when the ironing icon is available
         CATEGORY_ICON[L("Support material")]         = create_scaled_bitmap("support");
         CATEGORY_ICON[L("Speed")]                    = create_scaled_bitmap("time");
         CATEGORY_ICON[L("Extruders")]                = create_scaled_bitmap("funnel");
