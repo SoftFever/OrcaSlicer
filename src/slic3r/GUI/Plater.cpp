@@ -3124,16 +3124,7 @@ void Plater::priv::reload_from_disk()
                     old_model_object->delete_volume(old_model_object->volumes.size() - 1);
                     old_model_object->ensure_on_bed();
 
-                    std::unique_ptr<sla::EigenMesh3D> emesh;
-                    if (!old_model_object->sla_support_points.empty()) {
-                        emesh = std::make_unique<sla::EigenMesh3D>(old_model_object->raw_mesh());
-                        sla::reproject_support_points(*emesh, old_model_object->sla_support_points);
-                    }
-
-                    if (!old_model_object->sla_drain_holes.empty()) {
-                        if (!emesh) emesh = std::make_unique<sla::EigenMesh3D>(old_model_object->raw_mesh());
-                        sla::reproject_support_points(*emesh, old_model_object->sla_drain_holes);
-                    }
+                    sla::reproject_points_and_holes(old_model_object);
                 }
             }
         }
@@ -3189,6 +3180,7 @@ void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = 
     Plater::TakeSnapshot snapshot(q, _L("Fix Throught NetFabb"));
 
     fix_model_by_win10_sdk_gui(*model.objects[obj_idx], vol_idx);
+    sla::reproject_points_and_holes(model.objects[obj_idx]);
     this->update();
     this->object_list_changed();
     this->schedule_background_process();
