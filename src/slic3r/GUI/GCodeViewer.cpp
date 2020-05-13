@@ -978,14 +978,14 @@ void GCodeViewer::render_legend() const
     ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
     switch (m_view_type)
     {
-    case EViewType::FeatureType:    { imgui.text(I18N::translate_utf8(L("Feature type"))); break; }
-    case EViewType::Height:         { imgui.text(I18N::translate_utf8(L("Height (mm)"))); break; }
-    case EViewType::Width:          { imgui.text(I18N::translate_utf8(L("Width (mm)"))); break; }
-    case EViewType::Feedrate:       { imgui.text(I18N::translate_utf8(L("Speed (mm/s)"))); break; }
-    case EViewType::FanSpeed:       { imgui.text(I18N::translate_utf8(L("Fan Speed (%%)"))); break; }
-    case EViewType::VolumetricRate: { imgui.text(I18N::translate_utf8(L("Volumetric flow rate (mm³/s)"))); break; }
-    case EViewType::Tool:           { imgui.text(I18N::translate_utf8(L("Tool"))); break; }
-    case EViewType::ColorPrint:     { imgui.text(I18N::translate_utf8(L("Color Print"))); break; }
+    case EViewType::FeatureType: { imgui.text(_u8L("Feature type")); break; }
+    case EViewType::Height: { imgui.text(_u8L("Height (mm)")); break; }
+    case EViewType::Width: { imgui.text(_u8L("Width (mm)")); break; }
+    case EViewType::Feedrate: { imgui.text(_u8L("Speed (mm/s)")); break; }
+    case EViewType::FanSpeed: { imgui.text(_u8L("Fan Speed (%%)")); break; }
+    case EViewType::VolumetricRate: { imgui.text(_u8L("Volumetric flow rate (mm³/s)")); break; }
+    case EViewType::Tool: { imgui.text(_u8L("Tool")); break; }
+    case EViewType::ColorPrint: { imgui.text(_u8L("Color Print")); break; }
     default:                        { break; }
     }
     ImGui::PopStyleColor();
@@ -1001,7 +1001,7 @@ void GCodeViewer::render_legend() const
             if (!visible)
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
 
-            add_item(Extrusion_Role_Colors[static_cast<unsigned int>(role)], I18N::translate_utf8(ExtrusionEntity::role_to_string(role)), [this, role]() {
+            add_item(Extrusion_Role_Colors[static_cast<unsigned int>(role)], _u8L(ExtrusionEntity::role_to_string(role)), [this, role]() {
                 if (role < erCount)
                 {
                     m_extrusions.role_visibility_flags = is_visible(role) ? m_extrusions.role_visibility_flags & ~(1 << role) : m_extrusions.role_visibility_flags | (1 << role);
@@ -1031,7 +1031,7 @@ void GCodeViewer::render_legend() const
             if (it == m_extruder_ids.end())
                 continue;
 
-            add_item(m_tool_colors[i], (boost::format(I18N::translate_utf8(L("Extruder %d"))) % (i + 1)).str());
+            add_item(m_tool_colors[i], (boost::format(_u8L("Extruder %d")) % (i + 1)).str());
         }
         break;
     }
@@ -1042,7 +1042,7 @@ void GCodeViewer::render_legend() const
         if (extruders_count == 1) { // single extruder use case
             if (custom_gcode_per_print_z.empty())
                 // no data to show
-                add_item(m_tool_colors.front(), I18N::translate_utf8(L("Default print color")));
+                add_item(m_tool_colors.front(), _u8L("Default print color"));
             else {
                 std::vector<std::pair<double, double>> cp_values;
                 cp_values.reserve(custom_gcode_per_print_z.size());
@@ -1066,7 +1066,7 @@ void GCodeViewer::render_legend() const
 
                 const int items_cnt = static_cast<int>(cp_values.size());
                 if (items_cnt == 0) { // There is no one color change, but there are some pause print or custom Gcode
-                    add_item(m_tool_colors.front(), I18N::translate_utf8(L("Default print color")));
+                    add_item(m_tool_colors.front(), _u8L("Default print color"));
                 }
                 else {
                     for (int i = items_cnt; i >= 0; --i) {
@@ -1074,14 +1074,14 @@ void GCodeViewer::render_legend() const
                         std::string id_str = " (" + std::to_string(i + 1) + ")";
 
                         if (i == 0) {
-                            add_item(m_tool_colors[i], (boost::format(I18N::translate_utf8(L("up to %.2f mm"))) % cp_values.front().first).str() + id_str);
+                            add_item(m_tool_colors[i], (boost::format(_u8L("up to %.2f mm")) % cp_values.front().first).str() + id_str);
                             break;
                         }
                         else if (i == items_cnt) {
-                            add_item(m_tool_colors[i], (boost::format(I18N::translate_utf8(L("above %.2f mm"))) % cp_values[i - 1].second).str() + id_str);
+                            add_item(m_tool_colors[i], (boost::format(_u8L("above %.2f mm")) % cp_values[i - 1].second).str() + id_str);
                             continue;
                         }
-                        add_item(m_tool_colors[i], (boost::format(I18N::translate_utf8(L("%.2f - %.2f mm"))) % cp_values[i - 1].second % cp_values[i].first).str() + id_str);
+                        add_item(m_tool_colors[i], (boost::format(_u8L("%.2f - %.2f mm")) % cp_values[i - 1].second% cp_values[i].first).str() + id_str);
                     }
                 }
             }
@@ -1090,7 +1090,7 @@ void GCodeViewer::render_legend() const
         {
             // extruders
             for (unsigned int i = 0; i < (unsigned int)extruders_count; ++i) {
-                add_item(m_tool_colors[i], (boost::format(I18N::translate_utf8(L("Extruder %d"))) % (i + 1)).str());
+                add_item(m_tool_colors[i], (boost::format(_u8L("Extruder %d")) % (i + 1)).str());
             }
 
             // color changes
@@ -1102,7 +1102,7 @@ void GCodeViewer::render_legend() const
                     std::string id_str = " (" + std::to_string(color_change_idx--) + ")";
 
                     add_item(m_tool_colors[last_color_id--],
-                             (boost::format(I18N::translate_utf8(L("Color change for Extruder %d at %.2f mm"))) % custom_gcode_per_print_z[i].extruder % custom_gcode_per_print_z[i].print_z).str() + id_str);
+                        (boost::format(_u8L("Color change for Extruder %d at %.2f mm")) % custom_gcode_per_print_z[i].extruder % custom_gcode_per_print_z[i].print_z).str() + id_str);
                 }
             }
         }
@@ -1129,14 +1129,14 @@ void GCodeViewer::render_legend() const
             ImGui::Spacing();
             ImGui::Spacing();
             ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
-            imgui.text(I18N::translate_utf8(L("Travel")));
+            imgui.text(_u8L("Travel"));
             ImGui::PopStyleColor();
             ImGui::Separator();
 
             // items
-            add_item(Travel_Colors[0], I18N::translate_utf8(L("Movement")));
-            add_item(Travel_Colors[1], I18N::translate_utf8(L("Extrusion")));
-            add_item(Travel_Colors[2], I18N::translate_utf8(L("Retraction")));
+            add_item(Travel_Colors[0], _u8L("Movement"));
+            add_item(Travel_Colors[1], _u8L("Extrusion"));
+            add_item(Travel_Colors[2], _u8L("Retraction"));
 
             break;
         }
