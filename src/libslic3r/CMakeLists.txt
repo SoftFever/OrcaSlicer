@@ -232,6 +232,7 @@ add_library(libslic3r STATIC
     SLA/Contour3D.cpp
     SLA/EigenMesh3D.hpp
     SLA/Clustering.hpp
+    SLA/ReprojectPointsOnMesh.hpp
 )
 
 if (SLIC3R_STATIC)
