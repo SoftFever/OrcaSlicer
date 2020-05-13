@@ -273,23 +273,36 @@ GLModelInitializationData circular_arrow(int resolution, float radius, float tip
     data.triangles.emplace_back(9, 8, 7);
 
     // side faces vertices
+    append_vertex(data, { 0.0f, outer_radius, -half_thickness }, Vec3f::UnitX());
+    append_vertex(data, { 0.0f, radius + half_tip_width, -half_thickness }, Vec3f::UnitX());
     append_vertex(data, { 0.0f, outer_radius, half_thickness }, Vec3f::UnitX());
-    append_vertex(data, { 0.0f, radius + half_tip_width, half_thickness }, Vec3f::UnitY());
-    append_vertex(data, { -tip_height, radius, half_thickness }, -Vec3f::UnitX());
-    append_vertex(data, { 0.0f, radius - half_tip_width, half_thickness }, -Vec3f::UnitY());
+    append_vertex(data, { 0.0f, radius + half_tip_width, half_thickness }, Vec3f::UnitX());
+
+    Vec3f normal(-half_tip_width, tip_height, 0.0f);
+    normal.normalize();
+    append_vertex(data, { 0.0f, radius + half_tip_width, -half_thickness }, normal);
+    append_vertex(data, { -tip_height, radius, -half_thickness }, normal);
+    append_vertex(data, { 0.0f, radius + half_tip_width, half_thickness }, normal);
+    append_vertex(data, { -tip_height, radius, half_thickness }, normal);
+
+    normal = Vec3f(-half_tip_width, -tip_height, 0.0f);
+    normal.normalize();
+    append_vertex(data, { -tip_height, radius, -half_thickness }, normal);
+    append_vertex(data, { 0.0f, radius - half_tip_width, -half_thickness }, normal);
+    append_vertex(data, { -tip_height, radius, half_thickness }, normal);
+    append_vertex(data, { 0.0f, radius - half_tip_width, half_thickness }, normal);
+
+    append_vertex(data, { 0.0f, radius - half_tip_width, -half_thickness }, Vec3f::UnitX());
+    append_vertex(data, { 0.0f, inner_radius, -half_thickness }, Vec3f::UnitX());
+    append_vertex(data, { 0.0f, radius - half_tip_width, half_thickness }, Vec3f::UnitX());
     append_vertex(data, { 0.0f, inner_radius, half_thickness }, Vec3f::UnitX());
 
-    append_vertex(data, { 0.0f, outer_radius, -half_thickness }, Vec3f::UnitX());
-    append_vertex(data, { 0.0f, radius + half_tip_width, -half_thickness }, Vec3f::UnitY());
-    append_vertex(data, { -tip_height, radius, -half_thickness }, -Vec3f::UnitX());
-    append_vertex(data, { 0.0f, radius - half_tip_width, -half_thickness }, -Vec3f::UnitY());
-    append_vertex(data, { 0.0f, inner_radius, -half_thickness }, Vec3f::UnitX());
-
-    // side faces triangles
+    // side face triangles
     for (int i = 0; i < 4; ++i)
     {
-        data.triangles.emplace_back(15 + i, 11 + i, 10 + i);
-        data.triangles.emplace_back(15 + i, 16 + i, 11 + i);
+        int ii = i * 4;
+        data.triangles.emplace_back(10 + ii, 11 + ii, 13 + ii);
+        data.triangles.emplace_back(10 + ii, 13 + ii, 12 + ii);
     }
 
     // stem
@@ -309,8 +322,8 @@ GLModelInitializationData circular_arrow(int resolution, float radius, float tip
     // top face triangles
     for (int i = 0; i < resolution; ++i)
     {
-        data.triangles.emplace_back(20 + i, 21 + i, 21 + resolution + i);
-        data.triangles.emplace_back(21 + i, 22 + resolution + i, 21 + resolution + i);
+        data.triangles.emplace_back(26 + i, 27 + i, 27 + resolution + i);
+        data.triangles.emplace_back(27 + i, 28 + resolution + i, 27 + resolution + i);
     }
 
     // bottom face vertices
@@ -329,27 +342,11 @@ GLModelInitializationData circular_arrow(int resolution, float radius, float tip
     // bottom face triangles
     for (int i = 0; i < resolution; ++i)
     {
-        data.triangles.emplace_back(22 + 2 * resolution + i, 23 + 3 * resolution + i, 23 + 2 * resolution + i);
-        data.triangles.emplace_back(23 + 2 * resolution + i, 23 + 3 * resolution + i, 24 + 3 * resolution + i);
+        data.triangles.emplace_back(28 + 2 * resolution + i, 29 + 3 * resolution + i, 29 + 2 * resolution + i);
+        data.triangles.emplace_back(29 + 2 * resolution + i, 29 + 3 * resolution + i, 30 + 3 * resolution + i);
     }
 
-    // side faces vertices
-    for (int i = 0; i <= resolution; ++i)
-    {
-        float angle = static_cast<float>(i) * step_angle;
-        float c = ::cos(angle);
-        float s = ::sin(angle);
-        append_vertex(data, { inner_radius * s, inner_radius * c, half_thickness }, { -s, -c, 0.0f});
-    }
-
-    for (int i = resolution; i >= 0; --i)
-    {
-        float angle = static_cast<float>(i) * step_angle;
-        float c = ::cos(angle);
-        float s = ::sin(angle);
-        append_vertex(data, { outer_radius * s, outer_radius * c, half_thickness }, { s, c, 0.0f });
-    }
-
+    // side faces vertices and triangles
     for (int i = 0; i <= resolution; ++i)
     {
         float angle = static_cast<float>(i) * step_angle;
@@ -357,6 +354,31 @@ GLModelInitializationData circular_arrow(int resolution, float radius, float tip
         float s = ::sin(angle);
         append_vertex(data, { inner_radius * s, inner_radius * c, -half_thickness }, { -s, -c, 0.0f });
     }
+
+    for (int i = 0; i <= resolution; ++i)
+    {
+        float angle = static_cast<float>(i) * step_angle;
+        float c = ::cos(angle);
+        float s = ::sin(angle);
+        append_vertex(data, { inner_radius * s, inner_radius * c, half_thickness }, { -s, -c, 0.0f });
+    }
+
+    int first_id = 26 + 4 * (resolution + 1);
+    for (int i = 0; i < resolution; ++i)
+    {
+        int ii = first_id + i;
+        data.triangles.emplace_back(ii, ii + 1, ii + resolution + 2);
+        data.triangles.emplace_back(ii, ii + resolution + 2, ii + resolution + 1);
+    }
+
+    append_vertex(data, { inner_radius, 0.0f, -half_thickness }, -Vec3f::UnitY());
+    append_vertex(data, { outer_radius, 0.0f, -half_thickness }, -Vec3f::UnitY());
+    append_vertex(data, { inner_radius, 0.0f, half_thickness }, -Vec3f::UnitY());
+    append_vertex(data, { outer_radius, 0.0f, half_thickness }, -Vec3f::UnitY());
+
+    first_id = 26 + 6 * (resolution + 1);
+    data.triangles.emplace_back(first_id, first_id + 1, first_id + 3);
+    data.triangles.emplace_back(first_id, first_id + 3, first_id + 2);
 
     for (int i = resolution; i >= 0; --i)
     {
@@ -366,11 +388,20 @@ GLModelInitializationData circular_arrow(int resolution, float radius, float tip
         append_vertex(data, { outer_radius * s, outer_radius * c, -half_thickness }, { s, c, 0.0f });
     }
 
-    // side faces triangles
-    for (int i = 0; i < 2 * resolution + 1; ++i)
+    for (int i = resolution; i >= 0; --i)
     {
-        data.triangles.emplace_back(20 + 6 * (resolution + 1) + i, 21 + 6 * (resolution + 1) + i, 21 + 4 * (resolution + 1) + i);
-        data.triangles.emplace_back(20 + 6 * (resolution + 1) + i, 21 + 4 * (resolution + 1) + i, 20 + 4 * (resolution + 1) + i);
+        float angle = static_cast<float>(i) * step_angle;
+        float c = ::cos(angle);
+        float s = ::sin(angle);
+        append_vertex(data, { outer_radius * s, outer_radius * c, +half_thickness }, { s, c, 0.0f });
+    }
+
+    first_id = 30 + 6 * (resolution + 1);
+    for (int i = 0; i < resolution; ++i)
+    {
+        int ii = first_id + i;
+        data.triangles.emplace_back(ii, ii + 1, ii + resolution + 2);
+        data.triangles.emplace_back(ii, ii + resolution + 2, ii + resolution + 1);
     }
 
     return data;
