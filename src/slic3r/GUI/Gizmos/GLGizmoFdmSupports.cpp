@@ -393,13 +393,13 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             for (const std::pair<Vec3f, size_t>& hit_and_facet : hit_positions_and_facet_ids[mesh_id]) {
                 some_mesh_was_hit = true;
                 const TriangleMesh* mesh = &mv->mesh();
-                std::vector<NeighborData>& neighbors = m_neighbors[mesh_id];
+                const std::vector<NeighborData>& neighbors = m_neighbors[mesh_id];
 
                 // Calculate direction from camera to the hit (in mesh coords):
                 Vec3f dir = ((trafo_matrix.inverse() * camera.get_position()).cast<float>() - hit_and_facet.first).normalized();
 
                 // A lambda to calculate distance from the centerline:
-                auto squared_distance_from_line = [&hit_and_facet, &dir](const Vec3f point) -> float {
+                auto squared_distance_from_line = [&hit_and_facet, &dir](const Vec3f& point) -> float {
                     Vec3f diff = hit_and_facet.first - point;
                     return (diff - diff.dot(dir) * dir).squaredNorm();
                 };
@@ -461,17 +461,10 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         {
             if (m_button_down == Button::None)
                 m_button_down = ((action == SLAGizmoEventType::LeftDown) ? Button::Left : Button::Right);
-            // Force rendering. In case the user is dragging, the queue can be
-            // flooded by wxEVT_MOVING event and rendering would be skipped.
-            m_parent.render();
             return true;
         }
-        if (action == SLAGizmoEventType::Dragging && m_button_down != Button::None) {
-            // Same as above. We don't want the cursor to freeze when we
-            // leave the mesh while painting.
-            m_parent.render();
+        if (action == SLAGizmoEventType::Dragging && m_button_down != Button::None)
             return true;
-        }
     }
 
     if ((action == SLAGizmoEventType::LeftUp || action == SLAGizmoEventType::RightUp)
