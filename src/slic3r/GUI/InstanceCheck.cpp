@@ -111,23 +111,23 @@ namespace instance_check_internal
 
 #else 
 
-	static int get_lock(const std::string& version)
+	static bool get_lock(const std::string& name, const std::string& path)
 	{
-		std::string dest_dir = data_dir();
+		std::string dest_dir = path + name;
+		BOOST_LOG_TRIVIAL(debug) <<"full lock path: "<< dest_dir;
 		struct      flock fl;
 		int         fdlock;
 		fl.l_type = F_WRLCK;
 		fl.l_whence = SEEK_SET;
 		fl.l_start = 0;
 		fl.l_len = 1;
-		dest_dir += "/cache/prusaslicer-" + version + ".lock";
 		if ((fdlock = open(dest_dir.c_str(), O_WRONLY | O_CREAT, 0666)) == -1)
-			return false;
+			return true;
 
 		if (fcntl(fdlock, F_SETLK, &fl) == -1)
-			return false;
+			return true;
 
-		return true;
+		return false;
 	}
 
 #endif //WIN32
@@ -232,9 +232,13 @@ bool instance_check(int argc, char** argv, bool app_config_single_instance)
 	std::string lock_name 	= std::to_string(hashed_path);
 	GUI::wxGetApp().set_instance_hash(hashed_path);
 	BOOST_LOG_TRIVIAL(debug) <<"full path: "<< lock_name;
-	GUI::wxGetApp().init_single_instance_checker(lock_name + ".lock", data_dir() + "/cache/");
 	instance_check_internal::CommandLineAnalysis cla = instance_check_internal::process_command_line(argc, argv);
+#ifdef _WIN32
+	GUI::wxGetApp().init_single_instance_checker(lock_name + ".lock", data_dir() + "/cache/");
 	if ((cla.should_send || app_config_single_instance) && GUI::wxGetApp().single_instance_checker()->IsAnotherRunning()) {
+#else // mac & linx
+	if (instance_check_internal::get_lock(lock_name + ".lock", data_dir() + "/cache/") && (cla.should_send || app_config_single_instance)) {
+#endif
 		instance_check_internal::send_message(cla.cl_string, lock_name);
 		BOOST_LOG_TRIVIAL(info) << "instance check: Another instance found. This instance will terminate.";
 		return true;
