@@ -11,10 +11,11 @@
 
 #include <boost/filesystem.hpp>
 
+#if __linux__
 #include <boost/thread.hpp>
 #include <tbb/mutex.h>
 #include <condition_variable>
-
+#endif // __linux__
 
 
 namespace Slic3r {
@@ -26,10 +27,12 @@ bool    instance_check(int argc, char** argv, bool app_config_single_instance);
 #if __APPLE__
 // apple implementation of inner functions of instance_check
 // in InstanceCheckMac.mm
-void    send_message_mac(const std::string msg);
+void    send_message_mac(const std::string& msg, const std::string& version);
 #endif //__APPLE__
 
 namespace GUI {
+
+class MainFrame;
 
 #if __linux__
     #define BACKGROUND_MESSAGE_LISTENER
@@ -52,7 +55,7 @@ public:
 	// inits listening, on each platform different. On linux starts background thread
 	void    init(wxEvtHandler* callback_evt_handler);
 	// stops listening, on linux stops the background thread
-	void    shutdown();
+	void    shutdown(MainFrame* main_frame);
 
 	//finds paths to models in message(= command line arguments, first should be prusaSlicer executable)
 	//and sends them to plater via LoadFromOtherInstanceEvent
@@ -60,7 +63,10 @@ public:
 	//						win32 - anybody who has hwnd can send message.
 	//						mac - anybody who posts notification with name:@"OtherPrusaSlicerTerminating"
 	//						linux - instrospectable on dbus
-	void    handle_message(const std::string message);
+	void           handle_message(const std::string& message);
+#ifdef _WIN32
+	static void    init_windows_properties(MainFrame* main_frame, size_t instance_hash);
+#endif //WIN32
 private:
 	bool                    m_initialized { false };
 	wxEvtHandler*           m_callback_evt_handler { nullptr };
@@ -79,7 +85,7 @@ private:
 
 #if __APPLE__
 	//implemented at InstanceCheckMac.mm
-	void    register_for_messages();
+	void    register_for_messages(const std::string &version_hash);
 	void    unregister_for_messages();
 	// Opaque pointer to RemovableDriveManagerMM
 	void* m_impl_osx;
