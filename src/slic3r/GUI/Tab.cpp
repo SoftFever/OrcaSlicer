@@ -53,7 +53,7 @@ void Tab::Highlighter::init(BlinkingBitmap* bmp)
     if (!bmp)
         return;
 
-    timer.Start(100, false);
+    timer.Start(300, false);
 
     bbmp = bmp;
     bbmp->activate();
@@ -74,7 +74,7 @@ void Tab::Highlighter::blink()
         return;
 
     bbmp->blink();
-    if ((++blink_counter) == 29)
+    if ((++blink_counter) == 11)
         invalidate();
 }
 

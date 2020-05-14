@@ -1434,6 +1434,12 @@ SettingsDialog::SettingsDialog(MainFrame* mainframe)
             case '2': { m_main_frame->select_tab(1); break; }
             case '3': { m_main_frame->select_tab(2); break; }
             case '4': { m_main_frame->select_tab(3); break; }
+#ifdef __APPLE__
+            case 'f':
+#else /* __APPLE__ */
+            case WXK_CONTROL_F:
+#endif /* __APPLE__ */
+            case 'F': { m_main_frame->plater()->search(false); break; }
             default:break;
             }
         }

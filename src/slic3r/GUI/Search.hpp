@@ -67,7 +67,6 @@ struct FoundOption {
 struct OptionViewParameters
 {
     bool category   {false};
-    bool group      {true };
     bool english    {false};
 
     int  hovered_id {0};
@@ -158,46 +157,84 @@ protected:
     wxString m_input_string;
 };
 
-
 //------------------------------------------
 //          SearchDialog
 //------------------------------------------
-
+class SearchListModel;
 class SearchDialog : public GUI::DPIDialog
 {
     wxString search_str;
     wxString default_string;
 
-    wxTextCtrl*     search_line    { nullptr };
-    wxListBox*      search_list    { nullptr };
-    wxCheckBox*     check_category { nullptr };
-    wxCheckBox*     check_group    { nullptr };
-    wxCheckBox*     check_english  { nullptr };
+    bool     prevent_list_events {false};
 
-    OptionsSearcher* searcher;
+    wxTextCtrl*         search_line         { nullptr };
+    wxDataViewCtrl*     search_list         { nullptr };
+    SearchListModel*    search_list_model   { nullptr };
+    wxCheckBox*         check_category      { nullptr };
+    wxCheckBox*         check_english       { nullptr };
 
-    void update_list();
+    OptionsSearcher*    searcher            { nullptr };
 
     void OnInputText(wxCommandEvent& event);
     void OnLeftUpInTextCtrl(wxEvent& event);
-    
-    void OnMouseMove(wxMouseEvent& event); 
-    void OnMouseClick(wxMouseEvent& event);
-    void OnSelect(wxCommandEvent& event);
     void OnKeyDown(wxKeyEvent& event);
 
+    void OnActivate(wxDataViewEvent& event);
+    void OnSelect(wxDataViewEvent& event);
+
     void OnCheck(wxCommandEvent& event);
+    void OnMotion(wxMouseEvent& event);
+    void OnLeftDown(wxMouseEvent& event);
+
+    void update_list();
 
 public:
     SearchDialog(OptionsSearcher* searcher);
     ~SearchDialog() {}
 
     void Popup(wxPoint position = wxDefaultPosition);
-    void ProcessSelection(int selection);
+    void ProcessSelection(wxDataViewItem selection);
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
 };
+
+
+// ----------------------------------------------------------------------------
+// SearchListModel
+// ----------------------------------------------------------------------------
+
+class SearchListModel : public wxDataViewVirtualListModel
+{
+    std::vector<std::pair<wxString, int>>   m_values;
+    ScalableBitmap                          m_icon[5];
+
+public:
+    enum {
+        colIcon,
+        colMarkedText,
+        colMax
+    };
+
+    SearchListModel(wxWindow* parent);
+
+    // helper methods to change the model
+
+    void Clear();
+    void Prepend(const std::string& text);
+    void msw_rescale();
+
+    // implementation of base class virtuals to define model
+
+    virtual unsigned int GetColumnCount() const wxOVERRIDE { return colMax; }
+    virtual wxString GetColumnType(unsigned int col) const wxOVERRIDE;
+    virtual void GetValueByRow(wxVariant& variant, unsigned int row, unsigned int col) const wxOVERRIDE;
+    virtual bool GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr& attr) const wxOVERRIDE { return true; }
+    virtual bool SetValueByRow(const wxVariant& variant, unsigned int row, unsigned int col) wxOVERRIDE { return false; }
+};
+
+
 
 
 } // Search namespace

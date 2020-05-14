@@ -92,6 +92,12 @@ void Field::PostInitialize()
 			    case '2': { tab_id = 1; break; }
 				case '3': { tab_id = 2; break; }
 				case '4': { tab_id = 3; break; }
+#ifdef __APPLE__
+				case 'f':
+#else /* __APPLE__ */
+				case WXK_CONTROL_F:
+#endif /* __APPLE__ */
+				case 'F': { wxGetApp().plater()->search(false); break; }
 			    default: break;
 			    }
 			    if (tab_id >= 0)
