@@ -231,6 +231,5 @@ if (SLIC3R_STATIC AND UNIX AND NOT APPLE)
 endif ()
 
 if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
-    #add_precompiled_header(libslic3r_gui pchheader.hpp FORCEINCLUDE)
-    target_precompile_headers(libslic3r_gui PRIVATE pchheader.hpp)
+    add_precompiled_header(libslic3r_gui pchheader.hpp FORCEINCLUDE)
 endif ()

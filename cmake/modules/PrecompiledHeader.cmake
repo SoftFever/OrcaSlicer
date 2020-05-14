@@ -101,7 +101,14 @@ function(export_all_flags _filename)
   file(GENERATE OUTPUT "${_filename}" CONTENT "${_compile_definitions}${_include_directories}${_compile_flags}${_compile_options}${_cxx_flags}\n")
 endfunction()
 
+# Use the new builtin CMake function if possible or fall back to the old one.
+if (CMAKE_VERSION VERSION_LESS 3.16)
+
 function(add_precompiled_header _target _input)
+
+  message(STATUS "Adding precompiled header ${_input} to target ${_target} with legacy method. "
+                 "Update your cmake instance to use the native PCH functions.")
+
   cmake_parse_arguments(_PCH "FORCEINCLUDE" "SOURCE_CXX;SOURCE_C" "" ${ARGN})
 
   get_filename_component(_input_we ${_input} NAME_WE)
@@ -241,3 +248,11 @@ function(add_precompiled_header _target _input)
     endforeach()
   endif(CMAKE_COMPILER_IS_GNUCXX)
 endfunction()
+
+else ()
+
+function(add_precompiled_header _target _input)
+    target_precompile_headers(${_target} PRIVATE ${_input})
+endfunction()
+
+endif (CMAKE_VERSION VERSION_LESS 3.16)
