@@ -756,8 +756,11 @@ void GLGizmoFdmSupports::on_set_state()
     }
     if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
         // we are actually shutting down
-        m_setting_angle = false;
-        m_parent.use_slope(false);
+        if (m_setting_angle) {
+            m_setting_angle = false;
+            m_parent.use_slope(false);
+        }
+
         wxGetApp().plater()->leave_gizmos_stack();
         {
             Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("FDM gizmo turned off")));
