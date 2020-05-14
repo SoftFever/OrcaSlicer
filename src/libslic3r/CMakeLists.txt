@@ -308,5 +308,6 @@ if(SLIC3R_PROFILE)
 endif()
 
 if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
-    add_precompiled_header(libslic3r pchheader.hpp FORCEINCLUDE)
+    #add_precompiled_header(libslic3r pchheader.hpp FORCEINCLUDE)
+    target_precompile_headers(libslic3r PRIVATE pchheader.hpp)
 endif ()
