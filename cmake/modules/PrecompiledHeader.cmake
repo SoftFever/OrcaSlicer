@@ -52,6 +52,10 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+
+# Use the new builtin CMake function if possible or fall back to the old one.
+if (CMAKE_VERSION VERSION_LESS 3.16)
+
 include(CMakeParseArguments)
 
 macro(combine_arguments _variable)
@@ -100,9 +104,6 @@ function(export_all_flags _filename)
   set(_cxx_flags "$<$<BOOL:${CMAKE_CXX_FLAGS}>:${CMAKE_CXX_FLAGS}\n>$<$<BOOL:${_build_cxx_flags}>:${_build_cxx_flags}\n>")
   file(GENERATE OUTPUT "${_filename}" CONTENT "${_compile_definitions}${_include_directories}${_compile_flags}${_compile_options}${_cxx_flags}\n")
 endfunction()
-
-# Use the new builtin CMake function if possible or fall back to the old one.
-if (CMAKE_VERSION VERSION_LESS 3.16)
 
 function(add_precompiled_header _target _input)
 
@@ -252,7 +253,17 @@ endfunction()
 else ()
 
 function(add_precompiled_header _target _input)
+    message(STATUS "Adding precompiled header ${_input} to target ${_target}.")
     target_precompile_headers(${_target} PRIVATE ${_input})
+
+    get_target_property(_sources ${_target} SOURCES)
+    list(FILTER _sources INCLUDE REGEX ".*\\.mm?")
+
+    if (_sources)
+        message(STATUS "PCH skipping sources: ${_sources}")
+    endif ()
+
+    set_source_files_properties(${_sources} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 endfunction()
 
 endif (CMAKE_VERSION VERSION_LESS 3.16)
