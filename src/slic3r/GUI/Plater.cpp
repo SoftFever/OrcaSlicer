@@ -1641,6 +1641,9 @@ struct Plater::priv
     bool init_view_toolbar();
 #if ENABLE_GCODE_VIEWER
     void update_preview_bottom_toolbar();
+#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+    void update_preview_horz_slider();
+#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
 #endif // ENABLE_GCODE_VIEWER
 
     void reset_all_gizmos();
@@ -2591,8 +2594,10 @@ void Plater::priv::deselect_all()
 
 void Plater::priv::remove(size_t obj_idx)
 {
+#if !ENABLE_GCODE_VIEWER
     // Prevent toolpaths preview from rendering while we modify the Print object
     preview->set_enabled(false);
+#endif // !ENABLE_GCODE_VIEWER
 
     if (view3D->is_layers_editing_enabled())
         view3D->enable_layers_editing(false);
@@ -2622,8 +2627,10 @@ void Plater::priv::reset()
 
     set_project_filename(wxEmptyString);
 
+#if !ENABLE_GCODE_VIEWER
     // Prevent toolpaths preview from rendering while we modify the Print object
     preview->set_enabled(false);
+#endif // !ENABLE_GCODE_VIEWER
 
     if (view3D->is_layers_editing_enabled())
         view3D->enable_layers_editing(false);
@@ -3867,6 +3874,13 @@ void Plater::priv::update_preview_bottom_toolbar()
 {
     preview->update_bottom_toolbar();
 }
+
+#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+void Plater::priv::update_preview_horz_slider()
+{
+    preview->update_horz_slider();
+}
+#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
 #endif // ENABLE_GCODE_VIEWER
 
 bool Plater::priv::can_set_instance_to_object() const
@@ -5463,6 +5477,13 @@ void Plater::update_preview_bottom_toolbar()
 {
     p->update_preview_bottom_toolbar();
 }
+
+#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+void Plater::update_preview_horz_slider()
+{
+    p->update_preview_horz_slider();
+}
+#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
 #endif // ENABLE_GCODE_VIEWER
 
 const Mouse3DController& Plater::get_mouse3d_controller() const

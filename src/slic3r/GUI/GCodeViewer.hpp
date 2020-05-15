@@ -149,6 +149,7 @@ class GCodeViewer
         void reset_ranges() { ranges.reset(); }
     };
 
+#if !ENABLE_GCODE_USE_WXWIDGETS_SLIDER
     struct SequentialView
     {
         class Marker
@@ -182,6 +183,7 @@ class GCodeViewer
         Vec3f current_position{ Vec3f::Zero() };
         Marker marker;
     };
+#endif // !ENABLE_GCODE_USE_WXWIDGETS_SLIDER
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     struct Statistics
@@ -229,6 +231,42 @@ class GCodeViewer
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
 public:
+#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+    struct SequentialView
+    {
+        class Marker
+        {
+            GL_Model m_model;
+            Transform3f m_world_transform;
+            std::array<float, 4> m_color{ 1.0f, 1.0f, 1.0f, 1.0f };
+            bool m_visible{ false };
+            Shader m_shader;
+
+        public:
+            void init();
+
+            const BoundingBoxf3& get_bounding_box() const { return m_model.get_bounding_box(); }
+
+            void set_world_transform(const Transform3f& transform) { m_world_transform = transform; }
+            void set_color(const std::array<float, 4>& color) { m_color = color; }
+
+            bool is_visible() const { return m_visible; }
+            void set_visible(bool visible) { m_visible = visible; }
+
+            void render() const;
+
+        private:
+            void init_shader();
+        };
+
+        unsigned int first{ 0 };
+        unsigned int last{ 0 };
+        unsigned int current{ 0 };
+        Vec3f current_position{ Vec3f::Zero() };
+        Marker marker;
+    };
+#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+
     enum class EViewType : unsigned char
     {
         FeatureType,
@@ -284,6 +322,11 @@ public:
     const BoundingBoxf3& get_bounding_box() const { return m_bounding_box; }
     const std::vector<double>& get_layers_zs() const { return m_layers_zs; };
 
+#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+    const SequentialView& get_sequential_view() const { return m_sequential_view; }
+    void update_sequential_view_current(unsigned int low, unsigned int high) { m_sequential_view.current = high; refresh_render_paths(true); }
+#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+
     EViewType get_view_type() const { return m_view_type; }
     void set_view_type(EViewType type) {
         if (type == EViewType::Count)
@@ -298,12 +341,16 @@ public:
     void set_toolpath_role_visibility_flags(unsigned int flags) { m_extrusions.role_visibility_flags = flags; }
     unsigned int get_options_visibility_flags() const;
     void set_options_visibility_from_flags(unsigned int flags);
+#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+    void set_layers_z_range(const std::array<double, 2>& layers_z_range);
+#else
     void set_layers_z_range(const std::array<double, 2>& layers_z_range)
     {
         bool keep_sequential_current = layers_z_range[1] <= m_layers_z_range[1];
         m_layers_z_range = layers_z_range;
         refresh_render_paths(keep_sequential_current);
     }
+#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
 
     bool is_legend_enabled() const { return m_legend_enabled; }
     void enable_legend(bool enable) { m_legend_enabled = enable; }
@@ -316,7 +363,9 @@ private:
     void render_toolpaths() const;
     void render_shells() const;
     void render_legend() const;
+#if !ENABLE_GCODE_USE_WXWIDGETS_SLIDER
     void render_sequential_bar() const;
+#endif // !ENABLE_GCODE_USE_WXWIDGETS_SLIDER
 #if ENABLE_GCODE_VIEWER_STATISTICS
     void render_statistics() const;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS

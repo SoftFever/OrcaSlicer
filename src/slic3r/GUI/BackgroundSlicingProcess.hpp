@@ -17,7 +17,9 @@
 namespace Slic3r {
 
 class DynamicPrintConfig;
+#if !ENABLE_GCODE_VIEWER
 class GCodePreviewData;
+#endif // !ENABLE_GCODE_VIEWER
 class Model;
 class SLAPrint;
 class SL1Archive;

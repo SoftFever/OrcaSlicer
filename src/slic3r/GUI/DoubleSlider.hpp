@@ -73,6 +73,9 @@ enum DrawMode
     dmRegular,
     dmSlaPrint,
     dmSequentialFffPrint,
+#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+    dmSequentialGCodeView,
+#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
 };
 
 using t_mode = CustomGCode::Mode;
@@ -211,6 +214,9 @@ public:
     void                SetTicksValues(const Slic3r::CustomGCode::Info &custom_gcode_per_print_z);
 
     void    SetDrawMode(bool is_sla_print, bool is_sequential_print);
+#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+    void    SetDrawMode(DrawMode mode) { m_draw_mode = mode; }
+#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
 
     void    SetManipulationMode(t_mode mode)    { m_mode = mode; }
     t_mode  GetManipulationMode() const         { return m_mode; }
@@ -223,7 +229,7 @@ public:
     bool is_higher_at_max() const   { return m_higher_value == m_max_value; }
     bool is_full_span() const       { return this->is_lower_at_min() && this->is_higher_at_max(); }
 
-    void OnPaint(wxPaintEvent& ) { render();}
+    void OnPaint(wxPaintEvent& ) { render(); }
     void OnLeftDown(wxMouseEvent& event);
     void OnMotion(wxMouseEvent& event);
     void OnLeftUp(wxMouseEvent& event);
