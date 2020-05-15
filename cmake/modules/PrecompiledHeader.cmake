@@ -52,6 +52,10 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+
+# Use the new builtin CMake function if possible or fall back to the old one.
+if (CMAKE_VERSION VERSION_LESS 3.16)
+
 include(CMakeParseArguments)
 
 macro(combine_arguments _variable)
@@ -102,6 +106,10 @@ function(export_all_flags _filename)
 endfunction()
 
 function(add_precompiled_header _target _input)
+
+  message(STATUS "Adding precompiled header ${_input} to target ${_target} with legacy method. "
+                 "Update your cmake instance to use the native PCH functions.")
+
   cmake_parse_arguments(_PCH "FORCEINCLUDE" "SOURCE_CXX;SOURCE_C" "" ${ARGN})
 
   get_filename_component(_input_we ${_input} NAME_WE)
@@ -241,3 +249,21 @@ function(add_precompiled_header _target _input)
     endforeach()
   endif(CMAKE_COMPILER_IS_GNUCXX)
 endfunction()
+
+else ()
+
+function(add_precompiled_header _target _input)
+    message(STATUS "Adding precompiled header ${_input} to target ${_target}.")
+    target_precompile_headers(${_target} PRIVATE ${_input})
+
+    get_target_property(_sources ${_target} SOURCES)
+    list(FILTER _sources INCLUDE REGEX ".*\\.mm?")
+
+    if (_sources)
+        message(STATUS "PCH skipping sources: ${_sources}")
+    endif ()
+
+    set_source_files_properties(${_sources} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+endfunction()
+
+endif (CMAKE_VERSION VERSION_LESS 3.16)
