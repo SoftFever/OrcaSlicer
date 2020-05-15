@@ -34,15 +34,6 @@
 #define ENABLE_HACK_CLOSING_ON_OSX_10_9_5 (1 && ENABLE_2_2_0_RC1)
 
 
-//==================
-// 2.2.0.final techs
-//==================
-#define ENABLE_2_2_0_FINAL 1
-
-// Enable tooltips for GLCanvas3D using ImGUI
-#define ENABLE_CANVAS_TOOLTIP_USING_IMGUI (1 && ENABLE_2_2_0_FINAL)
-
-
 //===================
 // 2.3.0.alpha1 techs
 //===================
