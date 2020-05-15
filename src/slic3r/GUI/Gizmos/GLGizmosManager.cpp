@@ -551,11 +551,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
 //        else
 //            return false;
     }
-#if ENABLE_GIZMO_TOOLBAR_DRAGGING_FIX
     else if (evt.Dragging() && !is_dragging())
-#else
-    else if (evt.Dragging())
-#endif // ENABLE_GIZMO_TOOLBAR_DRAGGING_FIX
     {
         if (m_mouse_capture.any())
             // if the button down was done on this toolbar, prevent from dragging into the scene
@@ -581,7 +577,6 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         // if the button down was done on this toolbar, prevent from dragging into the scene
         processed = true;
 #endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
-#if ENABLE_GIZMO_TOOLBAR_DRAGGING_FIX
     else if (evt.Dragging() && is_dragging())
     {
         if (!m_parent.get_wxglcanvas()->HasCapture())
@@ -628,7 +623,6 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         m_parent.set_as_dirty();
         processed = true;
     }
-#endif // ENABLE_GIZMO_TOOLBAR_DRAGGING_FIX
 
     if (get_gizmo_idx_from_mouse(mouse_pos) == Undefined)
     {
@@ -680,54 +674,6 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             m_parent.set_as_dirty();
             processed = true;
         }
-#if !ENABLE_GIZMO_TOOLBAR_DRAGGING_FIX
-        else if (evt.Dragging() && is_dragging())
-        {
-            if (!m_parent.get_wxglcanvas()->HasCapture())
-                m_parent.get_wxglcanvas()->CaptureMouse();
-
-            m_parent.set_mouse_as_dragging();
-            update(m_parent.mouse_ray(pos), pos);
-
-            switch (m_current)
-            {
-            case Move:
-            {
-                // Apply new temporary offset
-                selection.translate(get_displacement());
-                wxGetApp().obj_manipul()->set_dirty();
-                break;
-            }
-            case Scale:
-            {
-                // Apply new temporary scale factors
-                TransformationType transformation_type(TransformationType::Local_Absolute_Joint);
-                if (evt.AltDown())
-                    transformation_type.set_independent();
-                selection.scale(get_scale(), transformation_type);
-                if (evt.ControlDown())
-                    selection.translate(get_scale_offset(), true);
-                wxGetApp().obj_manipul()->set_dirty();
-                break;
-            }
-            case Rotate:
-            {
-                // Apply new temporary rotations
-                TransformationType transformation_type(TransformationType::World_Relative_Joint);
-                if (evt.AltDown())
-                    transformation_type.set_independent();
-                selection.rotate(get_rotation(), transformation_type);
-                wxGetApp().obj_manipul()->set_dirty();
-                break;
-            }
-            default:
-                break;
-            }
-
-            m_parent.set_as_dirty();
-            processed = true;
-        }
-#endif // !ENABLE_GIZMO_TOOLBAR_DRAGGING_FIX
 #if !ENABLE_CANVAS_TOOLTIP_USING_IMGUI
         else if (evt.LeftUp() && is_dragging())
         {

@@ -41,8 +41,6 @@
 
 // Enable tooltips for GLCanvas3D using ImGUI
 #define ENABLE_CANVAS_TOOLTIP_USING_IMGUI (1 && ENABLE_2_2_0_FINAL)
-// Enable fix for dragging mouse event handling for gizmobar
-#define ENABLE_GIZMO_TOOLBAR_DRAGGING_FIX (1 && ENABLE_2_2_0_FINAL)
 
 
 //===================
