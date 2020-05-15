@@ -15,6 +15,8 @@
 namespace Slic3r {
 namespace GUI {
 
+static constexpr size_t MaxVertexBuffers = 50;
+
 GLGizmoFdmSupports::GLGizmoFdmSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
     , m_quadric(nullptr)
@@ -123,10 +125,9 @@ void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
 
         // Now render both enforcers and blockers.
         for (int i=0; i<2; ++i) {
-            if (m_ivas[mesh_id][i].has_VBOs()) {
-                glsafe(::glColor4f(i ? 1.f : 0.2f, 0.2f, i ? 0.2f : 1.0f, 0.5f));
-                m_ivas[mesh_id][i].render();
-            }
+            glsafe(::glColor4f(i ? 1.f : 0.2f, 0.2f, i ? 0.2f : 1.0f, 0.5f));
+            for (const GLIndexedVertexArray& iva : m_ivas[mesh_id][i])
+                iva.render();
         }
         glsafe(::glPopMatrix());
     }
@@ -205,8 +206,14 @@ void GLGizmoFdmSupports::update_from_model_object()
             ++num_of_volumes;
     m_selected_facets.resize(num_of_volumes);
     m_neighbors.resize(num_of_volumes);
+
     m_ivas.clear();
     m_ivas.resize(num_of_volumes);
+    for (size_t i=0; i<num_of_volumes; ++i) {
+        m_ivas[i][0].reserve(MaxVertexBuffers);
+        m_ivas[i][1].reserve(MaxVertexBuffers);
+    }
+
 
     int volume_id = -1;
     for (const ModelVolume* mv : mo->volumes) {
@@ -226,7 +233,8 @@ void GLGizmoFdmSupports::update_from_model_object()
             for (int i : list)
                 m_selected_facets[volume_id][i] = type;
         }
-        update_vertex_buffers(mv, volume_id, true, true);
+        update_vertex_buffers(mv, volume_id, FacetSupportType::ENFORCER);
+        update_vertex_buffers(mv, volume_id, FacetSupportType::BLOCKER);
 
         m_neighbors[volume_id].resize(3 * mesh->its.indices.size());
 
@@ -389,6 +397,8 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             const float avg_scaling = (sf(0) + sf(1) + sf(2))/3.;
             const float limit = pow(m_cursor_radius/avg_scaling , 2.f);
 
+            std::vector<size_t> new_facets;
+
             // For all hits on this mesh...
             for (const std::pair<Vec3f, size_t>& hit_and_facet : hit_positions_and_facet_ids[mesh_id]) {
                 some_mesh_was_hit = true;
@@ -438,23 +448,43 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                     ++facet_idx;
                 }
 
-                // Now just select all facets that passed.
+                //std::vector<size_t> new_facets;
+                //new_facets.clear();
+                new_facets.reserve(facets_to_select.size());
+
+                // Now just select all facets that passed and remember which
+                // ones have really changed state.
                 for (size_t next_facet : facets_to_select) {
                     FacetSupportType& facet = m_selected_facets[mesh_id][next_facet];
 
-                    if (facet != new_state && facet != FacetSupportType::NONE) {
-                        // this triangle is currently in the other VBA.
-                        // Both VBAs need to be refreshed.
-                        update_both = true;
+                    if (facet != new_state) {
+                        if (facet != FacetSupportType::NONE) {
+                            // this triangle is currently in the other VBA.
+                            // Both VBAs need to be refreshed.
+                            update_both = true;
+                        }
+                        facet = new_state;
+                        new_facets.push_back(next_facet);
                     }
-                    facet = new_state;
                 }
             }
 
-            update_vertex_buffers(mv, mesh_id,
-                                  new_state == FacetSupportType::ENFORCER || update_both,
-                                  new_state == FacetSupportType::BLOCKER || update_both
-                                  );
+            if (! new_facets.empty()) {
+                if (new_state != FacetSupportType::NONE) {
+                    // append triangles into the respective VBA
+                    update_vertex_buffers(mv, mesh_id, new_state, &new_facets);
+                    if (update_both) {
+                        auto other = new_state == FacetSupportType::ENFORCER
+                                ? FacetSupportType::BLOCKER
+                                : FacetSupportType::ENFORCER;
+                        update_vertex_buffers(mv, mesh_id, other); // regenerate the other VBA
+                    }
+                }
+                else {
+                    update_vertex_buffers(mv, mesh_id, FacetSupportType::ENFORCER);
+                    update_vertex_buffers(mv, mesh_id, FacetSupportType::BLOCKER);
+                }
+            }
         }
 
         if (some_mesh_was_hit)
@@ -488,34 +518,54 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
 void GLGizmoFdmSupports::update_vertex_buffers(const ModelVolume* mv,
                                                int mesh_id,
-                                               bool update_enforcers,
-                                               bool update_blockers)
+                                               FacetSupportType type,
+                                               const std::vector<size_t>* new_facets)
 {
     const TriangleMesh* mesh = &mv->mesh();
 
-    for (FacetSupportType type : {FacetSupportType::ENFORCER, FacetSupportType::BLOCKER}) {
-        if ((type == FacetSupportType::ENFORCER && ! update_enforcers)
-         || (type == FacetSupportType::BLOCKER && ! update_blockers))
-            continue;
+    std::vector<GLIndexedVertexArray>& ivas = m_ivas[mesh_id][type == FacetSupportType::ENFORCER ? 0 : 1];
 
-        GLIndexedVertexArray& iva = m_ivas[mesh_id][type==FacetSupportType::ENFORCER ? 0 : 1];
-        iva.release_geometry();
-        size_t triangle_cnt=0;
+    // lambda to push facet into vertex buffer
+    auto push_facet = [this, &mesh, &mesh_id](size_t idx, GLIndexedVertexArray& iva) {
+        for (int i=0; i<3; ++i)
+            iva.push_geometry(
+                mesh->its.vertices[mesh->its.indices[idx](i)].cast<double>(),
+                m_c->raycaster()->raycasters()[mesh_id]->get_triangle_normal(idx).cast<double>()
+            );
+        size_t num = iva.triangle_indices_size;
+        iva.push_triangle(num, num+1, num+2);
+    };
+
+
+    if (ivas.size() == MaxVertexBuffers || ! new_facets) {
+        // If there are too many or they should be regenerated, make one large
+        // GLVertexBufferArray.
+        ivas.clear(); // destructors release geometry
+        ivas.push_back(GLIndexedVertexArray());
+
+        bool pushed = false;
         for (size_t facet_idx=0; facet_idx<m_selected_facets[mesh_id].size(); ++facet_idx) {
-            FacetSupportType status = m_selected_facets[mesh_id][facet_idx];
-            if (status != type)
-                continue;
-            for (int i=0; i<3; ++i)
-                iva.push_geometry(
-                    mesh->its.vertices[mesh->its.indices[facet_idx](i)].cast<double>(),
-                    m_c->raycaster()->raycasters()[mesh_id]->get_triangle_normal(facet_idx).cast<double>()
-                );
-            iva.push_triangle(3*triangle_cnt, 3*triangle_cnt+1, 3*triangle_cnt+2);
-            ++triangle_cnt;
+            if (m_selected_facets[mesh_id][facet_idx] == type) {
+                push_facet(facet_idx, ivas.back());
+                pushed = true;
+            }
         }
-        if (! m_selected_facets[mesh_id].empty())
-            iva.finalize_geometry(true);
+        if (pushed)
+            ivas.back().finalize_geometry(true);
+        else
+            ivas.pop_back();
+    } else {
+        // we are only appending - let's make new vertex array and let the old ones live
+        ivas.push_back(GLIndexedVertexArray());
+        for (size_t facet_idx : *new_facets)
+            push_facet(facet_idx, ivas.back());
+
+        if (! new_facets->empty())
+            ivas.back().finalize_geometry(true);
+        else
+            ivas.pop_back();
     }
+
 }
 
 
@@ -548,7 +598,8 @@ void GLGizmoFdmSupports::select_facets_by_angle(float threshold_deg, bool overwr
                         ? FacetSupportType::BLOCKER
                         : FacetSupportType::ENFORCER;
         }
-        update_vertex_buffers(mv, mesh_id, true, true);
+        update_vertex_buffers(mv, mesh_id, FacetSupportType::ENFORCER);
+        update_vertex_buffers(mv, mesh_id, FacetSupportType::BLOCKER);
     }
 
     Plater::TakeSnapshot(wxGetApp().plater(), block ? _L("Block supports by angle")
@@ -618,7 +669,8 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
                 if (mv->is_model_part()) {
                     m_selected_facets[idx].assign(m_selected_facets[idx].size(), FacetSupportType::NONE);
                     mv->m_supported_facets.clear();
-                    update_vertex_buffers(mv, idx, true, true);
+                    update_vertex_buffers(mv, idx, FacetSupportType::ENFORCER);
+                    update_vertex_buffers(mv, idx, FacetSupportType::BLOCKER);
                     m_parent.set_as_dirty();
                 }
             }

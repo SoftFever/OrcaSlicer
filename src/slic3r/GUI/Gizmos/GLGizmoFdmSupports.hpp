@@ -33,14 +33,15 @@ private:
     // individual facets (one of the enum values above).
     std::vector<std::vector<FacetSupportType>> m_selected_facets;
 
-    // Store two vertex buffer arrays (for enforcers/blockers)
-    // for each model-part volume.
-    std::vector<std::array<GLIndexedVertexArray, 2>> m_ivas;
+    // Vertex buffer arrays for each model-part volume. There is a vector of
+    // arrays so that adding triangles can be done without regenerating all
+    // other triangles. Enforcers and blockers are of course separate.
+    std::vector<std::array<std::vector<GLIndexedVertexArray>, 2>> m_ivas;
 
     void update_vertex_buffers(const ModelVolume* mv,
                                int mesh_id,
-                               bool update_enforcers,
-                               bool update_blockers);
+                               FacetSupportType type, // enforcers / blockers
+                               const std::vector<size_t>* new_facets = nullptr); // nullptr -> regenerate all
 
 public:
     GLGizmoFdmSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
