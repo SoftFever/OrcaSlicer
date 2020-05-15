@@ -1642,9 +1642,7 @@ struct Plater::priv
     bool init_view_toolbar();
 #if ENABLE_GCODE_VIEWER
     void update_preview_bottom_toolbar();
-#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
-    void update_preview_horz_slider();
-#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+    void update_preview_moves_slider();
 #endif // ENABLE_GCODE_VIEWER
 
     void reset_all_gizmos();
@@ -1975,8 +1973,13 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
                 config->option<ConfigOptionString>("bed_custom_model")->value);
         });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent&) { select_next_view_3D(); });
+#if ENABLE_GCODE_VIEWER
+    preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOVE_LAYERS_SLIDER, [this](wxKeyEvent& evt) { preview->move_layers_slider(evt); });
+    preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_EDIT_COLOR_CHANGE, [this](wxKeyEvent& evt) { preview->edit_layers_slider(evt); });
+#else
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, [this](wxKeyEvent& evt) { preview->move_double_slider(evt); });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_EDIT_COLOR_CHANGE, [this](wxKeyEvent& evt) { preview->edit_double_slider(evt); });
+#endif // ENABLE_GCODE_VIEWER
 
     q->Bind(EVT_SLICING_COMPLETED, &priv::on_slicing_completed, this);
     q->Bind(EVT_PROCESS_COMPLETED, &priv::on_process_completed, this);
@@ -3879,12 +3882,10 @@ void Plater::priv::update_preview_bottom_toolbar()
     preview->update_bottom_toolbar();
 }
 
-#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
-void Plater::priv::update_preview_horz_slider()
+void Plater::priv::update_preview_moves_slider()
 {
-    preview->update_horz_slider();
+    preview->update_moves_slider();
 }
-#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
 #endif // ENABLE_GCODE_VIEWER
 
 bool Plater::priv::can_set_instance_to_object() const
@@ -5482,12 +5483,10 @@ void Plater::update_preview_bottom_toolbar()
     p->update_preview_bottom_toolbar();
 }
 
-#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
-void Plater::update_preview_horz_slider()
+void Plater::update_preview_moves_slider()
 {
-    p->update_preview_horz_slider();
+    p->update_preview_moves_slider();
 }
-#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
 #endif // ENABLE_GCODE_VIEWER
 
 const Mouse3DController& Plater::get_mouse3d_controller() const

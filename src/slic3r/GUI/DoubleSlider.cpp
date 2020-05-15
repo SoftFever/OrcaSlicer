@@ -20,9 +20,9 @@
 #include <wx/bmpcbox.h>
 #include <wx/statline.h>
 #include <wx/dcclient.h>
-#if !ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+#if !ENABLE_GCODE_VIEWER
 #include <wx/numformatter.h>
-#endif // !ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+#endif // !ENABLE_GCODE_VIEWER
 #include <wx/colordlg.h>
 
 #include <cmath>
@@ -537,7 +537,7 @@ wxString Control::get_label(int tick) const
     if (value >= m_values.size())
         return "ErrVal";
 
-#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+#if ENABLE_GCODE_VIEWER
     if (m_draw_mode == dmSequentialGCodeView)
         return wxString::Format("%d", static_cast<unsigned int>(m_values[value]));
     else {
@@ -551,7 +551,7 @@ wxString Control::get_label(int tick) const
             wxNumberFormatter::ToString(m_label_koef * value, 2, wxNumberFormatter::Style_None) :
             wxNumberFormatter::ToString(m_values[value], 2, wxNumberFormatter::Style_None);
         return format_wxstr("%1%\n(%2%)", str, m_values.empty() ? value : value + 1);
-#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void Control::draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, bool right_side/*=true*/) const
@@ -792,10 +792,10 @@ void Control::draw_colored_band(wxDC& dc)
 
 void Control::draw_one_layer_icon(wxDC& dc)
 {
-#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+#if ENABLE_GCODE_VIEWER
     if (m_draw_mode == dmSequentialGCodeView)
         return;
-#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+#endif // ENABLE_GCODE_VIEWER
 
     const wxBitmap& icon = m_is_one_layer ?
                      m_focus == fiOneLayerIcon ? m_bmp_one_layer_lock_off.bmp()   : m_bmp_one_layer_lock_on.bmp() :
@@ -1302,11 +1302,11 @@ void Control::OnWheel(wxMouseEvent& event)
                           ssLower : ssHigher;
     }
 
-#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+#if ENABLE_GCODE_VIEWER
     move_current_thumb((m_draw_mode == dmSequentialGCodeView) ? event.GetWheelRotation() < 0 : event.GetWheelRotation() > 0);
 #else
     move_current_thumb(event.GetWheelRotation() > 0);
-#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void Control::OnKeyDown(wxKeyEvent &event)
@@ -1328,34 +1328,34 @@ void Control::OnKeyDown(wxKeyEvent &event)
         UseDefaultColors(false);
     else if (is_horizontal())
     {
-#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+#if ENABLE_GCODE_VIEWER
         if (m_is_focused)
         {
-#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+#endif // ENABLE_GCODE_VIEWER
             if (key == WXK_LEFT || key == WXK_RIGHT)
                 move_current_thumb(key == WXK_LEFT);
             else if (key == WXK_UP || key == WXK_DOWN) {
                 m_selection = key == WXK_UP ? ssHigher : ssLower;
                 Refresh();
             }
-#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+#if ENABLE_GCODE_VIEWER
         }
-#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+#endif // ENABLE_GCODE_VIEWER
         }
     else {
-#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+#if ENABLE_GCODE_VIEWER
         if (m_is_focused)
         {
-#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+#endif // ENABLE_GCODE_VIEWER
             if (key == WXK_LEFT || key == WXK_RIGHT) {
                 m_selection = key == WXK_LEFT ? ssHigher : ssLower;
                 Refresh();
             }
             else if (key == WXK_UP || key == WXK_DOWN)
                 move_current_thumb(key == WXK_UP);
-#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+#if ENABLE_GCODE_VIEWER
         }
-#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+#endif // ENABLE_GCODE_VIEWER
     }
 
     event.Skip(); // !Needed to have EVT_CHAR generated as well

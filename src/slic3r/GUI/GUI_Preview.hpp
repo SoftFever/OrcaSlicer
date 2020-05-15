@@ -82,9 +82,11 @@ class Preview : public wxPanel
 {
     wxGLCanvas* m_canvas_widget;
     GLCanvas3D* m_canvas;
-    wxBoxSizer* m_double_slider_sizer;
 #if ENABLE_GCODE_VIEWER
+    wxBoxSizer* m_layers_slider_sizer;
     wxBoxSizer* m_bottom_toolbar_sizer;
+#else
+    wxBoxSizer* m_double_slider_sizer;
 #endif // ENABLE_GCODE_VIEWER
     wxStaticText* m_label_view_type;
     wxChoice* m_choice_view_type;
@@ -126,10 +128,8 @@ class Preview : public wxPanel
 #endif // !ENABLE_GCODE_VIEWER
 
 #if ENABLE_GCODE_VIEWER
-    DoubleSlider::Control* m_vert_slider{ nullptr };
-#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
-    DoubleSlider::Control* m_horz_slider{ nullptr };
-#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+    DoubleSlider::Control* m_layers_slider{ nullptr };
+    DoubleSlider::Control* m_moves_slider{ nullptr };
 #else
     DoubleSlider::Control*       m_slider {nullptr};
 #endif // ENABLE_GCODE_VIEWER
@@ -162,8 +162,13 @@ Preview(wxWindow* parent, Model* model, DynamicPrintConfig* config,
     void refresh_print();
 
     void msw_rescale();
+#if ENABLE_GCODE_VIEWER
+    void move_layers_slider(wxKeyEvent& evt);
+    void edit_layers_slider(wxKeyEvent& evt);
+#else
     void move_double_slider(wxKeyEvent& evt);
     void edit_double_slider(wxKeyEvent& evt);
+#endif // ENABLE_GCODE_VIEWER
 
     void update_view_type(bool slice_completed);
 
@@ -171,9 +176,7 @@ Preview(wxWindow* parent, Model* model, DynamicPrintConfig* config,
 
 #if ENABLE_GCODE_VIEWER
     void update_bottom_toolbar();
-#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
-    void update_horz_slider();
-#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+    void update_moves_slider();
 #endif // ENABLE_GCODE_VIEWER
 
 private:
@@ -183,7 +186,7 @@ private:
     void unbind_event_handlers();
 
 #if ENABLE_GCODE_VIEWER
-    void hide_vert_slider();
+    void hide_layers_slider();
 #else
     void show_hide_ui_elements(const std::string& what);
 
@@ -206,14 +209,14 @@ private:
 
 #if ENABLE_GCODE_VIEWER
     // Create/Update/Reset double slider on 3dPreview
-    wxBoxSizer* create_vert_slider_sizer();
-    void check_vert_slider_values(std::vector<CustomGCode::Item>& ticks_from_model,
+    wxBoxSizer* create_layers_slider_sizer();
+    void check_layers_slider_values(std::vector<CustomGCode::Item>& ticks_from_model,
         const std::vector<double>& layers_z);
-    void reset_vert_slider();
-    void update_vert_slider(const std::vector<double>& layers_z, bool keep_z_range = false);
-    void update_vert_slider_mode();
+    void reset_layers_slider();
+    void update_layers_slider(const std::vector<double>& layers_z, bool keep_z_range = false);
+    void update_layers_slider_mode();
     // update vertical DoubleSlider after keyDown in canvas
-    void update_vert_slider_from_canvas(wxKeyEvent& event);
+    void update_layers_slider_from_canvas(wxKeyEvent& event);
 #else
     // Create/Update/Reset double slider on 3dPreview
     void create_double_slider();
@@ -230,10 +233,8 @@ private:
     void load_print_as_sla();
 
 #if ENABLE_GCODE_VIEWER
-    void on_vert_slider_scroll_changed(wxCommandEvent& event);
-#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
-    void on_horz_slider_scroll_changed(wxCommandEvent& event);
-#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+    void on_layers_slider_scroll_changed(wxCommandEvent& event);
+    void on_moves_slider_scroll_changed(wxCommandEvent& event);
 #else
     void on_sliders_scroll_changed(wxCommandEvent& event);
 #endif // ENABLE_GCODE_VIEWER

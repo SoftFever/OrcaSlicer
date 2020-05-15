@@ -320,9 +320,7 @@ public:
 
 #if ENABLE_GCODE_VIEWER
     void update_preview_bottom_toolbar();
-#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
-    void update_preview_horz_slider();
-#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+    void update_preview_moves_slider();
 #endif // ENABLE_GCODE_VIEWER
 
     const Mouse3DController& get_mouse3d_controller() const;
