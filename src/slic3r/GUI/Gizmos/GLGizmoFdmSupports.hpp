@@ -38,10 +38,11 @@ private:
     // other triangles. Enforcers and blockers are of course separate.
     std::vector<std::array<std::vector<GLIndexedVertexArray>, 2>> m_ivas;
 
-    void update_vertex_buffers(const ModelVolume* mv,
+    void update_vertex_buffers(const TriangleMesh* mesh,
                                int mesh_id,
                                FacetSupportType type, // enforcers / blockers
                                const std::vector<size_t>* new_facets = nullptr); // nullptr -> regenerate all
+
 
 public:
     GLGizmoFdmSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
