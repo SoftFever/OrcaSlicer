@@ -108,7 +108,11 @@ public:
     // The pointer can be invalidated after constructor returns.
     MeshRaycaster(const TriangleMesh& mesh)
         : m_emesh(mesh)
-    {}
+    {
+        m_normals.reserve(mesh.stl.facet_start.size());
+        for (const stl_facet& facet : mesh.stl.facet_start)
+            m_normals.push_back(facet.normal);
+    }
 
     void line_from_mouse_pos(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
                              Vec3d& point, Vec3d& direction) const;
@@ -140,10 +144,11 @@ public:
 
     Vec3f get_closest_point(const Vec3f& point, Vec3f* normal = nullptr) const;
 
-    static Vec3f get_triangle_normal(const indexed_triangle_set& its, size_t facet_idx);
+    Vec3f get_triangle_normal(size_t facet_idx) const;
 
 private:
     sla::EigenMesh3D m_emesh;
+    std::vector<stl_normal> m_normals;
 };
 
     

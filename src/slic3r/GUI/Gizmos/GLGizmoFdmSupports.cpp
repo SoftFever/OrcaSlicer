@@ -506,8 +506,10 @@ void GLGizmoFdmSupports::update_vertex_buffers(const ModelVolume* mv,
             if (status != type)
                 continue;
             for (int i=0; i<3; ++i)
-                iva.push_geometry(mesh->its.vertices[mesh->its.indices[facet_idx](i)].cast<double>(),
-                                  MeshRaycaster::get_triangle_normal(mesh->its, facet_idx).cast<double>());
+                iva.push_geometry(
+                    mesh->its.vertices[mesh->its.indices[facet_idx](i)].cast<double>(),
+                    m_c->raycaster()->raycasters()[mesh_id]->get_triangle_normal(facet_idx).cast<double>()
+                );
             iva.push_triangle(3*triangle_cnt, 3*triangle_cnt+1, 3*triangle_cnt+2);
             ++triangle_cnt;
         }
