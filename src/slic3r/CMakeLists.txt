@@ -27,8 +27,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/GLShader.hpp    
     GUI/GLCanvas3D.hpp
     GUI/GLCanvas3D.cpp
-    GUI/GLCanvas3DManager.hpp
-    GUI/GLCanvas3DManager.cpp
+    GUI/OpenGLManager.hpp
+    GUI/OpenGLManager.cpp
     GUI/Selection.hpp
     GUI/Selection.cpp    
     GUI/Gizmos/GLGizmosManager.cpp
@@ -55,6 +55,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmoHollow.hpp
     GUI/GLSelectionRectangle.cpp
     GUI/GLSelectionRectangle.hpp
+    GUI/GLModel.hpp
+    GUI/GLModel.cpp
     GUI/GLTexture.hpp
     GUI/GLTexture.cpp
     GUI/GLToolbar.hpp
@@ -216,6 +218,12 @@ target_link_libraries(libslic3r_gui libslic3r avrdude cereal imgui GLEW::GLEW Op
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_link_libraries(libslic3r_gui ${DBUS_LIBRARIES}) 
+endif()
+
+if (SLIC3R_STATIC)
+    # FIXME: This was previously exported by wx-config but the wxWidgets
+    # cmake build forgets this and the build fails in debug mode (or on raspberry release)
+    target_compile_definitions(libslic3r_gui PUBLIC -DwxDEBUG_LEVEL=0)
 endif()
 
 if(APPLE)

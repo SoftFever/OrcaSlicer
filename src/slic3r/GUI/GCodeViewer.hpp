@@ -5,11 +5,15 @@
 #include "GLShader.hpp"
 #include "3DScene.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
+#include "GLModel.hpp"
 
 #include <float.h>
 
 namespace Slic3r {
+
 class Print;
+class TriangleMesh;
+
 namespace GUI {
 
 class GCodeViewer
@@ -73,19 +77,18 @@ class GCodeViewer
     struct IBuffer
     {
         unsigned int ibo_id{ 0 };
+        size_t indices_count{ 0 };
         Shader shader;
-        std::vector<unsigned int> data;
-        size_t data_size{ 0 };
         std::vector<Path> paths;
         std::vector<RenderPath> render_paths;
         bool visible{ false };
 
         void reset();
         bool init_shader(const std::string& vertex_shader_src, const std::string& fragment_shader_src);
-        void add_path(const GCodeProcessor::MoveVertex& move, unsigned int s_id);
+        void add_path(const GCodeProcessor::MoveVertex& move, unsigned int i_id, unsigned int s_id);
     };
 
-
+    // helper to render shells
     struct Shells
     {
         GLVolumeCollection volumes;
@@ -148,9 +151,36 @@ class GCodeViewer
 
     struct SequentialView
     {
+        class Marker
+        {
+            GL_Model m_model;
+            Transform3f m_world_transform;
+            std::array<float, 4> m_color{ 1.0f, 1.0f, 1.0f, 1.0f };
+            bool m_visible{ false };
+            Shader m_shader;
+
+        public:
+            void init();
+
+            const BoundingBoxf3& get_bounding_box() const { return m_model.get_bounding_box(); }
+
+            void set_world_transform(const Transform3f& transform) { m_world_transform = transform; }
+            void set_color(const std::array<float, 4>& color) { m_color = color; }
+
+            bool is_visible() const { return m_visible; }
+            void set_visible(bool visible) { m_visible = visible; }
+
+            void render() const;
+
+        private:
+            void init_shader();
+        };
+
         unsigned int first{ 0 };
         unsigned int last{ 0 };
         unsigned int current{ 0 };
+        Vec3f current_position{ Vec3f::Zero() };
+        Marker marker;
     };
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -237,6 +267,7 @@ public:
 
     bool init() {
         set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Extrude, true);
+        m_sequential_view.marker.init();
         return init_shaders();
     }
 
@@ -285,7 +316,7 @@ private:
     void render_toolpaths() const;
     void render_shells() const;
     void render_legend() const;
-    void render_sequential_dlg() const;
+    void render_sequential_bar() const;
 #if ENABLE_GCODE_VIEWER_STATISTICS
     void render_statistics() const;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS

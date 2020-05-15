@@ -5,15 +5,24 @@
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/BoundingBox.hpp"
+#if ENABLE_GCODE_VIEWER
+#include "libslic3r/Geometry.hpp"
+#endif // ENABLE_GCODE_VIEWER
 
 #include "GUI_App.hpp"
 #include "PresetBundle.hpp"
 #include "GLCanvas3D.hpp"
+#if ENABLE_GCODE_VIEWER
+#include "3DScene.hpp"
+#endif // ENABLE_GCODE_VIEWER
 
 #include <GL/glew.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem/operations.hpp>
+#if ENABLE_GCODE_VIEWER
+#include <boost/log/trivial.hpp>
+#endif // ENABLE_GCODE_VIEWER
 
 static const float GROUND_Z = -0.02f;
 
@@ -119,13 +128,25 @@ const float* GeometryBuffer::get_vertices_data() const
     return (m_vertices.size() > 0) ? (const float*)m_vertices.data() : nullptr;
 }
 
+#if ENABLE_GCODE_VIEWER
+const float Bed3D::Axes::DefaultStemRadius = 0.5f;
+const float Bed3D::Axes::DefaultStemLength = 25.0f;
+const float Bed3D::Axes::DefaultTipRadius = 2.5f * Bed3D::Axes::DefaultStemRadius;
+const float Bed3D::Axes::DefaultTipLength = 5.0f;
+#else
 const double Bed3D::Axes::Radius = 0.5;
 const double Bed3D::Axes::ArrowBaseRadius = 2.5 * Bed3D::Axes::Radius;
 const double Bed3D::Axes::ArrowLength = 5.0;
+#endif // ENABLE_GCODE_VIEWER
 
+#if ENABLE_GCODE_VIEWER
+void Bed3D::Axes::set_stem_length(float length)
+{
+    m_stem_length = length;
+    m_arrow.reset();
+}
+#else
 Bed3D::Axes::Axes()
-: origin(Vec3d::Zero())
-, length(25.0 * Vec3d::Ones())
 {
     m_quadric = ::gluNewQuadric();
     if (m_quadric != nullptr)
@@ -137,9 +158,46 @@ Bed3D::Axes::~Axes()
     if (m_quadric != nullptr)
         ::gluDeleteQuadric(m_quadric);
 }
+#endif // ENABLE_GCODE_VIEWER
 
 void Bed3D::Axes::render() const
 {
+#if ENABLE_GCODE_VIEWER
+    auto render_axis = [this](const Transform3f& transform, GLint color_id, const std::array<float, 4>& color) {
+        if (color_id >= 0)
+            glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)color.data()));
+
+        glsafe(::glPushMatrix());
+        glsafe(::glMultMatrixf(transform.data()));
+        m_arrow.render();
+        glsafe(::glPopMatrix());
+    };
+
+    m_arrow.init_from(stilized_arrow(16, DefaultTipRadius, DefaultTipLength, DefaultStemRadius, m_stem_length));
+    if (!m_shader.init("gouraud_light.vs", "gouraud_light.fs"))
+        BOOST_LOG_TRIVIAL(error) << "Unable to initialize gouraud_light shader: please, check that the files gouraud_light.vs and gouraud_light.fs are available";
+
+    if (!m_shader.is_initialized())
+        return;
+
+    glsafe(::glEnable(GL_DEPTH_TEST));
+
+    m_shader.start_using();
+    GLint color_id = ::glGetUniformLocation(m_shader.get_shader_program_id(), "uniform_color");
+
+    // x axis
+    render_axis(Geometry::assemble_transform(m_origin, { 0.0, 0.5 * M_PI, 0.0f }).cast<float>(), color_id, { 0.75f, 0.0f, 0.0f, 1.0f });
+
+    // y axis
+    render_axis(Geometry::assemble_transform(m_origin, { -0.5 * M_PI, 0.0, 0.0f }).cast<float>(), color_id, { 0.0f, 0.75f, 0.0f, 1.0f });
+
+    // z axis
+    render_axis(Geometry::assemble_transform(m_origin).cast<float>(), color_id, { 0.0f, 0.0f, 0.75f, 1.0f });
+
+    m_shader.stop_using();
+
+    glsafe(::glDisable(GL_DEPTH_TEST));
+#else
     if (m_quadric == nullptr)
         return;
 
@@ -171,8 +229,10 @@ void Bed3D::Axes::render() const
 
     glsafe(::glDisable(GL_LIGHTING));
     glsafe(::glDisable(GL_DEPTH_TEST));
+#endif // !ENABLE_GCODE_VIEWER
 }
 
+#if !ENABLE_GCODE_VIEWER
 void Bed3D::Axes::render_axis(double length) const
 {
     ::gluQuadricOrientation(m_quadric, GLU_OUTSIDE);
@@ -185,6 +245,7 @@ void Bed3D::Axes::render_axis(double length) const
     ::gluQuadricOrientation(m_quadric, GLU_INSIDE);
     ::gluDisk(m_quadric, 0.0, ArrowBaseRadius, 32, 1);
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 Bed3D::Bed3D()
     : m_type(Custom)
@@ -242,8 +303,13 @@ bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, c
     m_model.reset();
 
     // Set the origin and size for rendering the coordinate system axes.
+#if ENABLE_GCODE_VIEWER
+    m_axes.set_origin({ 0.0, 0.0, static_cast<double>(GROUND_Z) });
+    m_axes.set_stem_length(0.1f * static_cast<float>(m_bounding_box.max_size()));
+#else
     m_axes.origin = Vec3d(0.0, 0.0, (double)GROUND_Z);
     m_axes.length = 0.1 * m_bounding_box.max_size() * Vec3d::Ones();
+#endif // ENABLE_GCODE_VIEWER
 
     // Let the calee to update the UI.
     return true;
@@ -290,7 +356,11 @@ void Bed3D::calc_bounding_boxes() const
     m_extended_bounding_box = m_bounding_box;
 
     // extend to contain axes
+#if ENABLE_GCODE_VIEWER
+    m_extended_bounding_box.merge(m_axes.get_total_length() * Vec3d::Ones());
+#else
     m_extended_bounding_box.merge(m_axes.length + Axes::ArrowLength * Vec3d::Ones());
+#endif // ENABLE_GCODE_VIEWER
 
     // extend to contain model, if any
     if (!m_model.get_filename().empty())
@@ -410,7 +480,7 @@ void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
         if (boost::algorithm::iends_with(m_texture_filename, ".svg"))
         {
             // use higher resolution images if graphic card and opengl version allow
-            GLint max_tex_size = GLCanvas3DManager::get_gl_info().get_max_tex_size();
+            GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
             if ((m_temp_texture.get_id() == 0) || (m_temp_texture.get_source() != m_texture_filename))
             {
                 // generate a temporary lower resolution texture to show while no main texture levels have been compressed

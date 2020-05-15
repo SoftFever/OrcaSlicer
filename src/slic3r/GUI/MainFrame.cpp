@@ -7,7 +7,7 @@
 #include <wx/menu.h>
 #include <wx/progdlg.h>
 #include <wx/tooltip.h>
-#include <wx/glcanvas.h>
+//#include <wx/glcanvas.h>
 #include <wx/debug.h>
 
 #include <boost/algorithm/string/predicate.hpp>
@@ -28,6 +28,7 @@
 #include "RemovableDriveManager.hpp"
 #include "InstanceCheck.hpp"
 #include "I18N.hpp"
+#include "GLCanvas3D.hpp"
 
 #include <fstream>
 #include "GUI_App.hpp"
@@ -90,10 +91,12 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 
     // initialize layout
     auto sizer = new wxBoxSizer(wxVERTICAL);
-    if (m_plater)
+    if (m_plater && m_layout != slOld)
         sizer->Add(m_plater, 1, wxEXPAND);
-    if (m_tabpanel)
+
+    if (m_tabpanel && m_layout != slDlg)
         sizer->Add(m_tabpanel, 1, wxEXPAND);
+
     sizer->SetSizeHints(this);
     SetSizer(sizer);
     Fit();
@@ -212,7 +215,6 @@ void MainFrame::shutdown()
     if (m_plater)
     	m_plater->stop_jobs();
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     // Unbinding of wxWidgets event handling in canvases needs to be done here because on MAC,
     // when closing the application using Command+Q, a mouse event is triggered after this lambda is completed,
     // causing a crash
@@ -221,13 +223,15 @@ void MainFrame::shutdown()
     // Cleanup of canvases' volumes needs to be done here or a crash may happen on some Linux Debian flavours
     // see: https://github.com/prusa3d/PrusaSlicer/issues/3964
     if (m_plater) m_plater->reset_canvas_volumes();
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     // Weird things happen as the Paint messages are floating around the windows being destructed.
     // Avoid the Paint messages by hiding the main window.
     // Also the application closes much faster without these unnecessary screen refreshes.
     // In addition, there were some crashes due to the Paint events sent to already destructed windows.
     this->Show(false);
+
+    if (m_settings_dialog)
+        m_settings_dialog->Destroy();
 
 	// Stop the background thread (Windows and Linux).
 	// Disconnect from a 3DConnextion driver (OSX).
@@ -244,9 +248,6 @@ void MainFrame::shutdown()
     wxGetApp().app_config->save();
 //         if (m_plater)
 //             m_plater->print = undef;
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-    _3DScene::remove_all_canvases();
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 //         Slic3r::GUI::deregister_on_request_update_callback();
 
     // set to null tabs and a plater
@@ -289,12 +290,25 @@ void MainFrame::update_title()
 
 void MainFrame::init_tabpanel()
 {
-    // wxNB_NOPAGETHEME: Disable Windows Vista theme for the Notebook background. The theme performance is terrible on Windows 10
-    // with multiple high resolution displays connected.
-    m_tabpanel = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
+    m_layout = wxGetApp().app_config->get("old_settings_layout_mode") == "1" ? slOld :
+               wxGetApp().app_config->get("new_settings_layout_mode") == "1" ? slNew :
+               wxGetApp().app_config->get("dlg_settings_layout_mode") == "1" ? slDlg : slOld;
+
+    // From the very beginning the Print settings should be selected
+    m_last_selected_tab = m_layout == slDlg ? 0 : 1;
+
+    if (m_layout == slDlg) {
+        m_settings_dialog = new SettingsDialog(this);
+        m_tabpanel = m_settings_dialog->get_tabpanel();
+    }
+    else {
+        // wxNB_NOPAGETHEME: Disable Windows Vista theme for the Notebook background. The theme performance is terrible on Windows 10
+        // with multiple high resolution displays connected.
+        m_tabpanel = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
 #ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList
-    m_tabpanel->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+        m_tabpanel->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 #endif
+    }
 
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, [this](wxEvent&) {
         auto panel = m_tabpanel->GetCurrentPage();
@@ -307,17 +321,22 @@ void MainFrame::init_tabpanel()
             // On GTK, the wxEVT_NOTEBOOK_PAGE_CHANGED event is triggered
             // before the MainFrame is fully set up.
             static_cast<Tab*>(panel)->OnActivate();
+            m_last_selected_tab = m_tabpanel->GetSelection();
         }
         else
             select_tab(0);
     });
 
-//!    m_plater = new Slic3r::GUI::Plater(m_tabpanel, this);
-    m_plater = new Plater(this, this);
-
+    if (m_layout == slOld) {
+        m_plater = new Plater(m_tabpanel, this);
+        m_tabpanel->AddPage(m_plater, _L("Plater"));
+    }
+    else {
+        m_plater = new Plater(this, this);
+        if (m_layout == slNew)
+            m_tabpanel->AddPage(new wxPanel(m_tabpanel), _L("Plater")); // empty panel just for Plater tab
+    }
     wxGetApp().plater_ = m_plater;
-//    m_tabpanel->AddPage(m_plater, _(L("Plater")));
-    m_tabpanel->AddPage(new wxPanel(m_tabpanel), _L("Plater")); // empty panel just for Plater tab
 
     wxGetApp().obj_list()->create_popup_menus();
 
@@ -341,13 +360,6 @@ void MainFrame::init_tabpanel()
             m_plater->on_extruders_change(full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size());
         }
     }
-}
-
-void MainFrame::switch_to(bool plater)
-{
-    this->m_plater->Show(plater);
-    this->m_tabpanel->Show(!plater);
-    this->Layout();
 }
 
 void MainFrame::create_preset_tabs()
@@ -465,6 +477,11 @@ bool MainFrame::can_slice() const
 
 bool MainFrame::can_change_view() const
 {
+    if (m_layout == slNew)
+        return m_plater->IsShown();
+    if (m_layout == slDlg)
+        return true;
+    // slOld layout mode
     int page_id = m_tabpanel->GetSelection();
     return page_id != wxNOT_FOUND && dynamic_cast<const Slic3r::GUI::Plater*>(m_tabpanel->GetPage((size_t)page_id)) != nullptr;
 }
@@ -763,25 +780,21 @@ void MainFrame::init_menubar()
     // Window menu
     auto windowMenu = new wxMenu();
     {
-//!        size_t tab_offset = 0;
         if (m_plater) {
             append_menu_item(windowMenu, wxID_HIGHEST + 1, _(L("&Plater Tab")) + "\tCtrl+1", _(L("Show the plater")),
-                [this/*, tab_offset*/](wxCommandEvent&) { select_tab(/*(size_t)(-1)*/0); }, "plater", nullptr,
+                [this](wxCommandEvent&) { select_tab(0); }, "plater", nullptr,
                 [this]() {return true; }, this);
-//!            tab_offset += 1;
-//!        }
-//!        if (tab_offset > 0) {
             windowMenu->AppendSeparator();
         }
         append_menu_item(windowMenu, wxID_HIGHEST + 2, _(L("P&rint Settings Tab")) + "\tCtrl+2", _(L("Show the print settings")),
-            [this/*, tab_offset*/](wxCommandEvent&) { select_tab(/*tab_offset + 0*/1); }, "cog", nullptr,
+            [this/*, tab_offset*/](wxCommandEvent&) { select_tab(1); }, "cog", nullptr,
             [this]() {return true; }, this);
         wxMenuItem* item_material_tab = append_menu_item(windowMenu, wxID_HIGHEST + 3, _(L("&Filament Settings Tab")) + "\tCtrl+3", _(L("Show the filament settings")),
-            [this/*, tab_offset*/](wxCommandEvent&) { select_tab(/*tab_offset + 1*/2); }, "spool", nullptr,
+            [this/*, tab_offset*/](wxCommandEvent&) { select_tab(2); }, "spool", nullptr,
             [this]() {return true; }, this);
         m_changeable_menu_items.push_back(item_material_tab);
         wxMenuItem* item_printer_tab = append_menu_item(windowMenu, wxID_HIGHEST + 4, _(L("Print&er Settings Tab")) + "\tCtrl+4", _(L("Show the printer settings")),
-            [this/*, tab_offset*/](wxCommandEvent&) { select_tab(/*tab_offset + 2*/3); }, "printer", nullptr,
+            [this/*, tab_offset*/](wxCommandEvent&) { select_tab(3); }, "printer", nullptr,
             [this]() {return true; }, this);
         m_changeable_menu_items.push_back(item_printer_tab);
         if (m_plater) {
@@ -1245,17 +1258,39 @@ void MainFrame::load_config(const DynamicPrintConfig& config)
 #endif
 }
 
-void MainFrame::select_tab(size_t tab)
+void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
 {
-    if (tab == /*(size_t)(-1)*/0) {
-        if (m_plater && !m_plater->IsShown())
-            this->switch_to(true);
+    if (m_layout == slDlg) {
+        if (tab==0) {
+            if (m_settings_dialog->IsShown())
+                this->SetFocus();
+            // plater should be focused for correct navigation inside search window
+            if (m_plater->canvas3D()->is_search_pressed())
+                m_plater->SetFocus();
+            return;
+        }
+        // Show/Activate Settings Dialog
+        if (m_settings_dialog->IsShown())
+#ifdef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList
+            m_settings_dialog->Hide();
+#else
+            m_settings_dialog->SetFocus();
+        else
+#endif
+        m_settings_dialog->Show();
     }
-    else {
-        if (m_plater && m_plater->IsShown())
-            switch_to(false);
-        m_tabpanel->SetSelection(tab);
+    else if (m_layout == slNew) {
+        m_plater->Show(tab == 0);
+        m_tabpanel->Show(tab != 0);
+
+        // plater should be focused for correct navigation inside search window
+        if (tab == 0 && m_plater->canvas3D()->is_search_pressed())
+            m_plater->SetFocus();
+        Layout();
     }
+
+    // when tab == -1, it means we should to show the last selected tab 
+    m_tabpanel->SetSelection(tab == (size_t)(-1) ? m_last_selected_tab : (m_layout == slDlg && tab != 0) ? tab-1 : tab);
 }
 
 // Set a camera direction, zoom to all objects.
@@ -1359,6 +1394,80 @@ std::string MainFrame::get_dir_name(const wxString &full_name) const
 {
     return boost::filesystem::path(full_name.wx_str()).parent_path().string();
 }
+
+
+// ----------------------------------------------------------------------------
+// SettingsDialog
+// ----------------------------------------------------------------------------
+
+SettingsDialog::SettingsDialog(MainFrame* mainframe)
+: DPIDialog(nullptr, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _L("Settings")),
+    m_main_frame(mainframe)
+{
+    this->SetFont(wxGetApp().normal_font());
+
+    wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+    this->SetBackgroundColour(bgr_clr);
+
+    // Load the icon either from the exe, or from the ico file.
+#if _WIN32
+    {
+        TCHAR szExeFileName[MAX_PATH];
+        GetModuleFileName(nullptr, szExeFileName, MAX_PATH);
+        SetIcon(wxIcon(szExeFileName, wxBITMAP_TYPE_ICO));
+    }
+#else
+    SetIcon(wxIcon(var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
+#endif // _WIN32
+
+    // wxNB_NOPAGETHEME: Disable Windows Vista theme for the Notebook background. The theme performance is terrible on Windows 10
+    // with multiple high resolution displays connected.
+    m_tabpanel = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
+#ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList
+    m_tabpanel->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+#endif
+
+    m_tabpanel->Bind(wxEVT_KEY_UP, [this](wxKeyEvent& evt) {
+        if ((evt.GetModifiers() & wxMOD_CONTROL) != 0) {
+            switch (evt.GetKeyCode()) {
+            case '1': { m_main_frame->select_tab(0); break; }
+            case '2': { m_main_frame->select_tab(1); break; }
+            case '3': { m_main_frame->select_tab(2); break; }
+            case '4': { m_main_frame->select_tab(3); break; }
+            default:break;
+            }
+        }
+    });
+
+    // initialize layout
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(m_tabpanel, 1, wxEXPAND);
+    sizer->SetSizeHints(this);
+    SetSizer(sizer);
+    Fit();
+
+    const wxSize min_size = wxSize(85 * em_unit(), 50 * em_unit());
+#ifdef __APPLE__
+    // Using SetMinSize() on Mac messes up the window position in some cases
+    // cf. https://groups.google.com/forum/#!topic/wx-users/yUKPBBfXWO0
+    SetSize(min_size);
+#else
+    SetMinSize(min_size);
+    SetSize(GetMinSize());
+#endif
+    Layout();
+}
+
+void SettingsDialog::on_dpi_changed(const wxRect& suggested_rect)
+{
+    const int& em = em_unit();
+    const wxSize& size = wxSize(85 * em, 50 * em);
+
+    SetMinSize(size);
+    Fit();
+    Refresh();
+}
+
 
 } // GUI
 } // Slic3r

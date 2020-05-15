@@ -319,6 +319,7 @@ public:
     void get_additional_tooltip(int item_id, std::string& text);
     void set_additional_tooltip(int item_id, const std::string& text);
     void set_tooltip(int item_id, const std::string& text);
+    int  get_visible_items_cnt() const;
 
     // returns true if any item changed its state
     bool update_items_state();

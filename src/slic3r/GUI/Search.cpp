@@ -25,41 +25,35 @@ using GUI::into_u8;
 
 namespace Search {
 
-static std::map<Preset::Type, std::string> NameByType = {
-    { Preset::TYPE_PRINT,           L("Print")     },
-    { Preset::TYPE_FILAMENT,        L("Filament")  },
-    { Preset::TYPE_SLA_MATERIAL,    L("Material")  },
-    { Preset::TYPE_SLA_PRINT,       L("Print")     },
-    { Preset::TYPE_PRINTER,         L("Printer")   }
-};
-
-FMFlag Option::fuzzy_match(wchar_t const* search_pattern, int& outScore, std::vector<uint16_t> &out_matches) const
+static const std::vector<std::wstring>& NameByType()
 {
-    FMFlag flag = fmUndef;
-    int score;
+    static std::vector<std::wstring> data;
+    if (data.empty()) {
+        data.assign(Preset::TYPE_COUNT, std::wstring());
+        data[Preset::TYPE_PRINT         ] = _L("Print"      ).ToStdWstring();
+        data[Preset::TYPE_FILAMENT      ] = _L("Filament"   ).ToStdWstring();
+        data[Preset::TYPE_SLA_MATERIAL  ] = _L("Material"   ).ToStdWstring();
+        data[Preset::TYPE_SLA_PRINT     ] = _L("Print"      ).ToStdWstring();
+        data[Preset::TYPE_PRINTER       ] = _L("Printer"    ).ToStdWstring();
+	};
+	return data;
+}
 
-    uint16_t matches[fts::max_matches + 1]; // +1 for the stopper
-    auto save_matches = [&matches, &out_matches]() {
-        size_t cnt = 0;
-        for (; matches[cnt] != fts::stopper; ++cnt);
-        out_matches.assign(matches, matches + cnt);
-    };
-    if (fts::fuzzy_match(search_pattern, label_local.c_str(),    score, matches) && outScore < score) {
-        outScore = score; flag = fmLabelLocal   ; save_matches(); }
-    if (fts::fuzzy_match(search_pattern, group_local.c_str(),    score, matches) && outScore < score) {
-        outScore = score; flag = fmGroupLocal   ; save_matches(); }
-    if (fts::fuzzy_match(search_pattern, category_local.c_str(), score, matches) && outScore < score) {
-        outScore = score; flag = fmCategoryLocal; save_matches(); }
-    if (fts::fuzzy_match(search_pattern, opt_key.c_str(),        score, matches) && outScore < score) {
-        outScore = score; flag = fmOptKey       ; save_matches(); }
-    if (fts::fuzzy_match(search_pattern, label.c_str(),          score, matches) && outScore < score) {
-        outScore = score; flag = fmLabel        ; save_matches(); }
-    if (fts::fuzzy_match(search_pattern, group.c_str(),          score, matches) && outScore < score) {
-        outScore = score; flag = fmGroup        ; save_matches(); }
-    if (fts::fuzzy_match(search_pattern, category.c_str(),       score, matches) && outScore < score) {
-        outScore = score; flag = fmCategory     ; save_matches(); }
-
-    return flag;
+static char marker_by_type(Preset::Type type, PrinterTechnology pt)
+{
+    switch(type) {
+    case Preset::TYPE_PRINT:
+    case Preset::TYPE_SLA_PRINT:
+        return ImGui::PrintIconMarker;
+    case Preset::TYPE_FILAMENT:
+        return ImGui::FilamentIconMarker;
+    case Preset::TYPE_SLA_MATERIAL:
+        return ImGui::MaterialIconMarker;
+    case Preset::TYPE_PRINTER:
+        return pt == ptSLA ? ImGui::PrinterSlaIconMarker : ImGui::PrinterIconMarker;
+    default:
+        return ' ';
+	}
 }
 
 void FoundOption::get_marked_label_and_tooltip(const char** label_, const char** tooltip_) const
@@ -89,12 +83,16 @@ void OptionsSearcher::append_options(DynamicPrintConfig* config, Preset::Type ty
             return;
 
         wxString suffix;
-        if (gc.category == "Machine limits")
+        wxString suffix_local;
+        if (gc.category == "Machine limits") {
             suffix = opt_key.back()=='1' ? L("Stealth") : L("Normal");
+            suffix_local = " " + _(suffix);
+            suffix = " " + suffix;
+        }
 
         if (!label.IsEmpty())
             options.emplace_back(Option{ boost::nowide::widen(opt_key), type,
-                                        (label+ " " + suffix).ToStdWstring(), (_(label)+ " " + _(suffix)).ToStdWstring(),
+                                        (label + suffix).ToStdWstring(), (_(label) + suffix_local).ToStdWstring(),
                                         gc.group.ToStdWstring(), _(gc.group).ToStdWstring(),
                                         gc.category.ToStdWstring(), _(gc.category).ToStdWstring() });
     };
@@ -125,17 +123,8 @@ void OptionsSearcher::append_options(DynamicPrintConfig* config, Preset::Type ty
             emplace(opt_key, label);
         else
             for (int i = 0; i < cnt; ++i)
-                emplace(opt_key + "#" + std::to_string(i), label);
-
-        /*const GroupAndCategory& gc = groups_and_categories[opt_key];
-        if (gc.group.IsEmpty() || gc.category.IsEmpty())
-            continue;
-
-        if (!label.IsEmpty())
-            options.emplace_back(Option{opt_key, type,
-                                        label, _(label),
-                                        gc.group, _(gc.group),
-                                        gc.category, _(gc.category) });*/
+                // ! It's very important to use "#". opt_key#n is a real option key used in GroupAndCategory
+                emplace(opt_key + "#" + std::to_string(i), label); 
     }
 }
 
@@ -179,6 +168,20 @@ bool OptionsSearcher::search()
     return search(search_line, true);
 }
 
+static bool fuzzy_match(const std::wstring &search_pattern, const std::wstring &label, int& out_score, std::vector<uint16_t> &out_matches)
+{
+    uint16_t matches[fts::max_matches + 1]; // +1 for the stopper
+    int score;
+    if (fts::fuzzy_match(search_pattern.c_str(), label.c_str(), score, matches)) {
+	    size_t cnt = 0;
+	    for (; matches[cnt] != fts::stopper; ++cnt);
+	    out_matches.assign(matches, matches + cnt);
+		out_score = score;
+		return true;
+	} else
+		return false;
+}
+
 bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
 {
     if (search_line == search && !force)
@@ -187,78 +190,97 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
     found.clear();
 
     bool full_list = search.empty();
-    wxString sep = " : ";
+    std::wstring sep = L" : ";
 
-    auto get_label = [this, sep](const Option& opt)
+    auto get_label = [this, &sep](const Option& opt)
     {
-        wxString label;
-        if (view_params.type)
-            label += _(NameByType[opt.type]) + sep;
-        if (view_params.category)
-            label += opt.category_local + sep;
-        if (view_params.group)
-            label += opt.group_local + sep;
-        label += opt.label_local;
-        return label;
+        std::wstring out;
+        out += marker_by_type(opt.type, printer_technology);
+    	const std::wstring *prev = nullptr;
+    	for (const std::wstring * const s : {
+	        view_params.category 	? &opt.category_local 		: nullptr,
+	        view_params.group 		? &opt.group_local			: nullptr,
+	        &opt.label_local })
+    		if (s != nullptr && (prev == nullptr || *prev != *s)) {
+//    			if (! out.empty())
+      			if (out.size()>2)
+    				out += sep;
+    			out += *s;
+    			prev = s;
+    		}
+        return out;
     };
 
-    auto get_tooltip = [this, sep](const Option& opt)
+    auto get_label_english = [this, &sep](const Option& opt)
     {
-        return  _(NameByType[opt.type]) + sep +
+        std::wstring out;
+        out += marker_by_type(opt.type, printer_technology);
+    	const std::wstring*prev = nullptr;
+    	for (const std::wstring * const s : {
+	        view_params.category 	? &opt.category 			: nullptr,
+	        view_params.group 		? &opt.group				: nullptr,
+	        &opt.label })
+    		if (s != nullptr && (prev == nullptr || *prev != *s)) {
+//    			if (! out.empty())
+      			if (out.size()>2)
+    				out += sep;
+    			out += *s;
+    			prev = s;
+    		}
+        return out;
+    };
+
+    auto get_tooltip = [this, &sep](const Option& opt)
+    {
+        return  marker_by_type(opt.type, printer_technology) +
                 opt.category_local + sep +
                 opt.group_local + sep + opt.label_local;
     };
 
-    std::vector<uint16_t> matches;
+    std::vector<uint16_t> matches, matches2;
     for (size_t i=0; i < options.size(); i++)
     {
         const Option &opt = options[i];
         if (full_list) {
             std::string label = into_u8(get_label(opt));
-            found.emplace_back(FoundOption{ label, label, into_u8(get_tooltip(opt)), i, fmUndef, 0 });
+            found.emplace_back(FoundOption{ label, label, boost::nowide::narrow(get_tooltip(opt)), i, 0 });
             continue;
         }
 
-        int score = 0;
-        FMFlag fuzzy_match_flag = opt.fuzzy_match(boost::nowide::widen(search).c_str(), score, matches);
-        if (fuzzy_match_flag != fmUndef)
-        {
-            wxString label;
-
-	        if (view_params.type)
-	            label += _(NameByType[opt.type]) + sep;
-	        if (fuzzy_match_flag == fmCategoryLocal)
-	            label += mark_string(opt.category_local, matches) + sep;
-	        else if (view_params.category)
-			    label += opt.category_local + sep;
-			if (fuzzy_match_flag == fmGroupLocal)
-	            label += mark_string(opt.group_local, matches) + sep;
-	        else if (view_params.group)
-	            label += opt.group_local + sep;
-            label += ((fuzzy_match_flag == fmLabelLocal) ? mark_string(opt.label_local, matches) : opt.label_local) + sep;
-
-            switch (fuzzy_match_flag) {
-            	case fmLabelLocal:
-			    case fmGroupLocal:
-			    case fmCategoryLocal:
-			        break;
-            	case fmLabel: 		label = get_label(opt) + "(" + mark_string(opt.label,    matches) + ")"; break;
-            	case fmGroup:		label = get_label(opt) + "(" + mark_string(opt.group,    matches) + ")"; break;
-            	case fmCategory:	label = get_label(opt) + "(" + mark_string(opt.category, matches) + ")"; break;
-            	case fmOptKey:		label = get_label(opt) + "(" + mark_string(opt.opt_key,  matches) + ")"; break;
-            	case fmUndef: 		assert(false); break;
-            }
-
-		    std::string label_plain = into_u8(label);
-		    boost::erase_all(label_plain, std::wstring(1, wchar_t(ImGui::ColorMarkerStart)));
-		    boost::erase_all(label_plain, std::wstring(1, wchar_t(ImGui::ColorMarkerEnd)));
-            found.emplace_back(FoundOption{ label_plain, into_u8(label), into_u8(get_tooltip(opt)), i, fuzzy_match_flag, score });
+        std::wstring wsearch       = boost::nowide::widen(search);
+        boost::trim_left(wsearch);
+        std::wstring label         = get_label(opt);
+        std::wstring label_english = get_label_english(opt);
+        int score = std::numeric_limits<int>::min();
+        int score2;
+        matches.clear();
+        fuzzy_match(wsearch, label, score, matches);
+        if (fuzzy_match(wsearch, opt.opt_key, score2, matches2) && score2 > score) {
+        	for (fts::pos_type &pos : matches2)
+        		pos += label.size() + 1;
+        	label += L"(" + opt.opt_key + L")";
+        	append(matches, matches2);
+        	score = score2;
+        }
+        if (view_params.english && fuzzy_match(wsearch, label_english, score2, matches2) && score2 > score) {
+        	label   = std::move(label_english);
+        	matches = std::move(matches2);
+        	score   = score2;
+        }
+        if (score > std::numeric_limits<int>::min()) {
+		    label = mark_string(label, matches);            
+            label += L"  [" + std::to_wstring(score) + L"]";// add score value
+	        std::string label_u8 = into_u8(label);
+	        std::string label_plain = label_u8;
+	        boost::erase_all(label_plain, std::string(1, char(ImGui::ColorMarkerStart)));
+	        boost::erase_all(label_plain, std::string(1, char(ImGui::ColorMarkerEnd)));
+            found.emplace_back(FoundOption{ label_plain, label_u8, boost::nowide::narrow(get_tooltip(opt)), i, score });
         }
     }
 
     if (!full_list)
         sort_found();
-
+ 
     if (search_line != search)
         search_line = search;
 
@@ -411,15 +433,17 @@ SearchDialog::SearchDialog(OptionsSearcher* searcher)
 
     wxBoxSizer* check_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    check_type      = new wxCheckBox(this, wxID_ANY, _L("Type"));
     check_category  = new wxCheckBox(this, wxID_ANY, _L("Category"));
     check_group     = new wxCheckBox(this, wxID_ANY, _L("Group"));
+    if (GUI::wxGetApp().is_localized())
+        check_english   = new wxCheckBox(this, wxID_ANY, _L("Search in English"));
 
     wxStdDialogButtonSizer* cancel_btn = this->CreateStdDialogButtonSizer(wxCANCEL);
 
-    check_sizer->Add(check_type,     0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
     check_sizer->Add(check_category, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
-    check_sizer->Add(check_group,    0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
+    check_sizer->Add(check_group,    0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border); 
+    if (GUI::wxGetApp().is_localized())
+        check_sizer->Add(check_english,  0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
     check_sizer->AddStretchSpacer(border);
     check_sizer->Add(cancel_btn,     0, wxALIGN_CENTER_VERTICAL);
 
@@ -438,7 +462,8 @@ SearchDialog::SearchDialog(OptionsSearcher* searcher)
     search_list->Bind(wxEVT_LEFT_UP, &SearchDialog::OnMouseClick, this);
     search_list->Bind(wxEVT_KEY_DOWN,&SearchDialog::OnKeyDown, this);
 
-    check_type    ->Bind(wxEVT_CHECKBOX, &SearchDialog::OnCheck, this);
+    if (GUI::wxGetApp().is_localized())
+        check_english ->Bind(wxEVT_CHECKBOX, &SearchDialog::OnCheck, this);
     check_category->Bind(wxEVT_CHECKBOX, &SearchDialog::OnCheck, this);
     check_group   ->Bind(wxEVT_CHECKBOX, &SearchDialog::OnCheck, this);
 
@@ -458,9 +483,9 @@ void SearchDialog::Popup(wxPoint position /*= wxDefaultPosition*/)
     update_list();
 
     const OptionViewParameters& params = searcher->view_params;
-    check_type->SetValue(params.type);
     check_category->SetValue(params.category);
     check_group->SetValue(params.group);
+    check_english->SetValue(params.english);
 
     this->SetPosition(position);
     this->ShowModal();
@@ -526,7 +551,7 @@ void SearchDialog::update_list()
 
     const std::vector<FoundOption>& filters = searcher->found_options();
     for (const FoundOption& item : filters)
-        search_list->Append(from_u8(item.label));
+        search_list->Append(from_u8(item.label).Remove(0, 1));
 }
 
 void SearchDialog::OnKeyDown(wxKeyEvent& event)
@@ -558,7 +583,7 @@ void SearchDialog::OnKeyDown(wxKeyEvent& event)
 void SearchDialog::OnCheck(wxCommandEvent& event)
 {
     OptionViewParameters& params = searcher->view_params;
-    params.type     = check_type->GetValue();
+    params.english  = check_english->GetValue();
     params.category = check_category->GetValue();
     params.group    = check_group->GetValue();
 

@@ -147,6 +147,13 @@ void PreferencesDialog::build()
 		}
 	};
 
+	def.label = L("Show the button for the collapse sidebar");
+	def.type = coBool;
+	def.tooltip = L("If enabled, the button for the collapse sidebar will be appeared in top right corner of the 3D Scene");
+	def.set_default_value(new ConfigOptionBool{ app_config->get("show_collapse_button") == "1" });
+	option = Option(def, "show_collapse_button");
+	m_optgroup_gui->append_single_option_line(option);
+
 	def.label = L("Use custom size for toolbar icons");
 	def.type = coBool;
 	def.tooltip = L("If enabled, you can change size of toolbar icons manually.");
@@ -156,6 +163,8 @@ void PreferencesDialog::build()
 
 	create_icon_size_slider();
 	m_icon_size_sizer->ShowItems(app_config->get("use_custom_toolbar_size") == "1");
+
+	create_settings_mode_widget();
 
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 	sizer->Add(m_optgroup_general->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
@@ -167,7 +176,7 @@ void PreferencesDialog::build()
 	auto buttons = CreateStdDialogButtonSizer(wxOK | wxCANCEL);
 	wxButton* btn = static_cast<wxButton*>(FindWindowById(wxID_OK, this));
 	btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { accept(); });
-	sizer->Add(buttons, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 10);
+	sizer->Add(buttons, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 5);
 
 	SetSizer(sizer);
 	sizer->SetSizeHints(this);
@@ -179,17 +188,53 @@ void PreferencesDialog::accept()
         warning_catcher(this, wxString::Format(_(L("You need to restart %s to make the changes effective.")), SLIC3R_APP_NAME));
 	}
 
-	auto app_config = get_app_config();
-	for (std::map<std::string, std::string>::iterator it = m_values.begin(); it != m_values.end(); ++it) {
-		app_config->set(it->first, it->second);
+    auto app_config = get_app_config();
+
+	m_settings_layout_changed = false;
+	for (const std::string& key : {"old_settings_layout_mode",
+								   "new_settings_layout_mode",
+								   "dlg_settings_layout_mode" })
+	{
+	    auto it = m_values.find(key);
+	    if (it != m_values.end() && app_config->get(key) != it->second) {
+			m_settings_layout_changed = true;
+			break;
+	    }
 	}
 
-	app_config->save();
+	if (m_settings_layout_changed) {
+		// the dialog needs to be destroyed before the call to recreate_gui()
+		// or sometimes the application crashes into wxDialogBase() destructor
+		// so we put it into an inner scope
+		wxMessageDialog dialog(nullptr,
+			            _L("Switching the settings layout mode will trigger application restart.\n"
+				                  "You will lose content of the plater.") + "\n\n" +
+			                   _L("Do you want to proceed?"),
+			wxString(SLIC3R_APP_NAME) + " - " + _L("Switching the settings layout mode"),
+			wxICON_QUESTION | wxOK | wxCANCEL);
 
+		if (dialog.ShowModal() == wxID_CANCEL)
+		{
+			int selection = app_config->get("old_settings_layout_mode") == "1" ? 0 :
+				            app_config->get("new_settings_layout_mode") == "1" ? 1 :
+				            app_config->get("dlg_settings_layout_mode") == "1" ? 2 : 0;
+
+			m_layout_mode_box->SetSelection(selection);
+			return;
+		}
+	}
+
+	for (std::map<std::string, std::string>::iterator it = m_values.begin(); it != m_values.end(); ++it)
+		app_config->set(it->first, it->second);
+
+	app_config->save();
 	EndModal(wxID_OK);
 
-	// Nothify the UI to update itself from the ini file.
-    wxGetApp().update_ui_from_settings();
+	if (m_settings_layout_changed)
+		;// application will be recreated after Preference dialog will be destroyed
+	else
+	    // Nothify the UI to update itself from the ini file.
+        wxGetApp().update_ui_from_settings();
 }
 
 void PreferencesDialog::on_dpi_changed(const wxRect &suggested_rect)
@@ -270,6 +315,38 @@ void PreferencesDialog::create_icon_size_slider()
     }
 
 	m_optgroup_gui->sizer->Add(m_icon_size_sizer, 0, wxEXPAND | wxALL, em);
+}
+
+void PreferencesDialog::create_settings_mode_widget()
+{
+	wxString choices[] = {	_L("Old regular layout with tab bar"),
+							_L("New layout without the tab bar on the platter"),
+							_L("Settings will be shown in non-modal dialog")		};
+
+	auto app_config = get_app_config();
+	int selection = app_config->get("old_settings_layout_mode") == "1" ? 0 :
+	                app_config->get("new_settings_layout_mode") == "1" ? 1 :
+	                app_config->get("dlg_settings_layout_mode") == "1" ? 2 : 0;
+
+	wxWindow* parent = m_optgroup_gui->ctrl_parent();
+
+	m_layout_mode_box = new wxRadioBox(parent, wxID_ANY, _L("Settings layout mode"), wxDefaultPosition, wxDefaultSize, WXSIZEOF(choices), choices,
+		3, wxRA_SPECIFY_ROWS);
+	m_layout_mode_box->SetFont(wxGetApp().normal_font());
+	m_layout_mode_box->SetSelection(selection);
+
+	m_layout_mode_box->Bind(wxEVT_RADIOBOX, [this](wxCommandEvent& e) {
+		int selection = e.GetSelection();
+
+		m_values["old_settings_layout_mode"] = boost::any_cast<bool>(selection == 0) ? "1" : "0";
+		m_values["new_settings_layout_mode"] = boost::any_cast<bool>(selection == 1) ? "1" : "0";
+		m_values["dlg_settings_layout_mode"] = boost::any_cast<bool>(selection == 2) ? "1" : "0";
+	});
+
+	auto sizer = new wxBoxSizer(wxHORIZONTAL);
+	sizer->Add(m_layout_mode_box, 1, wxALIGN_CENTER_VERTICAL);
+
+	m_optgroup_gui->sizer->Add(sizer, 0, wxEXPAND);
 }
 
 

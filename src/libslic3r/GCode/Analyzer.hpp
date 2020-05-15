@@ -1,6 +1,8 @@
 #ifndef slic3r_GCode_Analyzer_hpp_
 #define slic3r_GCode_Analyzer_hpp_
 
+#if !ENABLE_GCODE_VIEWER
+
 #include "../libslic3r.h"
 #include "../PrintConfig.hpp"
 #include "../ExtrusionEntity.hpp"
@@ -146,11 +148,6 @@ public:
     size_t memory_used() const;
 
     static bool is_valid_extrusion_role(ExtrusionRole role);
-
-#if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
-    void open_debug_output_file();
-    void close_debug_output_file();
-#endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
 
 private:
     // Processes the given gcode line
@@ -306,5 +303,7 @@ private:
 };
 
 } // namespace Slic3r
+
+#endif // !ENABLE_GCODE_VIEWER
 
 #endif /* slic3r_GCode_Analyzer_hpp_ */

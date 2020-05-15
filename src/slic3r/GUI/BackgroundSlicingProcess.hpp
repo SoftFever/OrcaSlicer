@@ -50,10 +50,11 @@ public:
 
 	void set_fff_print(Print *print) { m_fff_print = print; }
     void set_sla_print(SLAPrint *print) { m_sla_print = print; m_sla_print->set_printer(&m_sla_archive); }
-	void set_gcode_preview_data(GCodePreviewData *gpd) { m_gcode_preview_data = gpd; }
-    void set_thumbnail_cb(ThumbnailsGeneratorCallback cb) { m_thumbnail_cb = cb; }
+	void set_thumbnail_cb(ThumbnailsGeneratorCallback cb) { m_thumbnail_cb = cb; }
 #if ENABLE_GCODE_VIEWER
 	void set_gcode_result(GCodeProcessor::Result* result) { m_gcode_result = result; }
+#else
+	void set_gcode_preview_data(GCodePreviewData* gpd) { m_gcode_preview_data = gpd; }
 #endif // ENABLE_GCODE_VIEWER
 
 	// The following wxCommandEvent will be sent to the UI thread / Plater window, when the slicing is finished
@@ -156,15 +157,17 @@ private:
 	// Non-owned pointers to Print instances.
 	Print 					   *m_fff_print 		 = nullptr;
 	SLAPrint 				   *m_sla_print			 = nullptr;
+#if ENABLE_GCODE_VIEWER
+	// Data structure, to which the G-code export writes its annotations.
+	GCodeProcessor::Result     *m_gcode_result = nullptr;
+#else
 	// Data structure, to which the G-code export writes its annotations.
 	GCodePreviewData 		   *m_gcode_preview_data = nullptr;
-    // Callback function, used to write thumbnails into gcode.
+#endif // ENABLE_GCODE_VIEWER
+	// Callback function, used to write thumbnails into gcode.
 	ThumbnailsGeneratorCallback m_thumbnail_cb = nullptr;
 	SL1Archive                  m_sla_archive;
-#if ENABLE_GCODE_VIEWER
-	GCodeProcessor::Result* m_gcode_result = nullptr;
-#endif // ENABLE_GCODE_VIEWER
-	// Temporary G-code, there is one defined for the BackgroundSlicingProcess, differentiated from the other processes by a process ID.
+		// Temporary G-code, there is one defined for the BackgroundSlicingProcess, differentiated from the other processes by a process ID.
 	std::string 				m_temp_output_path;
 	// Output path provided by the user. The output path may be set even if the slicing is running,
 	// but once set, it cannot be re-set.

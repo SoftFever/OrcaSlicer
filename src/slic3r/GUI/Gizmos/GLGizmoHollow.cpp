@@ -58,7 +58,10 @@ void GLGizmoHollow::set_sla_support_data(ModelObject*, const Selection&)
 
     const ModelObject* mo = m_c->selection_info()->model_object();
     if (mo) {
-        reload_cache();
+        if (m_old_mo_id != mo->id()) {
+            reload_cache();
+            m_old_mo_id = mo->id();
+        }
         if (m_c->hollowed_mesh() && m_c->hollowed_mesh()->get_hollowed_mesh())
             m_holes_in_drilled_mesh = mo->sla_drain_holes;
     }
@@ -220,11 +223,7 @@ bool GLGizmoHollow::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, V
     if (! m_c->raycaster()->raycaster())
         return false;
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     const Camera& camera = wxGetApp().plater()->get_camera();
-#else
-    const Camera& camera = m_parent.get_camera();
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     const Selection& selection = m_parent.get_selection();
     const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
     Geometry::Transformation trafo = volume->get_instance_transformation();

@@ -1361,7 +1361,6 @@ static void traverse_graph_generate_polylines(
                 continue;
             }
 
-        dont_connect:
             // No way to continue the current polyline. Take the rest of the line up to the outer contour.
             // This will finish the polyline, starting another polyline at a new point.
             going_up ? ++ it : -- it;
@@ -1442,6 +1441,8 @@ struct MonotonousRegionLink
     AntPath 			*next_flipped;
 };
 
+// Matrix of paths (AntPath) connecting ends of MontonousRegions.
+// AntPath lengths and their derived visibilities refer to the length of the perimeter line if such perimeter segment exists.
 class AntPathMatrix
 {
 public:
@@ -1455,6 +1456,12 @@ public:
 		m_segs(segs),
 		// From end of one region to the start of another region, both flipped or not flipped.
 		m_matrix(regions.size() * regions.size() * 4, AntPath{ -1., -1., initial_pheromone}) {}
+
+	void update_inital_pheromone(float initial_pheromone)
+	{
+		for (AntPath &ap : m_matrix)
+			ap.pheromone = initial_pheromone;
+	}
 
 	AntPath& operator()(const MonotonousRegion &region_from, bool flipped_from, const MonotonousRegion &region_to, bool flipped_to)
 	{
@@ -1478,7 +1485,7 @@ public:
 				// Just apply the Eucledian distance of the end points.
 			    path.length = unscale<float>(Vec2f(vline_to.pos - vline_from.pos, vline_to.intersections[i_to].pos() - vline_from.intersections[i_from].pos()).norm());
 			}
-			path.visibility = 1. / (path.length + EPSILON);
+			path.visibility = 1.f / (path.length + float(EPSILON));
 		}
 		return path;
 	}
@@ -1497,7 +1504,7 @@ private:
 	const ExPolygonWithOffset 						&m_poly_with_offset;
 	const std::vector<SegmentedIntersectionLine> 	&m_segs;
 	// From end of one region to the start of another region, both flipped or not flipped.
-	//FIXME one may possibly use sparse representation of the matrix.
+	//FIXME one may possibly use sparse representation of the matrix, likely using hashing.
 	std::vector<AntPath>					         m_matrix;
 };
 
@@ -1724,7 +1731,98 @@ static std::vector<MonotonousRegion> generate_montonous_regions(std::vector<Segm
     return monotonous_regions;
 }
 
-static void connect_monotonous_regions(std::vector<MonotonousRegion> &regions, std::vector<SegmentedIntersectionLine> &segs)
+// Traverse path, calculate length of the draw for the purpose of optimization.
+// This function is very similar to polylines_from_paths() in the way how it traverses the path, but
+// polylines_from_paths() emits a path, while this function just calculates the path length.
+static float montonous_region_path_length(const MonotonousRegion &region, bool dir, const ExPolygonWithOffset &poly_with_offset, const std::vector<SegmentedIntersectionLine> &segs)
+{
+    // From the initial point (i_vline, i_intersection), follow a path.
+	int   i_intersection = region.left_intersection_point(dir);
+	int   i_vline 		 = region.left.vline;
+	float total_length   = 0.;
+	bool  no_perimeter   = false;
+	Vec2f last_point;
+
+	for (;;) {
+        const SegmentedIntersectionLine &vline 		= segs[i_vline];
+        const SegmentIntersection       *it    		= &vline.intersections[i_intersection];
+        const bool                       going_up   = it->is_low();
+
+        if (no_perimeter)
+        	total_length += (last_point - Vec2f(vline.pos, (it + (going_up ? - 1 : 1))->pos())).norm();
+
+        int iright = it->right_horizontal();
+        if (going_up) {
+            // Traverse the complete vertical segment up to the inner contour.
+            for (;;) {
+	            do {
+	                ++ it;
+					iright = std::max(iright, it->right_horizontal());
+                    assert(it->is_inner());
+                } while (it->type != SegmentIntersection::INNER_HIGH || (it + 1)->type != SegmentIntersection::OUTER_HIGH);
+	            int inext = it->vertical_up();
+                if (inext == -1 || it->vertical_up_quality() != SegmentIntersection::LinkQuality::Valid)
+	            	break;
+                assert(it->iContour == vline.intersections[inext].iContour);
+                it = vline.intersections.data() + inext;
+            } 
+        } else {
+            // Going down.
+            assert(it->is_high());
+            assert(i_intersection > 0);
+            for (;;) {
+	            do {
+	                -- it;
+	                if (int iright_new = it->right_horizontal(); iright_new != -1)
+	                	iright = iright_new;
+                    assert(it->is_inner());
+	            } while (it->type != SegmentIntersection::INNER_LOW || (it - 1)->type != SegmentIntersection::OUTER_LOW);
+	            int inext = it->vertical_down();
+	            if (inext == -1 || it->vertical_down_quality() != SegmentIntersection::LinkQuality::Valid)
+	            	break;
+                assert(it->iContour == vline.intersections[inext].iContour);
+                it = vline.intersections.data() + inext;
+            } 
+        }
+
+        if (i_vline == region.right.vline)
+        	break;
+
+        int inext = it->right_horizontal();
+        if (inext != -1 && it->next_on_contour_quality == SegmentIntersection::LinkQuality::Valid) {
+        	// Summarize length of the connection line along the perimeter.
+        	//FIXME should it be weighted with a lower weight than non-extruding connection line? What weight?
+        	// Taking half of the length.
+    		total_length += 0.5f * float(measure_perimeter_horizontal_segment_length(poly_with_offset, segs, i_vline, it - vline.intersections.data(), inext));
+			// Don't add distance to the next vertical line start to the total length.
+			no_perimeter   = false;
+            i_intersection = inext;
+        } else {
+	        // Finish the current vertical line,
+        	going_up ? ++ it : -- it;
+	        assert(it->is_outer());
+	        assert(it->is_high() == going_up);
+	        // Mark the end of this vertical line.
+			last_point = Vec2f(vline.pos, it->pos());
+			// Remember to add distance to the last point.
+			no_perimeter = true;
+			if (inext == -1) {
+				// Find the end of the next overlapping vertical segment.
+		        const SegmentedIntersectionLine &vline_right = segs[i_vline + 1];
+                const SegmentIntersection       *right       = going_up ? 
+                    &vertical_run_top(vline_right, vline_right.intersections[iright]) : &vertical_run_bottom(vline_right, vline_right.intersections[iright]);
+				i_intersection = int(right - vline_right.intersections.data());
+			} else
+	            i_intersection = inext;
+        }
+
+        ++ i_vline;
+    }
+
+    return unscale<float>(total_length);
+}
+
+static void connect_monotonous_regions(std::vector<MonotonousRegion> &regions, const ExPolygonWithOffset &poly_with_offset, std::vector<SegmentedIntersectionLine> &segs)
 {
 	// Map from low intersection to left / right side of a monotonous region.
 	using MapType = std::pair<SegmentIntersection*, MonotonousRegion*>;
@@ -1816,6 +1914,20 @@ static void connect_monotonous_regions(std::vector<MonotonousRegion> &regions, s
         }
     }
 #endif /* NDEBUG */
+
+    // Fill in sum length of connecting lines of a region. This length is used for optimizing the infill path for minimum length.
+    for (MonotonousRegion &region : regions) {
+    	region.len1 = montonous_region_path_length(region, false, poly_with_offset, segs);
+    	region.len2 = montonous_region_path_length(region, true,  poly_with_offset, segs);
+    	// Subtract the smaller length from the longer one, so we will optimize just with the positive difference of the two.
+    	if (region.len1 > region.len2) {
+    		region.len1 -= region.len2;
+    		region.len2 = 0;
+    	} else {
+    		region.len2 -= region.len1;
+    		region.len1 = 0;
+    	}
+    }
 }
 
 // Raad Salman: Algorithms for the Precedence Constrained Generalized Travelling Salesperson Problem
@@ -1851,6 +1963,7 @@ inline void print_ant(const std::string& fmt, TArgs&&... args) {
 }
 
 // Find a run through monotonous infill blocks using an 'Ant colony" optimization method.
+// http://www.scholarpedia.org/article/Ant_colony_optimization
 static std::vector<MonotonousRegionLink> chain_monotonous_regions(
 	std::vector<MonotonousRegion> &regions, const ExPolygonWithOffset &poly_with_offset, const std::vector<SegmentedIntersectionLine> &segs, std::mt19937_64 &rng)
 {
@@ -1940,14 +2053,18 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
         };
 #endif /* NDEBUG */
 
-	// How many times to repeat the ant simulation.
-	constexpr int num_rounds = 10;
+	// How many times to repeat the ant simulation (number of ant generations).
+	constexpr int   num_rounds = 25;
+	// After how many rounds without an improvement to exit?
+	constexpr int 	num_rounds_no_change_exit = 8;
 	// With how many ants each of the run will be performed?
-	constexpr int num_ants = 10;
-	// Base (initial) pheromone level.
-	constexpr float pheromone_initial_deposit = 0.5f;
+	const int   	num_ants = std::min<int>(regions.size(), 10);
+	// Base (initial) pheromone level. This value will be adjusted based on the length of the first greedy path found.
+	float           pheromone_initial_deposit = 0.5f;
 	// Evaporation rate of pheromones.
 	constexpr float pheromone_evaporation = 0.1f;
+    // Evaporation rate to diversify paths taken by individual ants.
+    constexpr float pheromone_diversification = 0.1f;
 	// Probability at which to take the next best path. Otherwise take the the path based on the cost distribution.
 	constexpr float probability_take_best = 0.9f;
 	// Exponents of the cost function.
@@ -1955,6 +2072,73 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
 	constexpr float pheromone_beta  = 2.f; // attractiveness weighted towards edge length
 
     AntPathMatrix path_matrix(regions, poly_with_offset, segs, pheromone_initial_deposit);
+
+    // Find an initial path in a greedy way, set the initial pheromone value to 10% of the cost of the greedy path.
+    {
+    	// Construct the first path in a greedy way to calculate an initial value of the pheromone value.
+		queue = queue_initial;
+		left_neighbors_unprocessed = left_neighbors_unprocessed_initial;
+        assert(validate_unprocessed());
+        // Pick the last of the queue.
+        MonotonousRegionLink path_end { queue.back(), false };
+        queue.pop_back();
+        -- left_neighbors_unprocessed[path_end.region - regions.data()];
+
+        float total_length = path_end.region->length(false);
+		while (! queue.empty() || ! path_end.region->right_neighbors.empty()) {
+            // Chain.
+			MonotonousRegion 		    &region = *path_end.region;
+			bool 			  			 dir    = path_end.flipped;
+			NextCandidate 				 next_candidate;
+			next_candidate.probability = 0;
+			for (MonotonousRegion *next : region.right_neighbors) {
+				int &unprocessed = left_neighbors_unprocessed[next - regions.data()];
+				assert(unprocessed > 1);
+				if (left_neighbors_unprocessed[next - regions.data()] == 2) {
+					// Dependencies of the successive blocks are satisfied.
+                    AntPath &path1 = path_matrix(region, dir, *next, false);
+                    AntPath &path2 = path_matrix(region, dir, *next, true);
+                    if (path1.visibility > next_candidate.probability)
+                        next_candidate = { next, &path1, &path1, path1.visibility, false };
+	                if (path2.visibility > next_candidate.probability)
+                        next_candidate = { next, &path2, &path2, path2.visibility, true  };
+				}
+			}
+			bool from_queue = next_candidate.probability == 0;
+            if (from_queue) {
+                for (MonotonousRegion *next : queue) {
+                    AntPath &path1 = path_matrix(region, dir, *next, false);
+                    AntPath &path2 = path_matrix(region, dir, *next, true);
+                    if (path1.visibility > next_candidate.probability)
+                        next_candidate = { next, &path1, &path1, path1.visibility, false };
+	                if (path2.visibility > next_candidate.probability)
+                        next_candidate = { next, &path2, &path2, path2.visibility, true  };
+                }
+            }
+            // Move the other right neighbors with satisified constraints to the queue.
+			for (MonotonousRegion *next : region.right_neighbors)
+				if (-- left_neighbors_unprocessed[next - regions.data()] == 1 && next_candidate.region != next)
+	                queue.emplace_back(next);
+            if (from_queue) {
+                // Remove the selected path from the queue.
+                auto it = std::find(queue.begin(), queue.end(), next_candidate.region);
+                assert(it != queue.end());
+                *it = queue.back();
+                queue.pop_back();
+            }
+			// Extend the path.
+			MonotonousRegion *next_region = next_candidate.region;
+			bool              next_dir    = next_candidate.dir;
+            total_length += next_region->length(next_dir) + path_matrix(*path_end.region, path_end.flipped, *next_region, next_dir).length;
+            path_end = { next_region, next_dir };
+            assert(left_neighbors_unprocessed[next_region - regions.data()] == 1);
+            left_neighbors_unprocessed[next_region - regions.data()] = 0;          
+        }
+
+        // Set an initial pheromone value to 10% of the greedy path's value.
+        pheromone_initial_deposit = 0.1 / total_length;
+        path_matrix.update_inital_pheromone(pheromone_initial_deposit);
+    }
 
     // Probability (unnormalized) of traversing a link between two monotonous regions.
 	auto path_probability = [pheromone_alpha, pheromone_beta](AntPath &path) {
@@ -1966,8 +2150,10 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
     ++ irun;
 #endif /* SLIC3R_DEBUG_ANTS */
 
-    for (int round = 0; round < num_rounds; ++ round)
+    int num_rounds_no_change = 0;
+    for (int round = 0; round < num_rounds && num_rounds_no_change < num_rounds_no_change_exit; ++ round)
 	{
+		bool improved = false;
 		for (int ant = 0; ant < num_ants; ++ ant) 
 		{
 			// Find a new path following the pheromones deposited by the previous ants.
@@ -1977,6 +2163,8 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
 			left_neighbors_unprocessed = left_neighbors_unprocessed_initial;
             assert(validate_unprocessed());
             // Pick randomly the first from the queue at random orientation.
+            //FIXME picking the 1st monotonous region should likely be done based on accumulated pheromone level as well,
+            // but the inefficiency caused by the random pick of the 1st monotonous region is likely insignificant.
             int first_idx = std::uniform_int_distribution<>(0, int(queue.size()) - 1)(rng);
             path.emplace_back(MonotonousRegionLink{ queue[first_idx], rng() > rng.max() / 2 });
             *(queue.begin() + first_idx) = std::move(queue.back());
@@ -2051,7 +2239,7 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
                 for (std::vector<NextCandidate>::iterator it_next_candidate = next_candidates.begin(); it_next_candidate != next_candidates.begin() + num_direct_neighbors; ++ it_next_candidate)
                     if ((queue.empty() || it_next_candidate->region != queue.back()) && it_next_candidate->region != take_path->region)
                         queue.emplace_back(it_next_candidate->region);
-                if (take_path - next_candidates.begin() >= num_direct_neighbors) {
+                if (size_t(take_path - next_candidates.begin()) >= num_direct_neighbors) {
                     // Remove the selected path from the queue.
                     auto it = std::find(queue.begin(), queue.end(), take_path->region);
                     assert(it != queue.end());
@@ -2083,8 +2271,10 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
                     path.back().flipped == path.back().region->flips ? path.back().region->right.high : path.back().region->right.low,
                     path.back().flipped == path.back().region->flips ? path.back().region->right.low : path.back().region->right.high);
 
-				// Update pheromones along this link.
-				take_path->link->pheromone = (1.f - pheromone_evaporation) * take_path->link->pheromone + pheromone_evaporation * pheromone_initial_deposit;
+				// Update pheromones along this link, see Ant Colony System (ACS) update rule.
+				// http://www.scholarpedia.org/article/Ant_colony_optimization
+				// The goal here is to lower the pheromone trace for paths taken to diversify the next path picked in the same batch of ants.
+				take_path->link->pheromone = (1.f - pheromone_diversification) * take_path->link->pheromone + pheromone_diversification * pheromone_initial_deposit;
                 assert(validate_unprocessed());
             }
 
@@ -2104,18 +2294,33 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
 			if (path_length < best_path_length) {
 				best_path_length = path_length;
 				std::swap(best_path, path);
+#if 0 // #if ! defined(SLIC3R_DEBUG_ANTS) && ! defined(ndebug)
+				if (round == 0 && ant == 0)
+					std::cout << std::endl;
+			    std::cout << Slic3r::format("round %1% ant %2% path length %3%", round, ant, path_length) << std::endl;
+#endif
+                if (path_length == 0)
+                    // Perfect path found.
+                    goto end;
+                improved = true;
 			}
 		}
 
-		// Reinforce the path feromones with the best path.
-        float total_cost = best_path_length + EPSILON;
+		// Reinforce the path pheromones with the best path.
+        float total_cost = best_path_length + float(EPSILON);
         for (size_t i = 0; i + 1 < path.size(); ++ i) {
             MonotonousRegionLink &link = path[i];
             link.next->pheromone = (1.f - pheromone_evaporation) * link.next->pheromone + pheromone_evaporation / total_cost;
         }
+
+        if (improved)
+            num_rounds_no_change = 0;
+        else
+			++ num_rounds_no_change;
 	}
 
-	return best_path;
+end:
+    return best_path;
 }
 
 // Traverse path, produce polylines.
@@ -2195,7 +2400,6 @@ static void polylines_from_paths(const std::vector<MonotonousRegionLink> &path, 
 		            int inext = it->vertical_up();
                     if (inext == -1 || it->vertical_up_quality() != SegmentIntersection::LinkQuality::Valid)
 		            	break;
-		            const Polygon &poly = poly_with_offset.contour(it->iContour);
 	                assert(it->iContour == vline.intersections[inext].iContour);
 	                emit_perimeter_segment_on_vertical_line(poly_with_offset, segs, i_vline, it->iContour, it - vline.intersections.data(), inext, *polyline, it->has_left_vertical_up());
 	                it = vline.intersections.data() + inext;
@@ -2215,7 +2419,6 @@ static void polylines_from_paths(const std::vector<MonotonousRegionLink> &path, 
 		            int inext = it->vertical_down();
 		            if (inext == -1 || it->vertical_down_quality() != SegmentIntersection::LinkQuality::Valid)
 		            	break;
-		            const Polygon &poly = poly_with_offset.contour(it->iContour);
 	                assert(it->iContour == vline.intersections[inext].iContour);
 	                emit_perimeter_segment_on_vertical_line(poly_with_offset, segs, i_vline, it->iContour, it - vline.intersections.data(), inext, *polyline, it->has_right_vertical_down());
 	                it = vline.intersections.data() + inext;
@@ -2285,8 +2488,8 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
     ExPolygonWithOffset poly_with_offset(
         surface->expolygon, 
         - rotate_vector.first, 
-        scale_(this->overlap - (0.5 - INFILL_OVERLAP_OVER_SPACING) * this->spacing),
-        scale_(this->overlap - 0.5 * this->spacing));
+        float(scale_(this->overlap - (0.5 - INFILL_OVERLAP_OVER_SPACING) * this->spacing)),
+        float(scale_(this->overlap - 0.5 * this->spacing)));
     if (poly_with_offset.n_contours_inner == 0) {
         // Not a single infill line fits.
         //FIXME maybe one shall trigger the gap fill here?
@@ -2317,7 +2520,7 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
     size_t  n_vlines = (bounding_box.max(0) - bounding_box.min(0) + line_spacing - 1) / line_spacing;
 	coord_t x0 = bounding_box.min(0);
 	if (params.full_infill())
-		x0 += (line_spacing + SCALED_EPSILON) / 2;
+		x0 += (line_spacing + coord_t(SCALED_EPSILON)) / 2;
 
 #ifdef SLIC3R_DEBUG
     static int iRun = 0;
@@ -2359,7 +2562,7 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
     bool monotonous_infill = params.monotonous; // || params.density > 0.99;
     if (monotonous_infill) {
 		std::vector<MonotonousRegion> regions = generate_montonous_regions(segs);
-		connect_monotonous_regions(regions, segs);
+		connect_monotonous_regions(regions, poly_with_offset, segs);
         if (! regions.empty()) {
 		    std::mt19937_64 rng;
 		    std::vector<MonotonousRegionLink> path = chain_monotonous_regions(regions, poly_with_offset, segs, rng);
@@ -2478,10 +2681,10 @@ Polylines FillCubic::fill_surface(const Surface *surface, const FillParams &para
     params3.dont_connect = true;
     Polylines polylines_out;
     coordf_t dx = sqrt(0.5) * z;
-    if (! fill_surface_by_lines(surface, params2, 0.f, dx, polylines_out) ||
-        ! fill_surface_by_lines(surface, params2, float(M_PI / 3.), - dx, polylines_out) ||
+    if (! fill_surface_by_lines(surface, params2, 0.f, float(dx), polylines_out) ||
+        ! fill_surface_by_lines(surface, params2, float(M_PI / 3.), - float(dx), polylines_out) ||
         // Rotated by PI*2/3 + PI to achieve reverse sloping wall.
-        ! fill_surface_by_lines(surface, params3, float(M_PI * 2. / 3.), dx, polylines_out)) {
+        ! fill_surface_by_lines(surface, params3, float(M_PI * 2. / 3.), float(dx), polylines_out)) {
         printf("FillCubic::fill_surface() failed to fill a region.\n");
     } 
     return polylines_out; 

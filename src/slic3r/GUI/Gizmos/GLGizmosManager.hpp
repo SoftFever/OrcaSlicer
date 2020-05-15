@@ -139,6 +139,11 @@ public:
         EType new_current = m_current;
         m_current = old_current;
 
+        // Update common data. They should be updated when activate_gizmo is
+        // called, so it can be used in on_set_state which is called from there.
+        if (new_current != Undefined)
+            m_common_gizmos_data->update(m_gizmos[new_current]->get_requirements());
+
         // activate_gizmo call sets m_current and calls set_state for the gizmo
         // it does nothing in case the gizmo is already activated
         // it can safely be called for Undefined gizmo
@@ -167,6 +172,7 @@ public:
 
     void refresh_on_off_state();
     void reset_all_states();
+    bool is_serializing() const { return m_serializing; }
 
     void set_hover_id(int id);
     void enable_grabber(EType type, unsigned int id, bool enable);
@@ -219,6 +225,8 @@ public:
     bool on_key(wxKeyEvent& evt);
 
     void update_after_undo_redo(const UndoRedo::Snapshot& snapshot);
+
+    int get_selectable_icons_cnt() const { return get_selectable_idxs().size(); }
 
 private:
     void render_background(float left, float top, float right, float bottom, float border) const;

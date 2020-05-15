@@ -16,9 +16,6 @@
 #include "GUI_ObjectLayers.hpp"
 #include "GLSelectionRectangle.hpp"
 #include "MeshUtils.hpp"
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-#include "Camera.hpp"
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 #if ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "GCodeViewer.hpp"
@@ -35,9 +32,7 @@ class wxMouseEvent;
 class wxTimerEvent;
 class wxPaintEvent;
 class wxGLCanvas;
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 class wxGLContext;
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 // Support for Retina OpenGL on Mac OS
 #define ENABLE_RETINA_GL __APPLE__
@@ -420,6 +415,7 @@ private:
     class Slope
     {
         bool m_enabled{ false };
+        bool m_dialog_shown{ false };
         GLCanvas3D& m_canvas;
         GLVolumeCollection& m_volumes;
 
@@ -428,9 +424,14 @@ private:
 
         void enable(bool enable) { m_enabled = enable; }
         bool is_enabled() const { return m_enabled; }
-        void show(bool show) { m_volumes.set_slope_active(m_enabled ? show : false); }
-        bool is_shown() const { return m_volumes.is_slope_active(); }
+        void use(bool use) { m_volumes.set_slope_active(m_enabled ? use : false); }
+        bool is_used() const { return m_volumes.is_slope_active(); }
+        void show_dialog(bool show) { if (show && is_used()) return; use(show); m_dialog_shown = show; }
+        bool is_dialog_shown() const { return m_dialog_shown; }
         void render() const;
+        void set_range(const std::array<float, 2>& range) const {
+            m_volumes.set_slope_z_range({ -::cos(Geometry::deg2rad(90.0f - range[0])), -::cos(Geometry::deg2rad(90.0f - range[1])) });
+        }
     };
 #endif // ENABLE_SLOPE_RENDERING
 
@@ -453,11 +454,6 @@ private:
 #endif // !ENABLE_GCODE_VIEWER
     WarningTexture m_warning_texture;
     wxTimer m_timer;
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-    Bed3D& m_bed;
-    Camera& m_camera;
-    GLToolbar& m_view_toolbar;
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
     LayersEditing m_layers_editing;
     Shader m_shader;
     Mouse m_mouse;
@@ -526,22 +522,17 @@ private:
     Labels m_labels;
 #if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     mutable Tooltip m_tooltip;
+    mutable bool m_tooltip_enabled{ true };
 #endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 #if ENABLE_SLOPE_RENDERING
     Slope m_slope;
 #endif // ENABLE_SLOPE_RENDERING
 
 public:
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     explicit GLCanvas3D(wxGLCanvas* canvas);
-#else
-    GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar);
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     ~GLCanvas3D();
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     bool is_initialized() const { return m_initialized; }
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     void set_context(wxGLContext* context) { m_context = context; }
 
@@ -593,13 +584,7 @@ public:
 
     void set_color_by(const std::string& value);
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     void refresh_camera_scene_box();
-#else
-    void refresh_camera_scene_box() { m_camera.set_scene_box(scene_bounding_box()); }
-    const Camera& get_camera() const { return m_camera; }
-    Camera& get_camera() { return m_camera; }
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     const Shader& get_shader() const { return m_shader; }
 
     BoundingBoxf3 volumes_bounding_box() const;
@@ -607,6 +592,7 @@ public:
 
     bool is_layers_editing_enabled() const;
     bool is_layers_editing_allowed() const;
+    bool is_search_pressed() const;
 
     void reset_layer_height_profile();
     void adaptive_layer_height_profile(float quality_factor);
@@ -662,7 +648,6 @@ public:
     void set_toolpaths_z_range(const std::array<double, 2>& range);
 #else
     std::vector<double> get_current_print_zs(bool active_only) const;
-    void set_toolpaths_range(double low, double high);
 #endif // ENABLE_GCODE_VIEWER
     void set_toolpaths_range(double low, double high);
 
@@ -694,6 +679,9 @@ public:
     void on_timer(wxTimerEvent& evt);
     void on_mouse(wxMouseEvent& evt);
     void on_paint(wxPaintEvent& evt);
+#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
+    void on_set_focus(wxFocusEvent& evt);
+#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
     Size get_canvas_size() const;
     Vec2d get_local_mouse_position() const;
@@ -718,10 +706,6 @@ public:
     void handle_layers_data_focus_event(const t_layer_height_range range, const EditorType type);
 
     void update_ui_from_settings();
-
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-    float get_view_toolbar_height() const { return m_view_toolbar.get_height(); }
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 
     int get_move_volume_id() const { return m_mouse.drag.move_volume_idx; }
     int get_first_hover_volume_idx() const { return m_hover_volume_idxs.empty() ? -1 : m_hover_volume_idxs.front(); }
@@ -765,6 +749,7 @@ public:
     int get_main_toolbar_item_id(const std::string& name) const { return m_main_toolbar.get_item_id(name); }
     void force_main_toolbar_left_action(int item_id) { m_main_toolbar.force_left_action(item_id, *this); }
     void force_main_toolbar_right_action(int item_id) { m_main_toolbar.force_right_action(item_id, *this); }
+    void update_tooltip_for_settings_item_in_main_toolbar();
 
     bool has_toolpaths_to_export() const;
     void export_toolpaths_to_obj(const char* filename) const;
@@ -775,8 +760,10 @@ public:
     void show_labels(bool show) { m_labels.show(show); }
 
 #if ENABLE_SLOPE_RENDERING
-    bool is_slope_shown() const { return m_slope.is_shown(); }
-    void show_slope(bool show) { m_slope.show(show); }
+    bool is_slope_shown() const { return m_slope.is_dialog_shown(); }
+    void use_slope(bool use) { m_slope.use(use); }
+    void show_slope(bool show) { m_slope.show_dialog(show); }
+    void set_slope_range(const std::array<float, 2>& range) { m_slope.set_range(range); }
 #endif // ENABLE_SLOPE_RENDERING
 
 private:
@@ -810,6 +797,7 @@ private:
 #if ENABLE_RENDER_SELECTION_CENTER
     void _render_selection_center() const;
 #endif // ENABLE_RENDER_SELECTION_CENTER
+    void _check_and_update_toolbar_icon_scale() const;
     void _render_overlays() const;
     void _render_warning_texture() const;
 #if !ENABLE_GCODE_VIEWER
@@ -872,8 +860,10 @@ private:
 #endif // !ENABLE_GCODE_VIEWER
     // Load SLA objects and support structures for objects, for which the slaposSliceSupports step has been finished.
 	void _load_sla_shells();
+#if !ENABLE_GCODE_VIEWER
     // sets gcode geometry visibility according to user selection
     void _update_gcode_volumes_visibility(const GCodePreviewData& preview_data);
+#endif // !ENABLE_GCODE_VIEWER
     void _update_toolpath_volumes_outside_state();
     void _update_sla_shells_outside_state();
     void _show_warning_texture_if_needed(WarningTexture::Warning warning);

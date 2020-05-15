@@ -7,9 +7,6 @@
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-#include "slic3r/GUI/GLCanvas3DManager.hpp"
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 
 #include <functional>
 
@@ -645,6 +642,7 @@ protected:
     virtual bool on_init_from_file(const std::string& filename) { return false; }
 };
 
+#if !ENABLE_GCODE_VIEWER
 class GLArrow : public GLModel
 {
 protected:
@@ -661,6 +659,7 @@ public:
 protected:
     bool on_init() override;
 };
+#endif // !ENABLE_GCODE_VIEWER
 
 class GLBed : public GLModel
 {
@@ -668,30 +667,8 @@ protected:
     bool on_init_from_file(const std::string& filename) override;
 };
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 struct _3DScene
-#else
-class _3DScene
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 {
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-    static GUI::GLCanvas3DManager s_canvas_mgr;
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
-
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-public:
-    static std::string get_gl_info(bool format_as_html, bool extensions);
-
-    static bool add_canvas(wxGLCanvas* canvas, GUI::Bed3D& bed, GUI::Camera& camera, GUI::GLToolbar& view_toolbar);
-    static bool remove_canvas(wxGLCanvas* canvas);
-    static void remove_all_canvases();
-
-    static bool init(wxGLCanvas* canvas);
-    static void destroy();
-
-    static GUI::GLCanvas3D* get_canvas(wxGLCanvas* canvas);
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
-
     static void thick_lines_to_verts(const Lines& lines, const std::vector<double>& widths, const std::vector<double>& heights, bool closed, double top_z, GLVolume& volume);
     static void thick_lines_to_verts(const Lines3& lines, const std::vector<double>& widths, const std::vector<double>& heights, bool closed, GLVolume& volume);
 	static void extrusionentity_to_verts(const Polyline &polyline, float width, float height, float print_z, GLVolume& volume);

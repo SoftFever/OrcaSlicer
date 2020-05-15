@@ -19,6 +19,7 @@ prusaslicer_add_cmake_project(wxWidgets
         -DwxBUILD_PRECOMP=ON
         ${_wx_toolkit}
         "-DCMAKE_DEBUG_POSTFIX:STRING="
+        -DwxBUILD_DEBUG_LEVEL=0
         -DwxUSE_DETECT_SM=OFF
         -DwxUSE_UNICODE=ON
         -DwxUSE_OPENGL=ON

@@ -2771,6 +2771,7 @@ void ObjectList::delete_all_objects_from_list()
 void ObjectList::increase_object_instances(const size_t obj_idx, const size_t num)
 {
     select_item(m_objects_model->AddInstanceChild(m_objects_model->GetItemById(obj_idx), num));
+    selection_changed();
 }
 
 void ObjectList::decrease_object_instances(const size_t obj_idx, const size_t num)

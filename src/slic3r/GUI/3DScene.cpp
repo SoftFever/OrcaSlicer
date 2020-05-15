@@ -5,11 +5,15 @@
 #include "libslic3r/ExtrusionEntity.hpp"
 #include "libslic3r/ExtrusionEntityCollection.hpp"
 #include "libslic3r/Geometry.hpp"
+#if !ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/PreviewData.hpp"
+#endif // !ENABLE_GCODE_VIEWER
 #include "libslic3r/Print.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/Slicing.hpp"
+#if !ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/Analyzer.hpp"
+#endif // !ENABLE_GCODE_VIEWER
 #include "slic3r/GUI/BitmapCache.hpp"
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Utils.hpp"
@@ -1853,10 +1857,6 @@ void _3DScene::point3_to_verts(const Vec3crd& point, double width, double height
     thick_point_to_verts(point, width, height, volume);
 }
 
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-GUI::GLCanvas3DManager _3DScene::s_canvas_mgr;
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
-
 GLModel::GLModel()
     : m_filename("")
 {
@@ -1944,6 +1944,7 @@ void GLModel::render() const
     glsafe(::glDisable(GL_BLEND));
 }
 
+#if !ENABLE_GCODE_VIEWER
 bool GLArrow::on_init()
 {
     Pointf3s vertices;
@@ -2115,6 +2116,7 @@ bool GLCurvedArrow::on_init()
 	m_volume.indexed_vertex_array.finalize_geometry(true);
     return true;
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 bool GLBed::on_init_from_file(const std::string& filename)
 {
@@ -2146,42 +2148,5 @@ bool GLBed::on_init_from_file(const std::string& filename)
 
     return true;
 }
-
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-std::string _3DScene::get_gl_info(bool format_as_html, bool extensions)
-{
-    return Slic3r::GUI::GLCanvas3DManager::get_gl_info().to_string(format_as_html, extensions);
-}
-
-bool _3DScene::add_canvas(wxGLCanvas* canvas, GUI::Bed3D& bed, GUI::Camera& camera, GUI::GLToolbar& view_toolbar)
-{
-    return s_canvas_mgr.add(canvas, bed, camera, view_toolbar);
-}
-
-bool _3DScene::remove_canvas(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.remove(canvas);
-}
-
-void _3DScene::remove_all_canvases()
-{
-    s_canvas_mgr.remove_all();
-}
-
-bool _3DScene::init(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.init(canvas);
-}
-
-void _3DScene::destroy()
-{
-    s_canvas_mgr.destroy();
-}
-
-GUI::GLCanvas3D* _3DScene::get_canvas(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_canvas(canvas);
-}
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
 
 } // namespace Slic3r

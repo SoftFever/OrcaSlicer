@@ -7,9 +7,7 @@
 #include "MainFrame.hpp"
 #include "ImGuiWrapper.hpp"
 #include "ConfigWizard.hpp"
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
-#include "GLCanvas3DManager.hpp"
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
+#include "OpenGLManager.hpp"
 
 #include <wx/app.h>
 #include <wx/colour.h>
@@ -100,9 +98,7 @@ class GUI_App : public wxApp
     // Best translation language, provided by Windows or OSX, owned by wxWidgets.
     const wxLanguageInfo		 *m_language_info_best   = nullptr;
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
-    GLCanvas3DManager m_canvas_mgr;
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
+    OpenGLManager m_opengl_mgr;
 
     std::unique_ptr<RemovableDriveManager> m_removable_drive_manager;
 
@@ -117,11 +113,9 @@ public:
     GUI_App();
     ~GUI_App() override;
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     static std::string get_gl_info(bool format_as_html, bool extensions);
     wxGLContext* init_glcontext(wxGLCanvas& canvas);
     bool init_opengl();
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     static unsigned get_colour_approx_luma(const wxColour &colour);
     static bool     dark_mode();
@@ -141,8 +135,9 @@ public:
     const wxFont&   normal_font()           { return m_normal_font; }
     int             em_unit() const         { return m_em_unit; }
     float           toolbar_icon_scale(const bool is_limited = false) const;
+    void            set_auto_toolbar_icon_scale(float scale) const;
 
-    void            recreate_GUI();
+    void            recreate_GUI(const wxString& message);
     void            system_info();
     void            keyboard_shortcuts();
     void            load_project(wxWindow *parent, wxString& input_file) const;
@@ -168,6 +163,7 @@ public:
     wxString        current_language_code() const { return m_wxLocale->GetCanonicalName(); }
 	// Translate the language code to a code, for which Prusa Research maintains translations. Defaults to "en_US".
     wxString 		current_language_code_safe() const;
+    bool            is_localized() const { return m_wxLocale->GetLocale() != "English"; }
 
     virtual bool OnExceptionInMainLoop() override;
 

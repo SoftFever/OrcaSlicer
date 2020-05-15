@@ -8,19 +8,11 @@
 #include "Print.hpp"
 
 #include <boost/log/trivial.hpp>
-#if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
-#include <boost/filesystem/path.hpp>
-#endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
 
 #include "Analyzer.hpp"
 #include "PreviewData.hpp"
 
-#if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
-#include <boost/nowide/fstream.hpp>
-
-// don't worry, this is just temporary
-static boost::nowide::ofstream g_debug_output;
-#endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
+#if !ENABLE_GCODE_VIEWER
 
 static const std::string AXIS_STR = "XYZE";
 static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
@@ -183,19 +175,6 @@ bool GCodeAnalyzer::is_valid_extrusion_role(ExtrusionRole role)
 {
     return ((erPerimeter <= role) && (role < erMixed));
 }
-
-#if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
-void GCodeAnalyzer::open_debug_output_file()
-{
-    boost::filesystem::path path("d:/analyzer.output");
-    g_debug_output.open(path.string());
-}
-
-void GCodeAnalyzer::close_debug_output_file()
-{
-    g_debug_output.close();
-}
-#endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
 
 void GCodeAnalyzer::_process_gcode_line(GCodeReader&, const GCodeReader::GCodeLine& line)
 {
@@ -945,23 +924,6 @@ void GCodeAnalyzer::_store_move(GCodeAnalyzer::GCodeMove::EType type)
     Vec3f start_position = _get_start_position() + extruder_offset;
     Vec3f end_position = _get_end_position() + extruder_offset;
     it->second.emplace_back(type, _get_extrusion_role(), extruder_id, _get_mm3_per_mm(), _get_width(), _get_height(), _get_feedrate(), start_position, end_position, _get_delta_extrusion(), _get_fan_speed(), _get_cp_color_id());
-
-#if ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
-    if (g_debug_output.good())
-    {
-        g_debug_output << std::to_string(static_cast<int>(type));
-        g_debug_output << ", " << std::to_string(static_cast<int>(_get_extrusion_role()));
-        g_debug_output << ", " << Slic3r::to_string(static_cast<Vec3d>(end_position.cast<double>()));
-        g_debug_output << ", " << std::to_string(extruder_id);
-        g_debug_output << ", " << std::to_string(_get_cp_color_id());
-        g_debug_output << ", " << std::to_string(_get_feedrate());
-        g_debug_output << ", " << std::to_string(_get_width());
-        g_debug_output << ", " << std::to_string(_get_height());
-        g_debug_output << ", " << std::to_string(_get_mm3_per_mm());
-        g_debug_output << ", " << std::to_string(_get_fan_speed());
-        g_debug_output << "\n";
-    }
-#endif // ENABLE_GCODE_VIEWER_DEBUG_OUTPUT
 }
 
 bool GCodeAnalyzer::_is_valid_extrusion_role(int value) const
@@ -1231,3 +1193,5 @@ size_t GCodeAnalyzer::memory_used() const
 }
 
 } // namespace Slic3r
+
+#endif // !ENABLE_GCODE_VIEWER

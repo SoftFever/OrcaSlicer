@@ -53,13 +53,8 @@
 // Enable rendering of objects colored by facets' slope
 #define ENABLE_SLOPE_RENDERING (1 && ENABLE_2_3_0_ALPHA1)
 
-// Moves GLCanvas3DManager from being a static member of _3DScene to be a normal member of GUI_App
-#define ENABLE_NON_STATIC_CANVAS_MANAGER (1 && ENABLE_2_3_0_ALPHA1)
-
 // Enable G-Code viewer
 #define ENABLE_GCODE_VIEWER (1 && ENABLE_2_3_0_ALPHA1)
-#define ENABLE_GCODE_VIEWER_DEBUG_OUTPUT (0 && ENABLE_GCODE_VIEWER)
 #define ENABLE_GCODE_VIEWER_STATISTICS (0 && ENABLE_GCODE_VIEWER)
-
 
 #endif // _prusaslicer_technologies_h_

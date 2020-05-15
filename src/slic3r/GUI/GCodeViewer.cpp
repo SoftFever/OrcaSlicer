@@ -3,6 +3,7 @@
 
 #if ENABLE_GCODE_VIEWER
 #include "libslic3r/Print.hpp"
+#include "libslic3r/Geometry.hpp"
 #include "GUI_App.hpp"
 #include "PresetBundle.hpp"
 #include "Camera.hpp"
@@ -100,8 +101,7 @@ void GCodeViewer::IBuffer::reset()
     }
 
     // release cpu memory
-    data = std::vector<unsigned int>();
-    data_size = 0;
+    indices_count = 0;
     paths = std::vector<Path>();
     render_paths = std::vector<RenderPath>();
 }
@@ -116,9 +116,9 @@ bool GCodeViewer::IBuffer::init_shader(const std::string& vertex_shader_src, con
     return true;
 }
 
-void GCodeViewer::IBuffer::add_path(const GCodeProcessor::MoveVertex& move, unsigned int v_id)
+void GCodeViewer::IBuffer::add_path(const GCodeProcessor::MoveVertex& move, unsigned int i_id, unsigned int s_id)
 {
-    Path::Endpoint endpoint = { static_cast<unsigned int>(data.size()), v_id, move.position };
+    Path::Endpoint endpoint = { i_id, s_id, move.position };
     paths.push_back({ move.type, move.extrusion_role, endpoint, endpoint, move.delta_extruder, move.height, move.width, move.feedrate, move.fan_speed, move.volumetric_rate(), move.extruder_id, move.cp_color_id });
 }
 
@@ -145,7 +145,44 @@ GCodeViewer::Color GCodeViewer::Extrusions::Range::get_color_at(float value) con
     return ret;
 }
 
-const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors{ {
+void GCodeViewer::SequentialView::Marker::init()
+{
+    m_model.init_from(stilized_arrow(16, 2.0f, 4.0f, 1.0f, 8.0f));
+    init_shader();
+}
+
+void GCodeViewer::SequentialView::Marker::render() const
+{
+    if (!m_visible || !m_shader.is_initialized())
+        return;
+
+    glsafe(::glEnable(GL_BLEND));
+    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
+    m_shader.start_using();
+    GLint color_id = ::glGetUniformLocation(m_shader.get_shader_program_id(), "uniform_color");
+    if (color_id >= 0)
+        glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)m_color.data()));
+
+    glsafe(::glPushMatrix());
+    glsafe(::glMultMatrixf(m_world_transform.data()));
+
+    m_model.render();
+
+    glsafe(::glPopMatrix());
+
+    m_shader.stop_using();
+
+    glsafe(::glDisable(GL_BLEND));
+}
+
+void GCodeViewer::SequentialView::Marker::init_shader()
+{
+    if (!m_shader.init("gouraud_light.vs", "gouraud_light.fs"))
+        BOOST_LOG_TRIVIAL(error) << "Unable to initialize gouraud_light shader: please, check that the files gouraud_light.vs and gouraud_light.fs are available";
+}
+
+const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
     { 0.50f, 0.50f, 0.50f },   // erNone
     { 1.00f, 1.00f, 0.40f },   // erPerimeter
     { 1.00f, 0.65f, 0.00f },   // erExternalPerimeter
@@ -153,7 +190,7 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors{ {
     { 0.69f, 0.19f, 0.16f },   // erInternalInfill
     { 0.84f, 0.20f, 0.84f },   // erSolidInfill
     { 1.00f, 0.10f, 0.10f },   // erTopSolidInfill
-    { 0.00f, 1.00f, 1.00f },   // erIroning    
+    { 1.00f, 0.55f, 0.41f },   // erIroning    
     { 0.60f, 0.60f, 1.00f },   // erBridgeInfill
     { 1.00f, 1.00f, 1.00f },   // erGapFill
     { 0.52f, 0.48f, 0.13f },   // erSkirt
@@ -164,13 +201,13 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors{ {
     { 0.00f, 0.00f, 0.00f }    // erMixed
 }};
 
-const std::vector<GCodeViewer::Color> GCodeViewer::Travel_Colors{ {
+const std::vector<GCodeViewer::Color> GCodeViewer::Travel_Colors {{
     { 0.0f, 0.0f, 0.5f }, // Move
     { 0.0f, 0.5f, 0.0f }, // Extrude
     { 0.5f, 0.0f, 0.0f }  // Retract
 }};
 
-const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors{ {
+const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors {{
     { 0.043f, 0.173f, 0.478f }, // bluish
     { 0.075f, 0.349f, 0.522f },
     { 0.110f, 0.533f, 0.569f },
@@ -278,11 +315,16 @@ void GCodeViewer::render() const
     m_statistics.reset_opengl();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
+    if (m_roles.empty())
+        return;
+
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_toolpaths();
+    m_sequential_view.marker.set_world_transform(Geometry::assemble_transform(m_sequential_view.current_position.cast<double>() + (0.5 + 12.0) * Vec3d::UnitZ(), { M_PI, 0.0, 0.0 }).cast<float>());
+    m_sequential_view.marker.render();
     render_shells();
     render_legend();
-    render_sequential_dlg();
+    render_sequential_bar();
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -316,7 +358,8 @@ unsigned int GCodeViewer::get_options_visibility_flags() const
     flags = set_flag(flags, 5, is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Pause_Print));
     flags = set_flag(flags, 6, is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Custom_GCode));
     flags = set_flag(flags, 7, m_shells.visible);
-    flags = set_flag(flags, 8, is_legend_enabled());
+    flags = set_flag(flags, 8, m_sequential_view.marker.is_visible());
+    flags = set_flag(flags, 9, is_legend_enabled());
     return flags;
 }
 
@@ -334,7 +377,8 @@ void GCodeViewer::set_options_visibility_from_flags(unsigned int flags)
     set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Pause_Print, is_flag_set(5));
     set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Custom_GCode, is_flag_set(6));
     m_shells.visible = is_flag_set(7);
-    enable_legend(is_flag_set(8));
+    m_sequential_view.marker.set_visible(is_flag_set(8));
+    enable_legend(is_flag_set(9));
 }
 
 bool GCodeViewer::init_shaders()
@@ -388,9 +432,12 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     std::vector<float> vertices_data(m_vertices.vertices_count * 3);
     for (size_t i = 0; i < m_vertices.vertices_count; ++i) {
         const GCodeProcessor::MoveVertex& move = gcode_result.moves[i];
-        m_bounding_box.merge(move.position.cast<double>());
+        if (move.type == GCodeProcessor::EMoveType::Extrude)
+            m_bounding_box.merge(move.position.cast<double>());
         ::memcpy(static_cast<void*>(&vertices_data[i * 3]), static_cast<const void*>(move.position.data()), 3 * sizeof(float));
     }
+
+    m_bounding_box.merge(m_bounding_box.max + m_sequential_view.marker.get_bounding_box().max[2] * Vec3d::UnitZ());
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.vertices_size = SLIC3R_STDVEC_MEMSIZE(vertices_data, float);
@@ -403,10 +450,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     glsafe(::glBufferData(GL_ARRAY_BUFFER, vertices_data.size() * sizeof(float), vertices_data.data(), GL_STATIC_DRAW));
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 
-    // vertex data -> free ram
+    // vertex data -> no more needed, free ram
     vertices_data = std::vector<float>();
 
     // indices data -> extract from result
+    std::vector<std::vector<unsigned int>> indices(m_buffers.size());
     for (size_t i = 0; i < m_vertices.vertices_count; ++i)
     {
         // skip first vertex
@@ -416,7 +464,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         const GCodeProcessor::MoveVertex& prev = gcode_result.moves[i - 1];
         const GCodeProcessor::MoveVertex& curr = gcode_result.moves[i];
 
-        IBuffer& buffer = m_buffers[buffer_id(curr.type)];
+        unsigned char id = buffer_id(curr.type);
+        IBuffer& buffer = m_buffers[id];
+        std::vector<unsigned int>& buffer_indices = indices[id];
 
         switch (curr.type)
         {
@@ -427,23 +477,23 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         case GCodeProcessor::EMoveType::Retract:
         case GCodeProcessor::EMoveType::Unretract:
         {
-            buffer.add_path(curr, static_cast<unsigned int>(i));
-            buffer.data.push_back(static_cast<unsigned int>(i));
+            buffer.add_path(curr, static_cast<unsigned int>(buffer_indices.size()), static_cast<unsigned int>(i));
+            buffer_indices.push_back(static_cast<unsigned int>(i));
             break;
         }
         case GCodeProcessor::EMoveType::Extrude:
         case GCodeProcessor::EMoveType::Travel:
         {
             if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
-                buffer.add_path(curr, static_cast<unsigned int>(i));
+                buffer.add_path(curr, static_cast<unsigned int>(buffer_indices.size()), static_cast<unsigned int>(i));
                 Path& last_path = buffer.paths.back();
                 last_path.first.position = prev.position;
                 last_path.first.s_id = static_cast<unsigned int>(i - 1);
-                buffer.data.push_back(static_cast<unsigned int>(i - 1));
+                buffer_indices.push_back(static_cast<unsigned int>(i - 1));
             }
             
-            buffer.paths.back().last = { static_cast<unsigned int>(buffer.data.size()), static_cast<unsigned int>(i), curr.position };
-            buffer.data.push_back(static_cast<unsigned int>(i));
+            buffer.paths.back().last = { static_cast<unsigned int>(buffer_indices.size()), static_cast<unsigned int>(i), curr.position };
+            buffer_indices.push_back(static_cast<unsigned int>(i));
             break;
         }
         default:
@@ -461,22 +511,21 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     // indices data -> send data to gpu
-    for (IBuffer& buffer : m_buffers)
+    for (size_t i = 0; i < m_buffers.size(); ++i)
     {
-        buffer.data_size = buffer.data.size();
+        IBuffer& buffer = m_buffers[i];
+        std::vector<unsigned int>& buffer_indices = indices[i];
+        buffer.indices_count = buffer_indices.size();
 #if ENABLE_GCODE_VIEWER_STATISTICS
-        m_statistics.indices_size += SLIC3R_STDVEC_MEMSIZE(buffer.data, unsigned int);
-        m_statistics.indices_gpu_size += buffer.data_size * sizeof(unsigned int);
+        m_statistics.indices_size += SLIC3R_STDVEC_MEMSIZE(buffer_indices, unsigned int);
+        m_statistics.indices_gpu_size += buffer.indices_count * sizeof(unsigned int);
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
-        if (buffer.data_size > 0) {
+        if (buffer.indices_count > 0) {
             glsafe(::glGenBuffers(1, &buffer.ibo_id));
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.ibo_id));
-            glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer.data_size * sizeof(unsigned int), buffer.data.data(), GL_STATIC_DRAW));
+            glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer.indices_count * sizeof(unsigned int), buffer_indices.data(), GL_STATIC_DRAW));
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-
-            // indices data -> free ram
-            buffer.data = std::vector<unsigned int>();
         }
     }
 
@@ -641,6 +690,10 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current) const
 
     // update current sequential position
     m_sequential_view.current = keep_sequential_current ? std::clamp(m_sequential_view.current, m_sequential_view.first, m_sequential_view.last) : m_sequential_view.last;
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vertices.vbo_id));
+    size_t v_size = VBuffer::vertex_size_bytes();
+    glsafe(::glGetBufferSubData(GL_ARRAY_BUFFER, static_cast<GLintptr>(m_sequential_view.current * v_size), static_cast<GLsizeiptr>(v_size), static_cast<void*>(m_sequential_view.current_position.data())));
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 
     // second pass: filter paths by sequential data
     for (auto&& [buffer, id] : paths) {
@@ -683,7 +736,7 @@ void GCodeViewer::render_toolpaths() const
 {
     auto set_color = [](GLint current_program_id, const Color& color) {
         if (current_program_id > 0) {
-            GLint color_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "uniform_color") : -1;
+            GLint color_id = ::glGetUniformLocation(current_program_id, "uniform_color");
             if (color_id >= 0) {
                 glsafe(::glUniform3fv(color_id, 1, (const GLfloat*)color.data()));
                 return;
@@ -714,10 +767,7 @@ void GCodeViewer::render_toolpaths() const
             GCodeProcessor::EMoveType type = buffer_type(i);
 
             buffer.shader.start_using();
-            
-            GLint current_program_id;
-            glsafe(::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id));
-
+ 
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.ibo_id));
 
             switch (type)
@@ -725,7 +775,7 @@ void GCodeViewer::render_toolpaths() const
             case GCodeProcessor::EMoveType::Tool_change:
             {
                 Color color = { 1.0f, 1.0f, 1.0f };
-                set_color(current_program_id, color);
+                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), color);
                 for (const RenderPath& path : buffer.render_paths)
                 {
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
@@ -741,7 +791,7 @@ void GCodeViewer::render_toolpaths() const
             case GCodeProcessor::EMoveType::Color_change:
             {
                 Color color = { 1.0f, 0.0f, 0.0f };
-                set_color(current_program_id, color);
+                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), color);
                 for (const RenderPath& path : buffer.render_paths)
                 {
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
@@ -757,7 +807,7 @@ void GCodeViewer::render_toolpaths() const
             case GCodeProcessor::EMoveType::Pause_Print:
             {
                 Color color = { 0.0f, 1.0f, 0.0f };
-                set_color(current_program_id, color);
+                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), color);
                 for (const RenderPath& path : buffer.render_paths)
                 {
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
@@ -773,7 +823,7 @@ void GCodeViewer::render_toolpaths() const
             case GCodeProcessor::EMoveType::Custom_GCode:
             {
                 Color color = { 0.0f, 0.0f, 1.0f };
-                set_color(current_program_id, color);
+                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), color);
                 for (const RenderPath& path : buffer.render_paths)
                 {
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
@@ -789,7 +839,7 @@ void GCodeViewer::render_toolpaths() const
             case GCodeProcessor::EMoveType::Retract:
             {
                 Color color = { 1.0f, 0.0f, 1.0f };
-                set_color(current_program_id, color);
+                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), color);
                 for (const RenderPath& path : buffer.render_paths)
                 {
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
@@ -805,7 +855,7 @@ void GCodeViewer::render_toolpaths() const
             case GCodeProcessor::EMoveType::Unretract:
             {
                 Color color = { 0.0f, 1.0f, 1.0f };
-                set_color(current_program_id, color);
+                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), color);
                 for (const RenderPath& path : buffer.render_paths)
                 {
                     glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
@@ -822,7 +872,7 @@ void GCodeViewer::render_toolpaths() const
             {
                 for (const RenderPath& path : buffer.render_paths)
                 {
-                    set_color(current_program_id, path.color);
+                    set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), path.color);
                     glsafe(::glMultiDrawElements(GL_LINE_STRIP, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
                     ++m_statistics.gl_multi_line_strip_calls_count;
@@ -835,7 +885,7 @@ void GCodeViewer::render_toolpaths() const
             {
                 for (const RenderPath& path : buffer.render_paths)
                 {
-                    set_color(current_program_id, path.color);
+                    set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), path.color);
                     glsafe(::glMultiDrawElements(GL_LINE_STRIP, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
                     ++m_statistics.gl_multi_line_strip_calls_count;
@@ -874,7 +924,7 @@ void GCodeViewer::render_legend() const
     static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
     static const ImU32 ICON_BORDER_COLOR = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
 
-    if (!m_legend_enabled || m_roles.empty())
+    if (!m_legend_enabled)
         return;
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
@@ -928,14 +978,14 @@ void GCodeViewer::render_legend() const
     ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
     switch (m_view_type)
     {
-    case EViewType::FeatureType:    { imgui.text(I18N::translate_utf8(L("Feature type"))); break; }
-    case EViewType::Height:         { imgui.text(I18N::translate_utf8(L("Height (mm)"))); break; }
-    case EViewType::Width:          { imgui.text(I18N::translate_utf8(L("Width (mm)"))); break; }
-    case EViewType::Feedrate:       { imgui.text(I18N::translate_utf8(L("Speed (mm/s)"))); break; }
-    case EViewType::FanSpeed:       { imgui.text(I18N::translate_utf8(L("Fan Speed (%%)"))); break; }
-    case EViewType::VolumetricRate: { imgui.text(I18N::translate_utf8(L("Volumetric flow rate (mm³/s)"))); break; }
-    case EViewType::Tool:           { imgui.text(I18N::translate_utf8(L("Tool"))); break; }
-    case EViewType::ColorPrint:     { imgui.text(I18N::translate_utf8(L("Color Print"))); break; }
+    case EViewType::FeatureType: { imgui.text(_u8L("Feature type")); break; }
+    case EViewType::Height: { imgui.text(_u8L("Height (mm)")); break; }
+    case EViewType::Width: { imgui.text(_u8L("Width (mm)")); break; }
+    case EViewType::Feedrate: { imgui.text(_u8L("Speed (mm/s)")); break; }
+    case EViewType::FanSpeed: { imgui.text(_u8L("Fan Speed (%%)")); break; }
+    case EViewType::VolumetricRate: { imgui.text(_u8L("Volumetric flow rate (mm³/s)")); break; }
+    case EViewType::Tool: { imgui.text(_u8L("Tool")); break; }
+    case EViewType::ColorPrint: { imgui.text(_u8L("Color Print")); break; }
     default:                        { break; }
     }
     ImGui::PopStyleColor();
@@ -951,7 +1001,7 @@ void GCodeViewer::render_legend() const
             if (!visible)
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
 
-            add_item(Extrusion_Role_Colors[static_cast<unsigned int>(role)], I18N::translate_utf8(ExtrusionEntity::role_to_string(role)), [this, role]() {
+            add_item(Extrusion_Role_Colors[static_cast<unsigned int>(role)], _u8L(ExtrusionEntity::role_to_string(role)), [this, role]() {
                 if (role < erCount)
                 {
                     m_extrusions.role_visibility_flags = is_visible(role) ? m_extrusions.role_visibility_flags & ~(1 << role) : m_extrusions.role_visibility_flags | (1 << role);
@@ -981,7 +1031,7 @@ void GCodeViewer::render_legend() const
             if (it == m_extruder_ids.end())
                 continue;
 
-            add_item(m_tool_colors[i], (boost::format(I18N::translate_utf8(L("Extruder %d"))) % (i + 1)).str());
+            add_item(m_tool_colors[i], (boost::format(_u8L("Extruder %d")) % (i + 1)).str());
         }
         break;
     }
@@ -992,7 +1042,7 @@ void GCodeViewer::render_legend() const
         if (extruders_count == 1) { // single extruder use case
             if (custom_gcode_per_print_z.empty())
                 // no data to show
-                add_item(m_tool_colors.front(), I18N::translate_utf8(L("Default print color")));
+                add_item(m_tool_colors.front(), _u8L("Default print color"));
             else {
                 std::vector<std::pair<double, double>> cp_values;
                 cp_values.reserve(custom_gcode_per_print_z.size());
@@ -1016,7 +1066,7 @@ void GCodeViewer::render_legend() const
 
                 const int items_cnt = static_cast<int>(cp_values.size());
                 if (items_cnt == 0) { // There is no one color change, but there are some pause print or custom Gcode
-                    add_item(m_tool_colors.front(), I18N::translate_utf8(L("Default print color")));
+                    add_item(m_tool_colors.front(), _u8L("Default print color"));
                 }
                 else {
                     for (int i = items_cnt; i >= 0; --i) {
@@ -1024,14 +1074,14 @@ void GCodeViewer::render_legend() const
                         std::string id_str = " (" + std::to_string(i + 1) + ")";
 
                         if (i == 0) {
-                            add_item(m_tool_colors[i], (boost::format(I18N::translate_utf8(L("up to %.2f mm"))) % cp_values.front().first).str() + id_str);
+                            add_item(m_tool_colors[i], (boost::format(_u8L("up to %.2f mm")) % cp_values.front().first).str() + id_str);
                             break;
                         }
                         else if (i == items_cnt) {
-                            add_item(m_tool_colors[i], (boost::format(I18N::translate_utf8(L("above %.2f mm"))) % cp_values[i - 1].second).str() + id_str);
+                            add_item(m_tool_colors[i], (boost::format(_u8L("above %.2f mm")) % cp_values[i - 1].second).str() + id_str);
                             continue;
                         }
-                        add_item(m_tool_colors[i], (boost::format(I18N::translate_utf8(L("%.2f - %.2f mm"))) % cp_values[i - 1].second % cp_values[i].first).str() + id_str);
+                        add_item(m_tool_colors[i], (boost::format(_u8L("%.2f - %.2f mm")) % cp_values[i - 1].second% cp_values[i].first).str() + id_str);
                     }
                 }
             }
@@ -1040,7 +1090,7 @@ void GCodeViewer::render_legend() const
         {
             // extruders
             for (unsigned int i = 0; i < (unsigned int)extruders_count; ++i) {
-                add_item(m_tool_colors[i], (boost::format(I18N::translate_utf8(L("Extruder %d"))) % (i + 1)).str());
+                add_item(m_tool_colors[i], (boost::format(_u8L("Extruder %d")) % (i + 1)).str());
             }
 
             // color changes
@@ -1052,7 +1102,7 @@ void GCodeViewer::render_legend() const
                     std::string id_str = " (" + std::to_string(color_change_idx--) + ")";
 
                     add_item(m_tool_colors[last_color_id--],
-                             (boost::format(I18N::translate_utf8(L("Color change for Extruder %d at %.2f mm"))) % custom_gcode_per_print_z[i].extruder % custom_gcode_per_print_z[i].print_z).str() + id_str);
+                        (boost::format(_u8L("Color change for Extruder %d at %.2f mm")) % custom_gcode_per_print_z[i].extruder % custom_gcode_per_print_z[i].print_z).str() + id_str);
                 }
             }
         }
@@ -1079,14 +1129,14 @@ void GCodeViewer::render_legend() const
             ImGui::Spacing();
             ImGui::Spacing();
             ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
-            imgui.text(I18N::translate_utf8(L("Travel")));
+            imgui.text(_u8L("Travel"));
             ImGui::PopStyleColor();
             ImGui::Separator();
 
             // items
-            add_item(Travel_Colors[0], I18N::translate_utf8(L("Movement")));
-            add_item(Travel_Colors[1], I18N::translate_utf8(L("Extrusion")));
-            add_item(Travel_Colors[2], I18N::translate_utf8(L("Retraction")));
+            add_item(Travel_Colors[0], _u8L("Movement"));
+            add_item(Travel_Colors[1], _u8L("Extrusion"));
+            add_item(Travel_Colors[2], _u8L("Retraction"));
 
             break;
         }
@@ -1097,7 +1147,7 @@ void GCodeViewer::render_legend() const
     ImGui::PopStyleVar();
 }
 
-void GCodeViewer::render_sequential_dlg() const
+void GCodeViewer::render_sequential_bar() const
 {
     static const float MARGIN = 125.0f;
     static const float BUTTON_W = 50.0f;
@@ -1106,9 +1156,6 @@ void GCodeViewer::render_sequential_dlg() const
         m_sequential_view.current = std::clamp(value, m_sequential_view.first, m_sequential_view.last);
         refresh_render_paths(true);
     };
-
-    if (m_roles.empty())
-        return;
 
     if (m_sequential_view.last <= m_sequential_view.first)
         return;
@@ -1190,9 +1237,6 @@ void GCodeViewer::render_statistics() const
 {
     static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
     static const float offset = 250.0f;
-
-    if (m_roles.empty())
-        return;
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 

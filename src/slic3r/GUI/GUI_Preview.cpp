@@ -1,5 +1,7 @@
 #include "libslic3r/libslic3r.h"
+#if !ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/PreviewData.hpp"
+#endif // !ENABLE_GCODE_VIEWER
 #include "GUI_Preview.hpp"
 #include "GUI_App.hpp"
 #include "GUI.hpp"
@@ -7,7 +9,7 @@
 #include "AppConfig.hpp"
 #include "3DScene.hpp"
 #include "BackgroundSlicingProcess.hpp"
-#include "GLCanvas3DManager.hpp"
+#include "OpenGLManager.hpp"
 #include "GLCanvas3D.hpp"
 #include "PresetBundle.hpp"
 #include "DoubleSlider.hpp"
@@ -27,65 +29,36 @@
 namespace Slic3r {
 namespace GUI {
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 View3D::View3D(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
     : m_canvas_widget(nullptr)
     , m_canvas(nullptr)
 {
     init(parent, model, config, process);
 }
-#else
-View3D::View3D(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
-    : m_canvas_widget(nullptr)
-    , m_canvas(nullptr)
-{
-    init(parent, bed, camera, view_toolbar, model, config, process);
-}
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
 View3D::~View3D()
 {
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     if (m_canvas != nullptr)
         delete m_canvas;
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     if (m_canvas_widget != nullptr)
-    {
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-        _3DScene::remove_canvas(m_canvas_widget);
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
         delete m_canvas_widget;
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-        m_canvas = nullptr;
-#endif // !ENABLE_NON_STATIC_CANVAS_MANAGER
-    }
 }
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
-#else
-bool View3D::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 {
     if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 /* disable wxTAB_TRAVERSAL */))
         return false;
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
-    m_canvas_widget = GLCanvas3DManager::create_wxglcanvas(*this);
+    m_canvas_widget = OpenGLManager::create_wxglcanvas(*this);
     if (m_canvas_widget == nullptr)
         return false;
 
     m_canvas = new GLCanvas3D(m_canvas_widget);
     m_canvas->set_context(wxGetApp().init_glcontext(*m_canvas_widget));
     m_canvas->bind_event_handlers();
-#else
-    m_canvas_widget = GLCanvas3DManager::create_wxglcanvas(this);
-    _3DScene::add_canvas(m_canvas_widget, bed, camera, view_toolbar);
-    m_canvas = _3DScene::get_canvas(this->m_canvas_widget);
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
-    m_canvas->allow_multisample(GLCanvas3DManager::can_multisample());
+    m_canvas->allow_multisample(OpenGLManager::can_multisample());
     // XXX: If have OpenGL
     m_canvas->enable_picking(true);
     m_canvas->enable_moving(true);
@@ -199,27 +172,15 @@ void View3D::render()
         m_canvas->set_as_dirty();
 }
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 #if ENABLE_GCODE_VIEWER
 Preview::Preview(
     wxWindow* parent, Model* model, DynamicPrintConfig* config,
-    BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, GCodeProcessor::Result* gcode_result, std::function<void()> schedule_background_process_func)
+    BackgroundSlicingProcess* process, GCodeProcessor::Result* gcode_result, std::function<void()> schedule_background_process_func)
 #else
 Preview::Preview(
     wxWindow* parent, Model* model, DynamicPrintConfig* config,
     BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process_func)
 #endif // ENABLE_GCODE_VIEWER
-#else
-#if ENABLE_GCODE_VIEWER
-Preview::Preview(
-    wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config,
-    BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, GCodeProcessor::Result* gcode_result, std::function<void()> schedule_background_process_func)
-#else
-Preview::Preview(
-    wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config,
-    BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process_func)
-#endif // ENABLE_GCODE_VIEWER
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     : m_canvas_widget(nullptr)
     , m_canvas(nullptr)
     , m_double_slider_sizer(nullptr)
@@ -241,9 +202,10 @@ Preview::Preview(
 #endif // ENABLE_GCODE_VIEWER
     , m_config(config)
     , m_process(process)
-    , m_gcode_preview_data(gcode_preview_data)
 #if ENABLE_GCODE_VIEWER
     , m_gcode_result(gcode_result)
+#else
+    , m_gcode_preview_data(gcode_preview_data)
 #endif // ENABLE_GCODE_VIEWER
     , m_number_extruders(1)
     , m_preferred_color_mode("feature")
@@ -254,11 +216,7 @@ Preview::Preview(
     , m_volumes_cleanup_required(false)
 #endif // __linux__
 {
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     if (init(parent, model))
-#else
-    if (init(parent, bed, camera, view_toolbar, model))
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
     {
 #if !ENABLE_GCODE_VIEWER
         show_hide_ui_elements("none");
@@ -267,29 +225,19 @@ Preview::Preview(
     }
 }
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 bool Preview::init(wxWindow* parent, Model* model)
-#else
-bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model)
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 {
     if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 /* disable wxTAB_TRAVERSAL */))
         return false;
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
-    m_canvas_widget = GLCanvas3DManager::create_wxglcanvas(*this);
+    m_canvas_widget = OpenGLManager::create_wxglcanvas(*this);
     if (m_canvas_widget == nullptr)
         return false;
 
     m_canvas = new GLCanvas3D(m_canvas_widget);
     m_canvas->set_context(wxGetApp().init_glcontext(*m_canvas_widget));
     m_canvas->bind_event_handlers();
-#else
-    m_canvas_widget = GLCanvas3DManager::create_wxglcanvas(this);
-    _3DScene::add_canvas(m_canvas_widget, bed, camera, view_toolbar);
-    m_canvas = _3DScene::get_canvas(this->m_canvas_widget);
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
-    m_canvas->allow_multisample(GLCanvas3DManager::can_multisample());
+    m_canvas->allow_multisample(OpenGLManager::can_multisample());
     m_canvas->set_config(m_config);
     m_canvas->set_model(model);
     m_canvas->set_process(m_process);
@@ -350,8 +298,9 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
         _L("Pause prints") + "|0|" +
         _L("Custom GCodes") + "|0|" +
         _L("Shells") + "|0|" +
+        _L("Tool marker") + "|1|" +
         _L("Legend") + "|1"
-    );
+);
     Slic3r::GUI::create_combochecklist(m_combochecklist_options, GUI::into_u8(_L("Options")), options_items);
 #else
     m_checkbox_travel = new wxCheckBox(this, wxID_ANY, _(L("Travel")));
@@ -435,19 +384,11 @@ Preview::~Preview()
 {
     unbind_event_handlers();
 
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     if (m_canvas != nullptr)
         delete m_canvas;
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     if (m_canvas_widget != nullptr)
-    {
-#if !ENABLE_NON_STATIC_CANVAS_MANAGER
-        _3DScene::remove_canvas(m_canvas_widget);
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
         delete m_canvas_widget;
-        m_canvas = nullptr;
-    }
 }
 
 void Preview::set_as_dirty()
@@ -464,8 +405,13 @@ void Preview::set_number_extruders(unsigned int number_extruders)
         int tool_idx = m_choice_view_type->FindString(_(L("Tool")));
         int type = (number_extruders > 1) ? tool_idx /* color by a tool number */  : 0; // color by a feature type
         m_choice_view_type->SetSelection(type);
+#if ENABLE_GCODE_VIEWER
+        if ((0 <= type) && (type < static_cast<int>(GCodeViewer::EViewType::Count)))
+            m_canvas->set_gcode_view_preview_type(static_cast<GCodeViewer::EViewType>(type));
+#else
         if ((0 <= type) && (type < (int)GCodePreviewData::Extrusion::Num_View_Types))
             m_gcode_preview_data->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)type;
+#endif // ENABLE_GCODE_VIEWER
 
         m_preferred_color_mode = (type == tool_idx) ? "tool_or_feature" : "feature";
     }
@@ -742,8 +688,13 @@ void Preview::update_view_type(bool slice_completed)
     int type = m_choice_view_type->FindString(choice);
     if (m_choice_view_type->GetSelection() != type) {
         m_choice_view_type->SetSelection(type);
+#if ENABLE_GCODE_VIEWER
+        if ((0 <= type) && (type < static_cast<int>(GCodeViewer::EViewType::Count)))
+            m_canvas->set_gcode_view_preview_type(static_cast<GCodeViewer::EViewType>(type));
+#else
         if (0 <= type && type < (int)GCodePreviewData::Extrusion::Num_View_Types)
             m_gcode_preview_data->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)type;
+#endif // ENABLE_GCODE_VIEWER
         m_preferred_color_mode = "feature";
     }
 }

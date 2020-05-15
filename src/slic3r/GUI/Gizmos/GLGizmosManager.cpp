@@ -2,9 +2,7 @@
 #include "GLGizmosManager.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/3DScene.hpp"
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
 #include "slic3r/GUI/Camera.hpp"
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_ObjectManipulation.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
@@ -371,15 +369,6 @@ void GLGizmosManager::set_sla_support_data(ModelObject* model_object)
      || wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
         return;
 
-    /*m_common_gizmos_data->update_from_backend(m_parent, model_object);
-
-    auto* gizmo_supports = dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get());
-
-
-    // note: sla support gizmo takes care of updating the common data.
-    // following lines are thus dependent
-    //gizmo_supports->set_sla_support_data(model_object, m_parent.get_selection());
-    */
     auto* gizmo_hollow = dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get());
     auto* gizmo_supports = dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get());
     gizmo_hollow->set_sla_support_data(model_object, m_parent.get_selection());
@@ -1076,13 +1065,8 @@ void GLGizmosManager::do_render_overlay() const
 
     float cnv_w = (float)m_parent.get_canvas_size().get_width();
     float cnv_h = (float)m_parent.get_canvas_size().get_height();
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
     float zoom = (float)wxGetApp().plater()->get_camera().get_zoom();
     float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
-#else
-    float zoom = (float)m_parent.get_camera().get_zoom();
-    float inv_zoom = (float)m_parent.get_camera().get_inv_zoom();
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
 
     float height = get_scaled_total_height();
     float width = get_scaled_total_width();
@@ -1133,11 +1117,7 @@ void GLGizmosManager::do_render_overlay() const
 
         GLTexture::render_sub_texture(icons_texture_id, zoomed_top_x, zoomed_top_x + zoomed_icons_size, zoomed_top_y - zoomed_icons_size, zoomed_top_y, { { u_left, v_bottom }, { u_right, v_bottom }, { u_right, v_top }, { u_left, v_top } });
         if (idx == m_current) {
-#if ENABLE_NON_STATIC_CANVAS_MANAGER
             float toolbar_top = cnv_h - wxGetApp().plater()->get_view_toolbar().get_height();
-#else
-            float toolbar_top = cnv_h - m_parent.get_view_toolbar_height();
-#endif // ENABLE_NON_STATIC_CANVAS_MANAGER
             gizmo->render_input_window(width, 0.5f * cnv_h - zoomed_top_y * zoom, toolbar_top);
         }
         zoomed_top_y -= zoomed_stride_y;
