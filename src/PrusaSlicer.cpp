@@ -536,9 +536,6 @@ int CLI::run(int argc, char **argv)
 			return -1;
 		}
 		
-		//gui->app_config = app_config;
-		//app_config = nullptr;
-		
 //		gui->autosave = m_config.opt_string("autosave");
         GUI::GUI_App::SetInstance(gui);
         gui->CallAfter([gui, this, &load_configs] {

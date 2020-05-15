@@ -1523,7 +1523,11 @@ wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RESETGIZMOS, SimpleEvent);
+#if ENABLE_GCODE_VIEWER
+wxDEFINE_EVENT(EVT_GLCANVAS_MOVE_LAYERS_SLIDER, wxKeyEvent);
+#else
 wxDEFINE_EVENT(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, wxKeyEvent);
+#endif // ENABLE_GCODE_VIEWER
 wxDEFINE_EVENT(EVT_GLCANVAS_EDIT_COLOR_CHANGE, wxKeyEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UNDO, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
@@ -3405,7 +3409,11 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                         keyCode == WXK_DOWN)
                     {
                         if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
+#if ENABLE_GCODE_VIEWER
+                            post_event(wxKeyEvent(EVT_GLCANVAS_MOVE_LAYERS_SLIDER, evt));
+#else
                             post_event(wxKeyEvent(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, evt));
+#endif // ENABLE_GCODE_VIEWER
                     }
                 }
             }

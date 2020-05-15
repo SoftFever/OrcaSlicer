@@ -1642,9 +1642,7 @@ struct Plater::priv
     bool init_view_toolbar();
 #if ENABLE_GCODE_VIEWER
     void update_preview_bottom_toolbar();
-#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
-    void update_preview_horz_slider();
-#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+    void update_preview_moves_slider();
 #endif // ENABLE_GCODE_VIEWER
 
     void reset_all_gizmos();
@@ -1975,8 +1973,13 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
                 config->option<ConfigOptionString>("bed_custom_model")->value);
         });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent&) { select_next_view_3D(); });
+#if ENABLE_GCODE_VIEWER
+    preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOVE_LAYERS_SLIDER, [this](wxKeyEvent& evt) { preview->move_layers_slider(evt); });
+    preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_EDIT_COLOR_CHANGE, [this](wxKeyEvent& evt) { preview->edit_layers_slider(evt); });
+#else
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, [this](wxKeyEvent& evt) { preview->move_double_slider(evt); });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_EDIT_COLOR_CHANGE, [this](wxKeyEvent& evt) { preview->edit_double_slider(evt); });
+#endif // ENABLE_GCODE_VIEWER
 
     q->Bind(EVT_SLICING_COMPLETED, &priv::on_slicing_completed, this);
     q->Bind(EVT_PROCESS_COMPLETED, &priv::on_process_completed, this);
@@ -2034,16 +2037,20 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->q->Bind(EVT_INSTANCE_GO_TO_FRONT, [this](InstanceGoToFrontEvent &) { 
         BOOST_LOG_TRIVIAL(debug) << "prusaslicer window going forward";
 		//this code maximize app window on Fedora
-		wxGetApp().mainframe->Iconize(false);
-        if (wxGetApp().mainframe->IsMaximized())
-            wxGetApp().mainframe->Maximize(true);
-        else
-            wxGetApp().mainframe->Maximize(false);
-		//this code (without code above) maximize window on Ubuntu
-		wxGetApp().mainframe->Restore();  
-		wxGetApp().GetTopWindow()->SetFocus();  // focus on my window
-		wxGetApp().GetTopWindow()->Raise();  // bring window to front
-		wxGetApp().GetTopWindow()->Show(true); // show the window
+		{
+			wxGetApp().mainframe->Iconize(false);
+			if (wxGetApp().mainframe->IsMaximized())
+				wxGetApp().mainframe->Maximize(true);
+			else
+				wxGetApp().mainframe->Maximize(false);
+		}
+		//this code maximize window on Ubuntu
+		{
+			wxGetApp().mainframe->Restore();  
+			wxGetApp().GetTopWindow()->SetFocus();  // focus on my window
+			wxGetApp().GetTopWindow()->Raise();  // bring window to front
+			wxGetApp().GetTopWindow()->Show(true); // show the window
+		}
 
     });
 	wxGetApp().other_instance_message_handler()->init(this->q);
@@ -3879,12 +3886,10 @@ void Plater::priv::update_preview_bottom_toolbar()
     preview->update_bottom_toolbar();
 }
 
-#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
-void Plater::priv::update_preview_horz_slider()
+void Plater::priv::update_preview_moves_slider()
 {
-    preview->update_horz_slider();
+    preview->update_moves_slider();
 }
-#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
 #endif // ENABLE_GCODE_VIEWER
 
 bool Plater::priv::can_set_instance_to_object() const
@@ -5482,12 +5487,10 @@ void Plater::update_preview_bottom_toolbar()
     p->update_preview_bottom_toolbar();
 }
 
-#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
-void Plater::update_preview_horz_slider()
+void Plater::update_preview_moves_slider()
 {
-    p->update_preview_horz_slider();
+    p->update_preview_moves_slider();
 }
-#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
 #endif // ENABLE_GCODE_VIEWER
 
 const Mouse3DController& Plater::get_mouse3d_controller() const
