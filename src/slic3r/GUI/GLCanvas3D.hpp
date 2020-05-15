@@ -558,7 +558,7 @@ public:
 #if ENABLE_GCODE_VIEWER
     void reset_gcode_toolpaths() { m_gcode_viewer.reset(); }
     const GCodeViewer::SequentialView& get_gcode_sequential_view() const { return m_gcode_viewer.get_sequential_view(); }
-    void update_gcode_sequential_view_current(unsigned int low, unsigned int high) { m_gcode_viewer.update_sequential_view_current(low, high); }
+    void update_gcode_sequential_view_current(unsigned int first, unsigned int last) { m_gcode_viewer.update_sequential_view_current(first, last); }
 #endif // ENABLE_GCODE_VIEWER
 
     void toggle_sla_auxiliaries_visibility(bool visible, const ModelObject* mo = nullptr, int instance_idx = -1);

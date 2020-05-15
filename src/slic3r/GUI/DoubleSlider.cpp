@@ -838,8 +838,20 @@ void Control::draw_cog_icon(wxDC& dc)
     get_size(&width, &height);
 
     wxCoord x_draw, y_draw;
-    is_horizontal() ? x_draw = width-2 : x_draw = width - m_cog_icon_dim - 2;
-    is_horizontal() ? y_draw = height - m_cog_icon_dim - 2 : y_draw = height-2;
+#if ENABLE_GCODE_VIEWER
+    if (m_draw_mode == dmSequentialGCodeView)
+    {
+        is_horizontal() ? x_draw = width - 2 : x_draw = 0.5 * width - 0.5 * m_cog_icon_dim;
+        is_horizontal() ? y_draw = 0.5 * height - 0.5 * m_cog_icon_dim : y_draw = height - 2;
+    }
+    else
+    {
+#endif // ENABLE_GCODE_VIEWER
+        is_horizontal() ? x_draw = width - 2 : x_draw = width - m_cog_icon_dim - 2;
+        is_horizontal() ? y_draw = height - m_cog_icon_dim - 2 : y_draw = height - 2;
+#if ENABLE_GCODE_VIEWER
+    }
+#endif // ENABLE_GCODE_VIEWER
 
     dc.DrawBitmap(m_bmp_cog.bmp(), x_draw, y_draw);
 
@@ -977,10 +989,19 @@ wxString Control::get_tooltip(int tick/*=-1*/)
     if (m_focus == fiRevertIcon)
         return _(L("Discard all custom changes"));
     if (m_focus == fiCogIcon)
-        return m_mode == t_mode::MultiAsSingle                                                              ?
-               GUI::from_u8((boost::format(_utf8(L("Jump to height %s or "
-                                       "Set extruder sequence for the entire print"))) % " (Shift + G)\n").str()) :
-               _(L("Jump to height")) + " (Shift + G)";
+#if ENABLE_GCODE_VIEWER
+    {
+        if (m_draw_mode == dmSequentialGCodeView)
+            return _L("Jump to move") + " (Shift + G)";
+        else
+#endif // ENABLE_GCODE_VIEWER
+            return m_mode == t_mode::MultiAsSingle ?
+                   GUI::from_u8((boost::format(_utf8(L("Jump to height %s or "
+                   "Set extruder sequence for the entire print"))) % " (Shift + G)\n").str()) :
+                   _(L("Jump to height")) + " (Shift + G)";
+#if ENABLE_GCODE_VIEWER
+    }
+#endif // ENABLE_GCODE_VIEWER
     if (m_focus == fiColorBand)
         return m_mode != t_mode::SingleExtruder ? "" :
                _(L("Edit current color - Right click the colored slider segment"));
@@ -1230,7 +1251,11 @@ void Control::OnLeftUp(wxMouseEvent& event)
         if (m_mode == t_mode::MultiAsSingle && m_draw_mode == dmRegular)
             show_cog_icon_context_menu();
         else
+#if ENABLE_GCODE_VIEWER
+            jump_to_value();
+#else
             jump_to_print_z();
+#endif // ENABLE_GCODE_VIEWER
         break;
     case maOneLayerIconClick:
         switch_one_layer_mode();
@@ -1385,7 +1410,11 @@ void Control::OnChar(wxKeyEvent& event)
         m_ticks.suppress_minus(false);
     }
     if (key == 'G')
+#if ENABLE_GCODE_VIEWER
+        jump_to_value();
+#else
         jump_to_print_z();
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void Control::OnRightDown(wxMouseEvent& event)
@@ -1571,7 +1600,11 @@ void Control::show_cog_icon_context_menu()
     wxMenu menu;
 
     append_menu_item(&menu, wxID_ANY, _(L("Jump to height")) + " (Shift+G)", "",
-        [this](wxCommandEvent&) { jump_to_print_z(); }, "", &menu);
+#if ENABLE_GCODE_VIEWER
+                     [this](wxCommandEvent&) { jump_to_value(); }, "", & menu);
+#else
+                     [this](wxCommandEvent&) { jump_to_print_z(); }, "", &menu);
+#endif // ENABLE_GCODE_VIEWER
 
     append_menu_item(&menu, wxID_ANY, _(L("Set extruder sequence for the entire print")), "",
         [this](wxCommandEvent&) { edit_extruder_sequence(); }, "", &menu);
@@ -1689,11 +1722,21 @@ static std::string get_pause_print_msg(const std::string& msg_in, double height)
     return into_u8(dlg.GetValue());
 }
 
+#if ENABLE_GCODE_VIEWER
+static double get_value_to_jump(double active_value, double min_z, double max_z, DrawMode mode)
+#else
 static double get_print_z_to_jump(double active_print_z, double min_z, double max_z)
+#endif // ENABLE_GCODE_VIEWER
 {
+#if ENABLE_GCODE_VIEWER
+    wxString msg_text = (mode == dmSequentialGCodeView) ? _L("Enter the move you want to jump to") + ":" : _L("Enter the height you want to jump to") + ":";
+    wxString msg_header = (mode == dmSequentialGCodeView) ? _L("Jump to move") : _L("Jump to height");
+    wxString msg_in = GUI::double_to_string(active_value);
+#else
     wxString msg_text = _(L("Enter the height you want to jump to")) + ":";
     wxString msg_header = _(L("Jump to height"));
     wxString msg_in = GUI::double_to_string(active_print_z);
+#endif // ENABLE_GCODE_VIEWER
 
     // get custom gcode
     wxTextEntryDialog dlg(nullptr, msg_text, msg_header, msg_in, wxTextEntryDialogStyle);
@@ -1902,6 +1945,23 @@ void Control::edit_extruder_sequence()
     post_ticks_changed_event(ToolChangeCode);
 }
 
+#if ENABLE_GCODE_VIEWER
+void Control::jump_to_value()
+{
+    double value = get_value_to_jump(m_values[m_selection == ssLower ? m_lower_value : m_higher_value],
+                                     m_values[m_min_value], m_values[m_max_value], m_draw_mode);
+    if (value < 0.0)
+        return;
+
+    auto it = std::lower_bound(m_values.begin(), m_values.end(), value - epsilon());
+    int tick_value = it - m_values.begin();
+
+    if (m_selection == ssLower)
+        SetLowerValue(tick_value);
+    else
+        SetHigherValue(tick_value);
+}
+#else
 void Control::jump_to_print_z()
 {
     double print_z = get_print_z_to_jump(m_values[m_selection == ssLower ? m_lower_value : m_higher_value], 
@@ -1917,6 +1977,7 @@ void Control::jump_to_print_z()
     else
         SetHigherValue(tick_value);
 }
+#endif // ENABLE_GCODE_VIEWER
 
 void Control::post_ticks_changed_event(const std::string& gcode /*= ""*/)
 {
