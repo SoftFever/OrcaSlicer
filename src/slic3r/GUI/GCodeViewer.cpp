@@ -324,7 +324,9 @@ void GCodeViewer::render() const
     m_sequential_view.marker.render();
     render_shells();
     render_legend();
+#if !ENABLE_GCODE_USE_WXWIDGETS_SLIDER
     render_sequential_bar();
+#endif // !ENABLE_GCODE_USE_WXWIDGETS_SLIDER
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -380,6 +382,16 @@ void GCodeViewer::set_options_visibility_from_flags(unsigned int flags)
     m_sequential_view.marker.set_visible(is_flag_set(8));
     enable_legend(is_flag_set(9));
 }
+
+#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+void GCodeViewer::set_layers_z_range(const std::array<double, 2>& layers_z_range)
+{
+    bool keep_sequential_current = layers_z_range[1] <= m_layers_z_range[1];
+    m_layers_z_range = layers_z_range;
+    refresh_render_paths(keep_sequential_current);
+    wxGetApp().plater()->update_preview_horz_slider();
+}
+#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
 
 bool GCodeViewer::init_shaders()
 {
@@ -1147,6 +1159,7 @@ void GCodeViewer::render_legend() const
     ImGui::PopStyleVar();
 }
 
+#if !ENABLE_GCODE_USE_WXWIDGETS_SLIDER
 void GCodeViewer::render_sequential_bar() const
 {
     static const float MARGIN = 125.0f;
@@ -1231,6 +1244,7 @@ void GCodeViewer::render_sequential_bar() const
     imgui.end();
     ImGui::PopStyleVar();
 }
+#endif // !ENABLE_GCODE_USE_WXWIDGETS_SLIDER
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
 void GCodeViewer::render_statistics() const

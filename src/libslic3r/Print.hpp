@@ -24,7 +24,9 @@ class Print;
 class PrintObject;
 class ModelObject;
 class GCode;
+#if !ENABLE_GCODE_VIEWER
 class GCodePreviewData;
+#endif // !ENABLE_GCODE_VIEWER
 enum class SlicingMode : uint32_t;
 
 // Print step IDs for keeping track of the print state.

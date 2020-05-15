@@ -20,7 +20,9 @@
 #include <wx/bmpcbox.h>
 #include <wx/statline.h>
 #include <wx/dcclient.h>
+#if !ENABLE_GCODE_USE_WXWIDGETS_SLIDER
 #include <wx/numformatter.h>
+#endif // !ENABLE_GCODE_USE_WXWIDGETS_SLIDER
 #include <wx/colordlg.h>
 
 #include <cmath>
@@ -408,22 +410,22 @@ void Control::render()
     // draw line
     draw_scroll_line(dc, lower_pos, higher_pos);
 
-    //draw color print ticks
+    // draw color print ticks
     draw_ticks(dc);
 
     // draw both sliders
     draw_thumbs(dc, lower_pos, higher_pos);
 
-    //draw lock/unlock
+    // draw lock/unlock
     draw_one_layer_icon(dc);
 
-    //draw revert bitmap (if it's shown)
+    // draw revert bitmap (if it's shown)
     draw_revert_icon(dc);
 
-    //draw cog bitmap (if it's shown)
+    // draw cog bitmap (if it's shown)
     draw_cog_icon(dc);
 
-    //draw mouse position
+    // draw mouse position
     draw_tick_on_mouse_position(dc);
 }
 
@@ -535,10 +537,21 @@ wxString Control::get_label(int tick) const
     if (value >= m_values.size())
         return "ErrVal";
 
-    const wxString str = m_values.empty() ? 
-                         wxNumberFormatter::ToString(m_label_koef*value, 2, wxNumberFormatter::Style_None) :
-                         wxNumberFormatter::ToString(m_values[value], 2, wxNumberFormatter::Style_None);
-    return format_wxstr("%1%\n(%2%)", str, m_values.empty() ? value : value+1);
+#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+    if (m_draw_mode == dmSequentialGCodeView)
+        return wxString::Format("%d", static_cast<unsigned int>(m_values[value]));
+    else {
+        const wxString str = m_values.empty() ?
+            wxString::Format("%.*f", 2, m_label_koef * value) :
+            wxString::Format("%.*f", 2, m_values[value]);
+        return format_wxstr("%1%\n(%2%)", str, m_values.empty() ? value : value + 1);
+    }
+#else
+        const wxString str = m_values.empty() ?
+            wxNumberFormatter::ToString(m_label_koef * value, 2, wxNumberFormatter::Style_None) :
+            wxNumberFormatter::ToString(m_values[value], 2, wxNumberFormatter::Style_None);
+        return format_wxstr("%1%\n(%2%)", str, m_values.empty() ? value : value + 1);
+#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
 }
 
 void Control::draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, bool right_side/*=true*/) const
@@ -779,6 +792,11 @@ void Control::draw_colored_band(wxDC& dc)
 
 void Control::draw_one_layer_icon(wxDC& dc)
 {
+#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+    if (m_draw_mode == dmSequentialGCodeView)
+        return;
+#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+
     const wxBitmap& icon = m_is_one_layer ?
                      m_focus == fiOneLayerIcon ? m_bmp_one_layer_lock_off.bmp()   : m_bmp_one_layer_lock_on.bmp() :
                      m_focus == fiOneLayerIcon ? m_bmp_one_layer_unlock_off.bmp() : m_bmp_one_layer_unlock_on.bmp();
@@ -1284,7 +1302,11 @@ void Control::OnWheel(wxMouseEvent& event)
                           ssLower : ssHigher;
     }
 
+#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+    move_current_thumb((m_draw_mode == dmSequentialGCodeView) ? event.GetWheelRotation() < 0 : event.GetWheelRotation() > 0);
+#else
     move_current_thumb(event.GetWheelRotation() > 0);
+#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
 }
 
 void Control::OnKeyDown(wxKeyEvent &event)
@@ -1306,20 +1328,34 @@ void Control::OnKeyDown(wxKeyEvent &event)
         UseDefaultColors(false);
     else if (is_horizontal())
     {
-        if (key == WXK_LEFT || key == WXK_RIGHT)
-            move_current_thumb(key == WXK_LEFT); 
-        else if (key == WXK_UP || key == WXK_DOWN) {
-            m_selection = key == WXK_UP ? ssHigher : ssLower;
-            Refresh();
+#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+        if (m_is_focused)
+        {
+#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+            if (key == WXK_LEFT || key == WXK_RIGHT)
+                move_current_thumb(key == WXK_LEFT);
+            else if (key == WXK_UP || key == WXK_DOWN) {
+                m_selection = key == WXK_UP ? ssHigher : ssLower;
+                Refresh();
+            }
+#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
         }
-    }
+#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+        }
     else {
-        if (key == WXK_LEFT || key == WXK_RIGHT) {
-            m_selection = key == WXK_LEFT ? ssHigher : ssLower;
-            Refresh();
+#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+        if (m_is_focused)
+        {
+#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+            if (key == WXK_LEFT || key == WXK_RIGHT) {
+                m_selection = key == WXK_LEFT ? ssHigher : ssLower;
+                Refresh();
+            }
+            else if (key == WXK_UP || key == WXK_DOWN)
+                move_current_thumb(key == WXK_UP);
+#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
         }
-        else if (key == WXK_UP || key == WXK_DOWN)
-            move_current_thumb(key == WXK_UP);
+#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
     }
 
     event.Skip(); // !Needed to have EVT_CHAR generated as well

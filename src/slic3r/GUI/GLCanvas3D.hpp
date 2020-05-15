@@ -42,7 +42,9 @@ namespace Slic3r {
 class Bed3D;
 struct Camera;
 class BackgroundSlicingProcess;
+#if !ENABLE_GCODE_VIEWER
 class GCodePreviewData;
+#endif // !ENABLE_GCODE_VIEWER
 struct ThumbnailData;
 struct SlicingParameters;
 enum LayerHeightEditActionType : unsigned int;
@@ -551,6 +553,10 @@ public:
 
 #if ENABLE_GCODE_VIEWER
     void reset_gcode_toolpaths() { m_gcode_viewer.reset(); }
+#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+    const GCodeViewer::SequentialView& get_gcode_sequential_view() const { return m_gcode_viewer.get_sequential_view(); }
+    void update_gcode_sequential_view_current(unsigned int low, unsigned int high) { m_gcode_viewer.update_sequential_view_current(low, high); }
+#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
 #endif // ENABLE_GCODE_VIEWER
 
     void toggle_sla_auxiliaries_visibility(bool visible, const ModelObject* mo = nullptr, int instance_idx = -1);

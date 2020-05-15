@@ -24,7 +24,9 @@ namespace Slic3r {
 class DynamicPrintConfig;
 class Print;
 class BackgroundSlicingProcess;
+#if !ENABLE_GCODE_VIEWER
 class GCodePreviewData;
+#endif // !ENABLE_GCODE_VIEWER
 class Model;
 
 namespace DoubleSlider {
@@ -100,9 +102,10 @@ class Preview : public wxPanel
 
     DynamicPrintConfig* m_config;
     BackgroundSlicingProcess* m_process;
-    GCodePreviewData* m_gcode_preview_data;
 #if ENABLE_GCODE_VIEWER
     GCodeProcessor::Result* m_gcode_result;
+#else
+    GCodePreviewData* m_gcode_preview_data;
 #endif // ENABLE_GCODE_VIEWER
 
 #ifdef __linux__
@@ -118,9 +121,18 @@ class Preview : public wxPanel
     std::string m_preferred_color_mode;
 
     bool m_loaded;
+#if !ENABLE_GCODE_VIEWER
     bool m_enabled;
+#endif // !ENABLE_GCODE_VIEWER
 
+#if ENABLE_GCODE_VIEWER
+    DoubleSlider::Control* m_vert_slider{ nullptr };
+#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+    DoubleSlider::Control* m_horz_slider{ nullptr };
+#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+#else
     DoubleSlider::Control*       m_slider {nullptr};
+#endif // ENABLE_GCODE_VIEWER
 
 public:
 #if ENABLE_GCODE_VIEWER
@@ -138,7 +150,9 @@ Preview(wxWindow* parent, Model* model, DynamicPrintConfig* config,
     void set_as_dirty();
 
     void set_number_extruders(unsigned int number_extruders);
+#if !ENABLE_GCODE_VIEWER
     void set_enabled(bool enabled);
+#endif // !ENABLE_GCODE_VIEWER
     void bed_shape_changed();
     void select_view(const std::string& direction);
     void set_drop_target(wxDropTarget* target);
@@ -157,6 +171,9 @@ Preview(wxWindow* parent, Model* model, DynamicPrintConfig* config,
 
 #if ENABLE_GCODE_VIEWER
     void update_bottom_toolbar();
+#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+    void update_horz_slider();
+#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
 #endif // ENABLE_GCODE_VIEWER
 
 private:
@@ -165,12 +182,14 @@ private:
     void bind_event_handlers();
     void unbind_event_handlers();
 
-#if !ENABLE_GCODE_VIEWER
+#if ENABLE_GCODE_VIEWER
+    void hide_vert_slider();
+#else
     void show_hide_ui_elements(const std::string& what);
-#endif // !ENABLE_GCODE_VIEWER
 
     void reset_sliders(bool reset_all);
     void update_sliders(const std::vector<double>& layers_z, bool keep_z_range = false);
+#endif // ENABLE_GCODE_VIEWER
 
     void on_size(wxSizeEvent& evt);
     void on_choice_view_type(wxCommandEvent& evt);
@@ -185,20 +204,39 @@ private:
     void on_checkbox_legend(wxCommandEvent& evt);
 #endif // ENABLE_GCODE_VIEWER
 
+#if ENABLE_GCODE_VIEWER
+    // Create/Update/Reset double slider on 3dPreview
+    wxBoxSizer* create_vert_slider_sizer();
+    void check_vert_slider_values(std::vector<CustomGCode::Item>& ticks_from_model,
+        const std::vector<double>& layers_z);
+    void reset_vert_slider();
+    void update_vert_slider(const std::vector<double>& layers_z, bool keep_z_range = false);
+    void update_vert_slider_mode();
+    // update vertical DoubleSlider after keyDown in canvas
+    void update_vert_slider_from_canvas(wxKeyEvent& event);
+#else
     // Create/Update/Reset double slider on 3dPreview
     void create_double_slider();
-    void check_slider_values(std::vector<CustomGCode::Item> &ticks_from_model,
-                             const std::vector<double> &layers_z);
+    void check_slider_values(std::vector<CustomGCode::Item>& ticks_from_model,
+        const std::vector<double>& layers_z);
     void reset_double_slider();
     void update_double_slider(const std::vector<double>& layers_z, bool keep_z_range = false);
     void update_double_slider_mode();
     // update DoubleSlider after keyDown in canvas
     void update_double_slider_from_canvas(wxKeyEvent& event);
+#endif // ENABLE_GCODE_VIEWER
 
     void load_print_as_fff(bool keep_z_range = false);
     void load_print_as_sla();
 
+#if ENABLE_GCODE_VIEWER
+    void on_vert_slider_scroll_changed(wxCommandEvent& event);
+#if ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+    void on_horz_slider_scroll_changed(wxCommandEvent& event);
+#endif // ENABLE_GCODE_USE_WXWIDGETS_SLIDER
+#else
     void on_sliders_scroll_changed(wxCommandEvent& event);
+#endif // ENABLE_GCODE_VIEWER
 };
 
 } // namespace GUI
