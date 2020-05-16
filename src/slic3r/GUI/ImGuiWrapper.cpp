@@ -747,7 +747,6 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
     // add checkboxes for show/hide Categories and Groups
     text(_L("Use for search")+":");
     check_box(_L("Category"),   view_params.category);
-    check_box(_L("Group"),      view_params.group);
     if (is_localized)
         check_box(_L("Search in English"), view_params.english);
 }

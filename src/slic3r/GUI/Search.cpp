@@ -6,6 +6,8 @@
 #include <boost/optional.hpp>
 #include <boost/nowide/convert.hpp>
 
+#include "wx/dataview.h"
+
 #include "libslic3r/PrintConfig.hpp"
 #include "GUI_App.hpp"
 #include "Tab.hpp"
@@ -199,10 +201,8 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
     	const std::wstring *prev = nullptr;
     	for (const std::wstring * const s : {
 	        view_params.category 	? &opt.category_local 		: nullptr,
-	        view_params.group 		? &opt.group_local			: nullptr,
-	        &opt.label_local })
+	        &opt.group_local, &opt.label_local })
     		if (s != nullptr && (prev == nullptr || *prev != *s)) {
-//    			if (! out.empty())
       			if (out.size()>2)
     				out += sep;
     			out += *s;
@@ -218,10 +218,8 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
     	const std::wstring*prev = nullptr;
     	for (const std::wstring * const s : {
 	        view_params.category 	? &opt.category 			: nullptr,
-	        view_params.group 		? &opt.group				: nullptr,
-	        &opt.label })
+	        &opt.group, &opt.label })
     		if (s != nullptr && (prev == nullptr || *prev != *s)) {
-//    			if (! out.empty())
       			if (out.size()>2)
     				out += sep;
     			out += *s;
@@ -272,9 +270,9 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
             label += L"  [" + std::to_wstring(score) + L"]";// add score value
 	        std::string label_u8 = into_u8(label);
 	        std::string label_plain = label_u8;
-	        boost::erase_all(label_plain, std::string(1, char(ImGui::ColorMarkerStart)));
-	        boost::erase_all(label_plain, std::string(1, char(ImGui::ColorMarkerEnd)));
-            found.emplace_back(FoundOption{ label_plain, label_u8, boost::nowide::narrow(get_tooltip(opt)), i, score });
+	        boost::replace_all(label_plain, std::string(1, char(ImGui::ColorMarkerStart)), "<b>");
+	        boost::replace_all(label_plain, std::string(1, char(ImGui::ColorMarkerEnd)),   "</b>");
+	        found.emplace_back(FoundOption{ label_plain, label_u8, boost::nowide::narrow(get_tooltip(opt)), i, score });
         }
     }
 
@@ -415,6 +413,14 @@ void SearchComboPopup::OnKeyDown(wxKeyEvent& event)
 //          SearchDialog
 //------------------------------------------
 
+static const std::map<const char, int> icon_idxs = {
+    {ImGui::PrintIconMarker     , 0},
+    {ImGui::PrinterIconMarker   , 1},
+    {ImGui::PrinterSlaIconMarker, 2},
+    {ImGui::FilamentIconMarker  , 3},
+    {ImGui::MaterialIconMarker  , 4},
+};
+
 SearchDialog::SearchDialog(OptionsSearcher* searcher)
     : GUI::DPIDialog(NULL, wxID_ANY, _L("Search"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
     searcher(searcher)
@@ -425,23 +431,35 @@ SearchDialog::SearchDialog(OptionsSearcher* searcher)
 
     default_string = _L("Type here to search");
     int border = 10;
+    int em = em_unit();
 
-    search_line = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+    search_line = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
 
-    // wxWANTS_CHARS style is neede for process Enter key press
-    search_list = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(em_unit() * 40, em_unit() * 30), 0, NULL, wxWANTS_CHARS);
+    search_list = new wxDataViewCtrl(this, wxID_ANY, wxDefaultPosition, wxSize(em * 40, em * 30), wxDV_NO_HEADER | wxDV_SINGLE | wxBORDER_SIMPLE);
+    search_list_model = new SearchListModel(this);
+    search_list->AssociateModel(search_list_model);
+
+    search_list->AppendBitmapColumn("", SearchListModel::colIcon);
+
+    wxDataViewTextRenderer* const markupRenderer = new wxDataViewTextRenderer();
+#if wxUSE_MARKUP
+    markupRenderer->EnableMarkup();
+#endif // wxUSE_MARKUP
+    search_list->AppendColumn(new wxDataViewColumn("", markupRenderer, SearchListModel::colMarkedText, wxCOL_WIDTH_AUTOSIZE, wxALIGN_LEFT));
+
+    search_list->GetColumn(SearchListModel::colIcon      )->SetWidth(3  * em_unit());
+    search_list->GetColumn(SearchListModel::colMarkedText)->SetWidth(40 * em_unit());
 
     wxBoxSizer* check_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     check_category  = new wxCheckBox(this, wxID_ANY, _L("Category"));
-    check_group     = new wxCheckBox(this, wxID_ANY, _L("Group"));
     if (GUI::wxGetApp().is_localized())
         check_english   = new wxCheckBox(this, wxID_ANY, _L("Search in English"));
 
     wxStdDialogButtonSizer* cancel_btn = this->CreateStdDialogButtonSizer(wxCANCEL);
 
+    check_sizer->Add(new wxStaticText(this, wxID_ANY, _L("Use for search") + ":"), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
     check_sizer->Add(check_category, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
-    check_sizer->Add(check_group,    0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border); 
     if (GUI::wxGetApp().is_localized())
         check_sizer->Add(check_english,  0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
     check_sizer->AddStretchSpacer(border);
@@ -458,16 +476,19 @@ SearchDialog::SearchDialog(OptionsSearcher* searcher)
     // process wxEVT_KEY_DOWN to navigate inside search_list, if ArrowUp/Down was pressed
     search_line->Bind(wxEVT_KEY_DOWN,&SearchDialog::OnKeyDown, this);
 
-    search_list->Bind(wxEVT_MOTION,  &SearchDialog::OnMouseMove, this);
-    search_list->Bind(wxEVT_LEFT_UP, &SearchDialog::OnMouseClick, this);
-    search_list->Bind(wxEVT_KEY_DOWN,&SearchDialog::OnKeyDown, this);
+    search_list->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, &SearchDialog::OnSelect,    this);
+    search_list->Bind(wxEVT_DATAVIEW_ITEM_ACTIVATED,    &SearchDialog::OnActivate,  this);
+#ifdef __WXMSW__
+    search_list->GetMainWindow()->Bind(wxEVT_MOTION,    &SearchDialog::OnMotion,    this);
+    search_list->GetMainWindow()->Bind(wxEVT_LEFT_DOWN, &SearchDialog::OnLeftDown, this);
+#endif //__WXMSW__
 
+    check_category->Bind(wxEVT_CHECKBOX, &SearchDialog::OnCheck, this);
     if (GUI::wxGetApp().is_localized())
         check_english ->Bind(wxEVT_CHECKBOX, &SearchDialog::OnCheck, this);
-    check_category->Bind(wxEVT_CHECKBOX, &SearchDialog::OnCheck, this);
-    check_group   ->Bind(wxEVT_CHECKBOX, &SearchDialog::OnCheck, this);
 
-    this->Bind(wxEVT_LISTBOX, &SearchDialog::OnSelect, this);
+    Bind(wxEVT_MOTION, &SearchDialog::OnMotion, this);
+    Bind(wxEVT_LEFT_DOWN, &SearchDialog::OnLeftDown, this);
 
     SetSizer(topSizer);
     topSizer->SetSizeHints(this);
@@ -484,19 +505,18 @@ void SearchDialog::Popup(wxPoint position /*= wxDefaultPosition*/)
 
     const OptionViewParameters& params = searcher->view_params;
     check_category->SetValue(params.category);
-    check_group->SetValue(params.group);
     check_english->SetValue(params.english);
 
     this->SetPosition(position);
     this->ShowModal();
 }
 
-void SearchDialog::ProcessSelection(int selection)
+void SearchDialog::ProcessSelection(wxDataViewItem selection)
 {
-    if (selection < 0)
+    if (!selection.IsOk())
         return;
 
-    GUI::wxGetApp().sidebar().jump_to_option(selection);
+    GUI::wxGetApp().sidebar().jump_to_option(search_list_model->GetRow(selection));
     this->EndModal(wxID_CLOSE);
 }
 
@@ -521,39 +541,6 @@ void SearchDialog::OnLeftUpInTextCtrl(wxEvent& event)
     event.Skip();
 }
 
-void SearchDialog::OnMouseMove(wxMouseEvent& event)
-{
-    wxPoint pt = wxGetMousePosition() - search_list->GetScreenPosition();
-    int selection = search_list->HitTest(pt);
-    search_list->Select(selection);
-}
-
-void SearchDialog::OnMouseClick(wxMouseEvent&)
-{
-    int selection = search_list->GetSelection();
-    search_list->SetSelection(wxNOT_FOUND);
-
-    wxCommandEvent event(wxEVT_LISTBOX, search_list->GetId());
-    event.SetInt(selection);
-    event.SetEventObject(search_list);
-    ProcessEvent(event);
-}
-
-void SearchDialog::OnSelect(wxCommandEvent& event)
-{
-    int selection = event.GetSelection();
-    ProcessSelection(selection);
-}
-
-void SearchDialog::update_list()
-{
-    search_list->Clear();
-
-    const std::vector<FoundOption>& filters = searcher->found_options();
-    for (const FoundOption& item : filters)
-        search_list->Append(from_u8(item.label).Remove(0, 1));
-}
-
 void SearchDialog::OnKeyDown(wxKeyEvent& event)
 {
     int key = event.GetKeyCode();
@@ -561,17 +548,23 @@ void SearchDialog::OnKeyDown(wxKeyEvent& event)
     // change selected item in the list
     if (key == WXK_UP || key == WXK_DOWN)
     {
-        int selection = search_list->GetSelection();
-
-        if (key == WXK_UP && selection > 0)
-            selection--;
-        if (key == WXK_DOWN && selection < int(search_list->GetCount() - 1))
-            selection++;
-
-        search_list->Select(selection);
-        // This function could be called from search_line,
         // So, for the next correct navigation, set focus on the search_list
         search_list->SetFocus();
+
+        auto item = search_list->GetSelection();
+
+        if (item.IsOk()) {
+            unsigned selection = search_list_model->GetRow(item);
+
+            if (key == WXK_UP && selection > 0)
+                selection--;
+            if (key == WXK_DOWN && selection < unsigned(search_list_model->GetCount() - 1))
+                selection++;
+
+            prevent_list_events = true;
+            search_list->Select(search_list_model->GetItem(selection));
+            prevent_list_events = false;
+        }
     }
     // process "Enter" pressed
     else if (key == WXK_NUMPAD_ENTER || key == WXK_RETURN)
@@ -580,20 +573,75 @@ void SearchDialog::OnKeyDown(wxKeyEvent& event)
         event.Skip(); // !Needed to have EVT_CHAR generated as well
 }
 
+void SearchDialog::OnActivate(wxDataViewEvent& event)
+{
+    ProcessSelection(event.GetItem());
+}
+
+void SearchDialog::OnSelect(wxDataViewEvent& event)
+{
+    // To avoid selection update from Select() under osx
+    if (prevent_list_events)
+        return;    
+
+    // wxEVT_DATAVIEW_SELECTION_CHANGED is processed, when selection is changed after mouse click or press the Up/Down arrows
+    // But this two cases should be processed in different way:
+    // Up/Down arrows   -> leave it as it is (just a navigation)
+    // LeftMouseClick   -> call the ProcessSelection function  
+    if (wxGetMouseState().LeftIsDown())
+        ProcessSelection(search_list->GetSelection());
+}
+
+void SearchDialog::update_list()
+{
+    search_list_model->Clear();
+
+    const std::vector<FoundOption>& filters = searcher->found_options();
+    for (const FoundOption& item : filters)
+        search_list_model->Prepend(item.label);
+
+    // select first item 
+    prevent_list_events = true;
+    search_list->Select(search_list_model->GetItem(0));
+    prevent_list_events = false;
+}
+
 void SearchDialog::OnCheck(wxCommandEvent& event)
 {
     OptionViewParameters& params = searcher->view_params;
     params.english  = check_english->GetValue();
     params.category = check_category->GetValue();
-    params.group    = check_group->GetValue();
 
     searcher->search();
     update_list();
 }
 
+void SearchDialog::OnMotion(wxMouseEvent& event)
+{
+    wxDataViewItem    item;
+    wxDataViewColumn* col;
+    wxWindow* win = this;
+#ifdef __WXMSW__
+    win = search_list;
+#endif
+    search_list->HitTest(wxGetMousePosition() - win->GetScreenPosition(), item, col);
+    search_list->Select(item);
+
+    event.Skip();
+}
+
+void SearchDialog::OnLeftDown(wxMouseEvent& event)
+{
+    ProcessSelection(search_list->GetSelection());
+}
+
 void SearchDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
     const int& em = em_unit();
+
+    search_list_model->msw_rescale();
+    search_list->GetColumn(SearchListModel::colIcon      )->SetWidth(3  * em);
+    search_list->GetColumn(SearchListModel::colMarkedText)->SetWidth(45 * em);
 
     msw_buttons_rescale(this, em, { wxID_CANCEL });
 
@@ -602,6 +650,65 @@ void SearchDialog::on_dpi_changed(const wxRect& suggested_rect)
 
     Fit();
     Refresh();
+}
+
+// ----------------------------------------------------------------------------
+// SearchListModel
+// ----------------------------------------------------------------------------
+
+SearchListModel::SearchListModel(wxWindow* parent) : wxDataViewVirtualListModel(0)
+{
+    int icon_id = 0;
+    for (const std::string& icon : { "cog", "printer", "sla_printer", "spool", "resin" })
+        m_icon[icon_id++] = ScalableBitmap(parent, icon);    
+}
+
+void SearchListModel::Clear()
+{
+    m_values.clear();
+    Reset(0);
+}
+
+void SearchListModel::Prepend(const std::string& label)
+{
+    const char icon_c = label.at(0);
+    int icon_idx = icon_idxs.at(icon_c);
+    wxString str = from_u8(label).Remove(0, 1);
+
+    m_values.emplace_back(str, icon_idx);
+
+    RowPrepended();
+}
+
+void SearchListModel::msw_rescale()
+{
+    for (ScalableBitmap& bmp : m_icon)
+        bmp.msw_rescale();
+}
+
+wxString SearchListModel::GetColumnType(unsigned int col) const 
+{
+    if (col == colIcon)
+        return "wxBitmap";
+    return "string";
+}
+
+void SearchListModel::GetValueByRow(wxVariant& variant,
+    unsigned int row, unsigned int col) const
+{
+    switch (col)
+    {
+    case colIcon: 
+        variant << m_icon[m_values[row].second].bmp();
+        break;
+    case colMarkedText:
+        variant = m_values[row].first;
+        break;
+    case colMax:
+        wxFAIL_MSG("invalid column");
+    default:
+        break;
+    }
 }
 
 

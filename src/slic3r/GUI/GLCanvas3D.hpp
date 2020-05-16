@@ -3,9 +3,7 @@
 
 #include <stddef.h>
 #include <memory>
-#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 #include <chrono>
-#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
 #include "3DScene.hpp"
 #include "GLToolbar.hpp"
@@ -399,7 +397,6 @@ private:
         void render(const std::vector<const ModelInstance*>& sorted_instances) const;
     };
 
-#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     class Tooltip
     {
         std::string m_text;
@@ -415,7 +412,6 @@ private:
         void set_in_imgui(bool b) { m_in_imgui = b; }
         bool is_in_imgui() const { return m_in_imgui; }
     };
-#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
 #if ENABLE_SLOPE_RENDERING
     class Slope
@@ -526,10 +522,8 @@ private:
     int m_selected_extruder;
 
     Labels m_labels;
-#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     mutable Tooltip m_tooltip;
     mutable bool m_tooltip_enabled{ true };
-#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 #if ENABLE_SLOPE_RENDERING
     Slope m_slope;
 #endif // ENABLE_SLOPE_RENDERING
@@ -558,7 +552,7 @@ public:
 #if ENABLE_GCODE_VIEWER
     void reset_gcode_toolpaths() { m_gcode_viewer.reset(); }
     const GCodeViewer::SequentialView& get_gcode_sequential_view() const { return m_gcode_viewer.get_sequential_view(); }
-    void update_gcode_sequential_view_current(unsigned int low, unsigned int high) { m_gcode_viewer.update_sequential_view_current(low, high); }
+    void update_gcode_sequential_view_current(unsigned int first, unsigned int last) { m_gcode_viewer.update_sequential_view_current(first, last); }
 #endif // ENABLE_GCODE_VIEWER
 
     void toggle_sla_auxiliaries_visibility(bool visible, const ModelObject* mo = nullptr, int instance_idx = -1);
@@ -687,9 +681,7 @@ public:
     void on_timer(wxTimerEvent& evt);
     void on_mouse(wxMouseEvent& evt);
     void on_paint(wxPaintEvent& evt);
-#if ENABLE_CANVAS_TOOLTIP_USING_IMGUI
     void on_set_focus(wxFocusEvent& evt);
-#endif // ENABLE_CANVAS_TOOLTIP_USING_IMGUI
 
     Size get_canvas_size() const;
     Vec2d get_local_mouse_position() const;

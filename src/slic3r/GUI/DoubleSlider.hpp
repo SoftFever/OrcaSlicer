@@ -253,7 +253,11 @@ public:
     void discard_all_thicks();
     void move_current_thumb_to_pos(wxPoint pos);
     void edit_extruder_sequence();
+#if ENABLE_GCODE_VIEWER
+    void jump_to_value();
+#else
     void jump_to_print_z();
+#endif // ENABLE_GCODE_VIEWER
     void show_add_context_menu();
     void show_edit_context_menu();
     void show_cog_icon_context_menu();
