@@ -448,6 +448,31 @@ void Model::convert_multipart_object(unsigned int max_extruders)
     this->objects.push_back(object);
 }
 
+bool Model::looks_like_imperial_units() const
+{
+    if (this->objects.size() == 0)
+        return false;
+
+    stl_vertex size = this->objects[0]->get_object_stl_stats().size;
+
+    for (ModelObject* o : this->objects) {
+        auto sz = o->get_object_stl_stats().size;
+
+        if (size[0] < sz[0]) size[0] = sz[0];
+        if (size[1] < sz[1]) size[1] = sz[1];
+        if (size[2] < sz[2]) size[2] = sz[2];
+    }
+
+    return (size[0] < 3 && size[1] < 3 && size[2] < 3);
+}
+
+void Model::convert_from_imperial_units()
+{
+    double in_to_mm = 25.4;
+    for (ModelObject* o : this->objects)
+        o->scale_mesh_after_creation(Vec3d(in_to_mm, in_to_mm, in_to_mm));
+}
+
 void Model::adjust_min_z()
 {
     if (objects.empty())

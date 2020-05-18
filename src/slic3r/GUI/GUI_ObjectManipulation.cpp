@@ -17,6 +17,8 @@ namespace Slic3r
 namespace GUI
 {
 
+const double ObjectManipulation::in_to_mm = 25.4;
+const double ObjectManipulation::mm_to_in = 0.0393700787;
 
 // Helper function to be used by drop to bed button. Returns lowest point of this
 // volume in world coordinate system.
@@ -121,6 +123,8 @@ static void set_font_and_background_style(wxWindow* win, const wxFont& font)
 ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     OG_Settings(parent, true)
 {
+    m_imperial_units = wxGetApp().app_config->get("use_inches") == "1";
+
     m_manifold_warning_bmp = ScalableBitmap(parent, "exclamation");
 
     // Load bitmaps to be used for the mirroring buttons:
@@ -314,15 +318,15 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     };
     
     // add Units 
-    auto add_unit_text = [this, parent, editors_grid_sizer, height](std::string unit)
+    auto add_unit_text = [this, parent, editors_grid_sizer, height](std::string unit, wxStaticText** unit_text)
     {
-        wxStaticText* unit_text = new wxStaticText(parent, wxID_ANY, _(unit));
-        set_font_and_background_style(unit_text, wxGetApp().normal_font()); 
+        *unit_text = new wxStaticText(parent, wxID_ANY, _(unit));
+        set_font_and_background_style(*unit_text, wxGetApp().normal_font()); 
 
         // Unit text should be the same height as labels      
         wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->SetMinSize(wxSize(-1, height));
-        sizer->Add(unit_text, 0, wxALIGN_CENTER_VERTICAL);
+        sizer->Add(*unit_text, 0, wxALIGN_CENTER_VERTICAL);
 
         editors_grid_sizer->Add(sizer);
         m_rescalable_sizers.push_back(sizer);
@@ -330,7 +334,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     for (size_t axis_idx = 0; axis_idx < sizeof(axes); axis_idx++)
         add_edit_boxes("position", axis_idx);
-    add_unit_text(L("mm"));
+    add_unit_text(m_imperial_units ? L("in") : L("mm"), &m_position_unit);
 
     // Add drop to bed button
     m_drop_to_bed_button = new ScalableButton(parent, wxID_ANY, ScalableBitmap(parent, "drop_to_bed"));
@@ -356,7 +360,8 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     for (size_t axis_idx = 0; axis_idx < sizeof(axes); axis_idx++)
         add_edit_boxes("rotation", axis_idx);
-    add_unit_text("°");
+    wxStaticText* rotation_unit{ nullptr };
+    add_unit_text("°", &rotation_unit);
 
     // Add reset rotation button
     m_reset_rotation_button = new ScalableButton(parent, wxID_ANY, ScalableBitmap(parent, "undo"));
@@ -390,7 +395,8 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     for (size_t axis_idx = 0; axis_idx < sizeof(axes); axis_idx++)
         add_edit_boxes("scale", axis_idx);
-    add_unit_text("%");
+    wxStaticText* scale_unit{ nullptr };
+    add_unit_text("%", &scale_unit);
 
     // Add reset scale button
     m_reset_scale_button = new ScalableButton(parent, wxID_ANY, ScalableBitmap(parent, "undo"));
@@ -405,10 +411,19 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     for (size_t axis_idx = 0; axis_idx < sizeof(axes); axis_idx++)
         add_edit_boxes("size", axis_idx);
-    add_unit_text("mm");
+    add_unit_text(m_imperial_units ? L("in") : L("mm"), &m_size_unit);
     editors_grid_sizer->AddStretchSpacer(1);
 
     m_main_grid_sizer->Add(editors_grid_sizer, 1, wxEXPAND);
+
+    m_check_inch = new wxCheckBox(parent, wxID_ANY, "Inches");
+    m_check_inch->SetValue(m_imperial_units);
+    m_check_inch->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
+        wxGetApp().app_config->set("use_inches", m_check_inch->GetValue() ? "1" : "0");
+        wxGetApp().sidebar().update_ui_from_settings();
+    });
+
+    m_main_grid_sizer->Add(m_check_inch, 1, wxEXPAND);
 
     m_og->sizer->Clear(true);
     m_og->sizer->Add(m_main_grid_sizer, 1, wxEXPAND | wxALL, border);
@@ -450,6 +465,32 @@ void ObjectManipulation::UpdateAndShow(const bool show)
 	}
 
     OG_Settings::UpdateAndShow(show);
+}
+
+void ObjectManipulation::update_ui_from_settings()
+{
+    if (m_imperial_units != (wxGetApp().app_config->get("use_inches") == "1")) {
+        m_imperial_units = wxGetApp().app_config->get("use_inches") == "1";
+
+        auto update_unit_text = [](const wxString& new_unit_text, wxStaticText* widget) {
+            widget->SetLabel(new_unit_text);
+            if (wxOSX) set_font_and_background_style(widget, wxGetApp().normal_font());
+        };
+        update_unit_text(m_imperial_units ? _L("in") : _L("mm"), m_position_unit);
+        update_unit_text(m_imperial_units ? _L("in") : _L("mm"), m_size_unit);
+
+        for (int i = 0; i < 3; ++i) {
+            auto update = [this, i](/*ManipulationEditorKey*/int key_id, const Vec3d& new_value) {
+                wxString new_text = double_to_string(m_imperial_units ? new_value(i) * mm_to_in : new_value(i), 2);
+                const int id = key_id * 3 + i;
+                if (id >= 0) m_editors[id]->set_value(new_text);
+            };
+            update(0/*mePosition*/, m_new_position);
+            update(3/*meSize*/,     m_new_size);
+        }
+    }
+
+    m_check_inch->SetValue(m_imperial_units);
 }
 
 void ObjectManipulation::update_settings_value(const Selection& selection)
@@ -562,6 +603,8 @@ void ObjectManipulation::update_if_dirty()
 			if (std::abs(cached_rounded(i) - new_rounded) > EPSILON) {
 				cached_rounded(i) = new_rounded;
                 const int id = key_id*3+i;
+                if (m_imperial_units && (key_id == mePosition || key_id == meSize))
+                    new_text = double_to_string(new_value(i)*mm_to_in, 2);
                 if (id >= 0) m_editors[id]->set_value(new_text);
             }
 			cached(i) = new_value(i);
@@ -851,6 +894,9 @@ void ObjectManipulation::on_change(const std::string& opt_key, int axis, double 
     if (!m_cache.is_valid())
         return;
 
+    if (m_imperial_units && (opt_key == "position" || opt_key == "size"))
+        new_value *= in_to_mm;
+
     if (opt_key == "position")
         change_position_value(axis, new_value);
     else if (opt_key == "rotation")
@@ -928,6 +974,9 @@ void ObjectManipulation::msw_rescale()
     // rescale edit-boxes
     for (ManipulationEditor* editor : m_editors)
         editor->msw_rescale();
+
+    // rescale "inches" checkbox
+    m_check_inch->SetMinSize(wxSize(-1, int(1.5f * m_check_inch->GetFont().GetPixelSize().y + 0.5f)));
 
     get_og()->msw_rescale();
 }
