@@ -4278,7 +4278,7 @@ void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& lab
 // Plater / Public
 
 Plater::Plater(wxWindow *parent, MainFrame *main_frame)
-    : wxPanel(parent)
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(76 * wxGetApp().em_unit(), 49 * wxGetApp().em_unit()))
     , p(new priv(this, main_frame))
 {
     // Initialization performed in the private c-tor
