@@ -136,6 +136,20 @@ class Preview : public wxPanel
 
 public:
 #if ENABLE_GCODE_VIEWER
+    enum class OptionType : unsigned int
+    {
+        Travel,
+        Retractions,
+        Unretractions,
+        ToolChanges,
+        ColorChanges,
+        PausePrints,
+        CustomGCodes,
+        Shells,
+        ToolMarker,
+        Legend
+    };
+
 Preview(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process, 
     GCodeProcessor::Result* gcode_result, std::function<void()> schedule_background_process = []() {});
 #else
@@ -235,6 +249,7 @@ private:
 #if ENABLE_GCODE_VIEWER
     void on_layers_slider_scroll_changed(wxCommandEvent& event);
     void on_moves_slider_scroll_changed(wxCommandEvent& event);
+    wxString get_option_type_string(OptionType type) const;
 #else
     void on_sliders_scroll_changed(wxCommandEvent& event);
 #endif // ENABLE_GCODE_VIEWER

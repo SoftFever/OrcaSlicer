@@ -298,17 +298,17 @@ bool Preview::init(wxWindow* parent, Model* model)
     m_combochecklist_options = new wxComboCtrl();
     m_combochecklist_options->Create(this, wxID_ANY, _L("Options"), wxDefaultPosition, wxDefaultSize, wxCB_READONLY);
     std::string options_items = GUI::into_u8(
-        _L("Travel") + "|0|" +
-        _L("Retractions") + "|0|" +
-        _L("Unretractions") + "|0|" +
-        _L("Tool changes") + "|0|" +
-        _L("Color changes") + "|0|" +
-        _L("Pause prints") + "|0|" +
-        _L("Custom GCodes") + "|0|" +
-        _L("Shells") + "|0|" +
-        _L("Tool marker") + "|1|" +
-        _L("Legend") + "|1"
-);
+        get_option_type_string(OptionType::Travel) + "|0|" +
+        get_option_type_string(OptionType::Retractions) + "|0|" +
+        get_option_type_string(OptionType::Unretractions) + "|0|" +
+        get_option_type_string(OptionType::ToolChanges) + "|0|" +
+        get_option_type_string(OptionType::ColorChanges) + "|0|" +
+        get_option_type_string(OptionType::PausePrints) + "|0|" +
+        get_option_type_string(OptionType::CustomGCodes) + "|0|" +
+        get_option_type_string(OptionType::Shells) + "|0|" +
+        get_option_type_string(OptionType::ToolMarker) + "|0|" +
+        get_option_type_string(OptionType::Legend) + "|1"
+    );
     Slic3r::GUI::create_combochecklist(m_combochecklist_options, GUI::into_u8(_L("Options")), options_items);
 #else
     m_checkbox_travel = new wxCheckBox(this, wxID_ANY, _(L("Travel")));
@@ -328,19 +328,19 @@ bool Preview::init(wxWindow* parent, Model* model)
 #endif // ENABLE_GCODE_VIEWER
 
 #if ENABLE_GCODE_VIEWER
-    m_moves_slider = new DoubleSlider::Control(this, wxID_ANY, 0, 0, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
+    m_moves_slider = new DoubleSlider::Control(this, wxID_ANY, 0, 0, 0, 100, wxDefaultPosition, wxSize(-1, 3 * GetTextExtent("m").y), wxSL_HORIZONTAL);
     m_moves_slider->SetDrawMode(DoubleSlider::dmSequentialGCodeView);
     m_moves_slider->Bind(wxEVT_SCROLL_CHANGED, &Preview::on_moves_slider_scroll_changed, this);
 
     m_bottom_toolbar_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_bottom_toolbar_sizer->AddSpacer(10);
+    m_bottom_toolbar_sizer->AddSpacer(5);
     m_bottom_toolbar_sizer->Add(m_label_view_type, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
-    m_bottom_toolbar_sizer->Add(m_choice_view_type, 0, wxALIGN_CENTER_VERTICAL, 5);
-    m_bottom_toolbar_sizer->AddSpacer(10);
+    m_bottom_toolbar_sizer->Add(m_choice_view_type, 0, wxALIGN_CENTER_VERTICAL, 0);
+    m_bottom_toolbar_sizer->AddSpacer(5);
     m_bottom_toolbar_sizer->Add(m_label_show, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
-    m_bottom_toolbar_sizer->Add(m_combochecklist_options, 0, wxALIGN_CENTER_VERTICAL, 5);
+    m_bottom_toolbar_sizer->Add(m_combochecklist_options, 0, wxALIGN_CENTER_VERTICAL, 0);
     m_bottom_toolbar_sizer->Add(m_combochecklist_features, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 5);
-    m_bottom_toolbar_sizer->AddSpacer(10);
+    m_bottom_toolbar_sizer->AddSpacer(5);
     m_bottom_toolbar_sizer->Add(m_moves_slider, 1, wxALL | wxEXPAND, 5);
 #else
     wxBoxSizer* bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -686,8 +686,27 @@ void Preview::on_combochecklist_features(wxCommandEvent& evt)
 #if ENABLE_GCODE_VIEWER
 void Preview::on_combochecklist_options(wxCommandEvent& evt)
 {
-    m_canvas->set_gcode_options_visibility_from_flags(Slic3r::GUI::combochecklist_get_flags(m_combochecklist_options));
-    refresh_print();
+    auto xored = [](unsigned int flags1, unsigned int flags2, unsigned int flag) {
+        auto is_flag_set = [](unsigned int flags, unsigned int flag) {
+            return (flags & (1 << flag)) != 0;
+        };
+        return !is_flag_set(flags1, flag) != !is_flag_set(flags2, flag);
+    };
+
+    unsigned int curr_flags = m_canvas->get_gcode_options_visibility_flags();
+    unsigned int new_flags = Slic3r::GUI::combochecklist_get_flags(m_combochecklist_options);
+    if (curr_flags == new_flags)
+        return;
+
+    m_canvas->set_gcode_options_visibility_from_flags(new_flags);
+
+    bool skip_refresh = xored(curr_flags, new_flags, static_cast<unsigned int>(OptionType::Shells)) ||
+        xored(curr_flags, new_flags, static_cast<unsigned int>(OptionType::ToolMarker));
+
+    if (!skip_refresh)
+        refresh_print();
+    else
+        m_canvas->set_as_dirty();
 }
 #else
 void Preview::on_checkbox_travel(wxCommandEvent& evt)
@@ -1082,16 +1101,16 @@ void Preview::update_layers_slider_from_canvas(wxKeyEvent& event)
 void Preview::update_moves_slider()
 {
     const GCodeViewer::SequentialView& view = m_canvas->get_gcode_sequential_view();
-    std::vector<double> values(view.last - view.first + 1);
+    std::vector<double> values(view.endpoints.last - view.endpoints.first + 1);
     unsigned int count = 0;
-    for (unsigned int i = view.first; i <= view.last; ++i)
+    for (unsigned int i = view.endpoints.first; i <= view.endpoints.last; ++i)
     {
         values[count++] = static_cast<double>(i + 1);
     }
 
     m_moves_slider->SetSliderValues(values);
-    m_moves_slider->SetMaxValue(view.last - view.first);
-    m_moves_slider->SetSelectionSpan(0, view.current);
+    m_moves_slider->SetMaxValue(view.endpoints.last - view.endpoints.first);
+    m_moves_slider->SetSelectionSpan(view.current.first - view.endpoints.first, view.current.last - view.endpoints.first);
 }
 #else
 void Preview::update_double_slider_from_canvas(wxKeyEvent & event)
@@ -1356,6 +1375,25 @@ void Preview::on_moves_slider_scroll_changed(wxCommandEvent& event)
     m_canvas->update_gcode_sequential_view_current(static_cast<unsigned int>(m_moves_slider->GetLowerValueD()), static_cast<unsigned int>(m_moves_slider->GetHigherValueD()));
     m_canvas->render();
 }
+
+wxString Preview::get_option_type_string(OptionType type) const
+{
+    switch (type)
+    {
+    case OptionType::Travel:        { return _L("Travel"); }
+    case OptionType::Retractions:   { return _L("Retractions"); }
+    case OptionType::Unretractions: { return _L("Unretractions"); }
+    case OptionType::ToolChanges:   { return _L("Tool changes"); }
+    case OptionType::ColorChanges:  { return _L("Color changes"); }
+    case OptionType::PausePrints:   { return _L("Pause prints"); }
+    case OptionType::CustomGCodes:  { return _L("Custom GCodes"); }
+    case OptionType::Shells:        { return _L("Shells"); }
+    case OptionType::ToolMarker:    { return _L("Tool marker"); }
+    case OptionType::Legend:        { return _L("Legend"); }
+    default:                        { return ""; }
+    }
+}
+
 #endif // ENABLE_GCODE_VIEWER
 
 } // namespace GUI
