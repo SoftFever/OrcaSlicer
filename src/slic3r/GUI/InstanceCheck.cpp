@@ -298,7 +298,8 @@ void OtherInstanceMessageHandler::shutdown(MainFrame* main_frame)
 			m_stop = false;
 		}
 #endif //BACKGROUND_MESSAGE_LISTENER
-	m_initialized = false;
+		m_callback_evt_handler = nullptr;
+		m_initialized = false;
 	}
 }
 
