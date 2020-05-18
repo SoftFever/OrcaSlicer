@@ -686,7 +686,7 @@ void Preview::on_combochecklist_features(wxCommandEvent& evt)
 #if ENABLE_GCODE_VIEWER
 void Preview::on_combochecklist_options(wxCommandEvent& evt)
 {
-    auto xor = [](unsigned int flags1, unsigned int flags2, unsigned int flag) {
+    auto xored = [](unsigned int flags1, unsigned int flags2, unsigned int flag) {
         auto is_flag_set = [](unsigned int flags, unsigned int flag) {
             return (flags & (1 << flag)) != 0;
         };
@@ -700,8 +700,8 @@ void Preview::on_combochecklist_options(wxCommandEvent& evt)
 
     m_canvas->set_gcode_options_visibility_from_flags(new_flags);
 
-    bool skip_refresh =  xor(curr_flags, new_flags, static_cast<unsigned int>(OptionType::Shells)) ||
-        xor(curr_flags, new_flags, static_cast<unsigned int>(OptionType::ToolMarker));
+    bool skip_refresh = xored(curr_flags, new_flags, static_cast<unsigned int>(OptionType::Shells)) ||
+        xored(curr_flags, new_flags, static_cast<unsigned int>(OptionType::ToolMarker));
 
     if (!skip_refresh)
         refresh_print();
