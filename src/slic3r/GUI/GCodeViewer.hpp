@@ -222,9 +222,14 @@ public:
             void init_shader();
         };
 
-        unsigned int first{ 0 };
-        unsigned int last{ 0 };
-        unsigned int current{ 0 };
+        struct Endpoints
+        {
+            unsigned int first{ 0 };
+            unsigned int last{ 0 };
+        };
+
+        Endpoints endpoints;
+        Endpoints current;
         Vec3f current_position{ Vec3f::Zero() };
         Marker marker;
     };
@@ -285,7 +290,12 @@ public:
     const std::vector<double>& get_layers_zs() const { return m_layers_zs; };
 
     const SequentialView& get_sequential_view() const { return m_sequential_view; }
-    void update_sequential_view_current(unsigned int low, unsigned int high) { m_sequential_view.current = high; refresh_render_paths(true); }
+    void update_sequential_view_current(unsigned int first, unsigned int last)
+    {
+        m_sequential_view.current.first = first;
+        m_sequential_view.current.last = last;
+        refresh_render_paths(true, true);
+    }
 
     EViewType get_view_type() const { return m_view_type; }
     void set_view_type(EViewType type) {
@@ -310,7 +320,7 @@ private:
     bool init_shaders();
     void load_toolpaths(const GCodeProcessor::Result& gcode_result);
     void load_shells(const Print& print, bool initialized);
-    void refresh_render_paths(bool keep_sequential_current) const;
+    void refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const;
     void render_toolpaths() const;
     void render_shells() const;
     void render_legend() const;

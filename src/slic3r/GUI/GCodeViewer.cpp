@@ -12,6 +12,7 @@
 #include "DoubleSlider.hpp"
 #include "GLCanvas3D.hpp"
 #include "GLToolbar.hpp"
+#include "GUI_Preview.hpp"
 #include "libslic3r/Model.hpp"
 #if ENABLE_GCODE_VIEWER_STATISTICS
 #include <imgui/imgui_internal.h>
@@ -279,7 +280,7 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
     }
 
     // update buffers' render paths
-    refresh_render_paths(false);
+    refresh_render_paths(false, false);
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.refresh_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
@@ -349,16 +350,16 @@ unsigned int GCodeViewer::get_options_visibility_flags() const
     };
 
     unsigned int flags = 0;
-    flags = set_flag(flags, 0, is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Travel));
-    flags = set_flag(flags, 1, is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Retract));
-    flags = set_flag(flags, 2, is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Unretract));
-    flags = set_flag(flags, 3, is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Tool_change));
-    flags = set_flag(flags, 4, is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Color_change));
-    flags = set_flag(flags, 5, is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Pause_Print));
-    flags = set_flag(flags, 6, is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Custom_GCode));
-    flags = set_flag(flags, 7, m_shells.visible);
-    flags = set_flag(flags, 8, m_sequential_view.marker.is_visible());
-    flags = set_flag(flags, 9, is_legend_enabled());
+    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Travel), is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Travel));
+    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Retractions), is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Retract));
+    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Unretractions), is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Unretract));
+    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::ToolChanges), is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Tool_change));
+    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::ColorChanges), is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Color_change));
+    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::PausePrints), is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Pause_Print));
+    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::CustomGCodes), is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Custom_GCode));
+    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Shells), m_shells.visible);
+    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::ToolMarker), m_sequential_view.marker.is_visible());
+    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Legend), is_legend_enabled());
     return flags;
 }
 
@@ -368,23 +369,24 @@ void GCodeViewer::set_options_visibility_from_flags(unsigned int flags)
         return (flags & (1 << flag)) != 0;
     };
 
-    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Travel, is_flag_set(0));
-    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Retract, is_flag_set(1));
-    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Unretract, is_flag_set(2));
-    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Tool_change, is_flag_set(3));
-    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Color_change, is_flag_set(4));
-    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Pause_Print, is_flag_set(5));
-    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Custom_GCode, is_flag_set(6));
-    m_shells.visible = is_flag_set(7);
-    m_sequential_view.marker.set_visible(is_flag_set(8));
-    enable_legend(is_flag_set(9));
+    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Travel, is_flag_set(static_cast<unsigned int>(Preview::OptionType::Travel)));
+    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Retract, is_flag_set(static_cast<unsigned int>(Preview::OptionType::Retractions)));
+    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Unretract, is_flag_set(static_cast<unsigned int>(Preview::OptionType::Unretractions)));
+    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Tool_change, is_flag_set(static_cast<unsigned int>(Preview::OptionType::ToolChanges)));
+    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Color_change, is_flag_set(static_cast<unsigned int>(Preview::OptionType::ColorChanges)));
+    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Pause_Print, is_flag_set(static_cast<unsigned int>(Preview::OptionType::PausePrints)));
+    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Custom_GCode, is_flag_set(static_cast<unsigned int>(Preview::OptionType::CustomGCodes)));
+    m_shells.visible = is_flag_set(static_cast<unsigned int>(Preview::OptionType::Shells));
+    m_sequential_view.marker.set_visible(is_flag_set(static_cast<unsigned int>(Preview::OptionType::ToolMarker)));
+    enable_legend(is_flag_set(static_cast<unsigned int>(Preview::OptionType::Legend)));
 }
 
 void GCodeViewer::set_layers_z_range(const std::array<double, 2>& layers_z_range)
 {
-    bool keep_sequential_current = layers_z_range[1] <= m_layers_z_range[1];
+    bool keep_sequential_current_first = layers_z_range[0] >= m_layers_z_range[0];
+    bool keep_sequential_current_last = layers_z_range[1] <= m_layers_z_range[1];
     m_layers_z_range = layers_z_range;
-    refresh_render_paths(keep_sequential_current);
+    refresh_render_paths(keep_sequential_current_first, keep_sequential_current_last);
     wxGetApp().plater()->update_preview_moves_slider();
 }
 
@@ -628,7 +630,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized)
     }
 }
 
-void GCodeViewer::refresh_render_paths(bool keep_sequential_current) const
+void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const
 {
 #if ENABLE_GCODE_VIEWER_STATISTICS
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -661,10 +663,12 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current) const
     m_statistics.render_paths_size = 0;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
-    m_sequential_view.first = m_vertices.vertices_count;
-    m_sequential_view.last = 0;
-    if (!keep_sequential_current)
-        m_sequential_view.current = m_vertices.vertices_count;
+    m_sequential_view.endpoints.first = m_vertices.vertices_count;
+    m_sequential_view.endpoints.last = 0;
+    if (!keep_sequential_current_first)
+        m_sequential_view.current.first = 0;
+    if (!keep_sequential_current_last)
+        m_sequential_view.current.last = m_vertices.vertices_count;
 
     // first pass: collect visible paths and update sequential view data
     std::vector<std::pair<IBuffer*, size_t>> paths;
@@ -690,22 +694,23 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current) const
             // store valid path
             paths.push_back({ &buffer, i });
 
-            m_sequential_view.first = std::min(m_sequential_view.first, path.first.s_id);
-            m_sequential_view.last = std::max(m_sequential_view.last, path.last.s_id);
+            m_sequential_view.endpoints.first = std::min(m_sequential_view.endpoints.first, path.first.s_id);
+            m_sequential_view.endpoints.last = std::max(m_sequential_view.endpoints.last, path.last.s_id);
         }
     }
 
     // update current sequential position
-    m_sequential_view.current = keep_sequential_current ? std::clamp(m_sequential_view.current, m_sequential_view.first, m_sequential_view.last) : m_sequential_view.last;
+    m_sequential_view.current.first = keep_sequential_current_first ? std::clamp(m_sequential_view.current.first, m_sequential_view.endpoints.first, m_sequential_view.endpoints.last) : m_sequential_view.endpoints.first;
+    m_sequential_view.current.last = keep_sequential_current_last ? std::clamp(m_sequential_view.current.last, m_sequential_view.endpoints.first, m_sequential_view.endpoints.last) : m_sequential_view.endpoints.last;
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vertices.vbo_id));
     size_t v_size = VBuffer::vertex_size_bytes();
-    glsafe(::glGetBufferSubData(GL_ARRAY_BUFFER, static_cast<GLintptr>(m_sequential_view.current * v_size), static_cast<GLsizeiptr>(v_size), static_cast<void*>(m_sequential_view.current_position.data())));
+    glsafe(::glGetBufferSubData(GL_ARRAY_BUFFER, static_cast<GLintptr>(m_sequential_view.current.last * v_size), static_cast<GLsizeiptr>(v_size), static_cast<void*>(m_sequential_view.current_position.data())));
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 
     // second pass: filter paths by sequential data
     for (auto&& [buffer, id] : paths) {
         const Path& path = buffer->paths[id];
-        if ((m_sequential_view.current < path.first.s_id) || (path.last.s_id < m_sequential_view.first))
+        if ((m_sequential_view.current.last <= path.first.s_id) || (path.last.s_id <= m_sequential_view.current.first))
             continue;
 
         Color color;
@@ -722,8 +727,12 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current) const
             it->color = color;
         }
 
-        it->sizes.push_back(std::min(m_sequential_view.current, path.last.s_id) - path.first.s_id + 1);
-        it->offsets.push_back(static_cast<size_t>(path.first.i_id * sizeof(unsigned int)));
+        it->sizes.push_back(std::min(m_sequential_view.current.last, path.last.s_id) - std::max(m_sequential_view.current.first, path.first.s_id) + 1);
+        unsigned int delta_1st = 0;
+        if ((path.first.s_id < m_sequential_view.current.first) && (m_sequential_view.current.first <= path.last.s_id))
+            delta_1st = m_sequential_view.current.first - path.first.s_id;
+
+        it->offsets.push_back(static_cast<size_t>((path.first.i_id + delta_1st) * sizeof(unsigned int)));
     }
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -1013,7 +1022,7 @@ void GCodeViewer::render_legend() const
                 {
                     m_extrusions.role_visibility_flags = is_visible(role) ? m_extrusions.role_visibility_flags & ~(1 << role) : m_extrusions.role_visibility_flags | (1 << role);
                     // update buffers' render paths
-                    refresh_render_paths(false);
+                    refresh_render_paths(false, false);
                     wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
                     wxGetApp().plater()->update_preview_bottom_toolbar();
                 }
