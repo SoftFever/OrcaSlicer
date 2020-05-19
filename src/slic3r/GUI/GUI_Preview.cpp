@@ -184,8 +184,8 @@ Preview::Preview(
     : m_canvas_widget(nullptr)
     , m_canvas(nullptr)
 #if ENABLE_GCODE_VIEWER
-    , m_bottom_toolbar_sizer(nullptr)
     , m_layers_slider_sizer(nullptr)
+    , m_bottom_toolbar_panel(nullptr)
 #else
     , m_double_slider_sizer(nullptr)
 #endif // ENABLE_GCODE_VIEWER
@@ -194,6 +194,7 @@ Preview::Preview(
     , m_label_show(nullptr)
     , m_combochecklist_features(nullptr)
 #if ENABLE_GCODE_VIEWER
+    , m_combochecklist_features_pos(0)
     , m_combochecklist_options(nullptr)
 #else
     , m_checkbox_travel(nullptr)
@@ -251,14 +252,20 @@ bool Preview::init(wxWindow* parent, Model* model)
 
 #if ENABLE_GCODE_VIEWER
     m_layers_slider_sizer = create_layers_slider_sizer();
+
+    m_bottom_toolbar_panel = new wxPanel(this);
+
+    m_label_view_type = new wxStaticText(m_bottom_toolbar_panel, wxID_ANY, _L("View"));
+
+    m_choice_view_type = new wxChoice(m_bottom_toolbar_panel, wxID_ANY);
 #else
     m_double_slider_sizer = new wxBoxSizer(wxHORIZONTAL);
     create_double_slider();
-#endif // ENABLE_GCODE_VIEWER
 
     m_label_view_type = new wxStaticText(this, wxID_ANY, _L("View"));
 
     m_choice_view_type = new wxChoice(this, wxID_ANY);
+#endif // ENABLE_GCODE_VIEWER
     m_choice_view_type->Append(_L("Feature type"));
     m_choice_view_type->Append(_L("Height"));
     m_choice_view_type->Append(_L("Width"));
@@ -269,10 +276,18 @@ bool Preview::init(wxWindow* parent, Model* model)
     m_choice_view_type->Append(_L("Color Print"));
     m_choice_view_type->SetSelection(0);
 
+#if ENABLE_GCODE_VIEWER
+    m_label_show = new wxStaticText(m_bottom_toolbar_panel, wxID_ANY, _L("Show"));
+#else
     m_label_show = new wxStaticText(this, wxID_ANY, _L("Show"));
+#endif // ENABLE_GCODE_VIEWER
 
     m_combochecklist_features = new wxComboCtrl();
+#if ENABLE_GCODE_VIEWER
+    m_combochecklist_features->Create(m_bottom_toolbar_panel, wxID_ANY, _L("Feature types"), wxDefaultPosition, wxDefaultSize, wxCB_READONLY);
+#else
     m_combochecklist_features->Create(this, wxID_ANY, _L("Feature types"), wxDefaultPosition, wxDefaultSize, wxCB_READONLY);
+#endif // ENABLE_GCODE_VIEWER
     std::string feature_items = GUI::into_u8(
 #if ENABLE_GCODE_VIEWER
         _L("Unknown") + "|1|" +
@@ -296,7 +311,7 @@ bool Preview::init(wxWindow* parent, Model* model)
 
 #if ENABLE_GCODE_VIEWER
     m_combochecklist_options = new wxComboCtrl();
-    m_combochecklist_options->Create(this, wxID_ANY, _L("Options"), wxDefaultPosition, wxDefaultSize, wxCB_READONLY);
+    m_combochecklist_options->Create(m_bottom_toolbar_panel, wxID_ANY, _L("Options"), wxDefaultPosition, wxDefaultSize, wxCB_READONLY);
     std::string options_items = GUI::into_u8(
         get_option_type_string(OptionType::Travel) + "|0|" +
         get_option_type_string(OptionType::Retractions) + "|0|" +
@@ -328,20 +343,23 @@ bool Preview::init(wxWindow* parent, Model* model)
 #endif // ENABLE_GCODE_VIEWER
 
 #if ENABLE_GCODE_VIEWER
-    m_moves_slider = new DoubleSlider::Control(this, wxID_ANY, 0, 0, 0, 100, wxDefaultPosition, wxSize(-1, 3 * GetTextExtent("m").y), wxSL_HORIZONTAL);
+    m_moves_slider = new DoubleSlider::Control(m_bottom_toolbar_panel, wxID_ANY, 0, 0, 0, 100, wxDefaultPosition, wxSize(-1, 3 * GetTextExtent("m").y), wxSL_HORIZONTAL);
     m_moves_slider->SetDrawMode(DoubleSlider::dmSequentialGCodeView);
-    m_moves_slider->Bind(wxEVT_SCROLL_CHANGED, &Preview::on_moves_slider_scroll_changed, this);
 
-    m_bottom_toolbar_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_bottom_toolbar_sizer->AddSpacer(5);
-    m_bottom_toolbar_sizer->Add(m_label_view_type, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
-    m_bottom_toolbar_sizer->Add(m_choice_view_type, 0, wxALIGN_CENTER_VERTICAL, 0);
-    m_bottom_toolbar_sizer->AddSpacer(5);
-    m_bottom_toolbar_sizer->Add(m_label_show, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
-    m_bottom_toolbar_sizer->Add(m_combochecklist_options, 0, wxALIGN_CENTER_VERTICAL, 0);
-    m_bottom_toolbar_sizer->Add(m_combochecklist_features, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 5);
-    m_bottom_toolbar_sizer->AddSpacer(5);
-    m_bottom_toolbar_sizer->Add(m_moves_slider, 1, wxALL | wxEXPAND, 5);
+    wxBoxSizer* bottom_toolbar_sizer = new wxBoxSizer(wxHORIZONTAL);
+    bottom_toolbar_sizer->AddSpacer(5);
+    bottom_toolbar_sizer->Add(m_label_view_type, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
+    bottom_toolbar_sizer->Add(m_choice_view_type, 0, wxALIGN_CENTER_VERTICAL, 0);
+    bottom_toolbar_sizer->AddSpacer(5);
+    bottom_toolbar_sizer->Add(m_label_show, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
+    bottom_toolbar_sizer->Add(m_combochecklist_options, 0, wxALIGN_CENTER_VERTICAL, 0);
+    // change the following number if editing the layout of the bottom toolbar sizer. It is used into update_bottom_toolbar()
+    m_combochecklist_features_pos = 6;
+    bottom_toolbar_sizer->Add(m_combochecklist_features, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 5);
+    bottom_toolbar_sizer->Hide(m_combochecklist_features);
+    bottom_toolbar_sizer->AddSpacer(5);
+    bottom_toolbar_sizer->Add(m_moves_slider, 1, wxALL | wxEXPAND, 0);
+    m_bottom_toolbar_panel->SetSizer(bottom_toolbar_sizer);
 #else
     wxBoxSizer* bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
     bottom_sizer->Add(m_label_view_type, 0, wxALIGN_CENTER_VERTICAL, 5);
@@ -364,8 +382,8 @@ bool Preview::init(wxWindow* parent, Model* model)
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(top_sizer, 1, wxALL | wxEXPAND, 0);
 #if ENABLE_GCODE_VIEWER
-    main_sizer->Add(m_bottom_toolbar_sizer, 0, wxALL | wxEXPAND, 0);
-    main_sizer->Hide(m_bottom_toolbar_sizer);
+    main_sizer->Add(m_bottom_toolbar_panel, 0, wxALL | wxEXPAND, 0);
+    main_sizer->Hide(m_bottom_toolbar_panel);
 #else
     main_sizer->Add(bottom_sizer, 0, wxALL | wxEXPAND, 0);
 #endif // ENABLE_GCODE_VIEWER
@@ -565,6 +583,7 @@ void Preview::bind_event_handlers()
     m_combochecklist_features->Bind(wxEVT_CHECKLISTBOX, &Preview::on_combochecklist_features, this);
 #if ENABLE_GCODE_VIEWER
     m_combochecklist_options->Bind(wxEVT_CHECKLISTBOX, &Preview::on_combochecklist_options, this);
+    m_moves_slider->Bind(wxEVT_SCROLL_CHANGED, &Preview::on_moves_slider_scroll_changed, this);
 #else
     m_checkbox_travel->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_travel, this);
     m_checkbox_retractions->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_retractions, this);
@@ -581,6 +600,7 @@ void Preview::unbind_event_handlers()
     m_combochecklist_features->Unbind(wxEVT_CHECKLISTBOX, &Preview::on_combochecklist_features, this);
 #if ENABLE_GCODE_VIEWER
     m_combochecklist_options->Unbind(wxEVT_CHECKLISTBOX, &Preview::on_combochecklist_options, this);
+    m_moves_slider->Unbind(wxEVT_SCROLL_CHANGED, &Preview::on_moves_slider_scroll_changed, this);
 #else
     m_checkbox_travel->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_travel, this);
     m_checkbox_retractions->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_retractions, this);
@@ -773,10 +793,33 @@ void Preview::update_bottom_toolbar()
     combochecklist_set_flags(m_combochecklist_features, m_canvas->get_toolpath_role_visibility_flags());
     combochecklist_set_flags(m_combochecklist_options, m_canvas->get_gcode_options_visibility_flags());
 
-    m_bottom_toolbar_sizer->Show(m_combochecklist_features,
-        !m_canvas->is_gcode_legend_enabled() || m_canvas->get_gcode_view_type() != GCodeViewer::EViewType::FeatureType);
-    m_bottom_toolbar_sizer->Layout();
-    Refresh();
+    // updates visibility of features combobox
+    if (m_bottom_toolbar_panel->IsShown())
+    {
+        wxSizer* sizer = m_bottom_toolbar_panel->GetSizer();
+        bool show = !m_canvas->is_gcode_legend_enabled() || m_canvas->get_gcode_view_type() != GCodeViewer::EViewType::FeatureType;
+
+        if (show)
+        {
+            if (sizer->GetItem(m_combochecklist_features) == nullptr)
+            {
+                sizer->Insert(m_combochecklist_features_pos, m_combochecklist_features, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 5);
+                sizer->Show(m_combochecklist_features);
+                sizer->Layout();
+                Refresh();
+            }
+        }
+        else
+        {
+            if (sizer->GetItem(m_combochecklist_features) != nullptr)
+            {
+                sizer->Hide(m_combochecklist_features);
+                sizer->Detach(m_combochecklist_features);
+                sizer->Layout();
+                Refresh();
+            }
+        }
+    }
 }
 #endif // ENABLE_GCODE_VIEWER
 
@@ -1243,8 +1286,9 @@ void Preview::load_print_as_fff(bool keep_z_range)
 #if ENABLE_GCODE_VIEWER
             m_canvas->load_gcode_preview(*m_gcode_result);
             m_canvas->refresh_gcode_preview(*m_gcode_result, colors);
-            GetSizer()->Show(m_bottom_toolbar_sizer);
+            GetSizer()->Show(m_bottom_toolbar_panel); 
             GetSizer()->Layout();
+            Refresh();
             zs = m_canvas->get_gcode_layers_zs();
 #else
             m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
@@ -1254,8 +1298,9 @@ void Preview::load_print_as_fff(bool keep_z_range)
             // Load the initial preview based on slices, not the final G-code.
             m_canvas->load_preview(colors, color_print_values);
 #if ENABLE_GCODE_VIEWER
-            GetSizer()->Hide(m_bottom_toolbar_sizer);
+            GetSizer()->Hide(m_bottom_toolbar_panel);
             GetSizer()->Layout();
+            Refresh();
             zs = m_canvas->get_volumes_print_zs(true);
 #endif // ENABLE_GCODE_VIEWER
         }
@@ -1316,8 +1361,9 @@ void Preview::load_print_as_sla()
     {
         m_canvas->load_sla_preview();
 #if ENABLE_GCODE_VIEWER
-        GetSizer()->Hide(m_bottom_toolbar_sizer);
+        GetSizer()->Hide(m_bottom_toolbar_panel); 
         GetSizer()->Layout();
+        Refresh();
 #else
         show_hide_ui_elements("none");
 #endif // ENABLE_GCODE_VIEWER
