@@ -5437,7 +5437,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale() const
 
     // set minimum scale as a auto scale for the toolbars
     float new_scale = std::min(new_h_scale, new_v_scale);
-    if (fabs(new_scale - scale) > EPSILON)
+    if (fabs(new_scale - scale) > 0.01) // scale is changed by 1% and more
         wxGetApp().set_auto_toolbar_icon_scale(new_scale);
 }
 
