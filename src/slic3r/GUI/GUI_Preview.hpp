@@ -84,7 +84,7 @@ class Preview : public wxPanel
     GLCanvas3D* m_canvas;
 #if ENABLE_GCODE_VIEWER
     wxBoxSizer* m_layers_slider_sizer;
-    wxBoxSizer* m_bottom_toolbar_sizer;
+    wxPanel* m_bottom_toolbar_panel;
 #else
     wxBoxSizer* m_double_slider_sizer;
 #endif // ENABLE_GCODE_VIEWER
@@ -93,6 +93,7 @@ class Preview : public wxPanel
     wxStaticText* m_label_show;
     wxComboCtrl* m_combochecklist_features;
 #if ENABLE_GCODE_VIEWER
+    size_t m_combochecklist_features_pos;
     wxComboCtrl* m_combochecklist_options;
 #else
     wxCheckBox* m_checkbox_travel;

@@ -1170,12 +1170,15 @@ void Sidebar::show_info_sizer()
         return;
     }
 
+    bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
+    double koef = imperial_units ? ObjectManipulation::mm_to_in : 1.0f;
+
     auto size = model_object->bounding_box().size();
-    p->object_info->info_size->SetLabel(wxString::Format("%.2f x %.2f x %.2f",size(0), size(1), size(2)));
+    p->object_info->info_size->SetLabel(wxString::Format("%.2f x %.2f x %.2f",size(0)*koef, size(1)*koef, size(2)*koef));
     p->object_info->info_materials->SetLabel(wxString::Format("%d", static_cast<int>(model_object->materials_count())));
 
     const auto& stats = model_object->get_object_stl_stats();//model_object->volumes.front()->mesh.stl.stats;
-    p->object_info->info_volume->SetLabel(wxString::Format("%.2f", stats.volume));
+    p->object_info->info_volume->SetLabel(wxString::Format("%.2f", stats.volume*pow(koef,3)));
     p->object_info->info_facets->SetLabel(wxString::Format(_L("%d (%d shells)"), static_cast<int>(model_object->facets_count()), stats.number_of_parts));
 
     int errors = stats.degenerate_facets + stats.edges_fixed + stats.facets_removed +
@@ -1253,18 +1256,24 @@ void Sidebar::update_sliced_info_sizer()
             const PrintStatistics& ps = p->plater->fff_print().print_statistics();
             const bool is_wipe_tower = ps.total_wipe_tower_filament > 0;
 
-            wxString new_label = _L("Used Filament (m)");
+            bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
+            double koef = imperial_units ? ObjectManipulation::in_to_mm : 1000.0;
+
+            wxString new_label = imperial_units ? _L("Used Filament (in)") : _L("Used Filament (m)");
             if (is_wipe_tower)
                 new_label += format_wxstr(":\n    - %1%\n    - %2%", _L("objects"), _L("wipe tower"));
 
             wxString info_text = is_wipe_tower ?
-                                wxString::Format("%.2f \n%.2f \n%.2f", ps.total_used_filament / 1000,
-                                                (ps.total_used_filament - ps.total_wipe_tower_filament) / 1000,
-                                                ps.total_wipe_tower_filament / 1000) :
-                                wxString::Format("%.2f", ps.total_used_filament / 1000);
+                                wxString::Format("%.2f \n%.2f \n%.2f", ps.total_used_filament / /*1000*/koef,
+                                                (ps.total_used_filament - ps.total_wipe_tower_filament) / /*1000*/koef,
+                                                ps.total_wipe_tower_filament / /*1000*/koef) :
+                                wxString::Format("%.2f", ps.total_used_filament / /*1000*/koef);
             p->sliced_info->SetTextAndShow(siFilament_m,    info_text,      new_label);
 
-            p->sliced_info->SetTextAndShow(siFilament_mm3,  wxString::Format("%.2f", ps.total_extruded_volume));
+            koef = imperial_units ? pow(ObjectManipulation::mm_to_in, 3) : 1.0f;
+            new_label = imperial_units ? _L("Used Filament (in³)") : _L("Used Filament (mm³)");
+            info_text = wxString::Format("%.2f", imperial_units ? ps.total_extruded_volume * koef : ps.total_extruded_volume);
+            p->sliced_info->SetTextAndShow(siFilament_mm3,  info_text,      new_label);
             p->sliced_info->SetTextAndShow(siFilament_g,    ps.total_weight == 0.0 ? "N/A" : wxString::Format("%.2f", ps.total_weight));
 
             new_label = _L("Cost");
@@ -1413,6 +1422,13 @@ void Sidebar::collapse(bool collapse)
     wxGetApp().app_config->set("collapsed_sidebar", collapse ? "1" : "0");
 }
 
+
+void Sidebar::update_ui_from_settings()
+{
+    p->object_manipulation->update_ui_from_settings();
+    show_info_sizer();
+    update_sliced_info_sizer();
+}
 
 std::vector<PresetComboBox*>& Sidebar::combos_filament()
 {
@@ -1653,7 +1669,7 @@ struct Plater::priv
     BoundingBoxf bed_shape_bb() const;
     BoundingBox scaled_bed_shape_bb() const;
 
-    std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config);
+    std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool used_inches = false);
     std::vector<size_t> load_model_objects(const ModelObjectPtrs &model_objects);
     wxString get_export_file(GUI::FileType file_type);
 
@@ -2134,6 +2150,8 @@ void Plater::priv::update_ui_from_settings()
 
     view3D->get_canvas3d()->update_ui_from_settings();
     preview->get_canvas3d()->update_ui_from_settings();
+
+    sidebar->update_ui_from_settings();
 }
 
 // Called after the print technology was changed.
@@ -2166,7 +2184,7 @@ BoundingBox Plater::priv::scaled_bed_shape_bb() const
     return bed_shape.bounding_box();
 }
 
-std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config)
+std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool imperial_units/* = false*/)
 {
     if (input_files.empty()) { return std::vector<size_t>(); }
 
@@ -2262,6 +2280,23 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         if (load_model)
         {
             // The model should now be initialized
+
+            auto convert_from_imperial_units = [](Model& model) {
+                model.convert_from_imperial_units();
+                wxGetApp().app_config->set("use_inches", "1");
+                wxGetApp().sidebar().update_ui_from_settings();
+            };
+
+            if (imperial_units)
+                convert_from_imperial_units(model);
+            else if (model.looks_like_imperial_units()) {
+                wxMessageDialog msg_dlg(q, _L(
+                    "This model looks like saved in inches.\n"
+                    "Should I consider this model as a saved in inches and convert it?") + "\n",
+                    _L("Saved in inches object detected"), wxICON_WARNING | wxYES | wxNO);
+                if (msg_dlg.ShowModal() == wxID_YES)
+                    convert_from_imperial_units(model);
+            }
 
             if (! is_project_file) {
                 if (model.looks_like_multipart_object()) {
@@ -4317,7 +4352,7 @@ void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& lab
 // Plater / Public
 
 Plater::Plater(wxWindow *parent, MainFrame *main_frame)
-    : wxPanel(parent)
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(76 * wxGetApp().em_unit(), 49 * wxGetApp().em_unit()))
     , p(new priv(this, main_frame))
 {
     // Initialization performed in the private c-tor
@@ -4369,7 +4404,7 @@ void Plater::load_project(const wxString& filename)
         p->set_project_filename(filename);
 }
 
-void Plater::add_model()
+void Plater::add_model(bool imperial_units/* = false*/)
 {
     wxArrayString input_files;
     wxGetApp().import_model(this, input_files);
@@ -4397,7 +4432,7 @@ void Plater::add_model()
     }
 
     Plater::TakeSnapshot snapshot(this, snapshot_label);
-    load_files(paths, true, false);
+    load_files(paths, true, false, imperial_units);
 }
 
 void Plater::import_sl1_archive()
@@ -4418,16 +4453,16 @@ void Plater::extract_config_from_project()
     load_files(input_paths, false, true);
 }
 
-std::vector<size_t> Plater::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config) { return p->load_files(input_files, load_model, load_config); }
+std::vector<size_t> Plater::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool imperial_units /*= false*/) { return p->load_files(input_files, load_model, load_config, imperial_units); }
 
 // To be called when providing a list of files to the GUI slic3r on command line.
-std::vector<size_t> Plater::load_files(const std::vector<std::string>& input_files, bool load_model, bool load_config)
+std::vector<size_t> Plater::load_files(const std::vector<std::string>& input_files, bool load_model, bool load_config, bool imperial_units /*= false*/)
 {
     std::vector<fs::path> paths;
     paths.reserve(input_files.size());
     for (const std::string& path : input_files)
         paths.emplace_back(path);
-    return p->load_files(paths, load_model, load_config);
+    return p->load_files(paths, load_model, load_config, imperial_units);
 }
 
 void Plater::update() { p->update(); }
