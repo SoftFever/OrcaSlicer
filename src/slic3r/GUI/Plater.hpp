@@ -133,6 +133,7 @@ public:
     bool                    is_collapsed();
     void                    collapse(bool collapse);
     void                    update_searcher();
+    void                    update_ui_from_settings();
 
     std::vector<PresetComboBox*>&   combos_filament();
     Search::OptionsSearcher&        get_searcher();
@@ -165,13 +166,13 @@ public:
     void new_project();
     void load_project();
     void load_project(const wxString& filename);
-    void add_model();
+    void add_model(bool imperial_units = false);
     void import_sl1_archive();
     void extract_config_from_project();
 
-    std::vector<size_t> load_files(const std::vector<boost::filesystem::path>& input_files, bool load_model = true, bool load_config = true);
+    std::vector<size_t> load_files(const std::vector<boost::filesystem::path>& input_files, bool load_model = true, bool load_config = true, bool imperial_units = false);
     // To be called when providing a list of files to the GUI slic3r on command line.
-    std::vector<size_t> load_files(const std::vector<std::string>& input_files, bool load_model = true, bool load_config = true);
+    std::vector<size_t> load_files(const std::vector<std::string>& input_files, bool load_model = true, bool load_config = true, bool imperial_units = false);
 
     void update();
     void stop_jobs();

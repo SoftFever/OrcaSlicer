@@ -613,7 +613,7 @@ void GUI_App::set_auto_toolbar_icon_scale(float scale) const
     const float icon_sc = m_em_unit * 0.1f;
 #endif // __APPLE__
 
-    int int_val = std::min(int(scale / icon_sc * 100), 100);
+    long int_val = std::min(int(std::lround(scale / icon_sc * 100)), 100);
     std::string val = std::to_string(int_val);
 
     app_config->set("auto_toolbar_size", val);

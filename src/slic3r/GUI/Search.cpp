@@ -460,7 +460,7 @@ SearchDialog::SearchDialog(OptionsSearcher* searcher)
 
     check_sizer->Add(new wxStaticText(this, wxID_ANY, _L("Use for search") + ":"), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
     check_sizer->Add(check_category, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
-    if (GUI::wxGetApp().is_localized())
+    if (check_english)
         check_sizer->Add(check_english,  0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
     check_sizer->AddStretchSpacer(border);
     check_sizer->Add(cancel_btn,     0, wxALIGN_CENTER_VERTICAL);
@@ -484,7 +484,7 @@ SearchDialog::SearchDialog(OptionsSearcher* searcher)
 #endif //__WXMSW__
 
     check_category->Bind(wxEVT_CHECKBOX, &SearchDialog::OnCheck, this);
-    if (GUI::wxGetApp().is_localized())
+    if (check_english)
         check_english ->Bind(wxEVT_CHECKBOX, &SearchDialog::OnCheck, this);
 
     Bind(wxEVT_MOTION, &SearchDialog::OnMotion, this);
@@ -505,7 +505,8 @@ void SearchDialog::Popup(wxPoint position /*= wxDefaultPosition*/)
 
     const OptionViewParameters& params = searcher->view_params;
     check_category->SetValue(params.category);
-    check_english->SetValue(params.english);
+    if (check_english)
+        check_english->SetValue(params.english);
 
     this->SetPosition(position);
     this->ShowModal();
@@ -594,6 +595,9 @@ void SearchDialog::OnSelect(wxDataViewEvent& event)
 
 void SearchDialog::update_list()
 {
+    // Under OSX model->Clear invoke wxEVT_DATAVIEW_SELECTION_CHANGED, so
+    // set prevent_list_events to true already here 
+    prevent_list_events = true;
     search_list_model->Clear();
 
     const std::vector<FoundOption>& filters = searcher->found_options();
@@ -601,7 +605,6 @@ void SearchDialog::update_list()
         search_list_model->Prepend(item.label);
 
     // select first item 
-    prevent_list_events = true;
     search_list->Select(search_list_model->GetItem(0));
     prevent_list_events = false;
 }
@@ -609,7 +612,8 @@ void SearchDialog::update_list()
 void SearchDialog::OnCheck(wxCommandEvent& event)
 {
     OptionViewParameters& params = searcher->view_params;
-    params.english  = check_english->GetValue();
+    if (check_english)
+        params.english  = check_english->GetValue();
     params.category = check_category->GetValue();
 
     searcher->search();

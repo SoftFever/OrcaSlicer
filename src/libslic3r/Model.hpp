@@ -851,6 +851,8 @@ public:
 
     bool 		  looks_like_multipart_object() const;
     void 		  convert_multipart_object(unsigned int max_extruders);
+    bool          looks_like_imperial_units() const;
+    void          convert_from_imperial_units();
 
     // Ensures that the min z of the model is not negative
     void 		  adjust_min_z();

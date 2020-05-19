@@ -95,11 +95,9 @@ void MeshClipper::recalculate_triangles()
 }
 
 
-Vec3f MeshRaycaster::get_triangle_normal(const indexed_triangle_set& its, size_t facet_idx)
+Vec3f MeshRaycaster::get_triangle_normal(size_t facet_idx) const
 {
-    Vec3f a(its.vertices[its.indices[facet_idx](1)] - its.vertices[its.indices[facet_idx](0)]);
-    Vec3f b(its.vertices[its.indices[facet_idx](2)] - its.vertices[its.indices[facet_idx](0)]);
-    return Vec3f(a.cross(b)).normalized();
+    return m_normals[facet_idx];
 }
 
 void MeshRaycaster::line_from_mouse_pos(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
@@ -218,12 +216,9 @@ Vec3f MeshRaycaster::get_closest_point(const Vec3f& point, Vec3f* normal) const
     int idx = 0;
     Vec3d closest_point;
     m_emesh.squared_distance(point.cast<double>(), idx, closest_point);
-    if (normal) {
-        auto indices = m_emesh.F().row(idx);
-        Vec3d a(m_emesh.V().row(indices(1)) - m_emesh.V().row(indices(0)));
-        Vec3d b(m_emesh.V().row(indices(2)) - m_emesh.V().row(indices(0)));
-        *normal = Vec3f(a.cross(b).cast<float>());
-    }
+    if (normal)
+        *normal = m_normals[idx];
+
     return closest_point.cast<float>();
 }
 
