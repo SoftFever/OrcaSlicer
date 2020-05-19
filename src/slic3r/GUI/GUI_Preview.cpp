@@ -343,7 +343,7 @@ bool Preview::init(wxWindow* parent, Model* model)
 #endif // ENABLE_GCODE_VIEWER
 
 #if ENABLE_GCODE_VIEWER
-    m_moves_slider = new DoubleSlider::Control(m_bottom_toolbar_panel, wxID_ANY, 0, 0, 0, 100, wxDefaultPosition, wxSize(-1, 3 * GetTextExtent("m").y), wxSL_HORIZONTAL);
+    m_moves_slider = new DoubleSlider::Control(m_bottom_toolbar_panel, wxID_ANY, 0, 0, 0, 100, wxDefaultPosition, wxSize(-1, 4 * GetTextExtent("m").y), wxSL_HORIZONTAL);
     m_moves_slider->SetDrawMode(DoubleSlider::dmSequentialGCodeView);
 
     wxBoxSizer* bottom_toolbar_sizer = new wxBoxSizer(wxHORIZONTAL);

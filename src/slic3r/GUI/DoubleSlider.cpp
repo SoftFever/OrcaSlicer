@@ -64,8 +64,13 @@ Control::Control( wxWindow *parent,
     if (!is_osx)
         SetDoubleBuffered(true);// SetDoubleBuffered exists on Win and Linux/GTK, but is missing on OSX
 
+#if ENABLE_GCODE_VIEWER
+    m_bmp_thumb_higher = (style == wxSL_HORIZONTAL ? ScalableBitmap(this, "thumb_right") : ScalableBitmap(this, "thumb_up"));
+    m_bmp_thumb_lower  = (style == wxSL_HORIZONTAL ? ScalableBitmap(this, "thumb_left")  : ScalableBitmap(this, "thumb_down"));
+#else
     m_bmp_thumb_higher = (style == wxSL_HORIZONTAL ? ScalableBitmap(this, "right_half_circle.png") : ScalableBitmap(this, "thumb_up"));
     m_bmp_thumb_lower  = (style == wxSL_HORIZONTAL ? ScalableBitmap(this, "left_half_circle.png" ) : ScalableBitmap(this, "thumb_down"));
+#endif // ENABLE_GCODE_VIEWER
     m_thumb_size = m_bmp_thumb_lower.GetBmpSize();
 
     m_bmp_add_tick_on  = ScalableBitmap(this, "colorchange_add");
@@ -576,6 +581,10 @@ void Control::draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider
 
 void Control::draw_thumb_item(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection)
 {
+#if ENABLE_GCODE_VIEWER
+    wxCoord x_draw = pos.x - int(0.5 * m_thumb_size.x);
+    wxCoord y_draw = pos.y - int(0.5 * m_thumb_size.y);
+#else
     wxCoord x_draw, y_draw;
     if (selection == ssLower) {
         if (is_horizontal()) {
@@ -587,7 +596,7 @@ void Control::draw_thumb_item(wxDC& dc, const wxPoint& pos, const SelectedSlider
             y_draw = pos.y - int(0.5*m_thumb_size.y);
         }
     }
-    else{
+    else {
         if (is_horizontal()) {
             x_draw = pos.x;
             y_draw = pos.y - int(0.5*m_thumb_size.y);
@@ -597,6 +606,7 @@ void Control::draw_thumb_item(wxDC& dc, const wxPoint& pos, const SelectedSlider
             y_draw = pos.y - int(0.5*m_thumb_size.y);
         }
     }
+#endif // ENABLE_GCODE_VIEWER
     dc.DrawBitmap(selection == ssLower ? m_bmp_thumb_lower.bmp() : m_bmp_thumb_higher.bmp(), x_draw, y_draw);
 
     // Update thumb rect
