@@ -486,7 +486,7 @@ SearchDialog::SearchDialog(OptionsSearcher* searcher)
     // Under OSX mouse and key states didn't fill after wxEVT_DATAVIEW_SELECTION_CHANGED call
     // As a result, we can't to identify what kind of actions was done
     // So, under OSX is used OnKeyDown function to navigate inside the list
-#ifndef __APPLE__
+#ifdef __APPLE__
     search_list->Bind(wxEVT_KEY_DOWN, &SearchDialog::OnKeyDown, this);
 #endif
 
@@ -494,7 +494,7 @@ SearchDialog::SearchDialog(OptionsSearcher* searcher)
     if (check_english)
         check_english ->Bind(wxEVT_CHECKBOX, &SearchDialog::OnCheck, this);
 
-    Bind(wxEVT_MOTION, &SearchDialog::OnMotion, this);
+//    Bind(wxEVT_MOTION, &SearchDialog::OnMotion, this);
     Bind(wxEVT_LEFT_DOWN, &SearchDialog::OnLeftDown, this);
 
     SetSizer(topSizer);
