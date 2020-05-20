@@ -3724,6 +3724,9 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
 
         menu->AppendSeparator();
 
+        // "Scale to print volume" makes a sense just for whole object
+        sidebar->obj_list()->append_menu_item_scale_selection_to_fit_print_volume(menu);
+
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
             const Selection& selection = get_selection();
             int instance_idx = selection.get_instance_idx();
@@ -3736,9 +3739,8 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
             }, menu_item_printable->GetId());
     }
 
+    sidebar->obj_list()->append_menu_items_convert_unit(menu);
     sidebar->obj_list()->append_menu_item_fix_through_netfabb(menu);
-
-    sidebar->obj_list()->append_menu_item_scale_selection_to_fit_print_volume(menu);
 
     wxMenu* mirror_menu = new wxMenu();
     if (mirror_menu == nullptr)
@@ -4563,6 +4565,37 @@ bool Plater::is_selection_empty() const
 void Plater::scale_selection_to_fit_print_volume()
 {
     p->scale_selection_to_fit_print_volume();
+}
+
+void Plater::convert_unit(bool from_imperial_unit)
+{
+    std::vector<int> obj_idxs, volume_idxs;
+    wxGetApp().obj_list()->get_selection_indexes(obj_idxs, volume_idxs);
+    if (obj_idxs.empty() && volume_idxs.empty())
+        return;
+
+    TakeSnapshot snapshot(this, from_imperial_unit ? _L("Convert from imperial units") : _L("Convert to imperial units"));
+    wxBusyCursor wait;
+
+    ModelObjectPtrs objects;
+    for (int obj_idx : obj_idxs) {
+        ModelObject *object = p->model.objects[obj_idx];
+        object->convert_units(objects, from_imperial_unit, volume_idxs);
+        remove(obj_idx);
+    }
+    p->load_model_objects(objects);
+    
+    Selection& selection = p->view3D->get_canvas3d()->get_selection();
+    size_t last_obj_idx = p->model.objects.size() - 1;
+
+    if (volume_idxs.empty()) {
+        for (size_t i = 0; i < objects.size(); ++i)
+            selection.add_object((unsigned int)(last_obj_idx - i), i == 0);
+    }
+    else {
+        for (int vol_idx : volume_idxs)
+            selection.add_volume(last_obj_idx, vol_idx, 0, false);
+    }
 }
 
 void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_upper, bool keep_lower, bool rotate_lower)
