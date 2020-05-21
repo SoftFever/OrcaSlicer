@@ -79,7 +79,7 @@ GLShaderProgram* GLShadersManager::get_current_shader()
     GLint id = 0;
     glsafe(::glGetIntegerv(GL_CURRENT_PROGRAM, &id));
     if (id == 0)
-        return false;
+        return nullptr;
 
     auto it = std::find_if(m_shaders.begin(), m_shaders.end(), [id](std::unique_ptr<GLShaderProgram>& p) { return p->get_id() == id; });
     return (it != m_shaders.end()) ? it->get() : nullptr;
