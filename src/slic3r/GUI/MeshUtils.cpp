@@ -27,7 +27,6 @@ void MeshClipper::set_mesh(const TriangleMesh& mesh)
         m_mesh = &mesh;
         m_triangles_valid = false;
         m_triangles2d.resize(0);
-        m_triangles3d.resize(0);
         m_tms.reset(nullptr);
     }
 }
@@ -40,18 +39,17 @@ void MeshClipper::set_transformation(const Geometry::Transformation& trafo)
         m_trafo = trafo;
         m_triangles_valid = false;
         m_triangles2d.resize(0);
-        m_triangles3d.resize(0);
     }
 }
 
 
 
-const std::vector<Vec3f>& MeshClipper::get_triangles()
+void MeshClipper::render_cut()
 {
     if (! m_triangles_valid)
         recalculate_triangles();
 
-    return m_triangles3d;
+    m_vertex_array.render();
 }
 
 
@@ -67,29 +65,35 @@ void MeshClipper::recalculate_triangles()
     const Vec3f& scaling = m_trafo.get_scaling_factor().cast<float>();
     // Calculate clipping plane normal in mesh coordinates.
     Vec3f up_noscale = instance_matrix_no_translation_no_scaling.inverse() * m_plane.get_normal().cast<float>();
-    Vec3f up (up_noscale(0)*scaling(0), up_noscale(1)*scaling(1), up_noscale(2)*scaling(2));
+    Vec3d up (up_noscale(0)*scaling(0), up_noscale(1)*scaling(1), up_noscale(2)*scaling(2));
     // Calculate distance from mesh origin to the clipping plane (in mesh coordinates).
     float height_mesh = m_plane.distance(m_trafo.get_offset()) * (up_noscale.norm()/up.norm());
 
     // Now do the cutting
     std::vector<ExPolygons> list_of_expolys;
-    m_tms->set_up_direction(up);
+    m_tms->set_up_direction(up.cast<float>());
     m_tms->slice(std::vector<float>{height_mesh}, SlicingMode::Regular, 0.f, &list_of_expolys, [](){});
     m_triangles2d = triangulate_expolygons_2f(list_of_expolys[0], m_trafo.get_matrix().matrix().determinant() < 0.);
 
     // Rotate the cut into world coords:
-    Eigen::Quaternionf q;
-    q.setFromTwoVectors(Vec3f::UnitZ(), up);
-    Transform3f tr = Transform3f::Identity();
+    Eigen::Quaterniond q;
+    q.setFromTwoVectors(Vec3d::UnitZ(), up);
+    Transform3d tr = Transform3d::Identity();
     tr.rotate(q);
-    tr = m_trafo.get_matrix().cast<float>() * tr;
+    tr = m_trafo.get_matrix() * tr;
 
-    m_triangles3d.clear();
-        m_triangles3d.reserve(m_triangles2d.size());
-        for (const Vec2f& pt : m_triangles2d) {
-            m_triangles3d.push_back(Vec3f(pt(0), pt(1), height_mesh+0.001f));
-            m_triangles3d.back() = tr * m_triangles3d.back();
-        }
+    // to avoid z-fighting
+    height_mesh += 0.001f;
+
+    m_vertex_array.release_geometry();
+    for (auto it=m_triangles2d.cbegin(); it != m_triangles2d.cend(); it=it+3) {
+        m_vertex_array.push_geometry(tr * Vec3d((*(it+0))(0), (*(it+0))(1), height_mesh), up);
+        m_vertex_array.push_geometry(tr * Vec3d((*(it+1))(0), (*(it+1))(1), height_mesh), up);
+        m_vertex_array.push_geometry(tr * Vec3d((*(it+2))(0), (*(it+2))(1), height_mesh), up);
+        size_t idx = it - m_triangles2d.cbegin();
+        m_vertex_array.push_triangle(idx, idx+1, idx+2);
+    }
+    m_vertex_array.finalize_geometry(true);
 
     m_triangles_valid = true;
 }
