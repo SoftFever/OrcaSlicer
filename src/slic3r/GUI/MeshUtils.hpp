@@ -6,7 +6,7 @@
 #include "libslic3r/SLA/EigenMesh3D.hpp"
 #include "admesh/stl.h"
 
-
+#include "slic3r/GUI/3DScene.hpp"
 
 #include <cfloat>
 
@@ -82,9 +82,9 @@ public:
     // into world coordinates.
     void set_transformation(const Geometry::Transformation& trafo);
 
-    // Return the triangulated cut. The points are returned directly
-    // in world coordinates.
-    const std::vector<Vec3f>& get_triangles();
+    // Render the triangulated cut. Transformation matrices should
+    // be set in world coords.
+    void render_cut();
 
 private:
     void recalculate_triangles();
@@ -93,7 +93,7 @@ private:
     const TriangleMesh* m_mesh = nullptr;
     ClippingPlane m_plane;
     std::vector<Vec2f> m_triangles2d;
-    std::vector<Vec3f> m_triangles3d;
+    GLIndexedVertexArray m_vertex_array;
     bool m_triangles_valid = false;
     std::unique_ptr<TriangleMeshSlicer> m_tms;
 };
