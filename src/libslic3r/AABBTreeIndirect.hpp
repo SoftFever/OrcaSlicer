@@ -19,8 +19,6 @@ extern "C"
 }
 // Definition of the ray intersection hit structure.
 #include <igl/Hit.h>
-// Find intersection parameters of a ray with axis aligned bounding box.
-#include <igl/ray_box_intersect.h>
 
 namespace Slic3r {
 namespace AABBTreeIndirect {
@@ -210,6 +208,11 @@ private:
 	std::vector<Node> m_nodes;
 };
 
+using Tree2f = Tree<2, float>;
+using Tree3f = Tree<3, float>;
+using Tree2d = Tree<2, double>;
+using Tree3d = Tree<3, double>;
+
 namespace detail {
 	template<typename AVertexType, typename AIndexedFaceType, typename ATreeType, typename AVectorType>
 	struct RayIntersector {
@@ -224,12 +227,55 @@ namespace detail {
 
 		const VectorType					 origin;
 		const VectorType 					 dir;
+		const VectorType					 invdir;
 	};
 
     template<typename VertexType, typename IndexedFaceType, typename TreeType, typename VectorType>
     struct RayIntersectorHits : RayIntersector<VertexType, IndexedFaceType, TreeType, VectorType> {
 		std::vector<igl::Hit>				 hits;
 	};
+
+	template <typename Derivedsource, typename Deriveddir, typename Scalar>
+	inline bool ray_box_intersect_invdir(
+  		const Eigen::MatrixBase<Derivedsource> 	&origin,
+  		const Eigen::MatrixBase<Deriveddir> 	&inv_dir,
+  		Eigen::AlignedBox<Scalar,3> 			 box,
+  		const Scalar 							&t0,
+  		const Scalar 							&t1,
+  		Scalar 									&tmin,
+  		Scalar 									&tmax) {
+		// http://people.csail.mit.edu/amy/papers/box-jgt.pdf
+		// "An Efficient and Robust Ray–Box Intersection Algorithm"
+		if (inv_dir.x() < 0)
+			std::swap(box.min().x(), box.max().x());
+		if (inv_dir.y() < 0)
+			std::swap(box.min().y(), box.max().y());
+        tmin = (box.min().x() - origin.x()) * inv_dir.x();
+		Scalar tymax = (box.max().y() - origin.y()) * inv_dir.y();
+		if (tmin > tymax)
+			return false;
+        tmax = (box.max().x() - origin.x()) * inv_dir.x();
+		Scalar tymin = (box.min().y()  - origin.y()) * inv_dir.y();
+		if (tymin > tmax)
+			return false;
+		if (tymin > tmin)
+			tmin = tymin;
+		if (tymax < tmax)
+			tmax = tymax;
+		if (inv_dir.z() < 0)
+			std::swap(box.min().z(), box.max().z());
+		Scalar tzmin = (box.min().z()  - origin.z()) * inv_dir.z();
+		if (tzmin > tmax)
+			return false;
+		Scalar tzmax = (box.max().z() - origin.z()) * inv_dir.z();
+		if (tmin > tzmax)
+			return false;
+		if (tzmin > tmin)
+			tmin = tzmin;
+		if (tzmax < tmax)
+			tmax = tzmax;
+        return tmin < t1 && tmax > t0;
+	}
 
     template<typename RayIntersectorType, typename Scalar>
 	static inline bool intersect_ray_recursive_first_hit(
@@ -243,7 +289,7 @@ namespace detail {
 		
 		{
 	    	Scalar t_start, t_end;
-            if (! igl::ray_box_intersect(ray_intersector.origin, ray_intersector.dir, node.bbox.template cast<Scalar>(), Scalar(0), min_t, t_start, t_end))
+            if (! ray_box_intersect_invdir(ray_intersector.origin, ray_intersector.invdir, node.bbox.template cast<Scalar>(), Scalar(0), min_t, t_start, t_end))
 				return false;
 		}
 
@@ -293,7 +339,7 @@ namespace detail {
 
 	  	{
 	    	Scalar t_start, t_end;
-            if (! igl::ray_box_intersect(ray_intersector.origin, ray_intersector.dir, node.bbox.template cast<Scalar>(),
+            if (! ray_box_intersect_invdir(ray_intersector.origin, ray_intersector.invdir, node.bbox.template cast<Scalar>(),
 	    			Scalar(0), std::numeric_limits<Scalar>::infinity(), t_start, t_end))
 				return;
 	    }
@@ -483,13 +529,14 @@ inline Tree<3, typename VertexType::Scalar> build_aabb_tree_over_indexed_triangl
 	// Indexed triangle set - 3D vertices.
 	const std::vector<VertexType> 		&vertices, 
 	// Indexed triangle set - triangular faces, references to vertices.
-	const std::vector<IndexedFaceType> 	&faces)
+    const std::vector<IndexedFaceType> 	&faces,
+	//FIXME do we want to apply an epsilon?
+    const typename VertexType::Scalar 	 eps = 0)
 {
     using 				 TreeType 		= Tree<3, typename VertexType::Scalar>;
     using				 CoordType      = typename TreeType::CoordType;
     using 				 VectorType	    = typename TreeType::VectorType;
     using 				 BoundingBox 	= typename TreeType::BoundingBox;
-    static constexpr CoordType eps      = CoordType(1e-4);
 
 	struct InputType {
         size_t 				idx()       const { return m_idx; }
@@ -503,7 +550,7 @@ inline Tree<3, typename VertexType::Scalar> build_aabb_tree_over_indexed_triangl
 
 	std::vector<InputType> input;
 	input.reserve(faces.size());
-    VectorType veps(eps, eps, eps);
+    const VectorType veps(eps, eps, eps);
 	for (size_t i = 0; i < faces.size(); ++ i) {
         const IndexedFaceType &face = faces[i];
 		const VertexType &v1 = vertices[face(0)];
@@ -546,7 +593,7 @@ inline bool intersect_ray_first_hit(
     using Scalar = typename VectorType::Scalar;
     auto ray_intersector = detail::RayIntersector<VertexType, IndexedFaceType, TreeType, VectorType> {
 		vertices, faces, tree,
-		origin, dir
+        origin, dir, VectorType(dir.cwiseInverse())
 	};
 	return ! tree.empty() && detail::intersect_ray_recursive_first_hit(
         ray_intersector, size_t(0), std::numeric_limits<Scalar>::infinity(), hit);
@@ -574,7 +621,7 @@ inline bool intersect_ray_all_hits(
 {
     auto ray_intersector = detail::RayIntersectorHits<VertexType, IndexedFaceType, TreeType, VectorType> {
 		vertices, faces, tree,
-		origin, dir 
+        origin, dir, VectorType(dir.cwiseInverse())
 	};
 	if (! tree.empty()) {
         ray_intersector.hits.reserve(8);
