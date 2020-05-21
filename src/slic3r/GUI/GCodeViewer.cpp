@@ -1108,14 +1108,14 @@ void GCodeViewer::render_legend() const
     ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
     switch (m_view_type)
     {
-    case EViewType::FeatureType: { imgui.text(_u8L("Feature type")); break; }
-    case EViewType::Height: { imgui.text(_u8L("Height (mm)")); break; }
-    case EViewType::Width: { imgui.text(_u8L("Width (mm)")); break; }
-    case EViewType::Feedrate: { imgui.text(_u8L("Speed (mm/s)")); break; }
-    case EViewType::FanSpeed: { imgui.text(_u8L("Fan Speed (%%)")); break; }
+    case EViewType::FeatureType:    { imgui.text(_u8L("Feature type")); break; }
+    case EViewType::Height:         { imgui.text(_u8L("Height (mm)")); break; }
+    case EViewType::Width:          { imgui.text(_u8L("Width (mm)")); break; }
+    case EViewType::Feedrate:       { imgui.text(_u8L("Speed (mm/s)")); break; }
+    case EViewType::FanSpeed:       { imgui.text(_u8L("Fan Speed (%%)")); break; }
     case EViewType::VolumetricRate: { imgui.text(_u8L("Volumetric flow rate (mm³/s)")); break; }
-    case EViewType::Tool: { imgui.text(_u8L("Tool")); break; }
-    case EViewType::ColorPrint: { imgui.text(_u8L("Color Print")); break; }
+    case EViewType::Tool:           { imgui.text(_u8L("Tool")); break; }
+    case EViewType::ColorPrint:     { imgui.text(_u8L("Color Print")); break; }
     default:                        { break; }
     }
     ImGui::PopStyleColor();

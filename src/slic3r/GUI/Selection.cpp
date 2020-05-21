@@ -17,7 +17,7 @@
 #include <boost/log/trivial.hpp>
 #endif // ENABLE_GCODE_VIEWER
 
-static const float UNIFORM_SCALE_COLOR[3] = { 1.0f, 0.38f, 0.0f };
+static const float UNIFORM_SCALE_COLOR[4] = { 0.923f, 0.504f, 0.264f, 1.0f };
 
 namespace Slic3r {
 namespace GUI {
