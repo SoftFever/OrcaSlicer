@@ -11,7 +11,7 @@ TEST_CASE("Building a tree over a box, ray caster and closest query", "[AABBIndi
     TriangleMesh tmesh = make_cube(1., 1., 1.);
     tmesh.repair();
 
-    auto tree = AABBTreeIndirect::build_aabb_tree(tmesh.its.vertices, tmesh.its.indices);
+    auto tree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(tmesh.its.vertices, tmesh.its.indices);
     REQUIRE(! tree.empty());
 
     igl::Hit hit;
@@ -39,7 +39,7 @@ TEST_CASE("Building a tree over a box, ray caster and closest query", "[AABBIndi
 
     size_t hit_idx;
     Vec3d  closest_point;
-    double squared_distance = AABBTreeIndirect::squared_distance(
+    double squared_distance = AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
 		tmesh.its.vertices, tmesh.its.indices,
 		tree,
         Vec3d(0.3, 0.5, -5.),
@@ -49,7 +49,7 @@ TEST_CASE("Building a tree over a box, ray caster and closest query", "[AABBIndi
     REQUIRE(closest_point.y() == Approx(0.5));
     REQUIRE(closest_point.z() == Approx(0.));
 
-    squared_distance = AABBTreeIndirect::squared_distance(
+    squared_distance = AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
 		tmesh.its.vertices, tmesh.its.indices,
 		tree,
         Vec3d(0.3, 0.5, 5.),

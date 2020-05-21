@@ -1,4 +1,7 @@
 // AABB tree built upon external data set, referencing the external data by integer indices.
+// The AABB tree balancing and traversal (ray casting, closest triangle of an indexed triangle mesh)
+// were adapted from libigl AABB.{cpp,hpp} Copyright (C) 2015 Alec Jacobson <alecjacobson@gmail.com>
+// while the implicit balanced tree representation and memory optimizations are Vojtech's.
 
 #ifndef slic3r_AABBTreeIndirect_hpp_
 #define slic3r_AABBTreeIndirect_hpp_
@@ -11,22 +14,37 @@
 
 extern "C"
 {
+// Ray-Triangle Intersection Test Routines by Tomas Moller, May 2000
 #include <igl/raytri.c>
 }
+// Definition of the ray intersection hit structure.
 #include <igl/Hit.h>
+// Find intersection parameters of a ray with axis aligned bounding box.
 #include <igl/ray_box_intersect.h>
 
 namespace Slic3r {
 namespace AABBTreeIndirect {
 
-// AABB tree for raycasting and closest triangle search.
+// Static balanced AABB tree for raycasting and closest triangle search.
+// The balanced tree is built over a single large std::vector of nodes, where the children of nodes
+// are addressed implicitely using a power of two indexing rule.
+// Memory for a full balanced tree is allocated, but not all nodes at the last level are used.
+// This may seem like a waste of memory, but one saves memory for the node links and there is zero
+// overhead of a memory allocator management (usually the memory allocator adds at least one pointer 
+// before the memory returned). However, allocating memory in a single vector is very fast even
+// in multi-threaded environment and it is cache friendly.
+//
+// A balanced tree is built upon a vector of bounding boxes and their centroids, storing the reference
+// to the source entity (a 3D triangle, a 2D segment etc, a 3D or 2D point etc).
+// The source bounding boxes may have an epsilon applied to fight numeric rounding errors when 
+// traversing the AABB tree.
 template<int ANumDimensions, typename ACoordType>
 class Tree
 {
 public:
     static constexpr int    NumDimensions = ANumDimensions;
 	using					CoordType     = ACoordType;
-    using 					Vec3crd 	  = Eigen::Matrix<CoordType, NumDimensions, 1, Eigen::DontAlign>;
+    using 					VectorType 	  = Eigen::Matrix<CoordType, NumDimensions, 1, Eigen::DontAlign>;
     using  					BoundingBox   = Eigen::AlignedBox<CoordType, NumDimensions>;
     // Following could be static constexpr size_t, but that would not link in C++11
     enum : size_t {
@@ -36,10 +54,13 @@ public:
         inner = size_t(-2)
     };
 
+    // Single node of the implicit balanced AABB tree. There are no links to the children nodes,
+    // as these links are calculated implicitely using a power of two rule.
     struct Node {
     	// Index of the external source entity, for which this AABB tree was built, npos for internal nodes.
         size_t 			idx = npos;
-    	// Bounding box around this entity, possibly with epsilons applied.
+    	// Bounding box around this entity, possibly with epsilons applied to fight numeric rounding errors
+    	// when traversing the AABB tree.
         BoundingBox 	bbox;
 
         bool 	is_valid() const { return this->idx != npos; }
@@ -57,11 +78,13 @@ public:
 
 	// SourceNode shall implement
 	// size_t SourceNode::idx() const
-	// 		- index to the outside triangle.
-	// const Vec3crd& SourceNode::centroid() const
-	// 		- centroid of this node, for splitting the triangles into left / right bounding box.
+	// 		- Index to the outside entity (triangle, edge, point etc).
+	// const VectorType& SourceNode::centroid() const
+	// 		- Centroid of this node. The centroid is used for balancing the tree.
 	// const BoundingBox& SourceNode::bbox() const
-	// 		- bounding box of this node, likely expanded with epsilon to account for numeric rounding during tree traversal.
+	// 		- Bounding box of this node, likely expanded with epsilon to account for numeric rounding during tree traversal.
+	//        Union of bounding boxes at a single level of the AABB tree is used for deciding the longest axis aligned dimension
+	//        to split around.
 	template<typename SourceNode>
 	void build(std::vector<SourceNode> &&input)
 	{
@@ -69,8 +92,7 @@ public:
 			clear();
 		else {
 			// Allocate enough memory for a full binary tree.
-            //FIXME fianlize the tree size formula.
-            m_nodes.assign(next_highest_power_of_2(input.size() * 2 + 1), Node());
+            m_nodes.assign(next_highest_power_of_2(input.size()) * 2 - 1, Node());
             build_recursive(input, 0, 0, input.size() - 1);
 		}
         input.clear();
@@ -79,6 +101,12 @@ public:
 	const std::vector<Node>& 	nodes() const { return m_nodes; }
 	const Node& 				node(size_t idx) const { return m_nodes[idx]; }
 	bool 						empty() const { return m_nodes.empty(); }
+
+	// Addressing the child nodes using the power of two rule.
+    static size_t				left_child_idx(size_t idx) { return idx * 2 + 1; }
+    static size_t				right_child_idx(size_t idx) { return left_child_idx(idx) + 1; }
+	const Node&					left_child(size_t idx) const { return m_nodes[left_child_idx(idx)]; }
+	const Node&					right_child(size_t idx) const { return m_nodes[right_child_idx(idx)]; }
 
 	template<typename SourceNode>
     void build(const std::vector<SourceNode> &input)
@@ -111,7 +139,7 @@ private:
 		// Partition the input to left / right pieces of the same length to produce a balanced tree.
 		size_t center = (left + right) / 2;
 		partition_input(input, size_t(dimension), left, right, center);
-		// Insert a node into the tree.
+		// Insert an inner node into the tree. Inner node does not reference any input entity (triangle, line segment etc).
 		m_nodes[node].idx  = inner;
 		m_nodes[node].bbox = bbox;
         build_recursive(input, node * 2 + 1, left, center);
@@ -178,52 +206,9 @@ private:
 		}
 	}
 
+	// The balanced tree storage.
 	std::vector<Node> m_nodes;
 };
-
-template<typename VertexType, typename IndexedFaceType>
-inline Tree<3, typename VertexType::Scalar>
-	build_aabb_tree(const std::vector<VertexType> &vertices, const std::vector<IndexedFaceType> &faces)
-{
-    using 				 TreeType 		= Tree<3, typename VertexType::Scalar>;
-    using				 CoordType      = typename TreeType::CoordType;
-    using 				 Vec3crd 	    = typename TreeType::Vec3crd;
-    using 				 BoundingBox 	= typename TreeType::BoundingBox;
-    static constexpr CoordType eps      = CoordType(1e-4);
-
-	struct InputType {
-        size_t 				idx()       const { return m_idx; }
-        const BoundingBox& 	bbox()      const { return m_bbox; }
-        const Vec3crd& 		centroid()  const { return m_centroid; }
-
-		size_t 		m_idx;
-		BoundingBox m_bbox;
-        Vec3crd 	m_centroid;
-	};
-
-	std::vector<InputType> input;
-	input.reserve(faces.size());
-    Vec3crd veps(eps, eps, eps);
-	for (size_t i = 0; i < faces.size(); ++ i) {
-        const IndexedFaceType &face = faces[i];
-		const VertexType &v1 = vertices[face(0)];
-		const VertexType &v2 = vertices[face(1)];
-		const VertexType &v3 = vertices[face(2)];
-		InputType n;
-        n.m_idx      = i;
-        n.m_centroid = (1./3.) * (v1 + v2 + v3);
-        n.m_bbox = BoundingBox(v1, v1);
-        n.m_bbox.extend(v2);
-        n.m_bbox.extend(v3);
-        n.m_bbox.min() -= veps;
-        n.m_bbox.max() += veps;
-        input.emplace_back(n);
-	}
-
-	TreeType out;
-	out.build(std::move(input));
-	return out;
-}
 
 namespace detail {
 	template<typename AVertexType, typename AIndexedFaceType, typename ATreeType, typename AVectorType>
@@ -253,14 +238,9 @@ namespace detail {
         Scalar                  min_t,
         igl::Hit 			   &hit)
 	{
-		const auto &nodes = ray_intersector.tree.nodes();
-		if (node_idx >= nodes.size())
-            return false;
-
-        const auto &node = nodes[node_idx];
-		if (! node.is_valid())
-            return false;
-
+        const auto &node = ray_intersector.tree.node(node_idx);
+        assert(node.is_valid());
+		
 		{
 	    	Scalar t_start, t_end;
             if (! igl::ray_box_intersect(ray_intersector.origin, ray_intersector.dir, node.bbox.template cast<Scalar>(), Scalar(0), min_t, t_start, t_end))
@@ -268,7 +248,7 @@ namespace detail {
 		}
 
 	  	if (node.is_leaf()) {
-            using Vector = Eigen::Matrix<Scalar, 3, 1>;
+            using Vector = Eigen::Matrix<double, 3, 1>;
             Vector origin_d	= ray_intersector.origin.template cast<double>();
             Vector dir_d 	= ray_intersector.dir   .template cast<double>();
             auto   face     = ray_intersector.faces[node.idx];
@@ -306,12 +286,10 @@ namespace detail {
     template<typename RayIntersectorType>
 	static inline void intersect_ray_recursive_all_hits(RayIntersectorType &ray_intersector, size_t node_idx)
 	{
-        using Vector = typename RayIntersectorType::VectorType;
-        using Scalar = typename Vector::Scalar;
+        using Scalar = typename RayIntersectorType::VectorType::Scalar;
 
 		const auto &node = ray_intersector.tree.node(node_idx);
-		if (! node.is_valid())
-			return;
+		assert(node.is_valid());
 
 	  	{
 	    	Scalar t_start, t_end;
@@ -321,7 +299,7 @@ namespace detail {
 	    }
 
 	  	if (node.is_leaf()) {
-            using Vector = Eigen::Matrix<Scalar, 3, 1>;
+            using Vector = Eigen::Matrix<double, 3, 1>;
             Vector origin_d = ray_intersector.origin.template cast<double>();
             Vector dir_d    = ray_intersector.dir   .template cast<double>();
             auto   face     = ray_intersector.faces[node.idx];
@@ -342,6 +320,7 @@ namespace detail {
 	  	intersect_ray_recursive_all_hits(ray_intersector, right);
 	}
 
+	// Nothing to do with COVID-19 social distancing.
 	template<typename AVertexType, typename AIndexedFaceType, typename ATreeType, typename AVectorType>
 	struct IndexedTriangleSetDistancer {
 		using VertexType 		= AVertexType;
@@ -407,7 +386,7 @@ namespace detail {
 	};
 
 	template<typename IndexedTriangleSetDistancerType, typename Scalar>
-    static inline Scalar squared_distance_recursive(
+    static inline Scalar squared_distance_to_indexed_triangle_set_recursive(
         IndexedTriangleSetDistancerType	&distancer,
 		size_t 							 node_idx,
 		Scalar 							 low_sqr_d,
@@ -420,6 +399,7 @@ namespace detail {
   		if (low_sqr_d > up_sqr_d)
 			return low_sqr_d;
 	  
+	  	// Save the best achieved hit.
         auto set_min = [&i, &c, &up_sqr_d](const Scalar sqr_d_candidate, const size_t i_candidate, const Vector &c_candidate) {
 			if (sqr_d_candidate < up_sqr_d) {
 				i     	 = i_candidate;
@@ -455,7 +435,7 @@ namespace detail {
 			{
                 size_t	i_left;
                 Vector 	c_left = c;
-                Scalar	sqr_d_left = squared_distance_recursive(distancer, left_node_idx, low_sqr_d, up_sqr_d, i_left, c_left);
+                Scalar	sqr_d_left = squared_distance_to_indexed_triangle_set_recursive(distancer, left_node_idx, low_sqr_d, up_sqr_d, i_left, c_left);
 				set_min(sqr_d_left, i_left, c_left);
 				looked_left = true;
 			};
@@ -463,7 +443,7 @@ namespace detail {
 			{
                 size_t	i_right;
                 Vector	c_right = c;
-                Scalar	sqr_d_right = squared_distance_recursive(distancer, right_node_idx, low_sqr_d, up_sqr_d, i_right, c_right);
+                Scalar	sqr_d_right = squared_distance_to_indexed_triangle_set_recursive(distancer, right_node_idx, low_sqr_d, up_sqr_d, i_right, c_right);
 				set_min(sqr_d_right, i_right, c_right);
 				looked_right = true;
 			};
@@ -494,13 +474,73 @@ namespace detail {
 
 } // namespace detail
 
+// Build a balanced AABB Tree over an indexed triangles set, balancing the tree
+// on centroids of the triangles.
+// Epsilon is applied to the bounding boxes of the AABB Tree to cope with numeric inaccuracies
+// during tree traversal.
+template<typename VertexType, typename IndexedFaceType>
+inline Tree<3, typename VertexType::Scalar> build_aabb_tree_over_indexed_triangle_set(
+	// Indexed triangle set - 3D vertices.
+	const std::vector<VertexType> 		&vertices, 
+	// Indexed triangle set - triangular faces, references to vertices.
+	const std::vector<IndexedFaceType> 	&faces)
+{
+    using 				 TreeType 		= Tree<3, typename VertexType::Scalar>;
+    using				 CoordType      = typename TreeType::CoordType;
+    using 				 VectorType	    = typename TreeType::VectorType;
+    using 				 BoundingBox 	= typename TreeType::BoundingBox;
+    static constexpr CoordType eps      = CoordType(1e-4);
+
+	struct InputType {
+        size_t 				idx()       const { return m_idx; }
+        const BoundingBox& 	bbox()      const { return m_bbox; }
+        const VectorType& 	centroid()  const { return m_centroid; }
+
+		size_t 		m_idx;
+		BoundingBox m_bbox;
+        VectorType 	m_centroid;
+	};
+
+	std::vector<InputType> input;
+	input.reserve(faces.size());
+    VectorType veps(eps, eps, eps);
+	for (size_t i = 0; i < faces.size(); ++ i) {
+        const IndexedFaceType &face = faces[i];
+		const VertexType &v1 = vertices[face(0)];
+		const VertexType &v2 = vertices[face(1)];
+		const VertexType &v3 = vertices[face(2)];
+		InputType n;
+        n.m_idx      = i;
+        n.m_centroid = (1./3.) * (v1 + v2 + v3);
+        n.m_bbox = BoundingBox(v1, v1);
+        n.m_bbox.extend(v2);
+        n.m_bbox.extend(v3);
+        n.m_bbox.min() -= veps;
+        n.m_bbox.max() += veps;
+        input.emplace_back(n);
+	}
+
+	TreeType out;
+	out.build(std::move(input));
+	return out;
+}
+
+// Find a first intersection of a ray with indexed triangle set.
+// Intersection test is calculated with the accuracy of VectorType::Scalar
+// even if the triangle mesh and the AABB Tree are built with floats.
 template<typename VertexType, typename IndexedFaceType, typename TreeType, typename VectorType>
 inline bool intersect_ray_first_hit(
+	// Indexed triangle set - 3D vertices.
 	const std::vector<VertexType> 		&vertices,
+	// Indexed triangle set - triangular faces, references to vertices.
 	const std::vector<IndexedFaceType> 	&faces,
+	// AABBTreeIndirect::Tree over vertices & faces, bounding boxes built with the accuracy of vertices.
 	const TreeType 						&tree,
+	// Origin of the ray.
 	const VectorType					&origin,
+	// Direction of the ray.
 	const VectorType 					&dir,
+	// First intersection of the ray with the indexed triangle set.
 	igl::Hit 							&hit)
 {
     using Scalar = typename VectorType::Scalar;
@@ -512,13 +552,24 @@ inline bool intersect_ray_first_hit(
         ray_intersector, size_t(0), std::numeric_limits<Scalar>::infinity(), hit);
 }
 
+// Find all intersections of a ray with indexed triangle set.
+// Intersection test is calculated with the accuracy of VectorType::Scalar
+// even if the triangle mesh and the AABB Tree are built with floats.
+// The output hits are sorted by the ray parameter.
+// If the ray intersects a shared edge of two triangles, hits for both triangles are returned.
 template<typename VertexType, typename IndexedFaceType, typename TreeType, typename VectorType>
 inline bool intersect_ray_all_hits(
+	// Indexed triangle set - 3D vertices.
 	const std::vector<VertexType> 		&vertices,
+	// Indexed triangle set - triangular faces, references to vertices.
 	const std::vector<IndexedFaceType> 	&faces,
+	// AABBTreeIndirect::Tree over vertices & faces, bounding boxes built with the accuracy of vertices.
 	const TreeType 						&tree,
+	// Origin of the ray.
 	const VectorType					&origin,
+	// Direction of the ray.
 	const VectorType 					&dir,
+	// All intersections of the ray with the indexed triangle set, sorted by parameter t.
 	std::vector<igl::Hit> 				&hits)
 {
     auto ray_intersector = detail::RayIntersectorHits<VertexType, IndexedFaceType, TreeType, VectorType> {
@@ -534,20 +585,31 @@ inline bool intersect_ray_all_hits(
 	return ! hits.empty();
 }
 
-// Closest point to triangle test will be performed with the accuracy of VectorType::Scalar.
+// Finding a closest triangle, its closest point and squared distance to the closest point
+// on a 3D indexed triangle set using a pre-built AABBTreeIndirect::Tree.
+// Closest point to triangle test will be performed with the accuracy of VectorType::Scalar
+// even if the triangle mesh and the AABB Tree are built with floats.
+// Returns squared distance to the closest point or -1 if the input is empty.
 template<typename VertexType, typename IndexedFaceType, typename TreeType, typename VectorType>
-inline typename VectorType::Scalar squared_distance(
+inline typename VectorType::Scalar squared_distance_to_indexed_triangle_set(
+	// Indexed triangle set - 3D vertices.
 	const std::vector<VertexType> 		&vertices,
+	// Indexed triangle set - triangular faces, references to vertices.
 	const std::vector<IndexedFaceType> 	&faces,
+	// AABBTreeIndirect::Tree over vertices & faces, bounding boxes built with the accuracy of vertices.
 	const TreeType 						&tree,
+	// Point to which the closest point on the indexed triangle set is searched for.
 	const VectorType					&point,
+	// Index of the closest triangle in faces.
 	size_t 								&hit_idx_out,
+	// Position of the closest point on the indexed triangle set.
 	Eigen::PlainObjectBase<VectorType>	&hit_point_out)
 {
     using Scalar = typename VectorType::Scalar;
     auto distancer = detail::IndexedTriangleSetDistancer<VertexType, IndexedFaceType, TreeType, VectorType>
         { vertices, faces, tree, point };
-    return detail::squared_distance_recursive(distancer, size_t(0), Scalar(0), std::numeric_limits<Scalar>::infinity(), hit_idx_out, hit_point_out);
+    return tree.empty() ? Scalar(-1) : 
+    	detail::squared_distance_to_indexed_triangle_set_recursive(distancer, size_t(0), Scalar(0), std::numeric_limits<Scalar>::infinity(), hit_idx_out, hit_point_out);
 }
 
 } // namespace AABBTreeIndirect
