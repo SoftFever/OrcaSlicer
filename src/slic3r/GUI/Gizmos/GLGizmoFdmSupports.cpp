@@ -120,6 +120,10 @@ void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
             mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix() *
             mv->get_matrix();
 
+        bool is_left_handed = trafo_matrix.matrix().determinant() < 0.;
+        if (is_left_handed)
+            glsafe(::glFrontFace(GL_CW));
+
         glsafe(::glPushMatrix());
         glsafe(::glMultMatrixd(trafo_matrix.data()));
 
@@ -130,6 +134,8 @@ void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
                 iva.render();
         }
         glsafe(::glPopMatrix());
+        if (is_left_handed)
+            glsafe(::glFrontFace(GL_CCW));
     }
     if (clipping_plane_active)
         glsafe(::glDisable(GL_CLIP_PLANE0));
