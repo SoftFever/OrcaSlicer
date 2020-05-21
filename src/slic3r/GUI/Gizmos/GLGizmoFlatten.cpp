@@ -236,7 +236,7 @@ void GLGizmoFlatten::update_planes()
             discard = true;
         else {
             // We also check the inner angles and discard polygons with angles smaller than the following threshold
-            constexpr double angle_threshold = ::cos(10.0 * (double)PI / 180.0);
+            const double angle_threshold = ::cos(10.0 * (double)PI / 180.0);
 
             for (unsigned int i = 0; i < polygon.size(); ++i) {
                 const Vec3d& prec = polygon[(i == 0) ? polygon.size() - 1 : i - 1];
