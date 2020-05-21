@@ -124,6 +124,12 @@ public:
             // set value to _true_ in purpose of possibility of a display dpi changing from System Settings
                 m_can_rescale = true;
         });
+
+        this->Bind(wxEVT_SYS_COLOUR_CHANGED, [this](wxSysColourChangedEvent& event)
+        {
+            event.Skip();
+            on_sys_color_changed();
+        });
     }
 
     virtual ~DPIAware() {}
@@ -137,6 +143,7 @@ public:
 
 protected:
     virtual void on_dpi_changed(const wxRect &suggested_rect) = 0;
+    virtual void on_sys_color_changed() {};
 
 private:
     float m_scale_factor;

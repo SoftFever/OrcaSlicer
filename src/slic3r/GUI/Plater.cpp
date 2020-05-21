@@ -1090,6 +1090,34 @@ void Sidebar::msw_rescale()
     p->scrolled->Layout();
 }
 
+void Sidebar::sys_color_changed()
+{
+    // Update preset comboboxes in respect to the system color ...
+    // combo->msw_rescale() updates icon on button, so use it
+    for (PresetComboBox* combo : std::vector<PresetComboBox*>{  p->combo_print,
+                                                                p->combo_sla_print,
+                                                                p->combo_sla_material,
+                                                                p->combo_printer })
+        combo->msw_rescale();
+    for (PresetComboBox* combo : p->combos_filament)
+        combo->msw_rescale();
+
+    // ... then refill them and set min size to correct layout of the sidebar
+    update_all_preset_comboboxes();
+
+    p->object_list->sys_color_changed();
+    p->object_manipulation->sys_color_changed();
+//    p->object_settings->msw_rescale();
+//    p->object_layers->msw_rescale();
+
+    // btn...->msw_rescale() updates icon on button, so use it
+    p->btn_send_gcode->msw_rescale();
+    p->btn_remove_device->msw_rescale();
+    p->btn_export_gcode_removable->msw_rescale();
+
+    p->scrolled->Layout();
+}
+
 void Sidebar::search()
 {
     p->searcher.search();
@@ -5469,6 +5497,17 @@ void Plater::msw_rescale()
 
     p->sidebar->msw_rescale();
 
+    p->msw_rescale_object_menu();
+
+    Layout();
+    GetParent()->Layout();
+}
+
+void Plater::sys_color_changed()
+{
+    p->sidebar->sys_color_changed();
+
+    // msw_rescale_menu updates just icons, so use it
     p->msw_rescale_object_menu();
 
     Layout();

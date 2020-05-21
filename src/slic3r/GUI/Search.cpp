@@ -668,6 +668,14 @@ void SearchDialog::on_dpi_changed(const wxRect& suggested_rect)
     Refresh();
 }
 
+void SearchDialog::on_sys_color_changed()
+{
+    // msw_rescale updates just icons, so use it
+    search_list_model->msw_rescale();
+
+    Refresh();
+}
+
 // ----------------------------------------------------------------------------
 // SearchListModel
 // ----------------------------------------------------------------------------

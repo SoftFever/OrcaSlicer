@@ -590,6 +590,18 @@ void TabPrinter::msw_rescale()
     Layout();
 }
 
+void TabPrinter::sys_color_changed() 
+{
+    Tab::sys_color_changed();
+
+    // update missed options_groups
+    const std::vector<PageShp>& pages = m_printer_technology == ptFFF ? m_pages_sla : m_pages_fff;
+    for (auto page : pages)
+        page->msw_rescale();
+
+    Layout();
+}
+
 void TabSLAMaterial::init_options_list()
 {
     if (!m_options_list.empty())
@@ -863,6 +875,41 @@ void Tab::msw_rescale()
     m_treectrl->AssignImageList(m_icons);
 
     // rescale options_groups
+    for (auto page : m_pages)
+        page->msw_rescale();
+
+    Layout();
+}
+
+void Tab::sys_color_changed()
+{
+    update_tab_ui();
+
+    // update buttons and cached bitmaps
+    for (const auto btn : m_scaled_buttons)
+        btn->msw_rescale();
+    for (const auto bmp : m_scaled_bitmaps)
+        bmp->msw_rescale();
+    for (ScalableBitmap& bmp : m_mode_bitmap_cache)
+        bmp.msw_rescale();
+
+    // update icons for tree_ctrl
+    for (ScalableBitmap& bmp : m_scaled_icons_list)
+        bmp.msw_rescale();
+    // recreate and set new ImageList for tree_ctrl
+    m_icons->RemoveAll();
+    m_icons = new wxImageList(m_scaled_icons_list.front().bmp().GetWidth(), m_scaled_icons_list.front().bmp().GetHeight());
+    for (ScalableBitmap& bmp : m_scaled_icons_list)
+        m_icons->Add(bmp.bmp());
+    m_treectrl->AssignImageList(m_icons);
+
+
+    // Colors for ui "decoration"
+    m_sys_label_clr = wxGetApp().get_label_clr_sys();
+    m_modified_label_clr = wxGetApp().get_label_clr_modified();
+    update_labels_colour();
+
+    // update options_groups
     for (auto page : m_pages)
         page->msw_rescale();
 

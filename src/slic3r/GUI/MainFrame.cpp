@@ -190,6 +190,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
         event.Skip();
     });
 
+    /*
     Bind(wxEVT_SYS_COLOUR_CHANGED, [this](wxSysColourChangedEvent& event)
     {
         bool recreate_gui = false;
@@ -210,6 +211,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
             wxGetApp().recreate_GUI(_L("Changing of an application in respect to the system mode") + dots);
         event.Skip();
     });
+    */
 
     wxGetApp().persist_window_geometry(this, true);
 
@@ -573,6 +575,28 @@ void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
     this->SetSize(sz);
 
     this->Maximize(is_maximized);
+}
+
+void MainFrame::on_sys_color_changed()
+{
+    wxBusyCursor wait;
+
+    // update label colors in respect to the system mode
+    wxGetApp().init_label_colours();
+
+    wxGetApp().preset_bundle->load_default_preset_bitmaps();
+
+    // update Plater
+    wxGetApp().plater()->sys_color_changed();
+
+    // update Tabs
+    for (auto tab : wxGetApp().tabs_list)
+        tab->sys_color_changed();
+
+    // msw_rescale_menu updates just icons, so use it
+    wxMenuBar* menu_bar = this->GetMenuBar();
+    for (size_t id = 0; id < menu_bar->GetMenuCount(); id++)
+        msw_rescale_menu(menu_bar->GetMenu(id));
 }
 
 void MainFrame::init_menubar()
