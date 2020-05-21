@@ -122,7 +122,9 @@ public:
     }
 
     WipeTowerWriter&            disable_linear_advance() {
-        m_gcode += (m_gcode_flavor == gcfRepRap ? std::string("M572 D0 S0\n") : std::string("M900 K0\n"));
+        m_gcode += (m_gcode_flavor == gcfRepRap
+                        ? (std::string("M572 D") + std::to_string(m_current_tool) + " S0\n")
+                        : std::string("M900 K0\n"));
         return *this;
     }
 

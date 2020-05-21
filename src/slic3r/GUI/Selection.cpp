@@ -17,7 +17,7 @@
 #include <boost/log/trivial.hpp>
 #endif // ENABLE_GCODE_VIEWER
 
-static const float UNIFORM_SCALE_COLOR[3] = { 1.0f, 0.38f, 0.0f };
+static const float UNIFORM_SCALE_COLOR[4] = { 0.923f, 0.504f, 0.264f, 1.0f };
 
 namespace Slic3r {
 namespace GUI {
@@ -1348,35 +1348,11 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, const Sha
     }
 
     if (boost::starts_with(sidebar_field, "position"))
-#if ENABLE_SHADERS_MANAGER
-#if ENABLE_GCODE_VIEWER
-        render_sidebar_position_hints(sidebar_field, *shader);
-#else
         render_sidebar_position_hints(sidebar_field);
-#endif // ENABLE_GCODE_VIEWER
-#else
-        render_sidebar_position_hints(sidebar_field);
-#endif // ENABLE_SHADERS_MANAGER
     else if (boost::starts_with(sidebar_field, "rotation"))
-#if ENABLE_SHADERS_MANAGER
-#if ENABLE_GCODE_VIEWER
-        render_sidebar_rotation_hints(sidebar_field, *shader);
-#else
         render_sidebar_rotation_hints(sidebar_field);
-#endif // ENABLE_GCODE_VIEWER
-#else
-        render_sidebar_rotation_hints(sidebar_field);
-#endif // ENABLE_SHADERS_MANAGER
     else if (boost::starts_with(sidebar_field, "scale") || boost::starts_with(sidebar_field, "size"))
-#if ENABLE_SHADERS_MANAGER
-#if ENABLE_GCODE_VIEWER
-        render_sidebar_scale_hints(sidebar_field, *shader);
-#else
         render_sidebar_scale_hints(sidebar_field);
-#endif // ENABLE_GCODE_VIEWER
-#else
-        render_sidebar_scale_hints(sidebar_field);
-#endif // ENABLE_SHADERS_MANAGER
     else if (boost::starts_with(sidebar_field, "layer"))
         render_sidebar_layers_hints(sidebar_field);
 
@@ -1999,12 +1975,16 @@ void Selection::render_bounding_box(const BoundingBoxf3& box, float* color) cons
 }
 
 #if ENABLE_GCODE_VIEWER
-#if ENABLE_SHADERS_MANAGER
-void Selection::render_sidebar_position_hints(const std::string& sidebar_field, GLShaderProgram& shader) const
-#else
 void Selection::render_sidebar_position_hints(const std::string& sidebar_field) const
-#endif // ENABLE_SHADERS_MANAGER
 {
+#if ENABLE_SHADERS_MANAGER
+    auto set_color = [](Axis axis) {
+        GLShaderProgram* shader = wxGetApp().get_current_shader();
+        if (shader != nullptr)
+            shader->set_uniform("uniform_color", AXES_COLOR[axis], 4);
+    };
+#endif // ENABLE_SHADERS_MANAGER
+
 #if !ENABLE_SHADERS_MANAGER
     GLint color_id = ::glGetUniformLocation(m_arrows_shader.get_shader_program_id(), "uniform_color");
 #endif // !ENABLE_SHADERS_MANAGER
@@ -2012,7 +1992,7 @@ void Selection::render_sidebar_position_hints(const std::string& sidebar_field) 
     if (boost::ends_with(sidebar_field, "x"))
     {
 #if ENABLE_SHADERS_MANAGER
-        shader.set_uniform("uniform_color", AXES_COLOR[0], 4);
+        set_color(X);
 #else
         if (color_id >= 0)
             glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)AXES_COLOR[0]));
@@ -2024,7 +2004,7 @@ void Selection::render_sidebar_position_hints(const std::string& sidebar_field) 
     else if (boost::ends_with(sidebar_field, "y"))
     {
 #if ENABLE_SHADERS_MANAGER
-        shader.set_uniform("uniform_color", AXES_COLOR[1], 4);
+        set_color(Y);
 #else
         if (color_id >= 0)
             glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)AXES_COLOR[1]));
@@ -2035,7 +2015,7 @@ void Selection::render_sidebar_position_hints(const std::string& sidebar_field) 
     else if (boost::ends_with(sidebar_field, "z"))
     {
 #if ENABLE_SHADERS_MANAGER
-        shader.set_uniform("uniform_color", AXES_COLOR[2], 4);
+        set_color(Z);
 #else
         if (color_id >= 0)
             glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)AXES_COLOR[2]));
@@ -2064,12 +2044,16 @@ void Selection::render_sidebar_position_hints(const std::string& sidebar_field) 
 #endif // ENABLE_GCODE_VIEWER
 
 #if ENABLE_GCODE_VIEWER
-#if ENABLE_SHADERS_MANAGER
-void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field, GLShaderProgram& shader) const
-#else
 void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) const
-#endif // ENABLE_SHADERS_MANAGER
 {
+#if ENABLE_SHADERS_MANAGER
+    auto set_color = [](Axis axis) {
+        GLShaderProgram* shader = wxGetApp().get_current_shader();
+        if (shader != nullptr)
+            shader->set_uniform("uniform_color", AXES_COLOR[axis], 4);
+    };
+#endif // ENABLE_SHADERS_MANAGER
+
 #if !ENABLE_SHADERS_MANAGER
     GLint color_id = ::glGetUniformLocation(m_arrows_shader.get_shader_program_id(), "uniform_color");
 #endif // !ENABLE_SHADERS_MANAGER
@@ -2077,7 +2061,7 @@ void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) 
     if (boost::ends_with(sidebar_field, "x"))
     {
 #if ENABLE_SHADERS_MANAGER
-        shader.set_uniform("uniform_color", AXES_COLOR[0], 4);
+        set_color(X);
 #else
         if (color_id >= 0)
             glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)AXES_COLOR[0]));
@@ -2089,7 +2073,7 @@ void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) 
     else if (boost::ends_with(sidebar_field, "y"))
     {
 #if ENABLE_SHADERS_MANAGER
-        shader.set_uniform("uniform_color", AXES_COLOR[1], 4);
+        set_color(Y);
 #else
         if (color_id >= 0)
             glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)AXES_COLOR[1]));
@@ -2101,7 +2085,7 @@ void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) 
     else if (boost::ends_with(sidebar_field, "z"))
     {
 #if ENABLE_SHADERS_MANAGER
-        shader.set_uniform("uniform_color", AXES_COLOR[2], 4);
+        set_color(Z);
 #else
         if (color_id >= 0)
             glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)AXES_COLOR[2]));
@@ -2128,52 +2112,7 @@ void Selection::render_sidebar_rotation_hints(const std::string & sidebar_field)
 }
 #endif // ENABLE_GCODE_VIEWER
 
-#if ENABLE_GCODE_VIEWER
-#if ENABLE_SHADERS_MANAGER
-void Selection::render_sidebar_scale_hints(const std::string& sidebar_field, GLShaderProgram& shader) const
-#else
 void Selection::render_sidebar_scale_hints(const std::string& sidebar_field) const
-#endif // ENABLE_SHADERS_MANAGER
-{
-    bool uniform_scale = requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling();
-
-    if (boost::ends_with(sidebar_field, "x") || uniform_scale)
-    {
-        glsafe(::glPushMatrix());
-        glsafe(::glRotated(-90.0, 0.0, 0.0, 1.0));
-#if ENABLE_SHADERS_MANAGER
-        render_sidebar_scale_hint(X, shader);
-#else
-        render_sidebar_scale_hint(X);
-#endif // ENABLE_SHADERS_MANAGER
-        glsafe(::glPopMatrix());
-    }
-
-    if (boost::ends_with(sidebar_field, "y") || uniform_scale)
-    {
-        glsafe(::glPushMatrix());
-#if ENABLE_SHADERS_MANAGER
-        render_sidebar_scale_hint(Y, shader);
-#else
-        render_sidebar_scale_hint(Y);
-#endif // ENABLE_SHADERS_MANAGER
-        glsafe(::glPopMatrix());
-    }
-
-    if (boost::ends_with(sidebar_field, "z") || uniform_scale)
-    {
-        glsafe(::glPushMatrix());
-        glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
-#if ENABLE_SHADERS_MANAGER
-        render_sidebar_scale_hint(Z, shader);
-#else
-        render_sidebar_scale_hint(Z);
-#endif // ENABLE_SHADERS_MANAGER
-        glsafe(::glPopMatrix());
-    }
-}
-#else
-void Selection::render_sidebar_scale_hints(const std::string & sidebar_field) const
 {
     bool uniform_scale = requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling();
 
@@ -2200,7 +2139,6 @@ void Selection::render_sidebar_scale_hints(const std::string & sidebar_field) co
         glsafe(::glPopMatrix());
     }
 }
-#endif // ENABLE_GCODE_VIEWER
 
 void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) const
 {
@@ -2293,18 +2231,16 @@ void Selection::render_sidebar_rotation_hint(Axis axis) const
 }
 
 #if ENABLE_SHADERS_MANAGER
-#if ENABLE_GCODE_VIEWER
-void Selection::render_sidebar_scale_hint(Axis axis, GLShaderProgram& shader) const
-#else
 void Selection::render_sidebar_scale_hint(Axis axis) const
-#endif // ENABLE_GCODE_VIEWER
 #else
 void Selection::render_sidebar_scale_hint(Axis axis) const
 #endif // ENABLE_SHADERS_MANAGER
 {
 #if ENABLE_GCODE_VIEWER
 #if ENABLE_SHADERS_MANAGER
-    shader.set_uniform("uniform_color", (requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling()) ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis], 4);
+    GLShaderProgram* shader = wxGetApp().get_current_shader();
+    if (shader != nullptr)
+        shader->set_uniform("uniform_color", (requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling()) ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis], 4);
 #else
     GLint color_id = ::glGetUniformLocation(m_arrows_shader.get_shader_program_id(), "uniform_color");
 

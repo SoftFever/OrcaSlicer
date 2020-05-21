@@ -30,7 +30,7 @@ std::pair<bool, std::string> GLShadersManager::init()
 
     bool valid = true;
 
-    // used to render bed axes, selection hints
+    // used to render bed axes and model, selection hints, gcode sequential view marker model
     valid &= append_shader("gouraud_light", { "gouraud_light.vs", "gouraud_light.fs" });
     // used to render printbed
     valid &= append_shader("printbed", { "printbed.vs", "printbed.fs" });
@@ -62,8 +62,7 @@ std::pair<bool, std::string> GLShadersManager::init()
 
 void GLShadersManager::shutdown()
 {
-    for (std::unique_ptr<GLShaderProgram>& shader : m_shaders)
-    {
+    for (std::unique_ptr<GLShaderProgram>& shader : m_shaders) {
         shader.reset();
     }
 }

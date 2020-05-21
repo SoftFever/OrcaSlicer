@@ -869,9 +869,12 @@ void Control::draw_cog_icon(wxDC& dc)
     m_rect_cog_icon = wxRect(x_draw, y_draw, m_cog_icon_dim, m_cog_icon_dim);
 }
 
-void Control::update_thumb_rect(const wxCoord& begin_x, const wxCoord& begin_y, const SelectedSlider& selection)
+void Control::update_thumb_rect(const wxCoord begin_x, const wxCoord begin_y, const SelectedSlider& selection)
 {
-    const wxRect& rect = wxRect(begin_x, begin_y + (selection == ssLower ? int(m_thumb_size.y * 0.5) : 0), m_thumb_size.x, int(m_thumb_size.y*0.5));
+    const wxRect rect = is_horizontal() ?
+        wxRect(begin_x + (selection == ssHigher ? m_thumb_size.x / 2 : 0), begin_y, m_thumb_size.x / 2, m_thumb_size.y) :
+        wxRect(begin_x, begin_y + (selection == ssLower ? m_thumb_size.y / 2 : 0), m_thumb_size.x, m_thumb_size.y / 2);
+
     if (selection == ssLower)
         m_rect_lower_thumb = rect;
     else
