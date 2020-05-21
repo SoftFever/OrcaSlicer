@@ -281,6 +281,7 @@ public:
 
     // This method could only be called before the meshes of this ModelVolumes are not shared!
     void scale_mesh_after_creation(const Vec3d& versor);
+    void convert_units(ModelObjectPtrs&new_objects, bool from_imperial, std::vector<int> volume_idxs);
 
     size_t materials_count() const;
     size_t facets_count() const;

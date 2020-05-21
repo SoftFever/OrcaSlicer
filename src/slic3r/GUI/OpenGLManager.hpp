@@ -96,8 +96,8 @@ public:
     wxGLContext* init_glcontext(wxGLCanvas& canvas);
 
 #if ENABLE_SHADERS_MANAGER
-    // returns nullptr if not found
     GLShaderProgram* get_shader(const std::string& shader_name) { return m_shaders_manager.get_shader(shader_name); }
+    GLShaderProgram* get_current_shader() { return m_shaders_manager.get_current_shader(); }
 #endif // ENABLE_SHADERS_MANAGER
 
     static bool are_compressed_textures_supported() { return s_compressed_textures_supported; }

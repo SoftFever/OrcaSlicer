@@ -210,6 +210,7 @@ public:
 
     // Get obj_idx and vol_idx values for the selected (by default) or an adjusted item
     void                get_selected_item_indexes(int& obj_idx, int& vol_idx, const wxDataViewItem& item = wxDataViewItem(0));
+    void                get_selection_indexes(std::vector<int>& obj_idxs, std::vector<int>& vol_idxs);
     // Get count of errors in the mesh
     int                 get_mesh_errors_count(const int obj_idx, const int vol_idx = -1) const;
     /* Get list of errors in the mesh. Return value is a string, used for the tooltip
@@ -252,6 +253,7 @@ public:
     void                append_menu_item_change_extruder(wxMenu* menu);
     void                append_menu_item_delete(wxMenu* menu);
     void                append_menu_item_scale_selection_to_fit_print_volume(wxMenu* menu);
+    void                append_menu_items_convert_unit(wxMenu* menu);
     void                create_object_popupmenu(wxMenu *menu);
     void                create_sla_object_popupmenu(wxMenu*menu);
     void                create_part_popupmenu(wxMenu*menu);

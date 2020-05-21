@@ -993,6 +993,56 @@ void ModelObject::scale_mesh_after_creation(const Vec3d &versor)
     this->invalidate_bounding_box();
 }
 
+void ModelObject::convert_units(ModelObjectPtrs& new_objects, bool from_imperial, std::vector<int> volume_idxs)
+{
+    BOOST_LOG_TRIVIAL(trace) << "ModelObject::convert_units - start";
+
+    ModelObject* new_object = new_clone(*this);
+
+    double koef = from_imperial ? 25.4 : 0.0393700787;
+    const Vec3d versor = Vec3d(koef, koef, koef);
+
+    new_object->set_model(nullptr);
+    new_object->sla_support_points.clear();
+    new_object->sla_drain_holes.clear();
+    new_object->sla_points_status = sla::PointsStatus::NoPoints;
+    new_object->clear_volumes();
+    new_object->input_file.clear();
+
+    int vol_idx = 0;
+    for (ModelVolume* volume : volumes)
+    {
+        volume->m_supported_facets.clear();
+        if (!volume->mesh().empty()) {
+            TriangleMesh mesh(volume->mesh());
+            mesh.require_shared_vertices();
+
+            ModelVolume* vol = new_object->add_volume(mesh);
+            vol->name = volume->name;
+            // Don't copy the config's ID.
+            static_cast<DynamicPrintConfig&>(vol->config) = static_cast<const DynamicPrintConfig&>(volume->config);
+            assert(vol->config.id().valid());
+            assert(vol->config.id() != volume->config.id());
+            vol->set_material(volume->material_id(), *volume->material());
+
+            // Perform conversion
+            if (volume_idxs.empty() || 
+                std::find(volume_idxs.begin(), volume_idxs.end(), vol_idx) != volume_idxs.end()) {
+                vol->scale_geometry_after_creation(versor);
+                vol->set_offset(versor.cwiseProduct(vol->get_offset()));
+            }
+            else
+                vol->set_offset(volume->get_offset());
+        }
+        vol_idx ++;
+    }
+    new_object->invalidate_bounding_box();
+
+    new_objects.push_back(new_object);
+
+    BOOST_LOG_TRIVIAL(trace) << "ModelObject::convert_units - end";
+}
+
 size_t ModelObject::materials_count() const
 {
     std::set<t_model_material_id> material_ids;

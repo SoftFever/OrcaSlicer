@@ -1,8 +1,11 @@
 #include "libslic3r/libslic3r.h"
 #include "GLShadersManager.hpp"
+#include "3DScene.hpp"
 
 #include <cassert>
 #include <algorithm>
+
+#include <GL/glew.h>
 
 #if ENABLE_SHADERS_MANAGER
 
@@ -68,6 +71,17 @@ void GLShadersManager::shutdown()
 GLShaderProgram* GLShadersManager::get_shader(const std::string& shader_name)
 {
     auto it = std::find_if(m_shaders.begin(), m_shaders.end(), [shader_name](std::unique_ptr<GLShaderProgram>& p) { return p->get_name() == shader_name; });
+    return (it != m_shaders.end()) ? it->get() : nullptr;
+}
+
+GLShaderProgram* GLShadersManager::get_current_shader()
+{
+    GLint id = 0;
+    glsafe(::glGetIntegerv(GL_CURRENT_PROGRAM, &id));
+    if (id == 0)
+        return false;
+
+    auto it = std::find_if(m_shaders.begin(), m_shaders.end(), [id](std::unique_ptr<GLShaderProgram>& p) { return p->get_id() == id; });
     return (it != m_shaders.end()) ? it->get() : nullptr;
 }
 

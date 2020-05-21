@@ -1,6 +1,10 @@
 #include <GL/glew.h>
 
 #include "3DScene.hpp"
+#if ENABLE_SHADERS_MANAGER
+#include "GLShader.hpp"
+#include "GUI_App.hpp"
+#endif // ENABLE_SHADERS_MANAGER
 
 #include "libslic3r/ExtrusionEntity.hpp"
 #include "libslic3r/ExtrusionEntityCollection.hpp"
@@ -640,6 +644,12 @@ GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCo
 
 void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func) const
 {
+#if ENABLE_SHADERS_MANAGER
+    GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
+    if (shader == nullptr)
+        return;
+#endif // ENABLE_SHADERS_MANAGER
+
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
@@ -650,6 +660,15 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
     glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
     glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
  
+#if ENABLE_SHADERS_MANAGER
+    shader->set_uniform("print_box.min", m_print_box_min, 3);
+    shader->set_uniform("print_box.max", m_print_box_max, 3);
+    shader->set_uniform("z_range", m_z_range, 2);
+    shader->set_uniform("clipping_plane", m_clipping_plane, 4);
+#if ENABLE_SLOPE_RENDERING
+    shader->set_uniform("slope.z_range", m_slope.z_range);
+#endif // ENABLE_SLOPE_RENDERING
+#else
     GLint current_program_id;
     glsafe(::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id));
     GLint color_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "uniform_color") : -1;
@@ -684,11 +703,19 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
     if (slope_z_range_id != -1)
         glsafe(::glUniform2fv(slope_z_range_id, 1, (const GLfloat*)m_slope.z_range.data()));
 #endif // ENABLE_SLOPE_RENDERING
+#endif // ENABLE_SHADERS_MANAGER
 
     GLVolumeWithIdAndZList to_render = volumes_to_render(this->volumes, type, view_matrix, filter_func);
     for (GLVolumeWithIdAndZ& volume : to_render) {
         volume.first->set_render_color();
 #if ENABLE_SLOPE_RENDERING
+#if ENABLE_SHADERS_MANAGER
+        shader->set_uniform("uniform_color", volume.first->render_color, 4);
+        shader->set_uniform("print_box.actived", volume.first->shader_outside_printer_detection_enabled);
+        shader->set_uniform("print_box.volume_world_matrix", volume.first->world_matrix());
+        shader->set_uniform("slope.actived", m_slope.active && !volume.first->is_modifier && !volume.first->is_wipe_tower);
+        shader->set_uniform("slope.volume_world_normal_matrix", volume.first->world_matrix().matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>());
+#else
         if (color_id >= 0)
             glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)volume.first->render_color));
         else
@@ -708,6 +735,7 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
             Matrix3f normal_matrix = volume.first->world_matrix().matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>();
             glsafe(::glUniformMatrix3fv(slope_normal_matrix_id, 1, GL_FALSE, (const GLfloat*)normal_matrix.data()));
         }
+#endif // ENABLE_SHADERS_MANAGER
 
         volume.first->render();
 #else
@@ -1912,6 +1940,12 @@ void GLModel::reset()
 
 void GLModel::render() const
 {
+#if ENABLE_SHADERS_MANAGER
+    GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
+    if (shader == nullptr)
+        return;
+#endif // ENABLE_SHADERS_MANAGER
+
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
@@ -1919,16 +1953,22 @@ void GLModel::render() const
     glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
     glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
 
+#if !ENABLE_SHADERS_MANAGER
     GLint current_program_id;
     glsafe(::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id));
     GLint color_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "uniform_color") : -1;
     glcheck();
+#endif // !ENABLE_SHADERS_MANAGER
 
 #if ENABLE_SLOPE_RENDERING
+#if ENABLE_SHADERS_MANAGER
+    shader->set_uniform("uniform_color", m_volume.render_color, 4);
+#else
     if (color_id >= 0)
         glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)m_volume.render_color));
     else
         glsafe(::glColor4fv(m_volume.render_color));
+#endif // ENABLE_SHADERS_MANAGER
 
     m_volume.render();
 #else
