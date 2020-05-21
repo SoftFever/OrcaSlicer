@@ -385,35 +385,15 @@ private:
     void render_selected_volumes() const;
     void render_synchronized_volumes() const;
     void render_bounding_box(const BoundingBoxf3& box, float* color) const;
-#if ENABLE_SHADERS_MANAGER
-#if ENABLE_GCODE_VIEWER
-    void render_sidebar_position_hints(const std::string& sidebar_field, GLShaderProgram& shader) const;
-    void render_sidebar_rotation_hints(const std::string& sidebar_field, GLShaderProgram& shader) const;
-    void render_sidebar_scale_hints(const std::string& sidebar_field, GLShaderProgram& shader) const;
-#else
     void render_sidebar_position_hints(const std::string& sidebar_field) const;
     void render_sidebar_rotation_hints(const std::string& sidebar_field) const;
     void render_sidebar_scale_hints(const std::string& sidebar_field) const;
-#endif // ENABLE_GCODE_VIEWER
-#else
-    void render_sidebar_position_hints(const std::string& sidebar_field) const;
-    void render_sidebar_rotation_hints(const std::string& sidebar_field) const;
-    void render_sidebar_scale_hints(const std::string& sidebar_field) const;
-#endif // ENABLE_SHADERS_MANAGER
     void render_sidebar_layers_hints(const std::string& sidebar_field) const;
 #if !ENABLE_GCODE_VIEWER
     void render_sidebar_position_hint(Axis axis) const;
 #endif // !ENABLE_GCODE_VIEWER
     void render_sidebar_rotation_hint(Axis axis) const;
-#if ENABLE_SHADERS_MANAGER
-#if ENABLE_GCODE_VIEWER
-    void render_sidebar_scale_hint(Axis axis, GLShaderProgram& shader) const;
-#else
     void render_sidebar_scale_hint(Axis axis) const;
-#endif // ENABLE_GCODE_VIEWER
-#else
-    void render_sidebar_scale_hint(Axis axis) const;
-#endif // ENABLE_SHADERS_MANAGER
 
 public:
     enum SyncRotationType {
