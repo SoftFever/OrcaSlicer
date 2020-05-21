@@ -37,17 +37,19 @@ public:
     const std::string& get_name() const { return m_name; }
     unsigned int get_id() const { return m_id; }
 
-    bool start_using() const;
+    void start_using() const;
     void stop_using() const;
 
     bool set_uniform(const char* name, int value) const;
     bool set_uniform(const char* name, bool value) const;
     bool set_uniform(const char* name, float value) const;
+    bool set_uniform(const char* name, const std::array<float, 2>& value) const;
     bool set_uniform(const char* name, const std::array<float, 3>& value) const;
     bool set_uniform(const char* name, const std::array<float, 4>& value) const;
     bool set_uniform(const char* name, const float* value, size_t size) const;
     bool set_uniform(const char* name, const Transform3f& value) const;
     bool set_uniform(const char* name, const Transform3d& value) const;
+    bool set_uniform(const char* name, const Matrix3f& value) const;
 
     // returns -1 if not found
     int get_attrib_location(const char* name) const;

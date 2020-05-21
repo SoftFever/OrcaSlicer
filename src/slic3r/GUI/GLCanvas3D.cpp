@@ -490,16 +490,16 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const G
     assert(this->last_object_id != -1);
 #if ENABLE_SHADERS_MANAGER
     GLShaderProgram* shader = wxGetApp().get_shader("variable_layer_height");
-    assert(shader != nullptr);
+    if (shader == nullptr)
+        return;
 
-    GLint current_program_id = 0;
-    glsafe(::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id));
-    if (shader->get_id() != static_cast<GLuint>(current_program_id))
+    GLShaderProgram* current_shader = wxGetApp().get_current_shader();
+    if (shader->get_id() != current_shader->get_id())
         // The layer editing shader is not yet active. Activate it.
         shader->start_using();
     else
         // The layer editing shader was already active.
-        current_program_id = 0;
+        current_shader = nullptr;
 
     const_cast<LayersEditing*>(this)->generate_layer_height_texture();
 
@@ -528,7 +528,6 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const G
     GLint world_matrix_id = ::glGetUniformLocation(shader_id, "volume_world_matrix");
     GLint object_max_z_id = ::glGetUniformLocation(shader_id, "object_max_z");
     glcheck();
-
 
     if (z_to_texture_row_id != -1 && z_texture_row_to_normalized_id != -1 && z_cursor_id != -1 && z_cursor_band_width_id != -1 && world_matrix_id != -1)
     {
@@ -568,9 +567,12 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const G
         }
         // Revert back to the previous shader.
         glBindTexture(GL_TEXTURE_2D, 0);
+#if ENABLE_SHADERS_MANAGER
+        if (current_shader != nullptr)
+            current_shader->start_using();
+#else
         if (current_program_id > 0)
             glsafe(::glUseProgram(current_program_id));
-#if !ENABLE_SHADERS_MANAGER
     }
     else 
     {
@@ -584,7 +586,7 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const G
 			glvolume->render();
 		}
 	}
-#endif // !ENABLE_SHADERS_MANAGER
+#endif // ENABLE_SHADERS_MANAGER
 }
 
 void GLCanvas3D::LayersEditing::adjust_layer_height_profile()

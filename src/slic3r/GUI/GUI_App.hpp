@@ -218,8 +218,8 @@ public:
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG
 
 #if ENABLE_SHADERS_MANAGER
-    // returns nullptr if not found
     GLShaderProgram* get_shader(const std::string& shader_name) { return m_opengl_mgr.get_shader(shader_name); }
+    GLShaderProgram* get_current_shader() { return m_opengl_mgr.get_current_shader(); }
 #endif // ENABLE_SHADERS_MANAGER
 
 private:
@@ -240,6 +240,6 @@ private:
 DECLARE_APP(GUI_App)
 
 } // GUI
-} //Slic3r
+} // Slic3r
 
 #endif // slic3r_GUI_App_hpp_

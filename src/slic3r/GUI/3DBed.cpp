@@ -196,15 +196,18 @@ void Bed3D::Axes::render() const
     shader->start_using();
 
     // x axis
-    shader->set_uniform("uniform_color", { 0.75f, 0.0f, 0.0f, 1.0f });
+    std::array<float, 4> color = { 0.75f, 0.0f, 0.0f, 1.0f };
+    shader->set_uniform("uniform_color", color);
     render_axis(Geometry::assemble_transform(m_origin, { 0.0, 0.5 * M_PI, 0.0f }).cast<float>());
 
     // y axis
-    shader->set_uniform("uniform_color", { 0.0f, 0.75f, 0.0f, 1.0f });
+    color = { 0.0f, 0.75f, 0.0f, 1.0f };
+    shader->set_uniform("uniform_color", color);
     render_axis(Geometry::assemble_transform(m_origin, { -0.5 * M_PI, 0.0, 0.0f }).cast<float>());
 
     // z axis
-    shader->set_uniform("uniform_color", { 0.0f, 0.0f, 0.75f, 1.0f });
+    color = { 0.0f, 0.0f, 0.75f, 1.0f };
+    shader->set_uniform("uniform_color", color);
     render_axis(Geometry::assemble_transform(m_origin).cast<float>());
 
     shader->stop_using();
@@ -676,9 +679,19 @@ void Bed3D::render_model() const
 
     if (!m_model.get_filename().empty())
     {
+#if ENABLE_SHADERS_MANAGER
+        GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+        if (shader != nullptr)
+        {
+            shader->start_using();
+            m_model.render();
+            shader->stop_using();
+        }
+#else
         glsafe(::glEnable(GL_LIGHTING));
         m_model.render();
         glsafe(::glDisable(GL_LIGHTING));
+#endif // ENABLE_SHADERS_MANAGER
     }
 }
 

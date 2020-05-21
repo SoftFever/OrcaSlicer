@@ -26,12 +26,6 @@ inline void glAssertRecentCall() { }
 #endif
 
 namespace Slic3r {
-namespace GUI {
-class Bed3D;
-struct Camera;
-class GLToolbar;
-} // namespace GUI
-
 class SLAPrintObject;
 enum  SLAPrintObjectStep : unsigned int;
 class DynamicPrintConfig;

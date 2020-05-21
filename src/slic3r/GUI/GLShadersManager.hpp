@@ -22,6 +22,9 @@ public:
 
     // returns nullptr if not found
     GLShaderProgram* get_shader(const std::string& shader_name);
+
+    // returns currently active shader, nullptr if none
+    GLShaderProgram* get_current_shader();
 };
 
 } // namespace Slic3r
