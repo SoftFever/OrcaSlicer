@@ -16,7 +16,8 @@ private:
     mutable Vec3d m_normal;
 
     struct PlaneData {
-        std::vector<Vec3d> vertices;
+        std::vector<Vec3d> vertices; // should be in fact local in update_planes()
+        GLIndexedVertexArray vbo;
         Vec3d normal;
         float area;
     };
