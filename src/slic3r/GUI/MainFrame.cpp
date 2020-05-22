@@ -97,7 +97,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     // Otherwise, MainFrame will be maximized by height
     if (slNew) {
         wxSize size = wxGetApp().get_min_size();
-        size.SetWidth(int(0.5*size.GetHeight()));
+        size.SetHeight(int(0.5*size.GetHeight()));
         m_plater->SetMinSize(size);
         m_tabpanel->SetMinSize(size);
     }

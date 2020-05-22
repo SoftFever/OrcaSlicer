@@ -578,8 +578,6 @@ void ConfigOptionsGroup::sys_color_changed()
 	// update undo buttons : rescale bitmaps
 	for (const auto& field : m_fields)
 		field.second->sys_color_changed();
-
-    m_grid_sizer->Layout();
 }
 
 boost::any ConfigOptionsGroup::config_value(const std::string& opt_key, int opt_index, bool deserialize) {

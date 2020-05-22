@@ -190,15 +190,13 @@ void Tab::create_preset_tab()
     add_scaled_button(panel, &m_search_btn, "search");
     m_search_btn->SetToolTip(format_wxstr(_L("Click to start a search or use %1% shortcut"), "Ctrl+F"));
 
-    // Determine the theme color of OS (dark or light)
-    auto luma = wxGetApp().get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
     // Bitmaps to be shown on the "Revert to system" aka "Lock to system" button next to each input field.
-    add_scaled_bitmap(this, m_bmp_value_lock  , luma >= 128 ? "lock_closed" : "lock_closed_white");
+    add_scaled_bitmap(this, m_bmp_value_lock  , "lock_closed");
     add_scaled_bitmap(this, m_bmp_value_unlock, "lock_open");
     m_bmp_non_system = &m_bmp_white_bullet;
     // Bitmaps to be shown on the "Undo user changes" button next to each input field.
     add_scaled_bitmap(this, m_bmp_value_revert, "undo");
-    add_scaled_bitmap(this, m_bmp_white_bullet, luma >= 128 ? "dot" : "dot_white");
+    add_scaled_bitmap(this, m_bmp_white_bullet, "dot");
 
     fill_icon_descriptions();
     set_tooltips_text();
