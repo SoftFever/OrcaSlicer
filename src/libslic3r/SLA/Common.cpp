@@ -184,42 +184,39 @@ void BoxIndex::foreach(std::function<void (const BoxIndexEl &)> fn)
 class EigenMesh3D::AABBImpl {
 private:
     AABBTreeIndirect::Tree3f m_tree;
-    TriangleMesh m_triangle_mesh; // FIXME: There should be no extra copy
-    // maybe even the m_V and m_F are extra. This is just to see the new
-    // AABB tree in action
+
 public:
-    void init(const TriangleMesh& tmesh)
+    void init(const TriangleMesh& tm)
     {
-        m_triangle_mesh = tmesh;
         m_tree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(
-                    m_triangle_mesh.its.vertices, m_triangle_mesh.its.indices);
+                    tm.its.vertices, tm.its.indices);
     }
 
-    void intersect_ray(const Eigen::MatrixXd&, const Eigen::MatrixXi&,
+    void intersect_ray(const TriangleMesh& tm,
                        const Vec3d& s, const Vec3d& dir, igl::Hit& hit)
     {
-        AABBTreeIndirect::intersect_ray_first_hit(m_triangle_mesh.its.vertices,
-                                                  m_triangle_mesh.its.indices,
+        AABBTreeIndirect::intersect_ray_first_hit(tm.its.vertices,
+                                                  tm.its.indices,
                                                   m_tree,
                                                   s, dir, hit);
     }
 
-    void intersect_ray(const Eigen::MatrixXd&, const Eigen::MatrixXi&,
+    void intersect_ray(const TriangleMesh& tm,
                        const Vec3d& s, const Vec3d& dir, std::vector<igl::Hit>& hits)
     {
-        AABBTreeIndirect::intersect_ray_all_hits(m_triangle_mesh.its.vertices,
-                                                 m_triangle_mesh.its.indices,
+        AABBTreeIndirect::intersect_ray_all_hits(tm.its.vertices,
+                                                 tm.its.indices,
                                                  m_tree,
                                                  s, dir, hits);
     }
 
-    double squared_distance(const Eigen::MatrixXd&, const Eigen::MatrixXi&,
+    double squared_distance(const TriangleMesh& tm,
                             const Vec3d& point, int& i, Eigen::Matrix<double, 1, 3>& closest) {
         size_t idx_unsigned = 0;
         Vec3d closest_vec3d(closest);
         double dist = AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
-                          m_triangle_mesh.its.vertices,
-                          m_triangle_mesh.its.indices,
+                          tm.its.vertices,
+                          tm.its.indices,
                           m_tree, point, idx_unsigned, closest_vec3d);
         i = int(idx_unsigned);
         closest = closest_vec3d;
@@ -276,11 +273,11 @@ trigger linking error when attempting to use it.
 }
 #endif
 
-EigenMesh3D::EigenMesh3D(const TriangleMesh& tmesh): m_aabb(new AABBImpl()) {
+EigenMesh3D::EigenMesh3D(const TriangleMesh& tmesh)
+    : m_aabb(new AABBImpl()), m_tm(tmesh)
+{
     auto&& bb = tmesh.bounding_box();
     m_ground_level += bb.min(Z);
-    
-    to_eigen_mesh(tmesh, m_V, m_F);
     
     // Build the AABB accelaration tree
     m_aabb->init(tmesh);
@@ -289,10 +286,10 @@ EigenMesh3D::EigenMesh3D(const TriangleMesh& tmesh): m_aabb(new AABBImpl()) {
 EigenMesh3D::~EigenMesh3D() {}
 
 EigenMesh3D::EigenMesh3D(const EigenMesh3D &other):
-    m_V(other.m_V), m_F(other.m_F), m_ground_level(other.m_ground_level),
+    m_tm(other.m_tm), m_ground_level(other.m_ground_level),
     m_aabb( new AABBImpl(*other.m_aabb) ) {}
 
-EigenMesh3D::EigenMesh3D(const Contour3D &other)
+/*EigenMesh3D::EigenMesh3D(const Contour3D &other)
 {
     m_V.resize(Eigen::Index(other.points.size()), 3);
     m_F.resize(Eigen::Index(other.faces3.size() + 2 * other.faces4.size()), 3);
@@ -310,12 +307,11 @@ EigenMesh3D::EigenMesh3D(const Contour3D &other)
         m_F.row(Eigen::Index(i)) = Vec3i{quad(0), quad(1), quad(2)};
         m_F.row(Eigen::Index(i + 1)) = Vec3i{quad(2), quad(3), quad(0)};
     }
-}
+}*/
 
 EigenMesh3D &EigenMesh3D::operator=(const EigenMesh3D &other)
 {
-    m_V = other.m_V;
-    m_F = other.m_F;
+    m_tm = other.m_tm;
     m_ground_level = other.m_ground_level;
     m_aabb.reset(new AABBImpl(*other.m_aabb)); return *this;
 }
@@ -333,13 +329,14 @@ EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
 
 #ifdef SLIC3R_HOLE_RAYCASTER
     if (! m_holes.empty()) {
+
         // If there are holes, the hit_results will be made by
         // query_ray_hits (object) and filter_hits (holes):
         return filter_hits(query_ray_hits(s, dir));
     }
 #endif
 
-    m_aabb->intersect_ray(m_V, m_F, s, dir, hit);
+    m_aabb->intersect_ray(m_tm, s, dir, hit);
     hit_result ret(*this);
     ret.m_t = double(hit.t);
     ret.m_dir = dir;
@@ -357,7 +354,7 @@ EigenMesh3D::query_ray_hits(const Vec3d &s, const Vec3d &dir) const
 {
     std::vector<EigenMesh3D::hit_result> outs;
     std::vector<igl::Hit> hits;
-    m_aabb->intersect_ray(m_V, m_F, s, dir, hits);
+    m_aabb->intersect_ray(m_tm, s, dir, hits);
     
     // The sort is necessary, the hits are not always sorted.
     std::sort(hits.begin(), hits.end(),
@@ -489,7 +486,7 @@ double EigenMesh3D::squared_distance(const Vec3d &p, int& i, Vec3d& c) const {
     double sqdst = 0;
     Eigen::Matrix<double, 1, 3> pp = p;
     Eigen::Matrix<double, 1, 3> cc;
-    sqdst = m_aabb->squared_distance(m_V, m_F, pp, i, cc);
+    sqdst = m_aabb->squared_distance(m_tm, pp, i, cc);
     c = cc;
     return sqdst;
 }
@@ -523,7 +520,7 @@ PointSet normals(const PointSet& points,
                  std::function<void()> thr, // throw on cancel
                  const std::vector<unsigned>& pt_indices)
 {
-    if (points.rows() == 0 || mesh.V().rows() == 0 || mesh.F().rows() == 0)
+    if (points.rows() == 0 || mesh.vertices().empty() || mesh.indices().empty())
         return {};
 
     std::vector<unsigned> range = pt_indices;
@@ -545,11 +542,11 @@ PointSet normals(const PointSet& points,
 
             mesh.squared_distance(points.row(eidx), faceid, p);
 
-            auto trindex = mesh.F().row(faceid);
+            auto trindex = mesh.indices(faceid);
 
-            const Vec3d &p1 = mesh.V().row(trindex(0));
-            const Vec3d &p2 = mesh.V().row(trindex(1));
-            const Vec3d &p3 = mesh.V().row(trindex(2));
+            const Vec3d &p1 = mesh.vertices(trindex(0)).cast<double>();
+            const Vec3d &p2 = mesh.vertices(trindex(1)).cast<double>();
+            const Vec3d &p3 = mesh.vertices(trindex(2)).cast<double>();
 
             // We should check if the point lies on an edge of the hosting
             // triangle. If it does then all the other triangles using the
@@ -584,17 +581,17 @@ PointSet normals(const PointSet& points,
             // vector for the neigboring triangles including the detected one.
             std::vector<Vec3i> neigh;
             if (ic >= 0) { // The point is right on a vertex of the triangle
-                for (int n = 0; n < mesh.F().rows(); ++n) {
+                for (size_t n = 0; n < mesh.indices().size(); ++n) {
                     thr();
-                    Vec3i ni = mesh.F().row(n);
+                    Vec3i ni = mesh.indices(n);
                     if ((ni(X) == ic || ni(Y) == ic || ni(Z) == ic))
                         neigh.emplace_back(ni);
                 }
             } else if (ia >= 0 && ib >= 0) { // the point is on and edge
                 // now get all the neigboring triangles
-                for (int n = 0; n < mesh.F().rows(); ++n) {
+                for (size_t n = 0; n < mesh.indices().size(); ++n) {
                     thr();
-                    Vec3i ni = mesh.F().row(n);
+                    Vec3i ni = mesh.indices(n);
                     if ((ni(X) == ia || ni(Y) == ia || ni(Z) == ia) &&
                         (ni(X) == ib || ni(Y) == ib || ni(Z) == ib))
                         neigh.emplace_back(ni);
@@ -605,9 +602,9 @@ PointSet normals(const PointSet& points,
             std::vector<Vec3d> neighnorms;
             neighnorms.reserve(neigh.size());
             for (const Vec3i &tri : neigh) {
-                const Vec3d &   pt1 = mesh.V().row(tri(0));
-                const Vec3d &   pt2 = mesh.V().row(tri(1));
-                const Vec3d &   pt3 = mesh.V().row(tri(2));
+                const Vec3d &   pt1 = mesh.vertices(tri(0)).cast<double>();
+                const Vec3d &   pt2 = mesh.vertices(tri(1)).cast<double>();
+                const Vec3d &   pt3 = mesh.vertices(tri(2)).cast<double>();
                 Eigen::Vector3d U   = pt2 - pt1;
                 Eigen::Vector3d V   = pt3 - pt1;
                 neighnorms.emplace_back(U.cross(V).normalized());

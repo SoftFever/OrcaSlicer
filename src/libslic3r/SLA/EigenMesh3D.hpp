@@ -2,6 +2,7 @@
 #define SLA_EIGENMESH3D_H
 
 #include <libslic3r/SLA/Common.hpp>
+#include <libslic3r/TriangleMesh.hpp>
 
 
 // There is an implementation of a hole-aware raycaster that was eventually
@@ -14,8 +15,6 @@
 #endif
 
 namespace Slic3r {
-
-class TriangleMesh;
 
 namespace sla {
 
@@ -30,8 +29,7 @@ void to_triangle_mesh(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F, Triang
 class EigenMesh3D {
     class AABBImpl;
     
-    Eigen::MatrixXd m_V;
-    Eigen::MatrixXi m_F;
+    TriangleMesh m_tm;
     double m_ground_level = 0, m_gnd_offset = 0;
     
     std::unique_ptr<AABBImpl> m_aabb;
@@ -59,8 +57,14 @@ public:
     inline void ground_level_offset(double o) { m_gnd_offset = o; }
     inline double ground_level_offset() const { return m_gnd_offset; }
     
-    inline const Eigen::MatrixXd& V() const { return m_V; }
-    inline const Eigen::MatrixXi& F() const { return m_F; }
+    const std::vector<stl_vertex>&                  vertices() const { return m_tm.its.vertices; }
+    const std::vector<stl_triangle_vertex_indices>& indices()  const { return m_tm.its.indices; }
+    const stl_vertex&                               vertices(size_t idx) const {
+        return m_tm.its.vertices[idx];
+    }
+    const stl_triangle_vertex_indices&              indices(size_t idx) const {
+        return m_tm.its.indices[idx];
+    }
     
     // Result of a raycast
     class hit_result {
@@ -148,10 +152,12 @@ public:
     }
 
     Vec3d normal_by_face_id(int face_id) const {
-        auto trindex    = F().row(face_id);
-        const Vec3d& p1 = V().row(trindex(0));
-        const Vec3d& p2 = V().row(trindex(1));
-        const Vec3d& p3 = V().row(trindex(2));
+        // FIXME: normals should be cached in TriangleMesh, there should be
+        // no need to recalculate them.
+        auto trindex    = this->indices(face_id);
+        const Vec3d& p1 = this->vertices(trindex(0)).cast<double>();
+        const Vec3d& p2 = this->vertices(trindex(1)).cast<double>();
+        const Vec3d& p3 = this->vertices(trindex(2)).cast<double>();
         Eigen::Vector3d U = p2 - p1;
         Eigen::Vector3d V = p3 - p1;
         return U.cross(V).normalized();
