@@ -226,53 +226,6 @@ public:
 
 static const constexpr double MESH_EPS = 1e-6;
 
-void to_eigen_mesh(const TriangleMesh &tmesh, Eigen::MatrixXd &V, Eigen::MatrixXi &F)
-{
-    const stl_file& stl = tmesh.stl;
-    
-    V.resize(3*stl.stats.number_of_facets, 3);
-    F.resize(stl.stats.number_of_facets, 3);
-    for (unsigned int i = 0; i < stl.stats.number_of_facets; ++i) {
-        const stl_facet &facet = stl.facet_start[i];
-        V.block<1, 3>(3 * i + 0, 0) = facet.vertex[0].cast<double>();
-        V.block<1, 3>(3 * i + 1, 0) = facet.vertex[1].cast<double>();
-        V.block<1, 3>(3 * i + 2, 0) = facet.vertex[2].cast<double>();
-        F(i, 0) = int(3*i+0);
-        F(i, 1) = int(3*i+1);
-        F(i, 2) = int(3*i+2);
-    }
-    
-    if (!tmesh.has_shared_vertices())
-    {
-        Eigen::MatrixXd rV;
-        Eigen::MatrixXi rF;
-        // We will convert this to a proper 3d mesh with no duplicate points.
-        Eigen::VectorXi SVI, SVJ;
-        igl::remove_duplicate_vertices(V, F, MESH_EPS, rV, SVI, SVJ, rF);
-        V = std::move(rV);
-        F = std::move(rF);
-    }
-}
-
-void to_triangle_mesh(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F, TriangleMesh &out);
-#if 0
-Does this function really work? There seems to be an issue with it.
-Currently it is not used anywhere, this way it stays visible but
-trigger linking error when attempting to use it.
-{
-    Pointf3s points(size_t(V.rows())); 
-    std::vector<Vec3i> facets(size_t(F.rows()));
-    
-    for (Eigen::Index i = 0; i < V.rows(); ++i)
-        points[size_t(i)] = V.row(i);
-    
-    for (Eigen::Index i = 0; i < F.rows(); ++i)
-        facets[size_t(i)] = F.row(i);
-    
-    out = {points, facets};
-}
-#endif
-
 EigenMesh3D::EigenMesh3D(const TriangleMesh& tmesh)
     : m_aabb(new AABBImpl()), m_tm(tmesh)
 {
@@ -289,25 +242,6 @@ EigenMesh3D::EigenMesh3D(const EigenMesh3D &other):
     m_tm(other.m_tm), m_ground_level(other.m_ground_level),
     m_aabb( new AABBImpl(*other.m_aabb) ) {}
 
-/*EigenMesh3D::EigenMesh3D(const Contour3D &other)
-{
-    m_V.resize(Eigen::Index(other.points.size()), 3);
-    m_F.resize(Eigen::Index(other.faces3.size() + 2 * other.faces4.size()), 3);
-    
-    for (Eigen::Index i = 0; i < Eigen::Index(other.points.size()); ++i)
-        m_V.row(i) = other.points[size_t(i)];
-    
-    for (Eigen::Index i = 0; i < Eigen::Index(other.faces3.size()); ++i)
-        m_F.row(i) = other.faces3[size_t(i)];
-    
-    size_t N = other.faces3.size() + 2 * other.faces4.size();
-    for (size_t i = other.faces3.size(); i < N; i += 2) {
-        size_t quad_idx = (i - other.faces3.size()) / 2;
-        auto & quad     = other.faces4[quad_idx];
-        m_F.row(Eigen::Index(i)) = Vec3i{quad(0), quad(1), quad(2)};
-        m_F.row(Eigen::Index(i + 1)) = Vec3i{quad(2), quad(3), quad(0)};
-    }
-}*/
 
 EigenMesh3D &EigenMesh3D::operator=(const EigenMesh3D &other)
 {
@@ -579,13 +513,13 @@ PointSet normals(const PointSet& points,
             }
 
             // vector for the neigboring triangles including the detected one.
-            std::vector<Vec3i> neigh;
+            std::vector<size_t> neigh;
             if (ic >= 0) { // The point is right on a vertex of the triangle
                 for (size_t n = 0; n < mesh.indices().size(); ++n) {
                     thr();
                     Vec3i ni = mesh.indices(n);
                     if ((ni(X) == ic || ni(Y) == ic || ni(Z) == ic))
-                        neigh.emplace_back(ni);
+                        neigh.emplace_back(n);
                 }
             } else if (ia >= 0 && ib >= 0) { // the point is on and edge
                 // now get all the neigboring triangles
@@ -594,21 +528,15 @@ PointSet normals(const PointSet& points,
                     Vec3i ni = mesh.indices(n);
                     if ((ni(X) == ia || ni(Y) == ia || ni(Z) == ia) &&
                         (ni(X) == ib || ni(Y) == ib || ni(Z) == ib))
-                        neigh.emplace_back(ni);
+                        neigh.emplace_back(n);
                 }
             }
 
             // Calculate the normals for the neighboring triangles
             std::vector<Vec3d> neighnorms;
             neighnorms.reserve(neigh.size());
-            for (const Vec3i &tri : neigh) {
-                const Vec3d &   pt1 = mesh.vertices(tri(0)).cast<double>();
-                const Vec3d &   pt2 = mesh.vertices(tri(1)).cast<double>();
-                const Vec3d &   pt3 = mesh.vertices(tri(2)).cast<double>();
-                Eigen::Vector3d U   = pt2 - pt1;
-                Eigen::Vector3d V   = pt3 - pt1;
-                neighnorms.emplace_back(U.cross(V).normalized());
-            }
+            for (size_t &tri_id : neigh)
+                neighnorms.emplace_back(mesh.normal_by_face_id(tri_id));
 
             // Throw out duplicates. They would cause trouble with summing. We
             // will use std::unique which works on sorted ranges. We will sort

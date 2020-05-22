@@ -18,11 +18,6 @@ namespace Slic3r {
 
 namespace sla {
 
-struct Contour3D;
-
-void to_eigen_mesh(const TriangleMesh &mesh, Eigen::MatrixXd &V, Eigen::MatrixXi &F);
-void to_triangle_mesh(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F, TriangleMesh &);
-
 /// An index-triangle structure for libIGL functions. Also serves as an
 /// alternative (raw) input format for the SLASupportTree.
 //  Implemented in libslic3r/SLA/Common.cpp
@@ -43,7 +38,6 @@ class EigenMesh3D {
 public:
     
     explicit EigenMesh3D(const TriangleMesh&);
-    explicit EigenMesh3D(const Contour3D &other);
     
     EigenMesh3D(const EigenMesh3D& other);
     EigenMesh3D& operator=(const EigenMesh3D&);
@@ -125,24 +119,6 @@ public:
     // Casts a ray on the mesh and returns all hits
     std::vector<hit_result> query_ray_hits(const Vec3d &s, const Vec3d &dir) const;
 
-    class si_result {
-        double m_value;
-        int m_fidx;
-        Vec3d m_p;
-        si_result(double val, int i, const Vec3d& c):
-            m_value(val), m_fidx(i), m_p(c) {}
-        friend class EigenMesh3D;
-    public:
-        
-        si_result() = delete;
-        
-        double value() const { return m_value; }
-        operator double() const { return m_value; }
-        const Vec3d& point_on_mesh() const { return m_p; }
-        int F_idx() const { return m_fidx; }
-    };
-
-    
     double squared_distance(const Vec3d& p, int& i, Vec3d& c) const;
     inline double squared_distance(const Vec3d &p) const
     {
@@ -152,15 +128,7 @@ public:
     }
 
     Vec3d normal_by_face_id(int face_id) const {
-        // FIXME: normals should be cached in TriangleMesh, there should be
-        // no need to recalculate them.
-        auto trindex    = this->indices(face_id);
-        const Vec3d& p1 = this->vertices(trindex(0)).cast<double>();
-        const Vec3d& p2 = this->vertices(trindex(1)).cast<double>();
-        const Vec3d& p3 = this->vertices(trindex(2)).cast<double>();
-        Eigen::Vector3d U = p2 - p1;
-        Eigen::Vector3d V = p3 - p1;
-        return U.cross(V).normalized();
+        return m_tm.stl.facet_start[face_id].normal.cast<double>();
     }
 };
 
