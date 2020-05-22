@@ -130,18 +130,15 @@ void OpenGLManager::GLInfo::detect() const
     m_detected = true;
 }
 
-bool OpenGLManager::GLInfo::is_version_greater_or_equal_to(unsigned int major, unsigned int minor) const
+static bool version_greater_or_equal_to(const std::string& version, unsigned int major, unsigned int minor)
 {
-    if (!m_detected)
-        detect();
-
 #if ENABLE_SHADERS_MANAGER
-    if (m_version == "N/A")
+    if (version == "N/A")
         return false;
 #endif // ENABLE_SHADERS_MANAGER
 
     std::vector<std::string> tokens;
-    boost::split(tokens, m_version, boost::is_any_of(" "), boost::token_compress_on);
+    boost::split(tokens, version, boost::is_any_of(" "), boost::token_compress_on);
 
     if (tokens.empty())
         return false;
@@ -164,6 +161,22 @@ bool OpenGLManager::GLInfo::is_version_greater_or_equal_to(unsigned int major, u
         return true;
     else
         return gl_minor >= minor;
+}
+
+bool OpenGLManager::GLInfo::is_version_greater_or_equal_to(unsigned int major, unsigned int minor) const
+{
+    if (!m_detected)
+        detect();
+
+    return version_greater_or_equal_to(m_version, major, minor);
+}
+
+bool OpenGLManager::GLInfo::is_glsl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const
+{
+    if (!m_detected)
+        detect();
+
+    return version_greater_or_equal_to(m_glsl_version, major, minor);
 }
 
 std::string OpenGLManager::GLInfo::to_string(bool format_as_html, bool extensions) const
