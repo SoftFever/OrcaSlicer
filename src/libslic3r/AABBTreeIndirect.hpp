@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <type_traits>
 #include <vector>
 
 #include "Utils.hpp" // for next_highest_power_of_2()
@@ -277,6 +278,46 @@ namespace detail {
         return tmin < t1 && tmax > t0;
 	}
 
+	template<typename V, typename W>
+    std::enable_if_t<std::is_same<typename V::Scalar, double>::value && std::is_same<typename W::Scalar, double>::value, bool>
+	intersect_triangle(const V &origin, const V &dir, const W &v0, const W &v1, const W v2, double &t, double &u, double &v) {
+        return intersect_triangle1(const_cast<double*>(origin.data()), const_cast<double*>(dir.data()),
+                                   const_cast<double*>(v0.data()), const_cast<double*>(v1.data()), const_cast<double*>(v2.data()),
+                                   &t, &u, &v);
+	}
+
+	template<typename V, typename W>
+    std::enable_if_t<std::is_same<typename V::Scalar, double>::value && !std::is_same<typename W::Scalar, double>::value, bool>
+	intersect_triangle(const V &origin, const V &dir, const W &v0, const W &v1, const W v2, double &t, double &u, double &v) {
+        using Vector = Eigen::Matrix<double, 3, 1>;
+        Vector w0 = v0.template cast<double>();
+        Vector w1 = v1.template cast<double>();
+        Vector w2 = v2.template cast<double>();
+        return intersect_triangle1(const_cast<double*>(origin.data()), const_cast<double*>(dir.data()),
+                                   w0.data(), w1.data(), w2.data(), &t, &u, &v);
+	}
+
+	template<typename V, typename W>
+    std::enable_if_t<! std::is_same<typename V::Scalar, double>::value && std::is_same<typename W::Scalar, double>::value, bool>
+	intersect_triangle(const V &origin, const V &dir, const W &v0, const W &v1, const W v2, double &t, double &u, double &v) {
+        using Vector = Eigen::Matrix<double, 3, 1>;
+        Vector o  = origin.template cast<double>();
+        Vector d  = dir.template cast<double>();
+        return intersect_triangle1(o.data(), d.data(), const_cast<double*>(v0.data()), const_cast<double*>(v1.data()), const_cast<double*>(v2.data()), &t, &u, &v);
+	}
+
+	template<typename V, typename W>
+    std::enable_if_t<! std::is_same<typename V::Scalar, double>::value && ! std::is_same<typename W::Scalar, double>::value, bool>
+	intersect_triangle(const V &origin, const V &dir, const W &v0, const W &v1, const W v2, double &t, double &u, double &v) {
+        using Vector = Eigen::Matrix<double, 3, 1>;
+        Vector o  = origin.template cast<double>();
+        Vector d  = dir.template cast<double>();
+        Vector w0 = v0.template cast<double>();
+        Vector w1 = v1.template cast<double>();
+        Vector w2 = v2.template cast<double>();
+	    return intersect_triangle1(o.data(), d.data(), w0.data(), w1.data(), w2.data(), &t, &u, &v);
+	}
+
     template<typename RayIntersectorType, typename Scalar>
 	static inline bool intersect_ray_recursive_first_hit(
         RayIntersectorType 	   &ray_intersector,
@@ -294,16 +335,14 @@ namespace detail {
 		}
 
 	  	if (node.is_leaf()) {
-            using Vector = Eigen::Matrix<double, 3, 1>;
-            Vector origin_d	= ray_intersector.origin.template cast<double>();
-            Vector dir_d 	= ray_intersector.dir   .template cast<double>();
-            auto   face     = ray_intersector.faces[node.idx];
-            Vector v0 		= ray_intersector.vertices[face(0)].template cast<double>();
-            Vector v1 		= ray_intersector.vertices[face(1)].template cast<double>();
-            Vector v2 		= ray_intersector.vertices[face(2)].template cast<double>();
 		    // shoot ray, record hit
+            auto   face = ray_intersector.faces[node.idx];
 		    double t, u, v;
-		    if (intersect_triangle1(origin_d.data(), dir_d.data(), v0.data(), v1.data(), v2.data(), &t, &u, &v) && t > 0.) {
+		    if (intersect_triangle(
+		    		ray_intersector.origin, ray_intersector.dir, 
+		    		ray_intersector.vertices[face(0)], ray_intersector.vertices[face(1)], ray_intersector.vertices[face(2)], 
+                    t, u, v)
+		    	&& t > 0.) {
                 hit = igl::Hit { int(node.idx), -1, float(u), float(v), float(t) };
 				return true;
 		    }
@@ -534,7 +573,7 @@ inline Tree<3, typename VertexType::Scalar> build_aabb_tree_over_indexed_triangl
     const typename VertexType::Scalar 	 eps = 0)
 {
     using 				 TreeType 		= Tree<3, typename VertexType::Scalar>;
-    using				 CoordType      = typename TreeType::CoordType;
+//    using				 CoordType      = typename TreeType::CoordType;
     using 				 VectorType	    = typename TreeType::VectorType;
     using 				 BoundingBox 	= typename TreeType::BoundingBox;
 
