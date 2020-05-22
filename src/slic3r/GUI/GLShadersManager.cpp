@@ -34,18 +34,9 @@ std::pair<bool, std::string> GLShadersManager::init()
     valid &= append_shader("gouraud_light", { "gouraud_light.vs", "gouraud_light.fs" });
     // used to render printbed
     valid &= append_shader("printbed", { "printbed.vs", "printbed.fs" });
-    // used to render tool changes in gcode preview
-    valid &= append_shader("toolchanges", { "toolchanges.vs", "toolchanges.fs" });
-    // used to render color changes in gcode preview
-    valid &= append_shader("colorchanges", { "colorchanges.vs", "colorchanges.fs" });
-    // used to render pause prints in gcode preview
-    valid &= append_shader("pauses", { "pauses.vs", "pauses.fs" });
-    // used to render custom gcode points in gcode preview
-    valid &= append_shader("customs", { "customs.vs", "customs.fs" });
-    // used to render retractions in gcode preview
-    valid &= append_shader("retractions", { "retractions.vs", "retractions.fs" });
-    // used to render unretractions in gcode preview
-    valid &= append_shader("unretractions", { "unretractions.vs", "unretractions.fs" });
+    // used to render options in gcode preview
+    valid &= append_shader("options_110", { "options_110.vs", "options_110.fs" });
+    valid &= append_shader("options_120", { "options_120.vs", "options_120.fs" });
     // used to render extrusion paths in gcode preview
     valid &= append_shader("extrusions", { "extrusions.vs", "extrusions.fs" });
     // used to render travel paths in gcode preview
