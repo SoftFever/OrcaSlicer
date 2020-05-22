@@ -805,14 +805,6 @@ static const ImWchar ranges_keyboard_shortcuts[] =
 
 std::vector<unsigned char> ImGuiWrapper::load_svg(const std::string& bitmap_name, unsigned target_width, unsigned target_height)
 {
-#ifdef __APPLE__
-    // Note: win->GetContentScaleFactor() is not used anymore here because it tends to
-    // return bogus results quite often (such as 1.0 on Retina or even 0.0).
-    // We're using the max scaling factor across all screens because it's very likely to be good enough.
-    double	scale = mac_max_scaling_factor();
-#else
-    double	scale = 1.0;
-#endif
     std::vector<unsigned char> empty_vector;
 
 #ifdef __WXMSW__
@@ -826,8 +818,6 @@ std::vector<unsigned char> ImGuiWrapper::load_svg(const std::string& bitmap_name
     NSVGimage* image = ::nsvgParseFromFile(Slic3r::var(folder + bitmap_name + ".svg").c_str(), "px", 96.0f);
     if (image == nullptr)
         return empty_vector;
-
-    target_height != 0 ? target_height *= scale : target_width *= scale;
 
     float svg_scale = target_height != 0 ?
         (float)target_height / image->height : target_width != 0 ?

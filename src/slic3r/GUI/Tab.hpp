@@ -318,6 +318,7 @@ public:
     void            update_mode();
     void            update_visibility();
     virtual void    msw_rescale();
+    virtual void	sys_color_changed();
 	Field*			get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
     Field*          get_field(const t_config_option_key &opt_key, Page** selected_page, int opt_index = -1);
 	bool			set_value(const t_config_option_key& opt_key, const boost::any& value);
@@ -436,6 +437,7 @@ public:
 	void		on_preset_loaded() override;
 	void		init_options_list() override;
 	void		msw_rescale() override;
+	void		sys_color_changed() override;
     bool 		supports_printer_technology(const PrinterTechnology /* tech */) override { return true; }
 
 	wxSizer*	create_bed_shape_widget(wxWindow* parent);

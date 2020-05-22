@@ -4029,6 +4029,26 @@ void ObjectList::msw_rescale()
     Layout();
 }
 
+void ObjectList::sys_color_changed()
+{
+    // msw_rescale_icons() updates icons, so use it
+    msw_rescale_icons();
+
+    // update existing items with bitmaps
+    m_objects_model->Rescale();
+
+    // msw_rescale_menu updates just icons, so use it
+    for (MenuWithSeparators* menu : { &m_menu_object, 
+                                      &m_menu_part, 
+                                      &m_menu_sla_object, 
+                                      &m_menu_instance, 
+                                      &m_menu_layer,
+                                      &m_menu_default})
+        msw_rescale_menu(menu);
+
+    Layout();
+}
+
 void ObjectList::ItemValueChanged(wxDataViewEvent &event)
 {
     if (event.GetColumn() == colName)
