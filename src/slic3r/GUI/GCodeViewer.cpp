@@ -987,12 +987,43 @@ void GCodeViewer::render_legend() const
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-    auto add_item = [draw_list, &imgui](const Color& color, const std::string& label, std::function<void()> callback = nullptr) {
+    enum class EItemType : unsigned char
+    {
+        Rect,
+        Circle,
+        Line
+    };
+
+    auto add_item = [draw_list, &imgui](EItemType type, const Color& color, const std::string& label, std::function<void()> callback = nullptr) {
         float icon_size = ImGui::GetTextLineHeight();
         ImVec2 pos = ImGui::GetCursorPos();
-        draw_list->AddRect({ pos.x, pos.y }, { pos.x + icon_size, pos.y + icon_size }, ICON_BORDER_COLOR, 0.0f, 0);
-        draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
-            ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
+        switch (type)
+        {
+        default:
+        case EItemType::Rect:
+        {
+            draw_list->AddRect({ pos.x, pos.y }, { pos.x + icon_size, pos.y + icon_size }, ICON_BORDER_COLOR, 0.0f, 0);
+            draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
+                ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
+            break;
+        }
+        case EItemType::Circle:
+        {
+            draw_list->AddCircle({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, 0.5f * icon_size, ICON_BORDER_COLOR, 16);
+            draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, (0.5f * icon_size) - 2.0f,
+                ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
+            draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, (0.5f * icon_size) - 3.0f,
+                ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
+            draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, 1.5f,
+                ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
+            break;
+        }
+        case EItemType::Line:
+        {
+            draw_list->AddLine({ pos.x + 1, pos.y + icon_size - 1}, { pos.x + icon_size - 1, pos.y + 1 }, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 3.0f);
+            break;
+        }
+        }
 
         // draw text
         ImGui::Dummy({ icon_size, icon_size });
@@ -1010,7 +1041,7 @@ void GCodeViewer::render_legend() const
         auto add_range_item = [this, draw_list, &imgui, add_item](int i, float value, unsigned int decimals) {
             char buf[1024];
             ::sprintf(buf, "%.*f", decimals, value);
-            add_item(Range_Colors[i], buf);
+            add_item(EItemType::Rect, Range_Colors[i], buf);
         };
 
         float step_size = range.step_size();
@@ -1052,7 +1083,7 @@ void GCodeViewer::render_legend() const
             if (!visible)
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
 
-            add_item(Extrusion_Role_Colors[static_cast<unsigned int>(role)], _u8L(ExtrusionEntity::role_to_string(role)), [this, role]() {
+            add_item(EItemType::Rect, Extrusion_Role_Colors[static_cast<unsigned int>(role)], _u8L(ExtrusionEntity::role_to_string(role)), [this, role]() {
                 if (role < erCount)
                 {
                     m_extrusions.role_visibility_flags = is_visible(role) ? m_extrusions.role_visibility_flags & ~(1 << role) : m_extrusions.role_visibility_flags | (1 << role);
@@ -1082,7 +1113,7 @@ void GCodeViewer::render_legend() const
             if (it == m_extruder_ids.end())
                 continue;
 
-            add_item(m_tool_colors[i], (boost::format(_u8L("Extruder %d")) % (i + 1)).str());
+            add_item(EItemType::Rect, m_tool_colors[i], (boost::format(_u8L("Extruder %d")) % (i + 1)).str());
         }
         break;
     }
@@ -1093,7 +1124,7 @@ void GCodeViewer::render_legend() const
         if (extruders_count == 1) { // single extruder use case
             if (custom_gcode_per_print_z.empty())
                 // no data to show
-                add_item(m_tool_colors.front(), _u8L("Default print color"));
+                add_item(EItemType::Rect, m_tool_colors.front(), _u8L("Default print color"));
             else {
                 std::vector<std::pair<double, double>> cp_values;
                 cp_values.reserve(custom_gcode_per_print_z.size());
@@ -1117,7 +1148,7 @@ void GCodeViewer::render_legend() const
 
                 const int items_cnt = static_cast<int>(cp_values.size());
                 if (items_cnt == 0) { // There is no one color change, but there are some pause print or custom Gcode
-                    add_item(m_tool_colors.front(), _u8L("Default print color"));
+                    add_item(EItemType::Rect, m_tool_colors.front(), _u8L("Default print color"));
                 }
                 else {
                     for (int i = items_cnt; i >= 0; --i) {
@@ -1125,14 +1156,14 @@ void GCodeViewer::render_legend() const
                         std::string id_str = " (" + std::to_string(i + 1) + ")";
 
                         if (i == 0) {
-                            add_item(m_tool_colors[i], (boost::format(_u8L("up to %.2f mm")) % cp_values.front().first).str() + id_str);
+                            add_item(EItemType::Rect, m_tool_colors[i], (boost::format(_u8L("up to %.2f mm")) % cp_values.front().first).str() + id_str);
                             break;
                         }
                         else if (i == items_cnt) {
-                            add_item(m_tool_colors[i], (boost::format(_u8L("above %.2f mm")) % cp_values[i - 1].second).str() + id_str);
+                            add_item(EItemType::Rect, m_tool_colors[i], (boost::format(_u8L("above %.2f mm")) % cp_values[i - 1].second).str() + id_str);
                             continue;
                         }
-                        add_item(m_tool_colors[i], (boost::format(_u8L("%.2f - %.2f mm")) % cp_values[i - 1].second% cp_values[i].first).str() + id_str);
+                        add_item(EItemType::Rect, m_tool_colors[i], (boost::format(_u8L("%.2f - %.2f mm")) % cp_values[i - 1].second% cp_values[i].first).str() + id_str);
                     }
                 }
             }
@@ -1141,7 +1172,7 @@ void GCodeViewer::render_legend() const
         {
             // extruders
             for (unsigned int i = 0; i < (unsigned int)extruders_count; ++i) {
-                add_item(m_tool_colors[i], (boost::format(_u8L("Extruder %d")) % (i + 1)).str());
+                add_item(EItemType::Rect, m_tool_colors[i], (boost::format(_u8L("Extruder %d")) % (i + 1)).str());
             }
 
             // color changes
@@ -1152,7 +1183,7 @@ void GCodeViewer::render_legend() const
                     // create label for color change item
                     std::string id_str = " (" + std::to_string(color_change_idx--) + ")";
 
-                    add_item(m_tool_colors[last_color_id--],
+                    add_item(EItemType::Rect, m_tool_colors[last_color_id--],
                         (boost::format(_u8L("Color change for Extruder %d at %.2f mm")) % custom_gcode_per_print_z[i].extruder % custom_gcode_per_print_z[i].print_z).str() + id_str);
                 }
             }
@@ -1185,9 +1216,9 @@ void GCodeViewer::render_legend() const
             ImGui::Separator();
 
             // items
-            add_item(Travel_Colors[0], _u8L("Movement"));
-            add_item(Travel_Colors[1], _u8L("Extrusion"));
-            add_item(Travel_Colors[2], _u8L("Retraction"));
+            add_item(EItemType::Line, Travel_Colors[0], _u8L("Movement"));
+            add_item(EItemType::Line, Travel_Colors[1], _u8L("Extrusion"));
+            add_item(EItemType::Line, Travel_Colors[2], _u8L("Retraction"));
 
             break;
         }
@@ -1206,7 +1237,7 @@ void GCodeViewer::render_legend() const
     auto add_option = [this, add_item](GCodeProcessor::EMoveType move_type, EOptionsColors color, const std::string& text) {
         const IBuffer& buffer = m_buffers[buffer_id(move_type)];
         if (buffer.visible && buffer.indices_count > 0)
-            add_item(Options_Colors[static_cast<unsigned int>(color)], text);
+            add_item(EItemType::Circle, Options_Colors[static_cast<unsigned int>(color)], text);
     };
 
     // options
