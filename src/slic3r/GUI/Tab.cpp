@@ -597,7 +597,7 @@ void TabPrinter::sys_color_changed()
     // update missed options_groups
     const std::vector<PageShp>& pages = m_printer_technology == ptFFF ? m_pages_sla : m_pages_fff;
     for (auto page : pages)
-        page->msw_rescale();
+        page->sys_color_changed();
 
     Layout();
 }
@@ -890,8 +890,8 @@ void Tab::sys_color_changed()
         btn->msw_rescale();
     for (const auto bmp : m_scaled_bitmaps)
         bmp->msw_rescale();
-    for (ScalableBitmap& bmp : m_mode_bitmap_cache)
-        bmp.msw_rescale();
+//    for (ScalableBitmap& bmp : m_mode_bitmap_cache)
+//        bmp.msw_rescale();
 
     // update icons for tree_ctrl
     for (ScalableBitmap& bmp : m_scaled_icons_list)
@@ -903,7 +903,6 @@ void Tab::sys_color_changed()
         m_icons->Add(bmp.bmp());
     m_treectrl->AssignImageList(m_icons);
 
-
     // Colors for ui "decoration"
     m_sys_label_clr = wxGetApp().get_label_clr_sys();
     m_modified_label_clr = wxGetApp().get_label_clr_modified();
@@ -911,7 +910,7 @@ void Tab::sys_color_changed()
 
     // update options_groups
     for (auto page : m_pages)
-        page->msw_rescale();
+        page->sys_color_changed();
 
     Layout();
 }
@@ -3604,6 +3603,12 @@ void Page::msw_rescale()
 {
     for (auto group : m_optgroups)
         group->msw_rescale();
+}
+
+void Page::sys_color_changed()
+{
+    for (auto group : m_optgroups)
+        group->sys_color_changed();
 }
 
 Field* Page::get_field(const t_config_option_key& opt_key, int opt_index /*= -1*/) const

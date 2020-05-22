@@ -81,6 +81,7 @@ public:
 	void		reload_config();
     void        update_visibility(ConfigOptionMode mode);
     void        msw_rescale();
+    void        sys_color_changed();
 	Field*		get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
 	bool		set_value(const t_config_option_key& opt_key, const boost::any& value);
 	ConfigOptionsGroupShp	new_optgroup(const wxString& title, int noncommon_label_width = -1);

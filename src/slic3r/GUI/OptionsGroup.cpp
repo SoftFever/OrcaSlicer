@@ -568,6 +568,20 @@ void ConfigOptionsGroup::msw_rescale()
     }
 }
 
+void ConfigOptionsGroup::sys_color_changed()
+{
+	// update bitmaps for near label widgets (like "Set uniform scale" button on settings panel)
+	if (rescale_near_label_widget)
+		for (auto near_label_widget : m_near_label_widget_ptrs)
+			rescale_near_label_widget(near_label_widget);
+
+	// update undo buttons : rescale bitmaps
+	for (const auto& field : m_fields)
+		field.second->sys_color_changed();
+
+    m_grid_sizer->Layout();
+}
+
 boost::any ConfigOptionsGroup::config_value(const std::string& opt_key, int opt_index, bool deserialize) {
 
 	if (deserialize) {

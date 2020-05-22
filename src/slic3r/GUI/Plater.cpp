@@ -771,7 +771,9 @@ Sidebar::Sidebar(Plater *parent)
     p->scrolled->SetScrollbars(0, 100, 1, 2);
 
     SetFont(wxGetApp().normal_font());
+#ifndef __APPLE__
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+#endif
 
     // Sizer in the scrolled area
     auto *scrolled_sizer = new wxBoxSizer(wxVERTICAL);
@@ -1108,7 +1110,7 @@ void Sidebar::sys_color_changed()
     p->object_list->sys_color_changed();
     p->object_manipulation->sys_color_changed();
 //    p->object_settings->msw_rescale();
-//    p->object_layers->msw_rescale();
+    p->object_layers->sys_color_changed();
 
     // btn...->msw_rescale() updates icon on button, so use it
     p->btn_send_gcode->msw_rescale();
@@ -4343,7 +4345,7 @@ void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& lab
 // Plater / Public
 
 Plater::Plater(wxWindow *parent, MainFrame *main_frame)
-    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(76 * wxGetApp().em_unit(), 49 * wxGetApp().em_unit()))
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxGetApp().get_min_size())
     , p(new priv(this, main_frame))
 {
     // Initialization performed in the private c-tor

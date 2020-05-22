@@ -306,6 +306,12 @@ void Field::msw_rescale(bool rescale_sidetext)
 	}
 }
 
+void Field::sys_color_changed()
+{
+	m_Undo_to_sys_btn->msw_rescale();
+	m_Undo_btn->msw_rescale();
+}
+
 template<class T>
 bool is_defined_input_value(wxWindow* win, const ConfigOptionType& type)
 {
