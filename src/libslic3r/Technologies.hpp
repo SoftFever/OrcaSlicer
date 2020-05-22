@@ -46,7 +46,4 @@
 #define ENABLE_GCODE_VIEWER (1 && ENABLE_2_3_0_ALPHA1)
 #define ENABLE_GCODE_VIEWER_STATISTICS (0 && ENABLE_GCODE_VIEWER)
 
-// Enable the OpenGL shaders manager
-#define ENABLE_SHADERS_MANAGER (1 && ENABLE_2_3_0_ALPHA1)
-
 #endif // _prusaslicer_technologies_h_

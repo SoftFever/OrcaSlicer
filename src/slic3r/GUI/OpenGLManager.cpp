@@ -28,14 +28,12 @@
 namespace Slic3r {
 namespace GUI {
 
-#if ENABLE_SHADERS_MANAGER
 // A safe wrapper around glGetString to report a "N/A" string in case glGetString returns nullptr.
 inline std::string gl_get_string_safe(GLenum param, const std::string& default_value)
 {
     const char* value = (const char*)::glGetString(param);
     return std::string((value != nullptr) ? value : default_value);
 }
-#endif // ENABLE_SHADERS_MANAGER
 
 const std::string& OpenGLManager::GLInfo::get_version() const
 {
@@ -94,28 +92,10 @@ float OpenGLManager::GLInfo::get_max_anisotropy() const
 
 void OpenGLManager::GLInfo::detect() const
 {
-#if ENABLE_SHADERS_MANAGER
     m_version = gl_get_string_safe(GL_VERSION, "N/A");
     m_glsl_version = gl_get_string_safe(GL_SHADING_LANGUAGE_VERSION, "N/A");
     m_vendor = gl_get_string_safe(GL_VENDOR, "N/A");
     m_renderer = gl_get_string_safe(GL_RENDERER, "N/A");
-#else
-    const char* data = (const char*)::glGetString(GL_VERSION);
-    if (data != nullptr)
-        m_version = data;
-
-    data = (const char*)::glGetString(GL_SHADING_LANGUAGE_VERSION);
-    if (data != nullptr)
-        m_glsl_version = data;
-
-    data = (const char*)::glGetString(GL_VENDOR);
-    if (data != nullptr)
-        m_vendor = data;
-
-    data = (const char*)::glGetString(GL_RENDERER);
-    if (data != nullptr)
-        m_renderer = data;
-#endif // ENABLE_SHADERS_MANAGER
 
     glsafe(::glGetIntegerv(GL_MAX_TEXTURE_SIZE, &m_max_tex_size));
 
@@ -132,10 +112,8 @@ void OpenGLManager::GLInfo::detect() const
 
 static bool version_greater_or_equal_to(const std::string& version, unsigned int major, unsigned int minor)
 {
-#if ENABLE_SHADERS_MANAGER
     if (version == "N/A")
         return false;
-#endif // ENABLE_SHADERS_MANAGER
 
     std::vector<std::string> tokens;
     boost::split(tokens, version, boost::is_any_of(" "), boost::token_compress_on);
@@ -193,26 +171,15 @@ std::string OpenGLManager::GLInfo::to_string(bool format_as_html, bool extension
     std::string line_end = format_as_html ? "<br>" : "\n";
 
     out << h2_start << "OpenGL installation" << h2_end << line_end;
-#if ENABLE_SHADERS_MANAGER
     out << b_start << "GL version:   " << b_end << m_version << line_end;
     out << b_start << "Vendor:       " << b_end << m_vendor << line_end;
     out << b_start << "Renderer:     " << b_end << m_renderer << line_end;
     out << b_start << "GLSL version: " << b_end << m_glsl_version << line_end;
-#else
-    out << b_start << "GL version:   " << b_end << (m_version.empty() ? "N/A" : m_version) << line_end;
-    out << b_start << "Vendor:       " << b_end << (m_vendor.empty() ? "N/A" : m_vendor) << line_end;
-    out << b_start << "Renderer:     " << b_end << (m_renderer.empty() ? "N/A" : m_renderer) << line_end;
-    out << b_start << "GLSL version: " << b_end << (m_glsl_version.empty() ? "N/A" : m_glsl_version) << line_end;
-#endif // ENABLE_SHADERS_MANAGER
 
     if (extensions)
     {
         std::vector<std::string> extensions_list;
-#if ENABLE_SHADERS_MANAGER
         std::string extensions_str = gl_get_string_safe(GL_EXTENSIONS, "");
-#else
-        std::string extensions_str = (const char*)::glGetString(GL_EXTENSIONS);
-#endif // ENABLE_SHADERS_MANAGER
         boost::split(extensions_list, extensions_str, boost::is_any_of(" "), boost::token_compress_off);
 
         if (!extensions_list.empty())
@@ -244,9 +211,7 @@ OpenGLManager::OSInfo OpenGLManager::s_os_info;
 
 OpenGLManager::~OpenGLManager()
 {
-#if ENABLE_SHADERS_MANAGER
     m_shaders_manager.shutdown();
-#endif // ENABLE_SHADERS_MANAGER
 
 #if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
 #ifdef __APPLE__ 
@@ -289,13 +254,8 @@ bool OpenGLManager::init_gl()
         else
             s_framebuffers_type = EFramebufferType::Unknown;
 
-#if ENABLE_SHADERS_MANAGER
         bool valid_version = s_gl_info.is_version_greater_or_equal_to(2, 0);
         if (!valid_version) {
-#else
-        if (!s_gl_info.is_version_greater_or_equal_to(2, 0)) {
-#endif // ENABLE_SHADERS_MANAGER
-
             // Complain about the OpenGL version.
             wxString message = from_u8((boost::format(
                 _utf8(L("PrusaSlicer requires OpenGL 2.0 capable graphics driver to run correctly, \n"
@@ -309,7 +269,6 @@ bool OpenGLManager::init_gl()
         	wxMessageBox(message, wxString("PrusaSlicer - ") + _L("Unsupported OpenGL version"), wxOK | wxICON_ERROR);
         }
 
-#if ENABLE_SHADERS_MANAGER
         if (valid_version) {
             // load shaders
             auto [result, error] = m_shaders_manager.init();
@@ -319,7 +278,6 @@ bool OpenGLManager::init_gl()
                 wxMessageBox(message, wxString("PrusaSlicer - ") + _L("Error loading shaders"), wxOK | wxICON_ERROR);
             }
         }
-#endif // ENABLE_SHADERS_MANAGER
     }
 
     return true;
@@ -327,8 +285,7 @@ bool OpenGLManager::init_gl()
 
 wxGLContext* OpenGLManager::init_glcontext(wxGLCanvas& canvas)
 {
-    if (m_context == nullptr)
-    {
+    if (m_context == nullptr) {
         m_context = new wxGLContext(&canvas);
 
 #if ENABLE_HACK_CLOSING_ON_OSX_10_9_5

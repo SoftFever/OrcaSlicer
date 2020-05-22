@@ -3,9 +3,6 @@
 
 #include "GLTexture.hpp"
 #include "3DScene.hpp"
-#if !ENABLE_SHADERS_MANAGER
-#include "GLShader.hpp"
-#endif // !ENABLE_SHADERS_MANAGER
 #if ENABLE_GCODE_VIEWER
 #include "GLModel.hpp"
 #endif // ENABLE_GCODE_VIEWER
@@ -71,9 +68,6 @@ class Bed3D
         Vec3d m_origin{ Vec3d::Zero() };
         float m_stem_length{ DefaultStemLength };
         mutable GL_Model m_arrow;
-#if !ENABLE_SHADERS_MANAGER
-        mutable Shader m_shader;
-#endif // !ENABLE_SHADERS_MANAGER
 
     public:
 #else
@@ -122,9 +116,6 @@ private:
     mutable GLBed m_model;
     // temporary texture shown until the main texture has still no levels compressed
     mutable GLTexture m_temp_texture;
-#if !ENABLE_SHADERS_MANAGER
-    mutable Shader m_shader;
-#endif // !ENABLE_SHADERS_MANAGER
     mutable unsigned int m_vbo_id;
     Axes m_axes;
 

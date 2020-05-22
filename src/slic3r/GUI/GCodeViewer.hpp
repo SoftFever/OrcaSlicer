@@ -2,9 +2,6 @@
 #define slic3r_GCodeViewer_hpp_
 
 #if ENABLE_GCODE_VIEWER
-#if !ENABLE_SHADERS_MANAGER
-#include "GLShader.hpp"
-#endif // !ENABLE_SHADERS_MANAGER
 #include "3DScene.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "GLModel.hpp"
@@ -91,19 +88,12 @@ class GCodeViewer
     {
         unsigned int ibo_id{ 0 };
         size_t indices_count{ 0 };
-#if ENABLE_SHADERS_MANAGER
         std::string shader;
-#else
-        Shader shader;
-#endif // ENABLE_SHADERS_MANAGER
         std::vector<Path> paths;
         std::vector<RenderPath> render_paths;
         bool visible{ false };
 
         void reset();
-#if !ENABLE_SHADERS_MANAGER
-        bool init_shader(const std::string& vertex_shader_src, const std::string& fragment_shader_src);
-#endif // !ENABLE_SHADERS_MANAGER
         void add_path(const GCodeProcessor::MoveVertex& move, unsigned int i_id, unsigned int s_id);
     };
 
@@ -112,9 +102,6 @@ class GCodeViewer
     {
         GLVolumeCollection volumes;
         bool visible{ false };
-#if !ENABLE_SHADERS_MANAGER
-        Shader shader;
-#endif // !ENABLE_SHADERS_MANAGER
     };
 
     // helper to render extrusion paths
@@ -225,9 +212,6 @@ public:
             BoundingBoxf3 m_world_bounding_box;
             std::array<float, 4> m_color{ 1.0f, 1.0f, 1.0f, 1.0f };
             bool m_visible{ false };
-#if !ENABLE_SHADERS_MANAGER
-            Shader m_shader;
-#endif // !ENABLE_SHADERS_MANAGER
 
         public:
             void init();
@@ -241,11 +225,6 @@ public:
             void set_visible(bool visible) { m_visible = visible; }
 
             void render() const;
-
-#if !ENABLE_SHADERS_MANAGER
-        private:
-            void init_shader();
-#endif // !ENABLE_SHADERS_MANAGER
         };
 
         struct Endpoints
@@ -300,12 +279,8 @@ public:
     bool init() {
         set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Extrude, true);
         m_sequential_view.marker.init();
-#if ENABLE_SHADERS_MANAGER
         init_shaders();
         return true;
-#else
-        return init_shaders();
-#endif // ENABLE_SHADERS_MANAGER
     }
 
     // extract rendering data from the given parameters
@@ -349,11 +324,7 @@ public:
     void enable_legend(bool enable) { m_legend_enabled = enable; }
 
 private:
-#if ENABLE_SHADERS_MANAGER
     void init_shaders();
-#else
-    bool init_shaders();
-#endif // ENABLE_SHADERS_MANAGER
     void load_toolpaths(const GCodeProcessor::Result& gcode_result);
     void load_shells(const Print& print, bool initialized);
     void refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const;

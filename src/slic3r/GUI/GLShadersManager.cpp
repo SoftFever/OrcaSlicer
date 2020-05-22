@@ -7,8 +7,6 @@
 
 #include <GL/glew.h>
 
-#if ENABLE_SHADERS_MANAGER
-
 namespace Slic3r {
 
 std::pair<bool, std::string> GLShadersManager::init()
@@ -77,4 +75,3 @@ GLShaderProgram* GLShadersManager::get_current_shader()
 
 } // namespace Slic3r
 
-#endif // ENABLE_SHADERS_MANAGER

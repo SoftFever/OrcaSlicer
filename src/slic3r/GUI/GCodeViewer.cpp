@@ -107,18 +107,6 @@ void GCodeViewer::IBuffer::reset()
     render_paths = std::vector<RenderPath>();
 }
 
-#if !ENABLE_SHADERS_MANAGER
-bool GCodeViewer::IBuffer::init_shader(const std::string& vertex_shader_src, const std::string& fragment_shader_src)
-{
-    if (!shader.init(vertex_shader_src, fragment_shader_src)) {
-        BOOST_LOG_TRIVIAL(error) << "Unable to initialize toolpaths shader: please, check that the files " << vertex_shader_src << " and " << fragment_shader_src << " are available";
-        return false;
-    }
-
-    return true;
-}
-#endif // !ENABLE_SHADERS_MANAGER
-
 void GCodeViewer::IBuffer::add_path(const GCodeProcessor::MoveVertex& move, unsigned int i_id, unsigned int s_id)
 {
     Path::Endpoint endpoint = { i_id, s_id, move.position };
@@ -151,9 +139,6 @@ GCodeViewer::Color GCodeViewer::Extrusions::Range::get_color_at(float value) con
 void GCodeViewer::SequentialView::Marker::init()
 {
     m_model.init_from(stilized_arrow(16, 2.0f, 4.0f, 1.0f, 8.0f));
-#if !ENABLE_SHADERS_MANAGER
-    init_shader();
-#endif // !ENABLE_SHADERS_MANAGER
 }
 
 void GCodeViewer::SequentialView::Marker::set_world_position(const Vec3f& position)
@@ -164,7 +149,6 @@ void GCodeViewer::SequentialView::Marker::set_world_position(const Vec3f& positi
 
 void GCodeViewer::SequentialView::Marker::render() const
 {
-#if ENABLE_SHADERS_MANAGER
     if (!m_visible)
         return;
 
@@ -177,18 +161,6 @@ void GCodeViewer::SequentialView::Marker::render() const
 
     shader->start_using();
     shader->set_uniform("uniform_color", m_color);
-#else
-    if (!m_visible || !m_shader.is_initialized())
-        return;
-
-    glsafe(::glEnable(GL_BLEND));
-    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-    m_shader.start_using();
-    GLint color_id = ::glGetUniformLocation(m_shader.get_shader_program_id(), "uniform_color");
-    if (color_id >= 0)
-        glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)m_color.data()));
-#endif // ENABLE_SHADERS_MANAGER
 
     glsafe(::glPushMatrix());
     glsafe(::glMultMatrixf(m_world_transform.data()));
@@ -197,22 +169,10 @@ void GCodeViewer::SequentialView::Marker::render() const
 
     glsafe(::glPopMatrix());
 
-#if ENABLE_SHADERS_MANAGER
     shader->stop_using();
-#else
-    m_shader.stop_using();
-#endif // ENABLE_SHADERS_MANAGER
 
     glsafe(::glDisable(GL_BLEND));
 }
-
-#if !ENABLE_SHADERS_MANAGER
-void GCodeViewer::SequentialView::Marker::init_shader()
-{
-    if (!m_shader.init("gouraud_light.vs", "gouraud_light.fs"))
-        BOOST_LOG_TRIVIAL(error) << "Unable to initialize gouraud_light shader: please, check that the files gouraud_light.vs and gouraud_light.fs are available";
-}
-#endif // !ENABLE_SHADERS_MANAGER
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
     { 0.50f, 0.50f, 0.50f },   // erNone
@@ -430,7 +390,6 @@ void GCodeViewer::set_layers_z_range(const std::array<double, 2>& layers_z_range
     wxGetApp().plater()->update_preview_moves_slider();
 }
 
-#if ENABLE_SHADERS_MANAGER
 void GCodeViewer::init_shaders()
 {
     unsigned char begin_id = buffer_id(GCodeProcessor::EMoveType::Retract);
@@ -452,42 +411,6 @@ void GCodeViewer::init_shaders()
         }
     }
 }
-#else
-bool GCodeViewer::init_shaders()
-{
-    unsigned char begin_id = buffer_id(GCodeProcessor::EMoveType::Retract);
-    unsigned char end_id = buffer_id(GCodeProcessor::EMoveType::Count);
-
-    for (unsigned char i = begin_id; i < end_id; ++i)
-    {
-        std::string vertex_shader;
-        std::string fragment_shader;
-
-        switch (buffer_type(i))
-        {
-        case GCodeProcessor::EMoveType::Tool_change:  { vertex_shader = "toolchanges.vs"; fragment_shader = "toolchanges.fs"; break; }
-        case GCodeProcessor::EMoveType::Color_change: { vertex_shader = "colorchanges.vs"; fragment_shader = "colorchanges.fs"; break; }
-        case GCodeProcessor::EMoveType::Pause_Print:  { vertex_shader = "pauses.vs"; fragment_shader = "pauses.fs"; break; }
-        case GCodeProcessor::EMoveType::Custom_GCode: { vertex_shader = "customs.vs"; fragment_shader = "customs.fs"; break; }
-        case GCodeProcessor::EMoveType::Retract:      { vertex_shader = "retractions.vs"; fragment_shader = "retractions.fs"; break; }
-        case GCodeProcessor::EMoveType::Unretract:    { vertex_shader = "unretractions.vs"; fragment_shader = "unretractions.fs"; break; }
-        case GCodeProcessor::EMoveType::Extrude:      { vertex_shader = "extrusions.vs"; fragment_shader = "extrusions.fs"; break; }
-        case GCodeProcessor::EMoveType::Travel:       { vertex_shader = "travels.vs"; fragment_shader = "travels.fs"; break; }
-        default: { break; }
-        }
-
-        if (vertex_shader.empty() || fragment_shader.empty() || !m_buffers[i].init_shader(vertex_shader, fragment_shader))
-            return false;
-    }
-
-    if (!m_shells.shader.init("shells.vs", "shells.fs")) {
-        BOOST_LOG_TRIVIAL(error) << "Unable to initialize shells shader: please, check that the files shells.vs and shells.fs are available";
-        return false;
-    }
-
-    return true;
-}
-#endif // ENABLE_SHADERS_MANAGER
 
 void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 {
@@ -814,19 +737,6 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
 void GCodeViewer::render_toolpaths() const
 {
-#if !ENABLE_SHADERS_MANAGER
-    auto set_color = [](GLint current_program_id, const Color& color) {
-        if (current_program_id > 0) {
-            GLint color_id = ::glGetUniformLocation(current_program_id, "uniform_color");
-            if (color_id >= 0) {
-                glsafe(::glUniform3fv(color_id, 1, (const GLfloat*)color.data()));
-                return;
-            }
-        }
-        BOOST_LOG_TRIVIAL(error) << "Unable to find uniform_color uniform";
-    };
-#endif // !ENABLE_SHADERS_MANAGER
-
     bool is_glsl_120 = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20);
     int detected_point_sizes[2];
     ::glGetIntegerv(GL_ALIASED_POINT_SIZE_RANGE, detected_point_sizes);
@@ -851,20 +761,11 @@ void GCodeViewer::render_toolpaths() const
         if (!buffer.visible)
             continue;
 
-#if ENABLE_SHADERS_MANAGER
         GLShaderProgram* shader = wxGetApp().get_shader(buffer.shader.c_str());
         if (shader != nullptr) {
-#else
-        if (buffer.shader.is_initialized()) {
-#endif // ENABLE_SHADERS_MANAGER
+            shader->start_using();
 
             GCodeProcessor::EMoveType type = buffer_type(i);
-
-#if ENABLE_SHADERS_MANAGER
-            shader->start_using();
-#else
-            buffer.shader.start_using();
-#endif // ENABLE_SHADERS_MANAGER
 
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.ibo_id));
 
@@ -872,7 +773,6 @@ void GCodeViewer::render_toolpaths() const
             {
             case GCodeProcessor::EMoveType::Tool_change:
             {
-#if ENABLE_SHADERS_MANAGER
                 shader->set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(EOptionsColors::ToolChanges)]);
                 shader->set_uniform("zoom", zoom);
                 shader->set_uniform("point_sizes", point_sizes);
@@ -881,9 +781,6 @@ void GCodeViewer::render_toolpaths() const
                     glsafe(::glEnable(GL_POINT_SPRITE));
                     glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
                 }
-#else
-                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), Options_Colors[static_cast<unsigned int>(EOptionsColors::ToolChanges)]);
-#endif // ENABLE_SHADERS_MANAGER
                 for (const RenderPath& path : buffer.render_paths)
                 {
                     glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
@@ -900,7 +797,6 @@ void GCodeViewer::render_toolpaths() const
             }
             case GCodeProcessor::EMoveType::Color_change:
             {
-#if ENABLE_SHADERS_MANAGER
                 shader->set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(EOptionsColors::ColorChanges)]);
                 shader->set_uniform("zoom", zoom);
                 shader->set_uniform("point_sizes", point_sizes);
@@ -909,9 +805,6 @@ void GCodeViewer::render_toolpaths() const
                     glsafe(::glEnable(GL_POINT_SPRITE));
                     glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
                 }
-#else
-                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), Options_Colors[static_cast<unsigned int>(EOptionsColors::ColorChanges)]);
-#endif // ENABLE_SHADERS_MANAGER
                 for (const RenderPath& path : buffer.render_paths)
                 {
                     glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
@@ -928,7 +821,6 @@ void GCodeViewer::render_toolpaths() const
             }
             case GCodeProcessor::EMoveType::Pause_Print:
             {
-#if ENABLE_SHADERS_MANAGER
                 shader->set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(EOptionsColors::PausePrints)]);
                 shader->set_uniform("zoom", zoom);
                 shader->set_uniform("point_sizes", point_sizes);
@@ -937,9 +829,6 @@ void GCodeViewer::render_toolpaths() const
                     glsafe(::glEnable(GL_POINT_SPRITE));
                     glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
                 }
-#else
-                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), Options_Colors[static_cast<unsigned int>(EOptionsColors::PausePrints)]);
-#endif // ENABLE_SHADERS_MANAGER
                 for (const RenderPath& path : buffer.render_paths)
                 {
                     glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
@@ -956,7 +845,6 @@ void GCodeViewer::render_toolpaths() const
             }
             case GCodeProcessor::EMoveType::Custom_GCode:
             {
-#if ENABLE_SHADERS_MANAGER
                 shader->set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(EOptionsColors::CustomGCodes)]);
                 shader->set_uniform("zoom", zoom);
                 shader->set_uniform("point_sizes", point_sizes);
@@ -965,9 +853,6 @@ void GCodeViewer::render_toolpaths() const
                     glsafe(::glEnable(GL_POINT_SPRITE));
                     glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
                 }
-#else
-                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), Options_Colors[static_cast<unsigned int>(EOptionsColors::CustomGCodes)]);
-#endif // ENABLE_SHADERS_MANAGER
                 for (const RenderPath& path : buffer.render_paths)
                 {
                     glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
@@ -984,7 +869,6 @@ void GCodeViewer::render_toolpaths() const
             }
             case GCodeProcessor::EMoveType::Retract:
             {
-#if ENABLE_SHADERS_MANAGER
                 shader->set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(EOptionsColors::Retractions)]);
                 shader->set_uniform("zoom", zoom);
                 shader->set_uniform("point_sizes", point_sizes);
@@ -993,9 +877,6 @@ void GCodeViewer::render_toolpaths() const
                     glsafe(::glEnable(GL_POINT_SPRITE));
                     glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
                 }
-#else
-                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), Options_Colors[static_cast<unsigned int>(EOptionsColors::Retractions)]);
-#endif // ENABLE_SHADERS_MANAGER
                 for (const RenderPath& path : buffer.render_paths)
                 {
                     glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
@@ -1012,7 +893,6 @@ void GCodeViewer::render_toolpaths() const
             }
             case GCodeProcessor::EMoveType::Unretract:
             {
-#if ENABLE_SHADERS_MANAGER
                 shader->set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(EOptionsColors::Unretractions)]);
                 shader->set_uniform("zoom", zoom);
                 shader->set_uniform("point_sizes", point_sizes);
@@ -1021,9 +901,6 @@ void GCodeViewer::render_toolpaths() const
                     glsafe(::glEnable(GL_POINT_SPRITE));
                     glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
                 }
-#else
-                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), Options_Colors[static_cast<unsigned int>(EOptionsColors::Unretractions)]);
-#endif // ENABLE_SHADERS_MANAGER
                 for (const RenderPath& path : buffer.render_paths)
                 {
                     glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
@@ -1042,11 +919,7 @@ void GCodeViewer::render_toolpaths() const
             {
                 for (const RenderPath& path : buffer.render_paths)
                 {
-#if ENABLE_SHADERS_MANAGER
                     shader->set_uniform("uniform_color", path.color);
-#else
-                    set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), path.color);
-#endif // ENABLE_SHADERS_MANAGER
                     glsafe(::glMultiDrawElements(GL_LINE_STRIP, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
                     ++m_statistics.gl_multi_line_strip_calls_count;
@@ -1059,11 +932,7 @@ void GCodeViewer::render_toolpaths() const
             {
                 for (const RenderPath& path : buffer.render_paths)
                 {
-#if ENABLE_SHADERS_MANAGER
                     shader->set_uniform("uniform_color", path.color);
-#else
-                    set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), path.color);
-#endif // ENABLE_SHADERS_MANAGER
                     glsafe(::glMultiDrawElements(GL_LINE_STRIP, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
                     ++m_statistics.gl_multi_line_strip_calls_count;
@@ -1075,11 +944,7 @@ void GCodeViewer::render_toolpaths() const
             }
 
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-#if ENABLE_SHADERS_MANAGER
             shader->stop_using();
-#else
-            buffer.shader.stop_using();
-#endif // ENABLE_SHADERS_MANAGER
         }
     }
 
@@ -1089,7 +954,6 @@ void GCodeViewer::render_toolpaths() const
 
 void GCodeViewer::render_shells() const
 {
-#if ENABLE_SHADERS_MANAGER
     if (!m_shells.visible || m_shells.volumes.empty())
         return;
 
@@ -1104,18 +968,6 @@ void GCodeViewer::render_shells() const
     shader->stop_using();
 
 //    glsafe(::glDepthMask(GL_TRUE));
-#else
-    if (!m_shells.visible || m_shells.volumes.empty() || !m_shells.shader.is_initialized())
-        return;
-
-//    glsafe(::glDepthMask(GL_FALSE));
-
-    m_shells.shader.start_using();
-    m_shells.volumes.render(GLVolumeCollection::Transparent, true, wxGetApp().plater()->get_camera().get_view_matrix());
-    m_shells.shader.stop_using();
-
-//    glsafe(::glDepthMask(GL_TRUE));
-#endif // ENABLE_SHADERS_MANAGER
 }
 
 void GCodeViewer::render_legend() const
