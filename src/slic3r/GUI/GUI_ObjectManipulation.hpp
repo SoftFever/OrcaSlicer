@@ -173,6 +173,7 @@ public:
     void update_item_name(const wxString &item_name);
     void update_warning_icon_state(const wxString& tooltip);
     void msw_rescale();
+    void sys_color_changed();
     void on_change(const std::string& opt_key, int axis, double new_value);
     void set_focused_editor(ManipulationEditor* focused_editor) {
 #ifndef __APPLE__

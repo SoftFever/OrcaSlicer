@@ -22,8 +22,19 @@ class GCodeViewer
 {
     using Color = std::array<float, 3>;
     static const std::vector<Color> Extrusion_Role_Colors;
+    static const std::vector<Color> Options_Colors;
     static const std::vector<Color> Travel_Colors;
     static const std::vector<Color> Range_Colors;
+
+    enum class EOptionsColors : unsigned char
+    {
+        Retractions,
+        Unretractions,
+        ToolChanges,
+        ColorChanges,
+        PausePrints,
+        CustomGCodes
+    };
 
     // buffer containing vertices data
     struct VBuffer
@@ -211,6 +222,7 @@ public:
         {
             GL_Model m_model;
             Transform3f m_world_transform;
+            BoundingBoxf3 m_world_bounding_box;
             std::array<float, 4> m_color{ 1.0f, 1.0f, 1.0f, 1.0f };
             bool m_visible{ false };
 #if !ENABLE_SHADERS_MANAGER
@@ -220,9 +232,9 @@ public:
         public:
             void init();
 
-            const BoundingBoxf3& get_bounding_box() const { return m_model.get_bounding_box(); }
+            const BoundingBoxf3& get_bounding_box() const { return m_world_bounding_box; }
 
-            void set_world_transform(const Transform3f& transform) { m_world_transform = transform; }
+            void set_world_position(const Vec3f& position);
             void set_color(const std::array<float, 4>& color) { m_color = color; }
 
             bool is_visible() const { return m_visible; }
@@ -273,6 +285,7 @@ private:
     std::vector<unsigned char> m_extruder_ids;
     mutable Extrusions m_extrusions;
     mutable SequentialView m_sequential_view;
+    float m_sequential_view_marker_z_offset{ 0.5f };
     Shells m_shells;
     EViewType m_view_type{ EViewType::FeatureType };
     bool m_legend_enabled{ true };

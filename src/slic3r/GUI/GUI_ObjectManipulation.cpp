@@ -981,6 +981,23 @@ void ObjectManipulation::msw_rescale()
     get_og()->msw_rescale();
 }
 
+void ObjectManipulation::sys_color_changed()
+{
+    // btn...->msw_rescale() updates icon on button, so use it
+    m_mirror_bitmap_on.msw_rescale();
+    m_mirror_bitmap_off.msw_rescale();
+    m_mirror_bitmap_hidden.msw_rescale();
+    m_reset_scale_button->msw_rescale();
+    m_reset_rotation_button->msw_rescale();
+    m_drop_to_bed_button->msw_rescale();
+    m_lock_bnt->msw_rescale();
+
+    for (int id = 0; id < 3; ++id)
+        m_mirror_buttons[id].first->msw_rescale();
+
+    get_og()->msw_rescale();
+}
+
 static const char axes[] = { 'x', 'y', 'z' };
 ManipulationEditor::ManipulationEditor(ObjectManipulation* parent,
                                        const std::string& opt_key,

@@ -7,3 +7,7 @@ add_library(clipper STATIC
     clipper_z.cpp
     clipper_z.hpp
 )
+
+if(SLIC3R_PROFILE)
+    target_link_libraries(clipper Shiny)
+endif()

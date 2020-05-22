@@ -2182,7 +2182,7 @@ void GLCanvas3D::render()
 #endif // ENABLE_RENDER_STATISTICS
 
 #if ENABLE_CAMERA_STATISTICS
-    m_camera.debug_render();
+    camera.debug_render();
 #endif // ENABLE_CAMERA_STATISTICS
 
     std::string tooltip;

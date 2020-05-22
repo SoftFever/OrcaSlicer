@@ -6,6 +6,8 @@
 
 #include <string>
 
+#include <Eigen/Core>
+
 #include <wx/clipbrd.h>
 #include <wx/platinfo.h>
 #include "GUI_App.hpp"
@@ -145,11 +147,11 @@ SysInfoDialog::SysInfoDialog()
             "</font>"
             "</body>"
             "</html>", bgr_clr_str, text_clr_str, text_clr_str,
-            get_mem_info(true) + "<br>" + wxGetApp().get_gl_info(true, true));
+            get_mem_info(true) + "<br>" + wxGetApp().get_gl_info(true, true) + "<br>Eigen vectorization supported: " + Eigen::SimdInstructionSetsInUse());
         m_opengl_info_html->SetPage(text);
         main_sizer->Add(m_opengl_info_html, 1, wxEXPAND | wxBOTTOM, 15);
     }
-    
+
     wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxOK);
     m_btn_copy_to_clipboard = new wxButton(this, wxID_ANY, _(L("Copy to Clipboard")), wxDefaultPosition, wxDefaultSize);
 

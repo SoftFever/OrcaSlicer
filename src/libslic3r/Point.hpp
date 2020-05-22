@@ -369,7 +369,7 @@ namespace boost { namespace polygon {
         typedef coord_t coordinate_type;
     
         static inline coordinate_type get(const Slic3r::Point& point, orientation_2d orient) {
-            return (orient == HORIZONTAL) ? (coordinate_type)point(0) : (coordinate_type)point(1);
+            return (coordinate_type)point((orient == HORIZONTAL) ? 0 : 1);
         }
     };
     
@@ -377,16 +377,10 @@ namespace boost { namespace polygon {
     struct point_mutable_traits<Slic3r::Point> {
         typedef coord_t coordinate_type;
         static inline void set(Slic3r::Point& point, orientation_2d orient, coord_t value) {
-            if (orient == HORIZONTAL)
-                point(0) = value;
-            else
-                point(1) = value;
+            point((orient == HORIZONTAL) ? 0 : 1) = value;
         }
         static inline Slic3r::Point construct(coord_t x_value, coord_t y_value) {
-            Slic3r::Point retval;
-            retval(0) = x_value;
-            retval(1) = y_value; 
-            return retval;
+            return Slic3r::Point(x_value, y_value);
         }
     };
 } }

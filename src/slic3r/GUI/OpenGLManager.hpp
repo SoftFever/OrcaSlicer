@@ -45,6 +45,7 @@ public:
         float get_max_anisotropy() const;
 
         bool is_version_greater_or_equal_to(unsigned int major, unsigned int minor) const;
+        bool is_glsl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const;
 
         std::string to_string(bool format_as_html, bool extensions) const;
 

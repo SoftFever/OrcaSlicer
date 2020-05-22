@@ -105,6 +105,7 @@ public:
     void update_mode_sizer() const;
     void update_reslice_btn_tooltip() const;
     void msw_rescale();
+    void sys_color_changed();
     void search();
     void jump_to_option(size_t selected);
 
@@ -308,6 +309,7 @@ public:
     bool can_reload_from_disk() const;
 
     void msw_rescale();
+    void sys_color_changed();
 
     bool init_view_toolbar();
 

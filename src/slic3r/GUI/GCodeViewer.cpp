@@ -156,6 +156,12 @@ void GCodeViewer::SequentialView::Marker::init()
 #endif // !ENABLE_SHADERS_MANAGER
 }
 
+void GCodeViewer::SequentialView::Marker::set_world_position(const Vec3f& position)
+{
+    m_world_transform = (Geometry::assemble_transform(position.cast<double>()) * Geometry::assemble_transform(m_model.get_bounding_box().size()[2] * Vec3d::UnitZ(), { M_PI, 0.0, 0.0 })).cast<float>();
+    m_world_bounding_box = m_model.get_bounding_box().transformed(m_world_transform.cast<double>());
+}
+
 void GCodeViewer::SequentialView::Marker::render() const
 {
 #if ENABLE_SHADERS_MANAGER
@@ -225,6 +231,15 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
     { 0.70f, 0.89f, 0.67f },   // erWipeTower
     { 0.16f, 0.80f, 0.58f },   // erCustom
     { 0.00f, 0.00f, 0.00f }    // erMixed
+}};
+
+const std::vector<GCodeViewer::Color> GCodeViewer::Options_Colors {{
+    { 1.00f, 0.00f, 1.00f },   // Retractions
+    { 0.00f, 1.00f, 1.00f },   // Unretractions
+    { 1.00f, 1.00f, 1.00f },   // ToolChanges
+    { 1.00f, 0.00f, 0.00f },   // ColorChanges
+    { 0.00f, 1.00f, 0.00f },   // PausePrints
+    { 0.00f, 0.00f, 1.00f }    // CustomGCodes
 }};
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Travel_Colors {{
@@ -346,7 +361,7 @@ void GCodeViewer::render() const
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_toolpaths();
-    m_sequential_view.marker.set_world_transform(Geometry::assemble_transform(m_sequential_view.current_position.cast<double>() + (0.5 + 12.0) * Vec3d::UnitZ(), { M_PI, 0.0, 0.0 }).cast<float>());
+    m_sequential_view.marker.set_world_position(m_sequential_view.current_position + m_sequential_view_marker_z_offset * Vec3f::UnitZ());
     m_sequential_view.marker.render();
     render_shells();
     render_legend();
@@ -851,11 +866,10 @@ void GCodeViewer::render_toolpaths() const
             {
             case GCodeProcessor::EMoveType::Tool_change:
             {
-                Color color = { 1.0f, 1.0f, 1.0f };
 #if ENABLE_SHADERS_MANAGER
-                shader->set_uniform("uniform_color", color);
+                shader->set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(EOptionsColors::ToolChanges)]);
 #else
-                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), color);
+                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), Options_Colors[static_cast<unsigned int>(EOptionsColors::ToolChanges)]);
 #endif // ENABLE_SHADERS_MANAGER
                 for (const RenderPath& path : buffer.render_paths)
                 {
@@ -871,11 +885,10 @@ void GCodeViewer::render_toolpaths() const
             }
             case GCodeProcessor::EMoveType::Color_change:
             {
-                Color color = { 1.0f, 0.0f, 0.0f };
 #if ENABLE_SHADERS_MANAGER
-                shader->set_uniform("uniform_color", color);
+                shader->set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(EOptionsColors::ColorChanges)]);
 #else
-                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), color);
+                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), Options_Colors[static_cast<unsigned int>(EOptionsColors::ColorChanges)]);
 #endif // ENABLE_SHADERS_MANAGER
                 for (const RenderPath& path : buffer.render_paths)
                 {
@@ -891,11 +904,10 @@ void GCodeViewer::render_toolpaths() const
             }
             case GCodeProcessor::EMoveType::Pause_Print:
             {
-                Color color = { 0.0f, 1.0f, 0.0f };
 #if ENABLE_SHADERS_MANAGER
-                shader->set_uniform("uniform_color", color);
+                shader->set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(EOptionsColors::PausePrints)]);
 #else
-                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), color);
+                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), Options_Colors[static_cast<unsigned int>(EOptionsColors::PausePrints)]);
 #endif // ENABLE_SHADERS_MANAGER
                 for (const RenderPath& path : buffer.render_paths)
                 {
@@ -911,11 +923,10 @@ void GCodeViewer::render_toolpaths() const
             }
             case GCodeProcessor::EMoveType::Custom_GCode:
             {
-                Color color = { 0.0f, 0.0f, 1.0f };
 #if ENABLE_SHADERS_MANAGER
-                shader->set_uniform("uniform_color", color);
+                shader->set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(EOptionsColors::CustomGCodes)]);
 #else
-                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), color);
+                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), Options_Colors[static_cast<unsigned int>(EOptionsColors::CustomGCodes)]);
 #endif // ENABLE_SHADERS_MANAGER
                 for (const RenderPath& path : buffer.render_paths)
                 {
@@ -931,11 +942,10 @@ void GCodeViewer::render_toolpaths() const
             }
             case GCodeProcessor::EMoveType::Retract:
             {
-                Color color = { 1.0f, 0.0f, 1.0f };
 #if ENABLE_SHADERS_MANAGER
-                shader->set_uniform("uniform_color", color);
+                shader->set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(EOptionsColors::Retractions)]);
 #else
-                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), color);
+                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), Options_Colors[static_cast<unsigned int>(EOptionsColors::Retractions)]);
 #endif // ENABLE_SHADERS_MANAGER
                 for (const RenderPath& path : buffer.render_paths)
                 {
@@ -951,11 +961,10 @@ void GCodeViewer::render_toolpaths() const
             }
             case GCodeProcessor::EMoveType::Unretract:
             {
-                Color color = { 0.0f, 1.0f, 1.0f };
 #if ENABLE_SHADERS_MANAGER
-                shader->set_uniform("uniform_color", color);
+                shader->set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(EOptionsColors::Unretractions)]);
 #else
-                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), color);
+                set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), Options_Colors[static_cast<unsigned int>(EOptionsColors::Unretractions)]);
 #endif // ENABLE_SHADERS_MANAGER
                 for (const RenderPath& path : buffer.render_paths)
                 {
@@ -1271,6 +1280,41 @@ void GCodeViewer::render_legend() const
             break;
         }
         }
+    }
+
+    auto any_option_visible = [this]() {
+        return m_buffers[buffer_id(GCodeProcessor::EMoveType::Color_change)].visible ||
+               m_buffers[buffer_id(GCodeProcessor::EMoveType::Custom_GCode)].visible ||
+               m_buffers[buffer_id(GCodeProcessor::EMoveType::Pause_Print)].visible ||
+               m_buffers[buffer_id(GCodeProcessor::EMoveType::Retract)].visible ||
+               m_buffers[buffer_id(GCodeProcessor::EMoveType::Tool_change)].visible ||
+               m_buffers[buffer_id(GCodeProcessor::EMoveType::Unretract)].visible;
+    };
+
+    auto add_option = [this, add_item](GCodeProcessor::EMoveType move_type, EOptionsColors color, const std::string& text) {
+        const IBuffer& buffer = m_buffers[buffer_id(move_type)];
+        if (buffer.visible && buffer.indices_count > 0)
+            add_item(Options_Colors[static_cast<unsigned int>(color)], text);
+    };
+
+    // options
+    if (any_option_visible())
+    {
+        // title
+        ImGui::Spacing();
+        ImGui::Spacing();
+        ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+        imgui.text(_u8L("Options"));
+        ImGui::PopStyleColor();
+        ImGui::Separator();
+
+        // items
+        add_option(GCodeProcessor::EMoveType::Retract, EOptionsColors::Retractions, _u8L("Retractions"));
+        add_option(GCodeProcessor::EMoveType::Unretract, EOptionsColors::Unretractions, _u8L("Unretractions"));
+        add_option(GCodeProcessor::EMoveType::Tool_change, EOptionsColors::ToolChanges, _u8L("Tool changes"));
+        add_option(GCodeProcessor::EMoveType::Color_change, EOptionsColors::ColorChanges, _u8L("Color changes"));
+        add_option(GCodeProcessor::EMoveType::Pause_Print, EOptionsColors::PausePrints, _u8L("Pause prints"));
+        add_option(GCodeProcessor::EMoveType::Custom_GCode, EOptionsColors::CustomGCodes, _u8L("Custom GCodes"));
     }
 
     imgui.end();

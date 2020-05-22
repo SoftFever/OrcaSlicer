@@ -386,6 +386,7 @@ public:
     void paste_objects_into_list(const std::vector<size_t>& object_idxs);
 
     void msw_rescale();
+    void sys_color_changed();
 
     void update_after_undo_redo();
     //update printable state for item from objects model
