@@ -211,6 +211,11 @@ bool GLShaderProgram::set_uniform(const char* name, float value) const
     return false;
 }
 
+bool GLShaderProgram::set_uniform(const char* name, double value) const
+{
+    return set_uniform(name, static_cast<float>(value));
+}
+
 bool GLShaderProgram::set_uniform(const char* name, const std::array<float, 2>& value) const
 {
     int id = get_uniform_location(name);
