@@ -7,12 +7,6 @@
 #include <functional>
 #include <Eigen/Geometry>
 
-//#include "SLASpatIndex.hpp"
-
-//#include <libslic3r/ExPolygon.hpp>
-//#include <libslic3r/TriangleMesh.hpp>
-
-// #define SLIC3R_SLA_NEEDS_WINDTREE
 
 namespace Slic3r {
     

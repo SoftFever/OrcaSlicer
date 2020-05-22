@@ -1,19 +1,11 @@
 #include <cmath>
 #include <libslic3r/SLA/Common.hpp>
 #include <libslic3r/SLA/Concurrency.hpp>
-#include <libslic3r/SLA/SupportTree.hpp>
 #include <libslic3r/SLA/SpatIndex.hpp>
 #include <libslic3r/SLA/EigenMesh3D.hpp>
 #include <libslic3r/SLA/Contour3D.hpp>
 #include <libslic3r/SLA/Clustering.hpp>
-#include <libslic3r/SLA/Hollowing.hpp>
 #include <libslic3r/AABBTreeIndirect.hpp>
-
-
-// Workaround: IGL signed_distance.h will define PI in the igl namespace.
-#undef PI
-
-// HEAVY headers... takes eternity to compile
 
 // for concave hull merging decisions
 #include <libslic3r/SLA/BoostAdapter.hpp>
@@ -25,35 +17,22 @@
 #pragma warning(disable: 4267)
 #endif
 
-#define USE_AABB_INDIRECT // Vojta's AABB (defined) vs igl::AABB (undefined)
-
-#ifdef SLIC3R_SLA_NEEDS_WINDTREE
-  #ifdef USE_AABB_INDIRECT
-    #error These two options contradict each other.
-  #endif
-  #include <igl/signed_distance.h>
-#endif
-
-#ifndef USE_AABB_INDIRECT
-  #include <igl/point_mesh_squared_distance.h>
-#endif
 
 #include <igl/remove_duplicate_vertices.h>
+
+#ifdef SLIC3R_HOLE_RAYCASTER
+  #include <libslic3r/SLA/Hollowing.hpp>
+#endif
 
 
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
-#include <tbb/parallel_for.h>
-
-#include "ClipperUtils.hpp"
 
 namespace Slic3r {
 namespace sla {
 
-// Bring back PI from the igl namespace
-//using igl::PI;
 
 /* **************************************************************************
  * PointIndex implementation
@@ -201,14 +180,8 @@ void BoxIndex::foreach(std::function<void (const BoxIndexEl &)> fn)
  * EigenMesh3D implementation
  * ****************************************************************************/
 
-#ifdef USE_AABB_INDIRECT
-class EigenMesh3D::AABBImpl {
-#else
-class EigenMesh3D::AABBImpl: public igl::AABB<Eigen::MatrixXd, 3> {
-#endif
 
-public:
-#ifdef USE_AABB_INDIRECT
+class EigenMesh3D::AABBImpl {
 private:
     AABBTreeIndirect::Tree3f m_tree;
     TriangleMesh m_triangle_mesh; // FIXME: There should be no extra copy
@@ -252,11 +225,6 @@ public:
         closest = closest_vec3d;
         return dist;
     }
-#endif
-
-#ifdef SLIC3R_SLA_NEEDS_WINDTREE
-    igl::WindingNumberAABB<Vec3d, Eigen::MatrixXd, Eigen::MatrixXi> windtree;
-#endif /* SLIC3R_SLA_NEEDS_WINDTREE */
 };
 
 static const constexpr double MESH_EPS = 1e-6;
@@ -315,15 +283,7 @@ EigenMesh3D::EigenMesh3D(const TriangleMesh& tmesh): m_aabb(new AABBImpl()) {
     to_eigen_mesh(tmesh, m_V, m_F);
     
     // Build the AABB accelaration tree
-#ifdef USE_AABB_INDIRECT
     m_aabb->init(tmesh);
-#else
-    m_aabb->init(m_V, m_F);
-#endif
-
-#ifdef SLIC3R_SLA_NEEDS_WINDTREE
-    m_aabb->windtree.set_mesh(m_V, m_F);
-#endif /* SLIC3R_SLA_NEEDS_WINDTREE */
 }
 
 EigenMesh3D::~EigenMesh3D() {}
@@ -371,24 +331,25 @@ EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
     igl::Hit hit;
     hit.t = std::numeric_limits<float>::infinity();
 
-    if (m_holes.empty()) {
-        m_aabb->intersect_ray(m_V, m_F, s, dir, hit);
-        hit_result ret(*this);
-        ret.m_t = double(hit.t);
-        ret.m_dir = dir;
-        ret.m_source = s;
-        if(!std::isinf(hit.t) && !std::isnan(hit.t)) {
-            ret.m_normal = this->normal_by_face_id(hit.id);
-            ret.m_face_id = hit.id;
-        }
-
-        return ret;
-    }
-    else {
+#ifdef SLIC3R_HOLE_RAYCASTER
+    if (! m_holes.empty()) {
         // If there are holes, the hit_results will be made by
         // query_ray_hits (object) and filter_hits (holes):
         return filter_hits(query_ray_hits(s, dir));
     }
+#endif
+
+    m_aabb->intersect_ray(m_V, m_F, s, dir, hit);
+    hit_result ret(*this);
+    ret.m_t = double(hit.t);
+    ret.m_dir = dir;
+    ret.m_source = s;
+    if(!std::isinf(hit.t) && !std::isnan(hit.t)) {
+        ret.m_normal = this->normal_by_face_id(hit.id);
+        ret.m_face_id = hit.id;
+    }
+
+    return ret;
 }
 
 std::vector<EigenMesh3D::hit_result>
@@ -425,6 +386,8 @@ EigenMesh3D::query_ray_hits(const Vec3d &s, const Vec3d &dir) const
     return outs;
 }
 
+
+#ifdef SLIC3R_HOLE_RAYCASTER
 EigenMesh3D::hit_result EigenMesh3D::filter_hits(
                      const std::vector<EigenMesh3D::hit_result>& object_hits) const
 {
@@ -519,20 +482,8 @@ EigenMesh3D::hit_result EigenMesh3D::filter_hits(
     // if we got here, the ray ended up in infinity
     return out;
 }
+#endif
 
-#ifdef SLIC3R_SLA_NEEDS_WINDTREE
-EigenMesh3D::si_result EigenMesh3D::signed_distance(const Vec3d &p) const {
-    double sign = 0; double sqdst = 0; int i = 0;  Vec3d c;
-    igl::signed_distance_winding_number(*m_aabb, m_V, m_F, m_aabb->windtree,
-                                        p, sign, sqdst, i, c);
-    
-    return si_result(sign * std::sqrt(sqdst), i, c);
-}
-
-bool EigenMesh3D::inside(const Vec3d &p) const {
-    return m_aabb->windtree.inside(p);
-}
-#endif /* SLIC3R_SLA_NEEDS_WINDTREE */
 
 double EigenMesh3D::squared_distance(const Vec3d &p, int& i, Vec3d& c) const {
     double sqdst = 0;

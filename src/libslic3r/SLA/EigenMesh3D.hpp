@@ -2,7 +2,16 @@
 #define SLA_EIGENMESH3D_H
 
 #include <libslic3r/SLA/Common.hpp>
-#include "libslic3r/SLA/Hollowing.hpp"
+
+
+// There is an implementation of a hole-aware raycaster that was eventually
+// not used in production version. It is now hidden under following define
+// for possible future use.
+//#define SLIC3R_HOLE_RAYCASTER
+
+#ifdef SLIC3R_HOLE_RAYCASTER
+  #include "libslic3r/SLA/Hollowing.hpp"
+#endif
 
 namespace Slic3r {
 
@@ -27,9 +36,11 @@ class EigenMesh3D {
     
     std::unique_ptr<AABBImpl> m_aabb;
 
+#ifdef SLIC3R_HOLE_RAYCASTER
     // This holds a copy of holes in the mesh. Initialized externally
     // by load_mesh setter.
     std::vector<DrainHole> m_holes;
+#endif
 
 public:
     
@@ -88,18 +99,13 @@ public:
             return is_hit() && normal().dot(m_dir) > 0;
         }
     };
-    
+
+#ifdef SLIC3R_HOLE_RAYCASTER
     // Inform the object about location of holes
     // creates internal copy of the vector
     void load_holes(const std::vector<DrainHole>& holes) {
         m_holes = holes;
     }
-
-    // Casting a ray on the mesh, returns the distance where the hit occures.
-    hit_result query_ray_hit(const Vec3d &s, const Vec3d &dir) const;
-    
-    // Casts a ray on the mesh and returns all hits
-    std::vector<hit_result> query_ray_hits(const Vec3d &s, const Vec3d &dir) const;
 
     // Iterates over hits and holes and returns the true hit, possibly
     // on the inside of a hole.
@@ -107,6 +113,13 @@ public:
     // holes were subtracted on slices, that is, before we started using CGAL
     // to actually cut the holes into the mesh.
     hit_result filter_hits(const std::vector<EigenMesh3D::hit_result>& obj_hits) const;
+#endif
+
+    // Casting a ray on the mesh, returns the distance where the hit occures.
+    hit_result query_ray_hit(const Vec3d &s, const Vec3d &dir) const;
+    
+    // Casts a ray on the mesh and returns all hits
+    std::vector<hit_result> query_ray_hits(const Vec3d &s, const Vec3d &dir) const;
 
     class si_result {
         double m_value;
@@ -125,13 +138,6 @@ public:
         int F_idx() const { return m_fidx; }
     };
 
-#ifdef SLIC3R_SLA_NEEDS_WINDTREE
-    // The signed distance from a point to the mesh. Outputs the distance,
-    // the index of the triangle and the closest point in mesh coordinate space.
-    si_result signed_distance(const Vec3d& p) const;
-    
-    bool inside(const Vec3d& p) const;
-#endif /* SLIC3R_SLA_NEEDS_WINDTREE */
     
     double squared_distance(const Vec3d& p, int& i, Vec3d& c) const;
     inline double squared_distance(const Vec3d &p) const
