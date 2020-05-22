@@ -156,6 +156,12 @@ void GCodeViewer::SequentialView::Marker::init()
 #endif // !ENABLE_SHADERS_MANAGER
 }
 
+void GCodeViewer::SequentialView::Marker::set_world_position(const Vec3f& position)
+{
+    m_world_transform = (Geometry::assemble_transform(position.cast<double>()) * Geometry::assemble_transform(m_model.get_bounding_box().size()[2] * Vec3d::UnitZ(), { M_PI, 0.0, 0.0 })).cast<float>();
+    m_world_bounding_box = m_model.get_bounding_box().transformed(m_world_transform.cast<double>());
+}
+
 void GCodeViewer::SequentialView::Marker::render() const
 {
 #if ENABLE_SHADERS_MANAGER
@@ -346,7 +352,7 @@ void GCodeViewer::render() const
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_toolpaths();
-    m_sequential_view.marker.set_world_transform(Geometry::assemble_transform(m_sequential_view.current_position.cast<double>() + (0.5 + 12.0) * Vec3d::UnitZ(), { M_PI, 0.0, 0.0 }).cast<float>());
+    m_sequential_view.marker.set_world_position(m_sequential_view.current_position + m_sequential_view_marker_z_offset * Vec3f::UnitZ());
     m_sequential_view.marker.render();
     render_shells();
     render_legend();
