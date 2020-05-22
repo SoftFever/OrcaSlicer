@@ -7,6 +7,7 @@
 #include <libslic3r/SLA/Contour3D.hpp>
 #include <libslic3r/SLA/Clustering.hpp>
 #include <libslic3r/SLA/Hollowing.hpp>
+#include <libslic3r/AABBTreeIndirect.hpp>
 
 
 // Workaround: IGL signed_distance.h will define PI in the igl namespace.
@@ -23,11 +24,23 @@
 #pragma warning(disable: 4244)
 #pragma warning(disable: 4267)
 #endif
-#include <igl/ray_mesh_intersect.h>
-#include <igl/point_mesh_squared_distance.h>
+
+#define USE_AABB_INDIRECT // Vojta's AABB (defined) vs igl::AABB (undefined)
+
+#ifdef SLIC3R_SLA_NEEDS_WINDTREE
+  #ifdef USE_AABB_INDIRECT
+    #error These two options contradict each other.
+  #endif
+  #include <igl/signed_distance.h>
+#endif
+
+#ifndef USE_AABB_INDIRECT
+  #include <igl/point_mesh_squared_distance.h>
+#endif
+
 #include <igl/remove_duplicate_vertices.h>
-#include <igl/collapse_small_triangles.h>
-#include <igl/signed_distance.h>
+
+
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
@@ -40,7 +53,7 @@ namespace Slic3r {
 namespace sla {
 
 // Bring back PI from the igl namespace
-using igl::PI;
+//using igl::PI;
 
 /* **************************************************************************
  * PointIndex implementation
@@ -188,8 +201,59 @@ void BoxIndex::foreach(std::function<void (const BoxIndexEl &)> fn)
  * EigenMesh3D implementation
  * ****************************************************************************/
 
+#ifdef USE_AABB_INDIRECT
+class EigenMesh3D::AABBImpl {
+#else
 class EigenMesh3D::AABBImpl: public igl::AABB<Eigen::MatrixXd, 3> {
+#endif
+
 public:
+#ifdef USE_AABB_INDIRECT
+private:
+    AABBTreeIndirect::Tree3f m_tree;
+    TriangleMesh m_triangle_mesh; // FIXME: There should be no extra copy
+    // maybe even the m_V and m_F are extra. This is just to see the new
+    // AABB tree in action
+public:
+    void init(const TriangleMesh& tmesh)
+    {
+        m_triangle_mesh = tmesh;
+        m_tree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(
+                    m_triangle_mesh.its.vertices, m_triangle_mesh.its.indices);
+    }
+
+    void intersect_ray(const Eigen::MatrixXd&, const Eigen::MatrixXi&,
+                       const Vec3d& s, const Vec3d& dir, igl::Hit& hit)
+    {
+        AABBTreeIndirect::intersect_ray_first_hit(m_triangle_mesh.its.vertices,
+                                                  m_triangle_mesh.its.indices,
+                                                  m_tree,
+                                                  s, dir, hit);
+    }
+
+    void intersect_ray(const Eigen::MatrixXd&, const Eigen::MatrixXi&,
+                       const Vec3d& s, const Vec3d& dir, std::vector<igl::Hit>& hits)
+    {
+        AABBTreeIndirect::intersect_ray_all_hits(m_triangle_mesh.its.vertices,
+                                                 m_triangle_mesh.its.indices,
+                                                 m_tree,
+                                                 s, dir, hits);
+    }
+
+    double squared_distance(const Eigen::MatrixXd&, const Eigen::MatrixXi&,
+                            const Vec3d& point, int& i, Eigen::Matrix<double, 1, 3>& closest) {
+        size_t idx_unsigned = 0;
+        Vec3d closest_vec3d(closest);
+        double dist = AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
+                          m_triangle_mesh.its.vertices,
+                          m_triangle_mesh.its.indices,
+                          m_tree, point, idx_unsigned, closest_vec3d);
+        i = int(idx_unsigned);
+        closest = closest_vec3d;
+        return dist;
+    }
+#endif
+
 #ifdef SLIC3R_SLA_NEEDS_WINDTREE
     igl::WindingNumberAABB<Vec3d, Eigen::MatrixXd, Eigen::MatrixXi> windtree;
 #endif /* SLIC3R_SLA_NEEDS_WINDTREE */
@@ -225,7 +289,11 @@ void to_eigen_mesh(const TriangleMesh &tmesh, Eigen::MatrixXd &V, Eigen::MatrixX
     }
 }
 
-void to_triangle_mesh(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F, TriangleMesh &out)
+void to_triangle_mesh(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F, TriangleMesh &out);
+#if 0
+Does this function really work? There seems to be an issue with it.
+Currently it is not used anywhere, this way it stays visible but
+trigger linking error when attempting to use it.
 {
     Pointf3s points(size_t(V.rows())); 
     std::vector<Vec3i> facets(size_t(F.rows()));
@@ -238,6 +306,7 @@ void to_triangle_mesh(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F, Triang
     
     out = {points, facets};
 }
+#endif
 
 EigenMesh3D::EigenMesh3D(const TriangleMesh& tmesh): m_aabb(new AABBImpl()) {
     auto&& bb = tmesh.bounding_box();
@@ -246,7 +315,12 @@ EigenMesh3D::EigenMesh3D(const TriangleMesh& tmesh): m_aabb(new AABBImpl()) {
     to_eigen_mesh(tmesh, m_V, m_F);
     
     // Build the AABB accelaration tree
+#ifdef USE_AABB_INDIRECT
+    m_aabb->init(tmesh);
+#else
     m_aabb->init(m_V, m_F);
+#endif
+
 #ifdef SLIC3R_SLA_NEEDS_WINDTREE
     m_aabb->windtree.set_mesh(m_V, m_F);
 #endif /* SLIC3R_SLA_NEEDS_WINDTREE */
