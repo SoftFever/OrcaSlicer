@@ -22,8 +22,19 @@ class GCodeViewer
 {
     using Color = std::array<float, 3>;
     static const std::vector<Color> Extrusion_Role_Colors;
+    static const std::vector<Color> Options_Colors;
     static const std::vector<Color> Travel_Colors;
     static const std::vector<Color> Range_Colors;
+
+    enum class EOptionsColors : unsigned char
+    {
+        Retractions,
+        Unretractions,
+        ToolChanges,
+        ColorChanges,
+        PausePrints,
+        CustomGCodes
+    };
 
     // buffer containing vertices data
     struct VBuffer
