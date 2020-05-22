@@ -236,26 +236,29 @@ namespace detail {
 		std::vector<igl::Hit>				 hits;
 	};
 
+	//FIXME implement SSE for float AABB trees with float ray queries.
+	// SSE/SSE2 is supported by any Intel/AMD x64 processor.
+	// SSE support requires 16 byte alignment of the AABB nodes, representing the bounding boxes with 4+4 floats,
+	// storing the node index as the 4th element of the bounding box min value etc.
+	// https://www.flipcode.com/archives/SSE_RayBox_Intersection_Test.shtml
 	template <typename Derivedsource, typename Deriveddir, typename Scalar>
 	inline bool ray_box_intersect_invdir(
   		const Eigen::MatrixBase<Derivedsource> 	&origin,
   		const Eigen::MatrixBase<Deriveddir> 	&inv_dir,
   		Eigen::AlignedBox<Scalar,3> 			 box,
   		const Scalar 							&t0,
-  		const Scalar 							&t1,
-  		Scalar 									&tmin,
-  		Scalar 									&tmax) {
+  		const Scalar 							&t1) {
 		// http://people.csail.mit.edu/amy/papers/box-jgt.pdf
 		// "An Efficient and Robust Ray–Box Intersection Algorithm"
 		if (inv_dir.x() < 0)
 			std::swap(box.min().x(), box.max().x());
 		if (inv_dir.y() < 0)
 			std::swap(box.min().y(), box.max().y());
-        tmin = (box.min().x() - origin.x()) * inv_dir.x();
+        Scalar tmin = (box.min().x() - origin.x()) * inv_dir.x();
 		Scalar tymax = (box.max().y() - origin.y()) * inv_dir.y();
 		if (tmin > tymax)
 			return false;
-        tmax = (box.max().x() - origin.x()) * inv_dir.x();
+        Scalar tmax = (box.max().x() - origin.x()) * inv_dir.x();
 		Scalar tymin = (box.min().y()  - origin.y()) * inv_dir.y();
 		if (tymin > tmax)
 			return false;
@@ -328,11 +331,8 @@ namespace detail {
         const auto &node = ray_intersector.tree.node(node_idx);
         assert(node.is_valid());
 		
-		{
-	    	Scalar t_start, t_end;
-            if (! ray_box_intersect_invdir(ray_intersector.origin, ray_intersector.invdir, node.bbox.template cast<Scalar>(), Scalar(0), min_t, t_start, t_end))
-				return false;
-		}
+        if (! ray_box_intersect_invdir(ray_intersector.origin, ray_intersector.invdir, node.bbox.template cast<Scalar>(), Scalar(0), min_t))
+			return false;
 
 	  	if (node.is_leaf()) {
 		    // shoot ray, record hit
@@ -345,27 +345,27 @@ namespace detail {
 		    	&& t > 0.) {
                 hit = igl::Hit { int(node.idx), -1, float(u), float(v), float(t) };
 				return true;
-		    }
-		    return false;
-	  	}
-
-		// Left / right child node index.
-		size_t left  = node_idx * 2 + 1;
-		size_t right = left + 1;
-		igl::Hit left_hit;
-		igl::Hit right_hit;
-        bool left_ret = intersect_ray_recursive_first_hit(ray_intersector, left,  min_t, left_hit);
-		if (left_ret && left_hit.t < min_t) {
-    		min_t = left_hit.t;
-    		hit   = left_hit;
-  		} else
-		    left_ret = false;
-        bool right_ret = intersect_ray_recursive_first_hit(ray_intersector, right, min_t, right_hit);
-		if (right_ret && right_hit.t < min_t)
-			hit = right_hit;
-		else
-			right_ret = false;
-		return left_ret || right_ret;
+		    } else
+		    	return false;
+	  	} else {
+			// Left / right child node index.
+			size_t left  = node_idx * 2 + 1;
+			size_t right = left + 1;
+			igl::Hit left_hit;
+			igl::Hit right_hit;
+	        bool left_ret = intersect_ray_recursive_first_hit(ray_intersector, left,  min_t, left_hit);
+			if (left_ret && left_hit.t < min_t) {
+	    		min_t = left_hit.t;
+	    		hit   = left_hit;
+	  		} else
+			    left_ret = false;
+	        bool right_ret = intersect_ray_recursive_first_hit(ray_intersector, right, min_t, right_hit);
+			if (right_ret && right_hit.t < min_t)
+				hit = right_hit;
+			else
+				right_ret = false;
+			return left_ret || right_ret;
+		}
 	}
 
     template<typename RayIntersectorType>
@@ -376,33 +376,27 @@ namespace detail {
 		const auto &node = ray_intersector.tree.node(node_idx);
 		assert(node.is_valid());
 
-	  	{
-	    	Scalar t_start, t_end;
-            if (! ray_box_intersect_invdir(ray_intersector.origin, ray_intersector.invdir, node.bbox.template cast<Scalar>(),
-	    			Scalar(0), std::numeric_limits<Scalar>::infinity(), t_start, t_end))
-				return;
-	    }
+        if (! ray_box_intersect_invdir(ray_intersector.origin, ray_intersector.invdir, node.bbox.template cast<Scalar>(),
+    			Scalar(0), std::numeric_limits<Scalar>::infinity()))
+			return;
 
 	  	if (node.is_leaf()) {
-            using Vector = Eigen::Matrix<double, 3, 1>;
-            Vector origin_d = ray_intersector.origin.template cast<double>();
-            Vector dir_d    = ray_intersector.dir   .template cast<double>();
-            auto   face     = ray_intersector.faces[node.idx];
-            Vector v0 		= ray_intersector.vertices[face(0)].template cast<double>();
-            Vector v1 		= ray_intersector.vertices[face(1)].template cast<double>();
-            Vector v2 		= ray_intersector.vertices[face(2)].template cast<double>();
-		    // shoot ray, record hit
+            auto   face = ray_intersector.faces[node.idx];
 		    double t, u, v;
-		    if (intersect_triangle1(origin_d.data(), dir_d.data(), v0.data(), v1.data(), v2.data(), &t, &u, &v) && t > 0.)
+		    if (intersect_triangle(
+		    		ray_intersector.origin, ray_intersector.dir, 
+		    		ray_intersector.vertices[face(0)], ray_intersector.vertices[face(1)], ray_intersector.vertices[face(2)], 
+                    t, u, v)
+		    	&& t > 0.) {
                 ray_intersector.hits.emplace_back(igl::Hit{ int(node.idx), -1, float(u), float(v), float(t) });
-			return;
-	  	}
-
-		// Left / right child node index.
-		size_t left  = node_idx * 2 + 1;
-		size_t right = left + 1;
-	  	intersect_ray_recursive_all_hits(ray_intersector, left);
-	  	intersect_ray_recursive_all_hits(ray_intersector, right);
+			}
+	  	} else {
+			// Left / right child node index.
+			size_t left  = node_idx * 2 + 1;
+			size_t right = left + 1;
+		  	intersect_ray_recursive_all_hits(ray_intersector, left);
+		  	intersect_ray_recursive_all_hits(ray_intersector, right);
+		}
 	}
 
 	// Nothing to do with COVID-19 social distancing.
@@ -431,17 +425,17 @@ namespace detail {
 		Vector ap = p - a;
 		Scalar d1 = ab.dot(ap);
 		Scalar d2 = ac.dot(ap);
-		if (d1 <= Scalar(0) && d2 <= Scalar(0))
+		if (d1 <= 0 && d2 <= 0)
 		  return a;
 		// Check if P in vertex region outside B
 		Vector bp = p - b;
 		Scalar d3 = ab.dot(bp);
 		Scalar d4 = ac.dot(bp);
-		if (d3 >= Scalar(0) && d4 <= d3)
+		if (d3 >= 0 && d4 <= d3)
 		  return b;
 		// Check if P in edge region of AB, if so return projection of P onto AB
 		Scalar vc = d1*d4 - d3*d2;
-		if (a != b && vc <= Scalar(0) && d1 >= Scalar(0) && d3 <= Scalar(0)) {
+		if (a != b && vc <= 0 && d1 >= 0 && d3 <= 0) {
 		    Scalar v = d1 / (d1 - d3);
 		    return a + v * ab;
 		}
@@ -449,17 +443,17 @@ namespace detail {
 		Vector cp = p - c;
 		Scalar d5 = ab.dot(cp);
 		Scalar d6 = ac.dot(cp);
-		if (d6 >= Scalar(0) && d5 <= d6)
+		if (d6 >= 0 && d5 <= d6)
 		  return c;
 		// Check if P in edge region of AC, if so return projection of P onto AC
 		Scalar vb = d5*d2 - d1*d6;
-		if (vb <= Scalar(0) && d2 >= Scalar(0) && d6 <= Scalar(0)) {
+		if (vb <= 0 && d2 >= 0 && d6 <= 0) {
 		  Scalar w = d2 / (d2 - d6);
 		  return a + w * ac;
 		}
 		// Check if P in edge region of BC, if so return projection of P onto BC
 		Scalar va = d3*d6 - d5*d4;
-		if (va <= Scalar(0) && (d4 - d3) >= Scalar(0) && (d5 - d6) >= Scalar(0)) {
+		if (va <= 0 && (d4 - d3) >= 0 && (d5 - d6) >= 0) {
 		  Scalar w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
 		  return b + w * (c - b);
 		}

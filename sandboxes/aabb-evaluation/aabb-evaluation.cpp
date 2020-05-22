@@ -16,7 +16,6 @@
 #include <igl/ray_mesh_intersect.h>
 #include <igl/point_mesh_squared_distance.h>
 #include <igl/remove_duplicate_vertices.h>
-#include <igl/collapse_small_triangles.h>
 #include <igl/signed_distance.h>
 #include <igl/random_dir.h>
 #ifdef _MSC_VER
