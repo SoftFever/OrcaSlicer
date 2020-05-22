@@ -440,12 +440,12 @@ void GCodeViewer::init_shaders()
     {
         switch (buffer_type(i))
         {
-        case GCodeProcessor::EMoveType::Tool_change:  { m_buffers[i].shader = "toolchanges"; break; }
-        case GCodeProcessor::EMoveType::Color_change: { m_buffers[i].shader = "colorchanges"; break; }
-        case GCodeProcessor::EMoveType::Pause_Print:  { m_buffers[i].shader = "pauses"; break; }
-        case GCodeProcessor::EMoveType::Custom_GCode: { m_buffers[i].shader = "customs"; break; }
-        case GCodeProcessor::EMoveType::Retract:      { m_buffers[i].shader = "retractions"; break; }
-        case GCodeProcessor::EMoveType::Unretract:    { m_buffers[i].shader = "unretractions"; break; }
+        case GCodeProcessor::EMoveType::Tool_change:  { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Color_change: { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Pause_Print:  { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Custom_GCode: { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Retract:      { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Unretract:    { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110"; break; }
         case GCodeProcessor::EMoveType::Extrude:      { m_buffers[i].shader = "extrusions"; break; }
         case GCodeProcessor::EMoveType::Travel:       { m_buffers[i].shader = "travels"; break; }
         default: { break; }
@@ -827,6 +827,12 @@ void GCodeViewer::render_toolpaths() const
     };
 #endif // !ENABLE_SHADERS_MANAGER
 
+    bool is_glsl_120 = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20);
+    int detected_point_sizes[2];
+    ::glGetIntegerv(GL_ALIASED_POINT_SIZE_RANGE, detected_point_sizes);
+    std::array<float, 2> point_sizes = { 2.0f, std::min(64.0f, static_cast<float>(detected_point_sizes[1])) };
+    double zoom = wxGetApp().plater()->get_camera().get_zoom();
+
     glsafe(::glCullFace(GL_BACK));
     glsafe(::glLineWidth(3.0f));
 
@@ -868,18 +874,27 @@ void GCodeViewer::render_toolpaths() const
             {
 #if ENABLE_SHADERS_MANAGER
                 shader->set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(EOptionsColors::ToolChanges)]);
+                shader->set_uniform("zoom", zoom);
+                shader->set_uniform("point_sizes", point_sizes);
+                if (is_glsl_120)
+                {
+                    glsafe(::glEnable(GL_POINT_SPRITE));
+                    glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
+                }
 #else
                 set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), Options_Colors[static_cast<unsigned int>(EOptionsColors::ToolChanges)]);
 #endif // ENABLE_SHADERS_MANAGER
                 for (const RenderPath& path : buffer.render_paths)
                 {
-                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
                     glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
-                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
-
 #if ENABLE_GCODE_VIEWER_STATISTICS
                     ++m_statistics.gl_multi_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+                }
+                if (is_glsl_120)
+                {
+                    glsafe(::glDisable(GL_VERTEX_PROGRAM_POINT_SIZE));
+                    glsafe(::glDisable(GL_POINT_SPRITE));
                 }
                 break;
             }
@@ -887,18 +902,27 @@ void GCodeViewer::render_toolpaths() const
             {
 #if ENABLE_SHADERS_MANAGER
                 shader->set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(EOptionsColors::ColorChanges)]);
+                shader->set_uniform("zoom", zoom);
+                shader->set_uniform("point_sizes", point_sizes);
+                if (is_glsl_120)
+                {
+                    glsafe(::glEnable(GL_POINT_SPRITE));
+                    glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
+                }
 #else
                 set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), Options_Colors[static_cast<unsigned int>(EOptionsColors::ColorChanges)]);
 #endif // ENABLE_SHADERS_MANAGER
                 for (const RenderPath& path : buffer.render_paths)
                 {
-                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
                     glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
-                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
-
 #if ENABLE_GCODE_VIEWER_STATISTICS
                     ++m_statistics.gl_multi_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+                }
+                if (is_glsl_120)
+                {
+                    glsafe(::glDisable(GL_VERTEX_PROGRAM_POINT_SIZE));
+                    glsafe(::glDisable(GL_POINT_SPRITE));
                 }
                 break;
             }
@@ -906,18 +930,27 @@ void GCodeViewer::render_toolpaths() const
             {
 #if ENABLE_SHADERS_MANAGER
                 shader->set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(EOptionsColors::PausePrints)]);
+                shader->set_uniform("zoom", zoom);
+                shader->set_uniform("point_sizes", point_sizes);
+                if (is_glsl_120)
+                {
+                    glsafe(::glEnable(GL_POINT_SPRITE));
+                    glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
+                }
 #else
                 set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), Options_Colors[static_cast<unsigned int>(EOptionsColors::PausePrints)]);
 #endif // ENABLE_SHADERS_MANAGER
                 for (const RenderPath& path : buffer.render_paths)
                 {
-                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
                     glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
-                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
-
 #if ENABLE_GCODE_VIEWER_STATISTICS
                     ++m_statistics.gl_multi_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+                }
+                if (is_glsl_120)
+                {
+                    glsafe(::glDisable(GL_VERTEX_PROGRAM_POINT_SIZE));
+                    glsafe(::glDisable(GL_POINT_SPRITE));
                 }
                 break;
             }
@@ -925,18 +958,27 @@ void GCodeViewer::render_toolpaths() const
             {
 #if ENABLE_SHADERS_MANAGER
                 shader->set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(EOptionsColors::CustomGCodes)]);
+                shader->set_uniform("zoom", zoom);
+                shader->set_uniform("point_sizes", point_sizes);
+                if (is_glsl_120)
+                {
+                    glsafe(::glEnable(GL_POINT_SPRITE));
+                    glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
+                }
 #else
                 set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), Options_Colors[static_cast<unsigned int>(EOptionsColors::CustomGCodes)]);
 #endif // ENABLE_SHADERS_MANAGER
                 for (const RenderPath& path : buffer.render_paths)
                 {
-                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
                     glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
-                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
-
 #if ENABLE_GCODE_VIEWER_STATISTICS
                     ++m_statistics.gl_multi_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+                }
+                if (is_glsl_120)
+                {
+                    glsafe(::glDisable(GL_VERTEX_PROGRAM_POINT_SIZE));
+                    glsafe(::glDisable(GL_POINT_SPRITE));
                 }
                 break;
             }
@@ -944,18 +986,27 @@ void GCodeViewer::render_toolpaths() const
             {
 #if ENABLE_SHADERS_MANAGER
                 shader->set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(EOptionsColors::Retractions)]);
+                shader->set_uniform("zoom", zoom);
+                shader->set_uniform("point_sizes", point_sizes);
+                if (is_glsl_120)
+                {
+                    glsafe(::glEnable(GL_POINT_SPRITE));
+                    glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
+                }
 #else
                 set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), Options_Colors[static_cast<unsigned int>(EOptionsColors::Retractions)]);
 #endif // ENABLE_SHADERS_MANAGER
                 for (const RenderPath& path : buffer.render_paths)
                 {
-                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
                     glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
-                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
-
 #if ENABLE_GCODE_VIEWER_STATISTICS
                     ++m_statistics.gl_multi_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+                    if (is_glsl_120)
+                    {
+                        glsafe(::glDisable(GL_VERTEX_PROGRAM_POINT_SIZE));
+                        glsafe(::glDisable(GL_POINT_SPRITE));
+                    }
                 }
                 break;
             }
@@ -963,18 +1014,27 @@ void GCodeViewer::render_toolpaths() const
             {
 #if ENABLE_SHADERS_MANAGER
                 shader->set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(EOptionsColors::Unretractions)]);
+                shader->set_uniform("zoom", zoom);
+                shader->set_uniform("point_sizes", point_sizes);
+                if (is_glsl_120)
+                {
+                    glsafe(::glEnable(GL_POINT_SPRITE));
+                    glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
+                }
 #else
                 set_color(static_cast<GLint>(buffer.shader.get_shader_program_id()), Options_Colors[static_cast<unsigned int>(EOptionsColors::Unretractions)]);
 #endif // ENABLE_SHADERS_MANAGER
                 for (const RenderPath& path : buffer.render_paths)
                 {
-                    glsafe(::glEnable(GL_PROGRAM_POINT_SIZE));
                     glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
-                    glsafe(::glDisable(GL_PROGRAM_POINT_SIZE));
-
 #if ENABLE_GCODE_VIEWER_STATISTICS
                     ++m_statistics.gl_multi_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+                }
+                if (is_glsl_120)
+                {
+                    glsafe(::glDisable(GL_VERTEX_PROGRAM_POINT_SIZE));
+                    glsafe(::glDisable(GL_POINT_SPRITE));
                 }
                 break;
             }
