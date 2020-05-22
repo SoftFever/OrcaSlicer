@@ -1,8 +1,6 @@
 #ifndef slic3r_GLShadersManager_hpp_
 #define slic3r_GLShadersManager_hpp_
 
-#if ENABLE_SHADERS_MANAGER
-
 #include "GLShader.hpp"
 
 #include <vector>
@@ -28,7 +26,5 @@ public:
 };
 
 } // namespace Slic3r
-
-#endif // ENABLE_SHADERS_MANAGER
 
 #endif //  slic3r_GLShadersManager_hpp_

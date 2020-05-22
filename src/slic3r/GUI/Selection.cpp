@@ -112,14 +112,6 @@ bool Selection::init()
 #if ENABLE_GCODE_VIEWER
     m_arrow.init_from(straight_arrow(10.0f, 5.0f, 5.0f, 10.0f, 1.0f));
     m_curved_arrow.init_from(circular_arrow(16, 10.0f, 5.0f, 10.0f, 5.0f, 1.0f));
-
-#if !ENABLE_SHADERS_MANAGER
-    if (!m_arrows_shader.init("gouraud_light.vs", "gouraud_light.fs"))
-    {
-        BOOST_LOG_TRIVIAL(error) << "Unable to initialize gouraud_light shader: please, check that the files gouraud_light.vs and gouraud_light.fs are available";
-        return false;
-    }
-#endif // !ENABLE_SHADERS_MANAGER
 #else
     if (!m_arrow.init())
         return false;
@@ -1246,76 +1238,40 @@ void Selection::render_center(bool gizmo_is_dragging) const
 }
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
-#if ENABLE_GCODE_VIEWER
 void Selection::render_sidebar_hints(const std::string& sidebar_field) const
-#else
-#if ENABLE_SHADERS_MANAGER
-void Selection::render_sidebar_hints(const std::string& sidebar_field) const
-#else
-void Selection::render_sidebar_hints(const std::string& sidebar_field, const Shader& shader) const
-#endif // ENABLE_SHADERS_MANAGER
-#endif // ENABLE_GCODE_VIEWER
 {
     if (sidebar_field.empty())
         return;
 
-#if ENABLE_SHADERS_MANAGER
     GLShaderProgram* shader = nullptr;
-#endif // ENABLE_SHADERS_MANAGER
 
     if (!boost::starts_with(sidebar_field, "layer"))
     {
-#if ENABLE_GCODE_VIEWER
-#if ENABLE_SHADERS_MANAGER
         shader = wxGetApp().get_shader("gouraud_light");
         if (shader == nullptr)
             return;
 
         shader->start_using();
-#else
-        if (!m_arrows_shader.is_initialized())
-            return;
-
-        m_arrows_shader.start_using();
-#endif // ENABLE_SHADERS_MANAGER
         glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
-#else
-#if ENABLE_SHADERS_MANAGER
-        shader = wxGetApp().get_shader("gouraud_light");
-        if (shader == nullptr)
-            return;
-
-        shader->start_using();
-#else
-        shader.start_using();
-        glsafe(::glEnable(GL_LIGHTING));
-#endif // ENABLE_SHADERS_MANAGER
-        glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
-#endif // ENABLE_GCODE_VIEWER
     }
 
     glsafe(::glEnable(GL_DEPTH_TEST));
 
     glsafe(::glPushMatrix());
 
-    if (!boost::starts_with(sidebar_field, "layer"))
-    {
+    if (!boost::starts_with(sidebar_field, "layer")) {
         const Vec3d& center = get_bounding_box().center();
 
-        if (is_single_full_instance() && !wxGetApp().obj_manipul()->get_world_coordinates())
-        {
+        if (is_single_full_instance() && !wxGetApp().obj_manipul()->get_world_coordinates()) {
             glsafe(::glTranslated(center(0), center(1), center(2)));
-            if (!boost::starts_with(sidebar_field, "position"))
-            {
+            if (!boost::starts_with(sidebar_field, "position")) {
                 Transform3d orient_matrix = Transform3d::Identity();
                 if (boost::starts_with(sidebar_field, "scale"))
                     orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
-                else if (boost::starts_with(sidebar_field, "rotation"))
-                {
+                else if (boost::starts_with(sidebar_field, "rotation")) {
                     if (boost::ends_with(sidebar_field, "x"))
                         orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
-                    else if (boost::ends_with(sidebar_field, "y"))
-                    {
+                    else if (boost::ends_with(sidebar_field, "y")) {
                         const Vec3d& rotation = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_rotation();
                         if (rotation(0) == 0.0)
                             orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
@@ -1326,21 +1282,16 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, const Sha
 
                 glsafe(::glMultMatrixd(orient_matrix.data()));
             }
-        }
-        else if (is_single_volume() || is_single_modifier())
-        {
+        } else if (is_single_volume() || is_single_modifier()) {
             glsafe(::glTranslated(center(0), center(1), center(2)));
             Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
             if (!boost::starts_with(sidebar_field, "position"))
                 orient_matrix = orient_matrix * (*m_volumes)[*m_list.begin()]->get_volume_transformation().get_matrix(true, false, true, true);
 
             glsafe(::glMultMatrixd(orient_matrix.data()));
-        }
-        else
-        {
+        } else {
             glsafe(::glTranslated(center(0), center(1), center(2)));
-            if (requires_local_axes())
-            {
+            if (requires_local_axes()) {
                 Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
                 glsafe(::glMultMatrixd(orient_matrix.data()));
             }
@@ -1359,22 +1310,7 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, const Sha
     glsafe(::glPopMatrix());
 
     if (!boost::starts_with(sidebar_field, "layer"))
-    {
-#if ENABLE_GCODE_VIEWER
-#if ENABLE_SHADERS_MANAGER
         shader->stop_using();
-#else
-        m_arrows_shader.stop_using();
-#endif // ENABLE_SHADERS_MANAGER
-#else
-#if ENABLE_SHADERS_MANAGER
-        shader->stop_using();
-#else
-        glsafe(::glDisable(GL_LIGHTING));
-        shader.stop_using();
-#endif // ENABLE_SHADERS_MANAGER
-#endif // ENABLE_GCODE_VIEWER
-    }
 }
 
 bool Selection::requires_local_axes() const
@@ -1977,50 +1913,21 @@ void Selection::render_bounding_box(const BoundingBoxf3& box, float* color) cons
 #if ENABLE_GCODE_VIEWER
 void Selection::render_sidebar_position_hints(const std::string& sidebar_field) const
 {
-#if ENABLE_SHADERS_MANAGER
     auto set_color = [](Axis axis) {
         GLShaderProgram* shader = wxGetApp().get_current_shader();
         if (shader != nullptr)
             shader->set_uniform("uniform_color", AXES_COLOR[axis], 4);
     };
-#endif // ENABLE_SHADERS_MANAGER
 
-#if !ENABLE_SHADERS_MANAGER
-    GLint color_id = ::glGetUniformLocation(m_arrows_shader.get_shader_program_id(), "uniform_color");
-#endif // !ENABLE_SHADERS_MANAGER
-
-    if (boost::ends_with(sidebar_field, "x"))
-    {
-#if ENABLE_SHADERS_MANAGER
+    if (boost::ends_with(sidebar_field, "x")) {
         set_color(X);
-#else
-        if (color_id >= 0)
-            glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)AXES_COLOR[0]));
-#endif // ENABLE_SHADERS_MANAGER
-
         glsafe(::glRotated(-90.0, 0.0, 0.0, 1.0));
         m_arrow.render();
-    }
-    else if (boost::ends_with(sidebar_field, "y"))
-    {
-#if ENABLE_SHADERS_MANAGER
+    } else if (boost::ends_with(sidebar_field, "y")) {
         set_color(Y);
-#else
-        if (color_id >= 0)
-            glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)AXES_COLOR[1]));
-#endif // ENABLE_SHADERS_MANAGER
-
         m_arrow.render();
-    }
-    else if (boost::ends_with(sidebar_field, "z"))
-    {
-#if ENABLE_SHADERS_MANAGER
+    } else if (boost::ends_with(sidebar_field, "z")) {
         set_color(Z);
-#else
-        if (color_id >= 0)
-            glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)AXES_COLOR[2]));
-#endif // ENABLE_SHADERS_MANAGER
-
         glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
         m_arrow.render();
     }
@@ -2046,51 +1953,22 @@ void Selection::render_sidebar_position_hints(const std::string& sidebar_field) 
 #if ENABLE_GCODE_VIEWER
 void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) const
 {
-#if ENABLE_SHADERS_MANAGER
     auto set_color = [](Axis axis) {
         GLShaderProgram* shader = wxGetApp().get_current_shader();
         if (shader != nullptr)
             shader->set_uniform("uniform_color", AXES_COLOR[axis], 4);
     };
-#endif // ENABLE_SHADERS_MANAGER
 
-#if !ENABLE_SHADERS_MANAGER
-    GLint color_id = ::glGetUniformLocation(m_arrows_shader.get_shader_program_id(), "uniform_color");
-#endif // !ENABLE_SHADERS_MANAGER
-
-    if (boost::ends_with(sidebar_field, "x"))
-    {
-#if ENABLE_SHADERS_MANAGER
+    if (boost::ends_with(sidebar_field, "x")) {
         set_color(X);
-#else
-        if (color_id >= 0)
-            glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)AXES_COLOR[0]));
-#endif // ENABLE_SHADERS_MANAGER
-
         glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
         render_sidebar_rotation_hint(X);
-    }
-    else if (boost::ends_with(sidebar_field, "y"))
-    {
-#if ENABLE_SHADERS_MANAGER
+    } else if (boost::ends_with(sidebar_field, "y")) {
         set_color(Y);
-#else
-        if (color_id >= 0)
-            glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)AXES_COLOR[1]));
-#endif // ENABLE_SHADERS_MANAGER
-
         glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
         render_sidebar_rotation_hint(Y);
-    }
-    else if (boost::ends_with(sidebar_field, "z"))
-    {
-#if ENABLE_SHADERS_MANAGER
+    } else if (boost::ends_with(sidebar_field, "z")) {
         set_color(Z);
-#else
-        if (color_id >= 0)
-            glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)AXES_COLOR[2]));
-#endif // ENABLE_SHADERS_MANAGER
-
         render_sidebar_rotation_hint(Z);
     }
 }
@@ -2230,23 +2108,12 @@ void Selection::render_sidebar_rotation_hint(Axis axis) const
     m_curved_arrow.render();
 }
 
-#if ENABLE_SHADERS_MANAGER
 void Selection::render_sidebar_scale_hint(Axis axis) const
-#else
-void Selection::render_sidebar_scale_hint(Axis axis) const
-#endif // ENABLE_SHADERS_MANAGER
 {
 #if ENABLE_GCODE_VIEWER
-#if ENABLE_SHADERS_MANAGER
     GLShaderProgram* shader = wxGetApp().get_current_shader();
     if (shader != nullptr)
         shader->set_uniform("uniform_color", (requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling()) ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis], 4);
-#else
-    GLint color_id = ::glGetUniformLocation(m_arrows_shader.get_shader_program_id(), "uniform_color");
-
-    if (color_id >= 0)
-        glsafe(::glUniform4fv(color_id, 1, (requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling()) ? (const GLfloat*)UNIFORM_SCALE_COLOR : (const GLfloat*)AXES_COLOR[axis]));
-#endif // ENABLE_SHADERS_MANAGER
 #else
     m_arrow.set_color(((requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling()) ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis]), 3);
 #endif // ENABLE_GCODE_VIEWER

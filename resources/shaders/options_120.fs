@@ -8,7 +8,7 @@ void main()
     float sq_radius = pos.x * pos.x + pos.y * pos.y;
     if (sq_radius > 0.25)
         discard;
-    else if (sq_radius > 0.180625)
+    else if ((sq_radius < 0.005625) || (sq_radius > 0.180625))
         gl_FragColor = vec4(0.5 * uniform_color, 1.0);
     else
         gl_FragColor = vec4(uniform_color, 1.0);

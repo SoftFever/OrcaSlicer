@@ -6,13 +6,6 @@
 #include "3DScene.hpp"
 #if ENABLE_GCODE_VIEWER
 #include "GLModel.hpp"
-#if !ENABLE_SHADERS_MANAGER
-#include "GLShader.hpp"
-#endif // !ENABLE_SHADERS_MANAGER
-#else
-#if !ENABLE_SHADERS_MANAGER
-#include "GLShader.hpp"
-#endif // !ENABLE_SHADERS_MANAGER
 #endif // ENABLE_GCODE_VIEWER
 
 #if ENABLE_RENDER_SELECTION_CENTER
@@ -24,9 +17,7 @@ namespace Slic3r {
 #if !ENABLE_GCODE_VIEWER
 class Shader;
 #endif // !ENABLE_GCODE_VIEWER
-#if ENABLE_SHADERS_MANAGER
 class GLShaderProgram;
-#endif // ENABLE_SHADERS_MANAGER
 namespace GUI {
 class TransformationType
 {
@@ -218,9 +209,6 @@ private:
 #if ENABLE_GCODE_VIEWER
     GL_Model m_arrow;
     GL_Model m_curved_arrow;
-#if !ENABLE_SHADERS_MANAGER
-    Shader m_arrows_shader;
-#endif // !ENABLE_SHADERS_MANAGER
 #else
     mutable GLArrow m_arrow;
     mutable GLCurvedArrow m_curved_arrow;
@@ -339,15 +327,7 @@ public:
 #if ENABLE_RENDER_SELECTION_CENTER
     void render_center(bool gizmo_is_dragging) const;
 #endif // ENABLE_RENDER_SELECTION_CENTER
-#if ENABLE_GCODE_VIEWER
     void render_sidebar_hints(const std::string& sidebar_field) const;
-#else
-#if ENABLE_SHADERS_MANAGER
-    void render_sidebar_hints(const std::string& sidebar_field) const;
-#else
-    void render_sidebar_hints(const std::string& sidebar_field, const Shader& shader) const;
-#endif // ENABLE_SHADERS_MANAGER
-#endif // ENABLE_GCODE_VIEWER
 
     bool requires_local_axes() const;
 

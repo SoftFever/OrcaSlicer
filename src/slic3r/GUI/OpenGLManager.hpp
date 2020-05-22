@@ -1,9 +1,7 @@
 #ifndef slic3r_OpenGLManager_hpp_
 #define slic3r_OpenGLManager_hpp_
 
-#if ENABLE_SHADERS_MANAGER
 #include "GLShadersManager.hpp"
-#endif // ENABLE_SHADERS_MANAGER
 
 class wxWindow;
 class wxGLCanvas;
@@ -75,9 +73,7 @@ private:
 
     bool m_gl_initialized{ false };
     wxGLContext* m_context{ nullptr };
-#if ENABLE_SHADERS_MANAGER
     GLShadersManager m_shaders_manager;
-#endif // ENABLE_SHADERS_MANAGER
     static GLInfo s_gl_info;
 #if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
 #ifdef __APPLE__ 
@@ -96,10 +92,8 @@ public:
     bool init_gl();
     wxGLContext* init_glcontext(wxGLCanvas& canvas);
 
-#if ENABLE_SHADERS_MANAGER
     GLShaderProgram* get_shader(const std::string& shader_name) { return m_shaders_manager.get_shader(shader_name); }
     GLShaderProgram* get_current_shader() { return m_shaders_manager.get_current_shader(); }
-#endif // ENABLE_SHADERS_MANAGER
 
     static bool are_compressed_textures_supported() { return s_compressed_textures_supported; }
     static bool can_multisample() { return s_multisample == EMultisampleState::Enabled; }
