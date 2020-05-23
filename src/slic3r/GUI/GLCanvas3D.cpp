@@ -1694,7 +1694,7 @@ void GLCanvas3D::reset_volumes()
 
 int GLCanvas3D::check_volumes_outside_state() const
 {
-    ModelInstance::EPrintVolumeState state;
+    ModelInstanceEPrintVolumeState state;
     m_volumes.check_outside_state(m_config, &state);
     return (int)state;
 }
@@ -2578,15 +2578,15 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     // checks for geometry outside the print volume to render it accordingly
     if (!m_volumes.empty())
     {
-        ModelInstance::EPrintVolumeState state;
+        ModelInstanceEPrintVolumeState state;
 
         const bool contained_min_one = m_volumes.check_outside_state(m_config, &state);
 
-        _set_warning_texture(WarningTexture::ObjectClashed, state == ModelInstance::PVS_Partly_Outside);
-        _set_warning_texture(WarningTexture::ObjectOutside, state == ModelInstance::PVS_Fully_Outside);
+        _set_warning_texture(WarningTexture::ObjectClashed, state == ModelInstancePVS_Partly_Outside);
+        _set_warning_texture(WarningTexture::ObjectOutside, state == ModelInstancePVS_Fully_Outside);
 
         post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, 
-                               contained_min_one && !m_model->objects.empty() && state != ModelInstance::PVS_Partly_Outside));
+                               contained_min_one && !m_model->objects.empty() && state != ModelInstancePVS_Partly_Outside));
     }
     else
     {

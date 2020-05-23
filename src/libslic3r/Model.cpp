@@ -1383,8 +1383,8 @@ unsigned int ModelObject::check_instances_print_volume_state(const BoundingBoxf3
                     inside_outside |= OUTSIDE;
             }
         model_instance->print_volume_state = 
-            (inside_outside == (INSIDE | OUTSIDE)) ? ModelInstance::PVS_Partly_Outside :
-            (inside_outside == INSIDE) ? ModelInstance::PVS_Inside : ModelInstance::PVS_Fully_Outside;
+            (inside_outside == (INSIDE | OUTSIDE)) ? ModelInstancePVS_Partly_Outside :
+            (inside_outside == INSIDE) ? ModelInstancePVS_Inside : ModelInstancePVS_Fully_Outside;
         if (inside_outside == INSIDE)
             ++ num_printable;
     }

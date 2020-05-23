@@ -3,9 +3,9 @@
 
 #include <wx/panel.h>
 #include "libslic3r/Point.hpp"
+#include "libslic3r/CustomGCode.hpp"
 
 #include <string>
-#include "libslic3r/Model.hpp"
 
 class wxNotebook;
 class wxGLCanvas;

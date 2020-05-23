@@ -3,7 +3,9 @@
 
 #include <set>
 #include "libslic3r/Geometry.hpp"
+#include "libslic3r/Model.hpp"
 #include "3DScene.hpp"
+
 
 #if ENABLE_RENDER_SELECTION_CENTER
 class GLUquadric;
