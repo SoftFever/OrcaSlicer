@@ -227,7 +227,7 @@ public:
 static const constexpr double MESH_EPS = 1e-6;
 
 EigenMesh3D::EigenMesh3D(const TriangleMesh& tmesh)
-    : m_aabb(new AABBImpl()), m_tm(tmesh)
+    : m_aabb(new AABBImpl()), m_tm(&tmesh)
 {
     auto&& bb = tmesh.bounding_box();
     m_ground_level += bb.min(Z);
@@ -254,6 +254,42 @@ EigenMesh3D &EigenMesh3D::operator=(EigenMesh3D &&other) = default;
 
 EigenMesh3D::EigenMesh3D(EigenMesh3D &&other) = default;
 
+
+
+const std::vector<Vec3f>& EigenMesh3D::vertices() const
+{
+    return m_tm->its.vertices;
+}
+
+
+
+const std::vector<Vec3i>& EigenMesh3D::indices()  const
+{
+    return m_tm->its.indices;
+}
+
+
+
+const Vec3f& EigenMesh3D::vertices(size_t idx) const
+{
+    return m_tm->its.vertices[idx];
+}
+
+
+
+const Vec3i& EigenMesh3D::indices(size_t idx) const
+{
+    return m_tm->its.indices[idx];
+}
+
+
+
+Vec3d EigenMesh3D::normal_by_face_id(int face_id) const {
+    return m_tm->stl.facet_start[face_id].normal.cast<double>();
+}
+
+
+
 EigenMesh3D::hit_result
 EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
 {
@@ -270,7 +306,7 @@ EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
     }
 #endif
 
-    m_aabb->intersect_ray(m_tm, s, dir, hit);
+    m_aabb->intersect_ray(*m_tm, s, dir, hit);
     hit_result ret(*this);
     ret.m_t = double(hit.t);
     ret.m_dir = dir;
@@ -288,7 +324,7 @@ EigenMesh3D::query_ray_hits(const Vec3d &s, const Vec3d &dir) const
 {
     std::vector<EigenMesh3D::hit_result> outs;
     std::vector<igl::Hit> hits;
-    m_aabb->intersect_ray(m_tm, s, dir, hits);
+    m_aabb->intersect_ray(*m_tm, s, dir, hits);
     
     // The sort is necessary, the hits are not always sorted.
     std::sort(hits.begin(), hits.end(),
@@ -420,7 +456,7 @@ double EigenMesh3D::squared_distance(const Vec3d &p, int& i, Vec3d& c) const {
     double sqdst = 0;
     Eigen::Matrix<double, 1, 3> pp = p;
     Eigen::Matrix<double, 1, 3> cc;
-    sqdst = m_aabb->squared_distance(m_tm, pp, i, cc);
+    sqdst = m_aabb->squared_distance(*m_tm, pp, i, cc);
     c = cc;
     return sqdst;
 }

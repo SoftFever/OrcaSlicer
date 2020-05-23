@@ -2,7 +2,6 @@
 #define SLA_EIGENMESH3D_H
 
 #include <libslic3r/SLA/Common.hpp>
-#include <libslic3r/TriangleMesh.hpp>
 
 
 // There is an implementation of a hole-aware raycaster that was eventually
@@ -16,6 +15,8 @@
 
 namespace Slic3r {
 
+class TriangleMesh;
+
 namespace sla {
 
 /// An index-triangle structure for libIGL functions. Also serves as an
@@ -24,7 +25,7 @@ namespace sla {
 class EigenMesh3D {
     class AABBImpl;
     
-    TriangleMesh m_tm;
+    const TriangleMesh* m_tm;
     double m_ground_level = 0, m_gnd_offset = 0;
     
     std::unique_ptr<AABBImpl> m_aabb;
@@ -51,14 +52,10 @@ public:
     inline void ground_level_offset(double o) { m_gnd_offset = o; }
     inline double ground_level_offset() const { return m_gnd_offset; }
     
-    const std::vector<stl_vertex>&                  vertices() const { return m_tm.its.vertices; }
-    const std::vector<stl_triangle_vertex_indices>& indices()  const { return m_tm.its.indices; }
-    const stl_vertex&                               vertices(size_t idx) const {
-        return m_tm.its.vertices[idx];
-    }
-    const stl_triangle_vertex_indices&              indices(size_t idx) const {
-        return m_tm.its.indices[idx];
-    }
+    const std::vector<Vec3f>& vertices() const;
+    const std::vector<Vec3i>& indices()  const;
+    const Vec3f& vertices(size_t idx) const;
+    const Vec3i& indices(size_t idx) const;
     
     // Result of a raycast
     class hit_result {
@@ -127,9 +124,7 @@ public:
         return squared_distance(p, i, c);
     }
 
-    Vec3d normal_by_face_id(int face_id) const {
-        return m_tm.stl.facet_start[face_id].normal.cast<double>();
-    }
+    Vec3d normal_by_face_id(int face_id) const;
 };
 
 // Calculate the normals for the selected points (from 'points' set) on the
