@@ -5,6 +5,7 @@
 #include <string>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/any.hpp>
 
 #if __APPLE__
 #import <IOKit/pwr_mgt/IOPMLib.h>
