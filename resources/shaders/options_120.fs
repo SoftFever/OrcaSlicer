@@ -1,3 +1,4 @@
+// version 120 is needed for gl_PointCoord
 #version 120
 
 uniform vec3 uniform_color;
