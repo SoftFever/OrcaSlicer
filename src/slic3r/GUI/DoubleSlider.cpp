@@ -399,7 +399,11 @@ void Control::draw_focus_rect()
 
 void Control::render()
 {
+#if ENABLE_GCODE_VIEWER
+    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+#else
     SetBackgroundColour(GetParent()->GetBackgroundColour());
+#endif // ENABLE_GCODE_VIEWER
     draw_focus_rect();
 
     wxPaintDC dc(this);
@@ -770,7 +774,11 @@ void Control::draw_colored_band(wxDC& dc)
     // don't color a band for MultiExtruder mode
     if (m_ticks.empty() || m_mode == t_mode::MultiExtruder)
     {
+#if ENABLE_GCODE_VIEWER
+        draw_band(dc, wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW), main_band);
+#else
         draw_band(dc, GetParent()->GetBackgroundColour(), main_band);
+#endif // ENABLE_GCODE_VIEWER
         return;
     }
 
