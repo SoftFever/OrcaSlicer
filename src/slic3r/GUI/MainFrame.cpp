@@ -561,8 +561,9 @@ void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
     wxGetApp().plater()->msw_rescale();
 
     // update Tabs
-    for (auto tab : wxGetApp().tabs_list)
-        tab->msw_rescale();
+    if (m_layout != slDlg) // Update tabs later, from the SettingsDialog, when the Settings are in the separated dialog
+        for (auto tab : wxGetApp().tabs_list)
+            tab->msw_rescale();
 
     wxMenuBar* menu_bar = this->GetMenuBar();
     for (size_t id = 0; id < menu_bar->GetMenuCount(); id++)
@@ -1530,6 +1531,10 @@ void SettingsDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
     const int& em = em_unit();
     const wxSize& size = wxSize(85 * em, 50 * em);
+
+    // update Tabs
+    for (auto tab : wxGetApp().tabs_list)
+        tab->msw_rescale();
 
     SetMinSize(size);
     Fit();
