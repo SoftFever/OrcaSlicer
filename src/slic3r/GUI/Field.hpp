@@ -221,6 +221,7 @@ public:
     }
 
     virtual void msw_rescale(bool rescale_sidetext = false);
+    void sys_color_changed();
 
     bool get_enter_pressed() const { return bEnterPressed; }
     void set_enter_pressed(bool pressed) { bEnterPressed = pressed; }

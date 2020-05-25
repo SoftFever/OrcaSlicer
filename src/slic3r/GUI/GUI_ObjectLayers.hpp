@@ -94,6 +94,7 @@ public:
 
     void        UpdateAndShow(const bool show) override;
     void        msw_rescale();
+    void        sys_color_changed();
     void        reset_selection();
     void        set_selectable_range(const t_layer_height_range& range) { m_selectable_range = range; }
 

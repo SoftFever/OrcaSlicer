@@ -417,6 +417,8 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     m_main_grid_sizer->Add(editors_grid_sizer, 1, wxEXPAND);
 
     m_check_inch = new wxCheckBox(parent, wxID_ANY, "Inches");
+    m_check_inch->SetFont(wxGetApp().normal_font());
+
     m_check_inch->SetValue(m_imperial_units);
     m_check_inch->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
         wxGetApp().app_config->set("use_inches", m_check_inch->GetValue() ? "1" : "0");
@@ -995,7 +997,7 @@ void ObjectManipulation::sys_color_changed()
     for (int id = 0; id < 3; ++id)
         m_mirror_buttons[id].first->msw_rescale();
 
-    get_og()->msw_rescale();
+    get_og()->sys_color_changed();
 }
 
 static const char axes[] = { 'x', 'y', 'z' };
