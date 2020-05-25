@@ -281,16 +281,19 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
         auto it = m_map.find(folder + bitmap_key);
         if (it != m_map.end())
             return it->second;
-        else {
+        // It's expensive to check if the bitmap exists every time, but otherwise:
+        // For the case, when application was started in Light mode and then switched to the Dark,
+        // we will never get a white bitmaps, if check m_map.find(bitmap_key) 
+        // before boost::filesystem::exists(var(folder + bitmap_name + ".svg"))
+        if (!boost::filesystem::exists(var(folder + bitmap_name + ".svg"))) {
+            folder.clear();
+        
             it = m_map.find(bitmap_key);
             if (it != m_map.end())
                 return it->second;
         }
 
-        if (!boost::filesystem::exists(Slic3r::var(folder + bitmap_name + ".svg")))
-            folder.clear();
-        else
-            bitmap_key = folder + bitmap_key;
+        bitmap_key = folder + bitmap_key;
     }
     else 
     {
