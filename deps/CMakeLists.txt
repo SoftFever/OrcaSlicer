@@ -129,6 +129,19 @@ else()
     include("deps-linux.cmake")
 endif()
 
+# Patch the boost::polygon library with a custom one.
+ExternalProject_Add(dep_boost_polygon
+    EXCLUDE_FROM_ALL ON
+    GIT_REPOSITORY "https://github.com/prusa3d/polygon"
+    GIT_TAG prusaslicer_gmp
+    DEPENDS dep_boost
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_BINARY_DIR}/dep_boost_polygon-prefix/src/dep_boost_polygon/include/boost/polygon"
+        "${DESTDIR}/usr/local/include/boost/polygon"
+)
+
 set(ZLIB_PKG "")
 if (NOT ZLIB_FOUND) 
     include(ZLIB/ZLIB.cmake)
@@ -152,7 +165,7 @@ include(MPFR/MPFR.cmake)
 include(CGAL/CGAL.cmake)
 include(wxWidgets/wxWidgets.cmake)
 
-if (ZLIB_PKG)
+if (NOT "${ZLIB_PKG}" STREQUAL "")
     add_dependencies(dep_blosc ${ZLIB_PKG})
     add_dependencies(dep_openexr ${ZLIB_PKG})
 endif ()
@@ -162,6 +175,7 @@ if (MSVC)
     add_custom_target(deps ALL
     DEPENDS
         dep_boost
+        dep_boost_polygon
         dep_tbb
         dep_libcurl
         dep_wxWidgets
@@ -182,6 +196,7 @@ else()
     add_custom_target(deps ALL
     DEPENDS
         dep_boost
+        dep_boost_polygon
         dep_tbb
         dep_libcurl
         dep_wxWidgets

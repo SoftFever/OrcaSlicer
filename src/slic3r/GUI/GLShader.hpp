@@ -43,6 +43,7 @@ public:
     bool set_uniform(const char* name, bool value) const;
     bool set_uniform(const char* name, float value) const;
     bool set_uniform(const char* name, double value) const;
+    bool set_uniform(const char* name, const std::array<int, 4>& value) const;
     bool set_uniform(const char* name, const std::array<float, 2>& value) const;
     bool set_uniform(const char* name, const std::array<float, 3>& value) const;
     bool set_uniform(const char* name, const std::array<float, 4>& value) const;
@@ -50,6 +51,8 @@ public:
     bool set_uniform(const char* name, const Transform3f& value) const;
     bool set_uniform(const char* name, const Transform3d& value) const;
     bool set_uniform(const char* name, const Matrix3f& value) const;
+    bool set_uniform(const char* name, const Vec3f& value) const;
+    bool set_uniform(const char* name, const Vec3d& value) const;
 
     // returns -1 if not found
     int get_attrib_location(const char* name) const;

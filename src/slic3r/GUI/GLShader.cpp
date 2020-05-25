@@ -215,6 +215,16 @@ bool GLShaderProgram::set_uniform(const char* name, double value) const
     return set_uniform(name, static_cast<float>(value));
 }
 
+bool GLShaderProgram::set_uniform(const char* name, const std::array<int, 4>& value) const
+{
+    int id = get_uniform_location(name);
+    if (id >= 0) {
+        glsafe(::glUniform4iv(id, 1, static_cast<const GLint*>(value.data())));
+        return true;
+    }
+    return false;
+}
+
 bool GLShaderProgram::set_uniform(const char* name, const std::array<float, 2>& value) const
 {
     int id = get_uniform_location(name);
@@ -288,6 +298,21 @@ bool GLShaderProgram::set_uniform(const char* name, const Matrix3f& value) const
         return true;
     }
     return false;
+}
+
+bool GLShaderProgram::set_uniform(const char* name, const Vec3f& value) const
+{
+    int id = get_uniform_location(name);
+    if (id >= 0) {
+        glsafe(::glUniform3fv(id, 1, static_cast<const GLfloat*>(value.data())));
+        return true;
+    }
+    return false;
+}
+
+bool GLShaderProgram::set_uniform(const char* name, const Vec3d& value) const
+{
+    return set_uniform(name, static_cast<Vec3f>(value.cast<float>()));
 }
 
 int GLShaderProgram::get_attrib_location(const char* name) const

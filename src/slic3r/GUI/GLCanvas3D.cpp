@@ -4947,7 +4947,7 @@ bool GLCanvas3D::_init_main_toolbar()
         return false;
 
     item.name = "settings";
-    item.icon_filename = "cog.svg";
+    item.icon_filename = "cog_.svg";
     item.tooltip = _u8L("Switch to Settings") + "\n" + "[" + GUI::shortkey_ctrl_prefix() + "2] - " + _u8L("Print Settings Tab")    + 
                                                 "\n" + "[" + GUI::shortkey_ctrl_prefix() + "3] - " + (m_process->current_printer_technology() == ptFFF ? _u8L("Filament Settings Tab") : _u8L("Material Settings Tab")) +
                                                 "\n" + "[" + GUI::shortkey_ctrl_prefix() + "4] - " + _u8L("Printer Settings Tab") ;
@@ -5554,6 +5554,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale() const
     m_main_toolbar.set_scale(sc);
     m_undoredo_toolbar.set_scale(sc);
     m_collapse_toolbar.set_scale(sc);
+    size *= m_retina_helper->get_scale_factor();
 #else
     m_main_toolbar.set_icons_size(size);
     m_undoredo_toolbar.set_icons_size(size);
@@ -5574,6 +5575,9 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale() const
 
     // set minimum scale as a auto scale for the toolbars
     float new_scale = std::min(new_h_scale, new_v_scale);
+#if ENABLE_RETINA_GL
+    new_scale /= m_retina_helper->get_scale_factor();
+#endif
     if (fabs(new_scale - scale) > 0.01) // scale is changed by 1% and more
         wxGetApp().set_auto_toolbar_icon_scale(new_scale);
 }

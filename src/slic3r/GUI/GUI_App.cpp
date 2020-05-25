@@ -580,6 +580,11 @@ void GUI_App::set_label_clr_sys(const wxColour& clr) {
     app_config->save();
 }
 
+wxSize GUI_App::get_min_size() const
+{
+    return wxSize(76*m_em_unit, 49 * m_em_unit);
+}
+
 float GUI_App::toolbar_icon_scale(const bool is_limited/* = false*/) const
 {
 #ifdef __APPLE__

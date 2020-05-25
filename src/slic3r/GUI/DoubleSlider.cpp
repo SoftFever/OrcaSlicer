@@ -566,12 +566,12 @@ void Control::draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, bool right_
     dc.GetMultiLineTextExtent(label, &text_width, &text_height);
     wxPoint text_pos;
     if (right_side)
-        text_pos = is_horizontal() ? wxPoint(pos.x + 1, pos.y + m_thumb_size.x) :
-                   wxPoint(pos.x + m_thumb_size.x+1, pos.y - 0.5*text_height - 1);
+        text_pos = is_horizontal() ? wxPoint(pos.x + 1, pos.y + m_thumb_size.x / 4) :
+            wxPoint(pos.x + m_thumb_size.x + 1, pos.y - 0.5 * text_height - 1);
     else
-        text_pos = is_horizontal() ? wxPoint(pos.x - text_width - 1, pos.y - m_thumb_size.x - text_height) :
-                   wxPoint(pos.x - text_width - 1 - m_thumb_size.x, pos.y - 0.5*text_height + 1);
-   dc.DrawText(label, text_pos);
+        text_pos = is_horizontal() ? wxPoint(pos.x - text_width - 1, pos.y - m_thumb_size.x / 4 - text_height) :
+            wxPoint(pos.x - text_width - 1 - m_thumb_size.x, pos.y - 0.5 * text_height + 1);
+    dc.DrawText(label, text_pos);
 }
 
 void Control::draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const
