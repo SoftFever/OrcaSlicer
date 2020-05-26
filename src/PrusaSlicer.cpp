@@ -53,6 +53,8 @@
     #include "slic3r/GUI/3DScene.hpp"
     #include "slic3r/GUI/InstanceCheck.hpp" 
     #include "slic3r/GUI/AppConfig.hpp" 
+    #include "slic3r/GUI/MainFrame.hpp"
+    #include "slic3r/GUI/Plater.hpp"
 #endif /* SLIC3R_GUI */
 
 using namespace Slic3r;

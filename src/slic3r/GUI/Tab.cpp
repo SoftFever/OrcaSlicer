@@ -32,6 +32,8 @@
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "ConfigWizard.hpp"
+#include "Plater.hpp"
+#include "MainFrame.hpp"
 #include "format.hpp"
 
 namespace Slic3r {

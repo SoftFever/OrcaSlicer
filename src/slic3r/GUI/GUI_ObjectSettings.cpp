@@ -2,8 +2,10 @@
 #include "GUI_ObjectList.hpp"
 
 #include "OptionsGroup.hpp"
+#include "GUI_App.hpp"
 #include "wxExtensions.hpp"
 #include "PresetBundle.hpp"
+#include "Plater.hpp"
 #include "libslic3r/Model.hpp"
 
 #include <boost/algorithm/string.hpp>

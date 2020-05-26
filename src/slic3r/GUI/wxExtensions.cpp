@@ -13,6 +13,7 @@
 #include "GUI_ObjectList.hpp"
 #include "I18N.hpp"
 #include "GUI_Utils.hpp"
+#include "Plater.hpp"
 #include "../Utils/MacDarkMode.hpp"
 
 #ifndef __WXGTK__// msw_menuitem_bitmaps is used for MSW and OSX

@@ -10,6 +10,7 @@
 
 #include "libslic3r/PrintConfig.hpp"
 #include "GUI_App.hpp"
+#include "Plater.hpp"
 #include "Tab.hpp"
 #include "PresetBundle.hpp"
 

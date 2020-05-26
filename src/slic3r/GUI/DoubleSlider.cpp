@@ -2,6 +2,7 @@
 #include "libslic3r/GCode/PreviewData.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
+#include "Plater.hpp"
 #include "I18N.hpp"
 #include "ExtruderSequenceDialog.hpp"
 #include "libslic3r/Print.hpp"

@@ -9,6 +9,7 @@
 #include "GUI_ObjectList.hpp"
 #include "Gizmos/GLGizmoBase.hpp"
 #include "Camera.hpp"
+#include "Plater.hpp"
 
 #include "libslic3r/Model.hpp"
 

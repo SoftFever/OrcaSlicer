@@ -29,6 +29,7 @@
 #include "InstanceCheck.hpp"
 #include "I18N.hpp"
 #include "GLCanvas3D.hpp"
+#include "Plater.hpp"
 
 #include <fstream>
 #include "GUI_App.hpp"

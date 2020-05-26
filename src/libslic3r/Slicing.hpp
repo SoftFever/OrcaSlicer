@@ -11,7 +11,6 @@
 
 #include "libslic3r.h"
 #include "Utils.hpp"
-#include "PrintConfig.hpp"
 
 namespace Slic3r
 {
@@ -19,6 +18,7 @@ namespace Slic3r
 class PrintConfig;
 class PrintObjectConfig;
 class ModelObject;
+class DynamicPrintConfig;
 
 // Parameters to guide object slicing and support generation.
 // The slicing parameters account for a raft and whether the 1st object layer is printed with a normal or a bridging flow

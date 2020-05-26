@@ -4,6 +4,7 @@
 // The dialog opens from Print Settins tab->Bed Shape : Set...
 
 #include "OptionsGroup.hpp"
+#include "GUI_Utils.hpp"
 #include "2DBed.hpp"
 #include "I18N.hpp"
 

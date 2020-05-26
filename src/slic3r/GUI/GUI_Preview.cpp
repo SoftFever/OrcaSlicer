@@ -10,6 +10,7 @@
 #include "GLCanvas3D.hpp"
 #include "PresetBundle.hpp"
 #include "DoubleSlider.hpp"
+#include "Plater.hpp"
 
 #include <wx/notebook.h>
 #include <wx/glcanvas.h>

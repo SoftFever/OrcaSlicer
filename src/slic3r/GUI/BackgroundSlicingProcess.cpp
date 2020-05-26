@@ -1,6 +1,7 @@
 #include "BackgroundSlicingProcess.hpp"
 #include "GUI_App.hpp"
 #include "GUI.hpp"
+#include "MainFrame.hpp"
 
 #include <wx/app.h>
 #include <wx/panel.h>
@@ -34,6 +35,7 @@
 #include "RemovableDriveManager.hpp"
 
 #include "slic3r/Utils/Thread.hpp"
+#include "slic3r/GUI/Plater.hpp"
 
 namespace Slic3r {
 

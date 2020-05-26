@@ -4,6 +4,7 @@
 #include "GUI_ObjectLayers.hpp"
 #include "GUI_App.hpp"
 #include "I18N.hpp"
+#include "Plater.hpp"
 
 #include "OptionsGroup.hpp"
 #include "PresetBundle.hpp"
