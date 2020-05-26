@@ -574,10 +574,10 @@ void Control::draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, bool right_
     dc.GetMultiLineTextExtent(label, &text_width, &text_height);
     wxPoint text_pos;
     if (right_side)
-        text_pos = is_horizontal() ? wxPoint(pos.x + 1, pos.y + m_thumb_size.x / 3) :
+        text_pos = is_horizontal() ? wxPoint(pos.x + 1, pos.y + m_thumb_size.x / 2 + 1) :
             wxPoint(pos.x + m_thumb_size.x + 1, pos.y - 0.5 * text_height - 1);
     else
-        text_pos = is_horizontal() ? wxPoint(pos.x - text_width - 1, pos.y - m_thumb_size.x / 3 - text_height) :
+        text_pos = is_horizontal() ? wxPoint(pos.x - text_width - 1, pos.y - m_thumb_size.x / 2 - text_height - 1) :
             wxPoint(pos.x - text_width - 1 - m_thumb_size.x, pos.y - 0.5 * text_height + 1);
     dc.DrawText(label, text_pos);
 }
