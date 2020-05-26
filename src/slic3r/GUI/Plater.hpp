@@ -25,9 +25,12 @@ namespace Slic3r {
 
 class Model;
 class ModelObject;
+class ModelInstance;
 class Print;
 class SLAPrint;
 enum SLAPrintObjectStep : unsigned int;
+
+using ModelInstancePtrs = std::vector<ModelInstance*>;
 
 namespace UndoRedo {
     class Stack;

@@ -7,6 +7,7 @@
 #include "GCode/PrintExtents.hpp"
 #include "GCode/WipeTower.hpp"
 #include "ShortestPath.hpp"
+#include "Print.hpp"
 #include "Utils.hpp"
 #include "libslic3r.h"
 

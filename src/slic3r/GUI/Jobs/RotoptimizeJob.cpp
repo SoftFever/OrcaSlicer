@@ -3,6 +3,7 @@
 #include "libslic3r/MTUtils.hpp"
 #include "libslic3r/SLA/Rotfinder.hpp"
 #include "libslic3r/MinAreaBoundingBox.hpp"
+#include "libslic3r/Model.hpp"
 
 #include "slic3r/GUI/Plater.hpp"
 

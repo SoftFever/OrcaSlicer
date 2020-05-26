@@ -425,9 +425,6 @@ double Camera::calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, double
     if ((dx <= 0.0) || (dy <= 0.0))
         return -1.0f;
 
-    double med_x = 0.5 * (max_x + min_x);
-    double med_y = 0.5 * (max_y + min_y);
-
     dx *= margin_factor;
     dy *= margin_factor;
 

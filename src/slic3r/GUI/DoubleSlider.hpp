@@ -22,7 +22,7 @@ namespace DoubleSlider {
 /* For exporting GCode in GCodeWriter is used XYZF_NUM(val) = PRECISION(val, 3) for XYZ values. 
  * So, let use same value as a permissible error for layer height.
  */
-static double epsilon() { return 0.0011;}
+constexpr double epsilon() { return 0.0011; }
 
 // custom message the slider sends to its parent to notify a tick-change:
 wxDECLARE_EVENT(wxCUSTOMEVT_TICKSCHANGED, wxEvent);

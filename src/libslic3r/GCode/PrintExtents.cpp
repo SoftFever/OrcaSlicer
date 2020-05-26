@@ -6,6 +6,7 @@
 #include "../BoundingBox.hpp"
 #include "../ExtrusionEntity.hpp"
 #include "../ExtrusionEntityCollection.hpp"
+#include "../Layer.hpp"
 #include "../Print.hpp"
 
 #include "PrintExtents.hpp"

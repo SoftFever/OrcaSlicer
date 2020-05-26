@@ -17,6 +17,8 @@
 #include "slic3r/GUI/Gizmos/GLGizmoCut.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoHollow.hpp"
 
+#include "libslic3r/Model.hpp"
+
 #include <wx/glcanvas.h>
 
 namespace Slic3r {

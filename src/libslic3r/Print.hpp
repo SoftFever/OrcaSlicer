@@ -4,10 +4,9 @@
 #include "PrintBase.hpp"
 
 #include "BoundingBox.hpp"
+#include "ExtrusionEntityCollection.hpp"
 #include "Flow.hpp"
 #include "Point.hpp"
-#include "Layer.hpp"
-#include "Model.hpp"
 #include "Slicing.hpp"
 #include "GCode/ToolOrdering.hpp"
 #include "GCode/WipeTower.hpp"
@@ -23,6 +22,8 @@ class ModelObject;
 class GCode;
 class GCodePreviewData;
 enum class SlicingMode : uint32_t;
+class Layer;
+class SupportLayer;
 
 // Print step IDs for keeping track of the print state.
 enum PrintStep {
@@ -147,18 +148,11 @@ public:
     const Layer* 	get_layer(int idx) const { return m_layers[idx]; }
     Layer* 			get_layer(int idx) 		 { return m_layers[idx]; }
     // Get a layer exactly at print_z.
-    const Layer*	get_layer_at_printz(coordf_t print_z) const {
-        auto it = Slic3r::lower_bound_by_predicate(m_layers.begin(), m_layers.end(), [print_z](const Layer *layer) { return layer->print_z < print_z; });
-		return (it == m_layers.end() || (*it)->print_z != print_z) ? nullptr : *it;
-	}
-    Layer*			get_layer_at_printz(coordf_t print_z) { return const_cast<Layer*>(std::as_const(*this).get_layer_at_printz(print_z)); }
+    const Layer*	get_layer_at_printz(coordf_t print_z) const;
+    Layer*			get_layer_at_printz(coordf_t print_z);
     // Get a layer approximately at print_z.
-    const Layer*	get_layer_at_printz(coordf_t print_z, coordf_t epsilon) const {
-        coordf_t limit = print_z - epsilon;
-        auto it = Slic3r::lower_bound_by_predicate(m_layers.begin(), m_layers.end(), [limit](const Layer *layer) { return layer->print_z < limit; });
-        return (it == m_layers.end() || (*it)->print_z > print_z + epsilon) ? nullptr : *it;
-	}
-    Layer*			get_layer_at_printz(coordf_t print_z, coordf_t epsilon) { return const_cast<Layer*>(std::as_const(*this).get_layer_at_printz(print_z, epsilon)); }
+    const Layer*	get_layer_at_printz(coordf_t print_z, coordf_t epsilon) const;
+    Layer*			get_layer_at_printz(coordf_t print_z, coordf_t epsilon);
 
     // print_z: top of the layer; slice_z: center of the layer.
     Layer* add_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);

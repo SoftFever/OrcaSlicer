@@ -6,7 +6,7 @@
 #include "libslic3r/Line.hpp"
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/Utils.hpp"
-#include "libslic3r/Model.hpp"
+#include "libslic3r/Geometry.hpp"
 
 #include <functional>
 
@@ -40,6 +40,9 @@ class ExtrusionMultiPath;
 class ExtrusionLoop;
 class ExtrusionEntity;
 class ExtrusionEntityCollection;
+class ModelObject;
+class ModelVolume;
+enum ModelInstanceEPrintVolumeState : unsigned char;
 
 // A container for interleaved arrays of 3D vertices and normals,
 // possibly indexed by triangles and / or quads.
@@ -578,7 +581,7 @@ public:
 
     // returns true if all the volumes are completely contained in the print volume
     // returns the containment state in the given out_state, if non-null
-    bool check_outside_state(const DynamicPrintConfig* config, ModelInstance::EPrintVolumeState* out_state);
+    bool check_outside_state(const DynamicPrintConfig* config, ModelInstanceEPrintVolumeState* out_state);
     void reset_outside_state();
 
     void update_colors_by_extruder(const DynamicPrintConfig* config);

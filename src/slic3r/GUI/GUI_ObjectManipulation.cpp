@@ -2,6 +2,7 @@
 #include "GUI_ObjectList.hpp"
 #include "I18N.hpp"
 
+#include "GLCanvas3D.hpp"
 #include "OptionsGroup.hpp"
 #include "wxExtensions.hpp"
 #include "PresetBundle.hpp"

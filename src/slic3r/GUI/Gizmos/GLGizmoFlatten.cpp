@@ -3,6 +3,8 @@
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
 
+#include "libslic3r/Model.hpp"
+
 #include <numeric>
 
 #include <GL/glew.h>

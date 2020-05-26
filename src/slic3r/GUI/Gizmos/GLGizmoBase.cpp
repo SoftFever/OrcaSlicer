@@ -4,13 +4,8 @@
 #include <GL/glew.h>
 
 #include "slic3r/GUI/GUI_App.hpp"
-#include "slic3r/GUI/GLCanvas3D.hpp"
-
-
 
 // TODO: Display tooltips quicker on Linux
-
-
 
 namespace Slic3r {
 namespace GUI {

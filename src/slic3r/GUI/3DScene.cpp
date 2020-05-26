@@ -724,7 +724,7 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
     glsafe(::glDisable(GL_BLEND));
 }
 
-bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, ModelInstance::EPrintVolumeState* out_state)
+bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, ModelInstanceEPrintVolumeState* out_state)
 {
     if (config == nullptr)
         return false;
@@ -738,7 +738,7 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
     // Allow the objects to protrude below the print bed
     print_volume.min(2) = -1e10;
 
-    ModelInstance::EPrintVolumeState state = ModelInstance::PVS_Inside;
+    ModelInstanceEPrintVolumeState state = ModelInstancePVS_Inside;
 
     bool contained_min_one = false;
 
@@ -757,11 +757,11 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
         if (contained)
             contained_min_one = true;
 
-        if ((state == ModelInstance::PVS_Inside) && volume->is_outside)
-            state = ModelInstance::PVS_Fully_Outside;
+        if ((state == ModelInstancePVS_Inside) && volume->is_outside)
+            state = ModelInstancePVS_Fully_Outside;
 
-        if ((state == ModelInstance::PVS_Fully_Outside) && volume->is_outside && print_volume.intersects(bb))
-            state = ModelInstance::PVS_Partly_Outside;
+        if ((state == ModelInstancePVS_Fully_Outside) && volume->is_outside && print_volume.intersects(bb))
+            state = ModelInstancePVS_Partly_Outside;
     }
 
     if (out_state != nullptr)

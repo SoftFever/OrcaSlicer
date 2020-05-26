@@ -3,7 +3,6 @@
 
 #include "libslic3r.h"
 #include "Geometry.hpp"
-#include "Layer.hpp"
 #include "ObjectID.hpp"
 #include "Point.hpp"
 #include "PrintConfig.hpp"
@@ -641,25 +640,26 @@ private:
 	}
 };
 
+
+enum ModelInstanceEPrintVolumeState : unsigned char
+{
+    ModelInstancePVS_Inside,
+    ModelInstancePVS_Partly_Outside,
+    ModelInstancePVS_Fully_Outside,
+    ModelInstanceNum_BedStates
+};
+
+
 // A single instance of a ModelObject.
 // Knows the affine transformation of an object.
 class ModelInstance final : public ObjectBase
 {
-public:
-    enum EPrintVolumeState : unsigned char
-    {
-        PVS_Inside,
-        PVS_Partly_Outside,
-        PVS_Fully_Outside,
-        Num_BedStates
-    };
-
 private:
     Geometry::Transformation m_transformation;
 
 public:
     // flag showing the position of this instance with respect to the print volume (set by Print::validate() using ModelObject::check_instances_print_volume_state())
-    EPrintVolumeState print_volume_state;
+    ModelInstanceEPrintVolumeState print_volume_state;
     // Whether or not this instance is printable
     bool printable;
 
@@ -706,7 +706,7 @@ public:
 
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
 
-    bool is_printable() const { return object->printable && printable && (print_volume_state == PVS_Inside); }
+    bool is_printable() const { return object->printable && printable && (print_volume_state == ModelInstancePVS_Inside); }
 
     // Getting the input polygon for arrange
     arrangement::ArrangePolygon get_arrange_polygon() const;
@@ -735,10 +735,10 @@ private:
     ModelObject* object;
 
     // Constructor, which assigns a new unique ID.
-    explicit ModelInstance(ModelObject* object) : print_volume_state(PVS_Inside), printable(true), object(object) { assert(this->id().valid()); }
+    explicit ModelInstance(ModelObject* object) : print_volume_state(ModelInstancePVS_Inside), printable(true), object(object) { assert(this->id().valid()); }
     // Constructor, which assigns a new unique ID.
     explicit ModelInstance(ModelObject *object, const ModelInstance &other) :
-        m_transformation(other.m_transformation), print_volume_state(PVS_Inside), printable(other.printable), object(object) { assert(this->id().valid() && this->id() != other.id()); }
+        m_transformation(other.m_transformation), print_volume_state(ModelInstancePVS_Inside), printable(other.printable), object(object) { assert(this->id().valid() && this->id() != other.id()); }
 
     explicit ModelInstance(ModelInstance &&rhs) = delete;
     ModelInstance& operator=(const ModelInstance &rhs) = delete;
@@ -752,6 +752,7 @@ private:
         ar(m_transformation, print_volume_state, printable);
     }
 };
+
 
 class ModelWipeTower final : public ObjectBase
 {

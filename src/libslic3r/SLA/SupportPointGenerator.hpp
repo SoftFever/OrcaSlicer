@@ -9,7 +9,6 @@
 
 #include <libslic3r/ClipperUtils.hpp>
 #include <libslic3r/Point.hpp>
-#include <libslic3r/TriangleMesh.hpp>
 
 #include <boost/container/small_vector.hpp>
 

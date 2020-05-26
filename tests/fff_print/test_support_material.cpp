@@ -1,6 +1,7 @@
 #include <catch2/catch.hpp>
 
 #include "libslic3r/GCodeReader.hpp"
+#include "libslic3r/Layer.hpp"
 
 #include "test_data.hpp" // get access to init_print, etc
 
