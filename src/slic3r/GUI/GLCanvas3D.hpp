@@ -42,6 +42,9 @@ struct ThumbnailData;
 class ModelObject;
 class ModelInstance;
 class PrintObject;
+class Print;
+class SLAPrint;
+namespace CustomGCode { struct Item; }
 
 namespace GUI {
 

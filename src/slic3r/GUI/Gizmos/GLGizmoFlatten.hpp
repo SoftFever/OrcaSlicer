@@ -2,9 +2,14 @@
 #define slic3r_GLGizmoFlatten_hpp_
 
 #include "GLGizmoBase.hpp"
+#include "slic3r/GUI/3DScene.hpp"
 
 
 namespace Slic3r {
+
+enum class ModelVolumeType : int;
+
+
 namespace GUI {
 
 

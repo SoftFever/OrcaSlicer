@@ -3,6 +3,8 @@
 
 #include "GLGizmoBase.hpp"
 
+#include "libslic3r/BoundingBox.hpp"
+
 
 namespace Slic3r {
 namespace GUI {
