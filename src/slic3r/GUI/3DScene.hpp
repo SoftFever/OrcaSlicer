@@ -6,7 +6,6 @@
 #include "libslic3r/Line.hpp"
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/Utils.hpp"
-//#include "libslic3r/Model.hpp"
 #include "libslic3r/Geometry.hpp"
 
 #include <functional>
