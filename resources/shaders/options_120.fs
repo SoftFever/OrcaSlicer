@@ -2,6 +2,26 @@
 #version 120
 
 uniform vec3 uniform_color;
+uniform float percent_outline_radius;
+uniform float percent_center_radius;
+
+vec4 hard_color(float sq_radius)
+{
+    if ((sq_radius < 0.005625) || (sq_radius > 0.180625))
+        return vec4(0.5 * uniform_color, 1.0);
+    else
+        return vec4(uniform_color, 1.0);
+}
+
+vec4 custom_color(float sq_radius)
+{
+    float in_radius = 0.5 * percent_center_radius;
+    float out_radius = 0.5 * (1.0 - percent_outline_radius);
+    if ((sq_radius < in_radius * in_radius) || (sq_radius > out_radius * out_radius))
+        return vec4(0.5 * uniform_color, 1.0);
+    else
+        return vec4(uniform_color, 1.0);
+}
 
 void main()
 {
@@ -9,9 +29,6 @@ void main()
     float sq_radius = dot(pos, pos);
     if (sq_radius > 0.25)
         discard;
-        
-    if ((sq_radius < 0.005625) || (sq_radius > 0.180625))
-        gl_FragColor = vec4(0.5 * uniform_color, 1.0);
-    else
-        gl_FragColor = vec4(uniform_color, 1.0);
+     
+    gl_FragColor = custom_color(sq_radius);
 }

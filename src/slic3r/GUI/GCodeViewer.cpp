@@ -221,6 +221,19 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors {{
     { 0.761f, 0.322f, 0.235f }  // reddish
 }};
 
+bool GCodeViewer::init()
+{
+    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Extrude, true);
+    m_sequential_view.marker.init();
+    init_shaders();
+
+    std::array<int, 2> point_sizes;
+    ::glGetIntegerv(GL_ALIASED_POINT_SIZE_RANGE, point_sizes.data());
+    m_detected_point_sizes = { static_cast<float>(point_sizes[0]), static_cast<float>(point_sizes[1]) };
+
+    return true;
+}
+
 void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& print, bool initialized)
 {
     // avoid processing if called with the same gcode_result
@@ -328,6 +341,9 @@ void GCodeViewer::render() const
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+#if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
+    render_shaders_editor();
+#endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
 }
 
 bool GCodeViewer::is_toolpath_move_type_visible(GCodeProcessor::EMoveType type) const
@@ -737,30 +753,47 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
 void GCodeViewer::render_toolpaths() const
 {
+#if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
+    bool is_glsl_120 = m_shaders_editor.glsl_version == 1 && wxGetApp().is_glsl_version_greater_or_equal_to(1, 20);
+    std::array<float, 2> point_sizes;
+    if (m_shaders_editor.size_dependent_on_zoom)
+    {
+        point_sizes = { std::min(static_cast<float>(m_shaders_editor.sizes[0]), m_detected_point_sizes[1]), std::min(static_cast<float>(m_shaders_editor.sizes[1]), m_detected_point_sizes[1]) };
+    }
+    else
+        point_sizes = { static_cast<float>(m_shaders_editor.fixed_size), static_cast<float>(m_shaders_editor.fixed_size) };
+#else
     bool is_glsl_120 = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20);
-    int detected_point_sizes[2];
-    ::glGetIntegerv(GL_ALIASED_POINT_SIZE_RANGE, detected_point_sizes);
-    std::array<float, 2> point_sizes = { std::min(8.0f, static_cast<float>(detected_point_sizes[1])), std::min(48.0f, static_cast<float>(detected_point_sizes[1])) };
+    std::array<float, 2> point_sizes = { std::min(8.0f, m_detected_point_sizes[1]), std::min(48.0f, m_detected_point_sizes[1]) };
+#endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
     double zoom = wxGetApp().plater()->get_camera().get_zoom();
 
     auto render_options = [this, is_glsl_120, zoom, point_sizes](const IBuffer& buffer, EOptionsColors colors_id, GLShaderProgram& shader) {
         shader.set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(colors_id)]);
+#if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
+        shader.set_uniform("zoom", m_shaders_editor.size_dependent_on_zoom ? zoom : 1.0f);
+        shader.set_uniform("percent_outline_radius", 0.01f * static_cast<float>(m_shaders_editor.percent_outline));
+        shader.set_uniform("percent_center_radius", 0.01f * static_cast<float>(m_shaders_editor.percent_center));
+#else
         shader.set_uniform("zoom", zoom);
+        shader.set_uniform("percent_outline_radius", 0.15f);
+        shader.set_uniform("percent_center_radius", 0.15f);
+#endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
         shader.set_uniform("point_sizes", point_sizes);
-        if (is_glsl_120) {
+        glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
+        if (is_glsl_120)
             glsafe(::glEnable(GL_POINT_SPRITE));
-            glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
-        }
+
         for (const RenderPath& path : buffer.render_paths) {
             glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
             ++m_statistics.gl_multi_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
         }
-        if (is_glsl_120) {
-            glsafe(::glDisable(GL_VERTEX_PROGRAM_POINT_SIZE));
+        if (is_glsl_120)
             glsafe(::glDisable(GL_POINT_SPRITE));
-        }
+
+        glsafe(::glDisable(GL_VERTEX_PROGRAM_POINT_SIZE));
     };
 
     glsafe(::glCullFace(GL_BACK));
@@ -900,7 +933,11 @@ void GCodeViewer::render_legend() const
         Line
     };
 
+#if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
+    auto add_item = [this, draw_list, &imgui](EItemType type, const Color& color, const std::string& label, std::function<void()> callback = nullptr) {
+#else
     auto add_item = [draw_list, &imgui](EItemType type, const Color& color, const std::string& label, std::function<void()> callback = nullptr) {
+#endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
         float icon_size = ImGui::GetTextLineHeight();
         ImVec2 pos = ImGui::GetCursorPos();
         switch (type)
@@ -915,6 +952,20 @@ void GCodeViewer::render_legend() const
         }
         case EItemType::Circle:
         {
+#if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
+            draw_list->AddCircle({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, 0.5f * icon_size, ICON_BORDER_COLOR, 16);
+            draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, (0.5f * icon_size) - 2.0f,
+                ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
+            float radius = ((0.5f * icon_size) - 2.0f) * (1.0f - 0.01f * static_cast<float>(m_shaders_editor.percent_outline));
+            draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, radius,
+                ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
+            if (m_shaders_editor.percent_center > 0)
+            {
+                radius = ((0.5f * icon_size) - 2.0f) * 0.01f * static_cast<float>(m_shaders_editor.percent_center);
+                draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, radius,
+                    ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
+            }
+#else
             draw_list->AddCircle({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, 0.5f * icon_size, ICON_BORDER_COLOR, 16);
             draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, (0.5f * icon_size) - 2.0f,
                 ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
@@ -922,6 +973,7 @@ void GCodeViewer::render_legend() const
                 ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
             draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, 1.5f,
                 ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
+#endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
             break;
         }
         case EItemType::Line:
@@ -1265,6 +1317,63 @@ void GCodeViewer::render_statistics() const
     imgui.end();
 }
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+
+#if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
+void GCodeViewer::render_shaders_editor() const
+{
+    auto set_shader = [this](const std::string& shader) {
+        unsigned char begin_id = buffer_id(GCodeProcessor::EMoveType::Retract);
+        unsigned char end_id = buffer_id(GCodeProcessor::EMoveType::Custom_GCode);
+        for (unsigned char i = begin_id; i <= end_id; ++i) {
+            m_buffers[i].shader = shader;
+        }
+    };
+
+    static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
+
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+
+    Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
+    imgui.set_next_window_pos(static_cast<float>(cnv_size.get_width()), 0.5f * static_cast<float>(cnv_size.get_height()), ImGuiCond_Once, 1.0f, 0.5f);
+    imgui.begin(std::string("Shaders editor (DEV only)"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
+
+    ImGui::RadioButton("glsl version 1.10 (low end PCs)", &m_shaders_editor.glsl_version, 0);
+    ImGui::RadioButton("glsl version 1.20 (default)", &m_shaders_editor.glsl_version, 1);
+    switch (m_shaders_editor.glsl_version)
+    {
+    case 0: { set_shader("options_110"); break; }
+    case 1: { set_shader("options_120"); break; }
+    }
+
+    if (ImGui::CollapsingHeader("Options", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::Checkbox("size dependent on zoom", &m_shaders_editor.size_dependent_on_zoom);
+        if (m_shaders_editor.size_dependent_on_zoom)
+        {
+            if (ImGui::SliderInt("min size (min zoom)", &m_shaders_editor.sizes[0], 1, 100))
+            {
+                if (m_shaders_editor.sizes[1] < m_shaders_editor.sizes[0])
+                    m_shaders_editor.sizes[1] = m_shaders_editor.sizes[0];
+            }
+            ImGui::SliderInt("max size (max zoom)", &m_shaders_editor.sizes[1], 1, 100);
+            {
+                if (m_shaders_editor.sizes[1] < m_shaders_editor.sizes[0])
+                    m_shaders_editor.sizes[0] = m_shaders_editor.sizes[1];
+            }
+        }
+        else
+            ImGui::SliderInt("fixed size", &m_shaders_editor.fixed_size, 1, 100);
+
+        if (m_shaders_editor.glsl_version == 1)
+        {
+            ImGui::SliderInt("percent outline", &m_shaders_editor.percent_outline, 0, 50);
+            ImGui::SliderInt("percent center", &m_shaders_editor.percent_center, 0, 50);
+        }
+    }
+
+    imgui.end();
+}
+#endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
 
 bool GCodeViewer::is_travel_in_z_range(size_t id) const
 {

@@ -3502,6 +3502,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #ifdef SLIC3R_DEBUG_MOUSE_EVENTS
         printf((format_mouse_event_debug_message(evt) + " - Consumed by ImGUI\n").c_str());
 #endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
+#if ENABLE_GCODE_VIEWER
+        m_dirty = true;
+#endif // ENABLE_GCODE_VIEWER
         // do not return if dragging or tooltip not empty to allow for tooltip update
         if (!m_mouse.dragging && m_tooltip.is_empty())
             return;

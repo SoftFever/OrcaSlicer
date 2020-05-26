@@ -202,6 +202,18 @@ class GCodeViewer
     };
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
+#if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
+    struct ShadersEditor
+    {
+        int glsl_version{ 1 };
+        bool size_dependent_on_zoom{ true };
+        int fixed_size{ 16 };
+        std::array<int, 2> sizes{ 8, 64 };
+        int percent_outline{ 15 };
+        int percent_center{ 15 };
+    };
+#endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
+
 public:
     struct SequentialView
     {
@@ -271,17 +283,16 @@ private:
 #if ENABLE_GCODE_VIEWER_STATISTICS
     mutable Statistics m_statistics;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+#if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
+    mutable ShadersEditor m_shaders_editor;
+#endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
+    std::array<float, 2> m_detected_point_sizes = { 0.0f, 0.0f };
 
 public:
     GCodeViewer() = default;
     ~GCodeViewer() { reset(); }
 
-    bool init() {
-        set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Extrude, true);
-        m_sequential_view.marker.init();
-        init_shaders();
-        return true;
-    }
+    bool init();
 
     // extract rendering data from the given parameters
     void load(const GCodeProcessor::Result& gcode_result, const Print& print, bool initialized);
@@ -334,6 +345,9 @@ private:
 #if ENABLE_GCODE_VIEWER_STATISTICS
     void render_statistics() const;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+#if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
+    void render_shaders_editor() const;
+#endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
     bool is_visible(ExtrusionRole role) const {
         return role < erCount && (m_extrusions.role_visibility_flags & (1 << role)) != 0;
     }
