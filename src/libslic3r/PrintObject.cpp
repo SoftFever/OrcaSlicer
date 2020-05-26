@@ -4,6 +4,7 @@
 #include "ElephantFootCompensation.hpp"
 #include "Geometry.hpp"
 #include "I18N.hpp"
+#include "Layer.hpp"
 #include "SupportMaterial.hpp"
 #include "Surface.hpp"
 #include "Slicing.hpp"
@@ -2828,5 +2829,29 @@ void PrintObject::project_and_append_custom_supports(
 
     } // loop over ModelVolumes
 }
+
+
+
+const Layer* PrintObject::get_layer_at_printz(coordf_t print_z) const {
+    auto it = Slic3r::lower_bound_by_predicate(m_layers.begin(), m_layers.end(), [print_z](const Layer *layer) { return layer->print_z < print_z; });
+    return (it == m_layers.end() || (*it)->print_z != print_z) ? nullptr : *it;
+}
+
+
+
+Layer* PrintObject::get_layer_at_printz(coordf_t print_z) { return const_cast<Layer*>(std::as_const(*this).get_layer_at_printz(print_z)); }
+
+
+
+// Get a layer approximately at print_z.
+const Layer* PrintObject::get_layer_at_printz(coordf_t print_z, coordf_t epsilon) const {
+    coordf_t limit = print_z - epsilon;
+    auto it = Slic3r::lower_bound_by_predicate(m_layers.begin(), m_layers.end(), [limit](const Layer *layer) { return layer->print_z < limit; });
+    return (it == m_layers.end() || (*it)->print_z > print_z + epsilon) ? nullptr : *it;
+}
+
+
+
+Layer* PrintObject::get_layer_at_printz(coordf_t print_z, coordf_t epsilon) { return const_cast<Layer*>(std::as_const(*this).get_layer_at_printz(print_z, epsilon)); }
 
 } // namespace Slic3r

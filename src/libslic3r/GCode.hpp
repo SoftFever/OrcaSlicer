@@ -8,7 +8,6 @@
 #include "MotionPlanner.hpp"
 #include "Point.hpp"
 #include "PlaceholderParser.hpp"
-#include "Print.hpp"
 #include "PrintConfig.hpp"
 #include "GCode/CoolingBuffer.hpp"
 #include "GCode/SpiralVase.hpp"
@@ -31,6 +30,10 @@ namespace Slic3r {
 // Forward declarations.
 class GCode;
 class GCodePreviewData;
+
+namespace { struct Item; }
+struct PrintInstance;
+using PrintObjectPtrs = std::vector<PrintObject*>;
 
 class AvoidCrossingPerimeters {
 public:

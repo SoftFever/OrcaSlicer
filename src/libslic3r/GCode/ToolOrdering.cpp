@@ -1,5 +1,6 @@
 #include "Print.hpp"
 #include "ToolOrdering.hpp"
+#include "Layer.hpp"
 
 // #define SLIC3R_DEBUG
 
@@ -15,7 +16,6 @@
 
 #include <libslic3r.h>
 
-#include "../GCodeWriter.hpp"
 
 namespace Slic3r {
 
