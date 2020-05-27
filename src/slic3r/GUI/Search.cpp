@@ -28,6 +28,12 @@ using GUI::into_u8;
 
 namespace Search {
 
+// Does our wxWidgets version support markup?
+// https://github.com/prusa3d/PrusaSlicer/issues/4282#issuecomment-634676371
+#if wxUSE_MARKUP && wxCHECK_VERSION(3, 1, 1)
+    #define SEARCH_SUPPORTS_MARKUP
+#endif
+
 static const std::vector<std::wstring>& NameByType()
 {
     static std::vector<std::wstring> data;
@@ -271,8 +277,14 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
             label += L"  [" + std::to_wstring(score) + L"]";// add score value
 	        std::string label_u8 = into_u8(label);
 	        std::string label_plain = label_u8;
-	        boost::replace_all(label_plain, std::string(1, char(ImGui::ColorMarkerStart)), "<b>");
-	        boost::replace_all(label_plain, std::string(1, char(ImGui::ColorMarkerEnd)),   "</b>");
+
+#ifdef SEARCH_SUPPORTS_MARKUP
+            boost::replace_all(label_plain, std::string(1, char(ImGui::ColorMarkerStart)), "<b>");
+            boost::replace_all(label_plain, std::string(1, char(ImGui::ColorMarkerEnd)),   "</b>");
+#else
+            boost::erase_all(label_plain, std::string(1, char(ImGui::ColorMarkerStart)));
+            boost::erase_all(label_plain, std::string(1, char(ImGui::ColorMarkerEnd)));
+#endif
 	        found.emplace_back(FoundOption{ label_plain, label_u8, boost::nowide::narrow(get_tooltip(opt)), i, score });
         }
     }
@@ -443,9 +455,11 @@ SearchDialog::SearchDialog(OptionsSearcher* searcher)
     search_list->AppendBitmapColumn("", SearchListModel::colIcon);
 
     wxDataViewTextRenderer* const markupRenderer = new wxDataViewTextRenderer();
-#if wxUSE_MARKUP
+
+#ifdef SEARCH_SUPPORTS_MARKUP
     markupRenderer->EnableMarkup();
-#endif // wxUSE_MARKUP
+#endif
+
     search_list->AppendColumn(new wxDataViewColumn("", markupRenderer, SearchListModel::colMarkedText, wxCOL_WIDTH_AUTOSIZE, wxALIGN_LEFT));
 
     search_list->GetColumn(SearchListModel::colIcon      )->SetWidth(3  * em_unit());
