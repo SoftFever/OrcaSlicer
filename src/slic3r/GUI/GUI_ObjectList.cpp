@@ -1781,6 +1781,22 @@ void ObjectList::append_menu_items_convert_unit(wxMenu* menu)
         [](wxCommandEvent&) { wxGetApp().plater()->convert_unit(false); }, "", menu);
 }
 
+void ObjectList::append_menu_item_merge_to_multipart_object(wxMenu* menu)
+{
+    menu->AppendSeparator();
+    append_menu_item(menu, wxID_ANY, _L("Merge"), _L("Merge objects to the one multipart object"),
+        [this](wxCommandEvent&) { merge(true); }, "", menu,
+        [this]() { return this->can_merge_to_multipart_object(); }, wxGetApp().plater());
+}
+
+void ObjectList::append_menu_item_merge_to_single_object(wxMenu* menu)
+{
+    menu->AppendSeparator();
+    append_menu_item(menu, wxID_ANY, _L("Merge"), _L("Merge objects to the one single object"),
+        [this](wxCommandEvent&) { merge(false); }, "", menu,
+        [this]() { return this->can_merge_to_single_object(); }, wxGetApp().plater());
+}
+
 void ObjectList::create_object_popupmenu(wxMenu *menu)
 {
 #ifdef __WXOSX__  
@@ -1795,6 +1811,10 @@ void ObjectList::create_object_popupmenu(wxMenu *menu)
 
     // Split object to parts
     append_menu_item_split(menu);
+//    menu->AppendSeparator();
+
+    // Merge multipart object to the single object
+//    append_menu_item_merge_to_single_object(menu);
     menu->AppendSeparator();
 
     // Layers Editing for object
@@ -2365,6 +2385,107 @@ void ObjectList::split()
     changed_object(obj_idx);
 }
 
+void ObjectList::merge(bool to_multipart_object)
+{
+    // merge selected objects to the multipart object
+    if (to_multipart_object)
+    {
+        std::vector<int> obj_idxs;
+        wxDataViewItemArray sels;
+        GetSelections(sels);
+        assert(!sels.IsEmpty());
+
+        for (wxDataViewItem item : sels) {
+            const ItemType type = m_objects_model->GetItemType(item);
+            assert(type & (itObject/* | itInstance*/));
+            obj_idxs.emplace_back(type & itObject ? m_objects_model->GetIdByItem(item) :
+                m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item)));
+        }
+        std::sort(obj_idxs.begin(), obj_idxs.end());
+        obj_idxs.erase(std::unique(obj_idxs.begin(), obj_idxs.end()), obj_idxs.end());
+
+        if (obj_idxs.size() <= 1)
+            return;
+
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Merge"));
+
+        Model* model = (*m_objects)[0]->get_model();
+        ModelObject* new_object = model->add_object();
+        new_object->name = _u8L("Merged");
+        DynamicPrintConfig* new_config = &new_object->config;
+
+        const Vec3d& main_offset  = (*m_objects)[0]->instances[0]->get_offset();
+
+        for (int obj_idx : obj_idxs)
+        {
+            ModelObject* object = (*m_objects)[obj_idx];
+            Vec3d offset = object->instances[0]->get_offset();
+
+            if (object->id() == (*m_objects)[0]->id())
+                new_object->add_instance(*object->instances[0]);
+            auto new_opt_keys = new_config->keys();
+
+            const DynamicPrintConfig& from_config = object->config;
+            auto opt_keys = from_config.keys();
+
+            // merge settings
+            for (auto& opt_key : opt_keys) {
+                if (find(new_opt_keys.begin(), new_opt_keys.end(), opt_key) == new_opt_keys.end()) {
+                    const ConfigOption* option = from_config.option(opt_key);
+                    if (!option) {
+                        // if current option doesn't exist in prints.get_edited_preset(),
+                        // get it from default config values
+                        option = DynamicPrintConfig::new_from_defaults_keys({ opt_key })->option(opt_key);
+                    }
+                    new_config->set_key_value(opt_key, option->clone());
+                }
+            }
+
+            // merge volumes
+            for (const ModelVolume* volume : object->volumes) {
+                ModelVolume* new_volume = new_object->add_volume(*volume);
+                Vec3d vol_offset = offset - main_offset + new_volume->get_offset();
+                new_volume->set_offset(vol_offset);
+            }
+            // save extruder value if it was set
+            if (object->volumes.size() == 1 && find(opt_keys.begin(), opt_keys.end(), "extruder") != opt_keys.end()) {
+                ModelVolume* volume = new_object->volumes.back();
+                const ConfigOption* option = from_config.option("extruder");
+                if (option) 
+                    volume->config.set_key_value("extruder", option->clone());
+            }
+
+            // merge layers
+            for (const auto& range : object->layer_config_ranges)
+                new_object->layer_config_ranges.emplace(range);
+        }
+        // remove selected objects
+        remove();
+        // Add new object(merged) to the object_list
+        add_object_to_list(m_objects->size() - 1);
+    }
+    // merge all parts to the one single object
+    // all part's settings will be lost
+    else
+    {
+        wxDataViewItem item = GetSelection();
+        if (!item)
+            return;
+        const int obj_idx = m_objects_model->GetIdByItem(item);
+        if (obj_idx == -1)
+            return;
+
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Merge all parts to the one single object"));
+
+        ModelObject* model_object = (*m_objects)[obj_idx];
+        model_object->merge();
+
+        m_objects_model->DeleteVolumeChildren(item);
+
+        changed_object(obj_idx);
+    }
+}
+
 void ObjectList::layers_editing()
 {
     const Selection& selection = scene_selection();
@@ -2488,6 +2609,31 @@ bool ObjectList::can_split_instances()
 {
     const Selection& selection = scene_selection();
     return selection.is_multiple_full_instance() || selection.is_single_full_instance();
+}
+
+bool ObjectList::can_merge_to_multipart_object() const
+{
+    wxDataViewItemArray sels;
+    GetSelections(sels);
+    if (sels.IsEmpty())
+        return false;
+
+    // should be selected just objects
+    for (wxDataViewItem item : sels)
+        if (!(m_objects_model->GetItemType(item) & (itObject/* | itInstance*/)))
+            return false;
+
+    return true;
+}
+
+bool ObjectList::can_merge_to_single_object() const
+{
+    int obj_idx = get_selected_obj_idx();
+    if (obj_idx < 0)
+        return false;
+
+    // selected object should be multipart
+    return (*m_objects)[obj_idx]->volumes.size() > 1;
 }
 
 // NO_PARAMETERS function call means that changed object index will be determine from Selection() 
@@ -4111,6 +4257,7 @@ void ObjectList::show_multi_selection_menu()
     }, wxGetApp().plater());
 
     append_menu_items_convert_unit(menu);
+    append_menu_item_merge_to_multipart_object(menu);
 
     wxGetApp().plater()->PopupMenu(menu);
 }
