@@ -415,12 +415,12 @@ void GCodeViewer::init_shaders()
     {
         switch (buffer_type(i))
         {
-        case GCodeProcessor::EMoveType::Tool_change:  { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110"; break; }
-        case GCodeProcessor::EMoveType::Color_change: { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110"; break; }
-        case GCodeProcessor::EMoveType::Pause_Print:  { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110"; break; }
-        case GCodeProcessor::EMoveType::Custom_GCode: { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110"; break; }
-        case GCodeProcessor::EMoveType::Retract:      { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110"; break; }
-        case GCodeProcessor::EMoveType::Unretract:    { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Tool_change:  { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120_solid" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Color_change: { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120_solid" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Pause_Print:  { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120_solid" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Custom_GCode: { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120_solid" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Retract:      { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120_solid" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Unretract:    { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120_solid" : "options_110"; break; }
         case GCodeProcessor::EMoveType::Extrude:      { m_buffers[i].shader = "extrusions"; break; }
         case GCodeProcessor::EMoveType::Travel:       { m_buffers[i].shader = "travels"; break; }
         default: { break; }
@@ -754,21 +754,26 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 void GCodeViewer::render_toolpaths() const
 {
 #if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
-    bool is_glsl_120 = m_shaders_editor.glsl_version == 1 && wxGetApp().is_glsl_version_greater_or_equal_to(1, 20);
+    bool is_glsl_120 = m_shaders_editor.shader_version >= 1 && wxGetApp().is_glsl_version_greater_or_equal_to(1, 20);
     std::array<float, 2> point_sizes;
     if (m_shaders_editor.size_dependent_on_zoom)
-    {
         point_sizes = { std::min(static_cast<float>(m_shaders_editor.sizes[0]), m_detected_point_sizes[1]), std::min(static_cast<float>(m_shaders_editor.sizes[1]), m_detected_point_sizes[1]) };
-    }
     else
         point_sizes = { static_cast<float>(m_shaders_editor.fixed_size), static_cast<float>(m_shaders_editor.fixed_size) };
 #else
     bool is_glsl_120 = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20);
     std::array<float, 2> point_sizes = { std::min(8.0f, m_detected_point_sizes[1]), std::min(48.0f, m_detected_point_sizes[1]) };
 #endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
-    double zoom = wxGetApp().plater()->get_camera().get_zoom();
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    double zoom = camera.get_zoom();
+    const std::array<int, 4>& viewport = camera.get_viewport();
+    std::array<int, 2> viewport_sizes = { viewport[2], viewport[3] };
+    const std::pair<double, double>& camera_z_range = camera.get_z_range();
+    std::array<float, 2> z_range = { static_cast<float>(camera_z_range.first), static_cast<float>(camera_z_range.second) };
 
-    auto render_options = [this, is_glsl_120, zoom, point_sizes](const IBuffer& buffer, EOptionsColors colors_id, GLShaderProgram& shader) {
+    Transform3d inv_proj = camera.get_projection_matrix().inverse();
+
+    auto render_options = [this, is_glsl_120, zoom, viewport, inv_proj, viewport_sizes, z_range, point_sizes](const IBuffer& buffer, EOptionsColors colors_id, GLShaderProgram& shader) {
         shader.set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(colors_id)]);
 #if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
         shader.set_uniform("zoom", m_shaders_editor.size_dependent_on_zoom ? zoom : 1.0f);
@@ -779,6 +784,9 @@ void GCodeViewer::render_toolpaths() const
         shader.set_uniform("percent_outline_radius", 0.15f);
         shader.set_uniform("percent_center_radius", 0.15f);
 #endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
+        shader.set_uniform("viewport_sizes", viewport_sizes);
+        shader.set_uniform("inv_proj_matrix", inv_proj);
+        shader.set_uniform("z_range", z_range);
         shader.set_uniform("point_sizes", point_sizes);
         glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
         if (is_glsl_120)
@@ -896,7 +904,7 @@ void GCodeViewer::render_shells() const
     if (!m_shells.visible || m_shells.volumes.empty())
         return;
 
-    GLShaderProgram* shader = wxGetApp().get_shader("shells");
+    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr)
         return;
 
@@ -954,25 +962,25 @@ void GCodeViewer::render_legend() const
         {
 #if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
             draw_list->AddCircle({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, 0.5f * icon_size, ICON_BORDER_COLOR, 16);
-            draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, (0.5f * icon_size) - 2.0f,
-                ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
-            float radius = ((0.5f * icon_size) - 2.0f) * (1.0f - 0.01f * static_cast<float>(m_shaders_editor.percent_outline));
-            draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, radius,
-                ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
-            if (m_shaders_editor.percent_center > 0)
-            {
-                radius = ((0.5f * icon_size) - 2.0f) * 0.01f * static_cast<float>(m_shaders_editor.percent_center);
-                draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, radius,
+            if (m_shaders_editor.shader_version == 1) {
+                draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, (0.5f * icon_size) - 2.0f,
                     ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
+                float radius = ((0.5f * icon_size) - 2.0f) * (1.0f - 0.01f * static_cast<float>(m_shaders_editor.percent_outline));
+                draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, radius,
+                    ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
+                if (m_shaders_editor.percent_center > 0) {
+                    radius = ((0.5f * icon_size) - 2.0f) * 0.01f * static_cast<float>(m_shaders_editor.percent_center);
+                    draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, radius,
+                        ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
+                }
+            } else {
+                draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, (0.5f * icon_size) - 2.0f,
+                    ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
             }
 #else
             draw_list->AddCircle({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, 0.5f * icon_size, ICON_BORDER_COLOR, 16);
             draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, (0.5f * icon_size) - 2.0f,
-                ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
-            draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, (0.5f * icon_size) - 3.0f,
                 ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
-            draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, 1.5f,
-                ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
 #endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
             break;
         }
@@ -1195,7 +1203,11 @@ void GCodeViewer::render_legend() const
     auto add_option = [this, add_item](GCodeProcessor::EMoveType move_type, EOptionsColors color, const std::string& text) {
         const IBuffer& buffer = m_buffers[buffer_id(move_type)];
         if (buffer.visible && buffer.indices_count > 0)
-            add_item(EItemType::Circle, Options_Colors[static_cast<unsigned int>(color)], text);
+#if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
+            add_item((m_shaders_editor.shader_version == 0) ? EItemType::Rect : EItemType::Circle, Options_Colors[static_cast<unsigned int>(color)], text);
+#else
+            add_item((buffer.shader == "options_110") ? EItemType::Rect : EItemType::Circle, Options_Colors[static_cast<unsigned int>(color)], text);
+#endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
     };
 
     // options
@@ -1337,12 +1349,15 @@ void GCodeViewer::render_shaders_editor() const
     imgui.set_next_window_pos(static_cast<float>(cnv_size.get_width()), 0.5f * static_cast<float>(cnv_size.get_height()), ImGuiCond_Once, 1.0f, 0.5f);
     imgui.begin(std::string("Shaders editor (DEV only)"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
 
-    ImGui::RadioButton("glsl version 1.10 (low end PCs)", &m_shaders_editor.glsl_version, 0);
-    ImGui::RadioButton("glsl version 1.20 (default)", &m_shaders_editor.glsl_version, 1);
-    switch (m_shaders_editor.glsl_version)
+    ImGui::RadioButton("glsl version 1.10 (low end PCs)", &m_shaders_editor.shader_version, 0);
+    ImGui::RadioButton("glsl version 1.20 flat (billboards)", &m_shaders_editor.shader_version, 1);
+    ImGui::RadioButton("glsl version 1.20 solid (spheres default)", &m_shaders_editor.shader_version, 2);
+
+    switch (m_shaders_editor.shader_version)
     {
     case 0: { set_shader("options_110"); break; }
-    case 1: { set_shader("options_120"); break; }
+    case 1: { set_shader("options_120_flat"); break; }
+    case 2: { set_shader("options_120_solid"); break; }
     }
 
     if (ImGui::CollapsingHeader("Options", ImGuiTreeNodeFlags_DefaultOpen))
@@ -1364,7 +1379,7 @@ void GCodeViewer::render_shaders_editor() const
         else
             ImGui::SliderInt("fixed size", &m_shaders_editor.fixed_size, 1, 100);
 
-        if (m_shaders_editor.glsl_version == 1)
+        if (m_shaders_editor.shader_version == 1)
         {
             ImGui::SliderInt("percent outline", &m_shaders_editor.percent_outline, 0, 50);
             ImGui::SliderInt("percent center", &m_shaders_editor.percent_center, 0, 50);

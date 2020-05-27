@@ -205,12 +205,12 @@ class GCodeViewer
 #if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
     struct ShadersEditor
     {
-        int glsl_version{ 1 };
+        int shader_version{ 2 };
         bool size_dependent_on_zoom{ true };
         int fixed_size{ 16 };
-        std::array<int, 2> sizes{ 8, 64 };
-        int percent_outline{ 15 };
-        int percent_center{ 15 };
+        std::array<int, 2> sizes{ 3, 21 };
+        int percent_outline{ 0 };
+        int percent_center{ 33 };
     };
 #endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
 

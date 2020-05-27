@@ -1,6 +1,7 @@
 #include "libslic3r/libslic3r.h"
 #include "GLShadersManager.hpp"
 #include "3DScene.hpp"
+#include "GUI_App.hpp"
 
 #include <cassert>
 #include <algorithm>
@@ -28,19 +29,21 @@ std::pair<bool, std::string> GLShadersManager::init()
 
     bool valid = true;
 
-    // used to render bed axes and model, selection hints, gcode sequential view marker model
+    // used to render bed axes and model, selection hints, gcode sequential view marker model, preview shells
     valid &= append_shader("gouraud_light", { "gouraud_light.vs", "gouraud_light.fs" });
     // used to render printbed
     valid &= append_shader("printbed", { "printbed.vs", "printbed.fs" });
     // used to render options in gcode preview
     valid &= append_shader("options_110", { "options_110.vs", "options_110.fs" });
-    valid &= append_shader("options_120", { "options_120.vs", "options_120.fs" });
+    if (GUI::wxGetApp().is_glsl_version_greater_or_equal_to(1, 20))
+    {
+        valid &= append_shader("options_120_flat", { "options_120_flat.vs", "options_120_flat.fs" });
+        valid &= append_shader("options_120_solid", { "options_120_solid.vs", "options_120_solid.fs" });
+    }
     // used to render extrusion paths in gcode preview
     valid &= append_shader("extrusions", { "extrusions.vs", "extrusions.fs" });
     // used to render travel paths in gcode preview
     valid &= append_shader("travels", { "travels.vs", "travels.fs" });
-    // used to render shells in gcode preview
-    valid &= append_shader("shells", { "shells.vs", "shells.fs" });
     // used to render objects in 3d editor
     valid &= append_shader("gouraud", { "gouraud.vs", "gouraud.fs" });
     // used to render variable layers heights in 3d editor

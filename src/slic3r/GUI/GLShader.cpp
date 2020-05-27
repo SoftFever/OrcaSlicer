@@ -215,6 +215,26 @@ bool GLShaderProgram::set_uniform(const char* name, double value) const
     return set_uniform(name, static_cast<float>(value));
 }
 
+bool GLShaderProgram::set_uniform(const char* name, const std::array<int, 2>& value) const
+{
+    int id = get_uniform_location(name);
+    if (id >= 0) {
+        glsafe(::glUniform2iv(id, 1, static_cast<const GLint*>(value.data())));
+        return true;
+    }
+    return false;
+}
+
+bool GLShaderProgram::set_uniform(const char* name, const std::array<int, 3>& value) const
+{
+    int id = get_uniform_location(name);
+    if (id >= 0) {
+        glsafe(::glUniform3iv(id, 1, static_cast<const GLint*>(value.data())));
+        return true;
+    }
+    return false;
+}
+
 bool GLShaderProgram::set_uniform(const char* name, const std::array<int, 4>& value) const
 {
     int id = get_uniform_location(name);
