@@ -1345,6 +1345,12 @@ void Control::move_current_thumb(const bool condition)
     if (is_horizontal())
         delta *= -1;
 
+    // accelerators
+    if (wxGetKeyState(WXK_SHIFT) && wxGetKeyState(WXK_CONTROL))
+        delta *= 10;
+    else if (wxGetKeyState(WXK_CONTROL))
+        delta *= 5;
+
     if (m_selection == ssLower) {
         m_lower_value -= delta;
         correct_lower_value();
