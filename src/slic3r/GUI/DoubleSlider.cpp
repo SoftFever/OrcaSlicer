@@ -1346,10 +1346,13 @@ void Control::move_current_thumb(const bool condition)
         delta *= -1;
 
     // accelerators
-    if (wxGetKeyState(WXK_SHIFT) && wxGetKeyState(WXK_CONTROL))
-        delta *= 10;
-    else if (wxGetKeyState(WXK_CONTROL))
-        delta *= 5;
+    int accelerator = 0;
+    if (wxGetKeyState(WXK_SHIFT))
+        accelerator += 5;
+    if (wxGetKeyState(WXK_CONTROL))
+        accelerator += 5;
+    if (accelerator > 0)
+        delta *= accelerator;
 
     if (m_selection == ssLower) {
         m_lower_value -= delta;
