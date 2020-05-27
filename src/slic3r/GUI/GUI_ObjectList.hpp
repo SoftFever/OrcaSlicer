@@ -254,6 +254,8 @@ public:
     void                append_menu_item_delete(wxMenu* menu);
     void                append_menu_item_scale_selection_to_fit_print_volume(wxMenu* menu);
     void                append_menu_items_convert_unit(wxMenu* menu);
+    void                append_menu_item_merge_to_multipart_object(wxMenu *menu);
+    void                append_menu_item_merge_to_single_object(wxMenu *menu);
     void                create_object_popupmenu(wxMenu *menu);
     void                create_sla_object_popupmenu(wxMenu*menu);
     void                create_part_popupmenu(wxMenu*menu);
@@ -277,6 +279,7 @@ public:
     void                del_layers_from_object(const int obj_idx);
     bool                del_subobject_from_object(const int obj_idx, const int idx, const int type);
     void                split();
+    void                merge(bool to_multipart_object);
     void                layers_editing();
 
     wxDataViewItem      add_layer_root_item(const wxDataViewItem obj_item);
@@ -287,6 +290,8 @@ public:
     bool                is_splittable();
     bool                selected_instances_of_same_object();
     bool                can_split_instances();
+    bool                can_merge_to_multipart_object() const;
+    bool                can_merge_to_single_object() const;
 
     wxPoint             get_mouse_position_in_control() const { return wxGetMousePosition() - this->GetScreenPosition(); }
     wxBoxSizer*         get_sizer() {return  m_sizer;}

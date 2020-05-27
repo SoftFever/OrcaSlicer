@@ -25,6 +25,8 @@
 #include "slic3r/GUI/OpenGLManager.hpp"
 #include "slic3r/GUI/3DBed.hpp"
 #include "slic3r/GUI/Camera.hpp"
+#include "slic3r/GUI/Plater.hpp"
+#include "slic3r/GUI/MainFrame.hpp"
 
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"

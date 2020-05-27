@@ -5,7 +5,6 @@
 #include <memory>
 #include <chrono>
 
-#include "3DScene.hpp"
 #include "GLToolbar.hpp"
 #include "Event.hpp"
 #include "Selection.hpp"

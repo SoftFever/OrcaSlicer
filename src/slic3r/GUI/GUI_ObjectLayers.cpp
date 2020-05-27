@@ -2,9 +2,11 @@
 #include "GUI_ObjectList.hpp"
 
 #include "OptionsGroup.hpp"
+#include "GUI_App.hpp"
 #include "PresetBundle.hpp"
 #include "libslic3r/Model.hpp"
 #include "GLCanvas3D.hpp"
+#include "Plater.hpp"
 
 #include <boost/algorithm/string.hpp>
 

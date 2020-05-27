@@ -1,5 +1,10 @@
 #include "GUI_App.hpp"
 #include "InstanceCheck.hpp"
+#include "Plater.hpp"
+
+#ifdef _WIN32
+  #include "MainFrame.hpp"
+#endif
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Config.hpp"

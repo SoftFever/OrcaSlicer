@@ -3,6 +3,8 @@
 #include "I18N.hpp"
 #include "Field.hpp"
 #include "wxExtensions.hpp"
+#include "Plater.hpp"
+#include "MainFrame.hpp"
 
 #include "libslic3r/PrintConfig.hpp"
 

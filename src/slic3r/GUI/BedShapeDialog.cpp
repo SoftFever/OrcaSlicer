@@ -1,4 +1,6 @@
 #include "BedShapeDialog.hpp"
+#include "GUI_App.hpp"
+#include "OptionsGroup.hpp"
 
 #include <wx/wx.h> 
 #include <wx/numformatter.h>

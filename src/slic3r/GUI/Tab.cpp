@@ -32,6 +32,8 @@
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "ConfigWizard.hpp"
+#include "Plater.hpp"
+#include "MainFrame.hpp"
 #include "format.hpp"
 
 namespace Slic3r {
@@ -3580,6 +3582,18 @@ void Tab::set_tooltips_text()
     m_tt_white_bullet =		_(L("WHITE BULLET icon indicates that the value is the same as in the last saved preset."));
     m_tt_value_revert =		_(L("BACK ARROW icon indicates that the value was changed and is not equal to the last saved preset.\n"
                                 "Click to reset current value to the last saved preset."));
+}
+
+Page::Page(wxWindow* parent, const wxString& title, const int iconID, const std::vector<ScalableBitmap>& mode_bmp_cache) :
+        m_parent(parent),
+        m_title(title),
+        m_iconID(iconID),
+        m_mode_bitmap_cache(mode_bmp_cache)
+{
+    Create(m_parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_vsizer = new wxBoxSizer(wxVERTICAL);
+    m_item_color = &wxGetApp().get_label_clr_default();
+    SetSizer(m_vsizer);
 }
 
 void Page::reload_config()

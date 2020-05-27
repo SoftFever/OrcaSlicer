@@ -3,8 +3,7 @@
 
 #include <memory>
 #include <string>
-#include "libslic3r/PrintConfig.hpp"
-#include "MainFrame.hpp"
+#include "Preset.hpp"
 #include "ImGuiWrapper.hpp"
 #include "ConfigWizard.hpp"
 #include "OpenGLManager.hpp"
@@ -30,11 +29,21 @@ class PresetBundle;
 class PresetUpdater;
 class ModelObject;
 class PrintHostJobQueue;
-
+class Model;
 
 namespace GUI{
 class RemovableDriveManager;
 class OtherInstanceMessageHandler;
+class MainFrame;
+class Sidebar;
+class ObjectManipulation;
+class ObjectSettings;
+class ObjectList;
+class ObjectLayers;
+class Plater;
+
+
+
 enum FileType
 {
     FT_STL,

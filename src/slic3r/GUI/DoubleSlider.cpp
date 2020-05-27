@@ -8,6 +8,7 @@
 #endif // ENABLE_GCODE_VIEWER
 #include "GUI.hpp"
 #include "GUI_App.hpp"
+#include "Plater.hpp"
 #include "I18N.hpp"
 #include "ExtruderSequenceDialog.hpp"
 #include "libslic3r/Print.hpp"

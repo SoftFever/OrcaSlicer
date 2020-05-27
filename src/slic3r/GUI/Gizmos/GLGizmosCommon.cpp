@@ -6,6 +6,7 @@
 #include "libslic3r/SLAPrint.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Camera.hpp"
+#include "slic3r/GUI/Plater.hpp"
 
 #include <GL/glew.h>
 

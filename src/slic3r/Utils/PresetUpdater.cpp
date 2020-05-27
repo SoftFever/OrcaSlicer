@@ -25,6 +25,7 @@
 #include "slic3r/GUI/UpdateDialogs.hpp"
 #include "slic3r/GUI/ConfigWizard.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/format.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Config/Version.hpp"

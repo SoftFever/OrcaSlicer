@@ -1,5 +1,7 @@
 #include "OptionsGroup.hpp"
 #include "ConfigExceptions.hpp"
+#include "Plater.hpp"
+#include "GUI_App.hpp"
 
 #include <utility>
 #include <wx/numformatter.h>
@@ -98,6 +100,36 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
     
 	// assign function objects for callbacks, etc.
     return field;
+}
+
+OptionsGroup::OptionsGroup(	wxWindow* _parent, const wxString& title,
+                            bool is_tab_opt /* = false */,
+                            column_t extra_clmn /* = nullptr */) :
+                m_parent(_parent), title(title),
+                m_show_modified_btns(is_tab_opt),
+                staticbox(title!=""), extra_column(extra_clmn)
+{
+    if (staticbox) {
+        stb = new wxStaticBox(_parent, wxID_ANY, _(title));
+        if (!wxOSX) stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
+        stb->SetFont(wxOSX ? wxGetApp().normal_font() : wxGetApp().bold_font());
+    } else
+        stb = nullptr;
+    sizer = (staticbox ? new wxStaticBoxSizer(stb, wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
+    auto num_columns = 1U;
+    if (label_width != 0) num_columns++;
+    if (extra_column != nullptr) num_columns++;
+    m_grid_sizer = new wxFlexGridSizer(0, num_columns, 1,0);
+    static_cast<wxFlexGridSizer*>(m_grid_sizer)->SetFlexibleDirection(wxBOTH/*wxHORIZONTAL*/);
+    static_cast<wxFlexGridSizer*>(m_grid_sizer)->AddGrowableCol(label_width == 0 ? 0 : !extra_column ? 1 : 2 );
+#if 0//#ifdef __WXGTK__
+    m_panel = new wxPanel( _parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+    sizer->Fit(m_panel);
+    sizer->Add(m_panel, 0, wxEXPAND | wxALL, wxOSX||!staticbox ? 0: 5);
+#else
+    sizer->Add(m_grid_sizer, 0, wxEXPAND | wxALL, wxOSX||!staticbox ? 0: 5);
+#endif /* __WXGTK__ */
+
 }
 
 void OptionsGroup::add_undo_buttuns_to_sizer(wxSizer* sizer, const t_field& field)

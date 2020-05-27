@@ -2320,9 +2320,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             if (imperial_units)
                 convert_from_imperial_units(model);
             else if (model.looks_like_imperial_units()) {
-                wxMessageDialog msg_dlg(q, _L(
-                    "This model looks like saved in inches.\n"
-                    "Should I consider this model as a saved in inches and convert it?") + "\n",
+                wxMessageDialog msg_dlg(q, format_wxstr(_L(
+                    "Some object(s) in file %s looks like saved in inches.\n"
+                    "Should I consider them as a saved in inches and convert them?"), from_path(filename)) + "\n",
                     _L("Saved in inches object detected"), wxICON_WARNING | wxYES | wxNO);
                 if (msg_dlg.ShowModal() == wxID_YES)
                     convert_from_imperial_units(model);

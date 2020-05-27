@@ -12,6 +12,7 @@
 #include <algorithm>
 
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/Plater.hpp"
 
 
 namespace Slic3r {
