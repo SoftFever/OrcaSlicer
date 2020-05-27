@@ -301,8 +301,8 @@ private:
     int         get_value_from_position(const wxCoord x, const wxCoord y);
     int         get_value_from_position(const wxPoint pos) { return get_value_from_position(pos.x, pos.y); }
     wxCoord     get_position_from_value(const int value);
-    wxSize      get_size();
-    void        get_size(int *w, int *h);
+    wxSize      get_size() const;
+    void        get_size(int* w, int* h) const;
     double      get_double_value(const SelectedSlider& selection);
     wxString    get_tooltip(int tick = -1);
     int         get_edited_tick_for_position(wxPoint pos, const std::string& gcode = ColorChangeCode);
