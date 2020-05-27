@@ -1387,6 +1387,22 @@ void Control::OnWheel(wxMouseEvent& event)
 void Control::OnKeyDown(wxKeyEvent &event)
 {
     const int key = event.GetKeyCode();
+#if ENABLE_GCODE_VIEWER
+    if (m_draw_mode != dmSequentialGCodeView && key == WXK_NUMPAD_ADD) {
+        // OnChar() is called immediately after OnKeyDown(), which can cause call of add_tick() twice.
+        // To avoid this case we should suppress second add_tick() call.
+        m_ticks.suppress_plus(true);
+        add_current_tick(true);
+    }
+    else if (m_draw_mode != dmSequentialGCodeView && (key == WXK_NUMPAD_SUBTRACT || key == WXK_DELETE || key == WXK_BACK)) {
+        // OnChar() is called immediately after OnKeyDown(), which can cause call of delete_tick() twice.
+        // To avoid this case we should suppress second delete_tick() call.
+        m_ticks.suppress_minus(true);
+        delete_current_tick();
+    }
+    else if (m_draw_mode != dmSequentialGCodeView && event.GetKeyCode() == WXK_SHIFT)
+        UseDefaultColors(false);
+#else
     if (key == WXK_NUMPAD_ADD) {
         // OnChar() is called immediately after OnKeyDown(), which can cause call of add_tick() twice.
         // To avoid this case we should suppress second add_tick() call.
@@ -1401,6 +1417,7 @@ void Control::OnKeyDown(wxKeyEvent &event)
     }
     else if (event.GetKeyCode() == WXK_SHIFT)
         UseDefaultColors(false);
+#endif // ENABLE_GCODE_VIEWER
     else if (is_horizontal())
     {
 #if ENABLE_GCODE_VIEWER
@@ -1451,14 +1468,21 @@ void Control::OnKeyUp(wxKeyEvent &event)
 void Control::OnChar(wxKeyEvent& event)
 {
     const int key = event.GetKeyCode();
-    if (key == '+' && !m_ticks.suppressed_plus()) {
-        add_current_tick(true);
-        m_ticks.suppress_plus(false);
+#if ENABLE_GCODE_VIEWER
+    if (m_draw_mode != dmSequentialGCodeView)
+    {
+#endif // ENABLE_GCODE_VIEWER
+        if (key == '+' && !m_ticks.suppressed_plus()) {
+            add_current_tick(true);
+            m_ticks.suppress_plus(false);
+        }
+        else if (key == '-' && !m_ticks.suppressed_minus()) {
+            delete_current_tick();
+            m_ticks.suppress_minus(false);
+        }
+#if ENABLE_GCODE_VIEWER
     }
-    else if (key == '-' && !m_ticks.suppressed_minus()) {
-        delete_current_tick();
-        m_ticks.suppress_minus(false);
-    }
+#endif // ENABLE_GCODE_VIEWER
     if (key == 'G')
 #if ENABLE_GCODE_VIEWER
         jump_to_value();
