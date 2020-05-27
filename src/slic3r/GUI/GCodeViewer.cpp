@@ -411,16 +411,17 @@ void GCodeViewer::init_shaders()
     unsigned char begin_id = buffer_id(GCodeProcessor::EMoveType::Retract);
     unsigned char end_id = buffer_id(GCodeProcessor::EMoveType::Count);
 
+    bool is_glsl_120 = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20);
     for (unsigned char i = begin_id; i < end_id; ++i)
     {
         switch (buffer_type(i))
         {
-        case GCodeProcessor::EMoveType::Tool_change:  { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120_solid" : "options_110"; break; }
-        case GCodeProcessor::EMoveType::Color_change: { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120_solid" : "options_110"; break; }
-        case GCodeProcessor::EMoveType::Pause_Print:  { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120_solid" : "options_110"; break; }
-        case GCodeProcessor::EMoveType::Custom_GCode: { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120_solid" : "options_110"; break; }
-        case GCodeProcessor::EMoveType::Retract:      { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120_solid" : "options_110"; break; }
-        case GCodeProcessor::EMoveType::Unretract:    { m_buffers[i].shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120_solid" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Tool_change:  { m_buffers[i].shader = is_glsl_120 ? "options_120_solid" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Color_change: { m_buffers[i].shader = is_glsl_120 ? "options_120_solid" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Pause_Print:  { m_buffers[i].shader = is_glsl_120 ? "options_120_solid" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Custom_GCode: { m_buffers[i].shader = is_glsl_120 ? "options_120_solid" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Retract:      { m_buffers[i].shader = is_glsl_120 ? "options_120_solid" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Unretract:    { m_buffers[i].shader = is_glsl_120 ? "options_120_solid" : "options_110"; break; }
         case GCodeProcessor::EMoveType::Extrude:      { m_buffers[i].shader = "extrusions"; break; }
         case GCodeProcessor::EMoveType::Travel:       { m_buffers[i].shader = "travels"; break; }
         default: { break; }
