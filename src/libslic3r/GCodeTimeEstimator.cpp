@@ -282,7 +282,7 @@ namespace Slic3r {
         };
 
         GCodeReader parser;
-        unsigned int g1_lines_count = 0;
+        int g1_lines_count = 0;
         int normal_g1_line_id = 0;
         float normal_last_recorded_time = 0.0f;
         int silent_g1_line_id = 0;

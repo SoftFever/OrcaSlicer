@@ -28,7 +28,7 @@ std::array<double, 3> find_best_rotation(const ModelObject& modelobj,
 
     // We will use only one instance of this converted mesh to examine different
     // rotations
-    EigenMesh3D emesh(modelobj.raw_mesh());
+    const TriangleMesh& mesh = modelobj.raw_mesh();
 
     // For current iteration number
     unsigned status = 0;
@@ -44,10 +44,10 @@ std::array<double, 3> find_best_rotation(const ModelObject& modelobj,
     // call the status callback in each iteration but the actual value may be
     // the same for subsequent iterations (status goes from 0 to 100 but
     // iterations can be many more)
-    auto objfunc = [&emesh, &status, &statuscb, &stopcond, max_tries]
+    auto objfunc = [&mesh, &status, &statuscb, &stopcond, max_tries]
             (double rx, double ry, double rz)
     {
-        EigenMesh3D& m = emesh;
+        const TriangleMesh& m = mesh;
 
         // prepare the rotation transformation
         Transform3d rt = Transform3d::Identity();
@@ -68,18 +68,8 @@ std::array<double, 3> find_best_rotation(const ModelObject& modelobj,
         // area. The current function is only an example of how to optimize.
 
         // Later we can add more criteria like the number of overhangs, etc...
-        for(int i = 0; i < m.F().rows(); i++) {
-            auto idx = m.F().row(i);
-
-            Vec3d p1 = m.V().row(idx(0));
-            Vec3d p2 = m.V().row(idx(1));
-            Vec3d p3 = m.V().row(idx(2));
-
-            Eigen::Vector3d U = p2 - p1;
-            Eigen::Vector3d V = p3 - p1;
-
-            // So this is the normal
-            auto n = U.cross(V).normalized();
+        for(size_t i = 0; i < m.stl.facet_start.size(); i++) {
+            Vec3d n = m.stl.facet_start[i].normal.cast<double>();
 
             // rotate the normal with the current rotation given by the solver
             n = rt * n;

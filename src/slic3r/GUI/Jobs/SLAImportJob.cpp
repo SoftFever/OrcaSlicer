@@ -8,6 +8,8 @@
 #include "slic3r/GUI/GUI_ObjectList.hpp"
 #include "slic3r/Utils/SLAImport.hpp"
 
+#include "libslic3r/Model.hpp"
+
 #include <wx/dialog.h>
 #include <wx/stattext.h>
 #include <wx/combobox.h>

@@ -3297,28 +3297,28 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach)
         wxGetApp().plater()->force_filament_colors_update();
 
     {
-    	// Profile compatiblity is updated first when the profile is saved.
-    	// Update profile selection combo boxes at the depending tabs to reflect modifications in profile compatibility.
-	    std::vector<Preset::Type> dependent;
-	    switch (m_type) {
-	    case Preset::TYPE_PRINT:
-	    	dependent = { Preset::TYPE_FILAMENT };
-	    	break;
-	    case Preset::TYPE_SLA_PRINT:
-	    	dependent = { Preset::TYPE_SLA_MATERIAL };
-	    	break;
-	    case Preset::TYPE_PRINTER:
+        // Profile compatiblity is updated first when the profile is saved.
+        // Update profile selection combo boxes at the depending tabs to reflect modifications in profile compatibility.
+        std::vector<Preset::Type> dependent;
+        switch (m_type) {
+        case Preset::TYPE_PRINT:
+            dependent = { Preset::TYPE_FILAMENT };
+            break;
+        case Preset::TYPE_SLA_PRINT:
+            dependent = { Preset::TYPE_SLA_MATERIAL };
+            break;
+        case Preset::TYPE_PRINTER:
             if (static_cast<const TabPrinter*>(this)->m_printer_technology == ptFFF)
                 dependent = { Preset::TYPE_PRINT, Preset::TYPE_FILAMENT };
             else
                 dependent = { Preset::TYPE_SLA_PRINT, Preset::TYPE_SLA_MATERIAL };
-	        break;
+            break;
         default:
-	        break;
-	    }
-	    for (Preset::Type preset_type : dependent)
-			wxGetApp().get_tab(preset_type)->update_tab_ui();
-	}
+            break;
+        }
+        for (Preset::Type preset_type : dependent)
+            wxGetApp().get_tab(preset_type)->update_tab_ui();
+    }
 }
 
 // Called for a currently selected preset.

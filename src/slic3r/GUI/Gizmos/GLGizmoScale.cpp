@@ -26,7 +26,6 @@ std::string GLGizmoScale3D::get_tooltip() const
 
     bool single_instance = selection.is_single_full_instance();
     bool single_volume = selection.is_single_modifier() || selection.is_single_volume();
-    bool single_selection = single_instance || single_volume;
 
     Vec3f scale = 100.0f * Vec3f::Ones();
     if (single_instance)

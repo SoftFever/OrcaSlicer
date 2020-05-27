@@ -300,13 +300,13 @@ void AppConfig::set_mouse_device(const std::string& name, double translation_spe
 
 std::vector<std::string> AppConfig::get_mouse_device_names() const
 {
-	static constexpr char   *prefix     = "mouse_device:";
-    static constexpr size_t  prefix_len = 13; // strlen(prefix); reports error C2131: expression did not evaluate to a constant on VS2019
-	std::vector<std::string> out;
+    static constexpr const char   *prefix     = "mouse_device:";
+    static const size_t  prefix_len = strlen(prefix);
+    std::vector<std::string> out;
     for (const std::pair<std::string, std::map<std::string, std::string>>& key_value_pair : m_storage)
-        if (boost::starts_with(key_value_pair.first, "mouse_device:") && key_value_pair.first.size() > prefix_len)
+        if (boost::starts_with(key_value_pair.first, prefix) && key_value_pair.first.size() > prefix_len)
             out.emplace_back(key_value_pair.first.substr(prefix_len));
-	return out;
+    return out;
 }
 
 void AppConfig::update_config_dir(const std::string &dir)

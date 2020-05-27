@@ -8,7 +8,6 @@
 #include "MotionPlanner.hpp"
 #include "Point.hpp"
 #include "PlaceholderParser.hpp"
-#include "Print.hpp"
 #include "PrintConfig.hpp"
 #include "GCode/CoolingBuffer.hpp"
 #include "GCode/SpiralVase.hpp"
@@ -37,6 +36,10 @@ class GCode;
 #if !ENABLE_GCODE_VIEWER
 class GCodePreviewData;
 #endif // !ENABLE_GCODE_VIEWER
+
+namespace { struct Item; }
+struct PrintInstance;
+using PrintObjectPtrs = std::vector<PrintObject*>;
 
 class AvoidCrossingPerimeters {
 public:

@@ -104,8 +104,8 @@ private:
 // whether certain points are visible or obscured by the mesh etc.
 class MeshRaycaster {
 public:
-    // The class makes a copy of the mesh as EigenMesh3D.
-    // The pointer can be invalidated after constructor returns.
+    // The class references extern TriangleMesh, which must stay alive
+    // during MeshRaycaster existence.
     MeshRaycaster(const TriangleMesh& mesh)
         : m_emesh(mesh)
     {

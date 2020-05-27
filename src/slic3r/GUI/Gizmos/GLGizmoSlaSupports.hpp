@@ -4,13 +4,17 @@
 #include "GLGizmoBase.hpp"
 #include "slic3r/GUI/GLSelectionRectangle.hpp"
 
-#include "libslic3r/SLA/Common.hpp"
+#include "libslic3r/SLA/SupportPoint.hpp"
+#include "libslic3r/ObjectID.hpp"
 #include <wx/dialog.h>
 
 #include <cereal/types/vector.hpp>
 
 
 namespace Slic3r {
+
+class ConfigOption;
+
 namespace GUI {
 
 enum class SLAGizmoEventType : unsigned char;

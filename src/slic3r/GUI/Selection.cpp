@@ -1,14 +1,16 @@
 #include "libslic3r/libslic3r.h"
 #include "Selection.hpp"
 
+#include "3DScene.hpp"
 #include "GLCanvas3D.hpp"
 #include "GUI_App.hpp"
 #include "GUI.hpp"
 #include "GUI_ObjectManipulation.hpp"
 #include "GUI_ObjectList.hpp"
 #include "Gizmos/GLGizmoBase.hpp"
-#include "3DScene.hpp"
 #include "Camera.hpp"
+
+#include "libslic3r/Model.hpp"
 
 #include <GL/glew.h>
 
@@ -57,7 +59,7 @@ bool Selection::Clipboard::is_sla_compliant() const
     if (m_mode == Selection::Volume)
         return false;
 
-    for (const ModelObject* o : m_model.objects)
+    for (const ModelObject* o : m_model->objects)
     {
         if (o->is_multiparts())
             return false;
@@ -72,6 +74,35 @@ bool Selection::Clipboard::is_sla_compliant() const
     return true;
 }
 
+Selection::Clipboard::Clipboard()
+{
+    m_model.reset(new Model);
+}
+
+void Selection::Clipboard::reset() {
+    m_model->clear_objects();
+}
+
+bool Selection::Clipboard::is_empty() const
+{
+    return m_model->objects.empty();
+}
+
+ModelObject* Selection::Clipboard::add_object()
+{
+    return m_model->add_object();
+}
+
+ModelObject* Selection::Clipboard::get_object(unsigned int id)
+{
+    return (id < (unsigned int)m_model->objects.size()) ? m_model->objects[id] : nullptr;
+}
+
+const ModelObjectPtrs& Selection::Clipboard::get_objects() const
+{
+    return m_model->objects;
+}
+
 Selection::Selection()
     : m_volumes(nullptr)
     , m_model(nullptr)
@@ -79,11 +110,13 @@ Selection::Selection()
     , m_mode(Instance)
     , m_type(Empty)
     , m_valid(false)
-#if !ENABLE_GCODE_VIEWER
-    , m_curved_arrow(16)
-#endif // !ENABLE_GCODE_VIEWER
     , m_scale_factor(1.0f)
 {
+#if !ENABLE_GCODE_VIEWER
+    m_arrow.reset(new GLArrow);
+    m_curved_arrow.reset(new GLCurvedArrow(16));
+#endif // !ENABLE_GCODE_VIEWER
+
     this->set_bounding_boxes_dirty();
 #if ENABLE_RENDER_SELECTION_CENTER
     m_quadric = ::gluNewQuadric();
@@ -113,17 +146,16 @@ bool Selection::init()
     m_arrow.init_from(straight_arrow(10.0f, 5.0f, 5.0f, 10.0f, 1.0f));
     m_curved_arrow.init_from(circular_arrow(16, 10.0f, 5.0f, 10.0f, 5.0f, 1.0f));
 #else
-    if (!m_arrow.init())
+    if (!m_arrow->init())
         return false;
 
-    m_arrow.set_scale(5.0 * Vec3d::Ones());
+    m_arrow->set_scale(5.0 * Vec3d::Ones());
 
-    if (!m_curved_arrow.init())
+    if (!m_curved_arrow->init())
         return false;
 
-    m_curved_arrow.set_scale(5.0 * Vec3d::Ones());
+    m_curved_arrow->set_scale(5.0 * Vec3d::Ones());
 #endif //ENABLE_GCODE_VIEWER
-
     return true;
 }
 
@@ -1959,17 +1991,23 @@ void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) 
             shader->set_uniform("uniform_color", AXES_COLOR[axis], 4);
     };
 
+    auto render_sidebar_rotation_hint = [this]() {
+        m_curved_arrow.render();
+        glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
+        m_curved_arrow.render();
+    };
+
     if (boost::ends_with(sidebar_field, "x")) {
         set_color(X);
         glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
-        render_sidebar_rotation_hint(X);
+        render_sidebar_rotation_hint();
     } else if (boost::ends_with(sidebar_field, "y")) {
         set_color(Y);
         glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
-        render_sidebar_rotation_hint(Y);
+        render_sidebar_rotation_hint();
     } else if (boost::ends_with(sidebar_field, "z")) {
         set_color(Z);
-        render_sidebar_rotation_hint(Z);
+        render_sidebar_rotation_hint();
     }
 }
 #else
@@ -1993,6 +2031,19 @@ void Selection::render_sidebar_rotation_hints(const std::string & sidebar_field)
 void Selection::render_sidebar_scale_hints(const std::string& sidebar_field) const
 {
     bool uniform_scale = requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling();
+
+    auto render_sidebar_scale_hint = [this, uniform_scale](Axis axis) {
+        GLShaderProgram* shader = wxGetApp().get_current_shader();
+        if (shader != nullptr)
+            shader->set_uniform("uniform_color", uniform_scale ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis], 4);
+
+        glsafe(::glTranslated(0.0, 5.0, 0.0));
+        m_arrow.render();
+
+        glsafe(::glTranslated(0.0, -10.0, 0.0));
+        glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
+        m_arrow.render();
+    };
 
     if (boost::ends_with(sidebar_field, "x") || uniform_scale)
     {
@@ -2093,38 +2144,31 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
 #if !ENABLE_GCODE_VIEWER
 void Selection::render_sidebar_position_hint(Axis axis) const
 {
-    m_arrow.set_color(AXES_COLOR[axis], 3);
-    m_arrow.render();
+    m_arrow->set_color(AXES_COLOR[axis], 3);
+    m_arrow->render();
 }
-#endif // !ENABLE_GCODE_VIEWER
 
 void Selection::render_sidebar_rotation_hint(Axis axis) const
 {
-#if !ENABLE_GCODE_VIEWER
-    m_curved_arrow.set_color(AXES_COLOR[axis], 3);
-#endif // !ENABLE_GCODE_VIEWER
-    m_curved_arrow.render();
+    m_curved_arrow->set_color(AXES_COLOR[axis], 3);
+    m_curved_arrow->render();
+
     glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
-    m_curved_arrow.render();
+    m_curved_arrow->render();
 }
 
 void Selection::render_sidebar_scale_hint(Axis axis) const
 {
-#if ENABLE_GCODE_VIEWER
-    GLShaderProgram* shader = wxGetApp().get_current_shader();
-    if (shader != nullptr)
-        shader->set_uniform("uniform_color", (requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling()) ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis], 4);
-#else
-    m_arrow.set_color(((requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling()) ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis]), 3);
-#endif // ENABLE_GCODE_VIEWER
+    m_arrow->set_color(((requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling()) ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis]), 3);
 
     glsafe(::glTranslated(0.0, 5.0, 0.0));
-    m_arrow.render();
+    m_arrow->render();
 
     glsafe(::glTranslated(0.0, -10.0, 0.0));
     glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
-    m_arrow.render();
+    m_arrow->render();
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 #ifndef NDEBUG
 static bool is_rotation_xy_synchronized(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)

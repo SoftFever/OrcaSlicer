@@ -1,18 +1,11 @@
 #include <cmath>
 #include <libslic3r/SLA/Common.hpp>
 #include <libslic3r/SLA/Concurrency.hpp>
-#include <libslic3r/SLA/SupportTree.hpp>
 #include <libslic3r/SLA/SpatIndex.hpp>
 #include <libslic3r/SLA/EigenMesh3D.hpp>
 #include <libslic3r/SLA/Contour3D.hpp>
 #include <libslic3r/SLA/Clustering.hpp>
-#include <libslic3r/SLA/Hollowing.hpp>
-
-
-// Workaround: IGL signed_distance.h will define PI in the igl namespace.
-#undef PI
-
-// HEAVY headers... takes eternity to compile
+#include <libslic3r/AABBTreeIndirect.hpp>
 
 // for concave hull merging decisions
 #include <libslic3r/SLA/BoostAdapter.hpp>
@@ -23,24 +16,23 @@
 #pragma warning(disable: 4244)
 #pragma warning(disable: 4267)
 #endif
-#include <igl/ray_mesh_intersect.h>
-#include <igl/point_mesh_squared_distance.h>
+
+
 #include <igl/remove_duplicate_vertices.h>
-#include <igl/collapse_small_triangles.h>
-#include <igl/signed_distance.h>
+
+#ifdef SLIC3R_HOLE_RAYCASTER
+  #include <libslic3r/SLA/Hollowing.hpp>
+#endif
+
+
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
-#include <tbb/parallel_for.h>
-
-#include "ClipperUtils.hpp"
 
 namespace Slic3r {
 namespace sla {
 
-// Bring back PI from the igl namespace
-using igl::PI;
 
 /* **************************************************************************
  * PointIndex implementation
@@ -188,100 +180,72 @@ void BoxIndex::foreach(std::function<void (const BoxIndexEl &)> fn)
  * EigenMesh3D implementation
  * ****************************************************************************/
 
-class EigenMesh3D::AABBImpl: public igl::AABB<Eigen::MatrixXd, 3> {
+
+class EigenMesh3D::AABBImpl {
+private:
+    AABBTreeIndirect::Tree3f m_tree;
+
 public:
-#ifdef SLIC3R_SLA_NEEDS_WINDTREE
-    igl::WindingNumberAABB<Vec3d, Eigen::MatrixXd, Eigen::MatrixXi> windtree;
-#endif /* SLIC3R_SLA_NEEDS_WINDTREE */
+    void init(const TriangleMesh& tm)
+    {
+        m_tree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(
+                    tm.its.vertices, tm.its.indices);
+    }
+
+    void intersect_ray(const TriangleMesh& tm,
+                       const Vec3d& s, const Vec3d& dir, igl::Hit& hit)
+    {
+        AABBTreeIndirect::intersect_ray_first_hit(tm.its.vertices,
+                                                  tm.its.indices,
+                                                  m_tree,
+                                                  s, dir, hit);
+    }
+
+    void intersect_ray(const TriangleMesh& tm,
+                       const Vec3d& s, const Vec3d& dir, std::vector<igl::Hit>& hits)
+    {
+        AABBTreeIndirect::intersect_ray_all_hits(tm.its.vertices,
+                                                 tm.its.indices,
+                                                 m_tree,
+                                                 s, dir, hits);
+    }
+
+    double squared_distance(const TriangleMesh& tm,
+                            const Vec3d& point, int& i, Eigen::Matrix<double, 1, 3>& closest) {
+        size_t idx_unsigned = 0;
+        Vec3d closest_vec3d(closest);
+        double dist = AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
+                          tm.its.vertices,
+                          tm.its.indices,
+                          m_tree, point, idx_unsigned, closest_vec3d);
+        i = int(idx_unsigned);
+        closest = closest_vec3d;
+        return dist;
+    }
 };
 
 static const constexpr double MESH_EPS = 1e-6;
 
-void to_eigen_mesh(const TriangleMesh &tmesh, Eigen::MatrixXd &V, Eigen::MatrixXi &F)
+EigenMesh3D::EigenMesh3D(const TriangleMesh& tmesh)
+    : m_aabb(new AABBImpl()), m_tm(&tmesh)
 {
-    const stl_file& stl = tmesh.stl;
-    
-    V.resize(3*stl.stats.number_of_facets, 3);
-    F.resize(stl.stats.number_of_facets, 3);
-    for (unsigned int i = 0; i < stl.stats.number_of_facets; ++i) {
-        const stl_facet &facet = stl.facet_start[i];
-        V.block<1, 3>(3 * i + 0, 0) = facet.vertex[0].cast<double>();
-        V.block<1, 3>(3 * i + 1, 0) = facet.vertex[1].cast<double>();
-        V.block<1, 3>(3 * i + 2, 0) = facet.vertex[2].cast<double>();
-        F(i, 0) = int(3*i+0);
-        F(i, 1) = int(3*i+1);
-        F(i, 2) = int(3*i+2);
-    }
-    
-    if (!tmesh.has_shared_vertices())
-    {
-        Eigen::MatrixXd rV;
-        Eigen::MatrixXi rF;
-        // We will convert this to a proper 3d mesh with no duplicate points.
-        Eigen::VectorXi SVI, SVJ;
-        igl::remove_duplicate_vertices(V, F, MESH_EPS, rV, SVI, SVJ, rF);
-        V = std::move(rV);
-        F = std::move(rF);
-    }
-}
-
-void to_triangle_mesh(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F, TriangleMesh &out)
-{
-    Pointf3s points(size_t(V.rows())); 
-    std::vector<Vec3i> facets(size_t(F.rows()));
-    
-    for (Eigen::Index i = 0; i < V.rows(); ++i)
-        points[size_t(i)] = V.row(i);
-    
-    for (Eigen::Index i = 0; i < F.rows(); ++i)
-        facets[size_t(i)] = F.row(i);
-    
-    out = {points, facets};
-}
-
-EigenMesh3D::EigenMesh3D(const TriangleMesh& tmesh): m_aabb(new AABBImpl()) {
     auto&& bb = tmesh.bounding_box();
     m_ground_level += bb.min(Z);
     
-    to_eigen_mesh(tmesh, m_V, m_F);
-    
     // Build the AABB accelaration tree
-    m_aabb->init(m_V, m_F);
-#ifdef SLIC3R_SLA_NEEDS_WINDTREE
-    m_aabb->windtree.set_mesh(m_V, m_F);
-#endif /* SLIC3R_SLA_NEEDS_WINDTREE */
+    m_aabb->init(tmesh);
 }
 
 EigenMesh3D::~EigenMesh3D() {}
 
 EigenMesh3D::EigenMesh3D(const EigenMesh3D &other):
-    m_V(other.m_V), m_F(other.m_F), m_ground_level(other.m_ground_level),
+    m_tm(other.m_tm), m_ground_level(other.m_ground_level),
     m_aabb( new AABBImpl(*other.m_aabb) ) {}
 
-EigenMesh3D::EigenMesh3D(const Contour3D &other)
-{
-    m_V.resize(Eigen::Index(other.points.size()), 3);
-    m_F.resize(Eigen::Index(other.faces3.size() + 2 * other.faces4.size()), 3);
-    
-    for (Eigen::Index i = 0; i < Eigen::Index(other.points.size()); ++i)
-        m_V.row(i) = other.points[size_t(i)];
-    
-    for (Eigen::Index i = 0; i < Eigen::Index(other.faces3.size()); ++i)
-        m_F.row(i) = other.faces3[size_t(i)];
-    
-    size_t N = other.faces3.size() + 2 * other.faces4.size();
-    for (size_t i = other.faces3.size(); i < N; i += 2) {
-        size_t quad_idx = (i - other.faces3.size()) / 2;
-        auto & quad     = other.faces4[quad_idx];
-        m_F.row(Eigen::Index(i)) = Vec3i{quad(0), quad(1), quad(2)};
-        m_F.row(Eigen::Index(i + 1)) = Vec3i{quad(2), quad(3), quad(0)};
-    }
-}
 
 EigenMesh3D &EigenMesh3D::operator=(const EigenMesh3D &other)
 {
-    m_V = other.m_V;
-    m_F = other.m_F;
+    m_tm = other.m_tm;
     m_ground_level = other.m_ground_level;
     m_aabb.reset(new AABBImpl(*other.m_aabb)); return *this;
 }
@@ -290,6 +254,42 @@ EigenMesh3D &EigenMesh3D::operator=(EigenMesh3D &&other) = default;
 
 EigenMesh3D::EigenMesh3D(EigenMesh3D &&other) = default;
 
+
+
+const std::vector<Vec3f>& EigenMesh3D::vertices() const
+{
+    return m_tm->its.vertices;
+}
+
+
+
+const std::vector<Vec3i>& EigenMesh3D::indices()  const
+{
+    return m_tm->its.indices;
+}
+
+
+
+const Vec3f& EigenMesh3D::vertices(size_t idx) const
+{
+    return m_tm->its.vertices[idx];
+}
+
+
+
+const Vec3i& EigenMesh3D::indices(size_t idx) const
+{
+    return m_tm->its.indices[idx];
+}
+
+
+
+Vec3d EigenMesh3D::normal_by_face_id(int face_id) const {
+    return m_tm->stl.facet_start[face_id].normal.cast<double>();
+}
+
+
+
 EigenMesh3D::hit_result
 EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
 {
@@ -297,24 +297,26 @@ EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
     igl::Hit hit;
     hit.t = std::numeric_limits<float>::infinity();
 
-    if (m_holes.empty()) {
-        m_aabb->intersect_ray(m_V, m_F, s, dir, hit);
-        hit_result ret(*this);
-        ret.m_t = double(hit.t);
-        ret.m_dir = dir;
-        ret.m_source = s;
-        if(!std::isinf(hit.t) && !std::isnan(hit.t)) {
-            ret.m_normal = this->normal_by_face_id(hit.id);
-            ret.m_face_id = hit.id;
-        }
+#ifdef SLIC3R_HOLE_RAYCASTER
+    if (! m_holes.empty()) {
 
-        return ret;
-    }
-    else {
         // If there are holes, the hit_results will be made by
         // query_ray_hits (object) and filter_hits (holes):
         return filter_hits(query_ray_hits(s, dir));
     }
+#endif
+
+    m_aabb->intersect_ray(*m_tm, s, dir, hit);
+    hit_result ret(*this);
+    ret.m_t = double(hit.t);
+    ret.m_dir = dir;
+    ret.m_source = s;
+    if(!std::isinf(hit.t) && !std::isnan(hit.t)) {
+        ret.m_normal = this->normal_by_face_id(hit.id);
+        ret.m_face_id = hit.id;
+    }
+
+    return ret;
 }
 
 std::vector<EigenMesh3D::hit_result>
@@ -322,7 +324,7 @@ EigenMesh3D::query_ray_hits(const Vec3d &s, const Vec3d &dir) const
 {
     std::vector<EigenMesh3D::hit_result> outs;
     std::vector<igl::Hit> hits;
-    m_aabb->intersect_ray(m_V, m_F, s, dir, hits);
+    m_aabb->intersect_ray(*m_tm, s, dir, hits);
     
     // The sort is necessary, the hits are not always sorted.
     std::sort(hits.begin(), hits.end(),
@@ -351,6 +353,8 @@ EigenMesh3D::query_ray_hits(const Vec3d &s, const Vec3d &dir) const
     return outs;
 }
 
+
+#ifdef SLIC3R_HOLE_RAYCASTER
 EigenMesh3D::hit_result EigenMesh3D::filter_hits(
                      const std::vector<EigenMesh3D::hit_result>& object_hits) const
 {
@@ -445,26 +449,14 @@ EigenMesh3D::hit_result EigenMesh3D::filter_hits(
     // if we got here, the ray ended up in infinity
     return out;
 }
+#endif
 
-#ifdef SLIC3R_SLA_NEEDS_WINDTREE
-EigenMesh3D::si_result EigenMesh3D::signed_distance(const Vec3d &p) const {
-    double sign = 0; double sqdst = 0; int i = 0;  Vec3d c;
-    igl::signed_distance_winding_number(*m_aabb, m_V, m_F, m_aabb->windtree,
-                                        p, sign, sqdst, i, c);
-    
-    return si_result(sign * std::sqrt(sqdst), i, c);
-}
-
-bool EigenMesh3D::inside(const Vec3d &p) const {
-    return m_aabb->windtree.inside(p);
-}
-#endif /* SLIC3R_SLA_NEEDS_WINDTREE */
 
 double EigenMesh3D::squared_distance(const Vec3d &p, int& i, Vec3d& c) const {
     double sqdst = 0;
     Eigen::Matrix<double, 1, 3> pp = p;
     Eigen::Matrix<double, 1, 3> cc;
-    sqdst = m_aabb->squared_distance(m_V, m_F, pp, i, cc);
+    sqdst = m_aabb->squared_distance(*m_tm, pp, i, cc);
     c = cc;
     return sqdst;
 }
@@ -498,7 +490,7 @@ PointSet normals(const PointSet& points,
                  std::function<void()> thr, // throw on cancel
                  const std::vector<unsigned>& pt_indices)
 {
-    if (points.rows() == 0 || mesh.V().rows() == 0 || mesh.F().rows() == 0)
+    if (points.rows() == 0 || mesh.vertices().empty() || mesh.indices().empty())
         return {};
 
     std::vector<unsigned> range = pt_indices;
@@ -520,11 +512,11 @@ PointSet normals(const PointSet& points,
 
             mesh.squared_distance(points.row(eidx), faceid, p);
 
-            auto trindex = mesh.F().row(faceid);
+            auto trindex = mesh.indices(faceid);
 
-            const Vec3d &p1 = mesh.V().row(trindex(0));
-            const Vec3d &p2 = mesh.V().row(trindex(1));
-            const Vec3d &p3 = mesh.V().row(trindex(2));
+            const Vec3d &p1 = mesh.vertices(trindex(0)).cast<double>();
+            const Vec3d &p2 = mesh.vertices(trindex(1)).cast<double>();
+            const Vec3d &p3 = mesh.vertices(trindex(2)).cast<double>();
 
             // We should check if the point lies on an edge of the hosting
             // triangle. If it does then all the other triangles using the
@@ -557,36 +549,30 @@ PointSet normals(const PointSet& points,
             }
 
             // vector for the neigboring triangles including the detected one.
-            std::vector<Vec3i> neigh;
+            std::vector<size_t> neigh;
             if (ic >= 0) { // The point is right on a vertex of the triangle
-                for (int n = 0; n < mesh.F().rows(); ++n) {
+                for (size_t n = 0; n < mesh.indices().size(); ++n) {
                     thr();
-                    Vec3i ni = mesh.F().row(n);
+                    Vec3i ni = mesh.indices(n);
                     if ((ni(X) == ic || ni(Y) == ic || ni(Z) == ic))
-                        neigh.emplace_back(ni);
+                        neigh.emplace_back(n);
                 }
             } else if (ia >= 0 && ib >= 0) { // the point is on and edge
                 // now get all the neigboring triangles
-                for (int n = 0; n < mesh.F().rows(); ++n) {
+                for (size_t n = 0; n < mesh.indices().size(); ++n) {
                     thr();
-                    Vec3i ni = mesh.F().row(n);
+                    Vec3i ni = mesh.indices(n);
                     if ((ni(X) == ia || ni(Y) == ia || ni(Z) == ia) &&
                         (ni(X) == ib || ni(Y) == ib || ni(Z) == ib))
-                        neigh.emplace_back(ni);
+                        neigh.emplace_back(n);
                 }
             }
 
             // Calculate the normals for the neighboring triangles
             std::vector<Vec3d> neighnorms;
             neighnorms.reserve(neigh.size());
-            for (const Vec3i &tri : neigh) {
-                const Vec3d &   pt1 = mesh.V().row(tri(0));
-                const Vec3d &   pt2 = mesh.V().row(tri(1));
-                const Vec3d &   pt3 = mesh.V().row(tri(2));
-                Eigen::Vector3d U   = pt2 - pt1;
-                Eigen::Vector3d V   = pt3 - pt1;
-                neighnorms.emplace_back(U.cross(V).normalized());
-            }
+            for (size_t &tri_id : neigh)
+                neighnorms.emplace_back(mesh.normal_by_face_id(tri_id));
 
             // Throw out duplicates. They would cause trouble with summing. We
             // will use std::unique which works on sorted ranges. We will sort

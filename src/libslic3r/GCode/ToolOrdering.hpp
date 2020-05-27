@@ -14,6 +14,8 @@ namespace Slic3r {
 class Print;
 class PrintObject;
 class LayerTools;
+namespace CustomGCode { struct Item; }
+class PrintRegion;
 
 
 

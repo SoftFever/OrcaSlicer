@@ -1,4 +1,3 @@
-#include "libslic3r/libslic3r.h"
 #include "ThumbnailData.hpp"
 
 namespace Slic3r {

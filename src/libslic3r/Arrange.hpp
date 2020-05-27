@@ -2,9 +2,12 @@
 #define ARRANGE_HPP
 
 #include "ExPolygon.hpp"
-#include "BoundingBox.hpp"
 
-namespace Slic3r { namespace arrangement {
+namespace Slic3r {
+
+class BoundingBox;
+
+namespace arrangement {
 
 /// A geometry abstraction for a circular print bed. Similarly to BoundingBox.
 class CircleBed {

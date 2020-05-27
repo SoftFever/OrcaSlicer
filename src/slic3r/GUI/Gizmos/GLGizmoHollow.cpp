@@ -11,6 +11,8 @@
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
 
+#include "libslic3r/Model.hpp"
+
 
 namespace Slic3r {
 namespace GUI {
