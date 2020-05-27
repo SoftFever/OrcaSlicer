@@ -3,13 +3,17 @@
 
 #include "3DScene.hpp"
 #include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/Model.hpp"
+
+#include <boost/filesystem/operations.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 #include <GL/glew.h>
 
 namespace Slic3r {
 namespace GUI {
 
-void GL_Model::init_from(const GLModelInitializationData& data)
+void GLModel::init_from(const GLModelInitializationData& data)
 {
     assert(!data.positions.empty() && !data.triangles.empty());
     assert(data.positions.size() == data.normals.size());
@@ -20,8 +24,9 @@ void GL_Model::init_from(const GLModelInitializationData& data)
     // vertices/normals data
     std::vector<float> vertices(6 * data.positions.size());
     for (size_t i = 0; i < data.positions.size(); ++i) {
-        ::memcpy(static_cast<void*>(&vertices[i * 6]), static_cast<const void*>(data.positions[i].data()), 3 * sizeof(float));
-        ::memcpy(static_cast<void*>(&vertices[3 + i * 6]), static_cast<const void*>(data.normals[i].data()), 3 * sizeof(float));
+        size_t offset = i * 6;
+        ::memcpy(static_cast<void*>(&vertices[offset]), static_cast<const void*>(data.positions[i].data()), 3 * sizeof(float));
+        ::memcpy(static_cast<void*>(&vertices[3 + offset]), static_cast<const void*>(data.normals[i].data()), 3 * sizeof(float));
     }
 
     // indices data
@@ -41,34 +46,26 @@ void GL_Model::init_from(const GLModelInitializationData& data)
     send_to_gpu(vertices, indices);
 }
 
-void GL_Model::init_from(const TriangleMesh& mesh)
+void GLModel::init_from(const TriangleMesh& mesh)
 {
-    auto get_normal = [](const std::array<stl_vertex, 3>& triangle) {
-        return (triangle[1] - triangle[0]).cross(triangle[2] - triangle[0]).normalized();
-    };
-
     if (m_vbo_id > 0) // call reset() if you want to reuse this model
         return;
 
-    assert(!mesh.its.vertices.empty() && !mesh.its.indices.empty()); // call require_shared_vertices() before to pass the mesh to this method
+    std::vector<float> vertices = std::vector<float>(18 * mesh.stl.stats.number_of_facets);
+    std::vector<unsigned int> indices = std::vector<unsigned int>(3 * mesh.stl.stats.number_of_facets);
 
-    // vertices data -> load from mesh
-    std::vector<float> vertices(6 * mesh.its.vertices.size());
-    for (size_t i = 0; i < mesh.its.vertices.size(); ++i) {
-        ::memcpy(static_cast<void*>(&vertices[i * 6]), static_cast<const void*>(mesh.its.vertices[i].data()), 3 * sizeof(float));
-    }
-
-    // indices/normals data -> load from mesh
-    std::vector<unsigned int> indices(3 * mesh.its.indices.size());
-    for (size_t i = 0; i < mesh.its.indices.size(); ++i) {
-        const stl_triangle_vertex_indices& triangle = mesh.its.indices[i];
-        for (size_t j = 0; j < 3; ++j) {
-            indices[i * 3 + j] = static_cast<unsigned int>(triangle[j]);
+    unsigned int vertices_count = 0;
+    for (uint32_t i = 0; i < mesh.stl.stats.number_of_facets; ++i) {
+        const stl_facet& facet = mesh.stl.facet_start[i];
+        for (uint32_t j = 0; j < 3; ++j) {
+            uint32_t offset = i * 18 + j * 6;
+            ::memcpy(static_cast<void*>(&vertices[offset]), static_cast<const void*>(facet.vertex[j].data()), 3 * sizeof(float));
+            ::memcpy(static_cast<void*>(&vertices[3 + offset]), static_cast<const void*>(facet.normal.data()), 3 * sizeof(float));
         }
-        Vec3f normal = get_normal({ mesh.its.vertices[triangle[0]], mesh.its.vertices[triangle[1]], mesh.its.vertices[triangle[2]] });
-        ::memcpy(static_cast<void*>(&vertices[3 + static_cast<size_t>(triangle[0]) * 6]), static_cast<const void*>(normal.data()), 3 * sizeof(float));
-        ::memcpy(static_cast<void*>(&vertices[3 + static_cast<size_t>(triangle[1]) * 6]), static_cast<const void*>(normal.data()), 3 * sizeof(float));
-        ::memcpy(static_cast<void*>(&vertices[3 + static_cast<size_t>(triangle[2]) * 6]), static_cast<const void*>(normal.data()), 3 * sizeof(float));
+        for (uint32_t j = 0; j < 3; ++j) {
+            indices[i * 3 + j] = vertices_count + j;
+        }
+        vertices_count += 3;
     }
 
     m_indices_count = static_cast<unsigned int>(indices.size());
@@ -77,7 +74,32 @@ void GL_Model::init_from(const TriangleMesh& mesh)
     send_to_gpu(vertices, indices);
 }
 
-void GL_Model::reset()
+bool GLModel::init_from_file(const std::string& filename)
+{
+    if (!boost::filesystem::exists(filename))
+        return false;
+
+    if (!boost::algorithm::iends_with(filename, ".stl"))
+        return false;
+
+    Model model;
+    try
+    {
+        model = Model::read_from_file(filename);
+    }
+    catch (std::exception&)
+    {
+        return false;
+    }
+
+    init_from(model.mesh());
+
+    m_filename = filename;
+
+    return true;
+}
+
+void GLModel::reset()
 {
     // release gpu memory
     if (m_ibo_id > 0) {
@@ -92,9 +114,10 @@ void GL_Model::reset()
 
     m_indices_count = 0;
     m_bounding_box = BoundingBoxf3();
+    m_filename = std::string();
 }
 
-void GL_Model::render() const
+void GLModel::render() const
 {
     if (m_vbo_id == 0 || m_ibo_id == 0)
         return;
@@ -116,7 +139,7 @@ void GL_Model::render() const
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
-void GL_Model::send_to_gpu(const std::vector<float>& vertices, const std::vector<unsigned int>& indices)
+void GLModel::send_to_gpu(const std::vector<float>& vertices, const std::vector<unsigned int>& indices)
 {
     // vertex data -> send to gpu
     glsafe(::glGenBuffers(1, &m_vbo_id));

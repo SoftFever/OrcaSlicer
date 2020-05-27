@@ -358,14 +358,23 @@ void Bed3D::calc_bounding_boxes() const
 
     // extend to contain axes
 #if ENABLE_GCODE_VIEWER
-    m_extended_bounding_box.merge(m_axes.get_total_length() * Vec3d::Ones());
-#else
-    m_extended_bounding_box.merge(m_axes.length + Axes::ArrowLength * Vec3d::Ones());
-#endif // ENABLE_GCODE_VIEWER
+    m_extended_bounding_box.merge(m_axes.get_origin() + m_axes.get_total_length() * Vec3d::Ones());
+    m_extended_bounding_box.merge(m_extended_bounding_box.min + Vec3d(-Axes::DefaultTipRadius, -Axes::DefaultTipRadius, m_extended_bounding_box.max(2)));
 
+    // extend to contain model, if any
+    BoundingBoxf3 model_bb = m_model.get_bounding_box();
+    if (model_bb.defined)
+    {
+        model_bb.translate(m_model_offset);
+        m_extended_bounding_box.merge(model_bb);
+    }
+#else
+    m_extended_bounding_box.merge(m_axes.get_total_length() * Vec3d::Ones());
+    m_extended_bounding_box.merge(m_axes.length + Axes::ArrowLength * Vec3d::Ones());
     // extend to contain model, if any
     if (!m_model.get_filename().empty())
         m_extended_bounding_box.merge(m_model.get_transformed_bounding_box());
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void Bed3D::calc_triangles(const ExPolygon& poly)
@@ -621,7 +630,11 @@ void Bed3D::render_model() const
         // move the model so that its origin (0.0, 0.0, 0.0) goes into the bed shape center and a bit down to avoid z-fighting with the texture quad
         Vec3d shift = m_bounding_box.center();
         shift(2) = -0.03;
+#if ENABLE_GCODE_VIEWER
+        m_model_offset = shift;
+#else
         m_model.set_offset(shift);
+#endif // ENABLE_GCODE_VIEWER
 
         // update extended bounding box
         calc_bounding_boxes();
@@ -633,7 +646,15 @@ void Bed3D::render_model() const
         if (shader != nullptr)
         {
             shader->start_using();
+#if ENABLE_GCODE_VIEWER
+            shader->set_uniform("uniform_color", m_model_color);
+            ::glPushMatrix();
+            ::glTranslated(m_model_offset(0), m_model_offset(1), m_model_offset(2));
+#endif // ENABLE_GCODE_VIEWER
             m_model.render();
+#if ENABLE_GCODE_VIEWER
+            ::glPopMatrix();
+#endif // ENABLE_GCODE_VIEWER
             shader->stop_using();
         }
     }

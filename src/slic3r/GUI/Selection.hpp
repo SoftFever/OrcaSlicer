@@ -207,8 +207,8 @@ private:
     GLUquadricObj* m_quadric;
 #endif // ENABLE_RENDER_SELECTION_CENTER
 #if ENABLE_GCODE_VIEWER
-    GL_Model m_arrow;
-    GL_Model m_curved_arrow;
+    GLModel m_arrow;
+    GLModel m_curved_arrow;
 #else
     mutable GLArrow m_arrow;
     mutable GLCurvedArrow m_curved_arrow;

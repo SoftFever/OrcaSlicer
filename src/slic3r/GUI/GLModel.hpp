@@ -4,6 +4,7 @@
 #include "libslic3r/Point.hpp"
 #include "libslic3r/BoundingBox.hpp"
 #include <vector>
+#include <string>
 
 namespace Slic3r {
 
@@ -18,23 +19,27 @@ namespace GUI {
         std::vector<Vec3i> triangles;
     };
 
-    class GL_Model
+    class GLModel
     {
         unsigned int m_vbo_id{ 0 };
         unsigned int m_ibo_id{ 0 };
         size_t m_indices_count{ 0 };
 
         BoundingBoxf3 m_bounding_box;
+        std::string m_filename;
 
     public:
-        virtual ~GL_Model() { reset(); }
+        virtual ~GLModel() { reset(); }
 
         void init_from(const GLModelInitializationData& data);
         void init_from(const TriangleMesh& mesh);
+        bool init_from_file(const std::string& filename);
         void reset();
         void render() const;
 
         const BoundingBoxf3& get_bounding_box() const { return m_bounding_box; }
+
+        const std::string& get_filename() const { return m_filename; }
 
     private:
         void send_to_gpu(const std::vector<float>& vertices, const std::vector<unsigned int>& indices);
@@ -44,8 +49,7 @@ namespace GUI {
     // create an arrow with cylindrical stem and conical tip, with the given dimensions and resolution
     // the origin of the arrow is in the center of the stem cap
     // the arrow has its axis of symmetry along the Z axis and is pointing upward
-    GLModelInitializationData stilized_arrow(int resolution, float tip_radius, float tip_height,
-        float stem_radius, float stem_height);
+    GLModelInitializationData stilized_arrow(int resolution, float tip_radius, float tip_height, float stem_radius, float stem_height);
 
     // create an arrow whose stem is a quarter of circle, with the given dimensions and resolution
     // the origin of the arrow is in the center of the circle

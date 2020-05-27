@@ -219,7 +219,7 @@ public:
     {
         class Marker
         {
-            GL_Model m_model;
+            GLModel m_model;
             Transform3f m_world_transform;
             BoundingBoxf3 m_world_bounding_box;
             std::array<float, 4> m_color{ 1.0f, 1.0f, 1.0f, 1.0f };

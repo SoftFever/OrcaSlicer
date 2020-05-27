@@ -599,6 +599,7 @@ private:
 
 GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCollection::ERenderType type, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func = nullptr);
 
+#if !ENABLE_GCODE_VIEWER
 class GLModel
 {
 protected:
@@ -636,7 +637,6 @@ protected:
     virtual bool on_init_from_file(const std::string& filename) { return false; }
 };
 
-#if !ENABLE_GCODE_VIEWER
 class GLArrow : public GLModel
 {
 protected:
@@ -653,13 +653,13 @@ public:
 protected:
     bool on_init() override;
 };
-#endif // !ENABLE_GCODE_VIEWER
 
 class GLBed : public GLModel
 {
 protected:
     bool on_init_from_file(const std::string& filename) override;
 };
+#endif // !ENABLE_GCODE_VIEWER
 
 struct _3DScene
 {

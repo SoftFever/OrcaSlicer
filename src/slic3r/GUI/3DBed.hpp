@@ -8,6 +8,9 @@
 #endif // ENABLE_GCODE_VIEWER
 
 #include <tuple>
+#if ENABLE_GCODE_VIEWER
+#include <array>
+#endif // ENABLE_GCODE_VIEWER
 
 #if !ENABLE_GCODE_VIEWER
 class GLUquadric;
@@ -52,10 +55,13 @@ class Bed3D
 #if ENABLE_GCODE_VIEWER
     class Axes
     {
+    public:
         static const float DefaultStemRadius;
         static const float DefaultStemLength;
         static const float DefaultTipRadius;
         static const float DefaultTipLength;
+
+    private:
 #else
     struct Axes
     {
@@ -67,7 +73,7 @@ class Bed3D
 #if ENABLE_GCODE_VIEWER
         Vec3d m_origin{ Vec3d::Zero() };
         float m_stem_length{ DefaultStemLength };
-        mutable GL_Model m_arrow;
+        mutable GLModel m_arrow;
 
     public:
 #else
@@ -82,6 +88,7 @@ class Bed3D
 #endif // !ENABLE_GCODE_VIEWER
 
 #if ENABLE_GCODE_VIEWER
+        const Vec3d& get_origin() const { return m_origin; }
         void set_origin(const Vec3d& origin) { m_origin = origin; }
         void set_stem_length(float length);
         float get_total_length() const { return m_stem_length + DefaultTipLength; }
@@ -113,7 +120,13 @@ private:
     GeometryBuffer m_triangles;
     GeometryBuffer m_gridlines;
     mutable GLTexture m_texture;
+#if ENABLE_GCODE_VIEWER
+    mutable GLModel m_model;
+    mutable Vec3d m_model_offset{ Vec3d::Zero() };
+    std::array<float, 4> m_model_color{ 0.235f, 0.235f, 0.235f, 1.0f };
+#else
     mutable GLBed m_model;
+#endif // ENABLE_GCODE_VIEWER
     // temporary texture shown until the main texture has still no levels compressed
     mutable GLTexture m_temp_texture;
     mutable unsigned int m_vbo_id;

@@ -1822,6 +1822,7 @@ void _3DScene::point3_to_verts(const Vec3crd& point, double width, double height
     thick_point_to_verts(point, width, height, volume);
 }
 
+#if !ENABLE_GCODE_VIEWER
 GLModel::GLModel()
     : m_filename("")
 {
@@ -1904,7 +1905,6 @@ void GLModel::render() const
     glsafe(::glDisable(GL_BLEND));
 }
 
-#if !ENABLE_GCODE_VIEWER
 bool GLArrow::on_init()
 {
     Pointf3s vertices;
@@ -2076,7 +2076,6 @@ bool GLCurvedArrow::on_init()
 	m_volume.indexed_vertex_array.finalize_geometry(true);
     return true;
 }
-#endif // !ENABLE_GCODE_VIEWER
 
 bool GLBed::on_init_from_file(const std::string& filename)
 {
@@ -2108,5 +2107,6 @@ bool GLBed::on_init_from_file(const std::string& filename)
 
     return true;
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 } // namespace Slic3r
