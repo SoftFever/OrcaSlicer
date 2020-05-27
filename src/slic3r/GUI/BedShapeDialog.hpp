@@ -3,7 +3,6 @@
 // The bed shape dialog.
 // The dialog opens from Print Settins tab->Bed Shape : Set...
 
-#include "OptionsGroup.hpp"
 #include "GUI_Utils.hpp"
 #include "2DBed.hpp"
 #include "I18N.hpp"
@@ -13,6 +12,8 @@
 
 namespace Slic3r {
 namespace GUI {
+
+class ConfigOptionsGroup;
 
 using ConfigOptionsGroupShp = std::shared_ptr<ConfigOptionsGroup>;
 class BedShapePanel : public wxPanel

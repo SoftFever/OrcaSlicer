@@ -34,11 +34,10 @@
 #include "wxExtensions.hpp"
 #include "ConfigManipulation.hpp"
 #include "Preset.hpp"
-#include "GUI_App.hpp"
+#include "OptionsGroup.hpp"
 
 namespace Slic3r {
 namespace GUI {
-
 
 // Single Tab page containing a{ vsizer } of{ optgroups }
 // package Slic3r::GUI::Tab::Page;
@@ -51,17 +50,8 @@ class Page : public wxScrolledWindow
 	wxBoxSizer*		m_vsizer;
     bool            m_show = true;
 public:
-    Page(wxWindow* parent, const wxString& title, const int iconID, const std::vector<ScalableBitmap>& mode_bmp_cache) :
-			m_parent(parent),
-			m_title(title),
-			m_iconID(iconID),
-            m_mode_bitmap_cache(mode_bmp_cache)
-	{
-		Create(m_parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-		m_vsizer = new wxBoxSizer(wxVERTICAL);
-        m_item_color = &wxGetApp().get_label_clr_default();
-		SetSizer(m_vsizer);
-	}
+    Page(wxWindow* parent, const wxString& title, const int iconID,
+         const std::vector<ScalableBitmap>& mode_bmp_cache);
 	~Page() {}
 
 	bool				m_is_modified_values{ false };

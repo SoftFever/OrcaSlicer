@@ -11,7 +11,6 @@
 #include "Tab.hpp"
 #include "wxExtensions.hpp"
 #include "libslic3r/Model.hpp"
-#include "LambdaObjectDialog.hpp"
 #include "GLCanvas3D.hpp"
 #include "Selection.hpp"
 
