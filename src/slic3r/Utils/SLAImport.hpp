@@ -4,7 +4,6 @@
 #include <functional>
 
 #include <libslic3r/Point.hpp>
-#include <libslic3r/TriangleMesh.hpp>
 #include <libslic3r/PrintConfig.hpp>
 
 namespace Slic3r {

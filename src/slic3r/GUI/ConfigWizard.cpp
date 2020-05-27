@@ -27,6 +27,7 @@
 
 #include "libslic3r/Utils.hpp"
 #include "GUI.hpp"
+#include "GUI_App.hpp"
 #include "GUI_Utils.hpp"
 #include "slic3r/Config/Snapshot.hpp"
 #include "slic3r/Utils/PresetUpdater.hpp"

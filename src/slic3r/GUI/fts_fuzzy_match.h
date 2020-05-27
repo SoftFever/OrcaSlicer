@@ -120,7 +120,7 @@ namespace fts {
         		char *end = Slic3r::fold_to_ascii(*str, tmp);
         		char *c = tmp;
                 for (const wchar_t* d = pattern; c != end && *d != 0 && wchar_t(std::tolower(*c)) == std::tolower(*d); ++c, ++d);
-        		if (c == end) {
+                if (c == end) {
         			folded_match = true;
         			num_matched = end - tmp;
         		}

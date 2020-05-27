@@ -1,10 +1,13 @@
 #ifndef MODELARRANGE_HPP
 #define MODELARRANGE_HPP
 
-#include <libslic3r/Model.hpp>
 #include <libslic3r/Arrange.hpp>
 
 namespace Slic3r {
+
+class Model;
+class ModelInstance;
+using ModelInstancePtrs = std::vector<ModelInstance*>;
 
 using arrangement::ArrangePolygon;
 using arrangement::ArrangePolygons;

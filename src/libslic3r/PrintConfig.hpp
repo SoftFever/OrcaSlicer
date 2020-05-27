@@ -33,7 +33,7 @@ enum PrintHostType {
     htOctoPrint, htDuet, htFlashAir, htAstroBox
 };
 
-enum InfillPattern {
+enum InfillPattern : int {
     ipRectilinear, ipMonotonous, ipGrid, ipTriangles, ipStars, ipCubic, ipLine, ipConcentric, ipHoneycomb, ip3DHoneycomb,
     ipGyroid, ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipCount,
 };

@@ -11,13 +11,13 @@
 
 #include "../libslic3r.h"
 #include "../BoundingBox.hpp"
-#include "../PrintConfig.hpp"
 #include "../Utils.hpp"
 
 namespace Slic3r {
 
 class ExPolygon;
 class Surface;
+enum InfillPattern : int;
 
 class InfillFailedException : public std::runtime_error {
 public:

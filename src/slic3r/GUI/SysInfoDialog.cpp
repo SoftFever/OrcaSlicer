@@ -3,6 +3,7 @@
 #include "3DScene.hpp"
 #include "GUI.hpp"
 #include "../Utils/UndoRedo.hpp"
+#include "Plater.hpp"
 
 #include <string>
 

@@ -7,9 +7,9 @@
 #include <libslic3r/SLA/SupportPoint.hpp>
 #include <libslic3r/SLA/EigenMesh3D.hpp>
 
+#include <libslic3r/BoundingBox.hpp>
 #include <libslic3r/ClipperUtils.hpp>
 #include <libslic3r/Point.hpp>
-#include <libslic3r/TriangleMesh.hpp>
 
 #include <boost/container/small_vector.hpp>
 

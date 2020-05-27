@@ -6,6 +6,8 @@
 #include "slic3r/GUI/Gizmos/GLGizmoBase.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
 
+#include "libslic3r/ObjectID.hpp"
+
 #include <map>
 
 namespace Slic3r {

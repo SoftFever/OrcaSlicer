@@ -24,7 +24,7 @@ namespace DoubleSlider {
 /* For exporting GCode in GCodeWriter is used XYZF_NUM(val) = PRECISION(val, 3) for XYZ values. 
  * So, let use same value as a permissible error for layer height.
  */
-static double epsilon() { return 0.0011;}
+constexpr double epsilon() { return 0.0011; }
 
 // custom message the slider sends to its parent to notify a tick-change:
 wxDECLARE_EVENT(wxCUSTOMEVT_TICKSCHANGED, wxEvent);
@@ -301,8 +301,8 @@ private:
     int         get_value_from_position(const wxCoord x, const wxCoord y);
     int         get_value_from_position(const wxPoint pos) { return get_value_from_position(pos.x, pos.y); }
     wxCoord     get_position_from_value(const int value);
-    wxSize      get_size();
-    void        get_size(int *w, int *h);
+    wxSize      get_size() const;
+    void        get_size(int* w, int* h) const;
     double      get_double_value(const SelectedSlider& selection);
     wxString    get_tooltip(int tick = -1);
     int         get_edited_tick_for_position(wxPoint pos, const std::string& gcode = ColorChangeCode);

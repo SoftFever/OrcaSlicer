@@ -455,24 +455,19 @@ bool Model::looks_like_imperial_units() const
     if (this->objects.size() == 0)
         return false;
 
-    stl_vertex size = this->objects[0]->get_object_stl_stats().size;
+    for (ModelObject* obj : this->objects)
+        if (obj->get_object_stl_stats().volume < 9.0) // 9 = 3*3*3;
+            return true;
 
-    for (ModelObject* o : this->objects) {
-        auto sz = o->get_object_stl_stats().size;
-
-        if (size[0] < sz[0]) size[0] = sz[0];
-        if (size[1] < sz[1]) size[1] = sz[1];
-        if (size[2] < sz[2]) size[2] = sz[2];
-    }
-
-    return (size[0] < 3 && size[1] < 3 && size[2] < 3);
+    return false;
 }
 
 void Model::convert_from_imperial_units()
 {
     double in_to_mm = 25.4;
-    for (ModelObject* o : this->objects)
-        o->scale_mesh_after_creation(Vec3d(in_to_mm, in_to_mm, in_to_mm));
+    for (ModelObject* obj : this->objects)
+        if (obj->get_object_stl_stats().volume < 9.0) // 9 = 3*3*3;
+            obj->scale_mesh_after_creation(Vec3d(in_to_mm, in_to_mm, in_to_mm));
 }
 
 void Model::adjust_min_z()
@@ -1273,6 +1268,27 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
     return;
 }
 
+void ModelObject::merge()
+{
+    if (this->volumes.size() == 1) {
+        // We can't merge meshes if there's just one volume
+        return;
+    }
+
+    TriangleMesh mesh;
+
+    for (ModelVolume* volume : volumes)
+        if (!volume->mesh().empty())
+            mesh.merge(volume->mesh());
+    mesh.repair();
+
+    this->clear_volumes();
+    ModelVolume* vol = this->add_volume(mesh);
+
+    if (!vol)
+        return;
+}
+
 // Support for non-uniform scaling of instances. If an instance is rotated by angles, which are not multiples of ninety degrees,
 // then the scaling in world coordinate system is not representable by the Geometry::Transformation structure.
 // This situation is solved by baking in the instance transformation into the mesh vertices.
@@ -1385,8 +1401,8 @@ unsigned int ModelObject::check_instances_print_volume_state(const BoundingBoxf3
                     inside_outside |= OUTSIDE;
             }
         model_instance->print_volume_state = 
-            (inside_outside == (INSIDE | OUTSIDE)) ? ModelInstance::PVS_Partly_Outside :
-            (inside_outside == INSIDE) ? ModelInstance::PVS_Inside : ModelInstance::PVS_Fully_Outside;
+            (inside_outside == (INSIDE | OUTSIDE)) ? ModelInstancePVS_Partly_Outside :
+            (inside_outside == INSIDE) ? ModelInstancePVS_Inside : ModelInstancePVS_Fully_Outside;
         if (inside_outside == INSIDE)
             ++ num_printable;
     }

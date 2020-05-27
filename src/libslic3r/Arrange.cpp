@@ -1,6 +1,7 @@
 #include "Arrange.hpp"
-//#include "Geometry.hpp"
 #include "SVG.hpp"
+
+#include "BoundingBox.hpp"
 
 #include <libnest2d/backends/clipper/geometries.hpp>
 #include <libnest2d/optimizers/nlopt/subplex.hpp>

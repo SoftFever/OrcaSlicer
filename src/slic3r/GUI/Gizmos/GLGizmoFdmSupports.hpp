@@ -5,6 +5,8 @@
 
 #include "slic3r/GUI/3DScene.hpp"
 
+#include "libslic3r/ObjectID.hpp"
+
 #include <cereal/types/vector.hpp>
 
 
@@ -15,6 +17,7 @@ enum class FacetSupportType : int8_t;
 namespace GUI {
 
 enum class SLAGizmoEventType : unsigned char;
+class ClippingPlane;
 
 class GLGizmoFdmSupports : public GLGizmoBase
 {

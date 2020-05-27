@@ -5,6 +5,7 @@
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "GUI_App.hpp"
+#include "Plater.hpp"
 #include "PresetBundle.hpp"
 #include "Camera.hpp"
 #include "I18N.hpp"

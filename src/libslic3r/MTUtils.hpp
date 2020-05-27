@@ -10,8 +10,6 @@
 #include <cmath>
 
 #include "libslic3r.h"
-#include "Point.hpp"
-#include "BoundingBox.hpp"
 
 namespace Slic3r {
 

@@ -3,6 +3,7 @@
 %{
 #include <xsinit.h>
 #include "libslic3r/PerimeterGenerator.hpp"
+#include "libslic3r/Layer.hpp"
 %}
 
 %name{Slic3r::Layer::PerimeterGenerator} class PerimeterGenerator {

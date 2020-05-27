@@ -24,6 +24,9 @@
 #include "AppConfig.hpp"
 #include "PresetBundle.hpp"
 #include "BedShapeDialog.hpp"
+#include "GUI.hpp"
+#include "wxExtensions.hpp"
+
 
 namespace fs = boost::filesystem;
 

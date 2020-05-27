@@ -8,6 +8,7 @@
 #endif // ENABLE_GCODE_VIEWER
 #include "GUI.hpp"
 #include "GUI_App.hpp"
+#include "Plater.hpp"
 #include "I18N.hpp"
 #include "ExtruderSequenceDialog.hpp"
 #include "libslic3r/Print.hpp"
@@ -272,14 +273,14 @@ wxCoord Control::get_position_from_value(const int value)
     return wxCoord(SLIDER_MARGIN + int(val*step + 0.5));
 }
 
-wxSize Control::get_size()
+wxSize Control::get_size() const
 {
     int w, h;
     get_size(&w, &h);
     return wxSize(w, h);
 }
 
-void Control::get_size(int *w, int *h)
+void Control::get_size(int* w, int* h) const
 {
     GetSize(w, h);
     is_horizontal() ? *w -= m_lock_icon_dim : *h -= m_lock_icon_dim;
@@ -574,11 +575,32 @@ void Control::draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, bool right_
     dc.GetMultiLineTextExtent(label, &text_width, &text_height);
     wxPoint text_pos;
     if (right_side)
-        text_pos = is_horizontal() ? wxPoint(pos.x + 1, pos.y + m_thumb_size.x / 2 + 1) :
-            wxPoint(pos.x + m_thumb_size.x + 1, pos.y - 0.5 * text_height - 1);
+    {
+        if (is_horizontal())
+        {
+            int width;
+            int height;
+            get_size(&width, &height);
+
+            int x_right = pos.x + 1 + text_width;
+            int xx = (x_right < width) ? pos.x + 1 : pos.x - text_width - 1;
+            text_pos = wxPoint(xx, pos.y + m_thumb_size.x / 2 + 1);
+        }
+        else
+            text_pos = wxPoint(pos.x + m_thumb_size.x + 1, pos.y - 0.5 * text_height - 1);
+    }
     else
-        text_pos = is_horizontal() ? wxPoint(pos.x - text_width - 1, pos.y - m_thumb_size.x / 2 - text_height - 1) :
-            wxPoint(pos.x - text_width - 1 - m_thumb_size.x, pos.y - 0.5 * text_height + 1);
+    {
+        if (is_horizontal())
+        {
+            int x = pos.x - text_width - 1;
+            int xx = (x > 0) ? x : pos.x + 1;
+            text_pos = wxPoint(xx, pos.y - m_thumb_size.x / 2 - text_height - 1);
+        }
+        else
+            text_pos = wxPoint(pos.x - text_width - 1 - m_thumb_size.x, pos.y - 0.5 * text_height + 1);
+    }
+
     dc.DrawText(label, text_pos);
 }
 
@@ -1323,6 +1345,15 @@ void Control::move_current_thumb(const bool condition)
     if (is_horizontal())
         delta *= -1;
 
+    // accelerators
+    int accelerator = 0;
+    if (wxGetKeyState(WXK_SHIFT))
+        accelerator += 5;
+    if (wxGetKeyState(WXK_CONTROL))
+        accelerator += 5;
+    if (accelerator > 0)
+        delta *= accelerator;
+
     if (m_selection == ssLower) {
         m_lower_value -= delta;
         correct_lower_value();
@@ -1366,6 +1397,22 @@ void Control::OnWheel(wxMouseEvent& event)
 void Control::OnKeyDown(wxKeyEvent &event)
 {
     const int key = event.GetKeyCode();
+#if ENABLE_GCODE_VIEWER
+    if (m_draw_mode != dmSequentialGCodeView && key == WXK_NUMPAD_ADD) {
+        // OnChar() is called immediately after OnKeyDown(), which can cause call of add_tick() twice.
+        // To avoid this case we should suppress second add_tick() call.
+        m_ticks.suppress_plus(true);
+        add_current_tick(true);
+    }
+    else if (m_draw_mode != dmSequentialGCodeView && (key == WXK_NUMPAD_SUBTRACT || key == WXK_DELETE || key == WXK_BACK)) {
+        // OnChar() is called immediately after OnKeyDown(), which can cause call of delete_tick() twice.
+        // To avoid this case we should suppress second delete_tick() call.
+        m_ticks.suppress_minus(true);
+        delete_current_tick();
+    }
+    else if (m_draw_mode != dmSequentialGCodeView && event.GetKeyCode() == WXK_SHIFT)
+        UseDefaultColors(false);
+#else
     if (key == WXK_NUMPAD_ADD) {
         // OnChar() is called immediately after OnKeyDown(), which can cause call of add_tick() twice.
         // To avoid this case we should suppress second add_tick() call.
@@ -1380,6 +1427,7 @@ void Control::OnKeyDown(wxKeyEvent &event)
     }
     else if (event.GetKeyCode() == WXK_SHIFT)
         UseDefaultColors(false);
+#endif // ENABLE_GCODE_VIEWER
     else if (is_horizontal())
     {
 #if ENABLE_GCODE_VIEWER
@@ -1430,14 +1478,21 @@ void Control::OnKeyUp(wxKeyEvent &event)
 void Control::OnChar(wxKeyEvent& event)
 {
     const int key = event.GetKeyCode();
-    if (key == '+' && !m_ticks.suppressed_plus()) {
-        add_current_tick(true);
-        m_ticks.suppress_plus(false);
+#if ENABLE_GCODE_VIEWER
+    if (m_draw_mode != dmSequentialGCodeView)
+    {
+#endif // ENABLE_GCODE_VIEWER
+        if (key == '+' && !m_ticks.suppressed_plus()) {
+            add_current_tick(true);
+            m_ticks.suppress_plus(false);
+        }
+        else if (key == '-' && !m_ticks.suppressed_minus()) {
+            delete_current_tick();
+            m_ticks.suppress_minus(false);
+        }
+#if ENABLE_GCODE_VIEWER
     }
-    else if (key == '-' && !m_ticks.suppressed_minus()) {
-        delete_current_tick();
-        m_ticks.suppress_minus(false);
-    }
+#endif // ENABLE_GCODE_VIEWER
     if (key == 'G')
 #if ENABLE_GCODE_VIEWER
         jump_to_value();

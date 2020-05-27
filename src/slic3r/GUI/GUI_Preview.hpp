@@ -2,10 +2,11 @@
 #define slic3r_GUI_Preview_hpp_
 
 #include <wx/panel.h>
+
 #include "libslic3r/Point.hpp"
+#include "libslic3r/CustomGCode.hpp"
 
 #include <string>
-#include "libslic3r/Model.hpp"
 #if ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #endif // ENABLE_GCODE_VIEWER

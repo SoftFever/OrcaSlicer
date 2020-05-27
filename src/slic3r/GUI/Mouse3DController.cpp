@@ -6,6 +6,7 @@
 #include "PresetBundle.hpp"
 #include "AppConfig.hpp"
 #include "GLCanvas3D.hpp"
+#include "Plater.hpp"
 
 #include <wx/glcanvas.h>
 

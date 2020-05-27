@@ -1,4 +1,6 @@
 #include "ModelArrange.hpp"
+
+#include <libslic3r/Model.hpp>
 #include "MTUtils.hpp"
 
 namespace Slic3r {

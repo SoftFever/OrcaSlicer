@@ -2,12 +2,16 @@
 #include "GUI_ObjectList.hpp"
 #include "I18N.hpp"
 
+#include "GLCanvas3D.hpp"
 #include "OptionsGroup.hpp"
+#include "GUI_App.hpp"
 #include "wxExtensions.hpp"
 #include "PresetBundle.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "Selection.hpp"
+#include "Plater.hpp"
+#include "MainFrame.hpp"
 
 #include <boost/algorithm/string.hpp>
 #include "slic3r/Utils/FixModelByWin10.hpp"

@@ -3,6 +3,7 @@
 #include "3DScene.hpp"
 #include "GLCanvas3D.hpp"
 #include "GUI_App.hpp"
+#include "Plater.hpp"
 
 #include <GL/glew.h>
 

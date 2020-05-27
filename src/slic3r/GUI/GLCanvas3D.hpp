@@ -5,7 +5,6 @@
 #include <memory>
 #include <chrono>
 
-#include "3DScene.hpp"
 #include "GLToolbar.hpp"
 #include "Event.hpp"
 #include "Selection.hpp"
@@ -17,6 +16,8 @@
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "GCodeViewer.hpp"
 #endif // ENABLE_GCODE_VIEWER
+
+#include "libslic3r/Slicing.hpp"
 
 #include <float.h>
 
@@ -36,15 +37,18 @@ class wxGLContext;
 
 namespace Slic3r {
 
-class Bed3D;
 struct Camera;
 class BackgroundSlicingProcess;
 #if !ENABLE_GCODE_VIEWER
 class GCodePreviewData;
 #endif // !ENABLE_GCODE_VIEWER
 struct ThumbnailData;
-struct SlicingParameters;
-enum LayerHeightEditActionType : unsigned int;
+class ModelObject;
+class ModelInstance;
+class PrintObject;
+class Print;
+class SLAPrint;
+namespace CustomGCode { struct Item; }
 
 namespace GUI {
 

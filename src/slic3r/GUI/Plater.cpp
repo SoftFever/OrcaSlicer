@@ -2320,9 +2320,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             if (imperial_units)
                 convert_from_imperial_units(model);
             else if (model.looks_like_imperial_units()) {
-                wxMessageDialog msg_dlg(q, _L(
-                    "This model looks like saved in inches.\n"
-                    "Should I consider this model as a saved in inches and convert it?") + "\n",
+                wxMessageDialog msg_dlg(q, format_wxstr(_L(
+                    "Some object(s) in file %s looks like saved in inches.\n"
+                    "Should I consider them as a saved in inches and convert them?"), from_path(filename)) + "\n",
                     _L("Saved in inches object detected"), wxICON_WARNING | wxYES | wxNO);
                 if (msg_dlg.ShowModal() == wxID_YES)
                     convert_from_imperial_units(model);
@@ -2649,7 +2649,7 @@ void Plater::priv::object_list_changed()
 {
     const bool export_in_progress = this->background_process.is_export_scheduled(); // || ! send_gcode_file.empty());
     // XXX: is this right?
-    const bool model_fits = view3D->check_volumes_outside_state() == ModelInstance::PVS_Inside;
+    const bool model_fits = view3D->check_volumes_outside_state() == ModelInstancePVS_Inside;
 
     sidebar->enable_buttons(!model.objects.empty() && !export_in_progress && model_fits);
 }
@@ -3345,7 +3345,7 @@ void Plater::priv::set_current_panel(wxPanel* panel)
         // see: Plater::priv::object_list_changed()
         // FIXME: it may be better to have a single function making this check and let it be called wherever needed
         bool export_in_progress = this->background_process.is_export_scheduled();
-        bool model_fits = view3D->check_volumes_outside_state() != ModelInstance::PVS_Partly_Outside;
+        bool model_fits = view3D->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
         if (!model.objects.empty() && !export_in_progress && model_fits)
             this->q->reslice();
         // keeps current gcode preview, if any

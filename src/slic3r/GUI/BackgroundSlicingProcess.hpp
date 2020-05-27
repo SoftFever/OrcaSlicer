@@ -5,14 +5,18 @@
 #include <condition_variable>
 #include <mutex>
 
-#include <boost/filesystem/path.hpp>
-
 #include <wx/event.h>
 
-#include "libslic3r/Print.hpp"
+#include "libslic3r/PrintBase.hpp"
+#include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Format/SL1.hpp"
 #include "slic3r/Utils/PrintHost.hpp"
+#if ENABLE_GCODE_VIEWER
+#include "libslic3r/GCode/GCodeProcessor.hpp"
+#endif // ENABLE_GCODE_VIEWER
 
+
+namespace boost { namespace filesystem { class path; } }
 
 namespace Slic3r {
 
@@ -22,7 +26,6 @@ class GCodePreviewData;
 #endif // !ENABLE_GCODE_VIEWER
 class Model;
 class SLAPrint;
-class SL1Archive;
 
 class SlicingStatusEvent : public wxEvent
 {
@@ -92,7 +95,7 @@ public:
 
 	// Apply config over the print. Returns false, if the new config values caused any of the already
 	// processed steps to be invalidated, therefore the task will need to be restarted.
-	Print::ApplyStatus apply(const Model &model, const DynamicPrintConfig &config);
+    PrintBase::ApplyStatus apply(const Model &model, const DynamicPrintConfig &config);
 	// After calling the apply() function, set_task() may be called to limit the task to be processed by process().
 	// This is useful for calculating SLA supports for a single object only.
 	void 		set_task(const PrintBase::TaskParams &params);

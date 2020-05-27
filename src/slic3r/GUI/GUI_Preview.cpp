@@ -6,13 +6,13 @@
 #include "GUI_App.hpp"
 #include "GUI.hpp"
 #include "I18N.hpp"
-#include "AppConfig.hpp"
 #include "3DScene.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "OpenGLManager.hpp"
 #include "GLCanvas3D.hpp"
 #include "PresetBundle.hpp"
 #include "DoubleSlider.hpp"
+#include "Plater.hpp"
 
 #include <wx/notebook.h>
 #include <wx/glcanvas.h>
