@@ -2696,6 +2696,9 @@ bool ObjectList::can_split_instances()
 
 bool ObjectList::can_merge_to_multipart_object() const
 {
+    if (printer_technology() == ptSLA)
+        return false;
+
     wxDataViewItemArray sels;
     GetSelections(sels);
     if (sels.IsEmpty())

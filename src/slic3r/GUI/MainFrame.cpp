@@ -204,29 +204,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
         event.Skip();
     });
 
-    /*
-    Bind(wxEVT_SYS_COLOUR_CHANGED, [this](wxSysColourChangedEvent& event)
-    {
-        bool recreate_gui = false;
-        {
-            // the dialog needs to be destroyed before the call to recreate_gui()
-            // or sometimes the application crashes into wxDialogBase() destructor
-            // so we put it into an inner scope
-            wxMessageDialog dialog(nullptr,
-                                   _L("System color mode was changed. "
-                                      "It is possible to update the Slicer in respect to the system mode.") + "\n" +
-                                   _L("You will lose content of the plater.") + "\n\n" +
-                                   _L("Do you want to proceed?"),
-                                   wxString(SLIC3R_APP_NAME) + " - " + _L("Switching system color mode"),
-                                   wxICON_QUESTION | wxOK | wxCANCEL);
-            recreate_gui = dialog.ShowModal() == wxID_OK;
-        }
-        if (recreate_gui)
-            wxGetApp().recreate_GUI(_L("Changing of an application in respect to the system mode") + dots);
-        event.Skip();
-    });
-    */
-
     wxGetApp().persist_window_geometry(this, true);
 
     update_ui_from_settings();    // FIXME (?)
@@ -350,7 +327,8 @@ void MainFrame::init_tabpanel()
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, [this](wxEvent&) {
         auto panel = m_tabpanel->GetCurrentPage();
 
-        if (panel == nullptr)
+        // There shouldn't be a case, when we try to select a tab, which doesn't support a printer technology
+        if (panel == nullptr || !static_cast<Tab*>(panel)->supports_printer_technology(m_plater->printer_technology()))
             return;
 
         auto& tabs_list = wxGetApp().tabs_list;
