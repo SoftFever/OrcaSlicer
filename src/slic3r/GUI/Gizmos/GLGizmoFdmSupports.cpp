@@ -365,13 +365,23 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             }
         }
 
+        bool dragging_while_painting = (action == SLAGizmoEventType::Dragging && m_button_down != Button::None);
+
+        // The mouse button click detection is enabled when there is a valid hit
+        // or when the user clicks the clipping plane. Missing the object entirely
+        // shall not capture the mouse.
+        if (closest_hit_mesh_id != -1 || clipped_mesh_was_hit) {
+            if (m_button_down == Button::None)
+                m_button_down = ((action == SLAGizmoEventType::LeftDown) ? Button::Left : Button::Right);
+        }
+
         if (closest_hit_mesh_id == -1) {
             // In case we have no valid hit, we can return. The event will
             // be stopped in following two cases:
             //  1. clicking the clipping plane
             //  2. dragging while painting (to prevent scene rotations and moving the object)
             return clipped_mesh_was_hit
-                || (action == SLAGizmoEventType::Dragging && m_button_down != Button::None);
+                || dragging_while_painting;
         }
 
         // Now propagate the hits
@@ -471,10 +481,6 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 update_vertex_buffers(mesh, mesh_id, FacetSupportType::BLOCKER);
             }
         }
-
-
-        if (m_button_down == Button::None)
-            m_button_down = ((action == SLAGizmoEventType::LeftDown) ? Button::Left : Button::Right);
 
         return true;
     }
