@@ -1144,6 +1144,10 @@ void Preview::update_layers_slider_from_canvas(wxKeyEvent& event)
 void Preview::update_moves_slider()
 {
     const GCodeViewer::SequentialView& view = m_canvas->get_gcode_sequential_view();
+    // this should not be needed, but it is here to try to prevent rambling crashes on Mac Asan
+    if (view.endpoints.last < view.endpoints.first)
+        return;
+
     std::vector<double> values(view.endpoints.last - view.endpoints.first + 1);
     unsigned int count = 0;
     for (unsigned int i = view.endpoints.first; i <= view.endpoints.last; ++i)
