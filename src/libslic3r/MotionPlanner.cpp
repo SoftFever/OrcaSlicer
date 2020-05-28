@@ -6,6 +6,7 @@
 #include <limits> // for numeric_limits
 #include <assert.h>
 
+#define BOOST_VORONOI_USE_GMP 1
 #include "boost/polygon/voronoi.hpp"
 using boost::polygon::voronoi_builder;
 using boost::polygon::voronoi_diagram;

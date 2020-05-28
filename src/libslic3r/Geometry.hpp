@@ -10,6 +10,7 @@
 // Serialization through the Cereal library
 #include <cereal/access.hpp>
 
+#define BOOST_VORONOI_USE_GMP 1
 #include "boost/polygon/voronoi.hpp"
 
 namespace ClipperLib {

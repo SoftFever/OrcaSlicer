@@ -125,4 +125,14 @@ Vec3d Linef3::intersect_plane(double z) const
     return Vec3d(this->a(0) + v(0) * t, this->a(1) + v(1) * t, z);
 }
 
+BoundingBox get_extents(const Lines &lines)
+{
+    BoundingBox bbox;
+    for (const Line &line : lines) {
+        bbox.merge(line.a);
+        bbox.merge(line.b);
+    }
+    return bbox;
+}
+
 }

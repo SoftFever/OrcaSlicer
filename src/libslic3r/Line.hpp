@@ -103,6 +103,8 @@ public:
     Vec3d b;
 };
 
+extern BoundingBox get_extents(const Lines &lines);
+
 } // namespace Slic3r
 
 // start Boost
