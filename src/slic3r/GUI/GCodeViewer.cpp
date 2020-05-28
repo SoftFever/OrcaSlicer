@@ -771,11 +771,16 @@ void GCodeViewer::render_toolpaths() const
     const std::array<int, 4>& viewport = camera.get_viewport();
     std::array<int, 2> viewport_sizes = { viewport[2], viewport[3] };
     const std::pair<double, double>& camera_z_range = camera.get_z_range();
-    std::array<float, 2> z_range = { static_cast<float>(camera_z_range.first), static_cast<float>(camera_z_range.second) };
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//    std::array<float, 2> z_range = { static_cast<float>(camera_z_range.first), static_cast<float>(camera_z_range.second) };
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     Transform3d inv_proj = camera.get_projection_matrix().inverse();
 
-    auto render_options = [this, is_glsl_120, zoom, viewport, inv_proj, viewport_sizes, z_range, point_sizes](const IBuffer& buffer, EOptionsColors colors_id, GLShaderProgram& shader) {
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    auto render_options = [this, is_glsl_120, zoom, viewport, inv_proj, viewport_sizes, point_sizes](const IBuffer& buffer, EOptionsColors colors_id, GLShaderProgram& shader) {
+//    auto render_options = [this, is_glsl_120, zoom, viewport, inv_proj, viewport_sizes, z_range, point_sizes](const IBuffer& buffer, EOptionsColors colors_id, GLShaderProgram& shader) {
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         shader.set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(colors_id)]);
 #if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
         shader.set_uniform("zoom", m_shaders_editor.size_dependent_on_zoom ? zoom : 1.0f);
@@ -788,7 +793,9 @@ void GCodeViewer::render_toolpaths() const
 #endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
         shader.set_uniform("viewport_sizes", viewport_sizes);
         shader.set_uniform("inv_proj_matrix", inv_proj);
-        shader.set_uniform("z_range", z_range);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//        shader.set_uniform("z_range", z_range);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         shader.set_uniform("point_sizes", point_sizes);
         glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
         if (is_glsl_120)

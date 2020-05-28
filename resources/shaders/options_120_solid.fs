@@ -16,14 +16,9 @@ const vec3 LIGHT_FRONT_DIR = vec3(0.6985074, 0.1397015, 0.6985074);
 #define INTENSITY_AMBIENT    0.3
 
 uniform vec3 uniform_color;
-uniform float percent_outline_radius;
-uniform float percent_center_radius;
 
 // x = width, y = height
 uniform ivec2 viewport_sizes;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//uniform vec2 z_range;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 uniform mat4 inv_proj_matrix;
 
 varying vec3 eye_center;
@@ -77,10 +72,8 @@ vec4 on_sphere_color(vec3 eye_on_sphere_position)
 
 float fragment_depth(vec3 eye_pos)
 {
-    // see: https://stackoverflow.com/questions/10264949/glsl-gl-fragcoord-z-calculation-and-setting-gl-fragdepth
     vec4 clip_pos = gl_ProjectionMatrix * vec4(eye_pos, 1.0);
     float ndc_depth = clip_pos.z / clip_pos.w;
-
     return (((gl_DepthRange.far - gl_DepthRange.near) * ndc_depth) + gl_DepthRange.near + gl_DepthRange.far) / 2.0;
 }
 
@@ -94,7 +87,5 @@ void main()
     vec3 eye_on_sphere_position = eye_position_on_sphere(eye_position_from_fragment());
 
     gl_FragDepth = fragment_depth(eye_on_sphere_position);
-//    gl_FragDepth = eye_on_sphere_position.z;
-//    gl_FragDepth = (eye_on_sphere_position.z - z_range.x) / (z_range.y - z_range.x);
     gl_FragColor = on_sphere_color(eye_on_sphere_position);
 }

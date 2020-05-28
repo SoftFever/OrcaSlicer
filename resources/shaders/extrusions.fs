@@ -17,7 +17,6 @@ uniform vec3 uniform_color;
 
 varying vec3 eye_position;
 varying vec3 eye_normal;
-//varying float world_normal_z;
 
 // x = tainted, y = specular;
 vec2 intensity;
@@ -36,10 +35,6 @@ void main()
     // Perform the same lighting calculation for the 2nd light source (no specular applied).
     NdotL = max(dot(normal, LIGHT_FRONT_DIR), 0.0);
     intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;    
-
-//    // darkens fragments whose normal points downward
-//    if (world_normal_z < 0.0)
-//        intensity.x *= (1.0 + world_normal_z * (1.0 - INTENSITY_AMBIENT));
 
     gl_FragColor = vec4(vec3(intensity.y, intensity.y, intensity.y) + uniform_color * intensity.x, 1.0);
 }
