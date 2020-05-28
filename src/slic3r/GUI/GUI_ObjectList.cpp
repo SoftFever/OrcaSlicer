@@ -2390,40 +2390,120 @@ void ObjectList::merge(bool to_multipart_object)
     // merge selected objects to the multipart object
     if (to_multipart_object)
     {
+        auto get_object_idxs = [this](std::vector<int>& obj_idxs, wxDataViewItemArray& sels)
+        {
+            // check selections and split instances to the separated objects...
+            bool instance_selection = false;
+            for (wxDataViewItem item : sels)
+                if (m_objects_model->GetItemType(item) & itInstance) {
+                    instance_selection = true;
+                    break;
+                }
+
+            if (!instance_selection)
+            {
+                for (wxDataViewItem item : sels) {
+                    assert(m_objects_model->GetItemType(item) & itObject);
+                    obj_idxs.emplace_back(m_objects_model->GetIdByItem(item));
+                }
+                return;
+            }
+
+            // map of obj_idx -> set of selected instance_idxs
+            std::map<int, std::set<int>> sel_map;
+            std::set<int> empty_set;
+            for (wxDataViewItem item : sels) {
+                if (m_objects_model->GetItemType(item) & itObject)
+                {
+                    int obj_idx = m_objects_model->GetIdByItem(item);
+                    int inst_cnt = (*m_objects)[obj_idx]->instances.size();
+                    if (inst_cnt == 1)
+                        sel_map.emplace(obj_idx, empty_set);
+                    else
+                        for (int i = 0; i < inst_cnt; i++)
+                            sel_map[obj_idx].emplace(i);
+                    continue;
+                }
+                int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
+                sel_map[obj_idx].emplace(m_objects_model->GetInstanceIdByItem(item));
+            }
+
+            // all objects, created from the instances will be added to the end of list
+            int new_objects_cnt = 0; // count of this new objects
+//            std::vector<int> obj_idxs;
+
+            for (auto map_item : sel_map)
+            {
+                int obj_idx = map_item.first;
+                // object with just 1 instance
+                if (map_item.second.empty()) {
+                    obj_idxs.emplace_back(obj_idx);
+                    continue;
+                }
+
+                // object with selected all instances
+                if ((*m_objects)[map_item.first]->instances.size() == map_item.second.size()) {
+                    instances_to_separated_objects(obj_idx);
+                    // first instance stay on its own place and another all add to the end of list :
+                    obj_idxs.emplace_back(obj_idx);
+                    new_objects_cnt += map_item.second.size() - 1;
+                    continue;
+                }
+
+                // object with selected some of instances 
+                instances_to_separated_object(obj_idx, map_item.second);
+
+                if (map_item.second.size() == 1)
+                    new_objects_cnt += 1;
+                else {// we should split to separate instances last object
+                    instances_to_separated_objects(m_objects->size() - 1);
+                    // all instances will stay at the end of list :
+                    new_objects_cnt += map_item.second.size();
+                }
+            }
+
+            // all instatnces are extracted to the separate objects and should be selected
+            m_prevent_list_events = true;
+            sels.Clear();
+            for (int obj_idx : obj_idxs)
+                sels.Add(m_objects_model->GetItemById(obj_idx));
+            int obj_cnt = m_objects->size();
+            for (int obj_idx = obj_cnt - new_objects_cnt; obj_idx < obj_cnt; obj_idx++) {
+                sels.Add(m_objects_model->GetItemById(obj_idx));
+                obj_idxs.emplace_back(obj_idx);
+            }
+            UnselectAll();
+            SetSelections(sels);
+            assert(!sels.IsEmpty());
+            m_prevent_list_events = false;
+        };
+
         std::vector<int> obj_idxs;
         wxDataViewItemArray sels;
         GetSelections(sels);
         assert(!sels.IsEmpty());
 
-        for (wxDataViewItem item : sels) {
-            const ItemType type = m_objects_model->GetItemType(item);
-            assert(type & (itObject/* | itInstance*/));
-            obj_idxs.emplace_back(type & itObject ? m_objects_model->GetIdByItem(item) :
-                m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item)));
-        }
-        std::sort(obj_idxs.begin(), obj_idxs.end());
-        obj_idxs.erase(std::unique(obj_idxs.begin(), obj_idxs.end()), obj_idxs.end());
-
-        if (obj_idxs.size() <= 1)
-            return;
-
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Merge"));
 
+        get_object_idxs(obj_idxs, sels);
+
+        // resulted objects merge to the one
         Model* model = (*m_objects)[0]->get_model();
         ModelObject* new_object = model->add_object();
         new_object->name = _u8L("Merged");
-        DynamicPrintConfig* new_config = &new_object->config;
+        DynamicPrintConfig* config = &new_object->config;
 
-        const Vec3d& main_offset  = (*m_objects)[0]->instances[0]->get_offset();
+        int frst_obj_idx = obj_idxs.front();
+        const Vec3d& main_offset  = (*m_objects)[frst_obj_idx]->instances[0]->get_offset();
 
         for (int obj_idx : obj_idxs)
         {
             ModelObject* object = (*m_objects)[obj_idx];
             Vec3d offset = object->instances[0]->get_offset();
 
-            if (object->id() == (*m_objects)[0]->id())
+            if (object->id() == (*m_objects)[frst_obj_idx]->id())
                 new_object->add_instance(*object->instances[0]);
-            auto new_opt_keys = new_config->keys();
+            auto new_opt_keys = config->keys();
 
             const DynamicPrintConfig& from_config = object->config;
             auto opt_keys = from_config.keys();
@@ -2437,7 +2517,7 @@ void ObjectList::merge(bool to_multipart_object)
                         // get it from default config values
                         option = DynamicPrintConfig::new_from_defaults_keys({ opt_key })->option(opt_key);
                     }
-                    new_config->set_key_value(opt_key, option->clone());
+                    config->set_key_value(opt_key, option->clone());
                 }
             }
 
@@ -2461,8 +2541,11 @@ void ObjectList::merge(bool to_multipart_object)
         }
         // remove selected objects
         remove();
+
         // Add new object(merged) to the object_list
         add_object_to_list(m_objects->size() - 1);
+        select_item(m_objects_model->GetItemById(m_objects->size() - 1));
+        update_selections_on_canvas();
     }
     // merge all parts to the one single object
     // all part's settings will be lost
@@ -2613,6 +2696,9 @@ bool ObjectList::can_split_instances()
 
 bool ObjectList::can_merge_to_multipart_object() const
 {
+    if (printer_technology() == ptSLA)
+        return false;
+
     wxDataViewItemArray sels;
     GetSelections(sels);
     if (sels.IsEmpty())
@@ -2620,7 +2706,7 @@ bool ObjectList::can_merge_to_multipart_object() const
 
     // should be selected just objects
     for (wxDataViewItem item : sels)
-        if (!(m_objects_model->GetItemType(item) & (itObject/* | itInstance*/)))
+        if (!(m_objects_model->GetItemType(item) & (itObject | itInstance)))
             return false;
 
     return true;

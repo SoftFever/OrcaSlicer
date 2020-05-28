@@ -1589,6 +1589,9 @@ struct Plater::priv
     Sidebar *sidebar;
     Bed3D bed;
     Camera camera;
+#if ENABLE_ENVIRONMENT_MAP
+    GLTexture environment_texture;
+#endif // ENABLE_ENVIRONMENT_MAP
     Mouse3DController mouse3d_controller;
     View3D* view3D;
     GLToolbar view_toolbar;
@@ -2100,7 +2103,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     });
 	wxGetApp().other_instance_message_handler()->init(this->q);
-
 
     // collapse sidebar according to saved value
     bool is_collapsed = wxGetApp().app_config->get("collapsed_sidebar") == "1";
@@ -5569,6 +5571,19 @@ Camera& Plater::get_camera()
 {
     return p->camera;
 }
+
+#if ENABLE_ENVIRONMENT_MAP
+void Plater::init_environment_texture()
+{
+    if (p->environment_texture.get_id() == 0)
+        p->environment_texture.load_from_file(resources_dir() + "/icons/Pmetal_001.png", false, GLTexture::SingleThreaded, false);
+}
+
+unsigned int Plater::get_environment_texture_id() const
+{
+    return p->environment_texture.get_id();
+}
+#endif // ENABLE_ENVIRONMENT_MAP
 
 const Bed3D& Plater::get_bed() const
 {

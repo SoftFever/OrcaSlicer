@@ -3,6 +3,10 @@
 #include "3DScene.hpp"
 #include "GLShader.hpp"
 #include "GUI_App.hpp"
+#if ENABLE_ENVIRONMENT_MAP
+#include "Plater.hpp"
+#include "AppConfig.hpp"
+#endif // ENABLE_ENVIRONMENT_MAP
 
 #include "libslic3r/ExtrusionEntity.hpp"
 #include "libslic3r/ExtrusionEntityCollection.hpp"
@@ -664,6 +668,15 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
     shader->set_uniform("slope.z_range", m_slope.z_range);
 #endif // ENABLE_SLOPE_RENDERING
 
+#if ENABLE_ENVIRONMENT_MAP
+    unsigned int environment_texture_id = GUI::wxGetApp().plater()->get_environment_texture_id();
+    bool use_environment_texture = environment_texture_id > 0 && GUI::wxGetApp().app_config->get("use_environment_map") == "1";
+    shader->set_uniform("use_environment_tex", use_environment_texture);
+    if (use_environment_texture)
+        glsafe(::glBindTexture(GL_TEXTURE_2D, environment_texture_id));
+#endif // ENABLE_ENVIRONMENT_MAP
+    glcheck();
+
     GLVolumeWithIdAndZList to_render = volumes_to_render(this->volumes, type, view_matrix, filter_func);
     for (GLVolumeWithIdAndZ& volume : to_render) {
         volume.first->set_render_color();
@@ -679,6 +692,11 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         volume.first->render(color_id, print_box_detection_id, print_box_worldmatrix_id);
 #endif // ENABLE_SLOPE_RENDERING
     }
+
+#if ENABLE_ENVIRONMENT_MAP
+    if (use_environment_texture)
+        glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
+#endif // ENABLE_ENVIRONMENT_MAP
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));

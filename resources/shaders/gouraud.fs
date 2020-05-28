@@ -17,6 +17,9 @@ struct SlopeDetection
 uniform vec4 uniform_color;
 uniform SlopeDetection slope;
 
+uniform sampler2D environment_tex;
+uniform bool use_environment_tex;
+
 varying vec3 clipping_planes_dots;
 
 // x = tainted, y = specular;
@@ -26,6 +29,7 @@ varying vec3 delta_box_min;
 varying vec3 delta_box_max;
 
 varying float world_normal_z;
+varying vec3 eye_normal;
 
 vec3 slope_color()
 {
@@ -40,5 +44,8 @@ void main()
 	vec3 color = slope.actived ? slope_color() : uniform_color.rgb;
     // if the fragment is outside the print volume -> use darker color
 	color = (any(lessThan(delta_box_min, ZERO)) || any(greaterThan(delta_box_max, ZERO))) ? mix(color, ZERO, 0.3333) : color;
-    gl_FragColor = vec4(vec3(intensity.y, intensity.y, intensity.y) + color * intensity.x, uniform_color.a);
+    if (use_environment_tex)
+        gl_FragColor = vec4(0.45 * texture2D(environment_tex, normalize(eye_normal).xy * 0.5 + 0.5).xyz + 0.8 * color * intensity.x, uniform_color.a);
+    else
+        gl_FragColor = vec4(vec3(intensity.y) + color * intensity.x, uniform_color.a);
 }

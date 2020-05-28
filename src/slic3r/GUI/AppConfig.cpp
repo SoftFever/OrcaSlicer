@@ -93,6 +93,11 @@ void AppConfig::set_defaults()
     if (get("use_free_camera").empty())
         set("use_free_camera", "0");
 
+#if ENABLE_ENVIRONMENT_MAP
+    if (get("use_environment_map").empty())
+        set("use_environment_map", "0");
+#endif // ENABLE_ENVIRONMENT_MAP
+
     // Remove legacy window positions/sizes
     erase("", "main_frame_maximized");
     erase("", "main_frame_pos");

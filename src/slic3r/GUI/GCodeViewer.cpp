@@ -770,7 +770,6 @@ void GCodeViewer::render_toolpaths() const
     double zoom = camera.get_zoom();
     const std::array<int, 4>& viewport = camera.get_viewport();
     std::array<int, 2> viewport_sizes = { viewport[2], viewport[3] };
-    const std::pair<double, double>& camera_z_range = camera.get_z_range();
 
     Transform3d inv_proj = camera.get_projection_matrix().inverse();
 

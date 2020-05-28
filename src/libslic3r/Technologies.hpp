@@ -42,6 +42,9 @@
 // Enable rendering of objects colored by facets' slope
 #define ENABLE_SLOPE_RENDERING (1 && ENABLE_2_3_0_ALPHA1)
 
+// Enable rendering of objects using environment map
+#define ENABLE_ENVIRONMENT_MAP (1 && ENABLE_2_3_0_ALPHA1)
+
 // Enable G-Code viewer
 #define ENABLE_GCODE_VIEWER (1 && ENABLE_2_3_0_ALPHA1)
 #define ENABLE_GCODE_VIEWER_STATISTICS (0 && ENABLE_GCODE_VIEWER)
