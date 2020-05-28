@@ -198,12 +198,20 @@ void GLGizmoCut::set_cut_z(double cut_z) const
 
 void GLGizmoCut::perform_cut(const Selection& selection)
 {
-    const auto instance_idx = selection.get_instance_idx();
-    const auto object_idx = selection.get_object_idx();
+    const int instance_idx = selection.get_instance_idx();
+    const int object_idx = selection.get_object_idx();
 
     wxCHECK_RET(instance_idx >= 0 && object_idx >= 0, "GLGizmoCut: Invalid object selection");
 
-    wxGetApp().plater()->cut(object_idx, instance_idx, m_cut_z, m_keep_upper, m_keep_lower, m_rotate_lower);
+    // m_cut_z is the distance from the bed. Subtract possible SLA elevation.
+    const GLVolume* first_glvolume = selection.get_volume(*selection.get_volume_idxs().begin());
+    coordf_t object_cut_z = m_cut_z - first_glvolume->get_sla_shift_z();
+
+    if (object_cut_z > 0.)
+        wxGetApp().plater()->cut(object_idx, instance_idx, object_cut_z, m_keep_upper, m_keep_lower, m_rotate_lower);
+    else {
+        // the object is SLA-elevated and the plane is under it.
+    }
 }
 
 double GLGizmoCut::calc_projection(const Linef3& mouse_ray) const
