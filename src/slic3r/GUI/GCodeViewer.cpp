@@ -929,6 +929,8 @@ void GCodeViewer::render_legend() const
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
+#define USE_ICON_HEXAGON 1
+
     imgui.set_next_window_pos(0.0f, 0.0f, ImGuiCond_Always);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::SetNextWindowBgAlpha(0.6f);
@@ -940,6 +942,7 @@ void GCodeViewer::render_legend() const
     {
         Rect,
         Circle,
+        Hexagon,
         Line
     };
 
@@ -963,27 +966,32 @@ void GCodeViewer::render_legend() const
         case EItemType::Circle:
         {
 #if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
-            draw_list->AddCircle({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, 0.5f * icon_size, ICON_BORDER_COLOR, 16);
+            ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
+            draw_list->AddCircle(center, 0.5f * icon_size, ICON_BORDER_COLOR, 16);
             if (m_shaders_editor.shader_version == 1) {
-                draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, (0.5f * icon_size) - 2.0f,
+                draw_list->AddCircleFilled(center, (0.5f * icon_size) - 2.0f,
                     ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
                 float radius = ((0.5f * icon_size) - 2.0f) * (1.0f - 0.01f * static_cast<float>(m_shaders_editor.percent_outline));
-                draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, radius,
-                    ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
+                draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
                 if (m_shaders_editor.percent_center > 0) {
                     radius = ((0.5f * icon_size) - 2.0f) * 0.01f * static_cast<float>(m_shaders_editor.percent_center);
-                    draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, radius,
-                        ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
+                    draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
                 }
-            } else {
-                draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, (0.5f * icon_size) - 2.0f,
-                    ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
-            }
+            } else
+                draw_list->AddCircleFilled(center, (0.5f * icon_size) - 2.0f, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
 #else
             draw_list->AddCircle({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, 0.5f * icon_size, ICON_BORDER_COLOR, 16);
             draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, (0.5f * icon_size) - 2.0f,
                 ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
 #endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
+            break;
+        }
+        case EItemType::Hexagon:
+        {
+            ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
+            draw_list->AddNgon(center, 0.5f * icon_size, ICON_BORDER_COLOR, 6);
+            draw_list->AddNgonFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, (0.5f * icon_size) - 2.0f,
+                ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 6);
             break;
         }
         case EItemType::Line:
@@ -1009,7 +1017,11 @@ void GCodeViewer::render_legend() const
         auto add_range_item = [this, draw_list, &imgui, add_item](int i, float value, unsigned int decimals) {
             char buf[1024];
             ::sprintf(buf, "%.*f", decimals, value);
+#if USE_ICON_HEXAGON
+            add_item(EItemType::Hexagon, Range_Colors[i], buf);
+#else
             add_item(EItemType::Rect, Range_Colors[i], buf);
+#endif // USE_ICON_HEXAGON
         };
 
         float step_size = range.step_size();
@@ -1051,7 +1063,11 @@ void GCodeViewer::render_legend() const
             if (!visible)
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
 
+#if USE_ICON_HEXAGON
+            add_item(EItemType::Hexagon, Extrusion_Role_Colors[static_cast<unsigned int>(role)], _u8L(ExtrusionEntity::role_to_string(role)), [this, role]() {
+#else
             add_item(EItemType::Rect, Extrusion_Role_Colors[static_cast<unsigned int>(role)], _u8L(ExtrusionEntity::role_to_string(role)), [this, role]() {
+#endif // USE_ICON_HEXAGON
                 if (role < erCount)
                 {
                     m_extrusions.role_visibility_flags = is_visible(role) ? m_extrusions.role_visibility_flags & ~(1 << role) : m_extrusions.role_visibility_flags | (1 << role);
@@ -1081,7 +1097,11 @@ void GCodeViewer::render_legend() const
             if (it == m_extruder_ids.end())
                 continue;
 
+#if USE_ICON_HEXAGON
+            add_item(EItemType::Hexagon, m_tool_colors[i], (boost::format(_u8L("Extruder %d")) % (i + 1)).str());
+#else
             add_item(EItemType::Rect, m_tool_colors[i], (boost::format(_u8L("Extruder %d")) % (i + 1)).str());
+#endif // USE_ICON_HEXAGON
         }
         break;
     }
@@ -1092,7 +1112,11 @@ void GCodeViewer::render_legend() const
         if (extruders_count == 1) { // single extruder use case
             if (custom_gcode_per_print_z.empty())
                 // no data to show
+#if USE_ICON_HEXAGON
+                add_item(EItemType::Hexagon, m_tool_colors.front(), _u8L("Default print color"));
+#else
                 add_item(EItemType::Rect, m_tool_colors.front(), _u8L("Default print color"));
+#endif // USE_ICON_HEXAGON
             else {
                 std::vector<std::pair<double, double>> cp_values;
                 cp_values.reserve(custom_gcode_per_print_z.size());
@@ -1116,7 +1140,11 @@ void GCodeViewer::render_legend() const
 
                 const int items_cnt = static_cast<int>(cp_values.size());
                 if (items_cnt == 0) { // There is no one color change, but there are some pause print or custom Gcode
+#if USE_ICON_HEXAGON
+                    add_item(EItemType::Hexagon, m_tool_colors.front(), _u8L("Default print color"));
+#else
                     add_item(EItemType::Rect, m_tool_colors.front(), _u8L("Default print color"));
+#endif // USE_ICON_HEXAGON
                 }
                 else {
                     for (int i = items_cnt; i >= 0; --i) {
@@ -1124,14 +1152,26 @@ void GCodeViewer::render_legend() const
                         std::string id_str = " (" + std::to_string(i + 1) + ")";
 
                         if (i == 0) {
+#if USE_ICON_HEXAGON
+                            add_item(EItemType::Hexagon, m_tool_colors[i], (boost::format(_u8L("up to %.2f mm")) % cp_values.front().first).str() + id_str);
+#else
                             add_item(EItemType::Rect, m_tool_colors[i], (boost::format(_u8L("up to %.2f mm")) % cp_values.front().first).str() + id_str);
+#endif // USE_ICON_HEXAGON
                             break;
                         }
                         else if (i == items_cnt) {
+#if USE_ICON_HEXAGON
+                            add_item(EItemType::Hexagon, m_tool_colors[i], (boost::format(_u8L("above %.2f mm")) % cp_values[i - 1].second).str() + id_str);
+#else
                             add_item(EItemType::Rect, m_tool_colors[i], (boost::format(_u8L("above %.2f mm")) % cp_values[i - 1].second).str() + id_str);
+#endif // USE_ICON_HEXAGON
                             continue;
                         }
+#if USE_ICON_HEXAGON
+                        add_item(EItemType::Hexagon, m_tool_colors[i], (boost::format(_u8L("%.2f - %.2f mm")) % cp_values[i - 1].second% cp_values[i].first).str() + id_str);
+#else
                         add_item(EItemType::Rect, m_tool_colors[i], (boost::format(_u8L("%.2f - %.2f mm")) % cp_values[i - 1].second% cp_values[i].first).str() + id_str);
+#endif // USE_ICON_HEXAGON
                     }
                 }
             }
@@ -1140,7 +1180,11 @@ void GCodeViewer::render_legend() const
         {
             // extruders
             for (unsigned int i = 0; i < (unsigned int)extruders_count; ++i) {
+#if USE_ICON_HEXAGON
+                add_item(EItemType::Hexagon, m_tool_colors[i], (boost::format(_u8L("Extruder %d")) % (i + 1)).str());
+#else
                 add_item(EItemType::Rect, m_tool_colors[i], (boost::format(_u8L("Extruder %d")) % (i + 1)).str());
+#endif // USE_ICON_HEXAGON
             }
 
             // color changes
@@ -1151,7 +1195,11 @@ void GCodeViewer::render_legend() const
                     // create label for color change item
                     std::string id_str = " (" + std::to_string(color_change_idx--) + ")";
 
+#if USE_ICON_HEXAGON
+                    add_item(EItemType::Hexagon, m_tool_colors[last_color_id--],
+#else
                     add_item(EItemType::Rect, m_tool_colors[last_color_id--],
+#endif // USE_ICON_HEXAGON
                         (boost::format(_u8L("Color change for Extruder %d at %.2f mm")) % custom_gcode_per_print_z[i].extruder % custom_gcode_per_print_z[i].print_z).str() + id_str);
                 }
             }
