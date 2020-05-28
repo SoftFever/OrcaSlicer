@@ -319,6 +319,11 @@ public:
     const Camera& get_camera() const;
     Camera& get_camera();
 
+#if ENABLE_ENVIRONMENT_MAP
+    void init_environment_texture();
+    unsigned int get_environment_texture_id() const;
+#endif // ENABLE_ENVIRONMENT_MAP
+
     const Bed3D& get_bed() const;
     Bed3D& get_bed();
 

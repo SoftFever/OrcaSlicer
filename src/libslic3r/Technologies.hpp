@@ -42,5 +42,8 @@
 // Enable rendering of objects colored by facets' slope
 #define ENABLE_SLOPE_RENDERING (1 && ENABLE_2_3_0_ALPHA1)
 
+// Enable rendering of objects using environment map
+#define ENABLE_ENVIRONMENT_MAP (1 && ENABLE_2_3_0_ALPHA1)
+
 
 #endif // _prusaslicer_technologies_h_

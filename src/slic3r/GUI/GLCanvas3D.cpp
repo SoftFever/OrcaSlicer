@@ -1994,6 +1994,10 @@ void GLCanvas3D::render()
         return;
     }
 
+#if ENABLE_ENVIRONMENT_MAP
+    wxGetApp().plater()->init_environment_texture();
+#endif // ENABLE_ENVIRONMENT_MAP
+
     const Size& cnv_size = get_canvas_size();
     // Probably due to different order of events on Linux/GTK2, when one switched from 3D scene
     // to preview, this was called before canvas had its final size. It reported zero width
