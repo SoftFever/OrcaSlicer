@@ -11,17 +11,6 @@ template BoundingBoxBase<Vec2d>::BoundingBoxBase(const std::vector<Vec2d> &point
 
 template BoundingBox3Base<Vec3d>::BoundingBox3Base(const std::vector<Vec3d> &points);
 
-BoundingBox::BoundingBox(const Lines &lines)
-{
-    Points points;
-    points.reserve(lines.size());
-    for (const Line &line : lines) {
-        points.emplace_back(line.a);
-        points.emplace_back(line.b);
-    }
-    *this = BoundingBox(points);
-}
-
 void BoundingBox::polygon(Polygon* polygon) const
 {
     polygon->points.clear();

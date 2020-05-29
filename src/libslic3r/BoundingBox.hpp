@@ -20,17 +20,19 @@ public:
         min(pmin), max(pmax), defined(pmin(0) < pmax(0) && pmin(1) < pmax(1)) {}
     BoundingBoxBase(const std::vector<PointClass>& points) : min(PointClass::Zero()), max(PointClass::Zero())
     {
-        if (points.empty())
-            throw std::invalid_argument("Empty point set supplied to BoundingBoxBase constructor");
-
-        typename std::vector<PointClass>::const_iterator it = points.begin();
-        this->min = *it;
-        this->max = *it;
-        for (++ it; it != points.end(); ++ it) {
-            this->min = this->min.cwiseMin(*it);
-            this->max = this->max.cwiseMax(*it);
+        if (points.empty()) {
+            this->defined = false;
+            // throw std::invalid_argument("Empty point set supplied to BoundingBoxBase constructor");
+        } else {
+            typename std::vector<PointClass>::const_iterator it = points.begin();
+            this->min = *it;
+            this->max = *it;
+            for (++ it; it != points.end(); ++ it) {
+                this->min = this->min.cwiseMin(*it);
+                this->max = this->max.cwiseMax(*it);
+            }
+            this->defined = (this->min(0) < this->max(0)) && (this->min(1) < this->max(1));
         }
-        this->defined = (this->min(0) < this->max(0)) && (this->min(1) < this->max(1));
     }
     void reset() { this->defined = false; this->min = PointClass::Zero(); this->max = PointClass::Zero(); }
     void merge(const PointClass &point);
@@ -143,7 +145,6 @@ public:
     BoundingBox() : BoundingBoxBase<Point>() {}
     BoundingBox(const Point &pmin, const Point &pmax) : BoundingBoxBase<Point>(pmin, pmax) {}
     BoundingBox(const Points &points) : BoundingBoxBase<Point>(points) {}
-    BoundingBox(const Lines &lines);
 
     friend BoundingBox get_extents_rotated(const Points &points, double angle);
 };
