@@ -756,40 +756,36 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 void GCodeViewer::render_toolpaths() const
 {
 #if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
-    bool is_glsl_120 = m_shaders_editor.shader_version >= 1 && wxGetApp().is_glsl_version_greater_or_equal_to(1, 20);
-    std::array<float, 2> point_sizes;
-    if (m_shaders_editor.size_dependent_on_zoom)
-        point_sizes = { std::min(static_cast<float>(m_shaders_editor.sizes[0]), m_detected_point_sizes[1]), std::min(static_cast<float>(m_shaders_editor.sizes[1]), m_detected_point_sizes[1]) };
-    else
-        point_sizes = { static_cast<float>(m_shaders_editor.fixed_size), static_cast<float>(m_shaders_editor.fixed_size) };
+    float point_size = m_shaders_editor.point_size;
 #else
-    bool is_glsl_120 = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20);
-    std::array<float, 2> point_sizes = { std::min(8.0f, m_detected_point_sizes[1]), std::min(48.0f, m_detected_point_sizes[1]) };
+    float point_size = 1.0f;
 #endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
     const Camera& camera = wxGetApp().plater()->get_camera();
     double zoom = camera.get_zoom();
     const std::array<int, 4>& viewport = camera.get_viewport();
     std::array<int, 2> viewport_sizes = { viewport[2], viewport[3] };
+    float near_plane_height = camera.get_type() == Camera::Perspective ? static_cast<float>(viewport[3]) / (2.0f * static_cast<float>(2.0 * std::tan(0.5 * Geometry::deg2rad(camera.get_fov())))) :
+        static_cast<float>(viewport[3]) * 0.0005;
 
     Transform3d inv_proj = camera.get_projection_matrix().inverse();
 
-    auto render_options = [this, is_glsl_120, zoom, viewport, inv_proj, viewport_sizes, point_sizes](const IBuffer& buffer, EOptionsColors colors_id, GLShaderProgram& shader) {
+    auto render_options = [this, zoom, inv_proj, viewport_sizes, point_size, near_plane_height](const IBuffer& buffer, EOptionsColors colors_id, GLShaderProgram& shader) {
         shader.set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(colors_id)]);
+        shader.set_uniform("zoom", zoom);
 #if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
-        shader.set_uniform("zoom", m_shaders_editor.size_dependent_on_zoom ? zoom : 1.0f);
         shader.set_uniform("percent_outline_radius", 0.01f * static_cast<float>(m_shaders_editor.percent_outline));
         shader.set_uniform("percent_center_radius", 0.01f * static_cast<float>(m_shaders_editor.percent_center));
 #else
-        shader.set_uniform("zoom", zoom);
         shader.set_uniform("percent_outline_radius", 0.15f);
         shader.set_uniform("percent_center_radius", 0.15f);
 #endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
         shader.set_uniform("viewport_sizes", viewport_sizes);
         shader.set_uniform("inv_proj_matrix", inv_proj);
-        shader.set_uniform("point_sizes", point_sizes);
+        shader.set_uniform("point_size", point_size);
+        shader.set_uniform("near_plane_height", near_plane_height);
+
         glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
-        if (is_glsl_120)
-            glsafe(::glEnable(GL_POINT_SPRITE));
+        glsafe(::glEnable(GL_POINT_SPRITE));
 
         for (const RenderPath& path : buffer.render_paths) {
             glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
@@ -797,9 +793,8 @@ void GCodeViewer::render_toolpaths() const
             ++m_statistics.gl_multi_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
         }
-        if (is_glsl_120)
-            glsafe(::glDisable(GL_POINT_SPRITE));
-
+        
+        glsafe(::glDisable(GL_POINT_SPRITE));
         glsafe(::glDisable(GL_VERTEX_PROGRAM_POINT_SIZE));
     };
 
@@ -964,31 +959,49 @@ void GCodeViewer::render_legend() const
         {
 #if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
             ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
-            draw_list->AddCircle(center, 0.5f * icon_size, ICON_BORDER_COLOR, 16);
             if (m_shaders_editor.shader_version == 1) {
-                draw_list->AddCircleFilled(center, (0.5f * icon_size) - 2.0f,
+                draw_list->AddCircleFilled(center, 0.5f * icon_size,
                     ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
-                float radius = ((0.5f * icon_size) - 2.0f) * (1.0f - 0.01f * static_cast<float>(m_shaders_editor.percent_outline));
+                float radius = 0.5f * icon_size * (1.0f - 0.01f * static_cast<float>(m_shaders_editor.percent_outline));
                 draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
                 if (m_shaders_editor.percent_center > 0) {
-                    radius = ((0.5f * icon_size) - 2.0f) * 0.01f * static_cast<float>(m_shaders_editor.percent_center);
+                    radius = 0.5f * icon_size * 0.01f * static_cast<float>(m_shaders_editor.percent_center);
                     draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
                 }
-            } else
-                draw_list->AddCircleFilled(center, (0.5f * icon_size) - 2.0f, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
+            }
+            else
+                draw_list->AddCircleFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
+
+//            ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
+//            draw_list->AddCircle(center, 0.5f * icon_size, ICON_BORDER_COLOR, 16);
+//            if (m_shaders_editor.shader_version == 1) {
+//                draw_list->AddCircleFilled(center, (0.5f * icon_size) - 2.0f,
+//                    ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
+//                float radius = ((0.5f * icon_size) - 2.0f) * (1.0f - 0.01f * static_cast<float>(m_shaders_editor.percent_outline));
+//                draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
+//                if (m_shaders_editor.percent_center > 0) {
+//                    radius = ((0.5f * icon_size) - 2.0f) * 0.01f * static_cast<float>(m_shaders_editor.percent_center);
+//                    draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
+//                }
+//            } else
+//                draw_list->AddCircleFilled(center, (0.5f * icon_size) - 2.0f, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
 #else
-            draw_list->AddCircle({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, 0.5f * icon_size, ICON_BORDER_COLOR, 16);
-            draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, (0.5f * icon_size) - 2.0f,
+            draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, 0.5f * icon_size,
                 ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
+
+//            draw_list->AddCircle({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, 0.5f * icon_size, ICON_BORDER_COLOR, 16);
+//            draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, (0.5f * icon_size) - 2.0f,
+//                ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
 #endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
             break;
         }
         case EItemType::Hexagon:
         {
             ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
-            draw_list->AddNgon(center, 0.5f * icon_size, ICON_BORDER_COLOR, 6);
-            draw_list->AddNgonFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, (0.5f * icon_size) - 2.0f,
-                ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 6);
+            draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 6);
+//            draw_list->AddNgon(center, 0.5f * icon_size, ICON_BORDER_COLOR, 6);
+//            draw_list->AddNgonFilled(center, (0.5f * icon_size) - 2.0f,
+//                ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 6);
             break;
         }
         case EItemType::Line:
@@ -1409,23 +1422,7 @@ void GCodeViewer::render_shaders_editor() const
 
     if (ImGui::CollapsingHeader("Options", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::Checkbox("size dependent on zoom", &m_shaders_editor.size_dependent_on_zoom);
-        if (m_shaders_editor.size_dependent_on_zoom)
-        {
-            if (ImGui::SliderInt("min size (min zoom)", &m_shaders_editor.sizes[0], 1, 100))
-            {
-                if (m_shaders_editor.sizes[1] < m_shaders_editor.sizes[0])
-                    m_shaders_editor.sizes[1] = m_shaders_editor.sizes[0];
-            }
-            ImGui::SliderInt("max size (max zoom)", &m_shaders_editor.sizes[1], 1, 100);
-            {
-                if (m_shaders_editor.sizes[1] < m_shaders_editor.sizes[0])
-                    m_shaders_editor.sizes[0] = m_shaders_editor.sizes[1];
-            }
-        }
-        else
-            ImGui::SliderInt("fixed size", &m_shaders_editor.fixed_size, 1, 100);
-
+        ImGui::SliderFloat("point size", &m_shaders_editor.point_size, 0.5f, 1.5f, "%.1f");
         if (m_shaders_editor.shader_version == 1)
         {
             ImGui::SliderInt("percent outline", &m_shaders_editor.percent_outline, 0, 50);

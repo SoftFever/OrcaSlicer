@@ -1,11 +1,11 @@
 #version 110
 
 uniform float zoom;
-// x = min, y = max
-uniform vec2 point_sizes;
+uniform float point_size;
+uniform float near_plane_height;
 
 void main()
 {
-    gl_PointSize = clamp(zoom, point_sizes.x, point_sizes.y);
-    gl_Position = ftransform();    
+    gl_Position = ftransform();
+    gl_PointSize = (gl_Position.w == 1.0) ? zoom * near_plane_height * point_size : near_plane_height * point_size / gl_Position.w;
 }

@@ -206,9 +206,7 @@ class GCodeViewer
     struct ShadersEditor
     {
         int shader_version{ 2 };
-        bool size_dependent_on_zoom{ true };
-        int fixed_size{ 16 };
-        std::array<int, 2> sizes{ 3, 21 };
+        float point_size{ 1.0f };
         int percent_outline{ 0 };
         int percent_center{ 33 };
     };

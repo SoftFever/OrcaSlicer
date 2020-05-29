@@ -79,7 +79,7 @@ float fragment_depth(vec3 eye_pos)
 
 void main()
 {
-    vec2 pos = gl_PointCoord - vec2(0.5, 0.5);
+    vec2 pos = gl_PointCoord - vec2(0.5);
     float sq_radius = dot(pos, pos);
     if (sq_radius > 0.25)
         discard;
