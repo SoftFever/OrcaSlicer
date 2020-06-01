@@ -65,7 +65,7 @@ vec4 on_sphere_color(vec3 eye_on_sphere_position)
     NdotL = max(dot(eye_normal, LIGHT_FRONT_DIR), 0.0);
     intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
     
-    return vec4(intensity + uniform_color.rgb * intensity.x, 1.0);
+    return vec4(intensity.y + uniform_color.rgb * intensity.x, 1.0);
 //    return vec4(vec3(intensity.y) + uniform_color.rgb * intensity.x, 1.0);
 }
 
