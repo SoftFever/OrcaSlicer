@@ -763,13 +763,12 @@ void GCodeViewer::render_toolpaths() const
     const Camera& camera = wxGetApp().plater()->get_camera();
     double zoom = camera.get_zoom();
     const std::array<int, 4>& viewport = camera.get_viewport();
-    std::array<int, 2> viewport_sizes = { viewport[2], viewport[3] };
     float near_plane_height = camera.get_type() == Camera::Perspective ? static_cast<float>(viewport[3]) / (2.0f * static_cast<float>(2.0 * std::tan(0.5 * Geometry::deg2rad(camera.get_fov())))) :
         static_cast<float>(viewport[3]) * 0.0005;
 
     Transform3d inv_proj = camera.get_projection_matrix().inverse();
 
-    auto render_options = [this, zoom, inv_proj, viewport_sizes, point_size, near_plane_height](const IBuffer& buffer, EOptionsColors colors_id, GLShaderProgram& shader) {
+    auto render_options = [this, zoom, inv_proj, viewport, point_size, near_plane_height](const IBuffer& buffer, EOptionsColors colors_id, GLShaderProgram& shader) {
         shader.set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(colors_id)]);
         shader.set_uniform("zoom", zoom);
 #if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
@@ -779,7 +778,7 @@ void GCodeViewer::render_toolpaths() const
         shader.set_uniform("percent_outline_radius", 0.15f);
         shader.set_uniform("percent_center_radius", 0.15f);
 #endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
-        shader.set_uniform("viewport_sizes", viewport_sizes);
+        shader.set_uniform("viewport", viewport);
         shader.set_uniform("inv_proj_matrix", inv_proj);
         shader.set_uniform("point_size", point_size);
         shader.set_uniform("near_plane_height", near_plane_height);
@@ -1422,7 +1421,7 @@ void GCodeViewer::render_shaders_editor() const
 
     if (ImGui::CollapsingHeader("Options", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::SliderFloat("point size", &m_shaders_editor.point_size, 0.5f, 1.5f, "%.1f");
+        ImGui::SliderFloat("point size", &m_shaders_editor.point_size, 0.5f, 3.0f, "%.1f");
         if (m_shaders_editor.shader_version == 1)
         {
             ImGui::SliderInt("percent outline", &m_shaders_editor.percent_outline, 0, 50);

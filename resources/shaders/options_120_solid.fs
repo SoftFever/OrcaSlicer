@@ -17,28 +17,26 @@ const vec3 LIGHT_FRONT_DIR = vec3(0.6985074, 0.1397015, 0.6985074);
 
 uniform vec3 uniform_color;
 
-// x = width, y = height
-uniform ivec2 viewport_sizes;
+uniform ivec4 viewport;
+uniform float point_size;
 uniform mat4 inv_proj_matrix;
 
 varying vec3 eye_center;
-
-float radius = 0.5;
 // x = tainted, y = specular;
 vec2 intensity;
+
+float radius = 0.5 * point_size;
 
 vec3 eye_position_from_fragment()
 {
     // Convert screen coordinates to normalized device coordinates (NDC)
-    vec4 ndc = vec4(
-        (gl_FragCoord.x / viewport_sizes.x - 0.5) * 2.0,
-        (gl_FragCoord.y / viewport_sizes.y - 0.5) * 2.0,
-        (gl_FragCoord.z - 0.5) * 2.0,
-        1.0);
-
+    vec4 ndc = vec4((gl_FragCoord.x / viewport.z - 0.5) * 2.0,
+                    (gl_FragCoord.y / viewport.w - 0.5) * 2.0,
+                    (gl_FragCoord.z - 0.5) * 2.0,
+                    gl_FragCoord.w);
     // Convert NDC throuch inverse clip coordinates to view coordinates
     vec4 clip = inv_proj_matrix * ndc;
-    return (clip / clip.w).xyz;
+    return clip.xyz;
 }
 
 vec3 eye_position_on_sphere(vec3 eye_fragment_position)
@@ -67,21 +65,22 @@ vec4 on_sphere_color(vec3 eye_on_sphere_position)
     NdotL = max(dot(eye_normal, LIGHT_FRONT_DIR), 0.0);
     intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
     
-    return vec4(vec3(intensity.y, intensity.y, intensity.y) + uniform_color.rgb * intensity.x, 1.0);
+    return vec4(intensity + uniform_color.rgb * intensity.x, 1.0);
+//    return vec4(vec3(intensity.y) + uniform_color.rgb * intensity.x, 1.0);
 }
 
 float fragment_depth(vec3 eye_pos)
 {
     vec4 clip_pos = gl_ProjectionMatrix * vec4(eye_pos, 1.0);
     float ndc_depth = clip_pos.z / clip_pos.w;
-    return (((gl_DepthRange.far - gl_DepthRange.near) * ndc_depth) + gl_DepthRange.near + gl_DepthRange.far) / 2.0;
+    return ((gl_DepthRange.far - gl_DepthRange.near) * ndc_depth + gl_DepthRange.near + gl_DepthRange.far) / 2.0;
 }
 
 void main()
 {
-    vec2 pos = gl_PointCoord - vec2(0.5);
-    float sq_radius = dot(pos, pos);
-    if (sq_radius > 0.25)
+    vec2 pos = (gl_PointCoord - 0.5) * 2.0;
+    float radius = length(pos);
+    if (radius > 1.0)
         discard;
      
     vec3 eye_on_sphere_position = eye_position_on_sphere(eye_position_from_fragment());
