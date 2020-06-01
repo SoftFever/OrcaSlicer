@@ -5456,7 +5456,10 @@ void Plater::show_action_buttons(const bool ready_to_slice) const { p->show_acti
 
 void Plater::copy_selection_to_clipboard()
 {
-    if (can_copy_to_clipboard())
+    // At first try to copy selected values to the ObjectList's clipboard
+    // to check if Settings or Layers are selected in the list
+    // and then copy to 3DCanvas's clipboard if not
+    if (can_copy_to_clipboard() && !p->sidebar->obj_list()->copy_to_clipboard())
         p->view3D->get_canvas3d()->get_selection().copy_to_clipboard();
 }
 
@@ -5466,7 +5469,12 @@ void Plater::paste_from_clipboard()
         return;
 
     Plater::TakeSnapshot snapshot(this, _L("Paste From Clipboard"));
-    p->view3D->get_canvas3d()->get_selection().paste_from_clipboard();
+
+    // At first try to paste values from the ObjectList's clipboard
+    // to check if Settings or Layers were copied
+    // and then paste from the 3DCanvas's clipboard if not
+    if (!p->sidebar->obj_list()->paste_from_clipboard())
+        p->view3D->get_canvas3d()->get_selection().paste_from_clipboard();
 }
 
 void Plater::search(bool plater_is_active)
@@ -5591,7 +5599,7 @@ bool Plater::can_paste_from_clipboard() const
     const Selection& selection = p->view3D->get_canvas3d()->get_selection();
     const Selection::Clipboard& clipboard = selection.get_clipboard();
 
-    if (clipboard.is_empty())
+    if (clipboard.is_empty() && p->sidebar->obj_list()->clipboard_is_empty())
         return false;
 
     if ((wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA) && !clipboard.is_sla_compliant())
