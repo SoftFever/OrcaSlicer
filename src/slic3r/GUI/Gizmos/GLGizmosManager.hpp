@@ -141,11 +141,6 @@ public:
         EType new_current = m_current;
         m_current = old_current;
 
-        // Update common data. They should be updated when activate_gizmo is
-        // called, so it can be used in on_set_state which is called from there.
-        if (new_current != Undefined)
-            m_common_gizmos_data->update(m_gizmos[new_current]->get_requirements());
-
         // activate_gizmo call sets m_current and calls set_state for the gizmo
         // it does nothing in case the gizmo is already activated
         // it can safely be called for Undefined gizmo

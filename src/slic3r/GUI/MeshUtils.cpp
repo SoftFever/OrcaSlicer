@@ -49,7 +49,8 @@ void MeshClipper::render_cut()
     if (! m_triangles_valid)
         recalculate_triangles();
 
-    m_vertex_array.render();
+    if (m_vertex_array.has_VBOs())
+        m_vertex_array.render();
 }
 
 

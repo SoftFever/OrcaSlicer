@@ -59,7 +59,7 @@ void GLGizmoHollow::set_sla_support_data(ModelObject*, const Selection&)
         return;
 
     const ModelObject* mo = m_c->selection_info()->model_object();
-    if (mo) {
+    if (m_state == On && mo) {
         if (m_old_mo_id != mo->id()) {
             reload_cache();
             m_old_mo_id = mo->id();
@@ -810,11 +810,6 @@ void GLGizmoHollow::on_set_state()
     if (m_state == m_old_state)
         return;
 
-    if (m_state == On && m_old_state != On) { // the gizmo was just turned on
-        // we'll now reload support points:
-        if (m_c->selection_info()->model_object())
-            reload_cache();
-    }
     if (m_state == Off && m_old_state != Off) // the gizmo was just turned Off
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_FORCE_UPDATE));
     m_old_state = m_state;
