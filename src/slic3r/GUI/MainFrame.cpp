@@ -325,21 +325,22 @@ void MainFrame::init_tabpanel()
     }
 
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, [this](wxEvent&) {
-        auto panel = m_tabpanel->GetCurrentPage();
+        wxWindow* panel = m_tabpanel->GetCurrentPage();
+        Tab* tab = dynamic_cast<Tab*>(panel);
 
         // There shouldn't be a case, when we try to select a tab, which doesn't support a printer technology
-        if (panel == nullptr || !static_cast<Tab*>(panel)->supports_printer_technology(m_plater->printer_technology()))
+        if (panel == nullptr || (tab && tab->supports_printer_technology(m_plater->printer_technology())))
             return;
 
         auto& tabs_list = wxGetApp().tabs_list;
-        if (find(tabs_list.begin(), tabs_list.end(), panel) != tabs_list.end()) {
+        if (tab && std::find(tabs_list.begin(), tabs_list.end(), tab) != tabs_list.end()) {
             // On GTK, the wxEVT_NOTEBOOK_PAGE_CHANGED event is triggered
             // before the MainFrame is fully set up.
-            static_cast<Tab*>(panel)->OnActivate();
+            tab->OnActivate();
             m_last_selected_tab = m_tabpanel->GetSelection();
         }
         else
-            select_tab(0);
+            select_tab(0); // select Plater
     });
 
     if (m_layout == slOld) {
