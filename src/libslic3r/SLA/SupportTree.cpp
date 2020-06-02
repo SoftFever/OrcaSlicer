@@ -8,6 +8,7 @@
 #include <libslic3r/SLA/Common.hpp>
 #include <libslic3r/SLA/SpatIndex.hpp>
 #include <libslic3r/SLA/SupportTreeBuilder.hpp>
+#include <libslic3r/SLA/SupportTreeBuildsteps.hpp>
 
 #include <libslic3r/MTUtils.hpp>
 #include <libslic3r/ClipperUtils.hpp>
@@ -103,9 +104,11 @@ SupportTree::UPtr SupportTree::create(const SupportableMesh &sm,
     builder->m_ctl = ctl;
     
     if (sm.cfg.enabled) {
-        builder->build(sm);
+        // Execute takes care about the ground_level
+        SupportTreeBuildsteps::execute(*builder, sm);
         builder->merge_and_cleanup();   // clean metadata, leave only the meshes.
     } else {
+        // If a pad gets added later, it will be in the right Z level
         builder->ground_level = sm.emesh.ground_level();
     }
     

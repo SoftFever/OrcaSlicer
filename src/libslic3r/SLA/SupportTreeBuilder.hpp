@@ -76,6 +76,8 @@ Contour3D sphere(double rho, Portion portion = make_portion(0.0, 2.0*PI),
 // sp: starting point
 Contour3D cylinder(double r, double h, size_t ssteps = 45, const Vec3d &sp = {0,0,0});
 
+Contour3D pinhead(double r_pin, double r_back, double length, size_t steps = 45);
+
 const constexpr long ID_UNSET = -1;
 
 struct Head {
@@ -83,7 +85,7 @@ struct Head {
     
     size_t steps = 45;
     Vec3d dir = {0, 0, -1};
-    Vec3d tr = {0, 0, 0};
+    Vec3d pos = {0, 0, 0};
     
     double r_back_mm = 1;
     double r_pin_mm = 0.5;
@@ -120,17 +122,22 @@ struct Head {
         // the -1 z coordinate
         auto quatern = Quaternion::FromTwoVectors(Vec3d{0, 0, -1}, dir);
         
-        for(auto& p : mesh.points) p = quatern * p + tr;
+        for(auto& p : mesh.points) p = quatern * p + pos;
     }
     
+    inline double real_width() const
+    {
+        return 2 * r_pin_mm + width_mm + 2 * r_back_mm ;
+    }
+
     inline double fullwidth() const
     {
-        return 2 * r_pin_mm + width_mm + 2*r_back_mm - penetration_mm;
+        return real_width() - penetration_mm;
     }
     
     inline Vec3d junction_point() const
     {
-        return tr + ( 2 * r_pin_mm + width_mm + r_back_mm - penetration_mm)*dir;
+        return pos + (fullwidth() - r_back_mm) * dir;
     }
     
     inline double request_pillar_radius(double radius) const
@@ -211,20 +218,6 @@ struct Bridge {
            size_t       steps = 45);
 };
 
-// A bridge that spans from model surface to model surface with small connecting
-// edges on the endpoints. Used for headless support points.
-struct CompactBridge {
-    Contour3D mesh;
-    long id = ID_UNSET;
-    
-    CompactBridge(const Vec3d& sp,
-                  const Vec3d& ep,
-                  const Vec3d& n,
-                  double r,
-                  bool endball = true,
-                  size_t steps = 45);
-};
-
 // A wrapper struct around the pad
 struct Pad {
     TriangleMesh tmesh;
@@ -241,6 +234,67 @@ struct Pad {
     
     bool empty() const { return tmesh.facets_count() == 0; }
 };
+
+// Give points on a 3D ring with given center, radius and orientation
+// method based on:
+// https://math.stackexchange.com/questions/73237/parametric-equation-of-a-circle-in-3d-space
+template<size_t N>
+class PointRing {
+    std::array<double, N> m_phis;
+
+    // Two vectors that will be perpendicular to each other and to the
+    // axis. Values for a(X) and a(Y) are now arbitrary, a(Z) is just a
+    // placeholder.
+    // a and b vectors are perpendicular to the ring direction and to each other.
+    // Together they define the plane where we have to iterate with the
+    // given angles in the 'm_phis' vector
+    Vec3d a = {0, 1, 0}, b;
+    double m_radius = 0.;
+
+    static inline bool constexpr is_one(double val)
+    {
+        return std::abs(std::abs(val) - 1) < 1e-20;
+    }
+
+public:
+
+    PointRing(const Vec3d &n)
+    {
+        m_phis = linspace_array<N>(0., 2 * PI);
+
+        // We have to address the case when the direction vector v (same as
+        // dir) is coincident with one of the world axes. In this case two of
+        // its components will be completely zero and one is 1.0. Our method
+        // becomes dangerous here due to division with zero. Instead, vector
+        // 'a' can be an element-wise rotated version of 'v'
+        if(is_one(n(X)) || is_one(n(Y)) || is_one(n(Z))) {
+            a = {n(Z), n(X), n(Y)};
+            b = {n(Y), n(Z), n(X)};
+        }
+        else {
+            a(Z) = -(n(Y)*a(Y)) / n(Z); a.normalize();
+            b = a.cross(n);
+        }
+    }
+
+    Vec3d get(size_t idx, const Vec3d src, double r) const
+    {
+        double phi = m_phis[idx];
+        double sinphi = std::sin(phi);
+        double cosphi = std::cos(phi);
+
+        double rpscos = r * cosphi;
+        double rpssin = r * sinphi;
+
+        // Point on the sphere
+        return {src(X) + rpscos * a(X) + rpssin * b(X),
+                src(Y) + rpscos * a(Y) + rpssin * b(Y),
+                src(Z) + rpscos * a(Z) + rpssin * b(Z)};
+    }
+};
+
+EigenMesh3D::hit_result query_hit(const SupportableMesh &msh, const Bridge &br, double safety_d = std::nan(""));
+EigenMesh3D::hit_result query_hit(const SupportableMesh &msh, const Head &br, double safety_d = std::nan(""));
 
 // This class will hold the support tree meshes with some additional
 // bookkeeping as well. Various parts of the support geometry are stored
@@ -264,7 +318,6 @@ class SupportTreeBuilder: public SupportTree {
     std::vector<Junction> m_junctions;
     std::vector<Bridge> m_bridges;
     std::vector<Bridge> m_crossbridges;
-    std::vector<CompactBridge> m_compact_bridges;    
     Pad m_pad;
     
     using Mutex = ccr::SpinningMutex;
@@ -415,15 +468,6 @@ public:
         return _add_bridge(m_crossbridges, std::forward<Args>(args)...);
     }
     
-    template<class...Args> const CompactBridge& add_compact_bridge(Args&&...args)
-    {
-        std::lock_guard<Mutex> lk(m_mutex);
-        m_compact_bridges.emplace_back(std::forward<Args>(args)...);
-        m_compact_bridges.back().id = long(m_compact_bridges.size() - 1);
-        m_meshcache_valid = false;
-        return m_compact_bridges.back();
-    }
-    
     Head &head(unsigned id)
     {
         std::lock_guard<Mutex> lk(m_mutex);
@@ -488,8 +532,6 @@ public:
     
     virtual const TriangleMesh &retrieve_mesh(
         MeshType meshtype = MeshType::Support) const override;
-
-    bool build(const SupportableMesh &supportable_mesh);
 };
 
 }} // namespace Slic3r::sla

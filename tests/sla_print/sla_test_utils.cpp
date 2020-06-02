@@ -129,8 +129,7 @@ void test_supports(const std::string          &obj_filename,
     // If there is no elevation, support points shall be removed from the
     // bottom of the object.
     if (std::abs(supportcfg.object_elevation_mm) < EPSILON) {
-        sla::remove_bottom_points(support_points, zmin,
-                                  supportcfg.base_height_mm);
+        sla::remove_bottom_points(support_points, zmin + supportcfg.base_height_mm);
     } else {
         // Should be support points at least on the bottom of the model
         REQUIRE_FALSE(support_points.empty());
@@ -141,7 +140,8 @@ void test_supports(const std::string          &obj_filename,
     
     // Generate the actual support tree
     sla::SupportTreeBuilder treebuilder;
-    treebuilder.build(sla::SupportableMesh{emesh, support_points, supportcfg});
+    sla::SupportableMesh    sm{emesh, support_points, supportcfg};
+    sla::SupportTreeBuildsteps::execute(treebuilder, sm);
     
     check_support_tree_integrity(treebuilder, supportcfg);
     

@@ -229,11 +229,6 @@ class SupportTreeBuildsteps {
         double r_pin,
         double r_back,
         double width);
-    
-    template<class...Args>
-    inline double pinhead_mesh_distance(Args&&...args) {
-        return pinhead_mesh_intersect(std::forward<Args>(args)...).distance();
-    }
 
     // Checking bridge (pillar and stick as well) intersection with the model.
     // If the function is used for headless sticks, the ins_check parameter
@@ -247,7 +242,7 @@ class SupportTreeBuildsteps {
         const Vec3d& s,
         const Vec3d& dir,
         double r,
-        bool ins_check = false);
+        double safety_d = std::nan(""));
     
     template<class...Args>
     inline double bridge_mesh_distance(Args&&...args) {
@@ -268,8 +263,8 @@ class SupportTreeBuildsteps {
     inline bool connect_to_ground(Head& head);
     
     bool connect_to_model_body(Head &head);
-    
-    bool search_pillar_and_connect(const Head& head);
+
+    bool search_pillar_and_connect(const Head& source);
     
     // This is a proxy function for pillar creation which will mind the gap
     // between the pad and the model bottom in zero elevation mode.

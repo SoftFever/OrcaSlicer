@@ -155,6 +155,65 @@ Contour3D cylinder(double r, double h, size_t ssteps, const Vec3d &sp)
     return ret;
 }
 
+Contour3D pinhead(double r_pin, double r_back, double length, size_t steps)
+{
+    assert(length > 0.);
+    assert(r_back > 0.);
+    assert(r_pin > 0.);
+
+    Contour3D mesh;
+
+    // We create two spheres which will be connected with a robe that fits
+    // both circles perfectly.
+
+    // Set up the model detail level
+    const double detail = 2*PI/steps;
+
+    // We don't generate whole circles. Instead, we generate only the
+    // portions which are visible (not covered by the robe) To know the
+    // exact portion of the bottom and top circles we need to use some
+    // rules of tangent circles from which we can derive (using simple
+    // triangles the following relations:
+
+    // The height of the whole mesh
+    const double h = r_back + r_pin + length;
+    double phi = PI / 2. - std::acos((r_back - r_pin) / h);
+
+    // To generate a whole circle we would pass a portion of (0, Pi)
+    // To generate only a half horizontal circle we can pass (0, Pi/2)
+    // The calculated phi is an offset to the half circles needed to smooth
+    // the transition from the circle to the robe geometry
+
+    auto&& s1 = sphere(r_back, make_portion(0, PI/2 + phi), detail);
+    auto&& s2 = sphere(r_pin, make_portion(PI/2 + phi, PI), detail);
+
+    for(auto& p : s2.points) p.z() += h;
+
+    mesh.merge(s1);
+    mesh.merge(s2);
+
+    for(size_t idx1 = s1.points.size() - steps, idx2 = s1.points.size();
+         idx1 < s1.points.size() - 1;
+         idx1++, idx2++)
+    {
+        coord_t i1s1 = coord_t(idx1), i1s2 = coord_t(idx2);
+        coord_t i2s1 = i1s1 + 1, i2s2 = i1s2 + 1;
+
+        mesh.faces3.emplace_back(i1s1, i2s1, i2s2);
+        mesh.faces3.emplace_back(i1s1, i2s2, i1s2);
+    }
+
+    auto i1s1 = coord_t(s1.points.size()) - coord_t(steps);
+    auto i2s1 = coord_t(s1.points.size()) - 1;
+    auto i1s2 = coord_t(s1.points.size());
+    auto i2s2 = coord_t(s1.points.size()) + coord_t(steps) - 1;
+
+    mesh.faces3.emplace_back(i2s2, i2s1, i1s1);
+    mesh.faces3.emplace_back(i1s2, i2s2, i1s1);
+
+    return mesh;
+}
+
 Head::Head(double       r_big_mm,
            double       r_small_mm,
            double       length_mm,
@@ -164,67 +223,17 @@ Head::Head(double       r_big_mm,
            const size_t circlesteps)
     : steps(circlesteps)
     , dir(direction)
-    , tr(offset)
+    , pos(offset)
     , r_back_mm(r_big_mm)
     , r_pin_mm(r_small_mm)
     , width_mm(length_mm)
     , penetration_mm(penetration)
 {
-    assert(width_mm > 0.);
-    assert(r_back_mm > 0.);
-    assert(r_pin_mm > 0.);
-    
-    // We create two spheres which will be connected with a robe that fits
-    // both circles perfectly.
-    
-    // Set up the model detail level
-    const double detail = 2*PI/steps;
-    
-    // We don't generate whole circles. Instead, we generate only the
-    // portions which are visible (not covered by the robe) To know the
-    // exact portion of the bottom and top circles we need to use some
-    // rules of tangent circles from which we can derive (using simple
-    // triangles the following relations:
-    
-    // The height of the whole mesh
-    const double h = r_big_mm + r_small_mm + width_mm;
-    double phi = PI/2 - std::acos( (r_big_mm - r_small_mm) / h );
-    
-    // To generate a whole circle we would pass a portion of (0, Pi)
-    // To generate only a half horizontal circle we can pass (0, Pi/2)
-    // The calculated phi is an offset to the half circles needed to smooth
-    // the transition from the circle to the robe geometry
-    
-    auto&& s1 = sphere(r_big_mm, make_portion(0, PI/2 + phi), detail);
-    auto&& s2 = sphere(r_small_mm, make_portion(PI/2 + phi, PI), detail);
-    
-    for(auto& p : s2.points) p.z() += h;
-    
-    mesh.merge(s1);
-    mesh.merge(s2);
-    
-    for(size_t idx1 = s1.points.size() - steps, idx2 = s1.points.size();
-        idx1 < s1.points.size() - 1;
-        idx1++, idx2++)
-    {
-        coord_t i1s1 = coord_t(idx1), i1s2 = coord_t(idx2);
-        coord_t i2s1 = i1s1 + 1, i2s2 = i1s2 + 1;
-        
-        mesh.faces3.emplace_back(i1s1, i2s1, i2s2);
-        mesh.faces3.emplace_back(i1s1, i2s2, i1s2);
-    }
-    
-    auto i1s1 = coord_t(s1.points.size()) - coord_t(steps);
-    auto i2s1 = coord_t(s1.points.size()) - 1;
-    auto i1s2 = coord_t(s1.points.size());
-    auto i2s2 = coord_t(s1.points.size()) + coord_t(steps) - 1;
-    
-    mesh.faces3.emplace_back(i2s2, i2s1, i1s1);
-    mesh.faces3.emplace_back(i1s2, i2s2, i1s1);
+    mesh = pinhead(r_pin_mm, r_back_mm, width_mm, steps);
     
     // To simplify further processing, we translate the mesh so that the
     // last vertex of the pointing sphere (the pinpoint) will be at (0,0,0)
-    for(auto& p : mesh.points) p.z() -= (h + r_small_mm - penetration_mm);
+    for(auto& p : mesh.points) p.z() -= (fullwidth() - r_back_mm);
 }
 
 Pillar::Pillar(const Vec3d &jp, const Vec3d &endp, double radius, size_t st):
@@ -305,34 +314,6 @@ Bridge::Bridge(const Vec3d &j1, const Vec3d &j2, double r_mm, size_t steps):
     for(auto& p : mesh.points) p = quater * p + j1;
 }
 
-CompactBridge::CompactBridge(const Vec3d &sp,
-                             const Vec3d &ep,
-                             const Vec3d &n,
-                             double       r,
-                             bool         endball,
-                             size_t       steps)
-{
-    Vec3d startp = sp + r * n;
-    Vec3d dir = (ep - startp).normalized();
-    Vec3d endp = ep - r * dir;
-    
-    Bridge br(startp, endp, r, steps);
-    mesh.merge(br.mesh);
-    
-    // now add the pins
-    double fa = 2*PI/steps;
-    auto upperball = sphere(r, Portion{PI / 2 - fa, PI}, fa);
-    for(auto& p : upperball.points) p += startp;
-    
-    if(endball) {
-        auto lowerball = sphere(r, Portion{0, PI/2 + 2*fa}, fa);
-        for(auto& p : lowerball.points) p += endp;
-        mesh.merge(lowerball);
-    }
-    
-    mesh.merge(upperball);
-}
-
 Pad::Pad(const TriangleMesh &support_mesh,
          const ExPolygons &  model_contours,
          double              ground_level,
@@ -368,7 +349,6 @@ SupportTreeBuilder::SupportTreeBuilder(SupportTreeBuilder &&o)
     , m_pillars{std::move(o.m_pillars)}
     , m_bridges{std::move(o.m_bridges)}
     , m_crossbridges{std::move(o.m_crossbridges)}
-    , m_compact_bridges{std::move(o.m_compact_bridges)}
     , m_pad{std::move(o.m_pad)}
     , m_meshcache{std::move(o.m_meshcache)}
     , m_meshcache_valid{o.m_meshcache_valid}
@@ -382,7 +362,6 @@ SupportTreeBuilder::SupportTreeBuilder(const SupportTreeBuilder &o)
     , m_pillars{o.m_pillars}
     , m_bridges{o.m_bridges}
     , m_crossbridges{o.m_crossbridges}
-    , m_compact_bridges{o.m_compact_bridges}
     , m_pad{o.m_pad}
     , m_meshcache{o.m_meshcache}
     , m_meshcache_valid{o.m_meshcache_valid}
@@ -397,7 +376,6 @@ SupportTreeBuilder &SupportTreeBuilder::operator=(SupportTreeBuilder &&o)
     m_pillars = std::move(o.m_pillars);
     m_bridges = std::move(o.m_bridges);
     m_crossbridges = std::move(o.m_crossbridges);
-    m_compact_bridges = std::move(o.m_compact_bridges);
     m_pad = std::move(o.m_pad);
     m_meshcache = std::move(o.m_meshcache);
     m_meshcache_valid = o.m_meshcache_valid;
@@ -413,7 +391,6 @@ SupportTreeBuilder &SupportTreeBuilder::operator=(const SupportTreeBuilder &o)
     m_pillars = o.m_pillars;
     m_bridges = o.m_bridges;
     m_crossbridges = o.m_crossbridges;
-    m_compact_bridges = o.m_compact_bridges;
     m_pad = o.m_pad;
     m_meshcache = o.m_meshcache;
     m_meshcache_valid = o.m_meshcache_valid;
@@ -443,12 +420,7 @@ const TriangleMesh &SupportTreeBuilder::merged_mesh() const
         if (ctl().stopcondition()) break;
         merged.merge(j.mesh);
     }
-    
-    for (auto &cb : m_compact_bridges) {
-        if (ctl().stopcondition()) break;
-        merged.merge(cb.mesh);
-    }
-    
+
     for (auto &bs : m_bridges) {
         if (ctl().stopcondition()) break;
         merged.merge(bs.mesh);
@@ -499,7 +471,6 @@ const TriangleMesh &SupportTreeBuilder::merge_and_cleanup()
     m_pillars = {};
     m_junctions = {};
     m_bridges = {};
-    m_compact_bridges = {};
     
     return ret;
 }
@@ -514,11 +485,130 @@ const TriangleMesh &SupportTreeBuilder::retrieve_mesh(MeshType meshtype) const
     return m_meshcache;
 }
 
-bool SupportTreeBuilder::build(const SupportableMesh &sm)
+template<class C, class Hit = EigenMesh3D::hit_result>
+static Hit min_hit(const C &hits)
 {
-    ground_level = sm.emesh.ground_level() - sm.cfg.object_elevation_mm;
-    return SupportTreeBuildsteps::execute(*this, sm);
+    auto mit = std::min_element(hits.begin(), hits.end(),
+                                [](const Hit &h1, const Hit &h2) {
+        return h1.distance() < h2.distance();
+    });
+
+    return *mit;
 }
 
+EigenMesh3D::hit_result query_hit(const SupportableMesh &msh, const Head &h)
+{
+    static const size_t SAMPLES = 8;
+
+    // Move away slightly from the touching point to avoid raycasting on the
+    // inner surface of the mesh.
+
+    const double& sd = msh.cfg.safety_distance_mm;
+
+    auto& m = msh.emesh;
+    using HitResult = EigenMesh3D::hit_result;
+
+    // Hit results
+    std::array<HitResult, SAMPLES> hits;
+
+    Vec3d s1 = h.pos, s2 = h.junction_point();
+
+    struct Rings {
+        double rpin;
+        double rback;
+        Vec3d  spin;
+        Vec3d  sback;
+        PointRing<SAMPLES> ring;
+
+        Vec3d backring(size_t idx) { return ring.get(idx, sback, rback); }
+        Vec3d pinring(size_t idx) { return ring.get(idx, spin, rpin); }
+    } rings {h.r_pin_mm + sd, h.r_back_mm + sd, s1, s2, h.dir};
+
+    // We will shoot multiple rays from the head pinpoint in the direction
+    // of the pinhead robe (side) surface. The result will be the smallest
+    // hit distance.
+
+    auto hitfn = [&m, &rings, sd](HitResult &hit, size_t i) {
+        // Point on the circle on the pin sphere
+        Vec3d ps = rings.pinring(i);
+        // This is the point on the circle on the back sphere
+        Vec3d p = rings.backring(i);
+
+        // Point ps is not on mesh but can be inside or
+        // outside as well. This would cause many problems
+        // with ray-casting. To detect the position we will
+        // use the ray-casting result (which has an is_inside
+        // predicate).
+
+        Vec3d n = (p - ps).normalized();
+        auto  q = m.query_ray_hit(ps + sd * n, n);
+
+        if (q.is_inside()) { // the hit is inside the model
+            if (q.distance() > rings.rpin) {
+                // If we are inside the model and the hit
+                // distance is bigger than our pin circle
+                // diameter, it probably indicates that the
+                // support point was already inside the
+                // model, or there is really no space
+                // around the point. We will assign a zero
+                // hit distance to these cases which will
+                // enforce the function return value to be
+                // an invalid ray with zero hit distance.
+                // (see min_element at the end)
+                hit = HitResult(0.0);
+            } else {
+                // re-cast the ray from the outside of the
+                // object. The starting point has an offset
+                // of 2*safety_distance because the
+                // original ray has also had an offset
+                auto q2 = m.query_ray_hit(ps + (q.distance() + 2 * sd) * n, n);
+                hit     = q2;
+            }
+        } else
+            hit = q;
+    };
+
+    ccr::enumerate(hits.begin(), hits.end(), hitfn);
+
+    return min_hit(hits);
 }
+
+EigenMesh3D::hit_result query_hit(const SupportableMesh &msh, const Bridge &br, double safety_d)
+{
+    static const size_t SAMPLES = 8;
+
+    Vec3d dir = (br.endp - br.startp).normalized();
+    PointRing<SAMPLES> ring{dir};
+
+    using Hit = EigenMesh3D::hit_result;
+
+    // Hit results
+    std::array<Hit, SAMPLES> hits;
+
+    const double sd = std::isnan(safety_d) ? msh.cfg.safety_distance_mm : safety_d;
+    bool ins_check = sd < msh.cfg.safety_distance_mm;
+
+    auto hitfn = [&br, &ring, &msh, dir, sd, ins_check](Hit &  hit, size_t i) {
+        // Point on the circle on the pin sphere
+        Vec3d p = ring.get(i, br.startp, br.r + sd);
+
+        auto hr = msh.emesh.query_ray_hit(p + sd * dir, dir);
+
+        if (ins_check && hr.is_inside()) {
+            if (hr.distance() > 2 * br.r + sd)
+                hit = Hit(0.0);
+            else {
+                // re-cast the ray from the outside of the object
+                hit = msh.emesh.query_ray_hit(p + (hr.distance() + 2 * sd) * dir,
+                                              dir);
+            }
+        } else
+            hit = hr;
+    };
+
+    ccr::enumerate(hits.begin(), hits.end(), hitfn);
+
+    return min_hit(hits);
 }
+
+}} // namespace Slic3r::sla
