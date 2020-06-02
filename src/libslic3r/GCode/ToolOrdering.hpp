@@ -168,7 +168,7 @@ private:
     void				initialize_layers(std::vector<coordf_t> &zs);
     void 				collect_extruders(const PrintObject &object, const std::vector<std::pair<double, unsigned int>> &per_layer_extruder_switches);
     void				reorder_extruders(unsigned int last_extruder_id);
-    void 				fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z, coordf_t max_layer_height);
+    void 				fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z);
     void 				collect_extruder_statistics(bool prime_multi_material);
 
     std::vector<LayerTools>    m_layer_tools;
