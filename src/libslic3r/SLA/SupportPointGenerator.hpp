@@ -214,7 +214,7 @@ private:
     std::mt19937 m_rng;
 };
 
-void remove_bottom_points(std::vector<SupportPoint> &pts, double gnd_lvl, double tolerance);
+void remove_bottom_points(std::vector<SupportPoint> &pts, float lvl);
 
 }} // namespace Slic3r::sla
 

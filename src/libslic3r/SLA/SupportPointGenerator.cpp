@@ -523,15 +523,12 @@ void SupportPointGenerator::uniformly_cover(const ExPolygons& islands, Structure
     }
 }
 
-void remove_bottom_points(std::vector<SupportPoint> &pts, double gnd_lvl, double tolerance)
+void remove_bottom_points(std::vector<SupportPoint> &pts, float lvl)
 {
     // get iterator to the reorganized vector end
-    auto endit =
-        std::remove_if(pts.begin(), pts.end(),
-                       [tolerance, gnd_lvl](const sla::SupportPoint &sp) {
-        double diff = std::abs(gnd_lvl -
-                               double(sp.pos(Z)));
-        return diff <= tolerance;
+    auto endit = std::remove_if(pts.begin(), pts.end(), [lvl]
+                                (const sla::SupportPoint &sp) {
+        return sp.pos.z() <= lvl;
     });
 
     // erase all elements after the new end

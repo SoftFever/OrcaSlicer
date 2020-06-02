@@ -360,18 +360,6 @@ void SLAPrint::Steps::support_points(SLAPrintObject &po)
         // removed them on purpose. No calculation will be done.
         po.m_supportdata->pts = po.transformed_support_points();
     }
-
-    // If the zero elevation mode is engaged, we have to filter out all the
-    // points that are on the bottom of the object
-    if (is_zero_elevation(po.config())) {
-        double tolerance = po.config().pad_enable.getBool() ?
-                               po.m_config.pad_wall_thickness.getFloat() :
-                               po.m_config.support_base_height.getFloat();
-
-        remove_bottom_points(po.m_supportdata->pts,
-                             po.m_supportdata->emesh.ground_level(),
-                             tolerance);
-    }
 }
 
 void SLAPrint::Steps::support_tree(SLAPrintObject &po)
@@ -382,6 +370,17 @@ void SLAPrint::Steps::support_tree(SLAPrintObject &po)
     
     if (pcfg.embed_object)
         po.m_supportdata->emesh.ground_level_offset(pcfg.wall_thickness_mm);
+
+    // If the zero elevation mode is engaged, we have to filter out all the
+    // points that are on the bottom of the object
+    if (is_zero_elevation(po.config())) {
+        double discard = po.config().pad_enable.getBool() ?
+                             po.m_config.pad_wall_height.getFloat() :
+                             po.m_config.support_base_height.getFloat() ;
+
+        remove_bottom_points(po.m_supportdata->pts,
+                             float(po.m_supportdata->emesh.ground_level() + discard));
+    }
     
     po.m_supportdata->cfg = make_support_cfg(po.m_config);
 //    po.m_supportdata->emesh.load_holes(po.transformed_drainhole_points());
