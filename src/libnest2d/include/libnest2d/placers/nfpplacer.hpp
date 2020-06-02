@@ -528,15 +528,12 @@ public:
 
     static inline double overfit(const Box& bb, const Box& bin)
     {
-        auto Bw = bin.width();
-        auto Bh = bin.height();
-        auto mBw = -Bw;
-        auto mBh = -Bh;
-        auto wdiff = double(bb.width()) + mBw;
-        auto hdiff = double(bb.height()) + mBh;
-        double diff = 0;
-        if(wdiff > 0) diff += wdiff;
-        if(hdiff > 0) diff += hdiff;
+        auto wdiff = TCompute<RawShape>(bb.width()) - bin.width();
+        auto hdiff = TCompute<RawShape>(bb.height()) - bin.height();
+        double diff = .0;
+        if(wdiff > 0) diff += double(wdiff);
+        if(hdiff > 0) diff += double(hdiff);
+
         return diff;
     }
 
