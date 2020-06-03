@@ -1324,22 +1324,22 @@ void Sidebar::update_sliced_info_sizer()
                 wxString str_color = _L("Color");
                 wxString str_pause = _L("Pause");
 
-                auto fill_labels = [str_color, str_pause](const std::vector<std::pair<CustomGcodeType, std::string>>& times, 
+                auto fill_labels = [str_color, str_pause](const std::vector<std::pair<CustomGCode::Type, std::string>>& times, 
                                                           wxString& new_label, wxString& info_text)
                 {
                     int color_change_count = 0;
                     for (auto time : times)
-                        if (time.first == cgtColorChange)
+                        if (time.first == CustomGCode::ColorChange)
                             color_change_count++;
 
                     for (int i = (int)times.size() - 1; i >= 0; --i)
                     {
-                        if (i == 0 || times[i - 1].first == cgtPausePrint)
+                        if (i == 0 || times[i - 1].first == CustomGCode::PausePrint)
                             new_label += format_wxstr("\n      - %1%%2%", str_color + " ", color_change_count);
-                        else if (times[i - 1].first == cgtColorChange)
+                        else if (times[i - 1].first == CustomGCode::ColorChange)
                             new_label += format_wxstr("\n      - %1%%2%", str_color + " ", color_change_count--);
 
-                        if (i != (int)times.size() - 1 && times[i].first == cgtPausePrint)
+                        if (i != (int)times.size() - 1 && times[i].first == CustomGCode::PausePrint)
                             new_label += format_wxstr(" -> %1%", str_pause);
 
                         info_text += format_wxstr("\n%1%", times[i].second);
@@ -5288,7 +5288,7 @@ std::vector<std::string> Plater::get_colors_for_color_print() const
     colors.reserve(colors.size() + p->model.custom_gcode_per_print_z.gcodes.size());
 
     for (const CustomGCode::Item& code : p->model.custom_gcode_per_print_z.gcodes)
-        if (code.gcode == ColorChangeCode)
+        if (code.type == CustomGCode::ColorChange)
             colors.emplace_back(code.color);
 
     return colors;

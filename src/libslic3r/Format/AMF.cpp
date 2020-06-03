@@ -641,11 +641,12 @@ void AMFParserContext::endElement(const char * /* name */)
 
     case NODE_TYPE_GCODE_PER_HEIGHT: {
         double print_z = double(atof(m_value[0].c_str()));
-        const std::string& gcode = m_value[1];
+//        const std::string& gcode = m_value[1];
+        CustomGCode::Type type = static_cast<CustomGCode::Type>(atoi(m_value[1].c_str()));
         int extruder = atoi(m_value[2].c_str());
         const std::string& color = m_value[3];
 
-        m_model.custom_gcode_per_print_z.gcodes.push_back(CustomGCode::Item{print_z, gcode, extruder, color});
+        m_model.custom_gcode_per_print_z.gcodes.push_back(CustomGCode::Item{print_z, type,/*gcode, */extruder, color});
 
         for (std::string& val: m_value)
             val.clear();
@@ -1253,7 +1254,8 @@ bool store_amf(const char* path, Model* model, const DynamicPrintConfig* config,
             pt::ptree& code_tree = main_tree.add("code", "");
             // store custom_gcode_per_print_z gcodes information 
             code_tree.put("<xmlattr>.print_z"   , code.print_z  );
-            code_tree.put("<xmlattr>.gcode"     , code.gcode    );
+//            code_tree.put("<xmlattr>.gcode"     , code.gcode    );
+            code_tree.put("<xmlattr>.type"      , code.type    );
             code_tree.put("<xmlattr>.extruder"  , code.extruder );
             code_tree.put("<xmlattr>.color"     , code.color    );
         }
