@@ -8,6 +8,8 @@
 #include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/Plater.hpp"
 
+#include "slic3r/GUI/PresetBundle.hpp"
+
 #include <GL/glew.h>
 
 namespace Slic3r {
@@ -170,7 +172,8 @@ void InstancesHider::show_supports(bool show) {
 void HollowedMesh::on_update()
 {
     const ModelObject* mo = get_pool()->selection_info()->model_object();
-    if (! mo)
+    bool is_sla = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA;
+    if (! mo || ! is_sla)
         return;
 
     const GLCanvas3D* canvas = get_pool()->get_canvas();
@@ -376,7 +379,8 @@ void ObjectClipper::set_position(double pos, bool keep_normal)
 void SupportsClipper::on_update()
 {
     const ModelObject* mo = get_pool()->selection_info()->model_object();
-    if (! mo)
+    bool is_sla = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA;
+    if (! mo || ! is_sla)
         return;
 
     const GLCanvas3D* canvas = get_pool()->get_canvas();
