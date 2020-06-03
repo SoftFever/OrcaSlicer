@@ -13,6 +13,8 @@
 #include "wxExtensions.hpp"
 #include "ObjectDataViewModel.hpp"
 
+#include "libslic3r/PrintConfig.hpp"
+
 class wxBoxSizer;
 class wxBitmapComboBox;
 class wxMenuItem;
