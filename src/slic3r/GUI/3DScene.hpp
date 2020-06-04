@@ -10,27 +10,20 @@
 
 #include <functional>
 
-#if ENABLE_OPENGL_ERROR_LOGGING
-extern void glAssertRecentCallImpl(const char* file_name, unsigned int line, const char* function_name);
-inline void glAssertRecentCall() { glAssertRecentCallImpl(__FILE__, __LINE__, __FUNCTION__); }
-#define glsafe(cmd) do { cmd; glAssertRecentCallImpl(__FILE__, __LINE__, __FUNCTION__); } while (false)
-#define glcheck() do { glAssertRecentCallImpl(__FILE__, __LINE__, __FUNCTION__); } while (false)
-#else
-#ifndef NDEBUG
-#define HAS_GLSAFE
+#if ENABLE_OPENGL_ERROR_LOGGING || ! defined(NDEBUG)
+    #define HAS_GLSAFE
 #endif
 
 #ifdef HAS_GLSAFE
-extern void glAssertRecentCallImpl(const char *file_name, unsigned int line, const char *function_name);
-inline void glAssertRecentCall() { glAssertRecentCallImpl(__FILE__, __LINE__, __FUNCTION__); }
-#define glsafe(cmd) do { cmd; glAssertRecentCallImpl(__FILE__, __LINE__, __FUNCTION__); } while (false)
-#define glcheck() do { glAssertRecentCallImpl(__FILE__, __LINE__, __FUNCTION__); } while (false)
-#else
-inline void glAssertRecentCall() { }
-#define glsafe(cmd) cmd
-#define glcheck()
-#endif
-#endif // ENABLE_OPENGL_ERROR_LOGGING
+    extern void glAssertRecentCallImpl(const char *file_name, unsigned int line, const char *function_name);
+    inline void glAssertRecentCall() { glAssertRecentCallImpl(__FILE__, __LINE__, __FUNCTION__); }
+    #define glsafe(cmd) do { cmd; glAssertRecentCallImpl(__FILE__, __LINE__, __FUNCTION__); } while (false)
+    #define glcheck() do { glAssertRecentCallImpl(__FILE__, __LINE__, __FUNCTION__); } while (false)
+#else // HAS_GLSAFE
+    inline void glAssertRecentCall() { }
+    #define glsafe(cmd) cmd
+    #define glcheck()
+#endif // HAS_GLSAFE
 
 namespace Slic3r {
 namespace GUI {
