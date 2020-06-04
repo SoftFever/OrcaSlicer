@@ -45,6 +45,9 @@
 // Enable rendering of objects using environment map
 #define ENABLE_ENVIRONMENT_MAP (1 && ENABLE_2_3_0_ALPHA1)
 
+// Enable smoothing of objects normals
+#define ENABLE_SMOOTH_NORMALS (0 && ENABLE_2_3_0_ALPHA1)
+
 // Enable G-Code viewer
 #define ENABLE_GCODE_VIEWER (1 && ENABLE_2_3_0_ALPHA1)
 #define ENABLE_GCODE_VIEWER_STATISTICS (0 && ENABLE_GCODE_VIEWER)

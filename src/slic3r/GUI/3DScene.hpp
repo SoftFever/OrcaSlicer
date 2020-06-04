@@ -119,8 +119,13 @@ public:
     unsigned int       triangle_indices_VBO_id{ 0 };
     unsigned int       quad_indices_VBO_id{ 0 };
 
-    void load_mesh_full_shading(const TriangleMesh &mesh);
+#if ENABLE_SMOOTH_NORMALS
+    void load_mesh_full_shading(const TriangleMesh& mesh, bool smooth_normals = false);
+    void load_mesh(const TriangleMesh& mesh, bool smooth_normals = false) { this->load_mesh_full_shading(mesh, smooth_normals); }
+#else
+    void load_mesh_full_shading(const TriangleMesh& mesh);
     void load_mesh(const TriangleMesh& mesh) { this->load_mesh_full_shading(mesh); }
+#endif // ENABLE_SMOOTH_NORMALS
 
     inline bool has_VBOs() const { return vertices_and_normals_interleaved_VBO_id != 0; }
 

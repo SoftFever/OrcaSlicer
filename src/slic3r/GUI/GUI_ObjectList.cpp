@@ -695,33 +695,41 @@ void ObjectList::selection_changed()
     part_selection_changed();
 }
 
-void ObjectList::fill_layer_config_ranges_cache()
+void ObjectList::copy_layers_to_clipboard()
 {
     wxDataViewItemArray sel_layers;
     GetSelections(sel_layers);
 
-    const int obj_idx = m_objects_model->GetObjectIdByItem(sel_layers[0]);
+    const int obj_idx = m_objects_model->GetObjectIdByItem(sel_layers.front());
     if (obj_idx < 0 || (int)m_objects->size() <= obj_idx)
         return;
 
     const t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
-    m_layer_config_ranges_cache.clear();
+    t_layer_config_ranges& cache_ranges = m_clipboard.get_ranges_cache();
+
+    if (sel_layers.Count() == 1 && m_objects_model->GetItemType(sel_layers.front()) & itLayerRoot)
+    {
+        cache_ranges.clear();
+        cache_ranges = ranges;
+        return;
+    }
 
     for (const auto layer_item : sel_layers)
         if (m_objects_model->GetItemType(layer_item) & itLayer) {
             auto range = m_objects_model->GetLayerRangeByItem(layer_item);
             auto it = ranges.find(range);
             if (it != ranges.end())
-                m_layer_config_ranges_cache[it->first] = it->second;
+                cache_ranges[it->first] = it->second;
         }
 }
 
 void ObjectList::paste_layers_into_list()
 {
     const int obj_idx = m_objects_model->GetObjectIdByItem(GetSelection());
+    t_layer_config_ranges& cache_ranges = m_clipboard.get_ranges_cache();
 
     if (obj_idx < 0 || (int)m_objects->size() <= obj_idx || 
-        m_layer_config_ranges_cache.empty() || printer_technology() == ptSLA)
+        cache_ranges.empty() || printer_technology() == ptSLA)
         return;
 
     const wxDataViewItem object_item = m_objects_model->GetItemById(obj_idx);
@@ -732,7 +740,7 @@ void ObjectList::paste_layers_into_list()
     t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
 
     // and create Layer item(s) according to the layer_config_ranges
-    for (const auto range : m_layer_config_ranges_cache)
+    for (const auto range : cache_ranges)
         ranges.emplace(range);
 
     layers_item = add_layer_root_item(object_item);
@@ -743,6 +751,48 @@ void ObjectList::paste_layers_into_list()
 #ifndef __WXOSX__
     selection_changed();
 #endif //no __WXOSX__
+}
+
+void ObjectList::copy_settings_to_clipboard()
+{
+    wxDataViewItem item = GetSelection();
+    assert(item.IsOk());
+    if (m_objects_model->GetItemType(item) & itSettings)
+        item = m_objects_model->GetParent(item);
+
+    DynamicPrintConfig& config_cache = m_clipboard.get_config_cache();
+    config_cache = get_item_config(item);
+}
+
+void ObjectList::paste_settings_into_list()
+{
+    wxDataViewItem item = GetSelection();
+    assert(item.IsOk());
+    if (m_objects_model->GetItemType(item) & itSettings)
+        item = m_objects_model->GetParent(item);
+
+    ItemType item_type = m_objects_model->GetItemType(item);
+    if(!(item_type & (itObject | itVolume |itLayer)))
+        return;
+
+    DynamicPrintConfig& config_cache = m_clipboard.get_config_cache();
+    assert(!config_cache.empty());
+
+    auto keys = config_cache.keys();
+    auto part_options = get_options(true);
+
+    for (const std::string& opt_key: keys) {
+        if (item_type & (itVolume | itLayer) &&
+            std::find(part_options.begin(), part_options.end(), opt_key) == part_options.end())
+            continue; // we can't to add object specific options for the part's(itVolume | itLayer) config 
+
+        const ConfigOption* option = config_cache.option(opt_key);
+        if (option)
+            m_config->set_key_value(opt_key, option->clone());
+    }
+
+    // Add settings item for object/sub-object and show them 
+    show_settings(add_settings_item(item, m_config));
 }
 
 void ObjectList::paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& volumes)
@@ -984,20 +1034,46 @@ void ObjectList::extruder_editing()
 
 void ObjectList::copy()
 {
-    // if (m_selection_mode & smLayer)
-    //     fill_layer_config_ranges_cache();
-    // else {
-    //     m_layer_config_ranges_cache.clear();
-        wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_COPY));
-    // }
+    wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_COPY));
 }
 
 void ObjectList::paste()
 {
-    // if (!m_layer_config_ranges_cache.empty())
-    //     paste_layers_into_list();
-    // else
-        wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_PASTE));
+    wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_PASTE));
+}
+
+bool ObjectList::copy_to_clipboard()
+{
+    wxDataViewItemArray sels;
+    GetSelections(sels);
+    ItemType type = m_objects_model->GetItemType(sels.front());
+    if (!(type & (itSettings | itLayer | itLayerRoot))) {
+        m_clipboard.reset();
+        return false;
+    }
+
+    if (type & itSettings)
+        copy_settings_to_clipboard();
+    if (type & (itLayer | itLayerRoot))
+        copy_layers_to_clipboard();
+
+    m_clipboard.set_type(type);
+    return true;
+}
+
+bool ObjectList::paste_from_clipboard()
+{
+    if (!(m_clipboard.get_type() & (itSettings | itLayer | itLayerRoot))) {
+        m_clipboard.reset();
+        return false;
+    }
+
+    if (m_clipboard.get_type() & itSettings)
+        paste_settings_into_list();
+    if (m_clipboard.get_type() & (itLayer | itLayerRoot))
+        paste_layers_into_list();
+
+    return true;
 }
 
 void ObjectList::undo()

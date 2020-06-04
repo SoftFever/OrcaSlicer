@@ -1,5 +1,11 @@
 #include <GL/glew.h>
 
+#if ENABLE_SMOOTH_NORMALS
+#include <igl/per_face_normals.h>
+#include <igl/per_corner_normals.h>
+#include <igl/per_vertex_normals.h>
+#endif // ENABLE_SMOOTH_NORMALS
+
 #include "3DScene.hpp"
 #include "GLShader.hpp"
 #include "GUI_App.hpp"
@@ -62,23 +68,107 @@ void glAssertRecentCallImpl(const char *file_name, unsigned int line, const char
 
 namespace Slic3r {
 
-void GLIndexedVertexArray::load_mesh_full_shading(const TriangleMesh &mesh)
+#if ENABLE_SMOOTH_NORMALS
+static void smooth_normals_corner(TriangleMesh& mesh, std::vector<stl_normal>& normals)
+{
+    mesh.repair();
+
+    using MapMatrixXfUnaligned = Eigen::Map<const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>>;
+    using MapMatrixXiUnaligned = Eigen::Map<const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>>;
+
+    std::vector<stl_normal> face_normals(mesh.stl.stats.number_of_facets);
+    for (uint32_t i = 0; i < mesh.stl.stats.number_of_facets; ++i) {
+        face_normals[i] = mesh.stl.facet_start[i].normal;
+    }
+
+    Eigen::MatrixXd vertices = MapMatrixXfUnaligned(mesh.its.vertices.front().data(),
+        Eigen::Index(mesh.its.vertices.size()), 3).cast<double>();
+    Eigen::MatrixXi indices = MapMatrixXiUnaligned(mesh.its.indices.front().data(),
+        Eigen::Index(mesh.its.indices.size()), 3);
+    Eigen::MatrixXd in_normals = MapMatrixXfUnaligned(face_normals.front().data(),
+        Eigen::Index(face_normals.size()), 3).cast<double>();
+    Eigen::MatrixXd out_normals;
+
+    igl::per_corner_normals(vertices, indices, in_normals, 1.0, out_normals);
+
+    normals = std::vector<stl_normal>(mesh.its.vertices.size());
+    for (size_t i = 0; i < mesh.its.indices.size(); ++i) {
+        for (size_t j = 0; j < 3; ++j) {
+            normals[mesh.its.indices[i][j]] = out_normals.row(i * 3 + j).cast<float>();
+        }
+    }
+}
+
+static void smooth_normals_vertex(TriangleMesh& mesh, std::vector<stl_normal>& normals)
+{
+    mesh.repair();
+
+    using MapMatrixXfUnaligned = Eigen::Map<const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>>;
+    using MapMatrixXiUnaligned = Eigen::Map<const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>>;
+
+    Eigen::MatrixXd vertices = MapMatrixXfUnaligned(mesh.its.vertices.front().data(),
+        Eigen::Index(mesh.its.vertices.size()), 3).cast<double>();
+    Eigen::MatrixXi indices = MapMatrixXiUnaligned(mesh.its.indices.front().data(),
+        Eigen::Index(mesh.its.indices.size()), 3);
+    Eigen::MatrixXd out_normals;
+
+//    igl::per_vertex_normals(vertices, indices, igl::PER_VERTEX_NORMALS_WEIGHTING_TYPE_UNIFORM, out_normals);
+//    igl::per_vertex_normals(vertices, indices, igl::PER_VERTEX_NORMALS_WEIGHTING_TYPE_AREA, out_normals);
+    igl::per_vertex_normals(vertices, indices, igl::PER_VERTEX_NORMALS_WEIGHTING_TYPE_ANGLE, out_normals);
+//    igl::per_vertex_normals(vertices, indices, igl::PER_VERTEX_NORMALS_WEIGHTING_TYPE_DEFAULT, out_normals);
+
+    normals = std::vector<stl_normal>(mesh.its.vertices.size());
+    for (size_t i = 0; i < static_cast<size_t>(out_normals.rows()); ++i) {
+        normals[i] = out_normals.row(i).cast<float>();
+    }
+}
+#endif // ENABLE_SMOOTH_NORMALS
+
+#if ENABLE_SMOOTH_NORMALS
+void GLIndexedVertexArray::load_mesh_full_shading(const TriangleMesh& mesh, bool smooth_normals)
+#else
+void GLIndexedVertexArray::load_mesh_full_shading(const TriangleMesh& mesh)
+#endif // ENABLE_SMOOTH_NORMALS
 {
     assert(triangle_indices.empty() && vertices_and_normals_interleaved_size == 0);
     assert(quad_indices.empty() && triangle_indices_size == 0);
     assert(vertices_and_normals_interleaved.size() % 6 == 0 && quad_indices_size == vertices_and_normals_interleaved.size());
 
-    this->vertices_and_normals_interleaved.reserve(this->vertices_and_normals_interleaved.size() + 3 * 3 * 2 * mesh.facets_count());
+#if ENABLE_SMOOTH_NORMALS
+    if (smooth_normals) {
+        TriangleMesh new_mesh(mesh);
+        std::vector<stl_normal> normals;
+        smooth_normals_corner(new_mesh, normals);
+//        smooth_normals_vertex(new_mesh, normals);
 
-    unsigned int vertices_count = 0;
-    for (int i = 0; i < (int)mesh.stl.stats.number_of_facets; ++i) {
-        const stl_facet &facet = mesh.stl.facet_start[i];
-        for (int j = 0; j < 3; ++j)
-            this->push_geometry(facet.vertex[j](0), facet.vertex[j](1), facet.vertex[j](2), facet.normal(0), facet.normal(1), facet.normal(2));
+        this->vertices_and_normals_interleaved.reserve(this->vertices_and_normals_interleaved.size() + 3 * 2 * new_mesh.its.vertices.size());
+        for (size_t i = 0; i < new_mesh.its.vertices.size(); ++i) {
+            const stl_vertex& v = new_mesh.its.vertices[i];
+            const stl_normal& n = normals[i];
+            this->push_geometry(v(0), v(1), v(2), n(0), n(1), n(2));
+        }
 
-        this->push_triangle(vertices_count, vertices_count + 1, vertices_count + 2);
-        vertices_count += 3;
+        for (size_t i = 0; i < new_mesh.its.indices.size(); ++i) {
+            const stl_triangle_vertex_indices& idx = new_mesh.its.indices[i];
+            this->push_triangle(idx(0), idx(1), idx(2));
+        }
     }
+    else {
+#endif // ENABLE_SMOOTH_NORMALS
+        this->vertices_and_normals_interleaved.reserve(this->vertices_and_normals_interleaved.size() + 3 * 3 * 2 * mesh.facets_count());
+
+        unsigned int vertices_count = 0;
+        for (int i = 0; i < (int)mesh.stl.stats.number_of_facets; ++i) {
+            const stl_facet& facet = mesh.stl.facet_start[i];
+            for (int j = 0; j < 3; ++j)
+                this->push_geometry(facet.vertex[j](0), facet.vertex[j](1), facet.vertex[j](2), facet.normal(0), facet.normal(1), facet.normal(2));
+
+            this->push_triangle(vertices_count, vertices_count + 1, vertices_count + 2);
+            vertices_count += 3;
+        }
+#if ENABLE_SMOOTH_NORMALS
+    }
+#endif // ENABLE_SMOOTH_NORMALS
 }
 
 void GLIndexedVertexArray::finalize_geometry(bool opengl_initialized)
@@ -466,7 +556,11 @@ int GLVolumeCollection::load_object_volume(
     this->volumes.emplace_back(new GLVolume(color));
     GLVolume& v = *this->volumes.back();
     v.set_color_from_model_volume(model_volume);
+#if ENABLE_SMOOTH_NORMALS
+    v.indexed_vertex_array.load_mesh(mesh, true);
+#else
     v.indexed_vertex_array.load_mesh(mesh);
+#endif // ENABLE_SMOOTH_NORMALS
     v.indexed_vertex_array.finalize_geometry(opengl_initialized);
     v.composite_id = GLVolume::CompositeID(obj_idx, volume_idx, instance_idx);
     if (model_volume->is_model_part())
@@ -508,8 +602,12 @@ void GLVolumeCollection::load_object_auxiliary(
         const ModelInstance& model_instance = *print_object->model_object()->instances[instance_idx.first];
         this->volumes.emplace_back(new GLVolume((milestone == slaposPad) ? GLVolume::SLA_PAD_COLOR : GLVolume::SLA_SUPPORT_COLOR));
         GLVolume& v = *this->volumes.back();
+#if ENABLE_SMOOTH_NORMALS
+        v.indexed_vertex_array.load_mesh(mesh, true);
+#else
         v.indexed_vertex_array.load_mesh(mesh);
-	    v.indexed_vertex_array.finalize_geometry(opengl_initialized);
+#endif // ENABLE_SMOOTH_NORMALS
+        v.indexed_vertex_array.finalize_geometry(opengl_initialized);
         v.composite_id = GLVolume::CompositeID(obj_idx, -int(milestone), (int)instance_idx.first);
         v.geometry_id = std::pair<size_t, size_t>(timestamp, model_instance.id().id);
         // Create a copy of the convex hull mesh for each instance. Use a move operator on the last instance.

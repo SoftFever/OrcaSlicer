@@ -54,18 +54,35 @@ bool GLGizmoFdmSupports::on_init()
     return true;
 }
 
+
+void GLGizmoFdmSupports::activate_internal_undo_redo_stack(bool activate)
+{
+    if (activate && ! m_internal_stack_active) {
+        Plater::TakeSnapshot(wxGetApp().plater(), _L("FDM gizmo turned on"));
+        wxGetApp().plater()->enter_gizmos_stack();
+        m_internal_stack_active = true;
+    }
+    if (! activate && m_internal_stack_active) {
+        wxGetApp().plater()->leave_gizmos_stack();
+        Plater::TakeSnapshot(wxGetApp().plater(), _L("FDM gizmo turned off"));
+        m_internal_stack_active = false;
+    }
+}
+
 void GLGizmoFdmSupports::set_fdm_support_data(ModelObject* model_object, const Selection& selection)
 {
-    const ModelObject* mo = m_c->selection_info() ? m_c->selection_info()->model_object() : nullptr;
-    if (! mo)
+    if (m_state != On)
         return;
 
+    const ModelObject* mo = m_c->selection_info() ? m_c->selection_info()->model_object() : nullptr;
+
     if (mo && selection.is_from_single_instance()
-     && (mo->id() != m_old_mo_id || mo->volumes.size() != m_old_volumes_size))
+     && (m_schedule_update || mo->id() != m_old_mo_id || mo->volumes.size() != m_old_volumes_size))
     {
         update_from_model_object();
         m_old_mo_id = mo->id();
         m_old_volumes_size = mo->volumes.size();
+        m_schedule_update = false;
     }
 }
 
@@ -131,8 +148,10 @@ void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
         // Now render both enforcers and blockers.
         for (int i=0; i<2; ++i) {
             glsafe(::glColor4f(i ? 1.f : 0.2f, 0.2f, i ? 0.2f : 1.0f, 0.5f));
-            for (const GLIndexedVertexArray& iva : m_ivas[mesh_id][i])
-                iva.render();
+            for (const GLIndexedVertexArray& iva : m_ivas[mesh_id][i]) {
+                if (iva.has_VBOs())
+                    iva.render();
+            }
         }
         glsafe(::glPopMatrix());
         if (is_left_handed)
@@ -493,6 +512,7 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 : (m_button_down == Button::Left
                    ? _L("Add supports")
                    : _L("Block supports"));
+        activate_internal_undo_redo_stack(true);
         Plater::TakeSnapshot(wxGetApp().plater(), action_name);
         update_model_object();
 
@@ -587,6 +607,8 @@ void GLGizmoFdmSupports::select_facets_by_angle(float threshold_deg, bool overwr
         update_vertex_buffers(&mv->mesh(), mesh_id, FacetSupportType::ENFORCER);
         update_vertex_buffers(&mv->mesh(), mesh_id, FacetSupportType::BLOCKER);
     }
+
+    activate_internal_undo_redo_stack(true);
 
     Plater::TakeSnapshot(wxGetApp().plater(), block ? _L("Block supports by angle")
                                                     : _L("Add supports by angle"));
@@ -778,12 +800,9 @@ void GLGizmoFdmSupports::on_set_state()
         return;
 
     if (m_state == On && m_old_state != On) { // the gizmo was just turned on
-        {
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("FDM gizmo turned on")));
-        }
         if (! m_parent.get_gizmos_manager().is_serializing()) {
-            wxGetApp().CallAfter([]() {
-                wxGetApp().plater()->enter_gizmos_stack();
+            wxGetApp().CallAfter([this]() {
+                activate_internal_undo_redo_stack(true);
             });
         }
     }
@@ -793,11 +812,7 @@ void GLGizmoFdmSupports::on_set_state()
             m_setting_angle = false;
             m_parent.use_slope(false);
         }
-
-        wxGetApp().plater()->leave_gizmos_stack();
-        {
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("FDM gizmo turned off")));
-        }
+        activate_internal_undo_redo_stack(false);
         m_old_mo_id = -1;
         m_ivas.clear();
         m_selected_facets.clear();
@@ -820,14 +835,19 @@ void GLGizmoFdmSupports::on_stop_dragging()
 
 
 
-void GLGizmoFdmSupports::on_load(cereal::BinaryInputArchive& ar)
+void GLGizmoFdmSupports::on_load(cereal::BinaryInputArchive&)
 {
-    update_from_model_object();
+    // We should update the gizmo from current ModelObject, but it is not
+    // possible at this point. That would require having updated selection and
+    // common gizmos data, which is not done at this point. Instead, save
+    // a flag to do the update in set_fdm_support_data, which will be called
+    // soon after.
+    m_schedule_update = true;
 }
 
 
 
-void GLGizmoFdmSupports::on_save(cereal::BinaryOutputArchive& ar) const
+void GLGizmoFdmSupports::on_save(cereal::BinaryOutputArchive&) const
 {
 
 }

@@ -39,7 +39,7 @@ TEST_CASE("Raycaster - find intersections of a line and cylinder")
     REQUIRE(std::abs(out[1].first - std::sqrt(72.f)) < 0.001f);
 }
 
-
+#ifdef SLIC3R_HOLE_RAYCASTER
 // Create a simple scene with a 20mm cube and a big hole in the front wall 
 // with 5mm radius. Then shoot rays from interesting positions and see where
 // they land.
@@ -94,3 +94,4 @@ TEST_CASE("Raycaster with loaded drillholes", "[sla_raycast]")
     // Check for support tree correctness
     test_support_model_collision("20mm_cube.obj", {}, hcfg, holes);
 }
+#endif

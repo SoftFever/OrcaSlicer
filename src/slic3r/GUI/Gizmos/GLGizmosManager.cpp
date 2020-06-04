@@ -1104,9 +1104,16 @@ void GLGizmosManager::activate_gizmo(EType type)
     }
 
     m_current = type;
-    m_common_gizmos_data->update(get_current()
-                           ? get_current()->get_requirements()
-                           : CommonGizmosDataID(0));
+
+    // Updating common data should be left to the update_data function, which
+    // is always called after this one. activate_gizmo can be called by undo/redo,
+    // when selection is not yet deserialized, so the common data would update
+    // incorrectly (or crash if relying on unempty selection). Undo/redo stack
+    // will also call update_data, after selection is restored.
+
+    //m_common_gizmos_data->update(get_current()
+    //                       ? get_current()->get_requirements()
+    //                       : CommonGizmosDataID(0));
 
     if (type != Undefined)
         m_gizmos[type]->set_state(GLGizmoBase::On);

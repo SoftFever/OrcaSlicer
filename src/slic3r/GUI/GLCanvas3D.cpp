@@ -2522,11 +2522,19 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                                 TriangleMesh mesh = print_object->get_mesh(slaposDrillHoles);
 	                            assert(! mesh.empty());
                                 mesh.transform(sla_print->sla_trafo(*m_model->objects[volume.object_idx()]).inverse());
+#if ENABLE_SMOOTH_NORMALS
+                                volume.indexed_vertex_array.load_mesh(mesh, true);
+#else
                                 volume.indexed_vertex_array.load_mesh(mesh);
-	                        } else {
+#endif // ENABLE_SMOOTH_NORMALS
+                            } else {
 	                        	// Reload the original volume.
+#if ENABLE_SMOOTH_NORMALS
+                                volume.indexed_vertex_array.load_mesh(m_model->objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh(), true);
+#else
                                 volume.indexed_vertex_array.load_mesh(m_model->objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh());
-	                        }
+#endif // ENABLE_SMOOTH_NORMALS
+                            }
                             volume.finalize_geometry(true);
 	                    }
                     	//FIXME it is an ugly hack to write the timestamp into the "offsets" field to not have to add another member variable
@@ -6960,7 +6968,11 @@ void GLCanvas3D::_load_sla_shells()
         const TriangleMesh &mesh, const float color[4], bool outside_printer_detection_enabled) {
         m_volumes.volumes.emplace_back(new GLVolume(color));
         GLVolume& v = *m_volumes.volumes.back();
+#if ENABLE_SMOOTH_NORMALS
+        v.indexed_vertex_array.load_mesh(mesh, true);
+#else
         v.indexed_vertex_array.load_mesh(mesh);
+#endif // ENABLE_SMOOTH_NORMALS
         v.indexed_vertex_array.finalize_geometry(this->m_initialized);
         v.shader_outside_printer_detection_enabled = outside_printer_detection_enabled;
         v.composite_id.volume_id = volume_id;

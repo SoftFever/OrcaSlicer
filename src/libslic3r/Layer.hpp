@@ -166,6 +166,7 @@ class SupportLayer : public Layer
 {
 public:
     // Polygons covered by the supports: base, interface and contact areas.
+    // Used to suppress retraction if moving for a support extrusion over these support_islands.
     ExPolygonCollection         support_islands;
     // Extrusion paths for the support base and for the support interface and contacts.
     ExtrusionEntityCollection   support_fills;

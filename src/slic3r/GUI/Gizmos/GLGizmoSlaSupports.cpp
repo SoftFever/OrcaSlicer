@@ -67,10 +67,11 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const S
 
     ModelObject* mo = m_c->selection_info()->model_object();
 
-    if (mo && mo->id() != m_old_mo_id) {
+    if (m_state == On && mo && mo->id() != m_old_mo_id) {
         disable_editing_mode();
         reload_cache();
         m_old_mo_id = mo->id();
+        m_c->instances_hider()->show_supports(true);
     }
 
     // If we triggered autogeneration before, check backend and fetch results if they are there
@@ -884,25 +885,23 @@ CommonGizmosDataID GLGizmoSlaSupports::on_get_requirements() const
 
 void GLGizmoSlaSupports::on_set_state()
 {
-    const ModelObject* mo = m_c->selection_info()->model_object();
-
     if (m_state == m_old_state)
         return;
 
     if (m_state == On && m_old_state != On) { // the gizmo was just turned on
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned on")));
+        // This function can be called from undo/redo, when selection (and hence
+        // common gizmos data are not yet deserialized. The CallAfter should put
+        // this off until after the update is done.
+        wxGetApp().CallAfter([this]() {
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned on")));
 
-        // we'll now reload support points:
-        if (mo)
-            reload_cache();
-
-        // Set default head diameter from config.
-        const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
-        m_new_point_head_diameter = static_cast<const ConfigOptionFloat*>(cfg.option("support_head_front_diameter"))->value;
-        m_c->instances_hider()->show_supports(true);
+            // Set default head diameter from config.
+            const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
+            m_new_point_head_diameter = static_cast<const ConfigOptionFloat*>(cfg.option("support_head_front_diameter"))->value;
+        });
     }
     if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
-        bool will_ask = mo && m_editing_mode && unsaved_changes();
+        bool will_ask = m_editing_mode && unsaved_changes();
         if (will_ask) {
             wxGetApp().CallAfter([this]() {
                 // Following is called through CallAfter, because otherwise there was a problem
@@ -922,7 +921,7 @@ void GLGizmoSlaSupports::on_set_state()
             disable_editing_mode(); // so it is not active next time the gizmo opens
             Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned off")));
             m_normal_cache.clear();
-
+            m_old_mo_id = -1;
         }
     }
     m_old_state = m_state;
