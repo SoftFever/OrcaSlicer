@@ -206,15 +206,15 @@ Polygons voronoi_offset(const VD &vd, const Lines &lines, double offset_distance
         } else {
 			// Finite edge has valid points at both sides.
 	        if (cell->contains_segment() && cell2->contains_segment()) {
-				// This edge is a bisector of two line segments.
-	            d0 = std::hypot(v0->x() - line0.a.x(), v0->y() - line0.a.y());
-	            d1 = std::hypot(v0->x() - line0.b.x(), v0->y() - line0.b.y());
-				if (d0 < d1)
-	                d1 = std::hypot(v1->x() - line0.a.x(), v1->y() - line0.a.y());
-				else {
-					d0 = d1;
-	                d1 = std::hypot(v1->x() - line0.b.x(), v1->y() - line0.b.y());
-				}
+                // This edge is a bisector of two line segments. Project v0, v1 onto one of the line segments.
+                Vec2d  pt(line0.a.cast<double>());
+                Vec2d  dir(line0.b.cast<double>() - pt);
+                Vec2d  vec0 = Vec2d(v0->x(), v0->y()) - pt;
+                Vec2d  vec1 = Vec2d(v1->x(), v1->y()) - pt;
+                double l2   = dir.squaredNorm();
+                assert(l2 > 0.);
+                d0 = (dir * (vec0.dot(dir) / l2) - vec0).norm();
+                d1 = (dir * (vec1.dot(dir) / l2) - vec1).norm();
 				dmin = std::min(d0, d1);
 			} else {
                 assert(cell->contains_point() || cell2->contains_point());
@@ -303,6 +303,15 @@ Polygons voronoi_offset(const VD &vd, const Lines &lines, double offset_distance
         return nullptr;
 	};
 
+#ifndef NDEBUG
+	auto dist_to_site = [&lines](const VD::cell_type &cell, const Vec2d &point) {
+        const Line &line = lines[cell.source_index()];
+        return cell.contains_point() ?
+            (((cell.source_category() == boost::polygon::SOURCE_CATEGORY_SEGMENT_START_POINT) ? line.a : line.b).cast<double>() - point).norm() :
+            line.distance_to(point.cast<coord_t>());
+	};
+#endif /* NDEBUG */
+
 	// Track the offset curves.
 	Polygons out;
 	double angle_step    = 2. * acos((offset_distance - discretization_error) / offset_distance);
@@ -329,7 +338,15 @@ Polygons voronoi_offset(const VD &vd, const Lines &lines, double offset_distance
                 const VD::cell_type  *cell      = edge->cell();
                 Vec2d p1 = detail::voronoi_edge_offset_point(vd, lines, vertex_dist, edge_dist, *edge, offset_distance);
                 Vec2d p2 = detail::voronoi_edge_offset_point(vd, lines, vertex_dist, edge_dist, *next_edge, offset_distance);
-                if (cell->contains_point()) {
+#ifndef NDEBUG
+                {
+                    double err = dist_to_site(*cell, p1) - offset_distance;
+                    assert(std::abs(err) < SCALED_EPSILON);
+                    err = dist_to_site(*cell, p2) - offset_distance;
+                    assert(std::abs(err) < SCALED_EPSILON);
+                }
+#endif /* NDEBUG */
+				if (cell->contains_point()) {
 					// Discretize an arc from p1 to p2 with radius = offset_distance and discretization_error.
 					// The arc should cover angle < PI.
 					//FIXME we should be able to produce correctly oriented output curves based on the first edge taken!
