@@ -35,11 +35,11 @@ struct CurlGlobalInit
 {
     static std::unique_ptr<CurlGlobalInit> instance;
     std::string message;
-    
+
 	CurlGlobalInit()
     {
 #ifdef OPENSSL_CERT_OVERRIDE // defined if SLIC3R_STATIC=ON
-        
+
         // Look for a set of distro specific directories. Don't change the
         // order: https://bugzilla.redhat.com/show_bug.cgi?id=1053882
         static const char * CA_BUNDLES[] = {
@@ -48,17 +48,17 @@ struct CurlGlobalInit
             "/usr/share/ssl/certs/ca-bundle.crt",
             "/usr/local/share/certs/ca-root-nss.crt", // FreeBSD
             "/etc/ssl/cert.pem",
-            "/etc/ssl/ca-bundle.pem"              // OpenSUSE Tumbleweed              
+            "/etc/ssl/ca-bundle.pem"              // OpenSUSE Tumbleweed
         };
-        
+
         namespace fs = boost::filesystem;
         // Env var name for the OpenSSL CA bundle (SSL_CERT_FILE nomally)
         const char *const SSL_CA_FILE = X509_get_default_cert_file_env();
         const char * ssl_cafile = ::getenv(SSL_CA_FILE);
-        
+
         if (!ssl_cafile)
             ssl_cafile = X509_get_default_cert_file();
-        
+
         int replace = true;
         if (!ssl_cafile || !fs::exists(fs::path(ssl_cafile))) {
             const char * bundle = nullptr;
@@ -86,15 +86,15 @@ struct CurlGlobalInit
         }
 
 #endif // OPENSSL_CERT_OVERRIDE
-        
+
         if (CURLcode ec = ::curl_global_init(CURL_GLOBAL_DEFAULT)) {
             message += _u8L("CURL init has failed. PrusaSlicer will be unable to establish "
                             "network connections. See logs for additional details.");
-            
+
             BOOST_LOG_TRIVIAL(error) << ::curl_easy_strerror(ec);
         }
     }
-    
+
 	~CurlGlobalInit() { ::curl_global_cleanup(); }
 };
 
@@ -120,6 +120,7 @@ struct Http::priv
 	std::string error_buffer;    // Used for CURLOPT_ERRORBUFFER
 	size_t limit;
 	bool cancel;
+	fs::ifstream* putFile;
 
 	std::thread io_thread;
 	Http::CompleteFn completefn;
@@ -138,6 +139,8 @@ struct Http::priv
 	void set_timeout_connect(long timeout);
 	void form_add_file(const char *name, const fs::path &path, const char* filename);
 	void set_post_body(const fs::path &path);
+	void set_post_body(const std::string body);
+	void set_put_body(const fs::path &path);
 
 	std::string curl_error(CURLcode curlcode);
 	std::string body_size_error();
@@ -152,9 +155,10 @@ Http::priv::priv(const std::string &url)
 	, error_buffer(CURL_ERROR_SIZE + 1, '\0')
 	, limit(0)
 	, cancel(false)
+	, putFile(nullptr)
 {
     Http::tls_global_init();
-    
+
 	if (curl == nullptr) {
 		throw std::runtime_error(std::string("Could not construct Curl object"));
 	}
@@ -284,6 +288,22 @@ void Http::priv::set_post_body(const fs::path &path)
 	postfields = file_content;
 }
 
+void Http::priv::set_post_body(const std::string body)
+{
+	postfields = body;
+}
+
+void Http::priv::set_put_body(const fs::path &path)
+{
+	boost::system::error_code ec;
+	boost::uintmax_t filesize = file_size(path, ec);
+	if (!ec) {
+		putFile = new fs::ifstream(path);
+		::curl_easy_setopt(curl, CURLOPT_READDATA, (void *) (putFile));
+		::curl_easy_setopt(curl, CURLOPT_INFILESIZE, filesize);
+	}
+}
+
 std::string Http::priv::curl_error(CURLcode curlcode)
 {
 	return (boost::format("%1%:\n%2%\n[Error %3%]")
@@ -334,6 +354,11 @@ void Http::priv::http_perform()
 	}
 
 	CURLcode res = ::curl_easy_perform(curl);
+
+	if (putFile != nullptr) {
+		delete putFile;
+		putFile = nullptr;
+	}
 
 	if (res != CURLE_OK) {
 		if (res == CURLE_ABORTED_BY_CALLBACK) {
@@ -455,6 +480,18 @@ Http& Http::set_post_body(const fs::path &path)
 	return *this;
 }
 
+Http& Http::set_post_body(const std::string body)
+{
+	if (p) { p->set_post_body(body); }
+	return *this;
+}
+
+Http& Http::set_put_body(const fs::path &path)
+{
+	if (p) { p->set_put_body(path);}
+	return *this;
+}
+
 Http& Http::on_complete(CompleteFn fn)
 {
 	if (p) { p->completefn = std::move(fn); }
@@ -509,6 +546,13 @@ Http Http::post(std::string url)
 	return http;
 }
 
+Http Http::put(std::string url)
+{
+	Http http{std::move(url)};
+	curl_easy_setopt(http.p->curl, CURLOPT_UPLOAD, 1L);
+	return http;
+}
+
 bool Http::ca_file_supported()
 {
 	::CURL *curl = ::curl_easy_init();
@@ -521,7 +565,7 @@ std::string Http::tls_global_init()
 {
     if (!CurlGlobalInit::instance)
         CurlGlobalInit::instance = std::make_unique<CurlGlobalInit>();
-    
+
     return CurlGlobalInit::instance->message;
 }
 
@@ -532,7 +576,7 @@ std::string Http::tls_system_cert_store()
 #ifdef OPENSSL_CERT_OVERRIDE
     ret = ::getenv(X509_get_default_cert_file_env());
 #endif
-    
+
     return ret;
 }
 

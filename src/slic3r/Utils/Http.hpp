@@ -49,6 +49,7 @@ public:
 	// for a GET and a POST request respectively.
 	static Http get(std::string url);
 	static Http post(std::string url);
+	static Http put(std::string url);
 	~Http();
 
 	Http(const Http &) = delete;
@@ -80,6 +81,16 @@ public:
 	// This can be used for hosts which do not support multipart requests.
 	Http& set_post_body(const boost::filesystem::path &path);
 
+	// Set the POST request body.
+	// The data is used verbatim, it is not additionally encoded in any way.
+	// This can be used for hosts which do not support multipart requests.
+	Http& set_post_body(const std::string body);
+
+	// Set the file contents as a PUT request body.
+	// The data is used verbatim, it is not additionally encoded in any way.
+	// This can be used for hosts which do not support multipart requests.
+	Http& set_put_body(const boost::filesystem::path &path);
+
 	// Callback called on HTTP request complete
 	Http& on_complete(CompleteFn fn);
 	// Callback called on an error occuring at any stage of the requests: Url parsing, DNS lookup,
@@ -100,7 +111,7 @@ public:
 
 	// Tells whether current backend supports seting up a CA file using ca_file()
 	static bool ca_file_supported();
-    
+
     // Return empty string on success or error message on fail.
     static std::string tls_global_init();
     static std::string tls_system_cert_store();
