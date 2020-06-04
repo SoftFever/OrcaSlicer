@@ -7,6 +7,7 @@
 #include <libslic3r/Polyline.hpp>
 #include <libslic3r/EdgeGrid.hpp>
 #include <libslic3r/Geometry.hpp>
+#include <libslic3r/VoronoiOffset.hpp>
 
 #define BOOST_VORONOI_USE_GMP 1
 #include "boost/polygon/voronoi.hpp"
@@ -16,12 +17,7 @@ using boost::polygon::voronoi_diagram;
 
 using namespace Slic3r;
 
-struct VD : public boost::polygon::voronoi_diagram<double> {
-    typedef double                                          coord_type;
-    typedef boost::polygon::point_data<coordinate_type>     point_type;
-    typedef boost::polygon::segment_data<coordinate_type>   segment_type;
-    typedef boost::polygon::rectangle_data<coordinate_type> rect_type;
-};
+using VD = Geometry::VoronoiDiagram;
 
 // #define VORONOI_DEBUG_OUT
 
@@ -322,6 +318,7 @@ static inline void dump_voronoi_to_svg(
     /* const */ VD      &vd,
     const Points        &points,
     const Lines         &lines,
+    const Polygons      &offset_curves = Polygons(),
     const double         scale = 0.7) // 0.2?
 {
     const std::string   inputSegmentPointColor      = "lightseagreen";
@@ -335,6 +332,9 @@ static inline void dump_voronoi_to_svg(
     const std::string   voronoiLineColorSecondary   = "green";
     const std::string   voronoiArcColor             = "red";
     const coord_t       voronoiLineWidth            = coord_t(0.02 * scale / SCALING_FACTOR);
+
+    const std::string   offsetCurveColor            = "magenta";
+    const coord_t       offsetCurveLineWidth        = coord_t(0.09 * scale / SCALING_FACTOR);
 
     const bool          internalEdgesOnly           = false;
     const bool          primaryEdgesOnly            = false;
@@ -408,6 +408,7 @@ static inline void dump_voronoi_to_svg(
     }
 #endif
 
+    svg.draw_outline(offset_curves, offsetCurveColor, offsetCurveLineWidth);
     svg.Close();
 }
 #endif
@@ -1585,6 +1586,32 @@ TEST_CASE("Voronoi NaN coordinates 12139", "[Voronoi][!hide][!mayfail]")
 
 #ifdef VORONOI_DEBUG_OUT
     dump_voronoi_to_svg(debug_out_path("voronoi-NaNs.svg").c_str(),
-        vd, Points(), lines, 0.015);
+        vd, Points(), lines, Polygons(), 0.015);
 #endif
+}
+
+TEST_CASE("Voronoi offset", "[VoronoiOffset]")
+{
+  Polygons poly_with_hole = { Polygon {
+        {       0, 10000000},
+        {  700000,        0},
+        {  700000,  9000000},
+        { 9100000,  9000000},
+        { 9100000,        0},
+        {10000000, 10000000}
+        }
+  };
+
+  VD vd;
+  Lines lines = to_lines(poly_with_hole);
+  construct_voronoi(lines.begin(), lines.end(), &vd);
+
+  Polygons offsetted_polygons = voronoi_offset(vd, lines, scale_(0.2), scale_(0.005));
+
+#ifdef VORONOI_DEBUG_OUT
+  dump_voronoi_to_svg(debug_out_path("voronoi-offset.svg").c_str(),
+      vd, Points(), lines, offsetted_polygons);
+#endif
+
+  REQUIRE(offsetted_polygons.size() == 2);
 }
