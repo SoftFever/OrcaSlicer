@@ -314,6 +314,22 @@ Bridge::Bridge(const Vec3d &j1, const Vec3d &j2, double r_mm, size_t steps):
     for(auto& p : mesh.points) p = quater * p + j1;
 }
 
+Bridge::Bridge(const Vec3d &j1,
+               const Vec3d &j2,
+               double       r1_mm,
+               double       r2_mm,
+               size_t       steps)
+{
+    Vec3d dir = (j2 - j1);
+    mesh = pinhead(r1_mm, r2_mm, dir.norm(), steps);
+    dir.normalize();
+
+    using Quaternion = Eigen::Quaternion<double>;
+    auto quater = Quaternion::FromTwoVectors(Vec3d{0,0,1}, dir);
+
+    for(auto& p : mesh.points) p = quater * p + j1;
+}
+
 Pad::Pad(const TriangleMesh &support_mesh,
          const ExPolygons &  model_contours,
          double              ground_level,

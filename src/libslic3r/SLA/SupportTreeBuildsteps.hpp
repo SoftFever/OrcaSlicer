@@ -271,7 +271,7 @@ class SupportTreeBuildsteps {
     // jp is the starting junction point which needs to be routed down.
     // sourcedir is the allowed direction of an optional bridge between the
     // jp junction and the final pillar.
-    void create_ground_pillar(const Vec3d &jp,
+    bool create_ground_pillar(const Vec3d &jp,
                               const Vec3d &sourcedir,
                               double       radius,
                               long         head_id = ID_UNSET);

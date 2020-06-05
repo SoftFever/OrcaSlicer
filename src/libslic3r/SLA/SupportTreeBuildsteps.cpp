@@ -467,107 +467,86 @@ bool SupportTreeBuildsteps::connect_to_nearpillar(const Head &head,
     return true;
 }
 
-void SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
+bool SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
                                                  const Vec3d &sourcedir,
                                                  double       radius,
                                                  long         head_id)
 {
-    const double SLOPE = 1. / std::cos(m_cfg.bridge_slope);
-    
-    double gndlvl       = m_builder.ground_level;
-    Vec3d  endp         = {jp(X), jp(Y), gndlvl};
     double sd           = m_cfg.pillar_base_safety_distance_mm;
     long   pillar_id    = ID_UNSET;
     bool   can_add_base = radius >= m_cfg.head_back_radius_mm;
     double base_r       = can_add_base ? m_cfg.base_radius_mm : 0.;
+    double gndlvl       = m_builder.ground_level;
+    if (!can_add_base) gndlvl -= m_mesh.ground_level_offset();
+    Vec3d  endp         = {jp(X), jp(Y), gndlvl};
     double min_dist     = sd + base_r + EPSILON;
-    double dist         = 0;
     bool   normal_mode  = true;
-    
-    // If in zero elevation mode and the pillar is too close to the model body,
-    // the support pillar can not be placed in the gap between the model and
-    // the pad, and the pillar bases must not touch the model body either.
-    // To solve this, a corrector bridge is inserted between the starting point
-    // (jp) and the new pillar.
-    if (m_cfg.object_elevation_mm < EPSILON
-        && (dist = std::sqrt(m_mesh.squared_distance(endp))) < min_dist) {
-        // Get the distance from the mesh. This can be later optimized
-        // to get the distance in 2D plane because we are dealing with
-        // the ground level only.
+    Vec3d  dir          = sourcedir;
 
-        normal_mode = false;
+    auto to_floor = [gndlvl](const Vec3d &p) { return Vec3d{p.x(), p.y(), gndlvl}; };
 
-        // The min distance needed to move away from the model in XY plane.
-        double current_d = min_dist - dist;
-        double current_bride_d = SLOPE * current_d;
-
+    if (m_cfg.object_elevation_mm < EPSILON)
+    {
         // get a suitable direction for the corrector bridge. It is the
         // original sourcedir's azimuth but the polar angle is saturated to the
         // configured bridge slope.
-        auto [polar, azimuth] = dir_to_spheric(sourcedir);
+        auto [polar, azimuth] = dir_to_spheric(dir);
         polar = PI - m_cfg.bridge_slope;
-        auto dir = spheric_to_dir(polar, azimuth).normalized();
-        
-        StopCriteria scr;
-        scr.stop_score = min_dist;
-        SubplexOptimizer solver(scr);
-        
-        // Search for a distance along the corrector bridge to move the endpoint
-        // sufficiently away form the model body. The first few optimization
-        // cycles should succeed here.
-        auto result = solver.optimize_max(
-            [this, dir, jp, gndlvl](double mv) {
-                Vec3d endpt = jp + mv * dir;
-                endpt(Z)    = gndlvl;
-                return std::sqrt(m_mesh.squared_distance(endpt));
-            },
-            initvals(current_bride_d), 
-            bound(0.0, m_cfg.max_bridge_length_mm - current_bride_d));
-        
-        endp         = jp + std::get<0>(result.optimum) * dir;
-        Vec3d pgnd   = {endp(X), endp(Y), gndlvl};
-        can_add_base = can_add_base && result.score > min_dist;
-        
-        double gnd_offs = m_mesh.ground_level_offset();
-        auto abort_in_shame =
-            [gnd_offs, &normal_mode, &can_add_base, &endp, jp, gndlvl]()
-        {
-            normal_mode  = true;
-            can_add_base = false;   // Nothing left to do, hope for the best
-            endp         = {jp(X), jp(Y), gndlvl - gnd_offs };
-        };
-        
-        // We have to check if the bridge is feasible.
-        if (bridge_mesh_distance(jp, dir, radius) < (endp - jp).norm())
-            abort_in_shame();
-        else {
-            // If the new endpoint is below ground, do not make a pillar
-            if (endp(Z) < gndlvl)
-                endp = endp - SLOPE * (gndlvl - endp(Z)) * dir; // back off
-            else {
-                
-                auto hit = bridge_mesh_intersect(endp, DOWN, radius);
-                if (!std::isinf(hit.distance())) abort_in_shame();
-                
-                pillar_id = m_builder.add_pillar(endp, pgnd, radius);
-                
-                if (can_add_base)
-                    m_builder.add_pillar_base(pillar_id, m_cfg.base_height_mm,
-                                              m_cfg.base_radius_mm);
-            }
-            
-            m_builder.add_bridge(jp, endp, radius);
-            m_builder.add_junction(endp, radius);
-            
-            // Add a degenerated pillar and the bridge.
-            // The degenerate pillar will have zero length and it will
-            // prevent from queries of head_pillar() to have non-existing
-            // pillar when the head should have one.
-            if (head_id >= 0)
+        Vec3d dir = spheric_to_dir(polar, azimuth).normalized();
+
+        // Check the distance of the endpoint and the closest point on model
+        // body. It should be greater than the min_dist which is
+        // the safety distance from the model. It includes the pad gap if in
+        // zero elevation mode.
+        //
+        // Try to move along the established bridge direction to dodge the
+        // forbidden region for the endpoint.
+        double t = -radius;
+        while (std::sqrt(m_mesh.squared_distance(to_floor(endp))) < min_dist ||
+               !std::isinf(bridge_mesh_distance(endp, DOWN, radius))) {
+            t += radius;
+            endp = jp + t * dir;
+            normal_mode = false;
+
+            if (t > m_cfg.max_bridge_length_mm || endp(Z) < gndlvl) {
                 m_builder.add_pillar(head_id, jp, radius);
+                return false;
+            }
+        }
+    }
+
+    // Check if the deduced route is sane and exit with error if not.
+    if (bridge_mesh_distance(jp, dir, radius) < (endp - jp).norm()) {
+        m_builder.add_pillar(head_id, jp, radius);
+        return false;
+    }
+
+    // If this is a mini pillar, do not let it grow too long, but change the
+    // radius to the normal pillar as soon as it is possible.
+    if (radius < m_cfg.head_back_radius_mm) {
+        double t = 0.;
+        double new_radius = m_cfg.head_back_radius_mm;
+        Vec3d new_endp = endp;
+        double d = 0.;
+        while (!std::isinf(d = bridge_mesh_distance(new_endp, DOWN, new_radius))
+               && new_endp.z() > gndlvl)
+        {
+            t += m_cfg.head_fullwidth();
+            new_endp = endp + t * DOWN;
+        }
+
+        if (std::isinf(d) && new_endp.z() > gndlvl) {
+            if (t > 0.) {
+                m_builder.add_bridge(endp, new_endp, radius, new_radius);
+                endp = new_endp;
+            } else {
+                m_builder.add_junction(endp, new_radius);
+            }
+            radius = new_radius;
         }
     }
     
+    // Straigh path down, no area to dodge
     if (normal_mode) {
         pillar_id = head_id >= 0 ? m_builder.add_pillar(head_id, endp, radius) :
                                    m_builder.add_pillar(jp, endp, radius);
@@ -575,10 +554,31 @@ void SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
         if (can_add_base)
             m_builder.add_pillar_base(pillar_id, m_cfg.base_height_mm,
                                       m_cfg.base_radius_mm);
+    } else {
+
+        // Insert the bridge to get around the forbidden area
+        Vec3d pgnd{endp.x(), endp.y(), gndlvl};
+        pillar_id = m_builder.add_pillar(endp, pgnd, radius);
+
+        if (can_add_base)
+            m_builder.add_pillar_base(pillar_id, m_cfg.base_height_mm,
+                                      m_cfg.base_radius_mm);
+
+        m_builder.add_bridge(jp, endp, radius);
+        m_builder.add_junction(endp, radius);
+
+        // Add a degenerated pillar and the bridge.
+        // The degenerate pillar will have zero length and it will
+        // prevent from queries of head_pillar() to have non-existing
+        // pillar when the head should have one.
+        if (head_id >= 0)
+            m_builder.add_pillar(head_id, jp, radius);
     }
-    
+
     if(pillar_id >= 0) // Save the pillar endpoint in the spatial index
         m_pillar_index.guarded_insert(endp, unsigned(pillar_id));
+
+    return true;
 }
 
 void SupportTreeBuildsteps::filter()
@@ -835,7 +835,11 @@ void SupportTreeBuildsteps::routing_to_ground()
         Head &h = m_builder.head(hid);
         h.transform();
         
-        create_ground_pillar(h.junction_point(), h.dir, h.r_back_mm, h.id);
+        if (!create_ground_pillar(h.junction_point(), h.dir, h.r_back_mm, h.id)) {
+            BOOST_LOG_TRIVIAL(warning)
+                << "Pillar cannot be created for support point id: " << hid;
+            h.invalidate();
+        }
     }
     
     // now we will go through the clusters ones again and connect the
@@ -999,8 +1003,9 @@ bool SupportTreeBuildsteps::search_pillar_and_connect(const Head &source)
         nearest_id = ne.second;
 
         if(nearest_id >= 0) {
-            if(size_t(nearest_id) < m_builder.pillarcount()) {
-                if(!connect_to_nearpillar(source, nearest_id)) {
+            if (size_t(nearest_id) < m_builder.pillarcount()) {
+                if(!connect_to_nearpillar(source, nearest_id) ||
+                    m_builder.pillar(nearest_id).r < source.r_back_mm) {
                     nearest_id = ID_UNSET;    // continue searching
                     spindex.remove(ne);       // without the current pillar
                 }
@@ -1104,7 +1109,8 @@ void SupportTreeBuildsteps::interconnect_pillars()
             const Pillar& neighborpillar = m_builder.pillar(re.second);
             
             // this neighbor is occupied, skip
-            if(neighborpillar.links >= neighbors) continue;
+            if (neighborpillar.links >= neighbors) continue;
+            if (neighborpillar.r < pillar.r) continue;
             
             if(interconnect(pillar, neighborpillar)) {
                 pairs.insert(hashval);

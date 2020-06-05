@@ -125,6 +125,8 @@ public:
     }
 
     Vec3d normal_by_face_id(int face_id) const;
+
+    const TriangleMesh * get_triangle_mesh() const { return m_tm; }
 };
 
 // Calculate the normals for the selected points (from 'points' set) on the

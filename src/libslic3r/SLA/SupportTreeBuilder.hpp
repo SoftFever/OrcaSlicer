@@ -216,6 +216,12 @@ struct Bridge {
            const Vec3d &j2,
            double       r_mm  = 0.8,
            size_t       steps = 45);
+
+    Bridge(const Vec3d &j1,
+           const Vec3d &j2,
+           double       r1_mm,
+           double       r2_mm,
+           size_t       steps = 45);
 };
 
 // A wrapper struct around the pad
