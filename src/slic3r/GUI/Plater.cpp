@@ -4009,8 +4009,6 @@ bool Plater::priv::init_collapse_toolbar()
     if (!collapse_toolbar.add_item(item))
         return false;
 
-    collapse_toolbar.set_enabled(true);
-
     return true;
 }
 
