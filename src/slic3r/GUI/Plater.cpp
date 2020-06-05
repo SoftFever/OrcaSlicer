@@ -1589,6 +1589,7 @@ struct Plater::priv
     Mouse3DController mouse3d_controller;
     View3D* view3D;
     GLToolbar view_toolbar;
+    GLToolbar collapse_toolbar;
     Preview *preview;
 
     BackgroundSlicingProcess    background_process;
@@ -1683,6 +1684,7 @@ struct Plater::priv
     void reset_canvas_volumes();
 
     bool init_view_toolbar();
+    bool init_collapse_toolbar();
 
     void reset_all_gizmos();
     void update_ui_from_settings();
@@ -1878,6 +1880,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , m_ui_jobs(this)
     , delayed_scene_refresh(false)
     , view_toolbar(GLToolbar::Radio, "View")
+    , collapse_toolbar(GLToolbar::Normal, "Collapse")
     , m_project_filename(wxEmptyString)
 {
     this->q->SetFont(Slic3r::GUI::wxGetApp().normal_font());
@@ -3922,6 +3925,53 @@ bool Plater::priv::init_view_toolbar()
     return true;
 }
 
+bool Plater::priv::init_collapse_toolbar()
+{
+    if (collapse_toolbar.get_items_count() > 0)
+        // already initialized
+        return true;
+
+    BackgroundTexture::Metadata background_data;
+    background_data.filename = "toolbar_background.png";
+    background_data.left = 16;
+    background_data.top = 16;
+    background_data.right = 16;
+    background_data.bottom = 16;
+
+    if (!collapse_toolbar.init(background_data))
+        return false;
+
+    collapse_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
+    collapse_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Right);
+    collapse_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
+    collapse_toolbar.set_border(5.0f);
+    collapse_toolbar.set_separator_size(5);
+    collapse_toolbar.set_gap_size(2);
+
+    GLToolbarItem::Data item;
+
+    item.name = "collapse_sidebar";
+    item.icon_filename = "collapse.svg";
+    item.tooltip = wxGetApp().plater()->is_sidebar_collapsed() ? _utf8(L("Expand right panel")) : _utf8(L("Collapse right panel"));
+    item.sprite_id = 0;
+    item.left.action_callback = [this, item]() {
+        std::string new_tooltip = wxGetApp().plater()->is_sidebar_collapsed() ?
+            _utf8(L("Collapse right panel")) : _utf8(L("Expand right panel"));
+
+        int id = collapse_toolbar.get_item_id("collapse_sidebar");
+        collapse_toolbar.set_tooltip(id, new_tooltip);
+
+        wxGetApp().plater()->collapse_sidebar(!wxGetApp().plater()->is_sidebar_collapsed());
+    };
+
+    if (!collapse_toolbar.add_item(item))
+        return false;
+
+    collapse_toolbar.set_enabled(true);
+
+    return true;
+}
+
 bool Plater::priv::can_set_instance_to_object() const
 {
     const int obj_idx = get_selected_object_idx();
@@ -5531,6 +5581,11 @@ bool Plater::init_view_toolbar()
     return p->init_view_toolbar();
 }
 
+bool Plater::init_collapse_toolbar()
+{
+    return p->init_collapse_toolbar();
+}
+
 const Camera& Plater::get_camera() const
 {
     return p->camera;
@@ -5572,6 +5627,16 @@ const GLToolbar& Plater::get_view_toolbar() const
 GLToolbar& Plater::get_view_toolbar()
 {
     return p->view_toolbar;
+}
+
+const GLToolbar& Plater::get_collapse_toolbar() const
+{
+    return p->collapse_toolbar;
+}
+
+GLToolbar& Plater::get_collapse_toolbar()
+{
+    return p->collapse_toolbar;
 }
 
 const Mouse3DController& Plater::get_mouse3d_controller() const

@@ -1238,7 +1238,7 @@ bool GLToolbar::generate_icons_texture() const
     }
 
     std::vector<std::pair<int, bool>> states;
-    if (m_name == "Top")
+    if (m_type == Normal)
     {
         states.push_back({ 1, false }); // Normal
         states.push_back({ 0, false }); // Pressed
@@ -1247,7 +1247,7 @@ bool GLToolbar::generate_icons_texture() const
         states.push_back({ 0, false }); // HoverPressed
         states.push_back({ 2, false }); // HoverDisabled
     }
-    else if (m_name == "View")
+    else
     {
         states.push_back({ 1, false }); // Normal
         states.push_back({ 1, true });  // Pressed
