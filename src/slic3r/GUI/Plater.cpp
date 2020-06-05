@@ -33,9 +33,17 @@
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Format/AMF.hpp"
 #include "libslic3r/Format/3mf.hpp"
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_GCODE_VIEWER_AS_STATE
+#include "libslic3r/GCode/GCodeProcessor.hpp"
+#else
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #if !ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/PreviewData.hpp"
 #endif // !ENABLE_GCODE_VIEWER
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/SLA/Hollowing.hpp"
@@ -1595,6 +1603,7 @@ struct Plater::priv
     Mouse3DController mouse3d_controller;
     View3D* view3D;
     GLToolbar view_toolbar;
+    GLToolbar collapse_toolbar;
     Preview *preview;
 
     BackgroundSlicingProcess    background_process;
@@ -1689,6 +1698,8 @@ struct Plater::priv
     void reset_canvas_volumes();
 
     bool init_view_toolbar();
+    bool init_collapse_toolbar();
+
 #if ENABLE_GCODE_VIEWER
     void update_preview_bottom_toolbar();
     void update_preview_moves_slider();
@@ -1888,6 +1899,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , m_ui_jobs(this)
     , delayed_scene_refresh(false)
     , view_toolbar(GLToolbar::Radio, "View")
+    , collapse_toolbar(GLToolbar::Normal, "Collapse")
     , m_project_filename(wxEmptyString)
 {
     this->q->SetFont(Slic3r::GUI::wxGetApp().normal_font());
@@ -2722,6 +2734,12 @@ void Plater::priv::reset()
     this->sidebar->show_sliced_info_sizer(false);
 
     model.custom_gcode_per_print_z.gcodes.clear();
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_GCODE_VIEWER_AS_STATE
+    gcode_result.reset();
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 }
 
 void Plater::priv::mirror(Axis axis)
@@ -3949,6 +3967,53 @@ bool Plater::priv::init_view_toolbar()
     return true;
 }
 
+bool Plater::priv::init_collapse_toolbar()
+{
+    if (collapse_toolbar.get_items_count() > 0)
+        // already initialized
+        return true;
+
+    BackgroundTexture::Metadata background_data;
+    background_data.filename = "toolbar_background.png";
+    background_data.left = 16;
+    background_data.top = 16;
+    background_data.right = 16;
+    background_data.bottom = 16;
+
+    if (!collapse_toolbar.init(background_data))
+        return false;
+
+    collapse_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
+    collapse_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Right);
+    collapse_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
+    collapse_toolbar.set_border(5.0f);
+    collapse_toolbar.set_separator_size(5);
+    collapse_toolbar.set_gap_size(2);
+
+    GLToolbarItem::Data item;
+
+    item.name = "collapse_sidebar";
+    item.icon_filename = "collapse.svg";
+    item.tooltip = wxGetApp().plater()->is_sidebar_collapsed() ? _utf8(L("Expand right panel")) : _utf8(L("Collapse right panel"));
+    item.sprite_id = 0;
+    item.left.action_callback = [this, item]() {
+        std::string new_tooltip = wxGetApp().plater()->is_sidebar_collapsed() ?
+            _utf8(L("Collapse right panel")) : _utf8(L("Expand right panel"));
+
+        int id = collapse_toolbar.get_item_id("collapse_sidebar");
+        collapse_toolbar.set_tooltip(id, new_tooltip);
+
+        wxGetApp().plater()->collapse_sidebar(!wxGetApp().plater()->is_sidebar_collapsed());
+    };
+
+    if (!collapse_toolbar.add_item(item))
+        return false;
+
+    collapse_toolbar.set_enabled(true);
+
+    return true;
+}
+
 #if ENABLE_GCODE_VIEWER
 void Plater::priv::update_preview_bottom_toolbar()
 {
@@ -4486,6 +4551,39 @@ void Plater::extract_config_from_project()
     input_paths.push_back(into_path(input_file));
     load_files(input_paths, false, true);
 }
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_GCODE_VIEWER_AS_STATE
+void Plater::load_gcode()
+{
+    // Ask user for a gcode file name.
+    wxString input_file;
+    wxGetApp().load_gcode(this, input_file);
+    // And finally load the gcode file.
+    load_gcode(input_file);
+}
+
+void Plater::load_gcode(const wxString& filename)
+{
+    if (filename.empty())
+        return;
+
+//    p->gcode_result.reset();
+
+    wxBusyCursor wait;
+    wxBusyInfo info(_L("Processing GCode") + "...", get_current_canvas3D()->get_wxglcanvas());
+
+    GCodeProcessor processor;
+//    processor.apply_config(config);
+    processor.process_file(filename.ToUTF8().data());
+    p->gcode_result = std::move(processor.extract_result());
+
+//    select_view_3D("Preview");
+    p->preview->load_print(false);
+//    p->preview->load_gcode_preview();
+}
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 std::vector<size_t> Plater::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool imperial_units /*= false*/) { return p->load_files(input_files, load_model, load_config, imperial_units); }
 
@@ -5418,7 +5516,15 @@ void Plater::set_printer_technology(PrinterTechnology printer_technology)
     p->label_btn_send   = printer_technology == ptFFF ? L("Send G-code")   : L("Send to printer");
 
     if (wxGetApp().mainframe)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_GCODE_VIEWER_AS_STATE
+        wxGetApp().mainframe->update_editor_menubar();
+#else
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         wxGetApp().mainframe->update_menubar();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     p->update_main_toolbar_tooltips();
 
@@ -5570,6 +5676,29 @@ bool Plater::init_view_toolbar()
     return p->init_view_toolbar();
 }
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_GCODE_VIEWER_AS_STATE
+void Plater::enable_view_toolbar(bool enable)
+{
+    p->view_toolbar.set_enabled(enable);
+}
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+bool Plater::init_collapse_toolbar()
+{
+    return p->init_collapse_toolbar();
+}
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_GCODE_VIEWER_AS_STATE
+void Plater::enable_collapse_toolbar(bool enable)
+{
+    p->collapse_toolbar.set_enabled(enable);
+}
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 const Camera& Plater::get_camera() const
 {
     return p->camera;
@@ -5611,6 +5740,16 @@ const GLToolbar& Plater::get_view_toolbar() const
 GLToolbar& Plater::get_view_toolbar()
 {
     return p->view_toolbar;
+}
+
+const GLToolbar& Plater::get_collapse_toolbar() const
+{
+    return p->collapse_toolbar;
+}
+
+GLToolbar& Plater::get_collapse_toolbar()
+{
+    return p->collapse_toolbar;
 }
 
 #if ENABLE_GCODE_VIEWER
@@ -5682,6 +5821,11 @@ bool Plater::can_undo() const { return p->undo_redo_stack().has_undo_snapshot();
 bool Plater::can_redo() const { return p->undo_redo_stack().has_redo_snapshot(); }
 bool Plater::can_reload_from_disk() const { return p->can_reload_from_disk(); }
 const UndoRedo::Stack& Plater::undo_redo_stack_main() const { return p->undo_redo_stack_main(); }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_GCODE_VIEWER_AS_STATE
+void Plater::clear_undo_redo_stack_main() { p->undo_redo_stack_main().clear(); }
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 void Plater::enter_gizmos_stack() { p->enter_gizmos_stack(); }
 void Plater::leave_gizmos_stack() { p->leave_gizmos_stack(); }
 bool Plater::inside_snapshot_capture() { return p->inside_snapshot_capture(); }

@@ -68,6 +68,21 @@ class MainFrame : public DPIFrame
     wxString    m_qs_last_input_file = wxEmptyString;
     wxString    m_qs_last_output_file = wxEmptyString;
     wxString    m_last_config = wxEmptyString;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_GCODE_VIEWER_AS_STATE
+    wxMenuBar* m_editor_menubar{ nullptr };
+    wxMenuBar* m_gcodeviewer_menubar{ nullptr };
+
+    struct RestoreFromGCodeViewer
+    {
+        bool collapsed_sidebar{ false };
+        bool collapse_toolbar_enabled{ false };
+    };
+
+    RestoreFromGCodeViewer m_restore_from_gcode_viewer;
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 #if 0
     wxMenuItem* m_menu_item_repeat { nullptr }; // doesn't used now
 #endif
@@ -120,6 +135,20 @@ class MainFrame : public DPIFrame
         slDlg,
     }               m_layout;
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_GCODE_VIEWER_AS_STATE
+public:
+    enum class EMode : unsigned char
+    {
+        Editor,
+        GCodeViewer
+    };
+
+private:
+    EMode m_mode{ EMode::Editor };
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 protected:
     virtual void on_dpi_changed(const wxRect &suggested_rect);
     virtual void on_sys_color_changed() override;
@@ -138,8 +167,21 @@ public:
     void        init_tabpanel();
     void        create_preset_tabs();
     void        add_created_tab(Tab* panel);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_GCODE_VIEWER_AS_STATE
+    void        init_editor_menubar();
+    void        update_editor_menubar();
+    void        init_gcodeviewer_menubar();
+
+    EMode       get_mode() const { return m_mode; }
+    void        set_mode(EMode mode);
+#else
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     void        init_menubar();
     void        update_menubar();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     void        update_ui_from_settings();
     bool        is_loaded() const { return m_loaded; }

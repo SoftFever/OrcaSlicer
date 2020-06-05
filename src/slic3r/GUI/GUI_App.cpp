@@ -760,6 +760,22 @@ void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files) const
         dialog.GetPaths(input_files);
 }
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_GCODE_VIEWER_AS_STATE
+void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
+{
+    input_file.Clear();
+    wxFileDialog dialog(parent ? parent : GetTopWindow(),
+        _(L("Choose one file (GCODE/.GCO/.G/.ngc/NGC):")),
+        app_config->get_last_dir(), "",
+        file_wildcards(FT_GCODE), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    if (dialog.ShowModal() == wxID_OK)
+        input_file = dialog.GetPath();
+}
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 bool GUI_App::switch_language()
 {
     if (select_language()) {

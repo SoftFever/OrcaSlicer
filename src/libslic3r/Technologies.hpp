@@ -48,10 +48,16 @@
 // Enable smoothing of objects normals
 #define ENABLE_SMOOTH_NORMALS (0 && ENABLE_2_3_0_ALPHA1)
 
+// Enable error logging for OpenGL calls when SLIC3R_LOGLEVEL >= 5
+#define ENABLE_OPENGL_ERROR_LOGGING (1 && ENABLE_2_3_0_ALPHA1)
+
 // Enable G-Code viewer
 #define ENABLE_GCODE_VIEWER (1 && ENABLE_2_3_0_ALPHA1)
 #define ENABLE_GCODE_VIEWER_STATISTICS (0 && ENABLE_GCODE_VIEWER)
 #define ENABLE_GCODE_VIEWER_SHADERS_EDITOR (1 && ENABLE_GCODE_VIEWER)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#define ENABLE_GCODE_VIEWER_AS_STATE (1 && ENABLE_GCODE_VIEWER)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 
 #endif // _prusaslicer_technologies_h_

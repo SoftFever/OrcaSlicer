@@ -48,15 +48,13 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     size_t extruders_count = config.nozzle_diameter.values.size();
 
     m_extruder_offsets.resize(extruders_count);
-    for (size_t id = 0; id < extruders_count; ++id)
-    {
+    for (size_t id = 0; id < extruders_count; ++id) {
         Vec2f offset = config.extruder_offset.get_at(id).cast<float>();
         m_extruder_offsets[id] = Vec3f(offset(0), offset(1), 0.0f);
     }
 
     m_extruders_color.resize(extruders_count);
-    for (size_t id = 0; id < extruders_count; ++id)
-    {
+    for (size_t id = 0; id < extruders_count; ++id) {
         m_extruders_color[id] = static_cast<unsigned int>(id);
     }
 }
@@ -104,8 +102,7 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line)
     m_start_position = m_end_position;
 
     std::string cmd = line.cmd();
-    if (cmd.length() > 1)
-    {
+    if (cmd.length() > 1) {
         // process command lines
         switch (::toupper(cmd[0]))
         {
@@ -163,8 +160,7 @@ void GCodeProcessor::process_tags(const std::string& comment)
 {
     // extrusion role tag
     size_t pos = comment.find(Extrusion_Role_Tag);
-    if (pos != comment.npos)
-    {
+    if (pos != comment.npos) {
         try
         {
             int role = std::stoi(comment.substr(pos + Extrusion_Role_Tag.length()));
@@ -185,8 +181,7 @@ void GCodeProcessor::process_tags(const std::string& comment)
 
     // width tag
     pos = comment.find(Width_Tag);
-    if (pos != comment.npos)
-    {
+    if (pos != comment.npos) {
         try
         {
             m_width = std::stof(comment.substr(pos + Width_Tag.length()));
@@ -200,8 +195,7 @@ void GCodeProcessor::process_tags(const std::string& comment)
 
     // height tag
     pos = comment.find(Height_Tag);
-    if (pos != comment.npos)
-    {
+    if (pos != comment.npos) {
         try
         {
             m_height = std::stof(comment.substr(pos + Height_Tag.length()));
@@ -215,8 +209,7 @@ void GCodeProcessor::process_tags(const std::string& comment)
 
     // mm3 per mm tag
     pos = comment.find(Mm3_Per_Mm_Tag);
-    if (pos != comment.npos)
-    {
+    if (pos != comment.npos) {
         try
         {
             m_mm3_per_mm = std::stof(comment.substr(pos + Mm3_Per_Mm_Tag.length()));
@@ -230,8 +223,7 @@ void GCodeProcessor::process_tags(const std::string& comment)
 
     // color change tag
     pos = comment.find(Color_Change_Tag);
-    if (pos != comment.npos)
-    {
+    if (pos != comment.npos) {
         pos = comment.find_last_of(",T");
         try
         {
@@ -258,16 +250,14 @@ void GCodeProcessor::process_tags(const std::string& comment)
 
     // pause print tag
     pos = comment.find(Pause_Print_Tag);
-    if (pos != comment.npos)
-    {
+    if (pos != comment.npos) {
         store_move_vertex(EMoveType::Pause_Print);
         return;
     }
 
     // custom code tag
     pos = comment.find(Custom_Code_Tag);
-    if (pos != comment.npos)
-    {
+    if (pos != comment.npos) {
         store_move_vertex(EMoveType::Custom_GCode);
         return;
     }
@@ -281,8 +271,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         if (axis == E)
             is_relative |= (m_e_local_positioning_type == EPositioningType::Relative);
 
-        if (lineG1.has(Slic3r::Axis(axis)))
-        {
+        if (lineG1.has(Slic3r::Axis(axis))) {
             float lengthsScaleFactor = (m_units == EUnits::Inches) ? INCHES_TO_MM : 1.0f;
             float ret = lineG1.value(Slic3r::Axis(axis)) * lengthsScaleFactor;
             return is_relative ? m_start_position[axis] + ret : m_origin[axis] + ret;
@@ -294,32 +283,43 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
     auto move_type = [this](const AxisCoords& delta_pos) {
         EMoveType type = EMoveType::Noop;
 
-        if (delta_pos[E] < 0.0f)
-        {
+        if (delta_pos[E] < 0.0f) {
             if (delta_pos[X] != 0.0f || delta_pos[Y] != 0.0f || delta_pos[Z] != 0.0f)
                 type = EMoveType::Travel;
             else
                 type = EMoveType::Retract;
-        }
-        else if (delta_pos[E] > 0.0f)
-        {
+        } else if (delta_pos[E] > 0.0f) {
             if (delta_pos[X] == 0.0f && delta_pos[Y] == 0.0f && delta_pos[Z] == 0.0f)
                 type = EMoveType::Unretract;
             else if ((delta_pos[X] != 0.0f) || (delta_pos[Y] != 0.0f))
                 type = EMoveType::Extrude;
-        }
-        else if (delta_pos[X] != 0.0f || delta_pos[Y] != 0.0f || delta_pos[Z] != 0.0f)
+        } else if (delta_pos[X] != 0.0f || delta_pos[Y] != 0.0f || delta_pos[Z] != 0.0f)
             type = EMoveType::Travel;
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_GCODE_VIEWER_AS_STATE
+        if (type == EMoveType::Extrude && (m_width == 0.0f || m_height == 0.0f))
+        {
+            if (m_extrusion_role != erCustom)
+            {
+                m_width = 0.5f;
+                m_height = 0.5f;
+            }
+            type = EMoveType::Travel;
+        }
+#else
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         if (type == EMoveType::Extrude && (m_width == 0.0f || m_height == 0.0f || !is_valid_extrusion_role(m_extrusion_role)))
             type = EMoveType::Travel;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         return type;
     };
 
     // updates axes positions from line
-    for (unsigned char a = X; a <= E; ++a)
-    {
+    for (unsigned char a = X; a <= E; ++a) {
         m_end_position[a] = absolute_position((Axis)a, line);
     }
 
@@ -330,8 +330,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
     // calculates movement deltas
     float max_abs_delta = 0.0f;
     AxisCoords delta_pos;
-    for (unsigned char a = X; a <= E; ++a)
-    {
+    for (unsigned char a = X; a <= E; ++a) {
         delta_pos[a] = m_end_position[a] - m_start_position[a];
         max_abs_delta = std::max(max_abs_delta, std::abs(delta_pos[a]));
     }
@@ -383,38 +382,32 @@ void GCodeProcessor::process_G92(const GCodeReader::GCodeLine& line)
     float lengthsScaleFactor = (m_units == EUnits::Inches) ? INCHES_TO_MM : 1.0f;
     bool anyFound = false;
 
-    if (line.has_x())
-    {
+    if (line.has_x()) {
         m_origin[X] = m_end_position[X] - line.x() * lengthsScaleFactor;
         anyFound = true;
     }
 
-    if (line.has_y())
-    {
+    if (line.has_y()) {
         m_origin[Y] = m_end_position[Y] - line.y() * lengthsScaleFactor;
         anyFound = true;
     }
 
-    if (line.has_z())
-    {
+    if (line.has_z()) {
         m_origin[Z] = m_end_position[Z] - line.z() * lengthsScaleFactor;
         anyFound = true;
     }
 
-    if (line.has_e())
-    {
+    if (line.has_e()) {
         // extruder coordinate can grow to the point where its float representation does not allow for proper addition with small increments,
         // we set the value taken from the G92 line as the new current position for it
         m_end_position[E] = line.e() * lengthsScaleFactor;
         anyFound = true;
     }
 
-    if (!anyFound && !line.has_unknown_axis())
-    {
+    if (!anyFound && !line.has_unknown_axis()) {
         // The G92 may be called for axes that PrusaSlicer does not recognize, for example see GH issue #3510, 
         // where G92 A0 B0 is called although the extruder axis is till E.
-        for (unsigned char a = X; a <= E; ++a)
-        {
+        for (unsigned char a = X; a <= E; ++a) {
             m_origin[a] = m_end_position[a];
         }
     }
@@ -432,8 +425,7 @@ void GCodeProcessor::process_M83(const GCodeReader::GCodeLine& line)
 
 void GCodeProcessor::process_M106(const GCodeReader::GCodeLine& line)
 {
-    if (!line.has('P'))
-    {
+    if (!line.has('P')) {
         // The absence of P means the print cooling fan, so ignore anything else.
         float new_fan_speed;
         if (line.has_value('S', new_fan_speed))
@@ -502,8 +494,7 @@ void GCodeProcessor::process_M401(const GCodeReader::GCodeLine& line)
     if (m_flavor != gcfRepetier)
         return;
 
-    for (unsigned char a = 0; a <= 3; ++a)
-    {
+    for (unsigned char a = 0; a <= 3; ++a) {
         m_cached_position.position[a] = m_start_position[a];
     }
     m_cached_position.feedrate = m_feedrate;
@@ -521,10 +512,8 @@ void GCodeProcessor::process_M402(const GCodeReader::GCodeLine& line)
     bool has_xyz = !(line.has_x() || line.has_y() || line.has_z());
 
     float p = FLT_MAX;
-    for (unsigned char a = X; a <= Z; ++a)
-    {
-        if (has_xyz || line.has(a))
-        {
+    for (unsigned char a = X; a <= Z; ++a) {
+        if (has_xyz || line.has(a)) {
             p = m_cached_position.position[a];
             if (p != FLT_MAX)
                 m_start_position[a] = p;
@@ -550,18 +539,15 @@ void GCodeProcessor::process_T(const GCodeReader::GCodeLine& line)
 
 void GCodeProcessor::process_T(const std::string& command)
 {
-    if (command.length() > 1)
-    {
+    if (command.length() > 1) {
         try
         {
             unsigned char id = static_cast<unsigned char>(std::stoi(command.substr(1)));
-            if (m_extruder_id != id)
-            {
+            if (m_extruder_id != id) {
                 unsigned char extruders_count = static_cast<unsigned char>(m_extruder_offsets.size());
                 if (id >= extruders_count)
                     BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid toolchange, maybe from a custom gcode.";
-                else
-                {
+                else {
                     m_extruder_id = id;
                     m_cp_color.current = m_extruders_color[id];
                 }
