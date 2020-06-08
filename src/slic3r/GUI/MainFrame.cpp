@@ -1163,6 +1163,8 @@ void MainFrame::set_mode(EMode mode)
     {
         m_plater->reset();
 
+        m_plater->Freeze();
+
         // switch view
         m_plater->select_view_3D("3D");
         m_plater->select_view("iso");
@@ -1187,12 +1189,16 @@ void MainFrame::set_mode(EMode mode)
             m_restore_from_gcode_viewer.collapsed_sidebar = false;
         }
 
+        m_plater->Thaw();
+
         break;
     }
     case EMode::GCodeViewer:
     {
         m_plater->reset();
         m_plater->reset_last_loaded_gcode();
+
+        m_plater->Freeze();
 
         // reinitialize undo/redo stack
         m_plater->clear_undo_redo_stack_main();
@@ -1221,6 +1227,8 @@ void MainFrame::set_mode(EMode mode)
             m_plater->collapse_sidebar(true);
             m_restore_from_gcode_viewer.collapsed_sidebar = true;
         }
+
+        m_plater->Thaw();
 
         break;
     }
