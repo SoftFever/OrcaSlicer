@@ -37,7 +37,7 @@ void GCodeProcessor::CpColor::reset()
     current = 0;
 }
 
-unsigned int GCodeProcessor::Result::id = 0;
+unsigned int GCodeProcessor::s_result_id = 0;
 
 void GCodeProcessor::apply_config(const PrintConfig& config)
 {
@@ -84,19 +84,19 @@ void GCodeProcessor::reset()
     m_cp_color.reset();
 
     m_result.reset();
+    m_result.id = ++s_result_id;
 }
 
 void GCodeProcessor::process_file(const std::string& filename)
 {
+    m_result.id = ++s_result_id;
     m_result.moves.emplace_back(MoveVertex());
     m_parser.parse_file(filename, [this](GCodeReader& reader, const GCodeReader::GCodeLine& line) { process_gcode_line(line); });
 }
 
 void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line)
 {
-/*
-    std::cout << line.raw() << std::endl;
-*/
+/* std::cout << line.raw() << std::endl; */
 
     // update start position
     m_start_position = m_end_position;
@@ -296,24 +296,18 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         } else if (delta_pos[X] != 0.0f || delta_pos[Y] != 0.0f || delta_pos[Z] != 0.0f)
             type = EMoveType::Travel;
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #if ENABLE_GCODE_VIEWER_AS_STATE
-        if (type == EMoveType::Extrude && (m_width == 0.0f || m_height == 0.0f))
-        {
-            if (m_extrusion_role != erCustom)
-            {
+        if (type == EMoveType::Extrude && (m_width == 0.0f || m_height == 0.0f)) {
+            if (m_extrusion_role != erCustom) {
                 m_width = 0.5f;
                 m_height = 0.5f;
             }
             type = EMoveType::Travel;
         }
 #else
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         if (type == EMoveType::Extrude && (m_width == 0.0f || m_height == 0.0f || !is_valid_extrusion_role(m_extrusion_role)))
             type = EMoveType::Travel;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #endif // ENABLE_GCODE_VIEWER_AS_STATE
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         return type;
     };

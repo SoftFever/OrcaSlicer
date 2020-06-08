@@ -104,9 +104,9 @@ namespace Slic3r {
 
         struct Result
         {
-            static unsigned int id;
+            unsigned int id;
             std::vector<MoveVertex> moves;
-            void reset() { ++id; moves = std::vector<MoveVertex>(); }
+            void reset() { moves = std::vector<MoveVertex>(); }
         };
 
     private:
@@ -134,6 +134,7 @@ namespace Slic3r {
         CpColor m_cp_color;
 
         Result m_result;
+        static unsigned int s_result_id;
 
     public:
         GCodeProcessor() { reset(); }
