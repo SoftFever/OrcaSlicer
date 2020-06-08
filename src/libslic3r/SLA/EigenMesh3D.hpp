@@ -7,7 +7,7 @@
 // There is an implementation of a hole-aware raycaster that was eventually
 // not used in production version. It is now hidden under following define
 // for possible future use.
-#define SLIC3R_HOLE_RAYCASTER
+// #define SLIC3R_HOLE_RAYCASTER
 
 #ifdef SLIC3R_HOLE_RAYCASTER
   #include "libslic3r/SLA/Hollowing.hpp"

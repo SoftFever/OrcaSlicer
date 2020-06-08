@@ -2506,7 +2506,6 @@ void ObjectList::merge(bool to_multipart_object)
 
             // all objects, created from the instances will be added to the end of list
             int new_objects_cnt = 0; // count of this new objects
-//            std::vector<int> obj_idxs;
 
             for (auto map_item : sel_map)
             {
@@ -2569,22 +2568,45 @@ void ObjectList::merge(bool to_multipart_object)
         new_object->name = _u8L("Merged");
         DynamicPrintConfig* config = &new_object->config;
 
-        int frst_obj_idx = obj_idxs.front();
-        const Vec3d& main_offset  = (*m_objects)[frst_obj_idx]->instances[0]->get_offset();
-
         for (int obj_idx : obj_idxs)
         {
             ModelObject* object = (*m_objects)[obj_idx];
-            Vec3d offset = object->instances[0]->get_offset();
 
-            if (object->id() == (*m_objects)[frst_obj_idx]->id())
-                new_object->add_instance(*object->instances[0]);
+            const Geometry::Transformation& transformation = object->instances[0]->get_transformation();
+            Vec3d scale     = transformation.get_scaling_factor();
+            Vec3d mirror    = transformation.get_mirror();
+            Vec3d rotation  = transformation.get_rotation();
+
+            if (object->id() == (*m_objects)[obj_idxs.front()]->id())
+                new_object->add_instance();
+            Transform3d     volume_offset_correction = new_object->instances[0]->get_transformation().get_matrix().inverse() * transformation.get_matrix();
+
+            // merge volumes
+            for (const ModelVolume* volume : object->volumes) {
+                ModelVolume* new_volume = new_object->add_volume(*volume);
+
+                //set rotation
+                Vec3d vol_rot = new_volume->get_rotation() + rotation;
+                new_volume->set_rotation(vol_rot);
+
+                // set scale
+                Vec3d vol_sc_fact = new_volume->get_scaling_factor().cwiseProduct(scale);
+                new_volume->set_scaling_factor(vol_sc_fact);
+
+                // set mirror
+                Vec3d vol_mirror = new_volume->get_mirror().cwiseProduct(mirror);
+                new_volume->set_mirror(vol_mirror);
+
+                // set offset
+                Vec3d vol_offset = volume_offset_correction* new_volume->get_offset();
+                new_volume->set_offset(vol_offset);
+            }
+
+            // merge settings
             auto new_opt_keys = config->keys();
-
             const DynamicPrintConfig& from_config = object->config;
             auto opt_keys = from_config.keys();
 
-            // merge settings
             for (auto& opt_key : opt_keys) {
                 if (find(new_opt_keys.begin(), new_opt_keys.end(), opt_key) == new_opt_keys.end()) {
                     const ConfigOption* option = from_config.option(opt_key);
@@ -2596,18 +2618,11 @@ void ObjectList::merge(bool to_multipart_object)
                     config->set_key_value(opt_key, option->clone());
                 }
             }
-
-            // merge volumes
-            for (const ModelVolume* volume : object->volumes) {
-                ModelVolume* new_volume = new_object->add_volume(*volume);
-                Vec3d vol_offset = offset - main_offset + new_volume->get_offset();
-                new_volume->set_offset(vol_offset);
-            }
             // save extruder value if it was set
             if (object->volumes.size() == 1 && find(opt_keys.begin(), opt_keys.end(), "extruder") != opt_keys.end()) {
                 ModelVolume* volume = new_object->volumes.back();
                 const ConfigOption* option = from_config.option("extruder");
-                if (option) 
+                if (option)
                     volume->config.set_key_value("extruder", option->clone());
             }
 

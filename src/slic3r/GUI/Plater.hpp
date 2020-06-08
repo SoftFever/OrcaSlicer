@@ -315,6 +315,7 @@ public:
     void sys_color_changed();
 
     bool init_view_toolbar();
+    bool init_collapse_toolbar();
 
     const Camera& get_camera() const;
     Camera& get_camera();
@@ -329,6 +330,9 @@ public:
 
     const GLToolbar& get_view_toolbar() const;
     GLToolbar& get_view_toolbar();
+
+    const GLToolbar& get_collapse_toolbar() const;
+    GLToolbar& get_collapse_toolbar();
 
     const Mouse3DController& get_mouse3d_controller() const;
     Mouse3DController& get_mouse3d_controller();

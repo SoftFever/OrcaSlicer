@@ -40,12 +40,19 @@
 #include <Eigen/Dense>
 
 #ifdef HAS_GLSAFE
-void glAssertRecentCallImpl(const char *file_name, unsigned int line, const char *function_name)
+void glAssertRecentCallImpl(const char* file_name, unsigned int line, const char* function_name)
 {
+#if defined(NDEBUG) && ENABLE_OPENGL_ERROR_LOGGING
+    // In release mode, if OpenGL debugging was forced by ENABLE_OPENGL_ERROR_LOGGING, only show
+    // OpenGL errors if sufficiently high loglevel.
+    if (Slic3r::get_logging_level() < 5)
+        return;
+#endif // ENABLE_OPENGL_ERROR_LOGGING
+
     GLenum err = glGetError();
     if (err == GL_NO_ERROR)
         return;
-    const char *sErr = 0;
+    const char* sErr = 0;
     switch (err) {
     case GL_INVALID_ENUM:       sErr = "Invalid Enum";      break;
     case GL_INVALID_VALUE:      sErr = "Invalid Value";     break;
@@ -56,10 +63,10 @@ void glAssertRecentCallImpl(const char *file_name, unsigned int line, const char
     case GL_OUT_OF_MEMORY:      sErr = "Out Of Memory";     break;
     default:                    sErr = "Unknown";           break;
     }
-	BOOST_LOG_TRIVIAL(error) << "OpenGL error in " << file_name << ":" << line << ", function " << function_name << "() : " << (int)err << " - " << sErr;
+    BOOST_LOG_TRIVIAL(error) << "OpenGL error in " << file_name << ":" << line << ", function " << function_name << "() : " << (int)err << " - " << sErr;
     assert(false);
 }
-#endif
+#endif // HAS_GLSAFE
 
 namespace Slic3r {
 

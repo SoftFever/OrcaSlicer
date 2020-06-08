@@ -452,7 +452,6 @@ private:
     mutable GLGizmosManager m_gizmos;
     mutable GLToolbar m_main_toolbar;
     mutable GLToolbar m_undoredo_toolbar;
-    mutable GLToolbar m_collapse_toolbar;
     ClippingPlane m_clipping_planes[2];
     mutable ClippingPlane m_camera_clipping_plane;
     bool m_use_clipping_planes;
@@ -588,7 +587,6 @@ public:
     void enable_selection(bool enable);
     void enable_main_toolbar(bool enable);
     void enable_undoredo_toolbar(bool enable);
-    void enable_collapse_toolbar(bool enable);
     void enable_dynamic_background(bool enable);
     void enable_labels(bool enable) { m_labels.enable(enable); }
 #if ENABLE_SLOPE_RENDERING

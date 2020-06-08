@@ -252,8 +252,16 @@ bool arrange(
     // output
     Pointfs &positions);
 
+class VoronoiDiagram : public boost::polygon::voronoi_diagram<double> {
+public:
+    typedef double                                          coord_type;
+    typedef boost::polygon::point_data<coordinate_type>     point_type;
+    typedef boost::polygon::segment_data<coordinate_type>   segment_type;
+    typedef boost::polygon::rectangle_data<coordinate_type> rect_type;
+};
+
 class MedialAxis {
-    public:
+public:
     Lines lines;
     const ExPolygon* expolygon;
     double max_width;
@@ -263,14 +271,8 @@ class MedialAxis {
     void build(ThickPolylines* polylines);
     void build(Polylines* polylines);
     
-    private:
-    class VD : public boost::polygon::voronoi_diagram<double> {
-    public:
-        typedef double                                          coord_type;
-        typedef boost::polygon::point_data<coordinate_type>     point_type;
-        typedef boost::polygon::segment_data<coordinate_type>   segment_type;
-        typedef boost::polygon::rectangle_data<coordinate_type> rect_type;
-    };
+private:
+    using VD = VoronoiDiagram;
     VD vd;
     std::set<const VD::edge_type*> edges, valid_edges;
     std::map<const VD::edge_type*, std::pair<coordf_t,coordf_t> > thickness;

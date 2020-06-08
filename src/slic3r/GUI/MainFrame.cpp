@@ -329,7 +329,7 @@ void MainFrame::init_tabpanel()
         Tab* tab = dynamic_cast<Tab*>(panel);
 
         // There shouldn't be a case, when we try to select a tab, which doesn't support a printer technology
-        if (panel == nullptr || (tab && tab->supports_printer_technology(m_plater->printer_technology())))
+        if (panel == nullptr || (tab && ! tab->supports_printer_technology(m_plater->printer_technology())))
             return;
 
         auto& tabs_list = wxGetApp().tabs_list;
