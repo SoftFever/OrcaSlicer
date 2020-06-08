@@ -1162,10 +1162,14 @@ void MainFrame::set_mode(EMode mode)
     case EMode::Editor:
     {
         m_plater->reset();
-//        m_plater->reset_last_loaded_gcode();
 
         // switch view
         m_plater->select_view_3D("3D");
+        m_plater->select_view("iso");
+
+        // switch printbed
+        m_plater->set_bed_shape();
+
         // switch menubar
         SetMenuBar(m_editor_menubar);
 
@@ -1196,6 +1200,11 @@ void MainFrame::set_mode(EMode mode)
 
         // switch view
         m_plater->select_view_3D("Preview");
+        m_plater->select_view("iso");
+
+        // switch printbed
+        m_plater->set_bed_shape({ { 0.0, 0.0 }, { 200.0, 0.0 }, { 200.0, 200.0 }, { 0.0, 200.0 } }, "", "");
+
         // switch menubar
         SetMenuBar(m_gcodeviewer_menubar);
 

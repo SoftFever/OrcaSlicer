@@ -2014,21 +2014,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_OBJECTS, &priv::on_action_split_objects, this);
     view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_VOLUMES, &priv::on_action_split_volumes, this);
     view3D_canvas->Bind(EVT_GLTOOLBAR_LAYERSEDITING, &priv::on_action_layersediting, this);
-    view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [this](SimpleEvent&)
-        {
-            set_bed_shape(config->option<ConfigOptionPoints>("bed_shape")->values,
-                config->option<ConfigOptionString>("bed_custom_texture")->value,
-                config->option<ConfigOptionString>("bed_custom_model")->value);
-        });
+    view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [q](SimpleEvent&) { q->set_bed_shape(); });
 
     // Preview events:
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_QUESTION_MARK, [this](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
-    preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [this](SimpleEvent&)
-        {
-            set_bed_shape(config->option<ConfigOptionPoints>("bed_shape")->values,
-                config->option<ConfigOptionString>("bed_custom_texture")->value,
-                config->option<ConfigOptionString>("bed_custom_model")->value);
-        });
+    preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [q](SimpleEvent&) { q->set_bed_shape(); });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent&) { select_next_view_3D(); });
 #if ENABLE_GCODE_VIEWER
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOVE_LAYERS_SLIDER, [this](wxKeyEvent& evt) { preview->move_layers_slider(evt); });
@@ -4567,14 +4557,16 @@ void Plater::load_gcode(const wxString& filename)
     p->get_current_canvas3D()->render();
 
     wxBusyCursor wait;
-//    wxBusyInfo info(_L("Processing GCode") + "...", get_current_canvas3D()->get_wxglcanvas());
 
+    // process gcode
     GCodeProcessor processor;
 //    processor.apply_config(config);
     processor.process_file(filename.ToUTF8().data());
     p->gcode_result = std::move(processor.extract_result());
 
+    // show results
     p->preview->reload_print(false);
+    p->preview->get_canvas3d()->zoom_to_gcode();
 }
 #endif // ENABLE_GCODE_VIEWER_AS_STATE
 
@@ -5318,9 +5310,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
     }
 
     if (bed_shape_changed)
-        p->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values,
-            p->config->option<ConfigOptionString>("bed_custom_texture")->value,
-            p->config->option<ConfigOptionString>("bed_custom_model")->value);
+        set_bed_shape();
 
     if (update_scheduled)
         update();
@@ -5331,10 +5321,23 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 
 void Plater::set_bed_shape() const
 {
-	p->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values,
+#if ENABLE_GCODE_VIEWER_AS_STATE
+    set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values,
+        p->config->option<ConfigOptionString>("bed_custom_texture")->value,
+        p->config->option<ConfigOptionString>("bed_custom_model")->value);
+#else
+    p->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values,
 		p->config->option<ConfigOptionString>("bed_custom_texture")->value,
 		p->config->option<ConfigOptionString>("bed_custom_model")->value);
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
 }
+
+#if ENABLE_GCODE_VIEWER_AS_STATE
+void Plater::set_bed_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model) const
+{
+    p->set_bed_shape(shape, custom_texture, custom_model);
+}
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
 
 void Plater::force_filament_colors_update()
 {

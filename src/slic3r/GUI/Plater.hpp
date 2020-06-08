@@ -360,6 +360,9 @@ public:
     Mouse3DController& get_mouse3d_controller();
 
 	void set_bed_shape() const;
+#if ENABLE_GCODE_VIEWER_AS_STATE
+    void set_bed_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model) const;
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
 
     // ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
 	class SuppressSnapshots

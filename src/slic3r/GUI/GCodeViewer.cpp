@@ -251,6 +251,19 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
 
     load_toolpaths(gcode_result);
     load_shells(print, initialized);
+
+#if ENABLE_GCODE_VIEWER_AS_STATE
+    // adjust printbed size
+    const double margin = 10.0;
+    Vec2d min(m_bounding_box.min(0) - margin, m_bounding_box.min(1) - margin);
+    Vec2d max(m_bounding_box.max(0) + margin, m_bounding_box.max(1) + margin);
+    Pointfs bed_shape = {
+        { min(0), min(1) },
+        { max(0), min(1) },
+        { max(0), max(1) },
+        { min(0), max(1) } };
+    wxGetApp().plater()->set_bed_shape(bed_shape, "", "");
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
 }
 
 void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors)
@@ -450,7 +463,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         for (size_t i = 0; i < m_vertices.vertices_count; ++i) {
             const GCodeProcessor::MoveVertex& move = gcode_result.moves[i];
 #if ENABLE_GCODE_VIEWER_AS_STATE
-            if (wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer) {
+            if (wxGetApp().mainframe->get_mode() == MainFrame::EMode::GCodeViewer)
+                m_bounding_box.merge(move.position.cast<double>());
+            else {
 #endif // ENABLE_GCODE_VIEWER_AS_STATE
                 if (move.type == GCodeProcessor::EMoveType::Extrude && move.width != 0.0f && move.height != 0.0f)
                     m_bounding_box.merge(move.position.cast<double>());

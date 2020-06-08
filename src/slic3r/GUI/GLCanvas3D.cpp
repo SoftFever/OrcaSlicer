@@ -1930,6 +1930,13 @@ void GLCanvas3D::zoom_to_selection()
         _zoom_to_box(m_selection.get_bounding_box());
 }
 
+#if ENABLE_GCODE_VIEWER_AS_STATE
+void GLCanvas3D::zoom_to_gcode()
+{
+    _zoom_to_box(m_gcode_viewer.get_bounding_box(), 1.05);
+}
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
+
 void GLCanvas3D::select_view(const std::string& direction)
 {
     wxGetApp().plater()->get_camera().select_view(direction);
@@ -2706,7 +2713,10 @@ static void load_gcode_retractions(const GCodePreviewData::Retraction& retractio
 void GLCanvas3D::load_gcode_preview(const GCodeProcessor::Result& gcode_result)
 {
     m_gcode_viewer.load(gcode_result, *this->fff_print(), m_initialized);
-    _show_warning_texture_if_needed(WarningTexture::ToolpathOutside);
+#if ENABLE_GCODE_VIEWER_AS_STATE
+    if (wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer)
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
+        _show_warning_texture_if_needed(WarningTexture::ToolpathOutside);
 }
 
 void GLCanvas3D::refresh_gcode_preview(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors)
@@ -5351,8 +5361,7 @@ static BoundingBoxf3 print_volume(const DynamicPrintConfig& config)
 
     BoundingBoxf3 ret;
     const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(config.option("bed_shape"));
-    if (opt != nullptr)
-    {
+    if (opt != nullptr) {
         BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
         ret = BoundingBoxf3(Vec3d(unscale<double>(bed_box_2D.min(0)) - tolerance_x, unscale<double>(bed_box_2D.min(1)) - tolerance_y, 0.0), Vec3d(unscale<double>(bed_box_2D.max(0)) + tolerance_x, unscale<double>(bed_box_2D.max(1)) + tolerance_y, config.opt_float("max_print_height")));
         // Allow the objects to protrude below the print bed
@@ -5365,14 +5374,22 @@ static BoundingBoxf3 print_volume(const DynamicPrintConfig& config)
 void GLCanvas3D::_render_background() const
 {
 #if ENABLE_GCODE_VIEWER
-    bool use_error_color = m_dynamic_background_enabled;
-    if (!m_volumes.empty())
-        use_error_color &= _is_any_volume_outside();
-    else
-    {
-        BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
-        use_error_color &= (test_volume.radius() > 0.0) ? !test_volume.contains(m_gcode_viewer.get_bounding_box()) : false;
+#if ENABLE_GCODE_VIEWER_AS_STATE
+    bool use_error_color = false;
+    if (wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer) {
+        use_error_color = m_dynamic_background_enabled;
+#else
+        bool use_error_color = m_dynamic_background_enabled;
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
+        if (!m_volumes.empty())
+            use_error_color &= _is_any_volume_outside();
+        else {
+            BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
+            use_error_color &= (test_volume.radius() > 0.0) ? !test_volume.contains(m_gcode_viewer.get_bounding_box()) : false;
+        }
+#if ENABLE_GCODE_VIEWER_AS_STATE
     }
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
 #endif // ENABLE_GCODE_VIEWER
 
     glsafe(::glPushMatrix());
