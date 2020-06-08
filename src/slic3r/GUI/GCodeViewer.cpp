@@ -253,16 +253,18 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
     load_shells(print, initialized);
 
 #if ENABLE_GCODE_VIEWER_AS_STATE
-    // adjust printbed size
-    const double margin = 10.0;
-    Vec2d min(m_bounding_box.min(0) - margin, m_bounding_box.min(1) - margin);
-    Vec2d max(m_bounding_box.max(0) + margin, m_bounding_box.max(1) + margin);
-    Pointfs bed_shape = {
-        { min(0), min(1) },
-        { max(0), min(1) },
-        { max(0), max(1) },
-        { min(0), max(1) } };
-    wxGetApp().plater()->set_bed_shape(bed_shape, "", "");
+    if (wxGetApp().mainframe->get_mode() == MainFrame::EMode::GCodeViewer) {
+        // adjust printbed size
+        const double margin = 10.0;
+        Vec2d min(m_bounding_box.min(0) - margin, m_bounding_box.min(1) - margin);
+        Vec2d max(m_bounding_box.max(0) + margin, m_bounding_box.max(1) + margin);
+        Pointfs bed_shape = {
+            { min(0), min(1) },
+            { max(0), min(1) },
+            { max(0), max(1) },
+            { min(0), max(1) } };
+        wxGetApp().plater()->set_bed_shape(bed_shape, "", "");
+    }
 #endif // ENABLE_GCODE_VIEWER_AS_STATE
 }
 
