@@ -1506,8 +1506,9 @@ void Control::show_add_context_menu()
     append_menu_item(&menu, wxID_ANY, _L("Add pause print") + " (" + gcode(PausePrint) + ")", "",
         [this](wxCommandEvent&) { add_code_as_tick(PausePrint); }, "pause_print", &menu);
 
-    append_menu_item(&menu, wxID_ANY, _L("Add custom template") + " (" + gcode(Template) + ")", "",
-        [this](wxCommandEvent&) { add_code_as_tick(Template); }, "edit_gcode", &menu);
+    if (!gcode(Template).empty())
+        append_menu_item(&menu, wxID_ANY, _L("Add custom template") + " (" + gcode(Template) + ")", "",
+            [this](wxCommandEvent&) { add_code_as_tick(Template); }, "edit_gcode", &menu);
 
     append_menu_item(&menu, wxID_ANY, _L("Add custom G-code"), "",
         [this](wxCommandEvent&) { add_code_as_tick(Custom); }, "edit_gcode", &menu);
@@ -1898,7 +1899,7 @@ void Control::jump_to_print_z()
 
 void Control::post_ticks_changed_event(Type type /*= Custom*/)
 {
-    m_force_mode_apply = (type == Custom || type == ColorChange || type == ToolChange);
+    m_force_mode_apply = type != ToolChange;
 
     wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
 }

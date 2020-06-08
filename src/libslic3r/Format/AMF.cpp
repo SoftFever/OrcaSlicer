@@ -240,7 +240,7 @@ struct AMFParserContext
     // Current instance allocated for an amf/constellation/instance subtree.
     Instance                *m_instance;
     // Generic string buffer for vertices, face indices, metadata etc.
-    std::string              m_value[4];
+    std::string              m_value[5];
     // Pointer to config to update if config data are stored inside the amf file
     DynamicPrintConfig      *m_config;
 
@@ -314,9 +314,26 @@ void AMFParserContext::startElement(const char *name, const char **atts)
             if (strcmp(name, "code") == 0) {
                 node_type_new = NODE_TYPE_GCODE_PER_HEIGHT;
                 m_value[0] = get_attribute(atts, "print_z");
-                m_value[1] = get_attribute(atts, "gcode");
-                m_value[2] = get_attribute(atts, "extruder");
-                m_value[3] = get_attribute(atts, "color");
+                m_value[1] = get_attribute(atts, "extruder");
+                m_value[2] = get_attribute(atts, "color");
+                if (get_attribute(atts, "type"))
+                {
+                    m_value[3] = get_attribute(atts, "type");
+                    m_value[4] = get_attribute(atts, "extra");
+                }
+                else
+                {
+                    // It means that data was saved in old version (2.2.0 and older) of PrusaSlicer
+                    // read old data ... 
+                    std::string gcode = get_attribute(atts, "gcode");
+                    // ... and interpret them to the new data
+                    CustomGCode::Type type= gcode == "M600" ? CustomGCode::ColorChange :
+                                            gcode == "M601" ? CustomGCode::PausePrint :
+                                            gcode == "tool_change" ? CustomGCode::ToolChange : CustomGCode::Custom;
+                    m_value[3] = std::to_string(static_cast<int>(type));
+                    m_value[4] = type == CustomGCode::PausePrint ? m_value[2] :
+                                 type == CustomGCode::Custom ? gcode : "";
+                }
             }
             else if (strcmp(name, "mode") == 0) {
                 node_type_new = NODE_TYPE_CUSTOM_GCODE_MODE;
@@ -640,13 +657,13 @@ void AMFParserContext::endElement(const char * /* name */)
         break;
 
     case NODE_TYPE_GCODE_PER_HEIGHT: {
-        double print_z = double(atof(m_value[0].c_str()));
-//        const std::string& gcode = m_value[1];
-        CustomGCode::Type type = static_cast<CustomGCode::Type>(atoi(m_value[1].c_str()));
-        int extruder = atoi(m_value[2].c_str());
-        const std::string& color = m_value[3];
+        double print_z          = double(atof(m_value[0].c_str()));
+        int extruder            = atoi(m_value[1].c_str());
+        const std::string& color= m_value[2];
+        CustomGCode::Type type  = static_cast<CustomGCode::Type>(atoi(m_value[3].c_str()));
+        const std::string& extra= m_value[4];
 
-        m_model.custom_gcode_per_print_z.gcodes.push_back(CustomGCode::Item{print_z, type,/*gcode, */extruder, color});
+        m_model.custom_gcode_per_print_z.gcodes.push_back(CustomGCode::Item{print_z, type, extruder, color, extra});
 
         for (std::string& val: m_value)
             val.clear();
@@ -1254,10 +1271,17 @@ bool store_amf(const char* path, Model* model, const DynamicPrintConfig* config,
             pt::ptree& code_tree = main_tree.add("code", "");
             // store custom_gcode_per_print_z gcodes information 
             code_tree.put("<xmlattr>.print_z"   , code.print_z  );
-//            code_tree.put("<xmlattr>.gcode"     , code.gcode    );
-            code_tree.put("<xmlattr>.type"      , code.type    );
+            code_tree.put("<xmlattr>.type"      , static_cast<int>(code.type));
             code_tree.put("<xmlattr>.extruder"  , code.extruder );
             code_tree.put("<xmlattr>.color"     , code.color    );
+            code_tree.put("<xmlattr>.extra"     , code.extra    );
+
+            // add gcode field data for the old version of the PrusaSlicer
+            std::string gcode = code.type == CustomGCode::ColorChange ? config->opt_string("color_change_gcode")    :
+                                code.type == CustomGCode::PausePrint  ? config->opt_string("pause_print_gcode")     :
+                                code.type == CustomGCode::Template    ? config->opt_string("template_custom_gcode") :
+                                code.type == CustomGCode::ToolChange  ? "tool_change"   : code.extra; 
+            code_tree.put("<xmlattr>.gcode"     , gcode   );
         }
 
         pt::ptree& mode_tree = main_tree.add("mode", "");

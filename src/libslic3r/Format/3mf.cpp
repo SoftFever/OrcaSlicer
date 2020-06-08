@@ -1197,14 +1197,32 @@ namespace Slic3r {
                 }
                 if (code.first != "code")
                     continue;
-                pt::ptree tree = code.second;
-                double print_z      = tree.get<double>      ("<xmlattr>.print_z"    );
-                CustomGCode::Type type = static_cast<CustomGCode::Type>(tree.get<int> ("<xmlattr>.type"      ));
-//                std::string gcode   = tree.get<std::string> ("<xmlattr>.gcode"      );
-                int extruder        = tree.get<int>         ("<xmlattr>.extruder"   );
-                std::string color   = tree.get<std::string> ("<xmlattr>.color"      );
 
-                m_model->custom_gcode_per_print_z.gcodes.push_back(CustomGCode::Item{print_z, type, /*gcode, */extruder, color}) ;
+                pt::ptree tree = code.second;
+                double print_z          = tree.get<double>      ("<xmlattr>.print_z" );
+                int extruder            = tree.get<int>         ("<xmlattr>.extruder");
+                std::string color       = tree.get<std::string> ("<xmlattr>.color"   );
+
+                CustomGCode::Type   type;
+                std::string         extra;
+                if (tree.find("type") == tree.not_found())
+                {
+                    // It means that data was saved in old version (2.2.0 and older) of PrusaSlicer
+                    // read old data ... 
+                    std::string gcode       = tree.get<std::string> ("<xmlattr>.gcode");
+                    // ... and interpret them to the new data
+                    type  = gcode == "M600"           ? CustomGCode::ColorChange : 
+                            gcode == "M601"           ? CustomGCode::PausePrint  :   
+                            gcode == "tool_change"    ? CustomGCode::ToolChange  :   CustomGCode::Custom;
+                    extra = type == CustomGCode::PausePrint ? color :
+                            type == CustomGCode::Custom     ? gcode : "";
+                }
+                else
+                {
+                    type  = static_cast<CustomGCode::Type>(tree.get<int>("<xmlattr>.type"));
+                    extra = tree.get<std::string>("<xmlattr>.extra");
+                }
+                m_model->custom_gcode_per_print_z.gcodes.push_back(CustomGCode::Item{print_z, type, extruder, color, extra}) ;
             }
         }
     }
@@ -1983,7 +2001,7 @@ namespace Slic3r {
         bool _add_sla_drain_holes_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_print_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config);
         bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, const IdToObjectDataMap &objects_data);
-        bool _add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model);
+        bool _add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config);
     };
 
     bool _3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data)
@@ -2083,7 +2101,7 @@ namespace Slic3r {
 
         // Adds custom gcode per height file ("Metadata/Prusa_Slicer_custom_gcode_per_print_z.xml").
         // All custom gcode per height of whole Model are stored here
-        if (!_add_custom_gcode_per_print_z_file_to_archive(archive, model))
+        if (!_add_custom_gcode_per_print_z_file_to_archive(archive, model, config))
         {
             close_zip_writer(&archive);
             boost::filesystem::remove(filename);
@@ -2703,7 +2721,7 @@ namespace Slic3r {
         return true;
     }
 
-bool _3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_archive& archive, Model& model)
+bool _3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config)
 {
     std::string out = "";
 
@@ -2715,12 +2733,20 @@ bool _3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_archiv
         for (const CustomGCode::Item& code : model.custom_gcode_per_print_z.gcodes)
         {
             pt::ptree& code_tree = main_tree.add("code", "");
-            // store minX and maxZ
+
+            // store data of custom_gcode_per_print_z
             code_tree.put("<xmlattr>.print_z"   , code.print_z  );
-            code_tree.put("<xmlattr>.gcode"     , static_cast<int>(code.type));
-//            code_tree.put("<xmlattr>.gcode"     , code.gcode    );
+            code_tree.put("<xmlattr>.type"      , static_cast<int>(code.type));
             code_tree.put("<xmlattr>.extruder"  , code.extruder );
             code_tree.put("<xmlattr>.color"     , code.color    );
+            code_tree.put("<xmlattr>.extra"     , code.extra    );
+
+            // add gcode field data for the old version of the PrusaSlicer
+            std::string gcode = code.type == CustomGCode::ColorChange ? config->opt_string("color_change_gcode")    :
+                                code.type == CustomGCode::PausePrint  ? config->opt_string("pause_print_gcode")     :
+                                code.type == CustomGCode::Template    ? config->opt_string("template_custom_gcode") :
+                                code.type == CustomGCode::ToolChange  ? "tool_change"   : code.extra; 
+            code_tree.put("<xmlattr>.gcode"     , gcode   );
         }
 
         pt::ptree& mode_tree = main_tree.add("mode", "");
