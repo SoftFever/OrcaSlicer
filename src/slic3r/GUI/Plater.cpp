@@ -2708,6 +2708,10 @@ void Plater::priv::reset()
     if (view3D->is_layers_editing_enabled())
         view3D->enable_layers_editing(false);
 
+#if ENABLE_GCODE_VIEWER_AS_STATE
+    gcode_result.reset();
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
+
     // Stop and reset the Print content.
     this->background_process.reset();
     model.clear_objects();
@@ -2720,10 +2724,6 @@ void Plater::priv::reset()
     this->sidebar->show_sliced_info_sizer(false);
 
     model.custom_gcode_per_print_z.gcodes.clear();
-
-#if ENABLE_GCODE_VIEWER_AS_STATE
-    gcode_result.reset();
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
 }
 
 void Plater::priv::mirror(Axis axis)
