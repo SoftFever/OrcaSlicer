@@ -1619,6 +1619,8 @@ static void upgrade_text_entry_dialog(wxTextEntryDialog* dlg, double min = -1.0,
     if (!textctrl)
         return;
 
+    textctrl->SetInsertionPointEnd();
+
     wxButton* btn_OK = static_cast<wxButton*>(dlg->FindWindowById(wxID_OK));
     btn_OK->Bind(wxEVT_UPDATE_UI, [textctrl, min, max](wxUpdateUIEvent& evt)
     {
@@ -2035,7 +2037,7 @@ bool TickCodeInfo::edit_tick(std::set<TickCode>::iterator it, double print_z)
     else if (it->type == PausePrint)
         edited_value = get_pause_print_msg(it->extra, print_z);
     else
-        edited_value = get_custom_code(it->extra, print_z);
+        edited_value = get_custom_code(it->type == Template ? gcode(Template) : it->extra, print_z);
 
     if (edited_value.empty())
         return false;
@@ -2046,7 +2048,13 @@ bool TickCodeInfo::edit_tick(std::set<TickCode>::iterator it, double print_z)
             return false;
         changed_tick.color = edited_value;
     }
-    else if (it->type == Custom || it->type == PausePrint){
+    else if (it->type == Template) {
+        if (gcode(Template) == edited_value)
+            return false;
+        changed_tick.extra = edited_value;
+        changed_tick.type  = Custom;
+    }
+    else if (it->type == Custom || it->type == PausePrint) {
         if (it->extra == edited_value)
             return false;
         changed_tick.extra = edited_value;
