@@ -218,8 +218,10 @@ public:
         class Marker
         {
             GLModel m_model;
+            Vec3f m_world_position;
             Transform3f m_world_transform;
             BoundingBoxf3 m_world_bounding_box;
+            float m_z_offset{ 0.5f };
             std::array<float, 4> m_color{ 1.0f, 1.0f, 1.0f, 1.0f };
             bool m_visible{ false };
 
@@ -274,7 +276,6 @@ private:
     std::vector<unsigned char> m_extruder_ids;
     mutable Extrusions m_extrusions;
     mutable SequentialView m_sequential_view;
-    float m_sequential_view_marker_z_offset{ 0.5f };
     Shells m_shells;
     EViewType m_view_type{ EViewType::FeatureType };
     bool m_legend_enabled{ true };

@@ -146,8 +146,9 @@ void GCodeViewer::SequentialView::Marker::init()
 }
 
 void GCodeViewer::SequentialView::Marker::set_world_position(const Vec3f& position)
-{
-    m_world_transform = (Geometry::assemble_transform(position.cast<double>()) * Geometry::assemble_transform(m_model.get_bounding_box().size()[2] * Vec3d::UnitZ(), { M_PI, 0.0, 0.0 })).cast<float>();
+{    
+    m_world_position = position;
+    m_world_transform = (Geometry::assemble_transform((position + m_z_offset * Vec3f::UnitZ()).cast<double>()) * Geometry::assemble_transform(m_model.get_bounding_box().size()[2] * Vec3d::UnitZ(), { M_PI, 0.0, 0.0 })).cast<float>();
     m_world_bounding_box = m_model.get_bounding_box().transformed(m_world_transform.cast<double>());
 }
 
@@ -176,6 +177,37 @@ void GCodeViewer::SequentialView::Marker::render() const
     shader->stop_using();
 
     glsafe(::glDisable(GL_BLEND));
+
+    static float last_window_width = 0.0f;
+    static size_t last_text_length = 0;
+    static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
+
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
+    imgui.set_next_window_pos(static_cast<float>(cnv_size.get_width()), static_cast<float>(cnv_size.get_height()), ImGuiCond_Always, 1.0f, 1.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::SetNextWindowBgAlpha(0.25f);
+    imgui.begin(std::string("ToolPosition"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    imgui.text(_u8L("Tool position") + ":");
+    ImGui::PopStyleColor();
+    ImGui::SameLine();
+    char buf[1024];
+    sprintf(buf, "X: %.2f, Y: %.2f, Z: %.2f", m_world_position(0), m_world_position(1), m_world_position(2));
+    imgui.text(std::string(buf));
+
+    // force extra frame to automatically update window size
+    float width = ImGui::GetWindowWidth();
+    size_t length = strlen(buf);
+    if (width != last_window_width || length != last_text_length) {
+        last_window_width = width;
+        last_text_length = length;
+        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
+        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+    }
+
+    imgui.end();
+    ImGui::PopStyleVar();
 }
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
@@ -353,7 +385,7 @@ void GCodeViewer::render() const
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_toolpaths();
-    m_sequential_view.marker.set_world_position(m_sequential_view.current_position + m_sequential_view_marker_z_offset * Vec3f::UnitZ());
+    m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
     m_sequential_view.marker.render();
     render_shells();
     render_legend();
