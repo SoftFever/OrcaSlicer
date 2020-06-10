@@ -68,7 +68,6 @@ bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, Ba
     m_canvas->enable_selection(true);
     m_canvas->enable_main_toolbar(true);
     m_canvas->enable_undoredo_toolbar(true);
-    m_canvas->enable_collapse_toolbar(true);
     m_canvas->enable_labels(true);
 #if ENABLE_SLOPE_RENDERING
     m_canvas->enable_slope(true);
@@ -222,7 +221,6 @@ bool Preview::init(wxWindow* parent, Model* model)
     m_canvas->set_process(m_process);
     m_canvas->enable_legend_texture(true);
     m_canvas->enable_dynamic_background(true);
-    m_canvas->enable_collapse_toolbar(true);
 
     m_double_slider_sizer = new wxBoxSizer(wxHORIZONTAL);
     create_double_slider();

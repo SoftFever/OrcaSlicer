@@ -1480,9 +1480,6 @@ stl_stats ModelObject::get_object_stl_stats() const
     // fill full_stats from all objet's meshes
     for (ModelVolume* volume : this->volumes)
     {
-        if (volume->id() == this->volumes[0]->id())
-            continue;
-
         const stl_stats& stats = volume->mesh().stl.stats;
 
         // initialize full_stats (for repaired errors)
