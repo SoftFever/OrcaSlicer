@@ -34,20 +34,6 @@ namespace Search {
     #define SEARCH_SUPPORTS_MARKUP
 #endif
 
-static const std::vector<std::wstring>& NameByType()
-{
-    static std::vector<std::wstring> data;
-    if (data.empty()) {
-        data.assign(Preset::TYPE_COUNT, std::wstring());
-        data[Preset::TYPE_PRINT         ] = _L("Print"      ).ToStdWstring();
-        data[Preset::TYPE_FILAMENT      ] = _L("Filament"   ).ToStdWstring();
-        data[Preset::TYPE_SLA_MATERIAL  ] = _L("Material"   ).ToStdWstring();
-        data[Preset::TYPE_SLA_PRINT     ] = _L("Print"      ).ToStdWstring();
-        data[Preset::TYPE_PRINTER       ] = _L("Printer"    ).ToStdWstring();
-	};
-	return data;
-}
-
 static char marker_by_type(Preset::Type type, PrinterTechnology pt)
 {
     switch(type) {

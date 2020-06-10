@@ -2218,6 +2218,21 @@ void TabPrinter::build_fff()
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
 
+        optgroup = page->new_optgroup(L("Color Change G-code"), 0);
+        option = optgroup->get_option("color_change_gcode");
+        option.opt.height = gcode_field_height;//150;
+        optgroup->append_single_option_line(option);
+
+        optgroup = page->new_optgroup(L("Pause Print G-code"), 0);
+        option = optgroup->get_option("pause_print_gcode");
+        option.opt.height = gcode_field_height;//150;
+        optgroup->append_single_option_line(option);
+
+        optgroup = page->new_optgroup(L("Template Custom G-code"), 0);
+        option = optgroup->get_option("template_custom_gcode");
+        option.opt.height = gcode_field_height;//150;
+        optgroup->append_single_option_line(option);
+
     page = add_options_page(L("Notes"), "note.png");
         optgroup = page->new_optgroup(L("Notes"), 0);
         option = optgroup->get_option("printer_notes");

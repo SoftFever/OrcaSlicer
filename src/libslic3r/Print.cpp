@@ -499,12 +499,12 @@ static bool custom_per_printz_gcodes_tool_changes_differ(const std::vector<Custo
 	auto it_a = va.begin();
 	auto it_b = vb.begin();
 	while (it_a != va.end() || it_b != vb.end()) {
-		if (it_a != va.end() && it_a->gcode != ToolChangeCode) {
+		if (it_a != va.end() && it_a->type != CustomGCode::ToolChange) {
 			// Skip any CustomGCode items, which are not tool changes.
 			++ it_a;
 			continue;
 		}
-		if (it_b != vb.end() && it_b->gcode != ToolChangeCode) {
+		if (it_b != vb.end() && it_b->type != CustomGCode::ToolChange) {
 			// Skip any CustomGCode items, which are not tool changes.
 			++ it_b;
 			continue;
@@ -512,8 +512,8 @@ static bool custom_per_printz_gcodes_tool_changes_differ(const std::vector<Custo
 		if (it_a == va.end() || it_b == vb.end())
 			// va or vb contains more Tool Changes than the other.
 			return true;
-		assert(it_a->gcode == ToolChangeCode);
-		assert(it_b->gcode == ToolChangeCode);
+		assert(it_a->type == CustomGCode::ToolChange);
+		assert(it_b->type == CustomGCode::ToolChange);
 		if (*it_a != *it_b)
 			// The two Tool Changes differ.
 			return true;

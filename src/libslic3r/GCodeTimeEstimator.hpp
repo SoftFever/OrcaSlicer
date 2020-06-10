@@ -234,7 +234,7 @@ namespace Slic3r {
 
         // data to calculate custom code times
         bool m_needs_custom_gcode_times;
-        std::vector<std::pair<CustomGcodeType, float>> m_custom_gcode_times;
+        std::vector<std::pair<CustomGCode::Type, float>> m_custom_gcode_times;
         float m_custom_gcode_time_cache;
 
 #if ENABLE_MOVE_STATS
@@ -358,7 +358,7 @@ namespace Slic3r {
         std::string get_time_minutes() const;
 
         // Returns the estimated time, in seconds, for each custom gcode
-        std::vector<std::pair<CustomGcodeType, float>> get_custom_gcode_times() const;
+        std::vector<std::pair<CustomGCode::Type, float>> get_custom_gcode_times() const;
 
         // Returns the estimated time, in format DDd HHh MMm SSs, for each color
         // If include_remaining==true the strings will be formatted as: "time for color (remaining time at color start)"
@@ -370,7 +370,7 @@ namespace Slic3r {
 
         // Returns the estimated time, in format DDd HHh MMm, for each custom_gcode
         // If include_remaining==true the strings will be formatted as: "time for custom_gcode (remaining time at color start)"
-        std::vector<std::pair<CustomGcodeType, std::string>> get_custom_gcode_times_dhm(bool include_remaining) const;
+        std::vector<std::pair<CustomGCode::Type, std::string>> get_custom_gcode_times_dhm(bool include_remaining) const;
 
         // Return an estimate of the memory consumed by the time estimator.
         size_t memory_used() const;
@@ -453,7 +453,7 @@ namespace Slic3r {
         bool _process_tags(const GCodeReader::GCodeLine& line);
 
         // Processes ColorChangeTag and PausePrintTag
-        void _process_custom_gcode_tag(CustomGcodeType code);
+        void _process_custom_gcode_tag(CustomGCode::Type code);
 
         // Simulates firmware st_synchronize() call
         void _simulate_st_synchronize(float additional_time);
