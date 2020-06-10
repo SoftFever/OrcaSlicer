@@ -56,7 +56,6 @@ bool SupportTreeBuildsteps::execute(SupportTreeBuilder &   builder,
         ROUTING_GROUND,
         ROUTING_NONGROUND,
         CASCADE_PILLARS,
-        HEADLESS,
         MERGE_RESULT,
         DONE,
         ABORT,
@@ -83,8 +82,6 @@ bool SupportTreeBuildsteps::execute(SupportTreeBuilder &   builder,
         
         std::bind(&SupportTreeBuildsteps::interconnect_pillars, &alg),
         
-        std::bind(&SupportTreeBuildsteps::routing_headless, &alg),
-        
         std::bind(&SupportTreeBuildsteps::merge_result, &alg),
         
         [] () {
@@ -103,10 +100,6 @@ bool SupportTreeBuildsteps::execute(SupportTreeBuilder &   builder,
             BOOST_LOG_TRIVIAL(info)
                 << "Skipping model-facing supports as requested.";
         };
-        program[HEADLESS] = []() {
-            BOOST_LOG_TRIVIAL(info) << "Skipping headless stick generation as"
-                                       " requested.";
-        };
     }
     
     // Let's define a simple automaton that will run our program.
@@ -119,7 +112,6 @@ bool SupportTreeBuildsteps::execute(SupportTreeBuilder &   builder,
             "Routing to ground",
             "Routing supports to model surface",
             "Interconnecting pillars",
-            "Processing small holes",
             "Merging support mesh",
             "Done",
             "Abort"
@@ -133,7 +125,6 @@ bool SupportTreeBuildsteps::execute(SupportTreeBuilder &   builder,
             60,
             70,
             80,
-            85,
             99,
             100,
             0
@@ -148,8 +139,7 @@ bool SupportTreeBuildsteps::execute(SupportTreeBuilder &   builder,
         case CLASSIFY: pc = ROUTING_GROUND; break;
         case ROUTING_GROUND: pc = ROUTING_NONGROUND; break;
         case ROUTING_NONGROUND: pc = CASCADE_PILLARS; break;
-        case CASCADE_PILLARS: pc = HEADLESS; break;
-        case HEADLESS: pc = MERGE_RESULT; break;
+        case CASCADE_PILLARS: pc = MERGE_RESULT; break;
         case MERGE_RESULT: pc = DONE; break;
         case DONE:
         case ABORT: break;
@@ -521,31 +511,6 @@ bool SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
         return false;
     }
 
-    // If this is a mini pillar, do not let it grow too long, but change the
-    // radius to the normal pillar as soon as it is possible.
-    if (radius < m_cfg.head_back_radius_mm) {
-        double t = 0.;
-        double new_radius = m_cfg.head_back_radius_mm;
-        Vec3d new_endp = endp;
-        double d = 0.;
-        while (!std::isinf(d = bridge_mesh_distance(new_endp, DOWN, new_radius))
-               && new_endp.z() > gndlvl)
-        {
-            t += m_cfg.head_fullwidth();
-            new_endp = endp + t * DOWN;
-        }
-
-        if (std::isinf(d) && new_endp.z() > gndlvl) {
-            if (t > 0.) {
-                m_builder.add_bridge(endp, new_endp, radius, new_radius);
-                endp = new_endp;
-            } else {
-                m_builder.add_junction(endp, new_radius);
-            }
-            radius = new_radius;
-        }
-    }
-    
     // Straigh path down, no area to dodge
     if (normal_mode) {
         pillar_id = head_id >= 0 ? m_builder.add_pillar(head_id, endp, radius) :
@@ -1258,62 +1223,4 @@ void SupportTreeBuildsteps::interconnect_pillars()
     }
 }
 
-void SupportTreeBuildsteps::routing_headless()
-{
-    // For now we will just generate smaller headless sticks with a sharp
-    // ending point that connects to the mesh surface.
-    
-    // We will sink the pins into the model surface for a distance of 1/3 of
-    // the pin radius
-//    for(unsigned i : m_iheadless) {
-//        m_thr();
-
-//        const auto R = double(m_support_pts[i].head_front_radius);
-
-//        // The support point position on the mesh
-//        Vec3d sph = m_support_pts[i].pos.cast<double>();
-
-//        // Get an initial normal from the filtering step
-//        Vec3d n = m_support_nmls.row(i);
-
-//        // First we need to determine the available space for a mini pinhead.
-//        // The goal is the move away from the model a little bit to make the
-//        // contact point small as possible and avoid pearcing the model body.
-//        double pin_space = std::min(2 * R, bridge_mesh_distance(sph, n, R, 0.));
-
-//        if (pin_space <= 0) continue;
-
-//        auto &head = m_builder.add_head(i, R, R, pin_space,
-//                                        m_cfg.head_penetration_mm, n, sph);
-
-//        // collision check
-
-//            m_head_to_ground_scans[i] =
-//                bridge_mesh_intersect(head.junction_point(), DOWN, R);
-
-//        // Here the steps will be similar as in route_to_model step:
-//        // 1. Search for a nearby pillar, include other mini pillars
-
-//        // Search nearby pillar
-//        if (search_pillar_and_connect(head)) { head.transform(); continue; }
-
-//        if (std::isinf(m_head_to_ground_scans[i].distance())) {
-//            create_ground_pillar(head.junction_point(), head.dir, m_cfg.head_back_radius_mm, head.id);
-//        }
-
-//        // Cannot connect to nearby pillar. We will try to search for
-//        // a route to the ground.
-//        if (connect_to_ground(head)) { head.transform(); continue; }
-
-//        // No route to the ground, so connect to the model body as a last resort
-//        if (connect_to_model_body(head)) { continue; }
-
-//        BOOST_LOG_TRIVIAL(warning) << "Can not find route for headless"
-//                                   << " support stick at: "
-//                                   << sph.transpose();
-//        head.invalidate();
-//    }
-}
-
-}
-}
+}} // namespace Slic3r::sla

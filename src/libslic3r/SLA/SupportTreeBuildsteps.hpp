@@ -319,11 +319,6 @@ public:
 
     void interconnect_pillars();
 
-    // Step: process the support points where there is not enough space for a
-    // full pinhead. In this case we will use a rounded sphere as a touching
-    // point and use a thinner bridge (let's call it a stick).
-    void routing_headless ();
-
     inline void merge_result() { m_builder.merged_mesh(); }
 
     static bool execute(SupportTreeBuilder & builder, const SupportableMesh &sm);
