@@ -205,6 +205,8 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     });
 
     wxGetApp().persist_window_geometry(this, true);
+    if (m_settings_dialog != nullptr)
+        wxGetApp().persist_window_geometry(m_settings_dialog, true);
 
     update_ui_from_settings();    // FIXME (?)
 
@@ -244,8 +246,14 @@ void MainFrame::shutdown()
     // In addition, there were some crashes due to the Paint events sent to already destructed windows.
     this->Show(false);
 
-    if (m_settings_dialog)
+    if (m_settings_dialog != nullptr)
+    {
+        if (m_settings_dialog->IsShown())
+            // call Close() to trigger call to lambda defined into GUI_App::persist_window_geometry()
+            m_settings_dialog->Close();
+
         m_settings_dialog->Destroy();
+    }
 
 	// Stop the background thread (Windows and Linux).
 	// Disconnect from a 3DConnextion driver (OSX).
@@ -1444,7 +1452,8 @@ std::string MainFrame::get_dir_name(const wxString &full_name) const
 // ----------------------------------------------------------------------------
 
 SettingsDialog::SettingsDialog(MainFrame* mainframe)
-: DPIDialog(nullptr, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _L("Settings")),
+: DPIDialog(nullptr, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _L("Settings"), wxDefaultPosition, wxDefaultSize,
+    wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxDIALOG_NO_PARENT, "settings_dialog"),
     m_main_frame(mainframe)
 {
     this->SetFont(wxGetApp().normal_font());

@@ -715,24 +715,16 @@ void GUI_App::update_ui_from_settings()
 void GUI_App::persist_window_geometry(wxTopLevelWindow *window, bool default_maximized)
 {
     const std::string name = into_u8(window->GetName());
-    wxTopLevelWindow* settings_dlg = dynamic_cast<MainFrame*>(window)->m_settings_dialog;
-    const std::string settings_dlg_name = "settings_dialog";
 
     window->Bind(wxEVT_CLOSE_WINDOW, [=](wxCloseEvent &event) {
         window_pos_save(window, name);
-        if (settings_dlg)
-            window_pos_save(settings_dlg, settings_dlg_name);
         event.Skip();
     });
 
     window_pos_restore(window, name, default_maximized);
-    if (settings_dlg)
-        window_pos_restore(settings_dlg, settings_dlg_name, default_maximized);
 
     on_window_geometry(window, [=]() {
         window_pos_sanitize(window);
-        if (settings_dlg)
-            window_pos_sanitize(settings_dlg);
     });
 }
 
