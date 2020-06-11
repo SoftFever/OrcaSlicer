@@ -341,7 +341,7 @@ public:
     static WindowMetrics from_window(wxTopLevelWindow *window);
     static boost::optional<WindowMetrics> deserialize(const std::string &str);
 
-    wxRect get_rect() const { return rect; }
+    const wxRect& get_rect() const { return rect; }
     bool get_maximized() const { return maximized; }
 
     void sanitize_for_display(const wxRect &screen_rect);

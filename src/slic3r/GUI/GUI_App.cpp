@@ -1394,7 +1394,9 @@ void GUI_App::window_pos_restore(wxTopLevelWindow* window, const std::string &na
         return;
     }
 
-    window->SetSize(metrics->get_rect());
+    const wxRect& rect = metrics->get_rect();
+    window->SetPosition(rect.GetPosition());
+    window->SetSize(rect.GetSize());
     window->Maximize(metrics->get_maximized());
 }
 
