@@ -916,7 +916,7 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D
         std::vector<double> print_zs = canvas.get_current_print_zs(true);
         for (auto custom_code : custom_gcode_per_print_z)
         {
-            if (custom_code.gcode != ColorChangeCode)
+            if (custom_code.type != CustomGCode::ColorChange)
                 continue;
             auto lower_b = std::lower_bound(print_zs.begin(), print_zs.end(), custom_code.print_z - Slic3r::DoubleSlider::epsilon());
 
@@ -989,7 +989,7 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D
         int cnt = custom_gcode_per_print_z.size();
         int color_change_idx = color_cnt - extruders_cnt;
         for (int i = cnt-1; i >= 0; --i)
-            if (custom_gcode_per_print_z[i].gcode == ColorChangeCode) {
+            if (custom_gcode_per_print_z[i].type == CustomGCode::ColorChange) {
                 ::memcpy((void*)(colors.data() + color_pos), (const void*)(colors_in.data() + color_in_pos), 4 * sizeof(float));
                 color_pos += 4;
                 color_in_pos -= 4;
@@ -6003,7 +6003,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         // For coloring by a color_print(M600), return a parsed color.
         bool                         color_by_color_print() const { return color_print_values!=nullptr; }
         const size_t                 color_print_color_idx_by_layer_idx(const size_t layer_idx) const {
-            const CustomGCode::Item value{layers[layer_idx]->print_z + EPSILON, "", 0, ""};
+            const CustomGCode::Item value{layers[layer_idx]->print_z + EPSILON, CustomGCode::Custom, 0, ""};
             auto it = std::lower_bound(color_print_values->begin(), color_print_values->end(), value);
             return (it - color_print_values->begin()) % number_tools();
         }
@@ -6017,36 +6017,36 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                 { return fabs(code.print_z - print_z) < EPSILON; });
             if (it != color_print_values->end())
             {
-                const std::string& code = it->gcode;
+                CustomGCode::Type type = it->type;
                 // pause print or custom Gcode
-                if (code == PausePrintCode || 
-                    (code != ColorChangeCode && code != ToolChangeCode))
+                if (type == CustomGCode::PausePrint ||
+                    (type != CustomGCode::ColorChange && type != CustomGCode::ToolChange))
                     return number_tools()-1; // last color item is a gray color for pause print or custom G-code 
 
                 // change tool (extruder) 
-                if (code == ToolChangeCode)
+                if (type == CustomGCode::ToolChange)
                     return get_color_idx_for_tool_change(it, extruder);
                 // change color for current extruder
-                if (code == ColorChangeCode) {
+                if (type == CustomGCode::ColorChange) {
                     int color_idx = get_color_idx_for_color_change(it, extruder);
                     if (color_idx >= 0)
                         return color_idx;
                 }
             }
 
-            const CustomGCode::Item value{print_z + EPSILON, "", 0, ""};
+            const CustomGCode::Item value{print_z + EPSILON, CustomGCode::Custom, 0, ""};
             it = std::lower_bound(color_print_values->begin(), color_print_values->end(), value);
             while (it != color_print_values->begin())
             {
                 --it;
                 // change color for current extruder
-                if (it->gcode == ColorChangeCode) {
+                if (it->type == CustomGCode::ColorChange) {
                     int color_idx = get_color_idx_for_color_change(it, extruder);
                     if (color_idx >= 0)
                         return color_idx;
                 }
                 // change tool (extruder) 
-                if (it->gcode == ToolChangeCode)
+                if (it->type == CustomGCode::ToolChange)
                     return get_color_idx_for_tool_change(it, extruder);
             }
 
@@ -6059,7 +6059,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
             int shift = 0;
             while (it != color_print_values->begin()) {
                 --it;
-                if (it->gcode == ColorChangeCode)
+                if (it->type == CustomGCode::ColorChange)
                     shift++;
             }
             return extruders_cnt + shift;
@@ -6074,7 +6074,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
             auto it_n = it;
             while (it_n != color_print_values->begin()) {
                 --it_n;
-                if (it_n->gcode == ColorChangeCode && it_n->extruder == current_extruder)
+                if (it_n->type == CustomGCode::ColorChange && it_n->extruder == current_extruder)
                     return get_m600_color_idx(it_n);
             }
 
@@ -6090,7 +6090,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
             bool is_tool_change = false;
             while (it_n != color_print_values->begin()) {
                 --it_n;
-                if (it_n->gcode == ToolChangeCode) {
+                if (it_n->type == CustomGCode::ToolChange) {
                     is_tool_change = true;
                     if (it_n->extruder == it->extruder || (it_n->extruder == 0 && it->extruder == extruder))
                         return get_m600_color_idx(it);

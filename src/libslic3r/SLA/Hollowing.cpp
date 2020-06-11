@@ -97,7 +97,7 @@ std::unique_ptr<TriangleMesh> generate_interior(const TriangleMesh &   mesh,
         _generate_interior(mesh, ctl, hc.min_thickness, voxel_scale,
                            hc.closing_distance));
     
-    if (meshptr) {
+    if (meshptr && !meshptr->empty()) {
         
         // This flips the normals to be outward facing...
         meshptr->require_shared_vertices();
