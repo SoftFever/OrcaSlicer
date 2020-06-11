@@ -805,6 +805,10 @@ void GLGizmoFdmSupports::on_set_state()
                 activate_internal_undo_redo_stack(true);
             });
         }
+
+        TriangleSelector ts{TriangleMesh()};
+        ts.test();
+
     }
     if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
         // we are actually shutting down
@@ -853,6 +857,68 @@ void GLGizmoFdmSupports::on_save(cereal::BinaryOutputArchive&) const
 }
 
 
+
+void TriangleSelector::test()
+{
+    DivisionNode node;
+    while (true) {
+        std::cout << "Zadej pocet stran a spec stranu: ";
+        int num;
+        int spec;
+        std::cin >> num >> spec;
+        node.set_division(num, spec);
+        std::cout << node.number_of_split_sides() << " "
+                  << (node.number_of_split_sides()==1 ? node.side_to_split() : node.side_to_keep())
+                  << std::endl << std::endl;
+    }
+}
+
+
+void TriangleSelector::DivisionNode::set_division(int sides_to_split, int special_side_idx)
+{
+    assert(sides_to_split >=0 && sides_to_split <= 3);
+    assert(special_side_idx >=-1 && special_side_idx < 3);
+
+    // If splitting one or two sides, second argument must be provided.
+    assert(sides_to_split != 1 || special_side_idx != -1);
+    assert(sides_to_split != 2 || special_side_idx != -1);
+
+    division_type = sides_to_split | (special_side_idx != -1 ? (special_side_idx << 2) : 0 );
+}
+
+
+
+void TriangleSelector::DivisionNode::set_type(FacetSupportType type)
+{
+    // If this is not a leaf-node, this makes no sense and
+    // the bits are used for storing index of an edge.
+    assert(number_of_split_sides() == 0);
+    division_type = type | (type << 2);
+}
+
+
+
+int TriangleSelector::DivisionNode::side_to_keep() const
+{
+    assert(number_of_split_sides() == 2);
+    return (division_type & 0b1100) >> 2;
+}
+
+
+
+int TriangleSelector::DivisionNode::side_to_split() const
+{
+    assert(number_of_split_sides() == 1);
+    return (division_type & 0b1100) >> 2;
+}
+
+
+
+FacetSupportType TriangleSelector::DivisionNode::get_type() const
+{
+    assert(number_of_split_sides() == 0); // this must be leaf
+    return (division_type & 0b1100) >> 2;
+}
 
 } // namespace GUI
 } // namespace Slic3r

@@ -394,6 +394,7 @@ enum class ModelVolumeType : int {
 };
 
 enum class FacetSupportType : int8_t {
+    // Maximum is 3. The value is serialized in TriangleSelector into 2 bits!
     NONE      = 0,
     ENFORCER  = 1,
     BLOCKER   = 2

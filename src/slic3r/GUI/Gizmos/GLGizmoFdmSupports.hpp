@@ -19,6 +19,77 @@ namespace GUI {
 enum class SLAGizmoEventType : unsigned char;
 class ClippingPlane;
 
+
+// Following class holds information about selected triangles. It also has power
+// to recursively subdivide the triangles and make the selection finer.
+class TriangleSelector {
+public:
+    void test();
+    explicit TriangleSelector(const TriangleMesh& mesh) {}
+
+    // Select all triangles inside the circle, subdivide where needed.
+    void select_patch(const Vec3f& hit, // point where to start
+                      int facet_idx,    // facet that point belongs to
+                      const Vec3f& dir, // direction of the ray
+                      float radius_sqr, // squared radius of the cursor
+                      bool enforcer);   // enforcer or blocker?
+
+    void unselect_all();
+
+    // Remove all unnecessary data (such as vertices that are not needed
+    // because the selection has been made larger.
+    void garbage_collect();
+
+private:
+    // A struct to hold information about how a triangle was divided.
+    struct DivisionNode {
+        // Index of triangle this describes.
+        int triangle_idx;
+
+        // Bitmask encoding which sides are split.
+        unsigned char division_type;
+        // bits 0 and 1 : 00 - no division
+        //                01 - one-edge split
+        //                10 - two-edge split
+        //                11 - three-edge split
+        // bits 2 and 3 : decimal 0, 1 or 2 identifying the special edge (one that
+        // splits in one-edge split or one that stays in two-edge split).
+
+        // Pointers to children nodes (not all are always used).
+        std::array<DivisionNode*, 4> children;
+
+        // Set the division type.
+        void set_division(int sides_to_split, int special_side_idx = -1);
+
+        // Helpers that decode the division_type bitmask.
+        int number_of_split_sides() const { return division_type & 0b11; }
+        int side_to_keep() const;
+        int side_to_split() const;
+    };
+
+    // Triangle and pointer to how it's divided (nullptr = not divided).
+    // The ptr is nullptr for all new triangles, it is only valid for
+    // the original (undivided) triangles.
+    struct Triangle {
+        stl_triangle_vertex_indices verts_idxs;
+        DivisionNode* div_info;
+    };
+
+    // Lists of vertices and triangles, both original and new
+    std::vector<stl_vertex> m_vertices;
+    std::vector<Triangle> m_triangles;
+
+    // Number of original vertices and triangles.
+    int m_orig_size_vertices;
+    int m_orig_size_indices;
+
+    // Limits for stopping the recursion.
+    float m_max_edge_length;
+    int m_max_recursion_depth;
+};
+
+
+
 class GLGizmoFdmSupports : public GLGizmoBase
 {
 private:
