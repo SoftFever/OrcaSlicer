@@ -98,6 +98,9 @@ void AppConfig::set_defaults()
         set("use_environment_map", "0");
 #endif // ENABLE_ENVIRONMENT_MAP
 
+    if (get("use_inches").empty())
+        set("use_inches", "0");
+
     // Remove legacy window positions/sizes
     erase("", "main_frame_maximized");
     erase("", "main_frame_pos");

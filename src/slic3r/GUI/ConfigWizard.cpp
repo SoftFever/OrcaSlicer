@@ -29,6 +29,7 @@
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_Utils.hpp"
+#include "GUI_ObjectManipulation.hpp"
 #include "slic3r/Config/Snapshot.hpp"
 #include "slic3r/Utils/PresetUpdater.hpp"
 
@@ -840,6 +841,10 @@ PageMode::PageMode(ConfigWizard *parent)
     append(radio_simple);
     append(radio_advanced);
     append(radio_expert);
+
+    append_text("\n" + _L("The size of the object can be specified in inches"));
+    check_inch = new wxCheckBox(this, wxID_ANY, _L("Use inches"));
+    append(check_inch);
 }
 
 void PageMode::on_activate()
@@ -850,6 +855,8 @@ void PageMode::on_activate()
     if (mode == "advanced") { radio_advanced->SetValue(true); }
     else if (mode == "expert") { radio_expert->SetValue(true); }
     else { radio_simple->SetValue(true); }
+
+    check_inch->SetValue(wxGetApp().app_config->get("use_inches") == "1");
 }
 
 void PageMode::serialize_mode(AppConfig *app_config) const
@@ -866,6 +873,7 @@ void PageMode::serialize_mode(AppConfig *app_config) const
         return; 
 
     app_config->set("view_mode", mode);
+    app_config->set("use_inches", check_inch->GetValue() ? "1" : "0");
 }
 
 PageVendors::PageVendors(ConfigWizard *parent)
@@ -2179,6 +2187,7 @@ bool ConfigWizard::run(RunReason reason, StartPage start_page)
         p->apply_config(app.app_config, app.preset_bundle, app.preset_updater);
         app.app_config->set_legacy_datadir(false);
         app.update_mode();
+        app.obj_manipul()->update_ui_from_settings();
         BOOST_LOG_TRIVIAL(info) << "ConfigWizard applied";
         return true;
     } else {

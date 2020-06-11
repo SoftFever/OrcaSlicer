@@ -33,6 +33,21 @@ namespace DoubleSlider {
 
 wxDEFINE_EVENT(wxCUSTOMEVT_TICKSCHANGED, wxEvent);
 
+static std::string gcode(Type type)
+{
+    const PrintConfig& config = GUI::wxGetApp().plater()->fff_print().config();
+    switch (type) {
+    case ColorChange:
+        return config.color_change_gcode;
+    case PausePrint:
+        return config.pause_print_gcode;
+    case Template:
+        return config.template_custom_gcode;
+    default:
+        return "";
+    }
+}
+
 Control::Control( wxWindow *parent,
                   wxWindowID id,
                   int lowerValue, 
@@ -284,18 +299,17 @@ double Control::get_double_value(const SelectedSlider& selection)
     return m_values[selection == ssLower ? m_lower_value : m_higher_value];
 }
 
-using t_custom_code = CustomGCode::Item;
-CustomGCode::Info Control::GetTicksValues() const
+Info Control::GetTicksValues() const
 {
-    CustomGCode::Info custom_gcode_per_print_z;
-    std::vector<t_custom_code>& values = custom_gcode_per_print_z.gcodes;
+    Info custom_gcode_per_print_z;
+    std::vector<Item>& values = custom_gcode_per_print_z.gcodes;
 
     const int val_size = m_values.size();
     if (!m_values.empty())
         for (const TickCode& tick : m_ticks.ticks) {
             if (tick.tick > val_size)
                 break;
-            values.emplace_back(t_custom_code{m_values[tick.tick], tick.gcode, tick.extruder, tick.color});
+            values.emplace_back(Item{m_values[tick.tick], tick.type, tick.extruder, tick.color, tick.extra});
         }
 
     if (m_force_mode_apply)
@@ -304,7 +318,7 @@ CustomGCode::Info Control::GetTicksValues() const
     return custom_gcode_per_print_z;
 }
 
-void Control::SetTicksValues(const CustomGCode::Info& custom_gcode_per_print_z)
+void Control::SetTicksValues(const Info& custom_gcode_per_print_z)
 {
     if (m_values.empty())
     {
@@ -315,14 +329,14 @@ void Control::SetTicksValues(const CustomGCode::Info& custom_gcode_per_print_z)
     const bool was_empty = m_ticks.empty();
 
     m_ticks.ticks.clear();
-    const std::vector<t_custom_code>& heights = custom_gcode_per_print_z.gcodes;
+    const std::vector<Item>& heights = custom_gcode_per_print_z.gcodes;
     for (auto h : heights) {
         auto it = std::lower_bound(m_values.begin(), m_values.end(), h.print_z - epsilon());
 
         if (it == m_values.end())
             continue;
 
-        m_ticks.ticks.emplace(TickCode{int(it-m_values.begin()), h.gcode, h.extruder, h.color});
+        m_ticks.ticks.emplace(TickCode{int(it-m_values.begin()), h.type, h.extruder, h.color, h.extra});
     }
     
     if (!was_empty && m_ticks.empty())
@@ -345,14 +359,14 @@ void Control::SetDrawMode(bool is_sla_print, bool is_sequential_print)
 
 void Control::SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, const int only_extruder)
 {
-    m_mode = !is_one_extruder_printed_model ? t_mode::MultiExtruder :
-             only_extruder < 0              ? t_mode::SingleExtruder :
-                                              t_mode::MultiAsSingle;
+    m_mode = !is_one_extruder_printed_model ? MultiExtruder :
+             only_extruder < 0              ? SingleExtruder :
+                                              MultiAsSingle;
     if (!m_ticks.mode)
         m_ticks.mode = m_mode;
     m_only_extruder = only_extruder;
 
-    UseDefaultColors(m_mode == t_mode::SingleExtruder);
+    UseDefaultColors(m_mode == SingleExtruder);
 }
 
 void Control::SetExtruderColors( const std::vector<std::string>& extruder_colors)
@@ -653,11 +667,11 @@ void Control::draw_ticks(wxDC& dc)
         // if we have non-regular draw mode, all ticks should be marked with error icon
         if (m_draw_mode != dmRegular)
             icon_name = focused_tick ? "error_tick_f" : "error_tick";
-        else if (tick.gcode == ColorChangeCode || tick.gcode == ToolChangeCode) { 
+        else if (tick.type == ColorChange || tick.type == ToolChange) { 
             if (m_ticks.is_conflict_tick(tick, m_mode, m_only_extruder, m_values[tick.tick]))
                 icon_name = focused_tick ? "error_tick_f" : "error_tick";
         }
-        else if (tick.gcode == PausePrintCode)
+        else if (tick.type == PausePrint)
             icon_name = focused_tick ? "pause_print_f" : "pause_print";
         else
             icon_name = focused_tick ? "edit_gcode_f" : "edit_gcode";
@@ -682,7 +696,7 @@ std::string Control::get_color_for_tool_change_tick(std::set<TickCode>::const_it
     auto it_n = it;
     while (it_n != m_ticks.ticks.begin()) {
         --it_n;
-        if (it_n->gcode == ColorChangeCode && it_n->extruder == current_extruder)
+        if (it_n->type == ColorChange && it_n->extruder == current_extruder)
             return it_n->color;
     }
 
@@ -696,13 +710,13 @@ std::string Control::get_color_for_color_change_tick(std::set<TickCode>::const_i
     bool is_tool_change = false;
     while (it_n != m_ticks.ticks.begin()) {
         --it_n;
-        if (it_n->gcode == ToolChangeCode) {
+        if (it_n->type == ToolChange) {
             is_tool_change = true;
             if (it_n->extruder == it->extruder)
                 return it->color;
             break;
         }
-        if (it_n->gcode == ColorChangeCode && it_n->extruder == it->extruder)
+        if (it_n->type == ColorChange && it_n->extruder == it->extruder)
             return it->color;
     }
     if (!is_tool_change && it->extruder == def_extruder)
@@ -740,28 +754,28 @@ void Control::draw_colored_band(wxDC& dc)
     wxRect main_band = get_colored_band_rect();
 
     // don't color a band for MultiExtruder mode
-    if (m_ticks.empty() || m_mode == t_mode::MultiExtruder)
+    if (m_ticks.empty() || m_mode == MultiExtruder)
     {
         draw_band(dc, GetParent()->GetBackgroundColour(), main_band);
         return;
     }
 
-    const int default_color_idx = m_mode==t_mode::MultiAsSingle ? std::max<int>(m_only_extruder - 1, 0) : 0;
+    const int default_color_idx = m_mode==MultiAsSingle ? std::max<int>(m_only_extruder - 1, 0) : 0;
     draw_band(dc, wxColour(m_extruder_colors[default_color_idx]), main_band);
 
     std::set<TickCode>::const_iterator tick_it = m_ticks.ticks.begin();
 
     while (tick_it != m_ticks.ticks.end())
     {
-        if ( (m_mode == t_mode::SingleExtruder &&  tick_it->gcode == ColorChangeCode  ) ||
-             (m_mode == t_mode::MultiAsSingle  && (tick_it->gcode == ToolChangeCode || tick_it->gcode == ColorChangeCode)) ) 
+        if ( (m_mode == SingleExtruder &&  tick_it->type == ColorChange  ) ||
+             (m_mode == MultiAsSingle  && (tick_it->type == ToolChange || tick_it->type == ColorChange)) ) 
         {        
             const wxCoord pos = get_position_from_value(tick_it->tick);
             is_horizontal() ? main_band.SetLeft(SLIDER_MARGIN + pos) :
                               main_band.SetBottom(pos - 1);
 
-            const std::string clr_str = m_mode == t_mode::SingleExtruder ? tick_it->color :
-                                        tick_it->gcode == ToolChangeCode ?
+            const std::string clr_str = m_mode == SingleExtruder ? tick_it->color :
+                                        tick_it->type == ToolChange ?
                                         get_color_for_tool_change_tick(tick_it) :
                                         get_color_for_color_change_tick(tick_it);
 
@@ -950,17 +964,17 @@ wxString Control::get_tooltip(int tick/*=-1*/)
     if (m_focus == fiNone)
         return "";
     if (m_focus == fiOneLayerIcon)
-        return _(L("One layer mode"));
+        return _L("One layer mode");
     if (m_focus == fiRevertIcon)
-        return _(L("Discard all custom changes"));
+        return _L("Discard all custom changes");
     if (m_focus == fiCogIcon)
-        return m_mode == t_mode::MultiAsSingle                                                              ?
-               GUI::from_u8((boost::format(_utf8(L("Jump to height %s or "
-                                       "Set extruder sequence for the entire print"))) % " (Shift + G)\n").str()) :
-               _(L("Jump to height")) + " (Shift + G)";
+        return m_mode == MultiAsSingle                                                              ?
+               GUI::from_u8((boost::format(_u8L("Jump to height %s or "
+                                       "Set extruder sequence for the entire print")) % " (Shift + G)\n").str()) :
+               _L("Jump to height") + " (Shift + G)";
     if (m_focus == fiColorBand)
-        return m_mode != t_mode::SingleExtruder ? "" :
-               _(L("Edit current color - Right click the colored slider segment"));
+        return m_mode != SingleExtruder ? "" :
+               _L("Edit current color - Right click the colored slider segment");
     if (m_draw_mode == dmSlaPrint)
         return ""; // no drawn ticks and no tooltips for them in SlaPrinting mode
 
@@ -970,10 +984,10 @@ wxString Control::get_tooltip(int tick/*=-1*/)
     if (tick_code_it == m_ticks.ticks.end() && m_focus == fiActionIcon)    // tick doesn't exist
     {
         // Show mode as a first string of tooltop
-        tooltip = "    " + _(L("Print mode")) + ": ";
-        tooltip += (m_mode == t_mode::SingleExtruder ? CustomGCode::SingleExtruderMode :
-                    m_mode == t_mode::MultiAsSingle  ? CustomGCode::MultiAsSingleMode  :
-                    CustomGCode::MultiExtruderMode );
+        tooltip = "    " + _L("Print mode") + ": ";
+        tooltip += (m_mode == SingleExtruder ? SingleExtruderMode :
+                    m_mode == MultiAsSingle  ? MultiAsSingleMode  :
+                                               MultiExtruderMode );
         tooltip += "\n\n";
 
         /* Note: just on OSX!!!
@@ -983,68 +997,70 @@ wxString Control::get_tooltip(int tick/*=-1*/)
          * */
 
         // Show list of actions with new tick
-        tooltip += ( m_mode == t_mode::MultiAsSingle                            ?
-                  _(L("Add extruder change - Left click"))                      :
-                     m_mode == t_mode::SingleExtruder                           ?
-                  _(L("Add color change - Left click for predefined color or "
-                      "Shift + Left click for custom color selection"))         :
-                  _(L("Add color change - Left click"))  ) + " " +
-                  _(L("or press \"+\" key")) + "\n" + (
-                      is_osx ? 
-                  _(L("Add another code - Ctrl + Left click")) :
-                  _(L("Add another code - Right click")) );
+        tooltip += ( m_mode == MultiAsSingle                                ?
+                  _L("Add extruder change - Left click")                    :
+                     m_mode == SingleExtruder                               ?
+                  _L("Add color change - Left click for predefined color or "
+                     "Shift + Left click for custom color selection")       :
+                  _L("Add color change - Left click")  ) + " " +
+                  _L("or press \"+\" key") + "\n" + (
+                     is_osx ? 
+                  _L("Add another code - Ctrl + Left click") :
+                  _L("Add another code - Right click") );
     }
 
     if (tick_code_it != m_ticks.ticks.end())                                    // tick exists
     {
         if (m_draw_mode == dmSequentialFffPrint)
-            return  _(L("The sequential print is on.\n"
+            return   _L("The sequential print is on.\n"
                         "It's impossible to apply any custom G-code for objects printing sequentually.\n" 
-                        "This code won't be processed during G-code generation."));
-
+                        "This code won't be processed during G-code generation.");
+        
         // Show custom Gcode as a first string of tooltop
         tooltip = "    ";
         tooltip +=  
-        	tick_code_it->gcode == ColorChangeCode ?
-        		(m_mode == t_mode::SingleExtruder ?
-                	format_wxstr(_L("Color change (\"%1%\")"), tick_code_it->gcode) :
-                    format_wxstr(_L("Color change (\"%1%\") for Extruder %2%"), tick_code_it->gcode, tick_code_it->extruder)) :
-	            tick_code_it->gcode == PausePrintCode ?
-	                format_wxstr(_L("Pause print (\"%1%\")"), tick_code_it->gcode) :
-		            tick_code_it->gcode == ToolChangeCode ?
-		                format_wxstr(_L("Extruder (tool) is changed to Extruder \"%1%\""), tick_code_it->extruder) :
-		                from_u8(tick_code_it->gcode);
+        	tick_code_it->type == ColorChange ?
+        		(m_mode == SingleExtruder ?
+                	format_wxstr(_L("Color change (\"%1%\")"), gcode(ColorChange)) :
+                    format_wxstr(_L("Color change (\"%1%\") for Extruder %2%"), gcode(ColorChange), tick_code_it->extruder)) :
+	            tick_code_it->type == PausePrint ?
+	                format_wxstr(_L("Pause print (\"%1%\")"), gcode(PausePrint)) :
+	            tick_code_it->type == Template ?
+	                format_wxstr(_L("Custom template (\"%1%\")"), gcode(Template)) :
+		            tick_code_it->type == ToolChange ?
+		                format_wxstr(_L("Extruder (tool) is changed to Extruder \"%1%\""), tick_code_it->extruder) :                
+		                from_u8(tick_code_it->extra);// tick_code_it->type == Custom
 
         // If tick is marked as a conflict (exclamation icon),
         // we should to explain why
         ConflictType conflict = m_ticks.is_conflict_tick(*tick_code_it, m_mode, m_only_extruder, m_values[tick]);
         if (conflict != ctNone)
-            tooltip += "\n\n" + _(L("Note")) + "! ";
+            tooltip += "\n\n" + _L("Note") + "! ";
         if (conflict == ctModeConflict)
-            tooltip +=  _(L("G-code associated to this tick mark is in a conflict with print mode.\n"
-                            "Editing it will cause changes of Slider data."));
+            tooltip +=  _L("G-code associated to this tick mark is in a conflict with print mode.\n"
+                           "Editing it will cause changes of Slider data.");
         else if (conflict == ctMeaninglessColorChange)
-            tooltip +=  _(L("There is a color change for extruder that won't be used till the end of print job.\n"
-                            "This code won't be processed during G-code generation."));
+            tooltip +=  _L("There is a color change for extruder that won't be used till the end of print job.\n"
+                           "This code won't be processed during G-code generation.");
         else if (conflict == ctMeaninglessToolChange)
-            tooltip +=  _(L("There is an extruder change set to the same extruder.\n"
-                            "This code won't be processed during G-code generation."));
+            tooltip +=  _L("There is an extruder change set to the same extruder.\n"
+                           "This code won't be processed during G-code generation.");
         else if (conflict == ctRedundant)
-            tooltip +=  _(L("There is a color change for extruder that has not been used before.\n"
-                            "Check your settings to avoid redundant color changes."));
+            tooltip +=  _L("There is a color change for extruder that has not been used before.\n"
+                           "Check your settings to avoid redundant color changes.");
 
         // Show list of actions with existing tick
         if (m_focus == fiActionIcon)
-        tooltip += "\n\n" + _(L("Delete tick mark - Left click or press \"-\" key")) + "\n" + (
+        tooltip += "\n\n" + _L("Delete tick mark - Left click or press \"-\" key") + "\n" + (
                       is_osx ? 
-                   _(L("Edit tick mark - Ctrl + Left click")) :
-                   _(L("Edit tick mark - Right click")) );
+                   _L("Edit tick mark - Ctrl + Left click") :
+                   _L("Edit tick mark - Right click") );
     }
     return tooltip;
 
 }
 
-int Control::get_edited_tick_for_position(const wxPoint pos, const std::string& gcode /*= ColorChangeCode*/)
+int Control::get_edited_tick_for_position(const wxPoint pos, Type type /*= ColorChange*/)
 {
     if (m_ticks.empty())
         return -1;
@@ -1054,7 +1070,7 @@ int Control::get_edited_tick_for_position(const wxPoint pos, const std::string& 
 
     while (it != m_ticks.ticks.begin()) {
         --it;
-        if (it->gcode == gcode)
+        if (it->type == type)
             return it->tick;
     }
 
@@ -1080,7 +1096,7 @@ void Control::OnMotion(wxMouseEvent& event)
             m_focus = fiRevertIcon;
         else if (is_point_in_rect(pos, m_rect_cog_icon))
             m_focus = fiCogIcon;
-        else if (m_mode == t_mode::SingleExtruder && is_point_in_rect(pos, get_colored_band_rect()) &&
+        else if (m_mode == SingleExtruder && is_point_in_rect(pos, get_colored_band_rect()) &&
                  get_edited_tick_for_position(pos) >= 0 )
             m_focus = fiColorBand;
         else {
@@ -1137,21 +1153,21 @@ void Control::append_change_extruder_menu_item(wxMenu* menu, bool switch_current
             const wxString item_name = wxString::Format(_(L("Extruder %d")), i) +
                                        (is_active_extruder ? " (" + _(L("active")) + ")" : "");
 
-            if (m_mode == t_mode::MultiAsSingle)
+            if (m_mode == MultiAsSingle)
                 append_menu_item(change_extruder_menu, wxID_ANY, item_name, "",
-                    [this, i](wxCommandEvent&) { add_code_as_tick(ToolChangeCode, i); }, *icons[i-1], menu,
+                    [this, i](wxCommandEvent&) { add_code_as_tick(ToolChange, i); }, *icons[i-1], menu,
                     [is_active_extruder]() { return !is_active_extruder; }, GUI::wxGetApp().plater());
         }
 
-        const wxString change_extruder_menu_name = m_mode == t_mode::MultiAsSingle ? 
-                                                   (switch_current_code ? _(L("Switch code to Change extruder")) : _(L("Change extruder")) ) : 
-                                                   _(L("Change extruder (N/A)"));
+        const wxString change_extruder_menu_name = m_mode == MultiAsSingle ? 
+                                                   (switch_current_code ? _L("Switch code to Change extruder") : _L("Change extruder") ) : 
+                                                   _L("Change extruder (N/A)");
 
         wxMenuItem* change_extruder_menu_item = menu->AppendSubMenu(change_extruder_menu, change_extruder_menu_name, _(L("Use another extruder")));
         change_extruder_menu_item->SetBitmap(create_scaled_bitmap(active_extruders[1] > 0 ? "edit_uni" : "change_extruder"));
 
         GUI::wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this, change_extruder_menu_item](wxUpdateUIEvent& evt) {
-            enable_menu_item(evt, [this]() {return m_mode == t_mode::MultiAsSingle; }, change_extruder_menu_item, this); },
+            enable_menu_item(evt, [this]() {return m_mode == MultiAsSingle; }, change_extruder_menu_item, this); },
             change_extruder_menu_item->GetId());
     }
 }
@@ -1174,13 +1190,13 @@ void Control::append_add_color_change_menu_item(wxMenu* menu, bool switch_curren
                                        (is_used_extruder ? " (" + _(L("used")) + ")" : "");
 
             append_menu_item(add_color_change_menu, wxID_ANY, item_name, "",
-                [this, i](wxCommandEvent&) { add_code_as_tick(ColorChangeCode, i); }, "", menu,
+                [this, i](wxCommandEvent&) { add_code_as_tick(ColorChange, i); }, "", menu,
                 []() { return true; }, GUI::wxGetApp().plater());
         }
 
         const wxString menu_name = switch_current_code ? 
-                                   format_wxstr(_L("Switch code to Color change (%1%) for:"), ColorChangeCode) : 
-                                   format_wxstr(_L("Add color change (%1%) for:"), ColorChangeCode);
+                                   format_wxstr(_L("Switch code to Color change (%1%) for:"), gcode(ColorChange)) : 
+                                   format_wxstr(_L("Add color change (%1%) for:"), gcode(ColorChange));
         wxMenuItem* add_color_change_menu_item = menu->AppendSubMenu(add_color_change_menu, menu_name, "");
         add_color_change_menu_item->SetBitmap(create_scaled_bitmap("colorchange_add_m"));
     }
@@ -1204,7 +1220,7 @@ void Control::OnLeftUp(wxMouseEvent& event)
         add_current_tick();
         break;
     case maCogIconClick :
-        if (m_mode == t_mode::MultiAsSingle && m_draw_mode == dmRegular)
+        if (m_mode == MultiAsSingle && m_draw_mode == dmRegular)
             show_cog_icon_context_menu();
         else
             jump_to_print_z();
@@ -1362,9 +1378,9 @@ void Control::OnRightDown(wxMouseEvent& event)
             m_mouse = m_ticks.ticks.find(TickCode{ tick }) == m_ticks.ticks.end() ?
                              maAddMenu : maEditMenu;
         }
-        else if (m_mode == t_mode::SingleExtruder   && !detect_selected_slider(pos) && is_point_in_rect(pos, get_colored_band_rect()))
+        else if (m_mode == SingleExtruder   && !detect_selected_slider(pos) && is_point_in_rect(pos, get_colored_band_rect()))
             m_mouse = maForceColorEdit;
-        else if (m_mode == t_mode::MultiAsSingle    && is_point_in_rect(pos, m_rect_cog_icon))
+        else if (m_mode == MultiAsSingle    && is_point_in_rect(pos, m_rect_cog_icon))
             m_mouse = maCogIconMenu;
     }
     if (m_mouse != maNone || !detect_selected_slider(pos))
@@ -1385,11 +1401,11 @@ void Control::OnRightDown(wxMouseEvent& event)
 
 // Get active extruders for tick. 
 // Means one current extruder for not existing tick OR 
-// 2 extruders - for existing tick (extruder before ToolChangeCode and extruder of current existing tick)
+// 2 extruders - for existing tick (extruder before ToolChange and extruder of current existing tick)
 // Use those values to disable selection of active extruders
 std::array<int, 2> Control::get_active_extruders_for_tick(int tick) const
 {
-    int default_initial_extruder = m_mode == t_mode::MultiAsSingle ? std::max<int>(1, m_only_extruder) : 1;
+    int default_initial_extruder = m_mode == MultiAsSingle ? std::max<int>(1, m_only_extruder) : 1;
     std::array<int, 2> extruders = { default_initial_extruder, -1 };
     if (m_ticks.empty())
         return extruders;
@@ -1401,7 +1417,7 @@ std::array<int, 2> Control::get_active_extruders_for_tick(int tick) const
 
     while (it != m_ticks.ticks.begin()) {
         --it;
-        if(it->gcode == ToolChangeCode) {
+        if(it->type == ToolChange) {
             extruders[0] = it->extruder;
             break;
         }
@@ -1412,11 +1428,11 @@ std::array<int, 2> Control::get_active_extruders_for_tick(int tick) const
 
 // Get used extruders for tick. 
 // Means all extruders(tools) which will be used during printing from current tick to the end
-std::set<int> TickCodeInfo::get_used_extruders_for_tick(int tick, int only_extruder, double print_z, t_mode force_mode/* = t_mode::Undef*/) const
+std::set<int> TickCodeInfo::get_used_extruders_for_tick(int tick, int only_extruder, double print_z, Mode force_mode/* = Undef*/) const
 {
-    t_mode e_mode = !force_mode ? mode : force_mode;
+    Mode e_mode = !force_mode ? mode : force_mode;
 
-    if (e_mode == t_mode::MultiExtruder)
+    if (e_mode == MultiExtruder)
     {
         // #ys_FIXME: get tool ordering from _correct_ place
         const ToolOrdering& tool_ordering = GUI::wxGetApp().plater()->fff_print().get_tool_ordering();
@@ -1437,15 +1453,15 @@ std::set<int> TickCodeInfo::get_used_extruders_for_tick(int tick, int only_extru
         return used_extruders;
     }
 
-    const int default_initial_extruder = e_mode == t_mode::MultiAsSingle ? std::max(only_extruder, 1) : 1;
-    if (ticks.empty() || e_mode == t_mode::SingleExtruder)
+    const int default_initial_extruder = e_mode == MultiAsSingle ? std::max(only_extruder, 1) : 1;
+    if (ticks.empty() || e_mode == SingleExtruder)
         return {default_initial_extruder};
 
     std::set<int> used_extruders;
 
     auto it_start = ticks.lower_bound(TickCode{tick});
     auto it = it_start;
-    if (it == ticks.begin() && it->gcode == ToolChangeCode &&
+    if (it == ticks.begin() && it->type == ToolChange &&
         tick != it->tick )  // In case of switch of ToolChange to ColorChange, when tick exists,
                             // we shouldn't change color for extruder, which will be deleted
     {
@@ -1456,7 +1472,7 @@ std::set<int> TickCodeInfo::get_used_extruders_for_tick(int tick, int only_extru
 
     while (it != ticks.begin()) {
         --it;
-        if (it->gcode == ToolChangeCode && tick != it->tick) {
+        if (it->type == ToolChange && tick != it->tick) {
             used_extruders.emplace(it->extruder);
             break;
         }
@@ -1466,7 +1482,7 @@ std::set<int> TickCodeInfo::get_used_extruders_for_tick(int tick, int only_extru
         used_extruders.emplace(default_initial_extruder);
 
     for (it = it_start; it != ticks.end(); ++it)
-        if (it->gcode == ToolChangeCode && tick != it->tick)
+        if (it->type == ToolChange && tick != it->tick)
             used_extruders.emplace(it->extruder);
 
     return used_extruders;
@@ -1476,9 +1492,9 @@ void Control::show_add_context_menu()
 {
     wxMenu menu;
 
-    if (m_mode == t_mode::SingleExtruder) {
-        append_menu_item(&menu, wxID_ANY, _(L("Add color change")) + " (M600)", "",
-            [this](wxCommandEvent&) { add_code_as_tick(ColorChangeCode); }, "colorchange_add_m", &menu);
+    if (m_mode == SingleExtruder) {
+        append_menu_item(&menu, wxID_ANY, _L("Add color change") + " (" + gcode(ColorChange) + ")", "",
+            [this](wxCommandEvent&) { add_code_as_tick(ColorChange); }, "colorchange_add_m", &menu);
 
         UseDefaultColors(false);
     }
@@ -1487,11 +1503,15 @@ void Control::show_add_context_menu()
         append_add_color_change_menu_item(&menu);
     }
 
-    append_menu_item(&menu, wxID_ANY, _(L("Add pause print")) + " (M601)", "",
-        [this](wxCommandEvent&) { add_code_as_tick(PausePrintCode); }, "pause_print", &menu);
+    append_menu_item(&menu, wxID_ANY, _L("Add pause print") + " (" + gcode(PausePrint) + ")", "",
+        [this](wxCommandEvent&) { add_code_as_tick(PausePrint); }, "pause_print", &menu);
 
-    append_menu_item(&menu, wxID_ANY, _(L("Add custom G-code")), "",
-        [this](wxCommandEvent&) { add_code_as_tick(""); }, "edit_gcode", &menu);
+    if (!gcode(Template).empty())
+        append_menu_item(&menu, wxID_ANY, _L("Add custom template") + " (" + gcode(Template) + ")", "",
+            [this](wxCommandEvent&) { add_code_as_tick(Template); }, "edit_gcode", &menu);
+
+    append_menu_item(&menu, wxID_ANY, _L("Add custom G-code"), "",
+        [this](wxCommandEvent&) { add_code_as_tick(Custom); }, "edit_gcode", &menu);
 
     GUI::wxGetApp().plater()->PopupMenu(&menu);
 }
@@ -1502,23 +1522,23 @@ void Control::show_edit_context_menu()
 
     std::set<TickCode>::iterator it = m_ticks.ticks.find(TickCode{ m_selection == ssLower ? m_lower_value : m_higher_value });
 
-    if (it->gcode == ToolChangeCode) {
-        if (m_mode == t_mode::MultiAsSingle)
+    if (it->type == ToolChange) {
+        if (m_mode == MultiAsSingle)
             append_change_extruder_menu_item(&menu);
         append_add_color_change_menu_item(&menu, true);
     }
     else
-        append_menu_item(&menu, wxID_ANY, it->gcode == ColorChangeCode ? _(L("Edit color")) :
-                                          it->gcode == PausePrintCode  ? _(L("Edit pause print message")) :
+        append_menu_item(&menu, wxID_ANY, it->type == ColorChange ? _(L("Edit color")) :
+                                          it->type == PausePrint  ? _(L("Edit pause print message")) :
                                           _(L("Edit custom G-code")), "",
             [this](wxCommandEvent&) { edit_tick(); }, "edit_uni", &menu);
 
-    if (it->gcode == ColorChangeCode && m_mode == t_mode::MultiAsSingle)
+    if (it->type == ColorChange && m_mode == MultiAsSingle)
         append_change_extruder_menu_item(&menu, true);
 
-    append_menu_item(&menu, wxID_ANY, it->gcode == ColorChangeCode ? _(L("Delete color change")) : 
-                                      it->gcode == ToolChangeCode  ? _(L("Delete tool change")) :
-                                      it->gcode == PausePrintCode  ? _(L("Delete pause print")) :
+    append_menu_item(&menu, wxID_ANY, it->type == ColorChange ? _(L("Delete color change")) : 
+                                      it->type == ToolChange  ? _(L("Delete tool change")) :
+                                      it->type == PausePrint  ? _(L("Delete pause print")) :
                                       _(L("Delete custom G-code")), "",
         [this](wxCommandEvent&) { delete_current_tick();}, "colorchange_del_f", &menu);
 
@@ -1599,6 +1619,8 @@ static void upgrade_text_entry_dialog(wxTextEntryDialog* dlg, double min = -1.0,
     if (!textctrl)
         return;
 
+    textctrl->SetInsertionPointEnd();
+
     wxButton* btn_OK = static_cast<wxButton*>(dlg->FindWindowById(wxID_OK));
     btn_OK->Bind(wxEVT_UPDATE_UI, [textctrl, min, max](wxUpdateUIEvent& evt)
     {
@@ -1665,13 +1687,13 @@ static double get_print_z_to_jump(double active_print_z, double min_z, double ma
     return dlg.GetValue().ToCDouble(&value) ? value : -1.0;
 }
 
-void Control::add_code_as_tick(std::string code, int selected_extruder/* = -1*/)
+void Control::add_code_as_tick(Type type, int selected_extruder/* = -1*/)
 {
     if (m_selection == ssUndef)
         return;
     const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
 
-    if ( !check_ticks_changed_event(code) )
+    if ( !check_ticks_changed_event(type) )
         return;
 
     const int extruder = selected_extruder > 0 ? selected_extruder : std::max<int>(1, m_only_extruder);
@@ -1679,18 +1701,18 @@ void Control::add_code_as_tick(std::string code, int selected_extruder/* = -1*/)
     
     if ( it == m_ticks.ticks.end() ) {
         // try to add tick
-        if (!m_ticks.add_tick(tick, code, extruder, m_values[tick]))
+        if (!m_ticks.add_tick(tick, type, extruder, m_values[tick]))
             return;
     }
-    else if (code == ToolChangeCode || code == ColorChangeCode) {
-        // try to switch tick code to ToolChangeCode or ColorChangeCode accordingly
-        if (!m_ticks.switch_code_for_tick(it, code, extruder))
+    else if (type == ToolChange || type == ColorChange) {
+        // try to switch tick code to ToolChange or ColorChange accordingly
+        if (!m_ticks.switch_code_for_tick(it, type, extruder))
             return;
     }
     else
         return;
 
-    post_ticks_changed_event(code);
+    post_ticks_changed_event(type);
 }
 
 void Control::add_current_tick(bool call_from_keyboard /*= false*/)
@@ -1701,16 +1723,16 @@ void Control::add_current_tick(bool call_from_keyboard /*= false*/)
     auto it = m_ticks.ticks.find(TickCode{ tick });
 
     if (it != m_ticks.ticks.end() ||    // this tick is already exist
-        !check_ticks_changed_event(m_mode == t_mode::MultiAsSingle ? ToolChangeCode : ColorChangeCode))
+        !check_ticks_changed_event(m_mode == MultiAsSingle ? ToolChange : ColorChange))
         return;
 
-    if (m_mode == t_mode::SingleExtruder)
-        add_code_as_tick(ColorChangeCode);
+    if (m_mode == SingleExtruder)
+        add_code_as_tick(ColorChange);
     else
     {
         wxMenu menu;
 
-        if (m_mode == t_mode::MultiAsSingle)
+        if (m_mode == MultiAsSingle)
             append_change_extruder_menu_item(&menu);
         else
             append_add_color_change_menu_item(&menu);
@@ -1743,12 +1765,12 @@ void Control::delete_current_tick()
 
     auto it = m_ticks.ticks.find(TickCode{ m_selection == ssLower ? m_lower_value : m_higher_value });
     if (it == m_ticks.ticks.end() ||
-        !check_ticks_changed_event(it->gcode))
+        !check_ticks_changed_event(it->type))
         return;
 
-    const std::string code = it->gcode;
+    Type type = it->type;
     m_ticks.ticks.erase(it);
-    post_ticks_changed_event(code);
+    post_ticks_changed_event(type);
 }
 
 void Control::edit_tick(int tick/* = -1*/)
@@ -1758,12 +1780,12 @@ void Control::edit_tick(int tick/* = -1*/)
     const std::set<TickCode>::iterator it = m_ticks.ticks.find(TickCode{ tick });
 
     if (it == m_ticks.ticks.end() ||
-        !check_ticks_changed_event(it->gcode))
+        !check_ticks_changed_event(it->type))
         return;
 
-    const std::string code = it->gcode;
+    Type type = it->type;
     if (m_ticks.edit_tick(it, m_values[it->tick]))
-        post_ticks_changed_event(code);
+        post_ticks_changed_event(type);
 }
 
 // switch on/off one layer mode
@@ -1818,7 +1840,7 @@ void Control::move_current_thumb_to_pos(wxPoint pos)
 
 void Control::edit_extruder_sequence()
 {
-    if (!check_ticks_changed_event(ToolChangeCode))
+    if (!check_ticks_changed_event(ToolChange))
         return;
 
     GUI::ExtruderSequenceDialog dlg(m_extruders_sequence);
@@ -1826,7 +1848,7 @@ void Control::edit_extruder_sequence()
         return;
     m_extruders_sequence = dlg.GetValue();
 
-    m_ticks.erase_all_ticks_with_code(ToolChangeCode);
+    m_ticks.erase_all_ticks_with_code(ToolChange);
 
     int tick = 0;
     double value = 0.0;
@@ -1839,7 +1861,7 @@ void Control::edit_extruder_sequence()
 
         bool meaningless_tick = tick == 0.0 && cur_extruder == extruder;
         if (!meaningless_tick)
-            m_ticks.ticks.emplace(TickCode{tick, ToolChangeCode, cur_extruder + 1, m_extruder_colors[cur_extruder]});
+            m_ticks.ticks.emplace(TickCode{tick, ToolChange,cur_extruder + 1, m_extruder_colors[cur_extruder]});
 
         extruder++;
         if (extruder == extr_cnt)
@@ -1858,7 +1880,7 @@ void Control::edit_extruder_sequence()
             tick += m_extruders_sequence.interval_by_layers;
     }
 
-    post_ticks_changed_event(ToolChangeCode);
+    post_ticks_changed_event(ToolChange);
 }
 
 void Control::jump_to_print_z()
@@ -1877,64 +1899,64 @@ void Control::jump_to_print_z()
         SetHigherValue(tick_value);
 }
 
-void Control::post_ticks_changed_event(const std::string& gcode /*= ""*/)
+void Control::post_ticks_changed_event(Type type /*= Custom*/)
 {
-    m_force_mode_apply = (gcode.empty() || gcode == ColorChangeCode || gcode == ToolChangeCode);
+    m_force_mode_apply = type != ToolChange;
 
     wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
 }
 
-bool Control::check_ticks_changed_event(const std::string& gcode)
+bool Control::check_ticks_changed_event(Type type)
 {
     if ( m_ticks.mode == m_mode                                                     ||
-        (gcode != ColorChangeCode && gcode != ToolChangeCode)                       ||
-        (m_ticks.mode == t_mode::SingleExtruder && m_mode == t_mode::MultiAsSingle) || // All ColorChanges will be applied for 1st extruder
-        (m_ticks.mode == t_mode::MultiExtruder  && m_mode == t_mode::MultiAsSingle) )  // Just mark ColorChanges for all unused extruders
+        (type != ColorChange && type != ToolChange)                       ||
+        (m_ticks.mode == SingleExtruder && m_mode == MultiAsSingle) || // All ColorChanges will be applied for 1st extruder
+        (m_ticks.mode == MultiExtruder  && m_mode == MultiAsSingle) )  // Just mark ColorChanges for all unused extruders
         return true;
 
-    if ((m_ticks.mode == t_mode::SingleExtruder && m_mode == t_mode::MultiExtruder ) ||
-        (m_ticks.mode == t_mode::MultiExtruder  && m_mode == t_mode::SingleExtruder)    )
+    if ((m_ticks.mode == SingleExtruder && m_mode == MultiExtruder ) ||
+        (m_ticks.mode == MultiExtruder  && m_mode == SingleExtruder)    )
     {
-        if (!m_ticks.has_tick_with_code(ColorChangeCode))
+        if (!m_ticks.has_tick_with_code(ColorChange))
             return true;
 
-        wxString message = (m_ticks.mode == t_mode::SingleExtruder ?
-                            _(L("The last color change data was saved for a single extruder printing.")) :
-                            _(L("The last color change data was saved for a multi extruder printing.")) 
+        wxString message = (m_ticks.mode == SingleExtruder ?
+                            _L("The last color change data was saved for a single extruder printing.") :
+                            _L("The last color change data was saved for a multi extruder printing.") 
                             ) + "\n" +
-                            _(L("Your current changes will delete all saved color changes.")) + "\n\n\t" +
-                            _(L("Are you sure you want to continue?"));
+                            _L("Your current changes will delete all saved color changes.") + "\n\n\t" +
+                            _L("Are you sure you want to continue?");
 
-        wxMessageDialog msg(this, message, _(L("Notice")), wxYES_NO);
+        wxMessageDialog msg(this, message, _L("Notice"), wxYES_NO);
         if (msg.ShowModal() == wxID_YES) {
-            m_ticks.erase_all_ticks_with_code(ColorChangeCode);
-            post_ticks_changed_event(ColorChangeCode);
+            m_ticks.erase_all_ticks_with_code(ColorChange);
+            post_ticks_changed_event(ColorChange);
         }
         return false;
     }
-    //          m_ticks_mode == t_mode::MultiAsSingle
-    if( m_ticks.has_tick_with_code(ToolChangeCode) )
+    //          m_ticks_mode == MultiAsSingle
+    if( m_ticks.has_tick_with_code(ToolChange) )
     {
-        wxString message =  m_mode == t_mode::SingleExtruder ?                          (
-                            _(L("The last color change data was saved for a multi extruder printing.")) + "\n\n" +
-                            _(L("Select YES if you want to delete all saved tool changes, \n"
-                                "NO if you want all tool changes switch to color changes, \n"
-                                "or CANCEL to leave it unchanged.")) + "\n\n\t" +
-                            _(L("Do you want to delete all saved tool changes?"))  
-                            ) : ( // t_mode::MultiExtruder
-                            _(L("The last color change data was saved for a multi extruder printing with tool changes for whole print.")) + "\n\n" +
-                            _(L("Your current changes will delete all saved extruder (tool) changes.")) + "\n\n\t" +
-                            _(L("Are you sure you want to continue?"))                  ) ;
+        wxString message =  m_mode == SingleExtruder ?                          (
+                            _L("The last color change data was saved for a multi extruder printing.") + "\n\n" +
+                            _L("Select YES if you want to delete all saved tool changes, \n"
+                               "NO if you want all tool changes switch to color changes, \n"
+                               "or CANCEL to leave it unchanged.") + "\n\n\t" +
+                            _L("Do you want to delete all saved tool changes?")  
+                            ): ( // MultiExtruder
+                            _L("The last color change data was saved for a multi extruder printing with tool changes for whole print.") + "\n\n" +
+                            _L("Your current changes will delete all saved extruder (tool) changes.") + "\n\n\t" +
+                            _L("Are you sure you want to continue?")                  ) ;
 
-        wxMessageDialog msg(this, message, _(L("Notice")), wxYES_NO | (m_mode == t_mode::SingleExtruder ? wxCANCEL : 0));
+        wxMessageDialog msg(this, message, _L("Notice"), wxYES_NO | (m_mode == SingleExtruder ? wxCANCEL : 0));
         const int answer = msg.ShowModal();
         if (answer == wxID_YES) {
-            m_ticks.erase_all_ticks_with_code(ToolChangeCode);
-            post_ticks_changed_event(ToolChangeCode);
+            m_ticks.erase_all_ticks_with_code(ToolChange);
+            post_ticks_changed_event(ToolChange);
         }
-        else if (m_mode == t_mode::SingleExtruder && answer == wxID_NO) {
-            m_ticks.switch_code(ToolChangeCode, ColorChangeCode);
-            post_ticks_changed_event(ColorChangeCode);
+        else if (m_mode == SingleExtruder && answer == wxID_NO) {
+            m_ticks.switch_code(ToolChange, ColorChange);
+            post_ticks_changed_event(ColorChange);
         }
         return false;
     }
@@ -1942,9 +1964,9 @@ bool Control::check_ticks_changed_event(const std::string& gcode)
     return true;
 }
 
-std::string TickCodeInfo::get_color_for_tick(TickCode tick, const std::string& code, const int extruder)
+std::string TickCodeInfo::get_color_for_tick(TickCode tick, Type type, const int extruder)
 {
-    if (mode == t_mode::SingleExtruder && code == ColorChangeCode && m_use_default_colors)
+    if (mode == SingleExtruder && type == ColorChange && m_use_default_colors)
     {
         const std::vector<std::string>& colors = GCodePreviewData::ColorPrintColors();
         if (ticks.empty())
@@ -1956,14 +1978,14 @@ std::string TickCodeInfo::get_color_for_tick(TickCode tick, const std::string& c
 
     std::string color = (*m_colors)[extruder - 1];
 
-    if (code == ColorChangeCode)
+    if (type == ColorChange)
     {
         if (!ticks.empty())
         {
             auto before_tick_it = std::lower_bound(ticks.begin(), ticks.end(), tick );
             while (before_tick_it != ticks.begin()) {
                 --before_tick_it;
-                if (before_tick_it->gcode == ColorChangeCode && before_tick_it->extruder == extruder) {
+                if (before_tick_it->type == ColorChange && before_tick_it->extruder == extruder) {
                     color = before_tick_it->color;
                     break;
                 }
@@ -1975,63 +1997,67 @@ std::string TickCodeInfo::get_color_for_tick(TickCode tick, const std::string& c
     return color;
 }
 
-bool TickCodeInfo::add_tick(const int tick, std::string& code, const int extruder, double print_z)
+bool TickCodeInfo::add_tick(const int tick, Type type, const int extruder, double print_z)
 {
     std::string color;
-    if (code.empty())           // custom Gcode
+    std::string extra;
+    if (type == Custom)           // custom Gcode
     {
-        code = get_custom_code(custom_gcode, print_z);
-        if (code.empty())
+        extra = get_custom_code(custom_gcode, print_z);
+        if (extra.empty())
             return false;
-        custom_gcode = code;
+        custom_gcode = extra;
     }
-    else if (code == PausePrintCode)
+    else if (type == PausePrint)
     {
-        /* PausePrintCode doesn't need a color, so
-         * this field is used for save a short message shown on Printer display
-         * */
-        color = get_pause_print_msg(pause_print_msg, print_z);
-        if (color.empty())
+        extra = get_pause_print_msg(pause_print_msg, print_z);
+        if (extra.empty())
             return false;
-        pause_print_msg = color;
+        pause_print_msg = extra;
     }
     else
     {
-        color = get_color_for_tick(TickCode{ tick }, code, extruder);
+        color = get_color_for_tick(TickCode{ tick }, type, extruder);
         if (color.empty())
             return false;
     }
 
-    if (mode == t_mode::SingleExtruder)
+    if (mode == SingleExtruder)
         m_use_default_colors = true;
 
-    ticks.emplace(TickCode{ tick, code, extruder, color });
+    ticks.emplace(TickCode{ tick, type, extruder, color, extra });
     return true;
 }
 
 bool TickCodeInfo::edit_tick(std::set<TickCode>::iterator it, double print_z)
 {
     std::string edited_value;
-    if (it->gcode == ColorChangeCode)
+    if (it->type == ColorChange)
         edited_value = get_new_color(it->color);
-    else if (it->gcode == PausePrintCode)
-        edited_value = get_pause_print_msg(it->color, print_z);
+    else if (it->type == PausePrint)
+        edited_value = get_pause_print_msg(it->extra, print_z);
     else
-        edited_value = get_custom_code(it->gcode, print_z);
+        edited_value = get_custom_code(it->type == Template ? gcode(Template) : it->extra, print_z);
 
     if (edited_value.empty())
         return false;
 
     TickCode changed_tick = *it;
-    if (it->gcode == ColorChangeCode || it->gcode == PausePrintCode) {
+    if (it->type == ColorChange) {
         if (it->color == edited_value)
             return false;
         changed_tick.color = edited_value;
     }
-    else {
-        if (it->gcode == edited_value)
+    else if (it->type == Template) {
+        if (gcode(Template) == edited_value)
             return false;
-        changed_tick.gcode = edited_value;
+        changed_tick.extra = edited_value;
+        changed_tick.type  = Custom;
+    }
+    else if (it->type == Custom || it->type == PausePrint) {
+        if (it->extra == edited_value)
+            return false;
+        changed_tick.extra = edited_value;
     }
 
     ticks.erase(it);
@@ -2040,13 +2066,13 @@ bool TickCodeInfo::edit_tick(std::set<TickCode>::iterator it, double print_z)
     return true;
 }
 
-void TickCodeInfo::switch_code(const std::string& code_from, const std::string& code_to)
+void TickCodeInfo::switch_code(Type type_from, Type type_to)
 {
     for (auto it{ ticks.begin() }, end{ ticks.end() }; it != end; )
-        if (it->gcode == code_from)
+        if (it->type == type_from)
         {
             TickCode tick = *it;
-            tick.gcode = code_to;
+            tick.type = type_to;
             tick.extruder = 1;
             ticks.erase(it);
             it = ticks.emplace(tick).first;
@@ -2055,14 +2081,14 @@ void TickCodeInfo::switch_code(const std::string& code_from, const std::string& 
             ++it;
 }
 
-bool TickCodeInfo::switch_code_for_tick(std::set<TickCode>::iterator it, const std::string& code_to, const int extruder)
+bool TickCodeInfo::switch_code_for_tick(std::set<TickCode>::iterator it, Type type_to, const int extruder)
 {
-    const std::string color = get_color_for_tick(*it, code_to, extruder);
+    const std::string color = get_color_for_tick(*it, type_to, extruder);
     if (color.empty())
         return false;
 
-    TickCode changed_tick  = *it;
-    changed_tick.gcode      = code_to;
+    TickCode changed_tick   = *it;
+    changed_tick.type       = type_to;
     changed_tick.extruder   = extruder;
     changed_tick.color      = color;
 
@@ -2072,36 +2098,36 @@ bool TickCodeInfo::switch_code_for_tick(std::set<TickCode>::iterator it, const s
     return true;
 }
 
-void TickCodeInfo::erase_all_ticks_with_code(const std::string& gcode)
+void TickCodeInfo::erase_all_ticks_with_code(Type type)
 {
     for (auto it{ ticks.begin() }, end{ ticks.end() }; it != end; ) {
-        if (it->gcode == gcode)
+        if (it->type == type)
             it = ticks.erase(it);
         else
             ++it;
     }
 }
 
-bool TickCodeInfo::has_tick_with_code(const std::string& gcode)
+bool TickCodeInfo::has_tick_with_code(Type type)
 {
     for (const TickCode& tick : ticks)
-        if (tick.gcode == gcode)
+        if (tick.type == type)
             return true;
 
     return false;
 }
 
-ConflictType TickCodeInfo::is_conflict_tick(const TickCode& tick, t_mode out_mode, int only_extruder, double print_z)
+ConflictType TickCodeInfo::is_conflict_tick(const TickCode& tick, Mode out_mode, int only_extruder, double print_z)
 {
-    if ((tick.gcode == ColorChangeCode && (
-            (mode == t_mode::SingleExtruder && out_mode == t_mode::MultiExtruder ) ||
-            (mode == t_mode::MultiExtruder  && out_mode == t_mode::SingleExtruder)    )) ||
-        (tick.gcode == ToolChangeCode &&
-            (mode == t_mode::MultiAsSingle && out_mode != t_mode::MultiAsSingle)) )
+    if ((tick.type == ColorChange && (
+            (mode == SingleExtruder && out_mode == MultiExtruder ) ||
+            (mode == MultiExtruder  && out_mode == SingleExtruder)    )) ||
+        (tick.type == ToolChange &&
+            (mode == MultiAsSingle && out_mode != MultiAsSingle)) )
         return ctModeConflict;
 
     // check ColorChange tick
-    if (tick.gcode == ColorChangeCode)
+    if (tick.type == ColorChange)
     {
         // We should mark a tick as a "MeaninglessColorChange", 
         // if it has a ColorChange for unused extruder from current print to end of the print
@@ -2112,15 +2138,15 @@ ConflictType TickCodeInfo::is_conflict_tick(const TickCode& tick, t_mode out_mod
 
         // We should mark a tick as a "Redundant", 
         // if it has a ColorChange for extruder that has not been used before
-        if (mode == t_mode::MultiAsSingle && tick.extruder != std::max<int>(only_extruder, 1) )
+        if (mode == MultiAsSingle && tick.extruder != std::max<int>(only_extruder, 1) )
         {
             auto it = ticks.lower_bound( tick );
-            if (it == ticks.begin() && it->gcode == ToolChangeCode && tick.extruder == it->extruder)
+            if (it == ticks.begin() && it->type == ToolChange && tick.extruder == it->extruder)
                 return ctNone;
 
             while (it != ticks.begin()) {
                 --it;
-                if (it->gcode == ToolChangeCode && tick.extruder == it->extruder)
+                if (it->type == ToolChange && tick.extruder == it->extruder)
                     return ctNone;
             }
 
@@ -2129,7 +2155,7 @@ ConflictType TickCodeInfo::is_conflict_tick(const TickCode& tick, t_mode out_mod
     }
 
     // check ToolChange tick
-    if (mode == t_mode::MultiAsSingle && tick.gcode == ToolChangeCode)
+    if (mode == MultiAsSingle && tick.type == ToolChange)
     {
         // We should mark a tick as a "MeaninglessToolChange", 
         // if it has a ToolChange to the same extruder
@@ -2139,7 +2165,7 @@ ConflictType TickCodeInfo::is_conflict_tick(const TickCode& tick, t_mode out_mod
 
         while (it != ticks.begin()) {
             --it;
-            if (it->gcode == ToolChangeCode)
+            if (it->type == ToolChange)
                 return tick.extruder == it->extruder ? ctMeaninglessToolChange : ctNone;
         }
     }
