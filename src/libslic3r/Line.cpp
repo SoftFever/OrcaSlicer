@@ -135,4 +135,4 @@ BoundingBox get_extents(const Lines &lines)
     return bbox;
 }
 
-}
+} // namespace Slic3r
