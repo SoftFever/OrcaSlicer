@@ -234,6 +234,7 @@ void PreferencesDialog::accept()
 	    }
 	}
 
+#if !ENABLE_LAYOUT_NO_RESTART
 	if (m_settings_layout_changed) {
 		// the dialog needs to be destroyed before the call to recreate_gui()
 		// or sometimes the application crashes into wxDialogBase() destructor
@@ -255,6 +256,7 @@ void PreferencesDialog::accept()
 			return;
 		}
 	}
+#endif // !ENABLE_LAYOUT_NO_RESTART
 
 	for (std::map<std::string, std::string>::iterator it = m_values.begin(); it != m_values.end(); ++it)
 		app_config->set(it->first, it->second);

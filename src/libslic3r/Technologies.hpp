@@ -51,5 +51,8 @@
 // Enable error logging for OpenGL calls when SLIC3R_LOGLEVEL >= 5
 #define ENABLE_OPENGL_ERROR_LOGGING (1 && ENABLE_2_3_0_ALPHA1)
 
+// Enable changing application layout without the need to restart
+#define ENABLE_LAYOUT_NO_RESTART (1 && ENABLE_2_3_0_ALPHA1)
+
 
 #endif // _prusaslicer_technologies_h_

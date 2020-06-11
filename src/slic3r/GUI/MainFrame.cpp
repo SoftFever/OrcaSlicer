@@ -46,6 +46,9 @@ MainFrame::MainFrame() :
 DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
     m_printhost_queue_dlg(new PrintHostQueueDialog(this))
     , m_recent_projects(9)
+#if ENABLE_LAYOUT_NO_RESTART
+    , m_settings_dialog(this)
+#endif // ENABLE_LAYOUT_NO_RESTART
 {
     // Fonts were created by the DPIFrame constructor for the monitor, on which the window opened.
     wxGetApp().update_fonts(this);
@@ -90,6 +93,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 
     m_loaded = true;
 
+#if !ENABLE_LAYOUT_NO_RESTART
 #ifdef __APPLE__
     // Using SetMinSize() on Mac messes up the window position in some cases
     // cf. https://groups.google.com/forum/#!topic/wx-users/yUKPBBfXWO0
@@ -103,8 +107,17 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
         m_tabpanel->SetMinSize(size);
     }
 #endif
+#endif // !ENABLE_LAYOUT_NO_RESTART
+
     // initialize layout
     auto sizer = new wxBoxSizer(wxVERTICAL);
+#if ENABLE_LAYOUT_NO_RESTART
+    SetSizer(sizer);
+    // initialize layout from config
+    update_layout();
+    sizer->SetSizeHints(this);
+    Fit();
+#else
     if (m_plater && m_layout != slOld)
         sizer->Add(m_plater, 1, wxEXPAND);
 
@@ -114,6 +127,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     sizer->SetSizeHints(this);
     SetSizer(sizer);
     Fit();
+#endif // !ENABLE_LAYOUT_NO_RESTART
 
     const wxSize min_size = wxGetApp().get_min_size(); //wxSize(76*wxGetApp().em_unit(), 49*wxGetApp().em_unit());
 #ifdef __APPLE__
@@ -205,14 +219,102 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     });
 
     wxGetApp().persist_window_geometry(this, true);
+#if ENABLE_LAYOUT_NO_RESTART
+    wxGetApp().persist_window_geometry(&m_settings_dialog, true);
+#else
     if (m_settings_dialog != nullptr)
         wxGetApp().persist_window_geometry(m_settings_dialog, true);
+#endif // ENABLE_LAYOUT_NO_RESTART
 
     update_ui_from_settings();    // FIXME (?)
 
     if (m_plater != nullptr)
         m_plater->show_action_buttons(true);
 }
+
+#if ENABLE_LAYOUT_NO_RESTART
+void MainFrame::update_layout()
+{
+    ESettingsLayout layout = wxGetApp().app_config->get("old_settings_layout_mode") == "1" ? ESettingsLayout::Old :
+        wxGetApp().app_config->get("new_settings_layout_mode") == "1" ? ESettingsLayout::New :
+        wxGetApp().app_config->get("dlg_settings_layout_mode") == "1" ? ESettingsLayout::Dlg : ESettingsLayout::Old;
+
+    if (m_layout == layout)
+        return;
+
+    wxBusyCursor busy;
+
+    Freeze();
+
+    if (m_layout != ESettingsLayout::Unknown) {
+        // Restore from previous settings
+        if (m_layout == ESettingsLayout::Old) {
+            m_plater->Reparent(this);
+            m_tabpanel->RemovePage(m_tabpanel->FindPage(m_plater));
+            GetSizer()->Detach(m_tabpanel);
+        }
+        else {
+            if (m_layout == ESettingsLayout::New) {
+                GetSizer()->Detach(m_plater);
+                GetSizer()->Detach(m_tabpanel);
+                m_tabpanel->DeletePage(m_tabpanel->FindPage(m_plater_page));
+            }
+            else {
+                if (m_settings_dialog.IsShown())
+                    m_settings_dialog.Close();
+
+                GetSizer()->Detach(m_plater);
+                m_settings_dialog.GetSizer()->Detach(m_tabpanel);
+                m_tabpanel->Reparent(this);
+            }
+        }
+    }
+
+    m_layout = layout;
+
+    // From the very beginning the Print settings should be selected
+    m_last_selected_tab = m_layout == ESettingsLayout::Dlg ? 0 : 1;
+
+    // Set new settings
+    if (m_layout == ESettingsLayout::Old) {
+        m_plater->Reparent(m_tabpanel);
+        m_tabpanel->InsertPage(0, m_plater, _L("Plater"));
+        GetSizer()->Add(m_tabpanel, 1, wxEXPAND);
+        m_tabpanel->Show();
+    }
+    else {
+        if (m_layout == ESettingsLayout::New) {
+            GetSizer()->Add(m_plater, 1, wxEXPAND);
+            GetSizer()->Add(m_tabpanel, 1, wxEXPAND);
+            m_plater_page = new wxPanel(m_tabpanel);
+            m_tabpanel->InsertPage(0, m_plater_page, _L("Plater")); // empty panel just for Plater tab */
+        }
+        else {
+            GetSizer()->Add(m_plater, 1, wxEXPAND);
+            m_plater->Show();
+            m_tabpanel->Reparent(&m_settings_dialog);
+            m_settings_dialog.GetSizer()->Add(m_tabpanel, 1, wxEXPAND);
+        }
+    }
+
+#ifdef __APPLE__
+    // Using SetMinSize() on Mac messes up the window position in some cases
+    // cf. https://groups.google.com/forum/#!topic/wx-users/yUKPBBfXWO0
+    // So, if we haven't possibility to set MinSize() for the MainFrame, 
+    // set the MinSize() as a half of regular  for the m_plater and m_tabpanel, when settings layout is in slNew mode
+    // Otherwise, MainFrame will be maximized by height
+    if (m_layout == ESettingsLayout::New) {
+        wxSize size = wxGetApp().get_min_size();
+        size.SetHeight(int(0.5 * size.GetHeight()));
+        m_plater->SetMinSize(size);
+        m_tabpanel->SetMinSize(size);
+    }
+#endif
+    
+    Layout();
+    Thaw();
+}
+#endif // ENABLE_LAYOUT_NO_RESTART
 
 // Called when closing the application and when switching the application language.
 void MainFrame::shutdown()
@@ -246,6 +348,11 @@ void MainFrame::shutdown()
     // In addition, there were some crashes due to the Paint events sent to already destructed windows.
     this->Show(false);
 
+#if ENABLE_LAYOUT_NO_RESTART
+    if (m_settings_dialog.IsShown())
+        // call Close() to trigger call to lambda defined into GUI_App::persist_window_geometry()
+        m_settings_dialog.Close();
+#else
     if (m_settings_dialog != nullptr)
     {
         if (m_settings_dialog->IsShown())
@@ -254,6 +361,7 @@ void MainFrame::shutdown()
 
         m_settings_dialog->Destroy();
     }
+#endif // ENABLE_LAYOUT_NO_RESTART
 
 	// Stop the background thread (Windows and Linux).
 	// Disconnect from a 3DConnextion driver (OSX).
@@ -312,9 +420,18 @@ void MainFrame::update_title()
 
 void MainFrame::init_tabpanel()
 {
+#if ENABLE_LAYOUT_NO_RESTART
+    // wxNB_NOPAGETHEME: Disable Windows Vista theme for the Notebook background. The theme performance is terrible on Windows 10
+    // with multiple high resolution displays connected.
+    m_tabpanel = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
+#ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList
+    m_tabpanel->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+#endif
+    m_settings_dialog.set_tabpanel(m_tabpanel);
+#else
     m_layout = wxGetApp().app_config->get("old_settings_layout_mode") == "1" ? slOld :
-               wxGetApp().app_config->get("new_settings_layout_mode") == "1" ? slNew :
-               wxGetApp().app_config->get("dlg_settings_layout_mode") == "1" ? slDlg : slOld;
+        wxGetApp().app_config->get("new_settings_layout_mode") == "1" ? slNew :
+        wxGetApp().app_config->get("dlg_settings_layout_mode") == "1" ? slDlg : slOld;
 
     // From the very beginning the Print settings should be selected
     m_last_selected_tab = m_layout == slDlg ? 0 : 1;
@@ -331,6 +448,7 @@ void MainFrame::init_tabpanel()
         m_tabpanel->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 #endif
     }
+#endif // ENABLE_LAYOUT_NO_RESTART
 
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, [this](wxEvent&) {
         wxWindow* panel = m_tabpanel->GetCurrentPage();
@@ -351,6 +469,9 @@ void MainFrame::init_tabpanel()
             select_tab(0); // select Plater
     });
 
+#if ENABLE_LAYOUT_NO_RESTART
+    m_plater = new Plater(this, this);
+#else
     if (m_layout == slOld) {
         m_plater = new Plater(m_tabpanel, this);
         m_tabpanel->AddPage(m_plater, _L("Plater"));
@@ -360,6 +481,7 @@ void MainFrame::init_tabpanel()
         if (m_layout == slNew)
             m_tabpanel->AddPage(new wxPanel(m_tabpanel), _L("Plater")); // empty panel just for Plater tab
     }
+#endif // ENABLE_LAYOUT_NO_RESTART
     wxGetApp().plater_ = m_plater;
 
     wxGetApp().obj_list()->create_popup_menus();
@@ -501,6 +623,18 @@ bool MainFrame::can_slice() const
 
 bool MainFrame::can_change_view() const
 {
+#if ENABLE_LAYOUT_NO_RESTART
+    switch (m_layout)
+    {
+    default:                   { return false; }
+    case ESettingsLayout::New: { return m_plater->IsShown(); }
+    case ESettingsLayout::Dlg: { return true; }
+    case ESettingsLayout::Old: { 
+        int page_id = m_tabpanel->GetSelection();
+        return page_id != wxNOT_FOUND && dynamic_cast<const Slic3r::GUI::Plater*>(m_tabpanel->GetPage((size_t)page_id)) != nullptr;
+    }
+    }
+#else
     if (m_layout == slNew)
         return m_plater->IsShown();
     if (m_layout == slDlg)
@@ -508,6 +642,7 @@ bool MainFrame::can_change_view() const
     // slOld layout mode
     int page_id = m_tabpanel->GetSelection();
     return page_id != wxNOT_FOUND && dynamic_cast<const Slic3r::GUI::Plater*>(m_tabpanel->GetPage((size_t)page_id)) != nullptr;
+#endif // ENABLE_LAYOUT_NO_RESTART
 }
 
 bool MainFrame::can_select() const
@@ -549,7 +684,11 @@ void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
     wxGetApp().plater()->msw_rescale();
 
     // update Tabs
+#if ENABLE_LAYOUT_NO_RESTART
+    if (m_layout != ESettingsLayout::Dlg) // Update tabs later, from the SettingsDialog, when the Settings are in the separated dialog
+#else
     if (m_layout != slDlg) // Update tabs later, from the SettingsDialog, when the Settings are in the separated dialog
+#endif // ENABLE_LAYOUT_NO_RESTART
         for (auto tab : wxGetApp().tabs_list)
             tab->msw_rescale();
 
@@ -1311,15 +1450,41 @@ void MainFrame::load_config(const DynamicPrintConfig& config)
 
 void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
 {
+#if ENABLE_LAYOUT_NO_RESTART
+    if (m_layout == ESettingsLayout::Dlg) {
+#else
     if (m_layout == slDlg) {
+#endif // ENABLE_LAYOUT_NO_RESTART
         if (tab==0) {
+#if ENABLE_LAYOUT_NO_RESTART
+            if (m_settings_dialog.IsShown())
+                this->SetFocus();
+#else
             if (m_settings_dialog->IsShown())
                 this->SetFocus();
+#endif // ENABLE_LAYOUT_NO_RESTART
             // plater should be focused for correct navigation inside search window
             if (m_plater->canvas3D()->is_search_pressed())
                 m_plater->SetFocus();
             return;
         }
+#if ENABLE_LAYOUT_NO_RESTART
+        // Show/Activate Settings Dialog
+#ifdef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList
+        if (m_settings_dialog.IsShown())
+            m_settings_dialog.Hide();
+
+        m_tabpanel->Show();
+        m_settings_dialog.Show();
+#else
+        if (m_settings_dialog.IsShown())
+            m_settings_dialog.SetFocus();
+        else {
+            m_tabpanel->Show();
+            m_settings_dialog.Show();
+        }
+#endif
+#else
         // Show/Activate Settings Dialog
         if (m_settings_dialog->IsShown())
 #ifdef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList
@@ -1329,8 +1494,13 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
         else
 #endif
         m_settings_dialog->Show();
+#endif // ENABLE_LAYOUT_NO_RESTART
     }
+#if ENABLE_LAYOUT_NO_RESTART
+    else if (m_layout == ESettingsLayout::New) {
+#else
     else if (m_layout == slNew) {
+#endif // ENABLE_LAYOUT_NO_RESTART
         m_plater->Show(tab == 0);
         m_tabpanel->Show(tab != 0);
 
@@ -1340,8 +1510,12 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
         Layout();
     }
 
-    // when tab == -1, it means we should to show the last selected tab 
+    // when tab == -1, it means we should to show the last selected tab
+#if ENABLE_LAYOUT_NO_RESTART
+    m_tabpanel->SetSelection(tab == (size_t)(-1) ? m_last_selected_tab : (m_layout == ESettingsLayout::Dlg && tab != 0) ? tab - 1 : tab);
+#else
     m_tabpanel->SetSelection(tab == (size_t)(-1) ? m_last_selected_tab : (m_layout == slDlg && tab != 0) ? tab-1 : tab);
+#endif // ENABLE_LAYOUT_NO_RESTART
 }
 
 // Set a camera direction, zoom to all objects.
@@ -1452,14 +1626,12 @@ std::string MainFrame::get_dir_name(const wxString &full_name) const
 // ----------------------------------------------------------------------------
 
 SettingsDialog::SettingsDialog(MainFrame* mainframe)
-: DPIDialog(nullptr, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _L("Settings"), wxDefaultPosition, wxDefaultSize,
-    wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxDIALOG_NO_PARENT, "settings_dialog"),
+: DPIDialog(mainframe, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _L("Settings"), wxDefaultPosition, wxDefaultSize,
+        wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMINIMIZE_BOX | wxMAXIMIZE_BOX, "settings_dialog"),
     m_main_frame(mainframe)
 {
     this->SetFont(wxGetApp().normal_font());
-
-    wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
-    this->SetBackgroundColour(bgr_clr);
+    this->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 
     // Load the icon either from the exe, or from the ico file.
 #if _WIN32
@@ -1472,6 +1644,7 @@ SettingsDialog::SettingsDialog(MainFrame* mainframe)
     SetIcon(wxIcon(var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
 #endif // _WIN32
 
+#if !ENABLE_LAYOUT_NO_RESTART
     // wxNB_NOPAGETHEME: Disable Windows Vista theme for the Notebook background. The theme performance is terrible on Windows 10
     // with multiple high resolution displays connected.
     m_tabpanel = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxGetApp().get_min_size(), wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
@@ -1496,10 +1669,45 @@ SettingsDialog::SettingsDialog(MainFrame* mainframe)
             }
         }
     });
+#endif // !ENABLE_LAYOUT_NO_RESTART
+
+#if ENABLE_LAYOUT_NO_RESTART
+    this->Bind(wxEVT_SHOW, [this](wxShowEvent& evt) {
+
+        auto key_up_handker = [this](wxKeyEvent& evt) {
+            if ((evt.GetModifiers() & wxMOD_CONTROL) != 0) {
+                switch (evt.GetKeyCode()) {
+                case '1': { m_main_frame->select_tab(0); break; }
+                case '2': { m_main_frame->select_tab(1); break; }
+                case '3': { m_main_frame->select_tab(2); break; }
+                case '4': { m_main_frame->select_tab(3); break; }
+#ifdef __APPLE__
+                case 'f':
+#else /* __APPLE__ */
+                case WXK_CONTROL_F:
+#endif /* __APPLE__ */
+                case 'F': { m_main_frame->plater()->search(false); break; }
+                default:break;
+                }
+            }
+        };
+
+        if (evt.IsShown()) {
+            if (m_tabpanel != nullptr)
+                m_tabpanel->Bind(wxEVT_KEY_UP, key_up_handker);
+        }
+        else {
+            if (m_tabpanel != nullptr)
+                m_tabpanel->Unbind(wxEVT_KEY_UP, key_up_handker);
+        }
+        });
+#endif // ENABLE_LAYOUT_NO_RESTART
 
     // initialize layout
     auto sizer = new wxBoxSizer(wxVERTICAL);
+#if !ENABLE_LAYOUT_NO_RESTART
     sizer->Add(m_tabpanel, 1, wxEXPAND);
+#endif // !ENABLE_LAYOUT_NO_RESTART
     sizer->SetSizeHints(this);
     SetSizer(sizer);
     Fit();
@@ -1513,7 +1721,13 @@ SettingsDialog::SettingsDialog(MainFrame* mainframe)
     SetMinSize(min_size);
     SetSize(GetMinSize());
 #endif
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//#if !ENABLE_LAYOUT_NO_RESTART
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     Layout();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//#endif // !ENABLE_LAYOUT_NO_RESTART
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 }
 
 void SettingsDialog::on_dpi_changed(const wxRect& suggested_rect)
