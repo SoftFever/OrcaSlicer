@@ -251,19 +251,21 @@ void MainFrame::update_layout()
         if (m_layout == ESettingsLayout::Old) {
             m_plater->Reparent(this);
             m_tabpanel->RemovePage(m_tabpanel->FindPage(m_plater));
+            GetSizer()->Hide(m_tabpanel);
             GetSizer()->Detach(m_tabpanel);
-        }
-        else {
+        } else {
+            GetSizer()->Hide(m_plater);
+            GetSizer()->Detach(m_plater);
             if (m_layout == ESettingsLayout::New) {
-                GetSizer()->Detach(m_plater);
+                GetSizer()->Hide(m_tabpanel);
                 GetSizer()->Detach(m_tabpanel);
                 m_tabpanel->DeletePage(m_tabpanel->FindPage(m_plater_page));
-            }
-            else {
+                m_plater_page = nullptr;
+            } else {
                 if (m_settings_dialog.IsShown())
                     m_settings_dialog.Close();
 
-                GetSizer()->Detach(m_plater);
+                m_settings_dialog.GetSizer()->Hide(m_tabpanel);
                 m_settings_dialog.GetSizer()->Detach(m_tabpanel);
                 m_tabpanel->Reparent(this);
             }
@@ -280,36 +282,35 @@ void MainFrame::update_layout()
         m_plater->Reparent(m_tabpanel);
         m_tabpanel->InsertPage(0, m_plater, _L("Plater"));
         GetSizer()->Add(m_tabpanel, 1, wxEXPAND);
-        m_tabpanel->Show();
-    }
-    else {
+        GetSizer()->Show(m_tabpanel);
+    } else {
+        GetSizer()->Add(m_plater, 1, wxEXPAND);
+        GetSizer()->Show(m_plater);
         if (m_layout == ESettingsLayout::New) {
-            GetSizer()->Add(m_plater, 1, wxEXPAND);
             GetSizer()->Add(m_tabpanel, 1, wxEXPAND);
+            GetSizer()->Hide(m_tabpanel);
             m_plater_page = new wxPanel(m_tabpanel);
             m_tabpanel->InsertPage(0, m_plater_page, _L("Plater")); // empty panel just for Plater tab */
-        }
-        else {
-            GetSizer()->Add(m_plater, 1, wxEXPAND);
-            m_plater->Show();
+        } else {
             m_tabpanel->Reparent(&m_settings_dialog);
             m_settings_dialog.GetSizer()->Add(m_tabpanel, 1, wxEXPAND);
+            m_settings_dialog.GetSizer()->Show(m_tabpanel);
         }
     }
 
-#ifdef __APPLE__
-    // Using SetMinSize() on Mac messes up the window position in some cases
-    // cf. https://groups.google.com/forum/#!topic/wx-users/yUKPBBfXWO0
-    // So, if we haven't possibility to set MinSize() for the MainFrame, 
-    // set the MinSize() as a half of regular  for the m_plater and m_tabpanel, when settings layout is in slNew mode
-    // Otherwise, MainFrame will be maximized by height
-    if (m_layout == ESettingsLayout::New) {
-        wxSize size = wxGetApp().get_min_size();
-        size.SetHeight(int(0.5 * size.GetHeight()));
-        m_plater->SetMinSize(size);
-        m_tabpanel->SetMinSize(size);
-    }
-#endif
+//#ifdef __APPLE__
+//    // Using SetMinSize() on Mac messes up the window position in some cases
+//    // cf. https://groups.google.com/forum/#!topic/wx-users/yUKPBBfXWO0
+//    // So, if we haven't possibility to set MinSize() for the MainFrame, 
+//    // set the MinSize() as a half of regular  for the m_plater and m_tabpanel, when settings layout is in slNew mode
+//    // Otherwise, MainFrame will be maximized by height
+//    if (m_layout == ESettingsLayout::New) {
+//        wxSize size = wxGetApp().get_min_size();
+//        size.SetHeight(int(0.5 * size.GetHeight()));
+//        m_plater->SetMinSize(size);
+//        m_tabpanel->SetMinSize(size);
+//    }
+//#endif
     
     Layout();
     Thaw();
@@ -455,7 +456,7 @@ void MainFrame::init_tabpanel()
         Tab* tab = dynamic_cast<Tab*>(panel);
 
         // There shouldn't be a case, when we try to select a tab, which doesn't support a printer technology
-        if (panel == nullptr || (tab && ! tab->supports_printer_technology(m_plater->printer_technology())))
+        if (panel == nullptr || (tab != nullptr && !tab->supports_printer_technology(m_plater->printer_technology())))
             return;
 
         auto& tabs_list = wxGetApp().tabs_list;
@@ -1501,8 +1502,13 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
 #else
     else if (m_layout == slNew) {
 #endif // ENABLE_LAYOUT_NO_RESTART
+#if ENABLE_LAYOUT_NO_RESTART
+        GetSizer()->Show(m_plater, tab == 0);
+        GetSizer()->Show(m_tabpanel, tab != 0);
+#else
         m_plater->Show(tab == 0);
         m_tabpanel->Show(tab != 0);
+#endif // ENABLE_LAYOUT_NO_RESTART
 
         // plater should be focused for correct navigation inside search window
         if (tab == 0 && m_plater->canvas3D()->is_search_pressed())
@@ -1510,7 +1516,7 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
         Layout();
     }
 
-    // when tab == -1, it means we should to show the last selected tab
+    // when tab == -1, it means we should show the last selected tab
 #if ENABLE_LAYOUT_NO_RESTART
     m_tabpanel->SetSelection(tab == (size_t)(-1) ? m_last_selected_tab : (m_layout == ESettingsLayout::Dlg && tab != 0) ? tab - 1 : tab);
 #else
@@ -1721,13 +1727,7 @@ SettingsDialog::SettingsDialog(MainFrame* mainframe)
     SetMinSize(min_size);
     SetSize(GetMinSize());
 #endif
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//#if !ENABLE_LAYOUT_NO_RESTART
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     Layout();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//#endif // !ENABLE_LAYOUT_NO_RESTART
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 }
 
 void SettingsDialog::on_dpi_changed(const wxRect& suggested_rect)
