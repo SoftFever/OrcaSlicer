@@ -110,6 +110,7 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line)
             {
                 switch (::atoi(&cmd[1]))
                 {
+                case 0:  { process_G0(line); break; }  // Move
                 case 1:  { process_G1(line); break; }  // Move
                 case 10: { process_G10(line); break; } // Retract
                 case 11: { process_G11(line); break; } // Unretract
@@ -261,6 +262,11 @@ void GCodeProcessor::process_tags(const std::string& comment)
         store_move_vertex(EMoveType::Custom_GCode);
         return;
     }
+}
+
+void GCodeProcessor::process_G0(const GCodeReader::GCodeLine& line)
+{
+    process_G1(line);
 }
 
 void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)

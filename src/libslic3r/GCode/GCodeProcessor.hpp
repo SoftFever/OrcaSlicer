@@ -155,6 +155,7 @@ namespace Slic3r {
         void process_tags(const std::string& comment);
 
         // Move
+        void process_G0(const GCodeReader::GCodeLine& line);
         void process_G1(const GCodeReader::GCodeLine& line);
 
         // Retract

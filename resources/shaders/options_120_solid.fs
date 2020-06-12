@@ -66,7 +66,6 @@ vec4 on_sphere_color(vec3 eye_on_sphere_position)
     intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
     
     return vec4(intensity.y + uniform_color.rgb * intensity.x, 1.0);
-//    return vec4(vec3(intensity.y) + uniform_color.rgb * intensity.x, 1.0);
 }
 
 float fragment_depth(vec3 eye_pos)
