@@ -769,10 +769,10 @@ void Preview::update_view_type(bool slice_completed)
 
     const wxString& choice = !wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes.empty() /*&&
                              (wxGetApp().extruders_edited_cnt()==1 || !slice_completed) */? 
-                                _(L("Color Print")) :
+                                _L("Color Print") :
                                 config.option<ConfigOptionFloats>("wiping_volumes_matrix")->values.size() > 1 ?
-                                    _(L("Tool")) : 
-                                    _(L("Feature type"));
+                                    _L("Tool") : 
+                                    _L("Feature type");
 
     int type = m_choice_view_type->FindString(choice);
     if (m_choice_view_type->GetSelection() != type) {
@@ -786,6 +786,8 @@ void Preview::update_view_type(bool slice_completed)
 #endif // ENABLE_GCODE_VIEWER
         m_preferred_color_mode = "feature";
     }
+
+    reload_print();
 }
 
 #if ENABLE_GCODE_VIEWER
@@ -851,8 +853,6 @@ wxBoxSizer* Preview::create_layers_slider_sizer()
         m_schedule_background_process();
 
         update_view_type(false);
-
-        reload_print();
         });
 
     return sizer;
@@ -885,9 +885,7 @@ void Preview::create_double_slider()
         m_schedule_background_process();
 
         update_view_type(false);
-
-        reload_print();
-        });
+    });
 }
 #endif // ENABLE_GCODE_VIEWER
 

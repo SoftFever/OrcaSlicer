@@ -1189,7 +1189,7 @@ void GCodeViewer::render_legend() const
                 cp_values.reserve(custom_gcode_per_print_z.size());
 
                 for (auto custom_code : custom_gcode_per_print_z) {
-                    if (custom_code.gcode != ColorChangeCode)
+                    if (custom_code.type != ColorChange)
                         continue;
 
                     auto lower_b = std::lower_bound(m_layers_zs.begin(), m_layers_zs.end(), custom_code.print_z - Slic3r::DoubleSlider::epsilon());
@@ -1258,7 +1258,7 @@ void GCodeViewer::render_legend() const
             int color_change_idx = 1 + static_cast<int>(m_tool_colors.size()) - extruders_count;
             size_t last_color_id = m_tool_colors.size() - 1;
             for (int i = static_cast<int>(custom_gcode_per_print_z.size()) - 1; i >= 0; --i) {
-                if (custom_gcode_per_print_z[i].gcode == ColorChangeCode) {
+                if (custom_gcode_per_print_z[i].type == ColorChange) {
                     // create label for color change item
                     std::string id_str = " (" + std::to_string(color_change_idx--) + ")";
 

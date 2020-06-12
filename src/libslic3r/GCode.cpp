@@ -1824,17 +1824,18 @@ namespace ProcessLayer
     	const CustomGCode::Item 								*custom_gcode,
         // ID of the first extruder printing this layer.
         unsigned int                                             first_extruder_id,
-		bool  											         single_extruder_printer)
+        const PrintConfig                                       &config)
 	{
         std::string gcode;
+        bool single_extruder_printer = config.nozzle_diameter.size() == 1;
         
         if (custom_gcode != nullptr) {
 			// Extruder switches are processed by LayerTools, they should be filtered out.
-			assert(custom_gcode->gcode != ToolChangeCode);
+			assert(custom_gcode->type != CustomGCode::ToolChange);
 
-            const std::string  &custom_code  = custom_gcode->gcode;
-            bool  				color_change = custom_code == ColorChangeCode;
-            bool 				tool_change  = custom_code == ToolChangeCode;
+            CustomGCode::Type   gcode_type   = custom_gcode->type;
+            bool  				color_change = gcode_type == CustomGCode::ColorChange;
+            bool 				tool_change  = gcode_type == CustomGCode::ToolChange;
 		    // Tool Change is applied as Color Change for a single extruder printer only.
 		    assert(! tool_change || single_extruder_printer);
 
@@ -1842,8 +1843,8 @@ namespace ProcessLayer
 		    int m600_extruder_before_layer = -1;
 	        if (color_change && custom_gcode->extruder > 0)
 	            m600_extruder_before_layer = custom_gcode->extruder - 1;
-	        else if (custom_code == PausePrintCode)
-	            pause_print_msg = custom_gcode->color;
+	        else if (gcode_type == CustomGCode::PausePrint)
+	            pause_print_msg = custom_gcode->extra;
 
 		    // we should add or not colorprint_change in respect to nozzle_diameter count instead of really used extruders count
 	        if (color_change || tool_change)
@@ -1864,17 +1865,18 @@ namespace ProcessLayer
 	                // && !MMU1
 	                ) {
 	                //! FIXME_in_fw show message during print pause
-	                gcode += "M601\n"; // pause print
+	                gcode += config.pause_print_gcode;// pause print
+                    gcode += "\n";
 	                gcode += "M117 Change filament for Extruder " + std::to_string(m600_extruder_before_layer) + "\n";
 	            }
                 else {
-                    gcode += ColorChangeCode;
+                    gcode += config.color_change_gcode;//ColorChangeCode;
                     gcode += "\n";
                 }
 	        } 
 	        else
 	        {
-	            if (custom_code == PausePrintCode) // Pause print
+	            if (gcode_type == CustomGCode::PausePrint) // Pause print
 	            {
 #if ENABLE_GCODE_VIEWER
                     // add tag for processor
@@ -1888,8 +1890,9 @@ namespace ProcessLayer
 	                    gcode += "M117 " + pause_print_msg + "\n";
 	                // add tag for time estimator
 	                gcode += "; " + GCodeTimeEstimator::Pause_Print_Tag + "\n";
+                    gcode += config.pause_print_gcode;
 	            }
-	            else // custom Gcode
+	            else
 	            {
 #if ENABLE_GCODE_VIEWER
                     // add tag for processor
@@ -1900,8 +1903,13 @@ namespace ProcessLayer
 #endif // ENABLE_GCODE_VIEWER
                     // add tag for time estimator
 	                //gcode += "; " + GCodeTimeEstimator::Custom_Code_Tag + "\n";
+                    if (gcode_type == CustomGCode::Template)    // Template Cistom Gcode
+                        gcode += config.template_custom_gcode;
+                    else                                        // custom Gcode
+	                    gcode += custom_gcode->extra;
+
 	            }
-	            gcode += custom_code + "\n";
+	            gcode += "\n";
 	        }
 		}
 
@@ -2078,7 +2086,7 @@ void GCode::process_layer(
 
     if (single_object_instance_idx == size_t(-1)) {
         // Normal (non-sequential) print.
-        gcode += ProcessLayer::emit_custom_gcode_per_print_z(layer_tools.custom_gcode, first_extruder_id, print.config().nozzle_diameter.size() == 1);
+        gcode += ProcessLayer::emit_custom_gcode_per_print_z(layer_tools.custom_gcode, first_extruder_id, print.config());
     }
     // Extrude skirt at the print_z of the raft layers and normal object layers
     // not at the print_z of the interlaced support material layers.

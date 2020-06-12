@@ -192,6 +192,7 @@ add_library(libslic3r STATIC
     MTUtils.hpp
     VoronoiOffset.cpp
     VoronoiOffset.hpp
+    VoronoiVisualUtils.hpp
     Zipper.hpp
     Zipper.cpp
     MinAreaBoundingBox.hpp

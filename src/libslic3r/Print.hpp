@@ -305,8 +305,8 @@ struct PrintStatistics
     PrintStatistics() { clear(); }
     std::string                     estimated_normal_print_time;
     std::string                     estimated_silent_print_time;
-    std::vector<std::pair<CustomGcodeType, std::string>>    estimated_normal_custom_gcode_print_times;
-    std::vector<std::pair<CustomGcodeType, std::string>>    estimated_silent_custom_gcode_print_times;
+    std::vector<std::pair<CustomGCode::Type, std::string>>    estimated_normal_custom_gcode_print_times;
+    std::vector<std::pair<CustomGCode::Type, std::string>>    estimated_silent_custom_gcode_print_times;
     double                          total_used_filament;
     double                          total_extruded_volume;
     double                          total_cost;

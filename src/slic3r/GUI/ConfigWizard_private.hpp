@@ -316,6 +316,8 @@ struct PageMode: ConfigWizardPage
     wxRadioButton *radio_advanced;
     wxRadioButton *radio_expert;
 
+    wxCheckBox    *check_inch;
+
     PageMode(ConfigWizard *parent);
 
     void serialize_mode(AppConfig *app_config) const;
