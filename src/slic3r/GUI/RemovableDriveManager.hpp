@@ -83,7 +83,7 @@ public:
 	// Public to be accessible from RemovableDriveManagerMM::on_device_unmount OSX notification handler.
 	// It would be better to make this method private and friend to RemovableDriveManagerMM, but RemovableDriveManagerMM is an ObjectiveC class.
 	void 		update();
-
+	void        set_exporting_finished(bool b) { m_exporting_finished = b; }
 #ifdef _WIN32
     // Called by Win32 Volume arrived / detached callback.
 	void 		volumes_changed();
@@ -121,7 +121,9 @@ private:
 	std::vector<DriveData>::const_iterator find_last_save_path_drive_data() const;
 	// Set with set_and_verify_last_save_path() to a removable drive path to be ejected.
 	std::string 			m_last_save_path;
-
+	// Verifies that exporting was finished so drive can be ejected.
+	// Set false by set_and_verify_last_save_path() that is called just before exporting.
+	bool                    m_exporting_finished;
 #if __APPLE__
     void register_window_osx();
     void unregister_window_osx();

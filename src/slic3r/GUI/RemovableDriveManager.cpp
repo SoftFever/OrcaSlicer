@@ -393,6 +393,7 @@ bool RemovableDriveManager::set_and_verify_last_save_path(const std::string &pat
 #endif // REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
 
 	m_last_save_path = this->get_removable_drive_from_path(path);
+	m_exporting_finished = false;
 	return ! m_last_save_path.empty();
 }
 
@@ -407,6 +408,7 @@ RemovableDriveManager::RemovableDrivesStatus RemovableDriveManager::status()
 	}
 	if (! out.has_eject) 
 		m_last_save_path.clear();
+	out.has_eject = out.has_eject && m_exporting_finished;
 	return out;
 }
 
