@@ -929,7 +929,7 @@ Sidebar::Sidebar(Plater *parent)
     {
         const bool export_gcode_after_slicing = wxGetKeyState(WXK_SHIFT);
         if (export_gcode_after_slicing)
-            p->plater->export_gcode();
+            p->plater->export_gcode(true);
         else
             p->plater->reslice();
         p->plater->select_view_3D("Preview");
