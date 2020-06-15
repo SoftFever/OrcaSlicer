@@ -537,7 +537,11 @@ bool MainFrame::can_reslice() const
 
 void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
 {
+#if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
+    wxGetApp().update_fonts(this);
+#else
     wxGetApp().update_fonts();
+#endif // ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
     this->SetFont(this->normal_font());
 
     /* Load default preset bitmaps before a tabpanel initialization,
