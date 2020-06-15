@@ -126,8 +126,6 @@ static GUID GUID_DEVINTERFACE_HID = { 0x4D1E55B2, 0xF16F, 0x11CF, 0x88, 0xCB, 0x
 
 static void register_win32_device_notification_event()
 {
-    enum { WM_DPICHANGED_ = 0x02e0 };
-
     wxWindow::MSWRegisterMessageHandler(WM_DEVICECHANGE, [](wxWindow *win, WXUINT /* nMsg */, WXWPARAM wParam, WXLPARAM lParam) {
         // Some messages are sent to top level windows by default, some messages are sent to only registered windows, and we explictely register on MainFrame only.
         auto main_frame = dynamic_cast<MainFrame*>(win);
