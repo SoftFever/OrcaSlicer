@@ -74,9 +74,11 @@ Contour3D sphere(double rho, Portion portion = make_portion(0.0, 2.0*PI),
 // h: Height
 // ssteps: how many edges will create the base circle
 // sp: starting point
-Contour3D cylinder(double r, double h, size_t ssteps = 45, const Vec3d &sp = {0,0,0});
+Contour3D cylinder(double r, double h, size_t steps = 45, const Vec3d &sp = Vec3d::Zero());
 
 Contour3D pinhead(double r_pin, double r_back, double length, size_t steps = 45);
+
+Contour3D pedestal(const Vec3d &pt, double baseheight, double radius, size_t steps = 45);
 
 const constexpr long ID_UNSET = -1;
 
@@ -114,15 +116,7 @@ struct Head {
     
     void transform()
     {
-        using Quaternion = Eigen::Quaternion<double>;
-        
-        // We rotate the head to the specified direction The head's pointing
-        // side is facing upwards so this means that it would hold a support
-        // point with a normal pointing straight down. This is the reason of
-        // the -1 z coordinate
-        auto quatern = Quaternion::FromTwoVectors(Vec3d{0, 0, -1}, dir);
-        
-        for(auto& p : mesh.points) p = quatern * p + pos;
+        // TODO: remove occurences
     }
     
     inline double real_width() const
@@ -164,8 +158,8 @@ struct Junction {
 };
 
 struct Pillar {
-    Contour3D mesh;
-    Contour3D base;
+//    Contour3D mesh;
+//    Contour3D base;
     double r = 1;
     size_t steps = 0;
     Vec3d endpt;
@@ -182,27 +176,42 @@ struct Pillar {
     
     // How many pillars are cascaded with this one
     unsigned links = 0;
-    
-    Pillar(const Vec3d& jp, const Vec3d& endp,
-           double radius = 1, size_t st = 45);
-    
-    Pillar(const Junction &junc, const Vec3d &endp)
-        : Pillar(junc.pos, endp, junc.r, junc.steps)
-    {}
-    
-    Pillar(const Head &head, const Vec3d &endp, double radius = 1)
-        : Pillar(head.junction_point(), endp,
-                 head.request_pillar_radius(radius), head.steps)
-    {}
-    
+
+    Pillar(const Vec3d &endp, double h, double radius = 1, size_t st = 45):
+        height{h}, r(radius), steps(st), endpt(endp), starts_from_head(false) {}
+
+
+//    Pillar(const Junction &junc, const Vec3d &endp)
+//        : Pillar(junc.pos, endp, junc.r, junc.steps)
+//    {}
+
     inline Vec3d startpoint() const
     {
-        return {endpt(X), endpt(Y), endpt(Z) + height};
+        return {endpt.x(), endpt.y(), endpt.z() + height};
     }
     
     inline const Vec3d& endpoint() const { return endpt; }
     
-    Pillar& add_base(double baseheight = 3, double radius = 2);
+//    Pillar& add_base(double baseheight = 3, double radius = 2);
+};
+
+struct Pedestal {
+    Vec3d pos;
+    double height, radius;
+    size_t steps = 45;
+
+    Pedestal() = default;
+    Pedestal(const Vec3d &p, double h = 3., double r = 2., size_t stps = 45)
+        : pos{p}, height{h}, radius{r}, steps{stps}
+    {}
+
+    Pedestal(const Pillar &p, double h = 3., double r = 2.)
+        : Pedestal{p.endpt, std::min(h, p.height), std::max(r, p.r), p.steps}
+    {}
+};
+
+struct PinJoin {
+
 };
 
 // A Bridge between two pillars (with junction endpoints)
@@ -241,66 +250,39 @@ struct Pad {
     bool empty() const { return tmesh.facets_count() == 0; }
 };
 
-// Give points on a 3D ring with given center, radius and orientation
-// method based on:
-// https://math.stackexchange.com/questions/73237/parametric-equation-of-a-circle-in-3d-space
-template<size_t N>
-class PointRing {
-    std::array<double, N> m_phis;
+inline Contour3D get_mesh(const Head &h)
+{
+    Contour3D mesh = pinhead(h.r_pin_mm, h.r_back_mm, h.width_mm, h.steps);
 
-    // Two vectors that will be perpendicular to each other and to the
-    // axis. Values for a(X) and a(Y) are now arbitrary, a(Z) is just a
-    // placeholder.
-    // a and b vectors are perpendicular to the ring direction and to each other.
-    // Together they define the plane where we have to iterate with the
-    // given angles in the 'm_phis' vector
-    Vec3d a = {0, 1, 0}, b;
-    double m_radius = 0.;
+    using Quaternion = Eigen::Quaternion<double>;
 
-    static inline bool constexpr is_one(double val)
-    {
-        return std::abs(std::abs(val) - 1) < 1e-20;
+    // We rotate the head to the specified direction The head's pointing
+    // side is facing upwards so this means that it would hold a support
+    // point with a normal pointing straight down. This is the reason of
+    // the -1 z coordinate
+    auto quatern = Quaternion::FromTwoVectors(Vec3d{0, 0, -1}, h.dir);
+
+    for(auto& p : mesh.points) p = quatern * p + h.pos;
+}
+
+inline Contour3D get_mesh(const Pillar &p)
+{
+    assert(p.steps > 0);
+
+    if(p.height > EPSILON) { // Endpoint is below the starting point
+        // We just create a bridge geometry with the pillar parameters and
+        // move the data.
+        return cylinder(p.r, p.height, p.steps, p.endpoint());
     }
 
-public:
+    return {};
+}
 
-    PointRing(const Vec3d &n)
-    {
-        m_phis = linspace_array<N>(0., 2 * PI);
+inline Contour3D get_mesh(const Pedestal &p, double h, double r)
+{
+    return pedestal(p.pos, p.height, p.radius, p.steps);
+}
 
-        // We have to address the case when the direction vector v (same as
-        // dir) is coincident with one of the world axes. In this case two of
-        // its components will be completely zero and one is 1.0. Our method
-        // becomes dangerous here due to division with zero. Instead, vector
-        // 'a' can be an element-wise rotated version of 'v'
-        if(is_one(n(X)) || is_one(n(Y)) || is_one(n(Z))) {
-            a = {n(Z), n(X), n(Y)};
-            b = {n(Y), n(Z), n(X)};
-        }
-        else {
-            a(Z) = -(n(Y)*a(Y)) / n(Z); a.normalize();
-            b = a.cross(n);
-        }
-    }
-
-    Vec3d get(size_t idx, const Vec3d src, double r) const
-    {
-        double phi = m_phis[idx];
-        double sinphi = std::sin(phi);
-        double cosphi = std::cos(phi);
-
-        double rpscos = r * cosphi;
-        double rpssin = r * sinphi;
-
-        // Point on the sphere
-        return {src(X) + rpscos * a(X) + rpssin * b(X),
-                src(Y) + rpscos * a(Y) + rpssin * b(Y),
-                src(Z) + rpscos * a(Z) + rpssin * b(Z)};
-    }
-};
-
-EigenMesh3D::hit_result query_hit(const SupportableMesh &msh, const Bridge &br, double safety_d = std::nan(""));
-EigenMesh3D::hit_result query_hit(const SupportableMesh &msh, const Head &br, double safety_d = std::nan(""));
 
 // This class will hold the support tree meshes with some additional
 // bookkeeping as well. Various parts of the support geometry are stored

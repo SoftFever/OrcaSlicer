@@ -214,6 +214,56 @@ Contour3D pinhead(double r_pin, double r_back, double length, size_t steps)
     return mesh;
 }
 
+
+Contour3D pedestal(const Vec3d &endpt, double baseheight, double radius, size_t steps)
+{
+    if(baseheight <= 0) return {};
+
+    assert(steps >= 0);
+    auto last = int(steps - 1);
+
+    Contour3D base;
+
+    double a = 2*PI/steps;
+    double z = endpt(Z) + baseheight;
+
+    for(size_t i = 0; i < steps; ++i) {
+        double phi = i*a;
+        double x = endpt(X) + radius * std::cos(phi);
+        double y = endpt(Y) + radius * std::sin(phi);
+        base.points.emplace_back(x, y, z);
+    }
+
+    for(size_t i = 0; i < steps; ++i) {
+        double phi = i*a;
+        double x = endpt(X) + radius*std::cos(phi);
+        double y = endpt(Y) + radius*std::sin(phi);
+        base.points.emplace_back(x, y, z - baseheight);
+    }
+
+    auto ep = endpt; ep(Z) += baseheight;
+    base.points.emplace_back(endpt);
+    base.points.emplace_back(ep);
+
+    auto& indices = base.faces3;
+    auto hcenter = int(base.points.size() - 1);
+    auto lcenter = int(base.points.size() - 2);
+    auto offs = int(steps);
+    for(int i = 0; i < last; ++i) {
+        indices.emplace_back(i, i + offs, offs + i + 1);
+        indices.emplace_back(i, offs + i + 1, i + 1);
+        indices.emplace_back(i, i + 1, hcenter);
+        indices.emplace_back(lcenter, offs + i + 1, offs + i);
+    }
+
+    indices.emplace_back(0, last, offs);
+    indices.emplace_back(last, offs + last, offs);
+    indices.emplace_back(hcenter, last, 0);
+    indices.emplace_back(offs, offs + last, lcenter);
+
+    return base;
+}
+
 Head::Head(double       r_big_mm,
            double       r_small_mm,
            double       length_mm,
@@ -229,77 +279,76 @@ Head::Head(double       r_big_mm,
     , width_mm(length_mm)
     , penetration_mm(penetration)
 {
-    mesh = pinhead(r_pin_mm, r_back_mm, width_mm, steps);
+//    mesh = pinhead(r_pin_mm, r_back_mm, width_mm, steps);
     
     // To simplify further processing, we translate the mesh so that the
     // last vertex of the pointing sphere (the pinpoint) will be at (0,0,0)
-    for(auto& p : mesh.points) p.z() -= (fullwidth() - r_back_mm);
+//    for(auto& p : mesh.points) p.z() -= (fullwidth() - r_back_mm);
 }
 
-Pillar::Pillar(const Vec3d &jp, const Vec3d &endp, double radius, size_t st):
-    r(radius), steps(st), endpt(endp), starts_from_head(false)
-{
-    assert(steps > 0);
-    
-    height = jp(Z) - endp(Z);
-    if(height > EPSILON) { // Endpoint is below the starting point
+//Pillar::Pillar(const Vec3d &endp, double h, double radius, size_t st):
+//    height{h}, r(radius), steps(st), endpt(endp), starts_from_head(false)
+//{
+//    assert(steps > 0);
+
+//    if(height > EPSILON) { // Endpoint is below the starting point
         
-        // We just create a bridge geometry with the pillar parameters and
-        // move the data.
-        Contour3D body = cylinder(radius, height, st, endp);
-        mesh.points.swap(body.points);
-        mesh.faces3.swap(body.faces3);
-    }
-}
+//        // We just create a bridge geometry with the pillar parameters and
+//        // move the data.
+//        Contour3D body = cylinder(radius, height, st, endp);
+//        mesh.points.swap(body.points);
+//        mesh.faces3.swap(body.faces3);
+//    }
+//}
 
-Pillar &Pillar::add_base(double baseheight, double radius)
-{
-    if(baseheight <= 0) return *this;
-    if(baseheight > height) baseheight = height;
+//Pillar &Pillar::add_base(double baseheight, double radius)
+//{
+//    if(baseheight <= 0) return *this;
+//    if(baseheight > height) baseheight = height;
     
-    assert(steps >= 0);
-    auto last = int(steps - 1);
+//    assert(steps >= 0);
+//    auto last = int(steps - 1);
     
-    if(radius < r ) radius = r;
+//    if(radius < r ) radius = r;
     
-    double a = 2*PI/steps;
-    double z = endpt(Z) + baseheight;
+//    double a = 2*PI/steps;
+//    double z = endpt(Z) + baseheight;
     
-    for(size_t i = 0; i < steps; ++i) {
-        double phi = i*a;
-        double x = endpt(X) + r*std::cos(phi);
-        double y = endpt(Y) + r*std::sin(phi);
-        base.points.emplace_back(x, y, z);
-    }
+//    for(size_t i = 0; i < steps; ++i) {
+//        double phi = i*a;
+//        double x = endpt(X) + r*std::cos(phi);
+//        double y = endpt(Y) + r*std::sin(phi);
+//        base.points.emplace_back(x, y, z);
+//    }
     
-    for(size_t i = 0; i < steps; ++i) {
-        double phi = i*a;
-        double x = endpt(X) + radius*std::cos(phi);
-        double y = endpt(Y) + radius*std::sin(phi);
-        base.points.emplace_back(x, y, z - baseheight);
-    }
+//    for(size_t i = 0; i < steps; ++i) {
+//        double phi = i*a;
+//        double x = endpt(X) + radius*std::cos(phi);
+//        double y = endpt(Y) + radius*std::sin(phi);
+//        base.points.emplace_back(x, y, z - baseheight);
+//    }
     
-    auto ep = endpt; ep(Z) += baseheight;
-    base.points.emplace_back(endpt);
-    base.points.emplace_back(ep);
+//    auto ep = endpt; ep(Z) += baseheight;
+//    base.points.emplace_back(endpt);
+//    base.points.emplace_back(ep);
     
-    auto& indices = base.faces3;
-    auto hcenter = int(base.points.size() - 1);
-    auto lcenter = int(base.points.size() - 2);
-    auto offs = int(steps);
-    for(int i = 0; i < last; ++i) {
-        indices.emplace_back(i, i + offs, offs + i + 1);
-        indices.emplace_back(i, offs + i + 1, i + 1);
-        indices.emplace_back(i, i + 1, hcenter);
-        indices.emplace_back(lcenter, offs + i + 1, offs + i);
-    }
+//    auto& indices = base.faces3;
+//    auto hcenter = int(base.points.size() - 1);
+//    auto lcenter = int(base.points.size() - 2);
+//    auto offs = int(steps);
+//    for(int i = 0; i < last; ++i) {
+//        indices.emplace_back(i, i + offs, offs + i + 1);
+//        indices.emplace_back(i, offs + i + 1, i + 1);
+//        indices.emplace_back(i, i + 1, hcenter);
+//        indices.emplace_back(lcenter, offs + i + 1, offs + i);
+//    }
     
-    indices.emplace_back(0, last, offs);
-    indices.emplace_back(last, offs + last, offs);
-    indices.emplace_back(hcenter, last, 0);
-    indices.emplace_back(offs, offs + last, lcenter);
-    return *this;
-}
+//    indices.emplace_back(0, last, offs);
+//    indices.emplace_back(last, offs + last, offs);
+//    indices.emplace_back(hcenter, last, 0);
+//    indices.emplace_back(offs, offs + last, lcenter);
+//    return *this;
+//}
 
 Bridge::Bridge(const Vec3d &j1, const Vec3d &j2, double r_mm, size_t steps):
     r(r_mm), startp(j1), endp(j2)
@@ -423,7 +472,7 @@ const TriangleMesh &SupportTreeBuilder::merged_mesh() const
     
     for (auto &head : m_heads) {
         if (ctl().stopcondition()) break;
-        if (head.is_valid()) merged.merge(head.mesh);
+        if (head.is_valid()) merged.merge(get_mesh(head));
     }
     
     for (auto &stick : m_pillars) {
@@ -512,119 +561,5 @@ static Hit min_hit(const C &hits)
     return *mit;
 }
 
-EigenMesh3D::hit_result query_hit(const SupportableMesh &msh, const Head &h)
-{
-    static const size_t SAMPLES = 8;
-
-    // Move away slightly from the touching point to avoid raycasting on the
-    // inner surface of the mesh.
-
-    const double& sd = msh.cfg.safety_distance_mm;
-
-    auto& m = msh.emesh;
-    using HitResult = EigenMesh3D::hit_result;
-
-    // Hit results
-    std::array<HitResult, SAMPLES> hits;
-
-    Vec3d s1 = h.pos, s2 = h.junction_point();
-
-    struct Rings {
-        double rpin;
-        double rback;
-        Vec3d  spin;
-        Vec3d  sback;
-        PointRing<SAMPLES> ring;
-
-        Vec3d backring(size_t idx) { return ring.get(idx, sback, rback); }
-        Vec3d pinring(size_t idx) { return ring.get(idx, spin, rpin); }
-    } rings {h.r_pin_mm + sd, h.r_back_mm + sd, s1, s2, h.dir};
-
-    // We will shoot multiple rays from the head pinpoint in the direction
-    // of the pinhead robe (side) surface. The result will be the smallest
-    // hit distance.
-
-    auto hitfn = [&m, &rings, sd](HitResult &hit, size_t i) {
-        // Point on the circle on the pin sphere
-        Vec3d ps = rings.pinring(i);
-        // This is the point on the circle on the back sphere
-        Vec3d p = rings.backring(i);
-
-        // Point ps is not on mesh but can be inside or
-        // outside as well. This would cause many problems
-        // with ray-casting. To detect the position we will
-        // use the ray-casting result (which has an is_inside
-        // predicate).
-
-        Vec3d n = (p - ps).normalized();
-        auto  q = m.query_ray_hit(ps + sd * n, n);
-
-        if (q.is_inside()) { // the hit is inside the model
-            if (q.distance() > rings.rpin) {
-                // If we are inside the model and the hit
-                // distance is bigger than our pin circle
-                // diameter, it probably indicates that the
-                // support point was already inside the
-                // model, or there is really no space
-                // around the point. We will assign a zero
-                // hit distance to these cases which will
-                // enforce the function return value to be
-                // an invalid ray with zero hit distance.
-                // (see min_element at the end)
-                hit = HitResult(0.0);
-            } else {
-                // re-cast the ray from the outside of the
-                // object. The starting point has an offset
-                // of 2*safety_distance because the
-                // original ray has also had an offset
-                auto q2 = m.query_ray_hit(ps + (q.distance() + 2 * sd) * n, n);
-                hit     = q2;
-            }
-        } else
-            hit = q;
-    };
-
-    ccr::enumerate(hits.begin(), hits.end(), hitfn);
-
-    return min_hit(hits);
-}
-
-EigenMesh3D::hit_result query_hit(const SupportableMesh &msh, const Bridge &br, double safety_d)
-{
-    static const size_t SAMPLES = 8;
-
-    Vec3d dir = (br.endp - br.startp).normalized();
-    PointRing<SAMPLES> ring{dir};
-
-    using Hit = EigenMesh3D::hit_result;
-
-    // Hit results
-    std::array<Hit, SAMPLES> hits;
-
-    const double sd = std::isnan(safety_d) ? msh.cfg.safety_distance_mm : safety_d;
-    bool ins_check = sd < msh.cfg.safety_distance_mm;
-
-    auto hitfn = [&br, &ring, &msh, dir, sd, ins_check](Hit &  hit, size_t i) {
-        // Point on the circle on the pin sphere
-        Vec3d p = ring.get(i, br.startp, br.r + sd);
-
-        auto hr = msh.emesh.query_ray_hit(p + sd * dir, dir);
-
-        if (ins_check && hr.is_inside()) {
-            if (hr.distance() > 2 * br.r + sd)
-                hit = Hit(0.0);
-            else {
-                // re-cast the ray from the outside of the object
-                hit = msh.emesh.query_ray_hit(p + (hr.distance() + 2 * sd) * dir,
-                                              dir);
-            }
-        } else
-            hit = hr;
-    };
-
-    ccr::enumerate(hits.begin(), hits.end(), hitfn);
-
-    return min_hit(hits);
-}
 
 }} // namespace Slic3r::sla

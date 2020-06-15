@@ -46,6 +46,68 @@ inline Vec3d spheric_to_dir(const std::pair<double, double> &v)
     return spheric_to_dir(v.first, v.second);
 }
 
+
+// Give points on a 3D ring with given center, radius and orientation
+// method based on:
+// https://math.stackexchange.com/questions/73237/parametric-equation-of-a-circle-in-3d-space
+template<size_t N>
+class PointRing {
+    std::array<double, N> m_phis;
+
+    // Two vectors that will be perpendicular to each other and to the
+    // axis. Values for a(X) and a(Y) are now arbitrary, a(Z) is just a
+    // placeholder.
+    // a and b vectors are perpendicular to the ring direction and to each other.
+    // Together they define the plane where we have to iterate with the
+    // given angles in the 'm_phis' vector
+    Vec3d a = {0, 1, 0}, b;
+    double m_radius = 0.;
+
+    static inline bool constexpr is_one(double val)
+    {
+        return std::abs(std::abs(val) - 1) < 1e-20;
+    }
+
+public:
+
+    PointRing(const Vec3d &n)
+    {
+        m_phis = linspace_array<N>(0., 2 * PI);
+
+        // We have to address the case when the direction vector v (same as
+        // dir) is coincident with one of the world axes. In this case two of
+        // its components will be completely zero and one is 1.0. Our method
+        // becomes dangerous here due to division with zero. Instead, vector
+        // 'a' can be an element-wise rotated version of 'v'
+        if(is_one(n(X)) || is_one(n(Y)) || is_one(n(Z))) {
+            a = {n(Z), n(X), n(Y)};
+            b = {n(Y), n(Z), n(X)};
+        }
+        else {
+            a(Z) = -(n(Y)*a(Y)) / n(Z); a.normalize();
+            b = a.cross(n);
+        }
+    }
+
+    Vec3d get(size_t idx, const Vec3d src, double r) const
+    {
+        double phi = m_phis[idx];
+        double sinphi = std::sin(phi);
+        double cosphi = std::cos(phi);
+
+        double rpscos = r * cosphi;
+        double rpssin = r * sinphi;
+
+        // Point on the sphere
+        return {src(X) + rpscos * a(X) + rpssin * b(X),
+                src(Y) + rpscos * a(Y) + rpssin * b(Y),
+                src(Z) + rpscos * a(Z) + rpssin * b(Z)};
+    }
+};
+
+EigenMesh3D::hit_result query_hit(const SupportableMesh &msh, const Bridge &br, double safety_d = std::nan(""));
+EigenMesh3D::hit_result query_hit(const SupportableMesh &msh, const Head &br, double safety_d = std::nan(""));
+
 // This function returns the position of the centroid in the input 'clust'
 // vector of point indices.
 template<class DistFn>
@@ -242,7 +304,15 @@ class SupportTreeBuildsteps {
         const Vec3d& s,
         const Vec3d& dir,
         double r,
-        double safety_d = std::nan(""));
+        double safety_d);
+
+    EigenMesh3D::hit_result bridge_mesh_intersect(
+        const Vec3d& s,
+        const Vec3d& dir,
+        double r)
+    {
+        return bridge_mesh_intersect(s, dir, r, m_cfg.safety_distance_mm);
+    }
     
     template<class...Args>
     inline double bridge_mesh_distance(Args&&...args) {
