@@ -25,7 +25,7 @@ class wxTopLevelWindow;
 class wxRect;
 
 #if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
-#define wxVERSION_EQUAL_OR_GREATER_THAN(major, minor, release) ((wxMAJOR_VERSION >= major) && (wxMINOR_VERSION >= minor) && (wxRELEASE_NUMBER >= release))
+#define wxVERSION_EQUAL_OR_GREATER_THAN(major, minor, release) ((wxMAJOR_VERSION > major) || ((wxMAJOR_VERSION == major) && (wxMINOR_VERSION > minor)) || ((wxMAJOR_VERSION == major) && (wxMINOR_VERSION == minor) && (wxRELEASE_NUMBER >= release)))
 #else
 #define wxVERSION_EQUAL_OR_GREATER_THAN(major, minor, release) 0
 #endif // ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
@@ -56,6 +56,7 @@ enum { DPI_DEFAULT = 96 };
 int get_dpi_for_window(wxWindow *window);
 wxFont get_default_font_for_dpi(int dpi);
 
+#if !wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
 struct DpiChangedEvent : public wxEvent {
     int dpi;
     wxRect rect;
@@ -71,6 +72,7 @@ struct DpiChangedEvent : public wxEvent {
 };
 
 wxDECLARE_EVENT(EVT_DPI_CHANGED_SLICER, DpiChangedEvent);
+#endif // !wxVERSION_EQUAL_OR_GREATER_THAN
 
 template<class P> class DPIAware : public P
 {
