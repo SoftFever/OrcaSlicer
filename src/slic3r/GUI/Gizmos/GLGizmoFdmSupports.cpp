@@ -16,7 +16,6 @@
 namespace Slic3r {
 namespace GUI {
 
-static constexpr size_t MaxVertexBuffers = 50;
 
 GLGizmoFdmSupports::GLGizmoFdmSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
@@ -90,12 +89,13 @@ void GLGizmoFdmSupports::set_fdm_support_data(ModelObject* model_object, const S
 
 void GLGizmoFdmSupports::on_render() const
 {
-    const Selection& selection = m_parent.get_selection();
+    //const Selection& selection = m_parent.get_selection();
 
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    render_triangles(selection);
+    //render_triangles(selection);
+    m_triangle_selector->render();
     m_c->object_clipper()->render_cut();
     render_cursor_circle();
 
@@ -146,13 +146,13 @@ void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
         glsafe(::glMultMatrixd(trafo_matrix.data()));
 
         // Now render both enforcers and blockers.
-        for (int i=0; i<2; ++i) {
-            glsafe(::glColor4f(i ? 1.f : 0.2f, 0.2f, i ? 0.2f : 1.0f, 0.5f));
-            for (const GLIndexedVertexArray& iva : m_ivas[mesh_id][i]) {
-                if (iva.has_VBOs())
-                    iva.render();
-            }
-        }
+        //for (int i=0; i<2; ++i) {
+        //    glsafe(::glColor4f(i ? 1.f : 0.2f, 0.2f, i ? 0.2f : 1.0f, 0.5f));
+        //    for (const GLIndexedVertexArray& iva : m_ivas[mesh_id][i]) {
+                if (m_iva.has_VBOs())
+                    m_iva.render();
+        //    }
+        //}
         glsafe(::glPopMatrix());
         if (is_left_handed)
             glsafe(::glFrontFace(GL_CCW));
@@ -209,7 +209,8 @@ void GLGizmoFdmSupports::render_cursor_circle() const
 
 void GLGizmoFdmSupports::update_model_object() const
 {
-    ModelObject* mo = m_c->selection_info()->model_object();
+    return;
+    /*ModelObject* mo = m_c->selection_info()->model_object();
     int idx = -1;
     for (ModelVolume* mv : mo->volumes) {
         ++idx;
@@ -217,7 +218,7 @@ void GLGizmoFdmSupports::update_model_object() const
             continue;
         for (int i=0; i<int(m_selected_facets[idx].size()); ++i)
             mv->m_supported_facets.set_facet(i, m_selected_facets[idx][i]);
-    }
+    }*/
 }
 
 
@@ -226,13 +227,15 @@ void GLGizmoFdmSupports::update_from_model_object()
     wxBusyCursor wait;
 
     const ModelObject* mo = m_c->selection_info()->model_object();
-    size_t num_of_volumes = 0;
+    /*size_t num_of_volumes = 0;
     for (const ModelVolume* mv : mo->volumes)
         if (mv->is_model_part())
             ++num_of_volumes;
-    m_selected_facets.resize(num_of_volumes);
+    m_selected_facets.resize(num_of_volumes);*/
 
-    m_ivas.clear();
+    m_triangle_selector = std::make_unique<TriangleSelector>(mo->volumes.front()->mesh());
+
+    /*m_ivas.clear();
     m_ivas.resize(num_of_volumes);
     for (size_t i=0; i<num_of_volumes; ++i) {
         m_ivas[i][0].reserve(MaxVertexBuffers);
@@ -260,7 +263,7 @@ void GLGizmoFdmSupports::update_from_model_object()
         }
         update_vertex_buffers(mesh, volume_id, FacetSupportType::ENFORCER);
         update_vertex_buffers(mesh, volume_id, FacetSupportType::BLOCKER);
-    }
+    }*/
 }
 
 
@@ -314,6 +317,9 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
     if (action == SLAGizmoEventType::LeftDown
      || action == SLAGizmoEventType::RightDown
     || (action == SLAGizmoEventType::Dragging && m_button_down != Button::None)) {
+
+        if (! m_triangle_selector)
+            return false;
 
         FacetSupportType new_state = FacetSupportType::NONE;
         if (! shift_down) {
@@ -403,20 +409,23 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 || dragging_while_painting;
         }
 
-        // Now propagate the hits
+        // Find respective mesh id.
+        // FIXME We need a separate TriangleSelector for each volume mesh.
         mesh_id = -1;
-        const TriangleMesh* mesh = nullptr;
+        //const TriangleMesh* mesh = nullptr;
         for (const ModelVolume* mv : mo->volumes) {
             if (! mv->is_model_part())
                 continue;
             ++mesh_id;
             if (mesh_id == closest_hit_mesh_id) {
-                mesh = &mv->mesh();
+                //mesh = &mv->mesh();
                 break;
             }
         }
 
-        bool update_both = false;
+        // FIXME: just for now, only process first mesh
+        if (mesh_id != 0)
+            return false;
 
         const Transform3d& trafo_matrix = trafo_matrices[mesh_id];
 
@@ -426,80 +435,10 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         const float avg_scaling = (sf(0) + sf(1) + sf(2))/3.;
         const float limit = pow(m_cursor_radius/avg_scaling , 2.f);
 
-        const std::pair<Vec3f, size_t>& hit_and_facet = { closest_hit, closest_facet };
-
         // Calculate direction from camera to the hit (in mesh coords):
-        Vec3f dir = ((trafo_matrix.inverse() * camera.get_position()).cast<float>() - hit_and_facet.first).normalized();
+        Vec3f dir = ((trafo_matrix.inverse() * camera.get_position()).cast<float>() - closest_hit).normalized();
 
-        // A lambda to calculate distance from the centerline:
-        auto squared_distance_from_line = [&hit_and_facet, &dir](const Vec3f& point) -> float {
-            Vec3f diff = hit_and_facet.first - point;
-            return (diff - diff.dot(dir) * dir).squaredNorm();
-        };
-
-        // A lambda to determine whether this facet is potentionally visible (still can be obscured)
-        auto faces_camera = [&dir, &mesh](const size_t& facet) -> bool {
-            return (mesh->stl.facet_start[facet].normal.dot(dir) > 0.);
-        };
-        // Now start with the facet the pointer points to and check all adjacent facets.
-        std::vector<size_t> facets_to_select{hit_and_facet.second};
-        std::vector<bool> visited(m_selected_facets[mesh_id].size(), false); // keep track of facets we already processed
-        size_t facet_idx = 0; // index into facets_to_select
-        while (facet_idx < facets_to_select.size()) {
-            size_t facet = facets_to_select[facet_idx];
-            if (! visited[facet]) {
-                // check all three vertices and in case they're close enough,
-                // add neighboring facets to be proccessed later
-                for (size_t i=0; i<3; ++i) {
-                    float dist = squared_distance_from_line(
-                                mesh->its.vertices[mesh->its.indices[facet](i)]);
-                    if (dist < limit) {
-                        for (int n=0; n<3; ++n) {
-                            if (faces_camera(mesh->stl.neighbors_start[facet].neighbor[n]))
-                                facets_to_select.push_back(mesh->stl.neighbors_start[facet].neighbor[n]);
-                        }
-                    }
-                }
-                visited[facet] = true;
-            }
-            ++facet_idx;
-        }
-
-        std::vector<size_t> new_facets;
-        new_facets.reserve(facets_to_select.size());
-
-        // Now just select all facets that passed and remember which
-        // ones have really changed state.
-        for (size_t next_facet : facets_to_select) {
-            FacetSupportType& facet = m_selected_facets[mesh_id][next_facet];
-
-            if (facet != new_state) {
-                if (facet != FacetSupportType::NONE) {
-                    // this triangle is currently in the other VBA.
-                    // Both VBAs need to be refreshed.
-                    update_both = true;
-                }
-                facet = new_state;
-                new_facets.push_back(next_facet);
-            }
-        }
-
-        if (! new_facets.empty()) {
-            if (new_state != FacetSupportType::NONE) {
-                // append triangles into the respective VBA
-                update_vertex_buffers(mesh, mesh_id, new_state, &new_facets);
-                if (update_both) {
-                    auto other = new_state == FacetSupportType::ENFORCER
-                            ? FacetSupportType::BLOCKER
-                            : FacetSupportType::ENFORCER;
-                    update_vertex_buffers(mesh, mesh_id, other); // regenerate the other VBA
-                }
-            }
-            else {
-                update_vertex_buffers(mesh, mesh_id, FacetSupportType::ENFORCER);
-                update_vertex_buffers(mesh, mesh_id, FacetSupportType::BLOCKER);
-            }
-        }
+        m_triangle_selector->select_patch(closest_hit, closest_facet, dir, limit, new_state);
 
         return true;
     }
@@ -529,7 +468,7 @@ void GLGizmoFdmSupports::update_vertex_buffers(const TriangleMesh* mesh,
                                                FacetSupportType type,
                                                const std::vector<size_t>* new_facets)
 {
-    std::vector<GLIndexedVertexArray>& ivas = m_ivas[mesh_id][type == FacetSupportType::ENFORCER ? 0 : 1];
+    //std::vector<GLIndexedVertexArray>& ivas = m_ivas[mesh_id][type == FacetSupportType::ENFORCER ? 0 : 1];
 
     // lambda to push facet into vertex buffer
     auto push_facet = [this, &mesh, &mesh_id](size_t idx, GLIndexedVertexArray& iva) {
@@ -543,24 +482,26 @@ void GLGizmoFdmSupports::update_vertex_buffers(const TriangleMesh* mesh,
     };
 
 
-    if (ivas.size() == MaxVertexBuffers || ! new_facets) {
+    //if (ivas.size() == MaxVertexBuffers || ! new_facets) {
         // If there are too many or they should be regenerated, make one large
         // GLVertexBufferArray.
-        ivas.clear(); // destructors release geometry
-        ivas.push_back(GLIndexedVertexArray());
+        //ivas.clear(); // destructors release geometry
+        //ivas.push_back(GLIndexedVertexArray());
+
+    m_iva.release_geometry();
+    m_iva.clear();
 
         bool pushed = false;
         for (size_t facet_idx=0; facet_idx<m_selected_facets[mesh_id].size(); ++facet_idx) {
             if (m_selected_facets[mesh_id][facet_idx] == type) {
-                push_facet(facet_idx, ivas.back());
+                push_facet(facet_idx, m_iva);
                 pushed = true;
             }
         }
         if (pushed)
-            ivas.back().finalize_geometry(true);
-        else
-            ivas.pop_back();
-    } else {
+            m_iva.finalize_geometry(true);
+
+    /*} else {
         // we are only appending - let's make new vertex array and let the old ones live
         ivas.push_back(GLIndexedVertexArray());
         for (size_t facet_idx : *new_facets)
@@ -570,13 +511,15 @@ void GLGizmoFdmSupports::update_vertex_buffers(const TriangleMesh* mesh,
             ivas.back().finalize_geometry(true);
         else
             ivas.pop_back();
-    }
+    }*/
 
 }
 
 
 void GLGizmoFdmSupports::select_facets_by_angle(float threshold_deg, bool overwrite, bool block)
 {
+    return;
+/*
     float threshold = (M_PI/180.)*threshold_deg;
     const Selection& selection = m_parent.get_selection();
     const ModelObject* mo = m_c->selection_info()->model_object();
@@ -615,6 +558,7 @@ void GLGizmoFdmSupports::select_facets_by_angle(float threshold_deg, bool overwr
     update_model_object();
     m_parent.set_as_dirty();
     m_setting_angle = false;
+*/
 }
 
 
@@ -670,7 +614,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         ImGui::SameLine();
 
         if (m_imgui->button(m_desc.at("remove_all"))) {
-            ModelObject* mo = m_c->selection_info()->model_object();
+            /*ModelObject* mo = m_c->selection_info()->model_object();
             int idx = -1;
             for (ModelVolume* mv : mo->volumes) {
                 ++idx;
@@ -681,7 +625,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
                     update_vertex_buffers(&mv->mesh(), idx, FacetSupportType::BLOCKER);
                     m_parent.set_as_dirty();
                 }
-            }
+            }*/
         }
 
         const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
@@ -805,10 +749,6 @@ void GLGizmoFdmSupports::on_set_state()
                 activate_internal_undo_redo_stack(true);
             });
         }
-
-        TriangleSelector ts{TriangleMesh()};
-        ts.test();
-
     }
     if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
         // we are actually shutting down
@@ -818,7 +758,7 @@ void GLGizmoFdmSupports::on_set_state()
         }
         activate_internal_undo_redo_stack(false);
         m_old_mo_id = -1;
-        m_ivas.clear();
+        m_iva.release_geometry();
         m_selected_facets.clear();
     }
     m_old_state = m_state;
@@ -858,22 +798,6 @@ void GLGizmoFdmSupports::on_save(cereal::BinaryOutputArchive&) const
 
 
 
-void TriangleSelector::test()
-{
-    DivisionNode node;
-    while (true) {
-        std::cout << "Zadej pocet stran a spec stranu: ";
-        int num;
-        int spec;
-        std::cin >> num >> spec;
-        node.set_division(num, spec);
-        std::cout << node.number_of_split_sides() << " "
-                  << (node.number_of_split_sides()==1 ? node.side_to_split() : node.side_to_keep())
-                  << std::endl << std::endl;
-    }
-}
-
-
 void TriangleSelector::DivisionNode::set_division(int sides_to_split, int special_side_idx)
 {
     assert(sides_to_split >=0 && sides_to_split <= 3);
@@ -883,17 +807,17 @@ void TriangleSelector::DivisionNode::set_division(int sides_to_split, int specia
     assert(sides_to_split != 1 || special_side_idx != -1);
     assert(sides_to_split != 2 || special_side_idx != -1);
 
-    division_type = sides_to_split | (special_side_idx != -1 ? (special_side_idx << 2) : 0 );
+    division_type = sides_to_split | ((special_side_idx != -1 ? special_side_idx : 0 ) <<2);
 }
 
 
 
-void TriangleSelector::DivisionNode::set_type(FacetSupportType type)
+void TriangleSelector::DivisionNode::set_state(FacetSupportType type)
 {
     // If this is not a leaf-node, this makes no sense and
     // the bits are used for storing index of an edge.
     assert(number_of_split_sides() == 0);
-    division_type = type | (type << 2);
+    division_type = (int8_t(type) << 2);
 }
 
 
@@ -914,10 +838,326 @@ int TriangleSelector::DivisionNode::side_to_split() const
 
 
 
-FacetSupportType TriangleSelector::DivisionNode::get_type() const
+FacetSupportType TriangleSelector::DivisionNode::get_state() const
 {
     assert(number_of_split_sides() == 0); // this must be leaf
-    return (division_type & 0b1100) >> 2;
+    return FacetSupportType((division_type & 0b1100) >> 2);
+}
+
+
+
+void TriangleSelector::select_patch(const Vec3f& hit, int facet_start, const Vec3f& dir,
+                                    float radius_sqr, FacetSupportType new_state)
+{
+    assert(facet_start < m_orig_size_indices);
+
+    // Save current cursor center, squared radius and camera direction,
+    // so we don't have to pass it around.
+    m_cursor = {hit, dir, radius_sqr};
+
+    // Now start with the facet the pointer points to and check all adjacent facets.
+    std::vector<int> facets_to_check{facet_start};
+    std::vector<bool> visited(m_orig_size_indices, false); // keep track of facets we already processed
+    int facet_idx = 0; // index into facets_to_check
+    while (facet_idx < int(facets_to_check.size())) {
+        int facet = facets_to_check[facet_idx];
+        if (! visited[facet]) {
+            int num_of_inside_vertices = vertices_inside(facet);
+            // select the facet...
+            select_triangle(facet, new_state, num_of_inside_vertices, facet == facet_start);
+
+            // ...and add neighboring facets to be proccessed later
+            for (int n=0; n<3; ++n) {
+                if (faces_camera(m_mesh->stl.neighbors_start[facet].neighbor[n]))
+                    facets_to_check.push_back(m_mesh->stl.neighbors_start[facet].neighbor[n]);
+            }
+        }
+        visited[facet] = true;
+        ++facet_idx;
+    }
+}
+
+
+
+// Selects either the whole triangle (discarding any children it has), or divides
+// the triangle recursively, selecting just subtriangles truly inside the circle.
+// This is done by an actual recursive call.
+void TriangleSelector::select_triangle(int facet_idx, FacetSupportType type,
+                                       int num_of_inside_vertices, bool cursor_inside)
+{
+    assert(facet_idx < m_triangles.size());
+//cursor_inside=false;
+    if (num_of_inside_vertices == -1)
+        num_of_inside_vertices = vertices_inside(facet_idx);
+
+    if (num_of_inside_vertices == 0 && ! cursor_inside)
+        return; // FIXME: just an edge can be inside
+
+    if (num_of_inside_vertices == 3) {
+        // dump any subdivision and select whole triangle
+        undivide_triangle(facet_idx);
+        m_triangles[facet_idx].div_info->set_state(type);
+    } else {
+        // the triangle is partially inside, let's recursively divide it
+        // (if not already) and try selecting its children.
+        split_triangle(facet_idx);
+        assert(facet_idx < m_triangles.size());
+        int num_of_children = m_triangles[facet_idx].div_info->number_of_split_sides() + 1;
+        if (num_of_children != 1) {
+            for (int i=0; i<num_of_children; ++i) {
+                select_triangle(m_triangles[facet_idx].div_info->children[i], type, -1, cursor_inside);
+            }
+        }
+    }
+    //if (m_triangles[facet_idx].div_info->number_of_split_sides() != 0)
+    //    remove_needless(m_triangles[facet_idx].div_info->children[0]);
+}
+
+
+bool TriangleSelector::split_triangle(int facet_idx)
+{
+    if (m_triangles[facet_idx].div_info->number_of_split_sides() != 0) {
+        // The triangle was divided already.
+        return 0;
+    }
+
+    FacetSupportType old_type = m_triangles[facet_idx].div_info->get_state();
+
+    const double limit_squared = 4;
+
+    stl_triangle_vertex_indices& facet = m_triangles[facet_idx].verts_idxs;
+    const stl_vertex* pts[3] = { &m_vertices[facet[0]], &m_vertices[facet[1]], &m_vertices[facet[2]]};
+    double sides[3] = { (*pts[2]-*pts[1]).squaredNorm(), (*pts[0]-*pts[2]).squaredNorm(), (*pts[1]-*pts[0]).squaredNorm() };
+
+    std::vector<int> sides_to_split;
+    int side_to_keep = -1;
+    for (int pt_idx = 0; pt_idx<3; ++pt_idx) {
+        if (sides[pt_idx] > limit_squared)
+            sides_to_split.push_back(pt_idx);
+        else
+            side_to_keep = pt_idx;
+    }
+    if (sides_to_split.empty()) {
+        m_triangles[facet_idx].div_info->set_division(0);
+        return 0;
+    }
+
+    // indices of triangle vertices
+    std::vector<int> verts_idxs;
+    int idx = sides_to_split.size() == 2 ? side_to_keep : sides_to_split[0];
+    for (int j=0; j<3; ++j) {
+        verts_idxs.push_back(facet[idx++]);
+        if (idx == 3)
+            idx = 0;
+    }
+
+
+   if (sides_to_split.size() == 1) {
+        m_vertices.emplace_back((m_vertices[verts_idxs[1]] + m_vertices[verts_idxs[2]])/2.);
+        verts_idxs.insert(verts_idxs.begin()+2, m_vertices.size() - 1);
+
+        m_triangles.emplace_back(verts_idxs[0], verts_idxs[1], verts_idxs[2]);
+        m_triangles.emplace_back(verts_idxs[2], verts_idxs[3], verts_idxs[0]);
+    }
+
+    if (sides_to_split.size() == 2) {
+        m_vertices.emplace_back((m_vertices[verts_idxs[0]] + m_vertices[verts_idxs[1]])/2.);
+        verts_idxs.insert(verts_idxs.begin()+1, m_vertices.size() - 1);
+
+        m_vertices.emplace_back((m_vertices[verts_idxs[0]] + m_vertices[verts_idxs[3]])/2.);
+        verts_idxs.insert(verts_idxs.begin()+4, m_vertices.size() - 1);
+
+        m_triangles.emplace_back(verts_idxs[0], verts_idxs[1], verts_idxs[4]);
+        m_triangles.emplace_back(verts_idxs[1], verts_idxs[2], verts_idxs[4]);
+        m_triangles.emplace_back(verts_idxs[2], verts_idxs[3], verts_idxs[4]);
+    }
+
+    if (sides_to_split.size() == 3) {
+        m_vertices.emplace_back((m_vertices[verts_idxs[0]] + m_vertices[verts_idxs[1]])/2.);
+        verts_idxs.insert(verts_idxs.begin()+1, m_vertices.size() - 1);
+        m_vertices.emplace_back((m_vertices[verts_idxs[2]] + m_vertices[verts_idxs[3]])/2.);
+        verts_idxs.insert(verts_idxs.begin()+3, m_vertices.size() - 1);
+        m_vertices.emplace_back((m_vertices[verts_idxs[4]] + m_vertices[verts_idxs[0]])/2.);
+        verts_idxs.insert(verts_idxs.begin()+5, m_vertices.size() - 1);
+
+        m_triangles.emplace_back(verts_idxs[0], verts_idxs[1], verts_idxs[5]);
+        m_triangles.emplace_back(verts_idxs[1], verts_idxs[2], verts_idxs[3]);
+        m_triangles.emplace_back(verts_idxs[3], verts_idxs[4], verts_idxs[5]);
+        m_triangles.emplace_back(verts_idxs[1], verts_idxs[3], verts_idxs[5]);
+    }
+
+    // Save how the triangle was split. Second argument makes sense only for one
+    // or two split sides, otherwise the value is ignored.
+    m_triangles[facet_idx].div_info->set_division(sides_to_split.size(),
+        sides_to_split.size() == 2 ? side_to_keep : sides_to_split[0]);
+
+    // And save the children. All children should start in the same state as the triangle we just split.
+    assert(! sides_to_split.empty() && int(sides_to_split.size()) <= 3);
+    for (int i=0; i<=int(sides_to_split.size()); ++i) {
+        m_triangles[facet_idx].div_info->children[i] = m_triangles.size()-1-i;
+        m_triangles[m_triangles.size()-1-i].div_info->parent = facet_idx;
+        m_triangles[m_triangles[facet_idx].div_info->children[i]].div_info->set_state(old_type);
+    }
+
+
+#ifndef NDEBUG
+    int split_sides = m_triangles[facet_idx].div_info->number_of_split_sides();
+    if (split_sides != 0) {
+        // check that children are range
+        for (int i=0; i<=split_sides; ++i)
+            assert(m_triangles[facet_idx].div_info->children[i] >= 0 && m_triangles[facet_idx].div_info->children[i] < int(m_triangles.size()));
+
+    }
+#endif
+
+    return 1;
+}
+
+
+// Calculate distance of a point from a line.
+bool TriangleSelector::is_point_inside_cursor(const Vec3f& point) const
+{
+    Vec3f diff = m_cursor.center - point;
+    return (diff - diff.dot(m_cursor.dir) * m_cursor.dir).squaredNorm() < m_cursor.radius_sqr;
+}
+
+
+
+// Determine whether this facet is potentially visible (still can be obscured).
+bool TriangleSelector::faces_camera(int facet) const
+{
+    assert(facet < m_orig_size_indices);
+    // The normal is cached in mesh->stl, use it.
+    return (m_mesh->stl.facet_start[facet].normal.dot(m_cursor.dir) > 0.);
+}
+
+
+
+// How many vertices of a triangle are inside the circle?
+int TriangleSelector::vertices_inside(int facet_idx) const
+{
+    int inside = 0;
+    for (size_t i=0; i<3; ++i) {
+        if (is_point_inside_cursor(m_vertices[m_triangles[facet_idx].verts_idxs[i]]))
+            ++inside;
+    }
+    return inside;
+}
+
+
+// Is mouse pointer inside a triangle?
+/*bool TriangleSelector::is_pointer_inside_triangle(int facet_idx) const
+{
+
+}*/
+
+
+
+// Recursively remove all subtriangles.
+void TriangleSelector::undivide_triangle(int facet_idx)
+{
+    assert(facet_idx < m_triangles.size());
+    auto& dn_ptr = m_triangles[facet_idx].div_info;
+    assert(dn_ptr);
+
+    if (dn_ptr->number_of_split_sides() != 0) {
+        for (int i=0; i<=dn_ptr->number_of_split_sides(); ++i) {
+            undivide_triangle(dn_ptr->children[i]);
+            m_triangles[dn_ptr->children[i]].div_info->valid = false;
+        }
+    }
+
+    dn_ptr->set_division(0); // not split
+}
+
+
+void TriangleSelector::remove_needless(int child_facet)
+{
+    assert(m_triangles[child_facet].div_info->number_of_split_sides() == 0);
+    int parent = m_triangles[child_facet].div_info->parent;
+    if (parent == -1)
+        return; // root
+    // Check type of all valid children.
+    FacetSupportType type = m_triangles[m_triangles[parent].div_info->children[0]].div_info->get_state();
+    for (int i=0; i<=m_triangles[parent].div_info->number_of_split_sides(); ++i)
+        if (m_triangles[m_triangles[parent].div_info->children[0]].div_info->get_state() != type)
+            return; // not all children are the same
+
+    // All children are the same, let's kill them.
+    undivide_triangle(parent);
+    m_triangles[parent].div_info->set_state(type);
+
+    // And not try the same for grandparent.
+    remove_needless(parent);
+}
+
+
+TriangleSelector::TriangleSelector(const TriangleMesh& mesh)
+{
+    for (const stl_vertex& vert : mesh.its.vertices)
+        m_vertices.push_back(vert);
+    for (const stl_triangle_vertex_indices& ind : mesh.its.indices)
+        m_triangles.emplace_back(Triangle(ind[0], ind[1], ind[2]));
+    m_orig_size_vertices = m_vertices.size();
+    m_orig_size_indices = m_triangles.size();
+    m_mesh = &mesh;
+}
+
+
+void TriangleSelector::render() const
+{
+    ::glColor3f(0.f, 0.f, 1.f);
+    ::glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+
+    Vec3d offset = wxGetApp().model().objects.front()->instances.front()->get_transformation().get_offset();
+    ::glTranslatef(offset.x(), offset.y(), offset.z());
+    ::glScalef(1.01f, 1.01f, 1.01f);
+
+    ::glBegin( GL_TRIANGLES);
+
+    for (int tr_id=0; tr_id<m_triangles.size(); ++tr_id) {
+        if (tr_id == m_orig_size_indices)
+            ::glColor3f(1.f, 0.f, 0.f);
+        const Triangle& tr = m_triangles[tr_id];
+        if (tr.div_info->valid) {
+            for (int i=0; i<3; ++i)
+                ::glVertex3f(m_vertices[tr.verts_idxs[i]][0], m_vertices[tr.verts_idxs[i]][1], m_vertices[tr.verts_idxs[i]][2]);
+        }
+    }
+    ::glEnd();
+    ::glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
+    ::glBegin( GL_TRIANGLES);
+    for (int tr_id=0; tr_id<m_triangles.size(); ++tr_id) {
+        const Triangle& tr = m_triangles[tr_id];
+        if (! tr.div_info->valid)
+            continue;
+
+        if (tr.div_info->number_of_split_sides() == 0) {
+            if (tr.div_info->get_state() == FacetSupportType::ENFORCER)
+                ::glColor4f(0.f, 0.f, 1.f, 0.2f);
+            else if (tr.div_info->get_state() == FacetSupportType::BLOCKER)
+                ::glColor4f(1.f, 0.f, 0.f, 0.2f);
+            else
+                continue;
+        }
+        else
+            continue;
+
+
+        if (tr.div_info->valid) {
+            for (int i=0; i<3; ++i)
+                ::glVertex3f(m_vertices[tr.verts_idxs[i]][0], m_vertices[tr.verts_idxs[i]][1], m_vertices[tr.verts_idxs[i]][2]);
+        }
+    }
+    ::glEnd();
+}
+
+
+TriangleSelector::DivisionNode::DivisionNode()
+{
+    set_division(0);
+    set_state(FacetSupportType::NONE);
 }
 
 } // namespace GUI
