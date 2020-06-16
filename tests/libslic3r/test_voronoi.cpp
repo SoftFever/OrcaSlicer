@@ -8,6 +8,8 @@
 
 #include <libslic3r/VoronoiOffset.hpp>
 
+#include <numeric>
+
 // #define VORONOI_DEBUG_OUT
 
 #ifdef VORONOI_DEBUG_OUT
