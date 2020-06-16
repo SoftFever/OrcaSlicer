@@ -33,8 +33,8 @@
 #include "Event.hpp"
 #include "wxExtensions.hpp"
 #include "ConfigManipulation.hpp"
-#include "Preset.hpp"
 #include "OptionsGroup.hpp"
+#include "libslic3r/Preset.hpp"
 
 namespace Slic3r {
 namespace GUI {

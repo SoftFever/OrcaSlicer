@@ -1,7 +1,9 @@
 #include <cassert>
 
 #include "PresetBundle.hpp"
-#include "Plater.hpp"
+#include "libslic3r.h"
+#include "Utils.hpp"
+#include "Model.hpp"
 
 #include <algorithm>
 #include <set>
@@ -18,14 +20,6 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/locale.hpp>
 #include <boost/log/trivial.hpp>
-
-#include <wx/image.h>
-
-#include "libslic3r/libslic3r.h"
-#include "libslic3r/Utils.hpp"
-#include "libslic3r/Model.hpp"
-#include "GUI_App.hpp"
-#include "libslic3r/CustomGCode.hpp"
 
 
 // Store the print/filament/printer presets into a "presets" subdirectory of the Slic3rPE config dir.
@@ -49,9 +43,6 @@ PresetBundle::PresetBundle() :
     sla_prints(Preset::TYPE_SLA_PRINT, Preset::sla_print_options(), static_cast<const SLAPrintObjectConfig&>(SLAFullPrintConfig::defaults())),
     printers(Preset::TYPE_PRINTER, Preset::printer_options(), static_cast<const HostConfig&>(FullPrintConfig::defaults()), "- default FFF -")
 {
-    if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
-        wxImage::AddHandler(new wxPNGHandler);
-
     // The following keys are handled by the UI, they do not have a counterpart in any StaticPrintConfig derived classes,
     // therefore they need to be handled differently. As they have no counterpart in StaticPrintConfig, they are not being
     // initialized based on PrintConfigDef(), but to empty values (zeros, empty vectors, empty strings).
@@ -821,8 +812,6 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         }
         // 4) Load the project config values (the per extruder wipe matrix etc).
         this->project_config.apply_only(config, s_project_options);
-
-        CustomGCode::update_custom_gcode_per_print_z_from_config(GUI::wxGetApp().plater()->model().custom_gcode_per_print_z, &this->project_config);
 
         break;
     }

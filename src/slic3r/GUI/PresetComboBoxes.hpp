@@ -7,7 +7,7 @@
 #include <wx/bmpcbox.h>
 #include <wx/gdicmn.h>
 
-#include "Preset.hpp"
+#include "libslic3r/Preset.hpp"
 #include "wxExtensions.hpp"
 #include "GUI_Utils.hpp"
 

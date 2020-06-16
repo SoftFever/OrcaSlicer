@@ -61,10 +61,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/GLToolbar.cpp
     GUI/Preferences.cpp
     GUI/Preferences.hpp
-    GUI/Preset.cpp
-    GUI/Preset.hpp
-    GUI/PresetBundle.cpp
-    GUI/PresetBundle.hpp
     GUI/PresetHints.cpp
     GUI/PresetHints.hpp
     GUI/GUI.cpp

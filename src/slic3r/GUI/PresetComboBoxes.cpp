@@ -15,6 +15,7 @@
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/PresetBundle.hpp"
 
 #include "GUI.hpp"
 #include "GUI_App.hpp"
@@ -22,7 +23,6 @@
 #include "MainFrame.hpp"
 #include "format.hpp"
 #include "Tab.hpp"
-#include "PresetBundle.hpp"
 #include "PrintHostDialogs.hpp"
 #include "ConfigWizard.hpp"
 #include "../Utils/ASCIIFolding.hpp"

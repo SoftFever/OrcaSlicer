@@ -8,16 +8,8 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/property_tree/ptree_fwd.hpp>
 
-#include "libslic3r/libslic3r.h"
-#include "libslic3r/PrintConfig.hpp"
-#include "libslic3r/Semver.hpp"
-
-class wxBitmap;
-class wxBitmapComboBox;
-class wxChoice;
-class wxItemContainer;
-class wxString;
-class wxWindow;
+#include "PrintConfig.hpp"
+#include "Semver.hpp"
 
 namespace Slic3r {
 
@@ -231,7 +223,7 @@ public:
     static const std::vector<std::string>&  sla_material_options();
     static const std::vector<std::string>&  sla_print_options();
 
-	static void                             update_suffix_modified();
+	static void                             update_suffix_modified(const std::string& new_suffix_modified);
     static const std::string&               suffix_modified();
     static std::string                      remove_suffix_modified(const std::string& name);
     static void                             normalize(DynamicPrintConfig &config);

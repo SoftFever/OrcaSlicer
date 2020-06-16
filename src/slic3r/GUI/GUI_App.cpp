@@ -31,11 +31,11 @@
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/I18N.hpp"
+#include "libslic3r/PresetBundle.hpp"
 
 #include "GUI.hpp"
 #include "GUI_Utils.hpp"
 #include "AppConfig.hpp"
-#include "PresetBundle.hpp"
 #include "3DScene.hpp"
 #include "MainFrame.hpp"
 #include "Plater.hpp"
@@ -935,7 +935,7 @@ bool GUI_App::load_language(wxString language, bool initial)
     m_imgui->set_language(into_u8(language_info->CanonicalName));
     //FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
     wxSetlocale(LC_NUMERIC, "C");
-    Preset::update_suffix_modified();
+    Preset::update_suffix_modified((" (" + _L("modified") + ")").ToUTF8().data());
 	return true;
 }
 

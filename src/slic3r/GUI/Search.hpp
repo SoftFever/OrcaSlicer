@@ -14,8 +14,8 @@
 #include <wx/dialog.h>
 
 #include "GUI_Utils.hpp"
-#include "Preset.hpp"
 #include "wxExtensions.hpp"
+#include "libslic3r/Preset.hpp"
 
 
 namespace Slic3r {

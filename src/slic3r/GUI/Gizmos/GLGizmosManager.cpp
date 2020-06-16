@@ -5,7 +5,6 @@
 #include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_ObjectManipulation.hpp"
-#include "slic3r/GUI/PresetBundle.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
 
@@ -19,6 +18,7 @@
 #include "slic3r/GUI/Gizmos/GLGizmoHollow.hpp"
 
 #include "libslic3r/Model.hpp"
+#include "libslic3r/PresetBundle.hpp"
 
 #include <wx/glcanvas.h>
 

@@ -1,14 +1,13 @@
 #ifndef slic3r_PresetBundle_hpp_
 #define slic3r_PresetBundle_hpp_
 
-#include "AppConfig.hpp"
 #include "Preset.hpp"
 
 #include <memory>
 #include <unordered_map>
 #include <boost/filesystem/path.hpp>
 
-class wxWindow;
+#include "slic3r/GUI/AppConfig.hpp"
 
 namespace Slic3r {
 

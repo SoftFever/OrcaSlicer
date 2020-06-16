@@ -15,9 +15,9 @@
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/SLAPrint.hpp"
+#include "libslic3r/PresetBundle.hpp"
 
 #include "Tab.hpp"
-#include "PresetBundle.hpp"
 #include "ProgressStatusBar.hpp"
 #include "3DScene.hpp"
 #include "AppConfig.hpp"

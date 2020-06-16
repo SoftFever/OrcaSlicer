@@ -7,9 +7,9 @@
 
 #include <wx/panel.h>
 
-#include "Preset.hpp"
 #include "Selection.hpp"
 
+#include "libslic3r/Preset.hpp"
 #include "libslic3r/BoundingBox.hpp"
 #include "Jobs/Job.hpp"
 #include "Search.hpp"

@@ -1,14 +1,23 @@
 #include <cassert>
 
 #include "Preset.hpp"
-#include "AppConfig.hpp"
-#include "I18N.hpp"
+#include "slic3r/GUI/AppConfig.hpp"
 
 #ifdef _MSC_VER
     #define WIN32_LEAN_AND_MEAN
     #define NOMINMAX
     #include <Windows.h>
 #endif /* _MSC_VER */
+
+// instead of #include "slic3r/GUI/I18N.hpp" :
+#ifndef L
+// !!! If you needed to translate some string,
+// !!! please use _L(string)
+// !!! _() - is a standard wxWidgets macro to translate
+// !!! L() is used only for marking localizable string 
+// !!! It will be used in "xgettext" to create a Locating Message Catalog.
+#define L(s) s
+#endif /* L */
 
 #include <algorithm>
 #include <fstream>
@@ -28,9 +37,9 @@
 #include <boost/locale.hpp>
 #include <boost/log/trivial.hpp>
 
-#include "libslic3r/libslic3r.h"
-#include "libslic3r/Utils.hpp"
-#include "libslic3r/PlaceholderParser.hpp"
+#include "libslic3r.h"
+#include "Utils.hpp"
+#include "PlaceholderParser.hpp"
 
 using boost::property_tree::ptree;
 
@@ -237,9 +246,9 @@ const std::string& Preset::suffix_modified()
     return g_suffix_modified;
 }
 
-void Preset::update_suffix_modified()
+void Preset::update_suffix_modified(const std::string& new_suffix_modified)
 {
-    g_suffix_modified = (" (" + _(L("modified")) + ")").ToUTF8().data();
+    g_suffix_modified = new_suffix_modified;
 }
 // Remove an optional "(modified)" suffix from a name.
 // This converts a UI name to a unique preset identifier.

@@ -147,6 +147,10 @@ add_library(libslic3r STATIC
     PolygonTrimmer.hpp
     Polyline.cpp
     Polyline.hpp
+    Preset.cpp
+    Preset.hpp
+    PresetBundle.cpp
+    PresetBundle.hpp
     Print.cpp
     Print.hpp
     PrintBase.cpp

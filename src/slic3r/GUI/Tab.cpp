@@ -1,8 +1,8 @@
 // #include "libslic3r/GCodeSender.hpp"
 #include "slic3r/Utils/Serial.hpp"
 #include "Tab.hpp"
-#include "PresetBundle.hpp"
 #include "PresetHints.hpp"
+#include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
 
@@ -32,7 +32,6 @@
 
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
-#include "ConfigWizard.hpp"
 #include "Plater.hpp"
 #include "MainFrame.hpp"
 #include "format.hpp"

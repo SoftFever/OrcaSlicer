@@ -8,7 +8,7 @@
 #include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/Plater.hpp"
 
-#include "slic3r/GUI/PresetBundle.hpp"
+#include "libslic3r/PresetBundle.hpp"
 
 #include <GL/glew.h>
 
