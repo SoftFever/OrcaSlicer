@@ -80,6 +80,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/MainFrame.cpp
     GUI/MainFrame.hpp
     GUI/Plater.cpp
+    GUI/PresetComboBoxes.hpp
+    GUI/PresetComboBoxes.cpp
     GUI/Plater.hpp
     GUI/GUI_ObjectList.cpp
     GUI/GUI_ObjectList.hpp

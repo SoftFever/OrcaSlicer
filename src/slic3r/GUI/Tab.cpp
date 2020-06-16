@@ -27,6 +27,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include "wxExtensions.hpp"
+#include "PresetComboBoxes.hpp"
 #include <wx/wupdlock.h>
 
 #include "GUI_App.hpp"
@@ -160,10 +161,7 @@ void Tab::create_preset_tab()
 #endif //__WXOSX__
 
     // preset chooser
-    m_presets_choice = new PresetBitmapComboBox(panel, wxSize(35 * m_em_unit, -1));
-
-    // search combox
-//    m_search = new Search::SearchCtrl(panel);
+    m_presets_choice = new TabPresetComboBox(panel, m_type);
 
     auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
@@ -277,35 +275,6 @@ void Tab::create_preset_tab()
 
     m_treectrl->Bind(wxEVT_TREE_SEL_CHANGED, &Tab::OnTreeSelChange, this);
     m_treectrl->Bind(wxEVT_KEY_DOWN, &Tab::OnKeyDown, this);
-
-    m_presets_choice->Bind(wxEVT_COMBOBOX, ([this](wxCommandEvent e) {
-        //! Because of The MSW and GTK version of wxBitmapComboBox derived from wxComboBox, 
-        //! but the OSX version derived from wxOwnerDrawnCombo, instead of:
-        //! select_preset(m_presets_choice->GetStringSelection().ToUTF8().data()); 
-        //! we doing next:
-        // int selected_item = m_presets_choice->GetSelection();
-
-        // see https://github.com/prusa3d/PrusaSlicer/issues/3889
-        // Under OSX: in case of use of a same names written in different case (like "ENDER" and "Ender")
-        // m_presets_choice->GetSelection() will return first item, because search in PopupListCtrl is case-insensitive.
-        // So, use GetSelection() from event parameter 
-        int selected_item = e.GetSelection();
-        if (m_selected_preset_item == size_t(selected_item) && !m_presets->current_is_dirty())
-            return;
-        if (selected_item >= 0) {
-            std::string selected_string = m_presets_choice->GetString(selected_item).ToUTF8().data();
-            if (selected_string.find(PresetCollection::separator_head()) == 0
-                /*selected_string == "------- System presets -------" ||
-                selected_string == "-------  User presets  -------"*/) {
-                m_presets_choice->SetSelection(m_selected_preset_item);
-                if (wxString::FromUTF8(selected_string.c_str()) == PresetCollection::separator(L("Add a new printer")))
-                    wxTheApp->CallAfter([]() { wxGetApp().run_wizard(ConfigWizard::RR_USER); });
-                return;
-            }
-            m_selected_preset_item = selected_item;
-            select_preset(selected_string);
-        }
-    }));
 
     m_btn_save_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { save_preset(); }));
     m_btn_delete_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { delete_preset(); }));
@@ -778,14 +747,14 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
 // comparing the selected preset config with $self->{config}.
 void Tab::update_dirty()
 {
-    m_presets->update_dirty_ui(m_presets_choice);
+    m_presets_choice->update_dirty();
     on_presets_changed();
     update_changed_ui();
 }
 
 void Tab::update_tab_ui()
 {
-    m_selected_preset_item = m_presets->update_tab_ui(m_presets_choice, m_show_incompatible_presets, m_em_unit);
+    m_presets_choice->update();
 }
 
 // Load a provied DynamicConfig into the tab, modifying the active preset.
@@ -850,11 +819,9 @@ void Tab::msw_rescale()
     m_em_unit = wxGetApp().em_unit();
 
     m_mode_sizer->msw_rescale();
+    m_presets_choice->msw_rescale();
 
-    m_presets_choice->SetSize(35 * m_em_unit, -1);
     m_treectrl->SetMinSize(wxSize(20 * m_em_unit, -1));
-
-    update_tab_ui();
 
     // rescale buttons and cached bitmaps
     for (const auto btn : m_scaled_buttons)
@@ -963,7 +930,7 @@ void Tab::load_key_value(const std::string& opt_key, const boost::any& value, bo
         // Don't select another profile if this profile happens to become incompatible.
         m_preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
     }
-    m_presets->update_dirty_ui(m_presets_choice);
+    m_presets_choice->update_dirty();
     on_presets_changed();
     update();
 }
@@ -3360,6 +3327,7 @@ void Tab::delete_preset()
 void Tab::toggle_show_hide_incompatible()
 {
     m_show_incompatible_presets = !m_show_incompatible_presets;
+    m_presets_choice->set_show_incompatible_presets(m_show_incompatible_presets);
     update_show_hide_incompatible_button();
     update_tab_ui();
 }

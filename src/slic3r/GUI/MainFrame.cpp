@@ -74,11 +74,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 		SLIC3R_VERSION +
 		_(L(" - Remember to check for updates at http://github.com/prusa3d/PrusaSlicer/releases")));
 
-    /* Load default preset bitmaps before a tabpanel initialization,
-     * but after filling of an em_unit value 
-     */
-    wxGetApp().preset_bundle->load_default_preset_bitmaps();
-
     // initialize tabpanel and menubar
     init_tabpanel();
     init_menubar();
@@ -540,11 +535,6 @@ void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
     wxGetApp().update_fonts();
     this->SetFont(this->normal_font());
 
-    /* Load default preset bitmaps before a tabpanel initialization,
-     * but after filling of an em_unit value
-     */
-    wxGetApp().preset_bundle->load_default_preset_bitmaps();
-
     // update Plater
     wxGetApp().plater()->msw_rescale();
 
@@ -585,8 +575,6 @@ void MainFrame::on_sys_color_changed()
 
     // update label colors in respect to the system mode
     wxGetApp().init_label_colours();
-
-    wxGetApp().preset_bundle->load_default_preset_bitmaps();
 
     // update Plater
     wxGetApp().plater()->sys_color_changed();

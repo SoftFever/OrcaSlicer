@@ -6,14 +6,12 @@
 #include <boost/filesystem/path.hpp>
 
 #include <wx/panel.h>
-#include <wx/bmpcbox.h>
 
 #include "Preset.hpp"
 #include "Selection.hpp"
 
 #include "libslic3r/BoundingBox.hpp"
 #include "Jobs/Job.hpp"
-#include "wxExtensions.hpp"
 #include "Search.hpp"
 
 class wxButton;
@@ -50,45 +48,12 @@ class Mouse3DController;
 struct Camera;
 class Bed3D;
 class GLToolbar;
+class PlaterPresetComboBox;
 
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
 class Plater;
 enum class ActionButtonType : int;
-
-class PresetComboBox : public PresetBitmapComboBox
-{
-public:
-    PresetComboBox(wxWindow *parent, Preset::Type preset_type);
-    ~PresetComboBox();
-
-    ScalableButton* edit_btn { nullptr };
-
-	enum LabelItemType {
-		LABEL_ITEM_MARKER = 0xffffff01,
-		LABEL_ITEM_WIZARD_PRINTERS,
-        LABEL_ITEM_WIZARD_FILAMENTS,
-        LABEL_ITEM_WIZARD_MATERIALS,
-
-        LABEL_ITEM_MAX,
-	};
-
-    void set_label_marker(int item, LabelItemType label_item_type = LABEL_ITEM_MARKER);
-    void set_extruder_idx(const int extr_idx)   { extruder_idx = extr_idx; }
-    int  get_extruder_idx() const               { return extruder_idx; }
-    int  em_unit() const                        { return m_em_unit; }
-    void check_selection(int selection);
-
-    void msw_rescale();
-
-private:
-    typedef std::size_t Marker;
-
-    Preset::Type preset_type;
-    int last_selected;
-    int extruder_idx = -1;
-    int m_em_unit;
-};
 
 class Sidebar : public wxPanel
 {
@@ -101,7 +66,7 @@ public:
     Sidebar &operator=(const Sidebar &) = delete;
     ~Sidebar();
 
-    void init_filament_combo(PresetComboBox **combo, const int extr_idx);
+    void init_filament_combo(PlaterPresetComboBox **combo, const int extr_idx);
     void remove_unused_filament_combos(const size_t current_extruder_count);
     void update_all_preset_comboboxes();
     void update_presets(Slic3r::Preset::Type preset_type);
@@ -139,7 +104,7 @@ public:
     void                    update_searcher();
     void                    update_ui_from_settings();
 
-    std::vector<PresetComboBox*>&   combos_filament();
+    std::vector<PlaterPresetComboBox*>&   combos_filament();
     Search::OptionsSearcher&        get_searcher();
     std::string&                    get_search_line();
 
