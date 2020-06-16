@@ -235,6 +235,41 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 #if ENABLE_LAYOUT_NO_RESTART
 void MainFrame::update_layout()
 {
+    auto restore_to_creation = [this]() {
+        auto clean_sizer = [](wxSizer* sizer) {
+            while (!sizer->GetChildren().IsEmpty()) {
+                sizer->Detach(0);
+            }
+        };
+
+        if (m_plater->GetParent() != this)
+            m_plater->Reparent(this);
+
+        if (m_tabpanel->GetParent() != this)
+            m_tabpanel->Reparent(this);
+
+        int plater_page_id = m_tabpanel->FindPage(m_plater);
+        if (plater_page_id != wxNOT_FOUND)
+            m_tabpanel->RemovePage(plater_page_id);
+
+        plater_page_id = (m_plater_page != nullptr) ? m_tabpanel->FindPage(m_plater_page) : wxNOT_FOUND;
+        if (plater_page_id != wxNOT_FOUND) {
+            m_tabpanel->DeletePage(plater_page_id);
+            m_plater_page = nullptr;
+        }
+
+        clean_sizer(GetSizer());
+        clean_sizer(m_settings_dialog.GetSizer());
+
+        if (m_settings_dialog.IsShown())
+            m_settings_dialog.Close();
+
+        m_tabpanel->Hide();
+        m_plater->Hide();
+
+        Layout();
+    };
+
     ESettingsLayout layout = wxGetApp().app_config->get("old_settings_layout_mode") == "1" ? ESettingsLayout::Old :
         wxGetApp().app_config->get("new_settings_layout_mode") == "1" ? ESettingsLayout::New :
         wxGetApp().app_config->get("dlg_settings_layout_mode") == "1" ? ESettingsLayout::Dlg : ESettingsLayout::Old;
@@ -246,31 +281,9 @@ void MainFrame::update_layout()
 
     Freeze();
 
-    if (m_layout != ESettingsLayout::Unknown) {
-        // Restore from previous settings
-        if (m_layout == ESettingsLayout::Old) {
-            m_plater->Reparent(this);
-            m_tabpanel->RemovePage(m_tabpanel->FindPage(m_plater));
-            GetSizer()->Hide(m_tabpanel);
-            GetSizer()->Detach(m_tabpanel);
-        } else {
-            GetSizer()->Hide(m_plater);
-            GetSizer()->Detach(m_plater);
-            if (m_layout == ESettingsLayout::New) {
-                GetSizer()->Hide(m_tabpanel);
-                GetSizer()->Detach(m_tabpanel);
-                m_tabpanel->DeletePage(m_tabpanel->FindPage(m_plater_page));
-                m_plater_page = nullptr;
-            } else {
-                if (m_settings_dialog.IsShown())
-                    m_settings_dialog.Close();
-
-                m_settings_dialog.GetSizer()->Hide(m_tabpanel);
-                m_settings_dialog.GetSizer()->Detach(m_tabpanel);
-                m_tabpanel->Reparent(this);
-            }
-        }
-    }
+    // Remove old settings
+    if (m_layout != ESettingsLayout::Unknown)
+        restore_to_creation();
 
     m_layout = layout;
 
@@ -278,24 +291,36 @@ void MainFrame::update_layout()
     m_last_selected_tab = m_layout == ESettingsLayout::Dlg ? 0 : 1;
 
     // Set new settings
-    if (m_layout == ESettingsLayout::Old) {
+    switch (m_layout)
+    {
+    case ESettingsLayout::Old:
+    {
         m_plater->Reparent(m_tabpanel);
         m_tabpanel->InsertPage(0, m_plater, _L("Plater"));
         GetSizer()->Add(m_tabpanel, 1, wxEXPAND);
-        GetSizer()->Show(m_tabpanel);
-    } else {
+        m_plater->Show();
+        m_tabpanel->Show();
+        break;
+    }
+    case ESettingsLayout::New:
+    {
         GetSizer()->Add(m_plater, 1, wxEXPAND);
-        GetSizer()->Show(m_plater);
-        if (m_layout == ESettingsLayout::New) {
-            GetSizer()->Add(m_tabpanel, 1, wxEXPAND);
-            GetSizer()->Hide(m_tabpanel);
-            m_plater_page = new wxPanel(m_tabpanel);
-            m_tabpanel->InsertPage(0, m_plater_page, _L("Plater")); // empty panel just for Plater tab */
-        } else {
-            m_tabpanel->Reparent(&m_settings_dialog);
-            m_settings_dialog.GetSizer()->Add(m_tabpanel, 1, wxEXPAND);
-            m_settings_dialog.GetSizer()->Show(m_tabpanel);
-        }
+        m_tabpanel->Hide();
+        GetSizer()->Add(m_tabpanel, 1, wxEXPAND);
+        m_plater_page = new wxPanel(m_tabpanel);
+        m_tabpanel->InsertPage(0, m_plater_page, _L("Plater")); // empty panel just for Plater tab */
+        m_plater->Show();
+        break;
+    }
+    case ESettingsLayout::Dlg:
+    {
+        GetSizer()->Add(m_plater, 1, wxEXPAND);
+        m_tabpanel->Reparent(&m_settings_dialog);
+        m_settings_dialog.GetSizer()->Add(m_tabpanel, 1, wxEXPAND);
+        m_tabpanel->Show();
+        m_plater->Show();
+        break;
+    }
     }
 
 //#ifdef __APPLE__
@@ -428,6 +453,7 @@ void MainFrame::init_tabpanel()
 #ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList
     m_tabpanel->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 #endif
+    m_tabpanel->Hide();
     m_settings_dialog.set_tabpanel(m_tabpanel);
 #else
     m_layout = wxGetApp().app_config->get("old_settings_layout_mode") == "1" ? slOld :
@@ -472,6 +498,7 @@ void MainFrame::init_tabpanel()
 
 #if ENABLE_LAYOUT_NO_RESTART
     m_plater = new Plater(this, this);
+    m_plater->Hide();
 #else
     if (m_layout == slOld) {
         m_plater = new Plater(m_tabpanel, this);
