@@ -1,11 +1,14 @@
 #ifndef SLA_CONTOUR3D_HPP
 #define SLA_CONTOUR3D_HPP
 
-#include <libslic3r/SLA/Common.hpp>
-
 #include <libslic3r/TriangleMesh.hpp>
 
-namespace Slic3r { namespace sla {
+namespace Slic3r {
+
+// Used for quads (TODO: remove this, and convert quads to triangles in OpenVDBUtils)
+using Vec4i = Eigen::Matrix<int, 4, 1, Eigen::DontAlign>;
+
+namespace sla {
 
 class EigenMesh3D;
 

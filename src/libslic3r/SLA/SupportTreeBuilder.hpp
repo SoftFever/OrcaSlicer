@@ -2,7 +2,6 @@
 #define SLA_SUPPORTTREEBUILDER_HPP
 
 #include <libslic3r/SLA/Concurrency.hpp>
-#include <libslic3r/SLA/Common.hpp>
 #include <libslic3r/SLA/SupportTree.hpp>
 #include <libslic3r/SLA/Contour3D.hpp>
 #include <libslic3r/SLA/Pad.hpp>
@@ -50,13 +49,6 @@ namespace sla {
  * nearby pillar.
  */
 
-using Coordf = double;
-using Portion = std::tuple<double, double>;
-
-inline Portion make_portion(double a, double b) {
-    return std::make_tuple(a, b);
-}
-
 template<class Vec> double distance(const Vec& p) {
     return std::sqrt(p.transpose() * p);
 }
@@ -66,27 +58,13 @@ template<class Vec> double distance(const Vec& pp1, const Vec& pp2) {
     return distance(p);
 }
 
-Contour3D sphere(double rho, Portion portion = make_portion(0.0, 2.0*PI),
-                 double fa=(2*PI/360));
-
-// Down facing cylinder in Z direction with arguments:
-// r: radius
-// h: Height
-// ssteps: how many edges will create the base circle
-// sp: starting point
-Contour3D cylinder(double r, double h, size_t steps = 45, const Vec3d &sp = Vec3d::Zero());
-
-Contour3D pinhead(double r_pin, double r_back, double length, size_t steps = 45);
-
-Contour3D pedestal(const Vec3d &pt, double baseheight, double radius, size_t steps = 45);
-
 const constexpr long ID_UNSET = -1;
 
+const Vec3d DOWN = {0.0, 0.0, -1.0};
+
+// A pinhead originating from a support point
 struct Head {
-    Contour3D mesh;
-    
-    size_t steps = 45;
-    Vec3d dir = {0, 0, -1};
+    Vec3d dir = DOWN;
     Vec3d pos = {0, 0, 0};
     
     double r_back_mm = 1;
@@ -110,9 +88,9 @@ struct Head {
          double r_small_mm,
          double length_mm,
          double penetration,
-         const Vec3d &direction = {0, 0, -1},  // direction (normal to the dull end)
-         const Vec3d &offset = {0, 0, 0},      // displacement
-         const size_t circlesteps = 45);
+         const Vec3d &direction = DOWN,  // direction (normal to the dull end)
+         const Vec3d &offset = {0, 0, 0}      // displacement
+         );
     
     void transform()
     {
@@ -141,29 +119,27 @@ struct Head {
     }
 };
 
+struct Join {
+    enum Types {
+        jtPillarBrigde, jtHeadPillar, jtPillarPedestal, jtBridgePedestal,
+        jtPillarAnchor, jtBridgeAnchor
+    };
+};
+
+// A junction connecting bridges and pillars
 struct Junction {
-    Contour3D mesh;
     double r = 1;
-    size_t steps = 45;
     Vec3d pos;
     
     long id = ID_UNSET;
-    
-    Junction(const Vec3d& tr, double r_mm, size_t stepnum = 45):
-        r(r_mm), steps(stepnum), pos(tr)
-    {
-        mesh = sphere(r_mm, make_portion(0, PI), 2*PI/steps);
-        for(auto& p : mesh.points) p += tr;
-    }
+
+    Junction(const Vec3d &tr, double r_mm) : r(r_mm), pos(tr) {}
 };
 
+
 struct Pillar {
-//    Contour3D mesh;
-//    Contour3D base;
-    double r = 1;
-    size_t steps = 0;
+    double height, r;
     Vec3d endpt;
-    double height = 0;
     
     long id = ID_UNSET;
     
@@ -177,60 +153,47 @@ struct Pillar {
     // How many pillars are cascaded with this one
     unsigned links = 0;
 
-    Pillar(const Vec3d &endp, double h, double radius = 1, size_t st = 45):
-        height{h}, r(radius), steps(st), endpt(endp), starts_from_head(false) {}
+    Pillar(const Vec3d &endp, double h, double radius = 1.):
+        height{h}, r(radius), endpt(endp), starts_from_head(false) {}
 
-
-//    Pillar(const Junction &junc, const Vec3d &endp)
-//        : Pillar(junc.pos, endp, junc.r, junc.steps)
-//    {}
-
-    inline Vec3d startpoint() const
+    Vec3d startpoint() const
     {
         return {endpt.x(), endpt.y(), endpt.z() + height};
     }
     
-    inline const Vec3d& endpoint() const { return endpt; }
+    const Vec3d& endpoint() const { return endpt; }
     
 //    Pillar& add_base(double baseheight = 3, double radius = 2);
 };
 
+// A base for pillars or bridges that end on the ground
 struct Pedestal {
     Vec3d pos;
     double height, radius;
-    size_t steps = 45;
+    long id = ID_UNSET;
 
-    Pedestal() = default;
-    Pedestal(const Vec3d &p, double h = 3., double r = 2., size_t stps = 45)
-        : pos{p}, height{h}, radius{r}, steps{stps}
-    {}
-
-    Pedestal(const Pillar &p, double h = 3., double r = 2.)
-        : Pedestal{p.endpt, std::min(h, p.height), std::max(r, p.r), p.steps}
+    Pedestal(const Vec3d &p, double h = 3., double r = 2.)
+        : pos{p}, height{h}, radius{r}
     {}
 };
 
-struct PinJoin {
-
-};
+// This is the thing that anchors a pillar or bridge to the model body.
+// It is actually a reverse pinhead.
+struct Anchor: public Head { using Head::Head; };
 
 // A Bridge between two pillars (with junction endpoints)
 struct Bridge {
-    Contour3D mesh;
     double r = 0.8;
     long id = ID_UNSET;
     Vec3d startp = Vec3d::Zero(), endp = Vec3d::Zero();
     
     Bridge(const Vec3d &j1,
            const Vec3d &j2,
-           double       r_mm  = 0.8,
-           size_t       steps = 45);
+           double       r_mm  = 0.8): r{r_mm}, startp{j1}, endp{j2}
+    {}
 
-    Bridge(const Vec3d &j1,
-           const Vec3d &j2,
-           double       r1_mm,
-           double       r2_mm,
-           size_t       steps = 45);
+    double get_length() const { return (endp - startp).norm(); }
+    Vec3d  get_dir() const { return (endp - startp).normalized(); }
 };
 
 // A wrapper struct around the pad
@@ -250,40 +213,6 @@ struct Pad {
     bool empty() const { return tmesh.facets_count() == 0; }
 };
 
-inline Contour3D get_mesh(const Head &h)
-{
-    Contour3D mesh = pinhead(h.r_pin_mm, h.r_back_mm, h.width_mm, h.steps);
-
-    using Quaternion = Eigen::Quaternion<double>;
-
-    // We rotate the head to the specified direction The head's pointing
-    // side is facing upwards so this means that it would hold a support
-    // point with a normal pointing straight down. This is the reason of
-    // the -1 z coordinate
-    auto quatern = Quaternion::FromTwoVectors(Vec3d{0, 0, -1}, h.dir);
-
-    for(auto& p : mesh.points) p = quatern * p + h.pos;
-}
-
-inline Contour3D get_mesh(const Pillar &p)
-{
-    assert(p.steps > 0);
-
-    if(p.height > EPSILON) { // Endpoint is below the starting point
-        // We just create a bridge geometry with the pillar parameters and
-        // move the data.
-        return cylinder(p.r, p.height, p.steps, p.endpoint());
-    }
-
-    return {};
-}
-
-inline Contour3D get_mesh(const Pedestal &p, double h, double r)
-{
-    return pedestal(p.pos, p.height, p.radius, p.steps);
-}
-
-
 // This class will hold the support tree meshes with some additional
 // bookkeeping as well. Various parts of the support geometry are stored
 // separately and are merged when the caller queries the merged mesh. The
@@ -300,12 +229,15 @@ inline Contour3D get_mesh(const Pedestal &p, double h, double r)
 // merged mesh. It can be retrieved using a dedicated method (pad())
 class SupportTreeBuilder: public SupportTree {
     // For heads it is beneficial to use the same IDs as for the support points.
-    std::vector<Head> m_heads;
-    std::vector<size_t> m_head_indices;
-    std::vector<Pillar> m_pillars;
+    std::vector<Head>     m_heads;
+    std::vector<size_t>   m_head_indices;
+    std::vector<Pillar>   m_pillars;
     std::vector<Junction> m_junctions;
-    std::vector<Bridge> m_bridges;
-    std::vector<Bridge> m_crossbridges;
+    std::vector<Bridge>   m_bridges;
+    std::vector<Bridge>   m_crossbridges;
+    std::vector<Pedestal> m_pedestals;
+    std::vector<Anchor>   m_anchors;
+
     Pad m_pad;
     
     using Mutex = ccr::SpinningMutex;
@@ -347,7 +279,7 @@ public:
         return m_heads.back();
     }
     
-    template<class...Args> long add_pillar(long headid, Args&&... args)
+    template<class...Args> long add_pillar(long headid, double length)
     {
         std::lock_guard<Mutex> lk(m_mutex);
         if (m_pillars.capacity() < m_heads.size())
@@ -356,7 +288,9 @@ public:
         assert(headid >= 0 && size_t(headid) < m_head_indices.size());
         Head &head = m_heads[m_head_indices[size_t(headid)]];
         
-        m_pillars.emplace_back(head, std::forward<Args>(args)...);
+        Vec3d hjp = head.junction_point() - Vec3d{0, 0, length};
+        m_pillars.emplace_back(hjp, length, head.r_back_mm);
+
         Pillar& pillar = m_pillars.back();
         pillar.id = long(m_pillars.size() - 1);
         head.pillar_id = pillar.id;
@@ -371,7 +305,19 @@ public:
     {
         std::lock_guard<Mutex> lk(m_mutex);
         assert(pid >= 0 && size_t(pid) < m_pillars.size());
-        m_pillars[size_t(pid)].add_base(baseheight, radius);
+        m_pedestals.emplace_back(m_pillars[size_t(pid)].endpt, baseheight, radius);
+        m_pedestals.back().id = m_pedestals.size() - 1;
+        m_meshcache_valid = false;
+//        m_pillars[size_t(pid)].add_base(baseheight, radius);
+    }
+
+    template<class...Args> const Anchor& add_anchor(Args&&...args)
+    {
+        std::lock_guard<Mutex> lk(m_mutex);
+        m_anchors.emplace_back(std::forward<Args>(args)...);
+        m_anchors.back().id = long(m_junctions.size() - 1);
+        m_meshcache_valid = false;
+        return m_anchors.back();
     }
     
     void increment_bridges(const Pillar& pillar)
@@ -432,18 +378,18 @@ public:
         return m_junctions.back();
     }
     
-    const Bridge& add_bridge(const Vec3d &s, const Vec3d &e, double r, size_t n = 45)
+    const Bridge& add_bridge(const Vec3d &s, const Vec3d &e, double r)
     {
-        return _add_bridge(m_bridges, s, e, r, n);
+        return _add_bridge(m_bridges, s, e, r);
     }
     
-    const Bridge& add_bridge(long headid, const Vec3d &endp, size_t s = 45)
+    const Bridge& add_bridge(long headid, const Vec3d &endp)
     {
         std::lock_guard<Mutex> lk(m_mutex);
         assert(headid >= 0 && size_t(headid) < m_head_indices.size());
         
         Head &h = m_heads[m_head_indices[size_t(headid)]];
-        m_bridges.emplace_back(h.junction_point(), endp, h.r_back_mm, s);
+        m_bridges.emplace_back(h.junction_point(), endp, h.r_back_mm);
         m_bridges.back().id = long(m_bridges.size() - 1);
         
         h.bridge_id = m_bridges.back().id;
@@ -471,7 +417,7 @@ public:
     }
     
     inline const std::vector<Pillar> &pillars() const { return m_pillars; }
-    inline const std::vector<Head> &heads() const { return m_heads; }
+    inline const std::vector<Head>   &heads() const { return m_heads; }
     inline const std::vector<Bridge> &bridges() const { return m_bridges; }
     inline const std::vector<Bridge> &crossbridges() const { return m_crossbridges; }
     
@@ -496,7 +442,7 @@ public:
     const Pad& pad() const { return m_pad; }
     
     // WITHOUT THE PAD!!!
-    const TriangleMesh &merged_mesh() const;
+    const TriangleMesh &merged_mesh(size_t steps = 45) const;
     
     // WITH THE PAD
     double full_height() const;

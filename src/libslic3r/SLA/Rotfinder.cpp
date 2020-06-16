@@ -2,7 +2,6 @@
 #include <exception>
 
 #include <libnest2d/optimizers/nlopt/genetic.hpp>
-#include <libslic3r/SLA/Common.hpp>
 #include <libslic3r/SLA/Rotfinder.hpp>
 #include <libslic3r/SLA/SupportTree.hpp>
 #include "Model.hpp"

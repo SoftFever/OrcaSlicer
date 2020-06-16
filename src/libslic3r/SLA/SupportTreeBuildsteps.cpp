@@ -1,5 +1,6 @@
 #include <libslic3r/SLA/SupportTreeBuildsteps.hpp>
 
+#include <libslic3r/SLA/SpatIndex.hpp>
 #include <libnest2d/optimizers/nlopt/genetic.hpp>
 #include <libnest2d/optimizers/nlopt/subplex.hpp>
 #include <boost/log/trivial.hpp>
@@ -7,13 +8,22 @@
 namespace Slic3r {
 namespace sla {
 
-static const Vec3d DOWN = {0.0, 0.0, -1.0};
-
 using libnest2d::opt::initvals;
 using libnest2d::opt::bound;
 using libnest2d::opt::StopCriteria;
 using libnest2d::opt::GeneticOptimizer;
 using libnest2d::opt::SubplexOptimizer;
+
+template<class C, class Hit = EigenMesh3D::hit_result>
+static Hit min_hit(const C &hits)
+{
+    auto mit = std::min_element(hits.begin(), hits.end(),
+                                [](const Hit &h1, const Hit &h2) {
+                                    return h1.distance() < h2.distance();
+                                });
+
+    return *mit;
+}
 
 EigenMesh3D::hit_result query_hit(const SupportableMesh &msh, const Head &h)
 {
@@ -158,7 +168,7 @@ bool SupportTreeBuildsteps::execute(SupportTreeBuilder &   builder,
     builder.ground_level = sm.emesh.ground_level() - sm.cfg.object_elevation_mm;
 
     SupportTreeBuildsteps alg(builder, sm);
-    
+
     // Let's define the individual steps of the processing. We can experiment
     // later with the ordering and the dependencies between them.
     enum Steps {
@@ -269,17 +279,6 @@ bool SupportTreeBuildsteps::execute(SupportTreeBuilder &   builder,
     }
     
     return pc == ABORT;
-}
-
-template<class C, class Hit = EigenMesh3D::hit_result> 
-static Hit min_hit(const C &hits)
-{
-    auto mit = std::min_element(hits.begin(), hits.end(), 
-                                [](const Hit &h1, const Hit &h2) { 
-        return h1.distance() < h2.distance(); 
-    });
-    
-    return *mit;
 }
 
 EigenMesh3D::hit_result SupportTreeBuildsteps::pinhead_mesh_intersect(
@@ -552,7 +551,7 @@ bool SupportTreeBuildsteps::connect_to_nearpillar(const Head &head,
     if (m_builder.bridgecount(nearpillar()) < m_cfg.max_bridges_on_pillar) {
         // A partial pillar is needed under the starting head.
         if(zdiff > 0) {
-            m_builder.add_pillar(head.id, bridgestart, r);
+            m_builder.add_pillar(head.id, headjp.z() - bridgestart.z());
             m_builder.add_junction(bridgestart, r);
             m_builder.add_bridge(bridgestart, bridgeend, r);
         } else {
@@ -607,7 +606,7 @@ bool SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
             normal_mode = false;
 
             if (t > m_cfg.max_bridge_length_mm || endp(Z) < gndlvl) {
-                if (head_id >= 0) m_builder.add_pillar(head_id, jp, radius);
+                if (head_id >= 0) m_builder.add_pillar(head_id, 0.);
                 return false;
             }
         }
@@ -615,14 +614,15 @@ bool SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
 
     // Check if the deduced route is sane and exit with error if not.
     if (bridge_mesh_distance(jp, dir, radius) < (endp - jp).norm()) {
-        if (head_id >= 0) m_builder.add_pillar(head_id, jp, radius);
+        if (head_id >= 0) m_builder.add_pillar(head_id, 0.);
         return false;
     }
 
     // Straigh path down, no area to dodge
     if (normal_mode) {
-        pillar_id = head_id >= 0 ? m_builder.add_pillar(head_id, endp, radius) :
-                                   m_builder.add_pillar(jp, endp, radius);
+        double h = jp.z() - endp.z();
+        pillar_id = head_id >= 0 ? m_builder.add_pillar(head_id, h) :
+                                   m_builder.add_pillar(jp, h, radius);
 
         if (can_add_base)
             m_builder.add_pillar_base(pillar_id, m_cfg.base_height_mm,
@@ -630,8 +630,9 @@ bool SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
     } else {
 
         // Insert the bridge to get around the forbidden area
-        Vec3d pgnd{endp.x(), endp.y(), gndlvl};
-        pillar_id = m_builder.add_pillar(endp, pgnd, radius);
+//        Vec3d pgnd{endp.x(), endp.y(), gndlvl};
+        double h = endp.z() - gndlvl;
+        pillar_id = m_builder.add_pillar(endp, h, radius);
 
         if (can_add_base)
             m_builder.add_pillar_base(pillar_id, m_cfg.base_height_mm,
@@ -645,7 +646,7 @@ bool SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
         // prevent from queries of head_pillar() to have non-existing
         // pillar when the head should have one.
         if (head_id >= 0)
-            m_builder.add_pillar(head_id, jp, radius);
+            m_builder.add_pillar(head_id, 0.);
     }
 
     if(pillar_id >= 0) // Save the pillar endpoint in the spatial index
@@ -1034,7 +1035,7 @@ bool SupportTreeBuildsteps::connect_to_model_body(Head &head)
 
     head.transform();
 
-    long pillar_id = m_builder.add_pillar(head.id, endp, head.r_back_mm);
+    long pillar_id = m_builder.add_pillar(head.id, hit.distance() + h);
     Pillar &pill = m_builder.pillar(pillar_id);
 
     Vec3d taildir = endp - hitp;
@@ -1046,11 +1047,14 @@ bool SupportTreeBuildsteps::connect_to_model_body(Head &head)
         w = 0.;
     }
 
-    Head tailhead(head.r_back_mm, head.r_pin_mm, w,
-                  m_cfg.head_penetration_mm, taildir, hitp);
+    m_builder.add_anchor(head.r_back_mm, head.r_pin_mm, w,
+                         m_cfg.head_penetration_mm, taildir, hitp);
 
-    tailhead.transform();
-    pill.base = tailhead.mesh;
+//    Head tailhead(head.r_back_mm, head.r_pin_mm, w,
+//                  m_cfg.head_penetration_mm, taildir, hitp);
+
+//    tailhead.transform();
+//    pill.base = tailhead.mesh;
     
     m_pillar_index.guarded_insert(pill.endpoint(), pill.id);
     
@@ -1297,8 +1301,8 @@ void SupportTreeBuildsteps::interconnect_pillars()
         if (found)
             for (unsigned n = 0; n < needpillars; n++) {
                 Vec3d  s = spts[n];
-                Pillar p(s, Vec3d(s(X), s(Y), gnd), pillar().r);
-                p.add_base(m_cfg.base_height_mm, m_cfg.base_radius_mm);
+                Pillar p(s, s.z() -  gnd, pillar().r);
+//                p.add_base(m_cfg.base_height_mm, m_cfg.base_radius_mm);
 
                 if (interconnect(pillar(), p)) {
                     Pillar &pp = m_builder.pillar(m_builder.add_pillar(p));

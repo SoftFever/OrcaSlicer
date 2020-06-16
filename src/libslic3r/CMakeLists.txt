@@ -204,11 +204,11 @@ add_library(libslic3r STATIC
     SimplifyMesh.cpp
     MarchingSquares.hpp
     ${OpenVDBUtils_SOURCES}
-    SLA/Common.hpp
-    SLA/Common.cpp
     SLA/Pad.hpp
     SLA/Pad.cpp
     SLA/SupportTreeBuilder.hpp
+    SLA/SupportTreeMesher.hpp
+    SLA/SupportTreeMesher.cpp
     SLA/SupportTreeBuildsteps.hpp
     SLA/SupportTreeBuildsteps.cpp
     SLA/SupportTreeBuilder.cpp
@@ -220,6 +220,7 @@ add_library(libslic3r STATIC
     SLA/Rotfinder.cpp
     SLA/BoostAdapter.hpp
     SLA/SpatIndex.hpp
+    SLA/SpatIndex.cpp
     SLA/RasterBase.hpp
     SLA/RasterBase.cpp
     SLA/AGGRaster.hpp
@@ -236,7 +237,9 @@ add_library(libslic3r STATIC
     SLA/Contour3D.hpp
     SLA/Contour3D.cpp
     SLA/EigenMesh3D.hpp
+    SLA/EigenMesh3D.cpp
     SLA/Clustering.hpp
+    SLA/Clustering.cpp
     SLA/ReprojectPointsOnMesh.hpp
 )
 

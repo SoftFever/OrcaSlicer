@@ -3,11 +3,10 @@
 #include <libslic3r/OpenVDBUtils.hpp>
 #include <libslic3r/TriangleMesh.hpp>
 #include <libslic3r/SLA/Hollowing.hpp>
-#include <libslic3r/SLA/Contour3D.hpp>
 #include <libslic3r/SLA/EigenMesh3D.hpp>
-#include <libslic3r/SLA/SupportTreeBuilder.hpp>
 #include <libslic3r/ClipperUtils.hpp>
 #include <libslic3r/SimplifyMesh.hpp>
+#include <libslic3r/SLA/SupportTreeMesher.hpp>
 
 #include <boost/log/trivial.hpp>
 

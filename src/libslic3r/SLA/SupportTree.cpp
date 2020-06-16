@@ -5,7 +5,6 @@
 
 #include <numeric>
 #include <libslic3r/SLA/SupportTree.hpp>
-#include <libslic3r/SLA/Common.hpp>
 #include <libslic3r/SLA/SpatIndex.hpp>
 #include <libslic3r/SLA/SupportTreeBuilder.hpp>
 #include <libslic3r/SLA/SupportTreeBuildsteps.hpp>

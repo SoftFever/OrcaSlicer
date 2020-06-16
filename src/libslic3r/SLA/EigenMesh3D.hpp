@@ -1,8 +1,10 @@
 #ifndef SLA_EIGENMESH3D_H
 #define SLA_EIGENMESH3D_H
 
-#include <libslic3r/SLA/Common.hpp>
+#include <memory>
+#include <vector>
 
+#include <libslic3r/Point.hpp>
 
 // There is an implementation of a hole-aware raycaster that was eventually
 // not used in production version. It is now hidden under following define
@@ -18,6 +20,8 @@ namespace Slic3r {
 class TriangleMesh;
 
 namespace sla {
+
+using PointSet = Eigen::MatrixXd;
 
 /// An index-triangle structure for libIGL functions. Also serves as an
 /// alternative (raw) input format for the SLASupportTree.

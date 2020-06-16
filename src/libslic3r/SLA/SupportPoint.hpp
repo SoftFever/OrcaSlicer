@@ -2,7 +2,6 @@
 #define SLA_SUPPORTPOINT_HPP
 
 #include <vector>
-#include <libslic3r/SLA/Common.hpp>
 #include <libslic3r/ExPolygon.hpp>
 
 namespace Slic3r { namespace sla {

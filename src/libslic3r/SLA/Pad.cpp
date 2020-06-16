@@ -1,5 +1,4 @@
 #include <libslic3r/SLA/Pad.hpp>
-#include <libslic3r/SLA/Common.hpp>
 #include <libslic3r/SLA/SpatIndex.hpp>
 #include <libslic3r/SLA/BoostAdapter.hpp>
 #include <libslic3r/SLA/Contour3D.hpp>

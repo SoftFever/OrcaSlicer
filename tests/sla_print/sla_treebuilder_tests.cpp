@@ -2,7 +2,8 @@
 #include <test_utils.hpp>
 
 #include "libslic3r/TriangleMesh.hpp"
-#include "libslic3r/SLA/SupportTreeBuilder.hpp"
+#include "libslic3r/SLA/SupportTreeBuildsteps.hpp"
+#include "libslic3r/SLA/SupportTreeMesher.hpp"
 
 TEST_CASE("Test bridge_mesh_intersect on a cube's wall", "[SLABridgeMeshInters]") {
     using namespace Slic3r;
@@ -13,6 +14,7 @@ TEST_CASE("Test bridge_mesh_intersect on a cube's wall", "[SLABridgeMeshInters]"
     sla::SupportPoints pts = {{10.f, 5.f, 5.f, float(cfg.head_front_radius_mm), false}};
     sla::SupportableMesh sm{cube, pts, cfg};
 
+    size_t steps = 45;
     SECTION("Bridge is straight horizontal and pointing away from the cube") {
 
         sla::Bridge bridge(pts[0].pos.cast<double>(), Vec3d{15., 5., 5.},
@@ -22,7 +24,7 @@ TEST_CASE("Test bridge_mesh_intersect on a cube's wall", "[SLABridgeMeshInters]"
 
         REQUIRE(std::isinf(hit.distance()));
 
-        cube.merge(sla::to_triangle_mesh(bridge.mesh));
+        cube.merge(sla::to_triangle_mesh(get_mesh(bridge, steps)));
         cube.require_shared_vertices();
         cube.WriteOBJFile("cube1.obj");
     }
@@ -35,7 +37,7 @@ TEST_CASE("Test bridge_mesh_intersect on a cube's wall", "[SLABridgeMeshInters]"
 
         REQUIRE(std::isinf(hit.distance()));
 
-        cube.merge(sla::to_triangle_mesh(bridge.mesh));
+        cube.merge(sla::to_triangle_mesh(get_mesh(bridge, steps)));
         cube.require_shared_vertices();
         cube.WriteOBJFile("cube2.obj");
     }
@@ -52,6 +54,7 @@ TEST_CASE("Test bridge_mesh_intersect on a sphere", "[SLABridgeMeshInters]") {
     sla::SupportPoints pts = {{1.f, 0.f, 0.f, float(cfg.head_front_radius_mm), false}};
     sla::SupportableMesh sm{sphere, pts, cfg};
 
+    size_t steps = 45;
     SECTION("Bridge is straight horizontal and pointing away from the sphere") {
 
         sla::Bridge bridge(pts[0].pos.cast<double>(), Vec3d{2., 0., 0.},
@@ -59,7 +62,7 @@ TEST_CASE("Test bridge_mesh_intersect on a sphere", "[SLABridgeMeshInters]") {
 
         auto hit = sla::query_hit(sm, bridge);
 
-        sphere.merge(sla::to_triangle_mesh(bridge.mesh));
+        sphere.merge(sla::to_triangle_mesh(get_mesh(bridge, steps)));
         sphere.require_shared_vertices();
         sphere.WriteOBJFile("sphere1.obj");
 
@@ -73,7 +76,7 @@ TEST_CASE("Test bridge_mesh_intersect on a sphere", "[SLABridgeMeshInters]") {
 
         auto hit = sla::query_hit(sm, bridge);
 
-        sphere.merge(sla::to_triangle_mesh(bridge.mesh));
+        sphere.merge(sla::to_triangle_mesh(get_mesh(bridge, steps)));
         sphere.require_shared_vertices();
         sphere.WriteOBJFile("sphere2.obj");
 
@@ -87,7 +90,7 @@ TEST_CASE("Test bridge_mesh_intersect on a sphere", "[SLABridgeMeshInters]") {
 
         auto hit = sla::query_hit(sm, bridge);
 
-        sphere.merge(sla::to_triangle_mesh(bridge.mesh));
+        sphere.merge(sla::to_triangle_mesh(get_mesh(bridge, steps)));
         sphere.require_shared_vertices();
         sphere.WriteOBJFile("sphere3.obj");
 

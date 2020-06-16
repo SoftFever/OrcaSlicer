@@ -5,7 +5,6 @@
 #include <memory>
 #include <Eigen/Geometry>
 
-#include <libslic3r/SLA/Common.hpp>
 #include <libslic3r/SLA/Pad.hpp>
 #include <libslic3r/SLA/EigenMesh3D.hpp>
 #include <libslic3r/SLA/SupportPoint.hpp>

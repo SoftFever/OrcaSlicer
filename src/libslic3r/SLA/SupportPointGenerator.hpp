@@ -3,7 +3,6 @@
 
 #include <random>
 
-#include <libslic3r/SLA/Common.hpp>
 #include <libslic3r/SLA/SupportPoint.hpp>
 #include <libslic3r/SLA/EigenMesh3D.hpp>
 
