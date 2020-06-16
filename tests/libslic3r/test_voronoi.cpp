@@ -1198,6 +1198,12 @@ TEST_CASE("Voronoi NaN coordinates 12139", "[Voronoi][!hide][!mayfail]")
 #endif
 }
 
+struct OffsetTest {
+    double distance;
+    size_t num_outer;
+    size_t num_inner;
+};
+
 TEST_CASE("Voronoi offset", "[VoronoiOffset]")
 {
   Polygons poly_with_hole = { Polygon {
@@ -1210,23 +1216,180 @@ TEST_CASE("Voronoi offset", "[VoronoiOffset]")
         }
   };
 
+  double area = std::accumulate(poly_with_hole.begin(), poly_with_hole.end(), 0., [](double a, auto &poly){ return a + poly.area(); });
+  REQUIRE(area > 0.);
+
   VD vd;
   Lines lines = to_lines(poly_with_hole);
   construct_voronoi(lines.begin(), lines.end(), &vd);
 
-  Polygons offsetted_polygons_out = voronoi_offset(vd, lines, scale_(0.2), scale_(0.005));
-  REQUIRE(offsetted_polygons_out.size() == 1);
+  for (const OffsetTest &ot : {
+            OffsetTest { scale_(0.2), 1, 1 },
+            OffsetTest { scale_(0.4), 1, 1 },
+            OffsetTest { scale_(0.5), 1, 1 },
+            OffsetTest { scale_(0.505), 1, 2 },
+            OffsetTest { scale_(0.51), 1, 2 },
+            OffsetTest { scale_(0.52), 1, 1 },
+            OffsetTest { scale_(0.53), 1, 1 },
+            OffsetTest { scale_(0.54), 1, 1 },
+            OffsetTest { scale_(0.55), 1, 0 }
+      }) {
+
+      Polygons offsetted_polygons_out = voronoi_offset(vd, lines, ot.distance, scale_(0.005));
+      REQUIRE(offsetted_polygons_out.size() == ot.num_outer);
 
 #ifdef VORONOI_DEBUG_OUT
-  dump_voronoi_to_svg(debug_out_path("voronoi-offset-out.svg").c_str(),
-      vd, Points(), lines, offsetted_polygons_out);
+      dump_voronoi_to_svg(debug_out_path("voronoi-offset-out-%lf.svg", ot.distance).c_str(),
+          vd, Points(), lines, offsetted_polygons_out);
 #endif
 
-  Polygons offsetted_polygons_in = voronoi_offset(vd, lines, - scale_(0.2), scale_(0.005));
-  REQUIRE(offsetted_polygons_in.size() == 1);
+      Polygons offsetted_polygons_in = voronoi_offset(vd, lines, - ot.distance, scale_(0.005));
+      REQUIRE(offsetted_polygons_in.size() == ot.num_inner);
 
 #ifdef VORONOI_DEBUG_OUT
-  dump_voronoi_to_svg(debug_out_path("voronoi-offset-in.svg").c_str(),
-      vd, Points(), lines, offsetted_polygons_in);
+      dump_voronoi_to_svg(debug_out_path("voronoi-offset-in-%lf.svg", ot.distance).c_str(),
+          vd, Points(), lines, offsetted_polygons_in);
 #endif
+  }
+}
+
+TEST_CASE("Voronoi offset 2", "[VoronoiOffset]")
+{
+    coord_t mm = coord_t(scale_(1.));
+    Polygons poly = {
+        Polygon {
+            { 0, 0 },
+            { 1, 0 },
+            { 1, 1 },
+            { 2, 1 },
+            { 2, 0 },
+            { 3, 0 },
+            { 3, 2 },
+            { 0, 2 }
+        },
+        Polygon {
+            { 0, - 1 - 2 },
+            { 3, - 1 - 2 },
+            { 3, - 1 - 0 },
+            { 2, - 1 - 0 },
+            { 2, - 1 - 1 },
+            { 1, - 1 - 1 },
+            { 1, - 1 - 0 },
+            { 0, - 1 - 0 }
+        },
+    };
+    for (Polygon &p : poly)
+        for (Point &pt : p.points)
+            pt *= mm;
+
+  double area = std::accumulate(poly.begin(), poly.end(), 0., [](double a, auto &poly){ return a + poly.area(); });
+  REQUIRE(area > 0.);
+
+  VD vd;
+  Lines lines = to_lines(poly);
+  construct_voronoi(lines.begin(), lines.end(), &vd);
+
+  for (const OffsetTest &ot : {
+            OffsetTest { scale_(0.2), 2, 2 },
+            OffsetTest { scale_(0.4), 2, 2 },
+            OffsetTest { scale_(0.45), 2, 2 },
+            OffsetTest { scale_(0.48), 2, 2 },
+//FIXME Exact intersections of an Offset curve with any Voronoi vertex are not handled correctly yet.
+//            OffsetTest { scale_(0.5), 2, 2 },
+            OffsetTest { scale_(0.505), 2, 4 },
+            OffsetTest { scale_(0.7), 2, 0 },
+            OffsetTest { scale_(0.8), 1, 0 }
+      }) {
+
+      Polygons offsetted_polygons_out = voronoi_offset(vd, lines, ot.distance, scale_(0.005));
+#ifdef VORONOI_DEBUG_OUT
+      dump_voronoi_to_svg(debug_out_path("voronoi-offset2-out-%lf.svg", ot.distance).c_str(),
+          vd, Points(), lines, offsetted_polygons_out);
+#endif
+      REQUIRE(offsetted_polygons_out.size() == ot.num_outer);
+
+      Polygons offsetted_polygons_in = voronoi_offset(vd, lines, - ot.distance, scale_(0.005));
+#ifdef VORONOI_DEBUG_OUT
+      dump_voronoi_to_svg(debug_out_path("voronoi-offset2-in-%lf.svg", ot.distance).c_str(),
+          vd, Points(), lines, offsetted_polygons_in);
+#endif
+      REQUIRE(offsetted_polygons_in.size() == ot.num_inner);
+  }
+}
+
+TEST_CASE("Voronoi offset 3", "[VoronoiOffset]")
+{
+    coord_t mm = coord_t(scale_(1.));
+    Polygons poly = {
+        Polygon {
+            { 0, 0 },
+            { 2, 0 },
+            { 2, 1 },
+            { 3, 1 },
+            { 3, 0 },
+            { 5, 0 },
+            { 5, 2 },
+            { 4, 2 },
+            { 4, 3 },
+            { 1, 3 },
+            { 1, 2 },
+            { 0, 2 }
+        },
+        Polygon {
+            { 0, -1 - 2 },
+            { 1, -1 - 2 },
+            { 1, -1 - 3 },
+            { 4, -1 - 3 },
+            { 4, -1 - 2 },
+            { 5, -1 - 2 },
+            { 5, -1 - 0 },
+            { 3, -1 - 0 },
+            { 3, -1 - 1 },
+            { 2, -1 - 1 },
+            { 2, -1 - 0 },
+            { 0, -1 - 0 }
+        },
+    };
+    for (Polygon &p : poly) {
+        REQUIRE(p.area() > 0.);
+        for (Point &pt : p.points)
+            pt *= mm;
+    }
+
+  VD vd;
+  Lines lines = to_lines(poly);
+  construct_voronoi(lines.begin(), lines.end(), &vd);
+
+  for (const OffsetTest &ot : {
+            OffsetTest { scale_(0.2), 2, 2 },
+            OffsetTest { scale_(0.4), 2, 2 },
+            OffsetTest { scale_(0.49), 2, 2 },
+//FIXME this fails
+//            OffsetTest { scale_(0.5), 2, 2 },
+            OffsetTest { scale_(0.51), 2, 2 },
+            OffsetTest { scale_(0.56), 2, 2 },
+            OffsetTest { scale_(0.6), 2, 2 },
+            OffsetTest { scale_(0.7), 2, 2 },
+            OffsetTest { scale_(0.8), 1, 6 },
+            OffsetTest { scale_(0.9), 1, 6 },
+            OffsetTest { scale_(0.99), 1, 6 },
+//FIXME this fails
+//            OffsetTest { scale_(1.0), 1, 6 },
+            OffsetTest { scale_(1.01), 1, 0 },
+      }) {
+
+      Polygons offsetted_polygons_out = voronoi_offset(vd, lines, ot.distance, scale_(0.005));
+#ifdef VORONOI_DEBUG_OUT
+      dump_voronoi_to_svg(debug_out_path("voronoi-offset2-out-%lf.svg", ot.distance).c_str(),
+          vd, Points(), lines, offsetted_polygons_out);
+#endif
+      REQUIRE(offsetted_polygons_out.size() == ot.num_outer);
+
+      Polygons offsetted_polygons_in = voronoi_offset(vd, lines, - ot.distance, scale_(0.005));
+#ifdef VORONOI_DEBUG_OUT
+      dump_voronoi_to_svg(debug_out_path("voronoi-offset2-in-%lf.svg", ot.distance).c_str(),
+          vd, Points(), lines, offsetted_polygons_in);
+#endif
+      REQUIRE(offsetted_polygons_in.size() == ot.num_inner);
+  }
 }

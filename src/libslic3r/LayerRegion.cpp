@@ -264,7 +264,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
                     this->flow(frInfill, true).scaled_width()
                 );
                 #ifdef SLIC3R_DEBUG
-                printf("Processing bridge at layer " PRINTF_ZU ":\n", this->layer()->id());
+                printf("Processing bridge at layer %zu:\n", this->layer()->id());
                 #endif
 				double custom_angle = Geometry::deg2rad(this->region()->config().bridge_angle.value);
 				if (bd.detect_angle(custom_angle)) {

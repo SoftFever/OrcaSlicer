@@ -153,9 +153,11 @@ inline Lines to_lines(const Polygon &poly)
 {
     Lines lines;
     lines.reserve(poly.points.size());
-    for (Points::const_iterator it = poly.points.begin(); it != poly.points.end()-1; ++it)
-        lines.push_back(Line(*it, *(it + 1)));
-    lines.push_back(Line(poly.points.back(), poly.points.front()));
+    if (poly.points.size() > 2) {
+        for (Points::const_iterator it = poly.points.begin(); it != poly.points.end()-1; ++it)
+            lines.push_back(Line(*it, *(it + 1)));
+        lines.push_back(Line(poly.points.back(), poly.points.front()));
+    }
     return lines;
 }
 

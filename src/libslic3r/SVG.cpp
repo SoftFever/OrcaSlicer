@@ -21,6 +21,7 @@ bool SVG::open(const char* afilename)
         "      <polyline fill=\"darkblue\" points=\"0,0 10,5 0,10 1,5\" />\n"
         "   </marker>\n"
         );
+    fprintf(this->f, "<rect fill='white' stroke='none' x='0' y='0' width='%f' height='%f'/>\n", 2000.f, 2000.f);
     return true;
 }
 
@@ -42,6 +43,7 @@ bool SVG::open(const char* afilename, const BoundingBox &bbox, const coord_t bbo
         "      <polyline fill=\"darkblue\" points=\"0,0 10,5 0,10 1,5\" />\n"
         "   </marker>\n",
         h, w);
+    fprintf(this->f, "<rect fill='white' stroke='none' x='0' y='0' width='%f' height='%f'/>\n", w, h);
     return true;
 }
 
