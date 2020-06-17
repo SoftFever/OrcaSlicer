@@ -54,5 +54,8 @@
 // Enable built-in DPI changed event handler of wxWidgets 3.1.3
 #define ENABLE_WX_3_1_3_DPI_CHANGED_EVENT (1 && ENABLE_2_3_0_ALPHA1)
 
+// Enable changing application layout without the need to restart
+#define ENABLE_LAYOUT_NO_RESTART (1 && ENABLE_2_3_0_ALPHA1)
+
 
 #endif // _prusaslicer_technologies_h_

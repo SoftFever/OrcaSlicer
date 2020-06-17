@@ -1061,17 +1061,33 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
             break;
         case ConfigMenuPreferences:
         {
+#if ENABLE_LAYOUT_NO_RESTART
+            bool app_layout_changed = false;
+#else
             bool recreate_app = false;
+#endif // ENABLE_LAYOUT_NO_RESTART
             {
                 // the dialog needs to be destroyed before the call to recreate_GUI()
                 // or sometimes the application crashes into wxDialogBase() destructor
                 // so we put it into an inner scope
                 PreferencesDialog dlg(mainframe);
                 dlg.ShowModal();
+#if ENABLE_LAYOUT_NO_RESTART
+                app_layout_changed = dlg.settings_layout_changed();
+#else
                 recreate_app = dlg.settings_layout_changed();
+#endif // ENABLE_LAYOUT_NO_RESTART
             }
+#if ENABLE_LAYOUT_NO_RESTART
+            if (app_layout_changed)
+            {
+                mainframe->update_layout();
+                mainframe->select_tab(0);
+            }
+#else
             if (recreate_app)
                 recreate_GUI(_L("Changing of the settings layout") + dots);
+#endif // ENABLE_LAYOUT_NO_RESTART
             break;
         }
         case ConfigMenuLanguage:
