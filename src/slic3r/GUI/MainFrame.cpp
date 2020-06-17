@@ -242,15 +242,16 @@ void MainFrame::update_layout()
             }
         };
 
+        // On Linux m_plater needs to be removed from m_tabpanel before to reparent it
+        int plater_page_id = m_tabpanel->FindPage(m_plater);
+        if (plater_page_id != wxNOT_FOUND)
+            m_tabpanel->RemovePage(plater_page_id);
+
         if (m_plater->GetParent() != this)
             m_plater->Reparent(this);
 
         if (m_tabpanel->GetParent() != this)
             m_tabpanel->Reparent(this);
-
-        int plater_page_id = m_tabpanel->FindPage(m_plater);
-        if (plater_page_id != wxNOT_FOUND)
-            m_tabpanel->RemovePage(plater_page_id);
 
         plater_page_id = (m_plater_page != nullptr) ? m_tabpanel->FindPage(m_plater_page) : wxNOT_FOUND;
         if (plater_page_id != wxNOT_FOUND) {
