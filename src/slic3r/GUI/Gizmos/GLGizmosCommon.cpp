@@ -448,6 +448,7 @@ void SupportsClipper::render_cut() const
 
     // Get transformation of supports
     Geometry::Transformation supports_trafo = trafo;
+    supports_trafo.set_scaling_factor(Vec3d::Ones());
     supports_trafo.set_offset(Vec3d(trafo.get_offset()(0), trafo.get_offset()(1), sel_info->get_sla_shift()));
     supports_trafo.set_rotation(Vec3d(0., 0., trafo.get_rotation()(2)));
     // I don't know why, but following seems to be correct.

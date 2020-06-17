@@ -1586,12 +1586,17 @@ std::vector<std::pair<EdgeGrid::Grid::ContourEdge, EdgeGrid::Grid::ContourEdge>>
 			++ cnt;
 		}
 	}
-	len /= double(cnt);
-	bbox.offset(20);
-	EdgeGrid::Grid grid;
-	grid.set_bbox(bbox);
-	grid.create(polygons, len);
-	return grid.intersecting_edges();
+
+    std::vector<std::pair<EdgeGrid::Grid::ContourEdge, EdgeGrid::Grid::ContourEdge>> out;
+    if (cnt > 0) {
+        len /= double(cnt);
+        bbox.offset(20);
+        EdgeGrid::Grid grid;
+        grid.set_bbox(bbox);
+        grid.create(polygons, len);
+        out = grid.intersecting_edges();
+    }
+    return out;
 }
 
 // Find all pairs of intersectiong edges from the set of polygons, highlight them in an SVG.

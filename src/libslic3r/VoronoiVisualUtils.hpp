@@ -305,44 +305,52 @@ static inline void dump_voronoi_to_svg(
     const Lines         &lines,
     const Polygons      &offset_curves = Polygons(),
     const Lines         &helper_lines = Lines(),
-    const double         scale = 0.7) // 0.2?
+    double               scale = 0)
 {
-    const std::string   inputSegmentPointColor      = "lightseagreen";
-    const coord_t       inputSegmentPointRadius     = coord_t(0.09 * scale / SCALING_FACTOR);
-    const std::string   inputSegmentColor           = "lightseagreen";
-    const coord_t       inputSegmentLineWidth       = coord_t(0.03 * scale / SCALING_FACTOR);
-
-    const std::string   voronoiPointColor           = "black";
-    const coord_t       voronoiPointRadius          = coord_t(0.06 * scale / SCALING_FACTOR);
-    const std::string   voronoiLineColorPrimary     = "black";
-    const std::string   voronoiLineColorSecondary   = "green";
-    const std::string   voronoiArcColor             = "red";
-    const coord_t       voronoiLineWidth            = coord_t(0.02 * scale / SCALING_FACTOR);
-
-    const std::string   offsetCurveColor            = "magenta";
-    const coord_t       offsetCurveLineWidth        = coord_t(0.09 * scale / SCALING_FACTOR);
-
-    const std::string   helperLineColor             = "orange";
-    const coord_t       helperLineWidth             = coord_t(0.09 * scale / SCALING_FACTOR);
-
-    const bool          internalEdgesOnly           = false;
-    const bool          primaryEdgesOnly            = false;
-
     BoundingBox bbox;
     bbox.merge(get_extents(points));
     bbox.merge(get_extents(lines));
     bbox.merge(get_extents(offset_curves));
+    bbox.merge(get_extents(helper_lines));
     bbox.min -= (0.01 * bbox.size().cast<double>()).cast<coord_t>();
     bbox.max += (0.01 * bbox.size().cast<double>()).cast<coord_t>();
 
+    if (scale == 0)
+        scale =
+//                0.1
+                0.01
+                * std::min(bbox.size().x(), bbox.size().y());
+    else
+        scale /= SCALING_FACTOR;
+
+    const std::string   inputSegmentPointColor      = "lightseagreen";
+    const coord_t       inputSegmentPointRadius     = coord_t(0.09 * scale);
+    const std::string   inputSegmentColor           = "lightseagreen";
+    const coord_t       inputSegmentLineWidth       = coord_t(0.03 * scale);
+
+    const std::string   voronoiPointColor           = "black";
+    const coord_t       voronoiPointRadius          = coord_t(0.06 * scale);
+    const std::string   voronoiLineColorPrimary     = "black";
+    const std::string   voronoiLineColorSecondary   = "green";
+    const std::string   voronoiArcColor             = "red";
+    const coord_t       voronoiLineWidth            = coord_t(0.02 * scale);
+
+    const std::string   offsetCurveColor            = "magenta";
+    const coord_t       offsetCurveLineWidth        = coord_t(0.02 * scale);
+
+    const std::string   helperLineColor             = "orange";
+    const coord_t       helperLineWidth             = coord_t(0.04 * scale);
+
+    const bool          internalEdgesOnly           = false;
+    const bool          primaryEdgesOnly            = false;
+
     ::Slic3r::SVG svg(path, bbox);
 
-//    bbox.scale(1.2);
     // For clipping of half-lines to some reasonable value.
     // The line will then be clipped by the SVG viewer anyway.
     const double bbox_dim_max = double(std::max(bbox.size().x(), bbox.size().y()));
     // For the discretization of the Voronoi parabolic segments.
-    const double discretization_step = 0.05 * bbox_dim_max;
+    const double discretization_step = 0.0002 * bbox_dim_max;
 
     // Make a copy of the input segments with the double type.
     std::vector<Voronoi::Internal::segment_type> segments;
