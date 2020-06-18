@@ -91,12 +91,7 @@ struct Head {
          const Vec3d &direction = DOWN,  // direction (normal to the dull end)
          const Vec3d &offset = {0, 0, 0}      // displacement
          );
-    
-    void transform()
-    {
-        // TODO: remove occurences
-    }
-    
+
     inline double real_width() const
     {
         return 2 * r_pin_mm + width_mm + 2 * r_back_mm ;
@@ -119,13 +114,6 @@ struct Head {
     }
 };
 
-struct Join {
-    enum Types {
-        jtPillarBrigde, jtHeadPillar, jtPillarPedestal, jtBridgePedestal,
-        jtPillarAnchor, jtBridgeAnchor
-    };
-};
-
 // A junction connecting bridges and pillars
 struct Junction {
     double r = 1;
@@ -135,7 +123,6 @@ struct Junction {
 
     Junction(const Vec3d &tr, double r_mm) : r(r_mm), pos(tr) {}
 };
-
 
 struct Pillar {
     double height, r;
@@ -162,18 +149,16 @@ struct Pillar {
     }
     
     const Vec3d& endpoint() const { return endpt; }
-    
-//    Pillar& add_base(double baseheight = 3, double radius = 2);
 };
 
 // A base for pillars or bridges that end on the ground
 struct Pedestal {
     Vec3d pos;
-    double height, radius;
+    double height, r_bottom, r_top;
     long id = ID_UNSET;
 
-    Pedestal(const Vec3d &p, double h = 3., double r = 2.)
-        : pos{p}, height{h}, radius{r}
+    Pedestal(const Vec3d &p, double h, double rbottom, double rtop)
+        : pos{p}, height{h}, r_bottom{rbottom}, r_top{rtop}
     {}
 };
 
@@ -301,15 +286,7 @@ public:
         return pillar.id;
     }
     
-    void add_pillar_base(long pid, double baseheight = 3, double radius = 2)
-    {
-        std::lock_guard<Mutex> lk(m_mutex);
-        assert(pid >= 0 && size_t(pid) < m_pillars.size());
-        m_pedestals.emplace_back(m_pillars[size_t(pid)].endpt, baseheight, radius);
-        m_pedestals.back().id = m_pedestals.size() - 1;
-        m_meshcache_valid = false;
-//        m_pillars[size_t(pid)].add_base(baseheight, radius);
-    }
+    void add_pillar_base(long pid, double baseheight = 3, double radius = 2);
 
     template<class...Args> const Anchor& add_anchor(Args&&...args)
     {

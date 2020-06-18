@@ -24,23 +24,28 @@ Contour3D sphere(double  rho,
 // h: Height
 // ssteps: how many edges will create the base circle
 // sp: starting point
-Contour3D cylinder(double r, double h, size_t steps = 45, const Vec3d &sp = Vec3d::Zero());
+Contour3D cylinder(double       r,
+                   double       h,
+                   size_t       steps = 45,
+                   const Vec3d &sp    = Vec3d::Zero());
 
 Contour3D pinhead(double r_pin, double r_back, double length, size_t steps = 45);
 
-Contour3D pedestal(const Vec3d &pt, double baseheight, double radius, size_t steps = 45);
+Contour3D halfcone(double       baseheight,
+                   double       r_bottom,
+                   double       r_top,
+                   const Vec3d &pt    = Vec3d::Zero(),
+                   size_t       steps = 45);
 
 inline Contour3D get_mesh(const Head &h, size_t steps)
 {
     Contour3D mesh = pinhead(h.r_pin_mm, h.r_back_mm, h.width_mm, steps);
 
-    // To simplify further processing, we translate the mesh so that the
-    // last vertex of the pointing sphere (the pinpoint) will be at (0,0,0)
     for(auto& p : mesh.points) p.z() -= (h.fullwidth() - h.r_back_mm);
 
     using Quaternion = Eigen::Quaternion<double>;
 
-    // We rotate the head to the specified direction The head's pointing
+    // We rotate the head to the specified direction. The head's pointing
     // side is facing upwards so this means that it would hold a support
     // point with a normal pointing straight down. This is the reason of
     // the -1 z coordinate
@@ -64,7 +69,7 @@ inline Contour3D get_mesh(const Pillar &p, size_t steps)
 
 inline Contour3D get_mesh(const Pedestal &p, size_t steps)
 {
-    return pedestal(p.pos, p.height, p.radius, steps);
+    return halfcone(p.height, p.r_bottom, p.r_top, p.pos, steps);
 }
 
 inline Contour3D get_mesh(const Junction &j, size_t steps)
@@ -89,6 +94,6 @@ inline Contour3D get_mesh(const Bridge &br, size_t steps)
     return mesh;
 }
 
-}}
+}} // namespace Slic3r::sla
 
 #endif // SUPPORTTREEMESHER_HPP

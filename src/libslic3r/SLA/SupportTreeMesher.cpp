@@ -94,7 +94,7 @@ Contour3D sphere(double rho, Portion portion, double fa) {
 
 Contour3D cylinder(double r, double h, size_t ssteps, const Vec3d &sp)
 {
-    assert(steps > 0);
+    assert(ssteps > 0);
 
     Contour3D ret;
 
@@ -157,7 +157,7 @@ Contour3D cylinder(double r, double h, size_t ssteps, const Vec3d &sp)
 Contour3D pinhead(double r_pin, double r_back, double length, size_t steps)
 {
     assert(steps > 0);
-    assert(length > 0.);
+    assert(length >= 0.);
     assert(r_back > 0.);
     assert(r_pin > 0.);
 
@@ -167,7 +167,7 @@ Contour3D pinhead(double r_pin, double r_back, double length, size_t steps)
     // both circles perfectly.
 
     // Set up the model detail level
-    const double detail = 2*PI/steps;
+    const double detail = 2 * PI / steps;
 
     // We don't generate whole circles. Instead, we generate only the
     // portions which are visible (not covered by the robe) To know the
@@ -176,26 +176,24 @@ Contour3D pinhead(double r_pin, double r_back, double length, size_t steps)
     // triangles the following relations:
 
     // The height of the whole mesh
-    const double h = r_back + r_pin + length;
-    double phi = PI / 2. - std::acos((r_back - r_pin) / h);
+    const double h   = r_back + r_pin + length;
+    double       phi = PI / 2. - std::acos((r_back - r_pin) / h);
 
     // To generate a whole circle we would pass a portion of (0, Pi)
     // To generate only a half horizontal circle we can pass (0, Pi/2)
     // The calculated phi is an offset to the half circles needed to smooth
     // the transition from the circle to the robe geometry
 
-    auto&& s1 = sphere(r_back, make_portion(0, PI/2 + phi), detail);
-    auto&& s2 = sphere(r_pin, make_portion(PI/2 + phi, PI), detail);
+    auto &&s1 = sphere(r_back, make_portion(0, PI / 2 + phi), detail);
+    auto &&s2 = sphere(r_pin, make_portion(PI / 2 + phi, PI), detail);
 
-    for(auto& p : s2.points) p.z() += h;
+    for (auto &p : s2.points) p.z() += h;
 
     mesh.merge(s1);
     mesh.merge(s2);
 
-    for(size_t idx1 = s1.points.size() - steps, idx2 = s1.points.size();
-         idx1 < s1.points.size() - 1;
-         idx1++, idx2++)
-    {
+    for (size_t idx1 = s1.points.size() - steps, idx2 = s1.points.size();
+         idx1 < s1.points.size() - 1; idx1++, idx2++) {
         coord_t i1s1 = coord_t(idx1), i1s2 = coord_t(idx2);
         coord_t i2s1 = i1s1 + 1, i2s2 = i1s2 + 1;
 
@@ -214,43 +212,43 @@ Contour3D pinhead(double r_pin, double r_back, double length, size_t steps)
     return mesh;
 }
 
-Contour3D pedestal(const Vec3d &endpt, double baseheight, double radius, size_t steps)
+Contour3D halfcone(double       baseheight,
+                   double       r_bottom,
+                   double       r_top,
+                   const Vec3d &pos,
+                   size_t       steps)
 {
     assert(steps > 0);
 
-    if(baseheight <= 0) return {};
-
-    assert(steps >= 0);
-    auto last = int(steps - 1);
+    if (baseheight <= 0 || steps <= 0) return {};
 
     Contour3D base;
 
-    double a = 2*PI/steps;
-    double z = endpt(Z) + baseheight;
-
-    for(size_t i = 0; i < steps; ++i) {
-        double phi = i*a;
-        double x = endpt(X) + radius * std::cos(phi);
-        double y = endpt(Y) + radius * std::sin(phi);
-        base.points.emplace_back(x, y, z);
+    double a    = 2 * PI / steps;
+    auto   last = int(steps - 1);
+    Vec3d  ep{pos.x(), pos.y(), pos.z() + baseheight};
+    for (size_t i = 0; i < steps; ++i) {
+        double phi = i * a;
+        double x   = pos.x() + r_top * std::cos(phi);
+        double y   = pos.y() + r_top * std::sin(phi);
+        base.points.emplace_back(x, y, ep.z());
     }
 
-    for(size_t i = 0; i < steps; ++i) {
-        double phi = i*a;
-        double x = endpt(X) + radius*std::cos(phi);
-        double y = endpt(Y) + radius*std::sin(phi);
-        base.points.emplace_back(x, y, z - baseheight);
+    for (size_t i = 0; i < steps; ++i) {
+        double phi = i * a;
+        double x   = pos.x() + r_bottom * std::cos(phi);
+        double y   = pos.y() + r_bottom * std::sin(phi);
+        base.points.emplace_back(x, y, pos.z());
     }
 
-    auto ep = endpt; ep(Z) += baseheight;
-    base.points.emplace_back(endpt);
+    base.points.emplace_back(pos);
     base.points.emplace_back(ep);
 
-    auto& indices = base.faces3;
-    auto hcenter = int(base.points.size() - 1);
-    auto lcenter = int(base.points.size() - 2);
-    auto offs = int(steps);
-    for(int i = 0; i < last; ++i) {
+    auto &indices = base.faces3;
+    auto  hcenter = int(base.points.size() - 1);
+    auto  lcenter = int(base.points.size() - 2);
+    auto  offs    = int(steps);
+    for (int i = 0; i < last; ++i) {
         indices.emplace_back(i, i + offs, offs + i + 1);
         indices.emplace_back(i, offs + i + 1, i + 1);
         indices.emplace_back(i, i + 1, hcenter);

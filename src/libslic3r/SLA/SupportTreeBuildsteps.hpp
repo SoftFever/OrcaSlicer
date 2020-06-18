@@ -17,9 +17,7 @@ enum { // For indexing Eigen vectors as v(X), v(Y), v(Z) instead of numbers
     X, Y, Z
 };
 
-inline Vec2d to_vec2(const Vec3d& v3) {
-    return {v3(X), v3(Y)};
-}
+inline Vec2d to_vec2(const Vec3d &v3) { return {v3(X), v3(Y)}; }
 
 inline std::pair<double, double> dir_to_spheric(const Vec3d &n, double norm = 1.)
 {
@@ -46,7 +44,6 @@ inline Vec3d spheric_to_dir(const std::pair<double, double> &v)
 {
     return spheric_to_dir(v.first, v.second);
 }
-
 
 // Give points on a 3D ring with given center, radius and orientation
 // method based on:
@@ -297,8 +294,12 @@ class SupportTreeBuildsteps {
                               const Vec3d &sourcedir,
                               double       radius,
                               long         head_id = ID_UNSET);
-    
-    
+
+    void add_pillar_base(long pid)
+    {
+        m_builder.add_pillar_base(pid, m_cfg.base_height_mm, m_cfg.base_radius_mm);
+    }
+
 public:
     SupportTreeBuildsteps(SupportTreeBuilder & builder, const SupportableMesh &sm);
 

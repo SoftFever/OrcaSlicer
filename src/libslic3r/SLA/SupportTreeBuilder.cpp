@@ -1,3 +1,5 @@
+#define NOMINMAX
+
 #include <libslic3r/SLA/SupportTreeBuilder.hpp>
 #include <libslic3r/SLA/SupportTreeBuildsteps.hpp>
 #include <libslic3r/SLA/SupportTreeMesher.hpp>
@@ -19,76 +21,7 @@ Head::Head(double       r_big_mm,
     , width_mm(length_mm)
     , penetration_mm(penetration)
 {
-//    mesh = pinhead(r_pin_mm, r_back_mm, width_mm, steps);
-    
-    // To simplify further processing, we translate the mesh so that the
-    // last vertex of the pointing sphere (the pinpoint) will be at (0,0,0)
-//    for(auto& p : mesh.points) p.z() -= (fullwidth() - r_back_mm);
 }
-
-//Pillar::Pillar(const Vec3d &endp, double h, double radius, size_t st):
-//    height{h}, r(radius), steps(st), endpt(endp), starts_from_head(false)
-//{
-//    assert(steps > 0);
-
-//    if(height > EPSILON) { // Endpoint is below the starting point
-        
-//        // We just create a bridge geometry with the pillar parameters and
-//        // move the data.
-//        Contour3D body = cylinder(radius, height, st, endp);
-//        mesh.points.swap(body.points);
-//        mesh.faces3.swap(body.faces3);
-//    }
-//}
-
-//Pillar &Pillar::add_base(double baseheight, double radius)
-//{
-//    if(baseheight <= 0) return *this;
-//    if(baseheight > height) baseheight = height;
-    
-//    assert(steps >= 0);
-//    auto last = int(steps - 1);
-    
-//    if(radius < r ) radius = r;
-    
-//    double a = 2*PI/steps;
-//    double z = endpt(Z) + baseheight;
-    
-//    for(size_t i = 0; i < steps; ++i) {
-//        double phi = i*a;
-//        double x = endpt(X) + r*std::cos(phi);
-//        double y = endpt(Y) + r*std::sin(phi);
-//        base.points.emplace_back(x, y, z);
-//    }
-    
-//    for(size_t i = 0; i < steps; ++i) {
-//        double phi = i*a;
-//        double x = endpt(X) + radius*std::cos(phi);
-//        double y = endpt(Y) + radius*std::sin(phi);
-//        base.points.emplace_back(x, y, z - baseheight);
-//    }
-    
-//    auto ep = endpt; ep(Z) += baseheight;
-//    base.points.emplace_back(endpt);
-//    base.points.emplace_back(ep);
-    
-//    auto& indices = base.faces3;
-//    auto hcenter = int(base.points.size() - 1);
-//    auto lcenter = int(base.points.size() - 2);
-//    auto offs = int(steps);
-//    for(int i = 0; i < last; ++i) {
-//        indices.emplace_back(i, i + offs, offs + i + 1);
-//        indices.emplace_back(i, offs + i + 1, i + 1);
-//        indices.emplace_back(i, i + 1, hcenter);
-//        indices.emplace_back(lcenter, offs + i + 1, offs + i);
-//    }
-    
-//    indices.emplace_back(0, last, offs);
-//    indices.emplace_back(last, offs + last, offs);
-//    indices.emplace_back(hcenter, last, 0);
-//    indices.emplace_back(offs, offs + last, lcenter);
-//    return *this;
-//}
 
 Pad::Pad(const TriangleMesh &support_mesh,
          const ExPolygons &  model_contours,
@@ -175,6 +108,18 @@ SupportTreeBuilder &SupportTreeBuilder::operator=(const SupportTreeBuilder &o)
     return *this;
 }
 
+void SupportTreeBuilder::add_pillar_base(long pid, double baseheight, double radius)
+{
+    std::lock_guard<Mutex> lk(m_mutex);
+    assert(pid >= 0 && size_t(pid) < m_pillars.size());
+    Pillar& pll = m_pillars[size_t(pid)];
+    m_pedestals.emplace_back(pll.endpt, std::min(baseheight, pll.height),
+                             std::max(radius, pll.r), pll.r);
+
+    m_pedestals.back().id = m_pedestals.size() - 1;
+    m_meshcache_valid = false;
+}
+
 const TriangleMesh &SupportTreeBuilder::merged_mesh(size_t steps) const
 {
     if (m_meshcache_valid) return m_meshcache;
@@ -192,6 +137,7 @@ const TriangleMesh &SupportTreeBuilder::merged_mesh(size_t steps) const
     }
 
     for (auto &pedest : m_pedestals) {
+        if (ctl().stopcondition()) break;
         merged.merge(get_mesh(pedest, steps));
     }
     
@@ -209,7 +155,12 @@ const TriangleMesh &SupportTreeBuilder::merged_mesh(size_t steps) const
         if (ctl().stopcondition()) break;
         merged.merge(get_mesh(bs, steps));
     }
-    
+
+    for (auto &anch : m_anchors) {
+        if (ctl().stopcondition()) break;
+        merged.merge(get_mesh(anch, steps));
+    }
+
     if (ctl().stopcondition()) {
         // In case of failure we have to return an empty mesh
         m_meshcache = TriangleMesh();

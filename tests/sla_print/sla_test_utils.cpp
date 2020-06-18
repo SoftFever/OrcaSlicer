@@ -157,8 +157,8 @@ void test_supports(const std::string          &obj_filename,
     if (std::abs(supportcfg.object_elevation_mm) < EPSILON)
         allowed_zmin = zmin - 2 * supportcfg.head_back_radius_mm;
     
-    REQUIRE(obb.min.z() >= allowed_zmin);
-    REQUIRE(obb.max.z() <= zmax);
+    REQUIRE(obb.min.z() >= Approx(allowed_zmin));
+    REQUIRE(obb.max.z() <= Approx(zmax));
     
     // Move out the support tree into the byproducts, we can examine it further
     // in various tests.
