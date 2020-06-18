@@ -815,7 +815,7 @@ void Tab::update_visibility()
 
 void Tab::msw_rescale()
 {
-    m_em_unit = wxGetApp().em_unit();
+    m_em_unit = em_unit(m_parent);
 
     m_mode_sizer->msw_rescale();
     m_presets_choice->msw_rescale();
@@ -827,6 +827,8 @@ void Tab::msw_rescale()
         btn->msw_rescale();
     for (const auto bmp : m_scaled_bitmaps)
         bmp->msw_rescale();
+    for (const auto ikon : m_blinking_ikons)
+        ikon.second->msw_rescale();
     for (ScalableBitmap& bmp : m_mode_bitmap_cache)
         bmp.msw_rescale();
 

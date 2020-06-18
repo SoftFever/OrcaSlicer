@@ -295,6 +295,7 @@ void Field::msw_rescale(bool rescale_sidetext)
 {
 	m_Undo_to_sys_btn->msw_rescale();
 	m_Undo_btn->msw_rescale();
+	m_blinking_bmp->msw_rescale();
 
 	// update em_unit value
 	m_em_unit = em_unit(m_parent);

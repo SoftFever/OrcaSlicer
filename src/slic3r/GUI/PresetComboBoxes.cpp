@@ -58,7 +58,7 @@ PresetComboBox::PresetComboBox(wxWindow* parent, Preset::Type preset_type, const
     wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, size, 0, nullptr, wxCB_READONLY),
     m_type(preset_type),
     m_last_selected(wxNOT_FOUND),
-    m_em_unit(wxGetApp().em_unit()),
+    m_em_unit(em_unit(this)),
     m_preset_bundle(wxGetApp().preset_bundle),
     m_bitmap_cache(new BitmapCache)
 {
@@ -99,9 +99,9 @@ PresetComboBox::PresetComboBox(wxWindow* parent, Preset::Type preset_type, const
     default: break;
     }
 
-    m_bitmapCompatible   = ScalableBitmap(nullptr, "flag_green");
-    m_bitmapIncompatible = ScalableBitmap(nullptr, "flag_red");
-    m_bitmapLock         = ScalableBitmap(nullptr, "lock_closed");
+    m_bitmapCompatible   = ScalableBitmap(this, "flag_green");
+    m_bitmapIncompatible = ScalableBitmap(this, "flag_red");
+    m_bitmapLock         = ScalableBitmap(this, "lock_closed");
 
     // parameters for an icon's drawing
     fill_width_height();
@@ -120,7 +120,7 @@ void PresetComboBox::set_label_marker(int item, LabelItemType label_item_type)
 
 void PresetComboBox::msw_rescale()
 {
-    m_em_unit = wxGetApp().em_unit();
+    m_em_unit = em_unit(this);
 
     m_bitmapLock.msw_rescale();
     m_bitmapIncompatible.msw_rescale();
@@ -241,7 +241,7 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
             evt.StopPropagation();
             if (marker == LABEL_ITEM_PHYSICAL_PRINTERS)
             {
-                PhysicalPrinterDialog dlg;
+                PhysicalPrinterDialog dlg(_L("New Physical Printer"), this->m_last_selected);
                 dlg.ShowModal();
                 return;
             }
@@ -360,7 +360,7 @@ PlaterPresetComboBox::~PlaterPresetComboBox()
 void PlaterPresetComboBox::update()
 {
     if (m_type == Preset::TYPE_FILAMENT &&
-        (m_collection->get_edited_preset().printer_technology() == ptSLA ||
+        (m_preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA ||
         m_preset_bundle->filament_presets.size() <= m_extruder_idx) )
         return;
 
@@ -586,13 +586,13 @@ void PlaterPresetComboBox::msw_rescale()
 
 
 // ---------------------------------
-// ***  PlaterPresetComboBox  ***
+// ***  TabPresetComboBox  ***
 // ---------------------------------
 
-TabPresetComboBox::TabPresetComboBox(wxWindow* parent, Preset::Type preset_type) :
+TabPresetComboBox::TabPresetComboBox(wxWindow* parent, Preset::Type preset_type, bool is_from_physical_printer/* = false*/) :
     PresetComboBox(parent, preset_type, wxSize(35 * wxGetApp().em_unit(), -1))
 {
-    Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt) {
+    Bind(wxEVT_COMBOBOX, [this, is_from_physical_printer](wxCommandEvent& evt) {
         // see https://github.com/prusa3d/PrusaSlicer/issues/3889
         // Under OSX: in case of use of a same names written in different case (like "ENDER" and "Ender")
         // m_presets_choice->GetSelection() will return first item, because search in PopupListCtrl is case-insensitive.
@@ -603,9 +603,16 @@ TabPresetComboBox::TabPresetComboBox(wxWindow* parent, Preset::Type preset_type)
         if (marker >= LABEL_ITEM_MARKER && marker < LABEL_ITEM_MAX) {
             this->SetSelection(this->m_last_selected);
             if (marker == LABEL_ITEM_WIZARD_PRINTERS)
-                wxTheApp->CallAfter([]() { wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS); });
+                wxTheApp->CallAfter([this, is_from_physical_printer]() {
+                wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
+                if (is_from_physical_printer)
+                    update();
+            });
         }
-        else if (m_last_selected != selected_item || m_collection->current_is_dirty()) {
+        else if ( is_from_physical_printer) {
+            // do nothing
+        }
+        else if (m_last_selected != selected_item || m_collection->current_is_dirty() ) {
             std::string selected_string = this->GetString(selected_item).ToUTF8().data();
             Tab* tab = wxGetApp().get_tab(this->m_type);
             assert (tab);
@@ -638,7 +645,7 @@ void TabPresetComboBox::update()
             continue;
 
         std::string   bitmap_key = "tab";
-        wxBitmap main_bmp = create_scaled_bitmap(m_type == Preset::TYPE_PRINTER && preset.printer_technology() == ptSLA ? "sla_printer" : m_main_bitmap_name);
+        wxBitmap main_bmp = create_scaled_bitmap(m_type == Preset::TYPE_PRINTER && preset.printer_technology() == ptSLA ? "sla_printer" : m_main_bitmap_name, this);
         if (m_type == Preset::TYPE_PRINTER) {
             bitmap_key += "_printer";
             if (preset.printer_technology() == ptSLA)
@@ -694,8 +701,8 @@ void TabPresetComboBox::update()
         if (bmp == nullptr) {
             // Create the bitmap with color bars.
             std::vector<wxBitmap> bmps;
-            bmps.emplace_back(create_scaled_bitmap(m_main_bitmap_name));
-            bmps.emplace_back(create_scaled_bitmap("edit_uni"));
+            bmps.emplace_back(create_scaled_bitmap(m_main_bitmap_name, this));
+            bmps.emplace_back(create_scaled_bitmap("edit_uni", this));
             bmp = m_bitmap_cache->insert(bitmap_key, bmps);
         }
         set_label_marker(Append(separator(L("Add/Remove printers")), *bmp), LABEL_ITEM_WIZARD_PRINTERS);
@@ -753,8 +760,8 @@ void TabPresetComboBox::update_dirty()
 //------------------------------------------
 
 
-PhysicalPrinterDialog::PhysicalPrinterDialog()
-    : DPIDialog(NULL, wxID_ANY, _L("Search"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+PhysicalPrinterDialog::PhysicalPrinterDialog(const wxString& printer_name, int last_selected_preset)
+    : DPIDialog(NULL, wxID_ANY, _L("PhysicalPrinter"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     SetFont(wxGetApp().normal_font());
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
@@ -762,8 +769,9 @@ PhysicalPrinterDialog::PhysicalPrinterDialog()
     int border  = 10;
     int em      = em_unit();
 
-    printer_text    = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
-    printer_presets = new PlaterPresetComboBox(this, Preset::TYPE_PRINTER);
+    printer_text    = new wxTextCtrl(this, wxID_ANY, printer_name, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+    printer_presets = new TabPresetComboBox(this, Preset::TYPE_PRINTER, true);
+    printer_presets->update();
 
     wxStdDialogButtonSizer* btns = this->CreateStdDialogButtonSizer(wxOK | wxCANCEL);
 

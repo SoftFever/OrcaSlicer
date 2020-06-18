@@ -43,7 +43,6 @@ public:
 	};
 
     void set_label_marker(int item, LabelItemType label_item_type = LABEL_ITEM_MARKER);
-    int  em_unit() const                        { return m_em_unit; }
 
     virtual void update() {};
     virtual void msw_rescale();
@@ -131,13 +130,13 @@ private:
 
 
 // ---------------------------------
-// ***  PlaterPresetComboBox  ***
+// ***  TabPresetComboBox  ***
 // ---------------------------------
 
 class TabPresetComboBox : public PresetComboBox
 {
 public:
-    TabPresetComboBox(wxWindow *parent, Preset::Type preset_type);
+    TabPresetComboBox(wxWindow *parent, Preset::Type preset_type, bool is_from_physical_printer = false);
     ~TabPresetComboBox() {}
     void set_show_incompatible_presets(bool show_incompatible_presets) {
         show_incompatible = show_incompatible_presets;
@@ -165,7 +164,7 @@ class PhysicalPrinterDialog : public DPIDialog
     PresetComboBox* printer_presets;
 
 public:
-    PhysicalPrinterDialog();
+    PhysicalPrinterDialog(const wxString& printer_name, int last_selected_preset);
     ~PhysicalPrinterDialog() {}
 
 protected:
