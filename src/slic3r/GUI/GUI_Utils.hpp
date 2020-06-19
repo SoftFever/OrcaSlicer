@@ -233,14 +233,14 @@ private:
     {
         this->Freeze();
 
-#if ENABLE_LAYOUT_NO_RESTART
+#if ENABLE_LAYOUT_NO_RESTART && wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
         if (m_force_rescale) {
 #endif // ENABLE_LAYOUT_NO_RESTART
             // rescale fonts of all controls
             scale_controls_fonts(this, m_new_font_point_size);
             // rescale current window font
             scale_win_font(this, m_new_font_point_size);
-#if ENABLE_LAYOUT_NO_RESTART
+#if ENABLE_LAYOUT_NO_RESTART && wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
             m_force_rescale = false;
         }
 #endif // ENABLE_LAYOUT_NO_RESTART
