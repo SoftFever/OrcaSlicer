@@ -101,18 +101,22 @@ public:
 
 //        recalc_font();
 
-#if wxVERSION_EQUAL_OR_GREATER_THAN(3, 1, 3)
+#if wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
         this->Bind(wxEVT_DPI_CHANGED, [this](wxDPIChangedEvent& evt) {
             m_scale_factor = (float)evt.GetNewDPI().x / (float)DPI_DEFAULT;
 
-           m_new_font_point_size = get_default_font_for_dpi(evt.GetNewDPI().x).GetPointSize();
+            m_new_font_point_size = get_default_font_for_dpi(evt.GetNewDPI().x).GetPointSize();
 
-           if (!m_can_rescale)
+            if (!m_can_rescale)
                 return;
 
+#if ENABLE_LAYOUT_NO_RESTART
+            if (m_force_rescale || is_new_scale_factor())
+                rescale(wxRect());
+#else
             if (is_new_scale_factor())
                 rescale(wxRect());
-
+#endif // ENABLE_LAYOUT_NO_RESTART
             });
 #else
         this->Bind(EVT_DPI_CHANGED_SLICER, [this](const DpiChangedEvent& evt) {
@@ -123,10 +127,15 @@ public:
             if (!m_can_rescale)
                 return;
 
+#if ENABLE_LAYOUT_NO_RESTART
+            if (m_force_rescale || is_new_scale_factor())
+                rescale(evt.rect);
+#else
             if (is_new_scale_factor())
                 rescale(evt.rect);
+#endif // ENABLE_LAYOUT_NO_RESTART
             });
-#endif // wxMAJOR_VERSION
+#endif // wxVERSION_EQUAL_OR_GREATER_THAN
 
         this->Bind(wxEVT_MOVE_START, [this](wxMoveEvent& event)
         {
@@ -166,6 +175,9 @@ public:
     int     em_unit() const             { return m_em_unit; }
 //    int     font_size() const           { return m_font_size; }
     const wxFont& normal_font() const   { return m_normal_font; }
+#if ENABLE_LAYOUT_NO_RESTART
+    void enable_force_rescale()         { m_force_rescale = true; }
+#endif // ENABLE_LAYOUT_NO_RESTART
 
 protected:
     virtual void on_dpi_changed(const wxRect &suggested_rect) = 0;
@@ -179,6 +191,9 @@ private:
     wxFont m_normal_font;
     float m_prev_scale_factor;
     bool  m_can_rescale{ true };
+#if ENABLE_LAYOUT_NO_RESTART
+    bool m_force_rescale{ false };
+#endif // ENABLE_LAYOUT_NO_RESTART
 
     int   m_new_font_point_size;
 
@@ -218,13 +233,15 @@ private:
     {
         this->Freeze();
 
-#if !wxVERSION_EQUAL_OR_GREATER_THAN(3, 1, 3)
+#if !wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
         // rescale fonts of all controls
         scale_controls_fonts(this, m_new_font_point_size);
         // rescale current window font
         scale_win_font(this, m_new_font_point_size);
-#endif // wxMAJOR_VERSION
-
+#if ENABLE_LAYOUT_NO_RESTART
+        m_force_rescale = false;
+#endif // ENABLE_LAYOUT_NO_RESTART
+#endif // !wxVERSION_EQUAL_OR_GREATER_THAN
 
         // set normal application font as a current window font
         m_normal_font = this->GetFont();

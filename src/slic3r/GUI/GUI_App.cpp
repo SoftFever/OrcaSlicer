@@ -122,7 +122,7 @@ static void register_win32_dpi_event()
         return true;
     });
 }
-#endif // !ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
+#endif // !wxVERSION_EQUAL_OR_GREATER_THAN
 
 static GUID GUID_DEVINTERFACE_HID = { 0x4D1E55B2, 0xF16F, 0x11CF, 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 };
 
@@ -412,7 +412,7 @@ bool GUI_App::on_init_inner()
 #ifdef WIN32
 #if !wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
     register_win32_dpi_event();
-#endif // !ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
+#endif // !wxVERSION_EQUAL_OR_GREATER_THAN
     register_win32_device_notification_event();
 #endif // WIN32
 
@@ -1079,10 +1079,11 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
 #endif // ENABLE_LAYOUT_NO_RESTART
             }
 #if ENABLE_LAYOUT_NO_RESTART
-            if (app_layout_changed)
-            {
+            if (app_layout_changed) {
+                mainframe->Hide();
                 mainframe->update_layout();
                 mainframe->select_tab(0);
+                mainframe->Show();
             }
 #else
             if (recreate_app)

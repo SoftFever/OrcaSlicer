@@ -42,6 +42,37 @@
 namespace Slic3r {
 namespace GUI {
 
+#if ENABLE_LAYOUT_NO_RESTART
+enum class ERescaleTarget
+{
+    Mainframe,
+    SettingsDialog
+};
+
+static void rescale_dialog_after_dpi_change(MainFrame& mainframe, SettingsDialog& dialog, ERescaleTarget target)
+{
+    int mainframe_dpi = get_dpi_for_window(&mainframe);
+    int dialog_dpi = get_dpi_for_window(&dialog);
+    if (mainframe_dpi != dialog_dpi) {
+        if (target == ERescaleTarget::SettingsDialog) {
+            dialog.enable_force_rescale();
+#if wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
+            dialog.GetEventHandler()->AddPendingEvent(wxDPIChangedEvent(wxSize(mainframe_dpi, mainframe_dpi), wxSize(dialog_dpi, dialog_dpi)));
+#else
+            dialog.GetEventHandler()->AddPendingEvent(DpiChangedEvent(EVT_DPI_CHANGED_SLICER, dialog_dpi, dialog.GetRect()));
+#endif // wxVERSION_EQUAL_OR_GREATER_THAN
+        } else {
+#if wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
+            mainframe.GetEventHandler()->AddPendingEvent(wxDPIChangedEvent(wxSize(dialog_dpi, dialog_dpi), wxSize(mainframe_dpi, mainframe_dpi)));
+#else
+            mainframe.enable_force_rescale();
+            mainframe.GetEventHandler()->AddPendingEvent(DpiChangedEvent(EVT_DPI_CHANGED_SLICER, mainframe_dpi, mainframe.GetRect()));
+#endif // wxVERSION_EQUAL_OR_GREATER_THAN
+        }
+    }
+}
+#endif // ENABLE_LAYOUT_NO_RESTART
+
 MainFrame::MainFrame() :
 DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
     m_printhost_queue_dlg(new PrintHostQueueDialog(this))
@@ -259,6 +290,9 @@ void MainFrame::update_layout()
             m_plater_page = nullptr;
         }
 
+        if (m_layout == ESettingsLayout::Dlg)
+            rescale_dialog_after_dpi_change(*this, m_settings_dialog, ERescaleTarget::Mainframe);
+
         clean_sizer(GetSizer());
         clean_sizer(m_settings_dialog.GetSizer());
 
@@ -318,6 +352,9 @@ void MainFrame::update_layout()
         GetSizer()->Add(m_plater, 1, wxEXPAND);
         m_tabpanel->Reparent(&m_settings_dialog);
         m_settings_dialog.GetSizer()->Add(m_tabpanel, 1, wxEXPAND);
+
+        rescale_dialog_after_dpi_change(*this, m_settings_dialog, ERescaleTarget::SettingsDialog);
+
         m_tabpanel->Show();
         m_plater->Show();
         break;
@@ -699,7 +736,7 @@ bool MainFrame::can_reslice() const
     return (m_plater != nullptr) && !m_plater->model().objects.empty();
 }
 
-void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
+void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
 {
 #if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
     wxGetApp().update_fonts(this);
@@ -718,7 +755,7 @@ void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
 
     // update Tabs
 #if ENABLE_LAYOUT_NO_RESTART
-    if (m_layout != ESettingsLayout::Dlg) // Update tabs later, from the SettingsDialog, when the Settings are in the separated dialog
+    if (m_layout != ESettingsLayout::Dlg) // Do not update tabs if the Settings are in the separated dialog
 #else
     if (m_layout != slDlg) // Update tabs later, from the SettingsDialog, when the Settings are in the separated dialog
 #endif // ENABLE_LAYOUT_NO_RESTART
@@ -731,7 +768,7 @@ void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
 
     // Workarounds for correct Window rendering after rescale
 
-    /* Even if Window is maximized during moving, 
+    /* Even if Window is maximized during moving,
      * first of all we should imitate Window resizing. So:
      * 1. cancel maximization, if it was set
      * 2. imitate resizing
@@ -749,6 +786,11 @@ void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
     this->SetSize(sz);
 
     this->Maximize(is_maximized);
+
+#if ENABLE_LAYOUT_NO_RESTART
+    if (m_layout == ESettingsLayout::Dlg)
+        rescale_dialog_after_dpi_change(*this, m_settings_dialog, ERescaleTarget::SettingsDialog);
+#endif // ENABLE_LAYOUT_NO_RESTART
 }
 
 void MainFrame::on_sys_color_changed()
