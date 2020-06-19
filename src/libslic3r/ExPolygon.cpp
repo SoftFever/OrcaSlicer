@@ -404,7 +404,7 @@ void ExPolygon::triangulate_pp(Polygons* polygons) const
         {
             TPPLPoly p;
             p.Init(int(ex->contour.points.size()));
-            //printf(PRINTF_ZU "\n0\n", ex->contour.points.size());
+            //printf("%zu\n0\n", ex->contour.points.size());
             for (const Point &point : ex->contour.points) {
                 size_t i = &point - &ex->contour.points.front();
                 p[i].x = point(0);
@@ -419,7 +419,7 @@ void ExPolygon::triangulate_pp(Polygons* polygons) const
         for (Polygons::const_iterator hole = ex->holes.begin(); hole != ex->holes.end(); ++hole) {
             TPPLPoly p;
             p.Init(hole->points.size());
-            //printf(PRINTF_ZU "\n1\n", hole->points.size());
+            //printf("%zu\n1\n", hole->points.size());
             for (const Point &point : hole->points) {
                 size_t i = &point - &hole->points.front();
                 p[i].x = point(0);

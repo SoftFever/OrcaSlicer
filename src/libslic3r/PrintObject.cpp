@@ -1431,7 +1431,7 @@ void PrintObject::bridge_over_infill()
             }
             
             #ifdef SLIC3R_DEBUG
-            printf("Bridging " PRINTF_ZU " internal areas at layer " PRINTF_ZU "\n", to_bridge.size(), layer->id());
+            printf("Bridging %zu internal areas at layer %zu\n", to_bridge.size(), layer->id());
             #endif
             
             // compute the remaning internal solid surfaces as difference

@@ -106,6 +106,7 @@ wxString file_wildcards(FileType file_type, const std::string &custom_extension)
 static std::string libslic3r_translate_callback(const char *s) { return wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str().data(); }
 
 #ifdef WIN32
+#if !wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
 static void register_win32_dpi_event()
 {
     enum { WM_DPICHANGED_ = 0x02e0 };
@@ -121,13 +122,12 @@ static void register_win32_dpi_event()
         return true;
     });
 }
+#endif // !wxVERSION_EQUAL_OR_GREATER_THAN
 
 static GUID GUID_DEVINTERFACE_HID = { 0x4D1E55B2, 0xF16F, 0x11CF, 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 };
 
 static void register_win32_device_notification_event()
 {
-    enum { WM_DPICHANGED_ = 0x02e0 };
-
     wxWindow::MSWRegisterMessageHandler(WM_DEVICECHANGE, [](wxWindow *win, WXUINT /* nMsg */, WXWPARAM wParam, WXLPARAM lParam) {
         // Some messages are sent to top level windows by default, some messages are sent to only registered windows, and we explictely register on MainFrame only.
         auto main_frame = dynamic_cast<MainFrame*>(win);
@@ -410,7 +410,9 @@ bool GUI_App::on_init_inner()
     }
 
 #ifdef WIN32
+#if !wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
     register_win32_dpi_event();
+#endif // !wxVERSION_EQUAL_OR_GREATER_THAN
     register_win32_device_notification_event();
 #endif // WIN32
 
@@ -1073,17 +1075,34 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
             break;
         case ConfigMenuPreferences:
         {
+#if ENABLE_LAYOUT_NO_RESTART
+            bool app_layout_changed = false;
+#else
             bool recreate_app = false;
+#endif // ENABLE_LAYOUT_NO_RESTART
             {
                 // the dialog needs to be destroyed before the call to recreate_GUI()
                 // or sometimes the application crashes into wxDialogBase() destructor
                 // so we put it into an inner scope
                 PreferencesDialog dlg(mainframe);
                 dlg.ShowModal();
+#if ENABLE_LAYOUT_NO_RESTART
+                app_layout_changed = dlg.settings_layout_changed();
+#else
                 recreate_app = dlg.settings_layout_changed();
+#endif // ENABLE_LAYOUT_NO_RESTART
             }
+#if ENABLE_LAYOUT_NO_RESTART
+            if (app_layout_changed) {
+                mainframe->Hide();
+                mainframe->update_layout();
+                mainframe->select_tab(0);
+                mainframe->Show();
+            }
+#else
             if (recreate_app)
                 recreate_GUI(_L("Changing of the settings layout") + dots);
+#endif // ENABLE_LAYOUT_NO_RESTART
             break;
         }
         case ConfigMenuLanguage:

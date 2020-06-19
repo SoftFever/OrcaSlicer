@@ -393,7 +393,7 @@ GCodeSender::on_read(const boost::system::error_code& error,
                 }
                 this->send();
             } else {
-                printf("Cannot resend " PRINTF_ZU " (oldest we have is " PRINTF_ZU ")\n", toresend, this->sent - this->last_sent.size());
+                printf("Cannot resend %zu (oldest we have is %zu)\n", toresend, this->sent - this->last_sent.size());
             }
         } else if (boost::starts_with(line, "wait")) {
             // ignore

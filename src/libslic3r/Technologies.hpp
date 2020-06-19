@@ -51,6 +51,12 @@
 // Enable error logging for OpenGL calls when SLIC3R_LOGLEVEL >= 5
 #define ENABLE_OPENGL_ERROR_LOGGING (1 && ENABLE_2_3_0_ALPHA1)
 
+// Enable built-in DPI changed event handler of wxWidgets 3.1.3
+#define ENABLE_WX_3_1_3_DPI_CHANGED_EVENT (1 && ENABLE_2_3_0_ALPHA1)
+
+// Enable changing application layout without the need to restart
+#define ENABLE_LAYOUT_NO_RESTART (1 && ENABLE_2_3_0_ALPHA1)
+
 // Enable G-Code viewer
 #define ENABLE_GCODE_VIEWER (1 && ENABLE_2_3_0_ALPHA1)
 #define ENABLE_GCODE_VIEWER_STATISTICS (0 && ENABLE_GCODE_VIEWER)
