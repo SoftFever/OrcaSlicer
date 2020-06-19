@@ -28,20 +28,6 @@
 namespace Slic3r {
 namespace sla {
 
-// Compile time configuration value definitions:
-
-// The max Z angle for a normal at which it will get completely ignored.
-const double SupportConfig::normal_cutoff_angle = 150.0 * M_PI / 180.0;
-
-// The shortest distance of any support structure from the model surface
-const double SupportConfig::safety_distance_mm = 0.5;
-
-const double SupportConfig::max_solo_pillar_height_mm = 15.0;
-const double SupportConfig::max_dual_pillar_height_mm = 35.0;
-const double   SupportConfig::optimizer_rel_score_diff = 1e-6;
-const unsigned SupportConfig::optimizer_max_iterations = 1000;
-const unsigned SupportConfig::pillar_cascade_neighbors = 3;
-
 void SupportTree::retrieve_full_mesh(TriangleMesh &outmesh) const {
     outmesh.merge(retrieve_mesh(MeshType::Support));
     outmesh.merge(retrieve_mesh(MeshType::Pad));

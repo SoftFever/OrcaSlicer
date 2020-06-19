@@ -94,16 +94,16 @@ struct SupportConfig
     // /////////////////////////////////////////////////////////////////////////
 
     // The max Z angle for a normal at which it will get completely ignored.
-    static const double normal_cutoff_angle;
+    static const double constexpr normal_cutoff_angle = 150.0 * M_PI / 180.0;
 
     // The shortest distance of any support structure from the model surface
-    static const double safety_distance_mm;
+    static const double constexpr safety_distance_mm = 0.5;
 
-    static const double max_solo_pillar_height_mm;
-    static const double max_dual_pillar_height_mm;
-    static const double   optimizer_rel_score_diff;
-    static const unsigned optimizer_max_iterations;
-    static const unsigned pillar_cascade_neighbors;
+    static const double constexpr max_solo_pillar_height_mm = 15.0;
+    static const double constexpr max_dual_pillar_height_mm = 35.0;
+    static const double constexpr optimizer_rel_score_diff = 1e-6;
+    static const unsigned constexpr optimizer_max_iterations = 1000;
+    static const unsigned constexpr pillar_cascade_neighbors = 3;
     
 };
 
