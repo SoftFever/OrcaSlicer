@@ -293,7 +293,7 @@ class SupportTreeBuildsteps {
     bool create_ground_pillar(const Vec3d &jp,
                               const Vec3d &sourcedir,
                               double       radius,
-                              long         head_id = ID_UNSET);
+                              long         head_id = SupportTreeNode::ID_UNSET);
 
     void add_pillar_base(long pid)
     {

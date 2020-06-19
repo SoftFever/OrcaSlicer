@@ -58,12 +58,17 @@ template<class Vec> double distance(const Vec& pp1, const Vec& pp2) {
     return distance(p);
 }
 
-const constexpr long ID_UNSET = -1;
-
 const Vec3d DOWN = {0.0, 0.0, -1.0};
 
+struct SupportTreeNode
+{
+    static const constexpr long ID_UNSET = -1;
+
+    long id = ID_UNSET; // For identification withing a tree.
+};
+
 // A pinhead originating from a support point
-struct Head {
+struct Head: public SupportTreeNode {
     Vec3d dir = DOWN;
     Vec3d pos = {0, 0, 0};
     
@@ -71,10 +76,7 @@ struct Head {
     double r_pin_mm = 0.5;
     double width_mm = 2;
     double penetration_mm = 0.5;
-    
-    // For identification purposes. This will be used as the index into the
-    // container holding the head structures. See SLASupportTree::Impl
-    long id = ID_UNSET;
+
     
     // If there is a pillar connecting to this head, then the id will be set.
     long pillar_id = ID_UNSET;
@@ -115,20 +117,16 @@ struct Head {
 };
 
 // A junction connecting bridges and pillars
-struct Junction {
+struct Junction: public SupportTreeNode {
     double r = 1;
     Vec3d pos;
-    
-    long id = ID_UNSET;
 
     Junction(const Vec3d &tr, double r_mm) : r(r_mm), pos(tr) {}
 };
 
-struct Pillar {
+struct Pillar: public SupportTreeNode {
     double height, r;
     Vec3d endpt;
-    
-    long id = ID_UNSET;
     
     // If the pillar connects to a head, this is the id of that head
     bool starts_from_head = true; // Could start from a junction as well
@@ -152,10 +150,9 @@ struct Pillar {
 };
 
 // A base for pillars or bridges that end on the ground
-struct Pedestal {
+struct Pedestal: public SupportTreeNode {
     Vec3d pos;
     double height, r_bottom, r_top;
-    long id = ID_UNSET;
 
     Pedestal(const Vec3d &p, double h, double rbottom, double rtop)
         : pos{p}, height{h}, r_bottom{rbottom}, r_top{rtop}
@@ -167,9 +164,8 @@ struct Pedestal {
 struct Anchor: public Head { using Head::Head; };
 
 // A Bridge between two pillars (with junction endpoints)
-struct Bridge {
+struct Bridge: public SupportTreeNode {
     double r = 0.8;
-    long id = ID_UNSET;
     Vec3d startp = Vec3d::Zero(), endp = Vec3d::Zero();
     
     Bridge(const Vec3d &j1,

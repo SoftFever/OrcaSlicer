@@ -570,7 +570,7 @@ bool SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
                                                  long         head_id)
 {
     double sd           = m_cfg.pillar_base_safety_distance_mm;
-    long   pillar_id    = ID_UNSET;
+    long   pillar_id    = SupportTreeNode::ID_UNSET;
     bool   can_add_base = radius >= m_cfg.head_back_radius_mm;
     double base_r       = can_add_base ? m_cfg.base_radius_mm : 0.;
     double gndlvl       = m_builder.ground_level;
@@ -1029,7 +1029,7 @@ bool SupportTreeBuildsteps::connect_to_ground(Head &head)
 
 bool SupportTreeBuildsteps::connect_to_model_body(Head &head)
 {
-    if (head.id <= ID_UNSET) return false;
+    if (head.id <= SupportTreeNode::ID_UNSET) return false;
     
     auto it = m_head_to_ground_scans.find(unsigned(head.id));
     if (it == m_head_to_ground_scans.end()) return false;
@@ -1084,7 +1084,7 @@ bool SupportTreeBuildsteps::search_pillar_and_connect(const Head &source)
     // We also need to remove elements progressively from the copied index.
     PointIndex spindex = m_pillar_index.guarded_clone();
 
-    long nearest_id = ID_UNSET;
+    long nearest_id = SupportTreeNode::ID_UNSET;
 
     Vec3d querypt = source.junction_point();
 
@@ -1105,7 +1105,7 @@ bool SupportTreeBuildsteps::search_pillar_and_connect(const Head &source)
             if (size_t(nearest_id) < m_builder.pillarcount()) {
                 if(!connect_to_nearpillar(source, nearest_id) ||
                     m_builder.pillar(nearest_id).r < source.r_back_mm) {
-                    nearest_id = ID_UNSET;    // continue searching
+                    nearest_id = SupportTreeNode::ID_UNSET;    // continue searching
                     spindex.remove(ne);       // without the current pillar
                 }
             }

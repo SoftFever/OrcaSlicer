@@ -175,8 +175,8 @@ void check_support_tree_integrity(const sla::SupportTreeBuilder &stree,
     double H2   = cfg.max_dual_pillar_height_mm;
     
     for (const sla::Head &head : stree.heads()) {
-        REQUIRE((!head.is_valid() || head.pillar_id != sla::ID_UNSET ||
-                head.bridge_id != sla::ID_UNSET));
+        REQUIRE((!head.is_valid() || head.pillar_id != sla::SupportTreeNode::ID_UNSET ||
+                head.bridge_id != sla::SupportTreeNode::ID_UNSET));
     }
     
     for (const sla::Pillar &pillar : stree.pillars()) {
