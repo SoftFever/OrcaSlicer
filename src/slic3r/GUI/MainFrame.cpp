@@ -323,9 +323,16 @@ void MainFrame::update_layout()
         Layout();
     };
 
+#if ENABLE_GCODE_VIEWER_AS_STATE
+    ESettingsLayout layout = (m_mode == EMode::GCodeViewer) ? ESettingsLayout::GCodeViewer :
+        (wxGetApp().app_config->get("old_settings_layout_mode") == "1" ? ESettingsLayout::Old :
+         wxGetApp().app_config->get("new_settings_layout_mode") == "1" ? ESettingsLayout::New :
+         wxGetApp().app_config->get("dlg_settings_layout_mode") == "1" ? ESettingsLayout::Dlg : ESettingsLayout::Old);
+#else
     ESettingsLayout layout = wxGetApp().app_config->get("old_settings_layout_mode") == "1" ? ESettingsLayout::Old :
         wxGetApp().app_config->get("new_settings_layout_mode") == "1" ? ESettingsLayout::New :
         wxGetApp().app_config->get("dlg_settings_layout_mode") == "1" ? ESettingsLayout::Dlg : ESettingsLayout::Old;
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
 
     if (m_layout == layout)
         return;
@@ -377,6 +384,14 @@ void MainFrame::update_layout()
         m_plater->Show();
         break;
     }
+#if ENABLE_GCODE_VIEWER_AS_STATE
+    case ESettingsLayout::GCodeViewer:
+    {
+        GetSizer()->Add(m_plater, 1, wxEXPAND);
+        m_plater->Show();
+        break;
+    }
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
     }
 
 //#ifdef __APPLE__
@@ -1082,15 +1097,16 @@ void MainFrame::init_menubar()
 #endif
         m_menu_item_reslice_now = append_menu_item(fileMenu, wxID_ANY, _L("(Re)Slice No&w") + "\tCtrl+R", _L("Start new slicing process"),
             [this](wxCommandEvent&) { reslice_now(); }, "re_slice", nullptr,
-            [this](){return m_plater != nullptr && can_reslice(); }, this);
+            [this]() { return m_plater != nullptr && can_reslice(); }, this);
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_ANY, _L("&Repair STL file") + dots, _L("Automatically repair an STL file"),
             [this](wxCommandEvent&) { repair_stl(); }, "wrench", nullptr,
-            [this]() {return true; }, this);
+            [this]() { return true; }, this);
 #if ENABLE_GCODE_VIEWER_AS_STATE
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_ANY, _L("&G-code preview"), _L("Switch to G-code preview mode"),
-            [this](wxCommandEvent&) { set_mode(EMode::GCodeViewer); });
+            [this](wxCommandEvent&) { set_mode(EMode::GCodeViewer); }, "", nullptr,
+            [this]() { return m_plater != nullptr && m_plater->printer_technology() != ptSLA; }, this);
 #endif // ENABLE_GCODE_VIEWER_AS_STATE
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_EXIT, _L("&Quit"), wxString::Format(_L("Quit %s"), SLIC3R_APP_NAME),
@@ -1381,15 +1397,29 @@ void MainFrame::init_gcodeviewer_menubar()
 
 void MainFrame::set_mode(EMode mode)
 {
+    if (m_mode == mode)
+        return;
+
+    wxBusyCursor busy;
+
     m_mode = mode;
     switch (m_mode)
     {
     default:
     case EMode::Editor:
     {
+#if ENABLE_LAYOUT_NO_RESTART
+        update_layout();
+        select_tab(0);
+#endif // ENABLE_LAYOUT_NO_RESTART
+
         m_plater->reset();
 
         m_plater->Freeze();
+
+        // reinitialize undo/redo stack
+        m_plater->clear_undo_redo_stack_main();
+        m_plater->take_snapshot(_L("New Project"));
 
         // switch view
         m_plater->select_view_3D("3D");
@@ -1421,6 +1451,10 @@ void MainFrame::set_mode(EMode mode)
     }
     case EMode::GCodeViewer:
     {
+#if ENABLE_LAYOUT_NO_RESTART
+        update_layout();
+#endif // ENABLE_LAYOUT_NO_RESTART
+
         m_plater->reset();
         m_plater->reset_last_loaded_gcode();
 

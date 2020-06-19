@@ -138,6 +138,9 @@ class MainFrame : public DPIFrame
         Old,
         New,
         Dlg,
+#if ENABLE_GCODE_VIEWER_AS_STATE
+        GCodeViewer
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
     };
     
     ESettingsLayout m_layout{ ESettingsLayout::Unknown };

@@ -694,7 +694,11 @@ void Bed3D::render_default(bool bottom) const
         {
             // draw background
             glsafe(::glDepthMask(GL_FALSE));
+#if ENABLE_LAYOUT_NO_RESTART
+            glsafe(::glColor4fv(m_model_color.data()));
+#else
             glsafe(::glColor4f(0.35f, 0.35f, 0.35f, 0.4f));
+#endif // ENABLE_LAYOUT_NO_RESTART
             glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
             glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_vertices_data()));
             glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));
@@ -702,11 +706,23 @@ void Bed3D::render_default(bool bottom) const
         }
 
         // draw grid
+#if ENABLE_LAYOUT_NO_RESTART
+        glsafe(::glLineWidth(1.5f * m_scale_factor));
+#else
         glsafe(::glLineWidth(3.0f * m_scale_factor));
+#endif // ENABLE_LAYOUT_NO_RESTART
         if (has_model && !bottom)
+#if ENABLE_LAYOUT_NO_RESTART
+            glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 1.0f));
+#else
             glsafe(::glColor4f(0.75f, 0.75f, 0.75f, 1.0f));
+#endif // ENABLE_LAYOUT_NO_RESTART
         else
+#if ENABLE_LAYOUT_NO_RESTART
+            glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 0.6f));
+#else
             glsafe(::glColor4f(0.2f, 0.2f, 0.2f, 0.4f));
+#endif //ENABLE_LAYOUT_NO_RESTART
         glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_gridlines.get_vertices_data()));
         glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_gridlines.get_vertices_count()));
 
