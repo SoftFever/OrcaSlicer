@@ -24,16 +24,18 @@ class ClippingPlane;
 // to recursively subdivide the triangles and make the selection finer.
 class TriangleSelector {
 public:
+    void set_edge_limit(float edge_limit) { m_edge_limit_sqr = std::pow(edge_limit, 2.f); }
     void render() const;
     // Create new object on a TriangleMesh. The referenced mesh must
     // stay valid, a ptr to it is saved and used.
     explicit TriangleSelector(const TriangleMesh& mesh);
 
     // Select all triangles inside the circle, subdivide where needed.
-    void select_patch(const Vec3f& hit, // point where to start
-                      int facet_start,    // facet that point belongs to
-                      const Vec3f& dir, // direction of the ray
-                      float radius_sqr, // squared radius of the cursor
+    void select_patch(const Vec3f& hit,    // point where to start
+                      int facet_start,     // facet that point belongs to
+                      const Vec3f& source, // camera position (mesh coords)
+                      const Vec3f& dir,    // direction of the ray (mesh coords)
+                      float radius_sqr,    // squared radius of the cursor
                       FacetSupportType new_state);   // enforcer or blocker?
 
     void unselect_all();
@@ -43,55 +45,52 @@ public:
     void garbage_collect();
 
 private:
-    // A struct to hold information about how a triangle was divided.
-    struct DivisionNode {
-        DivisionNode();
-        // Index of triangle this describes.
+    // Triangle and info about how it's split.
+    struct Triangle {
+    public:
+        Triangle(int a, int b, int c)
+            : verts_idxs{stl_triangle_vertex_indices(a, b, c)},
+              division_type{0}
+        {}
+        stl_triangle_vertex_indices verts_idxs;
+
+        // Is this triangle valid or marked to remove?
         bool valid{true};
 
         // Index of parent triangle (-1: original)
         int parent{-1};
-
-        // Bitmask encoding which sides are split.
-        int8_t division_type;
-        // bits 0 and 1 : 00 - no division
-        //                01 - one-edge split
-        //                10 - two-edge split
-        //                11 - three-edge split
-        // bits 2 and 3 : decimal 0, 1 or 2 identifying the special edge (one that
-        // splits in one-edge split or one that stays in two-edge split).
 
         // Children triangles (0 = no child)
         std::array<int, 4> children;
 
         // Set the division type.
         void set_division(int sides_to_split, int special_side_idx = -1);
-        void set_state(FacetSupportType state);
 
-        // Helpers that decode the division_type bitmask.
+        // Get/set current state.
+        void set_state(FacetSupportType state);
+        FacetSupportType get_state() const;
+
+        // Get info on how it's split.
+        bool is_split() const { return number_of_split_sides() != 0; }
         int number_of_split_sides() const { return division_type & 0b11; }
         int side_to_keep() const;
         int side_to_split() const;
 
-        FacetSupportType get_state() const;
-    };
-
-    // Triangle and pointer to how it's divided (nullptr = not divided).
-    // The ptr is nullptr for all new triangles, it is only valid for
-    // the original (undivided) triangles.
-    struct Triangle {
-        Triangle(int a, int b, int c)
-            : verts_idxs{stl_triangle_vertex_indices(a, b, c)},
-              div_info{std::make_unique<DivisionNode>()}
-        {}
-        stl_triangle_vertex_indices verts_idxs;
-        std::unique_ptr<DivisionNode> div_info;
+    private:
+        // Bitmask encoding which sides are split.
+        int8_t division_type;
+        // bits 0, 1 : decimal 0, 1, 2 or 3 (how many sides are split)
+        // bits 2, 3 (non-leaf): decimal 0, 1 or 2 identifying the special edge
+        //   (one that splits in one-edge split or one that stays in two-edge split).
+        // bits 2, 3 (leaf): FacetSupportType value
     };
 
     // Lists of vertices and triangles, both original and new
     std::vector<stl_vertex> m_vertices;
     std::vector<Triangle> m_triangles;
     const TriangleMesh* m_mesh;
+
+    float m_edge_limit_sqr = 1.f;
 
     // Number of original vertices and triangles.
     int m_orig_size_vertices;
@@ -104,6 +103,7 @@ private:
     // Caches for cursor position, radius and direction.
     struct Cursor {
         Vec3f center;
+        Vec3f source;
         Vec3f dir;
         float radius_sqr;
     };
@@ -111,8 +111,7 @@ private:
     Cursor m_cursor;
 
     // Private functions:
-    void select_triangle(int facet_idx, FacetSupportType type,
-                         int num_of_inside_vertices = -1,
+    bool select_triangle(int facet_idx, FacetSupportType type,
                          bool cursor_inside = false);
 
     bool is_point_inside_cursor(const Vec3f& point) const;
@@ -125,7 +124,8 @@ private:
 
     bool split_triangle(int facet_idx);
 
-    void remove_needless(int child_facet);
+    void remove_if_needless(int child_facet);
+    bool is_pointer_in_triangle(int facet_idx) const;
 };
 
 
