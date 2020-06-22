@@ -1105,7 +1105,10 @@ void MainFrame::init_menubar()
 #if ENABLE_GCODE_VIEWER_AS_STATE
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_ANY, _L("&G-code preview"), _L("Switch to G-code preview mode"),
-            [this](wxCommandEvent&) { set_mode(EMode::GCodeViewer); }, "", nullptr,
+            [this](wxCommandEvent&) {
+                if (m_plater->model().objects.empty() || wxMessageDialog((wxWindow*)this, _L("Switching to G-code preview mode will remove all objects, continue?"), wxString(SLIC3R_APP_NAME) + " - " + _L("Switch to G-code preview mode"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES)
+                    set_mode(EMode::GCodeViewer);
+            }, "", nullptr,
             [this]() { return m_plater != nullptr && m_plater->printer_technology() != ptSLA; }, this);
 #endif // ENABLE_GCODE_VIEWER_AS_STATE
         fileMenu->AppendSeparator();
