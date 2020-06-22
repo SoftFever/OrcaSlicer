@@ -7110,8 +7110,18 @@ void GLCanvas3D::_show_warning_texture_if_needed(WarningTexture::Warning warning
         show = _is_any_volume_outside();
     else
     {
-        BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
-        show = (test_volume.radius() > 0.0) ? !test_volume.contains(m_gcode_viewer.get_bounding_box()) : false;
+#if ENABLE_GCODE_VIEWER_AS_STATE
+        if (wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer)
+        {
+            BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
+            const BoundingBoxf3& paths_volume = m_gcode_viewer.get_bounding_box();
+            if (test_volume.radius() > 0.0 && paths_volume.radius() > 0.0)
+                show = !test_volume.contains(paths_volume);
+        }
+#else
+            BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
+            show = (test_volume.radius() > 0.0) ? !test_volume.contains(m_gcode_viewer.get_bounding_box()) : false;
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
     }
     _set_warning_texture(warning, show);
 #else
