@@ -510,11 +510,9 @@ void Preview::reload_print(bool keep_volumes)
         !keep_volumes)
     {
         m_canvas->reset_volumes();
-#if ENABLE_GCODE_VIEWER
-        m_canvas->reset_gcode_toolpaths();
-#else
+#if !ENABLE_GCODE_VIEWER
         m_canvas->reset_legend_texture();
-#endif // ENABLE_GCODE_VIEWER
+#endif // !ENABLE_GCODE_VIEWER
         m_loaded = false;
 #ifdef __linux__
         m_volumes_cleanup_required = false;

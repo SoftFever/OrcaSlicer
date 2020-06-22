@@ -2861,10 +2861,20 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         this->sidebar->show_sliced_info_sizer(false);
         // Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
         // Otherwise they will be just refreshed.
+#if ENABLE_GCODE_VIEWER
+        if (this->preview != nullptr)
+        {
+            // If the preview is not visible, the following line just invalidates the preview,
+            // but the G-code paths or SLA preview are calculated first once the preview is made visible.
+            this->preview->get_canvas3d()->reset_gcode_toolpaths();
+            this->preview->reload_print();
+        }
+#else
         if (this->preview != nullptr)
             // If the preview is not visible, the following line just invalidates the preview,
             // but the G-code paths or SLA preview are calculated first once the preview is made visible.
             this->preview->reload_print();
+#endif // ENABLE_GCODE_VIEWER
         // In FDM mode, we need to reload the 3D scene because of the wipe tower preview box.
         // In SLA mode, we need to reload the 3D scene every time to show the support structures.
         if (this->printer_technology == ptSLA || (this->printer_technology == ptFFF && this->config->opt_bool("wipe_tower")))
