@@ -186,7 +186,7 @@ Preview(wxWindow* parent, Model* model, DynamicPrintConfig* config,
     void edit_double_slider(wxKeyEvent& evt);
 #endif // ENABLE_GCODE_VIEWER
 
-    void update_view_type(bool slice_completed);
+    void update_view_type(bool keep_volumes);
 
     bool is_loaded() const { return m_loaded; }
 

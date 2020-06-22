@@ -510,9 +510,11 @@ void Preview::reload_print(bool keep_volumes)
         !keep_volumes)
     {
         m_canvas->reset_volumes();
-#if !ENABLE_GCODE_VIEWER
+#if ENABLE_GCODE_VIEWER
+        m_canvas->reset_gcode_toolpaths();
+#else
         m_canvas->reset_legend_texture();
-#endif // !ENABLE_GCODE_VIEWER
+#endif // ENABLE_GCODE_VIEWER
         m_loaded = false;
 #ifdef __linux__
         m_volumes_cleanup_required = false;
@@ -761,7 +763,7 @@ void Preview::on_checkbox_legend(wxCommandEvent& evt)
 }
 #endif // ENABLE_GCODE_VIEWER
 
-void Preview::update_view_type(bool slice_completed)
+void Preview::update_view_type(bool keep_volumes)
 {
     const DynamicPrintConfig& config = wxGetApp().preset_bundle->project_config;
 
@@ -785,7 +787,11 @@ void Preview::update_view_type(bool slice_completed)
         m_preferred_color_mode = "feature";
     }
 
+#if ENABLE_GCODE_VIEWER
+    reload_print(keep_volumes);
+#else
     reload_print();
+#endif // ENABLE_GCODE_VIEWER
 }
 
 #if ENABLE_GCODE_VIEWER

@@ -5092,10 +5092,13 @@ void Plater::reslice()
 
     if (clean_gcode_toolpaths)
         reset_gcode_toolpaths();
-#endif // ENABLE_GCODE_VIEWER
 
     // update type of preview
+    p->preview->update_view_type(!clean_gcode_toolpaths);
+#else
+    // update type of preview
     p->preview->update_view_type(true);
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void Plater::reslice_SLA_supports(const ModelObject &object, bool postpone_error_messages)
