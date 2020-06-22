@@ -282,7 +282,10 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
     reset();
 
     load_toolpaths(gcode_result);
-    load_shells(print, initialized);
+#if ENABLE_GCODE_VIEWER_AS_STATE
+    if (wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer)
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
+        load_shells(print, initialized);
 
 #if ENABLE_GCODE_VIEWER_AS_STATE
     if (wxGetApp().mainframe->get_mode() == MainFrame::EMode::GCodeViewer) {
@@ -493,21 +496,21 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         return;
 
     // vertex data / bounding box -> extract from result
-        std::vector<float> vertices_data(m_vertices.vertices_count * 3);
-        for (size_t i = 0; i < m_vertices.vertices_count; ++i) {
-            const GCodeProcessor::MoveVertex& move = gcode_result.moves[i];
+    std::vector<float> vertices_data(m_vertices.vertices_count * 3);
+    for (size_t i = 0; i < m_vertices.vertices_count; ++i) {
+        const GCodeProcessor::MoveVertex& move = gcode_result.moves[i];
 #if ENABLE_GCODE_VIEWER_AS_STATE
-            if (wxGetApp().mainframe->get_mode() == MainFrame::EMode::GCodeViewer)
+        if (wxGetApp().mainframe->get_mode() == MainFrame::EMode::GCodeViewer)
+            m_bounding_box.merge(move.position.cast<double>());
+        else {
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
+            if (move.type == GCodeProcessor::EMoveType::Extrude && move.width != 0.0f && move.height != 0.0f)
                 m_bounding_box.merge(move.position.cast<double>());
-            else {
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
-                if (move.type == GCodeProcessor::EMoveType::Extrude && move.width != 0.0f && move.height != 0.0f)
-                    m_bounding_box.merge(move.position.cast<double>());
 #if ENABLE_GCODE_VIEWER_AS_STATE
-            }
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
-            ::memcpy(static_cast<void*>(&vertices_data[i * 3]), static_cast<const void*>(move.position.data()), 3 * sizeof(float));
         }
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
+        ::memcpy(static_cast<void*>(&vertices_data[i * 3]), static_cast<const void*>(move.position.data()), 3 * sizeof(float));
+    }
 
     m_bounding_box.merge(m_bounding_box.max + m_sequential_view.marker.get_bounding_box().max[2] * Vec3d::UnitZ());
 
@@ -683,6 +686,18 @@ void GCodeViewer::load_shells(const Print& print, bool initialized)
                 !print.is_step_done(psWipeTower), brim_width, initialized);
         }
     }
+
+    // remove modifiers
+    while (true) {
+        GLVolumePtrs::iterator it = std::find_if(m_shells.volumes.volumes.begin(), m_shells.volumes.volumes.end(), [](GLVolume* volume) { return volume->is_modifier; });
+        if (it != m_shells.volumes.volumes.end())
+        {
+            delete (*it);
+            m_shells.volumes.volumes.erase(it);
+        }
+        else
+            break;
+    } 
 
     for (GLVolume* volume : m_shells.volumes.volumes)
     {
