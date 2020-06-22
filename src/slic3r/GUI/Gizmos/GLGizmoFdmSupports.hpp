@@ -113,19 +113,14 @@ private:
     // Private functions:
     bool select_triangle(int facet_idx, FacetSupportType type,
                          bool cursor_inside = false);
-
     bool is_point_inside_cursor(const Vec3f& point) const;
-
     int vertices_inside(int facet_idx) const;
-
     bool faces_camera(int facet) const;
-
     void undivide_triangle(int facet_idx);
-
     bool split_triangle(int facet_idx);
-
     void remove_if_needless(int child_facet);
     bool is_pointer_in_triangle(int facet_idx) const;
+    bool is_edge_inside_cursor(int facet_idx) const;
 };
 
 

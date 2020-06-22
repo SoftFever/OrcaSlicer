@@ -859,6 +859,7 @@ void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
                                     float radius_sqr, FacetSupportType new_state)
 {
     assert(facet_start < m_orig_size_indices);
+    assert(is_approx(dir.norm(), 1.f));
 
     // Save current cursor center, squared radius and camera direction,
     // so we don't have to pass it around.
@@ -892,7 +893,6 @@ void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
 // outside the cursor.
 bool TriangleSelector::select_triangle(int facet_idx, FacetSupportType type, bool cursor_inside)
 {
-    bool out = false;
     assert(facet_idx < int(m_triangles.size()));
 
     Triangle& tr = m_triangles[facet_idx];
@@ -903,17 +903,18 @@ bool TriangleSelector::select_triangle(int facet_idx, FacetSupportType type, boo
 
     int num_of_inside_vertices = vertices_inside(facet_idx);
 
-    if (num_of_inside_vertices == 0 && ! cursor_inside)
-        return out; // FIXME: just an edge can be inside
+    if (num_of_inside_vertices == 0
+     && ! cursor_inside
+     && ! is_edge_inside_cursor(facet_idx))
+        return false;
 
-    if (num_of_inside_vertices == 3) {
+    if (vertices_inside(facet_idx) == 3) {
         // dump any subdivision and select whole triangle
         undivide_triangle(facet_idx);
         tr.set_state(type);
     } else {
         // the triangle is partially inside, let's recursively divide it
         // (if not already) and try selecting its children.
-
 
         if (! tr.is_split() && tr.get_state() == type) {
             // This is leaf triangle that is already of correct type as a whole.
@@ -1065,9 +1066,8 @@ bool TriangleSelector::faces_camera(int facet) const
 {
     assert(facet < m_orig_size_indices);
     // The normal is cached in mesh->stl, use it.
-    return (m_mesh->stl.facet_start[facet].normal.dot(m_cursor.dir) > 0.);
+    return (m_mesh->stl.facet_start[facet].normal.dot(m_cursor.dir) < 0.);
 }
-
 
 
 // How many vertices of a triangle are inside the circle?
@@ -1082,11 +1082,27 @@ int TriangleSelector::vertices_inside(int facet_idx) const
 }
 
 
-// Is mouse pointer inside a triangle?
-/*bool TriangleSelector::is_pointer_inside_triangle(int facet_idx) const
+// Is edge inside cursor?
+bool TriangleSelector::is_edge_inside_cursor(int facet_idx) const
 {
+    Vec3f pts[3];
+    for (int i=0; i<3; ++i)
+        pts[i] = m_vertices[m_triangles[facet_idx].verts_idxs[i]];
 
-}*/
+    const Vec3f& p = m_cursor.center;
+
+    for (int side = 0; side < 3; ++side) {
+        const Vec3f& a = pts[side];
+        const Vec3f& b = pts[side<2 ? side+1 : 0];
+        Vec3f s = (b-a).normalized();
+        float t = (p-a).dot(s);
+        Vec3f vector = a+t*s - p;
+        float dist_sqr = vector.squaredNorm();
+        if (dist_sqr < m_cursor.radius_sqr && t>=0.f && t<=(b-a).norm())
+            return true;
+    }
+    return false;
+}
 
 
 
