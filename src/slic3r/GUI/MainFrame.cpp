@@ -1414,6 +1414,7 @@ void MainFrame::set_mode(EMode mode)
 #endif // ENABLE_LAYOUT_NO_RESTART
 
         m_plater->reset();
+        m_plater->reset_gcode_toolpaths();
 
         m_plater->Freeze();
 
@@ -1457,6 +1458,7 @@ void MainFrame::set_mode(EMode mode)
 
         m_plater->reset();
         m_plater->reset_last_loaded_gcode();
+        m_plater->reset_gcode_toolpaths();
 
         m_plater->Freeze();
 

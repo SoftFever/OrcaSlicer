@@ -1701,6 +1701,10 @@ struct Plater::priv
     void update_preview_moves_slider();
 #endif // ENABLE_GCODE_VIEWER
 
+#if ENABLE_GCODE_VIEWER
+    void reset_gcode_toolpaths();
+#endif // ENABLE_GCODE_VIEWER
+
     void reset_all_gizmos();
     void update_ui_from_settings();
     void update_main_toolbar_tooltips();
@@ -4008,6 +4012,13 @@ void Plater::priv::update_preview_moves_slider()
 }
 #endif // ENABLE_GCODE_VIEWER
 
+#if ENABLE_GCODE_VIEWER
+void Plater::priv::reset_gcode_toolpaths()
+{
+    preview->get_canvas3d()->reset_gcode_toolpaths();
+}
+#endif // ENABLE_GCODE_VIEWER
+
 bool Plater::priv::can_set_instance_to_object() const
 {
     const int obj_idx = get_selected_object_idx();
@@ -5060,6 +5071,9 @@ void Plater::reslice()
     if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
         return;
 
+#if ENABLE_GCODE_VIEWER
+    bool clean_gcode_toolpaths = true;
+#endif // ENABLE_GCODE_VIEWER
     if (p->background_process.running())
     {
         if (wxGetApp().get_mode() == comSimple)
@@ -5072,6 +5086,13 @@ void Plater::reslice()
     }
     else if (!p->background_process.empty() && !p->background_process.idle())
         p->show_action_buttons(true);
+#if ENABLE_GCODE_VIEWER
+    else
+        clean_gcode_toolpaths = false;
+
+    if (clean_gcode_toolpaths)
+        reset_gcode_toolpaths();
+#endif // ENABLE_GCODE_VIEWER
 
     // update type of preview
     p->preview->update_view_type(true);
@@ -5749,6 +5770,11 @@ void Plater::update_preview_bottom_toolbar()
 void Plater::update_preview_moves_slider()
 {
     p->update_preview_moves_slider();
+}
+
+void Plater::reset_gcode_toolpaths()
+{
+    p->reset_gcode_toolpaths();
 }
 #endif // ENABLE_GCODE_VIEWER
 

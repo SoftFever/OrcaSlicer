@@ -350,6 +350,8 @@ public:
 #if ENABLE_GCODE_VIEWER
     void update_preview_bottom_toolbar();
     void update_preview_moves_slider();
+
+    void reset_gcode_toolpaths();
 #endif // ENABLE_GCODE_VIEWER
 
 #if ENABLE_GCODE_VIEWER_AS_STATE
