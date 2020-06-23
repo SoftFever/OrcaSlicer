@@ -870,8 +870,12 @@ void GCodeViewer::render_toolpaths() const
         glsafe(::glDisable(GL_VERTEX_PROGRAM_POINT_SIZE));
     };
 
+    auto line_width = [zoom]() {
+        return (zoom < 5.0) ? 1.0 : (1.0 + 5.0 * (zoom - 5.0) / (100.0 - 5.0));            
+    };
+
     glsafe(::glCullFace(GL_BACK));
-    glsafe(::glLineWidth(3.0f));
+    glsafe(::glLineWidth(static_cast<GLfloat>(line_width())));
 
     unsigned char begin_id = buffer_id(GCodeProcessor::EMoveType::Retract);
     unsigned char end_id = buffer_id(GCodeProcessor::EMoveType::Count);
