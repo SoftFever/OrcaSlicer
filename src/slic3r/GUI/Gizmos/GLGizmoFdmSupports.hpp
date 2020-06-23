@@ -10,6 +10,9 @@
 #include <cereal/types/vector.hpp>
 
 
+#define PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
+
+
 namespace Slic3r {
 
 enum class FacetSupportType : int8_t;
@@ -25,7 +28,7 @@ class ClippingPlane;
 class TriangleSelector {
 public:
     void set_edge_limit(float edge_limit) { m_edge_limit_sqr = std::pow(edge_limit, 2.f); }
-    void render() const;
+
     // Create new object on a TriangleMesh. The referenced mesh must
     // stay valid, a ptr to it is saved and used.
     explicit TriangleSelector(const TriangleMesh& mesh);
@@ -40,9 +43,18 @@ public:
 
     void unselect_all();
 
+    // Render current selection. Transformation matrices are supposed
+    // to be already set.
+    void render(ImGuiWrapper* imgui = nullptr);
+
     // Remove all unnecessary data (such as vertices that are not needed
     // because the selection has been made larger.
     void garbage_collect();
+
+#ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
+    void render_debug(ImGuiWrapper* imgui);
+    bool m_show_triangles{true};
+#endif
 
 private:
     // Triangle and info about how it's split.
@@ -112,13 +124,13 @@ private:
 
     // Private functions:
     bool select_triangle(int facet_idx, FacetSupportType type,
-                         bool cursor_inside = false);
+                         bool recursive_call = false);
     bool is_point_inside_cursor(const Vec3f& point) const;
     int vertices_inside(int facet_idx) const;
     bool faces_camera(int facet) const;
     void undivide_triangle(int facet_idx);
     bool split_triangle(int facet_idx);
-    void remove_if_needless(int child_facet);
+    void remove_useless_children(int facet_idx); // No hidden meaning. Triangles are meant.
     bool is_pointer_in_triangle(int facet_idx) const;
     bool is_edge_inside_cursor(int facet_idx) const;
 };

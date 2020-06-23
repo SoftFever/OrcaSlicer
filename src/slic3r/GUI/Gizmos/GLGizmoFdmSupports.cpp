@@ -95,7 +95,10 @@ void GLGizmoFdmSupports::on_render() const
     glsafe(::glEnable(GL_DEPTH_TEST));
 
     //render_triangles(selection);
-    m_triangle_selector->render();
+
+    if (m_triangle_selector && ! m_setting_angle)
+        m_triangle_selector->render(m_imgui);
+
     m_c->object_clipper()->render_cut();
     render_cursor_circle();
 
@@ -569,12 +572,6 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     if (! m_c->selection_info()->model_object())
         return;
 
-    m_imgui->begin(std::string("TriangleSelector DEBUG"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
-    static float edge_limit = 1.f;
-    m_imgui->slider_float("Edge limit (mm): ", &edge_limit, 0.1f, 8.f);
-    m_triangle_selector->set_edge_limit(edge_limit);
-    m_imgui->end();
-
     const float approx_height = m_imgui->scaled(18.0f);
     y = std::min(y, bottom_limit - approx_height);
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
@@ -740,9 +737,7 @@ CommonGizmosDataID GLGizmoFdmSupports::on_get_requirements() const
                 int(CommonGizmosDataID::SelectionInfo)
               | int(CommonGizmosDataID::InstancesHider)
               | int(CommonGizmosDataID::Raycaster)
-              | int(CommonGizmosDataID::HollowedMesh)
-              | int(CommonGizmosDataID::ObjectClipper)
-              | int(CommonGizmosDataID::SupportsClipper));
+              | int(CommonGizmosDataID::ObjectClipper));
 }
 
 
@@ -872,7 +867,7 @@ void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
     while (facet_idx < int(facets_to_check.size())) {
         int facet = facets_to_check[facet_idx];
         if (! visited[facet]) {
-            if (select_triangle(facet, new_state, facet == facet_start)) {
+            if (select_triangle(facet, new_state)) {
                 // add neighboring facets to list to be proccessed later
                 for (int n=0; n<3; ++n) {
                     if (faces_camera(m_mesh->stl.neighbors_start[facet].neighbor[n]))
@@ -891,49 +886,54 @@ void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
 // the triangle recursively, selecting just subtriangles truly inside the circle.
 // This is done by an actual recursive call. Returns false if the triangle is
 // outside the cursor.
-bool TriangleSelector::select_triangle(int facet_idx, FacetSupportType type, bool cursor_inside)
+bool TriangleSelector::select_triangle(int facet_idx, FacetSupportType type, bool recursive_call)
 {
     assert(facet_idx < int(m_triangles.size()));
 
-    Triangle& tr = m_triangles[facet_idx];
-    if (! tr.valid)
+    Triangle* tr = &m_triangles[facet_idx];
+    if (! tr->valid)
         return false;
-
-    cursor_inside = is_pointer_in_triangle(facet_idx);
 
     int num_of_inside_vertices = vertices_inside(facet_idx);
 
     if (num_of_inside_vertices == 0
-     && ! cursor_inside
+     && ! is_pointer_in_triangle(facet_idx)
      && ! is_edge_inside_cursor(facet_idx))
         return false;
 
-    if (vertices_inside(facet_idx) == 3) {
+    if (num_of_inside_vertices == 3) {
         // dump any subdivision and select whole triangle
         undivide_triangle(facet_idx);
-        tr.set_state(type);
+        tr->set_state(type);
     } else {
         // the triangle is partially inside, let's recursively divide it
         // (if not already) and try selecting its children.
 
-        if (! tr.is_split() && tr.get_state() == type) {
+        if (! tr->is_split() && tr->get_state() == type) {
             // This is leaf triangle that is already of correct type as a whole.
             // No need to split, all children would end up selected anyway.
             return true;
         }
 
         split_triangle(facet_idx);
-        assert(facet_idx < int(m_triangles.size()));
-        int num_of_children = tr.number_of_split_sides() + 1;
+        tr = &m_triangles[facet_idx]; // might have been invalidated
+
+
+        int num_of_children = tr->number_of_split_sides() + 1;
         if (num_of_children != 1) {
-            for (int i=0; i<num_of_children; ++i)
-                select_triangle(tr.children[i], type, cursor_inside);
+            for (int i=0; i<num_of_children; ++i) {
+                assert(i < int(tr->children.size()));
+                assert(tr->children[i] < int(m_triangles.size()));
+
+                select_triangle(tr->children[i], type, true);
+                tr = &m_triangles[facet_idx]; // might have been invalidated
+            }
         }
     }
-
-    // In case that all siblings are leafs and have the same state now,
+    // In case that all children are leafs and have the same state now,
     // they may be removed and substituted by the parent triangle.
-    //remove_if_needless(facet_idx);
+    if (! recursive_call)
+        remove_useless_children(facet_idx);
     return true;
 }
 
@@ -945,13 +945,13 @@ bool TriangleSelector::split_triangle(int facet_idx)
         return false;
     }
 
-    Triangle& tr = m_triangles[facet_idx];
+    Triangle* tr = &m_triangles[facet_idx];
 
-    FacetSupportType old_type = tr.get_state();
+    FacetSupportType old_type = tr->get_state();
 
     const double limit_squared = m_edge_limit_sqr;
 
-    stl_triangle_vertex_indices& facet = tr.verts_idxs;
+    stl_triangle_vertex_indices& facet = tr->verts_idxs;
     const stl_vertex* pts[3] = { &m_vertices[facet[0]], &m_vertices[facet[1]], &m_vertices[facet[2]]};
     double sides[3] = { (*pts[2]-*pts[1]).squaredNorm(), (*pts[0]-*pts[2]).squaredNorm(), (*pts[1]-*pts[0]).squaredNorm() };
 
@@ -964,7 +964,7 @@ bool TriangleSelector::split_triangle(int facet_idx)
             side_to_keep = pt_idx;
     }
     if (sides_to_split.empty()) {
-        tr.set_division(0);
+        tr->set_division(0);
         return false;
     }
 
@@ -1012,17 +1012,19 @@ bool TriangleSelector::split_triangle(int facet_idx)
         m_triangles.emplace_back(verts_idxs[1], verts_idxs[3], verts_idxs[5]);
     }
 
+    tr = &m_triangles[facet_idx]; // may have been invalidated
+
     // Save how the triangle was split. Second argument makes sense only for one
     // or two split sides, otherwise the value is ignored.
-    tr.set_division(sides_to_split.size(),
+    tr->set_division(sides_to_split.size(),
         sides_to_split.size() == 2 ? side_to_keep : sides_to_split[0]);
 
     // And save the children. All children should start in the same state as the triangle we just split.
     assert(! sides_to_split.empty() && int(sides_to_split.size()) <= 3);
     for (int i=0; i<=int(sides_to_split.size()); ++i) {
-        tr.children[i] = m_triangles.size()-1-i;
-        m_triangles[tr.children[i]].parent = facet_idx;
-        m_triangles[tr.children[i]].set_state(old_type);
+        tr->children[i] = m_triangles.size()-1-i;
+        m_triangles[tr->children[i]].parent = facet_idx;
+        m_triangles[tr->children[i]].set_state(old_type);
     }
 
     return true;
@@ -1097,7 +1099,10 @@ bool TriangleSelector::is_edge_inside_cursor(int facet_idx) const
         Vec3f s = (b-a).normalized();
         float t = (p-a).dot(s);
         Vec3f vector = a+t*s - p;
-        float dist_sqr = vector.squaredNorm();
+
+        // vector is 3D vector from center to the intersection. What we want to
+        // measure is length of its projection onto plane perpendicular to dir.
+        float dist_sqr = vector.squaredNorm() - std::pow(vector.dot(m_cursor.dir), 2.f);
         if (dist_sqr < m_cursor.radius_sqr && t>=0.f && t<=(b-a).norm())
             return true;
     }
@@ -1117,33 +1122,47 @@ void TriangleSelector::undivide_triangle(int facet_idx)
             undivide_triangle(tr.children[i]);
             m_triangles[tr.children[i]].valid = false;
         }
+        tr.set_division(0); // not split
     }
-
-    tr.set_division(0); // not split
 }
 
 
-void TriangleSelector::remove_if_needless(int child_facet)
+void TriangleSelector::remove_useless_children(int facet_idx)
 {
-    if (m_triangles[child_facet].is_split() || ! m_triangles[child_facet].valid)
+    // Check that all children are leafs of the same type. If not, try to
+    // make them (recursive call). Remove them if sucessful.
+
+    assert(facet_idx < int(m_triangles.size()) && m_triangles[facet_idx].valid);
+    Triangle& tr = m_triangles[facet_idx];
+
+    if (! tr.is_split()) {
+        // This is a leaf, there nothing to do. This can happen during the
+        // first (non-recursive call). Shouldn't otherwise.
         return;
-    int parent = m_triangles[child_facet].parent;
-    if (parent == -1)
-        return; // root
-    FacetSupportType child_type = m_triangles[child_facet].get_state();
+    }
 
-    // Check type of all valid children, if they're same, they are needless.
-    for (int i=0; i<=m_triangles[parent].number_of_split_sides(); ++i)
-        if (m_triangles[m_triangles[parent].children[i]].is_split()
-         || m_triangles[m_triangles[parent].children[i]].get_state() != child_type)
-            return; // not all children are the same
+    // Call this for all non-leaf children.
+    for (int child_idx=0; child_idx<=tr.number_of_split_sides(); ++child_idx) {
+        assert(child_idx < int(m_triangles.size()) && m_triangles[child_idx].valid);
+        if (m_triangles[tr.children[child_idx]].is_split())
+            remove_useless_children(tr.children[child_idx]);
+    }
 
-    // All children are the same, kill them.
-    undivide_triangle(parent);
-    m_triangles[parent].set_state(child_type);
 
-    // And now try the same for parent (which has just become leaf).
-    remove_if_needless(parent);
+    // Return if a child is not leaf or two children differ in type.
+    FacetSupportType first_child_type;
+    for (int child_idx=0; child_idx<=tr.number_of_split_sides(); ++child_idx) {
+        if (m_triangles[tr.children[child_idx]].is_split())
+            return;
+        if (child_idx == 0)
+            first_child_type = m_triangles[tr.children[0]].get_state();
+        else if (m_triangles[tr.children[child_idx]].get_state() != first_child_type)
+            return;
+    }
+
+    // If we got here, the children can be removed.
+    undivide_triangle(facet_idx);
+    tr.set_state(first_child_type);
 }
 
 
@@ -1158,33 +1177,12 @@ TriangleSelector::TriangleSelector(const TriangleMesh& mesh)
     m_mesh = &mesh;
 }
 
-
-void TriangleSelector::render() const
+void TriangleSelector::render(ImGuiWrapper* imgui)
 {
-    ::glColor3f(0.f, 0.f, 1.f);
-    ::glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-
     Vec3d offset = wxGetApp().model().objects.front()->instances.front()->get_transformation().get_offset();
     ::glTranslatef(offset.x(), offset.y(), offset.z());
-    ::glScalef(1.01f, 1.01f, 1.01f);
+    ::glScalef(1.005f, 1.005f, 1.005f);
 
-    ::glBegin( GL_TRIANGLES);
-    for (int tr_id=0; tr_id<int(m_triangles.size()); ++tr_id) {
-        const Triangle& tr = m_triangles[tr_id];
-        if (! tr.valid)
-            continue;
-
-        if (tr_id == m_orig_size_indices-1)
-            ::glColor3f(1.f, 0.f, 0.f);
-
-        for (int i=0; i<3; ++i)
-            ::glVertex3f(m_vertices[tr.verts_idxs[i]][0],
-                         m_vertices[tr.verts_idxs[i]][1],
-                         m_vertices[tr.verts_idxs[i]][2]);
-    }
-    ::glEnd();
-
-    ::glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
     ::glBegin( GL_TRIANGLES);
     for (const Triangle& tr : m_triangles) {
@@ -1202,7 +1200,57 @@ void TriangleSelector::render() const
                          m_vertices[tr.verts_idxs[i]][2]);
     }
     ::glEnd();
+
+#ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
+    if (imgui)
+        render_debug(imgui);
+    else
+        assert(false); // If you want debug output, pass ptr to ImGuiWrapper.
+#endif
 }
+
+#ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
+void TriangleSelector::render_debug(ImGuiWrapper* imgui)
+{
+    imgui->begin(std::string("TriangleSelector dialog (DEV ONLY)"),
+                 ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+    static float edge_limit = 1.f;
+    imgui->text("Edge limit (mm): ");
+    imgui->slider_float("", &edge_limit, 0.1f, 8.f);
+    set_edge_limit(edge_limit);
+    imgui->checkbox("Show triangles: ", m_show_triangles);
+
+    int valid_triangles = std::count_if(m_triangles.begin(), m_triangles.end(),
+                                [](const Triangle& tr) { return tr.valid; });
+    imgui->text("Valid triangles: " + std::to_string(valid_triangles) +
+                  "/" + std::to_string(m_triangles.size()));
+    imgui->text("Number of vertices: " + std::to_string(m_vertices.size()));
+
+    imgui->end();
+
+    if (m_show_triangles) {
+        ::glColor3f(0.f, 0.f, 1.f);
+        ::glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+
+        ::glBegin( GL_TRIANGLES);
+        for (int tr_id=0; tr_id<int(m_triangles.size()); ++tr_id) {
+            const Triangle& tr = m_triangles[tr_id];
+            if (! tr.valid)
+                continue;
+
+            if (tr_id == m_orig_size_indices-1)
+                ::glColor3f(1.f, 0.f, 0.f);
+
+            for (int i=0; i<3; ++i)
+                ::glVertex3f(m_vertices[tr.verts_idxs[i]][0],
+                             m_vertices[tr.verts_idxs[i]][1],
+                             m_vertices[tr.verts_idxs[i]][2]);
+        }
+        ::glEnd();
+        ::glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+    }
+}
+#endif
 
 } // namespace GUI
 } // namespace Slic3r
