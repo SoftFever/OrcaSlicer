@@ -4847,25 +4847,33 @@ void Plater::export_stl(bool extended, bool selection_only)
                             ? Transform3d::Identity()
                             : object->model_object()->instances[instance_idx]->get_transformation().get_matrix();
 
+                    TriangleMesh inst_mesh;
+
                     if (has_pad_mesh)
                     {
                         TriangleMesh inst_pad_mesh = pad_mesh;
                         inst_pad_mesh.transform(inst_transform, is_left_handed);
-                        mesh.merge(inst_pad_mesh);
+                        inst_mesh.merge(inst_pad_mesh);
                     }
 
                     if (has_supports_mesh)
                     {
                         TriangleMesh inst_supports_mesh = supports_mesh;
                         inst_supports_mesh.transform(inst_transform, is_left_handed);
-                        mesh.merge(inst_supports_mesh);
+                        inst_mesh.merge(inst_supports_mesh);
                     }
 
                     TriangleMesh inst_object_mesh = object->get_mesh_to_print();
                     inst_object_mesh.transform(mesh_trafo_inv);
                     inst_object_mesh.transform(inst_transform, is_left_handed);
 
-                    mesh.merge(inst_object_mesh);
+                    inst_mesh.merge(inst_object_mesh);
+
+                    // ensure that the instance lays on the bed
+                    inst_mesh.translate(0.0f, 0.0f, -inst_mesh.bounding_box().min[2]);
+
+                    // merge instance with global mesh
+                    mesh.merge(inst_mesh);
 
                     if (one_inst_only)
                         break;
