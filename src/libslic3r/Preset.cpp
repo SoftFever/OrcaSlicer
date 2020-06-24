@@ -1339,108 +1339,178 @@ const Preset* PrinterPresetCollection::find_by_model_id(const std::string &model
 
     return it != cend() ? &*it : nullptr;
 }
-/*
-PhysicalPrinter& PhysicalPrinterCollection::load_external_printer(
-    // Path to the profile source file (a G-code, an AMF or 3MF file, a config file)
-    const std::string& path,
-    // Name of the profile, derived from the source file name.
-    const std::string& name,
-    // Original name of the profile, extracted from the loaded config. Empty, if the name has not been stored.
-    const std::string& original_name,
-    // Config to initialize the preset from.
-    const DynamicPrintConfig& config,
-    // Select the preset after loading?
-    bool                         select)
-{
-    // Load the preset over a default preset, so that the missing fields are filled in from the default preset.
-    DynamicPrintConfig cfg(this->default_printer().config);
-    cfg.apply_only(config, cfg.keys(), true);
-    // Is there a preset already loaded with the name stored inside the config?
-    std::deque<PhysicalPrinter>::iterator it = this->find_printer_internal(original_name);
-    bool found = it != m_printers.end() && it->name == original_name;
-    if (!found) {
-        // Try to match the original_name against the "renamed_from" profile names of loaded system profiles.
-        / *
-        it = this->find_preset_renamed(original_name);
-        found = it != m_presets.end();
-    * /
-    }
-    if (found) {
-        if (profile_print_params_same(it->config, cfg)) {
-            // The preset exists and it matches the values stored inside config.
-            if (select)
-                this->select_printer(it - m_printers.begin());
-            return *it;
-        }
-        if (profile_host_params_same_or_anonymized(it->config, cfg) == ProfileHostParams::Anonymized) {
-            // The project being loaded is anonymized. Replace the empty host keys of the loaded profile with the data from the original profile.
-            // See "Octoprint Settings when Opening a .3MF file" GH issue #3244
-            auto opt_update = [it, &cfg](const std::string& opt_key) {
-                auto opt = it->config.option<ConfigOptionString>(opt_key);
-                if (opt != nullptr)
-                    cfg.set_key_value(opt_key, opt->clone());
-            };
-            opt_update("print_host");
-            opt_update("printhost_apikey");
-            opt_update("printhost_cafile");
-        }
-    }
-    // The external preset does not match an internal preset, load the external preset.
-    std::string new_name;
-    for (size_t idx = 0;; ++idx) {
-        std::string suffix;
-        if (original_name.empty()) {
-            if (idx > 0)
-                suffix = " (" + std::to_string(idx) + ")";
-        }
-        else {
-            if (idx == 0)
-                suffix = " (" + original_name + ")";
-            else
-                suffix = " (" + original_name + "-" + std::to_string(idx) + ")";
-        }
-        new_name = name + suffix;
-        it = this->find_printer_internal(new_name);
-        if (it == m_printers.end() || it->name != new_name)
-            // Unique profile name. Insert a new profile.
-            break;
-        if (profile_print_params_same(it->config, cfg)) {
-            // The preset exists and it matches the values stored inside config.
-            if (select)
-                this->select_printer(it - m_printers.begin());
-            return *it;
-        }
-        // Form another profile name.
-    }
-    // Insert a new profile.
-    PhysicalPrinter& printer = this->load_printer(path, new_name, std::move(cfg), select);
 
-    return printer;
+// -------------------------
+// ***  PhysicalPrinter  ***
+// -------------------------
+
+const std::vector<std::string>& PhysicalPrinter::printer_options()
+{
+    static std::vector<std::string> s_opts;
+    if (s_opts.empty()) {
+        s_opts = {
+            "preset_name",
+            "printer_technology",
+            "host_type", 
+            "print_host", 
+            "printhost_apikey", 
+            "printhost_cafile", 
+            "login", 
+            "password"
+        };
+    }
+    return s_opts;
 }
 
-void PhysicalPrinterCollection::save_printer(const std::string& new_name)
+const std::string& PhysicalPrinter::get_preset_name()
+{
+    return config.opt_string("preset_name");
+}
+
+void PhysicalPrinter::update_from_preset(const Preset& preset)
+{
+    config.apply_only(preset.config, printer_options(), false);
+    // add preset name to the options list
+    config.set_key_value("preset_name", new ConfigOptionString(preset.name));
+}
+
+void PhysicalPrinter::update_from_config(const DynamicPrintConfig& new_config)
+{
+    config.apply_only(new_config, printer_options(), false);
+}
+
+PhysicalPrinter::PhysicalPrinter(const std::string& name, const Preset& preset) :
+    name(name)
+{
+    update_from_preset(preset);
+}
+
+
+// -----------------------------------
+// ***  PhysicalPrinterCollection  ***
+// -----------------------------------
+
+PhysicalPrinterCollection::PhysicalPrinterCollection( const std::vector<std::string>& keys)
+{
+}
+
+// Load all presets found in dir_path.
+// Throws an exception on error.
+void PhysicalPrinterCollection::load_printers(const std::string& dir_path, const std::string& subdir)
+{
+    boost::filesystem::path dir = boost::filesystem::canonical(boost::filesystem::path(dir_path) / subdir).make_preferred();
+    m_dir_path = dir.string();
+    std::string errors_cummulative;
+    // Store the loaded printers into a new vector, otherwise the binary search for already existing presets would be broken.
+    std::deque<PhysicalPrinter> printers_loaded;
+    for (auto& dir_entry : boost::filesystem::directory_iterator(dir))
+        if (Slic3r::is_ini_file(dir_entry)) {
+            std::string name = dir_entry.path().filename().string();
+            // Remove the .ini suffix.
+            name.erase(name.size() - 4);
+            if (this->find_printer(name, false)) {
+                // This happens when there's is a preset (most likely legacy one) with the same name as a system preset
+                // that's already been loaded from a bundle.
+                BOOST_LOG_TRIVIAL(warning) << "Preset already present, not loading: " << name;
+                continue;
+            }
+            try {
+                PhysicalPrinter printer(name);
+                printer.file = dir_entry.path().string();
+                // Load the preset file, apply preset values on top of defaults.
+                try {
+                    DynamicPrintConfig config;
+                    config.load_from_ini(printer.file);
+                    printer.update_from_config(config);
+                    printer.loaded = true;
+                }
+                catch (const std::ifstream::failure& err) {
+                    throw std::runtime_error(std::string("The selected preset cannot be loaded: ") + printer.file + "\n\tReason: " + err.what());
+                }
+                catch (const std::runtime_error& err) {
+                    throw std::runtime_error(std::string("Failed loading the preset file: ") + printer.file + "\n\tReason: " + err.what());
+                }
+                printers_loaded.emplace_back(printer);
+            }
+            catch (const std::runtime_error& err) {
+                errors_cummulative += err.what();
+                errors_cummulative += "\n";
+            }
+        }
+    m_printers.insert(m_printers.end(), std::make_move_iterator(printers_loaded.begin()), std::make_move_iterator(printers_loaded.end()));
+    std::sort(m_printers.begin(), m_printers.end());
+//!    this->select_preset(first_visible_idx());
+    if (!errors_cummulative.empty())
+        throw std::runtime_error(errors_cummulative);
+}
+
+PhysicalPrinter* PhysicalPrinterCollection::find_printer( const std::string& name, bool first_visible_if_not_found)
+{
+    PhysicalPrinter key(name);
+    auto it = this->find_printer_internal(name);
+    // Ensure that a temporary copy is returned if the preset found is currently selected.
+    return (it != m_printers.end() && it->name == key.name) ? &this->printer(it - m_printers.begin()) :
+        first_visible_if_not_found ? &this->printer(0) : nullptr;
+}
+
+// Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
+std::string PhysicalPrinterCollection::path_from_name(const std::string& new_name) const
+{
+    std::string file_name = boost::iends_with(new_name, ".ini") ? new_name : (new_name + ".ini");
+    return (boost::filesystem::path(m_dir_path) / file_name).make_preferred().string();
+}
+
+void PhysicalPrinterCollection::save_printer(const PhysicalPrinter& edited_printer)
 {
     // 1) Find the printer with a new_name or create a new one,
     // initialize it with the edited config.
-    auto it = this->find_printer_internal(new_name);
-    if (it != m_printers.end() && it->name == new_name) {
-        // Preset with the same name found.
-        PhysicalPrinter& printer = *it;
+    auto it = this->find_printer_internal(edited_printer.name);
+    if (it != m_printers.end() && it->name == edited_printer.name) {
+        // Printer with the same name found.
         // Overwriting an existing preset.
-        printer.config = std::move(m_edited_printer.config);
+        it->config = std::move(edited_printer.config);
     }
     else {
         // Creating a new printer.
-        PhysicalPrinter& printer = *m_printers.insert(it, m_edited_printer);
-        std::string   old_name = printer.name;
-        printer.name = new_name;
+        it = m_printers.insert(it, edited_printer);
     }
-    // 2) Activate the saved preset.
-    this->select_printer_by_name(new_name, true);
-    // 3) Store the active preset to disk.
-    this->get_selected_preset().save();
+    assert(it != m_printers.end());
+
+    // 2) Save printer
+    PhysicalPrinter& printer = *it;
+    if (printer.file.empty())
+        printer.file = this->path_from_name(printer.name);
+    printer.save();
+
+    // update idx_selected
+    m_idx_selected = it - m_printers.begin();
 }
-*/
+
+bool PhysicalPrinterCollection::delete_printer(const std::string& name)
+{
+    auto it = this->find_printer_internal(name);
+
+    const PhysicalPrinter& printer = *it;
+    if (it == m_printers.end())
+    return false;
+    
+    // Erase the preset file.
+    boost::nowide::remove(printer.file.c_str());
+    m_printers.erase(it);
+    return true;
+}
+
+PhysicalPrinter& PhysicalPrinterCollection::select_printer_by_name(const std::string& name)
+{
+    auto it = this->find_printer_internal(name);
+    assert(it != m_printers.end());
+
+    // update idx_selected
+    m_idx_selected = it - m_printers.begin();
+    return *it;
+}
+
+
 namespace PresetUtils {
 	const VendorProfile::PrinterModel* system_printer_model(const Preset &preset)
 	{

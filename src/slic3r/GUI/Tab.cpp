@@ -161,6 +161,13 @@ void Tab::create_preset_tab()
 
     // preset chooser
     m_presets_choice = new TabPresetComboBox(panel, m_type);
+    m_presets_choice->set_selection_changed_function([this](int selection) {
+        // unselect pthysical printer, if it was selected
+        m_preset_bundle->physical_printers.unselect_printer();
+        // select preset
+        std::string selected_string = m_presets_choice->GetString(selection).ToUTF8().data();
+        select_preset(selected_string);
+    });
 
     auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
@@ -3022,6 +3029,9 @@ void Tab::select_preset(std::string preset_name, bool delete_current)
 
     if (canceled) {
         update_tab_ui();
+        // unselect physical printer selection to the correct synchronization of the printer presets between Tab and Plater
+        if (m_type == Preset::TYPE_PRINTER)
+            m_preset_bundle->physical_printers.unselect_printer();
         // Trigger the on_presets_changed event so that we also restore the previous value in the plater selector,
         // if this action was initiated from the plater.
         on_presets_changed();

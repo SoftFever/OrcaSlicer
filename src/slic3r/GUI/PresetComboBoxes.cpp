@@ -31,6 +31,7 @@
 #include "../Utils/UndoRedo.hpp"
 #include "RemovableDriveManager.hpp"
 #include "BitmapCache.hpp"
+#include "BonjourDialog.hpp"
 
 using Slic3r::GUI::format_wxstr;
 
@@ -241,8 +242,9 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
             evt.StopPropagation();
             if (marker == LABEL_ITEM_PHYSICAL_PRINTERS)
             {
-                PhysicalPrinterDialog dlg(_L("New Physical Printer"), this->m_last_selected);
-                dlg.ShowModal();
+                PhysicalPrinterDialog dlg(wxEmptyString);
+                if (dlg.ShowModal() == wxID_OK)
+                    this->update();
                 return;
             }
             if (marker >= LABEL_ITEM_WIZARD_PRINTERS) {
@@ -255,7 +257,7 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
                 }
                 wxTheApp->CallAfter([sp]() { wxGetApp().run_wizard(ConfigWizard::RR_USER, sp); });
             }
-        } else if ( this->m_last_selected != selected_item || m_collection->current_is_dirty() ) {
+        } else if (marker == LABEL_ITEM_PHYSICAL_PRINTER || this->m_last_selected != selected_item || m_collection->current_is_dirty() ) {
             this->m_last_selected = selected_item;
             evt.SetInt(this->m_type);
             evt.Skip();
@@ -319,6 +321,16 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
 
     edit_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent)
     {
+        // In a case of a physical printer, for its editing open PhysicalPrinterDialog
+        if (m_type == Preset::TYPE_PRINTER && this->is_selected_physical_printer())
+        {
+            PhysicalPrinterDialog dlg(this->GetString(this->GetSelection()));
+            if (dlg.ShowModal() == wxID_OK) {
+                update();
+                return;
+            }
+        }
+
         Tab* tab = wxGetApp().get_tab(m_type);
         if (!tab)
             return;
@@ -355,6 +367,13 @@ PlaterPresetComboBox::~PlaterPresetComboBox()
         edit_btn->Destroy();
 }
 
+bool PlaterPresetComboBox::is_selected_physical_printer()
+{
+    auto selected_item = this->GetSelection();
+    auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
+    return marker == LABEL_ITEM_PHYSICAL_PRINTER;
+}
+
 // Only the compatible presets are shown.
 // If an incompatible preset is selected, it is shown as well.
 void PlaterPresetComboBox::update()
@@ -388,7 +407,6 @@ void PlaterPresetComboBox::update()
     bool wide_icons = !selected_preset.is_compatible;
 
     std::map<wxString, wxBitmap*> nonsys_presets;
-    std::map<wxString, wxBitmap*> physical_printers;
 
     wxString selected = "";
     wxString tooltip = "";
@@ -400,9 +418,11 @@ void PlaterPresetComboBox::update()
     for (size_t i = presets.front().is_visible ? 0 : m_collection->num_default_presets(); i < presets.size(); ++i) 
     {
         const Preset& preset = presets[i];
-        bool is_selected = m_type == Preset::TYPE_FILAMENT ?
-                        m_preset_bundle->filament_presets[m_extruder_idx] == preset.name :
-                        i == m_collection->get_selected_idx();
+        bool is_selected =  m_type == Preset::TYPE_FILAMENT ?
+                            m_preset_bundle->filament_presets[m_extruder_idx] == preset.name :
+                            // The case, when some physical printer is selected
+                            m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection() ? false :
+                            i == m_collection->get_selected_idx();
 
         if (!preset.is_visible || (!preset.is_compatible && !is_selected))
             continue;
@@ -495,17 +515,6 @@ void PlaterPresetComboBox::update()
                 selected_preset_item = GetCount() - 1;
         }
     }
-    if (!physical_printers.empty())
-    {
-        set_label_marker(Append(separator(L("Physical printers")), wxNullBitmap));
-        for (std::map<wxString, wxBitmap*>::iterator it = physical_printers.begin(); it != physical_printers.end(); ++it) {
-            Append(it->first, *it->second);
-            if (it->first == selected ||
-                // just in case: mark selected_preset_item as a first added element
-                selected_preset_item == INT_MAX)
-                selected_preset_item = GetCount() - 1;
-        }
-    }
 
     if (m_type == Preset::TYPE_PRINTER || m_type == Preset::TYPE_SLA_MATERIAL) {
         std::string   bitmap_key = "";
@@ -536,8 +545,45 @@ void PlaterPresetComboBox::update()
         else
             set_label_marker(Append(separator(L("Add/Remove printers")), *bmp), LABEL_ITEM_WIZARD_PRINTERS);
     }
-    if (m_type == Preset::TYPE_PRINTER) {
-        std::string   bitmap_key = "";
+
+    if (m_type == Preset::TYPE_PRINTER)
+    {
+        // add Physical printers, if any exists
+        if (!m_preset_bundle->physical_printers.empty()) {
+            set_label_marker(Append(separator(L("Physical printers")), wxNullBitmap));
+            const PhysicalPrinterCollection& ph_printers = m_preset_bundle->physical_printers;
+
+            for (PhysicalPrinterCollection::ConstIterator it = ph_printers.begin(); it != ph_printers.end(); ++it) {
+                std::string   bitmap_key = it->printer_technology() == ptSLA ? "sla_printer" : m_main_bitmap_name;
+                if (wide_icons)
+                    bitmap_key += "wide,";
+                bitmap_key += "-h" + std::to_string(icon_height);
+
+                wxBitmap* bmp = m_bitmap_cache->find(bitmap_key);
+                if (bmp == nullptr) {
+                    // Create the bitmap with color bars.
+                    std::vector<wxBitmap> bmps;
+                    if (wide_icons)
+                        // Paint a red flag for incompatible presets.
+                        bmps.emplace_back(m_bitmap_cache->mkclear(norm_icon_width, icon_height));
+                    // Paint the color bars.
+                    bmps.emplace_back(m_bitmap_cache->mkclear(thin_space_icon_width, icon_height));
+                    bmps.emplace_back(create_scaled_bitmap(it->printer_technology() == ptSLA ? "sla_printer" : m_main_bitmap_name));
+                    // Paint a lock at the system presets.
+                    bmps.emplace_back(m_bitmap_cache->mkclear(wide_space_icon_width+norm_icon_width, icon_height));
+                    bmp = m_bitmap_cache->insert(bitmap_key, bmps);
+                }
+
+                set_label_marker(Append(wxString::FromUTF8((it->name).c_str()), *bmp), LABEL_ITEM_PHYSICAL_PRINTER);
+                if (ph_printers.has_selection() && it->name == ph_printers.get_selected_printer_name() ||
+                    // just in case: mark selected_preset_item as a first added element
+                    selected_preset_item == INT_MAX)
+                    selected_preset_item = GetCount() - 1;
+            }
+        }
+
+        // add LABEL_ITEM_PHYSICAL_PRINTERS
+        std::string   bitmap_key;
         if (wide_icons)
             bitmap_key += "wide,";
         bitmap_key += "edit_preset_list";
@@ -589,10 +635,10 @@ void PlaterPresetComboBox::msw_rescale()
 // ***  TabPresetComboBox  ***
 // ---------------------------------
 
-TabPresetComboBox::TabPresetComboBox(wxWindow* parent, Preset::Type preset_type, bool is_from_physical_printer/* = false*/) :
+TabPresetComboBox::TabPresetComboBox(wxWindow* parent, Preset::Type preset_type) :
     PresetComboBox(parent, preset_type, wxSize(35 * wxGetApp().em_unit(), -1))
 {
-    Bind(wxEVT_COMBOBOX, [this, is_from_physical_printer](wxCommandEvent& evt) {
+    Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt) {
         // see https://github.com/prusa3d/PrusaSlicer/issues/3889
         // Under OSX: in case of use of a same names written in different case (like "ENDER" and "Ender")
         // m_presets_choice->GetSelection() will return first item, because search in PopupListCtrl is case-insensitive.
@@ -603,21 +649,17 @@ TabPresetComboBox::TabPresetComboBox(wxWindow* parent, Preset::Type preset_type,
         if (marker >= LABEL_ITEM_MARKER && marker < LABEL_ITEM_MAX) {
             this->SetSelection(this->m_last_selected);
             if (marker == LABEL_ITEM_WIZARD_PRINTERS)
-                wxTheApp->CallAfter([this, is_from_physical_printer]() {
+                wxTheApp->CallAfter([this]() {
                 wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
-                if (is_from_physical_printer)
+
+                // update combobox if its parent is a PhysicalPrinterDialog
+                PhysicalPrinterDialog* parent = dynamic_cast<PhysicalPrinterDialog*>(this->GetParent());
+                if (parent != nullptr)
                     update();
             });
         }
-        else if ( is_from_physical_printer) {
-            // do nothing
-        }
-        else if (m_last_selected != selected_item || m_collection->current_is_dirty() ) {
-            std::string selected_string = this->GetString(selected_item).ToUTF8().data();
-            Tab* tab = wxGetApp().get_tab(this->m_type);
-            assert (tab);
-            tab->select_preset(selected_string);
-        }
+        else if (on_selection_changed && (m_last_selected != selected_item || m_collection->current_is_dirty()) )
+            on_selection_changed(selected_item);
 
         evt.StopPropagation();
     });
@@ -760,34 +802,211 @@ void TabPresetComboBox::update_dirty()
 //------------------------------------------
 
 
-PhysicalPrinterDialog::PhysicalPrinterDialog(const wxString& printer_name, int last_selected_preset)
+PhysicalPrinterDialog::PhysicalPrinterDialog(wxString printer_name)
     : DPIDialog(NULL, wxID_ANY, _L("PhysicalPrinter"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     SetFont(wxGetApp().normal_font());
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 
     int border  = 10;
-    int em      = em_unit();
 
-    printer_text    = new wxTextCtrl(this, wxID_ANY, printer_name, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
-    printer_presets = new TabPresetComboBox(this, Preset::TYPE_PRINTER, true);
-    printer_presets->update();
+    m_printer_presets = new TabPresetComboBox(this, Preset::TYPE_PRINTER);
+    m_printer_presets->set_selection_changed_function([this](int selection) {
+        std::string selected_string = Preset::remove_suffix_modified(m_printer_presets->GetString(selection).ToUTF8().data());
+        Preset* preset = wxGetApp().preset_bundle->printers.find_preset(selected_string);
+        assert(preset);
+        Preset& edited_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
+        if (preset->name == edited_preset.name)
+            preset = &edited_preset;
+        m_printer.update_from_preset(*preset);
+
+        // update values
+        m_optgroup->reload_config();
+        update_octoprint_visible();
+    });
+    m_printer_presets->update();
+
+    wxString preset_name = m_printer_presets->GetString(m_printer_presets->GetSelection());
+
+    if (printer_name.IsEmpty())
+        printer_name = preset_name + " - "+_L("Physical Printer");
+    m_printer_name    = new wxTextCtrl(this, wxID_ANY, printer_name, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+
+    PhysicalPrinterCollection& printers = wxGetApp().preset_bundle->physical_printers;
+    PhysicalPrinter* printer = printers.find_printer(into_u8(printer_name));
+    if (!printer) {
+        const Preset& preset = wxGetApp().preset_bundle->printers.get_edited_preset();
+        printer = new PhysicalPrinter(into_u8(printer_name), preset);
+    }
+    assert(printer);
+    m_printer = *printer;
+
+    m_config = &m_printer.config;
+
+    m_optgroup = new ConfigOptionsGroup(this, _L("Print Host upload"), m_config);
+    build_printhost_settings(m_optgroup);
+    m_optgroup->reload_config();
 
     wxStdDialogButtonSizer* btns = this->CreateStdDialogButtonSizer(wxOK | wxCANCEL);
+    wxButton* btnOK = static_cast<wxButton*>(this->FindWindowById(wxID_OK, this));
+    btnOK->Bind(wxEVT_BUTTON, &PhysicalPrinterDialog::OnOK, this);
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
-    topSizer->Add(printer_text      , 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
-    topSizer->Add(printer_presets   , 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
-    topSizer->Add(btns              , 0, wxEXPAND | wxALL, border); 
+    topSizer->Add(m_printer_name      , 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
+    topSizer->Add(m_printer_presets   , 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
+    topSizer->Add(m_optgroup->sizer   , 1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
+    topSizer->Add(btns                , 0, wxEXPAND | wxALL, border); 
 
     SetSizer(topSizer);
     topSizer->SetSizeHints(this);
 }
 
+void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgroup)
+{
+    m_optgroup->append_single_option_line("host_type");
+
+    auto create_sizer_with_btn = [this](wxWindow* parent, ScalableButton** btn, const std::string& icon_name, const wxString& label) {
+        *btn = new ScalableButton(parent, wxID_ANY, icon_name, label, wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT);
+        (*btn)->SetFont(wxGetApp().normal_font());
+
+        auto sizer = new wxBoxSizer(wxHORIZONTAL);
+        sizer->Add(*btn);
+        return sizer;
+    };
+
+    auto printhost_browse = [=](wxWindow* parent) 
+    {
+        auto sizer = create_sizer_with_btn(parent, &m_printhost_browse_btn, "browse", _L("Browse") + " " + dots);
+        m_printhost_browse_btn->Bind(wxEVT_BUTTON, [=](wxCommandEvent& e) {
+            BonjourDialog dialog(this, Preset::printer_technology(m_printer.config));
+            if (dialog.show_and_lookup()) {
+                m_optgroup->set_value("print_host", std::move(dialog.get_selected()), true);
+                m_optgroup->get_field("print_host")->field_changed();
+            }
+        });
+
+        return sizer;
+    };
+
+    auto print_host_test = [=](wxWindow* parent) {
+        auto sizer = create_sizer_with_btn(parent, &m_printhost_test_btn, "test", _L("Test"));
+
+        m_printhost_test_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+            std::unique_ptr<PrintHost> host(PrintHost::get_print_host(m_config));
+            if (!host) {
+                const wxString text = _L("Could not get a valid Printer Host reference");
+                show_error(this, text);
+                return;
+            }
+            wxString msg;
+            if (host->test(msg)) {
+                show_info(this, host->get_test_ok_msg(), _L("Success!"));
+            }
+            else {
+                show_error(this, host->get_test_failed_msg(msg));
+            }
+            });
+
+        return sizer;
+    };
+
+    // Set a wider width for a better alignment
+    Option option = m_optgroup->get_option("print_host");
+    option.opt.width = Field::def_width_wider();
+    Line host_line = m_optgroup->create_single_option_line(option);
+    host_line.append_widget(printhost_browse);
+    host_line.append_widget(print_host_test);
+    m_optgroup->append_line(host_line);
+    option = m_optgroup->get_option("printhost_apikey");
+    option.opt.width = Field::def_width_wider();
+    m_optgroup->append_single_option_line(option);
+
+    const auto ca_file_hint = _u8L("HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate.");
+
+    if (Http::ca_file_supported()) {
+        option = m_optgroup->get_option("printhost_cafile");
+        option.opt.width = Field::def_width_wider();
+        Line cafile_line = m_optgroup->create_single_option_line(option);
+
+        auto printhost_cafile_browse = [=](wxWindow* parent) {
+            auto sizer = create_sizer_with_btn(parent, &m_printhost_cafile_browse_btn, "browse", _L("Browse") + " " + dots);
+            m_printhost_cafile_browse_btn->Bind(wxEVT_BUTTON, [this, m_optgroup](wxCommandEvent e) {
+                static const auto filemasks = _L("Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*");
+                wxFileDialog openFileDialog(this, _L("Open CA certificate file"), "", "", filemasks, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+                if (openFileDialog.ShowModal() != wxID_CANCEL) {
+                    m_optgroup->set_value("printhost_cafile", std::move(openFileDialog.GetPath()), true);
+                    m_optgroup->get_field("printhost_cafile")->field_changed();
+                }
+                });
+
+            return sizer;
+        };
+
+        cafile_line.append_widget(printhost_cafile_browse);
+        m_optgroup->append_line(cafile_line);
+
+        Line cafile_hint{ "", "" };
+        cafile_hint.full_width = 1;
+        cafile_hint.widget = [this, ca_file_hint](wxWindow* parent) {
+            auto txt = new wxStaticText(parent, wxID_ANY, ca_file_hint);
+            auto sizer = new wxBoxSizer(wxHORIZONTAL);
+            sizer->Add(txt);
+            return sizer;
+        };
+        m_optgroup->append_line(cafile_hint);
+    }
+    else {
+        Line line{ "", "" };
+        line.full_width = 1;
+
+        line.widget = [ca_file_hint](wxWindow* parent) {
+            std::string info = _u8L("HTTPS CA File") + ":\n\t" +
+                (boost::format(_u8L("On this system, %s uses HTTPS certificates from the system Certificate Store or Keychain.")) % SLIC3R_APP_NAME).str() +
+                "\n\t" + _u8L("To use a custom CA file, please import your CA file into Certificate Store / Keychain.");
+
+            auto txt = new wxStaticText(parent, wxID_ANY, from_u8((boost::format("%1%\n\n\t%2%") % info % ca_file_hint).str()));
+            txt->SetFont(wxGetApp().normal_font());
+            auto sizer = new wxBoxSizer(wxHORIZONTAL);
+            sizer->Add(txt, 1, wxEXPAND);
+            return sizer;
+        };
+
+        m_optgroup->append_line(line);
+    }
+
+    for (const std::string& opt_key : std::vector<std::string>{ "login", "password" }) {        
+        option = m_optgroup->get_option(opt_key);
+        option.opt.width = Field::def_width_wider();
+        m_optgroup->append_single_option_line(option);
+    }
+
+    update_octoprint_visible();
+}
+
+void PhysicalPrinterDialog::update_octoprint_visible()
+{
+    const PrinterTechnology tech = Preset::printer_technology(m_printer.config);
+    // Only offer the host type selection for FFF, for SLA it's always the SL1 printer (at the moment)
+    Field* host_type = m_optgroup->get_field("host_type");
+    if (tech == ptFFF)
+        host_type->enable();
+    else {
+        host_type->set_value(int(PrintHostType::htOctoPrint), false);
+        host_type->disable();
+    }
+}
+
 void PhysicalPrinterDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
     const int& em = em_unit();
+
+    m_printhost_browse_btn->msw_rescale();
+    m_printhost_test_btn->msw_rescale();
+    if (m_printhost_cafile_browse_btn)
+        m_printhost_cafile_browse_btn->msw_rescale();
+
+    m_optgroup->msw_rescale();
 
     msw_buttons_rescale(this, em, { wxID_OK, wxID_CANCEL });
 
@@ -796,6 +1015,47 @@ void PhysicalPrinterDialog::on_dpi_changed(const wxRect& suggested_rect)
 
     Fit();
     Refresh();
+}
+
+void PhysicalPrinterDialog::OnOK(wxEvent& event)
+{
+    wxString printer_name = m_printer_name->GetValue();
+    if (printer_name.IsEmpty()) {
+        show_error(this, _L("The supplied name is empty. It can't be saved."));
+        return;
+    }
+
+    PhysicalPrinterCollection& printers = wxGetApp().preset_bundle->physical_printers;
+    const PhysicalPrinter* existing = printers.find_printer(into_u8(printer_name));
+    if (existing && into_u8(printer_name) != printers.get_selected_printer_name())
+    {
+        wxString msg_text = from_u8((boost::format(_u8L("Printer with name \"%1%\" already exists.")) % printer_name).str());
+        msg_text += "\n" + _L("Replace?");
+        wxMessageDialog dialog(nullptr, msg_text, _L("Warning"), wxICON_WARNING | wxYES | wxNO);
+
+        if (dialog.ShowModal() == wxID_NO)
+            return;
+
+        // Remove the printer from the list.
+        printers.delete_printer(into_u8(printer_name));
+    }
+
+    //upadte printer name, if it was changed
+    m_printer.name = into_u8(printer_name);
+
+    // save new physical printer
+    printers.save_printer(m_printer);
+
+    // update selection on the tab only when it was changed
+    if (m_printer.get_preset_name() != wxGetApp().preset_bundle->printers.get_selected_preset_name()) {
+        Tab* tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
+        if (tab) {
+            wxString preset_name = m_printer_presets->GetString(m_printer_presets->GetSelection());
+            tab->select_preset(into_u8(preset_name));
+        }
+    }
+
+    event.Skip();
 }
 
 

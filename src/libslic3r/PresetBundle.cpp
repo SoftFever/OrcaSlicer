@@ -41,7 +41,8 @@ PresetBundle::PresetBundle() :
     filaments(Preset::TYPE_FILAMENT, Preset::filament_options(), static_cast<const HostConfig&>(FullPrintConfig::defaults())), 
     sla_materials(Preset::TYPE_SLA_MATERIAL, Preset::sla_material_options(), static_cast<const SLAMaterialConfig&>(SLAFullPrintConfig::defaults())), 
     sla_prints(Preset::TYPE_SLA_PRINT, Preset::sla_print_options(), static_cast<const SLAPrintObjectConfig&>(SLAFullPrintConfig::defaults())),
-    printers(Preset::TYPE_PRINTER, Preset::printer_options(), static_cast<const HostConfig&>(FullPrintConfig::defaults()), "- default FFF -")
+    printers(Preset::TYPE_PRINTER, Preset::printer_options(), static_cast<const HostConfig&>(FullPrintConfig::defaults()), "- default FFF -"),
+    physical_printers(PhysicalPrinter::printer_options())
 {
     // The following keys are handled by the UI, they do not have a counterpart in any StaticPrintConfig derived classes,
     // therefore they need to be handled differently. As they have no counterpart in StaticPrintConfig, they are not being
@@ -139,14 +140,16 @@ void PresetBundle::setup_directories()
         data_dir / "presets" / "filament", 
         data_dir / "presets" / "sla_print",  
         data_dir / "presets" / "sla_material", 
-        data_dir / "presets" / "printer" 
+        data_dir / "presets" / "printer", 
+        data_dir / "presets" / "physical_printer" 
 #else
         // Store the print/filament/printer presets at the same location as the upstream Slic3r.
         data_dir / "print", 
         data_dir / "filament", 
         data_dir / "sla_print", 
         data_dir / "sla_material", 
-        data_dir / "printer" 
+        data_dir / "printer", 
+        data_dir / "physical_printer" 
 #endif
     };
     for (const boost::filesystem::path &path : paths) {
@@ -193,6 +196,11 @@ void PresetBundle::load_presets(AppConfig &config, const std::string &preferred_
     }
     try {
         this->printers.load_presets(dir_user_presets, "printer");
+    } catch (const std::runtime_error &err) {
+        errors_cummulative += err.what();
+    }
+    try {
+        this->physical_printers.load_printers(dir_user_presets, "physical_printer");
     } catch (const std::runtime_error &err) {
         errors_cummulative += err.what();
     }
@@ -422,6 +430,14 @@ void PresetBundle::load_selections(AppConfig &config, const std::string &preferr
     // exist.
     this->update_compatible(PresetSelectCompatibleType::Always);
     this->update_multi_material_filament_presets();
+
+    // Parse the initial physical printer name.
+    std::string initial_physical_printer_name = remove_ini_suffix(config.get("extras", "physical_printer"));
+
+    // Activate physical printer from the config
+    const PhysicalPrinter* initial_physical_printer = physical_printers.find_printer(initial_physical_printer_name);
+    if (initial_physical_printer)
+        physical_printers.select_printer_by_name(initial_physical_printer_name);
 }
 
 // Export selections (current print, current filaments, current printer) into config.ini
@@ -441,6 +457,8 @@ void PresetBundle::export_selections(AppConfig &config)
     config.set("presets", "sla_print",    sla_prints.get_selected_preset_name());
     config.set("presets", "sla_material", sla_materials.get_selected_preset_name());
     config.set("presets", "printer",      printers.get_selected_preset_name());
+
+    config.set("extras", "physical_printer", physical_printers.get_selected_printer_name());
 }
 
 DynamicPrintConfig PresetBundle::full_config() const

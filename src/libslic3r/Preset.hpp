@@ -535,14 +535,14 @@ namespace PresetUtils {
 class PhysicalPrinter
 {
 public:
-    PhysicalPrinter(const std::string& name) : name(name) {}
+    PhysicalPrinter() {}
+    PhysicalPrinter(const std::string& name) : name(name){}
+    PhysicalPrinter(const std::string& name, const Preset& preset);
 
     // Name of the Physical Printer, usually derived form the file name.
     std::string         name;
     // File name of the Physical Printer.
     std::string         file;
-    // Name of the related Printer preset
-    std::string         preset_name;
 
     // Has this profile been loaded?
     bool                loaded = false;
@@ -550,7 +550,13 @@ public:
     // Configuration data, loaded from a file, or set from the defaults.
     DynamicPrintConfig  config;
 
+    static const std::vector<std::string>& printer_options();
+    const std::string&  get_preset_name();
+
     void                save() { this->config.save(this->file); }
+    void                save_to(const std::string& file_name) const { this->config.save(file_name); }
+    void                update_from_preset(const Preset& preset);
+    void                update_from_config(const DynamicPrintConfig &new_config);
 
     // Return a printer technology, return ptFFF if the printer technology is not set.
     static PrinterTechnology printer_technology(const DynamicPrintConfig& cfg) {
@@ -562,18 +568,22 @@ public:
     PrinterTechnology   printer_technology() const { return printer_technology(this->config); }
 
     // Sort lexicographically by a preset name. The preset name shall be unique across a single PresetCollection.
-    bool                operator<(const Preset& other) const { return this->name < other.name; }
+    bool                operator<(const PhysicalPrinter& other) const { return this->name < other.name; }
 
 protected:
     friend class        PhysicalPrinterCollection;
 };
-/*
-// Collections of presets of the same type (one of the Print, Filament or Printer type).
+
+
+// ---------------------------------
+// ***  PhysicalPrinterCollection  ***
+// ---------------------------------
+
+// Collections of physical printers
 class PhysicalPrinterCollection
 {
 public:
-    // Initialize the PresetCollection with the "- default -" preset.
-    PhysicalPrinterCollection(const std::vector<std::string>& keys) : m_idx_selected(0) {}
+    PhysicalPrinterCollection(const std::vector<std::string>& keys);
     ~PhysicalPrinterCollection() {}
 
     typedef std::deque<PhysicalPrinter>::iterator Iterator;
@@ -585,63 +595,39 @@ public:
     ConstIterator   end() const { return m_printers.cend(); }
     ConstIterator   cend() const { return m_printers.cend(); }
 
+    bool            empty() const {return m_printers.empty(); }
+
     void            reset(bool delete_files) {};
 
     const std::deque<PhysicalPrinter>& operator()() const { return m_printers; }
 
     // Load ini files of the particular type from the provided directory path.
-    void            load_printers(const std::string& dir_path, const std::string& subdir){};
-
-    // Load a preset from an already parsed config file, insert it into the sorted sequence of presets
-    // and select it, losing previous modifications.
-    PhysicalPrinter& load_printer(const std::string& path, const std::string& name, const DynamicPrintConfig& config, bool select = true);
-    PhysicalPrinter& load_printer(const std::string& path, const std::string& name, DynamicPrintConfig&& config, bool select = true);
-
-    PhysicalPrinter& load_external_printer(
-        // Path to the profile source file (a G-code, an AMF or 3MF file, a config file)
-        const std::string& path,
-        // Name of the profile, derived from the source file name.
-        const std::string& name,
-        // Original name of the profile, extracted from the loaded config. Empty, if the name has not been stored.
-        const std::string& original_name,
-        // Config to initialize the preset from.
-        const DynamicPrintConfig& config,
-        // Select the preset after loading?
-        bool                         select = true);
+    void            load_printers(const std::string& dir_path, const std::string& subdir);
 
     // Save the printer under a new name. If the name is different from the old one,
     // a new printer is stored into the list of printers.
-    // ? New printer is activated.
-    void            save_printer(const std::string& new_name);
+    // New printer is activated.
+    void            save_printer(const PhysicalPrinter& printer);
 
     // Delete the current preset, activate the first visible preset.
     // returns true if the preset was deleted successfully.
-    bool            delete_current_printer() {return true;}
-    // Delete the current preset, activate the first visible preset.
-    // returns true if the preset was deleted successfully.
-    bool            delete_printer(const std::string& name) { return true; }
+    bool            delete_printer(const std::string& name);
 
-    // Select a printer. If an invalid index is provided, the first visible printer is selected.
-    PhysicalPrinter& select_printer(size_t idx);
     // Return the selected preset, without the user modifications applied.
-    PhysicalPrinter& get_selected_preset() { return m_printers[m_idx_selected]; }
-    const PhysicalPrinter& get_selected_preset() const { return m_printers[m_idx_selected]; }
+    PhysicalPrinter& get_selected_printer() { return m_printers[m_idx_selected]; }
+    const PhysicalPrinter& get_selected_printer() const { return m_printers[m_idx_selected]; }
     size_t          get_selected_idx()    const { return m_idx_selected; }
     // Returns the name of the selected preset, or an empty string if no preset is selected.
-    std::string     get_selected_preset_name() const { return (m_idx_selected == size_t(-1)) ? std::string() : this->get_selected_preset().name; }
-    PhysicalPrinter& get_edited_preset() { return m_edited_printer; }
-    const PhysicalPrinter& get_edited_preset() const { return m_edited_printer; }
+    std::string     get_selected_printer_name() const { return (m_idx_selected == size_t(-1)) ? std::string() : this->get_selected_printer().name; }
+    DynamicPrintConfig* get_selected_printer_config() { return (m_idx_selected == size_t(-1)) ? nullptr : &(this->get_selected_printer().config); }
 
-    // Return a preset possibly with modifications.
-    PhysicalPrinter& default_printer(size_t idx = 0) { return m_printers[idx]; }
-    const PhysicalPrinter& default_printer(size_t idx = 0) const { return m_printers[idx]; }
+    // select printer with name and return reference on it
+    PhysicalPrinter& select_printer_by_name(const std::string& name);
+    bool            has_selection() const { return m_idx_selected != size_t(-1); }
+    void            unselect_printer() { m_idx_selected = size_t(-1); }
 
-    // used to update preset_choice from Tab
-    const std::deque<PhysicalPrinter>& get_presets() const { return m_printers; }
-    size_t                      get_idx_selected() { return m_idx_selected; }
-
-    // Return a preset by an index. If the preset is active, a temporary copy is returned.
-    PhysicalPrinter& printer(size_t idx) { return (idx == m_idx_selected) ? m_edited_printer : m_printers[idx]; }
+    // Return a printer by an index. If the printer is active, a temporary copy is returned.
+    PhysicalPrinter& printer(size_t idx) { return m_printers[idx]; }
     const PhysicalPrinter& printer(size_t idx) const { return const_cast<PhysicalPrinterCollection*>(this)->printer(idx); }
 
     // Return a preset by its name. If the preset is active, a temporary copy is returned.
@@ -652,20 +638,10 @@ public:
         return const_cast<PhysicalPrinterCollection*>(this)->find_printer(name, first_visible_if_not_found);
     }
 
-    // Return number of presets including the "- default -" preset.
-    size_t          size() const { return m_printers.size(); }
-    
-    // Select a profile by its name. Return true if the selection changed.
-    // Without force, the selection is only updated if the index changes.
-    // With force, the changes are reverted if the new index is the same as the old index.
-    bool            select_printer_by_name(const std::string& name, bool force) {};
-
     // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
     std::string     path_from_name(const std::string& new_name) const;
 
 private:
-//    PhysicalPrinterCollection();
-    PhysicalPrinterCollection(const PhysicalPrinterCollection& other);
     PhysicalPrinterCollection& operator=(const PhysicalPrinterCollection& other);
 
     // Find a preset position in the sorted list of presets.
@@ -674,8 +650,8 @@ private:
     // If a preset does not exist, an iterator is returned indicating where to insert a preset with the same name.
     std::deque<PhysicalPrinter>::iterator find_printer_internal(const std::string& name)
     {
-        PhysicalPrinter key(name);
-        auto it = std::lower_bound(m_printers.begin()+0, m_printers.end(), key);
+        PhysicalPrinter printer(name);
+        auto it = std::lower_bound(m_printers.begin(), m_printers.end(), printer);
         return it;
     }
     std::deque<PhysicalPrinter>::const_iterator find_printer_internal(const std::string& name) const
@@ -683,23 +659,18 @@ private:
         return const_cast<PhysicalPrinterCollection*>(this)->find_printer_internal(name);
     }
 
-    static std::vector<std::string> dirty_options(const Preset* edited, const Preset* reference, const bool is_printer_type = false);
-
-    // List of presets, starting with the "- default -" preset.
+    // List of printers
     // Use deque to force the container to allocate an object per each entry, 
     // so that the addresses of the presets don't change during resizing of the container.
     std::deque<PhysicalPrinter> m_printers;
-    // Initially this printer contains a copy of the selected printer. Later on, this copy may be modified by the user.
-    PhysicalPrinter             m_edited_printer;
-    // Selected preset.
-    size_t                      m_idx_selected;
+
+    // Selected printer.
+    size_t                      m_idx_selected = size_t(-1);
 
     // Path to the directory to store the config files into.
     std::string                 m_dir_path;
 };
 
-//////////////////////////////////////////////////////////////////////
-*/
 
 } // namespace Slic3r
 

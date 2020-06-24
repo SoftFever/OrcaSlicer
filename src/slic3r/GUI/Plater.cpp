@@ -942,8 +942,6 @@ void Sidebar::msw_rescale()
 
 void Sidebar::sys_color_changed()
 {
-    // Update preset comboboxes in respect to the system color ...
-    // combo->msw_rescale() updates icon on button, so use it
     for (PlaterPresetComboBox* combo : std::vector<PlaterPresetComboBox*>{  p->combo_print,
                                                                 p->combo_sla_print,
                                                                 p->combo_sla_material,
@@ -952,12 +950,8 @@ void Sidebar::sys_color_changed()
     for (PlaterPresetComboBox* combo : p->combos_filament)
         combo->msw_rescale();
 
-    // ... then refill them and set min size to correct layout of the sidebar
-    update_all_preset_comboboxes();
-
     p->object_list->sys_color_changed();
     p->object_manipulation->sys_color_changed();
-//    p->object_settings->msw_rescale();
     p->object_layers->sys_color_changed();
 
     // btn...->msw_rescale() updates icon on button, so use it
@@ -3208,11 +3202,22 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     //! instead of
     //!     combo->GetStringSelection().ToUTF8().data());
 
-    const std::string preset_name = wxGetApp().preset_bundle->get_preset_name_by_alias(preset_type, 
+    std::string preset_name = wxGetApp().preset_bundle->get_preset_name_by_alias(preset_type, 
         Preset::remove_suffix_modified(combo->GetString(selection).ToUTF8().data()));
 
     if (preset_type == Preset::TYPE_FILAMENT) {
         wxGetApp().preset_bundle->set_filament_preset(idx, preset_name);
+    }
+    
+    if (preset_type == Preset::TYPE_PRINTER) {
+        if(combo->is_selected_physical_printer()) {
+            // Select related printer preset on the Printer Settings Tab 
+            const std::string printer_name = combo->GetString(selection).ToUTF8().data();
+            PhysicalPrinter& printer = wxGetApp().preset_bundle->physical_printers.select_printer_by_name(printer_name);
+            preset_name = wxGetApp().preset_bundle->get_preset_name_by_alias(preset_type, printer.get_preset_name());
+        }
+        else
+            wxGetApp().preset_bundle->physical_printers.unselect_printer();
     }
 
     // TODO: ?
@@ -3974,7 +3979,12 @@ void Plater::priv::show_action_buttons(const bool ready_to_slice) const
     this->ready_to_slice = ready_to_slice;
 
     wxWindowUpdateLocker noUpdater(sidebar);
-    const auto prin_host_opt = config->option<ConfigOptionString>("print_host");
+
+    DynamicPrintConfig* selected_printer_config = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config();
+    if (!selected_printer_config)
+        selected_printer_config = config;
+
+    const auto prin_host_opt = selected_printer_config->option<ConfigOptionString>("print_host");
     const bool send_gcode_shown = prin_host_opt != nullptr && !prin_host_opt->value.empty();
     
     // when a background processing is ON, export_btn and/or send_btn are showing
@@ -4893,7 +4903,9 @@ void Plater::send_gcode()
 {
     if (p->model.objects.empty()) { return; }
 
-    PrintHostJob upload_job(p->config);
+    // if physical_printer is selected, send gcode for this printer
+    DynamicPrintConfig* physical_printer_config = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config();
+    PrintHostJob upload_job(physical_printer_config ? physical_printer_config : p->config);
     if (upload_job.empty()) { return; }
 
     // Obtain default output path

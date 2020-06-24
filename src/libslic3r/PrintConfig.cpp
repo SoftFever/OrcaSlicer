@@ -130,6 +130,26 @@ void PrintConfigDef::init_common_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.2));
+
+    // Options used by physical printers
+    
+    def = this->add("login", coString);
+    def->label = L("Login");
+//    def->tooltip = L("");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
+    
+    def = this->add("password", coString);
+    def->label = L("Password");
+//    def->tooltip = L("");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
+    
+    def = this->add("preset_name", coString);
+    def->label = L("Printer preset name");
+    def->tooltip = L("Related printer preset name");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
 }
 
 void PrintConfigDef::init_fff_params()

@@ -13,6 +13,7 @@
 
 class wxString;
 class wxTextCtrl;
+class ScalableButton;
 
 namespace Slic3r {
 
@@ -33,7 +34,8 @@ public:
     ~PresetComboBox();
 
 	enum LabelItemType {
-		LABEL_ITEM_MARKER = 0xffffff01,
+		LABEL_ITEM_PHYSICAL_PRINTER = 0xffffff01,
+		LABEL_ITEM_MARKER,
 		LABEL_ITEM_PHYSICAL_PRINTERS,
 		LABEL_ITEM_WIZARD_PRINTERS,
         LABEL_ITEM_WIZARD_FILAMENTS,
@@ -121,11 +123,13 @@ public:
     void set_extruder_idx(const int extr_idx)   { m_extruder_idx = extr_idx; }
     int  get_extruder_idx() const               { return m_extruder_idx; }
 
+    bool is_selected_physical_printer();
+
     void update() override;
     void msw_rescale() override;
 
 private:
-    int m_extruder_idx = -1;
+    int     m_extruder_idx = -1;
 };
 
 
@@ -135,8 +139,11 @@ private:
 
 class TabPresetComboBox : public PresetComboBox
 {
+    bool show_incompatible {false};
+    std::function<void(int)> on_selection_changed { nullptr };
+
 public:
-    TabPresetComboBox(wxWindow *parent, Preset::Type preset_type, bool is_from_physical_printer = false);
+    TabPresetComboBox(wxWindow *parent, Preset::Type preset_type);
     ~TabPresetComboBox() {}
     void set_show_incompatible_presets(bool show_incompatible_presets) {
         show_incompatible = show_incompatible_presets;
@@ -146,25 +153,33 @@ public:
     void update_dirty();
     void msw_rescale() override;
 
-private:
-    bool show_incompatible{false};
+    void set_selection_changed_function(std::function<void(int)> sel_changed) { on_selection_changed = sel_changed; }
 };
 
 
 //------------------------------------------
 //          PhysicalPrinterDialog
 //------------------------------------------
-
+class ConfigOptionsGroup;
 class PhysicalPrinterDialog : public DPIDialog
 {
-    std::string printer_name;
-    std::string preset_name;
+    PhysicalPrinter     m_printer;
+    DynamicPrintConfig* m_config            { nullptr };
 
-    wxTextCtrl* printer_text { nullptr };
-    PresetComboBox* printer_presets;
+    wxTextCtrl*         m_printer_name      { nullptr };
+    TabPresetComboBox*  m_printer_presets   { nullptr };
+    ConfigOptionsGroup* m_optgroup          { nullptr };
+
+    ScalableButton*     m_printhost_browse_btn;
+    ScalableButton*     m_printhost_test_btn;
+    ScalableButton*     m_printhost_cafile_browse_btn {nullptr};
+
+    void build_printhost_settings(ConfigOptionsGroup* optgroup);
+    void update_octoprint_visible();
+    void OnOK(wxEvent& event);
 
 public:
-    PhysicalPrinterDialog(const wxString& printer_name, int last_selected_preset);
+    PhysicalPrinterDialog(wxString printer_name);
     ~PhysicalPrinterDialog() {}
 
 protected:
