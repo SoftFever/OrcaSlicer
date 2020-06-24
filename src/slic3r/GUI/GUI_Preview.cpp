@@ -1440,7 +1440,7 @@ void Preview::on_sliders_scroll_changed(wxCommandEvent& event)
 #if ENABLE_GCODE_VIEWER
 void Preview::on_moves_slider_scroll_changed(wxCommandEvent& event)
 {
-    m_canvas->update_gcode_sequential_view_current(static_cast<unsigned int>(m_moves_slider->GetLowerValueD()), static_cast<unsigned int>(m_moves_slider->GetHigherValueD()));
+    m_canvas->update_gcode_sequential_view_current(static_cast<unsigned int>(m_moves_slider->GetLowerValueD() - 1.0), static_cast<unsigned int>(m_moves_slider->GetHigherValueD() - 1.0));
     m_canvas->render();
 }
 
