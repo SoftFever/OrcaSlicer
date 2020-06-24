@@ -12,7 +12,7 @@
 #include "libslic3r/Format/OBJ.hpp"
 #include "libslic3r/Format/PRUS.hpp"
 #include "libslic3r/Format/STL.hpp"
-#include "slic3r/GUI/PresetBundle.hpp"
+#include "libslic3r/PresetBundle.hpp"
 %}
 
 %name{Slic3r::Model} class Model {
