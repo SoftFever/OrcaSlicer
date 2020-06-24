@@ -908,10 +908,20 @@ bool TriangleSelector::select_triangle(int facet_idx, FacetSupportType type, boo
             }
         }
     }
-    // In case that all children are leafs and have the same state now,
-    // they may be removed and substituted by the parent triangle.
-    if (! recursive_call)
+
+    if (! recursive_call) {
+        // In case that all children are leafs and have the same state now,
+        // they may be removed and substituted by the parent triangle.
         remove_useless_children(facet_idx);
+
+        // Make sure that we did not lose track of invalid triangles.
+        assert(m_invalid_triangles == std::count_if(m_triangles.begin(), m_triangles.end(),
+                   [](const Triangle& tr) { return ! tr.valid; }));
+
+        // Do garbage collection maybe?
+        if (2*m_invalid_triangles > int(m_triangles.size()))
+            garbage_collect();
+    }
     return true;
 }
 
@@ -934,6 +944,7 @@ void TriangleSelector::split_triangle(int facet_idx)
         for (int i=0; i<=tr->number_of_split_sides(); ++i) {
             m_triangles[tr->children[i]].set_state(old_type);
             m_triangles[tr->children[i]].valid = true;
+            --m_invalid_triangles;
         }
         return;
     }
@@ -941,9 +952,11 @@ void TriangleSelector::split_triangle(int facet_idx)
     // If we got here, we are about to actually split the triangle.
     const double limit_squared = m_edge_limit_sqr;
 
-    stl_triangle_vertex_indices& facet = tr->verts_idxs;
-    const stl_vertex* pts[3] = { &m_vertices[facet[0]], &m_vertices[facet[1]], &m_vertices[facet[2]]};
-    double sides[3] = { (*pts[2]-*pts[1]).squaredNorm(), (*pts[0]-*pts[2]).squaredNorm(), (*pts[1]-*pts[0]).squaredNorm() };
+    std::array<int, 3>& facet = tr->verts_idxs;
+    const stl_vertex* pts[3] = { &m_vertices[facet[0]].v, &m_vertices[facet[1]].v, &m_vertices[facet[2]].v};
+    double sides[3] = { (*pts[2]-*pts[1]).squaredNorm(),
+                        (*pts[0]-*pts[2]).squaredNorm(),
+                        (*pts[1]-*pts[0]).squaredNorm() };
 
     std::vector<int> sides_to_split;
     int side_to_keep = -1;
@@ -970,37 +983,37 @@ void TriangleSelector::split_triangle(int facet_idx)
 
 
    if (sides_to_split.size() == 1) {
-        m_vertices.emplace_back((m_vertices[verts_idxs[1]] + m_vertices[verts_idxs[2]])/2.);
+        m_vertices.emplace_back((m_vertices[verts_idxs[1]].v + m_vertices[verts_idxs[2]].v)/2.);
         verts_idxs.insert(verts_idxs.begin()+2, m_vertices.size() - 1);
 
-        m_triangles.emplace_back(verts_idxs[0], verts_idxs[1], verts_idxs[2]);
-        m_triangles.emplace_back(verts_idxs[2], verts_idxs[3], verts_idxs[0]);
+        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[2]);
+        push_triangle(verts_idxs[2], verts_idxs[3], verts_idxs[0]);
     }
 
     if (sides_to_split.size() == 2) {
-        m_vertices.emplace_back((m_vertices[verts_idxs[0]] + m_vertices[verts_idxs[1]])/2.);
+        m_vertices.emplace_back((m_vertices[verts_idxs[0]].v + m_vertices[verts_idxs[1]].v)/2.);
         verts_idxs.insert(verts_idxs.begin()+1, m_vertices.size() - 1);
 
-        m_vertices.emplace_back((m_vertices[verts_idxs[0]] + m_vertices[verts_idxs[3]])/2.);
+        m_vertices.emplace_back((m_vertices[verts_idxs[0]].v + m_vertices[verts_idxs[3]].v)/2.);
         verts_idxs.insert(verts_idxs.begin()+4, m_vertices.size() - 1);
 
-        m_triangles.emplace_back(verts_idxs[0], verts_idxs[1], verts_idxs[4]);
-        m_triangles.emplace_back(verts_idxs[1], verts_idxs[2], verts_idxs[4]);
-        m_triangles.emplace_back(verts_idxs[2], verts_idxs[3], verts_idxs[4]);
+        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[4]);
+        push_triangle(verts_idxs[1], verts_idxs[2], verts_idxs[4]);
+        push_triangle(verts_idxs[2], verts_idxs[3], verts_idxs[4]);
     }
 
     if (sides_to_split.size() == 3) {
-        m_vertices.emplace_back((m_vertices[verts_idxs[0]] + m_vertices[verts_idxs[1]])/2.);
+        m_vertices.emplace_back((m_vertices[verts_idxs[0]].v + m_vertices[verts_idxs[1]].v)/2.);
         verts_idxs.insert(verts_idxs.begin()+1, m_vertices.size() - 1);
-        m_vertices.emplace_back((m_vertices[verts_idxs[2]] + m_vertices[verts_idxs[3]])/2.);
+        m_vertices.emplace_back((m_vertices[verts_idxs[2]].v + m_vertices[verts_idxs[3]].v)/2.);
         verts_idxs.insert(verts_idxs.begin()+3, m_vertices.size() - 1);
-        m_vertices.emplace_back((m_vertices[verts_idxs[4]] + m_vertices[verts_idxs[0]])/2.);
+        m_vertices.emplace_back((m_vertices[verts_idxs[4]].v + m_vertices[verts_idxs[0]].v)/2.);
         verts_idxs.insert(verts_idxs.begin()+5, m_vertices.size() - 1);
 
-        m_triangles.emplace_back(verts_idxs[0], verts_idxs[1], verts_idxs[5]);
-        m_triangles.emplace_back(verts_idxs[1], verts_idxs[2], verts_idxs[3]);
-        m_triangles.emplace_back(verts_idxs[3], verts_idxs[4], verts_idxs[5]);
-        m_triangles.emplace_back(verts_idxs[1], verts_idxs[3], verts_idxs[5]);
+        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[5]);
+        push_triangle(verts_idxs[1], verts_idxs[2], verts_idxs[3]);
+        push_triangle(verts_idxs[3], verts_idxs[4], verts_idxs[5]);
+        push_triangle(verts_idxs[1], verts_idxs[3], verts_idxs[5]);
     }
 
     tr = &m_triangles[facet_idx]; // may have been invalidated
@@ -1035,9 +1048,9 @@ bool TriangleSelector::is_pointer_in_triangle(int facet_idx) const
         return ((b-a).cross(c-a)).dot(d-a) > 0.;
     };
 
-    const Vec3f& p1 = m_vertices[m_triangles[facet_idx].verts_idxs[0]];
-    const Vec3f& p2 = m_vertices[m_triangles[facet_idx].verts_idxs[1]];
-    const Vec3f& p3 = m_vertices[m_triangles[facet_idx].verts_idxs[2]];
+    const Vec3f& p1 = m_vertices[m_triangles[facet_idx].verts_idxs[0]].v;
+    const Vec3f& p2 = m_vertices[m_triangles[facet_idx].verts_idxs[1]].v;
+    const Vec3f& p3 = m_vertices[m_triangles[facet_idx].verts_idxs[2]].v;
     const Vec3f& q1 = m_cursor.center + m_cursor.dir;
     const Vec3f  q2 = m_cursor.center - m_cursor.dir;
 
@@ -1065,7 +1078,7 @@ int TriangleSelector::vertices_inside(int facet_idx) const
 {
     int inside = 0;
     for (size_t i=0; i<3; ++i) {
-        if (is_point_inside_cursor(m_vertices[m_triangles[facet_idx].verts_idxs[i]]))
+        if (is_point_inside_cursor(m_vertices[m_triangles[facet_idx].verts_idxs[i]].v))
             ++inside;
     }
     return inside;
@@ -1077,7 +1090,7 @@ bool TriangleSelector::is_edge_inside_cursor(int facet_idx) const
 {
     Vec3f pts[3];
     for (int i=0; i<3; ++i)
-        pts[i] = m_vertices[m_triangles[facet_idx].verts_idxs[i]];
+        pts[i] = m_vertices[m_triangles[facet_idx].verts_idxs[i]].v;
 
     const Vec3f& p = m_cursor.center;
 
@@ -1109,6 +1122,7 @@ void TriangleSelector::undivide_triangle(int facet_idx)
         for (int i=0; i<=tr.number_of_split_sides(); ++i) {
             undivide_triangle(tr.children[i]);
             m_triangles[tr.children[i]].valid = false;
+            ++m_invalid_triangles;
         }
         tr.set_division(0); // not split
     }
@@ -1138,7 +1152,7 @@ void TriangleSelector::remove_useless_children(int facet_idx)
 
 
     // Return if a child is not leaf or two children differ in type.
-    FacetSupportType first_child_type;
+    FacetSupportType first_child_type = FacetSupportType::NONE;
     for (int child_idx=0; child_idx<=tr.number_of_split_sides(); ++child_idx) {
         if (m_triangles[tr.children[child_idx]].is_split())
             return;
@@ -1160,13 +1174,26 @@ void TriangleSelector::garbage_collect()
     // First make a map from old to new triangle indices.
     int new_idx = m_orig_size_indices;
     std::vector<int> new_triangle_indices(m_triangles.size(), -1);
-    std::vector<bool> invalid_vertices(m_vertices.size(), false);
     for (int i = m_orig_size_indices; i<int(m_triangles.size()); ++i) {
         if (m_triangles[i].valid) {
             new_triangle_indices[i] = new_idx;
             ++new_idx;
         } else {
-            // FIXME: Decrement reference counter for the vertices.
+            // Decrement reference counter for the vertices.
+            for (int j=0; j<3; ++j)
+                --m_vertices[m_triangles[i].verts_idxs[j]].ref_cnt;
+        }
+    }
+
+    // Now we know which vertices are not referenced anymore. Make a map
+    // from old idxs to new ones, like we did for triangles.
+    new_idx = m_orig_size_vertices;
+    std::vector<int> new_vertices_indices(m_vertices.size(), -1);
+    for (int i=m_orig_size_vertices; i<int(m_vertices.size()); ++i) {
+        assert(m_vertices[i].ref_cnt >= 0);
+        if (m_vertices[i].ref_cnt != 0) {
+            new_vertices_indices[i] = new_idx;
+            ++new_idx;
         }
     }
 
@@ -1174,6 +1201,9 @@ void TriangleSelector::garbage_collect()
     m_triangles.erase(std::remove_if(m_triangles.begin()+m_orig_size_indices, m_triangles.end(),
                           [](const Triangle& tr) { return ! tr.valid; }),
                       m_triangles.end());
+    m_vertices.erase(std::remove_if(m_vertices.begin()+m_orig_size_vertices, m_vertices.end(),
+                          [](const Vertex& vert) { return vert.ref_cnt == 0; }),
+                      m_vertices.end());
 
     // Now go through all remaining triangles and update changed indices.
     for (Triangle& tr : m_triangles) {
@@ -1187,20 +1217,32 @@ void TriangleSelector::garbage_collect()
             }
         }
 
+        // Update indices into m_vertices. The original vertices are never
+        // touched and need not be reindexed.
+        for (int& idx : tr.verts_idxs) {
+            if (idx >= m_orig_size_vertices) {
+                assert(new_vertices_indices[idx] != -1);
+                idx = new_vertices_indices[idx];
+            }
+        }
+
         // If this triangle was split before, forget it.
         // Children referenced in the cache are dead by now.
         tr.forget_history();
     }
+
+    m_invalid_triangles = 0;
 }
 
 TriangleSelector::TriangleSelector(const TriangleMesh& mesh)
 {
     for (const stl_vertex& vert : mesh.its.vertices)
-        m_vertices.push_back(vert);
+        m_vertices.emplace_back(vert);
     for (const stl_triangle_vertex_indices& ind : mesh.its.indices)
-        m_triangles.emplace_back(Triangle(ind[0], ind[1], ind[2]));
+        push_triangle(ind[0], ind[1], ind[2]);
     m_orig_size_vertices = m_vertices.size();
     m_orig_size_indices = m_triangles.size();
+    m_invalid_triangles = 0;
     m_mesh = &mesh;
 }
 
@@ -1222,9 +1264,9 @@ void TriangleSelector::render(ImGuiWrapper* imgui)
             ::glColor4f(1.f, 0.f, 0.f, 0.2f);
 
         for (int i=0; i<3; ++i)
-            ::glVertex3f(m_vertices[tr.verts_idxs[i]][0],
-                         m_vertices[tr.verts_idxs[i]][1],
-                         m_vertices[tr.verts_idxs[i]][2]);
+            ::glVertex3f(m_vertices[tr.verts_idxs[i]].v[0],
+                         m_vertices[tr.verts_idxs[i]].v[1],
+                         m_vertices[tr.verts_idxs[i]].v[2]);
     }
     ::glEnd();
 
@@ -1250,6 +1292,18 @@ void TriangleSelector::set_edge_limit(float edge_limit)
     }
 }
 
+
+
+void TriangleSelector::push_triangle(int a, int b, int c)
+{
+    for (int i : {a, b, c}) {
+        assert(i >= 0 && i < int(m_vertices.size()));
+        ++m_vertices[i].ref_cnt;
+    }
+    m_triangles.emplace_back(a, b, c);
+}
+
+
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
 void TriangleSelector::render_debug(ImGuiWrapper* imgui)
 {
@@ -1262,11 +1316,10 @@ void TriangleSelector::render_debug(ImGuiWrapper* imgui)
     imgui->checkbox("Show split triangles: ", m_show_triangles);
     imgui->checkbox("Show invalid triangles: ", m_show_invalid);
 
-    int valid_triangles = std::count_if(m_triangles.begin(), m_triangles.end(),
-                                [](const Triangle& tr) { return tr.valid; });
+    int valid_triangles = m_triangles.size() - m_invalid_triangles;
     imgui->text("Valid triangles: " + std::to_string(valid_triangles) +
                   "/" + std::to_string(m_triangles.size()));
-    imgui->text("Number of vertices: " + std::to_string(m_vertices.size()));
+    imgui->text("Vertices: " + std::to_string(m_vertices.size()));
     if (imgui->button("Force garbage collection"))
         garbage_collect();
 
@@ -1290,9 +1343,9 @@ void TriangleSelector::render_debug(ImGuiWrapper* imgui)
                 ::glColor3f(0.f, 0.f, 1.f);
 
             for (int i=0; i<3; ++i)
-                ::glVertex3f(m_vertices[tr.verts_idxs[i]][0],
-                             m_vertices[tr.verts_idxs[i]][1],
-                             m_vertices[tr.verts_idxs[i]][2]);
+                ::glVertex3f(m_vertices[tr.verts_idxs[i]].v[0],
+                             m_vertices[tr.verts_idxs[i]].v[1],
+                             m_vertices[tr.verts_idxs[i]].v[2]);
         }
         ::glEnd();
         ::glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
