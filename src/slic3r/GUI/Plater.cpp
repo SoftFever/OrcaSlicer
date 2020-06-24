@@ -2087,9 +2087,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     // collapse sidebar according to saved value
     bool is_collapsed = wxGetApp().app_config->get("collapsed_sidebar") == "1";
     sidebar->collapse(is_collapsed);
-    // Update an enable of the collapse_toolbar: if sidebar is collapsed, then collapse_toolbar should be visible
-    if (is_collapsed)
-        wxGetApp().app_config->set("show_collapse_button", "1");
 }
 
 Plater::priv::~priv()
