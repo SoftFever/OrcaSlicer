@@ -612,6 +612,9 @@ public:
     // Delete the current preset, activate the first visible preset.
     // returns true if the preset was deleted successfully.
     bool            delete_printer(const std::string& name);
+    // Delete the selected preset
+    // returns true if the preset was deleted successfully.
+    bool            delete_selected_printer();
 
     // Return the selected preset, without the user modifications applied.
     PhysicalPrinter& get_selected_printer() { return m_printers[m_idx_selected]; }

@@ -1489,14 +1489,29 @@ void PhysicalPrinterCollection::save_printer(const PhysicalPrinter& edited_print
 bool PhysicalPrinterCollection::delete_printer(const std::string& name)
 {
     auto it = this->find_printer_internal(name);
+    if (it == m_printers.end())
+        return false;
 
     const PhysicalPrinter& printer = *it;
-    if (it == m_printers.end())
-    return false;
-    
     // Erase the preset file.
     boost::nowide::remove(printer.file.c_str());
     m_printers.erase(it);
+    return true;
+}
+
+bool PhysicalPrinterCollection::delete_selected_printer()
+{
+    if (!has_selection())
+        return false;
+    const PhysicalPrinter& printer = this->get_selected_printer();
+
+    // Erase the preset file.
+    boost::nowide::remove(printer.file.c_str());
+    // Remove the preset from the list.
+    m_printers.erase(m_printers.begin() + m_idx_selected);
+    // unselect all printers
+    unselect_printer();
+
     return true;
 }
 

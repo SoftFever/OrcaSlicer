@@ -12,6 +12,7 @@
 #include <wx/statbox.h>
 #include <wx/colordlg.h>
 #include <wx/wupdlock.h>
+#include <wx/menu.h>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PrintConfig.hpp"
@@ -322,27 +323,13 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
     edit_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent)
     {
         // In a case of a physical printer, for its editing open PhysicalPrinterDialog
-        if (m_type == Preset::TYPE_PRINTER && this->is_selected_physical_printer())
-        {
-            PhysicalPrinterDialog dlg(this->GetString(this->GetSelection()));
-            if (dlg.ShowModal() == wxID_OK) {
-                update();
-                return;
-            }
+        if (m_type == Preset::TYPE_PRINTER && this->is_selected_physical_printer()) {
+            this->show_edit_menu();
+            return;
         }
 
-        Tab* tab = wxGetApp().get_tab(m_type);
-        if (!tab)
+        if (!switch_to_tab())
             return;
-
-        int page_id = wxGetApp().tab_panel()->FindPage(tab);
-        if (page_id == wxNOT_FOUND)
-            return;
-
-        wxGetApp().tab_panel()->SetSelection(page_id);
-
-        // Switch to Settings NotePad
-        wxGetApp().mainframe->select_tab();
 
         /* In a case of a multi-material printing, for editing another Filament Preset
          * it's needed to select this preset for the "Filament settings" Tab
@@ -355,7 +342,7 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
             if ( !boost::algorithm::ends_with(selected_preset, Preset::suffix_modified()) )
             {
                 const std::string& preset_name = wxGetApp().preset_bundle->filaments.get_preset_name_by_alias(selected_preset);
-                tab->select_preset(preset_name);
+                wxGetApp().get_tab(m_type)->select_preset(preset_name);
             }
         }
     });
@@ -372,6 +359,53 @@ bool PlaterPresetComboBox::is_selected_physical_printer()
     auto selected_item = this->GetSelection();
     auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
     return marker == LABEL_ITEM_PHYSICAL_PRINTER;
+}
+
+bool PlaterPresetComboBox::switch_to_tab()
+{
+    Tab* tab = wxGetApp().get_tab(m_type);
+    if (!tab)
+        return false;
+
+    int page_id = wxGetApp().tab_panel()->FindPage(tab);
+    if (page_id == wxNOT_FOUND)
+        return false;
+
+    wxGetApp().tab_panel()->SetSelection(page_id);
+    // Switch to Settings NotePad
+    wxGetApp().mainframe->select_tab();
+    return true;
+}
+
+void PlaterPresetComboBox::show_edit_menu()
+{
+    wxMenu* menu = new wxMenu();
+
+    append_menu_item(menu, wxID_ANY, _L("Edit related printer profile"), "",
+        [this](wxCommandEvent&) { this->switch_to_tab(); }, "cog", menu, []() { return true; }, wxGetApp().plater());
+
+    append_menu_item(menu, wxID_ANY, _L("Edit physical printer"), "",
+        [this](wxCommandEvent&) {
+            PhysicalPrinterDialog dlg(this->GetString(this->GetSelection()));
+            if (dlg.ShowModal() == wxID_OK)
+                update();
+        }, "cog", menu, []() { return true; }, wxGetApp().plater());
+
+    append_menu_item(menu, wxID_ANY, _L("Delete physical printer"), "",
+        [this](wxCommandEvent&) {
+            const std::string& printer_name = m_preset_bundle->physical_printers.get_selected_printer_name();
+            if (printer_name.empty())
+                return;
+
+            const wxString msg = from_u8((boost::format(_u8L("Are you sure you want to delete \"%1%\" printer?")) % printer_name).str());
+            if (wxMessageDialog(this, msg, _L("Delete Physical Printer"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal() != wxID_YES)
+                return;
+
+            m_preset_bundle->physical_printers.delete_selected_printer();
+            update();
+        }, "cross", menu, []() { return true; }, wxGetApp().plater());
+
+    wxGetApp().plater()->PopupMenu(menu);
 }
 
 // Only the compatible presets are shown.

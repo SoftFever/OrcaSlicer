@@ -124,6 +124,8 @@ public:
     int  get_extruder_idx() const               { return m_extruder_idx; }
 
     bool is_selected_physical_printer();
+    bool switch_to_tab();
+    void show_edit_menu();
 
     void update() override;
     void msw_rescale() override;
