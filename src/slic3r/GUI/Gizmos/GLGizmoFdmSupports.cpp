@@ -800,51 +800,29 @@ void GLGizmoFdmSupports::on_save(cereal::BinaryOutputArchive&) const
 }
 
 
-
+// sides_to_split==-1 : just restore previous split
 void TriangleSelector::Triangle::set_division(int sides_to_split, int special_side_idx)
 {
-    assert(sides_to_split >=0 && sides_to_split <= 3);
+    assert(sides_to_split >=-1 && sides_to_split <= 3);
     assert(special_side_idx >=-1 && special_side_idx < 3);
 
     // If splitting one or two sides, second argument must be provided.
     assert(sides_to_split != 1 || special_side_idx != -1);
     assert(sides_to_split != 2 || special_side_idx != -1);
 
-    division_type = sides_to_split | ((special_side_idx != -1 ? special_side_idx : 0 ) <<2);
-}
-
-
-
-void TriangleSelector::Triangle::set_state(FacetSupportType type)
-{
-    // If this is not a leaf-node, this makes no sense and
-    // the bits are used for storing index of an edge.
-    assert(! is_split());
-    division_type = (int8_t(type) << 2);
-}
-
-
-
-int TriangleSelector::Triangle::side_to_keep() const
-{
-    assert(number_of_split_sides() == 2);
-    return division_type >> 2;
-}
-
-
-
-int TriangleSelector::Triangle::side_to_split() const
-{
-    assert(number_of_split_sides() == 1);
-    return division_type >> 2;
-}
-
-
-
-FacetSupportType TriangleSelector::Triangle::get_state() const
-{
-    assert(! is_split()); // this must be leaf
-    return FacetSupportType(division_type >> 2);
+    if (sides_to_split != -1) {
+        this->number_of_splits = sides_to_split;
+        if (sides_to_split != 0) {
+            assert(old_number_of_splits == 0);
+            this->special_side_idx = special_side_idx;
+            this->old_number_of_splits = sides_to_split;
+        }
+    }
+    else {
+        assert(old_number_of_splits != 0);
+        this->number_of_splits = old_number_of_splits;
+        // indices of children should still be there.
+    }
 }
 
 
@@ -938,17 +916,29 @@ bool TriangleSelector::select_triangle(int facet_idx, FacetSupportType type, boo
 }
 
 
-bool TriangleSelector::split_triangle(int facet_idx)
+void TriangleSelector::split_triangle(int facet_idx)
 {
     if (m_triangles[facet_idx].is_split()) {
-        // The triangle was divided already.
-        return false;
+        // The triangle is divided already.
+        return;
     }
 
     Triangle* tr = &m_triangles[facet_idx];
 
     FacetSupportType old_type = tr->get_state();
 
+    if (tr->was_split_before() != 0) {
+        // This triangle is not split at the moment, but was at one point
+        // in history. We can just restore it and resurrect its children.
+        tr->set_division(-1);
+        for (int i=0; i<=tr->number_of_split_sides(); ++i) {
+            m_triangles[tr->children[i]].set_state(old_type);
+            m_triangles[tr->children[i]].valid = true;
+        }
+        return;
+    }
+
+    // If we got here, we are about to actually split the triangle.
     const double limit_squared = m_edge_limit_sqr;
 
     stl_triangle_vertex_indices& facet = tr->verts_idxs;
@@ -964,8 +954,9 @@ bool TriangleSelector::split_triangle(int facet_idx)
             side_to_keep = pt_idx;
     }
     if (sides_to_split.empty()) {
+        // This shall be unselected.
         tr->set_division(0);
-        return false;
+        return;
     }
 
     // indices of triangle vertices
@@ -1023,11 +1014,8 @@ bool TriangleSelector::split_triangle(int facet_idx)
     assert(! sides_to_split.empty() && int(sides_to_split.size()) <= 3);
     for (int i=0; i<=int(sides_to_split.size()); ++i) {
         tr->children[i] = m_triangles.size()-1-i;
-        m_triangles[tr->children[i]].parent = facet_idx;
         m_triangles[tr->children[i]].set_state(old_type);
     }
-
-    return true;
 }
 
 
@@ -1166,6 +1154,45 @@ void TriangleSelector::remove_useless_children(int facet_idx)
 }
 
 
+
+void TriangleSelector::garbage_collect()
+{
+    // First make a map from old to new triangle indices.
+    int new_idx = m_orig_size_indices;
+    std::vector<int> new_triangle_indices(m_triangles.size(), -1);
+    std::vector<bool> invalid_vertices(m_vertices.size(), false);
+    for (int i = m_orig_size_indices; i<int(m_triangles.size()); ++i) {
+        if (m_triangles[i].valid) {
+            new_triangle_indices[i] = new_idx;
+            ++new_idx;
+        } else {
+            // FIXME: Decrement reference counter for the vertices.
+        }
+    }
+
+    // We can remove all invalid triangles and vertices that are no longer referenced.
+    m_triangles.erase(std::remove_if(m_triangles.begin()+m_orig_size_indices, m_triangles.end(),
+                          [](const Triangle& tr) { return ! tr.valid; }),
+                      m_triangles.end());
+
+    // Now go through all remaining triangles and update changed indices.
+    for (Triangle& tr : m_triangles) {
+        assert(tr.valid);
+
+        if (tr.is_split()) {
+            // There are children. Update their indices.
+            for (int j=0; j<=tr.number_of_split_sides(); ++j) {
+                assert(new_triangle_indices[tr.children[j]] != -1);
+                tr.children[j] = new_triangle_indices[tr.children[j]];
+            }
+        }
+
+        // If this triangle was split before, forget it.
+        // Children referenced in the cache are dead by now.
+        tr.forget_history();
+    }
+}
+
 TriangleSelector::TriangleSelector(const TriangleMesh& mesh)
 {
     for (const stl_vertex& vert : mesh.its.vertices)
@@ -1209,6 +1236,20 @@ void TriangleSelector::render(ImGuiWrapper* imgui)
 #endif
 }
 
+
+void TriangleSelector::set_edge_limit(float edge_limit)
+{
+    float new_limit_sqr = std::pow(edge_limit, 2.f);
+
+    if (new_limit_sqr != m_edge_limit_sqr) {
+        m_edge_limit_sqr = new_limit_sqr;
+
+        // The way how triangles split may be different now, forget
+        // all cached splits.
+        garbage_collect();
+    }
+}
+
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
 void TriangleSelector::render_debug(ImGuiWrapper* imgui)
 {
@@ -1218,28 +1259,35 @@ void TriangleSelector::render_debug(ImGuiWrapper* imgui)
     imgui->text("Edge limit (mm): ");
     imgui->slider_float("", &edge_limit, 0.1f, 8.f);
     set_edge_limit(edge_limit);
-    imgui->checkbox("Show triangles: ", m_show_triangles);
+    imgui->checkbox("Show split triangles: ", m_show_triangles);
+    imgui->checkbox("Show invalid triangles: ", m_show_invalid);
 
     int valid_triangles = std::count_if(m_triangles.begin(), m_triangles.end(),
                                 [](const Triangle& tr) { return tr.valid; });
     imgui->text("Valid triangles: " + std::to_string(valid_triangles) +
                   "/" + std::to_string(m_triangles.size()));
     imgui->text("Number of vertices: " + std::to_string(m_vertices.size()));
+    if (imgui->button("Force garbage collection"))
+        garbage_collect();
 
     imgui->end();
 
     if (m_show_triangles) {
-        ::glColor3f(0.f, 0.f, 1.f);
         ::glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
         ::glBegin( GL_TRIANGLES);
         for (int tr_id=0; tr_id<int(m_triangles.size()); ++tr_id) {
             const Triangle& tr = m_triangles[tr_id];
-            if (! tr.valid)
+            if (! m_show_invalid && ! tr.valid)
                 continue;
 
-            if (tr_id == m_orig_size_indices-1)
+            if (tr.valid)
                 ::glColor3f(1.f, 0.f, 0.f);
+            else
+                ::glColor3f(1.f, 1.f, 0.f);
+
+            if (tr_id < m_orig_size_indices)
+                ::glColor3f(0.f, 0.f, 1.f);
 
             for (int i=0; i<3; ++i)
                 ::glVertex3f(m_vertices[tr.verts_idxs[i]][0],

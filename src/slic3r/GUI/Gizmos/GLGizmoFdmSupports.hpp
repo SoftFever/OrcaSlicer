@@ -27,7 +27,7 @@ class ClippingPlane;
 // to recursively subdivide the triangles and make the selection finer.
 class TriangleSelector {
 public:
-    void set_edge_limit(float edge_limit) { m_edge_limit_sqr = std::pow(edge_limit, 2.f); }
+    void set_edge_limit(float edge_limit);
 
     // Create new object on a TriangleMesh. The referenced mesh must
     // stay valid, a ptr to it is saved and used.
@@ -54,6 +54,7 @@ public:
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
     void render_debug(ImGuiWrapper* imgui);
     bool m_show_triangles{true};
+    bool m_show_invalid{false};
 #endif
 
 private:
@@ -62,15 +63,15 @@ private:
     public:
         Triangle(int a, int b, int c)
             : verts_idxs{stl_triangle_vertex_indices(a, b, c)},
-              division_type{0}
+              state{FacetSupportType(0)},
+              number_of_splits{0},
+              special_side_idx{0},
+              old_number_of_splits{0}
         {}
         stl_triangle_vertex_indices verts_idxs;
 
         // Is this triangle valid or marked to remove?
         bool valid{true};
-
-        // Index of parent triangle (-1: original)
-        int parent{-1};
 
         // Children triangles (0 = no child)
         std::array<int, 4> children;
@@ -79,22 +80,25 @@ private:
         void set_division(int sides_to_split, int special_side_idx = -1);
 
         // Get/set current state.
-        void set_state(FacetSupportType state);
-        FacetSupportType get_state() const;
+        void set_state(FacetSupportType type) { assert(! is_split()); state = type; }
+        FacetSupportType get_state() const { assert(! is_split()); return state; }
 
         // Get info on how it's split.
         bool is_split() const { return number_of_split_sides() != 0; }
-        int number_of_split_sides() const { return division_type & 0b11; }
-        int side_to_keep() const;
-        int side_to_split() const;
+        int number_of_split_sides() const { return number_of_splits; }
+        int side_to_keep() const  { assert(number_of_split_sides() == 2); return special_side_idx; }
+        int side_to_split() const { assert(number_of_split_sides() == 1); return special_side_idx; }
+        bool was_split_before() const { return old_number_of_splits != 0; }
+        void forget_history() { old_number_of_splits = 0; }
 
     private:
-        // Bitmask encoding which sides are split.
-        int8_t division_type;
-        // bits 0, 1 : decimal 0, 1, 2 or 3 (how many sides are split)
-        // bits 2, 3 (non-leaf): decimal 0, 1 or 2 identifying the special edge
-        //   (one that splits in one-edge split or one that stays in two-edge split).
-        // bits 2, 3 (leaf): FacetSupportType value
+        int number_of_splits;
+        int special_side_idx;
+        FacetSupportType state;
+
+        // How many children were spawned during last split?
+        // Is not reset on remerging the triangle.
+        int old_number_of_splits;
     };
 
     // Lists of vertices and triangles, both original and new
@@ -129,7 +133,7 @@ private:
     int vertices_inside(int facet_idx) const;
     bool faces_camera(int facet) const;
     void undivide_triangle(int facet_idx);
-    bool split_triangle(int facet_idx);
+    void split_triangle(int facet_idx);
     void remove_useless_children(int facet_idx); // No hidden meaning. Triangles are meant.
     bool is_pointer_in_triangle(int facet_idx) const;
     bool is_edge_inside_cursor(int facet_idx) const;
