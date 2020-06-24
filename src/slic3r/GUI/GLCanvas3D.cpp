@@ -1933,7 +1933,7 @@ void GLCanvas3D::zoom_to_selection()
 #if ENABLE_GCODE_VIEWER_AS_STATE
 void GLCanvas3D::zoom_to_gcode()
 {
-    _zoom_to_box(m_gcode_viewer.get_bounding_box(), 1.05);
+    _zoom_to_box(m_gcode_viewer.get_paths_bounding_box(), 1.05);
 }
 #endif // ENABLE_GCODE_VIEWER_AS_STATE
 
@@ -3108,7 +3108,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 if (!m_volumes.empty())
                     zoom_to_volumes();
                 else
-                    _zoom_to_box(m_gcode_viewer.get_bounding_box());
+                    _zoom_to_box(m_gcode_viewer.get_paths_bounding_box());
             }
 
             break;
@@ -5189,7 +5189,7 @@ BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_be
 
 #if ENABLE_GCODE_VIEWER
     if (!m_main_toolbar.is_enabled())
-        bb.merge(m_gcode_viewer.get_bounding_box());
+        bb.merge(m_gcode_viewer.get_max_bounding_box());
 #endif // ENABLE_GCODE_VIEWER
 
     return bb;
@@ -5385,7 +5385,7 @@ void GLCanvas3D::_render_background() const
             use_error_color &= _is_any_volume_outside();
         else {
             BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
-            use_error_color &= (test_volume.radius() > 0.0) ? !test_volume.contains(m_gcode_viewer.get_bounding_box()) : false;
+            use_error_color &= (test_volume.radius() > 0.0) ? !test_volume.contains(m_gcode_viewer.get_paths_bounding_box()) : false;
         }
 #if ENABLE_GCODE_VIEWER_AS_STATE
     }
@@ -7114,7 +7114,7 @@ void GLCanvas3D::_show_warning_texture_if_needed(WarningTexture::Warning warning
         if (wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer)
         {
             BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
-            const BoundingBoxf3& paths_volume = m_gcode_viewer.get_bounding_box();
+            const BoundingBoxf3& paths_volume = m_gcode_viewer.get_paths_bounding_box();
             if (test_volume.radius() > 0.0 && paths_volume.radius() > 0.0)
                 show = !test_volume.contains(paths_volume);
         }

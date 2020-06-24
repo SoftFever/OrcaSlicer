@@ -148,7 +148,6 @@ void GCodeViewer::SequentialView::Marker::set_world_position(const Vec3f& positi
 {    
     m_world_position = position;
     m_world_transform = (Geometry::assemble_transform((position + m_z_offset * Vec3f::UnitZ()).cast<double>()) * Geometry::assemble_transform(m_model.get_bounding_box().size()[2] * Vec3d::UnitZ(), { M_PI, 0.0, 0.0 })).cast<float>();
-    m_world_bounding_box = m_model.get_bounding_box().transformed(m_world_transform.cast<double>());
 }
 
 void GCodeViewer::SequentialView::Marker::render() const
@@ -288,10 +287,10 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
 
 #if ENABLE_GCODE_VIEWER_AS_STATE
     if (wxGetApp().mainframe->get_mode() == MainFrame::EMode::GCodeViewer) {
-        // adjust printbed size
+        // adjust printbed size in dependence of toolpaths bbox
         const double margin = 10.0;
-        Vec2d min(m_bounding_box.min(0) - margin, m_bounding_box.min(1) - margin);
-        Vec2d max(m_bounding_box.max(0) + margin, m_bounding_box.max(1) + margin);
+        Vec2d min(m_paths_bounding_box.min(0) - margin, m_paths_bounding_box.min(1) - margin);
+        Vec2d max(m_paths_bounding_box.max(0) + margin, m_paths_bounding_box.max(1) + margin);
         Pointfs bed_shape = { { min(0), min(1) },
                               { max(0), min(1) },
                               { max(0), max(1) },
@@ -359,7 +358,8 @@ void GCodeViewer::reset()
         buffer.reset();
     }
 
-    m_bounding_box = BoundingBoxf3();
+    m_paths_bounding_box = BoundingBoxf3();
+    m_max_bounding_box = BoundingBoxf3();
     m_tool_colors = std::vector<Color>();
     m_extruder_ids = std::vector<unsigned char>();
     m_extrusions.reset_role_visibility_flags();
@@ -497,18 +497,19 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         const GCodeProcessor::MoveVertex& move = gcode_result.moves[i];
 #if ENABLE_GCODE_VIEWER_AS_STATE
         if (wxGetApp().mainframe->get_mode() == MainFrame::EMode::GCodeViewer)
-            m_bounding_box.merge(move.position.cast<double>());
+            // for the gcode viewer we need all moves to correctly size the printbed
+            m_paths_bounding_box.merge(move.position.cast<double>());
         else {
 #endif // ENABLE_GCODE_VIEWER_AS_STATE
             if (move.type == GCodeProcessor::EMoveType::Extrude && move.width != 0.0f && move.height != 0.0f)
-                m_bounding_box.merge(move.position.cast<double>());
+                m_paths_bounding_box.merge(move.position.cast<double>());
 #if ENABLE_GCODE_VIEWER_AS_STATE
         }
 #endif // ENABLE_GCODE_VIEWER_AS_STATE
         ::memcpy(static_cast<void*>(&vertices_data[i * 3]), static_cast<const void*>(move.position.data()), 3 * sizeof(float));
     }
 
-    m_bounding_box.merge(m_bounding_box.max + m_sequential_view.marker.get_bounding_box().max[2] * Vec3d::UnitZ());
+    m_max_bounding_box.merge(m_paths_bounding_box.max + m_sequential_view.marker.get_bounding_box().max[2] * Vec3d::UnitZ());
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.vertices_size = SLIC3R_STDVEC_MEMSIZE(vertices_data, float);
@@ -578,7 +579,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     // indices data -> send data to gpu
     for (size_t i = 0; i < m_buffers.size(); ++i) {
         IBuffer& buffer = m_buffers[i];
-        std::vector<unsigned int>& buffer_indices = indices[i];
+        const std::vector<unsigned int>& buffer_indices = indices[i];
         buffer.indices_count = buffer_indices.size();
 #if ENABLE_GCODE_VIEWER_STATISTICS
         m_statistics.indices_size += SLIC3R_STDVEC_MEMSIZE(buffer_indices, unsigned int);
@@ -859,7 +860,6 @@ void GCodeViewer::render_toolpaths() const
         for (const RenderPath& path : buffer.render_paths)
         {
             shader.set_uniform("uniform_color", path.color);
-//            glsafe(::glMultiDrawElements(GL_LINES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
             glsafe(::glMultiDrawElements(GL_LINE_STRIP, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
             ++m_statistics.gl_multi_line_strip_calls_count;
@@ -878,8 +878,8 @@ void GCodeViewer::render_toolpaths() const
     unsigned char end_id = buffer_id(GCodeProcessor::EMoveType::Count);
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vertices.vbo_id));
-    glsafe(::glVertexPointer(3, GL_FLOAT, VBuffer::vertex_size_bytes(), (const void*)0));
-    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+    glsafe(::glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, VBuffer::vertex_size_bytes(), (const void*)0));
+    glsafe(::glEnableVertexAttribArray(0));
 
     for (unsigned char i = begin_id; i < end_id; ++i) {
         const IBuffer& buffer = m_buffers[i];
@@ -914,7 +914,7 @@ void GCodeViewer::render_toolpaths() const
         }
     }
 
-    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+    glsafe(::glDisableVertexAttribArray(0));
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 

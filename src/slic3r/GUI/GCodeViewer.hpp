@@ -43,8 +43,8 @@ class GCodeViewer
 
         void reset();
 
-        static size_t vertex_size() { return 3; }
-        static size_t vertex_size_bytes() { return vertex_size() * sizeof(float); }
+        static size_t vertex_size_floats() { return 3; }
+        static size_t vertex_size_bytes() { return vertex_size_floats() * sizeof(float); }
     };
 
     // Used to identify different toolpath sub-types inside a IBuffer
@@ -160,11 +160,14 @@ class GCodeViewer
 #if ENABLE_GCODE_VIEWER_STATISTICS
     struct Statistics
     {
+        // times
         long long load_time{ 0 };
         long long refresh_time{ 0 };
         long long refresh_paths_time{ 0 };
+        // opengl calls
         long long gl_multi_points_calls_count{ 0 };
         long long gl_multi_line_strip_calls_count{ 0 };
+        // memory
         long long results_size{ 0 };
         long long vertices_size{ 0 };
         long long vertices_gpu_size{ 0 };
@@ -220,7 +223,6 @@ public:
             GLModel m_model;
             Vec3f m_world_position;
             Transform3f m_world_transform;
-            BoundingBoxf3 m_world_bounding_box;
             float m_z_offset{ 0.5f };
             std::array<float, 4> m_color{ 1.0f, 1.0f, 1.0f, 1.0f };
             bool m_visible{ false };
@@ -228,7 +230,7 @@ public:
         public:
             void init();
 
-            const BoundingBoxf3& get_bounding_box() const { return m_world_bounding_box; }
+            const BoundingBoxf3& get_bounding_box() const { return m_model.get_bounding_box(); }
 
             void set_world_position(const Vec3f& position);
             void set_color(const std::array<float, 4>& color) { m_color = color; }
@@ -268,7 +270,10 @@ private:
     unsigned int m_last_result_id{ 0 };
     VBuffer m_vertices;
     mutable std::vector<IBuffer> m_buffers{ static_cast<size_t>(GCodeProcessor::EMoveType::Extrude) };
-    BoundingBoxf3 m_bounding_box;
+    // bounding box of toolpaths
+    BoundingBoxf3 m_paths_bounding_box;
+    // bounding box of toolpaths + marker tools
+    BoundingBoxf3 m_max_bounding_box;
     std::vector<Color> m_tool_colors;
     std::vector<double> m_layers_zs;
     std::array<double, 2> m_layers_z_range;
@@ -303,7 +308,8 @@ public:
 
     bool has_data() const { return !m_roles.empty(); }
 
-    const BoundingBoxf3& get_bounding_box() const { return m_bounding_box; }
+    const BoundingBoxf3& get_paths_bounding_box() const { return m_paths_bounding_box; }
+    const BoundingBoxf3& get_max_bounding_box() const { return m_max_bounding_box; }
     const std::vector<double>& get_layers_zs() const { return m_layers_zs; };
 
     const SequentialView& get_sequential_view() const { return m_sequential_view; }
