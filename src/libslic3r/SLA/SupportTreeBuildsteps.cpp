@@ -14,7 +14,7 @@ using libnest2d::opt::StopCriteria;
 using libnest2d::opt::GeneticOptimizer;
 using libnest2d::opt::SubplexOptimizer;
 
-template<class C, class Hit = EigenMesh3D::hit_result>
+template<class C, class Hit = IndexedMesh::hit_result>
 static Hit min_hit(const C &hits)
 {
     auto mit = std::min_element(hits.begin(), hits.end(),
@@ -25,118 +25,118 @@ static Hit min_hit(const C &hits)
     return *mit;
 }
 
-EigenMesh3D::hit_result query_hit(const SupportableMesh &msh, const Head &h)
-{
-    static const size_t SAMPLES = 8;
+//IndexedMesh::hit_result query_hit(const SupportableMesh &msh, const Head &h)
+//{
+//    static const size_t SAMPLES = 8;
 
-    // Move away slightly from the touching point to avoid raycasting on the
-    // inner surface of the mesh.
+//    // Move away slightly from the touching point to avoid raycasting on the
+//    // inner surface of the mesh.
 
-    const double& sd = msh.cfg.safety_distance_mm;
+//    const double& sd = msh.cfg.safety_distance_mm;
 
-    auto& m = msh.emesh;
-    using HitResult = EigenMesh3D::hit_result;
+//    auto& m = msh.emesh;
+//    using HitResult = IndexedMesh::hit_result;
 
-    // Hit results
-    std::array<HitResult, SAMPLES> hits;
+//    // Hit results
+//    std::array<HitResult, SAMPLES> hits;
 
-    Vec3d s1 = h.pos, s2 = h.junction_point();
+//    Vec3d s1 = h.pos, s2 = h.junction_point();
 
-    struct Rings {
-        double rpin;
-        double rback;
-        Vec3d  spin;
-        Vec3d  sback;
-        PointRing<SAMPLES> ring;
+//    struct Rings {
+//        double rpin;
+//        double rback;
+//        Vec3d  spin;
+//        Vec3d  sback;
+//        PointRing<SAMPLES> ring;
 
-        Vec3d backring(size_t idx) { return ring.get(idx, sback, rback); }
-        Vec3d pinring(size_t idx) { return ring.get(idx, spin, rpin); }
-    } rings {h.r_pin_mm + sd, h.r_back_mm + sd, s1, s2, h.dir};
+//        Vec3d backring(size_t idx) { return ring.get(idx, sback, rback); }
+//        Vec3d pinring(size_t idx) { return ring.get(idx, spin, rpin); }
+//    } rings {h.r_pin_mm + sd, h.r_back_mm + sd, s1, s2, h.dir};
 
-    // We will shoot multiple rays from the head pinpoint in the direction
-    // of the pinhead robe (side) surface. The result will be the smallest
-    // hit distance.
+//    // We will shoot multiple rays from the head pinpoint in the direction
+//    // of the pinhead robe (side) surface. The result will be the smallest
+//    // hit distance.
 
-    auto hitfn = [&m, &rings, sd](HitResult &hit, size_t i) {
-        // Point on the circle on the pin sphere
-        Vec3d ps = rings.pinring(i);
-        // This is the point on the circle on the back sphere
-        Vec3d p = rings.backring(i);
+//    auto hitfn = [&m, &rings, sd](HitResult &hit, size_t i) {
+//        // Point on the circle on the pin sphere
+//        Vec3d ps = rings.pinring(i);
+//        // This is the point on the circle on the back sphere
+//        Vec3d p = rings.backring(i);
 
-        // Point ps is not on mesh but can be inside or
-        // outside as well. This would cause many problems
-        // with ray-casting. To detect the position we will
-        // use the ray-casting result (which has an is_inside
-        // predicate).
+//        // Point ps is not on mesh but can be inside or
+//        // outside as well. This would cause many problems
+//        // with ray-casting. To detect the position we will
+//        // use the ray-casting result (which has an is_inside
+//        // predicate).
 
-        Vec3d n = (p - ps).normalized();
-        auto  q = m.query_ray_hit(ps + sd * n, n);
+//        Vec3d n = (p - ps).normalized();
+//        auto  q = m.query_ray_hit(ps + sd * n, n);
 
-        if (q.is_inside()) { // the hit is inside the model
-            if (q.distance() > rings.rpin) {
-                // If we are inside the model and the hit
-                // distance is bigger than our pin circle
-                // diameter, it probably indicates that the
-                // support point was already inside the
-                // model, or there is really no space
-                // around the point. We will assign a zero
-                // hit distance to these cases which will
-                // enforce the function return value to be
-                // an invalid ray with zero hit distance.
-                // (see min_element at the end)
-                hit = HitResult(0.0);
-            } else {
-                // re-cast the ray from the outside of the
-                // object. The starting point has an offset
-                // of 2*safety_distance because the
-                // original ray has also had an offset
-                auto q2 = m.query_ray_hit(ps + (q.distance() + 2 * sd) * n, n);
-                hit     = q2;
-            }
-        } else
-            hit = q;
-    };
+//        if (q.is_inside()) { // the hit is inside the model
+//            if (q.distance() > rings.rpin) {
+//                // If we are inside the model and the hit
+//                // distance is bigger than our pin circle
+//                // diameter, it probably indicates that the
+//                // support point was already inside the
+//                // model, or there is really no space
+//                // around the point. We will assign a zero
+//                // hit distance to these cases which will
+//                // enforce the function return value to be
+//                // an invalid ray with zero hit distance.
+//                // (see min_element at the end)
+//                hit = HitResult(0.0);
+//            } else {
+//                // re-cast the ray from the outside of the
+//                // object. The starting point has an offset
+//                // of 2*safety_distance because the
+//                // original ray has also had an offset
+//                auto q2 = m.query_ray_hit(ps + (q.distance() + 2 * sd) * n, n);
+//                hit     = q2;
+//            }
+//        } else
+//            hit = q;
+//    };
 
-    ccr::enumerate(hits.begin(), hits.end(), hitfn);
+//    ccr::enumerate(hits.begin(), hits.end(), hitfn);
 
-    return min_hit(hits);
-}
+//    return min_hit(hits);
+//}
 
-EigenMesh3D::hit_result query_hit(const SupportableMesh &msh, const Bridge &br, double safety_d)
-{
+//IndexedMesh::hit_result query_hit(const SupportableMesh &msh, const Bridge &br, double safety_d)
+//{
 
-    static const size_t SAMPLES = 8;
+//    static const size_t SAMPLES = 8;
 
-    Vec3d dir = (br.endp - br.startp).normalized();
-    PointRing<SAMPLES> ring{dir};
+//    Vec3d dir = (br.endp - br.startp).normalized();
+//    PointRing<SAMPLES> ring{dir};
 
-    using Hit = EigenMesh3D::hit_result;
+//    using Hit = IndexedMesh::hit_result;
 
-    // Hit results
-    std::array<Hit, SAMPLES> hits;
+//    // Hit results
+//    std::array<Hit, SAMPLES> hits;
 
-    double sd = std::isnan(safety_d) ? msh.cfg.safety_distance_mm : safety_d;
+//    double sd = std::isnan(safety_d) ? msh.cfg.safety_distance_mm : safety_d;
 
-    auto hitfn = [&msh, &br, &ring, dir, sd] (Hit &hit, size_t i) {
+//    auto hitfn = [&msh, &br, &ring, dir, sd] (Hit &hit, size_t i) {
 
-        // Point on the circle on the pin sphere
-        Vec3d p = ring.get(i, br.startp, br.r + sd);
+//        // Point on the circle on the pin sphere
+//        Vec3d p = ring.get(i, br.startp, br.r + sd);
 
-        auto hr = msh.emesh.query_ray_hit(p + br.r * dir, dir);
+//        auto hr = msh.emesh.query_ray_hit(p + br.r * dir, dir);
 
-        if(hr.is_inside()) {
-            if(hr.distance() > 2 * br.r + sd) hit = Hit(0.0);
-            else {
-                // re-cast the ray from the outside of the object
-                hit = msh.emesh.query_ray_hit(p + (hr.distance() + 2 * sd) * dir, dir);
-            }
-        } else hit = hr;
-    };
+//        if(hr.is_inside()) {
+//            if(hr.distance() > 2 * br.r + sd) hit = Hit(0.0);
+//            else {
+//                // re-cast the ray from the outside of the object
+//                hit = msh.emesh.query_ray_hit(p + (hr.distance() + 2 * sd) * dir, dir);
+//            }
+//        } else hit = hr;
+//    };
 
-    ccr::enumerate(hits.begin(), hits.end(), hitfn);
+//    ccr::enumerate(hits.begin(), hits.end(), hitfn);
 
-    return min_hit(hits);
-}
+//    return min_hit(hits);
+//}
 
 SupportTreeBuildsteps::SupportTreeBuildsteps(SupportTreeBuilder &   builder,
                                              const SupportableMesh &sm)
@@ -281,7 +281,7 @@ bool SupportTreeBuildsteps::execute(SupportTreeBuilder &   builder,
     return pc == ABORT;
 }
 
-EigenMesh3D::hit_result SupportTreeBuildsteps::pinhead_mesh_intersect(
+IndexedMesh::hit_result SupportTreeBuildsteps::pinhead_mesh_intersect(
     const Vec3d &s, const Vec3d &dir, double r_pin, double r_back, double width)
 {
     static const size_t SAMPLES = 8;
@@ -292,7 +292,7 @@ EigenMesh3D::hit_result SupportTreeBuildsteps::pinhead_mesh_intersect(
     const double& sd = m_cfg.safety_distance_mm;
     
     auto& m = m_mesh;
-    using HitResult = EigenMesh3D::hit_result;
+    using HitResult = IndexedMesh::hit_result;
     
     // Hit results
     std::array<HitResult, SAMPLES> hits;
@@ -357,13 +357,13 @@ EigenMesh3D::hit_result SupportTreeBuildsteps::pinhead_mesh_intersect(
     return min_hit(hits);
 }
 
-EigenMesh3D::hit_result SupportTreeBuildsteps::bridge_mesh_intersect(
+IndexedMesh::hit_result SupportTreeBuildsteps::bridge_mesh_intersect(
     const Vec3d &src, const Vec3d &dir, double r, double sd)
 {
     static const size_t SAMPLES = 8;
     PointRing<SAMPLES> ring{dir};
     
-    using Hit = EigenMesh3D::hit_result;
+    using Hit = IndexedMesh::hit_result;
     
     // Hit results
     std::array<Hit, SAMPLES> hits;
@@ -742,7 +742,7 @@ void SupportTreeBuildsteps::filter()
         auto nn = spheric_to_dir(polar, azimuth).normalized();
 
         // check available distance
-        EigenMesh3D::hit_result t
+        IndexedMesh::hit_result t
             = pinhead_mesh_intersect(hp, // touching point
                                      nn, // normal
                                      pin_r,
@@ -781,7 +781,7 @@ void SupportTreeBuildsteps::filter()
                 polar = std::get<0>(oresult.optimum);
                 azimuth = std::get<1>(oresult.optimum);
                 nn = spheric_to_dir(polar, azimuth).normalized();
-                t = EigenMesh3D::hit_result(oresult.score);
+                t = IndexedMesh::hit_result(oresult.score);
             }
         }
 

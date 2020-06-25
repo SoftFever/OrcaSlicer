@@ -103,9 +103,8 @@ public:
     }
 };
 
-EigenMesh3D::hit_result query_hit(const SupportableMesh &msh, const Bridge &br, double safety_d = std::nan(""));
-EigenMesh3D::hit_result query_hit(const SupportableMesh &msh, const Head &br, double safety_d = std::nan(""));
-
+//IndexedMesh::hit_result query_hit(const SupportableMesh &msh, const Bridge &br, double safety_d = std::nan(""));
+//IndexedMesh::hit_result query_hit(const SupportableMesh &msh, const Head &br, double safety_d = std::nan(""));
 
 inline Vec3d dirv(const Vec3d& startp, const Vec3d& endp) {
     return (endp - startp).normalized();
@@ -181,8 +180,8 @@ IntegerOnly<DoubleI> pairhash(I a, I b)
 }
 
 class SupportTreeBuildsteps {
-    const SupportConfig& m_cfg;
-    const EigenMesh3D& m_mesh;
+    const SupportTreeConfig& m_cfg;
+    const IndexedMesh& m_mesh;
     const std::vector<SupportPoint>& m_support_pts;
 
     using PtIndices = std::vector<unsigned>;
@@ -191,7 +190,7 @@ class SupportTreeBuildsteps {
     PtIndices m_iheads_onmodel;
     PtIndices m_iheadless;         // headless support points
     
-    std::map<unsigned, EigenMesh3D::hit_result> m_head_to_ground_scans;
+    std::map<unsigned, IndexedMesh::hit_result> m_head_to_ground_scans;
 
     // normals for support points from model faces.
     PointSet  m_support_nmls;
@@ -217,7 +216,7 @@ class SupportTreeBuildsteps {
     // When bridging heads to pillars... TODO: find a cleaner solution
     ccr::BlockingMutex m_bridge_mutex;
 
-    inline EigenMesh3D::hit_result ray_mesh_intersect(const Vec3d& s, 
+    inline IndexedMesh::hit_result ray_mesh_intersect(const Vec3d& s, 
                                                       const Vec3d& dir)
     {
         return m_mesh.query_ray_hit(s, dir);
@@ -234,7 +233,7 @@ class SupportTreeBuildsteps {
     // point was inside the model, an "invalid" hit_result will be returned
     // with a zero distance value instead of a NAN. This way the result can
     // be used safely for comparison with other distances.
-    EigenMesh3D::hit_result pinhead_mesh_intersect(
+    IndexedMesh::hit_result pinhead_mesh_intersect(
         const Vec3d& s,
         const Vec3d& dir,
         double r_pin,
@@ -249,13 +248,13 @@ class SupportTreeBuildsteps {
     // point was inside the model, an "invalid" hit_result will be returned
     // with a zero distance value instead of a NAN. This way the result can
     // be used safely for comparison with other distances.
-    EigenMesh3D::hit_result bridge_mesh_intersect(
+    IndexedMesh::hit_result bridge_mesh_intersect(
         const Vec3d& s,
         const Vec3d& dir,
         double r,
         double safety_d);
 
-    EigenMesh3D::hit_result bridge_mesh_intersect(
+    IndexedMesh::hit_result bridge_mesh_intersect(
         const Vec3d& s,
         const Vec3d& dir,
         double r)

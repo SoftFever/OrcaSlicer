@@ -6,7 +6,7 @@
 #include <Eigen/Geometry>
 
 #include <libslic3r/SLA/Pad.hpp>
-#include <libslic3r/SLA/EigenMesh3D.hpp>
+#include <libslic3r/SLA/IndexedMesh.hpp>
 #include <libslic3r/SLA/SupportPoint.hpp>
 #include <libslic3r/SLA/JobController.hpp>
 
@@ -31,7 +31,7 @@ enum class PillarConnectionMode
     dynamic
 };
 
-struct SupportConfig
+struct SupportTreeConfig
 {
     bool   enabled = true;
     
@@ -107,23 +107,30 @@ struct SupportConfig
     
 };
 
+// TODO: Part of future refactor
+//class SupportConfig {
+//    std::optional<SupportTreeConfig> tree_cfg {std::in_place_t{}}; // fill up
+//    std::optional<PadConfig>         pad_cfg;
+//};
+
 enum class MeshType { Support, Pad };
 
 struct SupportableMesh
 {
-    EigenMesh3D   emesh;
+    IndexedMesh  emesh;
     SupportPoints pts;
-    SupportConfig cfg;
+    SupportTreeConfig cfg;
+    PadConfig     pad_cfg;
 
     explicit SupportableMesh(const TriangleMesh & trmsh,
                              const SupportPoints &sp,
-                             const SupportConfig &c)
+                             const SupportTreeConfig &c)
         : emesh{trmsh}, pts{sp}, cfg{c}
     {}
     
-    explicit SupportableMesh(const EigenMesh3D   &em,
+    explicit SupportableMesh(const IndexedMesh   &em,
                              const SupportPoints &sp,
-                             const SupportConfig &c)
+                             const SupportTreeConfig &c)
         : emesh{em}, pts{sp}, cfg{c}
     {}
 };

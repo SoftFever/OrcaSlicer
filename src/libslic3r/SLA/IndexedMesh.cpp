@@ -1,4 +1,4 @@
-#include "EigenMesh3D.hpp"
+#include "IndexedMesh.hpp"
 #include "Concurrency.hpp"
 
 #include <libslic3r/AABBTreeIndirect.hpp>
@@ -12,7 +12,7 @@
 
 namespace Slic3r { namespace sla {
 
-class EigenMesh3D::AABBImpl {
+class IndexedMesh::AABBImpl {
 private:
     AABBTreeIndirect::Tree3f m_tree;
 
@@ -57,7 +57,7 @@ public:
 
 static const constexpr double MESH_EPS = 1e-6;
 
-EigenMesh3D::EigenMesh3D(const TriangleMesh& tmesh)
+IndexedMesh::IndexedMesh(const TriangleMesh& tmesh)
     : m_aabb(new AABBImpl()), m_tm(&tmesh)
 {
     auto&& bb = tmesh.bounding_box();
@@ -67,61 +67,61 @@ EigenMesh3D::EigenMesh3D(const TriangleMesh& tmesh)
     m_aabb->init(tmesh);
 }
 
-EigenMesh3D::~EigenMesh3D() {}
+IndexedMesh::~IndexedMesh() {}
 
-EigenMesh3D::EigenMesh3D(const EigenMesh3D &other):
+IndexedMesh::IndexedMesh(const IndexedMesh &other):
     m_tm(other.m_tm), m_ground_level(other.m_ground_level),
     m_aabb( new AABBImpl(*other.m_aabb) ) {}
 
 
-EigenMesh3D &EigenMesh3D::operator=(const EigenMesh3D &other)
+IndexedMesh &IndexedMesh::operator=(const IndexedMesh &other)
 {
     m_tm = other.m_tm;
     m_ground_level = other.m_ground_level;
     m_aabb.reset(new AABBImpl(*other.m_aabb)); return *this;
 }
 
-EigenMesh3D &EigenMesh3D::operator=(EigenMesh3D &&other) = default;
+IndexedMesh &IndexedMesh::operator=(IndexedMesh &&other) = default;
 
-EigenMesh3D::EigenMesh3D(EigenMesh3D &&other) = default;
+IndexedMesh::IndexedMesh(IndexedMesh &&other) = default;
 
 
 
-const std::vector<Vec3f>& EigenMesh3D::vertices() const
+const std::vector<Vec3f>& IndexedMesh::vertices() const
 {
     return m_tm->its.vertices;
 }
 
 
 
-const std::vector<Vec3i>& EigenMesh3D::indices()  const
+const std::vector<Vec3i>& IndexedMesh::indices()  const
 {
     return m_tm->its.indices;
 }
 
 
 
-const Vec3f& EigenMesh3D::vertices(size_t idx) const
+const Vec3f& IndexedMesh::vertices(size_t idx) const
 {
     return m_tm->its.vertices[idx];
 }
 
 
 
-const Vec3i& EigenMesh3D::indices(size_t idx) const
+const Vec3i& IndexedMesh::indices(size_t idx) const
 {
     return m_tm->its.indices[idx];
 }
 
 
 
-Vec3d EigenMesh3D::normal_by_face_id(int face_id) const {
+Vec3d IndexedMesh::normal_by_face_id(int face_id) const {
     return m_tm->stl.facet_start[face_id].normal.cast<double>();
 }
 
 
-EigenMesh3D::hit_result
-EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
+IndexedMesh::hit_result
+IndexedMesh::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
 {
     assert(is_approx(dir.norm(), 1.));
     igl::Hit hit;
@@ -149,10 +149,10 @@ EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
     return ret;
 }
 
-std::vector<EigenMesh3D::hit_result>
-EigenMesh3D::query_ray_hits(const Vec3d &s, const Vec3d &dir) const
+std::vector<IndexedMesh::hit_result>
+IndexedMesh::query_ray_hits(const Vec3d &s, const Vec3d &dir) const
 {
-    std::vector<EigenMesh3D::hit_result> outs;
+    std::vector<IndexedMesh::hit_result> outs;
     std::vector<igl::Hit> hits;
     m_aabb->intersect_ray(*m_tm, s, dir, hits);
 
@@ -170,7 +170,7 @@ EigenMesh3D::query_ray_hits(const Vec3d &s, const Vec3d &dir) const
     //  Convert the igl::Hit into hit_result
     outs.reserve(hits.size());
     for (const igl::Hit& hit : hits) {
-        outs.emplace_back(EigenMesh3D::hit_result(*this));
+        outs.emplace_back(IndexedMesh::hit_result(*this));
         outs.back().m_t = double(hit.t);
         outs.back().m_dir = dir;
         outs.back().m_source = s;
@@ -185,8 +185,8 @@ EigenMesh3D::query_ray_hits(const Vec3d &s, const Vec3d &dir) const
 
 
 #ifdef SLIC3R_HOLE_RAYCASTER
-EigenMesh3D::hit_result EigenMesh3D::filter_hits(
-    const std::vector<EigenMesh3D::hit_result>& object_hits) const
+IndexedMesh::hit_result IndexedMesh::filter_hits(
+    const std::vector<IndexedMesh::hit_result>& object_hits) const
 {
     assert(! m_holes.empty());
     hit_result out(*this);
@@ -282,7 +282,7 @@ EigenMesh3D::hit_result EigenMesh3D::filter_hits(
 #endif
 
 
-double EigenMesh3D::squared_distance(const Vec3d &p, int& i, Vec3d& c) const {
+double IndexedMesh::squared_distance(const Vec3d &p, int& i, Vec3d& c) const {
     double sqdst = 0;
     Eigen::Matrix<double, 1, 3> pp = p;
     Eigen::Matrix<double, 1, 3> cc;
@@ -303,7 +303,7 @@ static bool point_on_edge(const Vec3d& p, const Vec3d& e1, const Vec3d& e2,
 }
 
 PointSet normals(const PointSet& points,
-                 const EigenMesh3D& mesh,
+                 const IndexedMesh& mesh,
                  double eps,
                  std::function<void()> thr, // throw on cancel
                  const std::vector<unsigned>& pt_indices)

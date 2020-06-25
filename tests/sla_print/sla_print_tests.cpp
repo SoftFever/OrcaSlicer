@@ -37,9 +37,9 @@ TEST_CASE("Support point generator should be deterministic if seeded",
           "[SLASupportGeneration], [SLAPointGen]") {
     TriangleMesh mesh = load_model("A_upsidedown.obj");
     
-    sla::EigenMesh3D emesh{mesh};
+    sla::IndexedMesh emesh{mesh};
     
-    sla::SupportConfig supportcfg;
+    sla::SupportTreeConfig supportcfg;
     sla::SupportPointGenerator::Config autogencfg;
     autogencfg.head_diameter = float(2 * supportcfg.head_front_radius_mm);
     sla::SupportPointGenerator point_gen{emesh, autogencfg, [] {}, [](int) {}};
@@ -124,14 +124,14 @@ TEST_CASE("WingedPadAroundObjectIsValid", "[SLASupportGeneration]") {
 }
 
 TEST_CASE("ElevatedSupportGeometryIsValid", "[SLASupportGeneration]") {
-    sla::SupportConfig supportcfg;
+    sla::SupportTreeConfig supportcfg;
     supportcfg.object_elevation_mm = 5.;
     
     for (auto fname : SUPPORT_TEST_MODELS) test_supports(fname);
 }
 
 TEST_CASE("FloorSupportGeometryIsValid", "[SLASupportGeneration]") {
-    sla::SupportConfig supportcfg;
+    sla::SupportTreeConfig supportcfg;
     supportcfg.object_elevation_mm = 0;
     
     for (auto &fname: SUPPORT_TEST_MODELS) test_supports(fname, supportcfg);
@@ -139,7 +139,7 @@ TEST_CASE("FloorSupportGeometryIsValid", "[SLASupportGeneration]") {
 
 TEST_CASE("ElevatedSupportsDoNotPierceModel", "[SLASupportGeneration]") {
     
-    sla::SupportConfig supportcfg;
+    sla::SupportTreeConfig supportcfg;
     
     for (auto fname : SUPPORT_TEST_MODELS)
         test_support_model_collision(fname, supportcfg);
@@ -147,7 +147,7 @@ TEST_CASE("ElevatedSupportsDoNotPierceModel", "[SLASupportGeneration]") {
 
 TEST_CASE("FloorSupportsDoNotPierceModel", "[SLASupportGeneration]") {
     
-    sla::SupportConfig supportcfg;
+    sla::SupportTreeConfig supportcfg;
     supportcfg.object_elevation_mm = 0;
     
     for (auto fname : SUPPORT_TEST_MODELS)

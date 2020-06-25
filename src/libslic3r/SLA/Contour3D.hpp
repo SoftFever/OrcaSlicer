@@ -10,7 +10,7 @@ using Vec4i = Eigen::Matrix<int, 4, 1, Eigen::DontAlign>;
 
 namespace sla {
 
-class EigenMesh3D;
+class IndexedMesh;
 
 /// Dumb vertex mesh consisting of triangles (or) quads. Capable of merging with
 /// other meshes of this type and converting to and from other mesh formats.
@@ -22,7 +22,7 @@ struct Contour3D {
     Contour3D() = default;
     Contour3D(const TriangleMesh &trmesh);
     Contour3D(TriangleMesh &&trmesh);
-    Contour3D(const EigenMesh3D  &emesh);
+    Contour3D(const IndexedMesh  &emesh);
     
     Contour3D& merge(const Contour3D& ctr);
     Contour3D& merge(const Pointf3s& triangles);

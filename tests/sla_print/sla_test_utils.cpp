@@ -2,13 +2,13 @@
 #include "libslic3r/SLA/AGGRaster.hpp"
 
 void test_support_model_collision(const std::string          &obj_filename,
-                                  const sla::SupportConfig   &input_supportcfg,
+                                  const sla::SupportTreeConfig   &input_supportcfg,
                                   const sla::HollowingConfig &hollowingcfg,
                                   const sla::DrainHoles      &drainholes)
 {
     SupportByproducts byproducts;
     
-    sla::SupportConfig supportcfg = input_supportcfg;
+    sla::SupportTreeConfig supportcfg = input_supportcfg;
     
     // Set head penetration to a small negative value which should ensure that
     // the supports will not touch the model body.
@@ -73,7 +73,7 @@ void export_failed_case(const std::vector<ExPolygons> &support_slices, const Sup
 }
 
 void test_supports(const std::string          &obj_filename,
-                   const sla::SupportConfig   &supportcfg,
+                   const sla::SupportTreeConfig   &supportcfg,
                    const sla::HollowingConfig &hollowingcfg,
                    const sla::DrainHoles      &drainholes,
                    SupportByproducts          &out)
@@ -104,7 +104,7 @@ void test_supports(const std::string          &obj_filename,
     
     // Create the special index-triangle mesh with spatial indexing which
     // is the input of the support point and support mesh generators
-    sla::EigenMesh3D emesh{mesh};
+    sla::IndexedMesh emesh{mesh};
 
 #ifdef SLIC3R_HOLE_RAYCASTER
     if (hollowingcfg.enabled) 
@@ -168,7 +168,7 @@ void test_supports(const std::string          &obj_filename,
 }
 
 void check_support_tree_integrity(const sla::SupportTreeBuilder &stree, 
-                                  const sla::SupportConfig &cfg)
+                                  const sla::SupportTreeConfig &cfg)
 {
     double gnd  = stree.ground_level;
     double H1   = cfg.max_solo_pillar_height_mm;

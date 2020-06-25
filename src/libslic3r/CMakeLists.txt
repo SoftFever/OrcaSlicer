@@ -236,8 +236,8 @@ add_library(libslic3r STATIC
     SLA/SupportPointGenerator.cpp
     SLA/Contour3D.hpp
     SLA/Contour3D.cpp
-    SLA/EigenMesh3D.hpp
-    SLA/EigenMesh3D.cpp
+    SLA/IndexedMesh.hpp
+    SLA/IndexedMesh.cpp
     SLA/Clustering.hpp
     SLA/Clustering.cpp
     SLA/ReprojectPointsOnMesh.hpp

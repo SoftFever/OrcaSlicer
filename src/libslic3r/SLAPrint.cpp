@@ -35,9 +35,9 @@ bool is_zero_elevation(const SLAPrintObjectConfig &c)
 }
 
 // Compile the argument for support creation from the static print config.
-sla::SupportConfig make_support_cfg(const SLAPrintObjectConfig& c)
+sla::SupportTreeConfig make_support_cfg(const SLAPrintObjectConfig& c)
 {
-    sla::SupportConfig scfg;
+    sla::SupportTreeConfig scfg;
     
     scfg.enabled = c.supports_enable.getBool();
     scfg.head_front_radius_mm = 0.5*c.support_head_front_diameter.getFloat();
@@ -616,7 +616,7 @@ std::string SLAPrint::validate() const
             return L("Cannot proceed without support points! "
                      "Add support points or disable support generation.");
 
-        sla::SupportConfig cfg = make_support_cfg(po->config());
+        sla::SupportTreeConfig cfg = make_support_cfg(po->config());
 
         double elv = cfg.object_elevation_mm;
         
