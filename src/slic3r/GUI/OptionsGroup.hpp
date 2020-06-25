@@ -149,6 +149,13 @@ public:
 							return true;
     }
 
+	void			show_field(const t_config_option_key& opt_key, bool show = true) {
+		                    Field* field = get_field(opt_key);
+		                    field->getWindow()->Show(show);
+		                    field->getLabel()->Show(show);
+    }
+	void			hide_field(const t_config_option_key& opt_key) {  show_field(opt_key, false);  }
+
 	void			set_name(const wxString& new_name) {
 							stb->SetLabel(new_name);
     }

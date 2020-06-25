@@ -150,6 +150,17 @@ void PrintConfigDef::init_common_params()
     def->tooltip = L("Related printer preset name");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
+
+    def = this->add("authorization_type", coEnum);
+    def->label = L("Authorization Type");
+//    def->tooltip = L("");
+    def->enum_keys_map = &ConfigOptionEnum<AuthorizationType>::get_enum_values();
+    def->enum_values.push_back("key");
+    def->enum_values.push_back("user");
+    def->enum_labels.push_back("KeyPassword");
+    def->enum_labels.push_back("UserPassword");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<AuthorizationType>(atKeyPassword));
 }
 
 void PrintConfigDef::init_fff_params()

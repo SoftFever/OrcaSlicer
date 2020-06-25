@@ -1354,7 +1354,8 @@ const std::vector<std::string>& PhysicalPrinter::printer_options()
             "host_type", 
             "print_host", 
             "printhost_apikey", 
-            "printhost_cafile", 
+            "printhost_cafile",
+            "authorization_type",
             "login", 
             "password"
         };

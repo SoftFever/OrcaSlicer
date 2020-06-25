@@ -177,7 +177,7 @@ class PhysicalPrinterDialog : public DPIDialog
     ScalableButton*     m_printhost_cafile_browse_btn {nullptr};
 
     void build_printhost_settings(ConfigOptionsGroup* optgroup);
-    void update_octoprint_visible();
+    void update();
     void OnOK(wxEvent& event);
 
 public:

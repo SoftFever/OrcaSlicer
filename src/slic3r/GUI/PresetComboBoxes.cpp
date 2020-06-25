@@ -837,7 +837,7 @@ void TabPresetComboBox::update_dirty()
 
 
 PhysicalPrinterDialog::PhysicalPrinterDialog(wxString printer_name)
-    : DPIDialog(NULL, wxID_ANY, _L("PhysicalPrinter"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog(NULL, wxID_ANY, _L("Physical Printer"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), -1), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     SetFont(wxGetApp().normal_font());
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
@@ -856,7 +856,7 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxString printer_name)
 
         // update values
         m_optgroup->reload_config();
-        update_octoprint_visible();
+        update();
     });
     m_printer_presets->update();
 
@@ -898,6 +898,11 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxString printer_name)
 
 void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgroup)
 {
+    m_optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
+        if (opt_key == "authorization_type")
+            this->update();
+    };
+
     m_optgroup->append_single_option_line("host_type");
 
     auto create_sizer_with_btn = [this](wxWindow* parent, ScalableButton** btn, const std::string& icon_name, const wxString& label) {
@@ -952,6 +957,9 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     host_line.append_widget(printhost_browse);
     host_line.append_widget(print_host_test);
     m_optgroup->append_line(host_line);
+
+    m_optgroup->append_single_option_line("authorization_type");
+
     option = m_optgroup->get_option("printhost_apikey");
     option.opt.width = Field::def_width_wider();
     m_optgroup->append_single_option_line(option);
@@ -999,7 +1007,8 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
                 (boost::format(_u8L("On this system, %s uses HTTPS certificates from the system Certificate Store or Keychain.")) % SLIC3R_APP_NAME).str() +
                 "\n\t" + _u8L("To use a custom CA file, please import your CA file into Certificate Store / Keychain.");
 
-            auto txt = new wxStaticText(parent, wxID_ANY, from_u8((boost::format("%1%\n\n\t%2%") % info % ca_file_hint).str()));
+            //auto txt = new wxStaticText(parent, wxID_ANY, from_u8((boost::format("%1%\n\n\t%2%") % info % ca_file_hint).str()));
+            auto txt = new wxStaticText(parent, wxID_ANY, from_u8((boost::format("%1%\n\t%2%") % info % ca_file_hint).str()));
             txt->SetFont(wxGetApp().normal_font());
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
             sizer->Add(txt, 1, wxEXPAND);
@@ -1015,20 +1024,33 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
         m_optgroup->append_single_option_line(option);
     }
 
-    update_octoprint_visible();
+    update();
 }
 
-void PhysicalPrinterDialog::update_octoprint_visible()
+void PhysicalPrinterDialog::update()
 {
     const PrinterTechnology tech = Preset::printer_technology(m_printer.config);
     // Only offer the host type selection for FFF, for SLA it's always the SL1 printer (at the moment)
-    Field* host_type = m_optgroup->get_field("host_type");
-    if (tech == ptFFF)
-        host_type->enable();
-    else {
-        host_type->set_value(int(PrintHostType::htOctoPrint), false);
-        host_type->disable();
+    if (tech == ptFFF) {
+        m_optgroup->show_field("host_type");
+        m_optgroup->hide_field("authorization_type");
+        for (const std::string& opt_key : std::vector<std::string>{ "login", "password" })
+            m_optgroup->hide_field(opt_key);
     }
+    else {
+        m_optgroup->set_value("host_type", int(PrintHostType::htOctoPrint), false);
+        m_optgroup->hide_field("host_type");
+
+        m_optgroup->show_field("authorization_type");
+
+        AuthorizationType auth_type = m_config->option<ConfigOptionEnum<AuthorizationType>>("authorization_type")->value;
+        m_optgroup->show_field("printhost_apikey", auth_type == AuthorizationType::atKeyPassword);
+
+        for (const std::string& opt_key : std::vector<std::string>{ "login", "password" })
+            m_optgroup->show_field(opt_key, auth_type == AuthorizationType::atUserPassword);
+    }
+
+    this->Layout();
 }
 
 void PhysicalPrinterDialog::on_dpi_changed(const wxRect& suggested_rect)
@@ -1044,7 +1066,7 @@ void PhysicalPrinterDialog::on_dpi_changed(const wxRect& suggested_rect)
 
     msw_buttons_rescale(this, em, { wxID_OK, wxID_CANCEL });
 
-    const wxSize& size = wxSize(40 * em, 30 * em);
+    const wxSize& size = wxSize(45 * em, 35 * em);
     SetMinSize(size);
 
     Fit();
