@@ -69,7 +69,8 @@ void export_failed_case(const std::vector<ExPolygons> &support_slices, const Sup
     m.merge(byproducts.input_mesh);
     m.repair();
     m.require_shared_vertices();
-    m.WriteOBJFile(byproducts.obj_fname.c_str());
+    m.WriteOBJFile((Catch::getResultCapture().getCurrentTestName() + "_" +
+                    byproducts.obj_fname).c_str());
 }
 
 void test_supports(const std::string          &obj_filename,
