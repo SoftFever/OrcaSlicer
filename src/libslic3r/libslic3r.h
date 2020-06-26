@@ -5,6 +5,7 @@
 
 // this needs to be included early for MSVC (listing it in Build.PL is not enough)
 #include <memory>
+#include <array>
 #include <algorithm>
 #include <ostream>
 #include <iostream>
