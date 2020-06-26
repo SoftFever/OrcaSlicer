@@ -162,10 +162,9 @@ void Tab::create_preset_tab()
     // preset chooser
     m_presets_choice = new TabPresetComboBox(panel, m_type);
     m_presets_choice->set_selection_changed_function([this](int selection) {
-        // unselect pthysical printer, if it was selected
-        m_preset_bundle->physical_printers.unselect_printer();
-        // select preset
         std::string selected_string = m_presets_choice->GetString(selection).ToUTF8().data();
+        update_physical_printers(selected_string);
+        // select preset
         select_preset(selected_string);
     });
 
@@ -761,6 +760,32 @@ void Tab::update_dirty()
 void Tab::update_tab_ui()
 {
     m_presets_choice->update();
+}
+
+void Tab::update_physical_printers(std::string preset_name)
+{
+    if (m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection())
+    {
+        std::string printer_name = m_preset_bundle->physical_printers.get_selected_full_printer_name();
+        wxString msg_text = from_u8((boost::format(_u8L("You have selected physical printer \"%1%\".")) % printer_name).str());
+        msg_text += "\n\n" + _L("Would you like to change related preset for this printer?") + "\n\n" +
+                    _L("Select YES if you want to change related preset for this printer \n"
+                       "or NO to switch to the another preset (logical printer).");
+        wxMessageDialog dialog(nullptr, msg_text, _L("Warning"), wxICON_WARNING | wxYES | wxNO);
+
+        if (dialog.ShowModal() == wxID_YES) {
+            preset_name = Preset::remove_suffix_modified(preset_name);
+            Preset* preset = m_presets->find_preset(preset_name);
+            assert(preset);
+            Preset& edited_preset = m_presets->get_edited_preset();
+            if (preset->name == edited_preset.name)
+                preset = &edited_preset;
+            m_preset_bundle->physical_printers.get_selected_printer().update_from_preset(*preset);
+        }
+        else
+            // unselect physical printer, if it was selected
+            m_preset_bundle->physical_printers.unselect_printer();
+    }
 }
 
 // Load a provied DynamicConfig into the tab, modifying the active preset.
@@ -3269,6 +3294,8 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach)
     // Mark the print & filament enabled if they are compatible with the currently selected preset.
     // If saving the preset changes compatibility with other presets, keep the now incompatible dependent presets selected, however with a "red flag" icon showing that they are no more compatible.
     m_preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
+    //update physical printer's related printer preset if it's needed 
+    update_physical_printers(name);
     // Add the new item into the UI component, remove dirty flags and activate the saved item.
     update_tab_ui();
     // Update the selection boxes at the plater.

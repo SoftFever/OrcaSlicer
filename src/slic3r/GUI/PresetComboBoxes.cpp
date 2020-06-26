@@ -104,6 +104,7 @@ PresetComboBox::PresetComboBox(wxWindow* parent, Preset::Type preset_type, const
     m_bitmapCompatible   = ScalableBitmap(this, "flag_green");
     m_bitmapIncompatible = ScalableBitmap(this, "flag_red");
     m_bitmapLock         = ScalableBitmap(this, "lock_closed");
+    m_bitmapLockDisabled = ScalableBitmap(this, "lock_closed", 16, true);
 
     // parameters for an icon's drawing
     fill_width_height();
@@ -125,6 +126,7 @@ void PresetComboBox::msw_rescale()
     m_em_unit = em_unit(this);
 
     m_bitmapLock.msw_rescale();
+    m_bitmapLockDisabled.msw_rescale();
     m_bitmapIncompatible.msw_rescale();
     m_bitmapCompatible.msw_rescale();
 
@@ -241,6 +243,7 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
         if (marker >= LABEL_ITEM_MARKER && marker < LABEL_ITEM_MAX) {
             this->SetSelection(this->m_last_selected);
             evt.StopPropagation();
+            /*
             if (marker == LABEL_ITEM_PHYSICAL_PRINTERS)
             {
                 PhysicalPrinterDialog dlg(wxEmptyString);
@@ -255,6 +258,19 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
                     case LABEL_ITEM_WIZARD_FILAMENTS: sp = ConfigWizard::SP_FILAMENTS; break;
                     case LABEL_ITEM_WIZARD_MATERIALS: sp = ConfigWizard::SP_MATERIALS; break;
                     default: break;
+                }
+                wxTheApp->CallAfter([sp]() { wxGetApp().run_wizard(ConfigWizard::RR_USER, sp); });
+            }
+        */
+            if (marker == LABEL_ITEM_WIZARD_PRINTERS)
+                show_add_menu();
+            else
+            {
+                ConfigWizard::StartPage sp = ConfigWizard::SP_WELCOME;
+                switch (marker) {
+                case LABEL_ITEM_WIZARD_FILAMENTS: sp = ConfigWizard::SP_FILAMENTS; break;
+                case LABEL_ITEM_WIZARD_MATERIALS: sp = ConfigWizard::SP_MATERIALS; break;
+                default: break;
                 }
                 wxTheApp->CallAfter([sp]() { wxGetApp().run_wizard(ConfigWizard::RR_USER, sp); });
             }
@@ -377,6 +393,25 @@ bool PlaterPresetComboBox::switch_to_tab()
     return true;
 }
 
+void PlaterPresetComboBox::show_add_menu()
+{
+    wxMenu* menu = new wxMenu();
+
+    append_menu_item(menu, wxID_ANY, _L("Add/Remove logical printers"), "",
+        [this](wxCommandEvent&) { 
+            wxTheApp->CallAfter([]() { wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS); });
+        }, "edit_uni", menu, []() { return true; }, wxGetApp().plater());
+
+    append_menu_item(menu, wxID_ANY, _L("Add physical printer"), "",
+        [this](wxCommandEvent&) {
+            PhysicalPrinterDialog dlg(wxEmptyString);
+            if (dlg.ShowModal() == wxID_OK)
+                update();
+        }, "edit_uni", menu, []() { return true; }, wxGetApp().plater());
+
+    wxGetApp().plater()->PopupMenu(menu);
+}
+
 void PlaterPresetComboBox::show_edit_menu()
 {
     wxMenu* menu = new wxMenu();
@@ -393,7 +428,7 @@ void PlaterPresetComboBox::show_edit_menu()
 
     append_menu_item(menu, wxID_ANY, _L("Delete physical printer"), "",
         [this](wxCommandEvent&) {
-            const std::string& printer_name = m_preset_bundle->physical_printers.get_selected_printer_name();
+            const std::string& printer_name = m_preset_bundle->physical_printers.get_selected_full_printer_name();
             if (printer_name.empty())
                 return;
 
@@ -550,36 +585,6 @@ void PlaterPresetComboBox::update()
         }
     }
 
-    if (m_type == Preset::TYPE_PRINTER || m_type == Preset::TYPE_SLA_MATERIAL) {
-        std::string   bitmap_key = "";
-        // If the filament preset is not compatible and there is a "red flag" icon loaded, show it left
-        // to the filament color image.
-        if (wide_icons)
-            bitmap_key += "wide,";
-        bitmap_key += "edit_preset_list";
-        bitmap_key += "-h" + std::to_string(icon_height);
-
-        wxBitmap* bmp = m_bitmap_cache->find(bitmap_key);
-        if (bmp == nullptr) {
-            // Create the bitmap with color bars.update_plater_ui
-            std::vector<wxBitmap> bmps;
-            if (wide_icons)
-                // Paint a red flag for incompatible presets.
-                bmps.emplace_back(m_bitmap_cache->mkclear(norm_icon_width, icon_height));
-            // Paint the color bars.
-            bmps.emplace_back(m_bitmap_cache->mkclear(thin_space_icon_width, icon_height));
-            bmps.emplace_back(create_scaled_bitmap(m_main_bitmap_name));
-            // Paint a lock at the system presets.
-            bmps.emplace_back(m_bitmap_cache->mkclear(wide_space_icon_width, icon_height));
-            bmps.emplace_back(create_scaled_bitmap("edit_uni"));
-            bmp = m_bitmap_cache->insert(bitmap_key, bmps);
-        }
-        if (m_type == Preset::TYPE_SLA_MATERIAL)
-            set_label_marker(Append(separator(L("Add/Remove materials")), *bmp), LABEL_ITEM_WIZARD_MATERIALS);
-        else
-            set_label_marker(Append(separator(L("Add/Remove printers")), *bmp), LABEL_ITEM_WIZARD_PRINTERS);
-    }
-
     if (m_type == Preset::TYPE_PRINTER)
     {
         // add Physical printers, if any exists
@@ -608,7 +613,7 @@ void PlaterPresetComboBox::update()
                     bmp = m_bitmap_cache->insert(bitmap_key, bmps);
                 }
 
-                set_label_marker(Append(wxString::FromUTF8((it->name).c_str()), *bmp), LABEL_ITEM_PHYSICAL_PRINTER);
+                set_label_marker(Append(wxString::FromUTF8((it->full_name).c_str()), *bmp), LABEL_ITEM_PHYSICAL_PRINTER);
                 if (ph_printers.has_selection() && it->name == ph_printers.get_selected_printer_name() ||
                     // just in case: mark selected_preset_item as a first added element
                     selected_preset_item == INT_MAX)
@@ -616,6 +621,7 @@ void PlaterPresetComboBox::update()
             }
         }
 
+/*
         // add LABEL_ITEM_PHYSICAL_PRINTERS
         std::string   bitmap_key;
         if (wide_icons)
@@ -639,6 +645,37 @@ void PlaterPresetComboBox::update()
             bmp = m_bitmap_cache->insert(bitmap_key, bmps);
         }
         set_label_marker(Append(separator(L("Add physical printer")), *bmp), LABEL_ITEM_PHYSICAL_PRINTERS);
+*/
+    }
+
+    if (m_type == Preset::TYPE_PRINTER || m_type == Preset::TYPE_SLA_MATERIAL) {
+        std::string   bitmap_key = "";
+        // If the filament preset is not compatible and there is a "red flag" icon loaded, show it left
+        // to the filament color image.
+        if (wide_icons)
+            bitmap_key += "wide,";
+        bitmap_key += "edit_preset_list";
+        bitmap_key += "-h" + std::to_string(icon_height);
+
+        wxBitmap* bmp = m_bitmap_cache->find(bitmap_key);
+        if (bmp == nullptr) {
+            // Create the bitmap with color bars.update_plater_ui
+            std::vector<wxBitmap> bmps;
+            if (wide_icons)
+                // Paint a red flag for incompatible presets.
+                bmps.emplace_back(m_bitmap_cache->mkclear(norm_icon_width, icon_height));
+            // Paint the color bars.
+            bmps.emplace_back(m_bitmap_cache->mkclear(thin_space_icon_width, icon_height));
+            bmps.emplace_back(create_scaled_bitmap(m_main_bitmap_name));
+            // Paint a lock at the system presets.
+            bmps.emplace_back(m_bitmap_cache->mkclear(wide_space_icon_width, icon_height));
+            bmps.emplace_back(create_scaled_bitmap("edit_uni"));
+            bmp = m_bitmap_cache->insert(bitmap_key, bmps);
+        }
+        if (m_type == Preset::TYPE_SLA_MATERIAL)
+            set_label_marker(Append(separator(L("Add/Remove materials")), *bmp), LABEL_ITEM_WIZARD_MATERIALS);
+        else
+            set_label_marker(Append(separator(L("Add/Remove printers")), *bmp), LABEL_ITEM_WIZARD_PRINTERS);
     }
 
     /* But, if selected_preset_item is still equal to INT_MAX, it means that
@@ -680,7 +717,7 @@ TabPresetComboBox::TabPresetComboBox(wxWindow* parent, Preset::Type preset_type)
         auto selected_item = evt.GetSelection();
 
         auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
-        if (marker >= LABEL_ITEM_MARKER && marker < LABEL_ITEM_MAX) {
+        if (marker >= LABEL_ITEM_DISABLED && marker < LABEL_ITEM_MAX) {
             this->SetSelection(this->m_last_selected);
             if (marker == LABEL_ITEM_WIZARD_PRINTERS)
                 wxTheApp->CallAfter([this]() {
@@ -710,7 +747,7 @@ void TabPresetComboBox::update()
 
     const std::deque<Preset>& presets = m_collection->get_presets();
 
-    std::map<wxString, wxBitmap*> nonsys_presets;
+    std::map<wxString, std::pair<wxBitmap*, bool>> nonsys_presets;
     wxString selected = "";
     if (!presets.front().is_visible)
         set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
@@ -719,13 +756,24 @@ void TabPresetComboBox::update()
         const Preset& preset = presets[i];
         if (!preset.is_visible || (!show_incompatible && !preset.is_compatible && i != idx_selected))
             continue;
+        
+        // marker used for disable incompatible printer models for the selected physical printer
+        bool is_enabled = true;
+        // check this value just for printer presets, when physical printer is selected
+        if (m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection()) {
+            is_enabled = m_enable_all ? true :
+                         preset.name == m_preset_bundle->physical_printers.get_selected_printer_preset_name() || 
+                         preset.config.opt_string("printer_model") == m_preset_bundle->physical_printers.get_selected_printer_model();
+        }
 
         std::string   bitmap_key = "tab";
-        wxBitmap main_bmp = create_scaled_bitmap(m_type == Preset::TYPE_PRINTER && preset.printer_technology() == ptSLA ? "sla_printer" : m_main_bitmap_name, this);
+        wxBitmap main_bmp = create_scaled_bitmap(m_type == Preset::TYPE_PRINTER && preset.printer_technology() == ptSLA ? "sla_printer" : m_main_bitmap_name, this, 16, !is_enabled);
         if (m_type == Preset::TYPE_PRINTER) {
             bitmap_key += "_printer";
             if (preset.printer_technology() == ptSLA)
                 bitmap_key += "_sla";
+            if (!is_enabled)
+                bitmap_key += "_disabled";
         }
         bitmap_key += preset.is_compatible ? ",cmpt" : ",ncmpt";
         bitmap_key += (preset.is_system || preset.is_default) ? ",syst" : ",nsyst";
@@ -737,13 +785,14 @@ void TabPresetComboBox::update()
             std::vector<wxBitmap> bmps;
             bmps.emplace_back(m_type == Preset::TYPE_PRINTER ? main_bmp : preset.is_compatible ? m_bitmapCompatible.bmp() : m_bitmapIncompatible.bmp());
             // Paint a lock at the system presets.
-            bmps.emplace_back((preset.is_system || preset.is_default) ? m_bitmapLock.bmp() : m_bitmap_cache->mkclear(norm_icon_width, icon_height));
+            bmps.emplace_back((preset.is_system || preset.is_default) ? (is_enabled ? m_bitmapLock.bmp() : m_bitmapLockDisabled.bmp()) : m_bitmap_cache->mkclear(norm_icon_width, icon_height));
             bmp = m_bitmap_cache->insert(bitmap_key, bmps);
         }
 
         if (preset.is_default || preset.is_system) {
-            Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()),
-                (bmp == 0) ? main_bmp : *bmp);
+            int item_id = Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), !bmp ? main_bmp : *bmp);
+            if (!is_enabled)
+                set_label_marker(item_id, LABEL_ITEM_DISABLED);
             if (i == idx_selected ||
                 // just in case: mark selected_preset_item as a first added element
                 selected_preset_item == INT_MAX)
@@ -751,7 +800,8 @@ void TabPresetComboBox::update()
         }
         else
         {
-            nonsys_presets.emplace(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), bmp);
+            std::pair<wxBitmap*, bool> pair(bmp, is_enabled);
+            nonsys_presets.emplace(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), std::pair<wxBitmap*, bool>(bmp, is_enabled));
             if (i == idx_selected)
                 selected = wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str());
         }
@@ -761,8 +811,11 @@ void TabPresetComboBox::update()
     if (!nonsys_presets.empty())
     {
         set_label_marker(Append(separator(L("User presets")), wxNullBitmap));
-        for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
-            Append(it->first, *it->second);
+        for (std::map<wxString, std::pair<wxBitmap*, bool>>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
+            int item_id = Append(it->first, *it->second.first);
+            bool is_enabled = it->second.second;
+            if (!is_enabled)
+                set_label_marker(item_id, LABEL_ITEM_DISABLED);
             if (it->first == selected ||
                 // just in case: mark selected_preset_item as a first added element
                 selected_preset_item == INT_MAX)
@@ -845,6 +898,17 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxString printer_name)
     int border  = 10;
 
     m_printer_presets = new TabPresetComboBox(this, Preset::TYPE_PRINTER);
+
+    if (printer_name.IsEmpty()) {
+        // if printer_name is empty it means that new printer is created, so enable all items in the preset list
+        m_printer_presets->set_enable_all();
+        printer_name = _L("My Printer Device");
+    }
+    else {
+        std::string full_name = into_u8(printer_name);
+        printer_name = from_u8(PhysicalPrinter::get_short_name(full_name));
+    }
+
     m_printer_presets->set_selection_changed_function([this](int selection) {
         std::string selected_string = Preset::remove_suffix_modified(m_printer_presets->GetString(selection).ToUTF8().data());
         Preset* preset = wxGetApp().preset_bundle->printers.find_preset(selected_string);
@@ -854,17 +918,22 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxString printer_name)
             preset = &edited_preset;
         m_printer.update_from_preset(*preset);
 
+        update_printer_name();
+
         // update values
         m_optgroup->reload_config();
         update();
     });
     m_printer_presets->update();
 
-    wxString preset_name = m_printer_presets->GetString(m_printer_presets->GetSelection());
+    wxStaticText* label_top = new wxStaticText(this, wxID_ANY, _("Descriptive name for the printer device") + ":");
+    m_printer_name    = new wxTextCtrl(this, wxID_ANY, printer_name, wxDefaultPosition, wxDefaultSize);
+    m_printer_name->Bind(wxEVT_TEXT, [this](wxEvent&) { this->update_printer_name(); });
 
-    if (printer_name.IsEmpty())
-        printer_name = preset_name + " - "+_L("Physical Printer");
-    m_printer_name    = new wxTextCtrl(this, wxID_ANY, printer_name, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+    wxStaticText* label_bottom = new wxStaticText(this, wxID_ANY, _("This printer name will be shown in the presets list") + ":");
+    m_full_printer_name = new wxStaticText(this, wxID_ANY,  "");
+
+    update_printer_name();
 
     PhysicalPrinterCollection& printers = wxGetApp().preset_bundle->physical_printers;
     PhysicalPrinter* printer = printers.find_printer(into_u8(printer_name));
@@ -887,8 +956,11 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxString printer_name)
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
+    topSizer->Add(label_top           , 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
     topSizer->Add(m_printer_name      , 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
     topSizer->Add(m_printer_presets   , 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
+    topSizer->Add(label_bottom        , 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
+    topSizer->Add(m_full_printer_name , 0, wxEXPAND | wxLEFT | wxRIGHT, border);
     topSizer->Add(m_optgroup->sizer   , 1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
     topSizer->Add(btns                , 0, wxEXPAND | wxALL, border); 
 
@@ -1053,6 +1125,15 @@ void PhysicalPrinterDialog::update()
     this->Layout();
 }
 
+void PhysicalPrinterDialog::update_printer_name()
+{
+    wxString printer_name = m_printer_name->GetValue();
+    wxString preset_name = m_printer_presets->GetString(m_printer_presets->GetSelection());
+
+    m_full_printer_name->SetLabelText("\t" + printer_name + " * " + preset_name);
+    this->Layout();
+}
+
 void PhysicalPrinterDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
     const int& em = em_unit();
@@ -1096,8 +1177,8 @@ void PhysicalPrinterDialog::OnOK(wxEvent& event)
         printers.delete_printer(into_u8(printer_name));
     }
 
-    //upadte printer name, if it was changed
-    m_printer.name = into_u8(printer_name);
+    //update printer name, if it was changed
+    m_printer.set_name(into_u8(printer_name));
 
     // save new physical printer
     printers.save_printer(m_printer);

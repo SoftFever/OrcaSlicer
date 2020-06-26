@@ -538,20 +538,24 @@ public:
     PhysicalPrinter() {}
     PhysicalPrinter(const std::string& name) : name(name){}
     PhysicalPrinter(const std::string& name, const Preset& preset);
+    void set_name(const std::string &name);
+    void update_full_name();
 
     // Name of the Physical Printer, usually derived form the file name.
     std::string         name;
+    // Full name of the Physical Printer, included related preset name
+    std::string         full_name;
     // File name of the Physical Printer.
     std::string         file;
+    // Configuration data, loaded from a file, or set from the defaults.
+    DynamicPrintConfig  config;
 
     // Has this profile been loaded?
     bool                loaded = false;
 
-    // Configuration data, loaded from a file, or set from the defaults.
-    DynamicPrintConfig  config;
-
     static const std::vector<std::string>& printer_options();
-    const std::string&  get_preset_name();
+    const std::string&  get_preset_name() const;
+    const std::string&  get_printer_model() const;
 
     void                save() { this->config.save(this->file); }
     void                save_to(const std::string& file_name) const { this->config.save(file_name); }
@@ -569,6 +573,9 @@ public:
 
     // Sort lexicographically by a preset name. The preset name shall be unique across a single PresetCollection.
     bool                operator<(const PhysicalPrinter& other) const { return this->name < other.name; }
+
+    // get printer name from the full name uncluded preset name
+    static std::string  get_short_name(std::string full_name);
 
 protected:
     friend class        PhysicalPrinterCollection;
@@ -622,10 +629,17 @@ public:
     size_t          get_selected_idx()    const { return m_idx_selected; }
     // Returns the name of the selected preset, or an empty string if no preset is selected.
     std::string     get_selected_printer_name() const { return (m_idx_selected == size_t(-1)) ? std::string() : this->get_selected_printer().name; }
+    // Returns the full name of the selected preset, or an empty string if no preset is selected.
+    std::string     get_selected_full_printer_name() const { return (m_idx_selected == size_t(-1)) ? std::string() : this->get_selected_printer().full_name; }
+    // Returns the printer model of the selected preset, or an empty string if no preset is selected.
+    std::string     get_selected_printer_model() const { return (m_idx_selected == size_t(-1)) ? std::string() : this->get_selected_printer().get_printer_model(); }
+    // Returns the printer model of the selected preset, or an empty string if no preset is selected.
+    std::string     get_selected_printer_preset_name() const { return (m_idx_selected == size_t(-1)) ? std::string() : this->get_selected_printer().get_preset_name(); }
+    // Returns the config of the selected preset, or nullptr if no preset is selected.
     DynamicPrintConfig* get_selected_printer_config() { return (m_idx_selected == size_t(-1)) ? nullptr : &(this->get_selected_printer().config); }
 
     // select printer with name and return reference on it
-    PhysicalPrinter& select_printer_by_name(const std::string& name);
+    PhysicalPrinter& select_printer_by_name(std::string name);
     bool            has_selection() const { return m_idx_selected != size_t(-1); }
     void            unselect_printer() { m_idx_selected = size_t(-1); }
 

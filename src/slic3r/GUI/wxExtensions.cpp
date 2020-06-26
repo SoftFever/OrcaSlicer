@@ -731,11 +731,12 @@ void MenuWithSeparators::SetSecondSeparator()
 // ----------------------------------------------------------------------------
 ScalableBitmap::ScalableBitmap( wxWindow *parent, 
                                 const std::string& icon_name/* = ""*/,
-                                const int px_cnt/* = 16*/):
+                                const int px_cnt/* = 16*/, 
+                                const bool grayscale/* = false*/):
     m_parent(parent), m_icon_name(icon_name),
     m_px_cnt(px_cnt)
 {
-    m_bmp = create_scaled_bitmap(icon_name, parent, px_cnt);
+    m_bmp = create_scaled_bitmap(icon_name, parent, px_cnt, grayscale);
 }
 
 wxSize ScalableBitmap::GetBmpSize() const
@@ -768,7 +769,7 @@ int ScalableBitmap::GetBmpHeight() const
 
 void ScalableBitmap::msw_rescale()
 {
-    m_bmp = create_scaled_bitmap(m_icon_name, m_parent, m_px_cnt);
+    m_bmp = create_scaled_bitmap(m_icon_name, m_parent, m_px_cnt, m_grayscale);
 }
 
 // ----------------------------------------------------------------------------

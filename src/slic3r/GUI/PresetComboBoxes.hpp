@@ -13,6 +13,7 @@
 
 class wxString;
 class wxTextCtrl;
+class wxStatictext;
 class ScalableButton;
 
 namespace Slic3r {
@@ -35,6 +36,7 @@ public:
 
 	enum LabelItemType {
 		LABEL_ITEM_PHYSICAL_PRINTER = 0xffffff01,
+		LABEL_ITEM_DISABLED,
 		LABEL_ITEM_MARKER,
 		LABEL_ITEM_PHYSICAL_PRINTERS,
 		LABEL_ITEM_WIZARD_PRINTERS,
@@ -66,6 +68,8 @@ protected:
     ScalableBitmap      m_bitmapIncompatible;
     // Indicator, that the preset is system and not modified.
     ScalableBitmap      m_bitmapLock;
+    // Disabled analogue of the m_bitmapLock .
+    ScalableBitmap      m_bitmapLockDisabled;
 
     int m_last_selected;
     int m_em_unit;
@@ -125,6 +129,7 @@ public:
 
     bool is_selected_physical_printer();
     bool switch_to_tab();
+    void show_add_menu();
     void show_edit_menu();
 
     void update() override;
@@ -142,6 +147,7 @@ private:
 class TabPresetComboBox : public PresetComboBox
 {
     bool show_incompatible {false};
+    bool m_enable_all {false};
     std::function<void(int)> on_selection_changed { nullptr };
 
 public:
@@ -156,6 +162,7 @@ public:
     void msw_rescale() override;
 
     void set_selection_changed_function(std::function<void(int)> sel_changed) { on_selection_changed = sel_changed; }
+    void set_enable_all(bool enable=true) { m_enable_all = enable; }
 };
 
 
@@ -169,6 +176,7 @@ class PhysicalPrinterDialog : public DPIDialog
     DynamicPrintConfig* m_config            { nullptr };
 
     wxTextCtrl*         m_printer_name      { nullptr };
+    wxStaticText*       m_full_printer_name { nullptr };
     TabPresetComboBox*  m_printer_presets   { nullptr };
     ConfigOptionsGroup* m_optgroup          { nullptr };
 
@@ -178,6 +186,7 @@ class PhysicalPrinterDialog : public DPIDialog
 
     void build_printhost_settings(ConfigOptionsGroup* optgroup);
     void update();
+    void update_printer_name();
     void OnOK(wxEvent& event);
 
 public:
