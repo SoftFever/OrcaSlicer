@@ -29,17 +29,17 @@ public:
 	std::string get_host() const override { return host; }
 
 private:
-	enum ConnectionType { RRF, DSF, ERROR };
+	enum class ConnectionType { rrf, dsf, error };
 	std::string host;
 	std::string password;
 
-	std::string get_upload_url(const std::string &filename, Duet::ConnectionType connectionType) const;
+	std::string get_upload_url(const std::string &filename, ConnectionType connectionType) const;
 	std::string get_connect_url(const bool dsfUrl) const;
 	std::string get_base_url() const;
 	std::string timestamp_str() const;
-	Duet::ConnectionType connect(wxString &msg) const;
-	void disconnect(Duet::ConnectionType connectionType) const;
-	bool start_print(wxString &msg, const std::string &filename, Duet::ConnectionType connectionType) const;
+	ConnectionType connect(wxString &msg) const;
+	void disconnect(ConnectionType connectionType) const;
+	bool start_print(wxString &msg, const std::string &filename, ConnectionType connectionType) const;
 	int get_err_code_from_body(const std::string &body) const;
 };
 

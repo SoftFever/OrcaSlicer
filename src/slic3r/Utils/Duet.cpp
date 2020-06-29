@@ -39,7 +39,7 @@ bool Duet::test(wxString &msg) const
 	auto connectionType = connect(msg);
 	disconnect(connectionType);
 
-	return connectionType != Duet::ConnectionType::ERROR;
+	return connectionType != ConnectionType::error;
 }
 
 wxString Duet::get_test_ok_msg () const
@@ -58,13 +58,13 @@ bool Duet::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn e
 {
 	wxString connect_msg;
 	auto connectionType = connect(connect_msg);
-	if (connectionType == Duet::ConnectionType::ERROR) {
+	if (connectionType == ConnectionType::error) {
 		error_fn(std::move(connect_msg));
 		return false;
 	}
 
 	bool res = true;
-	bool dsf = (connectionType == Duet::ConnectionType::DSF);
+	bool dsf = (connectionType == ConnectionType::dsf);
 
 	auto upload_cmd = get_upload_url(upload_data.upload_path.string(), connectionType);
 	BOOST_LOG_TRIVIAL(info) << boost::format("Duet: Uploading file %1%, filepath: %2%, print: %3%, command: %4%")
@@ -117,7 +117,7 @@ bool Duet::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn e
 
 Duet::ConnectionType Duet::connect(wxString &msg) const
 {
-	auto res = Duet::ConnectionType::ERROR;
+	auto res = ConnectionType::error;
 	auto url = get_connect_url(false);
 
 	auto http = Http::get(std::move(url));
@@ -129,7 +129,7 @@ Duet::ConnectionType Duet::connect(wxString &msg) const
 					msg = format_error(body, error, status);
 				})
 				.on_complete([&](std::string body, unsigned) {
-					res = Duet::ConnectionType::DSF;
+					res = ConnectionType::dsf;
 				})
 				.perform_sync();
 		})
@@ -139,7 +139,7 @@ Duet::ConnectionType Duet::connect(wxString &msg) const
 			int err_code = get_err_code_from_body(body);
 			switch (err_code) {
 				case 0:
-					res = Duet::ConnectionType::RRF;
+					res = ConnectionType::rrf;
 					break;
 				case 1:
 					msg = format_error(body, L("Wrong password"), 0);
@@ -158,10 +158,10 @@ Duet::ConnectionType Duet::connect(wxString &msg) const
 	return res;
 }
 
-void Duet::disconnect(Duet::ConnectionType connectionType) const
+void Duet::disconnect(ConnectionType connectionType) const
 {
 	// we don't need to disconnect from DSF or if it failed anyway
-	if (connectionType != Duet::ConnectionType::RRF) {
+	if (connectionType != ConnectionType::rrf) {
 		return;
 	}
 	auto url =  (boost::format("%1%rr_disconnect")
@@ -175,9 +175,9 @@ void Duet::disconnect(Duet::ConnectionType connectionType) const
 	.perform_sync();
 }
 
-std::string Duet::get_upload_url(const std::string &filename, Duet::ConnectionType connectionType) const
+std::string Duet::get_upload_url(const std::string &filename, ConnectionType connectionType) const
 {
-	if (connectionType == Duet::ConnectionType::DSF) {
+	if (connectionType == ConnectionType::dsf) {
 		return (boost::format("%1%machine/file/gcodes/%2%")
 				% get_base_url()
 				% Http::url_encode(filename)).str();
@@ -228,10 +228,10 @@ std::string Duet::timestamp_str() const
 	return std::string(buffer);
 }
 
-bool Duet::start_print(wxString &msg, const std::string &filename, Duet::ConnectionType connectionType) const
+bool Duet::start_print(wxString &msg, const std::string &filename, ConnectionType connectionType) const
 {
 	bool res = false;
-	bool dsf = (connectionType == Duet::ConnectionType::DSF);
+	bool dsf = (connectionType == ConnectionType::dsf);
 
 	auto url = dsf
 		? (boost::format("%1%machine/code")
