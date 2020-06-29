@@ -76,6 +76,7 @@ class MainFrame : public DPIFrame
     wxMenuItem* m_menu_item_repeat { nullptr }; // doesn't used now
 #endif
     wxMenuItem* m_menu_item_reslice_now { nullptr };
+    wxSizer*    m_main_sizer{ nullptr };
 
     PrintHostQueueDialog *m_printhost_queue_dlg;
 

@@ -141,7 +141,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 #endif // !ENABLE_LAYOUT_NO_RESTART
 
     // initialize layout
-    auto sizer = new wxBoxSizer(wxVERTICAL);
+    m_main_sizer = new wxBoxSizer(wxVERTICAL);
+    wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(m_main_sizer, 1, wxEXPAND);
 #if ENABLE_LAYOUT_NO_RESTART
     SetSizer(sizer);
     // initialize layout from config
@@ -293,7 +295,7 @@ void MainFrame::update_layout()
         if (m_layout == ESettingsLayout::Dlg)
             rescale_dialog_after_dpi_change(*this, m_settings_dialog, ERescaleTarget::Mainframe);
 
-        clean_sizer(GetSizer());
+        clean_sizer(m_main_sizer);
         clean_sizer(m_settings_dialog.GetSizer());
 
         if (m_settings_dialog.IsShown())
@@ -332,16 +334,16 @@ void MainFrame::update_layout()
     {
         m_plater->Reparent(m_tabpanel);
         m_tabpanel->InsertPage(0, m_plater, _L("Plater"));
-        GetSizer()->Add(m_tabpanel, 1, wxEXPAND);
+        m_main_sizer->Add(m_tabpanel, 1, wxEXPAND);
         m_plater->Show();
         m_tabpanel->Show();
         break;
     }
     case ESettingsLayout::New:
     {
-        GetSizer()->Add(m_plater, 1, wxEXPAND);
+        m_main_sizer->Add(m_plater, 1, wxEXPAND);
         m_tabpanel->Hide();
-        GetSizer()->Add(m_tabpanel, 1, wxEXPAND);
+        m_main_sizer->Add(m_tabpanel, 1, wxEXPAND);
         m_plater_page = new wxPanel(m_tabpanel);
         m_tabpanel->InsertPage(0, m_plater_page, _L("Plater")); // empty panel just for Plater tab */
         m_plater->Show();
@@ -349,7 +351,7 @@ void MainFrame::update_layout()
     }
     case ESettingsLayout::Dlg:
     {
-        GetSizer()->Add(m_plater, 1, wxEXPAND);
+        m_main_sizer->Add(m_plater, 1, wxEXPAND);
         m_tabpanel->Reparent(&m_settings_dialog);
         m_settings_dialog.GetSizer()->Add(m_tabpanel, 1, wxEXPAND);
 
@@ -1573,13 +1575,10 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
     }
 #if ENABLE_LAYOUT_NO_RESTART
     else if (m_layout == ESettingsLayout::New) {
+        m_main_sizer->Show(m_plater, tab == 0);
+        m_main_sizer->Show(m_tabpanel, tab != 0);
 #else
     else if (m_layout == slNew) {
-#endif // ENABLE_LAYOUT_NO_RESTART
-#if ENABLE_LAYOUT_NO_RESTART
-        GetSizer()->Show(m_plater, tab == 0);
-        GetSizer()->Show(m_tabpanel, tab != 0);
-#else
         m_plater->Show(tab == 0);
         m_tabpanel->Show(tab != 0);
 #endif // ENABLE_LAYOUT_NO_RESTART
