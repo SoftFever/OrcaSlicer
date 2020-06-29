@@ -1333,9 +1333,8 @@ void SupportTreeBuildsteps::interconnect_pillars()
                     if (distance(pillarsp, s) < t)
                         m_builder.add_bridge(pillarsp, s, pillar().r);
 
-                    if (pillar().endpoint()(Z) > m_builder.ground_level)
-                        m_builder.add_junction(pillar().endpoint(),
-                                               pillar().r);
+                    if (pillar().endpoint()(Z) > m_builder.ground_level + pillar().r)
+                        m_builder.add_junction(pillar().endpoint(), pillar().r);
 
                     newpills.emplace_back(pp.id);
                     m_builder.increment_links(pillar());
