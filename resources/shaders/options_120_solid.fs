@@ -84,6 +84,6 @@ void main()
      
     vec3 eye_on_sphere_position = eye_position_on_sphere(eye_position_from_fragment());
 
-    gl_FragDepth = fragment_depth(eye_on_sphere_position);
+//    gl_FragDepth = fragment_depth(eye_on_sphere_position);
     gl_FragColor = on_sphere_color(eye_on_sphere_position);
 }

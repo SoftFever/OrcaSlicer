@@ -64,12 +64,23 @@ std::vector<std::array<float, 3>> decode_colors(const std::vector<std::string> &
 void GCodeViewer::VBuffer::reset()
 {
     // release gpu memory
-    if (vbo_id > 0) {
-        glsafe(::glDeleteBuffers(1, &vbo_id));
-        vbo_id = 0;
+    if (id > 0) {
+        glsafe(::glDeleteBuffers(1, &id));
+        id = 0;
     }
 
-    vertices_count = 0;
+    count = 0;
+}
+
+void GCodeViewer::IBuffer::reset()
+{
+    // release gpu memory
+    if (id > 0) {
+        glsafe(::glDeleteBuffers(1, &id));
+        id = 0;
+    }
+
+    count = 0;
 }
 
 bool GCodeViewer::Path::matches(const GCodeProcessor::MoveVertex& move) const
@@ -96,21 +107,18 @@ bool GCodeViewer::Path::matches(const GCodeProcessor::MoveVertex& move) const
     }
 }
 
-void GCodeViewer::IBuffer::reset()
+void GCodeViewer::TBuffer::reset()
 {
     // release gpu memory
-    if (ibo_id > 0) {
-        glsafe(::glDeleteBuffers(1, &ibo_id));
-        ibo_id = 0;
-    }
+    vertices.reset();
+    indices.reset();
 
     // release cpu memory
-    indices_count = 0;
     paths = std::vector<Path>();
     render_paths = std::vector<RenderPath>();
 }
 
-void GCodeViewer::IBuffer::add_path(const GCodeProcessor::MoveVertex& move, unsigned int i_id, unsigned int s_id)
+void GCodeViewer::TBuffer::add_path(const GCodeProcessor::MoveVertex& move, unsigned int i_id, unsigned int s_id)
 {
     Path::Endpoint endpoint = { i_id, s_id, move.position };
     paths.push_back({ move.type, move.extrusion_role, endpoint, endpoint, move.delta_extruder, move.height, move.width, move.feedrate, move.fan_speed, move.volumetric_rate(), move.extruder_id, move.cp_color_id });
@@ -209,7 +217,7 @@ void GCodeViewer::SequentialView::Marker::render() const
 }
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
-    { 0.50f, 0.50f, 0.50f },   // erNone
+    { 0.75f, 0.75f, 0.75f },   // erNone
     { 1.00f, 1.00f, 0.40f },   // erPerimeter
     { 1.00f, 0.65f, 0.00f },   // erExternalPerimeter
     { 0.00f, 0.00f, 1.00f },   // erOverhangPerimeter
@@ -257,6 +265,29 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors {{
 
 bool GCodeViewer::init()
 {
+    for (size_t i = 0; i < m_buffers.size(); ++i)
+    {
+        switch (buffer_type(i))
+        {
+        case GCodeProcessor::EMoveType::Tool_change:
+        case GCodeProcessor::EMoveType::Color_change:
+        case GCodeProcessor::EMoveType::Pause_Print:
+        case GCodeProcessor::EMoveType::Custom_GCode:
+        case GCodeProcessor::EMoveType::Retract:
+        case GCodeProcessor::EMoveType::Unretract:
+        {
+            m_buffers[i].vertices.format = VBuffer::EFormat::Position;
+            break;
+        }
+        case GCodeProcessor::EMoveType::Extrude:
+        case GCodeProcessor::EMoveType::Travel:
+        {
+            m_buffers[i].vertices.format = VBuffer::EFormat::PositionNormal;
+            break;
+        }
+        }
+    }
+
     set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Extrude, true);
     m_sequential_view.marker.init();
     init_shaders();
@@ -306,7 +337,7 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
     auto start_time = std::chrono::high_resolution_clock::now();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
-    if (m_vertices.vertices_count == 0)
+    if (m_vertices_count == 0)
         return;
 
     // update tool colors
@@ -314,7 +345,7 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
 
     // update ranges for coloring / legend
     m_extrusions.reset_ranges();
-    for (size_t i = 0; i < m_vertices.vertices_count; ++i) {
+    for (size_t i = 0; i < m_vertices_count; ++i) {
         // skip first vertex
         if (i == 0)
             continue;
@@ -342,19 +373,18 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
         }
     }
 
-    // update buffers' render paths
-    refresh_render_paths(false, false);
-
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.refresh_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+
+    // update buffers' render paths
+    refresh_render_paths(false, false);
 }
 
 void GCodeViewer::reset()
 {
-    m_vertices.reset();
-
-    for (IBuffer& buffer : m_buffers) {
+    m_vertices_count = 0;
+    for (TBuffer& buffer : m_buffers) {
         buffer.reset();
     }
 
@@ -472,8 +502,8 @@ void GCodeViewer::init_shaders()
         case GCodeProcessor::EMoveType::Custom_GCode: { m_buffers[i].shader = is_glsl_120 ? "options_120_solid" : "options_110"; break; }
         case GCodeProcessor::EMoveType::Retract:      { m_buffers[i].shader = is_glsl_120 ? "options_120_solid" : "options_110"; break; }
         case GCodeProcessor::EMoveType::Unretract:    { m_buffers[i].shader = is_glsl_120 ? "options_120_solid" : "options_110"; break; }
-        case GCodeProcessor::EMoveType::Extrude:      { m_buffers[i].shader = "extrusions"; break; }
-        case GCodeProcessor::EMoveType::Travel:       { m_buffers[i].shader = "travels"; break; }
+        case GCodeProcessor::EMoveType::Extrude:      { m_buffers[i].shader = "toolpaths"; break; }
+        case GCodeProcessor::EMoveType::Travel:       { m_buffers[i].shader = "toolpaths"; break; }
         default: { break; }
         }
     }
@@ -484,16 +514,15 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 #if ENABLE_GCODE_VIEWER_STATISTICS
     auto start_time = std::chrono::high_resolution_clock::now();
     m_statistics.results_size = SLIC3R_STDVEC_MEMSIZE(gcode_result.moves, GCodeProcessor::MoveVertex);
+    m_statistics.results_time = gcode_result.time;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
-    // vertex data
-    m_vertices.vertices_count = gcode_result.moves.size();
-    if (m_vertices.vertices_count == 0)
+    // vertices data
+    m_vertices_count = gcode_result.moves.size();
+    if (m_vertices_count == 0)
         return;
 
-    // vertex data / bounding box -> extract from result
-    std::vector<float> vertices_data(m_vertices.vertices_count * 3);
-    for (size_t i = 0; i < m_vertices.vertices_count; ++i) {
+    for (size_t i = 0; i < m_vertices_count; ++i) {
         const GCodeProcessor::MoveVertex& move = gcode_result.moves[i];
 #if ENABLE_GCODE_VIEWER_AS_STATE
         if (wxGetApp().mainframe->get_mode() == MainFrame::EMode::GCodeViewer)
@@ -506,29 +535,16 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 #if ENABLE_GCODE_VIEWER_AS_STATE
         }
 #endif // ENABLE_GCODE_VIEWER_AS_STATE
-        ::memcpy(static_cast<void*>(&vertices_data[i * 3]), static_cast<const void*>(move.position.data()), 3 * sizeof(float));
     }
 
+    // max bounding box
     m_max_bounding_box = m_paths_bounding_box;
     m_max_bounding_box.merge(m_paths_bounding_box.max + m_sequential_view.marker.get_bounding_box().size()[2] * Vec3d::UnitZ());
 
-#if ENABLE_GCODE_VIEWER_STATISTICS
-    m_statistics.vertices_size = SLIC3R_STDVEC_MEMSIZE(vertices_data, float);
-    m_statistics.vertices_gpu_size = vertices_data.size() * sizeof(float);
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-
-    // vertex data -> send to gpu
-    glsafe(::glGenBuffers(1, &m_vertices.vbo_id));
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vertices.vbo_id));
-    glsafe(::glBufferData(GL_ARRAY_BUFFER, vertices_data.size() * sizeof(float), vertices_data.data(), GL_STATIC_DRAW));
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-
-    // vertex data -> no more needed, free ram
-    vertices_data = std::vector<float>();
-
-    // indices data -> extract from result
+    // toolpaths data -> extract from result
+    std::vector<std::vector<float>> vertices(m_buffers.size());
     std::vector<std::vector<unsigned int>> indices(m_buffers.size());
-    for (size_t i = 0; i < m_vertices.vertices_count; ++i) {
+    for (size_t i = 0; i < m_vertices_count; ++i) {
         // skip first vertex
         if (i == 0)
             continue;
@@ -537,7 +553,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         const GCodeProcessor::MoveVertex& curr = gcode_result.moves[i];
 
         unsigned char id = buffer_id(curr.type);
-        IBuffer& buffer = m_buffers[id];
+        TBuffer& buffer = m_buffers[id];
+        std::vector<float>& buffer_vertices = vertices[id];
         std::vector<unsigned int>& buffer_indices = indices[id];
 
         switch (curr.type)
@@ -549,54 +566,103 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         case GCodeProcessor::EMoveType::Retract:
         case GCodeProcessor::EMoveType::Unretract:
         {
+            for (int j = 0; j < 3; ++j) {
+                buffer_vertices.push_back(curr.position[j]);
+            }
             buffer.add_path(curr, static_cast<unsigned int>(buffer_indices.size()), static_cast<unsigned int>(i));
-            buffer_indices.push_back(static_cast<unsigned int>(i));
+            buffer_indices.push_back(static_cast<unsigned int>(buffer_indices.size()));
             break;
         }
         case GCodeProcessor::EMoveType::Extrude:
         case GCodeProcessor::EMoveType::Travel:
         {
+            // x component of the normal to the current segment (the normal is parallel to the XY plane)
+            float normal_x = (curr.position - prev.position).normalized()[1];
+
             if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
-                buffer.add_path(curr, static_cast<unsigned int>(buffer_indices.size()), static_cast<unsigned int>(i - 1));
+                // add starting vertex position
+                for (int j = 0; j < 3; ++j) {
+                    buffer_vertices.push_back(prev.position[j]);
+                }
+                // add starting vertex normal x component
+                buffer_vertices.push_back(normal_x);
+                // add starting index
+                buffer_indices.push_back(buffer_indices.size());
+                buffer.add_path(curr, static_cast<unsigned int>(buffer_indices.size() - 1), static_cast<unsigned int>(i - 1));
                 Path& last_path = buffer.paths.back();
                 last_path.first.position = prev.position;
-                buffer_indices.push_back(static_cast<unsigned int>(i - 1));
             }
-            
-            buffer.paths.back().last = { static_cast<unsigned int>(buffer_indices.size()), static_cast<unsigned int>(i), curr.position };
-            buffer_indices.push_back(static_cast<unsigned int>(i));
+
+            Path& last_path = buffer.paths.back();
+            if (last_path.first.i_id != last_path.last.i_id)
+            {
+                // add previous vertex position
+                for (int j = 0; j < 3; ++j) {
+                    buffer_vertices.push_back(prev.position[j]);
+                }
+                // add previous vertex normal x component
+                buffer_vertices.push_back(normal_x);
+                // add previous index
+                buffer_indices.push_back(buffer_indices.size());
+            }
+
+            // add current vertex position
+            for (int j = 0; j < 3; ++j) {
+                buffer_vertices.push_back(curr.position[j]);
+            }
+            // add current vertex normal x component
+            buffer_vertices.push_back(normal_x);
+            // add current index
+            buffer_indices.push_back(buffer_indices.size());
+            last_path.last = { static_cast<unsigned int>(buffer_indices.size() - 1), static_cast<unsigned int>(i), curr.position };
             break;
         }
         default: { break; }
         }
     }
 
+    // toolpaths data -> send data to gpu
+    for (size_t i = 0; i < m_buffers.size(); ++i) {
+        TBuffer& buffer = m_buffers[i];
+
+        // vertices
+        const std::vector<float>& buffer_vertices = vertices[i];
+        buffer.vertices.count = buffer_vertices.size() / buffer.vertices.vertex_size_floats();
 #if ENABLE_GCODE_VIEWER_STATISTICS
-    for (IBuffer& buffer : m_buffers) {
-        m_statistics.paths_size += SLIC3R_STDVEC_MEMSIZE(buffer.paths, Path);
-    }
+        m_statistics.vertices_gpu_size = buffer_vertices.size() * sizeof(float);
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
-    // indices data -> send data to gpu
-    for (size_t i = 0; i < m_buffers.size(); ++i) {
-        IBuffer& buffer = m_buffers[i];
+        glsafe(::glGenBuffers(1, &buffer.vertices.id));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, buffer.vertices.id));
+        glsafe(::glBufferData(GL_ARRAY_BUFFER, buffer_vertices.size() * sizeof(float), buffer_vertices.data(), GL_STATIC_DRAW));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+
+        // indices
         const std::vector<unsigned int>& buffer_indices = indices[i];
-        buffer.indices_count = buffer_indices.size();
+        buffer.indices.count = buffer_indices.size();
 #if ENABLE_GCODE_VIEWER_STATISTICS
         m_statistics.indices_size += SLIC3R_STDVEC_MEMSIZE(buffer_indices, unsigned int);
-        m_statistics.indices_gpu_size += buffer.indices_count * sizeof(unsigned int);
+        m_statistics.indices_gpu_size += buffer.indices.count * sizeof(unsigned int);
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
-        if (buffer.indices_count > 0) {
-            glsafe(::glGenBuffers(1, &buffer.ibo_id));
-            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.ibo_id));
-            glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer.indices_count * sizeof(unsigned int), buffer_indices.data(), GL_STATIC_DRAW));
+        if (buffer.indices.count > 0) {
+            glsafe(::glGenBuffers(1, &buffer.indices.id));
+            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.indices.id));
+            glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer.indices.count * sizeof(unsigned int), buffer_indices.data(), GL_STATIC_DRAW));
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
         }
     }
 
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    for (const TBuffer& buffer : m_buffers) {
+        m_statistics.paths_size += SLIC3R_STDVEC_MEMSIZE(buffer.paths, Path);
+    }
+    m_statistics.travel_segments_count = indices[buffer_id(GCodeProcessor::EMoveType::Travel)].size() / 2;
+    m_statistics.extrude_segments_count = indices[buffer_id(GCodeProcessor::EMoveType::Extrude)].size() / 2;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+
     // layers zs / roles / extruder ids / cp color ids -> extract from result
-    for (size_t i = 0; i < m_vertices.vertices_count; ++i) {
+    for (size_t i = 0; i < m_vertices_count; ++i) {
         const GCodeProcessor::MoveVertex& move = gcode_result.moves[i];
         if (move.type == GCodeProcessor::EMoveType::Extrude)
             m_layers_zs.emplace_back(static_cast<double>(move.position[2]));
@@ -728,18 +794,18 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
     m_statistics.render_paths_size = 0;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
-    m_sequential_view.endpoints.first = m_vertices.vertices_count;
+    m_sequential_view.endpoints.first = m_vertices_count;
     m_sequential_view.endpoints.last = 0;
     if (!keep_sequential_current_first)
         m_sequential_view.current.first = 0;
     if (!keep_sequential_current_last)
-        m_sequential_view.current.last = m_vertices.vertices_count;
+        m_sequential_view.current.last = m_vertices_count;
 
     // first pass: collect visible paths and update sequential view data
-    std::vector<std::pair<IBuffer*, size_t>> paths;
-    for (IBuffer& buffer : m_buffers) {
+    std::vector<std::pair<TBuffer*, size_t>> paths;
+    for (TBuffer& buffer : m_buffers) {
         // reset render paths
-        buffer.render_paths = std::vector<RenderPath>();
+        buffer.render_paths.clear();
 
         if (!buffer.visible)
             continue;
@@ -767,23 +833,43 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
     // update current sequential position
     m_sequential_view.current.first = keep_sequential_current_first ? std::clamp(m_sequential_view.current.first, m_sequential_view.endpoints.first, m_sequential_view.endpoints.last) : m_sequential_view.endpoints.first;
     m_sequential_view.current.last = keep_sequential_current_last ? std::clamp(m_sequential_view.current.last, m_sequential_view.endpoints.first, m_sequential_view.endpoints.last) : m_sequential_view.endpoints.last;
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vertices.vbo_id));
-    size_t v_size = VBuffer::vertex_size_bytes();
-    glsafe(::glGetBufferSubData(GL_ARRAY_BUFFER, static_cast<GLintptr>(m_sequential_view.current.last * v_size), static_cast<GLsizeiptr>(v_size), static_cast<void*>(m_sequential_view.current_position.data())));
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 
-    // second pass: filter paths by sequential data
+    // get the world position from gpu
+    bool found = false;
+    for (const TBuffer& buffer : m_buffers) {
+        // searches the path containing the current position
+        for (const Path& path : buffer.paths) {
+            if (path.first.s_id <= m_sequential_view.current.last && m_sequential_view.current.last <= path.last.s_id) {
+                size_t offset = m_sequential_view.current.last - path.first.s_id;
+                if (offset > 0 && (path.type == GCodeProcessor::EMoveType::Travel || path.type == GCodeProcessor::EMoveType::Extrude))
+                    offset = 1 + 2 * (offset - 1);
+
+                offset += path.first.i_id;
+
+                // gets the position from the vertices buffer on gpu
+                glsafe(::glBindBuffer(GL_ARRAY_BUFFER, buffer.vertices.id));
+                glsafe(::glGetBufferSubData(GL_ARRAY_BUFFER, static_cast<GLintptr>(offset * buffer.vertices.vertex_size_bytes()), static_cast<GLsizeiptr>(3 * sizeof(float)), static_cast<void*>(m_sequential_view.current_position.data())));
+                glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+                found = true;
+                break;
+            }
+        }
+        if (found)
+            break;
+    }
+
+    // second pass: filter paths by sequential data and collect them by color
     for (auto&& [buffer, id] : paths) {
         const Path& path = buffer->paths[id];
-        if ((m_sequential_view.current.last <= path.first.s_id) || (path.last.s_id <= m_sequential_view.current.first))
+        if (m_sequential_view.current.last <= path.first.s_id || path.last.s_id <= m_sequential_view.current.first)
             continue;
 
         Color color;
         switch (path.type)
         {
         case GCodeProcessor::EMoveType::Extrude: { color = extrusion_color(path); break; }
-        case GCodeProcessor::EMoveType::Travel:  { color = (m_view_type == EViewType::Feedrate || m_view_type == EViewType::Tool || m_view_type == EViewType::ColorPrint) ? extrusion_color(path) : travel_color(path); break; }
-        default:                                 { color = { 0.0f, 0.0f, 0.0f }; break; }
+        case GCodeProcessor::EMoveType::Travel: { color = (m_view_type == EViewType::Feedrate || m_view_type == EViewType::Tool || m_view_type == EViewType::ColorPrint) ? extrusion_color(path) : travel_color(path); break; }
+        default: { color = { 0.0f, 0.0f, 0.0f }; break; }
         }
 
         auto it = std::find_if(buffer->render_paths.begin(), buffer->render_paths.end(), [color](const RenderPath& path) { return path.color == color; });
@@ -792,7 +878,11 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             it->color = color;
         }
 
-        it->sizes.push_back(std::min(m_sequential_view.current.last, path.last.s_id) - std::max(m_sequential_view.current.first, path.first.s_id) + 1);
+        unsigned int size = std::min(m_sequential_view.current.last, path.last.s_id) - std::max(m_sequential_view.current.first, path.first.s_id) + 1;
+        if (path.type == GCodeProcessor::EMoveType::Extrude || path.type == GCodeProcessor::EMoveType::Travel)
+            size = 2 * (size - 1);
+
+        it->sizes.push_back(size);
         unsigned int delta_1st = 0;
         if ((path.first.s_id < m_sequential_view.current.first) && (m_sequential_view.current.first <= path.last.s_id))
             delta_1st = m_sequential_view.current.first - path.first.s_id;
@@ -801,14 +891,13 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
     }
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
-    for (const IBuffer& buffer : m_buffers) {
+    for (const TBuffer& buffer : m_buffers) {
         m_statistics.render_paths_size += SLIC3R_STDVEC_MEMSIZE(buffer.render_paths, RenderPath);
         for (const RenderPath& path : buffer.render_paths) {
             m_statistics.render_paths_size += SLIC3R_STDVEC_MEMSIZE(path.sizes, unsigned int);
             m_statistics.render_paths_size += SLIC3R_STDVEC_MEMSIZE(path.offsets, size_t);
         }
     }
-
     m_statistics.refresh_paths_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 }
@@ -816,9 +905,9 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 void GCodeViewer::render_toolpaths() const
 {
 #if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
-    float point_size = m_shaders_editor.point_size;
+    float point_size = m_shaders_editor.points.point_size;
 #else
-    float point_size = 1.0f;
+    float point_size = 0.8f;
 #endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
     const Camera& camera = wxGetApp().plater()->get_camera();
     double zoom = camera.get_zoom();
@@ -828,12 +917,12 @@ void GCodeViewer::render_toolpaths() const
 
     Transform3d inv_proj = camera.get_projection_matrix().inverse();
 
-    auto render_as_points = [this, zoom, inv_proj, viewport, point_size, near_plane_height](const IBuffer& buffer, EOptionsColors color_id, GLShaderProgram& shader) {
+    auto render_as_points = [this, zoom, inv_proj, viewport, point_size, near_plane_height](const TBuffer& buffer, EOptionsColors color_id, GLShaderProgram& shader) {
         shader.set_uniform("uniform_color", Options_Colors[static_cast<unsigned int>(color_id)]);
         shader.set_uniform("zoom", zoom);
 #if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
-        shader.set_uniform("percent_outline_radius", 0.01f * static_cast<float>(m_shaders_editor.percent_outline));
-        shader.set_uniform("percent_center_radius", 0.01f * static_cast<float>(m_shaders_editor.percent_center));
+        shader.set_uniform("percent_outline_radius", 0.01f * static_cast<float>(m_shaders_editor.points.percent_outline));
+        shader.set_uniform("percent_center_radius", 0.01f * static_cast<float>(m_shaders_editor.points.percent_center));
 #else
         shader.set_uniform("percent_outline_radius", 0.15f);
         shader.set_uniform("percent_center_radius", 0.15f);
@@ -852,16 +941,16 @@ void GCodeViewer::render_toolpaths() const
             ++m_statistics.gl_multi_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
         }
-        
+
         glsafe(::glDisable(GL_POINT_SPRITE));
         glsafe(::glDisable(GL_VERTEX_PROGRAM_POINT_SIZE));
     };
 
-    auto render_as_lines = [this](const IBuffer& buffer, GLShaderProgram& shader) {
+    auto render_as_lines = [this](const TBuffer& buffer, GLShaderProgram& shader) {
         for (const RenderPath& path : buffer.render_paths)
         {
             shader.set_uniform("uniform_color", path.color);
-            glsafe(::glMultiDrawElements(GL_LINE_STRIP, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
+            glsafe(::glMultiDrawElements(GL_LINES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
             ++m_statistics.gl_multi_line_strip_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -878,27 +967,25 @@ void GCodeViewer::render_toolpaths() const
     unsigned char begin_id = buffer_id(GCodeProcessor::EMoveType::Retract);
     unsigned char end_id = buffer_id(GCodeProcessor::EMoveType::Count);
 
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vertices.vbo_id));
-    glsafe(::glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, VBuffer::vertex_size_bytes(), (const void*)0));
-    glsafe(::glEnableVertexAttribArray(0));
-
     for (unsigned char i = begin_id; i < end_id; ++i) {
-        const IBuffer& buffer = m_buffers[i];
-        if (buffer.ibo_id == 0)
-            continue;
-        
+        const TBuffer& buffer = m_buffers[i];
         if (!buffer.visible)
+            continue;
+
+        if (buffer.vertices.id == 0 || buffer.indices.id == 0)
             continue;
 
         GLShaderProgram* shader = wxGetApp().get_shader(buffer.shader.c_str());
         if (shader != nullptr) {
             shader->start_using();
 
-            GCodeProcessor::EMoveType type = buffer_type(i);
+            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, buffer.vertices.id));
+            glsafe(::glVertexAttribPointer(0, buffer.vertices.vertex_size_floats(), GL_FLOAT, GL_FALSE, buffer.vertices.vertex_size_bytes(), (const void*)0));
+            glsafe(::glEnableVertexAttribArray(0));
 
-            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.ibo_id));
+            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.indices.id));
 
-            switch (type)
+            switch (buffer_type(i))
             {
             case GCodeProcessor::EMoveType::Tool_change:  { render_as_points(buffer, EOptionsColors::ToolChanges, *shader); break; }
             case GCodeProcessor::EMoveType::Color_change: { render_as_points(buffer, EOptionsColors::ColorChanges, *shader); break; }
@@ -907,16 +994,33 @@ void GCodeViewer::render_toolpaths() const
             case GCodeProcessor::EMoveType::Retract:      { render_as_points(buffer, EOptionsColors::Retractions, *shader); break; }
             case GCodeProcessor::EMoveType::Unretract:    { render_as_points(buffer, EOptionsColors::Unretractions, *shader); break; }
             case GCodeProcessor::EMoveType::Extrude:
-            case GCodeProcessor::EMoveType::Travel:       { render_as_lines(buffer, *shader); break; }
+            case GCodeProcessor::EMoveType::Travel:
+            {
+                std::array<float, 4> light_intensity;
+#if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
+                light_intensity[0] = m_shaders_editor.lines.lights.ambient;
+                light_intensity[1] = m_shaders_editor.lines.lights.top_diffuse;
+                light_intensity[2] = m_shaders_editor.lines.lights.front_diffuse;
+                light_intensity[3] = m_shaders_editor.lines.lights.global;
+#else
+                light_intensity[0] = 0.25f;
+                light_intensity[1] = 0.7f;
+                light_intensity[2] = 0.75f;
+                light_intensity[3] = 0.75f;
+#endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
+                shader->set_uniform("light_intensity", light_intensity);
+                render_as_lines(buffer, *shader); break;
+            }
             }
 
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
+            glsafe(::glDisableVertexAttribArray(0));
+            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+
             shader->stop_using();
         }
     }
-
-    glsafe(::glDisableVertexAttribArray(0));
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
 void GCodeViewer::render_shells() const
@@ -985,13 +1089,13 @@ void GCodeViewer::render_legend() const
         {
 #if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
             ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
-            if (m_shaders_editor.shader_version == 1) {
+            if (m_shaders_editor.points.shader_version == 1) {
                 draw_list->AddCircleFilled(center, 0.5f * icon_size,
                     ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
-                float radius = 0.5f * icon_size * (1.0f - 0.01f * static_cast<float>(m_shaders_editor.percent_outline));
+                float radius = 0.5f * icon_size * (1.0f - 0.01f * static_cast<float>(m_shaders_editor.points.percent_outline));
                 draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
-                if (m_shaders_editor.percent_center > 0) {
-                    radius = 0.5f * icon_size * 0.01f * static_cast<float>(m_shaders_editor.percent_center);
+                if (m_shaders_editor.points.percent_center > 0) {
+                    radius = 0.5f * icon_size * 0.01f * static_cast<float>(m_shaders_editor.points.percent_center);
                     draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
                 }
             }
@@ -1284,10 +1388,10 @@ void GCodeViewer::render_legend() const
     };
 
     auto add_option = [this, add_item](GCodeProcessor::EMoveType move_type, EOptionsColors color, const std::string& text) {
-        const IBuffer& buffer = m_buffers[buffer_id(move_type)];
-        if (buffer.visible && buffer.indices_count > 0)
+        const TBuffer& buffer = m_buffers[buffer_id(move_type)];
+        if (buffer.visible && buffer.indices.count > 0)
 #if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
-            add_item((m_shaders_editor.shader_version == 0) ? EItemType::Rect : EItemType::Circle, Options_Colors[static_cast<unsigned int>(color)], text);
+            add_item((m_shaders_editor.points.shader_version == 0) ? EItemType::Rect : EItemType::Circle, Options_Colors[static_cast<unsigned int>(color)], text);
 #else
             add_item((buffer.shader == "options_110") ? EItemType::Rect : EItemType::Circle, Options_Colors[static_cast<unsigned int>(color)], text);
 #endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
@@ -1320,13 +1424,21 @@ void GCodeViewer::render_legend() const
 void GCodeViewer::render_statistics() const
 {
     static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
-    static const float offset = 250.0f;
+    static const float offset = 230.0f;
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
     imgui.set_next_window_pos(0.5f * wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_width(), 0.0f, ImGuiCond_Once, 0.5f, 0.0f);
-    imgui.begin(std::string("Statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    imgui.begin(std::string("GCodeViewer Statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
     ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    imgui.text(std::string("GCodeProcessor time:"));
+    ImGui::PopStyleColor();
+    ImGui::SameLine(offset);
+    imgui.text(std::to_string(m_statistics.results_time) + " ms");
+
+    ImGui::Separator();
 
     ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
     imgui.text(std::string("Load time:"));
@@ -1371,12 +1483,6 @@ void GCodeViewer::render_statistics() const
     ImGui::Separator();
 
     ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
-    imgui.text(std::string("Vertices CPU:"));
-    ImGui::PopStyleColor();
-    ImGui::SameLine(offset);
-    imgui.text(std::to_string(m_statistics.vertices_size) + " bytes");
-
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
     imgui.text(std::string("Indices CPU:"));
     ImGui::PopStyleColor();
     ImGui::SameLine(offset);
@@ -1408,6 +1514,20 @@ void GCodeViewer::render_statistics() const
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.indices_gpu_size) + " bytes");
 
+    ImGui::Separator();
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    imgui.text(std::string("Travel segments:"));
+    ImGui::PopStyleColor();
+    ImGui::SameLine(offset);
+    imgui.text(std::to_string(m_statistics.travel_segments_count));
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    imgui.text(std::string("Extrude segments:"));
+    ImGui::PopStyleColor();
+    ImGui::SameLine(offset);
+    imgui.text(std::to_string(m_statistics.extrude_segments_count));
+
     imgui.end();
 }
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -1429,25 +1549,49 @@ void GCodeViewer::render_shaders_editor() const
 
     Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
     imgui.set_next_window_pos(static_cast<float>(cnv_size.get_width()), 0.5f * static_cast<float>(cnv_size.get_height()), ImGuiCond_Once, 1.0f, 0.5f);
+
     imgui.begin(std::string("Shaders editor (DEV only)"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
 
-    ImGui::RadioButton("glsl version 1.10 (low end PCs)", &m_shaders_editor.shader_version, 0);
-    ImGui::RadioButton("glsl version 1.20 flat (billboards)", &m_shaders_editor.shader_version, 1);
-    ImGui::RadioButton("glsl version 1.20 solid (spheres default)", &m_shaders_editor.shader_version, 2);
+    if (ImGui::CollapsingHeader("Points", ImGuiTreeNodeFlags_DefaultOpen)) {
+        if (ImGui::TreeNode("GLSL version")) {
+            ImGui::RadioButton("1.10 (low end PCs)", &m_shaders_editor.points.shader_version, 0);
+            ImGui::RadioButton("1.20 flat (billboards)", &m_shaders_editor.points.shader_version, 1);
+            ImGui::RadioButton("1.20 solid (spheres default)", &m_shaders_editor.points.shader_version, 2);
+            ImGui::TreePop();
+        }
 
-    switch (m_shaders_editor.shader_version)
-    {
-    case 0: { set_shader("options_110"); break; }
-    case 1: { set_shader("options_120_flat"); break; }
-    case 2: { set_shader("options_120_solid"); break; }
+        switch (m_shaders_editor.points.shader_version)
+        {
+        case 0: { set_shader("options_110"); break; }
+        case 1: { set_shader("options_120_flat"); break; }
+        case 2: { set_shader("options_120_solid"); break; }
+        }
+
+        if (ImGui::TreeNode("Options")) {
+            ImGui::SliderFloat("point size", &m_shaders_editor.points.point_size, 0.5f, 3.0f, "%.2f");
+            if (m_shaders_editor.points.shader_version == 1) {
+                ImGui::SliderInt("% outline", &m_shaders_editor.points.percent_outline, 0, 50);
+                ImGui::SliderInt("% center", &m_shaders_editor.points.percent_center, 0, 50);
+            }
+            ImGui::TreePop();
+        }
     }
 
-    if (ImGui::CollapsingHeader("Options", ImGuiTreeNodeFlags_DefaultOpen)) {
-        ImGui::SliderFloat("point size", &m_shaders_editor.point_size, 0.5f, 3.0f, "%.1f");
-        if (m_shaders_editor.shader_version == 1) {
-            ImGui::SliderInt("percent outline", &m_shaders_editor.percent_outline, 0, 50);
-            ImGui::SliderInt("percent center", &m_shaders_editor.percent_center, 0, 50);
+    if (ImGui::CollapsingHeader("Lines", ImGuiTreeNodeFlags_DefaultOpen)) {
+        if (ImGui::TreeNode("Lights")) {
+            ImGui::SliderFloat("ambient", &m_shaders_editor.lines.lights.ambient, 0.0f, 1.0f, "%.2f");
+            ImGui::SliderFloat("top diffuse", &m_shaders_editor.lines.lights.top_diffuse, 0.0f, 1.0f, "%.2f");
+            ImGui::SliderFloat("front diffuse", &m_shaders_editor.lines.lights.front_diffuse, 0.0f, 1.0f, "%.2f");
+            ImGui::SliderFloat("global", &m_shaders_editor.lines.lights.global, 0.0f, 1.0f, "%.2f");
+            ImGui::TreePop();
         }
+    }
+
+    ImGui::SetWindowSize(ImVec2(std::max(ImGui::GetWindowWidth(), 600.0f), -1.0f), ImGuiCond_Always);
+    if (ImGui::GetWindowPos().x + ImGui::GetWindowWidth() > static_cast<float>(cnv_size.get_width())) {
+        ImGui::SetWindowPos(ImVec2(static_cast<float>(cnv_size.get_width()) - ImGui::GetWindowWidth(), ImGui::GetWindowPos().y), ImGuiCond_Always);
+        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
+        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
     }
 
     imgui.end();
@@ -1456,7 +1600,7 @@ void GCodeViewer::render_shaders_editor() const
 
 bool GCodeViewer::is_travel_in_z_range(size_t id) const
 {
-    const IBuffer& buffer = m_buffers[buffer_id(GCodeProcessor::EMoveType::Travel)];
+    const TBuffer& buffer = m_buffers[buffer_id(GCodeProcessor::EMoveType::Travel)];
     if (id >= buffer.paths.size())
         return false;
 

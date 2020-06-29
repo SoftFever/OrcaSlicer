@@ -33,18 +33,47 @@ class GCodeViewer
         CustomGCodes
     };
 
-    // buffer containing vertices data
+    // vbo buffer containing vertices data for a specific toolpath type
     struct VBuffer
     {
-        unsigned int vbo_id{ 0 };
-        size_t vertices_count{ 0 };
+        enum class EFormat : unsigned char
+        {
+            Position,
+            PositionNormal
+        };
 
-        size_t data_size_bytes() { return vertices_count * vertex_size_bytes(); }
+        EFormat format{ EFormat::Position };
+        // vbo id
+        unsigned int id{ 0 };
+        // count of vertices, updated after data are sent to gpu
+        size_t count{ 0 };
+
+        size_t data_size_bytes() const { return count * vertex_size_bytes(); }
+        size_t vertex_size_floats() const
+        {
+            switch (format)
+            {
+            // vertex format: 3 floats -> position.x|position.y|position.z
+            case EFormat::Position:       { return 3; }
+            // vertex format: 4 floats -> position.x|position.y|position.z|normal.x
+            case EFormat::PositionNormal: { return 4; }
+            default:                      { return 0; }
+            }
+        }
+        size_t vertex_size_bytes() const { return vertex_size_floats() * sizeof(float); }
 
         void reset();
+    };
 
-        static size_t vertex_size_floats() { return 3; }
-        static size_t vertex_size_bytes() { return vertex_size_floats() * sizeof(float); }
+    // ibo buffer containing indices data for a specific toolpath type
+    struct IBuffer
+    {
+        // ibo id
+        unsigned int id{ 0 };
+        // count of indices, updated after data are sent to gpu
+        size_t count{ 0 };
+
+        void reset();
     };
 
     // Used to identify different toolpath sub-types inside a IBuffer
@@ -52,9 +81,9 @@ class GCodeViewer
     {
         struct Endpoint
         {
-            // index into the buffer indices ibo
+            // index into the indices buffer
             unsigned int i_id{ 0u };
-            // sequential id (same as index into the vertices vbo)
+            // sequential id
             unsigned int s_id{ 0u };
             Vec3f position{ Vec3f::Zero() };
         };
@@ -83,11 +112,12 @@ class GCodeViewer
         std::vector<size_t> offsets; // use size_t because we need the pointer's size (used in the call glMultiDrawElements())
     };
 
-    // buffer containing indices data and shader for a specific toolpath type
-    struct IBuffer
+    // buffer containing data for rendering a specific toolpath type
+    struct TBuffer
     {
-        unsigned int ibo_id{ 0 };
-        size_t indices_count{ 0 };
+        VBuffer vertices;
+        IBuffer indices;
+
         std::string shader;
         std::vector<Path> paths;
         std::vector<RenderPath> render_paths;
@@ -161,6 +191,7 @@ class GCodeViewer
     struct Statistics
     {
         // times
+        long long results_time{ 0 };
         long long load_time{ 0 };
         long long refresh_time{ 0 };
         long long refresh_paths_time{ 0 };
@@ -169,20 +200,24 @@ class GCodeViewer
         long long gl_multi_line_strip_calls_count{ 0 };
         // memory
         long long results_size{ 0 };
-        long long vertices_size{ 0 };
         long long vertices_gpu_size{ 0 };
         long long indices_size{ 0 };
         long long indices_gpu_size{ 0 };
         long long paths_size{ 0 };
         long long render_paths_size{ 0 };
+        // others
+        long long travel_segments_count{ 0 };
+        long long extrude_segments_count{ 0 };
 
         void reset_all() {
             reset_times();
             reset_opengl();
             reset_sizes();
+            reset_counters();
         }
 
         void reset_times() {
+            results_time = 0;
             load_time = 0;
             refresh_time = 0;
             refresh_paths_time = 0;
@@ -195,12 +230,16 @@ class GCodeViewer
 
         void reset_sizes() {
             results_size = 0;
-            vertices_size = 0;
             vertices_gpu_size = 0;
             indices_size = 0;
             indices_gpu_size = 0;
-            paths_size =  0;
+            paths_size = 0;
             render_paths_size = 0;
+        }
+
+        void reset_counters() {
+            travel_segments_count = 0;
+            extrude_segments_count =  0;
         }
     };
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -208,10 +247,29 @@ class GCodeViewer
 #if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
     struct ShadersEditor
     {
-        int shader_version{ 2 };
-        float point_size{ 1.0f };
-        int percent_outline{ 0 };
-        int percent_center{ 33 };
+        struct Points
+        {
+            int shader_version{ 2 };
+            float point_size{ 0.8f };
+            int percent_outline{ 0 };
+            int percent_center{ 33 };
+        };
+
+        struct Lines
+        {
+            struct Lights
+            {
+                float ambient{ 0.25f };
+                float top_diffuse{ 0.7f };
+                float front_diffuse{ 0.75f };
+                float global{ 0.75f };
+            };
+
+            Lights lights;
+        };
+
+        Points points;
+        Lines lines;
     };
 #endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
 
@@ -268,8 +326,8 @@ public:
 
 private:
     unsigned int m_last_result_id{ 0 };
-    VBuffer m_vertices;
-    mutable std::vector<IBuffer> m_buffers{ static_cast<size_t>(GCodeProcessor::EMoveType::Extrude) };
+    size_t m_vertices_count{ 0 };
+    mutable std::vector<TBuffer> m_buffers{ static_cast<size_t>(GCodeProcessor::EMoveType::Extrude) };
     // bounding box of toolpaths
     BoundingBoxf3 m_paths_bounding_box;
     // bounding box of toolpaths + marker tools

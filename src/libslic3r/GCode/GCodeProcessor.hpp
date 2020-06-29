@@ -106,7 +106,12 @@ namespace Slic3r {
         {
             unsigned int id;
             std::vector<MoveVertex> moves;
+#if ENABLE_GCODE_VIEWER_STATISTICS
+            long long time{ 0 };
+            void reset() { time = 0; moves = std::vector<MoveVertex>(); }
+#else
             void reset() { moves = std::vector<MoveVertex>(); }
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
         };
 
     private:

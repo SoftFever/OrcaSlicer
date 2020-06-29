@@ -7,6 +7,10 @@
 
 #if ENABLE_GCODE_VIEWER
 
+#if ENABLE_GCODE_VIEWER_STATISTICS
+#include <chrono>
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+
 static const float INCHES_TO_MM = 25.4f;
 static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
 
@@ -89,9 +93,17 @@ void GCodeProcessor::reset()
 
 void GCodeProcessor::process_file(const std::string& filename)
 {
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    auto start_time = std::chrono::high_resolution_clock::now();
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+
     m_result.id = ++s_result_id;
     m_result.moves.emplace_back(MoveVertex());
     m_parser.parse_file(filename, [this](GCodeReader& reader, const GCodeReader::GCodeLine& line) { process_gcode_line(line); });
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    m_result.time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
 }
 
 void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line)
