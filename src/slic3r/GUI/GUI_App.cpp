@@ -1094,10 +1094,10 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
             }
 #if ENABLE_LAYOUT_NO_RESTART
             if (app_layout_changed) {
-                mainframe->Hide();
+                mainframe->GetSizer()->Hide((size_t)0);
                 mainframe->update_layout();
                 mainframe->select_tab(0);
-                mainframe->Show();
+                mainframe->GetSizer()->Show((size_t)0);
             }
 #else
             if (recreate_app)
