@@ -5,7 +5,7 @@
 // #include <libslic3r/GCodeSender.hpp>
 
 #ifdef __cplusplus
-extern "C" {
+/* extern "C" { */
 #endif
 #include "EXTERN.h"
 #include "perl.h"
@@ -14,7 +14,7 @@ extern "C" {
 #undef do_open
 #undef do_close
 #ifdef __cplusplus
-}
+/* } */
 #endif
 
 #ifdef _WIN32
