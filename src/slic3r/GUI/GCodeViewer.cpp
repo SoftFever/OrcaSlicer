@@ -509,7 +509,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         ::memcpy(static_cast<void*>(&vertices_data[i * 3]), static_cast<const void*>(move.position.data()), 3 * sizeof(float));
     }
 
-    m_max_bounding_box.merge(m_paths_bounding_box.max + m_sequential_view.marker.get_bounding_box().max[2] * Vec3d::UnitZ());
+    m_max_bounding_box = m_paths_bounding_box;
+    m_max_bounding_box.merge(m_paths_bounding_box.max + m_sequential_view.marker.get_bounding_box().size()[2] * Vec3d::UnitZ());
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.vertices_size = SLIC3R_STDVEC_MEMSIZE(vertices_data, float);
