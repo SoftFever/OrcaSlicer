@@ -1375,6 +1375,15 @@ const std::string& PhysicalPrinter::get_printer_model() const
     return config.opt_string("printer_model");
 }
 
+bool PhysicalPrinter::has_empty_config() const 
+{
+    return  config.opt_string("print_host"      ).empty() && 
+            config.opt_string("printhost_apikey").empty() && 
+            config.opt_string("printhost_cafile").empty() && 
+            config.opt_string("login"           ).empty() && 
+            config.opt_string("password"        ).empty();
+}
+
 void PhysicalPrinter::update_from_preset(const Preset& preset)
 {
     config.apply_only(preset.config, printer_options(), false);

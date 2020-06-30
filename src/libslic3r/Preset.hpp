@@ -556,6 +556,7 @@ public:
     static const std::vector<std::string>& printer_options();
     const std::string&  get_preset_name() const;
     const std::string&  get_printer_model() const;
+    bool                has_empty_config() const;
 
     void                save() { this->config.save(this->file); }
     void                save_to(const std::string& file_name) const { this->config.save(file_name); }
