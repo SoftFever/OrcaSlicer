@@ -174,7 +174,6 @@ wxMenuItem* append_menu_check_item(wxMenu* menu, int id, const wxString& string,
 
 const unsigned int wxCheckListBoxComboPopup::DefaultWidth = 200;
 const unsigned int wxCheckListBoxComboPopup::DefaultHeight = 200;
-const unsigned int wxCheckListBoxComboPopup::DefaultItemHeight = 18;
 
 bool wxCheckListBoxComboPopup::Create(wxWindow* parent)
 {
@@ -202,20 +201,17 @@ wxSize wxCheckListBoxComboPopup::GetAdjustedSize(int minWidth, int prefHeight, i
     // and set height dinamically in dependence of items count
 
     wxComboCtrl* cmb = GetComboCtrl();
-    if (cmb != nullptr)
-    {
+    if (cmb != nullptr) {
         wxSize size = GetComboCtrl()->GetSize();
 
         unsigned int count = GetCount();
-        if (count > 0)
-        {
+        if (count > 0) {
             int max_width = size.x;
-            for (unsigned int i = 0; i < count; ++i)
-            {
+            for (unsigned int i = 0; i < count; ++i) {
                 max_width = std::max(max_width, 60 + GetTextExtent(GetString(i)).x);
             }
             size.SetWidth(max_width);
-            size.SetHeight(4 + count * (2 + GetTextExtent(GetString(0)).y));
+            size.SetHeight(count * cmb->GetCharHeight());
         }
         else
             size.SetHeight(DefaultHeight);
