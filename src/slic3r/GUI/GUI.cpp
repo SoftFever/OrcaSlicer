@@ -237,7 +237,7 @@ void show_error_id(int id, const std::string& message)
 
 void show_info(wxWindow* parent, const wxString& message, const wxString& title)
 {
-	wxMessageDialog msg_wingow(parent, message, wxString(SLIC3R_APP_NAME " - ") + (title.empty() ? _(L("Notice")) : title), wxOK | wxICON_INFORMATION);
+	wxMessageDialog msg_wingow(parent, message, wxString(SLIC3R_APP_NAME " - ") + (title.empty() ? _L("Notice") : title), wxOK | wxICON_INFORMATION);
 	msg_wingow.ShowModal();
 }
 
@@ -249,7 +249,7 @@ void show_info(wxWindow* parent, const char* message, const char* title)
 
 void warning_catcher(wxWindow* parent, const wxString& message)
 {
-	wxMessageDialog msg(parent, message, _(L("Warning")), wxOK | wxICON_WARNING);
+	wxMessageDialog msg(parent, message, _L("Warning"), wxOK | wxICON_WARNING);
 	msg.ShowModal();
 }
 
@@ -259,21 +259,21 @@ void create_combochecklist(wxComboCtrl* comboCtrl, const std::string& text, cons
         return;
 
     wxCheckListBoxComboPopup* popup = new wxCheckListBoxComboPopup;
-    if (popup != nullptr)
-    {
-        // FIXME If the following line is removed, the combo box popup list will not react to mouse clicks.
+    if (popup != nullptr) {
+		// FIXME If the following line is removed, the combo box popup list will not react to mouse clicks.
         //  On the other side, with this line the combo box popup cannot be closed by clicking on the combo button on Windows 10.
         comboCtrl->UseAltPopupWindow();
 
 		int max_width = 0;
 
-        comboCtrl->EnablePopupAnimation(false);
-        comboCtrl->SetPopupControl(popup);
+		// the following line messes up the popup size the first time it is shown on wxWidgets 3.1.3
+//		comboCtrl->EnablePopupAnimation(false);
+		comboCtrl->SetPopupControl(popup);
 		wxString title = from_u8(text);
 		max_width = std::max(max_width, 60 + comboCtrl->GetTextExtent(title).x);
 		popup->SetStringValue(title);
 		popup->Bind(wxEVT_CHECKLISTBOX, [popup](wxCommandEvent& evt) { popup->OnCheckListBox(evt); });
-        popup->Bind(wxEVT_LISTBOX, [popup](wxCommandEvent& evt) { popup->OnListBoxSelection(evt); });
+		popup->Bind(wxEVT_LISTBOX, [popup](wxCommandEvent& evt) { popup->OnListBoxSelection(evt); });
         popup->Bind(wxEVT_KEY_DOWN, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
         popup->Bind(wxEVT_KEY_UP, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
 
@@ -283,8 +283,7 @@ void create_combochecklist(wxComboCtrl* comboCtrl, const std::string& text, cons
 		// each item must be composed by 2 parts
 		assert(items_str.size() %2 == 0);
 
-		for (size_t i = 0; i < items_str.size(); i += 2)
-		{
+		for (size_t i = 0; i < items_str.size(); i += 2) {
 			wxString label = from_u8(items_str[i]);
 			max_width = std::max(max_width, 60 + popup->GetTextExtent(label).x);
 			popup->Append(label);
@@ -300,10 +299,8 @@ unsigned int combochecklist_get_flags(wxComboCtrl* comboCtrl)
 	unsigned int flags = 0;
 
 	wxCheckListBoxComboPopup* popup = wxDynamicCast(comboCtrl->GetPopupControl(), wxCheckListBoxComboPopup);
-	if (popup != nullptr)
-	{
-		for (unsigned int i = 0; i < popup->GetCount(); ++i)
-		{
+	if (popup != nullptr) {
+		for (unsigned int i = 0; i < popup->GetCount(); ++i) {
 			if (popup->IsChecked(i))
 				flags |= 1 << i;
 		}
@@ -315,10 +312,8 @@ unsigned int combochecklist_get_flags(wxComboCtrl* comboCtrl)
 void combochecklist_set_flags(wxComboCtrl* comboCtrl, unsigned int flags)
 {
 	wxCheckListBoxComboPopup* popup = wxDynamicCast(comboCtrl->GetPopupControl(), wxCheckListBoxComboPopup);
-	if (popup != nullptr)
-	{
-		for (unsigned int i = 0; i < popup->GetCount(); ++i)
-		{
+	if (popup != nullptr) {
+		for (unsigned int i = 0; i < popup->GetCount(); ++i) {
 			popup->Check(i, (flags & (1 << i)) != 0);
 		}
 	}
