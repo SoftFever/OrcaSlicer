@@ -48,6 +48,9 @@ public:
     // Remove all unnecessary data.
     void garbage_collect();
 
+    // Store the division trees in compact form.
+    std::map<int, int64_t> serialize() const;
+
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
     void render_debug(ImGuiWrapper* imgui);
     bool m_show_triangles{true};
@@ -86,8 +89,7 @@ private:
         // Get info on how it's split.
         bool is_split() const { return number_of_split_sides() != 0; }
         int number_of_split_sides() const { return number_of_splits; }
-        int side_to_keep() const  { assert(number_of_split_sides() == 2); return special_side_idx; }
-        int side_to_split() const { assert(number_of_split_sides() == 1); return special_side_idx; }
+        int special_side() const  { assert(is_split()); return special_side_idx; }
         bool was_split_before() const { return old_number_of_splits != 0; }
         void forget_history() { old_number_of_splits = 0; }
 
@@ -114,6 +116,10 @@ private:
     std::vector<Vertex> m_vertices;
     std::vector<Triangle> m_triangles;
     const TriangleMesh* m_mesh;
+
+    GLIndexedVertexArray m_iva_enforcers;
+    GLIndexedVertexArray m_iva_blockers;
+    std::array<GLIndexedVertexArray, 3> m_varrays;
 
     // Number of invalid triangles (to trigger garbage collection).
     int m_invalid_triangles;
@@ -147,6 +153,7 @@ private:
     bool is_pointer_in_triangle(int facet_idx) const;
     bool is_edge_inside_cursor(int facet_idx) const;
     void push_triangle(int a, int b, int c);
+    void perform_split(int facet_idx, FacetSupportType old_state);
 };
 
 

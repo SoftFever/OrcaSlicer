@@ -972,63 +972,12 @@ void TriangleSelector::split_triangle(int facet_idx)
         return;
     }
 
-    // indices of triangle vertices
-    std::vector<int> verts_idxs;
-    int idx = sides_to_split.size() == 2 ? side_to_keep : sides_to_split[0];
-    for (int j=0; j<3; ++j) {
-        verts_idxs.push_back(facet[idx++]);
-        if (idx == 3)
-            idx = 0;
-    }
-
-
-   if (sides_to_split.size() == 1) {
-        m_vertices.emplace_back((m_vertices[verts_idxs[1]].v + m_vertices[verts_idxs[2]].v)/2.);
-        verts_idxs.insert(verts_idxs.begin()+2, m_vertices.size() - 1);
-
-        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[2]);
-        push_triangle(verts_idxs[2], verts_idxs[3], verts_idxs[0]);
-    }
-
-    if (sides_to_split.size() == 2) {
-        m_vertices.emplace_back((m_vertices[verts_idxs[0]].v + m_vertices[verts_idxs[1]].v)/2.);
-        verts_idxs.insert(verts_idxs.begin()+1, m_vertices.size() - 1);
-
-        m_vertices.emplace_back((m_vertices[verts_idxs[0]].v + m_vertices[verts_idxs[3]].v)/2.);
-        verts_idxs.insert(verts_idxs.begin()+4, m_vertices.size() - 1);
-
-        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[4]);
-        push_triangle(verts_idxs[1], verts_idxs[2], verts_idxs[4]);
-        push_triangle(verts_idxs[2], verts_idxs[3], verts_idxs[4]);
-    }
-
-    if (sides_to_split.size() == 3) {
-        m_vertices.emplace_back((m_vertices[verts_idxs[0]].v + m_vertices[verts_idxs[1]].v)/2.);
-        verts_idxs.insert(verts_idxs.begin()+1, m_vertices.size() - 1);
-        m_vertices.emplace_back((m_vertices[verts_idxs[2]].v + m_vertices[verts_idxs[3]].v)/2.);
-        verts_idxs.insert(verts_idxs.begin()+3, m_vertices.size() - 1);
-        m_vertices.emplace_back((m_vertices[verts_idxs[4]].v + m_vertices[verts_idxs[0]].v)/2.);
-        verts_idxs.insert(verts_idxs.begin()+5, m_vertices.size() - 1);
-
-        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[5]);
-        push_triangle(verts_idxs[1], verts_idxs[2], verts_idxs[3]);
-        push_triangle(verts_idxs[3], verts_idxs[4], verts_idxs[5]);
-        push_triangle(verts_idxs[1], verts_idxs[3], verts_idxs[5]);
-    }
-
-    tr = &m_triangles[facet_idx]; // may have been invalidated
-
-    // Save how the triangle was split. Second argument makes sense only for one
+    // Save how the triangle will be split. Second argument makes sense only for one
     // or two split sides, otherwise the value is ignored.
     tr->set_division(sides_to_split.size(),
         sides_to_split.size() == 2 ? side_to_keep : sides_to_split[0]);
 
-    // And save the children. All children should start in the same state as the triangle we just split.
-    assert(! sides_to_split.empty() && int(sides_to_split.size()) <= 3);
-    for (int i=0; i<=int(sides_to_split.size()); ++i) {
-        tr->children[i] = m_triangles.size()-1-i;
-        m_triangles[tr->children[i]].set_state(old_type);
-    }
+    perform_split(facet_idx, old_type);
 }
 
 
@@ -1253,22 +1202,45 @@ void TriangleSelector::render(ImGuiWrapper* imgui)
     ::glScalef(1.005f, 1.005f, 1.005f);
 
 
-    ::glBegin( GL_TRIANGLES);
+    int enf_cnt = 0;
+    int blc_cnt = 0;
+
     for (const Triangle& tr : m_triangles) {
         if (! tr.valid || tr.is_split() || tr.get_state() == FacetSupportType::NONE)
             continue;
 
-        if (tr.get_state() == FacetSupportType::ENFORCER)
-            ::glColor4f(0.f, 0.f, 1.f, 0.2f);
-        else
-            ::glColor4f(1.f, 0.f, 0.f, 0.2f);
+        GLIndexedVertexArray& va = tr.get_state() == FacetSupportType::ENFORCER
+                                   ? m_iva_enforcers
+                                   : m_iva_blockers;
+        int& cnt = tr.get_state() == FacetSupportType::ENFORCER
+                ? enf_cnt
+                : blc_cnt;
 
         for (int i=0; i<3; ++i)
-            ::glVertex3f(m_vertices[tr.verts_idxs[i]].v[0],
-                         m_vertices[tr.verts_idxs[i]].v[1],
-                         m_vertices[tr.verts_idxs[i]].v[2]);
+            va.push_geometry(double(m_vertices[tr.verts_idxs[i]].v[0]),
+                             double(m_vertices[tr.verts_idxs[i]].v[1]),
+                             double(m_vertices[tr.verts_idxs[i]].v[2]),
+                             0., 0., 1.);
+        va.push_triangle(cnt,
+                         cnt+1,
+                         cnt+2);
+        cnt += 3;
     }
-    ::glEnd();
+
+    m_iva_enforcers.finalize_geometry(true);
+    m_iva_blockers.finalize_geometry(true);
+
+    if (m_iva_enforcers.has_VBOs()) {
+        ::glColor4f(0.f, 0.f, 1.f, 0.2f);
+        m_iva_enforcers.render();
+    }
+    m_iva_enforcers.release_geometry();
+
+    if (m_iva_blockers.has_VBOs()) {
+        ::glColor4f(1.f, 0.f, 0.f, 0.2f);
+        m_iva_blockers.render();
+    }
+    m_iva_blockers.release_geometry();
 
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
     if (imgui)
@@ -1304,6 +1276,110 @@ void TriangleSelector::push_triangle(int a, int b, int c)
 }
 
 
+void TriangleSelector::perform_split(int facet_idx, FacetSupportType old_state)
+{
+    Triangle* tr = &m_triangles[facet_idx];
+
+    assert(tr->is_split());
+
+    // Read info about how to split this triangle.
+    int sides_to_split = tr->number_of_split_sides();
+
+    // indices of triangle vertices
+    std::vector<int> verts_idxs;
+    int idx = tr->special_side();
+    for (int j=0; j<3; ++j) {
+        verts_idxs.push_back(tr->verts_idxs[idx++]);
+        if (idx == 3)
+            idx = 0;
+    }
+
+    if (sides_to_split == 1) {
+        m_vertices.emplace_back((m_vertices[verts_idxs[1]].v + m_vertices[verts_idxs[2]].v)/2.);
+        verts_idxs.insert(verts_idxs.begin()+2, m_vertices.size() - 1);
+
+        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[2]);
+        push_triangle(verts_idxs[2], verts_idxs[3], verts_idxs[0]);
+    }
+
+    if (sides_to_split == 2) {
+        m_vertices.emplace_back((m_vertices[verts_idxs[0]].v + m_vertices[verts_idxs[1]].v)/2.);
+        verts_idxs.insert(verts_idxs.begin()+1, m_vertices.size() - 1);
+
+        m_vertices.emplace_back((m_vertices[verts_idxs[0]].v + m_vertices[verts_idxs[3]].v)/2.);
+        verts_idxs.insert(verts_idxs.begin()+4, m_vertices.size() - 1);
+
+        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[4]);
+        push_triangle(verts_idxs[1], verts_idxs[2], verts_idxs[4]);
+        push_triangle(verts_idxs[2], verts_idxs[3], verts_idxs[4]);
+    }
+
+    if (sides_to_split == 3) {
+        m_vertices.emplace_back((m_vertices[verts_idxs[0]].v + m_vertices[verts_idxs[1]].v)/2.);
+        verts_idxs.insert(verts_idxs.begin()+1, m_vertices.size() - 1);
+        m_vertices.emplace_back((m_vertices[verts_idxs[2]].v + m_vertices[verts_idxs[3]].v)/2.);
+        verts_idxs.insert(verts_idxs.begin()+3, m_vertices.size() - 1);
+        m_vertices.emplace_back((m_vertices[verts_idxs[4]].v + m_vertices[verts_idxs[0]].v)/2.);
+        verts_idxs.insert(verts_idxs.begin()+5, m_vertices.size() - 1);
+
+        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[5]);
+        push_triangle(verts_idxs[1], verts_idxs[2], verts_idxs[3]);
+        push_triangle(verts_idxs[3], verts_idxs[4], verts_idxs[5]);
+        push_triangle(verts_idxs[1], verts_idxs[3], verts_idxs[5]);
+    }
+
+    tr = &m_triangles[facet_idx]; // may have been invalidated
+
+    // And save the children. All children should start in the same state as the triangle we just split.
+    assert(sides_to_split <= 3);
+    for (int i=0; i<=sides_to_split; ++i) {
+        tr->children[i] = m_triangles.size()-1-i;
+        m_triangles[tr->children[i]].set_state(old_state);
+    }
+}
+
+
+std::map<int, int64_t> TriangleSelector::serialize() const
+{
+    std::map<int, int64_t> out;
+    for (int i=0; i<m_orig_size_indices; ++i) {
+        const Triangle& tr = m_triangles[i];
+        FacetSupportType state = tr.get_state();
+        if (! tr.is_split() && state == FacetSupportType::NONE)
+            continue;
+
+        int64_t data = 0;
+        int8_t stored_triangles = 0;
+
+        std::function<void(int)> serialize_recursive;
+        serialize_recursive = [this, &stored_triangles, &data, &serialize_recursive](int facet_idx) {
+            const Triangle& tr = m_triangles[facet_idx];
+            int split_sides = tr.number_of_split_sides();
+            assert( split_sides > 0 && split_sides <= 3);
+            data |= (split_sides << (stored_triangles * 4));
+
+            if (tr.is_split()) {
+                assert(split_sides > 0);
+                assert(tr.special_side() >= 0 && tr.special_side() <= 3);
+                data |= (tr.special_side() << (stored_triangles * 4 + 2));
+                ++stored_triangles;
+                for (int child_idx=0; child_idx<=split_sides; ++child_idx)
+                    serialize_recursive(tr.children[child_idx]);
+            } else {
+                assert(int8_t(tr.get_state()) <= 3);
+                data |= (int8_t(tr.get_state()) << (stored_triangles * 4 + 2));
+                ++stored_triangles;
+            }
+        };
+
+        serialize_recursive(i);
+        out[i] = data;
+    }
+
+    return out;
+}
+
+
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
 void TriangleSelector::render_debug(ImGuiWrapper* imgui)
 {
@@ -1323,33 +1399,74 @@ void TriangleSelector::render_debug(ImGuiWrapper* imgui)
     if (imgui->button("Force garbage collection"))
         garbage_collect();
 
+    if (imgui->button("Serialize")) {
+        auto map = serialize();
+        for (auto& [idx, data] : map)
+            std::cout << idx << "\t" << data << std::endl;
+    }
+
     imgui->end();
 
-    if (m_show_triangles) {
-        ::glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    if (! m_show_triangles)
+        return;
 
-        ::glBegin( GL_TRIANGLES);
-        for (int tr_id=0; tr_id<int(m_triangles.size()); ++tr_id) {
-            const Triangle& tr = m_triangles[tr_id];
-            if (! m_show_invalid && ! tr.valid)
-                continue;
+    enum vtype {
+        ORIGINAL = 0,
+        SPLIT,
+        INVALID
+    };
 
-            if (tr.valid)
-                ::glColor3f(1.f, 0.f, 0.f);
-            else
-                ::glColor3f(1.f, 1.f, 0.f);
+    for (auto& va : m_varrays)
+        va.release_geometry();
 
-            if (tr_id < m_orig_size_indices)
-                ::glColor3f(0.f, 0.f, 1.f);
+    std::array<int, 3> cnts;
 
-            for (int i=0; i<3; ++i)
-                ::glVertex3f(m_vertices[tr.verts_idxs[i]].v[0],
-                             m_vertices[tr.verts_idxs[i]].v[1],
-                             m_vertices[tr.verts_idxs[i]].v[2]);
+    ::glScalef(1.01f, 1.01f, 1.01f);
+
+    for (int tr_id=0; tr_id<int(m_triangles.size()); ++tr_id) {
+        const Triangle& tr = m_triangles[tr_id];
+        GLIndexedVertexArray* va = nullptr;
+        int* cnt = nullptr;
+        if (tr_id < m_orig_size_indices) {
+            va = &m_varrays[ORIGINAL];
+            cnt = &cnts[ORIGINAL];
         }
-        ::glEnd();
-        ::glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+        else if (tr.valid) {
+            va = &m_varrays[SPLIT];
+            cnt = &cnts[SPLIT];
+        }
+        else {
+            if (! m_show_invalid)
+                continue;
+            va = &m_varrays[INVALID];
+            cnt = &cnts[INVALID];
+        }
+
+        for (int i=0; i<3; ++i)
+            va->push_geometry(double(m_vertices[tr.verts_idxs[i]].v[0]),
+                              double(m_vertices[tr.verts_idxs[i]].v[1]),
+                              double(m_vertices[tr.verts_idxs[i]].v[2]),
+                              0., 0., 1.);
+        va->push_triangle(*cnt,
+                          *cnt+1,
+                          *cnt+2);
+        *cnt += 3;
     }
+
+    ::glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    for (vtype i : {ORIGINAL, SPLIT, INVALID}) {
+        GLIndexedVertexArray& va = m_varrays[i];
+        va.finalize_geometry(true);
+        if (va.has_VBOs()) {
+            switch (i) {
+            case ORIGINAL : ::glColor3f(0.f, 0.f, 1.f); break;
+            case SPLIT    : ::glColor3f(1.f, 0.f, 0.f); break;
+            case INVALID  : ::glColor3f(1.f, 1.f, 0.f); break;
+            }
+            va.render();
+        }
+    }
+    ::glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 }
 #endif
 
