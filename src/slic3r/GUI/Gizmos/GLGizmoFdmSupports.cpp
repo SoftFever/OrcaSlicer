@@ -1184,15 +1184,26 @@ void TriangleSelector::garbage_collect()
 }
 
 TriangleSelector::TriangleSelector(const TriangleMesh& mesh)
+    : m_mesh{&mesh}
 {
-    for (const stl_vertex& vert : mesh.its.vertices)
+    reset();
+
+}
+
+
+void TriangleSelector::reset()
+{
+    if (! m_orig_size_indices != 0) // unless this is run from constructor
+        garbage_collect();
+    m_vertices.clear();
+    m_triangles.clear();
+    for (const stl_vertex& vert : m_mesh->its.vertices)
         m_vertices.emplace_back(vert);
-    for (const stl_triangle_vertex_indices& ind : mesh.its.indices)
+    for (const stl_triangle_vertex_indices& ind : m_mesh->its.indices)
         push_triangle(ind[0], ind[1], ind[2]);
     m_orig_size_vertices = m_vertices.size();
     m_orig_size_indices = m_triangles.size();
     m_invalid_triangles = 0;
-    m_mesh = &mesh;
 }
 
 void TriangleSelector::render(ImGuiWrapper* imgui)
@@ -1339,35 +1350,56 @@ void TriangleSelector::perform_split(int facet_idx, FacetSupportType old_state)
 }
 
 
-std::map<int, int64_t> TriangleSelector::serialize() const
+std::map<int, std::vector<bool>> TriangleSelector::serialize() const
 {
-    std::map<int, int64_t> out;
+    // Each original triangle of the mesh is assigned a number encoding its state
+    // or how it is split. Each triangle is encoded by 4 bits (xxyy):
+    // leaf triangle: xx = FacetSupportType, yy = 0
+    // non-leaf:      xx = special side, yy = number of split sides
+    // These are bitwise appended and formed into one 64-bit integer.
+
+    // The function returns a map from original triangle indices to
+    // stream of bits encoding state and offsprings.
+
+    std::map<int, std::vector<bool>> out;
     for (int i=0; i<m_orig_size_indices; ++i) {
         const Triangle& tr = m_triangles[i];
-        FacetSupportType state = tr.get_state();
-        if (! tr.is_split() && state == FacetSupportType::NONE)
-            continue;
 
-        int64_t data = 0;
-        int8_t stored_triangles = 0;
+        if (! tr.is_split() && tr.get_state() == FacetSupportType::NONE)
+            continue; // no need to save anything, unsplit and unselected is default
+
+        std::vector<bool> data; // complete encoding of this mesh triangle
+        int stored_triangles = 0; // how many have been already encoded
 
         std::function<void(int)> serialize_recursive;
-        serialize_recursive = [this, &stored_triangles, &data, &serialize_recursive](int facet_idx) {
+        serialize_recursive = [this, &serialize_recursive, &stored_triangles, &data](int facet_idx) {
             const Triangle& tr = m_triangles[facet_idx];
+
+            // Always save number of split sides. It is zero for unsplit triangles.
             int split_sides = tr.number_of_split_sides();
-            assert( split_sides > 0 && split_sides <= 3);
-            data |= (split_sides << (stored_triangles * 4));
+            assert(split_sides >= 0 && split_sides <= 3);
+
+            //data |= (split_sides << (stored_triangles * 4));
+            data.push_back(split_sides & 0b01);
+            data.push_back(split_sides & 0b10);
 
             if (tr.is_split()) {
+                // If this triangle is split, save which side is split (in case
+                // of one split) or kept (in case of two splits). The value will
+                // be ignored for 3-side split.
                 assert(split_sides > 0);
                 assert(tr.special_side() >= 0 && tr.special_side() <= 3);
-                data |= (tr.special_side() << (stored_triangles * 4 + 2));
+                data.push_back(tr.special_side() & 0b01);
+                data.push_back(tr.special_side() & 0b10);
                 ++stored_triangles;
+                // Now save all children.
                 for (int child_idx=0; child_idx<=split_sides; ++child_idx)
                     serialize_recursive(tr.children[child_idx]);
             } else {
-                assert(int8_t(tr.get_state()) <= 3);
-                data |= (int8_t(tr.get_state()) << (stored_triangles * 4 + 2));
+                // In case this is leaf, we better save information about its state.
+                assert(int(tr.get_state()) <= 3);
+                data.push_back(int(tr.get_state()) & 0b01);
+                data.push_back(int(tr.get_state()) & 0b10);
                 ++stored_triangles;
             }
         };
@@ -1377,6 +1409,90 @@ std::map<int, int64_t> TriangleSelector::serialize() const
     }
 
     return out;
+}
+
+void TriangleSelector::deserialize(const std::map<int, std::vector<bool>> data)
+{
+    reset(); // dump any current state
+    for (const auto& [triangle_id, code] : data) {
+        assert(triangle_id < int(m_triangles.size()));
+        int processed_triangles = 0;
+        struct ProcessingInfo {
+            int facet_id = 0;
+            int processed_children = 0;
+            int total_children = 0;
+        };
+
+        // Vector to store all parents that have offsprings.
+        std::vector<ProcessingInfo> parents;
+
+        while (true) {
+            // Read next triangle info.
+            int next_code = 0;
+            for (int i=3; i>=0; --i) {
+                next_code = next_code << 1;
+                next_code |= int(code[4 * processed_triangles + i]);
+            }
+            ++processed_triangles;
+
+            int num_of_split_sides = (next_code & 0b11);
+            int num_of_children = num_of_split_sides != 0 ? num_of_split_sides + 1 : 0;
+            bool is_split = num_of_children != 0;
+            FacetSupportType state = FacetSupportType(next_code >> 2);
+            int special_side = (next_code >> 2);
+
+            // Take care of the first iteration separately, so handling of the others is simpler.
+            if (parents.empty()) {
+                if (! is_split) {
+                    // root is not split. just set the state and that's it.
+                    m_triangles[triangle_id].set_state(state);
+                    break;
+                } else {
+                    // root is split, add it into list of parents and split it.
+                    // then go to the next.
+                    parents.push_back({triangle_id, 0, num_of_children});
+                    m_triangles[triangle_id].set_division(num_of_children-1, special_side);
+                    perform_split(triangle_id, FacetSupportType::NONE);
+                    continue;
+                }
+            }
+
+            // This is not the first iteration. This triangle is a child of last seen parent.
+            assert(! parents.empty());
+            assert(parents.back().processed_children < parents.back().total_children);
+
+            if (is_split) {
+                // split the triangle and save it as parent of the next ones.
+                const ProcessingInfo& last = parents.back();
+                int this_idx = m_triangles[last.facet_id].children[last.processed_children];
+                m_triangles[this_idx].set_division(num_of_children-1, special_side);
+                perform_split(this_idx, FacetSupportType::NONE);
+                parents.push_back({this_idx, 0, num_of_children});
+            } else {
+                // this triangle belongs to last split one
+                m_triangles[m_triangles[parents.back().facet_id].children[parents.back().processed_children]].set_state(state);
+                ++parents.back().processed_children;
+            }
+
+
+            // If all children of the past parent triangle are claimed, move to grandparent.
+            while (parents.back().processed_children == parents.back().total_children) {
+                parents.pop_back();
+
+                if (parents.empty())
+                    break;
+
+                // And increment the grandparent children counter, because
+                // we have just finished that branch and got back here.
+                ++parents.back().processed_children;
+            }
+
+            // In case we popped back the root, we should be done.
+            if (parents.empty())
+                break;
+        }
+
+    }
 }
 
 
@@ -1399,10 +1515,9 @@ void TriangleSelector::render_debug(ImGuiWrapper* imgui)
     if (imgui->button("Force garbage collection"))
         garbage_collect();
 
-    if (imgui->button("Serialize")) {
+    if (imgui->button("Serialize - deserialize")) {
         auto map = serialize();
-        for (auto& [idx, data] : map)
-            std::cout << idx << "\t" << data << std::endl;
+        deserialize(map);
     }
 
     imgui->end();

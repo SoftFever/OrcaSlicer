@@ -45,11 +45,18 @@ public:
     // to be already set.
     void render(ImGuiWrapper* imgui = nullptr);
 
+    // Clear everything and make the tree empty.
+    void reset();
+
     // Remove all unnecessary data.
     void garbage_collect();
 
-    // Store the division trees in compact form.
-    std::map<int, int64_t> serialize() const;
+    // Store the division trees in compact form (a long stream of
+    // bits for each triangle of the original mesh).
+    std::map<int, std::vector<bool>> serialize() const;
+
+    // Load serialized data. Assumes that correct mesh is loaded.
+    void deserialize(const std::map<int, std::vector<bool>> data);
 
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
     void render_debug(ImGuiWrapper* imgui);
