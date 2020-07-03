@@ -108,6 +108,7 @@ class GCodeViewer
     struct RenderPath
     {
         Color color;
+        size_t path_id;
         std::vector<unsigned int> sizes;
         std::vector<size_t> offsets; // use size_t because we need the pointer's size (used in the call glMultiDrawElements())
     };
@@ -201,7 +202,6 @@ class GCodeViewer
         // memory
         long long results_size{ 0 };
         long long vertices_gpu_size{ 0 };
-        long long indices_size{ 0 };
         long long indices_gpu_size{ 0 };
         long long paths_size{ 0 };
         long long render_paths_size{ 0 };
@@ -231,7 +231,6 @@ class GCodeViewer
         void reset_sizes() {
             results_size = 0;
             vertices_gpu_size = 0;
-            indices_size = 0;
             indices_gpu_size = 0;
             paths_size = 0;
             render_paths_size = 0;
@@ -396,6 +395,8 @@ public:
 
     bool is_legend_enabled() const { return m_legend_enabled; }
     void enable_legend(bool enable) { m_legend_enabled = enable; }
+
+    void export_toolpaths_to_obj(const char* filename) const;
 
 private:
     void init_shaders();

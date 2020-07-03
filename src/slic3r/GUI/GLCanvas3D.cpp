@@ -4349,12 +4349,20 @@ void GLCanvas3D::update_tooltip_for_settings_item_in_main_toolbar()
 
 bool GLCanvas3D::has_toolpaths_to_export() const
 {
+#if ENABLE_GCODE_VIEWER
+    return m_gcode_viewer.has_data();
+#else
     return m_volumes.has_toolpaths_to_export();
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void GLCanvas3D::export_toolpaths_to_obj(const char* filename) const
 {
+#if ENABLE_GCODE_VIEWER
+    m_gcode_viewer.export_toolpaths_to_obj(filename);
+#else
     m_volumes.export_toolpaths_to_obj(filename);
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void GLCanvas3D::mouse_up_cleanup()

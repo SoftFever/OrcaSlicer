@@ -1017,6 +1017,7 @@ bool GLVolumeCollection::has_toolpaths_to_export() const
     return false;
 }
 
+#if !ENABLE_GCODE_VIEWER
 void GLVolumeCollection::export_toolpaths_to_obj(const char* filename) const
 {
     if (filename == nullptr)
@@ -1298,6 +1299,7 @@ void GLVolumeCollection::export_toolpaths_to_obj(const char* filename) const
 
     fclose(fp);
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 // caller is responsible for supplying NO lines with zero length
 static void thick_lines_to_indexed_vertex_array(

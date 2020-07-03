@@ -597,8 +597,10 @@ public:
     std::string         log_memory_info() const;
 
     bool                has_toolpaths_to_export() const;
+#if !ENABLE_GCODE_VIEWER
     // Export the geometry of the GLVolumes toolpaths of this collection into the file with the given path, in obj format 
     void                export_toolpaths_to_obj(const char* filename) const;
+#endif // !ENABLE_GCODE_VIEWER
 
 private:
     GLVolumeCollection(const GLVolumeCollection &other);

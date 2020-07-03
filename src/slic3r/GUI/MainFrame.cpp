@@ -1373,8 +1373,12 @@ void MainFrame::init_gcodeviewer_menubar()
     wxMenu* fileMenu = new wxMenu;
     {
         append_menu_item(fileMenu, wxID_ANY, _L("&Open G-code") + dots + "\tCtrl+O", _L("Open a G-code file"),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->load_gcode(); }, "open", nullptr,
+            [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->load_gcode(); }, "open", nullptr,
             [this]() {return m_plater != nullptr; }, this);
+        fileMenu->AppendSeparator();
+        append_menu_item(fileMenu, wxID_ANY, _L("Export &toolpaths as OBJ") + dots, _L("Export toolpaths as OBJ"),
+            [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->export_toolpaths_to_obj(); }, "export_plater", nullptr,
+            [this]() {return can_export_toolpaths(); }, this);
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_ANY, _L("Exit &G-code preview"), _L("Switch to editor mode"),
             [this](wxCommandEvent&) { set_mode(EMode::Editor); });
