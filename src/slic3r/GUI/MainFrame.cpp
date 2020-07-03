@@ -389,7 +389,7 @@ void MainFrame::update_layout()
 #if ENABLE_GCODE_VIEWER_AS_STATE
     case ESettingsLayout::GCodeViewer:
     {
-        GetSizer()->Add(m_plater, 1, wxEXPAND);
+        m_main_sizer->Add(m_plater, 1, wxEXPAND);
         m_plater->Show();
         break;
     }
