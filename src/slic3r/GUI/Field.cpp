@@ -129,7 +129,7 @@ void Field::PostInitialize()
 
 // Values of width to alignments of fields
 int Field::def_width()			{ return wxOSX ? 8 : 7; }
-int Field::def_width_wider()	{ return 14; }
+int Field::def_width_wider()	{ return 16; }
 int Field::def_width_thinner()	{ return 4; }
 
 void Field::on_kill_focus()
