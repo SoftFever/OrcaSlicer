@@ -219,8 +219,6 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     if (!m_enabled)
         return;
 
-    static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
-
     const Size& cnv_size = canvas.get_canvas_size();
     float canvas_w = (float)cnv_size.get_width();
     float canvas_h = (float)cnv_size.get_height();
@@ -228,50 +226,50 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     imgui.set_next_window_pos(canvas_w - imgui.get_style_scaling() * THICKNESS_BAR_WIDTH, canvas_h, ImGuiCond_Always, 1.0f, 1.0f);
 
-    imgui.begin(_(L("Variable layer height")), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+    imgui.begin(_L("Variable layer height"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
-    imgui.text(_(L("Left mouse button:")));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
+    imgui.text(_L("Left mouse button:"));
     ImGui::PopStyleColor();
     ImGui::SameLine();
-    imgui.text(_(L("Add detail")));
+    imgui.text(_L("Add detail"));
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
-    imgui.text(_(L("Right mouse button:")));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
+    imgui.text(_L("Right mouse button:"));
     ImGui::PopStyleColor();
     ImGui::SameLine();
-    imgui.text(_(L("Remove detail")));
+    imgui.text(_L("Remove detail"));
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
-    imgui.text(_(L("Shift + Left mouse button:")));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
+    imgui.text(_L("Shift + Left mouse button:"));
     ImGui::PopStyleColor();
     ImGui::SameLine();
-    imgui.text(_(L("Reset to base")));
+    imgui.text(_L("Reset to base"));
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
-    imgui.text(_(L("Shift + Right mouse button:")));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
+    imgui.text(_L("Shift + Right mouse button:"));
     ImGui::PopStyleColor();
     ImGui::SameLine();
-    imgui.text(_(L("Smoothing")));
+    imgui.text(_L("Smoothing"));
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
-    imgui.text(_(L("Mouse wheel:")));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
+    imgui.text(_L("Mouse wheel:"));
     ImGui::PopStyleColor();
     ImGui::SameLine();
-    imgui.text(_(L("Increase/decrease edit area")));
+    imgui.text(_L("Increase/decrease edit area"));
     
     ImGui::Separator();
-    if (imgui.button(_(L("Adaptive"))))
+    if (imgui.button(_L("Adaptive")))
         wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), Event<float>(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, m_adaptive_quality));
 
     ImGui::SameLine();
     float text_align = ImGui::GetCursorPosX();
     ImGui::AlignTextToFramePadding();
-    imgui.text(_(L("Quality / Speed")));
+    imgui.text(_L("Quality / Speed"));
     if (ImGui::IsItemHovered())
     {
         ImGui::BeginTooltip();
-        ImGui::TextUnformatted(_(L("Higher print quality versus higher print speed.")).ToUTF8());
+        ImGui::TextUnformatted(_L("Higher print quality versus higher print speed.").ToUTF8());
         ImGui::EndTooltip();
     }
 
@@ -282,13 +280,13 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     ImGui::SliderFloat("", &m_adaptive_quality, 0.0f, 1.f, "%.2f");
 
     ImGui::Separator();
-    if (imgui.button(_(L("Smooth"))))
+    if (imgui.button(_L("Smooth")))
         wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), HeightProfileSmoothEvent(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, m_smooth_params));
 
     ImGui::SameLine();
     ImGui::SetCursorPosX(text_align);
     ImGui::AlignTextToFramePadding();
-    imgui.text(_(L("Radius")));
+    imgui.text(_L("Radius"));
     ImGui::SameLine();
     ImGui::SetCursorPosX(widget_align);
     ImGui::PushItemWidth(imgui.get_style_scaling() * 120.0f);
@@ -298,7 +296,7 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
 
     ImGui::SetCursorPosX(text_align);
     ImGui::AlignTextToFramePadding();
-    imgui.text(_(L("Keep min")));
+    imgui.text(_L("Keep min"));
     ImGui::SameLine();
     if (ImGui::GetCursorPosX() < widget_align)  // because of line lenght after localization
         ImGui::SetCursorPosX(widget_align);
@@ -307,7 +305,7 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     imgui.checkbox("##2", m_smooth_params.keep_min);
 
     ImGui::Separator();
-    if (imgui.button(_(L("Reset"))))
+    if (imgui.button(_L("Reset")))
         wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), SimpleEvent(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE));
 
     imgui.end();
@@ -3078,8 +3076,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #if ENABLE_GCODE_VIEWER
         case 'L':
         case 'l': {
-                    if (!m_main_toolbar.is_enabled())
-                    {
+                    if (!m_main_toolbar.is_enabled()) {
                         m_gcode_viewer.enable_legend(!m_gcode_viewer.is_legend_enabled());
                         m_dirty = true;
                         wxGetApp().plater()->update_preview_bottom_toolbar();
@@ -3090,13 +3087,24 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'O':
         case 'o': { _update_camera_zoom(-1.0); break; }
 #if ENABLE_RENDER_PICKING_PASS
-        case 'T':
-        case 't': {
+        case 'P':
+        case 'p': {
             m_show_picking_texture = !m_show_picking_texture;
-            m_dirty = true; 
+            m_dirty = true;
             break;
         }
 #endif // ENABLE_RENDER_PICKING_PASS
+#if ENABLE_GCODE_VIEWER
+        case 'T':
+        case 't': {
+            if (!m_main_toolbar.is_enabled()) {
+                m_gcode_viewer.enable_time_estimate(!m_gcode_viewer.is_time_estimate_enabled());
+                m_dirty = true;
+                wxGetApp().plater()->update_preview_bottom_toolbar();
+        }
+            break;
+    }
+#endif // ENABLE_GCODE_VIEWER
         case 'Z':
 #if ENABLE_GCODE_VIEWER
         case 'z':

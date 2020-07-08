@@ -355,6 +355,10 @@ void MainFrame::update_layout()
     // Set new settings
     switch (m_layout)
     {
+    case ESettingsLayout::Unknown:
+    {
+        break;
+    }
     case ESettingsLayout::Old:
     {
         m_plater->Reparent(m_tabpanel);

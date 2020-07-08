@@ -248,7 +248,7 @@ class GCodeViewer
     {
         struct Points
         {
-            int shader_version{ 2 };
+            int shader_version{ 1 };
             float point_size{ 0.8f };
             int percent_outline{ 0 };
             int percent_center{ 33 };
@@ -341,6 +341,7 @@ private:
     Shells m_shells;
     EViewType m_view_type{ EViewType::FeatureType };
     bool m_legend_enabled{ true };
+    bool m_time_estimate_enabled{ true };
 #if ENABLE_GCODE_VIEWER_STATISTICS
     mutable Statistics m_statistics;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -396,6 +397,9 @@ public:
     bool is_legend_enabled() const { return m_legend_enabled; }
     void enable_legend(bool enable) { m_legend_enabled = enable; }
 
+    bool is_time_estimate_enabled() const { return m_time_estimate_enabled; }
+    void enable_time_estimate(bool enable) { m_time_estimate_enabled = enable; }
+
     void export_toolpaths_to_obj(const char* filename) const;
 
 private:
@@ -406,6 +410,7 @@ private:
     void render_toolpaths() const;
     void render_shells() const;
     void render_legend() const;
+    void render_time_estimate() const;
 #if ENABLE_GCODE_VIEWER_STATISTICS
     void render_statistics() const;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS

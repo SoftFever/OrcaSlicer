@@ -1330,8 +1330,12 @@ void Sidebar::update_sliced_info_sizer()
                 wxString str_color = _L("Color");
                 wxString str_pause = _L("Pause");
 
-                auto fill_labels = [str_color, str_pause](const std::vector<std::pair<CustomGCode::Type, std::string>>& times, 
-                                                          wxString& new_label, wxString& info_text)
+#if ENABLE_GCODE_VIEWER
+                auto fill_labels = [str_color, str_pause](const std::vector<std::pair<CustomGCode::Type, std::pair<std::string, std::string>>>& times,
+#else
+                auto fill_labels = [str_color, str_pause](const std::vector<std::pair<CustomGCode::Type, std::string>>& times,
+#endif // ENABLE_GCODE_VIEWER
+                    wxString& new_label, wxString& info_text)
                 {
                     int color_change_count = 0;
                     for (auto time : times)
@@ -1348,19 +1352,31 @@ void Sidebar::update_sliced_info_sizer()
                         if (i != (int)times.size() - 1 && times[i].first == CustomGCode::PausePrint)
                             new_label += format_wxstr(" -> %1%", str_pause);
 
+#if ENABLE_GCODE_VIEWER
+                        info_text += format_wxstr("\n%1% (%2%)", times[i].second.first, times[i].second.second);
+#else
                         info_text += format_wxstr("\n%1%", times[i].second);
+#endif // ENABLE_GCODE_VIEWER
                     }
                 };
 
                 if (ps.estimated_normal_print_time != "N/A") {
                     new_label += format_wxstr("\n   - %1%", _L("normal mode"));
                     info_text += format_wxstr("\n%1%", ps.estimated_normal_print_time);
+#if ENABLE_GCODE_VIEWER
+                    fill_labels(ps.estimated_normal_custom_gcode_print_times_str, new_label, info_text);
+#else
                     fill_labels(ps.estimated_normal_custom_gcode_print_times, new_label, info_text);
+#endif // ENABLE_GCODE_VIEWER
                 }
                 if (ps.estimated_silent_print_time != "N/A") {
                     new_label += format_wxstr("\n   - %1%", _L("stealth mode"));
                     info_text += format_wxstr("\n%1%", ps.estimated_silent_print_time);
+#if ENABLE_GCODE_VIEWER
+                    fill_labels(ps.estimated_silent_custom_gcode_print_times_str, new_label, info_text);
+#else
                     fill_labels(ps.estimated_silent_custom_gcode_print_times, new_label, info_text);
+#endif // ENABLE_GCODE_VIEWER
                 }
                 p->sliced_info->SetTextAndShow(siEstimatedTime,  info_text,      new_label);
             }
@@ -2709,6 +2725,9 @@ void Plater::priv::reset()
     if (view3D->is_layers_editing_enabled())
         view3D->enable_layers_editing(false);
 
+#if ENABLE_GCODE_VIEWER
+    reset_gcode_toolpaths();
+#endif // ENABLE_GCODE_VIEWER
 #if ENABLE_GCODE_VIEWER_AS_STATE
     gcode_result.reset();
 #endif // ENABLE_GCODE_VIEWER_AS_STATE
@@ -2859,8 +2878,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         // Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
         // Otherwise they will be just refreshed.
 #if ENABLE_GCODE_VIEWER
-        if (this->preview != nullptr)
-        {
+        if (this->preview != nullptr) {
             // If the preview is not visible, the following line just invalidates the preview,
             // but the G-code paths or SLA preview are calculated first once the preview is made visible.
             this->preview->get_canvas3d()->reset_gcode_toolpaths();

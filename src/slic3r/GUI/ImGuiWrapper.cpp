@@ -44,6 +44,12 @@ static const std::map<const char, std::string> font_icons = {
     {ImGui::MaterialIconMarker  , "resin"      }
 };
 
+const ImVec4 ImGuiWrapper::COL_WINDOW_BACKGROND = { 0.133f, 0.133f, 0.133f, 0.8f };
+const ImVec4 ImGuiWrapper::COL_GREY_DARK        = { 0.333f, 0.333f, 0.333f, 1.0f };
+const ImVec4 ImGuiWrapper::COL_GREY_LIGHT       = { 0.4f, 0.4f, 0.4f, 1.0f };
+const ImVec4 ImGuiWrapper::COL_ORANGE_DARK      = { 0.757f, 0.404f, 0.216f, 1.0f };
+const ImVec4 ImGuiWrapper::COL_ORANGE_LIGHT     = { 1.0f, 0.49f, 0.216f, 1.0f };
+
 ImGuiWrapper::ImGuiWrapper()
     : m_glyph_ranges(nullptr)
     , m_font_cjk(false)
@@ -751,6 +757,22 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
         check_box(_L("Search in English"), view_params.english);
 }
 
+void ImGuiWrapper::title(const std::string& str)
+{
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    const float frame_height = ImGui::CalcTextSize(str.c_str(), nullptr, false).y;
+
+    ImRect frame_bb;
+    frame_bb.Min = { window->WorkRect.Min.x, window->DC.CursorPos.y };
+    frame_bb.Max = { window->WorkRect.Max.x, window->DC.CursorPos.y + frame_height };
+
+    frame_bb.Min.x -= IM_FLOOR(window->WindowPadding.x * 0.5f - 1.0f);
+    frame_bb.Max.x += IM_FLOOR(window->WindowPadding.x * 0.5f);
+
+    window->DrawList->AddRectFilled(frame_bb.Min, frame_bb.Max, ImGui::GetColorU32(COL_ORANGE_DARK), 0.0f, 0);
+    text(str);
+}
+
 void ImGuiWrapper::disabled_begin(bool disabled)
 {
     wxCHECK_RET(!m_disabled, "ImGUI: Unbalanced disabled_begin() call");
@@ -970,19 +992,9 @@ void ImGuiWrapper::init_style()
 {
     ImGuiStyle &style = ImGui::GetStyle();
 
-    auto set_color = [&](ImGuiCol_ col, unsigned hex_color) {
-        style.Colors[col] = ImVec4(
-            ((hex_color >> 24) & 0xff) / 255.0f,
-            ((hex_color >> 16) & 0xff) / 255.0f,
-            ((hex_color >> 8) & 0xff) / 255.0f,
-            (hex_color & 0xff) / 255.0f);
+    auto set_color = [&](ImGuiCol_ entity, ImVec4 color) {
+        style.Colors[entity] = color;
     };
-
-    static const unsigned COL_WINDOW_BACKGROND = 0x222222cc;
-    static const unsigned COL_GREY_DARK = 0x555555ff;
-    static const unsigned COL_GREY_LIGHT = 0x666666ff;
-    static const unsigned COL_ORANGE_DARK = 0xc16737ff;
-    static const unsigned COL_ORANGE_LIGHT = 0xff7d38ff;
 
     // Window
     style.WindowRounding = 4.0f;

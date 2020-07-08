@@ -183,7 +183,7 @@ void KBShortcutsDialog::fill_shortcuts()
 #endif // __linux__
 #if ENABLE_RENDER_PICKING_PASS
         // Don't localize debugging texts.
-        { "T", "Toggle picking pass texture rendering on/off" },
+        { "P", "Toggle picking pass texture rendering on/off" },
 #endif // ENABLE_RENDER_PICKING_PASS
     };
 
@@ -203,7 +203,8 @@ void KBShortcutsDialog::fill_shortcuts()
         { L("Arrow Down"), L("Lower Layer") },
         { "U", L("Upper Layer") },
         { "D", L("Lower Layer") },
-        { "L", L("Show/Hide Legend") }
+        { "L", L("Show/Hide Legend") },
+        { "T", L("Show/Hide Estimated printing time") }
     };
 
     m_full_shortcuts.push_back(std::make_pair(_L("Preview"), preview_shortcuts));

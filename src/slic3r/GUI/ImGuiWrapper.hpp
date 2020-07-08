@@ -80,6 +80,7 @@ public:
     bool undo_redo_list(const ImVec2& size, const bool is_undo, bool (*items_getter)(const bool, int, const char**), int& hovered, int& selected, int& mouse_wheel);
     void search_list(const ImVec2& size, bool (*items_getter)(int, const char** label, const char** tooltip), char* search_str,
                      Search::OptionViewParameters& view_params, int& selected, bool& edited, int& mouse_wheel, bool is_localized);
+    void title(const std::string& str);
 
     void disabled_begin(bool disabled);
     void disabled_end();
@@ -88,6 +89,12 @@ public:
     bool want_keyboard() const;
     bool want_text_input() const;
     bool want_any_input() const;
+
+    static const ImVec4 COL_WINDOW_BACKGROND;
+    static const ImVec4 COL_GREY_DARK;
+    static const ImVec4 COL_GREY_LIGHT;
+    static const ImVec4 COL_ORANGE_DARK;
+    static const ImVec4 COL_ORANGE_LIGHT;
 
 private:
     void init_font(bool compress);

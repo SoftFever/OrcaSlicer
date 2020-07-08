@@ -323,7 +323,8 @@ bool Preview::init(wxWindow* parent, Model* model)
         get_option_type_string(OptionType::CustomGCodes) + "|0|" +
         get_option_type_string(OptionType::Shells) + "|0|" +
         get_option_type_string(OptionType::ToolMarker) + "|0|" +
-        get_option_type_string(OptionType::Legend) + "|1"
+        get_option_type_string(OptionType::Legend) + "|1|" +
+        get_option_type_string(OptionType::TimeEstimate) + "|1"
     );
     Slic3r::GUI::create_combochecklist(m_combochecklist_options, GUI::into_u8(_L("Options")), options_items);
 #else
@@ -1458,10 +1459,10 @@ wxString Preview::get_option_type_string(OptionType type) const
     case OptionType::Shells:        { return _L("Shells"); }
     case OptionType::ToolMarker:    { return _L("Tool marker"); }
     case OptionType::Legend:        { return _L("Legend"); }
+    case OptionType::TimeEstimate:  { return _L("Estimated printing time"); }
     default:                        { return ""; }
     }
 }
-
 #endif // ENABLE_GCODE_VIEWER
 
 } // namespace GUI

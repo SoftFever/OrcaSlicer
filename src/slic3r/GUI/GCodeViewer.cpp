@@ -4,6 +4,8 @@
 #if ENABLE_GCODE_VIEWER
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Geometry.hpp"
+#include "libslic3r/Model.hpp"
+#include "libslic3r/Utils.hpp"
 #include "GUI_App.hpp"
 #if ENABLE_GCODE_VIEWER_AS_STATE
 #include "MainFrame.hpp"
@@ -17,10 +19,7 @@
 #include "GLCanvas3D.hpp"
 #include "GLToolbar.hpp"
 #include "GUI_Preview.hpp"
-#include "libslic3r/Model.hpp"
-#if ENABLE_GCODE_VIEWER_STATISTICS
 #include <imgui/imgui_internal.h>
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
 
 #include <GL/glew.h>
 #include <boost/log/trivial.hpp>
@@ -187,15 +186,14 @@ void GCodeViewer::SequentialView::Marker::render() const
 
     static float last_window_width = 0.0f;
     static size_t last_text_length = 0;
-    static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
-    imgui.set_next_window_pos(static_cast<float>(cnv_size.get_width()), static_cast<float>(cnv_size.get_height()), ImGuiCond_Always, 1.0f, 1.0f);
+    imgui.set_next_window_pos(0.5f * static_cast<float>(cnv_size.get_width()), static_cast<float>(cnv_size.get_height()), ImGuiCond_Always, 0.5f, 1.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::SetNextWindowBgAlpha(0.25f);
     imgui.begin(std::string("ToolPosition"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
     imgui.text(_u8L("Tool position") + ":");
     ImGui::PopStyleColor();
     ImGui::SameLine();
@@ -270,6 +268,7 @@ bool GCodeViewer::init()
     {
         switch (buffer_type(i))
         {
+        default: { break; }
         case GCodeProcessor::EMoveType::Tool_change:
         case GCodeProcessor::EMoveType::Color_change:
         case GCodeProcessor::EMoveType::Pause_Print:
@@ -420,6 +419,7 @@ void GCodeViewer::render() const
     m_sequential_view.marker.render();
     render_shells();
     render_legend();
+    render_time_estimate();
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -458,6 +458,7 @@ unsigned int GCodeViewer::get_options_visibility_flags() const
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Shells), m_shells.visible);
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::ToolMarker), m_sequential_view.marker.is_visible());
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Legend), is_legend_enabled());
+    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::TimeEstimate), is_time_estimate_enabled());
     return flags;
 }
 
@@ -477,6 +478,7 @@ void GCodeViewer::set_options_visibility_from_flags(unsigned int flags)
     m_shells.visible = is_flag_set(static_cast<unsigned int>(Preview::OptionType::Shells));
     m_sequential_view.marker.set_visible(is_flag_set(static_cast<unsigned int>(Preview::OptionType::ToolMarker)));
     enable_legend(is_flag_set(static_cast<unsigned int>(Preview::OptionType::Legend)));
+    enable_time_estimate(is_flag_set(static_cast<unsigned int>(Preview::OptionType::TimeEstimate)));
 }
 
 void GCodeViewer::set_layers_z_range(const std::array<double, 2>& layers_z_range)
@@ -591,8 +593,8 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
             return ret;
         };
 
-        Vec3f v1 = get_vertex(start_id);
-        Vec3f v2 = get_vertex(start_id + 1);
+        Vec3f v1 = get_vertex(start_id) - half_height * Vec3f::UnitZ();
+        Vec3f v2 = get_vertex(start_id + 1) - half_height * Vec3f::UnitZ();
         float length = (v2 - v1).norm();
         const auto&& [dir, right, up] = local_basis(v2 - v1);
         return Segment({ v1, v2, dir, right, up, half_width * right, half_height * up, length });
@@ -605,7 +607,8 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
         const RenderPath& render_path = buffer.render_paths[i];
         const Path& path = buffer.paths[render_path.path_id];
         float half_width = 0.5f * path.width;
-        float half_height = 0.5f * path.height;
+        // clamp height to avoid artifacts due to z-fighting when importing the obj file into blender and similar
+        float half_height = std::max(0.5f * path.height, 0.005f);
 
         // generates vertices/normals/triangles
         std::vector<Vec3f> out_vertices;
@@ -657,7 +660,7 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
                             out_triangles.push_back({ base_id + 5, base_id + 3, base_id + 2 });
 
                             // update right vertices
-                            if (disp < prev.length) {
+                            if (disp < prev.length && disp < curr.length) {
                                 base_id = out_vertices.size() - 6;
                                 out_vertices[base_id + 0] -= disp_vec;
                                 out_vertices[base_id + 4] = out_vertices[base_id + 0];
@@ -670,7 +673,7 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
                             out_triangles.push_back({ base_id + 0, base_id + 3, base_id + 4 });
 
                             // update left vertices
-                            if (disp < prev.length) {
+                            if (disp < prev.length && disp < curr.length) {
                                 base_id = out_vertices.size() - 6;
                                 out_vertices[base_id + 2] -= disp_vec;
                                 out_vertices[base_id + 5] = out_vertices[base_id + 2];
@@ -742,27 +745,25 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
         }
 
         // save to file
-        fprintf(fp, "\n# vertices path %lld\n", i + 1);
+        fprintf(fp, "\n# vertices path %zu\n", i + 1);
         for (const Vec3f& v : out_vertices) {
             fprintf(fp, "v %g %g %g\n", v[0], v[1], v[2]);
         }
 
-        fprintf(fp, "\n# normals path %lld\n", i + 1);
+        fprintf(fp, "\n# normals path %zu\n", i + 1);
         for (const Vec3f& n : out_normals) {
             fprintf(fp, "vn %g %g %g\n", n[0], n[1], n[2]);
         }
 
-        fprintf(fp, "\n# material path %lld\n", i + 1);
-        fprintf(fp, "usemtl material_%lld\n", i + 1);
+        fprintf(fp, "\n# material path %zu\n", i + 1);
+        fprintf(fp, "usemtl material_%zu\n", i + 1);
 
-        fprintf(fp, "\n# triangles path %lld\n", i + 1);
+        fprintf(fp, "\n# triangles path %zu\n", i + 1);
         for (const Triangle& t : out_triangles) {
-            fprintf(fp, "f %lld//%lld %lld//%lld %lld//%lld\n", t[0], t[0], t[1], t[1], t[2], t[2]);
+            fprintf(fp, "f %zu//%zu %zu//%zu %zu//%zu\n", t[0], t[0], t[1], t[1], t[2], t[2]);
         }
-
     }
 
-//    fprintf(fp, "\n#vertices count %lld\n", out_vertices_count);
     fclose(fp);
 }
 
@@ -775,12 +776,12 @@ void GCodeViewer::init_shaders()
     for (unsigned char i = begin_id; i < end_id; ++i) {
         switch (buffer_type(i))
         {
-        case GCodeProcessor::EMoveType::Tool_change:  { m_buffers[i].shader = is_glsl_120 ? "options_120_solid" : "options_110"; break; }
-        case GCodeProcessor::EMoveType::Color_change: { m_buffers[i].shader = is_glsl_120 ? "options_120_solid" : "options_110"; break; }
-        case GCodeProcessor::EMoveType::Pause_Print:  { m_buffers[i].shader = is_glsl_120 ? "options_120_solid" : "options_110"; break; }
-        case GCodeProcessor::EMoveType::Custom_GCode: { m_buffers[i].shader = is_glsl_120 ? "options_120_solid" : "options_110"; break; }
-        case GCodeProcessor::EMoveType::Retract:      { m_buffers[i].shader = is_glsl_120 ? "options_120_solid" : "options_110"; break; }
-        case GCodeProcessor::EMoveType::Unretract:    { m_buffers[i].shader = is_glsl_120 ? "options_120_solid" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Tool_change:  { m_buffers[i].shader = is_glsl_120 ? "options_120_flat" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Color_change: { m_buffers[i].shader = is_glsl_120 ? "options_120_flat" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Pause_Print:  { m_buffers[i].shader = is_glsl_120 ? "options_120_flat" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Custom_GCode: { m_buffers[i].shader = is_glsl_120 ? "options_120_flat" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Retract:      { m_buffers[i].shader = is_glsl_120 ? "options_120_flat" : "options_110"; break; }
+        case GCodeProcessor::EMoveType::Unretract:    { m_buffers[i].shader = is_glsl_120 ? "options_120_flat" : "options_110"; break; }
         case GCodeProcessor::EMoveType::Extrude:      { m_buffers[i].shader = "toolpaths"; break; }
         case GCodeProcessor::EMoveType::Travel:       { m_buffers[i].shader = "toolpaths"; break; }
         default: { break; }
@@ -1137,7 +1138,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
     }
 
     // second pass: filter paths by sequential data and collect them by color
-    for (auto&& [buffer, id] : paths) {
+    for (const auto& [buffer, id] : paths) {
         const Path& path = buffer->paths[id];
         if (m_sequential_view.current.last <= path.first.s_id || path.last.s_id <= m_sequential_view.current.first)
             continue;
@@ -1203,8 +1204,8 @@ void GCodeViewer::render_toolpaths() const
         shader.set_uniform("percent_outline_radius", 0.01f * static_cast<float>(m_shaders_editor.points.percent_outline));
         shader.set_uniform("percent_center_radius", 0.01f * static_cast<float>(m_shaders_editor.points.percent_center));
 #else
-        shader.set_uniform("percent_outline_radius", 0.15f);
-        shader.set_uniform("percent_center_radius", 0.15f);
+        shader.set_uniform("percent_outline_radius", 0.0f);
+        shader.set_uniform("percent_center_radius", 0.33f);
 #endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
         shader.set_uniform("viewport", viewport);
         shader.set_uniform("inv_proj_matrix", inv_proj);
@@ -1266,6 +1267,7 @@ void GCodeViewer::render_toolpaths() const
 
             switch (buffer_type(i))
             {
+            default: { break; }
             case GCodeProcessor::EMoveType::Tool_change:  { render_as_points(buffer, EOptionsColors::ToolChanges, *shader); break; }
             case GCodeProcessor::EMoveType::Color_change: { render_as_points(buffer, EOptionsColors::ColorChanges, *shader); break; }
             case GCodeProcessor::EMoveType::Pause_Print:  { render_as_points(buffer, EOptionsColors::PausePrints, *shader); break; }
@@ -1320,17 +1322,14 @@ void GCodeViewer::render_shells() const
 //    glsafe(::glDepthMask(GL_TRUE));
 }
 
+#define USE_ICON_HEXAGON 1
+
 void GCodeViewer::render_legend() const
 {
-    static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
-    static const ImU32 ICON_BORDER_COLOR = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
-
     if (!m_legend_enabled)
         return;
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
-
-#define USE_ICON_HEXAGON 1
 
     imgui.set_next_window_pos(0.0f, 0.0f, ImGuiCond_Always);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
@@ -1347,19 +1346,14 @@ void GCodeViewer::render_legend() const
         Line
     };
 
-#if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
     auto add_item = [this, draw_list, &imgui](EItemType type, const Color& color, const std::string& label, std::function<void()> callback = nullptr) {
-#else
-    auto add_item = [draw_list, &imgui](EItemType type, const Color& color, const std::string& label, std::function<void()> callback = nullptr) {
-#endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
         float icon_size = ImGui::GetTextLineHeight();
-        ImVec2 pos = ImGui::GetCursorPos();
+        ImVec2 pos = ImGui::GetCursorScreenPos();
         switch (type)
         {
         default:
         case EItemType::Rect:
         {
-            draw_list->AddRect({ pos.x, pos.y }, { pos.x + icon_size, pos.y + icon_size }, ICON_BORDER_COLOR, 0.0f, 0);
             draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
                 ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
             break;
@@ -1380,37 +1374,26 @@ void GCodeViewer::render_legend() const
             }
             else
                 draw_list->AddCircleFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
-
-//            ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
-//            draw_list->AddCircle(center, 0.5f * icon_size, ICON_BORDER_COLOR, 16);
-//            if (m_shaders_editor.shader_version == 1) {
-//                draw_list->AddCircleFilled(center, (0.5f * icon_size) - 2.0f,
-//                    ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
-//                float radius = ((0.5f * icon_size) - 2.0f) * (1.0f - 0.01f * static_cast<float>(m_shaders_editor.percent_outline));
-//                draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
-//                if (m_shaders_editor.percent_center > 0) {
-//                    radius = ((0.5f * icon_size) - 2.0f) * 0.01f * static_cast<float>(m_shaders_editor.percent_center);
-//                    draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
-//                }
-//            } else
-//                draw_list->AddCircleFilled(center, (0.5f * icon_size) - 2.0f, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
 #else
-            draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, 0.5f * icon_size,
-                ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
-
-//            draw_list->AddCircle({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, 0.5f * icon_size, ICON_BORDER_COLOR, 16);
-//            draw_list->AddCircleFilled({ 0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size) }, (0.5f * icon_size) - 2.0f,
-//                ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
+            ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));            
+            if (m_buffers[buffer_id(GCodeProcessor::EMoveType::Retract)].shader == "options_120_flat") {
+                draw_list->AddCircleFilled(center, 0.5f * icon_size,
+                    ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
+                float radius = 0.5f * icon_size;
+                draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
+                radius = 0.5f * icon_size * 0.01f * 33.0f;
+                draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
+            }
+            else
+                draw_list->AddCircleFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
 #endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
+
             break;
         }
         case EItemType::Hexagon:
         {
             ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
             draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 6);
-//            draw_list->AddNgon(center, 0.5f * icon_size, ICON_BORDER_COLOR, 6);
-//            draw_list->AddNgonFilled(center, (0.5f * icon_size) - 2.0f,
-//                ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 6);
             break;
         }
         case EItemType::Line:
@@ -1454,21 +1437,18 @@ void GCodeViewer::render_legend() const
     };
 
     // extrusion paths -> title
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
     switch (m_view_type)
     {
-    case EViewType::FeatureType:    { imgui.text(_u8L("Feature type")); break; }
-    case EViewType::Height:         { imgui.text(_u8L("Height (mm)")); break; }
-    case EViewType::Width:          { imgui.text(_u8L("Width (mm)")); break; }
-    case EViewType::Feedrate:       { imgui.text(_u8L("Speed (mm/s)")); break; }
-    case EViewType::FanSpeed:       { imgui.text(_u8L("Fan Speed (%%)")); break; }
-    case EViewType::VolumetricRate: { imgui.text(_u8L("Volumetric flow rate (mm³/s)")); break; }
-    case EViewType::Tool:           { imgui.text(_u8L("Tool")); break; }
-    case EViewType::ColorPrint:     { imgui.text(_u8L("Color Print")); break; }
-    default:                        { break; }
+    case EViewType::FeatureType:    { imgui.title(_u8L("Feature type")); break; }
+    case EViewType::Height:         { imgui.title(_u8L("Height (mm)")); break; }
+    case EViewType::Width:          { imgui.title(_u8L("Width (mm)")); break; }
+    case EViewType::Feedrate:       { imgui.title(_u8L("Speed (mm/s)")); break; }
+    case EViewType::FanSpeed:       { imgui.title(_u8L("Fan Speed (%%)")); break; }
+    case EViewType::VolumetricRate: { imgui.title(_u8L("Volumetric flow rate (mm³/s)")); break; }
+    case EViewType::Tool:           { imgui.title(_u8L("Tool")); break; }
+    case EViewType::ColorPrint:     { imgui.title(_u8L("Color Print")); break; }
+    default: { break; }
     }
-    ImGui::PopStyleColor();
-    ImGui::Separator();
 
     // extrusion paths -> items
     switch (m_view_type)
@@ -1566,28 +1546,26 @@ void GCodeViewer::render_legend() const
                 else {
                     for (int i = items_cnt; i >= 0; --i) {
                         // create label for color change item
-                        std::string id_str = " (" + std::to_string(i + 1) + ")";
-
                         if (i == 0) {
 #if USE_ICON_HEXAGON
-                            add_item(EItemType::Hexagon, m_tool_colors[i], (boost::format(_u8L("up to %.2f mm")) % cp_values.front().first).str() + id_str);
+                            add_item(EItemType::Hexagon, m_tool_colors[i], (boost::format(_u8L("up to %.2f mm")) % cp_values.front().first).str());
 #else
-                            add_item(EItemType::Rect, m_tool_colors[i], (boost::format(_u8L("up to %.2f mm")) % cp_values.front().first).str() + id_str);
+                            add_item(EItemType::Rect, m_tool_colors[i], (boost::format(_u8L("up to %.2f mm")) % cp_values.front().first).str());
 #endif // USE_ICON_HEXAGON
                             break;
                         }
                         else if (i == items_cnt) {
 #if USE_ICON_HEXAGON
-                            add_item(EItemType::Hexagon, m_tool_colors[i], (boost::format(_u8L("above %.2f mm")) % cp_values[i - 1].second).str() + id_str);
+                            add_item(EItemType::Hexagon, m_tool_colors[i], (boost::format(_u8L("above %.2f mm")) % cp_values[i - 1].second).str());
 #else
-                            add_item(EItemType::Rect, m_tool_colors[i], (boost::format(_u8L("above %.2f mm")) % cp_values[i - 1].second).str() + id_str);
+                            add_item(EItemType::Rect, m_tool_colors[i], (boost::format(_u8L("above %.2f mm")) % cp_values[i - 1].second).str());
 #endif // USE_ICON_HEXAGON
                             continue;
                         }
 #if USE_ICON_HEXAGON
-                        add_item(EItemType::Hexagon, m_tool_colors[i], (boost::format(_u8L("%.2f - %.2f mm")) % cp_values[i - 1].second% cp_values[i].first).str() + id_str);
+                        add_item(EItemType::Hexagon, m_tool_colors[i], (boost::format(_u8L("%.2f - %.2f mm")) % cp_values[i - 1].second % cp_values[i].first).str());
 #else
-                        add_item(EItemType::Rect, m_tool_colors[i], (boost::format(_u8L("%.2f - %.2f mm")) % cp_values[i - 1].second% cp_values[i].first).str() + id_str);
+                        add_item(EItemType::Rect, m_tool_colors[i], (boost::format(_u8L("%.2f - %.2f mm")) % cp_values[i - 1].second % cp_values[i].first).str());
 #endif // USE_ICON_HEXAGON
                     }
                 }
@@ -1609,15 +1587,12 @@ void GCodeViewer::render_legend() const
             size_t last_color_id = m_tool_colors.size() - 1;
             for (int i = static_cast<int>(custom_gcode_per_print_z.size()) - 1; i >= 0; --i) {
                 if (custom_gcode_per_print_z[i].type == ColorChange) {
-                    // create label for color change item
-                    std::string id_str = " (" + std::to_string(color_change_idx--) + ")";
-
 #if USE_ICON_HEXAGON
                     add_item(EItemType::Hexagon, m_tool_colors[last_color_id--],
 #else
                     add_item(EItemType::Rect, m_tool_colors[last_color_id--],
 #endif // USE_ICON_HEXAGON
-                        (boost::format(_u8L("Color change for Extruder %d at %.2f mm")) % custom_gcode_per_print_z[i].extruder % custom_gcode_per_print_z[i].print_z).str() + id_str);
+                        (boost::format(_u8L("Color change for Extruder %d at %.2f mm")) % custom_gcode_per_print_z[i].extruder % custom_gcode_per_print_z[i].print_z).str());
                 }
             }
         }
@@ -1641,11 +1616,7 @@ void GCodeViewer::render_legend() const
         {
             // title
             ImGui::Spacing();
-            ImGui::Spacing();
-            ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
-            imgui.text(_u8L("Travel"));
-            ImGui::PopStyleColor();
-            ImGui::Separator();
+            imgui.title(_u8L("Travel"));
 
             // items
             add_item(EItemType::Line, Travel_Colors[0], _u8L("Movement"));
@@ -1657,13 +1628,18 @@ void GCodeViewer::render_legend() const
         }
     }
 
-    auto any_option_visible = [this]() {
-        return m_buffers[buffer_id(GCodeProcessor::EMoveType::Color_change)].visible ||
-               m_buffers[buffer_id(GCodeProcessor::EMoveType::Custom_GCode)].visible ||
-               m_buffers[buffer_id(GCodeProcessor::EMoveType::Pause_Print)].visible ||
-               m_buffers[buffer_id(GCodeProcessor::EMoveType::Retract)].visible ||
-               m_buffers[buffer_id(GCodeProcessor::EMoveType::Tool_change)].visible ||
-               m_buffers[buffer_id(GCodeProcessor::EMoveType::Unretract)].visible;
+    auto any_option_available = [this]() {
+        auto available = [this](GCodeProcessor::EMoveType type) {
+            const TBuffer& buffer = m_buffers[buffer_id(type)];
+            return buffer.visible && buffer.indices.count > 0;
+        };
+
+        return available(GCodeProcessor::EMoveType::Color_change) ||
+            available(GCodeProcessor::EMoveType::Custom_GCode) ||
+            available(GCodeProcessor::EMoveType::Pause_Print) ||
+            available(GCodeProcessor::EMoveType::Retract) ||
+            available(GCodeProcessor::EMoveType::Tool_change) ||
+            available(GCodeProcessor::EMoveType::Unretract);
     };
 
     auto add_option = [this, add_item](GCodeProcessor::EMoveType move_type, EOptionsColors color, const std::string& text) {
@@ -1677,14 +1653,10 @@ void GCodeViewer::render_legend() const
     };
 
     // options
-    if (any_option_visible()) {
+    if (any_option_available()) {
         // title
         ImGui::Spacing();
-        ImGui::Spacing();
-        ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
-        imgui.text(_u8L("Options"));
-        ImGui::PopStyleColor();
-        ImGui::Separator();
+        imgui.title(_u8L("Options"));
 
         // items
         add_option(GCodeProcessor::EMoveType::Retract, EOptionsColors::Retractions, _u8L("Retractions"));
@@ -1699,10 +1671,175 @@ void GCodeViewer::render_legend() const
     ImGui::PopStyleVar();
 }
 
+void GCodeViewer::render_time_estimate() const
+{
+    static const std::vector<std::string> Columns_Headers = {
+        _u8L("Operation"),
+        _u8L("Remaining"),
+        _u8L("Duration")
+    };
+
+    if (!m_time_estimate_enabled)
+        return;
+
+    const PrintStatistics& ps = wxGetApp().plater()->fff_print().print_statistics();
+    if (ps.estimated_normal_print_time == "N/A" && ps.estimated_silent_print_time == "N/A")
+        return;
+
+    int columns_count = 1;
+    if (ps.estimated_silent_print_time != "N/A")
+        ++columns_count;
+
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
+    imgui.set_next_window_pos(static_cast<float>(cnv_size.get_width()), static_cast<float>(cnv_size.get_height()), ImGuiCond_Always, 1.0f, 1.0f);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(0.0f, 0.0f), ImVec2(-1.0f, 0.5f * static_cast<float>(cnv_size.get_height())));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::SetNextWindowBgAlpha(0.6f);
+    imgui.begin(std::string("Time_estimate"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
+
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    float icon_size = ImGui::GetTextLineHeight();
+
+    using Time = std::pair<float, float>;
+    using TimesList = std::vector<std::pair<CustomGCode::Type, Time>>;
+    using Headers = std::vector<std::string>;
+    using Offsets = std::array<float, 2>;
+
+    auto add_mode = [this, &imgui, icon_size, draw_list](const std::string& mode, const std::string& time, const TimesList& times, const Headers& headers) {
+        auto add_partial_times = [this, &imgui, icon_size, draw_list](const TimesList& times, const Headers& headers) {
+            auto add_color = [this, &imgui, icon_size, draw_list](int id, Offsets& offsets, const Time& time) {
+                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
+                std::string text = _u8L("Color");
+                if (m_view_type != EViewType::ColorPrint)
+                    text += " " + std::to_string(id);
+                imgui.text(text);
+                ImGui::PopStyleColor();
+                ImGui::SameLine();
+
+                if (m_view_type == EViewType::ColorPrint) {
+                    const Color& color = m_tool_colors[id - 1];
+                    ImVec2 pos = ImGui::GetCursorScreenPos();
+#if USE_ICON_HEXAGON
+                    ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
+                    draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 6);
+#else
+                    draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
+                        ImGui::GetColorU32({ m_tool_colors[i][0], m_tool_colors[i][1], m_tool_colors[i][2], 1.0f }));
+#endif // USE_ICON_HEXAGON
+                }
+                ImGui::SameLine(offsets[0]);
+                imgui.text(short_time(get_time_dhms(time.second)));
+                ImGui::SameLine(offsets[1]);
+                imgui.text(short_time(get_time_dhms(time.first)));
+            };
+            auto calc_offsets = [this, icon_size](const TimesList& times, const Headers& headers, int color_change_count) {
+                Offsets ret = { ImGui::CalcTextSize(headers[0].c_str()).x, ImGui::CalcTextSize(headers[1].c_str()).x };
+                for (const auto& [type, time] : times) {
+                    std::string label;
+                    switch (type)
+                    {
+                    case CustomGCode::PausePrint:
+                    {
+                        label = _u8L("Pause");
+                        break;
+                    }
+                    case CustomGCode::ColorChange:
+                    {
+                        label = _u8L("Color");
+                        if (m_view_type != EViewType::ColorPrint)
+                            label += " " + std::to_string(color_change_count);
+                        break;
+                    }
+                    default: { break; }
+                    }
+
+                    ret[0] = std::max(ret[0], ImGui::CalcTextSize(label.c_str()).x);
+                    ret[1] = std::max(ret[1], ImGui::CalcTextSize(short_time(get_time_dhms(time.second)).c_str()).x);
+                }
+
+                const ImGuiStyle& style = ImGui::GetStyle();
+                ret[0] += icon_size + style.ItemSpacing.x;
+                ret[1] += ret[0] + style.ItemSpacing.x;
+                return ret;
+            };
+
+            if (times.empty())
+                return;
+
+            int color_change_count = 0;
+            for (auto time : times) {
+                if (time.first == CustomGCode::ColorChange)
+                    ++color_change_count;
+            }
+
+            Offsets offsets = calc_offsets(times, headers, color_change_count);
+
+            ImGui::Spacing();
+            ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
+            imgui.text(headers[0]);
+            ImGui::SameLine(offsets[0]);
+            imgui.text(headers[1]);
+            ImGui::SameLine(offsets[1]);
+            imgui.text(headers[2]);
+            ImGui::PopStyleColor();
+
+            int last_color_id = color_change_count;
+
+            for (int i = static_cast<int>(times.size()) - 1; i >= 0; --i) {
+                const auto& [type, time] = times[i];
+
+                switch (type)
+                {
+                case CustomGCode::PausePrint:
+                {
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
+                    imgui.text(_u8L("Pause"));
+                    ImGui::PopStyleColor();
+                    ImGui::SameLine(offsets[0]);
+                    imgui.text(short_time(get_time_dhms(time.second - time.first)));
+
+                    add_color(last_color_id, offsets, time);
+                    break;
+                }
+                case CustomGCode::ColorChange:
+                {
+                    add_color(color_change_count, offsets, time);
+                    last_color_id = color_change_count--;
+                    break;
+                }
+                default: { break; }
+                }
+            }
+        };
+
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
+        imgui.text(mode + ":");
+        ImGui::PopStyleColor();
+        ImGui::SameLine();
+        imgui.text(time);
+        add_partial_times(times, headers);
+    };
+
+    // title
+    imgui.title(_u8L("Estimated printing time"));
+
+    // times
+    if (ps.estimated_normal_print_time != "N/A")
+        add_mode(_u8L("Normal mode"), ps.estimated_normal_print_time, ps.estimated_normal_custom_gcode_print_times, Columns_Headers);
+
+    if (ps.estimated_silent_print_time != "N/A") {
+        ImGui::Separator();
+        add_mode(_u8L("Stealth mode"), ps.estimated_silent_print_time, ps.estimated_silent_custom_gcode_print_times, Columns_Headers);
+    }
+
+    imgui.end();
+    ImGui::PopStyleVar();
+}
+
 #if ENABLE_GCODE_VIEWER_STATISTICS
 void GCodeViewer::render_statistics() const
 {
-    static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
     static const float offset = 230.0f;
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
@@ -1711,7 +1848,7 @@ void GCodeViewer::render_statistics() const
     imgui.begin(std::string("GCodeViewer Statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
     ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
     imgui.text(std::string("GCodeProcessor time:"));
     ImGui::PopStyleColor();
     ImGui::SameLine(offset);
@@ -1719,19 +1856,19 @@ void GCodeViewer::render_statistics() const
 
     ImGui::Separator();
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
     imgui.text(std::string("Load time:"));
     ImGui::PopStyleColor();
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.load_time) + " ms");
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
     imgui.text(std::string("Resfresh time:"));
     ImGui::PopStyleColor();
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.refresh_time) + " ms");
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
     imgui.text(std::string("Resfresh paths time:"));
     ImGui::PopStyleColor();
     ImGui::SameLine(offset);
@@ -1739,13 +1876,13 @@ void GCodeViewer::render_statistics() const
 
     ImGui::Separator();
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
     imgui.text(std::string("Multi GL_POINTS calls:"));
     ImGui::PopStyleColor();
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.gl_multi_points_calls_count));
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
     imgui.text(std::string("Multi GL_LINE_STRIP calls:"));
     ImGui::PopStyleColor();
     ImGui::SameLine(offset);
@@ -1753,7 +1890,7 @@ void GCodeViewer::render_statistics() const
 
     ImGui::Separator();
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
     imgui.text(std::string("GCodeProcessor results:"));
     ImGui::PopStyleColor();
     ImGui::SameLine(offset);
@@ -1761,13 +1898,13 @@ void GCodeViewer::render_statistics() const
 
     ImGui::Separator();
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
     imgui.text(std::string("Paths CPU:"));
     ImGui::PopStyleColor();
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.paths_size) + " bytes");
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
     imgui.text(std::string("Render paths CPU:"));
     ImGui::PopStyleColor();
     ImGui::SameLine(offset);
@@ -1775,13 +1912,13 @@ void GCodeViewer::render_statistics() const
 
     ImGui::Separator();
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
     imgui.text(std::string("Vertices GPU:"));
     ImGui::PopStyleColor();
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.vertices_gpu_size) + " bytes");
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
     imgui.text(std::string("Indices GPU:"));
     ImGui::PopStyleColor();
     ImGui::SameLine(offset);
@@ -1789,13 +1926,13 @@ void GCodeViewer::render_statistics() const
 
     ImGui::Separator();
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
     imgui.text(std::string("Travel segments:"));
     ImGui::PopStyleColor();
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.travel_segments_count));
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
     imgui.text(std::string("Extrude segments:"));
     ImGui::PopStyleColor();
     ImGui::SameLine(offset);
@@ -1816,8 +1953,6 @@ void GCodeViewer::render_shaders_editor() const
         }
     };
 
-    static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
-
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
     Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
@@ -1828,8 +1963,8 @@ void GCodeViewer::render_shaders_editor() const
     if (ImGui::CollapsingHeader("Points", ImGuiTreeNodeFlags_DefaultOpen)) {
         if (ImGui::TreeNode("GLSL version")) {
             ImGui::RadioButton("1.10 (low end PCs)", &m_shaders_editor.points.shader_version, 0);
-            ImGui::RadioButton("1.20 flat (billboards)", &m_shaders_editor.points.shader_version, 1);
-            ImGui::RadioButton("1.20 solid (spheres default)", &m_shaders_editor.points.shader_version, 2);
+            ImGui::RadioButton("1.20 flat (billboards) [default]", &m_shaders_editor.points.shader_version, 1);
+            ImGui::RadioButton("1.20 solid (spheres)", &m_shaders_editor.points.shader_version, 2);
             ImGui::TreePop();
         }
 

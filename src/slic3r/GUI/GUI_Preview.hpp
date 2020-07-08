@@ -149,7 +149,8 @@ public:
         CustomGCodes,
         Shells,
         ToolMarker,
-        Legend
+        Legend,
+        TimeEstimate
     };
 
 Preview(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process, 
