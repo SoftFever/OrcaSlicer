@@ -25,119 +25,6 @@ static Hit min_hit(const C &hits)
     return *mit;
 }
 
-//IndexedMesh::hit_result query_hit(const SupportableMesh &msh, const Head &h)
-//{
-//    static const size_t SAMPLES = 8;
-
-//    // Move away slightly from the touching point to avoid raycasting on the
-//    // inner surface of the mesh.
-
-//    const double& sd = msh.cfg.safety_distance_mm;
-
-//    auto& m = msh.emesh;
-//    using HitResult = IndexedMesh::hit_result;
-
-//    // Hit results
-//    std::array<HitResult, SAMPLES> hits;
-
-//    Vec3d s1 = h.pos, s2 = h.junction_point();
-
-//    struct Rings {
-//        double rpin;
-//        double rback;
-//        Vec3d  spin;
-//        Vec3d  sback;
-//        PointRing<SAMPLES> ring;
-
-//        Vec3d backring(size_t idx) { return ring.get(idx, sback, rback); }
-//        Vec3d pinring(size_t idx) { return ring.get(idx, spin, rpin); }
-//    } rings {h.r_pin_mm + sd, h.r_back_mm + sd, s1, s2, h.dir};
-
-//    // We will shoot multiple rays from the head pinpoint in the direction
-//    // of the pinhead robe (side) surface. The result will be the smallest
-//    // hit distance.
-
-//    auto hitfn = [&m, &rings, sd](HitResult &hit, size_t i) {
-//        // Point on the circle on the pin sphere
-//        Vec3d ps = rings.pinring(i);
-//        // This is the point on the circle on the back sphere
-//        Vec3d p = rings.backring(i);
-
-//        // Point ps is not on mesh but can be inside or
-//        // outside as well. This would cause many problems
-//        // with ray-casting. To detect the position we will
-//        // use the ray-casting result (which has an is_inside
-//        // predicate).
-
-//        Vec3d n = (p - ps).normalized();
-//        auto  q = m.query_ray_hit(ps + sd * n, n);
-
-//        if (q.is_inside()) { // the hit is inside the model
-//            if (q.distance() > rings.rpin) {
-//                // If we are inside the model and the hit
-//                // distance is bigger than our pin circle
-//                // diameter, it probably indicates that the
-//                // support point was already inside the
-//                // model, or there is really no space
-//                // around the point. We will assign a zero
-//                // hit distance to these cases which will
-//                // enforce the function return value to be
-//                // an invalid ray with zero hit distance.
-//                // (see min_element at the end)
-//                hit = HitResult(0.0);
-//            } else {
-//                // re-cast the ray from the outside of the
-//                // object. The starting point has an offset
-//                // of 2*safety_distance because the
-//                // original ray has also had an offset
-//                auto q2 = m.query_ray_hit(ps + (q.distance() + 2 * sd) * n, n);
-//                hit     = q2;
-//            }
-//        } else
-//            hit = q;
-//    };
-
-//    ccr::enumerate(hits.begin(), hits.end(), hitfn);
-
-//    return min_hit(hits);
-//}
-
-//IndexedMesh::hit_result query_hit(const SupportableMesh &msh, const Bridge &br, double safety_d)
-//{
-
-//    static const size_t SAMPLES = 8;
-
-//    Vec3d dir = (br.endp - br.startp).normalized();
-//    PointRing<SAMPLES> ring{dir};
-
-//    using Hit = IndexedMesh::hit_result;
-
-//    // Hit results
-//    std::array<Hit, SAMPLES> hits;
-
-//    double sd = std::isnan(safety_d) ? msh.cfg.safety_distance_mm : safety_d;
-
-//    auto hitfn = [&msh, &br, &ring, dir, sd] (Hit &hit, size_t i) {
-
-//        // Point on the circle on the pin sphere
-//        Vec3d p = ring.get(i, br.startp, br.r + sd);
-
-//        auto hr = msh.emesh.query_ray_hit(p + br.r * dir, dir);
-
-//        if(hr.is_inside()) {
-//            if(hr.distance() > 2 * br.r + sd) hit = Hit(0.0);
-//            else {
-//                // re-cast the ray from the outside of the object
-//                hit = msh.emesh.query_ray_hit(p + (hr.distance() + 2 * sd) * dir, dir);
-//            }
-//        } else hit = hr;
-//    };
-
-//    ccr::enumerate(hits.begin(), hits.end(), hitfn);
-
-//    return min_hit(hits);
-//}
-
 SupportTreeBuildsteps::SupportTreeBuildsteps(SupportTreeBuilder &   builder,
                                              const SupportableMesh &sm)
     : m_cfg(sm.cfg)
@@ -282,14 +169,17 @@ bool SupportTreeBuildsteps::execute(SupportTreeBuilder &   builder,
 }
 
 IndexedMesh::hit_result SupportTreeBuildsteps::pinhead_mesh_intersect(
-    const Vec3d &s, const Vec3d &dir, double r_pin, double r_back, double width)
+    const Vec3d &s,
+    const Vec3d &dir,
+    double       r_pin,
+    double       r_back,
+    double       width,
+    double       sd)
 {
     static const size_t SAMPLES = 8;
     
     // Move away slightly from the touching point to avoid raycasting on the
     // inner surface of the mesh.
-    
-    const double& sd = m_cfg.safety_distance_mm;
     
     auto& m = m_mesh;
     using HitResult = IndexedMesh::hit_result;
@@ -836,12 +726,17 @@ void SupportTreeBuildsteps::add_pinheads()
         // First we need to determine the available space for a mini pinhead.
         // The goal is the move away from the model a little bit to make the
         // contact point small as possible and avoid pearcing the model body.
-        double pin_space = std::min(2 * R, bridge_mesh_distance(sph, n, R, 0.));
+        double back_r    = m_cfg.head_fallback_radius_mm;
+        double max_w     = 2 * R;
+        double pin_space = std::min(max_w,
+                                    pinhead_mesh_intersect(sph, n, R, back_r,
+                                                           max_w, 0.)
+                                        .distance());
 
         if (pin_space <= 0) continue;
 
         m_iheads.emplace_back(i);
-        m_builder.add_head(i, R, R, pin_space,
+        m_builder.add_head(i, back_r, R, pin_space,
                            m_cfg.head_penetration_mm, n, sph);
     }
 }

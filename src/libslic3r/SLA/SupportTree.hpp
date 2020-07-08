@@ -44,6 +44,8 @@ struct SupportTreeConfig
     // Radius of the back side of the 3d arrow.
     double head_back_radius_mm = 0.5;
 
+    double head_fallback_radius_mm = 0.25;
+
     // Width in mm from the back sphere center to the front sphere center.
     double head_width_mm = 1.0;
 

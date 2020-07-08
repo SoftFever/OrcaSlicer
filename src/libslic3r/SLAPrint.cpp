@@ -41,7 +41,10 @@ sla::SupportTreeConfig make_support_cfg(const SLAPrintObjectConfig& c)
     
     scfg.enabled = c.supports_enable.getBool();
     scfg.head_front_radius_mm = 0.5*c.support_head_front_diameter.getFloat();
-    scfg.head_back_radius_mm = 0.5*c.support_pillar_diameter.getFloat();
+    double pillar_r = 0.5 * c.support_pillar_diameter.getFloat();
+    scfg.head_back_radius_mm = pillar_r;
+    scfg.head_fallback_radius_mm =
+        0.01 * c.support_small_pillar_diameter_percent.getFloat() * pillar_r;
     scfg.head_penetration_mm = c.support_head_penetration.getFloat();
     scfg.head_width_mm = c.support_head_width.getFloat();
     scfg.object_elevation_mm = is_zero_elevation(c) ?
@@ -925,6 +928,7 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
             || opt_key == "support_head_penetration"
             || opt_key == "support_head_width"
             || opt_key == "support_pillar_diameter"
+            || opt_key == "support_small_pillar_diameter_percent"
             || opt_key == "support_max_bridges_on_pillar"
             || opt_key == "support_pillar_connection_mode"
             || opt_key == "support_buildplate_only"

@@ -238,7 +238,19 @@ class SupportTreeBuildsteps {
         const Vec3d& dir,
         double r_pin,
         double r_back,
-        double width);
+        double width,
+        double safety_d);
+
+    IndexedMesh::hit_result pinhead_mesh_intersect(
+        const Vec3d& s,
+        const Vec3d& dir,
+        double r_pin,
+        double r_back,
+        double width)
+    {
+        return pinhead_mesh_intersect(s, dir, r_pin, r_back, width,
+                                      m_cfg.safety_distance_mm);
+    }
 
     // Checking bridge (pillar and stick as well) intersection with the model.
     // If the function is used for headless sticks, the ins_check parameter
