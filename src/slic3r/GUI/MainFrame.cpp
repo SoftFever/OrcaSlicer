@@ -482,9 +482,11 @@ void MainFrame::shutdown()
 #endif // ENABLE_LAYOUT_NO_RESTART
 
     if (m_plater != nullptr) {
+#if ENABLE_GCODE_VIEWER_AS_STATE
         // restore sidebar if it was hidden when switching to gcode viewer mode
         if (m_restore_from_gcode_viewer.collapsed_sidebar)
             m_plater->collapse_sidebar(false);
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
         // Stop the background thread (Windows and Linux).
         // Disconnect from a 3DConnextion driver (OSX).
         m_plater->get_mouse3d_controller().shutdown();

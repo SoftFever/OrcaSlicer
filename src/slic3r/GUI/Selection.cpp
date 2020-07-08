@@ -2039,11 +2039,19 @@ void Selection::render_sidebar_scale_hints(const std::string& sidebar_field) con
             shader->set_uniform("uniform_color", uniform_scale ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis], 4);
 
         glsafe(::glTranslated(0.0, 5.0, 0.0));
+#if ENABLE_GCODE_VIEWER
         m_arrow.render();
+#else
+        m_arrow->render();
+#endif // ENABLE_GCODE_VIEWER
 
         glsafe(::glTranslated(0.0, -10.0, 0.0));
         glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
+#if ENABLE_GCODE_VIEWER
         m_arrow.render();
+#else
+        m_arrow->render();
+#endif // ENABLE_GCODE_VIEWER
     };
 
     if (boost::ends_with(sidebar_field, "x") || uniform_scale)

@@ -369,7 +369,6 @@ void Bed3D::calc_bounding_boxes() const
         m_extended_bounding_box.merge(model_bb);
     }
 #else
-    m_extended_bounding_box.merge(m_axes.get_total_length() * Vec3d::Ones());
     m_extended_bounding_box.merge(m_axes.length + Axes::ArrowLength * Vec3d::Ones());
     // extend to contain model, if any
     if (!m_model.get_filename().empty())
@@ -694,11 +693,11 @@ void Bed3D::render_default(bool bottom) const
         {
             // draw background
             glsafe(::glDepthMask(GL_FALSE));
-#if ENABLE_LAYOUT_NO_RESTART
+#if ENABLE_GCODE_VIEWER
             glsafe(::glColor4fv(m_model_color.data()));
 #else
             glsafe(::glColor4f(0.35f, 0.35f, 0.35f, 0.4f));
-#endif // ENABLE_LAYOUT_NO_RESTART
+#endif // ENABLE_GCODE_VIEWER
             glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
             glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_vertices_data()));
             glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));
