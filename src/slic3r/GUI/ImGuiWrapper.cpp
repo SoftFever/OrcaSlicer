@@ -1028,6 +1028,13 @@ void ImGuiWrapper::init_style()
 
     // Separator
     set_color(ImGuiCol_Separator, COL_ORANGE_LIGHT);
+
+    // Tabs
+    set_color(ImGuiCol_Tab, COL_ORANGE_DARK);
+    set_color(ImGuiCol_TabHovered, COL_ORANGE_LIGHT);
+    set_color(ImGuiCol_TabActive, COL_ORANGE_LIGHT);
+    set_color(ImGuiCol_TabUnfocused, COL_GREY_DARK);
+    set_color(ImGuiCol_TabUnfocusedActive, COL_GREY_LIGHT);
 }
 
 void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)

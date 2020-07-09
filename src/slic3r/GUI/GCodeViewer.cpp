@@ -40,23 +40,28 @@ static GCodeProcessor::EMoveType buffer_type(unsigned char id) {
     return static_cast<GCodeProcessor::EMoveType>(static_cast<unsigned char>(GCodeProcessor::EMoveType::Retract) + id);
 }
 
-std::vector<std::array<float, 3>> decode_colors(const std::vector<std::string> & colors) {
+std::array<float, 3> decode_color(const std::string& color) {
     static const float INV_255 = 1.0f / 255.0f;
 
+    std::array<float, 3> ret;
+    const char* c = color.data() + 1;
+    if ((color.size() == 7) && (color.front() == '#')) {
+        for (size_t j = 0; j < 3; ++j) {
+            int digit1 = hex_digit_to_int(*c++);
+            int digit2 = hex_digit_to_int(*c++);
+            if ((digit1 == -1) || (digit2 == -1))
+                break;
+
+            ret[j] = float(digit1 * 16 + digit2) * INV_255;
+        }
+    }
+    return ret;
+}
+
+std::vector<std::array<float, 3>> decode_colors(const std::vector<std::string>& colors) {
     std::vector<std::array<float, 3>> output(colors.size(), { 0.0f, 0.0f, 0.0f });
     for (size_t i = 0; i < colors.size(); ++i) {
-        const std::string& color = colors[i];
-        const char* c = color.data() + 1;
-        if ((color.size() == 7) && (color.front() == '#')) {
-            for (size_t j = 0; j < 3; ++j) {
-                int digit1 = hex_digit_to_int(*c++);
-                int digit2 = hex_digit_to_int(*c++);
-                if ((digit1 == -1) || (digit2 == -1))
-                    break;
-
-                output[i][j] = float(digit1 * 16 + digit2) * INV_255;
-            }
-        }
+        output[i] = decode_color(colors[i]);
     }
     return output;
 }
@@ -1575,6 +1580,11 @@ void GCodeViewer::render_legend() const
         {
             // extruders
             for (unsigned int i = 0; i < (unsigned int)extruders_count; ++i) {
+                // shows only extruders actually used
+                auto it = std::find(m_extruder_ids.begin(), m_extruder_ids.end(), static_cast<unsigned char>(i));
+                if (it == m_extruder_ids.end())
+                    continue;
+
 #if USE_ICON_HEXAGON
                 add_item(EItemType::Hexagon, m_tool_colors[i], (boost::format(_u8L("Extruder %d")) % (i + 1)).str());
 #else
@@ -1671,14 +1681,9 @@ void GCodeViewer::render_legend() const
     ImGui::PopStyleVar();
 }
 
+
 void GCodeViewer::render_time_estimate() const
 {
-    static const std::vector<std::string> Columns_Headers = {
-        _u8L("Operation"),
-        _u8L("Remaining"),
-        _u8L("Duration")
-    };
-
     if (!m_time_estimate_enabled)
         return;
 
@@ -1686,94 +1691,87 @@ void GCodeViewer::render_time_estimate() const
     if (ps.estimated_normal_print_time == "N/A" && ps.estimated_silent_print_time == "N/A")
         return;
 
-    int columns_count = 1;
-    if (ps.estimated_silent_print_time != "N/A")
-        ++columns_count;
-
     ImGuiWrapper& imgui = *wxGetApp().imgui();
-    Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
-    imgui.set_next_window_pos(static_cast<float>(cnv_size.get_width()), static_cast<float>(cnv_size.get_height()), ImGuiCond_Always, 1.0f, 1.0f);
-    ImGui::SetNextWindowSizeConstraints(ImVec2(0.0f, 0.0f), ImVec2(-1.0f, 0.5f * static_cast<float>(cnv_size.get_height())));
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    ImGui::SetNextWindowBgAlpha(0.6f);
-    imgui.begin(std::string("Time_estimate"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
-
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    float icon_size = ImGui::GetTextLineHeight();
 
     using Time = std::pair<float, float>;
     using TimesList = std::vector<std::pair<CustomGCode::Type, Time>>;
-    using Headers = std::vector<std::string>;
-    using Offsets = std::array<float, 2>;
 
-    auto add_mode = [this, &imgui, icon_size, draw_list](const std::string& mode, const std::string& time, const TimesList& times, const Headers& headers) {
-        auto add_partial_times = [this, &imgui, icon_size, draw_list](const TimesList& times, const Headers& headers) {
-            auto add_color = [this, &imgui, icon_size, draw_list](int id, Offsets& offsets, const Time& time) {
-                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-                std::string text = _u8L("Color");
-                if (m_view_type != EViewType::ColorPrint)
-                    text += " " + std::to_string(id);
-                imgui.text(text);
-                ImGui::PopStyleColor();
-                ImGui::SameLine();
+    // helper structure containig the data needed to render the items
+    struct Item
+    {
+        CustomGCode::Type type;
+        int extruder_id;
+        Color color;
+        Time time;
+    };
+    using Items = std::vector<Item>;
 
-                if (m_view_type == EViewType::ColorPrint) {
-                    const Color& color = m_tool_colors[id - 1];
-                    ImVec2 pos = ImGui::GetCursorScreenPos();
-#if USE_ICON_HEXAGON
-                    ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
-                    draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 6);
-#else
-                    draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
-                        ImGui::GetColorU32({ m_tool_colors[i][0], m_tool_colors[i][1], m_tool_colors[i][2], 1.0f }));
-#endif // USE_ICON_HEXAGON
-                }
-                ImGui::SameLine(offsets[0]);
-                imgui.text(short_time(get_time_dhms(time.second)));
-                ImGui::SameLine(offsets[1]);
-                imgui.text(short_time(get_time_dhms(time.first)));
+    auto append_mode = [this, &imgui](const std::string& time_str, const Items& items) {
+        auto append_partial_times = [this, &imgui](const Items& items) {
+            using Headers = std::vector<std::string>;
+            const Headers headers = {
+                _u8L("Event"),
+                _u8L("Remaining"),
+                _u8L("Duration")
             };
-            auto calc_offsets = [this, icon_size](const TimesList& times, const Headers& headers, int color_change_count) {
+            using Offsets = std::array<float, 2>;
+            auto calc_offsets = [this, &headers](const Items& items) {
                 Offsets ret = { ImGui::CalcTextSize(headers[0].c_str()).x, ImGui::CalcTextSize(headers[1].c_str()).x };
-                for (const auto& [type, time] : times) {
+                for (const Item& item : items) {
                     std::string label;
-                    switch (type)
+                    switch (item.type)
                     {
-                    case CustomGCode::PausePrint:
-                    {
-                        label = _u8L("Pause");
-                        break;
-                    }
+                    case CustomGCode::PausePrint:  { label = _u8L("Pause"); break; }
                     case CustomGCode::ColorChange:
                     {
-                        label = _u8L("Color");
-                        if (m_view_type != EViewType::ColorPrint)
-                            label += " " + std::to_string(color_change_count);
+                        int extruders_count = wxGetApp().extruders_edited_cnt();
+                        label = (extruders_count > 1) ? _u8L("[XX] Color") : _u8L("Color");
                         break;
                     }
                     default: { break; }
                     }
 
                     ret[0] = std::max(ret[0], ImGui::CalcTextSize(label.c_str()).x);
-                    ret[1] = std::max(ret[1], ImGui::CalcTextSize(short_time(get_time_dhms(time.second)).c_str()).x);
+                    ret[1] = std::max(ret[1], ImGui::CalcTextSize(short_time(get_time_dhms(item.time.second)).c_str()).x);
                 }
 
                 const ImGuiStyle& style = ImGui::GetStyle();
-                ret[0] += icon_size + style.ItemSpacing.x;
+                ret[0] += ImGui::GetTextLineHeight() + 2.0f * style.ItemSpacing.x;
                 ret[1] += ret[0] + style.ItemSpacing.x;
                 return ret;
             };
+            auto append_color = [this, &imgui](int id, int extruder_id, const Color& color, Offsets& offsets, const Time& time) {
+                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
+                int extruders_count = wxGetApp().extruders_edited_cnt();
+                std::string text;
+                if (extruders_count > 1)
+                    text = "[" + std::to_string(extruder_id) + "] ";
+                text += _u8L("Color");
+                imgui.text(text);
+                ImGui::PopStyleColor();
+                ImGui::SameLine();
 
-            if (times.empty())
+                float icon_size = ImGui::GetTextLineHeight();
+                ImDrawList* draw_list = ImGui::GetWindowDrawList();
+                ImVec2 pos = ImGui::GetCursorScreenPos();
+                pos.x -= 0.5f * ImGui::GetStyle().ItemSpacing.x;
+#if USE_ICON_HEXAGON
+                ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
+                draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 6);
+#else
+                draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
+                    ImGui::GetColorU32({ m_tool_colors[i][0], m_tool_colors[i][1], m_tool_colors[i][2], 1.0f }));
+#endif // USE_ICON_HEXAGON
+                ImGui::SameLine(offsets[0]);
+                imgui.text(short_time(get_time_dhms(time.second)));
+                ImGui::SameLine(offsets[1]);
+                imgui.text(short_time(get_time_dhms(time.first)));
+            };
+
+            if (items.empty())
                 return;
 
-            int color_change_count = 0;
-            for (auto time : times) {
-                if (time.first == CustomGCode::ColorChange)
-                    ++color_change_count;
-            }
-
-            Offsets offsets = calc_offsets(times, headers, color_change_count);
+            Offsets offsets = calc_offsets(items);
 
             ImGui::Spacing();
             ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
@@ -1783,13 +1781,11 @@ void GCodeViewer::render_time_estimate() const
             ImGui::SameLine(offsets[1]);
             imgui.text(headers[2]);
             ImGui::PopStyleColor();
+            ImGui::Separator();
 
-            int last_color_id = color_change_count;
-
-            for (int i = static_cast<int>(times.size()) - 1; i >= 0; --i) {
-                const auto& [type, time] = times[i];
-
-                switch (type)
+            unsigned int last_color_id = 0;
+            for (const Item& item : items) {
+                switch (item.type)
                 {
                 case CustomGCode::PausePrint:
                 {
@@ -1797,15 +1793,13 @@ void GCodeViewer::render_time_estimate() const
                     imgui.text(_u8L("Pause"));
                     ImGui::PopStyleColor();
                     ImGui::SameLine(offsets[0]);
-                    imgui.text(short_time(get_time_dhms(time.second - time.first)));
-
-                    add_color(last_color_id, offsets, time);
+                    imgui.text(short_time(get_time_dhms(item.time.second - item.time.first)));
                     break;
                 }
                 case CustomGCode::ColorChange:
                 {
-                    add_color(color_change_count, offsets, time);
-                    last_color_id = color_change_count--;
+                    append_color(last_color_id, item.extruder_id, item.color, offsets, item.time);
+                    ++last_color_id;
                     break;
                 }
                 default: { break; }
@@ -1814,24 +1808,82 @@ void GCodeViewer::render_time_estimate() const
         };
 
         ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-        imgui.text(mode + ":");
+        imgui.text(_u8L("Time") + ":");
         ImGui::PopStyleColor();
         ImGui::SameLine();
-        imgui.text(time);
-        add_partial_times(times, headers);
+        imgui.text(time_str);
+        append_partial_times(items);
     };
+
+    auto generate_items = [this](const TimesList& times) {
+        std::vector<Item> items;
+
+        std::vector<CustomGCode::Item> custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
+        int extruders_count = wxGetApp().extruders_edited_cnt();
+        std::vector<Color> last_color(extruders_count);
+        for (int i = 0; i < extruders_count; ++i) {
+            last_color[i] = m_tool_colors[i];
+        }
+        int last_extruder_id = 1;
+        for (const auto& time_rec : times) {
+            switch (time_rec.first)
+            {
+            case CustomGCode::PausePrint:
+            {
+                auto it = std::find_if(custom_gcode_per_print_z.begin(), custom_gcode_per_print_z.end(), [time_rec](const CustomGCode::Item& item) { return item.type == time_rec.first; });
+                if (it != custom_gcode_per_print_z.end()) {
+                    items.push_back({ CustomGCode::ColorChange, it->extruder, last_color[it->extruder - 1], time_rec.second });
+                    items.push_back({ time_rec.first, it->extruder, last_color[it->extruder - 1], time_rec.second });
+                    custom_gcode_per_print_z.erase(it);
+                }
+                break;
+            }
+            case CustomGCode::ColorChange:
+            {
+                auto it = std::find_if(custom_gcode_per_print_z.begin(), custom_gcode_per_print_z.end(), [time_rec](const CustomGCode::Item& item) { return item.type == time_rec.first; });
+                if (it != custom_gcode_per_print_z.end()) {
+                    items.push_back({ time_rec.first, it->extruder, last_color[it->extruder - 1], time_rec.second });
+                    last_color[it->extruder - 1] = decode_color(it->color);
+                    last_extruder_id = it->extruder;
+                    custom_gcode_per_print_z.erase(it);
+                }
+                else
+                    items.push_back({ time_rec.first, last_extruder_id, last_color[last_extruder_id - 1], time_rec.second });
+
+                break;
+            }
+            default: { break; }
+            }
+        }
+
+        return items;
+    };
+
+    Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
+    imgui.set_next_window_pos(static_cast<float>(cnv_size.get_width()), static_cast<float>(cnv_size.get_height()), ImGuiCond_Always, 1.0f, 1.0f);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(0.0f, 0.0f), ImVec2(-1.0f, 0.5f * static_cast<float>(cnv_size.get_height())));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::SetNextWindowBgAlpha(0.6f);
+    imgui.begin(std::string("Time_estimate_2"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
 
     // title
     imgui.title(_u8L("Estimated printing time"));
 
-    // times
-    if (ps.estimated_normal_print_time != "N/A")
-        add_mode(_u8L("Normal mode"), ps.estimated_normal_print_time, ps.estimated_normal_custom_gcode_print_times, Columns_Headers);
-
-    if (ps.estimated_silent_print_time != "N/A") {
-        ImGui::Separator();
-        add_mode(_u8L("Stealth mode"), ps.estimated_silent_print_time, ps.estimated_silent_custom_gcode_print_times, Columns_Headers);
+    // mode tabs
+    ImGui::BeginTabBar("mode_tabs");
+    if (ps.estimated_normal_print_time != "N/A") {
+        if (ImGui::BeginTabItem(_u8L("Normal").c_str())) {
+            append_mode(ps.estimated_normal_print_time, generate_items(ps.estimated_normal_custom_gcode_print_times));
+            ImGui::EndTabItem();
+        }
     }
+    if (ps.estimated_silent_print_time != "N/A") {
+        if (ImGui::BeginTabItem(_u8L("Stealth").c_str())) {
+            append_mode(ps.estimated_silent_print_time, generate_items(ps.estimated_silent_custom_gcode_print_times));
+            ImGui::EndTabItem();
+        }
+    }
+    ImGui::EndTabBar();
 
     imgui.end();
     ImGui::PopStyleVar();
