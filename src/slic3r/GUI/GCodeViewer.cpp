@@ -1351,7 +1351,7 @@ void GCodeViewer::render_legend() const
         Line
     };
 
-    auto add_item = [this, draw_list, &imgui](EItemType type, const Color& color, const std::string& label, std::function<void()> callback = nullptr) {
+    auto append_item = [this, draw_list, &imgui](EItemType type, const Color& color, const std::string& label, std::function<void()> callback = nullptr) {
         float icon_size = ImGui::GetTextLineHeight();
         ImVec2 pos = ImGui::GetCursorScreenPos();
         switch (type)
@@ -1419,26 +1419,73 @@ void GCodeViewer::render_legend() const
             imgui.text(label);
     };
 
-    auto add_range = [this, draw_list, &imgui, add_item](const Extrusions::Range& range, unsigned int decimals) {
-        auto add_range_item = [this, draw_list, &imgui, add_item](int i, float value, unsigned int decimals) {
+    auto append_range = [this, draw_list, &imgui, append_item](const Extrusions::Range& range, unsigned int decimals) {
+        auto append_range_item = [this, draw_list, &imgui, append_item](int i, float value, unsigned int decimals) {
             char buf[1024];
             ::sprintf(buf, "%.*f", decimals, value);
 #if USE_ICON_HEXAGON
-            add_item(EItemType::Hexagon, Range_Colors[i], buf);
+            append_item(EItemType::Hexagon, Range_Colors[i], buf);
 #else
-            add_item(EItemType::Rect, Range_Colors[i], buf);
+            append_item(EItemType::Rect, Range_Colors[i], buf);
 #endif // USE_ICON_HEXAGON
         };
 
         float step_size = range.step_size();
         if (step_size == 0.0f)
             // single item use case
-            add_range_item(0, range.min, decimals);
+            append_range_item(0, range.min, decimals);
         else {
             for (int i = static_cast<int>(Range_Colors.size()) - 1; i >= 0; --i) {
-                add_range_item(i, range.min + static_cast<float>(i) * step_size, decimals);
+                append_range_item(i, range.min + static_cast<float>(i) * step_size, decimals);
             }
         }
+    };
+
+    auto color_print_ranges = [this](unsigned char extruder_id, const std::vector<CustomGCode::Item>& custom_gcode_per_print_z) {
+        std::vector<std::pair<Color, std::pair<double, double>>> ret;
+        ret.reserve(custom_gcode_per_print_z.size());
+
+        for (const auto& item : custom_gcode_per_print_z) {
+            if (extruder_id + 1 != static_cast<unsigned char>(item.extruder))
+                continue;
+
+            if (item.type != ColorChange)
+                continue;
+
+            auto lower_b = std::lower_bound(m_layers_zs.begin(), m_layers_zs.end(), item.print_z - Slic3r::DoubleSlider::epsilon());
+
+            if (lower_b == m_layers_zs.end())
+                continue;
+
+            double current_z = *lower_b;
+            double previous_z = lower_b == m_layers_zs.begin() ? 0.0 : *(--lower_b);
+
+            // to avoid duplicate values, check adding values
+            if (ret.empty() || !(ret.back().second.first == previous_z && ret.back().second.second == current_z))
+                ret.push_back({ decode_color(item.color), { previous_z, current_z } });
+        }
+
+        return ret;
+    };
+
+    auto upto_label = [](double z) {
+        char buf[64];
+        ::sprintf(buf, "%.2f", z);
+        return _u8L("up to") + " " + std::string(buf) + " " + _u8L("mm");
+    };
+
+    auto above_label = [](double z) {
+        char buf[64];
+        ::sprintf(buf, "%.2f", z);
+        return _u8L("above") + " " + std::string(buf) + " " + _u8L("mm");
+    };
+
+    auto fromto_label = [](double z1, double z2) {
+        char buf1[64];
+        ::sprintf(buf1, "%.2f", z1);
+        char buf2[64];
+        ::sprintf(buf2, "%.2f", z2);
+        return _u8L("from") + " " + std::string(buf1) + " " + _u8L("to") + " " + std::string(buf2) + " " + _u8L("mm");
     };
 
     // extrusion paths -> title
@@ -1466,9 +1513,9 @@ void GCodeViewer::render_legend() const
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
 
 #if USE_ICON_HEXAGON
-            add_item(EItemType::Hexagon, Extrusion_Role_Colors[static_cast<unsigned int>(role)], _u8L(ExtrusionEntity::role_to_string(role)), [this, role]() {
+            append_item(EItemType::Hexagon, Extrusion_Role_Colors[static_cast<unsigned int>(role)], _u8L(ExtrusionEntity::role_to_string(role)), [this, role]() {
 #else
-            add_item(EItemType::Rect, Extrusion_Role_Colors[static_cast<unsigned int>(role)], _u8L(ExtrusionEntity::role_to_string(role)), [this, role]() {
+            append_item(EItemType::Rect, Extrusion_Role_Colors[static_cast<unsigned int>(role)], _u8L(ExtrusionEntity::role_to_string(role)), [this, role]() {
 #endif // USE_ICON_HEXAGON
                 if (role < erCount)
                 {
@@ -1485,24 +1532,19 @@ void GCodeViewer::render_legend() const
         }
         break;
     }
-    case EViewType::Height:         { add_range(m_extrusions.ranges.height, 3); break; }
-    case EViewType::Width:          { add_range(m_extrusions.ranges.width, 3); break; }
-    case EViewType::Feedrate:       { add_range(m_extrusions.ranges.feedrate, 1); break; }
-    case EViewType::FanSpeed:       { add_range(m_extrusions.ranges.fan_speed, 0); break; }
-    case EViewType::VolumetricRate: { add_range(m_extrusions.ranges.volumetric_rate, 3); break; }
+    case EViewType::Height:         { append_range(m_extrusions.ranges.height, 3); break; }
+    case EViewType::Width:          { append_range(m_extrusions.ranges.width, 3); break; }
+    case EViewType::Feedrate:       { append_range(m_extrusions.ranges.feedrate, 1); break; }
+    case EViewType::FanSpeed:       { append_range(m_extrusions.ranges.fan_speed, 0); break; }
+    case EViewType::VolumetricRate: { append_range(m_extrusions.ranges.volumetric_rate, 3); break; }
     case EViewType::Tool:
     {
-        size_t tools_count = m_tool_colors.size();
-        for (size_t i = 0; i < tools_count; ++i) {
-            // shows only extruders actually used
-            auto it = std::find(m_extruder_ids.begin(), m_extruder_ids.end(), static_cast<unsigned char>(i));
-            if (it == m_extruder_ids.end())
-                continue;
-
+        // shows only extruders actually used
+        for (unsigned char i : m_extruder_ids) {
 #if USE_ICON_HEXAGON
-            add_item(EItemType::Hexagon, m_tool_colors[i], (boost::format(_u8L("Extruder %d")) % (i + 1)).str());
+            append_item(EItemType::Hexagon, m_tool_colors[i], _u8L("Extruder") + " " + std::to_string(i + 1));
 #else
-            add_item(EItemType::Rect, m_tool_colors[i], (boost::format(_u8L("Extruder %d")) % (i + 1)).str());
+            append_item(EItemType::Rect, m_tool_colors[i], _u8L("Extruder") + " " + std::to_string(i + 1));
 #endif // USE_ICON_HEXAGON
         }
         break;
@@ -1512,97 +1554,85 @@ void GCodeViewer::render_legend() const
         const std::vector<CustomGCode::Item>& custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
         const int extruders_count = wxGetApp().extruders_edited_cnt();
         if (extruders_count == 1) { // single extruder use case
-            if (custom_gcode_per_print_z.empty())
-                // no data to show
+            std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(0, custom_gcode_per_print_z);
+            const int items_cnt = static_cast<int>(cp_values.size());
+            if (items_cnt == 0) { // There are no color changes, but there are some pause print or custom Gcode
 #if USE_ICON_HEXAGON
-                add_item(EItemType::Hexagon, m_tool_colors.front(), _u8L("Default print color"));
+                append_item(EItemType::Hexagon, m_tool_colors.front(), _u8L("Default color"));
 #else
-                add_item(EItemType::Rect, m_tool_colors.front(), _u8L("Default print color"));
+                append_item(EItemType::Rect, m_tool_colors.front(), _u8L("Default color"));
 #endif // USE_ICON_HEXAGON
+            }
             else {
-                std::vector<std::pair<double, double>> cp_values;
-                cp_values.reserve(custom_gcode_per_print_z.size());
-
-                for (auto custom_code : custom_gcode_per_print_z) {
-                    if (custom_code.type != ColorChange)
-                        continue;
-
-                    auto lower_b = std::lower_bound(m_layers_zs.begin(), m_layers_zs.end(), custom_code.print_z - Slic3r::DoubleSlider::epsilon());
-
-                    if (lower_b == m_layers_zs.end())
-                        continue;
-
-                    double current_z = *lower_b;
-                    double previous_z = lower_b == m_layers_zs.begin() ? 0.0 : *(--lower_b);
-
-                    // to avoid duplicate values, check adding values
-                    if (cp_values.empty() || !(cp_values.back().first == previous_z && cp_values.back().second == current_z))
-                        cp_values.emplace_back(std::make_pair(previous_z, current_z));
-                }
-
-                const int items_cnt = static_cast<int>(cp_values.size());
-                if (items_cnt == 0) { // There is no one color change, but there are some pause print or custom Gcode
+                for (int i = items_cnt; i >= 0; --i) {
+                    // create label for color change item
+                    if (i == 0) {
 #if USE_ICON_HEXAGON
-                    add_item(EItemType::Hexagon, m_tool_colors.front(), _u8L("Default print color"));
+                        append_item(EItemType::Hexagon, m_tool_colors[0], upto_label(cp_values.front().second.first));
 #else
-                    add_item(EItemType::Rect, m_tool_colors.front(), _u8L("Default print color"));
+                        append_item(EItemType::Rect, m_tool_colors[0], upto_label(cp_values.front().second.first);
 #endif // USE_ICON_HEXAGON
-                }
-                else {
-                    for (int i = items_cnt; i >= 0; --i) {
-                        // create label for color change item
-                        if (i == 0) {
-#if USE_ICON_HEXAGON
-                            add_item(EItemType::Hexagon, m_tool_colors[i], (boost::format(_u8L("up to %.2f mm")) % cp_values.front().first).str());
-#else
-                            add_item(EItemType::Rect, m_tool_colors[i], (boost::format(_u8L("up to %.2f mm")) % cp_values.front().first).str());
-#endif // USE_ICON_HEXAGON
-                            break;
-                        }
-                        else if (i == items_cnt) {
-#if USE_ICON_HEXAGON
-                            add_item(EItemType::Hexagon, m_tool_colors[i], (boost::format(_u8L("above %.2f mm")) % cp_values[i - 1].second).str());
-#else
-                            add_item(EItemType::Rect, m_tool_colors[i], (boost::format(_u8L("above %.2f mm")) % cp_values[i - 1].second).str());
-#endif // USE_ICON_HEXAGON
-                            continue;
-                        }
-#if USE_ICON_HEXAGON
-                        add_item(EItemType::Hexagon, m_tool_colors[i], (boost::format(_u8L("%.2f - %.2f mm")) % cp_values[i - 1].second % cp_values[i].first).str());
-#else
-                        add_item(EItemType::Rect, m_tool_colors[i], (boost::format(_u8L("%.2f - %.2f mm")) % cp_values[i - 1].second % cp_values[i].first).str());
-#endif // USE_ICON_HEXAGON
+                        break;
                     }
+                    else if (i == items_cnt) {
+#if USE_ICON_HEXAGON
+                        append_item(EItemType::Hexagon, cp_values[i - 1].first, above_label(cp_values[i - 1].second.second));
+#else
+                        append_item(EItemType::Rect, cp_values[i - 1].first, above_label(cp_values[i - 1].second.second);
+#endif // USE_ICON_HEXAGON
+                        continue;
+                    }
+#if USE_ICON_HEXAGON
+                    append_item(EItemType::Hexagon, cp_values[i - 1].first, fromto_label(cp_values[i - 1].second.second, cp_values[i].second.first));
+#else
+                    append_item(EItemType::Rect, cp_values[i - 1].first, fromto_label(cp_values[i - 1].second.second, cp_values[i].second.first));
+#endif // USE_ICON_HEXAGON
                 }
             }
         }
         else // multi extruder use case
         {
-            // extruders
-            for (unsigned int i = 0; i < (unsigned int)extruders_count; ++i) {
-                // shows only extruders actually used
-                auto it = std::find(m_extruder_ids.begin(), m_extruder_ids.end(), static_cast<unsigned char>(i));
-                if (it == m_extruder_ids.end())
-                    continue;
-
+            // shows only extruders actually used
+            for (unsigned char i : m_extruder_ids) {
+                std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(i, custom_gcode_per_print_z);
+                const int items_cnt = static_cast<int>(cp_values.size());
+                if (items_cnt == 0) { // There are no color changes, but there are some pause print or custom Gcode
 #if USE_ICON_HEXAGON
-                add_item(EItemType::Hexagon, m_tool_colors[i], (boost::format(_u8L("Extruder %d")) % (i + 1)).str());
+                    append_item(EItemType::Hexagon, m_tool_colors[i], _u8L("Extruder") + " " + std::to_string(i + 1) + " " + _u8L("default color"));
 #else
-                add_item(EItemType::Rect, m_tool_colors[i], (boost::format(_u8L("Extruder %d")) % (i + 1)).str());
+                    append_item(EItemType::Rect, m_tool_colors[i], _u8L("Extruder") + " " + std::to_string(i + 1) + " " + _u8L("default color"));
 #endif // USE_ICON_HEXAGON
-            }
-
-            // color changes
-            int color_change_idx = 1 + static_cast<int>(m_tool_colors.size()) - extruders_count;
-            size_t last_color_id = m_tool_colors.size() - 1;
-            for (int i = static_cast<int>(custom_gcode_per_print_z.size()) - 1; i >= 0; --i) {
-                if (custom_gcode_per_print_z[i].type == ColorChange) {
+                }
+                else {
+                    for (int j = items_cnt; j >= 0; --j) {
+                        // create label for color change item
+                        std::string label = _u8L("Extruder") + " " + std::to_string(i + 1);
+                        if (j == 0) {
+                            label += " " + upto_label(cp_values.front().second.first);
 #if USE_ICON_HEXAGON
-                    add_item(EItemType::Hexagon, m_tool_colors[last_color_id--],
+                            append_item(EItemType::Hexagon, m_tool_colors[i], label);
 #else
-                    add_item(EItemType::Rect, m_tool_colors[last_color_id--],
+                            append_item(EItemType::Rect, m_tool_colors[i], label);
 #endif // USE_ICON_HEXAGON
-                        (boost::format(_u8L("Color change for Extruder %d at %.2f mm")) % custom_gcode_per_print_z[i].extruder % custom_gcode_per_print_z[i].print_z).str());
+                            break;
+                        }
+                        else if (j == items_cnt) {
+                            label += " " + above_label(cp_values[j - 1].second.second);
+#if USE_ICON_HEXAGON
+                            append_item(EItemType::Hexagon, cp_values[j - 1].first, label);
+#else
+                            append_item(EItemType::Rect, cp_values[j - 1].first, label);
+#endif // USE_ICON_HEXAGON
+                            continue;
+                        }
+
+                        label += " " + fromto_label(cp_values[j - 1].second.second, cp_values[j].second.first);
+#if USE_ICON_HEXAGON
+                        append_item(EItemType::Hexagon, cp_values[j - 1].first, label);
+#else
+                        append_item(EItemType::Rect, cp_values[j - 1].first, label);
+#endif // USE_ICON_HEXAGON
+                    }
                 }
             }
         }
@@ -1629,9 +1659,9 @@ void GCodeViewer::render_legend() const
             imgui.title(_u8L("Travel"));
 
             // items
-            add_item(EItemType::Line, Travel_Colors[0], _u8L("Movement"));
-            add_item(EItemType::Line, Travel_Colors[1], _u8L("Extrusion"));
-            add_item(EItemType::Line, Travel_Colors[2], _u8L("Retraction"));
+            append_item(EItemType::Line, Travel_Colors[0], _u8L("Movement"));
+            append_item(EItemType::Line, Travel_Colors[1], _u8L("Extrusion"));
+            append_item(EItemType::Line, Travel_Colors[2], _u8L("Retraction"));
 
             break;
         }
@@ -1652,13 +1682,13 @@ void GCodeViewer::render_legend() const
             available(GCodeProcessor::EMoveType::Unretract);
     };
 
-    auto add_option = [this, add_item](GCodeProcessor::EMoveType move_type, EOptionsColors color, const std::string& text) {
+    auto add_option = [this, append_item](GCodeProcessor::EMoveType move_type, EOptionsColors color, const std::string& text) {
         const TBuffer& buffer = m_buffers[buffer_id(move_type)];
         if (buffer.visible && buffer.indices.count > 0)
 #if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
-            add_item((m_shaders_editor.points.shader_version == 0) ? EItemType::Rect : EItemType::Circle, Options_Colors[static_cast<unsigned int>(color)], text);
+            append_item((m_shaders_editor.points.shader_version == 0) ? EItemType::Rect : EItemType::Circle, Options_Colors[static_cast<unsigned int>(color)], text);
 #else
-            add_item((buffer.shader == "options_110") ? EItemType::Rect : EItemType::Circle, Options_Colors[static_cast<unsigned int>(color)], text);
+            append_item((buffer.shader == "options_110") ? EItemType::Rect : EItemType::Circle, Options_Colors[static_cast<unsigned int>(color)], text);
 #endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
     };
 
@@ -1680,7 +1710,6 @@ void GCodeViewer::render_legend() const
     imgui.end();
     ImGui::PopStyleVar();
 }
-
 
 void GCodeViewer::render_time_estimate() const
 {
@@ -1724,8 +1753,7 @@ void GCodeViewer::render_time_estimate() const
                     case CustomGCode::PausePrint:  { label = _u8L("Pause"); break; }
                     case CustomGCode::ColorChange:
                     {
-                        int extruders_count = wxGetApp().extruders_edited_cnt();
-                        label = (extruders_count > 1) ? _u8L("[XX] Color") : _u8L("Color");
+                        label = (wxGetApp().extruders_edited_cnt() > 1) ? _u8L("[XX] Color") : _u8L("Color");
                         break;
                     }
                     default: { break; }
@@ -1742,9 +1770,8 @@ void GCodeViewer::render_time_estimate() const
             };
             auto append_color = [this, &imgui](int id, int extruder_id, const Color& color, Offsets& offsets, const Time& time) {
                 ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-                int extruders_count = wxGetApp().extruders_edited_cnt();
                 std::string text;
-                if (extruders_count > 1)
+                if (wxGetApp().extruders_edited_cnt() > 1)
                     text = "[" + std::to_string(extruder_id) + "] ";
                 text += _u8L("Color");
                 imgui.text(text);
