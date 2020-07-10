@@ -1728,9 +1728,16 @@ void GCodeViewer::render_time_estimate() const
     // helper structure containig the data needed to render the items
     struct Item
     {
-        CustomGCode::Type type;
+        enum class EType : unsigned char
+        {
+            Print,
+            ColorChange,
+            Pause
+        };
+        EType type;
         int extruder_id;
-        Color color;
+        Color color1;
+        Color color2;
         Time time;
     };
     using Items = std::vector<Item>;
@@ -1750,13 +1757,9 @@ void GCodeViewer::render_time_estimate() const
                     std::string label;
                     switch (item.type)
                     {
-                    case CustomGCode::PausePrint:  { label = _u8L("Pause"); break; }
-                    case CustomGCode::ColorChange:
-                    {
-                        label = (wxGetApp().extruders_edited_cnt() > 1) ? _u8L("[XX] Color") : _u8L("Color");
-                        break;
-                    }
-                    default: { break; }
+                    case Item::EType::Print:       { label = _u8L("Print"); break; }
+                    case Item::EType::Pause:       { label = _u8L("Pause"); break; }
+                    case Item::EType::ColorChange: { label = _u8L("Color change"); break; }
                     }
 
                     ret[0] = std::max(ret[0], ImGui::CalcTextSize(label.c_str()).x);
@@ -1764,17 +1767,13 @@ void GCodeViewer::render_time_estimate() const
                 }
 
                 const ImGuiStyle& style = ImGui::GetStyle();
-                ret[0] += ImGui::GetTextLineHeight() + 2.0f * style.ItemSpacing.x;
+                ret[0] += 2.0f * (ImGui::GetTextLineHeight() + style.ItemSpacing.x);
                 ret[1] += ret[0] + style.ItemSpacing.x;
                 return ret;
             };
-            auto append_color = [this, &imgui](int id, int extruder_id, const Color& color, Offsets& offsets, const Time& time) {
+            auto append_color = [this, &imgui](const Color& color1, const Color& color2, Offsets& offsets, const Time& time) {
                 ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-                std::string text;
-                if (wxGetApp().extruders_edited_cnt() > 1)
-                    text = "[" + std::to_string(extruder_id) + "] ";
-                text += _u8L("Color");
-                imgui.text(text);
+                imgui.text(_u8L("Color change"));
                 ImGui::PopStyleColor();
                 ImGui::SameLine();
 
@@ -1784,15 +1783,18 @@ void GCodeViewer::render_time_estimate() const
                 pos.x -= 0.5f * ImGui::GetStyle().ItemSpacing.x;
 #if USE_ICON_HEXAGON
                 ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
-                draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 6);
+                draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color1[0], color1[1], color1[2], 1.0f }), 6);
+                center.x += icon_size;
+                draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color2[0], color2[1], color2[2], 1.0f }), 6);
 #else
                 draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
-                    ImGui::GetColorU32({ m_tool_colors[i][0], m_tool_colors[i][1], m_tool_colors[i][2], 1.0f }));
+                    ImGui::GetColorU32({ color1[0], color1[1], color1[2], 1.0f }));
+                pos.x += icon_size;
+                draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
+                    ImGui::GetColorU32({ color2[0], color2[1], color2[2], 1.0f }));
 #endif // USE_ICON_HEXAGON
                 ImGui::SameLine(offsets[0]);
-                imgui.text(short_time(get_time_dhms(time.second)));
-                ImGui::SameLine(offsets[1]);
-                imgui.text(short_time(get_time_dhms(time.first)));
+                imgui.text(short_time(get_time_dhms(time.second - time.first)));
             };
 
             if (items.empty())
@@ -1810,11 +1812,21 @@ void GCodeViewer::render_time_estimate() const
             ImGui::PopStyleColor();
             ImGui::Separator();
 
-            unsigned int last_color_id = 0;
             for (const Item& item : items) {
                 switch (item.type)
                 {
-                case CustomGCode::PausePrint:
+                case Item::EType::Print:
+                {
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
+                    imgui.text(_u8L("Print"));
+                    ImGui::PopStyleColor();
+                    ImGui::SameLine(offsets[0]);
+                    imgui.text(short_time(get_time_dhms(item.time.second)));
+                    ImGui::SameLine(offsets[1]);
+                    imgui.text(short_time(get_time_dhms(item.time.first)));
+                    break;
+                }
+                case Item::EType::Pause:
                 {
                     ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
                     imgui.text(_u8L("Pause"));
@@ -1823,13 +1835,11 @@ void GCodeViewer::render_time_estimate() const
                     imgui.text(short_time(get_time_dhms(item.time.second - item.time.first)));
                     break;
                 }
-                case CustomGCode::ColorChange:
+                case Item::EType::ColorChange:
                 {
-                    append_color(last_color_id, item.extruder_id, item.color, offsets, item.time);
-                    ++last_color_id;
+                    append_color(item.color1, item.color2, offsets, item.time);
                     break;
                 }
-                default: { break; }
                 }
             }
         };
@@ -1859,8 +1869,8 @@ void GCodeViewer::render_time_estimate() const
             {
                 auto it = std::find_if(custom_gcode_per_print_z.begin(), custom_gcode_per_print_z.end(), [time_rec](const CustomGCode::Item& item) { return item.type == time_rec.first; });
                 if (it != custom_gcode_per_print_z.end()) {
-                    items.push_back({ CustomGCode::ColorChange, it->extruder, last_color[it->extruder - 1], time_rec.second });
-                    items.push_back({ time_rec.first, it->extruder, last_color[it->extruder - 1], time_rec.second });
+                    items.push_back({ Item::EType::Print, it->extruder, Color(), Color(), time_rec.second });
+                    items.push_back({ Item::EType::Pause, it->extruder, Color(), Color(), time_rec.second });
                     custom_gcode_per_print_z.erase(it);
                 }
                 break;
@@ -1869,13 +1879,14 @@ void GCodeViewer::render_time_estimate() const
             {
                 auto it = std::find_if(custom_gcode_per_print_z.begin(), custom_gcode_per_print_z.end(), [time_rec](const CustomGCode::Item& item) { return item.type == time_rec.first; });
                 if (it != custom_gcode_per_print_z.end()) {
-                    items.push_back({ time_rec.first, it->extruder, last_color[it->extruder - 1], time_rec.second });
+                    items.push_back({ Item::EType::Print, it->extruder, Color(), Color(), time_rec.second });
+                    items.push_back({ Item::EType::ColorChange, it->extruder, last_color[it->extruder - 1], decode_color(it->color), time_rec.second });
                     last_color[it->extruder - 1] = decode_color(it->color);
                     last_extruder_id = it->extruder;
                     custom_gcode_per_print_z.erase(it);
                 }
                 else
-                    items.push_back({ time_rec.first, last_extruder_id, last_color[last_extruder_id - 1], time_rec.second });
+                    items.push_back({ Item::EType::Print, last_extruder_id, Color(), Color(), time_rec.second });
 
                 break;
             }
