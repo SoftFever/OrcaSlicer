@@ -2210,17 +2210,17 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     }
 
     const auto loading = _L("Loading") + dots;
-    wxProgressDialog dlg(loading, loading);
+    wxProgressDialog dlg(loading, "", 100, q, wxPD_AUTO_HIDE);
     dlg.Pulse();
 
     auto *new_model = (!load_model || one_by_one) ? nullptr : new Slic3r::Model();
     std::vector<size_t> obj_idxs;
 
-    for (size_t i = 0; i < input_files.size(); i++) {
+    for (size_t i = 0; i < input_files.size(); ++i) {
         const auto &path = input_files[i];
         const auto filename = path.filename();
-        const auto dlg_info = format_wxstr(_L("Processing input file %s"), from_path(filename)) + "\n";
-        dlg.Update(100 * i / input_files.size(), dlg_info);
+        const auto dlg_info = _L("Loading file") + ": " + from_path(filename);
+        dlg.Update(static_cast<int>(100.0f * static_cast<float>(i) / static_cast<float>(input_files.size())), dlg_info);
 
         const bool type_3mf = std::regex_match(path.string(), pattern_3mf);
         const bool type_zip_amf = !type_3mf && std::regex_match(path.string(), pattern_zip_amf);

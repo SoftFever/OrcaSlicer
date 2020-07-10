@@ -633,9 +633,9 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 {
     mainframe->shutdown();
 
-    wxProgressDialog dlg(msg_name, msg_name);
+    wxProgressDialog dlg(msg_name, msg_name, 100, nullptr, wxPD_AUTO_HIDE);
     dlg.Pulse();
-    dlg.Update(10, _(L("Recreating")) + dots);
+    dlg.Update(10, _L("Recreating") + dots);
 
     MainFrame *old_main_frame = mainframe;
     mainframe = new MainFrame();
@@ -645,17 +645,17 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
     sidebar().obj_list()->init_objects();
     SetTopWindow(mainframe);
 
-    dlg.Update(30, _(L("Recreating")) + dots);
+    dlg.Update(30, _L("Recreating") + dots);
     old_main_frame->Destroy();
     // For this moment ConfigWizard is deleted, invalidate it.
     m_wizard = nullptr;
 
-    dlg.Update(80, _(L("Loading of current presets")) + dots);
+    dlg.Update(80, _L("Loading of current presets") + dots);
     m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
     load_current_presets();
     mainframe->Show(true);
 
-    dlg.Update(90, _(L("Loading of a mode view")) + dots);
+    dlg.Update(90, _L("Loading of a mode view") + dots);
     /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
     * change min hight of object list to the normal min value (15 * wxGetApp().em_unit())
     * after first whole Mainframe updating/layouting

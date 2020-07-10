@@ -1303,10 +1303,10 @@ void MainFrame::quick_slice(const int qs)
     }
 
     // show processbar dialog
-    m_progress_dialog = new wxProgressDialog(_(L("Slicing")) + dots, 
-    // TRN "Processing input_file_basename"
-                                             from_u8((boost::format(_utf8(L("Processing %s"))) % (input_file_basename + dots)).str()),
-        100, this, 4);
+    m_progress_dialog = new wxProgressDialog(_L("Slicing") + dots,
+        // TRN "Processing input_file_basename"
+        from_u8((boost::format(_utf8(L("Processing %s"))) % (input_file_basename + dots)).str()),
+        100, nullptr, wxPD_AUTO_HIDE);
     m_progress_dialog->Pulse();
     {
 //         my @warnings = ();
