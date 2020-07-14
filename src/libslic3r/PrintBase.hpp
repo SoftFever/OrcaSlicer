@@ -13,6 +13,7 @@
 #endif
 #include "tbb/mutex.h"
 
+#include "ObjectID.hpp"
 #include "Model.hpp"
 #include "PlaceholderParser.hpp"
 #include "PrintConfig.hpp"
@@ -32,6 +33,11 @@ public:
         DONE,
     };
 
+    enum class WarningLevel {
+        NON_CRITICAL,
+        CRITICAL
+    };
+
     typedef size_t TimeStamp;
 
     // A new unique timestamp is being assigned to the step every time the step changes its state.
@@ -40,6 +46,17 @@ public:
         StateWithTimeStamp() : state(INVALID), timestamp(0) {}
         State       state;
         TimeStamp   timestamp;
+    };
+
+    struct Warning
+    {
+        WarningLevel    level;
+        std::string     message;
+    };
+
+    struct StateWithWarnings : public StateWithTimeStamp
+    {
+        std::vector<Warning>    warnings;
     };
 
 protected:
@@ -56,9 +73,15 @@ class PrintState : public PrintStateBase
 public:
     PrintState() {}
 
-    StateWithTimeStamp state_with_timestamp(StepType step, tbb::mutex &mtx) const { 
+    StateWithTimeStamp state_with_timestamp(StepType step, tbb::mutex &mtx) const {
         tbb::mutex::scoped_lock lock(mtx);
         StateWithTimeStamp state = m_state[step];
+        return state;
+    }
+
+    StateWithWarnings state_with_warnings(StepType step, tbb::mutex &mtx) const {
+        tbb::mutex::scoped_lock lock(mtx);
+        StateWithWarnings state = m_state[step];
         return state;
     }
 
@@ -91,10 +114,26 @@ public:
         tbb::mutex::scoped_lock lock(mtx);
         // If canceled, throw before changing the step state.
         throw_if_canceled();
+#ifndef NDEBUG
+// The following test is not necessarily valid after the background processing thread
+// is stopped with throw_if_canceled(), as the CanceledException is not being catched
+// by the Print or PrintObject to update m_step_active or m_state[...].state.
+// This should not be a problem as long as the caller calls set_started() / set_done() /
+// active_step_add_warning() consistently. From the robustness point of view it would be
+// be better to catch CanceledException and do the updates. From the performance point of view,
+// the current implementation is optimal.
+//
+//        assert(m_step_active == -1);
+//        for (int i = 0; i < int(COUNT); ++ i)
+//            assert(m_state[i].state != STARTED);
+#endif // NDEBUG
         if (m_state[step].state == DONE)
             return false;
-        m_state[step].state = STARTED;
-        m_state[step].timestamp = ++ g_last_timestamp;
+        PrintStateBase::StateWithWarnings &state = m_state[step];
+        state.state = STARTED;
+        state.timestamp = ++ g_last_timestamp;
+        state.warnings.clear();
+        m_step_active = static_cast<int>(step);
         return true;
     }
 
@@ -105,10 +144,13 @@ public:
         tbb::mutex::scoped_lock lock(mtx);
         // If canceled, throw before changing the step state.
         throw_if_canceled();
-        assert(m_state[step].state != DONE);
-        m_state[step].state = DONE;
-        m_state[step].timestamp = ++ g_last_timestamp;
-        return m_state[step].timestamp;
+        assert(m_state[step].state == STARTED);
+        assert(m_step_active == static_cast<int>(step));
+        PrintStateBase::StateWithWarnings &state = m_state[step];
+        state.state = DONE;
+        state.timestamp = ++ g_last_timestamp;
+        m_step_active = -1;
+        return state.timestamp;
     }
 
     // Make the step invalid.
@@ -124,13 +166,18 @@ public:
                 printf("Not held!\n");
             }
 #endif
-            m_state[step].state = INVALID;
-            m_state[step].timestamp = ++ g_last_timestamp;
+            PrintStateBase::StateWithWarnings &state = m_state[step];
+            state.state = INVALID;
+            state.timestamp = ++ g_last_timestamp;
             // Raise the mutex, so that the following cancel() callback could cancel
             // the background processing.
             // Internally the cancel() callback shall unlock the PrintBase::m_status_mutex to let
-            // the working thread to proceed.
+            // the working thread proceed.
             cancel();
+            // Now the worker thread should be stopped, therefore it cannot write into the warnings field.
+            // It is safe to clear it.
+            state.warnings.clear();
+            m_step_active = -1;
         }
         return invalidated;
     }
@@ -157,6 +204,11 @@ public:
             // Internally the cancel() callback shall unlock the PrintBase::m_status_mutex to let
             // the working thread to proceed.
             cancel();
+            // Now the worker thread should be stopped, therefore it cannot write into the warnings field.
+            // It is safe to clear it.
+            for (StepTypeIterator it = step_begin; it != step_end; ++ it)
+                m_state[*it].warnings.clear();
+            m_step_active = -1;
         }
         return invalidated;
     }
@@ -176,18 +228,37 @@ public:
                 state.timestamp = ++ g_last_timestamp;
             }
         }
-        if (invalidated)
+        if (invalidated) {
             cancel();
+            // Now the worker thread should be stopped, therefore it cannot write into the warnings field.
+            // It is safe to clear it.
+            for (size_t i = 0; i < COUNT; ++ i)
+                m_state[i].warnings.clear();
+            m_step_active = -1;
+        }
         return invalidated;
     }
 
+    StepType active_step_add_warning(PrintStateBase::WarningLevel warning_level, const std::string &message, tbb::mutex &mtx)
+    {
+        tbb::mutex::scoped_lock lock(mtx);
+        assert(m_step_active != -1);
+        assert(m_state[m_step_active].state == STARTED);
+        m_state[m_step_active].warnings.emplace_back(PrintStateBase::Warning{ warning_level, message});
+        return static_cast<StepType>(m_step_active);
+    }
+
 private:
-    StateWithTimeStamp m_state[COUNT];
+    StateWithWarnings   m_state[COUNT];
+    // Active class StepType or -1 if none is active.
+    // If the background processing is canceled, m_step_active may not be resetted
+    // to -1, see the comment in this->set_started().
+    int                 m_step_active = -1;
 };
 
 class PrintBase;
 
-class PrintObjectBase
+class PrintObjectBase : public ObjectID
 {
 public:
     const ModelObject*      model_object() const    { return m_model_object; }
@@ -214,7 +285,7 @@ protected:
  * The PrintBase class will abstract this flow for different technologies.
  *
  */
-class PrintBase
+class PrintBase : public ObjectID
 {
 public:
 	PrintBase() : m_placeholder_parser(&m_full_print_config) { this->restart(); }
@@ -264,17 +335,29 @@ public:
 
     struct SlicingStatus {
 		SlicingStatus(int percent, const std::string &text, unsigned int flags = 0) : percent(percent), text(text), flags(flags) {}
-        int             percent;
+        SlicingStatus(const PrintBase &print, int warning_step) : 
+            flags(UPDATE_PRINT_STEP_WARNINGS), warning_object_id(print), warning_step(warning_step) {}
+        SlicingStatus(const PrintObjectBase &print_object, int warning_step) : 
+            flags(UPDATE_PRINT_OBJECT_STEP_WARNINGS), warning_object_id(print_object), warning_step(warning_step) {}
+        int             percent { -1 };
         std::string     text;
         // Bitmap of flags.
         enum FlagBits {
-            DEFAULT                         = 0,
-            RELOAD_SCENE                    = 1 << 1,
-            RELOAD_SLA_SUPPORT_POINTS       = 1 << 2,
-            RELOAD_SLA_PREVIEW              = 1 << 3,
+            DEFAULT                             = 0,
+            RELOAD_SCENE                        = 1 << 1,
+            RELOAD_SLA_SUPPORT_POINTS           = 1 << 2,
+            RELOAD_SLA_PREVIEW                  = 1 << 3,
+            // UPDATE_PRINT_STEP_WARNINGS is mutually exclusive with UPDATE_PRINT_OBJECT_STEP_WARNINGS.
+            UPDATE_PRINT_STEP_WARNINGS          = 1 << 4,
+            UPDATE_PRINT_OBJECT_STEP_WARNINGS   = 1 << 5
         };
         // Bitmap of FlagBits
         unsigned int    flags;
+        // set to an ObjectID of a Print or a PrintObject based on flags
+        // (whether UPDATE_PRINT_STEP_WARNINGS or UPDATE_PRINT_OBJECT_STEP_WARNINGS is set).
+        ObjectID        warning_object_id;
+        // For which Print or PrintObject step a new warning is beeing issued?
+        int             warning_step { -1 };
     };
     typedef std::function<void(const SlicingStatus&)>  status_callback_type;
     // Default status console print out in the form of percent => message.
@@ -343,10 +426,11 @@ protected:
 	DynamicPrintConfig						m_full_print_config;
     PlaceholderParser                       m_placeholder_parser;
 
-private:
-    tbb::atomic<CancelStatus>               m_cancel_status;
     // Callback to be evoked regularly to update state of the UI thread.
     status_callback_type                    m_status_callback;
+
+private:
+    tbb::atomic<CancelStatus>               m_cancel_status;
 
     // Callback to be evoked to stop the background processing before a state is updated.
     cancel_callback_type                    m_cancel_callback = [](){};
@@ -363,6 +447,7 @@ class PrintBaseWithState : public PrintBase
 public:
     bool            is_step_done(PrintStepEnum step) const { return m_state.is_done(step, this->state_mutex()); }
 	PrintStateBase::StateWithTimeStamp step_state_with_timestamp(PrintStepEnum step) const { return m_state.state_with_timestamp(step, this->state_mutex()); }
+    PrintStateBase::StateWithWarnings  step_state_with_warnings(PrintStepEnum step) const { return m_state.state_with_warnings(step, this->state_mutex()); }
 
 protected:
     bool            set_started(PrintStepEnum step) { return m_state.set_started(step, this->state_mutex(), [this](){ this->throw_if_canceled(); }); }
@@ -380,6 +465,14 @@ protected:
 	bool            is_step_started_unguarded(PrintStepEnum step) const { return m_state.is_started_unguarded(step); }
 	bool            is_step_done_unguarded(PrintStepEnum step) const { return m_state.is_done_unguarded(step); }
 
+    // Add a slicing warning to the active Print step and send a status notification.
+    // This method could be called multiple times between this->set_started() and this->set_done().
+    void            active_step_add_warning(PrintStateBase::WarningLevel warning_level, const std::string &message) {
+        PrintStepEnum active_step = m_state.active_step_add_warning(warning_level, message, this->state_mutex());
+        if (m_status_callback) m_status_callback(SlicingStatus(*this, active_step));
+        else printf("print warning: %s\n", message.c_str());
+    }
+
 private:
     PrintState<PrintStepEnum, COUNT> m_state;
 };
@@ -394,6 +487,7 @@ public:
     typedef PrintState<PrintObjectStepEnum, COUNT> PrintObjectState;
     bool            is_step_done(PrintObjectStepEnum step) const { return m_state.is_done(step, PrintObjectBase::state_mutex(m_print)); }
     PrintStateBase::StateWithTimeStamp step_state_with_timestamp(PrintObjectStepEnum step) const { return m_state.state_with_timestamp(step, PrintObjectBase::state_mutex(m_print)); }
+    PrintStateBase::StateWithWarnings  step_state_with_warnings(PrintObjectStepEnum step) const { return m_state.state_with_warnings(step, PrintObjectBase::state_mutex(m_print)); }
 
 protected:
 	PrintObjectBaseWithState(PrintType *print, ModelObject *model_object) : PrintObjectBase(model_object), m_print(print) {}
@@ -415,6 +509,14 @@ protected:
 
     bool            is_step_started_unguarded(PrintObjectStepEnum step) const { return m_state.is_started_unguarded(step); }
     bool            is_step_done_unguarded(PrintObjectStepEnum step) const { return m_state.is_done_unguarded(step); }
+
+    // Add a slicing warning to the active PrintObject step and send a status notification.
+    // This method could be called multiple times between this->set_started() and this->set_done().
+    void            active_step_add_warning(PrintStateBase::WarningLevel warning_level, const std::string &message) {
+        PrintObjectStepEnum active_step = m_state.active_step_add_warning(warning_level, message, PrintObjectBase::state_mutex(m_print));
+        if (m_print.m_status_callback) m_print.m_status_callback(SlicingStatus(*this, active_step));
+        else printf("print object warning: %s\n", message.c_str());
+    }
 
 protected:
     // If the background processing stop was requested, throw CanceledException.
