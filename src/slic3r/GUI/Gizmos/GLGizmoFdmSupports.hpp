@@ -82,8 +82,7 @@ private:
     void update_from_model_object();
     void activate_internal_undo_redo_stack(bool activate);
 
-    void select_facets_by_angle(float threshold, bool overwrite, bool block);
-    bool m_overwrite_selected = false;
+    void select_facets_by_angle(float threshold, bool block);
     float m_angle_threshold_deg = 45.f;
 
     bool is_mesh_point_clipped(const Vec3d& point) const;

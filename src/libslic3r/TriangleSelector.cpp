@@ -132,6 +132,15 @@ bool TriangleSelector::select_triangle(int facet_idx, FacetSupportType type, boo
 }
 
 
+
+void TriangleSelector::set_facet(int facet_idx, FacetSupportType state)
+{
+    assert(facet_idx < m_orig_size_indices);
+    undivide_triangle(facet_idx);
+    assert(! m_triangles[facet_idx].is_split());
+    m_triangles[facet_idx].set_state(state);
+}
+
 void TriangleSelector::split_triangle(int facet_idx)
 {
     if (m_triangles[facet_idx].is_split()) {

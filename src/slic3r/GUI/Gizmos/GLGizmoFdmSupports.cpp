@@ -48,7 +48,7 @@ bool GLGizmoFdmSupports::on_init()
     m_desc["block"]            = _L("Block supports");
     m_desc["remove_caption"]   = _L("Shift + Left mouse button") + ": ";
     m_desc["remove"]           = _L("Remove selection");
-    m_desc["remove_all"]       = _L("Remove all");
+    m_desc["remove_all"]       = _L("Remove all selection");
 
     return true;
 }
@@ -207,9 +207,9 @@ void GLGizmoFdmSupports::update_model_object() const
     ModelObject* mo = m_c->selection_info()->model_object();
     int idx = -1;
     for (ModelVolume* mv : mo->volumes) {
-        ++idx;
         if (! mv->is_model_part())
             continue;
+        ++idx;
         mv->m_supported_facets.set(*m_triangle_selectors[idx].get());
     }
 }
@@ -433,63 +433,9 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 }
 
 
-/*void GLGizmoFdmSupports::update_vertex_buffers(const TriangleMesh* mesh,
-                                               int mesh_id,
-                                               FacetSupportType type,
-                                               const std::vector<size_t>* new_facets)
+
+void GLGizmoFdmSupports::select_facets_by_angle(float threshold_deg, bool block)
 {
-    //std::vector<GLIndexedVertexArray>& ivas = m_ivas[mesh_id][type == FacetSupportType::ENFORCER ? 0 : 1];
-
-    // lambda to push facet into vertex buffer
-    auto push_facet = [this, &mesh, &mesh_id](size_t idx, GLIndexedVertexArray& iva) {
-        for (int i=0; i<3; ++i)
-            iva.push_geometry(
-                mesh->its.vertices[mesh->its.indices[idx](i)].cast<double>(),
-                m_c->raycaster()->raycasters()[mesh_id]->get_triangle_normal(idx).cast<double>()
-            );
-        size_t num = iva.triangle_indices_size;
-        iva.push_triangle(num, num+1, num+2);
-    };
-
-
-    //if (ivas.size() == MaxVertexBuffers || ! new_facets) {
-        // If there are too many or they should be regenerated, make one large
-        // GLVertexBufferArray.
-        //ivas.clear(); // destructors release geometry
-        //ivas.push_back(GLIndexedVertexArray());
-
-    m_iva.release_geometry();
-    m_iva.clear();
-
-        bool pushed = false;
-        for (size_t facet_idx=0; facet_idx<m_selected_facets[mesh_id].size(); ++facet_idx) {
-            if (m_selected_facets[mesh_id][facet_idx] == type) {
-                push_facet(facet_idx, m_iva);
-                pushed = true;
-            }
-        }
-        if (pushed)
-            m_iva.finalize_geometry(true);
-
-    } else {
-        // we are only appending - let's make new vertex array and let the old ones live
-        ivas.push_back(GLIndexedVertexArray());
-        for (size_t facet_idx : *new_facets)
-            push_facet(facet_idx, ivas.back());
-
-        if (! new_facets->empty())
-            ivas.back().finalize_geometry(true);
-        else
-            ivas.pop_back();
-    }
-
-}*/
-
-
-void GLGizmoFdmSupports::select_facets_by_angle(float threshold_deg, bool overwrite, bool block)
-{
-    return;
-/*
     float threshold = (M_PI/180.)*threshold_deg;
     const Selection& selection = m_parent.get_selection();
     const ModelObject* mo = m_c->selection_info()->model_object();
@@ -512,13 +458,12 @@ void GLGizmoFdmSupports::select_facets_by_angle(float threshold_deg, bool overwr
         int idx = -1;
         for (const stl_facet& facet : mv->mesh().stl.facet_start) {
             ++idx;
-            if (facet.normal.dot(down) > dot_limit && (overwrite || m_selected_facets[mesh_id][idx] == FacetSupportType::NONE))
-                m_selected_facets[mesh_id][idx] = block
-                        ? FacetSupportType::BLOCKER
-                        : FacetSupportType::ENFORCER;
+            if (facet.normal.dot(down) > dot_limit)
+                m_triangle_selectors[mesh_id]->set_facet(idx,
+                                                         block
+                                                         ? FacetSupportType::BLOCKER
+                                                         : FacetSupportType::ENFORCER);
         }
-        update_vertex_buffers(&mv->mesh(), mesh_id, FacetSupportType::ENFORCER);
-        update_vertex_buffers(&mv->mesh(), mesh_id, FacetSupportType::BLOCKER);
     }
 
     activate_internal_undo_redo_stack(true);
@@ -528,7 +473,6 @@ void GLGizmoFdmSupports::select_facets_by_angle(float threshold_deg, bool overwr
     update_model_object();
     m_parent.set_as_dirty();
     m_setting_angle = false;
-*/
 }
 
 
@@ -584,18 +528,17 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         ImGui::SameLine();
 
         if (m_imgui->button(m_desc.at("remove_all"))) {
-            /*ModelObject* mo = m_c->selection_info()->model_object();
+            Plater::TakeSnapshot(wxGetApp().plater(), wxString(_L("Reset selection")));
+            ModelObject* mo = m_c->selection_info()->model_object();
             int idx = -1;
             for (ModelVolume* mv : mo->volumes) {
-                ++idx;
                 if (mv->is_model_part()) {
-                    m_selected_facets[idx].assign(m_selected_facets[idx].size(), FacetSupportType::NONE);
-                    mv->m_supported_facets.clear();
-                    update_vertex_buffers(&mv->mesh(), idx, FacetSupportType::ENFORCER);
-                    update_vertex_buffers(&mv->mesh(), idx, FacetSupportType::BLOCKER);
-                    m_parent.set_as_dirty();
+                    ++idx;
+                    m_triangle_selectors[idx]->reset();
                 }
-            }*/
+            }
+            update_model_object();
+            m_parent.set_as_dirty();
         }
 
         const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
@@ -651,12 +594,11 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         ImGui::SameLine();
         if (m_imgui->slider_float("", &m_angle_threshold_deg, 0.f, 90.f, "%.f"))
             m_parent.set_slope_range({90.f - m_angle_threshold_deg, 90.f - m_angle_threshold_deg});
-        m_imgui->checkbox(wxString("Overwrite already selected facets"), m_overwrite_selected);
         if (m_imgui->button("Enforce"))
-            select_facets_by_angle(m_angle_threshold_deg, m_overwrite_selected, false);
+            select_facets_by_angle(m_angle_threshold_deg, false);
         ImGui::SameLine();
         if (m_imgui->button("Block"))
-            select_facets_by_angle(m_angle_threshold_deg, m_overwrite_selected, true);
+            select_facets_by_angle(m_angle_threshold_deg, true);
         ImGui::SameLine();
         if (m_imgui->button("Cancel"))
             m_setting_angle = false;

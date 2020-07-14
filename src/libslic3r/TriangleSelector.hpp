@@ -32,6 +32,9 @@ public:
                       FacetSupportType new_state);   // enforcer or blocker?
 
 
+    // Set facet of the mesh to a given state. Only works for original triangles.
+    void set_facet(int facet_idx, FacetSupportType state);
+
     // Clear everything and make the tree empty.
     void reset();
 
