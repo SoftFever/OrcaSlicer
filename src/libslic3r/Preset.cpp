@@ -1345,6 +1345,11 @@ const Preset* PrinterPresetCollection::find_by_model_id(const std::string &model
 // ***  PhysicalPrinter  ***
 // -------------------------
 
+std::string PhysicalPrinter::separator()
+{
+    return " * ";
+}
+
 const std::vector<std::string>& PhysicalPrinter::printer_options()
 {
     static std::vector<std::string> s_opts;
@@ -1370,9 +1375,9 @@ const std::string& PhysicalPrinter::get_preset_name() const
     return config.opt_string("preset_name");
 }
 
-const std::string& PhysicalPrinter::get_printer_model() const
+const std::set<std::string>& PhysicalPrinter::get_preset_names() const
 {
-    return config.opt_string("printer_model");
+    return preset_names;
 }
 
 bool PhysicalPrinter::has_empty_config() const 
@@ -1384,18 +1389,60 @@ bool PhysicalPrinter::has_empty_config() const
             config.opt_string("password"        ).empty();
 }
 
+void PhysicalPrinter::update_preset_names_in_config()
+{
+    if (!preset_names.empty()) {
+        std::string name;
+        for (auto el : preset_names)
+            name += el + ";";
+        name.pop_back();
+        config.set_key_value("preset_name", new ConfigOptionString(name));
+    }    
+}
+
+void PhysicalPrinter::save(const std::string& file_name_from, const std::string& file_name_to)
+{
+    // rename the file
+    boost::nowide::rename(file_name_from.data(), file_name_to.data());
+    this->file = file_name_to;
+    // save configuration
+    this->config.save(this->file);
+}
+
 void PhysicalPrinter::update_from_preset(const Preset& preset)
 {
     config.apply_only(preset.config, printer_options(), false);
-    // add preset name to the options list
-    config.set_key_value("preset_name", new ConfigOptionString(preset.name));
+    // add preset names to the options list
+    auto ret = preset_names.emplace(preset.name);
+    update_preset_names_in_config();
+
     update_full_name();
 }
 
 void PhysicalPrinter::update_from_config(const DynamicPrintConfig& new_config)
 {
     config.apply_only(new_config, printer_options(), false);
+
+    std::string str = config.opt_string("preset_name");
+    std::set<std::string> values{};
+    if (!str.empty()) {
+        boost::split(values, str, boost::is_any_of(";"));
+        for (const std::string& val : values)
+            preset_names.emplace(val);
+    }
+    preset_names = values;
+
     update_full_name();
+}
+
+void PhysicalPrinter::reset_presets()
+{
+    return preset_names.clear();
+}
+
+bool PhysicalPrinter::add_preset(const std::string& preset_name)
+{
+    return preset_names.emplace(preset_name).second;
 }
 
 PhysicalPrinter::PhysicalPrinter(const std::string& name, const Preset& preset) :
@@ -1412,13 +1459,20 @@ void PhysicalPrinter::set_name(const std::string& name)
 
 void PhysicalPrinter::update_full_name()
 {
-    full_name = name + " * " + get_preset_name();
+    full_name = name + separator() + get_preset_name();
 }
 
 std::string PhysicalPrinter::get_short_name(std::string full_name)
 {
-    int pos = full_name.find_first_of(" * ");
+    int pos = full_name.find(separator());
     boost::erase_tail(full_name, full_name.length() - pos);
+    return full_name;
+}
+
+std::string PhysicalPrinter::get_preset_name(std::string full_name)
+{
+    int pos = full_name.find(separator());
+    boost::erase_head(full_name, pos + 2);
     return full_name;
 }
 
@@ -1497,15 +1551,18 @@ std::string PhysicalPrinterCollection::path_from_name(const std::string& new_nam
     return (boost::filesystem::path(m_dir_path) / file_name).make_preferred().string();
 }
 
-void PhysicalPrinterCollection::save_printer(const PhysicalPrinter& edited_printer)
+void PhysicalPrinterCollection::save_printer(const PhysicalPrinter& edited_printer, const std::string& renamed_from)
 {
+    std::string name = renamed_from.empty() ? edited_printer.name : renamed_from;
     // 1) Find the printer with a new_name or create a new one,
     // initialize it with the edited config.
-    auto it = this->find_printer_internal(edited_printer.name);
-    if (it != m_printers.end() && it->name == edited_printer.name) {
+    auto it = this->find_printer_internal(name);
+    if (it != m_printers.end() && it->name == name) {
         // Printer with the same name found.
         // Overwriting an existing preset.
         it->config = std::move(edited_printer.config);
+        it->name = edited_printer.name;
+        it->preset_names = edited_printer.preset_names;
         it->full_name = edited_printer.full_name;
     }
     else {
@@ -1518,7 +1575,12 @@ void PhysicalPrinterCollection::save_printer(const PhysicalPrinter& edited_print
     PhysicalPrinter& printer = *it;
     if (printer.file.empty())
         printer.file = this->path_from_name(printer.name);
-    printer.save();
+
+    if (printer.file == this->path_from_name(printer.name))
+        printer.save();
+    else
+        // if printer was renamed, we should rename a file and than save the config
+        printer.save(printer.file, this->path_from_name(printer.name));
 
     // update idx_selected
     m_idx_selected = it - m_printers.begin();

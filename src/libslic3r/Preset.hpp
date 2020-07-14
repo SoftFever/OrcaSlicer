@@ -549,19 +549,32 @@ public:
     std::string         file;
     // Configuration data, loaded from a file, or set from the defaults.
     DynamicPrintConfig  config;
+    // set of presets used with this physical printer
+    std::set<std::string> preset_names;
+
+    static std::string  separator();
 
     // Has this profile been loaded?
     bool                loaded = false;
 
-    static const std::vector<std::string>& printer_options();
-    const std::string&  get_preset_name() const;
-    const std::string&  get_printer_model() const;
+    static const std::vector<std::string>&  printer_options();
+    const std::string&                      get_preset_name() const;
+
+    const std::set<std::string>&            get_preset_names() const;
+
     bool                has_empty_config() const;
+    void                update_preset_names_in_config();
 
     void                save() { this->config.save(this->file); }
-    void                save_to(const std::string& file_name) const { this->config.save(file_name); }
+    void                save(const std::string& file_name_from, const std::string& file_name_to);
+
     void                update_from_preset(const Preset& preset);
     void                update_from_config(const DynamicPrintConfig &new_config);
+
+    // add preset to the preset_names
+    // return false, if preset with this name is already exist in the set
+    bool                add_preset(const std::string& preset_name);
+    void                reset_presets();
 
     // Return a printer technology, return ptFFF if the printer technology is not set.
     static PrinterTechnology printer_technology(const DynamicPrintConfig& cfg) {
@@ -577,6 +590,9 @@ public:
 
     // get printer name from the full name uncluded preset name
     static std::string  get_short_name(std::string full_name);
+
+    // get preset name from the full name uncluded printer name
+    static std::string  get_preset_name(std::string full_name);
 
 protected:
     friend class        PhysicalPrinterCollection;
@@ -615,7 +631,7 @@ public:
     // Save the printer under a new name. If the name is different from the old one,
     // a new printer is stored into the list of printers.
     // New printer is activated.
-    void            save_printer(const PhysicalPrinter& printer);
+    void            save_printer(const PhysicalPrinter& printer, const std::string& renamed_from);
 
     // Delete the current preset, activate the first visible preset.
     // returns true if the preset was deleted successfully.
@@ -632,8 +648,6 @@ public:
     std::string     get_selected_printer_name() const { return (m_idx_selected == size_t(-1)) ? std::string() : this->get_selected_printer().name; }
     // Returns the full name of the selected preset, or an empty string if no preset is selected.
     std::string     get_selected_full_printer_name() const { return (m_idx_selected == size_t(-1)) ? std::string() : this->get_selected_printer().full_name; }
-    // Returns the printer model of the selected preset, or an empty string if no preset is selected.
-    std::string     get_selected_printer_model() const { return (m_idx_selected == size_t(-1)) ? std::string() : this->get_selected_printer().get_printer_model(); }
     // Returns the printer model of the selected preset, or an empty string if no preset is selected.
     std::string     get_selected_printer_preset_name() const { return (m_idx_selected == size_t(-1)) ? std::string() : this->get_selected_printer().get_preset_name(); }
     // Returns the config of the selected preset, or nullptr if no preset is selected.

@@ -15,6 +15,7 @@ class wxString;
 class wxTextCtrl;
 class wxStaticText;
 class ScalableButton;
+class wxBoxSizer;
 
 namespace Slic3r {
 
@@ -169,6 +170,7 @@ public:
 //------------------------------------------
 //          PresetForPrinter
 //------------------------------------------
+static std::string g_info_string = " (modified)";
 class PhysicalPrinterDialog;
 class PresetForPrinter
 {
@@ -176,6 +178,7 @@ class PresetForPrinter
 
     TabPresetComboBox*  m_presets_list      { nullptr };
     ScalableButton*     m_delete_preset_btn { nullptr };
+    wxStaticText*       m_info_line         { nullptr };
     wxStaticText*       m_full_printer_name { nullptr };
 
     wxBoxSizer*         m_sizer             { nullptr };
@@ -183,11 +186,14 @@ class PresetForPrinter
     void DeletePreset(wxEvent& event);
 
 public:
-    PresetForPrinter(PhysicalPrinterDialog* parent, bool is_all_enable);
+    PresetForPrinter(PhysicalPrinterDialog* parent, const std::string& preset_name);
     ~PresetForPrinter();
 
     wxBoxSizer*         sizer() { return m_sizer; }
     void                update_full_printer_name();
+    std::string         get_preset_name();
+    void                DisableDeleteBtn();
+    void                EnableDeleteBtn();
 
     void                msw_rescale();
     void                on_sys_color_changed() {};
@@ -203,7 +209,6 @@ class PhysicalPrinterDialog : public DPIDialog
 {
     PhysicalPrinter     m_printer;
     DynamicPrintConfig* m_config            { nullptr };
-    wxString            m_info_string;
 
     wxTextCtrl*         m_printer_name      { nullptr };
     std::vector<PresetForPrinter*> m_presets;
@@ -214,6 +219,8 @@ class PhysicalPrinterDialog : public DPIDialog
     ScalableButton*     m_printhost_browse_btn          {nullptr};
     ScalableButton*     m_printhost_test_btn            {nullptr};
     ScalableButton*     m_printhost_cafile_browse_btn   {nullptr};
+
+    wxBoxSizer*         m_presets_sizer                 {nullptr};
 
     void build_printhost_settings(ConfigOptionsGroup* optgroup);
     void OnOK(wxEvent& event);
@@ -227,6 +234,8 @@ public:
     wxString    get_printer_name();
     void        update_full_printer_names();
     PhysicalPrinter* get_printer() {return &m_printer; }
+
+    void        DeletePreset(PresetForPrinter* preset_for_printer);
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
