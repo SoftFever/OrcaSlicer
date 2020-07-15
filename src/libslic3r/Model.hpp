@@ -407,7 +407,7 @@ public:
 
     const std::map<int, std::vector<bool>>& get_data() const { return m_data; }
     void set(const TriangleSelector& selector);
-    std::vector<int> get_facets(FacetSupportType type) const;
+    indexed_triangle_set get_facets(const ModelVolume& mv, FacetSupportType type) const;
     void clear();
 
     ClockType::time_point get_timestamp() const { return timestamp; }

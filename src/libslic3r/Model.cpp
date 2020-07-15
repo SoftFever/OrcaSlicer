@@ -1831,13 +1831,12 @@ arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
 }
 
 
-std::vector<int> FacetsAnnotation::get_facets(FacetSupportType type) const
+indexed_triangle_set FacetsAnnotation::get_facets(const ModelVolume& mv, FacetSupportType type) const
 {
-    std::vector<int> out;
-    /*for (auto& [facet_idx, this_type] : m_data)
-        if (this_type == type)
-            out.push_back(facet_idx);
-    */return out;
+    TriangleSelector selector(mv.mesh());
+    selector.deserialize(m_data);
+    indexed_triangle_set out = selector.get_facets(type);
+    return out;
 }
 
 
@@ -1932,7 +1931,7 @@ bool model_custom_supports_data_changed(const ModelObject& mo, const ModelObject
             return true;
     }
     return false;
-};
+}
 
 extern bool model_has_multi_part_objects(const Model &model)
 {

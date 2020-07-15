@@ -512,6 +512,25 @@ void TriangleSelector::perform_split(int facet_idx, FacetSupportType old_state)
 }
 
 
+
+indexed_triangle_set TriangleSelector::get_facets(FacetSupportType state) const
+{
+    indexed_triangle_set out;
+    for (const Triangle& tr : m_triangles) {
+        if (tr.valid && ! tr.is_split() && tr.get_state() == state) {
+            stl_triangle_vertex_indices indices;
+            for (int i=0; i<3; ++i) {
+                out.vertices.emplace_back(m_vertices[tr.verts_idxs[i]].v);
+                indices[i] = out.vertices.size() - 1;
+            }
+            out.indices.emplace_back(indices);
+        }
+    }
+    return out;
+}
+
+
+
 std::map<int, std::vector<bool>> TriangleSelector::serialize() const
 {
     // Each original triangle of the mesh is assigned a number encoding its state

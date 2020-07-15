@@ -31,6 +31,8 @@ public:
                       float radius_sqr,    // squared radius of the cursor
                       FacetSupportType new_state);   // enforcer or blocker?
 
+    // Get facets currently in the given state.
+    indexed_triangle_set get_facets(FacetSupportType state) const;
 
     // Set facet of the mesh to a given state. Only works for original triangles.
     void set_facet(int facet_idx, FacetSupportType state);

@@ -2673,8 +2673,8 @@ void PrintObject::project_and_append_custom_supports(
         FacetSupportType type, std::vector<ExPolygons>& expolys) const
 {
     for (const ModelVolume* mv : this->model_object()->volumes) {
-        const std::vector<int> custom_facets = mv->m_supported_facets.get_facets(type);
-        if (custom_facets.empty())
+        const indexed_triangle_set custom_facets = mv->m_supported_facets.get_facets(*mv, type);
+        if (custom_facets.indices.empty())
             continue;
 
         const TriangleMesh& mesh = mv->mesh();
@@ -2705,11 +2705,11 @@ void PrintObject::project_and_append_custom_supports(
         };
 
         // Vector to collect resulting projections from each triangle.
-        std::vector<TriangleProjections> projections_of_triangles(custom_facets.size());
+        std::vector<TriangleProjections> projections_of_triangles(custom_facets.indices.size());
 
         // Iterate over all triangles.
         tbb::parallel_for(
-            tbb::blocked_range<size_t>(0, custom_facets.size()),
+            tbb::blocked_range<size_t>(0, custom_facets.indices.size()),
             [&](const tbb::blocked_range<size_t>& range) {
             for (size_t idx = range.begin(); idx < range.end(); ++ idx) {
 
@@ -2717,7 +2717,7 @@ void PrintObject::project_and_append_custom_supports(
 
             // Transform the triangle into worlds coords.
             for (int i=0; i<3; ++i)
-                facet[i] = tr * mesh.its.vertices[mesh.its.indices[custom_facets[idx]](i)];
+                facet[i] = tr * custom_facets.vertices[custom_facets.indices[idx](i)];
 
             // Ignore triangles with upward-pointing normal.
             if ((facet[1]-facet[0]).cross(facet[2]-facet[0]).z() > 0.)
