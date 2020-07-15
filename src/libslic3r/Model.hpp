@@ -406,7 +406,7 @@ public:
     using ClockType = std::chrono::steady_clock;
 
     const std::map<int, std::vector<bool>>& get_data() const { return m_data; }
-    void set(const TriangleSelector& selector);
+    bool set(const TriangleSelector& selector);
     indexed_triangle_set get_facets(const ModelVolume& mv, FacetSupportType type) const;
     void clear();
 

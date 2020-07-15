@@ -1841,13 +1841,15 @@ indexed_triangle_set FacetsAnnotation::get_facets(const ModelVolume& mv, FacetSu
 
 
 
-void FacetsAnnotation::set(const TriangleSelector& selector)
+bool FacetsAnnotation::set(const TriangleSelector& selector)
 {
     std::map<int, std::vector<bool>> sel_map = selector.serialize();
     if (sel_map != m_data) {
         m_data = sel_map;
         update_timestamp();
+        return true;
     }
+    return false;
 }
 
 

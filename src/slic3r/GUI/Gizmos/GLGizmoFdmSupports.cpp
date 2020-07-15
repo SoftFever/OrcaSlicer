@@ -204,14 +204,18 @@ void GLGizmoFdmSupports::render_cursor_circle() const
 
 void GLGizmoFdmSupports::update_model_object() const
 {
+    bool updated = false;
     ModelObject* mo = m_c->selection_info()->model_object();
     int idx = -1;
     for (ModelVolume* mv : mo->volumes) {
         if (! mv->is_model_part())
             continue;
         ++idx;
-        mv->m_supported_facets.set(*m_triangle_selectors[idx].get());
+        updated |= mv->m_supported_facets.set(*m_triangle_selectors[idx].get());
     }
+
+    if (updated)
+        m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
 
