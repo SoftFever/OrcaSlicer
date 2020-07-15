@@ -50,12 +50,23 @@ public:
 
     struct Warning
     {
+    	// Critical warnings will be displayed on G-code export in a modal dialog, so that the user cannot miss them.
         WarningLevel    level;
+        // If the warning is not current, then it is in an unknown state. It may or may not be valid.
+        // A current warning will become non-current if its milestone gets invalidated.
+        // A non-current warning will either become current or it will be removed at the end of a milestone.
+        bool 			current;
+        // Message to be shown to the user, UTF8, localized.
         std::string     message;
+        // If message_id == 0, then the message is expected to identify the warning uniquely.
+        // Otherwise message_id identifies the message. For example, if the message contains a varying number, then
+        // it cannot itself identify the message type.
+        int 			message_id;
     };
 
     struct StateWithWarnings : public StateWithTimeStamp
     {
+    	void 	mark_warnings_non_current() { for (auto &w : warnings) w.current = false; }
         std::vector<Warning>    warnings;
     };
 
@@ -132,15 +143,18 @@ public:
         PrintStateBase::StateWithWarnings &state = m_state[step];
         state.state = STARTED;
         state.timestamp = ++ g_last_timestamp;
-        state.warnings.clear();
+        state.mark_warnings_non_current();
         m_step_active = static_cast<int>(step);
         return true;
     }
 
     // Set the step as done. Block on mutex while the Print / PrintObject / PrintRegion objects are being
     // modified by the UI thread.
+    // Return value:
+    // 		Timestamp when this stepentered the DONE state.
+    // 		bool indicates whether the UI has to update the slicing warnings of this step or not.
 	template<typename ThrowIfCanceled>
-	TimeStamp set_done(StepType step, tbb::mutex &mtx, ThrowIfCanceled throw_if_canceled) {
+	std::pair<TimeStamp, bool> set_done(StepType step, tbb::mutex &mtx, ThrowIfCanceled throw_if_canceled) {
         tbb::mutex::scoped_lock lock(mtx);
         // If canceled, throw before changing the step state.
         throw_if_canceled();
@@ -150,7 +164,14 @@ public:
         state.state = DONE;
         state.timestamp = ++ g_last_timestamp;
         m_step_active = -1;
-        return state.timestamp;
+        // Remove all non-current warnings.
+    	auto it = std::remove_if(state.warnings.begin(), state.warnings.end(), [](const auto &w) { return ! w.current; });
+    	bool update_warning_ui = false;
+        if (it != state.warnings.end()) {
+        	state.warnings.erase(it, state.warnings.end());
+        	update_warning_ui = true;
+        }
+        return std::make_pair(state.timestamp, update_warning_ui);
     }
 
     // Make the step invalid.
@@ -175,8 +196,8 @@ public:
             // the working thread proceed.
             cancel();
             // Now the worker thread should be stopped, therefore it cannot write into the warnings field.
-            // It is safe to clear it.
-            state.warnings.clear();
+            // It is safe to modify it.
+            state.mark_warnings_non_current();
             m_step_active = -1;
         }
         return invalidated;
@@ -205,9 +226,9 @@ public:
             // the working thread to proceed.
             cancel();
             // Now the worker thread should be stopped, therefore it cannot write into the warnings field.
-            // It is safe to clear it.
+            // It is safe to modify the warnings.
             for (StepTypeIterator it = step_begin; it != step_end; ++ it)
-                m_state[*it].warnings.clear();
+                m_state[*it].mark_warnings_non_current();
             m_step_active = -1;
         }
         return invalidated;
@@ -231,21 +252,46 @@ public:
         if (invalidated) {
             cancel();
             // Now the worker thread should be stopped, therefore it cannot write into the warnings field.
-            // It is safe to clear it.
+            // It is safe to modify the warnings.
             for (size_t i = 0; i < COUNT; ++ i)
-                m_state[i].warnings.clear();
+                m_state[i].mark_warnings_non_current();
             m_step_active = -1;
         }
         return invalidated;
     }
 
-    StepType active_step_add_warning(PrintStateBase::WarningLevel warning_level, const std::string &message, tbb::mutex &mtx)
+    // Update list of warnings of the current milestone with a new warning.
+    // The warning may already exist in the list, marked as current or not current.
+    // If it already exists, mark it as current.
+    // Return value:
+    // 		Current milestone (StepType).
+    // 		bool indicates whether the UI has to be updated or not.
+    std::pair<StepType, bool> active_step_add_warning(PrintStateBase::WarningLevel warning_level, const std::string &message, int message_id, tbb::mutex &mtx)
     {
         tbb::mutex::scoped_lock lock(mtx);
         assert(m_step_active != -1);
-        assert(m_state[m_step_active].state == STARTED);
-        m_state[m_step_active].warnings.emplace_back(PrintStateBase::Warning{ warning_level, message});
-        return static_cast<StepType>(m_step_active);
+        StateWithWarnings &state = m_state[m_step_active];
+        assert(state.state == STARTED);
+        std::pair<StepType, bool> retval(static_cast<StepType>(m_step_active), true);
+        // Does a warning of the same level and message or message_id exist already?
+		auto it = (message_id == 0) ? 
+            std::find_if(state.warnings.begin(), state.warnings.end(), [&message](const auto &w) { return w.message_id == 0 && w.message == message; }) :
+            std::find_if(state.warnings.begin(), state.warnings.end(), [message_id](const auto& w) { return w.message_id == message_id; });
+    	if (it == state.warnings.end())
+    		// No, create a new warning and update UI.
+        	state.warnings.emplace_back(PrintStateBase::Warning{ warning_level, true, message, message_id });
+        else if (it->message != message || it->level != warning_level) {
+        	// Yes, however it needs an update.
+        	it->message = message;
+        	it->level 	= warning_level;
+        	it->current = true;
+        } else if (it->current)
+        	// Yes, and it is current. Don't update UI.
+        	retval.second = false;
+        else
+        	// Yes, but it is not current. Mark it as current.
+        	it->current = true;
+        return retval;
     }
 
 private:
@@ -268,8 +314,12 @@ protected:
     PrintObjectBase(ModelObject *model_object) : m_model_object(model_object) {}
     virtual ~PrintObjectBase() {}
     // Declared here to allow access from PrintBase through friendship.
-	static tbb::mutex&            state_mutex(PrintBase *print);
-	static std::function<void()>  cancel_callback(PrintBase *print);
+	static tbb::mutex&                  state_mutex(PrintBase *print);
+	static std::function<void()>        cancel_callback(PrintBase *print);
+	// Notify UI about a new warning of a milestone "step" on this PrintObjectBase.
+	// The UI will be notified by calling a status callback registered on print.
+	// If no status callback is registered, the message is printed to console.
+	void 				   				status_update_warnings(PrintBase *print, int step, PrintStateBase::WarningLevel warning_level, const std::string &message);
 
     ModelObject                  *m_model_object;
 };
@@ -412,6 +462,10 @@ protected:
     tbb::mutex&            state_mutex() const { return m_state_mutex; }
     std::function<void()>  cancel_callback() { return m_cancel_callback; }
 	void				   call_cancel_callback() { m_cancel_callback(); }
+	// Notify UI about a new warning of a milestone "step" on this PrintBase.
+	// The UI will be notified by calling a status callback.
+	// If no status callback is registered, the message is printed to console.
+	void 				   status_update_warnings(ObjectID object_id, int step, PrintStateBase::WarningLevel warning_level, const std::string &message);
 
     // If the background processing stop was requested, throw CanceledException.
     // To be called by the worker thread and its sub-threads (mostly launched on the TBB thread pool) regularly.
@@ -451,7 +505,12 @@ public:
 
 protected:
     bool            set_started(PrintStepEnum step) { return m_state.set_started(step, this->state_mutex(), [this](){ this->throw_if_canceled(); }); }
-	PrintStateBase::TimeStamp set_done(PrintStepEnum step) { return m_state.set_done(step, this->state_mutex(), [this](){ this->throw_if_canceled(); }); }
+	PrintStateBase::TimeStamp set_done(PrintStepEnum step) { 
+		std::pair<PrintStateBase::TimeStamp, bool> status = m_state.set_done(step, this->state_mutex(), [this](){ this->throw_if_canceled(); });
+    	if (status.second)
+    		this->status_update_warnings(*this, static_cast<int>(step), PrintStateBase::WarningLevel::NON_CRITICAL, std::string());
+		return status.first;
+	}
     bool            invalidate_step(PrintStepEnum step)
 		{ return m_state.invalidate(step, this->cancel_callback()); }
     template<typename StepTypeIterator>
@@ -467,10 +526,11 @@ protected:
 
     // Add a slicing warning to the active Print step and send a status notification.
     // This method could be called multiple times between this->set_started() and this->set_done().
-    void            active_step_add_warning(PrintStateBase::WarningLevel warning_level, const std::string &message) {
-        PrintStepEnum active_step = m_state.active_step_add_warning(warning_level, message, this->state_mutex());
-        if (m_status_callback) m_status_callback(SlicingStatus(*this, active_step));
-        else printf("print warning: %s\n", message.c_str());
+    void            active_step_add_warning(PrintStateBase::WarningLevel warning_level, const std::string &message, int message_id = 0) {
+    	std::pair<StepType, bool> active_step = m_state.active_step_add_warning(warning_level, message, message_id, this->state_mutex());
+    	if (active_step.second)
+    		// Update UI.
+    		this->status_update_warnings(*this, static_cast<int>(active_step.first), warning_level, message);
     }
 
 private:
@@ -494,8 +554,12 @@ protected:
 
     bool            set_started(PrintObjectStepEnum step) 
         { return m_state.set_started(step, PrintObjectBase::state_mutex(m_print), [this](){ this->throw_if_canceled(); }); }
-	PrintStateBase::TimeStamp set_done(PrintObjectStepEnum step) 
-        { return m_state.set_done(step, PrintObjectBase::state_mutex(m_print), [this](){ this->throw_if_canceled(); }); }
+	PrintStateBase::TimeStamp set_done(PrintObjectStepEnum step) { 
+		std::pair<PrintStateBase::TimeStamp, bool> status = m_state.set_done(step, PrintObjectBase::state_mutex(m_print), [this](){ this->throw_if_canceled(); });
+    	if (status.second)
+    		this->status_update_warnings(m_print, static_cast<int>(step), PrintStateBase::WarningLevel::NON_CRITICAL, std::string());
+		return status.first;
+	}
 
     bool            invalidate_step(PrintObjectStepEnum step)
         { return m_state.invalidate(step, PrintObjectBase::cancel_callback(m_print)); }
@@ -512,10 +576,10 @@ protected:
 
     // Add a slicing warning to the active PrintObject step and send a status notification.
     // This method could be called multiple times between this->set_started() and this->set_done().
-    void            active_step_add_warning(PrintStateBase::WarningLevel warning_level, const std::string &message) {
-        PrintObjectStepEnum active_step = m_state.active_step_add_warning(warning_level, message, PrintObjectBase::state_mutex(m_print));
-        if (m_print.m_status_callback) m_print.m_status_callback(SlicingStatus(*this, active_step));
-        else printf("print object warning: %s\n", message.c_str());
+    void            active_step_add_warning(PrintStateBase::WarningLevel warning_level, const std::string &message, int message_id = 0) {
+    	std::pair<StepType, bool> active_step = m_state.active_step_add_warning(warning_level, message, message_id, PrintObjectBase::state_mutex(m_print));
+    	if (active_step.second)
+    		this->status_update_warnings(m_print, static_cast<int>(active_step.first), warning_level, message);
     }
 
 protected:
