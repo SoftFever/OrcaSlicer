@@ -527,7 +527,7 @@ protected:
     // Add a slicing warning to the active Print step and send a status notification.
     // This method could be called multiple times between this->set_started() and this->set_done().
     void            active_step_add_warning(PrintStateBase::WarningLevel warning_level, const std::string &message, int message_id = 0) {
-    	std::pair<StepType, bool> active_step = m_state.active_step_add_warning(warning_level, message, message_id, this->state_mutex());
+    	std::pair<PrintStepEnum, bool> active_step = m_state.active_step_add_warning(warning_level, message, message_id, this->state_mutex());
     	if (active_step.second)
     		// Update UI.
     		this->status_update_warnings(*this, static_cast<int>(active_step.first), warning_level, message);
@@ -577,7 +577,7 @@ protected:
     // Add a slicing warning to the active PrintObject step and send a status notification.
     // This method could be called multiple times between this->set_started() and this->set_done().
     void            active_step_add_warning(PrintStateBase::WarningLevel warning_level, const std::string &message, int message_id = 0) {
-    	std::pair<StepType, bool> active_step = m_state.active_step_add_warning(warning_level, message, message_id, PrintObjectBase::state_mutex(m_print));
+    	std::pair<PrintObjectStepEnum, bool> active_step = m_state.active_step_add_warning(warning_level, message, message_id, PrintObjectBase::state_mutex(m_print));
     	if (active_step.second)
     		this->status_update_warnings(m_print, static_cast<int>(active_step.first), warning_level, message);
     }
