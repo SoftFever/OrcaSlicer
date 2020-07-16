@@ -1720,6 +1720,9 @@ void GCodeViewer::render_time_estimate() const
     if (ps.estimated_normal_print_time == "N/A" && ps.estimated_silent_print_time == "N/A")
         return;
 
+    if (ps.estimated_normal_print_time.empty() && ps.estimated_silent_print_time.empty())
+        return;
+
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
     using Time = std::pair<float, float>;

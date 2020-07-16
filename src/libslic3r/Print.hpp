@@ -303,14 +303,18 @@ private:
 struct PrintStatistics
 {
     PrintStatistics() { clear(); }
+#if ENABLE_GCODE_VIEWER
     std::string                     estimated_normal_print_time;
     std::string                     estimated_silent_print_time;
-#if ENABLE_GCODE_VIEWER
+    std::string                     estimated_normal_print_time_str;
+    std::string                     estimated_silent_print_time_str;
     std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> estimated_normal_custom_gcode_print_times;
     std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> estimated_silent_custom_gcode_print_times;
     std::vector<std::pair<CustomGCode::Type, std::pair<std::string, std::string>>> estimated_normal_custom_gcode_print_times_str;
     std::vector<std::pair<CustomGCode::Type, std::pair<std::string, std::string>>> estimated_silent_custom_gcode_print_times_str;
 #else
+    std::string                     estimated_normal_print_time;
+    std::string                     estimated_silent_print_time;
     std::vector<std::pair<CustomGCode::Type, std::string>>    estimated_normal_custom_gcode_print_times;
     std::vector<std::pair<CustomGCode::Type, std::string>>    estimated_silent_custom_gcode_print_times;
 #endif // ENABLE_GCODE_VIEWER
@@ -331,14 +335,12 @@ struct PrintStatistics
     std::string             finalize_output_path(const std::string &path_in) const;
 
     void clear() {
-        estimated_normal_print_time.clear();
-        estimated_silent_print_time.clear();
 #if ENABLE_GCODE_VIEWER
         estimated_normal_custom_gcode_print_times_str.clear();
         estimated_silent_custom_gcode_print_times_str.clear();
-        estimated_normal_custom_gcode_print_times.clear();
-        estimated_silent_custom_gcode_print_times.clear();
 #else
+        estimated_normal_print_time.clear();
+        estimated_silent_print_time.clear();
         estimated_normal_custom_gcode_print_times.clear();
         estimated_silent_custom_gcode_print_times.clear();
 #endif //ENABLE_GCODE_VIEWER

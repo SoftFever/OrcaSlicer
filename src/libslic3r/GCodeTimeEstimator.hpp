@@ -358,9 +358,6 @@ namespace Slic3r {
         std::string get_time_minutes() const;
 
         // Returns the estimated time, in seconds, for each custom gcode
-#if ENABLE_GCODE_VIEWER
-        std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> get_custom_gcode_times(bool include_remaining) const;
-#else
         std::vector<std::pair<CustomGCode::Type, float>> get_custom_gcode_times() const;
 
         // Returns the estimated time, in format DDd HHh MMm SSs, for each color
@@ -370,7 +367,6 @@ namespace Slic3r {
         // Returns the estimated time, in minutes (integer), for each color
         // If include_remaining==true the strings will be formatted as: "time for color (remaining time at color start)"
         std::vector<std::string> get_color_times_minutes(bool include_remaining) const;
-#endif // ENABLE_GCODE_VIEWER
 
         // Returns the estimated time, in format DDd HHh MMm, for each custom_gcode
         // If include_remaining==true the strings will be formatted as: "time for custom_gcode (remaining time at color start)"

@@ -1322,7 +1322,11 @@ void Sidebar::update_sliced_info_sizer()
                         wxString::Format("%.2f", ps.total_cost);
             p->sliced_info->SetTextAndShow(siCost, info_text,      new_label);
 
+#if ENABLE_GCODE_VIEWER
+            if (ps.estimated_normal_print_time_str == "N/A" && ps.estimated_silent_print_time_str == "N/A")
+#else
             if (ps.estimated_normal_print_time == "N/A" && ps.estimated_silent_print_time == "N/A")
+#endif // ENABLE_GCODE_VIEWER
                 p->sliced_info->SetTextAndShow(siEstimatedTime, "N/A");
             else {
                 new_label = _L("Estimated printing time") +":";
@@ -1360,21 +1364,25 @@ void Sidebar::update_sliced_info_sizer()
                     }
                 };
 
+#if ENABLE_GCODE_VIEWER
+                if (ps.estimated_normal_print_time_str != "N/A") {
+                    new_label += format_wxstr("\n   - %1%", _L("normal mode"));
+                    info_text += format_wxstr("\n%1%", ps.estimated_normal_print_time_str);
+                    fill_labels(ps.estimated_normal_custom_gcode_print_times_str, new_label, info_text);
+                }
+                if (ps.estimated_silent_print_time_str != "N/A") {
+                    new_label += format_wxstr("\n   - %1%", _L("stealth mode"));
+                    info_text += format_wxstr("\n%1%", ps.estimated_silent_print_time_str);
+                    fill_labels(ps.estimated_silent_custom_gcode_print_times_str, new_label, info_text);
+#else
                 if (ps.estimated_normal_print_time != "N/A") {
                     new_label += format_wxstr("\n   - %1%", _L("normal mode"));
                     info_text += format_wxstr("\n%1%", ps.estimated_normal_print_time);
-#if ENABLE_GCODE_VIEWER
-                    fill_labels(ps.estimated_normal_custom_gcode_print_times_str, new_label, info_text);
-#else
                     fill_labels(ps.estimated_normal_custom_gcode_print_times, new_label, info_text);
-#endif // ENABLE_GCODE_VIEWER
                 }
                 if (ps.estimated_silent_print_time != "N/A") {
                     new_label += format_wxstr("\n   - %1%", _L("stealth mode"));
                     info_text += format_wxstr("\n%1%", ps.estimated_silent_print_time);
-#if ENABLE_GCODE_VIEWER
-                    fill_labels(ps.estimated_silent_custom_gcode_print_times_str, new_label, info_text);
-#else
                     fill_labels(ps.estimated_silent_custom_gcode_print_times, new_label, info_text);
 #endif // ENABLE_GCODE_VIEWER
                 }

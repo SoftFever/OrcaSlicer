@@ -5,6 +5,8 @@
 #include "libslic3r/GCodeReader.hpp"
 #include "libslic3r/Point.hpp"
 #include "libslic3r/ExtrusionEntity.hpp"
+#include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/CustomGCode.hpp"
 
 #include <array>
 #include <vector>
@@ -41,7 +43,7 @@ namespace Slic3r {
         struct CachedPosition
         {
             AxisCoords position; // mm
-            float feedrate;  // mm/s
+            float feedrate; // mm/s
 
             void reset();
         };
@@ -50,6 +52,118 @@ namespace Slic3r {
         {
             unsigned char counter;
             unsigned char current;
+
+            void reset();
+        };
+
+    public:
+        struct FeedrateProfile
+        {
+            float entry{ 0.0f }; // mm/s
+            float cruise{ 0.0f }; // mm/s
+            float exit{ 0.0f }; // mm/s
+        };
+
+        struct Trapezoid
+        {
+            float accelerate_until{ 0.0f }; // mm
+            float decelerate_after{ 0.0f }; // mm
+            float cruise_feedrate{ 0.0f }; // mm/sec
+
+            float acceleration_time(float entry_feedrate, float acceleration) const;
+            float cruise_time() const;
+            float deceleration_time(float distance, float acceleration) const;
+            float cruise_distance() const;
+        };
+
+        struct TimeBlock
+        {
+            struct Flags
+            {
+                bool recalculate{ false };
+                bool nominal_length{ false };
+            };
+
+            float distance{ 0.0f }; // mm
+            float acceleration{ 0.0f }; // mm/s^2
+            float max_entry_speed{ 0.0f }; // mm/s
+            float safe_feedrate{ 0.0f }; // mm/s
+            Flags flags;
+            FeedrateProfile feedrate_profile;
+            Trapezoid trapezoid;
+
+            // Calculates this block's trapezoid
+            void calculate_trapezoid();
+
+            float time() const;
+        };
+
+        enum class ETimeMode : unsigned char
+        {
+            Normal,
+            Stealth,
+            Count
+        };
+
+    private:
+        struct TimeMachine
+        {
+            struct State
+            {
+                float feedrate; // mm/s
+                float safe_feedrate; // mm/s
+                AxisCoords axis_feedrate; // mm/s
+                AxisCoords abs_axis_feedrate; // mm/s
+
+                void reset();
+            };
+
+            struct CustomGCodeTime
+            {
+                bool needed;
+                float cache;
+                std::vector<std::pair<CustomGCode::Type, float>> times;
+
+                void reset();
+            };
+
+            bool enabled;
+            float acceleration; // mm/s^2
+            float extrude_factor_override_percentage;
+            float time; // s
+            State curr;
+            State prev;
+            CustomGCodeTime gcode_time;
+            std::vector<TimeBlock> blocks;
+
+            void reset();
+
+            // Simulates firmware st_synchronize() call
+            void simulate_st_synchronize(float additional_time = 0.0f);
+            void calculate_time(size_t keep_last_n_blocks = 0);
+        };
+
+        struct TimeProcessor
+        {
+            struct Planner
+            {
+                // Size of the firmware planner queue. The old 8-bit Marlins usually just managed 16 trapezoidal blocks.
+                // Let's be conservative and plan for newer boards with more memory.
+                static constexpr size_t queue_size = 64;
+                // The firmware recalculates last planner_queue_size trapezoidal blocks each time a new block is added.
+                // We are not simulating the firmware exactly, we calculate a sequence of blocks once a reasonable number of blocks accumulate.
+                static constexpr size_t refresh_threshold = queue_size * 4;
+            };
+
+            // extruder_id is currently used to correctly calculate filament load / unload times into the total print time.
+            // This is currently only really used by the MK3 MMU2:
+            // extruder_unloaded = true means no filament is loaded yet, all the filaments are parked in the MK3 MMU2 unit.
+            bool extruder_unloaded;
+            MachineEnvelopeConfig machine_limits;
+            // Additional load / unload times for a filament exchange sequence.
+            std::vector<float> filament_load_times;
+            std::vector<float> filament_unload_times;
+            std::array<TimeMachine, static_cast<size_t>(ETimeMode::Count)> machines;
 
             void reset();
         };
@@ -85,21 +199,6 @@ namespace Slic3r {
             float time{ 0.0f }; // s
 
             float volumetric_rate() const { return feedrate * mm3_per_mm; }
-
-            std::string to_string() const
-            {
-                std::string str = std::to_string((int)type);
-                str += ", " + std::to_string((int)extrusion_role);
-                str += ", " + Slic3r::to_string((Vec3d)position.cast<double>());
-                str += ", " + std::to_string(extruder_id);
-                str += ", " + std::to_string(cp_color_id);
-                str += ", " + std::to_string(feedrate);
-                str += ", " + std::to_string(width);
-                str += ", " + std::to_string(height);
-                str += ", " + std::to_string(mm3_per_mm);
-                str += ", " + std::to_string(fan_speed);
-                return str;
-            }
         };
 
         struct Result
@@ -124,19 +223,21 @@ namespace Slic3r {
         GCodeFlavor m_flavor;
 
         AxisCoords m_start_position; // mm
-        AxisCoords m_end_position;   // mm
-        AxisCoords m_origin;         // mm
+        AxisCoords m_end_position; // mm
+        AxisCoords m_origin; // mm
         CachedPosition m_cached_position;
 
-        float m_feedrate;  // mm/s
-        float m_width;     // mm
-        float m_height;    // mm
+        float m_feedrate; // mm/s
+        float m_width; // mm
+        float m_height; // mm
         float m_mm3_per_mm;
         float m_fan_speed; // percentage
         ExtrusionRole m_extrusion_role;
         unsigned char m_extruder_id;
         ExtrudersColor m_extruders_color;
         CpColor m_cp_color;
+
+        TimeProcessor m_time_processor;
 
         Result m_result;
         static unsigned int s_result_id;
@@ -145,6 +246,7 @@ namespace Slic3r {
         GCodeProcessor() { reset(); }
 
         void apply_config(const PrintConfig& config);
+        void enable_stealth_time_estimator(bool enabled);
         void reset();
 
         const Result& get_result() const { return m_result; }
@@ -152,6 +254,9 @@ namespace Slic3r {
 
         // Process the gcode contained in the file with the given filename
         void process_file(const std::string& filename);
+
+        std::string get_time_dhm(ETimeMode mode) const;
+        std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> get_custom_gcode_times(ETimeMode mode, bool include_remaining) const;
 
     private:
         void process_gcode_line(const GCodeReader::GCodeLine& line);
@@ -169,6 +274,12 @@ namespace Slic3r {
         // Unretract
         void process_G11(const GCodeReader::GCodeLine& line);
 
+        // Set Units to Inches
+        void process_G20(const GCodeReader::GCodeLine& line);
+
+        // Set Units to Millimeters
+        void process_G21(const GCodeReader::GCodeLine& line);
+
         // Firmware controlled Retract
         void process_G22(const GCodeReader::GCodeLine& line);
 
@@ -183,6 +294,9 @@ namespace Slic3r {
 
         // Set Position
         void process_G92(const GCodeReader::GCodeLine& line);
+
+        // Sleep or Conditional stop
+        void process_M1(const GCodeReader::GCodeLine& line);
 
         // Set extruder to absolute mode
         void process_M82(const GCodeReader::GCodeLine& line);
@@ -205,17 +319,54 @@ namespace Slic3r {
         // Set tool (MakerWare)
         void process_M135(const GCodeReader::GCodeLine& line);
 
+        // Set max printing acceleration
+        void process_M201(const GCodeReader::GCodeLine& line);
+
+        // Set maximum feedrate
+        void process_M203(const GCodeReader::GCodeLine& line);
+
+        // Set default acceleration
+        void process_M204(const GCodeReader::GCodeLine& line);
+
+        // Advanced settings
+        void process_M205(const GCodeReader::GCodeLine& line);
+
+        // Set extrude factor override percentage
+        void process_M221(const GCodeReader::GCodeLine& line);
+
         // Repetier: Store x, y and z position
         void process_M401(const GCodeReader::GCodeLine& line);
 
         // Repetier: Go to stored position
         void process_M402(const GCodeReader::GCodeLine& line);
 
+        // Set allowable instantaneous speed change
+        void process_M566(const GCodeReader::GCodeLine& line);
+
+        // Unload the current filament into the MK3 MMU2 unit at the end of print.
+        void process_M702(const GCodeReader::GCodeLine& line);
+
         // Processes T line (Select Tool)
         void process_T(const GCodeReader::GCodeLine& line);
         void process_T(const std::string& command);
 
         void store_move_vertex(EMoveType type);
+
+        float minimum_feedrate(ETimeMode mode, float feedrate) const;
+        float minimum_travel_feedrate(ETimeMode mode, float feedrate) const;
+        float get_axis_max_feedrate(ETimeMode mode, Axis axis) const;
+        float get_axis_max_acceleration(ETimeMode mode, Axis axis) const;
+        float get_axis_max_jerk(ETimeMode mode, Axis axis) const;
+        float get_retract_acceleration(ETimeMode mode) const;
+        float get_acceleration(ETimeMode mode) const;
+        void set_acceleration(ETimeMode mode, float value);
+        float get_filament_load_time(size_t extruder_id);
+        float get_filament_unload_time(size_t extruder_id);
+
+        void process_custom_gcode_time(CustomGCode::Type code);
+
+        // Simulates firmware st_synchronize() call
+        void simulate_st_synchronize(float additional_time = 0.0f);
    };
 
 } /* namespace Slic3r */

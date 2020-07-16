@@ -2190,18 +2190,24 @@ std::string Print::output_filename(const std::string &filename_base) const
 DynamicConfig PrintStatistics::config() const
 {
     DynamicConfig config;
+#if ENABLE_GCODE_VIEWER
+    config.set_key_value("print_time",                new ConfigOptionString(this->estimated_normal_print_time_str));
+    config.set_key_value("normal_print_time",         new ConfigOptionString(this->estimated_normal_print_time_str));
+    config.set_key_value("silent_print_time",         new ConfigOptionString(this->estimated_silent_print_time_str));
+#else
     std::string normal_print_time = short_time(this->estimated_normal_print_time);
     std::string silent_print_time = short_time(this->estimated_silent_print_time);
     config.set_key_value("print_time",                new ConfigOptionString(normal_print_time));
     config.set_key_value("normal_print_time",         new ConfigOptionString(normal_print_time));
     config.set_key_value("silent_print_time",         new ConfigOptionString(silent_print_time));
-    config.set_key_value("used_filament",             new ConfigOptionFloat (this->total_used_filament / 1000.));
-    config.set_key_value("extruded_volume",           new ConfigOptionFloat (this->total_extruded_volume));
-    config.set_key_value("total_cost",                new ConfigOptionFloat (this->total_cost));
+#endif // ENABLE_GCODE_VIEWER
+    config.set_key_value("used_filament",             new ConfigOptionFloat(this->total_used_filament / 1000.));
+    config.set_key_value("extruded_volume",           new ConfigOptionFloat(this->total_extruded_volume));
+    config.set_key_value("total_cost",                new ConfigOptionFloat(this->total_cost));
     config.set_key_value("total_toolchanges",         new ConfigOptionInt(this->total_toolchanges));
-    config.set_key_value("total_weight",              new ConfigOptionFloat (this->total_weight));
-    config.set_key_value("total_wipe_tower_cost",     new ConfigOptionFloat (this->total_wipe_tower_cost));
-    config.set_key_value("total_wipe_tower_filament", new ConfigOptionFloat (this->total_wipe_tower_filament));
+    config.set_key_value("total_weight",              new ConfigOptionFloat(this->total_weight));
+    config.set_key_value("total_wipe_tower_cost",     new ConfigOptionFloat(this->total_wipe_tower_cost));
+    config.set_key_value("total_wipe_tower_filament", new ConfigOptionFloat(this->total_wipe_tower_filament));
     return config;
 }
 
