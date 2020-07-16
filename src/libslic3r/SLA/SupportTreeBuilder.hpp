@@ -177,6 +177,14 @@ struct Bridge: public SupportTreeNode {
     Vec3d  get_dir() const { return (endp - startp).normalized(); }
 };
 
+struct DiffBridge: public Bridge {
+    double end_r;
+
+    DiffBridge(const Vec3d &p_s, const Vec3d &p_e, double r_s, double r_e)
+        : Bridge{p_s, p_e, r_s}, end_r{r_e}
+    {}
+};
+
 // A wrapper struct around the pad
 struct Pad {
     TriangleMesh tmesh;
@@ -210,14 +218,15 @@ struct Pad {
 // merged mesh. It can be retrieved using a dedicated method (pad())
 class SupportTreeBuilder: public SupportTree {
     // For heads it is beneficial to use the same IDs as for the support points.
-    std::vector<Head>     m_heads;
-    std::vector<size_t>   m_head_indices;
-    std::vector<Pillar>   m_pillars;
-    std::vector<Junction> m_junctions;
-    std::vector<Bridge>   m_bridges;
-    std::vector<Bridge>   m_crossbridges;
-    std::vector<Pedestal> m_pedestals;
-    std::vector<Anchor>   m_anchors;
+    std::vector<Head>       m_heads;
+    std::vector<size_t>     m_head_indices;
+    std::vector<Pillar>     m_pillars;
+    std::vector<Junction>   m_junctions;
+    std::vector<Bridge>     m_bridges;
+    std::vector<Bridge>     m_crossbridges;
+    std::vector<DiffBridge> m_diffbridges;
+    std::vector<Pedestal>   m_pedestals;
+    std::vector<Anchor>     m_anchors;
 
     Pad m_pad;
     
@@ -228,8 +237,8 @@ class SupportTreeBuilder: public SupportTree {
     mutable bool m_meshcache_valid = false;
     mutable double m_model_height = 0; // the full height of the model
     
-    template<class...Args>
-    const Bridge& _add_bridge(std::vector<Bridge> &br, Args&&... args)
+    template<class BridgeT, class...Args>
+    const BridgeT& _add_bridge(std::vector<BridgeT> &br, Args&&... args)
     {
         std::lock_guard<Mutex> lk(m_mutex);
         br.emplace_back(std::forward<Args>(args)...);
@@ -331,17 +340,6 @@ public:
         return pillar.id;
     }
     
-    const Pillar& head_pillar(unsigned headid) const
-    {
-        std::lock_guard<Mutex> lk(m_mutex);
-        assert(headid < m_head_indices.size());
-        
-        const Head& h = m_heads[m_head_indices[headid]];
-        assert(h.pillar_id >= 0 && h.pillar_id < long(m_pillars.size()));
-        
-        return m_pillars[size_t(h.pillar_id)];
-    }
-    
     template<class...Args> const Junction& add_junction(Args&&... args)
     {
         std::lock_guard<Mutex> lk(m_mutex);
@@ -373,6 +371,11 @@ public:
     template<class...Args> const Bridge& add_crossbridge(Args&&... args)
     {
         return _add_bridge(m_crossbridges, std::forward<Args>(args)...);
+    }
+
+    template<class...Args> const DiffBridge& add_diffbridge(Args&&... args)
+    {
+        return _add_bridge(m_diffbridges, std::forward<Args>(args)...);
     }
     
     Head &head(unsigned id)

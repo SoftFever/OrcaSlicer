@@ -45,6 +45,11 @@ inline Vec3d spheric_to_dir(const std::pair<double, double> &v)
     return spheric_to_dir(v.first, v.second);
 }
 
+inline Vec3d spheric_to_dir(const std::array<double, 2> &v)
+{
+    return spheric_to_dir(v[0], v[1]);
+}
+
 // Give points on a 3D ring with given center, radius and orientation
 // method based on:
 // https://math.stackexchange.com/questions/73237/parametric-equation-of-a-circle-in-3d-space
@@ -249,7 +254,8 @@ class SupportTreeBuildsteps {
         double width)
     {
         return pinhead_mesh_intersect(s, dir, r_pin, r_back, width,
-                                      m_cfg.safety_distance_mm);
+                                      r_back * m_cfg.safety_distance_mm /
+                                          m_cfg.head_back_radius_mm);
     }
 
     // Checking bridge (pillar and stick as well) intersection with the model.
@@ -271,7 +277,9 @@ class SupportTreeBuildsteps {
         const Vec3d& dir,
         double r)
     {
-        return bridge_mesh_intersect(s, dir, r, m_cfg.safety_distance_mm);
+        return bridge_mesh_intersect(s, dir, r,
+                                     r * m_cfg.safety_distance_mm /
+                                         m_cfg.head_back_radius_mm);
     }
     
     template<class...Args>
@@ -310,6 +318,11 @@ class SupportTreeBuildsteps {
     {
         m_builder.add_pillar_base(pid, m_cfg.base_height_mm, m_cfg.base_radius_mm);
     }
+
+    std::optional<DiffBridge> search_widening_path(const Vec3d &jp,
+                                                   const Vec3d &dir,
+                                                   double       radius,
+                                                   double       new_radius);
 
 public:
     SupportTreeBuildsteps(SupportTreeBuilder & builder, const SupportableMesh &sm);

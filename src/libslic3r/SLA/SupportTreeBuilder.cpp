@@ -156,6 +156,11 @@ const TriangleMesh &SupportTreeBuilder::merged_mesh(size_t steps) const
         merged.merge(get_mesh(bs, steps));
     }
 
+    for (auto &bs : m_diffbridges) {
+        if (ctl().stopcondition()) break;
+        merged.merge(get_mesh(bs, steps));
+    }
+
     for (auto &anch : m_anchors) {
         if (ctl().stopcondition()) break;
         merged.merge(get_mesh(anch, steps));

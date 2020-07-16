@@ -4,6 +4,8 @@
 
 #include "sla_test_utils.hpp"
 
+#include <libslic3r/SLA/SupportTreeMesher.hpp>
+
 namespace {
 
 const char *const BELOW_PAD_TEST_OBJECTS[] = {
@@ -227,4 +229,13 @@ TEST_CASE("Triangle mesh conversions should be correct", "[SLAConversions]")
         std::fstream infile{"extruder_idler_quads.obj", std::ios::in};
         cntr.from_obj(infile);
     }
+}
+
+TEST_CASE("halfcone test", "[halfcone]") {
+    sla::DiffBridge br{Vec3d{1., 1., 1.}, Vec3d{10., 10., 10.}, 0.25, 0.5};
+
+    TriangleMesh m = sla::to_triangle_mesh(sla::get_mesh(br, 45));
+
+    m.require_shared_vertices();
+    m.WriteOBJFile("Halfcone.obj");
 }

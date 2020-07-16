@@ -87,7 +87,7 @@ public:
         inline Vec3d position() const { return m_source + m_dir * m_t; }
         inline int face() const { return m_face_id; }
         inline bool is_valid() const { return m_mesh != nullptr; }
-        inline bool is_hit() const { return !std::isinf(m_t); }
+        inline bool is_hit() const { return m_face_id >= 0 && !std::isinf(m_t); }
 
         inline const Vec3d& normal() const {
             assert(is_valid());

@@ -94,6 +94,24 @@ inline Contour3D get_mesh(const Bridge &br, size_t steps)
     return mesh;
 }
 
+inline Contour3D get_mesh(const DiffBridge &br, size_t steps)
+{
+    double h = br.get_length();
+    Contour3D mesh = halfcone(h, br.r, br.end_r, Vec3d::Zero(), steps);
+
+    using Quaternion = Eigen::Quaternion<double>;
+
+    // We rotate the head to the specified direction. The head's pointing
+    // side is facing upwards so this means that it would hold a support
+    // point with a normal pointing straight down. This is the reason of
+    // the -1 z coordinate
+    auto quatern = Quaternion::FromTwoVectors(Vec3d{0, 0, 1}, br.get_dir());
+
+    for(auto& p : mesh.points) p = quatern * p + br.startp;
+
+    return mesh;
+}
+
 }} // namespace Slic3r::sla
 
 #endif // SUPPORTTREEMESHER_HPP
