@@ -3479,6 +3479,27 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         // Update the SLA preview. Only called if not RELOAD_SLA_SUPPORT_POINTS, as the block above will refresh the preview anyways.
         this->preview->reload_print();
     }
+
+    if (evt.status.flags & (PrintBase::SlicingStatus::UPDATE_PRINT_STEP_WARNINGS | PrintBase::SlicingStatus::UPDATE_PRINT_OBJECT_STEP_WARNINGS)) {
+        // Update notification center with warnings of object_id and its warning_step.
+        ObjectID object_id = evt.status.warning_object_id;
+        int warning_step = evt.status.warning_step;
+        PrintStateBase::StateWithWarnings state;
+        if (evt.status.flags & PrintBase::SlicingStatus::UPDATE_PRINT_STEP_WARNINGS) {
+            state = this->printer_technology == ptFFF ? 
+                this->fff_print.step_state_with_warnings(static_cast<PrintStep>(warning_step)) :
+                this->sla_print.step_state_with_warnings(static_cast<SLAPrintStep>(warning_step));
+        } else if (this->printer_technology == ptFFF) {
+            const PrintObject *print_object = this->fff_print.get_object(object_id);
+            if (print_object)
+                state = print_object->step_state_with_warnings(static_cast<PrintObjectStep>(warning_step));
+        } else {
+            const SLAPrintObject *print_object = this->sla_print.get_object(object_id);
+            if (print_object)
+                state = print_object->step_state_with_warnings(static_cast<SLAPrintObjectStep>(warning_step));
+        }
+        // Now process state.warnings.
+    }
 }
 
 void Plater::priv::on_slicing_completed(wxCommandEvent &)

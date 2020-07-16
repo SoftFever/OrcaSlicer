@@ -1577,7 +1577,9 @@ bool PrintObject::update_layer_height_profile(const ModelObject &model_object, c
     bool updated = false;
 
     if (layer_height_profile.empty()) {
-        layer_height_profile = model_object.layer_height_profile;
+        // use the constructor because the assignement is crashing on ASAN OsX
+        layer_height_profile = std::vector<coordf_t>(model_object.layer_height_profile);
+//        layer_height_profile = model_object.layer_height_profile;
         updated = true;
     }
 
