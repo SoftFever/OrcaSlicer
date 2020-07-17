@@ -275,8 +275,9 @@ public:
     void		load_current_preset();
 	void        rebuild_page_tree();
 	void        update_page_tree_visibility();
-	// Select a new preset, possibly delete the current one.
-	void		select_preset(std::string preset_name = "", bool delete_current = false);
+    void		update_preset_choice();
+    // Select a new preset, possibly delete the current one.
+	void		select_preset(std::string preset_name = "", bool delete_current = false, const std::string& last_selected_ph_printer_name = "");
 	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, const std::string& new_printer_name = "");
     bool        may_switch_to_SLA_preset();
 

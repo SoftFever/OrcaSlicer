@@ -1370,11 +1370,6 @@ const std::vector<std::string>& PhysicalPrinter::printer_options()
     return s_opts;
 }
 
-const std::string& PhysicalPrinter::get_preset_name() const
-{
-    return config.opt_string("preset_name");
-}
-
 const std::set<std::string>& PhysicalPrinter::get_preset_names() const
 {
     return preset_names;
@@ -1415,8 +1410,6 @@ void PhysicalPrinter::update_from_preset(const Preset& preset)
     // add preset names to the options list
     auto ret = preset_names.emplace(preset.name);
     update_preset_names_in_config();
-
-    update_full_name();
 }
 
 void PhysicalPrinter::update_from_config(const DynamicPrintConfig& new_config)
@@ -1431,8 +1424,6 @@ void PhysicalPrinter::update_from_config(const DynamicPrintConfig& new_config)
             preset_names.emplace(val);
     }
     preset_names = values;
-
-    update_full_name();
 }
 
 void PhysicalPrinter::reset_presets()
@@ -1454,26 +1445,26 @@ PhysicalPrinter::PhysicalPrinter(const std::string& name, const Preset& preset) 
 void PhysicalPrinter::set_name(const std::string& name)
 {
     this->name = name;
-    update_full_name();
 }
 
-void PhysicalPrinter::update_full_name()
+std::string PhysicalPrinter::get_full_name(std::string preset_name) const
 {
-    full_name = name + separator() + get_preset_name();
+    return name + separator() + preset_name;
 }
 
 std::string PhysicalPrinter::get_short_name(std::string full_name)
 {
     int pos = full_name.find(separator());
-    boost::erase_tail(full_name, full_name.length() - pos);
+    if (pos > 0)
+        boost::erase_tail(full_name, full_name.length() - pos);
     return full_name;
 }
 
-std::string PhysicalPrinter::get_preset_name(std::string full_name)
+std::string PhysicalPrinter::get_preset_name(std::string name)
 {
-    int pos = full_name.find(separator());
-    boost::erase_head(full_name, pos + 2);
-    return full_name;
+    int pos = name.find(separator());
+    boost::erase_head(name, pos + 3);
+    return Preset::remove_suffix_modified(name);
 }
 
 
@@ -1563,7 +1554,6 @@ void PhysicalPrinterCollection::save_printer(const PhysicalPrinter& edited_print
         it->config = std::move(edited_printer.config);
         it->name = edited_printer.name;
         it->preset_names = edited_printer.preset_names;
-        it->full_name = edited_printer.full_name;
     }
     else {
         // Creating a new printer.
@@ -1615,15 +1605,41 @@ bool PhysicalPrinterCollection::delete_selected_printer()
     return true;
 }
 
-PhysicalPrinter& PhysicalPrinterCollection::select_printer_by_name(std::string name)
+std::string PhysicalPrinterCollection::get_selected_full_printer_name() const
 {
-    name = PhysicalPrinter::get_short_name(name);
-    auto it = this->find_printer_internal(name);
+    return (m_idx_selected == size_t(-1)) ? std::string() : this->get_selected_printer().get_full_name(m_selected_preset);
+}
+
+PhysicalPrinter& PhysicalPrinterCollection::select_printer_by_name(const std::string& full_name)
+{
+    std::string printer_name = PhysicalPrinter::get_short_name(full_name);
+    auto it = this->find_printer_internal(printer_name);
     assert(it != m_printers.end());
 
     // update idx_selected
-    m_idx_selected = it - m_printers.begin();
+    m_idx_selected      = it - m_printers.begin();
+    // update name of the currently selected preset
+    m_selected_preset   = it->get_preset_name(full_name);
+    if (m_selected_preset.empty())
+        m_selected_preset = *it->preset_names.begin();
     return *it;
+}
+
+bool PhysicalPrinterCollection::has_selection() const
+{
+    return m_idx_selected != size_t(-1);
+}
+
+void PhysicalPrinterCollection::unselect_printer()
+{
+    m_idx_selected = size_t(-1);
+    m_selected_preset.clear();
+}
+
+bool PhysicalPrinterCollection::is_selected(PhysicalPrinterCollection::ConstIterator it, const std::string& preset_name) const
+{
+    return  m_idx_selected      == it - m_printers.begin() && 
+            m_selected_preset   == preset_name;
 }
 
 

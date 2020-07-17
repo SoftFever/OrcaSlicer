@@ -3208,24 +3208,21 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     if (preset_type == Preset::TYPE_FILAMENT) {
         wxGetApp().preset_bundle->set_filament_preset(idx, preset_name);
     }
-    
-    if (preset_type == Preset::TYPE_PRINTER) {
-        if(combo->is_selected_physical_printer()) {
-            // Select related printer preset on the Printer Settings Tab 
-            const std::string printer_name = combo->GetString(selection).ToUTF8().data();
-            PhysicalPrinter& printer = wxGetApp().preset_bundle->physical_printers.select_printer_by_name(printer_name);
-            preset_name = wxGetApp().preset_bundle->get_preset_name_by_alias(preset_type, printer.get_preset_name());
-        }
-        else
-            wxGetApp().preset_bundle->physical_printers.unselect_printer();
-    }
 
+    bool select_preset = !combo->selection_is_changed_according_to_physical_printers();
     // TODO: ?
     if (preset_type == Preset::TYPE_FILAMENT && sidebar->is_multifilament()) {
         // Only update the plater UI for the 2nd and other filaments.
         combo->update();
     }
-    else {
+    else if (select_preset) {
+        if (preset_type == Preset::TYPE_PRINTER) {
+            PhysicalPrinterCollection& physical_printers = wxGetApp().preset_bundle->physical_printers;
+            if(combo->is_selected_physical_printer())
+                preset_name = physical_printers.get_selected_printer_preset_name();
+            else
+                physical_printers.unselect_printer();
+        }
         wxWindowUpdateLocker noUpdates(sidebar->presets_panel());
         wxGetApp().get_tab(preset_type)->select_preset(preset_name);
     }

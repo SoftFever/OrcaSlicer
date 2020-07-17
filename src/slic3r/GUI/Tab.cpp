@@ -162,10 +162,20 @@ void Tab::create_preset_tab()
     // preset chooser
     m_presets_choice = new TabPresetComboBox(panel, m_type);
     m_presets_choice->set_selection_changed_function([this](int selection) {
-        std::string selected_string = m_presets_choice->GetString(selection).ToUTF8().data();
-        update_physical_printers(selected_string);
-        // select preset
-        select_preset(selected_string);
+        if (!m_presets_choice->selection_is_changed_according_to_physical_printers())
+        {
+            // for the printer presets set callback for the updating of the physical printers
+            if (m_type == Preset::TYPE_PRINTER)
+                m_presets_choice->set_update_physical_printers_function([this](std::string preset_name) { update_physical_printers(preset_name);});
+
+            // select preset
+            select_preset(m_presets_choice->GetString(selection).ToUTF8().data());
+
+            // Disable callback for the updating of the physical printers to avoid a case,
+            // when select_preset is called from the others than this place
+            if (m_type == Preset::TYPE_PRINTER)
+                m_presets_choice->set_update_physical_printers_function(nullptr);
+        }
     });
 
     auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
@@ -764,9 +774,11 @@ void Tab::update_tab_ui()
 
 void Tab::update_physical_printers(std::string preset_name)
 {
-    if (m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection())
+    PhysicalPrinterCollection& physical_printers = wxGetApp().preset_bundle->physical_printers;
+    if (physical_printers.has_selection() && 
+        Preset::remove_suffix_modified(preset_name) != physical_printers.get_selected_printer_preset_name())
     {
-        std::string printer_name = m_preset_bundle->physical_printers.get_selected_full_printer_name();
+        std::string printer_name = physical_printers.get_selected_full_printer_name();
         wxString msg_text = from_u8((boost::format(_u8L("You have selected physical printer \"%1%\".")) % printer_name).str());
         msg_text += "\n\n" + _L("Would you like to change related preset for this printer?") + "\n\n" +
                     _L("Select YES if you want to change related preset for this printer \n"
@@ -780,12 +792,14 @@ void Tab::update_physical_printers(std::string preset_name)
             Preset& edited_preset = m_presets->get_edited_preset();
             if (preset->name == edited_preset.name)
                 preset = &edited_preset;
-            m_preset_bundle->physical_printers.get_selected_printer().update_from_preset(*preset);
+            physical_printers.get_selected_printer().update_from_preset(*preset);
+            physical_printers.select_printer_by_name(physical_printers.get_selected_printer().get_full_name(preset_name));
+            return;
         }
-        else
-            // unselect physical printer, if it was selected
-            m_preset_bundle->physical_printers.unselect_printer();
     }
+
+    // unselect physical printer, if it was selected
+    m_preset_bundle->physical_printers.unselect_printer();
 }
 
 // Load a provied DynamicConfig into the tab, modifying the active preset.
@@ -2148,11 +2162,10 @@ void TabPrinter::build_fff()
             line.append_widget(serial_test);
             optgroup->append_line(line);
         }
-#endif
 
         optgroup = page->new_optgroup(L("Print Host upload"));
         build_printhost(optgroup.get());
-
+#endif
         optgroup = page->new_optgroup(L("Firmware"));
         optgroup->append_single_option_line("gcode_flavor");
         optgroup->append_single_option_line("silent_mode");
@@ -2310,8 +2323,10 @@ void TabPrinter::build_sla()
     optgroup->append_single_option_line("min_initial_exposure_time");
     optgroup->append_single_option_line("max_initial_exposure_time");
 
+    /*
     optgroup = page->new_optgroup(L("Print Host upload"));
     build_printhost(optgroup.get());
+    */
 
     const int notes_field_height = 25; // 250
 
@@ -2699,11 +2714,13 @@ void TabPrinter::update_fff()
             m_serial_test_btn->Disable();
     }
 
+    /*
     {
         std::unique_ptr<PrintHost> host(PrintHost::get_print_host(m_config));
         m_print_host_test_btn->Enable(!m_config->opt_string("print_host").empty() && host->can_test());
         m_printhost_browse_btn->Enable(host->has_auto_discovery());
     }
+    */
 
     bool have_multiple_extruders = m_extruders_count > 1;
     get_field("toolchange_gcode")->toggle(have_multiple_extruders);
@@ -2942,10 +2959,15 @@ void Tab::update_page_tree_visibility()
 
 }
 
+void Tab::update_preset_choice()
+{
+    m_presets_choice->update();
+}
+
 // Called by the UI combo box when the user switches profiles, and also to delete the current profile.
 // Select a preset by a name.If !defined(name), then the default preset is selected.
 // If the current profile is modified, user is asked to save the changes.
-void Tab::select_preset(std::string preset_name, bool delete_current)
+void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/, const std::string& last_selected_ph_printer_name/* =""*/)
 {
     if (preset_name.empty()) {
         if (delete_current) {
@@ -3054,9 +3076,22 @@ void Tab::select_preset(std::string preset_name, bool delete_current)
 
     if (canceled) {
         update_tab_ui();
+        /*
         // unselect physical printer selection to the correct synchronization of the printer presets between Tab and Plater
         if (m_type == Preset::TYPE_PRINTER)
             m_preset_bundle->physical_printers.unselect_printer();
+        */
+
+
+        // Check if preset really was changed.
+        // If preset selection was canceled and previously was selected physical printer, we should select it back
+        if (m_type == Preset::TYPE_PRINTER && !last_selected_ph_printer_name.empty()) {
+            if (m_presets->get_edited_preset().name == PhysicalPrinter::get_preset_name(last_selected_ph_printer_name)) {
+                m_preset_bundle->physical_printers.select_printer_by_name(last_selected_ph_printer_name);
+                m_presets_choice->update();
+            }
+        }
+
         // Trigger the on_presets_changed event so that we also restore the previous value in the plater selector,
         // if this action was initiated from the plater.
         on_presets_changed();
@@ -3098,6 +3133,10 @@ void Tab::select_preset(std::string preset_name, bool delete_current)
             else if (printer_technology == ptSLA && m_dependent_tabs.front() != Preset::Type::TYPE_SLA_PRINT)
                 m_dependent_tabs = { Preset::Type::TYPE_SLA_PRINT, Preset::Type::TYPE_SLA_MATERIAL };
         }
+
+        //update physical printer's related printer preset if it's needed
+        m_presets_choice->update_physical_printers(preset_name);
+
         load_current_preset();
     }
 }
@@ -3295,7 +3334,7 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach)
     // If saving the preset changes compatibility with other presets, keep the now incompatible dependent presets selected, however with a "red flag" icon showing that they are no more compatible.
     m_preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
     //update physical printer's related printer preset if it's needed 
-    update_physical_printers(name);
+    m_presets_choice->update_physical_printers(name);
     // Add the new item into the UI component, remove dirty flags and activate the saved item.
     update_tab_ui();
     // Update the selection boxes at the plater.

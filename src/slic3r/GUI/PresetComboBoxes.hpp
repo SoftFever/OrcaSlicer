@@ -10,6 +10,7 @@
 #include "libslic3r/Preset.hpp"
 #include "wxExtensions.hpp"
 #include "GUI_Utils.hpp"
+#include "BitmapCache.hpp"
 
 class wxString;
 class wxTextCtrl;
@@ -20,8 +21,6 @@ class wxBoxSizer;
 namespace Slic3r {
 
 namespace GUI {
-
-class BitmapCache;
 
 
 // ---------------------------------
@@ -49,11 +48,22 @@ public:
 
     void set_label_marker(int item, LabelItemType label_item_type = LABEL_ITEM_MARKER);
 
-    virtual void update() {};
+    void set_selection_changed_function(std::function<void(int)> sel_changed)               { on_selection_changed = sel_changed; }
+
+    bool is_selected_physical_printer();
+
+    // Return true, if physical printer was selected 
+    // and next internal selection was accomplished
+    bool selection_is_changed_according_to_physical_printers();
+
+    void update(const std::string& select_preset);
+
+    virtual void update(){};
     virtual void msw_rescale();
 
 protected:
     typedef std::size_t Marker;
+    std::function<void(int)>    on_selection_changed { nullptr };
 
     Preset::Type        m_type;
     std::string         m_main_bitmap_name;
@@ -61,16 +71,16 @@ protected:
     PresetBundle*       m_preset_bundle {nullptr};
     PresetCollection*   m_collection {nullptr};
 
-    // Caching color bitmaps for the filament combo box.
-    BitmapCache*        m_bitmap_cache {nullptr};
+    // Caching bitmaps for the all bitmaps, used in preset comboboxes
+    static BitmapCache& bitmap_cache() {
+        static BitmapCache bmps;
+        return bmps;
+    }
+
     // Indicator, that the preset is compatible with the selected printer.
     ScalableBitmap      m_bitmapCompatible;
     // Indicator, that the preset is NOT compatible with the selected printer.
     ScalableBitmap      m_bitmapIncompatible;
-    // Indicator, that the preset is system and not modified.
-    ScalableBitmap      m_bitmapLock;
-    // Disabled analogue of the m_bitmapLock .
-    ScalableBitmap      m_bitmapLockDisabled;
 
     int m_last_selected;
     int m_em_unit;
@@ -92,6 +102,13 @@ protected:
     static const char* separator_tail() { return " —————"; }
 #endif // __linux__
     static wxString    separator(const std::string& label);
+
+    wxBitmap* get_bmp(  std::string bitmap_key, bool wide_icons, const std::string& main_icon_name, 
+                        bool is_compatible = true, bool is_system = false, bool is_single_bar = false,
+                        std::string filament_rgb = "", std::string extruder_rgb = "");
+
+    wxBitmap* get_bmp(  std::string bitmap_key, const std::string& main_icon_name, const std::string& next_icon_name,
+                        bool is_enabled = true, bool is_compatible = true, bool is_system = false);
 
 #ifdef __APPLE__
     /* For PresetComboBox we use bitmaps that are created from images that are already scaled appropriately for Retina
@@ -128,7 +145,6 @@ public:
     void set_extruder_idx(const int extr_idx)   { m_extruder_idx = extr_idx; }
     int  get_extruder_idx() const               { return m_extruder_idx; }
 
-    bool is_selected_physical_printer();
     bool switch_to_tab();
     void show_add_menu();
     void show_edit_menu();
@@ -149,7 +165,8 @@ class TabPresetComboBox : public PresetComboBox
 {
     bool show_incompatible {false};
     bool m_enable_all {false};
-    std::function<void(int)> on_selection_changed { nullptr };
+
+    std::function<void(std::string)>    update_ph_printers { nullptr };
 
 public:
     TabPresetComboBox(wxWindow *parent, Preset::Type preset_type);
@@ -157,12 +174,15 @@ public:
     void set_show_incompatible_presets(bool show_incompatible_presets) {
         show_incompatible = show_incompatible_presets;
     }
+    void set_update_physical_printers_function(std::function<void(std::string)> update_fn) {
+        update_ph_printers = update_fn;
+    }
 
     void update() override;
     void update_dirty();
+    void update_physical_printers(const std::string& preset_name);
     void msw_rescale() override;
 
-    void set_selection_changed_function(std::function<void(int)> sel_changed) { on_selection_changed = sel_changed; }
     void set_enable_all(bool enable=true) { m_enable_all = enable; }
 };
 
@@ -176,7 +196,7 @@ class PresetForPrinter
 {
     PhysicalPrinterDialog* m_parent         { nullptr };
 
-    TabPresetComboBox*  m_presets_list      { nullptr };
+    PresetComboBox*     m_presets_list      { nullptr };
     ScalableButton*     m_delete_preset_btn { nullptr };
     wxStaticText*       m_info_line         { nullptr };
     wxStaticText*       m_full_printer_name { nullptr };
@@ -186,7 +206,7 @@ class PresetForPrinter
     void DeletePreset(wxEvent& event);
 
 public:
-    PresetForPrinter(PhysicalPrinterDialog* parent, const std::string& preset_name);
+    PresetForPrinter(PhysicalPrinterDialog* parent, const std::string& preset_name = "");
     ~PresetForPrinter();
 
     wxBoxSizer*         sizer() { return m_sizer; }
@@ -208,6 +228,7 @@ class ConfigOptionsGroup;
 class PhysicalPrinterDialog : public DPIDialog
 {
     PhysicalPrinter     m_printer;
+    wxString            m_default_name;
     DynamicPrintConfig* m_config            { nullptr };
 
     wxTextCtrl*         m_printer_name      { nullptr };

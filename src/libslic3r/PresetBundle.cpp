@@ -458,7 +458,7 @@ void PresetBundle::export_selections(AppConfig &config)
     config.set("presets", "sla_material", sla_materials.get_selected_preset_name());
     config.set("presets", "printer",      printers.get_selected_preset_name());
 
-    config.set("extras", "physical_printer", physical_printers.get_selected_printer_name());
+    config.set("extras", "physical_printer", physical_printers.get_selected_full_printer_name());
 }
 
 DynamicPrintConfig PresetBundle::full_config() const
