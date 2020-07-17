@@ -101,6 +101,7 @@ namespace Slic3r {
             };
 
             EMoveType move_type{ EMoveType::Noop };
+            ExtrusionRole role{ erNone };
             float distance{ 0.0f }; // mm
             float acceleration{ 0.0f }; // mm/s^2
             float max_entry_speed{ 0.0f }; // mm/s
@@ -153,6 +154,7 @@ namespace Slic3r {
             CustomGCodeTime gcode_time;
             std::vector<TimeBlock> blocks;
             std::array<float, static_cast<size_t>(EMoveType::Count)> moves_time;
+            std::array<float, static_cast<size_t>(ExtrusionRole::erCount)> roles_time;
 
             void reset();
 
@@ -265,6 +267,7 @@ namespace Slic3r {
         std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> get_custom_gcode_times(ETimeMode mode, bool include_remaining) const;
 
         std::vector<std::pair<EMoveType, float>> get_moves_time(ETimeMode mode) const;
+        std::vector<std::pair<ExtrusionRole, float>> get_roles_time(ETimeMode mode) const;
 
     private:
         void process_gcode_line(const GCodeReader::GCodeLine& line);

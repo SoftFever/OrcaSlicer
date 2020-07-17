@@ -314,6 +314,8 @@ struct PrintStatistics
     std::vector<std::pair<CustomGCode::Type, std::pair<std::string, std::string>>> estimated_silent_custom_gcode_print_times_str;
     std::vector<std::pair<GCodeProcessor::EMoveType, float>> estimated_normal_moves_times;
     std::vector<std::pair<GCodeProcessor::EMoveType, float>> estimated_silent_moves_times;
+    std::vector<std::pair<ExtrusionRole, float>> estimated_normal_roles_times;
+    std::vector<std::pair<ExtrusionRole, float>> estimated_silent_roles_times;
 #else
     std::string                     estimated_normal_print_time;
     std::string                     estimated_silent_print_time;
@@ -366,6 +368,8 @@ struct PrintStatistics
         estimated_silent_custom_gcode_print_times.clear();
         estimated_normal_moves_times.clear();
         estimated_silent_moves_times.clear();
+        estimated_normal_roles_times.clear();
+        estimated_silent_roles_times.clear();
     }
 #endif //ENABLE_GCODE_VIEWER
 };

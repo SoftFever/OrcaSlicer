@@ -1724,6 +1724,8 @@ void GCodeViewer::render_time_estimate() const
 
     using Times = std::pair<float, float>;
     using TimesList = std::vector<std::pair<CustomGCode::Type, Times>>;
+    using Headers = std::vector<std::string>;
+    using ColumnOffsets = std::array<float, 2>;
 
     // helper structure containig the data needed to render the time items
     struct PartialTime
@@ -1743,17 +1745,14 @@ void GCodeViewer::render_time_estimate() const
     using PartialTimes = std::vector<PartialTime>;
 
     auto append_mode = [this, &imgui](float total_time, const PartialTimes& items,
-        const std::vector<std::pair<GCodeProcessor::EMoveType, float>>& moves_time) {
-        auto append_partial_times = [this, &imgui](const PartialTimes& items) {
-            using Headers = std::vector<std::string>;
-            const Headers headers = {
-                _u8L("Event"),
-                _u8L("Remaining"),
-                _u8L("Duration")
-            };
-            using Offsets = std::array<float, 2>;
+        const Headers& partial_times_headers,
+        const std::vector<std::pair<GCodeProcessor::EMoveType, float>>& moves_time,
+        const Headers& moves_headers,
+        const std::vector<std::pair<ExtrusionRole, float>>& roles_time,
+        const Headers& roles_headers) {
+        auto append_partial_times = [this, &imgui](const PartialTimes& items, const Headers& headers) {
             auto calc_offsets = [this, &headers](const PartialTimes& items) {
-                Offsets ret = { ImGui::CalcTextSize(headers[0].c_str()).x, ImGui::CalcTextSize(headers[1].c_str()).x };
+                ColumnOffsets ret = { ImGui::CalcTextSize(headers[0].c_str()).x, ImGui::CalcTextSize(headers[1].c_str()).x };
                 for (const PartialTime& item : items) {
                     std::string label;
                     switch (item.type)
@@ -1772,7 +1771,7 @@ void GCodeViewer::render_time_estimate() const
                 ret[1] += ret[0] + style.ItemSpacing.x;
                 return ret;
             };
-            auto append_color = [this, &imgui](const Color& color1, const Color& color2, Offsets& offsets, const Times& times) {
+            auto append_color = [this, &imgui](const Color& color1, const Color& color2, ColumnOffsets& offsets, const Times& times) {
                 ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
                 imgui.text(_u8L("Color change"));
                 ImGui::PopStyleColor();
@@ -1801,7 +1800,7 @@ void GCodeViewer::render_time_estimate() const
             if (items.empty())
                 return;
 
-            Offsets offsets = calc_offsets(items);
+            ColumnOffsets offsets = calc_offsets(items);
 
             ImGui::Spacing();
             ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
@@ -1845,50 +1844,31 @@ void GCodeViewer::render_time_estimate() const
             }
         };
 
-        auto append_move_times = [this, &imgui](float total_time, const std::vector<std::pair<GCodeProcessor::EMoveType, float>>& moves_time) {
-            using Headers = std::vector<std::string>;
-            const Headers headers = {
-                _u8L("Type"),
-                _u8L("Time"),
-                _u8L("Percentage")
-            };
-            auto move_type_label = [](GCodeProcessor::EMoveType type) {
-                switch (type)
-                {
-                case GCodeProcessor::EMoveType::Noop:         { return _u8L("Noop"); }
-                case GCodeProcessor::EMoveType::Retract:      { return _u8L("Retraction"); }
-                case GCodeProcessor::EMoveType::Unretract:    { return _u8L("Unretraction"); }
-                case GCodeProcessor::EMoveType::Tool_change:  { return _u8L("Tool change"); }
-                case GCodeProcessor::EMoveType::Color_change: { return _u8L("Color change"); }
-                case GCodeProcessor::EMoveType::Pause_Print:  { return _u8L("Pause print"); }
-                case GCodeProcessor::EMoveType::Custom_GCode: { return _u8L("Custom GCode"); }
-                case GCodeProcessor::EMoveType::Travel:       { return _u8L("Travel"); }
-                case GCodeProcessor::EMoveType::Extrude:      { return _u8L("Extrusion"); }
-                default:                                      { return _u8L("Unknown"); }
-                }
-            };
-            using Offsets = std::array<float, 2>;
-            auto calc_offsets = [this, &headers, move_type_label](const std::vector<std::pair<GCodeProcessor::EMoveType, float>>& moves_time) {
-                Offsets ret = { ImGui::CalcTextSize(headers[0].c_str()).x, ImGui::CalcTextSize(headers[1].c_str()).x };
-                for (const auto& [type, time] : moves_time) {
-                    ret[0] = std::max(ret[0], ImGui::CalcTextSize(move_type_label(type).c_str()).x);
-                    ret[1] = std::max(ret[1], ImGui::CalcTextSize(short_time(get_time_dhms(time)).c_str()).x);
-                }
+        auto move_type_label = [](GCodeProcessor::EMoveType type) {
+            switch (type)
+            {
+            case GCodeProcessor::EMoveType::Noop:         { return _u8L("Noop"); }
+            case GCodeProcessor::EMoveType::Retract:      { return _u8L("Retraction"); }
+            case GCodeProcessor::EMoveType::Unretract:    { return _u8L("Unretraction"); }
+            case GCodeProcessor::EMoveType::Tool_change:  { return _u8L("Tool change"); }
+            case GCodeProcessor::EMoveType::Color_change: { return _u8L("Color change"); }
+            case GCodeProcessor::EMoveType::Pause_Print:  { return _u8L("Pause print"); }
+            case GCodeProcessor::EMoveType::Custom_GCode: { return _u8L("Custom GCode"); }
+            case GCodeProcessor::EMoveType::Travel:       { return _u8L("Travel"); }
+            case GCodeProcessor::EMoveType::Extrude:      { return _u8L("Extrusion"); }
+            default:                                      { return _u8L("Unknown"); }
+            }
+        };
 
-                const ImGuiStyle& style = ImGui::GetStyle();
-                ret[0] += 2.0f * style.ItemSpacing.x;
-                ret[1] += ret[0] + style.ItemSpacing.x;
-                return ret;
-            };
-
+        auto append_move_times = [this, &imgui, move_type_label](float total_time,
+            const std::vector<std::pair<GCodeProcessor::EMoveType, float>>& moves_time,
+            const Headers& headers, const ColumnOffsets& offsets) {
 
             if (moves_time.empty())
                 return;
 
             if (!ImGui::CollapsingHeader(_u8L("Moves Time").c_str()))
                 return;
-
-            Offsets offsets = calc_offsets(moves_time);
 
             ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
             imgui.text(headers[0]);
@@ -1899,7 +1879,10 @@ void GCodeViewer::render_time_estimate() const
             ImGui::PopStyleColor();
             ImGui::Separator();
 
-            for (const auto& [type, time] : moves_time) {
+            std::vector<std::pair<GCodeProcessor::EMoveType, float>> sorted_moves_time(moves_time);
+            std::sort(sorted_moves_time.begin(), sorted_moves_time.end(), [](const auto& p1, const auto& p2) { return p2.second < p1.second; });
+
+            for (const auto& [type, time] : sorted_moves_time) {
                 ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
                 imgui.text(move_type_label(type));
                 ImGui::PopStyleColor();
@@ -1912,13 +1895,72 @@ void GCodeViewer::render_time_estimate() const
             }
         };
 
+        auto append_role_times = [this, &imgui](float total_time, 
+            const std::vector<std::pair<ExtrusionRole, float>>& roles_time,
+            const Headers& headers, const ColumnOffsets& offsets) {
+
+            if (roles_time.empty())
+                return;
+
+            if (!ImGui::CollapsingHeader(_u8L("Features Time").c_str()))
+                return;
+
+            ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
+            imgui.text(headers[0]);
+            ImGui::SameLine(offsets[0]);
+            imgui.text(headers[1]);
+            ImGui::SameLine(offsets[1]);
+            imgui.text(headers[2]);
+            ImGui::PopStyleColor();
+            ImGui::Separator();
+
+            std::vector<std::pair<ExtrusionRole, float>> sorted_roles_time(roles_time);
+            std::sort(sorted_roles_time.begin(), sorted_roles_time.end(), [](const auto& p1, const auto& p2) { return p2.second < p1.second; });
+
+            for (const auto& [role, time] : sorted_roles_time) {
+                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
+                imgui.text(_u8L(ExtrusionEntity::role_to_string(role)));
+                ImGui::PopStyleColor();
+                ImGui::SameLine(offsets[0]);
+                imgui.text(short_time(get_time_dhms(time)));
+                ImGui::SameLine(offsets[1]);
+                char buf[64];
+                ::sprintf(buf, "%.2f%%", 100.0f * time / total_time);
+                ImGui::TextUnformatted(buf);
+            }
+        };
+
+        auto calc_common_offsets = [move_type_label](
+            const std::vector<std::pair<GCodeProcessor::EMoveType, float>>& moves_time, const Headers& moves_headers,
+            const std::vector<std::pair<ExtrusionRole, float>>& roles_time, const Headers& roles_headers) {
+                ColumnOffsets ret = { std::max(ImGui::CalcTextSize(moves_headers[0].c_str()).x, ImGui::CalcTextSize(roles_headers[0].c_str()).x),
+                    std::max(ImGui::CalcTextSize(moves_headers[1].c_str()).x, ImGui::CalcTextSize(roles_headers[1].c_str()).x) };
+
+                for (const auto& [type, time] : moves_time) {
+                    ret[0] = std::max(ret[0], ImGui::CalcTextSize(move_type_label(type).c_str()).x);
+                    ret[1] = std::max(ret[1], ImGui::CalcTextSize(short_time(get_time_dhms(time)).c_str()).x);
+                }
+
+                for (const auto& [role, time] : roles_time) {
+                    ret[0] = std::max(ret[0], ImGui::CalcTextSize(_u8L(ExtrusionEntity::role_to_string(role)).c_str()).x);
+                    ret[1] = std::max(ret[1], ImGui::CalcTextSize(short_time(get_time_dhms(time)).c_str()).x);
+                }
+
+                const ImGuiStyle& style = ImGui::GetStyle();
+                ret[0] += 2.0f * style.ItemSpacing.x;
+                ret[1] += ret[0] + style.ItemSpacing.x;
+                return ret;
+        };
+
         ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
         imgui.text(_u8L("Time") + ":");
         ImGui::PopStyleColor();
         ImGui::SameLine();
         imgui.text(short_time(get_time_dhms(total_time)));
-        append_partial_times(items);
-        append_move_times(total_time, moves_time);
+        append_partial_times(items, partial_times_headers);
+        ColumnOffsets common_offsets = calc_common_offsets(moves_time, moves_headers, roles_time, roles_headers);
+        append_move_times(total_time, moves_time, moves_headers, common_offsets);
+        append_role_times(total_time, roles_time, roles_headers, common_offsets);
     };
 
     auto generate_partial_times = [this](const TimesList& times) {
@@ -1966,6 +2008,22 @@ void GCodeViewer::render_time_estimate() const
         return items;
     };
 
+    const Headers partial_times_headers = {
+        _u8L("Event"),
+        _u8L("Remaining"),
+        _u8L("Duration")
+    };
+    const Headers moves_headers = {
+        _u8L("Type"),
+        _u8L("Time"),
+        _u8L("Percentage")
+    };
+    const Headers roles_headers = {
+        _u8L("Feature"),
+        _u8L("Time"),
+        _u8L("Percentage")
+    };
+
     Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
     imgui.set_next_window_pos(static_cast<float>(cnv_size.get_width()), static_cast<float>(cnv_size.get_height()), ImGuiCond_Always, 1.0f, 1.0f);
     ImGui::SetNextWindowSizeConstraints(ImVec2(0.0f, 0.0f), ImVec2(-1.0f, 0.5f * static_cast<float>(cnv_size.get_height())));
@@ -1980,13 +2038,19 @@ void GCodeViewer::render_time_estimate() const
     ImGui::BeginTabBar("mode_tabs");
     if (ps.estimated_normal_print_time > 0.0f) {
         if (ImGui::BeginTabItem(_u8L("Normal").c_str())) {
-            append_mode(ps.estimated_normal_print_time, generate_partial_times(ps.estimated_normal_custom_gcode_print_times), ps.estimated_normal_moves_times);
+            append_mode(ps.estimated_normal_print_time, 
+                generate_partial_times(ps.estimated_normal_custom_gcode_print_times), partial_times_headers,
+                ps.estimated_normal_moves_times, moves_headers, 
+                ps.estimated_normal_roles_times, roles_headers);
             ImGui::EndTabItem();
         }
     }
     if (ps.estimated_silent_print_time > 0.0f) {
         if (ImGui::BeginTabItem(_u8L("Stealth").c_str())) {
-            append_mode(ps.estimated_silent_print_time, generate_partial_times(ps.estimated_silent_custom_gcode_print_times), ps.estimated_silent_moves_times);
+            append_mode(ps.estimated_silent_print_time,
+                generate_partial_times(ps.estimated_silent_custom_gcode_print_times), partial_times_headers,
+                ps.estimated_silent_moves_times, moves_headers,
+                ps.estimated_silent_roles_times, roles_headers);
             ImGui::EndTabItem();
         }
     }

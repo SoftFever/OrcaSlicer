@@ -163,6 +163,7 @@ void GCodeProcessor::TimeMachine::reset()
     gcode_time.reset();
     blocks = std::vector<TimeBlock>();
     std::fill(moves_time.begin(), moves_time.end(), 0.0f);
+    std::fill(roles_time.begin(), roles_time.end(), 0.0f);
 }
 
 void GCodeProcessor::TimeMachine::simulate_st_synchronize(float additional_time)
@@ -271,6 +272,7 @@ void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks)
         time += block_time;
         gcode_time.cache += block_time;
         moves_time[static_cast<size_t>(block.move_type)] += block_time;
+        roles_time[static_cast<size_t>(block.role)] += block_time;
 
 //        if (block.g1_line_id >= 0)
 //            m_g1_times.emplace_back(block.g1_line_id, time);
@@ -397,15 +399,18 @@ void GCodeProcessor::update_print_stats_estimated_times(PrintStatistics& print_s
     print_statistics.estimated_normal_print_time = get_time(GCodeProcessor::ETimeMode::Normal);
     print_statistics.estimated_normal_custom_gcode_print_times = get_custom_gcode_times(GCodeProcessor::ETimeMode::Normal, true);
     print_statistics.estimated_normal_moves_times = get_moves_time(GCodeProcessor::ETimeMode::Normal);
+    print_statistics.estimated_normal_roles_times = get_roles_time(GCodeProcessor::ETimeMode::Normal);
     if (m_time_processor.machines[static_cast<size_t>(GCodeProcessor::ETimeMode::Stealth)].enabled) {
         print_statistics.estimated_silent_print_time = get_time(GCodeProcessor::ETimeMode::Stealth);
         print_statistics.estimated_silent_custom_gcode_print_times = get_custom_gcode_times(GCodeProcessor::ETimeMode::Stealth, true);
         print_statistics.estimated_silent_moves_times = get_moves_time(GCodeProcessor::ETimeMode::Stealth);
+        print_statistics.estimated_silent_roles_times = get_roles_time(GCodeProcessor::ETimeMode::Stealth);
     }
     else {
         print_statistics.estimated_silent_print_time = 0.0f;
         print_statistics.estimated_silent_custom_gcode_print_times.clear();
         print_statistics.estimated_silent_moves_times.clear();
+        print_statistics.estimated_silent_roles_times.clear();
     }
 }
 
@@ -442,6 +447,19 @@ std::vector<std::pair<GCodeProcessor::EMoveType, float>> GCodeProcessor::get_mov
             float time = m_time_processor.machines[static_cast<size_t>(mode)].moves_time[i];
             if (time > 0.0f)
                 ret.push_back({ static_cast<EMoveType>(i), time });
+        }
+    }
+    return ret;
+}
+
+std::vector<std::pair<ExtrusionRole, float>> GCodeProcessor::get_roles_time(ETimeMode mode) const
+{
+    std::vector<std::pair<ExtrusionRole, float>> ret;
+    if (mode < ETimeMode::Count) {
+        for (size_t i = 0; i < m_time_processor.machines[static_cast<size_t>(mode)].roles_time.size(); ++i) {
+            float time = m_time_processor.machines[static_cast<size_t>(mode)].roles_time[i];
+            if (time > 0.0f)
+                ret.push_back({ static_cast<ExtrusionRole>(i), time });
         }
     }
     return ret;
@@ -735,6 +753,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 
         TimeBlock block;
         block.move_type = type;
+        block.role = m_extrusion_role;
         block.distance = distance;
 
         // calculates block cruise feedrate
