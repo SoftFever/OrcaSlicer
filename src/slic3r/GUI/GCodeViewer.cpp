@@ -1221,7 +1221,13 @@ void GCodeViewer::render_toolpaths() const
         glsafe(::glEnable(GL_POINT_SPRITE));
 
         for (const RenderPath& path : buffer.render_paths) {
+#ifdef __APPLE__
+            for (size_t i = 0; i < path.sizes.size(); ++i) {
+                glsafe(::glDrawElements(GL_POINTS, (GLsizei)path.sizes[i], GL_UNSIGNED_INT, (const void*)path.offsets[i]));
+            }
+#else
             glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
+#endif // __APPLE__
 #if ENABLE_GCODE_VIEWER_STATISTICS
             ++m_statistics.gl_multi_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -1235,7 +1241,13 @@ void GCodeViewer::render_toolpaths() const
         for (const RenderPath& path : buffer.render_paths)
         {
             shader.set_uniform("uniform_color", path.color);
+#ifdef __APPLE__
+            for (size_t i = 0; i < path.sizes.size(); ++i) {
+                glsafe(::glDrawElements(GL_LINES, (GLsizei)path.sizes[i], GL_UNSIGNED_INT, (const void*)path.offsets[i]));
+            }
+#else
             glsafe(::glMultiDrawElements(GL_LINES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
+#endif // __APPLE__
 #if ENABLE_GCODE_VIEWER_STATISTICS
             ++m_statistics.gl_multi_line_strip_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
