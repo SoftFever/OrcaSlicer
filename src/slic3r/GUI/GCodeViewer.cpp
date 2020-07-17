@@ -1263,12 +1263,8 @@ void GCodeViewer::render_toolpaths() const
             shader->start_using();
 
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, buffer.vertices.id));
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             glsafe(::glVertexPointer(buffer.vertices.vertex_size_floats(), GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)0));
             glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-//            glsafe(::glVertexAttribPointer(0, buffer.vertices.vertex_size_floats(), GL_FLOAT, GL_FALSE, buffer.vertices.vertex_size_bytes(), (const void*)0));
-//            glsafe(::glEnableVertexAttribArray(0));
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.indices.id));
 
@@ -1301,10 +1297,7 @@ void GCodeViewer::render_toolpaths() const
 
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-//            glsafe(::glDisableVertexAttribArray(0));
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 
             shader->stop_using();
