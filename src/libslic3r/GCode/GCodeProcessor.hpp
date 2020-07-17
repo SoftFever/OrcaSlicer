@@ -13,6 +13,8 @@
 
 namespace Slic3r {
 
+    struct PrintStatistics;
+
     class GCodeProcessor
     {
     public:
@@ -57,6 +59,20 @@ namespace Slic3r {
         };
 
     public:
+        enum class EMoveType : unsigned char
+        {
+            Noop,
+            Retract,
+            Unretract,
+            Tool_change,
+            Color_change,
+            Pause_Print,
+            Custom_GCode,
+            Travel,
+            Extrude,
+            Count
+        };
+
         struct FeedrateProfile
         {
             float entry{ 0.0f }; // mm/s
@@ -84,6 +100,7 @@ namespace Slic3r {
                 bool nominal_length{ false };
             };
 
+            EMoveType move_type{ EMoveType::Noop };
             float distance{ 0.0f }; // mm
             float acceleration{ 0.0f }; // mm/s^2
             float max_entry_speed{ 0.0f }; // mm/s
@@ -135,6 +152,7 @@ namespace Slic3r {
             State prev;
             CustomGCodeTime gcode_time;
             std::vector<TimeBlock> blocks;
+            std::array<float, static_cast<size_t>(EMoveType::Count)> moves_time;
 
             void reset();
 
@@ -169,20 +187,6 @@ namespace Slic3r {
         };
 
     public:
-        enum class EMoveType : unsigned char
-        {
-            Noop,
-            Retract,
-            Unretract,
-            Tool_change,
-            Color_change,
-            Pause_Print,
-            Custom_GCode,
-            Travel,
-            Extrude,
-            Count
-        };
-
         struct MoveVertex
         {
             EMoveType type{ EMoveType::Noop };
@@ -255,8 +259,12 @@ namespace Slic3r {
         // Process the gcode contained in the file with the given filename
         void process_file(const std::string& filename);
 
+        void update_print_stats_estimated_times(PrintStatistics& print_statistics);
+        float get_time(ETimeMode mode) const;
         std::string get_time_dhm(ETimeMode mode) const;
         std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> get_custom_gcode_times(ETimeMode mode, bool include_remaining) const;
+
+        std::vector<std::pair<EMoveType, float>> get_moves_time(ETimeMode mode) const;
 
     private:
         void process_gcode_line(const GCodeReader::GCodeLine& line);

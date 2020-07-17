@@ -705,27 +705,6 @@ namespace Slic3r {
     }
 
 #if ENABLE_GCODE_VIEWER
-// free functions called by GCode::do_export()
-namespace DoExport {
-    static void update_print_stats_estimated_times(
-        const GCodeProcessor& processor,
-        const bool            silent_time_estimator_enabled,
-        PrintStatistics&      print_statistics)
-    {
-        print_statistics.estimated_normal_print_time = processor.get_time_dhm(GCodeProcessor::ETimeMode::Normal);
-        print_statistics.estimated_normal_custom_gcode_print_times = processor.get_custom_gcode_times(GCodeProcessor::ETimeMode::Normal, true);
-        if (silent_time_estimator_enabled) {
-            print_statistics.estimated_silent_print_time = processor.get_time_dhm(GCodeProcessor::ETimeMode::Stealth);
-            print_statistics.estimated_silent_custom_gcode_print_times = processor.get_custom_gcode_times(GCodeProcessor::ETimeMode::Stealth, true);
-        }
-        else {
-            print_statistics.estimated_silent_print_time = "N/A";
-            print_statistics.estimated_silent_custom_gcode_print_times.clear();
-        }
-    }
-
-} // namespace DoExport
-
 void GCode::do_export(Print* print, const char* path, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb)
 #else
 void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb)
@@ -787,11 +766,12 @@ void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_
     }
 
 #if ENABLE_GCODE_VIEWER
+    print->m_print_statistics.clear_time_estimates();
     m_processor.process_file(path_tmp);
-    if (result != nullptr)
+    if (result != nullptr) {
         *result = std::move(m_processor.extract_result());
-
-    DoExport::update_print_stats_estimated_times(m_processor, m_silent_time_estimator_enabled, print->m_print_statistics);
+        m_processor.update_print_stats_estimated_times(print->m_print_statistics);
+    }
 #endif // ENABLE_GCODE_VIEWER
 
     GCodeTimeEstimator::PostProcessData normal_data = m_normal_time_estimator.get_post_process_data();

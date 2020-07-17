@@ -304,14 +304,16 @@ struct PrintStatistics
 {
     PrintStatistics() { clear(); }
 #if ENABLE_GCODE_VIEWER
-    std::string                     estimated_normal_print_time;
-    std::string                     estimated_silent_print_time;
+    float                           estimated_normal_print_time;
+    float                           estimated_silent_print_time;
     std::string                     estimated_normal_print_time_str;
     std::string                     estimated_silent_print_time_str;
     std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> estimated_normal_custom_gcode_print_times;
     std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> estimated_silent_custom_gcode_print_times;
     std::vector<std::pair<CustomGCode::Type, std::pair<std::string, std::string>>> estimated_normal_custom_gcode_print_times_str;
     std::vector<std::pair<CustomGCode::Type, std::pair<std::string, std::string>>> estimated_silent_custom_gcode_print_times_str;
+    std::vector<std::pair<GCodeProcessor::EMoveType, float>> estimated_normal_moves_times;
+    std::vector<std::pair<GCodeProcessor::EMoveType, float>> estimated_silent_moves_times;
 #else
     std::string                     estimated_normal_print_time;
     std::string                     estimated_silent_print_time;
@@ -336,6 +338,8 @@ struct PrintStatistics
 
     void clear() {
 #if ENABLE_GCODE_VIEWER
+        estimated_normal_print_time_str.clear();
+        estimated_silent_print_time_str.clear();
         estimated_normal_custom_gcode_print_times_str.clear();
         estimated_silent_custom_gcode_print_times_str.clear();
 #else
@@ -353,6 +357,17 @@ struct PrintStatistics
         total_wipe_tower_filament = 0.;
         filament_stats.clear();
     }
+    
+#if ENABLE_GCODE_VIEWER
+    void clear_time_estimates() {
+        estimated_normal_print_time = 0.0f;
+        estimated_silent_print_time = 0.0f;
+        estimated_normal_custom_gcode_print_times.clear();
+        estimated_silent_custom_gcode_print_times.clear();
+        estimated_normal_moves_times.clear();
+        estimated_silent_moves_times.clear();
+    }
+#endif //ENABLE_GCODE_VIEWER
 };
 
 typedef std::vector<PrintObject*> PrintObjectPtrs;

@@ -1,5 +1,6 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Print.hpp"
 #include "GCodeProcessor.hpp"
 
 #include <boost/log/trivial.hpp>
@@ -161,6 +162,7 @@ void GCodeProcessor::TimeMachine::reset()
     prev.reset();
     gcode_time.reset();
     blocks = std::vector<TimeBlock>();
+    std::fill(moves_time.begin(), moves_time.end(), 0.0f);
 }
 
 void GCodeProcessor::TimeMachine::simulate_st_synchronize(float additional_time)
@@ -264,9 +266,11 @@ void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks)
     size_t n_blocks_process = blocks.size() - keep_last_n_blocks;
 //    m_g1_times.reserve(m_g1_times.size() + n_blocks_process);
     for (size_t i = 0; i < n_blocks_process; ++i) {
-        float block_time = blocks[i].time();
+        const TimeBlock& block = blocks[i];
+        float block_time = block.time();
         time += block_time;
         gcode_time.cache += block_time;
+        moves_time[static_cast<size_t>(block.move_type)] += block_time;
 
 //        if (block.g1_line_id >= 0)
 //            m_g1_times.emplace_back(block.g1_line_id, time);
@@ -388,12 +392,31 @@ void GCodeProcessor::process_file(const std::string& filename)
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 }
 
+void GCodeProcessor::update_print_stats_estimated_times(PrintStatistics& print_statistics)
+{
+    print_statistics.estimated_normal_print_time = get_time(GCodeProcessor::ETimeMode::Normal);
+    print_statistics.estimated_normal_custom_gcode_print_times = get_custom_gcode_times(GCodeProcessor::ETimeMode::Normal, true);
+    print_statistics.estimated_normal_moves_times = get_moves_time(GCodeProcessor::ETimeMode::Normal);
+    if (m_time_processor.machines[static_cast<size_t>(GCodeProcessor::ETimeMode::Stealth)].enabled) {
+        print_statistics.estimated_silent_print_time = get_time(GCodeProcessor::ETimeMode::Stealth);
+        print_statistics.estimated_silent_custom_gcode_print_times = get_custom_gcode_times(GCodeProcessor::ETimeMode::Stealth, true);
+        print_statistics.estimated_silent_moves_times = get_moves_time(GCodeProcessor::ETimeMode::Stealth);
+    }
+    else {
+        print_statistics.estimated_silent_print_time = 0.0f;
+        print_statistics.estimated_silent_custom_gcode_print_times.clear();
+        print_statistics.estimated_silent_moves_times.clear();
+    }
+}
+
+float GCodeProcessor::get_time(ETimeMode mode) const
+{
+    return (mode < ETimeMode::Count) ? m_time_processor.machines[static_cast<size_t>(mode)].time : 0.0f;
+}
+
 std::string GCodeProcessor::get_time_dhm(ETimeMode mode) const
 {
-    std::string ret = "N/A";
-    if (mode < ETimeMode::Count)
-        ret = short_time(get_time_dhms(m_time_processor.machines[static_cast<size_t>(mode)].time));
-    return ret;
+    return (mode < ETimeMode::Count) ? short_time(get_time_dhms(m_time_processor.machines[static_cast<size_t>(mode)].time)) : std::string("N/A");
 }
 
 std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> GCodeProcessor::get_custom_gcode_times(ETimeMode mode, bool include_remaining) const
@@ -406,6 +429,19 @@ std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> GCodeProcesso
             float remaining = include_remaining ? machine.time - total_time : 0.0f;
             ret.push_back({ type, { time, remaining } });
             total_time += time;
+        }
+    }
+    return ret;
+}
+
+std::vector<std::pair<GCodeProcessor::EMoveType, float>> GCodeProcessor::get_moves_time(ETimeMode mode) const
+{
+    std::vector<std::pair<EMoveType, float>> ret;
+    if (mode < ETimeMode::Count) {
+        for (size_t i = 0; i < m_time_processor.machines[static_cast<size_t>(mode)].moves_time.size(); ++i) {
+            float time = m_time_processor.machines[static_cast<size_t>(mode)].moves_time[i];
+            if (time > 0.0f)
+                ret.push_back({ static_cast<EMoveType>(i), time });
         }
     }
     return ret;
@@ -668,6 +704,8 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
     if (max_abs_delta == 0.0f)
         return;
 
+    EMoveType type = move_type(delta_pos);
+
     // time estimate section
     auto move_length = [](const AxisCoords& delta_pos) {
         float sq_xyz_length = sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]);
@@ -696,6 +734,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             minimum_feedrate(static_cast<ETimeMode>(i), m_feedrate);
 
         TimeBlock block;
+        block.move_type = type;
         block.distance = distance;
 
         // calculates block cruise feedrate
@@ -827,7 +866,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
     }
 
     // store move
-    store_move_vertex(move_type(delta_pos));
+    store_move_vertex(type);
 }
 
 void GCodeProcessor::process_G10(const GCodeReader::GCodeLine& line)
