@@ -1232,8 +1232,7 @@ void GCodeViewer::render_toolpaths() const
     };
 
     auto render_as_lines = [this](const TBuffer& buffer, GLShaderProgram& shader) {
-        for (const RenderPath& path : buffer.render_paths)
-        {
+        for (const RenderPath& path : buffer.render_paths) {
             shader.set_uniform("uniform_color", path.color);
             glsafe(::glMultiDrawElements(GL_LINES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -1242,16 +1241,11 @@ void GCodeViewer::render_toolpaths() const
         }
     };
 
-    auto line_width = [zoom]() {
-#ifdef WIN32
+    auto line_width = [](double zoom) {
         return (zoom < 5.0) ? 1.0 : (1.0 + 5.0 * (zoom - 5.0) / (100.0 - 5.0));
-#else
-        return 3.0f;
-#endif // WIN32
     };
 
-    glsafe(::glCullFace(GL_BACK));
-    glsafe(::glLineWidth(static_cast<GLfloat>(line_width())));
+    glsafe(::glLineWidth(static_cast<GLfloat>(line_width(zoom))));
 
     unsigned char begin_id = buffer_id(GCodeProcessor::EMoveType::Retract);
     unsigned char end_id = buffer_id(GCodeProcessor::EMoveType::Count);
@@ -1269,8 +1263,12 @@ void GCodeViewer::render_toolpaths() const
             shader->start_using();
 
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, buffer.vertices.id));
-            glsafe(::glVertexAttribPointer(0, buffer.vertices.vertex_size_floats(), GL_FLOAT, GL_FALSE, buffer.vertices.vertex_size_bytes(), (const void*)0));
-            glsafe(::glEnableVertexAttribArray(0));
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            glsafe(::glVertexPointer(buffer.vertices.vertex_size_floats(), GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)0));
+            glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+//            glsafe(::glVertexAttribPointer(0, buffer.vertices.vertex_size_floats(), GL_FLOAT, GL_FALSE, buffer.vertices.vertex_size_bytes(), (const void*)0));
+//            glsafe(::glEnableVertexAttribArray(0));
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.indices.id));
 
@@ -1286,26 +1284,27 @@ void GCodeViewer::render_toolpaths() const
             case GCodeProcessor::EMoveType::Extrude:
             case GCodeProcessor::EMoveType::Travel:
             {
-                std::array<float, 4> light_intensity;
 #if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
-                light_intensity[0] = m_shaders_editor.lines.lights.ambient;
-                light_intensity[1] = m_shaders_editor.lines.lights.top_diffuse;
-                light_intensity[2] = m_shaders_editor.lines.lights.front_diffuse;
-                light_intensity[3] = m_shaders_editor.lines.lights.global;
+                std::array<float, 4> light_intensity = {
+                    m_shaders_editor.lines.lights.ambient,
+                    m_shaders_editor.lines.lights.top_diffuse,
+                    m_shaders_editor.lines.lights.front_diffuse,
+                    m_shaders_editor.lines.lights.global };
 #else
-                light_intensity[0] = 0.25f;
-                light_intensity[1] = 0.7f;
-                light_intensity[2] = 0.75f;
-                light_intensity[3] = 0.75f;
+                std::array<float, 4> light_intensity = { 0.25f, 0.7f, 0.75f, 0.75f };
 #endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
                 shader->set_uniform("light_intensity", light_intensity);
-                render_as_lines(buffer, *shader); break;
+                render_as_lines(buffer, *shader);
+                break;
             }
             }
 
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
-            glsafe(::glDisableVertexAttribArray(0));
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+//            glsafe(::glDisableVertexAttribArray(0));
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 
             shader->stop_using();
