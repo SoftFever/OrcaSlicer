@@ -622,6 +622,13 @@ namespace Slic3r {
 
             layers_to_print.emplace_back(layer_to_print);
 
+            // Check that there are extrusions on the very first layer.
+            if (layers_to_print.size() == 1u) {
+                if ((layer_to_print.object_layer && !layer_to_print.object_layer->has_extrusions())
+                    || (layer_to_print.support_layer && !layer_to_print.support_layer->has_extrusions()))
+                    throw std::runtime_error(_(L("There is an object with no extrusions on the first layer.")));
+            }
+
             // In case there are extrusions on this layer, check there is a layer to lay it on.
             if ((layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
                 // Allow empty support layers, as the support generator may produce no extrusions for non-empty support regions.
@@ -639,14 +646,18 @@ namespace Slic3r {
                 bool has_extrusions = (layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
                     || (layer_to_print.support_layer && layer_to_print.support_layer->has_extrusions());
 
-                if (has_extrusions && layer_to_print.print_z() > maximal_print_z + 2. * EPSILON)
-                    throw std::runtime_error(_(L("Empty layers detected, the output would not be printable.")) + "\n\n" +
+                if (has_extrusions && layer_to_print.print_z() > maximal_print_z + 2. * EPSILON) {
+                    const_cast<Print*>(object.print())->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL,
+                        _(L("Empty layers detected, the output would not be printable.")) + "\n\n" +
                         _(L("Object name")) + ": " + object.model_object()->name + "\n" + _(L("Print z")) + ": " +
                         std::to_string(layers_to_print.back().print_z()) + "\n\n" + _(L("This is "
                             "usually caused by negligibly small extrusions or by a faulty model. Try to repair "
                             "the model or change its orientation on the bed.")));
+                }
+
                 // Remember last layer with extrusions.
-                last_extrusion_layer = &layers_to_print.back();
+                if (has_extrusions)
+                    last_extrusion_layer = &layers_to_print.back();
             }
         }
 
@@ -2013,7 +2024,6 @@ void GCode::process_layer(
     const size_t                     		 single_object_instance_idx)
 {
     assert(! layers.empty());
-//    assert(! layer_tools.extruders.empty());
     // Either printing all copies of all objects, or just a single copy of a single object.
     assert(single_object_instance_idx == size_t(-1) || layers.size() == 1);
 
