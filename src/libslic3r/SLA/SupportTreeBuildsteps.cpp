@@ -496,7 +496,7 @@ bool SupportTreeBuildsteps::create_ground_pillar(const Vec3d &hjp,
             search_widening_path(jp, dir, radius, m_cfg.head_back_radius_mm);
 
         if (diffbr && diffbr->endp.z() > jp_gnd) {
-            auto &br = m_builder.add_diffbridge(diffbr.value());
+            auto &br = m_builder.add_diffbridge(*diffbr);
             if (head_id >= 0) m_builder.head(head_id).bridge_id = br.id;
             endp = diffbr->endp;
             radius = diffbr->end_r;
@@ -589,7 +589,9 @@ std::optional<DiffBridge> SupportTreeBuildsteps::search_widening_path(
     double fallback_ratio = radius / m_cfg.head_back_radius_mm;
 
     auto oresult = solver.to_max().optimize(
-        [this, jp, radius, new_radius](double plr, double azm, double t) {
+        [this, jp, radius, new_radius](const opt::Input<3> &input) {
+            auto &[plr, azm, t] = input;
+
             auto   d   = spheric_to_dir(plr, azm).normalized();
             double ret = pinhead_mesh_intersect(jp, d, radius, new_radius, t)
                              .distance();
@@ -705,24 +707,22 @@ void SupportTreeBuildsteps::filter()
             // viable normal that doesn't collide with the model
             // geometry and its very close to the default.
 
-    //            stc.stop_score = w; // space greater than w is enough
             Optimizer<AlgNLoptGenetic> solver(get_criteria(m_cfg));
-            solver.seed(0);
-            //solver.seed(0); // we want deterministic behavior
+            solver.seed(0); // we want deterministic behavior
 
             auto oresult = solver.to_max().optimize(
-                [this, pin_r, back_r, hp](double plr, double azm, double l)
+                [this, pin_r, back_r, hp](const opt::Input<3> &input)
                 {
+                    auto &[plr, azm, l] = input;
+
                     auto dir = spheric_to_dir(plr, azm).normalized();
 
-                    double score = pinhead_mesh_intersect(
+                    return pinhead_mesh_intersect(
                         hp, dir, pin_r, back_r, l).distance();
-
-                    return score;
                 },
                 initvals({polar, azimuth, (lmin + lmax) / 2.}), // start with what we have
                 bounds({
-                    {PI - m_cfg.bridge_slope, PI},    // Must not exceed the tilt limit
+                    {PI - m_cfg.bridge_slope, PI},    // Must not exceed the slope limit
                     {-PI, PI}, // azimuth can be a full search
                     {lmin, lmax}
                 }));
@@ -924,7 +924,8 @@ bool SupportTreeBuildsteps::connect_to_ground(Head &head)
     double r_back = head.r_back_mm;
     Vec3d hjp = head.junction_point();
     auto oresult = solver.to_max().optimize(
-        [this, hjp, r_back](double plr, double azm) {
+        [this, hjp, r_back](const opt::Input<2> &input) {
+            auto &[plr, azm] = input;
             Vec3d n = spheric_to_dir(plr, azm).normalized();
             return bridge_mesh_distance(hjp, n, r_back);
         },

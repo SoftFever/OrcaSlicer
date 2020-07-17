@@ -103,6 +103,16 @@ public:
     bool stop_condition() { return m_stop_condition(); }
 };
 
+// Helper class to use optimization methods involving gradient.
+template<size_t N> struct ScoreGradient {
+    double score;
+    std::optional<std::array<double, N>> gradient;
+
+    ScoreGradient(double s, const std::array<double, N> &grad)
+        : score{s}, gradient{grad}
+    {}
+};
+
 // Helper to be used in static_assert.
 template<class T> struct always_false { enum { value = false }; };
 
@@ -112,13 +122,13 @@ public:
 
     Optimizer(const StopCriteria &)
     {
-        static_assert(always_false<Method>::value,
-                      "Optimizer unimplemented for given method!");
+        static_assert (always_false<Method>::value,
+                       "Optimizer unimplemented for given method!");
     }
 
-    Optimizer<Method, Enable> &to_min() { return *this; }
-    Optimizer<Method, Enable> &to_max() { return *this; }
-    Optimizer<Method, Enable> &set_criteria(const StopCriteria &) { return *this; }
+    Optimizer<Method> &to_min() { return *this; }
+    Optimizer<Method> &to_max() { return *this; }
+    Optimizer<Method> &set_criteria(const StopCriteria &) { return *this; }
     StopCriteria get_criteria() const { return {}; };
 
     template<class Func, size_t N>
@@ -156,33 +166,18 @@ struct IsNLoptAlg<NLoptAlgComb<a1, a2>> {
 template<class M, class T = void>
 using NLoptOnly = std::enable_if_t<IsNLoptAlg<M>::value, T>;
 
-// Convert any collection to tuple. This is useful for object functions taking
-// an argument list of doubles. Make things cleaner on the call site of
-// optimize().
-template<size_t I, std::size_t N, class T, class C> struct to_tuple_ {
-    static auto call(const C &c)
-    {
-        return std::tuple_cat(std::tuple<T>(c[N-I]),
-                              to_tuple_<I-1, N, T, C>::call(c));
-    }
-};
-
-template<size_t N, class T, class C> struct to_tuple_<0, N, T, C> {
-    static auto call(const C &c) { return std::tuple<>(); }
-};
-
-// C array to tuple
-template<std::size_t N, class T> auto carray_tuple(const T *v)
-{
-    return to_tuple_<N, N, T, const T*>::call(v);
-}
-
-// Helper to convert C style array to std::array
-template<size_t N, class T> auto to_arr(const T (&a) [N])
+// Helper to convert C style array to std::array. The copy should be optimized
+// away with modern compilers.
+template<size_t N, class T> auto to_arr(const T *a)
 {
     std::array<T, N> r;
-    std::copy(std::begin(a), std::end(a), std::begin(r));
+    std::copy(a, a + N, std::begin(r));
     return r;
+}
+
+template<size_t N, class T> auto to_arr(const T (&a) [N])
+{
+    return to_arr<N>(static_cast<const T *>(a));
 }
 
 enum class OptDir { MIN, MAX }; // Where to optimize
@@ -227,9 +222,19 @@ protected:
             nlopt_force_stop(std::get<2>(*tdata));
 
         auto fnptr  = std::get<0>(*tdata);
-        auto funval = carray_tuple<N>(params);
+        auto funval = to_arr<N>(params);
 
-        return std::apply(*fnptr, funval);
+        double scoreval = 0.;
+        using RetT = decltype((*fnptr)(funval));
+        if constexpr (std::is_convertible_v<RetT, ScoreGradient<N>>) {
+            ScoreGradient<N> score = (*fnptr)(funval);
+            for (size_t i = 0; i < n; ++i) gradient[i] = (*score.gradient)[i];
+            scoreval = score.score;
+        } else {
+            scoreval = (*fnptr)(funval);
+        }
+
+        return scoreval;
     }
 
     template<size_t N>
@@ -354,11 +359,17 @@ public:
 
 template<size_t N> Bounds<N> bounds(const Bound (&b) [N]) { return detail::to_arr(b); }
 template<size_t N> Input<N> initvals(const double (&a) [N]) { return detail::to_arr(a); }
+template<size_t N> auto score_gradient(double s, const double (&grad)[N])
+{
+    return ScoreGradient<N>(s, detail::to_arr(grad));
+}
 
 // Predefinded NLopt algorithms that are used in the codebase
 using AlgNLoptGenetic = detail::NLoptAlgComb<NLOPT_GN_ESCH>;
 using AlgNLoptSubplex = detail::NLoptAlg<NLOPT_LN_SBPLX>;
 using AlgNLoptSimplex = detail::NLoptAlg<NLOPT_LN_NELDERMEAD>;
+
+// TODO: define others if needed...
 
 // Helper defs for pre-crafted global and local optimizers that work well.
 using DefaultGlobalOptimizer = Optimizer<AlgNLoptGenetic>;
