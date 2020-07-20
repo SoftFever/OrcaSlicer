@@ -201,6 +201,7 @@ void PresetBundle::load_presets(AppConfig &config, const std::string &preferred_
     }
     try {
         this->physical_printers.load_printers(dir_user_presets, "physical_printer");
+        this->physical_printers.load_printers(this->printers);
     } catch (const std::runtime_error &err) {
         errors_cummulative += err.what();
     }

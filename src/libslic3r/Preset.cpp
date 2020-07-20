@@ -1481,7 +1481,7 @@ PhysicalPrinterCollection::PhysicalPrinterCollection( const std::vector<std::str
 {
 }
 
-// Load all presets found in dir_path.
+// Load all printers found in dir_path.
 // Throws an exception on error.
 void PhysicalPrinterCollection::load_printers(const std::string& dir_path, const std::string& subdir)
 {
@@ -1498,7 +1498,7 @@ void PhysicalPrinterCollection::load_printers(const std::string& dir_path, const
             if (this->find_printer(name, false)) {
                 // This happens when there's is a preset (most likely legacy one) with the same name as a system preset
                 // that's already been loaded from a bundle.
-                BOOST_LOG_TRIVIAL(warning) << "Preset already present, not loading: " << name;
+                BOOST_LOG_TRIVIAL(warning) << "Printer already present, not loading: " << name;
                 continue;
             }
             try {
@@ -1526,6 +1526,35 @@ void PhysicalPrinterCollection::load_printers(const std::string& dir_path, const
         }
     m_printers.insert(m_printers.end(), std::make_move_iterator(printers_loaded.begin()), std::make_move_iterator(printers_loaded.end()));
     std::sort(m_printers.begin(), m_printers.end());
+    if (!errors_cummulative.empty())
+        throw std::runtime_error(errors_cummulative);
+}
+
+// if there is saved user presets, contains information about "Print Host upload",
+// Create default printers with this presets
+// Throws an exception on error.
+void PhysicalPrinterCollection::load_printers(const PrinterPresetCollection& printer_presets, std::string def_printer_name/* = ""*/)
+{
+    if (def_printer_name.empty()) 
+        def_printer_name = "Printer";
+
+    int cnt=0;
+    std::string errors_cummulative;
+    // Store the loaded printers into a new vector
+    std::deque<PhysicalPrinter> printers_loaded;
+    for (const Preset& preset: printer_presets) {
+        const DynamicPrintConfig& config = preset.config;
+        if (!config.opt_string("print_host").empty()        ||
+            !config.opt_string("printhost_apikey").empty()  ||
+            !config.opt_string("printhost_cafile").empty()  ) {
+            PhysicalPrinter printer((boost::format("%1% %2%") % def_printer_name % ++cnt ).str(), preset);
+            printer.loaded = true;
+            printers_loaded.emplace_back(printer);
+
+            save_printer(printer);
+        }
+    }
+
     if (!errors_cummulative.empty())
         throw std::runtime_error(errors_cummulative);
 }

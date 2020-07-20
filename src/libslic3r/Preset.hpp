@@ -626,6 +626,7 @@ public:
 
     // Load ini files of the particular type from the provided directory path.
     void            load_printers(const std::string& dir_path, const std::string& subdir);
+    void            load_printers(const PrinterPresetCollection &printer_presets, std::string def_printer_name = "");
 
     // Save the printer under a new name. If the name is different from the old one,
     // a new printer is stored into the list of printers.

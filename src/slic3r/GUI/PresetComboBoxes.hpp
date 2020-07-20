@@ -10,7 +10,7 @@
 #include "libslic3r/Preset.hpp"
 #include "wxExtensions.hpp"
 #include "GUI_Utils.hpp"
-#include "BitmapCache.hpp"
+//#include "BitmapCache.hpp"
 
 class wxString;
 class wxTextCtrl;
@@ -22,7 +22,7 @@ namespace Slic3r {
 
 namespace GUI {
 
-
+class BitmapCache;
 // ---------------------------------
 // ***  PresetComboBox  ***
 // ---------------------------------
@@ -72,10 +72,7 @@ protected:
     PresetCollection*   m_collection {nullptr};
 
     // Caching bitmaps for the all bitmaps, used in preset comboboxes
-    static BitmapCache& bitmap_cache() {
-        static BitmapCache bmps;
-        return bmps;
-    }
+    static BitmapCache& bitmap_cache();
 
     // Indicator, that the preset is compatible with the selected printer.
     ScalableBitmap      m_bitmapCompatible;

@@ -131,6 +131,12 @@ PresetComboBox::~PresetComboBox()
 {
 }
 
+BitmapCache& PresetComboBox::bitmap_cache()
+{
+    static BitmapCache bmps;
+    return bmps;
+}
+
 void PresetComboBox::set_label_marker(int item, LabelItemType label_item_type)
 {
     this->SetClientData(item, (void*)label_item_type);
