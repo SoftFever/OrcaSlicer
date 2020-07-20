@@ -495,6 +495,14 @@ void GCodeViewer::set_layers_z_range(const std::array<double, 2>& layers_z_range
     wxGetApp().plater()->update_preview_moves_slider();
 }
 
+void GCodeViewer::enable_time_estimate(bool enable)
+{
+    m_time_estimate_enabled = enable;
+    wxGetApp().update_ui_from_settings();
+    wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
+    wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+}
+
 void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
 {
     if (filename == nullptr)

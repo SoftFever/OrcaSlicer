@@ -1323,13 +1323,14 @@ void Sidebar::update_sliced_info_sizer()
             p->sliced_info->SetTextAndShow(siCost, info_text,      new_label);
 
 #if ENABLE_GCODE_VIEWER
-            if (ps.estimated_normal_print_time_str == "N/A" && ps.estimated_silent_print_time_str == "N/A")
+            if (p->plater->get_current_canvas3D()->is_time_estimate_enabled() || (ps.estimated_normal_print_time_str == "N/A" && ps.estimated_silent_print_time_str == "N/A"))
 #else
+
             if (ps.estimated_normal_print_time == "N/A" && ps.estimated_silent_print_time == "N/A")
 #endif // ENABLE_GCODE_VIEWER
                 p->sliced_info->SetTextAndShow(siEstimatedTime, "N/A");
             else {
-                new_label = _L("Estimated printing time") +":";
+                new_label = _L("Estimated printing time") + ":";
                 info_text = "";
                 wxString str_color = _L("Color");
                 wxString str_pause = _L("Pause");
@@ -1340,29 +1341,29 @@ void Sidebar::update_sliced_info_sizer()
                 auto fill_labels = [str_color, str_pause](const std::vector<std::pair<CustomGCode::Type, std::string>>& times,
 #endif // ENABLE_GCODE_VIEWER
                     wxString& new_label, wxString& info_text)
-                {
-                    int color_change_count = 0;
-                    for (auto time : times)
-                        if (time.first == CustomGCode::ColorChange)
-                            color_change_count++;
-
-                    for (int i = (int)times.size() - 1; i >= 0; --i)
                     {
-                        if (i == 0 || times[i - 1].first == CustomGCode::PausePrint)
-                            new_label += format_wxstr("\n      - %1%%2%", str_color + " ", color_change_count);
-                        else if (times[i - 1].first == CustomGCode::ColorChange)
-                            new_label += format_wxstr("\n      - %1%%2%", str_color + " ", color_change_count--);
+                        int color_change_count = 0;
+                        for (auto time : times)
+                            if (time.first == CustomGCode::ColorChange)
+                                color_change_count++;
 
-                        if (i != (int)times.size() - 1 && times[i].first == CustomGCode::PausePrint)
-                            new_label += format_wxstr(" -> %1%", str_pause);
+                        for (int i = (int)times.size() - 1; i >= 0; --i)
+                        {
+                            if (i == 0 || times[i - 1].first == CustomGCode::PausePrint)
+                                new_label += format_wxstr("\n      - %1%%2%", str_color + " ", color_change_count);
+                            else if (times[i - 1].first == CustomGCode::ColorChange)
+                                new_label += format_wxstr("\n      - %1%%2%", str_color + " ", color_change_count--);
+
+                            if (i != (int)times.size() - 1 && times[i].first == CustomGCode::PausePrint)
+                                new_label += format_wxstr(" -> %1%", str_pause);
 
 #if ENABLE_GCODE_VIEWER
-                        info_text += format_wxstr("\n%1% (%2%)", times[i].second.first, times[i].second.second);
+                            info_text += format_wxstr("\n%1% (%2%)", times[i].second.first, times[i].second.second);
 #else
-                        info_text += format_wxstr("\n%1%", times[i].second);
+                            info_text += format_wxstr("\n%1%", times[i].second);
 #endif // ENABLE_GCODE_VIEWER
-                    }
-                };
+                        }
+                    };
 
 #if ENABLE_GCODE_VIEWER
                 if (ps.estimated_normal_print_time_str != "N/A") {
@@ -1386,7 +1387,7 @@ void Sidebar::update_sliced_info_sizer()
                     fill_labels(ps.estimated_silent_custom_gcode_print_times, new_label, info_text);
 #endif // ENABLE_GCODE_VIEWER
                 }
-                p->sliced_info->SetTextAndShow(siEstimatedTime,  info_text,      new_label);
+                p->sliced_info->SetTextAndShow(siEstimatedTime, info_text, new_label);
             }
 
             // if there is a wipe tower, insert number of toolchanges info into the array:
@@ -2180,6 +2181,10 @@ void Plater::priv::select_view_3D(const std::string& name)
         set_current_panel(view3D);
     else if (name == "Preview")
         set_current_panel(preview);
+
+#if ENABLE_GCODE_VIEWER
+    wxGetApp().update_ui_from_settings();
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void Plater::priv::select_next_view_3D()

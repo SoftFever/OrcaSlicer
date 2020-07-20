@@ -341,7 +341,7 @@ private:
     Shells m_shells;
     EViewType m_view_type{ EViewType::FeatureType };
     bool m_legend_enabled{ true };
-    bool m_time_estimate_enabled{ true };
+    bool m_time_estimate_enabled{ false };
 #if ENABLE_GCODE_VIEWER_STATISTICS
     mutable Statistics m_statistics;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -398,7 +398,7 @@ public:
     void enable_legend(bool enable) { m_legend_enabled = enable; }
 
     bool is_time_estimate_enabled() const { return m_time_estimate_enabled; }
-    void enable_time_estimate(bool enable) { m_time_estimate_enabled = enable; }
+    void enable_time_estimate(bool enable);
 
     void export_toolpaths_to_obj(const char* filename) const;
 
