@@ -166,7 +166,7 @@ class TabPresetComboBox : public PresetComboBox
     bool show_incompatible {false};
     bool m_enable_all {false};
 
-    std::function<void(std::string)>    update_ph_printers { nullptr };
+    bool    m_allow_to_update_physical_printers {false};
 
 public:
     TabPresetComboBox(wxWindow *parent, Preset::Type preset_type);
@@ -174,8 +174,8 @@ public:
     void set_show_incompatible_presets(bool show_incompatible_presets) {
         show_incompatible = show_incompatible_presets;
     }
-    void set_update_physical_printers_function(std::function<void(std::string)> update_fn) {
-        update_ph_printers = update_fn;
+    void allow_to_update_physical_printers() {
+        m_allow_to_update_physical_printers = m_type == Preset::TYPE_PRINTER;
     }
 
     void update() override;
@@ -257,6 +257,32 @@ public:
     PhysicalPrinter* get_printer() {return &m_printer; }
 
     void        DeletePreset(PresetForPrinter* preset_for_printer);
+
+protected:
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+    void on_sys_color_changed() override {};
+};
+
+
+//------------------------------------------------
+//          ChangePresetForPhysicalPrinterDialog
+//------------------------------------------------
+
+class ChangePresetForPhysicalPrinterDialog : public DPIDialog
+{
+    void OnOK(wxEvent& event);
+
+public:
+
+    enum SelectionType
+    {
+        Switch,
+        ChangePreset,
+        AddPreset
+    } m_selection {Switch};
+
+    ChangePresetForPhysicalPrinterDialog(const std::string& preset_name);
+    ~ChangePresetForPhysicalPrinterDialog() {}
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;

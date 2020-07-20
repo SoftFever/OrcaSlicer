@@ -1436,6 +1436,11 @@ bool PhysicalPrinter::add_preset(const std::string& preset_name)
     return preset_names.emplace(preset_name).second;
 }
 
+bool PhysicalPrinter::delete_preset(const std::string& preset_name)
+{
+    return preset_names.erase(preset_name) > 0;
+}
+
 PhysicalPrinter::PhysicalPrinter(const std::string& name, const Preset& preset) :
     name(name)
 {
@@ -1521,7 +1526,6 @@ void PhysicalPrinterCollection::load_printers(const std::string& dir_path, const
         }
     m_printers.insert(m_printers.end(), std::make_move_iterator(printers_loaded.begin()), std::make_move_iterator(printers_loaded.end()));
     std::sort(m_printers.begin(), m_printers.end());
-//!    this->select_preset(first_visible_idx());
     if (!errors_cummulative.empty())
         throw std::runtime_error(errors_cummulative);
 }
@@ -1542,8 +1546,11 @@ std::string PhysicalPrinterCollection::path_from_name(const std::string& new_nam
     return (boost::filesystem::path(m_dir_path) / file_name).make_preferred().string();
 }
 
-void PhysicalPrinterCollection::save_printer(const PhysicalPrinter& edited_printer, const std::string& renamed_from)
+void PhysicalPrinterCollection::save_printer(PhysicalPrinter& edited_printer, const std::string& renamed_from/* = ""*/)
 {
+    // controll and update preset_names in edited_printer config 
+    edited_printer.update_preset_names_in_config();
+
     std::string name = renamed_from.empty() ? edited_printer.name : renamed_from;
     // 1) Find the printer with a new_name or create a new one,
     // initialize it with the edited config.
@@ -1605,6 +1612,33 @@ bool PhysicalPrinterCollection::delete_selected_printer()
     return true;
 }
 
+bool PhysicalPrinterCollection::delete_preset_from_printers( const std::string& preset_name, bool first_check /*=true*/)
+{
+    if (first_check) {
+        for (auto printer: m_printers)
+            if (printer.preset_names.size()==1 && *printer.preset_names.begin() == preset_name)
+                return false;
+    }
+
+    std::vector<std::string> printers_for_delete;
+    for (PhysicalPrinter& printer : m_printers)
+        if (printer.preset_names.size() == 1 && *printer.preset_names.begin() == preset_name)
+            printers_for_delete.emplace_back(printer.name);
+        else if (printer.delete_preset(preset_name)) {
+            if (printer.name == get_selected_printer_name() && 
+                preset_name == get_selected_printer_preset_name())
+                select_printer(printer);
+            save_printer(printer);
+        }
+
+    if (!printers_for_delete.empty()) {
+        for (const std::string& printer_name : printers_for_delete)
+            delete_printer(printer_name);
+        unselect_printer();
+    }
+    return true;
+}
+
 std::string PhysicalPrinterCollection::get_selected_full_printer_name() const
 {
     return (m_idx_selected == size_t(-1)) ? std::string() : this->get_selected_printer().get_full_name(m_selected_preset);
@@ -1623,6 +1657,23 @@ PhysicalPrinter& PhysicalPrinterCollection::select_printer_by_name(const std::st
     if (m_selected_preset.empty())
         m_selected_preset = *it->preset_names.begin();
     return *it;
+}
+
+PhysicalPrinter& PhysicalPrinterCollection::select_printer(const std::string& printer_name)
+{
+    auto it = this->find_printer_internal(printer_name);
+    assert(it != m_printers.end());
+
+    // update idx_selected
+    m_idx_selected      = it - m_printers.begin();
+    // update name of the currently selected preset
+    m_selected_preset   = *it->preset_names.begin();
+    return *it;
+}
+
+PhysicalPrinter& PhysicalPrinterCollection::select_printer(const PhysicalPrinter& printer)
+{
+    return select_printer(printer.name);
 }
 
 bool PhysicalPrinterCollection::has_selection() const

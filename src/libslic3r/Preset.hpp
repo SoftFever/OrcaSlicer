@@ -569,6 +569,7 @@ public:
     // add preset to the preset_names
     // return false, if preset with this name is already exist in the set
     bool                add_preset(const std::string& preset_name);
+    bool                delete_preset(const std::string& preset_name);
     void                reset_presets();
 
     // Return a printer technology, return ptFFF if the printer technology is not set.
@@ -629,7 +630,7 @@ public:
     // Save the printer under a new name. If the name is different from the old one,
     // a new printer is stored into the list of printers.
     // New printer is activated.
-    void            save_printer(const PhysicalPrinter& printer, const std::string& renamed_from);
+    void            save_printer(PhysicalPrinter& printer, const std::string& renamed_from = "");
 
     // Delete the current preset, activate the first visible preset.
     // returns true if the preset was deleted successfully.
@@ -637,6 +638,10 @@ public:
     // Delete the selected preset
     // returns true if the preset was deleted successfully.
     bool            delete_selected_printer();
+    // Delete preset_name preset from all printers:
+    // If there is last preset for the printer and first_check== false, then delete this printer
+    // returns true if all presets were deleted successfully.
+    bool            delete_preset_from_printers(const std::string& preset_name, bool first_check = true);
 
     // Return the selected preset, without the user modifications applied.
     PhysicalPrinter&        get_selected_printer() { return m_printers[m_idx_selected]; }
@@ -659,6 +664,8 @@ public:
 
     // select printer with name and return reference on it
     PhysicalPrinter&        select_printer_by_name(const std::string& full_name);
+    PhysicalPrinter&        select_printer(const std::string &printer_name);
+    PhysicalPrinter&        select_printer(const PhysicalPrinter& printer);
     bool                    has_selection() const;
     void                    unselect_printer() ;
     bool                    is_selected(ConstIterator it, const std::string &preset_name) const;
