@@ -250,6 +250,7 @@ bool Preview::init(wxWindow* parent, Model* model)
         _(L("Internal infill")) + "|" +
         _(L("Solid infill")) + "|" +
         _(L("Top solid infill")) + "|" +
+        _(L("Ironing")) + "|" +
         _(L("Bridge infill")) + "|" +
         _(L("Gap fill")) + "|" +
         _(L("Skirt")) + "|" +
