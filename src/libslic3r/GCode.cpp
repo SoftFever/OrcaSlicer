@@ -1574,9 +1574,9 @@ std::string GCode::placeholder_parser_process(const std::string &name, const std
     }
 }
 
-// Parse the custom G-code, try to find mcode_set_temp_dont_wait and mcode_set_temp_and_wait inside the custom G-code.
+// Parse the custom G-code, try to find mcode_set_temp_dont_wait and mcode_set_temp_and_wait or optionally G10 with temperature inside the custom G-code.
 // Returns true if one of the temp commands are found, and try to parse the target temperature value into temp_out.
-static bool custom_gcode_sets_temperature(const std::string &gcode, const int mcode_set_temp_dont_wait, const int mcode_set_temp_and_wait, int &temp_out)
+static bool custom_gcode_sets_temperature(const std::string &gcode, const int mcode_set_temp_dont_wait, const int mcode_set_temp_and_wait, const bool include_g10, int &temp_out)
 {
     temp_out = -1;
     if (gcode.empty())
@@ -1616,6 +1616,40 @@ static bool custom_gcode_sets_temperature(const std::string &gcode, const int mc
                     } else {
                         // Skip this word.
 						for (; strchr(" \t;\r\n\0", *ptr) == nullptr; ++ ptr);
+                    }
+                }
+            }
+        } else if (*ptr == 'G' && include_g10) { // Only check for G10 if requested
+            // Line starts with 'G'.
+            ++ ptr;
+            // Parse the G code value.
+            char *endptr = nullptr;
+            int gcode = int(strtol(ptr, &endptr, 10));
+            if (endptr != nullptr && endptr != ptr && gcode == 10 /* G10 */) {
+                // G10 code found
+                ptr = endptr;
+                // Now try to parse the temperature value.
+                // While not at the end of the line:
+                while (strchr(";\r\n\0", *ptr) == nullptr) {
+                    // Skip whitespaces.
+                    for (; *ptr == ' ' || *ptr == '\t'; ++ ptr);
+                    if (*ptr == 'S') {
+                        // Skip whitespaces.
+                        for (++ ptr; *ptr == ' ' || *ptr == '\t'; ++ ptr);
+                        // Parse an int.
+                        endptr = nullptr;
+                        long temp_parsed = strtol(ptr, &endptr, 10);
+                        if (endptr > ptr) {
+                            ptr = endptr;
+                            temp_out = temp_parsed;
+                            // Let the caller know that the custom G-code sets the temperature
+                            // Only do this after successfully parsing temperature since G10
+                            // can be used for other reasons
+                            temp_set_by_gcode = true;
+                        }
+                    } else {
+                        // Skip this word.
+                        for (; strchr(" \t;\r\n\0", *ptr) == nullptr; ++ ptr);
                     }
                 }
             }
@@ -1668,7 +1702,7 @@ void GCode::_print_first_layer_bed_temperature(FILE *file, Print &print, const s
     int  temp = print.config().first_layer_bed_temperature.get_at(first_printing_extruder_id);
     // Is the bed temperature set by the provided custom G-code?
     int  temp_by_gcode     = -1;
-    bool temp_set_by_gcode = custom_gcode_sets_temperature(gcode, 140, 190, temp_by_gcode);
+    bool temp_set_by_gcode = custom_gcode_sets_temperature(gcode, 140, 190, false, temp_by_gcode);
     if (temp_set_by_gcode && temp_by_gcode >= 0 && temp_by_gcode < 1000)
         temp = temp_by_gcode;
     // Always call m_writer.set_bed_temperature() so it will set the internal "current" state of the bed temp as if
@@ -1686,7 +1720,7 @@ void GCode::_print_first_layer_extruder_temperatures(FILE *file, Print &print, c
 {
     // Is the bed temperature set by the provided custom G-code?
     int  temp_by_gcode     = -1;
-    if (custom_gcode_sets_temperature(gcode, 104, 109, temp_by_gcode)) {
+    if (custom_gcode_sets_temperature(gcode, 104, 109, true, temp_by_gcode)) {
         // Set the extruder temperature at m_writer, but throw away the generated G-code as it will be written with the custom G-code.
         int temp = print.config().first_layer_temperature.get_at(first_printing_extruder_id);
         if (temp_by_gcode >= 0 && temp_by_gcode < 1000)
