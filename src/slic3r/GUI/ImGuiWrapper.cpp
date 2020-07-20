@@ -760,12 +760,10 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
 void ImGuiWrapper::title(const std::string& str)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
-    const float frame_height = ImGui::CalcTextSize(str.c_str(), nullptr, false).y;
 
     ImRect frame_bb;
     frame_bb.Min = { window->WorkRect.Min.x, window->DC.CursorPos.y };
-    frame_bb.Max = { window->WorkRect.Max.x, window->DC.CursorPos.y + frame_height };
-
+    frame_bb.Max = { window->WorkRect.Max.x, window->DC.CursorPos.y + ImGui::CalcTextSize(str.c_str(), nullptr, false).y };
     frame_bb.Min.x -= IM_FLOOR(window->WindowPadding.x * 0.5f - 1.0f);
     frame_bb.Max.x += IM_FLOOR(window->WindowPadding.x * 0.5f);
 

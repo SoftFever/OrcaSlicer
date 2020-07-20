@@ -340,6 +340,7 @@ struct PrintStatistics
 
     void clear() {
 #if ENABLE_GCODE_VIEWER
+        clear_time_estimates();
         estimated_normal_print_time_str.clear();
         estimated_silent_print_time_str.clear();
         estimated_normal_custom_gcode_print_times_str.clear();
@@ -461,6 +462,7 @@ public:
     const Polygon&                   first_layer_convex_hull() const { return m_first_layer_convex_hull; }
 
     const PrintStatistics&      print_statistics() const { return m_print_statistics; }
+    PrintStatistics&            print_statistics() { return m_print_statistics; }
 
     // Wipe tower support.
     bool                        has_wipe_tower() const;

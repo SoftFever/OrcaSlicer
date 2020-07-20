@@ -1740,14 +1740,25 @@ void GCodeViewer::render_time_estimate() const
     };
     using PartialTimes = std::vector<PartialTime>;
 
-    auto append_mode = [this, &imgui](float total_time, const PartialTimes& items,
+    auto append_headers = [&imgui](const Headers& headers, const ColumnOffsets& offsets) {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
+        imgui.text(headers[0]);
+        ImGui::SameLine(offsets[0]);
+        imgui.text(headers[1]);
+        ImGui::SameLine(offsets[1]);
+        imgui.text(headers[2]);
+        ImGui::PopStyleColor();
+        ImGui::Separator();
+    };
+
+    auto append_mode = [this, &imgui, append_headers](float total_time, const PartialTimes& items,
         const Headers& partial_times_headers,
         const std::vector<std::pair<GCodeProcessor::EMoveType, float>>& moves_time,
         const Headers& moves_headers,
         const std::vector<std::pair<ExtrusionRole, float>>& roles_time,
         const Headers& roles_headers) {
-        auto append_partial_times = [this, &imgui](const PartialTimes& items, const Headers& headers) {
-            auto calc_offsets = [this, &headers](const PartialTimes& items) {
+            auto append_partial_times = [this, &imgui, append_headers](const PartialTimes& items, const Headers& headers) {
+                auto calc_offsets = [this, &headers](const PartialTimes& items) {
                 ColumnOffsets ret = { ImGui::CalcTextSize(headers[0].c_str()).x, ImGui::CalcTextSize(headers[1].c_str()).x };
                 for (const PartialTime& item : items) {
                     std::string label;
@@ -1799,14 +1810,7 @@ void GCodeViewer::render_time_estimate() const
             ColumnOffsets offsets = calc_offsets(items);
 
             ImGui::Spacing();
-            ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-            imgui.text(headers[0]);
-            ImGui::SameLine(offsets[0]);
-            imgui.text(headers[1]);
-            ImGui::SameLine(offsets[1]);
-            imgui.text(headers[2]);
-            ImGui::PopStyleColor();
-            ImGui::Separator();
+            append_headers(headers, offsets);
 
             for (const PartialTime& item : items) {
                 switch (item.type)
@@ -1856,7 +1860,26 @@ void GCodeViewer::render_time_estimate() const
             }
         };
 
-        auto append_move_times = [this, &imgui, move_type_label](float total_time,
+        auto append_time_item = [&imgui] (const std::string& label, float time, float percentage, const ImVec4& color, const ColumnOffsets& offsets) {
+            ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
+            imgui.text(label);
+            ImGui::PopStyleColor();
+            ImGui::SameLine(offsets[0]);
+            imgui.text(short_time(get_time_dhms(time)));
+            ImGui::SameLine(offsets[1]);
+            char buf[64];
+            ::sprintf(buf, "%.2f%%", 100.0f * percentage);
+            ImGuiWindow* window = ImGui::GetCurrentWindow();
+            ImRect frame_bb;
+            frame_bb.Min = { ImGui::GetCursorScreenPos().x, window->DC.CursorPos.y };
+            frame_bb.Max = { frame_bb.Min.x + percentage * (window->WorkRect.Max.x - frame_bb.Min.x), window->DC.CursorPos.y + ImGui::CalcTextSize(buf, nullptr, false).y };
+            frame_bb.Min.x -= IM_FLOOR(window->WindowPadding.x * 0.5f - 1.0f);
+            frame_bb.Max.x += IM_FLOOR(window->WindowPadding.x * 0.5f);
+            window->DrawList->AddRectFilled(frame_bb.Min, frame_bb.Max, ImGui::GetColorU32({ color.x, color.y, color.z, 1.0f }), 0.0f, 0);
+            ImGui::TextUnformatted(buf);
+        };
+
+        auto append_move_times = [this, &imgui, move_type_label, append_headers, append_time_item](float total_time,
             const std::vector<std::pair<GCodeProcessor::EMoveType, float>>& moves_time,
             const Headers& headers, const ColumnOffsets& offsets) {
 
@@ -1866,32 +1889,17 @@ void GCodeViewer::render_time_estimate() const
             if (!ImGui::CollapsingHeader(_u8L("Moves Time").c_str()))
                 return;
 
-            ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-            imgui.text(headers[0]);
-            ImGui::SameLine(offsets[0]);
-            imgui.text(headers[1]);
-            ImGui::SameLine(offsets[1]);
-            imgui.text(headers[2]);
-            ImGui::PopStyleColor();
-            ImGui::Separator();
+            append_headers(headers, offsets);
 
             std::vector<std::pair<GCodeProcessor::EMoveType, float>> sorted_moves_time(moves_time);
             std::sort(sorted_moves_time.begin(), sorted_moves_time.end(), [](const auto& p1, const auto& p2) { return p2.second < p1.second; });
 
             for (const auto& [type, time] : sorted_moves_time) {
-                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-                imgui.text(move_type_label(type));
-                ImGui::PopStyleColor();
-                ImGui::SameLine(offsets[0]);
-                imgui.text(short_time(get_time_dhms(time)));
-                ImGui::SameLine(offsets[1]);
-                char buf[64];
-                ::sprintf(buf, "%.2f%%", 100.0f * time / total_time);
-                ImGui::TextUnformatted(buf);
+                append_time_item(move_type_label(type), time, time / total_time, ImGuiWrapper::COL_ORANGE_LIGHT, offsets);
             }
         };
 
-        auto append_role_times = [this, &imgui](float total_time, 
+        auto append_role_times = [this, &imgui, append_headers, append_time_item](float total_time,
             const std::vector<std::pair<ExtrusionRole, float>>& roles_time,
             const Headers& headers, const ColumnOffsets& offsets) {
 
@@ -1901,28 +1909,14 @@ void GCodeViewer::render_time_estimate() const
             if (!ImGui::CollapsingHeader(_u8L("Features Time").c_str()))
                 return;
 
-            ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-            imgui.text(headers[0]);
-            ImGui::SameLine(offsets[0]);
-            imgui.text(headers[1]);
-            ImGui::SameLine(offsets[1]);
-            imgui.text(headers[2]);
-            ImGui::PopStyleColor();
-            ImGui::Separator();
+            append_headers(headers, offsets);
 
             std::vector<std::pair<ExtrusionRole, float>> sorted_roles_time(roles_time);
             std::sort(sorted_roles_time.begin(), sorted_roles_time.end(), [](const auto& p1, const auto& p2) { return p2.second < p1.second; });
 
             for (const auto& [role, time] : sorted_roles_time) {
-                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-                imgui.text(_u8L(ExtrusionEntity::role_to_string(role)));
-                ImGui::PopStyleColor();
-                ImGui::SameLine(offsets[0]);
-                imgui.text(short_time(get_time_dhms(time)));
-                ImGui::SameLine(offsets[1]);
-                char buf[64];
-                ::sprintf(buf, "%.2f%%", 100.0f * time / total_time);
-                ImGui::TextUnformatted(buf);
+                Color color = Extrusion_Role_Colors[static_cast<unsigned int>(role)];
+                append_time_item(_u8L(ExtrusionEntity::role_to_string(role)), time, time / total_time, { 0.666f * color[0], 0.666f * color[1], 0.666f * color[2], 1.0f}, offsets);
             }
         };
 
