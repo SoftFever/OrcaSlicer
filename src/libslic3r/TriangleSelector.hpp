@@ -118,8 +118,8 @@ protected:
     float m_edge_limit_sqr = 1.f;
 
     // Number of original vertices and triangles.
-    int m_orig_size_vertices;
-    int m_orig_size_indices;
+    int m_orig_size_vertices = 0;
+    int m_orig_size_indices = 0;
 
     // Cache for cursor position, radius and direction.
     struct Cursor {
