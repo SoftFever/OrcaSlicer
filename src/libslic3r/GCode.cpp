@@ -579,141 +579,261 @@ namespace Slic3r {
 
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_writer.extruder()->id())
 
-    // Collect pairs of object_layer + support_layer sorted by print_z.
-    // object_layer & support_layer are considered to be on the same print_z, if they are not further than EPSILON.
-    std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObject& object)
-    {
-        std::vector<GCode::LayerToPrint> layers_to_print;
-        layers_to_print.reserve(object.layers().size() + object.support_layers().size());
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+// Collect pairs of object_layer + support_layer sorted by print_z.
+// object_layer & support_layer are considered to be on the same print_z, if they are not further than EPSILON.
+std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObject& object)
+{
+    std::vector<GCode::LayerToPrint> layers_to_print;
+    layers_to_print.reserve(object.layers().size() + object.support_layers().size());
 
-        // Calculate a minimum support layer height as a minimum over all extruders, but not smaller than 10um.
-        // This is the same logic as in support generator.
-        //FIXME should we use the printing extruders instead?
-        double gap_over_supports = object.config().support_material_contact_distance;
-        // FIXME should we test object.config().support_material_synchronize_layers ? Currently the support layers are synchronized with object layers iff soluble supports.
-        assert(!object.config().support_material || gap_over_supports != 0. || object.config().support_material_synchronize_layers);
-        if (gap_over_supports != 0.) {
-            gap_over_supports = std::max(0., gap_over_supports);
-            // Not a soluble support,
-            double support_layer_height_min = 1000000.;
-            for (auto lh : object.print()->config().min_layer_height.values)
-                support_layer_height_min = std::min(support_layer_height_min, std::max(0.01, lh));
-            gap_over_supports += support_layer_height_min;
-        }
-
-        // Pair the object layers with the support layers by z.
-        size_t idx_object_layer = 0;
-        size_t idx_support_layer = 0;
-        const LayerToPrint* last_extrusion_layer = nullptr;
-        while (idx_object_layer < object.layers().size() || idx_support_layer < object.support_layers().size()) {
-            LayerToPrint layer_to_print;
-            layer_to_print.object_layer = (idx_object_layer < object.layers().size()) ? object.layers()[idx_object_layer++] : nullptr;
-            layer_to_print.support_layer = (idx_support_layer < object.support_layers().size()) ? object.support_layers()[idx_support_layer++] : nullptr;
-            if (layer_to_print.object_layer && layer_to_print.support_layer) {
-                if (layer_to_print.object_layer->print_z < layer_to_print.support_layer->print_z - EPSILON) {
-                    layer_to_print.support_layer = nullptr;
-                    --idx_support_layer;
-                }
-                else if (layer_to_print.support_layer->print_z < layer_to_print.object_layer->print_z - EPSILON) {
-                    layer_to_print.object_layer = nullptr;
-                    --idx_object_layer;
-                }
-            }
-
-            layers_to_print.emplace_back(layer_to_print);
-
-            // Check that there are extrusions on the very first layer.
-            if (layers_to_print.size() == 1u) {
-                if ((layer_to_print.object_layer && !layer_to_print.object_layer->has_extrusions())
-                    || (layer_to_print.support_layer && !layer_to_print.support_layer->has_extrusions()))
-                    throw std::runtime_error(_(L("There is an object with no extrusions on the first layer.")));
-            }
-
-            // In case there are extrusions on this layer, check there is a layer to lay it on.
-            if ((layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
-                // Allow empty support layers, as the support generator may produce no extrusions for non-empty support regions.
-                || (layer_to_print.support_layer /* && layer_to_print.support_layer->has_extrusions() */)) {
-                double support_contact_z = (last_extrusion_layer && last_extrusion_layer->support_layer)
-                    ? gap_over_supports
-                    : 0.;
-                double maximal_print_z = (last_extrusion_layer ? last_extrusion_layer->print_z() : 0.)
-                    + layer_to_print.layer()->height
-                    + support_contact_z;
-                // Negative support_contact_z is not taken into account, it can result in false positives in cases
-                // where previous layer has object extrusions too (https://github.com/prusa3d/PrusaSlicer/issues/2752)
-
-                // Only check this layer in case it has some extrusions.
-                bool has_extrusions = (layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
-                    || (layer_to_print.support_layer && layer_to_print.support_layer->has_extrusions());
-
-                if (has_extrusions && layer_to_print.print_z() > maximal_print_z + 2. * EPSILON) {
-                    const_cast<Print*>(object.print())->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL,
-                        _(L("Empty layers detected, the output would not be printable.")) + "\n\n" +
-                        _(L("Object name")) + ": " + object.model_object()->name + "\n" + _(L("Print z")) + ": " +
-                        std::to_string(layers_to_print.back().print_z()) + "\n\n" + _(L("This is "
-                            "usually caused by negligibly small extrusions or by a faulty model. Try to repair "
-                            "the model or change its orientation on the bed.")));
-                }
-
-                // Remember last layer with extrusions.
-                if (has_extrusions)
-                    last_extrusion_layer = &layers_to_print.back();
-            }
-        }
-
-        return layers_to_print;
+    // Calculate a minimum support layer height as a minimum over all extruders, but not smaller than 10um.
+    // This is the same logic as in support generator.
+    //FIXME should we use the printing extruders instead?
+    double gap_over_supports = object.config().support_material_contact_distance;
+    // FIXME should we test object.config().support_material_synchronize_layers ? Currently the support layers are synchronized with object layers iff soluble supports.
+    assert(!object.config().support_material || gap_over_supports != 0. || object.config().support_material_synchronize_layers);
+    if (gap_over_supports != 0.) {
+        gap_over_supports = std::max(0., gap_over_supports);
+        // Not a soluble support,
+        double support_layer_height_min = 1000000.;
+        for (auto lh : object.print()->config().min_layer_height.values)
+            support_layer_height_min = std::min(support_layer_height_min, std::max(0.01, lh));
+        gap_over_supports += support_layer_height_min;
     }
 
-    // Prepare for non-sequential printing of multiple objects: Support resp. object layers with nearly identical print_z 
-    // will be printed for  all objects at once.
-    // Return a list of <print_z, per object LayerToPrint> items.
-    std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collect_layers_to_print(const Print& print)
-    {
-        struct OrderingItem {
-            coordf_t    print_z;
-            size_t      object_idx;
-            size_t      layer_idx;
-        };
-
-        std::vector<std::vector<LayerToPrint>>  per_object(print.objects().size(), std::vector<LayerToPrint>());
-        std::vector<OrderingItem>               ordering;
-        for (size_t i = 0; i < print.objects().size(); ++i) {
-            per_object[i] = collect_layers_to_print(*print.objects()[i]);
-            OrderingItem ordering_item;
-            ordering_item.object_idx = i;
-            ordering.reserve(ordering.size() + per_object[i].size());
-            const LayerToPrint& front = per_object[i].front();
-            for (const LayerToPrint& ltp : per_object[i]) {
-                ordering_item.print_z = ltp.print_z();
-                ordering_item.layer_idx = &ltp - &front;
-                ordering.emplace_back(ordering_item);
+    // Pair the object layers with the support layers by z.
+    size_t idx_object_layer = 0;
+    size_t idx_support_layer = 0;
+    const LayerToPrint* last_extrusion_layer = nullptr;
+    while (idx_object_layer < object.layers().size() || idx_support_layer < object.support_layers().size()) {
+        LayerToPrint layer_to_print;
+        layer_to_print.object_layer = (idx_object_layer < object.layers().size()) ? object.layers()[idx_object_layer++] : nullptr;
+        layer_to_print.support_layer = (idx_support_layer < object.support_layers().size()) ? object.support_layers()[idx_support_layer++] : nullptr;
+        if (layer_to_print.object_layer && layer_to_print.support_layer) {
+            if (layer_to_print.object_layer->print_z < layer_to_print.support_layer->print_z - EPSILON) {
+                layer_to_print.support_layer = nullptr;
+                --idx_support_layer;
+            }
+            else if (layer_to_print.support_layer->print_z < layer_to_print.object_layer->print_z - EPSILON) {
+                layer_to_print.object_layer = nullptr;
+                --idx_object_layer;
             }
         }
 
-        std::sort(ordering.begin(), ordering.end(), [](const OrderingItem& oi1, const OrderingItem& oi2) { return oi1.print_z < oi2.print_z; });
+        layers_to_print.emplace_back(layer_to_print);
 
-        std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> layers_to_print;
-        // Merge numerically very close Z values.
-        for (size_t i = 0; i < ordering.size();) {
-            // Find the last layer with roughly the same print_z.
-            size_t j = i + 1;
-            coordf_t zmax = ordering[i].print_z + EPSILON;
-            for (; j < ordering.size() && ordering[j].print_z <= zmax; ++j);
-            // Merge into layers_to_print.
-            std::pair<coordf_t, std::vector<LayerToPrint>> merged;
-            // Assign an average print_z to the set of layers with nearly equal print_z.
-            merged.first = 0.5 * (ordering[i].print_z + ordering[j - 1].print_z);
-            merged.second.assign(print.objects().size(), LayerToPrint());
-            for (; i < j; ++i) {
-                const OrderingItem& oi = ordering[i];
-                assert(merged.second[oi.object_idx].layer() == nullptr);
-                merged.second[oi.object_idx] = std::move(per_object[oi.object_idx][oi.layer_idx]);
-            }
-            layers_to_print.emplace_back(std::move(merged));
+        bool has_extrusions = (layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
+            || (layer_to_print.support_layer && layer_to_print.support_layer->has_extrusions());
+
+        // Check that there are extrusions on the very first layer.
+        if (layers_to_print.size() == 1u) {
+            if (!has_extrusions)
+                throw std::runtime_error(_(L("There is an object with no extrusions on the first layer.")));
         }
 
-        return layers_to_print;
+        // In case there are extrusions on this layer, check there is a layer to lay it on.
+        if ((layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
+            // Allow empty support layers, as the support generator may produce no extrusions for non-empty support regions.
+            || (layer_to_print.support_layer /* && layer_to_print.support_layer->has_extrusions() */)) {
+            double support_contact_z = (last_extrusion_layer && last_extrusion_layer->support_layer)
+                ? gap_over_supports
+                : 0.;
+            double maximal_print_z = (last_extrusion_layer ? last_extrusion_layer->print_z() : 0.)
+                + layer_to_print.layer()->height
+                + support_contact_z;
+            // Negative support_contact_z is not taken into account, it can result in false positives in cases
+            // where previous layer has object extrusions too (https://github.com/prusa3d/PrusaSlicer/issues/2752)
+
+            if (has_extrusions && layer_to_print.print_z() > maximal_print_z + 2. * EPSILON) {
+                const_cast<Print*>(object.print())->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL,
+                    _(L("Empty layers detected, the output would not be printable.")) + "\n\n" +
+                    _(L("Object name")) + ": " + object.model_object()->name + "\n" + _(L("Print z")) + ": " +
+                    std::to_string(layers_to_print.back().print_z()) + "\n\n" + _(L("This is "
+                        "usually caused by negligibly small extrusions or by a faulty model. Try to repair "
+                        "the model or change its orientation on the bed.")));
+            }
+
+            // Remember last layer with extrusions.
+            if (has_extrusions)
+                last_extrusion_layer = &layers_to_print.back();
+        }
     }
+
+    return layers_to_print;
+}
+
+
+//    // Collect pairs of object_layer + support_layer sorted by print_z.
+//    // object_layer & support_layer are considered to be on the same print_z, if they are not further than EPSILON.
+//    std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObject& object)
+//    {
+//        std::vector<GCode::LayerToPrint> layers_to_print;
+//        layers_to_print.reserve(object.layers().size() + object.support_layers().size());
+//
+//        // Calculate a minimum support layer height as a minimum over all extruders, but not smaller than 10um.
+//        // This is the same logic as in support generator.
+//        //FIXME should we use the printing extruders instead?
+//        double gap_over_supports = object.config().support_material_contact_distance;
+//        // FIXME should we test object.config().support_material_synchronize_layers ? Currently the support layers are synchronized with object layers iff soluble supports.
+//        assert(!object.config().support_material || gap_over_supports != 0. || object.config().support_material_synchronize_layers);
+//        if (gap_over_supports != 0.) {
+//            gap_over_supports = std::max(0., gap_over_supports);
+//            // Not a soluble support,
+//            double support_layer_height_min = 1000000.;
+//            for (auto lh : object.print()->config().min_layer_height.values)
+//                support_layer_height_min = std::min(support_layer_height_min, std::max(0.01, lh));
+//            gap_over_supports += support_layer_height_min;
+//        }
+//
+//        // Pair the object layers with the support layers by z.
+//        size_t idx_object_layer = 0;
+//        size_t idx_support_layer = 0;
+//        const LayerToPrint* last_extrusion_layer = nullptr;
+//        while (idx_object_layer < object.layers().size() || idx_support_layer < object.support_layers().size()) {
+//            LayerToPrint layer_to_print;
+//            layer_to_print.object_layer = (idx_object_layer < object.layers().size()) ? object.layers()[idx_object_layer++] : nullptr;
+//            layer_to_print.support_layer = (idx_support_layer < object.support_layers().size()) ? object.support_layers()[idx_support_layer++] : nullptr;
+//            if (layer_to_print.object_layer && layer_to_print.support_layer) {
+//                if (layer_to_print.object_layer->print_z < layer_to_print.support_layer->print_z - EPSILON) {
+//                    layer_to_print.support_layer = nullptr;
+//                    --idx_support_layer;
+//                }
+//                else if (layer_to_print.support_layer->print_z < layer_to_print.object_layer->print_z - EPSILON) {
+//                    layer_to_print.object_layer = nullptr;
+//                    --idx_object_layer;
+//                }
+//            }
+//
+//<<<<<<< HEAD
+//            layers_to_print.emplace_back(layer_to_print);
+//
+//            // Check that there are extrusions on the very first layer.
+//            if (layers_to_print.size() == 1u) {
+//                if ((layer_to_print.object_layer && !layer_to_print.object_layer->has_extrusions())
+//                    || (layer_to_print.support_layer && !layer_to_print.support_layer->has_extrusions()))
+//                    throw std::runtime_error(_(L("There is an object with no extrusions on the first layer.")));
+//=======
+//        layers_to_print.emplace_back(layer_to_print);
+//
+//        bool has_extrusions = (layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
+//                           || (layer_to_print.support_layer && layer_to_print.support_layer->has_extrusions());
+//
+//        // Check that there are extrusions on the very first layer.
+//        if (layers_to_print.size() == 1u) {
+//            if (! has_extrusions)
+//                throw std::runtime_error(_(L("There is an object with no extrusions on the first layer.")));
+//        }
+//
+//        // In case there are extrusions on this layer, check there is a layer to lay it on.
+//        if ((layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
+//        	// Allow empty support layers, as the support generator may produce no extrusions for non-empty support regions.
+//         || (layer_to_print.support_layer /* && layer_to_print.support_layer->has_extrusions() */)) {
+//            double support_contact_z = (last_extrusion_layer && last_extrusion_layer->support_layer)
+//                                       ? gap_over_supports
+//                                       : 0.;
+//            double maximal_print_z = (last_extrusion_layer ? last_extrusion_layer->print_z() : 0.)
+//                                    + layer_to_print.layer()->height
+//                                    + support_contact_z;
+//            // Negative support_contact_z is not taken into account, it can result in false positives in cases
+//            // where previous layer has object extrusions too (https://github.com/prusa3d/PrusaSlicer/issues/2752)
+//
+//            if (has_extrusions && layer_to_print.print_z() > maximal_print_z + 2. * EPSILON) {
+//                const_cast<Print*>(object.print())->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL,
+//                    _(L("Empty layers detected, the output would not be printable.")) + "\n\n" +
+//                    _(L("Object name")) + ": " + object.model_object()->name + "\n" + _(L("Print z")) + ": " +
+//                    std::to_string(layers_to_print.back().print_z()) + "\n\n" + _(L("This is "
+//                    "usually caused by negligibly small extrusions or by a faulty model. Try to repair "
+//                    "the model or change its orientation on the bed.")));
+//>>>>>>> b587289c141022323753fa1810552964de0b1356
+//            }
+//
+//            // In case there are extrusions on this layer, check there is a layer to lay it on.
+//            if ((layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
+//                // Allow empty support layers, as the support generator may produce no extrusions for non-empty support regions.
+//                || (layer_to_print.support_layer /* && layer_to_print.support_layer->has_extrusions() */)) {
+//                double support_contact_z = (last_extrusion_layer && last_extrusion_layer->support_layer)
+//                    ? gap_over_supports
+//                    : 0.;
+//                double maximal_print_z = (last_extrusion_layer ? last_extrusion_layer->print_z() : 0.)
+//                    + layer_to_print.layer()->height
+//                    + support_contact_z;
+//                // Negative support_contact_z is not taken into account, it can result in false positives in cases
+//                // where previous layer has object extrusions too (https://github.com/prusa3d/PrusaSlicer/issues/2752)
+//
+//                // Only check this layer in case it has some extrusions.
+//                bool has_extrusions = (layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
+//                    || (layer_to_print.support_layer && layer_to_print.support_layer->has_extrusions());
+//
+//                if (has_extrusions && layer_to_print.print_z() > maximal_print_z + 2. * EPSILON) {
+//                    const_cast<Print*>(object.print())->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL,
+//                        _(L("Empty layers detected, the output would not be printable.")) + "\n\n" +
+//                        _(L("Object name")) + ": " + object.model_object()->name + "\n" + _(L("Print z")) + ": " +
+//                        std::to_string(layers_to_print.back().print_z()) + "\n\n" + _(L("This is "
+//                            "usually caused by negligibly small extrusions or by a faulty model. Try to repair "
+//                            "the model or change its orientation on the bed.")));
+//                }
+//
+//                // Remember last layer with extrusions.
+//                if (has_extrusions)
+//                    last_extrusion_layer = &layers_to_print.back();
+//            }
+//        }
+//
+//        return layers_to_print;
+//    }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+// Prepare for non-sequential printing of multiple objects: Support resp. object layers with nearly identical print_z 
+// will be printed for  all objects at once.
+// Return a list of <print_z, per object LayerToPrint> items.
+std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collect_layers_to_print(const Print& print)
+{
+    struct OrderingItem {
+        coordf_t    print_z;
+        size_t      object_idx;
+        size_t      layer_idx;
+    };
+
+    std::vector<std::vector<LayerToPrint>>  per_object(print.objects().size(), std::vector<LayerToPrint>());
+    std::vector<OrderingItem>               ordering;
+    for (size_t i = 0; i < print.objects().size(); ++i) {
+        per_object[i] = collect_layers_to_print(*print.objects()[i]);
+        OrderingItem ordering_item;
+        ordering_item.object_idx = i;
+        ordering.reserve(ordering.size() + per_object[i].size());
+        const LayerToPrint& front = per_object[i].front();
+        for (const LayerToPrint& ltp : per_object[i]) {
+            ordering_item.print_z = ltp.print_z();
+            ordering_item.layer_idx = &ltp - &front;
+            ordering.emplace_back(ordering_item);
+        }
+    }
+
+    std::sort(ordering.begin(), ordering.end(), [](const OrderingItem& oi1, const OrderingItem& oi2) { return oi1.print_z < oi2.print_z; });
+
+    std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> layers_to_print;
+    // Merge numerically very close Z values.
+    for (size_t i = 0; i < ordering.size();) {
+        // Find the last layer with roughly the same print_z.
+        size_t j = i + 1;
+        coordf_t zmax = ordering[i].print_z + EPSILON;
+        for (; j < ordering.size() && ordering[j].print_z <= zmax; ++j);
+        // Merge into layers_to_print.
+        std::pair<coordf_t, std::vector<LayerToPrint>> merged;
+        // Assign an average print_z to the set of layers with nearly equal print_z.
+        merged.first = 0.5 * (ordering[i].print_z + ordering[j - 1].print_z);
+        merged.second.assign(print.objects().size(), LayerToPrint());
+        for (; i < j; ++i) {
+            const OrderingItem& oi = ordering[i];
+            assert(merged.second[oi.object_idx].layer() == nullptr);
+            merged.second[oi.object_idx] = std::move(per_object[oi.object_idx][oi.layer_idx]);
+        }
+        layers_to_print.emplace_back(std::move(merged));
+    }
+
+    return layers_to_print;
+}
 
 #if ENABLE_GCODE_VIEWER
 void GCode::do_export(Print* print, const char* path, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb)

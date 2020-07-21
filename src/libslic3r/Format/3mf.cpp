@@ -4,6 +4,7 @@
 #include "../GCode.hpp"
 #include "../Geometry.hpp"
 #include "../GCode/ThumbnailData.hpp"
+#include "../Time.hpp"
 
 #include "../I18N.hpp"
 
@@ -1991,7 +1992,7 @@ namespace Slic3r {
         bool _add_content_types_file_to_archive(mz_zip_archive& archive);
         bool _add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data);
         bool _add_relationships_file_to_archive(mz_zip_archive& archive);
-        bool _add_model_file_to_archive(mz_zip_archive& archive, const Model& model, IdToObjectDataMap &objects_data);
+        bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data);
         bool _add_object_to_model_stream(std::stringstream& stream, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items, VolumeToOffsetsMap& volumes_offsets);
         bool _add_mesh_to_object_stream(std::stringstream& stream, ModelObject& object, VolumeToOffsetsMap& volumes_offsets);
         bool _add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items);
@@ -2054,7 +2055,7 @@ namespace Slic3r {
         // Adds model file ("3D/3dmodel.model").
         // This is the one and only file that contains all the geometry (vertices and triangles) of all ModelVolumes.
         IdToObjectDataMap objects_data;
-        if (!_add_model_file_to_archive(archive, model, objects_data))
+        if (!_add_model_file_to_archive(filename, archive, model, objects_data))
         {
             close_zip_writer(&archive);
             boost::filesystem::remove(filename);
@@ -2203,7 +2204,7 @@ namespace Slic3r {
         return true;
     }
 
-	bool _3MF_Exporter::_add_model_file_to_archive(mz_zip_archive& archive, const Model& model, IdToObjectDataMap &objects_data)
+    bool _3MF_Exporter::_add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data)
     {
         std::stringstream stream;
         // https://en.cppreference.com/w/cpp/types/numeric_limits/max_digits10
@@ -2214,6 +2215,19 @@ namespace Slic3r {
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         stream << "<" << MODEL_TAG << " unit=\"millimeter\" xml:lang=\"en-US\" xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" xmlns:slic3rpe=\"http://schemas.slic3r.org/3mf/2017/06\">\n";
         stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_3MF_VERSION << "\">" << VERSION_3MF << "</" << METADATA_TAG << ">\n";
+        std::string name = boost::filesystem::path(filename).stem().string();
+        stream << " <" << METADATA_TAG << " name=\"Title\">" << name << "</" << METADATA_TAG << ">\n";
+        stream << " <" << METADATA_TAG << " name=\"Designer\">" << "</" << METADATA_TAG << ">\n";
+        stream << " <" << METADATA_TAG << " name=\"Description\">" << name << "</" << METADATA_TAG << ">\n";
+        stream << " <" << METADATA_TAG << " name=\"Copyright\">" << "</" << METADATA_TAG << ">\n";
+        stream << " <" << METADATA_TAG << " name=\"LicenseTerms\">" << "</" << METADATA_TAG << ">\n";
+        stream << " <" << METADATA_TAG << " name=\"Rating\">" << "</" << METADATA_TAG << ">\n";
+        std::string date = Slic3r::Utils::utc_timestamp(Slic3r::Utils::get_current_time_utc());
+        // keep only the date part of the string
+        date = date.substr(0, 10);
+        stream << " <" << METADATA_TAG << " name=\"CreationDate\">" << date << "</" << METADATA_TAG << ">\n";
+        stream << " <" << METADATA_TAG << " name=\"ModificationDate\">" << date << "</" << METADATA_TAG << ">\n";
+        stream << " <" << METADATA_TAG << " name=\"Application\">" << SLIC3R_APP_KEY << "-" << SLIC3R_VERSION << "</" << METADATA_TAG << ">\n";
         stream << " <" << RESOURCES_TAG << ">\n";
 
         // Instance transformations, indexed by the 3MF object ID (which is a linear serialization of all instances of all ModelObjects).
