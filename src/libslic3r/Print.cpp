@@ -2191,9 +2191,15 @@ DynamicConfig PrintStatistics::config() const
 {
     DynamicConfig config;
 #if ENABLE_GCODE_VIEWER
+#if ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
     config.set_key_value("print_time",                new ConfigOptionString(this->estimated_normal_print_time_str));
     config.set_key_value("normal_print_time",         new ConfigOptionString(this->estimated_normal_print_time_str));
     config.set_key_value("silent_print_time",         new ConfigOptionString(this->estimated_silent_print_time_str));
+#else
+    config.set_key_value("print_time",        new ConfigOptionString(short_time(get_time_dhms(this->estimated_normal_print_time))));
+    config.set_key_value("normal_print_time", new ConfigOptionString(short_time(get_time_dhms(this->estimated_normal_print_time))));
+    config.set_key_value("silent_print_time", new ConfigOptionString(short_time(get_time_dhms(this->estimated_silent_print_time))));
+#endif // ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
 #else
     std::string normal_print_time = short_time(this->estimated_normal_print_time);
     std::string silent_print_time = short_time(this->estimated_silent_print_time);

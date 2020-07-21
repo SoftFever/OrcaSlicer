@@ -371,7 +371,9 @@ namespace Slic3r {
         // Returns the estimated time, in format DDd HHh MMm, for each custom_gcode
         // If include_remaining==true the strings will be formatted as: "time for custom_gcode (remaining time at color start)"
 #if ENABLE_GCODE_VIEWER
+#if ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
         std::vector<std::pair<CustomGCode::Type, std::pair<std::string, std::string>>> get_custom_gcode_times_dhm(bool include_remaining) const;
+#endif // ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
 #else
         std::vector<std::pair<CustomGCode::Type, std::string>> get_custom_gcode_times_dhm(bool include_remaining) const;
 #endif // ENABLE_GCODE_VIEWER

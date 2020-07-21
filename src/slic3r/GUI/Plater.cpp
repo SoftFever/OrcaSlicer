@@ -1323,7 +1323,11 @@ void Sidebar::update_sliced_info_sizer()
             p->sliced_info->SetTextAndShow(siCost, info_text,      new_label);
 
 #if ENABLE_GCODE_VIEWER
+#if ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
             if (p->plater->get_current_canvas3D()->is_time_estimate_enabled() || (ps.estimated_normal_print_time_str == "N/A" && ps.estimated_silent_print_time_str == "N/A"))
+#else
+            if (p->plater->get_current_canvas3D()->is_time_estimate_enabled() || (ps.estimated_normal_print_time <= 0.0f && ps.estimated_silent_print_time <= 0.0f))
+#endif // ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
 #else
 
             if (ps.estimated_normal_print_time == "N/A" && ps.estimated_silent_print_time == "N/A")
@@ -1336,7 +1340,11 @@ void Sidebar::update_sliced_info_sizer()
                 wxString str_pause = _L("Pause");
 
 #if ENABLE_GCODE_VIEWER
+#if ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
                 auto fill_labels = [str_color, str_pause](const std::vector<std::pair<CustomGCode::Type, std::pair<std::string, std::string>>>& times,
+#else
+                auto fill_labels = [str_color, str_pause](const std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>>& times,
+#endif // ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
 #else
                 auto fill_labels = [str_color, str_pause](const std::vector<std::pair<CustomGCode::Type, std::string>>& times,
 #endif // ENABLE_GCODE_VIEWER
@@ -1358,7 +1366,11 @@ void Sidebar::update_sliced_info_sizer()
                                 new_label += format_wxstr(" -> %1%", str_pause);
 
 #if ENABLE_GCODE_VIEWER
+#if ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
                             info_text += format_wxstr("\n%1% (%2%)", times[i].second.first, times[i].second.second);
+#else
+                            info_text += format_wxstr("\n%1% (%2%)", short_time(get_time_dhms(times[i].second.first)), short_time(get_time_dhms(times[i].second.second)));
+#endif // ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
 #else
                             info_text += format_wxstr("\n%1%", times[i].second);
 #endif // ENABLE_GCODE_VIEWER
@@ -1366,6 +1378,7 @@ void Sidebar::update_sliced_info_sizer()
                     };
 
 #if ENABLE_GCODE_VIEWER
+#if ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
                 if (ps.estimated_normal_print_time_str != "N/A") {
                     new_label += format_wxstr("\n   - %1%", _L("normal mode"));
                     info_text += format_wxstr("\n%1%", ps.estimated_normal_print_time_str);
@@ -1375,6 +1388,17 @@ void Sidebar::update_sliced_info_sizer()
                     new_label += format_wxstr("\n   - %1%", _L("stealth mode"));
                     info_text += format_wxstr("\n%1%", ps.estimated_silent_print_time_str);
                     fill_labels(ps.estimated_silent_custom_gcode_print_times_str, new_label, info_text);
+#else
+                if (ps.estimated_normal_print_time > 0.0f) {
+                    new_label += format_wxstr("\n   - %1%", _L("normal mode"));
+                    info_text += format_wxstr("\n%1%", short_time(get_time_dhms(ps.estimated_normal_print_time)));
+                    fill_labels(ps.estimated_normal_custom_gcode_print_times, new_label, info_text);
+                }
+                if (ps.estimated_silent_print_time > 0.0f) {
+                    new_label += format_wxstr("\n   - %1%", _L("stealth mode"));
+                    info_text += format_wxstr("\n%1%", short_time(get_time_dhms(ps.estimated_silent_print_time)));
+                    fill_labels(ps.estimated_silent_custom_gcode_print_times, new_label, info_text);
+#endif // ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
 #else
                 if (ps.estimated_normal_print_time != "N/A") {
                     new_label += format_wxstr("\n   - %1%", _L("normal mode"));
@@ -1397,6 +1421,9 @@ void Sidebar::update_sliced_info_sizer()
             p->sliced_info->SetTextAndShow(siMateril_unit, "N/A");
         }
     }
+#if ENABLE_GCODE_VIEWER
+    Layout();
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void Sidebar::show_sliced_info_sizer(const bool show)

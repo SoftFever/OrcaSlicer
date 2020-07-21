@@ -306,12 +306,16 @@ struct PrintStatistics
 #if ENABLE_GCODE_VIEWER
     float                           estimated_normal_print_time;
     float                           estimated_silent_print_time;
+#if ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
     std::string                     estimated_normal_print_time_str;
     std::string                     estimated_silent_print_time_str;
+#endif // ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
     std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> estimated_normal_custom_gcode_print_times;
     std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> estimated_silent_custom_gcode_print_times;
+#if ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
     std::vector<std::pair<CustomGCode::Type, std::pair<std::string, std::string>>> estimated_normal_custom_gcode_print_times_str;
     std::vector<std::pair<CustomGCode::Type, std::pair<std::string, std::string>>> estimated_silent_custom_gcode_print_times_str;
+#endif // ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
     std::vector<std::pair<GCodeProcessor::EMoveType, float>> estimated_normal_moves_times;
     std::vector<std::pair<GCodeProcessor::EMoveType, float>> estimated_silent_moves_times;
     std::vector<std::pair<ExtrusionRole, float>> estimated_normal_roles_times;
@@ -341,10 +345,12 @@ struct PrintStatistics
     void clear() {
 #if ENABLE_GCODE_VIEWER
         clear_time_estimates();
+#if ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
         estimated_normal_print_time_str.clear();
         estimated_silent_print_time_str.clear();
         estimated_normal_custom_gcode_print_times_str.clear();
         estimated_silent_custom_gcode_print_times_str.clear();
+#endif // ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
 #else
         estimated_normal_print_time.clear();
         estimated_silent_print_time.clear();

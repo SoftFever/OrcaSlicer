@@ -1065,11 +1065,13 @@ namespace DoExport {
 
 	    print_statistics.clear();
 #if ENABLE_GCODE_VIEWER
+#if ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
         print_statistics.estimated_normal_print_time_str = normal_time_estimator.get_time_dhm/*s*/();
         print_statistics.estimated_silent_print_time_str = silent_time_estimator_enabled ? silent_time_estimator.get_time_dhm/*s*/() : "N/A";
         print_statistics.estimated_normal_custom_gcode_print_times_str = normal_time_estimator.get_custom_gcode_times_dhm(true);
         if (silent_time_estimator_enabled)
             print_statistics.estimated_silent_custom_gcode_print_times_str = silent_time_estimator.get_custom_gcode_times_dhm(true);
+#endif // ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
 #else
         print_statistics.estimated_normal_print_time = normal_time_estimator.get_time_dhm/*s*/();
         print_statistics.estimated_silent_print_time = silent_time_estimator_enabled ? silent_time_estimator.get_time_dhm/*s*/() : "N/A";

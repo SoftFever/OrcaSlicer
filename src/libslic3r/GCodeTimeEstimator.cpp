@@ -723,6 +723,7 @@ namespace Slic3r {
     }
 
 #if ENABLE_GCODE_VIEWER
+#if ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
     std::vector<std::pair<CustomGCode::Type, std::pair<std::string, std::string>>> GCodeTimeEstimator::get_custom_gcode_times_dhm(bool include_remaining) const
     {
         std::vector<std::pair<CustomGCode::Type, std::pair<std::string, std::string>>> ret;
@@ -737,6 +738,7 @@ namespace Slic3r {
 
         return ret;
     }
+#endif // ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
 #else
     std::vector<std::pair<CustomGCode::Type, std::string>> GCodeTimeEstimator::get_custom_gcode_times_dhm(bool include_remaining) const
     {
