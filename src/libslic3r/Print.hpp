@@ -395,6 +395,13 @@ public:
     const PrintObjectPtrs&      objects() const { return m_objects; }
     PrintObject*                get_object(size_t idx) { return m_objects[idx]; }
     const PrintObject*          get_object(size_t idx) const { return m_objects[idx]; }
+    // PrintObject by its ObjectID, to be used to uniquely bind slicing warnings to their source PrintObjects
+    // in the notification center.
+    const PrintObject*          get_object(ObjectID object_id) const { 
+        auto it = std::find_if(m_objects.begin(), m_objects.end(), 
+            [object_id](const PrintObject *obj) { return *static_cast<const ObjectID*>(obj) == object_id; });
+        return (it == m_objects.end()) ? nullptr : *it;
+    }
     const PrintRegionPtrs&      regions() const { return m_regions; }
     // How many of PrintObject::copies() over all print objects are there?
     // If zero, then the print is empty and the print shall not be executed.

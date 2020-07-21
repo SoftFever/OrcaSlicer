@@ -1431,7 +1431,7 @@ void PrintObject::bridge_over_infill()
             }
             
             #ifdef SLIC3R_DEBUG
-            printf("Bridging " PRINTF_ZU " internal areas at layer " PRINTF_ZU "\n", to_bridge.size(), layer->id());
+            printf("Bridging %zu internal areas at layer %zu\n", to_bridge.size(), layer->id());
             #endif
             
             // compute the remaning internal solid surfaces as difference
@@ -1577,7 +1577,9 @@ bool PrintObject::update_layer_height_profile(const ModelObject &model_object, c
     bool updated = false;
 
     if (layer_height_profile.empty()) {
-        layer_height_profile = model_object.layer_height_profile;
+        // use the constructor because the assignement is crashing on ASAN OsX
+        layer_height_profile = std::vector<coordf_t>(model_object.layer_height_profile);
+//        layer_height_profile = model_object.layer_height_profile;
         updated = true;
     }
 

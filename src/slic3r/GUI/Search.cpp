@@ -617,8 +617,9 @@ void SearchDialog::update_list()
     for (const FoundOption& item : filters)
         search_list_model->Prepend(item.label);
 
-    // select first item 
-    search_list->Select(search_list_model->GetItem(0));
+    // select first item, if search_list
+    if (search_list_model->GetCount() > 0)
+        search_list->Select(search_list_model->GetItem(0));
     prevent_list_events = false;
 }
 

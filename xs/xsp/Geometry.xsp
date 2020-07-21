@@ -13,7 +13,7 @@ Pointfs arrange(size_t total_parts, Vec2d* part, coordf_t dist, BoundingBoxf* bb
     %code{% 
         Pointfs points;
         if (! Slic3r::Geometry::arrange(total_parts, *part, dist, bb, points))
-            CONFESS(PRINTF_ZU " parts won't fit in your print area!\n", total_parts);
+            CONFESS("%zu parts won't fit in your print area!\n", total_parts);
         RETVAL = points;
     %};
 

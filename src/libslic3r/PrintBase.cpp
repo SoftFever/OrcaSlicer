@@ -88,6 +88,14 @@ std::string PrintBase::output_filepath(const std::string &path, const std::strin
     return path;
 }
 
+void PrintBase::status_update_warnings(ObjectID object_id, int step, PrintStateBase::WarningLevel /* warning_level */, const std::string &message)
+{
+    if (this->m_status_callback)
+        m_status_callback(SlicingStatus(*this, step));
+    else if (! message.empty())
+    	printf("%s warning: %s\n", (object_id == ObjectID(*this)) ? "print" : "print object", message.c_str());
+}
+
 tbb::mutex& PrintObjectBase::state_mutex(PrintBase *print)
 { 
 	return print->state_mutex();
@@ -96,6 +104,11 @@ tbb::mutex& PrintObjectBase::state_mutex(PrintBase *print)
 std::function<void()> PrintObjectBase::cancel_callback(PrintBase *print)
 { 
 	return print->cancel_callback();
+}
+
+void PrintObjectBase::status_update_warnings(PrintBase *print, int step, PrintStateBase::WarningLevel warning_level, const std::string &message)
+{
+	print->status_update_warnings(*this, step, warning_level, message);
 }
 
 } // namespace Slic3r

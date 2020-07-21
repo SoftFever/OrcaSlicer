@@ -106,6 +106,7 @@ wxString file_wildcards(FileType file_type, const std::string &custom_extension)
 static std::string libslic3r_translate_callback(const char *s) { return wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str().data(); }
 
 #ifdef WIN32
+#if !wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
 static void register_win32_dpi_event()
 {
     enum { WM_DPICHANGED_ = 0x02e0 };
@@ -121,13 +122,12 @@ static void register_win32_dpi_event()
         return true;
     });
 }
+#endif // !wxVERSION_EQUAL_OR_GREATER_THAN
 
 static GUID GUID_DEVINTERFACE_HID = { 0x4D1E55B2, 0xF16F, 0x11CF, 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 };
 
 static void register_win32_device_notification_event()
 {
-    enum { WM_DPICHANGED_ = 0x02e0 };
-
     wxWindow::MSWRegisterMessageHandler(WM_DEVICECHANGE, [](wxWindow *win, WXUINT /* nMsg */, WXWPARAM wParam, WXLPARAM lParam) {
         // Some messages are sent to top level windows by default, some messages are sent to only registered windows, and we explictely register on MainFrame only.
         auto main_frame = dynamic_cast<MainFrame*>(win);
@@ -410,7 +410,9 @@ bool GUI_App::on_init_inner()
     }
 
 #ifdef WIN32
+#if !wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
     register_win32_dpi_event();
+#endif // !wxVERSION_EQUAL_OR_GREATER_THAN
     register_win32_device_notification_event();
 #endif // WIN32
 
@@ -631,9 +633,9 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 {
     mainframe->shutdown();
 
-    wxProgressDialog dlg(msg_name, msg_name);
+    wxProgressDialog dlg(msg_name, msg_name, 100, nullptr, wxPD_AUTO_HIDE);
     dlg.Pulse();
-    dlg.Update(10, _(L("Recreating")) + dots);
+    dlg.Update(10, _L("Recreating") + dots);
 
     MainFrame *old_main_frame = mainframe;
     mainframe = new MainFrame();
@@ -643,17 +645,17 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
     sidebar().obj_list()->init_objects();
     SetTopWindow(mainframe);
 
-    dlg.Update(30, _(L("Recreating")) + dots);
+    dlg.Update(30, _L("Recreating") + dots);
     old_main_frame->Destroy();
     // For this moment ConfigWizard is deleted, invalidate it.
     m_wizard = nullptr;
 
-    dlg.Update(80, _(L("Loading of current presets")) + dots);
+    dlg.Update(80, _L("Loading of current presets") + dots);
     m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
     load_current_presets();
     mainframe->Show(true);
 
-    dlg.Update(90, _(L("Loading of a mode view")) + dots);
+    dlg.Update(90, _L("Loading of a mode view") + dots);
     /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
     * change min hight of object list to the normal min value (15 * wxGetApp().em_unit())
     * after first whole Mainframe updating/layouting
@@ -1059,17 +1061,34 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
             break;
         case ConfigMenuPreferences:
         {
+#if ENABLE_LAYOUT_NO_RESTART
+            bool app_layout_changed = false;
+#else
             bool recreate_app = false;
+#endif // ENABLE_LAYOUT_NO_RESTART
             {
                 // the dialog needs to be destroyed before the call to recreate_GUI()
                 // or sometimes the application crashes into wxDialogBase() destructor
                 // so we put it into an inner scope
                 PreferencesDialog dlg(mainframe);
                 dlg.ShowModal();
+#if ENABLE_LAYOUT_NO_RESTART
+                app_layout_changed = dlg.settings_layout_changed();
+#else
                 recreate_app = dlg.settings_layout_changed();
+#endif // ENABLE_LAYOUT_NO_RESTART
             }
+#if ENABLE_LAYOUT_NO_RESTART
+            if (app_layout_changed) {
+                mainframe->GetSizer()->Hide((size_t)0);
+                mainframe->update_layout();
+                mainframe->select_tab(0);
+                mainframe->GetSizer()->Show((size_t)0);
+            }
+#else
             if (recreate_app)
                 recreate_GUI(_L("Changing of the settings layout") + dots);
+#endif // ENABLE_LAYOUT_NO_RESTART
             break;
         }
         case ConfigMenuLanguage:
@@ -1386,7 +1405,9 @@ void GUI_App::window_pos_restore(wxTopLevelWindow* window, const std::string &na
         return;
     }
 
-    window->SetSize(metrics->get_rect());
+    const wxRect& rect = metrics->get_rect();
+    window->SetPosition(rect.GetPosition());
+    window->SetSize(rect.GetSize());
     window->Maximize(metrics->get_maximized());
 }
 

@@ -51,11 +51,15 @@ struct PresetTab {
 class SettingsDialog : public DPIDialog
 {
     wxNotebook* m_tabpanel { nullptr };
-    MainFrame*  m_main_frame {nullptr };
+    MainFrame*  m_main_frame { nullptr };
 public:
     SettingsDialog(MainFrame* mainframe);
     ~SettingsDialog() {}
+#if ENABLE_LAYOUT_NO_RESTART
+    void set_tabpanel(wxNotebook* tabpanel) { m_tabpanel = tabpanel; }
+#else
     wxNotebook* get_tabpanel() { return m_tabpanel; }
+#endif // ENABLE_LAYOUT_NO_RESTART
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
@@ -72,6 +76,7 @@ class MainFrame : public DPIFrame
     wxMenuItem* m_menu_item_repeat { nullptr }; // doesn't used now
 #endif
     wxMenuItem* m_menu_item_reslice_now { nullptr };
+    wxSizer*    m_main_sizer{ nullptr };
 
     PrintHostQueueDialog *m_printhost_queue_dlg;
 
@@ -114,11 +119,23 @@ class MainFrame : public DPIFrame
 
     wxFileHistory m_recent_projects;
 
+#if ENABLE_LAYOUT_NO_RESTART
+    enum class ESettingsLayout
+    {
+        Unknown,
+        Old,
+        New,
+        Dlg,
+    };
+    
+    ESettingsLayout m_layout{ ESettingsLayout::Unknown };
+#else
     enum SettingsLayout {
         slOld = 0,
         slNew,
         slDlg,
     }               m_layout;
+#endif // ENABLE_LAYOUT_NO_RESTART
 
 protected:
     virtual void on_dpi_changed(const wxRect &suggested_rect);
@@ -127,6 +144,10 @@ protected:
 public:
     MainFrame();
     ~MainFrame() = default;
+
+#if ENABLE_LAYOUT_NO_RESTART
+    void update_layout();
+#endif // ENABLE_LAYOUT_NO_RESTART
 
 	// Called when closing the application and when switching the application language.
 	void 		shutdown();
@@ -169,7 +190,12 @@ public:
 
     Plater*             m_plater { nullptr };
     wxNotebook*         m_tabpanel { nullptr };
+#if ENABLE_LAYOUT_NO_RESTART
+    SettingsDialog      m_settings_dialog;
+    wxWindow*           m_plater_page{ nullptr };
+#else
     SettingsDialog*     m_settings_dialog { nullptr };
+#endif // ENABLE_LAYOUT_NO_RESTART
     wxProgressDialog*   m_progress_dialog { nullptr };
     std::shared_ptr<ProgressStatusBar>  m_statusbar;
 

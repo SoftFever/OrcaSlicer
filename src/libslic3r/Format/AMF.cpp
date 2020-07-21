@@ -1218,7 +1218,7 @@ bool store_amf(const char* path, Model* model, const DynamicPrintConfig* config,
             for (ModelInstance *instance : object->instances) {
                 char buf[512];
                 sprintf(buf,
-                    "    <instance objectid=\"" PRINTF_ZU "\">\n"
+                    "    <instance objectid=\"%zu\">\n"
                     "      <deltax>%lf</deltax>\n"
                     "      <deltay>%lf</deltay>\n"
                     "      <deltaz>%lf</deltaz>\n"

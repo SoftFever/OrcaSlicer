@@ -1929,9 +1929,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     // collapse sidebar according to saved value
     bool is_collapsed = wxGetApp().app_config->get("collapsed_sidebar") == "1";
     sidebar->collapse(is_collapsed);
-    // Update an enable of the collapse_toolbar: if sidebar is collapsed, then collapse_toolbar should be visible
-    if (is_collapsed)
-        wxGetApp().app_config->set("show_collapse_button", "1");
 }
 
 Plater::priv::~priv()
@@ -2055,17 +2052,17 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     }
 
     const auto loading = _L("Loading") + dots;
-    wxProgressDialog dlg(loading, loading);
+    wxProgressDialog dlg(loading, "", 100, q, wxPD_AUTO_HIDE);
     dlg.Pulse();
 
     auto *new_model = (!load_model || one_by_one) ? nullptr : new Slic3r::Model();
     std::vector<size_t> obj_idxs;
 
-    for (size_t i = 0; i < input_files.size(); i++) {
+    for (size_t i = 0; i < input_files.size(); ++i) {
         const auto &path = input_files[i];
         const auto filename = path.filename();
-        const auto dlg_info = format_wxstr(_L("Processing input file %s"), from_path(filename)) + "\n";
-        dlg.Update(100 * i / input_files.size(), dlg_info);
+        const auto dlg_info = _L("Loading file") + ": " + from_path(filename);
+        dlg.Update(static_cast<int>(100.0f * static_cast<float>(i) / static_cast<float>(input_files.size())), dlg_info);
 
         const bool type_3mf = std::regex_match(path.string(), pattern_3mf);
         const bool type_zip_amf = !type_3mf && std::regex_match(path.string(), pattern_zip_amf);
@@ -3267,6 +3264,27 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
     } else if (evt.status.flags & PrintBase::SlicingStatus::RELOAD_SLA_PREVIEW) {
         // Update the SLA preview. Only called if not RELOAD_SLA_SUPPORT_POINTS, as the block above will refresh the preview anyways.
         this->preview->reload_print();
+    }
+
+    if (evt.status.flags & (PrintBase::SlicingStatus::UPDATE_PRINT_STEP_WARNINGS | PrintBase::SlicingStatus::UPDATE_PRINT_OBJECT_STEP_WARNINGS)) {
+        // Update notification center with warnings of object_id and its warning_step.
+        ObjectID object_id = evt.status.warning_object_id;
+        int warning_step = evt.status.warning_step;
+        PrintStateBase::StateWithWarnings state;
+        if (evt.status.flags & PrintBase::SlicingStatus::UPDATE_PRINT_STEP_WARNINGS) {
+            state = this->printer_technology == ptFFF ? 
+                this->fff_print.step_state_with_warnings(static_cast<PrintStep>(warning_step)) :
+                this->sla_print.step_state_with_warnings(static_cast<SLAPrintStep>(warning_step));
+        } else if (this->printer_technology == ptFFF) {
+            const PrintObject *print_object = this->fff_print.get_object(object_id);
+            if (print_object)
+                state = print_object->step_state_with_warnings(static_cast<PrintObjectStep>(warning_step));
+        } else {
+            const SLAPrintObject *print_object = this->sla_print.get_object(object_id);
+            if (print_object)
+                state = print_object->step_state_with_warnings(static_cast<SLAPrintObjectStep>(warning_step));
+        }
+        // Now process state.warnings.
     }
 }
 
@@ -4704,25 +4722,33 @@ void Plater::export_stl(bool extended, bool selection_only)
                             ? Transform3d::Identity()
                             : object->model_object()->instances[instance_idx]->get_transformation().get_matrix();
 
+                    TriangleMesh inst_mesh;
+
                     if (has_pad_mesh)
                     {
                         TriangleMesh inst_pad_mesh = pad_mesh;
                         inst_pad_mesh.transform(inst_transform, is_left_handed);
-                        mesh.merge(inst_pad_mesh);
+                        inst_mesh.merge(inst_pad_mesh);
                     }
 
                     if (has_supports_mesh)
                     {
                         TriangleMesh inst_supports_mesh = supports_mesh;
                         inst_supports_mesh.transform(inst_transform, is_left_handed);
-                        mesh.merge(inst_supports_mesh);
+                        inst_mesh.merge(inst_supports_mesh);
                     }
 
                     TriangleMesh inst_object_mesh = object->get_mesh_to_print();
                     inst_object_mesh.transform(mesh_trafo_inv);
                     inst_object_mesh.transform(inst_transform, is_left_handed);
 
-                    mesh.merge(inst_object_mesh);
+                    inst_mesh.merge(inst_object_mesh);
+
+                    // ensure that the instance lays on the bed
+                    inst_mesh.translate(0.0f, 0.0f, -inst_mesh.bounding_box().min[2]);
+
+                    // merge instance with global mesh
+                    mesh.merge(inst_mesh);
 
                     if (one_inst_only)
                         break;

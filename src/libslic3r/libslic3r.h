@@ -27,7 +27,7 @@
 // Saves around 32% RAM after slicing step, 6.7% after G-code export (tested on PrusaSlicer 2.2.0 final).
 using coord_t = int32_t;
 #else
-//FIXME At least FillRectilinear2 requires coord_t to be 32bit.
+//FIXME At least FillRectilinear2 and std::boost Voronoi require coord_t to be 32bit.
 typedef int64_t coord_t;
 #endif
 
@@ -73,13 +73,6 @@ inline std::string debug_out_path(const char *name, ...)
 	va_end(args);
 	return std::string(SLIC3R_DEBUG_OUT_PATH_PREFIX) + std::string(buffer);
 }
-
-#ifdef _MSC_VER
-	// Visual Studio older than 2015 does not support the prinf type specifier %zu. Use %Iu instead.
-	#define PRINTF_ZU "%Iu"
-#else
-	#define PRINTF_ZU "%zu"
-#endif
 
 #ifndef UNUSED
 #define UNUSED(x) (void)(x)

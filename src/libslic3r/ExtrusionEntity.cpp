@@ -312,8 +312,8 @@ std::string ExtrusionEntity::role_to_string(ExtrusionRole role)
         case erOverhangPerimeter            : return L("Overhang perimeter");
         case erInternalInfill               : return L("Internal infill");
         case erSolidInfill                  : return L("Solid infill");
-        case erIroning                      : return L("Ironing");
         case erTopSolidInfill               : return L("Top solid infill");
+        case erIroning                      : return L("Ironing");
         case erBridgeInfill                 : return L("Bridge infill");
         case erGapFill                      : return L("Gap fill");
         case erSkirt                        : return L("Skirt");

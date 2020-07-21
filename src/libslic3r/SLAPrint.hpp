@@ -429,6 +429,13 @@ public:
     bool                finished() const override { return this->is_step_done(slaposSliceSupports) && this->Inherited::is_step_done(slapsRasterize); }
 
     const PrintObjects& objects() const { return m_objects; }
+    // PrintObject by its ObjectID, to be used to uniquely bind slicing warnings to their source PrintObjects
+    // in the notification center.
+    const SLAPrintObject* get_object(ObjectID object_id) const {
+        auto it = std::find_if(m_objects.begin(), m_objects.end(),
+            [object_id](const SLAPrintObject *obj) { return *static_cast<const ObjectID*>(obj) == object_id; });
+        return (it == m_objects.end()) ? nullptr : *it;
+    }
 
     const SLAPrintConfig&       print_config() const { return m_print_config; }
     const SLAPrinterConfig&     printer_config() const { return m_printer_config; }

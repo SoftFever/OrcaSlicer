@@ -1153,7 +1153,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("ironing_spacing", coFloat);
     def->label = L("Spacing between ironing passes");
-    def->tooltip = L("Distance between ironing lins");
+    def->tooltip = L("Distance between ironing lines");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comExpert;
