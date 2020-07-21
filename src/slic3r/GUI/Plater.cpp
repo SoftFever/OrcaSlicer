@@ -4650,6 +4650,7 @@ void Plater::load_gcode(const wxString& filename)
 
     // cleanup view before to start loading/processing
     p->gcode_result.reset();
+    reset_gcode_toolpaths();
     p->preview->reload_print(false);
     p->get_current_canvas3D()->render();
 
