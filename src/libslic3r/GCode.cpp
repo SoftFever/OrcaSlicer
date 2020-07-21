@@ -617,10 +617,12 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
 
         layers_to_print.emplace_back(layer_to_print);
 
+        bool has_extrusions = (layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
+                           || (layer_to_print.support_layer && layer_to_print.support_layer->has_extrusions());
+
         // Check that there are extrusions on the very first layer.
         if (layers_to_print.size() == 1u) {
-            if ((layer_to_print.object_layer && ! layer_to_print.object_layer->has_extrusions())
-             || (layer_to_print.support_layer && ! layer_to_print.support_layer->has_extrusions()))
+            if (! has_extrusions)
                 throw std::runtime_error(_(L("There is an object with no extrusions on the first layer.")));
         }
 
@@ -636,10 +638,6 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
                                     + support_contact_z;
             // Negative support_contact_z is not taken into account, it can result in false positives in cases
             // where previous layer has object extrusions too (https://github.com/prusa3d/PrusaSlicer/issues/2752)
-
-            // Only check this layer in case it has some extrusions.
-            bool has_extrusions = (layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
-                               || (layer_to_print.support_layer && layer_to_print.support_layer->has_extrusions());
 
             if (has_extrusions && layer_to_print.print_z() > maximal_print_z + 2. * EPSILON) {
                 const_cast<Print*>(object.print())->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL,
