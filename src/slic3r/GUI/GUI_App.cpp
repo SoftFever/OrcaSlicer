@@ -28,6 +28,9 @@
 #include <wx/log.h>
 #include <wx/intl.h>
 
+#include <wx/dialog.h>
+#include <wx/textctrl.h>
+
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/I18N.hpp"
@@ -629,6 +632,43 @@ void GUI_App::set_auto_toolbar_icon_scale(float scale) const
     app_config->set("auto_toolbar_size", val);
 }
 
+// check user printer_presets for the containing information about "Print Host upload"
+void GUI_App::check_printer_presets()
+{
+    if (!PhysicalPrinter::has_print_host_information(preset_bundle->printers))
+        return;
+
+    wxString msg_text =  _L("You have presets with saved options for \"Print Host upload\".\n"
+                            "But from this version of PrusaSlicer we don't show/use this information in Printer Settings.\n"
+                            "Now, this information will be exposed in physical printers settings.") + "\n\n" +
+                            _L("Enter the name for the Printer device used by defaul during its creation.\n"
+                               "Note: This name can be changed later from the physical printers settings") + ":";
+    wxString msg_header = _L("Name for printer device");
+
+    // get custom gcode
+    wxTextEntryDialog dlg(nullptr, msg_text, msg_header, _L("Printer"), wxTextEntryDialogStyle);
+
+    // detect TextCtrl and OK button
+    wxTextCtrl* textctrl{ nullptr };
+    wxWindowList& dlg_items = dlg.GetChildren();
+    for (auto item : dlg_items) {
+        textctrl = dynamic_cast<wxTextCtrl*>(item);
+        if (textctrl)
+            break;
+    }
+
+    if (textctrl) {
+        textctrl->SetSelection(0, textctrl->GetLastPosition());
+
+        wxButton* btn_OK = static_cast<wxButton*>(dlg.FindWindowById(wxID_OK));
+        btn_OK->Bind(wxEVT_UPDATE_UI, [textctrl](wxUpdateUIEvent& evt) {
+            evt.Enable(!textctrl->IsEmpty());
+        }, btn_OK->GetId());
+    }
+    if (dlg.ShowModal() == wxID_OK)
+        preset_bundle->physical_printers.load_printers_from_presets(preset_bundle->printers, into_u8(dlg.GetValue()));
+}
+
 void GUI_App::recreate_GUI(const wxString& msg_name)
 {
     mainframe->shutdown();
@@ -1171,6 +1211,10 @@ bool GUI_App::checked_tab(Tab* tab)
 // Update UI / Tabs to reflect changes in the currently loaded presets
 void GUI_App::load_current_presets()
 {
+    // check printer_presets for the containing information about "Print Host upload"
+    // and create physical printer from it, if any exists
+    check_printer_presets();
+
     PrinterTechnology printer_technology = preset_bundle->printers.get_edited_preset().printer_technology();
 	this->plater()->set_printer_technology(printer_technology);
     for (Tab *tab : tabs_list)

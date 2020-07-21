@@ -201,7 +201,6 @@ void PresetBundle::load_presets(AppConfig &config, const std::string &preferred_
     }
     try {
         this->physical_printers.load_printers(dir_user_presets, "physical_printer");
-        this->physical_printers.load_printers(this->printers);
     } catch (const std::runtime_error &err) {
         errors_cummulative += err.what();
     }
@@ -436,8 +435,7 @@ void PresetBundle::load_selections(AppConfig &config, const std::string &preferr
     std::string initial_physical_printer_name = remove_ini_suffix(config.get("extras", "physical_printer"));
 
     // Activate physical printer from the config
-    const PhysicalPrinter* initial_physical_printer = physical_printers.find_printer(initial_physical_printer_name);
-    if (initial_physical_printer)
+    if (!initial_physical_printer_name.empty())
         physical_printers.select_printer_by_name(initial_physical_printer_name);
 }
 

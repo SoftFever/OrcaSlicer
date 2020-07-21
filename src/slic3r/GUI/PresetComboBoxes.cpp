@@ -359,8 +359,11 @@ bool PresetComboBox::selection_is_changed_according_to_physical_printers()
     // if new preset wasn't selected, there is no need to call update preset selection
     if (old_printer_preset == preset_name) {
         // we need just to update according Plater<->Tab PresetComboBox 
-        if (dynamic_cast<PlaterPresetComboBox*>(this)!=nullptr)
+        if (dynamic_cast<PlaterPresetComboBox*>(this)!=nullptr) {
             wxGetApp().get_tab(m_type)->update_preset_choice();
+            // Synchronize config.ini with the current selections.
+            m_preset_bundle->export_selections(*wxGetApp().app_config);
+        }
         else if (dynamic_cast<TabPresetComboBox*>(this)!=nullptr)
             wxGetApp().sidebar().update_presets(m_type);
 

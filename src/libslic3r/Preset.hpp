@@ -549,12 +549,15 @@ public:
     // set of presets used with this physical printer
     std::set<std::string> preset_names;
 
-    static std::string  separator();
-
     // Has this profile been loaded?
     bool                loaded = false;
 
+    static std::string  separator();
     static const std::vector<std::string>&  printer_options();
+    static const std::vector<std::string>&  print_host_options();
+    static bool has_print_host_information(const PrinterPresetCollection& printer_presets);
+    static bool has_print_host_information(const DynamicPrintConfig& config);
+
     const std::set<std::string>&            get_preset_names() const;
 
     bool                has_empty_config() const;
@@ -626,7 +629,7 @@ public:
 
     // Load ini files of the particular type from the provided directory path.
     void            load_printers(const std::string& dir_path, const std::string& subdir);
-    void            load_printers(const PrinterPresetCollection &printer_presets, std::string def_printer_name = "");
+    void            load_printers_from_presets(PrinterPresetCollection &printer_presets, std::string def_printer_name);
 
     // Save the printer under a new name. If the name is different from the old one,
     // a new printer is stored into the list of printers.
@@ -703,6 +706,8 @@ private:
     {
         return const_cast<PhysicalPrinterCollection*>(this)->find_printer_internal(name);
     }
+
+    PhysicalPrinter* find_printer_with_same_config( const DynamicPrintConfig &config);
 
     // List of printers
     // Use deque to force the container to allocate an object per each entry, 

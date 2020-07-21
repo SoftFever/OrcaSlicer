@@ -1370,6 +1370,37 @@ const std::vector<std::string>& PhysicalPrinter::printer_options()
     return s_opts;
 }
 
+const std::vector<std::string>& PhysicalPrinter::print_host_options()
+{
+    static std::vector<std::string> s_opts;
+    if (s_opts.empty()) {
+        s_opts = {
+            "print_host",
+            "printhost_apikey",
+            "printhost_cafile"
+        };
+    }
+    return s_opts;
+}
+
+bool PhysicalPrinter::has_print_host_information(const PrinterPresetCollection& printer_presets)
+{
+    for (const Preset& preset : printer_presets)
+        if (has_print_host_information(preset.config))
+            return true;
+
+    return false;
+}
+
+bool PhysicalPrinter::has_print_host_information(const DynamicPrintConfig& config)
+{
+    for (const std::string& opt : print_host_options())
+        if (!config.opt_string(opt).empty())
+            return true;
+
+    return false;
+}
+
 const std::set<std::string>& PhysicalPrinter::get_preset_names() const
 {
     return preset_names;
@@ -1532,40 +1563,67 @@ void PhysicalPrinterCollection::load_printers(const std::string& dir_path, const
 
 // if there is saved user presets, contains information about "Print Host upload",
 // Create default printers with this presets
-// Throws an exception on error.
-void PhysicalPrinterCollection::load_printers(const PrinterPresetCollection& printer_presets, std::string def_printer_name/* = ""*/)
+// Note! "Print Host upload" options will be cleared after physical printer creations
+void PhysicalPrinterCollection::load_printers_from_presets(PrinterPresetCollection& printer_presets, std::string def_printer_name)
 {
-    if (def_printer_name.empty()) 
-        def_printer_name = "Printer";
-
     int cnt=0;
-    std::string errors_cummulative;
-    // Store the loaded printers into a new vector
-    std::deque<PhysicalPrinter> printers_loaded;
-    for (const Preset& preset: printer_presets) {
-        const DynamicPrintConfig& config = preset.config;
-        if (!config.opt_string("print_host").empty()        ||
-            !config.opt_string("printhost_apikey").empty()  ||
-            !config.opt_string("printhost_cafile").empty()  ) {
-            PhysicalPrinter printer((boost::format("%1% %2%") % def_printer_name % ++cnt ).str(), preset);
-            printer.loaded = true;
-            printers_loaded.emplace_back(printer);
+    for (Preset& preset: printer_presets) {
+        DynamicPrintConfig& config = preset.config;
+        const std::vector<std::string>& options = PhysicalPrinter::print_host_options();
 
-            save_printer(printer);
+        for(const std::string& option : options) {
+            if (!config.opt_string(option).empty()) {
+                // check if printer with those "Print Host upload" options already exist
+                PhysicalPrinter* existed_printer = find_printer_with_same_config(config);
+                if (existed_printer)
+                    // just add preset for this printer
+                    existed_printer->add_preset(preset.name);
+                else {
+                    // create new printer from this preset
+                    PhysicalPrinter printer((boost::format("%1% %2%") % def_printer_name % ++cnt ).str(), preset);
+                    printer.loaded = true;
+                    save_printer(printer);
+                }
+
+                // erase "Print Host upload" information from the preset
+                for (const std::string& opt : options)
+                    config.opt_string(opt).clear();
+                // save changes for preset
+                preset.save();
+
+                // update those changes for edited preset if it's equal to the preset
+                Preset& edited = printer_presets.get_edited_preset();
+                if (preset.name == edited.name) {
+                    for (const std::string& opt : options)
+                        edited.config.opt_string(opt).clear();
+                }
+
+                break;
+            }
         }
     }
-
-    if (!errors_cummulative.empty())
-        throw std::runtime_error(errors_cummulative);
 }
 
 PhysicalPrinter* PhysicalPrinterCollection::find_printer( const std::string& name, bool first_visible_if_not_found)
 {
-    PhysicalPrinter key(name);
     auto it = this->find_printer_internal(name);
     // Ensure that a temporary copy is returned if the preset found is currently selected.
-    return (it != m_printers.end() && it->name == key.name) ? &this->printer(it - m_printers.begin()) :
+    return (it != m_printers.end() && it->name == name) ? &this->printer(it - m_printers.begin()) :
         first_visible_if_not_found ? &this->printer(0) : nullptr;
+}
+
+PhysicalPrinter* PhysicalPrinterCollection::find_printer_with_same_config(const DynamicPrintConfig& config)
+{
+    for (const PhysicalPrinter& printer :*this) {
+        bool is_equal = true;
+        for (const std::string& opt : PhysicalPrinter::print_host_options())
+            if (is_equal && printer.config.opt_string(opt) != config.opt_string(opt))
+                is_equal = false;
+                
+        if (is_equal)
+            return find_printer(printer.name);
+    }
+    return nullptr;
 }
 
 // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
