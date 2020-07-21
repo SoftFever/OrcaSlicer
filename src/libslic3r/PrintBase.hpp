@@ -304,7 +304,7 @@ private:
 
 class PrintBase;
 
-class PrintObjectBase : public ObjectID
+class PrintObjectBase : public ObjectBase
 {
 public:
     const ModelObject*      model_object() const    { return m_model_object; }
@@ -335,7 +335,7 @@ protected:
  * The PrintBase class will abstract this flow for different technologies.
  *
  */
-class PrintBase : public ObjectID
+class PrintBase : public ObjectBase
 {
 public:
 	PrintBase() : m_placeholder_parser(&m_full_print_config) { this->restart(); }
@@ -386,9 +386,9 @@ public:
     struct SlicingStatus {
 		SlicingStatus(int percent, const std::string &text, unsigned int flags = 0) : percent(percent), text(text), flags(flags) {}
         SlicingStatus(const PrintBase &print, int warning_step) : 
-            flags(UPDATE_PRINT_STEP_WARNINGS), warning_object_id(print), warning_step(warning_step) {}
+            flags(UPDATE_PRINT_STEP_WARNINGS), warning_object_id(print.id()), warning_step(warning_step) {}
         SlicingStatus(const PrintObjectBase &print_object, int warning_step) : 
-            flags(UPDATE_PRINT_OBJECT_STEP_WARNINGS), warning_object_id(print_object), warning_step(warning_step) {}
+            flags(UPDATE_PRINT_OBJECT_STEP_WARNINGS), warning_object_id(print_object.id()), warning_step(warning_step) {}
         int             percent { -1 };
         std::string     text;
         // Bitmap of flags.
@@ -508,7 +508,7 @@ protected:
 	PrintStateBase::TimeStamp set_done(PrintStepEnum step) { 
 		std::pair<PrintStateBase::TimeStamp, bool> status = m_state.set_done(step, this->state_mutex(), [this](){ this->throw_if_canceled(); });
     	if (status.second)
-    		this->status_update_warnings(*this, static_cast<int>(step), PrintStateBase::WarningLevel::NON_CRITICAL, std::string());
+    		this->status_update_warnings(this->id(), static_cast<int>(step), PrintStateBase::WarningLevel::NON_CRITICAL, std::string());
 		return status.first;
 	}
     bool            invalidate_step(PrintStepEnum step)
@@ -530,7 +530,7 @@ protected:
     	std::pair<PrintStepEnum, bool> active_step = m_state.active_step_add_warning(warning_level, message, message_id, this->state_mutex());
     	if (active_step.second)
     		// Update UI.
-    		this->status_update_warnings(*this, static_cast<int>(active_step.first), warning_level, message);
+    		this->status_update_warnings(this->id(), static_cast<int>(active_step.first), warning_level, message);
     }
 
 private:
