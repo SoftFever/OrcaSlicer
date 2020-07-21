@@ -450,7 +450,7 @@ public:
     // in the notification center.
     const PrintObject*          get_object(ObjectID object_id) const { 
         auto it = std::find_if(m_objects.begin(), m_objects.end(), 
-            [object_id](const PrintObject *obj) { return *static_cast<const ObjectID*>(obj) == object_id; });
+            [object_id](const PrintObject *obj) { return obj->id() == object_id; });
         return (it == m_objects.end()) ? nullptr : *it;
     }
     const PrintRegionPtrs&      regions() const { return m_regions; }
