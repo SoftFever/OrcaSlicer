@@ -142,11 +142,36 @@ void PresetComboBox::set_label_marker(int item, LabelItemType label_item_type)
     this->SetClientData(item, (void*)label_item_type);
 }
 
+void PresetComboBox::invalidate_selection()
+{
+    m_last_selected = INT_MAX; // this value means that no one item is selected
+}
+
+void PresetComboBox::validate_selection(bool predicate/*=false*/)
+{
+    if (predicate ||
+        // just in case: mark m_last_selected as a first added element
+        m_last_selected == INT_MAX)
+        m_last_selected = GetCount() - 1;
+}
+
+void PresetComboBox::update_selection()
+{
+    /* If selected_preset_item is still equal to INT_MAX, it means that
+     * there is no presets added to the list.
+     * So, select last combobox item ("Add/Remove preset")
+     */
+    validate_selection();
+
+    SetSelection(m_last_selected);
+    SetToolTip(GetString(m_last_selected));
+}
+
 void PresetComboBox::update(const std::string& select_preset_name)
 {
     Freeze();
     Clear();
-    size_t selected_preset_item = INT_MAX; // some value meaning that no one item is selected
+    invalidate_selection();
 
     const std::deque<Preset>& presets = m_collection->get_presets();
 
@@ -164,18 +189,13 @@ void PresetComboBox::update(const std::string& select_preset_name)
         // marker used for disable incompatible printer models for the selected physical printer
         bool is_enabled = true;
 
-        std::string   bitmap_key = "tab";
-        std::string main_icon_name = m_type == Preset::TYPE_PRINTER && preset.printer_technology() == ptSLA ? "sla_printer" : m_main_bitmap_name;
-
+        std::string   bitmap_key = "cb";
         if (m_type == Preset::TYPE_PRINTER) {
             bitmap_key += "_printer";
             if (preset.printer_technology() == ptSLA)
                 bitmap_key += "_sla";
-            if (!is_enabled)
-                bitmap_key += "_disabled";
         }
-        bitmap_key += preset.is_compatible ? ",cmpt" : ",ncmpt";
-        bitmap_key += (preset.is_system || preset.is_default) ? ",syst" : ",nsyst";
+        std::string main_icon_name = m_type == Preset::TYPE_PRINTER && preset.printer_technology() == ptSLA ? "sla_printer" : m_main_bitmap_name;
 
         wxBitmap* bmp = get_bmp(bitmap_key, main_icon_name, "lock_closed", is_enabled, preset.is_compatible, preset.is_system || preset.is_default);
         assert(bmp);
@@ -184,10 +204,7 @@ void PresetComboBox::update(const std::string& select_preset_name)
             int item_id = Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), *bmp);
             if (!is_enabled)
                 set_label_marker(item_id, LABEL_ITEM_DISABLED);
-            if (preset.name == select_preset_name ||//i == idx_selected ||
-                // just in case: mark selected_preset_item as a first added element
-                selected_preset_item == INT_MAX)
-                selected_preset_item = GetCount() - 1;
+            validate_selection(preset.name == select_preset_name);
         }
         else
         {
@@ -207,25 +224,12 @@ void PresetComboBox::update(const std::string& select_preset_name)
             bool is_enabled = it->second.second;
             if (!is_enabled)
                 set_label_marker(item_id, LABEL_ITEM_DISABLED);
-            if (it->first == selected ||
-                // just in case: mark selected_preset_item as a first added element
-                selected_preset_item == INT_MAX)
-                selected_preset_item = GetCount() - 1;
+            validate_selection(it->first == selected);
         }
     }
 
-    /* But, if selected_preset_item is still equal to INT_MAX, it means that
-     * there is no presets added to the list.
-     * So, select last combobox item ("Add/Remove preset")
-     */
-    if (selected_preset_item == INT_MAX)
-        selected_preset_item = GetCount() - 1;
-
-    SetSelection(selected_preset_item);
-    SetToolTip(GetString(selected_preset_item));
+    update_selection();
     Thaw();
-
-    m_last_selected = selected_preset_item;
 }
 
 void PresetComboBox::msw_rescale()
@@ -272,6 +276,12 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, bool wide_icons, con
                                     bool is_compatible/* = true*/, bool is_system/* = false*/, bool is_single_bar/* = false*/,
                                     std::string filament_rgb/* = ""*/, std::string extruder_rgb/* = ""*/)
 {
+    // If the filament preset is not compatible and there is a "red flag" icon loaded, show it left
+    // to the filament color image.
+    if (wide_icons)
+        bitmap_key += is_compatible ? ",cmpt" : ",ncmpt";
+
+    bitmap_key += is_system ? ",syst" : ",nsyst";
     bitmap_key += ",h" + std::to_string(icon_height);
 
     wxBitmap* bmp = bitmap_cache().find(bitmap_key);
@@ -313,6 +323,9 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, bool wide_icons, con
 wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, const std::string& main_icon_name, const std::string& next_icon_name,
                                     bool is_enabled/* = true*/, bool is_compatible/* = true*/, bool is_system/* = false*/)
 {
+    bitmap_key += !is_enabled ? "_disabled" : "";
+    bitmap_key += is_compatible ? ",cmpt" : ",ncmpt";
+    bitmap_key += is_system ? ",syst" : ",nsyst";
     bitmap_key += ",h" + std::to_string(icon_height);
 
     wxBitmap* bmp = bitmap_cache().find(bitmap_key);
@@ -645,7 +658,7 @@ void PlaterPresetComboBox::update()
     // Otherwise fill in the list from scratch.
     this->Freeze();
     this->Clear();
-    size_t selected_preset_item = INT_MAX; // some value meaning that no one item is selected
+    invalidate_selection();
 
     const Preset* selected_filament_preset;
     std::string extruder_color;
@@ -700,12 +713,6 @@ void PlaterPresetComboBox::update()
             bitmap_key += single_bar ? filament_rgb : filament_rgb + extruder_rgb;
         }
 
-        // If the filament preset is not compatible and there is a "red flag" icon loaded, show it left
-        // to the filament color image.
-        if (wide_icons)
-            bitmap_key += preset.is_compatible ? ",cmpt" : ",ncmpt";
-        bitmap_key += (preset.is_system || preset.is_default) ? ",syst" : ",nsyst";
-
         wxBitmap* bmp = get_bmp(bitmap_key, wide_icons, bitmap_type_name, 
                                 preset.is_compatible, preset.is_system || preset.is_default, 
                                 single_bar, filament_rgb, extruder_rgb);
@@ -714,12 +721,9 @@ void PlaterPresetComboBox::update()
         const std::string name = preset.alias.empty() ? preset.name : preset.alias;
         if (preset.is_default || preset.is_system) {
             Append(wxString::FromUTF8((name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), *bmp);
-            if (is_selected ||
-                // just in case: mark selected_preset_item as a first added element
-                selected_preset_item == INT_MAX) {
-                selected_preset_item = GetCount() - 1;
+            validate_selection(is_selected);
+            if (is_selected)
                 tooltip = wxString::FromUTF8(preset.name.c_str());
-            }
         }
         else
         {
@@ -737,10 +741,7 @@ void PlaterPresetComboBox::update()
         set_label_marker(Append(separator(L("User presets")), wxNullBitmap));
         for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
             Append(it->first, *it->second);
-            if (it->first == selected ||
-                // just in case: mark selected_preset_item as a first added element
-                selected_preset_item == INT_MAX)
-                selected_preset_item = GetCount() - 1;
+            validate_selection(it->first == selected);
         }
     }
 
@@ -757,32 +758,18 @@ void PlaterPresetComboBox::update()
                     if (!preset)
                         continue;
                     std::string main_icon_name, bitmap_key = main_icon_name = preset->printer_technology() == ptSLA ? "sla_printer" : m_main_bitmap_name;
-                    if (wide_icons)
-                        bitmap_key += ",cmpt";
-                    bitmap_key += ",nsyst";
-
-                    wxBitmap* bmp = get_bmp(bitmap_key, wide_icons, main_icon_name);
+                    wxBitmap* bmp = get_bmp(main_icon_name, wide_icons, main_icon_name);
                     assert(bmp);
 
                     set_label_marker(Append(wxString::FromUTF8((it->get_full_name(preset_name) + (preset->is_dirty ? Preset::suffix_modified() : "")).c_str()), *bmp), LABEL_ITEM_PHYSICAL_PRINTER);
-                    if (ph_printers.is_selected(it, preset_name) ||
-                        // just in case: mark selected_preset_item as a first added element
-                        selected_preset_item == INT_MAX)
-                        selected_preset_item = GetCount() - 1;
+                    validate_selection(ph_printers.is_selected(it, preset_name));
                 }
             }
         }
     }
 
     if (m_type == Preset::TYPE_PRINTER || m_type == Preset::TYPE_SLA_MATERIAL) {
-        std::string   bitmap_key = "";
-        // If the filament preset is not compatible and there is a "red flag" icon loaded, show it left
-        // to the filament color image.
-        if (wide_icons)
-            bitmap_key += "wide,";
-        bitmap_key += "edit_preset_list";
-
-        wxBitmap* bmp = get_bmp(bitmap_key, wide_icons, "edit_uni");
+        wxBitmap* bmp = get_bmp("edit_preset_list", wide_icons, "edit_uni");
         assert(bmp);
 
         if (m_type == Preset::TYPE_SLA_MATERIAL)
@@ -791,17 +778,11 @@ void PlaterPresetComboBox::update()
             set_label_marker(Append(separator(L("Add/Remove printers")), *bmp), LABEL_ITEM_WIZARD_PRINTERS);
     }
 
-    /* But, if selected_preset_item is still equal to INT_MAX, it means that
-     * there is no presets added to the list.
-     * So, select last combobox item ("Add/Remove preset")
-     */
-    if (selected_preset_item == INT_MAX)
-        selected_preset_item = GetCount() - 1;
-
-    SetSelection(selected_preset_item);
-    SetToolTip(tooltip.IsEmpty() ? GetString(selected_preset_item) : tooltip);
-    m_last_selected = selected_preset_item;
+    update_selection();
     Thaw();
+
+    if (!tooltip.IsEmpty())
+        SetToolTip(tooltip);
 
     // Update control min size after rescale (changed Display DPI under MSW)
     if (GetMinWidth() != 20 * m_em_unit)
@@ -858,7 +839,7 @@ void TabPresetComboBox::update()
 {
     Freeze();
     Clear();
-    size_t selected_preset_item = INT_MAX; // some value meaning that no one item is selected
+    invalidate_selection();
 
     const std::deque<Preset>& presets = m_collection->get_presets();
 
@@ -890,18 +871,13 @@ void TabPresetComboBox::update()
         if (m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection())
             is_enabled = m_enable_all ? true : preset.printer_technology() == proper_pt;
 
-        std::string   bitmap_key = "tab";
-        std::string main_icon_name = m_type == Preset::TYPE_PRINTER && preset.printer_technology() == ptSLA ? "sla_printer" : m_main_bitmap_name;
-
+        std::string bitmap_key = "tab";
         if (m_type == Preset::TYPE_PRINTER) {
             bitmap_key += "_printer";
             if (preset.printer_technology() == ptSLA)
                 bitmap_key += "_sla";
-            if (!is_enabled)
-                bitmap_key += "_disabled";
         }
-        bitmap_key += preset.is_compatible ? ",cmpt" : ",ncmpt";
-        bitmap_key += (preset.is_system || preset.is_default) ? ",syst" : ",nsyst";
+        std::string main_icon_name = m_type == Preset::TYPE_PRINTER && preset.printer_technology() == ptSLA ? "sla_printer" : m_main_bitmap_name;
 
         wxBitmap* bmp = get_bmp(bitmap_key, main_icon_name, "lock_closed", is_enabled, preset.is_compatible, preset.is_system || preset.is_default);
         assert(bmp);
@@ -910,10 +886,7 @@ void TabPresetComboBox::update()
             int item_id = Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), *bmp);
             if (!is_enabled)
                 set_label_marker(item_id, LABEL_ITEM_DISABLED);
-            if (i == idx_selected ||
-                // just in case: mark selected_preset_item as a first added element
-                selected_preset_item == INT_MAX)
-                selected_preset_item = GetCount() - 1;
+            validate_selection(i == idx_selected);
         }
         else
         {
@@ -933,10 +906,7 @@ void TabPresetComboBox::update()
             bool is_enabled = it->second.second;
             if (!is_enabled)
                 set_label_marker(item_id, LABEL_ITEM_DISABLED);
-            if (it->first == selected ||
-                // just in case: mark selected_preset_item as a first added element
-                selected_preset_item == INT_MAX)
-                selected_preset_item = GetCount() - 1;
+            validate_selection(it->first == selected);
         }
     }
 
@@ -953,39 +923,26 @@ void TabPresetComboBox::update()
                     if (!preset)
                         continue;
                     std::string main_icon_name = preset->printer_technology() == ptSLA ? "sla_printer" : m_main_bitmap_name;
-                    std::string bitmap_key = main_icon_name + ",nsyst";
 
-                    wxBitmap* bmp = get_bmp(bitmap_key, main_icon_name, "", true, true, false);
+                    wxBitmap* bmp = get_bmp(main_icon_name, main_icon_name, "", true, true, false);
                     assert(bmp);
 
                     set_label_marker(Append(wxString::FromUTF8((it->get_full_name(preset_name) + (preset->is_dirty ? Preset::suffix_modified() : "")).c_str()), *bmp), LABEL_ITEM_PHYSICAL_PRINTER);
-                    if (ph_printers.is_selected(it, preset_name) ||
-                        // just in case: mark selected_preset_item as a first added element
-                        selected_preset_item == INT_MAX)
-                        selected_preset_item = GetCount() - 1;
+                    validate_selection(ph_printers.is_selected(it, preset_name));
                 }
             }
         }
 
         // add "Add/Remove printers" item
-        wxBitmap* bmp = get_bmp("edit_preset_list", m_main_bitmap_name, "edit_uni", true, true, true);
+        std::string icon_name = "edit_uni";
+        wxBitmap* bmp = get_bmp("edit_preset_list, tab,", icon_name, "");
         assert(bmp);
 
         set_label_marker(Append(separator(L("Add/Remove printers")), *bmp), LABEL_ITEM_WIZARD_PRINTERS);
     }
 
-    /* But, if selected_preset_item is still equal to INT_MAX, it means that
-     * there is no presets added to the list.
-     * So, select last combobox item ("Add/Remove preset")
-     */
-    if (selected_preset_item == INT_MAX)
-        selected_preset_item = GetCount() - 1;
-
-    SetSelection(selected_preset_item);
-    SetToolTip(GetString(selected_preset_item));
+    update_selection();
     Thaw();
-
-    m_last_selected = selected_preset_item;
 }
 
 void TabPresetComboBox::msw_rescale()

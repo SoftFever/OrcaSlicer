@@ -91,6 +91,10 @@ protected:
     int thin_space_icon_width;
     int wide_space_icon_width;
 
+    void invalidate_selection();
+    void validate_selection(bool predicate = false);
+    void update_selection();
+
 #ifdef __linux__
     static const char* separator_head() { return "------- "; }
     static const char* separator_tail() { return " -------"; }
