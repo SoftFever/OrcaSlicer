@@ -1479,10 +1479,12 @@ void PhysicalPrinterDialog::OnOK(wxEvent& event)
     // save new physical printer
     printers.save_printer(m_printer, renamed_from);
 
-    printers.select_printer(m_printer);
-
-    // refresh preset list on Printer Settings Tab
-    wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_preset_choice();
+    if (m_printer.preset_names.find(printers.get_selected_printer_preset_name()) == m_printer.preset_names.end()) {
+        // select first preset for this printer
+        printers.select_printer(m_printer);
+        // refresh preset list on Printer Settings Tab
+        wxGetApp().get_tab(Preset::TYPE_PRINTER)->select_preset(printers.get_selected_printer_preset_name());
+    }
 
     event.Skip();
 }
