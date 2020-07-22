@@ -1527,6 +1527,7 @@ void MainFrame::load_config(const DynamicPrintConfig& config)
 
 void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
 {
+    bool tabpanel_was_hidden = false;
 #if ENABLE_LAYOUT_NO_RESTART
     if (m_layout == ESettingsLayout::Dlg) {
 #else
@@ -1557,6 +1558,7 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
         if (m_settings_dialog.IsShown())
             m_settings_dialog.SetFocus();
         else {
+            tabpanel_was_hidden = true;
             m_tabpanel->Show();
             m_settings_dialog.Show();
         }
@@ -1576,6 +1578,7 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
 #if ENABLE_LAYOUT_NO_RESTART
     else if (m_layout == ESettingsLayout::New) {
         m_main_sizer->Show(m_plater, tab == 0);
+        tabpanel_was_hidden = !m_main_sizer->IsShown(m_tabpanel);
         m_main_sizer->Show(m_tabpanel, tab != 0);
 #else
     else if (m_layout == slNew) {
@@ -1588,6 +1591,14 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
             m_plater->SetFocus();
         Layout();
     }
+
+    // When we run application in ESettingsLayout::New or ESettingsLayout::Dlg mode, tabpanel is hidden from the very beginning
+    // and as a result Tab::update_changed_tree_ui() function couldn't update m_is_nonsys_values values,
+    // which are used for update TreeCtrl and "revert_buttons".
+    // So, force the call of this function for Tabs, if tab panel was hidden
+    if (tabpanel_was_hidden)
+        for (auto tab : wxGetApp().tabs_list)
+            tab->update_changed_tree_ui();
 
     // when tab == -1, it means we should show the last selected tab
 #if ENABLE_LAYOUT_NO_RESTART
