@@ -579,7 +579,6 @@ namespace Slic3r {
 
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_writer.extruder()->id())
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 // Collect pairs of object_layer + support_layer sorted by print_z.
 // object_layer & support_layer are considered to be on the same print_z, if they are not further than EPSILON.
 std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObject& object)
@@ -662,127 +661,6 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
 
     return layers_to_print;
 }
-
-
-//    // Collect pairs of object_layer + support_layer sorted by print_z.
-//    // object_layer & support_layer are considered to be on the same print_z, if they are not further than EPSILON.
-//    std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObject& object)
-//    {
-//        std::vector<GCode::LayerToPrint> layers_to_print;
-//        layers_to_print.reserve(object.layers().size() + object.support_layers().size());
-//
-//        // Calculate a minimum support layer height as a minimum over all extruders, but not smaller than 10um.
-//        // This is the same logic as in support generator.
-//        //FIXME should we use the printing extruders instead?
-//        double gap_over_supports = object.config().support_material_contact_distance;
-//        // FIXME should we test object.config().support_material_synchronize_layers ? Currently the support layers are synchronized with object layers iff soluble supports.
-//        assert(!object.config().support_material || gap_over_supports != 0. || object.config().support_material_synchronize_layers);
-//        if (gap_over_supports != 0.) {
-//            gap_over_supports = std::max(0., gap_over_supports);
-//            // Not a soluble support,
-//            double support_layer_height_min = 1000000.;
-//            for (auto lh : object.print()->config().min_layer_height.values)
-//                support_layer_height_min = std::min(support_layer_height_min, std::max(0.01, lh));
-//            gap_over_supports += support_layer_height_min;
-//        }
-//
-//        // Pair the object layers with the support layers by z.
-//        size_t idx_object_layer = 0;
-//        size_t idx_support_layer = 0;
-//        const LayerToPrint* last_extrusion_layer = nullptr;
-//        while (idx_object_layer < object.layers().size() || idx_support_layer < object.support_layers().size()) {
-//            LayerToPrint layer_to_print;
-//            layer_to_print.object_layer = (idx_object_layer < object.layers().size()) ? object.layers()[idx_object_layer++] : nullptr;
-//            layer_to_print.support_layer = (idx_support_layer < object.support_layers().size()) ? object.support_layers()[idx_support_layer++] : nullptr;
-//            if (layer_to_print.object_layer && layer_to_print.support_layer) {
-//                if (layer_to_print.object_layer->print_z < layer_to_print.support_layer->print_z - EPSILON) {
-//                    layer_to_print.support_layer = nullptr;
-//                    --idx_support_layer;
-//                }
-//                else if (layer_to_print.support_layer->print_z < layer_to_print.object_layer->print_z - EPSILON) {
-//                    layer_to_print.object_layer = nullptr;
-//                    --idx_object_layer;
-//                }
-//            }
-//
-//<<<<<<< HEAD
-//            layers_to_print.emplace_back(layer_to_print);
-//
-//            // Check that there are extrusions on the very first layer.
-//            if (layers_to_print.size() == 1u) {
-//                if ((layer_to_print.object_layer && !layer_to_print.object_layer->has_extrusions())
-//                    || (layer_to_print.support_layer && !layer_to_print.support_layer->has_extrusions()))
-//                    throw std::runtime_error(_(L("There is an object with no extrusions on the first layer.")));
-//=======
-//        layers_to_print.emplace_back(layer_to_print);
-//
-//        bool has_extrusions = (layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
-//                           || (layer_to_print.support_layer && layer_to_print.support_layer->has_extrusions());
-//
-//        // Check that there are extrusions on the very first layer.
-//        if (layers_to_print.size() == 1u) {
-//            if (! has_extrusions)
-//                throw std::runtime_error(_(L("There is an object with no extrusions on the first layer.")));
-//        }
-//
-//        // In case there are extrusions on this layer, check there is a layer to lay it on.
-//        if ((layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
-//        	// Allow empty support layers, as the support generator may produce no extrusions for non-empty support regions.
-//         || (layer_to_print.support_layer /* && layer_to_print.support_layer->has_extrusions() */)) {
-//            double support_contact_z = (last_extrusion_layer && last_extrusion_layer->support_layer)
-//                                       ? gap_over_supports
-//                                       : 0.;
-//            double maximal_print_z = (last_extrusion_layer ? last_extrusion_layer->print_z() : 0.)
-//                                    + layer_to_print.layer()->height
-//                                    + support_contact_z;
-//            // Negative support_contact_z is not taken into account, it can result in false positives in cases
-//            // where previous layer has object extrusions too (https://github.com/prusa3d/PrusaSlicer/issues/2752)
-//
-//            if (has_extrusions && layer_to_print.print_z() > maximal_print_z + 2. * EPSILON) {
-//                const_cast<Print*>(object.print())->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL,
-//                    _(L("Empty layers detected, the output would not be printable.")) + "\n\n" +
-//                    _(L("Object name")) + ": " + object.model_object()->name + "\n" + _(L("Print z")) + ": " +
-//                    std::to_string(layers_to_print.back().print_z()) + "\n\n" + _(L("This is "
-//                    "usually caused by negligibly small extrusions or by a faulty model. Try to repair "
-//                    "the model or change its orientation on the bed.")));
-//>>>>>>> b587289c141022323753fa1810552964de0b1356
-//            }
-//
-//            // In case there are extrusions on this layer, check there is a layer to lay it on.
-//            if ((layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
-//                // Allow empty support layers, as the support generator may produce no extrusions for non-empty support regions.
-//                || (layer_to_print.support_layer /* && layer_to_print.support_layer->has_extrusions() */)) {
-//                double support_contact_z = (last_extrusion_layer && last_extrusion_layer->support_layer)
-//                    ? gap_over_supports
-//                    : 0.;
-//                double maximal_print_z = (last_extrusion_layer ? last_extrusion_layer->print_z() : 0.)
-//                    + layer_to_print.layer()->height
-//                    + support_contact_z;
-//                // Negative support_contact_z is not taken into account, it can result in false positives in cases
-//                // where previous layer has object extrusions too (https://github.com/prusa3d/PrusaSlicer/issues/2752)
-//
-//                // Only check this layer in case it has some extrusions.
-//                bool has_extrusions = (layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
-//                    || (layer_to_print.support_layer && layer_to_print.support_layer->has_extrusions());
-//
-//                if (has_extrusions && layer_to_print.print_z() > maximal_print_z + 2. * EPSILON) {
-//                    const_cast<Print*>(object.print())->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL,
-//                        _(L("Empty layers detected, the output would not be printable.")) + "\n\n" +
-//                        _(L("Object name")) + ": " + object.model_object()->name + "\n" + _(L("Print z")) + ": " +
-//                        std::to_string(layers_to_print.back().print_z()) + "\n\n" + _(L("This is "
-//                            "usually caused by negligibly small extrusions or by a faulty model. Try to repair "
-//                            "the model or change its orientation on the bed.")));
-//                }
-//
-//                // Remember last layer with extrusions.
-//                if (has_extrusions)
-//                    last_extrusion_layer = &layers_to_print.back();
-//            }
-//        }
-//
-//        return layers_to_print;
-//    }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 // Prepare for non-sequential printing of multiple objects: Support resp. object layers with nearly identical print_z 
 // will be printed for  all objects at once.
@@ -3332,36 +3210,34 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     // adds analyzer tags and updates analyzer's tracking data
 #if !ENABLE_GCODE_VIEWER
-    if (m_enable_analyzer)
-    {
+    if (m_enable_analyzer) {
 #endif // !ENABLE_GCODE_VIEWER
-        // PrusaMultiMaterial::Writer may generate GCodeAnalyzer::Height_Tag and GCodeAnalyzer::Width_Tag lines without updating m_last_height and m_last_width
-        // so, if the last role was erWipeTower we force export of GCodeAnalyzer::Height_Tag and GCodeAnalyzer::Width_Tag lines
 #if ENABLE_GCODE_VIEWER
+        // PrusaMultiMaterial::Writer may generate GCodeProcessor::Height_Tag and GCodeProcessor::Width_Tag lines without updating m_last_height and m_last_width
+        // so, if the last role was erWipeTower we force export of GCodeProcessor::Height_Tag and GCodeProcessor::Width_Tag lines
         bool last_was_wipe_tower = (m_last_processor_extrusion_role == erWipeTower);
 #else
+        // PrusaMultiMaterial::Writer may generate GCodeAnalyzer::Height_Tag and GCodeAnalyzer::Width_Tag lines without updating m_last_height and m_last_width
+        // so, if the last role was erWipeTower we force export of GCodeAnalyzer::Height_Tag and GCodeAnalyzer::Width_Tag lines
         bool last_was_wipe_tower = (m_last_analyzer_extrusion_role == erWipeTower);
 #endif // ENABLE_GCODE_VIEWER
         char buf[64];
 
 #if ENABLE_GCODE_VIEWER
-        if (path.role() != m_last_processor_extrusion_role)
-        {
+        if (path.role() != m_last_processor_extrusion_role) {
             m_last_processor_extrusion_role = path.role();
             sprintf(buf, ";%s%d\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), int(m_last_processor_extrusion_role));
             gcode += buf;
         }
 #else
-        if (path.role() != m_last_analyzer_extrusion_role)
-        {
+        if (path.role() != m_last_analyzer_extrusion_role) {
             m_last_analyzer_extrusion_role = path.role();
             sprintf(buf, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), int(m_last_analyzer_extrusion_role));
             gcode += buf;
         }
 #endif // ENABLE_GCODE_VIEWER
 
-        if (last_was_wipe_tower || (m_last_mm3_per_mm != path.mm3_per_mm))
-        {
+        if (last_was_wipe_tower || (m_last_mm3_per_mm != path.mm3_per_mm)) {
             m_last_mm3_per_mm = path.mm3_per_mm;
 #if ENABLE_GCODE_VIEWER
             sprintf(buf, ";%s%f\n", GCodeProcessor::Mm3_Per_Mm_Tag.c_str(), m_last_mm3_per_mm);
@@ -3372,8 +3248,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 #endif // ENABLE_GCODE_VIEWER
         }
 
-        if (last_was_wipe_tower || (m_last_width != path.width))
-        {
+        if (last_was_wipe_tower || (m_last_width != path.width)) {
             m_last_width = path.width;
 #if ENABLE_GCODE_VIEWER
             sprintf(buf, ";%s%f\n", GCodeProcessor::Width_Tag.c_str(), m_last_width);
@@ -3384,8 +3259,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 #endif // ENABLE_GCODE_VIEWER
         }
 
-        if (last_was_wipe_tower || (m_last_height != path.height))
-        {
+        if (last_was_wipe_tower || (m_last_height != path.height)) {
             m_last_height = path.height;
 #if ENABLE_GCODE_VIEWER
             sprintf(buf, ";%s%f\n", GCodeProcessor::Height_Tag.c_str(), m_last_height);

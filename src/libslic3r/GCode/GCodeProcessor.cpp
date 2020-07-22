@@ -671,15 +671,12 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         EMoveType type = EMoveType::Noop;
 
         if (delta_pos[E] < 0.0f) {
-            if (delta_pos[X] != 0.0f || delta_pos[Y] != 0.0f || delta_pos[Z] != 0.0f)
-                type = EMoveType::Travel;
-            else
-                type = EMoveType::Retract;
-        } 
+            type = (delta_pos[X] != 0.0f || delta_pos[Y] != 0.0f || delta_pos[Z] != 0.0f) ? EMoveType::Travel : EMoveType::Retract;
+        }
         else if (delta_pos[E] > 0.0f) {
             if (delta_pos[X] == 0.0f && delta_pos[Y] == 0.0f && delta_pos[Z] == 0.0f)
                 type = EMoveType::Unretract;
-            else if ((delta_pos[X] != 0.0f) || (delta_pos[Y] != 0.0f))
+            else if (delta_pos[X] != 0.0f || delta_pos[Y] != 0.0f)
                 type = EMoveType::Extrude;
         } 
         else if (delta_pos[X] != 0.0f || delta_pos[Y] != 0.0f || delta_pos[Z] != 0.0f)
@@ -730,8 +727,8 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         return (sq_xyz_length > 0.0f) ? std::sqrt(sq_xyz_length) : std::abs(delta_pos[E]);
     };
 
-    auto is_extruder_only_move = [](const AxisCoords& delta_pos) {
-        return (delta_pos[X] == 0.0f) && (delta_pos[Y] == 0.0f) && (delta_pos[Z] == 0.0f) && (delta_pos[E] != 0.0f);
+    auto is_extrusion_only_move = [](const AxisCoords& delta_pos) {
+        return delta_pos[X] == 0.0f && delta_pos[Y] == 0.0f && delta_pos[Z] == 0.0f && delta_pos[E] != 0.0f;
     };
 
     float distance = move_length(delta_pos);
@@ -781,7 +778,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         }
 
         // calculates block acceleration
-        float acceleration = is_extruder_only_move(delta_pos) ? 
+        float acceleration = is_extrusion_only_move(delta_pos) ?
             get_retract_acceleration(static_cast<ETimeMode>(i)) :
             get_acceleration(static_cast<ETimeMode>(i));
 
