@@ -2981,7 +2981,7 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
                     if (!physical_printers.delete_preset_from_printers(m_presets->get_edited_preset().name))
                     {
                         wxMessageDialog dialog(nullptr, _L("There is/are a physical printer(s), which has/have one and only this printer preset.\n"
-                                                           "This/Those printer(s) will be deletede after deleting of the selected preset.\n"
+                                                           "This/Those printer(s) will be deleted after deleting of the selected preset.\n"
                                                            "Are you sure you want to delete the selected preset?"), _L("Warning"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
                         if (dialog.ShowModal() == wxID_NO)
                             return;

@@ -641,7 +641,7 @@ void GUI_App::check_printer_presets()
     wxString msg_text =  _L("You have presets with saved options for \"Print Host upload\".\n"
                             "But from this version of PrusaSlicer we don't show/use this information in Printer Settings.\n"
                             "Now, this information will be exposed in physical printers settings.") + "\n\n" +
-                            _L("Enter the name for the Printer device used by defaul during its creation.\n"
+                            _L("Enter the name for the Printer device used by default during its creation.\n"
                                "Note: This name can be changed later from the physical printers settings") + ":";
     wxString msg_header = _L("Name for printer device");
 
