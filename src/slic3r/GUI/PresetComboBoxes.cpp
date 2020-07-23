@@ -366,7 +366,7 @@ bool PresetComboBox::selection_is_changed_according_to_physical_printers()
     else
         old_printer_preset = m_collection->get_edited_preset().name;
     // Select related printer preset on the Printer Settings Tab 
-    physical_printers.select_printer_by_name(selected_string);
+    physical_printers.select_printer(selected_string);
     std::string preset_name = physical_printers.get_selected_printer_preset_name();
 
     // if new preset wasn't selected, there is no need to call update preset selection
@@ -1031,7 +1031,7 @@ void TabPresetComboBox::update_physical_printers( const std::string& preset_name
                     dialog.ShowModal();
                 }
 
-                physical_printers.select_printer_by_name(printer.get_full_name(preset_name));
+                physical_printers.select_printer(printer.get_full_name(preset_name));
             }
         }
         else

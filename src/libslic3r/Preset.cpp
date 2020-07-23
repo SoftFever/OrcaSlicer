@@ -1731,34 +1731,27 @@ std::string PhysicalPrinterCollection::get_selected_full_printer_name() const
     return (m_idx_selected == size_t(-1)) ? std::string() : this->get_selected_printer().get_full_name(m_selected_preset);
 }
 
-PhysicalPrinter& PhysicalPrinterCollection::select_printer_by_name(const std::string& full_name)
+void PhysicalPrinterCollection::select_printer(const std::string& full_name)
 {
     std::string printer_name = PhysicalPrinter::get_short_name(full_name);
     auto it = this->find_printer_internal(printer_name);
-    assert(it != m_printers.end());
+    if (it == m_printers.end()) {
+        unselect_printer();
+        return;
+    }
 
     // update idx_selected
-    m_idx_selected      = it - m_printers.begin();
+    m_idx_selected = it - m_printers.begin();
+
     // update name of the currently selected preset
-    m_selected_preset   = it->get_preset_name(full_name);
-    if (m_selected_preset.empty())
+    if (printer_name == full_name)
+        // use first preset in the list
         m_selected_preset = *it->preset_names.begin();
-    return *it;
+    else
+        m_selected_preset = it->get_preset_name(full_name);
 }
 
-PhysicalPrinter& PhysicalPrinterCollection::select_printer(const std::string& printer_name)
-{
-    auto it = this->find_printer_internal(printer_name);
-    assert(it != m_printers.end());
-
-    // update idx_selected
-    m_idx_selected      = it - m_printers.begin();
-    // update name of the currently selected preset
-    m_selected_preset   = *it->preset_names.begin();
-    return *it;
-}
-
-PhysicalPrinter& PhysicalPrinterCollection::select_printer(const PhysicalPrinter& printer)
+void PhysicalPrinterCollection::select_printer(const PhysicalPrinter& printer)
 {
     return select_printer(printer.name);
 }

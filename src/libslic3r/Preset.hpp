@@ -666,13 +666,13 @@ public:
     // Returns the printer model of the selected preset, or an empty string if no preset is selected.
     std::string     get_selected_printer_preset_name() const { return (m_idx_selected == size_t(-1)) ? std::string() : m_selected_preset; }
 
-    // select printer with name and return reference on it
-    PhysicalPrinter&        select_printer_by_name(const std::string& full_name);
-    PhysicalPrinter&        select_printer(const std::string &printer_name);
-    PhysicalPrinter&        select_printer(const PhysicalPrinter& printer);
-    bool                    has_selection() const;
-    void                    unselect_printer() ;
-    bool                    is_selected(ConstIterator it, const std::string &preset_name) const;
+    // Select printer by the full printer name, which contains name of printer, separator and name of selected preset
+    // If full_name doesn't contain name of selected preset, then select first preset in the list for this printer
+    void select_printer(const std::string& full_name);
+    void select_printer(const PhysicalPrinter& printer);
+    bool has_selection() const;
+    void unselect_printer() ;
+    bool is_selected(ConstIterator it, const std::string &preset_name) const;
 
     // Return a printer by an index. If the printer is active, a temporary copy is returned.
     PhysicalPrinter& printer(size_t idx) { return m_printers[idx]; }

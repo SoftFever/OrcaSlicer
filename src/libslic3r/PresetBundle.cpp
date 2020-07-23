@@ -436,7 +436,7 @@ void PresetBundle::load_selections(AppConfig &config, const std::string &preferr
 
     // Activate physical printer from the config
     if (!initial_physical_printer_name.empty())
-        physical_printers.select_printer_by_name(initial_physical_printer_name);
+        physical_printers.select_printer(initial_physical_printer_name);
 }
 
 // Export selections (current print, current filaments, current printer) into config.ini

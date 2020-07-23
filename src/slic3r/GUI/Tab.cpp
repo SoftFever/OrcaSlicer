@@ -3100,7 +3100,7 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
             if (!last_selected_ph_printer_name.empty() &&
                 m_presets->get_edited_preset().name == PhysicalPrinter::get_preset_name(last_selected_ph_printer_name)) {
                 // If preset selection was canceled and previously was selected physical printer, we should select it back
-                m_preset_bundle->physical_printers.select_printer_by_name(last_selected_ph_printer_name);
+                m_preset_bundle->physical_printers.select_printer(last_selected_ph_printer_name);
             }
         }
 
