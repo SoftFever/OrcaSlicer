@@ -2677,10 +2677,10 @@ void PrintObject::project_and_append_custom_supports(
         if (custom_facets.indices.empty())
             continue;
 
-        const TriangleMesh& mesh = mv->mesh();
         const Transform3f& tr1 = mv->get_matrix().cast<float>();
         const Transform3f& tr2 = this->trafo().cast<float>();
         const Transform3f  tr  = tr2 * tr1;
+        const float tr_det_sign = (tr.matrix().determinant() > 0. ? 1.f : -1.f);
 
 
         // The projection will be at most a pentagon. Let's minimize heap
@@ -2719,8 +2719,9 @@ void PrintObject::project_and_append_custom_supports(
             for (int i=0; i<3; ++i)
                 facet[i] = tr * custom_facets.vertices[custom_facets.indices[idx](i)];
 
-            // Ignore triangles with upward-pointing normal.
-            if ((facet[1]-facet[0]).cross(facet[2]-facet[0]).z() > 0.)
+            // Ignore triangles with upward-pointing normal. Don't forget about mirroring.
+            float z_comp = (facet[1]-facet[0]).cross(facet[2]-facet[0]).z();
+            if (tr_det_sign * z_comp > 0.)
                 continue;
 
             // Sort the three vertices according to z-coordinate.
