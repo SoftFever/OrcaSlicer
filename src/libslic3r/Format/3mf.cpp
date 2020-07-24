@@ -86,6 +86,7 @@ const char* OBJECTID_ATTR = "objectid";
 const char* TRANSFORM_ATTR = "transform";
 const char* PRINTABLE_ATTR = "printable";
 const char* INSTANCESCOUNT_ATTR = "instances_count";
+const char* CUSTOM_SUPPORTS_ATTR = "slic3rpe:custom_supports";
 
 const char* KEY_ATTR = "key";
 const char* VALUE_ATTR = "value";
@@ -283,6 +284,7 @@ namespace Slic3r {
         {
             std::vector<float> vertices;
             std::vector<unsigned int> triangles;
+            std::vector<std::string> custom_supports;
 
             bool empty()
             {
@@ -293,6 +295,7 @@ namespace Slic3r {
             {
                 vertices.clear();
                 triangles.clear();
+                custom_supports.clear();
             }
         };
 
@@ -1539,6 +1542,8 @@ namespace Slic3r {
         m_curr_object.geometry.triangles.push_back((unsigned int)get_attribute_value_int(attributes, num_attributes, V1_ATTR));
         m_curr_object.geometry.triangles.push_back((unsigned int)get_attribute_value_int(attributes, num_attributes, V2_ATTR));
         m_curr_object.geometry.triangles.push_back((unsigned int)get_attribute_value_int(attributes, num_attributes, V3_ATTR));
+
+        m_curr_object.geometry.custom_supports.push_back(get_attribute_value_string(attributes, num_attributes, CUSTOM_SUPPORTS_ATTR));
         return true;
     }
 
@@ -1871,6 +1876,13 @@ namespace Slic3r {
             if (has_transform)
                 volume->source.transform = Slic3r::Geometry::Transformation(volume_matrix_to_object);
             volume->calculate_convex_hull();
+
+            // recreate custom supports from previously loaded attribute
+            assert(geometry.custom_supports.size() == triangles_count);
+            for (unsigned i=0; i<triangles_count; ++i) {
+                if (! geometry.custom_supports[i].empty())
+                    volume->m_supported_facets.set_triangle_from_string(i, geometry.custom_supports[i]);
+            }
 
             // apply the remaining volume's metadata
             for (const Metadata& metadata : volume_data.metadata)
@@ -2383,6 +2395,11 @@ namespace Slic3r {
                 {
                     stream << "v" << j + 1 << "=\"" << its.indices[i][j] + volume_it->second.first_vertex_id << "\" ";
                 }
+
+                std::string custom_supports_data_string = volume->m_supported_facets.get_triangle_as_string(i);
+                if (! custom_supports_data_string.empty())
+                    stream << CUSTOM_SUPPORTS_ATTR << "=\"" << custom_supports_data_string << "\" ";
+
                 stream << "/>\n";
             }
         }

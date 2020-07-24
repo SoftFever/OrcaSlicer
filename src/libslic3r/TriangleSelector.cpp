@@ -603,6 +603,7 @@ void TriangleSelector::deserialize(const std::map<int, std::vector<bool>> data)
     reset(); // dump any current state
     for (const auto& [triangle_id, code] : data) {
         assert(triangle_id < int(m_triangles.size()));
+        assert(! code.empty());
         int processed_triangles = 0;
         struct ProcessingInfo {
             int facet_id = 0;

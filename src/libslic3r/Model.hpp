@@ -409,6 +409,8 @@ public:
     bool set(const TriangleSelector& selector);
     indexed_triangle_set get_facets(const ModelVolume& mv, FacetSupportType type) const;
     void clear();
+    std::string get_triangle_as_string(int i) const;
+    void set_triangle_from_string(int triangle_id, const std::string& str);
 
     ClockType::time_point get_timestamp() const { return timestamp; }
     bool is_same_as(const FacetsAnnotation& other) const {
