@@ -1,16 +1,12 @@
 #ifndef slic3r_PresetComboBoxes_hpp_
 #define slic3r_PresetComboBoxes_hpp_
 
-#include <vector>
-
-#include <wx/panel.h>
 #include <wx/bmpcbox.h>
 #include <wx/gdicmn.h>
 
 #include "libslic3r/Preset.hpp"
 #include "wxExtensions.hpp"
 #include "GUI_Utils.hpp"
-//#include "BitmapCache.hpp"
 
 class wxString;
 class wxTextCtrl;
@@ -23,6 +19,7 @@ namespace Slic3r {
 namespace GUI {
 
 class BitmapCache;
+
 // ---------------------------------
 // ***  PresetComboBox  ***
 // ---------------------------------
@@ -47,8 +44,9 @@ public:
 	};
 
     void set_label_marker(int item, LabelItemType label_item_type = LABEL_ITEM_MARKER);
+    bool set_printer_technology(PrinterTechnology pt);
 
-    void set_selection_changed_function(std::function<void(int)> sel_changed)               { on_selection_changed = sel_changed; }
+    void set_selection_changed_function(std::function<void(int)> sel_changed) { on_selection_changed = sel_changed; }
 
     bool is_selected_physical_printer();
 
@@ -58,7 +56,7 @@ public:
 
     void update(const std::string& select_preset);
 
-    virtual void update(){};
+    virtual void update();
     virtual void msw_rescale();
 
 protected:
@@ -90,6 +88,8 @@ protected:
     int space_icon_width;
     int thin_space_icon_width;
     int wide_space_icon_width;
+
+    PrinterTechnology printer_technology {ptAny};
 
     void invalidate_selection();
     void validate_selection(bool predicate = false);
@@ -185,83 +185,6 @@ public:
     void msw_rescale() override;
 
     void set_enable_all(bool enable=true) { m_enable_all = enable; }
-};
-
-
-//------------------------------------------
-//          PresetForPrinter
-//------------------------------------------
-static std::string g_info_string = " (modified)";
-class PhysicalPrinterDialog;
-class PresetForPrinter
-{
-    PhysicalPrinterDialog* m_parent         { nullptr };
-
-    PresetComboBox*     m_presets_list      { nullptr };
-    ScalableButton*     m_delete_preset_btn { nullptr };
-    wxStaticText*       m_info_line         { nullptr };
-    wxStaticText*       m_full_printer_name { nullptr };
-
-    wxBoxSizer*         m_sizer             { nullptr };
-
-    void DeletePreset(wxEvent& event);
-
-public:
-    PresetForPrinter(PhysicalPrinterDialog* parent, const std::string& preset_name = "");
-    ~PresetForPrinter();
-
-    wxBoxSizer*         sizer() { return m_sizer; }
-    void                update_full_printer_name();
-    std::string         get_preset_name();
-    void                DisableDeleteBtn();
-    void                EnableDeleteBtn();
-
-    void                msw_rescale();
-    void                on_sys_color_changed() {};
-};
-
-
-//------------------------------------------
-//          PhysicalPrinterDialog
-//------------------------------------------
-
-class ConfigOptionsGroup;
-class PhysicalPrinterDialog : public DPIDialog
-{
-    PhysicalPrinter     m_printer;
-    wxString            m_default_name;
-    DynamicPrintConfig* m_config            { nullptr };
-
-    wxTextCtrl*         m_printer_name      { nullptr };
-    std::vector<PresetForPrinter*> m_presets;
-
-    ConfigOptionsGroup* m_optgroup          { nullptr };
-
-    ScalableButton*     m_add_preset_btn                {nullptr};
-    ScalableButton*     m_printhost_browse_btn          {nullptr};
-    ScalableButton*     m_printhost_test_btn            {nullptr};
-    ScalableButton*     m_printhost_cafile_browse_btn   {nullptr};
-
-    wxBoxSizer*         m_presets_sizer                 {nullptr};
-
-    void build_printhost_settings(ConfigOptionsGroup* optgroup);
-    void OnOK(wxEvent& event);
-    void AddPreset(wxEvent& event);
-
-public:
-    PhysicalPrinterDialog(wxString printer_name);
-    ~PhysicalPrinterDialog();
-
-    void        update();
-    wxString    get_printer_name();
-    void        update_full_printer_names();
-    PhysicalPrinter* get_printer() {return &m_printer; }
-
-    void        DeletePreset(PresetForPrinter* preset_for_printer);
-
-protected:
-    void on_dpi_changed(const wxRect& suggested_rect) override;
-    void on_sys_color_changed() override {};
 };
 
 
