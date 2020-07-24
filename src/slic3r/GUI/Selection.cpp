@@ -1595,17 +1595,17 @@ void Selection::update_type()
         }
         else
         {
+            unsigned int sla_volumes_count = 0;
+            // Note: sla_volumes_count is a count of the selected sla_volumes per object instead of per instance, like a model_volumes_count is
+            for (unsigned int i : m_list) {
+                if ((*m_volumes)[i]->volume_idx() < 0)
+                    ++sla_volumes_count;
+            }
+
             if (m_cache.content.size() == 1) // single object
             {
                 const ModelObject* model_object = m_model->objects[m_cache.content.begin()->first];
                 unsigned int model_volumes_count = (unsigned int)model_object->volumes.size();
-                unsigned int sla_volumes_count = 0;
-                for (unsigned int i : m_list)
-                {
-                    if ((*m_volumes)[i]->volume_idx() < 0)
-                        ++sla_volumes_count;
-                }
-                // Note: sla_volumes_count is a count of the selected sla_volumes per object instead of per instance, like a model_volumes_count is
 
                 unsigned int instances_count = (unsigned int)model_object->instances.size();
                 unsigned int selected_instances_count = (unsigned int)m_cache.content.begin()->second.size();
@@ -1657,7 +1657,7 @@ void Selection::update_type()
                     unsigned int instances_count = (unsigned int)model_object->instances.size();
                     sels_cntr += volumes_count * instances_count;
                 }
-                if (sels_cntr == (unsigned int)m_list.size())
+                if (sels_cntr + sla_volumes_count == (unsigned int)m_list.size())
                 {
                     m_type = MultipleFullObject;
                     // ensures the correct mode is selected
