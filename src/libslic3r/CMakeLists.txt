@@ -187,6 +187,8 @@ add_library(libslic3r STATIC
     Utils.hpp
     Time.cpp
     Time.hpp
+    TriangleSelector.cpp
+    TriangleSelector.hpp
     MTUtils.hpp
     VoronoiOffset.cpp
     VoronoiOffset.hpp
