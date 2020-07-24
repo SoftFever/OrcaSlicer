@@ -1605,10 +1605,11 @@ void Selection::update_type()
                     if ((*m_volumes)[i]->volume_idx() < 0)
                         ++sla_volumes_count;
                 }
-                unsigned int volumes_count = model_volumes_count + sla_volumes_count;
+                // Note: sla_volumes_count is a count of the selected sla_volumes per object instead of per instance, like a model_volumes_count is
+
                 unsigned int instances_count = (unsigned int)model_object->instances.size();
                 unsigned int selected_instances_count = (unsigned int)m_cache.content.begin()->second.size();
-                if (volumes_count * instances_count == (unsigned int)m_list.size())
+                if (model_volumes_count * instances_count + sla_volumes_count == (unsigned int)m_list.size())
                 {
                     m_type = SingleFullObject;
                     // ensures the correct mode is selected
@@ -1616,7 +1617,7 @@ void Selection::update_type()
                 }
                 else if (selected_instances_count == 1)
                 {
-                    if (volumes_count == (unsigned int)m_list.size())
+                    if (model_volumes_count + sla_volumes_count == (unsigned int)m_list.size())
                     {
                         m_type = SingleFullInstance;
                         // ensures the correct mode is selected
@@ -1639,7 +1640,7 @@ void Selection::update_type()
                         requires_disable = true;
                     }
                 }
-                else if ((selected_instances_count > 1) && (selected_instances_count * volumes_count == (unsigned int)m_list.size()))
+                else if ((selected_instances_count > 1) && (selected_instances_count * model_volumes_count + sla_volumes_count == (unsigned int)m_list.size()))
                 {
                     m_type = MultipleFullInstance;
                     // ensures the correct mode is selected
