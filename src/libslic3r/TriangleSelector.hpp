@@ -1,7 +1,7 @@
 #ifndef libslic3r_TriangleSelector_hpp_
 #define libslic3r_TriangleSelector_hpp_
 
-#define PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
+// #define PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
 
 
 #include "Point.hpp"
@@ -28,7 +28,7 @@ public:
                       int facet_start,     // facet that point belongs to
                       const Vec3f& source, // camera position (mesh coords)
                       const Vec3f& dir,    // direction of the ray (mesh coords)
-                      float radius_sqr,    // squared radius of the cursor
+                      float radius,        // radius of the cursor
                       FacetSupportType new_state);   // enforcer or blocker?
 
     // Get facets currently in the given state.
@@ -130,6 +130,7 @@ protected:
     };
 
     Cursor m_cursor;
+    float m_old_cursor_radius;
 
     // Private functions:
     bool select_triangle(int facet_idx, FacetSupportType type,

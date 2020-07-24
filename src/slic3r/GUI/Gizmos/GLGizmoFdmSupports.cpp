@@ -404,7 +404,7 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         // FIXME: The scaling of the mesh can be non-uniform.
         const Vec3d sf = Geometry::Transformation(trafo_matrix).get_scaling_factor();
         const float avg_scaling = (sf(0) + sf(1) + sf(2))/3.;
-        const float limit = std::pow(m_cursor_radius/avg_scaling , 2.f);
+        const float limit = m_cursor_radius/avg_scaling;
 
         // Calculate direction from camera to the hit (in mesh coords):
         Vec3f camera_pos = (trafo_matrix.inverse() * camera.get_position()).cast<float>();

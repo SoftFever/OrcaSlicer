@@ -35,14 +35,20 @@ void TriangleSelector::Triangle::set_division(int sides_to_split, int special_si
 
 void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
                                     const Vec3f& source, const Vec3f& dir,
-                                    float radius_sqr, FacetSupportType new_state)
+                                    float radius, FacetSupportType new_state)
 {
     assert(facet_start < m_orig_size_indices);
     assert(is_approx(dir.norm(), 1.f));
 
     // Save current cursor center, squared radius and camera direction,
     // so we don't have to pass it around.
-    m_cursor = {hit, source, dir, radius_sqr};
+    m_cursor = {hit, source, dir, radius*radius};
+
+    // In case user changed cursor size since last time, update triangle edge limit.
+    if (m_old_cursor_radius != radius) {
+        set_edge_limit(radius / 5.f);
+        m_old_cursor_radius = radius;
+    }
 
     // Now start with the facet the pointer points to and check all adjacent facets.
     std::vector<int> facets_to_check{facet_start};

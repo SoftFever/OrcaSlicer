@@ -56,7 +56,7 @@ private:
     GLUquadricObj* m_quadric;
 
     float m_cursor_radius = 2.f;
-    static constexpr float CursorRadiusMin  = 0.f;
+    static constexpr float CursorRadiusMin  = 0.4f; // cannot be zero
     static constexpr float CursorRadiusMax  = 8.f;
     static constexpr float CursorRadiusStep = 0.2f;
 
