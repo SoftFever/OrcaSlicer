@@ -929,7 +929,7 @@ Sidebar::Sidebar(Plater *parent)
     {
         const bool export_gcode_after_slicing = wxGetKeyState(WXK_SHIFT);
         if (export_gcode_after_slicing)
-            p->plater->export_gcode();
+            p->plater->export_gcode(true);
         else
             p->plater->reslice();
         p->plater->select_view_3D("Preview");
@@ -3450,7 +3450,7 @@ void Plater::priv::on_slicing_completed(wxCommandEvent &)
         break;
     default: break;
     }
-}
+} 
 
 void Plater::priv::on_process_completed(wxCommandEvent &evt)
 {
@@ -3510,7 +3510,10 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
         show_action_buttons(true);
     }
     else if (this->writing_to_removable_device || wxGetApp().get_mode() == comSimple)
+	{
+		wxGetApp().removable_drive_manager()->set_exporting_finished(true);
 		show_action_buttons(false);
+	}
     this->writing_to_removable_device = false;
 }
 
