@@ -243,6 +243,20 @@ namespace Slic3r {
         ExtrudersColor m_extruders_color;
         CpColor m_cp_color;
 
+        enum class EProducer
+        {
+            Unknown,
+            PrusaSlicer,
+            Cura,
+            Simplify3D,
+            CraftWare,
+            ideaMaker
+        };
+
+        static const std::vector<std::pair<GCodeProcessor::EProducer, std::string>> Producers;
+        EProducer m_producer;
+        bool m_producers_enabled;
+
         TimeProcessor m_time_processor;
 
         Result m_result;
@@ -253,6 +267,7 @@ namespace Slic3r {
 
         void apply_config(const PrintConfig& config);
         void enable_stealth_time_estimator(bool enabled);
+        void enable_producers(bool enabled) { m_producers_enabled = enabled; }
         void reset();
 
         const Result& get_result() const { return m_result; }
@@ -274,6 +289,14 @@ namespace Slic3r {
 
         // Process tags embedded into comments
         void process_tags(const std::string& comment);
+        bool process_producers_tags(const std::string& comment);
+        bool process_prusaslicer_tags(const std::string& comment);
+        bool process_cura_tags(const std::string& comment);
+        bool process_simplify3d_tags(const std::string& comment);
+        bool process_craftware_tags(const std::string& comment);
+        bool process_ideamaker_tags(const std::string& comment);
+
+        bool detect_producer(const std::string& comment);
 
         // Move
         void process_G0(const GCodeReader::GCodeLine& line);

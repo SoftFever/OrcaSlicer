@@ -296,6 +296,14 @@ void GCodeProcessor::TimeProcessor::reset()
     machines[static_cast<size_t>(ETimeMode::Normal)].enabled = true;
 }
 
+const std::vector<std::pair<GCodeProcessor::EProducer, std::string>> GCodeProcessor::Producers = {
+    { EProducer::PrusaSlicer, "PrusaSlicer" },
+    { EProducer::Cura,        "Cura" },
+    { EProducer::Simplify3D,  "Simplify3D" },
+    { EProducer::CraftWare,   "CraftWare" },
+    { EProducer::ideaMaker,   "ideaMaker" }
+};
+
 unsigned int GCodeProcessor::s_result_id = 0;
 
 void GCodeProcessor::apply_config(const PrintConfig& config)
@@ -363,6 +371,9 @@ void GCodeProcessor::reset()
     m_extruder_id = 0;
     m_extruders_color = ExtrudersColor();
     m_cp_color.reset();
+
+    m_producer = EProducer::Unknown;
+    m_producers_enabled = false;
 
     m_time_processor.reset();
 
@@ -539,6 +550,13 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line)
 
 void GCodeProcessor::process_tags(const std::string& comment)
 {
+    if (m_producers_enabled && m_producer == EProducer::Unknown && detect_producer(comment))
+        return;
+    else if (m_producers_enabled && m_producer != EProducer::Unknown) {
+        if (process_producers_tags(comment))
+            return;
+    }
+
     // extrusion role tag
     size_t pos = comment.find(Extrusion_Role_Tag);
     if (pos != comment.npos) {
@@ -643,6 +661,299 @@ void GCodeProcessor::process_tags(const std::string& comment)
         store_move_vertex(EMoveType::Custom_GCode);
         return;
     }
+}
+
+bool GCodeProcessor::process_producers_tags(const std::string& comment)
+{
+    switch (m_producer)
+    {
+    case EProducer::PrusaSlicer: { return process_prusaslicer_tags(comment); }
+    case EProducer::Cura:        { return process_cura_tags(comment); }
+    case EProducer::Simplify3D:  { return process_simplify3d_tags(comment); }
+    case EProducer::CraftWare:   { return process_craftware_tags(comment); }
+    case EProducer::ideaMaker:   { return process_ideamaker_tags(comment); }
+    default:                     { return false; }
+    }
+}
+
+bool GCodeProcessor::process_prusaslicer_tags(const std::string& comment)
+{
+    std::cout << comment << "\n";
+    return false;
+}
+
+bool GCodeProcessor::process_cura_tags(const std::string& comment)
+{
+    // TYPE -> extrusion role
+    std::string tag = "TYPE:";
+    size_t pos = comment.find(tag);
+    if (pos != comment.npos) {
+        std::string type = comment.substr(pos + tag.length());
+        if (type == "SKIRT")
+            m_extrusion_role = erSkirt;
+        else if (type == "WALL-OUTER")
+            m_extrusion_role = erExternalPerimeter;
+        else if (type == "WALL-INNER")
+            m_extrusion_role = erPerimeter;
+        else if (type == "SKIN")
+            m_extrusion_role = erSolidInfill;
+        else if (type == "FILL")
+            m_extrusion_role = erInternalInfill;
+        else if (type == "SUPPORT")
+            m_extrusion_role = erSupportMaterial;
+        else if (type == "SUPPORT-INTERFACE")
+            m_extrusion_role = erSupportMaterialInterface;
+        else if (type == "PRIME-TOWER")
+            m_extrusion_role = erWipeTower;
+        else {
+            m_extrusion_role = erNone;
+            BOOST_LOG_TRIVIAL(warning) << "GCodeProcessor found unknown extrusion role: " << type;
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+bool GCodeProcessor::process_simplify3d_tags(const std::string& comment)
+{
+    // extrusion roles
+
+    // ; skirt
+    size_t pos = comment.find(" skirt");
+    if (pos == 0) {
+        m_extrusion_role = erSkirt;
+        return true;
+    }
+    
+    // ; outer perimeter
+    pos = comment.find(" outer perimeter");
+    if (pos == 0) {
+        m_extrusion_role = erExternalPerimeter;
+        return true;
+    }
+
+    // ; inner perimeter
+    pos = comment.find(" inner perimeter");
+    if (pos == 0) {
+        m_extrusion_role = erPerimeter;
+        return true;
+    }
+
+    // ; gap fill
+    pos = comment.find(" gap fill");
+    if (pos == 0) {
+        m_extrusion_role = erGapFill;
+        return true;
+    }
+
+    // ; infill
+    pos = comment.find(" infill");
+    if (pos == 0) {
+        m_extrusion_role = erInternalInfill;
+        return true;
+    }
+
+    // ; solid layer
+    pos = comment.find(" solid layer");
+    if (pos == 0) {
+        m_extrusion_role = erNone; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        return true;
+    }
+
+    // ; bridge
+    pos = comment.find(" bridge");
+    if (pos == 0) {
+        m_extrusion_role = erBridgeInfill;
+        return true;
+    }
+
+    // ; support
+    pos = comment.find(" support");
+    if (pos == 0) {
+        m_extrusion_role = erSupportMaterial;
+        return true;
+    }
+
+    // ; prime pillar
+    pos = comment.find(" prime pillar");
+    if (pos == 0) {
+        m_extrusion_role = erWipeTower;
+        return true;
+    }
+
+    // ; ooze shield
+    pos = comment.find(" ooze shield");
+    if (pos == 0) {
+        m_extrusion_role = erNone; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        return true;
+    }
+
+    // ; raft
+    pos = comment.find(" raft");
+    if (pos == 0) {
+        m_extrusion_role = erSkirt;
+        return true;
+    }
+
+    // geometry
+
+    // ; tool
+    std::string tag = " tool";
+    pos = comment.find(tag);
+    if (pos == 0) {
+        std::string data = comment.substr(pos + tag.length());
+        std::string h_tag = "H";
+        size_t h_start = data.find(h_tag);
+        size_t h_end = data.find_first_of(' ', h_start);
+        std::string w_tag = "W";
+        size_t w_start = data.find(w_tag);
+        size_t w_end = data.find_first_of(' ', w_start);
+        if (h_start != data.npos) {
+            try
+            {
+                std::string test = data.substr(h_start + 1, (h_end != data.npos) ? h_end - h_start - 1 : h_end);
+                m_height = std::stof(data.substr(h_start + 1, (h_end != data.npos) ? h_end - h_start - 1 : h_end));
+            }
+            catch (...)
+            {
+                BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Height (" << comment << ").";
+            }
+        }
+        if (w_start != data.npos) {
+            try
+            {
+                std::string test = data.substr(w_start + 1, (w_end != data.npos) ? w_end - w_start - 1 : w_end);
+                m_width = std::stof(data.substr(w_start + 1, (w_end != data.npos) ? w_end - w_start - 1 : w_end));
+            }
+            catch (...)
+            {
+                BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
+            }
+        }
+
+        return true;
+    }
+
+    std::cout << comment << "\n";
+    return false;
+}
+
+bool GCodeProcessor::process_craftware_tags(const std::string& comment)
+{
+    // segType -> extrusion role
+    std::string tag = "segType:";
+    size_t pos = comment.find(tag);
+    if (pos != comment.npos) {
+        std::string type = comment.substr(pos + tag.length());
+        if (type == "Skirt")
+            m_extrusion_role = erSkirt;
+        else if (type == "Perimeter")
+            m_extrusion_role = erExternalPerimeter;
+        else if (type == "HShell")
+            m_extrusion_role = erNone; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        else if (type == "InnerHair")
+            m_extrusion_role = erNone; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        else if (type == "Loop")
+            m_extrusion_role = erNone; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        else if (type == "Infill")
+            m_extrusion_role = erInternalInfill;
+        else if (type == "Raft")
+            m_extrusion_role = erSkirt;
+        else if (type == "Support")
+            m_extrusion_role = erSupportMaterial;
+        else if (type == "SupportTouch")
+            m_extrusion_role = erSupportMaterial;
+        else if (type == "SoftSupport")
+            m_extrusion_role = erSupportMaterialInterface;
+        else if (type == "Pillar")
+            m_extrusion_role = erWipeTower;
+        else {
+            m_extrusion_role = erNone;
+            BOOST_LOG_TRIVIAL(warning) << "GCodeProcessor found unknown extrusion role: " << type;
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+bool GCodeProcessor::process_ideamaker_tags(const std::string& comment)
+{
+    // TYPE -> extrusion role
+    std::string tag = "TYPE:";
+    size_t pos = comment.find(tag);
+    if (pos != comment.npos) {
+        std::string type = comment.substr(pos + tag.length());
+        if (type == "RAFT")
+            m_extrusion_role = erSkirt;
+        else if (type == "WALL-OUTER")
+            m_extrusion_role = erExternalPerimeter;
+        else if (type == "WALL-INNER")
+            m_extrusion_role = erPerimeter;
+        else if (type == "SOLID-FILL")
+            m_extrusion_role = erSolidInfill;
+        else if (type == "FILL")
+            m_extrusion_role = erInternalInfill;
+        else if (type == "BRIDGE")
+            m_extrusion_role = erBridgeInfill;
+        else if (type == "SUPPORT")
+            m_extrusion_role = erSupportMaterial;
+        else {
+            m_extrusion_role = erNone;
+            BOOST_LOG_TRIVIAL(warning) << "GCodeProcessor found unknown extrusion role: " << type;
+        }
+        return true;
+    }
+
+    // geometry
+
+    // width
+    tag = "WIDTH:";
+    pos = comment.find(tag);
+    if (pos != comment.npos) {
+        try
+        {
+            m_width = std::stof(comment.substr(pos + tag.length()));
+        }
+        catch (...)
+        {
+            BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
+        }
+        return true;
+    }
+
+    // height
+    tag = "HEIGHT:";
+    pos = comment.find(tag);
+    if (pos != comment.npos) {
+        try
+        {
+            m_height = std::stof(comment.substr(pos + tag.length()));
+        }
+        catch (...)
+        {
+            BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Height (" << comment << ").";
+        }
+        return true;
+    }
+
+    return false;
+}
+
+bool GCodeProcessor::detect_producer(const std::string& comment)
+{
+    for (const auto& [id, search_string] : Producers) {
+        size_t pos = comment.find(search_string);
+        if (pos != comment.npos) {
+            m_producer = id;
+            BOOST_LOG_TRIVIAL(info) << "Detected gcode producer: " << search_string;
+            return true;
+        }
+    }
+    return false;
 }
 
 void GCodeProcessor::process_G0(const GCodeReader::GCodeLine& line)
