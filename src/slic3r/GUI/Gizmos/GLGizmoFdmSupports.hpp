@@ -6,8 +6,11 @@
 #include "slic3r/GUI/3DScene.hpp"
 
 #include "libslic3r/ObjectID.hpp"
+#include "libslic3r/TriangleSelector.hpp"
 
 #include <cereal/types/vector.hpp>
+
+
 
 
 namespace Slic3r {
@@ -19,6 +22,31 @@ namespace GUI {
 enum class SLAGizmoEventType : unsigned char;
 class ClippingPlane;
 
+
+
+class TriangleSelectorGUI : public TriangleSelector {
+public:
+    explicit TriangleSelectorGUI(const TriangleMesh& mesh)
+        : TriangleSelector(mesh) {}
+
+    // Render current selection. Transformation matrices are supposed
+    // to be already set.
+    void render(ImGuiWrapper* imgui = nullptr);
+
+#ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
+    void render_debug(ImGuiWrapper* imgui);
+    bool m_show_triangles{false};
+    bool m_show_invalid{false};
+#endif
+
+private:
+    GLIndexedVertexArray m_iva_enforcers;
+    GLIndexedVertexArray m_iva_blockers;
+    std::array<GLIndexedVertexArray, 3> m_varrays;
+};
+
+
+
 class GLGizmoFdmSupports : public GLGizmoBase
 {
 private:
@@ -28,24 +56,12 @@ private:
     GLUquadricObj* m_quadric;
 
     float m_cursor_radius = 2.f;
-    static constexpr float CursorRadiusMin  = 0.f;
+    static constexpr float CursorRadiusMin  = 0.4f; // cannot be zero
     static constexpr float CursorRadiusMax  = 8.f;
     static constexpr float CursorRadiusStep = 0.2f;
 
-    // For each model-part volume, store a list of statuses of
-    // individual facets (one of the enum values above).
-    std::vector<std::vector<FacetSupportType>> m_selected_facets;
-
-    // Vertex buffer arrays for each model-part volume. There is a vector of
-    // arrays so that adding triangles can be done without regenerating all
-    // other triangles. Enforcers and blockers are of course separate.
-    std::vector<std::array<std::vector<GLIndexedVertexArray>, 2>> m_ivas;
-
-    void update_vertex_buffers(const TriangleMesh* mesh,
-                               int mesh_id,
-                               FacetSupportType type, // enforcers / blockers
-                               const std::vector<size_t>* new_facets = nullptr); // nullptr -> regenerate all
-
+    // For each model-part volume, store status and division of the triangles.
+    std::vector<std::unique_ptr<TriangleSelectorGUI>> m_triangle_selectors;
 
 public:
     GLGizmoFdmSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
@@ -66,8 +82,7 @@ private:
     void update_from_model_object();
     void activate_internal_undo_redo_stack(bool activate);
 
-    void select_facets_by_angle(float threshold, bool overwrite, bool block);
-    bool m_overwrite_selected = false;
+    void select_facets_by_angle(float threshold, bool block);
     float m_angle_threshold_deg = 45.f;
 
     bool is_mesh_point_clipped(const Vec3d& point) const;

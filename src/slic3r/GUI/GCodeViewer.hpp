@@ -341,7 +341,12 @@ private:
     Shells m_shells;
     EViewType m_view_type{ EViewType::FeatureType };
     bool m_legend_enabled{ true };
+#if ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+    mutable bool m_time_estimate_enabled{ false };
+    mutable unsigned int m_time_estimate_frames_count{ 0 };
+#else
     bool m_time_estimate_enabled{ false };
+#endif // ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
 #if ENABLE_GCODE_VIEWER_STATISTICS
     mutable Statistics m_statistics;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS

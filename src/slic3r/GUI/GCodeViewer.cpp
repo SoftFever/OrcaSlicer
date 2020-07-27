@@ -415,8 +415,15 @@ void GCodeViewer::render() const
     m_statistics.reset_opengl();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
+#if ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+    if (m_roles.empty()) {
+        m_time_estimate_frames_count = 0;
+        return;
+    }
+#else
     if (m_roles.empty())
         return;
+#endif // ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_toolpaths();
@@ -463,7 +470,9 @@ unsigned int GCodeViewer::get_options_visibility_flags() const
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Shells), m_shells.visible);
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::ToolMarker), m_sequential_view.marker.is_visible());
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Legend), is_legend_enabled());
+#if !ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::TimeEstimate), is_time_estimate_enabled());
+#endif // !ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
     return flags;
 }
 
@@ -483,7 +492,9 @@ void GCodeViewer::set_options_visibility_from_flags(unsigned int flags)
     m_shells.visible = is_flag_set(static_cast<unsigned int>(Preview::OptionType::Shells));
     m_sequential_view.marker.set_visible(is_flag_set(static_cast<unsigned int>(Preview::OptionType::ToolMarker)));
     enable_legend(is_flag_set(static_cast<unsigned int>(Preview::OptionType::Legend)));
+#if !ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
     enable_time_estimate(is_flag_set(static_cast<unsigned int>(Preview::OptionType::TimeEstimate)));
+#endif // !ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
 }
 
 void GCodeViewer::set_layers_z_range(const std::array<double, 2>& layers_z_range)
@@ -1717,14 +1728,27 @@ void GCodeViewer::render_legend() const
 
 void GCodeViewer::render_time_estimate() const
 {
-    if (!m_time_estimate_enabled)
+    if (!m_time_estimate_enabled) {
+#if ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+        m_time_estimate_frames_count = 0;
+#endif // ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
         return;
+    }
 
     const PrintStatistics& ps = wxGetApp().plater()->fff_print().print_statistics();
     if (ps.estimated_normal_print_time <= 0.0f && ps.estimated_silent_print_time <= 0.0f)
         return;
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
+    
+#if ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+    // esc
+    if (ImGui::GetIO().KeysDown[27]) {
+        m_time_estimate_enabled = false;
+        return;
+    }
+#endif // ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+
 
     using Times = std::pair<float, float>;
     using TimesList = std::vector<std::pair<CustomGCode::Type, Times>>;
@@ -1893,8 +1917,8 @@ void GCodeViewer::render_time_estimate() const
 
             if (moves_time.empty())
                 return;
-
-            if (!ImGui::CollapsingHeader(_u8L("Moves Time").c_str()))
+            
+            if (!ImGui::CollapsingHeader(_u8L("Moves Time").c_str(), ImGuiTreeNodeFlags_DefaultOpen))
                 return;
 
             append_headers(headers, offsets);
@@ -1914,7 +1938,7 @@ void GCodeViewer::render_time_estimate() const
             if (roles_time.empty())
                 return;
 
-            if (!ImGui::CollapsingHeader(_u8L("Features Time").c_str()))
+            if (!ImGui::CollapsingHeader(_u8L("Features Time").c_str(), ImGuiTreeNodeFlags_DefaultOpen))
                 return;
 
             append_headers(headers, offsets);
@@ -2023,22 +2047,40 @@ void GCodeViewer::render_time_estimate() const
     };
 
     Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
+#if ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+    std::string title = _u8L("Estimated printing time");
+    ImGui::OpenPopup(title.c_str());
+
+    imgui.set_next_window_pos(0.5f * static_cast<float>(cnv_size.get_width()), 0.5f * static_cast<float>(cnv_size.get_height()), ImGuiCond_Always, 0.5f, 0.5f);
+    ImGui::SetNextWindowSize({ -1.0f, 0.666f * static_cast<float>(cnv_size.get_height()) });
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::SetNextWindowBgAlpha(0.6f);
+    if (ImGui::BeginPopupModal(title.c_str(), &m_time_estimate_enabled, ImGuiWindowFlags_AlwaysAutoResize)) {
+        if (m_time_estimate_enabled) {
+            // imgui takes several frames to grayout the content of the canvas
+            if (m_time_estimate_frames_count < 10) {
+                wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
+                wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+                ++m_time_estimate_frames_count;
+            }
+#else
     imgui.set_next_window_pos(static_cast<float>(cnv_size.get_width()), static_cast<float>(cnv_size.get_height()), ImGuiCond_Always, 1.0f, 1.0f);
-    ImGui::SetNextWindowSizeConstraints(ImVec2(0.0f, 0.0f), ImVec2(-1.0f, 0.5f * static_cast<float>(cnv_size.get_height())));
+    ImGui::SetNextWindowSizeConstraints({ 0.0f, 0.0f }, { -1.0f, 0.5f * static_cast<float>(cnv_size.get_height() }));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::SetNextWindowBgAlpha(0.6f);
     imgui.begin(std::string("Time_estimate"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
 
     // title
     imgui.title(_u8L("Estimated printing time"));
+#endif // ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
 
-    // mode tabs
+        // mode tabs
     ImGui::BeginTabBar("mode_tabs");
     if (ps.estimated_normal_print_time > 0.0f) {
         if (ImGui::BeginTabItem(_u8L("Normal").c_str())) {
-            append_mode(ps.estimated_normal_print_time, 
+            append_mode(ps.estimated_normal_print_time,
                 generate_partial_times(ps.estimated_normal_custom_gcode_print_times), partial_times_headers,
-                ps.estimated_normal_moves_times, moves_headers, 
+                ps.estimated_normal_moves_times, moves_headers,
                 ps.estimated_normal_roles_times, roles_headers);
             ImGui::EndTabItem();
         }
@@ -2054,7 +2096,22 @@ void GCodeViewer::render_time_estimate() const
     }
     ImGui::EndTabBar();
 
+#if ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+            // this is ugly, but it is the only way to ensure that the dialog is large
+            // enough to show enterely the title
+            // see: https://github.com/ocornut/imgui/issues/3239
+            float width = std::max(ImGui::CalcTextSize(title.c_str()).x + 2.0f * ImGui::GetStyle().WindowPadding.x, 300.0f);
+            ImGui::SetCursorPosX(width);
+            ImGui::SetCursorPosX(0.0f);
+        }
+        else
+            m_time_estimate_enabled = false;
+
+        ImGui::EndPopup();
+    }
+#else
     imgui.end();
+#endif // ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
     ImGui::PopStyleVar();
 }
 

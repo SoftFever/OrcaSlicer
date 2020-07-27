@@ -323,8 +323,12 @@ bool Preview::init(wxWindow* parent, Model* model)
         get_option_type_string(OptionType::CustomGCodes) + "|0|" +
         get_option_type_string(OptionType::Shells) + "|0|" +
         get_option_type_string(OptionType::ToolMarker) + "|0|" +
+#if ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+        get_option_type_string(OptionType::Legend) + "|1"
+#else
         get_option_type_string(OptionType::Legend) + "|1|" +
         get_option_type_string(OptionType::TimeEstimate) + "|1"
+#endif // ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
     );
     Slic3r::GUI::create_combochecklist(m_combochecklist_options, GUI::into_u8(_L("Options")), options_items);
 #else
