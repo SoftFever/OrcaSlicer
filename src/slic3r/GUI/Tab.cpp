@@ -164,11 +164,8 @@ void Tab::create_preset_tab()
     m_presets_choice->set_selection_changed_function([this](int selection) {
         if (!m_presets_choice->selection_is_changed_according_to_physical_printers())
         {
-            // For the printer presets allow to update a physical printer if it is needed.
-            // After call of the update_physical_printers() this possibility will be disabled again to avoid a case,
-            // when select_preset is called from the others than this place
-            if (m_type == Preset::TYPE_PRINTER)
-                m_presets_choice->allow_to_update_physical_printers();
+            if (m_type == Preset::TYPE_PRINTER && !m_presets_choice->is_selected_physical_printer())
+                m_preset_bundle->physical_printers.unselect_printer();
 
             // select preset
             select_preset(m_presets_choice->GetString(selection).ToUTF8().data());
@@ -3148,9 +3145,6 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
                 m_dependent_tabs = { Preset::Type::TYPE_SLA_PRINT, Preset::Type::TYPE_SLA_MATERIAL };
         }
 
-        //update physical printer's related printer preset if it's needed
-        m_presets_choice->update_physical_printers(preset_name);
-
         load_current_preset();
     }
 }
@@ -3290,56 +3284,10 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach)
     std::string suffix = detach ? _utf8(L("Detached")) : _CTX_utf8(L_CONTEXT("Copy", "PresetName"), "PresetName");
 
     if (name.empty()) {
-        const Preset &preset = m_presets->get_selected_preset();
-        auto default_name = preset.is_default ? "Untitled" :
-//                            preset.is_system ? (boost::format(_CTX_utf8(L_CONTEXT("%1% - Copy", "PresetName"), "PresetName")) % preset.name).str() :
-                            preset.is_system ? (boost::format(("%1% - %2%")) % preset.name % suffix).str() :
-                            preset.name;
-
-        bool have_extention = boost::iends_with(default_name, ".ini");
-        if (have_extention) {
-            size_t len = default_name.length()-4;
-            default_name.resize(len);
-        }
-        //[map $_->name, grep !$_->default && !$_->external, @{$self->{presets}}],
-        std::vector<std::string> values;
-        for (size_t i = 0; i < m_presets->size(); ++i) {
-            const Preset &preset = m_presets->preset(i);
-            if (preset.is_default || preset.is_system || preset.is_external)
-                continue;
-            values.push_back(preset.name);
-        }
-
-        SavePresetWindow dlg(parent());
-        dlg.build(title(), default_name, values);
+        SavePresetDialog dlg(m_presets_choice, suffix);
         if (dlg.ShowModal() != wxID_OK)
             return;
         name = dlg.get_name();
-        if (name == "") {
-            show_error(this, _(L("The supplied name is empty. It can't be saved.")));
-            return;
-        }
-        const Preset *existing = m_presets->find_preset(name, false);
-        if (existing && (existing->is_default || existing->is_system)) {
-            show_error(this, _(L("Cannot overwrite a system profile.")));
-            return;
-        }
-        if (existing && (existing->is_external)) {
-            show_error(this, _(L("Cannot overwrite an external profile.")));
-            return;
-        }
-        if (existing && name != preset.name)
-        {
-            wxString msg_text = GUI::from_u8((boost::format(_utf8(L("Preset with name \"%1%\" already exists."))) % name).str());
-            msg_text += "\n" + _(L("Replace?"));
-            wxMessageDialog dialog(nullptr, msg_text, _(L("Warning")), wxICON_WARNING | wxYES | wxNO);
-
-            if (dialog.ShowModal() == wxID_NO)
-                return;
-
-            // Remove the preset from the list.
-            m_presets->delete_preset(name);
-        }
     }
 
     // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
@@ -3347,9 +3295,6 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach)
     // Mark the print & filament enabled if they are compatible with the currently selected preset.
     // If saving the preset changes compatibility with other presets, keep the now incompatible dependent presets selected, however with a "red flag" icon showing that they are no more compatible.
     m_preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
-    //update physical printer's related printer preset if it's needed 
-    m_presets_choice->allow_to_update_physical_printers();
-    m_presets_choice->update_physical_printers(name);
     // Add the new item into the UI component, remove dirty flags and activate the saved item.
     update_tab_ui();
     // Update the selection boxes at the plater.

@@ -13,6 +13,7 @@ class wxTextCtrl;
 class wxStaticText;
 class ScalableButton;
 class wxBoxSizer;
+class wxComboBox;
 
 namespace Slic3r {
 
@@ -167,50 +168,68 @@ class TabPresetComboBox : public PresetComboBox
     bool show_incompatible {false};
     bool m_enable_all {false};
 
-    bool    m_allow_to_update_physical_printers {false};
-
 public:
     TabPresetComboBox(wxWindow *parent, Preset::Type preset_type);
     ~TabPresetComboBox() {}
     void set_show_incompatible_presets(bool show_incompatible_presets) {
         show_incompatible = show_incompatible_presets;
     }
-    void allow_to_update_physical_printers() {
-        m_allow_to_update_physical_printers = m_type == Preset::TYPE_PRINTER;
-    }
 
     void update() override;
     void update_dirty();
-    void update_physical_printers(const std::string& preset_name);
     void msw_rescale() override;
 
     void set_enable_all(bool enable=true) { m_enable_all = enable; }
+
+    PresetCollection*   presets()   const { return m_collection; }
+    Preset::Type        type()      const { return m_type; }
 };
 
 
 //------------------------------------------------
-//          ChangePresetForPhysicalPrinterDialog
+//          SavePresetDialog
 //------------------------------------------------
 
-class ChangePresetForPhysicalPrinterDialog : public DPIDialog
+class SavePresetDialog : public DPIDialog
 {
-    void OnOK(wxEvent& event);
+    enum ActionType
+    {
+        ChangePreset,
+        AddPreset,
+        Switch, 
+        UndefAction
+    };
+
+    TabPresetComboBox*  m_preset_cb         {nullptr};
+    std::string		    m_preset_name;
+    wxComboBox*         m_combo             {nullptr};
+    wxStaticText*       m_label             {nullptr}; 
+    wxRadioBox*         m_action_radio_box  {nullptr};
+    wxBoxSizer*         m_radio_sizer       {nullptr};  
+    ActionType          m_action            {UndefAction};
+
+    std::string m_ph_printer_name;
+    std::string m_old_preset_name;
 
 public:
 
-    enum SelectionType
-    {
-        Switch,
-        ChangePreset,
-        AddPreset
-    } m_selection {Switch};
+    SavePresetDialog(TabPresetComboBox* preset_cb, const std::string& suffix);
+    ~SavePresetDialog() {}
 
-    ChangePresetForPhysicalPrinterDialog(const std::string& preset_name);
-    ~ChangePresetForPhysicalPrinterDialog() {}
+    std::string get_name()      { return m_preset_name; }
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
-    void on_sys_color_changed() override {};
+    void on_sys_color_changed() override {}
+
+private:
+    void add_common_items(wxBoxSizer *sizer, const std::string &suffix);
+    void add_items_for_edit_ph_printer(wxBoxSizer *sizer);
+    void update(const std::string &preset_name);
+    bool preset_name_is_accepted();
+    bool preset_is_possible_to_save();
+    void update_physical_printers();
+    void accept();
 };
 
 } // namespace GUI
