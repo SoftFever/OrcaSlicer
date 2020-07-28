@@ -331,4 +331,40 @@ std::string ExtrusionEntity::role_to_string(ExtrusionRole role)
     return "";
 }
 
+ExtrusionRole ExtrusionEntity::string_to_role(const std::string& role)
+{
+    if (role == L("Perimeter"))
+        return erPerimeter;
+    else if (role == L("External perimeter"))
+        return erExternalPerimeter;
+    else if (role == L("Overhang perimeter"))
+        return erOverhangPerimeter;
+    else if (role == L("Internal infill"))
+        return erInternalInfill;
+    else if (role == L("Solid infill"))
+        return erSolidInfill;
+    else if (role == L("Top solid infill"))
+        return erTopSolidInfill;
+    else if (role == L("Ironing"))
+        return erIroning;
+    else if (role == L("Bridge infill"))
+        return erBridgeInfill;
+    else if (role == L("Gap fill"))
+        return erGapFill;
+    else if (role == L("Skirt"))
+        return erSkirt;
+    else if (role == L("Support material"))
+        return erSupportMaterial;
+    else if (role == L("Support material interface"))
+        return erSupportMaterialInterface;
+    else if (role == L("Wipe tower"))
+        return erWipeTower;
+    else if (role == L("Custom"))
+        return erCustom;
+    else if (role == L("Mixed"))
+        return erMixed;
+    else
+        return erNone;
+}
+
 }

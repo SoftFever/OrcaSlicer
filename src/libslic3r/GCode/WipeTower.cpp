@@ -64,7 +64,7 @@ public:
 #endif // ENABLE_GCODE_VIEWER
             m_gcode += buf;
 #if ENABLE_GCODE_VIEWER
-            sprintf(buf, ";%s%d\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), erWipeTower);
+            sprintf(buf, ";%s%s\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), ExtrusionEntity::role_to_string(erWipeTower).c_str());
 #else
             sprintf(buf, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erWipeTower);
 #endif // ENABLE_GCODE_VIEWER

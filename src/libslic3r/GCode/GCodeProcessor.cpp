@@ -21,13 +21,13 @@ static const float DEFAULT_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
 
 namespace Slic3r {
 
-const std::string GCodeProcessor::Extrusion_Role_Tag = "PrusaSlicer__EXTRUSION_ROLE:";
+const std::string GCodeProcessor::Extrusion_Role_Tag = "ExtrType:";
 const std::string GCodeProcessor::Width_Tag          = "PrusaSlicer__WIDTH:";
 const std::string GCodeProcessor::Height_Tag         = "PrusaSlicer__HEIGHT:";
 const std::string GCodeProcessor::Mm3_Per_Mm_Tag     = "PrusaSlicer__MM3_PER_MM:";
-const std::string GCodeProcessor::Color_Change_Tag   = "PrusaSlicer__COLOR_CHANGE";
-const std::string GCodeProcessor::Pause_Print_Tag    = "PrusaSlicer__PAUSE_PRINT";
-const std::string GCodeProcessor::Custom_Code_Tag    = "PrusaSlicer__CUSTOM_CODE";
+const std::string GCodeProcessor::Color_Change_Tag   = "COLOR_CHANGE";
+const std::string GCodeProcessor::Pause_Print_Tag    = "PAUSE_PRINT";
+const std::string GCodeProcessor::Custom_Code_Tag    = "CUSTOM_CODE";
 
 static bool is_valid_extrusion_role(int value)
 {
@@ -560,20 +560,7 @@ void GCodeProcessor::process_tags(const std::string& comment)
     // extrusion role tag
     size_t pos = comment.find(Extrusion_Role_Tag);
     if (pos != comment.npos) {
-        try
-        {
-            int role = std::stoi(comment.substr(pos + Extrusion_Role_Tag.length()));
-            if (is_valid_extrusion_role(role))
-                m_extrusion_role = static_cast<ExtrusionRole>(role);
-            else {
-                // todo: show some error ?
-            }
-        }
-        catch (...)
-        {
-            BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Extrusion Role (" << comment << ").";
-        }
-
+        m_extrusion_role = ExtrusionEntity::string_to_role(comment.substr(pos + Extrusion_Role_Tag.length()));
         return;
     }
 

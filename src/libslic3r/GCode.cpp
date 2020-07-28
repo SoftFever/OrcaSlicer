@@ -1388,7 +1388,7 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
 
 #if ENABLE_GCODE_VIEWER
     // adds tag for processor
-    _write_format(file, ";%s%d\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), erCustom);
+    _write_format(file, ";%s%s\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
 #else
     if (m_enable_analyzer)
         // adds tag for analyzer
@@ -1546,7 +1546,7 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
 
 #if ENABLE_GCODE_VIEWER
     // adds tag for processor
-    _write_format(file, ";%s%d\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), erCustom);
+    _write_format(file, ";%s%s\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
 #else
     if (m_enable_analyzer)
         // adds tag for analyzer
@@ -3226,7 +3226,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 #if ENABLE_GCODE_VIEWER
         if (path.role() != m_last_processor_extrusion_role) {
             m_last_processor_extrusion_role = path.role();
-            sprintf(buf, ";%s%d\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), int(m_last_processor_extrusion_role));
+            sprintf(buf, ";%s%s\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), ExtrusionEntity::role_to_string(m_last_processor_extrusion_role).c_str());
             gcode += buf;
         }
 #else
