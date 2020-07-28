@@ -555,7 +555,7 @@ public:
     static std::string  separator();
     static const std::vector<std::string>&  printer_options();
     static const std::vector<std::string>&  print_host_options();
-    static bool has_print_host_information(const PrinterPresetCollection& printer_presets);
+    static std::vector<std::string>         presets_with_print_host_information(const PrinterPresetCollection& printer_presets);
     static bool has_print_host_information(const DynamicPrintConfig& config);
 
     const std::set<std::string>&            get_preset_names() const;
@@ -629,7 +629,7 @@ public:
 
     // Load ini files of the particular type from the provided directory path.
     void            load_printers(const std::string& dir_path, const std::string& subdir);
-    void            load_printers_from_presets(PrinterPresetCollection &printer_presets, std::string def_printer_name);
+    void            load_printers_from_presets(PrinterPresetCollection &printer_presets);
 
     // Save the printer under a new name. If the name is different from the old one,
     // a new printer is stored into the list of printers.
@@ -645,7 +645,12 @@ public:
     // Delete preset_name preset from all printers:
     // If there is last preset for the printer and first_check== false, then delete this printer
     // returns true if all presets were deleted successfully.
-    bool            delete_preset_from_printers(const std::string& preset_name, bool first_check = true);
+    bool            delete_preset_from_printers(const std::string& preset_name);
+
+    // Get list of printers which have more than one preset and "preset_name" preset is one of them
+    std::vector<std::string> get_printers_with_preset( const std::string &preset_name);
+    // Get list of printers which has only "preset_name" preset
+    std::vector<std::string> get_printers_with_only_preset( const std::string &preset_name);
 
     // Return the selected preset, without the user modifications applied.
     PhysicalPrinter&        get_selected_printer() { return m_printers[m_idx_selected]; }

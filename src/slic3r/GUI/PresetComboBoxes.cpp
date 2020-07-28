@@ -171,7 +171,7 @@ void PresetComboBox::update_selection()
     SetToolTip(GetString(m_last_selected));
 }
 
-void PresetComboBox::update(const std::string& select_preset_name)
+void PresetComboBox::update(std::string select_preset_name)
 {
     Freeze();
     Clear();
@@ -192,6 +192,8 @@ void PresetComboBox::update(const std::string& select_preset_name)
 
         // marker used for disable incompatible printer models for the selected physical printer
         bool is_enabled = m_type == Preset::TYPE_PRINTER && printer_technology != ptAny ? preset.printer_technology() == printer_technology : true;
+        if (select_preset_name.empty() && is_enabled)
+            select_preset_name = preset.name;
 
         std::string   bitmap_key = "cb";
         if (m_type == Preset::TYPE_PRINTER) {
@@ -208,7 +210,7 @@ void PresetComboBox::update(const std::string& select_preset_name)
             int item_id = Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), *bmp);
             if (!is_enabled)
                 set_label_marker(item_id, LABEL_ITEM_DISABLED);
-            validate_selection(preset.name == select_preset_name || (select_preset_name.empty() && is_enabled));
+            validate_selection(preset.name == select_preset_name);
         }
         else
         {
@@ -659,6 +661,13 @@ void PlaterPresetComboBox::show_edit_menu()
                 wxTheApp->CallAfter([]() { wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS); });
             }, "edit_uni", menu, []() { return true; }, wxGetApp().plater());
 
+    append_menu_item(menu, wxID_ANY, _L("Add physical printer"), "",
+        [this](wxCommandEvent&) {
+            PhysicalPrinterDialog dlg(wxEmptyString);
+            if (dlg.ShowModal() == wxID_OK)
+                update();
+        }, "edit_uni", menu, []() { return true; }, wxGetApp().plater());
+
     wxGetApp().plater()->PopupMenu(menu);
 }
 
@@ -784,7 +793,7 @@ void PlaterPresetComboBox::update()
         }
     }
 
-    if (/*m_type == Preset::TYPE_PRINTER || */m_type == Preset::TYPE_SLA_MATERIAL) {
+    if (m_type == Preset::TYPE_PRINTER || m_type == Preset::TYPE_SLA_MATERIAL) {
         wxBitmap* bmp = get_bmp("edit_preset_list", wide_icons, "edit_uni");
         assert(bmp);
 

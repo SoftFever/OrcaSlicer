@@ -55,7 +55,7 @@ public:
     // and next internal selection was accomplished
     bool selection_is_changed_according_to_physical_printers();
 
-    void update(const std::string& select_preset);
+    void update(std::string select_preset);
 
     virtual void update();
     virtual void msw_rescale();

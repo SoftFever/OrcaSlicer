@@ -510,6 +510,8 @@ void PhysicalPrinterDialog::OnOK(wxEvent& event)
         // refresh preset list on Printer Settings Tab
         wxGetApp().get_tab(Preset::TYPE_PRINTER)->select_preset(printers.get_selected_printer_preset_name());
     }
+    else
+        wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_preset_choice();
 
     event.Skip();
 }

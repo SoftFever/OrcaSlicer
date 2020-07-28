@@ -119,6 +119,7 @@ protected:
 	ScalableButton*		m_search_btn;
 	ScalableButton*		m_btn_save_preset;
 	ScalableButton*		m_btn_delete_preset;
+	ScalableButton*		m_btn_edit_ph_printer {nullptr};
 	ScalableButton*		m_btn_hide_incompatible_presets;
 	wxBoxSizer*			m_hsizer;
 	wxBoxSizer*			m_left_sizer;
@@ -275,7 +276,7 @@ public:
     void		load_current_preset();
 	void        rebuild_page_tree();
 	void        update_page_tree_visibility();
-    void		update_delete_preset_btn();
+    void		update_btns_enabling();
     void		update_preset_choice();
     // Select a new preset, possibly delete the current one.
 	void		select_preset(std::string preset_name = "", bool delete_current = false, const std::string& last_selected_ph_printer_name = "");

@@ -1383,13 +1383,14 @@ const std::vector<std::string>& PhysicalPrinter::print_host_options()
     return s_opts;
 }
 
-bool PhysicalPrinter::has_print_host_information(const PrinterPresetCollection& printer_presets)
+std::vector<std::string> PhysicalPrinter::presets_with_print_host_information(const PrinterPresetCollection& printer_presets)
 {
+    std::vector<std::string> presets;
     for (const Preset& preset : printer_presets)
         if (has_print_host_information(preset.config))
-            return true;
+            presets.emplace_back(preset.name);
 
-    return false;
+    return presets;
 }
 
 bool PhysicalPrinter::has_print_host_information(const DynamicPrintConfig& config)
@@ -1564,7 +1565,7 @@ void PhysicalPrinterCollection::load_printers(const std::string& dir_path, const
 // if there is saved user presets, contains information about "Print Host upload",
 // Create default printers with this presets
 // Note! "Print Host upload" options will be cleared after physical printer creations
-void PhysicalPrinterCollection::load_printers_from_presets(PrinterPresetCollection& printer_presets, std::string def_printer_name)
+void PhysicalPrinterCollection::load_printers_from_presets(PrinterPresetCollection& printer_presets)
 {
     int cnt=0;
     for (Preset& preset: printer_presets) {
@@ -1579,8 +1580,12 @@ void PhysicalPrinterCollection::load_printers_from_presets(PrinterPresetCollecti
                     // just add preset for this printer
                     existed_printer->add_preset(preset.name);
                 else {
+                    std::string new_printer_name = (boost::format("Printer %1%") % ++cnt ).str();
+                    while (find_printer(new_printer_name))
+                        new_printer_name = (boost::format("Printer %1%") % ++cnt).str();
+
                     // create new printer from this preset
-                    PhysicalPrinter printer((boost::format("%1% %2%") % def_printer_name % ++cnt ).str(), preset);
+                    PhysicalPrinter printer(new_printer_name, preset);
                     printer.loaded = true;
                     save_printer(printer);
                 }
@@ -1699,31 +1704,49 @@ bool PhysicalPrinterCollection::delete_selected_printer()
     return true;
 }
 
-bool PhysicalPrinterCollection::delete_preset_from_printers( const std::string& preset_name, bool first_check /*=true*/)
+bool PhysicalPrinterCollection::delete_preset_from_printers( const std::string& preset_name)
 {
-    if (first_check) {
-        for (auto printer: m_printers)
-            if (printer.preset_names.size()==1 && *printer.preset_names.begin() == preset_name)
-                return false;
-    }
-
     std::vector<std::string> printers_for_delete;
-    for (PhysicalPrinter& printer : m_printers)
+    for (PhysicalPrinter& printer : m_printers) {
         if (printer.preset_names.size() == 1 && *printer.preset_names.begin() == preset_name)
             printers_for_delete.emplace_back(printer.name);
-        else if (printer.delete_preset(preset_name)) {
-            if (printer.name == get_selected_printer_name() && 
-                preset_name == get_selected_printer_preset_name())
-                select_printer(printer);
+        else if (printer.delete_preset(preset_name))
             save_printer(printer);
-        }
+    }
 
-    if (!printers_for_delete.empty()) {
+    if (!printers_for_delete.empty())
         for (const std::string& printer_name : printers_for_delete)
             delete_printer(printer_name);
-        unselect_printer();
-    }
+
+    unselect_printer();
     return true;
+}
+
+// Get list of printers which have more than one preset and "preset_name" preset is one of them
+std::vector<std::string> PhysicalPrinterCollection::get_printers_with_preset(const std::string& preset_name)
+{
+    std::vector<std::string> printers;
+
+    for (auto printer : m_printers) {
+        if (printer.preset_names.size() == 1)
+            continue;        
+        if (printer.preset_names.find(preset_name) != printer.preset_names.end())
+            printers.emplace_back(printer.name);
+    }
+
+    return printers;
+}
+
+// Get list of printers which has only "preset_name" preset
+std::vector<std::string> PhysicalPrinterCollection::get_printers_with_only_preset(const std::string& preset_name)
+{
+    std::vector<std::string> printers;
+
+    for (auto printer : m_printers)
+        if (printer.preset_names.size() == 1 && *printer.preset_names.begin() == preset_name)
+            printers.emplace_back(printer.name);
+
+    return printers;
 }
 
 std::string PhysicalPrinterCollection::get_selected_full_printer_name() const

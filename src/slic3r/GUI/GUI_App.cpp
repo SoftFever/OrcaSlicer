@@ -635,38 +635,22 @@ void GUI_App::set_auto_toolbar_icon_scale(float scale) const
 // check user printer_presets for the containing information about "Print Host upload"
 void GUI_App::check_printer_presets()
 {
-    if (!PhysicalPrinter::has_print_host_information(preset_bundle->printers))
+    std::vector<std::string> preset_names = PhysicalPrinter::presets_with_print_host_information(preset_bundle->printers);
+    if (preset_names.empty())
         return;
 
-    wxString msg_text =  _L("You have presets with saved options for \"Print Host upload\".\n"
-                            "But from this version of PrusaSlicer we don't show/use this information in Printer Settings.\n"
+    wxString msg_text =  _L("You have next presets with saved options for \"Print Host upload\"") + ":";
+    for (const std::string& preset_name : preset_names)
+        msg_text += "\n    \"" + from_u8(preset_name) + "\",";
+    msg_text.RemoveLast();
+    msg_text += "\n\n" + _L("But from this version of PrusaSlicer we don't show/use this information in Printer Settings.\n"
                             "Now, this information will be exposed in physical printers settings.") + "\n\n" +
-                            _L("Enter the name for the Printer device used by default during its creation.\n"
-                               "Note: This name can be changed later from the physical printers settings") + ":";
-    wxString msg_header = _L("Name for printer device");
+                         _L("By default new Printer devices will be named as \"Printer N\" during its creation.\n"
+                            "Note: This name can be changed later from the physical printers settings");
 
-    // get custom gcode
-    wxTextEntryDialog dlg(nullptr, msg_text, msg_header, _L("Printer"), wxTextEntryDialogStyle);
+    wxMessageDialog(nullptr, msg_text, _L("Information"), wxOK | wxICON_INFORMATION).ShowModal();
 
-    // detect TextCtrl and OK button
-    wxTextCtrl* textctrl{ nullptr };
-    wxWindowList& dlg_items = dlg.GetChildren();
-    for (auto item : dlg_items) {
-        textctrl = dynamic_cast<wxTextCtrl*>(item);
-        if (textctrl)
-            break;
-    }
-
-    if (textctrl) {
-        textctrl->SetSelection(0, textctrl->GetLastPosition());
-
-        wxButton* btn_OK = static_cast<wxButton*>(dlg.FindWindowById(wxID_OK));
-        btn_OK->Bind(wxEVT_UPDATE_UI, [textctrl](wxUpdateUIEvent& evt) {
-            evt.Enable(!textctrl->IsEmpty());
-        }, btn_OK->GetId());
-    }
-    if (dlg.ShowModal() == wxID_OK)
-        preset_bundle->physical_printers.load_printers_from_presets(preset_bundle->printers, into_u8(dlg.GetValue()));
+    preset_bundle->physical_printers.load_printers_from_presets(preset_bundle->printers);
 }
 
 void GUI_App::recreate_GUI(const wxString& msg_name)
