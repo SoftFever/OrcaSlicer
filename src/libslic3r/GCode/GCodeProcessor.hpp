@@ -21,7 +21,6 @@ namespace Slic3r {
         static const std::string Extrusion_Role_Tag;
         static const std::string Width_Tag;
         static const std::string Height_Tag;
-        static const std::string Mm3_Per_Mm_Tag;
         static const std::string Color_Change_Tag;
         static const std::string Pause_Print_Tag;
         static const std::string Custom_Code_Tag;
@@ -241,6 +240,7 @@ namespace Slic3r {
         ExtrusionRole m_extrusion_role;
         unsigned char m_extruder_id;
         ExtrudersColor m_extruders_color;
+        std::vector<float> m_filament_diameters;
         CpColor m_cp_color;
 
         enum class EProducer

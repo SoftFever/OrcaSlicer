@@ -173,7 +173,6 @@ public:
         m_last_pos_defined(false),
         m_last_extrusion_role(erNone),
 #if ENABLE_GCODE_VIEWER
-        m_last_mm3_per_mm(0.0f),
         m_last_width(0.0f),
         m_last_height(0.0f),
 #else
@@ -378,10 +377,16 @@ private:
     double                              m_volumetric_speed;
     // Support for the extrusion role markers. Which marker is active?
     ExtrusionRole                       m_last_extrusion_role;
+#if ENABLE_GCODE_VIEWER
+    // Support for G-Code Processor
+    float                               m_last_width;
+    float                               m_last_height;
+#else
     // Support for G-Code Analyzer
     double                              m_last_mm3_per_mm;
     float                               m_last_width;
     float                               m_last_height;
+#endif // ENABLE_GCODE_VIEWER
 
     Point                               m_last_pos;
     bool                                m_last_pos_defined;

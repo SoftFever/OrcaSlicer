@@ -84,19 +84,17 @@ public:
             return *this;
     }
 
-    WipeTowerWriter&          change_analyzer_mm3_per_mm(float len, float e) {
-            static const float area = float(M_PI) * 1.75f * 1.75f / 4.f;
-            float mm3_per_mm = (len == 0.f ? 0.f : area * e / len);
-            // adds tag for analyzer:
-            char buf[64];
-#if ENABLE_GCODE_VIEWER
-            sprintf(buf, ";%s%f\n", GCodeProcessor::Mm3_Per_Mm_Tag.c_str(), mm3_per_mm);
-#else
-            sprintf(buf, ";%s%f\n", GCodeAnalyzer::Mm3_Per_Mm_Tag.c_str(), mm3_per_mm);
-#endif // ENABLE_GCODE_VIEWER
-            m_gcode += buf;
-            return *this;
+#if !ENABLE_GCODE_VIEWER
+    WipeTowerWriter& change_analyzer_mm3_per_mm(float len, float e) {
+        static const float area = float(M_PI) * 1.75f * 1.75f / 4.f;
+        float mm3_per_mm = (len == 0.f ? 0.f : area * e / len);
+        // adds tag for analyzer:
+        char buf[64];
+        sprintf(buf, ";%s%f\n", GCodeAnalyzer::Mm3_Per_Mm_Tag.c_str(), mm3_per_mm);
+        m_gcode += buf;
+        return *this;
     }
+#endif // !ENABLE_GCODE_VIEWER
 
 	WipeTowerWriter& 			 set_initial_position(const Vec2f &pos, float width = 0.f, float depth = 0.f, float internal_angle = 0.f) {
         m_wipe_tower_width = width;
@@ -169,8 +167,10 @@ public:
 		Vec2f rot(this->rotate(Vec2f(x,y)));                               // this is where we want to go
 
         if (! m_preview_suppressed && e > 0.f && len > 0.f) {
+#if !ENABLE_GCODE_VIEWER
             change_analyzer_mm3_per_mm(len, e);
-			// Width of a squished extrusion, corrected for the roundings of the squished extrusions.
+#endif // !ENABLE_GCODE_VIEWER
+            // Width of a squished extrusion, corrected for the roundings of the squished extrusions.
 			// This is left zero if it is a travel move.
             float width = e * m_filpar[0].filament_area / (len * m_layer_height);
 			// Correct for the roundings of a squished extrusion.

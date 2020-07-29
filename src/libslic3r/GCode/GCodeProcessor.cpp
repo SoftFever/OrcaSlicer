@@ -24,7 +24,6 @@ namespace Slic3r {
 const std::string GCodeProcessor::Extrusion_Role_Tag = "ExtrType:";
 const std::string GCodeProcessor::Width_Tag          = "PrusaSlicer__WIDTH:";
 const std::string GCodeProcessor::Height_Tag         = "PrusaSlicer__HEIGHT:";
-const std::string GCodeProcessor::Mm3_Per_Mm_Tag     = "PrusaSlicer__MM3_PER_MM:";
 const std::string GCodeProcessor::Color_Change_Tag   = "COLOR_CHANGE";
 const std::string GCodeProcessor::Pause_Print_Tag    = "PAUSE_PRINT";
 const std::string GCodeProcessor::Custom_Code_Tag    = "CUSTOM_CODE";
@@ -325,6 +324,10 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         m_extruders_color[id] = static_cast<unsigned int>(id);
     }
 
+    for (double diam : config.filament_diameter.values) {
+        m_filament_diameters.push_back(static_cast<float>(diam));
+    }
+
     m_time_processor.machine_limits = reinterpret_cast<const MachineEnvelopeConfig&>(config);
     // Filament load / unload times are not specific to a firmware flavor. Let anybody use it if they find it useful.
     // As of now the fields are shown at the UI dialog in the same combo box as the ramming values, so they
@@ -370,6 +373,7 @@ void GCodeProcessor::reset()
     m_extrusion_role = erNone;
     m_extruder_id = 0;
     m_extruders_color = ExtrudersColor();
+    m_filament_diameters = std::vector<float>();
     m_cp_color.reset();
 
     m_producer = EProducer::Unknown;
@@ -588,20 +592,6 @@ void GCodeProcessor::process_tags(const std::string& comment)
         catch (...)
         {
             BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Height (" << comment << ").";
-        }
-        return;
-    }
-
-    // mm3 per mm tag
-    pos = comment.find(Mm3_Per_Mm_Tag);
-    if (pos != comment.npos) {
-        try
-        {
-            m_mm3_per_mm = std::stof(comment.substr(pos + Mm3_Per_Mm_Tag.length()));
-        }
-        catch (...)
-        {
-            BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Mm3_Per_Mm (" << comment << ").";
         }
         return;
     }
@@ -1018,6 +1008,14 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         return;
 
     EMoveType type = move_type(delta_pos);
+
+    if (type == EMoveType::Extrude) {
+        if (delta_pos[E] > 0.0f) {
+            float ds = std::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
+            if (ds > 0.0f && static_cast<size_t>(m_extruder_id) < m_filament_diameters.size())
+                m_mm3_per_mm = round_nearest(delta_pos[E] * static_cast<float>(M_PI) * sqr(static_cast<float>(m_filament_diameters[m_extruder_id])) / (4.0f * ds), 3);
+        }
+    }
 
     // time estimate section
     auto move_length = [](const AxisCoords& delta_pos) {

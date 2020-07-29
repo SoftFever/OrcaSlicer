@@ -1178,7 +1178,6 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
 
     // resets analyzer's tracking data
 #if ENABLE_GCODE_VIEWER
-    m_last_mm3_per_mm = 0.0f;
     m_last_width = 0.0f;
     m_last_height = 0.0f;
 #else
@@ -3237,16 +3236,13 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         }
 #endif // ENABLE_GCODE_VIEWER
 
+#if !ENABLE_GCODE_VIEWER
         if (last_was_wipe_tower || (m_last_mm3_per_mm != path.mm3_per_mm)) {
             m_last_mm3_per_mm = path.mm3_per_mm;
-#if ENABLE_GCODE_VIEWER
-            sprintf(buf, ";%s%f\n", GCodeProcessor::Mm3_Per_Mm_Tag.c_str(), m_last_mm3_per_mm);
-            gcode += buf;
-#else
             sprintf(buf, ";%s%f\n", GCodeAnalyzer::Mm3_Per_Mm_Tag.c_str(), m_last_mm3_per_mm);
             gcode += buf;
-#endif // ENABLE_GCODE_VIEWER
         }
+#endif // !ENABLE_GCODE_VIEWER
 
         if (last_was_wipe_tower || (m_last_width != path.width)) {
             m_last_width = path.width;
