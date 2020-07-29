@@ -1348,8 +1348,6 @@ void GCodeViewer::render_shells() const
 //    glsafe(::glDepthMask(GL_TRUE));
 }
 
-#define USE_ICON_HEXAGON 1
-
 void GCodeViewer::render_legend() const
 {
     if (!m_legend_enabled)
@@ -1444,11 +1442,7 @@ void GCodeViewer::render_legend() const
         auto append_range_item = [this, draw_list, &imgui, append_item](int i, float value, unsigned int decimals) {
             char buf[1024];
             ::sprintf(buf, "%.*f", decimals, value);
-#if USE_ICON_HEXAGON
             append_item(EItemType::Hexagon, Range_Colors[i], buf);
-#else
-            append_item(EItemType::Rect, Range_Colors[i], buf);
-#endif // USE_ICON_HEXAGON
         };
 
         float step_size = range.step_size();
@@ -1533,13 +1527,8 @@ void GCodeViewer::render_legend() const
             if (!visible)
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
 
-#if USE_ICON_HEXAGON
             append_item(EItemType::Hexagon, Extrusion_Role_Colors[static_cast<unsigned int>(role)], _u8L(ExtrusionEntity::role_to_string(role)), [this, role]() {
-#else
-            append_item(EItemType::Rect, Extrusion_Role_Colors[static_cast<unsigned int>(role)], _u8L(ExtrusionEntity::role_to_string(role)), [this, role]() {
-#endif // USE_ICON_HEXAGON
-                if (role < erCount)
-                {
+                if (role < erCount) {
                     m_extrusions.role_visibility_flags = is_visible(role) ? m_extrusions.role_visibility_flags & ~(1 << role) : m_extrusions.role_visibility_flags | (1 << role);
                     // update buffers' render paths
                     refresh_render_paths(false, false);
@@ -1562,11 +1551,7 @@ void GCodeViewer::render_legend() const
     {
         // shows only extruders actually used
         for (unsigned char i : m_extruder_ids) {
-#if USE_ICON_HEXAGON
             append_item(EItemType::Hexagon, m_tool_colors[i], _u8L("Extruder") + " " + std::to_string(i + 1));
-#else
-            append_item(EItemType::Rect, m_tool_colors[i], _u8L("Extruder") + " " + std::to_string(i + 1));
-#endif // USE_ICON_HEXAGON
         }
         break;
     }
@@ -1578,36 +1563,20 @@ void GCodeViewer::render_legend() const
             std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(0, custom_gcode_per_print_z);
             const int items_cnt = static_cast<int>(cp_values.size());
             if (items_cnt == 0) { // There are no color changes, but there are some pause print or custom Gcode
-#if USE_ICON_HEXAGON
                 append_item(EItemType::Hexagon, m_tool_colors.front(), _u8L("Default color"));
-#else
-                append_item(EItemType::Rect, m_tool_colors.front(), _u8L("Default color"));
-#endif // USE_ICON_HEXAGON
             }
             else {
                 for (int i = items_cnt; i >= 0; --i) {
                     // create label for color change item
                     if (i == 0) {
-#if USE_ICON_HEXAGON
                         append_item(EItemType::Hexagon, m_tool_colors[0], upto_label(cp_values.front().second.first));
-#else
-                        append_item(EItemType::Rect, m_tool_colors[0], upto_label(cp_values.front().second.first);
-#endif // USE_ICON_HEXAGON
                         break;
                     }
                     else if (i == items_cnt) {
-#if USE_ICON_HEXAGON
                         append_item(EItemType::Hexagon, cp_values[i - 1].first, above_label(cp_values[i - 1].second.second));
-#else
-                        append_item(EItemType::Rect, cp_values[i - 1].first, above_label(cp_values[i - 1].second.second);
-#endif // USE_ICON_HEXAGON
                         continue;
                     }
-#if USE_ICON_HEXAGON
                     append_item(EItemType::Hexagon, cp_values[i - 1].first, fromto_label(cp_values[i - 1].second.second, cp_values[i].second.first));
-#else
-                    append_item(EItemType::Rect, cp_values[i - 1].first, fromto_label(cp_values[i - 1].second.second, cp_values[i].second.first));
-#endif // USE_ICON_HEXAGON
                 }
             }
         }
@@ -1618,11 +1587,7 @@ void GCodeViewer::render_legend() const
                 std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(i, custom_gcode_per_print_z);
                 const int items_cnt = static_cast<int>(cp_values.size());
                 if (items_cnt == 0) { // There are no color changes, but there are some pause print or custom Gcode
-#if USE_ICON_HEXAGON
                     append_item(EItemType::Hexagon, m_tool_colors[i], _u8L("Extruder") + " " + std::to_string(i + 1) + " " + _u8L("default color"));
-#else
-                    append_item(EItemType::Rect, m_tool_colors[i], _u8L("Extruder") + " " + std::to_string(i + 1) + " " + _u8L("default color"));
-#endif // USE_ICON_HEXAGON
                 }
                 else {
                     for (int j = items_cnt; j >= 0; --j) {
@@ -1630,29 +1595,17 @@ void GCodeViewer::render_legend() const
                         std::string label = _u8L("Extruder") + " " + std::to_string(i + 1);
                         if (j == 0) {
                             label += " " + upto_label(cp_values.front().second.first);
-#if USE_ICON_HEXAGON
                             append_item(EItemType::Hexagon, m_tool_colors[i], label);
-#else
-                            append_item(EItemType::Rect, m_tool_colors[i], label);
-#endif // USE_ICON_HEXAGON
                             break;
                         }
                         else if (j == items_cnt) {
                             label += " " + above_label(cp_values[j - 1].second.second);
-#if USE_ICON_HEXAGON
                             append_item(EItemType::Hexagon, cp_values[j - 1].first, label);
-#else
-                            append_item(EItemType::Rect, cp_values[j - 1].first, label);
-#endif // USE_ICON_HEXAGON
                             continue;
                         }
 
                         label += " " + fromto_label(cp_values[j - 1].second.second, cp_values[j].second.first);
-#if USE_ICON_HEXAGON
                         append_item(EItemType::Hexagon, cp_values[j - 1].first, label);
-#else
-                        append_item(EItemType::Rect, cp_values[j - 1].first, label);
-#endif // USE_ICON_HEXAGON
                     }
                 }
             }
@@ -1826,18 +1779,10 @@ void GCodeViewer::render_time_estimate() const
                 ImDrawList* draw_list = ImGui::GetWindowDrawList();
                 ImVec2 pos = ImGui::GetCursorScreenPos();
                 pos.x -= 0.5f * ImGui::GetStyle().ItemSpacing.x;
-#if USE_ICON_HEXAGON
                 ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
                 draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color1[0], color1[1], color1[2], 1.0f }), 6);
                 center.x += icon_size;
                 draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color2[0], color2[1], color2[2], 1.0f }), 6);
-#else
-                draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
-                    ImGui::GetColorU32({ color1[0], color1[1], color1[2], 1.0f }));
-                pos.x += icon_size;
-                draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
-                    ImGui::GetColorU32({ color2[0], color2[1], color2[2], 1.0f }));
-#endif // USE_ICON_HEXAGON
                 ImGui::SameLine(offsets[0]);
                 imgui.text(short_time(get_time_dhms(times.second - times.first)));
             };
