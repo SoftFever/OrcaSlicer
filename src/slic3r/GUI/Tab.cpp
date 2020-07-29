@@ -3262,7 +3262,7 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach)
     std::string suffix = detach ? _utf8(L("Detached")) : _CTX_utf8(L_CONTEXT("Copy", "PresetName"), "PresetName");
 
     if (name.empty()) {
-        SavePresetDialog dlg(m_presets_choice, suffix);
+        SavePresetDialog dlg(m_type, suffix);
         if (dlg.ShowModal() != wxID_OK)
             return;
         name = dlg.get_name();

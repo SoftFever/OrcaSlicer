@@ -1016,41 +1016,21 @@ void TabPresetComboBox::update_dirty()
 
 
 //-----------------------------------------------
-//          SavePresetDialog
+//          SavePresetDialog::Item
 //-----------------------------------------------
 
-SavePresetDialog::SavePresetDialog(TabPresetComboBox* preset_cb, const std::string& suffix)
-    : DPIDialog(nullptr, wxID_ANY, _L("Save preset"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), -1), wxDEFAULT_DIALOG_STYLE | wxICON_WARNING | wxRESIZE_BORDER),
-    m_preset_cb(preset_cb)
+SavePresetDialog::Item::Item(Preset::Type type, const std::string& suffix, wxBoxSizer* sizer, SavePresetDialog* parent):
+    m_type(type),
+    m_parent(parent)
 {
-    SetFont(wxGetApp().normal_font());
-    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));    
+    Tab* tab = wxGetApp().get_tab(m_type);
+    assert(tab);
+    m_presets = tab->get_presets();
 
-    wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
-
-    add_common_items(topSizer, suffix);
-    add_items_for_edit_ph_printer(topSizer);
-
-    // add dialog's buttons
-    wxStdDialogButtonSizer* btns = this->CreateStdDialogButtonSizer(wxOK | wxCANCEL);
-    wxButton* btnOK = static_cast<wxButton*>(this->FindWindowById(wxID_OK, this));
-    btnOK->Bind(wxEVT_BUTTON,    [this](wxCommandEvent&) { accept(); });
-    btnOK->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
-        evt.Enable(!m_combo->GetValue().IsEmpty()); });
-
-    topSizer->Add(btns,         0, wxEXPAND | wxALL, BORDER_W);
-
-    SetSizer(topSizer);
-    topSizer->SetSizeHints(this);
-}
-
-void SavePresetDialog::add_common_items(wxBoxSizer* sizer, const std::string& suffix)
-{
-    const PresetCollection* presets = m_preset_cb->presets();
-    const Preset& sel_preset = presets->get_selected_preset();
-    std::string preset_name = sel_preset.is_default ? "Untitled" :
-        sel_preset.is_system ? (boost::format(("%1% - %2%")) % sel_preset.name % suffix).str() :
-        sel_preset.name;
+    const Preset& sel_preset = m_presets->get_selected_preset();
+    std::string preset_name =   sel_preset.is_default ? "Untitled" :
+                                sel_preset.is_system ? (boost::format(("%1% - %2%")) % sel_preset.name % suffix).str() :
+                                sel_preset.name;
 
     // if name contains extension
     if (boost::iends_with(preset_name, ".ini")) {
@@ -1059,34 +1039,166 @@ void SavePresetDialog::add_common_items(wxBoxSizer* sizer, const std::string& su
     }
 
     std::vector<std::string> values;
-    for (const Preset& preset : *presets) {
+    for (const Preset& preset : *m_presets) {
         if (preset.is_default || preset.is_system || preset.is_external)
             continue;
         values.push_back(preset.name);
     }
 
-    wxStaticText* label_top = new wxStaticText(this, wxID_ANY, from_u8((boost::format(_utf8(L("Save %s as:"))) % into_u8(wxGetApp().get_tab(m_preset_cb->type())->title())).str()));
-    m_combo = new wxComboBox(this, wxID_ANY, from_u8(preset_name),
-        wxDefaultPosition, wxDefaultSize, 0, 0, wxTE_PROCESS_ENTER);
+    wxStaticText* label_top = new wxStaticText(m_parent, wxID_ANY, from_u8((boost::format(_utf8(L("Save %s as:"))) % into_u8(tab->title())).str()));
+
+    m_valid_bmp = new wxStaticBitmap(m_parent, wxID_ANY, create_scaled_bitmap("tick_mark", m_parent));
+
+    m_combo = new wxComboBox(m_parent, wxID_ANY, from_u8(preset_name)/*,
+        wxDefaultPosition, wxDefaultSize, 0, 0, wxTE_PROCESS_ENTER*/);
     for (auto value : values)
         m_combo->Append(from_u8(value));
 
-    m_combo->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent&) { accept(); });
-    m_combo->Bind(wxEVT_TEXT, [this](wxCommandEvent&) {
-        update(normalize_utf8_nfc(m_combo->GetValue().ToUTF8()));
-        this->Layout();
-        this->Fit();
-        });
+    m_combo->Bind(wxEVT_TEXT, [this](wxCommandEvent&) { update(); });
 
-    sizer->Add(label_top,   0, wxEXPAND | wxALL, BORDER_W);
-    sizer->Add(m_combo,     0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, BORDER_W);
+    m_valid_label = new wxStaticText(m_parent, wxID_ANY, "");
+    m_valid_label->SetFont(wxGetApp().bold_font());
+
+    wxBoxSizer* combo_sizer = new wxBoxSizer(wxHORIZONTAL);
+    combo_sizer->Add(m_valid_bmp,   0, wxEXPAND | wxRIGHT, BORDER_W);
+    combo_sizer->Add(m_combo,       1, wxEXPAND, BORDER_W);
+
+    sizer->Add(label_top,       0, wxEXPAND | wxTOP| wxBOTTOM, BORDER_W);
+    sizer->Add(combo_sizer,     0, wxEXPAND | wxBOTTOM, BORDER_W);
+    sizer->Add(m_valid_label,   0, wxEXPAND | wxLEFT, 3*BORDER_W/* + m_valid_bmp->GetBitmap().GetWidth()*/);
+
+    if (m_type == Preset::TYPE_PRINTER)
+        m_parent->add_info_for_edit_ph_printer(sizer);
+
+    update();
 }
 
-void SavePresetDialog::add_items_for_edit_ph_printer(wxBoxSizer* sizer)
+void SavePresetDialog::Item::update()
 {
-    if (m_preset_cb->type() != Preset::TYPE_PRINTER || !m_preset_cb->is_selected_physical_printer())
-        return;
+    m_preset_name = into_u8(m_combo->GetValue());
 
+    m_valid_type = Valid;
+    wxString info_line;
+
+    const char* unusable_symbols = "<>[]:/\\|?*\"";
+
+    const std::string unusable_suffix = PresetCollection::get_suffix_modified();//"(modified)";
+    for (size_t i = 0; i < std::strlen(unusable_symbols); i++) {
+        if (m_preset_name.find_first_of(unusable_symbols[i]) != std::string::npos) {
+            info_line = _L("The supplied name is not valid;") + "\n" +
+                        _L("the following characters are not allowed:") + " " + unusable_symbols;
+            m_valid_type = NoValid;
+            break;
+        }
+    }
+
+    if (m_valid_type == Valid && m_preset_name.find(unusable_suffix) != std::string::npos) {
+        info_line = _L("The supplied name is not valid;") + "\n" +
+                    _L("the following suffix is not allowed:") + "\n\t" +
+                    from_u8(PresetCollection::get_suffix_modified());
+        m_valid_type = NoValid;
+    }
+
+    if (m_valid_type == Valid && m_preset_name == "- default -") {
+        info_line = _L("The supplied name is not available.");
+        m_valid_type = NoValid;
+    }
+
+    const Preset* existing = m_presets->find_preset(m_preset_name, false);
+    if (m_valid_type == Valid && existing && (existing->is_default || existing->is_system)) {
+        info_line = _L("Cannot overwrite a system profile.");
+        m_valid_type = NoValid;
+    }
+    if (m_valid_type == Valid && existing && (existing->is_external)) {
+        info_line = _L("Cannot overwrite an external profile.");
+        m_valid_type = NoValid;
+    }
+    if (m_valid_type == Valid && existing && m_preset_name != m_presets->get_selected_preset_name())
+    {
+        info_line = from_u8((boost::format(_u8L("Preset with name \"%1%\" already exists.")) % m_preset_name).str()) + "\n" +
+                    _L("Note: This preset will be replaced after saving");        
+        m_valid_type = Warning;
+    }
+
+    m_valid_label->SetLabel(info_line);
+    m_valid_label->Show(!info_line.IsEmpty());
+
+    std::string bmp_name =  m_valid_type == Warning ? "exclamation" :
+                            m_valid_type == NoValid ? "cross"       : "tick_mark" ;
+    m_valid_bmp->SetBitmap(create_scaled_bitmap(bmp_name, m_parent));
+
+    if (m_type == Preset::TYPE_PRINTER)
+        m_parent->update_info_for_edit_ph_printer(m_preset_name);
+
+    m_parent->layout();
+}
+
+void SavePresetDialog::Item::accept()
+{
+    if (m_valid_type == Warning)
+        m_presets->delete_preset(m_preset_name);
+}
+
+
+//-----------------------------------------------
+//          SavePresetDialog
+//-----------------------------------------------
+
+SavePresetDialog::SavePresetDialog(Preset::Type type, const std::string& suffix)
+    : DPIDialog(nullptr, wxID_ANY, _L("Save preset"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), 5 * wxGetApp().em_unit()), wxDEFAULT_DIALOG_STYLE | wxICON_WARNING | wxRESIZE_BORDER)
+{
+    SetFont(wxGetApp().normal_font());
+    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));    
+
+    wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
+
+    m_presets_sizer = new wxBoxSizer(wxVERTICAL);
+
+    // Add first item
+    m_items.emplace_back(type, suffix, m_presets_sizer, this);
+
+    // Add dialog's buttons
+    wxStdDialogButtonSizer* btns = this->CreateStdDialogButtonSizer(wxOK | wxCANCEL);
+    wxButton* btnOK = static_cast<wxButton*>(this->FindWindowById(wxID_OK, this));
+    btnOK->Bind(wxEVT_BUTTON,    [this](wxCommandEvent&)        { accept(); });
+    btnOK->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt)   { evt.Enable(enable_ok_btn()); });
+
+    topSizer->Add(m_presets_sizer,  0, wxEXPAND | wxALL, BORDER_W);
+    topSizer->Add(btns,             0, wxEXPAND | wxALL, BORDER_W);
+
+    SetSizer(topSizer);
+    topSizer->SetSizeHints(this);
+}
+
+void SavePresetDialog::AddItem(Preset::Type type, const std::string& suffix)
+{
+    m_items.emplace_back(type, suffix, m_presets_sizer, this);
+}
+
+std::string SavePresetDialog::get_name()
+{
+    return m_items.front().preset_name();
+}
+
+std::string SavePresetDialog::get_name(Preset::Type type)
+{
+    for (Item& item : m_items)
+        if (item.type() == type)
+            return item.preset_name();
+    return "";
+}
+
+bool SavePresetDialog::enable_ok_btn() const
+{
+    for (Item item : m_items)
+        if (!item.is_valid())
+            return false;
+
+    return true;
+}
+
+void SavePresetDialog::add_info_for_edit_ph_printer(wxBoxSizer* sizer)
+{
     PhysicalPrinterCollection& printers = wxGetApp().preset_bundle->physical_printers;
     m_ph_printer_name = printers.get_selected_printer_name();
     m_old_preset_name = printers.get_selected_printer_preset_name();
@@ -1102,6 +1214,7 @@ void SavePresetDialog::add_items_for_edit_ph_printer(wxBoxSizer* sizer)
     m_action_radio_box = new wxRadioBox(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize,
                                         WXSIZEOF(choices), choices, 3, wxRA_SPECIFY_ROWS);
     m_action_radio_box->SetFont(wxGetApp().normal_font());
+    m_action_radio_box->SetLabelFont(wxGetApp().normal_font());
     m_action_radio_box->SetSelection(0);
     m_action_radio_box->Bind(wxEVT_RADIOBOX, [this](wxCommandEvent& e) {
         m_action = (ActionType)e.GetSelection(); });
@@ -1110,18 +1223,13 @@ void SavePresetDialog::add_items_for_edit_ph_printer(wxBoxSizer* sizer)
     m_radio_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_radio_sizer->Add(m_action_radio_box, 1, wxALIGN_CENTER_VERTICAL);
 
-    sizer->Add(m_label,   0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, BORDER_W);
-    sizer->Add(m_radio_sizer, 1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, BORDER_W);
-
-    update(m_preset_name);
+    sizer->Add(m_label,         0, wxEXPAND | wxALL, 2*BORDER_W);
+    sizer->Add(m_radio_sizer,   1, wxEXPAND | wxLEFT, 2*BORDER_W);
 }
 
-void SavePresetDialog::update(const std::string& preset_name)
+void SavePresetDialog::update_info_for_edit_ph_printer(const std::string& preset_name)
 {
-    if (m_preset_cb->type() != Preset::TYPE_PRINTER || !m_preset_cb->is_selected_physical_printer())
-        return;
-
-    bool show = m_old_preset_name != preset_name;
+    bool show = wxGetApp().preset_bundle->physical_printers.has_selection() && m_old_preset_name != preset_name;
 
     m_label->Show(show);
     m_radio_sizer->ShowItems(show);
@@ -1142,6 +1250,12 @@ void SavePresetDialog::update(const std::string& preset_name)
         m_action_radio_box->SetString(n++, label);
 }
 
+void SavePresetDialog::layout()
+{
+    this->Layout();
+    this->Fit();
+}
+
 void SavePresetDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
     const int& em = em_unit();
@@ -1149,65 +1263,13 @@ void SavePresetDialog::on_dpi_changed(const wxRect& suggested_rect)
     msw_buttons_rescale(this, em, { wxID_OK, wxID_CANCEL });
 
     const wxSize& size = wxSize(45 * em, 35 * em);
-    SetMinSize(size);
+    SetMinSize(/*size*/wxSize(100, 50));
 
     Fit();
     Refresh();
 }
 
-bool SavePresetDialog::preset_name_is_accepted()
-{
-    const char* unusable_symbols = "<>[]:/\\|?*\"";
-    const std::string unusable_suffix = PresetCollection::get_suffix_modified();//"(modified)";
-    for (size_t i = 0; i < std::strlen(unusable_symbols); i++) {
-        if (m_preset_name.find_first_of(unusable_symbols[i]) != std::string::npos) {
-            show_error(this, _L("The supplied name is not valid;") + "\n" +
-                             _L("the following characters are not allowed:") + " " + unusable_symbols);
-            return false;
-        }
-    }
-
-    if (m_preset_name.find(unusable_suffix) != std::string::npos) {
-        show_error(this, _L("The supplied name is not valid;") + "\n" +
-                         _L("the following suffix is not allowed:") + "\n\t" +
-                         from_u8(PresetCollection::get_suffix_modified()));
-        return false;
-    }
-
-    if (m_preset_name == "- default -") {
-        show_error(this, _L("The supplied name is not available."));
-        return false;
-    }
-    return true;
-}
-
-bool SavePresetDialog::preset_is_possible_to_save()
-{
-    const Preset* existing = m_preset_cb->presets()->find_preset(m_preset_name, false);
-    if (existing && (existing->is_default || existing->is_system)) {
-        show_error(this, _L("Cannot overwrite a system profile."));
-        return false;
-    }
-    if (existing && (existing->is_external)) {
-        show_error(this, _(L("Cannot overwrite an external profile.")));
-        return false;
-    }
-    if (existing && m_preset_name != m_preset_cb->presets()->get_selected_preset_name())
-    {
-        wxString msg_text = GUI::from_u8((boost::format(_utf8(L("Preset with name \"%1%\" already exists."))) % m_preset_name).str());
-        msg_text += "\n" + _L("Replace?");
-        wxMessageDialog dialog(nullptr, msg_text, _L("Warning"), wxICON_WARNING | wxYES | wxNO);
-
-        if (dialog.ShowModal() == wxID_NO)
-            return false;
-
-        // Remove the preset from the list.
-        m_preset_cb->presets()->delete_preset(m_preset_name);
-    }
-    return true;
-}
-
-void SavePresetDialog::update_physical_printers()
+void SavePresetDialog::update_physical_printers(const std::string& preset_name)
 {
     if (m_action == UndefAction)
         return;
@@ -1228,29 +1290,20 @@ void SavePresetDialog::update_physical_printers()
         if (m_action == ChangePreset)
             printer.delete_preset(printer_preset_name);
 
-        if (printer.add_preset(m_preset_name))
+        if (printer.add_preset(preset_name))
             physical_printers.save_printer(printer);
-        else {
-            wxMessageDialog dialog(nullptr, _L("This preset is already exist for this physical printer. Please, select another one."), _L("Information"), wxICON_INFORMATION | wxOK);
-            dialog.ShowModal();
-        }
 
-        physical_printers.select_printer(printer.get_full_name(m_preset_name));
+        physical_printers.select_printer(printer.get_full_name(preset_name));
     }    
 }
 
 void SavePresetDialog::accept()
 {
-    m_preset_name = normalize_utf8_nfc(m_combo->GetValue().ToUTF8());
-
-    if (m_preset_name.empty())
-        return;
-
-    if (!preset_name_is_accepted() ||
-        !preset_is_possible_to_save())
-        return;
-
-    update_physical_printers();
+    for (Item& item : m_items) {
+        item.accept();
+        if (item.type() == Preset::TYPE_PRINTER)
+            update_physical_printers(item.preset_name());
+    }
 
     EndModal(wxID_OK);
 }
