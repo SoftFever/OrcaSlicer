@@ -266,6 +266,7 @@ namespace Slic3r {
         GCodeProcessor() { reset(); }
 
         void apply_config(const PrintConfig& config);
+        void apply_config(const DynamicPrintConfig& config);
         void enable_stealth_time_estimator(bool enabled);
         void enable_producers(bool enabled) { m_producers_enabled = enabled; }
         void reset();

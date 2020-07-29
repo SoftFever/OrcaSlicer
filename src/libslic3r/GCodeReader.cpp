@@ -115,7 +115,12 @@ void GCodeReader::parse_file(const std::string &file, callback_t callback)
 {
     std::ifstream f(file);
     std::string line;
+#if ENABLE_GCODE_VIEWER
+    m_parsing_file = true;
+    while (m_parsing_file && std::getline(f, line))
+#else
     while (std::getline(f, line))
+#endif // ENABLE_GCODE_VIEWER
         this->parse_line(line, callback);
 }
 

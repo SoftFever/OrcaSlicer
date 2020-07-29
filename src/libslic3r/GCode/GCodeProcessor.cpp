@@ -346,6 +346,18 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     }
 }
 
+void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
+{
+    m_parser.apply_config(config);
+
+    const ConfigOptionFloats* filament_diameters = config.option<ConfigOptionFloats>("filament_diameter");
+    if (filament_diameters != nullptr) {
+        for (double diam : filament_diameters->values) {
+            m_filament_diameters.push_back(static_cast<float>(diam));
+        }
+    }
+}
+
 void GCodeProcessor::enable_stealth_time_estimator(bool enabled)
 {
     m_time_processor.machines[static_cast<size_t>(ETimeMode::Stealth)].enabled = enabled;
@@ -390,6 +402,28 @@ void GCodeProcessor::process_file(const std::string& filename)
 #if ENABLE_GCODE_VIEWER_STATISTICS
     auto start_time = std::chrono::high_resolution_clock::now();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+
+    // pre-processing
+    // parse the gcode file to detect its producer
+    if (m_producers_enabled) {
+        m_parser.parse_file(filename, [this](GCodeReader& reader, const GCodeReader::GCodeLine& line) {
+            std::string cmd = line.cmd();
+            if (cmd.length() == 0) {
+                std::string comment = line.comment();
+                if (comment.length() > 1 && detect_producer(comment))
+                    m_parser.quit_parsing_file();
+            }
+            });
+
+        // if the gcode was produced by PrusaSlicer,
+        // extract the config from it
+        if (m_producer == EProducer::PrusaSlicer) {
+            DynamicPrintConfig config;
+            config.apply(FullPrintConfig::defaults());
+            config.load_from_gcode_file(filename);
+            apply_config(config);
+        }
+    }
 
     m_result.id = ++s_result_id;
     m_result.moves.emplace_back(MoveVertex());
@@ -554,11 +588,12 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line)
 
 void GCodeProcessor::process_tags(const std::string& comment)
 {
-    if (m_producers_enabled && m_producer == EProducer::Unknown && detect_producer(comment))
-        return;
-    else if (m_producers_enabled && m_producer != EProducer::Unknown) {
-        if (process_producers_tags(comment))
-            return;
+    // producers tags
+    if (m_producers_enabled) {
+        if (m_producer != EProducer::Unknown) {
+            if (process_producers_tags(comment))
+                return;
+        }
     }
 
     // extrusion role tag
