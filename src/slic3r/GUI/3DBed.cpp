@@ -255,7 +255,7 @@ Bed3D::Bed3D()
 {
 }
 
-bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model)
+bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom)
 {
     auto check_texture = [](const std::string& texture) {
         return !texture.empty() && (boost::algorithm::iends_with(texture, ".png") || boost::algorithm::iends_with(texture, ".svg")) && boost::filesystem::exists(texture);
@@ -265,30 +265,39 @@ bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, c
         return !model.empty() && boost::algorithm::iends_with(model, ".stl") && boost::filesystem::exists(model);
     };
 
-    auto [new_type, system_model, system_texture] = detect_type(shape);
+    EType type;
+    std::string model;
+    std::string texture;
+    if (force_as_custom)
+        type = Custom;
+    else {
+        auto [new_type, system_model, system_texture] = detect_type(shape);
+        type = new_type;
+        model = system_model;
+        texture = system_texture;
+    }
 
-    std::string texture_filename = custom_texture.empty() ? system_texture : custom_texture;
+    std::string texture_filename = custom_texture.empty() ? texture : custom_texture;
     if (!check_texture(texture_filename))
         texture_filename.clear();
 
-    std::string model_filename = custom_model.empty() ? system_model : custom_model;
+    std::string model_filename = custom_model.empty() ? model : custom_model;
     if (!check_model(model_filename))
         model_filename.clear();
 
-    if ((m_shape == shape) && (m_type == new_type) && (m_texture_filename == texture_filename) && (m_model_filename == model_filename))
+    if (m_shape == shape && m_type == type && m_texture_filename == texture_filename && m_model_filename == model_filename)
         // No change, no need to update the UI.
         return false;
 
     m_shape = shape;
     m_texture_filename = texture_filename;
     m_model_filename = model_filename;
-    m_type = new_type;
+    m_type = type;
 
     calc_bounding_boxes();
 
     ExPolygon poly;
-    for (const Vec2d& p : m_shape)
-    {
+    for (const Vec2d& p : m_shape) {
         poly.contour.append(Point(scale_(p(0)), scale_(p(1))));
     }
 
@@ -435,19 +444,15 @@ static std::string system_print_bed_texture(const Preset &preset)
 std::tuple<Bed3D::EType, std::string, std::string> Bed3D::detect_type(const Pointfs& shape) const
 {
     auto bundle = wxGetApp().preset_bundle;
-    if (bundle != nullptr)
-    {
+    if (bundle != nullptr) {
         const Preset* curr = &bundle->printers.get_selected_preset();
-        while (curr != nullptr)
-        {
-            if (curr->config.has("bed_shape"))
-            {
-                if (shape == dynamic_cast<const ConfigOptionPoints*>(curr->config.option("bed_shape"))->values)
-                {
+        while (curr != nullptr) {
+            if (curr->config.has("bed_shape")) {
+                if (shape == dynamic_cast<const ConfigOptionPoints*>(curr->config.option("bed_shape"))->values) {
                     std::string model_filename = system_print_bed_model(*curr);
                     std::string texture_filename = system_print_bed_texture(*curr);
                     if (!model_filename.empty() && !texture_filename.empty())
-                        return std::make_tuple(System, model_filename, texture_filename);
+                        return { System, model_filename, texture_filename };
                 }
             }
 
@@ -455,7 +460,7 @@ std::tuple<Bed3D::EType, std::string, std::string> Bed3D::detect_type(const Poin
         }
     }
 
-    return std::make_tuple(Custom, "", "");
+    return { Custom, "", "" };
 }
 
 void Bed3D::render_axes() const

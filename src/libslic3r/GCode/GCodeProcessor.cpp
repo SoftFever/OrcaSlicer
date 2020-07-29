@@ -694,7 +694,6 @@ bool GCodeProcessor::process_producers_tags(const std::string& comment)
 
 bool GCodeProcessor::process_prusaslicer_tags(const std::string& comment)
 {
-    std::cout << comment << "\n";
     return false;
 }
 

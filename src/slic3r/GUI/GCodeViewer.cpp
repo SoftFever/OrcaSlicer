@@ -337,7 +337,7 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
                           { max(0), max(1) },
                           { min(0), max(1) } };
         }
-        wxGetApp().plater()->set_bed_shape(bed_shape, "", "");
+        wxGetApp().plater()->set_bed_shape(bed_shape, "", "", true);
     }
 #endif // ENABLE_GCODE_VIEWER_AS_STATE
 }

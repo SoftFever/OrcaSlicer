@@ -144,7 +144,7 @@ public:
 
     const Pointfs& get_shape() const { return m_shape; }
     // Return true if the bed shape changed, so the calee will update the UI.
-    bool set_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model);
+    bool set_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false);
 
     const BoundingBoxf3& get_bounding_box(bool extended) const {
         return extended ? m_extended_bounding_box : m_bounding_box;

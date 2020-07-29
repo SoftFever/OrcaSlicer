@@ -1867,7 +1867,7 @@ struct Plater::priv
     // triangulate the bed and store the triangles into m_bed.m_triangles,
     // fills the m_bed.m_grid_lines and sets m_bed.m_origin.
     // Sets m_bed.m_polygon to limit the object placement.
-    void set_bed_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model);
+    void set_bed_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false);
 
     bool can_delete() const;
     bool can_delete_all() const;
@@ -4182,11 +4182,10 @@ bool Plater::priv::can_reload_from_disk() const
     return !paths.empty();
 }
 
-void Plater::priv::set_bed_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model)
+void Plater::priv::set_bed_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom)
 {
-    bool new_shape = bed.set_shape(shape, custom_texture, custom_model);
-    if (new_shape)
-    {
+    bool new_shape = bed.set_shape(shape, custom_texture, custom_model, force_as_custom);
+    if (new_shape) {
         if (view3D) view3D->bed_shape_changed();
         if (preview) preview->bed_shape_changed();
     }
@@ -5456,9 +5455,9 @@ void Plater::set_bed_shape() const
 }
 
 #if ENABLE_GCODE_VIEWER_AS_STATE
-void Plater::set_bed_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model) const
+void Plater::set_bed_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom) const
 {
-    p->set_bed_shape(shape, custom_texture, custom_model);
+    p->set_bed_shape(shape, custom_texture, custom_model, force_as_custom);
 }
 #endif // ENABLE_GCODE_VIEWER_AS_STATE
 

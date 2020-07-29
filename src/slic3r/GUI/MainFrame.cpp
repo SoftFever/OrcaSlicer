@@ -1490,7 +1490,7 @@ void MainFrame::set_mode(EMode mode)
         m_plater->select_view("iso");
 
         // switch printbed
-        m_plater->set_bed_shape({ { 0.0, 0.0 }, { 200.0, 0.0 }, { 200.0, 200.0 }, { 0.0, 200.0 } }, "", "");
+        m_plater->set_bed_shape({ { 0.0, 0.0 }, { 200.0, 0.0 }, { 200.0, 200.0 }, { 0.0, 200.0 } }, "", "", true);
 
         // switch menubar
         SetMenuBar(m_gcodeviewer_menubar);
