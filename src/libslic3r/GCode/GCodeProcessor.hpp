@@ -210,11 +210,27 @@ namespace Slic3r {
         {
             unsigned int id;
             std::vector<MoveVertex> moves;
+#if ENABLE_GCODE_VIEWER_AS_STATE
+            Pointfs bed_shape;
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
 #if ENABLE_GCODE_VIEWER_STATISTICS
             long long time{ 0 };
-            void reset() { time = 0; moves = std::vector<MoveVertex>(); }
+            void reset()
+            {
+                time = 0;
+                moves = std::vector<MoveVertex>();
+#if ENABLE_GCODE_VIEWER_AS_STATE
+                bed_shape = Pointfs();
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
+            }
 #else
-            void reset() { moves = std::vector<MoveVertex>(); }
+            void reset()
+            {
+                moves = std::vector<MoveVertex>();
+#if ENABLE_GCODE_VIEWER_AS_STATE
+                bed_shape = Pointfs();
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
+            }
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
         };
 

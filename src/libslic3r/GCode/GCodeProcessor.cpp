@@ -356,6 +356,10 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
             m_filament_diameters.push_back(static_cast<float>(diam));
         }
     }
+
+    const ConfigOptionPoints* bed_shape = config.option<ConfigOptionPoints>("bed_shape");
+    if (bed_shape != nullptr) 
+        m_result.bed_shape = bed_shape->values;
 }
 
 void GCodeProcessor::enable_stealth_time_estimator(bool enabled)
