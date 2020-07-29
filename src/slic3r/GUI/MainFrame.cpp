@@ -279,8 +279,12 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 
     update_ui_from_settings();    // FIXME (?)
 
-    if (m_plater != nullptr)
+    if (m_plater != nullptr) {
+#if ENABLE_GCODE_VIEWER_AS_STATE
+        m_plater->get_collapse_toolbar().set_enabled(wxGetApp().app_config->get("show_collapse_button") == "1");
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
         m_plater->show_action_buttons(true);
+    }
 }
 
 #if ENABLE_LAYOUT_NO_RESTART

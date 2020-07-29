@@ -4295,8 +4295,13 @@ void GLCanvas3D::update_ui_from_settings()
     }
 #endif // ENABLE_RETINA_GL
 
+#if ENABLE_GCODE_VIEWER_AS_STATE
+    if (wxGetApp().mainframe != nullptr && wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer)
+        wxGetApp().plater()->get_collapse_toolbar().set_enabled(wxGetApp().app_config->get("show_collapse_button") == "1");
+#else
     bool enable_collapse = wxGetApp().app_config->get("show_collapse_button") == "1";
     wxGetApp().plater()->get_collapse_toolbar().set_enabled(enable_collapse);
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
 }
 
 
