@@ -1049,9 +1049,8 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string& suffix, wxBox
 
     m_valid_bmp = new wxStaticBitmap(m_parent, wxID_ANY, create_scaled_bitmap("tick_mark", m_parent));
 
-    m_combo = new wxComboBox(m_parent, wxID_ANY, from_u8(preset_name)/*,
-        wxDefaultPosition, wxDefaultSize, 0, 0, wxTE_PROCESS_ENTER*/);
-    for (auto value : values)
+    m_combo = new wxComboBox(m_parent, wxID_ANY, from_u8(preset_name));
+    for (const std::string& value : values)
         m_combo->Append(from_u8(value));
 
     m_combo->Bind(wxEVT_TEXT, [this](wxCommandEvent&) { update(); });
@@ -1060,12 +1059,12 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string& suffix, wxBox
     m_valid_label->SetFont(wxGetApp().bold_font());
 
     wxBoxSizer* combo_sizer = new wxBoxSizer(wxHORIZONTAL);
-    combo_sizer->Add(m_valid_bmp,   0, wxEXPAND | wxRIGHT, BORDER_W);
+    combo_sizer->Add(m_valid_bmp,   0, wxALIGN_CENTER_VERTICAL | wxRIGHT, BORDER_W);
     combo_sizer->Add(m_combo,       1, wxEXPAND, BORDER_W);
 
     sizer->Add(label_top,       0, wxEXPAND | wxTOP| wxBOTTOM, BORDER_W);
     sizer->Add(combo_sizer,     0, wxEXPAND | wxBOTTOM, BORDER_W);
-    sizer->Add(m_valid_label,   0, wxEXPAND | wxLEFT, 3*BORDER_W/* + m_valid_bmp->GetBitmap().GetWidth()*/);
+    sizer->Add(m_valid_label,   0, wxEXPAND | wxLEFT,   3*BORDER_W);
 
     if (m_type == Preset::TYPE_PRINTER)
         m_parent->add_info_for_edit_ph_printer(sizer);
@@ -1123,14 +1122,19 @@ void SavePresetDialog::Item::update()
     m_valid_label->SetLabel(info_line);
     m_valid_label->Show(!info_line.IsEmpty());
 
-    std::string bmp_name =  m_valid_type == Warning ? "exclamation" :
-                            m_valid_type == NoValid ? "cross"       : "tick_mark" ;
-    m_valid_bmp->SetBitmap(create_scaled_bitmap(bmp_name, m_parent));
+    update_valid_bmp();
 
     if (m_type == Preset::TYPE_PRINTER)
         m_parent->update_info_for_edit_ph_printer(m_preset_name);
 
     m_parent->layout();
+}
+
+void SavePresetDialog::Item::update_valid_bmp()
+{
+    std::string bmp_name =  m_valid_type == Warning ? "exclamation" :
+                            m_valid_type == NoValid ? "cross"       : "tick_mark" ;
+    m_valid_bmp->SetBitmap(create_scaled_bitmap(bmp_name, m_parent));
 }
 
 void SavePresetDialog::Item::accept()
@@ -1147,7 +1151,6 @@ void SavePresetDialog::Item::accept()
 SavePresetDialog::SavePresetDialog(Preset::Type type, const std::string& suffix)
     : DPIDialog(nullptr, wxID_ANY, _L("Save preset"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), 5 * wxGetApp().em_unit()), wxDEFAULT_DIALOG_STYLE | wxICON_WARNING | wxRESIZE_BORDER)
 {
-    SetFont(wxGetApp().normal_font());
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));    
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
@@ -1213,18 +1216,16 @@ void SavePresetDialog::add_info_for_edit_ph_printer(wxBoxSizer* sizer)
 
     m_action_radio_box = new wxRadioBox(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize,
                                         WXSIZEOF(choices), choices, 3, wxRA_SPECIFY_ROWS);
-    m_action_radio_box->SetFont(wxGetApp().normal_font());
-    m_action_radio_box->SetLabelFont(wxGetApp().normal_font());
     m_action_radio_box->SetSelection(0);
     m_action_radio_box->Bind(wxEVT_RADIOBOX, [this](wxCommandEvent& e) {
         m_action = (ActionType)e.GetSelection(); });
     m_action = ChangePreset;
 
     m_radio_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_radio_sizer->Add(m_action_radio_box, 1, wxALIGN_CENTER_VERTICAL);
+    m_radio_sizer->Add(m_action_radio_box, 1, wxEXPAND | wxTOP, 2*BORDER_W);
 
-    sizer->Add(m_label,         0, wxEXPAND | wxALL, 2*BORDER_W);
-    sizer->Add(m_radio_sizer,   1, wxEXPAND | wxLEFT, 2*BORDER_W);
+    sizer->Add(m_label,         0, wxEXPAND | wxLEFT | wxTOP,   3*BORDER_W);
+    sizer->Add(m_radio_sizer,   1, wxEXPAND | wxLEFT,           3*BORDER_W);
 }
 
 void SavePresetDialog::update_info_for_edit_ph_printer(const std::string& preset_name)
@@ -1262,7 +1263,10 @@ void SavePresetDialog::on_dpi_changed(const wxRect& suggested_rect)
 
     msw_buttons_rescale(this, em, { wxID_OK, wxID_CANCEL });
 
-    const wxSize& size = wxSize(45 * em, 35 * em);
+    for (Item& item : m_items)
+        item.update_valid_bmp();
+
+    //const wxSize& size = wxSize(45 * em, 35 * em);
     SetMinSize(/*size*/wxSize(100, 50));
 
     Fit();

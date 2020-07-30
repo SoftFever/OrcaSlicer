@@ -212,6 +212,7 @@ class SavePresetDialog : public DPIDialog
 
         Item(Preset::Type type, const std::string& suffix, wxBoxSizer* sizer, SavePresetDialog* parent);
 
+        void            update_valid_bmp();
         void            accept();
 
         bool            is_valid()      const { return m_valid_type != NoValid; }
