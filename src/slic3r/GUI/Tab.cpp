@@ -36,6 +36,7 @@
 #include "MainFrame.hpp"
 #include "format.hpp"
 #include "PhysicalPrinterDialog.hpp"
+#include "UnsavedChangesDialog.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -3131,6 +3132,10 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
 // if the current preset was not dirty, or the user agreed to discard the changes, 1 is returned.
 bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr*/, const std::string& new_printer_name /*= ""*/)
 {
+    UnsavedChangesDialog dlg(m_type);
+    dlg.ShowModal();
+
+
     if (presets == nullptr) presets = m_presets;
     // Display a dialog showing the dirty options in a human readable form.
     const Preset& old_preset = presets->get_edited_preset();

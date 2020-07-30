@@ -86,6 +86,12 @@ class ConfigWizard;
 
 static wxString dots("…", wxConvUTF8);
 
+// Does our wxWidgets version support markup?
+// https://github.com/prusa3d/PrusaSlicer/issues/4282#issuecomment-634676371
+#if wxUSE_MARKUP && wxCHECK_VERSION(3, 1, 1)
+    #define SUPPORTS_MARKUP
+#endif
+
 class GUI_App : public wxApp
 {
     bool            m_initialized { false };

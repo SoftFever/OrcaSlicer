@@ -163,6 +163,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/InstanceCheck.hpp
     GUI/Search.cpp
     GUI/Search.hpp
+    GUI/UnsavedChangesDialog.cpp
+    GUI/UnsavedChangesDialog.hpp
     Utils/Http.cpp
     Utils/Http.hpp
     Utils/FixModelByWin10.cpp

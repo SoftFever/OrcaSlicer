@@ -28,12 +28,6 @@ using GUI::into_u8;
 
 namespace Search {
 
-// Does our wxWidgets version support markup?
-// https://github.com/prusa3d/PrusaSlicer/issues/4282#issuecomment-634676371
-#if wxUSE_MARKUP && wxCHECK_VERSION(3, 1, 1)
-    #define SEARCH_SUPPORTS_MARKUP
-#endif
-
 static char marker_by_type(Preset::Type type, PrinterTechnology pt)
 {
     switch(type) {
@@ -264,7 +258,7 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
 	        std::string label_u8 = into_u8(label);
 	        std::string label_plain = label_u8;
 
-#ifdef SEARCH_SUPPORTS_MARKUP
+#ifdef SUPPORTS_MARKUP
             boost::replace_all(label_plain, std::string(1, char(ImGui::ColorMarkerStart)), "<b>");
             boost::replace_all(label_plain, std::string(1, char(ImGui::ColorMarkerEnd)),   "</b>");
 #else
@@ -442,7 +436,7 @@ SearchDialog::SearchDialog(OptionsSearcher* searcher)
 
     wxDataViewTextRenderer* const markupRenderer = new wxDataViewTextRenderer();
 
-#ifdef SEARCH_SUPPORTS_MARKUP
+#ifdef SUPPORTS_MARKUP
     markupRenderer->EnableMarkup();
 #endif
 
