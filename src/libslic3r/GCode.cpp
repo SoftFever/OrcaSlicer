@@ -1180,6 +1180,7 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
 #if ENABLE_GCODE_VIEWER
     m_last_width = 0.0f;
     m_last_height = 0.0f;
+    m_last_layer_z = 0.0f;
 #else
     m_last_mm3_per_mm = GCodeAnalyzer::Default_mm3_per_mm;
     m_last_width = GCodeAnalyzer::Default_Width;
@@ -2066,6 +2067,20 @@ void GCode::process_layer(
     m_enable_loop_clipping = ! m_spiral_vase || ! m_spiral_vase->enable;
     
     std::string gcode;
+
+#if ENABLE_GCODE_VIEWER
+    // export layer z
+    char buf[64];
+    sprintf(buf, ";Z%g\n", print_z);
+    gcode += buf;
+    // export layer height
+    float height = first_layer ? static_cast<float>(print_z) : static_cast<float>(print_z) - m_last_layer_z;
+    sprintf(buf, ";%s%g\n", GCodeProcessor::Height_Tag.c_str(), height);
+    gcode += buf;
+    // update caches
+    m_last_layer_z = static_cast<float>(print_z);
+    m_last_height = height;
+#endif // ENABLE_GCODE_VIEWER
 
     // Set new layer - this will change Z and force a retraction if retract_layer_change is enabled.
     if (! print.config().before_layer_gcode.value.empty()) {
@@ -3207,7 +3222,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         }
     }
 
-    // adds analyzer tags and updates analyzer's tracking data
+    // adds processor tags and updates processor tracking data
 #if !ENABLE_GCODE_VIEWER
     if (m_enable_analyzer) {
 #endif // !ENABLE_GCODE_VIEWER
@@ -3234,40 +3249,39 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             sprintf(buf, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), int(m_last_analyzer_extrusion_role));
             gcode += buf;
         }
-#endif // ENABLE_GCODE_VIEWER
 
-#if !ENABLE_GCODE_VIEWER
         if (last_was_wipe_tower || (m_last_mm3_per_mm != path.mm3_per_mm)) {
             m_last_mm3_per_mm = path.mm3_per_mm;
             sprintf(buf, ";%s%f\n", GCodeAnalyzer::Mm3_Per_Mm_Tag.c_str(), m_last_mm3_per_mm);
             gcode += buf;
         }
-#endif // !ENABLE_GCODE_VIEWER
+#endif // ENABLE_GCODE_VIEWER
 
-        if (last_was_wipe_tower || (m_last_width != path.width)) {
+        if (last_was_wipe_tower || m_last_width != path.width) {
             m_last_width = path.width;
 #if ENABLE_GCODE_VIEWER
-            sprintf(buf, ";%s%f\n", GCodeProcessor::Width_Tag.c_str(), m_last_width);
-            gcode += buf;
+            sprintf(buf, ";%s%g\n", GCodeProcessor::Width_Tag.c_str(), m_last_width);
 #else
             sprintf(buf, ";%s%f\n", GCodeAnalyzer::Width_Tag.c_str(), m_last_width);
-            gcode += buf;
 #endif // ENABLE_GCODE_VIEWER
+            gcode += buf;
         }
 
-        if (last_was_wipe_tower || (m_last_height != path.height)) {
-            m_last_height = path.height;
+
 #if ENABLE_GCODE_VIEWER
-            sprintf(buf, ";%s%f\n", GCodeProcessor::Height_Tag.c_str(), m_last_height);
+        if (last_was_wipe_tower || std::abs(m_last_height - path.height) > EPSILON) {
+            m_last_height = path.height;
+            sprintf(buf, ";%s%g\n", GCodeProcessor::Height_Tag.c_str(), m_last_height);
             gcode += buf;
+        }
 #else
+        if (last_was_wipe_tower || m_last_height != path.height) {
+            m_last_height = path.height;
             sprintf(buf, ";%s%f\n", GCodeAnalyzer::Height_Tag.c_str(), m_last_height);
             gcode += buf;
-#endif // ENABLE_GCODE_VIEWER
         }
-#if !ENABLE_GCODE_VIEWER
     }
-#endif // !ENABLE_GCODE_VIEWER
+#endif // ENABLE_GCODE_VIEWER
 
     std::string comment;
     if (m_enable_cooling_markers) {

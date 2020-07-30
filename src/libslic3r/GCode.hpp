@@ -172,14 +172,11 @@ public:
         m_volumetric_speed(0),
         m_last_pos_defined(false),
         m_last_extrusion_role(erNone),
-#if ENABLE_GCODE_VIEWER
-        m_last_width(0.0f),
-        m_last_height(0.0f),
-#else
+#if !ENABLE_GCODE_VIEWER
         m_last_mm3_per_mm(GCodeAnalyzer::Default_mm3_per_mm),
         m_last_width(GCodeAnalyzer::Default_Width),
         m_last_height(GCodeAnalyzer::Default_Height),
-#endif // ENABLE_GCODE_VIEWER
+#endif // !ENABLE_GCODE_VIEWER
         m_brim_done(false),
         m_second_layer_things_done(false),
         m_normal_time_estimator(GCodeTimeEstimator::Normal),
@@ -379,8 +376,9 @@ private:
     ExtrusionRole                       m_last_extrusion_role;
 #if ENABLE_GCODE_VIEWER
     // Support for G-Code Processor
-    float                               m_last_width;
-    float                               m_last_height;
+    float                               m_last_width{ 0.0f };
+    float                               m_last_height{ 0.0f };
+    float                               m_last_layer_z{ 0.0f };
 #else
     // Support for G-Code Analyzer
     double                              m_last_mm3_per_mm;

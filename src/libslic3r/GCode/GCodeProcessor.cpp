@@ -23,7 +23,7 @@ namespace Slic3r {
 
 const std::string GCodeProcessor::Extrusion_Role_Tag = "ExtrType:";
 const std::string GCodeProcessor::Width_Tag          = "PrusaSlicer__WIDTH:";
-const std::string GCodeProcessor::Height_Tag         = "PrusaSlicer__HEIGHT:";
+const std::string GCodeProcessor::Height_Tag         = "Height:";
 const std::string GCodeProcessor::Color_Change_Tag   = "COLOR_CHANGE";
 const std::string GCodeProcessor::Pause_Print_Tag    = "PAUSE_PRINT";
 const std::string GCodeProcessor::Custom_Code_Tag    = "CUSTOM_CODE";
