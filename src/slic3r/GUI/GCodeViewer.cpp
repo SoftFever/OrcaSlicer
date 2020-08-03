@@ -32,12 +32,12 @@
 namespace Slic3r {
 namespace GUI {
 
-static unsigned char buffer_id(GCodeProcessor::EMoveType type) {
-    return static_cast<unsigned char>(type) - static_cast<unsigned char>(GCodeProcessor::EMoveType::Retract);
+static unsigned char buffer_id(EMoveType type) {
+    return static_cast<unsigned char>(type) - static_cast<unsigned char>(EMoveType::Retract);
 }
 
-static GCodeProcessor::EMoveType buffer_type(unsigned char id) {
-    return static_cast<GCodeProcessor::EMoveType>(static_cast<unsigned char>(GCodeProcessor::EMoveType::Retract) + id);
+static EMoveType buffer_type(unsigned char id) {
+    return static_cast<EMoveType>(static_cast<unsigned char>(EMoveType::Retract) + id);
 }
 
 std::array<float, 3> decode_color(const std::string& color) {
@@ -92,19 +92,19 @@ bool GCodeViewer::Path::matches(const GCodeProcessor::MoveVertex& move) const
 {
     switch (move.type)
     {
-    case GCodeProcessor::EMoveType::Tool_change:
-    case GCodeProcessor::EMoveType::Color_change:
-    case GCodeProcessor::EMoveType::Pause_Print:
-    case GCodeProcessor::EMoveType::Custom_GCode:
-    case GCodeProcessor::EMoveType::Retract:
-    case GCodeProcessor::EMoveType::Unretract:
-    case GCodeProcessor::EMoveType::Extrude:
+    case EMoveType::Tool_change:
+    case EMoveType::Color_change:
+    case EMoveType::Pause_Print:
+    case EMoveType::Custom_GCode:
+    case EMoveType::Retract:
+    case EMoveType::Unretract:
+    case EMoveType::Extrude:
     {
         return type == move.type && role == move.extrusion_role && height == move.height && width == move.width &&
             feedrate == move.feedrate && fan_speed == move.fan_speed && volumetric_rate == move.volumetric_rate() &&
             extruder_id == move.extruder_id && cp_color_id == move.cp_color_id;
     }
-    case GCodeProcessor::EMoveType::Travel:
+    case EMoveType::Travel:
     {
         return type == move.type && feedrate == move.feedrate && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id;
     }
@@ -198,9 +198,7 @@ void GCodeViewer::SequentialView::Marker::render() const
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::SetNextWindowBgAlpha(0.25f);
     imgui.begin(std::string("ToolPosition"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-    imgui.text(_u8L("Tool position") + ":");
-    ImGui::PopStyleColor();
+    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Tool position") + ":");
     ImGui::SameLine();
     char buf[1024];
     sprintf(buf, "X: %.2f, Y: %.2f, Z: %.2f", m_world_position(0), m_world_position(1), m_world_position(2));
@@ -274,18 +272,18 @@ bool GCodeViewer::init()
         switch (buffer_type(i))
         {
         default: { break; }
-        case GCodeProcessor::EMoveType::Tool_change:
-        case GCodeProcessor::EMoveType::Color_change:
-        case GCodeProcessor::EMoveType::Pause_Print:
-        case GCodeProcessor::EMoveType::Custom_GCode:
-        case GCodeProcessor::EMoveType::Retract:
-        case GCodeProcessor::EMoveType::Unretract:
+        case EMoveType::Tool_change:
+        case EMoveType::Color_change:
+        case EMoveType::Pause_Print:
+        case EMoveType::Custom_GCode:
+        case EMoveType::Retract:
+        case EMoveType::Unretract:
         {
             m_buffers[i].vertices.format = VBuffer::EFormat::Position;
             break;
         }
-        case GCodeProcessor::EMoveType::Extrude:
-        case GCodeProcessor::EMoveType::Travel:
+        case EMoveType::Extrude:
+        case EMoveType::Travel:
         {
             m_buffers[i].vertices.format = VBuffer::EFormat::PositionNormal;
             break;
@@ -293,7 +291,7 @@ bool GCodeViewer::init()
         }
     }
 
-    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Extrude, true);
+    set_toolpath_move_type_visible(EMoveType::Extrude, true);
     m_sequential_view.marker.init();
     init_shaders();
 
@@ -340,6 +338,8 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
         wxGetApp().plater()->set_bed_shape(bed_shape, "", "", true);
     }
 #endif // ENABLE_GCODE_VIEWER_AS_STATE
+
+    m_time_statistics = gcode_result.time_statistics;
 }
 
 void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors)
@@ -371,7 +371,7 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
 
         switch (curr.type)
         {
-        case GCodeProcessor::EMoveType::Extrude:
+        case EMoveType::Extrude:
         {
             m_extrusions.ranges.height.update_from(curr.height);
             m_extrusions.ranges.width.update_from(curr.width);
@@ -379,7 +379,7 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
             m_extrusions.ranges.volumetric_rate.update_from(curr.volumetric_rate());
             [[fallthrough]];
         }
-        case GCodeProcessor::EMoveType::Travel:
+        case EMoveType::Travel:
         {
             if (m_buffers[buffer_id(curr.type)].visible)
                 m_extrusions.ranges.feedrate.update_from(curr.feedrate);
@@ -415,6 +415,7 @@ void GCodeViewer::reset()
     m_layers_zs = std::vector<double>();
     m_layers_z_range = { 0.0, 0.0 };
     m_roles = std::vector<ExtrusionRole>();
+    m_time_statistics.reset();
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.reset_all();
@@ -452,13 +453,13 @@ void GCodeViewer::render() const
 #endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
 }
 
-bool GCodeViewer::is_toolpath_move_type_visible(GCodeProcessor::EMoveType type) const
+bool GCodeViewer::is_toolpath_move_type_visible(EMoveType type) const
 {
     size_t id = static_cast<size_t>(buffer_id(type));
     return (id < m_buffers.size()) ? m_buffers[id].visible : false;
 }
 
-void GCodeViewer::set_toolpath_move_type_visible(GCodeProcessor::EMoveType type, bool visible)
+void GCodeViewer::set_toolpath_move_type_visible(EMoveType type, bool visible)
 {
     size_t id = static_cast<size_t>(buffer_id(type));
     if (id < m_buffers.size())
@@ -472,13 +473,13 @@ unsigned int GCodeViewer::get_options_visibility_flags() const
     };
 
     unsigned int flags = 0;
-    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Travel), is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Travel));
-    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Retractions), is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Retract));
-    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Unretractions), is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Unretract));
-    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::ToolChanges), is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Tool_change));
-    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::ColorChanges), is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Color_change));
-    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::PausePrints), is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Pause_Print));
-    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::CustomGCodes), is_toolpath_move_type_visible(GCodeProcessor::EMoveType::Custom_GCode));
+    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Travel), is_toolpath_move_type_visible(EMoveType::Travel));
+    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Retractions), is_toolpath_move_type_visible(EMoveType::Retract));
+    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Unretractions), is_toolpath_move_type_visible(EMoveType::Unretract));
+    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::ToolChanges), is_toolpath_move_type_visible(EMoveType::Tool_change));
+    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::ColorChanges), is_toolpath_move_type_visible(EMoveType::Color_change));
+    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::PausePrints), is_toolpath_move_type_visible(EMoveType::Pause_Print));
+    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::CustomGCodes), is_toolpath_move_type_visible(EMoveType::Custom_GCode));
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Shells), m_shells.visible);
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::ToolMarker), m_sequential_view.marker.is_visible());
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Legend), is_legend_enabled());
@@ -494,13 +495,13 @@ void GCodeViewer::set_options_visibility_from_flags(unsigned int flags)
         return (flags & (1 << flag)) != 0;
     };
 
-    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Travel, is_flag_set(static_cast<unsigned int>(Preview::OptionType::Travel)));
-    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Retract, is_flag_set(static_cast<unsigned int>(Preview::OptionType::Retractions)));
-    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Unretract, is_flag_set(static_cast<unsigned int>(Preview::OptionType::Unretractions)));
-    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Tool_change, is_flag_set(static_cast<unsigned int>(Preview::OptionType::ToolChanges)));
-    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Color_change, is_flag_set(static_cast<unsigned int>(Preview::OptionType::ColorChanges)));
-    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Pause_Print, is_flag_set(static_cast<unsigned int>(Preview::OptionType::PausePrints)));
-    set_toolpath_move_type_visible(GCodeProcessor::EMoveType::Custom_GCode, is_flag_set(static_cast<unsigned int>(Preview::OptionType::CustomGCodes)));
+    set_toolpath_move_type_visible(EMoveType::Travel, is_flag_set(static_cast<unsigned int>(Preview::OptionType::Travel)));
+    set_toolpath_move_type_visible(EMoveType::Retract, is_flag_set(static_cast<unsigned int>(Preview::OptionType::Retractions)));
+    set_toolpath_move_type_visible(EMoveType::Unretract, is_flag_set(static_cast<unsigned int>(Preview::OptionType::Unretractions)));
+    set_toolpath_move_type_visible(EMoveType::Tool_change, is_flag_set(static_cast<unsigned int>(Preview::OptionType::ToolChanges)));
+    set_toolpath_move_type_visible(EMoveType::Color_change, is_flag_set(static_cast<unsigned int>(Preview::OptionType::ColorChanges)));
+    set_toolpath_move_type_visible(EMoveType::Pause_Print, is_flag_set(static_cast<unsigned int>(Preview::OptionType::PausePrints)));
+    set_toolpath_move_type_visible(EMoveType::Custom_GCode, is_flag_set(static_cast<unsigned int>(Preview::OptionType::CustomGCodes)));
     m_shells.visible = is_flag_set(static_cast<unsigned int>(Preview::OptionType::Shells));
     m_sequential_view.marker.set_visible(is_flag_set(static_cast<unsigned int>(Preview::OptionType::ToolMarker)));
     enable_legend(is_flag_set(static_cast<unsigned int>(Preview::OptionType::Legend)));
@@ -537,7 +538,7 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     wxBusyCursor busy;
 
     // the data needed is contained into the Extrude TBuffer
-    const TBuffer& buffer = m_buffers[buffer_id(GCodeProcessor::EMoveType::Extrude)];
+    const TBuffer& buffer = m_buffers[buffer_id(EMoveType::Extrude)];
     if (buffer.vertices.id == 0 || buffer.indices.id == 0)
         return;
 
@@ -805,21 +806,21 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
 
 void GCodeViewer::init_shaders()
 {
-    unsigned char begin_id = buffer_id(GCodeProcessor::EMoveType::Retract);
-    unsigned char end_id = buffer_id(GCodeProcessor::EMoveType::Count);
+    unsigned char begin_id = buffer_id(EMoveType::Retract);
+    unsigned char end_id = buffer_id(EMoveType::Count);
 
     bool is_glsl_120 = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20);
     for (unsigned char i = begin_id; i < end_id; ++i) {
         switch (buffer_type(i))
         {
-        case GCodeProcessor::EMoveType::Tool_change:  { m_buffers[i].shader = is_glsl_120 ? "options_120_flat" : "options_110"; break; }
-        case GCodeProcessor::EMoveType::Color_change: { m_buffers[i].shader = is_glsl_120 ? "options_120_flat" : "options_110"; break; }
-        case GCodeProcessor::EMoveType::Pause_Print:  { m_buffers[i].shader = is_glsl_120 ? "options_120_flat" : "options_110"; break; }
-        case GCodeProcessor::EMoveType::Custom_GCode: { m_buffers[i].shader = is_glsl_120 ? "options_120_flat" : "options_110"; break; }
-        case GCodeProcessor::EMoveType::Retract:      { m_buffers[i].shader = is_glsl_120 ? "options_120_flat" : "options_110"; break; }
-        case GCodeProcessor::EMoveType::Unretract:    { m_buffers[i].shader = is_glsl_120 ? "options_120_flat" : "options_110"; break; }
-        case GCodeProcessor::EMoveType::Extrude:      { m_buffers[i].shader = "toolpaths"; break; }
-        case GCodeProcessor::EMoveType::Travel:       { m_buffers[i].shader = "toolpaths"; break; }
+        case EMoveType::Tool_change:  { m_buffers[i].shader = is_glsl_120 ? "options_120_flat" : "options_110"; break; }
+        case EMoveType::Color_change: { m_buffers[i].shader = is_glsl_120 ? "options_120_flat" : "options_110"; break; }
+        case EMoveType::Pause_Print:  { m_buffers[i].shader = is_glsl_120 ? "options_120_flat" : "options_110"; break; }
+        case EMoveType::Custom_GCode: { m_buffers[i].shader = is_glsl_120 ? "options_120_flat" : "options_110"; break; }
+        case EMoveType::Retract:      { m_buffers[i].shader = is_glsl_120 ? "options_120_flat" : "options_110"; break; }
+        case EMoveType::Unretract:    { m_buffers[i].shader = is_glsl_120 ? "options_120_flat" : "options_110"; break; }
+        case EMoveType::Extrude:      { m_buffers[i].shader = "toolpaths"; break; }
+        case EMoveType::Travel:       { m_buffers[i].shader = "toolpaths"; break; }
         default: { break; }
         }
     }
@@ -846,14 +847,17 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             m_paths_bounding_box.merge(move.position.cast<double>());
         else {
 #endif // ENABLE_GCODE_VIEWER_AS_STATE
-            if (move.type == GCodeProcessor::EMoveType::Extrude && move.width != 0.0f && move.height != 0.0f)
+            if (move.type == EMoveType::Extrude && move.width != 0.0f && move.height != 0.0f)
                 m_paths_bounding_box.merge(move.position.cast<double>());
 #if ENABLE_GCODE_VIEWER_AS_STATE
         }
 #endif // ENABLE_GCODE_VIEWER_AS_STATE
     }
 
-    // max bounding box
+    // add origin
+    m_paths_bounding_box.merge(Vec3d::Zero());
+
+    // max bounding box (account for tool marker)
     m_max_bounding_box = m_paths_bounding_box;
     m_max_bounding_box.merge(m_paths_bounding_box.max + m_sequential_view.marker.get_bounding_box().size()[2] * Vec3d::UnitZ());
 
@@ -875,12 +879,12 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
         switch (curr.type)
         {
-        case GCodeProcessor::EMoveType::Tool_change:
-        case GCodeProcessor::EMoveType::Color_change:
-        case GCodeProcessor::EMoveType::Pause_Print:
-        case GCodeProcessor::EMoveType::Custom_GCode:
-        case GCodeProcessor::EMoveType::Retract:
-        case GCodeProcessor::EMoveType::Unretract:
+        case EMoveType::Tool_change:
+        case EMoveType::Color_change:
+        case EMoveType::Pause_Print:
+        case EMoveType::Custom_GCode:
+        case EMoveType::Retract:
+        case EMoveType::Unretract:
         {
             for (int j = 0; j < 3; ++j) {
                 buffer_vertices.push_back(curr.position[j]);
@@ -889,8 +893,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             buffer_indices.push_back(static_cast<unsigned int>(buffer_indices.size()));
             break;
         }
-        case GCodeProcessor::EMoveType::Extrude:
-        case GCodeProcessor::EMoveType::Travel:
+        case EMoveType::Extrude:
+        case EMoveType::Travel:
         {
             // x component of the normal to the current segment (the normal is parallel to the XY plane)
             float normal_x = (curr.position - prev.position).normalized()[1];
@@ -979,7 +983,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     // layers zs / roles / extruder ids / cp color ids -> extract from result
     for (size_t i = 0; i < m_vertices_count; ++i) {
         const GCodeProcessor::MoveVertex& move = gcode_result.moves[i];
-        if (move.type == GCodeProcessor::EMoveType::Extrude)
+        if (move.type == EMoveType::Extrude)
             m_layers_zs.emplace_back(static_cast<double>(move.position[2]));
 
         m_extruder_ids.emplace_back(move.extruder_id);
@@ -1127,14 +1131,14 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
         for (size_t i = 0; i < buffer.paths.size(); ++i) {
             const Path& path = buffer.paths[i];
-            if (path.type == GCodeProcessor::EMoveType::Travel) {
+            if (path.type == EMoveType::Travel) {
                 if (!is_travel_in_z_range(i))
                     continue;
             }
             else if (!is_in_z_range(path))
                 continue;
 
-            if (path.type == GCodeProcessor::EMoveType::Extrude && !is_visible(path))
+            if (path.type == EMoveType::Extrude && !is_visible(path))
                 continue;
 
             // store valid path
@@ -1156,7 +1160,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         for (const Path& path : buffer.paths) {
             if (path.first.s_id <= m_sequential_view.current.last && m_sequential_view.current.last <= path.last.s_id) {
                 size_t offset = m_sequential_view.current.last - path.first.s_id;
-                if (offset > 0 && (path.type == GCodeProcessor::EMoveType::Travel || path.type == GCodeProcessor::EMoveType::Extrude))
+                if (offset > 0 && (path.type == EMoveType::Travel || path.type == EMoveType::Extrude))
                     offset = 1 + 2 * (offset - 1);
 
                 offset += path.first.i_id;
@@ -1182,8 +1186,8 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         Color color;
         switch (path.type)
         {
-        case GCodeProcessor::EMoveType::Extrude: { color = extrusion_color(path); break; }
-        case GCodeProcessor::EMoveType::Travel: { color = (m_view_type == EViewType::Feedrate || m_view_type == EViewType::Tool || m_view_type == EViewType::ColorPrint) ? extrusion_color(path) : travel_color(path); break; }
+        case EMoveType::Extrude: { color = extrusion_color(path); break; }
+        case EMoveType::Travel: { color = (m_view_type == EViewType::Feedrate || m_view_type == EViewType::Tool || m_view_type == EViewType::ColorPrint) ? extrusion_color(path) : travel_color(path); break; }
         default: { color = { 0.0f, 0.0f, 0.0f }; break; }
         }
 
@@ -1195,7 +1199,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         }
 
         unsigned int size = std::min(m_sequential_view.current.last, path.last.s_id) - std::max(m_sequential_view.current.first, path.first.s_id) + 1;
-        if (path.type == GCodeProcessor::EMoveType::Extrude || path.type == GCodeProcessor::EMoveType::Travel)
+        if (path.type == EMoveType::Extrude || path.type == EMoveType::Travel)
             size = 2 * (size - 1);
 
         it->sizes.push_back(size);
@@ -1278,8 +1282,8 @@ void GCodeViewer::render_toolpaths() const
 
     glsafe(::glLineWidth(static_cast<GLfloat>(line_width(zoom))));
 
-    unsigned char begin_id = buffer_id(GCodeProcessor::EMoveType::Retract);
-    unsigned char end_id = buffer_id(GCodeProcessor::EMoveType::Count);
+    unsigned char begin_id = buffer_id(EMoveType::Retract);
+    unsigned char end_id = buffer_id(EMoveType::Count);
 
     for (unsigned char i = begin_id; i < end_id; ++i) {
         const TBuffer& buffer = m_buffers[i];
@@ -1302,14 +1306,14 @@ void GCodeViewer::render_toolpaths() const
             switch (buffer_type(i))
             {
             default: { break; }
-            case GCodeProcessor::EMoveType::Tool_change:  { render_as_points(buffer, EOptionsColors::ToolChanges, *shader); break; }
-            case GCodeProcessor::EMoveType::Color_change: { render_as_points(buffer, EOptionsColors::ColorChanges, *shader); break; }
-            case GCodeProcessor::EMoveType::Pause_Print:  { render_as_points(buffer, EOptionsColors::PausePrints, *shader); break; }
-            case GCodeProcessor::EMoveType::Custom_GCode: { render_as_points(buffer, EOptionsColors::CustomGCodes, *shader); break; }
-            case GCodeProcessor::EMoveType::Retract:      { render_as_points(buffer, EOptionsColors::Retractions, *shader); break; }
-            case GCodeProcessor::EMoveType::Unretract:    { render_as_points(buffer, EOptionsColors::Unretractions, *shader); break; }
-            case GCodeProcessor::EMoveType::Extrude:
-            case GCodeProcessor::EMoveType::Travel:
+            case EMoveType::Tool_change:  { render_as_points(buffer, EOptionsColors::ToolChanges, *shader); break; }
+            case EMoveType::Color_change: { render_as_points(buffer, EOptionsColors::ColorChanges, *shader); break; }
+            case EMoveType::Pause_Print:  { render_as_points(buffer, EOptionsColors::PausePrints, *shader); break; }
+            case EMoveType::Custom_GCode: { render_as_points(buffer, EOptionsColors::CustomGCodes, *shader); break; }
+            case EMoveType::Retract:      { render_as_points(buffer, EOptionsColors::Retractions, *shader); break; }
+            case EMoveType::Unretract:    { render_as_points(buffer, EOptionsColors::Unretractions, *shader); break; }
+            case EMoveType::Extrude:
+            case EMoveType::Travel:
             {
 #if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
                 std::array<float, 4> light_intensity = {
@@ -1406,7 +1410,7 @@ void GCodeViewer::render_legend() const
                 draw_list->AddCircleFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
 #else
             ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));            
-            if (m_buffers[buffer_id(GCodeProcessor::EMoveType::Retract)].shader == "options_120_flat") {
+            if (m_buffers[buffer_id(EMoveType::Retract)].shader == "options_120_flat") {
                 draw_list->AddCircleFilled(center, 0.5f * icon_size,
                     ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
                 float radius = 0.5f * icon_size;
@@ -1623,7 +1627,7 @@ void GCodeViewer::render_legend() const
     }
 
     // travel paths
-    if (m_buffers[buffer_id(GCodeProcessor::EMoveType::Travel)].visible) {
+    if (m_buffers[buffer_id(EMoveType::Travel)].visible) {
         switch (m_view_type)
         {
         case EViewType::Feedrate:
@@ -1649,20 +1653,20 @@ void GCodeViewer::render_legend() const
     }
 
     auto any_option_available = [this]() {
-        auto available = [this](GCodeProcessor::EMoveType type) {
+        auto available = [this](EMoveType type) {
             const TBuffer& buffer = m_buffers[buffer_id(type)];
             return buffer.visible && buffer.indices.count > 0;
         };
 
-        return available(GCodeProcessor::EMoveType::Color_change) ||
-            available(GCodeProcessor::EMoveType::Custom_GCode) ||
-            available(GCodeProcessor::EMoveType::Pause_Print) ||
-            available(GCodeProcessor::EMoveType::Retract) ||
-            available(GCodeProcessor::EMoveType::Tool_change) ||
-            available(GCodeProcessor::EMoveType::Unretract);
+        return available(EMoveType::Color_change) ||
+            available(EMoveType::Custom_GCode) ||
+            available(EMoveType::Pause_Print) ||
+            available(EMoveType::Retract) ||
+            available(EMoveType::Tool_change) ||
+            available(EMoveType::Unretract);
     };
 
-    auto add_option = [this, append_item](GCodeProcessor::EMoveType move_type, EOptionsColors color, const std::string& text) {
+    auto add_option = [this, append_item](EMoveType move_type, EOptionsColors color, const std::string& text) {
         const TBuffer& buffer = m_buffers[buffer_id(move_type)];
         if (buffer.visible && buffer.indices.count > 0)
 #if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
@@ -1679,12 +1683,12 @@ void GCodeViewer::render_legend() const
         imgui.title(_u8L("Options"));
 
         // items
-        add_option(GCodeProcessor::EMoveType::Retract, EOptionsColors::Retractions, _u8L("Retractions"));
-        add_option(GCodeProcessor::EMoveType::Unretract, EOptionsColors::Unretractions, _u8L("Unretractions"));
-        add_option(GCodeProcessor::EMoveType::Tool_change, EOptionsColors::ToolChanges, _u8L("Tool changes"));
-        add_option(GCodeProcessor::EMoveType::Color_change, EOptionsColors::ColorChanges, _u8L("Color changes"));
-        add_option(GCodeProcessor::EMoveType::Pause_Print, EOptionsColors::PausePrints, _u8L("Pause prints"));
-        add_option(GCodeProcessor::EMoveType::Custom_GCode, EOptionsColors::CustomGCodes, _u8L("Custom GCodes"));
+        add_option(EMoveType::Retract, EOptionsColors::Retractions, _u8L("Retractions"));
+        add_option(EMoveType::Unretract, EOptionsColors::Unretractions, _u8L("Unretractions"));
+        add_option(EMoveType::Tool_change, EOptionsColors::ToolChanges, _u8L("Tool changes"));
+        add_option(EMoveType::Color_change, EOptionsColors::ColorChanges, _u8L("Color changes"));
+        add_option(EMoveType::Pause_Print, EOptionsColors::PausePrints, _u8L("Pause prints"));
+        add_option(EMoveType::Custom_GCode, EOptionsColors::CustomGCodes, _u8L("Custom GCodes"));
     }
 
     imgui.end();
@@ -1699,10 +1703,6 @@ void GCodeViewer::render_time_estimate() const
 #endif // ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
         return;
     }
-
-    const PrintStatistics& ps = wxGetApp().plater()->fff_print().print_statistics();
-    if (ps.estimated_normal_print_time <= 0.0f && ps.estimated_silent_print_time <= 0.0f)
-        return;
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     
@@ -1737,19 +1737,17 @@ void GCodeViewer::render_time_estimate() const
     using PartialTimes = std::vector<PartialTime>;
 
     auto append_headers = [&imgui](const Headers& headers, const ColumnOffsets& offsets) {
-        ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-        imgui.text(headers[0]);
+        imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, headers[0]);
         ImGui::SameLine(offsets[0]);
-        imgui.text(headers[1]);
+        imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, headers[1]);
         ImGui::SameLine(offsets[1]);
-        imgui.text(headers[2]);
-        ImGui::PopStyleColor();
+        imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, headers[2]);
         ImGui::Separator();
     };
 
     auto append_mode = [this, &imgui, append_headers](float total_time, const PartialTimes& items,
         const Headers& partial_times_headers,
-        const std::vector<std::pair<GCodeProcessor::EMoveType, float>>& moves_time,
+        const std::vector<std::pair<EMoveType, float>>& moves_time,
         const Headers& moves_headers,
         const std::vector<std::pair<ExtrusionRole, float>>& roles_time,
         const Headers& roles_headers) {
@@ -1775,9 +1773,7 @@ void GCodeViewer::render_time_estimate() const
                 return ret;
             };
             auto append_color = [this, &imgui](const Color& color1, const Color& color2, ColumnOffsets& offsets, const Times& times) {
-                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-                imgui.text(_u8L("Color change"));
-                ImGui::PopStyleColor();
+                imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Color change"));
                 ImGui::SameLine();
 
                 float icon_size = ImGui::GetTextLineHeight();
@@ -1805,9 +1801,7 @@ void GCodeViewer::render_time_estimate() const
                 {
                 case PartialTime::EType::Print:
                 {
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-                    imgui.text(_u8L("Print"));
-                    ImGui::PopStyleColor();
+                    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Print"));
                     ImGui::SameLine(offsets[0]);
                     imgui.text(short_time(get_time_dhms(item.times.second)));
                     ImGui::SameLine(offsets[1]);
@@ -1816,9 +1810,7 @@ void GCodeViewer::render_time_estimate() const
                 }
                 case PartialTime::EType::Pause:
                 {
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-                    imgui.text(_u8L("Pause"));
-                    ImGui::PopStyleColor();
+                    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Pause"));
                     ImGui::SameLine(offsets[0]);
                     imgui.text(short_time(get_time_dhms(item.times.second - item.times.first)));
                     break;
@@ -1832,26 +1824,24 @@ void GCodeViewer::render_time_estimate() const
             }
         };
 
-        auto move_type_label = [](GCodeProcessor::EMoveType type) {
+        auto move_type_label = [](EMoveType type) {
             switch (type)
             {
-            case GCodeProcessor::EMoveType::Noop:         { return _u8L("Noop"); }
-            case GCodeProcessor::EMoveType::Retract:      { return _u8L("Retraction"); }
-            case GCodeProcessor::EMoveType::Unretract:    { return _u8L("Unretraction"); }
-            case GCodeProcessor::EMoveType::Tool_change:  { return _u8L("Tool change"); }
-            case GCodeProcessor::EMoveType::Color_change: { return _u8L("Color change"); }
-            case GCodeProcessor::EMoveType::Pause_Print:  { return _u8L("Pause print"); }
-            case GCodeProcessor::EMoveType::Custom_GCode: { return _u8L("Custom GCode"); }
-            case GCodeProcessor::EMoveType::Travel:       { return _u8L("Travel"); }
-            case GCodeProcessor::EMoveType::Extrude:      { return _u8L("Extrusion"); }
-            default:                                      { return _u8L("Unknown"); }
+            case EMoveType::Noop:         { return _u8L("Noop"); }
+            case EMoveType::Retract:      { return _u8L("Retraction"); }
+            case EMoveType::Unretract:    { return _u8L("Unretraction"); }
+            case EMoveType::Tool_change:  { return _u8L("Tool change"); }
+            case EMoveType::Color_change: { return _u8L("Color change"); }
+            case EMoveType::Pause_Print:  { return _u8L("Pause print"); }
+            case EMoveType::Custom_GCode: { return _u8L("Custom GCode"); }
+            case EMoveType::Travel:       { return _u8L("Travel"); }
+            case EMoveType::Extrude:      { return _u8L("Extrusion"); }
+            default:                      { return _u8L("Unknown"); }
             }
         };
 
         auto append_time_item = [&imgui] (const std::string& label, float time, float percentage, const ImVec4& color, const ColumnOffsets& offsets) {
-            ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-            imgui.text(label);
-            ImGui::PopStyleColor();
+            imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, label);
             ImGui::SameLine(offsets[0]);
             imgui.text(short_time(get_time_dhms(time)));
             ImGui::SameLine(offsets[1]);
@@ -1868,7 +1858,7 @@ void GCodeViewer::render_time_estimate() const
         };
 
         auto append_move_times = [this, &imgui, move_type_label, append_headers, append_time_item](float total_time,
-            const std::vector<std::pair<GCodeProcessor::EMoveType, float>>& moves_time,
+            const std::vector<std::pair<EMoveType, float>>& moves_time,
             const Headers& headers, const ColumnOffsets& offsets) {
 
             if (moves_time.empty())
@@ -1879,7 +1869,7 @@ void GCodeViewer::render_time_estimate() const
 
             append_headers(headers, offsets);
 
-            std::vector<std::pair<GCodeProcessor::EMoveType, float>> sorted_moves_time(moves_time);
+            std::vector<std::pair<EMoveType, float>> sorted_moves_time(moves_time);
             std::sort(sorted_moves_time.begin(), sorted_moves_time.end(), [](const auto& p1, const auto& p2) { return p2.second < p1.second; });
 
             for (const auto& [type, time] : sorted_moves_time) {
@@ -1909,7 +1899,7 @@ void GCodeViewer::render_time_estimate() const
         };
 
         auto calc_common_offsets = [move_type_label](
-            const std::vector<std::pair<GCodeProcessor::EMoveType, float>>& moves_time, const Headers& moves_headers,
+            const std::vector<std::pair<EMoveType, float>>& moves_time, const Headers& moves_headers,
             const std::vector<std::pair<ExtrusionRole, float>>& roles_time, const Headers& roles_headers) {
                 ColumnOffsets ret = { std::max(ImGui::CalcTextSize(moves_headers[0].c_str()).x, ImGui::CalcTextSize(roles_headers[0].c_str()).x),
                     std::max(ImGui::CalcTextSize(moves_headers[1].c_str()).x, ImGui::CalcTextSize(roles_headers[1].c_str()).x) };
@@ -1930,9 +1920,7 @@ void GCodeViewer::render_time_estimate() const
                 return ret;
         };
 
-        ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-        imgui.text(_u8L("Time") + ":");
-        ImGui::PopStyleColor();
+        imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Time") + ":");
         ImGui::SameLine();
         imgui.text(short_time(get_time_dhms(total_time)));
         append_partial_times(items, partial_times_headers);
@@ -2032,21 +2020,23 @@ void GCodeViewer::render_time_estimate() const
 
         // mode tabs
     ImGui::BeginTabBar("mode_tabs");
-    if (ps.estimated_normal_print_time > 0.0f) {
+    const PrintEstimatedTimeStatistics::Mode& normal_mode = m_time_statistics.modes[static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Normal)];
+    if (normal_mode.time > 0.0f) {
         if (ImGui::BeginTabItem(_u8L("Normal").c_str())) {
-            append_mode(ps.estimated_normal_print_time,
-                generate_partial_times(ps.estimated_normal_custom_gcode_print_times), partial_times_headers,
-                ps.estimated_normal_moves_times, moves_headers,
-                ps.estimated_normal_roles_times, roles_headers);
+            append_mode(normal_mode.time,
+                generate_partial_times(normal_mode.custom_gcode_times), partial_times_headers,
+                normal_mode.moves_times, moves_headers,
+                normal_mode.roles_times, roles_headers);
             ImGui::EndTabItem();
         }
     }
-    if (ps.estimated_silent_print_time > 0.0f) {
+    const PrintEstimatedTimeStatistics::Mode& stealth_mode = m_time_statistics.modes[static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Stealth)];
+    if (stealth_mode.time > 0.0f) {
         if (ImGui::BeginTabItem(_u8L("Stealth").c_str())) {
-            append_mode(ps.estimated_silent_print_time,
-                generate_partial_times(ps.estimated_silent_custom_gcode_print_times), partial_times_headers,
-                ps.estimated_silent_moves_times, moves_headers,
-                ps.estimated_silent_roles_times, roles_headers);
+            append_mode(stealth_mode.time,
+                generate_partial_times(stealth_mode.custom_gcode_times), partial_times_headers,
+                stealth_mode.moves_times, moves_headers,
+                stealth_mode.roles_times, roles_headers);
             ImGui::EndTabItem();
         }
     }
@@ -2082,93 +2072,67 @@ void GCodeViewer::render_statistics() const
     imgui.begin(std::string("GCodeViewer Statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
     ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-    imgui.text(std::string("GCodeProcessor time:"));
-    ImGui::PopStyleColor();
+    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("GCodeProcessor time:"));
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.results_time) + " ms");
 
     ImGui::Separator();
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-    imgui.text(std::string("Load time:"));
-    ImGui::PopStyleColor();
+    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Load time:"));
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.load_time) + " ms");
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-    imgui.text(std::string("Resfresh time:"));
-    ImGui::PopStyleColor();
+    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Refresh time:"));
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.refresh_time) + " ms");
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-    imgui.text(std::string("Resfresh paths time:"));
-    ImGui::PopStyleColor();
+    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Refresh paths time:"));
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.refresh_paths_time) + " ms");
 
     ImGui::Separator();
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-    imgui.text(std::string("Multi GL_POINTS calls:"));
-    ImGui::PopStyleColor();
+    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Multi GL_POINTS calls:"));
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.gl_multi_points_calls_count));
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-    imgui.text(std::string("Multi GL_LINE_STRIP calls:"));
-    ImGui::PopStyleColor();
+    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Multi GL_LINE_STRIP calls:"));
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.gl_multi_line_strip_calls_count));
 
     ImGui::Separator();
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-    imgui.text(std::string("GCodeProcessor results:"));
-    ImGui::PopStyleColor();
+    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("GCodeProcessor results:"));
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.results_size) + " bytes");
 
     ImGui::Separator();
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-    imgui.text(std::string("Paths CPU:"));
-    ImGui::PopStyleColor();
+    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Paths CPU:"));
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.paths_size) + " bytes");
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-    imgui.text(std::string("Render paths CPU:"));
-    ImGui::PopStyleColor();
+    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Render paths CPU:"));
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.render_paths_size) + " bytes");
 
     ImGui::Separator();
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-    imgui.text(std::string("Vertices GPU:"));
-    ImGui::PopStyleColor();
+    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Vertices GPU:"));
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.vertices_gpu_size) + " bytes");
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-    imgui.text(std::string("Indices GPU:"));
-    ImGui::PopStyleColor();
+    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Vertices GPU:"));
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.indices_gpu_size) + " bytes");
 
     ImGui::Separator();
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-    imgui.text(std::string("Travel segments:"));
-    ImGui::PopStyleColor();
+    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Vertices GPU:"));
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.travel_segments_count));
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-    imgui.text(std::string("Extrude segments:"));
-    ImGui::PopStyleColor();
+    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Extrude segments:"));
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.extrude_segments_count));
 
@@ -2242,7 +2206,7 @@ void GCodeViewer::render_shaders_editor() const
 
 bool GCodeViewer::is_travel_in_z_range(size_t id) const
 {
-    const TBuffer& buffer = m_buffers[buffer_id(GCodeProcessor::EMoveType::Travel)];
+    const TBuffer& buffer = m_buffers[buffer_id(EMoveType::Travel)];
     if (id >= buffer.paths.size())
         return false;
 

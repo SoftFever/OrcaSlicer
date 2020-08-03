@@ -14,7 +14,54 @@
 
 namespace Slic3r {
 
-    struct PrintStatistics;
+    enum class EMoveType : unsigned char
+    {
+        Noop,
+        Retract,
+        Unretract,
+        Tool_change,
+        Color_change,
+        Pause_Print,
+        Custom_GCode,
+        Travel,
+        Extrude,
+        Count
+    };
+
+    struct PrintEstimatedTimeStatistics
+    {
+        enum class ETimeMode : unsigned char
+        {
+            Normal,
+            Stealth,
+            Count
+        };
+
+        struct Mode
+        {
+            float time;
+            std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> custom_gcode_times;
+            std::vector<std::pair<EMoveType, float>> moves_times;
+            std::vector<std::pair<ExtrusionRole, float>> roles_times;
+
+            void reset() {
+                time = 0.0f;
+                custom_gcode_times.clear();
+                moves_times.clear();
+                roles_times.clear();
+            }
+        };
+
+        std::array<Mode, static_cast<size_t>(ETimeMode::Count)> modes;
+
+        PrintEstimatedTimeStatistics() { reset(); }
+
+        void reset() {
+            for (auto m : modes) {
+                m.reset();
+            }
+        }
+    };
 
     class GCodeProcessor
     {
@@ -59,20 +106,6 @@ namespace Slic3r {
         };
 
     public:
-        enum class EMoveType : unsigned char
-        {
-            Noop,
-            Retract,
-            Unretract,
-            Tool_change,
-            Color_change,
-            Pause_Print,
-            Custom_GCode,
-            Travel,
-            Extrude,
-            Count
-        };
-
         struct FeedrateProfile
         {
             float entry{ 0.0f }; // mm/s
@@ -215,6 +248,8 @@ namespace Slic3r {
             Pointfs bed_shape;
             std::vector<std::string> extruder_colors;
 #endif // ENABLE_GCODE_VIEWER_AS_STATE
+            PrintEstimatedTimeStatistics time_statistics;
+
 #if ENABLE_GCODE_VIEWER_STATISTICS
             long long time{ 0 };
             void reset()
@@ -297,7 +332,6 @@ namespace Slic3r {
         // Process the gcode contained in the file with the given filename
         void process_file(const std::string& filename);
 
-        void update_print_stats_estimated_times(PrintStatistics& print_statistics);
         float get_time(ETimeMode mode) const;
         std::string get_time_dhm(ETimeMode mode) const;
         std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> get_custom_gcode_times(ETimeMode mode, bool include_remaining) const;
@@ -422,6 +456,8 @@ namespace Slic3r {
 
         // Simulates firmware st_synchronize() call
         void simulate_st_synchronize(float additional_time = 0.0f);
+
+        void update_estimated_times_stats();
    };
 
 } /* namespace Slic3r */

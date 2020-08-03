@@ -88,7 +88,7 @@ class GCodeViewer
             Vec3f position{ Vec3f::Zero() };
         };
 
-        GCodeProcessor::EMoveType type{ GCodeProcessor::EMoveType::Noop };
+        EMoveType type{ EMoveType::Noop };
         ExtrusionRole role{ erNone };
         Endpoint first;
         Endpoint last;
@@ -326,7 +326,7 @@ public:
 private:
     unsigned int m_last_result_id{ 0 };
     size_t m_vertices_count{ 0 };
-    mutable std::vector<TBuffer> m_buffers{ static_cast<size_t>(GCodeProcessor::EMoveType::Extrude) };
+    mutable std::vector<TBuffer> m_buffers{ static_cast<size_t>(EMoveType::Extrude) };
     // bounding box of toolpaths
     BoundingBoxf3 m_paths_bounding_box;
     // bounding box of toolpaths + marker tools
@@ -341,6 +341,7 @@ private:
     Shells m_shells;
     EViewType m_view_type{ EViewType::FeatureType };
     bool m_legend_enabled{ true };
+    PrintEstimatedTimeStatistics m_time_statistics;
 #if ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
     mutable bool m_time_estimate_enabled{ false };
     mutable unsigned int m_time_estimate_frames_count{ 0 };
@@ -391,8 +392,8 @@ public:
         m_view_type = type;
     }
 
-    bool is_toolpath_move_type_visible(GCodeProcessor::EMoveType type) const;
-    void set_toolpath_move_type_visible(GCodeProcessor::EMoveType type, bool visible);
+    bool is_toolpath_move_type_visible(EMoveType type) const;
+    void set_toolpath_move_type_visible(EMoveType type, bool visible);
     unsigned int get_toolpath_role_visibility_flags() const { return m_extrusions.role_visibility_flags; }
     void set_toolpath_role_visibility_flags(unsigned int flags) { m_extrusions.role_visibility_flags = flags; }
     unsigned int get_options_visibility_flags() const;

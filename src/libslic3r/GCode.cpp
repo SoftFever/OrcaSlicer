@@ -775,12 +775,9 @@ void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_
     }
 
 #if ENABLE_GCODE_VIEWER
-    print->m_print_statistics.clear_time_estimates();
     m_processor.process_file(path_tmp);
-    if (result != nullptr) {
+    if (result != nullptr)
         *result = std::move(m_processor.extract_result());
-        m_processor.update_print_stats_estimated_times(print->m_print_statistics);
-    }
 #endif // ENABLE_GCODE_VIEWER
 
     GCodeTimeEstimator::PostProcessData normal_data = m_normal_time_estimator.get_post_process_data();

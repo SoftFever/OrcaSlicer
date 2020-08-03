@@ -1432,8 +1432,6 @@ void MainFrame::set_mode(EMode mode)
         select_tab(0);
 #endif // ENABLE_LAYOUT_NO_RESTART
 
-        m_plater->fff_print().print_statistics().clear_time_estimates();
-
         m_plater->reset();
         m_plater->reset_gcode_toolpaths();
 
@@ -1476,8 +1474,6 @@ void MainFrame::set_mode(EMode mode)
 #if ENABLE_LAYOUT_NO_RESTART
         update_layout();
 #endif // ENABLE_LAYOUT_NO_RESTART
-
-        m_plater->fff_print().print_statistics().clear_time_estimates();
 
         m_plater->reset();
         m_plater->reset_last_loaded_gcode();

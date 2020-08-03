@@ -570,29 +570,11 @@ void GCodeProcessor::process_file(const std::string& filename)
             gcode_time.times.push_back({ CustomGCode::ColorChange, gcode_time.cache });
     }
 
+    update_estimated_times_stats();
+
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_result.time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-}
-
-void GCodeProcessor::update_print_stats_estimated_times(PrintStatistics& print_statistics)
-{
-    print_statistics.estimated_normal_print_time = get_time(GCodeProcessor::ETimeMode::Normal);
-    print_statistics.estimated_normal_custom_gcode_print_times = get_custom_gcode_times(GCodeProcessor::ETimeMode::Normal, true);
-    print_statistics.estimated_normal_moves_times = get_moves_time(GCodeProcessor::ETimeMode::Normal);
-    print_statistics.estimated_normal_roles_times = get_roles_time(GCodeProcessor::ETimeMode::Normal);
-    if (m_time_processor.machines[static_cast<size_t>(GCodeProcessor::ETimeMode::Stealth)].enabled) {
-        print_statistics.estimated_silent_print_time = get_time(GCodeProcessor::ETimeMode::Stealth);
-        print_statistics.estimated_silent_custom_gcode_print_times = get_custom_gcode_times(GCodeProcessor::ETimeMode::Stealth, true);
-        print_statistics.estimated_silent_moves_times = get_moves_time(GCodeProcessor::ETimeMode::Stealth);
-        print_statistics.estimated_silent_roles_times = get_roles_time(GCodeProcessor::ETimeMode::Stealth);
-    }
-    else {
-        print_statistics.estimated_silent_print_time = 0.0f;
-        print_statistics.estimated_silent_custom_gcode_print_times.clear();
-        print_statistics.estimated_silent_moves_times.clear();
-        print_statistics.estimated_silent_roles_times.clear();
-    }
 }
 
 float GCodeProcessor::get_time(ETimeMode mode) const
@@ -620,7 +602,7 @@ std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> GCodeProcesso
     return ret;
 }
 
-std::vector<std::pair<GCodeProcessor::EMoveType, float>> GCodeProcessor::get_moves_time(ETimeMode mode) const
+std::vector<std::pair<EMoveType, float>> GCodeProcessor::get_moves_time(ETimeMode mode) const
 {
     std::vector<std::pair<EMoveType, float>> ret;
     if (mode < ETimeMode::Count) {
@@ -1890,6 +1872,23 @@ void GCodeProcessor::simulate_st_synchronize(float additional_time)
     for (size_t i = 0; i < static_cast<size_t>(ETimeMode::Count); ++i) {
         m_time_processor.machines[i].simulate_st_synchronize(additional_time);
     }
+}
+
+void GCodeProcessor::update_estimated_times_stats()
+{
+    auto update_mode = [this](GCodeProcessor::ETimeMode mode) {
+        PrintEstimatedTimeStatistics::Mode& data = m_result.time_statistics.modes[static_cast<size_t>(mode)];
+        data.time = get_time(mode);
+        data.custom_gcode_times = get_custom_gcode_times(mode, true);
+        data.moves_times = get_moves_time(mode);
+        data.roles_times = get_roles_time(mode);
+    };
+
+    update_mode(GCodeProcessor::ETimeMode::Normal);
+    if (m_time_processor.machines[static_cast<size_t>(GCodeProcessor::ETimeMode::Stealth)].enabled)
+        update_mode(GCodeProcessor::ETimeMode::Stealth);
+    else
+        m_result.time_statistics.modes[static_cast<size_t>(GCodeProcessor::ETimeMode::Stealth)].reset();
 }
 
 } /* namespace Slic3r */
