@@ -204,7 +204,13 @@ void KBShortcutsDialog::fill_shortcuts()
         { "U", L("Upper Layer") },
         { "D", L("Lower Layer") },
         { "L", L("Show/Hide Legend") },
+#if ENABLE_GCODE_VIEWER
+#if ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+        { "T", L("Show Estimated printing time") }
+#else
         { "T", L("Show/Hide Estimated printing time") }
+#endif // ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+#endif // ENABLE_GCODE_VIEWER
     };
 
     m_full_shortcuts.push_back(std::make_pair(_L("Preview"), preview_shortcuts));

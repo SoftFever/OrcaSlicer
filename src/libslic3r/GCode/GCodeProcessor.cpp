@@ -24,9 +24,9 @@ namespace Slic3r {
 const std::string GCodeProcessor::Extrusion_Role_Tag = "ExtrType:";
 const std::string GCodeProcessor::Width_Tag          = "PrusaSlicer__WIDTH:";
 const std::string GCodeProcessor::Height_Tag         = "Height:";
-const std::string GCodeProcessor::Color_Change_Tag   = "COLOR_CHANGE";
-const std::string GCodeProcessor::Pause_Print_Tag    = "PAUSE_PRINT";
-const std::string GCodeProcessor::Custom_Code_Tag    = "CUSTOM_CODE";
+const std::string GCodeProcessor::Color_Change_Tag   = "Color change";
+const std::string GCodeProcessor::Pause_Print_Tag    = "Pause print";
+const std::string GCodeProcessor::Custom_Code_Tag    = "Custom gcode";
 
 static bool is_valid_extrusion_role(int value)
 {
@@ -297,7 +297,7 @@ void GCodeProcessor::TimeProcessor::reset()
 
 const std::vector<std::pair<GCodeProcessor::EProducer, std::string>> GCodeProcessor::Producers = {
     { EProducer::PrusaSlicer, "PrusaSlicer" },
-    { EProducer::Cura,        "Cura" },
+    { EProducer::Cura,        "Cura_SteamEngine" },
     { EProducer::Simplify3D,  "Simplify3D" },
     { EProducer::CraftWare,   "CraftWare" },
     { EProducer::ideaMaker,   "ideaMaker" }
@@ -314,32 +314,34 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     size_t extruders_count = config.nozzle_diameter.values.size();
 
     m_extruder_offsets.resize(extruders_count);
-    for (size_t id = 0; id < extruders_count; ++id) {
-        Vec2f offset = config.extruder_offset.get_at(id).cast<float>();
-        m_extruder_offsets[id] = Vec3f(offset(0), offset(1), 0.0f);
+    for (size_t i = 0; i < extruders_count; ++i) {
+        Vec2f offset = config.extruder_offset.get_at(i).cast<float>();
+        m_extruder_offsets[i] = { offset(0), offset(1), 0.0f };
     }
 
-    m_extruders_color.resize(extruders_count);
-    for (size_t id = 0; id < extruders_count; ++id) {
-        m_extruders_color[id] = static_cast<unsigned int>(id);
+    m_extruder_colors.resize(extruders_count);
+    for (size_t i = 0; i < extruders_count; ++i) {
+        m_extruder_colors[i] = static_cast<unsigned int>(i);
     }
 
-    for (double diam : config.filament_diameter.values) {
-        m_filament_diameters.push_back(static_cast<float>(diam));
+    m_filament_diameters.resize(config.filament_diameter.values.size());
+    for (size_t i = 0; i < config.filament_diameter.values.size(); ++i) {
+        m_filament_diameters[i] = static_cast<float>(config.filament_diameter.values[i]);
     }
 
     m_time_processor.machine_limits = reinterpret_cast<const MachineEnvelopeConfig&>(config);
     // Filament load / unload times are not specific to a firmware flavor. Let anybody use it if they find it useful.
     // As of now the fields are shown at the UI dialog in the same combo box as the ramming values, so they
     // are considered to be active for the single extruder multi-material printers only.
-    m_time_processor.filament_load_times.clear();
-    for (double d : config.filament_load_time.values) {
-        m_time_processor.filament_load_times.push_back(static_cast<float>(d));
+    m_time_processor.filament_load_times.resize(config.filament_load_time.values.size());
+    for (size_t i = 0; i < config.filament_load_time.values.size(); ++i) {
+        m_time_processor.filament_load_times[i] = static_cast<float>(config.filament_load_time.values[i]);
     }
-    m_time_processor.filament_unload_times.clear();
-    for (double d : config.filament_unload_time.values) {
-        m_time_processor.filament_unload_times.push_back(static_cast<float>(d));
+    m_time_processor.filament_unload_times.resize(config.filament_unload_time.values.size());
+    for (size_t i = 0; i < config.filament_unload_time.values.size(); ++i) {
+        m_time_processor.filament_unload_times[i] = static_cast<float>(config.filament_unload_time.values[i]);
     }
+
     for (size_t i = 0; i < static_cast<size_t>(ETimeMode::Count); ++i) {
         float max_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_extruding, i);
         m_time_processor.machines[i].acceleration = (max_acceleration > 0.0f) ? max_acceleration : DEFAULT_ACCELERATION;
@@ -350,6 +352,14 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
 {
     m_parser.apply_config(config);
 
+    const ConfigOptionEnum<GCodeFlavor>* gcode_flavor = config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor");
+    if (gcode_flavor != nullptr)
+        m_flavor = gcode_flavor->value;
+
+    const ConfigOptionPoints* bed_shape = config.option<ConfigOptionPoints>("bed_shape");
+    if (bed_shape != nullptr)
+        m_result.bed_shape = bed_shape->values;
+
     const ConfigOptionFloats* filament_diameters = config.option<ConfigOptionFloats>("filament_diameter");
     if (filament_diameters != nullptr) {
         for (double diam : filament_diameters->values) {
@@ -357,9 +367,127 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         }
     }
 
-    const ConfigOptionPoints* bed_shape = config.option<ConfigOptionPoints>("bed_shape");
-    if (bed_shape != nullptr) 
-        m_result.bed_shape = bed_shape->values;
+    const ConfigOptionPoints* extruder_offset = config.option<ConfigOptionPoints>("extruder_offset");
+    if (extruder_offset != nullptr) {
+        m_extruder_offsets.resize(extruder_offset->values.size());
+        for (size_t i = 0; i < extruder_offset->values.size(); ++i) {
+            Vec2f offset = extruder_offset->values[i].cast<float>();
+            m_extruder_offsets[i] = { offset(0), offset(1), 0.0f };
+        }
+    }
+
+    // ensure at least one (default) color is defined
+    std::string default_color = "#FF8000";
+    m_result.extruder_colors = std::vector<std::string>(1, default_color);
+    const ConfigOptionStrings* extruder_colour = config.option<ConfigOptionStrings>("extruder_colour");
+    if (extruder_colour != nullptr) {
+        // takes colors from config
+        m_result.extruder_colors = extruder_colour->values;
+        // try to replace missing values with filament colors
+        const ConfigOptionStrings* filament_colour = config.option<ConfigOptionStrings>("filament_colour");
+        if (filament_colour != nullptr && filament_colour->values.size() == m_result.extruder_colors.size()) {
+            for (size_t i = 0; i < m_result.extruder_colors.size(); ++i) {
+                if (m_result.extruder_colors[i].empty())
+                    m_result.extruder_colors[i] = filament_colour->values[i];
+            }
+        }
+    }
+
+    // replace missing values with default
+    for (size_t i = 0; i < m_result.extruder_colors.size(); ++i) {
+        if (m_result.extruder_colors[i].empty())
+            m_result.extruder_colors[i] = default_color;
+    }
+
+    m_extruder_colors.resize(m_result.extruder_colors.size());
+    for (size_t i = 0; i < m_result.extruder_colors.size(); ++i) {
+        m_extruder_colors[i] = static_cast<unsigned int>(i);
+    }
+
+    const ConfigOptionFloats* filament_load_time = config.option<ConfigOptionFloats>("filament_load_time");
+    if (filament_load_time != nullptr) {
+        m_time_processor.filament_load_times.resize(filament_load_time->values.size());
+        for (size_t i = 0; i < filament_load_time->values.size(); ++i) {
+            m_time_processor.filament_load_times[i] = static_cast<float>(filament_load_time->values[i]);
+        }
+    }
+
+    const ConfigOptionFloats* filament_unload_time = config.option<ConfigOptionFloats>("filament_unload_time");
+    if (filament_unload_time != nullptr) {
+        m_time_processor.filament_unload_times.resize(filament_unload_time->values.size());
+        for (size_t i = 0; i < filament_unload_time->values.size(); ++i) {
+            m_time_processor.filament_unload_times[i] = static_cast<float>(filament_unload_time->values[i]);
+        }
+    }
+
+    const ConfigOptionFloats* machine_max_acceleration_x = config.option<ConfigOptionFloats>("machine_max_acceleration_x");
+    if (machine_max_acceleration_x != nullptr)
+        m_time_processor.machine_limits.machine_max_acceleration_x.values = machine_max_acceleration_x->values;
+
+    const ConfigOptionFloats* machine_max_acceleration_y = config.option<ConfigOptionFloats>("machine_max_acceleration_y");
+    if (machine_max_acceleration_y != nullptr)
+        m_time_processor.machine_limits.machine_max_acceleration_y.values = machine_max_acceleration_y->values;
+
+    const ConfigOptionFloats* machine_max_acceleration_z = config.option<ConfigOptionFloats>("machine_max_acceleration_z");
+    if (machine_max_acceleration_z != nullptr)
+        m_time_processor.machine_limits.machine_max_acceleration_z.values = machine_max_acceleration_z->values;
+
+    const ConfigOptionFloats* machine_max_acceleration_e = config.option<ConfigOptionFloats>("machine_max_acceleration_e");
+    if (machine_max_acceleration_e != nullptr)
+        m_time_processor.machine_limits.machine_max_acceleration_e.values = machine_max_acceleration_e->values;
+
+    const ConfigOptionFloats* machine_max_feedrate_x = config.option<ConfigOptionFloats>("machine_max_feedrate_x");
+    if (machine_max_feedrate_x != nullptr)
+        m_time_processor.machine_limits.machine_max_feedrate_x.values = machine_max_feedrate_x->values;
+
+    const ConfigOptionFloats* machine_max_feedrate_y = config.option<ConfigOptionFloats>("machine_max_feedrate_y");
+    if (machine_max_feedrate_y != nullptr)
+        m_time_processor.machine_limits.machine_max_feedrate_y.values = machine_max_feedrate_y->values;
+
+    const ConfigOptionFloats* machine_max_feedrate_z = config.option<ConfigOptionFloats>("machine_max_feedrate_z");
+    if (machine_max_feedrate_z != nullptr)
+        m_time_processor.machine_limits.machine_max_feedrate_z.values = machine_max_feedrate_z->values;
+
+    const ConfigOptionFloats* machine_max_feedrate_e = config.option<ConfigOptionFloats>("machine_max_feedrate_e");
+    if (machine_max_feedrate_e != nullptr)
+        m_time_processor.machine_limits.machine_max_feedrate_e.values = machine_max_feedrate_e->values;
+
+    const ConfigOptionFloats* machine_max_jerk_x = config.option<ConfigOptionFloats>("machine_max_jerk_x");
+    if (machine_max_jerk_x != nullptr)
+        m_time_processor.machine_limits.machine_max_jerk_x.values = machine_max_jerk_x->values;
+
+    const ConfigOptionFloats* machine_max_jerk_y = config.option<ConfigOptionFloats>("machine_max_jerk_y");
+    if (machine_max_jerk_y != nullptr)
+        m_time_processor.machine_limits.machine_max_jerk_y.values = machine_max_jerk_y->values;
+
+    const ConfigOptionFloats* machine_max_jerk_z = config.option<ConfigOptionFloats>("machine_max_jerkz");
+    if (machine_max_jerk_z != nullptr)
+        m_time_processor.machine_limits.machine_max_jerk_z.values = machine_max_jerk_z->values;
+
+    const ConfigOptionFloats* machine_max_jerk_e = config.option<ConfigOptionFloats>("machine_max_jerk_e");
+    if (machine_max_jerk_e != nullptr)
+        m_time_processor.machine_limits.machine_max_jerk_e.values = machine_max_jerk_e->values;
+
+    const ConfigOptionFloats* machine_max_acceleration_extruding = config.option<ConfigOptionFloats>("machine_max_acceleration_extruding");
+    if (machine_max_acceleration_extruding != nullptr)
+        m_time_processor.machine_limits.machine_max_acceleration_extruding.values = machine_max_acceleration_extruding->values;
+
+    const ConfigOptionFloats* machine_max_acceleration_retracting = config.option<ConfigOptionFloats>("machine_max_acceleration_retracting");
+    if (machine_max_acceleration_retracting != nullptr)
+        m_time_processor.machine_limits.machine_max_acceleration_retracting.values = machine_max_acceleration_retracting->values;
+
+    const ConfigOptionFloats* machine_min_extruding_rate = config.option<ConfigOptionFloats>("machine_min_extruding_rate");
+    if (machine_min_extruding_rate != nullptr)
+        m_time_processor.machine_limits.machine_min_extruding_rate.values = machine_min_extruding_rate->values;
+
+    const ConfigOptionFloats* machine_min_travel_rate = config.option<ConfigOptionFloats>("machine_min_travel_rate");
+    if (machine_min_travel_rate != nullptr)
+        m_time_processor.machine_limits.machine_min_travel_rate.values = machine_min_travel_rate->values;
+
+    for (size_t i = 0; i < static_cast<size_t>(ETimeMode::Count); ++i) {
+        float max_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_extruding, i);
+        m_time_processor.machines[i].acceleration = (max_acceleration > 0.0f) ? max_acceleration : DEFAULT_ACCELERATION;
+    }
 }
 
 void GCodeProcessor::enable_stealth_time_estimator(bool enabled)
@@ -388,7 +516,7 @@ void GCodeProcessor::reset()
 
     m_extrusion_role = erNone;
     m_extruder_id = 0;
-    m_extruders_color = ExtrudersColor();
+    m_extruder_colors = ExtruderColors();
     m_filament_diameters = std::vector<float>();
     m_cp_color.reset();
 
@@ -643,13 +771,13 @@ void GCodeProcessor::process_tags(const std::string& comment)
         {
             unsigned char extruder_id = (pos == comment.npos) ? 0 : static_cast<unsigned char>(std::stoi(comment.substr(pos + 1)));
 
-            m_extruders_color[extruder_id] = static_cast<unsigned char>(m_extruder_offsets.size()) + m_cp_color.counter; // color_change position in list of color for preview
+            m_extruder_colors[extruder_id] = static_cast<unsigned char>(m_extruder_offsets.size()) + m_cp_color.counter; // color_change position in list of color for preview
             ++m_cp_color.counter;
             if (m_cp_color.counter == UCHAR_MAX)
                 m_cp_color.counter = 0;
 
             if (m_extruder_id == extruder_id) {
-                m_cp_color.current = m_extruders_color[extruder_id];
+                m_cp_color.current = m_extruder_colors[extruder_id];
                 store_move_vertex(EMoveType::Color_change);
             }
 
@@ -724,6 +852,35 @@ bool GCodeProcessor::process_cura_tags(const std::string& comment)
             m_extrusion_role = erNone;
             BOOST_LOG_TRIVIAL(warning) << "GCodeProcessor found unknown extrusion role: " << type;
         }
+
+        return true;
+    }
+
+    // flavor
+    tag = "FLAVOR:";
+    pos = comment.find(tag);
+    if (pos != comment.npos) {
+        std::string flavor = comment.substr(pos + tag.length());
+        if (flavor == "BFB")
+            m_flavor = gcfMarlin; // << ???????????????????????
+        else if (flavor == "Mach3")
+            m_flavor = gcfMach3;
+        else if (flavor == "Makerbot")
+            m_flavor = gcfMakerWare;
+        else if (flavor == "UltiGCode")
+            m_flavor = gcfMarlin; // << ???????????????????????
+        else if (flavor == "Marlin(Volumetric)")
+            m_flavor = gcfMarlin; // << ???????????????????????
+        else if (flavor == "Griffin")
+            m_flavor = gcfMarlin; // << ???????????????????????
+        else if (flavor == "Repetier")
+            m_flavor = gcfRepetier;
+        else if (flavor == "RepRap")
+            m_flavor = gcfRepRap;
+        else if (flavor == "Marlin")
+            m_flavor = gcfMarlin;
+        else
+            BOOST_LOG_TRIVIAL(warning) << "GCodeProcessor found unknown flavor: " << flavor;
 
         return true;
     }
@@ -1582,7 +1739,7 @@ void GCodeProcessor::process_T(const std::string& command)
                 else {
                     unsigned char old_extruder_id = m_extruder_id;
                     m_extruder_id = id;
-                    m_cp_color.current = m_extruders_color[id];
+                    m_cp_color.current = m_extruder_colors[id];
                     // Specific to the MK3 MMU2:
                     // The initial value of extruder_unloaded is set to true indicating
                     // that the filament is parked in the MMU2 unit and there is nothing to be unloaded yet.

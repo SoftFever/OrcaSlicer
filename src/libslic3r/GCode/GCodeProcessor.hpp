@@ -10,6 +10,7 @@
 
 #include <array>
 #include <vector>
+#include <string>
 
 namespace Slic3r {
 
@@ -27,7 +28,7 @@ namespace Slic3r {
 
     private:
         using AxisCoords = std::array<float, 4>;
-        using ExtrudersColor = std::vector<unsigned char>;
+        using ExtruderColors = std::vector<unsigned char>;
 
         enum class EUnits : unsigned char
         {
@@ -212,6 +213,7 @@ namespace Slic3r {
             std::vector<MoveVertex> moves;
 #if ENABLE_GCODE_VIEWER_AS_STATE
             Pointfs bed_shape;
+            std::vector<std::string> extruder_colors;
 #endif // ENABLE_GCODE_VIEWER_AS_STATE
 #if ENABLE_GCODE_VIEWER_STATISTICS
             long long time{ 0 };
@@ -221,6 +223,7 @@ namespace Slic3r {
                 moves = std::vector<MoveVertex>();
 #if ENABLE_GCODE_VIEWER_AS_STATE
                 bed_shape = Pointfs();
+                extruder_colors = std::vector<std::string>();
 #endif // ENABLE_GCODE_VIEWER_AS_STATE
             }
 #else
@@ -229,6 +232,7 @@ namespace Slic3r {
                 moves = std::vector<MoveVertex>();
 #if ENABLE_GCODE_VIEWER_AS_STATE
                 bed_shape = Pointfs();
+                extruder_colors = std::vector<std::string>();
 #endif // ENABLE_GCODE_VIEWER_AS_STATE
             }
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -255,7 +259,7 @@ namespace Slic3r {
         float m_fan_speed; // percentage
         ExtrusionRole m_extrusion_role;
         unsigned char m_extruder_id;
-        ExtrudersColor m_extruders_color;
+        ExtruderColors m_extruder_colors;
         std::vector<float> m_filament_diameters;
         CpColor m_cp_color;
 

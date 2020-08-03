@@ -43,13 +43,13 @@ static GCodeProcessor::EMoveType buffer_type(unsigned char id) {
 std::array<float, 3> decode_color(const std::string& color) {
     static const float INV_255 = 1.0f / 255.0f;
 
-    std::array<float, 3> ret;
+    std::array<float, 3> ret = { 0.0f, 0.0f, 0.0f };
     const char* c = color.data() + 1;
-    if ((color.size() == 7) && (color.front() == '#')) {
+    if (color.size() == 7 && color.front() == '#') {
         for (size_t j = 0; j < 3; ++j) {
             int digit1 = hex_digit_to_int(*c++);
             int digit2 = hex_digit_to_int(*c++);
-            if ((digit1 == -1) || (digit2 == -1))
+            if (digit1 == -1 || digit2 == -1)
                 break;
 
             ret[j] = float(digit1 * 16 + digit2) * INV_255;
@@ -351,8 +351,14 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
     if (m_vertices_count == 0)
         return;
 
-    // update tool colors
-    m_tool_colors = decode_colors(str_tool_colors);
+#if ENABLE_GCODE_VIEWER_AS_STATE
+    if (m_view_type == EViewType::Tool && !gcode_result.extruder_colors.empty())
+        // update tool colors from config stored in the gcode
+        m_tool_colors = decode_colors(gcode_result.extruder_colors);
+    else
+#endif // ENABLE_GCODE_VIEWER_AS_STATE
+        // update tool colors
+        m_tool_colors = decode_colors(str_tool_colors);
 
     // update ranges for coloring / legend
     m_extrusions.reset_ranges();
@@ -1707,7 +1713,6 @@ void GCodeViewer::render_time_estimate() const
         return;
     }
 #endif // ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
-
 
     using Times = std::pair<float, float>;
     using TimesList = std::vector<std::pair<CustomGCode::Type, Times>>;
