@@ -1,8 +1,11 @@
 #define NOMINMAX
 #include <catch2/catch.hpp>
 
+#include <numeric>
+
 #include "libslic3r/PNGRead.hpp"
 #include "libslic3r/SLA/AGGRaster.hpp"
+#include "libslic3r/BoundingBox.hpp"
 
 using namespace Slic3r;
 
