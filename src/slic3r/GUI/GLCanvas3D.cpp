@@ -225,56 +225,44 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
 
     const Size& cnv_size = canvas.get_canvas_size();
-    float canvas_w = (float)cnv_size.get_width();
-    float canvas_h = (float)cnv_size.get_height();
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
-    imgui.set_next_window_pos(canvas_w - imgui.get_style_scaling() * THICKNESS_BAR_WIDTH, canvas_h, ImGuiCond_Always, 1.0f, 1.0f);
+    imgui.set_next_window_pos(static_cast<float>(cnv_size.get_width()) - imgui.get_style_scaling() * THICKNESS_BAR_WIDTH, 
+        static_cast<float>(cnv_size.get_height()), ImGuiCond_Always, 1.0f, 1.0f);
 
-    imgui.begin(_(L("Variable layer height")), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+    imgui.begin(_L("Variable layer height"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
-    imgui.text(_(L("Left mouse button:")));
-    ImGui::PopStyleColor();
+    imgui.text_colored(ORANGE, _L("Left mouse button:"));
     ImGui::SameLine();
-    imgui.text(_(L("Add detail")));
+    imgui.text(_L("Add detail"));
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
-    imgui.text(_(L("Right mouse button:")));
-    ImGui::PopStyleColor();
+    imgui.text_colored(ORANGE, _L("Right mouse button:"));
     ImGui::SameLine();
-    imgui.text(_(L("Remove detail")));
+    imgui.text(_L("Remove detail"));
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
-    imgui.text(_(L("Shift + Left mouse button:")));
-    ImGui::PopStyleColor();
+    imgui.text_colored(ORANGE, _L("Shift + Left mouse button:"));
     ImGui::SameLine();
-    imgui.text(_(L("Reset to base")));
+    imgui.text(_L("Reset to base"));
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
-    imgui.text(_(L("Shift + Right mouse button:")));
-    ImGui::PopStyleColor();
+    imgui.text_colored(ORANGE, _L("Shift + Right mouse button:"));
     ImGui::SameLine();
-    imgui.text(_(L("Smoothing")));
+    imgui.text(_L("Smoothing"));
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
-    imgui.text(_(L("Mouse wheel:")));
-    ImGui::PopStyleColor();
+    imgui.text_colored(ORANGE, _L("Mouse wheel:"));
     ImGui::SameLine();
-    imgui.text(_(L("Increase/decrease edit area")));
+    imgui.text(_L("Increase/decrease edit area"));
     
     ImGui::Separator();
-    if (imgui.button(_(L("Adaptive"))))
+    if (imgui.button(_L("Adaptive")))
         wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), Event<float>(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, m_adaptive_quality));
 
     ImGui::SameLine();
     float text_align = ImGui::GetCursorPosX();
     ImGui::AlignTextToFramePadding();
-    imgui.text(_(L("Quality / Speed")));
-    if (ImGui::IsItemHovered())
-    {
+    imgui.text(_L("Quality / Speed"));
+    if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
-        ImGui::TextUnformatted(_(L("Higher print quality versus higher print speed.")).ToUTF8());
+        ImGui::TextUnformatted(_L("Higher print quality versus higher print speed.").ToUTF8());
         ImGui::EndTooltip();
     }
 
@@ -285,13 +273,13 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     ImGui::SliderFloat("", &m_adaptive_quality, 0.0f, 1.f, "%.2f");
 
     ImGui::Separator();
-    if (imgui.button(_(L("Smooth"))))
+    if (imgui.button(_L("Smooth")))
         wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), HeightProfileSmoothEvent(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, m_smooth_params));
 
     ImGui::SameLine();
     ImGui::SetCursorPosX(text_align);
     ImGui::AlignTextToFramePadding();
-    imgui.text(_(L("Radius")));
+    imgui.text(_L("Radius"));
     ImGui::SameLine();
     ImGui::SetCursorPosX(widget_align);
     ImGui::PushItemWidth(imgui.get_style_scaling() * 120.0f);
@@ -301,7 +289,7 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
 
     ImGui::SetCursorPosX(text_align);
     ImGui::AlignTextToFramePadding();
-    imgui.text(_(L("Keep min")));
+    imgui.text(_L("Keep min"));
     ImGui::SameLine();
     if (ImGui::GetCursorPosX() < widget_align)  // because of line lenght after localization
         ImGui::SetCursorPosX(widget_align);
@@ -310,7 +298,7 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     imgui.checkbox("##2", m_smooth_params.keep_min);
 
     ImGui::Separator();
-    if (imgui.button(_(L("Reset"))))
+    if (imgui.button(_L("Reset")))
         wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), SimpleEvent(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE));
 
     imgui.end();
@@ -1430,8 +1418,7 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas
 #if ENABLE_SLOPE_RENDERING
 void GLCanvas3D::Slope::render() const
 {
-    if (m_dialog_shown)
-    {
+    if (m_dialog_shown) {
         const std::array<float, 2>& z_range = m_volumes.get_slope_z_range();
         std::array<float, 2> angle_range = { Geometry::rad2deg(::acos(z_range[0])) - 90.0f, Geometry::rad2deg(::acos(z_range[1])) - 90.0f };
         bool modified = false;
@@ -1439,9 +1426,9 @@ void GLCanvas3D::Slope::render() const
         ImGuiWrapper& imgui = *wxGetApp().imgui();
         const Size& cnv_size = m_canvas.get_canvas_size();
         imgui.set_next_window_pos((float)cnv_size.get_width(), (float)cnv_size.get_height(), ImGuiCond_Always, 1.0f, 1.0f);
-        imgui.begin(_(L("Slope visualization")), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+        imgui.begin(_L("Slope visualization"), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
-        imgui.text(_(L("Facets' slope range (degrees)")) + ":");
+        imgui.text(_L("Facets' slope range (degrees)") + ":");
 
         ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.75f, 0.0f, 0.0f, 0.5f));
         ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(1.0f, 0.0f, 0.0f, 0.5f));
@@ -1453,8 +1440,7 @@ void GLCanvas3D::Slope::render() const
         float slope_bound = 90.f - angle_range[1];
         bool mod = ImGui::SliderFloat("##red", &slope_bound, 0.0f, 90.0f, "%.1f");
         angle_range[1] = 90.f - slope_bound;
-        if (mod)
-        {
+        if (mod) {
             modified = true;
             if (angle_range[0] > angle_range[1])
                 angle_range[0] = angle_range[1];
@@ -1462,15 +1448,14 @@ void GLCanvas3D::Slope::render() const
 
         ImGui::PopStyleColor(4);
         ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.75f, 0.75f, 0.0f, 0.5f));
-                ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(1.0f, 1.0f, 0.0f, 0.5f));
-                ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.85f, 0.85f, 0.0f, 0.5f));
-                ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.25f, 0.25f, 0.0f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(1.0f, 1.0f, 0.0f, 0.5f));
+        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.85f, 0.85f, 0.0f, 0.5f));
+        ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.25f, 0.25f, 0.0f, 1.0f));
 
         slope_bound = 90.f - angle_range[0];
         mod = ImGui::SliderFloat("##yellow", &slope_bound, 0.0f, 90.0f, "%.1f");
         angle_range[0] = 90.f - slope_bound;
-        if (mod)
-        {
+        if (mod) {
             modified = true;
             if (angle_range[1] < angle_range[0])
                 angle_range[1] = angle_range[0];

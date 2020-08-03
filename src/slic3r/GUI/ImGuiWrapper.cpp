@@ -354,6 +354,22 @@ void ImGuiWrapper::text(const wxString &label)
     this->text(label_utf8.c_str());
 }
 
+void ImGuiWrapper::text_colored(const ImVec4& color, const char* label)
+{
+    ImGui::TextColored(color, label);
+}
+
+void ImGuiWrapper::text_colored(const ImVec4& color, const std::string& label)
+{
+    this->text_colored(color, label.c_str());
+}
+
+void ImGuiWrapper::text_colored(const ImVec4& color, const wxString& label)
+{
+    auto label_utf8 = into_u8(label);
+    this->text_colored(color, label_utf8.c_str());
+}
+
 bool ImGuiWrapper::slider_float(const char* label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/)
 {
     return ImGui::SliderFloat(label, v, v_min, v_max, format, power);

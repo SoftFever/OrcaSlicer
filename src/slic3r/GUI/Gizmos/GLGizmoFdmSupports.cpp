@@ -513,9 +513,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
         auto draw_text_with_caption = [this, &caption_max](const wxString& caption, const wxString& text) {
             static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
-            ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
-            m_imgui->text(caption);
-            ImGui::PopStyleColor();
+            m_imgui->text_colored(ORANGE, caption);
             ImGui::SameLine(caption_max);
             m_imgui->text(text);
         };
