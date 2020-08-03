@@ -512,9 +512,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         window_width = std::max(window_width, button_width);
 
         auto draw_text_with_caption = [this, &caption_max](const wxString& caption, const wxString& text) {
-            ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
-            m_imgui->text(caption);
-            ImGui::PopStyleColor();
+            m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, caption);
             ImGui::SameLine(caption_max);
             m_imgui->text(text);
         };
