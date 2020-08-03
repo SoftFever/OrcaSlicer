@@ -37,11 +37,17 @@ namespace GUI {
 
 
 static const std::map<const char, std::string> font_icons = {
-    {ImGui::PrintIconMarker     , "cog"        },
-    {ImGui::PrinterIconMarker   , "printer"    },
-    {ImGui::PrinterSlaIconMarker, "sla_printer"},
-    {ImGui::FilamentIconMarker  , "spool"      },
-    {ImGui::MaterialIconMarker  , "resin"      }
+    {ImGui::PrintIconMarker     , "cog"               },
+    {ImGui::PrinterIconMarker   , "printer"           },
+    {ImGui::PrinterSlaIconMarker, "sla_printer"       },
+    {ImGui::FilamentIconMarker  , "spool"             },
+    {ImGui::MaterialIconMarker  , "resin"             },
+	{ImGui::CloseIconMarker     , "cross"             },
+	{ImGui::CloseIconHoverMarker, "cross_focus_large" },
+	{ImGui::TimerDotMarker      , "timer_dot"         },
+    {ImGui::TimerDotEmptyMarker , "timer_dot_empty"   },
+	{ImGui::WarningMarker       , "flag_green"        },
+    {ImGui::ErrorMarker         , "flag_red"          }
 };
 
 ImGuiWrapper::ImGuiWrapper()
@@ -265,6 +271,11 @@ void ImGuiWrapper::set_next_window_bg_alpha(float alpha)
     ImGui::SetNextWindowBgAlpha(alpha);
 }
 
+void ImGuiWrapper::set_next_window_size(float x, float y, ImGuiCond cond)
+{
+	ImGui::SetNextWindowSize(ImVec2(x, y), cond);
+}
+
 bool ImGuiWrapper::begin(const std::string &name, int flags)
 {
     return ImGui::Begin(name.c_str(), nullptr, (ImGuiWindowFlags)flags);
@@ -296,10 +307,21 @@ bool ImGuiWrapper::button(const wxString &label)
     return ImGui::Button(label_utf8.c_str());
 }
 
+bool ImGuiWrapper::button(const wxString& label, float width, float height)
+{
+	auto label_utf8 = into_u8(label);
+	return ImGui::Button(label_utf8.c_str(), ImVec2(width, height));
+}
+
 bool ImGuiWrapper::radio_button(const wxString &label, bool active)
 {
     auto label_utf8 = into_u8(label);
     return ImGui::RadioButton(label_utf8.c_str(), active);
+}
+
+bool ImGuiWrapper::image_button()
+{
+	return false;
 }
 
 bool ImGuiWrapper::input_double(const std::string &label, const double &value, const std::string &format)

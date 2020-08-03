@@ -89,11 +89,13 @@ void BackgroundSlicingProcess::process_fff()
 {
 	assert(m_print == m_fff_print);
     m_print->process();
-	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_slicing_completed_id));
+	wxCommandEvent evt(m_event_slicing_completed_id);
+	evt.SetInt((int)(m_fff_print->step_state_with_timestamp(PrintStep::psBrim).timestamp));
+	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
     m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data, m_thumbnail_cb);
-
 	if (this->set_step_started(bspsGCodeFinalize)) {
 	    if (! m_export_path.empty()) {
+			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
 	    	//FIXME localize the messages
 	    	// Perform the final post-processing of the export path by applying the print statistics over the file name.
 	    	std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);
@@ -124,6 +126,7 @@ void BackgroundSlicingProcess::process_fff()
 	    	run_post_process_scripts(export_path, m_fff_print->config());
 	    	m_print->set_status(100, (boost::format(_utf8(L("G-code file exported to %1%"))) % export_path).str());
 	    } else if (! m_upload_job.empty()) {
+			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
 			prepare_upload();
 	    } else {
 			m_print->set_status(100, _utf8(L("Slicing complete")));
@@ -149,6 +152,8 @@ void BackgroundSlicingProcess::process_sla()
     m_print->process();
     if (this->set_step_started(bspsGCodeFinalize)) {
         if (! m_export_path.empty()) {
+			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
+
             const std::string export_path = m_sla_print->print_statistics().finalize_output_path(m_export_path);
 
             Zipper zipper(export_path);
@@ -170,6 +175,7 @@ void BackgroundSlicingProcess::process_sla()
 
             m_print->set_status(100, (boost::format(_utf8(L("Masked SLA file exported to %1%"))) % export_path).str());
         } else if (! m_upload_job.empty()) {
+			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
             prepare_upload();
         } else {
 			m_print->set_status(100, _utf8(L("Slicing complete")));

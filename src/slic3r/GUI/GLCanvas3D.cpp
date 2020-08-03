@@ -31,6 +31,7 @@
 #include "GUI_ObjectManipulation.hpp"
 #include "Mouse3DController.hpp"
 #include "I18N.hpp"
+#include "NotificationManager.hpp"
 
 #if ENABLE_RETINA_GL
 #include "slic3r/Utils/RetinaHelper.hpp"
@@ -651,19 +652,45 @@ void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool 
 
         m_warnings.emplace_back(warning);
         std::sort(m_warnings.begin(), m_warnings.end());
+
+		std::string text;
+		switch (warning) {
+			case ObjectOutside: text = L("An object outside the print area was detected."); break;
+			case ToolpathOutside: text = L("A toolpath outside the print area was detected."); break;
+			case SlaSupportsOutside: text = L("SLA supports outside the print area were detected."); break;
+			case SomethingNotShown: text = L("Some objects are not visible."); break;
+			case ObjectClashed: wxGetApp().plater()->get_notification_manager()->push_plater_error_notification(L("An object outside the print area was detected.\n"
+																												 "Resolve the current problem to continue slicing."), 
+				                                                                                                *(wxGetApp().plater()->get_current_canvas3D()));
+				break;
+		}
+		if (!text.empty())
+			wxGetApp().plater()->get_notification_manager()->push_plater_warning_notification(text, *(wxGetApp().plater()->get_current_canvas3D()));
     }
     else {
         if (it == m_warnings.end()) // deactivating something that is not active is an easy task
             return;
 
         m_warnings.erase(it);
-        if (m_warnings.empty()) { // nothing remains to be shown
+
+		std::string text;
+		switch (warning) {
+		case ObjectOutside: text = L("An object outside the print area was detected."); break;
+		case ToolpathOutside: text = L("A toolpath outside the print area was detected."); break;
+		case SlaSupportsOutside: text = L("SLA supports outside the print area were detected."); break;
+		case SomethingNotShown: text = L("Some objects are not visibl.e"); break;
+		case ObjectClashed: wxGetApp().plater()->get_notification_manager()->close_plater_error_notification(); break;
+		}
+		if (!text.empty())
+			wxGetApp().plater()->get_notification_manager()->close_plater_warning_notification(text);
+
+        /*if (m_warnings.empty()) { // nothing remains to be shown
             reset();
             m_msg_text = "";// save information for rescaling
             return;
-        }
+        }*/
     }
-
+	/*
     // Look at the end of our vector and generate proper texture.
     std::string text;
     bool red_colored = false;
@@ -685,6 +712,7 @@ void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool 
     // save information for rescaling
     m_msg_text = text;
     m_is_colored_red = red_colored;
+	*/
 }
 
 
@@ -2074,6 +2102,8 @@ void GLCanvas3D::render()
 
     std::string tooltip;
 
+	
+
 	// Negative coordinate means out of the window, likely because the window was deactivated.
 	// In that case the tooltip should be hidden.
     if (m_mouse.position.x() >= 0. && m_mouse.position.y() >= 0.) 
@@ -2103,6 +2133,8 @@ void GLCanvas3D::render()
         m_tooltip.render(m_mouse.position, *this);
 
     wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog(*this);
+	
+	wxGetApp().plater()->get_notification_manager()->render_notifications(*this);
 
     wxGetApp().imgui()->render();
 
@@ -3418,6 +3450,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #ifdef SLIC3R_DEBUG_MOUSE_EVENTS
         printf((format_mouse_event_debug_message(evt) + " - Consumed by ImGUI\n").c_str());
 #endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
+		 m_dirty = true;
         // do not return if dragging or tooltip not empty to allow for tooltip update
         if (!m_mouse.dragging && m_tooltip.is_empty())
             return;
@@ -3811,7 +3844,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_gizmos.reset_all_states();
 
         // Only refresh if picking is enabled, in that case the objects may get highlighted if the mouse cursor hovers over.
-        if (m_picking_enabled)
+        //if (m_picking_enabled)
             m_dirty = true;
     }
     else

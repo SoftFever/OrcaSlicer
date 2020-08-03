@@ -686,6 +686,7 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
     std::sort(ordering.begin(), ordering.end(), [](const OrderingItem &oi1, const OrderingItem &oi2) { return oi1.print_z < oi2.print_z; });
 
     std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> layers_to_print;
+
     // Merge numerically very close Z values.
     for (size_t i = 0; i < ordering.size();) {
         // Find the last layer with roughly the same print_z.
