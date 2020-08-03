@@ -111,7 +111,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 
     // initialize tabpanel and menubar
     init_tabpanel();
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
     init_editor_menubar();
     init_gcodeviewer_menubar();
 
@@ -129,7 +129,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 #endif // _WIN32
 #else
     init_menubar();
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 
     // set default tooltip timer in msec
     // SetAutoPop supposedly accepts long integers but some bug doesn't allow for larger values
@@ -243,9 +243,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     update_ui_from_settings();    // FIXME (?)
 
     if (m_plater != nullptr) {
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
         m_plater->get_collapse_toolbar().set_enabled(wxGetApp().app_config->get("show_collapse_button") == "1");
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
         m_plater->show_action_buttons(true);
     }
 }
@@ -291,7 +291,7 @@ void MainFrame::update_layout()
         Layout();
     };
 
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
     ESettingsLayout layout = (m_mode == EMode::GCodeViewer) ? ESettingsLayout::GCodeViewer :
         (wxGetApp().app_config->get("old_settings_layout_mode") == "1" ? ESettingsLayout::Old :
          wxGetApp().app_config->get("new_settings_layout_mode") == "1" ? ESettingsLayout::New :
@@ -300,7 +300,7 @@ void MainFrame::update_layout()
     ESettingsLayout layout = wxGetApp().app_config->get("old_settings_layout_mode") == "1" ? ESettingsLayout::Old :
         wxGetApp().app_config->get("new_settings_layout_mode") == "1" ? ESettingsLayout::New :
         wxGetApp().app_config->get("dlg_settings_layout_mode") == "1" ? ESettingsLayout::Dlg : ESettingsLayout::Old;
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 
     if (m_layout == layout)
         return;
@@ -356,14 +356,14 @@ void MainFrame::update_layout()
         m_plater->Show();
         break;
     }
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
     case ESettingsLayout::GCodeViewer:
     {
         m_main_sizer->Add(m_plater, 1, wxEXPAND);
         m_plater->Show();
         break;
     }
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
     }
 
 //#ifdef __APPLE__
@@ -398,7 +398,7 @@ void MainFrame::shutdown()
  	}
 #endif // _WIN32
 
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
     if (m_plater != nullptr) {
         m_plater->stop_jobs();
 
@@ -423,7 +423,7 @@ void MainFrame::shutdown()
     // Cleanup of canvases' volumes needs to be done here or a crash may happen on some Linux Debian flavours
     // see: https://github.com/prusa3d/PrusaSlicer/issues/3964
     if (m_plater) m_plater->reset_canvas_volumes();
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 
     // Weird things happen as the Paint messages are floating around the windows being destructed.
     // Avoid the Paint messages by hiding the main window.
@@ -436,11 +436,11 @@ void MainFrame::shutdown()
         m_settings_dialog.Close();
 
     if (m_plater != nullptr) {
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
         // restore sidebar if it was hidden when switching to gcode viewer mode
         if (m_restore_from_gcode_viewer.collapsed_sidebar)
             m_plater->collapse_sidebar(false);
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
         // Stop the background thread (Windows and Linux).
         // Disconnect from a 3DConnextion driver (OSX).
         m_plater->get_mouse3d_controller().shutdown();
@@ -781,7 +781,7 @@ void MainFrame::on_sys_color_changed()
         msw_rescale_menu(menu_bar->GetMenu(id));
 }
 
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
 #ifdef _MSC_VER
     // \xA0 is a non-breaking space. It is entered here to spoil the automatic accelerators,
     // as the simple numeric accelerators spoil all numeric data entry.
@@ -855,7 +855,7 @@ static void add_common_view_menu_items(wxMenu* view_menu, MainFrame* mainFrame, 
 void MainFrame::init_editor_menubar()
 #else
 void MainFrame::init_menubar()
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 {
 #ifdef __APPLE__
     wxMenuBar::SetAutoWindowMenu(false);
@@ -1015,7 +1015,7 @@ void MainFrame::init_menubar()
         append_menu_item(fileMenu, wxID_ANY, _L("&Repair STL file") + dots, _L("Automatically repair an STL file"),
             [this](wxCommandEvent&) { repair_stl(); }, "wrench", nullptr,
             [this]() { return true; }, this);
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_ANY, _L("&G-code preview"), _L("Switch to G-code preview mode"),
             [this](wxCommandEvent&) {
@@ -1023,13 +1023,13 @@ void MainFrame::init_menubar()
                     set_mode(EMode::GCodeViewer);
             }, "", nullptr,
             [this]() { return m_plater != nullptr && m_plater->printer_technology() != ptSLA; }, this);
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_EXIT, _L("&Quit"), wxString::Format(_L("Quit %s"), SLIC3R_APP_NAME),
             [this](wxCommandEvent&) { Close(false); });
     }
 
-#if !ENABLE_GCODE_VIEWER_AS_STATE
+#if !ENABLE_GCODE_VIEWER
 #ifdef _MSC_VER
     // \xA0 is a non-breaking space. It is entered here to spoil the automatic accelerators,
     // as the simple numeric accelerators spoil all numeric data entry.
@@ -1039,7 +1039,7 @@ void MainFrame::init_menubar()
     wxString sep = " - ";
     wxString sep_space = "";
 #endif
-#endif // !ENABLE_GCODE_VIEWER_AS_STATE
+#endif // !ENABLE_GCODE_VIEWER
 
     // Edit menu
     wxMenu* editMenu = nullptr;
@@ -1123,7 +1123,7 @@ void MainFrame::init_menubar()
                 [this](){return can_change_view(); }, this);
         }
 
-#if !ENABLE_GCODE_VIEWER_AS_STATE
+#if !ENABLE_GCODE_VIEWER
 #if _WIN32
         // This is needed on Windows to fake the CTRL+# of the window menu when using the numpad
         wxAcceleratorEntry entries[6];
@@ -1136,7 +1136,7 @@ void MainFrame::init_menubar()
         wxAcceleratorTable accel(6, entries);
         SetAcceleratorTable(accel);
 #endif // _WIN32
-#endif // !ENABLE_GCODE_VIEWER_AS_STATE
+#endif // !ENABLE_GCODE_VIEWER
 
         windowMenu->AppendSeparator();
         append_menu_item(windowMenu, wxID_ANY, _L("Print &Host Upload Queue") + "\tCtrl+J", _L("Display the Print Host Upload Queue window"),
@@ -1148,7 +1148,7 @@ void MainFrame::init_menubar()
     wxMenu* viewMenu = nullptr;
     if (m_plater) {
         viewMenu = new wxMenu();
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
         add_common_view_menu_items(viewMenu, this, std::bind(&MainFrame::can_change_view, this));
 #else
         // The camera control accelerators are captured by GLCanvas3D::on_char().
@@ -1169,7 +1169,7 @@ void MainFrame::init_menubar()
             "", nullptr, [this](){return can_change_view(); }, this);
         append_menu_item(viewMenu, wxID_ANY, _L("Right") + sep + "&6", _L("Right View"), [this](wxCommandEvent&) { select_view("right"); },
             "", nullptr, [this](){return can_change_view(); }, this);
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
         viewMenu->AppendSeparator();
 #if ENABLE_SLOPE_RENDERING
         wxMenu* options_menu = new wxMenu();
@@ -1191,7 +1191,7 @@ void MainFrame::init_menubar()
     }
 
     // Help menu
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
     auto helpMenu = generate_help_menu();
 #else
     auto helpMenu = new wxMenu();
@@ -1228,12 +1228,12 @@ void MainFrame::init_menubar()
             [this](wxCommandEvent&) { wxGetApp().gcode_thumbnails_debug(); });
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG
     }
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 
     // menubar
     // assign menubar to frame after appending items, otherwise special items
     // will not be handled correctly
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
     m_editor_menubar = new wxMenuBar();
     m_editor_menubar->Append(fileMenu, _L("&File"));
     if (editMenu) m_editor_menubar->Append(editMenu, _L("&Edit"));
@@ -1253,16 +1253,16 @@ void MainFrame::init_menubar()
     wxGetApp().add_config_menu(menubar);
     menubar->Append(helpMenu, _(L("&Help")));
     SetMenuBar(menubar);
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 
 #ifdef __APPLE__
     // This fixes a bug on Mac OS where the quit command doesn't emit window close events
     // wx bug: https://trac.wxwidgets.org/ticket/18328
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
     wxMenu* apple_menu = m_editor_menubar->OSXGetAppleMenu();
 #else
     wxMenu *apple_menu = menubar->OSXGetAppleMenu();
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
     if (apple_menu != nullptr) {
         apple_menu->Bind(wxEVT_MENU, [this](wxCommandEvent &) {
             Close();
@@ -1271,14 +1271,14 @@ void MainFrame::init_menubar()
 #endif
 
     if (plater()->printer_technology() == ptSLA)
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
         update_editor_menubar();
 #else
         update_menubar();
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 }
 
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
 void MainFrame::init_gcodeviewer_menubar()
 {
     wxMenu* fileMenu = new wxMenu;
@@ -1412,13 +1412,13 @@ void MainFrame::set_mode(EMode mode)
     }
     }
 }
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
 void MainFrame::update_editor_menubar()
 #else
 void MainFrame::update_menubar()
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 {
     const bool is_fff = plater()->printer_technology() == ptFFF;
 

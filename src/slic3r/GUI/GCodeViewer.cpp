@@ -7,9 +7,7 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Utils.hpp"
 #include "GUI_App.hpp"
-#if ENABLE_GCODE_VIEWER_AS_STATE
 #include "MainFrame.hpp"
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
 #include "Plater.hpp"
 #include "PresetBundle.hpp"
 #include "Camera.hpp"
@@ -314,13 +312,9 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
     reset();
 
     load_toolpaths(gcode_result);
-#if ENABLE_GCODE_VIEWER_AS_STATE
     if (wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer)
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
         load_shells(print, initialized);
-
-#if ENABLE_GCODE_VIEWER_AS_STATE
-    if (wxGetApp().mainframe->get_mode() == MainFrame::EMode::GCodeViewer) {
+    else {
         Pointfs bed_shape;
         if (!gcode_result.bed_shape.empty())
             // bed shape detected in the gcode
@@ -337,7 +331,6 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
         }
         wxGetApp().plater()->set_bed_shape(bed_shape, "", "", true);
     }
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
 
     m_time_statistics = gcode_result.time_statistics;
 }
@@ -351,12 +344,10 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
     if (m_vertices_count == 0)
         return;
 
-#if ENABLE_GCODE_VIEWER_AS_STATE
     if (m_view_type == EViewType::Tool && !gcode_result.extruder_colors.empty())
         // update tool colors from config stored in the gcode
         m_tool_colors = decode_colors(gcode_result.extruder_colors);
     else
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
         // update tool colors
         m_tool_colors = decode_colors(str_tool_colors);
 
@@ -841,17 +832,13 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
     for (size_t i = 0; i < m_vertices_count; ++i) {
         const GCodeProcessor::MoveVertex& move = gcode_result.moves[i];
-#if ENABLE_GCODE_VIEWER_AS_STATE
         if (wxGetApp().mainframe->get_mode() == MainFrame::EMode::GCodeViewer)
             // for the gcode viewer we need all moves to correctly size the printbed
             m_paths_bounding_box.merge(move.position.cast<double>());
         else {
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
             if (move.type == EMoveType::Extrude && move.width != 0.0f && move.height != 0.0f)
                 m_paths_bounding_box.merge(move.position.cast<double>());
-#if ENABLE_GCODE_VIEWER_AS_STATE
         }
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
     }
 
     // add origin

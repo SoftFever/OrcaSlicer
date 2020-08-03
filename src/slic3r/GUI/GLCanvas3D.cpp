@@ -1913,12 +1913,12 @@ void GLCanvas3D::zoom_to_selection()
         _zoom_to_box(m_selection.get_bounding_box());
 }
 
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
 void GLCanvas3D::zoom_to_gcode()
 {
     _zoom_to_box(m_gcode_viewer.get_paths_bounding_box(), 1.05);
 }
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 
 void GLCanvas3D::select_view(const std::string& direction)
 {
@@ -2696,9 +2696,7 @@ static void load_gcode_retractions(const GCodePreviewData::Retraction& retractio
 void GLCanvas3D::load_gcode_preview(const GCodeProcessor::Result& gcode_result)
 {
     m_gcode_viewer.load(gcode_result, *this->fff_print(), m_initialized);
-#if ENABLE_GCODE_VIEWER_AS_STATE
     if (wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer)
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
         _show_warning_texture_if_needed(WarningTexture::ToolpathOutside);
 }
 
@@ -4280,16 +4278,14 @@ void GLCanvas3D::update_ui_from_settings()
     }
 #endif // ENABLE_RETINA_GL
 
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
     if (wxGetApp().mainframe != nullptr && wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer)
         wxGetApp().plater()->get_collapse_toolbar().set_enabled(wxGetApp().app_config->get("show_collapse_button") == "1");
 #else
     bool enable_collapse = wxGetApp().app_config->get("show_collapse_button") == "1";
     wxGetApp().plater()->get_collapse_toolbar().set_enabled(enable_collapse);
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 }
-
-
 
 GLCanvas3D::WipeTowerInfo GLCanvas3D::get_wipe_tower_info() const
 {
@@ -5385,22 +5381,16 @@ static BoundingBoxf3 print_volume(const DynamicPrintConfig& config)
 void GLCanvas3D::_render_background() const
 {
 #if ENABLE_GCODE_VIEWER
-#if ENABLE_GCODE_VIEWER_AS_STATE
     bool use_error_color = false;
     if (wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer) {
         use_error_color = m_dynamic_background_enabled;
-#else
-        bool use_error_color = m_dynamic_background_enabled;
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
         if (!m_volumes.empty())
             use_error_color &= _is_any_volume_outside();
         else {
             BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
             use_error_color &= (test_volume.radius() > 0.0) ? !test_volume.contains(m_gcode_viewer.get_paths_bounding_box()) : false;
         }
-#if ENABLE_GCODE_VIEWER_AS_STATE
     }
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
 #endif // ENABLE_GCODE_VIEWER
 
     glsafe(::glPushMatrix());
@@ -7119,20 +7109,13 @@ void GLCanvas3D::_show_warning_texture_if_needed(WarningTexture::Warning warning
     bool show = false;
     if (!m_volumes.empty())
         show = _is_any_volume_outside();
-    else
-    {
-#if ENABLE_GCODE_VIEWER_AS_STATE
-        if (wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer)
-        {
+    else {
+        if (wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer) {
             BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
             const BoundingBoxf3& paths_volume = m_gcode_viewer.get_paths_bounding_box();
             if (test_volume.radius() > 0.0 && paths_volume.radius() > 0.0)
                 show = !test_volume.contains(paths_volume);
         }
-#else
-            BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
-            show = (test_volume.radius() > 0.0) ? !test_volume.contains(m_gcode_viewer.get_bounding_box()) : false;
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
     }
     _set_warning_texture(warning, show);
 #else

@@ -156,9 +156,9 @@ public:
     void            keyboard_shortcuts();
     void            load_project(wxWindow *parent, wxString& input_file) const;
     void            import_model(wxWindow *parent, wxArrayString& input_files) const;
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
     void            load_gcode(wxWindow* parent, wxString& input_file) const;
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 
     static bool     catch_error(std::function<void()> cb, const std::string& err);
 

@@ -244,10 +244,8 @@ namespace Slic3r {
         {
             unsigned int id;
             std::vector<MoveVertex> moves;
-#if ENABLE_GCODE_VIEWER_AS_STATE
             Pointfs bed_shape;
             std::vector<std::string> extruder_colors;
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
             PrintEstimatedTimeStatistics time_statistics;
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -256,19 +254,15 @@ namespace Slic3r {
             {
                 time = 0;
                 moves = std::vector<MoveVertex>();
-#if ENABLE_GCODE_VIEWER_AS_STATE
                 bed_shape = Pointfs();
                 extruder_colors = std::vector<std::string>();
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
             }
 #else
             void reset()
             {
                 moves = std::vector<MoveVertex>();
-#if ENABLE_GCODE_VIEWER_AS_STATE
                 bed_shape = Pointfs();
                 extruder_colors = std::vector<std::string>();
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
             }
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
         };

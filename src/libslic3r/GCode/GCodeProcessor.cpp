@@ -1147,7 +1147,6 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         else if (delta_pos[X] != 0.0f || delta_pos[Y] != 0.0f || delta_pos[Z] != 0.0f)
             type = EMoveType::Travel;
 
-#if ENABLE_GCODE_VIEWER_AS_STATE
         if (type == EMoveType::Extrude && (m_width == 0.0f || m_height == 0.0f)) {
             if (m_extrusion_role != erCustom) {
                 m_width = 0.5f;
@@ -1155,10 +1154,6 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             }
             type = EMoveType::Travel;
         }
-#else
-        if (type == EMoveType::Extrude && (m_width == 0.0f || m_height == 0.0f || !is_valid_extrusion_role(m_extrusion_role)))
-            type = EMoveType::Travel;
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
 
         return type;
     };

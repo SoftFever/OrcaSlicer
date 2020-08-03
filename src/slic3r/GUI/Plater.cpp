@@ -33,13 +33,11 @@
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Format/AMF.hpp"
 #include "libslic3r/Format/3mf.hpp"
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #else
-#if !ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/PreviewData.hpp"
-#endif // !ENABLE_GCODE_VIEWER
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/SLA/Hollowing.hpp"
@@ -2767,10 +2765,8 @@ void Plater::priv::reset()
 
 #if ENABLE_GCODE_VIEWER
     reset_gcode_toolpaths();
-#endif // ENABLE_GCODE_VIEWER
-#if ENABLE_GCODE_VIEWER_AS_STATE
     gcode_result.reset();
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 
     // Stop and reset the Print content.
     this->background_process.reset();
@@ -4633,7 +4629,7 @@ void Plater::extract_config_from_project()
     load_files(input_paths, false, true);
 }
 
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
 void Plater::load_gcode()
 {
     // Ask user for a gcode file name.
@@ -4669,7 +4665,7 @@ void Plater::load_gcode(const wxString& filename)
     p->preview->reload_print(false);
     p->preview->get_canvas3d()->zoom_to_gcode();
 }
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 
 std::vector<size_t> Plater::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool imperial_units /*= false*/) { return p->load_files(input_files, load_model, load_config, imperial_units); }
 
@@ -5443,7 +5439,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 
 void Plater::set_bed_shape() const
 {
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
     set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values,
         p->config->option<ConfigOptionString>("bed_custom_texture")->value,
         p->config->option<ConfigOptionString>("bed_custom_model")->value);
@@ -5451,15 +5447,15 @@ void Plater::set_bed_shape() const
     p->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values,
 		p->config->option<ConfigOptionString>("bed_custom_texture")->value,
 		p->config->option<ConfigOptionString>("bed_custom_model")->value);
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 }
 
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
 void Plater::set_bed_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom) const
 {
     p->set_bed_shape(shape, custom_texture, custom_model, force_as_custom);
 }
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 
 void Plater::force_filament_colors_update()
 {
@@ -5634,11 +5630,11 @@ void Plater::set_printer_technology(PrinterTechnology printer_technology)
     p->label_btn_send   = printer_technology == ptFFF ? L("Send G-code")   : L("Send to printer");
 
     if (wxGetApp().mainframe != nullptr)
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
         wxGetApp().mainframe->update_editor_menubar();
 #else
         wxGetApp().mainframe->update_menubar();
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 
     p->update_main_toolbar_tooltips();
 
@@ -5790,24 +5786,24 @@ bool Plater::init_view_toolbar()
     return p->init_view_toolbar();
 }
 
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
 void Plater::enable_view_toolbar(bool enable)
 {
     p->view_toolbar.set_enabled(enable);
 }
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 
 bool Plater::init_collapse_toolbar()
 {
     return p->init_collapse_toolbar();
 }
 
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
 void Plater::enable_collapse_toolbar(bool enable)
 {
     p->collapse_toolbar.set_enabled(enable);
 }
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 
 const Camera& Plater::get_camera() const
 {
@@ -5936,9 +5932,9 @@ bool Plater::can_undo() const { return p->undo_redo_stack().has_undo_snapshot();
 bool Plater::can_redo() const { return p->undo_redo_stack().has_redo_snapshot(); }
 bool Plater::can_reload_from_disk() const { return p->can_reload_from_disk(); }
 const UndoRedo::Stack& Plater::undo_redo_stack_main() const { return p->undo_redo_stack_main(); }
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
 void Plater::clear_undo_redo_stack_main() { p->undo_redo_stack_main().clear(); }
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 void Plater::enter_gizmos_stack() { p->enter_gizmos_stack(); }
 void Plater::leave_gizmos_stack() { p->leave_gizmos_stack(); }
 bool Plater::inside_snapshot_capture() { return p->inside_snapshot_capture(); }

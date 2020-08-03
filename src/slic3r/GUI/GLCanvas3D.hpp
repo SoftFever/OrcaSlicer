@@ -625,9 +625,9 @@ public:
     void zoom_to_bed();
     void zoom_to_volumes();
     void zoom_to_selection();
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
     void zoom_to_gcode();
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
     void select_view(const std::string& direction);
 
     void update_volumes_colors_by_extruder();

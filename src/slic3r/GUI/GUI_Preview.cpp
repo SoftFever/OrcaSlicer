@@ -13,9 +13,9 @@
 #include "PresetBundle.hpp"
 #include "DoubleSlider.hpp"
 #include "Plater.hpp"
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
 #include "MainFrame.hpp"
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 
 #include <wx/notebook.h>
 #include <wx/glcanvas.h>
@@ -1196,11 +1196,11 @@ void Preview::update_double_slider_from_canvas(wxKeyEvent & event)
 
 void Preview::load_print_as_fff(bool keep_z_range)
 {
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
     if (wxGetApp().mainframe == nullptr)
         // avoid proessing while mainframe is being constructed
         return;
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
 
     if (m_loaded || m_process->current_printer_technology() != ptFFF)
         return;
@@ -1225,11 +1225,11 @@ void Preview::load_print_as_fff(bool keep_z_range)
             }
     }
 
-#if ENABLE_GCODE_VIEWER_AS_STATE
+#if ENABLE_GCODE_VIEWER
     if (wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer && !has_layers)
 #else
     if (! has_layers)
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
+#endif // ENABLE_GCODE_VIEWER
     {
 #if ENABLE_GCODE_VIEWER
         hide_layers_slider();
@@ -1265,11 +1265,7 @@ void Preview::load_print_as_fff(bool keep_z_range)
 
 #if ENABLE_GCODE_VIEWER
     GCodeViewer::EViewType gcode_view_type = m_canvas->get_gcode_view_preview_type();
-#if ENABLE_GCODE_VIEWER_AS_STATE
     bool gcode_preview_data_valid = !m_gcode_result->moves.empty();
-#else
-    bool gcode_preview_data_valid = print->is_step_done(psGCodeExport);
-#endif // ENABLE_GCODE_VIEWER_AS_STATE
 #else
     bool gcode_preview_data_valid = print->is_step_done(psGCodeExport) && ! m_gcode_preview_data->empty();
 #endif // ENABLE_GCODE_VIEWER
