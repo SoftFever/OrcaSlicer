@@ -31,20 +31,46 @@ bool is_png(const ReadBuf &rb)
            !png_sig_cmp(static_cast<png_const_bytep>(rb.buf), 0, PNG_SIG_BYTES);
 }
 
+// A wrapper around ReadBuf to be read repeatedly like a stream. libpng needs
+// this form for its buffer read callback.
+struct ReadBufReader {
+    const ReadBuf &rdbuf; size_t pos;
+    ReadBufReader(const ReadBuf &rd): rdbuf{rd}, pos{0} {}
+};
+
+// Buffer read callback for libpng. It provides an allocated output buffer and
+// the amount of data it desires to read from the input.
+void png_read_callback(png_struct *png_ptr,
+                       png_bytep   outBytes,
+                       png_size_t  byteCountToRead)
+{
+    // Retrieve our input buffer through the png_ptr
+    auto reader = static_cast<ReadBufReader *>(png_get_io_ptr(png_ptr));
+
+    if (!reader || byteCountToRead > reader->rdbuf.sz - reader->pos) return;
+
+    auto   buf = static_cast<const png_byte *>(reader->rdbuf.buf);
+    size_t pos = reader->pos;
+
+    std::copy(buf + pos, buf + (pos + byteCountToRead), outBytes);
+    reader->pos += byteCountToRead;
+}
+
 bool decode_png(const ReadBuf &rb, ImageGreyscale &img)
 {
     if (!is_png(rb)) return false;
 
     PNGDescr dsc;
-    dsc.png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+    dsc.png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr,
+                                     nullptr);
 
     if(!dsc.png) return false;
 
     dsc.info = png_create_info_struct(dsc.png);
     if(!dsc.info) return {};
 
-    FILE *io = ::fmemopen(const_cast<void *>(rb.buf), rb.sz, "rb");
-    png_init_io(dsc.png, io);
+    ReadBufReader reader {rb};
+    png_set_read_fn(dsc.png, static_cast<void *>(&reader), png_read_callback);
 
     png_read_info(dsc.png, dsc.info);
 
@@ -62,9 +88,7 @@ bool decode_png(const ReadBuf &rb, ImageGreyscale &img)
     for (size_t r = 0; r < img.rows; ++r)
         png_read_row(dsc.png, readbuf + r * img.cols, nullptr);
 
-    fclose(io);
-
     return true;
 }
 
-}}
+}} // namespace Slic3r::png
