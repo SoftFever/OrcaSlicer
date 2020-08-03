@@ -54,6 +54,7 @@
 #include "Mouse3DController.hpp"
 #include "RemovableDriveManager.hpp"
 #include "InstanceCheck.hpp"
+#include "NotificationManager.hpp"
 
 #ifdef __WXMSW__
 #include <dbt.h>
@@ -384,7 +385,7 @@ bool GUI_App::on_init_inner()
     // supplied as argument to --datadir; in that case we should still run the wizard
     preset_bundle->setup_directories();
 
-#ifdef __WXMSW__
+#ifdef __WXMSW__ 
     associate_3mf_files();
 #endif // __WXMSW__
 
@@ -392,6 +393,11 @@ bool GUI_App::on_init_inner()
     Bind(EVT_SLIC3R_VERSION_ONLINE, [this](const wxCommandEvent &evt) {
         app_config->set("version_online", into_u8(evt.GetString()));
         app_config->save();
+		if(this->plater_ != nullptr) {
+			if (*Semver::parse(SLIC3R_VERSION) < * Semver::parse(into_u8(evt.GetString()))) {
+				this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAviable, *(this->plater_->get_current_canvas3D()));
+			}
+		}
     });
 
     // initialize label colors and fonts
@@ -1439,7 +1445,7 @@ void GUI_App::check_updates(const bool verbose)
 	
 	PresetUpdater::UpdateResult updater_result;
 	try {
-		updater_result = preset_updater->config_update(app_config->orig_version());
+		updater_result = preset_updater->config_update(app_config->orig_version(), verbose);
 		if (updater_result == PresetUpdater::R_INCOMPAT_EXIT) {
 			mainframe->Close();
 		}
