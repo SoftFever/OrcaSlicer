@@ -27,8 +27,18 @@ bool is_png(const ReadBuf &rb)
 {
     static const constexpr int PNG_SIG_BYTES = 8;
 
-    return rb.sz >= PNG_SIG_BYTES &&
-           !png_sig_cmp(static_cast<png_const_bytep>(rb.buf), 0, PNG_SIG_BYTES);
+#if PNG_LIBPNG_VER_MINOR <= 2
+    // Earlier libpng versions had png_sig_cmp(png_bytep, ...) which is not
+    // a const pointer. It is not possible to cast away the const qualifier from
+    // the input buffer so... yes... life is challenging...
+    png_byte buf[PNG_SIG_BYTES];
+    auto inbuf = static_cast<const std::uint8_t *>(rb.buf);
+    std::copy(inbuf, inbuf + PNG_SIG_BYTES, buf);
+#else
+    auto buf = static_cast<png_const_bytep>(rb.buf);
+#endif
+
+    return rb.sz >= PNG_SIG_BYTES && !png_sig_cmp(buf, 0, PNG_SIG_BYTES);
 }
 
 // A wrapper around ReadBuf to be read repeatedly like a stream. libpng needs
