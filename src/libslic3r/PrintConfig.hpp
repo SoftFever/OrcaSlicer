@@ -1018,6 +1018,10 @@ public:
 
     // Radius in mm of the support pillars.
     ConfigOptionFloat support_pillar_diameter /*= 0.8*/;
+
+    // The percentage of smaller pillars compared to the normal pillar diameter
+    // which are used in problematic areas where a normal pilla cannot fit.
+    ConfigOptionPercent support_small_pillar_diameter_percent;
     
     // How much bridge (supporting another pinhead) can be placed on a pillar.
     ConfigOptionInt   support_max_bridges_on_pillar;
@@ -1142,6 +1146,7 @@ protected:
         OPT_PTR(support_head_penetration);
         OPT_PTR(support_head_width);
         OPT_PTR(support_pillar_diameter);
+        OPT_PTR(support_small_pillar_diameter_percent);
         OPT_PTR(support_max_bridges_on_pillar);
         OPT_PTR(support_pillar_connection_mode);
         OPT_PTR(support_buildplate_only);
