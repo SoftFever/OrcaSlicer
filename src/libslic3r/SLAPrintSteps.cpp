@@ -374,9 +374,6 @@ void SLAPrint::Steps::support_tree(SLAPrintObject &po)
     // If the zero elevation mode is engaged, we have to filter out all the
     // points that are on the bottom of the object
     if (is_zero_elevation(po.config())) {
-//        double discard = pcfg.embed_object.object_gap_mm /
-//                         std::cos(po.m_supportdata->cfg.bridge_slope) ;
-
         remove_bottom_points(po.m_supportdata->pts,
                              float(po.m_supportdata->emesh.ground_level() + EPSILON));
     }
