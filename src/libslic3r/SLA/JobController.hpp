@@ -2,6 +2,7 @@
 #define SLA_JOBCONTROLLER_HPP
 
 #include <functional>
+#include <string>
 
 namespace Slic3r { namespace sla {
 

@@ -79,8 +79,10 @@
 #include "../Utils/PrintHost.hpp"
 #include "../Utils/FixModelByWin10.hpp"
 #include "../Utils/UndoRedo.hpp"
+#include "../Utils/PresetUpdater.hpp"
 #include "RemovableDriveManager.hpp"
 #include "InstanceCheck.hpp"
+#include "NotificationManager.hpp"
 
 #ifdef __APPLE__
 #include "Gizmos/GLGizmosManager.hpp"
@@ -106,6 +108,7 @@ wxDEFINE_EVENT(EVT_SCHEDULE_BACKGROUND_PROCESS,     SimpleEvent);
 wxDEFINE_EVENT(EVT_SLICING_UPDATE,                  SlicingStatusEvent);
 wxDEFINE_EVENT(EVT_SLICING_COMPLETED,               wxCommandEvent);
 wxDEFINE_EVENT(EVT_PROCESS_COMPLETED,               wxCommandEvent);
+wxDEFINE_EVENT(EVT_EXPORT_BEGAN,                    wxCommandEvent);
 
 // Sidebar widgets
 
@@ -720,7 +723,7 @@ struct Sidebar::priv
     wxButton *btn_export_gcode;
     wxButton *btn_reslice;
     ScalableButton *btn_send_gcode;
-    ScalableButton *btn_remove_device;
+    ScalableButton *btn_eject_device;
 	ScalableButton* btn_export_gcode_removable; //exports to removable drives (appears only if removable drive is connected)
 
     bool                is_collapsed {false};
@@ -893,12 +896,12 @@ Sidebar::Sidebar(Plater *parent)
     };
 
     init_scalable_btn(&p->btn_send_gcode   , "export_gcode", _L("Send to printer") + "\tCtrl+Shift+G");
-    init_scalable_btn(&p->btn_remove_device, "eject_sd"       , _L("Remove device") + "\tCtrl+T");
+    init_scalable_btn(&p->btn_eject_device, "eject_sd"       , _L("Remove device") + "\tCtrl+T");
 	init_scalable_btn(&p->btn_export_gcode_removable, "export_to_sd", _L("Export to SD card / Flash drive") + "\tCtrl+U");
 
     // regular buttons "Slice now" and "Export G-code" 
 
-    const int scaled_height = p->btn_remove_device->GetBitmapHeight() + 4;
+    const int scaled_height = p->btn_eject_device->GetBitmapHeight() + 4;
     auto init_btn = [this](wxButton **btn, wxString label, const int button_height) {
         *btn = new wxButton(this, wxID_ANY, label, wxDefaultPosition,
                             wxSize(-1, button_height), wxBU_EXACTFIT);
@@ -916,7 +919,7 @@ Sidebar::Sidebar(Plater *parent)
     complect_btns_sizer->Add(p->btn_export_gcode, 1, wxEXPAND);
     complect_btns_sizer->Add(p->btn_send_gcode);
 	complect_btns_sizer->Add(p->btn_export_gcode_removable);
-    complect_btns_sizer->Add(p->btn_remove_device);
+    complect_btns_sizer->Add(p->btn_eject_device);
 	
 
     btns_sizer->Add(p->btn_reslice, 0, wxEXPAND | wxTOP, margin_5);
@@ -939,7 +942,7 @@ Sidebar::Sidebar(Plater *parent)
         p->plater->select_view_3D("Preview");
     });
     p->btn_send_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->send_gcode(); });
-    p->btn_remove_device->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->eject_drive(); });
+    p->btn_eject_device->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->eject_drive(); });
 	p->btn_export_gcode_removable->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->export_gcode(true); });
 }
 
@@ -1087,9 +1090,9 @@ void Sidebar::msw_rescale()
     p->object_info->msw_rescale();
 
     p->btn_send_gcode->msw_rescale();
-    p->btn_remove_device->msw_rescale();
+    p->btn_eject_device->msw_rescale();
 	p->btn_export_gcode_removable->msw_rescale();
-    const int scaled_height = p->btn_remove_device->GetBitmap().GetHeight() + 4;
+    const int scaled_height = p->btn_eject_device->GetBitmap().GetHeight() + 4;
     p->btn_export_gcode->SetMinSize(wxSize(-1, scaled_height));
     p->btn_reslice     ->SetMinSize(wxSize(-1, scaled_height));
 
@@ -1118,7 +1121,7 @@ void Sidebar::sys_color_changed()
 
     // btn...->msw_rescale() updates icon on button, so use it
     p->btn_send_gcode->msw_rescale();
-    p->btn_remove_device->msw_rescale();
+    p->btn_eject_device->msw_rescale();
     p->btn_export_gcode_removable->msw_rescale();
 
     p->scrolled->Layout();
@@ -1402,6 +1405,12 @@ void Sidebar::update_sliced_info_sizer()
                     new_label += format_wxstr("\n   - %1%", _L("normal mode"));
                     info_text += format_wxstr("\n%1%", ps.estimated_normal_print_time);
                     fill_labels(ps.estimated_normal_custom_gcode_print_times, new_label, info_text);
+
+					// uncomment next line to not disappear slicing finished notif when colapsing sidebar before time estimate
+					//if (p->plater->is_sidebar_collapsed())
+					p->plater->get_notification_manager()->set_slicing_complete_large(p->plater->is_sidebar_collapsed());
+					p->plater->get_notification_manager()->set_slicing_complete_print_time("Estimated printing time: " + ps.estimated_normal_print_time);
+
                 }
                 if (ps.estimated_silent_print_time != "N/A") {
                     new_label += format_wxstr("\n   - %1%", _L("stealth mode"));
@@ -1441,15 +1450,16 @@ void Sidebar::enable_buttons(bool enable)
     p->btn_reslice->Enable(enable);
     p->btn_export_gcode->Enable(enable);
     p->btn_send_gcode->Enable(enable);
-    p->btn_remove_device->Enable(enable);
+    p->btn_eject_device->Enable(enable);
 	p->btn_export_gcode_removable->Enable(enable);
 }
 
-bool Sidebar::show_reslice(bool show)         const { return p->btn_reslice->Show(show); }
-bool Sidebar::show_export(bool show)          const { return p->btn_export_gcode->Show(show); }
-bool Sidebar::show_send(bool show)            const { return p->btn_send_gcode->Show(show); }
-bool Sidebar::show_disconnect(bool show)      const { return p->btn_remove_device->Show(show); }
-bool Sidebar::show_export_removable(bool show)const { return p->btn_export_gcode_removable->Show(show); }
+bool Sidebar::show_reslice(bool show)          const { return p->btn_reslice->Show(show); }
+bool Sidebar::show_export(bool show)           const { return p->btn_export_gcode->Show(show); }
+bool Sidebar::show_send(bool show)             const { return p->btn_send_gcode->Show(show); }
+bool Sidebar::show_export_removable(bool show) const { return p->btn_export_gcode_removable->Show(show); }
+bool Sidebar::show_eject(bool show)            const { return p->btn_eject_device->Show(show); }
+bool Sidebar::get_eject_shown()                const { return p->btn_eject_device->IsShown(); }
 
 bool Sidebar::is_multifilament()
 {
@@ -1651,6 +1661,7 @@ struct Plater::priv
     GLToolbar view_toolbar;
     GLToolbar collapse_toolbar;
     Preview *preview;
+	NotificationManager* notification_manager;
 
     BackgroundSlicingProcess    background_process;
     bool suppressed_backround_processing_update { false };
@@ -1844,7 +1855,17 @@ struct Plater::priv
     void on_slicing_update(SlicingStatusEvent&);
     void on_slicing_completed(wxCommandEvent&);
     void on_process_completed(wxCommandEvent&);
+	void on_export_began(wxCommandEvent&);
     void on_layer_editing_toggled(bool enable);
+	void on_slicing_began();
+
+	void clear_warnings();
+	void add_warning(const Slic3r::PrintStateBase::Warning &warning, size_t oid);
+	void actualizate_warnings(const Model& model, size_t print_oid);
+	// Displays dialog window with list of warnings. 
+	// Returns true if user clicks OK.
+	// Returns true if current_warnings vector is empty without showning the dialog
+	bool warnings_dialog();
 
     void on_action_add(SimpleEvent&);
     void on_action_split_objects(SimpleEvent&);
@@ -1895,7 +1916,7 @@ struct Plater::priv
     // Flag indicating that the G-code export targets a removable device, therefore the show_action_buttons() needs to be called at any case when the background processing finishes.
     bool 						writing_to_removable_device = { false };
     bool                        inside_snapshot_capture() { return m_prevent_snapshots != 0; }
-
+	bool                        process_completed_with_error { false };
 private:
     bool init_object_menu();
     bool init_common_menu(wxMenu* menu, const bool is_part = false);
@@ -1923,6 +1944,11 @@ private:
                                                               * */
     std::string 				m_last_fff_printer_profile_name;
     std::string 				m_last_sla_printer_profile_name;
+
+	// vector of all warnings generated by last slicing
+	std::vector<std::pair<Slic3r::PrintStateBase::Warning, size_t>> current_warnings;
+	bool show_warning_dialog { false };
+	
 };
 
 const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf|prusa)", std::regex::icase);
@@ -1972,6 +1998,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         });
     background_process.set_slicing_completed_event(EVT_SLICING_COMPLETED);
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
+	background_process.set_export_began_event(EVT_EXPORT_BEGAN);
     // Default printer technology for default config.
     background_process.select_technology(this->printer_technology);
     // Register progress callback from the Print class to the Plater.
@@ -2082,8 +2109,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_EDIT_COLOR_CHANGE, [this](wxKeyEvent& evt) { preview->edit_double_slider(evt); });
 #endif // ENABLE_GCODE_VIEWER
 
-    q->Bind(EVT_SLICING_COMPLETED, &priv::on_slicing_completed, this);
+	q->Bind(EVT_SLICING_COMPLETED, &priv::on_slicing_completed, this);
     q->Bind(EVT_PROCESS_COMPLETED, &priv::on_process_completed, this);
+	q->Bind(EVT_EXPORT_BEGAN, &priv::on_export_began, this);
     q->Bind(EVT_GLVIEWTOOLBAR_3D, [q](SimpleEvent&) { q->select_view_3D("3D"); });
     q->Bind(EVT_GLVIEWTOOLBAR_PREVIEW, [q](SimpleEvent&) { q->select_view_3D("Preview"); });
 
@@ -2110,16 +2138,27 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     });
 #endif /* _WIN32 */
 
-    this->q->Bind(EVT_REMOVABLE_DRIVE_EJECTED, [this](RemovableDriveEjectEvent &evt) {
+	notification_manager = new NotificationManager(this->q);
+	this->q->Bind(EVT_EJECT_DRIVE_NOTIFICAION_CLICKED, [this](EjectDriveNotificationClickedEvent&) { this->q->eject_drive(); });
+	this->q->Bind(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED, [this](ExportGcodeNotificationClickedEvent&) { this->q->export_gcode(true); });
+	this->q->Bind(EVT_PRESET_UPDATE_AVIABLE_CLICKED, [this](PresetUpdateAviableClickedEvent&) {  wxGetApp().get_preset_updater()->on_update_notification_confirm(); });
+
+	this->q->Bind(EVT_REMOVABLE_DRIVE_EJECTED, [this, q](RemovableDriveEjectEvent &evt) {
 		if (evt.data.second) {
 			this->show_action_buttons(this->ready_to_slice);
-			Slic3r::GUI::show_info(this->q, format_wxstr(_L("Unmounting successful. The device %s(%s) can now be safely removed from the computer."),
-				evt.data.first.name, evt.data.first.path));
-		} else
-			Slic3r::GUI::show_info(this->q, format_wxstr(_L("Ejecting of device %s(%s) has failed."),
-				evt.data.first.name, evt.data.first.path));
+			notification_manager->push_notification(format(_L("Unmounting successful. The device %s(%s) can now be safely removed from the computer."),evt.data.first.name, evt.data.first.path),
+				                                    NotificationManager::NotificationLevel::RegularNotification, *q->get_current_canvas3D());
+		} else {
+			notification_manager->push_notification(format(_L("Ejecting of device %s(%s) has failed."), evt.data.first.name, evt.data.first.path),
+				                                    NotificationManager::NotificationLevel::ErrorNotification, *q->get_current_canvas3D());
+		}
 	});
-    this->q->Bind(EVT_REMOVABLE_DRIVES_CHANGED, [this](RemovableDrivesChangedEvent &) { this->show_action_buttons(this->ready_to_slice); });
+    this->q->Bind(EVT_REMOVABLE_DRIVES_CHANGED, [this, q](RemovableDrivesChangedEvent &) {
+		this->show_action_buttons(this->ready_to_slice); 
+		if (!this->sidebar->get_eject_shown()) {
+			notification_manager->close_notification_of_type(NotificationType::ExportToRemovableFinished);
+		}
+	});
     // Start the background thread and register this window as a target for update events.
     wxGetApp().removable_drive_manager()->init(this->q);
 #ifdef _WIN32
@@ -2753,6 +2792,8 @@ void Plater::priv::reset()
 {
     Plater::TakeSnapshot snapshot(q, _L("Reset Project"));
 
+	clear_warnings();
+
     set_project_filename(wxEmptyString);
 
 #if !ENABLE_GCODE_VIEWER
@@ -2938,28 +2979,27 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 		// The state of the Print changed, and it is non-zero. Let's validate it and give the user feedback on errors.
         std::string err = this->background_process.validate();
         if (err.empty()) {
+			notification_manager->set_all_slicing_errors_gray(true);
             if (invalidated != Print::APPLY_STATUS_UNCHANGED && this->background_processing_enabled())
                 return_state |= UPDATE_BACKGROUND_PROCESS_RESTART;
         } else {
-            // The print is not valid.
-            // Only show the error message immediately, if the top level parent of this window is active.
-            auto p = dynamic_cast<wxWindow*>(this->q);
-            while (p->GetParent())
-                p = p->GetParent();
-            auto *top_level_wnd = dynamic_cast<wxTopLevelWindow*>(p);
-            if (! postpone_error_messages && top_level_wnd && top_level_wnd->IsActive()) {
-                // The error returned from the Print needs to be translated into the local language.
-                GUI::show_error(this->q, err);
-            } else {
-                // Show the error message once the main window gets activated.
-                this->delayed_error_message = err;
-            }
+			// The print is not valid.
+			// Show error as notification.
+			notification_manager->push_slicing_error_notification(err, *q->get_current_canvas3D());
             return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
         }
     } else if (! this->delayed_error_message.empty()) {
     	// Reusing the old state.
         return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
     }
+
+	//actualizate warnings
+	if (invalidated != Print::APPLY_STATUS_UNCHANGED) {
+		actualizate_warnings(this->q->model(), this->background_process.current_print()->id().id);
+		notification_manager->set_all_slicing_warnings_gray(true);
+		show_warning_dialog = false;
+		process_completed_with_error = false;
+	}
 
     if (invalidated != Print::APPLY_STATUS_UNCHANGED && was_running && ! this->background_process.running() &&
         (return_state & UPDATE_BACKGROUND_PROCESS_RESTART) == 0) {
@@ -3023,6 +3063,8 @@ bool Plater::priv::restart_background_process(unsigned int state)
                 this->statusbar()->set_status_text(_L("Cancelling"));
                 this->background_process.stop();
             });
+			if (!show_warning_dialog)
+				on_slicing_began();
             return true;
         }
     }
@@ -3049,6 +3091,7 @@ void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_remova
     if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
         return;
 
+	show_warning_dialog = true;
     if (! output_path.empty()) {
         background_process.schedule_export(output_path.string(), output_path_on_removable_media);
     } else {
@@ -3527,11 +3570,20 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
                 state = print_object->step_state_with_warnings(static_cast<SLAPrintObjectStep>(warning_step));
         }
         // Now process state.warnings.
+		for (auto const& warning : state.warnings) {
+			if (warning.current) {
+				notification_manager->push_slicing_warning_notification(warning.message, false, *q->get_current_canvas3D(), object_id.id, warning_step);
+				add_warning(warning, object_id.id);
+			}
+		}
     }
 }
 
-void Plater::priv::on_slicing_completed(wxCommandEvent &)
+void Plater::priv::on_slicing_completed(wxCommandEvent & evt)
 {
+	//notification_manager->push_notification(NotificationType::SlicingComplete, *q->get_current_canvas3D(), evt.GetInt());
+	notification_manager->push_slicing_complete_notification(*q->get_current_canvas3D(), evt.GetInt(), is_sidebar_collapsed());
+
     switch (this->printer_technology) {
     case ptFFF:
         this->update_fff_scene();
@@ -3544,8 +3596,63 @@ void Plater::priv::on_slicing_completed(wxCommandEvent &)
         break;
     default: break;
     }
-} 
 
+}
+void Plater::priv::on_export_began(wxCommandEvent& evt)
+{
+	if (show_warning_dialog)
+		warnings_dialog();
+}
+void Plater::priv::on_slicing_began()
+{
+	clear_warnings();
+	notification_manager->close_notification_of_type(NotificationType::SlicingComplete);
+}
+void Plater::priv::add_warning(const Slic3r::PrintStateBase::Warning& warning, size_t oid)
+{
+	for (auto const& it : current_warnings) {
+		if (warning.message_id == it.first.message_id) {
+			if (warning.message_id != 0 || (warning.message_id == 0 && warning.message == it.first.message))
+				return;
+		} 
+	}
+	current_warnings.emplace_back(std::pair<Slic3r::PrintStateBase::Warning, size_t>(warning, oid));
+}
+void Plater::priv::actualizate_warnings(const Model& model, size_t print_oid)
+{
+	std::vector<size_t> living_oids;
+	living_oids.push_back(model.id().id);
+	living_oids.push_back(print_oid);
+	for (auto it = model.objects.begin(); it != model.objects.end(); ++it) {
+		living_oids.push_back((*it)->id().id);
+	}
+	notification_manager->compare_warning_oids(living_oids);
+}
+void Plater::priv::clear_warnings()
+{
+	notification_manager->close_slicing_errors_and_warnings();
+	this->current_warnings.clear();
+}
+bool Plater::priv::warnings_dialog()
+{
+	if (current_warnings.empty())
+		return true;
+	std::string text = _u8L("There are active warnings concerning sliced models:\n");
+	bool empt = true;
+	for (auto const& it : current_warnings) {
+		int next_n = it.first.message.find_first_of('\n', 0);
+		text += "\n";
+		if (next_n != std::string::npos)
+			text += it.first.message.substr(0, next_n);
+		else
+			text += it.first.message;
+	}
+	//text += "\n\nDo you still wish to export?";
+	wxMessageDialog msg_wingow(this->q, text, wxString(SLIC3R_APP_NAME " ") + _L("generated warnings"), wxOK);
+	const auto res = msg_wingow.ShowModal();
+	return res == wxID_OK;
+
+}
 void Plater::priv::on_process_completed(wxCommandEvent &evt)
 {
     // Stop the background task, wait until the thread goes into the "Idle" state.
@@ -3564,14 +3671,13 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
     if (error) {
         wxString message = evt.GetString();
         if (message.IsEmpty())
-            message = _L("Export failed");
-        if (q->m_tracking_popup_menu)
-        	// We don't want to pop-up a message box when tracking a pop-up menu.
-        	// We postpone the error message instead.
-            q->m_tracking_popup_menu_error_message = message;
-        else
-	        show_error(q, message);
+            message = _L("Export failed.");
+		notification_manager->push_slicing_error_notification(boost::nowide::narrow(message), *q->get_current_canvas3D());
         this->statusbar()->set_status_text(message);
+		const wxString invalid_str = _L("Invalid data");
+		for (auto btn : { ActionButtonType::abReslice, ActionButtonType::abSendGCode, ActionButtonType::abExport })
+			sidebar->set_btn_label(btn, invalid_str);
+		process_completed_with_error = true;
     }
     if (canceled)
         this->statusbar()->set_status_text(_L("Cancelled"));
@@ -3597,18 +3703,21 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
     default: break;
     }
 	
-
     if (canceled) {
         if (wxGetApp().get_mode() == comSimple)
             sidebar->set_btn_label(ActionButtonType::abReslice, "Slice now");
         show_action_buttons(true);
     }
-    else if (this->writing_to_removable_device || wxGetApp().get_mode() == comSimple)
+    else if (wxGetApp().get_mode() == comSimple)
 	{
-		wxGetApp().removable_drive_manager()->set_exporting_finished(true);
 		show_action_buttons(false);
 	}
-    this->writing_to_removable_device = false;
+	else if (this->writing_to_removable_device)
+	{
+		show_action_buttons(false);
+		notification_manager->push_notification(NotificationType::ExportToRemovableFinished, *q->get_current_canvas3D());
+	}
+	this->writing_to_removable_device = false;
 }
 
 void Plater::priv::on_layer_editing_toggled(bool enable)
@@ -4268,7 +4377,7 @@ void Plater::priv::show_action_buttons(const bool ready_to_slice) const
 			sidebar->show_export(true) |
 			sidebar->show_send(send_gcode_shown) |
 			sidebar->show_export_removable(removable_media_status.has_removable_drives) |
-			sidebar->show_disconnect(removable_media_status.has_eject))
+			sidebar->show_eject(removable_media_status.has_eject))
             sidebar->Layout();
     }
     else
@@ -4280,7 +4389,7 @@ void Plater::priv::show_action_buttons(const bool ready_to_slice) const
             sidebar->show_export(!ready_to_slice) |
             sidebar->show_send(send_gcode_shown && !ready_to_slice) |
 			sidebar->show_export_removable(!ready_to_slice && removable_media_status.has_removable_drives) |
-            sidebar->show_disconnect(!ready_to_slice && removable_media_status.has_eject))
+            sidebar->show_eject(!ready_to_slice && removable_media_status.has_eject))
             sidebar->Layout();
     }
 }
@@ -4881,6 +4990,9 @@ void Plater::export_gcode(bool prefer_removable)
     if (p->model.objects.empty())
         return;
 
+	if (p->process_completed_with_error)//here
+		return;
+
     // If possible, remove accents from accented latin characters.
     // This function is useful for generating file names to be processed by legacy firmwares.
     fs::path default_output_file;
@@ -5139,7 +5251,6 @@ void Plater::export_toolpaths_to_obj() const
     wxBusyCursor wait;
     p->preview->get_canvas3d()->export_toolpaths_to_obj(into_u8(path).c_str());
 }
-
 
 void Plater::reslice()
 {
@@ -5883,6 +5994,16 @@ const Mouse3DController& Plater::get_mouse3d_controller() const
 Mouse3DController& Plater::get_mouse3d_controller()
 {
     return p->mouse3d_controller;
+}
+
+const NotificationManager* Plater::get_notification_manager() const
+{
+	return p->notification_manager;
+}
+
+NotificationManager* Plater::get_notification_manager()
+{
+	return p->notification_manager;
 }
 
 bool Plater::can_delete() const { return p->can_delete(); }

@@ -69,6 +69,10 @@ public:
 	// The following wxCommandEvent will be sent to the UI thread / Plater window, when the G-code export is finished.
 	// The wxCommandEvent is sent to the UI thread asynchronously without waiting for the event to be processed.
 	void set_finished_event(int event_id) { m_event_finished_id = event_id; }
+	// The following wxCommandEvent will be sent to the UI thread / Plater window, when the G-code is being exported to
+	// specified path or uploaded.
+	// The wxCommandEvent is sent to the UI thread asynchronously without waiting for the event to be processed.
+	void set_export_began_event(int event_id) { m_event_export_began_id = event_id; }
 
 	// Activate either m_fff_print or m_sla_print.
 	// Return true if changed.
@@ -204,6 +208,9 @@ private:
 	int 						m_event_slicing_completed_id 	= 0;
 	// wxWidgets command ID to be sent to the plater to inform that the task finished.
 	int 						m_event_finished_id  			= 0;
+	// wxWidgets command ID to be sent to the plater to inform that the G-code is being exported.
+	int                         m_event_export_began_id         = 0;
+
 };
 
 }; // namespace Slic3r

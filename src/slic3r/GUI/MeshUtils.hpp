@@ -3,7 +3,7 @@
 
 #include "libslic3r/Point.hpp"
 #include "libslic3r/Geometry.hpp"
-#include "libslic3r/SLA/EigenMesh3D.hpp"
+#include "libslic3r/SLA/IndexedMesh.hpp"
 #include "admesh/stl.h"
 
 #include "slic3r/GUI/3DScene.hpp"
@@ -147,7 +147,7 @@ public:
     Vec3f get_triangle_normal(size_t facet_idx) const;
 
 private:
-    sla::EigenMesh3D m_emesh;
+    sla::IndexedMesh m_emesh;
     std::vector<stl_normal> m_normals;
 };
 
