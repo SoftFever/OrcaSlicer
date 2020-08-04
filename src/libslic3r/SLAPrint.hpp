@@ -374,7 +374,7 @@ protected:
     std::vector<sla::EncodedRaster> m_layers;
     
     virtual uqptr<sla::RasterBase> create_raster() const = 0;
-    virtual sla::EncodedRaster encode_raster(const sla::RasterBase &rst) const = 0;
+    virtual sla::RasterEncoder get_encoder() const = 0;
     
 public:
     virtual ~SLAPrinter() = default;
@@ -389,7 +389,7 @@ public:
                             [this, &drawfn](sla::EncodedRaster& enc, size_t idx) {
                                 auto rst = create_raster();
                                 drawfn(*rst, idx);
-                                enc = encode_raster(*rst);
+                                enc = rst->encode(get_encoder());
                             });
     }
 };
