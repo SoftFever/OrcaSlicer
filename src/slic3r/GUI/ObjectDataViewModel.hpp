@@ -2,8 +2,9 @@
 #define slic3r_GUI_ObjectDataViewModel_hpp_
 
 #include <wx/dataview.h>
-
 #include <vector>
+
+#include "GUI_App.hpp"
 
 namespace Slic3r {
 
@@ -83,8 +84,18 @@ public:
         ) :
     wxDataViewCustomRenderer(wxT("DataViewBitmapText"), mode, align),
         m_parent(parent)
-    {}
+    {
+#ifdef SUPPORTS_MARKUP
+        m_markupText = nullptr;
+#endif // SUPPORTS_MARKUP
+    }
 #endif //ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
+
+    ~BitmapTextRenderer();
+
+#ifdef SUPPORTS_MARKUP
+    void EnableMarkup(bool enable = true);
+#endif // SUPPORTS_MARKUP
 
     bool SetValue(const wxVariant& value);
     bool GetValue(wxVariant& value) const;
@@ -114,6 +125,10 @@ private:
     DataViewBitmapText  m_value;
     bool                m_was_unusable_symbol{ false };
     wxWindow* m_parent{ nullptr };
+
+#ifdef SUPPORTS_MARKUP
+    class wxItemMarkupText* m_markupText;
+#endif // SUPPORTS_MARKUP
 };
 
 

@@ -321,6 +321,14 @@ const Option& OptionsSearcher::get_option(size_t pos_in_filter) const
     return options[found[pos_in_filter].option_idx];
 }
 
+const Option& OptionsSearcher::get_option(const std::string& opt_key) const
+{
+    auto it = std::upper_bound(options.begin(), options.end(), Option({ boost::nowide::widen(opt_key) }));
+    assert(it != options.end());
+
+    return options[it - options.begin()];
+}
+
 void OptionsSearcher::add_key(const std::string& opt_key, const wxString& group, const wxString& category)
 {
     groups_and_categories[opt_key] = GroupAndCategory{group, category};

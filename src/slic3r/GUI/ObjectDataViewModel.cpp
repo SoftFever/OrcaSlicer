@@ -9,6 +9,12 @@
 
 #include <wx/bmpcbox.h>
 #include <wx/dc.h>
+#include "wx/generic/private/markuptext.h"
+#include "wx/generic/private/rowheightcache.h"
+#include "wx/generic/private/widthcalc.h"
+#if wxUSE_ACCESSIBILITY
+#include "wx/private/markupparser.h"
+#endif // wxUSE_ACCESSIBILITY
 
 
 namespace Slic3r {
@@ -1575,9 +1581,44 @@ wxDataViewRenderer(wxT("PrusaDataViewBitmapText"), mode, align)
 }
 #endif // ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
 
+BitmapTextRenderer::~BitmapTextRenderer()
+{
+#ifdef SUPPORTS_MARKUP
+    if (m_markupText)
+        delete m_markupText;
+#endif // SUPPORTS_MARKUP
+}
+
+#ifdef SUPPORTS_MARKUP
+void BitmapTextRenderer::EnableMarkup(bool enable)
+{
+    if (enable)
+    {
+        if (!m_markupText)
+        {
+            m_markupText = new wxItemMarkupText(wxString());
+        }
+    }
+    else
+    {
+        if (m_markupText)
+        {
+            delete m_markupText;
+            m_markupText = nullptr;
+        }
+    }
+}
+#endif // SUPPORTS_MARKUP
+
 bool BitmapTextRenderer::SetValue(const wxVariant &value)
 {
     m_value << value;
+
+#ifdef SUPPORTS_MARKUP
+    if (m_markupText)
+        m_markupText->SetMarkup(m_value.GetText());
+#endif // SUPPORTS_MARKUP
+
     return true;
 }
 
@@ -1589,6 +1630,11 @@ bool BitmapTextRenderer::GetValue(wxVariant& WXUNUSED(value)) const
 #if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING && wxUSE_ACCESSIBILITY
 wxString BitmapTextRenderer::GetAccessibleDescription() const
 {
+#ifdef SUPPORTS_MARKUP
+    if (m_markupText)
+        return wxMarkupParser::Strip(m_text);
+#endif // SUPPORTS_MARKUP
+
     return m_value.GetText();
 }
 #endif // wxUSE_ACCESSIBILITY && ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
@@ -1609,7 +1655,17 @@ bool BitmapTextRenderer::Render(wxRect rect, wxDC *dc, int state)
         xoffset = icon_sz.x + 4;
     }
 
-    RenderText(m_value.GetText(), xoffset, rect, dc, state);
+#ifdef SUPPORTS_MARKUP
+    if (m_markupText)
+    {
+        int flags = 0;
+
+        rect.x += xoffset;
+        m_markupText->Render(GetView(), *dc, rect, flags, GetEllipsizeMode());
+    }
+    else
+#endif // SUPPORTS_MARKUP
+        RenderText(m_value.GetText(), xoffset, rect, dc, state);
 
     return true;
 }
@@ -1618,7 +1674,23 @@ wxSize BitmapTextRenderer::GetSize() const
 {
     if (!m_value.GetText().empty())
     {
-        wxSize size = GetTextExtent(m_value.GetText());
+        wxSize size;
+#ifdef SUPPORTS_MARKUP
+        if (m_markupText)
+        {
+            wxDataViewCtrl* const view = GetView();
+            wxClientDC dc(view);
+            if (GetAttr().HasFont())
+                dc.SetFont(GetAttr().GetEffectiveFont(view->GetFont()));
+
+            size = m_markupText->Measure(dc);
+        }
+        else
+#endif // SUPPORTS_MARKUP
+            size = GetTextExtent(m_value.GetText());
+
+        int lines = m_value.GetText().Freq('\n') + 1;
+        size.SetHeight(size.GetHeight() * lines);
 
         if (m_value.GetBitmap().IsOk())
             size.x += m_value.GetBitmap().GetWidth() + 4;

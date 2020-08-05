@@ -3133,8 +3133,16 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
 bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr*/, const std::string& new_printer_name /*= ""*/)
 {
     UnsavedChangesDialog dlg(m_type);
-    dlg.ShowModal();
-
+    if (dlg.ShowModal() == wxID_CANCEL)
+        return false;
+    if (dlg.just_continue())
+        return true;
+    if (dlg.save_preset())
+        // save selected changes
+        return false;
+    if (dlg.move_preset())
+        // move selected changes
+        return false;
 
     if (presets == nullptr) presets = m_presets;
     // Display a dialog showing the dirty options in a human readable form.
