@@ -261,6 +261,11 @@ using IntegerOnly = std::enable_if_t<std::is_integral<T>::value, O>;
 template<class T, class O = T>
 using ArithmeticOnly = std::enable_if_t<std::is_arithmetic<T>::value, O>;
 
+template<class T, class O = T>
+using IteratorOnly = std::enable_if_t<
+    !std::is_same_v<typename std::iterator_traits<T>::value_type, void>, O
+>;
+
 } // namespace Slic3r
 
 #endif

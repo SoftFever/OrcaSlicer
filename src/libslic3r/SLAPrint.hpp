@@ -385,12 +385,13 @@ public:
     template<class Fn> void draw_layers(size_t layer_num, Fn &&drawfn)
     {
         m_layers.resize(layer_num);
-        sla::ccr::enumerate(m_layers.begin(), m_layers.end(),
-                            [this, &drawfn](sla::EncodedRaster& enc, size_t idx) {
-                                auto rst = create_raster();
-                                drawfn(*rst, idx);
-                                enc = rst->encode(get_encoder());
-                            });
+        sla::ccr::for_each(0ul, m_layers.size(),
+                           [this, &drawfn] (size_t idx) {
+                               sla::EncodedRaster& enc = m_layers[idx];
+                               auto rst = create_raster();
+                               drawfn(*rst, idx);
+                               enc = rst->encode(get_encoder());
+                           });
     }
 };
 

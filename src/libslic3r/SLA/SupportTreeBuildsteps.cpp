@@ -209,13 +209,15 @@ IndexedMesh::hit_result SupportTreeBuildsteps::pinhead_mesh_intersect(
     // of the pinhead robe (side) surface. The result will be the smallest
     // hit distance.
 
-    ccr::enumerate(hits.begin(), hits.end(),
-                   [&m, &rings, sd](HitResult &hit, size_t i) {
+    ccr::for_each(size_t(0), hits.size(),
+                  [&m, &rings, sd, &hits](size_t i) {
 
        // Point on the circle on the pin sphere
        Vec3d ps = rings.pinring(i);
        // This is the point on the circle on the back sphere
        Vec3d p = rings.backring(i);
+
+       auto &hit = hits[i];
 
        // Point ps is not on mesh but can be inside or
        // outside as well. This would cause many problems
@@ -265,8 +267,10 @@ IndexedMesh::hit_result SupportTreeBuildsteps::bridge_mesh_intersect(
     // Hit results
     std::array<Hit, SAMPLES> hits;
 
-    ccr::enumerate(hits.begin(), hits.end(),
-                [this, r, src, /*ins_check,*/ &ring, dir, sd] (Hit &hit, size_t i) {
+    ccr::for_each(size_t(0), hits.size(),
+                 [this, r, src, /*ins_check,*/ &ring, dir, sd, &hits] (size_t i)
+    {
+        Hit &hit = hits[i];
 
         // Point on the circle on the pin sphere
         Vec3d p = ring.get(i, src, r + sd);
@@ -744,10 +748,10 @@ void SupportTreeBuildsteps::filter()
         }
     };
 
-    ccr::enumerate(filtered_indices.begin(), filtered_indices.end(),
-                   [this, &filterfn](unsigned fidx, size_t i) {
-                       filterfn(fidx, i, m_cfg.head_back_radius_mm);
-                   });
+    ccr::for_each(0ul, filtered_indices.size(),
+                  [this, &filterfn, &filtered_indices] (size_t i) {
+                      filterfn(filtered_indices[i], i, m_cfg.head_back_radius_mm);
+                  });
 
     for (size_t i = 0; i < heads.size(); ++i)
         if (heads[i].is_valid()) {
@@ -1033,8 +1037,8 @@ void SupportTreeBuildsteps::routing_to_model()
     // If it can be routed there with a bridge shorter than
     // min_bridge_distance.
 
-    ccr::enumerate(m_iheads_onmodel.begin(), m_iheads_onmodel.end(),
-                   [this] (const unsigned idx, size_t) {
+    ccr::for_each(m_iheads_onmodel.begin(), m_iheads_onmodel.end(),
+                  [this] (const unsigned idx) {
         m_thr();
 
         auto& head = m_builder.head(idx);
