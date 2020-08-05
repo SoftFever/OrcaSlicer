@@ -1831,7 +1831,7 @@ arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
 }
 
 
-indexed_triangle_set FacetsAnnotation::get_facets(const ModelVolume& mv, FacetSupportType type) const
+indexed_triangle_set FacetsAnnotation::get_facets(const ModelVolume& mv, EnforcerBlockerType type) const
 {
     TriangleSelector selector(mv.mesh());
     selector.deserialize(m_data);

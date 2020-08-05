@@ -2670,7 +2670,7 @@ void PrintObject::_generate_support_material()
 
 
 void PrintObject::project_and_append_custom_supports(
-        FacetSupportType type, std::vector<ExPolygons>& expolys) const
+        EnforcerBlockerType type, std::vector<ExPolygons>& expolys) const
 {
     for (const ModelVolume* mv : this->model_object()->volumes) {
         const indexed_triangle_set custom_facets = mv->m_supported_facets.get_facets(*mv, type);

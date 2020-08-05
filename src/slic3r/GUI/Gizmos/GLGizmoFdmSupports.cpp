@@ -296,16 +296,16 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         if (m_triangle_selectors.empty())
             return false;
 
-        FacetSupportType new_state = FacetSupportType::NONE;
+        EnforcerBlockerType new_state = EnforcerBlockerType::NONE;
         if (! shift_down) {
             if (action == SLAGizmoEventType::Dragging)
                 new_state = m_button_down == Button::Left
-                        ? FacetSupportType::ENFORCER
-                        : FacetSupportType::BLOCKER;
+                        ? EnforcerBlockerType::ENFORCER
+                        : EnforcerBlockerType::BLOCKER;
             else
                 new_state = action == SLAGizmoEventType::LeftDown
-                        ? FacetSupportType::ENFORCER
-                        : FacetSupportType::BLOCKER;
+                        ? EnforcerBlockerType::ENFORCER
+                        : EnforcerBlockerType::BLOCKER;
         }
 
         const Camera& camera = wxGetApp().plater()->get_camera();
@@ -465,8 +465,8 @@ void GLGizmoFdmSupports::select_facets_by_angle(float threshold_deg, bool block)
             if (facet.normal.dot(down) > dot_limit)
                 m_triangle_selectors[mesh_id]->set_facet(idx,
                                                          block
-                                                         ? FacetSupportType::BLOCKER
-                                                         : FacetSupportType::ENFORCER);
+                                                         ? EnforcerBlockerType::BLOCKER
+                                                         : EnforcerBlockerType::ENFORCER);
         }
     }
 
@@ -719,13 +719,13 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
     m_iva_blockers.release_geometry();
 
     for (const Triangle& tr : m_triangles) {
-        if (! tr.valid || tr.is_split() || tr.get_state() == FacetSupportType::NONE)
+        if (! tr.valid || tr.is_split() || tr.get_state() == EnforcerBlockerType::NONE)
             continue;
 
-        GLIndexedVertexArray& va = tr.get_state() == FacetSupportType::ENFORCER
+        GLIndexedVertexArray& va = tr.get_state() == EnforcerBlockerType::ENFORCER
                                    ? m_iva_enforcers
                                    : m_iva_blockers;
-        int& cnt = tr.get_state() == FacetSupportType::ENFORCER
+        int& cnt = tr.get_state() == EnforcerBlockerType::ENFORCER
                 ? enf_cnt
                 : blc_cnt;
 

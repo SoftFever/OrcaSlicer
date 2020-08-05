@@ -15,7 +15,7 @@
 
 namespace Slic3r {
 
-enum class FacetSupportType : int8_t;
+enum class EnforcerBlockerType : int8_t;
 
 namespace GUI {
 
