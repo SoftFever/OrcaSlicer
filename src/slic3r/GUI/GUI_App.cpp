@@ -41,6 +41,7 @@
 #include "3DScene.hpp"
 #include "MainFrame.hpp"
 #include "Plater.hpp"
+#include "GLCanvas3D.hpp"
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Utils/PrintHost.hpp"
@@ -1012,6 +1013,7 @@ void GUI_App::update_mode()
         tab->update_mode();
 
     plater()->update_object_menu();
+    plater()->canvas3D()->update_gizmos_on_off_state();
 }
 
 void GUI_App::add_config_menu(wxMenuBar *menu)

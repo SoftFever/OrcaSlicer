@@ -144,8 +144,11 @@ void GLGizmosManager::refresh_on_off_state()
     if (m_serializing || m_current == Undefined || m_gizmos.empty())
         return;
 
-    if (m_current != Undefined && ! m_gizmos[m_current]->is_activable())
+    if (m_current != Undefined
+    && (! m_gizmos[m_current]->is_activable() || ! m_gizmos[m_current]->is_selectable())) {
         activate_gizmo(Undefined);
+        update_data();
+    }
 }
 
 void GLGizmosManager::reset_all_states()
@@ -204,9 +207,10 @@ void GLGizmosManager::update_data()
         enable_grabber(Scale, i, enable_scale_xyz);
     }
 
-    m_common_gizmos_data->update(get_current()
-                           ? get_current()->get_requirements()
-                           : CommonGizmosDataID(0));
+    if (m_common_gizmos_data)
+        m_common_gizmos_data->update(get_current()
+                                   ? get_current()->get_requirements()
+                                   : CommonGizmosDataID(0));
 
     if (selection.is_single_full_instance())
     {
