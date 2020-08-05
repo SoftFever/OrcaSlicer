@@ -2190,23 +2190,13 @@ std::string Print::output_filename(const std::string &filename_base) const
 DynamicConfig PrintStatistics::config() const
 {
     DynamicConfig config;
-#if ENABLE_GCODE_VIEWER
-#if ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
-    config.set_key_value("print_time",                new ConfigOptionString(this->estimated_normal_print_time_str));
-    config.set_key_value("normal_print_time",         new ConfigOptionString(this->estimated_normal_print_time_str));
-    config.set_key_value("silent_print_time",         new ConfigOptionString(this->estimated_silent_print_time_str));
-#else
-    config.set_key_value("print_time",        new ConfigOptionString(short_time(get_time_dhms(this->estimated_normal_print_time))));
-    config.set_key_value("normal_print_time", new ConfigOptionString(short_time(get_time_dhms(this->estimated_normal_print_time))));
-    config.set_key_value("silent_print_time", new ConfigOptionString(short_time(get_time_dhms(this->estimated_silent_print_time))));
-#endif // ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
-#else
+#if !ENABLE_GCODE_VIEWER
     std::string normal_print_time = short_time(this->estimated_normal_print_time);
     std::string silent_print_time = short_time(this->estimated_silent_print_time);
     config.set_key_value("print_time",                new ConfigOptionString(normal_print_time));
     config.set_key_value("normal_print_time",         new ConfigOptionString(normal_print_time));
     config.set_key_value("silent_print_time",         new ConfigOptionString(silent_print_time));
-#endif // ENABLE_GCODE_VIEWER
+#endif // !ENABLE_GCODE_VIEWER
     config.set_key_value("used_filament",             new ConfigOptionFloat(this->total_used_filament / 1000.));
     config.set_key_value("extruded_volume",           new ConfigOptionFloat(this->total_extruded_volume));
     config.set_key_value("total_cost",                new ConfigOptionFloat(this->total_cost));

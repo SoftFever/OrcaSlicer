@@ -17,8 +17,8 @@
 #include "GCode/GCodeProcessor.hpp"
 #else
 #include "GCode/Analyzer.hpp"
-#endif // ENABLE_GCODE_VIEWER
 #include "GCodeTimeEstimator.hpp"
+#endif // ENABLE_GCODE_VIEWER
 #include "EdgeGrid.hpp"
 #include "GCode/ThumbnailData.hpp"
 
@@ -179,8 +179,10 @@ public:
 #endif // !ENABLE_GCODE_VIEWER
         m_brim_done(false),
         m_second_layer_things_done(false),
+#if !ENABLE_GCODE_VIEWER
         m_normal_time_estimator(GCodeTimeEstimator::Normal),
         m_silent_time_estimator(GCodeTimeEstimator::Silent),
+#endif // !ENABLE_GCODE_VIEWER
         m_silent_time_estimator_enabled(false),
         m_last_obj_copy(nullptr, Point(std::numeric_limits<coord_t>::max(), std::numeric_limits<coord_t>::max()))
         {}
@@ -405,9 +407,11 @@ private:
     // Index of a last object copy extruded.
     std::pair<const PrintObject*, Point> m_last_obj_copy;
 
+#if !ENABLE_GCODE_VIEWER
     // Time estimators
     GCodeTimeEstimator m_normal_time_estimator;
     GCodeTimeEstimator m_silent_time_estimator;
+#endif // !ENABLE_GCODE_VIEWER
     bool m_silent_time_estimator_enabled;
 
 #if ENABLE_GCODE_VIEWER

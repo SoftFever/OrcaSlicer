@@ -150,7 +150,9 @@ public:
         Shells,
         ToolMarker,
         Legend,
+#if GCODE_VIEWER_TIME_ESTIMATE != TIME_ESTIMATE_NONE
         TimeEstimate
+#endif // GCODE_VIEWER_TIME_ESTIMATE
     };
 
 Preview(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process, 

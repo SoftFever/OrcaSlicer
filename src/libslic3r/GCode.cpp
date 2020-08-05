@@ -779,8 +779,7 @@ void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_
     m_processor.process_file(path_tmp);
     if (result != nullptr)
         *result = std::move(m_processor.extract_result());
-#endif // ENABLE_GCODE_VIEWER
-
+#else
     GCodeTimeEstimator::PostProcessData normal_data = m_normal_time_estimator.get_post_process_data();
     GCodeTimeEstimator::PostProcessData silent_data = m_silent_time_estimator.get_post_process_data();
 
@@ -789,21 +788,19 @@ void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_
     BOOST_LOG_TRIVIAL(debug) << "Time estimator post processing" << log_memory_info();
     GCodeTimeEstimator::post_process(path_tmp, 60.0f, remaining_times_enabled ? &normal_data : nullptr, (remaining_times_enabled && m_silent_time_estimator_enabled) ? &silent_data : nullptr);
 
-    if (remaining_times_enabled)
-    {
+    if (remaining_times_enabled) {
         m_normal_time_estimator.reset();
         if (m_silent_time_estimator_enabled)
             m_silent_time_estimator.reset();
     }
 
-#if !ENABLE_GCODE_VIEWER
     // starts analyzer calculations
     if (m_enable_analyzer) {
         BOOST_LOG_TRIVIAL(debug) << "Preparing G-code preview data" << log_memory_info();
         m_analyzer.calc_gcode_preview_data(*preview_data, [print]() { print->throw_if_canceled(); });
         m_analyzer.reset();
     }
-#endif // !ENABLE_GCODE_VIEWER
+#endif // ENABLE_GCODE_VIEWER
 
     if (rename_file(path_tmp, path))
         throw std::runtime_error(
@@ -820,7 +817,8 @@ void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_
 
 // free functions called by GCode::_do_export()
 namespace DoExport {
-	static void init_time_estimators(const PrintConfig &config, GCodeTimeEstimator &normal_time_estimator, GCodeTimeEstimator &silent_time_estimator, bool &silent_time_estimator_enabled)
+#if !ENABLE_GCODE_VIEWER
+    static void init_time_estimators(const PrintConfig &config, GCodeTimeEstimator &normal_time_estimator, GCodeTimeEstimator &silent_time_estimator, bool &silent_time_estimator_enabled)
 	{
 	    // resets time estimators
 	    normal_time_estimator.reset();
@@ -892,10 +890,12 @@ namespace DoExport {
 	        normal_time_estimator.set_filament_unload_times(config.filament_unload_time.values);
 	    }
 	}
+#endif // !ENABLE_GCODE_VIEWER
 
 #if ENABLE_GCODE_VIEWER
-    static void init_gcode_processor(const PrintConfig& config, GCodeProcessor& processor, bool silent_time_estimator_enabled)
+    static void init_gcode_processor(const PrintConfig& config, GCodeProcessor& processor, bool& silent_time_estimator_enabled)
     {
+        silent_time_estimator_enabled = (config.gcode_flavor == gcfMarlin) && config.silent_mode;
         processor.reset();
         processor.apply_config(config);
         processor.enable_stealth_time_estimator(silent_time_estimator_enabled);
@@ -1049,10 +1049,12 @@ namespace DoExport {
 
 	// Fill in print_statistics and return formatted string containing filament statistics to be inserted into G-code comment section.
     static std::string update_print_stats_and_format_filament_stats(
-	    const GCodeTimeEstimator    &normal_time_estimator,
+#if !ENABLE_GCODE_VIEWER
+        const GCodeTimeEstimator    &normal_time_estimator,
 	    const GCodeTimeEstimator    &silent_time_estimator,
 	    const bool                   silent_time_estimator_enabled,
-	    const bool                   has_wipe_tower,
+#endif // !ENABLE_GCODE_VIEWER
+        const bool                   has_wipe_tower,
 	    const WipeTowerData         &wipe_tower_data,
 	    const std::vector<Extruder> &extruders,
 		PrintStatistics 		    &print_statistics)
@@ -1060,21 +1062,13 @@ namespace DoExport {
 		std::string filament_stats_string_out;
 
 	    print_statistics.clear();
-#if ENABLE_GCODE_VIEWER
-#if ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
-        print_statistics.estimated_normal_print_time_str = normal_time_estimator.get_time_dhm/*s*/();
-        print_statistics.estimated_silent_print_time_str = silent_time_estimator_enabled ? silent_time_estimator.get_time_dhm/*s*/() : "N/A";
-        print_statistics.estimated_normal_custom_gcode_print_times_str = normal_time_estimator.get_custom_gcode_times_dhm(true);
-        if (silent_time_estimator_enabled)
-            print_statistics.estimated_silent_custom_gcode_print_times_str = silent_time_estimator.get_custom_gcode_times_dhm(true);
-#endif // ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
-#else
+#if !ENABLE_GCODE_VIEWER
         print_statistics.estimated_normal_print_time = normal_time_estimator.get_time_dhm/*s*/();
         print_statistics.estimated_silent_print_time = silent_time_estimator_enabled ? silent_time_estimator.get_time_dhm/*s*/() : "N/A";
         print_statistics.estimated_normal_custom_gcode_print_times = normal_time_estimator.get_custom_gcode_times_dhm(true);
         if (silent_time_estimator_enabled)
             print_statistics.estimated_silent_custom_gcode_print_times = silent_time_estimator.get_custom_gcode_times_dhm(true);
-#endif // ENABLE_GCODE_VIEWER
+#endif // !ENABLE_GCODE_VIEWER
         print_statistics.total_toolchanges = std::max(0, wipe_tower_data.number_of_toolchanges);
 	    if (! extruders.empty()) {
 	        std::pair<std::string, unsigned int> out_filament_used_mm ("; filament used [mm] = ", 0);
@@ -1165,12 +1159,13 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
 {
     PROFILE_FUNC();
 
-    DoExport::init_time_estimators(print.config(), 
-    	// modifies the following:
-    	m_normal_time_estimator, m_silent_time_estimator, m_silent_time_estimator_enabled);
 #if ENABLE_GCODE_VIEWER
+    // modifies m_silent_time_estimator_enabled
     DoExport::init_gcode_processor(print.config(), m_processor, m_silent_time_estimator_enabled);
 #else
+    DoExport::init_time_estimators(print.config(),
+        // modifies the following:
+        m_normal_time_estimator, m_silent_time_estimator, m_silent_time_estimator_enabled);
     DoExport::init_gcode_analyzer(print.config(), m_analyzer);
 #endif // ENABLE_GCODE_VIEWER
 
@@ -1274,12 +1269,13 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
     print.throw_if_canceled();
     
     // adds tags for time estimators
-    if (print.config().remaining_times.value)
-    {
+#if !ENABLE_GCODE_VIEWER
+    if (print.config().remaining_times.value) {
         _writeln(file, GCodeTimeEstimator::Normal_First_M73_Output_Placeholder_Tag);
         if (m_silent_time_estimator_enabled)
             _writeln(file, GCodeTimeEstimator::Silent_First_M73_Output_Placeholder_Tag);
     }
+#endif // !ENABLE_GCODE_VIEWER
 
     // Prepare the helper object for replacing placeholders in custom G-code and output filename.
     m_placeholder_parser = print.placeholder_parser();
@@ -1574,25 +1570,31 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
     _write(file, m_writer.postamble());
 
     // adds tags for time estimators
+#if !ENABLE_GCODE_VIEWER
     if (print.config().remaining_times.value)
     {
         _writeln(file, GCodeTimeEstimator::Normal_Last_M73_Output_Placeholder_Tag);
         if (m_silent_time_estimator_enabled)
             _writeln(file, GCodeTimeEstimator::Silent_Last_M73_Output_Placeholder_Tag);
     }
+#endif // !ENABLE_GCODE_VIEWER
 
     print.throw_if_canceled();
 
     // calculates estimated printing time
+#if !ENABLE_GCODE_VIEWER
     m_normal_time_estimator.calculate_time(false);
     if (m_silent_time_estimator_enabled)
         m_silent_time_estimator.calculate_time(false);
+#endif // !ENABLE_GCODE_VIEWER
 
     // Get filament stats.
     _write(file, DoExport::update_print_stats_and_format_filament_stats(
     	// Const inputs
-        m_normal_time_estimator, m_silent_time_estimator, m_silent_time_estimator_enabled, 
-        has_wipe_tower, print.wipe_tower_data(), 
+#if !ENABLE_GCODE_VIEWER
+        m_normal_time_estimator, m_silent_time_estimator, m_silent_time_estimator_enabled,
+#endif // !ENABLE_GCODE_VIEWER
+        has_wipe_tower, print.wipe_tower_data(),
         m_writer.extruders(),
         // Modifies
         print.m_print_statistics));
@@ -1601,9 +1603,11 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
     _write_format(file, "; total filament cost = %.1lf\n", print.m_print_statistics.total_cost);
     if (print.m_print_statistics.total_toolchanges > 0)
     	_write_format(file, "; total toolchanges = %i\n", print.m_print_statistics.total_toolchanges);
+#if !ENABLE_GCODE_VIEWER
     _write_format(file, "; estimated printing time (normal mode) = %s\n", m_normal_time_estimator.get_time_dhms().c_str());
     if (m_silent_time_estimator_enabled)
         _write_format(file, "; estimated printing time (silent mode) = %s\n", m_silent_time_estimator.get_time_dhms().c_str());
+#endif // !ENABLE_GCODE_VIEWER
 
     // Append full config.
     _write(file, "\n");
@@ -1879,9 +1883,9 @@ namespace ProcessLayer
 #else
                 // add tag for analyzer
                 gcode += "; " + GCodeAnalyzer::Color_Change_Tag + ",T" + std::to_string(m600_extruder_before_layer) + "\n";
-#endif // ENABLE_GCODE_VIEWER
                 // add tag for time estimator
-	            gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
+                gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
+#endif // ENABLE_GCODE_VIEWER
 
                 if (!single_extruder_printer && m600_extruder_before_layer >= 0 && first_extruder_id != (unsigned)m600_extruder_before_layer
 	                // && !MMU1
@@ -1910,10 +1914,12 @@ namespace ProcessLayer
                     //! FIXME_in_fw show message during print pause
 	                if (!pause_print_msg.empty())
 	                    gcode += "M117 " + pause_print_msg + "\n";
-	                // add tag for time estimator
+#if !ENABLE_GCODE_VIEWER
+                    // add tag for time estimator
 	                gcode += "; " + GCodeTimeEstimator::Pause_Print_Tag + "\n";
                     gcode += config.pause_print_gcode;
-	            }
+#endif // !ENABLE_GCODE_VIEWER
+                }
 	            else
 	            {
 #if ENABLE_GCODE_VIEWER
@@ -2422,14 +2428,14 @@ void GCode::process_layer(
 #endif /* HAS_PRESSURE_EQUALIZER */
     
     _write(file, gcode);
-    BOOST_LOG_TRIVIAL(trace) << "Exported layer " << layer.id() << " print_z " << print_z << 
+#if !ENABLE_GCODE_VIEWER
+    BOOST_LOG_TRIVIAL(trace) << "Exported layer " << layer.id() << " print_z " << print_z <<
         ", time estimator memory: " <<
             format_memsize_MB(m_normal_time_estimator.memory_used() + (m_silent_time_estimator_enabled ? m_silent_time_estimator.memory_used() : 0)) <<
-#if !ENABLE_GCODE_VIEWER
             ", analyzer memory: " <<
             format_memsize_MB(m_analyzer.memory_used()) <<
-#endif // !ENABLE_GCODE_VIEWER
             log_memory_info();
+#endif // !ENABLE_GCODE_VIEWER
 }
 
 void GCode::apply_print_config(const PrintConfig &print_config)
@@ -3078,10 +3084,12 @@ void GCode::_write(FILE* file, const char *what)
 
         // writes string to file
         fwrite(gcode, 1, ::strlen(gcode), file);
+#if !ENABLE_GCODE_VIEWER
         // updates time estimator and gcode lines vector
         m_normal_time_estimator.add_gcode_block(gcode);
         if (m_silent_time_estimator_enabled)
             m_silent_time_estimator.add_gcode_block(gcode);
+#endif // !ENABLE_GCODE_VIEWER
     }
 }
 

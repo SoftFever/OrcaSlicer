@@ -332,7 +332,9 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
         wxGetApp().plater()->set_bed_shape(bed_shape, "", "", true);
     }
 
+#if GCODE_VIEWER_TIME_ESTIMATE != TIME_ESTIMATE_NONE
     m_time_statistics = gcode_result.time_statistics;
+#endif // GCODE_VIEWER_TIME_ESTIMATE
 }
 
 void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors)
@@ -406,7 +408,9 @@ void GCodeViewer::reset()
     m_layers_zs = std::vector<double>();
     m_layers_z_range = { 0.0, 0.0 };
     m_roles = std::vector<ExtrusionRole>();
+#if GCODE_VIEWER_TIME_ESTIMATE != TIME_ESTIMATE_NONE
     m_time_statistics.reset();
+#endif // GCODE_VIEWER_TIME_ESTIMATE
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.reset_all();
@@ -419,7 +423,7 @@ void GCodeViewer::render() const
     m_statistics.reset_opengl();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
-#if ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_MODAL
     if (m_roles.empty()) {
         m_time_estimate_frames_count = 0;
         return;
@@ -427,7 +431,7 @@ void GCodeViewer::render() const
 #else
     if (m_roles.empty())
         return;
-#endif // ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+#endif // GCODE_VIEWER_TIME_ESTIMATE
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_toolpaths();
@@ -435,7 +439,9 @@ void GCodeViewer::render() const
     m_sequential_view.marker.render();
     render_shells();
     render_legend();
+#if GCODE_VIEWER_TIME_ESTIMATE != TIME_ESTIMATE_NONE
     render_time_estimate();
+#endif // GCODE_VIEWER_TIME_ESTIMATE
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -474,9 +480,9 @@ unsigned int GCodeViewer::get_options_visibility_flags() const
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Shells), m_shells.visible);
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::ToolMarker), m_sequential_view.marker.is_visible());
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Legend), is_legend_enabled());
-#if !ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_DEFAULT
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::TimeEstimate), is_time_estimate_enabled());
-#endif // !ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+#endif // GCODE_VIEWER_TIME_ESTIMATE
     return flags;
 }
 
@@ -496,9 +502,9 @@ void GCodeViewer::set_options_visibility_from_flags(unsigned int flags)
     m_shells.visible = is_flag_set(static_cast<unsigned int>(Preview::OptionType::Shells));
     m_sequential_view.marker.set_visible(is_flag_set(static_cast<unsigned int>(Preview::OptionType::ToolMarker)));
     enable_legend(is_flag_set(static_cast<unsigned int>(Preview::OptionType::Legend)));
-#if !ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_DEFAULT
     enable_time_estimate(is_flag_set(static_cast<unsigned int>(Preview::OptionType::TimeEstimate)));
-#endif // !ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+#endif // GCODE_VIEWER_TIME_ESTIMATE
 }
 
 void GCodeViewer::set_layers_z_range(const std::array<double, 2>& layers_z_range)
@@ -510,6 +516,7 @@ void GCodeViewer::set_layers_z_range(const std::array<double, 2>& layers_z_range
     wxGetApp().plater()->update_preview_moves_slider();
 }
 
+#if GCODE_VIEWER_TIME_ESTIMATE != TIME_ESTIMATE_NONE
 void GCodeViewer::enable_time_estimate(bool enable)
 {
     m_time_estimate_enabled = enable;
@@ -517,6 +524,7 @@ void GCodeViewer::enable_time_estimate(bool enable)
     wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
     wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
 }
+#endif // GCODE_VIEWER_TIME_ESTIMATE
 
 void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
 {
@@ -1682,24 +1690,25 @@ void GCodeViewer::render_legend() const
     ImGui::PopStyleVar();
 }
 
+#if GCODE_VIEWER_TIME_ESTIMATE != TIME_ESTIMATE_NONE
 void GCodeViewer::render_time_estimate() const
 {
     if (!m_time_estimate_enabled) {
-#if ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_MODAL
         m_time_estimate_frames_count = 0;
-#endif // ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+#endif // GCODE_VIEWER_TIME_ESTIMATE
         return;
     }
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     
-#if ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_MODAL
     // esc
     if (ImGui::GetIO().KeysDown[27]) {
         m_time_estimate_enabled = false;
         return;
     }
-#endif // ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+#endif // GCODE_VIEWER_TIME_ESTIMATE
 
     using Times = std::pair<float, float>;
     using TimesList = std::vector<std::pair<CustomGCode::Type, Times>>;
@@ -1833,7 +1842,7 @@ void GCodeViewer::render_time_estimate() const
             imgui.text(short_time(get_time_dhms(time)));
             ImGui::SameLine(offsets[1]);
             char buf[64];
-            ::sprintf(buf, "%.2f%%", 100.0f * percentage);
+            ::sprintf(buf, "%.1f%%", 100.0f * percentage);
             ImGuiWindow* window = ImGui::GetCurrentWindow();
             ImRect frame_bb;
             frame_bb.Min = { ImGui::GetCursorScreenPos().x, window->DC.CursorPos.y };
@@ -1978,7 +1987,7 @@ void GCodeViewer::render_time_estimate() const
     };
 
     Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
-#if ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_MODAL
     std::string title = _u8L("Estimated printing time");
     ImGui::OpenPopup(title.c_str());
 
@@ -1996,14 +2005,14 @@ void GCodeViewer::render_time_estimate() const
             }
 #else
     imgui.set_next_window_pos(static_cast<float>(cnv_size.get_width()), static_cast<float>(cnv_size.get_height()), ImGuiCond_Always, 1.0f, 1.0f);
-    ImGui::SetNextWindowSizeConstraints({ 0.0f, 0.0f }, { -1.0f, 0.5f * static_cast<float>(cnv_size.get_height() }));
+    ImGui::SetNextWindowSizeConstraints({ 0.0f, 0.0f }, { -1.0f, 0.5f * static_cast<float>(cnv_size.get_height()) });
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::SetNextWindowBgAlpha(0.6f);
     imgui.begin(std::string("Time_estimate"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
 
     // title
     imgui.title(_u8L("Estimated printing time"));
-#endif // ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+#endif // GCODE_VIEWER_TIME_ESTIMATE
 
         // mode tabs
     ImGui::BeginTabBar("mode_tabs");
@@ -2029,7 +2038,7 @@ void GCodeViewer::render_time_estimate() const
     }
     ImGui::EndTabBar();
 
-#if ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_MODAL
             // this is ugly, but it is the only way to ensure that the dialog is large
             // enough to show enterely the title
             // see: https://github.com/ocornut/imgui/issues/3239
@@ -2044,9 +2053,10 @@ void GCodeViewer::render_time_estimate() const
     }
 #else
     imgui.end();
-#endif // ENABLE_GCODE_VIEWER_MODAL_TIME_ESTIMATE_DIALOG
+#endif // GCODE_VIEWER_TIME_ESTIMATE
     ImGui::PopStyleVar();
 }
+#endif // GCODE_VIEWER_TIME_ESTIMATE
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
 void GCodeViewer::render_statistics() const

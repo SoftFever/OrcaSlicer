@@ -303,19 +303,12 @@ private:
 struct PrintStatistics
 {
     PrintStatistics() { clear(); }
-#if ENABLE_GCODE_VIEWER
-#if ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
-    std::string                     estimated_normal_print_time_str;
-    std::string                     estimated_silent_print_time_str;
-    std::vector<std::pair<CustomGCode::Type, std::pair<std::string, std::string>>> estimated_normal_custom_gcode_print_times_str;
-    std::vector<std::pair<CustomGCode::Type, std::pair<std::string, std::string>>> estimated_silent_custom_gcode_print_times_str;
-#endif // ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
-#else
+#if !ENABLE_GCODE_VIEWER
     std::string                     estimated_normal_print_time;
     std::string                     estimated_silent_print_time;
     std::vector<std::pair<CustomGCode::Type, std::string>>    estimated_normal_custom_gcode_print_times;
     std::vector<std::pair<CustomGCode::Type, std::string>>    estimated_silent_custom_gcode_print_times;
-#endif // ENABLE_GCODE_VIEWER
+#endif // !ENABLE_GCODE_VIEWER
     double                          total_used_filament;
     double                          total_extruded_volume;
     double                          total_cost;
@@ -333,19 +326,12 @@ struct PrintStatistics
     std::string             finalize_output_path(const std::string &path_in) const;
 
     void clear() {
-#if ENABLE_GCODE_VIEWER
-#if ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
-        estimated_normal_print_time_str.clear();
-        estimated_silent_print_time_str.clear();
-        estimated_normal_custom_gcode_print_times_str.clear();
-        estimated_silent_custom_gcode_print_times_str.clear();
-#endif // ENABLE_GCODE_VIEWER_USE_OLD_TIME_ESTIMATOR
-#else
+#if !ENABLE_GCODE_VIEWER
         estimated_normal_print_time.clear();
         estimated_silent_print_time.clear();
         estimated_normal_custom_gcode_print_times.clear();
         estimated_silent_custom_gcode_print_times.clear();
-#endif //ENABLE_GCODE_VIEWER
+#endif // !ENABLE_GCODE_VIEWER
         total_used_filament    = 0.;
         total_extruded_volume  = 0.;
         total_cost             = 0.;
