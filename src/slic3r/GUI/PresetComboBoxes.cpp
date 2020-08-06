@@ -1054,6 +1054,11 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string& suffix, wxBox
         m_combo->Append(from_u8(value));
 
     m_combo->Bind(wxEVT_TEXT, [this](wxCommandEvent&) { update(); });
+#ifdef __WXOSX__
+    // Under OSX wxEVT_TEXT wasn't invoked after change selection in combobox,
+    // So process wxEVT_COMBOBOX too
+    m_combo->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { update(); });
+#endif //__WXOSX__
 
     m_valid_label = new wxStaticText(m_parent, wxID_ANY, "");
     m_valid_label->SetFont(wxGetApp().bold_font());

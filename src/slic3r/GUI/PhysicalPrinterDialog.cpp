@@ -161,13 +161,15 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxString printer_name)
     SetFont(wxGetApp().normal_font());
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 
-    m_default_name = _L("My Printer Device");
+    m_default_name = _L("Type here the name of your printer device");
+    bool new_printer = true;
 
     if (printer_name.IsEmpty())
         printer_name = m_default_name;
     else {
         std::string full_name = into_u8(printer_name);
         printer_name = from_u8(PhysicalPrinter::get_short_name(full_name));
+        new_printer = false;
     }
 
     wxStaticText* label_top = new wxStaticText(this, wxID_ANY, _L("Descriptive name for the printer device") + ":");
@@ -206,7 +208,6 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxString printer_name)
 
     m_optgroup = new ConfigOptionsGroup(this, _L("Print Host upload"), m_config);
     build_printhost_settings(m_optgroup);
-    //m_optgroup->reload_config();
 
     wxStdDialogButtonSizer* btns = this->CreateStdDialogButtonSizer(wxOK | wxCANCEL);
     wxButton* btnOK = static_cast<wxButton*>(this->FindWindowById(wxID_OK, this));
@@ -230,6 +231,11 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxString printer_name)
 
     SetSizer(topSizer);
     topSizer->SetSizeHints(this);
+
+    if (new_printer) {
+        m_printer_name->SetFocus();
+        m_printer_name->SelectAll();
+    }
 }
 
 PhysicalPrinterDialog::~PhysicalPrinterDialog()
@@ -494,7 +500,7 @@ void PhysicalPrinterDialog::OnOK(wxEvent& event)
 
     std::string renamed_from;
     // temporary save previous printer name if it was edited
-    if (m_printer.name != _u8L("My Printer Device") &&
+    if (m_printer.name != into_u8(m_default_name) &&
         m_printer.name != into_u8(printer_name))
         renamed_from = m_printer.name;
 
