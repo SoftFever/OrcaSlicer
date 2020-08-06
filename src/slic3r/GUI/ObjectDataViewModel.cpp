@@ -9,12 +9,6 @@
 
 #include <wx/bmpcbox.h>
 #include <wx/dc.h>
-#include "wx/generic/private/markuptext.h"
-#include "wx/generic/private/rowheightcache.h"
-#include "wx/generic/private/widthcalc.h"
-#if wxUSE_ACCESSIBILITY
-#include "wx/private/markupparser.h"
-#endif // wxUSE_ACCESSIBILITY
 
 
 namespace Slic3r {

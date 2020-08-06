@@ -44,14 +44,14 @@ static std::string orange   = "#ed6b21";
 
 static void color_string(wxString& str, const std::string& color)
 {
-#ifdef SUPPORTS_MARKUP
+#if defined(SUPPORTS_MARKUP) && defined(wxHAS_GENERIC_DATAVIEWCTRL)
     str = from_u8((boost::format("<span color=\"%1%\">%2%</span>") % color % into_u8(str)).str());
 #endif
 }
 
 static void make_string_bold(wxString& str)
 {
-#ifdef SUPPORTS_MARKUP
+#if defined(SUPPORTS_MARKUP) && defined(wxHAS_GENERIC_DATAVIEWCTRL)
     str = from_u8((boost::format("<b>%1%</b>") % into_u8(str)).str());
 #endif
 }
@@ -133,7 +133,7 @@ ModelNode::ModelNode(ModelNode* parent, const wxString& text, const wxString& ol
 
 void ModelNode::UpdateEnabling()
 {
-#ifdef SUPPORTS_MARKUP
+#if defined(SUPPORTS_MARKUP) && defined(wxHAS_GENERIC_DATAVIEWCTRL)
     auto change_text_color = [](wxString& str, const std::string& clr_from, const std::string& clr_to)
     {
         std::string old_val = into_u8(str);

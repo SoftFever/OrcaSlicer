@@ -77,9 +77,9 @@ public:
     wxDataViewCustomRenderer(wxT("DataViewBitmapText"), mode, align),
         m_parent(parent)
     {
-#ifdef SUPPORTS_MARKUP
+#if defined(SUPPORTS_MARKUP) && defined(wxHAS_GENERIC_DATAVIEWCTRL)
         m_markupText = nullptr;
-#endif // SUPPORTS_MARKUP
+#endif // SUPPORTS_MARKUP && wxHAS_GENERIC_DATAVIEWCTRL
     }
 #endif //ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
 
@@ -120,7 +120,11 @@ private:
     std::function<bool()>    can_create_editor_ctrl { nullptr };
 
 #ifdef SUPPORTS_MARKUP
+    #ifdef wxHAS_GENERIC_DATAVIEWCTRL
     class wxItemMarkupText* m_markupText;
+    #elseif
+    bool is_markupText;
+    #endif
 #endif // SUPPORTS_MARKUP
 };
 

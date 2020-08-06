@@ -4,9 +4,11 @@
 #include "I18N.hpp"
 
 #include <wx/dc.h>
+#ifdef wxHAS_GENERIC_DATAVIEWCTRL
 #include "wx/generic/private/markuptext.h"
 #include "wx/generic/private/rowheightcache.h"
 #include "wx/generic/private/widthcalc.h"
+#endif
 #if wxUSE_ACCESSIBILITY
 #include "wx/private/markupparser.h"
 #endif // wxUSE_ACCESSIBILITY
@@ -40,29 +42,30 @@ wxDataViewRenderer(wxT("PrusaDataViewBitmapText"), mode, align)
 BitmapTextRenderer::~BitmapTextRenderer()
 {
 #ifdef SUPPORTS_MARKUP
+    #ifdef wxHAS_GENERIC_DATAVIEWCTRL
     if (m_markupText)
         delete m_markupText;
+    #endif //wxHAS_GENERIC_DATAVIEWCTRL
 #endif // SUPPORTS_MARKUP
 }
 
 #ifdef SUPPORTS_MARKUP
 void BitmapTextRenderer::EnableMarkup(bool enable)
 {
-    if (enable)
-    {
+#ifdef wxHAS_GENERIC_DATAVIEWCTRL
+    if (enable) {
         if (!m_markupText)
-        {
             m_markupText = new wxItemMarkupText(wxString());
-        }
     }
-    else
-    {
-        if (m_markupText)
-        {
+    else {
+        if (m_markupText) {
             delete m_markupText;
             m_markupText = nullptr;
         }
     }
+#elseif
+    is_markupText = enable
+#endif //wxHAS_GENERIC_DATAVIEWCTRL
 }
 #endif // SUPPORTS_MARKUP
 
@@ -70,10 +73,10 @@ bool BitmapTextRenderer::SetValue(const wxVariant &value)
 {
     m_value << value;
 
-#ifdef SUPPORTS_MARKUP
+#if defined(SUPPORTS_MARKUP) && defined(wxHAS_GENERIC_DATAVIEWCTRL)
     if (m_markupText)
         m_markupText->SetMarkup(m_value.GetText());
-#endif // SUPPORTS_MARKUP
+#endif // SUPPORTS_MARKUP && wxHAS_GENERIC_DATAVIEWCTRL
 
     return true;
 }
@@ -111,7 +114,7 @@ bool BitmapTextRenderer::Render(wxRect rect, wxDC *dc, int state)
         xoffset = icon_sz.x + 4;
     }
 
-#ifdef SUPPORTS_MARKUP
+#if defined(SUPPORTS_MARKUP) && defined(wxHAS_GENERIC_DATAVIEWCTRL)
     if (m_markupText)
     {
         int flags = 0;
@@ -120,7 +123,7 @@ bool BitmapTextRenderer::Render(wxRect rect, wxDC *dc, int state)
         m_markupText->Render(GetView(), *dc, rect, flags, GetEllipsizeMode());
     }
     else
-#endif // SUPPORTS_MARKUP
+#endif // SUPPORTS_MARKUP && wxHAS_GENERIC_DATAVIEWCTRL
         RenderText(m_value.GetText(), xoffset, rect, dc, state);
 
     return true;
@@ -131,7 +134,7 @@ wxSize BitmapTextRenderer::GetSize() const
     if (!m_value.GetText().empty())
     {
         wxSize size;
-#ifdef SUPPORTS_MARKUP
+#if defined(SUPPORTS_MARKUP) && defined(wxHAS_GENERIC_DATAVIEWCTRL)
         if (m_markupText)
         {
             wxDataViewCtrl* const view = GetView();
@@ -142,7 +145,7 @@ wxSize BitmapTextRenderer::GetSize() const
             size = m_markupText->Measure(dc);
         }
         else
-#endif // SUPPORTS_MARKUP
+#endif // SUPPORTS_MARKUP && wxHAS_GENERIC_DATAVIEWCTRL
             size = GetTextExtent(m_value.GetText());
 
         int lines = m_value.GetText().Freq('\n') + 1;

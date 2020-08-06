@@ -15,6 +15,7 @@ class ScalableButton;
 class wxBoxSizer;
 class wxComboBox;
 class wxStaticBitmap;
+class wxRadioBox;
 
 namespace Slic3r {
 
