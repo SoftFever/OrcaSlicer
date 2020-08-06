@@ -350,6 +350,9 @@ private:
     bool m_time_estimate_enabled{ false };
 #endif // GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_MODAL
 #endif // GCODE_VIEWER_TIME_ESTIMATE != TIME_ESTIMATE_NONE
+#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_LEGEND
+    mutable PrintEstimatedTimeStatistics::ETimeMode m_time_estimate_mode{ PrintEstimatedTimeStatistics::ETimeMode::Normal };
+#endif // GCODE_VIEWER_TIME_ESTIMATE
 #if ENABLE_GCODE_VIEWER_STATISTICS
     mutable Statistics m_statistics;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS

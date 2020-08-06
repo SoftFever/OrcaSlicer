@@ -1458,7 +1458,11 @@ wxString Preview::get_option_type_string(OptionType type) const
     case OptionType::CustomGCodes:  { return _L("Custom GCodes"); }
     case OptionType::Shells:        { return _L("Shells"); }
     case OptionType::ToolMarker:    { return _L("Tool marker"); }
+#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_LEGEND
+    case OptionType::Legend:        { return _L("Legend/Estimated printing time"); }
+#else
     case OptionType::Legend:        { return _L("Legend"); }
+#endif // GCODE_VIEWER_TIME_ESTIMATE
 #if GCODE_VIEWER_TIME_ESTIMATE != TIME_ESTIMATE_NONE
     case OptionType::TimeEstimate:  { return _L("Estimated printing time"); }
 #endif // GCODE_VIEWER_TIME_ESTIMATE != TIME_ESTIMATE_NONE
