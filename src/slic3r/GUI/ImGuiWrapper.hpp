@@ -96,11 +96,14 @@ public:
     bool want_text_input() const;
     bool want_any_input() const;
 
-    static const ImVec4 COL_WINDOW_BACKGROND;
     static const ImVec4 COL_GREY_DARK;
     static const ImVec4 COL_GREY_LIGHT;
     static const ImVec4 COL_ORANGE_DARK;
     static const ImVec4 COL_ORANGE_LIGHT;
+    static const ImVec4 COL_WINDOW_BACKGROUND;
+    static const ImVec4 COL_BUTTON_BACKGROUND;
+    static const ImVec4 COL_BUTTON_HOVERED;
+    static const ImVec4 COL_BUTTON_ACTIVE;
 
 private:
     void init_font(bool compress);

@@ -1460,7 +1460,7 @@ void GCodeViewer::render_legend() const
                 if (ImGui::IsItemHovered()) {
                     if (!visible)
                         ImGui::PopStyleVar();
-                    ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROND);
+                    ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
                     ImGui::BeginTooltip();
                     imgui.text(visible ? _u8L("Click to hide") : _u8L("Click to show"));
                     ImGui::EndTooltip();
@@ -1503,7 +1503,7 @@ void GCodeViewer::render_legend() const
         auto append_range_item = [this, draw_list, &imgui, append_item](int i, float value, unsigned int decimals) {
             char buf[1024];
             ::sprintf(buf, "%.*f", decimals, value);
-            append_item(EItemType::Hexagon, Range_Colors[i], buf);
+            append_item(EItemType::Rect, Range_Colors[i], buf);
         };
 
         float step_size = range.step_size();
@@ -1644,12 +1644,12 @@ void GCodeViewer::render_legend() const
         {
         case PrintEstimatedTimeStatistics::ETimeMode::Normal:
         {
-            show_mode_button(_u8L("Show stealth mode"), PrintEstimatedTimeStatistics::ETimeMode::Stealth);
+            show_mode_button(_u8L("Stealth mode"), PrintEstimatedTimeStatistics::ETimeMode::Stealth);
             break;
         }
         case PrintEstimatedTimeStatistics::ETimeMode::Stealth:
         {
-            show_mode_button(_u8L("Show normal mode"), PrintEstimatedTimeStatistics::ETimeMode::Normal);
+            show_mode_button(_u8L("Normal mode"), PrintEstimatedTimeStatistics::ETimeMode::Normal);
             break;
         }
         }
@@ -1690,13 +1690,13 @@ void GCodeViewer::render_legend() const
                 continue;
             bool visible = is_visible(role);
 #if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_LEGEND
-            append_item(EItemType::Hexagon, Extrusion_Role_Colors[static_cast<unsigned int>(role)], labels[i],
+            append_item(EItemType::Rect, Extrusion_Role_Colors[static_cast<unsigned int>(role)], labels[i],
                 visible, times[i], percents[i], max_percent, offsets, [this, role, visible]() {
 #else
             if (!visible)
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
 
-            append_item(EItemType::Hexagon, Extrusion_Role_Colors[static_cast<unsigned int>(role)], _u8L(ExtrusionEntity::role_to_string(role)),
+            append_item(EItemType::Rect, Extrusion_Role_Colors[static_cast<unsigned int>(role)], _u8L(ExtrusionEntity::role_to_string(role)),
                 [this, role, visible]() {
 #endif // GCODE_VIEWER_TIME_ESTIMATE
                 m_extrusions.role_visibility_flags = visible ? m_extrusions.role_visibility_flags & ~(1 << role) : m_extrusions.role_visibility_flags | (1 << role);
@@ -1723,7 +1723,7 @@ void GCodeViewer::render_legend() const
     {
         // shows only extruders actually used
         for (unsigned char i : m_extruder_ids) {
-            append_item(EItemType::Hexagon, m_tool_colors[i], _u8L("Extruder") + " " + std::to_string(i + 1));
+            append_item(EItemType::Rect, m_tool_colors[i], _u8L("Extruder") + " " + std::to_string(i + 1));
         }
         break;
     }
@@ -1735,20 +1735,20 @@ void GCodeViewer::render_legend() const
             std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(0, custom_gcode_per_print_z);
             const int items_cnt = static_cast<int>(cp_values.size());
             if (items_cnt == 0) { // There are no color changes, but there are some pause print or custom Gcode
-                append_item(EItemType::Hexagon, m_tool_colors.front(), _u8L("Default color"));
+                append_item(EItemType::Rect, m_tool_colors.front(), _u8L("Default color"));
             }
             else {
                 for (int i = items_cnt; i >= 0; --i) {
                     // create label for color change item
                     if (i == 0) {
-                        append_item(EItemType::Hexagon, m_tool_colors[0], upto_label(cp_values.front().second.first));
+                        append_item(EItemType::Rect, m_tool_colors[0], upto_label(cp_values.front().second.first));
                         break;
                     }
                     else if (i == items_cnt) {
-                        append_item(EItemType::Hexagon, cp_values[i - 1].first, above_label(cp_values[i - 1].second.second));
+                        append_item(EItemType::Rect, cp_values[i - 1].first, above_label(cp_values[i - 1].second.second));
                         continue;
                     }
-                    append_item(EItemType::Hexagon, cp_values[i - 1].first, fromto_label(cp_values[i - 1].second.second, cp_values[i].second.first));
+                    append_item(EItemType::Rect, cp_values[i - 1].first, fromto_label(cp_values[i - 1].second.second, cp_values[i].second.first));
                 }
             }
         }
@@ -1759,7 +1759,7 @@ void GCodeViewer::render_legend() const
                 std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(i, custom_gcode_per_print_z);
                 const int items_cnt = static_cast<int>(cp_values.size());
                 if (items_cnt == 0) { // There are no color changes, but there are some pause print or custom Gcode
-                    append_item(EItemType::Hexagon, m_tool_colors[i], _u8L("Extruder") + " " + std::to_string(i + 1) + " " + _u8L("default color"));
+                    append_item(EItemType::Rect, m_tool_colors[i], _u8L("Extruder") + " " + std::to_string(i + 1) + " " + _u8L("default color"));
                 }
                 else {
                     for (int j = items_cnt; j >= 0; --j) {
@@ -1767,17 +1767,17 @@ void GCodeViewer::render_legend() const
                         std::string label = _u8L("Extruder") + " " + std::to_string(i + 1);
                         if (j == 0) {
                             label += " " + upto_label(cp_values.front().second.first);
-                            append_item(EItemType::Hexagon, m_tool_colors[i], label);
+                            append_item(EItemType::Rect, m_tool_colors[i], label);
                             break;
                         }
                         else if (j == items_cnt) {
                             label += " " + above_label(cp_values[j - 1].second.second);
-                            append_item(EItemType::Hexagon, cp_values[j - 1].first, label);
+                            append_item(EItemType::Rect, cp_values[j - 1].first, label);
                             continue;
                         }
 
                         label += " " + fromto_label(cp_values[j - 1].second.second, cp_values[j].second.first);
-                        append_item(EItemType::Hexagon, cp_values[j - 1].first, label);
+                        append_item(EItemType::Rect, cp_values[j - 1].first, label);
                     }
                 }
             }
@@ -1864,10 +1864,18 @@ void GCodeViewer::render_legend() const
             ImDrawList* draw_list = ImGui::GetWindowDrawList();
             ImVec2 pos = ImGui::GetCursorScreenPos();
             pos.x -= 0.5f * ImGui::GetStyle().ItemSpacing.x;
-            ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
-            draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color1[0], color1[1], color1[2], 1.0f }), 6);
-            center.x += icon_size;
-            draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color2[0], color2[1], color2[2], 1.0f }), 6);
+
+            draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
+                ImGui::GetColorU32({ color1[0], color1[1], color1[2], 1.0f }));
+            pos.x += icon_size;
+            draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
+                ImGui::GetColorU32({ color2[0], color2[1], color2[2], 1.0f }));
+
+//            ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
+//            draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color1[0], color1[1], color1[2], 1.0f }), 6);
+//            center.x += icon_size;
+//            draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color2[0], color2[1], color2[2], 1.0f }), 6);
+
             ImGui::SameLine(offsets[0]);
             imgui.text(short_time(get_time_dhms(times.second - times.first)));
         };
