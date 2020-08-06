@@ -35,7 +35,7 @@ static const std::map<Preset::Type, std::string> type_icon_names = {
     {Preset::TYPE_SLA_PRINT,    "cog"           },
     {Preset::TYPE_FILAMENT,     "spool"         },
     {Preset::TYPE_SLA_MATERIAL, "resin"         },
-    {Preset::TYPE_PRINTER,      "sla_printer"   },
+    {Preset::TYPE_PRINTER,      "printer"       },
 };
 
 static std::string black    = "#000000";
@@ -427,7 +427,7 @@ wxString UnsavedChangesModel::GetColumnType(unsigned int col) const
 //------------------------------------------
 
 UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type)
-    : DPIDialog(NULL, wxID_ANY, _L("Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog(nullptr, wxID_ANY, _L("Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
     SetBackgroundColour(bgr_clr);
@@ -440,15 +440,12 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type)
     m_tree->AssociateModel(m_tree_model);
     m_tree_model->SetAssociatedControl(m_tree);
 
-    m_tree->AppendToggleColumn(/*L"\u2714"*/"", UnsavedChangesModel::colToggle, wxDATAVIEW_CELL_ACTIVATABLE, 6 * em, wxALIGN_NOT);//2610,11,12 //2714
+    m_tree->AppendColumn(new wxDataViewColumn("",           new BitmapTextRenderer(true), UnsavedChangesModel::colIconText, 30 * em, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE));
 
-    BitmapTextRenderer* renderer = new BitmapTextRenderer(m_tree);
-#ifdef SUPPORTS_MARKUP
-    renderer->EnableMarkup();
-#endif
-    m_tree->AppendColumn(new wxDataViewColumn("",           renderer, UnsavedChangesModel::colIconText, 30 * em, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE));
-    m_tree->AppendColumn(new wxDataViewColumn("Old value",  renderer, UnsavedChangesModel::colOldValue, 20 * em, wxALIGN_TOP));
-    m_tree->AppendColumn(new wxDataViewColumn("New value",  renderer, UnsavedChangesModel::colNewValue, 20 * em, wxALIGN_TOP));
+    m_tree->AppendToggleColumn(L"\u2714", UnsavedChangesModel::colToggle, wxDATAVIEW_CELL_ACTIVATABLE, 6 * em);//2610,11,12 //2714
+
+    m_tree->AppendColumn(new wxDataViewColumn("Old value",  new BitmapTextRenderer(true), UnsavedChangesModel::colOldValue, 20 * em, wxALIGN_TOP));
+    m_tree->AppendColumn(new wxDataViewColumn("New value",  new BitmapTextRenderer(true), UnsavedChangesModel::colNewValue, 20 * em, wxALIGN_TOP));
 
     m_tree->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, &UnsavedChangesDialog::item_value_changed, this);
 

@@ -323,7 +323,7 @@ const Option& OptionsSearcher::get_option(size_t pos_in_filter) const
 
 const Option& OptionsSearcher::get_option(const std::string& opt_key) const
 {
-    auto it = std::upper_bound(options.begin(), options.end(), Option({ boost::nowide::widen(opt_key) }));
+    auto it = std::lower_bound(options.begin(), options.end(), Option({ boost::nowide::widen(opt_key) }));
     assert(it != options.end());
 
     return options[it - options.begin()];

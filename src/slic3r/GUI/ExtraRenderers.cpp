@@ -49,9 +49,9 @@ BitmapTextRenderer::~BitmapTextRenderer()
 #endif // SUPPORTS_MARKUP
 }
 
-#ifdef SUPPORTS_MARKUP
 void BitmapTextRenderer::EnableMarkup(bool enable)
 {
+#ifdef SUPPORTS_MARKUP
 #ifdef wxHAS_GENERIC_DATAVIEWCTRL
     if (enable) {
         if (!m_markupText)
@@ -63,20 +63,30 @@ void BitmapTextRenderer::EnableMarkup(bool enable)
             m_markupText = nullptr;
         }
     }
-#elseif
-    is_markupText = enable
+#else
+    is_markupText = enable;
 #endif //wxHAS_GENERIC_DATAVIEWCTRL
-}
 #endif // SUPPORTS_MARKUP
+}
 
 bool BitmapTextRenderer::SetValue(const wxVariant &value)
 {
     m_value << value;
 
-#if defined(SUPPORTS_MARKUP) && defined(wxHAS_GENERIC_DATAVIEWCTRL)
+#ifdef SUPPORTS_MARKUP
+#ifdef wxHAS_GENERIC_DATAVIEWCTRL
     if (m_markupText)
         m_markupText->SetMarkup(m_value.GetText());
-#endif // SUPPORTS_MARKUP && wxHAS_GENERIC_DATAVIEWCTRL
+#else 
+#if defined(__WXGTK__)
+    GValue gvalue = G_VALUE_INIT;
+    g_value_init(&gvalue, G_TYPE_STRING);
+    g_value_set_string(&gvalue, wxGTK_CONV_FONT(str.GetText(), GetOwner()->GetOwner()->GetFont()));
+    g_object_set_property(G_OBJECT(m_renderer/*.GetText()*/), is_markupText ? "markup" : "text", &gvalue);
+    g_value_unset(&gvalue);
+#endif // __WXGTK__
+#endif // wxHAS_GENERIC_DATAVIEWCTRL
+#endif // SUPPORTS_MARKUP
 
     return true;
 }
@@ -117,10 +127,8 @@ bool BitmapTextRenderer::Render(wxRect rect, wxDC *dc, int state)
 #if defined(SUPPORTS_MARKUP) && defined(wxHAS_GENERIC_DATAVIEWCTRL)
     if (m_markupText)
     {
-        int flags = 0;
-
         rect.x += xoffset;
-        m_markupText->Render(GetView(), *dc, rect, flags, GetEllipsizeMode());
+        m_markupText->Render(GetView(), *dc, rect, 0, GetEllipsizeMode());
     }
     else
 #endif // SUPPORTS_MARKUP && wxHAS_GENERIC_DATAVIEWCTRL
@@ -161,7 +169,7 @@ wxSize BitmapTextRenderer::GetSize() const
 
 wxWindow* BitmapTextRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelRect, const wxVariant& value)
 {
-    if (!can_create_editor_ctrl())
+    if (can_create_editor_ctrl && !can_create_editor_ctrl())
         return nullptr;
 
     DataViewBitmapText data;
@@ -261,7 +269,7 @@ wxSize BitmapChoiceRenderer::GetSize() const
 
 wxWindow* BitmapChoiceRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelRect, const wxVariant& value)
 {
-    if (!can_create_editor_ctrl())
+    if (can_create_editor_ctrl && !can_create_editor_ctrl())
         return nullptr;
 
     std::vector<wxBitmap*> icons = get_extruder_color_icons();

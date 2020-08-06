@@ -134,8 +134,8 @@ class UnsavedChangesModel : public wxDataViewModel
 
 public:
     enum {
-        colToggle,
         colIconText,
+        colToggle,
         colOldValue,
         colNewValue,
         colMax

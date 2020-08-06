@@ -277,7 +277,7 @@ void ObjectList::create_objects_ctrl()
 
     // column ItemName(Icon+Text) of the view control: 
     // And Icon can be consisting of several bitmaps
-    BitmapTextRenderer* bmp_text_renderer = new BitmapTextRenderer(this);
+    BitmapTextRenderer* bmp_text_renderer = new BitmapTextRenderer();
     bmp_text_renderer->set_can_create_editor_ctrl_function([this]() {
         return m_objects_model->GetItemType(GetSelection()) & (itVolume | itObject);
     });

@@ -61,7 +61,7 @@ class BitmapTextRenderer : public wxDataViewCustomRenderer
 #endif //ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
 {
 public:
-    BitmapTextRenderer(wxWindow* parent,
+    BitmapTextRenderer(bool use_markup = false,
         wxDataViewCellMode mode =
 #ifdef __WXOSX__
         wxDATAVIEW_CELL_INERT
@@ -73,24 +73,19 @@ public:
 #if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
     );
 #else
-        ) :
-    wxDataViewCustomRenderer(wxT("DataViewBitmapText"), mode, align),
-        m_parent(parent)
+    ) :
+    wxDataViewCustomRenderer(wxT("DataViewBitmapText"), mode, align)
     {
-#if defined(SUPPORTS_MARKUP) && defined(wxHAS_GENERIC_DATAVIEWCTRL)
-        m_markupText = nullptr;
-#endif // SUPPORTS_MARKUP && wxHAS_GENERIC_DATAVIEWCTRL
+        EnableMarkup(use_markup);
     }
 #endif //ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
 
     ~BitmapTextRenderer();
 
-#ifdef SUPPORTS_MARKUP
     void EnableMarkup(bool enable = true);
-#endif // SUPPORTS_MARKUP
 
-    bool SetValue(const wxVariant& value);
-    bool GetValue(wxVariant& value) const;
+    bool SetValue(const wxVariant& value) override;
+    bool GetValue(wxVariant& value) const override;
 #if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING && wxUSE_ACCESSIBILITY
     virtual wxString GetAccessibleDescription() const override;
 #endif // wxUSE_ACCESSIBILITY && ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
@@ -115,15 +110,14 @@ public:
 private:
     DataViewBitmapText  m_value;
     bool                m_was_unusable_symbol{ false };
-    wxWindow*           m_parent{ nullptr };
 
     std::function<bool()>    can_create_editor_ctrl { nullptr };
 
 #ifdef SUPPORTS_MARKUP
     #ifdef wxHAS_GENERIC_DATAVIEWCTRL
-    class wxItemMarkupText* m_markupText;
-    #elseif
-    bool is_markupText;
+    class wxItemMarkupText* m_markupText { nullptr };;
+    #else
+    bool is_markupText {false};
     #endif
 #endif // SUPPORTS_MARKUP
 };
