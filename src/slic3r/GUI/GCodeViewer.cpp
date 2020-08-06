@@ -218,22 +218,41 @@ void GCodeViewer::SequentialView::Marker::render() const
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
     { 0.75f, 0.75f, 0.75f },   // erNone
-    { 1.00f, 1.00f, 0.40f },   // erPerimeter
-    { 1.00f, 0.65f, 0.00f },   // erExternalPerimeter
-    { 0.00f, 0.00f, 1.00f },   // erOverhangPerimeter
+    { 1.00f, 0.90f, 0.43f },   // erPerimeter
+    { 1.00f, 0.49f, 0.22f },   // erExternalPerimeter
+    { 0.12f, 0.12f, 1.00f },   // erOverhangPerimeter
     { 0.69f, 0.19f, 0.16f },   // erInternalInfill
-    { 0.84f, 0.20f, 0.84f },   // erSolidInfill
-    { 1.00f, 0.10f, 0.10f },   // erTopSolidInfill
-    { 1.00f, 0.55f, 0.41f },   // erIroning    
-    { 0.60f, 0.60f, 1.00f },   // erBridgeInfill
+    { 0.59f, 0.33f, 0.80f },   // erSolidInfill
+    { 0.94f, 0.33f, 0.33f },   // erTopSolidInfill
+    { 1.00f, 0.55f, 0.41f },   // erIroning
+    { 0.30f, 0.50f, 0.73f },   // erBridgeInfill
     { 1.00f, 1.00f, 1.00f },   // erGapFill
-    { 0.52f, 0.48f, 0.13f },   // erSkirt
+    { 0.00f, 0.53f, 0.43f },   // erSkirt
     { 0.00f, 1.00f, 0.00f },   // erSupportMaterial
     { 0.00f, 0.50f, 0.00f },   // erSupportMaterialInterface
     { 0.70f, 0.89f, 0.67f },   // erWipeTower
-    { 0.16f, 0.80f, 0.58f },   // erCustom
+    { 0.37f, 0.82f, 0.58f },   // erCustom
     { 0.00f, 0.00f, 0.00f }    // erMixed
 }};
+
+//const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
+//    { 0.75f, 0.75f, 0.75f },   // erNone
+//    { 1.00f, 1.00f, 0.40f },   // erPerimeter
+//    { 1.00f, 0.65f, 0.00f },   // erExternalPerimeter
+//    { 0.00f, 0.00f, 1.00f },   // erOverhangPerimeter
+//    { 0.69f, 0.19f, 0.16f },   // erInternalInfill
+//    { 0.84f, 0.20f, 0.84f },   // erSolidInfill
+//    { 1.00f, 0.10f, 0.10f },   // erTopSolidInfill
+//    { 1.00f, 0.55f, 0.41f },   // erIroning    
+//    { 0.60f, 0.60f, 1.00f },   // erBridgeInfill
+//    { 1.00f, 1.00f, 1.00f },   // erGapFill
+//    { 0.52f, 0.48f, 0.13f },   // erSkirt
+//    { 0.00f, 1.00f, 0.00f },   // erSupportMaterial
+//    { 0.00f, 0.50f, 0.00f },   // erSupportMaterialInterface
+//    { 0.70f, 0.89f, 0.67f },   // erWipeTower
+//    { 0.16f, 0.80f, 0.58f },   // erCustom
+//    { 0.00f, 0.00f, 0.00f }    // erMixed
+//}};
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Options_Colors {{
     { 1.00f, 0.00f, 1.00f },   // Retractions
