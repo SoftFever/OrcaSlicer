@@ -9,6 +9,12 @@
 #include "wx/generic/private/rowheightcache.h"
 #include "wx/generic/private/widthcalc.h"
 #endif
+
+#ifdef __WXGTK__
+#include "wx/gtk/private.h"
+#include "wx/gtk/private/value.h"
+#endif
+
 #if wxUSE_ACCESSIBILITY
 #include "wx/private/markupparser.h"
 #endif // wxUSE_ACCESSIBILITY
