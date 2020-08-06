@@ -1,21 +1,15 @@
 #ifndef slic3r_PresetBundle_hpp_
 #define slic3r_PresetBundle_hpp_
 
-#include "AppConfig.hpp"
 #include "Preset.hpp"
 
 #include <memory>
-#include <set>
 #include <unordered_map>
 #include <boost/filesystem/path.hpp>
 
-class wxWindow;
+#include "slic3r/GUI/AppConfig.hpp"
 
 namespace Slic3r {
-
-namespace GUI {
-    class BitmapCache;
-};
 
 // Bundle of Print + Filament + Printer presets.
 class PresetBundle
@@ -45,6 +39,7 @@ public:
 	PresetCollection& 			materials(PrinterTechnology pt)       { return pt == ptFFF ? this->filaments : this->sla_materials; }
 	const PresetCollection& 	materials(PrinterTechnology pt) const { return pt == ptFFF ? this->filaments : this->sla_materials; }
     PrinterPresetCollection     printers;
+    PhysicalPrinterCollection   physical_printers;
     // Filament preset names for a multi-extruder or multi-material print.
     // extruders.size() should be the same as printers.get_edited_preset().config.nozzle_diameter.size()
     std::vector<std::string>    filament_presets;
@@ -110,9 +105,6 @@ public:
     // Export a config bundle file containing all the presets and the names of the active presets.
     void                        export_configbundle(const std::string &path, bool export_system_settings = false);
 
-    // Update a filament selection combo box on the plater for an idx_extruder.
-    void                        update_plater_filament_ui(unsigned int idx_extruder, GUI::PresetComboBox *ui);
-
     // Enable / disable the "- default -" preset.
     void                        set_default_suppressed(bool default_suppressed);
 
@@ -131,8 +123,6 @@ public:
     // preset if the current print or filament preset is not compatible.
     void                        update_compatible(PresetSelectCompatibleType select_other_print_if_incompatible, PresetSelectCompatibleType select_other_filament_if_incompatible);
     void                        update_compatible(PresetSelectCompatibleType select_other_if_incompatible) { this->update_compatible(select_other_if_incompatible, select_other_if_incompatible); }
-
-    void                        load_default_preset_bitmaps();
 
     // Set the is_visible flag for printer vendors, printer models and printer variants
     // based on the user configuration.
@@ -163,21 +153,9 @@ private:
     // If it is not an external config, then the config will be stored into the user profile directory.
     void                        load_config_file_config(const std::string &name_or_path, bool is_external, DynamicPrintConfig &&config);
     void                        load_config_file_config_bundle(const std::string &path, const boost::property_tree::ptree &tree);
-    void                        load_compatible_bitmaps();
 
     DynamicPrintConfig          full_fff_config() const;
     DynamicPrintConfig          full_sla_config() const;
-
-    // Indicator, that the preset is compatible with the selected printer.
-    wxBitmap                            *m_bitmapCompatible;
-    // Indicator, that the preset is NOT compatible with the selected printer.
-    wxBitmap                            *m_bitmapIncompatible;
-    // Indicator, that the preset is system and not modified.
-    wxBitmap                            *m_bitmapLock;
-    // Indicator, that the preset is system and user modified.
-    wxBitmap                            *m_bitmapLockOpen;
-    // Caching color bitmaps for the filament combo box.
-    GUI::BitmapCache                    *m_bitmapCache;
 };
 
 } // namespace Slic3r

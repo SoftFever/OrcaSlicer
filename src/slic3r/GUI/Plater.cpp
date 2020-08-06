@@ -24,7 +24,6 @@
 #include <wx/dnd.h>
 #include <wx/progdlg.h>
 #include <wx/wupdlock.h>
-#include <wx/colordlg.h>
 #include <wx/numdlg.h>
 #include <wx/debug.h>
 #include <wx/busyinfo.h>
@@ -44,6 +43,7 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/PresetBundle.hpp"
 
 #include "GUI.hpp"
 #include "GUI_App.hpp"
@@ -66,7 +66,6 @@
 #include "Jobs/ArrangeJob.hpp"
 #include "Jobs/RotoptimizeJob.hpp"
 #include "Jobs/SLAImportJob.hpp"
-#include "PresetBundle.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "ProgressStatusBar.hpp"
 #include "PrintHostDialogs.hpp"
@@ -75,8 +74,11 @@
 #include "../Utils/PrintHost.hpp"
 #include "../Utils/FixModelByWin10.hpp"
 #include "../Utils/UndoRedo.hpp"
+#include "../Utils/PresetUpdater.hpp"
 #include "RemovableDriveManager.hpp"
 #include "InstanceCheck.hpp"
+#include "NotificationManager.hpp"
+#include "PresetComboBoxes.hpp"
 
 #ifdef __APPLE__
 #include "Gizmos/GLGizmosManager.hpp"
@@ -102,6 +104,7 @@ wxDEFINE_EVENT(EVT_SCHEDULE_BACKGROUND_PROCESS,     SimpleEvent);
 wxDEFINE_EVENT(EVT_SLICING_UPDATE,                  SlicingStatusEvent);
 wxDEFINE_EVENT(EVT_SLICING_COMPLETED,               wxCommandEvent);
 wxDEFINE_EVENT(EVT_PROCESS_COMPLETED,               wxCommandEvent);
+wxDEFINE_EVENT(EVT_EXPORT_BEGAN,                    wxCommandEvent);
 
 // Sidebar widgets
 
@@ -251,153 +254,6 @@ void SlicedInfo::SetTextAndShow(SlicedInfoIdx idx, const wxString& text, const w
         info_vec[idx].first->SetLabelText(new_label);
     info_vec[idx].first->Show(show);
     info_vec[idx].second->Show(show);
-}
-
-PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
-PresetBitmapComboBox(parent, wxSize(15 * wxGetApp().em_unit(), -1)),
-    preset_type(preset_type),
-    last_selected(wxNOT_FOUND),
-    m_em_unit(wxGetApp().em_unit())
-{
-    SetFont(wxGetApp().normal_font());
-#ifdef _WIN32
-    // Workaround for ignoring CBN_EDITCHANGE events, which are processed after the content of the combo box changes, so that
-    // the index of the item inside CBN_EDITCHANGE may no more be valid.
-    EnableTextChangedEvents(false);
-#endif /* _WIN32 */
-    Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &evt) {
-        auto selected_item = evt.GetSelection();
-
-        auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
-        if (marker >= LABEL_ITEM_MARKER && marker < LABEL_ITEM_MAX) {
-            this->SetSelection(this->last_selected);
-            evt.StopPropagation();
-            if (marker >= LABEL_ITEM_WIZARD_PRINTERS) {
-                ConfigWizard::StartPage sp = ConfigWizard::SP_WELCOME;
-                switch (marker) {
-                    case LABEL_ITEM_WIZARD_PRINTERS: sp = ConfigWizard::SP_PRINTERS; break;
-                    case LABEL_ITEM_WIZARD_FILAMENTS: sp = ConfigWizard::SP_FILAMENTS; break;
-                    case LABEL_ITEM_WIZARD_MATERIALS: sp = ConfigWizard::SP_MATERIALS; break;
-                }
-                wxTheApp->CallAfter([sp]() { wxGetApp().run_wizard(ConfigWizard::RR_USER, sp); });
-            }
-        } else if ( this->last_selected != selected_item ||
-                    wxGetApp().get_tab(this->preset_type)->get_presets()->current_is_dirty() ) {
-            this->last_selected = selected_item;
-            evt.SetInt(this->preset_type);
-            evt.Skip();
-        } else {
-            evt.StopPropagation();
-        }
-    });
-
-    if (preset_type == Slic3r::Preset::TYPE_FILAMENT)
-    {
-        Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {
-            PresetBundle* preset_bundle = wxGetApp().preset_bundle;
-            const Preset* selected_preset = preset_bundle->filaments.find_preset(preset_bundle->filament_presets[extruder_idx]);
-            // Wide icons are shown if the currently selected preset is not compatible with the current printer,
-            // and red flag is drown in front of the selected preset.
-            bool          wide_icons = selected_preset != nullptr && !selected_preset->is_compatible;
-            float scale = m_em_unit*0.1f;
-
-            int shifl_Left = wide_icons ? int(scale * 16 + 0.5) : 0;
-#if defined(wxBITMAPCOMBOBOX_OWNERDRAWN_BASED)
-            shifl_Left  += int(scale * 4 + 0.5f); // IMAGE_SPACING_RIGHT = 4 for wxBitmapComboBox -> Space left of image
-#endif
-            int icon_right_pos = shifl_Left + int(scale * (24+4) + 0.5);
-            int mouse_pos = event.GetLogicalPosition(wxClientDC(this)).x;
-            if (mouse_pos < shifl_Left || mouse_pos > icon_right_pos ) {
-                // Let the combo box process the mouse click.
-                event.Skip();
-                return;
-            }
-
-            // Swallow the mouse click and open the color picker.
-
-            // get current color
-            DynamicPrintConfig* cfg = wxGetApp().get_tab(Preset::TYPE_PRINTER)->get_config();
-            auto colors = static_cast<ConfigOptionStrings*>(cfg->option("extruder_colour")->clone());
-            wxColour clr(colors->values[extruder_idx]);
-            if (!clr.IsOk())
-                clr = wxColour(0,0,0); // Don't set alfa to transparence
-
-            auto data = new wxColourData();
-            data->SetChooseFull(1);
-            data->SetColour(clr);
-
-            wxColourDialog dialog(this, data);
-            dialog.CenterOnParent();
-            if (dialog.ShowModal() == wxID_OK)
-            {
-                colors->values[extruder_idx] = dialog.GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
-
-                DynamicPrintConfig cfg_new = *cfg;
-                cfg_new.set_key_value("extruder_colour", colors);
-
-                wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg_new);
-                preset_bundle->update_plater_filament_ui(extruder_idx, this);
-                wxGetApp().plater()->on_config_change(cfg_new);
-            }
-        });
-    }
-
-    edit_btn = new ScalableButton(parent, wxID_ANY, "cog");
-    edit_btn->SetToolTip(_L("Click to edit preset"));
-
-    edit_btn->Bind(wxEVT_BUTTON, ([preset_type, this](wxCommandEvent)
-    {
-        Tab* tab = wxGetApp().get_tab(preset_type);
-        if (!tab)
-            return;
-
-        int page_id = wxGetApp().tab_panel()->FindPage(tab);
-        if (page_id == wxNOT_FOUND)
-            return;
-
-        wxGetApp().tab_panel()->SetSelection(page_id);
-
-        // Switch to Settings NotePad
-        wxGetApp().mainframe->select_tab();
-
-        /* In a case of a multi-material printing, for editing another Filament Preset
-         * it's needed to select this preset for the "Filament settings" Tab
-         */
-        if (preset_type == Preset::TYPE_FILAMENT && wxGetApp().extruders_edited_cnt() > 1)
-        {
-            const std::string& selected_preset = GetString(GetSelection()).ToUTF8().data();
-
-            // Call select_preset() only if there is new preset and not just modified
-            if ( !boost::algorithm::ends_with(selected_preset, Preset::suffix_modified()) )
-            {
-                const std::string& preset_name = wxGetApp().preset_bundle->filaments.get_preset_name_by_alias(selected_preset);
-                tab->select_preset(/*selected_preset*/preset_name);
-            }
-        }
-    }));
-}
-
-PresetComboBox::~PresetComboBox()
-{
-    if (edit_btn)
-        edit_btn->Destroy();
-}
-
-
-void PresetComboBox::set_label_marker(int item, LabelItemType label_item_type)
-{
-    this->SetClientData(item, (void*)label_item_type);
-}
-
-void PresetComboBox::check_selection(int selection)
-{
-    this->last_selected = selection;
-}
-
-void PresetComboBox::msw_rescale()
-{
-    m_em_unit = wxGetApp().em_unit();
-    edit_btn->msw_rescale();
 }
 
 // Frequently changed parameters
@@ -697,12 +553,12 @@ struct Sidebar::priv
 
     ModeSizer  *mode_sizer;
     wxFlexGridSizer *sizer_presets;
-    PresetComboBox *combo_print;
-    std::vector<PresetComboBox*> combos_filament;
+    PlaterPresetComboBox *combo_print;
+    std::vector<PlaterPresetComboBox*> combos_filament;
     wxBoxSizer *sizer_filaments;
-    PresetComboBox *combo_sla_print;
-    PresetComboBox *combo_sla_material;
-    PresetComboBox *combo_printer;
+    PlaterPresetComboBox *combo_sla_print;
+    PlaterPresetComboBox *combo_sla_material;
+    PlaterPresetComboBox *combo_printer;
 
     wxBoxSizer *sizer_params;
     FreqChangedParams   *frequently_changed_parameters{ nullptr };
@@ -716,7 +572,7 @@ struct Sidebar::priv
     wxButton *btn_export_gcode;
     wxButton *btn_reslice;
     ScalableButton *btn_send_gcode;
-    ScalableButton *btn_remove_device;
+    ScalableButton *btn_eject_device;
 	ScalableButton* btn_export_gcode_removable; //exports to removable drives (appears only if removable drive is connected)
 
     bool                is_collapsed {false};
@@ -801,10 +657,10 @@ Sidebar::Sidebar(Plater *parent)
 
     p->sizer_filaments = new wxBoxSizer(wxVERTICAL);
 
-    auto init_combo = [this](PresetComboBox **combo, wxString label, Preset::Type preset_type, bool filament) {
+    auto init_combo = [this](PlaterPresetComboBox **combo, wxString label, Preset::Type preset_type, bool filament) {
         auto *text = new wxStaticText(p->presets_panel, wxID_ANY, label + " :");
         text->SetFont(wxGetApp().small_font());
-        *combo = new PresetComboBox(p->presets_panel, preset_type);
+        *combo = new PlaterPresetComboBox(p->presets_panel, preset_type);
 
         auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
         combo_and_btn_sizer->Add(*combo, 1, wxEXPAND);
@@ -889,12 +745,12 @@ Sidebar::Sidebar(Plater *parent)
     };
 
     init_scalable_btn(&p->btn_send_gcode   , "export_gcode", _L("Send to printer") + "\tCtrl+Shift+G");
-    init_scalable_btn(&p->btn_remove_device, "eject_sd"       , _L("Remove device") + "\tCtrl+T");
+    init_scalable_btn(&p->btn_eject_device, "eject_sd"       , _L("Remove device") + "\tCtrl+T");
 	init_scalable_btn(&p->btn_export_gcode_removable, "export_to_sd", _L("Export to SD card / Flash drive") + "\tCtrl+U");
 
     // regular buttons "Slice now" and "Export G-code" 
 
-    const int scaled_height = p->btn_remove_device->GetBitmapHeight() + 4;
+    const int scaled_height = p->btn_eject_device->GetBitmapHeight() + 4;
     auto init_btn = [this](wxButton **btn, wxString label, const int button_height) {
         *btn = new wxButton(this, wxID_ANY, label, wxDefaultPosition,
                             wxSize(-1, button_height), wxBU_EXACTFIT);
@@ -912,7 +768,7 @@ Sidebar::Sidebar(Plater *parent)
     complect_btns_sizer->Add(p->btn_export_gcode, 1, wxEXPAND);
     complect_btns_sizer->Add(p->btn_send_gcode);
 	complect_btns_sizer->Add(p->btn_export_gcode_removable);
-    complect_btns_sizer->Add(p->btn_remove_device);
+    complect_btns_sizer->Add(p->btn_eject_device);
 	
 
     btns_sizer->Add(p->btn_reslice, 0, wxEXPAND | wxTOP, margin_5);
@@ -929,20 +785,20 @@ Sidebar::Sidebar(Plater *parent)
     {
         const bool export_gcode_after_slicing = wxGetKeyState(WXK_SHIFT);
         if (export_gcode_after_slicing)
-            p->plater->export_gcode();
+            p->plater->export_gcode(true);
         else
             p->plater->reslice();
         p->plater->select_view_3D("Preview");
     });
     p->btn_send_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->send_gcode(); });
-    p->btn_remove_device->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->eject_drive(); });
+    p->btn_eject_device->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->eject_drive(); });
 	p->btn_export_gcode_removable->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->export_gcode(true); });
 }
 
 Sidebar::~Sidebar() {}
 
-void Sidebar::init_filament_combo(PresetComboBox **combo, const int extr_idx) {
-    *combo = new PresetComboBox(p->presets_panel, Slic3r::Preset::TYPE_FILAMENT);
+void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int extr_idx) {
+    *combo = new PlaterPresetComboBox(p->presets_panel, Slic3r::Preset::TYPE_FILAMENT);
 //         # copy icons from first choice
 //         $choice->SetItemBitmap($_, $choices->[0]->GetItemBitmap($_)) for 0..$#presets;
 
@@ -977,18 +833,18 @@ void Sidebar::update_all_preset_comboboxes()
 
     // Update the print choosers to only contain the compatible presets, update the dirty flags.
     if (print_tech == ptFFF)
-        preset_bundle.prints.update_plater_ui(p->combo_print);
+        p->combo_print->update();
     else {
-        preset_bundle.sla_prints.update_plater_ui(p->combo_sla_print);
-        preset_bundle.sla_materials.update_plater_ui(p->combo_sla_material);
+        p->combo_sla_print->update();
+        p->combo_sla_material->update();
     }
     // Update the printer choosers, update the dirty flags.
-    preset_bundle.printers.update_plater_ui(p->combo_printer);
+    p->combo_printer->update();
     // Update the filament choosers to only contain the compatible presets, update the color preview,
     // update the dirty flags.
     if (print_tech == ptFFF) {
-        for (size_t i = 0; i < p->combos_filament.size(); ++i)
-            preset_bundle.update_plater_filament_ui(i, p->combos_filament[i]);
+        for (PlaterPresetComboBox* cb : p->combos_filament)
+            cb->update();
     }
 }
 
@@ -1010,23 +866,22 @@ void Sidebar::update_presets(Preset::Type preset_type)
             preset_bundle.set_filament_preset(0, name);
         }
 
-        for (size_t i = 0; i < filament_cnt; i++) {
-            preset_bundle.update_plater_filament_ui(i, p->combos_filament[i]);
-        }
+        for (size_t i = 0; i < filament_cnt; i++)
+            p->combos_filament[i]->update();
 
         break;
     }
 
     case Preset::TYPE_PRINT:
-        preset_bundle.prints.update_plater_ui(p->combo_print);
+        p->combo_print->update();
         break;
 
     case Preset::TYPE_SLA_PRINT:
-        preset_bundle.sla_prints.update_plater_ui(p->combo_sla_print);
+        p->combo_sla_print->update();
         break;
 
     case Preset::TYPE_SLA_MATERIAL:
-        preset_bundle.sla_materials.update_plater_ui(p->combo_sla_material);
+        p->combo_sla_material->update();
         break;
 
     case Preset::TYPE_PRINTER:
@@ -1062,17 +917,13 @@ void Sidebar::msw_rescale()
 
     p->mode_sizer->msw_rescale();
 
-    // Rescale preset comboboxes in respect to the current  em_unit ...
-    for (PresetComboBox* combo : std::vector<PresetComboBox*> { p->combo_print,
+    for (PlaterPresetComboBox* combo : std::vector<PlaterPresetComboBox*> { p->combo_print,
                                                                 p->combo_sla_print,
                                                                 p->combo_sla_material,
                                                                 p->combo_printer } )
         combo->msw_rescale();
-    for (PresetComboBox* combo : p->combos_filament)
+    for (PlaterPresetComboBox* combo : p->combos_filament)
         combo->msw_rescale();
-
-    // ... then refill them and set min size to correct layout of the sidebar
-    update_all_preset_comboboxes();
 
     p->frequently_changed_parameters->msw_rescale();
     p->object_list->msw_rescale();
@@ -1083,9 +934,9 @@ void Sidebar::msw_rescale()
     p->object_info->msw_rescale();
 
     p->btn_send_gcode->msw_rescale();
-    p->btn_remove_device->msw_rescale();
+    p->btn_eject_device->msw_rescale();
 	p->btn_export_gcode_removable->msw_rescale();
-    const int scaled_height = p->btn_remove_device->GetBitmap().GetHeight() + 4;
+    const int scaled_height = p->btn_eject_device->GetBitmap().GetHeight() + 4;
     p->btn_export_gcode->SetMinSize(wxSize(-1, scaled_height));
     p->btn_reslice     ->SetMinSize(wxSize(-1, scaled_height));
 
@@ -1094,27 +945,21 @@ void Sidebar::msw_rescale()
 
 void Sidebar::sys_color_changed()
 {
-    // Update preset comboboxes in respect to the system color ...
-    // combo->msw_rescale() updates icon on button, so use it
-    for (PresetComboBox* combo : std::vector<PresetComboBox*>{  p->combo_print,
+    for (PlaterPresetComboBox* combo : std::vector<PlaterPresetComboBox*>{  p->combo_print,
                                                                 p->combo_sla_print,
                                                                 p->combo_sla_material,
                                                                 p->combo_printer })
         combo->msw_rescale();
-    for (PresetComboBox* combo : p->combos_filament)
+    for (PlaterPresetComboBox* combo : p->combos_filament)
         combo->msw_rescale();
-
-    // ... then refill them and set min size to correct layout of the sidebar
-    update_all_preset_comboboxes();
 
     p->object_list->sys_color_changed();
     p->object_manipulation->sys_color_changed();
-//    p->object_settings->msw_rescale();
     p->object_layers->sys_color_changed();
 
     // btn...->msw_rescale() updates icon on button, so use it
     p->btn_send_gcode->msw_rescale();
-    p->btn_remove_device->msw_rescale();
+    p->btn_eject_device->msw_rescale();
     p->btn_export_gcode_removable->msw_rescale();
 
     p->scrolled->Layout();
@@ -1350,6 +1195,12 @@ void Sidebar::update_sliced_info_sizer()
                     new_label += format_wxstr("\n   - %1%", _L("normal mode"));
                     info_text += format_wxstr("\n%1%", ps.estimated_normal_print_time);
                     fill_labels(ps.estimated_normal_custom_gcode_print_times, new_label, info_text);
+
+					// uncomment next line to not disappear slicing finished notif when colapsing sidebar before time estimate
+					//if (p->plater->is_sidebar_collapsed())
+					p->plater->get_notification_manager()->set_slicing_complete_large(p->plater->is_sidebar_collapsed());
+					p->plater->get_notification_manager()->set_slicing_complete_print_time("Estimated printing time: " + ps.estimated_normal_print_time);
+
                 }
                 if (ps.estimated_silent_print_time != "N/A") {
                     new_label += format_wxstr("\n   - %1%", _L("stealth mode"));
@@ -1385,15 +1236,16 @@ void Sidebar::enable_buttons(bool enable)
     p->btn_reslice->Enable(enable);
     p->btn_export_gcode->Enable(enable);
     p->btn_send_gcode->Enable(enable);
-    p->btn_remove_device->Enable(enable);
+    p->btn_eject_device->Enable(enable);
 	p->btn_export_gcode_removable->Enable(enable);
 }
 
-bool Sidebar::show_reslice(bool show)         const { return p->btn_reslice->Show(show); }
-bool Sidebar::show_export(bool show)          const { return p->btn_export_gcode->Show(show); }
-bool Sidebar::show_send(bool show)            const { return p->btn_send_gcode->Show(show); }
-bool Sidebar::show_disconnect(bool show)      const { return p->btn_remove_device->Show(show); }
-bool Sidebar::show_export_removable(bool show)const { return p->btn_export_gcode_removable->Show(show); }
+bool Sidebar::show_reslice(bool show)          const { return p->btn_reslice->Show(show); }
+bool Sidebar::show_export(bool show)           const { return p->btn_export_gcode->Show(show); }
+bool Sidebar::show_send(bool show)             const { return p->btn_send_gcode->Show(show); }
+bool Sidebar::show_export_removable(bool show) const { return p->btn_export_gcode_removable->Show(show); }
+bool Sidebar::show_eject(bool show)            const { return p->btn_eject_device->Show(show); }
+bool Sidebar::get_eject_shown()                const { return p->btn_eject_device->IsShown(); }
 
 bool Sidebar::is_multifilament()
 {
@@ -1458,7 +1310,7 @@ void Sidebar::update_ui_from_settings()
     update_sliced_info_sizer();
 }
 
-std::vector<PresetComboBox*>& Sidebar::combos_filament()
+std::vector<PlaterPresetComboBox*>& Sidebar::combos_filament()
 {
     return p->combos_filament;
 }
@@ -1591,6 +1443,7 @@ struct Plater::priv
     GLToolbar view_toolbar;
     GLToolbar collapse_toolbar;
     Preview *preview;
+	NotificationManager* notification_manager;
 
     BackgroundSlicingProcess    background_process;
     bool suppressed_backround_processing_update { false };
@@ -1775,7 +1628,17 @@ struct Plater::priv
     void on_slicing_update(SlicingStatusEvent&);
     void on_slicing_completed(wxCommandEvent&);
     void on_process_completed(wxCommandEvent&);
+	void on_export_began(wxCommandEvent&);
     void on_layer_editing_toggled(bool enable);
+	void on_slicing_began();
+
+	void clear_warnings();
+	void add_warning(const Slic3r::PrintStateBase::Warning &warning, size_t oid);
+	void actualizate_warnings(const Model& model, size_t print_oid);
+	// Displays dialog window with list of warnings. 
+	// Returns true if user clicks OK.
+	// Returns true if current_warnings vector is empty without showning the dialog
+	bool warnings_dialog();
 
     void on_action_add(SimpleEvent&);
     void on_action_split_objects(SimpleEvent&);
@@ -1826,7 +1689,7 @@ struct Plater::priv
     // Flag indicating that the G-code export targets a removable device, therefore the show_action_buttons() needs to be called at any case when the background processing finishes.
     bool 						writing_to_removable_device = { false };
     bool                        inside_snapshot_capture() { return m_prevent_snapshots != 0; }
-
+	bool                        process_completed_with_error { false };
 private:
     bool init_object_menu();
     bool init_common_menu(wxMenu* menu, const bool is_part = false);
@@ -1854,6 +1717,11 @@ private:
                                                               * */
     std::string 				m_last_fff_printer_profile_name;
     std::string 				m_last_sla_printer_profile_name;
+
+	// vector of all warnings generated by last slicing
+	std::vector<std::pair<Slic3r::PrintStateBase::Warning, size_t>> current_warnings;
+	bool show_warning_dialog { false };
+	
 };
 
 const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf|prusa)", std::regex::icase);
@@ -1899,6 +1767,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         });
     background_process.set_slicing_completed_event(EVT_SLICING_COMPLETED);
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
+	background_process.set_export_began_event(EVT_EXPORT_BEGAN);
     // Default printer technology for default config.
     background_process.select_technology(this->printer_technology);
     // Register progress callback from the Print class to the Plater.
@@ -2010,8 +1879,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, [this](wxKeyEvent& evt) { preview->move_double_slider(evt); });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_EDIT_COLOR_CHANGE, [this](wxKeyEvent& evt) { preview->edit_double_slider(evt); });
 
-    q->Bind(EVT_SLICING_COMPLETED, &priv::on_slicing_completed, this);
+	q->Bind(EVT_SLICING_COMPLETED, &priv::on_slicing_completed, this);
     q->Bind(EVT_PROCESS_COMPLETED, &priv::on_process_completed, this);
+	q->Bind(EVT_EXPORT_BEGAN, &priv::on_export_began, this);
     q->Bind(EVT_GLVIEWTOOLBAR_3D, [q](SimpleEvent&) { q->select_view_3D("3D"); });
     q->Bind(EVT_GLVIEWTOOLBAR_PREVIEW, [q](SimpleEvent&) { q->select_view_3D("Preview"); });
 
@@ -2038,16 +1908,27 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     });
 #endif /* _WIN32 */
 
-    this->q->Bind(EVT_REMOVABLE_DRIVE_EJECTED, [this](RemovableDriveEjectEvent &evt) {
+	notification_manager = new NotificationManager(this->q);
+	this->q->Bind(EVT_EJECT_DRIVE_NOTIFICAION_CLICKED, [this](EjectDriveNotificationClickedEvent&) { this->q->eject_drive(); });
+	this->q->Bind(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED, [this](ExportGcodeNotificationClickedEvent&) { this->q->export_gcode(true); });
+	this->q->Bind(EVT_PRESET_UPDATE_AVIABLE_CLICKED, [this](PresetUpdateAviableClickedEvent&) {  wxGetApp().get_preset_updater()->on_update_notification_confirm(); });
+
+	this->q->Bind(EVT_REMOVABLE_DRIVE_EJECTED, [this, q](RemovableDriveEjectEvent &evt) {
 		if (evt.data.second) {
 			this->show_action_buttons(this->ready_to_slice);
-			Slic3r::GUI::show_info(this->q, format_wxstr(_L("Unmounting successful. The device %s(%s) can now be safely removed from the computer."),
-				evt.data.first.name, evt.data.first.path));
-		} else
-			Slic3r::GUI::show_info(this->q, format_wxstr(_L("Ejecting of device %s(%s) has failed."),
-				evt.data.first.name, evt.data.first.path));
+			notification_manager->push_notification(format(_L("Unmounting successful. The device %s(%s) can now be safely removed from the computer."),evt.data.first.name, evt.data.first.path),
+				                                    NotificationManager::NotificationLevel::RegularNotification, *q->get_current_canvas3D());
+		} else {
+			notification_manager->push_notification(format(_L("Ejecting of device %s(%s) has failed."), evt.data.first.name, evt.data.first.path),
+				                                    NotificationManager::NotificationLevel::ErrorNotification, *q->get_current_canvas3D());
+		}
 	});
-    this->q->Bind(EVT_REMOVABLE_DRIVES_CHANGED, [this](RemovableDrivesChangedEvent &) { this->show_action_buttons(this->ready_to_slice); });
+    this->q->Bind(EVT_REMOVABLE_DRIVES_CHANGED, [this, q](RemovableDrivesChangedEvent &) {
+		this->show_action_buttons(this->ready_to_slice); 
+		if (!this->sidebar->get_eject_shown()) {
+			notification_manager->close_notification_of_type(NotificationType::ExportToRemovableFinished);
+		}
+	});
     // Start the background thread and register this window as a target for update events.
     wxGetApp().removable_drive_manager()->init(this->q);
 #ifdef _WIN32
@@ -2269,6 +2150,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if (!config.empty()) {
                         Preset::normalize(config);
                         wxGetApp().preset_bundle->load_config_model(filename.string(), std::move(config));
+                        if (printer_technology == ptFFF)
+                            CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, &wxGetApp().preset_bundle->project_config);
                         wxGetApp().load_current_presets();
                         is_project_file = true;
                     }
@@ -2675,6 +2558,8 @@ void Plater::priv::reset()
 {
     Plater::TakeSnapshot snapshot(q, _L("Reset Project"));
 
+	clear_warnings();
+
     set_project_filename(wxEmptyString);
 
     // Prevent toolpaths preview from rendering while we modify the Print object
@@ -2844,28 +2729,27 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 		// The state of the Print changed, and it is non-zero. Let's validate it and give the user feedback on errors.
         std::string err = this->background_process.validate();
         if (err.empty()) {
+			notification_manager->set_all_slicing_errors_gray(true);
             if (invalidated != Print::APPLY_STATUS_UNCHANGED && this->background_processing_enabled())
                 return_state |= UPDATE_BACKGROUND_PROCESS_RESTART;
         } else {
-            // The print is not valid.
-            // Only show the error message immediately, if the top level parent of this window is active.
-            auto p = dynamic_cast<wxWindow*>(this->q);
-            while (p->GetParent())
-                p = p->GetParent();
-            auto *top_level_wnd = dynamic_cast<wxTopLevelWindow*>(p);
-            if (! postpone_error_messages && top_level_wnd && top_level_wnd->IsActive()) {
-                // The error returned from the Print needs to be translated into the local language.
-                GUI::show_error(this->q, err);
-            } else {
-                // Show the error message once the main window gets activated.
-                this->delayed_error_message = err;
-            }
+			// The print is not valid.
+			// Show error as notification.
+			notification_manager->push_slicing_error_notification(err, *q->get_current_canvas3D());
             return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
         }
     } else if (! this->delayed_error_message.empty()) {
     	// Reusing the old state.
         return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
     }
+
+	//actualizate warnings
+	if (invalidated != Print::APPLY_STATUS_UNCHANGED) {
+		actualizate_warnings(this->q->model(), this->background_process.current_print()->id().id);
+		notification_manager->set_all_slicing_warnings_gray(true);
+		show_warning_dialog = false;
+		process_completed_with_error = false;
+	}
 
     if (invalidated != Print::APPLY_STATUS_UNCHANGED && was_running && ! this->background_process.running() &&
         (return_state & UPDATE_BACKGROUND_PROCESS_RESTART) == 0) {
@@ -2929,6 +2813,8 @@ bool Plater::priv::restart_background_process(unsigned int state)
                 this->statusbar()->set_status_text(_L("Cancelling"));
                 this->background_process.stop();
             });
+			if (!show_warning_dialog)
+				on_slicing_began();
             return true;
         }
     }
@@ -2955,6 +2841,7 @@ void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_remova
     if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
         return;
 
+	show_warning_dialog = true;
     if (! output_path.empty()) {
         background_process.schedule_export(output_path.string(), output_path_on_removable_media);
     } else {
@@ -3336,7 +3223,7 @@ void Plater::priv::set_current_panel(wxPanel* panel)
 void Plater::priv::on_select_preset(wxCommandEvent &evt)
 {
     auto preset_type = static_cast<Preset::Type>(evt.GetInt());
-    auto *combo = static_cast<PresetComboBox*>(evt.GetEventObject());
+    auto *combo = static_cast<PlaterPresetComboBox*>(evt.GetEventObject());
 
     // see https://github.com/prusa3d/PrusaSlicer/issues/3889
     // Under OSX: in case of use of a same names written in different case (like "ENDER" and "Ender"),
@@ -3355,19 +3242,27 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     //! instead of
     //!     combo->GetStringSelection().ToUTF8().data());
 
-    const std::string preset_name = wxGetApp().preset_bundle->get_preset_name_by_alias(preset_type, 
+    std::string preset_name = wxGetApp().preset_bundle->get_preset_name_by_alias(preset_type, 
         Preset::remove_suffix_modified(combo->GetString(selection).ToUTF8().data()));
 
     if (preset_type == Preset::TYPE_FILAMENT) {
         wxGetApp().preset_bundle->set_filament_preset(idx, preset_name);
     }
 
+    bool select_preset = !combo->selection_is_changed_according_to_physical_printers();
     // TODO: ?
     if (preset_type == Preset::TYPE_FILAMENT && sidebar->is_multifilament()) {
         // Only update the plater UI for the 2nd and other filaments.
-        wxGetApp().preset_bundle->update_plater_filament_ui(idx, combo);
+        combo->update();
     }
-    else {
+    else if (select_preset) {
+        if (preset_type == Preset::TYPE_PRINTER) {
+            PhysicalPrinterCollection& physical_printers = wxGetApp().preset_bundle->physical_printers;
+            if(combo->is_selected_physical_printer())
+                preset_name = physical_printers.get_selected_printer_preset_name();
+            else
+                physical_printers.unselect_printer();
+        }
         wxWindowUpdateLocker noUpdates(sidebar->presets_panel());
         wxGetApp().get_tab(preset_type)->select_preset(preset_name);
     }
@@ -3433,11 +3328,20 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
                 state = print_object->step_state_with_warnings(static_cast<SLAPrintObjectStep>(warning_step));
         }
         // Now process state.warnings.
+		for (auto const& warning : state.warnings) {
+			if (warning.current) {
+				notification_manager->push_slicing_warning_notification(warning.message, false, *q->get_current_canvas3D(), object_id.id, warning_step);
+				add_warning(warning, object_id.id);
+			}
+		}
     }
 }
 
-void Plater::priv::on_slicing_completed(wxCommandEvent &)
+void Plater::priv::on_slicing_completed(wxCommandEvent & evt)
 {
+	//notification_manager->push_notification(NotificationType::SlicingComplete, *q->get_current_canvas3D(), evt.GetInt());
+	notification_manager->push_slicing_complete_notification(*q->get_current_canvas3D(), evt.GetInt(), is_sidebar_collapsed());
+
     switch (this->printer_technology) {
     case ptFFF:
         this->update_fff_scene();
@@ -3450,8 +3354,63 @@ void Plater::priv::on_slicing_completed(wxCommandEvent &)
         break;
     default: break;
     }
-}
 
+}
+void Plater::priv::on_export_began(wxCommandEvent& evt)
+{
+	if (show_warning_dialog)
+		warnings_dialog();
+}
+void Plater::priv::on_slicing_began()
+{
+	clear_warnings();
+	notification_manager->close_notification_of_type(NotificationType::SlicingComplete);
+}
+void Plater::priv::add_warning(const Slic3r::PrintStateBase::Warning& warning, size_t oid)
+{
+	for (auto const& it : current_warnings) {
+		if (warning.message_id == it.first.message_id) {
+			if (warning.message_id != 0 || (warning.message_id == 0 && warning.message == it.first.message))
+				return;
+		} 
+	}
+	current_warnings.emplace_back(std::pair<Slic3r::PrintStateBase::Warning, size_t>(warning, oid));
+}
+void Plater::priv::actualizate_warnings(const Model& model, size_t print_oid)
+{
+	std::vector<size_t> living_oids;
+	living_oids.push_back(model.id().id);
+	living_oids.push_back(print_oid);
+	for (auto it = model.objects.begin(); it != model.objects.end(); ++it) {
+		living_oids.push_back((*it)->id().id);
+	}
+	notification_manager->compare_warning_oids(living_oids);
+}
+void Plater::priv::clear_warnings()
+{
+	notification_manager->close_slicing_errors_and_warnings();
+	this->current_warnings.clear();
+}
+bool Plater::priv::warnings_dialog()
+{
+	if (current_warnings.empty())
+		return true;
+	std::string text = _u8L("There are active warnings concerning sliced models:\n");
+	bool empt = true;
+	for (auto const& it : current_warnings) {
+		int next_n = it.first.message.find_first_of('\n', 0);
+		text += "\n";
+		if (next_n != std::string::npos)
+			text += it.first.message.substr(0, next_n);
+		else
+			text += it.first.message;
+	}
+	//text += "\n\nDo you still wish to export?";
+	wxMessageDialog msg_wingow(this->q, text, wxString(SLIC3R_APP_NAME " ") + _L("generated warnings"), wxOK);
+	const auto res = msg_wingow.ShowModal();
+	return res == wxID_OK;
+
+}
 void Plater::priv::on_process_completed(wxCommandEvent &evt)
 {
     // Stop the background task, wait until the thread goes into the "Idle" state.
@@ -3470,14 +3429,13 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
     if (error) {
         wxString message = evt.GetString();
         if (message.IsEmpty())
-            message = _L("Export failed");
-        if (q->m_tracking_popup_menu)
-        	// We don't want to pop-up a message box when tracking a pop-up menu.
-        	// We postpone the error message instead.
-            q->m_tracking_popup_menu_error_message = message;
-        else
-	        show_error(q, message);
+            message = _L("Export failed.");
+		notification_manager->push_slicing_error_notification(boost::nowide::narrow(message), *q->get_current_canvas3D());
         this->statusbar()->set_status_text(message);
+		const wxString invalid_str = _L("Invalid data");
+		for (auto btn : { ActionButtonType::abReslice, ActionButtonType::abSendGCode, ActionButtonType::abExport })
+			sidebar->set_btn_label(btn, invalid_str);
+		process_completed_with_error = true;
     }
     if (canceled)
         this->statusbar()->set_status_text(_L("Cancelled"));
@@ -3503,15 +3461,21 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
     default: break;
     }
 	
-
     if (canceled) {
         if (wxGetApp().get_mode() == comSimple)
             sidebar->set_btn_label(ActionButtonType::abReslice, "Slice now");
         show_action_buttons(true);
     }
-    else if (this->writing_to_removable_device || wxGetApp().get_mode() == comSimple)
+    else if (wxGetApp().get_mode() == comSimple)
+	{
 		show_action_buttons(false);
-    this->writing_to_removable_device = false;
+	}
+	else if (this->writing_to_removable_device)
+	{
+		show_action_buttons(false);
+		notification_manager->push_notification(NotificationType::ExportToRemovableFinished, *q->get_current_canvas3D());
+	}
+	this->writing_to_removable_device = false;
 }
 
 void Plater::priv::on_layer_editing_toggled(bool enable)
@@ -4142,7 +4106,12 @@ void Plater::priv::show_action_buttons(const bool ready_to_slice) const
     this->ready_to_slice = ready_to_slice;
 
     wxWindowUpdateLocker noUpdater(sidebar);
-    const auto prin_host_opt = config->option<ConfigOptionString>("print_host");
+
+    DynamicPrintConfig* selected_printer_config = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config();
+    if (!selected_printer_config)
+        selected_printer_config = config;
+
+    const auto prin_host_opt = selected_printer_config->option<ConfigOptionString>("print_host");
     const bool send_gcode_shown = prin_host_opt != nullptr && !prin_host_opt->value.empty();
     
     // when a background processing is ON, export_btn and/or send_btn are showing
@@ -4153,7 +4122,7 @@ void Plater::priv::show_action_buttons(const bool ready_to_slice) const
 			sidebar->show_export(true) |
 			sidebar->show_send(send_gcode_shown) |
 			sidebar->show_export_removable(removable_media_status.has_removable_drives) |
-			sidebar->show_disconnect(removable_media_status.has_eject))
+			sidebar->show_eject(removable_media_status.has_eject))
             sidebar->Layout();
     }
     else
@@ -4165,7 +4134,7 @@ void Plater::priv::show_action_buttons(const bool ready_to_slice) const
             sidebar->show_export(!ready_to_slice) |
             sidebar->show_send(send_gcode_shown && !ready_to_slice) |
 			sidebar->show_export_removable(!ready_to_slice && removable_media_status.has_removable_drives) |
-            sidebar->show_disconnect(!ready_to_slice && removable_media_status.has_eject))
+            sidebar->show_eject(!ready_to_slice && removable_media_status.has_eject))
             sidebar->Layout();
     }
 }
@@ -4728,6 +4697,9 @@ void Plater::export_gcode(bool prefer_removable)
     if (p->model.objects.empty())
         return;
 
+	if (p->process_completed_with_error)//here
+		return;
+
     // If possible, remove accents from accented latin characters.
     // This function is useful for generating file names to be processed by legacy firmwares.
     fs::path default_output_file;
@@ -4987,7 +4959,6 @@ void Plater::export_toolpaths_to_obj() const
     p->preview->get_canvas3d()->export_toolpaths_to_obj(into_u8(path).c_str());
 }
 
-
 void Plater::reslice()
 {
     // Stop arrange and (or) optimize rotation tasks.
@@ -5069,7 +5040,9 @@ void Plater::send_gcode()
 {
     if (p->model.objects.empty()) { return; }
 
-    PrintHostJob upload_job(p->config);
+    // if physical_printer is selected, send gcode for this printer
+    DynamicPrintConfig* physical_printer_config = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config();
+    PrintHostJob upload_job(physical_printer_config ? physical_printer_config : p->config);
     if (upload_job.empty()) { return; }
 
     // Obtain default output path
@@ -5180,12 +5153,12 @@ void Plater::on_extruders_change(size_t num_extruders)
     size_t i = choices.size();
     while ( i < num_extruders )
     {
-        PresetComboBox* choice/*{ nullptr }*/;
+        PlaterPresetComboBox* choice/*{ nullptr }*/;
         sidebar().init_filament_combo(&choice, i);
         choices.push_back(choice);
 
         // initialize selection
-        wxGetApp().preset_bundle->update_plater_filament_ui(i, choice);
+        choice->update();
         ++i;
     }
 
@@ -5671,6 +5644,16 @@ const Mouse3DController& Plater::get_mouse3d_controller() const
 Mouse3DController& Plater::get_mouse3d_controller()
 {
     return p->mouse3d_controller;
+}
+
+const NotificationManager* Plater::get_notification_manager() const
+{
+	return p->notification_manager;
+}
+
+NotificationManager* Plater::get_notification_manager()
+{
+	return p->notification_manager;
 }
 
 bool Plater::can_delete() const { return p->can_delete(); }

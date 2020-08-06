@@ -6,14 +6,12 @@
 #include <boost/filesystem/path.hpp>
 
 #include <wx/panel.h>
-#include <wx/bmpcbox.h>
 
-#include "Preset.hpp"
 #include "Selection.hpp"
 
+#include "libslic3r/Preset.hpp"
 #include "libslic3r/BoundingBox.hpp"
 #include "Jobs/Job.hpp"
-#include "wxExtensions.hpp"
 #include "Search.hpp"
 
 class wxButton;
@@ -47,48 +45,16 @@ class ObjectLayers;
 class ObjectList;
 class GLCanvas3D;
 class Mouse3DController;
+class NotificationManager;
 struct Camera;
 class Bed3D;
 class GLToolbar;
+class PlaterPresetComboBox;
 
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
 class Plater;
 enum class ActionButtonType : int;
-
-class PresetComboBox : public PresetBitmapComboBox
-{
-public:
-    PresetComboBox(wxWindow *parent, Preset::Type preset_type);
-    ~PresetComboBox();
-
-    ScalableButton* edit_btn { nullptr };
-
-	enum LabelItemType {
-		LABEL_ITEM_MARKER = 0xffffff01,
-		LABEL_ITEM_WIZARD_PRINTERS,
-        LABEL_ITEM_WIZARD_FILAMENTS,
-        LABEL_ITEM_WIZARD_MATERIALS,
-
-        LABEL_ITEM_MAX,
-	};
-
-    void set_label_marker(int item, LabelItemType label_item_type = LABEL_ITEM_MARKER);
-    void set_extruder_idx(const int extr_idx)   { extruder_idx = extr_idx; }
-    int  get_extruder_idx() const               { return extruder_idx; }
-    int  em_unit() const                        { return m_em_unit; }
-    void check_selection(int selection);
-
-    void msw_rescale();
-
-private:
-    typedef std::size_t Marker;
-
-    Preset::Type preset_type;
-    int last_selected;
-    int extruder_idx = -1;
-    int m_em_unit;
-};
 
 class Sidebar : public wxPanel
 {
@@ -101,7 +67,7 @@ public:
     Sidebar &operator=(const Sidebar &) = delete;
     ~Sidebar();
 
-    void init_filament_combo(PresetComboBox **combo, const int extr_idx);
+    void init_filament_combo(PlaterPresetComboBox **combo, const int extr_idx);
     void remove_unused_filament_combos(const size_t current_extruder_count);
     void update_all_preset_comboboxes();
     void update_presets(Slic3r::Preset::Type preset_type);
@@ -130,8 +96,9 @@ public:
     bool                    show_reslice(bool show) const;
 	bool                    show_export(bool show) const;
 	bool                    show_send(bool show) const;
-    bool                    show_disconnect(bool show)const;
+    bool                    show_eject(bool show)const;
 	bool                    show_export_removable(bool show) const;
+	bool                    get_eject_shown() const;
     bool                    is_multifilament();
     void                    update_mode();
     bool                    is_collapsed();
@@ -139,7 +106,7 @@ public:
     void                    update_searcher();
     void                    update_ui_from_settings();
 
-    std::vector<PresetComboBox*>&   combos_filament();
+    std::vector<PlaterPresetComboBox*>&   combos_filament();
     Search::OptionsSearcher&        get_searcher();
     std::string&                    get_search_line();
 
@@ -220,7 +187,7 @@ public:
 
     void cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_upper = true, bool keep_lower = true, bool rotate_lower = false);
 
-    void export_gcode(bool prefer_removable = true);
+    void export_gcode(bool prefer_removable);
     void export_stl(bool extended = false, bool selection_only = false);
     void export_amf();
     void export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path());
@@ -338,6 +305,9 @@ public:
     Mouse3DController& get_mouse3d_controller();
 
 	void set_bed_shape() const;
+    
+	const NotificationManager* get_notification_manager() const;
+	NotificationManager* get_notification_manager();
 
     // ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
 	class SuppressSnapshots

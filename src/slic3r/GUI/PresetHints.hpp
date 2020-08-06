@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "PresetBundle.hpp"
+#include "libslic3r/PresetBundle.hpp"
 
 namespace Slic3r {
 

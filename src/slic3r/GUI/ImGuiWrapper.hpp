@@ -57,6 +57,7 @@ public:
 
     void set_next_window_pos(float x, float y, int flag, float pivot_x = 0.0f, float pivot_y = 0.0f);
     void set_next_window_bg_alpha(float alpha);
+	void set_next_window_size(float x, float y, ImGuiCond cond);
 
     bool begin(const std::string &name, int flags = 0);
     bool begin(const wxString &name, int flags = 0);
@@ -65,7 +66,9 @@ public:
     void end();
 
     bool button(const wxString &label);
+	bool button(const wxString& label, float width, float height);
     bool radio_button(const wxString &label, bool active);
+	bool image_button();
     bool input_double(const std::string &label, const double &value, const std::string &format = "%.3f");
     bool input_double(const wxString &label, const double &value, const std::string &format = "%.3f");
     bool input_vec3(const std::string &label, const Vec3d &value, float width, const std::string &format = "%.3f");
@@ -73,6 +76,9 @@ public:
     void text(const char *label);
     void text(const std::string &label);
     void text(const wxString &label);
+    void text_colored(const ImVec4& color, const char* label);
+    void text_colored(const ImVec4& color, const std::string& label);
+    void text_colored(const ImVec4& color, const wxString& label);
     bool slider_float(const char* label, float* v, float v_min, float v_max, const char* format = "%.3f", float power = 1.0f);
     bool slider_float(const std::string& label, float* v, float v_min, float v_max, const char* format = "%.3f", float power = 1.0f);
     bool slider_float(const wxString& label, float* v, float v_min, float v_max, const char* format = "%.3f", float power = 1.0f);

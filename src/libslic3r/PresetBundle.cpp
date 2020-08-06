@@ -1,12 +1,12 @@
 #include <cassert>
 
 #include "PresetBundle.hpp"
-#include "BitmapCache.hpp"
-#include "Plater.hpp"
-#include "I18N.hpp"
-#include "wxExtensions.hpp"
+#include "libslic3r.h"
+#include "Utils.hpp"
+#include "Model.hpp"
 
 #include <algorithm>
+#include <set>
 #include <fstream>
 #include <unordered_set>
 #include <boost/filesystem.hpp>
@@ -20,17 +20,6 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/locale.hpp>
 #include <boost/log/trivial.hpp>
-
-#include <wx/dcmemory.h>
-#include <wx/image.h>
-#include <wx/choice.h>
-#include <wx/bmpcbox.h>
-#include <wx/wupdlock.h>
-
-#include "libslic3r/libslic3r.h"
-#include "libslic3r/Utils.hpp"
-#include "libslic3r/Model.hpp"
-#include "GUI_App.hpp"
 
 
 // Store the print/filament/printer presets into a "presets" subdirectory of the Slic3rPE config dir.
@@ -53,15 +42,8 @@ PresetBundle::PresetBundle() :
     sla_materials(Preset::TYPE_SLA_MATERIAL, Preset::sla_material_options(), static_cast<const SLAMaterialConfig&>(SLAFullPrintConfig::defaults())), 
     sla_prints(Preset::TYPE_SLA_PRINT, Preset::sla_print_options(), static_cast<const SLAPrintObjectConfig&>(SLAFullPrintConfig::defaults())),
     printers(Preset::TYPE_PRINTER, Preset::printer_options(), static_cast<const HostConfig&>(FullPrintConfig::defaults()), "- default FFF -"),
-    m_bitmapCompatible(new wxBitmap),
-    m_bitmapIncompatible(new wxBitmap),
-    m_bitmapLock(new wxBitmap),
-    m_bitmapLockOpen(new wxBitmap),
-    m_bitmapCache(new GUI::BitmapCache)
+    physical_printers(PhysicalPrinter::printer_options())
 {
-    if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
-        wxImage::AddHandler(new wxPNGHandler);
-
     // The following keys are handled by the UI, they do not have a counterpart in any StaticPrintConfig derived classes,
     // therefore they need to be handled differently. As they have no counterpart in StaticPrintConfig, they are not being
     // initialized based on PrintConfigDef(), but to empty values (zeros, empty vectors, empty strings).
@@ -112,16 +94,6 @@ PresetBundle::PresetBundle() :
         preset.inherits();
     }
 
-	// Load the default preset bitmaps.
-	// #ys_FIXME_to_delete we'll load them later, using em_unit()
-//     this->prints       .load_bitmap_default("cog");
-//     this->sla_prints   .load_bitmap_default("package_green.png");
-//     this->filaments    .load_bitmap_default("spool.png");
-//     this->sla_materials.load_bitmap_default("package_green.png");
-//     this->printers     .load_bitmap_default("printer_empty.png");
-//     this->printers     .load_bitmap_add("add.png");
-//     this->load_compatible_bitmaps();
-
     // Re-activate the default presets, so their "edited" preset copies will be updated with the additional configuration values above.
     this->prints       .select_preset(0);
     this->sla_prints   .select_preset(0);
@@ -134,20 +106,6 @@ PresetBundle::PresetBundle() :
 
 PresetBundle::~PresetBundle()
 {
-	assert(m_bitmapCompatible != nullptr);
-	assert(m_bitmapIncompatible != nullptr);
-    assert(m_bitmapLock != nullptr);
-    assert(m_bitmapLockOpen != nullptr);
-	delete m_bitmapCompatible;
-	m_bitmapCompatible = nullptr;
-    delete m_bitmapIncompatible;
-	m_bitmapIncompatible = nullptr;
-    delete m_bitmapLock;
-    m_bitmapLock = nullptr;
-    delete m_bitmapLockOpen;
-    m_bitmapLockOpen = nullptr;
-    delete m_bitmapCache;
-    m_bitmapCache = nullptr;
 }
 
 void PresetBundle::reset(bool delete_files)
@@ -182,14 +140,16 @@ void PresetBundle::setup_directories()
         data_dir / "presets" / "filament", 
         data_dir / "presets" / "sla_print",  
         data_dir / "presets" / "sla_material", 
-        data_dir / "presets" / "printer" 
+        data_dir / "presets" / "printer", 
+        data_dir / "presets" / "physical_printer" 
 #else
         // Store the print/filament/printer presets at the same location as the upstream Slic3r.
         data_dir / "print", 
         data_dir / "filament", 
         data_dir / "sla_print", 
         data_dir / "sla_material", 
-        data_dir / "printer" 
+        data_dir / "printer", 
+        data_dir / "physical_printer" 
 #endif
     };
     for (const boost::filesystem::path &path : paths) {
@@ -236,6 +196,11 @@ void PresetBundle::load_presets(AppConfig &config, const std::string &preferred_
     }
     try {
         this->printers.load_presets(dir_user_presets, "printer");
+    } catch (const std::runtime_error &err) {
+        errors_cummulative += err.what();
+    }
+    try {
+        this->physical_printers.load_printers(dir_user_presets, "physical_printer");
     } catch (const std::runtime_error &err) {
         errors_cummulative += err.what();
     }
@@ -465,6 +430,13 @@ void PresetBundle::load_selections(AppConfig &config, const std::string &preferr
     // exist.
     this->update_compatible(PresetSelectCompatibleType::Always);
     this->update_multi_material_filament_presets();
+
+    // Parse the initial physical printer name.
+    std::string initial_physical_printer_name = remove_ini_suffix(config.get("extras", "physical_printer"));
+
+    // Activate physical printer from the config
+    if (!initial_physical_printer_name.empty())
+        physical_printers.select_printer(initial_physical_printer_name);
 }
 
 // Export selections (current print, current filaments, current printer) into config.ini
@@ -484,36 +456,8 @@ void PresetBundle::export_selections(AppConfig &config)
     config.set("presets", "sla_print",    sla_prints.get_selected_preset_name());
     config.set("presets", "sla_material", sla_materials.get_selected_preset_name());
     config.set("presets", "printer",      printers.get_selected_preset_name());
-}
 
-void PresetBundle::load_compatible_bitmaps()
-{
-    *m_bitmapCompatible     = create_scaled_bitmap("flag_green");
-    *m_bitmapIncompatible   = create_scaled_bitmap("flag_red");
-    *m_bitmapLock           = create_scaled_bitmap("lock_closed");
-    *m_bitmapLockOpen       = create_scaled_bitmap("lock_open");
-
-    prints       .set_bitmap_compatible(m_bitmapCompatible);
-    filaments    .set_bitmap_compatible(m_bitmapCompatible);
-    sla_prints   .set_bitmap_compatible(m_bitmapCompatible);
-    sla_materials.set_bitmap_compatible(m_bitmapCompatible);
-
-    prints       .set_bitmap_incompatible(m_bitmapIncompatible);
-    filaments    .set_bitmap_incompatible(m_bitmapIncompatible);
-    sla_prints   .set_bitmap_incompatible(m_bitmapIncompatible);
-    sla_materials.set_bitmap_incompatible(m_bitmapIncompatible);
-
-    prints       .set_bitmap_lock(m_bitmapLock);
-    filaments    .set_bitmap_lock(m_bitmapLock);
-    sla_prints   .set_bitmap_lock(m_bitmapLock);
-    sla_materials.set_bitmap_lock(m_bitmapLock);
-    printers     .set_bitmap_lock(m_bitmapLock);
-
-    prints       .set_bitmap_lock_open(m_bitmapLock);
-    filaments    .set_bitmap_lock_open(m_bitmapLock);
-    sla_prints   .set_bitmap_lock_open(m_bitmapLock);
-    sla_materials.set_bitmap_lock_open(m_bitmapLock);
-    printers     .set_bitmap_lock_open(m_bitmapLock);
+    config.set("extras", "physical_printer", physical_printers.get_selected_full_printer_name());
 }
 
 DynamicPrintConfig PresetBundle::full_config() const
@@ -885,8 +829,6 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         }
         // 4) Load the project config values (the per extruder wipe matrix etc).
         this->project_config.apply_only(config, s_project_options);
-
-        update_custom_gcode_per_print_z_from_config(GUI::wxGetApp().plater()->model().custom_gcode_per_print_z, &this->project_config);
 
         break;
     }
@@ -1544,205 +1486,9 @@ void PresetBundle::export_configbundle(const std::string &path, bool export_syst
 // an optional "(modified)" suffix will be removed from the filament name.
 void PresetBundle::set_filament_preset(size_t idx, const std::string &name)
 {
-	if (name.find_first_of(PresetCollection::separator_head()) == 0)
-		return;
-
-    if (idx >= filament_presets.size())
+	if (idx >= filament_presets.size())
         filament_presets.resize(idx + 1, filaments.default_preset().name);
     filament_presets[idx] = Preset::remove_suffix_modified(name);
-}
-
-void PresetBundle::load_default_preset_bitmaps()
-{
-    // Clear bitmap cache, before load new scaled default preset bitmaps 
-    m_bitmapCache->clear();
-    this->prints.clear_bitmap_cache();
-    this->sla_prints.clear_bitmap_cache();
-    this->filaments.clear_bitmap_cache();
-    this->sla_materials.clear_bitmap_cache();
-    this->printers.clear_bitmap_cache();
-
-    this->prints.load_bitmap_default("cog");
-    this->sla_prints.load_bitmap_default("cog");
-    this->filaments.load_bitmap_default("spool.png");
-    this->sla_materials.load_bitmap_default("resin");
-    this->printers.load_bitmap_default("printer");
-    this->printers.load_bitmap_add("add.png");
-    this->load_compatible_bitmaps();
-}
-
-void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::PresetComboBox *ui)
-{
-    if (ui == nullptr || this->printers.get_edited_preset().printer_technology() == ptSLA ||
-        this->filament_presets.size() <= idx_extruder )
-        return;
-
-    unsigned char rgb[3];
-    std::string extruder_color = this->printers.get_edited_preset().config.opt_string("extruder_colour", idx_extruder);
-    if (!m_bitmapCache->parse_color(extruder_color, rgb))
-        // Extruder color is not defined.
-        extruder_color.clear();
-
-    // Fill in the list from scratch.
-    ui->Freeze();
-    ui->Clear();
-	size_t selected_preset_item = INT_MAX; // some value meaning that no one item is selected 
-
-    const Preset *selected_preset = this->filaments.find_preset(this->filament_presets[idx_extruder]);
-    // Show wide icons if the currently selected preset is not compatible with the current printer,
-    // and draw a red flag in front of the selected preset.
-    bool          wide_icons      = selected_preset != nullptr && ! selected_preset->is_compatible && m_bitmapIncompatible != nullptr;
-    assert(selected_preset != nullptr);
-	std::map<wxString, wxBitmap*> nonsys_presets;
-	wxString selected_str = "";
-	if (!this->filaments().front().is_visible)
-        ui->set_label_marker(ui->Append(PresetCollection::separator(L("System presets")), wxNullBitmap));
-
-    /* It's supposed that standard size of an icon is 16px*16px for 100% scaled display.
-     * So set sizes for solid_colored icons used for filament preset 
-     * and scale them in respect to em_unit value
-     */
-    const float scale_f = ui->em_unit() * 0.1f;
-
-    // To avoid the errors of number rounding for different combination of monitor configuration,
-    // let use scaled 8px, as a smallest icon unit 
-    const int icon_unit         = 8 * scale_f + 0.5f;
-    const int normal_icon_width = 2 * icon_unit;    //16 * scale_f + 0.5f;
-    const int thin_icon_width   = icon_unit;        //8 * scale_f + 0.5f;
-    const int wide_icon_width   = 3 * icon_unit;    //24 * scale_f + 0.5f;
-
-    const int space_icon_width  = 2  * scale_f + 0.5f;
-
-    // To avoid asserts, each added bitmap to wxBitmapCombobox should be the same size, so
-    // set a bitmap height to m_bitmapLock->GetHeight()
-    //
-    // To avoid asserts, each added bitmap to wxBitmapCombobox should be the same size. 
-    // But for some display scaling (for example 125% or 175%) normal_icon_width differs from icon width.
-    // So:
-    // for nonsystem presets set a width of empty bitmap to m_bitmapLock->GetWidth()
-    // for compatible presets set a width of empty bitmap to m_bitmapIncompatible->GetWidth()
-    //
-    // Note, under OSX we should use a Scaled Height/Width because of Retina scale
-#ifdef __APPLE__
-    const int icon_height       = m_bitmapLock->GetScaledHeight();
-    const int lock_icon_width   = m_bitmapLock->GetScaledWidth();
-    const int flag_icon_width   = m_bitmapIncompatible->GetScaledWidth();
-#else
-    const int icon_height       = m_bitmapLock->GetHeight();
-    const int lock_icon_width   = m_bitmapLock->GetWidth();
-    const int flag_icon_width   = m_bitmapIncompatible->GetWidth();
-#endif
-
-    wxString tooltip = "";
-
-	for (int i = this->filaments().front().is_visible ? 0 : 1; i < int(this->filaments().size()); ++i) {
-        const Preset &preset    = this->filaments.preset(i);
-        bool          selected  = this->filament_presets[idx_extruder] == preset.name;
-		if (! preset.is_visible || (! preset.is_compatible && ! selected))
-			continue;
-		// Assign an extruder color to the selected item if the extruder color is defined.
-		std::string   filament_rgb = preset.config.opt_string("filament_colour", 0);
-		std::string   extruder_rgb = (selected && !extruder_color.empty()) ? extruder_color : filament_rgb;
-        bool          single_bar   = filament_rgb == extruder_rgb;
-        std::string   bitmap_key   = single_bar ? filament_rgb : filament_rgb + extruder_rgb;
-        // If the filament preset is not compatible and there is a "red flag" icon loaded, show it left
-        // to the filament color image.
-        if (wide_icons)
-            bitmap_key += preset.is_compatible ? ",cmpt" : ",ncmpt";
-        bitmap_key += (preset.is_system || preset.is_default) ? ",syst" : ",nsyst";
-        if (preset.is_dirty)
-            bitmap_key += ",drty";
-        wxBitmap     *bitmap       = m_bitmapCache->find(bitmap_key);
-        if (bitmap == nullptr) {
-            // Create the bitmap with color bars.
-            std::vector<wxBitmap> bmps;
-            if (wide_icons)
-                // Paint a red flag for incompatible presets.
-                bmps.emplace_back(preset.is_compatible ? m_bitmapCache->mkclear(flag_icon_width, icon_height) : *m_bitmapIncompatible);
-            // Paint the color bars.
-            m_bitmapCache->parse_color(filament_rgb, rgb);
-            bmps.emplace_back(m_bitmapCache->mksolid(single_bar ? wide_icon_width : normal_icon_width, icon_height, rgb));
-            if (! single_bar) {
-                m_bitmapCache->parse_color(extruder_rgb, rgb);
-                bmps.emplace_back(m_bitmapCache->mksolid(thin_icon_width, icon_height, rgb));
-            }
-            // Paint a lock at the system presets.
-            bmps.emplace_back(m_bitmapCache->mkclear(space_icon_width, icon_height));
-            bmps.emplace_back((preset.is_system || preset.is_default) ? *m_bitmapLock : m_bitmapCache->mkclear(lock_icon_width, icon_height));
-//                 (preset.is_dirty ? *m_bitmapLockOpen : *m_bitmapLock) : m_bitmapCache->mkclear(16, 16));
-            bitmap = m_bitmapCache->insert(bitmap_key, bmps);
-		}
-
-        const std::string name = preset.alias.empty() ? preset.name : preset.alias;
-        if (preset.is_default || preset.is_system) {
-			ui->Append(wxString::FromUTF8((/*preset.*/name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), 
-				(bitmap == 0) ? wxNullBitmap : *bitmap);
-			if (selected ||
-                // just in case: mark selected_preset_item as a first added element
-                selected_preset_item == INT_MAX ) {
-				selected_preset_item = ui->GetCount() - 1;
-                tooltip = wxString::FromUTF8(preset.name.c_str());
-            }
-		}
-		else
-		{
-			nonsys_presets.emplace(wxString::FromUTF8((/*preset.*/name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), 
-				(bitmap == 0) ? &wxNullBitmap : bitmap);
-			if (selected) {
-				selected_str = wxString::FromUTF8((/*preset.*/name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str());
-                tooltip = wxString::FromUTF8(preset.name.c_str());
-            }
-		}
-		if (preset.is_default)
-            ui->set_label_marker(ui->Append(PresetCollection::separator(L("System presets")), wxNullBitmap));
-    }
-
-	if (!nonsys_presets.empty())
-	{
-        ui->set_label_marker(ui->Append(PresetCollection::separator(L("User presets")), wxNullBitmap));
-		for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
-			ui->Append(it->first, *it->second);
-			if (it->first == selected_str ||
-                // just in case: mark selected_preset_item as a first added element
-                selected_preset_item == INT_MAX) {
-				selected_preset_item = ui->GetCount() - 1;
-			}
-		}
-	}
-
-    std::string   bitmap_key = "";
-    if (wide_icons)
-        bitmap_key += "wide,";
-    bitmap_key += "edit_preset_list";
-    wxBitmap* bmp = m_bitmapCache->find(bitmap_key);
-    if (bmp == nullptr) {
-        // Create the bitmap with color bars.
-        std::vector<wxBitmap> bmps;
-        if (wide_icons)
-            // Paint a red flag for incompatible presets.
-            bmps.emplace_back(m_bitmapCache->mkclear(flag_icon_width, icon_height));
-        // Paint the color bars + a lock at the system presets.
-        bmps.emplace_back(m_bitmapCache->mkclear(wide_icon_width+space_icon_width, icon_height));
-        bmps.emplace_back(create_scaled_bitmap("edit_uni"));
-        bmp = m_bitmapCache->insert(bitmap_key, bmps);
-    }
-    ui->set_label_marker(ui->Append(PresetCollection::separator(L("Add/Remove filaments")), *bmp), GUI::PresetComboBox::LABEL_ITEM_WIZARD_FILAMENTS);
-
-    /* But, if selected_preset_item is still equal to INT_MAX, it means that
-     * there is no presets added to the list.
-     * So, select last combobox item ("Add/Remove filaments")
-     */
-    if (selected_preset_item == INT_MAX)
-        selected_preset_item = ui->GetCount() - 1;
-
-    ui->SetSelection(selected_preset_item);
-	ui->SetToolTip(tooltip.IsEmpty() ? ui->GetString(selected_preset_item) : tooltip);
-    ui->check_selection(selected_preset_item);
-    ui->Thaw();
-
-    // Update control min size after rescale (changed Display DPI under MSW)
-    if (ui->GetMinWidth() != 20 * ui->em_unit())
-        ui->SetMinSize(wxSize(20 * ui->em_unit(), ui->GetSize().GetHeight()));
 }
 
 void PresetBundle::set_default_suppressed(bool default_suppressed)

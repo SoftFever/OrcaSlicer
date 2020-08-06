@@ -95,37 +95,6 @@ public:
     void OnListBoxSelection(wxCommandEvent& evt);
 };
 
-namespace Slic3r {
-namespace GUI {
-// ***  PresetBitmapComboBox  ***
-
-// BitmapComboBox used to presets list on Sidebar and Tabs
-class PresetBitmapComboBox: public wxBitmapComboBox
-{
-public:
-    PresetBitmapComboBox(wxWindow* parent, const wxSize& size = wxDefaultSize);
-    ~PresetBitmapComboBox() {}
-
-#ifdef __APPLE__
-protected:
-    /* For PresetBitmapComboBox we use bitmaps that are created from images that are already scaled appropriately for Retina
-     * (Contrary to the intuition, the `scale` argument for Bitmap's constructor doesn't mean
-     * "please scale this to such and such" but rather
-     * "the wxImage is already sized for backing scale such and such". )
-     * Unfortunately, the constructor changes the size of wxBitmap too.
-     * Thus We need to use unscaled size value for bitmaps that we use
-     * to avoid scaled size of control items.
-     * For this purpose control drawing methods and
-     * control size calculation methods (virtual) are overridden.
-     **/
-    virtual bool OnAddBitmap(const wxBitmap& bitmap) override;
-    virtual void OnDrawItem(wxDC& dc, const wxRect& rect, int item, int flags) const override;
-#endif
-};
-
-}
-}
-
 
 // ***  wxDataViewTreeCtrlComboBox  ***
 
@@ -161,7 +130,8 @@ public:
     ScalableBitmap() {};
     ScalableBitmap( wxWindow *parent,
                     const std::string& icon_name = "",
-                    const int px_cnt = 16);
+                    const int px_cnt = 16, 
+                    const bool grayscale = false);
 
     ~ScalableBitmap() {}
 
@@ -182,6 +152,7 @@ private:
     wxBitmap        m_bmp = wxBitmap();
     std::string     m_icon_name = "";
     int             m_px_cnt {16};
+    bool            m_grayscale {false};
 };
 
 

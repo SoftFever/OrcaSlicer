@@ -8,7 +8,7 @@
 #include "BackgroundSlicingProcess.hpp"
 #include "OpenGLManager.hpp"
 #include "GLCanvas3D.hpp"
-#include "PresetBundle.hpp"
+#include "libslic3r/PresetBundle.hpp"
 #include "DoubleSlider.hpp"
 #include "Plater.hpp"
 

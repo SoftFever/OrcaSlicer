@@ -7,7 +7,7 @@
 #include "libslic3r/BoundingBox.hpp"
 
 #include "GUI_App.hpp"
-#include "PresetBundle.hpp"
+#include "libslic3r/PresetBundle.hpp"
 #include "GLCanvas3D.hpp"
 
 #include <GL/glew.h>
