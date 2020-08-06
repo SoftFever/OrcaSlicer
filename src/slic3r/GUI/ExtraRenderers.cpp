@@ -9,12 +9,12 @@
 #include "wx/generic/private/rowheightcache.h"
 #include "wx/generic/private/widthcalc.h"
 #endif
-
+/*
 #ifdef __WXGTK__
 #include "wx/gtk/private.h"
 #include "wx/gtk/private/value.h"
 #endif
-
+*/
 #if wxUSE_ACCESSIBILITY
 #include "wx/private/markupparser.h"
 #endif // wxUSE_ACCESSIBILITY
@@ -83,14 +83,16 @@ bool BitmapTextRenderer::SetValue(const wxVariant &value)
 #ifdef wxHAS_GENERIC_DATAVIEWCTRL
     if (m_markupText)
         m_markupText->SetMarkup(m_value.GetText());
+    /* 
 #else 
 #if defined(__WXGTK__)
-    GValue gvalue = G_VALUE_INIT;
+   GValue gvalue = G_VALUE_INIT;
     g_value_init(&gvalue, G_TYPE_STRING);
     g_value_set_string(&gvalue, wxGTK_CONV_FONT(str.GetText(), GetOwner()->GetOwner()->GetFont()));
-    g_object_set_property(G_OBJECT(m_renderer/*.GetText()*/), is_markupText ? "markup" : "text", &gvalue);
+    g_object_set_property(G_OBJECT(m_renderer/ *.GetText()* /), is_markupText ? "markup" : "text", &gvalue);
     g_value_unset(&gvalue);
 #endif // __WXGTK__
+    */
 #endif // wxHAS_GENERIC_DATAVIEWCTRL
 #endif // SUPPORTS_MARKUP
 
