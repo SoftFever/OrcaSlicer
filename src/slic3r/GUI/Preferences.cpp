@@ -234,30 +234,6 @@ void PreferencesDialog::accept()
 	    }
 	}
 
-#if !ENABLE_LAYOUT_NO_RESTART
-	if (m_settings_layout_changed) {
-		// the dialog needs to be destroyed before the call to recreate_gui()
-		// or sometimes the application crashes into wxDialogBase() destructor
-		// so we put it into an inner scope
-		wxMessageDialog dialog(nullptr,
-			            _L("Switching the settings layout mode will trigger application restart.\n"
-				                  "You will lose content of the plater.") + "\n\n" +
-			                   _L("Do you want to proceed?"),
-			wxString(SLIC3R_APP_NAME) + " - " + _L("Switching the settings layout mode"),
-			wxICON_QUESTION | wxOK | wxCANCEL);
-
-		if (dialog.ShowModal() == wxID_CANCEL)
-		{
-			int selection = app_config->get("old_settings_layout_mode") == "1" ? 0 :
-				            app_config->get("new_settings_layout_mode") == "1" ? 1 :
-				            app_config->get("dlg_settings_layout_mode") == "1" ? 2 : 0;
-
-			m_layout_mode_box->SetSelection(selection);
-			return;
-		}
-	}
-#endif // !ENABLE_LAYOUT_NO_RESTART
-
 	for (std::map<std::string, std::string>::iterator it = m_values.begin(); it != m_values.end(); ++it)
 		app_config->set(it->first, it->second);
 

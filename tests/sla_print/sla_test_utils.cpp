@@ -2,13 +2,13 @@
 #include "libslic3r/SLA/AGGRaster.hpp"
 
 void test_support_model_collision(const std::string          &obj_filename,
-                                  const sla::SupportConfig   &input_supportcfg,
+                                  const sla::SupportTreeConfig   &input_supportcfg,
                                   const sla::HollowingConfig &hollowingcfg,
                                   const sla::DrainHoles      &drainholes)
 {
     SupportByproducts byproducts;
     
-    sla::SupportConfig supportcfg = input_supportcfg;
+    sla::SupportTreeConfig supportcfg = input_supportcfg;
     
     // Set head penetration to a small negative value which should ensure that
     // the supports will not touch the model body.
@@ -69,11 +69,12 @@ void export_failed_case(const std::vector<ExPolygons> &support_slices, const Sup
     m.merge(byproducts.input_mesh);
     m.repair();
     m.require_shared_vertices();
-    m.WriteOBJFile(byproducts.obj_fname.c_str());
+    m.WriteOBJFile((Catch::getResultCapture().getCurrentTestName() + "_" +
+                    byproducts.obj_fname).c_str());
 }
 
 void test_supports(const std::string          &obj_filename,
-                   const sla::SupportConfig   &supportcfg,
+                   const sla::SupportTreeConfig   &supportcfg,
                    const sla::HollowingConfig &hollowingcfg,
                    const sla::DrainHoles      &drainholes,
                    SupportByproducts          &out)
@@ -104,7 +105,7 @@ void test_supports(const std::string          &obj_filename,
     
     // Create the special index-triangle mesh with spatial indexing which
     // is the input of the support point and support mesh generators
-    sla::EigenMesh3D emesh{mesh};
+    sla::IndexedMesh emesh{mesh};
 
 #ifdef SLIC3R_HOLE_RAYCASTER
     if (hollowingcfg.enabled) 
@@ -129,8 +130,7 @@ void test_supports(const std::string          &obj_filename,
     // If there is no elevation, support points shall be removed from the
     // bottom of the object.
     if (std::abs(supportcfg.object_elevation_mm) < EPSILON) {
-        sla::remove_bottom_points(support_points, zmin,
-                                  supportcfg.base_height_mm);
+        sla::remove_bottom_points(support_points, zmin + supportcfg.base_height_mm);
     } else {
         // Should be support points at least on the bottom of the model
         REQUIRE_FALSE(support_points.empty());
@@ -141,7 +141,8 @@ void test_supports(const std::string          &obj_filename,
     
     // Generate the actual support tree
     sla::SupportTreeBuilder treebuilder;
-    treebuilder.build(sla::SupportableMesh{emesh, support_points, supportcfg});
+    sla::SupportableMesh    sm{emesh, support_points, supportcfg};
+    sla::SupportTreeBuildsteps::execute(treebuilder, sm);
     
     check_support_tree_integrity(treebuilder, supportcfg);
     
@@ -157,8 +158,8 @@ void test_supports(const std::string          &obj_filename,
     if (std::abs(supportcfg.object_elevation_mm) < EPSILON)
         allowed_zmin = zmin - 2 * supportcfg.head_back_radius_mm;
     
-    REQUIRE(obb.min.z() >= allowed_zmin);
-    REQUIRE(obb.max.z() <= zmax);
+    REQUIRE(obb.min.z() >= Approx(allowed_zmin));
+    REQUIRE(obb.max.z() <= Approx(zmax));
     
     // Move out the support tree into the byproducts, we can examine it further
     // in various tests.
@@ -168,15 +169,15 @@ void test_supports(const std::string          &obj_filename,
 }
 
 void check_support_tree_integrity(const sla::SupportTreeBuilder &stree, 
-                                  const sla::SupportConfig &cfg)
+                                  const sla::SupportTreeConfig &cfg)
 {
     double gnd  = stree.ground_level;
     double H1   = cfg.max_solo_pillar_height_mm;
     double H2   = cfg.max_dual_pillar_height_mm;
     
     for (const sla::Head &head : stree.heads()) {
-        REQUIRE((!head.is_valid() || head.pillar_id != sla::ID_UNSET ||
-                head.bridge_id != sla::ID_UNSET));
+        REQUIRE((!head.is_valid() || head.pillar_id != sla::SupportTreeNode::ID_UNSET ||
+                head.bridge_id != sla::SupportTreeNode::ID_UNSET));
     }
     
     for (const sla::Pillar &pillar : stree.pillars()) {

@@ -3,11 +3,10 @@
 #include <libslic3r/OpenVDBUtils.hpp>
 #include <libslic3r/TriangleMesh.hpp>
 #include <libslic3r/SLA/Hollowing.hpp>
-#include <libslic3r/SLA/Contour3D.hpp>
-#include <libslic3r/SLA/EigenMesh3D.hpp>
-#include <libslic3r/SLA/SupportTreeBuilder.hpp>
+#include <libslic3r/SLA/IndexedMesh.hpp>
 #include <libslic3r/ClipperUtils.hpp>
 #include <libslic3r/SimplifyMesh.hpp>
+#include <libslic3r/SLA/SupportTreeMesher.hpp>
 
 #include <boost/log/trivial.hpp>
 
@@ -160,7 +159,7 @@ bool DrainHole::get_intersections(const Vec3f& s, const Vec3f& dir,
     const Eigen::ParametrizedLine<float, 3> ray(s, dir.normalized());
 
     for (size_t i=0; i<2; ++i)
-        out[i] = std::make_pair(sla::EigenMesh3D::hit_result::infty(), Vec3d::Zero());
+        out[i] = std::make_pair(sla::IndexedMesh::hit_result::infty(), Vec3d::Zero());
 
     const float sqr_radius = pow(radius, 2.f);
 
