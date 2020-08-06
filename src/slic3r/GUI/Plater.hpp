@@ -45,6 +45,7 @@ class ObjectLayers;
 class ObjectList;
 class GLCanvas3D;
 class Mouse3DController;
+class NotificationManager;
 struct Camera;
 class Bed3D;
 class GLToolbar;
@@ -95,8 +96,9 @@ public:
     bool                    show_reslice(bool show) const;
 	bool                    show_export(bool show) const;
 	bool                    show_send(bool show) const;
-    bool                    show_disconnect(bool show)const;
+    bool                    show_eject(bool show)const;
 	bool                    show_export_removable(bool show) const;
+	bool                    get_eject_shown() const;
     bool                    is_multifilament();
     void                    update_mode();
     bool                    is_collapsed();
@@ -303,6 +305,9 @@ public:
     Mouse3DController& get_mouse3d_controller();
 
 	void set_bed_shape() const;
+    
+	const NotificationManager* get_notification_manager() const;
+	NotificationManager* get_notification_manager();
 
     // ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
 	class SuppressSnapshots

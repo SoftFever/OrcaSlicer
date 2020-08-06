@@ -544,7 +544,7 @@ private:
 
 bool is_zero_elevation(const SLAPrintObjectConfig &c);
 
-sla::SupportConfig make_support_cfg(const SLAPrintObjectConfig& c);
+sla::SupportTreeConfig make_support_cfg(const SLAPrintObjectConfig& c);
 
 sla::PadConfig::EmbedObject builtin_pad_cfg(const SLAPrintObjectConfig& c);
 

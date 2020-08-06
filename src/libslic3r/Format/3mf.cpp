@@ -1878,10 +1878,11 @@ namespace Slic3r {
             volume->calculate_convex_hull();
 
             // recreate custom supports from previously loaded attribute
-            assert(geometry.custom_supports.size() == triangles_count);
             for (unsigned i=0; i<triangles_count; ++i) {
-                if (! geometry.custom_supports[i].empty())
-                    volume->m_supported_facets.set_triangle_from_string(i, geometry.custom_supports[i]);
+                size_t index = src_start_id/3 + i;
+                assert(index < geometry.custom_supports.size());
+                if (! geometry.custom_supports[index].empty())
+                    volume->m_supported_facets.set_triangle_from_string(i, geometry.custom_supports[index]);
             }
 
             // apply the remaining volume's metadata

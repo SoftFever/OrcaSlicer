@@ -50,7 +50,7 @@ float SupportPointGenerator::distance_limit(float angle) const
 }*/
 
 SupportPointGenerator::SupportPointGenerator(
-        const sla::EigenMesh3D &emesh,
+        const sla::IndexedMesh &emesh,
         const std::vector<ExPolygons> &slices,
         const std::vector<float> &     heights,
         const Config &                 config,
@@ -64,7 +64,7 @@ SupportPointGenerator::SupportPointGenerator(
 }
 
 SupportPointGenerator::SupportPointGenerator(
-        const EigenMesh3D &emesh,
+        const IndexedMesh &emesh,
         const SupportPointGenerator::Config &config,
         std::function<void ()> throw_on_cancel, 
         std::function<void (int)> statusfn)
@@ -95,8 +95,8 @@ void SupportPointGenerator::project_onto_mesh(std::vector<sla::SupportPoint>& po
                     m_throw_on_cancel();
                 Vec3f& p = points[point_id].pos;
                 // Project the point upward and downward and choose the closer intersection with the mesh.
-                sla::EigenMesh3D::hit_result hit_up   = m_emesh.query_ray_hit(p.cast<double>(), Vec3d(0., 0., 1.));
-                sla::EigenMesh3D::hit_result hit_down = m_emesh.query_ray_hit(p.cast<double>(), Vec3d(0., 0., -1.));
+                sla::IndexedMesh::hit_result hit_up   = m_emesh.query_ray_hit(p.cast<double>(), Vec3d(0., 0., 1.));
+                sla::IndexedMesh::hit_result hit_down = m_emesh.query_ray_hit(p.cast<double>(), Vec3d(0., 0., -1.));
 
                 bool up   = hit_up.is_hit();
                 bool down = hit_down.is_hit();
@@ -104,7 +104,7 @@ void SupportPointGenerator::project_onto_mesh(std::vector<sla::SupportPoint>& po
                 if (!up && !down)
                     continue;
 
-                sla::EigenMesh3D::hit_result& hit = (!down || (hit_up.distance() < hit_down.distance())) ? hit_up : hit_down;
+                sla::IndexedMesh::hit_result& hit = (!down || (hit_up.distance() < hit_down.distance())) ? hit_up : hit_down;
                 p = p + (hit.distance() * hit.direction()).cast<float>();
             }
         });
@@ -523,15 +523,12 @@ void SupportPointGenerator::uniformly_cover(const ExPolygons& islands, Structure
     }
 }
 
-void remove_bottom_points(std::vector<SupportPoint> &pts, double gnd_lvl, double tolerance)
+void remove_bottom_points(std::vector<SupportPoint> &pts, float lvl)
 {
     // get iterator to the reorganized vector end
-    auto endit =
-        std::remove_if(pts.begin(), pts.end(),
-                       [tolerance, gnd_lvl](const sla::SupportPoint &sp) {
-        double diff = std::abs(gnd_lvl -
-                               double(sp.pos(Z)));
-        return diff <= tolerance;
+    auto endit = std::remove_if(pts.begin(), pts.end(), [lvl]
+                                (const sla::SupportPoint &sp) {
+        return sp.pos.z() <= lvl;
     });
 
     // erase all elements after the new end

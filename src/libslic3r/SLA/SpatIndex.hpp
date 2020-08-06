@@ -73,7 +73,7 @@ public:
     BoxIndex& operator=(BoxIndex&&);
     
     void insert(const BoxIndexEl&);
-    inline void insert(const BoundingBox& bb, unsigned idx)
+    void insert(const BoundingBox& bb, unsigned idx)
     {
         insert(std::make_pair(bb, unsigned(idx)));
     }
