@@ -715,6 +715,17 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
 }
 
 #if ENABLE_GCODE_VIEWER
+// free functions called by GCode::do_export()
+namespace DoExport {
+    static void update_print_estimated_times_stats(const GCodeProcessor& processor, PrintStatistics& print_statistics)
+    {
+        const GCodeProcessor::Result& result = processor.get_result();
+        print_statistics.estimated_normal_print_time = get_time_dhm(result.time_statistics.modes[static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Normal)].time);
+        print_statistics.estimated_silent_print_time = processor.is_stealth_time_estimator_enabled() ?
+            get_time_dhm(result.time_statistics.modes[static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Stealth)].time) : "N/A";
+    }
+} // namespace DoExport
+
 void GCode::do_export(Print* print, const char* path, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb)
 #else
 void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb)
@@ -777,6 +788,7 @@ void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_
 
 #if ENABLE_GCODE_VIEWER
     m_processor.process_file(path_tmp);
+    DoExport::update_print_estimated_times_stats(m_processor, print->m_print_statistics);
     if (result != nullptr)
         *result = std::move(m_processor.extract_result());
 #else

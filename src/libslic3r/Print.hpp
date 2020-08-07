@@ -303,9 +303,9 @@ private:
 struct PrintStatistics
 {
     PrintStatistics() { clear(); }
-#if !ENABLE_GCODE_VIEWER
     std::string                     estimated_normal_print_time;
     std::string                     estimated_silent_print_time;
+#if !ENABLE_GCODE_VIEWER
     std::vector<std::pair<CustomGCode::Type, std::string>>    estimated_normal_custom_gcode_print_times;
     std::vector<std::pair<CustomGCode::Type, std::string>>    estimated_silent_custom_gcode_print_times;
 #endif // !ENABLE_GCODE_VIEWER

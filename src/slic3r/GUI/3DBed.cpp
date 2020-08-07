@@ -147,6 +147,8 @@ void Bed3D::Axes::set_stem_length(float length)
 }
 #else
 Bed3D::Axes::Axes()
+: origin(Vec3d::Zero())
+, length(25.0 * Vec3d::Ones())
 {
     m_quadric = ::gluNewQuadric();
     if (m_quadric != nullptr)

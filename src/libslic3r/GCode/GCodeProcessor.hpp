@@ -317,6 +317,9 @@ namespace Slic3r {
         void apply_config(const PrintConfig& config);
         void apply_config(const DynamicPrintConfig& config);
         void enable_stealth_time_estimator(bool enabled);
+        bool is_stealth_time_estimator_enabled() const {
+            return m_time_processor.machines[static_cast<size_t>(ETimeMode::Stealth)].enabled;
+        }
         void enable_producers(bool enabled) { m_producers_enabled = enabled; }
         void reset();
 
