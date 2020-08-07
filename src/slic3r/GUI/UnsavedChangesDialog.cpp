@@ -2,11 +2,9 @@
 
 #include <cstddef>
 #include <string>
+#include <vector>
 #include <boost/algorithm/string.hpp>
 #include <boost/optional.hpp>
-#include <boost/nowide/convert.hpp>
-
-#include "wx/dataview.h"
 
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -15,8 +13,8 @@
 #include "Tab.hpp"
 #include "ObjectDataViewModel.hpp"
 
-#define FTS_FUZZY_MATCH_IMPLEMENTATION
-#include "fts_fuzzy_match.h"
+//#define FTS_FUZZY_MATCH_IMPLEMENTATION
+//#include "fts_fuzzy_match.h"
 
 #include "BitmapCache.hpp"
 
@@ -195,8 +193,10 @@ ModelNode* UnsavedChangesModel::AddOption(ModelNode* group_node, wxString option
 {
     ModelNode* option = new ModelNode(group_node, option_name, old_value, new_value);
     group_node->Append(option);
-    ItemAdded(wxDataViewItem((void*)group_node), wxDataViewItem((void*)option));
+    wxDataViewItem group_item = wxDataViewItem((void*)group_node);
+    ItemAdded(group_item, wxDataViewItem((void*)option));
 
+    m_ctrl->Expand(group_item);
     return option;
 }
 
@@ -204,9 +204,7 @@ ModelNode* UnsavedChangesModel::AddOptionWithGroup(ModelNode* category_node, wxS
 {
     ModelNode* group_node = new ModelNode(category_node, group_name);
     category_node->Append(group_node);
-    wxDataViewItem group_item = wxDataViewItem((void*)group_node);
-    ItemAdded(wxDataViewItem((void*)category_node), group_item);
-    m_ctrl->Expand(group_item);
+    ItemAdded(wxDataViewItem((void*)category_node), wxDataViewItem((void*)group_node));
 
     return AddOption(group_node, option_name, old_value, new_value);
 }
@@ -435,15 +433,18 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type)
     int border = 10;
     int em = em_unit();
 
-    m_tree       = new wxDataViewCtrl(this, wxID_ANY, wxDefaultPosition, wxSize(em * 80, em * 30), wxBORDER_SIMPLE | wxDV_VARIABLE_LINE_HEIGHT);
+    m_tree       = new wxDataViewCtrl(this, wxID_ANY, wxDefaultPosition, wxSize(em * 80, em * 30), wxBORDER_SIMPLE | wxDV_VARIABLE_LINE_HEIGHT | wxDV_ROW_LINES);
     m_tree_model = new UnsavedChangesModel(this);
     m_tree->AssociateModel(m_tree_model);
     m_tree_model->SetAssociatedControl(m_tree);
 
-    m_tree->AppendToggleColumn(L"\u2714", UnsavedChangesModel::colToggle, wxDATAVIEW_CELL_ACTIVATABLE, 6 * em);//2610,11,12 //2714
-    m_tree->AppendColumn(new wxDataViewColumn("",           new BitmapTextRenderer(true), UnsavedChangesModel::colIconText, 30 * em, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE));
+    m_tree->AppendToggleColumn(L"\u2714", UnsavedChangesModel::colToggle, wxDATAVIEW_CELL_ACTIVATABLE/*, 6 * em*/);//2610,11,12 //2714
+    wxDataViewColumn* icon_text_clmn = new wxDataViewColumn("",           new BitmapTextRenderer(true), UnsavedChangesModel::colIconText, 30 * em, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE);
+    m_tree->AppendColumn(icon_text_clmn);
     m_tree->AppendColumn(new wxDataViewColumn("Old value",  new BitmapTextRenderer(true), UnsavedChangesModel::colOldValue, 20 * em, wxALIGN_TOP));
     m_tree->AppendColumn(new wxDataViewColumn("New value",  new BitmapTextRenderer(true), UnsavedChangesModel::colNewValue, 20 * em, wxALIGN_TOP));
+
+    m_tree->SetExpanderColumn(icon_text_clmn);
 
     m_tree->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, &UnsavedChangesDialog::item_value_changed, this);
 
@@ -498,11 +499,25 @@ void UnsavedChangesDialog::close(Action action)
 }
 
 template<class T>
-wxString get_string_from_enum(const std::string& opt_key, const DynamicPrintConfig& config)
+wxString get_string_from_enum(const std::string& opt_key, const DynamicPrintConfig& config, bool is_infill = false)
 {
-    const std::vector<std::string>& names = config.def()->options.at(opt_key).enum_labels;//ConfigOptionEnum<T>::get_enum_names();
+    const ConfigOptionDef& def = config.def()->options.at(opt_key);
+    const std::vector<std::string>& names = def.enum_labels;//ConfigOptionEnum<T>::get_enum_names();
     T val = config.option<ConfigOptionEnum<T>>(opt_key)->value;
-    return from_u8(_u8L(names[static_cast<int>(val)]));
+
+    // Each infill doesn't use all list of infill declared in PrintConfig.hpp.
+    // So we should "convert" val to the correct one
+    if (is_infill) {
+        for (auto key_val : *def.enum_keys_map)
+            if ((int)key_val.second == (int)val) {
+                auto it = std::find(def.enum_values.begin(), def.enum_values.end(), key_val.first);
+                if (it == def.enum_values.end())
+                    return "";
+                return from_u8(_utf8(names[it - def.enum_values.begin()]));
+            }
+        return _L("Undef");
+    }
+    return from_u8(_utf8(names[static_cast<int>(val)]));
 }
 
 static wxString get_string_value(const std::string& opt_key, const DynamicPrintConfig& config)
@@ -575,7 +590,7 @@ static wxString get_string_value(const std::string& opt_key, const DynamicPrintC
         if (opt_key == "top_fill_pattern" ||
             opt_key == "bottom_fill_pattern" ||
             opt_key == "fill_pattern")
-            return get_string_from_enum<InfillPattern>(opt_key, config);
+            return get_string_from_enum<InfillPattern>(opt_key, config, true);
         if (opt_key == "gcode_flavor")
             return get_string_from_enum<GCodeFlavor>(opt_key, config);
         if (opt_key == "ironing_type")

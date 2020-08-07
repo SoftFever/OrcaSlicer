@@ -1,18 +1,7 @@
 #ifndef slic3r_UnsavedChangesDialog_hpp_
 #define slic3r_UnsavedChangesDialog_hpp_
 
-#include <vector>
-#include <map>
-
-#include <wx/panel.h>
-#include <wx/sizer.h>
-#include <wx/listctrl.h>
 #include <wx/dataview.h>
-
-#include <wx/combo.h>
-
-#include <wx/checkbox.h>
-#include <wx/dialog.h>
 
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
