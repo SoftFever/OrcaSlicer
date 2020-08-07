@@ -179,7 +179,9 @@ void PresetComboBox::update(std::string select_preset_name)
 
     const std::deque<Preset>& presets = m_collection->get_presets();
 
-    std::map<wxString, std::pair<wxBitmap*, bool>> nonsys_presets;
+    std::map<wxString, std::pair<wxBitmap*, bool>>  nonsys_presets;
+    std::map<wxString, wxBitmap*>                   incomp_presets;
+
     wxString selected = "";
     if (!presets.front().is_visible)
         set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
@@ -206,15 +208,15 @@ void PresetComboBox::update(std::string select_preset_name)
         wxBitmap* bmp = get_bmp(bitmap_key, main_icon_name, "lock_closed", is_enabled, preset.is_compatible, preset.is_system || preset.is_default);
         assert(bmp);
 
-        if (preset.is_default || preset.is_system) {
-            int item_id = Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), *bmp);
-            if (!is_enabled)
-                set_label_marker(item_id, LABEL_ITEM_DISABLED);
+        if (!is_enabled)
+            incomp_presets.emplace(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), bmp);
+        else if (preset.is_default || preset.is_system)
+        {
+            Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), *bmp);
             validate_selection(preset.name == select_preset_name);
         }
         else
         {
-            std::pair<wxBitmap*, bool> pair(bmp, is_enabled);
             nonsys_presets.emplace(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), std::pair<wxBitmap*, bool>(bmp, is_enabled));
             if (preset.name == select_preset_name || (select_preset_name.empty() && is_enabled))
                 selected = wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str());
@@ -231,6 +233,13 @@ void PresetComboBox::update(std::string select_preset_name)
             if (!is_enabled)
                 set_label_marker(item_id, LABEL_ITEM_DISABLED);
             validate_selection(it->first == selected);
+        }
+    }
+    if (!incomp_presets.empty())
+    {
+        set_label_marker(Append(separator(L("Incompatible presets")), wxNullBitmap));
+        for (std::map<wxString, wxBitmap*>::iterator it = incomp_presets.begin(); it != incomp_presets.end(); ++it) {
+            set_label_marker(Append(it->first, *it->second), LABEL_ITEM_DISABLED);
         }
     }
 
@@ -1054,6 +1063,11 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string& suffix, wxBox
         m_combo->Append(from_u8(value));
 
     m_combo->Bind(wxEVT_TEXT, [this](wxCommandEvent&) { update(); });
+#ifdef __WXOSX__
+    // Under OSX wxEVT_TEXT wasn't invoked after change selection in combobox,
+    // So process wxEVT_COMBOBOX too
+    m_combo->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { update(); });
+#endif //__WXOSX__
 
     m_valid_label = new wxStaticText(m_parent, wxID_ANY, "");
     m_valid_label->SetFont(wxGetApp().bold_font());
