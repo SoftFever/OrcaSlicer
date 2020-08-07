@@ -159,13 +159,13 @@ wxSize BitmapTextRenderer::GetSize() const
                 dc.SetFont(GetAttr().GetEffectiveFont(view->GetFont()));
 
             size = m_markupText->Measure(dc);
+
+            int lines = m_value.GetText().Freq('\n') + 1;
+            size.SetHeight(size.GetHeight() * lines);
         }
         else
 #endif // SUPPORTS_MARKUP && wxHAS_GENERIC_DATAVIEWCTRL
             size = GetTextExtent(m_value.GetText());
-
-        int lines = m_value.GetText().Freq('\n') + 1;
-        size.SetHeight(size.GetHeight() * lines);
 
         if (m_value.GetBitmap().IsOk())
             size.x += m_value.GetBitmap().GetWidth() + 4;
