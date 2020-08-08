@@ -44,6 +44,7 @@
 #include "libslic3r/Format/OBJ.hpp"
 #include "libslic3r/Format/SL1.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/AppConfig.hpp" 
 
 #include "PrusaSlicer.hpp"
 
@@ -52,7 +53,6 @@
     #include "slic3r/GUI/GUI_App.hpp"
     #include "slic3r/GUI/3DScene.hpp"
     #include "slic3r/GUI/InstanceCheck.hpp" 
-    #include "slic3r/GUI/AppConfig.hpp" 
     #include "slic3r/GUI/MainFrame.hpp"
     #include "slic3r/GUI/Plater.hpp"
 #endif /* SLIC3R_GUI */

@@ -1,7 +1,7 @@
 #include <cassert>
 
 #include "Preset.hpp"
-#include "slic3r/GUI/AppConfig.hpp"
+#include "AppConfig.hpp"
 
 #ifdef _MSC_VER
     #define WIN32_LEAN_AND_MEAN

@@ -151,6 +151,8 @@ add_library(libslic3r STATIC
     Preset.hpp
     PresetBundle.cpp
     PresetBundle.hpp
+    AppConfig.cpp
+    AppConfig.hpp
     Print.cpp
     Print.hpp
     PrintBase.cpp

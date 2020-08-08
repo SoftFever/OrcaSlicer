@@ -1,8 +1,8 @@
 #include "libslic3r/libslic3r.h"
+#include "libslic3r/AppConfig.hpp"
 
 #include "Camera.hpp"
 #include "GUI_App.hpp"
-#include "AppConfig.hpp"
 #if ENABLE_CAMERA_STATISTICS
 #include "Mouse3DController.hpp"
 #endif // ENABLE_CAMERA_STATISTICS

@@ -12,8 +12,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/SysInfoDialog.hpp
     GUI/KBShortcutsDialog.cpp
     GUI/KBShortcutsDialog.hpp
-    GUI/AppConfig.cpp
-    GUI/AppConfig.hpp
     GUI/BackgroundSlicingProcess.cpp
     GUI/BackgroundSlicingProcess.hpp
     GUI/BitmapCache.cpp
