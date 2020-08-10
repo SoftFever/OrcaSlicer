@@ -42,14 +42,14 @@ static std::string orange   = "#ed6b21";
 
 static void color_string(wxString& str, const std::string& color)
 {
-#if defined(SUPPORTS_MARKUP) && defined(wxHAS_GENERIC_DATAVIEWCTRL)
+#if defined(SUPPORTS_MARKUP) && /*!defined(__APPLE__)*/defined(wxHAS_GENERIC_DATAVIEWCTRL)
     str = from_u8((boost::format("<span color=\"%1%\">%2%</span>") % color % into_u8(str)).str());
 #endif
 }
 
 static void make_string_bold(wxString& str)
 {
-#if defined(SUPPORTS_MARKUP) && defined(wxHAS_GENERIC_DATAVIEWCTRL)
+#if defined(SUPPORTS_MARKUP) && !defined(__APPLE__)//defined(wxHAS_GENERIC_DATAVIEWCTRL)
     str = from_u8((boost::format("<b>%1%</b>") % into_u8(str)).str());
 #endif
 }
@@ -60,7 +60,11 @@ ModelNode::ModelNode(Preset::Type preset_type, const wxString& text) :
     m_preset_type(preset_type),
     m_text(text)
 {
+#ifdef __linux__
+    m_icon.CopyFromBitmap(create_scaled_bitmap(type_icon_names.at(preset_type)));
+#else
     m_icon = create_scaled_bitmap(type_icon_names.at(preset_type));
+#endif //__linux__
 }
 
 // group node
@@ -68,7 +72,11 @@ ModelNode::ModelNode(ModelNode* parent, const wxString& text, const std::string&
     m_parent(parent),
     m_text(text)
 {
+#ifdef __linux__
+    m_icon.CopyFromBitmap(create_scaled_bitmap(icon_name));
+#else
     m_icon = create_scaled_bitmap(icon_name);
+#endif //__linux__
 }
 
 // category node
@@ -300,7 +308,11 @@ void UnsavedChangesModel::GetValue(wxVariant& variant, const wxDataViewItem& ite
         variant = node->m_toggle;
         break;
     case colIconText:
+#ifdef __linux__
+        variant << wxDataViewIconText(node->m_text, node->m_icon);
+#else
         variant << DataViewBitmapText(node->m_text, node->m_icon);
+#endif //__linux__
         break;
     case colOldValue:
         variant << DataViewBitmapText(node->m_old_value, node->m_old_color_bmp);
@@ -322,10 +334,18 @@ bool UnsavedChangesModel::SetValue(const wxVariant& variant, const wxDataViewIte
     switch (col)
     {
     case colIconText: {
+#ifdef __linux__
+        wxDataViewIconText data;
+#else
         DataViewBitmapText data;
+#endif //__linux__
         data << variant;
-        node->m_icon = data.GetBitmap();
         node->m_text = data.GetText();
+#ifdef __linux__
+        node->m_icon = data.GetIcon();
+#else
+        node->m_icon = data.GetBitmap();
+#endif //__linux__
         return true; }
     case colToggle:
         node->m_toggle = variant.GetBool();
@@ -439,7 +459,16 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type)
     m_tree_model->SetAssociatedControl(m_tree);
 
     m_tree->AppendToggleColumn(L"\u2714", UnsavedChangesModel::colToggle, wxDATAVIEW_CELL_ACTIVATABLE/*, 6 * em*/);//2610,11,12 //2714
-    wxDataViewColumn* icon_text_clmn = new wxDataViewColumn("",           new BitmapTextRenderer(true), UnsavedChangesModel::colIconText, 30 * em, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE);
+
+#ifdef __linux__
+    wxDataViewIconTextRenderer* rd = new wxDataViewIconTextRenderer();
+#ifdef SUPPORTS_MARKUP
+    rd->EnableMarkup(true);
+#endif
+    wxDataViewColumn* icon_text_clmn = new wxDataViewColumn("", rd, UnsavedChangesModel::colIconText, 30 * em, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_CELL_INERT);
+#else
+    wxDataViewColumn* icon_text_clmn = new wxDataViewColumn("", new BitmapTextRenderer(true), UnsavedChangesModel::colIconText, 30 * em, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE);
+#endif //__linux__
     m_tree->AppendColumn(icon_text_clmn);
     m_tree->AppendColumn(new wxDataViewColumn("Old value",  new BitmapTextRenderer(true), UnsavedChangesModel::colOldValue, 20 * em, wxALIGN_TOP));
     m_tree->AppendColumn(new wxDataViewColumn("New value",  new BitmapTextRenderer(true), UnsavedChangesModel::colNewValue, 20 * em, wxALIGN_TOP));

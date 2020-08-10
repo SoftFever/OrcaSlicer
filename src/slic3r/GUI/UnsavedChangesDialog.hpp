@@ -18,6 +18,12 @@ namespace GUI{
 class ModelNode;
 WX_DEFINE_ARRAY_PTR(ModelNode*, ModelNodePtrArray);
 
+// On all of 3 different platforms Bitmap+Text icon column looks different 
+// because of Markup text is missed or not implemented.
+// As a temporary workaround, we will use:
+// MSW - DataViewBitmapText (our custom renderer wxBitmap + wxString, supported Markup text)
+// OSX - -//-, but Markup text is not implemented right now
+// GTK - wxDataViewIconText (wxWidgets for GTK renderer wxIcon + wxString, supported Markup text)
 class ModelNode
 {
     wxWindow* m_parent_win{ nullptr };
@@ -47,7 +53,11 @@ class ModelNode
 public:
 
     bool        m_toggle {true};
+#ifdef __linux__
+    wxIcon      m_icon;
+#else
     wxBitmap    m_icon;
+#endif //__linux__
     wxBitmap    m_old_color_bmp;
     wxBitmap    m_new_color_bmp;
     wxString    m_text;
