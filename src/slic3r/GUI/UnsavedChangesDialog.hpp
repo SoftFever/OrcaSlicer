@@ -9,8 +9,10 @@
 #include "wxExtensions.hpp"
 #include "libslic3r/Preset.hpp"
 
-namespace Slic3r {
+class ScalableButton;
+class wxStaticText;
 
+namespace Slic3r {
 namespace GUI{
 
 // ----------------------------------------------------------------------------
@@ -185,7 +187,13 @@ class UnsavedChangesDialog : public DPIDialog
     wxDataViewCtrl*         m_tree          { nullptr };
     UnsavedChangesModel*    m_tree_model    { nullptr };
 
+    ScalableButton*         m_save_btn      { nullptr };
+    ScalableButton*         m_move_btn      { nullptr };
+    ScalableButton*         m_continue_btn  { nullptr };
+    wxStaticText*           m_info_line     { nullptr };
+
     bool                    m_empty_selection   { false };
+    bool                    m_has_long_strings  { false };
     int                     m_save_btn_id       { wxID_ANY };
     int                     m_move_btn_id       { wxID_ANY };
     int                     m_continue_btn_id   { wxID_ANY };
@@ -195,28 +203,57 @@ class UnsavedChangesDialog : public DPIDialog
         Save,
         Move,
         Continue
-    } m_action {Action::Undef};
+    };
 
+    // selected action after Dialog closing
+    Action m_exit_action {Action::Undef};
 
-    std::map<wxDataViewItem, std::string> m_items_map;
+    // Action during mouse motion
+    Action m_motion_action {Action::Undef};
+
+    struct ItemData
+    {
+        std::string opt_key;
+        wxString    opt_name;
+        wxString    old_val;
+        wxString    new_val;
+        bool        is_long {false};
+    };
+    // tree items related to the options
+    std::map<wxDataViewItem, ItemData> m_items_map;
 
 public:
-    UnsavedChangesDialog(Preset::Type type);
+    UnsavedChangesDialog(Preset::Type type, const std::string& new_selected_preset);
     ~UnsavedChangesDialog() {}
+
+    wxString get_short_string(wxString full_string);
 
     void update(Preset::Type type);
     void item_value_changed(wxDataViewEvent &event);
+    void context_menu(wxDataViewEvent &event);
+    void show_info_line(Action action, std::string preset_name = "");
     void close(Action action);
 
-    bool save_preset() const    { return m_action == Action::Save;      }
-    bool move_preset() const    { return m_action == Action::Move;      }
-    bool just_continue() const  { return m_action == Action::Continue;  }
+    bool save_preset() const    { return m_exit_action == Action::Save;      }
+    bool move_preset() const    { return m_exit_action == Action::Move;      }
+    bool just_continue() const  { return m_exit_action == Action::Continue;  }
 
     std::vector<std::string> get_selected_options();
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
     void on_sys_color_changed() override;
+};
+
+
+//------------------------------------------
+//          FullCompareDialog
+//------------------------------------------
+class FullCompareDialog : public wxDialog
+{
+public:
+    FullCompareDialog(const wxString& option_name, const wxString& old_value, const wxString& new_value);
+    ~FullCompareDialog() {}
 };
 
 

@@ -11,7 +11,8 @@
 #include "GUI_App.hpp"
 #include "Plater.hpp"
 #include "Tab.hpp"
-#include "ObjectDataViewModel.hpp"
+#include "ExtraRenderers.hpp"
+#include "wxExtensions.hpp"
 
 //#define FTS_FUZZY_MATCH_IMPLEMENTATION
 //#include "fts_fuzzy_match.h"
@@ -104,14 +105,12 @@ wxBitmap ModelNode::get_bitmap(const wxString& color)
     unsigned char rgb[3];
     BitmapCache::parse_color(into_u8(color), rgb);
     // there is no need to scale created solid bitmap
-    wxBitmap bmp = bmp_cache.mksolid(icon_width, icon_height, rgb, true);
-
-#ifdef __linux__
-    wxIcon icon;
-    icon.CopyFromBitmap(create_scaled_bitmap(icon_name));
-    return icon;
+#ifndef __linux__
+    return bmp_cache.mksolid(icon_width, icon_height, rgb, true);
 #else
-    return bmp;
+    wxIcon icon;
+    icon.CopyFromBitmap(bmp_cache.mksolid(icon_width, icon_height, rgb, true));
+    return icon;
 #endif // __linux__
 }
 
@@ -484,7 +483,7 @@ wxString UnsavedChangesModel::GetColumnType(unsigned int col) const
 //          UnsavedChangesDialog
 //------------------------------------------
 
-UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type)
+UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, const std::string& new_selected_preset)
     : DPIDialog(nullptr, wxID_ANY, _L("Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
@@ -516,6 +515,8 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type)
 //    m_tree->SetExpanderColumn(icon_text_clmn);
 
     m_tree->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, &UnsavedChangesDialog::item_value_changed, this);
+    m_tree->Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU,  &UnsavedChangesDialog::context_menu, this);
+    m_tree->Bind(wxEVT_MOTION, [this](wxMouseEvent& e) { show_info_line(Action::Undef);  e.Skip(); });
 
     wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxCANCEL);
 
@@ -525,30 +526,41 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type)
     PresetCollection* presets = tab->get_presets();
 
     wxString label= from_u8((boost::format(_u8L("Save selected to preset:%1%"))% ("\"" + presets->get_selected_preset().name + "\"")).str());
-    auto save_btn = new wxButton(this, m_save_btn_id = NewControlId(), label);
-    buttons->Insert(0, save_btn, 0, wxLEFT, 5);
+    m_save_btn = new ScalableButton(this, m_save_btn_id = NewControlId(), "save", label, wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true);
+    buttons->Insert(0, m_save_btn, 0, wxLEFT, 5);
 
-    save_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { close(Action::Save); });
-    save_btn->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(!m_empty_selection); });
+    m_save_btn->Bind(wxEVT_BUTTON,    [this](wxEvent&)                { close(Action::Save); });
+    m_save_btn->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt)    { evt.Enable(!m_empty_selection); });
+    m_save_btn->Bind(wxEVT_MOTION,    [this, presets](wxMouseEvent& e){ show_info_line(Action::Save, presets->get_selected_preset().name); e.Skip(); });
 
-    label = from_u8((boost::format(_u8L("Move selected to preset:%1%"))% ("\"NewSelectedPreset\"")).str());
-    auto move_btn = new wxButton(this, m_move_btn_id = NewControlId(), label);
-    buttons->Insert(1, move_btn, 0, wxLEFT, 5);
+    label = from_u8((boost::format(_u8L("Move selected to preset:%1%"))% ("\"" + from_u8(new_selected_preset) + "\"")).str());
+    m_move_btn = new ScalableButton(this, m_move_btn_id = NewControlId(), "paste_menu", label, wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true);
+    buttons->Insert(1, m_move_btn, 0, wxLEFT, 5);
 
-    move_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { close(Action::Move); });
-    move_btn->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(!m_empty_selection); });
+    m_move_btn->Bind(wxEVT_BUTTON,    [this](wxEvent&)                            { close(Action::Move); });
+    m_move_btn->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt)                { evt.Enable(!m_empty_selection); });
+    m_move_btn->Bind(wxEVT_MOTION,    [this, new_selected_preset](wxMouseEvent& e){ show_info_line(Action::Move, new_selected_preset); e.Skip(); });
 
-    auto continue_btn = new wxButton(this, m_continue_btn_id = NewControlId(), _L("Continue without changes"));
-    continue_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { close(Action::Continue); });
-    buttons->Insert(2, continue_btn, 0, wxLEFT, 5);
+    label = _L("Continue without changes");
+    m_continue_btn = new ScalableButton(this, m_continue_btn_id = NewControlId(), "cross", label, wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true);
+    buttons->Insert(2, m_continue_btn, 0, wxLEFT, 5);
+    m_continue_btn->Bind(wxEVT_BUTTON, [this](wxEvent&)       { close(Action::Continue); });
+    m_continue_btn->Bind(wxEVT_MOTION, [this](wxMouseEvent& e){ show_info_line(Action::Continue); e.Skip(); });
+
+    m_info_line = new wxStaticText(this, wxID_ANY, "");
+    m_info_line->SetFont(wxGetApp().bold_font());
+    m_info_line->Hide();
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
-    topSizer->Add(new wxStaticText(this, wxID_ANY, _L("There is unsaved changes for") + (": \"" + tab->title() + "\"")), 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
+    topSizer->Add(new wxStaticText(this, wxID_ANY, _L("There are unsaved changes for") + (": \"" + tab->title() + "\"")), 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
     topSizer->Add(m_tree, 1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
+    topSizer->Add(m_info_line, 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, 2*border);
     topSizer->Add(buttons, 0, wxEXPAND | wxALL, border);
 
     update(type);
+
+    this->Bind(wxEVT_MOTION, [this](wxMouseEvent& e) { show_info_line(Action::Undef);  e.Skip(); });
 
     SetSizer(topSizer);
     topSizer->SetSizeHints(this);
@@ -568,9 +580,61 @@ void UnsavedChangesDialog::item_value_changed(wxDataViewEvent& event)
     m_empty_selection = get_selected_options().empty();
 }
 
+void UnsavedChangesDialog::context_menu(wxDataViewEvent& event)
+{
+    if (!m_has_long_strings)
+        return;
+
+    wxDataViewItem item = event.GetItem();
+    if (!item)
+    {
+        wxPoint mouse_pos = wxGetMousePosition() - m_tree->GetScreenPosition();
+        wxDataViewColumn* col = nullptr;
+        m_tree->HitTest(mouse_pos, item, col);
+
+        if (!item)
+            item = m_tree->GetSelection();
+
+        if (!item)
+            return;
+    }
+
+    auto it = m_items_map.find(item);
+    if (it == m_items_map.end() || !it->second.is_long)
+        return;
+    FullCompareDialog(it->second.opt_name, it->second.old_val, it->second.new_val).ShowModal();
+}
+
+void UnsavedChangesDialog::show_info_line(Action action, std::string preset_name)
+{
+    if (m_motion_action == action)
+        return;
+    if (action == Action::Undef && !m_has_long_strings)
+        m_info_line->Hide();
+    else {
+        wxString text;
+        if (action == Action::Undef)
+            text = _L("Some fields are too long to fit. Right click on it to show full text.");
+        else if (action == Action::Continue)
+            text = _L("All changed options will be reverted.");
+        else {
+            std::string act_string = action == Action::Save ? _u8L("saved") : _u8L("moved");
+            text = from_u8((boost::format("After press this button selected options will be %1% to the preset \"%2%\".") % act_string % preset_name).str());
+            text += "\n" + _L("Unselected options will be reverted.");
+        }
+        m_info_line->SetLabel(text);
+        m_info_line->Show();
+    }
+
+    m_motion_action = action;
+
+    Layout();
+    Refresh();
+}
+
 void UnsavedChangesDialog::close(Action action)
 {
-    m_action = action;
+    m_exit_action = action;
     this->EndModal(wxID_CLOSE);
 }
 
@@ -698,6 +762,23 @@ static wxString get_string_value(const std::string& opt_key, const DynamicPrintC
     return out;
 }
 
+wxString UnsavedChangesDialog::get_short_string(wxString full_string)
+{
+    int max_len = 30;
+    if (full_string.IsEmpty() || full_string.StartsWith("#") || 
+        (full_string.Find("\n") == wxNOT_FOUND && full_string.Length() < max_len))
+        return full_string;
+
+    m_has_long_strings = true;
+
+    int n_pos = full_string.Find("\n");
+    if (n_pos != wxNOT_FOUND && n_pos < max_len)
+        max_len = n_pos;
+
+    full_string.Truncate(max_len);
+    return full_string + dots;
+}
+
 void UnsavedChangesDialog::update(Preset::Type type)
 {
     Tab* tab = wxGetApp().get_tab(type);
@@ -717,8 +798,14 @@ void UnsavedChangesDialog::update(Preset::Type type)
     for (const std::string& opt_key : presets->current_dirty_options()) {
         const Search::Option& option = searcher.get_option(opt_key);
 
-        m_items_map.emplace(m_tree_model->AddOption(type, option.category_local, option.group_local, option.label_local,
-            get_string_value(opt_key, old_config), get_string_value(opt_key, new_config)), opt_key);
+        ItemData item_data = { opt_key, option.label_local, get_string_value(opt_key, old_config), get_string_value(opt_key, new_config) };
+
+        wxString old_val = get_short_string(item_data.old_val);
+        wxString new_val = get_short_string(item_data.new_val);
+        if (old_val != item_data.old_val || new_val != item_data.new_val)
+            item_data.is_long = true;
+
+        m_items_map.emplace(m_tree_model->AddOption(type, option.category_local, option.group_local, option.label_local, old_val, new_val), item_data);
     }
 }
 
@@ -727,10 +814,9 @@ std::vector<std::string> UnsavedChangesDialog::get_selected_options()
 {
     std::vector<std::string> ret;
 
-    for (auto item : m_items_map) {
+    for (auto item : m_items_map)
         if (m_tree_model->IsEnabledItem(item.first))
-            ret.emplace_back(item.second);
-    }
+            ret.emplace_back(item.second.opt_key);
 
     return ret;
 }
@@ -754,6 +840,58 @@ void UnsavedChangesDialog::on_sys_color_changed()
 //    m_tree_model->msw_rescale();
 
     Refresh();
+}
+
+
+//------------------------------------------
+//          FullCompareDialog
+//------------------------------------------
+
+FullCompareDialog::FullCompareDialog(const wxString& option_name, const wxString& old_value, const wxString& new_value)
+    : wxDialog(nullptr, wxID_ANY, option_name, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+{
+    wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+    SetBackgroundColour(bgr_clr);
+
+    int border = 10;
+
+    wxStaticBoxSizer* sizer = new wxStaticBoxSizer(wxVERTICAL, this);
+
+    wxFlexGridSizer* grid_sizer = new wxFlexGridSizer(2, 2, 1, 0);
+    grid_sizer->SetFlexibleDirection(wxBOTH);
+    grid_sizer->AddGrowableCol(0,1);
+    grid_sizer->AddGrowableCol(1,1);
+    grid_sizer->AddGrowableRow(1,1);
+
+    auto add_header = [grid_sizer, border, this](wxString label) {
+        wxStaticText* text = new wxStaticText(this, wxID_ANY, label);
+        text->SetFont(wxGetApp().bold_font());
+        grid_sizer->Add(text, 0, wxALL, border);
+    };
+
+    auto add_value = [grid_sizer, border, this](wxString label, bool is_colored = false) {
+        wxTextCtrl* text = new wxTextCtrl(this, wxID_ANY, label, wxDefaultPosition, wxSize(300, -1), wxTE_MULTILINE | wxTE_READONLY | wxBORDER_NONE);
+        if (is_colored)
+            text->SetForegroundColour(wxColour(orange));
+        grid_sizer->Add(text, 1, wxALL | wxEXPAND, border);
+    };
+
+    add_header(_L("Old value"));
+    add_header(_L("New value"));
+    add_value(old_value);
+    add_value(new_value, true);
+
+    sizer->Add(grid_sizer, 1, wxEXPAND);
+
+    wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxOK);
+
+    wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
+
+    topSizer->Add(sizer,   1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
+    topSizer->Add(buttons, 0, wxEXPAND | wxALL, border);
+
+    SetSizer(topSizer);
+    topSizer->SetSizeHints(this);
 }
 
 

@@ -782,9 +782,11 @@ ScalableButton::ScalableButton( wxWindow *          parent,
                                 const wxString&     label /* = wxEmptyString*/,
                                 const wxSize&       size /* = wxDefaultSize*/,
                                 const wxPoint&      pos /* = wxDefaultPosition*/,
-                                long                style /*= wxBU_EXACTFIT | wxNO_BORDER*/) :
+                                long                style /*= wxBU_EXACTFIT | wxNO_BORDER*/,
+                                bool                use_default_disabled_bitmap/* = false*/) :
+    m_parent(parent),
     m_current_icon_name(icon_name),
-    m_parent(parent)
+    m_use_default_disabled_bitmap (use_default_disabled_bitmap)
 {
     Create(parent, id, label, pos, size, style);
 #ifdef __WXMSW__
@@ -793,6 +795,8 @@ ScalableButton::ScalableButton( wxWindow *          parent,
 #endif // __WXMSW__
 
     SetBitmap(create_scaled_bitmap(icon_name, parent));
+    if (m_use_default_disabled_bitmap)
+        SetBitmapDisabled(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt, true));
 
     if (size != wxDefaultSize)
     {
@@ -842,11 +846,19 @@ int ScalableButton::GetBitmapHeight()
 #endif
 }
 
+void ScalableButton::UseDefaultBitmapDisabled()
+{
+    m_use_default_disabled_bitmap = true;
+    SetBitmapDisabled(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt, true));
+}
+
 void ScalableButton::msw_rescale()
 {
     SetBitmap(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt));
     if (!m_disabled_icon_name.empty())
         SetBitmapDisabled(create_scaled_bitmap(m_disabled_icon_name, m_parent, m_px_cnt));
+    else if (m_use_default_disabled_bitmap)
+        SetBitmapDisabled(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt, true));
 
     if (m_width > 0 || m_height>0)
     {

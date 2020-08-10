@@ -2990,7 +2990,7 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
     bool canceled      = false;
     bool technology_changed = false;
     m_dependent_tabs.clear();
-    if (current_dirty && ! may_discard_current_dirty_preset()) {
+    if (current_dirty && ! may_discard_current_dirty_preset(nullptr, preset_name)) {
         canceled = true;
     } else if (print_tab) {
         // Before switching the print profile to a new one, verify, whether the currently active filament or SLA material
@@ -3132,7 +3132,7 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
 // if the current preset was not dirty, or the user agreed to discard the changes, 1 is returned.
 bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr*/, const std::string& new_printer_name /*= ""*/)
 {
-    UnsavedChangesDialog dlg(m_type);
+    UnsavedChangesDialog dlg(m_type, new_printer_name);
     if (dlg.ShowModal() == wxID_CANCEL)
         return false;
     if (dlg.just_continue())

@@ -210,7 +210,8 @@ public:
         const wxString&     label = wxEmptyString,
         const wxSize&       size = wxDefaultSize,
         const wxPoint&      pos = wxDefaultPosition,
-        long                style = wxBU_EXACTFIT | wxNO_BORDER);
+        long                style = wxBU_EXACTFIT | wxNO_BORDER,
+        bool                use_default_disabled_bitmap = false);
 
     ScalableButton(
         wxWindow *          parent,
@@ -224,6 +225,7 @@ public:
     void SetBitmap_(const ScalableBitmap& bmp);
     void SetBitmapDisabled_(const ScalableBitmap &bmp);
     int  GetBitmapHeight();
+    void UseDefaultBitmapDisabled();
 
     void    msw_rescale();
 
@@ -233,6 +235,8 @@ private:
     std::string     m_disabled_icon_name;
     int             m_width {-1}; // should be multiplied to em_unit
     int             m_height{-1}; // should be multiplied to em_unit
+
+    bool            m_use_default_disabled_bitmap {false};
 
     // bitmap dimensions 
     int             m_px_cnt{ 16 };
