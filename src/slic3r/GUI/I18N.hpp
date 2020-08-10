@@ -12,7 +12,7 @@
 
 #ifndef L
 // !!! If you needed to translate some wxString,
-// !!! please use _(L(string))
+// !!! please use _L(string)
 // !!! _() - is a standard wxWidgets macro to translate
 // !!! L() is used only for marking localizable string 
 // !!! It will be used in "xgettext" to create a Locating Message Catalog.

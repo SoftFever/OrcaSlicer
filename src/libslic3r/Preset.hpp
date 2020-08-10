@@ -8,26 +8,13 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/property_tree/ptree_fwd.hpp>
 
-#include "libslic3r/libslic3r.h"
-#include "libslic3r/PrintConfig.hpp"
-#include "libslic3r/Semver.hpp"
-
-class wxBitmap;
-class wxBitmapComboBox;
-class wxChoice;
-class wxItemContainer;
-class wxString;
-class wxWindow;
+#include "PrintConfig.hpp"
+#include "Semver.hpp"
 
 namespace Slic3r {
 
 class AppConfig;
 class PresetBundle;
-
-namespace GUI {
-	class BitmapCache;
-    class PresetComboBox;
-}
 
 enum ConfigFileType
 {
@@ -236,7 +223,7 @@ public:
     static const std::vector<std::string>&  sla_material_options();
     static const std::vector<std::string>&  sla_print_options();
 
-	static void                             update_suffix_modified();
+	static void                             update_suffix_modified(const std::string& new_suffix_modified);
     static const std::string&               suffix_modified();
     static std::string                      remove_suffix_modified(const std::string& name);
     static void                             normalize(DynamicPrintConfig &config);
@@ -321,18 +308,6 @@ public:
     // Delete the current preset, activate the first visible preset.
     // returns true if the preset was deleted successfully.
     bool            delete_preset(const std::string& name);
-
-    // Load default bitmap to be placed at the wxBitmapComboBox of a MainFrame.
-    void            load_bitmap_default(const std::string &file_name);
-
-    // Load "add new printer" bitmap to be placed at the wxBitmapComboBox of a MainFrame.
-    void            load_bitmap_add(const std::string &file_name);
-
-    // Compatible & incompatible marks, to be placed at the wxBitmapComboBox items.
-    void            set_bitmap_compatible  (const wxBitmap *bmp) { m_bitmap_compatible   = bmp; }
-    void            set_bitmap_incompatible(const wxBitmap *bmp) { m_bitmap_incompatible = bmp; }
-    void            set_bitmap_lock        (const wxBitmap *bmp) { m_bitmap_lock         = bmp; }
-    void            set_bitmap_lock_open   (const wxBitmap *bmp) { m_bitmap_lock_open    = bmp; }
 
     // Enable / disable the "- default -" preset.
     void            set_default_suppressed(bool default_suppressed);
@@ -446,18 +421,9 @@ public:
     // Return a sorted list of system preset names.
     std::vector<std::string>    system_preset_names() const;
 
-    // Update the choice UI from the list of presets.
-    // If show_incompatible, all presets are shown, otherwise only the compatible presets are shown.
-    // If an incompatible preset is selected, it is shown as well.
-    size_t          update_tab_ui(wxBitmapComboBox *ui, bool show_incompatible, const int em = 10);
-    // Update the choice UI from the list of presets.
-    // Only the compatible presets are shown.
-    // If an incompatible preset is selected, it is shown as well.
-    void            update_plater_ui(GUI::PresetComboBox *ui);
-
-    // Update a dirty floag of the current preset, update the labels of the UI component accordingly.
+    // Update a dirty flag of the current preset
     // Return true if the dirty flag changed.
-    bool            update_dirty_ui(wxBitmapComboBox *ui);
+    bool            update_dirty();
     
     // Select a profile by its name. Return true if the selection changed.
     // Without force, the selection is only updated if the index changes.
@@ -467,16 +433,7 @@ public:
     // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
     std::string     path_from_name(const std::string &new_name) const;
 
-    void            clear_bitmap_cache();
-
-#ifdef __linux__
-	static const char* separator_head() { return "------- "; }
-	static const char* separator_tail() { return " -------"; }
-#else /* __linux__ */
-    static const char* separator_head() { return "————— "; }
-    static const char* separator_tail() { return " —————"; }
-#endif /* __linux__ */
-	static wxString    separator(const std::string &label);
+    size_t num_default_presets() { return m_num_default_presets; }
 
 protected:
     // Select a preset, if it exists. If it does not exist, select an invalid (-1) index.
@@ -547,22 +504,9 @@ private:
     // Is the "- default -" preset suppressed?
     bool                    m_default_suppressed  = true;
     size_t                  m_num_default_presets = 0;
-    // Compatible & incompatible marks, to be placed at the wxBitmapComboBox items of a Plater.
-    // These bitmaps are not owned by PresetCollection, but by a PresetBundle.
-    const wxBitmap         *m_bitmap_compatible   = nullptr;
-    const wxBitmap         *m_bitmap_incompatible = nullptr;
-    const wxBitmap         *m_bitmap_lock         = nullptr;
-    const wxBitmap         *m_bitmap_lock_open    = nullptr;
-    // Marks placed at the wxBitmapComboBox of a MainFrame.
-    // These bitmaps are owned by PresetCollection.
-    wxBitmap               *m_bitmap_main_frame;
-    // "Add printer profile" icon, owned by PresetCollection.
-    wxBitmap               *m_bitmap_add;
+
     // Path to the directory to store the config files into.
     std::string             m_dir_path;
-
-	// Caching color bitmaps for the filament combo box.
-	GUI::BitmapCache       *m_bitmap_cache = nullptr;
 
     // to access select_preset_by_name_strict()
     friend class PresetBundle;
@@ -584,6 +528,206 @@ namespace PresetUtils {
 	// PrinterModel of a system profile, from which this preset is derived, or null if it is not derived from a system profile.
 	const VendorProfile::PrinterModel* system_printer_model(const Preset &preset);
 } // namespace PresetUtils
+
+
+//////////////////////////////////////////////////////////////////////
+
+class PhysicalPrinter
+{
+public:
+    PhysicalPrinter() {}
+    PhysicalPrinter(const std::string& name) : name(name){}
+    PhysicalPrinter(const std::string& name, const Preset& preset);
+    void set_name(const std::string &name);
+
+    // Name of the Physical Printer, usually derived form the file name.
+    std::string         name;
+    // File name of the Physical Printer.
+    std::string         file;
+    // Configuration data, loaded from a file, or set from the defaults.
+    DynamicPrintConfig  config;
+    // set of presets used with this physical printer
+    std::set<std::string> preset_names;
+
+    // Has this profile been loaded?
+    bool                loaded = false;
+
+    static std::string  separator();
+    static const std::vector<std::string>&  printer_options();
+    static const std::vector<std::string>&  print_host_options();
+    static std::vector<std::string>         presets_with_print_host_information(const PrinterPresetCollection& printer_presets);
+    static bool has_print_host_information(const DynamicPrintConfig& config);
+
+    const std::set<std::string>&            get_preset_names() const;
+
+    bool                has_empty_config() const;
+    void                update_preset_names_in_config();
+
+    void                save() { this->config.save(this->file); }
+    void                save(const std::string& file_name_from, const std::string& file_name_to);
+
+    void                update_from_preset(const Preset& preset);
+    void                update_from_config(const DynamicPrintConfig &new_config);
+
+    // add preset to the preset_names
+    // return false, if preset with this name is already exist in the set
+    bool                add_preset(const std::string& preset_name);
+    bool                delete_preset(const std::string& preset_name);
+    void                reset_presets();
+
+    // Return a printer technology, return ptFFF if the printer technology is not set.
+    static PrinterTechnology printer_technology(const DynamicPrintConfig& cfg) {
+        auto* opt = cfg.option<ConfigOptionEnum<PrinterTechnology>>("printer_technology");
+        // The following assert may trigger when importing some legacy profile, 
+        // but it is safer to keep it here to capture the cases where the "printer_technology" key is queried, where it should not.
+        return (opt == nullptr) ? ptFFF : opt->value;
+    }
+    PrinterTechnology   printer_technology() const { return printer_technology(this->config); }
+
+    // Sort lexicographically by a preset name. The preset name shall be unique across a single PresetCollection.
+    bool                operator<(const PhysicalPrinter& other) const { return this->name < other.name; }
+
+    // get full printer name included a name of the preset
+    std::string         get_full_name(std::string preset_name) const;
+
+    // get printer name from the full name uncluded preset name
+    static std::string  get_short_name(std::string full_name);
+
+    // get preset name from the full name uncluded printer name
+    static std::string  get_preset_name(std::string full_name);
+
+protected:
+    friend class        PhysicalPrinterCollection;
+};
+
+
+// ---------------------------------
+// ***  PhysicalPrinterCollection  ***
+// ---------------------------------
+
+// Collections of physical printers
+class PhysicalPrinterCollection
+{
+public:
+    PhysicalPrinterCollection(const std::vector<std::string>& keys);
+    ~PhysicalPrinterCollection() {}
+
+    typedef std::deque<PhysicalPrinter>::iterator Iterator;
+    typedef std::deque<PhysicalPrinter>::const_iterator ConstIterator;
+    Iterator        begin() { return m_printers.begin(); }
+    ConstIterator   begin() const { return m_printers.cbegin(); }
+    ConstIterator   cbegin() const { return m_printers.cbegin(); }
+    Iterator        end() { return m_printers.end(); }
+    ConstIterator   end() const { return m_printers.cend(); }
+    ConstIterator   cend() const { return m_printers.cend(); }
+
+    bool            empty() const {return m_printers.empty(); }
+
+    void            reset(bool delete_files) {};
+
+    const std::deque<PhysicalPrinter>& operator()() const { return m_printers; }
+
+    // Load ini files of the particular type from the provided directory path.
+    void            load_printers(const std::string& dir_path, const std::string& subdir);
+    void            load_printers_from_presets(PrinterPresetCollection &printer_presets);
+
+    // Save the printer under a new name. If the name is different from the old one,
+    // a new printer is stored into the list of printers.
+    // New printer is activated.
+    void            save_printer(PhysicalPrinter& printer, const std::string& renamed_from = "");
+
+    // Delete the current preset, activate the first visible preset.
+    // returns true if the preset was deleted successfully.
+    bool            delete_printer(const std::string& name);
+    // Delete the selected preset
+    // returns true if the preset was deleted successfully.
+    bool            delete_selected_printer();
+    // Delete preset_name preset from all printers:
+    // If there is last preset for the printer and first_check== false, then delete this printer
+    // returns true if all presets were deleted successfully.
+    bool            delete_preset_from_printers(const std::string& preset_name);
+
+    // Get list of printers which have more than one preset and "preset_name" preset is one of them
+    std::vector<std::string> get_printers_with_preset( const std::string &preset_name);
+    // Get list of printers which has only "preset_name" preset
+    std::vector<std::string> get_printers_with_only_preset( const std::string &preset_name);
+
+    // Return the selected preset, without the user modifications applied.
+    PhysicalPrinter&        get_selected_printer() { return m_printers[m_idx_selected]; }
+    const PhysicalPrinter&  get_selected_printer() const { return m_printers[m_idx_selected]; }
+
+    size_t                  get_selected_idx()    const { return m_idx_selected; }
+    // Returns the name of the selected preset, or an empty string if no preset is selected.
+    std::string             get_selected_printer_name() const { return (m_idx_selected == size_t(-1)) ? std::string() : this->get_selected_printer().name; }
+    // Returns the config of the selected printer, or nullptr if no printer is selected.
+    DynamicPrintConfig*     get_selected_printer_config() { return (m_idx_selected == size_t(-1)) ? nullptr : &(this->get_selected_printer().config); }
+    // Returns the config of the selected printer, or nullptr if no printer is selected.
+    PrinterTechnology       get_selected_printer_technology() { return (m_idx_selected == size_t(-1)) ? PrinterTechnology::ptAny : this->get_selected_printer().printer_technology(); }
+
+    // Each physical printer can have a several related preset,
+    // so, use the next functions to get an exact names of selections in the list:
+    // Returns the full name of the selected printer, or an empty string if no preset is selected.
+    std::string     get_selected_full_printer_name() const;
+    // Returns the printer model of the selected preset, or an empty string if no preset is selected.
+    std::string     get_selected_printer_preset_name() const { return (m_idx_selected == size_t(-1)) ? std::string() : m_selected_preset; }
+
+    // Select printer by the full printer name, which contains name of printer, separator and name of selected preset
+    // If full_name doesn't contain name of selected preset, then select first preset in the list for this printer
+    void select_printer(const std::string& full_name);
+    void select_printer(const PhysicalPrinter& printer);
+    bool has_selection() const;
+    void unselect_printer() ;
+    bool is_selected(ConstIterator it, const std::string &preset_name) const;
+
+    // Return a printer by an index. If the printer is active, a temporary copy is returned.
+    PhysicalPrinter& printer(size_t idx) { return m_printers[idx]; }
+    const PhysicalPrinter& printer(size_t idx) const { return const_cast<PhysicalPrinterCollection*>(this)->printer(idx); }
+
+    // Return a preset by its name. If the preset is active, a temporary copy is returned.
+    // If a preset is not found by its name, null is returned.
+    PhysicalPrinter* find_printer(const std::string& name, bool first_visible_if_not_found = false);
+    const PhysicalPrinter* find_printer(const std::string& name, bool first_visible_if_not_found = false) const
+    {
+        return const_cast<PhysicalPrinterCollection*>(this)->find_printer(name, first_visible_if_not_found);
+    }
+
+    // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
+    std::string     path_from_name(const std::string& new_name) const;
+
+private:
+    PhysicalPrinterCollection& operator=(const PhysicalPrinterCollection& other);
+
+    // Find a preset position in the sorted list of presets.
+    // The "-- default -- " preset is always the first, so it needs
+    // to be handled differently.
+    // If a preset does not exist, an iterator is returned indicating where to insert a preset with the same name.
+    std::deque<PhysicalPrinter>::iterator find_printer_internal(const std::string& name)
+    {
+        PhysicalPrinter printer(name);
+        auto it = std::lower_bound(m_printers.begin(), m_printers.end(), printer);
+        return it;
+    }
+    std::deque<PhysicalPrinter>::const_iterator find_printer_internal(const std::string& name) const
+    {
+        return const_cast<PhysicalPrinterCollection*>(this)->find_printer_internal(name);
+    }
+
+    PhysicalPrinter* find_printer_with_same_config( const DynamicPrintConfig &config);
+
+    // List of printers
+    // Use deque to force the container to allocate an object per each entry, 
+    // so that the addresses of the presets don't change during resizing of the container.
+    std::deque<PhysicalPrinter> m_printers;
+
+    // Selected printer.
+    size_t                      m_idx_selected = size_t(-1);
+    // The name of the preset which is currently select for this printer
+    std::string                 m_selected_preset;
+
+    // Path to the directory to store the config files into.
+    std::string                 m_dir_path;
+};
+
 
 } // namespace Slic3r
 

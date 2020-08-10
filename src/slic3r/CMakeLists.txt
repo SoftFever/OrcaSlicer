@@ -12,8 +12,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/SysInfoDialog.hpp
     GUI/KBShortcutsDialog.cpp
     GUI/KBShortcutsDialog.hpp
-    GUI/AppConfig.cpp
-    GUI/AppConfig.hpp
     GUI/BackgroundSlicingProcess.cpp
     GUI/BackgroundSlicingProcess.hpp
     GUI/BitmapCache.cpp
@@ -67,10 +65,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/GCodeViewer.cpp    
     GUI/Preferences.cpp
     GUI/Preferences.hpp
-    GUI/Preset.cpp
-    GUI/Preset.hpp
-    GUI/PresetBundle.cpp
-    GUI/PresetBundle.hpp
     GUI/PresetHints.cpp
     GUI/PresetHints.hpp
     GUI/GUI.cpp
@@ -87,6 +81,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/MainFrame.hpp
     GUI/Plater.cpp
     GUI/Plater.hpp
+    GUI/PresetComboBoxes.hpp
+    GUI/PresetComboBoxes.cpp
+    GUI/PhysicalPrinterDialog.hpp
+    GUI/PhysicalPrinterDialog.cpp
     GUI/GUI_ObjectList.cpp
     GUI/GUI_ObjectList.hpp
     GUI/GUI_ObjectManipulation.cpp

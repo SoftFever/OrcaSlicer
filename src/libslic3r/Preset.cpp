@@ -2,15 +2,22 @@
 
 #include "Preset.hpp"
 #include "AppConfig.hpp"
-#include "BitmapCache.hpp"
-#include "I18N.hpp"
-#include "wxExtensions.hpp"
 
 #ifdef _MSC_VER
     #define WIN32_LEAN_AND_MEAN
     #define NOMINMAX
     #include <Windows.h>
 #endif /* _MSC_VER */
+
+// instead of #include "slic3r/GUI/I18N.hpp" :
+#ifndef L
+// !!! If you needed to translate some string,
+// !!! please use _L(string)
+// !!! _() - is a standard wxWidgets macro to translate
+// !!! L() is used only for marking localizable string 
+// !!! It will be used in "xgettext" to create a Locating Message Catalog.
+#define L(s) s
+#endif /* L */
 
 #include <algorithm>
 #include <fstream>
@@ -19,6 +26,7 @@
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
 #include <boost/nowide/cenv.hpp>
@@ -30,15 +38,9 @@
 #include <boost/locale.hpp>
 #include <boost/log/trivial.hpp>
 
-#include <wx/image.h>
-#include <wx/choice.h>
-#include <wx/bmpcbox.h>
-#include <wx/wupdlock.h>
-
-#include "libslic3r/libslic3r.h"
-#include "libslic3r/Utils.hpp"
-#include "libslic3r/PlaceholderParser.hpp"
-#include "Plater.hpp"
+#include "libslic3r.h"
+#include "Utils.hpp"
+#include "PlaceholderParser.hpp"
 
 using boost::property_tree::ptree;
 
@@ -245,9 +247,9 @@ const std::string& Preset::suffix_modified()
     return g_suffix_modified;
 }
 
-void Preset::update_suffix_modified()
+void Preset::update_suffix_modified(const std::string& new_suffix_modified)
 {
-    g_suffix_modified = (" (" + _(L("modified")) + ")").ToUTF8().data();
+    g_suffix_modified = new_suffix_modified;
 }
 // Remove an optional "(modified)" suffix from a name.
 // This converts a UI name to a unique preset identifier.
@@ -591,10 +593,7 @@ const std::vector<std::string>& Preset::sla_printer_options()
 PresetCollection::PresetCollection(Preset::Type type, const std::vector<std::string> &keys, const Slic3r::StaticPrintConfig &defaults, const std::string &default_name) :
     m_type(type),
     m_edited_preset(type, "", false),
-    m_idx_selected(0),
-    m_bitmap_main_frame(new wxBitmap),
-    m_bitmap_add(new wxBitmap),
-    m_bitmap_cache(new GUI::BitmapCache)
+    m_idx_selected(0)
 {
     // Insert just the default preset.
     this->add_default_preset(keys, defaults, default_name);
@@ -603,12 +602,6 @@ PresetCollection::PresetCollection(Preset::Type type, const std::vector<std::str
 
 PresetCollection::~PresetCollection()
 {
-    delete m_bitmap_main_frame;
-    m_bitmap_main_frame = nullptr;
-    delete m_bitmap_add;
-    m_bitmap_add = nullptr;
-    delete m_bitmap_cache;
-    m_bitmap_cache = nullptr;
 }
 
 void PresetCollection::reset(bool delete_files)
@@ -952,16 +945,6 @@ bool PresetCollection::delete_preset(const std::string& name)
     return true;
 }
 
-void PresetCollection::load_bitmap_default(const std::string &file_name)
-{
-    *m_bitmap_main_frame = create_scaled_bitmap(file_name);
-}
-
-void PresetCollection::load_bitmap_add(const std::string &file_name)
-{
-    *m_bitmap_add = create_scaled_bitmap(file_name);
-}
-
 const Preset* PresetCollection::get_selected_preset_parent() const
 {
     if (this->get_selected_idx() == size_t(-1))
@@ -1120,279 +1103,15 @@ size_t PresetCollection::update_compatible_internal(const PresetWithVendorProfil
 // Delete the current preset, activate the first visible preset.
 //void PresetCollection::delete_current_preset();
 
-// Update the wxChoice UI component from this list of presets.
-// Hide the
-void PresetCollection::update_plater_ui(GUI::PresetComboBox *ui)
-{
-    if (ui == nullptr)
-        return;
-
-    // Otherwise fill in the list from scratch.
-    ui->Freeze();
-    ui->Clear();
-    size_t selected_preset_item = INT_MAX; // some value meaning that no one item is selected
-
-    const Preset &selected_preset = this->get_selected_preset();
-    // Show wide icons if the currently selected preset is not compatible with the current printer,
-    // and draw a red flag in front of the selected preset.
-    bool wide_icons = ! selected_preset.is_compatible && m_bitmap_incompatible != nullptr;
-
-    /* It's supposed that standard size of an icon is 16px*16px for 100% scaled display.
-    * So set sizes for solid_colored icons used for filament preset
-    * and scale them in respect to em_unit value
-    */
-    const float scale_f = ui->em_unit() * 0.1f;
-    const int icon_height           = 16 * scale_f + 0.5f;
-    const int icon_width            = 16 * scale_f + 0.5f;
-    const int thin_space_icon_width = 4 * scale_f + 0.5f;
-    const int wide_space_icon_width = 6 * scale_f + 0.5f;
-
-    std::map<wxString, wxBitmap*> nonsys_presets;
-    wxString selected = "";
-    wxString tooltip = "";
-    if (!this->m_presets.front().is_visible)
-        ui->set_label_marker(ui->Append(PresetCollection::separator(L("System presets")), wxNullBitmap));
-    for (size_t i = this->m_presets.front().is_visible ? 0 : m_num_default_presets; i < this->m_presets.size(); ++ i) {
-        const Preset &preset = this->m_presets[i];
-        if (! preset.is_visible || (! preset.is_compatible && i != m_idx_selected))
-            continue;
-
-        std::string   bitmap_key = "";
-        // !!! Temporary solution, till refactoring: create and use "sla_printer" icon instead of m_bitmap_main_frame
-        wxBitmap main_bmp = m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap;
-        if (m_type == Preset::TYPE_PRINTER && preset.printer_technology()==ptSLA ) {
-            bitmap_key = "sla_printer";
-            main_bmp = create_scaled_bitmap("sla_printer");
-        }
-
-        // If the filament preset is not compatible and there is a "red flag" icon loaded, show it left
-        // to the filament color image.
-        if (wide_icons)
-            bitmap_key += preset.is_compatible ? ",cmpt" : ",ncmpt";
-        bitmap_key += (preset.is_system || preset.is_default) ? ",syst" : ",nsyst";
-        wxBitmap     *bmp = m_bitmap_cache->find(bitmap_key);
-        if (bmp == nullptr) {
-            // Create the bitmap with color bars.
-            std::vector<wxBitmap> bmps;
-            if (wide_icons)
-                // Paint a red flag for incompatible presets.
-                bmps.emplace_back(preset.is_compatible ? m_bitmap_cache->mkclear(icon_width, icon_height) : *m_bitmap_incompatible);
-            // Paint the color bars.
-            bmps.emplace_back(m_bitmap_cache->mkclear(thin_space_icon_width, icon_height));
-            bmps.emplace_back(main_bmp);
-            // Paint a lock at the system presets.
-            bmps.emplace_back(m_bitmap_cache->mkclear(wide_space_icon_width, icon_height));
-            bmps.emplace_back((preset.is_system || preset.is_default) ? *m_bitmap_lock : m_bitmap_cache->mkclear(icon_width, icon_height));
-            bmp = m_bitmap_cache->insert(bitmap_key, bmps);
-        }
-
-        const std::string name = preset.alias.empty() ? preset.name : preset.alias;
-        if (preset.is_default || preset.is_system) {
-            ui->Append(wxString::FromUTF8((/*preset.*/name + (preset.is_dirty ? g_suffix_modified : "")).c_str()),
-                (bmp == 0) ? main_bmp : *bmp);
-            if (i == m_idx_selected ||
-                // just in case: mark selected_preset_item as a first added element
-                selected_preset_item == INT_MAX) {
-                selected_preset_item = ui->GetCount() - 1;
-                tooltip = wxString::FromUTF8(preset.name.c_str());
-            }
-        }
-        else
-        {
-            nonsys_presets.emplace(wxString::FromUTF8((/*preset.*/name + (preset.is_dirty ? g_suffix_modified : "")).c_str()), bmp/*preset.is_compatible*/);
-            if (i == m_idx_selected) {
-                selected = wxString::FromUTF8((/*preset.*/name + (preset.is_dirty ? g_suffix_modified : "")).c_str());
-                tooltip = wxString::FromUTF8(preset.name.c_str());
-            }
-        }
-        if (i + 1 == m_num_default_presets)
-            ui->set_label_marker(ui->Append(PresetCollection::separator(L("System presets")), wxNullBitmap));
-    }
-    if (!nonsys_presets.empty())
-    {
-        ui->set_label_marker(ui->Append(PresetCollection::separator(L("User presets")), wxNullBitmap));
-        for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
-            ui->Append(it->first, *it->second);
-            if (it->first == selected ||
-                // just in case: mark selected_preset_item as a first added element
-                selected_preset_item == INT_MAX)
-                selected_preset_item = ui->GetCount() - 1;
-        }
-    }
-    if (m_type == Preset::TYPE_PRINTER || m_type == Preset::TYPE_SLA_MATERIAL) {
-        std::string   bitmap_key = "";
-        // If the filament preset is not compatible and there is a "red flag" icon loaded, show it left
-        // to the filament color image.
-        if (wide_icons)
-            bitmap_key += "wide,";
-        bitmap_key += "edit_preset_list";
-        wxBitmap     *bmp = m_bitmap_cache->find(bitmap_key);
-        if (bmp == nullptr) {
-            // Create the bitmap with color bars.
-            std::vector<wxBitmap> bmps;
-            if (wide_icons)
-                // Paint a red flag for incompatible presets.
-                bmps.emplace_back(m_bitmap_cache->mkclear(icon_width, icon_height));
-            // Paint the color bars.
-            bmps.emplace_back(m_bitmap_cache->mkclear(thin_space_icon_width, icon_height));
-            bmps.emplace_back(*m_bitmap_main_frame);
-            // Paint a lock at the system presets.
-            bmps.emplace_back(m_bitmap_cache->mkclear(wide_space_icon_width, icon_height));
-//            bmps.emplace_back(m_bitmap_add ? *m_bitmap_add : wxNullBitmap);
-            bmps.emplace_back(create_scaled_bitmap("edit_uni"));
-            bmp = m_bitmap_cache->insert(bitmap_key, bmps);
-        }
-        if (m_type == Preset::TYPE_SLA_MATERIAL)
-            ui->set_label_marker(ui->Append(PresetCollection::separator(L("Add/Remove materials")), *bmp), GUI::PresetComboBox::LABEL_ITEM_WIZARD_MATERIALS);
-        else
-            ui->set_label_marker(ui->Append(PresetCollection::separator(L("Add/Remove printers")), *bmp), GUI::PresetComboBox::LABEL_ITEM_WIZARD_PRINTERS);
-    }
-
-    /* But, if selected_preset_item is still equal to INT_MAX, it means that
-     * there is no presets added to the list.
-     * So, select last combobox item ("Add/Remove preset")
-     */
-    if (selected_preset_item == INT_MAX)
-        selected_preset_item = ui->GetCount() - 1;
-
-    ui->SetSelection(selected_preset_item);
-    ui->SetToolTip(tooltip.IsEmpty() ? ui->GetString(selected_preset_item) : tooltip);
-    ui->check_selection(selected_preset_item);
-    ui->Thaw();
-
-    // Update control min size after rescale (changed Display DPI under MSW)
-    if (ui->GetMinWidth() != 20 * ui->em_unit())
-        ui->SetMinSize(wxSize(20 * ui->em_unit(), ui->GetSize().GetHeight()));
-}
-
-size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompatible, const int em/* = 10*/)
-{
-    if (ui == nullptr)
-        return 0;
-    ui->Freeze();
-    ui->Clear();
-    size_t selected_preset_item = INT_MAX; // some value meaning that no one item is selected
-
-    /* It's supposed that standard size of an icon is 16px*16px for 100% scaled display.
-    * So set sizes for solid_colored(empty) icons used for preset
-    * and scale them in respect to em_unit value
-    */
-    const float scale_f = em * 0.1f;
-    const int icon_height = 16 * scale_f + 0.5f;
-    const int icon_width  = 16 * scale_f + 0.5f;
-
-    std::map<wxString, wxBitmap*> nonsys_presets;
-    wxString selected = "";
-    if (!this->m_presets.front().is_visible)
-        ui->Append(PresetCollection::separator(L("System presets")), wxNullBitmap);
-    for (size_t i = this->m_presets.front().is_visible ? 0 : m_num_default_presets; i < this->m_presets.size(); ++i) {
-        const Preset &preset = this->m_presets[i];
-        if (! preset.is_visible || (! show_incompatible && ! preset.is_compatible && i != m_idx_selected))
-            continue;
-        std::string   bitmap_key = "tab";
-
-        // !!! Temporary solution, till refactoring: create and use "sla_printer" icon instead of m_bitmap_main_frame
-        wxBitmap main_bmp = m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap;
-        if (m_type == Preset::TYPE_PRINTER && preset.printer_technology() == ptSLA) {
-            bitmap_key = "sla_printer";
-            main_bmp = create_scaled_bitmap("sla_printer");
-        }
-
-        bitmap_key += preset.is_compatible ? ",cmpt" : ",ncmpt";
-        bitmap_key += (preset.is_system || preset.is_default) ? ",syst" : ",nsyst";
-        wxBitmap     *bmp = m_bitmap_cache->find(bitmap_key);
-        if (bmp == nullptr) {
-            // Create the bitmap with color bars.
-            std::vector<wxBitmap> bmps;
-            const wxBitmap* tmp_bmp = preset.is_compatible ? m_bitmap_compatible : m_bitmap_incompatible;
-            bmps.emplace_back((tmp_bmp == 0) ? main_bmp : *tmp_bmp);
-            // Paint a lock at the system presets.
-            bmps.emplace_back((preset.is_system || preset.is_default) ? *m_bitmap_lock : m_bitmap_cache->mkclear(icon_width, icon_height));
-            bmp = m_bitmap_cache->insert(bitmap_key, bmps);
-        }
-
-        if (preset.is_default || preset.is_system) {
-            ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()),
-                (bmp == 0) ? main_bmp : *bmp);
-            if (i == m_idx_selected ||
-                // just in case: mark selected_preset_item as a first added element
-                selected_preset_item == INT_MAX)
-                selected_preset_item = ui->GetCount() - 1;
-        }
-        else
-        {
-            nonsys_presets.emplace(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()), bmp/*preset.is_compatible*/);
-            if (i == m_idx_selected)
-                selected = wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str());
-        }
-        if (i + 1 == m_num_default_presets)
-            ui->Append(PresetCollection::separator(L("System presets")), wxNullBitmap);
-    }
-    if (!nonsys_presets.empty())
-    {
-        ui->Append(PresetCollection::separator(L("User presets")), wxNullBitmap);
-        for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
-            ui->Append(it->first, *it->second);
-            if (it->first == selected ||
-                // just in case: mark selected_preset_item as a first added element
-                selected_preset_item == INT_MAX)
-                selected_preset_item = ui->GetCount() - 1;
-        }
-    }
-    if (m_type == Preset::TYPE_PRINTER) {
-        wxBitmap *bmp = m_bitmap_cache->find("edit_printer_list");
-        if (bmp == nullptr) {
-            // Create the bitmap with color bars.
-            std::vector<wxBitmap> bmps;
-            bmps.emplace_back(*m_bitmap_main_frame);
-//            bmps.emplace_back(m_bitmap_add ? *m_bitmap_add : wxNullBitmap);
-            bmps.emplace_back(create_scaled_bitmap("edit_uni"));
-            bmp = m_bitmap_cache->insert("add_printer_tab", bmps);
-        }
-        ui->Append(PresetCollection::separator("Add a new printer"), *bmp);
-    }
-
-    /* But, if selected_preset_item is still equal to INT_MAX, it means that
-     * there is no presets added to the list.
-     * So, select last combobox item ("Add/Remove preset")
-     */
-    if (selected_preset_item == INT_MAX)
-        selected_preset_item = ui->GetCount() - 1;
-
-    ui->SetSelection(selected_preset_item);
-    ui->SetToolTip(ui->GetString(selected_preset_item));
-    ui->Thaw();
-    return selected_preset_item;
-}
-
-// Update a dirty floag of the current preset, update the labels of the UI component accordingly.
+// Update a dirty flag of the current preset
 // Return true if the dirty flag changed.
-bool PresetCollection::update_dirty_ui(wxBitmapComboBox *ui)
+bool PresetCollection::update_dirty()
 {
-    wxWindowUpdateLocker noUpdates(ui);
-    // 1) Update the dirty flag of the current preset.
     bool was_dirty = this->get_selected_preset().is_dirty;
     bool is_dirty  = current_is_dirty();
     this->get_selected_preset().is_dirty = is_dirty;
     this->get_edited_preset().is_dirty = is_dirty;
-    // 2) Update the labels.
-    for (unsigned int ui_id = 0; ui_id < ui->GetCount(); ++ ui_id) {
-        std::string   old_label    = ui->GetString(ui_id).utf8_str().data();
-        std::string   preset_name  = Preset::remove_suffix_modified(old_label);
-        const Preset *preset       = this->find_preset(preset_name, false);
-//		The old_label could be the "----- system presets ------" or the "------- user presets --------" separator.
-//      assert(preset != nullptr);
-        if (preset != nullptr) {
-            std::string new_label = preset->is_dirty ? preset->name + g_suffix_modified : preset->name;
-            if (old_label != new_label)
-                ui->SetString(ui_id, wxString::FromUTF8(new_label.c_str()));
-        }
-    }
-#ifdef __APPLE__
-    // wxWidgets on OSX do not upload the text of the combo box line automatically.
-    // Force it to update by re-selecting.
-    ui->SetSelection(ui->GetSelection());
-#endif /* __APPLE __ */
+
     return was_dirty != is_dirty;
 }
 
@@ -1606,16 +1325,6 @@ std::string PresetCollection::path_from_name(const std::string &new_name) const
     return (boost::filesystem::path(m_dir_path) / file_name).make_preferred().string();
 }
 
-void PresetCollection::clear_bitmap_cache()
-{
-    m_bitmap_cache->clear();
-}
-
-wxString PresetCollection::separator(const std::string &label)
-{
-    return wxString::FromUTF8(PresetCollection::separator_head()) + _(label) + wxString::FromUTF8(PresetCollection::separator_tail());
-}
-
 const Preset& PrinterPresetCollection::default_preset_for(const DynamicPrintConfig &config) const
 {
     const ConfigOptionEnumGeneric *opt_printer_technology = config.opt<ConfigOptionEnumGeneric>("printer_technology");
@@ -1632,6 +1341,462 @@ const Preset* PrinterPresetCollection::find_by_model_id(const std::string &model
 
     return it != cend() ? &*it : nullptr;
 }
+
+// -------------------------
+// ***  PhysicalPrinter  ***
+// -------------------------
+
+std::string PhysicalPrinter::separator()
+{
+    return " * ";
+}
+
+const std::vector<std::string>& PhysicalPrinter::printer_options()
+{
+    static std::vector<std::string> s_opts;
+    if (s_opts.empty()) {
+        s_opts = {
+            "preset_name",
+            "printer_technology",
+            "printer_model",
+            "host_type", 
+            "print_host", 
+            "printhost_apikey", 
+            "printhost_cafile",
+            "authorization_type",
+            "login", 
+            "password"
+        };
+    }
+    return s_opts;
+}
+
+const std::vector<std::string>& PhysicalPrinter::print_host_options()
+{
+    static std::vector<std::string> s_opts;
+    if (s_opts.empty()) {
+        s_opts = {
+            "print_host",
+            "printhost_apikey",
+            "printhost_cafile"
+        };
+    }
+    return s_opts;
+}
+
+std::vector<std::string> PhysicalPrinter::presets_with_print_host_information(const PrinterPresetCollection& printer_presets)
+{
+    std::vector<std::string> presets;
+    for (const Preset& preset : printer_presets)
+        if (has_print_host_information(preset.config))
+            presets.emplace_back(preset.name);
+
+    return presets;
+}
+
+bool PhysicalPrinter::has_print_host_information(const DynamicPrintConfig& config)
+{
+    for (const std::string& opt : print_host_options())
+        if (!config.opt_string(opt).empty())
+            return true;
+
+    return false;
+}
+
+const std::set<std::string>& PhysicalPrinter::get_preset_names() const
+{
+    return preset_names;
+}
+
+bool PhysicalPrinter::has_empty_config() const 
+{
+    return  config.opt_string("print_host"      ).empty() && 
+            config.opt_string("printhost_apikey").empty() && 
+            config.opt_string("printhost_cafile").empty() && 
+            config.opt_string("login"           ).empty() && 
+            config.opt_string("password"        ).empty();
+}
+
+void PhysicalPrinter::update_preset_names_in_config()
+{
+    if (!preset_names.empty()) {
+        std::string name;
+        for (auto el : preset_names)
+            name += el + ";";
+        name.pop_back();
+        config.set_key_value("preset_name", new ConfigOptionString(name));
+    }    
+}
+
+void PhysicalPrinter::save(const std::string& file_name_from, const std::string& file_name_to)
+{
+    // rename the file
+    boost::nowide::rename(file_name_from.data(), file_name_to.data());
+    this->file = file_name_to;
+    // save configuration
+    this->config.save(this->file);
+}
+
+void PhysicalPrinter::update_from_preset(const Preset& preset)
+{
+    config.apply_only(preset.config, printer_options(), false);
+    // add preset names to the options list
+    auto ret = preset_names.emplace(preset.name);
+    update_preset_names_in_config();
+}
+
+void PhysicalPrinter::update_from_config(const DynamicPrintConfig& new_config)
+{
+    config.apply_only(new_config, printer_options(), false);
+
+    std::string str = config.opt_string("preset_name");
+    std::set<std::string> values{};
+    if (!str.empty()) {
+        boost::split(values, str, boost::is_any_of(";"));
+        for (const std::string& val : values)
+            preset_names.emplace(val);
+    }
+    preset_names = values;
+}
+
+void PhysicalPrinter::reset_presets()
+{
+    return preset_names.clear();
+}
+
+bool PhysicalPrinter::add_preset(const std::string& preset_name)
+{
+    return preset_names.emplace(preset_name).second;
+}
+
+bool PhysicalPrinter::delete_preset(const std::string& preset_name)
+{
+    return preset_names.erase(preset_name) > 0;
+}
+
+PhysicalPrinter::PhysicalPrinter(const std::string& name, const Preset& preset) :
+    name(name)
+{
+    update_from_preset(preset);
+}
+
+void PhysicalPrinter::set_name(const std::string& name)
+{
+    this->name = name;
+}
+
+std::string PhysicalPrinter::get_full_name(std::string preset_name) const
+{
+    return name + separator() + preset_name;
+}
+
+std::string PhysicalPrinter::get_short_name(std::string full_name)
+{
+    int pos = full_name.find(separator());
+    if (pos > 0)
+        boost::erase_tail(full_name, full_name.length() - pos);
+    return full_name;
+}
+
+std::string PhysicalPrinter::get_preset_name(std::string name)
+{
+    int pos = name.find(separator());
+    boost::erase_head(name, pos + 3);
+    return Preset::remove_suffix_modified(name);
+}
+
+
+// -----------------------------------
+// ***  PhysicalPrinterCollection  ***
+// -----------------------------------
+
+PhysicalPrinterCollection::PhysicalPrinterCollection( const std::vector<std::string>& keys)
+{
+}
+
+// Load all printers found in dir_path.
+// Throws an exception on error.
+void PhysicalPrinterCollection::load_printers(const std::string& dir_path, const std::string& subdir)
+{
+    boost::filesystem::path dir = boost::filesystem::canonical(boost::filesystem::path(dir_path) / subdir).make_preferred();
+    m_dir_path = dir.string();
+    std::string errors_cummulative;
+    // Store the loaded printers into a new vector, otherwise the binary search for already existing presets would be broken.
+    std::deque<PhysicalPrinter> printers_loaded;
+    for (auto& dir_entry : boost::filesystem::directory_iterator(dir))
+        if (Slic3r::is_ini_file(dir_entry)) {
+            std::string name = dir_entry.path().filename().string();
+            // Remove the .ini suffix.
+            name.erase(name.size() - 4);
+            if (this->find_printer(name, false)) {
+                // This happens when there's is a preset (most likely legacy one) with the same name as a system preset
+                // that's already been loaded from a bundle.
+                BOOST_LOG_TRIVIAL(warning) << "Printer already present, not loading: " << name;
+                continue;
+            }
+            try {
+                PhysicalPrinter printer(name);
+                printer.file = dir_entry.path().string();
+                // Load the preset file, apply preset values on top of defaults.
+                try {
+                    DynamicPrintConfig config;
+                    config.load_from_ini(printer.file);
+                    printer.update_from_config(config);
+                    printer.loaded = true;
+                }
+                catch (const std::ifstream::failure& err) {
+                    throw std::runtime_error(std::string("The selected preset cannot be loaded: ") + printer.file + "\n\tReason: " + err.what());
+                }
+                catch (const std::runtime_error& err) {
+                    throw std::runtime_error(std::string("Failed loading the preset file: ") + printer.file + "\n\tReason: " + err.what());
+                }
+                printers_loaded.emplace_back(printer);
+            }
+            catch (const std::runtime_error& err) {
+                errors_cummulative += err.what();
+                errors_cummulative += "\n";
+            }
+        }
+    m_printers.insert(m_printers.end(), std::make_move_iterator(printers_loaded.begin()), std::make_move_iterator(printers_loaded.end()));
+    std::sort(m_printers.begin(), m_printers.end());
+    if (!errors_cummulative.empty())
+        throw std::runtime_error(errors_cummulative);
+}
+
+// if there is saved user presets, contains information about "Print Host upload",
+// Create default printers with this presets
+// Note! "Print Host upload" options will be cleared after physical printer creations
+void PhysicalPrinterCollection::load_printers_from_presets(PrinterPresetCollection& printer_presets)
+{
+    int cnt=0;
+    for (Preset& preset: printer_presets) {
+        DynamicPrintConfig& config = preset.config;
+        const std::vector<std::string>& options = PhysicalPrinter::print_host_options();
+
+        for(const std::string& option : options) {
+            if (!config.opt_string(option).empty()) {
+                // check if printer with those "Print Host upload" options already exist
+                PhysicalPrinter* existed_printer = find_printer_with_same_config(config);
+                if (existed_printer)
+                    // just add preset for this printer
+                    existed_printer->add_preset(preset.name);
+                else {
+                    std::string new_printer_name = (boost::format("Printer %1%") % ++cnt ).str();
+                    while (find_printer(new_printer_name))
+                        new_printer_name = (boost::format("Printer %1%") % ++cnt).str();
+
+                    // create new printer from this preset
+                    PhysicalPrinter printer(new_printer_name, preset);
+                    printer.loaded = true;
+                    save_printer(printer);
+                }
+
+                // erase "Print Host upload" information from the preset
+                for (const std::string& opt : options)
+                    config.opt_string(opt).clear();
+                // save changes for preset
+                preset.save();
+
+                // update those changes for edited preset if it's equal to the preset
+                Preset& edited = printer_presets.get_edited_preset();
+                if (preset.name == edited.name) {
+                    for (const std::string& opt : options)
+                        edited.config.opt_string(opt).clear();
+                }
+
+                break;
+            }
+        }
+    }
+}
+
+PhysicalPrinter* PhysicalPrinterCollection::find_printer( const std::string& name, bool first_visible_if_not_found)
+{
+    auto it = this->find_printer_internal(name);
+    // Ensure that a temporary copy is returned if the preset found is currently selected.
+    return (it != m_printers.end() && it->name == name) ? &this->printer(it - m_printers.begin()) :
+        first_visible_if_not_found ? &this->printer(0) : nullptr;
+}
+
+PhysicalPrinter* PhysicalPrinterCollection::find_printer_with_same_config(const DynamicPrintConfig& config)
+{
+    for (const PhysicalPrinter& printer :*this) {
+        bool is_equal = true;
+        for (const std::string& opt : PhysicalPrinter::print_host_options())
+            if (is_equal && printer.config.opt_string(opt) != config.opt_string(opt))
+                is_equal = false;
+                
+        if (is_equal)
+            return find_printer(printer.name);
+    }
+    return nullptr;
+}
+
+// Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
+std::string PhysicalPrinterCollection::path_from_name(const std::string& new_name) const
+{
+    std::string file_name = boost::iends_with(new_name, ".ini") ? new_name : (new_name + ".ini");
+    return (boost::filesystem::path(m_dir_path) / file_name).make_preferred().string();
+}
+
+void PhysicalPrinterCollection::save_printer(PhysicalPrinter& edited_printer, const std::string& renamed_from/* = ""*/)
+{
+    // controll and update preset_names in edited_printer config 
+    edited_printer.update_preset_names_in_config();
+
+    std::string name = renamed_from.empty() ? edited_printer.name : renamed_from;
+    // 1) Find the printer with a new_name or create a new one,
+    // initialize it with the edited config.
+    auto it = this->find_printer_internal(name);
+    if (it != m_printers.end() && it->name == name) {
+        // Printer with the same name found.
+        // Overwriting an existing preset.
+        it->config = std::move(edited_printer.config);
+        it->name = edited_printer.name;
+        it->preset_names = edited_printer.preset_names;
+    }
+    else {
+        // Creating a new printer.
+        it = m_printers.insert(it, edited_printer);
+    }
+    assert(it != m_printers.end());
+
+    // 2) Save printer
+    PhysicalPrinter& printer = *it;
+    if (printer.file.empty())
+        printer.file = this->path_from_name(printer.name);
+
+    if (printer.file == this->path_from_name(printer.name))
+        printer.save();
+    else
+        // if printer was renamed, we should rename a file and than save the config
+        printer.save(printer.file, this->path_from_name(printer.name));
+
+    // update idx_selected
+    m_idx_selected = it - m_printers.begin();
+}
+
+bool PhysicalPrinterCollection::delete_printer(const std::string& name)
+{
+    auto it = this->find_printer_internal(name);
+    if (it == m_printers.end())
+        return false;
+
+    const PhysicalPrinter& printer = *it;
+    // Erase the preset file.
+    boost::nowide::remove(printer.file.c_str());
+    m_printers.erase(it);
+    return true;
+}
+
+bool PhysicalPrinterCollection::delete_selected_printer()
+{
+    if (!has_selection())
+        return false;
+    const PhysicalPrinter& printer = this->get_selected_printer();
+
+    // Erase the preset file.
+    boost::nowide::remove(printer.file.c_str());
+    // Remove the preset from the list.
+    m_printers.erase(m_printers.begin() + m_idx_selected);
+    // unselect all printers
+    unselect_printer();
+
+    return true;
+}
+
+bool PhysicalPrinterCollection::delete_preset_from_printers( const std::string& preset_name)
+{
+    std::vector<std::string> printers_for_delete;
+    for (PhysicalPrinter& printer : m_printers) {
+        if (printer.preset_names.size() == 1 && *printer.preset_names.begin() == preset_name)
+            printers_for_delete.emplace_back(printer.name);
+        else if (printer.delete_preset(preset_name))
+            save_printer(printer);
+    }
+
+    if (!printers_for_delete.empty())
+        for (const std::string& printer_name : printers_for_delete)
+            delete_printer(printer_name);
+
+    unselect_printer();
+    return true;
+}
+
+// Get list of printers which have more than one preset and "preset_name" preset is one of them
+std::vector<std::string> PhysicalPrinterCollection::get_printers_with_preset(const std::string& preset_name)
+{
+    std::vector<std::string> printers;
+
+    for (auto printer : m_printers) {
+        if (printer.preset_names.size() == 1)
+            continue;        
+        if (printer.preset_names.find(preset_name) != printer.preset_names.end())
+            printers.emplace_back(printer.name);
+    }
+
+    return printers;
+}
+
+// Get list of printers which has only "preset_name" preset
+std::vector<std::string> PhysicalPrinterCollection::get_printers_with_only_preset(const std::string& preset_name)
+{
+    std::vector<std::string> printers;
+
+    for (auto printer : m_printers)
+        if (printer.preset_names.size() == 1 && *printer.preset_names.begin() == preset_name)
+            printers.emplace_back(printer.name);
+
+    return printers;
+}
+
+std::string PhysicalPrinterCollection::get_selected_full_printer_name() const
+{
+    return (m_idx_selected == size_t(-1)) ? std::string() : this->get_selected_printer().get_full_name(m_selected_preset);
+}
+
+void PhysicalPrinterCollection::select_printer(const std::string& full_name)
+{
+    std::string printer_name = PhysicalPrinter::get_short_name(full_name);
+    auto it = this->find_printer_internal(printer_name);
+    if (it == m_printers.end()) {
+        unselect_printer();
+        return;
+    }
+
+    // update idx_selected
+    m_idx_selected = it - m_printers.begin();
+
+    // update name of the currently selected preset
+    if (printer_name == full_name)
+        // use first preset in the list
+        m_selected_preset = *it->preset_names.begin();
+    else
+        m_selected_preset = it->get_preset_name(full_name);
+}
+
+void PhysicalPrinterCollection::select_printer(const PhysicalPrinter& printer)
+{
+    return select_printer(printer.name);
+}
+
+bool PhysicalPrinterCollection::has_selection() const
+{
+    return m_idx_selected != size_t(-1);
+}
+
+void PhysicalPrinterCollection::unselect_printer()
+{
+    m_idx_selected = size_t(-1);
+    m_selected_preset.clear();
+}
+
+bool PhysicalPrinterCollection::is_selected(PhysicalPrinterCollection::ConstIterator it, const std::string& preset_name) const
+{
+    return  m_idx_selected      == it - m_printers.begin() && 
+            m_selected_preset   == preset_name;
+}
+
 
 namespace PresetUtils {
 	const VendorProfile::PrinterModel* system_printer_model(const Preset &preset)

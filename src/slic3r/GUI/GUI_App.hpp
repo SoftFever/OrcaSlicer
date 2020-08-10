@@ -3,10 +3,10 @@
 
 #include <memory>
 #include <string>
-#include "Preset.hpp"
 #include "ImGuiWrapper.hpp"
 #include "ConfigWizard.hpp"
 #include "OpenGLManager.hpp"
+#include "libslic3r/Preset.hpp"
 
 #include <wx/app.h>
 #include <wx/colour.h>
@@ -150,6 +150,7 @@ public:
     wxSize          get_min_size() const;
     float           toolbar_icon_scale(const bool is_limited = false) const;
     void            set_auto_toolbar_icon_scale(float scale) const;
+    void            check_printer_presets();
 
     void            recreate_GUI(const wxString& message);
     void            system_info();

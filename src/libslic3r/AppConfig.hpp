@@ -29,7 +29,8 @@ public:
 	void 			   	set_defaults();
 
 	// Load the slic3r.ini from a user profile directory (or a datadir, if configured).
-	void 			   	load();
+	// return error string or empty strinf
+	std::string		   	load();
 	// Store the slic3r.ini into a user profile directory (or a datadir, if configured).
 	void 			   	save();
 

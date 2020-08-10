@@ -28,14 +28,16 @@
 #include <wx/log.h>
 #include <wx/intl.h>
 
+#include <wx/dialog.h>
+#include <wx/textctrl.h>
+
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/I18N.hpp"
+#include "libslic3r/PresetBundle.hpp"
 
 #include "GUI.hpp"
 #include "GUI_Utils.hpp"
-#include "AppConfig.hpp"
-#include "PresetBundle.hpp"
 #include "3DScene.hpp"
 #include "MainFrame.hpp"
 #include "Plater.hpp"
@@ -323,7 +325,13 @@ void GUI_App::init_app_config()
 	// load settings
 	app_conf_exists = app_config->exists();
 	if (app_conf_exists) {
-		app_config->load();
+        std::string error = app_config->load();
+        if (!error.empty())
+            // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
+            throw std::runtime_error(
+                _u8L("Error parsing PrusaSlicer config file, it is probably corrupted. "
+                    "Try to manually delete the file to recover from the error. Your user profiles will not be affected.") +
+                "\n\n" + AppConfig::config_path() + "\n\n" + error);
 	}
 }
 
@@ -633,6 +641,27 @@ void GUI_App::set_auto_toolbar_icon_scale(float scale) const
     std::string val = std::to_string(int_val);
 
     app_config->set("auto_toolbar_size", val);
+}
+
+// check user printer_presets for the containing information about "Print Host upload"
+void GUI_App::check_printer_presets()
+{
+    std::vector<std::string> preset_names = PhysicalPrinter::presets_with_print_host_information(preset_bundle->printers);
+    if (preset_names.empty())
+        return;
+
+    wxString msg_text =  _L("You have next presets with saved options for \"Print Host upload\"") + ":";
+    for (const std::string& preset_name : preset_names)
+        msg_text += "\n    \"" + from_u8(preset_name) + "\",";
+    msg_text.RemoveLast();
+    msg_text += "\n\n" + _L("But from this version of PrusaSlicer we don't show/use this information in Printer Settings.\n"
+                            "Now, this information will be exposed in physical printers settings.") + "\n\n" +
+                         _L("By default new Printer devices will be named as \"Printer N\" during its creation.\n"
+                            "Note: This name can be changed later from the physical printers settings");
+
+    wxMessageDialog(nullptr, msg_text, _L("Information"), wxOK | wxICON_INFORMATION).ShowModal();
+
+    preset_bundle->physical_printers.load_printers_from_presets(preset_bundle->printers);
 }
 
 void GUI_App::recreate_GUI(const wxString& msg_name)
@@ -957,7 +986,7 @@ bool GUI_App::load_language(wxString language, bool initial)
     m_imgui->set_language(into_u8(language_info->CanonicalName));
     //FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
     wxSetlocale(LC_NUMERIC, "C");
-    Preset::update_suffix_modified();
+    Preset::update_suffix_modified((" (" + _L("modified") + ")").ToUTF8().data());
 	return true;
 }
 
@@ -1178,6 +1207,10 @@ bool GUI_App::checked_tab(Tab* tab)
 // Update UI / Tabs to reflect changes in the currently loaded presets
 void GUI_App::load_current_presets()
 {
+    // check printer_presets for the containing information about "Print Host upload"
+    // and create physical printer from it, if any exists
+    check_printer_presets();
+
     PrinterTechnology printer_technology = preset_bundle->printers.get_edited_preset().printer_technology();
 	this->plater()->set_printer_technology(printer_technology);
     for (Tab *tab : tabs_list)

@@ -15,12 +15,11 @@
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/SLAPrint.hpp"
+#include "libslic3r/PresetBundle.hpp"
 
 #include "Tab.hpp"
-#include "PresetBundle.hpp"
 #include "ProgressStatusBar.hpp"
 #include "3DScene.hpp"
-#include "AppConfig.hpp"
 #include "PrintHostDialogs.hpp"
 #include "wxExtensions.hpp"
 #include "GUI_ObjectList.hpp"
@@ -103,11 +102,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     m_statusbar->set_status_text(_(L("Version")) + " " +
 		SLIC3R_VERSION +
 		_(L(" - Remember to check for updates at https://github.com/prusa3d/PrusaSlicer/releases")));
-
-    /* Load default preset bitmaps before a tabpanel initialization,
-     * but after filling of an em_unit value 
-     */
-    wxGetApp().preset_bundle->load_default_preset_bitmaps();
 
     // initialize tabpanel and menubar
     init_tabpanel();
@@ -717,11 +711,6 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
 #endif // ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
     this->SetFont(this->normal_font());
 
-    /* Load default preset bitmaps before a tabpanel initialization,
-     * but after filling of an em_unit value
-     */
-    wxGetApp().preset_bundle->load_default_preset_bitmaps();
-
     // update Plater
     wxGetApp().plater()->msw_rescale();
 
@@ -765,8 +754,6 @@ void MainFrame::on_sys_color_changed()
 
     // update label colors in respect to the system mode
     wxGetApp().init_label_colours();
-
-    wxGetApp().preset_bundle->load_default_preset_bitmaps();
 
     // update Plater
     wxGetApp().plater()->sys_color_changed();

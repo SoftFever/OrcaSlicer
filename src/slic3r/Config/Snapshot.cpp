@@ -1,6 +1,4 @@
 #include "Snapshot.hpp"
-#include "../GUI/AppConfig.hpp"
-#include "../GUI/PresetBundle.hpp"
 
 #include <time.h>
 
@@ -11,7 +9,7 @@
 #include <boost/property_tree/ptree_fwd.hpp>
 #include <boost/filesystem/operations.hpp>
 
-
+#include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Time.hpp"
 #include "libslic3r/Config.hpp"

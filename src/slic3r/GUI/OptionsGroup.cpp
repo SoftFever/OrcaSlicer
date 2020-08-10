@@ -729,31 +729,34 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 			opt_key == "fill_pattern" ) {
 			ret = static_cast<int>(config.option<ConfigOptionEnum<InfillPattern>>(opt_key)->value);
 		}
-		else if (opt_key.compare("ironing_type") == 0 ) {
+		else if (opt_key == "ironing_type") {
 			ret = static_cast<int>(config.option<ConfigOptionEnum<IroningType>>(opt_key)->value);
 		}
-		else if (opt_key.compare("gcode_flavor") == 0 ) {
+		else if (opt_key == "gcode_flavor") {
 			ret = static_cast<int>(config.option<ConfigOptionEnum<GCodeFlavor>>(opt_key)->value);
 		}
-		else if (opt_key.compare("support_material_pattern") == 0) {
+		else if (opt_key == "support_material_pattern") {
 			ret = static_cast<int>(config.option<ConfigOptionEnum<SupportMaterialPattern>>(opt_key)->value);
 		}
-		else if (opt_key.compare("seam_position") == 0) {
+		else if (opt_key == "seam_position") {
 			ret = static_cast<int>(config.option<ConfigOptionEnum<SeamPosition>>(opt_key)->value);
 		}
-		else if (opt_key.compare("host_type") == 0) {
+		else if (opt_key == "host_type") {
 			ret = static_cast<int>(config.option<ConfigOptionEnum<PrintHostType>>(opt_key)->value);
 		}
-        else if (opt_key.compare("display_orientation") == 0) {
+        else if (opt_key == "display_orientation") {
             ret  = static_cast<int>(config.option<ConfigOptionEnum<SLADisplayOrientation>>(opt_key)->value);
         }
-        else if (opt_key.compare("support_pillar_connection_mode") == 0) {
+        else if (opt_key == "support_pillar_connection_mode") {
             ret  = static_cast<int>(config.option<ConfigOptionEnum<SLAPillarConnectionMode>>(opt_key)->value);
+        }
+        else if (opt_key == "authorization_type") {
+            ret  = static_cast<int>(config.option<ConfigOptionEnum<AuthorizationType>>(opt_key)->value);
         }
 	}
 		break;
 	case coPoints:
-		if (opt_key.compare("bed_shape") == 0)
+		if (opt_key == "bed_shape")
 			ret = config.option<ConfigOptionPoints>(opt_key)->values;
 		else
 			ret = config.option<ConfigOptionPoints>(opt_key)->get_at(idx);

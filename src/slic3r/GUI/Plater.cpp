@@ -24,7 +24,6 @@
 #include <wx/dnd.h>
 #include <wx/progdlg.h>
 #include <wx/wupdlock.h>
-#include <wx/colordlg.h>
 #include <wx/numdlg.h>
 #include <wx/debug.h>
 #include <wx/busyinfo.h>
@@ -48,6 +47,7 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/PresetBundle.hpp"
 
 #include "GUI.hpp"
 #include "GUI_App.hpp"
@@ -70,7 +70,6 @@
 #include "Jobs/ArrangeJob.hpp"
 #include "Jobs/RotoptimizeJob.hpp"
 #include "Jobs/SLAImportJob.hpp"
-#include "PresetBundle.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "ProgressStatusBar.hpp"
 #include "PrintHostDialogs.hpp"
@@ -83,6 +82,7 @@
 #include "RemovableDriveManager.hpp"
 #include "InstanceCheck.hpp"
 #include "NotificationManager.hpp"
+#include "PresetComboBoxes.hpp"
 
 #ifdef __APPLE__
 #include "Gizmos/GLGizmosManager.hpp"
@@ -258,153 +258,6 @@ void SlicedInfo::SetTextAndShow(SlicedInfoIdx idx, const wxString& text, const w
         info_vec[idx].first->SetLabelText(new_label);
     info_vec[idx].first->Show(show);
     info_vec[idx].second->Show(show);
-}
-
-PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
-PresetBitmapComboBox(parent, wxSize(15 * wxGetApp().em_unit(), -1)),
-    preset_type(preset_type),
-    last_selected(wxNOT_FOUND),
-    m_em_unit(wxGetApp().em_unit())
-{
-    SetFont(wxGetApp().normal_font());
-#ifdef _WIN32
-    // Workaround for ignoring CBN_EDITCHANGE events, which are processed after the content of the combo box changes, so that
-    // the index of the item inside CBN_EDITCHANGE may no more be valid.
-    EnableTextChangedEvents(false);
-#endif /* _WIN32 */
-    Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &evt) {
-        auto selected_item = evt.GetSelection();
-
-        auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
-        if (marker >= LABEL_ITEM_MARKER && marker < LABEL_ITEM_MAX) {
-            this->SetSelection(this->last_selected);
-            evt.StopPropagation();
-            if (marker >= LABEL_ITEM_WIZARD_PRINTERS) {
-                ConfigWizard::StartPage sp = ConfigWizard::SP_WELCOME;
-                switch (marker) {
-                    case LABEL_ITEM_WIZARD_PRINTERS: sp = ConfigWizard::SP_PRINTERS; break;
-                    case LABEL_ITEM_WIZARD_FILAMENTS: sp = ConfigWizard::SP_FILAMENTS; break;
-                    case LABEL_ITEM_WIZARD_MATERIALS: sp = ConfigWizard::SP_MATERIALS; break;
-                }
-                wxTheApp->CallAfter([sp]() { wxGetApp().run_wizard(ConfigWizard::RR_USER, sp); });
-            }
-        } else if ( this->last_selected != selected_item ||
-                    wxGetApp().get_tab(this->preset_type)->get_presets()->current_is_dirty() ) {
-            this->last_selected = selected_item;
-            evt.SetInt(this->preset_type);
-            evt.Skip();
-        } else {
-            evt.StopPropagation();
-        }
-    });
-
-    if (preset_type == Slic3r::Preset::TYPE_FILAMENT)
-    {
-        Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {
-            PresetBundle* preset_bundle = wxGetApp().preset_bundle;
-            const Preset* selected_preset = preset_bundle->filaments.find_preset(preset_bundle->filament_presets[extruder_idx]);
-            // Wide icons are shown if the currently selected preset is not compatible with the current printer,
-            // and red flag is drown in front of the selected preset.
-            bool          wide_icons = selected_preset != nullptr && !selected_preset->is_compatible;
-            float scale = m_em_unit*0.1f;
-
-            int shifl_Left = wide_icons ? int(scale * 16 + 0.5) : 0;
-#if defined(wxBITMAPCOMBOBOX_OWNERDRAWN_BASED)
-            shifl_Left  += int(scale * 4 + 0.5f); // IMAGE_SPACING_RIGHT = 4 for wxBitmapComboBox -> Space left of image
-#endif
-            int icon_right_pos = shifl_Left + int(scale * (24+4) + 0.5);
-            int mouse_pos = event.GetLogicalPosition(wxClientDC(this)).x;
-            if (mouse_pos < shifl_Left || mouse_pos > icon_right_pos ) {
-                // Let the combo box process the mouse click.
-                event.Skip();
-                return;
-            }
-
-            // Swallow the mouse click and open the color picker.
-
-            // get current color
-            DynamicPrintConfig* cfg = wxGetApp().get_tab(Preset::TYPE_PRINTER)->get_config();
-            auto colors = static_cast<ConfigOptionStrings*>(cfg->option("extruder_colour")->clone());
-            wxColour clr(colors->values[extruder_idx]);
-            if (!clr.IsOk())
-                clr = wxColour(0,0,0); // Don't set alfa to transparence
-
-            auto data = new wxColourData();
-            data->SetChooseFull(1);
-            data->SetColour(clr);
-
-            wxColourDialog dialog(this, data);
-            dialog.CenterOnParent();
-            if (dialog.ShowModal() == wxID_OK)
-            {
-                colors->values[extruder_idx] = dialog.GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
-
-                DynamicPrintConfig cfg_new = *cfg;
-                cfg_new.set_key_value("extruder_colour", colors);
-
-                wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg_new);
-                preset_bundle->update_plater_filament_ui(extruder_idx, this);
-                wxGetApp().plater()->on_config_change(cfg_new);
-            }
-        });
-    }
-
-    edit_btn = new ScalableButton(parent, wxID_ANY, "cog");
-    edit_btn->SetToolTip(_L("Click to edit preset"));
-
-    edit_btn->Bind(wxEVT_BUTTON, ([preset_type, this](wxCommandEvent)
-    {
-        Tab* tab = wxGetApp().get_tab(preset_type);
-        if (!tab)
-            return;
-
-        int page_id = wxGetApp().tab_panel()->FindPage(tab);
-        if (page_id == wxNOT_FOUND)
-            return;
-
-        wxGetApp().tab_panel()->SetSelection(page_id);
-
-        // Switch to Settings NotePad
-        wxGetApp().mainframe->select_tab();
-
-        /* In a case of a multi-material printing, for editing another Filament Preset
-         * it's needed to select this preset for the "Filament settings" Tab
-         */
-        if (preset_type == Preset::TYPE_FILAMENT && wxGetApp().extruders_edited_cnt() > 1)
-        {
-            const std::string& selected_preset = GetString(GetSelection()).ToUTF8().data();
-
-            // Call select_preset() only if there is new preset and not just modified
-            if ( !boost::algorithm::ends_with(selected_preset, Preset::suffix_modified()) )
-            {
-                const std::string& preset_name = wxGetApp().preset_bundle->filaments.get_preset_name_by_alias(selected_preset);
-                tab->select_preset(/*selected_preset*/preset_name);
-            }
-        }
-    }));
-}
-
-PresetComboBox::~PresetComboBox()
-{
-    if (edit_btn)
-        edit_btn->Destroy();
-}
-
-
-void PresetComboBox::set_label_marker(int item, LabelItemType label_item_type)
-{
-    this->SetClientData(item, (void*)label_item_type);
-}
-
-void PresetComboBox::check_selection(int selection)
-{
-    this->last_selected = selection;
-}
-
-void PresetComboBox::msw_rescale()
-{
-    m_em_unit = wxGetApp().em_unit();
-    edit_btn->msw_rescale();
 }
 
 // Frequently changed parameters
@@ -704,12 +557,12 @@ struct Sidebar::priv
 
     ModeSizer  *mode_sizer;
     wxFlexGridSizer *sizer_presets;
-    PresetComboBox *combo_print;
-    std::vector<PresetComboBox*> combos_filament;
+    PlaterPresetComboBox *combo_print;
+    std::vector<PlaterPresetComboBox*> combos_filament;
     wxBoxSizer *sizer_filaments;
-    PresetComboBox *combo_sla_print;
-    PresetComboBox *combo_sla_material;
-    PresetComboBox *combo_printer;
+    PlaterPresetComboBox *combo_sla_print;
+    PlaterPresetComboBox *combo_sla_material;
+    PlaterPresetComboBox *combo_printer;
 
     wxBoxSizer *sizer_params;
     FreqChangedParams   *frequently_changed_parameters{ nullptr };
@@ -808,10 +661,10 @@ Sidebar::Sidebar(Plater *parent)
 
     p->sizer_filaments = new wxBoxSizer(wxVERTICAL);
 
-    auto init_combo = [this](PresetComboBox **combo, wxString label, Preset::Type preset_type, bool filament) {
+    auto init_combo = [this](PlaterPresetComboBox **combo, wxString label, Preset::Type preset_type, bool filament) {
         auto *text = new wxStaticText(p->presets_panel, wxID_ANY, label + " :");
         text->SetFont(wxGetApp().small_font());
-        *combo = new PresetComboBox(p->presets_panel, preset_type);
+        *combo = new PlaterPresetComboBox(p->presets_panel, preset_type);
 
         auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
         combo_and_btn_sizer->Add(*combo, 1, wxEXPAND);
@@ -948,8 +801,8 @@ Sidebar::Sidebar(Plater *parent)
 
 Sidebar::~Sidebar() {}
 
-void Sidebar::init_filament_combo(PresetComboBox **combo, const int extr_idx) {
-    *combo = new PresetComboBox(p->presets_panel, Slic3r::Preset::TYPE_FILAMENT);
+void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int extr_idx) {
+    *combo = new PlaterPresetComboBox(p->presets_panel, Slic3r::Preset::TYPE_FILAMENT);
 //         # copy icons from first choice
 //         $choice->SetItemBitmap($_, $choices->[0]->GetItemBitmap($_)) for 0..$#presets;
 
@@ -984,18 +837,18 @@ void Sidebar::update_all_preset_comboboxes()
 
     // Update the print choosers to only contain the compatible presets, update the dirty flags.
     if (print_tech == ptFFF)
-        preset_bundle.prints.update_plater_ui(p->combo_print);
+        p->combo_print->update();
     else {
-        preset_bundle.sla_prints.update_plater_ui(p->combo_sla_print);
-        preset_bundle.sla_materials.update_plater_ui(p->combo_sla_material);
+        p->combo_sla_print->update();
+        p->combo_sla_material->update();
     }
     // Update the printer choosers, update the dirty flags.
-    preset_bundle.printers.update_plater_ui(p->combo_printer);
+    p->combo_printer->update();
     // Update the filament choosers to only contain the compatible presets, update the color preview,
     // update the dirty flags.
     if (print_tech == ptFFF) {
-        for (size_t i = 0; i < p->combos_filament.size(); ++i)
-            preset_bundle.update_plater_filament_ui(i, p->combos_filament[i]);
+        for (PlaterPresetComboBox* cb : p->combos_filament)
+            cb->update();
     }
 }
 
@@ -1017,23 +870,22 @@ void Sidebar::update_presets(Preset::Type preset_type)
             preset_bundle.set_filament_preset(0, name);
         }
 
-        for (size_t i = 0; i < filament_cnt; i++) {
-            preset_bundle.update_plater_filament_ui(i, p->combos_filament[i]);
-        }
+        for (size_t i = 0; i < filament_cnt; i++)
+            p->combos_filament[i]->update();
 
         break;
     }
 
     case Preset::TYPE_PRINT:
-        preset_bundle.prints.update_plater_ui(p->combo_print);
+        p->combo_print->update();
         break;
 
     case Preset::TYPE_SLA_PRINT:
-        preset_bundle.sla_prints.update_plater_ui(p->combo_sla_print);
+        p->combo_sla_print->update();
         break;
 
     case Preset::TYPE_SLA_MATERIAL:
-        preset_bundle.sla_materials.update_plater_ui(p->combo_sla_material);
+        p->combo_sla_material->update();
         break;
 
     case Preset::TYPE_PRINTER:
@@ -1069,17 +921,13 @@ void Sidebar::msw_rescale()
 
     p->mode_sizer->msw_rescale();
 
-    // Rescale preset comboboxes in respect to the current  em_unit ...
-    for (PresetComboBox* combo : std::vector<PresetComboBox*> { p->combo_print,
+    for (PlaterPresetComboBox* combo : std::vector<PlaterPresetComboBox*> { p->combo_print,
                                                                 p->combo_sla_print,
                                                                 p->combo_sla_material,
                                                                 p->combo_printer } )
         combo->msw_rescale();
-    for (PresetComboBox* combo : p->combos_filament)
+    for (PlaterPresetComboBox* combo : p->combos_filament)
         combo->msw_rescale();
-
-    // ... then refill them and set min size to correct layout of the sidebar
-    update_all_preset_comboboxes();
 
     p->frequently_changed_parameters->msw_rescale();
     p->object_list->msw_rescale();
@@ -1101,22 +949,16 @@ void Sidebar::msw_rescale()
 
 void Sidebar::sys_color_changed()
 {
-    // Update preset comboboxes in respect to the system color ...
-    // combo->msw_rescale() updates icon on button, so use it
-    for (PresetComboBox* combo : std::vector<PresetComboBox*>{  p->combo_print,
+    for (PlaterPresetComboBox* combo : std::vector<PlaterPresetComboBox*>{  p->combo_print,
                                                                 p->combo_sla_print,
                                                                 p->combo_sla_material,
                                                                 p->combo_printer })
         combo->msw_rescale();
-    for (PresetComboBox* combo : p->combos_filament)
+    for (PlaterPresetComboBox* combo : p->combos_filament)
         combo->msw_rescale();
-
-    // ... then refill them and set min size to correct layout of the sidebar
-    update_all_preset_comboboxes();
 
     p->object_list->sys_color_changed();
     p->object_manipulation->sys_color_changed();
-//    p->object_settings->msw_rescale();
     p->object_layers->sys_color_changed();
 
     // btn...->msw_rescale() updates icon on button, so use it
@@ -1479,7 +1321,7 @@ void Sidebar::update_ui_from_settings()
     update_sliced_info_sizer();
 }
 
-std::vector<PresetComboBox*>& Sidebar::combos_filament()
+std::vector<PlaterPresetComboBox*>& Sidebar::combos_filament()
 {
     return p->combos_filament;
 }
@@ -2339,6 +2181,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if (!config.empty()) {
                         Preset::normalize(config);
                         wxGetApp().preset_bundle->load_config_model(filename.string(), std::move(config));
+                        if (printer_technology == ptFFF)
+                            CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, &wxGetApp().preset_bundle->project_config);
                         wxGetApp().load_current_presets();
                         is_project_file = true;
                     }
@@ -3428,7 +3272,7 @@ void Plater::priv::set_current_panel(wxPanel* panel)
 void Plater::priv::on_select_preset(wxCommandEvent &evt)
 {
     auto preset_type = static_cast<Preset::Type>(evt.GetInt());
-    auto *combo = static_cast<PresetComboBox*>(evt.GetEventObject());
+    auto *combo = static_cast<PlaterPresetComboBox*>(evt.GetEventObject());
 
     // see https://github.com/prusa3d/PrusaSlicer/issues/3889
     // Under OSX: in case of use of a same names written in different case (like "ENDER" and "Ender"),
@@ -3447,19 +3291,27 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     //! instead of
     //!     combo->GetStringSelection().ToUTF8().data());
 
-    const std::string preset_name = wxGetApp().preset_bundle->get_preset_name_by_alias(preset_type, 
+    std::string preset_name = wxGetApp().preset_bundle->get_preset_name_by_alias(preset_type, 
         Preset::remove_suffix_modified(combo->GetString(selection).ToUTF8().data()));
 
     if (preset_type == Preset::TYPE_FILAMENT) {
         wxGetApp().preset_bundle->set_filament_preset(idx, preset_name);
     }
 
+    bool select_preset = !combo->selection_is_changed_according_to_physical_printers();
     // TODO: ?
     if (preset_type == Preset::TYPE_FILAMENT && sidebar->is_multifilament()) {
         // Only update the plater UI for the 2nd and other filaments.
-        wxGetApp().preset_bundle->update_plater_filament_ui(idx, combo);
+        combo->update();
     }
-    else {
+    else if (select_preset) {
+        if (preset_type == Preset::TYPE_PRINTER) {
+            PhysicalPrinterCollection& physical_printers = wxGetApp().preset_bundle->physical_printers;
+            if(combo->is_selected_physical_printer())
+                preset_name = physical_printers.get_selected_printer_preset_name();
+            else
+                physical_printers.unselect_printer();
+        }
         wxWindowUpdateLocker noUpdates(sidebar->presets_panel());
         wxGetApp().get_tab(preset_type)->select_preset(preset_name);
     }
@@ -4321,7 +4173,12 @@ void Plater::priv::show_action_buttons(const bool ready_to_slice) const
     this->ready_to_slice = ready_to_slice;
 
     wxWindowUpdateLocker noUpdater(sidebar);
-    const auto prin_host_opt = config->option<ConfigOptionString>("print_host");
+
+    DynamicPrintConfig* selected_printer_config = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config();
+    if (!selected_printer_config)
+        selected_printer_config = config;
+
+    const auto prin_host_opt = selected_printer_config->option<ConfigOptionString>("print_host");
     const bool send_gcode_shown = prin_host_opt != nullptr && !prin_host_opt->value.empty();
     
     // when a background processing is ON, export_btn and/or send_btn are showing
@@ -5301,7 +5158,9 @@ void Plater::send_gcode()
 {
     if (p->model.objects.empty()) { return; }
 
-    PrintHostJob upload_job(p->config);
+    // if physical_printer is selected, send gcode for this printer
+    DynamicPrintConfig* physical_printer_config = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config();
+    PrintHostJob upload_job(physical_printer_config ? physical_printer_config : p->config);
     if (upload_job.empty()) { return; }
 
     // Obtain default output path
@@ -5412,12 +5271,12 @@ void Plater::on_extruders_change(size_t num_extruders)
     size_t i = choices.size();
     while ( i < num_extruders )
     {
-        PresetComboBox* choice/*{ nullptr }*/;
+        PlaterPresetComboBox* choice/*{ nullptr }*/;
         sidebar().init_filament_combo(&choice, i);
         choices.push_back(choice);
 
         // initialize selection
-        wxGetApp().preset_bundle->update_plater_filament_ui(i, choice);
+        choice->update();
         ++i;
     }
 

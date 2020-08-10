@@ -1,4 +1,5 @@
 #include "libslic3r/libslic3r.h"
+#include "libslic3r/PresetBundle.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
 #include "GUI_ObjectLayers.hpp"
@@ -7,7 +8,6 @@
 #include "Plater.hpp"
 
 #include "OptionsGroup.hpp"
-#include "PresetBundle.hpp"
 #include "Tab.hpp"
 #include "wxExtensions.hpp"
 #include "libslic3r/Model.hpp"
@@ -88,9 +88,6 @@ ObjectList::ObjectList(wxWindow* parent) :
 {
     // Fill CATEGORY_ICON
     {
-        // Note: `this` isn't passed to create_scaled_bitmap() here because of bugs in the widget,
-        // see note in PresetBundle::load_compatible_bitmaps()
-
         // ptFFF
         CATEGORY_ICON[L("Layers and Perimeters")]    = create_scaled_bitmap("layers");
         CATEGORY_ICON[L("Infill")]                   = create_scaled_bitmap("infill");

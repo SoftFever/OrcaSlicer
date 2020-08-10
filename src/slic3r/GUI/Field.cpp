@@ -295,6 +295,7 @@ void Field::msw_rescale(bool rescale_sidetext)
 {
 	m_Undo_to_sys_btn->msw_rescale();
 	m_Undo_btn->msw_rescale();
+	m_blinking_bmp->msw_rescale();
 
 	// update em_unit value
 	m_em_unit = em_unit(m_parent);
@@ -1079,6 +1080,8 @@ boost::any& Choice::get_value()
 			m_value = static_cast<SLADisplayOrientation>(ret_enum);
         else if (m_opt_id.compare("support_pillar_connection_mode") == 0)
             m_value = static_cast<SLAPillarConnectionMode>(ret_enum);
+		else if (m_opt_id == "authorization_type")
+			m_value = static_cast<AuthorizationType>(ret_enum);
 	}
     else if (m_opt.gui_type == "f_enum_open") {
         const int ret_enum = field->GetSelection();

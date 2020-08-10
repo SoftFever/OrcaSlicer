@@ -10,7 +10,7 @@
 #endif // ENABLE_GCODE_VIEWER
 
 #include "GUI_App.hpp"
-#include "PresetBundle.hpp"
+#include "libslic3r/PresetBundle.hpp"
 #include "GLCanvas3D.hpp"
 #if ENABLE_GCODE_VIEWER
 #include "3DScene.hpp"
