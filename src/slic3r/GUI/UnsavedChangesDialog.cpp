@@ -42,14 +42,14 @@ static std::string orange   = "#ed6b21";
 
 static void color_string(wxString& str, const std::string& color)
 {
-#if defined(SUPPORTS_MARKUP) && /*!defined(__APPLE__)*/defined(wxHAS_GENERIC_DATAVIEWCTRL)
+#if defined(SUPPORTS_MARKUP) && !defined(__APPLE__)
     str = from_u8((boost::format("<span color=\"%1%\">%2%</span>") % color % into_u8(str)).str());
 #endif
 }
 
 static void make_string_bold(wxString& str)
 {
-#if defined(SUPPORTS_MARKUP) && !defined(__APPLE__)//defined(wxHAS_GENERIC_DATAVIEWCTRL)
+#if defined(SUPPORTS_MARKUP) && !defined(__APPLE__)
     str = from_u8((boost::format("<b>%1%</b>") % into_u8(str)).str());
 #endif
 }
@@ -86,7 +86,11 @@ ModelNode::ModelNode(ModelNode* parent, const wxString& text) :
 {
 }
 
+#ifdef __linux__
+wxIcon ModelNode::get_bitmap(const wxString& color);
+#else
 wxBitmap ModelNode::get_bitmap(const wxString& color)
+#endif // __linux__
 {
     /* It's supposed that standard size of an icon is 48px*16px for 100% scaled display.
      * So set sizes for solid_colored icons used for filament preset
@@ -100,7 +104,16 @@ wxBitmap ModelNode::get_bitmap(const wxString& color)
     unsigned char rgb[3];
     BitmapCache::parse_color(into_u8(color), rgb);
     // there is no need to scale created solid bitmap
-     return bmp_cache.mksolid(icon_width, icon_height, rgb, true);
+    wxBitmap bmp = bmp_cache.mksolid(icon_width, icon_height, rgb, true);
+
+#ifdef __linux__
+    wxIcon icon;
+    icon.CopyFromBitmap(create_scaled_bitmap(icon_name));
+    return icon;
+#else
+    return bmp;
+#endif // __linux__
+
 }
 
 // option node
@@ -297,6 +310,13 @@ void UnsavedChangesModel::UpdateItemEnabling(wxDataViewItem item)
     update_parents(node);    
 }
 
+bool UnsavedChangesModel::IsEnabledItem(const wxDataViewItem& item)
+{
+    assert(item.IsOk());
+    ModelNode* node = (ModelNode*)item.GetID();
+    return node->IsToggled();
+}
+
 void UnsavedChangesModel::GetValue(wxVariant& variant, const wxDataViewItem& item, unsigned int col) const
 {
     assert(item.IsOk());
@@ -307,12 +327,19 @@ void UnsavedChangesModel::GetValue(wxVariant& variant, const wxDataViewItem& ite
     case colToggle:
         variant = node->m_toggle;
         break;
-    case colIconText:
 #ifdef __linux__
+    case colIconText:
         variant << wxDataViewIconText(node->m_text, node->m_icon);
+        break;
+    case colOldValue:
+        variant << wxDataViewIconText(node->m_old_value, node->m_old_color_bmp);
+        break;
+    case colNewValue:
+        variant << wxDataViewIconText(node->m_new_value, node->m_new_color_bmp);
+        break;
 #else
+    case colIconText:
         variant << DataViewBitmapText(node->m_text, node->m_icon);
-#endif //__linux__
         break;
     case colOldValue:
         variant << DataViewBitmapText(node->m_old_value, node->m_old_color_bmp);
@@ -320,6 +347,7 @@ void UnsavedChangesModel::GetValue(wxVariant& variant, const wxDataViewItem& ite
     case colNewValue:
         variant << DataViewBitmapText(node->m_new_value, node->m_new_color_bmp);
         break;
+#endif //__linux__
 
     default:
         wxLogError("UnsavedChangesModel::GetValue: wrong column %d", col);
@@ -333,23 +361,35 @@ bool UnsavedChangesModel::SetValue(const wxVariant& variant, const wxDataViewIte
     ModelNode* node = (ModelNode*)item.GetID();
     switch (col)
     {
-    case colIconText: {
-#ifdef __linux__
-        wxDataViewIconText data;
-#else
-        DataViewBitmapText data;
-#endif //__linux__
-        data << variant;
-        node->m_text = data.GetText();
-#ifdef __linux__
-        node->m_icon = data.GetIcon();
-#else
-        node->m_icon = data.GetBitmap();
-#endif //__linux__
-        return true; }
     case colToggle:
         node->m_toggle = variant.GetBool();
         return true;
+#ifdef __linux__
+    case colIconText: {
+        wxDataViewIconText data;
+        data << variant;
+        node->m_icon = data.GetIcon();
+        node->m_text = data.GetText();
+        return true; }
+    case colOldValue: {
+        wxDataViewIconText data;
+        data << variant;
+        node->m_old_color_bmp   = data.GetIcon();
+        node->m_old_value       = data.GetText();
+        return true; }
+    case colNewValue: {
+        wxDataViewIconText data;
+        data << variant;
+        node->m_new_color_bmp   = data.GetIcon();
+        node->m_new_value       = data.GetText();
+        return true; }
+#else
+    case colIconText: {
+        DataViewBitmapText data;
+        data << variant;
+        node->m_icon = data.GetBitmap();
+        node->m_text = data.GetText();
+        return true; }
     case colOldValue: {
         DataViewBitmapText data;
         data << variant;
@@ -362,6 +402,7 @@ bool UnsavedChangesModel::SetValue(const wxVariant& variant, const wxDataViewIte
         node->m_new_color_bmp   = data.GetBitmap();
         node->m_new_value       = data.GetText();
         return true; }
+#endif //__linux__
     default:
         wxLogError("UnsavedChangesModel::SetValue: wrong column");
     }
@@ -458,7 +499,7 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type)
     m_tree->AssociateModel(m_tree_model);
     m_tree_model->SetAssociatedControl(m_tree);
 
-    m_tree->AppendToggleColumn(L"\u2714", UnsavedChangesModel::colToggle, wxDATAVIEW_CELL_ACTIVATABLE/*, 6 * em*/);//2610,11,12 //2714
+    m_tree->AppendToggleColumn(L"\u2714", UnsavedChangesModel::colToggle, wxDATAVIEW_CELL_ACTIVATABLE, 6 * em);//2610,11,12 //2714
 
 #ifdef __linux__
     wxDataViewIconTextRenderer* rd = new wxDataViewIconTextRenderer();
@@ -473,7 +514,7 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type)
     m_tree->AppendColumn(new wxDataViewColumn("Old value",  new BitmapTextRenderer(true), UnsavedChangesModel::colOldValue, 20 * em, wxALIGN_TOP));
     m_tree->AppendColumn(new wxDataViewColumn("New value",  new BitmapTextRenderer(true), UnsavedChangesModel::colNewValue, 20 * em, wxALIGN_TOP));
 
-    m_tree->SetExpanderColumn(icon_text_clmn);
+//    m_tree->SetExpanderColumn(icon_text_clmn);
 
     m_tree->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, &UnsavedChangesDialog::item_value_changed, this);
 
@@ -486,13 +527,17 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type)
 
     wxString label= from_u8((boost::format(_u8L("Save selected to preset:%1%"))% ("\"" + presets->get_selected_preset().name + "\"")).str());
     auto save_btn = new wxButton(this, m_save_btn_id = NewControlId(), label);
-    save_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { close(Action::Save); });
     buttons->Insert(0, save_btn, 0, wxLEFT, 5);
+
+    save_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { close(Action::Save); });
+    save_btn->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(!m_empty_selection); });
 
     label = from_u8((boost::format(_u8L("Move selected to preset:%1%"))% ("\"NewSelectedPreset\"")).str());
     auto move_btn = new wxButton(this, m_move_btn_id = NewControlId(), label);
-    move_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { close(Action::Move); });
     buttons->Insert(1, move_btn, 0, wxLEFT, 5);
+
+    move_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { close(Action::Move); });
+    move_btn->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(!m_empty_selection); });
 
     auto continue_btn = new wxButton(this, m_continue_btn_id = NewControlId(), _L("Continue without changes"));
     continue_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { close(Action::Continue); });
@@ -519,6 +564,9 @@ void UnsavedChangesDialog::item_value_changed(wxDataViewEvent& event)
 
     m_tree_model->UpdateItemEnabling(item);
     m_tree->Refresh();
+
+    // update an enabling of the "save/move" buttons
+    m_empty_selection = get_selected_options().empty();
 }
 
 void UnsavedChangesDialog::close(Action action)
@@ -670,11 +718,23 @@ void UnsavedChangesDialog::update(Preset::Type type)
     for (const std::string& opt_key : presets->current_dirty_options()) {
         const Search::Option& option = searcher.get_option(opt_key);
 
-        m_tree_model->AddOption(type, option.category_local, option.group_local, option.label_local, 
-                                get_string_value(opt_key, old_config), get_string_value(opt_key, new_config));
+        m_items_map.emplace(m_tree_model->AddOption(type, option.category_local, option.group_local, option.label_local,
+            get_string_value(opt_key, old_config), get_string_value(opt_key, new_config)), opt_key);
     }
 }
 
+
+std::vector<std::string> UnsavedChangesDialog::get_selected_options()
+{
+    std::vector<std::string> ret;
+
+    for (auto item : m_items_map) {
+        if (m_tree_model->IsEnabledItem(item.first))
+            ret.emplace_back(item.second);
+    }
+
+    return ret;
+}
 
 void UnsavedChangesDialog::on_dpi_changed(const wxRect& suggested_rect)
 {

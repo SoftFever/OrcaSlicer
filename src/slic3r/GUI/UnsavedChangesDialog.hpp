@@ -2,6 +2,8 @@
 #define slic3r_UnsavedChangesDialog_hpp_
 
 #include <wx/dataview.h>
+#include <map>
+#include <vector>
 
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
@@ -48,18 +50,24 @@ class ModelNode
     // would be added to the control)
     bool                m_container {true};
 
+#ifdef __linux__
+    wxIcon              get_bitmap(const wxString& color);
+#else
     wxBitmap            get_bitmap(const wxString& color);
+#endif //__linux__
 
 public:
 
     bool        m_toggle {true};
 #ifdef __linux__
     wxIcon      m_icon;
+    wxIcon      m_old_color_bmp;
+    wxIcon      m_new_color_bmp;
 #else
     wxBitmap    m_icon;
-#endif //__linux__
     wxBitmap    m_old_color_bmp;
     wxBitmap    m_new_color_bmp;
+#endif //__linux__
     wxString    m_text;
     wxString    m_old_value;
     wxString    m_new_value;
@@ -150,6 +158,7 @@ public:
                               wxString old_value, wxString new_value);
 
     void            UpdateItemEnabling(wxDataViewItem item);
+    bool            IsEnabledItem(const wxDataViewItem& item);
 
     unsigned int    GetColumnCount() const override { return colMax; }
     wxString        GetColumnType(unsigned int col) const override;
@@ -176,15 +185,20 @@ class UnsavedChangesDialog : public DPIDialog
     wxDataViewCtrl*         m_tree          { nullptr };
     UnsavedChangesModel*    m_tree_model    { nullptr };
 
-    int m_save_btn_id       { wxID_ANY };
-    int m_move_btn_id       { wxID_ANY };
-    int m_continue_btn_id   { wxID_ANY };
+    bool                    m_empty_selection   { false };
+    int                     m_save_btn_id       { wxID_ANY };
+    int                     m_move_btn_id       { wxID_ANY };
+    int                     m_continue_btn_id   { wxID_ANY };
 
     enum class Action {
+        Undef,
         Save,
         Move,
         Continue
-    } m_action;
+    } m_action {Action::Undef};
+
+
+    std::map<wxDataViewItem, std::string> m_items_map;
 
 public:
     UnsavedChangesDialog(Preset::Type type);
@@ -197,6 +211,8 @@ public:
     bool save_preset() const    { return m_action == Action::Save;      }
     bool move_preset() const    { return m_action == Action::Move;      }
     bool just_continue() const  { return m_action == Action::Continue;  }
+
+    std::vector<std::string> get_selected_options();
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
