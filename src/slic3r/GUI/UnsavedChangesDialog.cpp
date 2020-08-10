@@ -87,7 +87,7 @@ ModelNode::ModelNode(ModelNode* parent, const wxString& text) :
 }
 
 #ifdef __linux__
-wxIcon ModelNode::get_bitmap(const wxString& color);
+wxIcon ModelNode::get_bitmap(const wxString& color)
 #else
 wxBitmap ModelNode::get_bitmap(const wxString& color)
 #endif // __linux__
@@ -113,7 +113,6 @@ wxBitmap ModelNode::get_bitmap(const wxString& color)
 #else
     return bmp;
 #endif // __linux__
-
 }
 
 // option node
