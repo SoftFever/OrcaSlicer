@@ -1281,13 +1281,16 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
     print.throw_if_canceled();
     
     // adds tags for time estimators
-#if !ENABLE_GCODE_VIEWER
+#if ENABLE_GCODE_VIEWER
+    if (print.config().remaining_times.value)
+        _writeln(file, GCodeProcessor::First_M73_Output_Placeholder_Tag);
+#else
     if (print.config().remaining_times.value) {
         _writeln(file, GCodeTimeEstimator::Normal_First_M73_Output_Placeholder_Tag);
         if (m_silent_time_estimator_enabled)
             _writeln(file, GCodeTimeEstimator::Silent_First_M73_Output_Placeholder_Tag);
     }
-#endif // !ENABLE_GCODE_VIEWER
+#endif // ENABLE_GCODE_VIEWER
 
     // Prepare the helper object for replacing placeholders in custom G-code and output filename.
     m_placeholder_parser = print.placeholder_parser();
@@ -1582,14 +1585,16 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
     _write(file, m_writer.postamble());
 
     // adds tags for time estimators
-#if !ENABLE_GCODE_VIEWER
+#if ENABLE_GCODE_VIEWER
     if (print.config().remaining_times.value)
-    {
+        _writeln(file, GCodeProcessor::Last_M73_Output_Placeholder_Tag);
+#else
+    if (print.config().remaining_times.value) {
         _writeln(file, GCodeTimeEstimator::Normal_Last_M73_Output_Placeholder_Tag);
         if (m_silent_time_estimator_enabled)
             _writeln(file, GCodeTimeEstimator::Silent_Last_M73_Output_Placeholder_Tag);
     }
-#endif // !ENABLE_GCODE_VIEWER
+#endif // ENABLE_GCODE_VIEWER
 
     print.throw_if_canceled();
 
@@ -2087,7 +2092,7 @@ void GCode::process_layer(
 #if ENABLE_GCODE_VIEWER
     // export layer z
     char buf[64];
-    sprintf(buf, ";Z%g\n", print_z);
+    sprintf(buf, ";Z:%g\n", print_z);
     gcode += buf;
     // export layer height
     float height = first_layer ? static_cast<float>(print_z) : static_cast<float>(print_z) - m_last_layer_z;

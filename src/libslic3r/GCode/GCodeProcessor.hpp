@@ -72,6 +72,8 @@ namespace Slic3r {
         static const std::string Color_Change_Tag;
         static const std::string Pause_Print_Tag;
         static const std::string Custom_Code_Tag;
+        static const std::string First_M73_Output_Placeholder_Tag;
+        static const std::string Last_M73_Output_Placeholder_Tag;
 
     private:
         using AxisCoords = std::array<float, 4>;
@@ -182,10 +184,12 @@ namespace Slic3r {
             float acceleration; // mm/s^2
             float extrude_factor_override_percentage;
             float time; // s
+            std::string line_m73_mask;
             State curr;
             State prev;
             CustomGCodeTime gcode_time;
             std::vector<TimeBlock> blocks;
+            std::vector<float> g1_times_cache;
             std::array<float, static_cast<size_t>(EMoveType::Count)> moves_time;
             std::array<float, static_cast<size_t>(ExtrusionRole::erCount)> roles_time;
 
@@ -212,6 +216,7 @@ namespace Slic3r {
             // This is currently only really used by the MK3 MMU2:
             // extruder_unloaded = true means no filament is loaded yet, all the filaments are parked in the MK3 MMU2 unit.
             bool extruder_unloaded;
+            bool export_remaining_time_enabled;
             MachineEnvelopeConfig machine_limits;
             // Additional load / unload times for a filament exchange sequence.
             std::vector<float> filament_load_times;
@@ -219,6 +224,9 @@ namespace Slic3r {
             std::array<TimeMachine, static_cast<size_t>(ETimeMode::Count)> machines;
 
             void reset();
+
+            // post process the file with the given filename to add remaining time lines M73
+            void post_process(const std::string& filename);
         };
 
     public:
@@ -312,7 +320,7 @@ namespace Slic3r {
         static unsigned int s_result_id;
 
     public:
-        GCodeProcessor() { reset(); }
+        GCodeProcessor();
 
         void apply_config(const PrintConfig& config);
         void apply_config(const DynamicPrintConfig& config);

@@ -4,6 +4,7 @@
 #include "GCodeProcessor.hpp"
 
 #include <boost/log/trivial.hpp>
+#include <boost/nowide/fstream.hpp>
 
 #include <float.h>
 #include <assert.h>
@@ -27,6 +28,9 @@ const std::string GCodeProcessor::Height_Tag         = "Height:";
 const std::string GCodeProcessor::Color_Change_Tag   = "Color change";
 const std::string GCodeProcessor::Pause_Print_Tag    = "Pause print";
 const std::string GCodeProcessor::Custom_Code_Tag    = "Custom gcode";
+
+const std::string GCodeProcessor::First_M73_Output_Placeholder_Tag = "; _GP_FIRST_M73_OUTPUT_PLACEHOLDER";
+const std::string GCodeProcessor::Last_M73_Output_Placeholder_Tag  = "; _GP_LAST_M73_OUTPUT_PLACEHOLDER";
 
 static bool is_valid_extrusion_role(int value)
 {
@@ -161,6 +165,7 @@ void GCodeProcessor::TimeMachine::reset()
     prev.reset();
     gcode_time.reset();
     blocks = std::vector<TimeBlock>();
+    g1_times_cache = std::vector<float>();
     std::fill(moves_time.begin(), moves_time.end(), 0.0f);
     std::fill(roles_time.begin(), roles_time.end(), 0.0f);
 }
@@ -264,7 +269,6 @@ void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks)
     recalculate_trapezoids(blocks);
 
     size_t n_blocks_process = blocks.size() - keep_last_n_blocks;
-//    m_g1_times.reserve(m_g1_times.size() + n_blocks_process);
     for (size_t i = 0; i < n_blocks_process; ++i) {
         const TimeBlock& block = blocks[i];
         float block_time = block.time();
@@ -272,9 +276,7 @@ void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks)
         gcode_time.cache += block_time;
         moves_time[static_cast<size_t>(block.move_type)] += block_time;
         roles_time[static_cast<size_t>(block.role)] += block_time;
-
-//        if (block.g1_line_id >= 0)
-//            m_g1_times.emplace_back(block.g1_line_id, time);
+        g1_times_cache.push_back(time);
     }
 
     if (keep_last_n_blocks)
@@ -286,6 +288,7 @@ void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks)
 void GCodeProcessor::TimeProcessor::reset()
 {
     extruder_unloaded = true;
+    export_remaining_time_enabled = false;
     machine_limits = MachineEnvelopeConfig();
     filament_load_times = std::vector<float>();
     filament_unload_times = std::vector<float>();
@@ -293,6 +296,136 @@ void GCodeProcessor::TimeProcessor::reset()
         machines[i].reset();
     }
     machines[static_cast<size_t>(ETimeMode::Normal)].enabled = true;
+}
+
+void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
+{
+    boost::nowide::ifstream in(filename);
+    if (!in.good())
+        throw std::runtime_error(std::string("Time estimator post process export failed.\nCannot open file for reading.\n"));
+
+    // temporary file to contain modified gcode
+    std::string out_path = filename + ".postprocess";
+    FILE* out = boost::nowide::fopen(out_path.c_str(), "wb");
+    if (out == nullptr)
+        throw std::runtime_error(std::string("Time estimator post process export failed.\nCannot open file for writing.\n"));
+
+    auto time_in_minutes = [](float time_in_seconds) {
+        return int(::roundf(time_in_seconds / 60.0f));
+    };
+
+    auto format_line_M73 = [](const std::string& mask, int percent, int time) {
+        char line_M73[64];
+        sprintf(line_M73, mask.c_str(),
+            std::to_string(percent).c_str(),
+            std::to_string(time).c_str());
+        return std::string(line_M73);
+    };
+
+    GCodeReader parser;
+    std::string gcode_line;
+    size_t g1_lines_counter = 0;
+    // keeps track of last exported pair <percent, remaining time>
+    std::array<std::pair<int, int>, static_cast<size_t>(ETimeMode::Count)> last_exported;
+    for (size_t i = 0; i < static_cast<size_t>(ETimeMode::Count); ++i) {
+        last_exported[i] = { 0, time_in_minutes(machines[i].time) };
+    }
+
+    // buffer line to export only when greater than 64K to reduce writing calls
+    std::string export_line;
+
+    // replace placeholder lines with the proper final value
+    auto process_placeholders = [&](const std::string& gcode_line) {
+        std::string ret;
+        // remove trailing '\n'
+        std::string line = gcode_line.substr(0, gcode_line.length() - 1);
+        if (line == First_M73_Output_Placeholder_Tag || line == Last_M73_Output_Placeholder_Tag) {
+            for (size_t i = 0; i < static_cast<size_t>(ETimeMode::Count); ++i) {
+                const TimeMachine& machine = machines[i];
+                if (machine.enabled) {
+                    ret += format_line_M73(machine.line_m73_mask.c_str(),
+                        (line == First_M73_Output_Placeholder_Tag) ? 0 : 100,
+                        (line == First_M73_Output_Placeholder_Tag) ? time_in_minutes(machines[i].time) : 0);
+                }
+            }
+        }
+        return std::make_pair(!ret.empty(), ret.empty() ? gcode_line : ret);
+    };
+
+    // add lines M73 to exported gcode
+    auto process_line_G1 = [&]() {
+        for (size_t i = 0; i < static_cast<size_t>(ETimeMode::Count); ++i) {
+            const TimeMachine& machine = machines[i];
+            if (machine.enabled && g1_lines_counter < machine.g1_times_cache.size()) {
+                float elapsed_time = machine.g1_times_cache[g1_lines_counter];
+                std::pair<int, int> to_export = { int(::roundf(100.0f * elapsed_time / machine.time)), 
+                                                  time_in_minutes(machine.time - elapsed_time) };
+                if (last_exported[i] != to_export) {
+                    export_line += format_line_M73(machine.line_m73_mask.c_str(),
+                        to_export.first, to_export.second);
+                    last_exported[i] = to_export;
+                }
+            }
+        }
+    };
+
+    // helper function to write to disk
+    auto write_string = [&](const std::string& str) {
+        fwrite((const void*)export_line.c_str(), 1, export_line.length(), out);
+        if (ferror(out)) {
+            in.close();
+            fclose(out);
+            boost::nowide::remove(out_path.c_str());
+            throw std::runtime_error(std::string("Time estimator post process export failed.\nIs the disk full?\n"));
+        }
+        export_line.clear();
+    };
+
+    while (std::getline(in, gcode_line)) {
+        if (!in.good()) {
+            fclose(out);
+            throw std::runtime_error(std::string("Time estimator post process export failed.\nError while reading from file.\n"));
+        }
+
+        gcode_line += "\n";
+        auto [processed, result] = process_placeholders(gcode_line);
+        gcode_line = result;
+        if (!processed) {
+            parser.parse_line(gcode_line,
+                [&](GCodeReader& reader, const GCodeReader::GCodeLine& line) {
+                    if (line.cmd_is("G1")) {
+                        process_line_G1();
+                        ++g1_lines_counter;
+                    }
+                });
+        }
+
+        export_line += gcode_line;
+        if (export_line.length() > 65535)
+            write_string(export_line);
+    }
+
+    for (size_t i = 0; i < static_cast<size_t>(ETimeMode::Count); ++i) {
+        const TimeMachine& machine = machines[i];
+        ETimeMode mode = static_cast<ETimeMode>(i);
+        if (machine.enabled) {
+            char line[128];
+            sprintf(line, "; estimated printing time (%s mode) = %s\n",
+                (mode == ETimeMode::Normal) ? "normal" : "silent",
+                get_time_dhms(machine.time).c_str());
+            export_line += line;
+        }
+    }
+
+    if (!export_line.empty())
+        write_string(export_line);
+
+    fclose(out);
+    in.close();
+
+    if (rename_file(out_path, filename))
+        throw std::runtime_error(std::string("Failed to rename the output G-code file from ") + out_path + " to " + filename + '\n' +
+            "Is " + out_path + " locked?" + '\n');
 }
 
 const std::vector<std::pair<GCodeProcessor::EProducer, std::string>> GCodeProcessor::Producers = {
@@ -304,6 +437,13 @@ const std::vector<std::pair<GCodeProcessor::EProducer, std::string>> GCodeProces
 };
 
 unsigned int GCodeProcessor::s_result_id = 0;
+
+GCodeProcessor::GCodeProcessor()
+{
+    reset();
+    m_time_processor.machines[static_cast<size_t>(ETimeMode::Normal)].line_m73_mask = "M73 P%s R%s\n";
+    m_time_processor.machines[static_cast<size_t>(ETimeMode::Stealth)].line_m73_mask = "M73 Q%s S%s\n";
+}
 
 void GCodeProcessor::apply_config(const PrintConfig& config)
 {
@@ -346,6 +486,8 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         float max_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_extruding, i);
         m_time_processor.machines[i].acceleration = (max_acceleration > 0.0f) ? max_acceleration : DEFAULT_ACCELERATION;
     }
+
+    m_time_processor.export_remaining_time_enabled = config.remaining_times.value;
 }
 
 void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
@@ -571,6 +713,10 @@ void GCodeProcessor::process_file(const std::string& filename)
     }
 
     update_estimated_times_stats();
+
+    // post-process to add M73 lines into the gcode
+    if (m_time_processor.export_remaining_time_enabled)
+        m_time_processor.post_process(filename);
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_result.time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
@@ -1525,13 +1671,13 @@ void GCodeProcessor::process_M201(const GCodeReader::GCodeLine& line)
         if (line.has_x())
             set_option_value(m_time_processor.machine_limits.machine_max_acceleration_x, i, line.x() * factor);
 
-        if (line.has_y() && i < m_time_processor.machine_limits.machine_max_acceleration_y.values.size())
+        if (line.has_y())
             set_option_value(m_time_processor.machine_limits.machine_max_acceleration_y, i, line.y() * factor);
 
-        if (line.has_z() && i < m_time_processor.machine_limits.machine_max_acceleration_z.values.size())
+        if (line.has_z())
             set_option_value(m_time_processor.machine_limits.machine_max_acceleration_z, i, line.z() * factor);
 
-        if (line.has_e() && i < m_time_processor.machine_limits.machine_max_acceleration_e.values.size())
+        if (line.has_e())
             set_option_value(m_time_processor.machine_limits.machine_max_acceleration_e, i, line.e() * factor);
     }
 }
