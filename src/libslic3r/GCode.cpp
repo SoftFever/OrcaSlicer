@@ -1626,7 +1626,7 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
     _write_format(file, "; estimated printing time (normal mode) = %s\n", m_normal_time_estimator.get_time_dhms().c_str());
     if (m_silent_time_estimator_enabled)
         _write_format(file, "; estimated printing time (silent mode) = %s\n", m_silent_time_estimator.get_time_dhms().c_str());
-#endif // !ENABLE_GCODE_VIEWER
+#endif // ENABLE_GCODE_VIEWER
 
     // Append full config.
     _write(file, "\n");
