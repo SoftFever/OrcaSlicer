@@ -2,12 +2,11 @@
 #define slic3r_PresetBundle_hpp_
 
 #include "Preset.hpp"
+#include "AppConfig.hpp"
 
 #include <memory>
 #include <unordered_map>
 #include <boost/filesystem/path.hpp>
-
-#include "slic3r/GUI/AppConfig.hpp"
 
 namespace Slic3r {
 

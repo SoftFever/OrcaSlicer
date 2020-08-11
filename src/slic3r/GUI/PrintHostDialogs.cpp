@@ -15,11 +15,11 @@
 
 #include "GUI.hpp"
 #include "GUI_App.hpp"
-#include "AppConfig.hpp"
 #include "MsgDialog.hpp"
 #include "I18N.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "wxExtensions.hpp"
+#include "libslic3r/AppConfig.hpp"
 
 namespace fs = boost::filesystem;
 

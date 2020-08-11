@@ -1,8 +1,8 @@
 #include "Preferences.hpp"
-#include "AppConfig.hpp"
 #include "OptionsGroup.hpp"
 #include "GUI_App.hpp"
 #include "I18N.hpp"
+#include "libslic3r/AppConfig.hpp"
 
 namespace Slic3r {
 namespace GUI {

@@ -517,7 +517,7 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
             const Preset* selected_preset = m_collection->find_preset(m_preset_bundle->filament_presets[m_extruder_idx]);
             // Wide icons are shown if the currently selected preset is not compatible with the current printer,
             // and red flag is drown in front of the selected preset.
-            bool          wide_icons = selected_preset != nullptr && !selected_preset->is_compatible;
+            bool          wide_icons = selected_preset && !selected_preset->is_compatible;
             float scale = m_em_unit*0.1f;
 
             int shifl_Left = wide_icons ? int(scale * 16 + 0.5) : 0;
@@ -707,10 +707,11 @@ void PlaterPresetComboBox::update()
         assert(selected_filament_preset);
     }
 
-    const Preset& selected_preset = m_type == Preset::TYPE_FILAMENT ? *selected_filament_preset : m_collection->get_selected_preset();
+    bool has_selection = m_collection->get_selected_idx() != size_t(-1);
+    const Preset* selected_preset = m_type == Preset::TYPE_FILAMENT ? selected_filament_preset : has_selection ? &m_collection->get_selected_preset() : nullptr;
     // Show wide icons if the currently selected preset is not compatible with the current printer,
     // and draw a red flag in front of the selected preset.
-    bool wide_icons = !selected_preset.is_compatible;
+    bool wide_icons = selected_preset && !selected_preset->is_compatible;
 
     std::map<wxString, wxBitmap*> nonsys_presets;
 

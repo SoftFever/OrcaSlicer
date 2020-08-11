@@ -20,7 +20,6 @@
 #include "Tab.hpp"
 #include "ProgressStatusBar.hpp"
 #include "3DScene.hpp"
-#include "AppConfig.hpp"
 #include "PrintHostDialogs.hpp"
 #include "wxExtensions.hpp"
 #include "GUI_ObjectList.hpp"

@@ -1,5 +1,4 @@
 #include "Snapshot.hpp"
-#include "../GUI/AppConfig.hpp"
 
 #include <time.h>
 

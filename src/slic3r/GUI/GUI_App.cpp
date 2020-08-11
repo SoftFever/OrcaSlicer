@@ -38,7 +38,6 @@
 
 #include "GUI.hpp"
 #include "GUI_Utils.hpp"
-#include "AppConfig.hpp"
 #include "3DScene.hpp"
 #include "MainFrame.hpp"
 #include "Plater.hpp"
@@ -326,7 +325,13 @@ void GUI_App::init_app_config()
 	// load settings
 	app_conf_exists = app_config->exists();
 	if (app_conf_exists) {
-		app_config->load();
+        std::string error = app_config->load();
+        if (!error.empty())
+            // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
+            throw std::runtime_error(
+                _u8L("Error parsing PrusaSlicer config file, it is probably corrupted. "
+                    "Try to manually delete the file to recover from the error. Your user profiles will not be affected.") +
+                "\n\n" + AppConfig::config_path() + "\n\n" + error);
 	}
 }
 

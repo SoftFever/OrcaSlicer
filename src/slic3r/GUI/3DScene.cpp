@@ -10,7 +10,6 @@
 #if ENABLE_ENVIRONMENT_MAP
 #include "GUI_App.hpp"
 #include "Plater.hpp"
-#include "AppConfig.hpp"
 #endif // ENABLE_ENVIRONMENT_MAP
 
 #include "libslic3r/ExtrusionEntity.hpp"
@@ -24,6 +23,7 @@
 #include "slic3r/GUI/BitmapCache.hpp"
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/AppConfig.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
