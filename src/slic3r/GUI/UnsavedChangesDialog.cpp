@@ -499,33 +499,38 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, const std::string&
 
     m_tree->AppendToggleColumn(L"\u2714", UnsavedChangesModel::colToggle, wxDATAVIEW_CELL_ACTIVATABLE, 6 * em);//2610,11,12 //2714
 
+    auto append_bmp_text_column = [this](const wxString& label, unsigned model_column, int width, bool set_expander = false) 
+    {
 #ifdef __linux__
-    wxDataViewIconTextRenderer* rd = new wxDataViewIconTextRenderer();
+        wxDataViewIconTextRenderer* rd = new wxDataViewIconTextRenderer();
 #ifdef SUPPORTS_MARKUP
-    rd->EnableMarkup(true);
+        rd->EnableMarkup(true);
 #endif
-    wxDataViewColumn* icon_text_clmn = new wxDataViewColumn("", rd, UnsavedChangesModel::colIconText, 30 * em, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_CELL_INERT);
+        wxDataViewColumn* column = new wxDataViewColumn(label, rd, model_column, width, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_CELL_INERT);
 #else
-    wxDataViewColumn* icon_text_clmn = new wxDataViewColumn("", new BitmapTextRenderer(true), UnsavedChangesModel::colIconText, 30 * em, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE);
+        wxDataViewColumn* column = new wxDataViewColumn(label, new BitmapTextRenderer(true), model_column, width, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE);
 #endif //__linux__
-    m_tree->AppendColumn(icon_text_clmn);
-    m_tree->AppendColumn(new wxDataViewColumn("Old value",  new BitmapTextRenderer(true), UnsavedChangesModel::colOldValue, 20 * em, wxALIGN_TOP));
-    m_tree->AppendColumn(new wxDataViewColumn("New value",  new BitmapTextRenderer(true), UnsavedChangesModel::colNewValue, 20 * em, wxALIGN_TOP));
+        m_tree->AppendColumn(column);
+        if (set_expander)
+            m_tree->SetExpanderColumn(column);
+    };
 
-//    m_tree->SetExpanderColumn(icon_text_clmn);
+    append_bmp_text_column("",              UnsavedChangesModel::colIconText, 30 * em);
+    append_bmp_text_column(_L("Old Value"), UnsavedChangesModel::colOldValue, 20 * em);
+    append_bmp_text_column(_L("New Value"), UnsavedChangesModel::colNewValue, 20 * em);
 
     m_tree->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, &UnsavedChangesDialog::item_value_changed, this);
     m_tree->Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU,  &UnsavedChangesDialog::context_menu, this);
     m_tree->Bind(wxEVT_MOTION, [this](wxMouseEvent& e) { show_info_line(Action::Undef);  e.Skip(); });
 
-    wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxCANCEL);
+    // Add Buttons 
+    wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxCANCEL);   
 
     Tab* tab = wxGetApp().get_tab(type);
     assert(tab);
-
     PresetCollection* presets = tab->get_presets();
 
-    wxString label= from_u8((boost::format(_u8L("Save selected to preset:%1%"))% ("\"" + presets->get_selected_preset().name + "\"")).str());
+    wxString label= from_u8((boost::format(_u8L("Save selected to preset: %1%"))% ("\"" + presets->get_selected_preset().name + "\"")).str());
     m_save_btn = new ScalableButton(this, m_save_btn_id = NewControlId(), "save", label, wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true);
     buttons->Insert(0, m_save_btn, 0, wxLEFT, 5);
 
@@ -533,7 +538,7 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, const std::string&
     m_save_btn->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt)    { evt.Enable(!m_empty_selection); });
     m_save_btn->Bind(wxEVT_MOTION,    [this, presets](wxMouseEvent& e){ show_info_line(Action::Save, presets->get_selected_preset().name); e.Skip(); });
 
-    label = from_u8((boost::format(_u8L("Move selected to preset:%1%"))% ("\"" + from_u8(new_selected_preset) + "\"")).str());
+    label = from_u8((boost::format(_u8L("Move selected to preset: %1%"))% ("\"" + from_u8(new_selected_preset) + "\"")).str());
     m_move_btn = new ScalableButton(this, m_move_btn_id = NewControlId(), "paste_menu", label, wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true);
     buttons->Insert(1, m_move_btn, 0, wxLEFT, 5);
 
@@ -549,14 +554,13 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, const std::string&
 
     m_info_line = new wxStaticText(this, wxID_ANY, "");
     m_info_line->SetFont(wxGetApp().bold_font());
-    m_info_line->Hide();
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
     topSizer->Add(new wxStaticText(this, wxID_ANY, _L("There are unsaved changes for") + (": \"" + tab->title() + "\"")), 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
-    topSizer->Add(m_tree, 1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
-    topSizer->Add(m_info_line, 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, 2*border);
-    topSizer->Add(buttons, 0, wxEXPAND | wxALL, border);
+    topSizer->Add(m_tree,       1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
+    topSizer->Add(m_info_line,  0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, 2*border);
+    topSizer->Add(buttons,      0, wxEXPAND | wxALL, border);
 
     update(type);
 
@@ -564,6 +568,8 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, const std::string&
 
     SetSizer(topSizer);
     topSizer->SetSizeHints(this);
+
+    show_info_line(Action::Undef);
 }
 
 void UnsavedChangesDialog::item_value_changed(wxDataViewEvent& event)
