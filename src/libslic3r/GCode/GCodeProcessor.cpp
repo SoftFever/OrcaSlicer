@@ -159,6 +159,7 @@ void GCodeProcessor::TimeMachine::reset()
 {
     enabled = false;
     acceleration = 0.0f;
+    max_acceleration = 0.0f;
     extrude_factor_override_percentage = 1.0f;
     time = 0.0f;
     curr.reset();
@@ -289,6 +290,7 @@ void GCodeProcessor::TimeProcessor::reset()
 {
     extruder_unloaded = true;
     export_remaining_time_enabled = false;
+    machine_envelope_processing_enabled = false;
     machine_limits = MachineEnvelopeConfig();
     filament_load_times = std::vector<float>();
     filament_unload_times = std::vector<float>();
@@ -484,6 +486,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
 
     for (size_t i = 0; i < static_cast<size_t>(ETimeMode::Count); ++i) {
         float max_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_extruding, i);
+        m_time_processor.machines[i].max_acceleration = max_acceleration;
         m_time_processor.machines[i].acceleration = (max_acceleration > 0.0f) ? max_acceleration : DEFAULT_ACCELERATION;
     }
 
@@ -628,6 +631,7 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
 
     for (size_t i = 0; i < static_cast<size_t>(ETimeMode::Count); ++i) {
         float max_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_extruding, i);
+        m_time_processor.machines[i].max_acceleration = max_acceleration;
         m_time_processor.machines[i].acceleration = (max_acceleration > 0.0f) ? max_acceleration : DEFAULT_ACCELERATION;
     }
 }
@@ -1304,6 +1308,9 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         return type;
     };
 
+    // enable processing of lines M201/M203/M204/M205
+    m_time_processor.machine_envelope_processing_enabled = true;
+
     // updates axes positions from line
     for (unsigned char a = X; a <= E; ++a) {
         m_end_position[a] = absolute_position((Axis)a, line);
@@ -1664,6 +1671,9 @@ void GCodeProcessor::process_M135(const GCodeReader::GCodeLine& line)
 
 void GCodeProcessor::process_M201(const GCodeReader::GCodeLine& line)
 {
+    if (!m_time_processor.machine_envelope_processing_enabled)
+        return;
+
     // see http://reprap.org/wiki/G-code#M201:_Set_max_printing_acceleration
     float factor = (m_flavor != gcfRepRap && m_units == EUnits::Inches) ? INCHES_TO_MM : 1.0f;
 
@@ -1684,6 +1694,9 @@ void GCodeProcessor::process_M201(const GCodeReader::GCodeLine& line)
 
 void GCodeProcessor::process_M203(const GCodeReader::GCodeLine& line)
 {
+    if (!m_time_processor.machine_envelope_processing_enabled)
+        return;
+
     // see http://reprap.org/wiki/G-code#M203:_Set_maximum_feedrate
     if (m_flavor == gcfRepetier)
         return;
@@ -1709,6 +1722,9 @@ void GCodeProcessor::process_M203(const GCodeReader::GCodeLine& line)
 
 void GCodeProcessor::process_M204(const GCodeReader::GCodeLine& line)
 {
+    if (!m_time_processor.machine_envelope_processing_enabled)
+        return;
+
     float value;
     for (size_t i = 0; i < static_cast<size_t>(ETimeMode::Count); ++i) {
         if (line.has_value('S', value)) {
@@ -1736,6 +1752,9 @@ void GCodeProcessor::process_M204(const GCodeReader::GCodeLine& line)
 
 void GCodeProcessor::process_M205(const GCodeReader::GCodeLine& line)
 {
+    if (!m_time_processor.machine_envelope_processing_enabled)
+        return;
+
     for (size_t i = 0; i < static_cast<size_t>(ETimeMode::Count); ++i) {
         if (line.has_x()) {
             float max_jerk = line.x();
@@ -1968,8 +1987,9 @@ void GCodeProcessor::set_acceleration(ETimeMode mode, float value)
 {
     size_t id = static_cast<size_t>(mode);
     if (id < m_time_processor.machines.size()) {
-        float max_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_extruding, id);
-        m_time_processor.machines[id].acceleration = (max_acceleration == 0.0f) ? value : std::min(value, max_acceleration);
+        m_time_processor.machines[id].acceleration = (m_time_processor.machines[id].max_acceleration == 0.0f) ? value :
+            // Clamp the acceleration with the maximum.
+            std::min(value, m_time_processor.machines[id].max_acceleration);
     }
 }
 

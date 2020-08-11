@@ -9,7 +9,7 @@
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
 #include "Plater.hpp"
-#include "PresetBundle.hpp"
+#include "libslic3r/PresetBundle.hpp"
 #include "Camera.hpp"
 #include "I18N.hpp"
 #include "GUI_Utils.hpp"
@@ -1498,7 +1498,7 @@ void GCodeViewer::render_legend() const
                 imgui.text(time);
                 ImGui::SameLine(offsets[1]);
                 pos = ImGui::GetCursorScreenPos();
-                float width = percent_bar_size * percent / max_percent;
+                float width = std::max(1.0f, percent_bar_size * percent / max_percent);
                 draw_list->AddRectFilled({ pos.x, pos.y + 2.0f }, { pos.x + width, pos.y + icon_size - 2.0f },
                     ImGui::GetColorU32(ImGuiWrapper::COL_ORANGE_LIGHT));
                 ImGui::Dummy({ percent_bar_size, icon_size });
@@ -1649,7 +1649,15 @@ void GCodeViewer::render_legend() const
         imgui.text(short_time(get_time_dhms(time_mode.time)));
 
         auto show_mode_button = [this, &imgui](const std::string& label, PrintEstimatedTimeStatistics::ETimeMode mode) {
-            if (m_time_statistics.modes[static_cast<size_t>(mode)].roles_times.size() > 0) {
+            bool show = false;
+            for (size_t i = 0; i < m_time_statistics.modes.size(); ++i) {
+                if (i != static_cast<size_t>(mode) &&
+                    short_time(get_time_dhms(m_time_statistics.modes[static_cast<size_t>(mode)].time)) != short_time(get_time_dhms(m_time_statistics.modes[i].time))) {
+                    show = true;
+                    break;
+                }
+            }
+            if (show && m_time_statistics.modes[static_cast<size_t>(mode)].roles_times.size() > 0) {
                 ImGui::SameLine(0.0f, 10.0f);
                 if (imgui.button(label)) {
                     m_time_estimate_mode = mode;
