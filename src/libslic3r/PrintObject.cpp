@@ -2823,8 +2823,9 @@ void PrintObject::project_and_append_custom_supports(
         // Now append the collected polygons to respective layers.
         for (auto& trg : projections_of_triangles) {
             int layer_id = trg.first_layer_id;
-
             for (const LightPolygon& poly : trg.polygons) {
+                if (layer_id >= int(expolys.size()))
+                    break; // part of triangle could be projected above top layer
                 expolys[layer_id].emplace_back(std::move(poly.pts));
                 ++layer_id;
             }

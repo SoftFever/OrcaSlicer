@@ -60,8 +60,9 @@ void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
             if (select_triangle(facet, new_state)) {
                 // add neighboring facets to list to be proccessed later
                 for (int n=0; n<3; ++n) {
-                    if (faces_camera(m_mesh->stl.neighbors_start[facet].neighbor[n]))
-                        facets_to_check.push_back(m_mesh->stl.neighbors_start[facet].neighbor[n]);
+                    int neighbor_idx = m_mesh->stl.neighbors_start[facet].neighbor[n];
+                    if (neighbor_idx >=0 && faces_camera(neighbor_idx))
+                        facets_to_check.push_back(neighbor_idx);
                 }
             }
         }
