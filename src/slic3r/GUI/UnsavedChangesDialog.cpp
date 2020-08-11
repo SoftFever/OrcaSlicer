@@ -150,7 +150,7 @@ ModelNode::ModelNode(ModelNode* parent, const wxString& text, const wxString& ol
 
 void ModelNode::UpdateEnabling()
 {
-#if defined(SUPPORTS_MARKUP) && defined(wxHAS_GENERIC_DATAVIEWCTRL)
+#if defined(SUPPORTS_MARKUP) && !defined(__APPLE__)
     auto change_text_color = [](wxString& str, const std::string& clr_from, const std::string& clr_to)
     {
         std::string old_val = into_u8(str);
@@ -876,9 +876,10 @@ FullCompareDialog::FullCompareDialog(const wxString& option_name, const wxString
     };
 
     auto add_value = [grid_sizer, border, this](wxString label, bool is_colored = false) {
-        wxTextCtrl* text = new wxTextCtrl(this, wxID_ANY, label, wxDefaultPosition, wxSize(300, -1), wxTE_MULTILINE | wxTE_READONLY | wxBORDER_NONE);
+        wxTextCtrl* text = new wxTextCtrl(this, wxID_ANY, label, wxDefaultPosition, wxSize(300, -1), wxTE_MULTILINE | wxTE_READONLY | wxBORDER_NONE | wxTE_RICH);
         if (is_colored)
-            text->SetForegroundColour(wxColour(orange));
+//            text->SetForegroundColour(wxColour(orange));
+            text->SetStyle(0, label.Len(), wxTextAttr(wxColour(orange)));
         grid_sizer->Add(text, 1, wxALL | wxEXPAND, border);
     };
 
