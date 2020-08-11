@@ -1283,7 +1283,7 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
     // adds tags for time estimators
 #if ENABLE_GCODE_VIEWER
     if (print.config().remaining_times.value)
-        _writeln(file, GCodeProcessor::First_M73_Output_Placeholder_Tag);
+        _writeln(file, GCodeProcessor::First_Line_M73_Placeholder_Tag);
 #else
     if (print.config().remaining_times.value) {
         _writeln(file, GCodeTimeEstimator::Normal_First_M73_Output_Placeholder_Tag);
@@ -1587,7 +1587,7 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
     // adds tags for time estimators
 #if ENABLE_GCODE_VIEWER
     if (print.config().remaining_times.value)
-        _writeln(file, GCodeProcessor::Last_M73_Output_Placeholder_Tag);
+        _writeln(file, GCodeProcessor::Last_Line_M73_Placeholder_Tag);
 #else
     if (print.config().remaining_times.value) {
         _writeln(file, GCodeTimeEstimator::Normal_Last_M73_Output_Placeholder_Tag);
@@ -1620,7 +1620,9 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
     _write_format(file, "; total filament cost = %.1lf\n", print.m_print_statistics.total_cost);
     if (print.m_print_statistics.total_toolchanges > 0)
     	_write_format(file, "; total toolchanges = %i\n", print.m_print_statistics.total_toolchanges);
-#if !ENABLE_GCODE_VIEWER
+#if ENABLE_GCODE_VIEWER
+    _writeln(file, GCodeProcessor::Estimated_Printing_Time_Placeholder_Tag);
+#else
     _write_format(file, "; estimated printing time (normal mode) = %s\n", m_normal_time_estimator.get_time_dhms().c_str());
     if (m_silent_time_estimator_enabled)
         _write_format(file, "; estimated printing time (silent mode) = %s\n", m_silent_time_estimator.get_time_dhms().c_str());

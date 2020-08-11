@@ -72,8 +72,9 @@ namespace Slic3r {
         static const std::string Color_Change_Tag;
         static const std::string Pause_Print_Tag;
         static const std::string Custom_Code_Tag;
-        static const std::string First_M73_Output_Placeholder_Tag;
-        static const std::string Last_M73_Output_Placeholder_Tag;
+        static const std::string First_Line_M73_Placeholder_Tag;
+        static const std::string Last_Line_M73_Placeholder_Tag;
+        static const std::string Estimated_Printing_Time_Placeholder_Tag;
 
     private:
         using AxisCoords = std::array<float, 4>;

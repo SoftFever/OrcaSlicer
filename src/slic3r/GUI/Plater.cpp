@@ -1349,20 +1349,44 @@ private:
     Plater *plater;
 
     static const std::regex pattern_drop;
+#if ENABLE_GCODE_VIEWER
+    static const std::regex pattern_gcode_drop;
+#endif // ENABLE_GCODE_VIEWER
 };
 
 const std::regex PlaterDropTarget::pattern_drop(".*[.](stl|obj|amf|3mf|prusa)", std::regex::icase);
+#if ENABLE_GCODE_VIEWER
+const std::regex PlaterDropTarget::pattern_gcode_drop(".*[.](gcode)", std::regex::icase);
+#endif // ENABLE_GCODE_VIEWER
 
 bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames)
 {
     std::vector<fs::path> paths;
-    for (const auto &filename : filenames) {
-        fs::path path(into_path(filename));
-        if (std::regex_match(path.string(), pattern_drop)) {
-            paths.push_back(std::move(path));
-        } else {
+#if ENABLE_GCODE_VIEWER
+    if (wxGetApp().mainframe->get_mode() == MainFrame::EMode::GCodeViewer) {
+        for (const auto& filename : filenames) {
+            fs::path path(into_path(filename));
+            if (std::regex_match(path.string(), pattern_gcode_drop))
+                paths.push_back(std::move(path));
+        }
+
+        if (paths.size() > 1) {
+            wxMessageDialog((wxWindow*)plater, _L("Only one gcode file at a time can be opened."), wxString(SLIC3R_APP_NAME) + " - " + _L("Open G-code file"), wxCLOSE | wxICON_WARNING | wxCENTRE).ShowModal();
             return false;
         }
+        else if (paths.size() == 1) {
+            plater->load_gcode(from_path(paths.front()));
+            return true;
+        }
+    }
+#endif // ENABLE_GCODE_VIEWER
+
+    for (const auto &filename : filenames) {
+        fs::path path(into_path(filename));
+        if (std::regex_match(path.string(), pattern_drop))
+            paths.push_back(std::move(path));
+        else
+            return false;
     }
 
     wxString snapshot_label;
@@ -1390,13 +1414,10 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
     // because right now the plater is not cleared, we set the project file (from the latest imported .3mf or .amf file)
     // only if not set yet
     // if res is empty no data has been loaded
-    if (!res.empty() && plater->get_project_filename().empty())
-    {
-        for (std::vector<fs::path>::const_reverse_iterator it = paths.rbegin(); it != paths.rend(); ++it)
-        {
+    if (!res.empty() && plater->get_project_filename().empty()) {
+        for (std::vector<fs::path>::const_reverse_iterator it = paths.rbegin(); it != paths.rend(); ++it) {
             std::string filename = (*it).filename().string();
-            if (boost::algorithm::iends_with(filename, ".3mf") || boost::algorithm::iends_with(filename, ".amf"))
-            {
+            if (boost::algorithm::iends_with(filename, ".3mf") || boost::algorithm::iends_with(filename, ".amf")) {
                 plater->set_project_filename(from_path(*it));
                 break;
             }

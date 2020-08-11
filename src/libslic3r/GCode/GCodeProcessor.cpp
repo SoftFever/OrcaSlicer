@@ -29,8 +29,9 @@ const std::string GCodeProcessor::Color_Change_Tag   = "Color change";
 const std::string GCodeProcessor::Pause_Print_Tag    = "Pause print";
 const std::string GCodeProcessor::Custom_Code_Tag    = "Custom gcode";
 
-const std::string GCodeProcessor::First_M73_Output_Placeholder_Tag = "; _GP_FIRST_M73_OUTPUT_PLACEHOLDER";
-const std::string GCodeProcessor::Last_M73_Output_Placeholder_Tag  = "; _GP_LAST_M73_OUTPUT_PLACEHOLDER";
+const std::string GCodeProcessor::First_Line_M73_Placeholder_Tag          = "; _GP_FIRST_LINE_M73_PLACEHOLDER";
+const std::string GCodeProcessor::Last_Line_M73_Placeholder_Tag           = "; _GP_LAST_LINE_M73_PLACEHOLDER";
+const std::string GCodeProcessor::Estimated_Printing_Time_Placeholder_Tag = "; _GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER";
 
 static bool is_valid_extrusion_role(int value)
 {
@@ -338,16 +339,29 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
 
     // replace placeholder lines with the proper final value
     auto process_placeholders = [&](const std::string& gcode_line) {
-        std::string ret;
         // remove trailing '\n'
         std::string line = gcode_line.substr(0, gcode_line.length() - 1);
-        if (line == First_M73_Output_Placeholder_Tag || line == Last_M73_Output_Placeholder_Tag) {
+
+        std::string ret;
+        if (line == First_Line_M73_Placeholder_Tag || line == Last_Line_M73_Placeholder_Tag) {
             for (size_t i = 0; i < static_cast<size_t>(ETimeMode::Count); ++i) {
                 const TimeMachine& machine = machines[i];
                 if (machine.enabled) {
                     ret += format_line_M73(machine.line_m73_mask.c_str(),
-                        (line == First_M73_Output_Placeholder_Tag) ? 0 : 100,
-                        (line == First_M73_Output_Placeholder_Tag) ? time_in_minutes(machines[i].time) : 0);
+                        (line == First_Line_M73_Placeholder_Tag) ? 0 : 100,
+                        (line == First_Line_M73_Placeholder_Tag) ? time_in_minutes(machines[i].time) : 0);
+                }
+            }
+        }
+        else if (line == Estimated_Printing_Time_Placeholder_Tag) {
+            for (size_t i = 0; i < static_cast<size_t>(ETimeMode::Count); ++i) {
+                const TimeMachine& machine = machines[i];
+                if (machine.enabled) {
+                    char buf[128];
+                    sprintf(buf, "; estimated printing time (%s mode) = %s\n",
+                        (static_cast<ETimeMode>(i) == ETimeMode::Normal) ? "normal" : "silent",
+                        get_time_dhms(machine.time).c_str());
+                    ret += buf;
                 }
             }
         }
@@ -405,18 +419,6 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
         export_line += gcode_line;
         if (export_line.length() > 65535)
             write_string(export_line);
-    }
-
-    for (size_t i = 0; i < static_cast<size_t>(ETimeMode::Count); ++i) {
-        const TimeMachine& machine = machines[i];
-        ETimeMode mode = static_cast<ETimeMode>(i);
-        if (machine.enabled) {
-            char line[128];
-            sprintf(line, "; estimated printing time (%s mode) = %s\n",
-                (mode == ETimeMode::Normal) ? "normal" : "silent",
-                get_time_dhms(machine.time).c_str());
-            export_line += line;
-        }
     }
 
     if (!export_line.empty())
@@ -870,12 +872,10 @@ void GCodeProcessor::process_tags(const std::string& comment)
     // width tag
     pos = comment.find(Width_Tag);
     if (pos != comment.npos) {
-        try
-        {
+        try {
             m_width = std::stof(comment.substr(pos + Width_Tag.length()));
         }
-        catch (...)
-        {
+        catch (...) {
             BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
         }
         return;
@@ -884,12 +884,10 @@ void GCodeProcessor::process_tags(const std::string& comment)
     // height tag
     pos = comment.find(Height_Tag);
     if (pos != comment.npos) {
-        try
-        {
+        try {
             m_height = std::stof(comment.substr(pos + Height_Tag.length()));
         }
-        catch (...)
-        {
+        catch (...) {
             BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Height (" << comment << ").";
         }
         return;
@@ -899,8 +897,7 @@ void GCodeProcessor::process_tags(const std::string& comment)
     pos = comment.find(Color_Change_Tag);
     if (pos != comment.npos) {
         pos = comment.find_last_of(",T");
-        try
-        {
+        try {
             unsigned char extruder_id = (pos == comment.npos) ? 0 : static_cast<unsigned char>(std::stoi(comment.substr(pos + 1)));
 
             m_extruder_colors[extruder_id] = static_cast<unsigned char>(m_extruder_offsets.size()) + m_cp_color.counter; // color_change position in list of color for preview
@@ -915,8 +912,7 @@ void GCodeProcessor::process_tags(const std::string& comment)
 
             process_custom_gcode_time(CustomGCode::ColorChange);
         }
-        catch (...)
-        {
+        catch (...) {
             BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Color_Change (" << comment << ").";
         }
 
@@ -1115,24 +1111,20 @@ bool GCodeProcessor::process_simplify3d_tags(const std::string& comment)
         size_t w_start = data.find(w_tag);
         size_t w_end = data.find_first_of(' ', w_start);
         if (h_start != data.npos) {
-            try
-            {
+            try {
                 std::string test = data.substr(h_start + 1, (h_end != data.npos) ? h_end - h_start - 1 : h_end);
                 m_height = std::stof(data.substr(h_start + 1, (h_end != data.npos) ? h_end - h_start - 1 : h_end));
             }
-            catch (...)
-            {
+            catch (...) {
                 BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Height (" << comment << ").";
             }
         }
         if (w_start != data.npos) {
-            try
-            {
+            try {
                 std::string test = data.substr(w_start + 1, (w_end != data.npos) ? w_end - w_start - 1 : w_end);
                 m_width = std::stof(data.substr(w_start + 1, (w_end != data.npos) ? w_end - w_start - 1 : w_end));
             }
-            catch (...)
-            {
+            catch (...) {
                 BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
             }
         }
@@ -1218,12 +1210,10 @@ bool GCodeProcessor::process_ideamaker_tags(const std::string& comment)
     tag = "WIDTH:";
     pos = comment.find(tag);
     if (pos != comment.npos) {
-        try
-        {
+        try {
             m_width = std::stof(comment.substr(pos + tag.length()));
         }
-        catch (...)
-        {
+        catch (...) {
             BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
         }
         return true;
@@ -1233,12 +1223,10 @@ bool GCodeProcessor::process_ideamaker_tags(const std::string& comment)
     tag = "HEIGHT:";
     pos = comment.find(tag);
     if (pos != comment.npos) {
-        try
-        {
+        try {
             m_height = std::stof(comment.substr(pos + tag.length()));
         }
-        catch (...)
-        {
+        catch (...) {
             BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Height (" << comment << ").";
         }
         return true;
@@ -1871,8 +1859,7 @@ void GCodeProcessor::process_T(const GCodeReader::GCodeLine& line)
 void GCodeProcessor::process_T(const std::string& command)
 {
     if (command.length() > 1) {
-        try
-        {
+        try {
             unsigned char id = static_cast<unsigned char>(std::stoi(command.substr(1)));
             if (m_extruder_id != id) {
                 unsigned char extruders_count = static_cast<unsigned char>(m_extruder_offsets.size());
@@ -1895,8 +1882,7 @@ void GCodeProcessor::process_T(const std::string& command)
                 store_move_vertex(EMoveType::Tool_change);
             }
         }
-        catch (...)
-        {
+        catch (...) {
             BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid toolchange (" << command << ").";
         }
     }
