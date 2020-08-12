@@ -326,7 +326,7 @@ void Tab::add_scaled_button(wxWindow* parent,
                             const wxString& label/* = wxEmptyString*/,
                             long style /*= wxBU_EXACTFIT | wxNO_BORDER*/)
 {
-    *btn = new ScalableButton(parent, wxID_ANY, icon_name, label, wxDefaultSize, wxDefaultPosition, style);
+    *btn = new ScalableButton(parent, wxID_ANY, icon_name, label, wxDefaultSize, wxDefaultPosition, style, true);
     m_scaled_buttons.push_back(*btn);
 }
 
@@ -3132,19 +3132,43 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
 // if the current preset was not dirty, or the user agreed to discard the changes, 1 is returned.
 bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr*/, const std::string& new_printer_name /*= ""*/)
 {
+    if (presets == nullptr) presets = m_presets;
+
     UnsavedChangesDialog dlg(m_type, new_printer_name);
     if (dlg.ShowModal() == wxID_CANCEL)
         return false;
     if (dlg.just_continue())
         return true;
-    if (dlg.save_preset())
-        // save selected changes
-        return false;
+    if (dlg.save_preset())  // save selected changes
+    {
+        std::vector<std::string> unselected_options = dlg.get_unselected_options();
+        const Preset& preset = presets->get_edited_preset();
+        std::string name = preset.name;
+
+        // for system/default/external presets we should take an edited name
+        if (preset.is_system || preset.is_default || preset.is_external) {
+            SavePresetDialog save_dlg(m_type, _CTX_utf8(L_CONTEXT("Copy", "PresetName"), "PresetName"));
+            if (save_dlg.ShowModal() != wxID_OK)
+                return false;
+            name = save_dlg.get_name();
+        }
+
+        // if we want to save just some from selected options
+        if (!unselected_options.empty())
+        {
+            DynamicPrintConfig& old_config = presets->get_selected_preset().config;
+
+            for (const std::string& opt_key : unselected_options)
+                m_config->set_key_value(opt_key, old_config.option(opt_key)->clone());            
+        }
+        
+        save_preset(name);
+        return true;
+    }
     if (dlg.move_preset())
         // move selected changes
         return false;
-
-    if (presets == nullptr) presets = m_presets;
+/*
     // Display a dialog showing the dirty options in a human readable form.
     const Preset& old_preset = presets->get_edited_preset();
     std::string   type_name  = presets->name();
@@ -3157,13 +3181,13 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
     wxString changes;
     for (const std::string &opt_key : presets->current_dirty_options()) {
         const ConfigOptionDef &opt = m_config->def()->options.at(opt_key);
-        /*std::string*/wxString name = "";
+        wxString name = "";
         if (! opt.category.empty())
             name += _(opt.category) + " > ";
         name += !opt.full_label.empty() ?
                 _(opt.full_label) :
                 _(opt.label);
-        changes += tab + /*from_u8*/(name) + "\n";
+        changes += tab + (name) + "\n";
     }
     // Show a confirmation dialog with the list of dirty options.
     wxString message = name + "\n\n";
@@ -3180,6 +3204,7 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
         message + "\n" + changes + "\n\n" + _(L("Discard changes and continue anyway?")),
         _(L("Unsaved Changes")), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
     return confirm.ShowModal() == wxID_YES;
+    */
 }
 
 // If we are switching from the FFF-preset to the SLA, we should to control the printed objects if they have a part(s).

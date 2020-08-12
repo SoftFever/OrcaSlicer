@@ -241,6 +241,7 @@ public:
     bool move_preset() const    { return m_exit_action == Action::Move;      }
     bool just_continue() const  { return m_exit_action == Action::Continue;  }
 
+    std::vector<std::string> get_unselected_options();
     std::vector<std::string> get_selected_options();
 
 protected:

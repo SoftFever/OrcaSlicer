@@ -854,6 +854,16 @@ void UnsavedChangesDialog::update(Preset::Type type)
     }
 }
 
+std::vector<std::string> UnsavedChangesDialog::get_unselected_options()
+{
+    std::vector<std::string> ret;
+
+    for (auto item : m_items_map)
+        if (!m_tree_model->IsEnabledItem(item.first))
+            ret.emplace_back(item.second.opt_key);
+
+    return ret;
+}
 
 std::vector<std::string> UnsavedChangesDialog::get_selected_options()
 {
@@ -929,9 +939,7 @@ FullCompareDialog::FullCompareDialog(const wxString& option_name, const wxString
 
     auto add_value = [grid_sizer, border, this](wxString label, bool is_colored = false) {
         wxTextCtrl* text = new wxTextCtrl(this, wxID_ANY, label, wxDefaultPosition, wxSize(300, -1), wxTE_MULTILINE | wxTE_READONLY | wxBORDER_NONE | wxTE_RICH);
-        text->SetFont(this->GetFont());
-        if (is_colored)
-            text->SetStyle(0, label.Len(), wxTextAttr(wxColour(orange)));
+        text->SetStyle(0, label.Len(), wxTextAttr(is_colored ? wxColour(orange) : wxNullColour, wxNullColour, this->GetFont()));
         grid_sizer->Add(text, 1, wxALL | wxEXPAND, border);
     };
 
