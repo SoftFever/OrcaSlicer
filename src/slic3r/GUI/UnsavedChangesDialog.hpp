@@ -30,13 +30,14 @@ WX_DEFINE_ARRAY_PTR(ModelNode*, ModelNodePtrArray);
 // GTK - wxDataViewIconText (wxWidgets for GTK renderer wxIcon + wxString, supported Markup text)
 class ModelNode
 {
-    wxWindow* m_parent_win{ nullptr };
+    wxWindow*           m_parent_win{ nullptr };
 
     ModelNode*          m_parent;
     ModelNodePtrArray   m_children;
     wxBitmap            m_empty_bmp;
     Preset::Type        m_preset_type {Preset::TYPE_INVALID};
 
+    std::string         m_icon_name;
     // saved values for colors if they exist
     wxString            m_old_color;
     wxString            m_new_color;
@@ -75,7 +76,7 @@ public:
     wxString    m_new_value;
 
     // preset(root) node
-    ModelNode(Preset::Type preset_type, const wxString& text);
+    ModelNode(Preset::Type preset_type, const wxString& text, wxWindow* parent_win);
 
     // category node
     ModelNode(ModelNode* parent, const wxString& text, const std::string& icon_name);
@@ -111,6 +112,7 @@ public:
     void Append(ModelNode* child)                   { m_children.Add(child); }
 
     void UpdateEnabling();
+    void UpdateIcons();
 };
 
 
@@ -120,7 +122,7 @@ public:
 
 class UnsavedChangesModel : public wxDataViewModel
 {
-    wxWindow*               m_parent_win {nullptr};
+    wxWindow*               m_parent_win { nullptr };
     std::vector<ModelNode*> m_preset_nodes;
 
     wxDataViewCtrl*         m_ctrl{ nullptr };
@@ -164,6 +166,7 @@ public:
 
     unsigned int    GetColumnCount() const override { return colMax; }
     wxString        GetColumnType(unsigned int col) const override;
+    void            Rescale();
 
     wxDataViewItem  GetParent(const wxDataViewItem& item) const override;
     unsigned int    GetChildren(const wxDataViewItem& parent, wxDataViewItemArray& array) const override;

@@ -56,32 +56,29 @@ static void make_string_bold(wxString& str)
 }
 
 // preset(root) node
-ModelNode::ModelNode(Preset::Type preset_type, const wxString& text) :
+ModelNode::ModelNode(Preset::Type preset_type, const wxString& text, wxWindow* parent_win) :
+    m_parent_win(parent_win),
     m_parent(nullptr),
     m_preset_type(preset_type),
+    m_icon_name(type_icon_names.at(preset_type)),
     m_text(text)
 {
-#ifdef __linux__
-    m_icon.CopyFromBitmap(create_scaled_bitmap(type_icon_names.at(preset_type)));
-#else
-    m_icon = create_scaled_bitmap(type_icon_names.at(preset_type));
-#endif //__linux__
+    UpdateIcons();
 }
 
 // group node
 ModelNode::ModelNode(ModelNode* parent, const wxString& text, const std::string& icon_name) :
+    m_parent_win(parent->m_parent_win),
     m_parent(parent),
+    m_icon_name(icon_name),
     m_text(text)
 {
-#ifdef __linux__
-    m_icon.CopyFromBitmap(create_scaled_bitmap(icon_name));
-#else
-    m_icon = create_scaled_bitmap(icon_name);
-#endif //__linux__
+    UpdateIcons();
 }
 
 // category node
 ModelNode::ModelNode(ModelNode* parent, const wxString& text) :
+    m_parent_win(parent->m_parent_win),
     m_parent(parent),
     m_text(text)
 {
@@ -150,12 +147,13 @@ ModelNode::ModelNode(ModelNode* parent, const wxString& text, const wxString& ol
 
 void ModelNode::UpdateEnabling()
 {
-#if defined(SUPPORTS_MARKUP) && !defined(__APPLE__)
     auto change_text_color = [](wxString& str, const std::string& clr_from, const std::string& clr_to)
     {
+#if defined(SUPPORTS_MARKUP) && !defined(__APPLE__)
         std::string old_val = into_u8(str);
         boost::replace_all(old_val, clr_from, clr_to);
         str = from_u8(old_val);
+#endif
     };
 
     if (!m_toggle) {
@@ -168,12 +166,27 @@ void ModelNode::UpdateEnabling()
         change_text_color(m_old_value, grey, black);
         change_text_color(m_new_value, grey, orange);
     }
-#endif
     // update icons for the colors
+    UpdateIcons();
+}
+
+void ModelNode::UpdateIcons()
+{
+    // update icons for the colors, if any exists
     if (!m_old_color.IsEmpty())
-         m_old_color_bmp = get_bitmap(m_toggle? m_old_color : grey);
+        m_old_color_bmp = get_bitmap(m_toggle ? m_old_color : grey);
     if (!m_new_color.IsEmpty())
-         m_new_color_bmp = get_bitmap(m_toggle? m_new_color : grey);
+        m_new_color_bmp = get_bitmap(m_toggle ? m_new_color : grey);
+
+    // update main icon, if any exists
+    if (m_icon_name.empty())
+        return;
+
+#ifdef __linux__
+    m_icon.CopyFromBitmap(create_scaled_bitmap(m_icon_name, m_parent_win, 16, !m_toggle));
+#else
+    m_icon = create_scaled_bitmap(m_icon_name, m_parent_win, 16, !m_toggle);
+#endif //__linux__
 }
 
 
@@ -198,7 +211,7 @@ wxDataViewItem UnsavedChangesModel::AddPreset(Preset::Type type, wxString preset
     color_string(preset_name, black);
     make_string_bold(preset_name);
 
-    auto preset = new ModelNode(type, preset_name);
+    auto preset = new ModelNode(type, preset_name, m_parent_win);
     m_preset_nodes.emplace_back(preset);
 
     wxDataViewItem child((void*)preset);
@@ -478,6 +491,24 @@ wxString UnsavedChangesModel::GetColumnType(unsigned int col) const
     }
 }
 
+static void rescale_children(ModelNode* parent)
+{
+    if (parent->IsContainer()) {
+        for (ModelNode* child : parent->GetChildren()) {
+            child->UpdateIcons();
+            rescale_children(child);
+        }
+    }
+}
+
+void UnsavedChangesModel::Rescale()
+{
+    for (ModelNode* node : m_preset_nodes) {
+        node->UpdateIcons();
+        rescale_children(node);
+    }
+}
+
 
 //------------------------------------------
 //          UnsavedChangesDialog
@@ -488,6 +519,13 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, const std::string&
 {
     wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
     SetBackgroundColour(bgr_clr);
+
+#if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
+    // ys_FIXME! temporary workaround for correct font scaling
+    // Because of from wxWidgets 3.1.3 auto rescaling is implemented for the Fonts,
+    // From the very beginning set dialog font to the wxSYS_DEFAULT_GUI_FONT
+    this->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+#endif // ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
 
     int border = 10;
     int em = em_unit();
@@ -521,7 +559,6 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, const std::string&
 
     m_tree->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, &UnsavedChangesDialog::item_value_changed, this);
     m_tree->Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU,  &UnsavedChangesDialog::context_menu, this);
-    m_tree->Bind(wxEVT_MOTION, [this](wxMouseEvent& e) { show_info_line(Action::Undef);  e.Skip(); });
 
     // Add Buttons 
     wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxCANCEL);   
@@ -534,26 +571,30 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, const std::string&
     m_save_btn = new ScalableButton(this, m_save_btn_id = NewControlId(), "save", label, wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true);
     buttons->Insert(0, m_save_btn, 0, wxLEFT, 5);
 
-    m_save_btn->Bind(wxEVT_BUTTON,    [this](wxEvent&)                { close(Action::Save); });
-    m_save_btn->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt)    { evt.Enable(!m_empty_selection); });
-    m_save_btn->Bind(wxEVT_MOTION,    [this, presets](wxMouseEvent& e){ show_info_line(Action::Save, presets->get_selected_preset().name); e.Skip(); });
+    m_save_btn->Bind(wxEVT_BUTTON,      [this](wxEvent&)                { close(Action::Save); });
+    m_save_btn->Bind(wxEVT_UPDATE_UI,   [this](wxUpdateUIEvent& evt)    { evt.Enable(!m_empty_selection); });
+    m_save_btn->Bind(wxEVT_ENTER_WINDOW,[this, presets](wxMouseEvent& e){ show_info_line(Action::Save, presets->get_selected_preset().name); e.Skip(); });
+    m_save_btn->Bind(wxEVT_LEAVE_WINDOW,[this         ](wxMouseEvent& e){ show_info_line(Action::Undef); e.Skip(); });
 
     label = from_u8((boost::format(_u8L("Move selected to preset: %1%"))% ("\"" + from_u8(new_selected_preset) + "\"")).str());
     m_move_btn = new ScalableButton(this, m_move_btn_id = NewControlId(), "paste_menu", label, wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true);
     buttons->Insert(1, m_move_btn, 0, wxLEFT, 5);
 
-    m_move_btn->Bind(wxEVT_BUTTON,    [this](wxEvent&)                            { close(Action::Move); });
-    m_move_btn->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt)                { evt.Enable(!m_empty_selection); });
-    m_move_btn->Bind(wxEVT_MOTION,    [this, new_selected_preset](wxMouseEvent& e){ show_info_line(Action::Move, new_selected_preset); e.Skip(); });
+    m_move_btn->Bind(wxEVT_BUTTON,      [this](wxEvent&)                            { close(Action::Move); });
+    m_move_btn->Bind(wxEVT_UPDATE_UI,   [this](wxUpdateUIEvent& evt)                { evt.Enable(!m_empty_selection); });
+    m_move_btn->Bind(wxEVT_ENTER_WINDOW,[this, new_selected_preset](wxMouseEvent& e){ show_info_line(Action::Move, new_selected_preset); e.Skip(); });
+    m_move_btn->Bind(wxEVT_LEAVE_WINDOW,[this                     ](wxMouseEvent& e){ show_info_line(Action::Undef); e.Skip(); });
 
     label = _L("Continue without changes");
     m_continue_btn = new ScalableButton(this, m_continue_btn_id = NewControlId(), "cross", label, wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true);
     buttons->Insert(2, m_continue_btn, 0, wxLEFT, 5);
-    m_continue_btn->Bind(wxEVT_BUTTON, [this](wxEvent&)       { close(Action::Continue); });
-    m_continue_btn->Bind(wxEVT_MOTION, [this](wxMouseEvent& e){ show_info_line(Action::Continue); e.Skip(); });
+    m_continue_btn->Bind(wxEVT_BUTTON,      [this](wxEvent&)       { close(Action::Continue); });
+    m_continue_btn->Bind(wxEVT_ENTER_WINDOW,[this](wxMouseEvent& e){ show_info_line(Action::Continue); e.Skip(); });
+    m_continue_btn->Bind(wxEVT_LEAVE_WINDOW,[this](wxMouseEvent& e){ show_info_line(Action::Undef); e.Skip(); });
 
     m_info_line = new wxStaticText(this, wxID_ANY, "");
-    m_info_line->SetFont(wxGetApp().bold_font());
+    m_info_line->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold());
+    m_info_line->Hide();
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
@@ -563,8 +604,6 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, const std::string&
     topSizer->Add(buttons,      0, wxEXPAND | wxALL, border);
 
     update(type);
-
-    this->Bind(wxEVT_MOTION, [this](wxMouseEvent& e) { show_info_line(Action::Undef);  e.Skip(); });
 
     SetSizer(topSizer);
     topSizer->SetSizeHints(this);
@@ -829,12 +868,22 @@ std::vector<std::string> UnsavedChangesDialog::get_selected_options()
 
 void UnsavedChangesDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
-    const int& em = em_unit();
+    int em = em_unit();
 
     msw_buttons_rescale(this, em, { wxID_CANCEL, m_save_btn_id, m_move_btn_id, m_continue_btn_id });
+    for (auto btn : { m_save_btn, m_move_btn, m_continue_btn } )
+        btn->msw_rescale();
 
     const wxSize& size = wxSize(80 * em, 30 * em);
     SetMinSize(size);
+
+    m_tree->GetColumn(UnsavedChangesModel::colToggle  )->SetWidth(6 * em);
+    m_tree->GetColumn(UnsavedChangesModel::colIconText)->SetWidth(30 * em);
+    m_tree->GetColumn(UnsavedChangesModel::colOldValue)->SetWidth(20 * em);
+    m_tree->GetColumn(UnsavedChangesModel::colNewValue)->SetWidth(20 * em);
+
+    m_tree_model->Rescale();
+    m_tree->Refresh();
 
     Fit();
     Refresh();
@@ -842,8 +891,11 @@ void UnsavedChangesDialog::on_dpi_changed(const wxRect& suggested_rect)
 
 void UnsavedChangesDialog::on_sys_color_changed()
 {
+    for (auto btn : { m_save_btn, m_move_btn, m_continue_btn } )
+        btn->msw_rescale();
     // msw_rescale updates just icons, so use it
-//    m_tree_model->msw_rescale();
+    m_tree_model->Rescale();
+    m_tree->Refresh();
 
     Refresh();
 }
@@ -871,14 +923,14 @@ FullCompareDialog::FullCompareDialog(const wxString& option_name, const wxString
 
     auto add_header = [grid_sizer, border, this](wxString label) {
         wxStaticText* text = new wxStaticText(this, wxID_ANY, label);
-        text->SetFont(wxGetApp().bold_font());
+        text->SetFont(this->GetFont().Bold());
         grid_sizer->Add(text, 0, wxALL, border);
     };
 
     auto add_value = [grid_sizer, border, this](wxString label, bool is_colored = false) {
         wxTextCtrl* text = new wxTextCtrl(this, wxID_ANY, label, wxDefaultPosition, wxSize(300, -1), wxTE_MULTILINE | wxTE_READONLY | wxBORDER_NONE | wxTE_RICH);
+        text->SetFont(this->GetFont());
         if (is_colored)
-//            text->SetForegroundColour(wxColour(orange));
             text->SetStyle(0, label.Len(), wxTextAttr(wxColour(orange)));
         grid_sizer->Add(text, 1, wxALL | wxEXPAND, border);
     };
