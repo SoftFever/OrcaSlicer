@@ -2733,7 +2733,7 @@ void PrintObject::project_and_append_custom_supports(
             std::array<Vec2f, 3> trianglef;
             for (int i=0; i<3; ++i) {
                 trianglef[i] = Vec2f(facet[i].x(), facet[i].y());
-                trianglef[i] += Vec2f(unscale<float>(this->center_offset().x()),
+                trianglef[i] -= Vec2f(unscale<float>(this->center_offset().x()),
                                       unscale<float>(this->center_offset().y()));
             }
 
