@@ -1364,6 +1364,11 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
     std::vector<fs::path> paths;
 
 #if ENABLE_GCODE_VIEWER
+#ifdef WIN32
+    // hides the system icon
+    this->MSWUpdateDragImageOnLeave();
+#endif // WIN32
+
     // gcode section
     for (const auto& filename : filenames) {
         fs::path path(into_path(filename));
@@ -1373,7 +1378,7 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
 
     if (paths.size() > 1) {
         wxMessageDialog((wxWindow*)plater, _L("You can open only one .gcode file at a time."),
-            wxString(SLIC3R_APP_NAME) + " - " + _L("Open G-code file"), wxCLOSE | wxICON_WARNING | wxCENTRE).ShowModal();
+            wxString(SLIC3R_APP_NAME) + " - " + _L("Drag and drop G-code file"), wxCLOSE | wxICON_WARNING | wxCENTRE).ShowModal();
         return false;
     }
     else if (paths.size() == 1) {
@@ -1383,11 +1388,11 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
         }
         else {
             if (wxMessageDialog((wxWindow*)plater, _L("Do you want to switch to G-code preview ?"),
-                wxString(SLIC3R_APP_NAME) + " - " + _L("Open G-code file"), wxYES_NO | wxCANCEL | wxICON_QUESTION | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES) {
+                wxString(SLIC3R_APP_NAME) + " - " + _L("Drag and drop G-code file"), wxYES_NO | wxICON_QUESTION | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES) {
 
                 if (plater->model().objects.empty() ||
                     wxMessageDialog((wxWindow*)plater, _L("Switching to G-code preview mode will remove all objects, continue?"),
-                        wxString(SLIC3R_APP_NAME) + " - " + _L("Switch to G-code preview mode"), wxYES_NO | wxCANCEL | wxICON_QUESTION | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES) {
+                        wxString(SLIC3R_APP_NAME) + " - " + _L("Switch to G-code preview mode"), wxYES_NO | wxICON_QUESTION | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES) {
                     wxGetApp().mainframe->set_mode(MainFrame::EMode::GCodeViewer);
                     plater->load_gcode(from_path(paths.front()));
                     return true;
@@ -1406,6 +1411,16 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
         else
             return false;
     }
+
+#if ENABLE_GCODE_VIEWER
+    if (wxGetApp().mainframe->get_mode() == MainFrame::EMode::GCodeViewer) {
+        if (wxMessageDialog((wxWindow*)plater, _L("Do you want to exit G-code preview ?"),
+            wxString(SLIC3R_APP_NAME) + " - " + _L("Drag and drop model file"), wxYES_NO | wxICON_QUESTION | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES)
+            wxGetApp().mainframe->set_mode(MainFrame::EMode::Editor);
+        else
+            return false;
+    }
+#endif // ENABLE_GCODE_VIEWER
 
     wxString snapshot_label;
     assert(! paths.empty());

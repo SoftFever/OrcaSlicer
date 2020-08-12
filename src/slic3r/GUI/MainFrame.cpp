@@ -1008,7 +1008,7 @@ void MainFrame::init_menubar()
             [this](wxCommandEvent&) {
                 if (m_plater->model().objects.empty() ||
                     wxMessageDialog((wxWindow*)this, _L("Switching to G-code preview mode will remove all objects, continue?"),
-                        wxString(SLIC3R_APP_NAME) + " - " + _L("Switch to G-code preview mode"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxICON_QUESTION | wxCENTRE).ShowModal() == wxID_YES)
+                        wxString(SLIC3R_APP_NAME) + " - " + _L("Switch to G-code preview mode"), wxYES_NO | wxYES_DEFAULT | wxICON_QUESTION | wxCENTRE).ShowModal() == wxID_YES)
                     set_mode(EMode::GCodeViewer);
             }, "", nullptr,
             [this]() { return m_plater != nullptr && m_plater->printer_technology() != ptSLA; }, this);
