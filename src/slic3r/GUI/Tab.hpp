@@ -236,6 +236,7 @@ public:
 	bool				m_show_btn_incompatible_presets = false;
 	PresetCollection*	m_presets;
 	DynamicPrintConfig*	m_config;
+	DynamicPrintConfig 	m_cache_config;
 	ogStaticText*		m_parent_preset_description_line;
 	ScalableButton*		m_detach_preset_btn	= nullptr;
 

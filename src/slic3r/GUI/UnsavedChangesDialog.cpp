@@ -514,7 +514,7 @@ void UnsavedChangesModel::Rescale()
 //          UnsavedChangesDialog
 //------------------------------------------
 
-UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, const std::string& new_selected_preset)
+UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset)
     : DPIDialog(nullptr, wxID_ANY, _L("Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
@@ -529,6 +529,9 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, const std::string&
 
     int border = 10;
     int em = em_unit();
+
+    m_action_line = new wxStaticText(this, wxID_ANY, "");
+    m_action_line->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold());
 
     m_tree       = new wxDataViewCtrl(this, wxID_ANY, wxDefaultPosition, wxSize(em * 80, em * 30), wxBORDER_SIMPLE | wxDV_VARIABLE_LINE_HEIGHT | wxDV_ROW_LINES);
     m_tree_model = new UnsavedChangesModel(this);
@@ -561,36 +564,24 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, const std::string&
     m_tree->Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU,  &UnsavedChangesDialog::context_menu, this);
 
     // Add Buttons 
-    wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxCANCEL);   
+    wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxCANCEL);
 
-    Tab* tab = wxGetApp().get_tab(type);
-    assert(tab);
-    PresetCollection* presets = tab->get_presets();
+    auto add_btn = [this, buttons](ScalableButton** btn, int& btn_id, const std::string& icon_name, Action close_act, int idx, bool process_enable = true)
+    {
+        *btn = new ScalableButton(this, btn_id = NewControlId(), icon_name, "", wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true);
+        buttons->Insert(idx, *btn, 0, wxLEFT, 5);
 
-    wxString label= from_u8((boost::format(_u8L("Save selected to preset: %1%"))% ("\"" + presets->get_selected_preset().name + "\"")).str());
-    m_save_btn = new ScalableButton(this, m_save_btn_id = NewControlId(), "save", label, wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true);
-    buttons->Insert(0, m_save_btn, 0, wxLEFT, 5);
+        (*btn)->Bind(wxEVT_BUTTON, [this, close_act](wxEvent&) { close(close_act); });
+        if (process_enable)
+            (*btn)->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(!m_empty_selection); });
+        (*btn)->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) { show_info_line(Action::Undef); e.Skip(); });
+    };
 
-    m_save_btn->Bind(wxEVT_BUTTON,      [this](wxEvent&)                { close(Action::Save); });
-    m_save_btn->Bind(wxEVT_UPDATE_UI,   [this](wxUpdateUIEvent& evt)    { evt.Enable(!m_empty_selection); });
-    m_save_btn->Bind(wxEVT_ENTER_WINDOW,[this, presets](wxMouseEvent& e){ show_info_line(Action::Save, presets->get_selected_preset().name); e.Skip(); });
-    m_save_btn->Bind(wxEVT_LEAVE_WINDOW,[this         ](wxMouseEvent& e){ show_info_line(Action::Undef); e.Skip(); });
-
-    label = from_u8((boost::format(_u8L("Move selected to preset: %1%"))% ("\"" + from_u8(new_selected_preset) + "\"")).str());
-    m_move_btn = new ScalableButton(this, m_move_btn_id = NewControlId(), "paste_menu", label, wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true);
-    buttons->Insert(1, m_move_btn, 0, wxLEFT, 5);
-
-    m_move_btn->Bind(wxEVT_BUTTON,      [this](wxEvent&)                            { close(Action::Move); });
-    m_move_btn->Bind(wxEVT_UPDATE_UI,   [this](wxUpdateUIEvent& evt)                { evt.Enable(!m_empty_selection); });
-    m_move_btn->Bind(wxEVT_ENTER_WINDOW,[this, new_selected_preset](wxMouseEvent& e){ show_info_line(Action::Move, new_selected_preset); e.Skip(); });
-    m_move_btn->Bind(wxEVT_LEAVE_WINDOW,[this                     ](wxMouseEvent& e){ show_info_line(Action::Undef); e.Skip(); });
-
-    label = _L("Continue without changes");
-    m_continue_btn = new ScalableButton(this, m_continue_btn_id = NewControlId(), "cross", label, wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true);
-    buttons->Insert(2, m_continue_btn, 0, wxLEFT, 5);
-    m_continue_btn->Bind(wxEVT_BUTTON,      [this](wxEvent&)       { close(Action::Continue); });
-    m_continue_btn->Bind(wxEVT_ENTER_WINDOW,[this](wxMouseEvent& e){ show_info_line(Action::Continue); e.Skip(); });
-    m_continue_btn->Bind(wxEVT_LEAVE_WINDOW,[this](wxMouseEvent& e){ show_info_line(Action::Undef); e.Skip(); });
+    int btn_idx = 0;
+    add_btn(&m_save_btn, m_save_btn_id, "save", Action::Save, btn_idx++);
+    if (type == dependent_presets->type())
+        add_btn(&m_move_btn, m_move_btn_id, "paste_menu", Action::Move, btn_idx++);
+    add_btn(&m_continue_btn, m_continue_btn_id, "cross", Action::Continue, btn_idx, false);
 
     m_info_line = new wxStaticText(this, wxID_ANY, "");
     m_info_line->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold());
@@ -598,12 +589,12 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, const std::string&
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
-    topSizer->Add(new wxStaticText(this, wxID_ANY, _L("There are unsaved changes for") + (": \"" + tab->title() + "\"")), 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
+    topSizer->Add(m_action_line,0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
     topSizer->Add(m_tree,       1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
     topSizer->Add(m_info_line,  0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, 2*border);
     topSizer->Add(buttons,      0, wxEXPAND | wxALL, border);
 
-    update(type);
+    update(type, dependent_presets, new_selected_preset);
 
     SetSizer(topSizer);
     topSizer->SetSizeHints(this);
@@ -824,12 +815,34 @@ wxString UnsavedChangesDialog::get_short_string(wxString full_string)
     return full_string + dots;
 }
 
-void UnsavedChangesDialog::update(Preset::Type type)
+void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset)
 {
-    Tab* tab = wxGetApp().get_tab(type);
-    assert(tab);
+    PresetCollection* presets = dependent_presets;
 
-    PresetCollection* presets = tab->get_presets();
+    // activate buttons and labels
+    m_save_btn      ->Bind(wxEVT_ENTER_WINDOW, [this, presets]              (wxMouseEvent& e) { show_info_line(Action::Save, presets->get_selected_preset().name); e.Skip(); });
+    if (m_move_btn)
+        m_move_btn  ->Bind(wxEVT_ENTER_WINDOW, [this, new_selected_preset]  (wxMouseEvent& e) { show_info_line(Action::Move, new_selected_preset); e.Skip(); });
+    m_continue_btn  ->Bind(wxEVT_ENTER_WINDOW, [this]                       (wxMouseEvent& e) { show_info_line(Action::Continue); e.Skip(); });
+
+    m_save_btn->SetLabel(from_u8((boost::format(_u8L("Save selected to preset: %1%")) % ("\"" + presets->get_selected_preset().name + "\"")).str()));
+    m_continue_btn->SetLabel(_L("Continue without changes"));
+
+    wxString action_msg;
+    if (type == dependent_presets->type()) {
+        action_msg = _L("has the following unsaved changes:");
+
+        m_move_btn->SetLabel(from_u8((boost::format(_u8L("Move selected to preset: %1%")) % ("\"" + new_selected_preset + "\"")).str()));
+    }
+    else {
+        action_msg = type == Preset::TYPE_PRINTER ?
+                    _L("is not compatible with printer") :
+                    _L("is not compatible with print profile");
+        action_msg += " \"" + from_u8(new_selected_preset) + "\" ";
+        action_msg += _L("and it has the following unsaved changes:");
+    }
+    m_action_line->SetLabel(from_u8((boost::format(_utf8(L("Preset \"%1%\" %2%"))) % _utf8(presets->get_edited_preset().name) % action_msg).str()));
+
     // Display a dialog showing the dirty options in a human readable form.
     const DynamicPrintConfig& old_config = presets->get_selected_preset().config;
     const DynamicPrintConfig& new_config = presets->get_edited_preset().config;

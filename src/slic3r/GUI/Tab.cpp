@@ -3124,6 +3124,12 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
                 m_dependent_tabs = { Preset::Type::TYPE_SLA_PRINT, Preset::Type::TYPE_SLA_MATERIAL };
         }
 
+        // check if there is something in the cache to move to the new selected preset
+        if (!m_cache_config.empty()) {
+            m_presets->get_edited_preset().config.apply(m_cache_config);
+            m_cache_config.clear();
+        }
+
         load_current_preset();
     }
 }
@@ -3134,11 +3140,10 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
 {
     if (presets == nullptr) presets = m_presets;
 
-    UnsavedChangesDialog dlg(m_type, new_printer_name);
+    UnsavedChangesDialog dlg(m_type, presets, new_printer_name);
     if (dlg.ShowModal() == wxID_CANCEL)
         return false;
-    if (dlg.just_continue())
-        return true;
+
     if (dlg.save_preset())  // save selected changes
     {
         std::vector<std::string> unselected_options = dlg.get_unselected_options();
@@ -3147,7 +3152,7 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
 
         // for system/default/external presets we should take an edited name
         if (preset.is_system || preset.is_default || preset.is_external) {
-            SavePresetDialog save_dlg(m_type, _CTX_utf8(L_CONTEXT("Copy", "PresetName"), "PresetName"));
+            SavePresetDialog save_dlg(preset.type, _CTX_utf8(L_CONTEXT("Copy", "PresetName"), "PresetName"));
             if (save_dlg.ShowModal() != wxID_OK)
                 return false;
             name = save_dlg.get_name();
@@ -3157,56 +3162,35 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
         if (!unselected_options.empty())
         {
             DynamicPrintConfig& old_config = presets->get_selected_preset().config;
-
+            // revert unselected options to the old values
             for (const std::string& opt_key : unselected_options)
-                m_config->set_key_value(opt_key, old_config.option(opt_key)->clone());            
+                presets->get_edited_preset().config.set_key_value(opt_key, old_config.option(opt_key)->clone());
         }
-        
-        save_preset(name);
-        return true;
-    }
-    if (dlg.move_preset())
-        // move selected changes
-        return false;
 
-    return false;
-/*
-    // Display a dialog showing the dirty options in a human readable form.
-    const Preset& old_preset = presets->get_edited_preset();
-    std::string   type_name  = presets->name();
-    wxString      tab        = "          ";
-    wxString      name       = old_preset.is_default ?
-        from_u8((boost::format(_utf8(L("Default preset (%s)"))) % _utf8(type_name)).str()) :
-        from_u8((boost::format(_utf8(L("Preset (%s)"))) % _utf8(type_name)).str()) + "\n" + tab + old_preset.name;
+        if (m_type == presets->type()) // save changes for the current preset        
+            save_preset(name);
+        else // save changes for dependent preset
+        {
+            // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
+            presets->save_current_preset(name);
+            // Mark the print & filament enabled if they are compatible with the currently selected preset.
+            // If saving the preset changes compatibility with other presets, keep the now incompatible dependent presets selected, however with a "red flag" icon showing that they are no more compatible.
+            m_preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
 
-    // Collect descriptions of the dirty options.
-    wxString changes;
-    for (const std::string &opt_key : presets->current_dirty_options()) {
-        const ConfigOptionDef &opt = m_config->def()->options.at(opt_key);
-        wxString name = "";
-        if (! opt.category.empty())
-            name += _(opt.category) + " > ";
-        name += !opt.full_label.empty() ?
-                _(opt.full_label) :
-                _(opt.label);
-        changes += tab + (name) + "\n";
+            /* If filament preset is saved for multi-material printer preset,
+             * there are cases when filament comboboxs are updated for old (non-modified) colors,
+             * but in full_config a filament_colors option aren't.*/
+            if (presets->type() == Preset::TYPE_FILAMENT && wxGetApp().extruders_edited_cnt() > 1)
+                wxGetApp().plater()->force_filament_colors_update();
+        }
     }
-    // Show a confirmation dialog with the list of dirty options.
-    wxString message = name + "\n\n";
-    if (new_printer_name.empty())
-        message += _(L("has the following unsaved changes:"));
-    else {
-        message += (m_type == Slic3r::Preset::TYPE_PRINTER) ?
-                _(L("is not compatible with printer")) :
-                _(L("is not compatible with print profile"));
-        message += wxString("\n") + tab + from_u8(new_printer_name) + "\n\n";
-        message += _(L("and it has the following unsaved changes:"));
+    else if (dlg.move_preset()) // move selected changes
+    {
+        // copy selected options to the cache from edited preset
+        m_cache_config.apply_only(*m_config, dlg.get_selected_options());
     }
-    wxMessageDialog confirm(parent(),
-        message + "\n" + changes + "\n\n" + _(L("Discard changes and continue anyway?")),
-        _(L("Unsaved Changes")), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
-    return confirm.ShowModal() == wxID_YES;
-    */
+
+    return true;
 }
 
 // If we are switching from the FFF-preset to the SLA, we should to control the printed objects if they have a part(s).

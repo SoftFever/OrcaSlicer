@@ -193,6 +193,7 @@ class UnsavedChangesDialog : public DPIDialog
     ScalableButton*         m_save_btn      { nullptr };
     ScalableButton*         m_move_btn      { nullptr };
     ScalableButton*         m_continue_btn  { nullptr };
+    wxStaticText*           m_action_line   { nullptr };
     wxStaticText*           m_info_line     { nullptr };
 
     bool                    m_empty_selection   { false };
@@ -226,12 +227,12 @@ class UnsavedChangesDialog : public DPIDialog
     std::map<wxDataViewItem, ItemData> m_items_map;
 
 public:
-    UnsavedChangesDialog(Preset::Type type, const std::string& new_selected_preset);
+    UnsavedChangesDialog(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset);
     ~UnsavedChangesDialog() {}
 
     wxString get_short_string(wxString full_string);
 
-    void update(Preset::Type type);
+    void update(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset);
     void item_value_changed(wxDataViewEvent &event);
     void context_menu(wxDataViewEvent &event);
     void show_info_line(Action action, std::string preset_name = "");

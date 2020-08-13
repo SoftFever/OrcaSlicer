@@ -1123,15 +1123,22 @@ void SavePresetDialog::Item::update()
         info_line = _L("Cannot overwrite a system profile.");
         m_valid_type = NoValid;
     }
+
     if (m_valid_type == Valid && existing && (existing->is_external)) {
         info_line = _L("Cannot overwrite an external profile.");
         m_valid_type = NoValid;
     }
+
     if (m_valid_type == Valid && existing && m_preset_name != m_presets->get_selected_preset_name())
     {
         info_line = from_u8((boost::format(_u8L("Preset with name \"%1%\" already exists.")) % m_preset_name).str()) + "\n" +
                     _L("Note: This preset will be replaced after saving");        
         m_valid_type = Warning;
+    }
+
+    if (m_valid_type == Valid && m_preset_name.empty()) {
+        info_line = _L("The empty name is not available.");
+        m_valid_type = NoValid;
     }
 
     m_valid_label->SetLabel(info_line);
