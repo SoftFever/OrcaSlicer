@@ -385,7 +385,7 @@ public:
     template<class Fn> void draw_layers(size_t layer_num, Fn &&drawfn)
     {
         m_layers.resize(layer_num);
-        sla::ccr::for_each(0ul, m_layers.size(),
+        sla::ccr::for_each(size_t(0), m_layers.size(),
                            [this, &drawfn] (size_t idx) {
                                sla::EncodedRaster& enc = m_layers[idx];
                                auto rst = create_raster();

@@ -748,7 +748,7 @@ void SupportTreeBuildsteps::filter()
         }
     };
 
-    ccr::for_each(0ul, filtered_indices.size(),
+    ccr::for_each(size_t(0), filtered_indices.size(),
                   [this, &filterfn, &filtered_indices] (size_t i) {
                       filterfn(filtered_indices[i], i, m_cfg.head_back_radius_mm);
                   });

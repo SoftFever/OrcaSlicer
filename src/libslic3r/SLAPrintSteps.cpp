@@ -264,7 +264,7 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
         std::vector<ExPolygons> interior_slices;
         interior_slicer.slice(slice_grid, SlicingMode::Regular, closing_r, &interior_slices, thr);
 
-        sla::ccr::for_each(0ul, interior_slices.size(),
+        sla::ccr::for_each(size_t(0), interior_slices.size(),
                            [&po, &interior_slices] (size_t i) {
                               const ExPolygons &slice = interior_slices[i];
                               po.m_model_slices[i] =
@@ -792,7 +792,7 @@ void SLAPrint::Steps::merge_slices_and_eval_stats() {
     
     // sequential version for debugging:
     // for(size_t i = 0; i < m_printer_input.size(); ++i) printlayerfn(i);
-    sla::ccr::for_each(0ul, printer_input.size(), printlayerfn);
+    sla::ccr::for_each(size_t(0), printer_input.size(), printlayerfn);
     
     auto SCALING2 = SCALING_FACTOR * SCALING_FACTOR;
     print_statistics.support_used_material = supports_volume * SCALING2;

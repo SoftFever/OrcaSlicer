@@ -128,7 +128,7 @@ static std::vector<SupportPointGenerator::MyLayer> make_layers(
     //const float pixel_area = pow(wxGetApp().preset_bundle->project_config.option<ConfigOptionFloat>("display_width") / wxGetApp().preset_bundle->project_config.option<ConfigOptionInt>("display_pixels_x"), 2.f); //
     const float pixel_area = pow(0.047f, 2.f);
 
-    ccr_par::for_each(0ul, layers.size(),
+    ccr_par::for_each(size_t(0), layers.size(),
         [&layers, &slices, &heights, pixel_area, throw_on_cancel](size_t layer_id)
     {
         if ((layer_id % 8) == 0)
@@ -153,7 +153,7 @@ static std::vector<SupportPointGenerator::MyLayer> make_layers(
     }, 32 /*gransize*/);
 
     // Calculate overlap of successive layers. Link overlapping islands.
-    ccr_par::for_each(1ul, layers.size(),
+    ccr_par::for_each(size_t(1), layers.size(),
                       [&layers, &heights, throw_on_cancel] (size_t layer_id)
     {
       if ((layer_id % 2) == 0)
