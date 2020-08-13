@@ -4,6 +4,8 @@
 #include <tbb/spin_mutex.h>
 #include <tbb/mutex.h>
 #include <tbb/parallel_for.h>
+#include <algorithm>
+#include <libslic3r/libslic3r.h>
 
 namespace Slic3r {
 namespace sla {
@@ -17,16 +19,29 @@ template<bool> struct _ccr {};
 template<> struct _ccr<true>
 {
     using SpinningMutex = tbb::spin_mutex;
-    using BlockingMutex  = tbb::mutex;
-    
+    using BlockingMutex = tbb::mutex;
+
     template<class It, class Fn>
-    static inline void enumerate(It from, It to, Fn fn)
+    static IteratorOnly<It, void> for_each(It     from,
+                                           It     to,
+                                           Fn &&  fn,
+                                           size_t granularity = 1)
     {
-        auto   iN = to - from;
-        size_t N  = iN < 0 ? 0 : size_t(iN);
-        
-        tbb::parallel_for(size_t(0), N, [from, fn](size_t n) {
-            fn(*(from + decltype(iN)(n)), n);
+        tbb::parallel_for(tbb::blocked_range{from, to, granularity},
+                          [&fn, from](const auto &range) {
+            for (auto &el : range) fn(el);
+        });
+    }
+
+    template<class I, class Fn>
+    static IntegerOnly<I, void> for_each(I      from,
+                                         I      to,
+                                         Fn &&  fn,
+                                         size_t granularity = 1)
+    {
+        tbb::parallel_for(tbb::blocked_range{from, to, granularity},
+                          [&fn](const auto &range) {
+            for (I i = range.begin(); i < range.end(); ++i) fn(i);
         });
     }
 };
@@ -39,11 +54,23 @@ private:
 public:
     using SpinningMutex = _Mtx;
     using BlockingMutex = _Mtx;
-    
+
     template<class It, class Fn>
-    static inline void enumerate(It from, It to, Fn fn)
+    static IteratorOnly<It, void> for_each(It   from,
+                                           It   to,
+                                           Fn &&fn,
+                                           size_t /* ignore granularity */ = 1)
     {
-        for (auto it = from; it != to; ++it) fn(*it, size_t(it - from));
+        for (auto it = from; it != to; ++it) fn(*it);
+    }
+
+    template<class I, class Fn>
+    static IntegerOnly<I, void> for_each(I    from,
+                                         I    to,
+                                         Fn &&fn,
+                                         size_t /* ignore granularity */ = 1)
+    {
+        for (I i = from; i < to; ++i) fn(i);
     }
 };
 

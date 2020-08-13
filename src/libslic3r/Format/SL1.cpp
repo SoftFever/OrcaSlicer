@@ -126,9 +126,9 @@ uqptr<sla::RasterBase> SL1Archive::create_raster() const
     return sla::create_raster_grayscale_aa(res, pxdim, gamma, tr);
 }
 
-sla::EncodedRaster SL1Archive::encode_raster(const sla::RasterBase &rst) const
+sla::RasterEncoder SL1Archive::get_encoder() const
 {
-    return rst.encode(sla::PNGRasterEncoder());    
+    return sla::PNGRasterEncoder{};
 }
 
 void SL1Archive::export_print(Zipper& zipper,

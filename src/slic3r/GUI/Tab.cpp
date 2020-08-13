@@ -3995,8 +3995,15 @@ void TabSLAPrint::build()
     optgroup->append_single_option_line("support_base_safety_distance");
     
     // Mirrored parameter from Pad page for toggling elevation on the same page
-    optgroup->append_single_option_line("pad_around_object");
+//    optgroup->append_single_option_line("pad_around_object");
     optgroup->append_single_option_line("support_object_elevation");
+
+    Line line{ "", "" };
+    line.full_width = 1;
+    line.widget = [this](wxWindow* parent) {
+        return description_line_widget(parent, &m_support_object_elevation_description_line);
+    };
+    optgroup->append_line(line);
 
     optgroup = page->new_optgroup(L("Connection of the support sticks and junctions"));
     optgroup->append_single_option_line("support_critical_angle");
@@ -4071,6 +4078,14 @@ void TabSLAPrint::update()
     m_update_cnt++;
 
     m_config_manipulation.update_print_sla_config(m_config, true);
+
+    bool elev = !m_config->opt_bool("pad_enable") || !m_config->opt_bool("pad_around_object");
+    m_support_object_elevation_description_line->SetText(elev ? "" :
+        from_u8((boost::format(_u8L("\"%1%\" is disabled because \"%2%\" is on in \"%3%\" category.\n"
+                                    "To enable \"%1%\", please switch off \"%2%\"")) 
+                 % _L("Object elevation") % _L("Pad around object") % _L("Pad")).str()));
+    Layout();
+
     m_update_cnt--;
 
     if (m_update_cnt == 0) {

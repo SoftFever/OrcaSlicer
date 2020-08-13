@@ -461,6 +461,9 @@ public:
 //         Tab(parent, _(L("Print Settings")), L("sla_print")) {}
         Tab(parent, _(L("Print Settings")), Slic3r::Preset::TYPE_SLA_PRINT) {}
     ~TabSLAPrint() {}
+
+	ogStaticText* m_support_object_elevation_description_line = nullptr;
+
     void		build() override;
 	void		reload_config() override;
     void		update() override;

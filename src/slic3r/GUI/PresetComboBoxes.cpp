@@ -715,7 +715,7 @@ void PlaterPresetComboBox::update()
 
     std::map<wxString, wxBitmap*> nonsys_presets;
 
-    wxString selected = "";
+    wxString selected_user_preset = "";
     wxString tooltip = "";
     const std::deque<Preset>& presets = m_collection->get_presets();
 
@@ -742,7 +742,7 @@ void PlaterPresetComboBox::update()
         {
             // Assign an extruder color to the selected item if the extruder color is defined.
             filament_rgb = preset.config.opt_string("filament_colour", 0);
-            extruder_rgb = (selected && !extruder_color.empty()) ? extruder_color : filament_rgb;
+            extruder_rgb = (is_selected && !extruder_color.empty()) ? extruder_color : filament_rgb;
             single_bar = filament_rgb == extruder_rgb;
 
             bitmap_key += single_bar ? filament_rgb : filament_rgb + extruder_rgb;
@@ -764,7 +764,7 @@ void PlaterPresetComboBox::update()
         {
             nonsys_presets.emplace(wxString::FromUTF8((name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), bmp);
             if (is_selected) {
-                selected = wxString::FromUTF8((name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str());
+                selected_user_preset = wxString::FromUTF8((name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str());
                 tooltip = wxString::FromUTF8(preset.name.c_str());
             }
         }
@@ -776,7 +776,7 @@ void PlaterPresetComboBox::update()
         set_label_marker(Append(separator(L("User presets")), wxNullBitmap));
         for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
             Append(it->first, *it->second);
-            validate_selection(it->first == selected);
+            validate_selection(it->first == selected_user_preset);
         }
     }
 
@@ -1173,7 +1173,13 @@ void SavePresetDialog::Item::accept()
 SavePresetDialog::SavePresetDialog(Preset::Type type, const std::string& suffix)
     : DPIDialog(nullptr, wxID_ANY, _L("Save preset"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), 5 * wxGetApp().em_unit()), wxDEFAULT_DIALOG_STYLE | wxICON_WARNING | wxRESIZE_BORDER)
 {
-    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));    
+    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+#if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
+    // ys_FIXME! temporary workaround for correct font scaling
+    // Because of from wxWidgets 3.1.3 auto rescaling is implemented for the Fonts,
+    // From the very beginning set dialog font to the wxSYS_DEFAULT_GUI_FONT
+    this->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+#endif // ENABLE_WX_3_1_3_DPI_CHANGED_EVENT   
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
