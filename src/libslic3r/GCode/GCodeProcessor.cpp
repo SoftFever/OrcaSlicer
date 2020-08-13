@@ -23,7 +23,7 @@ static const float DEFAULT_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
 namespace Slic3r {
 
 const std::string GCodeProcessor::Extrusion_Role_Tag = "ExtrType:";
-const std::string GCodeProcessor::Width_Tag          = "PrusaSlicer__WIDTH:";
+const std::string GCodeProcessor::Width_Tag          = "Width:";
 const std::string GCodeProcessor::Height_Tag         = "Height:";
 const std::string GCodeProcessor::Color_Change_Tag   = "Color change";
 const std::string GCodeProcessor::Pause_Print_Tag    = "Pause print";
@@ -79,6 +79,19 @@ static float max_allowable_speed(float acceleration, float target_velocity, floa
 static float acceleration_time_from_distance(float initial_feedrate, float distance, float acceleration)
 {
     return (acceleration != 0.0f) ? (speed_from_distance(initial_feedrate, distance, acceleration) - initial_feedrate) / acceleration : 0.0f;
+}
+
+float round_to_nearest(float value, unsigned int decimals)
+{
+    float res = 0.0f;
+    if (decimals == 0)
+        res = std::round(value);
+    else {
+        char buf[64];
+        sprintf(buf, "%.*g", decimals, value);
+        res = std::stof(buf);
+    }
+    return res;
 }
 
 void GCodeProcessor::CachedPosition::reset()
@@ -666,6 +679,7 @@ void GCodeProcessor::reset()
     m_extruder_id = 0;
     m_extruder_colors = ExtruderColors();
     m_filament_diameters = std::vector<float>();
+    m_extruded_last_z = 0.0f;
     m_cp_color.reset();
 
     m_producer = EProducer::Unknown;
@@ -1285,14 +1299,6 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         else if (delta_pos[X] != 0.0f || delta_pos[Y] != 0.0f || delta_pos[Z] != 0.0f)
             type = EMoveType::Travel;
 
-        if (type == EMoveType::Extrude && (m_width == 0.0f || m_height == 0.0f)) {
-            if (m_extrusion_role != erCustom) {
-                m_width = 0.5f;
-                m_height = 0.5f;
-            }
-            type = EMoveType::Travel;
-        }
-
         return type;
     };
 
@@ -1325,8 +1331,26 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
     if (type == EMoveType::Extrude) {
         if (delta_pos[E] > 0.0f) {
             float ds = std::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
-            if (ds > 0.0f && static_cast<size_t>(m_extruder_id) < m_filament_diameters.size())
-                m_mm3_per_mm = round_nearest(delta_pos[E] * static_cast<float>(M_PI) * sqr(static_cast<float>(m_filament_diameters[m_extruder_id])) / (4.0f * ds), 3);
+            if (ds > 0.0f && static_cast<size_t>(m_extruder_id) < m_filament_diameters.size()) {
+                // extruded filament volume / tool displacement
+                m_mm3_per_mm = round_to_nearest(static_cast<float>(M_PI * sqr(m_filament_diameters[m_extruder_id]) * 0.25) * delta_pos[E] / ds, 4);
+            }
+
+            if (m_end_position[Z] > m_extruded_last_z + EPSILON) {
+                m_height = round_to_nearest(m_end_position[Z] - m_extruded_last_z, 4);
+                m_extruded_last_z = m_end_position[Z];
+            }
+        }
+    }
+
+    if (type == EMoveType::Extrude && (m_width == 0.0f || m_height == 0.0f)) {
+        if ((m_width == 0.0f && m_height == 0.0f) || m_extrusion_role == erCustom)
+            type = EMoveType::Travel;
+        else {
+            if (m_width == 0.0f)
+                m_width = 0.5f;
+            if (m_height == 0.0f)
+                m_height = 0.5f;
         }
     }
 

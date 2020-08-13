@@ -235,38 +235,19 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
     { 0.00f, 0.00f, 0.00f }    // erMixed
 }};
 
-//const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
-//    { 0.75f, 0.75f, 0.75f },   // erNone
-//    { 1.00f, 1.00f, 0.40f },   // erPerimeter
-//    { 1.00f, 0.65f, 0.00f },   // erExternalPerimeter
-//    { 0.00f, 0.00f, 1.00f },   // erOverhangPerimeter
-//    { 0.69f, 0.19f, 0.16f },   // erInternalInfill
-//    { 0.84f, 0.20f, 0.84f },   // erSolidInfill
-//    { 1.00f, 0.10f, 0.10f },   // erTopSolidInfill
-//    { 1.00f, 0.55f, 0.41f },   // erIroning    
-//    { 0.60f, 0.60f, 1.00f },   // erBridgeInfill
-//    { 1.00f, 1.00f, 1.00f },   // erGapFill
-//    { 0.52f, 0.48f, 0.13f },   // erSkirt
-//    { 0.00f, 1.00f, 0.00f },   // erSupportMaterial
-//    { 0.00f, 0.50f, 0.00f },   // erSupportMaterialInterface
-//    { 0.70f, 0.89f, 0.67f },   // erWipeTower
-//    { 0.16f, 0.80f, 0.58f },   // erCustom
-//    { 0.00f, 0.00f, 0.00f }    // erMixed
-//}};
-
 const std::vector<GCodeViewer::Color> GCodeViewer::Options_Colors {{
-    { 1.00f, 0.00f, 1.00f },   // Retractions
-    { 0.00f, 1.00f, 1.00f },   // Unretractions
-    { 1.00f, 1.00f, 1.00f },   // ToolChanges
-    { 1.00f, 0.00f, 0.00f },   // ColorChanges
-    { 0.00f, 1.00f, 0.00f },   // PausePrints
-    { 0.00f, 0.00f, 1.00f }    // CustomGCodes
+    { 0.803f, 0.135f, 0.839f },   // Retractions
+    { 0.287f, 0.679f, 0.810f },   // Unretractions
+    { 0.758f, 0.744f, 0.389f },   // ToolChanges
+    { 0.856f, 0.582f, 0.546f },   // ColorChanges
+    { 0.322f, 0.942f, 0.512f },   // PausePrints
+    { 0.886f, 0.825f, 0.262f }    // CustomGCodes
 }};
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Travel_Colors {{
-    { 0.0f, 0.0f, 0.5f }, // Move
-    { 0.0f, 0.5f, 0.0f }, // Extrude
-    { 0.5f, 0.0f, 0.0f }  // Retract
+    { 0.219f, 0.282f, 0.609f }, // Move
+    { 0.112f, 0.422f, 0.103f }, // Extrude
+    { 0.505f, 0.064f, 0.028f }  // Retract
 }};
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors {{
@@ -279,7 +260,8 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors {{
     { 0.961f, 0.808f, 0.039f },
     { 0.890f, 0.533f, 0.125f },
     { 0.820f, 0.408f, 0.188f },
-    { 0.761f, 0.322f, 0.235f }  // reddish
+    { 0.761f, 0.322f, 0.235f },
+    { 0.581f, 0.149f, 0.087f }  // reddish
 }};
 
 bool GCodeViewer::init()
@@ -1525,11 +1507,15 @@ void GCodeViewer::render_legend() const
             append_item(EItemType::Rect, Range_Colors[i], buf);
         };
 
-        float step_size = range.step_size();
-        if (step_size == 0.0f)
+        if (range.count == 1)
             // single item use case
             append_range_item(0, range.min, decimals);
+        else if (range.count == 2) {
+            append_range_item(static_cast<int>(Range_Colors.size()) - 1, range.max, decimals);
+            append_range_item(0, range.min, decimals);
+        }
         else {
+            float step_size = range.step_size();
             for (int i = static_cast<int>(Range_Colors.size()) - 1; i >= 0; --i) {
                 append_range_item(i, range.min + static_cast<float>(i) * step_size, decimals);
             }

@@ -304,6 +304,7 @@ namespace Slic3r {
         unsigned char m_extruder_id;
         ExtruderColors m_extruder_colors;
         std::vector<float> m_filament_diameters;
+        float m_extruded_last_z;
         CpColor m_cp_color;
 
         enum class EProducer

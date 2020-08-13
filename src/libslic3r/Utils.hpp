@@ -110,19 +110,20 @@ std::string header_slic3r_generated();
 // getpid platform wrapper
 extern unsigned get_current_pid();
 
+#if !ENABLE_GCODE_VIEWER
 template <typename Real>
 Real round_nearest(Real value, unsigned int decimals)
 {
     Real res = (Real)0;
     if (decimals == 0)
         res = ::round(value);
-    else
-    {
+    else {
         Real power = ::pow((Real)10, (int)decimals);
         res = ::round(value * power + (Real)0.5) / power;
     }
     return res;
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 // Compute the next highest power of 2 of 32-bit v
 // http://graphics.stanford.edu/~seander/bithacks.html

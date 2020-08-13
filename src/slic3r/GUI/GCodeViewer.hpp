@@ -142,11 +142,17 @@ class GCodeViewer
         {
             float min;
             float max;
+            unsigned int count;
 
             Range() { reset(); }
 
-            void update_from(const float value) { min = std::min(min, value); max = std::max(max, value); }
-            void reset() { min = FLT_MAX; max = -FLT_MAX; }
+            void update_from(const float value) {
+                if (value != max && value != min)
+                    ++count;
+                min = std::min(min, value);
+                max = std::max(max, value);
+            }
+            void reset() { min = FLT_MAX; max = -FLT_MAX; count = 0; }
 
             float step_size() const { return (max - min) / (static_cast<float>(Range_Colors.size()) - 1.0f); }
             Color get_color_at(float value) const;
