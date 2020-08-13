@@ -3168,6 +3168,8 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
     if (dlg.move_preset())
         // move selected changes
         return false;
+
+    return false;
 /*
     // Display a dialog showing the dirty options in a human readable form.
     const Preset& old_preset = presets->get_edited_preset();
