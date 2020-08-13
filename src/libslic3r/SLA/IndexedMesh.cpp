@@ -320,10 +320,10 @@ PointSet normals(const PointSet& points,
     PointSet ret(range.size(), 3);
 
     //    for (size_t ridx = 0; ridx < range.size(); ++ridx)
-    ccr::enumerate(
-        range.begin(), range.end(),
-        [&ret, &mesh, &points, thr, eps](unsigned el, size_t ridx) {
+    ccr::for_each(size_t(0), range.size(),
+        [&ret, &mesh, &points, thr, eps, &range](size_t ridx) {
             thr();
+            unsigned el = range[ridx];
             auto  eidx   = Eigen::Index(el);
             int   faceid = 0;
             Vec3d p;
