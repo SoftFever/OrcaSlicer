@@ -4055,7 +4055,8 @@ void TabSLAPrint::update()
 
     m_config_manipulation.update_print_sla_config(m_config, true);
 
-    m_support_object_elevation_description_line->SetText(!m_config->opt_bool("pad_around_object") ? "" :
+    bool elev = !m_config->opt_bool("pad_enable") || !m_config->opt_bool("pad_around_object");
+    m_support_object_elevation_description_line->SetText(elev ? "" :
         from_u8((boost::format(_u8L("\"%1%\" is disabled because \"%2%\" is on in \"%3%\" category.\n"
                                     "To enable \"%1%\", please switch off \"%2%\"")) 
                  % _L("Object elevation") % _L("Pad around object") % _L("Pad")).str()));
