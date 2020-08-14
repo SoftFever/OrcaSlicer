@@ -327,6 +327,32 @@ const std::string& PresetBundle::get_preset_name_by_alias( const Preset::Type& p
     return presets.get_preset_name_by_alias(alias);
 }
 
+void PresetBundle::save_changes_for_preset(const std::string& new_name, Preset::Type type,
+                                           const std::vector<std::string>& unselected_options)
+{
+    PresetCollection& presets = type == Preset::TYPE_PRINT          ? prints :
+                                type == Preset::TYPE_SLA_PRINT      ? sla_prints :
+                                type == Preset::TYPE_FILAMENT       ? filaments :
+                                type == Preset::TYPE_SLA_MATERIAL   ? sla_materials : printers;
+
+    // if we want to save just some from selected options
+    if (!unselected_options.empty()) {
+        // revert unselected options to the old values
+        presets.get_edited_preset().config.apply_only(presets.get_selected_preset().config, unselected_options);
+    }
+
+    // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
+    presets.save_current_preset(new_name);
+    // Mark the print & filament enabled if they are compatible with the currently selected preset.
+    // If saving the preset changes compatibility with other presets, keep the now incompatible dependent presets selected, however with a "red flag" icon showing that they are no more compatible.
+    update_compatible(PresetSelectCompatibleType::Never);
+
+    if (type == Preset::TYPE_FILAMENT) {
+        // synchronize the first filament presets.
+        set_filament_preset(0, filaments.get_selected_preset_name());
+    }
+}
+
 void PresetBundle::load_installed_filaments(AppConfig &config)
 {
     if (! config.has_section(AppConfig::SECTION_FILAMENTS)) {

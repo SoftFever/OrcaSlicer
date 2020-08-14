@@ -3146,36 +3146,27 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
 
     if (dlg.save_preset())  // save selected changes
     {
-        std::vector<std::string> unselected_options = dlg.get_unselected_options();
+        std::vector<std::string> unselected_options = dlg.get_unselected_options(presets->type());
         const Preset& preset = presets->get_edited_preset();
         std::string name = preset.name;
 
         // for system/default/external presets we should take an edited name
         if (preset.is_system || preset.is_default || preset.is_external) {
-            SavePresetDialog save_dlg(preset.type, _CTX_utf8(L_CONTEXT("Copy", "PresetName"), "PresetName"));
+            SavePresetDialog save_dlg(preset.type);
             if (save_dlg.ShowModal() != wxID_OK)
                 return false;
             name = save_dlg.get_name();
         }
 
-        // if we want to save just some from selected options
-        if (!unselected_options.empty())
+        if (m_type == presets->type()) // save changes for the current preset from this tab
         {
-            DynamicPrintConfig& old_config = presets->get_selected_preset().config;
             // revert unselected options to the old values
-            for (const std::string& opt_key : unselected_options)
-                presets->get_edited_preset().config.set_key_value(opt_key, old_config.option(opt_key)->clone());
-        }
-
-        if (m_type == presets->type()) // save changes for the current preset        
+            presets->get_edited_preset().config.apply_only(presets->get_selected_preset().config, unselected_options);
             save_preset(name);
-        else // save changes for dependent preset
+        }
+        else
         {
-            // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
-            presets->save_current_preset(name);
-            // Mark the print & filament enabled if they are compatible with the currently selected preset.
-            // If saving the preset changes compatibility with other presets, keep the now incompatible dependent presets selected, however with a "red flag" icon showing that they are no more compatible.
-            m_preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
+            m_preset_bundle->save_changes_for_preset(name, presets->type(), unselected_options);
 
             /* If filament preset is saved for multi-material printer preset,
              * there are cases when filament comboboxs are updated for old (non-modified) colors,
@@ -3283,10 +3274,8 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach)
     // focus currently.is there anything better than this ?
 //!	m_treectrl->OnSetFocus();
 
-    std::string suffix = detach ? _utf8(L("Detached")) : _CTX_utf8(L_CONTEXT("Copy", "PresetName"), "PresetName");
-
     if (name.empty()) {
-        SavePresetDialog dlg(m_type, suffix);
+        SavePresetDialog dlg(m_type, detach ? _u8L("Detached") : "");
         if (dlg.ShowModal() != wxID_OK)
             return;
         name = dlg.get_name();

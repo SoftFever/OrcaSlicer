@@ -514,8 +514,19 @@ void UnsavedChangesModel::Rescale()
 //          UnsavedChangesDialog
 //------------------------------------------
 
+UnsavedChangesDialog::UnsavedChangesDialog(const wxString& header)
+    : DPIDialog(nullptr, wxID_ANY, _L("Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+{
+    build(Preset::TYPE_INVALID, nullptr, "", header);
+}
+
 UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset)
     : DPIDialog(nullptr, wxID_ANY, _L("Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+{
+    build(type, dependent_presets, new_selected_preset);
+}
+
+void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset, const wxString& header)
 {
     wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
     SetBackgroundColour(bgr_clr);
@@ -579,7 +590,8 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection* 
 
     int btn_idx = 0;
     add_btn(&m_save_btn, m_save_btn_id, "save", Action::Save, btn_idx++);
-    if (type == dependent_presets->type())
+    if (type != Preset::TYPE_INVALID && type == dependent_presets->type() && 
+        dependent_presets->get_edited_preset().printer_technology() == dependent_presets->find_preset(new_selected_preset)->printer_technology())
         add_btn(&m_move_btn, m_move_btn_id, "paste_menu", Action::Move, btn_idx++);
     add_btn(&m_continue_btn, m_continue_btn_id, "cross", Action::Continue, btn_idx, false);
 
@@ -594,7 +606,7 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection* 
     topSizer->Add(m_info_line,  0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, 2*border);
     topSizer->Add(buttons,      0, wxEXPAND | wxALL, border);
 
-    update(type, dependent_presets, new_selected_preset);
+    update(type, dependent_presets, new_selected_preset, header);
 
     SetSizer(topSizer);
     topSizer->SetSizeHints(this);
@@ -654,8 +666,12 @@ void UnsavedChangesDialog::show_info_line(Action action, std::string preset_name
         else if (action == Action::Continue)
             text = _L("All changed options will be reverted.");
         else {
-            std::string act_string = action == Action::Save ? _u8L("saved") : _u8L("moved");
-            text = from_u8((boost::format("After press this button selected options will be %1% to the preset \"%2%\".") % act_string % preset_name).str());
+            if (action == Action::Save && preset_name.empty())
+                text = _L("After press this button selected options will be saved");
+            else {
+                std::string act_string = action == Action::Save ? _u8L("saved") : _u8L("moved");
+                text = from_u8((boost::format("After press this button selected options will be %1% to the preset \"%2%\".") % act_string % preset_name).str());
+            }
             text += "\n" + _L("Unselected options will be reverted.");
         }
         m_info_line->SetLabel(text);
@@ -815,64 +831,92 @@ wxString UnsavedChangesDialog::get_short_string(wxString full_string)
     return full_string + dots;
 }
 
-void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset)
+void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset, const wxString& header)
 {
     PresetCollection* presets = dependent_presets;
 
     // activate buttons and labels
-    m_save_btn      ->Bind(wxEVT_ENTER_WINDOW, [this, presets]              (wxMouseEvent& e) { show_info_line(Action::Save, presets->get_selected_preset().name); e.Skip(); });
+    m_save_btn      ->Bind(wxEVT_ENTER_WINDOW, [this, presets]              (wxMouseEvent& e) { show_info_line(Action::Save, presets ? presets->get_selected_preset().name : ""); e.Skip(); });
     if (m_move_btn)
         m_move_btn  ->Bind(wxEVT_ENTER_WINDOW, [this, new_selected_preset]  (wxMouseEvent& e) { show_info_line(Action::Move, new_selected_preset); e.Skip(); });
     m_continue_btn  ->Bind(wxEVT_ENTER_WINDOW, [this]                       (wxMouseEvent& e) { show_info_line(Action::Continue); e.Skip(); });
 
-    m_save_btn->SetLabel(from_u8((boost::format(_u8L("Save selected to preset: %1%")) % ("\"" + presets->get_selected_preset().name + "\"")).str()));
     m_continue_btn->SetLabel(_L("Continue without changes"));
 
-    wxString action_msg;
-    if (type == dependent_presets->type()) {
-        action_msg = _L("has the following unsaved changes:");
-
-        m_move_btn->SetLabel(from_u8((boost::format(_u8L("Move selected to preset: %1%")) % ("\"" + new_selected_preset + "\"")).str()));
+    if (type == Preset::TYPE_INVALID) {
+        m_action_line   ->SetLabel(header + "\n" + _L("Next presets have the following unsaved changes:"));
+        m_save_btn      ->SetLabel(_L("Save selected"));
     }
     else {
-        action_msg = type == Preset::TYPE_PRINTER ?
-                    _L("is not compatible with printer") :
-                    _L("is not compatible with print profile");
-        action_msg += " \"" + from_u8(new_selected_preset) + "\" ";
-        action_msg += _L("and it has the following unsaved changes:");
+        wxString action_msg;
+        if (type == dependent_presets->type()) {
+            action_msg = _L("has the following unsaved changes:");
+            if (m_move_btn)
+                m_move_btn->SetLabel(from_u8((boost::format(_u8L("Move selected to preset: %1%")) % ("\"" + new_selected_preset + "\"")).str()));
+        }
+        else {
+            action_msg = type == Preset::TYPE_PRINTER ?
+                        _L("is not compatible with printer") :
+                        _L("is not compatible with print profile");
+            action_msg += " \"" + from_u8(new_selected_preset) + "\"\n";
+            action_msg += _L("and it has the following unsaved changes:");
+        }
+        m_action_line->SetLabel(from_u8((boost::format(_utf8(L("Preset \"%1%\" %2%"))) % _utf8(presets->get_edited_preset().name) % action_msg).str()));
+        m_save_btn->SetLabel(from_u8((boost::format(_u8L("Save selected to preset: %1%")) % ("\"" + presets->get_selected_preset().name + "\"")).str()));
     }
-    m_action_line->SetLabel(from_u8((boost::format(_utf8(L("Preset \"%1%\" %2%"))) % _utf8(presets->get_edited_preset().name) % action_msg).str()));
 
-    // Display a dialog showing the dirty options in a human readable form.
-    const DynamicPrintConfig& old_config = presets->get_selected_preset().config;
-    const DynamicPrintConfig& new_config = presets->get_edited_preset().config;
+    update_tree(type, presets);
+}
 
-    m_tree_model->AddPreset(type, from_u8(presets->get_edited_preset().name));
-
+void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* presets_)
+{
     Search::OptionsSearcher& searcher = wxGetApp().sidebar().get_searcher();
     searcher.sort_options_by_opt_key();
 
-    // Collect dirty options.
-    for (const std::string& opt_key : presets->current_dirty_options()) {
-        const Search::Option& option = searcher.get_option(opt_key);
+    // list of the presets with unsaved changes
+    std::vector<PresetCollection*> presets_list;
+    if (type == Preset::TYPE_INVALID)
+    {
+        PrinterTechnology printer_technology = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
 
-        ItemData item_data = { opt_key, option.label_local, get_string_value(opt_key, old_config), get_string_value(opt_key, new_config) };
+        for (Tab* tab : wxGetApp().tabs_list)
+            if (tab->supports_printer_technology(printer_technology) && tab->current_preset_is_dirty())
+                presets_list.emplace_back(tab->get_presets());
+    }
+    else
+        presets_list.emplace_back(presets_);
 
-        wxString old_val = get_short_string(item_data.old_val);
-        wxString new_val = get_short_string(item_data.new_val);
-        if (old_val != item_data.old_val || new_val != item_data.new_val)
-            item_data.is_long = true;
+    // Display a dialog showing the dirty options in a human readable form.
+    for (PresetCollection* presets : presets_list)
+    {
+        const DynamicPrintConfig& old_config = presets->get_selected_preset().config;
+        const DynamicPrintConfig& new_config = presets->get_edited_preset().config;
+        type = presets->type();
 
-        m_items_map.emplace(m_tree_model->AddOption(type, option.category_local, option.group_local, option.label_local, old_val, new_val), item_data);
+        m_tree_model->AddPreset(type, from_u8(presets->get_edited_preset().name));
+
+        // Collect dirty options.
+        for (const std::string& opt_key : presets->current_dirty_options()) {
+            const Search::Option& option = searcher.get_option(opt_key);
+
+            ItemData item_data = { opt_key, option.label_local, get_string_value(opt_key, old_config), get_string_value(opt_key, new_config), type };
+
+            wxString old_val = get_short_string(item_data.old_val);
+            wxString new_val = get_short_string(item_data.new_val);
+            if (old_val != item_data.old_val || new_val != item_data.new_val)
+                item_data.is_long = true;
+
+            m_items_map.emplace(m_tree_model->AddOption(type, option.category_local, option.group_local, option.label_local, old_val, new_val), item_data);
+        }
     }
 }
 
-std::vector<std::string> UnsavedChangesDialog::get_unselected_options()
+std::vector<std::string> UnsavedChangesDialog::get_unselected_options(Preset::Type type)
 {
     std::vector<std::string> ret;
 
     for (auto item : m_items_map)
-        if (!m_tree_model->IsEnabledItem(item.first))
+        if (item.second.type == type && !m_tree_model->IsEnabledItem(item.first))
             ret.emplace_back(item.second.opt_key);
 
     return ret;

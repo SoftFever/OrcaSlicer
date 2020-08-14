@@ -217,22 +217,26 @@ class UnsavedChangesDialog : public DPIDialog
 
     struct ItemData
     {
-        std::string opt_key;
-        wxString    opt_name;
-        wxString    old_val;
-        wxString    new_val;
-        bool        is_long {false};
+        std::string     opt_key;
+        wxString        opt_name;
+        wxString        old_val;
+        wxString        new_val;
+        Preset::Type    type;
+        bool            is_long {false};
     };
     // tree items related to the options
     std::map<wxDataViewItem, ItemData> m_items_map;
 
 public:
+    UnsavedChangesDialog(const wxString& header);
     UnsavedChangesDialog(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset);
     ~UnsavedChangesDialog() {}
 
     wxString get_short_string(wxString full_string);
 
-    void update(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset);
+    void build(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset, const wxString& header = "");
+    void update(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset, const wxString& header);
+    void update_tree(Preset::Type type, PresetCollection *presets);
     void item_value_changed(wxDataViewEvent &event);
     void context_menu(wxDataViewEvent &event);
     void show_info_line(Action action, std::string preset_name = "");
@@ -242,7 +246,7 @@ public:
     bool move_preset() const    { return m_exit_action == Action::Move;      }
     bool just_continue() const  { return m_exit_action == Action::Continue;  }
 
-    std::vector<std::string> get_unselected_options();
+    std::vector<std::string> get_unselected_options(Preset::Type type);
     std::vector<std::string> get_selected_options();
 
 protected:

@@ -130,6 +130,10 @@ public:
 
     const std::string&          get_preset_name_by_alias(const Preset::Type& preset_type, const std::string& alias) const;
 
+    // Save current preset of a required type under a new name. If the name is different from the old one,
+    // Unselected option would be reverted to the beginning values
+    void                        save_changes_for_preset(const std::string& new_name, Preset::Type type, const std::vector<std::string>& unselected_options);
+
     static const char *PRUSA_BUNDLE;
 private:
     std::string                 load_system_presets();
