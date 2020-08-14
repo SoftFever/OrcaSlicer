@@ -13,7 +13,7 @@ class SL1Archive: public SLAPrinter {
     
 protected:
     uqptr<sla::RasterBase> create_raster() const override;
-    sla::EncodedRaster encode_raster(const sla::RasterBase &rst) const override;
+    sla::RasterEncoder get_encoder() const override;
     
 public:
     
