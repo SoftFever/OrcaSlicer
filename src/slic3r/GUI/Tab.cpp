@@ -413,8 +413,9 @@ void Tab::update_labels_colour()
             else
                 color = &m_modified_label_clr;
         }
-        if (opt.first == "bed_shape" || opt.first == "compatible_prints" || opt.first == "compatible_printers") {
-            wxStaticText* label = (m_colored_Labels.find(opt.first) == m_colored_Labels.end()) ? nullptr : m_colored_Labels.at(opt.first);
+        if (opt.first == "bed_shape"            || opt.first == "filament_ramming_parameters" || 
+            opt.first == "compatible_prints"    || opt.first == "compatible_printers"           ) {
+            wxStaticText* label = m_colored_Labels.find(opt.first) == m_colored_Labels.end() ? nullptr : m_colored_Labels.at(opt.first);
             if (label) {
                 label->SetForegroundColour(*color);
                 label->Refresh(true);
@@ -504,7 +505,8 @@ void Tab::update_changed_ui()
             icon = &m_bmp_white_bullet;
             tt = &m_tt_white_bullet;
         }
-        if (opt.first == "bed_shape" || opt.first == "compatible_prints" || opt.first == "compatible_printers") {
+        if (opt.first == "bed_shape"            || opt.first == "filament_ramming_parameters" || 
+            opt.first == "compatible_prints"    || opt.first == "compatible_printers") {
             wxStaticText* label = (m_colored_Labels.find(opt.first) == m_colored_Labels.end()) ? nullptr : m_colored_Labels.at(opt.first);
             if (label) {
                 label->SetForegroundColour(*color);
@@ -656,6 +658,9 @@ void Tab::update_changed_tree_ui()
                     get_sys_and_mod_flags(opt_key, sys_page, modified_page);
                 }
             }
+            if (m_type == Preset::TYPE_FILAMENT && page->title() == "Advanced") {
+                get_sys_and_mod_flags("filament_ramming_parameters", sys_page, modified_page);
+            }
             if (page->title() == "Dependencies") {
                 if (m_type == Slic3r::Preset::TYPE_PRINTER) {
                     sys_page = m_presets->get_selected_preset_parent() != nullptr;
@@ -734,7 +739,10 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
                         to_sys ? group->back_to_sys_value("bed_shape") : group->back_to_initial_value("bed_shape");
                         load_key_value("bed_shape", true/*some value*/, true);
                     }
-
+                }
+                if (group->title == "Toolchange parameters with single extruder MM printers") {
+                    if ((m_options_list["filament_ramming_parameters"] & os) == 0)
+                        to_sys ? group->back_to_sys_value("filament_ramming_parameters") : group->back_to_initial_value("filament_ramming_parameters");
                 }
                 if (group->title == "Profile dependencies") {
                     // "compatible_printers" option doesn't exists in Printer Settimgs Tab
@@ -1737,22 +1745,21 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_cooling_initial_speed");
         optgroup->append_single_option_line("filament_cooling_final_speed");
 
-        line = optgroup->create_single_option_line("filament_ramming_parameters");// { _(L("Ramming")), "" };
-        line.widget = [this](wxWindow* parent) {
+        create_line_with_widget(optgroup.get(), "filament_ramming_parameters", [this](wxWindow* parent) {
             auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
             ramming_dialog_btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
             sizer->Add(ramming_dialog_btn);
 
-            ramming_dialog_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
-            {
+            ramming_dialog_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
                 RammingDialog dlg(this,(m_config->option<ConfigOptionStrings>("filament_ramming_parameters"))->get_at(0));
-                if (dlg.ShowModal() == wxID_OK)
-                    (m_config->option<ConfigOptionStrings>("filament_ramming_parameters"))->get_at(0) = dlg.get_parameters();
-            }));
+                if (dlg.ShowModal() == wxID_OK) {
+                    load_key_value("filament_ramming_parameters", dlg.get_parameters());
+                    update_changed_ui();
+                }
+            });
             return sizer;
-        };
-        optgroup->append_line(line);
+        });
 
 
     add_filament_overrides_page();
