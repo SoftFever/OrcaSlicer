@@ -172,6 +172,9 @@ public:
         m_volumetric_speed(0),
         m_last_pos_defined(false),
         m_last_extrusion_role(erNone),
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+        m_last_mm3_per_mm(0.0),
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 #if !ENABLE_GCODE_VIEWER
         m_last_mm3_per_mm(GCodeAnalyzer::Default_mm3_per_mm),
         m_last_width(GCodeAnalyzer::Default_Width),
@@ -381,6 +384,9 @@ private:
     float                               m_last_width{ 0.0f };
     float                               m_last_height{ 0.0f };
     float                               m_last_layer_z{ 0.0f };
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+    double                              m_last_mm3_per_mm;
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 #else
     // Support for G-Code Analyzer
     double                              m_last_mm3_per_mm;

@@ -76,6 +76,10 @@ namespace Slic3r {
         static const std::string Last_Line_M73_Placeholder_Tag;
         static const std::string Estimated_Printing_Time_Placeholder_Tag;
 
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+        static const std::string Mm3_Per_Mm_Tag;
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+
     private:
         using AxisCoords = std::array<float, 4>;
         using ExtruderColors = std::vector<unsigned char>;
@@ -152,13 +156,6 @@ namespace Slic3r {
             float time() const;
         };
 
-        enum class ETimeMode : unsigned char
-        {
-            Normal,
-            Stealth,
-            Count
-        };
-
     private:
         struct TimeMachine
         {
@@ -227,7 +224,7 @@ namespace Slic3r {
             // Additional load / unload times for a filament exchange sequence.
             std::vector<float> filament_load_times;
             std::vector<float> filament_unload_times;
-            std::array<TimeMachine, static_cast<size_t>(ETimeMode::Count)> machines;
+            std::array<TimeMachine, static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Count)> machines;
 
             void reset();
 
@@ -281,6 +278,72 @@ namespace Slic3r {
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
         };
 
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+        struct DataChecker
+        {
+            struct Error
+            {
+                float value;
+                float tag_value;
+                ExtrusionRole role;
+            };
+
+            std::string type;
+            float threshold{ 0.01f };
+            float last_tag_value{ 0.0f };
+            unsigned int count{ 0 };
+            std::vector<Error> errors;
+
+            DataChecker(const std::string& type, float threshold)
+                : type(type), threshold(threshold)
+            {}
+
+            void update(float value, ExtrusionRole role) {
+                ++count;
+                if (last_tag_value != 0.0f) {
+                    if (std::abs(value - last_tag_value) / last_tag_value > threshold)
+                        errors.push_back({ value, last_tag_value, role });
+                }
+            }
+
+            void reset() { last_tag_value = 0.0f; errors.clear(); count = 0; }
+
+            std::pair<float, float> get_min() const {
+                float delta_min = FLT_MAX;
+                float perc_min = 0.0f;
+                for (const Error& e : errors) {
+                    if (delta_min > e.value - e.tag_value) {
+                        delta_min = e.value - e.tag_value;
+                        perc_min = 100.0f * delta_min / e.tag_value;
+                    }
+                }
+                return { delta_min, perc_min };
+            }
+
+            std::pair<float, float> get_max() const {
+                float delta_max = -FLT_MAX;
+                float perc_max = 0.0f;
+                for (const Error& e : errors) {
+                    if (delta_max < e.value - e.tag_value) {
+                        delta_max = e.value - e.tag_value;
+                        perc_max = 100.0f * delta_max / e.tag_value;
+                    }
+                }
+                return { delta_max, perc_max };
+            }
+
+            void output() const {
+                if (!errors.empty()) {
+                    std::cout << type << ":\n";
+                    std::cout << "Errors: " << errors.size() << " (" << 100.0f * float(errors.size()) / float(count) << "%)\n";
+                    auto [min, perc_min] = get_min();
+                    auto [max, perc_max] = get_max();
+                    std::cout << "min: " << min << "(" << perc_min << "%) - max: " << max << "(" << perc_max << "%)\n";
+                }
+            }
+        };
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+
     private:
         GCodeReader m_parser;
 
@@ -326,6 +389,12 @@ namespace Slic3r {
         Result m_result;
         static unsigned int s_result_id;
 
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+        DataChecker m_mm3_per_mm_compare{ "mm3_per_mm", 0.01f };
+        DataChecker m_height_compare{ "height", 0.01f };
+        DataChecker m_width_compare{ "width", 0.01f };
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+
     public:
         GCodeProcessor();
 
@@ -333,7 +402,7 @@ namespace Slic3r {
         void apply_config(const DynamicPrintConfig& config);
         void enable_stealth_time_estimator(bool enabled);
         bool is_stealth_time_estimator_enabled() const {
-            return m_time_processor.machines[static_cast<size_t>(ETimeMode::Stealth)].enabled;
+            return m_time_processor.machines[static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Stealth)].enabled;
         }
         void enable_machine_envelope_processing(bool enabled) { m_time_processor.machine_envelope_processing_enabled = enabled; }
         void enable_producers(bool enabled) { m_producers_enabled = enabled; }
@@ -345,12 +414,12 @@ namespace Slic3r {
         // Process the gcode contained in the file with the given filename
         void process_file(const std::string& filename);
 
-        float get_time(ETimeMode mode) const;
-        std::string get_time_dhm(ETimeMode mode) const;
-        std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> get_custom_gcode_times(ETimeMode mode, bool include_remaining) const;
+        float get_time(PrintEstimatedTimeStatistics::ETimeMode mode) const;
+        std::string get_time_dhm(PrintEstimatedTimeStatistics::ETimeMode mode) const;
+        std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> get_custom_gcode_times(PrintEstimatedTimeStatistics::ETimeMode mode, bool include_remaining) const;
 
-        std::vector<std::pair<EMoveType, float>> get_moves_time(ETimeMode mode) const;
-        std::vector<std::pair<ExtrusionRole, float>> get_roles_time(ETimeMode mode) const;
+        std::vector<std::pair<EMoveType, float>> get_moves_time(PrintEstimatedTimeStatistics::ETimeMode mode) const;
+        std::vector<std::pair<ExtrusionRole, float>> get_roles_time(PrintEstimatedTimeStatistics::ETimeMode mode) const;
 
     private:
         void process_gcode_line(const GCodeReader::GCodeLine& line);
@@ -454,14 +523,14 @@ namespace Slic3r {
 
         void store_move_vertex(EMoveType type);
 
-        float minimum_feedrate(ETimeMode mode, float feedrate) const;
-        float minimum_travel_feedrate(ETimeMode mode, float feedrate) const;
-        float get_axis_max_feedrate(ETimeMode mode, Axis axis) const;
-        float get_axis_max_acceleration(ETimeMode mode, Axis axis) const;
-        float get_axis_max_jerk(ETimeMode mode, Axis axis) const;
-        float get_retract_acceleration(ETimeMode mode) const;
-        float get_acceleration(ETimeMode mode) const;
-        void set_acceleration(ETimeMode mode, float value);
+        float minimum_feedrate(PrintEstimatedTimeStatistics::ETimeMode mode, float feedrate) const;
+        float minimum_travel_feedrate(PrintEstimatedTimeStatistics::ETimeMode mode, float feedrate) const;
+        float get_axis_max_feedrate(PrintEstimatedTimeStatistics::ETimeMode mode, Axis axis) const;
+        float get_axis_max_acceleration(PrintEstimatedTimeStatistics::ETimeMode mode, Axis axis) const;
+        float get_axis_max_jerk(PrintEstimatedTimeStatistics::ETimeMode mode, Axis axis) const;
+        float get_retract_acceleration(PrintEstimatedTimeStatistics::ETimeMode mode) const;
+        float get_acceleration(PrintEstimatedTimeStatistics::ETimeMode mode) const;
+        void set_acceleration(PrintEstimatedTimeStatistics::ETimeMode mode, float value);
         float get_filament_load_time(size_t extruder_id);
         float get_filament_unload_time(size_t extruder_id);
 

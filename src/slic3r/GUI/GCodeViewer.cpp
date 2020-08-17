@@ -975,8 +975,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     for (const TBuffer& buffer : m_buffers) {
         m_statistics.paths_size += SLIC3R_STDVEC_MEMSIZE(buffer.paths, Path);
     }
-    m_statistics.travel_segments_count = indices[buffer_id(GCodeProcessor::EMoveType::Travel)].size() / 2;
-    m_statistics.extrude_segments_count = indices[buffer_id(GCodeProcessor::EMoveType::Extrude)].size() / 2;
+    m_statistics.travel_segments_count = indices[buffer_id(EMoveType::Travel)].size() / 2;
+    m_statistics.extrude_segments_count = indices[buffer_id(EMoveType::Extrude)].size() / 2;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     // layers zs / roles / extruder ids / cp color ids -> extract from result

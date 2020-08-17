@@ -1186,6 +1186,9 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
     m_last_width = 0.0f;
     m_last_height = 0.0f;
     m_last_layer_z = 0.0f;
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+    m_last_mm3_per_mm = 0.0;
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 #else
     m_last_mm3_per_mm = GCodeAnalyzer::Default_mm3_per_mm;
     m_last_width = GCodeAnalyzer::Default_Width;
@@ -3268,6 +3271,14 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             sprintf(buf, ";%s%s\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), ExtrusionEntity::role_to_string(m_last_processor_extrusion_role).c_str());
             gcode += buf;
         }
+
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+        if (last_was_wipe_tower || (m_last_mm3_per_mm != path.mm3_per_mm)) {
+            m_last_mm3_per_mm = path.mm3_per_mm;
+            sprintf(buf, ";%s%f\n", GCodeProcessor::Mm3_Per_Mm_Tag.c_str(), m_last_mm3_per_mm);
+            gcode += buf;
+        }
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 #else
         if (path.role() != m_last_analyzer_extrusion_role) {
             m_last_analyzer_extrusion_role = path.role();
