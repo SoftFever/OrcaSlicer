@@ -385,10 +385,10 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
         {
         case EMoveType::Extrude:
         {
-            m_extrusions.ranges.height.update_from(curr.height);
-            m_extrusions.ranges.width.update_from(curr.width);
+            m_extrusions.ranges.height.update_from(round_to_nearest(curr.height, 2));
+            m_extrusions.ranges.width.update_from(round_to_nearest(curr.width, 2));
             m_extrusions.ranges.fan_speed.update_from(curr.fan_speed);
-            m_extrusions.ranges.volumetric_rate.update_from(curr.volumetric_rate());
+            m_extrusions.ranges.volumetric_rate.update_from(round_to_nearest(curr.volumetric_rate(), 2));
             [[fallthrough]];
         }
         case EMoveType::Travel:
