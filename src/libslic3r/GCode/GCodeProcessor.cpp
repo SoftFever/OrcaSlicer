@@ -755,6 +755,7 @@ void GCodeProcessor::process_file(const std::string& filename)
         m_time_processor.post_process(filename);
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
+    std::cout << "\n";
     m_mm3_per_mm_compare.output();
     m_height_compare.output();
     m_width_compare.output();
@@ -1403,18 +1404,24 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
             m_extruded_last_z = m_end_position[Z];
         }
+
+        if (m_extrusion_role == erExternalPerimeter)
+            // cross section: rectangle
+            m_width = round_to_nearest(delta_pos[E] * static_cast<float>(M_PI * sqr(1.05 * filament_radius)) / (d_xyz * m_height), 3);
+        else if (m_extrusion_role == erBridgeInfill || m_extrusion_role == erNone)
+            // cross section: circle
+            m_width = round_to_nearest(static_cast<float>(m_filament_diameters[m_extruder_id]) * std::sqrt(delta_pos[E] / d_xyz), 3);
+        else
+            // cross section: rectangle + 2 semicircles
+            m_width = round_to_nearest(delta_pos[E] * static_cast<float>(M_PI * sqr(filament_radius)) / (d_xyz * m_height) + static_cast<float>(1.0 - 0.25 * M_PI) * m_height, 3);
+
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+        m_width_compare.update(m_width, m_extrusion_role);
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
     }
 
-    if (type == EMoveType::Extrude && (m_width == 0.0f || m_height == 0.0f)) {
-        if ((m_width == 0.0f && m_height == 0.0f) || m_extrusion_role == erCustom)
-            type = EMoveType::Travel;
-        else {
-            if (m_width == 0.0f)
-                m_width = 0.5f;
-            if (m_height == 0.0f)
-                m_height = 0.5f;
-        }
-    }
+    if (type == EMoveType::Extrude && (m_extrusion_role == erCustom || m_width == 0.0f || m_height == 0.0f))
+        type = EMoveType::Travel;
 
     // time estimate section
     auto move_length = [](const AxisCoords& delta_pos) {
