@@ -23,7 +23,9 @@ static const float DEFAULT_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
 namespace Slic3r {
 
 const std::string GCodeProcessor::Extrusion_Role_Tag = "ExtrType:";
-const std::string GCodeProcessor::Width_Tag          = "Width:";
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//const std::string GCodeProcessor::Width_Tag          = "Width:";
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 const std::string GCodeProcessor::Height_Tag         = "Height:";
 const std::string GCodeProcessor::Color_Change_Tag   = "Color change";
 const std::string GCodeProcessor::Pause_Print_Tag    = "Pause print";
@@ -34,6 +36,9 @@ const std::string GCodeProcessor::Last_Line_M73_Placeholder_Tag           = "; _
 const std::string GCodeProcessor::Estimated_Printing_Time_Placeholder_Tag = "; _GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER";
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+const std::string GCodeProcessor::Width_Tag = "Width:";
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 const std::string GCodeProcessor::Mm3_Per_Mm_Tag = "Mm3_Per_Mm:";
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
@@ -893,35 +898,67 @@ void GCodeProcessor::process_tags(const std::string& comment)
         return;
     }
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
     // width tag
     pos = comment.find(Width_Tag);
     if (pos != comment.npos) {
         try {
-            m_width = std::stof(comment.substr(pos + Width_Tag.length()));
-#if ENABLE_GCODE_VIEWER_DATA_CHECKING
-            m_width_compare.last_tag_value = m_width;
-#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+            m_width_compare.last_tag_value = std::stof(comment.substr(pos + Width_Tag.length()));
         }
         catch (...) {
             BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
         }
         return;
     }
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
+//    // width tag
+//    pos = comment.find(Width_Tag);
+//    if (pos != comment.npos) {
+//        try {
+//            m_width = std::stof(comment.substr(pos + Width_Tag.length()));
+//#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+//            m_width_compare.last_tag_value = m_width;
+//#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+//        }
+//        catch (...) {
+//            BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
+//        }
+//        return;
+//    }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
     // height tag
     pos = comment.find(Height_Tag);
     if (pos != comment.npos) {
         try {
-            m_height = std::stof(comment.substr(pos + Height_Tag.length()));
-#if ENABLE_GCODE_VIEWER_DATA_CHECKING
-            m_height_compare.last_tag_value = m_height;
-#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+            m_height_compare.last_tag_value = std::stof(comment.substr(pos + Height_Tag.length()));
         }
         catch (...) {
             BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Height (" << comment << ").";
         }
         return;
     }
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+
+//    // height tag
+//    pos = comment.find(Height_Tag);
+//    if (pos != comment.npos) {
+//        try {
+//            m_height = std::stof(comment.substr(pos + Height_Tag.length()));
+//#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+//            m_height_compare.last_tag_value = m_height;
+//#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+//        }
+//        catch (...) {
+//            BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Height (" << comment << ").";
+//        }
+//        return;
+//    }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     // color change tag
     pos = comment.find(Color_Change_Tag);
@@ -1144,6 +1181,9 @@ bool GCodeProcessor::process_simplify3d_tags(const std::string& comment)
     // geometry
 
     // ; tool
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     std::string tag = " tool";
     pos = comment.find(tag);
     if (pos == 0) {
@@ -1156,10 +1196,14 @@ bool GCodeProcessor::process_simplify3d_tags(const std::string& comment)
         size_t w_end = data.find_first_of(' ', w_start);
         if (h_start != data.npos) {
             try {
-                m_height = std::stof(data.substr(h_start + 1, (h_end != data.npos) ? h_end - h_start - 1 : h_end));
-#if ENABLE_GCODE_VIEWER_DATA_CHECKING
-                m_height_compare.last_tag_value = m_height;
-#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                m_height_compare.last_tag_value = std::stof(data.substr(h_start + 1, (h_end != data.npos) ? h_end - h_start - 1 : h_end));
+
+//                m_height = std::stof(data.substr(h_start + 1, (h_end != data.npos) ? h_end - h_start - 1 : h_end));
+//#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+//                m_height_compare.last_tag_value = m_height;
+//#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             }
             catch (...) {
                 BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Height (" << comment << ").";
@@ -1167,10 +1211,14 @@ bool GCodeProcessor::process_simplify3d_tags(const std::string& comment)
         }
         if (w_start != data.npos) {
             try {
-                m_width = std::stof(data.substr(w_start + 1, (w_end != data.npos) ? w_end - w_start - 1 : w_end));
-#if ENABLE_GCODE_VIEWER_DATA_CHECKING
-                m_width_compare.last_tag_value = m_width;
-#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                m_width_compare.last_tag_value = std::stof(data.substr(w_start + 1, (w_end != data.npos) ? w_end - w_start - 1 : w_end));
+
+//                m_width = std::stof(data.substr(w_start + 1, (w_end != data.npos) ? w_end - w_start - 1 : w_end));
+//#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+//                m_width_compare.last_tag_value = m_width;
+//#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             }
             catch (...) {
                 BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
@@ -1179,6 +1227,9 @@ bool GCodeProcessor::process_simplify3d_tags(const std::string& comment)
 
         return true;
     }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 //    std::cout << comment << "\n";
     return false;
@@ -1254,15 +1305,22 @@ bool GCodeProcessor::process_ideamaker_tags(const std::string& comment)
 
     // geometry
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     // width
     tag = "WIDTH:";
     pos = comment.find(tag);
     if (pos != comment.npos) {
         try {
-            m_width = std::stof(comment.substr(pos + tag.length()));
-#if ENABLE_GCODE_VIEWER_DATA_CHECKING
-            m_width_compare.last_tag_value = m_width;
-#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            m_width_compare.last_tag_value = std::stof(comment.substr(pos + tag.length()));
+
+//            m_width = std::stof(comment.substr(pos + tag.length()));
+//#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+//            m_width_compare.last_tag_value = m_width;
+//#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         }
         catch (...) {
             BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
@@ -1275,16 +1333,23 @@ bool GCodeProcessor::process_ideamaker_tags(const std::string& comment)
     pos = comment.find(tag);
     if (pos != comment.npos) {
         try {
-            m_height = std::stof(comment.substr(pos + tag.length()));
-#if ENABLE_GCODE_VIEWER_DATA_CHECKING
-            m_height_compare.last_tag_value = m_height;
-#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            m_height_compare.last_tag_value = std::stof(comment.substr(pos + tag.length()));
+
+//            m_height = std::stof(comment.substr(pos + tag.length()));
+//#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+//            m_height_compare.last_tag_value = m_height;
+//#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         }
         catch (...) {
             BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Height (" << comment << ").";
         }
         return true;
     }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     return false;
 }
