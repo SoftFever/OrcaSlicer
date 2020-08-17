@@ -38,7 +38,7 @@ static EMoveType buffer_type(unsigned char id) {
     return static_cast<EMoveType>(static_cast<unsigned char>(EMoveType::Retract) + id);
 }
 
-std::array<float, 3> decode_color(const std::string& color) {
+static std::array<float, 3> decode_color(const std::string& color) {
     static const float INV_255 = 1.0f / 255.0f;
 
     std::array<float, 3> ret = { 0.0f, 0.0f, 0.0f };
@@ -56,12 +56,25 @@ std::array<float, 3> decode_color(const std::string& color) {
     return ret;
 }
 
-std::vector<std::array<float, 3>> decode_colors(const std::vector<std::string>& colors) {
+static std::vector<std::array<float, 3>> decode_colors(const std::vector<std::string>& colors) {
     std::vector<std::array<float, 3>> output(colors.size(), { 0.0f, 0.0f, 0.0f });
     for (size_t i = 0; i < colors.size(); ++i) {
         output[i] = decode_color(colors[i]);
     }
     return output;
+}
+
+static float round_to_nearest(float value, unsigned int decimals)
+{
+    float res = 0.0f;
+    if (decimals == 0)
+        res = std::round(value);
+    else {
+        char buf[64];
+        sprintf(buf, "%.*g", decimals, value);
+        res = std::stof(buf);
+    }
+    return res;
 }
 
 void GCodeViewer::VBuffer::reset()
@@ -98,9 +111,11 @@ bool GCodeViewer::Path::matches(const GCodeProcessor::MoveVertex& move) const
     case EMoveType::Unretract:
     case EMoveType::Extrude:
     {
-        return type == move.type && role == move.extrusion_role && height == move.height && width == move.width &&
-            feedrate == move.feedrate && fan_speed == move.fan_speed && volumetric_rate == move.volumetric_rate() &&
-            extruder_id == move.extruder_id && cp_color_id == move.cp_color_id;
+        // use rounding to reduce the number of generated paths
+        return type == move.type && role == move.extrusion_role && height == round_to_nearest(move.height, 2) &&
+            width == round_to_nearest(move.width, 2) && feedrate == move.feedrate && fan_speed == move.fan_speed &&
+            volumetric_rate == round_to_nearest(move.volumetric_rate(), 2) && extruder_id == move.extruder_id &&
+            cp_color_id == move.cp_color_id;
     }
     case EMoveType::Travel:
     {
@@ -124,7 +139,10 @@ void GCodeViewer::TBuffer::reset()
 void GCodeViewer::TBuffer::add_path(const GCodeProcessor::MoveVertex& move, unsigned int i_id, unsigned int s_id)
 {
     Path::Endpoint endpoint = { i_id, s_id, move.position };
-    paths.push_back({ move.type, move.extrusion_role, endpoint, endpoint, move.delta_extruder, move.height, move.width, move.feedrate, move.fan_speed, move.volumetric_rate(), move.extruder_id, move.cp_color_id });
+    // use rounding to reduce the number of generated paths
+    paths.push_back({ move.type, move.extrusion_role, endpoint, endpoint, move.delta_extruder,
+        round_to_nearest(move.height, 2), round_to_nearest(move.width, 2), move.feedrate, move.fan_speed,
+        round_to_nearest(move.volumetric_rate(), 2), move.extruder_id, move.cp_color_id });
 }
 
 GCodeViewer::Color GCodeViewer::Extrusions::Range::get_color_at(float value) const

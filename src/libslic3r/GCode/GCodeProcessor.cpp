@@ -85,19 +85,6 @@ static float acceleration_time_from_distance(float initial_feedrate, float dista
     return (acceleration != 0.0f) ? (speed_from_distance(initial_feedrate, distance, acceleration) - initial_feedrate) / acceleration : 0.0f;
 }
 
-float round_to_nearest(float value, unsigned int decimals)
-{
-    float res = 0.0f;
-    if (decimals == 0)
-        res = std::round(value);
-    else {
-        char buf[64];
-        sprintf(buf, "%.*g", decimals, value);
-        res = std::stof(buf);
-    }
-    return res;
-}
-
 void GCodeProcessor::CachedPosition::reset()
 {
     std::fill(position.begin(), position.end(), FLT_MAX);
@@ -1392,13 +1379,13 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         float area_toolpath_cross_section = volume_extruded_filament / d_xyz;
 
         // volume extruded filament / tool displacement = area toolpath cross section
-        m_mm3_per_mm = round_to_nearest(area_toolpath_cross_section, 3);
+        m_mm3_per_mm = area_toolpath_cross_section;
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_mm3_per_mm_compare.update(area_toolpath_cross_section, m_extrusion_role);
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
         if (m_end_position[Z] > m_extruded_last_z + EPSILON) {
-            m_height = round_to_nearest(m_end_position[Z] - m_extruded_last_z, 4);
+            m_height = m_end_position[Z] - m_extruded_last_z;
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
             m_height_compare.update(m_height, m_extrusion_role);
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
@@ -1407,13 +1394,13 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 
         if (m_extrusion_role == erExternalPerimeter)
             // cross section: rectangle
-            m_width = round_to_nearest(delta_pos[E] * static_cast<float>(M_PI * sqr(1.05 * filament_radius)) / (d_xyz * m_height), 3);
+            m_width = delta_pos[E] * static_cast<float>(M_PI * sqr(1.05 * filament_radius)) / (d_xyz * m_height);
         else if (m_extrusion_role == erBridgeInfill || m_extrusion_role == erNone)
             // cross section: circle
-            m_width = round_to_nearest(static_cast<float>(m_filament_diameters[m_extruder_id]) * std::sqrt(delta_pos[E] / d_xyz), 3);
+            m_width = static_cast<float>(m_filament_diameters[m_extruder_id]) * std::sqrt(delta_pos[E] / d_xyz);
         else
             // cross section: rectangle + 2 semicircles
-            m_width = round_to_nearest(delta_pos[E] * static_cast<float>(M_PI * sqr(filament_radius)) / (d_xyz * m_height) + static_cast<float>(1.0 - 0.25 * M_PI) * m_height, 3);
+            m_width = delta_pos[E] * static_cast<float>(M_PI * sqr(filament_radius)) / (d_xyz * m_height) + static_cast<float>(1.0 - 0.25 * M_PI) * m_height;
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_width_compare.update(m_width, m_extrusion_role);
@@ -1983,19 +1970,20 @@ void GCodeProcessor::process_T(const std::string& command)
 
 void GCodeProcessor::store_move_vertex(EMoveType type)
 {
-    MoveVertex vertex;
-    vertex.type = type;
-    vertex.extrusion_role = m_extrusion_role;
-    vertex.position = Vec3f(m_end_position[X], m_end_position[Y], m_end_position[Z]) + m_extruder_offsets[m_extruder_id];
-    vertex.delta_extruder = m_end_position[E] - m_start_position[E];
-    vertex.feedrate = m_feedrate;
-    vertex.width = m_width;
-    vertex.height = m_height;
-    vertex.mm3_per_mm = m_mm3_per_mm;
-    vertex.fan_speed = m_fan_speed;
-    vertex.extruder_id = m_extruder_id;
-    vertex.cp_color_id = m_cp_color.current;
-    vertex.time = static_cast<float>(m_result.moves.size());
+    MoveVertex vertex = {
+        type,
+        m_extrusion_role,
+        m_extruder_id,
+        m_cp_color.current,
+        Vec3f(m_end_position[X], m_end_position[Y], m_end_position[Z]) + m_extruder_offsets[m_extruder_id],
+        m_end_position[E] - m_start_position[E],
+        m_feedrate,
+        m_width,
+        m_height,
+        m_mm3_per_mm,
+        m_fan_speed,
+        static_cast<float>(m_result.moves.size())
+    };
     m_result.moves.emplace_back(vertex);
 }
 
