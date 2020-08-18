@@ -600,10 +600,8 @@ void Control::draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, bool right_
     const wxString label = get_label(tick);
     dc.GetMultiLineTextExtent(label, &text_width, &text_height);
     wxPoint text_pos;
-    if (right_side)
-    {
-        if (is_horizontal())
-        {
+    if (right_side) {
+        if (is_horizontal()) {
             int width;
             int height;
             get_size(&width, &height);
@@ -614,17 +612,21 @@ void Control::draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, bool right_
         }
         else
             text_pos = wxPoint(pos.x + m_thumb_size.x + 1, pos.y - 0.5 * text_height - 1);
+
+        // update text rectangle
+        m_rect_lower_thumb_text = wxRect(text_pos, wxSize(text_width, text_height));
     }
-    else
-    {
-        if (is_horizontal())
-        {
+    else {
+        if (is_horizontal()) {
             int x = pos.x - text_width - 1;
             int xx = (x > 0) ? x : pos.x + 1;
             text_pos = wxPoint(xx, pos.y - m_thumb_size.x / 2 - text_height - 1);
         }
         else
             text_pos = wxPoint(pos.x - text_width - 1 - m_thumb_size.x, pos.y - 0.5 * text_height + 1);
+
+        // update text rectangle
+        m_rect_higher_thumb_text = wxRect(text_pos, wxSize(text_width, text_height));
     }
 
     dc.DrawText(label, text_pos);
@@ -1206,6 +1208,14 @@ void Control::OnMotion(wxMouseEvent& event)
         else if (m_mode == SingleExtruder && is_point_in_rect(pos, get_colored_band_rect()) &&
                  get_edited_tick_for_position(pos) >= 0 )
             m_focus = fiColorBand;
+        else if (is_point_in_rect(pos, m_rect_lower_thumb))
+            m_focus = fiLowerThumb;
+        else if (is_point_in_rect(pos, m_rect_higher_thumb))
+            m_focus = fiHigherThumb;
+        else if (is_point_in_rect(pos, m_rect_lower_thumb_text))
+            m_focus = fiLowerThumbText;
+        else if (is_point_in_rect(pos, m_rect_higher_thumb_text))
+            m_focus = fiHigherThumbText;
         else {
             m_focus = fiTick;
             tick = get_tick_near_point(pos);
