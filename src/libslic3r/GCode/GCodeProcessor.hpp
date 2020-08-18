@@ -43,12 +43,14 @@ namespace Slic3r {
             std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> custom_gcode_times;
             std::vector<std::pair<EMoveType, float>> moves_times;
             std::vector<std::pair<ExtrusionRole, float>> roles_times;
+            std::vector<float> layers_times;
 
             void reset() {
                 time = 0.0f;
                 custom_gcode_times.clear();
                 moves_times.clear();
                 roles_times.clear();
+                layers_times.clear();
             }
         };
 
@@ -68,6 +70,7 @@ namespace Slic3r {
     public:
         static const std::string Extrusion_Role_Tag;
         static const std::string Height_Tag;
+        static const std::string Layer_Change_Tag;
         static const std::string Color_Change_Tag;
         static const std::string Pause_Print_Tag;
         static const std::string Custom_Code_Tag;
@@ -142,6 +145,7 @@ namespace Slic3r {
 
             EMoveType move_type{ EMoveType::Noop };
             ExtrusionRole role{ erNone };
+            unsigned int layer_id{ 0 };
             float distance{ 0.0f }; // mm
             float acceleration{ 0.0f }; // mm/s^2
             float max_entry_speed{ 0.0f }; // mm/s
@@ -192,6 +196,7 @@ namespace Slic3r {
             std::vector<float> g1_times_cache;
             std::array<float, static_cast<size_t>(EMoveType::Count)> moves_time;
             std::array<float, static_cast<size_t>(ExtrusionRole::erCount)> roles_time;
+            std::vector<float> layers_time;
 
             void reset();
 
@@ -368,6 +373,7 @@ namespace Slic3r {
         ExtruderColors m_extruder_colors;
         std::vector<float> m_filament_diameters;
         float m_extruded_last_z;
+        unsigned int m_layer_id;
         CpColor m_cp_color;
 
         enum class EProducer
@@ -420,6 +426,7 @@ namespace Slic3r {
 
         std::vector<std::pair<EMoveType, float>> get_moves_time(PrintEstimatedTimeStatistics::ETimeMode mode) const;
         std::vector<std::pair<ExtrusionRole, float>> get_roles_time(PrintEstimatedTimeStatistics::ETimeMode mode) const;
+        std::vector<float> get_layers_time(PrintEstimatedTimeStatistics::ETimeMode mode) const;
 
     private:
         void process_gcode_line(const GCodeReader::GCodeLine& line);

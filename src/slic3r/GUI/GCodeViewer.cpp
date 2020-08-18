@@ -2352,7 +2352,7 @@ void GCodeViewer::render_time_estimate() const
     imgui.title(_u8L("Estimated printing time"));
 #endif // GCODE_VIEWER_TIME_ESTIMATE
 
-        // mode tabs
+    // mode tabs
     ImGui::BeginTabBar("mode_tabs");
     const PrintEstimatedTimeStatistics::Mode& normal_mode = m_time_statistics.modes[static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Normal)];
     if (normal_mode.time > 0.0f) {

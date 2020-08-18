@@ -24,9 +24,10 @@ namespace Slic3r {
 
 const std::string GCodeProcessor::Extrusion_Role_Tag = "TYPE:";
 const std::string GCodeProcessor::Height_Tag         = "HEIGHT:";
-const std::string GCodeProcessor::Color_Change_Tag   = "COLOR CHANGE";
-const std::string GCodeProcessor::Pause_Print_Tag    = "PAUSE PRINT";
-const std::string GCodeProcessor::Custom_Code_Tag    = "CUSTOM GCODE";
+const std::string GCodeProcessor::Layer_Change_Tag   = "LAYER_CHANGE";
+const std::string GCodeProcessor::Color_Change_Tag   = "COLOR_CHANGE";
+const std::string GCodeProcessor::Pause_Print_Tag    = "PAUSE_PRINT";
+const std::string GCodeProcessor::Custom_Code_Tag    = "CUSTOM_GCODE";
 
 const std::string GCodeProcessor::First_Line_M73_Placeholder_Tag          = "; _GP_FIRST_LINE_M73_PLACEHOLDER";
 const std::string GCodeProcessor::Last_Line_M73_Placeholder_Tag           = "; _GP_LAST_LINE_M73_PLACEHOLDER";
@@ -174,6 +175,7 @@ void GCodeProcessor::TimeMachine::reset()
     g1_times_cache = std::vector<float>();
     std::fill(moves_time.begin(), moves_time.end(), 0.0f);
     std::fill(roles_time.begin(), roles_time.end(), 0.0f);
+    layers_time = std::vector<float>();
 }
 
 void GCodeProcessor::TimeMachine::simulate_st_synchronize(float additional_time)
@@ -282,6 +284,16 @@ void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks)
         gcode_time.cache += block_time;
         moves_time[static_cast<size_t>(block.move_type)] += block_time;
         roles_time[static_cast<size_t>(block.role)] += block_time;
+        if (block.layer_id > 0) {
+            if (block.layer_id >= layers_time.size()) {
+                size_t curr_size = layers_time.size();
+                layers_time.resize(block.layer_id);
+                for (size_t i = curr_size; i < layers_time.size(); ++i) {
+                    layers_time[i] = 0.0f;
+                }
+            }
+            layers_time[block.layer_id - 1] += block_time;
+        }
         g1_times_cache.push_back(time);
     }
 
@@ -347,6 +359,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
         std::string line = gcode_line.substr(0, gcode_line.length() - 1);
 
         std::string ret;
+
         if (line == First_Line_M73_Placeholder_Tag || line == Last_Line_M73_Placeholder_Tag) {
             for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Count); ++i) {
                 const TimeMachine& machine = machines[i];
@@ -369,7 +382,18 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
                 }
             }
         }
+
         return std::make_pair(!ret.empty(), ret.empty() ? gcode_line : ret);
+    };
+
+    // check for temporary lines
+    auto is_temporary_decoration = [](const std::string& gcode_line) {
+        // remove trailing '\n'
+        std::string line = gcode_line.substr(0, gcode_line.length() - 1);
+        if (line == "; " + Layer_Change_Tag)
+            return true;
+        else
+            return false;
     };
 
     // add lines M73 to exported gcode
@@ -408,9 +432,15 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
         }
 
         gcode_line += "\n";
+        // replace placeholder lines
         auto [processed, result] = process_placeholders(gcode_line);
         gcode_line = result;
         if (!processed) {
+            // remove temporary lines
+            if (is_temporary_decoration(gcode_line))
+                continue;
+
+            // add lines M73 where needed
             parser.parse_line(gcode_line,
                 [&](GCodeReader& reader, const GCodeReader::GCodeLine& line) {
                     if (line.cmd_is("G1")) {
@@ -677,6 +707,7 @@ void GCodeProcessor::reset()
 
     m_filament_diameters = std::vector<float>(Min_Extruder_Count, 1.75f);
     m_extruded_last_z = 0.0f;
+    m_layer_id = 0;
     m_cp_color.reset();
 
     m_producer = EProducer::Unknown;
@@ -726,7 +757,7 @@ void GCodeProcessor::process_file(const std::string& filename)
     m_result.moves.emplace_back(MoveVertex());
     m_parser.parse_file(filename, [this](GCodeReader& reader, const GCodeReader::GCodeLine& line) { process_gcode_line(line); });
 
-    // process the remaining time blocks
+    // process the time blocks
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Count); ++i) {
         TimeMachine& machine = m_time_processor.machines[i];
         TimeMachine::CustomGCodeTime& gcode_time = machine.gcode_time;
@@ -802,6 +833,13 @@ std::vector<std::pair<ExtrusionRole, float>> GCodeProcessor::get_roles_time(Prin
         }
     }
     return ret;
+}
+
+std::vector<float> GCodeProcessor::get_layers_time(PrintEstimatedTimeStatistics::ETimeMode mode) const
+{
+    return (mode < PrintEstimatedTimeStatistics::ETimeMode::Count) ?
+        m_time_processor.machines[static_cast<size_t>(mode)].layers_time :
+        std::vector<float>();
 }
 
 void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line)
@@ -973,6 +1011,13 @@ void GCodeProcessor::process_tags(const std::string& comment)
         return;
     }
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+
+    // layer change tag
+    pos = comment.find(Layer_Change_Tag);
+    if (pos != comment.npos) {
+        ++m_layer_id;
+        return;
+    }
 }
 
 bool GCodeProcessor::process_producers_tags(const std::string& comment)
@@ -1428,6 +1473,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         block.move_type = type;
         block.role = m_extrusion_role;
         block.distance = distance;
+        block.layer_id = m_layer_id;
 
         // calculates block cruise feedrate
         float min_feedrate_factor = 1.0f;
@@ -2097,6 +2143,7 @@ void GCodeProcessor::update_estimated_times_stats()
         data.custom_gcode_times = get_custom_gcode_times(mode, true);
         data.moves_times = get_moves_time(mode);
         data.roles_times = get_roles_time(mode);
+        data.layers_times = get_layers_time(mode);
     };
 
     update_mode(PrintEstimatedTimeStatistics::ETimeMode::Normal);

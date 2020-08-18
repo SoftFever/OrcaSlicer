@@ -2095,6 +2095,8 @@ void GCode::process_layer(
     std::string gcode;
 
 #if ENABLE_GCODE_VIEWER
+    // add tag for processor
+    gcode += "; " + GCodeProcessor::Layer_Change_Tag + "\n";
     // export layer z
     char buf[64];
     sprintf(buf, ";Z:%g\n", print_z);
