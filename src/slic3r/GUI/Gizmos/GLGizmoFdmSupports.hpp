@@ -92,6 +92,7 @@ private:
     bool m_setting_angle = false;
     bool m_internal_stack_active = false;
     bool m_schedule_update = false;
+    Vec2d m_last_mouse_position = Vec2d::Zero();
 
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.
