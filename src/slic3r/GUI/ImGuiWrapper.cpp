@@ -362,7 +362,7 @@ bool ImGuiWrapper::checkbox(const wxString &label, bool &value)
 
 void ImGuiWrapper::text(const char *label)
 {
-    ImGui::Text(label, NULL);
+    ImGui::Text("%s", label);
 }
 
 void ImGuiWrapper::text(const std::string &label)
@@ -378,7 +378,7 @@ void ImGuiWrapper::text(const wxString &label)
 
 void ImGuiWrapper::text_colored(const ImVec4& color, const char* label)
 {
-    ImGui::TextColored(color, label);
+    ImGui::TextColored(color, "%s", label);
 }
 
 void ImGuiWrapper::text_colored(const ImVec4& color, const std::string& label)
