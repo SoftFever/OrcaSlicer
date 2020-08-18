@@ -51,9 +51,9 @@ public:
 		m_extrusion_flow(0.f),
 		m_preview_suppressed(false),
 		m_elapsed_time(0.f),
-#if !ENABLE_GCODE_VIEWER_DATA_CHECKING
+#if !ENABLE_GCODE_VIEWER || ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_default_analyzer_line_width(line_width),
-#endif // !ENABLE_GCODE_VIEWER_DATA_CHECKING
+#endif // !ENABLE_GCODE_VIEWER || ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_gcode_flavor(flavor),
         m_filpar(filament_parameters)
         {
@@ -148,13 +148,13 @@ public:
 	// Suppress / resume G-code preview in Slic3r. Slic3r will have difficulty to differentiate the various
 	// filament loading and cooling moves from normal extrusion moves. Therefore the writer
 	// is asked to suppres output of some lines, which look like extrusions.
-#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+#if !ENABLE_GCODE_VIEWER || ENABLE_GCODE_VIEWER_DATA_CHECKING
     WipeTowerWriter& suppress_preview() { change_analyzer_line_width(0.f); m_preview_suppressed = true; return *this; }
     WipeTowerWriter& resume_preview() { change_analyzer_line_width(m_default_analyzer_line_width); m_preview_suppressed = false; return *this; }
 #else
     WipeTowerWriter& 			 suppress_preview() { m_preview_suppressed = true; return *this; }
 	WipeTowerWriter& 			 resume_preview()   { m_preview_suppressed = false; return *this; }
-#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+#endif // !ENABLE_GCODE_VIEWER || ENABLE_GCODE_VIEWER_DATA_CHECKING
 
 	WipeTowerWriter& 			 feedrate(float f)
 	{
@@ -459,9 +459,9 @@ private:
 	float		  m_wipe_tower_depth = 0.f;
     unsigned      m_last_fan_speed = 0;
     int           current_temp = -1;
-#if !ENABLE_GCODE_VIEWER_DATA_CHECKING
+#if !ENABLE_GCODE_VIEWER || ENABLE_GCODE_VIEWER_DATA_CHECKING
     const float   m_default_analyzer_line_width;
-#endif // !ENABLE_GCODE_VIEWER_DATA_CHECKING
+#endif // !ENABLE_GCODE_VIEWER || ENABLE_GCODE_VIEWER_DATA_CHECKING
     float         m_used_filament_length = 0.f;
     GCodeFlavor   m_gcode_flavor;
     const std::vector<WipeTower::FilamentParameters>& m_filpar;
