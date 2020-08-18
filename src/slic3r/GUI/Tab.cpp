@@ -2866,7 +2866,7 @@ void Tab::load_current_preset()
             }
             on_presets_changed();
             if (printer_technology == ptFFF) {
-                static_cast<TabPrinter*>(this)->m_initial_extruders_count = static_cast<TabPrinter*>(this)->m_extruders_count;
+                static_cast<TabPrinter*>(this)->m_initial_extruders_count = static_cast<const ConfigOptionFloats*>(m_presets->get_selected_preset().config.option("nozzle_diameter"))->values.size(); //static_cast<TabPrinter*>(this)->m_extruders_count;
                 const Preset* parent_preset = m_presets->get_selected_preset_parent();
                 static_cast<TabPrinter*>(this)->m_sys_extruders_count = parent_preset == nullptr ? 0 :
                     static_cast<const ConfigOptionFloats*>(parent_preset->config.option("nozzle_diameter"))->values.size();
@@ -3131,6 +3131,10 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
                 m_dependent_tabs = { Preset::Type::TYPE_SLA_PRINT, Preset::Type::TYPE_SLA_MATERIAL };
         }
 
+        // check and apply extruders count for printer preset
+        if (m_type == Preset::TYPE_PRINTER)
+            static_cast<TabPrinter*>(this)->apply_extruder_cnt_from_cache();
+
         // check if there is something in the cache to move to the new selected preset
         if (!m_cache_config.empty()) {
             m_presets->get_edited_preset().config.apply(m_cache_config);
@@ -3184,8 +3188,18 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
     }
     else if (dlg.move_preset()) // move selected changes
     {
+        std::vector<std::string> selected_options = dlg.get_selected_options();
+        auto it = std::find(selected_options.begin(), selected_options.end(), "extruders_count");
+        if (it != selected_options.end()) {
+            // erase "extruders_count" option from the list
+            selected_options.erase(it);
+            // cache the extruders count
+            if (m_type == Preset::TYPE_PRINTER)
+                static_cast<TabPrinter*>(this)->cache_extruder_cnt();
+        }
+
         // copy selected options to the cache from edited preset
-        m_cache_config.apply_only(*m_config, dlg.get_selected_options());
+        m_cache_config.apply_only(*m_config, selected_options);
     }
 
     return true;
@@ -3591,6 +3605,25 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
     }
 
     return sizer;
+}
+
+void TabPrinter::cache_extruder_cnt()
+{
+    if (m_presets->get_edited_preset().printer_technology() == ptSLA)
+        return;
+
+    m_cache_extruder_count = m_extruders_count;
+}
+
+void TabPrinter::apply_extruder_cnt_from_cache()
+{
+    if (m_presets->get_edited_preset().printer_technology() == ptSLA)
+        return;
+
+    if (m_cache_extruder_count > 0) {
+        m_presets->get_edited_preset().set_num_extruders(m_cache_extruder_count);
+        m_cache_extruder_count = 0;
+    }
 }
 
 void Tab::compatible_widget_reload(PresetDependencies &deps)

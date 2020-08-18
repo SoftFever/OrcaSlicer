@@ -712,47 +712,71 @@ wxString get_string_from_enum(const std::string& opt_key, const DynamicPrintConf
     return from_u8(_utf8(names[static_cast<int>(val)]));
 }
 
-static wxString get_string_value(const std::string& opt_key, const DynamicPrintConfig& config)
+static int get_id_from_opt_key(std::string opt_key)
 {
+    int pos = opt_key.find("#");
+    if (pos > 0) {
+        boost::erase_head(opt_key, pos + 1);
+        return atoi(opt_key.c_str());
+    }
+    return 0;
+}
+
+static std::string get_pure_opt_key(std::string opt_key)
+{
+    int pos = opt_key.find("#");
+    if (pos > 0)
+        boost::erase_tail(opt_key, opt_key.size() - pos);
+    return opt_key;
+}
+
+static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& config)
+{
+    int opt_idx = get_id_from_opt_key(opt_key);
+    opt_key = get_pure_opt_key(opt_key);
+
+    if (config.option(opt_key)->is_nil())
+        return _L("N/A");
+
     wxString out;
 
     // FIXME controll, if opt_key has index
-    int opt_idx = 0;
 
-    ConfigOptionType type = config.def()->options.at(opt_key).type;
+    const ConfigOptionDef* opt = config.def()->get(opt_key);
+    bool is_nullable = opt->nullable;
 
-    switch (type) {
+    switch (opt->type) {
     case coInt:
         return from_u8((boost::format("%1%") % config.opt_int(opt_key)).str());
     case coInts: {
-        const ConfigOptionInts* opt = config.opt<ConfigOptionInts>(opt_key);
-        if (opt)
-            return from_u8((boost::format("%1%") % opt->get_at(opt_idx)).str());
-        break;
+        int val = is_nullable ? 
+            config.opt<ConfigOptionIntsNullable>(opt_key)->get_at(opt_idx) :
+            config.opt<ConfigOptionInts>(opt_key)->get_at(opt_idx);
+        return from_u8((boost::format("%1%") % val).str());
     }
     case coBool:
         return config.opt_bool(opt_key) ? "true" : "false";
     case coBools: {
-        const ConfigOptionBools* opt = config.opt<ConfigOptionBools>(opt_key);
-        if (opt)
-            return opt->get_at(opt_idx) ? "true" : "false";
-        break;
+        bool val = is_nullable ?
+            config.opt<ConfigOptionBoolsNullable>(opt_key)->get_at(opt_idx) :
+            config.opt<ConfigOptionBools>(opt_key)->get_at(opt_idx);
+        return val ? "true" : "false";
     }
     case coPercent:
         return from_u8((boost::format("%1%%%") % int(config.optptr(opt_key)->getFloat())).str());
     case coPercents: {
-        const ConfigOptionPercents* opt = config.opt<ConfigOptionPercents>(opt_key);
-        if (opt)
-            return from_u8((boost::format("%1%%%") % int(opt->get_at(opt_idx))).str());
-        break;
+        double val = is_nullable ?
+            config.opt<ConfigOptionPercentsNullable>(opt_key)->get_at(opt_idx) :
+            config.opt<ConfigOptionPercents>(opt_key)->get_at(opt_idx);
+        return from_u8((boost::format("%1%%%") % int(val)).str());
     }
     case coFloat:
         return double_to_string(config.opt_float(opt_key));
     case coFloats: {
-        const ConfigOptionFloats* opt = config.opt<ConfigOptionFloats>(opt_key);
-        if (opt)
-            return double_to_string(opt->get_at(opt_idx));
-        break;
+        double val = is_nullable ?
+            config.opt<ConfigOptionFloatsNullable>(opt_key)->get_at(opt_idx) :
+            config.opt<ConfigOptionFloats>(opt_key)->get_at(opt_idx);
+        return double_to_string(val);
     }
     case coString:
         return from_u8(config.opt_string(opt_key));
@@ -896,7 +920,23 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
         m_tree_model->AddPreset(type, from_u8(presets->get_edited_preset().name));
 
         // Collect dirty options.
-        for (const std::string& opt_key : presets->current_dirty_options()) {
+        const bool deep_compare = (type == Preset::TYPE_PRINTER || type == Preset::TYPE_SLA_MATERIAL);
+        auto dirty_options = presets->current_dirty_options(deep_compare);
+        auto dirty_options_ = presets->current_dirty_options();
+
+        // process changes of extruders count
+        if (type == Preset::TYPE_PRINTER &&
+            old_config.opt<ConfigOptionStrings>("extruder_colour")->values.size() != new_config.opt<ConfigOptionStrings>("extruder_colour")->values.size()) {
+            wxString local_label = _L("Extruders count");
+            wxString old_val = from_u8((boost::format("%1%") % old_config.opt<ConfigOptionStrings>("extruder_colour")->values.size()).str());
+            wxString new_val = from_u8((boost::format("%1%") % new_config.opt<ConfigOptionStrings>("extruder_colour")->values.size()).str());
+
+            ItemData item_data = { "extruders_count", local_label, old_val, new_val, type };
+            m_items_map.emplace(m_tree_model->AddOption(type, _L("General"), _L("Capabilities"), local_label, old_val, new_val), item_data);
+
+        }
+
+        for (const std::string& opt_key : /*presets->current_dirty_options()*/dirty_options) {
             const Search::Option& option = searcher.get_option(opt_key);
 
             ItemData item_data = { opt_key, option.label_local, get_string_value(opt_key, old_config), get_string_value(opt_key, new_config), type };
@@ -915,9 +955,12 @@ std::vector<std::string> UnsavedChangesDialog::get_unselected_options(Preset::Ty
 {
     std::vector<std::string> ret;
 
-    for (auto item : m_items_map)
+    for (auto item : m_items_map) {
+        if (item.second.opt_key == "extruders_count")
+            continue;
         if (item.second.type == type && !m_tree_model->IsEnabledItem(item.first))
-            ret.emplace_back(item.second.opt_key);
+            ret.emplace_back(get_pure_opt_key(item.second.opt_key));
+    }
 
     return ret;
 }
@@ -926,9 +969,9 @@ std::vector<std::string> UnsavedChangesDialog::get_selected_options()
 {
     std::vector<std::string> ret;
 
-    for (auto item : m_items_map)
+    for (auto item : m_items_map) 
         if (m_tree_model->IsEnabledItem(item.first))
-            ret.emplace_back(item.second.opt_key);
+            ret.emplace_back(get_pure_opt_key(item.second.opt_key));
 
     return ret;
 }
