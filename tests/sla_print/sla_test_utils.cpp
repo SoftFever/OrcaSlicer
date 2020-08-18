@@ -411,3 +411,71 @@ double predict_error(const ExPolygon &p, const sla::RasterBase::PixelDim &pd)
     
     return error;
 }
+
+
+// Make a 3D pyramid
+TriangleMesh make_pyramid(float base, float height)
+{
+    float a = base / 2.f;
+
+    TriangleMesh mesh(
+        {
+            {-a, -a, 0}, {a, -a, 0}, {a, a, 0},
+            {-a, a, 0}, {0.f, 0.f, height}
+        },
+        {
+            {0, 1, 2},
+            {0, 2, 3},
+            {0, 1, 4},
+            {1, 2, 4},
+            {2, 3, 4},
+            {3, 0, 4}
+        });
+
+    mesh.repair();
+
+    return mesh;
+}
+
+    TriangleMesh make_prism(double width, double length, double height)
+{
+    // We need two upward facing triangles
+
+        double x = width / 2., y = length / 2.;
+
+        TriangleMesh mesh(
+            {
+                {-x, -y, 0.}, {x, -y, 0.}, {0., -y, height},
+                {-x, y, 0.}, {x, y, 0.}, {0., y, height},
+                },
+            {
+                {0, 1, 2}, // side 1
+                {4, 3, 5}, // side 2
+                {1, 4, 2}, {2, 4, 5}, // roof 1
+                {0, 2, 5}, {0, 5, 3}, // roof 2
+                {3, 4, 1}, {3, 1, 0} // bottom
+            });
+
+    return mesh;
+}
+
+sla::SupportPoints calc_support_pts(
+    const TriangleMesh &                      mesh,
+    const sla::SupportPointGenerator::Config &cfg)
+{
+    // Prepare the slice grid and the slices
+    std::vector<ExPolygons> slices;
+    auto                    bb      = cast<float>(mesh.bounding_box());
+    std::vector<float>      heights = grid(bb.min.z(), bb.max.z(), 0.1f);
+    slice_mesh(mesh, heights, slices, CLOSING_RADIUS, [] {});
+
+    // Prepare the support point calculator
+    sla::IndexedMesh emesh{mesh};
+    sla::SupportPointGenerator spgen{emesh, cfg, []{}, [](int){}};
+
+    // Calculate the support points
+    spgen.seed(0);
+    spgen.execute(slices, heights);
+
+    return spgen.output();
+}

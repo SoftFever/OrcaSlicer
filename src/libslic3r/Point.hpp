@@ -88,6 +88,8 @@ inline std::string to_string(const Vec3d   &pt) { return std::string("[") + std:
 std::vector<Vec3f> transform(const std::vector<Vec3f>& points, const Transform3f& t);
 Pointf3s transform(const Pointf3s& points, const Transform3d& t);
 
+template<int N, class T> using Vec = Eigen::Matrix<T,  N, 1, Eigen::DontAlign>;
+
 class Point : public Vec2crd
 {
 public:
