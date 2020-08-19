@@ -33,7 +33,7 @@ class GCodeViewer
         CustomGCodes
     };
 
-    // vbo buffer containing vertices data for a specific toolpath type
+    // vbo buffer containing vertices data used to rendder a specific toolpath type
     struct VBuffer
     {
         enum class EFormat : unsigned char
@@ -65,7 +65,7 @@ class GCodeViewer
         void reset();
     };
 
-    // ibo buffer containing indices data for a specific toolpath type
+    // ibo buffer containing indices data (triangles) used to render a specific toolpath type
     struct IBuffer
     {
         // ibo id

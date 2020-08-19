@@ -2479,8 +2479,8 @@ void GCodeViewer::render_statistics() const
 void GCodeViewer::render_shaders_editor() const
 {
     auto set_shader = [this](const std::string& shader) {
-        unsigned char begin_id = buffer_id(GCodeProcessor::EMoveType::Retract);
-        unsigned char end_id = buffer_id(GCodeProcessor::EMoveType::Custom_GCode);
+        unsigned char begin_id = buffer_id(EMoveType::Retract);
+        unsigned char end_id = buffer_id(EMoveType::Custom_GCode);
         for (unsigned char i = begin_id; i <= end_id; ++i) {
             m_buffers[i].shader = shader;
         }
@@ -2497,7 +2497,6 @@ void GCodeViewer::render_shaders_editor() const
         if (ImGui::TreeNode("GLSL version")) {
             ImGui::RadioButton("1.10 (low end PCs)", &m_shaders_editor.points.shader_version, 0);
             ImGui::RadioButton("1.20 flat (billboards) [default]", &m_shaders_editor.points.shader_version, 1);
-            ImGui::RadioButton("1.20 solid (spheres)", &m_shaders_editor.points.shader_version, 2);
             ImGui::TreePop();
         }
 
@@ -2505,7 +2504,6 @@ void GCodeViewer::render_shaders_editor() const
         {
         case 0: { set_shader("options_110"); break; }
         case 1: { set_shader("options_120_flat"); break; }
-        case 2: { set_shader("options_120_solid"); break; }
         }
 
         if (ImGui::TreeNode("Options")) {

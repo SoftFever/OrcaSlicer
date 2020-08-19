@@ -35,10 +35,8 @@ std::pair<bool, std::string> GLShadersManager::init()
     valid &= append_shader("printbed", { "printbed.vs", "printbed.fs" });
     // used to render options in gcode preview
     valid &= append_shader("options_110", { "options_110.vs", "options_110.fs" });
-    if (GUI::wxGetApp().is_glsl_version_greater_or_equal_to(1, 20)) {
+    if (GUI::wxGetApp().is_glsl_version_greater_or_equal_to(1, 20))
         valid &= append_shader("options_120_flat", { "options_120_flat.vs", "options_120_flat.fs" });
-        valid &= append_shader("options_120_solid", { "options_120_solid.vs", "options_120_solid.fs" });
-    }
     // used to render extrusion and travel paths in gcode preview
     valid &= append_shader("toolpaths", { "toolpaths.vs", "toolpaths.fs" });
     // used to render objects in 3d editor
