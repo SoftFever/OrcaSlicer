@@ -732,15 +732,13 @@ static std::string get_pure_opt_key(std::string opt_key)
 
 static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& config)
 {
-    int opt_idx = get_id_from_opt_key(opt_key);
     opt_key = get_pure_opt_key(opt_key);
 
     if (config.option(opt_key)->is_nil())
         return _L("N/A");
 
+    int opt_idx = get_id_from_opt_key(opt_key);
     wxString out;
-
-    // FIXME controll, if opt_key has index
 
     const ConfigOptionDef* opt = config.def()->get(opt_key);
     bool is_nullable = opt->nullable;

@@ -59,6 +59,81 @@ void BedShapeDialog::on_dpi_changed(const wxRect &suggested_rect)
 const std::string BedShapePanel::NONE = "None";
 const std::string BedShapePanel::EMPTY_STRING = "";
 
+static std::string get_option_label(BedShape::Parameter param)
+{
+    switch (param) {
+    case BedShape::Parameter::RectSize  : return L("Size");
+    case BedShape::Parameter::RectOrigin: return L("Origin");
+    case BedShape::Parameter::Diameter  : return L("Diameter");
+    default:                              return "";
+    }
+}
+
+void BedShape::append_option_line(ConfigOptionsGroupShp optgroup, Parameter param)
+{
+    ConfigOptionDef def;
+
+    if (param == Parameter::RectSize) {
+        def.type = coPoints;
+        def.set_default_value(new ConfigOptionPoints{ Vec2d(200, 200) });
+        def.min = 0;
+        def.max = 1200;
+        def.label = get_option_label(param);
+        def.tooltip = L("Size in X and Y of the rectangular plate.");
+
+        Option option(def, "rect_size");
+        optgroup->append_single_option_line(option);
+    }
+    else if (param == Parameter::RectOrigin) {
+        def.type = coPoints;
+        def.set_default_value(new ConfigOptionPoints{ Vec2d(0, 0) });
+        def.min = -600;
+        def.max = 600;
+        def.label = get_option_label(param);
+        def.tooltip = L("Distance of the 0,0 G-code coordinate from the front left corner of the rectangle.");
+        
+        Option option(def, "rect_origin");
+        optgroup->append_single_option_line(option);
+    }
+    else if (param == Parameter::Diameter) {
+        def.type = coFloat;
+        def.set_default_value(new ConfigOptionFloat(200));
+        def.sidetext = L("mm");
+        def.label = get_option_label(param);
+        def.tooltip = L("Diameter of the print bed. It is assumed that origin (0,0) is located in the center.");
+
+        Option option(def, "diameter");
+        optgroup->append_single_option_line(option);
+    }
+}
+
+wxString BedShape::get_name(Type type)
+{
+    switch (type) {
+        case Type::Rectangular  : return _L("Rectangular");
+        case Type::Circular     : return _L("Circular");
+        case Type::Custom       : return _L("Custom");
+        case Type::Invalid      : 
+        default                 : return _L("Invalid");
+    }
+}
+
+wxString BedShape::get_full_name_with_params()
+{
+    wxString out = _L("Shape") + ": " + get_name(type);
+
+    if (type == Type::Rectangular) {
+        out += "\n" + get_option_label(Parameter::RectSize)   + +": [" + ConfigOptionPoint(rectSize).serialize() + "]";
+        out += "\n" + get_option_label(Parameter::RectOrigin) + +": [" + ConfigOptionPoint(rectOrigin).serialize() + "]";
+    }
+    else if (type == Type::Circular)
+        out += "\n" + get_option_label(Parameter::Diameter) + +": [" + double_to_string(diameter) + "]";
+    else if (type == Type::Custom)
+        out += "\n" + double_to_string(diameter);
+
+    return out;
+}
+
 void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const ConfigOptionString& custom_texture, const ConfigOptionString& custom_model)
 {
     m_shape = default_pt.values;
@@ -72,7 +147,7 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const Conf
     m_shape_options_book = new wxChoicebook(this, wxID_ANY, wxDefaultPosition, wxSize(25*wxGetApp().em_unit(), -1), wxCHB_TOP);
     sbsizer->Add(m_shape_options_book);
 
-	auto optgroup = init_shape_options_page(_(L("Rectangular")));
+/*	auto optgroup = init_shape_options_page(_(L("Rectangular")));
 	ConfigOptionDef def;
 	def.type = coPoints;
 	def.set_default_value(new ConfigOptionPoints{ Vec2d(200, 200) });
@@ -100,22 +175,31 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const Conf
 	def.tooltip = L("Diameter of the print bed. It is assumed that origin (0,0) is located in the center.");
 	option = Option(def, "diameter");
 	optgroup->append_single_option_line(option);
+*/
 
-	optgroup = init_shape_options_page(_(L("Custom")));
+    auto optgroup = init_shape_options_page(BedShape::get_name(BedShape::Type::Rectangular));
+    BedShape::append_option_line(optgroup, BedShape::Parameter::RectSize);
+    BedShape::append_option_line(optgroup, BedShape::Parameter::RectOrigin);
+
+    optgroup = init_shape_options_page(BedShape::get_name(BedShape::Type::Circular));
+    BedShape::append_option_line(optgroup, BedShape::Parameter::Diameter);
+
+//	optgroup = init_shape_options_page(_(L("Custom")));
+    optgroup = init_shape_options_page(BedShape::get_name(BedShape::Type::Custom));
+
 	Line line{ "", "" };
 	line.full_width = 1;
 	line.widget = [this](wxWindow* parent) {
-        wxButton* shape_btn = new wxButton(parent, wxID_ANY, _(L("Load shape from STL...")));
+        wxButton* shape_btn = new wxButton(parent, wxID_ANY, _L("Load shape from STL..."));
         wxSizer* shape_sizer = new wxBoxSizer(wxHORIZONTAL);
         shape_sizer->Add(shape_btn, 1, wxEXPAND);
 
         wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
         sizer->Add(shape_sizer, 1, wxEXPAND);
 
-        shape_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
-        {
+        shape_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
 			load_stl();
-		}));
+		});
 
 		return sizer;
 	};
@@ -494,8 +578,8 @@ void BedShapePanel::load_stl()
     if (dialog.ShowModal() != wxID_OK)
         return;
 
-    std::string file_name = dialog.GetPath().ToUTF8().data();
-    if (!boost::algorithm::iends_with(file_name, ".stl"))
+    m_custom_shape = dialog.GetPath().ToUTF8().data();
+    if (!boost::algorithm::iends_with(m_custom_shape, ".stl"))
     {
         show_error(this, _(L("Invalid file format.")));
         return;
@@ -505,7 +589,7 @@ void BedShapePanel::load_stl()
 
 	Model model;
 	try {
-        model = Model::read_from_file(file_name);
+        model = Model::read_from_file(m_custom_shape);
 	}
 	catch (std::exception &) {
         show_error(this, _(L("Error! Invalid model")));
