@@ -238,7 +238,14 @@ bool Preview::init(wxWindow* parent, Model* model)
     if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 /* disable wxTAB_TRAVERSAL */))
         return false;
 
+#if ENABLE_GCODE_VIEWER
+    // to match the background of the sliders
+#ifdef _WIN32 
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+#else
+    SetBackgroundColour(GetParent()->GetBackgroundColour());
+#endif // _WIN32 
+#endif // ENABLE_GCODE_VIEWER
 
     m_canvas_widget = OpenGLManager::create_wxglcanvas(*this);
     if (m_canvas_widget == nullptr)
