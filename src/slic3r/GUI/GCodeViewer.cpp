@@ -343,10 +343,21 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
             const double margin = 10.0;
             Vec2d min(m_paths_bounding_box.min(0) - margin, m_paths_bounding_box.min(1) - margin);
             Vec2d max(m_paths_bounding_box.max(0) + margin, m_paths_bounding_box.max(1) + margin);
-            bed_shape = { { min(0), min(1) },
-                          { max(0), min(1) },
-                          { max(0), max(1) },
-                          { min(0), max(1) } };
+
+            Vec2d size = max - min;
+            bed_shape = {
+                { min(0), min(1) },
+                { max(0), min(1) },
+                { max(0), min(1) + 0.442265 * size[1]},
+                { max(0) - 10.0, min(1) + 0.4711325 * size[1]},
+                { max(0) + 10.0, min(1) + 0.5288675 * size[1]},
+                { max(0), min(1) + 0.557735 * size[1]},
+                { max(0), max(1) },
+                { min(0) + 0.557735 * size[0], max(1)},
+                { min(0) + 0.5288675 * size[0], max(1) - 10.0},
+                { min(0) + 0.4711325 * size[0], max(1) + 10.0},
+                { min(0) + 0.442265 * size[0], max(1)},
+                { min(0), max(1) } };
         }
         wxGetApp().plater()->set_bed_shape(bed_shape, "", "", true);
     }
