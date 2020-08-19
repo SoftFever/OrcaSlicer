@@ -79,3 +79,29 @@ This is set in the property list file
     /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Info.plist
 
 To remove the limitation, simply delete the key `MinimumSDKVersion` from that file.
+
+
+# TL; DR
+
+Works on a fresh installation of MacOS Catalina 10.15.6
+
+- Install [brew](https://brew.sh/):
+- Open Terminal
+    
+- Enter:
+
+```brew install cmake git gettext
+brew update
+brew upgrade
+git clone https://github.com/prusa3d/PrusaSlicer/
+cd PrusaSlicer/deps
+mkdir build
+cd build
+cmake ..
+make
+cd ../..
+mkdir build
+cd build
+cmake .. -DCMAKE_PREFIX_PATH="$PWD/../deps/build/destdir/usr/local"
+make
+src/prusa-slicer

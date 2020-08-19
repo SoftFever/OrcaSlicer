@@ -62,6 +62,8 @@ std::unique_ptr<TriangleMesh> generate_interior(const TriangleMesh &mesh,
                                                 const HollowingConfig &  = {},
                                                 const JobController &ctl = {});
 
+void hollow_mesh(TriangleMesh &mesh, const HollowingConfig &cfg);
+
 void cut_drainholes(std::vector<ExPolygons> & obj_slices,
                     const std::vector<float> &slicegrid,
                     float                     closing_radius,

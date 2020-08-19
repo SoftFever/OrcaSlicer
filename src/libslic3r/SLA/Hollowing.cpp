@@ -273,4 +273,13 @@ void cut_drainholes(std::vector<ExPolygons> & obj_slices,
         obj_slices[i] = diff_ex(obj_slices[i], hole_slices[i]);
 }
 
+void hollow_mesh(TriangleMesh &mesh, const HollowingConfig &cfg)
+{
+    std::unique_ptr<Slic3r::TriangleMesh> inter_ptr =
+            Slic3r::sla::generate_interior(mesh);
+
+    if (inter_ptr) mesh.merge(*inter_ptr);
+    mesh.require_shared_vertices();
+}
+
 }} // namespace Slic3r::sla
