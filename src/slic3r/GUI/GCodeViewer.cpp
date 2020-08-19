@@ -1542,11 +1542,11 @@ void GCodeViewer::render_legend() const
 
 #if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_LEGEND
     auto append_headers = [&imgui](const std::array<std::string, 3>& texts, const std::array<float, 2>& offsets) {
-        imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, texts[0]);
+        imgui.text(texts[0]);
         ImGui::SameLine(offsets[0]);
-        imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, texts[1]);
+        imgui.text(texts[1]);
         ImGui::SameLine(offsets[1]);
-        imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, texts[2]);
+        imgui.text(texts[2]);
         ImGui::Separator();
     };
 
@@ -1648,7 +1648,7 @@ void GCodeViewer::render_legend() const
     if (time_mode.time > 0.0f && (m_view_type == EViewType::FeatureType ||
         (m_view_type == EViewType::ColorPrint && !time_mode.custom_gcode_times.empty()))) {
         ImGui::AlignTextToFramePadding();
-        imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Estimated printing time") + ":");
+        imgui.text(_u8L("Estimated printing time") + ":");
         ImGui::SameLine();
         imgui.text(short_time(get_time_dhms(time_mode.time)));
 
@@ -1703,7 +1703,7 @@ void GCodeViewer::render_legend() const
     case EViewType::Height:         { imgui.title(_u8L("Height (mm)")); break; }
     case EViewType::Width:          { imgui.title(_u8L("Width (mm)")); break; }
     case EViewType::Feedrate:       { imgui.title(_u8L("Speed (mm/s)")); break; }
-    case EViewType::FanSpeed:       { imgui.title(_u8L("Fan Speed (%%)")); break; }
+    case EViewType::FanSpeed:       { imgui.title(_u8L("Fan Speed (%)")); break; }
     case EViewType::VolumetricRate: { imgui.title(_u8L("Volumetric flow rate (mm³/s)")); break; }
     case EViewType::Tool:           { imgui.title(_u8L("Tool")); break; }
     case EViewType::ColorPrint:     { imgui.title(_u8L("Color Print")); break; }
@@ -2071,11 +2071,11 @@ void GCodeViewer::render_time_estimate() const
     using PartialTimes = std::vector<PartialTime>;
 
     auto append_headers = [&imgui](const Headers& headers, const ColumnOffsets& offsets) {
-        imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, headers[0]);
+        imgui.text(headers[0]);
         ImGui::SameLine(offsets[0]);
-        imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, headers[1]);
+        imgui.text(headers[1]);
         ImGui::SameLine(offsets[1]);
-        imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, headers[2]);
+        imgui.text(headers[2]);
         ImGui::Separator();
     };
 
@@ -2135,7 +2135,7 @@ void GCodeViewer::render_time_estimate() const
                 {
                 case PartialTime::EType::Print:
                 {
-                    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Print"));
+                    imgui.text(_u8L("Print"));
                     ImGui::SameLine(offsets[0]);
                     imgui.text(short_time(get_time_dhms(item.times.second)));
                     ImGui::SameLine(offsets[1]);
@@ -2144,7 +2144,7 @@ void GCodeViewer::render_time_estimate() const
                 }
                 case PartialTime::EType::Pause:
                 {
-                    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Pause"));
+                    imgui.text(_u8L("Pause"));
                     ImGui::SameLine(offsets[0]);
                     imgui.text(short_time(get_time_dhms(item.times.second - item.times.first)));
                     break;
@@ -2175,7 +2175,7 @@ void GCodeViewer::render_time_estimate() const
         };
 
         auto append_time_item = [&imgui] (const std::string& label, float time, float percentage, const ImVec4& color, const ColumnOffsets& offsets) {
-            imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, label);
+            imgui.text(label);
             ImGui::SameLine(offsets[0]);
             imgui.text(short_time(get_time_dhms(time)));
             ImGui::SameLine(offsets[1]);
@@ -2254,7 +2254,7 @@ void GCodeViewer::render_time_estimate() const
                 return ret;
         };
 
-        imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Time") + ":");
+        imgui.text(_u8L("Time") + ":");
         ImGui::SameLine();
         imgui.text(short_time(get_time_dhms(total_time)));
         append_partial_times(items, partial_times_headers);

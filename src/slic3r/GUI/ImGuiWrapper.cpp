@@ -803,9 +803,7 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
 
 void ImGuiWrapper::title(const std::string& str)
 {
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORANGE_LIGHT);
     text(str);
-    ImGui::PopStyleColor();
     ImGui::Separator();
 }
 
