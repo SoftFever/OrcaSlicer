@@ -84,6 +84,7 @@ class Preview : public wxPanel
     wxGLCanvas* m_canvas_widget;
     GLCanvas3D* m_canvas;
 #if ENABLE_GCODE_VIEWER
+    wxBoxSizer* m_left_sizer;
     wxBoxSizer* m_layers_slider_sizer;
     wxPanel* m_bottom_toolbar_panel;
 #else

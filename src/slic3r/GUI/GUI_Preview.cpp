@@ -186,6 +186,7 @@ Preview::Preview(
     : m_canvas_widget(nullptr)
     , m_canvas(nullptr)
 #if ENABLE_GCODE_VIEWER
+    , m_left_sizer(nullptr)
     , m_layers_slider_sizer(nullptr)
     , m_bottom_toolbar_panel(nullptr)
 #else
@@ -237,6 +238,8 @@ bool Preview::init(wxWindow* parent, Model* model)
     if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 /* disable wxTAB_TRAVERSAL */))
         return false;
 
+    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+
     m_canvas_widget = OpenGLManager::create_wxglcanvas(*this);
     if (m_canvas_widget == nullptr)
         return false;
@@ -255,9 +258,7 @@ bool Preview::init(wxWindow* parent, Model* model)
     m_layers_slider_sizer = create_layers_slider_sizer();
 
     m_bottom_toolbar_panel = new wxPanel(this);
-
     m_label_view_type = new wxStaticText(m_bottom_toolbar_panel, wxID_ANY, _L("View"));
-
     m_choice_view_type = new wxChoice(m_bottom_toolbar_panel, wxID_ANY);
 #else
     m_double_slider_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -340,15 +341,13 @@ bool Preview::init(wxWindow* parent, Model* model)
     m_checkbox_legend->SetValue(true);
 #endif // ENABLE_GCODE_VIEWER
 
-    wxBoxSizer* top_sizer = new wxBoxSizer(wxHORIZONTAL);
-    top_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);
 #if ENABLE_GCODE_VIEWER
-    top_sizer->Add(m_layers_slider_sizer, 0, wxEXPAND, 0);
-#else
-    top_sizer->Add(m_double_slider_sizer, 0, wxEXPAND, 0);
-#endif // ENABLE_GCODE_VIEWER
+    m_left_sizer = new wxBoxSizer(wxVERTICAL);
+    m_left_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);
 
-#if ENABLE_GCODE_VIEWER
+    wxBoxSizer* right_sizer = new wxBoxSizer(wxVERTICAL);
+    right_sizer->Add(m_layers_slider_sizer, 1, wxEXPAND, 0);
+
     m_moves_slider = new DoubleSlider::Control(m_bottom_toolbar_panel, wxID_ANY, 0, 0, 0, 100, wxDefaultPosition, wxSize(-1, 3 * GetTextExtent("m").y), wxSL_HORIZONTAL);
     m_moves_slider->SetDrawMode(DoubleSlider::dmSequentialGCodeView);
 
@@ -366,7 +365,18 @@ bool Preview::init(wxWindow* parent, Model* model)
     bottom_toolbar_sizer->AddSpacer(5);
     bottom_toolbar_sizer->Add(m_moves_slider, 1, wxALL | wxEXPAND, 0);
     m_bottom_toolbar_panel->SetSizer(bottom_toolbar_sizer);
+
+    m_left_sizer->Add(m_bottom_toolbar_panel, 0, wxALL | wxEXPAND, 0);
+    m_left_sizer->Hide(m_bottom_toolbar_panel);
+
+    wxBoxSizer* main_sizer = new wxBoxSizer(wxHORIZONTAL);
+    main_sizer->Add(m_left_sizer, 1, wxALL | wxEXPAND, 0);
+    main_sizer->Add(right_sizer, 0, wxALL | wxEXPAND, 0);
 #else
+    wxBoxSizer* top_sizer = new wxBoxSizer(wxHORIZONTAL);
+    top_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);
+    top_sizer->Add(m_double_slider_sizer, 0, wxEXPAND, 0);
+
     wxBoxSizer* bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
     bottom_sizer->Add(m_label_view_type, 0, wxALIGN_CENTER_VERTICAL, 5);
     bottom_sizer->Add(m_choice_view_type, 0, wxEXPAND | wxALL, 5);
@@ -383,16 +393,12 @@ bool Preview::init(wxWindow* parent, Model* model)
     bottom_sizer->Add(m_checkbox_shells, 0, wxEXPAND | wxALL, 5);
     bottom_sizer->AddSpacer(20);
     bottom_sizer->Add(m_checkbox_legend, 0, wxEXPAND | wxALL, 5);
-#endif // ENABLE_GCODE_VIEWER
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(top_sizer, 1, wxALL | wxEXPAND, 0);
-#if ENABLE_GCODE_VIEWER
-    main_sizer->Add(m_bottom_toolbar_panel, 0, wxALL | wxEXPAND, 0);
-    main_sizer->Hide(m_bottom_toolbar_panel);
-#else
     main_sizer->Add(bottom_sizer, 0, wxALL | wxEXPAND, 0);
 #endif // ENABLE_GCODE_VIEWER
+
     SetSizer(main_sizer);
     SetMinSize(GetSize());
     GetSizer()->SetSizeHints(this);
@@ -1233,8 +1239,8 @@ void Preview::load_print_as_fff(bool keep_z_range)
     {
 #if ENABLE_GCODE_VIEWER
         hide_layers_slider();
-        GetSizer()->Hide(m_bottom_toolbar_panel);
-        GetSizer()->Layout();
+        m_left_sizer->Hide(m_bottom_toolbar_panel);
+        m_left_sizer->Layout();
         Refresh();
 #else
         reset_sliders(true);
@@ -1309,8 +1315,8 @@ void Preview::load_print_as_fff(bool keep_z_range)
 #if ENABLE_GCODE_VIEWER
             m_canvas->load_gcode_preview(*m_gcode_result);
             m_canvas->refresh_gcode_preview(*m_gcode_result, colors);
-            GetSizer()->Show(m_bottom_toolbar_panel); 
-            GetSizer()->Layout();
+            m_left_sizer->Show(m_bottom_toolbar_panel);
+            m_left_sizer->Layout();
             Refresh();
             zs = m_canvas->get_gcode_layers_zs();
 #else
@@ -1321,8 +1327,8 @@ void Preview::load_print_as_fff(bool keep_z_range)
             // Load the initial preview based on slices, not the final G-code.
             m_canvas->load_preview(colors, color_print_values);
 #if ENABLE_GCODE_VIEWER
-            GetSizer()->Hide(m_bottom_toolbar_panel);
-            GetSizer()->Layout();
+            m_left_sizer->Hide(m_bottom_toolbar_panel);
+            m_left_sizer->Layout();
             Refresh();
             zs = m_canvas->get_volumes_print_zs(true);
 #endif // ENABLE_GCODE_VIEWER
@@ -1384,8 +1390,9 @@ void Preview::load_print_as_sla()
     {
         m_canvas->load_sla_preview();
 #if ENABLE_GCODE_VIEWER
-        GetSizer()->Hide(m_bottom_toolbar_panel); 
-        GetSizer()->Layout();
+        m_left_sizer->Hide(m_bottom_toolbar_panel);
+        m_left_sizer->Hide(m_bottom_toolbar_panel);
+        m_left_sizer->Layout();
         Refresh();
 #else
         show_hide_ui_elements("none");
