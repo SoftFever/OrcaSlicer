@@ -507,9 +507,9 @@ protected:
     bool            set_started(PrintStepEnum step) { return m_state.set_started(step, this->state_mutex(), [this](){ this->throw_if_canceled(); }); }
 	PrintStateBase::TimeStamp set_done(PrintStepEnum step) { 
 		std::pair<PrintStateBase::TimeStamp, bool> status = m_state.set_done(step, this->state_mutex(), [this](){ this->throw_if_canceled(); });
-    	if (status.second)
-    		this->status_update_warnings(this->id(), static_cast<int>(step), PrintStateBase::WarningLevel::NON_CRITICAL, std::string());
-		return status.first;
+        if (status.second)
+            this->status_update_warnings(this->id(), static_cast<int>(step), PrintStateBase::WarningLevel::NON_CRITICAL, std::string());
+        return status.first;
 	}
     bool            invalidate_step(PrintStepEnum step)
 		{ return m_state.invalidate(step, this->cancel_callback()); }
@@ -556,9 +556,9 @@ protected:
         { return m_state.set_started(step, PrintObjectBase::state_mutex(m_print), [this](){ this->throw_if_canceled(); }); }
 	PrintStateBase::TimeStamp set_done(PrintObjectStepEnum step) { 
 		std::pair<PrintStateBase::TimeStamp, bool> status = m_state.set_done(step, PrintObjectBase::state_mutex(m_print), [this](){ this->throw_if_canceled(); });
-    	if (status.second)
-    		this->status_update_warnings(m_print, static_cast<int>(step), PrintStateBase::WarningLevel::NON_CRITICAL, std::string());
-		return status.first;
+        if (status.second)
+            this->status_update_warnings(m_print, static_cast<int>(step), PrintStateBase::WarningLevel::NON_CRITICAL, std::string());
+        return status.first;
 	}
 
     bool            invalidate_step(PrintObjectStepEnum step)
