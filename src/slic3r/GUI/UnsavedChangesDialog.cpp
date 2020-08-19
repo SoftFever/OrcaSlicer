@@ -667,10 +667,10 @@ void UnsavedChangesDialog::show_info_line(Action action, std::string preset_name
             text = _L("All changed options will be reverted.");
         else {
             if (action == Action::Save && preset_name.empty())
-                text = _L("After press this button selected options will be saved");
+                text = _L("Press to save the selected options");
             else {
                 std::string act_string = action == Action::Save ? _u8L("saved") : _u8L("moved");
-                text = from_u8((boost::format("After press this button selected options will be %1% to the preset \"%2%\".") % act_string % preset_name).str());
+                text = from_u8((boost::format("Press to %1% selected options to the preset \"%2%\".") % act_string % preset_name).str());
             }
             text += "\n" + _L("Unselected options will be reverted.");
         }
@@ -732,12 +732,12 @@ static std::string get_pure_opt_key(std::string opt_key)
 
 static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& config)
 {
+    int opt_idx = get_id_from_opt_key(opt_key);
     opt_key = get_pure_opt_key(opt_key);
 
     if (config.option(opt_key)->is_nil())
         return _L("N/A");
 
-    int opt_idx = get_id_from_opt_key(opt_key);
     wxString out;
 
     const ConfigOptionDef* opt = config.def()->get(opt_key);
@@ -820,15 +820,12 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
         break;
     }
     case coPoints: {
-            /*
         if (opt_key == "bed_shape") {
-            config.option<ConfigOptionPoints>(opt_key)->values = boost::any_cast<std::vector<Vec2d>>(value);
-            break;
+            BedShape shape(*config.option<ConfigOptionPoints>(opt_key));
+            return shape.get_full_name_with_params();
         }
-        ConfigOptionPoints* vec_new = new ConfigOptionPoints{ boost::any_cast<Vec2d>(value) };
-        config.option<ConfigOptionPoints>(opt_key)->set_at(vec_new, opt_index, 0);
-    */
-        return "Points";
+        Vec2d val = config.opt<ConfigOptionPoints>(opt_key)->get_at(opt_idx);
+        return from_u8((boost::format("[%1%]") % ConfigOptionPoint(val).serialize()).str());
     }
     default:
         break;
