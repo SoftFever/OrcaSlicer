@@ -20,8 +20,15 @@ namespace Slic3r {
         support_points_format_version = 1
     };
     
+
+    /* The same for holes.
+
+      * version 0: undefined
+      * version 1: holes saved a bit above the mesh and deeper
+      * version 2: holes are saved on the mesh exactly
+    */
     enum {
-        drain_holes_format_version = 1
+        drain_holes_format_version = 2
     };
 
     class Model;
@@ -35,6 +42,6 @@ namespace Slic3r {
     // The model could be modified during the export process if meshes are not repaired or have no shared vertices
     extern bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data = nullptr);
 
-}; // namespace Slic3r
+} // namespace Slic3r
 
 #endif /* slic3r_Format_3mf_hpp_ */

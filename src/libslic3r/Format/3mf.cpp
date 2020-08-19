@@ -1103,7 +1103,7 @@ namespace Slic3r {
                 
                 sla::DrainHoles sla_drain_holes;
 
-                if (version == 1) {
+                if (version == 1 || version == 2) {
                     for (unsigned int i=0; i<object_data_points.size(); i+=8)
                         sla_drain_holes.emplace_back(Vec3f{float(std::atof(object_data_points[i+0].c_str())),
                                                       float(std::atof(object_data_points[i+1].c_str())),
@@ -1113,6 +1113,16 @@ namespace Slic3r {
                                                       float(std::atof(object_data_points[i+5].c_str()))},
                                                       float(std::atof(object_data_points[i+6].c_str())),
                                                       float(std::atof(object_data_points[i+7].c_str())));
+                }
+
+                if (version == 1) {
+                    // In this version the holes were saved elevated above the mesh and deeper (bad idea indeed).
+                    // Place the hole to the mesh and make it shallower to compensate.
+                    // The offset was 1 mm above the mesh.
+                    for (sla::DrainHole& hole : sla_drain_holes) {
+                        hole.pos += hole.normal.normalized();
+                        hole.height -= 1.f;
+                    }
                 }
                 
                 if (!sla_drain_holes.empty())

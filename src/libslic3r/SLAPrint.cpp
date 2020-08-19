@@ -1181,6 +1181,12 @@ sla::DrainHoles SLAPrintObject::transformed_drainhole_points() const
         hl.normal = Vec3f(hl.normal(0)/(sc(0)*sc(0)),
                           hl.normal(1)/(sc(1)*sc(1)),
                           hl.normal(2)/(sc(2)*sc(2)));
+
+        // Now shift the hole a bit above the object and make it deeper to
+        // compensate for it. This is to avoid problems when the hole is placed
+        // on (nearly) flat surface.
+        hl.pos -= hl.normal.normalized() * sla::HoleStickOutLength;
+        hl.height += sla::HoleStickOutLength;
     }
 
     return pts;
