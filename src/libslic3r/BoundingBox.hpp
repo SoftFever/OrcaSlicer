@@ -192,6 +192,20 @@ inline BoundingBox3 scaled(const BoundingBoxf3 &bb) { return {scaled(bb.min), sc
 inline BoundingBoxf unscaled(const BoundingBox &bb) { return {unscaled(bb.min), unscaled(bb.max)}; }
 inline BoundingBoxf3 unscaled(const BoundingBox3 &bb) { return {unscaled(bb.min), unscaled(bb.max)}; }
 
+template<class Tout, class Tin>
+auto cast(const BoundingBoxBase<Tin> &b)
+{
+    return BoundingBoxBase<Vec<3, Tout>>{b.min.template cast<Tout>(),
+                                         b.max.template cast<Tout>()};
+}
+
+template<class Tout, class Tin>
+auto cast(const BoundingBox3Base<Tin> &b)
+{
+    return BoundingBox3Base<Vec<3, Tout>>{b.min.template cast<Tout>(),
+                                          b.max.template cast<Tout>()};
+}
+
 } // namespace Slic3r
 
 // Serialization through the Cereal library

@@ -185,4 +185,13 @@ long raster_pxsum(const sla::RasterGrayscaleAA &raster);
 
 double predict_error(const ExPolygon &p, const sla::RasterBase::PixelDim &pd);
 
+// Make a 3D pyramid
+TriangleMesh make_pyramid(float base, float height);
+
+TriangleMesh make_prism(double width, double length, double height);
+
+sla::SupportPoints calc_support_pts(
+    const TriangleMesh &                      mesh,
+    const sla::SupportPointGenerator::Config &cfg = {});
+
 #endif // SLA_TEST_UTILS_HPP
