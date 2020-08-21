@@ -500,7 +500,7 @@ std::string WipeTowerIntegration::prime(GCode &gcodegen)
 
 
     // Disable linear advance for the wipe tower operations.
-        //gcode += (gcodegen.config().gcode_flavor == gcfRepRap ? std::string("M572 D0 S0\n") : std::string("M900 K0\n"));
+        //gcode += (gcodegen.config().gcode_flavor == gcfRepRapSprinter ? std::string("M572 D0 S0\n") : std::string("M900 K0\n"));
 
     for (const WipeTower::ToolChangeResult& tcr : m_priming) {
         if (!tcr.extrusions.empty())
@@ -1720,7 +1720,8 @@ void GCode::_print_first_layer_extruder_temperatures(FILE *file, Print &print, c
 {
     // Is the bed temperature set by the provided custom G-code?
     int  temp_by_gcode     = -1;
-    if (custom_gcode_sets_temperature(gcode, 104, 109, true, temp_by_gcode)) {
+    bool include_g10 = (print.config().gcode_flavor == gcfRepRapFirmware);
+    if (custom_gcode_sets_temperature(gcode, 104, 109, include_g10, temp_by_gcode)) {
         // Set the extruder temperature at m_writer, but throw away the generated G-code as it will be written with the custom G-code.
         int temp = print.config().first_layer_temperature.get_at(first_printing_extruder_id);
         if (temp_by_gcode >= 0 && temp_by_gcode < 1000)

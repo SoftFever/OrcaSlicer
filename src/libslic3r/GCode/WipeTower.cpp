@@ -102,7 +102,7 @@ public:
     }
 
     WipeTowerWriter&            disable_linear_advance() {
-        m_gcode += (m_gcode_flavor == gcfRepRap
+        m_gcode += (m_gcode_flavor == gcfRepRapSprinter || m_gcode_flavor == gcfRepRapFirmware
                         ? (std::string("M572 D") + std::to_string(m_current_tool) + " S0\n")
                         : std::string("M900 K0\n"));
         return *this;
@@ -351,7 +351,7 @@ public:
 	// Set digital trimpot motor
 	WipeTowerWriter& set_extruder_trimpot(int current)
 	{
-        if (m_gcode_flavor == gcfRepRap)
+        if (m_gcode_flavor == gcfRepRapSprinter || m_gcode_flavor == gcfRepRapFirmware)
             m_gcode += "M906 E";
         else
             m_gcode += "M907 E";

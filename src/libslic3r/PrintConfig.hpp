@@ -25,7 +25,7 @@
 namespace Slic3r {
 
 enum GCodeFlavor : unsigned char {
-    gcfRepRap, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlin, gcfSailfish, gcfMach3, gcfMachinekit,
+    gcfRepRapSprinter, gcfRepRapFirmware, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlin, gcfSailfish, gcfMach3, gcfMachinekit,
     gcfSmoothie, gcfNoExtrusion,
 };
 
@@ -84,7 +84,8 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<PrinterTechnology
 template<> inline const t_config_enum_values& ConfigOptionEnum<GCodeFlavor>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
-        keys_map["reprap"]          = gcfRepRap;
+        keys_map["reprap"]          = gcfRepRapSprinter;
+        keys_map["reprapfirmware"]  = gcfRepRapFirmware;
         keys_map["repetier"]        = gcfRepetier;
         keys_map["teacup"]          = gcfTeacup;
         keys_map["makerware"]       = gcfMakerWare;
