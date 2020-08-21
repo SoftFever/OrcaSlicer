@@ -263,7 +263,11 @@ public:
 
     PrinterTechnology   printer_technology() const;
     const DynamicPrintConfig * config() const;
+#if ENABLE_GCODE_VIEWER
+    bool                set_printer_technology(PrinterTechnology printer_technology);
+#else
     void                set_printer_technology(PrinterTechnology printer_technology);
+#endif // ENABLE_GCODE_VIEWER
 
     void copy_selection_to_clipboard();
     void paste_from_clipboard();

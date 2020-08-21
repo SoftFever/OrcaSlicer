@@ -434,6 +434,10 @@ void MainFrame::shutdown()
         // restore sidebar if it was hidden when switching to gcode viewer mode
         if (m_restore_from_gcode_viewer.collapsed_sidebar)
             m_plater->collapse_sidebar(false);
+
+        // restore sla printer if it was deselected when switching to gcode viewer mode
+        if (m_restore_from_gcode_viewer.sla_technology)
+            m_plater->set_printer_technology(ptSLA);
 #endif // ENABLE_GCODE_VIEWER
         // Stop the background thread (Windows and Linux).
         // Disconnect from a 3DConnextion driver (OSX).
@@ -1010,8 +1014,7 @@ void MainFrame::init_menubar()
                     wxMessageDialog((wxWindow*)this, _L("Switching to G-code preview mode will remove all objects, continue?"),
                         wxString(SLIC3R_APP_NAME) + " - " + _L("Switch to G-code preview mode"), wxYES_NO | wxYES_DEFAULT | wxICON_QUESTION | wxCENTRE).ShowModal() == wxID_YES)
                     set_mode(EMode::GCodeViewer);
-            }, "", nullptr,
-            [this]() { return m_plater != nullptr && m_plater->printer_technology() != ptSLA; }, this);
+            }, "", nullptr);
 #endif // ENABLE_GCODE_VIEWER
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_EXIT, _L("&Quit"), wxString::Format(_L("Quit %s"), SLIC3R_APP_NAME),
@@ -1329,6 +1332,12 @@ void MainFrame::set_mode(EMode mode)
         m_plater->clear_undo_redo_stack_main();
         m_plater->take_snapshot(_L("New Project"));
 
+        // restore sla printer if it was deselected when switching to gcode viewer mode
+        if (m_restore_from_gcode_viewer.sla_technology) {
+            m_plater->set_printer_technology(ptSLA);
+            m_restore_from_gcode_viewer.sla_technology = false;
+        }
+
         // switch view
         m_plater->select_view_3D("3D");
         m_plater->select_view("iso");
@@ -1370,6 +1379,9 @@ void MainFrame::set_mode(EMode mode)
         // reinitialize undo/redo stack
         m_plater->clear_undo_redo_stack_main();
         m_plater->take_snapshot(_L("New Project"));
+
+        // switch to FFF printer mode
+        m_restore_from_gcode_viewer.sla_technology = m_plater->set_printer_technology(ptFFF);
 
         // switch view
         m_plater->select_view_3D("Preview");

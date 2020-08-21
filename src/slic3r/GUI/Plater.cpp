@@ -5596,12 +5596,23 @@ PrinterTechnology Plater::printer_technology() const
 
 const DynamicPrintConfig * Plater::config() const { return p->config; }
 
+#if ENABLE_GCODE_VIEWER
+bool Plater::set_printer_technology(PrinterTechnology printer_technology)
+#else
 void Plater::set_printer_technology(PrinterTechnology printer_technology)
+#endif // ENABLE_GCODE_VIEWER
 {
     p->printer_technology = printer_technology;
+#if ENABLE_GCODE_VIEWER
+    bool ret = p->background_process.select_technology(printer_technology);
+    if (ret) {
+        // Update the active presets.
+    }
+#else
     if (p->background_process.select_technology(printer_technology)) {
         // Update the active presets.
     }
+#endif // ENABLE_GCODE_VIEWER
     //FIXME for SLA synchronize
     //p->background_process.apply(Model)!
 
@@ -5618,6 +5629,10 @@ void Plater::set_printer_technology(PrinterTechnology printer_technology)
     p->update_main_toolbar_tooltips();
 
     p->sidebar->get_searcher().set_printer_technology(printer_technology);
+
+#if ENABLE_GCODE_VIEWER
+    return ret;
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void Plater::changed_object(int obj_idx)

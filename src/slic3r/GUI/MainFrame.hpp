@@ -76,6 +76,7 @@ class MainFrame : public DPIFrame
     {
         bool collapsed_sidebar{ false };
         bool collapse_toolbar_enabled{ false };
+        bool sla_technology{ false };
     };
 
     RestoreFromGCodeViewer m_restore_from_gcode_viewer;
