@@ -2944,7 +2944,7 @@ void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_remova
     if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
         return;
 
-	show_warning_dialog = true;
+    show_warning_dialog = true;
     if (! output_path.empty()) {
         background_process.schedule_export(output_path.string(), output_path_on_removable_media);
     } else {
@@ -4856,8 +4856,8 @@ void Plater::export_gcode(bool prefer_removable)
     if (p->model.objects.empty())
         return;
 
-	if (p->process_completed_with_error)//here
-		return;
+    if (p->process_completed_with_error)//here
+        return;
 
     // If possible, remove accents from accented latin characters.
     // This function is useful for generating file names to be processed by legacy firmwares.
