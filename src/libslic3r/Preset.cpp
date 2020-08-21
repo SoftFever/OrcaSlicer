@@ -1812,6 +1812,26 @@ namespace PresetUtils {
 		}
 		return out;
 	}
+
+#if ENABLE_GCODE_VIEWER
+    std::string system_printer_bed_model(const Preset& preset)
+    {
+        std::string out;
+        const VendorProfile::PrinterModel* pm = PresetUtils::system_printer_model(preset);
+        if (pm != nullptr && !pm->bed_model.empty())
+            out = Slic3r::resources_dir() + "/profiles/" + preset.vendor->id + "/" + pm->bed_model;
+        return out;
+    }
+
+    std::string system_printer_bed_texture(const Preset& preset)
+    {
+        std::string out;
+        const VendorProfile::PrinterModel* pm = PresetUtils::system_printer_model(preset);
+        if (pm != nullptr && !pm->bed_texture.empty())
+            out = Slic3r::resources_dir() + "/profiles/" + preset.vendor->id + "/" + pm->bed_texture;
+        return out;
+    }
+#endif // ENABLE_GCODE_VIEWER
 } // namespace PresetUtils
 
 } // namespace Slic3r

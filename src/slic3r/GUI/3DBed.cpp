@@ -414,6 +414,7 @@ void Bed3D::calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox)
         printf("Unable to create bed grid lines\n");
 }
 
+#if !ENABLE_GCODE_VIEWER
 static std::string system_print_bed_model(const Preset &preset)
 {
 	std::string out;
@@ -431,6 +432,7 @@ static std::string system_print_bed_texture(const Preset &preset)
 		out = Slic3r::resources_dir() + "/profiles/" + preset.vendor->id + "/" + pm->bed_texture;
 	return out;
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 std::tuple<Bed3D::EType, std::string, std::string> Bed3D::detect_type(const Pointfs& shape) const
 {
@@ -440,8 +442,13 @@ std::tuple<Bed3D::EType, std::string, std::string> Bed3D::detect_type(const Poin
         while (curr != nullptr) {
             if (curr->config.has("bed_shape")) {
                 if (shape == dynamic_cast<const ConfigOptionPoints*>(curr->config.option("bed_shape"))->values) {
+#if ENABLE_GCODE_VIEWER
+                    std::string model_filename = PresetUtils::system_printer_bed_model(*curr);
+                    std::string texture_filename = PresetUtils::system_printer_bed_texture(*curr);
+#else
                     std::string model_filename = system_print_bed_model(*curr);
                     std::string texture_filename = system_print_bed_texture(*curr);
+#endif // ENABLE_GCODE_VIEWER
                     if (!model_filename.empty() && !texture_filename.empty())
                         return { System, model_filename, texture_filename };
                 }

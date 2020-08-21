@@ -261,6 +261,7 @@ namespace Slic3r {
             unsigned int id;
             std::vector<MoveVertex> moves;
             Pointfs bed_shape;
+            std::string printer_settings_id;
             std::vector<std::string> extruder_colors;
             PrintEstimatedTimeStatistics time_statistics;
 

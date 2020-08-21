@@ -335,9 +335,21 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
         load_shells(print, initialized);
     else {
         Pointfs bed_shape;
-        if (!gcode_result.bed_shape.empty())
+        std::string texture;
+        std::string model;
+
+        if (!gcode_result.bed_shape.empty()) {
             // bed shape detected in the gcode
             bed_shape = gcode_result.bed_shape;
+            auto bundle = wxGetApp().preset_bundle;
+            if (bundle != nullptr && !gcode_result.printer_settings_id.empty()) {
+                const Preset* preset = bundle->printers.find_preset(gcode_result.printer_settings_id);
+                if (preset != nullptr) {
+                    model = PresetUtils::system_printer_bed_model(*preset);
+                    texture = PresetUtils::system_printer_bed_texture(*preset);
+                }
+            }
+        }
         else {
             // adjust printbed size in dependence of toolpaths bbox
             const double margin = 10.0;
@@ -359,7 +371,8 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
                 { min(0) + 0.442265 * size[0], max(1)},
                 { min(0), max(1) } };
         }
-        wxGetApp().plater()->set_bed_shape(bed_shape, "", "", true);
+
+        wxGetApp().plater()->set_bed_shape(bed_shape, texture, model, gcode_result.bed_shape.empty());
     }
 
 #if GCODE_VIEWER_TIME_ESTIMATE != TIME_ESTIMATE_NONE

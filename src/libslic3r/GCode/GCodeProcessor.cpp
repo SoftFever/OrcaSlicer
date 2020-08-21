@@ -541,6 +541,10 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     if (bed_shape != nullptr)
         m_result.bed_shape = bed_shape->values;
 
+    const ConfigOptionString* printer_settings_id = config.option<ConfigOptionString>("printer_settings_id");
+    if (printer_settings_id != nullptr)
+        m_result.printer_settings_id = printer_settings_id->value;
+
     const ConfigOptionFloats* filament_diameters = config.option<ConfigOptionFloats>("filament_diameter");
     if (filament_diameters != nullptr) {
         for (double diam : filament_diameters->values) {
