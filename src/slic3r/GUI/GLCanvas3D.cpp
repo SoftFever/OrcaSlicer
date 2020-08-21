@@ -3658,6 +3658,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         {
             m_mouse.dragging = true;
 
+            // Translation of objects is forbidden when SLA supports/hollowing/fdm
+            // supports gizmo is active.
+            if (m_gizmos.get_current_type() == GLGizmosManager::SlaSupports
+             || m_gizmos.get_current_type() == GLGizmosManager::FdmSupports
+             || m_gizmos.get_current_type() == GLGizmosManager::Hollow)
+                return;
+
             Vec3d cur_pos = m_mouse.drag.start_position_3D;
             // we do not want to translate objects if the user just clicked on an object while pressing shift to remove it from the selection and then drag
             if (m_selection.contains_volume(get_first_hover_volume_idx()))

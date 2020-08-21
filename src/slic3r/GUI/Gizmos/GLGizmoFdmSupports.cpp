@@ -314,105 +314,127 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         const ModelInstance* mi = mo->instances[selection.get_instance_idx()];
         const Transform3d& instance_trafo = mi->get_transformation().get_matrix();
 
-        std::vector<std::vector<std::pair<Vec3f, size_t>>> hit_positions_and_facet_ids;
-        bool clipped_mesh_was_hit = false;
+        // List of mouse positions that will be used as seeds for painting.
+        std::vector<Vec2d> mouse_positions{mouse_position};
 
-        Vec3f normal =  Vec3f::Zero();
-        Vec3f hit = Vec3f::Zero();
-        size_t facet = 0;
-        Vec3f closest_hit = Vec3f::Zero();
-        double closest_hit_squared_distance = std::numeric_limits<double>::max();
-        size_t closest_facet = 0;
-        int closest_hit_mesh_id = -1;
+        // In case current mouse position is far from the last one,
+        // add several positions from between into the list, so there
+        // are no gaps in the painted region.
+        {
+            if (m_last_mouse_position == Vec2d::Zero())
+                m_last_mouse_position = mouse_position;
+            // resolution describes minimal distance limit using circle radius
+            // as a unit (e.g., 2 would mean the patches will be touching).
+            double resolution = 0.7;
+            double diameter_px =  resolution  * m_cursor_radius * camera.get_zoom();
+            int patches_in_between = int(((mouse_position - m_last_mouse_position).norm() - diameter_px) / diameter_px);
+            if (patches_in_between > 0) {
+                Vec2d diff = (mouse_position - m_last_mouse_position)/(patches_in_between+1);
+                for (int i=1; i<=patches_in_between; ++i)
+                    mouse_positions.emplace_back(m_last_mouse_position + i*diff);
+            }
+        }
+        m_last_mouse_position = Vec2d::Zero(); // only actual hits should be saved
 
-        // Transformations of individual meshes
-        std::vector<Transform3d> trafo_matrices;
+        // Now "click" into all the prepared points and spill paint around them.
+        for (const Vec2d& mp : mouse_positions) {
+            std::vector<std::vector<std::pair<Vec3f, size_t>>> hit_positions_and_facet_ids;
+            bool clipped_mesh_was_hit = false;
 
-        int mesh_id = -1;
-        // Cast a ray on all meshes, pick the closest hit and save it for the respective mesh
-        for (const ModelVolume* mv : mo->volumes) {
-            if (! mv->is_model_part())
-                continue;
+            Vec3f normal =  Vec3f::Zero();
+            Vec3f hit = Vec3f::Zero();
+            size_t facet = 0;
+            Vec3f closest_hit = Vec3f::Zero();
+            double closest_hit_squared_distance = std::numeric_limits<double>::max();
+            size_t closest_facet = 0;
+            int closest_hit_mesh_id = -1;
 
-            ++mesh_id;
+            // Transformations of individual meshes
+            std::vector<Transform3d> trafo_matrices;
 
-            trafo_matrices.push_back(instance_trafo * mv->get_matrix());
-            hit_positions_and_facet_ids.push_back(std::vector<std::pair<Vec3f, size_t>>());
-
-            if (m_c->raycaster()->raycasters()[mesh_id]->unproject_on_mesh(
-                       mouse_position,
-                       trafo_matrices[mesh_id],
-                       camera,
-                       hit,
-                       normal,
-                       m_clipping_plane.get(),
-                       &facet))
-            {
-                // In case this hit is clipped, skip it.
-                if (is_mesh_point_clipped(hit.cast<double>())) {
-                    clipped_mesh_was_hit = true;
+            int mesh_id = -1;
+            // Cast a ray on all meshes, pick the closest hit and save it for the respective mesh
+            for (const ModelVolume* mv : mo->volumes) {
+                if (! mv->is_model_part())
                     continue;
-                }
 
-                // Is this hit the closest to the camera so far?
-                double hit_squared_distance = (camera.get_position()-trafo_matrices[mesh_id]*hit.cast<double>()).squaredNorm();
-                if (hit_squared_distance < closest_hit_squared_distance) {
-                    closest_hit_squared_distance = hit_squared_distance;
-                    closest_facet = facet;
-                    closest_hit_mesh_id = mesh_id;
-                    closest_hit = hit;
+                ++mesh_id;
+
+                trafo_matrices.push_back(instance_trafo * mv->get_matrix());
+                hit_positions_and_facet_ids.push_back(std::vector<std::pair<Vec3f, size_t>>());
+
+                if (m_c->raycaster()->raycasters()[mesh_id]->unproject_on_mesh(
+                           mp,
+                           trafo_matrices[mesh_id],
+                           camera,
+                           hit,
+                           normal,
+                           m_clipping_plane.get(),
+                           &facet))
+                {
+                    // In case this hit is clipped, skip it.
+                    if (is_mesh_point_clipped(hit.cast<double>())) {
+                        clipped_mesh_was_hit = true;
+                        continue;
+                    }
+
+                    // Is this hit the closest to the camera so far?
+                    double hit_squared_distance = (camera.get_position()-trafo_matrices[mesh_id]*hit.cast<double>()).squaredNorm();
+                    if (hit_squared_distance < closest_hit_squared_distance) {
+                        closest_hit_squared_distance = hit_squared_distance;
+                        closest_facet = facet;
+                        closest_hit_mesh_id = mesh_id;
+                        closest_hit = hit;
+                    }
                 }
             }
-        }
 
-        bool dragging_while_painting = (action == SLAGizmoEventType::Dragging && m_button_down != Button::None);
+            bool dragging_while_painting = (action == SLAGizmoEventType::Dragging && m_button_down != Button::None);
 
-        // The mouse button click detection is enabled when there is a valid hit
-        // or when the user clicks the clipping plane. Missing the object entirely
-        // shall not capture the mouse.
-        if (closest_hit_mesh_id != -1 || clipped_mesh_was_hit) {
-            if (m_button_down == Button::None)
-                m_button_down = ((action == SLAGizmoEventType::LeftDown) ? Button::Left : Button::Right);
-        }
-
-        if (closest_hit_mesh_id == -1) {
-            // In case we have no valid hit, we can return. The event will
-            // be stopped in following two cases:
-            //  1. clicking the clipping plane
-            //  2. dragging while painting (to prevent scene rotations and moving the object)
-            return clipped_mesh_was_hit
-                || dragging_while_painting;
-        }
-
-        // Find respective mesh id.
-        // FIXME We need a separate TriangleSelector for each volume mesh.
-        mesh_id = -1;
-        //const TriangleMesh* mesh = nullptr;
-        for (const ModelVolume* mv : mo->volumes) {
-            if (! mv->is_model_part())
-                continue;
-            ++mesh_id;
-            if (mesh_id == closest_hit_mesh_id) {
-                //mesh = &mv->mesh();
-                break;
+            // The mouse button click detection is enabled when there is a valid hit
+            // or when the user clicks the clipping plane. Missing the object entirely
+            // shall not capture the mouse.
+            if (closest_hit_mesh_id != -1 || clipped_mesh_was_hit) {
+                if (m_button_down == Button::None)
+                    m_button_down = ((action == SLAGizmoEventType::LeftDown) ? Button::Left : Button::Right);
             }
+
+            if (closest_hit_mesh_id == -1) {
+                // In case we have no valid hit, we can return. The event will
+                // be stopped in following two cases:
+                //  1. clicking the clipping plane
+                //  2. dragging while painting (to prevent scene rotations and moving the object)
+                return clipped_mesh_was_hit
+                    || dragging_while_painting;
+            }
+
+            // Find respective mesh id.
+            mesh_id = -1;
+            for (const ModelVolume* mv : mo->volumes) {
+                if (! mv->is_model_part())
+                    continue;
+                ++mesh_id;
+                if (mesh_id == closest_hit_mesh_id)
+                    break;
+            }
+
+            const Transform3d& trafo_matrix = trafo_matrices[mesh_id];
+
+            // Calculate how far can a point be from the line (in mesh coords).
+            // FIXME: The scaling of the mesh can be non-uniform.
+            const Vec3d sf = Geometry::Transformation(trafo_matrix).get_scaling_factor();
+            const float avg_scaling = (sf(0) + sf(1) + sf(2))/3.;
+            const float limit = m_cursor_radius/avg_scaling;
+
+            // Calculate direction from camera to the hit (in mesh coords):
+            Vec3f camera_pos = (trafo_matrix.inverse() * camera.get_position()).cast<float>();
+            Vec3f dir = (closest_hit - camera_pos).normalized();
+
+            assert(mesh_id < int(m_triangle_selectors.size()));
+            m_triangle_selectors[mesh_id]->select_patch(closest_hit, closest_facet, camera_pos,
+                                              dir, limit, new_state);
+            m_last_mouse_position = mouse_position;
         }
-
-        const Transform3d& trafo_matrix = trafo_matrices[mesh_id];
-
-        // Calculate how far can a point be from the line (in mesh coords).
-        // FIXME: The scaling of the mesh can be non-uniform.
-        const Vec3d sf = Geometry::Transformation(trafo_matrix).get_scaling_factor();
-        const float avg_scaling = (sf(0) + sf(1) + sf(2))/3.;
-        const float limit = m_cursor_radius/avg_scaling;
-
-        // Calculate direction from camera to the hit (in mesh coords):
-        Vec3f camera_pos = (trafo_matrix.inverse() * camera.get_position()).cast<float>();
-        Vec3f dir = (closest_hit - camera_pos).normalized();
-
-        assert(mesh_id < int(m_triangle_selectors.size()));
-        m_triangle_selectors[mesh_id]->select_patch(closest_hit, closest_facet, camera_pos,
-                                          dir, limit, new_state);
 
         return true;
     }
@@ -430,6 +452,7 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         update_model_object();
 
         m_button_down = Button::None;
+        m_last_mouse_position = Vec2d::Zero();
         return true;
     }
 
