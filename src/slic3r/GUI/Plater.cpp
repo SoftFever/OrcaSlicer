@@ -3481,6 +3481,10 @@ void Plater::priv::add_warning(const Slic3r::PrintStateBase::Warning& warning, s
 }
 void Plater::priv::actualizate_warnings(const Model& model, size_t print_oid)
 {
+    if (model.objects.size() == 0) {
+        clear_warnings();
+        return;
+    }
 	std::vector<size_t> living_oids;
 	living_oids.push_back(model.id().id);
 	living_oids.push_back(print_oid);

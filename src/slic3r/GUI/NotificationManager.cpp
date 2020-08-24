@@ -492,12 +492,12 @@ void NotificationManager::PopNotification::render_minimize_button(ImGuiWrapper& 
 	
 	//button - if part if treggered
 	std::string button_text;
-	button_text = ImGui::CloseIconMarker;
+	button_text = ImGui::MinimalizeMarker;
 	if (ImGui::IsMouseHoveringRect(ImVec2(win_pos_x - m_window_width / 10.f, win_pos_y + m_window_height - 2 * m_line_height + 1),
 		ImVec2(win_pos_x, win_pos_y + m_window_height),
 		true)) 
 	{
-		button_text = ImGui::CloseIconHoverMarker;
+		button_text = ImGui::MinimalizeHoverMarker;
 	}
 	ImVec2 button_pic_size = ImGui::CalcTextSize(button_text.c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);

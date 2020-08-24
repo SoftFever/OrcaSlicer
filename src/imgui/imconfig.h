@@ -108,17 +108,19 @@ namespace ImGui
     const char ColorMarkerEnd   = 0x3; // ETX
 
     // Special ASCII characters are used here as an ikons markers 
-    const char PrintIconMarker      = 0x4; 
-    const char PrinterIconMarker    = 0x5; 
-    const char PrinterSlaIconMarker = 0x6; 
-    const char FilamentIconMarker   = 0x7; 
-    const char MaterialIconMarker   = 0x8;
-	const char CloseIconMarker      = 0xB;
-	const char CloseIconHoverMarker = 0xC;
-	const char TimerDotMarker       = 0xE;
-	const char TimerDotEmptyMarker  = 0xF;
-	const char WarningMarker        = 0x10;
-	const char ErrorMarker          = 0x11;
+    const char PrintIconMarker         = 0x4; 
+    const char PrinterIconMarker       = 0x5; 
+    const char PrinterSlaIconMarker    = 0x6; 
+    const char FilamentIconMarker      = 0x7; 
+    const char MaterialIconMarker      = 0x8;
+	const char CloseIconMarker         = 0xB;
+	const char CloseIconHoverMarker    = 0xC;
+//	const char TimerDotMarker          = 0xE;
+//	const char TimerDotEmptyMarker     = 0xF;
+    const char MinimalizeMarker        = 0xE;
+    const char MinimalizeHoverMarker   = 0xF;
+	const char WarningMarker           = 0x10;
+	const char ErrorMarker             = 0x11;
 //    void MyFunction(const char* name, const MyMatrix44& v);
 
 }
