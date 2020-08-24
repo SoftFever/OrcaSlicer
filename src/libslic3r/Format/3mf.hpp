@@ -20,15 +20,8 @@ namespace Slic3r {
         support_points_format_version = 1
     };
     
-
-    /* The same for holes.
-
-      * version 0: undefined
-      * version 1: holes saved a bit above the mesh and deeper
-      * version 2: holes are saved on the mesh exactly
-    */
     enum {
-        drain_holes_format_version = 2
+        drain_holes_format_version = 1
     };
 
     class Model;

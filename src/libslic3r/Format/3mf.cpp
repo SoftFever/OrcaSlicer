@@ -1103,7 +1103,7 @@ namespace Slic3r {
                 
                 sla::DrainHoles sla_drain_holes;
 
-                if (version == 1 || version == 2) {
+                if (version == 1) {
                     for (unsigned int i=0; i<object_data_points.size(); i+=8)
                         sla_drain_holes.emplace_back(Vec3f{float(std::atof(object_data_points[i+0].c_str())),
                                                       float(std::atof(object_data_points[i+1].c_str())),
@@ -1115,14 +1115,13 @@ namespace Slic3r {
                                                       float(std::atof(object_data_points[i+7].c_str())));
                 }
 
-                if (version == 1) {
-                    // In this version the holes were saved elevated above the mesh and deeper (bad idea indeed).
-                    // Place the hole to the mesh and make it shallower to compensate.
-                    // The offset was 1 mm above the mesh.
-                    for (sla::DrainHole& hole : sla_drain_holes) {
-                        hole.pos += hole.normal.normalized();
-                        hole.height -= 1.f;
-                    }
+                // The holes are saved elevated above the mesh and deeper (bad idea indeed).
+                // This is retained for compatibility.
+                // Place the hole to the mesh and make it shallower to compensate.
+                // The offset is 1 mm above the mesh.
+                for (sla::DrainHole& hole : sla_drain_holes) {
+                    hole.pos += hole.normal.normalized();
+                    hole.height -= 1.f;
                 }
                 
                 if (!sla_drain_holes.empty())
@@ -2601,7 +2600,18 @@ namespace Slic3r {
         for (const ModelObject* object : model.objects)
         {
             ++count;
-            auto& drain_holes = object->sla_drain_holes;
+            sla::DrainHoles drain_holes = object->sla_drain_holes;
+
+            // The holes were placed 1mm above the mesh in the first implementation.
+            // This was a bad idea and the reference point was changed in 2.3 so
+            // to be on the mesh exactly. The elevated position is still saved
+            // in 3MFs for compatibility reasons.
+            for (sla::DrainHole& hole : drain_holes) {
+                hole.pos -= hole.normal.normalized();
+                hole.height += 1.f;
+            }
+
+
             if (!drain_holes.empty())
             {
                 out += string_printf(fmt, count);
