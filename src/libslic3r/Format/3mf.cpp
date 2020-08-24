@@ -1114,6 +1114,15 @@ namespace Slic3r {
                                                       float(std::atof(object_data_points[i+6].c_str())),
                                                       float(std::atof(object_data_points[i+7].c_str())));
                 }
+
+                // The holes are saved elevated above the mesh and deeper (bad idea indeed).
+                // This is retained for compatibility.
+                // Place the hole to the mesh and make it shallower to compensate.
+                // The offset is 1 mm above the mesh.
+                for (sla::DrainHole& hole : sla_drain_holes) {
+                    hole.pos += hole.normal.normalized();
+                    hole.height -= 1.f;
+                }
                 
                 if (!sla_drain_holes.empty())
                     m_sla_drain_holes.insert(IdToSlaDrainHolesMap::value_type(object_id, sla_drain_holes));
@@ -2591,7 +2600,18 @@ namespace Slic3r {
         for (const ModelObject* object : model.objects)
         {
             ++count;
-            auto& drain_holes = object->sla_drain_holes;
+            sla::DrainHoles drain_holes = object->sla_drain_holes;
+
+            // The holes were placed 1mm above the mesh in the first implementation.
+            // This was a bad idea and the reference point was changed in 2.3 so
+            // to be on the mesh exactly. The elevated position is still saved
+            // in 3MFs for compatibility reasons.
+            for (sla::DrainHole& hole : drain_holes) {
+                hole.pos -= hole.normal.normalized();
+                hole.height += 1.f;
+            }
+
+
             if (!drain_holes.empty())
             {
                 out += string_printf(fmt, count);
