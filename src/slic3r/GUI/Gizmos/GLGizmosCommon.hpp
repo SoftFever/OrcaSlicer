@@ -15,8 +15,6 @@ namespace GUI {
 
 class GLCanvas3D;
 
-static constexpr float HoleStickOutLength = 1.f;
-
 enum class SLAGizmoEventType : unsigned char {
     LeftDown = 1,
     LeftUp,

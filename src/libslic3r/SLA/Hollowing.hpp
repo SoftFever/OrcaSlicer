@@ -58,6 +58,8 @@ struct DrainHole
 
 using DrainHoles = std::vector<DrainHole>;
 
+constexpr float HoleStickOutLength = 1.f;
+
 std::unique_ptr<TriangleMesh> generate_interior(const TriangleMesh &mesh,
                                                 const HollowingConfig &  = {},
                                                 const JobController &ctl = {});
