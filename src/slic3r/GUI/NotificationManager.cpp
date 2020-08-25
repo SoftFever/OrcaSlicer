@@ -909,6 +909,14 @@ bool NotificationManager::find_older(NotificationManager::PopNotification* notif
 	return false;
 }
 
+void NotificationManager::set_in_preview(bool preview) 
+{ 
+    m_in_preview = preview;
+    for (PopNotification* notification : m_pop_notifications) {
+        if (notification->get_type() == NotificationType::PlaterWarning) 
+            notification->hide(preview);     
+    }
+}
 void NotificationManager::dpi_changed()
 {
 

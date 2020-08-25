@@ -1512,7 +1512,7 @@ struct Plater::priv
     GLToolbar view_toolbar;
     GLToolbar collapse_toolbar;
     Preview *preview;
-	NotificationManager* notification_manager;
+    NotificationManager* notification_manager { nullptr };
 
     BackgroundSlicingProcess    background_process;
     bool suppressed_backround_processing_update { false };
@@ -3304,6 +3304,8 @@ void Plater::priv::set_current_panel(wxPanel* panel)
         // sets the canvas as dirty to force a render at the 1st idle event (wxWidgets IsShownOnScreen() is buggy and cannot be used reliably)
         view3D->set_as_dirty();
         view_toolbar.select_item("3D");
+        if(notification_manager != nullptr)
+            notification_manager->set_in_preview(false);
     }
     else if (current_panel == preview)
     {
@@ -3318,6 +3320,8 @@ void Plater::priv::set_current_panel(wxPanel* panel)
 
         preview->set_as_dirty();
         view_toolbar.select_item("Preview");
+        if (notification_manager != nullptr)
+            notification_manager->set_in_preview(true);
     }
 
     current_panel->SetFocusFromKbd();

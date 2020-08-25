@@ -94,6 +94,7 @@ public:
 		void                   set_gray(bool g) { m_is_gray = g; }
 		void                   set_paused(bool p) { m_paused = p; }
 		bool                   compare_text(const std::string& text);
+        void                   hide(bool h) { m_hidden = h; }
 	protected:
 		// Call after every size change
 		void         init();
@@ -230,6 +231,7 @@ public:
 	// finds and closes all notifications of given type
 	void close_notification_of_type(const NotificationType type);
 	void dpi_changed();
+    void set_in_preview(bool preview);
 private:
 	//pushes notification into the queue of notifications that are rendered
 	//can be used to create custom notification
@@ -246,6 +248,7 @@ private:
 	bool                         m_hovered { false };
 	//timestamps used for slining finished - notification could be gone so it needs to be stored here
 	std::unordered_set<int>      m_used_timestamps;
+    bool                         m_in_preview;
 
 	//prepared (basic) notifications
 	const std::vector<NotificationData> basic_notifications = {
