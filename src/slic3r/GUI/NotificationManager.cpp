@@ -730,16 +730,16 @@ void NotificationManager::push_slicing_complete_notification(GLCanvas3D& canvas,
 {
 	std::string hypertext;
 	int         time = 10;
-	if(large)
-	{
+    if (has_error_notification())
+        return;
+	if (large) {
 		hypertext = _u8L("Export G-Code.");
 		time = 0;
 	}
 	NotificationData data{ NotificationType::SlicingComplete, NotificationLevel::RegularNotification, time,  _u8L("Slicing finished."), hypertext };
 
 	NotificationManager::SlicingCompleteLargeNotification* notification = new NotificationManager::SlicingCompleteLargeNotification(data, m_next_id++, m_evt_handler, large);
-	if (push_notification_data(notification, canvas, timestamp)) {
-	} else {
+	if (!push_notification_data(notification, canvas, timestamp)) {
 		delete notification;
 	}	
 }
@@ -917,6 +917,15 @@ void NotificationManager::set_in_preview(bool preview)
             notification->hide(preview);     
     }
 }
+bool NotificationManager::has_error_notification()
+{
+    for (PopNotification* notification : m_pop_notifications) {
+        if (notification->get_data().level == NotificationLevel::ErrorNotification)
+            return true;
+    }
+    return false;
+}
+
 void NotificationManager::dpi_changed()
 {
 

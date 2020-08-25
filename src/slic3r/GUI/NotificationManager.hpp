@@ -240,6 +240,7 @@ private:
 	//finds older notification of same type and moves it to the end of queue. returns true if found
 	bool find_older(NotificationManager::PopNotification* notification);
 	void sort_notifications();
+    bool has_error_notification();
 
 	wxEvtHandler*                m_evt_handler;
 	std::deque<PopNotification*> m_pop_notifications;
