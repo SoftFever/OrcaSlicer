@@ -65,7 +65,7 @@ class GCodeViewer
         void reset();
     };
 
-    // ibo buffer containing indices data (triangles) used to render a specific toolpath type
+    // ibo buffer containing indices data (lines/triangles) used to render a specific toolpath type
     struct IBuffer
     {
         // ibo id
