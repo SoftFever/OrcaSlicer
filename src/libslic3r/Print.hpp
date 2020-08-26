@@ -25,6 +25,10 @@ enum class SlicingMode : uint32_t;
 class Layer;
 class SupportLayer;
 
+namespace FillAdaptive_Internal {
+    struct Octree;
+};
+
 // Print step IDs for keeping track of the print state.
 enum PrintStep {
     psSkirt, 
@@ -191,6 +195,7 @@ public:
     void project_and_append_custom_enforcers(std::vector<ExPolygons>& enforcers) const { project_and_append_custom_supports(FacetSupportType::ENFORCER, enforcers); }
     void project_and_append_custom_blockers(std::vector<ExPolygons>& blockers) const { project_and_append_custom_supports(FacetSupportType::BLOCKER, blockers); }
 
+    FillAdaptive_Internal::Octree* adaptiveInfillOctree() { return m_adapt_fill_octree; }
 private:
     // to be called from Print only.
     friend class Print;
@@ -232,6 +237,7 @@ private:
     void discover_horizontal_shells();
     void combine_infill();
     void _generate_support_material();
+    void prepare_adaptive_infill_data();
 
     // XYZ in scaled coordinates
     Vec3crd									m_size;
@@ -251,6 +257,8 @@ private:
     // this is set to true when LayerRegion->slices is split in top/internal/bottom
     // so that next call to make_perimeters() performs a union() before computing loops
     bool                    				m_typed_slices = false;
+
+    FillAdaptive_Internal::Octree*          m_adapt_fill_octree = nullptr;
 
     std::vector<ExPolygons> slice_region(size_t region_id, const std::vector<float> &z, SlicingMode mode) const;
     std::vector<ExPolygons> slice_modifiers(size_t region_id, const std::vector<float> &z) const;

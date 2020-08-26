@@ -345,6 +345,7 @@ void Layer::make_fills()
         f->layer_id = this->id();
         f->z 		= this->print_z;
         f->angle 	= surface_fill.params.angle;
+        f->adapt_fill_octree = this->object()->adaptiveInfillOctree();
 
         // calculate flow spacing for infill pattern generation
         bool using_internal_flow = ! surface_fill.surface.is_solid() && ! surface_fill.params.flow.bridge;
