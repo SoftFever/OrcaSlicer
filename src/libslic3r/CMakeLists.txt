@@ -46,6 +46,8 @@ add_library(libslic3r STATIC
     Fill/Fill.hpp
     Fill/Fill3DHoneycomb.cpp
     Fill/Fill3DHoneycomb.hpp
+    Fill/FillAdaptive.cpp
+    Fill/FillAdaptive.hpp
     Fill/FillBase.cpp
     Fill/FillBase.hpp
     Fill/FillConcentric.cpp
