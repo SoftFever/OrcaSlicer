@@ -6,7 +6,7 @@ const vec3 LIGHT_FRONT_DIR = vec3(0.0, 0.0, 1.0);
 
 // x = ambient, y = top diffuse, z = front diffuse, w = global
 uniform vec4 light_intensity;
-uniform vec3 uniform_color;
+uniform vec4 uniform_color;
 
 varying vec3 eye_position;
 varying vec3 eye_normal;
@@ -27,5 +27,5 @@ void main()
     NdotL = abs(dot(normal, LIGHT_FRONT_DIR));
     intensity += NdotL * light_intensity.z;    
 
-    gl_FragColor = vec4(uniform_color * light_intensity.w * intensity, 1.0);
+    gl_FragColor = vec4(uniform_color.rgb * light_intensity.w * intensity, uniform_color.a);
 }

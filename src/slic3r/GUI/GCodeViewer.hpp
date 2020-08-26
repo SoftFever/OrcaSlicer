@@ -38,8 +38,12 @@ class GCodeViewer
     {
         enum class EFormat : unsigned char
         {
+            // vertex format: 3 floats -> position.x|position.y|position.z
             Position,
-            PositionNormal
+            // vertex format: 4 floats -> position.x|position.y|position.z|normal.x
+            PositionNormal1,
+            // vertex format: 6 floats -> position.x|position.y|position.z|normal.x|normal.y|normal.z
+            PositionNormal3
         };
 
         EFormat format{ EFormat::Position };
@@ -49,18 +53,45 @@ class GCodeViewer
         size_t count{ 0 };
 
         size_t data_size_bytes() const { return count * vertex_size_bytes(); }
-        size_t vertex_size_floats() const
+
+        size_t vertex_size_floats() const { return position_size_floats() + normal_size_floats(); }
+        size_t vertex_size_bytes() const { return vertex_size_floats() * sizeof(float); }
+
+        size_t position_offset_floats() const { return 0; }
+        size_t position_offset_size() const { return position_offset_floats() * sizeof(float); }
+        size_t position_size_floats() const
         {
             switch (format)
             {
-            // vertex format: 3 floats -> position.x|position.y|position.z
-            case EFormat::Position:       { return 3; }
-            // vertex format: 4 floats -> position.x|position.y|position.z|normal.x
-            case EFormat::PositionNormal: { return 4; }
-            default:                      { return 0; }
+            case EFormat::Position:
+            case EFormat::PositionNormal3: { return 3; }
+            case EFormat::PositionNormal1: { return 4; }
+            default: { return 0; }
             }
         }
-        size_t vertex_size_bytes() const { return vertex_size_floats() * sizeof(float); }
+        size_t position_size_bytes() const { return position_size_floats() * sizeof(float); }
+
+        size_t normal_offset_floats() const
+        {
+            switch (format)
+            {
+            case EFormat::Position:
+            case EFormat::PositionNormal1: { return 0; }
+            case EFormat::PositionNormal3: { return 3; }
+            default: { return 0; }
+            }
+        }
+        size_t normal_offset_size() const { return normal_offset_floats() * sizeof(float); }
+        size_t normal_size_floats() const {
+            switch (format)
+            {
+            default:
+            case EFormat::Position:
+            case EFormat::PositionNormal1: { return 0; }
+            case EFormat::PositionNormal3: { return 3; }
+            }
+        }
+        size_t normal_size_bytes() const { return normal_size_floats() * sizeof(float); }
 
         void reset();
     };
@@ -116,6 +147,14 @@ class GCodeViewer
     // buffer containing data for rendering a specific toolpath type
     struct TBuffer
     {
+        enum class EPrimitiveType : unsigned char
+        {
+            Point,
+            Line,
+            Triangle
+        };
+
+        EPrimitiveType primitive_type;
         VBuffer vertices;
         IBuffer indices;
 
@@ -185,8 +224,7 @@ class GCodeViewer
 
         void reset_role_visibility_flags() {
             role_visibility_flags = 0;
-            for (unsigned int i = 0; i < erCount; ++i)
-            {
+            for (unsigned int i = 0; i < erCount; ++i) {
                 role_visibility_flags |= 1 << i;
             }
         }
@@ -204,7 +242,8 @@ class GCodeViewer
         long long refresh_paths_time{ 0 };
         // opengl calls
         long long gl_multi_points_calls_count{ 0 };
-        long long gl_multi_line_strip_calls_count{ 0 };
+        long long gl_multi_lines_calls_count{ 0 };
+        long long gl_multi_triangles_calls_count{ 0 };
         // memory
         long long results_size{ 0 };
         long long vertices_gpu_size{ 0 };
@@ -231,7 +270,8 @@ class GCodeViewer
 
         void reset_opengl() {
             gl_multi_points_calls_count = 0;
-            gl_multi_line_strip_calls_count = 0;
+            gl_multi_lines_calls_count = 0;
+            gl_multi_triangles_calls_count = 0;
         }
 
         void reset_sizes() {

@@ -37,7 +37,7 @@ std::pair<bool, std::string> GLShadersManager::init()
     valid &= append_shader("options_110", { "options_110.vs", "options_110.fs" });
     if (GUI::wxGetApp().is_glsl_version_greater_or_equal_to(1, 20))
         valid &= append_shader("options_120", { "options_120.vs", "options_120.fs" });
-    // used to render extrusion and travel paths in gcode preview
+    // used to render extrusion and travel paths as lines in gcode preview
     valid &= append_shader("toolpaths_lines", { "toolpaths_lines.vs", "toolpaths_lines.fs" });
     // used to render objects in 3d editor
     valid &= append_shader("gouraud", { "gouraud.vs", "gouraud.fs" });

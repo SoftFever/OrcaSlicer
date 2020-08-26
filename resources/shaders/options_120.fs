@@ -1,19 +1,15 @@
 // version 120 is needed for gl_PointCoord
 #version 120
 
-uniform vec3 uniform_color;
+uniform vec4 uniform_color;
 uniform float percent_outline_radius;
 uniform float percent_center_radius;
 
-vec4 hardcoded_color(float radius, vec3 color)
-{
-    return ((radius < 0.15) || (radius > 0.85)) ? vec4(0.5 * color, 1.0) : vec4(color, 1.0);
-}
 
-vec4 customizable_color(float radius, vec3 color)
+vec4 customizable_color(float radius, vec4 color)
 {
     return ((radius < percent_center_radius) || (radius > 1.0 - percent_outline_radius)) ?
-            vec4(0.5 * color, 1.0) : vec4(color, 1.0);
+            vec4(0.5 * color.rgb, color.a) : color;
 }
 
 void main()
