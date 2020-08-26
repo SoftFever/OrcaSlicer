@@ -9,6 +9,8 @@
 #include "Surface.hpp"
 #include "Slicing.hpp"
 #include "Utils.hpp"
+#include "AABBTreeIndirect.hpp"
+#include "Fill/FillAdaptive.hpp"
 
 #include <utility>
 #include <boost/log/trivial.hpp>
@@ -360,6 +362,8 @@ void PrintObject::prepare_infill()
     } // for each layer
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
+    this->prepare_adaptive_infill_data();
+
     this->set_done(posPrepareInfill);
 }
 
@@ -426,6 +430,25 @@ void PrintObject::generate_support_material()
         }
         this->set_done(posSupportMaterial);
     }
+}
+
+void PrintObject::prepare_adaptive_infill_data()
+{
+    float fill_density = this->print()->full_print_config().opt_float("fill_density");
+    float infill_extrusion_width = this->print()->full_print_config().opt_float("infill_extrusion_width");
+
+    coordf_t line_spacing = infill_extrusion_width / ((fill_density / 100.0f) * 0.333333333f);
+
+    BoundingBoxf bed_shape(this->print()->config().bed_shape.values);
+    BoundingBoxf3 printer_volume(Vec3d(bed_shape.min(0), bed_shape.min(1), 0),
+            Vec3d(bed_shape.max(0), bed_shape.max(1), this->print()->config().max_print_height));
+
+    Vec3d model_center = this->model_object()->bounding_box().center();
+    model_center(2) = 0.0f; // Set position in Z axis to 0
+    // Center of the first cube in octree
+
+    TriangleMesh mesh = this->model_object()->mesh();
+    this->m_adapt_fill_octree = FillAdaptive::build_octree(mesh, line_spacing, printer_volume, model_center);
 }
 
 void PrintObject::clear_layers()
