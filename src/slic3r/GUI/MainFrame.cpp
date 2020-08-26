@@ -8,9 +8,12 @@
 #include <wx/progdlg.h>
 #include <wx/tooltip.h>
 //#include <wx/glcanvas.h>
+#include <wx/filename.h>
+#include <wx/stdpaths.h>
 #include <wx/debug.h>
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/process/spawn.hpp>
 
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Polygon.hpp"
@@ -1137,6 +1140,18 @@ void MainFrame::init_menubar()
         append_menu_item(windowMenu, wxID_ANY, _L("Print &Host Upload Queue") + "\tCtrl+J", _L("Display the Print Host Upload Queue window"),
             [this](wxCommandEvent&) { m_printhost_queue_dlg->Show(); }, "upload_queue", nullptr,
             [this]() {return true; }, this);
+        
+        windowMenu->AppendSeparator();
+        append_menu_item(windowMenu, wxID_ANY, _(L("Open new instance")) + "\tCtrl+I", _(L("Open a new PrusaSlicer instance")),
+                         [this](wxCommandEvent&) {
+                             wxString path = wxStandardPaths::Get().GetExecutablePath();
+#ifdef __APPLE__
+                             boost::process::spawn((const char*)path.c_str());
+#else
+                             wxExecute(wxStandardPaths::Get().GetExecutablePath(), wxEXEC_ASYNC | wxEXEC_HIDE_CONSOLE | wxEXEC_MAKE_GROUP_LEADER);
+#endif
+                         }, "upload_queue", nullptr,
+                         [this]() {return true; }, this);
     }
 
     // View menu
