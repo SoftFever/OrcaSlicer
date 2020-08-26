@@ -33,6 +33,11 @@ namespace FillAdaptive_Internal
     };
 }; // namespace FillAdaptive_Internal
 
+//
+// Some of the algorithms used by class FillAdaptive were inspired by
+// Cura Engine's class SubDivCube
+// https://github.com/Ultimaker/CuraEngine/blob/master/src/infill/SubDivCube.h
+//
 class FillAdaptive : public Fill
 {
 public:
@@ -48,6 +53,8 @@ protected:
 	    Polylines                       &polylines_out);
 
 	virtual bool no_sort() const { return true; }
+
+    void generate_polylines(FillAdaptive_Internal::Cube *cube, double z_position, const Vec3d &origin, Polylines &polylines_out);
 
 public:
     static FillAdaptive_Internal::Octree* build_octree(
