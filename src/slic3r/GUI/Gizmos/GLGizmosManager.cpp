@@ -221,7 +221,7 @@ void GLGizmosManager::update_data()
         ModelObject* model_object = selection.get_model()->objects[selection.get_object_idx()];
         set_flattening_data(model_object);
         set_sla_support_data(model_object);
-        set_fdm_support_data(model_object);
+        set_painter_gizmo_data();
     }
     else if (selection.is_single_volume() || selection.is_single_modifier())
     {
@@ -230,7 +230,7 @@ void GLGizmosManager::update_data()
         set_rotation(Vec3d::Zero());
         set_flattening_data(nullptr);
         set_sla_support_data(nullptr);
-        set_fdm_support_data(nullptr);
+        set_painter_gizmo_data();
     }
     else if (is_wipe_tower)
     {
@@ -239,7 +239,7 @@ void GLGizmosManager::update_data()
         set_rotation(Vec3d(0., 0., (M_PI/180.) * dynamic_cast<const ConfigOptionFloat*>(config.option("wipe_tower_rotation_angle"))->value));
         set_flattening_data(nullptr);
         set_sla_support_data(nullptr);
-        set_fdm_support_data(nullptr);
+        set_painter_gizmo_data();
     }
     else
     {
@@ -247,7 +247,7 @@ void GLGizmosManager::update_data()
         set_rotation(Vec3d::Zero());
         set_flattening_data(selection.is_from_single_object() ? selection.get_model()->objects[selection.get_object_idx()] : nullptr);
         set_sla_support_data(selection.is_from_single_instance() ? selection.get_model()->objects[selection.get_object_idx()] : nullptr);
-        set_fdm_support_data(selection.is_from_single_instance() ? selection.get_model()->objects[selection.get_object_idx()] : nullptr);
+        set_painter_gizmo_data();
     }
 }
 
@@ -382,12 +382,12 @@ void GLGizmosManager::set_sla_support_data(ModelObject* model_object)
     gizmo_supports->set_sla_support_data(model_object, m_parent.get_selection());
 }
 
-void GLGizmosManager::set_fdm_support_data(ModelObject* model_object)
+void GLGizmosManager::set_painter_gizmo_data()
 {
     if (!m_enabled || m_gizmos.empty())
         return;
 
-    dynamic_cast<GLGizmoFdmSupports*>(m_gizmos[FdmSupports].get())->set_fdm_support_data(model_object, m_parent.get_selection());
+    dynamic_cast<GLGizmoFdmSupports*>(m_gizmos[FdmSupports].get())->set_painter_gizmo_data(m_parent.get_selection());
 }
 
 // Returns true if the gizmo used the event to do something, false otherwise.
