@@ -1,6 +1,8 @@
 #ifndef slic3r_FillAdaptive_hpp_
 #define slic3r_FillAdaptive_hpp_
 
+#include "../AABBTreeIndirect.hpp"
+
 #include "FillBase.hpp"
 
 namespace Slic3r {
@@ -46,6 +48,20 @@ protected:
 	    Polylines                       &polylines_out);
 
 	virtual bool no_sort() const { return true; }
+
+public:
+    static FillAdaptive_Internal::Octree* build_octree(
+            TriangleMesh &triangleMesh,
+            coordf_t line_spacing,
+            const BoundingBoxf3 &printer_volume,
+            const Vec3d &cube_center);
+
+    static void expand_cube(
+            FillAdaptive_Internal::Cube *cube,
+            const std::vector<FillAdaptive_Internal::CubeProperties> &cubes_properties,
+            const Transform3d &rotation_matrix,
+            const AABBTreeIndirect::Tree3f &distanceTree,
+            const TriangleMesh &triangleMesh);
 };
 
 } // namespace Slic3r
