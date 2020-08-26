@@ -15,18 +15,54 @@ void FillAdaptive::_fill_surface_single(
     ExPolygon                       &expolygon, 
     Polylines                       &polylines_out)
 {
-    Polylines infill_polylines;
+    std::vector<Polylines> infill_polylines(3);
     this->generate_polylines(this->adapt_fill_octree->root_cube, this->z, this->adapt_fill_octree->origin, infill_polylines);
 
-    // Crop all polylines
-    polylines_out = intersection_pl(infill_polylines, to_polygons(expolygon));
+    for (Polylines &infill_polyline : infill_polylines) {
+        // Crop all polylines
+        infill_polyline = intersection_pl(infill_polyline, to_polygons(expolygon));
+        polylines_out.insert(polylines_out.end(), infill_polyline.begin(), infill_polyline.end());
+    }
+
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+    {
+        static int iRuna = 0;
+        BoundingBox bbox_svg = this->bounding_box;
+        {
+            ::Slic3r::SVG svg(debug_out_path("FillAdaptive-%d.svg", iRuna), bbox_svg);
+            for (const Polyline &polyline : polylines_out)
+            {
+                for (const Line &line : polyline.lines())
+                {
+                    Point from = line.a;
+                    Point to = line.b;
+                    Point diff = to - from;
+
+                    float shrink_length = scale_(0.4);
+                    float line_slope = (float)diff.y() / diff.x();
+                    float shrink_x = shrink_length / (float)std::sqrt(1.0 + (line_slope * line_slope));
+                    float shrink_y = line_slope * shrink_x;
+
+                    to.x() -= shrink_x;
+                    to.y() -= shrink_y;
+                    from.x() += shrink_x;
+                    from.y() += shrink_y;
+
+                    svg.draw(Line(from, to));
+                }
+            }
+        }
+
+        iRuna++;
+    }
+#endif /* SLIC3R_DEBUG */
 }
 
 void FillAdaptive::generate_polylines(
         FillAdaptive_Internal::Cube *cube,
         double z_position,
         const Vec3d &origin,
-        Polylines &polylines_out)
+        std::vector<Polylines> &polylines_out)
 {
     using namespace FillAdaptive_Internal;
 
@@ -52,7 +88,7 @@ void FillAdaptive::generate_polylines(
 
         float rotation_angle = Geometry::deg2rad(120.0);
 
-        for (int dir_idx = 0; dir_idx < 3; dir_idx++)
+        for (int i = 0; i < 3; i++)
         {
             Vec3d offset = cube->center - origin;
             Point from_abs(from), to_abs(to);
@@ -62,7 +98,8 @@ void FillAdaptive::generate_polylines(
             to_abs.x() += scale_(offset.x());
             to_abs.y() += scale_(offset.y());
 
-            polylines_out.push_back(Polyline(from_abs, to_abs));
+//            polylines_out[i].push_back(Polyline(from_abs, to_abs));
+            this->merge_polylines(polylines_out[i], Line(from_abs, to_abs));
 
             from.rotate(rotation_angle);
             to.rotate(rotation_angle);
@@ -74,6 +111,35 @@ void FillAdaptive::generate_polylines(
         generate_polylines(child, z_position, origin, polylines_out);
     }
 }
+
+void FillAdaptive::merge_polylines(Polylines &polylines, const Line &new_line)
+{
+    int eps = scale_(0.10);
+    bool modified = false;
+
+    for (Polyline &polyline : polylines)
+    {
+        if (std::abs(new_line.a.x() - polyline.points[1].x()) < eps && std::abs(new_line.a.y() - polyline.points[1].y()) < eps)
+        {
+            polyline.points[1].x() = new_line.b.x();
+            polyline.points[1].y() = new_line.b.y();
+            modified = true;
+        }
+
+        if (std::abs(new_line.b.x() - polyline.points[0].x()) < eps && std::abs(new_line.b.y() - polyline.points[0].y()) < eps)
+        {
+            polyline.points[0].x() = new_line.a.x();
+            polyline.points[0].y() = new_line.a.y();
+            modified = true;
+        }
+    }
+
+    if(!modified)
+    {
+        polylines.emplace_back(Polyline(new_line.a, new_line.b));
+    }
+}
+
 
 FillAdaptive_Internal::Octree* FillAdaptive::build_octree(
     TriangleMesh &triangleMesh,
@@ -145,12 +211,6 @@ void FillAdaptive::expand_cube(
 
     for (const Vec3d &child_center : child_centers) {
         Vec3d child_center_transformed = cube->center + rotation_matrix * (child_center * (cube->properties.edge_length / 4));
-        Vec3d closest_point = Vec3d::Zero();
-        size_t closest_triangle_idx = 0;
-
-        double distance_squared = AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
-                triangleMesh.its.vertices, triangleMesh.its.indices, distanceTree, child_center_transformed,
-                closest_triangle_idx,closest_point);
 
         if(AABBTreeIndirect::is_any_triangle_in_radius(triangleMesh.its.vertices, triangleMesh.its.indices, distanceTree, child_center_transformed, cube_radius_squared)) {
             cube->children.push_back(new Cube{child_center_transformed, cube->depth - 1, cubes_properties[cube->depth - 1]});

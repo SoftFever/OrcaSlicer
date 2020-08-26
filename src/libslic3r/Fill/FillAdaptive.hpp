@@ -54,7 +54,9 @@ protected:
 
 	virtual bool no_sort() const { return true; }
 
-    void generate_polylines(FillAdaptive_Internal::Cube *cube, double z_position, const Vec3d &origin, Polylines &polylines_out);
+    void generate_polylines(FillAdaptive_Internal::Cube *cube, double z_position, const Vec3d &origin, std::vector<Polylines> &polylines_out);
+
+    void merge_polylines(Polylines &polylines, const Line &new_line);
 
 public:
     static FillAdaptive_Internal::Octree* build_octree(
