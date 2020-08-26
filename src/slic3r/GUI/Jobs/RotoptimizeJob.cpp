@@ -18,7 +18,7 @@ void RotoptimizeJob::process()
 
     auto r = sla::find_best_rotation(
         *o,
-        .005f,
+        1.f,
         [this](unsigned s) {
             if (s < 100)
                 update_status(int(s),
@@ -31,7 +31,7 @@ void RotoptimizeJob::process()
 
     if (!was_canceled()) {
         for(ModelInstance * oi : o->instances) {
-            oi->set_rotation({r[X], r[Y], r[Z]});
+            oi->set_rotation({r[X], r[Y], 0.});
 
             auto    trmatrix = oi->get_transformation().get_matrix();
             Polygon trchull  = o->convex_hull_2d(trmatrix);

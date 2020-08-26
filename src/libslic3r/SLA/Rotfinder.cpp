@@ -1,33 +1,113 @@
 #include <limits>
 #include <exception>
 
-#include <libnest2d/optimizers/nlopt/genetic.hpp>
+//#include <libnest2d/optimizers/nlopt/genetic.hpp>
+#include <libslic3r/Optimizer.hpp>
 #include <libslic3r/SLA/Rotfinder.hpp>
 #include <libslic3r/SLA/SupportTree.hpp>
+#include <libslic3r/SLA/SupportPointGenerator.hpp>
+#include <libslic3r/SimplifyMesh.hpp>
 #include "Model.hpp"
 
 namespace Slic3r {
 namespace sla {
 
-std::array<double, 3> find_best_rotation(const ModelObject& modelobj,
+double area(const Vec3d &p1, const Vec3d &p2, const Vec3d &p3) {
+    Vec3d a = p2 - p1;
+    Vec3d b = p3 - p1;
+    Vec3d c = a.cross(b);
+    return 0.5 * c.norm();
+}
+
+using VertexFaceMap = std::vector<std::vector<size_t>>;
+
+VertexFaceMap create_vertex_face_map(const TriangleMesh &mesh) {
+    std::vector<std::vector<size_t>> vmap(mesh.its.vertices.size());
+
+    size_t fi = 0;
+    for (const Vec3i &tri : mesh.its.indices) {
+        for (int vi = 0; vi < tri.size(); ++vi) {
+            auto from = vmap[tri(vi)].begin(), to = vmap[tri(vi)].end();
+            vmap[tri(vi)].insert(std::lower_bound(from, to, fi), fi);
+        }
+    }
+
+    return vmap;
+}
+
+// Try to guess the number of support points needed to support a mesh
+double calculate_model_supportedness(const TriangleMesh & mesh,
+                                     const VertexFaceMap &vmap,
+                                     const Transform3d &  tr)
+{
+    static const double POINTS_PER_UNIT_AREA = 1.;
+    static const Vec3d DOWN = {0., 0., -1.};
+
+    double score = 0.;
+
+//    double zmin = mesh.bounding_box().min.z();
+
+//    std::vector<Vec3d> normals(mesh.its.indices.size(), Vec3d::Zero());
+
+    double zmin = 0;
+    for (auto & v : mesh.its.vertices)
+        zmin = std::min(zmin, double((tr * v.cast<double>()).z()));
+
+    for (size_t fi = 0; fi < mesh.its.indices.size(); ++fi) {
+        const auto &face = mesh.its.indices[fi];
+        Vec3d p1 = tr * mesh.its.vertices[face(0)].cast<double>();
+        Vec3d p2 = tr * mesh.its.vertices[face(1)].cast<double>();
+        Vec3d p3 = tr * mesh.its.vertices[face(2)].cast<double>();
+
+//        auto triang = std::array<Vec3d, 3> {p1, p2, p3};
+//        double a = area(triang.begin(), triang.end());
+        double a = area(p1, p2, p3);
+
+        double zlvl = zmin + 0.1;
+        if (p1.z() <= zlvl && p2.z() <= zlvl && p3.z() <= zlvl) {
+            score += a * POINTS_PER_UNIT_AREA;
+            continue;
+        }
+
+
+        Eigen::Vector3d U = p2 - p1;
+        Eigen::Vector3d V = p3 - p1;
+        Vec3d           N = U.cross(V).normalized();
+
+        double phi = std::acos(N.dot(DOWN)) / PI;
+
+        std::cout << "area: " << a << std::endl;
+
+        score += a * POINTS_PER_UNIT_AREA * phi;
+//        normals[fi] = N;
+    }
+
+//    for (size_t vi = 0; vi < mesh.its.vertices.size(); ++vi) {
+//        const std::vector<size_t> &neighbors = vmap[vi];
+
+//        const auto &v = mesh.its.vertices[vi];
+//        Vec3d vt =  tr * v.cast<double>();
+//    }
+
+    return score;
+}
+
+std::array<double, 2> find_best_rotation(const ModelObject& modelobj,
                                          float accuracy,
                                          std::function<void(unsigned)> statuscb,
                                          std::function<bool()> stopcond)
 {
-    using libnest2d::opt::Method;
-    using libnest2d::opt::bound;
-    using libnest2d::opt::Optimizer;
-    using libnest2d::opt::TOptimizer;
-    using libnest2d::opt::StopCriteria;
-
-    static const unsigned MAX_TRIES = 100000;
+    static const unsigned MAX_TRIES = 1000000;
 
     // return value
-    std::array<double, 3> rot;
+    std::array<double, 2> rot;
 
     // We will use only one instance of this converted mesh to examine different
     // rotations
-    const TriangleMesh& mesh = modelobj.raw_mesh();
+    TriangleMesh mesh = modelobj.raw_mesh();
+    mesh.require_shared_vertices();
+//    auto vmap = create_vertex_face_map(mesh);
+//    simplify_mesh(mesh);
 
     // For current iteration number
     unsigned status = 0;
@@ -44,40 +124,15 @@ std::array<double, 3> find_best_rotation(const ModelObject& modelobj,
     // the same for subsequent iterations (status goes from 0 to 100 but
     // iterations can be many more)
     auto objfunc = [&mesh, &status, &statuscb, &stopcond, max_tries]
-            (double rx, double ry, double rz)
+        (const opt::Input<2> &in)
     {
-        const TriangleMesh& m = mesh;
-
         // prepare the rotation transformation
         Transform3d rt = Transform3d::Identity();
+        rt.rotate(Eigen::AngleAxisd(in[1], Vec3d::UnitY()));
+        rt.rotate(Eigen::AngleAxisd(in[0], Vec3d::UnitX()));
 
-        rt.rotate(Eigen::AngleAxisd(rz, Vec3d::UnitZ()));
-        rt.rotate(Eigen::AngleAxisd(ry, Vec3d::UnitY()));
-        rt.rotate(Eigen::AngleAxisd(rx, Vec3d::UnitX()));
-
-        double score = 0;
-
-        // For all triangles we calculate the normal and sum up the dot product
-        // (a scalar indicating how much are two vectors aligned) with each axis
-        // this will result in a value that is greater if a normal is aligned
-        // with all axes. If the normal is aligned than the triangle itself is
-        // orthogonal to the axes and that is good for print quality.
-
-        // TODO: some applications optimize for minimum z-axis cross section
-        // area. The current function is only an example of how to optimize.
-
-        // Later we can add more criteria like the number of overhangs, etc...
-        for(size_t i = 0; i < m.stl.facet_start.size(); i++) {
-            Vec3d n = m.stl.facet_start[i].normal.cast<double>();
-
-            // rotate the normal with the current rotation given by the solver
-            n = rt * n;
-
-            // We should score against the alignment with the reference planes
-            score += std::abs(n.dot(Vec3d::UnitX()));
-            score += std::abs(n.dot(Vec3d::UnitY()));
-            score += std::abs(n.dot(Vec3d::UnitZ()));
-        }
+        double score = sla::calculate_model_supportedness(mesh, {}, rt);
+        std::cout << score << std::endl;
 
         // report status
         if(!stopcond()) statuscb( unsigned(++status * 100.0/max_tries) );
@@ -86,26 +141,24 @@ std::array<double, 3> find_best_rotation(const ModelObject& modelobj,
     };
 
     // Firing up the genetic optimizer. For now it uses the nlopt library.
-    StopCriteria stc;
-    stc.max_iterations = max_tries;
-    stc.relative_score_difference = 1e-3;
-    stc.stop_condition = stopcond;      // stop when stopcond returns true
-    TOptimizer<Method::G_GENETIC> solver(stc);
+
+    opt::Optimizer<opt::AlgNLoptDIRECT> solver(opt::StopCriteria{}
+                                           .max_iterations(max_tries)
+                                           .rel_score_diff(1e-3)
+                                           .stop_condition(stopcond));
 
     // We are searching rotations around the three axes x, y, z. Thus the
     // problem becomes a 3 dimensional optimization task.
     // We can specify the bounds for a dimension in the following way:
-    auto b = bound(-PI/2, PI/2);
+    auto b = opt::Bound{-PI, PI};
 
     // Now we start the optimization process with initial angles (0, 0, 0)
-    auto result = solver.optimize_max(objfunc,
-                                      libnest2d::opt::initvals(0.0, 0.0, 0.0),
-                                      b, b, b);
+    auto result = solver.to_max().optimize(objfunc, opt::initvals({0.0, 0.0}),
+                                           opt::bounds({b, b}));
 
     // Save the result and fck off
     rot[0] = std::get<0>(result.optimum);
     rot[1] = std::get<1>(result.optimum);
-    rot[2] = std::get<2>(result.optimum);
 
     return rot;
 }

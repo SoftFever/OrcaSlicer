@@ -368,6 +368,7 @@ template<size_t N> auto score_gradient(double s, const double (&grad)[N])
 using AlgNLoptGenetic = detail::NLoptAlgComb<NLOPT_GN_ESCH>;
 using AlgNLoptSubplex = detail::NLoptAlg<NLOPT_LN_SBPLX>;
 using AlgNLoptSimplex = detail::NLoptAlg<NLOPT_LN_NELDERMEAD>;
+using AlgNLoptDIRECT  = detail::NLoptAlg<NLOPT_GN_DIRECT>;
 
 // TODO: define others if needed...
 

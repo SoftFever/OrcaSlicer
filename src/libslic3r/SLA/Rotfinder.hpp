@@ -25,7 +25,7 @@ namespace sla {
   *
   * @return Returns the rotations around each axis (x, y, z)
   */
-std::array<double, 3> find_best_rotation(
+std::array<double, 2> find_best_rotation(
         const ModelObject& modelobj,
         float accuracy = 1.0f,
         std::function<void(unsigned)> statuscb = [] (unsigned) {},
