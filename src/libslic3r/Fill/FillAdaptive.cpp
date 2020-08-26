@@ -15,7 +15,64 @@ void FillAdaptive::_fill_surface_single(
     ExPolygon                       &expolygon, 
     Polylines                       &polylines_out)
 {
+    Polylines infill_polylines;
+    this->generate_polylines(this->adapt_fill_octree->root_cube, this->z, this->adapt_fill_octree->origin, infill_polylines);
 
+    // Crop all polylines
+    polylines_out = intersection_pl(infill_polylines, to_polygons(expolygon));
+}
+
+void FillAdaptive::generate_polylines(
+        FillAdaptive_Internal::Cube *cube,
+        double z_position,
+        const Vec3d &origin,
+        Polylines &polylines_out)
+{
+    using namespace FillAdaptive_Internal;
+
+    if(cube == nullptr)
+    {
+        return;
+    }
+
+    double z_diff = std::abs(z_position - cube->center.z());
+
+    if (z_diff > cube->properties.height / 2)
+    {
+        return;
+    }
+
+    if (z_diff < cube->properties.line_z_distance)
+    {
+        Point from(
+                scale_((cube->properties.diagonal_length / 2) * (cube->properties.line_z_distance - z_diff) / cube->properties.line_z_distance),
+                scale_(cube->properties.line_xy_distance - ((z_position - (cube->center.z() - cube->properties.line_z_distance)) / sqrt(2))));
+        Point to(-from.x(), from.y());
+        // Relative to cube center
+
+        float rotation_angle = Geometry::deg2rad(120.0);
+
+        for (int dir_idx = 0; dir_idx < 3; dir_idx++)
+        {
+            Vec3d offset = cube->center - origin;
+            Point from_abs(from), to_abs(to);
+
+            from_abs.x() += scale_(offset.x());
+            from_abs.y() += scale_(offset.y());
+            to_abs.x() += scale_(offset.x());
+            to_abs.y() += scale_(offset.y());
+
+            polylines_out.push_back(Polyline(from_abs, to_abs));
+
+            from.rotate(rotation_angle);
+            to.rotate(rotation_angle);
+        }
+    }
+
+    for(Cube *child : cube->children)
+    {
+        generate_polylines(child, z_position, origin, polylines_out);
+    }
 }
 
 FillAdaptive_Internal::Octree* FillAdaptive::build_octree(
