@@ -49,13 +49,17 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
     , m_text2               (n.text2)
 	, m_evt_handler         (evt_handler)
 {
-	init();
+	//init();
 }
 NotificationManager::PopNotification::~PopNotification()
 {
 }
 NotificationManager::PopNotification::RenderResult NotificationManager::PopNotification::render(GLCanvas3D& canvas, const float& initial_y)
 {
+	if (!m_initialized)
+	{
+		init();
+	}
 	if (m_finished)
 		return RenderResult::Finished;
 	if (m_close_pending) {
@@ -228,6 +232,7 @@ void NotificationManager::PopNotification::init()
 		}
 		m_lines_count++;
 	}
+	m_initialized = true;
 }
 void NotificationManager::PopNotification::set_next_window_size(ImGuiWrapper& imgui)
 { 

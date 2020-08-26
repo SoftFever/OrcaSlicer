@@ -121,6 +121,7 @@ public:
 		const NotificationData m_data;
 
 		int              m_id;
+		bool			 m_initialized          { false };
 		// Main text
 		std::string      m_text1;
 		// Clickable text
@@ -131,12 +132,12 @@ public:
 		long             m_remaining_time;
 		bool             m_counting_down;
 		long             m_last_remaining_time;
-		bool             m_paused{ false };
-		int              m_countdown_frame{ 0 };
-		bool             m_fading_out{ false };
+		bool             m_paused               { false };
+		int              m_countdown_frame      { 0 };
+		bool             m_fading_out           { false };
 		// total time left when fading beggins
-		float            m_fading_time{ 0.0f }; 
-		float            m_current_fade_opacity{ 1.f };
+		float            m_fading_time          { 0.0f }; 
+		float            m_current_fade_opacity { 1.f };
 		// If hidden the notif is alive but not visible to user
 		bool             m_hidden               { false };
 		//  m_finished = true - does not render, marked to delete
