@@ -152,7 +152,7 @@ void FillAdaptive::expand_cube(
                 triangleMesh.its.vertices, triangleMesh.its.indices, distanceTree, child_center_transformed,
                 closest_triangle_idx,closest_point);
 
-        if(distance_squared <= cube_radius_squared) {
+        if(AABBTreeIndirect::is_any_triangle_in_radius(triangleMesh.its.vertices, triangleMesh.its.indices, distanceTree, child_center_transformed, cube_radius_squared)) {
             cube->children.push_back(new Cube{child_center_transformed, cube->depth - 1, cubes_properties[cube->depth - 1]});
             FillAdaptive::expand_cube(cube->children.back(), cubes_properties, rotation_matrix, distanceTree, triangleMesh);
         }
