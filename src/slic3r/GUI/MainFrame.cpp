@@ -84,16 +84,19 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 #endif
     // Font is already set in DPIFrame constructor
 */
-    // Load the icon either from the exe, or from the ico file.
-#if _WIN32
-    {
-        TCHAR szExeFileName[MAX_PATH];
-        GetModuleFileName(nullptr, szExeFileName, MAX_PATH);
-        SetIcon(wxIcon(szExeFileName, wxBITMAP_TYPE_ICO));
-    }
-#else
+
     SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
-#endif // _WIN32
+//    // Load the icon either from the exe, or from the ico file.
+//#if _WIN32
+//    {
+//
+//        TCHAR szExeFileName[MAX_PATH];
+//        GetModuleFileName(nullptr, szExeFileName, MAX_PATH);
+//        SetIcon(wxIcon(szExeFileName, wxBITMAP_TYPE_ICO));
+//    }
+//#else
+//    SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
+//#endif // _WIN32
 
 	// initialize status bar
 	m_statusbar = std::make_shared<ProgressStatusBar>(this);
@@ -1364,6 +1367,8 @@ void MainFrame::set_mode(EMode mode)
 
         m_plater->Thaw();
 
+        SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
+
         break;
     }
     case EMode::GCodeViewer:
@@ -1408,6 +1413,8 @@ void MainFrame::set_mode(EMode mode)
         }
 
         m_plater->Thaw();
+
+        SetIcon(wxIcon(Slic3r::var("PrusaSlicerGCodeViewer_128px.png"), wxBITMAP_TYPE_PNG));
 
         break;
     }
@@ -1912,16 +1919,19 @@ SettingsDialog::SettingsDialog(MainFrame* mainframe)
     this->SetFont(wxGetApp().normal_font());
     this->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 
-    // Load the icon either from the exe, or from the ico file.
-#if _WIN32
-    {
-        TCHAR szExeFileName[MAX_PATH];
-        GetModuleFileName(nullptr, szExeFileName, MAX_PATH);
-        SetIcon(wxIcon(szExeFileName, wxBITMAP_TYPE_ICO));
-    }
-#else
-    SetIcon(wxIcon(var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
-#endif // _WIN32
+
+    SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
+//    // Load the icon either from the exe, or from the ico file.
+//#if _WIN32
+//    {
+//
+//        TCHAR szExeFileName[MAX_PATH];
+//        GetModuleFileName(nullptr, szExeFileName, MAX_PATH);
+//        SetIcon(wxIcon(szExeFileName, wxBITMAP_TYPE_ICO));
+//    }
+//#else
+//    SetIcon(wxIcon(var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
+//#endif // _WIN32
 
     this->Bind(wxEVT_SHOW, [this](wxShowEvent& evt) {
 
