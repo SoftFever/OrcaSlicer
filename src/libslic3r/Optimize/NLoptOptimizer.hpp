@@ -12,133 +12,10 @@
 #endif
 
 #include <utility>
-#include <tuple>
-#include <array>
-#include <cmath>
-#include <functional>
-#include <limits>
-#include <cassert>
+
+#include <libslic3r/Optimize/Optimizer.hpp>
 
 namespace Slic3r { namespace opt {
-
-// A type to hold the complete result of the optimization.
-template<size_t N> struct Result {
-    int resultcode;
-    std::array<double, N> optimum;
-    double score;
-};
-
-// An interval of possible input values for optimization
-class Bound {
-    double m_min, m_max;
-
-public:
-    Bound(double min = std::numeric_limits<double>::min(),
-          double max = std::numeric_limits<double>::max())
-        : m_min(min), m_max(max)
-    {}
-
-    double min() const noexcept { return m_min; }
-    double max() const noexcept { return m_max; }
-};
-
-// Helper types for optimization function input and bounds
-template<size_t N> using Input = std::array<double, N>;
-template<size_t N> using Bounds = std::array<Bound, N>;
-
-// A type for specifying the stop criteria. Setter methods can be concatenated
-class StopCriteria {
-
-    // If the absolute value difference between two scores.
-    double m_abs_score_diff = std::nan("");
-
-    // If the relative value difference between two scores.
-    double m_rel_score_diff = std::nan("");
-
-    // Stop if this value or better is found.
-    double m_stop_score = std::nan("");
-
-    // A predicate that if evaluates to true, the optimization should terminate
-    // and the best result found prior to termination should be returned.
-    std::function<bool()> m_stop_condition = [] { return false; };
-
-    // The max allowed number of iterations.
-    unsigned m_max_iterations = 0;
-
-public:
-
-    StopCriteria & abs_score_diff(double val)
-    {
-        m_abs_score_diff = val; return *this;
-    }
-
-    double abs_score_diff() const { return m_abs_score_diff; }
-
-    StopCriteria & rel_score_diff(double val)
-    {
-        m_rel_score_diff = val; return *this;
-    }
-
-    double rel_score_diff() const { return m_rel_score_diff; }
-
-    StopCriteria & stop_score(double val)
-    {
-        m_stop_score = val; return *this;
-    }
-
-    double stop_score() const { return m_stop_score; }
-
-    StopCriteria & max_iterations(double val)
-    {
-        m_max_iterations = val; return *this;
-    }
-
-    double max_iterations() const { return m_max_iterations; }
-
-    template<class Fn> StopCriteria & stop_condition(Fn &&cond)
-    {
-        m_stop_condition = cond; return *this;
-    }
-
-    bool stop_condition() { return m_stop_condition(); }
-};
-
-// Helper class to use optimization methods involving gradient.
-template<size_t N> struct ScoreGradient {
-    double score;
-    std::optional<std::array<double, N>> gradient;
-
-    ScoreGradient(double s, const std::array<double, N> &grad)
-        : score{s}, gradient{grad}
-    {}
-};
-
-// Helper to be used in static_assert.
-template<class T> struct always_false { enum { value = false }; };
-
-// Basic interface to optimizer object
-template<class Method, class Enable = void> class Optimizer {
-public:
-
-    Optimizer(const StopCriteria &)
-    {
-        static_assert (always_false<Method>::value,
-                       "Optimizer unimplemented for given method!");
-    }
-
-    Optimizer<Method> &to_min() { return *this; }
-    Optimizer<Method> &to_max() { return *this; }
-    Optimizer<Method> &set_criteria(const StopCriteria &) { return *this; }
-    StopCriteria get_criteria() const { return {}; };
-
-    template<class Func, size_t N>
-    Result<N> optimize(Func&& func,
-                       const Input<N> &initvals,
-                       const Bounds<N>& bounds) { return {}; }
-
-    // optional for randomized methods:
-    void seed(long /*s*/) {}
-};
 
 namespace detail {
 
@@ -166,19 +43,6 @@ struct IsNLoptAlg<NLoptAlgComb<a1, a2>> {
 template<class M, class T = void>
 using NLoptOnly = std::enable_if_t<IsNLoptAlg<M>::value, T>;
 
-// Helper to convert C style array to std::array. The copy should be optimized
-// away with modern compilers.
-template<size_t N, class T> auto to_arr(const T *a)
-{
-    std::array<T, N> r;
-    std::copy(a, a + N, std::begin(r));
-    return r;
-}
-
-template<size_t N, class T> auto to_arr(const T (&a) [N])
-{
-    return to_arr<N>(static_cast<const T *>(a));
-}
 
 enum class OptDir { MIN, MAX }; // Where to optimize
 
@@ -357,24 +221,12 @@ public:
     void seed(long s) { m_opt.seed(s); }
 };
 
-template<size_t N> Bounds<N> bounds(const Bound (&b) [N]) { return detail::to_arr(b); }
-template<size_t N> Input<N> initvals(const double (&a) [N]) { return detail::to_arr(a); }
-template<size_t N> auto score_gradient(double s, const double (&grad)[N])
-{
-    return ScoreGradient<N>(s, detail::to_arr(grad));
-}
-
-// Predefinded NLopt algorithms that are used in the codebase
+// Predefinded NLopt algorithms
 using AlgNLoptGenetic = detail::NLoptAlgComb<NLOPT_GN_ESCH>;
 using AlgNLoptSubplex = detail::NLoptAlg<NLOPT_LN_SBPLX>;
 using AlgNLoptSimplex = detail::NLoptAlg<NLOPT_LN_NELDERMEAD>;
 using AlgNLoptDIRECT  = detail::NLoptAlg<NLOPT_GN_DIRECT>;
-
-// TODO: define others if needed...
-
-// Helper defs for pre-crafted global and local optimizers that work well.
-using DefaultGlobalOptimizer = Optimizer<AlgNLoptGenetic>;
-using DefaultLocalOptimizer  = Optimizer<AlgNLoptSubplex>;
+using AlgNLoptMLSL    = detail::NLoptAlg<NLOPT_GN_MLSL>;
 
 }} // namespace Slic3r::opt
 

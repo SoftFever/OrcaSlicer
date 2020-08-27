@@ -2,22 +2,18 @@
 #include <exception>
 
 //#include <libnest2d/optimizers/nlopt/genetic.hpp>
-#include <libslic3r/Optimizer.hpp>
+#include <libslic3r/Optimize/BruteforceOptimizer.hpp>
 #include <libslic3r/SLA/Rotfinder.hpp>
+#include <libslic3r/SLA/Concurrency.hpp>
 #include <libslic3r/SLA/SupportTree.hpp>
 #include <libslic3r/SLA/SupportPointGenerator.hpp>
 #include <libslic3r/SimplifyMesh.hpp>
 #include "Model.hpp"
 
+#include <thread>
+
 namespace Slic3r {
 namespace sla {
-
-double area(const Vec3d &p1, const Vec3d &p2, const Vec3d &p3) {
-    Vec3d a = p2 - p1;
-    Vec3d b = p3 - p1;
-    Vec3d c = a.cross(b);
-    return 0.5 * c.norm();
-}
 
 using VertexFaceMap = std::vector<std::vector<size_t>>;
 
@@ -35,61 +31,75 @@ VertexFaceMap create_vertex_face_map(const TriangleMesh &mesh) {
     return vmap;
 }
 
+// Find transformed mesh ground level without copy and with parallell reduce.
+double find_ground_level(const TriangleMesh &mesh,
+                         const Transform3d & tr,
+                         size_t              threads)
+{
+    size_t vsize = mesh.its.vertices.size();
+
+    auto minfn = [](double a, double b) { return std::min(a, b); };
+
+    auto findminz = [&mesh, &tr] (size_t vi, double submin) {
+        Vec3d v = tr * mesh.its.vertices[vi].template cast<double>();
+        return std::min(submin, v.z());
+    };
+
+    double zmin = mesh.its.vertices.front().z();
+
+    return ccr_par::reduce(size_t(0), vsize, zmin, findminz, minfn,
+                           vsize / threads);
+}
+
 // Try to guess the number of support points needed to support a mesh
 double calculate_model_supportedness(const TriangleMesh & mesh,
-                                     const VertexFaceMap &vmap,
+//                                     const VertexFaceMap &vmap,
                                      const Transform3d &  tr)
 {
-    static const double POINTS_PER_UNIT_AREA = 1.;
-    static const Vec3d DOWN = {0., 0., -1.};
+    static constexpr double POINTS_PER_UNIT_AREA = 1.;
 
-    double score = 0.;
+    if (mesh.its.vertices.empty()) return std::nan("");
 
-//    double zmin = mesh.bounding_box().min.z();
+    size_t Nthr = std::thread::hardware_concurrency();
+    size_t facesize = mesh.its.indices.size();
 
-//    std::vector<Vec3d> normals(mesh.its.indices.size(), Vec3d::Zero());
+    double zmin = find_ground_level(mesh, tr, Nthr);
 
-    double zmin = 0;
-    for (auto & v : mesh.its.vertices)
-        zmin = std::min(zmin, double((tr * v.cast<double>()).z()));
+    auto score_mergefn = [&mesh, &tr, zmin](size_t fi, double subscore) {
 
-    for (size_t fi = 0; fi < mesh.its.indices.size(); ++fi) {
+        static const Vec3d DOWN = {0., 0., -1.};
+
         const auto &face = mesh.its.indices[fi];
-        Vec3d p1 = tr * mesh.its.vertices[face(0)].cast<double>();
-        Vec3d p2 = tr * mesh.its.vertices[face(1)].cast<double>();
-        Vec3d p3 = tr * mesh.its.vertices[face(2)].cast<double>();
+        Vec3d p1 = tr * mesh.its.vertices[face(0)].template cast<double>();
+        Vec3d p2 = tr * mesh.its.vertices[face(1)].template cast<double>();
+        Vec3d p3 = tr * mesh.its.vertices[face(2)].template cast<double>();
 
-//        auto triang = std::array<Vec3d, 3> {p1, p2, p3};
-//        double a = area(triang.begin(), triang.end());
-        double a = area(p1, p2, p3);
+        Vec3d U = p2 - p1;
+        Vec3d V = p3 - p1;
+        Vec3d C = U.cross(V);
+        Vec3d N = C.normalized();
+        double area = 0.5 * C.norm();
 
         double zlvl = zmin + 0.1;
         if (p1.z() <= zlvl && p2.z() <= zlvl && p3.z() <= zlvl) {
-            score += a * POINTS_PER_UNIT_AREA;
-            continue;
+            //                score += area * POINTS_PER_UNIT_AREA;
+            return subscore;
         }
 
+        double phi = 1. - std::acos(N.dot(DOWN)) / PI;
+        phi = phi * (phi > 0.5);
 
-        Eigen::Vector3d U = p2 - p1;
-        Eigen::Vector3d V = p3 - p1;
-        Vec3d           N = U.cross(V).normalized();
+        //                    std::cout << "area: " << area << std::endl;
 
-        double phi = std::acos(N.dot(DOWN)) / PI;
+        subscore += area * POINTS_PER_UNIT_AREA * phi;
 
-        std::cout << "area: " << a << std::endl;
+        return subscore;
+    };
 
-        score += a * POINTS_PER_UNIT_AREA * phi;
-//        normals[fi] = N;
-    }
+    double score = ccr_seq::reduce(size_t(0), facesize, 0., score_mergefn,
+                                   std::plus<double>{}, facesize / Nthr);
 
-//    for (size_t vi = 0; vi < mesh.its.vertices.size(); ++vi) {
-//        const std::vector<size_t> &neighbors = vmap[vi];
-
-//        const auto &v = mesh.its.vertices[vi];
-//        Vec3d vt =  tr * v.cast<double>();
-//    }
-
-    return score;
+    return score / mesh.its.indices.size();
 }
 
 std::array<double, 2> find_best_rotation(const ModelObject& modelobj,
@@ -97,7 +107,7 @@ std::array<double, 2> find_best_rotation(const ModelObject& modelobj,
                                          std::function<void(unsigned)> statuscb,
                                          std::function<bool()> stopcond)
 {
-    static const unsigned MAX_TRIES = 1000000;
+    static const unsigned MAX_TRIES = 100;
 
     // return value
     std::array<double, 2> rot;
@@ -126,12 +136,14 @@ std::array<double, 2> find_best_rotation(const ModelObject& modelobj,
     auto objfunc = [&mesh, &status, &statuscb, &stopcond, max_tries]
         (const opt::Input<2> &in)
     {
+        std::cout << "in: " << in[0] << " " << in[1] << std::endl;
+
         // prepare the rotation transformation
         Transform3d rt = Transform3d::Identity();
         rt.rotate(Eigen::AngleAxisd(in[1], Vec3d::UnitY()));
         rt.rotate(Eigen::AngleAxisd(in[0], Vec3d::UnitX()));
 
-        double score = sla::calculate_model_supportedness(mesh, {}, rt);
+        double score = sla::calculate_model_supportedness(mesh, rt);
         std::cout << score << std::endl;
 
         // report status
@@ -142,10 +154,11 @@ std::array<double, 2> find_best_rotation(const ModelObject& modelobj,
 
     // Firing up the genetic optimizer. For now it uses the nlopt library.
 
-    opt::Optimizer<opt::AlgNLoptDIRECT> solver(opt::StopCriteria{}
-                                           .max_iterations(max_tries)
-                                           .rel_score_diff(1e-3)
-                                           .stop_condition(stopcond));
+    opt::Optimizer<opt::AlgBruteForce> solver(opt::StopCriteria{}
+                                                  .max_iterations(max_tries)
+                                                  .rel_score_diff(1e-6)
+                                                  .stop_condition(stopcond),
+                                              10 /*grid size*/);
 
     // We are searching rotations around the three axes x, y, z. Thus the
     // problem becomes a 3 dimensional optimization task.
@@ -153,7 +166,7 @@ std::array<double, 2> find_best_rotation(const ModelObject& modelobj,
     auto b = opt::Bound{-PI, PI};
 
     // Now we start the optimization process with initial angles (0, 0, 0)
-    auto result = solver.to_max().optimize(objfunc, opt::initvals({0.0, 0.0}),
+    auto result = solver.to_min().optimize(objfunc, opt::initvals({0.0, 0.0}),
                                            opt::bounds({b, b}));
 
     // Save the result and fck off

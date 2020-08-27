@@ -215,7 +215,8 @@ add_library(libslic3r STATIC
     SimplifyMeshImpl.hpp
     SimplifyMesh.cpp
     MarchingSquares.hpp
-    Optimizer.hpp
+    Optimize/Optimizer.hpp
+    Optimize/NLoptOptimizer.hpp
     ${OpenVDBUtils_SOURCES}
     SLA/Pad.hpp
     SLA/Pad.cpp

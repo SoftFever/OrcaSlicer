@@ -1,7 +1,7 @@
 #include <libslic3r/SLA/SupportTreeBuildsteps.hpp>
 
 #include <libslic3r/SLA/SpatIndex.hpp>
-#include <libslic3r/Optimizer.hpp>
+#include <libslic3r/Optimize/NLoptOptimizer.hpp>
 #include <boost/log/trivial.hpp>
 
 namespace Slic3r {

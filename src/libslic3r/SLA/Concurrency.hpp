@@ -4,6 +4,7 @@
 #include <tbb/spin_mutex.h>
 #include <tbb/mutex.h>
 #include <tbb/parallel_for.h>
+#include <tbb/parallel_reduce.h>
 #include <algorithm>
 #include <libslic3r/libslic3r.h>
 
@@ -21,28 +22,43 @@ template<> struct _ccr<true>
     using SpinningMutex = tbb::spin_mutex;
     using BlockingMutex = tbb::mutex;
 
+    template<class Fn, class It>
+    static IteratorOnly<It, void> loop_(const tbb::blocked_range<It> &range, Fn &&fn)
+    {
+        for (auto &el : range) fn(el);
+    }
+
+    template<class Fn, class I>
+    static IntegerOnly<I, void> loop_(const tbb::blocked_range<I> &range, Fn &&fn)
+    {
+        for (I i = range.begin(); i < range.end(); ++i) fn(i);
+    }
+
     template<class It, class Fn>
-    static IteratorOnly<It, void> for_each(It     from,
-                                           It     to,
-                                           Fn &&  fn,
-                                           size_t granularity = 1)
+    static void for_each(It from, It to, Fn &&fn, size_t granularity = 1)
     {
         tbb::parallel_for(tbb::blocked_range{from, to, granularity},
                           [&fn, from](const auto &range) {
-            for (auto &el : range) fn(el);
+            loop_(range, std::forward<Fn>(fn));
         });
     }
 
-    template<class I, class Fn>
-    static IntegerOnly<I, void> for_each(I      from,
-                                         I      to,
-                                         Fn &&  fn,
-                                         size_t granularity = 1)
+    template<class I, class Fn, class MergeFn, class T>
+    static T reduce(I         from,
+                    I         to,
+                    const T & init,
+                    Fn &&     fn,
+                    MergeFn &&mergefn,
+                    size_t    granularity = 1)
     {
-        tbb::parallel_for(tbb::blocked_range{from, to, granularity},
-                          [&fn](const auto &range) {
-            for (I i = range.begin(); i < range.end(); ++i) fn(i);
-        });
+        return tbb::parallel_reduce(
+            tbb::blocked_range{from, to, granularity}, init,
+            [&](const auto &range, T subinit) {
+                T acc = subinit;
+                loop_(range, [&](auto &i) { acc = mergefn(acc, fn(i, acc)); });
+                return acc;
+            },
+            std::forward<MergeFn>(mergefn));
     }
 };
 
@@ -55,22 +71,38 @@ public:
     using SpinningMutex = _Mtx;
     using BlockingMutex = _Mtx;
 
-    template<class It, class Fn>
-    static IteratorOnly<It, void> for_each(It   from,
-                                           It   to,
-                                           Fn &&fn,
-                                           size_t /* ignore granularity */ = 1)
+    template<class Fn, class It>
+    static IteratorOnly<It, void> loop_(It from, It to, Fn &&fn)
     {
         for (auto it = from; it != to; ++it) fn(*it);
     }
 
-    template<class I, class Fn>
-    static IntegerOnly<I, void> for_each(I    from,
-                                         I    to,
-                                         Fn &&fn,
-                                         size_t /* ignore granularity */ = 1)
+    template<class Fn, class I>
+    static IntegerOnly<I, void> loop_(I from, I to, Fn &&fn)
     {
         for (I i = from; i < to; ++i) fn(i);
+    }
+
+    template<class It, class Fn>
+    static void for_each(It   from,
+                         It   to,
+                         Fn &&fn,
+                         size_t /* ignore granularity */ = 1)
+    {
+        loop_(from, to, std::forward<Fn>(fn));
+    }
+
+    template<class I, class Fn, class MergeFn, class T>
+    static IntegerOnly<I, T> reduce(I         from,
+                                    I         to,
+                                    const T & init,
+                                    Fn &&     fn,
+                                    MergeFn &&mergefn,
+                                    size_t    /*granularity*/ = 1)
+    {
+        T acc = init;
+        loop_(from, to, [&](auto &i) { acc = mergefn(acc, fn(i, acc)); });
+        return acc;
     }
 };
 
