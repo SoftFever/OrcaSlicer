@@ -977,16 +977,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             buffer_indices.push_back(i3);
         };
 
-        Vec3f dir = (curr.position - prev.position).normalized();
-        Vec3f right = (std::abs(std::abs(dir.dot(Vec3f::UnitZ())) - 1.0f) < EPSILON) ? -Vec3f::UnitY() : Vec3f(dir[1], -dir[0], 0.0f).normalized();
-        Vec3f up = right.cross(dir);
-        float prev_half_width = 0.5f * prev.width;
-        float prev_half_height = 0.5f * prev.height;
-        float curr_half_width = 0.5f * curr.width;
-        float curr_half_height = 0.5f * curr.height;
-        Vec3f prev_pos = Vec3f(prev.position[0], prev.position[1], prev.position[2]) - prev_half_height * up;
-        Vec3f curr_pos = Vec3f(curr.position[0], curr.position[1], curr.position[2]) - curr_half_height * up;
-
         if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
             buffer.add_path(curr, static_cast<unsigned int>(buffer_indices.size()), static_cast<unsigned int>(move_id - 1));
             buffer.paths.back().first.position = prev.position;
@@ -994,17 +984,27 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
         unsigned int starting_vertices_size = static_cast<unsigned int>(buffer_vertices.size() / buffer.vertices.vertex_size_floats());
 
+        Vec3f dir = (curr.position - prev.position).normalized();
+        Vec3f right = (std::abs(std::abs(dir.dot(Vec3f::UnitZ())) - 1.0f) < EPSILON) ? -Vec3f::UnitY() : Vec3f(dir[1], -dir[0], 0.0f).normalized();
+        Vec3f up = right.cross(dir);
+
+        float half_width = 0.5f * round_to_nearest(curr.width, 2);
+        float half_height = 0.5f * round_to_nearest(curr.height, 2);
+
+        Vec3f prev_pos = prev.position - half_height * up;
+        Vec3f curr_pos = curr.position - half_height * up;
+
         // vertices 1st endpoint
-        store_vertex(buffer_vertices, prev_pos + prev_half_height * up, up);       // top
-        store_vertex(buffer_vertices, prev_pos + prev_half_width * right, right);  // right
-        store_vertex(buffer_vertices, prev_pos - prev_half_height * up, -up);      // bottom
-        store_vertex(buffer_vertices, prev_pos - prev_half_width * right, -right); // left
+        store_vertex(buffer_vertices, prev_pos + half_height * up, up);       // top
+        store_vertex(buffer_vertices, prev_pos + half_width * right, right);  // right
+        store_vertex(buffer_vertices, prev_pos - half_height * up, -up);      // bottom
+        store_vertex(buffer_vertices, prev_pos - half_width * right, -right); // left
 
         // vertices 2nd endpoint
-        store_vertex(buffer_vertices, curr_pos + curr_half_height * up, up);       // top
-        store_vertex(buffer_vertices, curr_pos + curr_half_width * right, right);  // right
-        store_vertex(buffer_vertices, curr_pos - curr_half_height * up, -up);      // bottom
-        store_vertex(buffer_vertices, curr_pos - curr_half_width * right, -right); // left
+        store_vertex(buffer_vertices, curr_pos + half_height * up, up);       // top
+        store_vertex(buffer_vertices, curr_pos + half_width * right, right);  // right
+        store_vertex(buffer_vertices, curr_pos - half_height * up, -up);      // bottom
+        store_vertex(buffer_vertices, curr_pos - half_width * right, -right); // left
 
         // triangles starting cap
         store_triangle(buffer_indices, starting_vertices_size + 0, starting_vertices_size + 2, starting_vertices_size + 1);
@@ -1104,8 +1104,21 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     for (const TBuffer& buffer : m_buffers) {
         m_statistics.paths_size += SLIC3R_STDVEC_MEMSIZE(buffer.paths, Path);
     }
-    m_statistics.travel_segments_count = indices[buffer_id(EMoveType::Travel)].size() / 2;
-    m_statistics.extrude_segments_count = indices[buffer_id(EMoveType::Extrude)].size() / 2;
+    unsigned int travel_buffer_id = buffer_id(EMoveType::Travel);
+    switch (m_buffers[travel_buffer_id].primitive_type)
+    {
+    case TBuffer::EPrimitiveType::Line:     { m_statistics.travel_segments_count = indices[travel_buffer_id].size() / 2; break; }
+    case TBuffer::EPrimitiveType::Triangle: { m_statistics.travel_segments_count = indices[travel_buffer_id].size() / 36; break; }
+    default: { break; }
+    }
+
+    unsigned int extrude_buffer_id = buffer_id(EMoveType::Extrude);
+    switch (m_buffers[extrude_buffer_id].primitive_type)
+    {
+    case TBuffer::EPrimitiveType::Line:     { m_statistics.extrude_segments_count = indices[extrude_buffer_id].size() / 2; break; }
+    case TBuffer::EPrimitiveType::Triangle: { m_statistics.extrude_segments_count = indices[extrude_buffer_id].size() / 36; break; }
+    default: { break; }
+    }
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     // layers zs / roles / extruder ids / cp color ids -> extract from result
@@ -2583,17 +2596,17 @@ void GCodeViewer::render_statistics() const
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.vertices_gpu_size) + " bytes");
 
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Vertices GPU:"));
+    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Indices GPU:"));
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.indices_gpu_size) + " bytes");
 
     ImGui::Separator();
 
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Vertices GPU:"));
+    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Travel segments count:"));
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.travel_segments_count));
 
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Extrude segments:"));
+    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Extrude segments count:"));
     ImGui::SameLine(offset);
     imgui.text(std::to_string(m_statistics.extrude_segments_count));
 
