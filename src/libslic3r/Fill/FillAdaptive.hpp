@@ -23,12 +23,12 @@ namespace FillAdaptive_Internal
         Vec3d center;
         size_t depth;
         CubeProperties properties;
-        std::vector<Cube*> children;
+        std::vector<std::unique_ptr<Cube>> children;
     };
 
     struct Octree
     {
-        Cube *root_cube;
+        std::unique_ptr<Cube> root_cube;
         Vec3d origin;
     };
 }; // namespace FillAdaptive_Internal
@@ -59,7 +59,7 @@ protected:
     void merge_polylines(Polylines &polylines, const Line &new_line);
 
 public:
-    static FillAdaptive_Internal::Octree* build_octree(
+    static std::unique_ptr<FillAdaptive_Internal::Octree> build_octree(
             TriangleMesh &triangleMesh,
             coordf_t line_spacing,
             const BoundingBoxf3 &printer_volume,

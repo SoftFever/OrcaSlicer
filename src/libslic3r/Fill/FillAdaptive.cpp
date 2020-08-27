@@ -16,7 +16,7 @@ void FillAdaptive::_fill_surface_single(
     Polylines                       &polylines_out)
 {
     std::vector<Polylines> infill_polylines(3);
-    this->generate_polylines(this->adapt_fill_octree->root_cube, this->z, this->adapt_fill_octree->origin, infill_polylines);
+    this->generate_polylines(this->adapt_fill_octree->root_cube.get(), this->z, this->adapt_fill_octree->origin, infill_polylines);
 
     for (Polylines &infill_polyline : infill_polylines) {
         // Crop all polylines
@@ -106,9 +106,9 @@ void FillAdaptive::generate_polylines(
         }
     }
 
-    for(Cube *child : cube->children)
+    for(const std::unique_ptr<Cube> &child : cube->children)
     {
-        generate_polylines(child, z_position, origin, polylines_out);
+        generate_polylines(child.get(), z_position, origin, polylines_out);
     }
 }
 
@@ -141,7 +141,7 @@ void FillAdaptive::merge_polylines(Polylines &polylines, const Line &new_line)
 }
 
 
-FillAdaptive_Internal::Octree* FillAdaptive::build_octree(
+std::unique_ptr<FillAdaptive_Internal::Octree> FillAdaptive::build_octree(
     TriangleMesh &triangleMesh,
     coordf_t line_spacing,
     const BoundingBoxf3 &printer_volume,
@@ -181,9 +181,10 @@ FillAdaptive_Internal::Octree* FillAdaptive::build_octree(
     Transform3d rotation_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation, Vec3d::Ones(), Vec3d::Ones());
 
     AABBTreeIndirect::Tree3f aabbTree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(triangleMesh.its.vertices, triangleMesh.its.indices);
-    Octree *octree = new Octree{new Cube{cube_center, cubes_properties.size() - 1, cubes_properties.back()}, cube_center};
+    std::unique_ptr<Octree> octree = std::unique_ptr<Octree>(
+            new Octree{std::unique_ptr<Cube>(new Cube{cube_center, cubes_properties.size() - 1, cubes_properties.back()}), cube_center});
 
-    FillAdaptive::expand_cube(octree->root_cube, cubes_properties, rotation_matrix, aabbTree, triangleMesh);
+    FillAdaptive::expand_cube(octree->root_cube.get(), cubes_properties, rotation_matrix, aabbTree, triangleMesh);
 
     return octree;
 }
@@ -213,8 +214,8 @@ void FillAdaptive::expand_cube(
         Vec3d child_center_transformed = cube->center + rotation_matrix * (child_center * (cube->properties.edge_length / 4));
 
         if(AABBTreeIndirect::is_any_triangle_in_radius(triangleMesh.its.vertices, triangleMesh.its.indices, distanceTree, child_center_transformed, cube_radius_squared)) {
-            cube->children.push_back(new Cube{child_center_transformed, cube->depth - 1, cubes_properties[cube->depth - 1]});
-            FillAdaptive::expand_cube(cube->children.back(), cubes_properties, rotation_matrix, distanceTree, triangleMesh);
+            cube->children.push_back(std::unique_ptr<Cube>(new Cube{child_center_transformed, cube->depth - 1, cubes_properties[cube->depth - 1]}));
+            FillAdaptive::expand_cube(cube->children.back().get(), cubes_properties, rotation_matrix, distanceTree, triangleMesh);
         }
     }
 }
