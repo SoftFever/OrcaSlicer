@@ -88,7 +88,7 @@ void FillAdaptive::generate_polylines(
 
         float rotation_angle = Geometry::deg2rad(120.0);
 
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < polylines_out.size(); i++)
         {
             Vec3d offset = cube->center - origin;
             Point from_abs(from), to_abs(to);
@@ -177,7 +177,7 @@ std::unique_ptr<FillAdaptive_Internal::Octree> FillAdaptive::build_octree(
         triangleMesh.require_shared_vertices();
     }
 
-    Vec3d rotation = Vec3d(Geometry::deg2rad(225.0), Geometry::deg2rad(215.0), Geometry::deg2rad(30.0));
+    Vec3d rotation = Vec3d(Geometry::deg2rad(225.0), Geometry::deg2rad(215.264), Geometry::deg2rad(30.0));
     Transform3d rotation_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation, Vec3d::Ones(), Vec3d::Ones());
 
     AABBTreeIndirect::Tree3f aabbTree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(triangleMesh.its.vertices, triangleMesh.its.indices);
