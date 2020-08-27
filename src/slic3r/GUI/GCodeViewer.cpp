@@ -504,9 +504,6 @@ void GCodeViewer::render() const
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-#if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
-    render_shaders_editor();
-#endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
 }
 
 bool GCodeViewer::is_toolpath_move_type_visible(EMoveType type) const
@@ -1385,18 +1382,8 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
 void GCodeViewer::render_toolpaths() const
 {
-#if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
-    float point_size = m_shaders_editor.points.point_size;
-    std::array<float, 4> light_intensity = {
-        m_shaders_editor.lines.lights.ambient,
-        m_shaders_editor.lines.lights.top_diffuse,
-        m_shaders_editor.lines.lights.front_diffuse,
-        m_shaders_editor.lines.lights.global
-    };
-#else
     float point_size = 0.8f;
-    std::array<float, 4> light_intensity = { 0.25f, 0.7f, 0.75f, 0.75f };
-#endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
+    std::array<float, 4> light_intensity = { 0.25f, 0.70f, 0.75f, 0.75f };
     const Camera& camera = wxGetApp().plater()->get_camera();
     double zoom = camera.get_zoom();
     const std::array<int, 4>& viewport = camera.get_viewport();
@@ -1411,13 +1398,8 @@ void GCodeViewer::render_toolpaths() const
     auto render_as_points = [this, zoom, point_size, near_plane_height, set_uniform_color](const TBuffer& buffer, EOptionsColors color_id, GLShaderProgram& shader) {
         set_uniform_color(Options_Colors[static_cast<unsigned int>(color_id)], shader);
         shader.set_uniform("zoom", zoom);
-#if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
-        shader.set_uniform("percent_outline_radius", 0.01f * static_cast<float>(m_shaders_editor.points.percent_outline));
-        shader.set_uniform("percent_center_radius", 0.01f * static_cast<float>(m_shaders_editor.points.percent_center));
-#else
         shader.set_uniform("percent_outline_radius", 0.0f);
         shader.set_uniform("percent_center_radius", 0.33f);
-#endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
         shader.set_uniform("point_size", point_size);
         shader.set_uniform("near_plane_height", near_plane_height);
 
@@ -1597,21 +1579,6 @@ void GCodeViewer::render_legend() const
         }
         case EItemType::Circle:
         {
-#if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
-            ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
-            if (m_shaders_editor.points.shader_version == 1) {
-                draw_list->AddCircleFilled(center, 0.5f * icon_size,
-                    ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
-                float radius = 0.5f * icon_size * (1.0f - 0.01f * static_cast<float>(m_shaders_editor.points.percent_outline));
-                draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
-                if (m_shaders_editor.points.percent_center > 0) {
-                    radius = 0.5f * icon_size * 0.01f * static_cast<float>(m_shaders_editor.points.percent_center);
-                    draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
-                }
-            }
-            else
-                draw_list->AddCircleFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
-#else
             ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
             if (m_buffers[buffer_id(EMoveType::Retract)].shader == "options_120") {
                 draw_list->AddCircleFilled(center, 0.5f * icon_size,
@@ -1623,7 +1590,6 @@ void GCodeViewer::render_legend() const
             }
             else
                 draw_list->AddCircleFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
-#endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
 
             break;
         }
@@ -2175,11 +2141,7 @@ void GCodeViewer::render_legend() const
     auto add_option = [this, append_item](EMoveType move_type, EOptionsColors color, const std::string& text) {
         const TBuffer& buffer = m_buffers[buffer_id(move_type)];
         if (buffer.visible && buffer.indices.count > 0)
-#if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
-            append_item((m_shaders_editor.points.shader_version == 0) ? EItemType::Rect : EItemType::Circle, Options_Colors[static_cast<unsigned int>(color)], text);
-#else
             append_item((buffer.shader == "options_110") ? EItemType::Rect : EItemType::Circle, Options_Colors[static_cast<unsigned int>(color)], text);
-#endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
     };
 
     // options section
@@ -2651,68 +2613,6 @@ void GCodeViewer::render_statistics() const
     imgui.end();
 }
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-
-#if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
-void GCodeViewer::render_shaders_editor() const
-{
-    auto set_shader = [this](const std::string& shader) {
-        unsigned char begin_id = buffer_id(EMoveType::Retract);
-        unsigned char end_id = buffer_id(EMoveType::Custom_GCode);
-        for (unsigned char i = begin_id; i <= end_id; ++i) {
-            m_buffers[i].shader = shader;
-        }
-    };
-
-    ImGuiWrapper& imgui = *wxGetApp().imgui();
-
-    Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
-    imgui.set_next_window_pos(static_cast<float>(cnv_size.get_width()), 0.5f * static_cast<float>(cnv_size.get_height()), ImGuiCond_Once, 1.0f, 0.5f);
-
-    imgui.begin(std::string("Shaders editor (DEV only)"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
-
-    if (ImGui::CollapsingHeader("Points", ImGuiTreeNodeFlags_DefaultOpen)) {
-        if (ImGui::TreeNode("GLSL version")) {
-            ImGui::RadioButton("1.10 (low end PCs)", &m_shaders_editor.points.shader_version, 0);
-            ImGui::RadioButton("1.20 flat (billboards) [default]", &m_shaders_editor.points.shader_version, 1);
-            ImGui::TreePop();
-        }
-
-        switch (m_shaders_editor.points.shader_version)
-        {
-        case 0: { set_shader("options_110"); break; }
-        case 1: { set_shader("options_120"); break; }
-        }
-
-        if (ImGui::TreeNode("Options")) {
-            ImGui::SliderFloat("point size", &m_shaders_editor.points.point_size, 0.5f, 3.0f, "%.2f");
-            if (m_shaders_editor.points.shader_version == 1) {
-                ImGui::SliderInt("% outline", &m_shaders_editor.points.percent_outline, 0, 50);
-                ImGui::SliderInt("% center", &m_shaders_editor.points.percent_center, 0, 50);
-            }
-            ImGui::TreePop();
-        }
-    }
-
-    if (ImGui::CollapsingHeader("Lines", ImGuiTreeNodeFlags_DefaultOpen)) {
-        if (ImGui::TreeNode("Lights")) {
-            ImGui::SliderFloat("ambient", &m_shaders_editor.lines.lights.ambient, 0.0f, 1.0f, "%.2f");
-            ImGui::SliderFloat("top diffuse", &m_shaders_editor.lines.lights.top_diffuse, 0.0f, 1.0f, "%.2f");
-            ImGui::SliderFloat("front diffuse", &m_shaders_editor.lines.lights.front_diffuse, 0.0f, 1.0f, "%.2f");
-            ImGui::SliderFloat("global", &m_shaders_editor.lines.lights.global, 0.0f, 1.0f, "%.2f");
-            ImGui::TreePop();
-        }
-    }
-
-    ImGui::SetWindowSize(ImVec2(std::max(ImGui::GetWindowWidth(), 600.0f), -1.0f), ImGuiCond_Always);
-    if (ImGui::GetWindowPos().x + ImGui::GetWindowWidth() > static_cast<float>(cnv_size.get_width())) {
-        ImGui::SetWindowPos(ImVec2(static_cast<float>(cnv_size.get_width()) - ImGui::GetWindowWidth(), ImGui::GetWindowPos().y), ImGuiCond_Always);
-        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
-    }
-
-    imgui.end();
-}
-#endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
 
 bool GCodeViewer::is_travel_in_z_range(size_t id) const
 {

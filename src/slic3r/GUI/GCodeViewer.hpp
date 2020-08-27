@@ -289,35 +289,6 @@ class GCodeViewer
     };
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
-#if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
-    struct ShadersEditor
-    {
-        struct Points
-        {
-            int shader_version{ 1 };
-            float point_size{ 0.8f };
-            int percent_outline{ 0 };
-            int percent_center{ 33 };
-        };
-
-        struct Lines
-        {
-            struct Lights
-            {
-                float ambient{ 0.25f };
-                float top_diffuse{ 0.7f };
-                float front_diffuse{ 0.75f };
-                float global{ 0.75f };
-            };
-
-            Lights lights;
-        };
-
-        Points points;
-        Lines lines;
-    };
-#endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
-
 public:
     struct SequentialView
     {
@@ -402,9 +373,6 @@ private:
 #if ENABLE_GCODE_VIEWER_STATISTICS
     mutable Statistics m_statistics;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-#if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
-    mutable ShadersEditor m_shaders_editor;
-#endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
     std::array<float, 2> m_detected_point_sizes = { 0.0f, 0.0f };
 
 public:
@@ -475,9 +443,6 @@ private:
 #if ENABLE_GCODE_VIEWER_STATISTICS
     void render_statistics() const;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-#if ENABLE_GCODE_VIEWER_SHADERS_EDITOR
-    void render_shaders_editor() const;
-#endif // ENABLE_GCODE_VIEWER_SHADERS_EDITOR
     bool is_visible(ExtrusionRole role) const {
         return role < erCount && (m_extrusions.role_visibility_flags & (1 << role)) != 0;
     }

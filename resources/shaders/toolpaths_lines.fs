@@ -8,10 +8,7 @@ const vec3 LIGHT_FRONT_DIR = vec3(0.0, 0.0, 1.0);
 uniform vec4 light_intensity;
 uniform vec4 uniform_color;
 
-varying vec3 eye_position;
 varying vec3 eye_normal;
-
-float intensity;
 
 void main()
 {
@@ -21,7 +18,7 @@ void main()
     // Since these two are normalized the cosine is the dot product. Take the abs value to light the lines no matter in which direction the normal points.
     float NdotL = abs(dot(normal, LIGHT_TOP_DIR));
 
-    intensity = light_intensity.x + NdotL * light_intensity.y;
+    float intensity = light_intensity.x + NdotL * light_intensity.y;
 
     // Perform the same lighting calculation for the 2nd light source.
     NdotL = abs(dot(normal, LIGHT_FRONT_DIR));

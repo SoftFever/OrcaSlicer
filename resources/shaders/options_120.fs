@@ -5,8 +5,7 @@ uniform vec4 uniform_color;
 uniform float percent_outline_radius;
 uniform float percent_center_radius;
 
-
-vec4 customizable_color(float radius, vec4 color)
+vec4 calc_color(float radius, vec4 color)
 {
     return ((radius < percent_center_radius) || (radius > 1.0 - percent_outline_radius)) ?
             vec4(0.5 * color.rgb, color.a) : color;
@@ -19,5 +18,5 @@ void main()
     if (radius > 1.0)
         discard;
 
-    gl_FragColor = customizable_color(radius, uniform_color);
+    gl_FragColor = calc_color(radius, uniform_color);
 }
