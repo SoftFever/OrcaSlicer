@@ -11,6 +11,7 @@
 #include "GCode/ToolOrdering.hpp"
 #include "GCode/WipeTower.hpp"
 #include "GCode/ThumbnailData.hpp"
+#include "Fill/FillAdaptive.hpp"
 
 #include "libslic3r.h"
 
@@ -25,9 +26,6 @@ enum class SlicingMode : uint32_t;
 class Layer;
 class SupportLayer;
 
-namespace FillAdaptive_Internal {
-    struct Octree;
-};
 
 // Print step IDs for keeping track of the print state.
 enum PrintStep {
@@ -195,7 +193,7 @@ public:
     void project_and_append_custom_enforcers(std::vector<ExPolygons>& enforcers) const { project_and_append_custom_supports(FacetSupportType::ENFORCER, enforcers); }
     void project_and_append_custom_blockers(std::vector<ExPolygons>& blockers) const { project_and_append_custom_supports(FacetSupportType::BLOCKER, blockers); }
 
-    FillAdaptive_Internal::Octree* adaptiveInfillOctree() { return m_adapt_fill_octree; }
+    FillAdaptive_Internal::Octree* adaptiveInfillOctree() { return m_adapt_fill_octree.get(); }
 private:
     // to be called from Print only.
     friend class Print;
@@ -258,7 +256,7 @@ private:
     // so that next call to make_perimeters() performs a union() before computing loops
     bool                    				m_typed_slices = false;
 
-    FillAdaptive_Internal::Octree*          m_adapt_fill_octree = nullptr;
+    std::unique_ptr<FillAdaptive_Internal::Octree>  m_adapt_fill_octree = nullptr;
 
     std::vector<ExPolygons> slice_region(size_t region_id, const std::vector<float> &z, SlicingMode mode) const;
     std::vector<ExPolygons> slice_modifiers(size_t region_id, const std::vector<float> &z) const;
