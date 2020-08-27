@@ -13,7 +13,6 @@
 #include <wx/debug.h>
 
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/process/spawn.hpp>
 
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Polygon.hpp"
@@ -40,6 +39,12 @@
 #include <dbt.h>
 #include <shlobj.h>
 #endif // _WIN32
+
+// For starting another PrusaSlicer instance on OSX.
+// Fails to compile on Windows on the build server.
+#ifdef __APPLE__
+    #include <boost/process/spawn.hpp>
+#endif
 
 namespace Slic3r {
 namespace GUI {
