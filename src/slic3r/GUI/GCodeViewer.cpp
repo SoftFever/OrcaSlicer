@@ -303,13 +303,8 @@ bool GCodeViewer::init()
         }
         case EMoveType::Extrude:
         {
-#if ENABLE_GCODE_RENDER_EXTRUSION_AS_TRIANGLES
             buffer.primitive_type = TBuffer::EPrimitiveType::Triangle;
             buffer.vertices.format = VBuffer::EFormat::PositionNormal3;
-#else
-            buffer.primitive_type = TBuffer::EPrimitiveType::Line;
-            buffer.vertices.format = VBuffer::EFormat::PositionNormal1;
-#endif // ENABLE_GCODE_RENDER_EXTRUSION_AS_TRIANGLES
             break;
         }
         case EMoveType::Travel:
@@ -873,11 +868,7 @@ void GCodeViewer::init_shaders()
         case EMoveType::Custom_GCode: { m_buffers[i].shader = is_glsl_120 ? "options_120" : "options_110"; break; }
         case EMoveType::Retract:      { m_buffers[i].shader = is_glsl_120 ? "options_120" : "options_110"; break; }
         case EMoveType::Unretract:    { m_buffers[i].shader = is_glsl_120 ? "options_120" : "options_110"; break; }
-#if ENABLE_GCODE_RENDER_EXTRUSION_AS_TRIANGLES
         case EMoveType::Extrude:      { m_buffers[i].shader = "gouraud_light"; break; }
-#else
-        case EMoveType::Extrude:      { m_buffers[i].shader = "toolpaths_lines"; break; }
-#endif // ENABLE_GCODE_RENDER_EXTRUSION_AS_TRIANGLES
         case EMoveType::Travel:       { m_buffers[i].shader = "toolpaths_lines"; break; }
         default: { break; }
         }
@@ -1064,15 +1055,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             add_as_point(curr, buffer, buffer_vertices, buffer_indices, i);
             break;
         }
-#if ENABLE_GCODE_RENDER_EXTRUSION_AS_TRIANGLES
         case EMoveType::Extrude:
         {
             add_as_solid(prev, curr, buffer, buffer_vertices, buffer_indices, i);
             break;
         }
-#else
-        case EMoveType::Extrude:
-#endif // ENABLE_GCODE_RENDER_EXTRUSION_AS_TRIANGLES
         case EMoveType::Travel:
         {
             add_as_line(prev, curr, buffer, buffer_vertices, buffer_indices, i);
