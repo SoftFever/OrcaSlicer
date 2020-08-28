@@ -93,6 +93,28 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     // Font is already set in DPIFrame constructor
 */
 
+#if ENABLE_GCODE_VIEWER_TASKBAR_ICON
+    if (wxTaskBarIcon::IsAvailable()) {
+#if defined(__WXOSX__) && wxOSX_USE_COCOA
+        m_taskbar_icon = new wxTaskBarIcon(wxTBI_DOCK);
+#else
+        m_taskbar_icon = new wxTaskBarIcon();
+#endif
+        m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG), "PrusaSlicer");
+
+        m_taskbar_icon->Bind(wxEVT_TASKBAR_CLICK, [this](wxTaskBarIconEvent& evt) {
+            wxString msg = _L("You pressed the icon in taskbar for ") + "\n";
+            if (m_mode == EMode::Editor)
+                msg += wxString(SLIC3R_APP_NAME);
+            else
+                msg += wxString(SLIC3R_APP_NAME) + "-GCode viewer";
+
+            wxMessageDialog dialog(nullptr, msg, _("Taskbar icon clicked"), wxOK);
+            dialog.ShowModal();
+            });
+    }
+#endif // ENABLE_GCODE_VIEWER_TASKBAR_ICON
+
     SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
 //    // Load the icon either from the exe, or from the ico file.
 //#if _WIN32
@@ -254,6 +276,14 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
         m_plater->show_action_buttons(true);
     }
 }
+
+#if ENABLE_GCODE_VIEWER_TASKBAR_ICON
+MainFrame::~MainFrame()
+{
+    if (m_taskbar_icon != nullptr)
+        delete m_taskbar_icon;
+}
+#endif // ENABLE_GCODE_VIEWER_TASKBAR_ICON
 
 void MainFrame::update_layout()
 {
@@ -1388,6 +1418,10 @@ void MainFrame::set_mode(EMode mode)
         m_plater->Thaw();
 
         SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
+#if ENABLE_GCODE_VIEWER_TASKBAR_ICON
+        if (m_taskbar_icon  != nullptr)
+            m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG), "PrusaSlicer");
+#endif // ENABLE_GCODE_VIEWER_TASKBAR_ICON
 
         break;
     }
@@ -1435,6 +1469,10 @@ void MainFrame::set_mode(EMode mode)
         m_plater->Thaw();
 
         SetIcon(wxIcon(Slic3r::var("PrusaSlicerGCodeViewer_128px.png"), wxBITMAP_TYPE_PNG));
+#if ENABLE_GCODE_VIEWER_TASKBAR_ICON
+        if (m_taskbar_icon != nullptr)
+            m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG), "PrusaSlicer-GCode viewer");
+#endif // ENABLE_GCODE_VIEWER_TASKBAR_ICON
 
         break;
     }

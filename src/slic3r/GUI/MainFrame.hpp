@@ -7,6 +7,9 @@
 #include <wx/settings.h>
 #include <wx/string.h>
 #include <wx/filehistory.h>
+#if ENABLE_GCODE_VIEWER_TASKBAR_ICON
+#include <wx/taskbar.h>
+#endif // ENABLE_GCODE_VIEWER_TASKBAR_ICON
 
 #include <string>
 #include <map>
@@ -160,7 +163,11 @@ protected:
 
 public:
     MainFrame();
+#if ENABLE_GCODE_VIEWER_TASKBAR_ICON
+    ~MainFrame();
+#else
     ~MainFrame() = default;
+#endif // ENABLE_GCODE_VIEWER_TASKBAR_ICON
 
     void update_layout();
 
@@ -218,6 +225,10 @@ public:
     wxWindow*           m_plater_page{ nullptr };
     wxProgressDialog*   m_progress_dialog { nullptr };
     std::shared_ptr<ProgressStatusBar>  m_statusbar;
+
+#if ENABLE_GCODE_VIEWER_TASKBAR_ICON
+    wxTaskBarIcon* m_taskbar_icon{ nullptr };
+#endif // ENABLE_GCODE_VIEWER_TASKBAR_ICON
 
 #ifdef _WIN32
     void*				m_hDeviceNotify { nullptr };
