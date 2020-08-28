@@ -280,8 +280,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 #if ENABLE_GCODE_VIEWER_TASKBAR_ICON
 MainFrame::~MainFrame()
 {
-    if (m_taskbar_icon != nullptr)
-        delete m_taskbar_icon;
+    delete m_taskbar_icon;
 }
 #endif // ENABLE_GCODE_VIEWER_TASKBAR_ICON
 
@@ -1419,8 +1418,10 @@ void MainFrame::set_mode(EMode mode)
 
         SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
 #if ENABLE_GCODE_VIEWER_TASKBAR_ICON
-        if (m_taskbar_icon  != nullptr)
+        if (m_taskbar_icon != nullptr) {
+            m_taskbar_icon->RemoveIcon();
             m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG), "PrusaSlicer");
+        }
 #endif // ENABLE_GCODE_VIEWER_TASKBAR_ICON
 
         break;
@@ -1470,8 +1471,10 @@ void MainFrame::set_mode(EMode mode)
 
         SetIcon(wxIcon(Slic3r::var("PrusaSlicerGCodeViewer_128px.png"), wxBITMAP_TYPE_PNG));
 #if ENABLE_GCODE_VIEWER_TASKBAR_ICON
-        if (m_taskbar_icon != nullptr)
+        if (m_taskbar_icon != nullptr) {
+            m_taskbar_icon->RemoveIcon();
             m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG), "PrusaSlicer-GCode viewer");
+        }
 #endif // ENABLE_GCODE_VIEWER_TASKBAR_ICON
 
         break;
