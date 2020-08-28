@@ -994,37 +994,69 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         Vec3f prev_pos = prev.position - half_height * up;
         Vec3f curr_pos = curr.position - half_height * up;
 
-        // vertices 1st endpoint
-        store_vertex(buffer_vertices, prev_pos + half_height * up, up);       // top
-        store_vertex(buffer_vertices, prev_pos + half_width * right, right);  // right
-        store_vertex(buffer_vertices, prev_pos - half_height * up, -up);      // bottom
-        store_vertex(buffer_vertices, prev_pos - half_width * right, -right); // left
+        Path& last_path = buffer.paths.back();
+        if (last_path.vertices_count() == 1) {
+            // vertices 1st endpoint
+            store_vertex(buffer_vertices, prev_pos + half_height * up, up);       // top
+            store_vertex(buffer_vertices, prev_pos + half_width * right, right);  // right
+            store_vertex(buffer_vertices, prev_pos - half_height * up, -up);      // bottom
+            store_vertex(buffer_vertices, prev_pos - half_width * right, -right); // left
 
-        // vertices 2nd endpoint
-        store_vertex(buffer_vertices, curr_pos + half_height * up, up);       // top
-        store_vertex(buffer_vertices, curr_pos + half_width * right, right);  // right
-        store_vertex(buffer_vertices, curr_pos - half_height * up, -up);      // bottom
-        store_vertex(buffer_vertices, curr_pos - half_width * right, -right); // left
+            // vertices 2nd endpoint
+            store_vertex(buffer_vertices, curr_pos + half_height * up, up);       // top
+            store_vertex(buffer_vertices, curr_pos + half_width * right, right);  // right
+            store_vertex(buffer_vertices, curr_pos - half_height * up, -up);      // bottom
+            store_vertex(buffer_vertices, curr_pos - half_width * right, -right); // left
 
-        // triangles starting cap
-        store_triangle(buffer_indices, starting_vertices_size + 0, starting_vertices_size + 2, starting_vertices_size + 1);
-        store_triangle(buffer_indices, starting_vertices_size + 0, starting_vertices_size + 3, starting_vertices_size + 2);
+            // triangles starting cap
+            store_triangle(buffer_indices, starting_vertices_size + 0, starting_vertices_size + 2, starting_vertices_size + 1);
+            store_triangle(buffer_indices, starting_vertices_size + 0, starting_vertices_size + 3, starting_vertices_size + 2);
 
-        // triangles sides
-        store_triangle(buffer_indices, starting_vertices_size + 0, starting_vertices_size + 1, starting_vertices_size + 4);
-        store_triangle(buffer_indices, starting_vertices_size + 1, starting_vertices_size + 5, starting_vertices_size + 4);
-        store_triangle(buffer_indices, starting_vertices_size + 1, starting_vertices_size + 2, starting_vertices_size + 5);
-        store_triangle(buffer_indices, starting_vertices_size + 2, starting_vertices_size + 6, starting_vertices_size + 5);
-        store_triangle(buffer_indices, starting_vertices_size + 2, starting_vertices_size + 3, starting_vertices_size + 6);
-        store_triangle(buffer_indices, starting_vertices_size + 3, starting_vertices_size + 7, starting_vertices_size + 6);
-        store_triangle(buffer_indices, starting_vertices_size + 3, starting_vertices_size + 0, starting_vertices_size + 7);
-        store_triangle(buffer_indices, starting_vertices_size + 0, starting_vertices_size + 4, starting_vertices_size + 7);
+            // triangles sides
+            store_triangle(buffer_indices, starting_vertices_size + 0, starting_vertices_size + 1, starting_vertices_size + 4);
+            store_triangle(buffer_indices, starting_vertices_size + 1, starting_vertices_size + 5, starting_vertices_size + 4);
+            store_triangle(buffer_indices, starting_vertices_size + 1, starting_vertices_size + 2, starting_vertices_size + 5);
+            store_triangle(buffer_indices, starting_vertices_size + 2, starting_vertices_size + 6, starting_vertices_size + 5);
+            store_triangle(buffer_indices, starting_vertices_size + 2, starting_vertices_size + 3, starting_vertices_size + 6);
+            store_triangle(buffer_indices, starting_vertices_size + 3, starting_vertices_size + 7, starting_vertices_size + 6);
+            store_triangle(buffer_indices, starting_vertices_size + 3, starting_vertices_size + 0, starting_vertices_size + 7);
+            store_triangle(buffer_indices, starting_vertices_size + 0, starting_vertices_size + 4, starting_vertices_size + 7);
 
-        // triangles ending cap
-        store_triangle(buffer_indices, starting_vertices_size + 4, starting_vertices_size + 6, starting_vertices_size + 7);
-        store_triangle(buffer_indices, starting_vertices_size + 4, starting_vertices_size + 5, starting_vertices_size + 6);
+            // triangles ending cap
+            store_triangle(buffer_indices, starting_vertices_size + 4, starting_vertices_size + 6, starting_vertices_size + 7);
+            store_triangle(buffer_indices, starting_vertices_size + 4, starting_vertices_size + 5, starting_vertices_size + 6);
+        }
+        else {
+            // vertices 1st endpoint
+            store_vertex(buffer_vertices, prev_pos + half_width * right, right);  // right
+            store_vertex(buffer_vertices, prev_pos - half_width * right, -right); // left
 
-        buffer.paths.back().last = { static_cast<unsigned int>(buffer_indices.size() - 1), static_cast<unsigned int>(move_id), curr.position };
+            // vertices 2nd endpoint
+            store_vertex(buffer_vertices, curr_pos + half_height * up, up);       // top
+            store_vertex(buffer_vertices, curr_pos + half_width * right, right);  // right
+            store_vertex(buffer_vertices, curr_pos - half_height * up, -up);      // bottom
+            store_vertex(buffer_vertices, curr_pos - half_width * right, -right); // left
+
+            // triangles starting cap
+            store_triangle(buffer_indices, starting_vertices_size - 4, starting_vertices_size - 2, starting_vertices_size + 0);
+            store_triangle(buffer_indices, starting_vertices_size - 4, starting_vertices_size + 1, starting_vertices_size - 2);
+
+            // triangles sides
+            store_triangle(buffer_indices, starting_vertices_size - 4, starting_vertices_size + 0, starting_vertices_size + 2);
+            store_triangle(buffer_indices, starting_vertices_size + 0, starting_vertices_size + 3, starting_vertices_size + 2);
+            store_triangle(buffer_indices, starting_vertices_size + 0, starting_vertices_size - 2, starting_vertices_size + 3);
+            store_triangle(buffer_indices, starting_vertices_size - 2, starting_vertices_size + 4, starting_vertices_size + 3);
+            store_triangle(buffer_indices, starting_vertices_size - 2, starting_vertices_size + 1, starting_vertices_size + 4);
+            store_triangle(buffer_indices, starting_vertices_size + 1, starting_vertices_size + 5, starting_vertices_size + 4);
+            store_triangle(buffer_indices, starting_vertices_size + 1, starting_vertices_size - 4, starting_vertices_size + 5);
+            store_triangle(buffer_indices, starting_vertices_size - 4, starting_vertices_size + 2, starting_vertices_size + 5);
+
+            // triangles ending cap
+            store_triangle(buffer_indices, starting_vertices_size + 2, starting_vertices_size + 4, starting_vertices_size + 5);
+            store_triangle(buffer_indices, starting_vertices_size + 2, starting_vertices_size + 3, starting_vertices_size + 4);
+        }
+
+        last_path.last = { static_cast<unsigned int>(buffer_indices.size() - 1), static_cast<unsigned int>(move_id), curr.position };
     };
 
     // toolpaths data -> extract from result
@@ -1299,7 +1331,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
     for (const TBuffer& buffer : m_buffers) {
         // searches the path containing the current position
         for (const Path& path : buffer.paths) {
-            if (path.first.s_id <= m_sequential_view.current.last && m_sequential_view.current.last <= path.last.s_id) {
+            if (path.contains(m_sequential_view.current.last)) {
                 unsigned int offset = m_sequential_view.current.last - path.first.s_id;
                 if (offset > 0) {
                     if (buffer.primitive_type == TBuffer::EPrimitiveType::Line)

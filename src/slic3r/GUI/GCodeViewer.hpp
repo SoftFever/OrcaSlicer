@@ -133,6 +133,8 @@ class GCodeViewer
         unsigned char cp_color_id{ 0 };
 
         bool matches(const GCodeProcessor::MoveVertex& move) const;
+        size_t vertices_count() const { return last.s_id - first.s_id + 1; }
+        bool contains(unsigned int id) const { return first.s_id <= id && id <= last.s_id; }
     };
 
     // Used to batch the indices needed to render paths
