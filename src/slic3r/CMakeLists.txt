@@ -193,8 +193,6 @@ set(SLIC3R_GUI_SOURCES
     Utils/HexFile.cpp
     Utils/HexFile.hpp
     Utils/Thread.hpp
-    Utils/SLAImport.hpp
-    Utils/SLAImport.cpp
 )
 
 if (APPLE)
