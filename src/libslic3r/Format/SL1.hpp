@@ -38,6 +38,24 @@ public:
     }
 };
     
+void import_sla_archive(const std::string &zipfname, DynamicPrintConfig &out);
+
+void import_sla_archive(
+    const std::string &      zipfname,
+    Vec2i                    windowsize,
+    TriangleMesh &           out,
+    DynamicPrintConfig &     profile,
+    std::function<bool(int)> progr = [](int) { return true; });
+
+inline void import_sla_archive(
+    const std::string &      zipfname,
+    Vec2i                    windowsize,
+    TriangleMesh &           out,
+    std::function<bool(int)> progr = [](int) { return true; })
+{
+    DynamicPrintConfig profile;
+    import_sla_archive(zipfname, windowsize, out, profile, progr);
+}
 
 } // namespace Slic3r::sla
 
