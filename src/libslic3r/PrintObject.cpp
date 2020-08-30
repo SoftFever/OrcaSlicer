@@ -434,8 +434,16 @@ void PrintObject::generate_support_material()
 
 void PrintObject::prepare_adaptive_infill_data()
 {
-    float fill_density = this->print()->full_print_config().opt_float("fill_density");
-    float infill_extrusion_width = this->print()->full_print_config().opt_float("infill_extrusion_width");
+    const ConfigOptionFloatOrPercent* opt_fill_density = this->print()->full_print_config().option<ConfigOptionFloatOrPercent>("fill_density");
+    const ConfigOptionFloatOrPercent* opt_infill_extrusion_width = this->print()->full_print_config().option<ConfigOptionFloatOrPercent>("infill_extrusion_width");
+
+    if(opt_fill_density == nullptr || opt_infill_extrusion_width == nullptr || opt_fill_density->value <= 0 || opt_infill_extrusion_width->value <= 0)
+    {
+        return;
+    }
+
+    float fill_density = opt_fill_density->value;
+    float infill_extrusion_width = opt_infill_extrusion_width->value;
 
     coordf_t line_spacing = infill_extrusion_width / ((fill_density / 100.0f) * 0.333333333f);
 

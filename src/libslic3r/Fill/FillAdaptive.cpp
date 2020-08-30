@@ -149,7 +149,7 @@ std::unique_ptr<FillAdaptive_Internal::Octree> FillAdaptive::build_octree(
 {
     using namespace FillAdaptive_Internal;
 
-    if(line_spacing <= 0)
+    if(line_spacing <= 0 || std::isnan(line_spacing))
     {
         return nullptr;
     }
