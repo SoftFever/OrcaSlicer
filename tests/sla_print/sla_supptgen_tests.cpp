@@ -105,26 +105,25 @@ TEST_CASE("Overhanging edge should be supported", "[SupGen]") {
     REQUIRE(min_point_distance(pts) >= cfg.minimal_distance);
 }
 
-// FIXME: Not working yet
-//TEST_CASE("Hollowed cube should be supported from the inside", "[SupGen][Hollowed]") {
-//    TriangleMesh mesh = make_cube(20., 20., 20.);
+TEST_CASE("Hollowed cube should be supported from the inside", "[SupGen][Hollowed]") {
+    TriangleMesh mesh = make_cube(20., 20., 20.);
 
-//    hollow_mesh(mesh, HollowingConfig{});
+    hollow_mesh(mesh, HollowingConfig{});
 
-//    mesh.WriteOBJFile("cube_hollowed.obj");
+    mesh.WriteOBJFile("cube_hollowed.obj");
 
-//    auto bb = mesh.bounding_box();
-//    auto h  = float(bb.max.z() - bb.min.z());
-//    Vec3f mv = bb.center().cast<float>() - Vec3f{0.f, 0.f, 0.5f * h};
-//    mesh.translate(-mv);
-//    mesh.require_shared_vertices();
+    auto bb = mesh.bounding_box();
+    auto h  = float(bb.max.z() - bb.min.z());
+    Vec3f mv = bb.center().cast<float>() - Vec3f{0.f, 0.f, 0.5f * h};
+    mesh.translate(-mv);
+    mesh.require_shared_vertices();
 
-//    sla::SupportPointGenerator::Config cfg;
-//    sla::SupportPoints pts = calc_support_pts(mesh, cfg);
-//    sla::remove_bottom_points(pts, mesh.bounding_box().min.z() + EPSILON);
+    sla::SupportPointGenerator::Config cfg;
+    sla::SupportPoints pts = calc_support_pts(mesh, cfg);
+    sla::remove_bottom_points(pts, mesh.bounding_box().min.z() + EPSILON);
 
-//    REQUIRE(!pts.empty());
-//}
+    REQUIRE(!pts.empty());
+}
 
 TEST_CASE("Two parallel plates should be supported", "[SupGen][Hollowed]")
 {
