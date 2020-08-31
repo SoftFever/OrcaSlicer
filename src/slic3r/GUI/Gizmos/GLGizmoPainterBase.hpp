@@ -104,7 +104,6 @@ protected:
     virtual void on_opening() = 0;
     virtual void on_shutdown() = 0;
 
-    std::string on_get_name() const override;
     bool on_is_activable() const override;
     bool on_is_selectable() const override;
     void on_load(cereal::BinaryInputArchive& ar) override;

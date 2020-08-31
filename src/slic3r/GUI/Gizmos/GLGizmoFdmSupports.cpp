@@ -18,19 +18,19 @@ namespace GUI {
 
 
 
-void GLGizmoFdmSupports::on_opening()
-{
-
-}
-
-
-
 void GLGizmoFdmSupports::on_shutdown()
 {
     if (m_setting_angle) {
         m_setting_angle = false;
         m_parent.use_slope(false);
     }
+}
+
+
+
+std::string GLGizmoFdmSupports::on_get_name() const
+{
+    return (_(L("FDM Support Editing")) + " [L]").ToUTF8().data();
 }
 
 
@@ -176,12 +176,6 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         }
 
         m_imgui->end();
-        if (m_setting_angle) {
-            m_parent.show_slope(false);
-            m_parent.set_slope_range({90.f - m_angle_threshold_deg, 90.f - m_angle_threshold_deg});
-            m_parent.use_slope(true);
-            m_parent.set_as_dirty();
-        }
     }
     else {
         std::string name = "Autoset custom supports";

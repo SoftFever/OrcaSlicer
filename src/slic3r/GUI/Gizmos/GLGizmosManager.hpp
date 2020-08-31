@@ -67,6 +67,7 @@ public:
         Hollow,
         SlaSupports,
         FdmSupports,
+        Seam,
         Undefined
     };
 

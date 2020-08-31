@@ -375,11 +375,6 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
 
 
-
-
-
-
-
 bool GLGizmoPainterBase::on_is_activable() const
 {
     const Selection& selection = m_parent.get_selection();
@@ -401,11 +396,6 @@ bool GLGizmoPainterBase::on_is_selectable() const
 {
     return (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF
          && wxGetApp().get_mode() != comSimple );
-}
-
-std::string GLGizmoPainterBase::on_get_name() const
-{
-    return (_(L("FDM Support Editing")) + " [L]").ToUTF8().data();
 }
 
 

@@ -1,5 +1,5 @@
-#ifndef slic3r_GLGizmoFdmSupports_hpp_
-#define slic3r_GLGizmoFdmSupports_hpp_
+#ifndef slic3r_GLGizmoSeam_hpp_
+#define slic3r_GLGizmoSeam_hpp_
 
 #include "GLGizmoPainterBase.hpp"
 
@@ -7,10 +7,10 @@ namespace Slic3r {
 
 namespace GUI {
 
-class GLGizmoFdmSupports : public GLGizmoPainterBase
+class GLGizmoSeam : public GLGizmoPainterBase
 {
 public:
-    GLGizmoFdmSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    GLGizmoSeam(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
         : GLGizmoPainterBase(parent, icon_filename, sprite_id) {}
 
 protected:
@@ -26,13 +26,7 @@ private:
     void update_from_model_object() override;
 
     void on_opening() override {}
-    void on_shutdown() override;
-
-    void select_facets_by_angle(float threshold, bool block);
-    float m_angle_threshold_deg = 45.f;
-    bool m_setting_angle = false;
-
-
+    void on_shutdown() override {}
 
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.
@@ -45,4 +39,4 @@ private:
 } // namespace Slic3r
 
 
-#endif // slic3r_GLGizmoFdmSupports_hpp_
+#endif // slic3r_GLGizmoSeam_hpp_
