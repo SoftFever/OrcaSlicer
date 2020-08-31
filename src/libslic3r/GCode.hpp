@@ -74,9 +74,21 @@ struct CustomSeam {
     std::vector<ExPolygons> enforcers;
     std::vector<ExPolygons> blockers;
 
-    // Finds whether the point is inside an enforcer/blockers.
-    // Returns +1, 0 or -1.
-    int get_point_status(const Point& pt, size_t layer_id) const;
+    // Get indices of points inside enforcers and blockers.
+    void get_indices(size_t layer_id,
+                    const Polygon& polygon,
+                    std::vector<size_t>& enforcers_idxs,
+                    std::vector<size_t>& blockers_idxs) const;
+    bool is_on_layer(size_t layer_id) const {
+        return ! ((enforcers.empty() || enforcers[layer_id].empty())
+                && (blockers.empty() || blockers[layer_id].empty()));
+    }
+    void penalize_polygon(const Polygon& polygon,
+                          std::vector<float>& penalties,
+                          const std::vector<float>& lengths,
+                          int layer_id) const;
+
+    static constexpr float ENFORCER_BLOCKER_PENALTY = 1e6;
 };
 
 class OozePrevention {

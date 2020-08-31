@@ -176,27 +176,34 @@ namespace Slic3r {
     }
 
 
-    int CustomSeam::get_point_status(const Point& pt, size_t layer_id) const
+    void CustomSeam::get_indices(size_t layer_id,
+                                 const Polygon& polygon,
+                                 std::vector<size_t>& enforcers_idxs,
+                                 std::vector<size_t>& blockers_idxs) const
     {
-        // TEMPORARY - WILL BE IMPROVED
-        // - quadratic algorithm
-        // - does not support variable layer height
+        enforcers_idxs.clear();
+        blockers_idxs.clear();
 
-        if (! enforcers.empty()) {
-            assert(layer_id < enforcers.size());
-            for (const ExPolygon& explg : enforcers[layer_id]) {
-                if (explg.contains(pt))
-                    return 1;
+        // FIXME: This is quadratic and it should be improved, maybe by building
+        // an AABB tree (or at least utilize bounding boxes).
+        for (size_t i=0; i<polygon.points.size(); ++i) {
+
+            if (! enforcers.empty()) {
+                assert(layer_id < enforcers.size());
+                for (const ExPolygon& explg : enforcers[layer_id]) {
+                    if (explg.contains(polygon.points[i]))
+                        enforcers_idxs.push_back(i);
+                }
+            }
+
+            if (! blockers.empty()) {
+                assert(layer_id < blockers.size());
+                for (const ExPolygon& explg : blockers[layer_id]) {
+                    if (explg.contains(polygon.points[i]))
+                        blockers_idxs.push_back(i);
+                }
             }
         }
-        if (! blockers.empty()) {
-            assert(layer_id < blockers.size());
-            for (const ExPolygon& explg : blockers[layer_id]) {
-                if (explg.contains(pt))
-                    return -1;
-            }
-        }
-        return 0;
     }
 
 
@@ -1017,12 +1024,12 @@ namespace DoExport {
            po->project_and_append_custom_facets(true, EnforcerBlockerType::ENFORCER, custom_seam.enforcers);
            po->project_and_append_custom_facets(true, EnforcerBlockerType::BLOCKER, custom_seam.blockers);
        }
-       for (ExPolygons& explgs : custom_seam.enforcers) {
-           explgs = Slic3r::offset_ex(explgs, scale_(0.5));
-       }
-       for (ExPolygons& explgs : custom_seam.blockers) {
-           explgs = Slic3r::offset_ex(explgs, scale_(0.5));
-       }
+       const std::vector<double>& nozzle_dmrs = print.config().nozzle_diameter.values;
+       float max_nozzle_dmr = *std::max_element(nozzle_dmrs.begin(), nozzle_dmrs.end());
+       for (ExPolygons& explgs : custom_seam.enforcers)
+           explgs = Slic3r::offset_ex(explgs, scale_(max_nozzle_dmr));
+       for (ExPolygons& explgs : custom_seam.blockers)
+           explgs = Slic3r::offset_ex(explgs, scale_(max_nozzle_dmr));
    }
 
 
@@ -2696,15 +2703,7 @@ static Points::const_iterator project_point_to_polygon_and_insert(Polygon &polyg
     return polygon.points.begin() + i_min;
 }
 
-std::vector<float> polygon_parameter_by_length(const Polygon &polygon)
-{
-    // Parametrize the polygon by its length.
-    std::vector<float> lengths(polygon.points.size()+1, 0.);
-    for (size_t i = 1; i < polygon.points.size(); ++ i)
-        lengths[i] = lengths[i-1] + (polygon.points[i] - polygon.points[i-1]).cast<float>().norm();
-    lengths.back() = lengths[lengths.size()-2] + (polygon.points.front() - polygon.points.back()).cast<float>().norm();
-    return lengths;
-}
+
 
 std::vector<float> polygon_angles_at_vertices(const Polygon &polygon, const std::vector<float> &lengths, float min_arm_length)
 {
@@ -2761,6 +2760,136 @@ std::vector<float> polygon_angles_at_vertices(const Polygon &polygon, const std:
     return angles;
 }
 
+
+
+
+// Go through the polygon, identify points inside support enforcers and return
+// indices of points in the middle of each enforcer (measured along the contour).
+static std::vector<size_t> find_enforcer_centers(const Polygon& polygon,
+                                                 const std::vector<float>& lengths,
+                                                 const std::vector<size_t>& enforcers_idxs)
+{
+    std::vector<size_t> out;
+    assert(polygon.points.size()+1 == lengths.size());
+    assert(std::is_sorted(enforcers_idxs.begin(), enforcers_idxs.end()));
+    if (polygon.size() < 2 || enforcers_idxs.empty())
+        return out;
+
+    auto get_center_idx = [&polygon, &lengths](size_t start_idx, size_t end_idx) -> size_t {
+        assert(end_idx >= start_idx);
+        if (start_idx == end_idx)
+            return start_idx;
+        float t_c = lengths[start_idx] + 0.5f * (lengths[end_idx] - lengths[start_idx]);
+        auto it = std::lower_bound(lengths.begin() + start_idx, lengths.begin() + end_idx, t_c);
+        int ret = it - lengths.begin();
+        return ret;
+    };
+
+    int last_enforcer_start_idx = enforcers_idxs.front();
+    bool last_pt_in_list = enforcers_idxs.back() == polygon.points.size() - 1;
+
+    for (size_t i=0; i<enforcers_idxs.size()-1; ++i) {
+        if ((i == enforcers_idxs.size() - 1)
+         || enforcers_idxs[i+1] != enforcers_idxs[i] + 1) {
+            // i is last point of current enforcer
+            out.push_back(get_center_idx(last_enforcer_start_idx, enforcers_idxs[i]));
+            last_enforcer_start_idx = enforcers_idxs[i+1];
+        }
+    }
+
+    if (last_pt_in_list) {
+        // last point is an enforcer - not yet accounted for.
+        if (enforcers_idxs.front() != 0) {
+            size_t center_idx = get_center_idx(last_enforcer_start_idx, enforcers_idxs.back());
+            out.push_back(center_idx);
+        } else {
+            // Wrap-around. Update first center already found.
+            if (out.empty()) {
+                // Probably an enforcer around the whole contour. Return nothing.
+                return out;
+            }
+
+            // find last point of the enforcer at the beginning:
+            size_t idx = 0;
+            while (enforcers_idxs[idx]+1 == enforcers_idxs[idx+1])
+                ++idx;
+
+            float t_s = lengths[last_enforcer_start_idx];
+            float t_e = lengths[idx];
+            float half_dist = 0.5f * (t_e + lengths.back() - t_s);
+            float t_c = (half_dist > t_e) ? t_s + half_dist : t_e - half_dist;
+
+            auto it = std::lower_bound(lengths.begin(), lengths.end(), t_c);
+            out[0] = it - lengths.begin();
+            if (out[0] == lengths.size() - 1)
+                --out[0];
+            assert(out[0] < lengths.size() - 1);
+        }
+    }
+    return out;
+}
+
+
+void CustomSeam::penalize_polygon(const Polygon& polygon,
+                                  std::vector<float>& penalties,
+                                  const std::vector<float>& lengths,
+                                  int layer_id) const
+{
+    std::vector<size_t> enforcers_idxs;
+    std::vector<size_t> blockers_idxs;
+    this->get_indices(layer_id, polygon, enforcers_idxs, blockers_idxs);
+
+    for (size_t i : enforcers_idxs) {
+        assert(i < penalties.size());
+        penalties[i] -= float(ENFORCER_BLOCKER_PENALTY);
+    }
+    for (size_t i : blockers_idxs) {
+        assert(i < penalties.size());
+        penalties[i] += float(ENFORCER_BLOCKER_PENALTY);
+    }
+    std::vector<size_t> enf_centers = find_enforcer_centers(polygon, lengths, enforcers_idxs);
+    for (size_t idx : enf_centers) {
+        assert(idx < penalties.size());
+        penalties[idx] -= 1000.f;
+    }
+
+//    //////////////////////
+//            std::ostringstream os;
+//            os << std::setw(3) << std::setfill('0') << layer_id;
+//            int a = scale_(15.);
+//            SVG svg("custom_seam" + os.str() + ".svg", BoundingBox(Point(-a, -a), Point(a, a)));
+//            /*if (! m_custom_seam.enforcers.empty())
+//                svg.draw(m_custom_seam.enforcers[layer_id], "blue");
+//            if (! m_custom_seam.blockers.empty())
+//                svg.draw(m_custom_seam.blockers[layer_id], "red");*/
+
+//            size_t min_idx = std::min_element(penalties.begin(), penalties.end()) - penalties.begin();
+
+//            //svg.draw(polygon.points[idx_min], "red", 6e5);
+//            for (size_t i=0; i<polygon.points.size(); ++i) {
+//                std::string fill;
+//                coord_t size = 0;
+//                if (min_idx == i) {
+//                    fill = "yellow";
+//                    size = 5e5;
+//                } else {
+//                    fill = (std::find(enforcers_idxs.begin(), enforcers_idxs.end(), i) != enforcers_idxs.end() ? "green" : "black");
+//                    if (std::find(enf_centers.begin(), enf_centers.end(), i) != enf_centers.end()) {
+//                        size = 5e5;
+//                        fill = "blue";
+//                    }
+//                }
+//                if (i != 0)
+//                    svg.draw(polygon.points[i], fill, size);
+//                else
+//                    svg.draw(polygon.points[i], "red", 5e5);
+//            }
+//    ////////////////////
+
+
+
+}
+
 std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, double speed, std::unique_ptr<EdgeGrid::Grid> *lower_layer_edge_grid)
 {
     // get a copy; don't modify the orientation of the original loop object otherwise
@@ -2804,6 +2933,12 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         const coordf_t nozzle_dmr = EXTRUDER_CONFIG(nozzle_diameter);
         const coord_t  nozzle_r   = coord_t(scale_(0.5 * nozzle_dmr) + 0.5);
 
+        if (m_custom_seam.is_on_layer(m_layer->id())) {
+            // Seam enf/blockers can begin and end in between the original vertices.
+            // Let add extra points in between and update the leghths.
+            polygon.densify(scale_(0.2f));
+        }
+
         // Retrieve the last start position for this object.
         float last_pos_weight = 1.f;
 
@@ -2829,7 +2964,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         }
 
         // Parametrize the polygon by its length.
-        std::vector<float> lengths = polygon_parameter_by_length(polygon);
+        std::vector<float> lengths = polygon.parameter_by_length();
 
         // For each polygon point, store a penalty.
         // First calculate the angles, store them as penalties. The angles are caluculated over a minimum arm length of nozzle_r.
@@ -2870,8 +3005,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         // Penalty for overhangs.
         if (lower_layer_edge_grid && (*lower_layer_edge_grid)) {
             // Use the edge grid distance field structure over the lower layer to calculate overhangs.
-            coord_t nozzle_r = coord_t(floor(scale_(0.5 * nozzle_dmr) + 0.5));
-            coord_t search_r = coord_t(floor(scale_(0.8 * nozzle_dmr) + 0.5));
+            coord_t nozzle_r = coord_t(std::floor(scale_(0.5 * nozzle_dmr) + 0.5));
+            coord_t search_r = coord_t(std::floor(scale_(0.8 * nozzle_dmr) + 0.5));
             for (size_t i = 0; i < polygon.points.size(); ++ i) {
                 const Point &p = polygon.points[i];
                 coordf_t dist;
@@ -2888,10 +3023,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 
         // Penalty according to custom seam selection. This one is huge compared to
         // the others so that points outside enforcers/inside blockers never win.
-        for (size_t i = 0; i < polygon.points.size(); ++ i) {
-            const Point &p = polygon.points[i];
-            penalties[i] -= float(100000 * m_custom_seam.get_point_status(p, m_layer->id()));
-        }
+        m_custom_seam.penalize_polygon(polygon, penalties, lengths, m_layer->id());
 
         // Find a point with a minimum penalty.
         size_t idx_min = std::min_element(penalties.begin(), penalties.end()) - penalties.begin();
@@ -2906,26 +3038,13 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             float penalty_max      = std::max(penalty_min, penalty_aligned);
             float penalty_diff_rel = (penalty_max == 0.f) ? 0.f : penalty_diff_abs / penalty_max;
             // printf("Align seams, penalty aligned: %f, min: %f, diff abs: %f, diff rel: %f\n", penalty_aligned, penalty_min, penalty_diff_abs, penalty_diff_rel);
-            if (penalty_diff_rel < 0.05) {
+            if (std::abs(penalty_diff_rel) < 0.05) {
                 // Penalty of the aligned point is very close to the minimum penalty.
                 // Align the seams as accurately as possible.
                 idx_min = last_pos_proj_idx;
             }
             m_seam_position[m_layer->object()] = polygon.points[idx_min];
         }
-
-//////////////////////
-//        int layer_id = m_layer->id();
-//        std::ostringstream os;
-//        os << std::setw(3) << std::setfill('0') << layer_id;
-//        int a = scale_(15.);
-//        SVG svg("custom_seam" + os.str() + ".svg", BoundingBox(Point(-a, -a), Point(a, a)));
-//        if (! m_custom_seam.enforcers.empty())
-//            svg.draw(m_custom_seam.enforcers[layer_id], "blue");
-//        if (! m_custom_seam.blockers.empty())
-//            svg.draw(m_custom_seam.blockers[layer_id], "red");
-//        svg.draw(polygon.points, "black");
-////////////////////
 
 
         // Export the contour into a SVG file.
