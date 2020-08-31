@@ -172,7 +172,7 @@ void GLGizmoSeam::update_model_object() const
         if (! mv->is_model_part())
             continue;
         ++idx;
-        updated |= mv->m_supported_facets.set(*m_triangle_selectors[idx].get());
+        updated |= mv->m_seam_facets.set(*m_triangle_selectors[idx].get());
     }
 
     if (updated)
@@ -199,7 +199,7 @@ void GLGizmoSeam::update_from_model_object()
         const TriangleMesh* mesh = &mv->mesh();
 
         m_triangle_selectors.emplace_back(std::make_unique<TriangleSelectorGUI>(*mesh));
-        m_triangle_selectors.back()->deserialize(mv->m_supported_facets.get_data());
+        m_triangle_selectors.back()->deserialize(mv->m_seam_facets.get_data());
     }
 }
 

@@ -972,8 +972,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
     std::vector<ExPolygons> blockers  = object.slice_support_blockers();
 
     // Append custom supports.
-    object.project_and_append_custom_enforcers(enforcers);
-    object.project_and_append_custom_blockers(blockers);
+    object.project_and_append_custom_facets(false, EnforcerBlockerType::ENFORCER, enforcers);
+    object.project_and_append_custom_facets(false, EnforcerBlockerType::BLOCKER, blockers);
 
     // Output layers, sorted by top Z.
     MyLayersPtr contact_out;

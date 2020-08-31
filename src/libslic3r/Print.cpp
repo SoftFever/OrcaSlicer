@@ -404,6 +404,7 @@ static inline void model_volume_list_copy_configs(ModelObject &model_object_dst,
         mv_dst.name   = mv_src.name;
 		static_cast<DynamicPrintConfig&>(mv_dst.config) = static_cast<const DynamicPrintConfig&>(mv_src.config);
         mv_dst.m_supported_facets = mv_src.m_supported_facets;
+        mv_dst.m_seam_facets = mv_src.m_seam_facets;
         //FIXME what to do with the materials?
         // mv_dst.m_material_id = mv_src.m_material_id;
         ++ i_src;
@@ -866,6 +867,9 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 // Copy just the support volumes.
                 model_volume_list_update_supports(model_object, model_object_new);
             }
+        }
+        if (model_custom_seam_data_changed(model_object, model_object_new)) {
+            update_apply_status(this->invalidate_step(psGCodeExport));
         }
         if (! model_parts_differ && ! modifiers_differ) {
             // Synchronize Object's config.

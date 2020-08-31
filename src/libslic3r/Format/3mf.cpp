@@ -87,6 +87,7 @@ const char* TRANSFORM_ATTR = "transform";
 const char* PRINTABLE_ATTR = "printable";
 const char* INSTANCESCOUNT_ATTR = "instances_count";
 const char* CUSTOM_SUPPORTS_ATTR = "slic3rpe:custom_supports";
+const char* CUSTOM_SEAM_ATTR = "slic3rpe:custom_seam";
 
 const char* KEY_ATTR = "key";
 const char* VALUE_ATTR = "value";
@@ -285,6 +286,7 @@ namespace Slic3r {
             std::vector<float> vertices;
             std::vector<unsigned int> triangles;
             std::vector<std::string> custom_supports;
+            std::vector<std::string> custom_seam;
 
             bool empty()
             {
@@ -296,6 +298,7 @@ namespace Slic3r {
                 vertices.clear();
                 triangles.clear();
                 custom_supports.clear();
+                custom_seam.clear();
             }
         };
 
@@ -1544,6 +1547,7 @@ namespace Slic3r {
         m_curr_object.geometry.triangles.push_back((unsigned int)get_attribute_value_int(attributes, num_attributes, V3_ATTR));
 
         m_curr_object.geometry.custom_supports.push_back(get_attribute_value_string(attributes, num_attributes, CUSTOM_SUPPORTS_ATTR));
+        m_curr_object.geometry.custom_seam.push_back(get_attribute_value_string(attributes, num_attributes, CUSTOM_SEAM_ATTR));
         return true;
     }
 
@@ -1877,13 +1881,17 @@ namespace Slic3r {
                 volume->source.transform = Slic3r::Geometry::Transformation(volume_matrix_to_object);
             volume->calculate_convex_hull();
 
-            // recreate custom supports from previously loaded attribute
+            // recreate custom supports and seam from previously loaded attribute
             for (unsigned i=0; i<triangles_count; ++i) {
                 size_t index = src_start_id/3 + i;
                 assert(index < geometry.custom_supports.size());
+                assert(index < geometry.custom_seam.size());
                 if (! geometry.custom_supports[index].empty())
                     volume->m_supported_facets.set_triangle_from_string(i, geometry.custom_supports[index]);
+                if (! geometry.custom_seam[index].empty())
+                    volume->m_seam_facets.set_triangle_from_string(i, geometry.custom_seam[index]);
             }
+
 
             // apply the remaining volume's metadata
             for (const Metadata& metadata : volume_data.metadata)
@@ -2400,6 +2408,10 @@ namespace Slic3r {
                 std::string custom_supports_data_string = volume->m_supported_facets.get_triangle_as_string(i);
                 if (! custom_supports_data_string.empty())
                     stream << CUSTOM_SUPPORTS_ATTR << "=\"" << custom_supports_data_string << "\" ";
+
+                std::string custom_seam_data_string = volume->m_seam_facets.get_triangle_as_string(i);
+                if (! custom_seam_data_string.empty())
+                    stream << CUSTOM_SEAM_ATTR << "=\"" << custom_seam_data_string << "\" ";
 
                 stream << "/>\n";
             }
