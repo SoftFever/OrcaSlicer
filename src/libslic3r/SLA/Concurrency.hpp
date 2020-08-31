@@ -43,22 +43,35 @@ template<> struct _ccr<true>
         });
     }
 
-    template<class I, class Fn, class MergeFn, class T>
-    static T reduce(I         from,
-                    I         to,
-                    const T & init,
-                    Fn &&     fn,
-                    MergeFn &&mergefn,
-                    size_t    granularity = 1)
+    template<class I, class MergeFn, class T, class AccessFn>
+    static T reduce(I          from,
+                    I          to,
+                    const T   &init,
+                    MergeFn  &&mergefn,
+                    AccessFn &&access,
+                    size_t     granularity = 1
+                    )
     {
         return tbb::parallel_reduce(
             tbb::blocked_range{from, to, granularity}, init,
             [&](const auto &range, T subinit) {
                 T acc = subinit;
-                loop_(range, [&](auto &i) { acc = mergefn(acc, fn(i, acc)); });
+                loop_(range, [&](auto &i) { acc = mergefn(acc, access(i)); });
                 return acc;
             },
             std::forward<MergeFn>(mergefn));
+    }
+
+    template<class I, class MergeFn, class T>
+    static IteratorOnly<I, T> reduce(I         from,
+                                     I         to,
+                                     const T & init,
+                                     MergeFn &&mergefn,
+                                     size_t    granularity = 1)
+    {
+        return reduce(
+            from, to, init, std::forward<MergeFn>(mergefn),
+            [](typename I::value_type &i) { return i; }, granularity);
     }
 };
 
@@ -92,17 +105,30 @@ public:
         loop_(from, to, std::forward<Fn>(fn));
     }
 
-    template<class I, class Fn, class MergeFn, class T>
-    static IntegerOnly<I, T> reduce(I         from,
-                                    I         to,
-                                    const T & init,
-                                    Fn &&     fn,
-                                    MergeFn &&mergefn,
-                                    size_t    /*granularity*/ = 1)
+    template<class I, class MergeFn, class T, class AccessFn>
+    static T reduce(I         from,
+                    I         to,
+                    const T & init,
+                    MergeFn  &&mergefn,
+                    AccessFn &&access,
+                    size_t   /*granularity*/ = 1
+                    )
     {
         T acc = init;
-        loop_(from, to, [&](auto &i) { acc = mergefn(acc, fn(i, acc)); });
+        loop_(from, to, [&](auto &i) { acc = mergefn(acc, access(i)); });
         return acc;
+    }
+
+    template<class I, class MergeFn, class T>
+    static IteratorOnly<I, T> reduce(I          from,
+                                     I          to,
+                                     const T   &init,
+                                     MergeFn  &&mergefn,
+                                     size_t     /*granularity*/ = 1
+                                     )
+    {
+        return reduce(from, to, init, std::forward<MergeFn>(mergefn),
+                      [](typename I::value_type &i) { return i; });
     }
 };
 

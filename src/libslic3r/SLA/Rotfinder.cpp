@@ -31,7 +31,7 @@ VertexFaceMap create_vertex_face_map(const TriangleMesh &mesh) {
     return vmap;
 }
 
-// Find transformed mesh ground level without copy and with parallell reduce.
+// Find transformed mesh ground level without copy and with parallel reduce.
 double find_ground_level(const TriangleMesh &mesh,
                          const Transform3d & tr,
                          size_t              threads)
@@ -40,15 +40,13 @@ double find_ground_level(const TriangleMesh &mesh,
 
     auto minfn = [](double a, double b) { return std::min(a, b); };
 
-    auto findminz = [&mesh, &tr] (size_t vi, double submin) {
-        Vec3d v = tr * mesh.its.vertices[vi].template cast<double>();
-        return std::min(submin, v.z());
+    auto accessfn = [&mesh, &tr] (size_t vi) {
+        return (tr * mesh.its.vertices[vi].template cast<double>()).z();
     };
 
     double zmin = mesh.its.vertices.front().z();
-
-    return ccr_par::reduce(size_t(0), vsize, zmin, findminz, minfn,
-                           vsize / threads);
+    size_t granularity = vsize / threads;
+    return ccr_par::reduce(size_t(0), vsize, zmin, minfn, accessfn, granularity);
 }
 
 // Try to guess the number of support points needed to support a mesh
@@ -65,7 +63,7 @@ double calculate_model_supportedness(const TriangleMesh & mesh,
 
     double zmin = find_ground_level(mesh, tr, Nthr);
 
-    auto score_mergefn = [&mesh, &tr, zmin](size_t fi, double subscore) {
+    auto accessfn = [&mesh, &tr, zmin](size_t fi) {
 
         static const Vec3d DOWN = {0., 0., -1.};
 
@@ -83,21 +81,18 @@ double calculate_model_supportedness(const TriangleMesh & mesh,
         double zlvl = zmin + 0.1;
         if (p1.z() <= zlvl && p2.z() <= zlvl && p3.z() <= zlvl) {
             //                score += area * POINTS_PER_UNIT_AREA;
-            return subscore;
+            return 0.;
         }
 
         double phi = 1. - std::acos(N.dot(DOWN)) / PI;
-        phi = phi * (phi > 0.5);
+//        phi = phi * (phi > 0.5);
 
         //                    std::cout << "area: " << area << std::endl;
 
-        subscore += area * POINTS_PER_UNIT_AREA * phi;
-
-        return subscore;
+        return area * POINTS_PER_UNIT_AREA * phi;
     };
 
-    double score = ccr_seq::reduce(size_t(0), facesize, 0., score_mergefn,
-                                   std::plus<double>{}, facesize / Nthr);
+    double score = ccr_par::reduce(size_t(0), facesize, 0., std::plus<double>{}, accessfn, facesize / Nthr);
 
     return score / mesh.its.indices.size();
 }
@@ -107,7 +102,7 @@ std::array<double, 2> find_best_rotation(const ModelObject& modelobj,
                                          std::function<void(unsigned)> statuscb,
                                          std::function<bool()> stopcond)
 {
-    static const unsigned MAX_TRIES = 100;
+    static const unsigned MAX_TRIES = 10000;
 
     // return value
     std::array<double, 2> rot;
@@ -158,10 +153,10 @@ std::array<double, 2> find_best_rotation(const ModelObject& modelobj,
                                                   .max_iterations(max_tries)
                                                   .rel_score_diff(1e-6)
                                                   .stop_condition(stopcond),
-                                              10 /*grid size*/);
+                                              100 /*grid size*/);
 
-    // We are searching rotations around the three axes x, y, z. Thus the
-    // problem becomes a 3 dimensional optimization task.
+    // We are searching rotations around only two axes x, y. Thus the
+    // problem becomes a 2 dimensional optimization task.
     // We can specify the bounds for a dimension in the following way:
     auto b = opt::Bound{-PI, PI};
 

@@ -17,6 +17,7 @@ add_executable(${_TEST_NAME}_tests
 	test_marchingsquares.cpp
 	test_timeutils.cpp
 	test_voronoi.cpp
+    test_optimizers.cpp
     test_png_io.cpp
     test_timeutils.cpp
 	)

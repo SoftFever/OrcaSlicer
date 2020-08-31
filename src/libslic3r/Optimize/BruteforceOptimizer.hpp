@@ -1,7 +1,7 @@
 #ifndef BRUTEFORCEOPTIMIZER_HPP
 #define BRUTEFORCEOPTIMIZER_HPP
 
-#include <libslic3r/Optimize/NLoptOptimizer.hpp>
+#include <libslic3r/Optimize/Optimizer.hpp>
 
 namespace Slic3r { namespace opt {
 
@@ -24,19 +24,19 @@ struct AlgBurteForce {
     AlgBurteForce(const StopCriteria &cr, size_t gs): stc{cr}, gridsz{gs} {}
 
     template<int D, size_t N, class Fn, class Cmp>
-    void run(std::array<size_t, N> &idx,
+    bool run(std::array<size_t, N> &idx,
              Result<N> &result,
              const Bounds<N> &bounds,
              Fn &&fn,
              Cmp &&cmp)
     {
-        if (stc.stop_condition()) return;
+        if (stc.stop_condition()) return false;
 
         if constexpr (D < 0) {
             Input<N> inp;
 
             auto max_iter = stc.max_iterations();
-            if (max_iter && num_iter(idx, gridsz) >= max_iter) return;
+            if (max_iter && num_iter(idx, gridsz) >= max_iter) return false;
 
             for (size_t d = 0; d < N; ++d) {
                 const Bound &b = bounds[d];
@@ -46,17 +46,25 @@ struct AlgBurteForce {
 
             auto score = fn(inp);
             if (cmp(score, result.score)) {
+                double absdiff = std::abs(score - result.score);
+
                 result.score = score;
                 result.optimum = inp;
+
+                if (absdiff < stc.abs_score_diff() ||
+                    absdiff < stc.rel_score_diff() * std::abs(score))
+                    return false;
             }
 
         } else {
             for (size_t i = 0; i < gridsz; ++i) {
                 idx[D] = i;
-                run<D - 1>(idx, result, bounds, std::forward<Fn>(fn),
-                           std::forward<Cmp>(cmp));
+                if (!run<D - 1>(idx, result, bounds, std::forward<Fn>(fn),
+                               std::forward<Cmp>(cmp))) return false;
             }
         }
+
+        return true;
     }
 
     template<class Fn, size_t N>
