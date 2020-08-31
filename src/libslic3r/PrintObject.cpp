@@ -434,7 +434,7 @@ void PrintObject::generate_support_material()
 
 void PrintObject::prepare_adaptive_infill_data()
 {
-    const ConfigOptionFloatOrPercent* opt_fill_density = this->print()->full_print_config().option<ConfigOptionFloatOrPercent>("fill_density");
+    const ConfigOptionPercent* opt_fill_density = this->print()->full_print_config().option<ConfigOptionPercent>("fill_density");
     const ConfigOptionFloatOrPercent* opt_infill_extrusion_width = this->print()->full_print_config().option<ConfigOptionFloatOrPercent>("infill_extrusion_width");
 
     if(opt_fill_density == nullptr || opt_infill_extrusion_width == nullptr || opt_fill_density->value <= 0 || opt_infill_extrusion_width->value <= 0)
