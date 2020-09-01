@@ -2669,12 +2669,14 @@ void PrintObject::_generate_support_material()
 }
 
 
-void PrintObject::project_and_append_custom_supports(
-        FacetSupportType type, std::vector<ExPolygons>& expolys) const
+void PrintObject::project_and_append_custom_facets(
+        bool seam, EnforcerBlockerType type, std::vector<ExPolygons>& expolys) const
 {
     for (const ModelVolume* mv : this->model_object()->volumes) {
-        const indexed_triangle_set custom_facets = mv->m_supported_facets.get_facets(*mv, type);
-        if (custom_facets.indices.empty())
+        const indexed_triangle_set custom_facets = seam
+                ? mv->m_seam_facets.get_facets(*mv, type)
+                : mv->m_supported_facets.get_facets(*mv, type);
+        if (! mv->is_model_part() || custom_facets.indices.empty())
             continue;
 
         const Transform3f& tr1 = mv->get_matrix().cast<float>();
@@ -2721,7 +2723,7 @@ void PrintObject::project_and_append_custom_supports(
 
             // Ignore triangles with upward-pointing normal. Don't forget about mirroring.
             float z_comp = (facet[1]-facet[0]).cross(facet[2]-facet[0]).z();
-            if (tr_det_sign * z_comp > 0.)
+            if (! seam && tr_det_sign * z_comp > 0.)
                 continue;
 
             // Sort the three vertices according to z-coordinate.

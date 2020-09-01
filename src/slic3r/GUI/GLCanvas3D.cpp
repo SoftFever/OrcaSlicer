@@ -3674,7 +3674,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (evt.LeftDown() && (evt.ShiftDown() || evt.AltDown()) && m_picking_enabled)
         {
             if (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports
-             && m_gizmos.get_current_type() != GLGizmosManager::FdmSupports)
+             && m_gizmos.get_current_type() != GLGizmosManager::FdmSupports
+             && m_gizmos.get_current_type() != GLGizmosManager::Seam)
             {
                 m_rectangle_selection.start_dragging(m_mouse.position, evt.ShiftDown() ? GLSelectionRectangle::Select : GLSelectionRectangle::Deselect);
                 m_dirty = true;
@@ -3749,14 +3750,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         if (!m_mouse.drag.move_requires_threshold)
         {
             m_mouse.dragging = true;
-
-            // Translation of objects is forbidden when SLA supports/hollowing/fdm
-            // supports gizmo is active.
-            if (m_gizmos.get_current_type() == GLGizmosManager::SlaSupports
-             || m_gizmos.get_current_type() == GLGizmosManager::FdmSupports
-             || m_gizmos.get_current_type() == GLGizmosManager::Hollow)
-                return;
-
             Vec3d cur_pos = m_mouse.drag.start_position_3D;
             // we do not want to translate objects if the user just clicked on an object while pressing shift to remove it from the selection and then drag
             if (m_selection.contains_volume(get_first_hover_volume_idx()))
@@ -5474,7 +5467,8 @@ void GLCanvas3D::_render_bed(bool bottom, bool show_axes) const
 
     bool show_texture = ! bottom ||
             (m_gizmos.get_current_type() != GLGizmosManager::FdmSupports
-          && m_gizmos.get_current_type() != GLGizmosManager::SlaSupports);
+          && m_gizmos.get_current_type() != GLGizmosManager::SlaSupports
+          && m_gizmos.get_current_type() != GLGizmosManager::Seam);
 
     wxGetApp().plater()->get_bed().render(const_cast<GLCanvas3D&>(*this), bottom, scale_factor, show_axes, show_texture);
 }

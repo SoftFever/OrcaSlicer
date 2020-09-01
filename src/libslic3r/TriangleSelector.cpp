@@ -35,7 +35,7 @@ void TriangleSelector::Triangle::set_division(int sides_to_split, int special_si
 
 void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
                                     const Vec3f& source, const Vec3f& dir,
-                                    float radius, FacetSupportType new_state)
+                                    float radius, EnforcerBlockerType new_state)
 {
     assert(facet_start < m_orig_size_indices);
     assert(is_approx(dir.norm(), 1.f));
@@ -77,7 +77,7 @@ void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
 // the triangle recursively, selecting just subtriangles truly inside the circle.
 // This is done by an actual recursive call. Returns false if the triangle is
 // outside the cursor.
-bool TriangleSelector::select_triangle(int facet_idx, FacetSupportType type, bool recursive_call)
+bool TriangleSelector::select_triangle(int facet_idx, EnforcerBlockerType type, bool recursive_call)
 {
     assert(facet_idx < int(m_triangles.size()));
 
@@ -140,7 +140,7 @@ bool TriangleSelector::select_triangle(int facet_idx, FacetSupportType type, boo
 
 
 
-void TriangleSelector::set_facet(int facet_idx, FacetSupportType state)
+void TriangleSelector::set_facet(int facet_idx, EnforcerBlockerType state)
 {
     assert(facet_idx < m_orig_size_indices);
     undivide_triangle(facet_idx);
@@ -157,7 +157,7 @@ void TriangleSelector::split_triangle(int facet_idx)
 
     Triangle* tr = &m_triangles[facet_idx];
 
-    FacetSupportType old_type = tr->get_state();
+    EnforcerBlockerType old_type = tr->get_state();
 
     if (tr->was_split_before() != 0) {
         // This triangle is not split at the moment, but was at one point
@@ -323,7 +323,7 @@ void TriangleSelector::remove_useless_children(int facet_idx)
 
 
     // Return if a child is not leaf or two children differ in type.
-    FacetSupportType first_child_type = FacetSupportType::NONE;
+    EnforcerBlockerType first_child_type = EnforcerBlockerType::NONE;
     for (int child_idx=0; child_idx<=tr.number_of_split_sides(); ++child_idx) {
         if (m_triangles[tr.children[child_idx]].is_split())
             return;
@@ -456,7 +456,7 @@ void TriangleSelector::push_triangle(int a, int b, int c)
 }
 
 
-void TriangleSelector::perform_split(int facet_idx, FacetSupportType old_state)
+void TriangleSelector::perform_split(int facet_idx, EnforcerBlockerType old_state)
 {
     Triangle* tr = &m_triangles[facet_idx];
 
@@ -520,7 +520,7 @@ void TriangleSelector::perform_split(int facet_idx, FacetSupportType old_state)
 
 
 
-indexed_triangle_set TriangleSelector::get_facets(FacetSupportType state) const
+indexed_triangle_set TriangleSelector::get_facets(EnforcerBlockerType state) const
 {
     indexed_triangle_set out;
     for (const Triangle& tr : m_triangles) {
@@ -542,7 +542,7 @@ std::map<int, std::vector<bool>> TriangleSelector::serialize() const
 {
     // Each original triangle of the mesh is assigned a number encoding its state
     // or how it is split. Each triangle is encoded by 4 bits (xxyy):
-    // leaf triangle: xx = FacetSupportType, yy = 0
+    // leaf triangle: xx = EnforcerBlockerType, yy = 0
     // non-leaf:      xx = special side, yy = number of split sides
     // These are bitwise appended and formed into one 64-bit integer.
 
@@ -553,7 +553,7 @@ std::map<int, std::vector<bool>> TriangleSelector::serialize() const
     for (int i=0; i<m_orig_size_indices; ++i) {
         const Triangle& tr = m_triangles[i];
 
-        if (! tr.is_split() && tr.get_state() == FacetSupportType::NONE)
+        if (! tr.is_split() && tr.get_state() == EnforcerBlockerType::NONE)
             continue; // no need to save anything, unsplit and unselected is default
 
         std::vector<bool> data; // complete encoding of this mesh triangle
@@ -627,7 +627,7 @@ void TriangleSelector::deserialize(const std::map<int, std::vector<bool>> data)
             int num_of_split_sides = (next_code & 0b11);
             int num_of_children = num_of_split_sides != 0 ? num_of_split_sides + 1 : 0;
             bool is_split = num_of_children != 0;
-            FacetSupportType state = FacetSupportType(next_code >> 2);
+            EnforcerBlockerType state = EnforcerBlockerType(next_code >> 2);
             int special_side = (next_code >> 2);
 
             // Take care of the first iteration separately, so handling of the others is simpler.
@@ -641,7 +641,7 @@ void TriangleSelector::deserialize(const std::map<int, std::vector<bool>> data)
                     // then go to the next.
                     parents.push_back({triangle_id, 0, num_of_children});
                     m_triangles[triangle_id].set_division(num_of_children-1, special_side);
-                    perform_split(triangle_id, FacetSupportType::NONE);
+                    perform_split(triangle_id, EnforcerBlockerType::NONE);
                     continue;
                 }
             }
@@ -655,7 +655,7 @@ void TriangleSelector::deserialize(const std::map<int, std::vector<bool>> data)
                 const ProcessingInfo& last = parents.back();
                 int this_idx = m_triangles[last.facet_id].children[last.processed_children];
                 m_triangles[this_idx].set_division(num_of_children-1, special_side);
-                perform_split(this_idx, FacetSupportType::NONE);
+                perform_split(this_idx, EnforcerBlockerType::NONE);
                 parents.push_back({this_idx, 0, num_of_children});
             } else {
                 // this triangle belongs to last split one

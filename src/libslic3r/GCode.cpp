@@ -2590,7 +2590,7 @@ plot(p2.subs(r,0.2).subs(z,1.), (x, -1, 3), adaptive=False, nb_of_points=400)
     }
 }
 
-static Points::iterator project_point_to_polygon_and_insert(Polygon &polygon, const Point &pt, double eps)
+static Points::const_iterator project_point_to_polygon_and_insert(Polygon &polygon, const Point &pt, double eps)
 {
     assert(polygon.points.size() >= 2);
     if (polygon.points.size() <= 1)
@@ -2778,7 +2778,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         // Insert a projection of last_pos into the polygon.
         size_t last_pos_proj_idx;
         {
-            Points::iterator it = project_point_to_polygon_and_insert(polygon, last_pos, 0.1 * nozzle_r);
+            auto it = project_point_to_polygon_and_insert(polygon, last_pos, 0.1 * nozzle_r);
             last_pos_proj_idx = it - polygon.points.begin();
         }
 
@@ -2798,11 +2798,9 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             if (was_clockwise)
                 ccwAngle = - ccwAngle;
             float penalty = 0;
-//            if (ccwAngle <- float(PI/3.))
             if (ccwAngle <- float(0.6 * PI))
                 // Sharp reflex vertex. We love that, it hides the seam perfectly.
                 penalty = 0.f;
-//            else if (ccwAngle > float(PI/3.))
             else if (ccwAngle > float(0.6 * PI))
                 // Seams on sharp convex vertices are more visible than on reflex vertices.
                 penalty = penaltyConvexVertex;
@@ -2815,7 +2813,6 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
                 penalty = penaltyConvexVertex + (penaltyFlatSurface - penaltyConvexVertex) * bspline_kernel(ccwAngle * float(PI * 2. / 3.));
             }
             // Give a negative penalty for points close to the last point or the prefered seam location.
-            //float dist_to_last_pos_proj = last_pos_proj.distance_to(polygon.points[i]);
             float dist_to_last_pos_proj = (i < last_pos_proj_idx) ? 
                 std::min(lengths[last_pos_proj_idx] - lengths[i], lengths.back() - lengths[last_pos_proj_idx] + lengths[i]) : 
                 std::min(lengths[i] - lengths[last_pos_proj_idx], lengths.back() - lengths[i] + lengths[last_pos_proj_idx]);
@@ -2835,14 +2832,10 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
                 // Signed distance is positive outside the object, negative inside the object.
                 // The point is considered at an overhang, if it is more than nozzle radius
                 // outside of the lower layer contour.
-                #ifdef NDEBUG // to suppress unused variable warning in release mode
-                    (*lower_layer_edge_grid)->signed_distance(p, search_r, dist);
-                #else
-                    bool found = (*lower_layer_edge_grid)->signed_distance(p, search_r, dist);
-                #endif
+                [[maybe_unused]] bool found = (*lower_layer_edge_grid)->signed_distance(p, search_r, dist);
                 // If the approximate Signed Distance Field was initialized over lower_layer_edge_grid,
                 // then the signed distnace shall always be known.
-                assert(found); 
+                assert(found);
                 penalties[i] += extrudate_overlap_penalty(float(nozzle_r), penaltyOverhangHalf, float(dist));
             }
         }
@@ -2850,7 +2843,6 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         // Find a point with a minimum penalty.
         size_t idx_min = std::min_element(penalties.begin(), penalties.end()) - penalties.begin();
 
-        // if (seam_position == spAligned)
         // For all (aligned, nearest, rear) seams:
         {
             // Very likely the weight of idx_min is very close to the weight of last_pos_proj_idx.
