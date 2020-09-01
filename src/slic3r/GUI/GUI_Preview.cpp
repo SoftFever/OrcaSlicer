@@ -331,13 +331,8 @@ bool Preview::init(wxWindow* parent, Model* model)
         get_option_type_string(OptionType::CustomGCodes) + "|0|" +
         get_option_type_string(OptionType::Shells) + "|0|" +
         get_option_type_string(OptionType::ToolMarker) + "|0|" +
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_DEFAULT
-        get_option_type_string(OptionType::Legend) + "|1|" +
-        get_option_type_string(OptionType::TimeEstimate) + "|1"
-#else
         get_option_type_string(OptionType::Legend) + "|1"
-#endif // GCODE_VIEWER_TIME_ESTIMATE
-    );
+);
     Slic3r::GUI::create_combochecklist(m_combochecklist_options, GUI::into_u8(_L("Options")), options_items);
 #else
     m_checkbox_travel = new wxCheckBox(this, wxID_ANY, _(L("Travel")));
@@ -1472,14 +1467,7 @@ wxString Preview::get_option_type_string(OptionType type) const
     case OptionType::CustomGCodes:  { return _L("Custom GCodes"); }
     case OptionType::Shells:        { return _L("Shells"); }
     case OptionType::ToolMarker:    { return _L("Tool marker"); }
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_LEGEND
     case OptionType::Legend:        { return _L("Legend/Estimated printing time"); }
-#else
-    case OptionType::Legend:        { return _L("Legend"); }
-#endif // GCODE_VIEWER_TIME_ESTIMATE
-#if GCODE_VIEWER_TIME_ESTIMATE != TIME_ESTIMATE_NONE
-    case OptionType::TimeEstimate:  { return _L("Estimated printing time"); }
-#endif // GCODE_VIEWER_TIME_ESTIMATE != TIME_ESTIMATE_NONE
     default:                        { return ""; }
     }
 }

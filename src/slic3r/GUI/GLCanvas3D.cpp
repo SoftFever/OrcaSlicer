@@ -3109,18 +3109,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
             break;
         }
 #endif // ENABLE_RENDER_PICKING_PASS
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_DEFAULT || GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_MODAL
-        case 'T':
-        case 't':
-        {
-            if (!m_main_toolbar.is_enabled()) {
-                m_gcode_viewer.enable_time_estimate(!m_gcode_viewer.is_time_estimate_enabled());
-                m_dirty = true;
-                wxGetApp().plater()->update_preview_bottom_toolbar();
-            }
-            break;
-        }
-#endif // GCODE_VIEWER_TIME_ESTIMATE
         case 'Z':
 #if ENABLE_GCODE_VIEWER
         case 'z':

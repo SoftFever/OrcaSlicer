@@ -206,16 +206,7 @@ void KBShortcutsDialog::fill_shortcuts()
         { L("Arrow Down"), L("Lower Layer") },
         { "U", L("Upper Layer") },
         { "D", L("Lower Layer") },
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_LEGEND
         { "L", L("Show/Hide Legend/Estimated printing time") },
-#else
-        { "L", L("Show/Hide Legend") },
-#endif // GCODE_VIEWER_TIME_ESTIMATE
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_DEFAULT
-        { "T", L("Show/Hide Estimated printing time") }
-#elif GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_MODAL
-        { "T", L("Show Estimated printing time") }
-#endif // GCODE_VIEWER_TIME_ESTIMATE
     };
 
     m_full_shortcuts.push_back(std::make_pair(_L("Preview"), preview_shortcuts));

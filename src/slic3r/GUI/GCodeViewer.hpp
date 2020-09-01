@@ -369,18 +369,8 @@ private:
     Shells m_shells;
     EViewType m_view_type{ EViewType::FeatureType };
     bool m_legend_enabled{ true };
-#if GCODE_VIEWER_TIME_ESTIMATE != TIME_ESTIMATE_NONE
     PrintEstimatedTimeStatistics m_time_statistics;
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_MODAL
-    mutable bool m_time_estimate_enabled{ false };
-    mutable unsigned int m_time_estimate_frames_count{ 0 };
-#else
-    bool m_time_estimate_enabled{ false };
-#endif // GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_MODAL
-#endif // GCODE_VIEWER_TIME_ESTIMATE != TIME_ESTIMATE_NONE
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_LEGEND
     mutable PrintEstimatedTimeStatistics::ETimeMode m_time_estimate_mode{ PrintEstimatedTimeStatistics::ETimeMode::Normal };
-#endif // GCODE_VIEWER_TIME_ESTIMATE
 #if ENABLE_GCODE_VIEWER_STATISTICS
     mutable Statistics m_statistics;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -433,11 +423,6 @@ public:
     bool is_legend_enabled() const { return m_legend_enabled; }
     void enable_legend(bool enable) { m_legend_enabled = enable; }
 
-#if GCODE_VIEWER_TIME_ESTIMATE != TIME_ESTIMATE_NONE
-    bool is_time_estimate_enabled() const { return m_time_estimate_enabled; }
-    void enable_time_estimate(bool enable);
-#endif // GCODE_VIEWER_TIME_ESTIMATE
-
     void export_toolpaths_to_obj(const char* filename) const;
 
 private:
@@ -448,9 +433,6 @@ private:
     void render_toolpaths() const;
     void render_shells() const;
     void render_legend() const;
-#if GCODE_VIEWER_TIME_ESTIMATE != TIME_ESTIMATE_NONE
-    void render_time_estimate() const;
-#endif // GCODE_VIEWER_TIME_ESTIMATE
 #if ENABLE_GCODE_VIEWER_STATISTICS
     void render_statistics() const;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS

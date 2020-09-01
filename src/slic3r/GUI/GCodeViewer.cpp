@@ -383,9 +383,7 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
         wxGetApp().plater()->set_bed_shape(bed_shape, texture, model, gcode_result.bed_shape.empty());
     }
 
-#if GCODE_VIEWER_TIME_ESTIMATE != TIME_ESTIMATE_NONE
     m_time_statistics = gcode_result.time_statistics;
-#endif // GCODE_VIEWER_TIME_ESTIMATE
 }
 
 void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors)
@@ -461,12 +459,8 @@ void GCodeViewer::reset()
     m_layers_zs = std::vector<double>();
     m_layers_z_range = { 0.0, 0.0 };
     m_roles = std::vector<ExtrusionRole>();
-#if GCODE_VIEWER_TIME_ESTIMATE != TIME_ESTIMATE_NONE
     m_time_statistics.reset();
-#endif // GCODE_VIEWER_TIME_ESTIMATE
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_LEGEND
     m_time_estimate_mode = PrintEstimatedTimeStatistics::ETimeMode::Normal;
-#endif // GCODE_VIEWER_TIME_ESTIMATE
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.reset_all();
@@ -479,15 +473,8 @@ void GCodeViewer::render() const
     m_statistics.reset_opengl();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_MODAL
-    if (m_roles.empty()) {
-        m_time_estimate_frames_count = 0;
-        return;
-    }
-#else
     if (m_roles.empty())
         return;
-#endif // GCODE_VIEWER_TIME_ESTIMATE
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_toolpaths();
@@ -495,9 +482,6 @@ void GCodeViewer::render() const
     m_sequential_view.marker.render();
     render_shells();
     render_legend();
-#if GCODE_VIEWER_TIME_ESTIMATE != TIME_ESTIMATE_NONE
-    render_time_estimate();
-#endif // GCODE_VIEWER_TIME_ESTIMATE
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -533,9 +517,6 @@ unsigned int GCodeViewer::get_options_visibility_flags() const
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Shells), m_shells.visible);
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::ToolMarker), m_sequential_view.marker.is_visible());
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Legend), is_legend_enabled());
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_DEFAULT
-    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::TimeEstimate), is_time_estimate_enabled());
-#endif // GCODE_VIEWER_TIME_ESTIMATE
     return flags;
 }
 
@@ -555,9 +536,6 @@ void GCodeViewer::set_options_visibility_from_flags(unsigned int flags)
     m_shells.visible = is_flag_set(static_cast<unsigned int>(Preview::OptionType::Shells));
     m_sequential_view.marker.set_visible(is_flag_set(static_cast<unsigned int>(Preview::OptionType::ToolMarker)));
     enable_legend(is_flag_set(static_cast<unsigned int>(Preview::OptionType::Legend)));
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_DEFAULT
-    enable_time_estimate(is_flag_set(static_cast<unsigned int>(Preview::OptionType::TimeEstimate)));
-#endif // GCODE_VIEWER_TIME_ESTIMATE
 }
 
 void GCodeViewer::set_layers_z_range(const std::array<double, 2>& layers_z_range)
@@ -568,16 +546,6 @@ void GCodeViewer::set_layers_z_range(const std::array<double, 2>& layers_z_range
     refresh_render_paths(keep_sequential_current_first, keep_sequential_current_last);
     wxGetApp().plater()->update_preview_moves_slider();
 }
-
-#if GCODE_VIEWER_TIME_ESTIMATE != TIME_ESTIMATE_NONE
-void GCodeViewer::enable_time_estimate(bool enable)
-{
-    m_time_estimate_enabled = enable;
-    wxGetApp().update_ui_from_settings();
-    wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-    wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
-}
-#endif // GCODE_VIEWER_TIME_ESTIMATE
 
 void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
 {
@@ -1685,7 +1653,6 @@ void GCodeViewer::render_legend() const
         Line
     };
 
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_LEGEND
     const PrintEstimatedTimeStatistics::Mode& time_mode = m_time_statistics.modes[static_cast<size_t>(m_time_estimate_mode)];
 
     float icon_size = ImGui::GetTextLineHeight();
@@ -1696,10 +1663,6 @@ void GCodeViewer::render_legend() const
         std::function<void()> callback = nullptr) {
             if (!visible)
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
-#else
-    auto append_item = [this, draw_list, &imgui](EItemType type, const Color& color, const std::string& label, std::function<void()> callback = nullptr) {
-        float icon_size = ImGui::GetTextLineHeight();
-#endif // GCODE_VIEWER_TIME_ESTIMATE
         ImVec2 pos = ImGui::GetCursorScreenPos();
         switch (type)
         {
@@ -1745,7 +1708,6 @@ void GCodeViewer::render_legend() const
         if (callback != nullptr) {
             if (ImGui::MenuItem(label.c_str()))
                 callback();
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_LEGEND
             else {
                 // show tooltip
                 if (ImGui::IsItemHovered()) {
@@ -1779,15 +1741,12 @@ void GCodeViewer::render_legend() const
                 ::sprintf(buf, "%.1f%%", 100.0f * percent);
                 ImGui::TextUnformatted((percent > 0.0f) ? buf : "");
             }
-#endif // GCODE_VIEWER_TIME_ESTIMATE
         }
         else
             imgui.text(label);
 
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_LEGEND
         if (!visible)
             ImGui::PopStyleVar();
-#endif // GCODE_VIEWER_TIME_ESTIMATE
     };
 
     auto append_range = [this, draw_list, &imgui, append_item](const Extrusions::Range& range, unsigned int decimals) {
@@ -1812,7 +1771,6 @@ void GCodeViewer::render_legend() const
         }
     };
 
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_LEGEND
     auto append_headers = [&imgui](const std::array<std::string, 3>& texts, const std::array<float, 2>& offsets) {
         imgui.text(texts[0]);
         ImGui::SameLine(offsets[0]);
@@ -1838,7 +1796,6 @@ void GCodeViewer::render_legend() const
             ret[1] = ret[0] + max_width(times, titles[1]) + style.ItemSpacing.x;
             return ret;
     };
-#endif // GCODE_VIEWER_TIME_ESTIMATE
 
     auto color_print_ranges = [this](unsigned char extruder_id, const std::vector<CustomGCode::Item>& custom_gcode_per_print_z) {
         std::vector<std::pair<Color, std::pair<double, double>>> ret;
@@ -1887,7 +1844,6 @@ void GCodeViewer::render_legend() const
         return _u8L("from") + " " + std::string(buf1) + " " + _u8L("to") + " " + std::string(buf2) + " " + _u8L("mm");
     };
 
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_LEGEND
     auto role_time_and_percent = [this, time_mode](ExtrusionRole role) {
         auto it = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [role](const std::pair<ExtrusionRole, float>& item) { return role == item.first; });
         return (it != time_mode.roles_times.end()) ? std::make_pair(it->second, it->second / time_mode.time) : std::make_pair(0.0f, 0.0f);
@@ -1969,20 +1925,15 @@ void GCodeViewer::render_legend() const
         }
         ImGui::Spacing();
     }
-#endif // GCODE_VIEWER_TIME_ESTIMATE
 
     // extrusion paths section -> title
     switch (m_view_type)
     {
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_LEGEND
     case EViewType::FeatureType:
     {
         append_headers({ _u8L("Feature type"), _u8L("Time"), _u8L("Percentage") }, offsets);
         break;
     }
-#else
-    case EViewType::FeatureType:    { imgui.title(_u8L("Feature type")); break; }
-#endif // GCODE_VIEWER_TIME_ESTIMATE
     case EViewType::Height:         { imgui.title(_u8L("Height (mm)")); break; }
     case EViewType::Width:          { imgui.title(_u8L("Width (mm)")); break; }
     case EViewType::Feedrate:       { imgui.title(_u8L("Speed (mm/s)")); break; }
@@ -2003,28 +1954,15 @@ void GCodeViewer::render_legend() const
             if (role >= erCount)
                 continue;
             bool visible = is_visible(role);
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_LEGEND
             append_item(EItemType::Rect, Extrusion_Role_Colors[static_cast<unsigned int>(role)], labels[i],
                 visible, times[i], percents[i], max_percent, offsets, [this, role, visible]() {
-#else
-            if (!visible)
-                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
-
-            append_item(EItemType::Rect, Extrusion_Role_Colors[static_cast<unsigned int>(role)], _u8L(ExtrusionEntity::role_to_string(role)),
-                [this, role, visible]() {
-#endif // GCODE_VIEWER_TIME_ESTIMATE
-                m_extrusions.role_visibility_flags = visible ? m_extrusions.role_visibility_flags & ~(1 << role) : m_extrusions.role_visibility_flags | (1 << role);
+                    m_extrusions.role_visibility_flags = visible ? m_extrusions.role_visibility_flags & ~(1 << role) : m_extrusions.role_visibility_flags | (1 << role);
                     // update buffers' render paths
                     refresh_render_paths(false, false);
                     wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
                     wxGetApp().plater()->update_preview_bottom_toolbar();
                 }
             );
-
-#if GCODE_VIEWER_TIME_ESTIMATE != TIME_ESTIMATE_LEGEND
-            if (!visible)
-                ImGui::PopStyleVar();
-#endif // GCODE_VIEWER_TIME_ESTIMATE
         }
         break;
     }
@@ -2102,7 +2040,6 @@ void GCodeViewer::render_legend() const
     default: { break; }
     }
 
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_LEGEND
     // partial estimated printing time section
     if (m_view_type == EViewType::ColorPrint) {
         using Times = std::pair<float, float>;
@@ -2185,11 +2122,6 @@ void GCodeViewer::render_legend() const
             draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
                 ImGui::GetColorU32({ color2[0], color2[1], color2[2], 1.0f }));
 
-//            ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
-//            draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color1[0], color1[1], color1[2], 1.0f }), 6);
-//            center.x += icon_size;
-//            draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color2[0], color2[1], color2[2], 1.0f }), 6);
-
             ImGui::SameLine(offsets[0]);
             imgui.text(short_time(get_time_dhms(times.second - times.first)));
         };
@@ -2240,7 +2172,6 @@ void GCodeViewer::render_legend() const
             }
         }
     }
-#endif // GCODE_VIEWER_TIME_ESTIMATE
 
     // travel paths section
     if (m_buffers[buffer_id(EMoveType::Travel)].visible) {
@@ -2306,374 +2237,6 @@ void GCodeViewer::render_legend() const
     imgui.end();
     ImGui::PopStyleVar();
 }
-
-#if GCODE_VIEWER_TIME_ESTIMATE != TIME_ESTIMATE_NONE
-void GCodeViewer::render_time_estimate() const
-{
-    if (!m_time_estimate_enabled) {
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_MODAL
-        m_time_estimate_frames_count = 0;
-#endif // GCODE_VIEWER_TIME_ESTIMATE
-        return;
-    }
-
-    ImGuiWrapper& imgui = *wxGetApp().imgui();
-    
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_MODAL
-    // esc
-    if (ImGui::GetIO().KeysDown[27]) {
-        m_time_estimate_enabled = false;
-        return;
-    }
-#endif // GCODE_VIEWER_TIME_ESTIMATE
-
-    using Times = std::pair<float, float>;
-    using TimesList = std::vector<std::pair<CustomGCode::Type, Times>>;
-    using Headers = std::vector<std::string>;
-    using ColumnOffsets = std::array<float, 2>;
-
-    // helper structure containig the data needed to render the time items
-    struct PartialTime
-    {
-        enum class EType : unsigned char
-        {
-            Print,
-            ColorChange,
-            Pause
-        };
-        EType type;
-        int extruder_id;
-        Color color1;
-        Color color2;
-        Times times;
-    };
-    using PartialTimes = std::vector<PartialTime>;
-
-    auto append_headers = [&imgui](const Headers& headers, const ColumnOffsets& offsets) {
-        imgui.text(headers[0]);
-        ImGui::SameLine(offsets[0]);
-        imgui.text(headers[1]);
-        ImGui::SameLine(offsets[1]);
-        imgui.text(headers[2]);
-        ImGui::Separator();
-    };
-
-    auto append_mode = [this, &imgui, append_headers](float total_time, const PartialTimes& items,
-        const Headers& partial_times_headers,
-        const std::vector<std::pair<EMoveType, float>>& moves_time,
-        const Headers& moves_headers,
-        const std::vector<std::pair<ExtrusionRole, float>>& roles_time,
-        const Headers& roles_headers) {
-            auto append_partial_times = [this, &imgui, append_headers](const PartialTimes& items, const Headers& headers) {
-                auto calc_offsets = [this, &headers](const PartialTimes& items) {
-                ColumnOffsets ret = { ImGui::CalcTextSize(headers[0].c_str()).x, ImGui::CalcTextSize(headers[1].c_str()).x };
-                for (const PartialTime& item : items) {
-                    std::string label;
-                    switch (item.type)
-                    {
-                    case PartialTime::EType::Print:       { label = _u8L("Print"); break; }
-                    case PartialTime::EType::Pause:       { label = _u8L("Pause"); break; }
-                    case PartialTime::EType::ColorChange: { label = _u8L("Color change"); break; }
-                    }
-
-                    ret[0] = std::max(ret[0], ImGui::CalcTextSize(label.c_str()).x);
-                    ret[1] = std::max(ret[1], ImGui::CalcTextSize(short_time(get_time_dhms(item.times.second)).c_str()).x);
-                }
-
-                const ImGuiStyle& style = ImGui::GetStyle();
-                ret[0] += 2.0f * (ImGui::GetTextLineHeight() + style.ItemSpacing.x);
-                ret[1] += ret[0] + style.ItemSpacing.x;
-                return ret;
-            };
-            auto append_color = [this, &imgui](const Color& color1, const Color& color2, ColumnOffsets& offsets, const Times& times) {
-                imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Color change"));
-                ImGui::SameLine();
-
-                float icon_size = ImGui::GetTextLineHeight();
-                ImDrawList* draw_list = ImGui::GetWindowDrawList();
-                ImVec2 pos = ImGui::GetCursorScreenPos();
-                pos.x -= 0.5f * ImGui::GetStyle().ItemSpacing.x;
-                ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
-                draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color1[0], color1[1], color1[2], 1.0f }), 6);
-                center.x += icon_size;
-                draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color2[0], color2[1], color2[2], 1.0f }), 6);
-                ImGui::SameLine(offsets[0]);
-                imgui.text(short_time(get_time_dhms(times.second - times.first)));
-            };
-
-            if (items.empty())
-                return;
-
-            ColumnOffsets offsets = calc_offsets(items);
-
-            ImGui::Spacing();
-            append_headers(headers, offsets);
-
-            for (const PartialTime& item : items) {
-                switch (item.type)
-                {
-                case PartialTime::EType::Print:
-                {
-                    imgui.text(_u8L("Print"));
-                    ImGui::SameLine(offsets[0]);
-                    imgui.text(short_time(get_time_dhms(item.times.second)));
-                    ImGui::SameLine(offsets[1]);
-                    imgui.text(short_time(get_time_dhms(item.times.first)));
-                    break;
-                }
-                case PartialTime::EType::Pause:
-                {
-                    imgui.text(_u8L("Pause"));
-                    ImGui::SameLine(offsets[0]);
-                    imgui.text(short_time(get_time_dhms(item.times.second - item.times.first)));
-                    break;
-                }
-                case PartialTime::EType::ColorChange:
-                {
-                    append_color(item.color1, item.color2, offsets, item.times);
-                    break;
-                }
-                }
-            }
-        };
-
-        auto move_type_label = [](EMoveType type) {
-            switch (type)
-            {
-            case EMoveType::Noop:         { return _u8L("Noop"); }
-            case EMoveType::Retract:      { return _u8L("Retraction"); }
-            case EMoveType::Unretract:    { return _u8L("Unretraction"); }
-            case EMoveType::Tool_change:  { return _u8L("Tool change"); }
-            case EMoveType::Color_change: { return _u8L("Color change"); }
-            case EMoveType::Pause_Print:  { return _u8L("Pause print"); }
-            case EMoveType::Custom_GCode: { return _u8L("Custom GCode"); }
-            case EMoveType::Travel:       { return _u8L("Travel"); }
-            case EMoveType::Extrude:      { return _u8L("Extrusion"); }
-            default:                      { return _u8L("Unknown"); }
-            }
-        };
-
-        auto append_time_item = [&imgui] (const std::string& label, float time, float percentage, const ImVec4& color, const ColumnOffsets& offsets) {
-            imgui.text(label);
-            ImGui::SameLine(offsets[0]);
-            imgui.text(short_time(get_time_dhms(time)));
-            ImGui::SameLine(offsets[1]);
-            char buf[64];
-            ::sprintf(buf, "%.1f%%", 100.0f * percentage);
-            ImGuiWindow* window = ImGui::GetCurrentWindow();
-            ImRect frame_bb;
-            frame_bb.Min = { ImGui::GetCursorScreenPos().x, window->DC.CursorPos.y };
-            frame_bb.Max = { frame_bb.Min.x + percentage * (window->WorkRect.Max.x - frame_bb.Min.x), window->DC.CursorPos.y + ImGui::CalcTextSize(buf, nullptr, false).y };
-            frame_bb.Min.x -= IM_FLOOR(window->WindowPadding.x * 0.5f - 1.0f);
-            frame_bb.Max.x += IM_FLOOR(window->WindowPadding.x * 0.5f);
-            window->DrawList->AddRectFilled(frame_bb.Min, frame_bb.Max, ImGui::GetColorU32({ color.x, color.y, color.z, 1.0f }), 0.0f, 0);
-            ImGui::TextUnformatted(buf);
-        };
-
-        auto append_move_times = [this, &imgui, move_type_label, append_headers, append_time_item](float total_time,
-            const std::vector<std::pair<EMoveType, float>>& moves_time,
-            const Headers& headers, const ColumnOffsets& offsets) {
-
-            if (moves_time.empty())
-                return;
-            
-            if (!ImGui::CollapsingHeader(_u8L("Moves Time").c_str(), ImGuiTreeNodeFlags_DefaultOpen))
-                return;
-
-            append_headers(headers, offsets);
-
-            std::vector<std::pair<EMoveType, float>> sorted_moves_time(moves_time);
-            std::sort(sorted_moves_time.begin(), sorted_moves_time.end(), [](const auto& p1, const auto& p2) { return p2.second < p1.second; });
-
-            for (const auto& [type, time] : sorted_moves_time) {
-                append_time_item(move_type_label(type), time, time / total_time, ImGuiWrapper::COL_ORANGE_LIGHT, offsets);
-            }
-        };
-
-        auto append_role_times = [this, &imgui, append_headers, append_time_item](float total_time,
-            const std::vector<std::pair<ExtrusionRole, float>>& roles_time,
-            const Headers& headers, const ColumnOffsets& offsets) {
-
-            if (roles_time.empty())
-                return;
-
-            if (!ImGui::CollapsingHeader(_u8L("Features Time").c_str(), ImGuiTreeNodeFlags_DefaultOpen))
-                return;
-
-            append_headers(headers, offsets);
-
-            std::vector<std::pair<ExtrusionRole, float>> sorted_roles_time(roles_time);
-            std::sort(sorted_roles_time.begin(), sorted_roles_time.end(), [](const auto& p1, const auto& p2) { return p2.second < p1.second; });
-
-            for (const auto& [role, time] : sorted_roles_time) {
-                Color color = Extrusion_Role_Colors[static_cast<unsigned int>(role)];
-                append_time_item(_u8L(ExtrusionEntity::role_to_string(role)), time, time / total_time, { 0.666f * color[0], 0.666f * color[1], 0.666f * color[2], 1.0f}, offsets);
-            }
-        };
-
-        auto calc_common_offsets = [move_type_label](
-            const std::vector<std::pair<EMoveType, float>>& moves_time, const Headers& moves_headers,
-            const std::vector<std::pair<ExtrusionRole, float>>& roles_time, const Headers& roles_headers) {
-                ColumnOffsets ret = { std::max(ImGui::CalcTextSize(moves_headers[0].c_str()).x, ImGui::CalcTextSize(roles_headers[0].c_str()).x),
-                    std::max(ImGui::CalcTextSize(moves_headers[1].c_str()).x, ImGui::CalcTextSize(roles_headers[1].c_str()).x) };
-
-                for (const auto& [type, time] : moves_time) {
-                    ret[0] = std::max(ret[0], ImGui::CalcTextSize(move_type_label(type).c_str()).x);
-                    ret[1] = std::max(ret[1], ImGui::CalcTextSize(short_time(get_time_dhms(time)).c_str()).x);
-                }
-
-                for (const auto& [role, time] : roles_time) {
-                    ret[0] = std::max(ret[0], ImGui::CalcTextSize(_u8L(ExtrusionEntity::role_to_string(role)).c_str()).x);
-                    ret[1] = std::max(ret[1], ImGui::CalcTextSize(short_time(get_time_dhms(time)).c_str()).x);
-                }
-
-                const ImGuiStyle& style = ImGui::GetStyle();
-                ret[0] += 2.0f * style.ItemSpacing.x;
-                ret[1] += ret[0] + style.ItemSpacing.x;
-                return ret;
-        };
-
-        imgui.text(_u8L("Time") + ":");
-        ImGui::SameLine();
-        imgui.text(short_time(get_time_dhms(total_time)));
-        append_partial_times(items, partial_times_headers);
-        ColumnOffsets common_offsets = calc_common_offsets(moves_time, moves_headers, roles_time, roles_headers);
-        append_move_times(total_time, moves_time, moves_headers, common_offsets);
-        append_role_times(total_time, roles_time, roles_headers, common_offsets);
-    };
-
-    auto generate_partial_times = [this](const TimesList& times) {
-        PartialTimes items;
-
-        std::vector<CustomGCode::Item> custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
-        int extruders_count = wxGetApp().extruders_edited_cnt();
-        std::vector<Color> last_color(extruders_count);
-        for (int i = 0; i < extruders_count; ++i) {
-            last_color[i] = m_tool_colors[i];
-        }
-        int last_extruder_id = 1;
-        for (const auto& time_rec : times) {
-            switch (time_rec.first)
-            {
-            case CustomGCode::PausePrint:
-            {
-                auto it = std::find_if(custom_gcode_per_print_z.begin(), custom_gcode_per_print_z.end(), [time_rec](const CustomGCode::Item& item) { return item.type == time_rec.first; });
-                if (it != custom_gcode_per_print_z.end()) {
-                    items.push_back({ PartialTime::EType::Print, it->extruder, Color(), Color(), time_rec.second });
-                    items.push_back({ PartialTime::EType::Pause, it->extruder, Color(), Color(), time_rec.second });
-                    custom_gcode_per_print_z.erase(it);
-                }
-                break;
-            }
-            case CustomGCode::ColorChange:
-            {
-                auto it = std::find_if(custom_gcode_per_print_z.begin(), custom_gcode_per_print_z.end(), [time_rec](const CustomGCode::Item& item) { return item.type == time_rec.first; });
-                if (it != custom_gcode_per_print_z.end()) {
-                    items.push_back({ PartialTime::EType::Print, it->extruder, Color(), Color(), time_rec.second });
-                    items.push_back({ PartialTime::EType::ColorChange, it->extruder, last_color[it->extruder - 1], decode_color(it->color), time_rec.second });
-                    last_color[it->extruder - 1] = decode_color(it->color);
-                    last_extruder_id = it->extruder;
-                    custom_gcode_per_print_z.erase(it);
-                }
-                else
-                    items.push_back({ PartialTime::EType::Print, last_extruder_id, Color(), Color(), time_rec.second });
-
-                break;
-            }
-            default: { break; }
-            }
-        }
-
-        return items;
-    };
-
-    const Headers partial_times_headers = {
-        _u8L("Event"),
-        _u8L("Remaining"),
-        _u8L("Duration")
-    };
-    const Headers moves_headers = {
-        _u8L("Type"),
-        _u8L("Time"),
-        _u8L("Percentage")
-    };
-    const Headers roles_headers = {
-        _u8L("Feature"),
-        _u8L("Time"),
-        _u8L("Percentage")
-    };
-
-    Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_MODAL
-    std::string title = _u8L("Estimated printing time");
-    ImGui::OpenPopup(title.c_str());
-
-    imgui.set_next_window_pos(0.5f * static_cast<float>(cnv_size.get_width()), 0.5f * static_cast<float>(cnv_size.get_height()), ImGuiCond_Always, 0.5f, 0.5f);
-    ImGui::SetNextWindowSize({ -1.0f, 0.666f * static_cast<float>(cnv_size.get_height()) });
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    ImGui::SetNextWindowBgAlpha(0.6f);
-    if (ImGui::BeginPopupModal(title.c_str(), &m_time_estimate_enabled, ImGuiWindowFlags_AlwaysAutoResize)) {
-        if (m_time_estimate_enabled) {
-            // imgui takes several frames to grayout the content of the canvas
-            if (m_time_estimate_frames_count < 10) {
-                wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-                wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
-                ++m_time_estimate_frames_count;
-            }
-#else
-    imgui.set_next_window_pos(static_cast<float>(cnv_size.get_width()), static_cast<float>(cnv_size.get_height()), ImGuiCond_Always, 1.0f, 1.0f);
-    ImGui::SetNextWindowSizeConstraints({ 0.0f, 0.0f }, { -1.0f, 0.5f * static_cast<float>(cnv_size.get_height()) });
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    ImGui::SetNextWindowBgAlpha(0.6f);
-    imgui.begin(std::string("Time_estimate"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
-
-    // title
-    imgui.title(_u8L("Estimated printing time"));
-#endif // GCODE_VIEWER_TIME_ESTIMATE
-
-    // mode tabs
-    ImGui::BeginTabBar("mode_tabs");
-    const PrintEstimatedTimeStatistics::Mode& normal_mode = m_time_statistics.modes[static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Normal)];
-    if (normal_mode.time > 0.0f) {
-        if (ImGui::BeginTabItem(_u8L("Normal").c_str())) {
-            append_mode(normal_mode.time,
-                generate_partial_times(normal_mode.custom_gcode_times), partial_times_headers,
-                normal_mode.moves_times, moves_headers,
-                normal_mode.roles_times, roles_headers);
-            ImGui::EndTabItem();
-        }
-    }
-    const PrintEstimatedTimeStatistics::Mode& stealth_mode = m_time_statistics.modes[static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Stealth)];
-    if (stealth_mode.time > 0.0f) {
-        if (ImGui::BeginTabItem(_u8L("Stealth").c_str())) {
-            append_mode(stealth_mode.time,
-                generate_partial_times(stealth_mode.custom_gcode_times), partial_times_headers,
-                stealth_mode.moves_times, moves_headers,
-                stealth_mode.roles_times, roles_headers);
-            ImGui::EndTabItem();
-        }
-    }
-    ImGui::EndTabBar();
-
-#if GCODE_VIEWER_TIME_ESTIMATE == TIME_ESTIMATE_MODAL
-            // this is ugly, but it is the only way to ensure that the dialog is large
-            // enough to show enterely the title
-            // see: https://github.com/ocornut/imgui/issues/3239
-            float width = std::max(ImGui::CalcTextSize(title.c_str()).x + 2.0f * ImGui::GetStyle().WindowPadding.x, 300.0f);
-            ImGui::SetCursorPosX(width);
-            ImGui::SetCursorPosX(0.0f);
-        }
-        else
-            m_time_estimate_enabled = false;
-
-        ImGui::EndPopup();
-    }
-#else
-    imgui.end();
-#endif // GCODE_VIEWER_TIME_ESTIMATE
-    ImGui::PopStyleVar();
-}
-#endif // GCODE_VIEWER_TIME_ESTIMATE
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
 void GCodeViewer::render_statistics() const
