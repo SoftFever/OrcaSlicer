@@ -4,6 +4,8 @@
 #include <array>
 #include <string>
 
+#include "libslic3r/Point.hpp"
+
 namespace Slic3r {
 
 class GLShaderProgram
