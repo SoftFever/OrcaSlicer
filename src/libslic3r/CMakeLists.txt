@@ -217,6 +217,7 @@ add_library(libslic3r STATIC
     MarchingSquares.hpp
     Optimize/Optimizer.hpp
     Optimize/NLoptOptimizer.hpp
+    Optimize/BruteforceOptimizer.hpp
     ${OpenVDBUtils_SOURCES}
     SLA/Pad.hpp
     SLA/Pad.cpp

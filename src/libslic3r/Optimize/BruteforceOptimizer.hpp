@@ -8,14 +8,18 @@ namespace Slic3r { namespace opt {
 namespace detail {
 // Implementing a bruteforce optimizer
 
+// Return the number of iterations needed to reach a specific grid position (idx)
 template<size_t N>
-constexpr long num_iter(const std::array<size_t, N> &idx, size_t gridsz)
+long num_iter(const std::array<size_t, N> &idx, size_t gridsz)
 {
     long ret = 0;
     for (size_t i = 0; i < N; ++i) ret += idx[i] * std::pow(gridsz, i);
     return ret;
 }
 
+// Implementation of a grid search where the search interval is sampled in
+// equidistant points for each dimension. Grid size determines the number of
+// samples for one dimension so the number of function calls is gridsize ^ dimension.
 struct AlgBurteForce {
     bool to_min;
     StopCriteria stc;
@@ -23,6 +27,11 @@ struct AlgBurteForce {
 
     AlgBurteForce(const StopCriteria &cr, size_t gs): stc{cr}, gridsz{gs} {}
 
+    // This function is called recursively for each dimension and generates
+    // the grid values for the particular dimension. If D is less than zero,
+    // the object function input values are generated for each dimension and it
+    // can be evaluated. The current best score is compared with the newly
+    // returned score and changed appropriately.
     template<int D, size_t N, class Fn, class Cmp>
     bool run(std::array<size_t, N> &idx,
              Result<N> &result,
@@ -32,11 +41,12 @@ struct AlgBurteForce {
     {
         if (stc.stop_condition()) return false;
 
-        if constexpr (D < 0) {
+        if constexpr (D < 0) { // Let's evaluate fn
             Input<N> inp;
 
             auto max_iter = stc.max_iterations();
-            if (max_iter && num_iter(idx, gridsz) >= max_iter) return false;
+            if (max_iter && num_iter(idx, gridsz) >= max_iter)
+                return false;
 
             for (size_t d = 0; d < N; ++d) {
                 const Bound &b = bounds[d];
@@ -45,12 +55,13 @@ struct AlgBurteForce {
             }
 
             auto score = fn(inp);
-            if (cmp(score, result.score)) {
+            if (cmp(score, result.score)) { // Change current score to the new
                 double absdiff = std::abs(score - result.score);
 
                 result.score = score;
                 result.optimum = inp;
 
+                // Check if the required precision is reached.
                 if (absdiff < stc.abs_score_diff() ||
                     absdiff < stc.rel_score_diff() * std::abs(score))
                     return false;
@@ -58,9 +69,10 @@ struct AlgBurteForce {
 
         } else {
             for (size_t i = 0; i < gridsz; ++i) {
-                idx[D] = i;
+                idx[D] = i; // Mark the current grid position and dig down
                 if (!run<D - 1>(idx, result, bounds, std::forward<Fn>(fn),
-                               std::forward<Cmp>(cmp))) return false;
+                                std::forward<Cmp>(cmp)))
+                    return false;
             }
         }
 
@@ -90,7 +102,7 @@ struct AlgBurteForce {
     }
 };
 
-} // namespace bruteforce_detail
+} // namespace detail
 
 using AlgBruteForce = detail::AlgBurteForce;
 

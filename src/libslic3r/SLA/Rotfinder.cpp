@@ -6,14 +6,11 @@
 #include <libslic3r/SLA/Rotfinder.hpp>
 #include <libslic3r/SLA/Concurrency.hpp>
 #include <libslic3r/SLA/SupportTree.hpp>
-#include <libslic3r/SLA/SupportPointGenerator.hpp>
-#include <libslic3r/SimplifyMesh.hpp>
 #include "Model.hpp"
 
 #include <thread>
 
-namespace Slic3r {
-namespace sla {
+namespace Slic3r { namespace sla {
 
 using VertexFaceMap = std::vector<std::vector<size_t>>;
 
@@ -51,7 +48,6 @@ double find_ground_level(const TriangleMesh &mesh,
 
 // Try to guess the number of support points needed to support a mesh
 double calculate_model_supportedness(const TriangleMesh & mesh,
-//                                     const VertexFaceMap &vmap,
                                      const Transform3d &  tr)
 {
     static constexpr double POINTS_PER_UNIT_AREA = 1.;
@@ -111,8 +107,6 @@ std::array<double, 2> find_best_rotation(const ModelObject& modelobj,
     // rotations
     TriangleMesh mesh = modelobj.raw_mesh();
     mesh.require_shared_vertices();
-//    auto vmap = create_vertex_face_map(mesh);
-//    simplify_mesh(mesh);
 
     // For current iteration number
     unsigned status = 0;
@@ -147,21 +141,20 @@ std::array<double, 2> find_best_rotation(const ModelObject& modelobj,
         return score;
     };
 
-    // Firing up the genetic optimizer. For now it uses the nlopt library.
-
+    // Firing up the optimizer.
     opt::Optimizer<opt::AlgBruteForce> solver(opt::StopCriteria{}
                                                   .max_iterations(max_tries)
                                                   .rel_score_diff(1e-6)
                                                   .stop_condition(stopcond),
-                                              100 /*grid size*/);
+                                              std::sqrt(max_tries)/*grid size*/);
 
     // We are searching rotations around only two axes x, y. Thus the
     // problem becomes a 2 dimensional optimization task.
     // We can specify the bounds for a dimension in the following way:
     auto b = opt::Bound{-PI, PI};
 
-    // Now we start the optimization process with initial angles (0, 0, 0)
-    auto result = solver.to_min().optimize(objfunc, opt::initvals({0.0, 0.0}),
+    // Now we start the optimization process with initial angles (0, 0)
+    auto result = solver.to_min().optimize(objfunc, opt::initvals({0., 0.}),
                                            opt::bounds({b, b}));
 
     // Save the result and fck off
@@ -171,5 +164,4 @@ std::array<double, 2> find_best_rotation(const ModelObject& modelobj,
     return rot;
 }
 
-}
-}
+}} // namespace Slic3r::sla
