@@ -176,6 +176,24 @@ class GCodeViewer
             default:                             { return 0; }
             }
         }
+        unsigned int start_segment_vertex_offset() const {
+            switch (render_primitive_type)
+            {
+            case ERenderPrimitiveType::Point:
+            case ERenderPrimitiveType::Line: 
+            case ERenderPrimitiveType::Triangle:
+            default: { return 0; }
+            }
+        }
+        unsigned int end_segment_vertex_offset() const {
+            switch (render_primitive_type)
+            {
+            case ERenderPrimitiveType::Point:    { return 0; }
+            case ERenderPrimitiveType::Line:     { return 1; }
+            case ERenderPrimitiveType::Triangle: { return 36; } // 1 vertex of 13th triangle
+            default:                             { return 0; }
+            }
+        }
     };
 
     // helper to render shells

@@ -608,9 +608,15 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     glsafe(::glGetBufferSubData(GL_ARRAY_BUFFER, 0, buffer.vertices.data_size_bytes(), vertices.data()));
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 
-    auto get_vertex = [&vertices, floats_per_vertex](size_t id) {
+    // get indices data from index buffer on gpu
+    std::vector<unsigned int> indices = std::vector<unsigned int>(buffer.indices.count);
+    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.indices.id));
+    glsafe(::glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, static_cast<GLsizeiptr>(indices.size() * sizeof(unsigned int)), indices.data()));
+    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
+    auto get_vertex = [&vertices, floats_per_vertex](unsigned int id) {
         // extract vertex from vector of floats
-        size_t base_id = id * floats_per_vertex;
+        unsigned int base_id = id * floats_per_vertex;
         return Vec3f(vertices[base_id + 0], vertices[base_id + 1], vertices[base_id + 2]);
     };
 
@@ -626,7 +632,7 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
         float length;
     };
 
-    auto generate_segment = [get_vertex](size_t start_id, float half_width, float half_height) {
+    auto generate_segment = [get_vertex](unsigned int start_id, unsigned int end_id, float half_width, float half_height) {
         auto local_basis = [](const Vec3f& dir) {
             // calculate local basis (dir, right, up) on given segment
             std::array<Vec3f, 3> ret;
@@ -650,13 +656,16 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
         };
 
         Vec3f v1 = get_vertex(start_id) - half_height * Vec3f::UnitZ();
-        Vec3f v2 = get_vertex(start_id + 1) - half_height * Vec3f::UnitZ();
+        Vec3f v2 = get_vertex(end_id) - half_height * Vec3f::UnitZ();
         float length = (v2 - v1).norm();
         const auto&& [dir, right, up] = local_basis(v2 - v1);
         return Segment({ v1, v2, dir, right, up, half_width * right, half_height * up, length });
     };
 
     size_t out_vertices_count = 0;
+    unsigned int indices_per_segment = buffer.indices_per_segment();
+    unsigned int start_vertex_offset = buffer.start_segment_vertex_offset();
+    unsigned int end_vertex_offset = buffer.end_segment_vertex_offset();
 
     for (size_t i = 0; i < buffer.render_paths.size(); ++i) {
         // get paths segments from buffer paths
@@ -675,9 +684,8 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
             unsigned int start = static_cast<unsigned int>(render_path.offsets[j] / sizeof(unsigned int));
             unsigned int end = start + render_path.sizes[j];
 
-            for (size_t k = start; k < end; k += 2) {
-                Segment curr = generate_segment(k, half_width, half_height);
-
+            for (size_t k = start; k < end; k += static_cast<size_t>(indices_per_segment)) {
+                Segment curr = generate_segment(indices[k + start_vertex_offset], indices[k + end_vertex_offset], half_width, half_height);
                 if (k == start) {
                     // starting endpoint vertices/normals
                     out_vertices.push_back(curr.v1 + curr.rl_displacement); out_normals.push_back(curr.right);  // right
@@ -699,7 +707,8 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
                     out_vertices.push_back(curr.v1 - curr.rl_displacement); out_normals.push_back(-curr.right); // left
                     out_vertices_count += 2;
 
-                    Segment prev = generate_segment(k - 2, half_width, half_height);
+                    size_t first_vertex_id = k - static_cast<size_t>(indices_per_segment);
+                    Segment prev = generate_segment(indices[first_vertex_id + start_vertex_offset], indices[first_vertex_id + end_vertex_offset], half_width, half_height);
                     Vec3f med_dir = (prev.dir + curr.dir).normalized();
                     float disp = half_width * ::tan(::acos(std::clamp(curr.dir.dot(med_dir), -1.0f, 1.0f)));
                     Vec3f disp_vec = disp * prev.dir;
