@@ -1,3 +1,4 @@
+#include "libslic3r/libslic3r.h"
 #include "KBShortcutsDialog.hpp"
 #include "I18N.hpp"
 #include "libslic3r/Utils.hpp"
@@ -6,6 +7,9 @@
 #include <wx/display.h>
 #include "GUI_App.hpp"
 #include "wxExtensions.hpp"
+#if ENABLE_GCODE_VIEWER
+#include "MainFrame.hpp"
+#endif // ENABLE_GCODE_VIEWER
 
 #define NOTEBOOK_TOP 1
 #define NOTEBOOK_LEFT 2
@@ -29,12 +33,8 @@ namespace Slic3r {
 namespace GUI {
 
 KBShortcutsDialog::KBShortcutsDialog()
-    : DPIDialog(NULL, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _(L("Keyboard Shortcuts")),
-#if ENABLE_SCROLLABLE
+    : DPIDialog(NULL, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _L("Keyboard Shortcuts"),
     wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
-#else
-    wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
-#endif // ENABLE_SCROLLABLE
 {
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 
@@ -65,13 +65,9 @@ main_sizer->Add(book, 1, wxEXPAND | wxALL, 10);
     fill_shortcuts();
     for (size_t i = 0; i < m_full_shortcuts.size(); ++i)
     {
-#if ENABLE_SCROLLABLE
         wxPanel* page = create_page(book, m_full_shortcuts[i], font, bold_font);
         m_pages.push_back(page);
         book->AddPage(page, m_full_shortcuts[i].first, i == 0);
-#else
-        book->AddPage(create_page(book, m_full_shortcuts[i], font, bold_font), m_full_shortcuts[i].first, i == 0);
-#endif // ENABLE_SCROLLABLE
     }
 
     wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxOK);
@@ -98,114 +94,122 @@ void KBShortcutsDialog::fill_shortcuts()
     const std::string& ctrl = GUI::shortkey_ctrl_prefix();
     const std::string& alt = GUI::shortkey_alt_prefix();
 
-    Shortcuts commands_shortcuts = {
-        // File
-        { ctrl + "N", L("New project, clear plater") },
-        { ctrl + "O", L("Open project STL/OBJ/AMF/3MF with config, clear plater") },
-        { ctrl + "S", L("Save project (3mf)") },
-        { ctrl + alt + "S", L("Save project as (3mf)") },
-        { ctrl + "R", L("(Re)slice") },
-        // File>Import
-        { ctrl + "I", L("Import STL/OBJ/AMF/3MF without config, keep plater") },
-        { ctrl + "L", L("Import Config from ini/amf/3mf/gcode") },
-        { ctrl + alt + "L", L("Load Config from ini/amf/3mf/gcode and merge") },
-        // File>Export
-        { ctrl + "G", L("Export G-code") },
-        { ctrl + "Shift+" + "G", L("Send G-code") },
-        { ctrl + "E", L("Export config") },
-		{ ctrl + "U", L("Export to SD card / Flash drive") },
-		{ ctrl + "T", L("Eject SD card / Flash drive") },
-        // Edit
-        { ctrl + "A", L("Select all objects") },
-        { "Esc", L("Deselect all") },
-        { "Del", L("Delete selected") },
-        { ctrl + "Del", L("Delete all") },
-        { ctrl + "Z", L("Undo") },
-        { ctrl + "Y", L("Redo") },
-        { ctrl + "C", L("Copy to clipboard") },
-        { ctrl + "V", L("Paste from clipboard") },
-        { "F5", L("Reload plater from disk") },
-        { ctrl + "F", L("Search") },
-        // Window
-        { ctrl + "1", L("Select Plater Tab") },
-        { ctrl + "2", L("Select Print Settings Tab") },
-        { ctrl + "3", L("Select Filament Settings Tab") },
-        { ctrl + "4", L("Select Printer Settings Tab") },
-        { ctrl + "5", L("Switch to 3D") },
-        { ctrl + "6", L("Switch to Preview") },
-        { ctrl + "J", L("Print host upload queue") },
-        // View
-        { "0-6", L("Camera view") },
-        { "E", L("Show/Hide object/instance labels") },
+#if ENABLE_GCODE_VIEWER
+    bool is_gcode_viewer = wxGetApp().mainframe->get_mode() == MainFrame::EMode::GCodeViewer;
+
+    if (!is_gcode_viewer) {
+#endif // ENABLE_GCODE_VIEWER
+        Shortcuts commands_shortcuts = {
+            // File
+            { ctrl + "N", L("New project, clear plater") },
+            { ctrl + "O", L("Open project STL/OBJ/AMF/3MF with config, clear plater") },
+            { ctrl + "S", L("Save project (3mf)") },
+            { ctrl + alt + "S", L("Save project as (3mf)") },
+            { ctrl + "R", L("(Re)slice") },
+            // File>Import
+            { ctrl + "I", L("Import STL/OBJ/AMF/3MF without config, keep plater") },
+            { ctrl + "L", L("Import Config from ini/amf/3mf/gcode") },
+            { ctrl + alt + "L", L("Load Config from ini/amf/3mf/gcode and merge") },
+            // File>Export
+            { ctrl + "G", L("Export G-code") },
+            { ctrl + "Shift+" + "G", L("Send G-code") },
+            { ctrl + "E", L("Export config") },
+            { ctrl + "U", L("Export to SD card / Flash drive") },
+            { ctrl + "T", L("Eject SD card / Flash drive") },
+            // Edit
+            { ctrl + "A", L("Select all objects") },
+            { "Esc", L("Deselect all") },
+            { "Del", L("Delete selected") },
+            { ctrl + "Del", L("Delete all") },
+            { ctrl + "Z", L("Undo") },
+            { ctrl + "Y", L("Redo") },
+            { ctrl + "C", L("Copy to clipboard") },
+            { ctrl + "V", L("Paste from clipboard") },
+            { "F5", L("Reload plater from disk") },
+            { ctrl + "F", L("Search") },
+            // Window
+            { ctrl + "1", L("Select Plater Tab") },
+            { ctrl + "2", L("Select Print Settings Tab") },
+            { ctrl + "3", L("Select Filament Settings Tab") },
+            { ctrl + "4", L("Select Printer Settings Tab") },
+            { ctrl + "5", L("Switch to 3D") },
+            { ctrl + "6", L("Switch to Preview") },
+            { ctrl + "J", L("Print host upload queue") },
+            // View
+            { "0-6", L("Camera view") },
+            { "E", L("Show/Hide object/instance labels") },
 #if ENABLE_SLOPE_RENDERING
-        { "D", L("Turn On/Off facets' slope rendering") },
+            { "D", L("Turn On/Off facets' slope rendering") },
 #endif // ENABLE_SLOPE_RENDERING
-        // Configuration
-        { ctrl + "P", L("Preferences") },
-        // Help
-        { "?", L("Show keyboard shortcuts list") }
-    };
+            // Configuration
+            { ctrl + "P", L("Preferences") },
+            // Help
+            { "?", L("Show keyboard shortcuts list") }
+        };
 
-    m_full_shortcuts.push_back(std::make_pair(_(L("Commands")), commands_shortcuts));
+        m_full_shortcuts.push_back(std::make_pair(_L("Commands"), commands_shortcuts));
 
-    Shortcuts plater_shortcuts = {
-        { "A", L("Arrange") },
-        { "Shift+A", L("Arrange selection") },
-        { "+", L("Add Instance of the selected object") },
-        { "-", L("Remove Instance of the selected object") },
-        { ctrl, L("Press to select multiple objects\nor move multiple objects with mouse") },
-        { "Shift+", L("Press to activate selection rectangle") },
-        { alt, L("Press to activate deselection rectangle") },
-        { L("Arrow Up"), L("Move selection 10 mm in positive Y direction") },
-        { L("Arrow Down"), L("Move selection 10 mm in negative Y direction") },
-        { L("Arrow Left"), L("Move selection 10 mm in negative X direction") },
-        { L("Arrow Right"), L("Move selection 10 mm in positive X direction") },
-        { std::string("Shift+") + L("Any arrow"), L("Movement step set to 1 mm") },
-        { ctrl + L("Any arrow"), L("Movement in camera space") },
-        { L("Page Up"), L("Rotate selection 45 degrees CCW") },
-        { L("Page Down"), L("Rotate selection 45 degrees CW") },
-        { "M", L("Gizmo move") },
-        { "S", L("Gizmo scale") },
-        { "R", L("Gizmo rotate") },
-        { "C", L("Gizmo cut") },
-        { "F", L("Gizmo Place face on bed") },
-        { "H", L("Gizmo SLA hollow") },
-        { "L", L("Gizmo SLA support points") },
-        { "Esc", L("Unselect gizmo or clear selection") },
-        { "K", L("Change camera type (perspective, orthographic)") },
-        { "B", L("Zoom to Bed") },
-        { "Z", L("Zoom to selected object\nor all objects in scene, if none selected") },
-        { "I", L("Zoom in") },
-        { "O", L("Zoom out") },
+        Shortcuts plater_shortcuts = {
+            { "A", L("Arrange") },
+            { "Shift+A", L("Arrange selection") },
+            { "+", L("Add Instance of the selected object") },
+            { "-", L("Remove Instance of the selected object") },
+            { ctrl, L("Press to select multiple objects\nor move multiple objects with mouse") },
+            { "Shift+", L("Press to activate selection rectangle") },
+            { alt, L("Press to activate deselection rectangle") },
+            { L("Arrow Up"), L("Move selection 10 mm in positive Y direction") },
+            { L("Arrow Down"), L("Move selection 10 mm in negative Y direction") },
+            { L("Arrow Left"), L("Move selection 10 mm in negative X direction") },
+            { L("Arrow Right"), L("Move selection 10 mm in positive X direction") },
+            { std::string("Shift+") + L("Any arrow"), L("Movement step set to 1 mm") },
+            { ctrl + L("Any arrow"), L("Movement in camera space") },
+            { L("Page Up"), L("Rotate selection 45 degrees CCW") },
+            { L("Page Down"), L("Rotate selection 45 degrees CW") },
+            { "M", L("Gizmo move") },
+            { "S", L("Gizmo scale") },
+            { "R", L("Gizmo rotate") },
+            { "C", L("Gizmo cut") },
+            { "F", L("Gizmo Place face on bed") },
+            { "H", L("Gizmo SLA hollow") },
+            { "L", L("Gizmo SLA support points") },
+            { "Esc", L("Unselect gizmo or clear selection") },
+            { "K", L("Change camera type (perspective, orthographic)") },
+            { "B", L("Zoom to Bed") },
+            { "Z", L("Zoom to selected object\nor all objects in scene, if none selected") },
+            { "I", L("Zoom in") },
+            { "O", L("Zoom out") },
 #ifdef __linux__
-        { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
+            { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
 #endif // __linux__
 #if ENABLE_RENDER_PICKING_PASS
-        // Don't localize debugging texts.
-        { "T", "Toggle picking pass texture rendering on/off" },
+            // Don't localize debugging texts.
+            { "P", "Toggle picking pass texture rendering on/off" },
 #endif // ENABLE_RENDER_PICKING_PASS
-    };
+        };
 
-    m_full_shortcuts.push_back(std::make_pair(_(L("Plater")), plater_shortcuts));
+        m_full_shortcuts.push_back(std::make_pair(_L("Plater"), plater_shortcuts));
 
-    Shortcuts gizmos_shortcuts = {
-        { "Shift+", L("Press to snap by 5% in Gizmo scale\nor to snap by 1mm in Gizmo move") },
-        { "F", L("Scale selection to fit print volume\nin Gizmo scale") },
-        { ctrl, L("Press to activate one direction scaling in Gizmo scale") },
-        { alt, L("Press to scale (in Gizmo scale) or rotate (in Gizmo rotate)\nselected objects around their own center") },
-    };
+        Shortcuts gizmos_shortcuts = {
+            { "Shift+", L("Press to snap by 5% in Gizmo scale\nor to snap by 1mm in Gizmo move") },
+            { "F", L("Scale selection to fit print volume\nin Gizmo scale") },
+            { ctrl, L("Press to activate one direction scaling in Gizmo scale") },
+            { alt, L("Press to scale (in Gizmo scale) or rotate (in Gizmo rotate)\nselected objects around their own center") },
+        };
 
-    m_full_shortcuts.push_back(std::make_pair(_(L("Gizmos")), gizmos_shortcuts));
+        m_full_shortcuts.push_back(std::make_pair(_L("Gizmos"), gizmos_shortcuts));
+#if ENABLE_GCODE_VIEWER
+    }
+#endif // ENABLE_GCODE_VIEWER
 
     Shortcuts preview_shortcuts = {
         { L("Arrow Up"), L("Upper Layer") },
         { L("Arrow Down"), L("Lower Layer") },
         { "U", L("Upper Layer") },
         { "D", L("Lower Layer") },
-        { "L", L("Show/Hide Legend") }
+        { "L", L("Show/Hide Legend/Estimated printing time") },
     };
 
-    m_full_shortcuts.push_back(std::make_pair(_(L("Preview")), preview_shortcuts));
+    m_full_shortcuts.push_back(std::make_pair(_L("Preview"), preview_shortcuts));
 
     Shortcuts layers_slider_shortcuts = {
         { L("Arrow Up"), L("Move current slider thumb Up") },
@@ -213,10 +217,23 @@ void KBShortcutsDialog::fill_shortcuts()
         { L("Arrow Left"), L("Set upper thumb to current slider thumb") },
         { L("Arrow Right"), L("Set lower thumb to current slider thumb") },
         { "+", L("Add color change marker for current layer") },
-        { "-", L("Delete color change marker for current layer") }
+        { "-", L("Delete color change marker for current layer") },
+        { "Shift+", L("Press to speed up 5 times while moving thumb\nwith arrow keys or mouse wheel") },
+        { ctrl, L("Press to speed up 5 times while moving thumb\nwith arrow keys or mouse wheel") },
     };
 
-    m_full_shortcuts.push_back(std::make_pair(_(L("Layers Slider")), layers_slider_shortcuts));
+    m_full_shortcuts.push_back(std::make_pair(_L("Layers Slider"), layers_slider_shortcuts));
+
+#if ENABLE_GCODE_VIEWER
+    Shortcuts sequential_slider_shortcuts = {
+        { L("Arrow Left"), L("Move current slider thumb Left") },
+        { L("Arrow Right"), L("Move current slider thumb Right") },
+        { "Shift+", L("Press to speed up 5 times while moving thumb\nwith arrow keys or mouse wheel") },
+        { ctrl, L("Press to speed up 5 times while moving thumb\nwith arrow keys or mouse wheel") },
+    };
+
+    m_full_shortcuts.push_back(std::make_pair(_L("Sequential Slider"), sequential_slider_shortcuts));
+#endif // ENABLE_GCODE_VIEWER
 }
 
 wxPanel* KBShortcutsDialog::create_header(wxWindow* parent, const wxFont& bold_font)
@@ -239,7 +256,7 @@ wxPanel* KBShortcutsDialog::create_header(wxWindow* parent, const wxFont& bold_f
     sizer->Add(m_header_bitmap, 0, wxEXPAND | wxLEFT | wxRIGHT, 10);
 
     // text
-    wxStaticText* text = new wxStaticText(panel, wxID_ANY, _(L("Keyboard shortcuts")));
+    wxStaticText* text = new wxStaticText(panel, wxID_ANY, _L("Keyboard shortcuts"));
     text->SetFont(header_font);
     sizer->Add(text, 0, wxALIGN_CENTER_VERTICAL);
 
@@ -254,13 +271,9 @@ wxPanel* KBShortcutsDialog::create_page(wxWindow* parent, const std::pair<wxStri
     static const int max_items_per_column = 20;
     int columns_count = 1 + (int)shortcuts.second.size() / max_items_per_column;
 
-#if ENABLE_SCROLLABLE
     wxScrolledWindow* page = new wxScrolledWindow(parent);
     page->SetScrollbars(20, 20, 50, 50);
     page->SetInitialSize(wxSize(850, 450));
-#else
-    wxPanel* page = new wxPanel(parent);
-#endif // ENABLE_SCROLLABLE
 
 #if (BOOK_TYPE == LISTBOOK_TOP) || (BOOK_TYPE == LISTBOOK_LEFT)
     wxStaticBoxSizer* sizer = new wxStaticBoxSizer(wxVERTICAL, page, " " + shortcuts.first + " ");

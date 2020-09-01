@@ -9,6 +9,8 @@
 #include <boost/nowide/cstdio.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
+#if !ENABLE_GCODE_VIEWER
+
 static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
 static const float MILLISEC_TO_SEC = 0.001f;
 static const float INCHES_TO_MM = 25.4f;
@@ -1671,3 +1673,5 @@ namespace Slic3r {
     }
 #endif // ENABLE_MOVE_STATS
 }
+
+#endif // !ENABLE_GCODE_VIEWER

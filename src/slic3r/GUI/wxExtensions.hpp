@@ -63,7 +63,6 @@ class wxCheckListBoxComboPopup : public wxCheckListBox, public wxComboPopup
 {
     static const unsigned int DefaultWidth;
     static const unsigned int DefaultHeight;
-    static const unsigned int DefaultItemHeight;
 
     wxString m_text;
 

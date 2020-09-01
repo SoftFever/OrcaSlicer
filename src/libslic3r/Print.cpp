@@ -1632,13 +1632,21 @@ void Print::process()
 // The export_gcode may die for various reasons (fails to process output_filename_format,
 // write error into the G-code, cannot execute post-processing scripts).
 // It is up to the caller to show an error message.
+#if ENABLE_GCODE_VIEWER
+std::string Print::export_gcode(const std::string& path_template, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb)
+#else
 std::string Print::export_gcode(const std::string& path_template, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb)
+#endif // ENABLE_GCODE_VIEWER
 {
     // output everything to a G-code file
     // The following call may die if the output_filename_format template substitution fails.
     std::string path = this->output_filepath(path_template);
     std::string message;
+#if ENABLE_GCODE_VIEWER
+    if (!path.empty() && result == nullptr) {
+#else
     if (! path.empty() && preview_data == nullptr) {
+#endif // ENABLE_GCODE_VIEWER
         // Only show the path if preview_data is not set -> running from command line.
         message = L("Exporting G-code");
         message += " to ";
@@ -1649,7 +1657,11 @@ std::string Print::export_gcode(const std::string& path_template, GCodePreviewDa
 
     // The following line may die for multiple reasons.
     GCode gcode;
+#if ENABLE_GCODE_VIEWER
+    gcode.do_export(this, path.c_str(), result, thumbnail_cb);
+#else
     gcode.do_export(this, path.c_str(), preview_data, thumbnail_cb);
+#endif // ENABLE_GCODE_VIEWER
     return path.c_str();
 }
 
@@ -2180,16 +2192,16 @@ DynamicConfig PrintStatistics::config() const
     DynamicConfig config;
     std::string normal_print_time = short_time(this->estimated_normal_print_time);
     std::string silent_print_time = short_time(this->estimated_silent_print_time);
-    config.set_key_value("print_time",                new ConfigOptionString(normal_print_time));
-    config.set_key_value("normal_print_time",         new ConfigOptionString(normal_print_time));
-    config.set_key_value("silent_print_time",         new ConfigOptionString(silent_print_time));
-    config.set_key_value("used_filament",             new ConfigOptionFloat (this->total_used_filament / 1000.));
-    config.set_key_value("extruded_volume",           new ConfigOptionFloat (this->total_extruded_volume));
-    config.set_key_value("total_cost",                new ConfigOptionFloat (this->total_cost));
+    config.set_key_value("print_time", new ConfigOptionString(normal_print_time));
+    config.set_key_value("normal_print_time", new ConfigOptionString(normal_print_time));
+    config.set_key_value("silent_print_time", new ConfigOptionString(silent_print_time));
+    config.set_key_value("used_filament",             new ConfigOptionFloat(this->total_used_filament / 1000.));
+    config.set_key_value("extruded_volume",           new ConfigOptionFloat(this->total_extruded_volume));
+    config.set_key_value("total_cost",                new ConfigOptionFloat(this->total_cost));
     config.set_key_value("total_toolchanges",         new ConfigOptionInt(this->total_toolchanges));
-    config.set_key_value("total_weight",              new ConfigOptionFloat (this->total_weight));
-    config.set_key_value("total_wipe_tower_cost",     new ConfigOptionFloat (this->total_wipe_tower_cost));
-    config.set_key_value("total_wipe_tower_filament", new ConfigOptionFloat (this->total_wipe_tower_filament));
+    config.set_key_value("total_weight",              new ConfigOptionFloat(this->total_weight));
+    config.set_key_value("total_wipe_tower_cost",     new ConfigOptionFloat(this->total_wipe_tower_cost));
+    config.set_key_value("total_wipe_tower_filament", new ConfigOptionFloat(this->total_wipe_tower_filament));
     return config;
 }
 

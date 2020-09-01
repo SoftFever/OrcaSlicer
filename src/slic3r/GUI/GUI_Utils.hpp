@@ -387,6 +387,15 @@ public:
 
 std::ostream& operator<<(std::ostream &os, const WindowMetrics& metrics);
 
+#if ENABLE_GCODE_VIEWER
+inline int hex_digit_to_int(const char c)
+{
+    return
+        (c >= '0' && c <= '9') ? int(c - '0') :
+        (c >= 'A' && c <= 'F') ? int(c - 'A') + 10 :
+        (c >= 'a' && c <= 'f') ? int(c - 'a') + 10 : -1;
+}
+#endif // ENABLE_GCODE_VIEWER
 
 }}
 

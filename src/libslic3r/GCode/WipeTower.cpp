@@ -21,7 +21,11 @@ TODO LIST
 #include <vector>
 #include <numeric>
 
+#if ENABLE_GCODE_VIEWER
+#include "GCodeProcessor.hpp"
+#else
 #include "Analyzer.hpp"
+#endif // ENABLE_GCODE_VIEWER
 #include "BoundingBox.hpp"
 
 #if defined(__linux) || defined(__GNUC__ )
@@ -47,36 +51,69 @@ public:
 		m_extrusion_flow(0.f),
 		m_preview_suppressed(false),
 		m_elapsed_time(0.f),
+#if !ENABLE_GCODE_VIEWER || ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_default_analyzer_line_width(line_width),
+#endif // !ENABLE_GCODE_VIEWER || ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_gcode_flavor(flavor),
         m_filpar(filament_parameters)
         {
             // adds tag for analyzer:
             char buf[64];
+#if ENABLE_GCODE_VIEWER
+            sprintf(buf, ";%s%f\n", GCodeProcessor::Height_Tag.c_str(), m_layer_height); // don't rely on GCodeAnalyzer knowing the layer height - it knows nothing at priming
+            m_gcode += buf;
+            sprintf(buf, ";%s%s\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), ExtrusionEntity::role_to_string(erWipeTower).c_str());
+            m_gcode += buf;
+#else
             sprintf(buf, ";%s%f\n", GCodeAnalyzer::Height_Tag.c_str(), m_layer_height); // don't rely on GCodeAnalyzer knowing the layer height - it knows nothing at priming
             m_gcode += buf;
             sprintf(buf, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erWipeTower);
             m_gcode += buf;
+#endif // ENABLE_GCODE_VIEWER
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
             change_analyzer_line_width(line_width);
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
         }
 
-    WipeTowerWriter&              change_analyzer_line_width(float line_width) {
-            // adds tag for analyzer:
-            char buf[64];
-            sprintf(buf, ";%s%f\n", GCodeAnalyzer::Width_Tag.c_str(), line_width);
-            m_gcode += buf;
-            return *this;
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+    WipeTowerWriter& change_analyzer_line_width(float line_width) {
+        // adds tag for analyzer:
+        char buf[64];
+        sprintf(buf, ";%s%f\n", GCodeProcessor::Width_Tag.c_str(), line_width);
+        m_gcode += buf;
+        return *this;
     }
 
-    WipeTowerWriter&          change_analyzer_mm3_per_mm(float len, float e) {
-            static const float area = float(M_PI) * 1.75f * 1.75f / 4.f;
-            float mm3_per_mm = (len == 0.f ? 0.f : area * e / len);
-            // adds tag for analyzer:
-            char buf[64];
-            sprintf(buf, ";%s%f\n", GCodeAnalyzer::Mm3_Per_Mm_Tag.c_str(), mm3_per_mm);
-            m_gcode += buf;
-            return *this;
+    WipeTowerWriter& change_analyzer_mm3_per_mm(float len, float e) {
+        static const float area = float(M_PI) * 1.75f * 1.75f / 4.f;
+        float mm3_per_mm = (len == 0.f ? 0.f : area * e / len);
+        // adds tag for processor:
+        char buf[64];
+        sprintf(buf, ";%s%f\n", GCodeProcessor::Mm3_Per_Mm_Tag.c_str(), mm3_per_mm);
+        m_gcode += buf;
+        return *this;
     }
+#else
+#if !ENABLE_GCODE_VIEWER
+    WipeTowerWriter& change_analyzer_line_width(float line_width) {
+        // adds tag for analyzer:
+        char buf[64];
+        sprintf(buf, ";%s%f\n", GCodeAnalyzer::Width_Tag.c_str(), line_width);
+        m_gcode += buf;
+        return *this;
+    }
+
+    WipeTowerWriter& change_analyzer_mm3_per_mm(float len, float e) {
+        static const float area = float(M_PI) * 1.75f * 1.75f / 4.f;
+        float mm3_per_mm = (len == 0.f ? 0.f : area * e / len);
+        // adds tag for analyzer:
+        char buf[64];
+        sprintf(buf, ";%s%f\n", GCodeAnalyzer::Mm3_Per_Mm_Tag.c_str(), mm3_per_mm);
+        m_gcode += buf;
+        return *this;
+    }
+#endif // !ENABLE_GCODE_VIEWER
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
 	WipeTowerWriter& 			 set_initial_position(const Vec2f &pos, float width = 0.f, float depth = 0.f, float internal_angle = 0.f) {
         m_wipe_tower_width = width;
@@ -111,8 +148,13 @@ public:
 	// Suppress / resume G-code preview in Slic3r. Slic3r will have difficulty to differentiate the various
 	// filament loading and cooling moves from normal extrusion moves. Therefore the writer
 	// is asked to suppres output of some lines, which look like extrusions.
-	WipeTowerWriter& 			 suppress_preview() { change_analyzer_line_width(0.f); m_preview_suppressed = true; return *this; }
-	WipeTowerWriter& 			 resume_preview()   { change_analyzer_line_width(m_default_analyzer_line_width); m_preview_suppressed = false; return *this; }
+#if !ENABLE_GCODE_VIEWER || ENABLE_GCODE_VIEWER_DATA_CHECKING
+    WipeTowerWriter& suppress_preview() { change_analyzer_line_width(0.f); m_preview_suppressed = true; return *this; }
+    WipeTowerWriter& resume_preview() { change_analyzer_line_width(m_default_analyzer_line_width); m_preview_suppressed = false; return *this; }
+#else
+    WipeTowerWriter& 			 suppress_preview() { m_preview_suppressed = true; return *this; }
+	WipeTowerWriter& 			 resume_preview()   { m_preview_suppressed = false; return *this; }
+#endif // !ENABLE_GCODE_VIEWER || ENABLE_GCODE_VIEWER_DATA_CHECKING
 
 	WipeTowerWriter& 			 feedrate(float f)
 	{
@@ -149,8 +191,14 @@ public:
 		Vec2f rot(this->rotate(Vec2f(x,y)));                               // this is where we want to go
 
         if (! m_preview_suppressed && e > 0.f && len > 0.f) {
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
             change_analyzer_mm3_per_mm(len, e);
-			// Width of a squished extrusion, corrected for the roundings of the squished extrusions.
+#else
+#if !ENABLE_GCODE_VIEWER
+            change_analyzer_mm3_per_mm(len, e);
+#endif // !ENABLE_GCODE_VIEWER
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+            // Width of a squished extrusion, corrected for the roundings of the squished extrusions.
 			// This is left zero if it is a travel move.
             float width = e * m_filpar[0].filament_area / (len * m_layer_height);
 			// Correct for the roundings of a squished extrusion.
@@ -411,7 +459,9 @@ private:
 	float		  m_wipe_tower_depth = 0.f;
     unsigned      m_last_fan_speed = 0;
     int           current_temp = -1;
+#if !ENABLE_GCODE_VIEWER || ENABLE_GCODE_VIEWER_DATA_CHECKING
     const float   m_default_analyzer_line_width;
+#endif // !ENABLE_GCODE_VIEWER || ENABLE_GCODE_VIEWER_DATA_CHECKING
     float         m_used_filament_length = 0.f;
     GCodeFlavor   m_gcode_flavor;
     const std::vector<WipeTower::FilamentParameters>& m_filpar;
@@ -852,8 +902,12 @@ void WipeTower::toolchange_Unload(
 	const float line_width = m_perimeter_width * m_filpar[m_current_tool].ramming_line_width_multiplicator;       // desired ramming line thickness
 	const float y_step = line_width * m_filpar[m_current_tool].ramming_step_multiplicator * m_extra_spacing; // spacing between lines in mm
 
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
     writer.append("; CP TOOLCHANGE UNLOAD\n")
-          .change_analyzer_line_width(line_width);
+        .change_analyzer_line_width(line_width);
+#else
+    writer.append("; CP TOOLCHANGE UNLOAD\n");
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
 	unsigned i = 0;										// iterates through ramming_speed
 	m_left_to_right = true;								// current direction of ramming
@@ -930,7 +984,9 @@ void WipeTower::toolchange_Unload(
 		}
 	}
 	Vec2f end_of_ramming(writer.x(),writer.y());
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
     writer.change_analyzer_line_width(m_perimeter_width);   // so the next lines are not affected by ramming_line_width_multiplier
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
     // Retraction:
     float old_x = writer.x();

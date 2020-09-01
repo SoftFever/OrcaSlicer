@@ -255,7 +255,7 @@ void warning_catcher(wxWindow* parent, const wxString& message)
 	msg.ShowModal();
 }
 
-void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string items, bool initial_value)
+void create_combochecklist(wxComboCtrl* comboCtrl, const std::string& text, const std::string& items)
 {
     if (comboCtrl == nullptr)
         return;
@@ -266,41 +266,59 @@ void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string
         //  On the other side, with this line the combo box popup cannot be closed by clicking on the combo button on Windows 10.
         comboCtrl->UseAltPopupWindow();
 
+		int max_width = 0;
+
 		// the following line messes up the popup size the first time it is shown on wxWidgets 3.1.3
 //		comboCtrl->EnablePopupAnimation(false);
 		comboCtrl->SetPopupControl(popup);
-        popup->SetStringValue(from_u8(text));
-        popup->Bind(wxEVT_CHECKLISTBOX, [popup](wxCommandEvent& evt) { popup->OnCheckListBox(evt); });
-        popup->Bind(wxEVT_LISTBOX, [popup](wxCommandEvent& evt) { popup->OnListBoxSelection(evt); });
+		wxString title = from_u8(text);
+		max_width = std::max(max_width, 60 + comboCtrl->GetTextExtent(title).x);
+		popup->SetStringValue(title);
+		popup->Bind(wxEVT_CHECKLISTBOX, [popup](wxCommandEvent& evt) { popup->OnCheckListBox(evt); });
+		popup->Bind(wxEVT_LISTBOX, [popup](wxCommandEvent& evt) { popup->OnListBoxSelection(evt); });
         popup->Bind(wxEVT_KEY_DOWN, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
         popup->Bind(wxEVT_KEY_UP, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
 
         std::vector<std::string> items_str;
         boost::split(items_str, items, boost::is_any_of("|"), boost::token_compress_off);
 
-        for (const std::string& item : items_str) {
-            popup->Append(from_u8(item));
-        }
+		// each item must be composed by 2 parts
+		assert(items_str.size() %2 == 0);
 
-        for (unsigned int i = 0; i < popup->GetCount(); ++i) {
-            popup->Check(i, initial_value);
-        }
-    }
+		for (size_t i = 0; i < items_str.size(); i += 2) {
+			wxString label = from_u8(items_str[i]);
+			max_width = std::max(max_width, 60 + popup->GetTextExtent(label).x);
+			popup->Append(label);
+			popup->Check(i / 2, items_str[i + 1] == "1");
+		}
+
+		comboCtrl->SetMinClientSize(wxSize(max_width, -1));
+	}
 }
 
-int combochecklist_get_flags(wxComboCtrl* comboCtrl)
+unsigned int combochecklist_get_flags(wxComboCtrl* comboCtrl)
 {
-    int flags = 0;
+	unsigned int flags = 0;
 
-    wxCheckListBoxComboPopup* popup = wxDynamicCast(comboCtrl->GetPopupControl(), wxCheckListBoxComboPopup);
-    if (popup != nullptr) {
-        for (unsigned int i = 0; i < popup->GetCount(); ++i) {
-            if (popup->IsChecked(i))
-                flags |= 1 << i;
-        }
-    }
+	wxCheckListBoxComboPopup* popup = wxDynamicCast(comboCtrl->GetPopupControl(), wxCheckListBoxComboPopup);
+	if (popup != nullptr) {
+		for (unsigned int i = 0; i < popup->GetCount(); ++i) {
+			if (popup->IsChecked(i))
+				flags |= 1 << i;
+		}
+	}
 
-    return flags;
+	return flags;
+}
+
+void combochecklist_set_flags(wxComboCtrl* comboCtrl, unsigned int flags)
+{
+	wxCheckListBoxComboPopup* popup = wxDynamicCast(comboCtrl->GetPopupControl(), wxCheckListBoxComboPopup);
+	if (popup != nullptr) {
+		for (unsigned int i = 0; i < popup->GetCount(); ++i) {
+			popup->Check(i, (flags & (1 << i)) != 0);
+		}
+	}
 }
 
 AppConfig* get_app_config()

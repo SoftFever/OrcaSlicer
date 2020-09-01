@@ -5,6 +5,7 @@
 #include "GUI_App.hpp"
 #if ENABLE_CAMERA_STATISTICS
 #include "Mouse3DController.hpp"
+#include "Plater.hpp"
 #endif // ENABLE_CAMERA_STATISTICS
 
 #include <GL/glew.h>

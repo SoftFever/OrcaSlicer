@@ -106,6 +106,7 @@ public:
     virtual double total_volume() const = 0;
 
     static std::string role_to_string(ExtrusionRole role);
+    static ExtrusionRole string_to_role(const std::string& role);
 };
 
 typedef std::vector<ExtrusionEntity*> ExtrusionEntitiesPtr;
