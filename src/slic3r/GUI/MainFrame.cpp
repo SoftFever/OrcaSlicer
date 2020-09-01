@@ -115,18 +115,18 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     }
 #endif // ENABLE_GCODE_VIEWER_TASKBAR_ICON
 
-    SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
-//    // Load the icon either from the exe, or from the ico file.
-//#if _WIN32
-//    {
-//
-//        TCHAR szExeFileName[MAX_PATH];
-//        GetModuleFileName(nullptr, szExeFileName, MAX_PATH);
-//        SetIcon(wxIcon(szExeFileName, wxBITMAP_TYPE_ICO));
-//    }
-//#else
 //    SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
-//#endif // _WIN32
+    // Load the icon either from the exe, or from the ico file.
+#if _WIN32
+    {
+
+        TCHAR szExeFileName[MAX_PATH];
+        GetModuleFileName(nullptr, szExeFileName, MAX_PATH);
+        SetIcon(wxIcon(szExeFileName, wxBITMAP_TYPE_ICO));
+    }
+#else
+    SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
+#endif // _WIN32
 
 	// initialize status bar
 	m_statusbar = std::make_shared<ProgressStatusBar>(this);
@@ -1416,7 +1416,18 @@ void MainFrame::set_mode(EMode mode)
 
         m_plater->Thaw();
 
+//        SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
+        // Load the icon either from the exe, or from the ico file.
+#if _WIN32
+        {
+
+            TCHAR szExeFileName[MAX_PATH];
+            GetModuleFileName(nullptr, szExeFileName, MAX_PATH);
+            SetIcon(wxIcon(szExeFileName, wxBITMAP_TYPE_ICO));
+    }
+#else
         SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
+#endif // _WIN32
 #if ENABLE_GCODE_VIEWER_TASKBAR_ICON
         if (m_taskbar_icon != nullptr) {
             m_taskbar_icon->RemoveIcon();
@@ -1473,7 +1484,7 @@ void MainFrame::set_mode(EMode mode)
 #if ENABLE_GCODE_VIEWER_TASKBAR_ICON
         if (m_taskbar_icon != nullptr) {
             m_taskbar_icon->RemoveIcon();
-            m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG), "PrusaSlicer-GCode viewer");
+            m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("PrusaSlicerGCodeViewer_128px.png"), wxBITMAP_TYPE_PNG), "PrusaSlicer-GCode viewer");
         }
 #endif // ENABLE_GCODE_VIEWER_TASKBAR_ICON
 
@@ -1981,18 +1992,18 @@ SettingsDialog::SettingsDialog(MainFrame* mainframe)
     this->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 
 
-    SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
-//    // Load the icon either from the exe, or from the ico file.
-//#if _WIN32
-//    {
-//
-//        TCHAR szExeFileName[MAX_PATH];
-//        GetModuleFileName(nullptr, szExeFileName, MAX_PATH);
-//        SetIcon(wxIcon(szExeFileName, wxBITMAP_TYPE_ICO));
-//    }
-//#else
-//    SetIcon(wxIcon(var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
-//#endif // _WIN32
+//    SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
+    // Load the icon either from the exe, or from the ico file.
+#if _WIN32
+    {
+
+        TCHAR szExeFileName[MAX_PATH];
+        GetModuleFileName(nullptr, szExeFileName, MAX_PATH);
+        SetIcon(wxIcon(szExeFileName, wxBITMAP_TYPE_ICO));
+    }
+#else
+    SetIcon(wxIcon(var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
+#endif // _WIN32
 
     this->Bind(wxEVT_SHOW, [this](wxShowEvent& evt) {
 
