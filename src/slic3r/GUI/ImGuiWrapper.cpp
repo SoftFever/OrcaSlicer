@@ -37,17 +37,19 @@ namespace GUI {
 
 
 static const std::map<const char, std::string> font_icons = {
-    {ImGui::PrintIconMarker     , "cog"               },
-    {ImGui::PrinterIconMarker   , "printer"           },
-    {ImGui::PrinterSlaIconMarker, "sla_printer"       },
-    {ImGui::FilamentIconMarker  , "spool"             },
-    {ImGui::MaterialIconMarker  , "resin"             },
-	{ImGui::CloseIconMarker     , "cross"             },
-	{ImGui::CloseIconHoverMarker, "cross_focus_large" },
-	{ImGui::TimerDotMarker      , "timer_dot"         },
-    {ImGui::TimerDotEmptyMarker , "timer_dot_empty"   },
-	{ImGui::WarningMarker       , "flag_green"        },
-    {ImGui::ErrorMarker         , "flag_red"          }
+    {ImGui::PrintIconMarker       , "cog"                           },
+    {ImGui::PrinterIconMarker     , "printer"                       },
+    {ImGui::PrinterSlaIconMarker  , "sla_printer"                   },
+    {ImGui::FilamentIconMarker    , "spool"                         },
+    {ImGui::MaterialIconMarker    , "resin"                         },
+	{ImGui::CloseIconMarker       , "notification_close"            },
+	{ImGui::CloseIconHoverMarker  , "notification_close_hover"      },
+	//{ImGui::TimerDotMarker      , "timer_dot"                     },
+    //{ImGui::TimerDotEmptyMarker , "timer_dot_empty"               },
+    {ImGui::MinimalizeMarker      , "notification_minimalize"       },
+    {ImGui::MinimalizeHoverMarker , "notification_minimalize_hover" },
+	{ImGui::WarningMarker         , "notification_warning"          },
+    {ImGui::ErrorMarker           , "notification_error"            }
 };
 
 const ImVec4 ImGuiWrapper::COL_GREY_DARK         = { 0.333f, 0.333f, 0.333f, 1.0f };

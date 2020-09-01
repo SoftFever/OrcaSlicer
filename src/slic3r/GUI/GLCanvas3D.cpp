@@ -620,53 +620,57 @@ GLCanvas3D::WarningTexture::WarningTexture()
 
 void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool state, const GLCanvas3D& canvas)
 {
+    // Since we have NotificationsManager.hpp the warning textures are no loger needed.
+    // However i have left the infrastructure here and only commented the rendering.
+    // The  plater warning / error notifications are added and closed from here.
+
+    std::string text;
+    bool error = false;
+    switch (warning) {
+    case ObjectOutside: text = L("An object outside the print area was detected."); break;
+    case ToolpathOutside: text = L("A toolpath outside the print area was detected."); break;
+    case SlaSupportsOutside: text = L("SLA supports outside the print area were detected."); break;
+    case SomethingNotShown: text = L("Some objects are not visible."); break;
+    case ObjectClashed:
+        text = L( "An object outside the print area was detected.\n"
+                  "Resolve the current problem to continue slicing.");
+        error = true;
+        break;
+    }
+    if(state) {
+        if(error)
+            wxGetApp().plater()->get_notification_manager()->push_plater_error_notification(text,*(wxGetApp().plater()->get_current_canvas3D()));
+        else
+            wxGetApp().plater()->get_notification_manager()->push_plater_warning_notification(text, *(wxGetApp().plater()->get_current_canvas3D()));
+    } else {
+        if (error)
+            wxGetApp().plater()->get_notification_manager()->close_plater_error_notification();
+        else
+            wxGetApp().plater()->get_notification_manager()->close_plater_warning_notification(text);
+    }
+
+    /*
     auto it = std::find(m_warnings.begin(), m_warnings.end(), warning);
 
     if (state) {
         if (it != m_warnings.end()) // this warning is already set to be shown
             return;
 
-        m_warnings.emplace_back(warning);
+        m_warnings.push_back(warning);
         std::sort(m_warnings.begin(), m_warnings.end());
-
-		std::string text;
-		switch (warning) {
-			case ObjectOutside: text = L("An object outside the print area was detected."); break;
-			case ToolpathOutside: text = L("A toolpath outside the print area was detected."); break;
-			case SlaSupportsOutside: text = L("SLA supports outside the print area were detected."); break;
-			case SomethingNotShown: text = L("Some objects are not visible."); break;
-			case ObjectClashed: wxGetApp().plater()->get_notification_manager()->push_plater_error_notification(L("An object outside the print area was detected.\n"
-																												 "Resolve the current problem to continue slicing."), 
-				                                                                                                *(wxGetApp().plater()->get_current_canvas3D()));
-				break;
-		}
-		if (!text.empty())
-			wxGetApp().plater()->get_notification_manager()->push_plater_warning_notification(text, *(wxGetApp().plater()->get_current_canvas3D()));
     }
     else {
         if (it == m_warnings.end()) // deactivating something that is not active is an easy task
             return;
 
         m_warnings.erase(it);
-
-		std::string text;
-		switch (warning) {
-		case ObjectOutside: text = L("An object outside the print area was detected."); break;
-		case ToolpathOutside: text = L("A toolpath outside the print area was detected."); break;
-		case SlaSupportsOutside: text = L("SLA supports outside the print area were detected."); break;
-		case SomethingNotShown: text = L("Some objects are not visibl.e"); break;
-		case ObjectClashed: wxGetApp().plater()->get_notification_manager()->close_plater_error_notification(); break;
-		}
-		if (!text.empty())
-			wxGetApp().plater()->get_notification_manager()->close_plater_warning_notification(text);
-
-        /*if (m_warnings.empty()) { // nothing remains to be shown
+        if (m_warnings.empty()) { // nothing remains to be shown
             reset();
             m_msg_text = "";// save information for rescaling
             return;
-        }*/
+        }
     }
-	/*
+
     // Look at the end of our vector and generate proper texture.
     std::string text;
     bool red_colored = false;
@@ -674,7 +678,7 @@ void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool 
         case ObjectOutside      : text = L("An object outside the print area was detected"); break;
         case ToolpathOutside    : text = L("A toolpath outside the print area was detected"); break;
         case SlaSupportsOutside : text = L("SLA supports outside the print area were detected"); break;
-        case SomethingNotShown  : text = L("Some objects are not visible"); break;
+        case SomethingNotShown  : text = L("Some objects are not visible when editing supports"); break;
         case ObjectClashed: {
             text = L("An object outside the print area was detected\n"
                      "Resolve the current problem to continue slicing");
