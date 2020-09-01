@@ -3530,6 +3530,12 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->cli = "export-gcode|gcode|g";
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("gcodeviewer", coBool);
+    def->label = L("G-code viewer");
+    def->tooltip = L("Visualize an already sliced and saved G-code");
+    def->cli = "gcodeviewer";
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("slice", coBool);
     def->label = L("Slice");
     def->tooltip = L("Slice the model as FFF or SLA based on the printer_technology configuration value.");
