@@ -1,9 +1,15 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoRotate.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/ImGuiWrapper.hpp"
 
 #include <GL/glew.h>
 
+#include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/GUI.hpp"
+#include "libslic3r/PresetBundle.hpp"
+
+#include "libslic3r/SLA/Rotfinder.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -192,6 +198,64 @@ void GLGizmoRotate::on_render_for_picking() const
     render_grabber_extension(box, true);
 
     glsafe(::glPopMatrix());
+}
+
+GLGizmoRotate3D::RotoptimzeWindow::RotoptimzeWindow(ImGuiWrapper *   imgui,
+                                                    State &          state,
+                                                    const Alignment &alignment)
+    : m_imgui{imgui}
+{
+    imgui->begin(_L("Rotation"), ImGuiWindowFlags_NoMove |
+                                   ImGuiWindowFlags_AlwaysAutoResize |
+                                   ImGuiWindowFlags_NoCollapse);
+
+    // adjust window position to avoid overlap the view toolbar
+    float win_h = ImGui::GetWindowHeight();
+    float x = alignment.x, y = alignment.y;
+    y = std::min(y, alignment.bottom_limit - win_h);
+    ImGui::SetWindowPos(ImVec2(x, y), ImGuiCond_Always);
+
+    ImGui::SliderFloat(_L("Accuracy").c_str(), &state.accuracy, 0.01f, 1.f, "%.1f");
+
+    if (imgui->button(_L("Optimize orientation"))) {
+        std::cout << "Blip" << std::endl;
+    }
+
+    static const std::vector<std::string> options = {
+        _L("Least supports").ToStdString(),
+        _L("Suface quality").ToStdString()
+    };
+
+    if (imgui->combo(_L("Choose method"), options, state.method) ) {
+        std::cout << "method: " << state.method << std::endl;
+    }
+
+
+}
+
+GLGizmoRotate3D::RotoptimzeWindow::~RotoptimzeWindow()
+{
+    m_imgui->end();
+}
+
+void GLGizmoRotate3D::on_render_input_window(float x, float y, float bottom_limit)
+{
+    if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
+        return;
+
+//    m_rotoptimizewin_state.mobj = ;
+    RotoptimzeWindow popup{m_imgui, m_rotoptimizewin_state, {x, y, bottom_limit}};
+
+//    if ((last_h != win_h) || (last_y != y))
+//    {
+//        // ask canvas for another frame to render the window in the correct position
+//        m_parent.request_extra_frame();
+//        if (last_h != win_h)
+//            last_h = win_h;
+//        if (last_y != y)
+//            last_y = y;
+//    }
+
 }
 
 void GLGizmoRotate::render_circle() const
