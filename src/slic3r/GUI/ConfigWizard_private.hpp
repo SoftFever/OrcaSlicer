@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <functional>
 #include <boost/filesystem.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <wx/sizer.h>
 #include <wx/panel.h>

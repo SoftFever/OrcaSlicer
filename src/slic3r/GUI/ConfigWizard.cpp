@@ -10,6 +10,7 @@
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/nowide/convert.hpp>
 
 #include <wx/settings.h>
 #include <wx/stattext.h>
