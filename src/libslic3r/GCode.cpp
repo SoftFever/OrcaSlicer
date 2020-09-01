@@ -175,6 +175,32 @@ namespace Slic3r {
         return islands;
     }
 
+
+    int CustomSeam::get_point_status(const Point& pt, size_t layer_id) const
+    {
+        // TEMPORARY - WILL BE IMPROVED
+        // - quadratic algorithm
+        // - does not support variable layer height
+
+        if (! enforcers.empty()) {
+            assert(layer_id < enforcers.size());
+            for (const ExPolygon& explg : enforcers[layer_id]) {
+                if (explg.contains(pt))
+                    return 1;
+            }
+        }
+        if (! blockers.empty()) {
+            assert(layer_id < blockers.size());
+            for (const ExPolygon& explg : blockers[layer_id]) {
+                if (explg.contains(pt))
+                    return -1;
+            }
+        }
+        return 0;
+    }
+
+
+
     std::string OozePrevention::pre_toolchange(GCode& gcodegen)
     {
         std::string gcode;
@@ -984,6 +1010,22 @@ namespace DoExport {
 	}
 
 
+    static void collect_custom_seam(const Print& print, CustomSeam& custom_seam)
+   {
+       custom_seam = CustomSeam();
+       for (const PrintObject* po : print.objects()) {
+           po->project_and_append_custom_facets(true, EnforcerBlockerType::ENFORCER, custom_seam.enforcers);
+           po->project_and_append_custom_facets(true, EnforcerBlockerType::BLOCKER, custom_seam.blockers);
+       }
+       for (ExPolygons& explgs : custom_seam.enforcers) {
+           explgs = Slic3r::offset_ex(explgs, scale_(0.5));
+       }
+       for (ExPolygons& explgs : custom_seam.blockers) {
+           explgs = Slic3r::offset_ex(explgs, scale_(0.5));
+       }
+   }
+
+
     static void init_ooze_prevention(const Print &print, OozePrevention &ooze_prevention)
 	{
 	    // Calculate wiping points if needed
@@ -1436,6 +1478,9 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
     // Calculate wiping points if needed
     DoExport::init_ooze_prevention(print, m_ooze_prevention);
     print.throw_if_canceled();
+
+    // Collect custom seam data from all objects.
+    DoExport::collect_custom_seam(print, m_custom_seam);
 
     if (! (has_wipe_tower && print.config().single_extruder_multi_material_priming)) {
         // Set initial extruder only after custom start G-code.
@@ -2841,6 +2886,13 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             }
         }
 
+        // Penalty according to custom seam selection. This one is huge compared to
+        // the others so that points outside enforcers/inside blockers never win.
+        for (size_t i = 0; i < polygon.points.size(); ++ i) {
+            const Point &p = polygon.points[i];
+            penalties[i] -= float(100000 * m_custom_seam.get_point_status(p, m_layer->id()));
+        }
+
         // Find a point with a minimum penalty.
         size_t idx_min = std::min_element(penalties.begin(), penalties.end()) - penalties.begin();
 
@@ -2861,6 +2913,19 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             }
             m_seam_position[m_layer->object()] = polygon.points[idx_min];
         }
+
+//////////////////////
+//        int layer_id = m_layer->id();
+//        std::ostringstream os;
+//        os << std::setw(3) << std::setfill('0') << layer_id;
+//        int a = scale_(15.);
+//        SVG svg("custom_seam" + os.str() + ".svg", BoundingBox(Point(-a, -a), Point(a, a)));
+//        if (! m_custom_seam.enforcers.empty())
+//            svg.draw(m_custom_seam.enforcers[layer_id], "blue");
+//        if (! m_custom_seam.blockers.empty())
+//            svg.draw(m_custom_seam.blockers[layer_id], "red");
+//        svg.draw(polygon.points, "black");
+////////////////////
 
 
         // Export the contour into a SVG file.
