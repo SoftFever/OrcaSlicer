@@ -149,14 +149,14 @@ class GCodeViewer
     // buffer containing data for rendering a specific toolpath type
     struct TBuffer
     {
-        enum class EPrimitiveType : unsigned char
+        enum class ERenderPrimitiveType : unsigned char
         {
             Point,
             Line,
             Triangle
         };
 
-        EPrimitiveType primitive_type;
+        ERenderPrimitiveType render_primitive_type;
         VBuffer vertices;
         IBuffer indices;
 
@@ -167,6 +167,15 @@ class GCodeViewer
 
         void reset();
         void add_path(const GCodeProcessor::MoveVertex& move, unsigned int i_id, unsigned int s_id);
+        unsigned int indices_per_segment() const {
+            switch (render_primitive_type)
+            {
+            case ERenderPrimitiveType::Point:    { return 1; }
+            case ERenderPrimitiveType::Line:     { return 2; }
+            case ERenderPrimitiveType::Triangle: { return 42; } // 3 indices x 14 triangles
+            default:                             { return 0; }
+            }
+        }
     };
 
     // helper to render shells
