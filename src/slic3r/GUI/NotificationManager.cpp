@@ -49,13 +49,17 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
     , m_text2               (n.text2)
 	, m_evt_handler         (evt_handler)
 {
-	init();
+	//init();
 }
 NotificationManager::PopNotification::~PopNotification()
 {
 }
 NotificationManager::PopNotification::RenderResult NotificationManager::PopNotification::render(GLCanvas3D& canvas, const float& initial_y)
 {
+	if (!m_initialized)
+	{
+		init();
+	}
 	if (m_finished)
 		return RenderResult::Finished;
 	if (m_close_pending) {
@@ -228,6 +232,7 @@ void NotificationManager::PopNotification::init()
 		}
 		m_lines_count++;
 	}
+	m_initialized = true;
 }
 void NotificationManager::PopNotification::set_next_window_size(ImGuiWrapper& imgui)
 { 
@@ -492,12 +497,12 @@ void NotificationManager::PopNotification::render_minimize_button(ImGuiWrapper& 
 	
 	//button - if part if treggered
 	std::string button_text;
-	button_text = ImGui::CloseIconMarker;
+	button_text = ImGui::MinimalizeMarker;
 	if (ImGui::IsMouseHoveringRect(ImVec2(win_pos_x - m_window_width / 10.f, win_pos_y + m_window_height - 2 * m_line_height + 1),
 		ImVec2(win_pos_x, win_pos_y + m_window_height),
 		true)) 
 	{
-		button_text = ImGui::CloseIconHoverMarker;
+		button_text = ImGui::MinimalizeHoverMarker;
 	}
 	ImVec2 button_pic_size = ImGui::CalcTextSize(button_text.c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
@@ -730,16 +735,16 @@ void NotificationManager::push_slicing_complete_notification(GLCanvas3D& canvas,
 {
 	std::string hypertext;
 	int         time = 10;
-	if(large)
-	{
+    if (has_error_notification())
+        return;
+	if (large) {
 		hypertext = _u8L("Export G-Code.");
 		time = 0;
 	}
 	NotificationData data{ NotificationType::SlicingComplete, NotificationLevel::RegularNotification, time,  _u8L("Slicing finished."), hypertext };
 
 	NotificationManager::SlicingCompleteLargeNotification* notification = new NotificationManager::SlicingCompleteLargeNotification(data, m_next_id++, m_evt_handler, large);
-	if (push_notification_data(notification, canvas, timestamp)) {
-	} else {
+	if (!push_notification_data(notification, canvas, timestamp)) {
 		delete notification;
 	}	
 }
@@ -907,6 +912,23 @@ bool NotificationManager::find_older(NotificationManager::PopNotification* notif
 		}
 	}
 	return false;
+}
+
+void NotificationManager::set_in_preview(bool preview) 
+{ 
+    m_in_preview = preview;
+    for (PopNotification* notification : m_pop_notifications) {
+        if (notification->get_type() == NotificationType::PlaterWarning) 
+            notification->hide(preview);     
+    }
+}
+bool NotificationManager::has_error_notification()
+{
+    for (PopNotification* notification : m_pop_notifications) {
+        if (notification->get_data().level == NotificationLevel::ErrorNotification)
+            return true;
+    }
+    return false;
 }
 
 void NotificationManager::dpi_changed()

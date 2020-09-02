@@ -8,8 +8,6 @@
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
 
-#define ENABLE_SCROLLABLE 1
-
 namespace Slic3r { 
 namespace GUI {
 
@@ -22,9 +20,7 @@ class KBShortcutsDialog : public DPIDialog
     ShortcutsVec    m_full_shortcuts;
     ScalableBitmap  m_logo_bmp;
     wxStaticBitmap* m_header_bitmap;
-#if ENABLE_SCROLLABLE
     std::vector<wxPanel*> m_pages;
-#endif // ENABLE_SCROLLABLE
 
 public:
     KBShortcutsDialog();

@@ -87,6 +87,7 @@ const char* TRANSFORM_ATTR = "transform";
 const char* PRINTABLE_ATTR = "printable";
 const char* INSTANCESCOUNT_ATTR = "instances_count";
 const char* CUSTOM_SUPPORTS_ATTR = "slic3rpe:custom_supports";
+const char* CUSTOM_SEAM_ATTR = "slic3rpe:custom_seam";
 
 const char* KEY_ATTR = "key";
 const char* VALUE_ATTR = "value";
@@ -285,6 +286,7 @@ namespace Slic3r {
             std::vector<float> vertices;
             std::vector<unsigned int> triangles;
             std::vector<std::string> custom_supports;
+            std::vector<std::string> custom_seam;
 
             bool empty()
             {
@@ -296,6 +298,7 @@ namespace Slic3r {
                 vertices.clear();
                 triangles.clear();
                 custom_supports.clear();
+                custom_seam.clear();
             }
         };
 
@@ -1114,6 +1117,15 @@ namespace Slic3r {
                                                       float(std::atof(object_data_points[i+6].c_str())),
                                                       float(std::atof(object_data_points[i+7].c_str())));
                 }
+
+                // The holes are saved elevated above the mesh and deeper (bad idea indeed).
+                // This is retained for compatibility.
+                // Place the hole to the mesh and make it shallower to compensate.
+                // The offset is 1 mm above the mesh.
+                for (sla::DrainHole& hole : sla_drain_holes) {
+                    hole.pos += hole.normal.normalized();
+                    hole.height -= 1.f;
+                }
                 
                 if (!sla_drain_holes.empty())
                     m_sla_drain_holes.insert(IdToSlaDrainHolesMap::value_type(object_id, sla_drain_holes));
@@ -1544,6 +1556,7 @@ namespace Slic3r {
         m_curr_object.geometry.triangles.push_back((unsigned int)get_attribute_value_int(attributes, num_attributes, V3_ATTR));
 
         m_curr_object.geometry.custom_supports.push_back(get_attribute_value_string(attributes, num_attributes, CUSTOM_SUPPORTS_ATTR));
+        m_curr_object.geometry.custom_seam.push_back(get_attribute_value_string(attributes, num_attributes, CUSTOM_SEAM_ATTR));
         return true;
     }
 
@@ -1877,13 +1890,17 @@ namespace Slic3r {
                 volume->source.transform = Slic3r::Geometry::Transformation(volume_matrix_to_object);
             volume->calculate_convex_hull();
 
-            // recreate custom supports from previously loaded attribute
+            // recreate custom supports and seam from previously loaded attribute
             for (unsigned i=0; i<triangles_count; ++i) {
                 size_t index = src_start_id/3 + i;
                 assert(index < geometry.custom_supports.size());
+                assert(index < geometry.custom_seam.size());
                 if (! geometry.custom_supports[index].empty())
                     volume->m_supported_facets.set_triangle_from_string(i, geometry.custom_supports[index]);
+                if (! geometry.custom_seam[index].empty())
+                    volume->m_seam_facets.set_triangle_from_string(i, geometry.custom_seam[index]);
             }
+
 
             // apply the remaining volume's metadata
             for (const Metadata& metadata : volume_data.metadata)
@@ -2401,6 +2418,10 @@ namespace Slic3r {
                 if (! custom_supports_data_string.empty())
                     stream << CUSTOM_SUPPORTS_ATTR << "=\"" << custom_supports_data_string << "\" ";
 
+                std::string custom_seam_data_string = volume->m_seam_facets.get_triangle_as_string(i);
+                if (! custom_seam_data_string.empty())
+                    stream << CUSTOM_SEAM_ATTR << "=\"" << custom_seam_data_string << "\" ";
+
                 stream << "/>\n";
             }
         }
@@ -2591,7 +2612,18 @@ namespace Slic3r {
         for (const ModelObject* object : model.objects)
         {
             ++count;
-            auto& drain_holes = object->sla_drain_holes;
+            sla::DrainHoles drain_holes = object->sla_drain_holes;
+
+            // The holes were placed 1mm above the mesh in the first implementation.
+            // This was a bad idea and the reference point was changed in 2.3 so
+            // to be on the mesh exactly. The elevated position is still saved
+            // in 3MFs for compatibility reasons.
+            for (sla::DrainHole& hole : drain_holes) {
+                hole.pos -= hole.normal.normalized();
+                hole.height += 1.f;
+            }
+
+
             if (!drain_holes.empty())
             {
                 out += string_printf(fmt, count);

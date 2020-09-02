@@ -130,7 +130,7 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
         const sla::DrainHole& drain_hole = drain_holes[i];
         const bool& point_selected = m_selected[i];
 
-        if (is_mesh_point_clipped((drain_hole.pos+HoleStickOutLength*drain_hole.normal).cast<double>()))
+        if (is_mesh_point_clipped(drain_hole.pos.cast<double>()))
             continue;
 
         // First decide about the color of the point.
@@ -174,10 +174,10 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
         glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2)));
         glsafe(::glPushMatrix());
         glsafe(::glTranslated(0., 0., -drain_hole.height));
-        ::gluCylinder(m_quadric, drain_hole.radius, drain_hole.radius, drain_hole.height, 24, 1);
-        glsafe(::glTranslated(0., 0., drain_hole.height));
+        ::gluCylinder(m_quadric, drain_hole.radius, drain_hole.radius, drain_hole.height + sla::HoleStickOutLength, 24, 1);
+        glsafe(::glTranslated(0., 0., drain_hole.height + sla::HoleStickOutLength));
         ::gluDisk(m_quadric, 0.0, drain_hole.radius, 24, 1);
-        glsafe(::glTranslated(0., 0., -drain_hole.height));
+        glsafe(::glTranslated(0., 0., -drain_hole.height - sla::HoleStickOutLength));
         glsafe(::glRotatef(180.f, 1.f, 0.f, 0.f));
         ::gluDisk(m_quadric, 0.0, drain_hole.radius, 24, 1);
         glsafe(::glPopMatrix());
@@ -307,13 +307,8 @@ bool GLGizmoHollow::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_pos
             if (unproject_on_mesh(mouse_position, pos_and_normal)) { // we got an intersection
                 Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Add drainage hole")));
 
-                Vec3d scaling = mo->instances[active_inst]->get_scaling_factor();
-                Vec3f normal_transformed(pos_and_normal.second(0)/scaling(0),
-                                         pos_and_normal.second(1)/scaling(1),
-                                         pos_and_normal.second(2)/scaling(2));
-
-                mo->sla_drain_holes.emplace_back(pos_and_normal.first + HoleStickOutLength * pos_and_normal.second/* normal_transformed.normalized()*/,
-                                                             -pos_and_normal.second, m_new_hole_radius, m_new_hole_height);
+                mo->sla_drain_holes.emplace_back(pos_and_normal.first,
+                                                -pos_and_normal.second, m_new_hole_radius, m_new_hole_height);
                 m_selected.push_back(false);
                 assert(m_selected.size() == mo->sla_drain_holes.size());
                 m_parent.set_as_dirty();
@@ -447,7 +442,7 @@ void GLGizmoHollow::on_update(const UpdateData& data)
         std::pair<Vec3f, Vec3f> pos_and_normal;
         if (! unproject_on_mesh(data.mouse_pos.cast<double>(), pos_and_normal))
             return;
-        drain_holes[m_hover_id].pos = pos_and_normal.first + HoleStickOutLength * pos_and_normal.second;
+        drain_holes[m_hover_id].pos = pos_and_normal.first;
         drain_holes[m_hover_id].normal = -pos_and_normal.second;
     }
 }
@@ -661,9 +656,7 @@ RENDER_AGAIN:
 
     m_imgui->text(m_desc["hole_depth"]);
     ImGui::SameLine(diameter_slider_left);
-    m_new_hole_height -= HoleStickOutLength;
     ImGui::SliderFloat("  ", &m_new_hole_height, 0.f, 10.f, "%.1f mm");
-    m_new_hole_height += HoleStickOutLength;
 
     clicked |= ImGui::IsItemClicked();
     edited |= ImGui::IsItemEdited();

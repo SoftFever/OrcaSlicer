@@ -222,7 +222,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
         render_color[3] = 0.7f;
         glsafe(::glColor4fv(render_color));
         for (const sla::DrainHole& drain_hole : m_c->selection_info()->model_object()->sla_drain_holes) {
-            if (is_mesh_point_clipped((drain_hole.pos+HoleStickOutLength*drain_hole.normal).cast<double>()))
+            if (is_mesh_point_clipped(drain_hole.pos.cast<double>()))
                 continue;
 
             // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
@@ -241,10 +241,10 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
             glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2)));
             glsafe(::glPushMatrix());
             glsafe(::glTranslated(0., 0., -drain_hole.height));
-            ::gluCylinder(m_quadric, drain_hole.radius, drain_hole.radius, drain_hole.height, 24, 1);
-            glsafe(::glTranslated(0., 0., drain_hole.height));
+            ::gluCylinder(m_quadric, drain_hole.radius, drain_hole.radius, drain_hole.height + sla::HoleStickOutLength, 24, 1);
+            glsafe(::glTranslated(0., 0., drain_hole.height + sla::HoleStickOutLength));
             ::gluDisk(m_quadric, 0.0, drain_hole.radius, 24, 1);
-            glsafe(::glTranslated(0., 0., -drain_hole.height));
+            glsafe(::glTranslated(0., 0., -drain_hole.height - sla::HoleStickOutLength));
             glsafe(::glRotatef(180.f, 1.f, 0.f, 0.f));
             ::gluDisk(m_quadric, 0.0, drain_hole.radius, 24, 1);
             glsafe(::glPopMatrix());

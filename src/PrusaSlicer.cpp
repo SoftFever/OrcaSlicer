@@ -101,6 +101,7 @@ int CLI::run(int argc, char **argv)
         std::find(m_transforms.begin(), m_transforms.end(), "cut") == m_transforms.end() &&
         std::find(m_transforms.begin(), m_transforms.end(), "cut_x") == m_transforms.end() &&
         std::find(m_transforms.begin(), m_transforms.end(), "cut_y") == m_transforms.end();
+    bool 							start_as_gcodeviewer = false;
     
     const std::vector<std::string> &load_configs		= m_config.option<ConfigOptionStrings>("load", true)->values;
 
@@ -469,7 +470,11 @@ int CLI::run(int argc, char **argv)
                         print->process();
                         if (printer_technology == ptFFF) {
                             // The outfile is processed by a PlaceholderParser.
+#if ENABLE_GCODE_VIEWER
+                            outfile = fff_print.export_gcode(outfile, nullptr, nullptr);
+#else
                             outfile = fff_print.export_gcode(outfile, nullptr);
+#endif // ENABLE_GCODE_VIEWER
                             outfile_final = fff_print.print_statistics().finalize_output_path(outfile);
                         } else {
                             outfile = sla_print.output_filepath(outfile);
@@ -517,6 +522,9 @@ int CLI::run(int argc, char **argv)
                     << " (" << print.total_extruded_volume()/1000 << "cm3)" << std::endl;
 */
             }
+        } else if (opt_key == "gcodeviewer") {
+        	start_gui = true;
+        	start_as_gcodeviewer = true;
         } else {
             boost::nowide::cerr << "error: option not supported yet: " << opt_key << std::endl;
             return 1;

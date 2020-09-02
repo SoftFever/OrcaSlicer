@@ -9,7 +9,7 @@
 
 namespace Slic3r {
 
-enum class FacetSupportType : int8_t;
+enum class EnforcerBlockerType : int8_t;
 
 
 
@@ -29,13 +29,13 @@ public:
                       const Vec3f& source, // camera position (mesh coords)
                       const Vec3f& dir,    // direction of the ray (mesh coords)
                       float radius,        // radius of the cursor
-                      FacetSupportType new_state);   // enforcer or blocker?
+                      EnforcerBlockerType new_state);   // enforcer or blocker?
 
     // Get facets currently in the given state.
-    indexed_triangle_set get_facets(FacetSupportType state) const;
+    indexed_triangle_set get_facets(EnforcerBlockerType state) const;
 
     // Set facet of the mesh to a given state. Only works for original triangles.
-    void set_facet(int facet_idx, FacetSupportType state);
+    void set_facet(int facet_idx, EnforcerBlockerType state);
 
     // Clear everything and make the tree empty.
     void reset();
@@ -59,7 +59,7 @@ protected:
         // It increments/decrements reference counter on vertices.
         Triangle(int a, int b, int c)
             : verts_idxs{a, b, c},
-              state{FacetSupportType(0)},
+              state{EnforcerBlockerType(0)},
               number_of_splits{0},
               special_side_idx{0},
               old_number_of_splits{0}
@@ -77,8 +77,8 @@ protected:
         void set_division(int sides_to_split, int special_side_idx = -1);
 
         // Get/set current state.
-        void set_state(FacetSupportType type) { assert(! is_split()); state = type; }
-        FacetSupportType get_state() const { assert(! is_split()); return state; }
+        void set_state(EnforcerBlockerType type) { assert(! is_split()); state = type; }
+        EnforcerBlockerType get_state() const { assert(! is_split()); return state; }
 
         // Get info on how it's split.
         bool is_split() const { return number_of_split_sides() != 0; }
@@ -90,7 +90,7 @@ protected:
     private:
         int number_of_splits;
         int special_side_idx;
-        FacetSupportType state;
+        EnforcerBlockerType state;
 
         // How many children were spawned during last split?
         // Is not reset on remerging the triangle.
@@ -133,7 +133,7 @@ protected:
     float m_old_cursor_radius;
 
     // Private functions:
-    bool select_triangle(int facet_idx, FacetSupportType type,
+    bool select_triangle(int facet_idx, EnforcerBlockerType type,
                          bool recursive_call = false);
     bool is_point_inside_cursor(const Vec3f& point) const;
     int  vertices_inside(int facet_idx) const;
@@ -144,7 +144,7 @@ protected:
     bool is_pointer_in_triangle(int facet_idx) const;
     bool is_edge_inside_cursor(int facet_idx) const;
     void push_triangle(int a, int b, int c);
-    void perform_split(int facet_idx, FacetSupportType old_state);
+    void perform_split(int facet_idx, EnforcerBlockerType old_state);
 };
 
 

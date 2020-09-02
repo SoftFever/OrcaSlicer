@@ -8,7 +8,16 @@
 #include "SVG.hpp"
 #endif /* CLIPPER_UTILS_DEBUG */
 
-#include <Shiny/Shiny.h>
+// Profiling support using the Shiny intrusive profiler
+//#define CLIPPER_UTILS_PROFILE
+#if defined(SLIC3R_PROFILE) && defined(CLIPPER_UTILS_PROFILE)
+	#include <Shiny/Shiny.h>
+	#define CLIPPERUTILS_PROFILE_FUNC() PROFILE_FUNC()
+	#define CLIPPERUTILS_PROFILE_BLOCK(name) PROFILE_BLOCK(name)
+#else
+	#define CLIPPERUTILS_PROFILE_FUNC()
+	#define CLIPPERUTILS_PROFILE_BLOCK(name)
+#endif
 
 #define CLIPPER_OFFSET_SHORTEST_EDGE_FACTOR (0.005f)
 
@@ -50,7 +59,7 @@ err:
 
 void scaleClipperPolygon(ClipperLib::Path &polygon)
 {
-    PROFILE_FUNC();
+    CLIPPERUTILS_PROFILE_FUNC();
     for (ClipperLib::Path::iterator pit = polygon.begin(); pit != polygon.end(); ++pit) {
         pit->X <<= CLIPPER_OFFSET_POWER_OF_2;
         pit->Y <<= CLIPPER_OFFSET_POWER_OF_2;
@@ -59,7 +68,7 @@ void scaleClipperPolygon(ClipperLib::Path &polygon)
 
 void scaleClipperPolygons(ClipperLib::Paths &polygons)
 {
-    PROFILE_FUNC();
+    CLIPPERUTILS_PROFILE_FUNC();
     for (ClipperLib::Paths::iterator it = polygons.begin(); it != polygons.end(); ++it)
         for (ClipperLib::Path::iterator pit = (*it).begin(); pit != (*it).end(); ++pit) {
             pit->X <<= CLIPPER_OFFSET_POWER_OF_2;
@@ -69,7 +78,7 @@ void scaleClipperPolygons(ClipperLib::Paths &polygons)
 
 void unscaleClipperPolygon(ClipperLib::Path &polygon)
 {
-    PROFILE_FUNC();
+    CLIPPERUTILS_PROFILE_FUNC();
     for (ClipperLib::Path::iterator pit = polygon.begin(); pit != polygon.end(); ++pit) {
         pit->X += CLIPPER_OFFSET_SCALE_ROUNDING_DELTA;
         pit->Y += CLIPPER_OFFSET_SCALE_ROUNDING_DELTA;
@@ -80,7 +89,7 @@ void unscaleClipperPolygon(ClipperLib::Path &polygon)
 
 void unscaleClipperPolygons(ClipperLib::Paths &polygons)
 {
-    PROFILE_FUNC();
+    CLIPPERUTILS_PROFILE_FUNC();
     for (ClipperLib::Paths::iterator it = polygons.begin(); it != polygons.end(); ++it)
         for (ClipperLib::Path::iterator pit = (*it).begin(); pit != (*it).end(); ++pit) {
             pit->X += CLIPPER_OFFSET_SCALE_ROUNDING_DELTA;
@@ -790,7 +799,7 @@ ExPolygons simplify_polygons_ex(const Polygons &subject, bool preserve_collinear
 
 void safety_offset(ClipperLib::Paths* paths)
 {
-    PROFILE_FUNC();
+    CLIPPERUTILS_PROFILE_FUNC();
 
     // scale input
     scaleClipperPolygons(*paths);
@@ -812,11 +821,11 @@ void safety_offset(ClipperLib::Paths* paths)
         if (! ccw)
             std::reverse(path.begin(), path.end());
         {
-            PROFILE_BLOCK(safety_offset_AddPaths);
+            CLIPPERUTILS_PROFILE_BLOCK(safety_offset_AddPaths);
             co.AddPath((*paths)[i], ClipperLib::jtMiter, ClipperLib::etClosedPolygon);
         }
         {
-            PROFILE_BLOCK(safety_offset_Execute);
+            CLIPPERUTILS_PROFILE_BLOCK(safety_offset_Execute);
             // offset outside by 10um
             ClipperLib::Paths out_this;
             co.Execute(out_this, ccw ? 10.f * float(CLIPPER_OFFSET_SCALE) : -10.f * float(CLIPPER_OFFSET_SCALE));

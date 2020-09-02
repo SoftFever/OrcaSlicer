@@ -11,6 +11,9 @@
 #include "GCode/ToolOrdering.hpp"
 #include "GCode/WipeTower.hpp"
 #include "GCode/ThumbnailData.hpp"
+#if ENABLE_GCODE_VIEWER
+#include "GCode/GCodeProcessor.hpp"
+#endif // ENABLE_GCODE_VIEWER
 
 #include "libslic3r.h"
 
@@ -20,7 +23,9 @@ class Print;
 class PrintObject;
 class ModelObject;
 class GCode;
+#if !ENABLE_GCODE_VIEWER
 class GCodePreviewData;
+#endif // !ENABLE_GCODE_VIEWER
 enum class SlicingMode : uint32_t;
 class Layer;
 class SupportLayer;
@@ -186,10 +191,8 @@ public:
     std::vector<ExPolygons>     slice_support_blockers() const { return this->slice_support_volumes(ModelVolumeType::SUPPORT_BLOCKER); }
     std::vector<ExPolygons>     slice_support_enforcers() const { return this->slice_support_volumes(ModelVolumeType::SUPPORT_ENFORCER); }
 
-    // Helpers to project custom supports on slices
-    void project_and_append_custom_supports(FacetSupportType type, std::vector<ExPolygons>& expolys) const;
-    void project_and_append_custom_enforcers(std::vector<ExPolygons>& enforcers) const { project_and_append_custom_supports(FacetSupportType::ENFORCER, enforcers); }
-    void project_and_append_custom_blockers(std::vector<ExPolygons>& blockers) const { project_and_append_custom_supports(FacetSupportType::BLOCKER, blockers); }
+    // Helpers to project custom facets on slices
+    void project_and_append_custom_facets(bool seam, EnforcerBlockerType type, std::vector<ExPolygons>& expolys) const;
 
 private:
     // to be called from Print only.
@@ -300,8 +303,10 @@ struct PrintStatistics
     PrintStatistics() { clear(); }
     std::string                     estimated_normal_print_time;
     std::string                     estimated_silent_print_time;
+#if !ENABLE_GCODE_VIEWER
     std::vector<std::pair<CustomGCode::Type, std::string>>    estimated_normal_custom_gcode_print_times;
     std::vector<std::pair<CustomGCode::Type, std::string>>    estimated_silent_custom_gcode_print_times;
+#endif // !ENABLE_GCODE_VIEWER
     double                          total_used_filament;
     double                          total_extruded_volume;
     double                          total_cost;
@@ -319,10 +324,12 @@ struct PrintStatistics
     std::string             finalize_output_path(const std::string &path_in) const;
 
     void clear() {
+#if !ENABLE_GCODE_VIEWER
         estimated_normal_print_time.clear();
         estimated_silent_print_time.clear();
         estimated_normal_custom_gcode_print_times.clear();
         estimated_silent_custom_gcode_print_times.clear();
+#endif // !ENABLE_GCODE_VIEWER
         total_used_filament    = 0.;
         total_extruded_volume  = 0.;
         total_cost             = 0.;
@@ -362,7 +369,11 @@ public:
     void                process() override;
     // Exports G-code into a file name based on the path_template, returns the file path of the generated G-code file.
     // If preview_data is not null, the preview_data is filled in for the G-code visualization (not used by the command line Slic3r).
+#if ENABLE_GCODE_VIEWER
+    std::string         export_gcode(const std::string& path_template, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
+#else
     std::string         export_gcode(const std::string& path_template, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
+#endif // ENABLE_GCODE_VIEWER
 
     // methods for handling state
     bool                is_step_done(PrintStep step) const { return Inherited::is_step_done(step); }
@@ -417,6 +428,7 @@ public:
     const Polygon&                   first_layer_convex_hull() const { return m_first_layer_convex_hull; }
 
     const PrintStatistics&      print_statistics() const { return m_print_statistics; }
+    PrintStatistics&            print_statistics() { return m_print_statistics; }
 
     // Wipe tower support.
     bool                        has_wipe_tower() const;

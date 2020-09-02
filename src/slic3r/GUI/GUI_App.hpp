@@ -163,6 +163,10 @@ public:
     void            keyboard_shortcuts();
     void            load_project(wxWindow *parent, wxString& input_file) const;
     void            import_model(wxWindow *parent, wxArrayString& input_files) const;
+#if ENABLE_GCODE_VIEWER
+    void            load_gcode(wxWindow* parent, wxString& input_file) const;
+#endif // ENABLE_GCODE_VIEWER
+
     static bool     catch_error(std::function<void()> cb, const std::string& err);
 
     void            persist_window_geometry(wxTopLevelWindow *window, bool default_maximized = false);
@@ -237,6 +241,12 @@ public:
     void            gcode_thumbnails_debug();
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG
 
+    GLShaderProgram* get_shader(const std::string& shader_name) { return m_opengl_mgr.get_shader(shader_name); }
+    GLShaderProgram* get_current_shader() { return m_opengl_mgr.get_current_shader(); }
+
+    bool is_gl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const { return m_opengl_mgr.get_gl_info().is_version_greater_or_equal_to(major, minor); }
+    bool is_glsl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const { return m_opengl_mgr.get_gl_info().is_glsl_version_greater_or_equal_to(major, minor); }
+
 private:
     bool            on_init_inner();
 	void            init_app_config();
@@ -255,6 +265,6 @@ private:
 DECLARE_APP(GUI_App)
 
 } // GUI
-} //Slic3r
+} // Slic3r
 
 #endif // slic3r_GUI_App_hpp_

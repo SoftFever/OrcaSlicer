@@ -19,7 +19,9 @@
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/GCode/PostProcessor.hpp"
+#if !ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/PreviewData.hpp"
+#endif // !ENABLE_GCODE_VIEWER
 #include "libslic3r/Format/SL1.hpp"
 #include "libslic3r/libslic3r.h"
 
@@ -92,7 +94,11 @@ void BackgroundSlicingProcess::process_fff()
 	wxCommandEvent evt(m_event_slicing_completed_id);
 	evt.SetInt((int)(m_fff_print->step_state_with_timestamp(PrintStep::psBrim).timestamp));
 	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
-    m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data, m_thumbnail_cb);
+#if ENABLE_GCODE_VIEWER
+	m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, m_thumbnail_cb);
+#else
+	m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data, m_thumbnail_cb);
+#endif // ENABLE_GCODE_VIEWER
 	if (this->set_step_started(bspsGCodeFinalize)) {
 	    if (! m_export_path.empty()) {
 			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
@@ -382,6 +388,17 @@ Print::ApplyStatus BackgroundSlicingProcess::apply(const Model &model, const Dyn
 	assert(m_print != nullptr);
 	assert(config.opt_enum<PrinterTechnology>("printer_technology") == m_print->technology());
 	Print::ApplyStatus invalidated = m_print->apply(model, config);
+#if ENABLE_GCODE_VIEWER
+	if ((invalidated & PrintBase::APPLY_STATUS_INVALIDATED) != 0 && m_print->technology() == ptFFF &&
+		!this->m_fff_print->is_step_done(psGCodeExport))
+	{
+		// Some FFF status was invalidated, and the G-code was not exported yet.
+		// Let the G-code preview UI know that the final G-code preview is not valid.
+		// In addition, this early memory deallocation reduces memory footprint.
+		if (m_gcode_result != nullptr)
+			m_gcode_result->reset();
+	}
+#else
 	if ((invalidated & PrintBase::APPLY_STATUS_INVALIDATED) != 0 && m_print->technology() == ptFFF &&
 		m_gcode_preview_data != nullptr && ! this->m_fff_print->is_step_done(psGCodeExport)) {
 		// Some FFF status was invalidated, and the G-code was not exported yet.
@@ -389,6 +406,7 @@ Print::ApplyStatus BackgroundSlicingProcess::apply(const Model &model, const Dyn
 		// In addition, this early memory deallocation reduces memory footprint.
 		m_gcode_preview_data->reset();
 	}
+#endif // ENABLE_GCODE_VIEWER
 	return invalidated;
 }
 

@@ -276,8 +276,8 @@ public:
     void set_icons_size(float size);
     void set_scale(float scale);
 
-    bool is_enabled() const;
-    void set_enabled(bool enable);
+    bool is_enabled() const { return m_enabled; }
+    void set_enabled(bool enable) { m_enabled = enable; }
 
     bool add_item(const GLToolbarItem::Data& data);
     bool add_separator();

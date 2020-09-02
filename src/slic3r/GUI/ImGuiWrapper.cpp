@@ -37,18 +37,29 @@ namespace GUI {
 
 
 static const std::map<const char, std::string> font_icons = {
-    {ImGui::PrintIconMarker     , "cog"               },
-    {ImGui::PrinterIconMarker   , "printer"           },
-    {ImGui::PrinterSlaIconMarker, "sla_printer"       },
-    {ImGui::FilamentIconMarker  , "spool"             },
-    {ImGui::MaterialIconMarker  , "resin"             },
-	{ImGui::CloseIconMarker     , "cross"             },
-	{ImGui::CloseIconHoverMarker, "cross_focus_large" },
-	{ImGui::TimerDotMarker      , "timer_dot"         },
-    {ImGui::TimerDotEmptyMarker , "timer_dot_empty"   },
-	{ImGui::WarningMarker       , "flag_green"        },
-    {ImGui::ErrorMarker         , "flag_red"          }
+    {ImGui::PrintIconMarker       , "cog"                           },
+    {ImGui::PrinterIconMarker     , "printer"                       },
+    {ImGui::PrinterSlaIconMarker  , "sla_printer"                   },
+    {ImGui::FilamentIconMarker    , "spool"                         },
+    {ImGui::MaterialIconMarker    , "resin"                         },
+	{ImGui::CloseIconMarker       , "notification_close"            },
+	{ImGui::CloseIconHoverMarker  , "notification_close_hover"      },
+	//{ImGui::TimerDotMarker      , "timer_dot"                     },
+    //{ImGui::TimerDotEmptyMarker , "timer_dot_empty"               },
+    {ImGui::MinimalizeMarker      , "notification_minimalize"       },
+    {ImGui::MinimalizeHoverMarker , "notification_minimalize_hover" },
+	{ImGui::WarningMarker         , "notification_warning"          },
+    {ImGui::ErrorMarker           , "notification_error"            }
 };
+
+const ImVec4 ImGuiWrapper::COL_GREY_DARK         = { 0.333f, 0.333f, 0.333f, 1.0f };
+const ImVec4 ImGuiWrapper::COL_GREY_LIGHT        = { 0.4f, 0.4f, 0.4f, 1.0f };
+const ImVec4 ImGuiWrapper::COL_ORANGE_DARK       = { 0.757f, 0.404f, 0.216f, 1.0f };
+const ImVec4 ImGuiWrapper::COL_ORANGE_LIGHT      = { 1.0f, 0.49f, 0.216f, 1.0f };
+const ImVec4 ImGuiWrapper::COL_WINDOW_BACKGROUND = { 0.133f, 0.133f, 0.133f, 0.8f };
+const ImVec4 ImGuiWrapper::COL_BUTTON_BACKGROUND = { 0.233f, 0.233f, 0.233f, 1.0f };
+const ImVec4 ImGuiWrapper::COL_BUTTON_HOVERED    = { 0.433f, 0.433f, 0.433f, 1.8f };
+const ImVec4 ImGuiWrapper::COL_BUTTON_ACTIVE     = ImGuiWrapper::COL_BUTTON_HOVERED;
 
 ImGuiWrapper::ImGuiWrapper()
     : m_glyph_ranges(nullptr)
@@ -792,6 +803,12 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
         check_box(_L("Search in English"), view_params.english);
 }
 
+void ImGuiWrapper::title(const std::string& str)
+{
+    text(str);
+    ImGui::Separator();
+}
+
 void ImGuiWrapper::disabled_begin(bool disabled)
 {
     wxCHECK_RET(!m_disabled, "ImGUI: Unbalanced disabled_begin() call");
@@ -1011,23 +1028,13 @@ void ImGuiWrapper::init_style()
 {
     ImGuiStyle &style = ImGui::GetStyle();
 
-    auto set_color = [&](ImGuiCol_ col, unsigned hex_color) {
-        style.Colors[col] = ImVec4(
-            ((hex_color >> 24) & 0xff) / 255.0f,
-            ((hex_color >> 16) & 0xff) / 255.0f,
-            ((hex_color >> 8) & 0xff) / 255.0f,
-            (hex_color & 0xff) / 255.0f);
+    auto set_color = [&](ImGuiCol_ entity, ImVec4 color) {
+        style.Colors[entity] = color;
     };
-
-    static const unsigned COL_WINDOW_BACKGROND = 0x222222cc;
-    static const unsigned COL_GREY_DARK = 0x555555ff;
-    static const unsigned COL_GREY_LIGHT = 0x666666ff;
-    static const unsigned COL_ORANGE_DARK = 0xc16737ff;
-    static const unsigned COL_ORANGE_LIGHT = 0xff7d38ff;
 
     // Window
     style.WindowRounding = 4.0f;
-    set_color(ImGuiCol_WindowBg, COL_WINDOW_BACKGROND);
+    set_color(ImGuiCol_WindowBg, COL_WINDOW_BACKGROUND);
     set_color(ImGuiCol_TitleBgActive, COL_ORANGE_DARK);
 
     // Generics
@@ -1039,9 +1046,9 @@ void ImGuiWrapper::init_style()
     set_color(ImGuiCol_TextSelectedBg, COL_ORANGE_DARK);
 
     // Buttons
-    set_color(ImGuiCol_Button, COL_ORANGE_DARK);
-    set_color(ImGuiCol_ButtonHovered, COL_ORANGE_LIGHT);
-    set_color(ImGuiCol_ButtonActive, COL_ORANGE_LIGHT);
+    set_color(ImGuiCol_Button, COL_BUTTON_BACKGROUND);
+    set_color(ImGuiCol_ButtonHovered, COL_BUTTON_HOVERED);
+    set_color(ImGuiCol_ButtonActive, COL_BUTTON_ACTIVE);
 
     // Checkbox
     set_color(ImGuiCol_CheckMark, COL_ORANGE_LIGHT);
@@ -1057,6 +1064,13 @@ void ImGuiWrapper::init_style()
 
     // Separator
     set_color(ImGuiCol_Separator, COL_ORANGE_LIGHT);
+
+    // Tabs
+    set_color(ImGuiCol_Tab, COL_ORANGE_DARK);
+    set_color(ImGuiCol_TabHovered, COL_ORANGE_LIGHT);
+    set_color(ImGuiCol_TabActive, COL_ORANGE_LIGHT);
+    set_color(ImGuiCol_TabUnfocused, COL_GREY_DARK);
+    set_color(ImGuiCol_TabUnfocusedActive, COL_GREY_LIGHT);
 }
 
 void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)

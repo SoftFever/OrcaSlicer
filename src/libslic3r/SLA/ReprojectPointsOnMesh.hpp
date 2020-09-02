@@ -28,15 +28,9 @@ void reproject_support_points(const IndexedMesh &mesh, std::vector<PointType> &p
 inline void reproject_points_and_holes(ModelObject *object)
 {
     bool has_sppoints = !object->sla_support_points.empty();
+    bool has_holes    = !object->sla_drain_holes.empty();
 
-    // Disabling reprojection of holes as they have a significant offset away
-    // from the model body which tolerates minor geometrical changes.
-    //
-    // TODO: uncomment and ensure the right offset of the hole points if
-    // reprojection would still be necessary.
-    // bool has_holes    = !object->sla_drain_holes.empty();
-
-    if (!object || (/*!has_holes &&*/ !has_sppoints)) return;
+    if (!object || (!has_holes && !has_sppoints)) return;
 
     TriangleMesh rmsh = object->raw_mesh();
     rmsh.require_shared_vertices();
@@ -45,8 +39,8 @@ inline void reproject_points_and_holes(ModelObject *object)
     if (has_sppoints)
         reproject_support_points(emesh, object->sla_support_points);
 
-//    if (has_holes)
-//        reproject_support_points(emesh, object->sla_drain_holes);
+    if (has_holes)
+        reproject_support_points(emesh, object->sla_drain_holes);
 }
 
 }}

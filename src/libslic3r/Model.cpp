@@ -21,7 +21,9 @@
 #include "SVG.hpp"
 #include <Eigen/Dense>
 #include "GCodeWriter.hpp"
+#if !ENABLE_GCODE_VIEWER
 #include "GCode/PreviewData.hpp"
+#endif // !ENABLE_GCODE_VIEWER
 
 namespace Slic3r {
 
@@ -1007,6 +1009,7 @@ void ModelObject::convert_units(ModelObjectPtrs& new_objects, bool from_imperial
     for (ModelVolume* volume : volumes)
     {
         volume->m_supported_facets.clear();
+        volume->m_seam_facets.clear();
         if (!volume->mesh().empty()) {
             TriangleMesh mesh(volume->mesh());
             mesh.require_shared_vertices();
@@ -1112,6 +1115,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
         const auto volume_matrix = volume->get_matrix();
 
         volume->m_supported_facets.clear();
+        volume->m_seam_facets.clear();
 
         if (! volume->is_model_part()) {
             // Modifiers are not cut, but we still need to add the instance transformation
@@ -1831,7 +1835,7 @@ arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
 }
 
 
-indexed_triangle_set FacetsAnnotation::get_facets(const ModelVolume& mv, FacetSupportType type) const
+indexed_triangle_set FacetsAnnotation::get_facets(const ModelVolume& mv, EnforcerBlockerType type) const
 {
     TriangleSelector selector(mv.mesh());
     selector.deserialize(m_data);
@@ -1988,6 +1992,16 @@ bool model_custom_supports_data_changed(const ModelObject& mo, const ModelObject
     assert(mo.volumes.size() == mo_new.volumes.size());
     for (size_t i=0; i<mo.volumes.size(); ++i) {
         if (! mo_new.volumes[i]->m_supported_facets.is_same_as(mo.volumes[i]->m_supported_facets))
+            return true;
+    }
+    return false;
+}
+
+bool model_custom_seam_data_changed(const ModelObject& mo, const ModelObject& mo_new) {
+    assert(! model_volume_list_changed(mo, mo_new, ModelVolumeType::MODEL_PART));
+    assert(mo.volumes.size() == mo_new.volumes.size());
+    for (size_t i=0; i<mo.volumes.size(); ++i) {
+        if (! mo_new.volumes[i]->m_seam_facets.is_same_as(mo.volumes[i]->m_seam_facets))
             return true;
     }
     return false;

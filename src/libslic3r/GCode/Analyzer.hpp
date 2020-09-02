@@ -1,6 +1,8 @@
 #ifndef slic3r_GCode_Analyzer_hpp_
 #define slic3r_GCode_Analyzer_hpp_
 
+#if !ENABLE_GCODE_VIEWER
+
 #include "../libslic3r.h"
 #include "../PrintConfig.hpp"
 #include "../ExtrusionEntity.hpp"
@@ -301,5 +303,7 @@ private:
 };
 
 } // namespace Slic3r
+
+#endif // !ENABLE_GCODE_VIEWER
 
 #endif /* slic3r_GCode_Analyzer_hpp_ */

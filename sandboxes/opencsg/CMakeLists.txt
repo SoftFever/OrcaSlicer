@@ -6,6 +6,7 @@ add_executable(opencsg_example WIN32
     main.cpp 
     Engine.hpp Engine.cpp 
     ShaderCSGDisplay.hpp ShaderCSGDisplay.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/slic3r/GUI/Jobs/Job.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/slic3r/GUI/ProgressStatusBar.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/slic3r/GUI/I18N.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/slic3r/GUI/I18N.cpp)

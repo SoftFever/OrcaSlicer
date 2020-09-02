@@ -94,6 +94,7 @@ public:
 		void                   set_gray(bool g) { m_is_gray = g; }
 		void                   set_paused(bool p) { m_paused = p; }
 		bool                   compare_text(const std::string& text);
+        void                   hide(bool h) { m_hidden = h; }
 	protected:
 		// Call after every size change
 		void         init();
@@ -120,6 +121,7 @@ public:
 		const NotificationData m_data;
 
 		int              m_id;
+		bool			 m_initialized          { false };
 		// Main text
 		std::string      m_text1;
 		// Clickable text
@@ -130,12 +132,12 @@ public:
 		long             m_remaining_time;
 		bool             m_counting_down;
 		long             m_last_remaining_time;
-		bool             m_paused{ false };
-		int              m_countdown_frame{ 0 };
-		bool             m_fading_out{ false };
+		bool             m_paused               { false };
+		int              m_countdown_frame      { 0 };
+		bool             m_fading_out           { false };
 		// total time left when fading beggins
-		float            m_fading_time{ 0.0f }; 
-		float            m_current_fade_opacity{ 1.f };
+		float            m_fading_time          { 0.0f }; 
+		float            m_current_fade_opacity { 1.f };
 		// If hidden the notif is alive but not visible to user
 		bool             m_hidden               { false };
 		//  m_finished = true - does not render, marked to delete
@@ -230,6 +232,7 @@ public:
 	// finds and closes all notifications of given type
 	void close_notification_of_type(const NotificationType type);
 	void dpi_changed();
+    void set_in_preview(bool preview);
 private:
 	//pushes notification into the queue of notifications that are rendered
 	//can be used to create custom notification
@@ -238,6 +241,7 @@ private:
 	//finds older notification of same type and moves it to the end of queue. returns true if found
 	bool find_older(NotificationManager::PopNotification* notification);
 	void sort_notifications();
+    bool has_error_notification();
 
 	wxEvtHandler*                m_evt_handler;
 	std::deque<PopNotification*> m_pop_notifications;
@@ -246,6 +250,7 @@ private:
 	bool                         m_hovered { false };
 	//timestamps used for slining finished - notification could be gone so it needs to be stored here
 	std::unordered_set<int>      m_used_timestamps;
+    bool                         m_in_preview;
 
 	//prepared (basic) notifications
 	const std::vector<NotificationData> basic_notifications = {

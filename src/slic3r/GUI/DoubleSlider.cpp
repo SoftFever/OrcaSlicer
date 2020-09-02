@@ -1,5 +1,11 @@
+#include "libslic3r/libslic3r.h"
+#if ENABLE_GCODE_VIEWER
+#include "DoubleSlider.hpp"
+#include "libslic3r/GCode.hpp"
+#else
 #include "wxExtensions.hpp"
 #include "libslic3r/GCode/PreviewData.hpp"
+#endif // ENABLE_GCODE_VIEWER
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "Plater.hpp"
@@ -15,7 +21,9 @@
 #include <wx/bmpcbox.h>
 #include <wx/statline.h>
 #include <wx/dcclient.h>
+#if !ENABLE_GCODE_VIEWER
 #include <wx/numformatter.h>
+#endif // !ENABLE_GCODE_VIEWER
 #include <wx/colordlg.h>
 
 #include <cmath>
@@ -72,8 +80,13 @@ Control::Control( wxWindow *parent,
     if (!is_osx)
         SetDoubleBuffered(true);// SetDoubleBuffered exists on Win and Linux/GTK, but is missing on OSX
 
+#if ENABLE_GCODE_VIEWER
+    m_bmp_thumb_higher = (style == wxSL_HORIZONTAL ? ScalableBitmap(this, "thumb_right") : ScalableBitmap(this, "thumb_up"));
+    m_bmp_thumb_lower  = (style == wxSL_HORIZONTAL ? ScalableBitmap(this, "thumb_left")  : ScalableBitmap(this, "thumb_down"));
+#else
     m_bmp_thumb_higher = (style == wxSL_HORIZONTAL ? ScalableBitmap(this, "right_half_circle.png") : ScalableBitmap(this, "thumb_up"));
     m_bmp_thumb_lower  = (style == wxSL_HORIZONTAL ? ScalableBitmap(this, "left_half_circle.png" ) : ScalableBitmap(this, "thumb_down"));
+#endif // ENABLE_GCODE_VIEWER
     m_thumb_size = m_bmp_thumb_lower.GetBmpSize();
 
     m_bmp_add_tick_on  = ScalableBitmap(this, "colorchange_add");
@@ -275,14 +288,14 @@ wxCoord Control::get_position_from_value(const int value)
     return wxCoord(SLIDER_MARGIN + int(val*step + 0.5));
 }
 
-wxSize Control::get_size()
+wxSize Control::get_size() const
 {
     int w, h;
     get_size(&w, &h);
     return wxSize(w, h);
 }
 
-void Control::get_size(int *w, int *h)
+void Control::get_size(int* w, int* h) const
 {
     GetSize(w, h);
     is_horizontal() ? *w -= m_lock_icon_dim : *h -= m_lock_icon_dim;
@@ -302,14 +315,22 @@ double Control::get_double_value(const SelectedSlider& selection)
 Info Control::GetTicksValues() const
 {
     Info custom_gcode_per_print_z;
+#if ENABLE_GCODE_VIEWER
+    std::vector<CustomGCode::Item>& values = custom_gcode_per_print_z.gcodes;
+#else
     std::vector<Item>& values = custom_gcode_per_print_z.gcodes;
+#endif // ENABLE_GCODE_VIEWER
 
     const int val_size = m_values.size();
     if (!m_values.empty())
         for (const TickCode& tick : m_ticks.ticks) {
             if (tick.tick > val_size)
                 break;
+#if ENABLE_GCODE_VIEWER
+            values.emplace_back(CustomGCode::Item{ m_values[tick.tick], tick.type, tick.extruder, tick.color, tick.extra });
+#else
             values.emplace_back(Item{m_values[tick.tick], tick.type, tick.extruder, tick.color, tick.extra});
+#endif // ENABLE_GCODE_VIEWER
         }
 
     if (m_force_mode_apply)
@@ -329,7 +350,11 @@ void Control::SetTicksValues(const Info& custom_gcode_per_print_z)
     const bool was_empty = m_ticks.empty();
 
     m_ticks.ticks.clear();
+#if ENABLE_GCODE_VIEWER
+    const std::vector<CustomGCode::Item>& heights = custom_gcode_per_print_z.gcodes;
+#else
     const std::vector<Item>& heights = custom_gcode_per_print_z.gcodes;
+#endif // ENABLE_GCODE_VIEWER
     for (auto h : heights) {
         auto it = std::lower_bound(m_values.begin(), m_values.end(), h.print_z - epsilon());
 
@@ -401,7 +426,15 @@ void Control::draw_focus_rect()
 
 void Control::render()
 {
+#if ENABLE_GCODE_VIEWER
+#ifdef _WIN32 
+    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+#else
     SetBackgroundColour(GetParent()->GetBackgroundColour());
+#endif // _WIN32 
+#else
+    SetBackgroundColour(GetParent()->GetBackgroundColour());
+#endif // ENABLE_GCODE_VIEWER
     draw_focus_rect();
 
     wxPaintDC dc(this);
@@ -417,22 +450,22 @@ void Control::render()
     // draw line
     draw_scroll_line(dc, lower_pos, higher_pos);
 
-    //draw color print ticks
+    // draw color print ticks
     draw_ticks(dc);
 
     // draw both sliders
     draw_thumbs(dc, lower_pos, higher_pos);
 
-    //draw lock/unlock
+    // draw lock/unlock
     draw_one_layer_icon(dc);
 
-    //draw revert bitmap (if it's shown)
+    // draw revert bitmap (if it's shown)
     draw_revert_icon(dc);
 
-    //draw cog bitmap (if it's shown)
+    // draw cog bitmap (if it's shown)
     draw_cog_icon(dc);
 
-    //draw mouse position
+    // draw mouse position
     draw_tick_on_mouse_position(dc);
 }
 
@@ -544,10 +577,21 @@ wxString Control::get_label(int tick) const
     if (value >= m_values.size())
         return "ErrVal";
 
-    const wxString str = m_values.empty() ? 
-                         wxNumberFormatter::ToString(m_label_koef*value, 2, wxNumberFormatter::Style_None) :
-                         wxNumberFormatter::ToString(m_values[value], 2, wxNumberFormatter::Style_None);
-    return format_wxstr("%1%\n(%2%)", str, m_values.empty() ? value : value+1);
+#if ENABLE_GCODE_VIEWER
+    if (m_draw_mode == dmSequentialGCodeView)
+        return wxString::Format("%d", static_cast<unsigned int>(m_values[value]));
+    else {
+        const wxString str = m_values.empty() ?
+            wxString::Format("%.*f", 2, m_label_koef * value) :
+            wxString::Format("%.*f", 2, m_values[value]);
+        return format_wxstr("%1%\n(%2%)", str, m_values.empty() ? value : value + 1);
+    }
+#else
+        const wxString str = m_values.empty() ?
+            wxNumberFormatter::ToString(m_label_koef * value, 2, wxNumberFormatter::Style_None) :
+            wxNumberFormatter::ToString(m_values[value], 2, wxNumberFormatter::Style_None);
+        return format_wxstr("%1%\n(%2%)", str, m_values.empty() ? value : value + 1);
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void Control::draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, bool right_side/*=true*/) const
@@ -556,13 +600,36 @@ void Control::draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, bool right_
     const wxString label = get_label(tick);
     dc.GetMultiLineTextExtent(label, &text_width, &text_height);
     wxPoint text_pos;
-    if (right_side)
-        text_pos = is_horizontal() ? wxPoint(pos.x + 1, pos.y + m_thumb_size.x) :
-                   wxPoint(pos.x + m_thumb_size.x+1, pos.y - 0.5*text_height - 1);
-    else
-        text_pos = is_horizontal() ? wxPoint(pos.x - text_width - 1, pos.y - m_thumb_size.x - text_height) :
-                   wxPoint(pos.x - text_width - 1 - m_thumb_size.x, pos.y - 0.5*text_height + 1);
-   dc.DrawText(label, text_pos);
+    if (right_side) {
+        if (is_horizontal()) {
+            int width;
+            int height;
+            get_size(&width, &height);
+
+            int x_right = pos.x + 1 + text_width;
+            int xx = (x_right < width) ? pos.x + 1 : pos.x - text_width - 1;
+            text_pos = wxPoint(xx, pos.y + m_thumb_size.x / 2 + 1);
+        }
+        else
+            text_pos = wxPoint(pos.x + m_thumb_size.x + 1, pos.y - 0.5 * text_height - 1);
+
+        // update text rectangle
+        m_rect_lower_thumb_text = wxRect(text_pos, wxSize(text_width, text_height));
+    }
+    else {
+        if (is_horizontal()) {
+            int x = pos.x - text_width - 1;
+            int xx = (x > 0) ? x : pos.x + 1;
+            text_pos = wxPoint(xx, pos.y - m_thumb_size.x / 2 - text_height - 1);
+        }
+        else
+            text_pos = wxPoint(pos.x - text_width - 1 - m_thumb_size.x, pos.y - 0.5 * text_height + 1);
+
+        // update text rectangle
+        m_rect_higher_thumb_text = wxRect(text_pos, wxSize(text_width, text_height));
+    }
+
+    dc.DrawText(label, text_pos);
 }
 
 void Control::draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const
@@ -572,6 +639,10 @@ void Control::draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider
 
 void Control::draw_thumb_item(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection)
 {
+#if ENABLE_GCODE_VIEWER
+    wxCoord x_draw = pos.x - int(0.5 * m_thumb_size.x);
+    wxCoord y_draw = pos.y - int(0.5 * m_thumb_size.y);
+#else
     wxCoord x_draw, y_draw;
     if (selection == ssLower) {
         if (is_horizontal()) {
@@ -583,7 +654,7 @@ void Control::draw_thumb_item(wxDC& dc, const wxPoint& pos, const SelectedSlider
             y_draw = pos.y - int(0.5*m_thumb_size.y);
         }
     }
-    else{
+    else {
         if (is_horizontal()) {
             x_draw = pos.x;
             y_draw = pos.y - int(0.5*m_thumb_size.y);
@@ -593,6 +664,7 @@ void Control::draw_thumb_item(wxDC& dc, const wxPoint& pos, const SelectedSlider
             y_draw = pos.y - int(0.5*m_thumb_size.y);
         }
     }
+#endif // ENABLE_GCODE_VIEWER
     dc.DrawBitmap(selection == ssLower ? m_bmp_thumb_lower.bmp() : m_bmp_thumb_higher.bmp(), x_draw, y_draw);
 
     // Update thumb rect
@@ -756,7 +828,15 @@ void Control::draw_colored_band(wxDC& dc)
     // don't color a band for MultiExtruder mode
     if (m_ticks.empty() || m_mode == MultiExtruder)
     {
+#if ENABLE_GCODE_VIEWER
+#ifdef _WIN32 
+        draw_band(dc, wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW), main_band);
+#else
         draw_band(dc, GetParent()->GetBackgroundColour(), main_band);
+#endif // _WIN32 
+#else
+        draw_band(dc, GetParent()->GetBackgroundColour(), main_band);
+#endif // ENABLE_GCODE_VIEWER
         return;
     }
 
@@ -788,6 +868,11 @@ void Control::draw_colored_band(wxDC& dc)
 
 void Control::draw_one_layer_icon(wxDC& dc)
 {
+#if ENABLE_GCODE_VIEWER
+    if (m_draw_mode == dmSequentialGCodeView)
+        return;
+#endif // ENABLE_GCODE_VIEWER
+
     const wxBitmap& icon = m_is_one_layer ?
                      m_focus == fiOneLayerIcon ? m_bmp_one_layer_lock_off.bmp()   : m_bmp_one_layer_lock_on.bmp() :
                      m_focus == fiOneLayerIcon ? m_bmp_one_layer_unlock_off.bmp() : m_bmp_one_layer_unlock_on.bmp();
@@ -829,8 +914,20 @@ void Control::draw_cog_icon(wxDC& dc)
     get_size(&width, &height);
 
     wxCoord x_draw, y_draw;
-    is_horizontal() ? x_draw = width-2 : x_draw = width - m_cog_icon_dim - 2;
-    is_horizontal() ? y_draw = height - m_cog_icon_dim - 2 : y_draw = height-2;
+#if ENABLE_GCODE_VIEWER
+    if (m_draw_mode == dmSequentialGCodeView)
+    {
+        is_horizontal() ? x_draw = width - 2 : x_draw = 0.5 * width - 0.5 * m_cog_icon_dim;
+        is_horizontal() ? y_draw = 0.5 * height - 0.5 * m_cog_icon_dim : y_draw = height - 2;
+    }
+    else
+    {
+#endif // ENABLE_GCODE_VIEWER
+        is_horizontal() ? x_draw = width - 2 : x_draw = width - m_cog_icon_dim - 2;
+        is_horizontal() ? y_draw = height - m_cog_icon_dim - 2 : y_draw = height - 2;
+#if ENABLE_GCODE_VIEWER
+    }
+#endif // ENABLE_GCODE_VIEWER
 
     dc.DrawBitmap(m_bmp_cog.bmp(), x_draw, y_draw);
 
@@ -838,9 +935,12 @@ void Control::draw_cog_icon(wxDC& dc)
     m_rect_cog_icon = wxRect(x_draw, y_draw, m_cog_icon_dim, m_cog_icon_dim);
 }
 
-void Control::update_thumb_rect(const wxCoord& begin_x, const wxCoord& begin_y, const SelectedSlider& selection)
+void Control::update_thumb_rect(const wxCoord begin_x, const wxCoord begin_y, const SelectedSlider& selection)
 {
-    const wxRect& rect = wxRect(begin_x, begin_y + (selection == ssLower ? int(m_thumb_size.y * 0.5) : 0), m_thumb_size.x, int(m_thumb_size.y*0.5));
+    const wxRect rect = is_horizontal() ?
+        wxRect(begin_x + (selection == ssHigher ? m_thumb_size.x / 2 : 0), begin_y, m_thumb_size.x / 2, m_thumb_size.y) :
+        wxRect(begin_x, begin_y + (selection == ssLower ? m_thumb_size.y / 2 : 0), m_thumb_size.x, m_thumb_size.y / 2);
+
     if (selection == ssLower)
         m_rect_lower_thumb = rect;
     else
@@ -968,10 +1068,19 @@ wxString Control::get_tooltip(int tick/*=-1*/)
     if (m_focus == fiRevertIcon)
         return _L("Discard all custom changes");
     if (m_focus == fiCogIcon)
-        return m_mode == MultiAsSingle                                                              ?
+#if ENABLE_GCODE_VIEWER
+    {
+        if (m_draw_mode == dmSequentialGCodeView)
+            return _L("Jump to move") + " (Shift + G)";
+        else
+#endif // ENABLE_GCODE_VIEWER
+            return m_mode == MultiAsSingle ?
                GUI::from_u8((boost::format(_u8L("Jump to height %s or "
-                                       "Set extruder sequence for the entire print")) % " (Shift + G)\n").str()) :
-               _L("Jump to height") + " (Shift + G)";
+                   "Set extruder sequence for the entire print")) % " (Shift + G)\n").str()) :
+        _L("Jump to height") + " (Shift + G)";
+#if ENABLE_GCODE_VIEWER
+    }
+#endif // ENABLE_GCODE_VIEWER
     if (m_focus == fiColorBand)
         return m_mode != SingleExtruder ? "" :
                _L("Edit current color - Right click the colored slider segment");
@@ -1099,6 +1208,14 @@ void Control::OnMotion(wxMouseEvent& event)
         else if (m_mode == SingleExtruder && is_point_in_rect(pos, get_colored_band_rect()) &&
                  get_edited_tick_for_position(pos) >= 0 )
             m_focus = fiColorBand;
+        else if (is_point_in_rect(pos, m_rect_lower_thumb))
+            m_focus = fiLowerThumb;
+        else if (is_point_in_rect(pos, m_rect_higher_thumb))
+            m_focus = fiHigherThumb;
+        else if (is_point_in_rect(pos, m_rect_lower_thumb_text))
+            m_focus = fiLowerThumbText;
+        else if (is_point_in_rect(pos, m_rect_higher_thumb_text))
+            m_focus = fiHigherThumbText;
         else {
             m_focus = fiTick;
             tick = get_tick_near_point(pos);
@@ -1223,7 +1340,11 @@ void Control::OnLeftUp(wxMouseEvent& event)
         if (m_mode == MultiAsSingle && m_draw_mode == dmRegular)
             show_cog_icon_context_menu();
         else
+#if ENABLE_GCODE_VIEWER
+            jump_to_value();
+#else
             jump_to_print_z();
+#endif // ENABLE_GCODE_VIEWER
         break;
     case maOneLayerIconClick:
         switch_one_layer_mode();
@@ -1262,6 +1383,15 @@ void Control::move_current_thumb(const bool condition)
     if (is_horizontal())
         delta *= -1;
 
+    // accelerators
+    int accelerator = 0;
+    if (wxGetKeyState(WXK_SHIFT))
+        accelerator += 5;
+    if (wxGetKeyState(WXK_CONTROL))
+        accelerator += 5;
+    if (accelerator > 0)
+        delta *= accelerator;
+
     if (m_selection == ssLower) {
         m_lower_value -= delta;
         correct_lower_value();
@@ -1295,12 +1425,32 @@ void Control::OnWheel(wxMouseEvent& event)
                           ssLower : ssHigher;
     }
 
+#if ENABLE_GCODE_VIEWER
+    move_current_thumb((m_draw_mode == dmSequentialGCodeView) ? event.GetWheelRotation() < 0 : event.GetWheelRotation() > 0);
+#else
     move_current_thumb(event.GetWheelRotation() > 0);
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void Control::OnKeyDown(wxKeyEvent &event)
 {
     const int key = event.GetKeyCode();
+#if ENABLE_GCODE_VIEWER
+    if (m_draw_mode != dmSequentialGCodeView && key == WXK_NUMPAD_ADD) {
+        // OnChar() is called immediately after OnKeyDown(), which can cause call of add_tick() twice.
+        // To avoid this case we should suppress second add_tick() call.
+        m_ticks.suppress_plus(true);
+        add_current_tick(true);
+    }
+    else if (m_draw_mode != dmSequentialGCodeView && (key == WXK_NUMPAD_SUBTRACT || key == WXK_DELETE || key == WXK_BACK)) {
+        // OnChar() is called immediately after OnKeyDown(), which can cause call of delete_tick() twice.
+        // To avoid this case we should suppress second delete_tick() call.
+        m_ticks.suppress_minus(true);
+        delete_current_tick();
+    }
+    else if (m_draw_mode != dmSequentialGCodeView && event.GetKeyCode() == WXK_SHIFT)
+        UseDefaultColors(false);
+#else
     if (key == WXK_NUMPAD_ADD) {
         // OnChar() is called immediately after OnKeyDown(), which can cause call of add_tick() twice.
         // To avoid this case we should suppress second add_tick() call.
@@ -1315,22 +1465,37 @@ void Control::OnKeyDown(wxKeyEvent &event)
     }
     else if (event.GetKeyCode() == WXK_SHIFT)
         UseDefaultColors(false);
+#endif // ENABLE_GCODE_VIEWER
     else if (is_horizontal())
     {
-        if (key == WXK_LEFT || key == WXK_RIGHT)
-            move_current_thumb(key == WXK_LEFT); 
-        else if (key == WXK_UP || key == WXK_DOWN) {
-            m_selection = key == WXK_UP ? ssHigher : ssLower;
-            Refresh();
+#if ENABLE_GCODE_VIEWER
+        if (m_is_focused)
+        {
+#endif // ENABLE_GCODE_VIEWER
+            if (key == WXK_LEFT || key == WXK_RIGHT)
+                move_current_thumb(key == WXK_LEFT);
+            else if (key == WXK_UP || key == WXK_DOWN) {
+                m_selection = key == WXK_UP ? ssHigher : ssLower;
+                Refresh();
+            }
+#if ENABLE_GCODE_VIEWER
         }
-    }
+#endif // ENABLE_GCODE_VIEWER
+        }
     else {
-        if (key == WXK_LEFT || key == WXK_RIGHT) {
-            m_selection = key == WXK_LEFT ? ssHigher : ssLower;
-            Refresh();
+#if ENABLE_GCODE_VIEWER
+        if (m_is_focused)
+        {
+#endif // ENABLE_GCODE_VIEWER
+            if (key == WXK_LEFT || key == WXK_RIGHT) {
+                m_selection = key == WXK_LEFT ? ssHigher : ssLower;
+                Refresh();
+            }
+            else if (key == WXK_UP || key == WXK_DOWN)
+                move_current_thumb(key == WXK_UP);
+#if ENABLE_GCODE_VIEWER
         }
-        else if (key == WXK_UP || key == WXK_DOWN)
-            move_current_thumb(key == WXK_UP);
+#endif // ENABLE_GCODE_VIEWER
     }
 
     event.Skip(); // !Needed to have EVT_CHAR generated as well
@@ -1351,16 +1516,27 @@ void Control::OnKeyUp(wxKeyEvent &event)
 void Control::OnChar(wxKeyEvent& event)
 {
     const int key = event.GetKeyCode();
-    if (key == '+' && !m_ticks.suppressed_plus()) {
-        add_current_tick(true);
-        m_ticks.suppress_plus(false);
+#if ENABLE_GCODE_VIEWER
+    if (m_draw_mode != dmSequentialGCodeView)
+    {
+#endif // ENABLE_GCODE_VIEWER
+        if (key == '+' && !m_ticks.suppressed_plus()) {
+            add_current_tick(true);
+            m_ticks.suppress_plus(false);
+        }
+        else if (key == '-' && !m_ticks.suppressed_minus()) {
+            delete_current_tick();
+            m_ticks.suppress_minus(false);
+        }
+#if ENABLE_GCODE_VIEWER
     }
-    else if (key == '-' && !m_ticks.suppressed_minus()) {
-        delete_current_tick();
-        m_ticks.suppress_minus(false);
-    }
+#endif // ENABLE_GCODE_VIEWER
     if (key == 'G')
+#if ENABLE_GCODE_VIEWER
+        jump_to_value();
+#else
         jump_to_print_z();
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void Control::OnRightDown(wxMouseEvent& event)
@@ -1550,7 +1726,11 @@ void Control::show_cog_icon_context_menu()
     wxMenu menu;
 
     append_menu_item(&menu, wxID_ANY, _(L("Jump to height")) + " (Shift+G)", "",
-        [this](wxCommandEvent&) { jump_to_print_z(); }, "", &menu);
+#if ENABLE_GCODE_VIEWER
+                     [this](wxCommandEvent&) { jump_to_value(); }, "", & menu);
+#else
+                     [this](wxCommandEvent&) { jump_to_print_z(); }, "", &menu);
+#endif // ENABLE_GCODE_VIEWER
 
     append_menu_item(&menu, wxID_ANY, _(L("Set extruder sequence for the entire print")), "",
         [this](wxCommandEvent&) { edit_extruder_sequence(); }, "", &menu);
@@ -1670,11 +1850,21 @@ static std::string get_pause_print_msg(const std::string& msg_in, double height)
     return into_u8(dlg.GetValue());
 }
 
+#if ENABLE_GCODE_VIEWER
+static double get_value_to_jump(double active_value, double min_z, double max_z, DrawMode mode)
+#else
 static double get_print_z_to_jump(double active_print_z, double min_z, double max_z)
+#endif // ENABLE_GCODE_VIEWER
 {
+#if ENABLE_GCODE_VIEWER
+    wxString msg_text = (mode == dmSequentialGCodeView) ? _L("Enter the move you want to jump to") + ":" : _L("Enter the height you want to jump to") + ":";
+    wxString msg_header = (mode == dmSequentialGCodeView) ? _L("Jump to move") : _L("Jump to height");
+    wxString msg_in = GUI::double_to_string(active_value);
+#else
     wxString msg_text = _(L("Enter the height you want to jump to")) + ":";
     wxString msg_header = _(L("Jump to height"));
     wxString msg_in = GUI::double_to_string(active_print_z);
+#endif // ENABLE_GCODE_VIEWER
 
     // get custom gcode
     wxTextEntryDialog dlg(nullptr, msg_text, msg_header, msg_in, wxTextEntryDialogStyle);
@@ -1883,6 +2073,23 @@ void Control::edit_extruder_sequence()
     post_ticks_changed_event(ToolChange);
 }
 
+#if ENABLE_GCODE_VIEWER
+void Control::jump_to_value()
+{
+    double value = get_value_to_jump(m_values[m_selection == ssLower ? m_lower_value : m_higher_value],
+                                     m_values[m_min_value], m_values[m_max_value], m_draw_mode);
+    if (value < 0.0)
+        return;
+
+    auto it = std::lower_bound(m_values.begin(), m_values.end(), value - epsilon());
+    int tick_value = it - m_values.begin();
+
+    if (m_selection == ssLower)
+        SetLowerValue(tick_value);
+    else
+        SetHigherValue(tick_value);
+}
+#else
 void Control::jump_to_print_z()
 {
     double print_z = get_print_z_to_jump(m_values[m_selection == ssLower ? m_lower_value : m_higher_value], 
@@ -1898,6 +2105,7 @@ void Control::jump_to_print_z()
     else
         SetHigherValue(tick_value);
 }
+#endif // ENABLE_GCODE_VIEWER
 
 void Control::post_ticks_changed_event(Type type /*= Custom*/)
 {
@@ -1968,7 +2176,11 @@ std::string TickCodeInfo::get_color_for_tick(TickCode tick, Type type, const int
 {
     if (mode == SingleExtruder && type == ColorChange && m_use_default_colors)
     {
+#if ENABLE_GCODE_VIEWER
+        const std::vector<std::string>& colors = ColorPrintColors::get();
+#else
         const std::vector<std::string>& colors = GCodePreviewData::ColorPrintColors();
+#endif // ENABLE_GCODE_VIEWER
         if (ticks.empty())
             return colors[0];
         m_default_color_idx++;

@@ -634,7 +634,9 @@ void PresetCollection::add_default_preset(const std::vector<std::string> &keys, 
 // Throws an exception on error.
 void PresetCollection::load_presets(const std::string &dir_path, const std::string &subdir)
 {
-    boost::filesystem::path dir = boost::filesystem::canonical(boost::filesystem::path(dir_path) / subdir).make_preferred();
+    // Don't use boost::filesystem::canonical() on Windows, it is broken in regard to reparse points, 
+    // see https://github.com/prusa3d/PrusaSlicer/issues/732
+    boost::filesystem::path dir = boost::filesystem::absolute(boost::filesystem::path(dir_path) / subdir).make_preferred();
     m_dir_path = dir.string();
     std::string errors_cummulative;
     // Store the loaded presets into a new vector, otherwise the binary search for already existing presets would be broken.
@@ -1518,7 +1520,9 @@ PhysicalPrinterCollection::PhysicalPrinterCollection( const std::vector<std::str
 // Throws an exception on error.
 void PhysicalPrinterCollection::load_printers(const std::string& dir_path, const std::string& subdir)
 {
-    boost::filesystem::path dir = boost::filesystem::canonical(boost::filesystem::path(dir_path) / subdir).make_preferred();
+    // Don't use boost::filesystem::canonical() on Windows, it is broken in regard to reparse points, 
+    // see https://github.com/prusa3d/PrusaSlicer/issues/732
+    boost::filesystem::path dir = boost::filesystem::absolute(boost::filesystem::path(dir_path) / subdir).make_preferred();
     m_dir_path = dir.string();
     std::string errors_cummulative;
     // Store the loaded printers into a new vector, otherwise the binary search for already existing presets would be broken.
@@ -1812,6 +1816,26 @@ namespace PresetUtils {
 		}
 		return out;
 	}
+
+#if ENABLE_GCODE_VIEWER
+    std::string system_printer_bed_model(const Preset& preset)
+    {
+        std::string out;
+        const VendorProfile::PrinterModel* pm = PresetUtils::system_printer_model(preset);
+        if (pm != nullptr && !pm->bed_model.empty())
+            out = Slic3r::resources_dir() + "/profiles/" + preset.vendor->id + "/" + pm->bed_model;
+        return out;
+    }
+
+    std::string system_printer_bed_texture(const Preset& preset)
+    {
+        std::string out;
+        const VendorProfile::PrinterModel* pm = PresetUtils::system_printer_model(preset);
+        if (pm != nullptr && !pm->bed_texture.empty())
+            out = Slic3r::resources_dir() + "/profiles/" + preset.vendor->id + "/" + pm->bed_texture;
+        return out;
+    }
+#endif // ENABLE_GCODE_VIEWER
 } // namespace PresetUtils
 
 } // namespace Slic3r

@@ -26,12 +26,6 @@
 #endif // HAS_GLSAFE
 
 namespace Slic3r {
-namespace GUI {
-class Bed3D;
-struct Camera;
-class GLToolbar;
-} // namespace GUI
-
 class SLAPrintObject;
 enum  SLAPrintObjectStep : unsigned int;
 class DynamicPrintConfig;
@@ -603,8 +597,10 @@ public:
     std::string         log_memory_info() const;
 
     bool                has_toolpaths_to_export() const;
+#if !ENABLE_GCODE_VIEWER
     // Export the geometry of the GLVolumes toolpaths of this collection into the file with the given path, in obj format 
     void                export_toolpaths_to_obj(const char* filename) const;
+#endif // !ENABLE_GCODE_VIEWER
 
 private:
     GLVolumeCollection(const GLVolumeCollection &other);
@@ -613,6 +609,7 @@ private:
 
 GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCollection::ERenderType type, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func = nullptr);
 
+#if !ENABLE_GCODE_VIEWER
 class GLModel
 {
 protected:
@@ -672,6 +669,7 @@ class GLBed : public GLModel
 protected:
     bool on_init_from_file(const std::string& filename) override;
 };
+#endif // !ENABLE_GCODE_VIEWER
 
 struct _3DScene
 {
