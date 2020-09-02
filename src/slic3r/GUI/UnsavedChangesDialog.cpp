@@ -590,8 +590,8 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
 
     int btn_idx = 0;
     add_btn(&m_save_btn, m_save_btn_id, "save", Action::Save, btn_idx++);
-    if (type != Preset::TYPE_INVALID && type == dependent_presets->type() && 
-        dependent_presets->get_edited_preset().printer_technology() == dependent_presets->find_preset(new_selected_preset)->printer_technology())
+    if (dependent_presets && (type != dependent_presets->type() ? true :
+        dependent_presets->get_edited_preset().printer_technology() == dependent_presets->find_preset(new_selected_preset)->printer_technology()))
         add_btn(&m_move_btn, m_move_btn_id, "paste_menu", Action::Move, btn_idx++);
     add_btn(&m_continue_btn, m_continue_btn_id, "cross", Action::Continue, btn_idx, false);
 
@@ -666,12 +666,11 @@ void UnsavedChangesDialog::show_info_line(Action action, std::string preset_name
         else if (action == Action::Continue)
             text = _L("All changed options will be reverted.");
         else {
-            if (action == Action::Save && preset_name.empty())
-                text = _L("Press to save the selected options");
-            else {
-                std::string act_string = action == Action::Save ? _u8L("saved") : _u8L("moved");
+            std::string act_string = action == Action::Save ? _u8L("save") : _u8L("move");
+            if (preset_name.empty())
+                text = from_u8((boost::format("Press to %1% selected options.") % act_string).str());
+            else
                 text = from_u8((boost::format("Press to %1% selected options to the preset \"%2%\".") % act_string % preset_name).str());
-            }
             text += "\n" + _L("Unselected options will be reverted.");
         }
         m_info_line->SetLabel(text);
@@ -856,8 +855,10 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
 
     // activate buttons and labels
     m_save_btn      ->Bind(wxEVT_ENTER_WINDOW, [this, presets]              (wxMouseEvent& e) { show_info_line(Action::Save, presets ? presets->get_selected_preset().name : ""); e.Skip(); });
-    if (m_move_btn)
-        m_move_btn  ->Bind(wxEVT_ENTER_WINDOW, [this, new_selected_preset]  (wxMouseEvent& e) { show_info_line(Action::Move, new_selected_preset); e.Skip(); });
+    if (m_move_btn) {
+        bool is_empty_name = type != dependent_presets->type();
+        m_move_btn  ->Bind(wxEVT_ENTER_WINDOW, [this, new_selected_preset, is_empty_name]  (wxMouseEvent& e) { show_info_line(Action::Move, is_empty_name ? "" : new_selected_preset); e.Skip(); });
+    }
     m_continue_btn  ->Bind(wxEVT_ENTER_WINDOW, [this]                       (wxMouseEvent& e) { show_info_line(Action::Continue); e.Skip(); });
 
     m_continue_btn->SetLabel(_L("Continue without changes"));
@@ -879,6 +880,9 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
                         _L("is not compatible with print profile");
             action_msg += " \"" + from_u8(new_selected_preset) + "\"\n";
             action_msg += _L("and it has the following unsaved changes:");
+
+            if (m_move_btn)
+                m_move_btn->SetLabel(_L("Move selected to the first compatible preset"));
         }
         m_action_line->SetLabel(from_u8((boost::format(_utf8(L("Preset \"%1%\" %2%"))) % _utf8(presets->get_edited_preset().name) % action_msg).str()));
         m_save_btn->SetLabel(from_u8((boost::format(_u8L("Save selected to preset: %1%")) % ("\"" + presets->get_selected_preset().name + "\"")).str()));

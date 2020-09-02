@@ -1059,7 +1059,7 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string& suffix, wxBox
 
     m_valid_bmp = new wxStaticBitmap(m_parent, wxID_ANY, create_scaled_bitmap("tick_mark", m_parent));
 
-    m_combo = new wxComboBox(m_parent, wxID_ANY, from_u8(preset_name));
+    m_combo = new wxComboBox(m_parent, wxID_ANY, from_u8(preset_name), wxDefaultPosition, wxSize(35 * wxGetApp().em_unit(), -1));
     for (const std::string& value : values)
         m_combo->Append(from_u8(value));
 
@@ -1131,8 +1131,10 @@ void SavePresetDialog::Item::update()
 
     if (m_valid_type == Valid && existing && m_preset_name != m_presets->get_selected_preset_name())
     {
-        info_line = from_u8((boost::format(_u8L("Preset with name \"%1%\" already exists.")) % m_preset_name).str()) + "\n" +
-                    _L("Note: This preset will be replaced after saving");        
+        info_line = from_u8((boost::format(_u8L("Preset with name \"%1%\" already exists.")) % m_preset_name).str());
+        if (!existing->is_compatible)
+            info_line += "\n" + _L("And selected preset is imcopatible with selected printer.");
+        info_line += "\n" + _L("Note: This preset will be replaced after saving");
         m_valid_type = Warning;
     }
 

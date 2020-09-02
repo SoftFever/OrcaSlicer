@@ -1103,6 +1103,21 @@ void Tab::apply_searcher()
     wxGetApp().sidebar().get_searcher().apply(m_config, m_type, m_mode);
 }
 
+void Tab::cache_config_diff(const std::vector<std::string>& selected_options)
+{
+    m_cache_config.apply_only(m_presets->get_edited_preset().config, selected_options);
+}
+
+void Tab::apply_config_from_cache()
+{
+    if (!m_cache_config.empty()) {
+        m_presets->get_edited_preset().config.apply(m_cache_config);
+        m_cache_config.clear();
+
+        update_dirty();
+    }
+}
+
 
 // Call a callback to update the selection of presets on the plater:
 // To update the content of the selection boxes,
@@ -1122,9 +1137,12 @@ void Tab::on_presets_changed()
     // Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
     for (auto t: m_dependent_tabs)
     {
+        Tab* tab = wxGetApp().get_tab(t);
         // If the printer tells us that the print or filament/sla_material preset has been switched or invalidated,
         // refresh the print or filament/sla_material tab page.
-        wxGetApp().get_tab(t)->load_current_preset();
+        // But if there are options, moved from the previously selected preset, update them to edited preset
+        tab->apply_config_from_cache();
+        tab->load_current_preset();
     }
     // clear m_dependent_tabs after first update from select_preset()
     // to avoid needless preset loading from update() function
@@ -3136,10 +3154,7 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
             static_cast<TabPrinter*>(this)->apply_extruder_cnt_from_cache();
 
         // check if there is something in the cache to move to the new selected preset
-        if (!m_cache_config.empty()) {
-            m_presets->get_edited_preset().config.apply(m_cache_config);
-            m_cache_config.clear();
-        }
+        apply_config_from_cache();
 
         load_current_preset();
     }
@@ -3189,17 +3204,23 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
     else if (dlg.move_preset()) // move selected changes
     {
         std::vector<std::string> selected_options = dlg.get_selected_options();
-        auto it = std::find(selected_options.begin(), selected_options.end(), "extruders_count");
-        if (it != selected_options.end()) {
-            // erase "extruders_count" option from the list
-            selected_options.erase(it);
-            // cache the extruders count
-            if (m_type == Preset::TYPE_PRINTER)
-                static_cast<TabPrinter*>(this)->cache_extruder_cnt();
-        }
+        if (m_type == presets->type()) // move changes for the current preset from this tab
+        {
+            if (m_type == Preset::TYPE_PRINTER) {
+                auto it = std::find(selected_options.begin(), selected_options.end(), "extruders_count");
+                if (it != selected_options.end()) {
+                    // erase "extruders_count" option from the list
+                    selected_options.erase(it);
+                    // cache the extruders count
+                    static_cast<TabPrinter*>(this)->cache_extruder_cnt();
+                }
+            }
 
-        // copy selected options to the cache from edited preset
-        m_cache_config.apply_only(*m_config, selected_options);
+            // copy selected options to the cache from edited preset
+            cache_config_diff(selected_options);
+        }
+        else
+            wxGetApp().get_tab(presets->type())->cache_config_diff(selected_options);
     }
 
     return true;

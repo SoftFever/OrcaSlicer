@@ -231,12 +231,13 @@ protected:
 	} 
     m_highlighter;
 
+	DynamicPrintConfig 	m_cache_config;
+
 public:
 	PresetBundle*		m_preset_bundle;
 	bool				m_show_btn_incompatible_presets = false;
 	PresetCollection*	m_presets;
 	DynamicPrintConfig*	m_config;
-	DynamicPrintConfig 	m_cache_config;
 	ogStaticText*		m_parent_preset_description_line;
 	ScalableButton*		m_detach_preset_btn	= nullptr;
 
@@ -330,6 +331,8 @@ public:
     void            update_wiping_button_visibility();
 	void			activate_option(const std::string& opt_key, const wxString& category);
     void			apply_searcher();
+	void			cache_config_diff(const std::vector<std::string>& selected_options);
+	void			apply_config_from_cache();
 
 protected:
 	void			create_line_with_widget(ConfigOptionsGroup* optgroup, const std::string& opt_key, widget_t widget);
