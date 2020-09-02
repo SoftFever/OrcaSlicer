@@ -362,8 +362,6 @@ void PrintObject::prepare_infill()
     } // for each layer
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
-    this->prepare_adaptive_infill_data();
-
     this->set_done(posPrepareInfill);
 }
 
@@ -373,13 +371,15 @@ void PrintObject::infill()
     this->prepare_infill();
 
     if (this->set_started(posInfill)) {
+        std::unique_ptr<FillAdaptive_Internal::Octree> octree = this->prepare_adaptive_infill_data();
+
         BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - start";
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size()),
-            [this](const tbb::blocked_range<size_t>& range) {
+            [this, &octree](const tbb::blocked_range<size_t>& range) {
                 for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                     m_print->throw_if_canceled();
-                    m_layers[layer_idx]->make_fills();
+                    m_layers[layer_idx]->make_fills(octree.get());
                 }
             }
         );
@@ -432,14 +432,14 @@ void PrintObject::generate_support_material()
     }
 }
 
-void PrintObject::prepare_adaptive_infill_data()
+std::unique_ptr<FillAdaptive_Internal::Octree> PrintObject::prepare_adaptive_infill_data()
 {
     const ConfigOptionPercent* opt_fill_density = this->print()->full_print_config().option<ConfigOptionPercent>("fill_density");
     const ConfigOptionFloatOrPercent* opt_infill_extrusion_width = this->print()->full_print_config().option<ConfigOptionFloatOrPercent>("infill_extrusion_width");
 
     if(opt_fill_density == nullptr || opt_infill_extrusion_width == nullptr || opt_fill_density->value <= 0 || opt_infill_extrusion_width->value <= 0)
     {
-        return;
+        return std::unique_ptr<FillAdaptive_Internal::Octree>{};
     }
 
     float fill_density = opt_fill_density->value;
@@ -448,15 +448,15 @@ void PrintObject::prepare_adaptive_infill_data()
     coordf_t line_spacing = infill_extrusion_width / ((fill_density / 100.0f) * 0.333333333f);
 
     BoundingBoxf bed_shape(this->print()->config().bed_shape.values);
-    BoundingBoxf3 printer_volume(Vec3d(bed_shape.min(0), bed_shape.min(1), 0),
-            Vec3d(bed_shape.max(0), bed_shape.max(1), this->print()->config().max_print_height));
+    BoundingBoxf3 printer_volume(Vec3d(bed_shape.min.x(), bed_shape.min.y(), 0),
+            Vec3d(bed_shape.max.x(), bed_shape.max.y(), this->print()->config().max_print_height));
 
     Vec3d model_center = this->model_object()->bounding_box().center();
-    model_center(2) = 0.0f; // Set position in Z axis to 0
+    model_center.z() = 0.0f; // Set position in Z axis to 0
     // Center of the first cube in octree
 
     TriangleMesh mesh = this->model_object()->mesh();
-    this->m_adapt_fill_octree = FillAdaptive::build_octree(mesh, line_spacing, printer_volume, model_center);
+    return FillAdaptive::build_octree(mesh, line_spacing, printer_volume, model_center);
 }
 
 void PrintObject::clear_layers()
