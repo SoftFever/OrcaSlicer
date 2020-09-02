@@ -466,7 +466,8 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
 	}
     else if (m_opt_map.find(opt_key) == m_opt_map.end() ||
 		    // This option don't have corresponded field
-		     opt_key == "bed_shape" || opt_key == "compatible_printers" || opt_key == "compatible_prints" ) {
+		     opt_key == "bed_shape"				|| opt_key == "filament_ramming_parameters" || 
+		     opt_key == "compatible_printers"	|| opt_key == "compatible_prints" ) {
         value = get_config_value(config, opt_key);
         change_opt_value(*m_config, opt_key, value);
         return;
@@ -697,6 +698,10 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 	case coStrings:
 		if (opt_key == "compatible_printers" || opt_key == "compatible_prints") {
 			ret = config.option<ConfigOptionStrings>(opt_key)->values;
+			break;
+		}
+		if (opt_key == "filament_ramming_parameters") {
+			ret = config.opt_string(opt_key, static_cast<unsigned int>(idx));
 			break;
 		}
 		if (config.option<ConfigOptionStrings>(opt_key)->values.empty())

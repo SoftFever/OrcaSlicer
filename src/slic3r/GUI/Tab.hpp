@@ -231,6 +231,8 @@ protected:
 	} 
     m_highlighter;
 
+	DynamicPrintConfig 	m_cache_config;
+
 public:
 	PresetBundle*		m_preset_bundle;
 	bool				m_show_btn_incompatible_presets = false;
@@ -329,6 +331,8 @@ public:
     void            update_wiping_button_visibility();
 	void			activate_option(const std::string& opt_key, const wxString& category);
     void			apply_searcher();
+	void			cache_config_diff(const std::vector<std::string>& selected_options);
+	void			apply_config_from_cache();
 
 protected:
 	void			create_line_with_widget(ConfigOptionsGroup* optgroup, const std::string& opt_key, widget_t widget);
@@ -410,6 +414,7 @@ public:
 	size_t		m_extruders_count_old = 0;
 	size_t		m_initial_extruders_count;
 	size_t		m_sys_extruders_count;
+	size_t		m_cache_extruder_count = 0;
 
     PrinterTechnology               m_printer_technology = ptFFF;
 
@@ -436,6 +441,8 @@ public:
     bool 		supports_printer_technology(const PrinterTechnology /* tech */) override { return true; }
 
 	wxSizer*	create_bed_shape_widget(wxWindow* parent);
+	void		cache_extruder_cnt();
+	void		apply_extruder_cnt_from_cache();
 };
 
 class TabSLAMaterial : public Tab

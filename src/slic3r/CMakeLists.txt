@@ -173,6 +173,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/Search.hpp
     GUI/NotificationManager.cpp
     GUI/NotificationManager.hpp
+    GUI/UnsavedChangesDialog.cpp
+    GUI/UnsavedChangesDialog.hpp
+    GUI/ExtraRenderers.cpp
+    GUI/ExtraRenderers.hpp
     Utils/Http.cpp
     Utils/Http.hpp
     Utils/FixModelByWin10.cpp

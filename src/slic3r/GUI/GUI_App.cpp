@@ -58,6 +58,8 @@
 #include "RemovableDriveManager.hpp"
 #include "InstanceCheck.hpp"
 #include "NotificationManager.hpp"
+#include "UnsavedChangesDialog.hpp"
+#include "PresetComboBoxes.hpp"
 
 #ifdef __WXMSW__
 #include <dbt.h>
@@ -1173,29 +1175,66 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
 // to notify the user whether he is aware that some preset changes will be lost.
 bool GUI_App::check_unsaved_changes(const wxString &header)
 {
-    wxString dirty;
     PrinterTechnology printer_technology = preset_bundle->printers.get_edited_preset().printer_technology();
-    for (Tab *tab : tabs_list)
+
+    bool has_unsaved_changes = false;
+    for (Tab* tab : tabs_list)
         if (tab->supports_printer_technology(printer_technology) && tab->current_preset_is_dirty()) {
-            if (dirty.empty())
-                dirty = tab->title();
-            else
-                dirty += wxString(", ") + tab->title();
+            has_unsaved_changes = true;
+            break;
         }
 
-    if (dirty.empty())
-        // No changes, the application may close or reload presets.
-        return true;
-    // Ask the user.
-    wxString message;
-    if (! header.empty())
-    	message = header + "\n\n";
-    message += _(L("The presets on the following tabs were modified")) + ": " + dirty + "\n\n" + _(L("Discard changes and continue anyway?"));
-    wxMessageDialog dialog(mainframe,
-        message,
-        wxString(SLIC3R_APP_NAME) + " - " + _(L("Unsaved Presets")),
-        wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
-    return dialog.ShowModal() == wxID_YES;
+    if (has_unsaved_changes)
+    {
+        UnsavedChangesDialog dlg(header);
+        if (dlg.ShowModal() == wxID_CANCEL)
+            return false;
+
+        if (dlg.save_preset())  // save selected changes
+        {
+            struct NameType
+            {
+                std::string     name;
+                Preset::Type    type {Preset::TYPE_INVALID};
+            };
+
+            std::vector<NameType> names_and_types;
+
+            // for system/default/external presets we should take an edited name
+            std::vector<Preset::Type> types;
+            for (Tab* tab : tabs_list)
+                if (tab->supports_printer_technology(printer_technology) && tab->current_preset_is_dirty())
+                {
+                    const Preset& preset = tab->get_presets()->get_edited_preset();
+                    if (preset.is_system || preset.is_default || preset.is_external)
+                        types.emplace_back(preset.type);
+
+                    names_and_types.emplace_back(NameType{ preset.name, preset.type });
+                }
+
+
+            if (!types.empty()) {
+                SavePresetDialog save_dlg(types);
+                if (save_dlg.ShowModal() != wxID_OK)
+                    return false;
+
+                for (NameType& nt : names_and_types) {
+                    const std::string name = save_dlg.get_name(nt.type);
+                    if (!name.empty())
+                        nt.name = name;
+                }
+            }
+
+            for (const NameType& nt : names_and_types)
+                preset_bundle->save_changes_for_preset(nt.name, nt.type, dlg.get_unselected_options(nt.type));
+
+            // if we saved changes to the new presets, we should to 
+            // synchronize config.ini with the current selections.
+            preset_bundle->export_selections(*app_config);
+        }
+    }
+
+    return true;
 }
 
 bool GUI_App::checked_tab(Tab* tab)

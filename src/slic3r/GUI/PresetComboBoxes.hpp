@@ -235,7 +235,7 @@ class SavePresetDialog : public DPIDialog
         void update();
     };
 
-    std::vector<Item>   m_items;
+    std::vector<Item*>   m_items;
 
     wxBoxSizer*         m_presets_sizer     {nullptr};
     wxStaticText*       m_label             {nullptr};
@@ -248,8 +248,9 @@ class SavePresetDialog : public DPIDialog
 
 public:
 
-    SavePresetDialog(Preset::Type type, const std::string& suffix);
-    ~SavePresetDialog() {}
+    SavePresetDialog(Preset::Type type, std::string suffix = "");
+    SavePresetDialog(std::vector<Preset::Type> types, std::string suffix = "");
+    ~SavePresetDialog();
 
     void AddItem(Preset::Type type, const std::string& suffix);
 
@@ -266,6 +267,7 @@ protected:
     void on_sys_color_changed() override {}
 
 private:
+    void build(std::vector<Preset::Type> types, std::string suffix = "");
     void update_physical_printers(const std::string& preset_name);
     void accept();
 };

@@ -36,6 +36,7 @@
 #include "MainFrame.hpp"
 #include "format.hpp"
 #include "PhysicalPrinterDialog.hpp"
+#include "UnsavedChangesDialog.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -325,7 +326,7 @@ void Tab::add_scaled_button(wxWindow* parent,
                             const wxString& label/* = wxEmptyString*/,
                             long style /*= wxBU_EXACTFIT | wxNO_BORDER*/)
 {
-    *btn = new ScalableButton(parent, wxID_ANY, icon_name, label, wxDefaultSize, wxDefaultPosition, style);
+    *btn = new ScalableButton(parent, wxID_ANY, icon_name, label, wxDefaultSize, wxDefaultPosition, style, true);
     m_scaled_buttons.push_back(*btn);
 }
 
@@ -412,8 +413,9 @@ void Tab::update_labels_colour()
             else
                 color = &m_modified_label_clr;
         }
-        if (opt.first == "bed_shape" || opt.first == "compatible_prints" || opt.first == "compatible_printers") {
-            wxStaticText* label = (m_colored_Labels.find(opt.first) == m_colored_Labels.end()) ? nullptr : m_colored_Labels.at(opt.first);
+        if (opt.first == "bed_shape"            || opt.first == "filament_ramming_parameters" || 
+            opt.first == "compatible_prints"    || opt.first == "compatible_printers"           ) {
+            wxStaticText* label = m_colored_Labels.find(opt.first) == m_colored_Labels.end() ? nullptr : m_colored_Labels.at(opt.first);
             if (label) {
                 label->SetForegroundColour(*color);
                 label->Refresh(true);
@@ -503,7 +505,8 @@ void Tab::update_changed_ui()
             icon = &m_bmp_white_bullet;
             tt = &m_tt_white_bullet;
         }
-        if (opt.first == "bed_shape" || opt.first == "compatible_prints" || opt.first == "compatible_printers") {
+        if (opt.first == "bed_shape"            || opt.first == "filament_ramming_parameters" || 
+            opt.first == "compatible_prints"    || opt.first == "compatible_printers") {
             wxStaticText* label = (m_colored_Labels.find(opt.first) == m_colored_Labels.end()) ? nullptr : m_colored_Labels.at(opt.first);
             if (label) {
                 label->SetForegroundColour(*color);
@@ -655,6 +658,9 @@ void Tab::update_changed_tree_ui()
                     get_sys_and_mod_flags(opt_key, sys_page, modified_page);
                 }
             }
+            if (m_type == Preset::TYPE_FILAMENT && page->title() == "Advanced") {
+                get_sys_and_mod_flags("filament_ramming_parameters", sys_page, modified_page);
+            }
             if (page->title() == "Dependencies") {
                 if (m_type == Slic3r::Preset::TYPE_PRINTER) {
                     sys_page = m_presets->get_selected_preset_parent() != nullptr;
@@ -733,7 +739,10 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
                         to_sys ? group->back_to_sys_value("bed_shape") : group->back_to_initial_value("bed_shape");
                         load_key_value("bed_shape", true/*some value*/, true);
                     }
-
+                }
+                if (group->title == "Toolchange parameters with single extruder MM printers") {
+                    if ((m_options_list["filament_ramming_parameters"] & os) == 0)
+                        to_sys ? group->back_to_sys_value("filament_ramming_parameters") : group->back_to_initial_value("filament_ramming_parameters");
                 }
                 if (group->title == "Profile dependencies") {
                     // "compatible_printers" option doesn't exists in Printer Settimgs Tab
@@ -1094,6 +1103,21 @@ void Tab::apply_searcher()
     wxGetApp().sidebar().get_searcher().apply(m_config, m_type, m_mode);
 }
 
+void Tab::cache_config_diff(const std::vector<std::string>& selected_options)
+{
+    m_cache_config.apply_only(m_presets->get_edited_preset().config, selected_options);
+}
+
+void Tab::apply_config_from_cache()
+{
+    if (!m_cache_config.empty()) {
+        m_presets->get_edited_preset().config.apply(m_cache_config);
+        m_cache_config.clear();
+
+        update_dirty();
+    }
+}
+
 
 // Call a callback to update the selection of presets on the plater:
 // To update the content of the selection boxes,
@@ -1113,9 +1137,12 @@ void Tab::on_presets_changed()
     // Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
     for (auto t: m_dependent_tabs)
     {
+        Tab* tab = wxGetApp().get_tab(t);
         // If the printer tells us that the print or filament/sla_material preset has been switched or invalidated,
         // refresh the print or filament/sla_material tab page.
-        wxGetApp().get_tab(t)->load_current_preset();
+        // But if there are options, moved from the previously selected preset, update them to edited preset
+        tab->apply_config_from_cache();
+        tab->load_current_preset();
     }
     // clear m_dependent_tabs after first update from select_preset()
     // to avoid needless preset loading from update() function
@@ -1736,22 +1763,21 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_cooling_initial_speed");
         optgroup->append_single_option_line("filament_cooling_final_speed");
 
-        line = optgroup->create_single_option_line("filament_ramming_parameters");// { _(L("Ramming")), "" };
-        line.widget = [this](wxWindow* parent) {
+        create_line_with_widget(optgroup.get(), "filament_ramming_parameters", [this](wxWindow* parent) {
             auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
             ramming_dialog_btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
             sizer->Add(ramming_dialog_btn);
 
-            ramming_dialog_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
-            {
+            ramming_dialog_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
                 RammingDialog dlg(this,(m_config->option<ConfigOptionStrings>("filament_ramming_parameters"))->get_at(0));
-                if (dlg.ShowModal() == wxID_OK)
-                    (m_config->option<ConfigOptionStrings>("filament_ramming_parameters"))->get_at(0) = dlg.get_parameters();
-            }));
+                if (dlg.ShowModal() == wxID_OK) {
+                    load_key_value("filament_ramming_parameters", dlg.get_parameters());
+                    update_changed_ui();
+                }
+            });
             return sizer;
-        };
-        optgroup->append_line(line);
+        });
 
 
     add_filament_overrides_page();
@@ -2858,7 +2884,7 @@ void Tab::load_current_preset()
             }
             on_presets_changed();
             if (printer_technology == ptFFF) {
-                static_cast<TabPrinter*>(this)->m_initial_extruders_count = static_cast<TabPrinter*>(this)->m_extruders_count;
+                static_cast<TabPrinter*>(this)->m_initial_extruders_count = static_cast<const ConfigOptionFloats*>(m_presets->get_selected_preset().config.option("nozzle_diameter"))->values.size(); //static_cast<TabPrinter*>(this)->m_extruders_count;
                 const Preset* parent_preset = m_presets->get_selected_preset_parent();
                 static_cast<TabPrinter*>(this)->m_sys_extruders_count = parent_preset == nullptr ? 0 :
                     static_cast<const ConfigOptionFloats*>(parent_preset->config.option("nozzle_diameter"))->values.size();
@@ -2989,7 +3015,7 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
     bool canceled      = false;
     bool technology_changed = false;
     m_dependent_tabs.clear();
-    if (current_dirty && ! may_discard_current_dirty_preset()) {
+    if (current_dirty && ! may_discard_current_dirty_preset(nullptr, preset_name)) {
         canceled = true;
     } else if (print_tab) {
         // Before switching the print profile to a new one, verify, whether the currently active filament or SLA material
@@ -3123,6 +3149,13 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
                 m_dependent_tabs = { Preset::Type::TYPE_SLA_PRINT, Preset::Type::TYPE_SLA_MATERIAL };
         }
 
+        // check and apply extruders count for printer preset
+        if (m_type == Preset::TYPE_PRINTER)
+            static_cast<TabPrinter*>(this)->apply_extruder_cnt_from_cache();
+
+        // check if there is something in the cache to move to the new selected preset
+        apply_config_from_cache();
+
         load_current_preset();
     }
 }
@@ -3132,41 +3165,65 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
 bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr*/, const std::string& new_printer_name /*= ""*/)
 {
     if (presets == nullptr) presets = m_presets;
-    // Display a dialog showing the dirty options in a human readable form.
-    const Preset& old_preset = presets->get_edited_preset();
-    std::string   type_name  = presets->name();
-    wxString      tab        = "          ";
-    wxString      name       = old_preset.is_default ?
-        from_u8((boost::format(_utf8(L("Default preset (%s)"))) % _utf8(type_name)).str()) :
-        from_u8((boost::format(_utf8(L("Preset (%s)"))) % _utf8(type_name)).str()) + "\n" + tab + old_preset.name;
 
-    // Collect descriptions of the dirty options.
-    wxString changes;
-    for (const std::string &opt_key : presets->current_dirty_options()) {
-        const ConfigOptionDef &opt = m_config->def()->options.at(opt_key);
-        /*std::string*/wxString name = "";
-        if (! opt.category.empty())
-            name += _(opt.category) + " > ";
-        name += !opt.full_label.empty() ?
-                _(opt.full_label) :
-                _(opt.label);
-        changes += tab + /*from_u8*/(name) + "\n";
+    UnsavedChangesDialog dlg(m_type, presets, new_printer_name);
+    if (dlg.ShowModal() == wxID_CANCEL)
+        return false;
+
+    if (dlg.save_preset())  // save selected changes
+    {
+        std::vector<std::string> unselected_options = dlg.get_unselected_options(presets->type());
+        const Preset& preset = presets->get_edited_preset();
+        std::string name = preset.name;
+
+        // for system/default/external presets we should take an edited name
+        if (preset.is_system || preset.is_default || preset.is_external) {
+            SavePresetDialog save_dlg(preset.type);
+            if (save_dlg.ShowModal() != wxID_OK)
+                return false;
+            name = save_dlg.get_name();
+        }
+
+        if (m_type == presets->type()) // save changes for the current preset from this tab
+        {
+            // revert unselected options to the old values
+            presets->get_edited_preset().config.apply_only(presets->get_selected_preset().config, unselected_options);
+            save_preset(name);
+        }
+        else
+        {
+            m_preset_bundle->save_changes_for_preset(name, presets->type(), unselected_options);
+
+            /* If filament preset is saved for multi-material printer preset,
+             * there are cases when filament comboboxs are updated for old (non-modified) colors,
+             * but in full_config a filament_colors option aren't.*/
+            if (presets->type() == Preset::TYPE_FILAMENT && wxGetApp().extruders_edited_cnt() > 1)
+                wxGetApp().plater()->force_filament_colors_update();
+        }
     }
-    // Show a confirmation dialog with the list of dirty options.
-    wxString message = name + "\n\n";
-    if (new_printer_name.empty())
-        message += _(L("has the following unsaved changes:"));
-    else {
-        message += (m_type == Slic3r::Preset::TYPE_PRINTER) ?
-                _(L("is not compatible with printer")) :
-                _(L("is not compatible with print profile"));
-        message += wxString("\n") + tab + from_u8(new_printer_name) + "\n\n";
-        message += _(L("and it has the following unsaved changes:"));
+    else if (dlg.move_preset()) // move selected changes
+    {
+        std::vector<std::string> selected_options = dlg.get_selected_options();
+        if (m_type == presets->type()) // move changes for the current preset from this tab
+        {
+            if (m_type == Preset::TYPE_PRINTER) {
+                auto it = std::find(selected_options.begin(), selected_options.end(), "extruders_count");
+                if (it != selected_options.end()) {
+                    // erase "extruders_count" option from the list
+                    selected_options.erase(it);
+                    // cache the extruders count
+                    static_cast<TabPrinter*>(this)->cache_extruder_cnt();
+                }
+            }
+
+            // copy selected options to the cache from edited preset
+            cache_config_diff(selected_options);
+        }
+        else
+            wxGetApp().get_tab(presets->type())->cache_config_diff(selected_options);
     }
-    wxMessageDialog confirm(parent(),
-        message + "\n" + changes + "\n\n" + _(L("Discard changes and continue anyway?")),
-        _(L("Unsaved Changes")), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
-    return confirm.ShowModal() == wxID_YES;
+
+    return true;
 }
 
 // If we are switching from the FFF-preset to the SLA, we should to control the printed objects if they have a part(s).
@@ -3259,10 +3316,8 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach)
     // focus currently.is there anything better than this ?
 //!	m_treectrl->OnSetFocus();
 
-    std::string suffix = detach ? _utf8(L("Detached")) : _CTX_utf8(L_CONTEXT("Copy", "PresetName"), "PresetName");
-
     if (name.empty()) {
-        SavePresetDialog dlg(m_type, suffix);
+        SavePresetDialog dlg(m_type, detach ? _u8L("Detached") : "");
         if (dlg.ShowModal() != wxID_OK)
             return;
         name = dlg.get_name();
@@ -3571,6 +3626,25 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
     }
 
     return sizer;
+}
+
+void TabPrinter::cache_extruder_cnt()
+{
+    if (m_presets->get_edited_preset().printer_technology() == ptSLA)
+        return;
+
+    m_cache_extruder_count = m_extruders_count;
+}
+
+void TabPrinter::apply_extruder_cnt_from_cache()
+{
+    if (m_presets->get_edited_preset().printer_technology() == ptSLA)
+        return;
+
+    if (m_cache_extruder_count > 0) {
+        m_presets->get_edited_preset().set_num_extruders(m_cache_extruder_count);
+        m_cache_extruder_count = 0;
+    }
 }
 
 void Tab::compatible_widget_reload(PresetDependencies &deps)

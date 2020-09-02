@@ -1059,7 +1059,7 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string& suffix, wxBox
 
     m_valid_bmp = new wxStaticBitmap(m_parent, wxID_ANY, create_scaled_bitmap("tick_mark", m_parent));
 
-    m_combo = new wxComboBox(m_parent, wxID_ANY, from_u8(preset_name));
+    m_combo = new wxComboBox(m_parent, wxID_ANY, from_u8(preset_name), wxDefaultPosition, wxSize(35 * wxGetApp().em_unit(), -1));
     for (const std::string& value : values)
         m_combo->Append(from_u8(value));
 
@@ -1123,15 +1123,24 @@ void SavePresetDialog::Item::update()
         info_line = _L("Cannot overwrite a system profile.");
         m_valid_type = NoValid;
     }
+
     if (m_valid_type == Valid && existing && (existing->is_external)) {
         info_line = _L("Cannot overwrite an external profile.");
         m_valid_type = NoValid;
     }
+
     if (m_valid_type == Valid && existing && m_preset_name != m_presets->get_selected_preset_name())
     {
-        info_line = from_u8((boost::format(_u8L("Preset with name \"%1%\" already exists.")) % m_preset_name).str()) + "\n" +
-                    _L("Note: This preset will be replaced after saving");        
+        info_line = from_u8((boost::format(_u8L("Preset with name \"%1%\" already exists.")) % m_preset_name).str());
+        if (!existing->is_compatible)
+            info_line += "\n" + _L("And selected preset is imcopatible with selected printer.");
+        info_line += "\n" + _L("Note: This preset will be replaced after saving");
         m_valid_type = Warning;
+    }
+
+    if (m_valid_type == Valid && m_preset_name.empty()) {
+        info_line = _L("The empty name is not available.");
+        m_valid_type = NoValid;
     }
 
     m_valid_label->SetLabel(info_line);
@@ -1163,8 +1172,26 @@ void SavePresetDialog::Item::accept()
 //          SavePresetDialog
 //-----------------------------------------------
 
-SavePresetDialog::SavePresetDialog(Preset::Type type, const std::string& suffix)
+SavePresetDialog::SavePresetDialog(Preset::Type type, std::string suffix)
     : DPIDialog(nullptr, wxID_ANY, _L("Save preset"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), 5 * wxGetApp().em_unit()), wxDEFAULT_DIALOG_STYLE | wxICON_WARNING | wxRESIZE_BORDER)
+{
+    build(std::vector<Preset::Type>{type}, suffix);
+}
+
+SavePresetDialog::SavePresetDialog(std::vector<Preset::Type> types, std::string suffix)
+    : DPIDialog(nullptr, wxID_ANY, _L("Save preset"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), 5 * wxGetApp().em_unit()), wxDEFAULT_DIALOG_STYLE | wxICON_WARNING | wxRESIZE_BORDER)
+{
+    build(types, suffix);
+}
+
+SavePresetDialog::~SavePresetDialog()
+{
+    for (auto  item : m_items) {
+        delete item;
+    }
+}
+
+void SavePresetDialog::build(std::vector<Preset::Type> types, std::string suffix)
 {
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 #if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
@@ -1172,14 +1199,18 @@ SavePresetDialog::SavePresetDialog(Preset::Type type, const std::string& suffix)
     // Because of from wxWidgets 3.1.3 auto rescaling is implemented for the Fonts,
     // From the very beginning set dialog font to the wxSYS_DEFAULT_GUI_FONT
     this->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
-#endif // ENABLE_WX_3_1_3_DPI_CHANGED_EVENT   
+#endif // ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
+
+    if (suffix.empty())
+        suffix = _CTX_utf8(L_CONTEXT("Copy", "PresetName"), "PresetName");
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
     m_presets_sizer = new wxBoxSizer(wxVERTICAL);
 
     // Add first item
-    m_items.emplace_back(type, suffix, m_presets_sizer, this);
+    for (Preset::Type type : types)
+        AddItem(type, suffix);
 
     // Add dialog's buttons
     wxStdDialogButtonSizer* btns = this->CreateStdDialogButtonSizer(wxOK | wxCANCEL);
@@ -1196,26 +1227,26 @@ SavePresetDialog::SavePresetDialog(Preset::Type type, const std::string& suffix)
 
 void SavePresetDialog::AddItem(Preset::Type type, const std::string& suffix)
 {
-    m_items.emplace_back(type, suffix, m_presets_sizer, this);
+    m_items.emplace_back(new Item{type, suffix, m_presets_sizer, this});
 }
 
 std::string SavePresetDialog::get_name()
 {
-    return m_items.front().preset_name();
+    return m_items.front()->preset_name();
 }
 
 std::string SavePresetDialog::get_name(Preset::Type type)
 {
-    for (Item& item : m_items)
-        if (item.type() == type)
-            return item.preset_name();
+    for (const Item* item : m_items)
+        if (item->type() == type)
+            return item->preset_name();
     return "";
 }
 
 bool SavePresetDialog::enable_ok_btn() const
 {
-    for (Item item : m_items)
-        if (!item.is_valid())
+    for (const Item* item : m_items)
+        if (!item->is_valid())
             return false;
 
     return true;
@@ -1284,8 +1315,8 @@ void SavePresetDialog::on_dpi_changed(const wxRect& suggested_rect)
 
     msw_buttons_rescale(this, em, { wxID_OK, wxID_CANCEL });
 
-    for (Item& item : m_items)
-        item.update_valid_bmp();
+    for (Item* item : m_items)
+        item->update_valid_bmp();
 
     //const wxSize& size = wxSize(45 * em, 35 * em);
     SetMinSize(/*size*/wxSize(100, 50));
@@ -1324,10 +1355,10 @@ void SavePresetDialog::update_physical_printers(const std::string& preset_name)
 
 void SavePresetDialog::accept()
 {
-    for (Item& item : m_items) {
-        item.accept();
-        if (item.type() == Preset::TYPE_PRINTER)
-            update_physical_printers(item.preset_name());
+    for (Item* item : m_items) {
+        item->accept();
+        if (item->type() == Preset::TYPE_PRINTER)
+            update_physical_printers(item->preset_name());
     }
 
     EndModal(wxID_OK);
