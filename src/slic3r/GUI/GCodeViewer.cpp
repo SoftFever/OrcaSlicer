@@ -709,12 +709,18 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
 
                     size_t first_vertex_id = k - static_cast<size_t>(indices_per_segment);
                     Segment prev = generate_segment(indices[first_vertex_id + start_vertex_offset], indices[first_vertex_id + end_vertex_offset], half_width, half_height);
-                    Vec3f med_dir = (prev.dir + curr.dir).normalized();
-                    float disp = half_width * ::tan(::acos(std::clamp(curr.dir.dot(med_dir), -1.0f, 1.0f)));
+                    float disp = 0.0f;
+                    float cos_dir = prev.dir.dot(curr.dir);
+                    if (cos_dir > -0.9998477f) {
+                        // if the angle between adjacent segments is smaller than 179 degrees
+                        Vec3f med_dir = (prev.dir + curr.dir).normalized();
+                        disp = half_width * ::tan(::acos(std::clamp(curr.dir.dot(med_dir), -1.0f, 1.0f)));
+                    }
+
                     Vec3f disp_vec = disp * prev.dir;
 
                     bool is_right_turn = prev.up.dot(prev.dir.cross(curr.dir)) <= 0.0f;
-                    if (prev.dir.dot(curr.dir) < 0.7071068f) {
+                    if (cos_dir < 0.7071068f) {
                         // if the angle between two consecutive segments is greater than 45 degrees
                         // we add a cap in the outside corner 
                         // and displace the vertices in the inside corner to the same position, if possible
@@ -725,7 +731,7 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
                             out_triangles.push_back({ base_id + 5, base_id + 3, base_id + 2 });
 
                             // update right vertices
-                            if (disp < prev.length && disp < curr.length) {
+                            if (disp > 0.0f && disp < prev.length && disp < curr.length) {
                                 base_id = out_vertices.size() - 6;
                                 out_vertices[base_id + 0] -= disp_vec;
                                 out_vertices[base_id + 4] = out_vertices[base_id + 0];
@@ -738,7 +744,7 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
                             out_triangles.push_back({ base_id + 0, base_id + 3, base_id + 4 });
 
                             // update left vertices
-                            if (disp < prev.length && disp < curr.length) {
+                            if (disp > 0.0f && disp < prev.length && disp < curr.length) {
                                 base_id = out_vertices.size() - 6;
                                 out_vertices[base_id + 2] -= disp_vec;
                                 out_vertices[base_id + 5] = out_vertices[base_id + 2];
@@ -1031,10 +1037,16 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         }
         else {
             // any other segment
-            Vec3f med_dir = (prev_dir + dir).normalized();
-            float displacement = half_width * ::tan(::acos(std::clamp(dir.dot(med_dir), -1.0f, 1.0f)));
+            float displacement = 0.0f;
+            float cos_dir = prev_dir.dot(dir);
+            if (cos_dir > -0.9998477f) {
+                // if the angle between adjacent segments is smaller than 179 degrees
+                Vec3f med_dir = (prev_dir + dir).normalized();
+                displacement = half_width * ::tan(::acos(std::clamp(dir.dot(med_dir), -1.0f, 1.0f)));
+            }
+
             Vec3f displacement_vec = displacement * prev_dir;
-            bool can_displace = displacement < prev_length && displacement < length;
+            bool can_displace = displacement > 0.0f && displacement < prev_length && displacement < length;
 
             size_t prev_right_id = (starting_vertices_size - 3) * buffer.vertices.vertex_size_floats();
             size_t prev_left_id = (starting_vertices_size - 1) * buffer.vertices.vertex_size_floats();
@@ -1043,7 +1055,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
             bool is_right_turn = prev_up.dot(prev_dir.cross(dir)) <= 0.0f;
             // whether the angle between adjacent segments is greater than 45 degrees
-            bool is_sharp = prev_dir.dot(dir) < 0.7071068f;
+            bool is_sharp = cos_dir < 0.7071068f;
 
             bool right_displaced = false;
             bool left_displaced = false;
