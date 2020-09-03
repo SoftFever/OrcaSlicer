@@ -3,6 +3,7 @@
 #include "../Surface.hpp"
 #include "../Geometry.hpp"
 #include "../AABBTreeIndirect.hpp"
+#include "../ShortestPath.hpp"
 
 #include "FillAdaptive.hpp"
 
@@ -15,19 +16,47 @@ void FillAdaptive::_fill_surface_single(
     ExPolygon                       &expolygon, 
     Polylines                       &polylines_out)
 {
+    // Store grouped lines by its direction (multiple of 120°)
     std::vector<Lines> infill_lines_dir(3);
     this->generate_infill_lines(this->adapt_fill_octree->root_cube.get(), this->z, this->adapt_fill_octree->origin, infill_lines_dir);
 
+    Polylines all_polylines;
+    all_polylines.reserve(infill_lines_dir[0].size() * 3);
     for (Lines &infill_lines : infill_lines_dir)
     {
         for (const Line &line : infill_lines)
         {
-            polylines_out.emplace_back(line.a, line.b);
+            all_polylines.emplace_back(line.a, line.b);
         }
     }
 
-    // Crop all polylines
-    polylines_out = intersection_pl(polylines_out, to_polygons(expolygon));
+    if (params.dont_connect)
+    {
+        // Crop all polylines
+        polylines_out = intersection_pl(all_polylines, to_polygons(expolygon));
+    }
+    else
+    {
+        // Crop all polylines
+        all_polylines = intersection_pl(all_polylines, to_polygons(expolygon));
+
+        Polylines boundary_polylines;
+        Polylines non_boundary_polylines;
+        for (const Polyline &polyline : all_polylines)
+        {
+            // connect_infill required all polylines to touch the boundary.
+            if(polyline.lines().size() == 1 && expolygon.has_boundary_point(polyline.lines().front().a) && expolygon.has_boundary_point(polyline.lines().front().b))
+            {
+                boundary_polylines.push_back(polyline);
+            } else {
+                non_boundary_polylines.push_back(polyline);
+            }
+        }
+
+        boundary_polylines = chain_polylines(boundary_polylines);
+        FillAdaptive::connect_infill(std::move(boundary_polylines), expolygon, polylines_out, this->spacing, params);
+        polylines_out.insert(polylines_out.end(), non_boundary_polylines.begin(), non_boundary_polylines.end());
+    }
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
     {
