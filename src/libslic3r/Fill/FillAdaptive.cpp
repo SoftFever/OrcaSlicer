@@ -15,14 +15,19 @@ void FillAdaptive::_fill_surface_single(
     ExPolygon                       &expolygon, 
     Polylines                       &polylines_out)
 {
-    std::vector<Polylines> infill_polylines(3);
-    this->generate_polylines(this->adapt_fill_octree->root_cube.get(), this->z, this->adapt_fill_octree->origin, infill_polylines);
+    std::vector<Lines> infill_lines_dir(3);
+    this->generate_infill_lines(this->adapt_fill_octree->root_cube.get(), this->z, this->adapt_fill_octree->origin, infill_lines_dir);
 
-    for (Polylines &infill_polyline : infill_polylines) {
-        // Crop all polylines
-        infill_polyline = intersection_pl(infill_polyline, to_polygons(expolygon));
-        polylines_out.insert(polylines_out.end(), infill_polyline.begin(), infill_polyline.end());
+    for (Lines &infill_lines : infill_lines_dir)
+    {
+        for (const Line &line : infill_lines)
+        {
+            polylines_out.emplace_back(line.a, line.b);
+        }
     }
+
+    // Crop all polylines
+    polylines_out = intersection_pl(polylines_out, to_polygons(expolygon));
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
     {
@@ -58,11 +63,11 @@ void FillAdaptive::_fill_surface_single(
 #endif /* SLIC3R_DEBUG */
 }
 
-void FillAdaptive::generate_polylines(
+void FillAdaptive::generate_infill_lines(
         FillAdaptive_Internal::Cube *cube,
         double z_position,
         const Vec3d &origin,
-        std::vector<Polylines> &polylines_out)
+        std::vector<Lines> &dir_lines_out)
 {
     using namespace FillAdaptive_Internal;
 
@@ -86,9 +91,8 @@ void FillAdaptive::generate_polylines(
         Point to(-from.x(), from.y());
         // Relative to cube center
 
-        float rotation_angle = Geometry::deg2rad(120.0);
-
-        for (int i = 0; i < polylines_out.size(); i++)
+        float rotation_angle = (2.0 * M_PI) / 3.0;
+        for (Lines &lines : dir_lines_out)
         {
             Vec3d offset = cube->center - origin;
             Point from_abs(from), to_abs(to);
@@ -98,8 +102,8 @@ void FillAdaptive::generate_polylines(
             to_abs.x() += scale_(offset.x());
             to_abs.y() += scale_(offset.y());
 
-//            polylines_out[i].push_back(Polyline(from_abs, to_abs));
-            this->merge_polylines(polylines_out[i], Line(from_abs, to_abs));
+//            lines.emplace_back(from_abs, to_abs);
+            this->connect_lines(lines, Line(from_abs, to_abs));
 
             from.rotate(rotation_angle);
             to.rotate(rotation_angle);
@@ -108,35 +112,35 @@ void FillAdaptive::generate_polylines(
 
     for(const std::unique_ptr<Cube> &child : cube->children)
     {
-        generate_polylines(child.get(), z_position, origin, polylines_out);
+        generate_infill_lines(child.get(), z_position, origin, dir_lines_out);
     }
 }
 
-void FillAdaptive::merge_polylines(Polylines &polylines, const Line &new_line)
+void FillAdaptive::connect_lines(Lines &lines, const Line &new_line)
 {
     int eps = scale_(0.10);
     bool modified = false;
 
-    for (Polyline &polyline : polylines)
+    for (Line &line : lines)
     {
-        if (std::abs(new_line.a.x() - polyline.points[1].x()) < eps && std::abs(new_line.a.y() - polyline.points[1].y()) < eps)
+        if (std::abs(new_line.a.x() - line.b.x()) < eps && std::abs(new_line.a.y() - line.b.y()) < eps)
         {
-            polyline.points[1].x() = new_line.b.x();
-            polyline.points[1].y() = new_line.b.y();
+            line.b.x() = new_line.b.x();
+            line.b.y() = new_line.b.y();
             modified = true;
         }
 
-        if (std::abs(new_line.b.x() - polyline.points[0].x()) < eps && std::abs(new_line.b.y() - polyline.points[0].y()) < eps)
+        if (std::abs(new_line.b.x() - line.a.x()) < eps && std::abs(new_line.b.y() - line.a.y()) < eps)
         {
-            polyline.points[0].x() = new_line.a.x();
-            polyline.points[0].y() = new_line.a.y();
+            line.a.x() = new_line.a.x();
+            line.a.y() = new_line.a.y();
             modified = true;
         }
     }
 
     if(!modified)
     {
-        polylines.emplace_back(Polyline(new_line.a, new_line.b));
+        lines.push_back(new_line);
     }
 }
 
@@ -182,8 +186,8 @@ std::unique_ptr<FillAdaptive_Internal::Octree> FillAdaptive::build_octree(
 
     AABBTreeIndirect::Tree3f aabbTree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(
             triangle_mesh.its.vertices, triangle_mesh.its.indices);
-    std::unique_ptr<Octree> octree = std::unique_ptr<Octree>(
-            new Octree{std::unique_ptr<Cube>(new Cube{cube_center, cubes_properties.size() - 1, cubes_properties.back()}), cube_center});
+    auto octree = std::make_unique<Octree>(
+        std::make_unique<Cube>(cube_center, cubes_properties.size() - 1, cubes_properties.back()), cube_center);
 
     FillAdaptive::expand_cube(octree->root_cube.get(), cubes_properties, rotation_matrix, aabbTree, triangle_mesh);
 
@@ -215,7 +219,7 @@ void FillAdaptive::expand_cube(
         Vec3d child_center_transformed = cube->center + rotation_matrix * (child_center * (cube->properties.edge_length / 4));
 
         if(AABBTreeIndirect::is_any_triangle_in_radius(triangleMesh.its.vertices, triangleMesh.its.indices, distanceTree, child_center_transformed, cube_radius_squared)) {
-            cube->children.push_back(std::unique_ptr<Cube>(new Cube{child_center_transformed, cube->depth - 1, cubes_properties[cube->depth - 1]}));
+            cube->children.emplace_back(std::make_unique<Cube>(child_center_transformed, cube->depth - 1, cubes_properties[cube->depth - 1]));
             FillAdaptive::expand_cube(cube->children.back().get(), cubes_properties, rotation_matrix, distanceTree, triangleMesh);
         }
     }
