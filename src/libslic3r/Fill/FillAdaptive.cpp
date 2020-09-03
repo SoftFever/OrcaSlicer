@@ -142,9 +142,8 @@ void FillAdaptive::merge_polylines(Polylines &polylines, const Line &new_line)
 
 
 std::unique_ptr<FillAdaptive_Internal::Octree> FillAdaptive::build_octree(
-    TriangleMesh &triangleMesh,
+    TriangleMesh &triangle_mesh,
     coordf_t line_spacing,
-    const BoundingBoxf3 &printer_volume,
     const Vec3d &cube_center)
 {
     using namespace FillAdaptive_Internal;
@@ -154,10 +153,11 @@ std::unique_ptr<FillAdaptive_Internal::Octree> FillAdaptive::build_octree(
         return nullptr;
     }
 
-    // The furthest point from center of bed.
-    double furthest_point = std::sqrt(((printer_volume.size()[0] * printer_volume.size()[0]) / 4.0) +
-                                      ((printer_volume.size()[1] * printer_volume.size()[1]) / 4.0) +
-                                      (printer_volume.size()[2] * printer_volume.size()[2]));
+    Vec3d bb_size = triangle_mesh.bounding_box().size();
+    // The furthest point from the center of the bottom of the mesh bounding box.
+    double furthest_point = std::sqrt(((bb_size.x() * bb_size.x()) / 4.0) +
+                                      ((bb_size.y() * bb_size.y()) / 4.0) +
+                                      (bb_size.z() * bb_size.z()));
     double max_cube_edge_length = furthest_point * 2;
 
     std::vector<CubeProperties> cubes_properties;
@@ -172,19 +172,20 @@ std::unique_ptr<FillAdaptive_Internal::Octree> FillAdaptive::build_octree(
         cubes_properties.push_back(props);
     }
 
-    if (triangleMesh.its.vertices.empty())
+    if (triangle_mesh.its.vertices.empty())
     {
-        triangleMesh.require_shared_vertices();
+        triangle_mesh.require_shared_vertices();
     }
 
     Vec3d rotation = Vec3d(Geometry::deg2rad(225.0), Geometry::deg2rad(215.264), Geometry::deg2rad(30.0));
     Transform3d rotation_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation, Vec3d::Ones(), Vec3d::Ones());
 
-    AABBTreeIndirect::Tree3f aabbTree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(triangleMesh.its.vertices, triangleMesh.its.indices);
+    AABBTreeIndirect::Tree3f aabbTree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(
+            triangle_mesh.its.vertices, triangle_mesh.its.indices);
     std::unique_ptr<Octree> octree = std::unique_ptr<Octree>(
             new Octree{std::unique_ptr<Cube>(new Cube{cube_center, cubes_properties.size() - 1, cubes_properties.back()}), cube_center});
 
-    FillAdaptive::expand_cube(octree->root_cube.get(), cubes_properties, rotation_matrix, aabbTree, triangleMesh);
+    FillAdaptive::expand_cube(octree->root_cube.get(), cubes_properties, rotation_matrix, aabbTree, triangle_mesh);
 
     return octree;
 }

@@ -60,9 +60,8 @@ protected:
 
 public:
     static std::unique_ptr<FillAdaptive_Internal::Octree> build_octree(
-            TriangleMesh &triangleMesh,
+            TriangleMesh &triangle_mesh,
             coordf_t line_spacing,
-            const BoundingBoxf3 &printer_volume,
             const Vec3d &cube_center);
 
     static void expand_cube(
