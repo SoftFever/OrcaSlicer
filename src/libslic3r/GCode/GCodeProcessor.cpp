@@ -11,10 +11,7 @@
 #include <assert.h>
 
 #if ENABLE_GCODE_VIEWER
-
-#if ENABLE_GCODE_VIEWER_STATISTICS
 #include <chrono>
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
 
 static const float INCHES_TO_MM = 25.4f;
 static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
@@ -730,8 +727,10 @@ void GCodeProcessor::reset()
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 }
 
-void GCodeProcessor::process_file(const std::string& filename)
+void GCodeProcessor::process_file(const std::string& filename, std::function<void()> cancel_callback)
 {
+    auto last_cancel_callback_time = std::chrono::high_resolution_clock::now();
+
 #if ENABLE_GCODE_VIEWER_STATISTICS
     auto start_time = std::chrono::high_resolution_clock::now();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -758,9 +757,18 @@ void GCodeProcessor::process_file(const std::string& filename)
         }
     }
 
+    // process gcode
     m_result.id = ++s_result_id;
     m_result.moves.emplace_back(MoveVertex());
-    m_parser.parse_file(filename, [this](GCodeReader& reader, const GCodeReader::GCodeLine& line) { process_gcode_line(line); });
+    m_parser.parse_file(filename, [this, cancel_callback, &last_cancel_callback_time](GCodeReader& reader, const GCodeReader::GCodeLine& line) {
+        auto curr_time = std::chrono::high_resolution_clock::now();
+        // call the cancel callback every 100 ms
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_cancel_callback_time).count() > 100) {
+            cancel_callback();
+            last_cancel_callback_time = curr_time;
+        }
+        process_gcode_line(line);
+        });
 
     // process the time blocks
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Count); ++i) {

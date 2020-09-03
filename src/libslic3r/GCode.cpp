@@ -787,7 +787,7 @@ void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_
     }
 
 #if ENABLE_GCODE_VIEWER
-    m_processor.process_file(path_tmp);
+    m_processor.process_file(path_tmp, [print]() { print->throw_if_canceled(); });
     DoExport::update_print_estimated_times_stats(m_processor, print->m_print_statistics);
     if (result != nullptr)
         *result = std::move(m_processor.extract_result());
