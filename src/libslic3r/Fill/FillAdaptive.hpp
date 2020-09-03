@@ -62,7 +62,7 @@ protected:
 
     void generate_infill_lines(FillAdaptive_Internal::Cube *cube, double z_position, const Vec3d &origin, std::vector<Lines> &dir_lines_out);
 
-    void connect_lines(Lines &lines, const Line &new_line);
+    static void connect_lines(Lines &lines, Line new_line);
 
 public:
     static std::unique_ptr<FillAdaptive_Internal::Octree> build_octree(

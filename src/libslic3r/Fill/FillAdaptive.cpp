@@ -145,34 +145,30 @@ void FillAdaptive::generate_infill_lines(
     }
 }
 
-void FillAdaptive::connect_lines(Lines &lines, const Line &new_line)
+void FillAdaptive::connect_lines(Lines &lines, Line new_line)
 {
     int eps = scale_(0.10);
-    bool modified = false;
-
-    for (Line &line : lines)
+    for (size_t i = 0; i < lines.size(); ++i)
     {
-        if (std::abs(new_line.a.x() - line.b.x()) < eps && std::abs(new_line.a.y() - line.b.y()) < eps)
+        if (std::abs(new_line.a.x() - lines[i].b.x()) < eps && std::abs(new_line.a.y() - lines[i].b.y()) < eps)
         {
-            line.b.x() = new_line.b.x();
-            line.b.y() = new_line.b.y();
-            modified = true;
+            new_line.a = lines[i].a;
+            lines.erase(lines.begin() + i);
+            --i;
+            continue;
         }
 
-        if (std::abs(new_line.b.x() - line.a.x()) < eps && std::abs(new_line.b.y() - line.a.y()) < eps)
+        if (std::abs(new_line.b.x() - lines[i].a.x()) < eps && std::abs(new_line.b.y() - lines[i].a.y()) < eps)
         {
-            line.a.x() = new_line.a.x();
-            line.a.y() = new_line.a.y();
-            modified = true;
+            new_line.b = lines[i].b;
+            lines.erase(lines.begin() + i);
+            --i;
+            continue;
         }
     }
 
-    if(!modified)
-    {
-        lines.push_back(new_line);
-    }
+    lines.emplace_back(new_line.a, new_line.b);
 }
-
 
 std::unique_ptr<FillAdaptive_Internal::Octree> FillAdaptive::build_octree(
     TriangleMesh &triangle_mesh,
