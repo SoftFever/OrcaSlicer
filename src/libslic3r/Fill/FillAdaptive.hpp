@@ -24,12 +24,18 @@ namespace FillAdaptive_Internal
         size_t depth;
         CubeProperties properties;
         std::vector<std::unique_ptr<Cube>> children;
+
+        Cube(const Vec3d &center, size_t depth, const CubeProperties &properties)
+            : center(center), depth(depth), properties(properties) {}
     };
 
     struct Octree
     {
         std::unique_ptr<Cube> root_cube;
         Vec3d origin;
+
+        Octree(std::unique_ptr<Cube> rootCube, const Vec3d &origin)
+            : root_cube(std::move(rootCube)), origin(origin) {}
     };
 }; // namespace FillAdaptive_Internal
 
@@ -54,9 +60,9 @@ protected:
 
 	virtual bool no_sort() const { return true; }
 
-    void generate_polylines(FillAdaptive_Internal::Cube *cube, double z_position, const Vec3d &origin, std::vector<Polylines> &polylines_out);
+    void generate_infill_lines(FillAdaptive_Internal::Cube *cube, double z_position, const Vec3d &origin, std::vector<Lines> &dir_lines_out);
 
-    void merge_polylines(Polylines &polylines, const Line &new_line);
+    void connect_lines(Lines &lines, const Line &new_line);
 
 public:
     static std::unique_ptr<FillAdaptive_Internal::Octree> build_octree(
