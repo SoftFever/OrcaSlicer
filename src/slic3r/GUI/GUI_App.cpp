@@ -1124,10 +1124,10 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                 app_layout_changed = dlg.settings_layout_changed();
             }
             if (app_layout_changed) {
-                mainframe->GetSizer()->Hide((size_t)0);
+                // hide full main_sizer for mainFrame
+                mainframe->GetSizer()->Show(false);
                 mainframe->update_layout();
                 mainframe->select_tab(0);
-                mainframe->GetSizer()->Show((size_t)0);
             }
             break;
         }
