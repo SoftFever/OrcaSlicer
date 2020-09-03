@@ -434,16 +434,33 @@ void PrintObject::generate_support_material()
 
 std::unique_ptr<FillAdaptive_Internal::Octree> PrintObject::prepare_adaptive_infill_data()
 {
-    const ConfigOptionPercent* opt_fill_density = this->print()->full_print_config().option<ConfigOptionPercent>("fill_density");
-    const ConfigOptionFloatOrPercent* opt_infill_extrusion_width = this->print()->full_print_config().option<ConfigOptionFloatOrPercent>("infill_extrusion_width");
+    float fill_density = 0;
+    float infill_extrusion_width = 0;
 
-    if(opt_fill_density == nullptr || opt_infill_extrusion_width == nullptr || opt_fill_density->value <= 0 || opt_infill_extrusion_width->value <= 0)
+    // Compute the average of above parameters over all layers
+    for (size_t layer_idx = 0; layer_idx < this->m_layers.size(); ++layer_idx)
+    {
+        for (size_t region_id = 0; region_id < this->m_layers[layer_idx]->m_regions.size(); ++region_id)
+        {
+            LayerRegion *layerm = this->m_layers[layer_idx]->m_regions[region_id];
+
+            // Check if region_id is used for this layer
+            if(!layerm->fill_surfaces.surfaces.empty()) {
+                const PrintRegionConfig &region_config = layerm->region()->config();
+
+                fill_density += region_config.fill_density;
+                infill_extrusion_width += region_config.infill_extrusion_width;
+            }
+        }
+    }
+
+    fill_density /= this->m_layers.size();
+    infill_extrusion_width /= this->m_layers.size();
+
+    if(fill_density <= 0 || infill_extrusion_width <= 0)
     {
         return std::unique_ptr<FillAdaptive_Internal::Octree>{};
     }
-
-    float fill_density = opt_fill_density->value;
-    float infill_extrusion_width = opt_infill_extrusion_width->value;
 
     coordf_t line_spacing = infill_extrusion_width / ((fill_density / 100.0f) * 0.333333333f);
 
