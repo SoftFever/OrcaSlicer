@@ -218,7 +218,7 @@ private:
     void    rescale(const wxRect &suggested_rect)
     {
         this->Freeze();
-
+/*
 #if wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
         if (m_force_rescale) {
 #endif // wxVERSION_EQUAL_OR_GREATER_THAN
@@ -229,6 +229,13 @@ private:
 #if wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
             m_force_rescale = false;
         }
+#endif // wxVERSION_EQUAL_OR_GREATER_THAN
+*/
+#if !wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
+        // rescale fonts of all controls
+        scale_controls_fonts(this, m_new_font_point_size);
+        // rescale current window font
+        scale_win_font(this, m_new_font_point_size);
 #endif // wxVERSION_EQUAL_OR_GREATER_THAN
 
         // set normal application font as a current window font
