@@ -21,21 +21,18 @@ namespace FillAdaptive_Internal
     struct Cube
     {
         Vec3d center;
-        size_t depth;
-        CubeProperties properties;
-        std::vector<std::unique_ptr<Cube>> children;
-
-        Cube(const Vec3d &center, size_t depth, const CubeProperties &properties)
-            : center(center), depth(depth), properties(properties) {}
+        std::unique_ptr<Cube> children[8] = {};
+        Cube(const Vec3d &center) : center(center) {}
     };
 
     struct Octree
     {
         std::unique_ptr<Cube> root_cube;
         Vec3d origin;
+        std::vector<CubeProperties> cubes_properties;
 
-        Octree(std::unique_ptr<Cube> rootCube, const Vec3d &origin)
-            : root_cube(std::move(rootCube)), origin(origin) {}
+        Octree(std::unique_ptr<Cube> rootCube, const Vec3d &origin, const std::vector<CubeProperties> &cubes_properties)
+            : root_cube(std::move(rootCube)), origin(origin), cubes_properties(cubes_properties) {}
     };
 }; // namespace FillAdaptive_Internal
 
@@ -52,30 +49,37 @@ public:
 protected:
     virtual Fill* clone() const { return new FillAdaptive(*this); };
 	virtual void _fill_surface_single(
-	    const FillParams                &params, 
+	    const FillParams                &params,
 	    unsigned int                     thickness_layers,
-	    const std::pair<float, Point>   &direction, 
-	    ExPolygon                       &expolygon, 
+	    const std::pair<float, Point>   &direction,
+	    ExPolygon                       &expolygon,
 	    Polylines                       &polylines_out);
 
 	virtual bool no_sort() const { return true; }
 
-    void generate_infill_lines(FillAdaptive_Internal::Cube *cube, double z_position, const Vec3d &origin, std::vector<Lines> &dir_lines_out);
+    void generate_infill_lines(
+        FillAdaptive_Internal::Cube *cube,
+        double                       z_position,
+        const Vec3d &                origin,
+        std::vector<Lines> &         dir_lines_out,
+        const std::vector<FillAdaptive_Internal::CubeProperties> &cubes_properties,
+        int  depth);
 
     static void connect_lines(Lines &lines, Line new_line);
 
 public:
     static std::unique_ptr<FillAdaptive_Internal::Octree> build_octree(
-            TriangleMesh &triangle_mesh,
-            coordf_t line_spacing,
-            const Vec3d &cube_center);
+        TriangleMesh &triangle_mesh,
+        coordf_t      line_spacing,
+        const Vec3d & cube_center);
 
     static void expand_cube(
-            FillAdaptive_Internal::Cube *cube,
-            const std::vector<FillAdaptive_Internal::CubeProperties> &cubes_properties,
-            const Transform3d &rotation_matrix,
-            const AABBTreeIndirect::Tree3f &distanceTree,
-            const TriangleMesh &triangleMesh);
+        FillAdaptive_Internal::Cube *cube,
+        const std::vector<FillAdaptive_Internal::CubeProperties> &cubes_properties,
+        const Transform3d &             rotation_matrix,
+        const AABBTreeIndirect::Tree3f &distance_tree,
+        const TriangleMesh &            triangle_mesh,
+        int                             depth);
 };
 
 } // namespace Slic3r
