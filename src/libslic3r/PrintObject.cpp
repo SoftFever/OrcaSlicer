@@ -447,16 +447,11 @@ std::unique_ptr<FillAdaptive_Internal::Octree> PrintObject::prepare_adaptive_inf
 
     coordf_t line_spacing = infill_extrusion_width / ((fill_density / 100.0f) * 0.333333333f);
 
-    BoundingBoxf bed_shape(this->print()->config().bed_shape.values);
-    BoundingBoxf3 printer_volume(Vec3d(bed_shape.min.x(), bed_shape.min.y(), 0),
-            Vec3d(bed_shape.max.x(), bed_shape.max.y(), this->print()->config().max_print_height));
-
-    Vec3d model_center = this->model_object()->bounding_box().center();
-    model_center.z() = 0.0f; // Set position in Z axis to 0
     // Center of the first cube in octree
+    Vec3d model_center = this->model_object()->bounding_box().center();
 
     TriangleMesh mesh = this->model_object()->mesh();
-    return FillAdaptive::build_octree(mesh, line_spacing, printer_volume, model_center);
+    return FillAdaptive::build_octree(mesh, line_spacing, model_center);
 }
 
 void PrintObject::clear_layers()
