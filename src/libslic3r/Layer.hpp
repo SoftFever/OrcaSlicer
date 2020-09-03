@@ -138,6 +138,7 @@ public:
         return false;
     }
     void                    make_perimeters();
+    void                    make_fills() { this->make_fills(nullptr); };
     void                    make_fills(FillAdaptive_Internal::Octree* adaptive_fill_octree);
     void 					make_ironing();
 
