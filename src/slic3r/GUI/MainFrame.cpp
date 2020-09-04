@@ -55,29 +55,6 @@ enum class ERescaleTarget
     SettingsDialog
 };
 
-static void rescale_dialog_after_dpi_change(MainFrame& mainframe, SettingsDialog& dialog, ERescaleTarget target)
-{
-    int mainframe_dpi = get_dpi_for_window(&mainframe);
-    int dialog_dpi = get_dpi_for_window(&dialog);
-    if (mainframe_dpi != dialog_dpi) {
-        if (target == ERescaleTarget::SettingsDialog) {
-            dialog.enable_force_rescale();
-#if wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
-            dialog.GetEventHandler()->AddPendingEvent(wxDPIChangedEvent(wxSize(mainframe_dpi, mainframe_dpi), wxSize(dialog_dpi, dialog_dpi)));
-#else
-            dialog.GetEventHandler()->AddPendingEvent(DpiChangedEvent(EVT_DPI_CHANGED_SLICER, dialog_dpi, dialog.GetRect()));
-#endif // wxVERSION_EQUAL_OR_GREATER_THAN
-        } else {
-#if wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
-            mainframe.GetEventHandler()->AddPendingEvent(wxDPIChangedEvent(wxSize(dialog_dpi, dialog_dpi), wxSize(mainframe_dpi, mainframe_dpi)));
-#else
-            mainframe.enable_force_rescale();
-            mainframe.GetEventHandler()->AddPendingEvent(DpiChangedEvent(EVT_DPI_CHANGED_SLICER, mainframe_dpi, mainframe.GetRect()));
-#endif // wxVERSION_EQUAL_OR_GREATER_THAN
-        }
-    }
-}
-
 MainFrame::MainFrame() :
 DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
     m_printhost_queue_dlg(new PrintHostQueueDialog(this))
@@ -310,11 +287,6 @@ void MainFrame::update_layout()
             m_plater_page = nullptr;
         }
 
-        /*
-        if (m_layout == ESettingsLayout::Dlg)
-            rescale_dialog_after_dpi_change(*this, m_settings_dialog, ERescaleTarget::Mainframe);
-        */    
-
         clean_sizer(m_main_sizer);
         clean_sizer(m_settings_dialog.GetSizer());
 
@@ -393,9 +365,6 @@ void MainFrame::update_layout()
         m_main_sizer->Add(m_plater, 1, wxEXPAND);
         m_tabpanel->Reparent(&m_settings_dialog);
         m_settings_dialog.GetSizer()->Add(m_tabpanel, 1, wxEXPAND);
-
-//        rescale_dialog_after_dpi_change(*this, m_settings_dialog, ERescaleTarget::SettingsDialog);
-
         m_tabpanel->Show();
         m_plater->Show();
         break;
@@ -825,10 +794,6 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     this->SetSize(sz);
 
     this->Maximize(is_maximized);
-/*
-    if (m_layout == ESettingsLayout::Dlg)
-        rescale_dialog_after_dpi_change(*this, m_settings_dialog, ERescaleTarget::SettingsDialog);
-    */
 }
 
 void MainFrame::on_sys_color_changed()
