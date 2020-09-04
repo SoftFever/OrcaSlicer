@@ -204,5 +204,12 @@ void GLGizmoSeam::update_from_model_object()
 }
 
 
+PainterGizmoType GLGizmoSeam::get_painter_type() const
+{
+    return PainterGizmoType::SEAM;
+}
+
+
+
 } // namespace GUI
 } // namespace Slic3r

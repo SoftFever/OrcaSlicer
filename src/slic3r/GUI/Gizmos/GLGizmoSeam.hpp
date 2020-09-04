@@ -16,6 +16,7 @@ public:
 protected:
     void on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;
+    PainterGizmoType get_painter_type() const override;
 
 private:
     bool on_init() override;

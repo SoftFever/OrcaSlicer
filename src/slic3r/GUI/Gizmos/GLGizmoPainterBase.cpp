@@ -28,13 +28,19 @@ GLGizmoPainterBase::GLGizmoPainterBase(GLCanvas3D& parent, const std::string& ic
 void GLGizmoPainterBase::activate_internal_undo_redo_stack(bool activate)
 {
     if (activate && ! m_internal_stack_active) {
-        Plater::TakeSnapshot(wxGetApp().plater(), _L("FDM gizmo turned on"));
+        wxString str = get_painter_type() == PainterGizmoType::FDM_SUPPORTS
+                           ? _L("Supports gizmo turned on")
+                           : _L("Seam gizmo turned on");
+        Plater::TakeSnapshot(wxGetApp().plater(), str);
         wxGetApp().plater()->enter_gizmos_stack();
         m_internal_stack_active = true;
     }
     if (! activate && m_internal_stack_active) {
+        wxString str = get_painter_type() == PainterGizmoType::SEAM
+                           ? _L("Seam gizmo turned off")
+                           : _L("Supports gizmo turned off");
         wxGetApp().plater()->leave_gizmos_stack();
-        Plater::TakeSnapshot(wxGetApp().plater(), _L("FDM gizmo turned off"));
+        Plater::TakeSnapshot(wxGetApp().plater(), str);
         m_internal_stack_active = false;
     }
 }
@@ -356,11 +362,28 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
     if ((action == SLAGizmoEventType::LeftUp || action == SLAGizmoEventType::RightUp)
       && m_button_down != Button::None) {
         // Take snapshot and update ModelVolume data.
-        wxString action_name = shift_down
-                ? _L("Remove selection")
-                : (m_button_down == Button::Left
-                   ? _L("Add supports")
-                   : _L("Block supports"));
+        wxString action_name;
+        if (get_painter_type() == PainterGizmoType::FDM_SUPPORTS) {
+            if (shift_down)
+                action_name = _L("Remove selection");
+            else {
+                if (m_button_down == Button::Left)
+                    action_name = _L("Add supports");
+                else
+                    action_name = _L("Block supports");
+            }
+        }
+        if (get_painter_type() == PainterGizmoType::SEAM) {
+            if (shift_down)
+                action_name = _L("Remove selection");
+            else {
+                if (m_button_down == Button::Left)
+                    action_name = _L("Enforce seam");
+                else
+                    action_name = _L("Block seam");
+            }
+        }
+
         activate_internal_undo_redo_stack(true);
         Plater::TakeSnapshot(wxGetApp().plater(), action_name);
         update_model_object();
