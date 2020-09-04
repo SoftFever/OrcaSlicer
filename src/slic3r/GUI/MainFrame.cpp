@@ -321,6 +321,7 @@ void MainFrame::update_layout()
     if (m_layout != ESettingsLayout::Unknown)
         restore_to_creation();
 
+#ifdef __WXMSW__
     enum class State {
         noUpdate,
         fromDlg,
@@ -328,6 +329,7 @@ void MainFrame::update_layout()
     };
     State update_scaling_state = m_layout == ESettingsLayout::Dlg ? State::fromDlg :
                                  layout   == ESettingsLayout::Dlg ? State::toDlg   : State::noUpdate;
+#endif //__WXMSW__
 
     m_layout = layout;
 
@@ -379,6 +381,7 @@ void MainFrame::update_layout()
 #endif // ENABLE_GCODE_VIEWER
     }
 
+#ifdef __WXMSW__
     if (update_scaling_state != State::noUpdate)
     {
         int mainframe_dpi   = get_dpi_for_window(this);
@@ -406,6 +409,7 @@ void MainFrame::update_layout()
 #endif // wxVERSION_EQUAL_OR_GREATER_THAN
         }
     }
+#endif //__WXMSW__
 
 //#ifdef __APPLE__
 //    // Using SetMinSize() on Mac messes up the window position in some cases
