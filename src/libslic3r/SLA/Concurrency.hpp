@@ -5,7 +5,10 @@
 #include <tbb/mutex.h>
 #include <tbb/parallel_for.h>
 #include <tbb/parallel_reduce.h>
+
 #include <algorithm>
+#include <numeric>
+
 #include <libslic3r/libslic3r.h>
 
 namespace Slic3r {
