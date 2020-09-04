@@ -200,6 +200,8 @@ void GLGizmoRotate::on_render_for_picking() const
     glsafe(::glPopMatrix());
 }
 
+
+
 GLGizmoRotate3D::RotoptimzeWindow::RotoptimzeWindow(ImGuiWrapper *   imgui,
                                                     State &          state,
                                                     const Alignment &alignment)
@@ -215,20 +217,26 @@ GLGizmoRotate3D::RotoptimzeWindow::RotoptimzeWindow(ImGuiWrapper *   imgui,
     y = std::min(y, alignment.bottom_limit - win_h);
     ImGui::SetWindowPos(ImVec2(x, y), ImGuiCond_Always);
 
-    ImGui::SliderFloat(_L("Accuracy").c_str(), &state.accuracy, 0.01f, 1.f, "%.1f");
+    static constexpr const char * button_txt = L("Optimize orientation");
+    static constexpr const char * slider_txt = L("Accuracy");
 
-    if (imgui->button(_L("Optimize orientation"))) {
+    float button_width = imgui->calc_text_size(_(button_txt)).x;
+    ImGui::PushItemWidth(100.);
+    //if (imgui->button(_(button_txt))) {
+    if (ImGui::ArrowButton(_(button_txt).c_str(), ImGuiDir_Down)){
         std::cout << "Blip" << std::endl;
     }
+
+    ImGui::SliderFloat(_(slider_txt).c_str(), &state.accuracy, 0.01f, 1.f, "%.1f");
 
     static const std::vector<std::string> options = {
         _L("Least supports").ToStdString(),
         _L("Suface quality").ToStdString()
     };
 
-    if (imgui->combo(_L("Choose method"), options, state.method) ) {
-        std::cout << "method: " << state.method << std::endl;
-    }
+//    if (imgui->combo(_L("Choose method"), options, state.method) ) {
+//        std::cout << "method: " << state.method << std::endl;
+//    }
 
 
 }
@@ -243,18 +251,10 @@ void GLGizmoRotate3D::on_render_input_window(float x, float y, float bottom_limi
     if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
         return;
 
-//    m_rotoptimizewin_state.mobj = ;
-    RotoptimzeWindow popup{m_imgui, m_rotoptimizewin_state, {x, y, bottom_limit}};
+// TODO:
 
-//    if ((last_h != win_h) || (last_y != y))
-//    {
-//        // ask canvas for another frame to render the window in the correct position
-//        m_parent.request_extra_frame();
-//        if (last_h != win_h)
-//            last_h = win_h;
-//        if (last_y != y)
-//            last_y = y;
-//    }
+//    m_rotoptimizewin_state.mobj = ?;
+//    RotoptimzeWindow popup{m_imgui, m_rotoptimizewin_state, {x, y, bottom_limit}};
 
 }
 

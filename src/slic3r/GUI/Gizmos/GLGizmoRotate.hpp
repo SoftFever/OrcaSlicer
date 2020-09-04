@@ -136,12 +136,14 @@ protected:
     }
 
     void on_render_input_window(float x, float y, float bottom_limit) override;
+
 private:
 
     class RotoptimzeWindow {
         ImGuiWrapper *m_imgui = nullptr;
 
     public:
+
         struct State {
             enum Metods { mMinSupportPoints, mLegacy };
 
@@ -152,7 +154,10 @@ private:
 
         struct Alignment { float x, y, bottom_limit; };
 
-        RotoptimzeWindow(ImGuiWrapper *imgui, State &settings, const Alignment &bottom_limit);
+        RotoptimzeWindow(ImGuiWrapper *   imgui,
+                         State &          state,
+                         const Alignment &bottom_limit);
+
         ~RotoptimzeWindow();
 
         RotoptimzeWindow(const RotoptimzeWindow&) = delete;

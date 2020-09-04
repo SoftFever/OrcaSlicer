@@ -4,6 +4,7 @@
 #include "libslic3r/SLA/Rotfinder.hpp"
 #include "libslic3r/MinAreaBoundingBox.hpp"
 #include "libslic3r/Model.hpp"
+#include "libslic3r/SLAPrint.hpp"
 
 #include "slic3r/GUI/Plater.hpp"
 
@@ -15,9 +16,26 @@ void RotoptimizeJob::process()
     if (obj_idx < 0) { return; }
     
     ModelObject *o = m_plater->model().objects[size_t(obj_idx)];
+    const SLAPrintObject *po = m_plater->sla_print().objects()[size_t(obj_idx)];
+
+    if (!o || !po) return;
+
+    TriangleMesh mesh = o->raw_mesh();
+    mesh.require_shared_vertices();
+
+//    for (auto inst : o->instances) {
+//        Transform3d tr = Transform3d::Identity();
+//        tr.rotate(Eigen::AngleAxisd(inst->get_rotation(Z), Vec3d::UnitZ()));
+//        tr.rotate(Eigen::AngleAxisd(inst->get_rotation(Y), Vec3d::UnitY()));
+//        tr.rotate(Eigen::AngleAxisd(inst->get_rotation(X), Vec3d::UnitX()));
+
+//        double score = sla::get_model_supportedness(*po, tr);
+
+//        std::cout << "Model supportedness before: " << score << std::endl;
+//    }
 
     auto r = sla::find_best_rotation(
-        *o,
+        *po,
         1.f,
         [this](unsigned s) {
             if (s < 100)
