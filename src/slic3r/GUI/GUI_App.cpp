@@ -30,6 +30,7 @@
 
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
+#include <wx/splash.h>
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
@@ -435,6 +436,10 @@ bool GUI_App::on_init_inner()
 
     // Let the libslic3r know the callback, which will translate messages on demand.
     Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
+
+    wxBitmap bitmap = create_scaled_bitmap("wrench", nullptr, 400);
+    wxSplashScreen* scrn = new wxSplashScreen(bitmap, wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 2500, NULL, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFRAME_NO_TASKBAR | wxSIMPLE_BORDER | wxSTAY_ON_TOP);
+    wxYield();
 
     // application frame
     if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
