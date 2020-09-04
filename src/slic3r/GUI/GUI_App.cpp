@@ -77,6 +77,46 @@ namespace GUI {
 
 class MainFrame;
 
+class SplashScreen : public wxSplashScreen
+{
+public:
+    SplashScreen(const wxBitmap& bitmap, long splashStyle, int milliseconds, wxWindow* parent)
+        : wxSplashScreen(bitmap, splashStyle, milliseconds, parent, wxID_ANY)
+    {
+        wxASSERT(bitmap.IsOk());
+        m_main_bitmap = bitmap;
+    }
+
+    void SetText(const wxString& text)
+    {
+        SetBmp(m_main_bitmap);
+        if (!text.empty()) {
+            wxBitmap bitmap(m_main_bitmap);
+            wxMemoryDC memDC;
+
+            memDC.SelectObject(bitmap);
+
+            memDC.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold());
+            memDC.SetTextForeground(wxColour(237, 107, 33));
+            memDC.DrawText(text, 120, 120);
+
+            memDC.SelectObject(wxNullBitmap);
+            SetBmp(bitmap);
+        }
+        wxYield();
+    }
+
+    void SetBmp(wxBitmap& bmp)
+    {
+        m_window->SetBitmap(bmp);
+        m_window->Refresh();
+        m_window->Update();
+    }
+
+private:
+    wxBitmap m_main_bitmap;
+};
+
 wxString file_wildcards(FileType file_type, const std::string &custom_extension)
 {
     static const std::string defaults[FT_SIZE] = {
@@ -390,6 +430,10 @@ bool GUI_App::on_init_inner()
     
     app_config->set("version", SLIC3R_VERSION);
     app_config->save();
+
+    wxBitmap bitmap = create_scaled_bitmap("prusa_slicer_logo", nullptr, 400);
+    SplashScreen* scrn = new SplashScreen(bitmap, wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 4000, nullptr);
+    scrn->SetText(_L("Loading configuration..."));
     
     preset_bundle = new PresetBundle();
     
@@ -437,13 +481,11 @@ bool GUI_App::on_init_inner()
     // Let the libslic3r know the callback, which will translate messages on demand.
     Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
 
-    wxBitmap bitmap = create_scaled_bitmap("wrench", nullptr, 400);
-    wxSplashScreen* scrn = new wxSplashScreen(bitmap, wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 2500, NULL, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFRAME_NO_TASKBAR | wxSIMPLE_BORDER | wxSTAY_ON_TOP);
-    wxYield();
-
     // application frame
     if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
         wxImage::AddHandler(new wxPNGHandler());
+    scrn->SetText(_L("Creating settings tabs..."));
+
     mainframe = new MainFrame();
     // hide settings tabs after first Layout
     mainframe->select_tab(0);
