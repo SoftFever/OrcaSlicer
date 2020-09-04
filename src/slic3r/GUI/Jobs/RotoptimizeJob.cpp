@@ -13,7 +13,8 @@ namespace Slic3r { namespace GUI {
 void RotoptimizeJob::process()
 {
     int obj_idx = m_plater->get_selected_object_idx();
-    if (obj_idx < 0) { return; }
+    if (obj_idx < 0 || m_plater->sla_print().objects().size() <= obj_idx)
+        return;
     
     ModelObject *o = m_plater->model().objects[size_t(obj_idx)];
     const SLAPrintObject *po = m_plater->sla_print().objects()[size_t(obj_idx)];

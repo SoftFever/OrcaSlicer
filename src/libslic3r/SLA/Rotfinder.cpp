@@ -76,12 +76,20 @@ inline Face facestats(const std::array<Vec3d, 3> &triangle)
 inline const Vec3d DOWN = {0., 0., -1.};
 constexpr double POINTS_PER_UNIT_AREA = 1.;
 
+// The score function for a particular face
 inline double get_score(const Face &fc)
 {
+    // Simply get the angle (acos of dot product) between the face normal and
+    // the DOWN vector.
     double phi = 1. - std::acos(fc.normal.dot(DOWN)) / PI;
+
+    // Only consider faces that have have slopes below 90 deg:
     phi = phi * (phi > 0.5);
+
+    // Make the huge slopes more significant than the smaller slopes
     phi = phi * phi * phi;
 
+    // Multiply with the area of the current face
     return fc.area * POINTS_PER_UNIT_AREA * phi;
 }
 
@@ -176,6 +184,8 @@ std::vector<XYRotation> get_chull_rotations(const TriangleMesh &mesh)
 {
     TriangleMesh chull = mesh.convex_hull_3d();
     chull.require_shared_vertices();
+    double chull2d_area = chull.convex_hull().area();
+    double area_threshold =  chull2d_area / (scaled<double>(1e3) * scaled(1.));
 
     size_t facecount = chull.its.indices.size();
     auto inputs = reserve_vector<XYRotation>(facecount);
@@ -183,8 +193,10 @@ std::vector<XYRotation> get_chull_rotations(const TriangleMesh &mesh)
     for (size_t fi = 0; fi < facecount; ++fi) {
         Face fc = facestats(get_triangle_vertices(chull, fi));
 
-        auto q = Eigen::Quaterniond{}.FromTwoVectors(fc.normal, DOWN);
-        inputs.emplace_back(from_transform3d(Transform3d::Identity() * q));
+        if (fc.area > area_threshold)  {
+            auto q = Eigen::Quaterniond{}.FromTwoVectors(fc.normal, DOWN);
+            inputs.emplace_back(from_transform3d(Transform3d::Identity() * q));
+        }
     }
 
     return inputs;
