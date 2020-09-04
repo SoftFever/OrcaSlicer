@@ -310,8 +310,10 @@ void MainFrame::update_layout()
             m_plater_page = nullptr;
         }
 
+        /*
         if (m_layout == ESettingsLayout::Dlg)
             rescale_dialog_after_dpi_change(*this, m_settings_dialog, ERescaleTarget::Mainframe);
+        */    
 
         clean_sizer(m_main_sizer);
         clean_sizer(m_settings_dialog.GetSizer());
@@ -346,6 +348,14 @@ void MainFrame::update_layout()
     // Remove old settings
     if (m_layout != ESettingsLayout::Unknown)
         restore_to_creation();
+
+    enum class State {
+        noUpdate,
+        fromDlg,
+        toDlg
+    };
+    State update_scaling_state = m_layout == ESettingsLayout::Dlg ? State::fromDlg :
+                                 layout   == ESettingsLayout::Dlg ? State::toDlg   : State::noUpdate;
 
     m_layout = layout;
 
@@ -384,7 +394,7 @@ void MainFrame::update_layout()
         m_tabpanel->Reparent(&m_settings_dialog);
         m_settings_dialog.GetSizer()->Add(m_tabpanel, 1, wxEXPAND);
 
-        rescale_dialog_after_dpi_change(*this, m_settings_dialog, ERescaleTarget::SettingsDialog);
+//        rescale_dialog_after_dpi_change(*this, m_settings_dialog, ERescaleTarget::SettingsDialog);
 
         m_tabpanel->Show();
         m_plater->Show();
@@ -398,6 +408,34 @@ void MainFrame::update_layout()
         break;
     }
 #endif // ENABLE_GCODE_VIEWER
+    }
+
+    if (update_scaling_state != State::noUpdate)
+    {
+        int mainframe_dpi   = get_dpi_for_window(this);
+        int dialog_dpi      = get_dpi_for_window(&m_settings_dialog);
+        if (mainframe_dpi != dialog_dpi) {
+            wxSize oldDPI = update_scaling_state == State::fromDlg ? wxSize(dialog_dpi, dialog_dpi) : wxSize(mainframe_dpi, mainframe_dpi);
+            wxSize newDPI = update_scaling_state == State::toDlg   ? wxSize(dialog_dpi, dialog_dpi) : wxSize(mainframe_dpi, mainframe_dpi);
+
+            if (update_scaling_state == State::fromDlg)
+                this->enable_force_rescale();
+            else
+                (&m_settings_dialog)->enable_force_rescale();
+
+            wxWindow* win { nullptr };
+            if (update_scaling_state == State::fromDlg)
+                win = this;
+            else
+                win = &m_settings_dialog;
+
+#if wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
+            m_tabpanel->MSWUpdateOnDPIChange(oldDPI, newDPI);
+            win->GetEventHandler()->AddPendingEvent(wxDPIChangedEvent(oldDPI, newDPI));
+#else
+            win->GetEventHandler()->AddPendingEvent(DpiChangedEvent(EVT_DPI_CHANGED_SLICER, newDPI, win->GetRect()));
+#endif // wxVERSION_EQUAL_OR_GREATER_THAN
+        }
     }
 
 //#ifdef __APPLE__

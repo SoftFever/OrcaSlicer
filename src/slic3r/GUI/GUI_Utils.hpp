@@ -231,6 +231,7 @@ private:
         }
 #endif // wxVERSION_EQUAL_OR_GREATER_THAN
 */
+        m_force_rescale = false;
 #if !wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
         // rescale fonts of all controls
         scale_controls_fonts(this, m_new_font_point_size);
