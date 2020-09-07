@@ -102,7 +102,7 @@ Tab::Tab(wxNotebook* parent, const wxString& title, Preset::Type type) :
 
     wxGetApp().tabs_list.push_back(this);
 
-    m_em_unit = wxGetApp().em_unit();
+    m_em_unit = em_unit(m_parent); //wxGetApp().em_unit();
 
     m_config_manipulation = get_config_manipulation();
 

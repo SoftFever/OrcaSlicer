@@ -27,6 +27,7 @@ private:
 
     void on_opening() override {}
     void on_shutdown() override;
+    PainterGizmoType get_painter_type() const override;
 
     void select_facets_by_angle(float threshold, bool block);
     float m_angle_threshold_deg = 45.f;

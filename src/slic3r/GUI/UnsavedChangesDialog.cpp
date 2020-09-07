@@ -531,7 +531,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
     wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
     SetBackgroundColour(bgr_clr);
 
-#if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
+#if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT && defined(__WXMSW__)
     // ys_FIXME! temporary workaround for correct font scaling
     // Because of from wxWidgets 3.1.3 auto rescaling is implemented for the Fonts,
     // From the very beginning set dialog font to the wxSYS_DEFAULT_GUI_FONT

@@ -55,29 +55,6 @@ enum class ERescaleTarget
     SettingsDialog
 };
 
-static void rescale_dialog_after_dpi_change(MainFrame& mainframe, SettingsDialog& dialog, ERescaleTarget target)
-{
-    int mainframe_dpi = get_dpi_for_window(&mainframe);
-    int dialog_dpi = get_dpi_for_window(&dialog);
-    if (mainframe_dpi != dialog_dpi) {
-        if (target == ERescaleTarget::SettingsDialog) {
-            dialog.enable_force_rescale();
-#if wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
-            dialog.GetEventHandler()->AddPendingEvent(wxDPIChangedEvent(wxSize(mainframe_dpi, mainframe_dpi), wxSize(dialog_dpi, dialog_dpi)));
-#else
-            dialog.GetEventHandler()->AddPendingEvent(DpiChangedEvent(EVT_DPI_CHANGED_SLICER, dialog_dpi, dialog.GetRect()));
-#endif // wxVERSION_EQUAL_OR_GREATER_THAN
-        } else {
-#if wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
-            mainframe.GetEventHandler()->AddPendingEvent(wxDPIChangedEvent(wxSize(dialog_dpi, dialog_dpi), wxSize(mainframe_dpi, mainframe_dpi)));
-#else
-            mainframe.enable_force_rescale();
-            mainframe.GetEventHandler()->AddPendingEvent(DpiChangedEvent(EVT_DPI_CHANGED_SLICER, mainframe_dpi, mainframe.GetRect()));
-#endif // wxVERSION_EQUAL_OR_GREATER_THAN
-        }
-    }
-}
-
 MainFrame::MainFrame() :
 DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
     m_printhost_queue_dlg(new PrintHostQueueDialog(this))
@@ -310,9 +287,6 @@ void MainFrame::update_layout()
             m_plater_page = nullptr;
         }
 
-        if (m_layout == ESettingsLayout::Dlg)
-            rescale_dialog_after_dpi_change(*this, m_settings_dialog, ERescaleTarget::Mainframe);
-
         clean_sizer(m_main_sizer);
         clean_sizer(m_settings_dialog.GetSizer());
 
@@ -346,6 +320,16 @@ void MainFrame::update_layout()
     // Remove old settings
     if (m_layout != ESettingsLayout::Unknown)
         restore_to_creation();
+
+#ifdef __WXMSW__
+    enum class State {
+        noUpdate,
+        fromDlg,
+        toDlg
+    };
+    State update_scaling_state = m_layout == ESettingsLayout::Dlg ? State::fromDlg :
+                                 layout   == ESettingsLayout::Dlg ? State::toDlg   : State::noUpdate;
+#endif //__WXMSW__
 
     m_layout = layout;
 
@@ -383,9 +367,6 @@ void MainFrame::update_layout()
         m_main_sizer->Add(m_plater, 1, wxEXPAND);
         m_tabpanel->Reparent(&m_settings_dialog);
         m_settings_dialog.GetSizer()->Add(m_tabpanel, 1, wxEXPAND);
-
-        rescale_dialog_after_dpi_change(*this, m_settings_dialog, ERescaleTarget::SettingsDialog);
-
         m_tabpanel->Show();
         m_plater->Show();
         break;
@@ -399,6 +380,36 @@ void MainFrame::update_layout()
     }
 #endif // ENABLE_GCODE_VIEWER
     }
+
+#ifdef __WXMSW__
+    if (update_scaling_state != State::noUpdate)
+    {
+        int mainframe_dpi   = get_dpi_for_window(this);
+        int dialog_dpi      = get_dpi_for_window(&m_settings_dialog);
+        if (mainframe_dpi != dialog_dpi) {
+            wxSize oldDPI = update_scaling_state == State::fromDlg ? wxSize(dialog_dpi, dialog_dpi) : wxSize(mainframe_dpi, mainframe_dpi);
+            wxSize newDPI = update_scaling_state == State::toDlg   ? wxSize(dialog_dpi, dialog_dpi) : wxSize(mainframe_dpi, mainframe_dpi);
+
+            if (update_scaling_state == State::fromDlg)
+                this->enable_force_rescale();
+            else
+                (&m_settings_dialog)->enable_force_rescale();
+
+            wxWindow* win { nullptr };
+            if (update_scaling_state == State::fromDlg)
+                win = this;
+            else
+                win = &m_settings_dialog;
+
+#if wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
+            m_tabpanel->MSWUpdateOnDPIChange(oldDPI, newDPI);
+            win->GetEventHandler()->AddPendingEvent(wxDPIChangedEvent(oldDPI, newDPI));
+#else
+            win->GetEventHandler()->AddPendingEvent(DpiChangedEvent(EVT_DPI_CHANGED_SLICER, newDPI, win->GetRect()));
+#endif // wxVERSION_EQUAL_OR_GREATER_THAN
+        }
+    }
+#endif //__WXMSW__
 
 //#ifdef __APPLE__
 //    // Using SetMinSize() on Mac messes up the window position in some cases
@@ -787,9 +798,6 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     this->SetSize(sz);
 
     this->Maximize(is_maximized);
-
-    if (m_layout == ESettingsLayout::Dlg)
-        rescale_dialog_after_dpi_change(*this, m_settings_dialog, ERescaleTarget::SettingsDialog);
 }
 
 void MainFrame::on_sys_color_changed()
@@ -1988,7 +1996,14 @@ SettingsDialog::SettingsDialog(MainFrame* mainframe)
         wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMINIMIZE_BOX | wxMAXIMIZE_BOX, "settings_dialog"),
     m_main_frame(mainframe)
 {
+#if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT && defined(__WXMSW__)
+    // ys_FIXME! temporary workaround for correct font scaling
+    // Because of from wxWidgets 3.1.3 auto rescaling is implemented for the Fonts,
+    // From the very beginning set dialog font to the wxSYS_DEFAULT_GUI_FONT
+    this->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+#else
     this->SetFont(wxGetApp().normal_font());
+#endif // ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
     this->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 
 

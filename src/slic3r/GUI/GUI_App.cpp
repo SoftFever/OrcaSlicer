@@ -30,6 +30,7 @@
 
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
+#include <wx/splash.h>
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
@@ -75,6 +76,46 @@ namespace Slic3r {
 namespace GUI {
 
 class MainFrame;
+
+class SplashScreen : public wxSplashScreen
+{
+public:
+    SplashScreen(const wxBitmap& bitmap, long splashStyle, int milliseconds, wxWindow* parent)
+        : wxSplashScreen(bitmap, splashStyle, milliseconds, parent, wxID_ANY)
+    {
+        wxASSERT(bitmap.IsOk());
+        m_main_bitmap = bitmap;
+    }
+
+    void SetText(const wxString& text)
+    {
+        SetBmp(m_main_bitmap);
+        if (!text.empty()) {
+            wxBitmap bitmap(m_main_bitmap);
+            wxMemoryDC memDC;
+
+            memDC.SelectObject(bitmap);
+
+            memDC.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold());
+            memDC.SetTextForeground(wxColour(237, 107, 33));
+            memDC.DrawText(text, 120, 120);
+
+            memDC.SelectObject(wxNullBitmap);
+            SetBmp(bitmap);
+        }
+        wxYield();
+    }
+
+    void SetBmp(wxBitmap& bmp)
+    {
+        m_window->SetBitmap(bmp);
+        m_window->Refresh();
+        m_window->Update();
+    }
+
+private:
+    wxBitmap m_main_bitmap;
+};
 
 wxString file_wildcards(FileType file_type, const std::string &custom_extension)
 {
@@ -389,6 +430,10 @@ bool GUI_App::on_init_inner()
     
     app_config->set("version", SLIC3R_VERSION);
     app_config->save();
+
+    wxBitmap bitmap = create_scaled_bitmap("prusa_slicer_logo", nullptr, 400);
+    SplashScreen* scrn = new SplashScreen(bitmap, wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 4000, nullptr);
+    scrn->SetText(_L("Loading configuration..."));
     
     preset_bundle = new PresetBundle();
     
@@ -439,6 +484,8 @@ bool GUI_App::on_init_inner()
     // application frame
     if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
         wxImage::AddHandler(new wxPNGHandler());
+    scrn->SetText(_L("Creating settings tabs..."));
+
     mainframe = new MainFrame();
     // hide settings tabs after first Layout
     mainframe->select_tab(0);
