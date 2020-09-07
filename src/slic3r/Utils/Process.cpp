@@ -53,7 +53,7 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 	{
 		std::vector<const char*> args;
 	    args.reserve(3);
-		#ifdef(__linux)
+		#ifdef __linux
 		static const char *gcodeviewer_param = "--gcodeviewer";
 	    {
 			// If executed by an AppImage, start the AppImage, not the main process.
@@ -63,17 +63,22 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 				args.emplace_back(appimage_binary);
 				if (instance_type == NewSlicerInstanceType::GCodeViewer)
 					args.emplace_back(gcodeviewer_param);
-				if ()
 			}
 		}
 		#endif // __linux
+		std::string bin_path;
+		if (args.empty()) {
+			// Binary path was not set to the AppImage in the Linux specific block above, call the application directly.
+			bin_path = (own_path.parent_path() / ((instance_type == NewSlicerInstanceType::Slicer) ? "prusa-slicer" : "prusa-gcodeviewer")).string();
+			args.emplace_back(bin_path.c_str());
+		}
 	    std::string to_open;
 	    if (path_to_open) {
 	    	to_open = into_u8(*path_to_open);
 	    	args.emplace_back(to_open.c_str());
 	    }
 	    args.emplace_back(nullptr);
-	    wxExecute(const_cast<char**>(&args.data()), wxEXEC_ASYNC | wxEXEC_HIDE_CONSOLE | wxEXEC_MAKE_GROUP_LEADER);
+	    wxExecute(const_cast<char**>(args.data()), wxEXEC_ASYNC | wxEXEC_HIDE_CONSOLE | wxEXEC_MAKE_GROUP_LEADER);
 	}
 	#endif // Linux or Unix
 #endif // Win32

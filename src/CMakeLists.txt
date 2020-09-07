@@ -209,20 +209,31 @@ if (WIN32)
     add_custom_target(PrusaSlicerDllsCopy ALL DEPENDS PrusaSlicer)
     prusaslicer_copy_dlls(PrusaSlicerDllsCopy)
     
-elseif (XCODE)
-    # Because of Debug/Release/etc. configurations (similar to MSVC) the slic3r binary is located in an extra level
-    add_custom_command(TARGET PrusaSlicer POST_BUILD
-        COMMAND ln -sfn "${SLIC3R_RESOURCES_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/resources"
-        COMMENT "Symlinking the resources directory into the build tree"
-        VERBATIM
-    )
 else ()
+    if (XCODE)
+        add_custom_command(TARGET PrusaSlicer POST_BUILD
+            COMMAND ln -sf "${CMAKE_CURRENT_BINARY_DIR}/PrusaSlicer" "${CMAKE_CURRENT_BINARY_DIR}/prusa-slicer"
+            COMMAND ln -sf "${CMAKE_CURRENT_BINARY_DIR}/PrusaSlicer" "${CMAKE_CURRENT_BINARY_DIR}/prusa-gcodeviewer"
+            COMMAND ln -sf "${CMAKE_CURRENT_BINARY_DIR}/PrusaSlicer" "${CMAKE_CURRENT_BINARY_DIR}/PrusaGCodeViewer"
+            COMMENT "Symlinking the G-code viewer to PrusaSlicer, symlinking to prusa-slicer and prusa-gcodeviewer"
+            VERBATIM
+        )
+        # Because of Debug/Release/etc. configurations (similar to MSVC) the slic3r binary is located in an extra level
+        set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/resources")
+    else ()
+        add_custom_command(TARGET PrusaSlicer POST_BUILD
+            COMMAND ln -sf "${CMAKE_CURRENT_BINARY_DIR}/prusa-slicer" "${CMAKE_CURRENT_BINARY_DIR}/prusa-gcodeviewer"
+            COMMENT "Symlinking the G-code viewer to PrusaSlicer"
+            VERBATIM
+        )
+        set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/../resources")
+    endif ()
     add_custom_command(TARGET PrusaSlicer POST_BUILD
-        COMMAND ln -sfn "${SLIC3R_RESOURCES_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/../resources"
+        COMMAND ln -sfn "${SLIC3R_RESOURCES_DIR}" "${BIN_RESOURCES_DIR}"
         COMMENT "Symlinking the resources directory into the build tree"
         VERBATIM
     )
-endif()
+endif ()
 
 # Slic3r binary install target
 if (WIN32)
