@@ -106,9 +106,9 @@ if (MINGW)
     set_target_properties(PrusaSlicer PROPERTIES PREFIX "")
 endif (MINGW)
 
-if (NOT WIN32)
-    # Binary name on unix like systems (OSX, Linux)
-   set_target_properties(PrusaSlicer PROPERTIES OUTPUT_NAME "prusa-slicer")
+if (NOT WIN32 AND NOT APPLE)
+    # Binary name on unix like systems (Linux, Unix)
+    set_target_properties(PrusaSlicer PROPERTIES OUTPUT_NAME "prusa-slicer")
 endif ()
 
 target_link_libraries(PrusaSlicer libslic3r cereal)
