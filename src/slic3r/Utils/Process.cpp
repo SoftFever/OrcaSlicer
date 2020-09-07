@@ -45,7 +45,7 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
     boost::filesystem::path bin_path = into_path(wxStandardPaths::Get().GetExecutablePath());
 	#if defined(__APPLE__)
 	{
-		bin_path /=	(instance_type == NewSlicerInstanceType::Slicer) ? "PrusaSlicer" : "PrusaGCodeViewer";
+		bin_path =	bin_path.parent_path() / ((instance_type == NewSlicerInstanceType::Slicer) ? "PrusaSlicer" : "PrusaGCodeViewer");
 		// On Apple the wxExecute fails, thus we use boost::process instead.
 	    path_to_open ? boost::process::spawn(bin_path.string(), into_u8(*path_to_open)) : boost::process::spawn(bin_path.string());
 	}
