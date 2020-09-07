@@ -51,13 +51,19 @@ void FillAdaptive::_fill_surface_single(
             if(polyline.lines().size() == 1 && expolygon.has_boundary_point(polyline.lines().front().a) && expolygon.has_boundary_point(polyline.lines().front().b))
             {
                 boundary_polylines.push_back(polyline);
-            } else {
+            }
+            else
+            {
                 non_boundary_polylines.push_back(polyline);
             }
         }
 
-        boundary_polylines = chain_polylines(boundary_polylines);
-        FillAdaptive::connect_infill(std::move(boundary_polylines), expolygon, polylines_out, this->spacing, params);
+        if(!boundary_polylines.empty())
+        {
+            boundary_polylines = chain_polylines(boundary_polylines);
+            FillAdaptive::connect_infill(std::move(boundary_polylines), expolygon, polylines_out, this->spacing, params);
+        }
+
         polylines_out.insert(polylines_out.end(), non_boundary_polylines.begin(), non_boundary_polylines.end());
     }
 
