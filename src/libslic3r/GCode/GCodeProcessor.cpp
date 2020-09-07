@@ -759,13 +759,16 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
 
     // process gcode
     m_result.id = ++s_result_id;
+    // 1st move must be a dummy move
     m_result.moves.emplace_back(MoveVertex());
     m_parser.parse_file(filename, [this, cancel_callback, &last_cancel_callback_time](GCodeReader& reader, const GCodeReader::GCodeLine& line) {
-        auto curr_time = std::chrono::high_resolution_clock::now();
-        // call the cancel callback every 100 ms
-        if (std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_cancel_callback_time).count() > 100) {
-            cancel_callback();
-            last_cancel_callback_time = curr_time;
+        if (cancel_callback != nullptr) {
+            // call the cancel callback every 100 ms
+            auto curr_time = std::chrono::high_resolution_clock::now();
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_cancel_callback_time).count() > 100) {
+                cancel_callback();
+                last_cancel_callback_time = curr_time;
+            }
         }
         process_gcode_line(line);
         });
