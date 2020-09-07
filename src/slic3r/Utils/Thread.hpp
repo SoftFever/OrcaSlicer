@@ -1,5 +1,5 @@
-#ifndef THREAD_HPP
-#define THREAD_HPP
+#ifndef GUI_THREAD_HPP
+#define GUI_THREAD_HPP
 
 #include <utility>
 #include <boost/thread.hpp>
@@ -25,4 +25,4 @@ template<class Fn> inline boost::thread create_thread(Fn &&fn)
 
 }
 
-#endif // THREAD_HPP
+#endif // GUI_THREAD_HPP
