@@ -66,11 +66,11 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 			}
 		}
 		#endif // __linux
-		std::string bin_path;
+		std::string my_path;
 		if (args.empty()) {
 			// Binary path was not set to the AppImage in the Linux specific block above, call the application directly.
-			bin_path = (own_path.parent_path() / ((instance_type == NewSlicerInstanceType::Slicer) ? "prusa-slicer" : "prusa-gcodeviewer")).string();
-			args.emplace_back(bin_path.c_str());
+			my_path = (bin_path.parent_path() / ((instance_type == NewSlicerInstanceType::Slicer) ? "prusa-slicer" : "prusa-gcodeviewer")).string();
+			args.emplace_back(my_path.c_str());
 		}
 	    std::string to_open;
 	    if (path_to_open) {
