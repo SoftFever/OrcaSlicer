@@ -212,9 +212,10 @@ if (WIN32)
 else ()
     if (XCODE)
         add_custom_command(TARGET PrusaSlicer POST_BUILD
-            COMMAND ln -sf "${CMAKE_CURRENT_BINARY_DIR}/PrusaSlicer" "${CMAKE_CURRENT_BINARY_DIR}/prusa-slicer"
-            COMMAND ln -sf "${CMAKE_CURRENT_BINARY_DIR}/PrusaSlicer" "${CMAKE_CURRENT_BINARY_DIR}/prusa-gcodeviewer"
-            COMMAND ln -sf "${CMAKE_CURRENT_BINARY_DIR}/PrusaSlicer" "${CMAKE_CURRENT_BINARY_DIR}/PrusaGCodeViewer"
+            COMMAND ln -sf PrusaSlicer prusa-slicer
+            COMMAND ln -sf PrusaSlicer prusa-gcodeviewer
+            COMMAND ln -sf PrusaSlicer PrusaGCodeViewer
+            WORKING_DIRECTORY "$<TARGET_FILE_DIR:PrusaSlicer>"
             COMMENT "Symlinking the G-code viewer to PrusaSlicer, symlinking to prusa-slicer and prusa-gcodeviewer"
             VERBATIM
         )
@@ -222,7 +223,8 @@ else ()
         set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/resources")
     else ()
         add_custom_command(TARGET PrusaSlicer POST_BUILD
-            COMMAND ln -sf "${CMAKE_CURRENT_BINARY_DIR}/prusa-slicer" "${CMAKE_CURRENT_BINARY_DIR}/prusa-gcodeviewer"
+            COMMAND ln -sf prusa-slicer prusa-gcodeviewer
+            WORKING_DIRECTORY "$<TARGET_FILE_DIR:PrusaSlicer>"
             COMMENT "Symlinking the G-code viewer to PrusaSlicer"
             VERBATIM
         )
