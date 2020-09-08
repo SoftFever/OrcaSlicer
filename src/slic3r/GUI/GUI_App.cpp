@@ -692,9 +692,9 @@ bool GUI_App::on_init_inner()
             // ensure the selected technology is ptFFF
             plater_->set_printer_technology(ptFFF);
     }
-#else
-    load_current_presets();
+    else
 #endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+        load_current_presets();
     mainframe->Show(true);
 
     /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
