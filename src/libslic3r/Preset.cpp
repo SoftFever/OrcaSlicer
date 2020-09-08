@@ -1365,9 +1365,10 @@ const std::vector<std::string>& PhysicalPrinter::printer_options()
             "print_host", 
             "printhost_apikey", 
             "printhost_cafile",
-            "authorization_type",
-            "login", 
-            "password"
+            "printhost_authorization_type",
+            // HTTP digest authentization (RFC 2617)
+            "printhost_user", 
+            "printhost_password"
         };
     }
     return s_opts;
@@ -1412,11 +1413,11 @@ const std::set<std::string>& PhysicalPrinter::get_preset_names() const
 
 bool PhysicalPrinter::has_empty_config() const 
 {
-    return  config.opt_string("print_host"      ).empty() && 
-            config.opt_string("printhost_apikey").empty() && 
-            config.opt_string("printhost_cafile").empty() && 
-            config.opt_string("login"           ).empty() && 
-            config.opt_string("password"        ).empty();
+    return  config.opt_string("print_host"        ).empty() && 
+            config.opt_string("printhost_apikey"  ).empty() && 
+            config.opt_string("printhost_cafile"  ).empty() && 
+            config.opt_string("printhost_user"    ).empty() && 
+            config.opt_string("printhost_password").empty();
 }
 
 void PhysicalPrinter::update_preset_names_in_config()
@@ -1441,7 +1442,7 @@ void PhysicalPrinter::save(const std::string& file_name_from, const std::string&
 
 void PhysicalPrinter::update_from_preset(const Preset& preset)
 {
-    config.apply_only(preset.config, printer_options(), false);
+    config.apply_only(preset.config, printer_options(), true);
     // add preset names to the options list
     auto ret = preset_names.emplace(preset.name);
     update_preset_names_in_config();
@@ -1476,8 +1477,8 @@ bool PhysicalPrinter::delete_preset(const std::string& preset_name)
     return preset_names.erase(preset_name) > 0;
 }
 
-PhysicalPrinter::PhysicalPrinter(const std::string& name, const Preset& preset) :
-    name(name)
+PhysicalPrinter::PhysicalPrinter(const std::string& name, const DynamicPrintConfig &default_config, const Preset& preset) :
+    name(name), config(default_config)
 {
     update_from_preset(preset);
 }
@@ -1514,6 +1515,13 @@ std::string PhysicalPrinter::get_preset_name(std::string name)
 
 PhysicalPrinterCollection::PhysicalPrinterCollection( const std::vector<std::string>& keys)
 {
+    // Default config for a physical printer containing all key/value pairs of PhysicalPrinter::printer_options().
+    for (const std::string &key : keys) {
+        const ConfigOptionDef *opt = print_config_def.get(key);
+        assert(opt);
+        assert(opt->default_value);
+        m_default_config.set_key_value(key, opt->default_value->clone());
+    }
 }
 
 // Load all printers found in dir_path.
@@ -1539,7 +1547,7 @@ void PhysicalPrinterCollection::load_printers(const std::string& dir_path, const
                 continue;
             }
             try {
-                PhysicalPrinter printer(name);
+                PhysicalPrinter printer(name, this->default_config());
                 printer.file = dir_entry.path().string();
                 // Load the preset file, apply preset values on top of defaults.
                 try {
@@ -1590,7 +1598,7 @@ void PhysicalPrinterCollection::load_printers_from_presets(PrinterPresetCollecti
                         new_printer_name = (boost::format("Printer %1%") % ++cnt).str();
 
                     // create new printer from this preset
-                    PhysicalPrinter printer(new_printer_name, preset);
+                    PhysicalPrinter printer(new_printer_name, this->default_config(), preset);
                     printer.loaded = true;
                     save_printer(printer);
                 }

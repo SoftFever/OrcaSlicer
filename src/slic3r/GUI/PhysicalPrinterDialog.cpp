@@ -155,8 +155,9 @@ void PresetForPrinter::msw_rescale()
 //          PhysicalPrinterDialog
 //------------------------------------------
 
-PhysicalPrinterDialog::PhysicalPrinterDialog(wxString printer_name)
-    : DPIDialog(NULL, wxID_ANY, _L("Physical Printer"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), -1), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+PhysicalPrinterDialog::PhysicalPrinterDialog(wxString printer_name) : 
+    DPIDialog(NULL, wxID_ANY, _L("Physical Printer"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), -1), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
+    m_printer("", wxGetApp().preset_bundle->physical_printers.default_config())
 {
     SetFont(wxGetApp().normal_font());
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
@@ -186,7 +187,8 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxString printer_name)
     PhysicalPrinter* printer = printers.find_printer(into_u8(printer_name));
     if (!printer) {
         const Preset& preset = wxGetApp().preset_bundle->printers.get_edited_preset();
-        printer = new PhysicalPrinter(into_u8(printer_name), preset);
+        //FIXME Vojtech: WTF??? Memory leak?
+        printer = new PhysicalPrinter(into_u8(printer_name), m_printer.config, preset);
         // if printer_name is empty it means that new printer is created, so enable all items in the preset list
         m_presets.emplace_back(new PresetForPrinter(this, preset.name));
     }
@@ -249,7 +251,7 @@ PhysicalPrinterDialog::~PhysicalPrinterDialog()
 void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgroup)
 {
     m_optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
-        if (opt_key == "authorization_type")
+        if (opt_key == "printhost_authorization_type")
             this->update();
     };
 
@@ -308,7 +310,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     host_line.append_widget(print_host_test);
     m_optgroup->append_line(host_line);
 
-    m_optgroup->append_single_option_line("authorization_type");
+    m_optgroup->append_single_option_line("printhost_authorization_type");
 
     option = m_optgroup->get_option("printhost_apikey");
     option.opt.width = Field::def_width_wider();
@@ -368,7 +370,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
         m_optgroup->append_line(line);
     }
 
-    for (const std::string& opt_key : std::vector<std::string>{ "login", "password" }) {        
+    for (const std::string& opt_key : std::vector<std::string>{ "printhost_user", "printhost_password" }) {        
         option = m_optgroup->get_option(opt_key);
         option.opt.width = Field::def_width_wider();
         m_optgroup->append_single_option_line(option);
@@ -385,20 +387,20 @@ void PhysicalPrinterDialog::update()
     // Only offer the host type selection for FFF, for SLA it's always the SL1 printer (at the moment)
     if (tech == ptFFF) {
         m_optgroup->show_field("host_type");
-        m_optgroup->hide_field("authorization_type");
-        for (const std::string& opt_key : std::vector<std::string>{ "login", "password" })
+        m_optgroup->hide_field("printhost_authorization_type");
+        for (const std::string& opt_key : std::vector<std::string>{ "printhost_user", "printhost_password" })
             m_optgroup->hide_field(opt_key);
     }
     else {
         m_optgroup->set_value("host_type", int(PrintHostType::htOctoPrint), false);
         m_optgroup->hide_field("host_type");
 
-        m_optgroup->show_field("authorization_type");
+        m_optgroup->show_field("printhost_authorization_type");
 
-        AuthorizationType auth_type = m_config->option<ConfigOptionEnum<AuthorizationType>>("authorization_type")->value;
+        AuthorizationType auth_type = m_config->option<ConfigOptionEnum<AuthorizationType>>("printhost_authorization_type")->value;
         m_optgroup->show_field("printhost_apikey", auth_type == AuthorizationType::atKeyPassword);
 
-        for (const std::string& opt_key : std::vector<std::string>{ "login", "password" })
+        for (const std::string& opt_key : std::vector<std::string>{ "printhost_user", "printhost_password" })
             m_optgroup->show_field(opt_key, auth_type == AuthorizationType::atUserPassword);
     }
 

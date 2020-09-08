@@ -64,6 +64,8 @@ public:
 	Http& header(std::string name, const std::string &value);
 	// Removes a header field.
 	Http& remove_header(std::string name);
+	// Authorization by HTTP digest, based on RFC2617.
+	Http& auth_digest(const std::string &user, const std::string &password);
 	// Sets a CA certificate file for usage with HTTPS. This is only supported on some backends,
 	// specifically, this is supported with OpenSSL and NOT supported with Windows and OS X native certificate store.
 	// See also ca_file_supported().

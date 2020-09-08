@@ -415,6 +415,16 @@ Http& Http::remove_header(std::string name)
 	return *this;
 }
 
+// Authorization by HTTP digest, based on RFC2617.
+Http& Http::auth_digest(const std::string &user, const std::string &password)
+{
+	curl_easy_setopt(p->curl, CURLOPT_USERNAME, user.c_str());
+	curl_easy_setopt(p->curl, CURLOPT_PASSWORD, password.c_str());
+	curl_easy_setopt(p->curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+
+	return *this;
+}
+
 Http& Http::ca_file(const std::string &name)
 {
 	if (p && priv::ca_file_supported(p->curl)) {

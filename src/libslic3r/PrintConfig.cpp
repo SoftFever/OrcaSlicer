@@ -133,13 +133,13 @@ void PrintConfigDef::init_common_params()
 
     // Options used by physical printers
     
-    def = this->add("login", coString);
-    def->label = L("Login");
+    def = this->add("printhost_user", coString);
+    def->label = L("User");
 //    def->tooltip = L("");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
     
-    def = this->add("password", coString);
+    def = this->add("printhost_password", coString);
     def->label = L("Password");
 //    def->tooltip = L("");
     def->mode = comAdvanced;
@@ -151,7 +151,7 @@ void PrintConfigDef::init_common_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
 
-    def = this->add("authorization_type", coEnum);
+    def = this->add("printhost_authorization_type", coEnum);
     def->label = L("Authorization Type");
 //    def->tooltip = L("");
     def->enum_keys_map = &ConfigOptionEnum<AuthorizationType>::get_enum_values();
