@@ -56,7 +56,7 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 		// On Apple the wxExecute fails, thus we use boost::process instead.
 		BOOST_LOG_TRIVIAL(info) << "Trying to spawn a new slicer \"" << bin_path.string() << "\"";
 		try {
-	    	path_to_open ? boost::process::spawn(bin_path.string(), into_u8(*path_to_open)) : boost::process::spawn(bin_path.string());
+	    	path_to_open ? boost::process::spawn(bin_path, into_u8(*path_to_open)) : boost::process::spawn(bin_path, boost::path::args());
 	    } catch (const std::exception &ex) {
 			BOOST_LOG_TRIVIAL(error) << "Failed to spawn a new slicer \"" << bin_path.string() << "\": " << ex.what();
 	    }
