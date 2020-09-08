@@ -187,8 +187,7 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxString printer_name) :
     PhysicalPrinter* printer = printers.find_printer(into_u8(printer_name));
     if (!printer) {
         const Preset& preset = wxGetApp().preset_bundle->printers.get_edited_preset();
-        //FIXME Vojtech: WTF??? Memory leak?
-        printer = new PhysicalPrinter(into_u8(printer_name), m_printer.config, preset);
+        m_printer = PhysicalPrinter(into_u8(printer_name), m_printer.config, preset);
         // if printer_name is empty it means that new printer is created, so enable all items in the preset list
         m_presets.emplace_back(new PresetForPrinter(this, preset.name));
     }
@@ -197,9 +196,8 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxString printer_name) :
         const std::set<std::string>& preset_names = printer->get_preset_names();
         for (const std::string& preset_name : preset_names)
             m_presets.emplace_back(new PresetForPrinter(this, preset_name));
+        m_printer = *printer;
     }
-    assert(printer);
-    m_printer = *printer;
 
     if (m_presets.size() == 1)
         m_presets.front()->SuppressDelete();
