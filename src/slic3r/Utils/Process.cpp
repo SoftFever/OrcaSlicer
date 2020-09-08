@@ -49,9 +49,9 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 	if (path_to_open != nullptr)
 		args.emplace_back(path_to_open->wc_str());
 	args.emplace_back(nullptr);
-	BOOST_LOG_TRIVIAL(info) << "Trying to spawn a new slicer \"" << to_u8(path) << "\"";
+	BOOST_LOG_TRIVIAL(info) << "Trying to spawn a new slicer \"" << into_u8(path) << "\"";
 	if (wxExecute(const_cast<wchar_t**>(args.data()), wxEXEC_ASYNC | wxEXEC_HIDE_CONSOLE | wxEXEC_MAKE_GROUP_LEADER) <= 0)
-		BOOST_LOG_TRIVIAL(error) << "Failed to spawn a new slicer \"" << to_u8(path);
+		BOOST_LOG_TRIVIAL(error) << "Failed to spawn a new slicer \"" << into_u8(path);
 #else 
 	// Own executable path.
     boost::filesystem::path bin_path = into_path(wxStandardPaths::Get().GetExecutablePath());
