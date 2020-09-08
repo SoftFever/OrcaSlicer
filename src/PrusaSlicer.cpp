@@ -22,6 +22,7 @@
 #include <cstring>
 #include <iostream>
 #include <math.h>
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/nowide/args.hpp>
 #include <boost/nowide/cenv.hpp>
@@ -101,8 +102,14 @@ int CLI::run(int argc, char **argv)
         std::find(m_transforms.begin(), m_transforms.end(), "cut") == m_transforms.end() &&
         std::find(m_transforms.begin(), m_transforms.end(), "cut_x") == m_transforms.end() &&
         std::find(m_transforms.begin(), m_transforms.end(), "cut_y") == m_transforms.end();
-    bool 							start_as_gcodeviewer = false;
-    
+    bool 							start_as_gcodeviewer =
+#ifdef _WIN32
+            false;
+#else
+            // On Unix systems, the prusa-slicer binary may be symlinked to give the application a different meaning.
+            boost::algorithm::iends_with(boost::filesystem::path(argv[0]).filename().string(), "gcodeviewer");
+#endif // _WIN32
+
     const std::vector<std::string> &load_configs		= m_config.option<ConfigOptionStrings>("load", true)->values;
 
     // load config files supplied via --load
