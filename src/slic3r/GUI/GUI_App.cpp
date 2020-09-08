@@ -78,6 +78,109 @@ namespace GUI {
 
 class MainFrame;
 
+// ysFIXME
+static int get_dpi_for_main_display()
+{
+    wxFrame fr(nullptr, wxID_ANY, wxEmptyString);
+    return get_dpi_for_window(&fr);    
+}
+
+// scale input bitmap and return scale factor
+static float scale_bitmap(wxBitmap& bmp)
+{
+    int dpi = get_dpi_for_main_display();
+    float sf = 1.0;
+    // scale bitmap if needed
+    if (dpi != DPI_DEFAULT) {
+        wxImage image = bmp.ConvertToImage();
+        if (image.IsOk() && image.GetWidth() != 0 && image.GetHeight() != 0)
+        {
+            sf = (float)dpi / DPI_DEFAULT;
+            int width   = int(sf * image.GetWidth());
+            int height  = int(sf * image.GetHeight());
+            image.Rescale(width, height, wxIMAGE_QUALITY_BILINEAR);
+
+            bmp = wxBitmap(std::move(image));
+        }
+    }
+    return sf;
+}
+
+static void word_wrap_string(wxString& input, int line_len)
+{
+    int idx = -1;
+    int cur_len = 0;
+    for (size_t i = 0; i < input.Len(); i++)
+    {
+        cur_len++;
+        if (input[i] == ' ')
+            idx = i;
+        if (input[i] == '\n')
+        {
+            idx = -1;
+            cur_len = 0;
+        }
+        if (cur_len >= line_len && idx >= 0)
+        {
+            input[idx] = '\n';
+            cur_len = static_cast<int>(i) - idx;
+        }
+    }
+}
+
+static void DecorateSplashScreen(wxBitmap& bmp)
+{
+    wxASSERT(bmp.IsOk());
+    float scale_factor = scale_bitmap(bmp);
+
+    // use a memory DC to draw directly onto the bitmap
+    wxMemoryDC memDc(bmp);
+
+    // draw an dark grey box at the left of the splashscreen.
+    // this box will be 2/9 of the weight of the bitmap, and be at the left.
+    const wxRect bannerRect(wxPoint(0, (bmp.GetHeight() / 9) * 2 - 2), wxPoint((bmp.GetWidth() / 5) * 2, bmp.GetHeight()));
+    wxDCBrushChanger bc(memDc, wxBrush(wxColour(51, 51, 51)));
+    wxDCPenChanger pc(memDc, wxPen(wxColour(51, 51, 51)));
+    memDc.DrawRectangle(bannerRect);
+
+    // title
+    wxString title_string = SLIC3R_APP_NAME;
+    wxFont title_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+    title_font.SetPointSize(24);
+
+    // dynamically get the version to display
+    wxString version_string = _L("Version") + " " + std::string(SLIC3R_VERSION);
+    wxFont version_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Larger().Larger();
+
+    // create a copyright notice that uses the year that this file was compiled
+    wxString year(__DATE__);
+    wxString cr_symbol = wxString::FromUTF8("\xc2\xa9");
+    wxString copyright_string = wxString::Format("%s 2016-%s Prusa Research.\n"
+                                               "%s 2011-2018 Alessandro Ranellucci.",
+        cr_symbol, year.Mid(year.Length() - 4), cr_symbol);
+    wxFont copyright_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Larger();
+
+    copyright_string += "Slic3r" + _L("is licensed under the") + _L("GNU Affero General Public License, version 3") + "\n\n" + 
+                        _L("PrusaSlicer is based on Slic3r by Alessandro Ranellucci and the RepRap community.") + "\n\n" +
+                        _L("Contributions by Henrik Brix Andersen, Nicolas Dandrimont, Mark Hindess, Petr Ledvina, Joseph Lenox, Y. Sapir, Mike Sheldrake, Vojtech Bubnik and numerous others.");
+
+    word_wrap_string(copyright_string, 50);
+
+    wxCoord margin = int(scale_factor * 20);
+
+    // draw the (orange) labels inside of our black box (at the left of the splashscreen)
+    memDc.SetTextForeground(wxColour(237, 107, 33));
+
+    memDc.SetFont(title_font);
+    memDc.DrawLabel(title_string,       bannerRect.Deflate(margin, 0), wxALIGN_TOP | wxALIGN_LEFT);
+
+    memDc.SetFont(version_font);
+    memDc.DrawLabel(version_string,     bannerRect.Deflate(margin, 2 * margin), wxALIGN_TOP | wxALIGN_LEFT);
+
+    memDc.SetFont(copyright_font);
+    memDc.DrawLabel(copyright_string,   bannerRect.Deflate(margin, 2 * margin), wxALIGN_BOTTOM | wxALIGN_LEFT);
+}
+
 class SplashScreen : public wxSplashScreen
 {
 public:
@@ -86,6 +189,10 @@ public:
     {
         wxASSERT(bitmap.IsOk());
         m_main_bitmap = bitmap;
+
+        int dpi = get_dpi_for_main_display();
+        if (dpi != DPI_DEFAULT)
+            m_scale_factor = (float)dpi / DPI_DEFAULT;
     }
 
     void SetText(const wxString& text)
@@ -93,13 +200,14 @@ public:
         SetBmp(m_main_bitmap);
         if (!text.empty()) {
             wxBitmap bitmap(m_main_bitmap);
-            wxMemoryDC memDC;
 
+            wxMemoryDC memDC;
             memDC.SelectObject(bitmap);
 
-            memDC.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold());
+            wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold().Larger();
+            memDC.SetFont(font);
             memDC.SetTextForeground(wxColour(237, 107, 33));
-            memDC.DrawText(text, 120, 120);
+            memDC.DrawText(text, int(m_scale_factor * 45), int(m_scale_factor * 215));
 
             memDC.SelectObject(wxNullBitmap);
             SetBmp(bitmap);
@@ -115,7 +223,8 @@ public:
     }
 
 private:
-    wxBitmap m_main_bitmap;
+    wxBitmap    m_main_bitmap;
+    float       m_scale_factor {1.0};
 };
 
 wxString file_wildcards(FileType file_type, const std::string &custom_extension)
@@ -444,9 +553,20 @@ bool GUI_App::on_init_inner()
 
     app_config->set("version", SLIC3R_VERSION);
     app_config->save();
+/*
+    if (wxImage::FindHandler(wxBITMAP_TYPE_JPEG) == nullptr)
+        wxImage::AddHandler(new wxJPEGHandler());
+    if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
+        wxImage::AddHandler(new wxPNGHandler());
+*/
+    wxInitAllImageHandlers();
 
     wxBitmap bitmap = create_scaled_bitmap("prusa_slicer_logo", nullptr, 400);
-    SplashScreen* scrn = new SplashScreen(bitmap, wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 4000, nullptr);
+    wxBitmap bmp(from_u8(var("splashscreen.jpg")), wxBITMAP_TYPE_JPEG);
+
+    DecorateSplashScreen(bmp);
+
+    SplashScreen* scrn = new SplashScreen(bmp.IsOk() ? bmp : bitmap, wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 4000, nullptr);
     scrn->SetText(_L("Loading configuration..."));
 
     preset_bundle = new PresetBundle();
@@ -502,9 +622,6 @@ bool GUI_App::on_init_inner()
     Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
 
     // application frame
-    if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
-        wxImage::AddHandler(new wxPNGHandler());
-
 #if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
     if (is_editor())
 #endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
