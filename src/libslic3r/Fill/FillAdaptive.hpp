@@ -48,6 +48,12 @@ class FillAdaptive : public Fill
 public:
     virtual ~FillAdaptive() {}
 
+    static void insert_octant(
+        FillAdaptive_Internal::Cube *                             i_cube,
+        FillAdaptive_Internal::Cube *                             current,
+        int                                                       depth,
+        const std::vector<FillAdaptive_Internal::CubeProperties> &cubes_properties);
+
 protected:
     virtual Fill* clone() const { return new FillAdaptive(*this); };
 	virtual void _fill_surface_single(
