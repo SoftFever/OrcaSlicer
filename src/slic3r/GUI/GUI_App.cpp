@@ -77,9 +77,11 @@ namespace GUI {
 
 class MainFrame;
 
-// ysFIXME
 static float get_scale_for_main_display()
 {
+    // ysFIXME : Workaround :
+    // wxFrame is created on the main monitor, so we can take a scale factor from this one
+    // before The Application and the Mainframe are created
     wxFrame fr(nullptr, wxID_ANY, wxEmptyString);
 
 #if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT && !defined(__WXGTK__)
@@ -118,7 +120,9 @@ static float scale_bitmap(wxBitmap& bmp)
 
 static void word_wrap_string(wxString& input, int line_px_len, float scalef)
 {
+    // calculate count od symbols in one line according to the scale
     int line_len = std::roundf( (float)line_px_len / (scalef * 10)) + 10;
+
     int idx = -1;
     int cur_len = 0;
     for (size_t i = 0; i < input.Len(); i++)
@@ -176,7 +180,6 @@ static void DecorateSplashScreen(wxBitmap& bmp)
                         _L("PrusaSlicer is based on Slic3r by Alessandro Ranellucci and the RepRap community.") + "\n\n" +
                         _L("Contributions by Henrik Brix Andersen, Nicolas Dandrimont, Mark Hindess, Petr Ledvina, Joseph Lenox, Y. Sapir, Mike Sheldrake, Vojtech Bubnik and numerous others.");
 
-//    word_wrap_string(copyright_string, 50);
     word_wrap_string(copyright_string, banner_width, scale_factor);
 
     wxCoord margin = int(scale_factor * 20);
@@ -198,14 +201,12 @@ class SplashScreen : public wxSplashScreen
 {
 public:
     SplashScreen(const wxBitmap& bitmap, long splashStyle, int milliseconds, wxWindow* parent)
-        : wxSplashScreen(bitmap, splashStyle, milliseconds, parent, wxID_ANY)
+        : wxSplashScreen(bitmap, splashStyle, milliseconds, parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+                        wxSIMPLE_BORDER | wxFRAME_NO_TASKBAR)
     {
         wxASSERT(bitmap.IsOk());
         m_main_bitmap = bitmap;
 
-/*        int dpi = get_dpi_for_main_display();
-        if (dpi != DPI_DEFAULT)
-            m_scale_factor = (float)dpi / DPI_DEFAULT;  */
         m_scale_factor = get_scale_for_main_display();
     }
 
