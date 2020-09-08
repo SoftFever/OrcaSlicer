@@ -2811,7 +2811,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         if (this->preview != nullptr) {
             // If the preview is not visible, the following line just invalidates the preview,
             // but the G-code paths or SLA preview are calculated first once the preview is made visible.
-            this->preview->get_canvas3d()->reset_gcode_toolpaths();
+            reset_gcode_toolpaths();
             this->preview->reload_print();
         }
 #else
@@ -5384,6 +5384,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             this->set_printer_technology(config.opt_enum<PrinterTechnology>(opt_key));
             // print technology is changed, so we should to update a search list
             p->sidebar->update_searcher();
+            p->reset_gcode_toolpaths();
         }
         else if ((opt_key == "bed_shape") || (opt_key == "bed_custom_texture") || (opt_key == "bed_custom_model")) {
             bed_shape_changed = true;
