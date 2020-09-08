@@ -1,3 +1,4 @@
+#include "libslic3r/Technologies.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
@@ -309,8 +310,15 @@ static void generic_exception_handle()
 
 IMPLEMENT_APP(GUI_App)
 
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+GUI_App::GUI_App(EAppMode mode)
+#else
 GUI_App::GUI_App()
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
     : wxApp()
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+    , m_app_mode(mode)
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
     , m_wizard(nullptr)
@@ -366,6 +374,12 @@ void GUI_App::init_app_config()
 	if (!app_config)
 		app_config = new AppConfig();
 
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+    if (is_gcode_viewer())
+        // disable config save to avoid to mess it up for the editor
+        app_config->enable_save(false);
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+
 	// load settings
 	app_conf_exists = app_config->exists();
 	if (app_conf_exists) {
@@ -402,18 +416,18 @@ bool GUI_App::on_init_inner()
     wxCHECK_MSG(wxDirExists(resources_dir), false,
         wxString::Format("Resources path does not exist or is not a directory: %s", resources_dir));
 
-     // Enable this to get the default Win32 COMCTRL32 behavior of static boxes.
+    // Enable this to get the default Win32 COMCTRL32 behavior of static boxes.
 //    wxSystemOptions::SetOption("msw.staticbox.optimized-paint", 0);
     // Enable this to disable Windows Vista themes for all wxNotebooks. The themes seem to lead to terrible
     // performance when working on high resolution multi-display setups.
 //    wxSystemOptions::SetOption("msw.notebook.themed-background", 0);
 
 //     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", wxVERSION_STRING, wxVERSION;
-   
+
     std::string msg = Http::tls_global_init();
     std::string ssl_cert_store = app_config->get("tls_accepted_cert_store_location");
     bool ssl_accept = app_config->get("tls_cert_store_accepted") == "yes" && ssl_cert_store == Http::tls_system_cert_store();
-    
+
     if (!msg.empty() && !ssl_accept) {
         wxRichMessageDialog
             dlg(nullptr,
@@ -423,38 +437,44 @@ bool GUI_App::on_init_inner()
         if (dlg.ShowModal() != wxID_YES) return false;
 
         app_config->set("tls_cert_store_accepted",
-                        dlg.IsCheckBoxChecked() ? "yes" : "no");
+            dlg.IsCheckBoxChecked() ? "yes" : "no");
         app_config->set("tls_accepted_cert_store_location",
-                        dlg.IsCheckBoxChecked() ? Http::tls_system_cert_store() : "");
+            dlg.IsCheckBoxChecked() ? Http::tls_system_cert_store() : "");
     }
-    
+
     app_config->set("version", SLIC3R_VERSION);
     app_config->save();
 
     wxBitmap bitmap = create_scaled_bitmap("prusa_slicer_logo", nullptr, 400);
     SplashScreen* scrn = new SplashScreen(bitmap, wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 4000, nullptr);
     scrn->SetText(_L("Loading configuration..."));
-    
+
     preset_bundle = new PresetBundle();
-    
+
     // just checking for existence of Slic3r::data_dir is not enough : it may be an empty directory
     // supplied as argument to --datadir; in that case we should still run the wizard
     preset_bundle->setup_directories();
 
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+    if (is_editor()) {
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 #ifdef __WXMSW__ 
-    associate_3mf_files();
+        associate_3mf_files();
 #endif // __WXMSW__
 
-    preset_updater = new PresetUpdater();
-    Bind(EVT_SLIC3R_VERSION_ONLINE, [this](const wxCommandEvent &evt) {
-        app_config->set("version_online", into_u8(evt.GetString()));
-        app_config->save();
-		if(this->plater_ != nullptr) {
-			if (*Semver::parse(SLIC3R_VERSION) < * Semver::parse(into_u8(evt.GetString()))) {
-				this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAviable, *(this->plater_->get_current_canvas3D()));
-			}
-		}
-    });
+        preset_updater = new PresetUpdater();
+        Bind(EVT_SLIC3R_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
+            app_config->set("version_online", into_u8(evt.GetString()));
+            app_config->save();
+            if (this->plater_ != nullptr) {
+                if (*Semver::parse(SLIC3R_VERSION) < *Semver::parse(into_u8(evt.GetString()))) {
+                    this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAviable, *(this->plater_->get_current_canvas3D()));
+                }
+            }
+            });
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+    }
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 
     // initialize label colors and fonts
     init_label_colours();
@@ -484,7 +504,11 @@ bool GUI_App::on_init_inner()
     // application frame
     if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
         wxImage::AddHandler(new wxPNGHandler());
-    scrn->SetText(_L("Creating settings tabs..."));
+
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+    if (is_editor())
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+        scrn->SetText(_L("Creating settings tabs..."));
 
     mainframe = new MainFrame();
     // hide settings tabs after first Layout
@@ -519,13 +543,20 @@ bool GUI_App::on_init_inner()
         static bool once = true;
         if (once) {
             once = false;
-			check_updates(false);
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+            if (preset_updater != nullptr) {
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+                check_updates(false);
 
-			CallAfter([this] {
-				config_wizard_startup();
-				preset_updater->slic3r_update_notify();
-				preset_updater->sync(preset_bundle);
-				});
+                CallAfter([this] {
+                    config_wizard_startup();
+                    preset_updater->slic3r_update_notify();
+                    preset_updater->sync(preset_bundle);
+                    });
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+            }
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+
 #ifdef _WIN32
 			//sets window property to mainframe so other instances can indentify it
 			OtherInstanceMessageHandler::init_windows_properties(mainframe, m_instance_hash_int);
@@ -533,8 +564,16 @@ bool GUI_App::on_init_inner()
         }
     });
 
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+    if (is_gcode_viewer()) {
+        mainframe->update_layout();
+        if (plater_ != nullptr)
+            // ensure the selected technology is ptFFF
+            plater_->set_printer_technology(ptFFF);
+    }
+#else
     load_current_presets();
-
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
     mainframe->Show(true);
 
     /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:

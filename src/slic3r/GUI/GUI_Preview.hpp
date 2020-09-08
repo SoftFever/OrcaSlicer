@@ -194,6 +194,9 @@ Preview(wxWindow* parent, Model* model, DynamicPrintConfig* config,
 #if ENABLE_GCODE_VIEWER
     void update_bottom_toolbar();
     void update_moves_slider();
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+    void hide_layers_slider();
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 #endif // ENABLE_GCODE_VIEWER
 
 private:
@@ -203,7 +206,9 @@ private:
     void unbind_event_handlers();
 
 #if ENABLE_GCODE_VIEWER
+#if !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
     void hide_layers_slider();
+#endif // !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 #else
     void show_hide_ui_elements(const std::string& what);
 

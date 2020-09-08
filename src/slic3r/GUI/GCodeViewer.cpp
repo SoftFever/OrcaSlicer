@@ -339,7 +339,11 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
     reset();
 
     load_toolpaths(gcode_result);
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+    if (wxGetApp().is_editor())
+#else
     if (wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer)
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
         load_shells(print, initialized);
     else {
         Pointfs bed_shape;
@@ -875,7 +879,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
     for (size_t i = 0; i < m_vertices_count; ++i) {
         const GCodeProcessor::MoveVertex& move = gcode_result.moves[i];
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+        if (wxGetApp().is_gcode_viewer())
+#else
         if (wxGetApp().mainframe->get_mode() == MainFrame::EMode::GCodeViewer)
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
             // for the gcode viewer we need all moves to correctly size the printbed
             m_paths_bounding_box.merge(move.position.cast<double>());
         else {

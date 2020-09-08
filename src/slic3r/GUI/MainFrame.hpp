@@ -57,7 +57,7 @@ class SettingsDialog : public DPIDialog
     MainFrame*  m_main_frame { nullptr };
 public:
     SettingsDialog(MainFrame* mainframe);
-    ~SettingsDialog() {}
+    ~SettingsDialog() = default;
     void set_tabpanel(wxNotebook* tabpanel) { m_tabpanel = tabpanel; }
 
 protected:
@@ -72,6 +72,9 @@ class MainFrame : public DPIFrame
     wxString    m_qs_last_output_file = wxEmptyString;
     wxString    m_last_config = wxEmptyString;
 #if ENABLE_GCODE_VIEWER
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+    wxMenuBar* m_menubar{ nullptr };
+#else
     wxMenuBar* m_editor_menubar{ nullptr };
     wxMenuBar* m_gcodeviewer_menubar{ nullptr };
 
@@ -83,6 +86,7 @@ class MainFrame : public DPIFrame
     };
 
     RestoreFromGCodeViewer m_restore_from_gcode_viewer;
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 #endif // ENABLE_GCODE_VIEWER
 
 #if 0
@@ -146,6 +150,7 @@ class MainFrame : public DPIFrame
     ESettingsLayout m_layout{ ESettingsLayout::Unknown };
 
 #if ENABLE_GCODE_VIEWER
+#if !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 public:
     enum class EMode : unsigned char
     {
@@ -155,6 +160,7 @@ public:
 
 private:
     EMode m_mode{ EMode::Editor };
+#endif // !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 #endif // ENABLE_GCODE_VIEWER
 
 protected:
@@ -182,16 +188,17 @@ public:
     void        create_preset_tabs();
     void        add_created_tab(Tab* panel);
 #if ENABLE_GCODE_VIEWER
-    void        init_editor_menubar();
-    void        update_editor_menubar();
-    void        init_gcodeviewer_menubar();
+    void        init_menubar_as_editor();
+    void        init_menubar_as_gcodeviewer();
 
+#if !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
     EMode       get_mode() const { return m_mode; }
     void        set_mode(EMode mode);
+#endif // !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 #else
     void        init_menubar();
-    void        update_menubar();
 #endif // ENABLE_GCODE_VIEWER
+    void        update_menubar();
 
     void        update_ui_from_settings();
     bool        is_loaded() const { return m_loaded; }

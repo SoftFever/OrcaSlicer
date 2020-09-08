@@ -94,8 +94,22 @@ static wxString dots("…", wxConvUTF8);
 
 class GUI_App : public wxApp
 {
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+public:
+    enum class EAppMode : unsigned char
+    {
+        Editor,
+        GCodeViewer
+    };
+
+private:
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+
     bool            m_initialized { false };
     bool            app_conf_exists{ false };
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+    EAppMode        m_app_mode{ EAppMode::Editor };
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 
     wxColour        m_color_label_modified;
     wxColour        m_color_label_sys;
@@ -125,12 +139,23 @@ class GUI_App : public wxApp
     std::unique_ptr <wxSingleInstanceChecker> m_single_instance_checker;
     std::string m_instance_hash_string;
 	size_t m_instance_hash_int;
+
 public:
     bool            OnInit() override;
     bool            initialized() const { return m_initialized; }
 
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+    explicit GUI_App(EAppMode mode = EAppMode::Editor);
+#else
     GUI_App();
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
     ~GUI_App() override;
+
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+    EAppMode get_app_mode() const { return m_app_mode; }
+    bool is_editor() const { return m_app_mode == EAppMode::Editor; }
+    bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 
     static std::string get_gl_info(bool format_as_html, bool extensions);
     wxGLContext* init_glcontext(wxGLCanvas& canvas);

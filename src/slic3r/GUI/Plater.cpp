@@ -1369,41 +1369,52 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
     this->MSWUpdateDragImageOnLeave();
 #endif // WIN32
 
-    // gcode section
-    for (const auto& filename : filenames) {
-        fs::path path(into_path(filename));
-        if (std::regex_match(path.string(), pattern_gcode_drop))
-            paths.push_back(std::move(path));
-    }
-
-    if (paths.size() > 1) {
-        wxMessageDialog((wxWindow*)plater, _L("You can open only one .gcode file at a time."),
-            wxString(SLIC3R_APP_NAME) + " - " + _L("Drag and drop G-code file"), wxCLOSE | wxICON_WARNING | wxCENTRE).ShowModal();
-        return false;
-    }
-    else if (paths.size() == 1) {
-        if (wxGetApp().mainframe->get_mode() == MainFrame::EMode::GCodeViewer) {
-            plater->load_gcode(from_path(paths.front()));
-            return true;
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+    if (wxGetApp().is_gcode_viewer()) {
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+        // gcode section
+        for (const auto& filename : filenames) {
+            fs::path path(into_path(filename));
+            if (std::regex_match(path.string(), pattern_gcode_drop))
+                paths.push_back(std::move(path));
         }
-        else {
-            if (wxMessageDialog((wxWindow*)plater, _L("Do you want to switch to G-code preview ?"),
-                wxString(SLIC3R_APP_NAME) + " - " + _L("Drag and drop G-code file"), wxYES_NO | wxICON_QUESTION | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES) {
 
-                if (plater->model().objects.empty() ||
-                    wxMessageDialog((wxWindow*)plater, _L("Switching to G-code preview mode will remove all objects, continue?"),
-                        wxString(SLIC3R_APP_NAME) + " - " + _L("Switch to G-code preview mode"), wxYES_NO | wxICON_QUESTION | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES) {
-                    wxGetApp().mainframe->set_mode(MainFrame::EMode::GCodeViewer);
-                    plater->load_gcode(from_path(paths.front()));
-                    return true;
-                }
-            }
+        if (paths.size() > 1) {
+            wxMessageDialog((wxWindow*)plater, _L("You can open only one .gcode file at a time."),
+                wxString(SLIC3R_APP_NAME) + " - " + _L("Drag and drop G-code file"), wxCLOSE | wxICON_WARNING | wxCENTRE).ShowModal();
             return false;
         }
+        else if (paths.size() == 1) {
+#if !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+            if (wxGetApp().mainframe->get_mode() == MainFrame::EMode::GCodeViewer) {
+#endif // !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+                plater->load_gcode(from_path(paths.front()));
+                return true;
+#if !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+            }
+            else {
+                if (wxMessageDialog((wxWindow*)plater, _L("Do you want to switch to G-code preview ?"),
+                    wxString(SLIC3R_APP_NAME) + " - " + _L("Drag and drop G-code file"), wxYES_NO | wxICON_QUESTION | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES) {
+
+                    if (plater->model().objects.empty() ||
+                        wxMessageDialog((wxWindow*)plater, _L("Switching to G-code preview mode will remove all objects, continue?"),
+                            wxString(SLIC3R_APP_NAME) + " - " + _L("Switch to G-code preview mode"), wxYES_NO | wxICON_QUESTION | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES) {
+                        wxGetApp().mainframe->set_mode(MainFrame::EMode::GCodeViewer);
+                        plater->load_gcode(from_path(paths.front()));
+                        return true;
+                    }
+                }
+                return false;
+            }
+#endif // !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+        }
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+        return false;
     }
+#endif //ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 #endif // ENABLE_GCODE_VIEWER
 
-    // model section
+    // editor section
     for (const auto &filename : filenames) {
         fs::path path(into_path(filename));
         if (std::regex_match(path.string(), pattern_drop))
@@ -1413,6 +1424,7 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
     }
 
 #if ENABLE_GCODE_VIEWER
+#if !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
     if (wxGetApp().mainframe->get_mode() == MainFrame::EMode::GCodeViewer) {
         if (wxMessageDialog((wxWindow*)plater, _L("Do you want to exit G-code preview ?"),
             wxString(SLIC3R_APP_NAME) + " - " + _L("Drag and drop model file"), wxYES_NO | wxICON_QUESTION | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES)
@@ -1420,6 +1432,7 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
         else
             return false;
     }
+#endif // !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 #endif // ENABLE_GCODE_VIEWER
 
     wxString snapshot_label;
@@ -1970,7 +1983,13 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     q->SetDropTarget(new PlaterDropTarget(q));   // if my understanding is right, wxWindow takes the owenership
     q->Layout();
 
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+    set_current_panel(wxGetApp().is_editor() ? (wxPanel*)view3D : (wxPanel*)preview);
+    if (wxGetApp().is_gcode_viewer())
+        preview->hide_layers_slider();
+#else
     set_current_panel(view3D);
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 
     // updates camera type from .ini file
     camera.set_type(get_config("use_perspective_camera"));
@@ -1990,33 +2009,38 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 #endif /* _WIN32 */
 
 	notification_manager = new NotificationManager(this->q);
-	this->q->Bind(EVT_EJECT_DRIVE_NOTIFICAION_CLICKED, [this](EjectDriveNotificationClickedEvent&) { this->q->eject_drive(); });
-	this->q->Bind(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED, [this](ExportGcodeNotificationClickedEvent&) { this->q->export_gcode(true); });
-	this->q->Bind(EVT_PRESET_UPDATE_AVIABLE_CLICKED, [this](PresetUpdateAviableClickedEvent&) {  wxGetApp().get_preset_updater()->on_update_notification_confirm(); });
-
-	this->q->Bind(EVT_REMOVABLE_DRIVE_EJECTED, [this, q](RemovableDriveEjectEvent &evt) {
-		if (evt.data.second) {
-			this->show_action_buttons(this->ready_to_slice);
-			notification_manager->push_notification(format(_L("Unmounting successful. The device %s(%s) can now be safely removed from the computer."),evt.data.first.name, evt.data.first.path),
-				                                    NotificationManager::NotificationLevel::RegularNotification, *q->get_current_canvas3D());
-		} else {
-			notification_manager->push_notification(format(_L("Ejecting of device %s(%s) has failed."), evt.data.first.name, evt.data.first.path),
-				                                    NotificationManager::NotificationLevel::ErrorNotification, *q->get_current_canvas3D());
-		}
-	});
-    this->q->Bind(EVT_REMOVABLE_DRIVES_CHANGED, [this, q](RemovableDrivesChangedEvent &) {
-		this->show_action_buttons(this->ready_to_slice); 
-		if (!this->sidebar->get_eject_shown()) {
-			notification_manager->close_notification_of_type(NotificationType::ExportToRemovableFinished);
-		}
-	});
-    // Start the background thread and register this window as a target for update events.
-    wxGetApp().removable_drive_manager()->init(this->q);
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+    if (wxGetApp().is_editor()) {
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+        this->q->Bind(EVT_EJECT_DRIVE_NOTIFICAION_CLICKED, [this](EjectDriveNotificationClickedEvent&) { this->q->eject_drive(); });
+        this->q->Bind(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED, [this](ExportGcodeNotificationClickedEvent&) { this->q->export_gcode(true); });
+        this->q->Bind(EVT_PRESET_UPDATE_AVIABLE_CLICKED, [this](PresetUpdateAviableClickedEvent&) {  wxGetApp().get_preset_updater()->on_update_notification_confirm(); });
+	    this->q->Bind(EVT_REMOVABLE_DRIVE_EJECTED, [this, q](RemovableDriveEjectEvent &evt) {
+		    if (evt.data.second) {
+			    this->show_action_buttons(this->ready_to_slice);
+			    notification_manager->push_notification(format(_L("Unmounting successful. The device %s(%s) can now be safely removed from the computer."),evt.data.first.name, evt.data.first.path),
+				                                        NotificationManager::NotificationLevel::RegularNotification, *q->get_current_canvas3D());
+		    } else {
+			    notification_manager->push_notification(format(_L("Ejecting of device %s(%s) has failed."), evt.data.first.name, evt.data.first.path),
+				                                        NotificationManager::NotificationLevel::ErrorNotification, *q->get_current_canvas3D());
+		    }
+	    });
+        this->q->Bind(EVT_REMOVABLE_DRIVES_CHANGED, [this, q](RemovableDrivesChangedEvent &) {
+		    this->show_action_buttons(this->ready_to_slice); 
+		    if (!this->sidebar->get_eject_shown()) {
+			    notification_manager->close_notification_of_type(NotificationType::ExportToRemovableFinished);
+		    }
+	    });
+        // Start the background thread and register this window as a target for update events.
+        wxGetApp().removable_drive_manager()->init(this->q);
 #ifdef _WIN32
-    // Trigger enumeration of removable media on Win32 notification.
-    this->q->Bind(EVT_VOLUME_ATTACHED, [this](VolumeAttachedEvent &evt) { wxGetApp().removable_drive_manager()->volumes_changed(); });
-    this->q->Bind(EVT_VOLUME_DETACHED, [this](VolumeDetachedEvent &evt) { wxGetApp().removable_drive_manager()->volumes_changed(); });
+        // Trigger enumeration of removable media on Win32 notification.
+        this->q->Bind(EVT_VOLUME_ATTACHED, [this](VolumeAttachedEvent &evt) { wxGetApp().removable_drive_manager()->volumes_changed(); });
+        this->q->Bind(EVT_VOLUME_DETACHED, [this](VolumeDetachedEvent &evt) { wxGetApp().removable_drive_manager()->volumes_changed(); });
 #endif /* _WIN32 */
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+    }
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 
     // Initialize the Undo / Redo stack with a first snapshot.
     this->take_snapshot(_L("New Project"));
@@ -5384,7 +5408,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             this->set_printer_technology(config.opt_enum<PrinterTechnology>(opt_key));
             // print technology is changed, so we should to update a search list
             p->sidebar->update_searcher();
-        }
+            }
         else if ((opt_key == "bed_shape") || (opt_key == "bed_custom_texture") || (opt_key == "bed_custom_model")) {
             bed_shape_changed = true;
             update_scheduled = true;
@@ -5628,11 +5652,7 @@ void Plater::set_printer_technology(PrinterTechnology printer_technology)
     p->label_btn_send   = printer_technology == ptFFF ? L("Send G-code")   : L("Send to printer");
 
     if (wxGetApp().mainframe != nullptr)
-#if ENABLE_GCODE_VIEWER
-        wxGetApp().mainframe->update_editor_menubar();
-#else
         wxGetApp().mainframe->update_menubar();
-#endif // ENABLE_GCODE_VIEWER
 
     p->update_main_toolbar_tooltips();
 
