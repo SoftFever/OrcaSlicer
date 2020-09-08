@@ -78,23 +78,33 @@ namespace GUI {
 class MainFrame;
 
 // ysFIXME
-static int get_dpi_for_main_display()
+static float get_scale_for_main_display()
 {
     wxFrame fr(nullptr, wxID_ANY, wxEmptyString);
-    return get_dpi_for_window(&fr);    
+
+#if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT && !defined(__WXGTK__)
+    int dpi = get_dpi_for_window(&fr);
+    float sf = dpi != DPI_DEFAULT ? sf = (float)dpi / DPI_DEFAULT : 1.0;
+#else
+    printf("dpi = %d\n", get_dpi_for_window(&fr));
+    // initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
+    float sf = 0.1 * std::max<size_t>(10, fr.GetTextExtent("m").x - 1);
+#endif // ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
+
+    printf("scale factor = %f\n", sf);
+    return sf;
 }
 
 // scale input bitmap and return scale factor
 static float scale_bitmap(wxBitmap& bmp)
 {
-    int dpi = get_dpi_for_main_display();
-    float sf = 1.0;
+    float sf = get_scale_for_main_display();
+
     // scale bitmap if needed
-    if (dpi != DPI_DEFAULT) {
+    if (sf > 1.0) {
         wxImage image = bmp.ConvertToImage();
         if (image.IsOk() && image.GetWidth() != 0 && image.GetHeight() != 0)
         {
-            sf = (float)dpi / DPI_DEFAULT;
             int width   = int(sf * image.GetWidth());
             int height  = int(sf * image.GetHeight());
             image.Rescale(width, height, wxIMAGE_QUALITY_BILINEAR);
@@ -102,11 +112,13 @@ static float scale_bitmap(wxBitmap& bmp)
             bmp = wxBitmap(std::move(image));
         }
     }
+
     return sf;
 }
 
-static void word_wrap_string(wxString& input, int line_len)
+static void word_wrap_string(wxString& input, int line_px_len, float scalef)
 {
+    int line_len = std::roundf( (float)line_px_len / (scalef * 10)) + 10;
     int idx = -1;
     int cur_len = 0;
     for (size_t i = 0; i < input.Len(); i++)
@@ -136,11 +148,12 @@ static void DecorateSplashScreen(wxBitmap& bmp)
     wxMemoryDC memDc(bmp);
 
     // draw an dark grey box at the left of the splashscreen.
-    // this box will be 2/9 of the weight of the bitmap, and be at the left.
-    const wxRect bannerRect(wxPoint(0, (bmp.GetHeight() / 9) * 2 - 2), wxPoint((bmp.GetWidth() / 5) * 2, bmp.GetHeight()));
+    // this box will be 2/5 of the weight of the bitmap, and be at the left.
+    int banner_width = (bmp.GetWidth() / 5) * 2 - 2;
+    const wxRect banner_rect(wxPoint(0, (bmp.GetHeight() / 9) * 2), wxPoint(banner_width, bmp.GetHeight()));
     wxDCBrushChanger bc(memDc, wxBrush(wxColour(51, 51, 51)));
     wxDCPenChanger pc(memDc, wxPen(wxColour(51, 51, 51)));
-    memDc.DrawRectangle(bannerRect);
+    memDc.DrawRectangle(banner_rect);
 
     // title
     wxString title_string = SLIC3R_APP_NAME;
@@ -156,14 +169,15 @@ static void DecorateSplashScreen(wxBitmap& bmp)
     wxString cr_symbol = wxString::FromUTF8("\xc2\xa9");
     wxString copyright_string = wxString::Format("%s 2016-%s Prusa Research.\n"
                                                "%s 2011-2018 Alessandro Ranellucci.",
-        cr_symbol, year.Mid(year.Length() - 4), cr_symbol);
+                                cr_symbol, year.Mid(year.Length() - 4), cr_symbol) + "\n\n";
     wxFont copyright_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Larger();
 
-    copyright_string += "Slic3r" + _L("is licensed under the") + _L("GNU Affero General Public License, version 3") + "\n\n" + 
+    copyright_string += //"Slic3r" + _L("is licensed under the") + _L("GNU Affero General Public License, version 3") + "\n\n" + 
                         _L("PrusaSlicer is based on Slic3r by Alessandro Ranellucci and the RepRap community.") + "\n\n" +
                         _L("Contributions by Henrik Brix Andersen, Nicolas Dandrimont, Mark Hindess, Petr Ledvina, Joseph Lenox, Y. Sapir, Mike Sheldrake, Vojtech Bubnik and numerous others.");
 
-    word_wrap_string(copyright_string, 50);
+//    word_wrap_string(copyright_string, 50);
+    word_wrap_string(copyright_string, banner_width, scale_factor);
 
     wxCoord margin = int(scale_factor * 20);
 
@@ -171,13 +185,13 @@ static void DecorateSplashScreen(wxBitmap& bmp)
     memDc.SetTextForeground(wxColour(237, 107, 33));
 
     memDc.SetFont(title_font);
-    memDc.DrawLabel(title_string,       bannerRect.Deflate(margin, 0), wxALIGN_TOP | wxALIGN_LEFT);
+    memDc.DrawLabel(title_string,       banner_rect.Deflate(margin, 0), wxALIGN_TOP | wxALIGN_LEFT);
 
     memDc.SetFont(version_font);
-    memDc.DrawLabel(version_string,     bannerRect.Deflate(margin, 2 * margin), wxALIGN_TOP | wxALIGN_LEFT);
+    memDc.DrawLabel(version_string,     banner_rect.Deflate(margin, 2 * margin), wxALIGN_TOP | wxALIGN_LEFT);
 
     memDc.SetFont(copyright_font);
-    memDc.DrawLabel(copyright_string,   bannerRect.Deflate(margin, 2 * margin), wxALIGN_BOTTOM | wxALIGN_LEFT);
+    memDc.DrawLabel(copyright_string,   banner_rect.Deflate(margin, 2 * margin), wxALIGN_BOTTOM | wxALIGN_LEFT);
 }
 
 class SplashScreen : public wxSplashScreen
@@ -189,9 +203,10 @@ public:
         wxASSERT(bitmap.IsOk());
         m_main_bitmap = bitmap;
 
-        int dpi = get_dpi_for_main_display();
+/*        int dpi = get_dpi_for_main_display();
         if (dpi != DPI_DEFAULT)
-            m_scale_factor = (float)dpi / DPI_DEFAULT;
+            m_scale_factor = (float)dpi / DPI_DEFAULT;  */
+        m_scale_factor = get_scale_for_main_display();
     }
 
     void SetText(const wxString& text)
