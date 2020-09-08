@@ -8,6 +8,11 @@
 // localization
 #include "../GUI/I18N.hpp"
 
+#include <iostream>
+#include <fstream>
+
+#include <boost/log/trivial.hpp>
+
 // For starting another PrusaSlicer instance on OSX.
 // Fails to compile on Windows on the build server.
 #ifdef __APPLE__
@@ -29,17 +34,19 @@ enum class NewSlicerInstanceType {
 static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance_type, const wxString *path_to_open)
 {
 #ifdef _WIN32
-     wxString path;
-     wxFileName::SplitPath(wxStandardPaths::Get().GetExecutablePath(), &path, nullptr, nullptr, wxPATH_NATIVE);
-	 path += "\\";
-	 path += (instance_type == NewSlicerInstanceType::Slicer) ? "prusa-slicer.exe" : "prusa-gcodeviewer.exe";
-     std::vector<const wchar_t*> args;
-     args.reserve(3);
-     args.emplace_back(path.wc_str());
-     if (path_to_open != nullptr)
-     	args.emplace_back(path_to_open->wc_str());
-     args.emplace_back(nullptr);
-     wxExecute(const_cast<wchar_t**>(args.data()), wxEXEC_ASYNC | wxEXEC_HIDE_CONSOLE | wxEXEC_MAKE_GROUP_LEADER);
+	wxString path;
+	wxFileName::SplitPath(wxStandardPaths::Get().GetExecutablePath(), &path, nullptr, nullptr, wxPATH_NATIVE);
+	path += "\\";
+	path += (instance_type == NewSlicerInstanceType::Slicer) ? "prusa-slicer.exe" : "prusa-gcodeviewer.exe";
+	std::vector<const wchar_t*> args;
+	args.reserve(3);
+	args.emplace_back(path.wc_str());
+	if (path_to_open != nullptr)
+		args.emplace_back(path_to_open->wc_str());
+	args.emplace_back(nullptr);
+	BOOST_LOG_TRIVIAL(info) << "Trying to spawn a new slicer \"" << to_u8(path) << "\"";
+	if (wxExecute(const_cast<wchar_t**>(args.data()), wxEXEC_ASYNC | wxEXEC_HIDE_CONSOLE | wxEXEC_MAKE_GROUP_LEADER) <= 0)
+		BOOST_LOG_TRIVIAL(error) << "Failed to spawn a new slicer \"" << to_u8(path);
 #else 
 	// Own executable path.
     boost::filesystem::path bin_path = into_path(wxStandardPaths::Get().GetExecutablePath());
@@ -47,7 +54,12 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 	{
 		bin_path =	bin_path.parent_path() / ((instance_type == NewSlicerInstanceType::Slicer) ? "PrusaSlicer" : "PrusaGCodeViewer");
 		// On Apple the wxExecute fails, thus we use boost::process instead.
-	    path_to_open ? boost::process::spawn(bin_path.string(), into_u8(*path_to_open)) : boost::process::spawn(bin_path.string());
+		BOOST_LOG_TRIVIAL(info) << "Trying to spawn a new slicer \"" << bin_path.string() << "\"";
+		try {
+	    	path_to_open ? boost::process::spawn(bin_path.string(), into_u8(*path_to_open)) : boost::process::spawn(bin_path.string());
+	    } catch (const std::exception &ex) {
+			BOOST_LOG_TRIVIAL(error) << "Failed to spawn a new slicer \"" << bin_path.string() << "\": " << ex.what();
+	    }
 	}
 	#else // Linux or Unix
 	{
@@ -78,7 +90,9 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 	    	args.emplace_back(to_open.c_str());
 	    }
 	    args.emplace_back(nullptr);
-	    wxExecute(const_cast<char**>(args.data()), wxEXEC_ASYNC | wxEXEC_HIDE_CONSOLE | wxEXEC_MAKE_GROUP_LEADER);
+		BOOST_LOG_TRIVIAL(info) << "Trying to spawn a new slicer \"" << args[0] << "\"";
+	    if (wxExecute(const_cast<char**>(args.data()), wxEXEC_ASYNC | wxEXEC_HIDE_CONSOLE | wxEXEC_MAKE_GROUP_LEADER) <= 0)
+	    	BOOST_LOG_TRIVIAL(error) << "Failed to spawn a new slicer \"" << args[0];
 	}
 	#endif // Linux or Unix
 #endif // Win32
