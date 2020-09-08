@@ -539,9 +539,13 @@ bool GUI_App::on_init_inner()
     
     app_config->set("version", SLIC3R_VERSION);
     app_config->save();
-
+/*
     if (wxImage::FindHandler(wxBITMAP_TYPE_JPEG) == nullptr)
         wxImage::AddHandler(new wxJPEGHandler());
+    if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
+        wxImage::AddHandler(new wxPNGHandler());
+*/
+    wxInitAllImageHandlers();
 
     wxBitmap bitmap = create_scaled_bitmap("prusa_slicer_logo", nullptr, 400);
     wxBitmap bmp(from_u8(var("splashscreen.jpg")), wxBITMAP_TYPE_JPEG);
@@ -598,8 +602,6 @@ bool GUI_App::on_init_inner()
     Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
 
     // application frame
-    if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
-        wxImage::AddHandler(new wxPNGHandler());
     scrn->SetText(_L("Creating settings tabs..."));
 
     mainframe = new MainFrame();
