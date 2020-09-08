@@ -562,7 +562,7 @@ bool GUI_App::on_init_inner()
     wxInitAllImageHandlers();
 
     wxBitmap bitmap = create_scaled_bitmap("prusa_slicer_logo", nullptr, 400);
-    wxBitmap bmp(from_u8(var("splashscreen.jpg")), wxBITMAP_TYPE_JPEG);
+    wxBitmap bmp(is_editor() ? from_u8(var("splashscreen.jpg")) : from_u8(var("splashscreen-gcodeviewer.jpg")), wxBITMAP_TYPE_JPEG);
 
     DecorateSplashScreen(bmp);
 
