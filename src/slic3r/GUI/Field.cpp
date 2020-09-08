@@ -1080,7 +1080,7 @@ boost::any& Choice::get_value()
 			m_value = static_cast<SLADisplayOrientation>(ret_enum);
         else if (m_opt_id.compare("support_pillar_connection_mode") == 0)
             m_value = static_cast<SLAPillarConnectionMode>(ret_enum);
-		else if (m_opt_id == "authorization_type")
+		else if (m_opt_id == "printhost_authorization_type")
 			m_value = static_cast<AuthorizationType>(ret_enum);
 	}
     else if (m_opt.gui_type == "f_enum_open") {

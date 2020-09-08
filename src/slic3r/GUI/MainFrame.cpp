@@ -9,7 +9,6 @@
 #include <wx/tooltip.h>
 //#include <wx/glcanvas.h>
 #include <wx/filename.h>
-#include <wx/stdpaths.h>
 #include <wx/debug.h>
 
 #include <boost/algorithm/string/predicate.hpp>
@@ -31,6 +30,7 @@
 #include "I18N.hpp"
 #include "GLCanvas3D.hpp"
 #include "Plater.hpp"
+#include "../Utils/Process.hpp"
 
 #include <fstream>
 #include "GUI_App.hpp"
@@ -39,12 +39,6 @@
 #include <dbt.h>
 #include <shlobj.h>
 #endif // _WIN32
-
-// For starting another PrusaSlicer instance on OSX.
-// Fails to compile on Windows on the build server.
-#ifdef __APPLE__
-    #include <boost/process/spawn.hpp>
-#endif
 
 namespace Slic3r {
 namespace GUI {
@@ -1098,9 +1092,9 @@ void MainFrame::init_menubar()
         append_menu_item(fileMenu, wxID_ANY, _L("&Repair STL file") + dots, _L("Automatically repair an STL file"),
             [this](wxCommandEvent&) { repair_stl(); }, "wrench", nullptr,
             [this]() { return true; }, this);
+        fileMenu->AppendSeparator();
 #if ENABLE_GCODE_VIEWER
 #if !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
-        fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_ANY, _L("&G-code preview"), _L("Switch to G-code preview mode"),
             [this](wxCommandEvent&) {
                 if (m_plater->model().objects.empty() ||
@@ -1110,6 +1104,8 @@ void MainFrame::init_menubar()
             }, "", nullptr);
 #endif // !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 #endif // ENABLE_GCODE_VIEWER
+        append_menu_item(fileMenu, wxID_ANY, _L("&G-code preview") + dots, _L("Open G-code viewer"),
+            [this](wxCommandEvent&) { start_new_gcodeviewer_open_file(this); }, "", nullptr);
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_EXIT, _L("&Quit"), wxString::Format(_L("Quit %s"), SLIC3R_APP_NAME),
             [this](wxCommandEvent&) { Close(false); });
@@ -1226,20 +1222,11 @@ void MainFrame::init_menubar()
 
         windowMenu->AppendSeparator();
         append_menu_item(windowMenu, wxID_ANY, _L("Print &Host Upload Queue") + "\tCtrl+J", _L("Display the Print Host Upload Queue window"),
-            [this](wxCommandEvent&) { m_printhost_queue_dlg->Show(); }, "upload_queue", nullptr,
-            [this]() {return true; }, this);
+            [this](wxCommandEvent&) { m_printhost_queue_dlg->Show(); }, "upload_queue", nullptr, [this]() {return true; }, this);
         
         windowMenu->AppendSeparator();
         append_menu_item(windowMenu, wxID_ANY, _(L("Open new instance")) + "\tCtrl+I", _(L("Open a new PrusaSlicer instance")),
-                         [this](wxCommandEvent&) {
-                             wxString path = wxStandardPaths::Get().GetExecutablePath();
-#ifdef __APPLE__
-                             boost::process::spawn((const char*)path.c_str());
-#else
-                             wxExecute(wxStandardPaths::Get().GetExecutablePath(), wxEXEC_ASYNC | wxEXEC_HIDE_CONSOLE | wxEXEC_MAKE_GROUP_LEADER);
-#endif
-                         }, "upload_queue", nullptr,
-                         [this]() {return true; }, this);
+			[this](wxCommandEvent&) { start_new_slicer(); }, "", nullptr);
     }
 
     // View menu
