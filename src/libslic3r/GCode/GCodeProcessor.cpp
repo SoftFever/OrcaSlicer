@@ -1434,7 +1434,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         m_mm3_per_mm_compare.update(area_toolpath_cross_section, m_extrusion_role);
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
-        if (m_producers_enabled && m_producer != EProducer::PrusaSlicer) {
+        if ((m_producers_enabled && m_producer != EProducer::PrusaSlicer) || m_height == 0.0f) {
             if (m_end_position[Z] > m_extruded_last_z + EPSILON) {
                 m_height = m_end_position[Z] - m_extruded_last_z;
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
