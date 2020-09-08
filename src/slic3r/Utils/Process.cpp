@@ -18,6 +18,10 @@
 // Fails to compile on Windows on the build server.
 #ifdef __APPLE__
     #include <boost/process/spawn.hpp>
+<<<<<<< HEAD
+=======
+    #include <boost/process/args.hpp>
+>>>>>>> vb_gcodeviewer_menu
 #endif
 
 #include <wx/stdpaths.h>
@@ -57,7 +61,10 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 		// On Apple the wxExecute fails, thus we use boost::process instead.
 		BOOST_LOG_TRIVIAL(info) << "Trying to spawn a new slicer \"" << bin_path.string() << "\"";
 		try {
-	    	path_to_open ? boost::process::spawn(bin_path, into_u8(*path_to_open)) : boost::process::spawn(bin_path, boost::process::args());
+            std::vector<std::string> args;
+            if (path_to_open)
+                args.emplace_back(into_u8(*path_to_open));
+            boost::process::spawn(bin_path, args);
 	    } catch (const std::exception &ex) {
 			BOOST_LOG_TRIVIAL(error) << "Failed to spawn a new slicer \"" << bin_path.string() << "\": " << ex.what();
 	    }
