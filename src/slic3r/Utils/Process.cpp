@@ -18,10 +18,7 @@
 // Fails to compile on Windows on the build server.
 #ifdef __APPLE__
     #include <boost/process/spawn.hpp>
-<<<<<<< HEAD
-=======
     #include <boost/process/args.hpp>
->>>>>>> vb_gcodeviewer_menu
 #endif
 
 #include <wx/stdpaths.h>
