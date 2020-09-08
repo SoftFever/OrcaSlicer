@@ -63,6 +63,7 @@ protected:
         FillAdaptive_Internal::Cube *cube,
         double                       z_position,
         const Vec3d &                origin,
+        const Transform3d &          rotation_matrix,
         std::vector<Lines> &         dir_lines_out,
         const std::vector<FillAdaptive_Internal::CubeProperties> &cubes_properties,
         int  depth);
@@ -78,7 +79,6 @@ public:
     static void expand_cube(
         FillAdaptive_Internal::Cube *cube,
         const std::vector<FillAdaptive_Internal::CubeProperties> &cubes_properties,
-        const Transform3d &             rotation_matrix,
         const AABBTreeIndirect::Tree3f &distance_tree,
         const TriangleMesh &            triangle_mesh,
         int                             depth);

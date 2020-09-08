@@ -97,11 +97,14 @@ void FillAdaptive::_fill_surface_single(
     ExPolygon                       &expolygon, 
     Polylines                       &polylines_out)
 {
+    Vec3d rotation = Vec3d((5.0 * M_PI) / 4.0, Geometry::deg2rad(215.264), M_PI / 6.0);
+    Transform3d rotation_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation, Vec3d::Ones(), Vec3d::Ones());
+
     // Store grouped lines by its direction (multiple of 120°)
     std::vector<Lines> infill_lines_dir(3);
     this->generate_infill_lines(this->adapt_fill_octree->root_cube.get(),
-                                this->z, this->adapt_fill_octree->origin,infill_lines_dir,
-                                this->adapt_fill_octree->cubes_properties,
+                                this->z, this->adapt_fill_octree->origin, rotation_matrix,
+                                infill_lines_dir, this->adapt_fill_octree->cubes_properties,
                                 int(this->adapt_fill_octree->cubes_properties.size()) - 1);
 
     Polylines all_polylines;
@@ -186,6 +189,7 @@ void FillAdaptive::generate_infill_lines(
         FillAdaptive_Internal::Cube *cube,
         double z_position,
         const Vec3d &origin,
+        const Transform3d &rotation_matrix,
         std::vector<Lines> &dir_lines_out,
         const std::vector<FillAdaptive_Internal::CubeProperties> &cubes_properties,
         int depth)
@@ -197,7 +201,8 @@ void FillAdaptive::generate_infill_lines(
         return;
     }
 
-    double z_diff = std::abs(z_position - cube->center.z());
+    Vec3d cube_center_tranformed = rotation_matrix * cube->center;
+    double z_diff = std::abs(z_position - cube_center_tranformed.z());
 
     if (z_diff > cubes_properties[depth].height / 2)
     {
@@ -208,14 +213,14 @@ void FillAdaptive::generate_infill_lines(
     {
         Point from(
                 scale_((cubes_properties[depth].diagonal_length / 2) * (cubes_properties[depth].line_z_distance - z_diff) / cubes_properties[depth].line_z_distance),
-                scale_(cubes_properties[depth].line_xy_distance - ((z_position - (cube->center.z() - cubes_properties[depth].line_z_distance)) / sqrt(2))));
+                scale_(cubes_properties[depth].line_xy_distance - ((z_position - (cube_center_tranformed.z() - cubes_properties[depth].line_z_distance)) / sqrt(2))));
         Point to(-from.x(), from.y());
         // Relative to cube center
 
         double rotation_angle = (2.0 * M_PI) / 3.0;
         for (Lines &lines : dir_lines_out)
         {
-            Vec3d offset = cube->center - origin;
+            Vec3d offset = cube_center_tranformed - (rotation_matrix * origin);
             Point from_abs(from), to_abs(to);
 
             from_abs.x() += int(scale_(offset.x()));
@@ -235,7 +240,7 @@ void FillAdaptive::generate_infill_lines(
     {
         if(child != nullptr)
         {
-            generate_infill_lines(child.get(), z_position, origin, dir_lines_out, cubes_properties, depth - 1);
+            generate_infill_lines(child.get(), z_position, origin, rotation_matrix, dir_lines_out, cubes_properties, depth - 1);
         }
     }
 }
@@ -301,14 +306,11 @@ std::unique_ptr<FillAdaptive_Internal::Octree> FillAdaptive::build_octree(
         triangle_mesh.require_shared_vertices();
     }
 
-    Vec3d rotation = Vec3d((5.0 * M_PI) / 4.0, Geometry::deg2rad(215.264), M_PI / 6.0);
-    Transform3d rotation_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation, Vec3d::Ones(), Vec3d::Ones());
-
     AABBTreeIndirect::Tree3f aabbTree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(
             triangle_mesh.its.vertices, triangle_mesh.its.indices);
     auto octree = std::make_unique<Octree>(std::make_unique<Cube>(cube_center), cube_center, cubes_properties);
 
-    FillAdaptive::expand_cube(octree->root_cube.get(), cubes_properties, rotation_matrix, aabbTree, triangle_mesh, int(cubes_properties.size()) - 1);
+    FillAdaptive::expand_cube(octree->root_cube.get(), cubes_properties, aabbTree, triangle_mesh, int(cubes_properties.size()) - 1);
 
     return octree;
 }
@@ -316,7 +318,6 @@ std::unique_ptr<FillAdaptive_Internal::Octree> FillAdaptive::build_octree(
 void FillAdaptive::expand_cube(
     FillAdaptive_Internal::Cube *cube,
     const std::vector<FillAdaptive_Internal::CubeProperties> &cubes_properties,
-    const Transform3d &rotation_matrix,
     const AABBTreeIndirect::Tree3f &distance_tree,
     const TriangleMesh &triangle_mesh, int depth)
 {
@@ -337,13 +338,13 @@ void FillAdaptive::expand_cube(
     for (size_t i = 0; i < 8; ++i)
     {
         const Vec3d &child_center = child_centers[i];
-        Vec3d child_center_transformed = cube->center + rotation_matrix * (child_center * (cubes_properties[depth].edge_length / 4));
+        Vec3d child_center_transformed = cube->center + (child_center * (cubes_properties[depth].edge_length / 4));
 
         if(AABBTreeIndirect::is_any_triangle_in_radius(triangle_mesh.its.vertices, triangle_mesh.its.indices,
             distance_tree, child_center_transformed, cube_radius_squared))
         {
             cube->children[i] = std::make_unique<Cube>(child_center_transformed);
-            FillAdaptive::expand_cube(cube->children[i].get(), cubes_properties, rotation_matrix, distance_tree, triangle_mesh, depth - 1);
+            FillAdaptive::expand_cube(cube->children[i].get(), cubes_properties, distance_tree, triangle_mesh, depth - 1);
         }
     }
 }

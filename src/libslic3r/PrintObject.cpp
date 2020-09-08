@@ -444,7 +444,14 @@ std::unique_ptr<FillAdaptive_Internal::Octree> PrintObject::prepare_adaptive_inf
     mesh.translate(- unscale<float>(m_center_offset.x()), - unscale<float>(m_center_offset.y()), 0);
     // Center of the first cube in octree
     Vec3d mesh_origin = mesh.bounding_box().center();
-    return FillAdaptive::build_octree(mesh, adaptive_line_spacing, mesh_origin);
+
+    Vec3d rotation = Vec3d((5.0 * M_PI) / 4.0, Geometry::deg2rad(215.264), M_PI / 6.0);
+    Transform3d rotation_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation, Vec3d::Ones(), Vec3d::Ones()).inverse();
+
+    // Rotate mesh and build octree on it with axis-aligned (standart base) cubes
+    mesh.transform(rotation_matrix);
+
+    return FillAdaptive::build_octree(mesh, adaptive_line_spacing, rotation_matrix * mesh_origin);
 }
 
 void PrintObject::clear_layers()
