@@ -102,17 +102,17 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     }
 #else
 #if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
-    switch (wxGetApp().get_mode())
+    switch (wxGetApp().get_app_mode())
     {
     default:
-    case GUI_App::EMode::Editor:
+    case GUI_App::EAppMode::Editor:
     {
 #endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
         SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
 #if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
         break;
     }
-    case GUI_App::EMode::GCodeViewer:
+    case GUI_App::EAppMode::GCodeViewer:
     {
         SetIcon(wxIcon(Slic3r::var("PrusaSlicer-gcodeviewer_128px.png"), wxBITMAP_TYPE_PNG));
         break;
@@ -1355,13 +1355,13 @@ void MainFrame::init_menubar()
 #endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 #else
     auto menubar = new wxMenuBar();
-    menubar->Append(fileMenu, _(L("&File")));
-    if (editMenu) menubar->Append(editMenu, _(L("&Edit")));
-    menubar->Append(windowMenu, _(L("&Window")));
-    if (viewMenu) menubar->Append(viewMenu, _(L("&View")));
+    menubar->Append(fileMenu, _L("&File"));
+    if (editMenu) menubar->Append(editMenu, _L("&Edit"));
+    menubar->Append(windowMenu, _L("&Window"));
+    if (viewMenu) menubar->Append(viewMenu, _L("&View"));
     // Add additional menus from C++
     wxGetApp().add_config_menu(menubar);
-    menubar->Append(helpMenu, _(L("&Help")));
+    menubar->Append(helpMenu, _L("&Help"));
     SetMenuBar(menubar);
 #endif // ENABLE_GCODE_VIEWER
 
@@ -1369,7 +1369,11 @@ void MainFrame::init_menubar()
     // This fixes a bug on Mac OS where the quit command doesn't emit window close events
     // wx bug: https://trac.wxwidgets.org/ticket/18328
 #if ENABLE_GCODE_VIEWER
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+    wxMenu* apple_menu = menubar->OSXGetAppleMenu();
+#else
     wxMenu* apple_menu = m_editor_menubar->OSXGetAppleMenu();
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 #else
     wxMenu *apple_menu = menubar->OSXGetAppleMenu();
 #endif // ENABLE_GCODE_VIEWER
@@ -1378,7 +1382,7 @@ void MainFrame::init_menubar()
             Close();
         }, wxID_EXIT);
     }
-#endif
+#endif // __APPLE__
 
     if (plater()->printer_technology() == ptSLA)
         update_menubar();
@@ -1429,6 +1433,21 @@ void MainFrame::init_menubar_as_gcodeviewer()
         m_gcodeviewer_menubar->Append(viewMenu, _L("&View"));
     m_gcodeviewer_menubar->Append(helpMenu, _L("&Help"));
 #endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+
+#ifdef __APPLE__
+    // This fixes a bug on Mac OS where the quit command doesn't emit window close events
+    // wx bug: https://trac.wxwidgets.org/ticket/18328
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+    wxMenu* apple_menu = menubar->OSXGetAppleMenu();
+#else
+    wxMenu* apple_menu = m_gcodeviewer_menubar->OSXGetAppleMenu();
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+    if (apple_menu != nullptr) {
+        apple_menu->Bind(wxEVT_MENU, [this](wxCommandEvent&) {
+            Close();
+            }, wxID_EXIT);
+    }
+#endif // __APPLE__
 }
 
 #if !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION

@@ -562,7 +562,11 @@ bool GUI_App::on_init_inner()
     wxInitAllImageHandlers();
 
     wxBitmap bitmap = create_scaled_bitmap("prusa_slicer_logo", nullptr, 400);
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
     wxBitmap bmp(is_editor() ? from_u8(var("splashscreen.jpg")) : from_u8(var("splashscreen-gcodeviewer.jpg")), wxBITMAP_TYPE_JPEG);
+#else
+    wxBitmap bmp(from_u8(var("splashscreen.jpg")), wxBITMAP_TYPE_JPEG);
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 
     DecorateSplashScreen(bmp);
 
