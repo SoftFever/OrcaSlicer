@@ -70,7 +70,7 @@ TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Vec3i> &fac
     stl_get_size(&stl);
 }
 
-TriangleMesh::TriangleMesh(const indexed_triangle_set &M)
+TriangleMesh::TriangleMesh(const indexed_triangle_set &M) : repaired(false)
 {
     stl.stats.type = inmemory;
     
