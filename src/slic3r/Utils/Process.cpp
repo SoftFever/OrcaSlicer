@@ -47,7 +47,9 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 		args.emplace_back(path_to_open->wc_str());
 	args.emplace_back(nullptr);
 	BOOST_LOG_TRIVIAL(info) << "Trying to spawn a new slicer \"" << into_u8(path) << "\"";
-	if (wxExecute(const_cast<wchar_t**>(args.data()), wxEXEC_ASYNC | wxEXEC_HIDE_CONSOLE | wxEXEC_MAKE_GROUP_LEADER) <= 0)
+	// Don't call with wxEXEC_HIDE_CONSOLE, PrusaSlicer in GUI mode would just show the splash screen. It would not open the main window though, it would
+	// just hang in the background.
+	if (wxExecute(const_cast<wchar_t**>(args.data()), wxEXEC_ASYNC) <= 0)
 		BOOST_LOG_TRIVIAL(error) << "Failed to spawn a new slicer \"" << into_u8(path);
 #else 
 	// Own executable path.
@@ -96,7 +98,7 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 	    }
 	    args.emplace_back(nullptr);
 		BOOST_LOG_TRIVIAL(info) << "Trying to spawn a new slicer \"" << args[0] << "\"";
-	    if (wxExecute(const_cast<char**>(args.data()), wxEXEC_ASYNC | wxEXEC_HIDE_CONSOLE | wxEXEC_MAKE_GROUP_LEADER) <= 0)
+	    if (wxExecute(const_cast<char**>(args.data()), wxEXEC_ASYNC | wxEXEC_MAKE_GROUP_LEADER) <= 0)
 	    	BOOST_LOG_TRIVIAL(error) << "Failed to spawn a new slicer \"" << args[0];
 	}
 	#endif // Linux or Unix
