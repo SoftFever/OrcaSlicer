@@ -13,6 +13,7 @@
 #include "GCode/SpiralVase.hpp"
 #include "GCode/ToolOrdering.hpp"
 #include "GCode/WipeTower.hpp"
+#include "GCode/SeamPlacer.hpp"
 #if ENABLE_GCODE_VIEWER
 #include "GCode/GCodeProcessor.hpp"
 #else
@@ -69,27 +70,6 @@ private:
     std::unique_ptr<MotionPlanner> m_layer_mp;
 };
 
-
-struct CustomSeam {
-    std::vector<ExPolygons> enforcers;
-    std::vector<ExPolygons> blockers;
-
-    // Get indices of points inside enforcers and blockers.
-    void get_indices(size_t layer_id,
-                    const Polygon& polygon,
-                    std::vector<size_t>& enforcers_idxs,
-                    std::vector<size_t>& blockers_idxs) const;
-    bool is_on_layer(size_t layer_id) const {
-        return ! ((enforcers.empty() || enforcers[layer_id].empty())
-                && (blockers.empty() || blockers[layer_id].empty()));
-    }
-    void penalize_polygon(const Polygon& polygon,
-                          std::vector<float>& penalties,
-                          const std::vector<float>& lengths,
-                          int layer_id) const;
-
-    static constexpr float ENFORCER_BLOCKER_PENALTY = 1e6;
-};
 
 class OozePrevention {
 public:
@@ -361,7 +341,7 @@ private:
     std::string     set_extruder(unsigned int extruder_id, double print_z);
 
     // Cache for custom seam enforcers/blockers for each layer.
-    CustomSeam                          m_custom_seam;
+    SeamPlacer                          m_seam_placer;
 
     /* Origin of print coordinates expressed in unscaled G-code coordinates.
        This affects the input arguments supplied to the extrude*() and travel_to()
@@ -401,7 +381,6 @@ private:
     // Current layer processed. Insequential printing mode, only a single copy will be printed.
     // In non-sequential mode, all its copies will be printed.
     const Layer*                        m_layer;
-    std::map<const PrintObject*,Point>  m_seam_position;
     double                              m_volumetric_speed;
     // Support for the extrusion role markers. Which marker is active?
     ExtrusionRole                       m_last_extrusion_role;
