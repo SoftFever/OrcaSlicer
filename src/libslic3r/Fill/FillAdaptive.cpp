@@ -91,10 +91,10 @@ std::pair<double, double> adaptive_fill_line_spacing(const PrintObject &print_ob
 }
 
 void FillAdaptive::_fill_surface_single(
-    const FillParams                &params, 
+    const FillParams                &params,
     unsigned int                     thickness_layers,
-    const std::pair<float, Point>   &direction, 
-    ExPolygon                       &expolygon, 
+    const std::pair<float, Point>   &direction,
+    ExPolygon                       &expolygon,
     Polylines                       &polylines_out)
 {
     Vec3d rotation = Vec3d((5.0 * M_PI) / 4.0, Geometry::deg2rad(215.264), M_PI / 6.0);
@@ -329,8 +329,8 @@ void FillAdaptive::expand_cube(
     }
 
     std::vector<Vec3d> child_centers = {
-            Vec3d(-1, -1, -1), Vec3d( 1, -1, -1), Vec3d(-1,  1, -1), Vec3d(-1, -1,  1),
-            Vec3d( 1,  1,  1), Vec3d(-1,  1,  1), Vec3d( 1, -1,  1), Vec3d( 1,  1, -1)
+        Vec3d(-1, -1, -1), Vec3d( 1, -1, -1), Vec3d(-1,  1, -1), Vec3d( 1,  1, -1),
+        Vec3d(-1, -1,  1), Vec3d( 1, -1,  1), Vec3d(-1,  1,  1), Vec3d( 1,  1,  1)
     };
 
     double cube_radius_squared = (cubes_properties[depth].height * cubes_properties[depth].height) / 16;
@@ -347,6 +347,39 @@ void FillAdaptive::expand_cube(
             FillAdaptive::expand_cube(cube->children[i].get(), cubes_properties, distance_tree, triangle_mesh, depth - 1);
         }
     }
+}
+
+void FillAdaptive_Internal::Octree::propagate_point(
+    Vec3d                                                     point,
+    FillAdaptive_Internal::Cube *                             current,
+    int                                                       depth,
+    const std::vector<FillAdaptive_Internal::CubeProperties> &cubes_properties)
+{
+    using namespace FillAdaptive_Internal;
+
+    if(depth <= 0)
+    {
+        return;
+    }
+
+    size_t octant_idx = Octree::find_octant(point, current->center);
+    Cube * child = current->children[octant_idx].get();
+
+    // Octant not exists, then create it
+    if(child == nullptr) {
+        std::vector<Vec3d> child_centers = {
+            Vec3d(-1, -1, -1), Vec3d( 1, -1, -1), Vec3d(-1,  1, -1), Vec3d( 1,  1, -1),
+            Vec3d(-1, -1,  1), Vec3d( 1, -1,  1), Vec3d(-1,  1,  1), Vec3d( 1,  1,  1)
+        };
+
+        const Vec3d &child_center = child_centers[octant_idx];
+        Vec3d child_center_transformed = current->center + (child_center * (cubes_properties[depth].edge_length / 4));
+
+        current->children[octant_idx] = std::make_unique<Cube>(child_center_transformed);
+        child = current->children[octant_idx].get();
+    }
+
+    Octree::propagate_point(point, child, (depth - 1), cubes_properties);
 }
 
 } // namespace Slic3r

@@ -35,6 +35,17 @@ namespace FillAdaptive_Internal
 
         Octree(std::unique_ptr<Cube> rootCube, const Vec3d &origin, const std::vector<CubeProperties> &cubes_properties)
             : root_cube(std::move(rootCube)), origin(origin), cubes_properties(cubes_properties) {}
+
+        inline static int find_octant(const Vec3d &i_cube, const Vec3d &current)
+        {
+            return (i_cube.z() > current.z()) * 4 + (i_cube.y() > current.y()) * 2 + (i_cube.x() > current.x());
+        }
+
+        static void propagate_point(
+            Vec3d                        point,
+            FillAdaptive_Internal::Cube *current_cube,
+            int                          depth,
+            const std::vector<FillAdaptive_Internal::CubeProperties> &cubes_properties);
     };
 }; // namespace FillAdaptive_Internal
 
@@ -47,12 +58,6 @@ class FillAdaptive : public Fill
 {
 public:
     virtual ~FillAdaptive() {}
-
-    static void insert_octant(
-        FillAdaptive_Internal::Cube *                             i_cube,
-        FillAdaptive_Internal::Cube *                             current,
-        int                                                       depth,
-        const std::vector<FillAdaptive_Internal::CubeProperties> &cubes_properties);
 
 protected:
     virtual Fill* clone() const { return new FillAdaptive(*this); };
