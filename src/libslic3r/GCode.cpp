@@ -1939,8 +1939,8 @@ namespace ProcessLayer
 #if !ENABLE_GCODE_VIEWER
                     // add tag for time estimator
 	                gcode += "; " + GCodeTimeEstimator::Pause_Print_Tag + "\n";
-                    gcode += config.pause_print_gcode;
 #endif // !ENABLE_GCODE_VIEWER
+                    gcode += config.pause_print_gcode;
                 }
 	            else
 	            {
