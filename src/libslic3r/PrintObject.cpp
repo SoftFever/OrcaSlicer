@@ -433,6 +433,7 @@ void PrintObject::generate_support_material()
     }
 }
 
+#define ADAPTIVE_SUPPORT
 #define ADAPTIVE_SUPPORT_SIMPLE
 
 std::unique_ptr<FillAdaptive_Internal::Octree> PrintObject::prepare_adaptive_infill_data()
@@ -489,7 +490,11 @@ std::unique_ptr<FillAdaptive_Internal::Octree> PrintObject::prepare_adaptive_inf
     // Rotate mesh and build octree on it with axis-aligned (standart base) cubes
     mesh.transform(rotation_matrix);
 
+#if defined(ADAPTIVE_SUPPORT) && !defined(ADAPTIVE_SUPPORT_SIMPLE)
+    return FillAdaptive::build_octree_for_adaptive_support(mesh, adaptive_line_spacing, rotation_matrix * mesh_origin, rotation_matrix);
+#else
     return FillAdaptive::build_octree(mesh, adaptive_line_spacing, rotation_matrix * mesh_origin);
+#endif
 }
 
 void PrintObject::clear_layers()

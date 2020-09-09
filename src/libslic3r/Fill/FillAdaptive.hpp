@@ -93,6 +93,12 @@ public:
         const AABBTreeIndirect::Tree3f &distance_tree,
         const TriangleMesh &            triangle_mesh,
         int                             depth);
+
+    static std::unique_ptr<FillAdaptive_Internal::Octree> build_octree_for_adaptive_support(
+        TriangleMesh &     triangle_mesh,
+        coordf_t           line_spacing,
+        const Vec3d &      cube_center,
+        const Transform3d &rotation_matrix);
 };
 
 // Calculate line spacing for
