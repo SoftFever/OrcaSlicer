@@ -541,7 +541,11 @@ int CLI::run(int argc, char **argv)
     if (start_gui) {
 #ifdef SLIC3R_GUI
 // #ifdef USE_WX
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+        GUI::GUI_App* gui = new GUI::GUI_App(start_as_gcodeviewer ? GUI::GUI_App::EAppMode::GCodeViewer : GUI::GUI_App::EAppMode::Editor);
+#else
         GUI::GUI_App *gui = new GUI::GUI_App();
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 
 		bool gui_single_instance_setting = gui->app_config->get("single_instance") == "1";
 		if (Slic3r::instance_check(argc, argv, gui_single_instance_setting)) {
