@@ -434,44 +434,17 @@ void PrintObject::generate_support_material()
 
 std::unique_ptr<FillAdaptive_Internal::Octree> PrintObject::prepare_adaptive_infill_data()
 {
-    float fill_density = 0;
-    float infill_extrusion_width = 0;
-
-    // Compute the average of above parameters over all layers
-    for (size_t layer_idx = 0; layer_idx < this->m_layers.size(); ++layer_idx)
-    {
-        for (size_t region_id = 0; region_id < this->m_layers[layer_idx]->m_regions.size(); ++region_id)
-        {
-            LayerRegion *layerm = this->m_layers[layer_idx]->m_regions[region_id];
-
-            // Check if region_id is used for this layer
-            if(!layerm->fill_surfaces.surfaces.empty()) {
-                const PrintRegionConfig &region_config = layerm->region()->config();
-
-                fill_density += region_config.fill_density;
-                infill_extrusion_width += region_config.infill_extrusion_width;
-            }
-        }
-    }
-
-    fill_density /= this->m_layers.size();
-    infill_extrusion_width /= this->m_layers.size();
-
-    if(fill_density <= 0 || infill_extrusion_width <= 0)
-    {
+    auto [adaptive_line_spacing, support_line_spacing] = adaptive_fill_line_spacing(*this);
+    if (adaptive_line_spacing == 0.)
         return std::unique_ptr<FillAdaptive_Internal::Octree>{};
-    }
-
-    coordf_t line_spacing = infill_extrusion_width / ((fill_density / 100.0f) * 0.333333333f);
 
     TriangleMesh mesh = this->model_object()->raw_mesh();
     mesh.transform(m_trafo, true);
     // Apply XY shift
     mesh.translate(- unscale<float>(m_center_offset.x()), - unscale<float>(m_center_offset.y()), 0);
-
     // Center of the first cube in octree
     Vec3d mesh_origin = mesh.bounding_box().center();
-    return FillAdaptive::build_octree(mesh, line_spacing, mesh_origin);
+    return FillAdaptive::build_octree(mesh, adaptive_line_spacing, mesh_origin);
 }
 
 void PrintObject::clear_layers()

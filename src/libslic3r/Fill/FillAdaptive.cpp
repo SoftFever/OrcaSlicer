@@ -3,11 +3,92 @@
 #include "../Surface.hpp"
 #include "../Geometry.hpp"
 #include "../AABBTreeIndirect.hpp"
+#include "../Layer.hpp"
+#include "../Print.hpp"
 #include "../ShortestPath.hpp"
 
 #include "FillAdaptive.hpp"
 
 namespace Slic3r {
+
+std::pair<double, double> adaptive_fill_line_spacing(const PrintObject &print_object)
+{
+    // Output, spacing for icAdaptiveCubic and icSupportCubic
+    double  adaptive_line_spacing = 0.;
+    double  support_line_spacing = 0.;
+
+    enum class Tristate {
+        Yes,
+        No,
+        Maybe
+    };
+    struct RegionFillData {
+        Tristate        has_adaptive_infill;
+        Tristate        has_support_infill;
+        double          density;
+        double          extrusion_width;
+    };
+    std::vector<RegionFillData> region_fill_data;
+    region_fill_data.reserve(print_object.print()->regions().size());
+    bool                        build_octree = false;
+    for (const PrintRegion *region : print_object.print()->regions()) {
+        const PrintRegionConfig &config   = region->config();
+        bool                     nonempty = config.fill_density > 0;
+        bool                     has_adaptive_infill = nonempty && config.fill_pattern == ipAdaptiveCubic;
+        bool                     has_support_infill  = nonempty && false; // config.fill_pattern == icSupportCubic;
+        region_fill_data.push_back(RegionFillData({
+            has_adaptive_infill ? Tristate::Maybe : Tristate::No,
+            has_support_infill ? Tristate::Maybe : Tristate::No,
+            config.fill_density,
+            config.infill_extrusion_width
+        }));
+        build_octree |= has_adaptive_infill || has_support_infill;
+    }
+
+    if (build_octree) {
+        // Compute the average of above parameters over all layers
+        for (const Layer *layer : print_object.layers())
+            for (size_t region_id = 0; region_id < layer->regions().size(); ++ region_id) {
+                RegionFillData &rd = region_fill_data[region_id];
+                if (rd.has_adaptive_infill == Tristate::Maybe && ! layer->regions()[region_id]->fill_surfaces.empty())
+                    rd.has_adaptive_infill = Tristate::Yes;
+                if (rd.has_support_infill == Tristate::Maybe && ! layer->regions()[region_id]->fill_surfaces.empty())
+                    rd.has_support_infill = Tristate::Yes;
+            }
+
+        double  adaptive_fill_density           = 0.;
+        double  adaptive_infill_extrusion_width = 0.;
+        int     adaptive_cnt                    = 0;
+        double  support_fill_density            = 0.;
+        double  support_infill_extrusion_width  = 0.;
+        int     support_cnt                     = 0;
+
+        for (const RegionFillData &rd : region_fill_data) {
+            if (rd.has_adaptive_infill == Tristate::Yes) {
+                adaptive_fill_density           += rd.density;
+                adaptive_infill_extrusion_width += rd.extrusion_width;
+                ++ adaptive_cnt;
+            } else if (rd.has_support_infill == Tristate::Yes) {
+                support_fill_density           += rd.density;
+                support_infill_extrusion_width += rd.extrusion_width;
+                ++ support_cnt;
+            }
+        }
+
+        auto to_line_spacing = [](int cnt, double density, double extrusion_width) {
+            if (cnt) {
+                density         /= double(cnt);
+                extrusion_width /= double(cnt);
+                return extrusion_width / ((density / 100.0f) * 0.333333333f);
+            } else
+                return 0.;
+        };
+        adaptive_line_spacing = to_line_spacing(adaptive_cnt, adaptive_fill_density, adaptive_infill_extrusion_width);
+        support_line_spacing  = to_line_spacing(support_cnt, support_fill_density, support_infill_extrusion_width);
+    }
+
+    return std::make_pair(adaptive_line_spacing, support_line_spacing);
+}
 
 void FillAdaptive::_fill_surface_single(
     const FillParams                &params, 
@@ -21,7 +102,7 @@ void FillAdaptive::_fill_surface_single(
     this->generate_infill_lines(this->adapt_fill_octree->root_cube.get(),
                                 this->z, this->adapt_fill_octree->origin,infill_lines_dir,
                                 this->adapt_fill_octree->cubes_properties,
-                                this->adapt_fill_octree->cubes_properties.size() - 1);
+                                int(this->adapt_fill_octree->cubes_properties.size()) - 1);
 
     Polylines all_polylines;
     all_polylines.reserve(infill_lines_dir[0].size() * 3);
@@ -131,16 +212,16 @@ void FillAdaptive::generate_infill_lines(
         Point to(-from.x(), from.y());
         // Relative to cube center
 
-        float rotation_angle = (2.0 * M_PI) / 3.0;
+        double rotation_angle = (2.0 * M_PI) / 3.0;
         for (Lines &lines : dir_lines_out)
         {
             Vec3d offset = cube->center - origin;
             Point from_abs(from), to_abs(to);
 
-            from_abs.x() += scale_(offset.x());
-            from_abs.y() += scale_(offset.y());
-            to_abs.x() += scale_(offset.x());
-            to_abs.y() += scale_(offset.y());
+            from_abs.x() += int(scale_(offset.x()));
+            from_abs.y() += int(scale_(offset.y()));
+            to_abs.x() += int(scale_(offset.x()));
+            to_abs.y() += int(scale_(offset.y()));
 
 //            lines.emplace_back(from_abs, to_abs);
             this->connect_lines(lines, Line(from_abs, to_abs));
@@ -161,7 +242,7 @@ void FillAdaptive::generate_infill_lines(
 
 void FillAdaptive::connect_lines(Lines &lines, Line new_line)
 {
-    int eps = scale_(0.10);
+    auto eps = int(scale_(0.10));
     for (size_t i = 0; i < lines.size(); ++i)
     {
         if (std::abs(new_line.a.x() - lines[i].b.x()) < eps && std::abs(new_line.a.y() - lines[i].b.y()) < eps)
@@ -227,7 +308,7 @@ std::unique_ptr<FillAdaptive_Internal::Octree> FillAdaptive::build_octree(
             triangle_mesh.its.vertices, triangle_mesh.its.indices);
     auto octree = std::make_unique<Octree>(std::make_unique<Cube>(cube_center), cube_center, cubes_properties);
 
-    FillAdaptive::expand_cube(octree->root_cube.get(), cubes_properties, rotation_matrix, aabbTree, triangle_mesh, cubes_properties.size() - 1);
+    FillAdaptive::expand_cube(octree->root_cube.get(), cubes_properties, rotation_matrix, aabbTree, triangle_mesh, int(cubes_properties.size()) - 1);
 
     return octree;
 }
