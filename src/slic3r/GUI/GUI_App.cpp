@@ -228,7 +228,6 @@ public:
             memDC.SelectObject(wxNullBitmap);
             SetBmp(bitmap);
         }
-        wxYield();
     }
 
     void SetBmp(wxBitmap& bmp)

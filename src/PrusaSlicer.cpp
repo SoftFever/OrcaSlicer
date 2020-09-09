@@ -140,37 +140,57 @@ int CLI::run(int argc, char **argv)
         m_print_config.apply(config);
     }
 
-    // Read input file(s) if any.
-    for (const std::string &file : m_input_files) {
-        if (! boost::filesystem::exists(file)) {
-            boost::nowide::cerr << "No such file: " << file << std::endl;
-            exit(1);
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+    // are we starting as gcodeviewer ?
+    for (auto it = m_actions.begin(); it != m_actions.end(); ++it) {
+        if (*it == "gcodeviewer") {
+            start_gui = true;
+            start_as_gcodeviewer = true;
+            m_actions.erase(it);
+            break;
         }
-        Model model;
-        try {
-            // When loading an AMF or 3MF, config is imported as well, including the printer technology.
-            DynamicPrintConfig config;
-            model = Model::read_from_file(file, &config, true);
-            PrinterTechnology other_printer_technology = Slic3r::printer_technology(config);
-            if (printer_technology == ptUnknown) {
-                printer_technology = other_printer_technology;
-            } else if (printer_technology != other_printer_technology && other_printer_technology != ptUnknown) {
-                boost::nowide::cerr << "Mixing configurations for FFF and SLA technologies" << std::endl;
+    }
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+
+    // Read input file(s) if any.
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+    if (!start_as_gcodeviewer) {
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+        for (const std::string& file : m_input_files) {
+            if (!boost::filesystem::exists(file)) {
+                boost::nowide::cerr << "No such file: " << file << std::endl;
+                exit(1);
+            }
+            Model model;
+            try {
+                // When loading an AMF or 3MF, config is imported as well, including the printer technology.
+                DynamicPrintConfig config;
+                model = Model::read_from_file(file, &config, true);
+                PrinterTechnology other_printer_technology = Slic3r::printer_technology(config);
+                if (printer_technology == ptUnknown) {
+                    printer_technology = other_printer_technology;
+                }
+                else if (printer_technology != other_printer_technology && other_printer_technology != ptUnknown) {
+                    boost::nowide::cerr << "Mixing configurations for FFF and SLA technologies" << std::endl;
+                    return 1;
+                }
+                // config is applied to m_print_config before the current m_config values.
+                config += std::move(m_print_config);
+                m_print_config = std::move(config);
+            }
+            catch (std::exception& e) {
+                boost::nowide::cerr << file << ": " << e.what() << std::endl;
                 return 1;
             }
-            // config is applied to m_print_config before the current m_config values.
-            config += std::move(m_print_config);
-            m_print_config = std::move(config);
-        } catch (std::exception &e) {
-            boost::nowide::cerr << file << ": " << e.what() << std::endl;
-            return 1;
+            if (model.objects.empty()) {
+                boost::nowide::cerr << "Error: file is empty: " << file << std::endl;
+                continue;
+            }
+            m_models.push_back(model);
         }
-        if (model.objects.empty()) {
-            boost::nowide::cerr << "Error: file is empty: " << file << std::endl;
-            continue;
-        }
-        m_models.push_back(model);
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
     }
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 
     // Apply command line options to a more specific DynamicPrintConfig which provides normalize()
     // (command line options override --load files)
@@ -529,9 +549,11 @@ int CLI::run(int argc, char **argv)
                     << " (" << print.total_extruded_volume()/1000 << "cm3)" << std::endl;
 */
             }
+#if !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
         } else if (opt_key == "gcodeviewer") {
-        	start_gui = true;
+            start_gui = true;
         	start_as_gcodeviewer = true;
+#endif // !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
         } else {
             boost::nowide::cerr << "error: option not supported yet: " << opt_key << std::endl;
             return 1;
@@ -555,28 +577,43 @@ int CLI::run(int argc, char **argv)
 		
 //		gui->autosave = m_config.opt_string("autosave");
         GUI::GUI_App::SetInstance(gui);
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+        gui->CallAfter([gui, this, &load_configs, start_as_gcodeviewer] {
+#else
         gui->CallAfter([gui, this, &load_configs] {
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+
             if (!gui->initialized()) {
                 return;
             }
+
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+            if (start_as_gcodeviewer) {
+                if (!m_input_files.empty())
+                    gui->plater()->load_gcode(wxString::FromUTF8(m_input_files[0]));
+            } else {
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 #if 0
-            // Load the cummulative config over the currently active profiles.
-            //FIXME if multiple configs are loaded, only the last one will have an effect.
-            // We need to decide what to do about loading of separate presets (just print preset, just filament preset etc).
-            // As of now only the full configs are supported here.
-            if (!m_print_config.empty())
-                gui->mainframe->load_config(m_print_config);
+                // Load the cummulative config over the currently active profiles.
+                //FIXME if multiple configs are loaded, only the last one will have an effect.
+                // We need to decide what to do about loading of separate presets (just print preset, just filament preset etc).
+                // As of now only the full configs are supported here.
+                if (!m_print_config.empty())
+                    gui->mainframe->load_config(m_print_config);
 #endif
-            if (! load_configs.empty())
-                // Load the last config to give it a name at the UI. The name of the preset may be later
-                // changed by loading an AMF or 3MF.
-                //FIXME this is not strictly correct, as one may pass a print/filament/printer profile here instead of a full config.
-                gui->mainframe->load_config_file(load_configs.back());
-            // If loading a 3MF file, the config is loaded from the last one.
-            if (! m_input_files.empty())
-                gui->plater()->load_files(m_input_files, true, true);
-            if (! m_extra_config.empty())
-                gui->mainframe->load_config(m_extra_config);
+                if (!load_configs.empty())
+                    // Load the last config to give it a name at the UI. The name of the preset may be later
+                    // changed by loading an AMF or 3MF.
+                    //FIXME this is not strictly correct, as one may pass a print/filament/printer profile here instead of a full config.
+                    gui->mainframe->load_config_file(load_configs.back());
+                // If loading a 3MF file, the config is loaded from the last one.
+                if (!m_input_files.empty())
+                    gui->plater()->load_files(m_input_files, true, true);
+                if (!m_extra_config.empty())
+                    gui->mainframe->load_config(m_extra_config);
+#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+            }
+#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
         });
         int result = wxEntry(argc, argv);
         return result;
