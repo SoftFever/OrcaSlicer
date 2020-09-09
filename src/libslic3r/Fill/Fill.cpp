@@ -318,7 +318,7 @@ void export_group_fills_to_svg(const char *path, const std::vector<SurfaceFill> 
 #endif
 
 // friend to Layer
-void Layer::make_fills()
+void Layer::make_fills(FillAdaptive_Internal::Octree* adaptive_fill_octree)
 {
 	for (LayerRegion *layerm : m_regions)
 		layerm->fills.clear();
@@ -345,6 +345,7 @@ void Layer::make_fills()
         f->layer_id = this->id();
         f->z 		= this->print_z;
         f->angle 	= surface_fill.params.angle;
+        f->adapt_fill_octree = adaptive_fill_octree;
 
         // calculate flow spacing for infill pattern generation
         bool using_internal_flow = ! surface_fill.surface.is_solid() && ! surface_fill.params.flow.bridge;

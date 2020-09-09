@@ -692,6 +692,40 @@ inline typename VectorType::Scalar squared_distance_to_indexed_triangle_set(
     	detail::squared_distance_to_indexed_triangle_set_recursive(distancer, size_t(0), Scalar(0), std::numeric_limits<Scalar>::infinity(), hit_idx_out, hit_point_out);
 }
 
+// Decides if exists some triangle in defined radius on a 3D indexed triangle set using a pre-built AABBTreeIndirect::Tree.
+// Closest point to triangle test will be performed with the accuracy of VectorType::Scalar
+// even if the triangle mesh and the AABB Tree are built with floats.
+// Returns true if exists some triangle in defined radius, false otherwise.
+template<typename VertexType, typename IndexedFaceType, typename TreeType, typename VectorType>
+inline bool is_any_triangle_in_radius(
+        // Indexed triangle set - 3D vertices.
+        const std::vector<VertexType> 		&vertices,
+        // Indexed triangle set - triangular faces, references to vertices.
+        const std::vector<IndexedFaceType> 	&faces,
+        // AABBTreeIndirect::Tree over vertices & faces, bounding boxes built with the accuracy of vertices.
+        const TreeType 						&tree,
+        // Point to which the closest point on the indexed triangle set is searched for.
+        const VectorType					&point,
+        // Maximum distance in which triangle is search for
+        typename VectorType::Scalar &max_distance)
+{
+    using Scalar = typename VectorType::Scalar;
+    auto distancer = detail::IndexedTriangleSetDistancer<VertexType, IndexedFaceType, TreeType, VectorType>
+            { vertices, faces, tree, point };
+
+	size_t hit_idx;
+	VectorType hit_point = VectorType::Ones() * (std::nan(""));
+
+	if(tree.empty())
+	{
+		return false;
+	}
+
+	detail::squared_distance_to_indexed_triangle_set_recursive(distancer, size_t(0), Scalar(0), max_distance, hit_idx, hit_point);
+
+    return hit_point.allFinite();
+}
+
 } // namespace AABBTreeIndirect
 } // namespace Slic3r
 

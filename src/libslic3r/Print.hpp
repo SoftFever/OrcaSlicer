@@ -30,6 +30,10 @@ enum class SlicingMode : uint32_t;
 class Layer;
 class SupportLayer;
 
+namespace FillAdaptive_Internal {
+    struct Octree;
+};
+
 // Print step IDs for keeping track of the print state.
 enum PrintStep {
     psSkirt, 
@@ -235,6 +239,7 @@ private:
     void discover_horizontal_shells();
     void combine_infill();
     void _generate_support_material();
+    std::unique_ptr<FillAdaptive_Internal::Octree> prepare_adaptive_infill_data();
 
     // XYZ in scaled coordinates
     Vec3crd									m_size;
