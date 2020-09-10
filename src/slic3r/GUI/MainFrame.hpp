@@ -72,21 +72,7 @@ class MainFrame : public DPIFrame
     wxString    m_qs_last_output_file = wxEmptyString;
     wxString    m_last_config = wxEmptyString;
 #if ENABLE_GCODE_VIEWER
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
-    wxMenuBar* m_menubar{ nullptr };
-#else
-    wxMenuBar* m_editor_menubar{ nullptr };
-    wxMenuBar* m_gcodeviewer_menubar{ nullptr };
-
-    struct RestoreFromGCodeViewer
-    {
-        bool collapsed_sidebar{ false };
-        bool collapse_toolbar_enabled{ false };
-        bool sla_technology{ false };
-    };
-
-    RestoreFromGCodeViewer m_restore_from_gcode_viewer;
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+    wxMenuBar*  m_menubar{ nullptr };
 #endif // ENABLE_GCODE_VIEWER
 
 #if 0
@@ -149,20 +135,6 @@ class MainFrame : public DPIFrame
     
     ESettingsLayout m_layout{ ESettingsLayout::Unknown };
 
-#if ENABLE_GCODE_VIEWER
-#if !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
-public:
-    enum class EMode : unsigned char
-    {
-        Editor,
-        GCodeViewer
-    };
-
-private:
-    EMode m_mode{ EMode::Editor };
-#endif // !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
-#endif // ENABLE_GCODE_VIEWER
-
 protected:
     virtual void on_dpi_changed(const wxRect &suggested_rect);
     virtual void on_sys_color_changed() override;
@@ -190,11 +162,6 @@ public:
 #if ENABLE_GCODE_VIEWER
     void        init_menubar_as_editor();
     void        init_menubar_as_gcodeviewer();
-
-#if !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
-    EMode       get_mode() const { return m_mode; }
-    void        set_mode(EMode mode);
-#endif // !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 #else
     void        init_menubar();
 #endif // ENABLE_GCODE_VIEWER

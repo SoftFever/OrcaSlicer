@@ -434,15 +434,15 @@ static void generic_exception_handle()
 
 IMPLEMENT_APP(GUI_App)
 
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#if ENABLE_GCODE_VIEWER
 GUI_App::GUI_App(EAppMode mode)
 #else
 GUI_App::GUI_App()
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#endif // ENABLE_GCODE_VIEWER
     : wxApp()
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#if ENABLE_GCODE_VIEWER
     , m_app_mode(mode)
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#endif // ENABLE_GCODE_VIEWER
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
     , m_wizard(nullptr)
@@ -498,11 +498,11 @@ void GUI_App::init_app_config()
 	if (!app_config)
 		app_config = new AppConfig();
 
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#if ENABLE_GCODE_VIEWER
     if (is_gcode_viewer())
         // disable config save to avoid to mess it up for the editor
         app_config->enable_save(false);
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#endif // ENABLE_GCODE_VIEWER
 
 	// load settings
 	app_conf_exists = app_config->exists();
@@ -577,11 +577,11 @@ bool GUI_App::on_init_inner()
     wxInitAllImageHandlers();
 
     wxBitmap bitmap = create_scaled_bitmap("prusa_slicer_logo", nullptr, 400);
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#if ENABLE_GCODE_VIEWER
     wxBitmap bmp(is_editor() ? from_u8(var("splashscreen.jpg")) : from_u8(var("splashscreen-gcodeviewer.jpg")), wxBITMAP_TYPE_JPEG);
 #else
     wxBitmap bmp(from_u8(var("splashscreen.jpg")), wxBITMAP_TYPE_JPEG);
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#endif // ENABLE_GCODE_VIEWER
 
     DecorateSplashScreen(bmp);
 
@@ -594,9 +594,9 @@ bool GUI_App::on_init_inner()
     // supplied as argument to --datadir; in that case we should still run the wizard
     preset_bundle->setup_directories();
 
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#if ENABLE_GCODE_VIEWER
     if (is_editor()) {
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#endif // ENABLE_GCODE_VIEWER
 #ifdef __WXMSW__ 
         associate_3mf_files();
 #endif // __WXMSW__
@@ -611,9 +611,9 @@ bool GUI_App::on_init_inner()
                 }
             }
             });
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#if ENABLE_GCODE_VIEWER
     }
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#endif // ENABLE_GCODE_VIEWER
 
     // initialize label colors and fonts
     init_label_colours();
@@ -641,9 +641,9 @@ bool GUI_App::on_init_inner()
     Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
 
     // application frame
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#if ENABLE_GCODE_VIEWER
     if (is_editor())
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#endif // ENABLE_GCODE_VIEWER
         scrn->SetText(_L("Creating settings tabs..."));
 
     mainframe = new MainFrame();
@@ -679,9 +679,9 @@ bool GUI_App::on_init_inner()
         static bool once = true;
         if (once) {
             once = false;
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#if ENABLE_GCODE_VIEWER
             if (preset_updater != nullptr) {
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#endif // ENABLE_GCODE_VIEWER
                 check_updates(false);
 
                 CallAfter([this] {
@@ -689,9 +689,9 @@ bool GUI_App::on_init_inner()
                     preset_updater->slic3r_update_notify();
                     preset_updater->sync(preset_bundle);
                     });
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#if ENABLE_GCODE_VIEWER
             }
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#endif // ENABLE_GCODE_VIEWER
 
 #ifdef _WIN32
 			//sets window property to mainframe so other instances can indentify it
@@ -700,7 +700,7 @@ bool GUI_App::on_init_inner()
         }
     });
 
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#if ENABLE_GCODE_VIEWER
     if (is_gcode_viewer()) {
         mainframe->update_layout();
         if (plater_ != nullptr)
@@ -708,7 +708,7 @@ bool GUI_App::on_init_inner()
             plater_->set_printer_technology(ptFFF);
     }
     else
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#endif // ENABLE_GCODE_VIEWER
         load_current_presets();
     mainframe->Show(true);
 

@@ -140,7 +140,7 @@ int CLI::run(int argc, char **argv)
         m_print_config.apply(config);
     }
 
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#if ENABLE_GCODE_VIEWER
     // are we starting as gcodeviewer ?
     for (auto it = m_actions.begin(); it != m_actions.end(); ++it) {
         if (*it == "gcodeviewer") {
@@ -150,12 +150,12 @@ int CLI::run(int argc, char **argv)
             break;
         }
     }
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#endif // ENABLE_GCODE_VIEWER
 
     // Read input file(s) if any.
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#if ENABLE_GCODE_VIEWER
     if (!start_as_gcodeviewer) {
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#endif // ENABLE_GCODE_VIEWER
         for (const std::string& file : m_input_files) {
             if (!boost::filesystem::exists(file)) {
                 boost::nowide::cerr << "No such file: " << file << std::endl;
@@ -188,9 +188,9 @@ int CLI::run(int argc, char **argv)
             }
             m_models.push_back(model);
         }
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#if ENABLE_GCODE_VIEWER
     }
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#endif // ENABLE_GCODE_VIEWER
 
     // Apply command line options to a more specific DynamicPrintConfig which provides normalize()
     // (command line options override --load files)
@@ -549,11 +549,11 @@ int CLI::run(int argc, char **argv)
                     << " (" << print.total_extruded_volume()/1000 << "cm3)" << std::endl;
 */
             }
-#if !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#if !ENABLE_GCODE_VIEWER
         } else if (opt_key == "gcodeviewer") {
             start_gui = true;
         	start_as_gcodeviewer = true;
-#endif // !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#endif // !ENABLE_GCODE_VIEWER
         } else {
             boost::nowide::cerr << "error: option not supported yet: " << opt_key << std::endl;
             return 1;
@@ -563,11 +563,11 @@ int CLI::run(int argc, char **argv)
     if (start_gui) {
 #ifdef SLIC3R_GUI
 // #ifdef USE_WX
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#if ENABLE_GCODE_VIEWER
         GUI::GUI_App* gui = new GUI::GUI_App(start_as_gcodeviewer ? GUI::GUI_App::EAppMode::GCodeViewer : GUI::GUI_App::EAppMode::Editor);
 #else
         GUI::GUI_App *gui = new GUI::GUI_App();
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#endif // ENABLE_GCODE_VIEWER
 
 		bool gui_single_instance_setting = gui->app_config->get("single_instance") == "1";
 		if (Slic3r::instance_check(argc, argv, gui_single_instance_setting)) {
@@ -577,22 +577,21 @@ int CLI::run(int argc, char **argv)
 		
 //		gui->autosave = m_config.opt_string("autosave");
         GUI::GUI_App::SetInstance(gui);
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#if ENABLE_GCODE_VIEWER
         gui->CallAfter([gui, this, &load_configs, start_as_gcodeviewer] {
 #else
         gui->CallAfter([gui, this, &load_configs] {
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
-
+#endif // ENABLE_GCODE_VIEWER
             if (!gui->initialized()) {
                 return;
             }
 
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#if ENABLE_GCODE_VIEWER
             if (start_as_gcodeviewer) {
                 if (!m_input_files.empty())
                     gui->plater()->load_gcode(wxString::FromUTF8(m_input_files[0]));
             } else {
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#endif // ENABLE_GCODE_VIEWER_AS
 #if 0
                 // Load the cummulative config over the currently active profiles.
                 //FIXME if multiple configs are loaded, only the last one will have an effect.
@@ -611,9 +610,9 @@ int CLI::run(int argc, char **argv)
                     gui->plater()->load_files(m_input_files, true, true);
                 if (!m_extra_config.empty())
                     gui->mainframe->load_config(m_extra_config);
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#if ENABLE_GCODE_VIEWER
             }
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
+#endif // ENABLE_GCODE_VIEWER
         });
         int result = wxEntry(argc, argv);
         return result;

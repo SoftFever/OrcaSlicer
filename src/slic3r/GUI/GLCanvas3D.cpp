@@ -2732,11 +2732,7 @@ static void load_gcode_retractions(const GCodePreviewData::Retraction& retractio
 void GLCanvas3D::load_gcode_preview(const GCodeProcessor::Result& gcode_result)
 {
     m_gcode_viewer.load(gcode_result, *this->fff_print(), m_initialized);
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
     if (wxGetApp().is_editor())
-#else
-    if (wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer)
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
         _show_warning_texture_if_needed(WarningTexture::ToolpathOutside);
 }
 
@@ -4306,11 +4302,7 @@ void GLCanvas3D::update_ui_from_settings()
 #endif // ENABLE_RETINA_GL
 
 #if ENABLE_GCODE_VIEWER
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
     if (wxGetApp().is_editor())
-#else
-    if (wxGetApp().mainframe != nullptr && wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer)
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
         wxGetApp().plater()->get_collapse_toolbar().set_enabled(wxGetApp().app_config->get("show_collapse_button") == "1");
 #else
     bool enable_collapse = wxGetApp().app_config->get("show_collapse_button") == "1";
@@ -5413,11 +5405,7 @@ void GLCanvas3D::_render_background() const
 {
 #if ENABLE_GCODE_VIEWER
     bool use_error_color = false;
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
     if (wxGetApp().is_editor()) {
-#else
-    if (wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer) {
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
         use_error_color = m_dynamic_background_enabled;
         if (!m_volumes.empty())
             use_error_color &= _is_any_volume_outside();
@@ -7146,11 +7134,7 @@ void GLCanvas3D::_show_warning_texture_if_needed(WarningTexture::Warning warning
     if (!m_volumes.empty())
         show = _is_any_volume_outside();
     else {
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
         if (wxGetApp().is_editor()) {
-#else
-        if (wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer) {
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
             BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
             const BoundingBoxf3& paths_volume = m_gcode_viewer.get_paths_bounding_box();
             if (test_volume.radius() > 0.0 && paths_volume.radius() > 0.0)

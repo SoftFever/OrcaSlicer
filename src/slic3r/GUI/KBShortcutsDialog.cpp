@@ -95,15 +95,7 @@ void KBShortcutsDialog::fill_shortcuts()
     const std::string& alt = GUI::shortkey_alt_prefix();
 
 #if ENABLE_GCODE_VIEWER
-#if !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
-    bool is_gcode_viewer = wxGetApp().mainframe->get_mode() == MainFrame::EMode::GCodeViewer;
-#endif // !ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
-
-#if ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
     if (wxGetApp().is_editor()) {
-#else
-    if (!is_gcode_viewer) {
-#endif // ENABLE_GCODE_VIEWER_AS_STANDALONE_APPLICATION
 #endif // ENABLE_GCODE_VIEWER
         Shortcuts commands_shortcuts = {
             // File
