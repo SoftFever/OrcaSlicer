@@ -39,7 +39,7 @@ enum AuthorizationType {
 
 enum InfillPattern : int {
     ipRectilinear, ipMonotonous, ipGrid, ipTriangles, ipStars, ipCubic, ipLine, ipConcentric, ipHoneycomb, ip3DHoneycomb,
-    ipGyroid, ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipAdaptiveCubic, ipCount,
+    ipGyroid, ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipAdaptiveCubic, ipSupportCubic, ipCount,
 };
 
 enum class IroningType {
@@ -140,6 +140,7 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<InfillPattern>::g
         keys_map["archimedeanchords"]   = ipArchimedeanChords;
         keys_map["octagramspiral"]      = ipOctagramSpiral;
         keys_map["adaptivecubic"]       = ipAdaptiveCubic;
+        keys_map["supportcubic"]        = ipSupportCubic;
     }
     return keys_map;
 }
