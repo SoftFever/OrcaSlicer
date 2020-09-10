@@ -377,7 +377,7 @@ void PrintObject::infill()
         BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - start";
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size()),
-            [this, &adaptive_fill_octree, &support_fill_octree](const tbb::blocked_range<size_t>& range) {
+            [this, &adaptive_fill_octree = adaptive_fill_octree, &support_fill_octree = support_fill_octree](const tbb::blocked_range<size_t>& range) {
                 for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                     m_print->throw_if_canceled();
                     m_layers[layer_idx]->make_fills(adaptive_fill_octree.get(), support_fill_octree.get());
@@ -491,14 +491,14 @@ std::pair<std::unique_ptr<FillAdaptive_Internal::Octree>, std::unique_ptr<FillAd
     Vec3d rotation = Vec3d((5.0 * M_PI) / 4.0, Geometry::deg2rad(215.264), M_PI / 6.0);
     Transform3d rotation_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation, Vec3d::Ones(), Vec3d::Ones()).inverse();
 
-    // Rotate mesh and build octree on it with axis-aligned (standart base) cubes
-    mesh.transform(rotation_matrix);
-
-    if (adaptive_line_spacing != 0.)
+    if (adaptive_line_spacing != 0.) {
+        // Rotate mesh and build octree on it with axis-aligned (standart base) cubes
+        mesh.transform(rotation_matrix);
         adaptive_fill_octree = FillAdaptive::build_octree(mesh, adaptive_line_spacing, rotation_matrix * mesh_origin);
+    }
 
     if (support_line_spacing != 0.)
-        support_fill_octree = FillSupportCubic::build_octree_for_adaptive_support(mesh, support_line_spacing, rotation_matrix * mesh_origin, rotation_matrix);
+        support_fill_octree = FillSupportCubic::build_octree(mesh, support_line_spacing, rotation_matrix * mesh_origin, rotation_matrix);
 
     return std::make_pair(std::move(adaptive_fill_octree), std::move(support_fill_octree));
 }

@@ -120,7 +120,7 @@ protected:
         Polylines                       &polylines_out);
 
 public:
-    static std::unique_ptr<FillAdaptive_Internal::Octree> build_octree_for_adaptive_support(
+    static std::unique_ptr<FillAdaptive_Internal::Octree> build_octree(
         TriangleMesh &     triangle_mesh,
         coordf_t           line_spacing,
         const Vec3d &      cube_center,
