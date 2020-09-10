@@ -392,7 +392,7 @@ void FillAdaptive_Internal::Octree::propagate_point(
     Octree::propagate_point(point, child, (depth - 1), cubes_properties);
 }
 
-std::unique_ptr<FillAdaptive_Internal::Octree> FillSupportCubic::build_octree_for_adaptive_support(
+std::unique_ptr<FillAdaptive_Internal::Octree> FillSupportCubic::build_octree(
     TriangleMesh &     triangle_mesh,
     coordf_t           line_spacing,
     const Vec3d &      cube_center,
@@ -434,7 +434,7 @@ std::unique_ptr<FillAdaptive_Internal::Octree> FillSupportCubic::build_octree_fo
 
     auto octree = std::make_unique<Octree>(std::make_unique<Cube>(cube_center), cube_center, cubes_properties);
 
-    double cube_edge_length = line_spacing;
+    double cube_edge_length = line_spacing / 2.0;
     size_t max_depth = octree->cubes_properties.size() - 1;
     BoundingBoxf3 mesh_bb = triangle_mesh.bounding_box();
     Vec3f vertical(0, 0, 1);
@@ -497,7 +497,7 @@ std::unique_ptr<FillAdaptive_Internal::Octree> FillSupportCubic::build_octree_fo
                     if(intersect_triangle(cube_center_absolute_arr, dir, vert_0, vert_1, vert_2, &distance, &cord_u, &cord_v) && distance > 0 && distance <= cube_edge_length)
                     {
                         Vec3d cube_center_transformed(cube_center_absolute.x(), cube_center_absolute.y(), cube_center_absolute.z() + (cube_edge_length / 2.0));
-                        Octree::propagate_point(cube_center_transformed, octree->root_cube.get(), max_depth, octree->cubes_properties);
+                        Octree::propagate_point(rotation_matrix * cube_center_transformed, octree->root_cube.get(), max_depth, octree->cubes_properties);
                     }
                 }
             }

@@ -491,14 +491,14 @@ std::pair<std::unique_ptr<FillAdaptive_Internal::Octree>, std::unique_ptr<FillAd
     Vec3d rotation = Vec3d((5.0 * M_PI) / 4.0, Geometry::deg2rad(215.264), M_PI / 6.0);
     Transform3d rotation_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation, Vec3d::Ones(), Vec3d::Ones()).inverse();
 
-    // Rotate mesh and build octree on it with axis-aligned (standart base) cubes
-    mesh.transform(rotation_matrix);
-
-    if (adaptive_line_spacing != 0.)
+    if (adaptive_line_spacing != 0.) {
+        // Rotate mesh and build octree on it with axis-aligned (standart base) cubes
+        mesh.transform(rotation_matrix);
         adaptive_fill_octree = FillAdaptive::build_octree(mesh, adaptive_line_spacing, rotation_matrix * mesh_origin);
+    }
 
     if (support_line_spacing != 0.)
-        support_fill_octree = FillSupportCubic::build_octree_for_adaptive_support(mesh, support_line_spacing, rotation_matrix * mesh_origin, rotation_matrix);
+        support_fill_octree = FillSupportCubic::build_octree(mesh, support_line_spacing, rotation_matrix * mesh_origin, rotation_matrix);
 
     return std::make_pair(std::move(adaptive_fill_octree), std::move(support_fill_octree));
 }
