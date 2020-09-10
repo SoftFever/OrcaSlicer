@@ -7,6 +7,8 @@
 
 namespace Slic3r {
 
+class PrintObject;
+
 namespace FillAdaptive_Internal
 {
     struct CubeProperties
@@ -81,6 +83,12 @@ public:
         const TriangleMesh &            triangle_mesh,
         int                             depth);
 };
+
+// Calculate line spacing for
+// 1) adaptive cubic infill
+// 2) adaptive internal support cubic infill
+// Returns zero for a particular infill type if no such infill is to be generated.
+std::pair<double, double> adaptive_fill_line_spacing(const PrintObject &print_object);
 
 } // namespace Slic3r
 
