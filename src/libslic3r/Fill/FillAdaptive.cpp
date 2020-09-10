@@ -435,7 +435,7 @@ std::unique_ptr<FillAdaptive_Internal::Octree> FillSupportCubic::build_octree(
     auto octree = std::make_unique<Octree>(std::make_unique<Cube>(cube_center), cube_center, cubes_properties);
 
     double cube_edge_length = line_spacing / 2.0;
-    size_t max_depth = octree->cubes_properties.size() - 1;
+    int max_depth = int(octree->cubes_properties.size()) - 1;
     BoundingBoxf3 mesh_bb = triangle_mesh.bounding_box();
     Vec3f vertical(0, 0, 1);
 
@@ -462,13 +462,13 @@ std::unique_ptr<FillAdaptive_Internal::Octree> FillSupportCubic::build_octree(
         Vec3d triangle_end_relative   = triangle_bb.max - mesh_bb.min;
 
         Vec3crd triangle_start_idx = Vec3crd(
-            std::floor(triangle_start_relative.x() / cube_edge_length),
-            std::floor(triangle_start_relative.y() / cube_edge_length),
-            std::floor(triangle_start_relative.z() / cube_edge_length));
+            int(std::floor(triangle_start_relative.x() / cube_edge_length)),
+            int(std::floor(triangle_start_relative.y() / cube_edge_length)),
+            int(std::floor(triangle_start_relative.z() / cube_edge_length)));
         Vec3crd triangle_end_idx = Vec3crd(
-            std::floor(triangle_end_relative.x() / cube_edge_length),
-            std::floor(triangle_end_relative.y() / cube_edge_length),
-            std::floor(triangle_end_relative.z() / cube_edge_length));
+            int(std::floor(triangle_end_relative.x() / cube_edge_length)),
+            int(std::floor(triangle_end_relative.y() / cube_edge_length)),
+            int(std::floor(triangle_end_relative.z() / cube_edge_length)));
 
         for (int z = triangle_start_idx.z(); z <= triangle_end_idx.z(); ++z)
         {
