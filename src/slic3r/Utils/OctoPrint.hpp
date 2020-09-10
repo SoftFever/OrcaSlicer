@@ -6,6 +6,7 @@
 #include <boost/optional.hpp>
 
 #include "PrintHost.hpp"
+#include "libslic3r/PrintConfig.hpp"
 
 
 namespace Slic3r {
