@@ -4,6 +4,7 @@
 #include "../AABBTreeIndirect.hpp"
 
 #include "FillBase.hpp"
+#include "TriangleMesh.hpp"
 
 namespace Slic3r {
 

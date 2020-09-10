@@ -13,7 +13,7 @@ namespace Slic3r { namespace GUI {
 void RotoptimizeJob::process()
 {
     int obj_idx = m_plater->get_selected_object_idx();
-    if (obj_idx < 0 || m_plater->sla_print().objects().size() <= obj_idx)
+    if (obj_idx < 0 || int(m_plater->sla_print().objects().size()) <= obj_idx)
         return;
     
     ModelObject *o = m_plater->model().objects[size_t(obj_idx)];
@@ -35,15 +35,12 @@ void RotoptimizeJob::process()
 //        std::cout << "Model supportedness before: " << score << std::endl;
 //    }
 
-    auto r = sla::find_best_rotation(
-        *po,
-        1.f,
+    Vec2d r = sla::find_best_rotation(*po, 0.75f,
         [this](unsigned s) {
             if (s < 100)
-                update_status(int(s),
-                              _(L("Searching for optimal orientation")));
+                update_status(int(s), _(L("Searching for optimal orientation")));
         },
-        [this]() { return was_canceled(); });
+        [this] () { return was_canceled(); });
 
 
     double mindist = 6.0; // FIXME

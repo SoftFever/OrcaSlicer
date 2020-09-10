@@ -27,7 +27,7 @@ namespace sla {
   *
   * @return Returns the rotations around each axis (x, y, z)
   */
-std::array<double, 2> find_best_rotation(
+Vec2d find_best_rotation(
         const SLAPrintObject& modelobj,
         float accuracy = 1.0f,
         std::function<void(unsigned)> statuscb = [] (unsigned) {},

@@ -1,10 +1,9 @@
 #include <limits>
-#include <exception>
 
-//#include <libnest2d/optimizers/nlopt/genetic.hpp>
-#include <libslic3r/Optimize/BruteforceOptimizer.hpp>
 #include <libslic3r/SLA/Rotfinder.hpp>
 #include <libslic3r/SLA/Concurrency.hpp>
+
+#include <libslic3r/Optimize/BruteforceOptimizer.hpp>
 
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/PrintConfig.hpp"
@@ -61,23 +60,25 @@ std::array<Vec3d, 3> get_transformed_triangle(const TriangleMesh &mesh,
 }
 
 // Get area and normal of a triangle
-struct Face { Vec3d normal; double area; };
-inline Face facestats(const std::array<Vec3d, 3> &triangle)
-{
-    Vec3d U = triangle[1] - triangle[0];
-    Vec3d V = triangle[2] - triangle[0];
-    Vec3d C = U.cross(V);
-    Vec3d N = C.normalized();
-    double area = 0.5 * C.norm();
+struct Facestats {
+    Vec3d  normal;
+    double area;
 
-    return {N, area};
-}
+    explicit Facestats(const std::array<Vec3d, 3> &triangle)
+    {
+        Vec3d U = triangle[1] - triangle[0];
+        Vec3d V = triangle[2] - triangle[0];
+        Vec3d C = U.cross(V);
+        normal = C.normalized();
+        area = 0.5 * C.norm();
+    }
+};
 
 inline const Vec3d DOWN = {0., 0., -1.};
 constexpr double POINTS_PER_UNIT_AREA = 1.;
 
 // The score function for a particular face
-inline double get_score(const Face &fc)
+inline double get_score(const Facestats &fc)
 {
     // Simply get the angle (acos of dot product) between the face normal and
     // the DOWN vector.
@@ -110,7 +111,7 @@ double get_model_supportedness(const TriangleMesh &mesh, const Transform3d &tr)
     if (mesh.its.vertices.empty()) return std::nan("");
 
     auto accessfn = [&mesh, &tr](size_t fi) {
-        Face fc = facestats(get_transformed_triangle(mesh, tr, fi));
+        Facestats fc{get_transformed_triangle(mesh, tr, fi)};
         return get_score(fc);
     };
 
@@ -131,7 +132,7 @@ double get_model_supportedness_onfloor(const TriangleMesh &mesh,
 
     auto accessfn = [&mesh, &tr, zlvl](size_t fi) {
         std::array<Vec3d, 3> tri = get_transformed_triangle(mesh, tr, fi);
-        Face fc = facestats(tri);
+        Facestats fc{tri};
 
         if (tri[0].z() <= zlvl && tri[1].z() <= zlvl && tri[2].z() <= zlvl)
             return -fc.area * POINTS_PER_UNIT_AREA;
@@ -161,56 +162,91 @@ XYRotation from_transform3d(const Transform3d &tr)
 }
 
 // Find the best score from a set of function inputs. Evaluate for every point.
-template<size_t N, class Fn, class Cmp, class It>
-std::array<double, N> find_min_score(Fn &&fn, Cmp &&cmp, It from, It to)
+template<size_t N, class Fn, class It, class StopCond>
+std::array<double, N> find_min_score(Fn &&fn, It from, It to, StopCond &&stopfn)
 {
     std::array<double, N> ret;
 
     double score = std::numeric_limits<double>::max();
 
-    for (auto it = from; it != to; ++it) {
-        double sc = fn(*it);
-        if (cmp(sc, score)) {
-            score = sc;
-            ret = *it;
-        }
-    }
+    size_t Nthreads = std::thread::hardware_concurrency();
+    size_t dist = std::distance(from, to);
+    std::vector<double> scores(dist, score);
+
+    ccr_par::for_each(size_t(0), dist, [&stopfn, &scores, &fn, &from](size_t i) {
+        if (stopfn()) return;
+
+        scores[i] = fn(*(from + i));
+    }, dist / Nthreads);
+
+    auto it = std::min_element(scores.begin(), scores.end());
+
+    if (it != scores.end()) ret = *(from + std::distance(scores.begin(), it));
 
     return ret;
 }
 
 // collect the rotations for each face of the convex hull
-std::vector<XYRotation> get_chull_rotations(const TriangleMesh &mesh)
+std::vector<XYRotation> get_chull_rotations(const TriangleMesh &mesh, size_t max_count)
 {
     TriangleMesh chull = mesh.convex_hull_3d();
     chull.require_shared_vertices();
     double chull2d_area = chull.convex_hull().area();
-    double area_threshold =  chull2d_area / (scaled<double>(1e3) * scaled(1.));
+    double area_threshold = chull2d_area / (scaled<double>(1e3) * scaled(1.));
 
     size_t facecount = chull.its.indices.size();
-    auto inputs = reserve_vector<XYRotation>(facecount);
+
+    struct RotArea { XYRotation rot; double area; };
+
+    auto inputs = reserve_vector<RotArea>(facecount);
+
+    auto rotcmp = [](const RotArea &r1, const RotArea &r2) {
+        double xdiff = r1.rot[X] - r2.rot[X], ydiff = r1.rot[Y] - r2.rot[Y];
+        return std::abs(xdiff) < EPSILON ? ydiff < 0. : xdiff < 0.;
+    };
+
+    auto eqcmp = [](const XYRotation &r1, const XYRotation &r2) {
+        double xdiff = r1[X] - r2[X], ydiff = r1[Y] - r2[Y];
+        return std::abs(xdiff) < EPSILON  && std::abs(ydiff) < EPSILON;
+    };
 
     for (size_t fi = 0; fi < facecount; ++fi) {
-        Face fc = facestats(get_triangle_vertices(chull, fi));
+        Facestats fc{get_triangle_vertices(chull, fi)};
 
         if (fc.area > area_threshold)  {
             auto q = Eigen::Quaterniond{}.FromTwoVectors(fc.normal, DOWN);
-            inputs.emplace_back(from_transform3d(Transform3d::Identity() * q));
+            XYRotation rot = from_transform3d(Transform3d::Identity() * q);
+            RotArea ra = {rot, fc.area};
+
+            auto it = std::lower_bound(inputs.begin(), inputs.end(), ra, rotcmp);
+
+            if (it == inputs.end() || !eqcmp(it->rot, rot))
+                inputs.insert(it, ra);
         }
     }
 
-    return inputs;
+    inputs.shrink_to_fit();
+    if (!max_count) max_count = inputs.size();
+    std::sort(inputs.begin(), inputs.end(),
+              [](const RotArea &ra, const RotArea &rb) {
+                  return ra.area > rb.area;
+              });
+
+    auto ret = reserve_vector<XYRotation>(std::min(max_count, inputs.size()));
+    for (const RotArea &ra : inputs) ret.emplace_back(ra.rot);
+
+    return ret;
 }
 
-XYRotation find_best_rotation(const SLAPrintObject &        po,
-                              float                         accuracy,
-                              std::function<void(unsigned)> statuscb,
-                              std::function<bool()>         stopcond)
+Vec2d find_best_rotation(const SLAPrintObject &        po,
+                         float                         accuracy,
+                         std::function<void(unsigned)> statuscb,
+                         std::function<bool()>         stopcond)
 {
-    static const unsigned MAX_TRIES = 10000;
+    static const unsigned MAX_TRIES = 1000;
 
     // return value
-    std::array<double, 2> rot;
+    XYRotation rot;
 
     // We will use only one instance of this converted mesh to examine different
     // rotations
@@ -226,7 +262,7 @@ XYRotation find_best_rotation(const SLAPrintObject &        po,
     // call status callback with zero, because we are at the start
     statuscb(status);
 
-    auto statusfn = [&statuscb, &status, max_tries] {
+    auto statusfn = [&statuscb, &status, &max_tries] {
         // report status
         statuscb(unsigned(++status * 100.0/max_tries) );
     };
@@ -234,29 +270,26 @@ XYRotation find_best_rotation(const SLAPrintObject &        po,
     // Different search methods have to be used depending on the model elevation
     if (is_on_floor(po)) {
 
+        std::vector<XYRotation> inputs = get_chull_rotations(mesh, max_tries);
+        max_tries = inputs.size();
+
         // If the model can be placed on the bed directly, we only need to
         // check the 3D convex hull face rotations.
 
-        auto inputs = get_chull_rotations(mesh);
-
-        auto cmpfn = [](double a, double b) { return a < b; };
         auto objfn = [&mesh, &statusfn](const XYRotation &rot) {
             statusfn();
-            // We actually need the reverserotation to make the object lie on
-            // this face
             Transform3d tr = to_transform3d(rot);
             return get_model_supportedness_onfloor(mesh, tr);
         };
 
-        rot = find_min_score<2>(objfn, cmpfn, inputs.begin(), inputs.end());
+        rot = find_min_score<2>(objfn, inputs.begin(), inputs.end(), stopcond);
     } else {
-
         // Preparing the optimizer.
-        size_t grid_size = std::sqrt(max_tries);
+        size_t gridsize = std::sqrt(max_tries); // 2D grid has gridsize^2 calls
         opt::Optimizer<opt::AlgBruteForce> solver(opt::StopCriteria{}
-                                                      .max_iterations(max_tries)
-                                                      .stop_condition(stopcond),
-                                                  grid_size);
+                                                    .max_iterations(max_tries)
+                                                    .stop_condition(stopcond),
+                                                  gridsize);
 
         // We are searching rotations around only two axes x, y. Thus the
         // problem becomes a 2 dimensional optimization task.
@@ -272,11 +305,9 @@ XYRotation find_best_rotation(const SLAPrintObject &        po,
 
         // Save the result and fck off
         rot = result.optimum;
-
-        std::cout << "best score: " << result.score << std::endl;
     }
 
-    return rot;
+    return {rot[0], rot[1]};
 }
 
 double get_model_supportedness(const SLAPrintObject &po, const Transform3d &tr)
