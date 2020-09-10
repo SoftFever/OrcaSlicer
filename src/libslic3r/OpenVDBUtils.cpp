@@ -2,6 +2,7 @@
 #include "OpenVDBUtils.hpp"
 #include <openvdb/tools/MeshToVolume.h>
 #include <openvdb/tools/VolumeToMesh.h>
+#include <openvdb/tools/Composite.h>
 #include <openvdb/tools/LevelSetRebuild.h>
 
 //#include "MTUtils.hpp"
@@ -57,17 +58,42 @@ void Contour3DDataAdapter::getIndexSpacePoint(size_t          n,
 // TODO: Do I need to call initialize? Seems to work without it as well but the
 // docs say it should be called ones. It does a mutex lock-unlock sequence all
 // even if was called previously.
-
 openvdb::FloatGrid::Ptr mesh_to_grid(const TriangleMesh &mesh,
                                      const openvdb::math::Transform &tr,
                                      float               exteriorBandWidth,
                                      float               interiorBandWidth,
                                      int                 flags)
 {
+//    openvdb::initialize();
+//    return openvdb::tools::meshToVolume<openvdb::FloatGrid>(
+//        TriangleMeshDataAdapter{mesh}, tr, exteriorBandWidth,
+//        interiorBandWidth, flags);
+
     openvdb::initialize();
-    return openvdb::tools::meshToVolume<openvdb::FloatGrid>(
-        TriangleMeshDataAdapter{mesh}, tr, exteriorBandWidth,
-        interiorBandWidth, flags);
+
+    TriangleMeshPtrs meshparts = mesh.split();
+
+    auto it = std::remove_if(meshparts.begin(), meshparts.end(),
+    [](TriangleMesh *m){
+        m->require_shared_vertices();
+        return !m->is_manifold() || m->volume() < EPSILON;
+    });
+
+    meshparts.erase(it, meshparts.end());
+
+    openvdb::FloatGrid::Ptr grid;
+    for (TriangleMesh *m : meshparts) {
+        auto gridptr = openvdb::tools::meshToVolume<openvdb::FloatGrid>(
+            TriangleMeshDataAdapter{*m}, tr, exteriorBandWidth,
+            interiorBandWidth, flags);
+
+        if (grid && gridptr) openvdb::tools::csgUnion(*grid, *gridptr);
+        else if (gridptr) grid = std::move(gridptr);
+    }
+
+    grid = openvdb::tools::levelSetRebuild(*grid, 0., exteriorBandWidth, interiorBandWidth);
+
+    return grid;
 }
 
 openvdb::FloatGrid::Ptr mesh_to_grid(const sla::Contour3D &mesh,
