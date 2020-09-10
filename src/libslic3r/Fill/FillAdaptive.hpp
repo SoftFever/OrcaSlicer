@@ -8,6 +8,7 @@
 namespace Slic3r {
 
 class PrintObject;
+class TriangleMesh;
 
 namespace FillAdaptive_Internal
 {
