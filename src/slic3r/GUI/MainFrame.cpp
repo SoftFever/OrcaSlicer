@@ -391,7 +391,6 @@ void MainFrame::update_layout()
     {
         m_main_sizer->Add(m_plater, 1, wxEXPAND);
         m_plater->set_bed_shape({ { 0.0, 0.0 }, { 200.0, 0.0 }, { 200.0, 200.0 }, { 0.0, 200.0 } }, "", "", true);
-        m_plater->enable_view_toolbar(false);
         m_plater->get_collapse_toolbar().set_enabled(false);
         m_plater->collapse_sidebar(true);
         m_plater->Show();

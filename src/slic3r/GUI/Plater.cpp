@@ -4001,7 +4001,11 @@ bool Plater::priv::init_view_toolbar()
         return false;
 
     view_toolbar.select_item("3D");
-    view_toolbar.set_enabled(true);
+
+#if ENABLE_GCODE_VIEWER
+    if (wxGetApp().is_editor())
+#endif // ENABLE_GCODE_VIEWER
+        view_toolbar.set_enabled(true);
 
     return true;
 }
