@@ -78,176 +78,233 @@ namespace GUI {
 
 class MainFrame;
 
-static float get_scale_for_main_display()
-{
-    // ysFIXME : Workaround :
-    // wxFrame is created on the main monitor, so we can take a scale factor from this one
-    // before The Application and the Mainframe are created
-    wxFrame fr(nullptr, wxID_ANY, wxEmptyString);
-
-#if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT && !defined(__WXGTK__)
-    int dpi = get_dpi_for_window(&fr);
-    float sf = dpi != DPI_DEFAULT ? sf = (float)dpi / DPI_DEFAULT : 1.0;
-#else
-    printf("dpi = %d\n", get_dpi_for_window(&fr));
-    // initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
-    float sf = 0.1 * std::max<size_t>(10, fr.GetTextExtent("m").x - 1);
-#endif // ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
-
-    printf("scale factor = %f\n", sf);
-    return sf;
-}
-
-// scale input bitmap and return scale factor
-static float scale_bitmap(wxBitmap& bmp)
-{
-    float sf = get_scale_for_main_display();
-
-    // scale bitmap if needed
-    if (sf > 1.0) {
-        wxImage image = bmp.ConvertToImage();
-        if (image.IsOk() && image.GetWidth() != 0 && image.GetHeight() != 0)
-        {
-            int width   = int(sf * image.GetWidth());
-            int height  = int(sf * image.GetHeight());
-            image.Rescale(width, height, wxIMAGE_QUALITY_BILINEAR);
-
-            bmp = wxBitmap(std::move(image));
-        }
-    }
-
-    return sf;
-}
-
-static void word_wrap_string(wxString& input, int line_px_len, float scalef)
-{
-    // calculate count od symbols in one line according to the scale
-    int line_len = std::roundf( (float)line_px_len / (scalef * 10)) + 10;
-
-    int idx = -1;
-    int cur_len = 0;
-    for (size_t i = 0; i < input.Len(); i++)
-    {
-        cur_len++;
-        if (input[i] == ' ')
-            idx = i;
-        if (input[i] == '\n')
-        {
-            idx = -1;
-            cur_len = 0;
-        }
-        if (cur_len >= line_len && idx >= 0)
-        {
-            input[idx] = '\n';
-            cur_len = static_cast<int>(i) - idx;
-        }
-    }
-}
-
-static void DecorateSplashScreen(wxBitmap& bmp)
-{
-    wxASSERT(bmp.IsOk());
-    float scale_factor = scale_bitmap(bmp);
-
-    // use a memory DC to draw directly onto the bitmap
-    wxMemoryDC memDc(bmp);
-
-    // draw an dark grey box at the left of the splashscreen.
-    // this box will be 2/5 of the weight of the bitmap, and be at the left.
-    int banner_width = (bmp.GetWidth() / 5) * 2 - 2;
-    const wxRect banner_rect(wxPoint(0, (bmp.GetHeight() / 9) * 2), wxPoint(banner_width, bmp.GetHeight()));
-    wxDCBrushChanger bc(memDc, wxBrush(wxColour(51, 51, 51)));
-    wxDCPenChanger pc(memDc, wxPen(wxColour(51, 51, 51)));
-    memDc.DrawRectangle(banner_rect);
-
-    // title
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#if ENABLE_GCODE_VIEWER
-    wxString title_string = wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME;
-#else
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    wxString title_string = SLIC3R_APP_NAME;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#endif // ENABLE_GCODE_VIEWER
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    wxFont title_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-    title_font.SetPointSize(24);
-
-    // dynamically get the version to display
-    wxString version_string = _L("Version") + " " + std::string(SLIC3R_VERSION);
-    wxFont version_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Larger().Larger();
-
-    // create a copyright notice that uses the year that this file was compiled
-    wxString year(__DATE__);
-    wxString cr_symbol = wxString::FromUTF8("\xc2\xa9");
-    wxString copyright_string = wxString::Format("%s 2016-%s Prusa Research.\n"
-                                               "%s 2011-2018 Alessandro Ranellucci.",
-                                cr_symbol, year.Mid(year.Length() - 4), cr_symbol) + "\n\n";
-    wxFont copyright_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Larger();
-
-    copyright_string += //"Slic3r" + _L("is licensed under the") + _L("GNU Affero General Public License, version 3") + "\n\n" + 
-                        _L("PrusaSlicer is based on Slic3r by Alessandro Ranellucci and the RepRap community.") + "\n\n" +
-                        _L("Contributions by Henrik Brix Andersen, Nicolas Dandrimont, Mark Hindess, Petr Ledvina, Joseph Lenox, Y. Sapir, Mike Sheldrake, Vojtech Bubnik and numerous others.");
-
-    word_wrap_string(copyright_string, banner_width, scale_factor);
-
-    wxCoord margin = int(scale_factor * 20);
-
-    // draw the (orange) labels inside of our black box (at the left of the splashscreen)
-    memDc.SetTextForeground(wxColour(237, 107, 33));
-
-    memDc.SetFont(title_font);
-    memDc.DrawLabel(title_string,       banner_rect.Deflate(margin, 0), wxALIGN_TOP | wxALIGN_LEFT);
-
-    memDc.SetFont(version_font);
-    memDc.DrawLabel(version_string,     banner_rect.Deflate(margin, 2 * margin), wxALIGN_TOP | wxALIGN_LEFT);
-
-    memDc.SetFont(copyright_font);
-    memDc.DrawLabel(copyright_string,   banner_rect.Deflate(margin, 2 * margin), wxALIGN_BOTTOM | wxALIGN_LEFT);
-}
-
 class SplashScreen : public wxSplashScreen
 {
 public:
-    SplashScreen(const wxBitmap& bitmap, long splashStyle, int milliseconds, wxWindow* parent)
-        : wxSplashScreen(bitmap, splashStyle, milliseconds, parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-                        wxSIMPLE_BORDER | wxFRAME_NO_TASKBAR)
+    SplashScreen(const wxBitmap& bitmap, long splashStyle, int milliseconds, wxPoint pos = wxDefaultPosition, bool is_decorated = false)
+        : wxSplashScreen(bitmap, splashStyle, milliseconds, nullptr, wxID_ANY, 
+           wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER | wxFRAME_NO_TASKBAR )
     {
         wxASSERT(bitmap.IsOk());
         m_main_bitmap = bitmap;
 
-        m_scale_factor = get_scale_for_main_display();
+        if (!is_decorated)
+            Decorate(m_main_bitmap, pos, true);
+
+        m_scale = get_display_scale(pos);
+        m_font  = get_scaled_sys_font(get_splashscreen_display_scale_factor(pos)).Bold().Larger();        
+
+        if (pos != wxDefaultPosition) {
+            this->SetPosition(pos);
+            this->CenterOnScreen();
+        }
     }
 
     void SetText(const wxString& text)
     {
-        SetBmp(m_main_bitmap);
+        set_bitmap(m_main_bitmap);
         if (!text.empty()) {
             wxBitmap bitmap(m_main_bitmap);
 
             wxMemoryDC memDC;
             memDC.SelectObject(bitmap);
 
-            wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold().Larger();
-            memDC.SetFont(font);
+            wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+            memDC.SetFont(m_font);
             memDC.SetTextForeground(wxColour(237, 107, 33));
-            memDC.DrawText(text, int(m_scale_factor * 45), int(m_scale_factor * 215));
+            memDC.DrawText(text, int(m_scale * 45), int(m_scale * 200));
 
             memDC.SelectObject(wxNullBitmap);
-            SetBmp(bitmap);
+            set_bitmap(bitmap);
         }
     }
 
-    void SetBmp(wxBitmap& bmp)
+    static bool Decorate(wxBitmap& bmp, wxPoint screen_pos = wxDefaultPosition, bool force_decor = false)
+    {
+        if (!bmp.IsOk())
+            return false;
+
+        float screen_sf = get_splashscreen_display_scale_factor(screen_pos);
+        float screen_scale = get_display_scale(screen_pos);
+
+        if (screen_sf == 1.0) {
+            // it means that we have just one display or all displays have a same scale
+            // Scale bitmap for this display and continue the decoration
+            scale_bitmap(bmp, screen_scale);
+        }
+        else if (force_decor) {
+            // if we are here, it means that bitmap is already scaled for the main display
+            // and now we should just scale it th the secondary monitor and continue the decoration
+            scale_bitmap(bmp, screen_sf);
+        }
+        else {
+            // if screens have different scale and this function is called with force_decor == false
+            // then just rescale the bitmap for the main display scale
+            scale_bitmap(bmp, get_display_scale());
+            return false;
+            // Decoration will be continued later, from the SplashScreen constructor
+        }
+
+        // use a memory DC to draw directly onto the bitmap
+        wxMemoryDC memDc(bmp);
+
+        // draw an dark grey box at the left of the splashscreen.
+        // this box will be 2/5 of the weight of the bitmap, and be at the left.
+        int banner_width = (bmp.GetWidth() / 5) * 2 - 2;
+        const wxRect banner_rect(wxPoint(0, (bmp.GetHeight() / 9) * 2), wxPoint(banner_width, bmp.GetHeight()));
+        wxDCBrushChanger bc(memDc, wxBrush(wxColour(51, 51, 51)));
+        wxDCPenChanger pc(memDc, wxPen(wxColour(51, 51, 51)));
+        memDc.DrawRectangle(banner_rect);
+
+        wxFont sys_font = get_scaled_sys_font(screen_sf);
+
+        // title
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_GCODE_VIEWER
+    	wxString title_string = wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME;
+#else
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        wxString title_string = SLIC3R_APP_NAME;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#endif // ENABLE_GCODE_VIEWER
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        wxFont title_font = sys_font;
+        title_font.SetPointSize(3 * sys_font.GetPointSize());
+
+
+        // dynamically get the version to display
+        wxString version_string = _L("Version") + " " + std::string(SLIC3R_VERSION);
+        wxFont version_font = sys_font.Larger().Larger();
+
+        // create a copyright notice that uses the year that this file was compiled
+        wxString year(__DATE__);
+        wxString cr_symbol = wxString::FromUTF8("\xc2\xa9");
+        wxString copyright_string = wxString::Format("%s 2016-%s Prusa Research.\n"
+            "%s 2011-2018 Alessandro Ranellucci.",
+            cr_symbol, year.Mid(year.Length() - 4), cr_symbol) + "\n\n";
+        wxFont copyright_font = sys_font.Larger();
+
+        copyright_string += //"Slic3r" + _L("is licensed under the") + _L("GNU Affero General Public License, version 3") + "\n\n" + 
+                            _L("PrusaSlicer is based on Slic3r by Alessandro Ranellucci and the RepRap community.") + "\n\n" +
+                            _L("Contributions by Henrik Brix Andersen, Nicolas Dandrimont, Mark Hindess, Petr Ledvina, Joseph Lenox, Y. Sapir, Mike Sheldrake, Vojtech Bubnik and numerous others.") + "\n\n" +
+                            _L("Splash screen could be desabled from the \"Preferences\"");
+
+        word_wrap_string(copyright_string, banner_width, screen_scale);
+
+        wxCoord margin = int(screen_scale * 20);
+
+        // draw the (orange) labels inside of our black box (at the left of the splashscreen)
+        memDc.SetTextForeground(wxColour(237, 107, 33));
+
+        memDc.SetFont(title_font);
+        memDc.DrawLabel(title_string, banner_rect.Deflate(margin, 0), wxALIGN_TOP | wxALIGN_LEFT);
+
+        memDc.SetFont(version_font);
+        memDc.DrawLabel(version_string, banner_rect.Deflate(margin, 2 * margin), wxALIGN_TOP | wxALIGN_LEFT);
+
+        memDc.SetFont(copyright_font);
+        memDc.DrawLabel(copyright_string, banner_rect.Deflate(margin, margin), wxALIGN_BOTTOM | wxALIGN_LEFT);
+
+        return true;
+    }
+
+private:
+    wxBitmap    m_main_bitmap;
+    wxFont      m_font;
+    float       m_scale {1.0};
+
+    void set_bitmap(wxBitmap& bmp)
     {
         m_window->SetBitmap(bmp);
         m_window->Refresh();
         m_window->Update();
     }
 
-private:
-    wxBitmap    m_main_bitmap;
-    float       m_scale_factor {1.0};
+    static float get_splashscreen_display_scale_factor(wxPoint pos = wxDefaultPosition)
+    {
+        if (wxDisplay::GetCount() == 1)
+            return 1.0;
+
+        wxFrame main_screen_fr(nullptr, wxID_ANY, wxEmptyString);
+        wxFrame splash_screen_fr(nullptr, wxID_ANY, wxEmptyString, pos);
+
+#if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT && !defined(__WXGTK__)
+        int main_dpi = get_dpi_for_window(&main_screen_fr);
+        int splash_dpi = get_dpi_for_window(&splash_screen_fr);
+        float sf = (float)splash_dpi / (float)main_dpi;
+#else
+        // initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
+        float sf = (float)splash_screen_fr.GetTextExtent("m").x / (float)main_screen_fr.GetTextExtent("m").x;
+#endif // ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
+
+        return sf;
+    }
+
+    static float get_display_scale(wxPoint pos = wxDefaultPosition)
+    {
+        // pos equals to wxDefaultPosition, when display is main
+        wxFrame fr(nullptr, wxID_ANY, wxEmptyString, pos);
+
+#if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT && !defined(__WXGTK__)
+        int dpi = get_dpi_for_window(&fr);
+        float scale = dpi != DPI_DEFAULT ? (float)dpi / DPI_DEFAULT : 1.0;
+#else
+        // initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
+        float scale = 0.1 * std::max<size_t>(10, fr.GetTextExtent("m").x - 1);
+#endif // ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
+
+        return scale;
+    }
+
+    static void scale_bitmap(wxBitmap& bmp, float scale)
+    {
+        if (scale == 1.0)
+            return;
+
+        wxImage image = bmp.ConvertToImage();
+        if (!image.IsOk() || image.GetWidth() == 0 || image.GetHeight() == 0)
+            return;
+
+        int width   = int(scale * image.GetWidth());
+        int height  = int(scale * image.GetHeight());
+        image.Rescale(width, height, wxIMAGE_QUALITY_BILINEAR);
+
+        bmp = wxBitmap(std::move(image));
+    }
+
+    static wxFont get_scaled_sys_font(float screen_sf)
+    {
+        wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+        if (screen_sf != 1.0)
+            font.SetPointSize(int(screen_sf * (float)font.GetPointSize()));
+
+        return font;
+    }
+
+    static void word_wrap_string(wxString& input, int line_px_len, float scalef)
+    {
+        // calculate count od symbols in one line according to the scale
+        int line_len = int((float)line_px_len / (scalef * 10) + 0.5) + 10;
+
+        int idx = -1;
+        int cur_len = 0;
+        for (size_t i = 0; i < input.Len(); i++)
+        {
+            cur_len++;
+            if (input[i] == ' ')
+                idx = i;
+            if (input[i] == '\n')
+            {
+                idx = -1;
+                cur_len = 0;
+            }
+            if (cur_len >= line_len && idx >= 0)
+            {
+                input[idx] = '\n';
+                cur_len = static_cast<int>(i) - idx;
+            }
+        }
+    }
 };
 
 wxString file_wildcards(FileType file_type, const std::string &custom_extension)
@@ -584,17 +641,32 @@ bool GUI_App::on_init_inner()
 */
     wxInitAllImageHandlers();
 
-    wxBitmap bitmap = create_scaled_bitmap("prusa_slicer_logo", nullptr, 400);
+    SplashScreen* scrn = nullptr;
+    if (app_config->get("show_splash_screen") == "1")
+    {
 #if ENABLE_GCODE_VIEWER
-    wxBitmap bmp(is_editor() ? from_u8(var("splashscreen.jpg")) : from_u8(var("splashscreen-gcodeviewer.jpg")), wxBITMAP_TYPE_JPEG);
+    	wxBitmap bmp(is_editor() ? from_u8(var("splashscreen.jpg")) : from_u8(var("splashscreen-gcodeviewer.jpg")), wxBITMAP_TYPE_JPEG);
 #else
-    wxBitmap bmp(from_u8(var("splashscreen.jpg")), wxBITMAP_TYPE_JPEG);
+        wxBitmap bmp(from_u8(var("splashscreen.jpg")), wxBITMAP_TYPE_JPEG);
 #endif // ENABLE_GCODE_VIEWER
 
-    DecorateSplashScreen(bmp);
+        // Detect position (display) to show the splash screen
+        // Now this position is equal to the mainframe position
+        wxPoint splashscreen_pos = wxDefaultPosition;
+        if (app_config->has("window_mainframe")) {
+            auto metrics = WindowMetrics::deserialize(app_config->get("window_mainframe"));
+            if (metrics)
+                splashscreen_pos = metrics->get_rect().GetPosition();
+        }
 
-    SplashScreen* scrn = new SplashScreen(bmp.IsOk() ? bmp : bitmap, wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 4000, nullptr);
-    scrn->SetText(_L("Loading configuration..."));
+        // try to decorate and/or scale the bitmap before splash screen creation
+        bool is_decorated = SplashScreen::Decorate(bmp, splashscreen_pos);
+
+        // create splash screen with updated bmp
+        scrn = new SplashScreen(bmp.IsOk() ? bmp : create_scaled_bitmap("prusa_slicer_logo", nullptr, 400), 
+                                wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 4000, splashscreen_pos, is_decorated);
+        scrn->SetText(_L("Loading configuration..."));
+    }
 
     preset_bundle = new PresetBundle();
 
@@ -650,7 +722,9 @@ bool GUI_App::on_init_inner()
 
     // application frame
 #if ENABLE_GCODE_VIEWER
-    if (is_editor())
+    if (scrn && is_editor())
+#else
+    if (scrn)
 #endif // ENABLE_GCODE_VIEWER
         scrn->SetText(_L("Creating settings tabs..."));
 

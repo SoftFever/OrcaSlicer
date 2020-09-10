@@ -101,6 +101,9 @@ void AppConfig::set_defaults()
     if (get("use_inches").empty())
         set("use_inches", "0");
 
+    if (get("show_splash_screen").empty())
+        set("show_splash_screen", "1");
+
     // Remove legacy window positions/sizes
     erase("", "main_frame_maximized");
     erase("", "main_frame_pos");
