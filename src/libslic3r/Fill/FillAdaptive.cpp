@@ -35,7 +35,7 @@ std::pair<double, double> adaptive_fill_line_spacing(const PrintObject &print_ob
         const PrintRegionConfig &config   = region->config();
         bool                     nonempty = config.fill_density > 0;
         bool                     has_adaptive_infill = nonempty && config.fill_pattern == ipAdaptiveCubic;
-        bool                     has_support_infill  = nonempty && false; // config.fill_pattern == icSupportCubic;
+        bool                     has_support_infill  = nonempty && config.fill_pattern == ipSupportCubic;
         region_fill_data.push_back(RegionFillData({
             has_adaptive_infill ? Tristate::Maybe : Tristate::No,
             has_support_infill ? Tristate::Maybe : Tristate::No,
@@ -90,22 +90,32 @@ std::pair<double, double> adaptive_fill_line_spacing(const PrintObject &print_ob
     return std::make_pair(adaptive_line_spacing, support_line_spacing);
 }
 
-void FillAdaptive::_fill_surface_single(
-    const FillParams                &params,
-    unsigned int                     thickness_layers,
-    const std::pair<float, Point>   &direction,
-    ExPolygon                       &expolygon,
-    Polylines                       &polylines_out)
+void FillAdaptive::_fill_surface_single(const FillParams &             params,
+                                        unsigned int                   thickness_layers,
+                                        const std::pair<float, Point> &direction,
+                                        ExPolygon &                    expolygon,
+                                        Polylines &                    polylines_out)
+{
+    if(this->adapt_fill_octree != nullptr)
+        this->generate_infill(params, thickness_layers, direction, expolygon, polylines_out, this->adapt_fill_octree);
+}
+
+void FillAdaptive::generate_infill(const FillParams &             params,
+                                        unsigned int                   thickness_layers,
+                                        const std::pair<float, Point> &direction,
+                                        ExPolygon &                    expolygon,
+                                        Polylines &                    polylines_out,
+                                        FillAdaptive_Internal::Octree *octree)
 {
     Vec3d rotation = Vec3d((5.0 * M_PI) / 4.0, Geometry::deg2rad(215.264), M_PI / 6.0);
     Transform3d rotation_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation, Vec3d::Ones(), Vec3d::Ones());
 
     // Store grouped lines by its direction (multiple of 120°)
     std::vector<Lines> infill_lines_dir(3);
-    this->generate_infill_lines(this->adapt_fill_octree->root_cube.get(),
-                                this->z, this->adapt_fill_octree->origin, rotation_matrix,
-                                infill_lines_dir, this->adapt_fill_octree->cubes_properties,
-                                int(this->adapt_fill_octree->cubes_properties.size()) - 1);
+    this->generate_infill_lines(octree->root_cube.get(),
+                                this->z, octree->origin, rotation_matrix,
+                                infill_lines_dir, octree->cubes_properties,
+                                int(octree->cubes_properties.size()) - 1);
 
     Polylines all_polylines;
     all_polylines.reserve(infill_lines_dir[0].size() * 3);
@@ -382,7 +392,7 @@ void FillAdaptive_Internal::Octree::propagate_point(
     Octree::propagate_point(point, child, (depth - 1), cubes_properties);
 }
 
-std::unique_ptr<FillAdaptive_Internal::Octree> FillAdaptive::build_octree_for_adaptive_support(
+std::unique_ptr<FillAdaptive_Internal::Octree> FillSupportCubic::build_octree_for_adaptive_support(
     TriangleMesh &     triangle_mesh,
     coordf_t           line_spacing,
     const Vec3d &      cube_center,
@@ -495,6 +505,16 @@ std::unique_ptr<FillAdaptive_Internal::Octree> FillAdaptive::build_octree_for_ad
     }
 
     return octree;
+}
+
+void FillSupportCubic::_fill_surface_single(const FillParams &             params,
+                                            unsigned int                   thickness_layers,
+                                            const std::pair<float, Point> &direction,
+                                            ExPolygon &                    expolygon,
+                                            Polylines &                    polylines_out)
+{
+    if (this->support_fill_octree != nullptr)
+        this->generate_infill(params, thickness_layers, direction, expolygon, polylines_out, this->support_fill_octree);
 }
 
 } // namespace Slic3r

@@ -372,15 +372,15 @@ void PrintObject::infill()
     this->prepare_infill();
 
     if (this->set_started(posInfill)) {
-        std::unique_ptr<FillAdaptive_Internal::Octree> octree = this->prepare_adaptive_infill_data();
+        auto [adaptive_fill_octree, support_fill_octree] = this->prepare_adaptive_infill_data();
 
         BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - start";
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size()),
-            [this, &octree](const tbb::blocked_range<size_t>& range) {
+            [this, &adaptive_fill_octree, &support_fill_octree](const tbb::blocked_range<size_t>& range) {
                 for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                     m_print->throw_if_canceled();
-                    m_layers[layer_idx]->make_fills(octree.get());
+                    m_layers[layer_idx]->make_fills(adaptive_fill_octree.get(), support_fill_octree.get());
                 }
             }
         );
@@ -433,14 +433,18 @@ void PrintObject::generate_support_material()
     }
 }
 
-#define ADAPTIVE_SUPPORT
-#define ADAPTIVE_SUPPORT_SIMPLE
+//#define ADAPTIVE_SUPPORT_SIMPLE
 
-std::unique_ptr<FillAdaptive_Internal::Octree> PrintObject::prepare_adaptive_infill_data()
+std::pair<std::unique_ptr<FillAdaptive_Internal::Octree>, std::unique_ptr<FillAdaptive_Internal::Octree>> PrintObject::prepare_adaptive_infill_data()
 {
+    using namespace FillAdaptive_Internal;
+
     auto [adaptive_line_spacing, support_line_spacing] = adaptive_fill_line_spacing(*this);
-    if (adaptive_line_spacing == 0.)
-        return std::unique_ptr<FillAdaptive_Internal::Octree>{};
+
+    std::unique_ptr<Octree> adaptive_fill_octree = {}, support_fill_octree = {};
+
+    if (adaptive_line_spacing == 0. && support_line_spacing == 0.)
+        return std::make_pair(std::move(adaptive_fill_octree), std::move(support_fill_octree));
 
     TriangleMesh mesh = this->model_object()->raw_mesh();
     mesh.transform(m_trafo, true);
@@ -490,11 +494,13 @@ std::unique_ptr<FillAdaptive_Internal::Octree> PrintObject::prepare_adaptive_inf
     // Rotate mesh and build octree on it with axis-aligned (standart base) cubes
     mesh.transform(rotation_matrix);
 
-#if defined(ADAPTIVE_SUPPORT) && !defined(ADAPTIVE_SUPPORT_SIMPLE)
-    return FillAdaptive::build_octree_for_adaptive_support(mesh, adaptive_line_spacing, rotation_matrix * mesh_origin, rotation_matrix);
-#else
-    return FillAdaptive::build_octree(mesh, adaptive_line_spacing, rotation_matrix * mesh_origin);
-#endif
+    if (adaptive_line_spacing != 0.)
+        adaptive_fill_octree = FillAdaptive::build_octree(mesh, adaptive_line_spacing, rotation_matrix * mesh_origin);
+
+    if (support_line_spacing != 0.)
+        support_fill_octree = FillSupportCubic::build_octree_for_adaptive_support(mesh, support_line_spacing, rotation_matrix * mesh_origin, rotation_matrix);
+
+    return std::make_pair(std::move(adaptive_fill_octree), std::move(support_fill_octree));
 }
 
 void PrintObject::clear_layers()

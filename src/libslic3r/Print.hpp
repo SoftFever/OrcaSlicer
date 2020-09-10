@@ -239,7 +239,7 @@ private:
     void discover_horizontal_shells();
     void combine_infill();
     void _generate_support_material();
-    std::unique_ptr<FillAdaptive_Internal::Octree> prepare_adaptive_infill_data();
+    std::pair<std::unique_ptr<FillAdaptive_Internal::Octree>, std::unique_ptr<FillAdaptive_Internal::Octree>> prepare_adaptive_infill_data();
 
     // XYZ in scaled coordinates
     Vec3crd									m_size;

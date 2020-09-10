@@ -81,6 +81,13 @@ protected:
 
     static void connect_lines(Lines &lines, Line new_line);
 
+    void generate_infill(const FillParams &             params,
+                         unsigned int                   thickness_layers,
+                         const std::pair<float, Point> &direction,
+                         ExPolygon &                    expolygon,
+                         Polylines &                    polylines_out,
+                         FillAdaptive_Internal::Octree *octree);
+
 public:
     static std::unique_ptr<FillAdaptive_Internal::Octree> build_octree(
         TriangleMesh &triangle_mesh,
@@ -93,7 +100,26 @@ public:
         const AABBTreeIndirect::Tree3f &distance_tree,
         const TriangleMesh &            triangle_mesh,
         int                             depth);
+};
 
+class FillSupportCubic : public FillAdaptive
+{
+public:
+    virtual ~FillSupportCubic() = default;
+
+protected:
+    virtual Fill* clone() const { return new FillSupportCubic(*this); };
+
+    virtual bool no_sort() const { return true; }
+
+    virtual void _fill_surface_single(
+        const FillParams                &params,
+        unsigned int                     thickness_layers,
+        const std::pair<float, Point>   &direction,
+        ExPolygon                       &expolygon,
+        Polylines                       &polylines_out);
+
+public:
     static std::unique_ptr<FillAdaptive_Internal::Octree> build_octree_for_adaptive_support(
         TriangleMesh &     triangle_mesh,
         coordf_t           line_spacing,
