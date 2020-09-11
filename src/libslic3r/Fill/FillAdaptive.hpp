@@ -35,6 +35,17 @@ namespace FillAdaptive_Internal
 
         Octree(std::unique_ptr<Cube> rootCube, const Vec3d &origin, const std::vector<CubeProperties> &cubes_properties)
             : root_cube(std::move(rootCube)), origin(origin), cubes_properties(cubes_properties) {}
+
+        inline static int find_octant(const Vec3d &i_cube, const Vec3d &current)
+        {
+            return (i_cube.z() > current.z()) * 4 + (i_cube.y() > current.y()) * 2 + (i_cube.x() > current.x());
+        }
+
+        static void propagate_point(
+            Vec3d                        point,
+            FillAdaptive_Internal::Cube *current_cube,
+            int                          depth,
+            const std::vector<FillAdaptive_Internal::CubeProperties> &cubes_properties);
     };
 }; // namespace FillAdaptive_Internal
 
@@ -63,11 +74,19 @@ protected:
         FillAdaptive_Internal::Cube *cube,
         double                       z_position,
         const Vec3d &                origin,
+        const Transform3d &          rotation_matrix,
         std::vector<Lines> &         dir_lines_out,
         const std::vector<FillAdaptive_Internal::CubeProperties> &cubes_properties,
         int  depth);
 
     static void connect_lines(Lines &lines, Line new_line);
+
+    void generate_infill(const FillParams &             params,
+                         unsigned int                   thickness_layers,
+                         const std::pair<float, Point> &direction,
+                         ExPolygon &                    expolygon,
+                         Polylines &                    polylines_out,
+                         FillAdaptive_Internal::Octree *octree);
 
 public:
     static std::unique_ptr<FillAdaptive_Internal::Octree> build_octree(
@@ -78,10 +97,34 @@ public:
     static void expand_cube(
         FillAdaptive_Internal::Cube *cube,
         const std::vector<FillAdaptive_Internal::CubeProperties> &cubes_properties,
-        const Transform3d &             rotation_matrix,
         const AABBTreeIndirect::Tree3f &distance_tree,
         const TriangleMesh &            triangle_mesh,
         int                             depth);
+};
+
+class FillSupportCubic : public FillAdaptive
+{
+public:
+    virtual ~FillSupportCubic() = default;
+
+protected:
+    virtual Fill* clone() const { return new FillSupportCubic(*this); };
+
+    virtual bool no_sort() const { return true; }
+
+    virtual void _fill_surface_single(
+        const FillParams                &params,
+        unsigned int                     thickness_layers,
+        const std::pair<float, Point>   &direction,
+        ExPolygon                       &expolygon,
+        Polylines                       &polylines_out);
+
+public:
+    static std::unique_ptr<FillAdaptive_Internal::Octree> build_octree(
+        TriangleMesh &     triangle_mesh,
+        coordf_t           line_spacing,
+        const Vec3d &      cube_center,
+        const Transform3d &rotation_matrix);
 };
 
 // Calculate line spacing for

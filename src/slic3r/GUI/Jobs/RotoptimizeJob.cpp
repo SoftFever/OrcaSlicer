@@ -4,6 +4,7 @@
 #include "libslic3r/SLA/Rotfinder.hpp"
 #include "libslic3r/MinAreaBoundingBox.hpp"
 #include "libslic3r/Model.hpp"
+#include "libslic3r/SLAPrint.hpp"
 
 #include "slic3r/GUI/Plater.hpp"
 
@@ -12,26 +13,41 @@ namespace Slic3r { namespace GUI {
 void RotoptimizeJob::process()
 {
     int obj_idx = m_plater->get_selected_object_idx();
-    if (obj_idx < 0) { return; }
+    if (obj_idx < 0 || int(m_plater->sla_print().objects().size()) <= obj_idx)
+        return;
     
     ModelObject *o = m_plater->model().objects[size_t(obj_idx)];
+    const SLAPrintObject *po = m_plater->sla_print().objects()[size_t(obj_idx)];
 
-    auto r = sla::find_best_rotation(
-        *o,
-        .005f,
+    if (!o || !po) return;
+
+    TriangleMesh mesh = o->raw_mesh();
+    mesh.require_shared_vertices();
+
+//    for (auto inst : o->instances) {
+//        Transform3d tr = Transform3d::Identity();
+//        tr.rotate(Eigen::AngleAxisd(inst->get_rotation(Z), Vec3d::UnitZ()));
+//        tr.rotate(Eigen::AngleAxisd(inst->get_rotation(Y), Vec3d::UnitY()));
+//        tr.rotate(Eigen::AngleAxisd(inst->get_rotation(X), Vec3d::UnitX()));
+
+//        double score = sla::get_model_supportedness(*po, tr);
+
+//        std::cout << "Model supportedness before: " << score << std::endl;
+//    }
+
+    Vec2d r = sla::find_best_rotation(*po, 0.75f,
         [this](unsigned s) {
             if (s < 100)
-                update_status(int(s),
-                              _(L("Searching for optimal orientation")));
+                update_status(int(s), _(L("Searching for optimal orientation")));
         },
-        [this]() { return was_canceled(); });
+        [this] () { return was_canceled(); });
 
 
     double mindist = 6.0; // FIXME
 
     if (!was_canceled()) {
         for(ModelInstance * oi : o->instances) {
-            oi->set_rotation({r[X], r[Y], r[Z]});
+            oi->set_rotation({r[X], r[Y], 0.});
 
             auto    trmatrix = oi->get_transformation().get_matrix();
             Polygon trchull  = o->convex_hull_2d(trmatrix);

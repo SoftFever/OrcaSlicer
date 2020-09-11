@@ -5,6 +5,7 @@
 #include "sla_test_utils.hpp"
 
 #include <libslic3r/SLA/SupportTreeMesher.hpp>
+#include <libslic3r/SLA/Concurrency.hpp>
 
 namespace {
 
@@ -238,4 +239,15 @@ TEST_CASE("halfcone test", "[halfcone]") {
 
     m.require_shared_vertices();
     m.WriteOBJFile("Halfcone.obj");
+}
+
+TEST_CASE("Test concurrency")
+{
+    std::vector<double> vals = grid(0., 100., 10.);
+
+    double ref = std::accumulate(vals.begin(), vals.end(), 0.);
+
+    double s = sla::ccr_par::reduce(vals.begin(), vals.end(), 0., std::plus<double>{});
+
+    REQUIRE(s == Approx(ref));
 }

@@ -131,6 +131,15 @@ void PreferencesDialog::build()
 	option = Option(def, "use_inches");
 	m_optgroup_general->append_single_option_line(option);
 */
+
+    // Show/Hide splash screen
+	def.label = L("Show splash screen");
+	def.type = coBool;
+	def.tooltip = L("Show splash screen");
+	def.set_default_value(new ConfigOptionBool{ app_config->get("show_splash_screen") == "1" });
+	option = Option(def, "show_splash_screen");
+	m_optgroup_general->append_single_option_line(option);
+
 	m_optgroup_camera = std::make_shared<ConfigOptionsGroup>(this, _(L("Camera")));
 	m_optgroup_camera->label_width = 40;
 	m_optgroup_camera->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
