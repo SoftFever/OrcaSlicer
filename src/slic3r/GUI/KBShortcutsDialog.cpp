@@ -136,6 +136,7 @@ void KBShortcutsDialog::fill_shortcuts()
             { ctrl + "5", L("Switch to 3D") },
             { ctrl + "6", L("Switch to Preview") },
             { ctrl + "J", L("Print host upload queue") },
+            { ctrl + "Shift+" + "I", L("Open new instance") },
             // View
             { "0-6", L("Camera view") },
             { "E", L("Show/Hide object/instance labels") },
