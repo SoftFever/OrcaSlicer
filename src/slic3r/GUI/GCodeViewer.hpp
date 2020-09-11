@@ -264,7 +264,7 @@ class GCodeViewer
 #if ENABLE_GCODE_VIEWER_STATISTICS
     struct Statistics
     {
-        // times
+        // time
         long long results_time{ 0 };
         long long load_time{ 0 };
         long long refresh_time{ 0 };
@@ -279,15 +279,17 @@ class GCodeViewer
         long long indices_gpu_size{ 0 };
         long long paths_size{ 0 };
         long long render_paths_size{ 0 };
-        // others
+        // other
         long long travel_segments_count{ 0 };
         long long extrude_segments_count{ 0 };
+        long long max_vertices_in_vertex_buffer{ 0 };
+        long long max_indices_in_index_buffer{ 0 };
 
         void reset_all() {
             reset_times();
             reset_opengl();
             reset_sizes();
-            reset_counters();
+            reset_others();
         }
 
         void reset_times() {
@@ -311,9 +313,11 @@ class GCodeViewer
             render_paths_size = 0;
         }
 
-        void reset_counters() {
+        void reset_others() {
             travel_segments_count = 0;
             extrude_segments_count =  0;
+            max_vertices_in_vertex_buffer = 0;
+            max_indices_in_index_buffer = 0;
         }
     };
 #endif // ENABLE_GCODE_VIEWER_STATISTICS

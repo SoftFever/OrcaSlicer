@@ -1583,7 +1583,7 @@ void Print::auto_assign_extruders(ModelObject* model_object) const
 // Slicing process, running at a background thread.
 void Print::process()
 {
-    BOOST_LOG_TRIVIAL(info) << "Staring the slicing process." << log_memory_info();
+    BOOST_LOG_TRIVIAL(info) << "Starting the slicing process." << log_memory_info();
     for (PrintObject *obj : m_objects)
         obj->make_perimeters();
     this->set_status(70, L("Infilling layers"));

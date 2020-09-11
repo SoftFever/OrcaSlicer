@@ -787,10 +787,12 @@ void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_
     }
 
 #if ENABLE_GCODE_VIEWER
+    BOOST_LOG_TRIVIAL(debug) << "Start processing gcode, " << log_memory_info();
     m_processor.process_file(path_tmp, [print]() { print->throw_if_canceled(); });
     DoExport::update_print_estimated_times_stats(m_processor, print->m_print_statistics);
     if (result != nullptr)
         *result = std::move(m_processor.extract_result());
+    BOOST_LOG_TRIVIAL(debug) << "Finished processing gcode, " << log_memory_info();
 #else
     GCodeTimeEstimator::PostProcessData normal_data = m_normal_time_estimator.get_post_process_data();
     GCodeTimeEstimator::PostProcessData silent_data = m_silent_time_estimator.get_post_process_data();
@@ -2452,14 +2454,17 @@ void GCode::process_layer(
 #endif /* HAS_PRESSURE_EQUALIZER */
     
     _write(file, gcode);
-#if !ENABLE_GCODE_VIEWER
+#if ENABLE_GCODE_VIEWER
+    BOOST_LOG_TRIVIAL(trace) << "Exported layer " << layer.id() << " print_z " << print_z <<
+        log_memory_info();
+#else
     BOOST_LOG_TRIVIAL(trace) << "Exported layer " << layer.id() << " print_z " << print_z <<
         ", time estimator memory: " <<
-            format_memsize_MB(m_normal_time_estimator.memory_used() + (m_silent_time_estimator_enabled ? m_silent_time_estimator.memory_used() : 0)) <<
-            ", analyzer memory: " <<
-            format_memsize_MB(m_analyzer.memory_used()) <<
-            log_memory_info();
-#endif // !ENABLE_GCODE_VIEWER
+        format_memsize_MB(m_normal_time_estimator.memory_used() + (m_silent_time_estimator_enabled ? m_silent_time_estimator.memory_used() : 0)) <<
+        ", analyzer memory: " <<
+        format_memsize_MB(m_analyzer.memory_used()) <<
+        log_memory_info();
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void GCode::apply_print_config(const PrintConfig &print_config)

@@ -440,6 +440,19 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
 
     // update buffers' render paths
     refresh_render_paths(false, false);
+
+    if (Slic3r::get_logging_level() >= 5) {
+        long long paths_size = 0;
+        for (const TBuffer& buffer : m_buffers) {
+            paths_size += SLIC3R_STDVEC_MEMSIZE(buffer.paths, Path);
+        }
+        long long layers_zs_size = SLIC3R_STDVEC_MEMSIZE(m_layers_zs, double);
+        long long roles_size = SLIC3R_STDVEC_MEMSIZE(m_roles, Slic3r::ExtrusionRole);
+        long long extruder_ids_size = SLIC3R_STDVEC_MEMSIZE(m_extruder_ids, unsigned char);
+        BOOST_LOG_TRIVIAL(trace) << "Refreshed G-code extrusion paths, "
+            << format_memsize_MB(paths_size + layers_zs_size + roles_size + extruder_ids_size)
+            << log_memory_info();
+    }
 }
 
 void GCodeViewer::reset()
@@ -1209,6 +1222,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         buffer.vertices.count = buffer_vertices.size() / buffer.vertices.vertex_size_floats();
 #if ENABLE_GCODE_VIEWER_STATISTICS
         m_statistics.vertices_gpu_size += buffer_vertices.size() * sizeof(float);
+        m_statistics.max_vertices_in_vertex_buffer = std::max(m_statistics.max_vertices_in_vertex_buffer, static_cast<long long>(buffer.vertices.count));
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
         glsafe(::glGenBuffers(1, &buffer.vertices.id));
@@ -1221,6 +1235,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         buffer.indices.count = buffer_indices.size();
 #if ENABLE_GCODE_VIEWER_STATISTICS
         m_statistics.indices_gpu_size += buffer.indices.count * sizeof(unsigned int);
+        m_statistics.max_indices_in_index_buffer = std::max(m_statistics.max_indices_in_index_buffer, static_cast<long long>(buffer.indices.count));
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
         if (buffer.indices.count > 0) {
@@ -1277,6 +1292,27 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     // extruder ids -> remove duplicates
     std::sort(m_extruder_ids.begin(), m_extruder_ids.end());
     m_extruder_ids.erase(std::unique(m_extruder_ids.begin(), m_extruder_ids.end()), m_extruder_ids.end());
+
+    if (Slic3r::get_logging_level() >= 5) {
+        long long vertices_size = 0;
+        for (size_t i = 0; i < vertices.size(); ++i) {
+            vertices_size += SLIC3R_STDVEC_MEMSIZE(vertices[i], float);
+        }
+        long long indices_size = 0;
+        for (size_t i = 0; i < indices.size(); ++i) {
+            indices_size += SLIC3R_STDVEC_MEMSIZE(indices[i], unsigned int);
+        }
+        long long paths_size = 0;
+        for (const TBuffer& buffer : m_buffers) {
+            paths_size += SLIC3R_STDVEC_MEMSIZE(buffer.paths, Path);
+        }
+        long long layers_zs_size = SLIC3R_STDVEC_MEMSIZE(m_layers_zs, double);
+        long long roles_size = SLIC3R_STDVEC_MEMSIZE(m_roles, Slic3r::ExtrusionRole);
+        long long extruder_ids_size = SLIC3R_STDVEC_MEMSIZE(m_extruder_ids, unsigned char);
+        BOOST_LOG_TRIVIAL(trace) << "Loaded G-code extrusion paths, "
+            << format_memsize_MB(vertices_size + indices_size + paths_size + layers_zs_size + roles_size + extruder_ids_size)
+            << log_memory_info();
+    }
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.load_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
@@ -2266,77 +2302,87 @@ void GCodeViewer::render_statistics() const
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
+    auto add_time = [this, &imgui](const std::string& label, long long time) {
+        char buf[1024];
+        sprintf(buf, "%lld ms (%s)", time, get_time_dhms(static_cast<float>(time) * 0.001f).c_str());
+        imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, label);
+        ImGui::SameLine(offset);
+        imgui.text(buf);
+    };
+
+    auto add_memory = [this, &imgui](const std::string& label, long long memory) {
+        static const float mb = 1024.0f * 1024.0f;
+        static const float inv_mb = 1.0f / mb;
+        static const float gb = 1024.0f * mb;
+        static const float inv_gb = 1.0f / gb;
+        char buf[1024];
+        if (static_cast<float>(memory) < gb)
+            sprintf(buf, "%lld bytes (%.3f MB)", memory, static_cast<float>(memory) * inv_mb);
+        else
+            sprintf(buf, "%lld bytes (%.3f GB)", memory, static_cast<float>(memory) * inv_gb);
+        imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, label);
+        ImGui::SameLine(offset);
+        imgui.text(buf);
+    };
+
+    auto add_counter = [this, &imgui](const std::string& label, long long counter) {
+        char buf[1024];
+        sprintf(buf, "%lld", counter);
+        imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, label);
+        ImGui::SameLine(offset);
+        imgui.text(buf);
+    };
+
     imgui.set_next_window_pos(0.5f * wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_width(), 0.0f, ImGuiCond_Once, 0.5f, 0.0f);
+    ImGui::SetNextWindowSizeConstraints({ 300, -1 }, { 600, -1 });
     imgui.begin(std::string("GCodeViewer Statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
     ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
 
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("GCodeProcessor time:"));
-    ImGui::SameLine(offset);
-    imgui.text(std::to_string(m_statistics.results_time) + " ms");
+    if (ImGui::CollapsingHeader("Time")) {
+        add_time(std::string("GCodeProcessor:"), m_statistics.results_time);
 
-    ImGui::Separator();
+        ImGui::Separator();
+        add_time(std::string("Load:"), m_statistics.load_time);
+        add_time(std::string("Refresh:"), m_statistics.refresh_time);
+        add_time(std::string("Refresh paths:"), m_statistics.refresh_paths_time);
+        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
+        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+    }
 
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Load time:"));
-    ImGui::SameLine(offset);
-    imgui.text(std::to_string(m_statistics.load_time) + " ms");
+    if (ImGui::CollapsingHeader("OpenGL calls")) {
+        add_counter(std::string("Multi GL_POINTS:"), m_statistics.gl_multi_points_calls_count);
+        add_counter(std::string("Multi GL_LINES:"), m_statistics.gl_multi_lines_calls_count);
+        add_counter(std::string("Multi GL_TRIANGLES:"), m_statistics.gl_multi_triangles_calls_count);
+        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
+        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+    }
 
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Refresh time:"));
-    ImGui::SameLine(offset);
-    imgui.text(std::to_string(m_statistics.refresh_time) + " ms");
+    if (ImGui::CollapsingHeader("CPU memory")) {
+        add_memory(std::string("GCodeProcessor results:"), m_statistics.results_size);
 
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Refresh paths time:"));
-    ImGui::SameLine(offset);
-    imgui.text(std::to_string(m_statistics.refresh_paths_time) + " ms");
+        ImGui::Separator();
+        add_memory(std::string("Paths:"), m_statistics.paths_size);
+        add_memory(std::string("Render paths:"), m_statistics.render_paths_size);
+        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
+        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+    }
 
-    ImGui::Separator();
+    if (ImGui::CollapsingHeader("GPU memory")) {
+        add_memory(std::string("Vertices:"), m_statistics.vertices_gpu_size);
+        add_memory(std::string("Indices:"), m_statistics.indices_gpu_size);
+        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
+        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+    }
 
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Multi GL_POINTS calls:"));
-    ImGui::SameLine(offset);
-    imgui.text(std::to_string(m_statistics.gl_multi_points_calls_count));
+    if (ImGui::CollapsingHeader("Other")) {
+        add_counter(std::string("Travel segments count:"), m_statistics.travel_segments_count);
+        add_counter(std::string("Extrude segments count:"), m_statistics.extrude_segments_count);
+        add_counter(std::string("Max vertices in vertex buffer:"), m_statistics.max_vertices_in_vertex_buffer);
+        add_counter(std::string("Max indices in index buffer:"), m_statistics.max_indices_in_index_buffer);
 
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Multi GL_LINES calls:"));
-    ImGui::SameLine(offset);
-    imgui.text(std::to_string(m_statistics.gl_multi_lines_calls_count));
-
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Multi GL_TRIANGLES calls:"));
-    ImGui::SameLine(offset);
-    imgui.text(std::to_string(m_statistics.gl_multi_triangles_calls_count));
-
-    ImGui::Separator();
-
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("GCodeProcessor results:"));
-    ImGui::SameLine(offset);
-    imgui.text(std::to_string(m_statistics.results_size) + " bytes");
-
-    ImGui::Separator();
-
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Paths CPU:"));
-    ImGui::SameLine(offset);
-    imgui.text(std::to_string(m_statistics.paths_size) + " bytes");
-
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Render paths CPU:"));
-    ImGui::SameLine(offset);
-    imgui.text(std::to_string(m_statistics.render_paths_size) + " bytes");
-
-    ImGui::Separator();
-
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Vertices GPU:"));
-    ImGui::SameLine(offset);
-    imgui.text(std::to_string(m_statistics.vertices_gpu_size) + " bytes");
-
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Indices GPU:"));
-    ImGui::SameLine(offset);
-    imgui.text(std::to_string(m_statistics.indices_gpu_size) + " bytes");
-
-    ImGui::Separator();
-
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Travel segments count:"));
-    ImGui::SameLine(offset);
-    imgui.text(std::to_string(m_statistics.travel_segments_count));
-
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, std::string("Extrude segments count:"));
-    ImGui::SameLine(offset);
-    imgui.text(std::to_string(m_statistics.extrude_segments_count));
+        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
+        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+    }
 
     imgui.end();
 }
