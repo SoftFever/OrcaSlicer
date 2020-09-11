@@ -9,6 +9,18 @@
 
 namespace Slic3r {
 
+// This penalty is added to all points inside custom blockers (subtracted from pts inside enforcers).
+static constexpr float ENFORCER_BLOCKER_PENALTY = 1e6;
+
+// In case there are custom enforcers/blockers, the loop polygon shall always have
+// sides smaller than this (so it isn't limited to original resolution).
+static constexpr float MINIMAL_POLYGON_SIDE = scale_(0.2f);
+
+// When spAligned is active and there is a support enforcer,
+// add this penalty to its center.
+static constexpr float ENFORCER_CENTER_PENALTY = -1e3;
+
+
 
 
 static float extrudate_overlap_penalty(float nozzle_r, float weight_zero, float overlap_distance)
@@ -205,7 +217,7 @@ Point SeamPlacer::get_seam(const size_t layer_idx, const SeamPosition seam_posit
     if (this->is_custom_seam_on_layer(layer_idx)) {
         // Seam enf/blockers can begin and end in between the original vertices.
         // Let add extra points in between and update the leghths.
-        polygon.densify(scale_(0.2f));
+        polygon.densify(MINIMAL_POLYGON_SIDE);
     }
 
     if (seam_position != spRandom) {
@@ -295,7 +307,7 @@ Point SeamPlacer::get_seam(const size_t layer_idx, const SeamPosition seam_posit
 
         // Custom seam. Huge (negative) constant penalty is applied inside
         // blockers (enforcers) to rule out points that should not win.
-        this->apply_custom_seam(polygon, penalties, lengths, layer_idx);
+        this->apply_custom_seam(polygon, penalties, lengths, layer_idx, seam_position);
 
         // Find a point with a minimum penalty.
         size_t idx_min = std::min_element(penalties.begin(), penalties.end()) - penalties.begin();
@@ -529,12 +541,10 @@ static std::vector<size_t> find_enforcer_centers(const Polygon& polygon,
 void SeamPlacer::apply_custom_seam(const Polygon& polygon,
                                    std::vector<float>& penalties,
                                    const std::vector<float>& lengths,
-                                   int layer_id) const
+                                   int layer_id, SeamPosition seam_position) const
 {
     if (! is_custom_seam_on_layer(layer_id))
         return;
-
-    static constexpr float ENFORCER_BLOCKER_PENALTY = 1e6;
 
     std::vector<size_t> enforcers_idxs;
     std::vector<size_t> blockers_idxs;
@@ -548,10 +558,12 @@ void SeamPlacer::apply_custom_seam(const Polygon& polygon,
         assert(i < penalties.size());
         penalties[i] += float(ENFORCER_BLOCKER_PENALTY);
     }
-    std::vector<size_t> enf_centers = find_enforcer_centers(polygon, lengths, enforcers_idxs);
-    for (size_t idx : enf_centers) {
-        assert(idx < penalties.size());
-        penalties[idx] -= 1000.f;
+    if (seam_position == spAligned) {
+        std::vector<size_t> enf_centers = find_enforcer_centers(polygon, lengths, enforcers_idxs);
+        for (size_t idx : enf_centers) {
+            assert(idx < penalties.size());
+            penalties[idx] += ENFORCER_CENTER_PENALTY;
+        }
     }
 
 ////////////////////////

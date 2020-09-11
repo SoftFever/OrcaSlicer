@@ -36,7 +36,7 @@ private:
     void apply_custom_seam(const Polygon& polygon,
                            std::vector<float>& penalties,
                            const std::vector<float>& lengths,
-                           int layer_id) const;
+                           int layer_id, SeamPosition seam_position) const;
 
     // Return random point of a polygon. The distribution will be uniform
     // along the contour and account for enforcers and blockers.
