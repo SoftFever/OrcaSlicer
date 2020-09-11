@@ -5,6 +5,7 @@
 #include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/EdgeGrid.hpp"
 #include "libslic3r/ClipperUtils.hpp"
+#include "libslic3r/SVG.hpp"
 
 namespace Slic3r {
 
@@ -413,45 +414,47 @@ static std::vector<size_t> find_enforcer_centers(const Polygon& polygon,
     };
 
     int last_enforcer_start_idx = enforcers_idxs.front();
+    bool first_pt_in_list = enforcers_idxs.front() != 0;
     bool last_pt_in_list = enforcers_idxs.back() == polygon.points.size() - 1;
+    bool wrap_around = last_pt_in_list && first_pt_in_list;
 
-    for (size_t i=0; i<enforcers_idxs.size()-1; ++i) {
-        if ((i == enforcers_idxs.size() - 1)
-         || enforcers_idxs[i+1] != enforcers_idxs[i] + 1) {
-            // i is last point of current enforcer
-            out.push_back(get_center_idx(last_enforcer_start_idx, enforcers_idxs[i]));
-            last_enforcer_start_idx = enforcers_idxs[i+1];
+    for (size_t i=0; i<enforcers_idxs.size(); ++i) {
+        if (i != enforcers_idxs.size() - 1) {
+            if (enforcers_idxs[i+1] != enforcers_idxs[i] + 1) {
+                // i is last point of current enforcer
+                out.push_back(get_center_idx(last_enforcer_start_idx, enforcers_idxs[i]));
+                last_enforcer_start_idx = enforcers_idxs[i+1];
+            }
+        } else {
+            if (! wrap_around) {
+                // we can safely use the last enforcer point.
+                out.push_back(get_center_idx(last_enforcer_start_idx, enforcers_idxs[i]));
+            }
         }
     }
 
-    if (last_pt_in_list) {
-        // last point is an enforcer - not yet accounted for.
-        if (enforcers_idxs.front() != 0) {
-            size_t center_idx = get_center_idx(last_enforcer_start_idx, enforcers_idxs.back());
-            out.push_back(center_idx);
-        } else {
-            // Wrap-around. Update first center already found.
-            if (out.empty()) {
-                // Probably an enforcer around the whole contour. Return nothing.
-                return out;
-            }
-
-            // find last point of the enforcer at the beginning:
-            size_t idx = 0;
-            while (enforcers_idxs[idx]+1 == enforcers_idxs[idx+1])
-                ++idx;
-
-            float t_s = lengths[last_enforcer_start_idx];
-            float t_e = lengths[idx];
-            float half_dist = 0.5f * (t_e + lengths.back() - t_s);
-            float t_c = (half_dist > t_e) ? t_s + half_dist : t_e - half_dist;
-
-            auto it = std::lower_bound(lengths.begin(), lengths.end(), t_c);
-            out[0] = it - lengths.begin();
-            if (out[0] == lengths.size() - 1)
-                --out[0];
-            assert(out[0] < lengths.size() - 1);
+    if (wrap_around) {
+        // Update first center already found.
+        if (out.empty()) {
+            // Probably an enforcer around the whole contour. Return nothing.
+            return out;
         }
+
+        // find last point of the enforcer at the beginning:
+        size_t idx = 0;
+        while (enforcers_idxs[idx]+1 == enforcers_idxs[idx+1])
+            ++idx;
+
+        float t_s = lengths[last_enforcer_start_idx];
+        float t_e = lengths[idx];
+        float half_dist = 0.5f * (t_e + lengths.back() - t_s);
+        float t_c = (half_dist > t_e) ? t_s + half_dist : t_e - half_dist;
+
+        auto it = std::lower_bound(lengths.begin(), lengths.end(), t_c);
+        out[0] = it - lengths.begin();
+        if (out[0] == lengths.size() - 1)
+            --out[0];
+        assert(out[0] < lengths.size() - 1);
     }
     return out;
 }
@@ -481,38 +484,38 @@ void SeamPlacer::penalize_polygon(const Polygon& polygon,
         penalties[idx] -= 1000.f;
     }
 
-//    //////////////////////
-//            std::ostringstream os;
-//            os << std::setw(3) << std::setfill('0') << layer_id;
-//            int a = scale_(20.);
-//            SVG svg("custom_seam" + os.str() + ".svg", BoundingBox(Point(-a, -a), Point(a, a)));
-//            /*if (! m_enforcers.empty())
-//                svg.draw(m_enforcers[layer_id], "blue");
-//            if (! m_blockers.empty())
-//                svg.draw(m_blockers[layer_id], "red");*/
+////////////////////////
+//    std::ostringstream os;
+//    os << std::setw(3) << std::setfill('0') << layer_id;
+//    int a = scale_(20.);
+//    SVG svg("custom_seam" + os.str() + ".svg", BoundingBox(Point(-a, -a), Point(a, a)));
+//    /*if (! m_enforcers.empty())
+//        svg.draw(m_enforcers[layer_id], "blue");
+//    if (! m_blockers.empty())
+//        svg.draw(m_blockers[layer_id], "red");*/
 
-//            size_t min_idx = std::min_element(penalties.begin(), penalties.end()) - penalties.begin();
+//    size_t min_idx = std::min_element(penalties.begin(), penalties.end()) - penalties.begin();
 
-//            //svg.draw(polygon.points[idx_min], "red", 6e5);
-//            for (size_t i=0; i<polygon.points.size(); ++i) {
-//                std::string fill;
-//                coord_t size = 0;
-//                if (min_idx == i) {
-//                    fill = "yellow";
-//                    size = 5e5;
-//                } else {
-//                    fill = (std::find(enforcers_idxs.begin(), enforcers_idxs.end(), i) != enforcers_idxs.end() ? "green" : "black");
-//                    if (std::find(enf_centers.begin(), enf_centers.end(), i) != enf_centers.end()) {
-//                        size = 5e5;
-//                        fill = "blue";
-//                    }
-//                }
-//                if (i != 0)
-//                    svg.draw(polygon.points[i], fill, size);
-//                else
-//                    svg.draw(polygon.points[i], "red", 5e5);
+//    //svg.draw(polygon.points[idx_min], "red", 6e5);
+//    for (size_t i=0; i<polygon.points.size(); ++i) {
+//        std::string fill;
+//        coord_t size = 0;
+//        if (min_idx == i) {
+//            fill = "yellow";
+//            size = 5e5;
+//        } else {
+//            fill = (std::find(enforcers_idxs.begin(), enforcers_idxs.end(), i) != enforcers_idxs.end() ? "green" : "black");
+//            if (std::find(enf_centers.begin(), enf_centers.end(), i) != enf_centers.end()) {
+//                size = 5e5;
+//                fill = "blue";
 //            }
-//    ////////////////////
+//        }
+//        if (i != 0)
+//            svg.draw(polygon.points[i], fill, size);
+//        else
+//            svg.draw(polygon.points[i], "red", 5e5);
+//    }
+//////////////////////
 
 }
 
