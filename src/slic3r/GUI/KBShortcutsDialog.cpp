@@ -140,6 +140,7 @@ void KBShortcutsDialog::fill_shortcuts()
             // View
             { "0-6", L("Camera view") },
             { "E", L("Show/Hide object/instance labels") },
+            { "Tab", L("Switch between Editor/Preview") },
             // Configuration
             { ctrl + "P", L("Preferences") },
             // Help
