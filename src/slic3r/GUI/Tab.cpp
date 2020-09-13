@@ -1790,12 +1790,14 @@ void TabFilament::build()
         optgroup = page->new_optgroup(L("Start G-code"), 0);
         option = optgroup->get_option("start_filament_gcode");
         option.opt.full_width = true;
+        option.opt.is_code = true;
         option.opt.height = gcode_field_height;// 150;
         optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("End G-code"), 0);
         option = optgroup->get_option("end_filament_gcode");
         option.opt.full_width = true;
+        option.opt.is_code = true;
         option.opt.height = gcode_field_height;// 150;
         optgroup->append_single_option_line(option);
 
@@ -2204,51 +2206,60 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Start G-code"), 0);
         option = optgroup->get_option("start_gcode");
         option.opt.full_width = true;
+        option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("End G-code"), 0);
         option = optgroup->get_option("end_gcode");
         option.opt.full_width = true;
+        option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("Before layer change G-code"), 0);
         option = optgroup->get_option("before_layer_gcode");
         option.opt.full_width = true;
+        option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("After layer change G-code"), 0);
         option = optgroup->get_option("layer_gcode");
         option.opt.full_width = true;
+        option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("Tool change G-code"), 0);
         option = optgroup->get_option("toolchange_gcode");
         option.opt.full_width = true;
+        option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("Between objects G-code (for sequential printing)"), 0);
         option = optgroup->get_option("between_objects_gcode");
         option.opt.full_width = true;
+        option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("Color Change G-code"), 0);
         option = optgroup->get_option("color_change_gcode");
+        option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("Pause Print G-code"), 0);
         option = optgroup->get_option("pause_print_gcode");
+        option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("Template Custom G-code"), 0);
         option = optgroup->get_option("template_custom_gcode");
+        option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
 
