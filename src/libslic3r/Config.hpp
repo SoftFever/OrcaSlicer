@@ -1413,6 +1413,8 @@ public:
     bool                                multiline       = false;
     // For text input: If true, the GUI text box spans the complete page width.
     bool                                full_width      = false;
+    // For text input: If true, the GUI formats text as code (fixed-width)
+    bool                                is_code         = false;
     // Not editable. Currently only used for the display of the number of threads.
     bool                                readonly        = false;
     // Height of a multiline GUI text box.
