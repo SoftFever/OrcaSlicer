@@ -375,7 +375,7 @@ public:
 
 private:
     unsigned int m_last_result_id{ 0 };
-    size_t m_vertices_count{ 0 };
+    size_t m_moves_count{ 0 };
     mutable std::vector<TBuffer> m_buffers{ static_cast<size_t>(EMoveType::Extrude) };
     // bounding box of toolpaths
     BoundingBoxf3 m_paths_bounding_box;

@@ -392,7 +392,7 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
     auto start_time = std::chrono::high_resolution_clock::now();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
-    if (m_vertices_count == 0)
+    if (m_moves_count == 0)
         return;
 
     wxBusyCursor busy;
@@ -406,7 +406,7 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
 
     // update ranges for coloring / legend
     m_extrusions.reset_ranges();
-    for (size_t i = 0; i < m_vertices_count; ++i) {
+    for (size_t i = 0; i < m_moves_count; ++i) {
         // skip first vertex
         if (i == 0)
             continue;
@@ -457,7 +457,7 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
 
 void GCodeViewer::reset()
 {
-    m_vertices_count = 0;
+    m_moves_count = 0;
     for (TBuffer& buffer : m_buffers) {
         buffer.reset();
     }
@@ -882,11 +882,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     // vertices data
-    m_vertices_count = gcode_result.moves.size();
-    if (m_vertices_count == 0)
+    m_moves_count = gcode_result.moves.size();
+    if (m_moves_count == 0)
         return;
 
-    for (size_t i = 0; i < m_vertices_count; ++i) {
+    for (size_t i = 0; i < m_moves_count; ++i) {
         const GCodeProcessor::MoveVertex& move = gcode_result.moves[i];
         if (wxGetApp().is_gcode_viewer())
             // for the gcode viewer we need all moves to correctly size the printbed
@@ -1174,7 +1174,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     // toolpaths data -> extract from result
     std::vector<std::vector<float>> vertices(m_buffers.size());
     std::vector<std::vector<unsigned int>> indices(m_buffers.size());
-    for (size_t i = 0; i < m_vertices_count; ++i) {
+    for (size_t i = 0; i < m_moves_count; ++i) {
         // skip first vertex
         if (i == 0)
             continue;
@@ -1257,7 +1257,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     // layers zs / roles / extruder ids / cp color ids -> extract from result
-    for (size_t i = 0; i < m_vertices_count; ++i) {
+    for (size_t i = 0; i < m_moves_count; ++i) {
         const GCodeProcessor::MoveVertex& move = gcode_result.moves[i];
         if (move.type == EMoveType::Extrude)
             m_layers_zs.emplace_back(static_cast<double>(move.position[2]));
@@ -1410,12 +1410,12 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
     m_statistics.render_paths_size = 0;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
-    m_sequential_view.endpoints.first = m_vertices_count;
+    m_sequential_view.endpoints.first = m_moves_count;
     m_sequential_view.endpoints.last = 0;
     if (!keep_sequential_current_first)
         m_sequential_view.current.first = 0;
     if (!keep_sequential_current_last)
-        m_sequential_view.current.last = m_vertices_count;
+        m_sequential_view.current.last = m_moves_count;
 
     // first pass: collect visible paths and update sequential view data
     std::vector<std::pair<TBuffer*, size_t>> paths;
