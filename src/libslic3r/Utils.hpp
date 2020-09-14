@@ -348,11 +348,11 @@ inline std::string get_time_dhm(float time_in_secs)
 
     char buffer[64];
     if (days > 0)
-        ::sprintf(buffer, "%dd %dh %dm %ds", days, hours, minutes, (int)time_in_secs);
+        ::sprintf(buffer, "%dd %dh %dm", days, hours, minutes);
     else if (hours > 0)
-        ::sprintf(buffer, "%dh %dm %ds", hours, minutes, (int)time_in_secs);
+        ::sprintf(buffer, "%dh %dm", hours, minutes);
     else if (minutes > 0)
-        ::sprintf(buffer, "%dm %ds", minutes, (int)time_in_secs);
+        ::sprintf(buffer, "%dm", minutes);
 
     return buffer;
 }
