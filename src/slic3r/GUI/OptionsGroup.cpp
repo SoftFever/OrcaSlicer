@@ -7,6 +7,7 @@
 #include <wx/numformatter.h>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
+#include "libslic3r/Exception.hpp"
 #include "libslic3r/Utils.hpp"
 #include "I18N.hpp"
 
@@ -64,7 +65,7 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 				break;
             case coNone:   break;
             default:
-				throw /*//!ConfigGUITypeError("")*/std::logic_error("This control doesn't exist till now"); break;
+				throw Slic3r::LogicError("This control doesn't exist till now"); break;
         }
     }
     // Grab a reference to fields for convenience
@@ -620,7 +621,7 @@ boost::any ConfigOptionsGroup::config_value(const std::string& opt_key, int opt_
 		// Aggregate the strings the old way.
 		// Currently used for the post_process config value only.
 		if (opt_index != -1)
-			throw std::out_of_range("Can't deserialize option indexed value");
+			throw Slic3r::OutOfRange("Can't deserialize option indexed value");
 // 		return join(';', m_config->get(opt_key)});
 		return get_config_value(*m_config, opt_key);
 	}

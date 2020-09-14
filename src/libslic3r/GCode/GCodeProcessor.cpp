@@ -319,13 +319,13 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
 {
     boost::nowide::ifstream in(filename);
     if (!in.good())
-        throw std::runtime_error(std::string("Time estimator post process export failed.\nCannot open file for reading.\n"));
+        throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nCannot open file for reading.\n"));
 
     // temporary file to contain modified gcode
     std::string out_path = filename + ".postprocess";
     FILE* out = boost::nowide::fopen(out_path.c_str(), "wb");
     if (out == nullptr)
-        throw std::runtime_error(std::string("Time estimator post process export failed.\nCannot open file for writing.\n"));
+        throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nCannot open file for writing.\n"));
 
     auto time_in_minutes = [](float time_in_seconds) {
         return int(::roundf(time_in_seconds / 60.0f));
@@ -418,7 +418,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
             in.close();
             fclose(out);
             boost::nowide::remove(out_path.c_str());
-            throw std::runtime_error(std::string("Time estimator post process export failed.\nIs the disk full?\n"));
+            throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nIs the disk full?\n"));
         }
         export_line.clear();
     };
@@ -426,7 +426,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
     while (std::getline(in, gcode_line)) {
         if (!in.good()) {
             fclose(out);
-            throw std::runtime_error(std::string("Time estimator post process export failed.\nError while reading from file.\n"));
+            throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nError while reading from file.\n"));
         }
 
         gcode_line += "\n";
@@ -460,7 +460,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
     in.close();
 
     if (rename_file(out_path, filename))
-        throw std::runtime_error(std::string("Failed to rename the output G-code file from ") + out_path + " to " + filename + '\n' +
+        throw Slic3r::RuntimeError(std::string("Failed to rename the output G-code file from ") + out_path + " to " + filename + '\n' +
             "Is " + out_path + " locked?" + '\n');
 }
 

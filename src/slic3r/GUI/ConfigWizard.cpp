@@ -123,7 +123,7 @@ Bundle& BundleMap::prusa_bundle()
 {
     auto it = find(PresetBundle::PRUSA_BUNDLE);
     if (it == end()) {
-        throw std::runtime_error("ConfigWizard: Internal error in BundleMap: PRUSA_BUNDLE not loaded");
+        throw Slic3r::RuntimeError("ConfigWizard: Internal error in BundleMap: PRUSA_BUNDLE not loaded");
     }
 
     return it->second;

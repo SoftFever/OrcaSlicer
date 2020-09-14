@@ -148,7 +148,7 @@ static inline int parse_int(const char *&line)
     char *endptr = NULL;
     long result = strtol(line, &endptr, 10);
     if (endptr == NULL || !is_ws_or_eol(*endptr))
-        throw std::runtime_error("PressureEqualizer: Error parsing an int");
+        throw Slic3r::RuntimeError("PressureEqualizer: Error parsing an int");
     line = endptr;
     return int(result);
 };
@@ -160,7 +160,7 @@ static inline float parse_float(const char *&line)
     char *endptr = NULL;
     float result = strtof(line, &endptr);
     if (endptr == NULL || !is_ws_or_eol(*endptr))
-        throw std::runtime_error("PressureEqualizer: Error parsing a float");
+        throw Slic3r::RuntimeError("PressureEqualizer: Error parsing a float");
     line = endptr;
     return result;
 };
@@ -229,7 +229,7 @@ bool PressureEqualizer::process_line(const char *line, const size_t len, GCodeLi
                     assert(false);
                 }
                 if (i == -1)
-                    throw std::runtime_error(std::string("GCode::PressureEqualizer: Invalid axis for G0/G1: ") + axis);
+                    throw Slic3r::RuntimeError(std::string("GCode::PressureEqualizer: Invalid axis for G0/G1: ") + axis);
                 buf.pos_provided[i] = true;
                 new_pos[i] = parse_float(line);
                 if (i == 3 && m_config->use_relative_e_distances.value)
@@ -298,7 +298,7 @@ bool PressureEqualizer::process_line(const char *line, const size_t len, GCodeLi
                     set = true;
                     break;
                 default:
-                    throw std::runtime_error(std::string("GCode::PressureEqualizer: Incorrect axis in a G92 G-code: ") + axis);
+                    throw Slic3r::RuntimeError(std::string("GCode::PressureEqualizer: Incorrect axis in a G92 G-code: ") + axis);
                 }
                 eatws(line);
             }

@@ -79,7 +79,7 @@ static DWORD execute_process_winapi(const std::wstring &command_line)
 	if (! ::CreateProcessW(
             nullptr /* lpApplicationName */, (LPWSTR)command_line.c_str(), nullptr /* lpProcessAttributes */, nullptr /* lpThreadAttributes */, false /* bInheritHandles */,
 			CREATE_UNICODE_ENVIRONMENT /* | CREATE_NEW_CONSOLE */ /* dwCreationFlags */, (LPVOID)envstr.c_str(), nullptr /* lpCurrentDirectory */, &startup_info, &process_info))
-		throw std::runtime_error(std::string("Failed starting the script ") + boost::nowide::narrow(command_line) + ", Win32 error: " + std::to_string(int(::GetLastError())));
+		throw Slic3r::RuntimeError(std::string("Failed starting the script ") + boost::nowide::narrow(command_line) + ", Win32 error: " + std::to_string(int(::GetLastError())));
 	::WaitForSingleObject(process_info.hProcess, INFINITE);
 	ULONG rc = 0;
 	::GetExitCodeProcess(process_info.hProcess, &rc);
@@ -98,13 +98,13 @@ static int run_script(const std::string &script, const std::string &gcode, std::
     LPWSTR *szArglist = CommandLineToArgvW(boost::nowide::widen(script).c_str(), &nArgs);
     if (szArglist == nullptr || nArgs <= 0) {
         // CommandLineToArgvW failed. Maybe the command line escapment is invalid?
-		throw std::runtime_error(std::string("Post processing script ") + script + " on file " + gcode + " failed. CommandLineToArgvW() refused to parse the command line path.");
+		throw Slic3r::RuntimeError(std::string("Post processing script ") + script + " on file " + gcode + " failed. CommandLineToArgvW() refused to parse the command line path.");
     }
 
     std::wstring command_line;
     std::wstring command = szArglist[0];
 	if (! boost::filesystem::exists(boost::filesystem::path(command)))
-		throw std::runtime_error(std::string("The configured post-processing script does not exist: ") + boost::nowide::narrow(command));
+		throw Slic3r::RuntimeError(std::string("The configured post-processing script does not exist: ") + boost::nowide::narrow(command));
     if (boost::iends_with(command, L".pl")) {
         // This is a perl script. Run it through the perl interpreter.
         // The current process may be slic3r.exe or slic3r-console.exe.
@@ -115,7 +115,7 @@ static int run_script(const std::string &script, const std::string &gcode, std::
         boost::filesystem::path path_perl = path_exe.parent_path() / "perl" / "perl.exe";
         if (! boost::filesystem::exists(path_perl)) {
 			LocalFree(szArglist);
-			throw std::runtime_error(std::string("Perl interpreter ") + path_perl.string() + " does not exist.");
+			throw Slic3r::RuntimeError(std::string("Perl interpreter ") + path_perl.string() + " does not exist.");
         }
         // Replace it with the current perl interpreter.
         quote_argv_winapi(boost::nowide::widen(path_perl.string()), command_line);
@@ -187,7 +187,7 @@ void run_post_process_scripts(const std::string &path, const PrintConfig &config
     config.setenv_();
     auto gcode_file = boost::filesystem::path(path);
     if (! boost::filesystem::exists(gcode_file))
-        throw std::runtime_error(std::string("Post-processor can't find exported gcode file"));
+        throw Slic3r::RuntimeError(std::string("Post-processor can't find exported gcode file"));
 
     for (const std::string &scripts : config.post_process.values) {
 		std::vector<std::string> lines;
@@ -205,7 +205,7 @@ void run_post_process_scripts(const std::string &path, const PrintConfig &config
                 const std::string msg = std_err.empty() ? (boost::format("Post-processing script %1% on file %2% failed.\nError code: %3%") % script % path % result).str()
                     : (boost::format("Post-processing script %1% on file %2% failed.\nError code: %3%\nOutput:\n%4%") % script % path % result % std_err).str();
                 BOOST_LOG_TRIVIAL(error) << msg;
-                throw std::runtime_error(msg);
+                throw Slic3r::RuntimeError(msg);
             }
         }
     }

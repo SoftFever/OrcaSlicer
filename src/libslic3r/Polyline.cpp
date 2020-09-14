@@ -1,5 +1,6 @@
 #include "BoundingBox.hpp"
 #include "Polyline.hpp"
+#include "Exception.hpp"
 #include "ExPolygon.hpp"
 #include "ExPolygonCollection.hpp"
 #include "Line.hpp"
@@ -19,7 +20,7 @@ Polyline::operator Polylines() const
 Polyline::operator Line() const
 {
     if (this->points.size() > 2) 
-        throw std::invalid_argument("Can't convert polyline with more than two points to a line");
+        throw Slic3r::InvalidArgument("Can't convert polyline with more than two points to a line");
     return Line(this->points.front(), this->points.back());
 }
 
@@ -207,7 +208,7 @@ BoundingBox get_extents(const Polylines &polylines)
 const Point& leftmost_point(const Polylines &polylines)
 {
     if (polylines.empty())
-        throw std::invalid_argument("leftmost_point() called on empty PolylineCollection");
+        throw Slic3r::InvalidArgument("leftmost_point() called on empty PolylineCollection");
     Polylines::const_iterator it = polylines.begin();
     const Point *p = &it->leftmost_point();
     for (++ it; it != polylines.end(); ++it) {

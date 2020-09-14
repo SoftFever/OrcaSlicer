@@ -1,3 +1,4 @@
+#include <libslic3r/Exception.hpp>
 #include <libslic3r/SLAPrintSteps.hpp>
 #include <libslic3r/MeshBoolean.hpp>
 
@@ -187,7 +188,7 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
     }
     
     if (MeshBoolean::cgal::does_self_intersect(*holes_mesh_cgal))
-        throw std::runtime_error(L("Too much overlapping holes."));
+        throw Slic3r::RuntimeError(L("Too many overlapping holes."));
     
     auto hollowed_mesh_cgal = MeshBoolean::cgal::triangle_mesh_to_cgal(hollowed_mesh);
     
@@ -195,7 +196,7 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
         MeshBoolean::cgal::minus(*hollowed_mesh_cgal, *holes_mesh_cgal);
         hollowed_mesh = MeshBoolean::cgal::cgal_to_triangle_mesh(*hollowed_mesh_cgal);
     } catch (const std::runtime_error &) {
-        throw std::runtime_error(L(
+        throw Slic3r::RuntimeError(L(
             "Drilling holes into the mesh failed. "
             "This is usually caused by broken model. Try to fix it first."));
     }
@@ -241,7 +242,7 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
     
     if(slindex_it == po.m_slice_index.end())
         //TRN To be shown at the status bar on SLA slicing error.
-        throw std::runtime_error(
+        throw Slic3r::RuntimeError(
             L("Slicing had to be stopped due to an internal error: "
               "Inconsistent slice index."));
     
@@ -445,7 +446,7 @@ void SLAPrint::Steps::generate_pad(SLAPrintObject &po) {
         auto &pad_mesh = po.m_supportdata->support_tree_ptr->retrieve_mesh(sla::MeshType::Pad);
         
         if (!validate_pad(pad_mesh, pcfg))
-            throw std::runtime_error(
+            throw Slic3r::RuntimeError(
                     L("No pad can be generated for this model with the "
                       "current configuration"));
         
@@ -613,7 +614,7 @@ void SLAPrint::Steps::initialize_printer_input()
         
         for(const SliceRecord& slicerecord : o->get_slice_index()) {
             if (!slicerecord.is_valid())
-                throw std::runtime_error(
+                throw Slic3r::RuntimeError(
                     L("There are unprintable objects. Try to "
                       "adjust support settings to make the "
                       "objects printable."));

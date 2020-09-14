@@ -1,5 +1,6 @@
 #include "clipper/clipper_z.hpp"
 
+#include "Exception.hpp"
 #include "Print.hpp"
 #include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
@@ -1507,7 +1508,7 @@ BoundingBox Print::total_bounding_box() const
 double Print::skirt_first_layer_height() const
 {
     if (m_objects.empty()) 
-        throw std::invalid_argument("skirt_first_layer_height() can't be called without PrintObjects");
+        throw Slic3r::InvalidArgument("skirt_first_layer_height() can't be called without PrintObjects");
     return m_objects.front()->config().get_abs_value("first_layer_height");
 }
 
@@ -1603,7 +1604,7 @@ void Print::process()
         	// Initialize the tool ordering, so it could be used by the G-code preview slider for planning tool changes and filament switches.
         	m_tool_ordering = ToolOrdering(*this, -1, false);
             if (m_tool_ordering.empty() || m_tool_ordering.last_extruder() == unsigned(-1))
-                throw std::runtime_error("The print is empty. The model is not printable with current print settings.");
+                throw Slic3r::RuntimeError("The print is empty. The model is not printable with current print settings.");
         }
         this->set_done(psWipeTower);
     }

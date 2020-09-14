@@ -41,6 +41,36 @@
 
 namespace Slic3r {
 
+bool SlicingProcessCompletedEvent::critical_error() const
+{
+	try {
+		this->rethrow_exception();
+	} catch (const Slic3r::SlicingError &ex) {
+		// Exception derived from SlicingError is non-critical.
+		return false;
+	} catch (...) {
+		return true;
+	}
+}
+
+std::string SlicingProcessCompletedEvent::format_error_message() const
+{
+	std::string error;
+	try {
+		this->rethrow_exception();
+    } catch (const std::bad_alloc& ex) {
+        wxString errmsg = GUI::from_u8((boost::format(_utf8(L("%s has encountered an error. It was likely caused by running out of memory. "
+                              "If you are sure you have enough RAM on your system, this may also be a bug and we would "
+                              "be glad if you reported it."))) % SLIC3R_APP_NAME).str());
+        error = std::string(errmsg.ToUTF8()) + "\n\n" + std::string(ex.what());
+    } catch (std::exception &ex) {
+		error = ex.what();
+	} catch (...) {
+		error = "Unknown C++ exception.";
+	}
+	return error;
+}
+
 BackgroundSlicingProcess::BackgroundSlicingProcess()
 {
     boost::filesystem::path temp_path(wxStandardPaths::Get().GetTempDir().utf8_str().data());
@@ -109,19 +139,19 @@ void BackgroundSlicingProcess::process_fff()
 			switch (copy_ret_val) {
 			case SUCCESS: break; // no error
 			case FAIL_COPY_FILE:
-				throw std::runtime_error(_utf8(L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?")));
+				throw Slic3r::RuntimeError(_utf8(L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?")));
 				break;
 			case FAIL_FILES_DIFFERENT: 
-				throw std::runtime_error((boost::format(_utf8(L("Copying of the temporary G-code to the output G-code failed. There might be problem with target device, please try exporting again or using different device. The corrupted output G-code is at %1%.tmp."))) % export_path).str());
+				throw Slic3r::RuntimeError((boost::format(_utf8(L("Copying of the temporary G-code to the output G-code failed. There might be problem with target device, please try exporting again or using different device. The corrupted output G-code is at %1%.tmp."))) % export_path).str());
 				break;
 			case FAIL_RENAMING: 
-				throw std::runtime_error((boost::format(_utf8(L("Renaming of the G-code after copying to the selected destination folder has failed. Current path is %1%.tmp. Please try exporting again."))) % export_path).str()); 
+				throw Slic3r::RuntimeError((boost::format(_utf8(L("Renaming of the G-code after copying to the selected destination folder has failed. Current path is %1%.tmp. Please try exporting again."))) % export_path).str()); 
 				break;
 			case FAIL_CHECK_ORIGIN_NOT_OPENED: 
-				throw std::runtime_error((boost::format(_utf8(L("Copying of the temporary G-code has finished but the original code at %1% couldn't be opened during copy check. The output G-code is at %2%.tmp."))) % m_temp_output_path % export_path).str());
+				throw Slic3r::RuntimeError((boost::format(_utf8(L("Copying of the temporary G-code has finished but the original code at %1% couldn't be opened during copy check. The output G-code is at %2%.tmp."))) % m_temp_output_path % export_path).str());
 				break;
 			case FAIL_CHECK_TARGET_NOT_OPENED: 
-				throw std::runtime_error((boost::format(_utf8(L("Copying of the temporary G-code has finished but the exported code couldn't be opened during copy check. The output G-code is at %1%.tmp."))) % export_path).str()); 
+				throw Slic3r::RuntimeError((boost::format(_utf8(L("Copying of the temporary G-code has finished but the exported code couldn't be opened during copy check. The output G-code is at %1%.tmp."))) % export_path).str()); 
 				break;
 			default:
 				BOOST_LOG_TRIVIAL(warning) << "Unexpected fail code(" << (int)copy_ret_val << ") durring copy_file() to " << export_path << ".";
@@ -210,7 +240,7 @@ void BackgroundSlicingProcess::thread_proc()
 		// Process the background slicing task.
 		m_state = STATE_RUNNING;
 		lck.unlock();
-		std::string error;
+		std::exception_ptr exception;
 		try {
 			assert(m_print != nullptr);
 			switch(m_print->technology()) {
@@ -221,15 +251,8 @@ void BackgroundSlicingProcess::thread_proc()
 		} catch (CanceledException & /* ex */) {
 			// Canceled, this is all right.
 			assert(m_print->canceled());
-        } catch (const std::bad_alloc& ex) {
-            wxString errmsg = GUI::from_u8((boost::format(_utf8(L("%s has encountered an error. It was likely caused by running out of memory. "
-                                  "If you are sure you have enough RAM on your system, this may also be a bug and we would "
-                                  "be glad if you reported it."))) % SLIC3R_APP_NAME).str());
-            error = std::string(errmsg.ToUTF8()) + "\n\n" + std::string(ex.what());
-        } catch (std::exception &ex) {
-			error = ex.what();
 		} catch (...) {
-			error = "Unknown C++ exception.";
+			exception = std::current_exception();
 		}
 		m_print->finalize();
 		lck.lock();
@@ -237,9 +260,9 @@ void BackgroundSlicingProcess::thread_proc()
 		if (m_print->cancel_status() != Print::CANCELED_INTERNAL) {
 			// Only post the canceled event, if canceled by user.
 			// Don't post the canceled event, if canceled from Print::apply().
-			wxCommandEvent evt(m_event_finished_id);
-            evt.SetString(GUI::from_u8(error));
-			evt.SetInt(m_print->canceled() ? -1 : (error.empty() ? 1 : 0));
+			SlicingProcessCompletedEvent evt(m_event_finished_id, 0, 
+				(m_state == STATE_CANCELED) ? SlicingProcessCompletedEvent::Cancelled :
+				exception ? SlicingProcessCompletedEvent::Error : SlicingProcessCompletedEvent::Finished, exception);
         	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
         }
 	    m_print->restart();
@@ -299,7 +322,7 @@ bool BackgroundSlicingProcess::start()
 		// The background processing thread is already running.
 		return false;
 	if (! this->idle())
-		throw std::runtime_error("Cannot start a background task, the worker thread is not idle.");
+		throw Slic3r::RuntimeError("Cannot start a background task, the worker thread is not idle.");
 	m_state = STATE_STARTED;
 	m_print->set_cancel_callback([this](){ this->stop_internal(); });
 	lck.unlock();
@@ -494,7 +517,7 @@ void BackgroundSlicingProcess::prepare_upload()
 	if (m_print == m_fff_print) {
 		m_print->set_status(95, _utf8(L("Running post-processing scripts")));
 		if (copy_file(m_temp_output_path, source_path.string()) != SUCCESS) {
-			throw std::runtime_error(_utf8(L("Copying of the temporary G-code to the output G-code failed")));
+			throw Slic3r::RuntimeError(_utf8(L("Copying of the temporary G-code to the output G-code failed")));
 		}
 		run_post_process_scripts(source_path.string(), m_fff_print->config());
         m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());

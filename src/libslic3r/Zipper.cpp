@@ -1,5 +1,6 @@
 #include <exception>
 
+#include "Exception.hpp"
 #include "Zipper.hpp"
 #include "miniz_extension.hpp"
 #include <boost/log/trivial.hpp>
@@ -29,7 +30,7 @@ public:
 
     SLIC3R_NORETURN void blow_up() const
     {
-        throw std::runtime_error(formatted_errorstr());
+        throw Slic3r::RuntimeError(formatted_errorstr());
     }
 
     bool is_alive()

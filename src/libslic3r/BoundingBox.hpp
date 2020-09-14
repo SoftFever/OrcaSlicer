@@ -2,6 +2,7 @@
 #define slic3r_BoundingBox_hpp_
 
 #include "libslic3r.h"
+#include "Exception.hpp"
 #include "Point.hpp"
 #include "Polygon.hpp"
 
@@ -22,7 +23,7 @@ public:
     {
         if (points.empty()) {
             this->defined = false;
-            // throw std::invalid_argument("Empty point set supplied to BoundingBoxBase constructor");
+            // throw Slic3r::InvalidArgument("Empty point set supplied to BoundingBoxBase constructor");
         } else {
             typename std::vector<PointClass>::const_iterator it = points.begin();
             this->min = *it;
@@ -68,7 +69,7 @@ public:
     BoundingBox3Base(const std::vector<PointClass>& points)
     {
         if (points.empty())
-            throw std::invalid_argument("Empty point set supplied to BoundingBox3Base constructor");
+            throw Slic3r::InvalidArgument("Empty point set supplied to BoundingBox3Base constructor");
         typename std::vector<PointClass>::const_iterator it = points.begin();
         this->min = *it;
         this->max = *it;
