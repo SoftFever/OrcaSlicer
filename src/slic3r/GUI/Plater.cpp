@@ -3524,8 +3524,15 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
 
     if (evt.error()) {
         std::string message = evt.format_error_message();
-        //FIXME show a messagebox if evt.critical_error().
-		notification_manager->push_slicing_error_notification(message, *q->get_current_canvas3D());
+        if (evt.critical_error()) {
+            if (q->m_tracking_popup_menu)
+                // We don't want to pop-up a message box when tracking a pop-up menu.
+                // We postpone the error message instead.
+                q->m_tracking_popup_menu_error_message = message;
+            else
+                show_error(q, message);
+        } else
+		  notification_manager->push_slicing_error_notification(message, *q->get_current_canvas3D());
         this->statusbar()->set_status_text(from_u8(message));
 		const wxString invalid_str = _L("Invalid data");
 		for (auto btn : { ActionButtonType::abReslice, ActionButtonType::abSendGCode, ActionButtonType::abExport })

@@ -1604,7 +1604,7 @@ void Print::process()
         	// Initialize the tool ordering, so it could be used by the G-code preview slider for planning tool changes and filament switches.
         	m_tool_ordering = ToolOrdering(*this, -1, false);
             if (m_tool_ordering.empty() || m_tool_ordering.last_extruder() == unsigned(-1))
-                throw Slic3r::RuntimeError("The print is empty. The model is not printable with current print settings.");
+                throw Slic3r::SlicingError("The print is empty. The model is not printable with current print settings.");
         }
         this->set_done(psWipeTower);
     }

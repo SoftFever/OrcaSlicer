@@ -188,7 +188,7 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
     }
     
     if (MeshBoolean::cgal::does_self_intersect(*holes_mesh_cgal))
-        throw Slic3r::RuntimeError(L("Too many overlapping holes."));
+        throw Slic3r::SlicingError(L("Too many overlapping holes."));
     
     auto hollowed_mesh_cgal = MeshBoolean::cgal::triangle_mesh_to_cgal(hollowed_mesh);
     
@@ -196,7 +196,7 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
         MeshBoolean::cgal::minus(*hollowed_mesh_cgal, *holes_mesh_cgal);
         hollowed_mesh = MeshBoolean::cgal::cgal_to_triangle_mesh(*hollowed_mesh_cgal);
     } catch (const std::runtime_error &) {
-        throw Slic3r::RuntimeError(L(
+        throw Slic3r::SlicingError(L(
             "Drilling holes into the mesh failed. "
             "This is usually caused by broken model. Try to fix it first."));
     }
@@ -446,7 +446,7 @@ void SLAPrint::Steps::generate_pad(SLAPrintObject &po) {
         auto &pad_mesh = po.m_supportdata->support_tree_ptr->retrieve_mesh(sla::MeshType::Pad);
         
         if (!validate_pad(pad_mesh, pcfg))
-            throw Slic3r::RuntimeError(
+            throw Slic3r::SlicingError(
                     L("No pad can be generated for this model with the "
                       "current configuration"));
         
@@ -614,7 +614,7 @@ void SLAPrint::Steps::initialize_printer_input()
         
         for(const SliceRecord& slicerecord : o->get_slice_index()) {
             if (!slicerecord.is_valid())
-                throw Slic3r::RuntimeError(
+                throw Slic3r::SlicingError(
                     L("There are unprintable objects. Try to "
                       "adjust support settings to make the "
                       "objects printable."));

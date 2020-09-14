@@ -2,7 +2,6 @@
 
 #include "../ClipperUtils.hpp"
 #include "../EdgeGrid.hpp"
-#include "../Exception.hpp"
 #include "../Geometry.hpp"
 #include "../Surface.hpp"
 #include "../PrintConfig.hpp"
