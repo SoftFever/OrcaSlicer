@@ -49,8 +49,8 @@ bool SlicingProcessCompletedEvent::critical_error() const
 		// Exception derived from SlicingError is non-critical.
 		return false;
 	} catch (...) {
-		return true;
 	}
+	return true;
 }
 
 std::string SlicingProcessCompletedEvent::format_error_message() const
