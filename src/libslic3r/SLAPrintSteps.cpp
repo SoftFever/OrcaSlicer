@@ -1,3 +1,4 @@
+#include <libslic3r/Exception.hpp>
 #include <libslic3r/SLAPrintSteps.hpp>
 #include <libslic3r/MeshBoolean.hpp>
 
@@ -187,7 +188,7 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
     }
     
     if (MeshBoolean::cgal::does_self_intersect(*holes_mesh_cgal))
-        throw std::runtime_error(L("Too much overlapping holes."));
+        throw Slic3r::SlicingError(L("Too many overlapping holes."));
     
     auto hollowed_mesh_cgal = MeshBoolean::cgal::triangle_mesh_to_cgal(hollowed_mesh);
     
@@ -195,7 +196,7 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
         MeshBoolean::cgal::minus(*hollowed_mesh_cgal, *holes_mesh_cgal);
         hollowed_mesh = MeshBoolean::cgal::cgal_to_triangle_mesh(*hollowed_mesh_cgal);
     } catch (const std::runtime_error &) {
-        throw std::runtime_error(L(
+        throw Slic3r::SlicingError(L(
             "Drilling holes into the mesh failed. "
             "This is usually caused by broken model. Try to fix it first."));
     }
@@ -241,7 +242,7 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
     
     if(slindex_it == po.m_slice_index.end())
         //TRN To be shown at the status bar on SLA slicing error.
-        throw std::runtime_error(
+        throw Slic3r::RuntimeError(
             L("Slicing had to be stopped due to an internal error: "
               "Inconsistent slice index."));
     
@@ -264,11 +265,12 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
         std::vector<ExPolygons> interior_slices;
         interior_slicer.slice(slice_grid, SlicingMode::Regular, closing_r, &interior_slices, thr);
 
-        sla::ccr::enumerate(interior_slices.begin(), interior_slices.end(),
-                            [&po](const ExPolygons &slice, size_t i) {
-                                po.m_model_slices[i] =
-                                    diff_ex(po.m_model_slices[i], slice);
-                            });
+        sla::ccr::for_each(size_t(0), interior_slices.size(),
+                           [&po, &interior_slices] (size_t i) {
+                              const ExPolygons &slice = interior_slices[i];
+                              po.m_model_slices[i] =
+                                  diff_ex(po.m_model_slices[i], slice);
+                           });
     }
     
     auto mit = slindex_it;
@@ -360,18 +362,6 @@ void SLAPrint::Steps::support_points(SLAPrintObject &po)
         // removed them on purpose. No calculation will be done.
         po.m_supportdata->pts = po.transformed_support_points();
     }
-
-    // If the zero elevation mode is engaged, we have to filter out all the
-    // points that are on the bottom of the object
-    if (is_zero_elevation(po.config())) {
-        double tolerance = po.config().pad_enable.getBool() ?
-                               po.m_config.pad_wall_thickness.getFloat() :
-                               po.m_config.support_base_height.getFloat();
-
-        remove_bottom_points(po.m_supportdata->pts,
-                             po.m_supportdata->emesh.ground_level(),
-                             tolerance);
-    }
 }
 
 void SLAPrint::Steps::support_tree(SLAPrintObject &po)
@@ -382,6 +372,13 @@ void SLAPrint::Steps::support_tree(SLAPrintObject &po)
     
     if (pcfg.embed_object)
         po.m_supportdata->emesh.ground_level_offset(pcfg.wall_thickness_mm);
+
+    // If the zero elevation mode is engaged, we have to filter out all the
+    // points that are on the bottom of the object
+    if (is_zero_elevation(po.config())) {
+        remove_bottom_points(po.m_supportdata->pts,
+                             float(po.m_supportdata->emesh.ground_level() + EPSILON));
+    }
     
     po.m_supportdata->cfg = make_support_cfg(po.m_config);
 //    po.m_supportdata->emesh.load_holes(po.transformed_drainhole_points());
@@ -449,7 +446,7 @@ void SLAPrint::Steps::generate_pad(SLAPrintObject &po) {
         auto &pad_mesh = po.m_supportdata->support_tree_ptr->retrieve_mesh(sla::MeshType::Pad);
         
         if (!validate_pad(pad_mesh, pcfg))
-            throw std::runtime_error(
+            throw Slic3r::SlicingError(
                     L("No pad can be generated for this model with the "
                       "current configuration"));
         
@@ -617,7 +614,7 @@ void SLAPrint::Steps::initialize_printer_input()
         
         for(const SliceRecord& slicerecord : o->get_slice_index()) {
             if (!slicerecord.is_valid())
-                throw std::runtime_error(
+                throw Slic3r::SlicingError(
                     L("There are unprintable objects. Try to "
                       "adjust support settings to make the "
                       "objects printable."));
@@ -684,14 +681,16 @@ void SLAPrint::Steps::merge_slices_and_eval_stats() {
     using Lock = std::lock_guard<sla::ccr::SpinningMutex>;
     
     // Going to parallel:
-    auto printlayerfn = [
+    auto printlayerfn = [this,
             // functions and read only vars
             areafn, area_fill, display_area, exp_time, init_exp_time, fast_tilt, slow_tilt, delta_fade_time,
             
             // write vars
             &mutex, &models_volume, &supports_volume, &estim_time, &slow_layers,
-            &fast_layers, &fade_layer_time](PrintLayer& layer, size_t sliced_layer_cnt)
+            &fast_layers, &fade_layer_time](size_t sliced_layer_cnt)
     {
+        PrintLayer &layer = m_print->m_printer_input[sliced_layer_cnt];
+
         // vector of slice record references
         auto& slicerecord_references = layer.slices();
         
@@ -794,7 +793,7 @@ void SLAPrint::Steps::merge_slices_and_eval_stats() {
     
     // sequential version for debugging:
     // for(size_t i = 0; i < m_printer_input.size(); ++i) printlayerfn(i);
-    sla::ccr::enumerate(printer_input.begin(), printer_input.end(), printlayerfn);
+    sla::ccr::for_each(size_t(0), printer_input.size(), printlayerfn);
     
     auto SCALING2 = SCALING_FACTOR * SCALING_FACTOR;
     print_statistics.support_used_material = supports_volume * SCALING2;

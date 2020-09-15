@@ -2,7 +2,6 @@
 #define SLA_HOLLOWING_HPP
 
 #include <memory>
-#include <libslic3r/SLA/Common.hpp>
 #include <libslic3r/SLA/Contour3D.hpp>
 #include <libslic3r/SLA/JobController.hpp>
 
@@ -59,9 +58,13 @@ struct DrainHole
 
 using DrainHoles = std::vector<DrainHole>;
 
+constexpr float HoleStickOutLength = 1.f;
+
 std::unique_ptr<TriangleMesh> generate_interior(const TriangleMesh &mesh,
                                                 const HollowingConfig &  = {},
                                                 const JobController &ctl = {});
+
+void hollow_mesh(TriangleMesh &mesh, const HollowingConfig &cfg);
 
 void cut_drainholes(std::vector<ExPolygons> & obj_slices,
                     const std::vector<float> &slicegrid,

@@ -1,187 +1,18 @@
-#include <cmath>
-#include <libslic3r/SLA/Common.hpp>
-#include <libslic3r/SLA/Concurrency.hpp>
-#include <libslic3r/SLA/SpatIndex.hpp>
-#include <libslic3r/SLA/EigenMesh3D.hpp>
-#include <libslic3r/SLA/Contour3D.hpp>
-#include <libslic3r/SLA/Clustering.hpp>
+#include "IndexedMesh.hpp"
+#include "Concurrency.hpp"
+
 #include <libslic3r/AABBTreeIndirect.hpp>
+#include <libslic3r/TriangleMesh.hpp>
 
-// for concave hull merging decisions
-#include <libslic3r/SLA/BoostAdapter.hpp>
-#include "boost/geometry/index/rtree.hpp"
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4244)
-#pragma warning(disable: 4267)
-#endif
-
-
-#include <igl/remove_duplicate_vertices.h>
+#include <numeric>
 
 #ifdef SLIC3R_HOLE_RAYCASTER
-  #include <libslic3r/SLA/Hollowing.hpp>
+#include <libslic3r/SLA/Hollowing.hpp>
 #endif
 
+namespace Slic3r { namespace sla {
 
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
-
-namespace Slic3r {
-namespace sla {
-
-
-/* **************************************************************************
- * PointIndex implementation
- * ************************************************************************** */
-
-class PointIndex::Impl {
-public:
-    using BoostIndex = boost::geometry::index::rtree< PointIndexEl,
-                                                     boost::geometry::index::rstar<16, 4> /* ? */ >;
-    
-    BoostIndex m_store;
-};
-
-PointIndex::PointIndex(): m_impl(new Impl()) {}
-PointIndex::~PointIndex() {}
-
-PointIndex::PointIndex(const PointIndex &cpy): m_impl(new Impl(*cpy.m_impl)) {}
-PointIndex::PointIndex(PointIndex&& cpy): m_impl(std::move(cpy.m_impl)) {}
-
-PointIndex& PointIndex::operator=(const PointIndex &cpy)
-{
-    m_impl.reset(new Impl(*cpy.m_impl));
-    return *this;
-}
-
-PointIndex& PointIndex::operator=(PointIndex &&cpy)
-{
-    m_impl.swap(cpy.m_impl);
-    return *this;
-}
-
-void PointIndex::insert(const PointIndexEl &el)
-{
-    m_impl->m_store.insert(el);
-}
-
-bool PointIndex::remove(const PointIndexEl& el)
-{
-    return m_impl->m_store.remove(el) == 1;
-}
-
-std::vector<PointIndexEl>
-PointIndex::query(std::function<bool(const PointIndexEl &)> fn) const
-{
-    namespace bgi = boost::geometry::index;
-    
-    std::vector<PointIndexEl> ret;
-    m_impl->m_store.query(bgi::satisfies(fn), std::back_inserter(ret));
-    return ret;
-}
-
-std::vector<PointIndexEl> PointIndex::nearest(const Vec3d &el, unsigned k = 1) const
-{
-    namespace bgi = boost::geometry::index;
-    std::vector<PointIndexEl> ret; ret.reserve(k);
-    m_impl->m_store.query(bgi::nearest(el, k), std::back_inserter(ret));
-    return ret;
-}
-
-size_t PointIndex::size() const
-{
-    return m_impl->m_store.size();
-}
-
-void PointIndex::foreach(std::function<void (const PointIndexEl &)> fn)
-{
-    for(auto& el : m_impl->m_store) fn(el);
-}
-
-void PointIndex::foreach(std::function<void (const PointIndexEl &)> fn) const
-{
-    for(const auto &el : m_impl->m_store) fn(el);
-}
-
-/* **************************************************************************
- * BoxIndex implementation
- * ************************************************************************** */
-
-class BoxIndex::Impl {
-public:
-    using BoostIndex = boost::geometry::index::
-        rtree<BoxIndexEl, boost::geometry::index::rstar<16, 4> /* ? */>;
-    
-    BoostIndex m_store;
-};
-
-BoxIndex::BoxIndex(): m_impl(new Impl()) {}
-BoxIndex::~BoxIndex() {}
-
-BoxIndex::BoxIndex(const BoxIndex &cpy): m_impl(new Impl(*cpy.m_impl)) {}
-BoxIndex::BoxIndex(BoxIndex&& cpy): m_impl(std::move(cpy.m_impl)) {}
-
-BoxIndex& BoxIndex::operator=(const BoxIndex &cpy)
-{
-    m_impl.reset(new Impl(*cpy.m_impl));
-    return *this;
-}
-
-BoxIndex& BoxIndex::operator=(BoxIndex &&cpy)
-{
-    m_impl.swap(cpy.m_impl);
-    return *this;
-}
-
-void BoxIndex::insert(const BoxIndexEl &el)
-{
-    m_impl->m_store.insert(el);
-}
-
-bool BoxIndex::remove(const BoxIndexEl& el)
-{
-    return m_impl->m_store.remove(el) == 1;
-}
-
-std::vector<BoxIndexEl> BoxIndex::query(const BoundingBox &qrbb,
-                                        BoxIndex::QueryType qt)
-{
-    namespace bgi = boost::geometry::index;
-    
-    std::vector<BoxIndexEl> ret; ret.reserve(m_impl->m_store.size());
-    
-    switch (qt) {
-    case qtIntersects:
-        m_impl->m_store.query(bgi::intersects(qrbb), std::back_inserter(ret));
-        break;
-    case qtWithin:
-        m_impl->m_store.query(bgi::within(qrbb), std::back_inserter(ret));
-    }
-    
-    return ret;
-}
-
-size_t BoxIndex::size() const
-{
-    return m_impl->m_store.size();
-}
-
-void BoxIndex::foreach(std::function<void (const BoxIndexEl &)> fn)
-{
-    for(auto& el : m_impl->m_store) fn(el);
-}
-
-
-/* ****************************************************************************
- * EigenMesh3D implementation
- * ****************************************************************************/
-
-
-class EigenMesh3D::AABBImpl {
+class IndexedMesh::AABBImpl {
 private:
     AABBTreeIndirect::Tree3f m_tree;
 
@@ -189,7 +20,7 @@ public:
     void init(const TriangleMesh& tm)
     {
         m_tree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(
-                    tm.its.vertices, tm.its.indices);
+            tm.its.vertices, tm.its.indices);
     }
 
     void intersect_ray(const TriangleMesh& tm,
@@ -215,9 +46,9 @@ public:
         size_t idx_unsigned = 0;
         Vec3d closest_vec3d(closest);
         double dist = AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
-                          tm.its.vertices,
-                          tm.its.indices,
-                          m_tree, point, idx_unsigned, closest_vec3d);
+            tm.its.vertices,
+            tm.its.indices,
+            m_tree, point, idx_unsigned, closest_vec3d);
         i = int(idx_unsigned);
         closest = closest_vec3d;
         return dist;
@@ -226,72 +57,71 @@ public:
 
 static const constexpr double MESH_EPS = 1e-6;
 
-EigenMesh3D::EigenMesh3D(const TriangleMesh& tmesh)
+IndexedMesh::IndexedMesh(const TriangleMesh& tmesh)
     : m_aabb(new AABBImpl()), m_tm(&tmesh)
 {
     auto&& bb = tmesh.bounding_box();
     m_ground_level += bb.min(Z);
-    
+
     // Build the AABB accelaration tree
     m_aabb->init(tmesh);
 }
 
-EigenMesh3D::~EigenMesh3D() {}
+IndexedMesh::~IndexedMesh() {}
 
-EigenMesh3D::EigenMesh3D(const EigenMesh3D &other):
+IndexedMesh::IndexedMesh(const IndexedMesh &other):
     m_tm(other.m_tm), m_ground_level(other.m_ground_level),
     m_aabb( new AABBImpl(*other.m_aabb) ) {}
 
 
-EigenMesh3D &EigenMesh3D::operator=(const EigenMesh3D &other)
+IndexedMesh &IndexedMesh::operator=(const IndexedMesh &other)
 {
     m_tm = other.m_tm;
     m_ground_level = other.m_ground_level;
     m_aabb.reset(new AABBImpl(*other.m_aabb)); return *this;
 }
 
-EigenMesh3D &EigenMesh3D::operator=(EigenMesh3D &&other) = default;
+IndexedMesh &IndexedMesh::operator=(IndexedMesh &&other) = default;
 
-EigenMesh3D::EigenMesh3D(EigenMesh3D &&other) = default;
+IndexedMesh::IndexedMesh(IndexedMesh &&other) = default;
 
 
 
-const std::vector<Vec3f>& EigenMesh3D::vertices() const
+const std::vector<Vec3f>& IndexedMesh::vertices() const
 {
     return m_tm->its.vertices;
 }
 
 
 
-const std::vector<Vec3i>& EigenMesh3D::indices()  const
+const std::vector<Vec3i>& IndexedMesh::indices()  const
 {
     return m_tm->its.indices;
 }
 
 
 
-const Vec3f& EigenMesh3D::vertices(size_t idx) const
+const Vec3f& IndexedMesh::vertices(size_t idx) const
 {
     return m_tm->its.vertices[idx];
 }
 
 
 
-const Vec3i& EigenMesh3D::indices(size_t idx) const
+const Vec3i& IndexedMesh::indices(size_t idx) const
 {
     return m_tm->its.indices[idx];
 }
 
 
 
-Vec3d EigenMesh3D::normal_by_face_id(int face_id) const {
+Vec3d IndexedMesh::normal_by_face_id(int face_id) const {
     return m_tm->stl.facet_start[face_id].normal.cast<double>();
 }
 
 
-
-EigenMesh3D::hit_result
-EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
+IndexedMesh::hit_result
+IndexedMesh::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
 {
     assert(is_approx(dir.norm(), 1.));
     igl::Hit hit;
@@ -319,13 +149,13 @@ EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
     return ret;
 }
 
-std::vector<EigenMesh3D::hit_result>
-EigenMesh3D::query_ray_hits(const Vec3d &s, const Vec3d &dir) const
+std::vector<IndexedMesh::hit_result>
+IndexedMesh::query_ray_hits(const Vec3d &s, const Vec3d &dir) const
 {
-    std::vector<EigenMesh3D::hit_result> outs;
+    std::vector<IndexedMesh::hit_result> outs;
     std::vector<igl::Hit> hits;
     m_aabb->intersect_ray(*m_tm, s, dir, hits);
-    
+
     // The sort is necessary, the hits are not always sorted.
     std::sort(hits.begin(), hits.end(),
               [](const igl::Hit& a, const igl::Hit& b) { return a.t < b.t; });
@@ -334,13 +164,13 @@ EigenMesh3D::query_ray_hits(const Vec3d &s, const Vec3d &dir) const
     // along an axis of a cube due to floating-point approximations in igl (?)
     hits.erase(std::unique(hits.begin(), hits.end(),
                            [](const igl::Hit& a, const igl::Hit& b)
-                              { return a.t == b.t; }),
+                           { return a.t == b.t; }),
                hits.end());
 
     //  Convert the igl::Hit into hit_result
     outs.reserve(hits.size());
     for (const igl::Hit& hit : hits) {
-        outs.emplace_back(EigenMesh3D::hit_result(*this));
+        outs.emplace_back(IndexedMesh::hit_result(*this));
         outs.back().m_t = double(hit.t);
         outs.back().m_dir = dir;
         outs.back().m_source = s;
@@ -355,8 +185,8 @@ EigenMesh3D::query_ray_hits(const Vec3d &s, const Vec3d &dir) const
 
 
 #ifdef SLIC3R_HOLE_RAYCASTER
-EigenMesh3D::hit_result EigenMesh3D::filter_hits(
-                     const std::vector<EigenMesh3D::hit_result>& object_hits) const
+IndexedMesh::hit_result IndexedMesh::filter_hits(
+    const std::vector<IndexedMesh::hit_result>& object_hits) const
 {
     assert(! m_holes.empty());
     hit_result out(*this);
@@ -377,7 +207,7 @@ EigenMesh3D::hit_result EigenMesh3D::filter_hits(
     };
     std::vector<HoleHit> hole_isects;
     hole_isects.reserve(m_holes.size());
-    
+
     auto sf = s.cast<float>();
     auto dirf = dir.cast<float>();
 
@@ -452,7 +282,7 @@ EigenMesh3D::hit_result EigenMesh3D::filter_hits(
 #endif
 
 
-double EigenMesh3D::squared_distance(const Vec3d &p, int& i, Vec3d& c) const {
+double IndexedMesh::squared_distance(const Vec3d &p, int& i, Vec3d& c) const {
     double sqdst = 0;
     Eigen::Matrix<double, 1, 3> pp = p;
     Eigen::Matrix<double, 1, 3> cc;
@@ -461,31 +291,19 @@ double EigenMesh3D::squared_distance(const Vec3d &p, int& i, Vec3d& c) const {
     return sqdst;
 }
 
-/* ****************************************************************************
- * Misc functions
- * ****************************************************************************/
 
-namespace  {
-
-bool point_on_edge(const Vec3d& p, const Vec3d& e1, const Vec3d& e2,
-                   double eps = 0.05)
+static bool point_on_edge(const Vec3d& p, const Vec3d& e1, const Vec3d& e2,
+                          double eps = 0.05)
 {
     using Line3D = Eigen::ParametrizedLine<double, 3>;
-    
+
     auto line = Line3D::Through(e1, e2);
     double d = line.distance(p);
     return std::abs(d) < eps;
 }
 
-template<class Vec> double distance(const Vec& pp1, const Vec& pp2) {
-    auto p = pp2 - pp1;
-    return std::sqrt(p.transpose() * p);
-}
-
-}
-
 PointSet normals(const PointSet& points,
-                 const EigenMesh3D& mesh,
+                 const IndexedMesh& mesh,
                  double eps,
                  std::function<void()> thr, // throw on cancel
                  const std::vector<unsigned>& pt_indices)
@@ -502,10 +320,10 @@ PointSet normals(const PointSet& points,
     PointSet ret(range.size(), 3);
 
     //    for (size_t ridx = 0; ridx < range.size(); ++ridx)
-    ccr::enumerate(
-        range.begin(), range.end(),
-        [&ret, &mesh, &points, thr, eps](unsigned el, size_t ridx) {
+    ccr::for_each(size_t(0), range.size(),
+        [&ret, &mesh, &points, thr, eps, &range](size_t ridx) {
             thr();
+            unsigned el = range[ridx];
             auto  eidx   = Eigen::Index(el);
             int   faceid = 0;
             Vec3d p;
@@ -531,11 +349,11 @@ PointSet normals(const PointSet& points,
             // ic will mark a single vertex.
             int ia = -1, ib = -1, ic = -1;
 
-            if (std::abs(distance(p, p1)) < eps) {
+            if (std::abs((p - p1).norm()) < eps) {
                 ic = trindex(0);
-            } else if (std::abs(distance(p, p2)) < eps) {
+            } else if (std::abs((p - p2).norm()) < eps) {
                 ic = trindex(1);
-            } else if (std::abs(distance(p, p3)) < eps) {
+            } else if (std::abs((p - p3).norm()) < eps) {
                 ic = trindex(2);
             } else if (point_on_edge(p, p1, p2, eps)) {
                 ia = trindex(0);
@@ -612,148 +430,4 @@ PointSet normals(const PointSet& points,
     return ret;
 }
 
-namespace bgi = boost::geometry::index;
-using Index3D = bgi::rtree< PointIndexEl, bgi::rstar<16, 4> /* ? */ >;
-
-namespace {
-
-bool cmp_ptidx_elements(const PointIndexEl& e1, const PointIndexEl& e2)
-{
-    return e1.second < e2.second;
-};
-
-ClusteredPoints cluster(Index3D &sindex,
-                        unsigned max_points,
-                        std::function<std::vector<PointIndexEl>(
-                            const Index3D &, const PointIndexEl &)> qfn)
-{
-    using Elems = std::vector<PointIndexEl>;
-    
-    // Recursive function for visiting all the points in a given distance to
-    // each other
-    std::function<void(Elems&, Elems&)> group =
-        [&sindex, &group, max_points, qfn](Elems& pts, Elems& cluster)
-    {        
-        for(auto& p : pts) {
-            std::vector<PointIndexEl> tmp = qfn(sindex, p);
-            
-            std::sort(tmp.begin(), tmp.end(), cmp_ptidx_elements);
-            
-            Elems newpts;
-            std::set_difference(tmp.begin(), tmp.end(),
-                                cluster.begin(), cluster.end(),
-                                std::back_inserter(newpts), cmp_ptidx_elements);
-            
-            int c = max_points && newpts.size() + cluster.size() > max_points?
-                        int(max_points - cluster.size()) : int(newpts.size());
-            
-            cluster.insert(cluster.end(), newpts.begin(), newpts.begin() + c);
-            std::sort(cluster.begin(), cluster.end(), cmp_ptidx_elements);
-            
-            if(!newpts.empty() && (!max_points || cluster.size() < max_points))
-                group(newpts, cluster);
-        }
-    };
-    
-    std::vector<Elems> clusters;
-    for(auto it = sindex.begin(); it != sindex.end();) {
-        Elems cluster = {};
-        Elems pts = {*it};
-        group(pts, cluster);
-        
-        for(auto& c : cluster) sindex.remove(c);
-        it = sindex.begin();
-        
-        clusters.emplace_back(cluster);
-    }
-    
-    ClusteredPoints result;
-    for(auto& cluster : clusters) {
-        result.emplace_back();
-        for(auto c : cluster) result.back().emplace_back(c.second);
-    }
-    
-    return result;
-}
-
-std::vector<PointIndexEl> distance_queryfn(const Index3D& sindex,
-                                           const PointIndexEl& p,
-                                           double dist,
-                                           unsigned max_points)
-{
-    std::vector<PointIndexEl> tmp; tmp.reserve(max_points);
-    sindex.query(
-        bgi::nearest(p.first, max_points),
-        std::back_inserter(tmp)
-        );
-    
-    for(auto it = tmp.begin(); it < tmp.end(); ++it)
-        if(distance(p.first, it->first) > dist) it = tmp.erase(it);
-    
-    return tmp;
-}
-
-} // namespace
-
-// Clustering a set of points by the given criteria
-ClusteredPoints cluster(
-    const std::vector<unsigned>& indices,
-    std::function<Vec3d(unsigned)> pointfn,
-    double dist,
-    unsigned max_points)
-{
-    // A spatial index for querying the nearest points
-    Index3D sindex;
-    
-    // Build the index
-    for(auto idx : indices) sindex.insert( std::make_pair(pointfn(idx), idx));
-    
-    return cluster(sindex, max_points,
-                   [dist, max_points](const Index3D& sidx, const PointIndexEl& p)
-                   {
-                       return distance_queryfn(sidx, p, dist, max_points);
-                   });
-}
-
-// Clustering a set of points by the given criteria
-ClusteredPoints cluster(
-    const std::vector<unsigned>& indices,
-    std::function<Vec3d(unsigned)> pointfn,
-    std::function<bool(const PointIndexEl&, const PointIndexEl&)> predicate,
-    unsigned max_points)
-{
-    // A spatial index for querying the nearest points
-    Index3D sindex;
-    
-    // Build the index
-    for(auto idx : indices) sindex.insert( std::make_pair(pointfn(idx), idx));
-    
-    return cluster(sindex, max_points,
-                   [max_points, predicate](const Index3D& sidx, const PointIndexEl& p)
-                   {
-                       std::vector<PointIndexEl> tmp; tmp.reserve(max_points);
-                       sidx.query(bgi::satisfies([p, predicate](const PointIndexEl& e){
-                                      return predicate(p, e);
-                                  }), std::back_inserter(tmp));
-                       return tmp;
-                   });
-}
-
-ClusteredPoints cluster(const PointSet& pts, double dist, unsigned max_points)
-{
-    // A spatial index for querying the nearest points
-    Index3D sindex;
-    
-    // Build the index
-    for(Eigen::Index i = 0; i < pts.rows(); i++)
-        sindex.insert(std::make_pair(Vec3d(pts.row(i)), unsigned(i)));
-    
-    return cluster(sindex, max_points,
-                   [dist, max_points](const Index3D& sidx, const PointIndexEl& p)
-                   {
-                       return distance_queryfn(sidx, p, dist, max_points);
-                   });
-}
-
-} // namespace sla
-} // namespace Slic3r
+}} // namespace Slic3r::sla

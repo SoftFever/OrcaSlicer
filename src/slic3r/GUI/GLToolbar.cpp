@@ -230,22 +230,11 @@ void GLToolbar::set_icons_size(float size)
 
 void GLToolbar::set_scale(float scale)
 {
-    if (m_layout.scale != scale)
-    {
+    if (m_layout.scale != scale) {
         m_layout.scale = scale;
         m_layout.dirty = true;
         m_icons_texture_dirty = true;
     }
-}
-
-bool GLToolbar::is_enabled() const
-{
-    return m_enabled;
-}
-
-void GLToolbar::set_enabled(bool enable)
-{
-    m_enabled = enable;//true; etFIXME
 }
 
 bool GLToolbar::add_item(const GLToolbarItem::Data& data)

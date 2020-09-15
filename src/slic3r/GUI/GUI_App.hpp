@@ -3,10 +3,10 @@
 
 #include <memory>
 #include <string>
-#include "Preset.hpp"
 #include "ImGuiWrapper.hpp"
 #include "ConfigWizard.hpp"
 #include "OpenGLManager.hpp"
+#include "libslic3r/Preset.hpp"
 
 #include <wx/app.h>
 #include <wx/colour.h>
@@ -86,10 +86,30 @@ class ConfigWizard;
 
 static wxString dots("…", wxConvUTF8);
 
+// Does our wxWidgets version support markup?
+// https://github.com/prusa3d/PrusaSlicer/issues/4282#issuecomment-634676371
+#if wxUSE_MARKUP && wxCHECK_VERSION(3, 1, 1)
+    #define SUPPORTS_MARKUP
+#endif
+
 class GUI_App : public wxApp
 {
+#if ENABLE_GCODE_VIEWER
+public:
+    enum class EAppMode : unsigned char
+    {
+        Editor,
+        GCodeViewer
+    };
+
+private:
+#endif // ENABLE_GCODE_VIEWER
+
     bool            m_initialized { false };
     bool            app_conf_exists{ false };
+#if ENABLE_GCODE_VIEWER
+    EAppMode        m_app_mode{ EAppMode::Editor };
+#endif // ENABLE_GCODE_VIEWER
 
     wxColour        m_color_label_modified;
     wxColour        m_color_label_sys;
@@ -119,12 +139,23 @@ class GUI_App : public wxApp
     std::unique_ptr <wxSingleInstanceChecker> m_single_instance_checker;
     std::string m_instance_hash_string;
 	size_t m_instance_hash_int;
+
 public:
     bool            OnInit() override;
     bool            initialized() const { return m_initialized; }
 
+#if ENABLE_GCODE_VIEWER
+    explicit GUI_App(EAppMode mode = EAppMode::Editor);
+#else
     GUI_App();
+#endif // ENABLE_GCODE_VIEWER
     ~GUI_App() override;
+
+#if ENABLE_GCODE_VIEWER
+    EAppMode get_app_mode() const { return m_app_mode; }
+    bool is_editor() const { return m_app_mode == EAppMode::Editor; }
+    bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
+#endif // ENABLE_GCODE_VIEWER
 
     static std::string get_gl_info(bool format_as_html, bool extensions);
     wxGLContext* init_glcontext(wxGLCanvas& canvas);
@@ -150,12 +181,17 @@ public:
     wxSize          get_min_size() const;
     float           toolbar_icon_scale(const bool is_limited = false) const;
     void            set_auto_toolbar_icon_scale(float scale) const;
+    void            check_printer_presets();
 
     void            recreate_GUI(const wxString& message);
     void            system_info();
     void            keyboard_shortcuts();
     void            load_project(wxWindow *parent, wxString& input_file) const;
     void            import_model(wxWindow *parent, wxArrayString& input_files) const;
+#if ENABLE_GCODE_VIEWER
+    void            load_gcode(wxWindow* parent, wxString& input_file) const;
+#endif // ENABLE_GCODE_VIEWER
+
     static bool     catch_error(std::function<void()> cb, const std::string& err);
 
     void            persist_window_geometry(wxTopLevelWindow *window, bool default_maximized = false);
@@ -194,11 +230,14 @@ public:
     Plater*             plater();
     Model&      		model();
 
+
     AppConfig*      app_config{ nullptr };
     PresetBundle*   preset_bundle{ nullptr };
     PresetUpdater*  preset_updater{ nullptr };
     MainFrame*      mainframe{ nullptr };
     Plater*         plater_{ nullptr };
+
+	PresetUpdater* get_preset_updater() { return preset_updater; }
 
     wxNotebook*     tab_panel() const ;
     int             extruders_cnt() const;
@@ -227,6 +266,12 @@ public:
     void            gcode_thumbnails_debug();
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG
 
+    GLShaderProgram* get_shader(const std::string& shader_name) { return m_opengl_mgr.get_shader(shader_name); }
+    GLShaderProgram* get_current_shader() { return m_opengl_mgr.get_current_shader(); }
+
+    bool is_gl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const { return m_opengl_mgr.get_gl_info().is_version_greater_or_equal_to(major, minor); }
+    bool is_glsl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const { return m_opengl_mgr.get_gl_info().is_glsl_version_greater_or_equal_to(major, minor); }
+
 private:
     bool            on_init_inner();
 	void            init_app_config();
@@ -245,6 +290,6 @@ private:
 DECLARE_APP(GUI_App)
 
 } // GUI
-} //Slic3r
+} // Slic3r
 
 #endif // slic3r_GUI_App_hpp_

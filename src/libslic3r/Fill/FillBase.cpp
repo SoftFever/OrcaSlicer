@@ -16,6 +16,7 @@
 #include "FillRectilinear.hpp"
 #include "FillRectilinear2.hpp"
 #include "FillRectilinear3.hpp"
+#include "FillAdaptive.hpp"
 
 namespace Slic3r {
 
@@ -37,7 +38,9 @@ Fill* Fill::new_from_type(const InfillPattern type)
     case ipArchimedeanChords:   return new FillArchimedeanChords();
     case ipHilbertCurve:        return new FillHilbertCurve();
     case ipOctagramSpiral:      return new FillOctagramSpiral();
-    default: throw std::invalid_argument("unknown type");
+    case ipAdaptiveCubic:       return new FillAdaptive();
+    case ipSupportCubic:        return new FillSupportCubic();
+    default: throw Slic3r::InvalidArgument("unknown type");
     }
 }
 

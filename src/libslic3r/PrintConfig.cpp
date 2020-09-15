@@ -130,6 +130,37 @@ void PrintConfigDef::init_common_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.2));
+
+    // Options used by physical printers
+    
+    def = this->add("printhost_user", coString);
+    def->label = L("User");
+//    def->tooltip = L("");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
+    
+    def = this->add("printhost_password", coString);
+    def->label = L("Password");
+//    def->tooltip = L("");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
+    
+    def = this->add("preset_name", coString);
+    def->label = L("Printer preset name");
+    def->tooltip = L("Related printer preset name");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
+
+    def = this->add("printhost_authorization_type", coEnum);
+    def->label = L("Authorization Type");
+//    def->tooltip = L("");
+    def->enum_keys_map = &ConfigOptionEnum<AuthorizationType>::get_enum_values();
+    def->enum_values.push_back("key");
+    def->enum_values.push_back("user");
+    def->enum_labels.push_back("KeyPassword");
+    def->enum_labels.push_back("UserPassword");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<AuthorizationType>(atKeyPassword));
 }
 
 void PrintConfigDef::init_fff_params()
@@ -850,6 +881,8 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("hilbertcurve");
     def->enum_values.push_back("archimedeanchords");
     def->enum_values.push_back("octagramspiral");
+    def->enum_values.push_back("adaptivecubic");
+    def->enum_values.push_back("supportcubic");
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Grid"));
     def->enum_labels.push_back(L("Triangles"));
@@ -863,6 +896,8 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Hilbert Curve"));
     def->enum_labels.push_back(L("Archimedean Chords"));
     def->enum_labels.push_back(L("Octagram Spiral"));
+    def->enum_labels.push_back(L("Adaptive Cubic"));
+    def->enum_labels.push_back(L("Support Cubic"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipStars));
 
     def = this->add("first_layer_acceleration", coFloat);
@@ -1101,6 +1136,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("ironing_type", coEnum);
     def->label = L("Ironing Type");
+    def->category = L("Ironing");
     def->tooltip = L("Ironing Type");
     def->enum_keys_map = &ConfigOptionEnum<IroningType>::get_enum_values();
     def->enum_values.push_back("top");
@@ -1124,7 +1160,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("ironing_spacing", coFloat);
     def->label = L("Spacing between ironing passes");
-    def->tooltip = L("Distance between ironing lins");
+    def->category = L("Ironing");
+    def->tooltip = L("Distance between ironing lines");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comExpert;
@@ -2715,7 +2752,7 @@ void PrintConfigDef::init_sla_params()
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("support_head_front_diameter", coFloat);
-    def->label = L("Support head front diameter");
+    def->label = L("Pinhead front diameter");
     def->category = L("Supports");
     def->tooltip = L("Diameter of the pointing side of the head");
     def->sidetext = L("mm");
@@ -2724,7 +2761,7 @@ void PrintConfigDef::init_sla_params()
     def->set_default_value(new ConfigOptionFloat(0.4));
 
     def = this->add("support_head_penetration", coFloat);
-    def->label = L("Support head penetration");
+    def->label = L("Head penetration");
     def->category = L("Supports");
     def->tooltip = L("How much the pinhead has to penetrate the model surface");
     def->sidetext = L("mm");
@@ -2733,7 +2770,7 @@ void PrintConfigDef::init_sla_params()
     def->set_default_value(new ConfigOptionFloat(0.2));
 
     def = this->add("support_head_width", coFloat);
-    def->label = L("Support head width");
+    def->label = L("Pinhead width");
     def->category = L("Supports");
     def->tooltip = L("Width from the back sphere center to the front sphere center");
     def->sidetext = L("mm");
@@ -2743,7 +2780,7 @@ void PrintConfigDef::init_sla_params()
     def->set_default_value(new ConfigOptionFloat(1.0));
 
     def = this->add("support_pillar_diameter", coFloat);
-    def->label = L("Support pillar diameter");
+    def->label = L("Pillar diameter");
     def->category = L("Supports");
     def->tooltip = L("Diameter in mm of the support pillars");
     def->sidetext = L("mm");
@@ -2751,6 +2788,17 @@ void PrintConfigDef::init_sla_params()
     def->max = 15;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(1.0));
+
+    def = this->add("support_small_pillar_diameter_percent", coPercent);
+    def->label = L("Small pillar diameter percent");
+    def->category = L("Supports");
+    def->tooltip = L("The percentage of smaller pillars compared to the normal pillar diameter "
+                     "which are used in problematic areas where a normal pilla cannot fit.");
+    def->sidetext = L("%");
+    def->min = 1;
+    def->max = 100;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionPercent(50));
     
     def = this->add("support_max_bridges_on_pillar", coInt);
     def->label = L("Max bridges on a pillar");
@@ -2763,7 +2811,7 @@ void PrintConfigDef::init_sla_params()
     def->set_default_value(new ConfigOptionInt(3));
 
     def = this->add("support_pillar_connection_mode", coEnum);
-    def->label = L("Support pillar connection mode");
+    def->label = L("Pillar connection mode");
     def->tooltip = L("Controls the bridge type between two neighboring pillars."
                      " Can be zig-zag, cross (double zig-zag) or dynamic which"
                      " will automatically switch between the first two depending"
@@ -3487,6 +3535,12 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->label = L("Export G-code");
     def->tooltip = L("Slice the model and export toolpaths as G-code.");
     def->cli = "export-gcode|gcode|g";
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("gcodeviewer", coBool);
+    def->label = L("G-code viewer");
+    def->tooltip = L("Visualize an already sliced and saved G-code");
+    def->cli = "gcodeviewer";
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("slice", coBool);

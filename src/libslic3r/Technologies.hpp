@@ -15,7 +15,7 @@
 #define ENABLE_RENDER_STATISTICS 0
 // Shows an imgui dialog with camera related data
 #define ENABLE_CAMERA_STATISTICS 0
-//  Render the picking pass instead of the main scene (use [T] key to toggle between regular rendering and picking pass only rendering)
+// Render the picking pass instead of the main scene (use [T] key to toggle between regular rendering and picking pass only rendering)
 #define ENABLE_RENDER_PICKING_PASS 0
 // Enable extracting thumbnails from selected gcode and save them as png files
 #define ENABLE_THUMBNAIL_GENERATOR_DEBUG 0
@@ -54,8 +54,10 @@
 // Enable built-in DPI changed event handler of wxWidgets 3.1.3
 #define ENABLE_WX_3_1_3_DPI_CHANGED_EVENT (1 && ENABLE_2_3_0_ALPHA1)
 
-// Enable changing application layout without the need to restart
-#define ENABLE_LAYOUT_NO_RESTART (1 && ENABLE_2_3_0_ALPHA1)
-
+// Enable G-Code viewer
+#define ENABLE_GCODE_VIEWER (1 && ENABLE_2_3_0_ALPHA1)
+#define ENABLE_GCODE_VIEWER_STATISTICS (0 && ENABLE_GCODE_VIEWER)
+#define ENABLE_GCODE_VIEWER_DATA_CHECKING (0 && ENABLE_GCODE_VIEWER)
+#define ENABLE_GCODE_VIEWER_TASKBAR_ICON (0 && ENABLE_GCODE_VIEWER)
 
 #endif // _prusaslicer_technologies_h_

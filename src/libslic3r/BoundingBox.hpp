@@ -2,6 +2,7 @@
 #define slic3r_BoundingBox_hpp_
 
 #include "libslic3r.h"
+#include "Exception.hpp"
 #include "Point.hpp"
 #include "Polygon.hpp"
 
@@ -22,7 +23,7 @@ public:
     {
         if (points.empty()) {
             this->defined = false;
-            // throw std::invalid_argument("Empty point set supplied to BoundingBoxBase constructor");
+            // throw Slic3r::InvalidArgument("Empty point set supplied to BoundingBoxBase constructor");
         } else {
             typename std::vector<PointClass>::const_iterator it = points.begin();
             this->min = *it;
@@ -68,7 +69,7 @@ public:
     BoundingBox3Base(const std::vector<PointClass>& points)
     {
         if (points.empty())
-            throw std::invalid_argument("Empty point set supplied to BoundingBox3Base constructor");
+            throw Slic3r::InvalidArgument("Empty point set supplied to BoundingBox3Base constructor");
         typename std::vector<PointClass>::const_iterator it = points.begin();
         this->min = *it;
         this->max = *it;
@@ -191,6 +192,20 @@ inline BoundingBox scaled(const BoundingBoxf &bb) { return {scaled(bb.min), scal
 inline BoundingBox3 scaled(const BoundingBoxf3 &bb) { return {scaled(bb.min), scaled(bb.max)}; }
 inline BoundingBoxf unscaled(const BoundingBox &bb) { return {unscaled(bb.min), unscaled(bb.max)}; }
 inline BoundingBoxf3 unscaled(const BoundingBox3 &bb) { return {unscaled(bb.min), unscaled(bb.max)}; }
+
+template<class Tout, class Tin>
+auto cast(const BoundingBoxBase<Tin> &b)
+{
+    return BoundingBoxBase<Vec<3, Tout>>{b.min.template cast<Tout>(),
+                                         b.max.template cast<Tout>()};
+}
+
+template<class Tout, class Tin>
+auto cast(const BoundingBox3Base<Tin> &b)
+{
+    return BoundingBox3Base<Vec<3, Tout>>{b.min.template cast<Tout>(),
+                                          b.max.template cast<Tout>()};
+}
 
 } // namespace Slic3r
 

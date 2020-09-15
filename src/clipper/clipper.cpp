@@ -48,8 +48,18 @@
 #include <ostream>
 #include <functional>
 #include <assert.h>
-#include <Shiny/Shiny.h>
 #include <libslic3r/Int128.hpp>
+
+// Profiling support using the Shiny intrusive profiler
+//#define CLIPPERLIB_PROFILE
+#if defined(SLIC3R_PROFILE) && defined(CLIPPERLIB_PROFILE)
+	#include <Shiny/Shiny.h>
+	#define CLIPPERLIB_PROFILE_FUNC() PROFILE_FUNC()
+	#define CLIPPERLIB_PROFILE_BLOCK(name) PROFILE_BLOCK(name)
+#else
+	#define CLIPPERLIB_PROFILE_FUNC()
+	#define CLIPPERLIB_PROFILE_BLOCK(name)
+#endif
 
 #ifdef use_xyz
 namespace ClipperLib_Z {
@@ -263,7 +273,7 @@ int PointInPolygon (const IntPoint &pt, OutPt *op)
 // This is potentially very expensive! O(n^2)!
 bool Poly2ContainsPoly1(OutPt *OutPt1, OutPt *OutPt2)
 {
-  PROFILE_FUNC();
+  CLIPPERLIB_PROFILE_FUNC();
   OutPt* op = OutPt1;
   do
   {
@@ -714,7 +724,7 @@ TEdge* ClipperBase::ProcessBound(TEdge* E, bool NextIsForward)
 
 bool ClipperBase::AddPath(const Path &pg, PolyType PolyTyp, bool Closed)
 {
-  PROFILE_FUNC();
+  CLIPPERLIB_PROFILE_FUNC();
   // Remove duplicate end point from a closed input path.
   // Remove duplicate points from the end of the input path.
   int highI = (int)pg.size() -1;
@@ -738,7 +748,7 @@ bool ClipperBase::AddPath(const Path &pg, PolyType PolyTyp, bool Closed)
 
 bool ClipperBase::AddPaths(const Paths &ppg, PolyType PolyTyp, bool Closed)
 {
-  PROFILE_FUNC();
+  CLIPPERLIB_PROFILE_FUNC();
   std::vector<int> num_edges(ppg.size(), 0);
   int num_edges_total = 0;
   for (size_t i = 0; i < ppg.size(); ++ i) {
@@ -780,7 +790,7 @@ bool ClipperBase::AddPaths(const Paths &ppg, PolyType PolyTyp, bool Closed)
 
 bool ClipperBase::AddPathInternal(const Path &pg, int highI, PolyType PolyTyp, bool Closed, TEdge* edges)
 {
-  PROFILE_FUNC();
+  CLIPPERLIB_PROFILE_FUNC();
 #ifdef use_lines
   if (!Closed && PolyTyp == ptClip)
     throw clipperException("AddPath: Open paths must be subject.");
@@ -954,7 +964,7 @@ bool ClipperBase::AddPathInternal(const Path &pg, int highI, PolyType PolyTyp, b
 
 void ClipperBase::Clear()
 {
-  PROFILE_FUNC();
+  CLIPPERLIB_PROFILE_FUNC();
   m_MinimaList.clear();
   m_edges.clear();
   m_UseFullRange = false;
@@ -966,7 +976,7 @@ void ClipperBase::Clear()
 // Sort the LML entries, initialize the left / right bound edges of each Local Minima.
 void ClipperBase::Reset()
 {
-  PROFILE_FUNC();
+  CLIPPERLIB_PROFILE_FUNC();
   if (m_MinimaList.empty()) return; //ie nothing to process
   std::sort(m_MinimaList.begin(), m_MinimaList.end(), [](const LocalMinimum& lm1, const LocalMinimum& lm2){ return lm1.Y < lm2.Y; });
 
@@ -995,7 +1005,7 @@ void ClipperBase::Reset()
 // Returns (0,0,0,0) for an empty rectangle.
 IntRect ClipperBase::GetBounds()
 {
-  PROFILE_FUNC();
+  CLIPPERLIB_PROFILE_FUNC();
   IntRect result;
   auto lm = m_MinimaList.begin();
   if (lm == m_MinimaList.end())
@@ -1056,7 +1066,7 @@ Clipper::Clipper(int initOptions) :
 
 void Clipper::Reset()
 {
-  PROFILE_FUNC();
+  CLIPPERLIB_PROFILE_FUNC();
   ClipperBase::Reset();
   m_Scanbeam = std::priority_queue<cInt>();
   m_Maxima.clear();
@@ -1071,7 +1081,7 @@ void Clipper::Reset()
 bool Clipper::Execute(ClipType clipType, Paths &solution,
     PolyFillType subjFillType, PolyFillType clipFillType)
 {
-  PROFILE_FUNC();
+  CLIPPERLIB_PROFILE_FUNC();
   if (m_HasOpenPaths)
     throw clipperException("Error: PolyTree struct is needed for open path clipping.");
   solution.resize(0);
@@ -1089,7 +1099,7 @@ bool Clipper::Execute(ClipType clipType, Paths &solution,
 bool Clipper::Execute(ClipType clipType, PolyTree& polytree,
     PolyFillType subjFillType, PolyFillType clipFillType)
 {
-  PROFILE_FUNC();
+  CLIPPERLIB_PROFILE_FUNC();
   m_SubjFillType = subjFillType;
   m_ClipFillType = clipFillType;
   m_ClipType = clipType;
@@ -1103,10 +1113,10 @@ bool Clipper::Execute(ClipType clipType, PolyTree& polytree,
 
 bool Clipper::ExecuteInternal()
 {
-  PROFILE_FUNC();
+  CLIPPERLIB_PROFILE_FUNC();
   bool succeeded = true;
   try {
-   PROFILE_BLOCK(Clipper_ExecuteInternal_Process);
+   CLIPPERLIB_PROFILE_BLOCK(Clipper_ExecuteInternal_Process);
     Reset();
     if (m_MinimaList.empty()) return true;
     cInt botY = m_Scanbeam.top();
@@ -1131,13 +1141,13 @@ bool Clipper::ExecuteInternal()
 
   if (succeeded)
   {
-    PROFILE_BLOCK(Clipper_ExecuteInternal_Fix);
+    CLIPPERLIB_PROFILE_BLOCK(Clipper_ExecuteInternal_Fix);
 
     //fix orientations ...
     //FIXME Vojtech: Does it not invalidate the loop hierarchy maintained as OutRec::FirstLeft pointers?
     //FIXME Vojtech: The area is calculated with floats, it may not be numerically stable!
     {
-      PROFILE_BLOCK(Clipper_ExecuteInternal_Fix_orientations);
+      CLIPPERLIB_PROFILE_BLOCK(Clipper_ExecuteInternal_Fix_orientations);
       for (OutRec *outRec : m_PolyOuts)
         if (outRec->Pts && !outRec->IsOpen && (outRec->IsHole ^ m_ReverseOutput) == (Area(*outRec) > 0))
           ReversePolyPtLinks(outRec->Pts);
@@ -1147,7 +1157,7 @@ bool Clipper::ExecuteInternal()
 
     //unfortunately FixupOutPolygon() must be done after JoinCommonEdges()
     {
-      PROFILE_BLOCK(Clipper_ExecuteInternal_Fix_fixup);
+      CLIPPERLIB_PROFILE_BLOCK(Clipper_ExecuteInternal_Fix_fixup);
       for (OutRec *outRec : m_PolyOuts)
         if (outRec->Pts) {
           if (outRec->IsOpen)
@@ -1401,7 +1411,7 @@ bool Clipper::IsContributing(const TEdge& edge) const
 // Called from Clipper::InsertLocalMinimaIntoAEL() and Clipper::IntersectEdges().
 OutPt* Clipper::AddLocalMinPoly(TEdge *e1, TEdge *e2, const IntPoint &Pt)
 {
-  PROFILE_FUNC();
+  CLIPPERLIB_PROFILE_FUNC();
   OutPt* result;
   TEdge *e, *prevE;
   if (IsHorizontal(*e2) || ( e1->Dx > e2->Dx ))
@@ -1493,7 +1503,7 @@ void Clipper::CopyAELToSEL()
 // Called from Clipper::ExecuteInternal()
 void Clipper::InsertLocalMinimaIntoAEL(const cInt botY)
 {
-  PROFILE_FUNC();
+  CLIPPERLIB_PROFILE_FUNC();
   while (!m_MinimaList.empty() && m_MinimaList.back().Y == botY)
   {
     TEdge* lb = m_MinimaList.back().LeftBound;
@@ -2043,7 +2053,7 @@ OutPt* Clipper::GetLastOutPt(TEdge *e)
 
 void Clipper::ProcessHorizontals()
 {
-  PROFILE_FUNC();
+  CLIPPERLIB_PROFILE_FUNC();
   TEdge* horzEdge = m_SortedEdges;
   while(horzEdge)
   {
@@ -2414,7 +2424,7 @@ void Clipper::UpdateEdgeIntoAEL(TEdge *&e)
 
 bool Clipper::ProcessIntersections(const cInt topY)
 {
-  PROFILE_FUNC();
+  CLIPPERLIB_PROFILE_FUNC();
   if( !m_ActiveEdges ) return true;
   try {
     BuildIntersectList(topY);
@@ -2569,7 +2579,7 @@ void Clipper::DoMaxima(TEdge *e)
 
 void Clipper::ProcessEdgesAtTopOfScanbeam(const cInt topY)
 {
-  PROFILE_FUNC();
+  CLIPPERLIB_PROFILE_FUNC();
   TEdge* e = m_ActiveEdges;
   while( e )
   {
@@ -3177,7 +3187,7 @@ bool Clipper::JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2)
 // This is potentially very expensive! O(n^3)!
 void Clipper::FixupFirstLefts1(OutRec* OldOutRec, OutRec* NewOutRec) const
 { 
-  PROFILE_FUNC();
+  CLIPPERLIB_PROFILE_FUNC();
   //tests if NewOutRec contains the polygon before reassigning FirstLeft
   for (OutRec *outRec : m_PolyOuts)
   {
@@ -3201,7 +3211,7 @@ void Clipper::FixupFirstLefts2(OutRec* OldOutRec, OutRec* NewOutRec) const
 
 void Clipper::JoinCommonEdges()
 {
-  PROFILE_FUNC();
+  CLIPPERLIB_PROFILE_FUNC();
   for (Join &join : m_Joins)
   {
     OutRec *outRec1 = GetOutRec(join.OutPt1->Idx);
@@ -3771,7 +3781,7 @@ void ClipperOffset::DoRound(int j, int k)
 // http://www.angusj.com/delphi/clipper/documentation/Docs/Units/ClipperLib/Classes/Clipper/Properties/StrictlySimple.htm
 void Clipper::DoSimplePolygons()
 {
-  PROFILE_FUNC();
+  CLIPPERLIB_PROFILE_FUNC();
   size_t i = 0;
   while (i < m_PolyOuts.size()) 
   {

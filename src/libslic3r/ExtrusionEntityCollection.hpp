@@ -2,6 +2,7 @@
 #define slic3r_ExtrusionEntityCollection_hpp_
 
 #include "libslic3r.h"
+#include "Exception.hpp"
 #include "ExtrusionEntity.hpp"
 
 namespace Slic3r {
@@ -107,7 +108,7 @@ public:
 
     // Following methods shall never be called on an ExtrusionEntityCollection.
     Polyline as_polyline() const override {
-        throw std::runtime_error("Calling as_polyline() on a ExtrusionEntityCollection");
+        throw Slic3r::RuntimeError("Calling as_polyline() on a ExtrusionEntityCollection");
         return Polyline();
     };
 
@@ -117,7 +118,7 @@ public:
     }
 
     double length() const override {
-        throw std::runtime_error("Calling length() on a ExtrusionEntityCollection");
+        throw Slic3r::RuntimeError("Calling length() on a ExtrusionEntityCollection");
         return 0.;        
     }
 };

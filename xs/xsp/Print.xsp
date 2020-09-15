@@ -76,10 +76,10 @@ _constant()
         %code%{ RETVAL = const_cast<ExtrusionEntityCollection*>(&THIS->skirt()); %};
     Ref<ExtrusionEntityCollection> brim()
         %code%{ RETVAL = const_cast<ExtrusionEntityCollection*>(&THIS->brim()); %};
-    std::string estimated_normal_print_time()
-        %code%{ RETVAL = THIS->print_statistics().estimated_normal_print_time; %};
-    std::string estimated_silent_print_time()
-        %code%{ RETVAL = THIS->print_statistics().estimated_silent_print_time; %};
+//    std::string estimated_normal_print_time()
+//        %code%{ RETVAL = THIS->print_statistics().estimated_normal_print_time; %};
+//    std::string estimated_silent_print_time()
+//        %code%{ RETVAL = THIS->print_statistics().estimated_silent_print_time; %};
     double total_used_filament()
         %code%{ RETVAL = THIS->print_statistics().total_used_filament; %};
     double total_extruded_volume()

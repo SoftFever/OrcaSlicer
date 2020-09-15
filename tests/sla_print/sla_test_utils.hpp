@@ -67,16 +67,16 @@ struct SupportByproducts
 const constexpr float CLOSING_RADIUS = 0.005f;
 
 void check_support_tree_integrity(const sla::SupportTreeBuilder &stree,
-                                  const sla::SupportConfig &cfg);
+                                  const sla::SupportTreeConfig &cfg);
 
 void test_supports(const std::string          &obj_filename,
-                   const sla::SupportConfig   &supportcfg,
+                   const sla::SupportTreeConfig   &supportcfg,
                    const sla::HollowingConfig &hollowingcfg,
                    const sla::DrainHoles      &drainholes,
                    SupportByproducts          &out);
 
 inline void test_supports(const std::string &obj_filename,
-                   const sla::SupportConfig &supportcfg,
+                   const sla::SupportTreeConfig &supportcfg,
                    SupportByproducts        &out) 
 {
     sla::HollowingConfig hcfg;
@@ -85,7 +85,7 @@ inline void test_supports(const std::string &obj_filename,
 }
 
 inline void test_supports(const std::string &obj_filename,
-                   const sla::SupportConfig &supportcfg = {})
+                   const sla::SupportTreeConfig &supportcfg = {})
 {
     SupportByproducts byproducts;
     test_supports(obj_filename, supportcfg, byproducts);
@@ -97,13 +97,13 @@ void export_failed_case(const std::vector<ExPolygons> &support_slices,
 
 void test_support_model_collision(
     const std::string          &obj_filename,
-    const sla::SupportConfig   &input_supportcfg,
+    const sla::SupportTreeConfig   &input_supportcfg,
     const sla::HollowingConfig &hollowingcfg,
     const sla::DrainHoles      &drainholes);
 
 inline void test_support_model_collision(
     const std::string        &obj_filename,
-    const sla::SupportConfig &input_supportcfg = {}) 
+    const sla::SupportTreeConfig &input_supportcfg = {}) 
 {
     sla::HollowingConfig hcfg;
     hcfg.enabled = false;
@@ -184,5 +184,14 @@ double raster_white_area(const sla::RasterGrayscaleAA &raster);
 long raster_pxsum(const sla::RasterGrayscaleAA &raster);
 
 double predict_error(const ExPolygon &p, const sla::RasterBase::PixelDim &pd);
+
+// Make a 3D pyramid
+TriangleMesh make_pyramid(float base, float height);
+
+TriangleMesh make_prism(double width, double length, double height);
+
+sla::SupportPoints calc_support_pts(
+    const TriangleMesh &                      mesh,
+    const sla::SupportPointGenerator::Config &cfg = {});
 
 #endif // SLA_TEST_UTILS_HPP

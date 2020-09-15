@@ -10,6 +10,8 @@
 
 #include "semver/semver.h"
 
+#include "Exception.hpp"
+
 namespace Slic3r {
 
 
@@ -38,7 +40,7 @@ public:
 	{
 		auto parsed = parse(str);
 		if (! parsed) {
-			throw std::runtime_error(std::string("Could not parse version string: ") + str);
+			throw Slic3r::RuntimeError(std::string("Could not parse version string: ") + str);
 		}
 		ver = parsed->ver;
 		parsed->ver = semver_zero();

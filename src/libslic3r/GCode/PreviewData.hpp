@@ -1,6 +1,8 @@
 #ifndef slic3r_GCode_PreviewData_hpp_
 #define slic3r_GCode_PreviewData_hpp_
 
+#if !ENABLE_GCODE_VIEWER
+
 #include "../libslic3r.h"
 #include "../ExtrusionEntity.hpp"
 #include "../Point.hpp"
@@ -56,8 +58,7 @@ public:
     // Color mapping to convert a float into a smooth rainbow of 10 colors.
     class RangeBase
     {
-        public:
-
+    public:
         virtual void reset() = 0;
         virtual bool empty() const = 0;
         virtual float min() const = 0;
@@ -73,7 +74,7 @@ public:
     // Color mapping converting a float in a range between a min and a max into a smooth rainbow of 10 colors.
     class Range : public RangeBase
     {
-        public:
+    public:
         Range();
 
         // RangeBase Overrides
@@ -97,8 +98,7 @@ public:
     template <typename EnumRangeType>
     class MultiRange : public RangeBase
     {
-        public:
-
+    public:
         void reset() override
         {
             bounds = decltype(bounds){};
@@ -160,8 +160,7 @@ public:
             mode.set(static_cast<std::size_t>(range_type_value), enable);
         }
 
-        private:
-
+    private:
         // Interval bounds
         struct Bounds
         {
@@ -393,5 +392,7 @@ public:
 };
 
 } // namespace Slic3r
+
+#endif // !ENABLE_GCODE_VIEWER
 
 #endif /* slic3r_GCode_PreviewData_hpp_ */

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 24.3.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.0" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 128 128" enable-background="new 0 0 128 128" xml:space="preserve">
+<g id="paint_x5F_seams_2_">
+	
+		<polyline fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" points="
+		120,32 64,8 8,32 8,96 64,120 	"/>
+	<path fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="
+		M120,96"/>
+	
+		<polyline fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" points="
+		8,32 64,56 64,120 	"/>
+	
+		<line fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" x1="64" y1="56" x2="120" y2="32"/>
+	
+		<line fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" x1="64" y1="120" x2="120" y2="96"/>
+	
+		<line fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" x1="120" y1="96" x2="120" y2="32"/>
+	
+		<line fill="none" stroke="#ED6B21" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" x1="88.05" y1="53.69" x2="95.96" y2="50.3"/>
+	
+		<line fill="none" stroke="#ED6B21" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" x1="95.96" y1="58.3" x2="103.99" y2="54.86"/>
+	
+		<line fill="none" stroke="#ED6B21" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" x1="88.05" y1="69.69" x2="95.96" y2="66.3"/>
+	
+		<line fill="none" stroke="#ED6B21" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" x1="80.05" y1="81.12" x2="88.05" y2="77.69"/>
+	
+		<line fill="none" stroke="#ED6B21" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" x1="71.94" y1="92.6" x2="80.05" y2="89.12"/>
+	
+		<line fill="none" stroke="#ED6B21" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" x1="80.05" y1="97.12" x2="88.05" y2="93.69"/>
+	
+		<line fill="none" stroke="#ED6B21" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" x1="88.05" y1="101.69" x2="96.13" y2="98.23"/>
+</g>
+</svg>

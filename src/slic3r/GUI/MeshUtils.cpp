@@ -134,7 +134,7 @@ bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d&
     Vec3d direction;
     line_from_mouse_pos(mouse_pos, trafo, camera, point, direction);
 
-    std::vector<sla::EigenMesh3D::hit_result> hits = m_emesh.query_ray_hits(point, direction);
+    std::vector<sla::IndexedMesh::hit_result> hits = m_emesh.query_ray_hits(point, direction);
 
     if (hits.empty())
         return false; // no intersection found
@@ -184,7 +184,7 @@ std::vector<unsigned> MeshRaycaster::get_unobscured_idxs(const Geometry::Transfo
 
         bool is_obscured = false;
         // Cast a ray in the direction of the camera and look for intersection with the mesh:
-        std::vector<sla::EigenMesh3D::hit_result> hits;
+        std::vector<sla::IndexedMesh::hit_result> hits;
         // Offset the start of the ray by EPSILON to account for numerical inaccuracies.
         hits = m_emesh.query_ray_hits((inverse_trafo * pt + direction_to_camera_mesh * EPSILON).cast<double>(),
                                       direction_to_camera.cast<double>());

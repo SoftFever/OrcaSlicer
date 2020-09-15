@@ -42,6 +42,8 @@ private:
 
 // Base for Model, ModelObject, ModelVolume, ModelInstance or ModelMaterial to provide a unique ID
 // to synchronize the front end (UI) with the back end (BackgroundSlicingProcess / Print / PrintObject).
+// Also base for Print, PrintObject, SLAPrint, SLAPrintObject to provide a unique ID for matching Model / ModelObject
+// with their corresponding Print / PrintObject objects by the notification center at the UI when processing back-end warnings.
 // Achtung! The s_last_id counter is not thread safe, so it is expected, that the ObjectBase derived instances
 // are only instantiated from the main thread.
 class ObjectBase

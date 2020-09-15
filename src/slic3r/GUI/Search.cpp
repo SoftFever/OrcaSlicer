@@ -9,10 +9,10 @@
 #include "wx/dataview.h"
 
 #include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/PresetBundle.hpp"
 #include "GUI_App.hpp"
 #include "Plater.hpp"
 #include "Tab.hpp"
-#include "PresetBundle.hpp"
 
 #define FTS_FUZZY_MATCH_IMPLEMENTATION
 #include "fts_fuzzy_match.h"
@@ -27,12 +27,6 @@ using GUI::from_u8;
 using GUI::into_u8;
 
 namespace Search {
-
-// Does our wxWidgets version support markup?
-// https://github.com/prusa3d/PrusaSlicer/issues/4282#issuecomment-634676371
-#if wxUSE_MARKUP && wxCHECK_VERSION(3, 1, 1)
-    #define SEARCH_SUPPORTS_MARKUP
-#endif
 
 static char marker_by_type(Preset::Type type, PrinterTechnology pt)
 {
@@ -264,7 +258,7 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
 	        std::string label_u8 = into_u8(label);
 	        std::string label_plain = label_u8;
 
-#ifdef SEARCH_SUPPORTS_MARKUP
+#ifdef SUPPORTS_MARKUP
             boost::replace_all(label_plain, std::string(1, char(ImGui::ColorMarkerStart)), "<b>");
             boost::replace_all(label_plain, std::string(1, char(ImGui::ColorMarkerEnd)),   "</b>");
 #else
@@ -325,6 +319,14 @@ const Option& OptionsSearcher::get_option(size_t pos_in_filter) const
 {
     assert(pos_in_filter != size_t(-1) && found[pos_in_filter].option_idx != size_t(-1));
     return options[found[pos_in_filter].option_idx];
+}
+
+const Option& OptionsSearcher::get_option(const std::string& opt_key) const
+{
+    auto it = std::lower_bound(options.begin(), options.end(), Option({ boost::nowide::widen(opt_key) }));
+    assert(it != options.end());
+
+    return options[it - options.begin()];
 }
 
 void OptionsSearcher::add_key(const std::string& opt_key, const wxString& group, const wxString& category)
@@ -442,7 +444,7 @@ SearchDialog::SearchDialog(OptionsSearcher* searcher)
 
     wxDataViewTextRenderer* const markupRenderer = new wxDataViewTextRenderer();
 
-#ifdef SEARCH_SUPPORTS_MARKUP
+#ifdef SUPPORTS_MARKUP
     markupRenderer->EnableMarkup();
 #endif
 

@@ -156,7 +156,7 @@ Http::priv::priv(const std::string &url)
     Http::tls_global_init();
     
 	if (curl == nullptr) {
-		throw std::runtime_error(std::string("Could not construct Curl object"));
+		throw Slic3r::RuntimeError(std::string("Could not construct Curl object"));
 	}
 
 	set_timeout_connect(DEFAULT_TIMEOUT_CONNECT);
@@ -411,6 +411,16 @@ Http& Http::remove_header(std::string name)
 		name.push_back(':');
 		p->headerlist = curl_slist_append(p->headerlist, name.c_str());
 	}
+
+	return *this;
+}
+
+// Authorization by HTTP digest, based on RFC2617.
+Http& Http::auth_digest(const std::string &user, const std::string &password)
+{
+	curl_easy_setopt(p->curl, CURLOPT_USERNAME, user.c_str());
+	curl_easy_setopt(p->curl, CURLOPT_PASSWORD, password.c_str());
+	curl_easy_setopt(p->curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
 
 	return *this;
 }

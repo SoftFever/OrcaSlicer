@@ -18,6 +18,9 @@ public:
 	AppConfig() :
 		m_dirty(false),
 		m_orig_version(Semver::invalid()),
+#if ENABLE_GCODE_VIEWER
+		m_save_enabled(true),
+#endif // ENABLE_GCODE_VIEWER
 		m_legacy_datadir(false)
 	{
 		this->reset();
@@ -29,7 +32,8 @@ public:
 	void 			   	set_defaults();
 
 	// Load the slic3r.ini from a user profile directory (or a datadir, if configured).
-	void 			   	load();
+	// return error string or empty strinf
+	std::string		   	load();
 	// Store the slic3r.ini into a user profile directory (or a datadir, if configured).
 	void 			   	save();
 
@@ -156,6 +160,10 @@ public:
 	bool get_mouse_device_swap_yz(const std::string& name, bool& swap) const
 		{ return get_3dmouse_device_numeric_value(name, "swap_yz", swap); }
 
+#if ENABLE_GCODE_VIEWER
+	void enable_save(bool enable) { m_save_enabled = enable; }
+#endif // ENABLE_GCODE_VIEWER
+
 	static const std::string SECTION_FILAMENTS;
     static const std::string SECTION_MATERIALS;
 
@@ -182,6 +190,10 @@ private:
 	bool														m_dirty;
 	// Original version found in the ini file before it was overwritten
 	Semver                                                      m_orig_version;
+#if ENABLE_GCODE_VIEWER
+	// Whether or not calls to save() should take effect
+	bool                                                        m_save_enabled;
+#endif // ENABLE_GCODE_VIEWER
 	// Whether the existing version is before system profiles & configuration updating
 	bool                                                        m_legacy_datadir;
 };

@@ -1,7 +1,9 @@
 #ifndef SLA_BOOSTADAPTER_HPP
 #define SLA_BOOSTADAPTER_HPP
 
-#include <libslic3r/SLA/Common.hpp>
+#include <libslic3r/Point.hpp>
+#include <libslic3r/BoundingBox.hpp>
+
 #include <boost/geometry.hpp>
 
 namespace boost {

@@ -14,8 +14,8 @@
 #include <wx/dialog.h>
 
 #include "GUI_Utils.hpp"
-#include "Preset.hpp"
 #include "wxExtensions.hpp"
+#include "libslic3r/Preset.hpp"
 
 
 namespace Slic3r {
@@ -37,8 +37,8 @@ struct GroupAndCategory {
 };
 
 struct Option {
-    bool operator<(const Option& other) const { return other.label > this->label; }
-    bool operator>(const Option& other) const { return other.label < this->label; }
+//    bool operator<(const Option& other) const { return other.label > this->label; }
+    bool operator<(const Option& other) const { return other.opt_key > this->opt_key; }
 
     // Fuzzy matching works at a character level. Thus matching with wide characters is a safer bet than with short characters,
     // though for some languages (Chinese?) it may not work correctly.
@@ -116,12 +116,18 @@ public:
 
     const FoundOption& operator[](const size_t pos) const noexcept { return found[pos]; }
     const Option& get_option(size_t pos_in_filter) const;
+    const Option& get_option(const std::string& opt_key) const;
 
     const std::vector<FoundOption>& found_options() { return found; }
     const GroupAndCategory&         get_group_and_category (const std::string& opt_key) { return groups_and_categories[opt_key]; }
     std::string& search_string() { return search_line; }
 
     void set_printer_technology(PrinterTechnology pt) { printer_technology = pt; }
+
+    void sort_options_by_opt_key() {
+        std::sort(options.begin(), options.end(), [](const Option& o1, const Option& o2) {
+            return o1.opt_key < o2.opt_key; });
+    }
 };
 
 

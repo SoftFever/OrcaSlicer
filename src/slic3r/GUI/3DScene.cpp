@@ -7,23 +7,28 @@
 #endif // ENABLE_SMOOTH_NORMALS
 
 #include "3DScene.hpp"
-#if ENABLE_ENVIRONMENT_MAP
+#include "GLShader.hpp"
 #include "GUI_App.hpp"
+#if ENABLE_ENVIRONMENT_MAP
 #include "Plater.hpp"
-#include "AppConfig.hpp"
 #endif // ENABLE_ENVIRONMENT_MAP
 
 #include "libslic3r/ExtrusionEntity.hpp"
 #include "libslic3r/ExtrusionEntityCollection.hpp"
 #include "libslic3r/Geometry.hpp"
+#if !ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/PreviewData.hpp"
+#endif // !ENABLE_GCODE_VIEWER
 #include "libslic3r/Print.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/Slicing.hpp"
+#if !ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/Analyzer.hpp"
+#endif // !ENABLE_GCODE_VIEWER
 #include "slic3r/GUI/BitmapCache.hpp"
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/AppConfig.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -442,7 +447,6 @@ BoundingBoxf3 GLVolume::transformed_convex_hull_bounding_box(const Transform3d &
         bounding_box().transformed(trafo);
 }
 
-
 void GLVolume::set_range(double min_z, double max_z)
 {
     this->qverts_range.first = 0;
@@ -747,6 +751,10 @@ GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCo
 
 void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func) const
 {
+    GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
+    if (shader == nullptr)
+        return;
+
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
@@ -757,80 +765,32 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
     glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
     glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
  
-    GLint current_program_id;
-    glsafe(::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id));
-    GLint color_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "uniform_color") : -1;
-    GLint z_range_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "z_range") : -1;
-    GLint clipping_plane_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "clipping_plane") : -1;
-
-    GLint print_box_min_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.min") : -1;
-    GLint print_box_max_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.max") : -1;
-    GLint print_box_active_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.actived") : -1;
-    GLint print_box_worldmatrix_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.volume_world_matrix") : -1;
-
+    shader->set_uniform("print_box.min", m_print_box_min, 3);
+    shader->set_uniform("print_box.max", m_print_box_max, 3);
+    shader->set_uniform("z_range", m_z_range, 2);
+    shader->set_uniform("clipping_plane", m_clipping_plane, 4);
 #if ENABLE_SLOPE_RENDERING
-    GLint slope_active_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "slope.actived") : -1;
-    GLint slope_normal_matrix_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "slope.volume_world_normal_matrix") : -1;
-    GLint slope_z_range_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "slope.z_range") : -1;
-#endif // ENABLE_SLOPE_RENDERING
-
-#if ENABLE_ENVIRONMENT_MAP
-    GLint use_environment_tex_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "use_environment_tex") : -1;
-#endif // ENABLE_ENVIRONMENT_MAP
-    glcheck();
-
-    if (print_box_min_id != -1)
-        glsafe(::glUniform3fv(print_box_min_id, 1, (const GLfloat*)m_print_box_min));
-
-    if (print_box_max_id != -1)
-        glsafe(::glUniform3fv(print_box_max_id, 1, (const GLfloat*)m_print_box_max));
-
-    if (z_range_id != -1)
-        glsafe(::glUniform2fv(z_range_id, 1, (const GLfloat*)m_z_range));
-
-    if (clipping_plane_id != -1)
-        glsafe(::glUniform4fv(clipping_plane_id, 1, (const GLfloat*)m_clipping_plane));
-
-#if ENABLE_SLOPE_RENDERING
-    if (slope_z_range_id != -1)
-        glsafe(::glUniform2fv(slope_z_range_id, 1, (const GLfloat*)m_slope.z_range.data()));
+    shader->set_uniform("slope.z_range", m_slope.z_range);
 #endif // ENABLE_SLOPE_RENDERING
 
 #if ENABLE_ENVIRONMENT_MAP
     unsigned int environment_texture_id = GUI::wxGetApp().plater()->get_environment_texture_id();
-    bool use_environment_texture = current_program_id > 0 && environment_texture_id > 0 && GUI::wxGetApp().app_config->get("use_environment_map") == "1";
-
-    if (use_environment_tex_id != -1)
-    {
-        glsafe(::glUniform1i(use_environment_tex_id, use_environment_texture ? 1 : 0));
-        if (use_environment_texture)
-            glsafe(::glBindTexture(GL_TEXTURE_2D, environment_texture_id));
-    }
+    bool use_environment_texture = environment_texture_id > 0 && GUI::wxGetApp().app_config->get("use_environment_map") == "1";
+    shader->set_uniform("use_environment_tex", use_environment_texture);
+    if (use_environment_texture)
+        glsafe(::glBindTexture(GL_TEXTURE_2D, environment_texture_id));
 #endif // ENABLE_ENVIRONMENT_MAP
+    glcheck();
 
     GLVolumeWithIdAndZList to_render = volumes_to_render(this->volumes, type, view_matrix, filter_func);
     for (GLVolumeWithIdAndZ& volume : to_render) {
         volume.first->set_render_color();
 #if ENABLE_SLOPE_RENDERING
-        if (color_id >= 0)
-            glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)volume.first->render_color));
-        else
-            glsafe(::glColor4fv(volume.first->render_color));
-
-        if (print_box_active_id != -1)
-            glsafe(::glUniform1i(print_box_active_id, volume.first->shader_outside_printer_detection_enabled ? 1 : 0));
-
-        if (print_box_worldmatrix_id != -1)
-            glsafe(::glUniformMatrix4fv(print_box_worldmatrix_id, 1, GL_FALSE, (const GLfloat*)volume.first->world_matrix().cast<float>().data()));
-
-        if (slope_active_id != -1)
-            glsafe(::glUniform1i(slope_active_id, m_slope.active && !volume.first->is_modifier && !volume.first->is_wipe_tower ? 1 : 0));
-
-        if (slope_normal_matrix_id != -1)
-        {
-            Matrix3f normal_matrix = volume.first->world_matrix().matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>();
-            glsafe(::glUniformMatrix3fv(slope_normal_matrix_id, 1, GL_FALSE, (const GLfloat*)normal_matrix.data()));
-        }
+        shader->set_uniform("uniform_color", volume.first->render_color, 4);
+        shader->set_uniform("print_box.actived", volume.first->shader_outside_printer_detection_enabled);
+        shader->set_uniform("print_box.volume_world_matrix", volume.first->world_matrix());
+        shader->set_uniform("slope.actived", m_slope.active && !volume.first->is_modifier && !volume.first->is_wipe_tower);
+        shader->set_uniform("slope.volume_world_normal_matrix", static_cast<Matrix3f>(volume.first->world_matrix().matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>()));
 
         volume.first->render();
 #else
@@ -839,7 +799,7 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
     }
 
 #if ENABLE_ENVIRONMENT_MAP
-    if (use_environment_tex_id != -1 && use_environment_texture)
+    if (use_environment_texture)
         glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 #endif // ENABLE_ENVIRONMENT_MAP
 
@@ -1057,6 +1017,7 @@ bool GLVolumeCollection::has_toolpaths_to_export() const
     return false;
 }
 
+#if !ENABLE_GCODE_VIEWER
 void GLVolumeCollection::export_toolpaths_to_obj(const char* filename) const
 {
     if (filename == nullptr)
@@ -1338,6 +1299,7 @@ void GLVolumeCollection::export_toolpaths_to_obj(const char* filename) const
 
     fclose(fp);
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 // caller is responsible for supplying NO lines with zero length
 static void thick_lines_to_indexed_vertex_array(
@@ -1964,7 +1926,7 @@ void _3DScene::extrusionentity_to_verts(const ExtrusionEntity *extrusion_entity,
                     if (extrusion_entity_collection != nullptr)
                         extrusionentity_to_verts(*extrusion_entity_collection, print_z, copy, volume);
                     else {
-                        throw std::runtime_error("Unexpected extrusion_entity type in to_verts()");
+                        throw Slic3r::RuntimeError("Unexpected extrusion_entity type in to_verts()");
                     }
                 }
             }
@@ -1985,6 +1947,7 @@ void _3DScene::point3_to_verts(const Vec3crd& point, double width, double height
     thick_point_to_verts(point, width, height, volume);
 }
 
+#if !ENABLE_GCODE_VIEWER
 GLModel::GLModel()
     : m_filename("")
 {
@@ -2040,6 +2003,10 @@ void GLModel::reset()
 
 void GLModel::render() const
 {
+    GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
+    if (shader == nullptr)
+        return;
+
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
@@ -2047,17 +2014,8 @@ void GLModel::render() const
     glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
     glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
 
-    GLint current_program_id;
-    glsafe(::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id));
-    GLint color_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "uniform_color") : -1;
-    glcheck();
-
 #if ENABLE_SLOPE_RENDERING
-    if (color_id >= 0)
-        glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)m_volume.render_color));
-    else
-        glsafe(::glColor4fv(m_volume.render_color));
-
+    shader->set_uniform("uniform_color", m_volume.render_color, 4);
     m_volume.render();
 #else
     m_volume.render(color_id, -1, -1);
@@ -2274,5 +2232,6 @@ bool GLBed::on_init_from_file(const std::string& filename)
 
     return true;
 }
+#endif // !ENABLE_GCODE_VIEWER
 
 } // namespace Slic3r

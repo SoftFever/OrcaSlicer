@@ -33,9 +33,13 @@ enum PrintHostType {
     htOctoPrint, htDuet, htFlashAir, htAstroBox
 };
 
+enum AuthorizationType {
+    atKeyPassword, atUserPassword
+};
+
 enum InfillPattern : int {
     ipRectilinear, ipMonotonous, ipGrid, ipTriangles, ipStars, ipCubic, ipLine, ipConcentric, ipHoneycomb, ip3DHoneycomb,
-    ipGyroid, ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipCount,
+    ipGyroid, ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipAdaptiveCubic, ipSupportCubic, ipCount,
 };
 
 enum class IroningType {
@@ -110,6 +114,15 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<PrintHostType>::g
     return keys_map;
 }
 
+template<> inline const t_config_enum_values& ConfigOptionEnum<AuthorizationType>::get_enum_values() {
+    static t_config_enum_values keys_map;
+    if (keys_map.empty()) {
+        keys_map["key"]             = atKeyPassword;
+        keys_map["user"]            = atUserPassword;
+    }
+    return keys_map;
+}
+
 template<> inline const t_config_enum_values& ConfigOptionEnum<InfillPattern>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
@@ -127,6 +140,8 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<InfillPattern>::g
         keys_map["hilbertcurve"]        = ipHilbertCurve;
         keys_map["archimedeanchords"]   = ipArchimedeanChords;
         keys_map["octagramspiral"]      = ipOctagramSpiral;
+        keys_map["adaptivecubic"]       = ipAdaptiveCubic;
+        keys_map["supportcubic"]        = ipSupportCubic;
     }
     return keys_map;
 }
@@ -227,8 +242,12 @@ class DynamicPrintConfig : public DynamicConfig
 public:
     DynamicPrintConfig() {}
     DynamicPrintConfig(const DynamicPrintConfig &rhs) : DynamicConfig(rhs) {}
+    DynamicPrintConfig(DynamicPrintConfig &&rhs) noexcept : DynamicConfig(std::move(rhs)) {}
     explicit DynamicPrintConfig(const StaticPrintConfig &rhs);
     explicit DynamicPrintConfig(const ConfigBase &rhs) : DynamicConfig(rhs) {}
+
+    DynamicPrintConfig& operator=(const DynamicPrintConfig &rhs) { DynamicConfig::operator=(rhs); return *this; }
+    DynamicPrintConfig& operator=(DynamicPrintConfig &&rhs) noexcept { DynamicConfig::operator=(std::move(rhs)); return *this; }
 
     static DynamicPrintConfig  full_print_config();
     static DynamicPrintConfig* new_from_defaults_keys(const std::vector<std::string> &keys);
@@ -1019,6 +1038,10 @@ public:
 
     // Radius in mm of the support pillars.
     ConfigOptionFloat support_pillar_diameter /*= 0.8*/;
+
+    // The percentage of smaller pillars compared to the normal pillar diameter
+    // which are used in problematic areas where a normal pilla cannot fit.
+    ConfigOptionPercent support_small_pillar_diameter_percent;
     
     // How much bridge (supporting another pinhead) can be placed on a pillar.
     ConfigOptionInt   support_max_bridges_on_pillar;
@@ -1143,6 +1166,7 @@ protected:
         OPT_PTR(support_head_penetration);
         OPT_PTR(support_head_width);
         OPT_PTR(support_pillar_diameter);
+        OPT_PTR(support_small_pillar_diameter_percent);
         OPT_PTR(support_max_bridges_on_pillar);
         OPT_PTR(support_pillar_connection_mode);
         OPT_PTR(support_buildplate_only);

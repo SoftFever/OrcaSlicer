@@ -3,7 +3,7 @@
 
 #include "OptionsGroup.hpp"
 #include "GUI_App.hpp"
-#include "PresetBundle.hpp"
+#include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Model.hpp"
 #include "GLCanvas3D.hpp"
 #include "Plater.hpp"

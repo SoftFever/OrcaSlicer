@@ -3,12 +3,19 @@
 
 #include "GLTexture.hpp"
 #include "3DScene.hpp"
-#include "GLShader.hpp"
+#if ENABLE_GCODE_VIEWER
+#include "GLModel.hpp"
+#endif // ENABLE_GCODE_VIEWER
 
 #include <tuple>
+#if ENABLE_GCODE_VIEWER
+#include <array>
+#endif // ENABLE_GCODE_VIEWER
 
+#if !ENABLE_GCODE_VIEWER
 class GLUquadric;
 typedef class GLUquadric GLUquadricObj;
+#endif // !ENABLE_GCODE_VIEWER
 
 namespace Slic3r {
 namespace GUI {
@@ -45,22 +52,53 @@ public:
 
 class Bed3D
 {
+#if ENABLE_GCODE_VIEWER
+    class Axes
+    {
+    public:
+        static const float DefaultStemRadius;
+        static const float DefaultStemLength;
+        static const float DefaultTipRadius;
+        static const float DefaultTipLength;
+
+    private:
+#else
     struct Axes
     {
         static const double Radius;
         static const double ArrowBaseRadius;
         static const double ArrowLength;
+#endif // ENABLE_GCODE_VIEWER
+
+#if ENABLE_GCODE_VIEWER
+        Vec3d m_origin{ Vec3d::Zero() };
+        float m_stem_length{ DefaultStemLength };
+        mutable GLModel m_arrow;
+
+    public:
+#else
         Vec3d origin;
         Vec3d length;
         GLUquadricObj* m_quadric;
+#endif // ENABLE_GCODE_VIEWER
 
+#if !ENABLE_GCODE_VIEWER
         Axes();
         ~Axes();
+#endif // !ENABLE_GCODE_VIEWER
 
+#if ENABLE_GCODE_VIEWER
+        const Vec3d& get_origin() const { return m_origin; }
+        void set_origin(const Vec3d& origin) { m_origin = origin; }
+        void set_stem_length(float length);
+        float get_total_length() const { return m_stem_length + DefaultTipLength; }
+#endif // ENABLE_GCODE_VIEWER
         void render() const;
 
+#if !ENABLE_GCODE_VIEWER
     private:
         void render_axis(double length) const;
+#endif // !ENABLE_GCODE_VIEWER
     };
 
 public:
@@ -82,10 +120,15 @@ private:
     GeometryBuffer m_triangles;
     GeometryBuffer m_gridlines;
     mutable GLTexture m_texture;
+#if ENABLE_GCODE_VIEWER
+    mutable GLModel m_model;
+    mutable Vec3d m_model_offset{ Vec3d::Zero() };
+    std::array<float, 4> m_model_color{ 0.235f, 0.235f, 0.235f, 1.0f };
+#else
     mutable GLBed m_model;
+#endif // ENABLE_GCODE_VIEWER
     // temporary texture shown until the main texture has still no levels compressed
     mutable GLTexture m_temp_texture;
-    mutable Shader m_shader;
     mutable unsigned int m_vbo_id;
     Axes m_axes;
 
@@ -101,7 +144,7 @@ public:
 
     const Pointfs& get_shape() const { return m_shape; }
     // Return true if the bed shape changed, so the calee will update the UI.
-    bool set_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model);
+    bool set_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false);
 
     const BoundingBoxf3& get_bounding_box(bool extended) const {
         return extended ? m_extended_bounding_box : m_bounding_box;

@@ -13,7 +13,7 @@ class SL1Archive: public SLAPrinter {
     
 protected:
     uqptr<sla::RasterBase> create_raster() const override;
-    sla::EncodedRaster encode_raster(const sla::RasterBase &rst) const override;
+    sla::RasterEncoder get_encoder() const override;
     
 public:
     
@@ -38,6 +38,24 @@ public:
     }
 };
     
+void import_sla_archive(const std::string &zipfname, DynamicPrintConfig &out);
+
+void import_sla_archive(
+    const std::string &      zipfname,
+    Vec2i                    windowsize,
+    TriangleMesh &           out,
+    DynamicPrintConfig &     profile,
+    std::function<bool(int)> progr = [](int) { return true; });
+
+inline void import_sla_archive(
+    const std::string &      zipfname,
+    Vec2i                    windowsize,
+    TriangleMesh &           out,
+    std::function<bool(int)> progr = [](int) { return true; })
+{
+    DynamicPrintConfig profile;
+    import_sla_archive(zipfname, windowsize, out, profile, progr);
+}
 
 } // namespace Slic3r::sla
 

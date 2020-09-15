@@ -2,8 +2,9 @@
 #define slic3r_GUI_ObjectDataViewModel_hpp_
 
 #include <wx/dataview.h>
-
 #include <vector>
+
+#include "ExtraRenderers.hpp"
 
 namespace Slic3r {
 
@@ -13,143 +14,6 @@ namespace GUI {
 
 typedef double                          coordf_t;
 typedef std::pair<coordf_t, coordf_t>   t_layer_height_range;
-
-// ----------------------------------------------------------------------------
-// DataViewBitmapText: helper class used by BitmapTextRenderer
-// ----------------------------------------------------------------------------
-
-class DataViewBitmapText : public wxObject
-{
-public:
-    DataViewBitmapText( const wxString &text = wxEmptyString,
-                        const wxBitmap& bmp = wxNullBitmap) :
-        m_text(text),
-        m_bmp(bmp)
-    { }
-
-    DataViewBitmapText(const DataViewBitmapText &other)
-        : wxObject(),
-        m_text(other.m_text),
-        m_bmp(other.m_bmp)
-    { }
-
-    void SetText(const wxString &text)      { m_text = text; }
-    wxString GetText() const                { return m_text; }
-    void SetBitmap(const wxBitmap &bmp)     { m_bmp = bmp; }
-    const wxBitmap &GetBitmap() const       { return m_bmp; }
-
-    bool IsSameAs(const DataViewBitmapText& other) const {
-        return m_text == other.m_text && m_bmp.IsSameAs(other.m_bmp);
-    }
-
-    bool operator==(const DataViewBitmapText& other) const {
-        return IsSameAs(other);
-    }
-
-    bool operator!=(const DataViewBitmapText& other) const {
-        return !IsSameAs(other);
-    }
-
-private:
-    wxString    m_text;
-    wxBitmap    m_bmp;
-
-    wxDECLARE_DYNAMIC_CLASS(DataViewBitmapText);
-};
-DECLARE_VARIANT_OBJECT(DataViewBitmapText)
-
-// ----------------------------------------------------------------------------
-// BitmapTextRenderer
-// ----------------------------------------------------------------------------
-#if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
-class BitmapTextRenderer : public wxDataViewRenderer
-#else
-class BitmapTextRenderer : public wxDataViewCustomRenderer
-#endif //ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
-{
-public:
-    BitmapTextRenderer(wxWindow* parent,
-        wxDataViewCellMode mode =
-#ifdef __WXOSX__
-        wxDATAVIEW_CELL_INERT
-#else
-        wxDATAVIEW_CELL_EDITABLE
-#endif
-
-        , int align = wxDVR_DEFAULT_ALIGNMENT
-#if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
-    );
-#else
-        ) :
-    wxDataViewCustomRenderer(wxT("DataViewBitmapText"), mode, align),
-        m_parent(parent)
-    {}
-#endif //ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
-
-    bool SetValue(const wxVariant& value);
-    bool GetValue(wxVariant& value) const;
-#if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING && wxUSE_ACCESSIBILITY
-    virtual wxString GetAccessibleDescription() const override;
-#endif // wxUSE_ACCESSIBILITY && ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
-
-    virtual bool Render(wxRect cell, wxDC* dc, int state) override;
-    virtual wxSize GetSize() const override;
-
-    bool        HasEditorCtrl() const override
-    {
-#ifdef __WXOSX__
-        return false;
-#else
-        return true;
-#endif
-    }
-    wxWindow* CreateEditorCtrl(wxWindow* parent,
-        wxRect labelRect,
-        const wxVariant& value) override;
-    bool        GetValueFromEditorCtrl(wxWindow* ctrl,
-        wxVariant& value) override;
-    bool        WasCanceled() const { return m_was_unusable_symbol; }
-
-private:
-    DataViewBitmapText  m_value;
-    bool                m_was_unusable_symbol{ false };
-    wxWindow* m_parent{ nullptr };
-};
-
-
-// ----------------------------------------------------------------------------
-// BitmapChoiceRenderer
-// ----------------------------------------------------------------------------
-
-class BitmapChoiceRenderer : public wxDataViewCustomRenderer
-{
-public:
-    BitmapChoiceRenderer(wxDataViewCellMode mode =
-#ifdef __WXOSX__
-        wxDATAVIEW_CELL_INERT
-#else
-        wxDATAVIEW_CELL_EDITABLE
-#endif
-        , int align = wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL
-    ) : wxDataViewCustomRenderer(wxT("DataViewBitmapText"), mode, align) {}
-
-    bool SetValue(const wxVariant& value);
-    bool GetValue(wxVariant& value) const;
-
-    virtual bool Render(wxRect cell, wxDC* dc, int state) override;
-    virtual wxSize GetSize() const override;
-
-    bool        HasEditorCtrl() const override { return true; }
-    wxWindow* CreateEditorCtrl(wxWindow* parent,
-        wxRect labelRect,
-        const wxVariant& value) override;
-    bool        GetValueFromEditorCtrl(wxWindow* ctrl,
-        wxVariant& value) override;
-
-private:
-    DataViewBitmapText  m_value;
-};
-
 
 // ----------------------------------------------------------------------------
 // ObjectDataViewModelNode: a node inside ObjectDataViewModel

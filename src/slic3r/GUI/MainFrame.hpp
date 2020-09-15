@@ -7,6 +7,9 @@
 #include <wx/settings.h>
 #include <wx/string.h>
 #include <wx/filehistory.h>
+#if ENABLE_GCODE_VIEWER_TASKBAR_ICON
+#include <wx/taskbar.h>
+#endif // ENABLE_GCODE_VIEWER_TASKBAR_ICON
 
 #include <string>
 #include <map>
@@ -54,12 +57,8 @@ class SettingsDialog : public DPIDialog
     MainFrame*  m_main_frame { nullptr };
 public:
     SettingsDialog(MainFrame* mainframe);
-    ~SettingsDialog() {}
-#if ENABLE_LAYOUT_NO_RESTART
+    ~SettingsDialog() = default;
     void set_tabpanel(wxNotebook* tabpanel) { m_tabpanel = tabpanel; }
-#else
-    wxNotebook* get_tabpanel() { return m_tabpanel; }
-#endif // ENABLE_LAYOUT_NO_RESTART
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
@@ -72,6 +71,10 @@ class MainFrame : public DPIFrame
     wxString    m_qs_last_input_file = wxEmptyString;
     wxString    m_qs_last_output_file = wxEmptyString;
     wxString    m_last_config = wxEmptyString;
+#if ENABLE_GCODE_VIEWER
+    wxMenuBar*  m_menubar{ nullptr };
+#endif // ENABLE_GCODE_VIEWER
+
 #if 0
     wxMenuItem* m_menu_item_repeat { nullptr }; // doesn't used now
 #endif
@@ -119,23 +122,18 @@ class MainFrame : public DPIFrame
 
     wxFileHistory m_recent_projects;
 
-#if ENABLE_LAYOUT_NO_RESTART
     enum class ESettingsLayout
     {
         Unknown,
         Old,
         New,
         Dlg,
+#if ENABLE_GCODE_VIEWER
+        GCodeViewer
+#endif // ENABLE_GCODE_VIEWER
     };
     
     ESettingsLayout m_layout{ ESettingsLayout::Unknown };
-#else
-    enum SettingsLayout {
-        slOld = 0,
-        slNew,
-        slDlg,
-    }               m_layout;
-#endif // ENABLE_LAYOUT_NO_RESTART
 
 protected:
     virtual void on_dpi_changed(const wxRect &suggested_rect);
@@ -143,11 +141,13 @@ protected:
 
 public:
     MainFrame();
+#if ENABLE_GCODE_VIEWER_TASKBAR_ICON
+    ~MainFrame();
+#else
     ~MainFrame() = default;
+#endif // ENABLE_GCODE_VIEWER_TASKBAR_ICON
 
-#if ENABLE_LAYOUT_NO_RESTART
     void update_layout();
-#endif // ENABLE_LAYOUT_NO_RESTART
 
 	// Called when closing the application and when switching the application language.
 	void 		shutdown();
@@ -159,7 +159,12 @@ public:
     void        init_tabpanel();
     void        create_preset_tabs();
     void        add_created_tab(Tab* panel);
+#if ENABLE_GCODE_VIEWER
+    void        init_menubar_as_editor();
+    void        init_menubar_as_gcodeviewer();
+#else
     void        init_menubar();
+#endif // ENABLE_GCODE_VIEWER
     void        update_menubar();
 
     void        update_ui_from_settings();
@@ -190,14 +195,14 @@ public:
 
     Plater*             m_plater { nullptr };
     wxNotebook*         m_tabpanel { nullptr };
-#if ENABLE_LAYOUT_NO_RESTART
     SettingsDialog      m_settings_dialog;
     wxWindow*           m_plater_page{ nullptr };
-#else
-    SettingsDialog*     m_settings_dialog { nullptr };
-#endif // ENABLE_LAYOUT_NO_RESTART
     wxProgressDialog*   m_progress_dialog { nullptr };
     std::shared_ptr<ProgressStatusBar>  m_statusbar;
+
+#if ENABLE_GCODE_VIEWER_TASKBAR_ICON
+    wxTaskBarIcon* m_taskbar_icon{ nullptr };
+#endif // ENABLE_GCODE_VIEWER_TASKBAR_ICON
 
 #ifdef _WIN32
     void*				m_hDeviceNotify { nullptr };

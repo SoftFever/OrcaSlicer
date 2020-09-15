@@ -35,13 +35,16 @@ bool is_zero_elevation(const SLAPrintObjectConfig &c)
 }
 
 // Compile the argument for support creation from the static print config.
-sla::SupportConfig make_support_cfg(const SLAPrintObjectConfig& c)
+sla::SupportTreeConfig make_support_cfg(const SLAPrintObjectConfig& c)
 {
-    sla::SupportConfig scfg;
+    sla::SupportTreeConfig scfg;
     
     scfg.enabled = c.supports_enable.getBool();
     scfg.head_front_radius_mm = 0.5*c.support_head_front_diameter.getFloat();
-    scfg.head_back_radius_mm = 0.5*c.support_pillar_diameter.getFloat();
+    double pillar_r = 0.5 * c.support_pillar_diameter.getFloat();
+    scfg.head_back_radius_mm = pillar_r;
+    scfg.head_fallback_radius_mm =
+        0.01 * c.support_small_pillar_diameter_percent.getFloat() * pillar_r;
     scfg.head_penetration_mm = c.support_head_penetration.getFloat();
     scfg.head_width_mm = c.support_head_width.getFloat();
     scfg.object_elevation_mm = is_zero_elevation(c) ?
@@ -616,7 +619,7 @@ std::string SLAPrint::validate() const
             return L("Cannot proceed without support points! "
                      "Add support points or disable support generation.");
 
-        sla::SupportConfig cfg = make_support_cfg(po->config());
+        sla::SupportTreeConfig cfg = make_support_cfg(po->config());
 
         double elv = cfg.object_elevation_mm;
         
@@ -925,6 +928,7 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
             || opt_key == "support_head_penetration"
             || opt_key == "support_head_width"
             || opt_key == "support_pillar_diameter"
+            || opt_key == "support_small_pillar_diameter_percent"
             || opt_key == "support_max_bridges_on_pillar"
             || opt_key == "support_pillar_connection_mode"
             || opt_key == "support_buildplate_only"
@@ -1177,6 +1181,12 @@ sla::DrainHoles SLAPrintObject::transformed_drainhole_points() const
         hl.normal = Vec3f(hl.normal(0)/(sc(0)*sc(0)),
                           hl.normal(1)/(sc(1)*sc(1)),
                           hl.normal(2)/(sc(2)*sc(2)));
+
+        // Now shift the hole a bit above the object and make it deeper to
+        // compensate for it. This is to avoid problems when the hole is placed
+        // on (nearly) flat surface.
+        hl.pos -= hl.normal.normalized() * sla::HoleStickOutLength;
+        hl.height += sla::HoleStickOutLength;
     }
 
     return pts;

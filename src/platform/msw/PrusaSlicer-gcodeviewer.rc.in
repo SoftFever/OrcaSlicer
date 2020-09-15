@@ -1,0 +1,25 @@
+1 VERSIONINFO
+FILEVERSION @SLIC3R_RC_VERSION@
+PRODUCTVERSION @SLIC3R_RC_VERSION@
+{
+ BLOCK "StringFileInfo"
+ {
+  BLOCK "040904E4"
+  {
+   VALUE "CompanyName", "Prusa Research"
+   VALUE "FileDescription", "@SLIC3R_APP_NAME@ G-code Viewer"
+   VALUE "FileVersion", "@SLIC3R_BUILD_ID@"
+   VALUE "ProductName", "@SLIC3R_APP_NAME@ G-code Viewer"
+   VALUE "ProductVersion", "@SLIC3R_BUILD_ID@"
+   VALUE "InternalName", "@SLIC3R_APP_NAME@ G-code Viewer"
+   VALUE "LegalCopyright", "Copyright \251 2016-2020 Prusa Research, \251 2011-2018 Alessandro Ranelucci"
+   VALUE "OriginalFilename", "prusa-gcodeviewer.exe"
+  }
+ }
+ BLOCK "VarFileInfo"
+ {
+   VALUE "Translation", 0x409, 1252
+ }
+}
+2 ICON "@SLIC3R_RESOURCES_DIR@/icons/PrusaSlicer-gcodeviewer.ico"
+1 24 "PrusaSlicer.manifest" 

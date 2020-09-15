@@ -84,6 +84,7 @@ public:
 
     double get_near_z() const { return m_frustrum_zs.first; }
     double get_far_z() const { return m_frustrum_zs.second; }
+    const std::pair<double, double>& get_z_range() const { return m_frustrum_zs; }
 
     double get_fov() const;
 

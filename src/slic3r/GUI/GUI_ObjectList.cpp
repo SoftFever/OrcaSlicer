@@ -1,4 +1,5 @@
 #include "libslic3r/libslic3r.h"
+#include "libslic3r/PresetBundle.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
 #include "GUI_ObjectLayers.hpp"
@@ -7,7 +8,6 @@
 #include "Plater.hpp"
 
 #include "OptionsGroup.hpp"
-#include "PresetBundle.hpp"
 #include "Tab.hpp"
 #include "wxExtensions.hpp"
 #include "libslic3r/Model.hpp"
@@ -88,12 +88,10 @@ ObjectList::ObjectList(wxWindow* parent) :
 {
     // Fill CATEGORY_ICON
     {
-        // Note: `this` isn't passed to create_scaled_bitmap() here because of bugs in the widget,
-        // see note in PresetBundle::load_compatible_bitmaps()
-
         // ptFFF
         CATEGORY_ICON[L("Layers and Perimeters")]    = create_scaled_bitmap("layers");
         CATEGORY_ICON[L("Infill")]                   = create_scaled_bitmap("infill");
+        CATEGORY_ICON[L("Ironing")]                  = create_scaled_bitmap("ironing");
         CATEGORY_ICON[L("Support material")]         = create_scaled_bitmap("support");
         CATEGORY_ICON[L("Speed")]                    = create_scaled_bitmap("time");
         CATEGORY_ICON[L("Extruders")]                = create_scaled_bitmap("funnel");
@@ -279,7 +277,11 @@ void ObjectList::create_objects_ctrl()
 
     // column ItemName(Icon+Text) of the view control: 
     // And Icon can be consisting of several bitmaps
-    AppendColumn(new wxDataViewColumn(_(L("Name")), new BitmapTextRenderer(this),
+    BitmapTextRenderer* bmp_text_renderer = new BitmapTextRenderer();
+    bmp_text_renderer->set_can_create_editor_ctrl_function([this]() {
+        return m_objects_model->GetItemType(GetSelection()) & (itVolume | itObject);
+    });
+    AppendColumn(new wxDataViewColumn(_L("Name"), bmp_text_renderer,
         colName, 20*em, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
 
     // column PrintableProperty (Icon) of the view control:
@@ -287,11 +289,15 @@ void ObjectList::create_objects_ctrl()
         wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 
     // column Extruder of the view control:
-    AppendColumn(new wxDataViewColumn(_(L("Extruder")), new BitmapChoiceRenderer(),
+    BitmapChoiceRenderer* bmp_choice_renderer = new BitmapChoiceRenderer();
+    bmp_choice_renderer->set_can_create_editor_ctrl_function([this]() {
+        return m_objects_model->GetItemType(GetSelection()) & (itVolume | itLayer | itObject);
+    });
+    AppendColumn(new wxDataViewColumn(_L("Extruder"), bmp_choice_renderer,
         colExtruder, 8*em, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE));
 
     // column ItemEditing of the view control:
-    AppendBitmapColumn(_(L("Editing")), colEditing, wxDATAVIEW_CELL_INERT, 3*em,
+    AppendBitmapColumn(_L("Editing"), colEditing, wxDATAVIEW_CELL_INERT, 3*em,
         wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 
     // For some reason under OSX on 4K(5K) monitors in wxDataViewColumn constructor doesn't set width of column.
@@ -350,7 +356,7 @@ void ObjectList::get_selection_indexes(std::vector<int>& obj_idxs, std::vector<i
     else {
         for (wxDataViewItem item : sels) {
             const ItemType type = m_objects_model->GetItemType(item);
-            assert(type & itObject | itInstance | itInstanceRoot);
+            assert(type & (itObject | itInstance | itInstanceRoot));
 
             obj_idxs.emplace_back(type & itObject ? m_objects_model->GetIdByItem(item) :
                                   m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item)));
@@ -644,6 +650,7 @@ void ObjectList::msw_rescale_icons()
         // ptFFF
         CATEGORY_ICON[L("Layers and Perimeters")]    = create_scaled_bitmap("layers");
         CATEGORY_ICON[L("Infill")]                   = create_scaled_bitmap("infill");
+        CATEGORY_ICON[L("Ironing")]                  = create_scaled_bitmap("ironing");
         CATEGORY_ICON[L("Support material")]         = create_scaled_bitmap("support");
         CATEGORY_ICON[L("Speed")]                    = create_scaled_bitmap("time");
         CATEGORY_ICON[L("Extruders")]                = create_scaled_bitmap("funnel");
@@ -2210,7 +2217,7 @@ void ObjectList::load_shape_object(const std::string& type_name)
     load_mesh_object(mesh, _(L("Shape")) + "-" + _(type_name));
 }
 
-void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name)
+void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center)
 {   
     // Add mesh to model as a new object
     Model& model = wxGetApp().plater()->model();
@@ -2220,6 +2227,7 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
 #endif /* _DEBUG */
     
     std::vector<size_t> object_idxs;
+    auto bb = mesh.bounding_box();
     ModelObject* new_object = model.add_object();
     new_object->name = into_u8(name);
     new_object->add_instance(); // each object should have at list one instance
@@ -2229,13 +2237,17 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
     // set a default extruder value, since user can't add it manually
     new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
     new_object->invalidate_bounding_box();
-    
-    new_object->center_around_origin();
+    new_object->translate(-bb.center());
+
+    if (center) {
+        const BoundingBoxf bed_shape = wxGetApp().plater()->bed_shape_bb();
+        new_object->instances[0]->set_offset(Slic3r::to_3d(bed_shape.center().cast<double>(), -new_object->origin_translation(2)));
+    } else {
+        new_object->instances[0]->set_offset(bb.center());
+    }
+
     new_object->ensure_on_bed();
-    
-    const BoundingBoxf bed_shape = wxGetApp().plater()->bed_shape_bb();
-    new_object->instances[0]->set_offset(Slic3r::to_3d(bed_shape.center().cast<double>(), -new_object->origin_translation(2)));
-    
+
     object_idxs.push_back(model.objects.size() - 1);
 #ifdef _DEBUG
     check_model_ids_validity(model);
@@ -2362,8 +2374,9 @@ void ObjectList::del_layers_from_object(const int obj_idx)
 
 bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, const int type)
 {
-	if (obj_idx == 1000)
-		// Cannot delete a wipe tower.
+    assert(idx >= 0);
+	if (obj_idx == 1000 || idx<0)
+		// Cannot delete a wipe tower or volume with negative id
 		return false;
 
     ModelObject* object = (*m_objects)[obj_idx];

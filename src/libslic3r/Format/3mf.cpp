@@ -1,9 +1,11 @@
 #include "../libslic3r.h"
+#include "../Exception.hpp"
 #include "../Model.hpp"
 #include "../Utils.hpp"
 #include "../GCode.hpp"
 #include "../Geometry.hpp"
 #include "../GCode/ThumbnailData.hpp"
+#include "../Time.hpp"
 
 #include "../I18N.hpp"
 
@@ -85,6 +87,8 @@ const char* OBJECTID_ATTR = "objectid";
 const char* TRANSFORM_ATTR = "transform";
 const char* PRINTABLE_ATTR = "printable";
 const char* INSTANCESCOUNT_ATTR = "instances_count";
+const char* CUSTOM_SUPPORTS_ATTR = "slic3rpe:custom_supports";
+const char* CUSTOM_SEAM_ATTR = "slic3rpe:custom_seam";
 
 const char* KEY_ATTR = "key";
 const char* VALUE_ATTR = "value";
@@ -120,11 +124,11 @@ const char* INVALID_OBJECT_TYPES[] =
     "other"
 };
 
-class version_error : public std::runtime_error
+class version_error : public Slic3r::FileIOError
 {
 public:
-    version_error(const std::string& what_arg) : std::runtime_error(what_arg) {}
-    version_error(const char* what_arg) : std::runtime_error(what_arg) {}
+    version_error(const std::string& what_arg) : Slic3r::FileIOError(what_arg) {}
+    version_error(const char* what_arg) : Slic3r::FileIOError(what_arg) {}
 };
 
 const char* get_attribute_value_charptr(const char** attributes, unsigned int attributes_size, const char* attribute_key)
@@ -282,6 +286,8 @@ namespace Slic3r {
         {
             std::vector<float> vertices;
             std::vector<unsigned int> triangles;
+            std::vector<std::string> custom_supports;
+            std::vector<std::string> custom_seam;
 
             bool empty()
             {
@@ -292,6 +298,8 @@ namespace Slic3r {
             {
                 vertices.clear();
                 triangles.clear();
+                custom_supports.clear();
+                custom_seam.clear();
             }
         };
 
@@ -600,7 +608,7 @@ namespace Slic3r {
                     {
                         // ensure the zip archive is closed and rethrow the exception
                         close_zip_reader(&archive);
-                        throw std::runtime_error(e.what());
+                        throw Slic3r::FileIOError(e.what());
                     }
                 }
             }
@@ -773,7 +781,7 @@ namespace Slic3r {
                 {
                     char error_buf[1024];
                     ::sprintf(error_buf, "Error (%s) while parsing '%s' at line %d", XML_ErrorString(XML_GetErrorCode(data->parser)), data->stat.m_filename, (int)XML_GetCurrentLineNumber(data->parser));
-                    throw std::runtime_error(error_buf);
+                    throw Slic3r::FileIOError(error_buf);
                 }
 
                 return n;
@@ -782,7 +790,7 @@ namespace Slic3r {
         catch (const version_error& e)
         {
             // rethrow the exception
-            throw std::runtime_error(e.what());
+            throw Slic3r::FileIOError(e.what());
         }
         catch (std::exception& e)
         {
@@ -1109,6 +1117,15 @@ namespace Slic3r {
                                                       float(std::atof(object_data_points[i+5].c_str()))},
                                                       float(std::atof(object_data_points[i+6].c_str())),
                                                       float(std::atof(object_data_points[i+7].c_str())));
+                }
+
+                // The holes are saved elevated above the mesh and deeper (bad idea indeed).
+                // This is retained for compatibility.
+                // Place the hole to the mesh and make it shallower to compensate.
+                // The offset is 1 mm above the mesh.
+                for (sla::DrainHole& hole : sla_drain_holes) {
+                    hole.pos += hole.normal.normalized();
+                    hole.height -= 1.f;
                 }
                 
                 if (!sla_drain_holes.empty())
@@ -1538,6 +1555,9 @@ namespace Slic3r {
         m_curr_object.geometry.triangles.push_back((unsigned int)get_attribute_value_int(attributes, num_attributes, V1_ATTR));
         m_curr_object.geometry.triangles.push_back((unsigned int)get_attribute_value_int(attributes, num_attributes, V2_ATTR));
         m_curr_object.geometry.triangles.push_back((unsigned int)get_attribute_value_int(attributes, num_attributes, V3_ATTR));
+
+        m_curr_object.geometry.custom_supports.push_back(get_attribute_value_string(attributes, num_attributes, CUSTOM_SUPPORTS_ATTR));
+        m_curr_object.geometry.custom_seam.push_back(get_attribute_value_string(attributes, num_attributes, CUSTOM_SEAM_ATTR));
         return true;
     }
 
@@ -1871,6 +1891,18 @@ namespace Slic3r {
                 volume->source.transform = Slic3r::Geometry::Transformation(volume_matrix_to_object);
             volume->calculate_convex_hull();
 
+            // recreate custom supports and seam from previously loaded attribute
+            for (unsigned i=0; i<triangles_count; ++i) {
+                size_t index = src_start_id/3 + i;
+                assert(index < geometry.custom_supports.size());
+                assert(index < geometry.custom_seam.size());
+                if (! geometry.custom_supports[index].empty())
+                    volume->m_supported_facets.set_triangle_from_string(i, geometry.custom_supports[index]);
+                if (! geometry.custom_seam[index].empty())
+                    volume->m_seam_facets.set_triangle_from_string(i, geometry.custom_seam[index]);
+            }
+
+
             // apply the remaining volume's metadata
             for (const Metadata& metadata : volume_data.metadata)
             {
@@ -1991,7 +2023,7 @@ namespace Slic3r {
         bool _add_content_types_file_to_archive(mz_zip_archive& archive);
         bool _add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data);
         bool _add_relationships_file_to_archive(mz_zip_archive& archive);
-        bool _add_model_file_to_archive(mz_zip_archive& archive, const Model& model, IdToObjectDataMap &objects_data);
+        bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data);
         bool _add_object_to_model_stream(std::stringstream& stream, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items, VolumeToOffsetsMap& volumes_offsets);
         bool _add_mesh_to_object_stream(std::stringstream& stream, ModelObject& object, VolumeToOffsetsMap& volumes_offsets);
         bool _add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items);
@@ -2054,7 +2086,7 @@ namespace Slic3r {
         // Adds model file ("3D/3dmodel.model").
         // This is the one and only file that contains all the geometry (vertices and triangles) of all ModelVolumes.
         IdToObjectDataMap objects_data;
-        if (!_add_model_file_to_archive(archive, model, objects_data))
+        if (!_add_model_file_to_archive(filename, archive, model, objects_data))
         {
             close_zip_writer(&archive);
             boost::filesystem::remove(filename);
@@ -2203,7 +2235,7 @@ namespace Slic3r {
         return true;
     }
 
-	bool _3MF_Exporter::_add_model_file_to_archive(mz_zip_archive& archive, const Model& model, IdToObjectDataMap &objects_data)
+    bool _3MF_Exporter::_add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data)
     {
         std::stringstream stream;
         // https://en.cppreference.com/w/cpp/types/numeric_limits/max_digits10
@@ -2214,6 +2246,19 @@ namespace Slic3r {
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         stream << "<" << MODEL_TAG << " unit=\"millimeter\" xml:lang=\"en-US\" xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" xmlns:slic3rpe=\"http://schemas.slic3r.org/3mf/2017/06\">\n";
         stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_3MF_VERSION << "\">" << VERSION_3MF << "</" << METADATA_TAG << ">\n";
+        std::string name = boost::filesystem::path(filename).stem().string();
+        stream << " <" << METADATA_TAG << " name=\"Title\">" << name << "</" << METADATA_TAG << ">\n";
+        stream << " <" << METADATA_TAG << " name=\"Designer\">" << "</" << METADATA_TAG << ">\n";
+        stream << " <" << METADATA_TAG << " name=\"Description\">" << name << "</" << METADATA_TAG << ">\n";
+        stream << " <" << METADATA_TAG << " name=\"Copyright\">" << "</" << METADATA_TAG << ">\n";
+        stream << " <" << METADATA_TAG << " name=\"LicenseTerms\">" << "</" << METADATA_TAG << ">\n";
+        stream << " <" << METADATA_TAG << " name=\"Rating\">" << "</" << METADATA_TAG << ">\n";
+        std::string date = Slic3r::Utils::utc_timestamp(Slic3r::Utils::get_current_time_utc());
+        // keep only the date part of the string
+        date = date.substr(0, 10);
+        stream << " <" << METADATA_TAG << " name=\"CreationDate\">" << date << "</" << METADATA_TAG << ">\n";
+        stream << " <" << METADATA_TAG << " name=\"ModificationDate\">" << date << "</" << METADATA_TAG << ">\n";
+        stream << " <" << METADATA_TAG << " name=\"Application\">" << SLIC3R_APP_KEY << "-" << SLIC3R_VERSION << "</" << METADATA_TAG << ">\n";
         stream << " <" << RESOURCES_TAG << ">\n";
 
         // Instance transformations, indexed by the 3MF object ID (which is a linear serialization of all instances of all ModelObjects).
@@ -2316,9 +2361,9 @@ namespace Slic3r {
                 continue;
 
 			if (!volume->mesh().repaired)
-				throw std::runtime_error("store_3mf() requires repair()");
+				throw Slic3r::FileIOError("store_3mf() requires repair()");
 			if (!volume->mesh().has_shared_vertices())
-				throw std::runtime_error("store_3mf() requires shared vertices");
+				throw Slic3r::FileIOError("store_3mf() requires shared vertices");
 
             volumes_offsets.insert(VolumeToOffsetsMap::value_type(volume, Offsets(vertices_count))).first;
 
@@ -2369,6 +2414,15 @@ namespace Slic3r {
                 {
                     stream << "v" << j + 1 << "=\"" << its.indices[i][j] + volume_it->second.first_vertex_id << "\" ";
                 }
+
+                std::string custom_supports_data_string = volume->m_supported_facets.get_triangle_as_string(i);
+                if (! custom_supports_data_string.empty())
+                    stream << CUSTOM_SUPPORTS_ATTR << "=\"" << custom_supports_data_string << "\" ";
+
+                std::string custom_seam_data_string = volume->m_seam_facets.get_triangle_as_string(i);
+                if (! custom_seam_data_string.empty())
+                    stream << CUSTOM_SEAM_ATTR << "=\"" << custom_seam_data_string << "\" ";
+
                 stream << "/>\n";
             }
         }
@@ -2559,7 +2613,18 @@ namespace Slic3r {
         for (const ModelObject* object : model.objects)
         {
             ++count;
-            auto& drain_holes = object->sla_drain_holes;
+            sla::DrainHoles drain_holes = object->sla_drain_holes;
+
+            // The holes were placed 1mm above the mesh in the first implementation.
+            // This was a bad idea and the reference point was changed in 2.3 so
+            // to be on the mesh exactly. The elevated position is still saved
+            // in 3MFs for compatibility reasons.
+            for (sla::DrainHole& hole : drain_holes) {
+                hole.pos -= hole.normal.normalized();
+                hole.height += 1.f;
+            }
+
+
             if (!drain_holes.empty())
             {
                 out += string_printf(fmt, count);
