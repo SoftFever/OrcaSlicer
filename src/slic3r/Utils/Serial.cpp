@@ -1,5 +1,7 @@
 #include "Serial.hpp"
 
+#include "libslic3r/Exception.hpp"
+
 #include <algorithm>
 #include <string>
 #include <vector>
