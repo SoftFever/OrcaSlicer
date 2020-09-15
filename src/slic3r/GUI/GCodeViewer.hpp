@@ -143,7 +143,7 @@ class GCodeViewer
         Color color;
         size_t path_id;
         std::vector<unsigned int> sizes;
-        std::vector<size_t> offsets; // use size_t because we need the pointer's size (used in the call glMultiDrawElements())
+        std::vector<size_t> offsets; // use size_t because we need an unsigned int whose size matches pointer's size (used in the call glMultiDrawElements())
     };
 
     // buffer containing data for rendering a specific toolpath type
@@ -470,6 +470,7 @@ private:
         return in_z_range(path.first.position[2]) || in_z_range(path.last.position[2]);
     }
     bool is_travel_in_z_range(size_t id) const;
+    void log_memory_used(const std::string& label, long long additional = 0) const;
 };
 
 } // namespace GUI

@@ -441,18 +441,7 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
     // update buffers' render paths
     refresh_render_paths(false, false);
 
-    if (Slic3r::get_logging_level() >= 5) {
-        long long paths_size = 0;
-        for (const TBuffer& buffer : m_buffers) {
-            paths_size += SLIC3R_STDVEC_MEMSIZE(buffer.paths, Path);
-        }
-        long long layers_zs_size = SLIC3R_STDVEC_MEMSIZE(m_layers_zs, double);
-        long long roles_size = SLIC3R_STDVEC_MEMSIZE(m_roles, Slic3r::ExtrusionRole);
-        long long extruder_ids_size = SLIC3R_STDVEC_MEMSIZE(m_extruder_ids, unsigned char);
-        BOOST_LOG_TRIVIAL(trace) << "Refreshed G-code extrusion paths, "
-            << format_memsize_MB(paths_size + layers_zs_size + roles_size + extruder_ids_size)
-            << log_memory_info();
-    }
+    log_memory_used("Refreshed G-code extrusion paths, ");
 }
 
 void GCodeViewer::reset()
@@ -1293,26 +1282,15 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     std::sort(m_extruder_ids.begin(), m_extruder_ids.end());
     m_extruder_ids.erase(std::unique(m_extruder_ids.begin(), m_extruder_ids.end()), m_extruder_ids.end());
 
-    if (Slic3r::get_logging_level() >= 5) {
-        long long vertices_size = 0;
-        for (size_t i = 0; i < vertices.size(); ++i) {
-            vertices_size += SLIC3R_STDVEC_MEMSIZE(vertices[i], float);
-        }
-        long long indices_size = 0;
-        for (size_t i = 0; i < indices.size(); ++i) {
-            indices_size += SLIC3R_STDVEC_MEMSIZE(indices[i], unsigned int);
-        }
-        long long paths_size = 0;
-        for (const TBuffer& buffer : m_buffers) {
-            paths_size += SLIC3R_STDVEC_MEMSIZE(buffer.paths, Path);
-        }
-        long long layers_zs_size = SLIC3R_STDVEC_MEMSIZE(m_layers_zs, double);
-        long long roles_size = SLIC3R_STDVEC_MEMSIZE(m_roles, Slic3r::ExtrusionRole);
-        long long extruder_ids_size = SLIC3R_STDVEC_MEMSIZE(m_extruder_ids, unsigned char);
-        BOOST_LOG_TRIVIAL(trace) << "Loaded G-code extrusion paths, "
-            << format_memsize_MB(vertices_size + indices_size + paths_size + layers_zs_size + roles_size + extruder_ids_size)
-            << log_memory_info();
+    long long vertices_size = 0;
+    for (size_t i = 0; i < vertices.size(); ++i) {
+        vertices_size += SLIC3R_STDVEC_MEMSIZE(vertices[i], float);
     }
+    long long indices_size = 0;
+    for (size_t i = 0; i < indices.size(); ++i) {
+        indices_size += SLIC3R_STDVEC_MEMSIZE(indices[i], unsigned int);
+    }
+    log_memory_used("Loaded G-code extrusion paths, ", vertices_size + indices_size);
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.load_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
@@ -1506,13 +1484,13 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             it->path_id = id;
         }
 
-        unsigned int size_in_vertices = std::min(m_sequential_view.current.last, path.last.s_id) - std::max(m_sequential_view.current.first, path.first.s_id) + 1;
+        unsigned int segments_count = std::min(m_sequential_view.current.last, path.last.s_id) - std::max(m_sequential_view.current.first, path.first.s_id) + 1;
         unsigned int size_in_indices = 0;
         switch (buffer->render_primitive_type)
         {
-        case TBuffer::ERenderPrimitiveType::Point:    { size_in_indices = size_in_vertices; break; }
+        case TBuffer::ERenderPrimitiveType::Point:    { size_in_indices = segments_count; break; }
         case TBuffer::ERenderPrimitiveType::Line:
-        case TBuffer::ERenderPrimitiveType::Triangle: { size_in_indices = buffer->indices_per_segment() * (size_in_vertices - 1); break; }
+        case TBuffer::ERenderPrimitiveType::Triangle: { size_in_indices = buffer->indices_per_segment() * (segments_count - 1); break; }
         }
         it->sizes.push_back(size_in_indices);
 
@@ -2409,6 +2387,26 @@ bool GCodeViewer::is_travel_in_z_range(size_t id) const
     }
 
     return is_in_z_range(path);
+}
+
+void GCodeViewer::log_memory_used(const std::string& label, long long additional) const
+{
+    if (Slic3r::get_logging_level() >= 5) {
+        long long paths_size = 0;
+        long long render_paths_size = 0;
+        for (const TBuffer& buffer : m_buffers) {
+            paths_size += SLIC3R_STDVEC_MEMSIZE(buffer.paths, Path);
+            render_paths_size += SLIC3R_STDVEC_MEMSIZE(buffer.render_paths, RenderPath);
+            for (const RenderPath& path : buffer.render_paths) {
+                render_paths_size += SLIC3R_STDVEC_MEMSIZE(path.sizes, unsigned int);
+                render_paths_size += SLIC3R_STDVEC_MEMSIZE(path.offsets, size_t);
+            }
+        }
+        long long layers_zs_size = SLIC3R_STDVEC_MEMSIZE(m_layers_zs, double);
+        BOOST_LOG_TRIVIAL(trace) << label
+            << format_memsize_MB(additional + paths_size + render_paths_size + layers_zs_size)
+            << log_memory_info();
+    }
 }
 
 } // namespace GUI
