@@ -107,7 +107,7 @@ namespace GUI {
 wxDEFINE_EVENT(EVT_SCHEDULE_BACKGROUND_PROCESS,     SimpleEvent);
 wxDEFINE_EVENT(EVT_SLICING_UPDATE,                  SlicingStatusEvent);
 wxDEFINE_EVENT(EVT_SLICING_COMPLETED,               wxCommandEvent);
-wxDEFINE_EVENT(EVT_PROCESS_COMPLETED,               wxCommandEvent);
+wxDEFINE_EVENT(EVT_PROCESS_COMPLETED,               SlicingProcessCompletedEvent);
 wxDEFINE_EVENT(EVT_EXPORT_BEGAN,                    wxCommandEvent);
 
 // Sidebar widgets
@@ -1682,7 +1682,7 @@ struct Plater::priv
     void on_select_preset(wxCommandEvent&);
     void on_slicing_update(SlicingStatusEvent&);
     void on_slicing_completed(wxCommandEvent&);
-    void on_process_completed(wxCommandEvent&);
+    void on_process_completed(SlicingProcessCompletedEvent&);
 	void on_export_began(wxCommandEvent&);
     void on_layer_editing_toggled(bool enable);
 	void on_slicing_began();
@@ -3510,7 +3510,7 @@ bool Plater::priv::warnings_dialog()
 	return res == wxID_OK;
 
 }
-void Plater::priv::on_process_completed(wxCommandEvent &evt)
+void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
 {
     // Stop the background task, wait until the thread goes into the "Idle" state.
     // At this point of time the thread should be either finished or canceled,
@@ -3519,27 +3519,30 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
     this->statusbar()->reset_cancel_callback();
     this->statusbar()->stop_busy();
 
-    const bool canceled = evt.GetInt() < 0;
-    const bool error = evt.GetInt() == 0;
-    const bool success  = evt.GetInt() > 0;
     // Reset the "export G-code path" name, so that the automatic background processing will be enabled again.
     this->background_process.reset_export();
 
-    if (error) {
-        wxString message = evt.GetString();
-        if (message.IsEmpty())
-            message = _L("Export failed.");
-		notification_manager->push_slicing_error_notification(boost::nowide::narrow(message), *q->get_current_canvas3D());
-        this->statusbar()->set_status_text(message);
+    if (evt.error()) {
+        std::string message = evt.format_error_message();
+        if (evt.critical_error()) {
+            if (q->m_tracking_popup_menu)
+                // We don't want to pop-up a message box when tracking a pop-up menu.
+                // We postpone the error message instead.
+                q->m_tracking_popup_menu_error_message = message;
+            else
+                show_error(q, message);
+        } else
+		  notification_manager->push_slicing_error_notification(message, *q->get_current_canvas3D());
+        this->statusbar()->set_status_text(from_u8(message));
 		const wxString invalid_str = _L("Invalid data");
 		for (auto btn : { ActionButtonType::abReslice, ActionButtonType::abSendGCode, ActionButtonType::abExport })
 			sidebar->set_btn_label(btn, invalid_str);
 		process_completed_with_error = true;
     }
-    if (canceled)
+    if (evt.cancelled())
         this->statusbar()->set_status_text(_L("Cancelled"));
 
-    this->sidebar->show_sliced_info_sizer(success);
+    this->sidebar->show_sliced_info_sizer(evt.success());
 
     // This updates the "Slice now", "Export G-code", "Arrange" buttons status.
     // Namely, it refreshes the "Out of print bed" property of all the ModelObjects, and it enables
@@ -3560,7 +3563,7 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
     default: break;
     }
 	
-    if (canceled) {
+    if (evt.cancelled()) {
         if (wxGetApp().get_mode() == comSimple)
             sidebar->set_btn_label(ActionButtonType::abReslice, "Slice now");
         show_action_buttons(true);

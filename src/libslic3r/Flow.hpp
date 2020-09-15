@@ -3,6 +3,7 @@
 
 #include "libslic3r.h"
 #include "Config.hpp"
+#include "Exception.hpp"
 #include "ExtrusionEntity.hpp"
 
 namespace Slic3r {
@@ -27,11 +28,11 @@ enum FlowRole {
     frSupportMaterialInterface,
 };
 
-class FlowError : public std::invalid_argument
+class FlowError : public Slic3r::InvalidArgument
 {
 public:
-	FlowError(const std::string& what_arg) : invalid_argument(what_arg) {}
-	FlowError(const char* what_arg) : invalid_argument(what_arg) {}
+	FlowError(const std::string& what_arg) : Slic3r::InvalidArgument(what_arg) {}
+	FlowError(const char* what_arg) : Slic3r::InvalidArgument(what_arg) {}
 };
 
 class FlowErrorNegativeSpacing : public FlowError

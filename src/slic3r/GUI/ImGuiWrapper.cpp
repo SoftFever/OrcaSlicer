@@ -927,7 +927,7 @@ void ImGuiWrapper::init_font(bool compress)
     if (font == nullptr) {
         font = io.Fonts->AddFontDefault();
         if (font == nullptr) {
-            throw std::runtime_error("ImGui: Could not load deafult font");
+            throw Slic3r::RuntimeError("ImGui: Could not load deafult font");
         }
     }
 

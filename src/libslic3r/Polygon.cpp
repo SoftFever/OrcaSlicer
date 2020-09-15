@@ -1,5 +1,6 @@
 #include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
+#include "Exception.hpp"
 #include "Polygon.hpp"
 #include "Polyline.hpp"
 
@@ -16,7 +17,7 @@ Polyline Polygon::split_at_vertex(const Point &point) const
     for (const Point &pt : this->points)
         if (pt == point)
             return this->split_at_index(int(&pt - &this->points.front()));
-    throw std::invalid_argument("Point not found");
+    throw Slic3r::InvalidArgument("Point not found");
     return Polyline();
 }
 

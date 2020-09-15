@@ -436,7 +436,7 @@ wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in,
 
     if (bmp == nullptr) {
         // Neither SVG nor PNG has been found, raise error
-        throw std::runtime_error("Could not load bitmap: " + bmp_name);
+        throw Slic3r::RuntimeError("Could not load bitmap: " + bmp_name);
     }
 
     return *bmp;

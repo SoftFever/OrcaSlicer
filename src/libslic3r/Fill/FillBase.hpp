@@ -11,6 +11,7 @@
 
 #include "../libslic3r.h"
 #include "../BoundingBox.hpp"
+#include "../Exception.hpp"
 #include "../Utils.hpp"
 
 namespace Slic3r {
@@ -23,9 +24,10 @@ namespace FillAdaptive_Internal {
     struct Octree;
 };
 
-class InfillFailedException : public std::runtime_error {
+// Infill shall never fail, therefore the error is classified as RuntimeError, not SlicingError.
+class InfillFailedException : public Slic3r::RuntimeError {
 public:
-    InfillFailedException() : std::runtime_error("Infill failed") {}
+    InfillFailedException() : Slic3r::RuntimeError("Infill failed") {}
 };
 
 struct FillParams

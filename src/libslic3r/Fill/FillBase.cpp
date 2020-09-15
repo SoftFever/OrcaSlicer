@@ -40,7 +40,7 @@ Fill* Fill::new_from_type(const InfillPattern type)
     case ipOctagramSpiral:      return new FillOctagramSpiral();
     case ipAdaptiveCubic:       return new FillAdaptive();
     case ipSupportCubic:        return new FillSupportCubic();
-    default: throw std::invalid_argument("unknown type");
+    default: throw Slic3r::InvalidArgument("unknown type");
     }
 }
 

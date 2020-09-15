@@ -1,4 +1,5 @@
 #include "PlaceholderParser.hpp"
+#include "Exception.hpp"
 #include "Flow.hpp"
 #include <cstring>
 #include <ctime>
@@ -1303,7 +1304,7 @@ static std::string process_macro(const std::string &templ, client::MyContext &co
 	if (!context.error_message.empty()) {
         if (context.error_message.back() != '\n' && context.error_message.back() != '\r')
             context.error_message += '\n';
-        throw std::runtime_error(context.error_message);
+        throw Slic3r::RuntimeError(context.error_message);
     }
     return output;
 }
@@ -1319,7 +1320,7 @@ std::string PlaceholderParser::process(const std::string &templ, unsigned int cu
 }
 
 // Evaluate a boolean expression using the full expressive power of the PlaceholderParser boolean expression syntax.
-// Throws std::runtime_error on syntax or runtime error.
+// Throws Slic3r::RuntimeError on syntax or runtime error.
 bool PlaceholderParser::evaluate_boolean_expression(const std::string &templ, const DynamicConfig &config, const DynamicConfig *config_override)
 {
     client::MyContext context;

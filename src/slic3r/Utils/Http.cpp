@@ -156,7 +156,7 @@ Http::priv::priv(const std::string &url)
     Http::tls_global_init();
     
 	if (curl == nullptr) {
-		throw std::runtime_error(std::string("Could not construct Curl object"));
+		throw Slic3r::RuntimeError(std::string("Could not construct Curl object"));
 	}
 
 	set_timeout_connect(DEFAULT_TIMEOUT_CONNECT);

@@ -1,5 +1,6 @@
 #include <cassert>
 
+#include "Exception.hpp"
 #include "Preset.hpp"
 #include "AppConfig.hpp"
 
@@ -107,7 +108,7 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
     const std::string id = path.stem().string();
 
     if (! boost::filesystem::exists(path)) {
-        throw std::runtime_error((boost::format("Cannot load Vendor Config Bundle `%1%`: File not found: `%2%`.") % id % path).str());
+        throw Slic3r::RuntimeError((boost::format("Cannot load Vendor Config Bundle `%1%`: File not found: `%2%`.") % id % path).str());
     }
 
     VendorProfile res(id);
@@ -117,7 +118,7 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
     {
         auto res = tree.find(key);
         if (res == tree.not_found()) {
-            throw std::runtime_error((boost::format("Vendor Config Bundle `%1%` is not valid: Missing secion or key: `%2%`.") % id % key).str());
+            throw Slic3r::RuntimeError((boost::format("Vendor Config Bundle `%1%` is not valid: Missing secion or key: `%2%`.") % id % key).str());
         }
         return res;
     };
@@ -129,7 +130,7 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
     auto config_version_str = get_or_throw(vendor_section, "config_version")->second.data();
     auto config_version = Semver::parse(config_version_str);
     if (! config_version) {
-        throw std::runtime_error((boost::format("Vendor Config Bundle `%1%` is not valid: Cannot parse config_version: `%2%`.") % id % config_version_str).str());
+        throw Slic3r::RuntimeError((boost::format("Vendor Config Bundle `%1%` is not valid: Cannot parse config_version: `%2%`.") % id % config_version_str).str());
     } else {
         res.config_version = std::move(*config_version);
     }
@@ -672,9 +673,9 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
                             preset.file << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
                     preset.loaded = true;
                 } catch (const std::ifstream::failure &err) {
-                    throw std::runtime_error(std::string("The selected preset cannot be loaded: ") + preset.file + "\n\tReason: " + err.what());
+                    throw Slic3r::RuntimeError(std::string("The selected preset cannot be loaded: ") + preset.file + "\n\tReason: " + err.what());
                 } catch (const std::runtime_error &err) {
-                    throw std::runtime_error(std::string("Failed loading the preset file: ") + preset.file + "\n\tReason: " + err.what());
+                    throw Slic3r::RuntimeError(std::string("Failed loading the preset file: ") + preset.file + "\n\tReason: " + err.what());
                 }
                 presets_loaded.emplace_back(preset);
             } catch (const std::runtime_error &err) {
@@ -686,7 +687,7 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
     std::sort(m_presets.begin() + m_num_default_presets, m_presets.end());
     this->select_preset(first_visible_idx());
     if (! errors_cummulative.empty())
-        throw std::runtime_error(errors_cummulative);
+        throw Slic3r::RuntimeError(errors_cummulative);
 }
 
 // Load a preset from an already parsed config file, insert it into the sorted sequence of presets
@@ -1557,10 +1558,10 @@ void PhysicalPrinterCollection::load_printers(const std::string& dir_path, const
                     printer.loaded = true;
                 }
                 catch (const std::ifstream::failure& err) {
-                    throw std::runtime_error(std::string("The selected preset cannot be loaded: ") + printer.file + "\n\tReason: " + err.what());
+                    throw Slic3r::RuntimeError(std::string("The selected preset cannot be loaded: ") + printer.file + "\n\tReason: " + err.what());
                 }
                 catch (const std::runtime_error& err) {
-                    throw std::runtime_error(std::string("Failed loading the preset file: ") + printer.file + "\n\tReason: " + err.what());
+                    throw Slic3r::RuntimeError(std::string("Failed loading the preset file: ") + printer.file + "\n\tReason: " + err.what());
                 }
                 printers_loaded.emplace_back(printer);
             }
@@ -1572,7 +1573,7 @@ void PhysicalPrinterCollection::load_printers(const std::string& dir_path, const
     m_printers.insert(m_printers.end(), std::make_move_iterator(printers_loaded.begin()), std::make_move_iterator(printers_loaded.end()));
     std::sort(m_printers.begin(), m_printers.end());
     if (!errors_cummulative.empty())
-        throw std::runtime_error(errors_cummulative);
+        throw Slic3r::RuntimeError(errors_cummulative);
 }
 
 // if there is saved user presets, contains information about "Print Host upload",
