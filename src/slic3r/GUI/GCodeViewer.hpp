@@ -18,6 +18,9 @@ namespace GUI {
 class GCodeViewer
 {
     using Color = std::array<float, 3>;
+    using IndexBuffer = std::vector<unsigned int>;
+    using MultiIndexBuffer = std::vector<IndexBuffer>;
+
     static const std::vector<Color> Extrusion_Role_Colors;
     static const std::vector<Color> Options_Colors;
     static const std::vector<Color> Travel_Colors;
@@ -112,10 +115,12 @@ class GCodeViewer
     {
         struct Endpoint
         {
-            // index into the indices buffer
-            unsigned int i_id{ 0u };
-            // sequential id
-            unsigned int s_id{ 0u };
+            // index of the index buffer
+            unsigned int b_id{ 0 };
+            // index into the index buffer
+            size_t i_id{ 0 };
+            // sequential id (index into the vertex buffer)
+            size_t s_id{ 0 };
             Vec3f position{ Vec3f::Zero() };
         };
 
@@ -134,14 +139,15 @@ class GCodeViewer
 
         bool matches(const GCodeProcessor::MoveVertex& move) const;
         size_t vertices_count() const { return last.s_id - first.s_id + 1; }
-        bool contains(unsigned int id) const { return first.s_id <= id && id <= last.s_id; }
+        bool contains(size_t id) const { return first.s_id <= id && id <= last.s_id; }
     };
 
     // Used to batch the indices needed to render paths
     struct RenderPath
     {
         Color color;
-        size_t path_id;
+        unsigned int path_id;
+        unsigned int index_buffer_id;
         std::vector<unsigned int> sizes;
         std::vector<size_t> offsets; // use size_t because we need an unsigned int whose size matches pointer's size (used in the call glMultiDrawElements())
     };
@@ -158,7 +164,7 @@ class GCodeViewer
 
         ERenderPrimitiveType render_primitive_type;
         VBuffer vertices;
-        IBuffer indices;
+        std::vector<IBuffer> indices;
 
         std::string shader;
         std::vector<Path> paths;
@@ -166,7 +172,10 @@ class GCodeViewer
         bool visible{ false };
 
         void reset();
-        void add_path(const GCodeProcessor::MoveVertex& move, unsigned int i_id, unsigned int s_id);
+        // b_id index of buffer contained in this->indices
+        // i_id index of first index contained in this->indices[b_id]
+        // s_id index of first vertex contained in this->vertices
+        void add_path(const GCodeProcessor::MoveVertex& move, unsigned int b_id, size_t i_id, size_t s_id);
         unsigned int indices_per_segment() const {
             switch (render_primitive_type)
             {
@@ -194,6 +203,8 @@ class GCodeViewer
             default:                             { return 0; }
             }
         }
+
+        bool has_data() const { return vertices.id != 0 && !indices.empty() && indices.front().id != 0; }
     };
 
     // helper to render shells
@@ -350,8 +361,8 @@ public:
 
         struct Endpoints
         {
-            unsigned int first{ 0 };
-            unsigned int last{ 0 };
+            size_t first{ 0 };
+            size_t last{ 0 };
         };
 
         Endpoints endpoints;
