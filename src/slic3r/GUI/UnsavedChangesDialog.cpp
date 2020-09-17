@@ -590,8 +590,11 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
 
     int btn_idx = 0;
     add_btn(&m_save_btn, m_save_btn_id, "save", Action::Save, btn_idx++);
-    if (dependent_presets && (type != dependent_presets->type() ? true :
-        dependent_presets->get_edited_preset().printer_technology() == dependent_presets->find_preset(new_selected_preset)->printer_technology()))
+
+    const PresetCollection& printers = wxGetApp().preset_bundle->printers;
+    if (dependent_presets && (type == dependent_presets->type() ? 
+        dependent_presets->get_edited_preset().printer_technology() == dependent_presets->find_preset(new_selected_preset)->printer_technology() : 
+        printers.get_edited_preset().printer_technology() == printers.find_preset(new_selected_preset)->printer_technology() ) )
         add_btn(&m_move_btn, m_move_btn_id, "paste_menu", Action::Move, btn_idx++);
     add_btn(&m_continue_btn, m_continue_btn_id, "cross", Action::Continue, btn_idx, false);
 
@@ -935,7 +938,7 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
 
         }
 
-        for (const std::string& opt_key : /*presets->current_dirty_options()*/dirty_options) {
+        for (const std::string& opt_key : dirty_options) {
             const Search::Option& option = searcher.get_option(opt_key);
 
             ItemData item_data = { opt_key, option.label_local, get_string_value(opt_key, old_config), get_string_value(opt_key, new_config), type };

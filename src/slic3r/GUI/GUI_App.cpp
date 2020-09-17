@@ -183,7 +183,7 @@ public:
         copyright_string += //"Slic3r" + _L("is licensed under the") + _L("GNU Affero General Public License, version 3") + "\n\n" + 
                             _L("PrusaSlicer is based on Slic3r by Alessandro Ranellucci and the RepRap community.") + "\n\n" +
                             _L("Contributions by Henrik Brix Andersen, Nicolas Dandrimont, Mark Hindess, Petr Ledvina, Joseph Lenox, Y. Sapir, Mike Sheldrake, Vojtech Bubnik and numerous others.") + "\n\n" +
-                            _L("Splash screen could be desabled from the \"Preferences\"");
+                            _L("Splash screen can be disabled from the \"Preferences\"");
 
         word_wrap_string(copyright_string, banner_width, screen_scale);
 
