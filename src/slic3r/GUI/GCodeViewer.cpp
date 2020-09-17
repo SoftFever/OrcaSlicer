@@ -1170,7 +1170,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         if (buffer_indices.empty())
             buffer_indices.push_back(IndexBuffer());
 
-        static const size_t THRESHOLD = 1024 * 1024 * 1024;
+        static const size_t THRESHOLD = 1024 * 1024 * 128;
         // if adding the indices for the current segment exceeds the threshold size of the current index buffer
         // create another index buffer, and move the current path indices into it
         if (buffer_indices.back().size() >= THRESHOLD - static_cast<size_t>(buffer.indices_per_segment())) {
