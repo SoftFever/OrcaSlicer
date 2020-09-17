@@ -345,8 +345,7 @@ void Layer::make_fills(FillAdaptive_Internal::Octree* adaptive_fill_octree, Fill
         f->layer_id = this->id();
         f->z 		= this->print_z;
         f->angle 	= surface_fill.params.angle;
-        f->adapt_fill_octree = adaptive_fill_octree;
-        f->support_fill_octree = support_fill_octree;
+        f->adapt_fill_octree = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
 
         // calculate flow spacing for infill pattern generation
         bool using_internal_flow = ! surface_fill.surface.is_solid() && ! surface_fill.params.flow.bridge;

@@ -244,6 +244,8 @@ public:
     // Non-transformed (non-rotated, non-scaled, non-translated) sum of non-modifier object volumes.
     // Currently used by ModelObject::mesh() and to calculate the 2D envelope for 2D plater.
     TriangleMesh raw_mesh() const;
+    // The same as above, but producing a lightweight indexed_triangle_set.
+    indexed_triangle_set raw_indexed_triangle_set() const;
     // Non-transformed (non-rotated, non-scaled, non-translated) sum of all object volumes.
     TriangleMesh full_raw_mesh() const;
     // A transformed snug bounding box around the non-modifier object volumes, without the translation applied.

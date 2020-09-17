@@ -777,6 +777,38 @@ TriangleMesh ModelObject::raw_mesh() const
     return mesh;
 }
 
+// Non-transformed (non-rotated, non-scaled, non-translated) sum of non-modifier object volumes.
+// Currently used by ModelObject::mesh(), to calculate the 2D envelope for 2D plater
+// and to display the object statistics at ModelObject::print_info().
+indexed_triangle_set ModelObject::raw_indexed_triangle_set() const
+{
+    size_t num_vertices = 0;
+    size_t num_faces    = 0;
+    for (const ModelVolume *v : this->volumes)
+        if (v->is_model_part()) {
+            num_vertices += v->mesh().its.vertices.size();
+            num_faces    += v->mesh().its.indices.size();
+        }
+    indexed_triangle_set out;
+    out.vertices.reserve(num_vertices);
+    out.indices.reserve(num_faces);
+    for (const ModelVolume *v : this->volumes)
+        if (v->is_model_part()) {
+            size_t i = out.vertices.size();
+            size_t j = out.indices.size();
+            append(out.vertices, v->mesh().its.vertices);
+            append(out.indices,  v->mesh().its.indices);
+            auto m = v->get_matrix();
+            for (; i < out.vertices.size(); ++ i)
+                out.vertices[i] = (m * out.vertices[i].cast<double>()).cast<float>().eval();
+            if (v->is_left_handed()) {
+                for (; j < out.indices.size(); ++ j)
+                    std::swap(out.indices[j][0], out.indices[j][1]);
+            }
+        }
+    return out;
+}
+
 // Non-transformed (non-rotated, non-scaled, non-translated) sum of all object volumes.
 TriangleMesh ModelObject::full_raw_mesh() const
 {

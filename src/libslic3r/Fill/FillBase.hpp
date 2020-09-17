@@ -77,8 +77,6 @@ public:
 
     // Octree builds on mesh for usage in the adaptive cubic infill
     FillAdaptive_Internal::Octree* adapt_fill_octree = nullptr;
-    // Octree builds on mesh for usage in the support cubic infill
-    FillAdaptive_Internal::Octree* support_fill_octree = nullptr;
 
 public:
     virtual ~Fill() {}
