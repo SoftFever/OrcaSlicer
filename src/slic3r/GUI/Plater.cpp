@@ -1166,8 +1166,27 @@ void Sidebar::update_sliced_info_sizer()
             p->sliced_info->SetTextAndShow(siCost, info_text,      new_label);
 
 #if ENABLE_GCODE_VIEWER
-            // hide the estimate time
-            p->sliced_info->SetTextAndShow(siEstimatedTime, "N/A");
+            if (ps.estimated_normal_print_time == "N/A" && ps.estimated_silent_print_time == "N/A")
+                p->sliced_info->SetTextAndShow(siEstimatedTime, "N/A");
+            else {
+                info_text = "";
+                new_label = _L("Estimated printing time") + ":";
+                if (ps.estimated_normal_print_time != "N/A") {
+                    new_label += format_wxstr("\n   - %1%", _L("normal mode"));
+                    info_text += format_wxstr("\n%1%", short_time(ps.estimated_normal_print_time));
+
+                    // uncomment next line to not disappear slicing finished notif when colapsing sidebar before time estimate
+                    //if (p->plater->is_sidebar_collapsed())
+                    p->plater->get_notification_manager()->set_slicing_complete_large(p->plater->is_sidebar_collapsed());
+                    p->plater->get_notification_manager()->set_slicing_complete_print_time("Estimated printing time: " + ps.estimated_normal_print_time);
+
+                }
+                if (ps.estimated_silent_print_time != "N/A") {
+                    new_label += format_wxstr("\n   - %1%", _L("stealth mode"));
+                    info_text += format_wxstr("\n%1%", short_time(ps.estimated_silent_print_time));
+                }
+                p->sliced_info->SetTextAndShow(siEstimatedTime, info_text, new_label);
+            }
 #else
             if (ps.estimated_normal_print_time == "N/A" && ps.estimated_silent_print_time == "N/A")
                 p->sliced_info->SetTextAndShow(siEstimatedTime, "N/A");
