@@ -10,7 +10,7 @@
 namespace Slic3r {
 
 // This penalty is added to all points inside custom blockers (subtracted from pts inside enforcers).
-static constexpr float ENFORCER_BLOCKER_PENALTY = 1e6;
+static constexpr float ENFORCER_BLOCKER_PENALTY = 100;
 
 // In case there are custom enforcers/blockers, the loop polygon shall always have
 // sides smaller than this (so it isn't limited to original resolution).
@@ -18,7 +18,7 @@ static constexpr float MINIMAL_POLYGON_SIDE = scale_(0.2f);
 
 // When spAligned is active and there is a support enforcer,
 // add this penalty to its center.
-static constexpr float ENFORCER_CENTER_PENALTY = -1e3;
+static constexpr float ENFORCER_CENTER_PENALTY = -10.f;
 
 
 
@@ -191,7 +191,8 @@ void SeamPlacer::init(const Print& print)
 {
     m_enforcers.clear();
     m_blockers.clear();
-    m_last_seam_position.clear();
+    //m_last_seam_position.clear();
+    m_seam_history.clear();
 
    for (const PrintObject* po : print.objects()) {
        po->project_and_append_custom_facets(true, EnforcerBlockerType::ENFORCER, m_enforcers);
@@ -212,6 +213,7 @@ Point SeamPlacer::get_seam(const size_t layer_idx, const SeamPosition seam_posit
                const PrintObject* po, bool was_clockwise, const EdgeGrid::Grid* lower_layer_edge_grid)
 {
     Polygon polygon = loop.polygon();
+    BoundingBox polygon_bb = polygon.bounding_box();
     const coord_t  nozzle_r   = coord_t(scale_(0.5 * nozzle_dmr) + 0.5);
 
     if (this->is_custom_seam_on_layer(layer_idx)) {
@@ -226,9 +228,13 @@ Point SeamPlacer::get_seam(const size_t layer_idx, const SeamPosition seam_posit
 
         if (seam_position == spAligned) {
             // Seam is aligned to the seam at the preceding layer.
-            if (po != nullptr && m_last_seam_position.count(po) > 0) {
-                last_pos = m_last_seam_position[po];
-                last_pos_weight = 1.f;
+            if (po != nullptr) {
+                std::optional<Point> pos = m_seam_history.get_last_seam(po, layer_idx, polygon_bb);
+                if (pos.has_value()) {
+                    //last_pos = m_last_seam_position[po];
+                    last_pos = pos.value();
+                    last_pos_weight = is_custom_enforcer_on_layer(layer_idx) ? 0.f : 1.f;
+                }
             }
         }
         else if (seam_position == spRear) {
@@ -312,8 +318,7 @@ Point SeamPlacer::get_seam(const size_t layer_idx, const SeamPosition seam_posit
         // Find a point with a minimum penalty.
         size_t idx_min = std::min_element(penalties.begin(), penalties.end()) - penalties.begin();
 
-        // For all (aligned, nearest, rear) seams:
-        {
+        if (! spAligned || ! is_custom_enforcer_on_layer(layer_idx)) {
             // Very likely the weight of idx_min is very close to the weight of last_pos_proj_idx.
             // In that case use last_pos_proj_idx instead.
             float penalty_aligned  = penalties[last_pos_proj_idx];
@@ -327,8 +332,10 @@ Point SeamPlacer::get_seam(const size_t layer_idx, const SeamPosition seam_posit
                 // Align the seams as accurately as possible.
                 idx_min = last_pos_proj_idx;
             }
-            m_last_seam_position[po] = polygon.points[idx_min];
         }
+
+        if (seam_position == spAligned && loop.role() == erExternalPerimeter)
+            m_seam_history.add_seam(po, polygon.points[idx_min], polygon_bb);
 
 
         // Export the contour into a SVG file.
@@ -463,8 +470,6 @@ void SeamPlacer::get_enforcers_and_blockers(size_t layer_id,
             }
         }
     }
-
-    std::cout << layer_id << ": enforcers.size() = " << enforcers_idxs.size() << std::endl;
 }
 
 
@@ -599,6 +604,68 @@ void SeamPlacer::apply_custom_seam(const Polygon& polygon,
 //    }
 //////////////////////
 
+}
+
+
+
+std::optional<Point> SeamHistory::get_last_seam(const PrintObject* po, size_t layer_id, const BoundingBox& island_bb)
+{
+    assert(layer_id >= m_layer_id);
+    if (layer_id > m_layer_id) {
+        // Get seam was called for different layer than last time.
+        m_data_last_layer = m_data_this_layer;
+        m_data_this_layer.clear();
+        m_layer_id = layer_id;
+    }
+
+
+
+    std::optional<Point> out;
+
+    auto seams_it = m_data_last_layer.find(po);
+    if (seams_it == m_data_last_layer.end())
+        return out;
+
+    const std::vector<SeamPoint>& seam_data_po = seams_it->second;
+
+    // Find a bounding-box on the last layer that is close to one we see now.
+    double min_score = std::numeric_limits<double>::max();
+    for (const SeamPoint& sp : seam_data_po) {
+        const BoundingBox& bb = sp.m_island_bb;
+
+        if (! bb.overlap(island_bb)) {
+            // This bb does not even overlap. It is likely unrelated.
+            continue;
+        }
+
+        double score = std::pow(bb.min(0) - island_bb.min(0), 2.)
+                     + std::pow(bb.min(1) - island_bb.min(1), 2.)
+                     + std::pow(bb.max(0) - island_bb.max(0), 2.)
+                     + std::pow(bb.max(1) - island_bb.max(1), 2.);
+
+        if (score < min_score) {
+            min_score = score;
+            out = sp.m_pos;
+        }
+    }
+
+    return out;
+}
+
+
+
+void SeamHistory::add_seam(const PrintObject* po, const Point& pos, const BoundingBox& island_bb)
+{
+    m_data_this_layer[po].push_back({pos, island_bb});;
+}
+
+
+
+void SeamHistory::clear()
+{
+    m_layer_id = 0;
+    m_data_last_layer.clear();
+    m_data_this_layer.clear();
 }
 
 
