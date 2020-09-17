@@ -1965,60 +1965,6 @@ void GCodeViewer::render_legend() const
         offsets = calculate_offsets(labels, times, { _u8L("Feature type"), _u8L("Time") }, icon_size);
     }
 
-    // total estimated printing time section
-    if (time_mode.time > 0.0f && (m_view_type == EViewType::FeatureType ||
-        (m_view_type == EViewType::ColorPrint && !time_mode.custom_gcode_times.empty()))) {
-        ImGui::AlignTextToFramePadding();
-        switch (m_time_estimate_mode)
-        {
-        case PrintEstimatedTimeStatistics::ETimeMode::Normal:
-        {
-            imgui.text(_u8L("Estimated printing time") + " [" + _u8L("Normal mode") + "]:");
-            break;
-        }
-        case PrintEstimatedTimeStatistics::ETimeMode::Stealth:
-        {
-            imgui.text(_u8L("Estimated printing time") + " [" + _u8L("Stealth mode") + "]:");
-            break;
-        }
-        }
-        ImGui::SameLine();
-        imgui.text(short_time(get_time_dhms(time_mode.time)));
-
-        auto show_mode_button = [this, &imgui](const std::string& label, PrintEstimatedTimeStatistics::ETimeMode mode) {
-            bool show = false;
-            for (size_t i = 0; i < m_time_statistics.modes.size(); ++i) {
-                if (i != static_cast<size_t>(mode) &&
-                    short_time(get_time_dhms(m_time_statistics.modes[static_cast<size_t>(mode)].time)) != short_time(get_time_dhms(m_time_statistics.modes[i].time))) {
-                    show = true;
-                    break;
-                }
-            }
-            if (show && m_time_statistics.modes[static_cast<size_t>(mode)].roles_times.size() > 0) {
-                if (imgui.button(label)) {
-                    m_time_estimate_mode = mode;
-                    wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-                    wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
-                }
-            }
-        };
-
-        switch (m_time_estimate_mode)
-        {
-        case PrintEstimatedTimeStatistics::ETimeMode::Normal:
-        {
-            show_mode_button(_u8L("Show stealth mode"), PrintEstimatedTimeStatistics::ETimeMode::Stealth);
-            break;
-        }
-        case PrintEstimatedTimeStatistics::ETimeMode::Stealth:
-        {
-            show_mode_button(_u8L("Show normal mode"), PrintEstimatedTimeStatistics::ETimeMode::Normal);
-            break;
-        }
-        }
-        ImGui::Spacing();
-    }
-
     // extrusion paths section -> title
     switch (m_view_type)
     {
@@ -2027,13 +1973,13 @@ void GCodeViewer::render_legend() const
         append_headers({ _u8L("Feature type"), _u8L("Time"), _u8L("Percentage") }, offsets);
         break;
     }
-    case EViewType::Height: { imgui.title(_u8L("Height (mm)")); break; }
-    case EViewType::Width: { imgui.title(_u8L("Width (mm)")); break; }
-    case EViewType::Feedrate: { imgui.title(_u8L("Speed (mm/s)")); break; }
-    case EViewType::FanSpeed: { imgui.title(_u8L("Fan Speed (%)")); break; }
+    case EViewType::Height:         { imgui.title(_u8L("Height (mm)")); break; }
+    case EViewType::Width:          { imgui.title(_u8L("Width (mm)")); break; }
+    case EViewType::Feedrate:       { imgui.title(_u8L("Speed (mm/s)")); break; }
+    case EViewType::FanSpeed:       { imgui.title(_u8L("Fan Speed (%)")); break; }
     case EViewType::VolumetricRate: { imgui.title(_u8L("Volumetric flow rate (mm³/s)")); break; }
-    case EViewType::Tool: { imgui.title(_u8L("Tool")); break; }
-    case EViewType::ColorPrint: { imgui.title(_u8L("Color Print")); break; }
+    case EViewType::Tool:           { imgui.title(_u8L("Tool")); break; }
+    case EViewType::ColorPrint:     { imgui.title(_u8L("Color Print")); break; }
     default: { break; }
     }
 
@@ -2325,6 +2271,67 @@ void GCodeViewer::render_legend() const
         add_option(EMoveType::Color_change, EOptionsColors::ColorChanges, _u8L("Color changes"));
         add_option(EMoveType::Pause_Print, EOptionsColors::PausePrints, _u8L("Pause prints"));
         add_option(EMoveType::Custom_GCode, EOptionsColors::CustomGCodes, _u8L("Custom GCodes"));
+    }
+
+    // total estimated printing time section
+    if (time_mode.time > 0.0f && (m_view_type == EViewType::FeatureType ||
+        (m_view_type == EViewType::ColorPrint && !time_mode.custom_gcode_times.empty()))) {
+
+        ImGui::Spacing();
+        ImGui::Spacing();
+        ImGui::PushStyleColor(ImGuiCol_Separator, { 1.0f, 1.0f, 1.0f, 1.0f });
+        ImGui::Separator();
+        ImGui::PopStyleColor();
+        ImGui::Spacing();
+
+        ImGui::AlignTextToFramePadding();
+        switch (m_time_estimate_mode)
+        {
+        case PrintEstimatedTimeStatistics::ETimeMode::Normal:
+        {
+            imgui.text(_u8L("Estimated printing time") + " [" + _u8L("Normal mode") + "]:");
+            break;
+        }
+        case PrintEstimatedTimeStatistics::ETimeMode::Stealth:
+        {
+            imgui.text(_u8L("Estimated printing time") + " [" + _u8L("Stealth mode") + "]:");
+            break;
+        }
+        }
+        ImGui::SameLine();
+        imgui.text(short_time(get_time_dhms(time_mode.time)));
+
+        auto show_mode_button = [this, &imgui](const std::string& label, PrintEstimatedTimeStatistics::ETimeMode mode) {
+            bool show = false;
+            for (size_t i = 0; i < m_time_statistics.modes.size(); ++i) {
+                if (i != static_cast<size_t>(mode) &&
+                    short_time(get_time_dhms(m_time_statistics.modes[static_cast<size_t>(mode)].time)) != short_time(get_time_dhms(m_time_statistics.modes[i].time))) {
+                    show = true;
+                    break;
+                }
+            }
+            if (show && m_time_statistics.modes[static_cast<size_t>(mode)].roles_times.size() > 0) {
+                if (imgui.button(label)) {
+                    m_time_estimate_mode = mode;
+                    wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
+                    wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+                }
+            }
+        };
+
+        switch (m_time_estimate_mode)
+        {
+        case PrintEstimatedTimeStatistics::ETimeMode::Normal:
+        {
+            show_mode_button(_u8L("Show stealth mode"), PrintEstimatedTimeStatistics::ETimeMode::Stealth);
+            break;
+        }
+        case PrintEstimatedTimeStatistics::ETimeMode::Stealth:
+        {
+            show_mode_button(_u8L("Show normal mode"), PrintEstimatedTimeStatistics::ETimeMode::Normal);
+            break;
+        }
+        }
     }
 
     imgui.end();
