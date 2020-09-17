@@ -1213,29 +1213,23 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             }
         }
 
-        switch (curr.type)
+        switch (buffer.render_primitive_type)
         {
-        case EMoveType::Tool_change:
-        case EMoveType::Color_change:
-        case EMoveType::Pause_Print:
-        case EMoveType::Custom_GCode:
-        case EMoveType::Retract:
-        case EMoveType::Unretract:
+        case TBuffer::ERenderPrimitiveType::Point:
         {
             add_as_point(curr, buffer, buffer_vertices, static_cast<unsigned int>(buffer_indices.size()) - 1, buffer_indices.back(), i);
             break;
         }
-        case EMoveType::Extrude:
-        {
-            add_as_solid(prev, curr, buffer, buffer_vertices, static_cast<unsigned int>(buffer_indices.size()) - 1, buffer_indices.back(), i);
-            break;
-        }
-        case EMoveType::Travel:
+        case TBuffer::ERenderPrimitiveType::Line:
         {
             add_as_line(prev, curr, buffer, buffer_vertices, static_cast<unsigned int>(buffer_indices.size()) - 1, buffer_indices.back(), i);
             break;
         }
-        default: { break; }
+        case TBuffer::ERenderPrimitiveType::Triangle:
+        {
+            add_as_solid(prev, curr, buffer, buffer_vertices, static_cast<unsigned int>(buffer_indices.size()) - 1, buffer_indices.back(), i);
+            break;
+        }
         }
     }
 
@@ -1670,12 +1664,12 @@ void GCodeViewer::render_toolpaths() const
                     EOptionsColors color;
                     switch (buffer_type(i))
                     {
-                    case EMoveType::Tool_change: { color = EOptionsColors::ToolChanges; break; }
+                    case EMoveType::Tool_change:  { color = EOptionsColors::ToolChanges; break; }
                     case EMoveType::Color_change: { color = EOptionsColors::ColorChanges; break; }
-                    case EMoveType::Pause_Print: { color = EOptionsColors::PausePrints; break; }
+                    case EMoveType::Pause_Print:  { color = EOptionsColors::PausePrints; break; }
                     case EMoveType::Custom_GCode: { color = EOptionsColors::CustomGCodes; break; }
-                    case EMoveType::Retract: { color = EOptionsColors::Retractions; break; }
-                    case EMoveType::Unretract: { color = EOptionsColors::Unretractions; break; }
+                    case EMoveType::Retract:      { color = EOptionsColors::Retractions; break; }
+                    case EMoveType::Unretract:    { color = EOptionsColors::Unretractions; break; }
                     }
                     render_as_points(buffer, static_cast<unsigned int>(j), color, *shader);
                     break;
