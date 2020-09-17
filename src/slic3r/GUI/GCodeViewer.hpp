@@ -459,7 +459,6 @@ public:
     void export_toolpaths_to_obj(const char* filename) const;
 
 private:
-    void init_shaders();
     void load_toolpaths(const GCodeProcessor::Result& gcode_result);
     void load_shells(const Print& print, bool initialized);
     void refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const;

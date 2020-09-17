@@ -287,6 +287,8 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors {{
 
 bool GCodeViewer::init()
 {
+    bool is_glsl_120 = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20);
+
     for (size_t i = 0; i < m_buffers.size(); ++i)
     {
         TBuffer& buffer = m_buffers[i];
@@ -302,18 +304,21 @@ bool GCodeViewer::init()
         {
             buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Point;
             buffer.vertices.format = VBuffer::EFormat::Position;
+            buffer.shader = is_glsl_120 ? "options_120" : "options_110";
             break;
         }
         case EMoveType::Extrude:
         {
             buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Triangle;
             buffer.vertices.format = VBuffer::EFormat::PositionNormal3;
+            buffer.shader = "gouraud_light";
             break;
         }
         case EMoveType::Travel:
         {
             buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Line;
             buffer.vertices.format = VBuffer::EFormat::PositionNormal1;
+            buffer.shader = "toolpaths_lines";
             break;
         }
         }
@@ -321,7 +326,6 @@ bool GCodeViewer::init()
 
     set_toolpath_move_type_visible(EMoveType::Extrude, true);
     m_sequential_view.marker.init();
-    init_shaders();
 
     std::array<int, 2> point_sizes;
     ::glGetIntegerv(GL_ALIASED_POINT_SIZE_RANGE, point_sizes.data());
@@ -845,28 +849,6 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     }
 
     fclose(fp);
-}
-
-void GCodeViewer::init_shaders()
-{
-    unsigned char begin_id = buffer_id(EMoveType::Retract);
-    unsigned char end_id = buffer_id(EMoveType::Count);
-
-    bool is_glsl_120 = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20);
-    for (unsigned char i = begin_id; i < end_id; ++i) {
-        switch (buffer_type(i))
-        {
-        case EMoveType::Tool_change:  { m_buffers[i].shader = is_glsl_120 ? "options_120" : "options_110"; break; }
-        case EMoveType::Color_change: { m_buffers[i].shader = is_glsl_120 ? "options_120" : "options_110"; break; }
-        case EMoveType::Pause_Print:  { m_buffers[i].shader = is_glsl_120 ? "options_120" : "options_110"; break; }
-        case EMoveType::Custom_GCode: { m_buffers[i].shader = is_glsl_120 ? "options_120" : "options_110"; break; }
-        case EMoveType::Retract:      { m_buffers[i].shader = is_glsl_120 ? "options_120" : "options_110"; break; }
-        case EMoveType::Unretract:    { m_buffers[i].shader = is_glsl_120 ? "options_120" : "options_110"; break; }
-        case EMoveType::Extrude:      { m_buffers[i].shader = "gouraud_light"; break; }
-        case EMoveType::Travel:       { m_buffers[i].shader = "toolpaths_lines"; break; }
-        default: { break; }
-        }
-    }
 }
 
 void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
