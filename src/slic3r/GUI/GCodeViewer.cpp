@@ -237,14 +237,14 @@ void GCodeViewer::SequentialView::Marker::render() const
     ImGui::PopStyleVar();
 }
 
-const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
+const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors{ {
     { 0.75f, 0.75f, 0.75f },   // erNone
-    { 1.00f, 0.90f, 0.43f },   // erPerimeter
+    { 1.00f, 0.90f, 0.30f },   // erPerimeter
     { 1.00f, 0.49f, 0.22f },   // erExternalPerimeter
     { 0.12f, 0.12f, 1.00f },   // erOverhangPerimeter
     { 0.69f, 0.19f, 0.16f },   // erInternalInfill
     { 0.59f, 0.33f, 0.80f },   // erSolidInfill
-    { 0.94f, 0.33f, 0.33f },   // erTopSolidInfill
+    { 0.94f, 0.25f, 0.25f },   // erTopSolidInfill
     { 1.00f, 0.55f, 0.41f },   // erIroning
     { 0.30f, 0.50f, 0.73f },   // erBridgeInfill
     { 1.00f, 1.00f, 1.00f },   // erGapFill
@@ -254,7 +254,7 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
     { 0.70f, 0.89f, 0.67f },   // erWipeTower
     { 0.37f, 0.82f, 0.58f },   // erCustom
     { 0.00f, 0.00f, 0.00f }    // erMixed
-}};
+} };
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Options_Colors {{
     { 0.803f, 0.135f, 0.839f },   // Retractions
