@@ -766,7 +766,7 @@ const char* FirmwareDialog::priv::avr109_dev_name(Avr109Pid usb_pid) {
 			return "Original Prusa CW1";
 		break;
 
-		default: throw std::runtime_error((boost::format("Invalid avr109 device USB PID: %1%") % usb_pid.boot).str());
+		default: throw Slic3r::RuntimeError((boost::format("Invalid avr109 device USB PID: %1%") % usb_pid.boot).str());
 	}
 }
 

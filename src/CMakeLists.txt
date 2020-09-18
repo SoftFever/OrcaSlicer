@@ -106,9 +106,9 @@ if (MINGW)
     set_target_properties(PrusaSlicer PROPERTIES PREFIX "")
 endif (MINGW)
 
-if (NOT WIN32)
-    # Binary name on unix like systems (OSX, Linux)
-   set_target_properties(PrusaSlicer PROPERTIES OUTPUT_NAME "prusa-slicer")
+if (NOT WIN32 AND NOT APPLE)
+    # Binary name on unix like systems (Linux, Unix)
+    set_target_properties(PrusaSlicer PROPERTIES OUTPUT_NAME "prusa-slicer")
 endif ()
 
 target_link_libraries(PrusaSlicer libslic3r cereal)
@@ -209,20 +209,34 @@ if (WIN32)
     add_custom_target(PrusaSlicerDllsCopy ALL DEPENDS PrusaSlicer)
     prusaslicer_copy_dlls(PrusaSlicerDllsCopy)
     
-elseif (XCODE)
-    # Because of Debug/Release/etc. configurations (similar to MSVC) the slic3r binary is located in an extra level
-    add_custom_command(TARGET PrusaSlicer POST_BUILD
-        COMMAND ln -sfn "${SLIC3R_RESOURCES_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/resources"
-        COMMENT "Symlinking the resources directory into the build tree"
-        VERBATIM
-    )
 else ()
+    if (APPLE)
+        # On OSX, the name of the binary matches the name of the Application.
+        add_custom_command(TARGET PrusaSlicer POST_BUILD
+            COMMAND ln -sf PrusaSlicer prusa-slicer
+            COMMAND ln -sf PrusaSlicer prusa-gcodeviewer
+            COMMAND ln -sf PrusaSlicer PrusaGCodeViewer
+            WORKING_DIRECTORY "$<TARGET_FILE_DIR:PrusaSlicer>"
+            COMMENT "Symlinking the G-code viewer to PrusaSlicer, symlinking to prusa-slicer and prusa-gcodeviewer"
+            VERBATIM)
+    else ()
+        add_custom_command(TARGET PrusaSlicer POST_BUILD
+            COMMAND ln -sf prusa-slicer prusa-gcodeviewer
+            WORKING_DIRECTORY "$<TARGET_FILE_DIR:PrusaSlicer>"
+            COMMENT "Symlinking the G-code viewer to PrusaSlicer"
+            VERBATIM)
+    endif ()
+    if (XCODE)
+        # Because of Debug/Release/etc. configurations (similar to MSVC) the slic3r binary is located in an extra level
+        set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/resources")
+    else ()
+        set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/../resources")
+    endif ()
     add_custom_command(TARGET PrusaSlicer POST_BUILD
-        COMMAND ln -sfn "${SLIC3R_RESOURCES_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/../resources"
+        COMMAND ln -sfn "${SLIC3R_RESOURCES_DIR}" "${BIN_RESOURCES_DIR}"
         COMMENT "Symlinking the resources directory into the build tree"
-        VERBATIM
-    )
-endif()
+        VERBATIM)
+endif ()
 
 # Slic3r binary install target
 if (WIN32)

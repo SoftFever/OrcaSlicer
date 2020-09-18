@@ -425,10 +425,10 @@ bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& 
     text(label);
     ImGui::SameLine();
 
-    int selection_out = -1;
+    int selection_out = selection;
     bool res = false;
 
-    const char *selection_str = selection < (int)options.size() ? options[selection].c_str() : "";
+    const char *selection_str = selection < int(options.size()) && selection >= 0 ? options[selection].c_str() : "";
     if (ImGui::BeginCombo("", selection_str)) {
         for (int i = 0; i < (int)options.size(); i++) {
             if (ImGui::Selectable(options[i].c_str(), i == selection)) {
@@ -927,7 +927,7 @@ void ImGuiWrapper::init_font(bool compress)
     if (font == nullptr) {
         font = io.Fonts->AddFontDefault();
         if (font == nullptr) {
-            throw std::runtime_error("ImGui: Could not load deafult font");
+            throw Slic3r::RuntimeError("ImGui: Could not load deafult font");
         }
     }
 

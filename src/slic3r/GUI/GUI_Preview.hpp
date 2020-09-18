@@ -194,6 +194,7 @@ Preview(wxWindow* parent, Model* model, DynamicPrintConfig* config,
 #if ENABLE_GCODE_VIEWER
     void update_bottom_toolbar();
     void update_moves_slider();
+    void hide_layers_slider();
 #endif // ENABLE_GCODE_VIEWER
 
 private:
@@ -202,14 +203,12 @@ private:
     void bind_event_handlers();
     void unbind_event_handlers();
 
-#if ENABLE_GCODE_VIEWER
-    void hide_layers_slider();
-#else
+#if !ENABLE_GCODE_VIEWER
     void show_hide_ui_elements(const std::string& what);
 
     void reset_sliders(bool reset_all);
     void update_sliders(const std::vector<double>& layers_z, bool keep_z_range = false);
-#endif // ENABLE_GCODE_VIEWER
+#endif // !ENABLE_GCODE_VIEWER
 
     void on_size(wxSizeEvent& evt);
     void on_choice_view_type(wxCommandEvent& evt);

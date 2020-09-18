@@ -1,6 +1,7 @@
 #include "libslic3r.h"
 #include "I18N.hpp"
 #include "GCode.hpp"
+#include "Exception.hpp"
 #include "ExtrusionEntity.hpp"
 #include "EdgeGrid.hpp"
 #include "Geometry.hpp"
@@ -287,7 +288,7 @@ namespace Slic3r {
     std::string WipeTowerIntegration::append_tcr(GCode& gcodegen, const WipeTower::ToolChangeResult& tcr, int new_extruder_id, double z) const
     {
         if (new_extruder_id != -1 && new_extruder_id != tcr.new_tool)
-            throw std::invalid_argument("Error: WipeTowerIntegration::append_tcr was asked to do a toolchange it didn't expect.");
+            throw Slic3r::InvalidArgument("Error: WipeTowerIntegration::append_tcr was asked to do a toolchange it didn't expect.");
 
         std::string gcode;
 
@@ -540,7 +541,7 @@ namespace Slic3r {
         if (!m_brim_done || gcodegen.writer().need_toolchange(extruder_id) || finish_layer) {
             if (m_layer_idx < (int)m_tool_changes.size()) {
                 if (!(size_t(m_tool_change_idx) < m_tool_changes[m_layer_idx].size()))
-                    throw std::runtime_error("Wipe tower generation failed, possibly due to empty first layer.");
+                    throw Slic3r::RuntimeError("Wipe tower generation failed, possibly due to empty first layer.");
 
 
                 // Calculate where the wipe tower layer will be printed. -1 means that print z will not change,
@@ -629,7 +630,7 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
         // Check that there are extrusions on the very first layer.
         if (layers_to_print.size() == 1u) {
             if (!has_extrusions)
-                throw std::runtime_error(_(L("There is an object with no extrusions on the first layer.")));
+                throw Slic3r::RuntimeError(_(L("There is an object with no extrusions on the first layer.")));
         }
 
         // In case there are extrusions on this layer, check there is a layer to lay it on.
@@ -721,9 +722,9 @@ namespace DoExport {
     static void update_print_estimated_times_stats(const GCodeProcessor& processor, PrintStatistics& print_statistics)
     {
         const GCodeProcessor::Result& result = processor.get_result();
-        print_statistics.estimated_normal_print_time = get_time_dhm(result.time_statistics.modes[static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Normal)].time);
+        print_statistics.estimated_normal_print_time = get_time_dhms(result.time_statistics.modes[static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Normal)].time);
         print_statistics.estimated_silent_print_time = processor.is_stealth_time_estimator_enabled() ?
-            get_time_dhm(result.time_statistics.modes[static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Stealth)].time) : "N/A";
+            get_time_dhms(result.time_statistics.modes[static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Stealth)].time) : "N/A";
     }
 } // namespace DoExport
 
@@ -750,7 +751,7 @@ void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_
 
     FILE *file = boost::nowide::fopen(path_tmp.c_str(), "wb");
     if (file == nullptr)
-        throw std::runtime_error(std::string("G-code export to ") + path + " failed.\nCannot open the file for writing.\n");
+        throw Slic3r::RuntimeError(std::string("G-code export to ") + path + " failed.\nCannot open the file for writing.\n");
 
 #if !ENABLE_GCODE_VIEWER
     m_enable_analyzer = preview_data != nullptr;
@@ -763,7 +764,7 @@ void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_
         if (ferror(file)) {
             fclose(file);
             boost::nowide::remove(path_tmp.c_str());
-            throw std::runtime_error(std::string("G-code export to ") + path + " failed\nIs the disk full?\n");
+            throw Slic3r::RuntimeError(std::string("G-code export to ") + path + " failed\nIs the disk full?\n");
         }
     } catch (std::exception & /* ex */) {
         // Rethrow on any exception. std::runtime_exception and CanceledException are expected to be thrown.
@@ -784,14 +785,16 @@ void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_
         msg += "        !!!!! Failed to process the custom G-code template ...\n";
         msg += "and\n";
         msg += "        !!!!! End of an error report for the custom G-code template ...\n";
-        throw std::runtime_error(msg);
+        throw Slic3r::RuntimeError(msg);
     }
 
 #if ENABLE_GCODE_VIEWER
-    m_processor.process_file(path_tmp);
+    BOOST_LOG_TRIVIAL(debug) << "Start processing gcode, " << log_memory_info();
+    m_processor.process_file(path_tmp, [print]() { print->throw_if_canceled(); });
     DoExport::update_print_estimated_times_stats(m_processor, print->m_print_statistics);
     if (result != nullptr)
         *result = std::move(m_processor.extract_result());
+    BOOST_LOG_TRIVIAL(debug) << "Finished processing gcode, " << log_memory_info();
 #else
     GCodeTimeEstimator::PostProcessData normal_data = m_normal_time_estimator.get_post_process_data();
     GCodeTimeEstimator::PostProcessData silent_data = m_silent_time_estimator.get_post_process_data();
@@ -816,7 +819,7 @@ void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_
 #endif // ENABLE_GCODE_VIEWER
 
     if (rename_file(path_tmp, path))
-        throw std::runtime_error(
+        throw Slic3r::RuntimeError(
             std::string("Failed to rename the output G-code file from ") + path_tmp + " to " + path + '\n' +
             "Is " + path_tmp + " locked?" + '\n');
 
@@ -1944,8 +1947,8 @@ namespace ProcessLayer
 #if !ENABLE_GCODE_VIEWER
                     // add tag for time estimator
 	                gcode += "; " + GCodeTimeEstimator::Pause_Print_Tag + "\n";
-                    gcode += config.pause_print_gcode;
 #endif // !ENABLE_GCODE_VIEWER
+                    gcode += config.pause_print_gcode;
                 }
 	            else
 	            {
@@ -2457,14 +2460,17 @@ void GCode::process_layer(
 #endif /* HAS_PRESSURE_EQUALIZER */
 
     _write(file, gcode);
-#if !ENABLE_GCODE_VIEWER
+#if ENABLE_GCODE_VIEWER
+    BOOST_LOG_TRIVIAL(trace) << "Exported layer " << layer.id() << " print_z " << print_z <<
+        log_memory_info();
+#else
     BOOST_LOG_TRIVIAL(trace) << "Exported layer " << layer.id() << " print_z " << print_z <<
         ", time estimator memory: " <<
-            format_memsize_MB(m_normal_time_estimator.memory_used() + (m_silent_time_estimator_enabled ? m_silent_time_estimator.memory_used() : 0)) <<
-            ", analyzer memory: " <<
-            format_memsize_MB(m_analyzer.memory_used()) <<
-            log_memory_info();
-#endif // !ENABLE_GCODE_VIEWER
+        format_memsize_MB(m_normal_time_estimator.memory_used() + (m_silent_time_estimator_enabled ? m_silent_time_estimator.memory_used() : 0)) <<
+        ", analyzer memory: " <<
+        format_memsize_MB(m_analyzer.memory_used()) <<
+        log_memory_info();
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void GCode::apply_print_config(const PrintConfig &print_config)
@@ -2704,7 +2710,7 @@ std::string GCode::extrude_entity(const ExtrusionEntity &entity, std::string des
     else if (const ExtrusionLoop* loop = dynamic_cast<const ExtrusionLoop*>(&entity))
         return this->extrude_loop(*loop, description, speed, lower_layer_edge_grid);
     else
-        throw std::invalid_argument("Invalid argument supplied to extrude()");
+        throw Slic3r::InvalidArgument("Invalid argument supplied to extrude()");
     return "";
 }
 
@@ -2909,7 +2915,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         } else if (path.role() == erGapFill) {
             speed = m_config.get_abs_value("gap_fill_speed");
         } else {
-            throw std::invalid_argument("Invalid speed");
+            throw Slic3r::InvalidArgument("Invalid speed");
         }
     }
     if (this->on_first_layer())
@@ -3330,7 +3336,7 @@ void GCode::ObjectByExtruder::Island::Region::append(const Type type, const Extr
         perimeters_or_infills_overrides = &infills_overrides;
         break;
     default:
-        throw std::invalid_argument("Unknown parameter!");
+    	throw Slic3r::InvalidArgument("Unknown parameter!");
     }
 
     // First we append the entities, there are eec->entities.size() of them:

@@ -7,6 +7,7 @@
 #include <boost/nowide/cstdio.hpp>
 
 #include "../libslic3r.h"
+#include "../Exception.hpp"
 #include "../Model.hpp"
 #include "../GCode.hpp"
 #include "../PrintConfig.hpp"
@@ -923,7 +924,7 @@ bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_fi
             {
                 char error_buf[1024];
                 ::sprintf(error_buf, "Error (%s) while parsing '%s' at line %d", XML_ErrorString(XML_GetErrorCode(data->parser)), data->stat.m_filename, (int)XML_GetCurrentLineNumber(data->parser));
-                throw std::runtime_error(error_buf);
+                throw Slic3r::FileIOError(error_buf);
             }
 
             return n;
@@ -948,9 +949,9 @@ bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_fi
     if (check_version && (ctx.m_version > VERSION_AMF_COMPATIBLE))
     {
         // std::string msg = _(L("The selected amf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatible."));
-        // throw std::runtime_error(msg.c_str());
+        // throw Slic3r::FileIOError(msg.c_str());
         const std::string msg = (boost::format(_(L("The selected amf file has been saved with a newer version of %1% and is not compatible."))) % std::string(SLIC3R_APP_NAME)).str();
-        throw std::runtime_error(msg);
+        throw Slic3r::FileIOError(msg);
     }
 
     return true;
@@ -994,7 +995,7 @@ bool load_amf_archive(const char* path, DynamicPrintConfig* config, Model* model
                 {
                     // ensure the zip archive is closed and rethrow the exception
                     close_zip_reader(&archive);
-                    throw std::runtime_error(e.what());
+                    throw Slic3r::FileIOError(e.what());
                 }
 
                 break;
@@ -1147,9 +1148,9 @@ bool store_amf(const char* path, Model* model, const DynamicPrintConfig* config,
         for (ModelVolume *volume : object->volumes) {
             vertices_offsets.push_back(num_vertices);
             if (! volume->mesh().repaired)
-                throw std::runtime_error("store_amf() requires repair()");
+                throw Slic3r::FileIOError("store_amf() requires repair()");
 			if (! volume->mesh().has_shared_vertices())
-				throw std::runtime_error("store_amf() requires shared vertices");
+				throw Slic3r::FileIOError("store_amf() requires shared vertices");
             const indexed_triangle_set &its = volume->mesh().its;
             const Transform3d& matrix = volume->get_matrix();
             for (size_t i = 0; i < its.vertices.size(); ++i) {

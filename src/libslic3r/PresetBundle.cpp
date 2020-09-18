@@ -157,7 +157,7 @@ void PresetBundle::setup_directories()
         subdir.make_preferred();
         if (! boost::filesystem::is_directory(subdir) && 
             ! boost::filesystem::create_directory(subdir))
-            throw std::runtime_error(std::string("Slic3r was unable to create its data directory at ") + subdir.string());
+            throw Slic3r::RuntimeError(std::string("Slic3r was unable to create its data directory at ") + subdir.string());
     }
 }
 
@@ -207,7 +207,7 @@ void PresetBundle::load_presets(AppConfig &config, const std::string &preferred_
     this->update_multi_material_filament_presets();
     this->update_compatible(PresetSelectCompatibleType::Never);
     if (! errors_cummulative.empty())
-        throw std::runtime_error(errors_cummulative);
+        throw Slic3r::RuntimeError(errors_cummulative);
 
     this->load_selections(config, preferred_model_id);
 }
@@ -325,6 +325,32 @@ const std::string& PresetBundle::get_preset_name_by_alias( const Preset::Type& p
                                       sla_materials;
 
     return presets.get_preset_name_by_alias(alias);
+}
+
+void PresetBundle::save_changes_for_preset(const std::string& new_name, Preset::Type type,
+                                           const std::vector<std::string>& unselected_options)
+{
+    PresetCollection& presets = type == Preset::TYPE_PRINT          ? prints :
+                                type == Preset::TYPE_SLA_PRINT      ? sla_prints :
+                                type == Preset::TYPE_FILAMENT       ? filaments :
+                                type == Preset::TYPE_SLA_MATERIAL   ? sla_materials : printers;
+
+    // if we want to save just some from selected options
+    if (!unselected_options.empty()) {
+        // revert unselected options to the old values
+        presets.get_edited_preset().config.apply_only(presets.get_selected_preset().config, unselected_options);
+    }
+
+    // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
+    presets.save_current_preset(new_name);
+    // Mark the print & filament enabled if they are compatible with the currently selected preset.
+    // If saving the preset changes compatibility with other presets, keep the now incompatible dependent presets selected, however with a "red flag" icon showing that they are no more compatible.
+    update_compatible(PresetSelectCompatibleType::Never);
+
+    if (type == Preset::TYPE_FILAMENT) {
+        // synchronize the first filament presets.
+        set_filament_preset(0, filaments.get_selected_preset_name());
+    }
 }
 
 void PresetBundle::load_installed_filaments(AppConfig &config)
@@ -653,21 +679,21 @@ void PresetBundle::load_config_file(const std::string &path)
         boost::nowide::ifstream ifs(path);
         boost::property_tree::read_ini(ifs, tree);
     } catch (const std::ifstream::failure &err) {
-        throw std::runtime_error(std::string("The Config Bundle cannot be loaded: ") + path + "\n\tReason: " + err.what());
+        throw Slic3r::RuntimeError(std::string("The Config Bundle cannot be loaded: ") + path + "\n\tReason: " + err.what());
     } catch (const boost::property_tree::file_parser_error &err) {
-        throw std::runtime_error((boost::format("Failed loading the Config Bundle \"%1%\": %2% at line %3%")
+        throw Slic3r::RuntimeError((boost::format("Failed loading the Config Bundle \"%1%\": %2% at line %3%")
         	% err.filename() % err.message() % err.line()).str());
     } catch (const std::runtime_error &err) {
-        throw std::runtime_error(std::string("Failed loading the preset file: ") + path + "\n\tReason: " + err.what());
+        throw Slic3r::RuntimeError(std::string("Failed loading the preset file: ") + path + "\n\tReason: " + err.what());
     }
 
     // 2) Continue based on the type of the configuration file.
     ConfigFileType config_file_type = guess_config_file_type(tree);
     switch (config_file_type) {
     case CONFIG_FILE_TYPE_UNKNOWN:
-        throw std::runtime_error(std::string("Unknown configuration file type: ") + path);   
+        throw Slic3r::RuntimeError(std::string("Unknown configuration file type: ") + path);   
     case CONFIG_FILE_TYPE_APP_CONFIG:
-        throw std::runtime_error(std::string("Invalid configuration file: ") + path + ". This is an application config file.");
+        throw Slic3r::RuntimeError(std::string("Invalid configuration file: ") + path + ". This is an application config file.");
 	case CONFIG_FILE_TYPE_CONFIG:
 	{
 		// Initialize a config from full defaults.

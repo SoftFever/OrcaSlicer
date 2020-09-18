@@ -11,10 +11,7 @@
 #include <assert.h>
 
 #if ENABLE_GCODE_VIEWER
-
-#if ENABLE_GCODE_VIEWER_STATISTICS
 #include <chrono>
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
 
 static const float INCHES_TO_MM = 25.4f;
 static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
@@ -322,13 +319,13 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
 {
     boost::nowide::ifstream in(filename);
     if (!in.good())
-        throw std::runtime_error(std::string("Time estimator post process export failed.\nCannot open file for reading.\n"));
+        throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nCannot open file for reading.\n"));
 
     // temporary file to contain modified gcode
     std::string out_path = filename + ".postprocess";
     FILE* out = boost::nowide::fopen(out_path.c_str(), "wb");
     if (out == nullptr)
-        throw std::runtime_error(std::string("Time estimator post process export failed.\nCannot open file for writing.\n"));
+        throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nCannot open file for writing.\n"));
 
     auto time_in_minutes = [](float time_in_seconds) {
         return int(::roundf(time_in_seconds / 60.0f));
@@ -421,7 +418,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
             in.close();
             fclose(out);
             boost::nowide::remove(out_path.c_str());
-            throw std::runtime_error(std::string("Time estimator post process export failed.\nIs the disk full?\n"));
+            throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nIs the disk full?\n"));
         }
         export_line.clear();
     };
@@ -429,7 +426,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
     while (std::getline(in, gcode_line)) {
         if (!in.good()) {
             fclose(out);
-            throw std::runtime_error(std::string("Time estimator post process export failed.\nError while reading from file.\n"));
+            throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nError while reading from file.\n"));
         }
 
         gcode_line += "\n";
@@ -463,7 +460,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
     in.close();
 
     if (rename_file(out_path, filename))
-        throw std::runtime_error(std::string("Failed to rename the output G-code file from ") + out_path + " to " + filename + '\n' +
+        throw Slic3r::RuntimeError(std::string("Failed to rename the output G-code file from ") + out_path + " to " + filename + '\n' +
             "Is " + out_path + " locked?" + '\n');
 }
 
@@ -730,8 +727,10 @@ void GCodeProcessor::reset()
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 }
 
-void GCodeProcessor::process_file(const std::string& filename)
+void GCodeProcessor::process_file(const std::string& filename, std::function<void()> cancel_callback)
 {
+    auto last_cancel_callback_time = std::chrono::high_resolution_clock::now();
+
 #if ENABLE_GCODE_VIEWER_STATISTICS
     auto start_time = std::chrono::high_resolution_clock::now();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -758,9 +757,21 @@ void GCodeProcessor::process_file(const std::string& filename)
         }
     }
 
+    // process gcode
     m_result.id = ++s_result_id;
+    // 1st move must be a dummy move
     m_result.moves.emplace_back(MoveVertex());
-    m_parser.parse_file(filename, [this](GCodeReader& reader, const GCodeReader::GCodeLine& line) { process_gcode_line(line); });
+    m_parser.parse_file(filename, [this, cancel_callback, &last_cancel_callback_time](GCodeReader& reader, const GCodeReader::GCodeLine& line) {
+        if (cancel_callback != nullptr) {
+            // call the cancel callback every 100 ms
+            auto curr_time = std::chrono::high_resolution_clock::now();
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_cancel_callback_time).count() > 100) {
+                cancel_callback();
+                last_cancel_callback_time = curr_time;
+            }
+        }
+        process_gcode_line(line);
+        });
 
     // process the time blocks
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Count); ++i) {
@@ -936,6 +947,20 @@ void GCodeProcessor::process_tags(const std::string& comment)
         return;
     }
 
+    if (!m_producers_enabled || m_producer == EProducer::PrusaSlicer) {
+        // height tag
+        pos = comment.find(Height_Tag);
+        if (pos != comment.npos) {
+            try {
+                m_height = std::stof(comment.substr(pos + Height_Tag.length()));
+            }
+            catch (...) {
+                BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Height (" << comment << ").";
+            }
+            return;
+        }
+    }
+
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     // width tag
     pos = comment.find(Width_Tag);
@@ -945,18 +970,6 @@ void GCodeProcessor::process_tags(const std::string& comment)
         }
         catch (...) {
             BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
-        }
-        return;
-    }
-
-    // height tag
-    pos = comment.find(Height_Tag);
-    if (pos != comment.npos) {
-        try {
-            m_height_compare.last_tag_value = std::stof(comment.substr(pos + Height_Tag.length()));
-        }
-        catch (...) {
-            BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Height (" << comment << ").";
         }
         return;
     }
@@ -1408,12 +1421,12 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         type = EMoveType::Travel;
 
     if (type == EMoveType::Extrude) {
-        float d_xyz = std::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
+        float delta_xyz = std::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
         float filament_diameter = (static_cast<size_t>(m_extruder_id) < m_filament_diameters.size()) ? m_filament_diameters[m_extruder_id] : m_filament_diameters.back();
         float filament_radius = 0.5f * filament_diameter;
         float area_filament_cross_section = static_cast<float>(M_PI) * sqr(filament_radius);
         float volume_extruded_filament = area_filament_cross_section * delta_pos[E];
-        float area_toolpath_cross_section = volume_extruded_filament / d_xyz;
+        float area_toolpath_cross_section = volume_extruded_filament / delta_xyz;
 
         // volume extruded filament / tool displacement = area toolpath cross section
         m_mm3_per_mm = area_toolpath_cross_section;
@@ -1421,23 +1434,28 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         m_mm3_per_mm_compare.update(area_toolpath_cross_section, m_extrusion_role);
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
-        if (m_end_position[Z] > m_extruded_last_z + EPSILON) {
-            m_height = m_end_position[Z] - m_extruded_last_z;
+        if ((m_producers_enabled && m_producer != EProducer::PrusaSlicer) || m_height == 0.0f) {
+            if (m_end_position[Z] > m_extruded_last_z + EPSILON) {
+                m_height = m_end_position[Z] - m_extruded_last_z;
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
-            m_height_compare.update(m_height, m_extrusion_role);
+                m_height_compare.update(m_height, m_extrusion_role);
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
-            m_extruded_last_z = m_end_position[Z];
+                m_extruded_last_z = m_end_position[Z];
+            }
         }
 
         if (m_extrusion_role == erExternalPerimeter)
             // cross section: rectangle
-            m_width = delta_pos[E] * static_cast<float>(M_PI * sqr(1.05 * filament_radius)) / (d_xyz * m_height);
+            m_width = delta_pos[E] * static_cast<float>(M_PI * sqr(1.05 * filament_radius)) / (delta_xyz * m_height);
         else if (m_extrusion_role == erBridgeInfill || m_extrusion_role == erNone)
             // cross section: circle
-            m_width = static_cast<float>(m_filament_diameters[m_extruder_id]) * std::sqrt(delta_pos[E] / d_xyz);
+            m_width = static_cast<float>(m_filament_diameters[m_extruder_id]) * std::sqrt(delta_pos[E] / delta_xyz);
         else
             // cross section: rectangle + 2 semicircles
-            m_width = delta_pos[E] * static_cast<float>(M_PI * sqr(filament_radius)) / (d_xyz * m_height) + static_cast<float>(1.0 - 0.25 * M_PI) * m_height;
+            m_width = delta_pos[E] * static_cast<float>(M_PI * sqr(filament_radius)) / (delta_xyz * m_height) + static_cast<float>(1.0 - 0.25 * M_PI) * m_height;
+
+        // clamp width to avoid artifacts which may arise from wrong values of m_height
+        m_width = std::min(m_width, 4.0f * m_height);
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_width_compare.update(m_width, m_extrusion_role);

@@ -277,7 +277,11 @@ void ObjectList::create_objects_ctrl()
 
     // column ItemName(Icon+Text) of the view control: 
     // And Icon can be consisting of several bitmaps
-    AppendColumn(new wxDataViewColumn(_(L("Name")), new BitmapTextRenderer(this),
+    BitmapTextRenderer* bmp_text_renderer = new BitmapTextRenderer();
+    bmp_text_renderer->set_can_create_editor_ctrl_function([this]() {
+        return m_objects_model->GetItemType(GetSelection()) & (itVolume | itObject);
+    });
+    AppendColumn(new wxDataViewColumn(_L("Name"), bmp_text_renderer,
         colName, 20*em, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
 
     // column PrintableProperty (Icon) of the view control:
@@ -285,11 +289,15 @@ void ObjectList::create_objects_ctrl()
         wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 
     // column Extruder of the view control:
-    AppendColumn(new wxDataViewColumn(_(L("Extruder")), new BitmapChoiceRenderer(),
+    BitmapChoiceRenderer* bmp_choice_renderer = new BitmapChoiceRenderer();
+    bmp_choice_renderer->set_can_create_editor_ctrl_function([this]() {
+        return m_objects_model->GetItemType(GetSelection()) & (itVolume | itLayer | itObject);
+    });
+    AppendColumn(new wxDataViewColumn(_L("Extruder"), bmp_choice_renderer,
         colExtruder, 8*em, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE));
 
     // column ItemEditing of the view control:
-    AppendBitmapColumn(_(L("Editing")), colEditing, wxDATAVIEW_CELL_INERT, 3*em,
+    AppendBitmapColumn(_L("Editing"), colEditing, wxDATAVIEW_CELL_INERT, 3*em,
         wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 
     // For some reason under OSX on 4K(5K) monitors in wxDataViewColumn constructor doesn't set width of column.

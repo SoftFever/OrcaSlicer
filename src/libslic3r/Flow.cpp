@@ -53,7 +53,7 @@ static inline FlowRole opt_key_to_flow_role(const std::string &opt_key)
 	else if (opt_key == "support_material_extrusion_width")
     	return frSupportMaterial;
     else 
-    	throw std::runtime_error("opt_key_to_flow_role: invalid argument");
+    	throw Slic3r::RuntimeError("opt_key_to_flow_role: invalid argument");
 };
 
 static inline void throw_on_missing_variable(const std::string &opt_key, const char *dependent_opt_key) 
@@ -126,7 +126,7 @@ Flow Flow::new_from_config_width(FlowRole role, const ConfigOptionFloatOrPercent
 {
     // we need layer height unless it's a bridge
     if (height <= 0 && bridge_flow_ratio == 0) 
-        throw std::invalid_argument("Invalid flow height supplied to new_from_config_width()");
+        throw Slic3r::InvalidArgument("Invalid flow height supplied to new_from_config_width()");
 
     float w;
     if (bridge_flow_ratio > 0) {
@@ -151,7 +151,7 @@ Flow Flow::new_from_spacing(float spacing, float nozzle_diameter, float height, 
 {
     // we need layer height unless it's a bridge
     if (height <= 0 && !bridge) 
-        throw std::invalid_argument("Invalid flow height supplied to new_from_spacing()");
+        throw Slic3r::InvalidArgument("Invalid flow height supplied to new_from_spacing()");
     // Calculate width from spacing.
     // For normal extrusons, extrusion width is wider than the spacing due to the rounding and squishing of the extrusions.
     // For bridge extrusions, the extrusions are placed with a tiny BRIDGE_EXTRA_SPACING gaps between the threads.

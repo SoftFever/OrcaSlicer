@@ -46,6 +46,8 @@ add_library(libslic3r STATIC
     Fill/Fill.hpp
     Fill/Fill3DHoneycomb.cpp
     Fill/Fill3DHoneycomb.hpp
+    Fill/FillAdaptive.cpp
+    Fill/FillAdaptive.hpp
     Fill/FillBase.cpp
     Fill/FillBase.hpp
     Fill/FillConcentric.cpp
@@ -215,7 +217,9 @@ add_library(libslic3r STATIC
     SimplifyMeshImpl.hpp
     SimplifyMesh.cpp
     MarchingSquares.hpp
-    Optimizer.hpp
+    Optimize/Optimizer.hpp
+    Optimize/NLoptOptimizer.hpp
+    Optimize/BruteforceOptimizer.hpp
     ${OpenVDBUtils_SOURCES}
     SLA/Pad.hpp
     SLA/Pad.cpp

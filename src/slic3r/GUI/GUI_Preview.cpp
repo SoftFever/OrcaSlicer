@@ -1234,7 +1234,7 @@ void Preview::load_print_as_fff(bool keep_z_range)
     }
 
 #if ENABLE_GCODE_VIEWER
-    if (wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer && !has_layers)
+    if (wxGetApp().is_editor() && !has_layers)
 #else
     if (! has_layers)
 #endif // ENABLE_GCODE_VIEWER

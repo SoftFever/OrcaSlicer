@@ -1,3 +1,4 @@
+#include "Exception.hpp"
 #include "GCodeTimeEstimator.hpp"
 #include "Utils.hpp"
 #include <boost/bind.hpp>
@@ -254,13 +255,13 @@ namespace Slic3r {
     {
         boost::nowide::ifstream in(filename);
         if (!in.good())
-            throw std::runtime_error(std::string("Time estimator post process export failed.\nCannot open file for reading.\n"));
+            throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nCannot open file for reading.\n"));
 
         std::string path_tmp = filename + ".postprocess";
 
         FILE* out = boost::nowide::fopen(path_tmp.c_str(), "wb");
         if (out == nullptr)
-            throw std::runtime_error(std::string("Time estimator post process export failed.\nCannot open file for writing.\n"));
+            throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nCannot open file for writing.\n"));
 
         std::string normal_time_mask = "M73 P%s R%s\n";
         std::string silent_time_mask = "M73 Q%s S%s\n";
@@ -278,7 +279,7 @@ namespace Slic3r {
                 in.close();
                 fclose(out);
                 boost::nowide::remove(path_tmp.c_str());
-                throw std::runtime_error(std::string("Time estimator post process export failed.\nIs the disk full?\n"));
+                throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nIs the disk full?\n"));
             }
             export_line.clear();
         };
@@ -326,7 +327,7 @@ namespace Slic3r {
             if (!in.good())
             {
                 fclose(out);
-                throw std::runtime_error(std::string("Time estimator post process export failed.\nError while reading from file.\n"));
+                throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nError while reading from file.\n"));
             }
 
             // check tags
@@ -383,7 +384,7 @@ namespace Slic3r {
         in.close();
 
         if (rename_file(path_tmp, filename))
-            throw std::runtime_error(std::string("Failed to rename the output G-code file from ") + path_tmp + " to " + filename + '\n' +
+            throw Slic3r::RuntimeError(std::string("Failed to rename the output G-code file from ") + path_tmp + " to " + filename + '\n' +
                 "Is " + path_tmp + " locked?" + '\n');
 
         return true;

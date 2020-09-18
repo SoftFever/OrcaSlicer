@@ -38,7 +38,10 @@ void test_support_model_collision(const std::string          &obj_filename,
         
         Polygons intersections = intersection(sup_slice, mod_slice);
         
-        notouch = notouch && intersections.empty();
+        double pinhead_r  = scaled(input_supportcfg.head_front_radius_mm);
+
+        // TODO:: make it strict without a threshold of PI * pihead_radius ^ 2
+        notouch = notouch && area(intersections) < PI * pinhead_r * pinhead_r;
     }
     
     /*if (!notouch) */export_failed_case(support_slices, byproducts);

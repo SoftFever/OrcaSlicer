@@ -1,3 +1,4 @@
+#include "Exception.hpp"
 #include "Model.hpp"
 #include "ModelArrange.hpp"
 #include "Geometry.hpp"
@@ -116,13 +117,13 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     else if (boost::algorithm::iends_with(input_file, ".prusa"))
         result = load_prus(input_file.c_str(), &model);
     else
-        throw std::runtime_error("Unknown file format. Input file must have .stl, .obj, .amf(.xml) or .prusa extension.");
+        throw Slic3r::RuntimeError("Unknown file format. Input file must have .stl, .obj, .amf(.xml) or .prusa extension.");
 
     if (! result)
-        throw std::runtime_error("Loading of a model file failed.");
+        throw Slic3r::RuntimeError("Loading of a model file failed.");
 
     if (model.objects.empty())
-        throw std::runtime_error("The supplied file couldn't be read because it's empty");
+        throw Slic3r::RuntimeError("The supplied file couldn't be read because it's empty");
     
     for (ModelObject *o : model.objects)
         o->input_file = input_file;
@@ -146,13 +147,13 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
     else if (boost::algorithm::iends_with(input_file, ".zip.amf"))
         result = load_amf(input_file.c_str(), config, &model, check_version);
     else
-        throw std::runtime_error("Unknown file format. Input file must have .3mf or .zip.amf extension.");
+        throw Slic3r::RuntimeError("Unknown file format. Input file must have .3mf or .zip.amf extension.");
 
     if (!result)
-        throw std::runtime_error("Loading of a model file failed.");
+        throw Slic3r::RuntimeError("Loading of a model file failed.");
 
     if (model.objects.empty())
-        throw std::runtime_error("The supplied file couldn't be read because it's empty");
+        throw Slic3r::RuntimeError("The supplied file couldn't be read because it's empty");
 
     for (ModelObject *o : model.objects)
     {
@@ -776,6 +777,38 @@ TriangleMesh ModelObject::raw_mesh() const
     return mesh;
 }
 
+// Non-transformed (non-rotated, non-scaled, non-translated) sum of non-modifier object volumes.
+// Currently used by ModelObject::mesh(), to calculate the 2D envelope for 2D plater
+// and to display the object statistics at ModelObject::print_info().
+indexed_triangle_set ModelObject::raw_indexed_triangle_set() const
+{
+    size_t num_vertices = 0;
+    size_t num_faces    = 0;
+    for (const ModelVolume *v : this->volumes)
+        if (v->is_model_part()) {
+            num_vertices += v->mesh().its.vertices.size();
+            num_faces    += v->mesh().its.indices.size();
+        }
+    indexed_triangle_set out;
+    out.vertices.reserve(num_vertices);
+    out.indices.reserve(num_faces);
+    for (const ModelVolume *v : this->volumes)
+        if (v->is_model_part()) {
+            size_t i = out.vertices.size();
+            size_t j = out.indices.size();
+            append(out.vertices, v->mesh().its.vertices);
+            append(out.indices,  v->mesh().its.indices);
+            auto m = v->get_matrix();
+            for (; i < out.vertices.size(); ++ i)
+                out.vertices[i] = (m * out.vertices[i].cast<double>()).cast<float>().eval();
+            if (v->is_left_handed()) {
+                for (; j < out.indices.size(); ++ j)
+                    std::swap(out.indices[j][0], out.indices[j][1]);
+            }
+        }
+    return out;
+}
+
 // Non-transformed (non-rotated, non-scaled, non-translated) sum of all object volumes.
 TriangleMesh ModelObject::full_raw_mesh() const
 {
@@ -817,7 +850,7 @@ const BoundingBoxf3& ModelObject::raw_bounding_box() const
         m_raw_bounding_box_valid = true;
         m_raw_bounding_box.reset();
         if (this->instances.empty())
-            throw std::invalid_argument("Can't call raw_bounding_box() with no instances");
+            throw Slic3r::InvalidArgument("Can't call raw_bounding_box() with no instances");
 
         const Transform3d& inst_matrix = this->instances.front()->get_transformation().get_matrix(true);
         for (const ModelVolume *v : this->volumes)

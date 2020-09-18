@@ -105,6 +105,7 @@ public:
     template<typename OtherDerived>
     Point(const Eigen::MatrixBase<OtherDerived> &other) : Vec2crd(other) {}
     static Point new_scale(coordf_t x, coordf_t y) { return Point(coord_t(scale_(x)), coord_t(scale_(y))); }
+    static Point new_scale(const Vec2d &v) { return Point(coord_t(scale_(v.x())), coord_t(scale_(v.y()))); }
 
     // This method allows you to assign Eigen expressions to MyVectorType
     template<typename OtherDerived>
@@ -121,7 +122,14 @@ public:
 	Point& operator*=(const double &rhs) { (*this)(0) = coord_t((*this)(0) * rhs); (*this)(1) = coord_t((*this)(1) * rhs); return *this; }
     Point operator*(const double &rhs) { return Point((*this)(0) * rhs, (*this)(1) * rhs); }
 
-    void   rotate(double angle);
+    void   rotate(double angle) { this->rotate(std::cos(angle), std::sin(angle)); }
+    void   rotate(double cos_a, double sin_a) {
+        double cur_x = (double)(*this)(0);
+        double cur_y = (double)(*this)(1);
+        (*this)(0) = (coord_t)round(cos_a * cur_x - sin_a * cur_y);
+        (*this)(1) = (coord_t)round(cos_a * cur_y + sin_a * cur_x);
+    }
+
     void   rotate(double angle, const Point &center);
     Point  rotated(double angle) const { Point res(*this); res.rotate(angle); return res; }
     Point  rotated(double angle, const Point &center) const { Point res(*this); res.rotate(angle, center); return res; }

@@ -22,6 +22,10 @@ namespace GUI {
 enum class SLAGizmoEventType : unsigned char;
 class ClippingPlane;
 
+enum class PainterGizmoType {
+    FDM_SUPPORTS,
+    SEAM
+};
 
 
 class TriangleSelectorGUI : public TriangleSelector {
@@ -103,6 +107,7 @@ protected:
 
     virtual void on_opening() = 0;
     virtual void on_shutdown() = 0;
+    virtual PainterGizmoType get_painter_type() const = 0;
 
     bool on_is_activable() const override;
     bool on_is_selectable() const override;

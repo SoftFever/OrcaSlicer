@@ -44,16 +44,6 @@ Pointf3s transform(const Pointf3s& points, const Transform3d& t)
     return ret_points;
 }
 
-void Point::rotate(double angle)
-{
-    double cur_x = (double)(*this)(0);
-    double cur_y = (double)(*this)(1);
-    double s     = ::sin(angle);
-    double c     = ::cos(angle);
-    (*this)(0) = (coord_t)round(c * cur_x - s * cur_y);
-    (*this)(1) = (coord_t)round(c * cur_y + s * cur_x);
-}
-
 void Point::rotate(double angle, const Point &center)
 {
     double cur_x = (double)(*this)(0);

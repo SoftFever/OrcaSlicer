@@ -1,5 +1,6 @@
 #include <cassert>
 
+#include "Exception.hpp"
 #include "Preset.hpp"
 #include "AppConfig.hpp"
 
@@ -107,7 +108,7 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
     const std::string id = path.stem().string();
 
     if (! boost::filesystem::exists(path)) {
-        throw std::runtime_error((boost::format("Cannot load Vendor Config Bundle `%1%`: File not found: `%2%`.") % id % path).str());
+        throw Slic3r::RuntimeError((boost::format("Cannot load Vendor Config Bundle `%1%`: File not found: `%2%`.") % id % path).str());
     }
 
     VendorProfile res(id);
@@ -117,7 +118,7 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
     {
         auto res = tree.find(key);
         if (res == tree.not_found()) {
-            throw std::runtime_error((boost::format("Vendor Config Bundle `%1%` is not valid: Missing secion or key: `%2%`.") % id % key).str());
+            throw Slic3r::RuntimeError((boost::format("Vendor Config Bundle `%1%` is not valid: Missing secion or key: `%2%`.") % id % key).str());
         }
         return res;
     };
@@ -129,7 +130,7 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
     auto config_version_str = get_or_throw(vendor_section, "config_version")->second.data();
     auto config_version = Semver::parse(config_version_str);
     if (! config_version) {
-        throw std::runtime_error((boost::format("Vendor Config Bundle `%1%` is not valid: Cannot parse config_version: `%2%`.") % id % config_version_str).str());
+        throw Slic3r::RuntimeError((boost::format("Vendor Config Bundle `%1%` is not valid: Cannot parse config_version: `%2%`.") % id % config_version_str).str());
     } else {
         res.config_version = std::move(*config_version);
     }
@@ -672,9 +673,9 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
                             preset.file << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
                     preset.loaded = true;
                 } catch (const std::ifstream::failure &err) {
-                    throw std::runtime_error(std::string("The selected preset cannot be loaded: ") + preset.file + "\n\tReason: " + err.what());
+                    throw Slic3r::RuntimeError(std::string("The selected preset cannot be loaded: ") + preset.file + "\n\tReason: " + err.what());
                 } catch (const std::runtime_error &err) {
-                    throw std::runtime_error(std::string("Failed loading the preset file: ") + preset.file + "\n\tReason: " + err.what());
+                    throw Slic3r::RuntimeError(std::string("Failed loading the preset file: ") + preset.file + "\n\tReason: " + err.what());
                 }
                 presets_loaded.emplace_back(preset);
             } catch (const std::runtime_error &err) {
@@ -686,7 +687,7 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
     std::sort(m_presets.begin() + m_num_default_presets, m_presets.end());
     this->select_preset(first_visible_idx());
     if (! errors_cummulative.empty())
-        throw std::runtime_error(errors_cummulative);
+        throw Slic3r::RuntimeError(errors_cummulative);
 }
 
 // Load a preset from an already parsed config file, insert it into the sorted sequence of presets
@@ -1365,9 +1366,10 @@ const std::vector<std::string>& PhysicalPrinter::printer_options()
             "print_host", 
             "printhost_apikey", 
             "printhost_cafile",
-            "authorization_type",
-            "login", 
-            "password"
+            "printhost_authorization_type",
+            // HTTP digest authentization (RFC 2617)
+            "printhost_user", 
+            "printhost_password"
         };
     }
     return s_opts;
@@ -1412,11 +1414,11 @@ const std::set<std::string>& PhysicalPrinter::get_preset_names() const
 
 bool PhysicalPrinter::has_empty_config() const 
 {
-    return  config.opt_string("print_host"      ).empty() && 
-            config.opt_string("printhost_apikey").empty() && 
-            config.opt_string("printhost_cafile").empty() && 
-            config.opt_string("login"           ).empty() && 
-            config.opt_string("password"        ).empty();
+    return  config.opt_string("print_host"        ).empty() && 
+            config.opt_string("printhost_apikey"  ).empty() && 
+            config.opt_string("printhost_cafile"  ).empty() && 
+            config.opt_string("printhost_user"    ).empty() && 
+            config.opt_string("printhost_password").empty();
 }
 
 void PhysicalPrinter::update_preset_names_in_config()
@@ -1441,7 +1443,7 @@ void PhysicalPrinter::save(const std::string& file_name_from, const std::string&
 
 void PhysicalPrinter::update_from_preset(const Preset& preset)
 {
-    config.apply_only(preset.config, printer_options(), false);
+    config.apply_only(preset.config, printer_options(), true);
     // add preset names to the options list
     auto ret = preset_names.emplace(preset.name);
     update_preset_names_in_config();
@@ -1476,8 +1478,8 @@ bool PhysicalPrinter::delete_preset(const std::string& preset_name)
     return preset_names.erase(preset_name) > 0;
 }
 
-PhysicalPrinter::PhysicalPrinter(const std::string& name, const Preset& preset) :
-    name(name)
+PhysicalPrinter::PhysicalPrinter(const std::string& name, const DynamicPrintConfig &default_config, const Preset& preset) :
+    name(name), config(default_config)
 {
     update_from_preset(preset);
 }
@@ -1514,6 +1516,13 @@ std::string PhysicalPrinter::get_preset_name(std::string name)
 
 PhysicalPrinterCollection::PhysicalPrinterCollection( const std::vector<std::string>& keys)
 {
+    // Default config for a physical printer containing all key/value pairs of PhysicalPrinter::printer_options().
+    for (const std::string &key : keys) {
+        const ConfigOptionDef *opt = print_config_def.get(key);
+        assert(opt);
+        assert(opt->default_value);
+        m_default_config.set_key_value(key, opt->default_value->clone());
+    }
 }
 
 // Load all printers found in dir_path.
@@ -1539,7 +1548,7 @@ void PhysicalPrinterCollection::load_printers(const std::string& dir_path, const
                 continue;
             }
             try {
-                PhysicalPrinter printer(name);
+                PhysicalPrinter printer(name, this->default_config());
                 printer.file = dir_entry.path().string();
                 // Load the preset file, apply preset values on top of defaults.
                 try {
@@ -1549,10 +1558,10 @@ void PhysicalPrinterCollection::load_printers(const std::string& dir_path, const
                     printer.loaded = true;
                 }
                 catch (const std::ifstream::failure& err) {
-                    throw std::runtime_error(std::string("The selected preset cannot be loaded: ") + printer.file + "\n\tReason: " + err.what());
+                    throw Slic3r::RuntimeError(std::string("The selected preset cannot be loaded: ") + printer.file + "\n\tReason: " + err.what());
                 }
                 catch (const std::runtime_error& err) {
-                    throw std::runtime_error(std::string("Failed loading the preset file: ") + printer.file + "\n\tReason: " + err.what());
+                    throw Slic3r::RuntimeError(std::string("Failed loading the preset file: ") + printer.file + "\n\tReason: " + err.what());
                 }
                 printers_loaded.emplace_back(printer);
             }
@@ -1564,7 +1573,7 @@ void PhysicalPrinterCollection::load_printers(const std::string& dir_path, const
     m_printers.insert(m_printers.end(), std::make_move_iterator(printers_loaded.begin()), std::make_move_iterator(printers_loaded.end()));
     std::sort(m_printers.begin(), m_printers.end());
     if (!errors_cummulative.empty())
-        throw std::runtime_error(errors_cummulative);
+        throw Slic3r::RuntimeError(errors_cummulative);
 }
 
 // if there is saved user presets, contains information about "Print Host upload",
@@ -1590,7 +1599,7 @@ void PhysicalPrinterCollection::load_printers_from_presets(PrinterPresetCollecti
                         new_printer_name = (boost::format("Printer %1%") % ++cnt).str();
 
                     // create new printer from this preset
-                    PhysicalPrinter printer(new_printer_name, preset);
+                    PhysicalPrinter printer(new_printer_name, this->default_config(), preset);
                     printer.loaded = true;
                     save_printer(printer);
                 }

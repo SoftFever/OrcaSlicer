@@ -1,3 +1,4 @@
+#include "Exception.hpp"
 #include "Print.hpp"
 #include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
@@ -9,6 +10,9 @@
 #include "Surface.hpp"
 #include "Slicing.hpp"
 #include "Utils.hpp"
+#include "AABBTreeIndirect.hpp"
+#include "Fill/FillAdaptive.hpp"
+#include "Format/STL.hpp"
 
 #include <utility>
 #include <boost/log/trivial.hpp>
@@ -135,7 +139,7 @@ void PrintObject::slice()
             }
         });
     if (m_layers.empty())
-        throw std::runtime_error("No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n");    
+        throw Slic3r::SlicingError("No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n");    
     this->set_done(posSlice);
 }
 
@@ -369,13 +373,15 @@ void PrintObject::infill()
     this->prepare_infill();
 
     if (this->set_started(posInfill)) {
+        auto [adaptive_fill_octree, support_fill_octree] = this->prepare_adaptive_infill_data();
+
         BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - start";
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size()),
-            [this](const tbb::blocked_range<size_t>& range) {
+            [this, &adaptive_fill_octree = adaptive_fill_octree, &support_fill_octree = support_fill_octree](const tbb::blocked_range<size_t>& range) {
                 for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                     m_print->throw_if_canceled();
-                    m_layers[layer_idx]->make_fills();
+                    m_layers[layer_idx]->make_fills(adaptive_fill_octree.get(), support_fill_octree.get());
                 }
             }
         );
@@ -421,11 +427,29 @@ void PrintObject::generate_support_material()
             // therefore they cannot be printed without supports.
             for (const Layer *layer : m_layers)
                 if (layer->empty())
-                    throw std::runtime_error("Levitating objects cannot be printed without supports.");
+                    throw Slic3r::SlicingError("Levitating objects cannot be printed without supports.");
 #endif
         }
         this->set_done(posSupportMaterial);
     }
+}
+
+std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> PrintObject::prepare_adaptive_infill_data()
+{
+    using namespace FillAdaptive;
+
+    auto [adaptive_line_spacing, support_line_spacing] = adaptive_fill_line_spacing(*this);
+    if (adaptive_line_spacing == 0. && support_line_spacing == 0.)
+        return std::make_pair(OctreePtr(), OctreePtr());
+
+    indexed_triangle_set mesh = this->model_object()->raw_indexed_triangle_set();
+    // Rotate mesh and build octree on it with axis-aligned (standart base) cubes.
+    Transform3d m = m_trafo;
+    m.translate(Vec3d(- unscale<float>(m_center_offset.x()), - unscale<float>(m_center_offset.y()), 0));
+    its_transform(mesh, transform_to_octree().toRotationMatrix() * m, true);
+    return std::make_pair(
+        adaptive_line_spacing ? build_octree(mesh, adaptive_line_spacing, false) : OctreePtr(),
+        support_line_spacing  ? build_octree(mesh, support_line_spacing, true) : OctreePtr());
 }
 
 void PrintObject::clear_layers()

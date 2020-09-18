@@ -324,7 +324,7 @@ std::vector<Index> Index::load_db()
         }
 
     if (! errors_cummulative.empty())
-        throw std::runtime_error(errors_cummulative);
+        throw Slic3r::RuntimeError(errors_cummulative);
     return index_db;
 }
 

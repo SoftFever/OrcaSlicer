@@ -285,5 +285,12 @@ void GLGizmoFdmSupports::update_from_model_object()
 }
 
 
+
+PainterGizmoType GLGizmoFdmSupports::get_painter_type() const
+{
+    return PainterGizmoType::FDM_SUPPORTS;
+}
+
+
 } // namespace GUI
 } // namespace Slic3r

@@ -133,13 +133,13 @@ void PrintConfigDef::init_common_params()
 
     // Options used by physical printers
     
-    def = this->add("login", coString);
-    def->label = L("Login");
+    def = this->add("printhost_user", coString);
+    def->label = L("User");
 //    def->tooltip = L("");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
     
-    def = this->add("password", coString);
+    def = this->add("printhost_password", coString);
     def->label = L("Password");
 //    def->tooltip = L("");
     def->mode = comAdvanced;
@@ -151,7 +151,7 @@ void PrintConfigDef::init_common_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
 
-    def = this->add("authorization_type", coEnum);
+    def = this->add("printhost_authorization_type", coEnum);
     def->label = L("Authorization Type");
 //    def->tooltip = L("");
     def->enum_keys_map = &ConfigOptionEnum<AuthorizationType>::get_enum_values();
@@ -881,6 +881,8 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("hilbertcurve");
     def->enum_values.push_back("archimedeanchords");
     def->enum_values.push_back("octagramspiral");
+    def->enum_values.push_back("adaptivecubic");
+    def->enum_values.push_back("supportcubic");
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Grid"));
     def->enum_labels.push_back(L("Triangles"));
@@ -894,6 +896,8 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Hilbert Curve"));
     def->enum_labels.push_back(L("Archimedean Chords"));
     def->enum_labels.push_back(L("Octagram Spiral"));
+    def->enum_labels.push_back(L("Adaptive Cubic"));
+    def->enum_labels.push_back(L("Support Cubic"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipStars));
 
     def = this->add("first_layer_acceleration", coFloat);

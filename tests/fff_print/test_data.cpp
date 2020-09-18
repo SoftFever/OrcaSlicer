@@ -137,7 +137,7 @@ TriangleMesh mesh(TestMesh m)
             	{ {0,1,2}, {2,1,3}, {4,0,5}, {4,1,0}, {6,4,7}, {7,4,5}, {4,8,1}, {0,2,5}, {5,2,9}, {2,10,9}, {10,3,11}, {2,3,10}, {9,10,12}, {13,9,12}, {3,1,8}, {11,3,8}, {10,11,8}, {4,10,8}, {6,12,10}, {4,6,10}, {7,13,12}, {6,7,12}, {7,5,9}, {13,7,9} });
             break;
         default:
-        	throw std::invalid_argument("Slic3r::Test::mesh(): called with invalid mesh ID");
+        	throw Slic3r::InvalidArgument("Slic3r::Test::mesh(): called with invalid mesh ID");
             break;        
     }
 

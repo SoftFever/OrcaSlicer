@@ -460,8 +460,7 @@ private:
     // If a preset does not exist, an iterator is returned indicating where to insert a preset with the same name.
     std::deque<Preset>::iterator find_preset_internal(const std::string &name)
     {
-        Preset key(m_type, name);
-        auto it = std::lower_bound(m_presets.begin() + m_num_default_presets, m_presets.end(), key);
+        auto it = Slic3r::lower_bound_by_predicate(m_presets.begin() + m_num_default_presets, m_presets.end(), [&name](const auto& l) { return l.name < name;  });
         if (it == m_presets.end() || it->name != name) {
             // Preset has not been not found in the sorted list of non-default presets. Try the defaults.
             for (size_t i = 0; i < m_num_default_presets; ++ i)
@@ -539,9 +538,8 @@ namespace PresetUtils {
 class PhysicalPrinter
 {
 public:
-    PhysicalPrinter() {}
-    PhysicalPrinter(const std::string& name) : name(name){}
-    PhysicalPrinter(const std::string& name, const Preset& preset);
+    PhysicalPrinter(const std::string& name, const DynamicPrintConfig &default_config) : name(name), config(default_config) {}
+    PhysicalPrinter(const std::string& name, const DynamicPrintConfig &default_config, const Preset& preset);
     void set_name(const std::string &name);
 
     // Name of the Physical Printer, usually derived form the file name.
@@ -698,6 +696,8 @@ public:
     // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
     std::string     path_from_name(const std::string& new_name) const;
 
+    const DynamicPrintConfig& default_config() const { return m_default_config; }
+
 private:
     PhysicalPrinterCollection& operator=(const PhysicalPrinterCollection& other);
 
@@ -707,9 +707,7 @@ private:
     // If a preset does not exist, an iterator is returned indicating where to insert a preset with the same name.
     std::deque<PhysicalPrinter>::iterator find_printer_internal(const std::string& name)
     {
-        PhysicalPrinter printer(name);
-        auto it = std::lower_bound(m_printers.begin(), m_printers.end(), printer);
-        return it;
+        return Slic3r::lower_bound_by_predicate(m_printers.begin(), m_printers.end(), [&name](const auto& l) { return l.name < name;  });
     }
     std::deque<PhysicalPrinter>::const_iterator find_printer_internal(const std::string& name) const
     {
@@ -722,6 +720,9 @@ private:
     // Use deque to force the container to allocate an object per each entry, 
     // so that the addresses of the presets don't change during resizing of the container.
     std::deque<PhysicalPrinter> m_printers;
+
+    // Default config for a physical printer containing all key/value pairs of PhysicalPrinter::printer_options().
+    DynamicPrintConfig          m_default_config;
 
     // Selected printer.
     size_t                      m_idx_selected = size_t(-1);

@@ -1,3 +1,4 @@
+#include "Exception.hpp"
 #include "Print.hpp"
 
 namespace Slic3r {
@@ -13,7 +14,7 @@ unsigned int PrintRegion::extruder(FlowRole role) const
     else if (role == frSolidInfill || role == frTopSolidInfill)
         extruder = m_config.solid_infill_extruder;
     else
-        throw std::invalid_argument("Unknown role");
+        throw Slic3r::InvalidArgument("Unknown role");
     return extruder;
 }
 
@@ -40,7 +41,7 @@ Flow PrintRegion::flow(FlowRole role, double layer_height, bool bridge, bool fir
         } else if (role == frTopSolidInfill) {
             config_width = m_config.top_infill_extrusion_width;
         } else {
-            throw std::invalid_argument("Unknown role");
+            throw Slic3r::InvalidArgument("Unknown role");
         }
     }
 

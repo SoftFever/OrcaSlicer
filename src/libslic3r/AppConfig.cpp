@@ -1,6 +1,7 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
 #include "AppConfig.hpp"
+#include "Exception.hpp"
 
 #include <utility>
 #include <vector>
@@ -101,6 +102,9 @@ void AppConfig::set_defaults()
     if (get("use_inches").empty())
         set("use_inches", "0");
 
+    if (get("show_splash_screen").empty())
+        set("show_splash_screen", "1");
+
     // Remove legacy window positions/sizes
     erase("", "main_frame_maximized");
     erase("", "main_frame_pos");
@@ -123,7 +127,7 @@ std::string AppConfig::load()
         // ! But to avoid the use of _utf8 (related to use of wxWidgets) 
         // we will rethrow this exception from the place of load() call, if returned value wouldn't be empty
         /*
-        throw std::runtime_error(
+        throw Slic3r::RuntimeError(
         	_utf8(L("Error parsing PrusaSlicer config file, it is probably corrupted. "
                     "Try to manually delete the file to recover from the error. Your user profiles will not be affected.")) + 
         	"\n\n" + AppConfig::config_path() + "\n\n" + ex.what());
@@ -179,6 +183,11 @@ std::string AppConfig::load()
 
 void AppConfig::save()
 {
+#if ENABLE_GCODE_VIEWER
+    if (!m_save_enabled)
+        return;
+#endif // ENABLE_GCODE_VIEWER
+
     // The config is first written to a file with a PID suffix and then moved
     // to avoid race conditions with multiple instances of Slic3r
     const auto path = config_path();

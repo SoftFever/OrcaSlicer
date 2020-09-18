@@ -88,6 +88,14 @@ inline double total_length(const Polygons &polylines) {
     return total;
 }
 
+inline double area(const Polygons &polys)
+{
+    double s = 0.;
+    for (auto &p : polys) s += p.area();
+
+    return s;
+}
+
 // Remove sticks (tentacles with zero area) from the polygon.
 extern bool        remove_sticks(Polygon &poly);
 extern bool        remove_sticks(Polygons &polys);

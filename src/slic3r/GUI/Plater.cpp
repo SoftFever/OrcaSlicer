@@ -107,7 +107,7 @@ namespace GUI {
 wxDEFINE_EVENT(EVT_SCHEDULE_BACKGROUND_PROCESS,     SimpleEvent);
 wxDEFINE_EVENT(EVT_SLICING_UPDATE,                  SlicingStatusEvent);
 wxDEFINE_EVENT(EVT_SLICING_COMPLETED,               wxCommandEvent);
-wxDEFINE_EVENT(EVT_PROCESS_COMPLETED,               wxCommandEvent);
+wxDEFINE_EVENT(EVT_PROCESS_COMPLETED,               SlicingProcessCompletedEvent);
 wxDEFINE_EVENT(EVT_EXPORT_BEGAN,                    wxCommandEvent);
 
 // Sidebar widgets
@@ -1166,8 +1166,27 @@ void Sidebar::update_sliced_info_sizer()
             p->sliced_info->SetTextAndShow(siCost, info_text,      new_label);
 
 #if ENABLE_GCODE_VIEWER
-            // hide the estimate time
-            p->sliced_info->SetTextAndShow(siEstimatedTime, "N/A");
+            if (ps.estimated_normal_print_time == "N/A" && ps.estimated_silent_print_time == "N/A")
+                p->sliced_info->SetTextAndShow(siEstimatedTime, "N/A");
+            else {
+                info_text = "";
+                new_label = _L("Estimated printing time") + ":";
+                if (ps.estimated_normal_print_time != "N/A") {
+                    new_label += format_wxstr("\n   - %1%", _L("normal mode"));
+                    info_text += format_wxstr("\n%1%", short_time(ps.estimated_normal_print_time));
+
+                    // uncomment next line to not disappear slicing finished notif when colapsing sidebar before time estimate
+                    //if (p->plater->is_sidebar_collapsed())
+                    p->plater->get_notification_manager()->set_slicing_complete_large(p->plater->is_sidebar_collapsed());
+                    p->plater->get_notification_manager()->set_slicing_complete_print_time("Estimated printing time: " + ps.estimated_normal_print_time);
+
+                }
+                if (ps.estimated_silent_print_time != "N/A") {
+                    new_label += format_wxstr("\n   - %1%", _L("stealth mode"));
+                    info_text += format_wxstr("\n%1%", short_time(ps.estimated_silent_print_time));
+                }
+                p->sliced_info->SetTextAndShow(siEstimatedTime, info_text, new_label);
+            }
 #else
             if (ps.estimated_normal_print_time == "N/A" && ps.estimated_silent_print_time == "N/A")
                 p->sliced_info->SetTextAndShow(siEstimatedTime, "N/A");
@@ -1369,41 +1388,28 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
     this->MSWUpdateDragImageOnLeave();
 #endif // WIN32
 
-    // gcode section
-    for (const auto& filename : filenames) {
-        fs::path path(into_path(filename));
-        if (std::regex_match(path.string(), pattern_gcode_drop))
-            paths.push_back(std::move(path));
-    }
-
-    if (paths.size() > 1) {
-        wxMessageDialog((wxWindow*)plater, _L("You can open only one .gcode file at a time."),
-            wxString(SLIC3R_APP_NAME) + " - " + _L("Drag and drop G-code file"), wxCLOSE | wxICON_WARNING | wxCENTRE).ShowModal();
-        return false;
-    }
-    else if (paths.size() == 1) {
-        if (wxGetApp().mainframe->get_mode() == MainFrame::EMode::GCodeViewer) {
-            plater->load_gcode(from_path(paths.front()));
-            return true;
+    if (wxGetApp().is_gcode_viewer()) {
+        // gcode section
+        for (const auto& filename : filenames) {
+            fs::path path(into_path(filename));
+            if (std::regex_match(path.string(), pattern_gcode_drop))
+                paths.push_back(std::move(path));
         }
-        else {
-            if (wxMessageDialog((wxWindow*)plater, _L("Do you want to switch to G-code preview ?"),
-                wxString(SLIC3R_APP_NAME) + " - " + _L("Drag and drop G-code file"), wxYES_NO | wxICON_QUESTION | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES) {
 
-                if (plater->model().objects.empty() ||
-                    wxMessageDialog((wxWindow*)plater, _L("Switching to G-code preview mode will remove all objects, continue?"),
-                        wxString(SLIC3R_APP_NAME) + " - " + _L("Switch to G-code preview mode"), wxYES_NO | wxICON_QUESTION | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES) {
-                    wxGetApp().mainframe->set_mode(MainFrame::EMode::GCodeViewer);
-                    plater->load_gcode(from_path(paths.front()));
-                    return true;
-                }
-            }
+        if (paths.size() > 1) {
+            wxMessageDialog((wxWindow*)plater, _L("You can open only one .gcode file at a time."),
+                wxString(SLIC3R_APP_NAME) + " - " + _L("Drag and drop G-code file"), wxCLOSE | wxICON_WARNING | wxCENTRE).ShowModal();
             return false;
         }
+        else if (paths.size() == 1) {
+                plater->load_gcode(from_path(paths.front()));
+                return true;
+        }
+        return false;
     }
 #endif // ENABLE_GCODE_VIEWER
 
-    // model section
+    // editor section
     for (const auto &filename : filenames) {
         fs::path path(into_path(filename));
         if (std::regex_match(path.string(), pattern_drop))
@@ -1411,16 +1417,6 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
         else
             return false;
     }
-
-#if ENABLE_GCODE_VIEWER
-    if (wxGetApp().mainframe->get_mode() == MainFrame::EMode::GCodeViewer) {
-        if (wxMessageDialog((wxWindow*)plater, _L("Do you want to exit G-code preview ?"),
-            wxString(SLIC3R_APP_NAME) + " - " + _L("Drag and drop model file"), wxYES_NO | wxICON_QUESTION | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES)
-            wxGetApp().mainframe->set_mode(MainFrame::EMode::Editor);
-        else
-            return false;
-    }
-#endif // ENABLE_GCODE_VIEWER
 
     wxString snapshot_label;
     assert(! paths.empty());
@@ -1705,7 +1701,7 @@ struct Plater::priv
     void on_select_preset(wxCommandEvent&);
     void on_slicing_update(SlicingStatusEvent&);
     void on_slicing_completed(wxCommandEvent&);
-    void on_process_completed(wxCommandEvent&);
+    void on_process_completed(SlicingProcessCompletedEvent&);
 	void on_export_began(wxCommandEvent&);
     void on_layer_editing_toggled(bool enable);
 	void on_slicing_began();
@@ -1970,7 +1966,13 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     q->SetDropTarget(new PlaterDropTarget(q));   // if my understanding is right, wxWindow takes the owenership
     q->Layout();
 
+#if ENABLE_GCODE_VIEWER
+    set_current_panel(wxGetApp().is_editor() ? (wxPanel*)view3D : (wxPanel*)preview);
+    if (wxGetApp().is_gcode_viewer())
+        preview->hide_layers_slider();
+#else
     set_current_panel(view3D);
+#endif // ENABLE_GCODE_VIEWER
 
     // updates camera type from .ini file
     camera.set_type(get_config("use_perspective_camera"));
@@ -1990,33 +1992,38 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 #endif /* _WIN32 */
 
 	notification_manager = new NotificationManager(this->q);
-	this->q->Bind(EVT_EJECT_DRIVE_NOTIFICAION_CLICKED, [this](EjectDriveNotificationClickedEvent&) { this->q->eject_drive(); });
-	this->q->Bind(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED, [this](ExportGcodeNotificationClickedEvent&) { this->q->export_gcode(true); });
-	this->q->Bind(EVT_PRESET_UPDATE_AVIABLE_CLICKED, [this](PresetUpdateAviableClickedEvent&) {  wxGetApp().get_preset_updater()->on_update_notification_confirm(); });
-
-	this->q->Bind(EVT_REMOVABLE_DRIVE_EJECTED, [this, q](RemovableDriveEjectEvent &evt) {
-		if (evt.data.second) {
-			this->show_action_buttons(this->ready_to_slice);
-			notification_manager->push_notification(format(_L("Unmounting successful. The device %s(%s) can now be safely removed from the computer."),evt.data.first.name, evt.data.first.path),
-				                                    NotificationManager::NotificationLevel::RegularNotification, *q->get_current_canvas3D());
-		} else {
-			notification_manager->push_notification(format(_L("Ejecting of device %s(%s) has failed."), evt.data.first.name, evt.data.first.path),
-				                                    NotificationManager::NotificationLevel::ErrorNotification, *q->get_current_canvas3D());
-		}
-	});
-    this->q->Bind(EVT_REMOVABLE_DRIVES_CHANGED, [this, q](RemovableDrivesChangedEvent &) {
-		this->show_action_buttons(this->ready_to_slice); 
-		if (!this->sidebar->get_eject_shown()) {
-			notification_manager->close_notification_of_type(NotificationType::ExportToRemovableFinished);
-		}
-	});
-    // Start the background thread and register this window as a target for update events.
-    wxGetApp().removable_drive_manager()->init(this->q);
+#if ENABLE_GCODE_VIEWER
+    if (wxGetApp().is_editor()) {
+#endif // ENABLE_GCODE_VIEWER
+        this->q->Bind(EVT_EJECT_DRIVE_NOTIFICAION_CLICKED, [this](EjectDriveNotificationClickedEvent&) { this->q->eject_drive(); });
+        this->q->Bind(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED, [this](ExportGcodeNotificationClickedEvent&) { this->q->export_gcode(true); });
+        this->q->Bind(EVT_PRESET_UPDATE_AVIABLE_CLICKED, [this](PresetUpdateAviableClickedEvent&) {  wxGetApp().get_preset_updater()->on_update_notification_confirm(); });
+	    this->q->Bind(EVT_REMOVABLE_DRIVE_EJECTED, [this, q](RemovableDriveEjectEvent &evt) {
+		    if (evt.data.second) {
+			    this->show_action_buttons(this->ready_to_slice);
+			    notification_manager->push_notification(format(_L("Unmounting successful. The device %s(%s) can now be safely removed from the computer."),evt.data.first.name, evt.data.first.path),
+				                                        NotificationManager::NotificationLevel::RegularNotification, *q->get_current_canvas3D());
+		    } else {
+			    notification_manager->push_notification(format(_L("Ejecting of device %s(%s) has failed."), evt.data.first.name, evt.data.first.path),
+				                                        NotificationManager::NotificationLevel::ErrorNotification, *q->get_current_canvas3D());
+		    }
+	    });
+        this->q->Bind(EVT_REMOVABLE_DRIVES_CHANGED, [this, q](RemovableDrivesChangedEvent &) {
+		    this->show_action_buttons(this->ready_to_slice); 
+		    if (!this->sidebar->get_eject_shown()) {
+			    notification_manager->close_notification_of_type(NotificationType::ExportToRemovableFinished);
+		    }
+	    });
+        // Start the background thread and register this window as a target for update events.
+        wxGetApp().removable_drive_manager()->init(this->q);
 #ifdef _WIN32
-    // Trigger enumeration of removable media on Win32 notification.
-    this->q->Bind(EVT_VOLUME_ATTACHED, [this](VolumeAttachedEvent &evt) { wxGetApp().removable_drive_manager()->volumes_changed(); });
-    this->q->Bind(EVT_VOLUME_DETACHED, [this](VolumeDetachedEvent &evt) { wxGetApp().removable_drive_manager()->volumes_changed(); });
+        // Trigger enumeration of removable media on Win32 notification.
+        this->q->Bind(EVT_VOLUME_ATTACHED, [this](VolumeAttachedEvent &evt) { wxGetApp().removable_drive_manager()->volumes_changed(); });
+        this->q->Bind(EVT_VOLUME_DETACHED, [this](VolumeDetachedEvent &evt) { wxGetApp().removable_drive_manager()->volumes_changed(); });
 #endif /* _WIN32 */
+#if ENABLE_GCODE_VIEWER
+    }
+#endif // ENABLE_GCODE_VIEWER
 
     // Initialize the Undo / Redo stack with a first snapshot.
     this->take_snapshot(_L("New Project"));
@@ -2811,7 +2818,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         if (this->preview != nullptr) {
             // If the preview is not visible, the following line just invalidates the preview,
             // but the G-code paths or SLA preview are calculated first once the preview is made visible.
-            this->preview->get_canvas3d()->reset_gcode_toolpaths();
+            reset_gcode_toolpaths();
             this->preview->reload_print();
         }
 #else
@@ -3522,7 +3529,7 @@ bool Plater::priv::warnings_dialog()
 	return res == wxID_OK;
 
 }
-void Plater::priv::on_process_completed(wxCommandEvent &evt)
+void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
 {
     // Stop the background task, wait until the thread goes into the "Idle" state.
     // At this point of time the thread should be either finished or canceled,
@@ -3531,27 +3538,30 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
     this->statusbar()->reset_cancel_callback();
     this->statusbar()->stop_busy();
 
-    const bool canceled = evt.GetInt() < 0;
-    const bool error = evt.GetInt() == 0;
-    const bool success  = evt.GetInt() > 0;
     // Reset the "export G-code path" name, so that the automatic background processing will be enabled again.
     this->background_process.reset_export();
 
-    if (error) {
-        wxString message = evt.GetString();
-        if (message.IsEmpty())
-            message = _L("Export failed.");
-		notification_manager->push_slicing_error_notification(boost::nowide::narrow(message), *q->get_current_canvas3D());
-        this->statusbar()->set_status_text(message);
+    if (evt.error()) {
+        std::string message = evt.format_error_message();
+        if (evt.critical_error()) {
+            if (q->m_tracking_popup_menu)
+                // We don't want to pop-up a message box when tracking a pop-up menu.
+                // We postpone the error message instead.
+                q->m_tracking_popup_menu_error_message = message;
+            else
+                show_error(q, message);
+        } else
+		  notification_manager->push_slicing_error_notification(message, *q->get_current_canvas3D());
+        this->statusbar()->set_status_text(from_u8(message));
 		const wxString invalid_str = _L("Invalid data");
 		for (auto btn : { ActionButtonType::abReslice, ActionButtonType::abSendGCode, ActionButtonType::abExport })
 			sidebar->set_btn_label(btn, invalid_str);
 		process_completed_with_error = true;
     }
-    if (canceled)
+    if (evt.cancelled())
         this->statusbar()->set_status_text(_L("Cancelled"));
 
-    this->sidebar->show_sliced_info_sizer(success);
+    this->sidebar->show_sliced_info_sizer(evt.success());
 
     // This updates the "Slice now", "Export G-code", "Arrange" buttons status.
     // Namely, it refreshes the "Out of print bed" property of all the ModelObjects, and it enables
@@ -3572,7 +3582,7 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
     default: break;
     }
 	
-    if (canceled) {
+    if (evt.cancelled()) {
         if (wxGetApp().get_mode() == comSimple)
             sidebar->set_btn_label(ActionButtonType::abReslice, "Slice now");
         show_action_buttons(true);
@@ -4013,7 +4023,11 @@ bool Plater::priv::init_view_toolbar()
         return false;
 
     view_toolbar.select_item("3D");
-    view_toolbar.set_enabled(true);
+
+#if ENABLE_GCODE_VIEWER
+    if (wxGetApp().is_editor())
+#endif // ENABLE_GCODE_VIEWER
+        view_toolbar.set_enabled(true);
 
     return true;
 }
@@ -5384,6 +5398,10 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             this->set_printer_technology(config.opt_enum<PrinterTechnology>(opt_key));
             // print technology is changed, so we should to update a search list
             p->sidebar->update_searcher();
+            p->sidebar->show_sliced_info_sizer(false);
+#if ENABLE_GCODE_VIEWER
+            p->reset_gcode_toolpaths();
+#endif // ENABLE_GCODE_VIEWER
         }
         else if ((opt_key == "bed_shape") || (opt_key == "bed_custom_texture") || (opt_key == "bed_custom_model")) {
             bed_shape_changed = true;
@@ -5628,11 +5646,7 @@ void Plater::set_printer_technology(PrinterTechnology printer_technology)
     p->label_btn_send   = printer_technology == ptFFF ? L("Send G-code")   : L("Send to printer");
 
     if (wxGetApp().mainframe != nullptr)
-#if ENABLE_GCODE_VIEWER
-        wxGetApp().mainframe->update_editor_menubar();
-#else
         wxGetApp().mainframe->update_menubar();
-#endif // ENABLE_GCODE_VIEWER
 
     p->update_main_toolbar_tooltips();
 

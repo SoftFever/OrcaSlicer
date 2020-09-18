@@ -33,7 +33,11 @@ namespace Slic3r {
 namespace GUI {
 
 KBShortcutsDialog::KBShortcutsDialog()
+#if ENABLE_GCODE_VIEWER
+    : DPIDialog(NULL, wxID_ANY, wxString(wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME) + " - " + _L("Keyboard Shortcuts"),
+#else
     : DPIDialog(NULL, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _L("Keyboard Shortcuts"),
+#endif // ENABLE_GCODE_VIEWER
     wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
@@ -95,9 +99,7 @@ void KBShortcutsDialog::fill_shortcuts()
     const std::string& alt = GUI::shortkey_alt_prefix();
 
 #if ENABLE_GCODE_VIEWER
-    bool is_gcode_viewer = wxGetApp().mainframe->get_mode() == MainFrame::EMode::GCodeViewer;
-
-    if (!is_gcode_viewer) {
+    if (wxGetApp().is_editor()) {
 #endif // ENABLE_GCODE_VIEWER
         Shortcuts commands_shortcuts = {
             // File

@@ -92,10 +92,13 @@ public:
 #ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList 
         this->SetFont(m_normal_font);
 #endif
-        // initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
-#if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
+
+        // Linux specific issue : get_dpi_for_window(this) still doesn't responce to the Display's scale in new wxWidgets(3.1.3).
+        // So, calculate the m_em_unit value from the font size, as before
+#if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT && !defined(__WXGTK__)
         m_em_unit = std::max<size_t>(10, 10.0f * m_scale_factor);
 #else
+        // initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
         m_em_unit = std::max<size_t>(10, this->GetTextExtent("m").x - 1);
 #endif // ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
 
@@ -219,16 +222,12 @@ private:
     {
         this->Freeze();
 
-#if wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
-        if (m_force_rescale) {
-#endif // wxVERSION_EQUAL_OR_GREATER_THAN
-            // rescale fonts of all controls
-            scale_controls_fonts(this, m_new_font_point_size);
-            // rescale current window font
-            scale_win_font(this, m_new_font_point_size);
-#if wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
-            m_force_rescale = false;
-        }
+        m_force_rescale = false;
+#if !wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
+        // rescale fonts of all controls
+        scale_controls_fonts(this, m_new_font_point_size);
+        // rescale current window font
+        scale_win_font(this, m_new_font_point_size);
 #endif // wxVERSION_EQUAL_OR_GREATER_THAN
 
         // set normal application font as a current window font

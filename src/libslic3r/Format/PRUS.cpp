@@ -147,7 +147,7 @@ static void extract_model_from_archive(
         }
     }
     if (! trafo_set)
-        throw std::runtime_error(std::string("Archive ") + path + " does not contain a valid entry in scene.xml for " + name);
+        throw Slic3r::FileIOError(std::string("Archive ") + path + " does not contain a valid entry in scene.xml for " + name);
 
     // Extract the STL.
     StlHeader header;
@@ -266,7 +266,7 @@ static void extract_model_from_archive(
     }
 
     if (! mesh_valid)
-        throw std::runtime_error(std::string("Archive ") + path + " does not contain a valid mesh for " + name);
+        throw Slic3r::FileIOError(std::string("Archive ") + path + " does not contain a valid mesh for " + name);
 
     // Add this mesh to the model.
     ModelVolume *volume = nullptr;
@@ -303,7 +303,7 @@ bool load_prus(const char *path, Model *model)
     mz_bool res              = MZ_FALSE;
     try {
         if (!open_zip_reader(&archive, path))
-            throw std::runtime_error(std::string("Unable to init zip reader for ") + path);
+            throw Slic3r::FileIOError(std::string("Unable to init zip reader for ") + path);
         std::vector<char>           scene_xml_data;
         // For grouping multiple STLs into a single ModelObject for multi-material prints.
         std::map<int, ModelObject*> group_to_model_object;
@@ -316,10 +316,10 @@ bool load_prus(const char *path, Model *model)
             buffer.assign((size_t)stat.m_uncomp_size, 0);
             res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, (char*)buffer.data(), (size_t)stat.m_uncomp_size, 0);
             if (res == MZ_FALSE)
-                std::runtime_error(std::string("Error while extracting a file from ") + path);
+                throw Slic3r::FileIOError(std::string("Error while extracting a file from ") + path);
             if (strcmp(stat.m_filename, "scene.xml") == 0) {
                 if (! scene_xml_data.empty())
-                    throw std::runtime_error(std::string("Multiple scene.xml were found in the archive.") + path);
+                    throw Slic3r::FileIOError(std::string("Multiple scene.xml were found in the archive.") + path);
                 scene_xml_data = std::move(buffer);
             } else if (boost::iends_with(stat.m_filename, ".stl")) {
                 // May throw std::exception

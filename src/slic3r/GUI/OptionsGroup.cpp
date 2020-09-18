@@ -7,6 +7,7 @@
 #include <wx/numformatter.h>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
+#include "libslic3r/Exception.hpp"
 #include "libslic3r/Utils.hpp"
 #include "I18N.hpp"
 
@@ -64,7 +65,7 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 				break;
             case coNone:   break;
             default:
-				throw /*//!ConfigGUITypeError("")*/std::logic_error("This control doesn't exist till now"); break;
+				throw Slic3r::LogicError("This control doesn't exist till now"); break;
         }
     }
     // Grab a reference to fields for convenience
@@ -466,7 +467,8 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
 	}
     else if (m_opt_map.find(opt_key) == m_opt_map.end() ||
 		    // This option don't have corresponded field
-		     opt_key == "bed_shape" || opt_key == "compatible_printers" || opt_key == "compatible_prints" ) {
+		     opt_key == "bed_shape"				|| opt_key == "filament_ramming_parameters" || 
+		     opt_key == "compatible_printers"	|| opt_key == "compatible_prints" ) {
         value = get_config_value(config, opt_key);
         change_opt_value(*m_config, opt_key, value);
         return;
@@ -619,7 +621,7 @@ boost::any ConfigOptionsGroup::config_value(const std::string& opt_key, int opt_
 		// Aggregate the strings the old way.
 		// Currently used for the post_process config value only.
 		if (opt_index != -1)
-			throw std::out_of_range("Can't deserialize option indexed value");
+			throw Slic3r::OutOfRange("Can't deserialize option indexed value");
 // 		return join(';', m_config->get(opt_key)});
 		return get_config_value(*m_config, opt_key);
 	}
@@ -699,6 +701,10 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 			ret = config.option<ConfigOptionStrings>(opt_key)->values;
 			break;
 		}
+		if (opt_key == "filament_ramming_parameters") {
+			ret = config.opt_string(opt_key, static_cast<unsigned int>(idx));
+			break;
+		}
 		if (config.option<ConfigOptionStrings>(opt_key)->values.empty())
 			ret = text_value;
 		else if (opt->gui_flags.compare("serialized") == 0) {
@@ -750,7 +756,7 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
         else if (opt_key == "support_pillar_connection_mode") {
             ret  = static_cast<int>(config.option<ConfigOptionEnum<SLAPillarConnectionMode>>(opt_key)->value);
         }
-        else if (opt_key == "authorization_type") {
+        else if (opt_key == "printhost_authorization_type") {
             ret  = static_cast<int>(config.option<ConfigOptionEnum<AuthorizationType>>(opt_key)->value);
         }
 	}

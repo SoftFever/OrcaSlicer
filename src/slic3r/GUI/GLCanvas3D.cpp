@@ -2732,7 +2732,7 @@ static void load_gcode_retractions(const GCodePreviewData::Retraction& retractio
 void GLCanvas3D::load_gcode_preview(const GCodeProcessor::Result& gcode_result)
 {
     m_gcode_viewer.load(gcode_result, *this->fff_print(), m_initialized);
-    if (wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer)
+    if (wxGetApp().is_editor())
         _show_warning_texture_if_needed(WarningTexture::ToolpathOutside);
 }
 
@@ -4302,7 +4302,7 @@ void GLCanvas3D::update_ui_from_settings()
 #endif // ENABLE_RETINA_GL
 
 #if ENABLE_GCODE_VIEWER
-    if (wxGetApp().mainframe != nullptr && wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer)
+    if (wxGetApp().is_editor())
         wxGetApp().plater()->get_collapse_toolbar().set_enabled(wxGetApp().app_config->get("show_collapse_button") == "1");
 #else
     bool enable_collapse = wxGetApp().app_config->get("show_collapse_button") == "1";
@@ -4999,7 +4999,7 @@ bool GLCanvas3D::_init_main_toolbar()
         return false;
 
     item.name = "settings";
-    item.icon_filename = "cog_.svg";
+    item.icon_filename = "settings.svg";
     item.tooltip = _u8L("Switch to Settings") + "\n" + "[" + GUI::shortkey_ctrl_prefix() + "2] - " + _u8L("Print Settings Tab")    + 
                                                 "\n" + "[" + GUI::shortkey_ctrl_prefix() + "3] - " + (m_process->current_printer_technology() == ptFFF ? _u8L("Filament Settings Tab") : _u8L("Material Settings Tab")) +
                                                 "\n" + "[" + GUI::shortkey_ctrl_prefix() + "4] - " + _u8L("Printer Settings Tab") ;
@@ -5011,35 +5011,16 @@ bool GLCanvas3D::_init_main_toolbar()
     if (!m_main_toolbar.add_item(item))
         return false;
 
+    /*
     if (!m_main_toolbar.add_separator())
         return false;
-
-    item.name = "layersediting";
-    item.icon_filename = "layers_white.svg";
-    item.tooltip = _utf8(L("Variable layer height"));
-    item.sprite_id = 11;
-    item.left.toggable = true;
-    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING)); };
-    item.visibility_callback = [this]()->bool
-    {
-        bool res = m_process->current_printer_technology() == ptFFF;
-        // turns off if changing printer technology
-        if (!res && m_main_toolbar.is_item_visible("layersediting") && m_main_toolbar.is_item_pressed("layersediting"))
-            force_main_toolbar_left_action(get_main_toolbar_item_id("layersediting"));
-
-        return res;
-    };
-    item.enabling_callback = []()->bool { return wxGetApp().plater()->can_layers_editing(); };
-    if (!m_main_toolbar.add_item(item))
-        return false;
-
-    if (!m_main_toolbar.add_separator())
-        return false;
+        */
 
     item.name = "search";
     item.icon_filename = "search_.svg";
     item.tooltip = _utf8(L("Search")) + " [" + GUI::shortkey_ctrl_prefix() + "F]";
-    item.sprite_id = 12;
+    item.sprite_id = 11;
+    item.left.toggable = true;
     item.left.render_callback = [this](float left, float right, float, float) {
         if (m_canvas != nullptr)
         {
@@ -5050,6 +5031,27 @@ bool GLCanvas3D::_init_main_toolbar()
     item.left.action_callback   = GLToolbarItem::Default_Action_Callback;
     item.visibility_callback    = GLToolbarItem::Default_Visibility_Callback;
     item.enabling_callback      = GLToolbarItem::Default_Enabling_Callback;
+    if (!m_main_toolbar.add_item(item))
+        return false;
+
+    if (!m_main_toolbar.add_separator())
+        return false;
+
+    item.name = "layersediting";
+    item.icon_filename = "layers_white.svg";
+    item.tooltip = _utf8(L("Variable layer height"));
+    item.sprite_id = 12;
+    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING)); };
+    item.visibility_callback = [this]()->bool {
+        bool res = m_process->current_printer_technology() == ptFFF;
+        // turns off if changing printer technology
+        if (!res && m_main_toolbar.is_item_visible("layersediting") && m_main_toolbar.is_item_pressed("layersediting"))
+            force_main_toolbar_left_action(get_main_toolbar_item_id("layersediting"));
+
+        return res;
+    };
+    item.enabling_callback      = []()->bool { return wxGetApp().plater()->can_layers_editing(); };
+    item.left.render_callback   = GLToolbarItem::Default_Render_Callback;
     if (!m_main_toolbar.add_item(item))
         return false;
 
@@ -5161,10 +5163,10 @@ bool GLCanvas3D::_init_undoredo_toolbar()
 
     if (!m_undoredo_toolbar.add_item(item))
         return false;
-
+    /*
     if (!m_undoredo_toolbar.add_separator())
         return false;
-
+        */
     return true;
 }
 
@@ -5405,7 +5407,7 @@ void GLCanvas3D::_render_background() const
 {
 #if ENABLE_GCODE_VIEWER
     bool use_error_color = false;
-    if (wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer) {
+    if (wxGetApp().is_editor()) {
         use_error_color = m_dynamic_background_enabled;
         if (!m_volumes.empty())
             use_error_color &= _is_any_volume_outside();
@@ -5553,6 +5555,10 @@ void GLCanvas3D::_render_selection_center() const
 
 void GLCanvas3D::_check_and_update_toolbar_icon_scale() const
 {
+    // Don't update a toolbar scale, when we are on a Preview
+    if (wxGetApp().plater()->is_preview_shown())
+        return;
+
     float scale = wxGetApp().toolbar_icon_scale();
     Size cnv_size = get_canvas_size();
 
@@ -7134,7 +7140,7 @@ void GLCanvas3D::_show_warning_texture_if_needed(WarningTexture::Warning warning
     if (!m_volumes.empty())
         show = _is_any_volume_outside();
     else {
-        if (wxGetApp().mainframe->get_mode() != MainFrame::EMode::GCodeViewer) {
+        if (wxGetApp().is_editor()) {
             BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
             const BoundingBoxf3& paths_volume = m_gcode_viewer.get_paths_bounding_box();
             if (test_volume.radius() > 0.0 && paths_volume.radius() > 0.0)

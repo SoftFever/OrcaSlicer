@@ -4,9 +4,11 @@
 #include <functional>
 #include <array>
 
+#include <libslic3r/Point.hpp>
+
 namespace Slic3r {
 
-class ModelObject;
+class SLAPrintObject;
 
 namespace sla {
 
@@ -25,14 +27,17 @@ namespace sla {
   *
   * @return Returns the rotations around each axis (x, y, z)
   */
-std::array<double, 3> find_best_rotation(
-        const ModelObject& modelobj,
+Vec2d find_best_rotation(
+        const SLAPrintObject& modelobj,
         float accuracy = 1.0f,
         std::function<void(unsigned)> statuscb = [] (unsigned) {},
         std::function<bool()> stopcond = [] () { return false; }
         );
 
-}
-}
+double get_model_supportedness(const SLAPrintObject &mesh,
+                               const Transform3d & tr);
+
+} // namespace sla
+} // namespace Slic3r
 
 #endif // SLAROTFINDER_HPP
