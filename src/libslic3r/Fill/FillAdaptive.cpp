@@ -434,6 +434,64 @@ static void generate_infill_lines_recursive(
     }
 }
 
+#if 0
+// Collect the line segments.
+static Polylines chain_lines(const std::vector<Line> &lines, const double point_distance_epsilon)
+{
+    // Create line end point lookup.
+    struct LineEnd {
+        LineEnd(Line *line, bool start) : line(line), start(start) {}
+        Line            *line;
+        // Is it the start or end point?
+        bool             start;
+        const Point&     point() const { return start ? line->a : line->b; }
+        const Point&     other_point() const { return start ? line->b : line->a; }
+        LineEnd          other_end() const { return LineEnd(line, ! start); }
+        bool operator==(const LineEnd &rhs) const { return this->line == rhs.line && this->start == rhs.start; }
+    };
+    struct LineEndAccessor {
+        const Point* operator()(const LineEnd &pt) const { return &pt.point(); }
+    };
+    typedef ClosestPointInRadiusLookup<LineEnd, LineEndAccessor> ClosestPointLookupType;
+    ClosestPointLookupType closest_end_point_lookup(point_distance_epsilon);
+    for (const Line &line : lines) {
+        closest_end_point_lookup.insert(LineEnd(&line, true));
+        closest_end_point_lookup.insert(LineEnd(&line, false));
+    }
+
+    // Chain the lines.
+    std::vector<char> line_consumed(lines.size(), false);
+    static const double point_distance_epsilon2 = point_distance_epsilon * point_distance_epsilon;
+    Polylines out;
+    for (const Line &seed : lines)
+        if (! line_consumed[&seed - lines.data()]) {
+            line_consumed[&seed - lines.data()] = true;
+            closest_end_point_lookup.erase(LineEnd(&seed, false));
+            closest_end_point_lookup.erase(LineEnd(&seed, true));
+            Polyline pl { seed.a, seed.b };
+            for (size_t round = 0; round < 2; ++ round) {
+                for (;;) {
+                    auto [line_end, dist2] = closest_end_point_lookup.find(pl.last_point());
+                    if (line_end == nullptr || dist2 >= point_distance_epsilon2)
+                        // Cannot extent in this direction.
+                        break;
+                    // Average the last point.
+                    pl.points.back() = 0.5 * (pl.points.back() + line_end->point());
+                    // and extend with the new line segment.
+                    pl.points.emplace_back(line_end->other_point());
+                    closest_end_point_lookup.erase(line_end);
+                    closest_end_point_lookup.erase(line_end->other_end());
+                    line_consumed[line_end->line - lines.data()] = true;
+                }
+                // reverse and try the oter direction.
+                pl.reverse();
+            }
+            out.emplace_back(std::move(pl));
+        }
+    return out;
+}
+#endif
+
 #ifndef NDEBUG
 //    #define ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT
 #endif
@@ -517,6 +575,7 @@ void Filler::_fill_surface_single(
                     lines.emplace_back(line);
         }
         // Convert lines to polylines.
+        //FIXME chain the lines
         all_polylines.reserve(lines.size());
         std::transform(lines.begin(), lines.end(), std::back_inserter(all_polylines), [](const Line& l) { return Polyline{ l.a, l.b }; });
     }
@@ -533,23 +592,8 @@ void Filler::_fill_surface_single(
 
     if (params.dont_connect)
         append(polylines_out, std::move(all_polylines));
-    else {
-        Polylines boundary_polylines;
-        Polylines non_boundary_polylines;
-        for (const Polyline &polyline : all_polylines)
-            // connect_infill required all polylines to touch the boundary.
-            if (polyline.lines().size() == 1 && expolygon.has_boundary_point(polyline.lines().front().a) && expolygon.has_boundary_point(polyline.lines().front().b))
-                boundary_polylines.push_back(polyline);
-            else
-                non_boundary_polylines.push_back(polyline);
-
-        if (!boundary_polylines.empty()) {
-            boundary_polylines = chain_polylines(boundary_polylines);
-            connect_infill(std::move(boundary_polylines), expolygon, polylines_out, this->spacing, params);
-        }
-
-        append(polylines_out, std::move(non_boundary_polylines));
-    }
+    else
+        connect_infill(chain_polylines(std::move(all_polylines)), expolygon, polylines_out, this->spacing, params);
 
 #ifdef ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT
     {
@@ -618,7 +662,7 @@ OctreePtr build_octree(const indexed_triangle_set &triangle_mesh, coordf_t line_
     auto                        octree           = OctreePtr(new Octree(cube_center, cubes_properties));
 
     if (cubes_properties.size() > 1) {
-        auto up_vector = support_overhangs_only ? transform_to_octree() * Vec3d(0., 0., 1.) : Vec3d();
+        auto up_vector = support_overhangs_only ? Vec3d(transform_to_octree() * Vec3d(0., 0., 1.)) : Vec3d();
         for (auto &tri : triangle_mesh.indices) {
             auto a = triangle_mesh.vertices[tri[0]].cast<double>();
             auto b = triangle_mesh.vertices[tri[1]].cast<double>();
