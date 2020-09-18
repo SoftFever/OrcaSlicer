@@ -232,7 +232,7 @@ Point SeamPlacer::get_seam(const size_t layer_idx, const SeamPosition seam_posit
                 std::optional<Point> pos = m_seam_history.get_last_seam(po, layer_idx, polygon_bb);
                 if (pos.has_value()) {
                     //last_pos = m_last_seam_position[po];
-                    last_pos = pos.value();
+                    last_pos = *pos;
                     last_pos_weight = is_custom_enforcer_on_layer(layer_idx) ? 0.f : 1.f;
                 }
             }
@@ -318,7 +318,7 @@ Point SeamPlacer::get_seam(const size_t layer_idx, const SeamPosition seam_posit
         // Find a point with a minimum penalty.
         size_t idx_min = std::min_element(penalties.begin(), penalties.end()) - penalties.begin();
 
-        if (! spAligned || ! is_custom_enforcer_on_layer(layer_idx)) {
+        if (seam_position != spAligned || ! is_custom_enforcer_on_layer(layer_idx)) {
             // Very likely the weight of idx_min is very close to the weight of last_pos_proj_idx.
             // In that case use last_pos_proj_idx instead.
             float penalty_aligned  = penalties[last_pos_proj_idx];
