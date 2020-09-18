@@ -19,6 +19,7 @@
 #include <boost/pool/object_pool.hpp>
 
 namespace Slic3r {
+namespace FillAdaptive {
 
 // Derived from https://github.com/juj/MathGeoLib/blob/master/src/Geometry/Triangle.cpp
 // The AABB-Triangle test implementation is based on the pseudo-code in
@@ -165,48 +166,45 @@ static constexpr std::array<std::array<int, 8>, 3> child_traversal_order {
     std::array<int, 8>{ 1, 5, 0, 4, 3, 7, 2, 6 },
 };
 
-namespace FillAdaptive_Internal
+struct Cube
 {
-    struct Cube
-    {
-        Vec3d center;
+    Vec3d center;
 #ifndef NDEBUG
-        Vec3d center_octree;
+    Vec3d center_octree;
 #endif // NDEBUG
-        std::array<Cube*, 8> children {}; // initialized to nullptrs
-        Cube(const Vec3d &center) : center(center) {}
-    };
+    std::array<Cube*, 8> children {}; // initialized to nullptrs
+    Cube(const Vec3d &center) : center(center) {}
+};
 
-    struct CubeProperties
-    {
-        double edge_length;     // Lenght of edge of a cube
-        double height;          // Height of rotated cube (standing on the corner)
-        double diagonal_length; // Length of diagonal of a cube a face
-        double line_z_distance; // Defines maximal distance from a center of a cube on Z axis on which lines will be created
-        double line_xy_distance;// Defines maximal distance from a center of a cube on X and Y axis on which lines will be created
-    };
+struct CubeProperties
+{
+    double edge_length;     // Lenght of edge of a cube
+    double height;          // Height of rotated cube (standing on the corner)
+    double diagonal_length; // Length of diagonal of a cube a face
+    double line_z_distance; // Defines maximal distance from a center of a cube on Z axis on which lines will be created
+    double line_xy_distance;// Defines maximal distance from a center of a cube on X and Y axis on which lines will be created
+};
 
-    struct Octree
-    {
-        // Octree will allocate its Cubes from the pool. The pool only supports deletion of the complete pool,
-        // perfect for building up our octree.
-        boost::object_pool<Cube>    pool;
-        Cube*                       root_cube { nullptr };
-        Vec3d                       origin;
-        std::vector<CubeProperties> cubes_properties;
+struct Octree
+{
+    // Octree will allocate its Cubes from the pool. The pool only supports deletion of the complete pool,
+    // perfect for building up our octree.
+    boost::object_pool<Cube>    pool;
+    Cube*                       root_cube { nullptr };
+    Vec3d                       origin;
+    std::vector<CubeProperties> cubes_properties;
 
-        Octree(const Vec3d &origin, const std::vector<CubeProperties> &cubes_properties)
-            : root_cube(pool.construct(origin)), origin(origin), cubes_properties(cubes_properties) {}
+    Octree(const Vec3d &origin, const std::vector<CubeProperties> &cubes_properties)
+        : root_cube(pool.construct(origin)), origin(origin), cubes_properties(cubes_properties) {}
 
-        void insert_triangle(const Vec3d &a, const Vec3d &b, const Vec3d &c, Cube *current_cube, const BoundingBoxf3 &current_bbox, int depth);
-    };
+    void insert_triangle(const Vec3d &a, const Vec3d &b, const Vec3d &c, Cube *current_cube, const BoundingBoxf3 &current_bbox, int depth);
+};
 
-    void OctreeDeleter::operator()(Octree *p) {
-        delete p;
-    }
-}; // namespace FillAdaptive_Internal
+void OctreeDeleter::operator()(Octree *p) {
+    delete p;
+}
 
-std::pair<double, double> FillAdaptive_Internal::adaptive_fill_line_spacing(const PrintObject &print_object)
+std::pair<double, double> FillAdaptive::adaptive_fill_line_spacing(const PrintObject &print_object)
 {
     // Output, spacing for icAdaptiveCubic and icSupportCubic
     double  adaptive_line_spacing = 0.;
@@ -296,7 +294,7 @@ struct FillContext
         -(2.0 * M_PI) / 3.0
     };
 
-    FillContext(const FillAdaptive_Internal::Octree &octree, double z_position, int direction_idx) :
+    FillContext(const Octree &octree, double z_position, int direction_idx) :
         origin_world(octree.origin),
         cubes_properties(octree.cubes_properties),
         z_position(z_position),
@@ -312,31 +310,31 @@ struct FillContext
     Vec2d rotate(const Vec2d& v) { return Vec2d(this->cos_a * v.x() - this->sin_a * v.y(), this->sin_a * v.x() + this->cos_a * v.y()); }
 
     // Center of the root cube in the Octree coordinate system.
-    const Vec3d                                                 origin_world;
-    const std::vector<FillAdaptive_Internal::CubeProperties>   &cubes_properties;
+    const Vec3d                         origin_world;
+    const std::vector<CubeProperties>  &cubes_properties;
     // Top of the current layer.
-    const double                                                z_position;
+    const double                        z_position;
     // Order of traversal for this line direction.
-    const std::array<int, 8>                                    traversal_order;
+    const std::array<int, 8>            traversal_order;
     // Rotation of the generated line for this line direction.
-    const double                                                cos_a;
-    const double                                                sin_a;
+    const double                        cos_a;
+    const double                        sin_a;
 
     // Linearized tree spanning a single Octree wall, used to connect lines spanning
     // neighboring Octree cells. Unused lines have the Line::a::x set to infinity.
-    std::vector<Line>                                           temp_lines;
+    std::vector<Line>                   temp_lines;
     // Final output
-    std::vector<Line>                                           output_lines;
+    std::vector<Line>                   output_lines;
 };
 
 static constexpr double octree_rot[3] = { 5.0 * M_PI / 4.0, Geometry::deg2rad(215.264), M_PI / 6.0 };
 
-Eigen::Quaterniond FillAdaptive_Internal::adaptive_fill_octree_transform_to_world()
+Eigen::Quaterniond transform_to_world()
 {
     return Eigen::AngleAxisd(octree_rot[2], Vec3d::UnitZ()) * Eigen::AngleAxisd(octree_rot[1], Vec3d::UnitY()) * Eigen::AngleAxisd(octree_rot[0], Vec3d::UnitX());
 }
 
-Eigen::Quaterniond FillAdaptive_Internal::adaptive_fill_octree_transform_to_octree()
+Eigen::Quaterniond transform_to_octree()
 {
     return Eigen::AngleAxisd(- octree_rot[0], Vec3d::UnitX()) * Eigen::AngleAxisd(- octree_rot[1], Vec3d::UnitY()) * Eigen::AngleAxisd(- octree_rot[2], Vec3d::UnitZ());
 }
@@ -345,14 +343,14 @@ Eigen::Quaterniond FillAdaptive_Internal::adaptive_fill_octree_transform_to_octr
 // Verify that the traversal order of the octree children matches the line direction,
 // therefore the infill line may get extended with O(1) time & space complexity.
 static bool verify_traversal_order(
-    FillContext                         &context,
-    const FillAdaptive_Internal::Cube   *cube,
-    int                                  depth,
-    const Vec2d                         &line_from,
-    const Vec2d                         &line_to)
+    FillContext  &context,
+    const Cube   *cube,
+    int           depth,
+    const Vec2d  &line_from,
+    const Vec2d  &line_to)
 {
     std::array<Vec3d, 8> c;
-    Eigen::Quaterniond to_world = FillAdaptive_Internal::adaptive_fill_octree_transform_to_world();
+    Eigen::Quaterniond to_world = transform_to_world();
     for (int i = 0; i < 8; ++i) {
         int j = context.traversal_order[i];
         Vec3d cntr = to_world * (cube->center_octree + (child_centers[j] * (context.cubes_properties[depth].edge_length / 4.)));
@@ -379,15 +377,15 @@ static bool verify_traversal_order(
 #endif // NDEBUG
 
 static void generate_infill_lines_recursive(
-    FillContext                         &context,
-    const FillAdaptive_Internal::Cube   *cube,
+    FillContext     &context,
+    const Cube      *cube,
     // Address of this wall in the octree,  used to address context.temp_lines.
-    int                                  address,
-    int                                  depth)
+    int              address,
+    int              depth)
 {
     assert(cube != nullptr);
 
-    const std::vector<FillAdaptive_Internal::CubeProperties> &cubes_properties = context.cubes_properties;
+    const std::vector<CubeProperties> &cubes_properties = context.cubes_properties;
     const double z_diff     = context.z_position - cube->center.z();
     const double z_diff_abs = std::abs(z_diff);
 
@@ -427,7 +425,7 @@ static void generate_infill_lines_recursive(
     -- depth;
     size_t i = 0;
     for (const int child_idx : context.traversal_order) {
-        const FillAdaptive_Internal::Cube *child = cube->children[child_idx];
+        const Cube *child = cube->children[child_idx];
         if (child != nullptr)
             generate_infill_lines_recursive(context, child, address, depth);
         if (++ i == 4)
@@ -486,7 +484,7 @@ static void export_infill_lines_to_svg(const ExPolygon &expoly, const Polylines 
 }
 #endif /* ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT */
 
-void FillAdaptive::_fill_surface_single(
+void Filler::_fill_surface_single(
     const FillParams &             params,
     unsigned int                   thickness_layers,
     const std::pair<float, Point> &direction,
@@ -547,7 +545,7 @@ void FillAdaptive::_fill_surface_single(
 
         if (!boundary_polylines.empty()) {
             boundary_polylines = chain_polylines(boundary_polylines);
-            FillAdaptive::connect_infill(std::move(boundary_polylines), expolygon, polylines_out, this->spacing, params);
+            connect_infill(std::move(boundary_polylines), expolygon, polylines_out, this->spacing, params);
         }
 
         append(polylines_out, std::move(non_boundary_polylines));
@@ -571,14 +569,14 @@ static double bbox_max_radius(const BoundingBoxf3 &bbox, const Vec3d &center)
     return sqrt(r2max);
 }
 
-static std::vector<FillAdaptive_Internal::CubeProperties> make_cubes_properties(double max_cube_edge_length, double line_spacing)
+static std::vector<CubeProperties> make_cubes_properties(double max_cube_edge_length, double line_spacing)
 {
     max_cube_edge_length += EPSILON;
 
-    std::vector<FillAdaptive_Internal::CubeProperties> cubes_properties;
+    std::vector<CubeProperties> cubes_properties;
     for (double edge_length = line_spacing * 2.;; edge_length *= 2.)
     {
-        FillAdaptive_Internal::CubeProperties props{};
+        CubeProperties props{};
         props.edge_length = edge_length;
         props.height = edge_length * sqrt(3);
         props.diagonal_length = edge_length * sqrt(2);
@@ -598,7 +596,7 @@ static inline bool is_overhang_triangle(const Vec3d &a, const Vec3d &b, const Ve
     return n.dot(up) > 0.707 * n.norm();
 }
 
-static void transform_center(FillAdaptive_Internal::Cube *current_cube, const Eigen::Matrix3d &rot)
+static void transform_center(Cube *current_cube, const Eigen::Matrix3d &rot)
 {
 #ifndef NDEBUG
     current_cube->center_octree = current_cube->center;
@@ -609,7 +607,7 @@ static void transform_center(FillAdaptive_Internal::Cube *current_cube, const Ei
             transform_center(child, rot);
 }
 
-FillAdaptive_Internal::OctreePtr FillAdaptive_Internal::build_octree(const indexed_triangle_set &triangle_mesh, const Vec3d &up_vector, coordf_t line_spacing, bool support_overhangs_only)
+OctreePtr build_octree(const indexed_triangle_set &triangle_mesh, coordf_t line_spacing, bool support_overhangs_only)
 {
     assert(line_spacing > 0);
     assert(! std::isnan(line_spacing));
@@ -620,6 +618,7 @@ FillAdaptive_Internal::OctreePtr FillAdaptive_Internal::build_octree(const index
     auto                        octree           = OctreePtr(new Octree(cube_center, cubes_properties));
 
     if (cubes_properties.size() > 1) {
+        auto up_vector = support_overhangs_only ? transform_to_octree() * Vec3d(0., 0., 1.) : Vec3d();
         for (auto &tri : triangle_mesh.indices) {
             auto a = triangle_mesh.vertices[tri[0]].cast<double>();
             auto b = triangle_mesh.vertices[tri[1]].cast<double>();
@@ -636,7 +635,7 @@ FillAdaptive_Internal::OctreePtr FillAdaptive_Internal::build_octree(const index
         }
         {
             // Transform the octree to world coordinates to reduce computation when extracting infill lines.
-            auto rot = adaptive_fill_octree_transform_to_world().toRotationMatrix();
+            auto rot = transform_to_world().toRotationMatrix();
             transform_center(octree->root_cube, rot);
             octree->origin = rot * octree->origin;
         }
@@ -645,7 +644,7 @@ FillAdaptive_Internal::OctreePtr FillAdaptive_Internal::build_octree(const index
     return octree;
 }
 
-void FillAdaptive_Internal::Octree::insert_triangle(const Vec3d &a, const Vec3d &b, const Vec3d &c, Cube *current_cube, const BoundingBoxf3 &current_bbox, int depth)
+void Octree::insert_triangle(const Vec3d &a, const Vec3d &b, const Vec3d &c, Cube *current_cube, const BoundingBoxf3 &current_bbox, int depth)
 {
     assert(current_cube);
     assert(depth > 0);
@@ -673,4 +672,5 @@ void FillAdaptive_Internal::Octree::insert_triangle(const Vec3d &a, const Vec3d 
     }
 }
 
+} // namespace FillAdaptive
 } // namespace Slic3r

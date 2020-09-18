@@ -318,7 +318,7 @@ void export_group_fills_to_svg(const char *path, const std::vector<SurfaceFill> 
 #endif
 
 // friend to Layer
-void Layer::make_fills(FillAdaptive_Internal::Octree* adaptive_fill_octree, FillAdaptive_Internal::Octree* support_fill_octree)
+void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive::Octree* support_fill_octree)
 {
 	for (LayerRegion *layerm : m_regions)
 		layerm->fills.clear();

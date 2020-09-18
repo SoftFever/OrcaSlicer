@@ -20,7 +20,7 @@ class ExPolygon;
 class Surface;
 enum InfillPattern : int;
 
-namespace FillAdaptive_Internal {
+namespace FillAdaptive {
     struct Octree;
 };
 
@@ -76,7 +76,7 @@ public:
     BoundingBox bounding_box;
 
     // Octree builds on mesh for usage in the adaptive cubic infill
-    FillAdaptive_Internal::Octree* adapt_fill_octree = nullptr;
+    FillAdaptive::Octree* adapt_fill_octree = nullptr;
 
 public:
     virtual ~Fill() {}

@@ -11,8 +11,6 @@
 #ifndef slic3r_FillAdaptive_hpp_
 #define slic3r_FillAdaptive_hpp_
 
-#include "../AABBTreeIndirect.hpp"
-
 #include "FillBase.hpp"
 
 struct indexed_triangle_set;
@@ -20,58 +18,55 @@ struct indexed_triangle_set;
 namespace Slic3r {
 
 class PrintObject;
-namespace FillAdaptive_Internal
+
+namespace FillAdaptive
 {
-    struct Octree;
-    // To keep the definition of Octree opaque, we have to define a custom deleter.
-    struct OctreeDeleter {
-        void operator()(Octree *p);
-    };
-    using OctreePtr = std::unique_ptr<Octree, OctreeDeleter>;
 
-    // Calculate line spacing for
-    // 1) adaptive cubic infill
-    // 2) adaptive internal support cubic infill
-    // Returns zero for a particular infill type if no such infill is to be generated.
-    std::pair<double, double>        adaptive_fill_line_spacing(const PrintObject &print_object);
+struct Octree;
+// To keep the definition of Octree opaque, we have to define a custom deleter.
+struct OctreeDeleter { void operator()(Octree *p); };
+using  OctreePtr = std::unique_ptr<Octree, OctreeDeleter>;
 
-    // Rotation of the octree to stand on one of its corners.
-    Eigen::Quaterniond               adaptive_fill_octree_transform_to_world();
-    // Inverse roation of the above.
-    Eigen::Quaterniond               adaptive_fill_octree_transform_to_octree();
+// Calculate line spacing for
+// 1) adaptive cubic infill
+// 2) adaptive internal support cubic infill
+// Returns zero for a particular infill type if no such infill is to be generated.
+std::pair<double, double>       adaptive_fill_line_spacing(const PrintObject &print_object);
 
-    FillAdaptive_Internal::OctreePtr build_octree(
-        // Mesh is rotated to the coordinate system of the octree.
-        const indexed_triangle_set  &triangle_mesh, 
-        // Up vector of the mesh rotated to the coordinate system of the octree.
-        const Vec3d                 &up_vector, 
-        coordf_t                     line_spacing, 
-        // If true, octree is densified below internal overhangs only.
-        bool                         support_overhangs_only);
-}; // namespace FillAdaptive_Internal
+// Rotation of the octree to stand on one of its corners.
+Eigen::Quaterniond              transform_to_world();
+// Inverse roation of the above.
+Eigen::Quaterniond              transform_to_octree();
+
+FillAdaptive::OctreePtr         build_octree(
+    // Mesh is rotated to the coordinate system of the octree.
+    const indexed_triangle_set  &triangle_mesh, 
+    coordf_t                     line_spacing, 
+    // If true, octree is densified below internal overhangs only.
+    bool                         support_overhangs_only);
 
 //
 // Some of the algorithms used by class FillAdaptive were inspired by
 // Cura Engine's class SubDivCube
 // https://github.com/Ultimaker/CuraEngine/blob/master/src/infill/SubDivCube.h
 //
-class FillAdaptive : public Fill
+class Filler : public Slic3r::Fill
 {
 public:
-    virtual ~FillAdaptive() {}
+    virtual ~Filler() {}
 
 protected:
-    virtual Fill* clone() const { return new FillAdaptive(*this); };
+    virtual Fill* clone() const { return new Filler(*this); };
 	virtual void _fill_surface_single(
 	    const FillParams                &params,
 	    unsigned int                     thickness_layers,
 	    const std::pair<float, Point>   &direction,
 	    ExPolygon                       &expolygon,
 	    Polylines                       &polylines_out);
-
 	virtual bool no_sort() const { return true; }
 };
 
+}; // namespace FillAdaptive
 } // namespace Slic3r
 
 #endif // slic3r_FillAdaptive_hpp_

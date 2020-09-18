@@ -30,7 +30,7 @@ enum class SlicingMode : uint32_t;
 class Layer;
 class SupportLayer;
 
-namespace FillAdaptive_Internal {
+namespace FillAdaptive {
     struct Octree;
     struct OctreeDeleter;
     using OctreePtr = std::unique_ptr<Octree, OctreeDeleter>;
@@ -241,7 +241,7 @@ private:
     void discover_horizontal_shells();
     void combine_infill();
     void _generate_support_material();
-    std::pair<FillAdaptive_Internal::OctreePtr, FillAdaptive_Internal::OctreePtr> prepare_adaptive_infill_data();
+    std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> prepare_adaptive_infill_data();
 
     // XYZ in scaled coordinates
     Vec3crd									m_size;
