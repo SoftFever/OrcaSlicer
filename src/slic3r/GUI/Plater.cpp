@@ -5398,6 +5398,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             this->set_printer_technology(config.opt_enum<PrinterTechnology>(opt_key));
             // print technology is changed, so we should to update a search list
             p->sidebar->update_searcher();
+            p->sidebar->show_sliced_info_sizer(false);
 #if ENABLE_GCODE_VIEWER
             p->reset_gcode_toolpaths();
 #endif // ENABLE_GCODE_VIEWER
