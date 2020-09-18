@@ -204,7 +204,7 @@ void OctreeDeleter::operator()(Octree *p) {
     delete p;
 }
 
-std::pair<double, double> FillAdaptive::adaptive_fill_line_spacing(const PrintObject &print_object)
+std::pair<double, double> adaptive_fill_line_spacing(const PrintObject &print_object)
 {
     // Output, spacing for icAdaptiveCubic and icSupportCubic
     double  adaptive_line_spacing = 0.;
