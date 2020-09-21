@@ -2174,7 +2174,7 @@ void Print::_make_wipe_tower()
         wipe_tower.set_layer(float(m_wipe_tower_data.tool_ordering.back().print_z), float(layer_height), 0, false, true);
     }
     m_wipe_tower_data.final_purge = Slic3r::make_unique<WipeTower::ToolChangeResult>(
-		wipe_tower.tool_change((unsigned int)-1, false));
+        wipe_tower.tool_change((unsigned int)(-1)));
 
     m_wipe_tower_data.used_filament = wipe_tower.get_used_filament();
     m_wipe_tower_data.number_of_toolchanges = wipe_tower.get_number_of_toolchanges();

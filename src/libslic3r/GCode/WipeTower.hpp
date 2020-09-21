@@ -161,7 +161,7 @@ public:
 
 	// Returns gcode for a toolchange and a final print head position.
 	// On the first layer, extrude a brim around the future wipe tower first.
-    ToolChangeResult tool_change(size_t new_tool, bool last_in_layer);
+    ToolChangeResult tool_change(size_t new_tool);
 
 	// Fill the unfilled space with a sparse infill.
 	// Call this method only if layer_finished() is false.

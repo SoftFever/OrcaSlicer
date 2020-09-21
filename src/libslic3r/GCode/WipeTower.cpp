@@ -1,22 +1,6 @@
-/*
-
-TODO LIST
----------
-
-1. cooling moves - DONE
-2. account for perimeter and finish_layer extrusions and subtract it from last wipe - DONE
-3. priming extrusions (last wipe must clear the color) - DONE
-4. Peter's wipe tower - layer's are not exactly square
-5. Peter's wipe tower - variable width for higher levels
-6. Peter's wipe tower - make sure it is not too sparse (apply max_bridge_distance and make last wipe longer)
-7. Peter's wipe tower - enable enhanced first layer adhesion 
-
-*/
-
 #include "WipeTower.hpp"
 
-#include <assert.h>
-#include <math.h>
+#include <cassert>
 #include <iostream>
 #include <vector>
 #include <numeric>
@@ -28,13 +12,16 @@ TODO LIST
 #endif // ENABLE_GCODE_VIEWER
 #include "BoundingBox.hpp"
 
-#if defined(__linux) || defined(__GNUC__ )
-#include <strings.h>
-#endif /* __linux */
 
-#ifdef _MSC_VER 
-#define strcasecmp _stricmp
-#endif
+// Experimental "Peter's wipe tower" feature was partially implemented, inspired by
+// PJR's idea of alternating two perpendicular wiping directions on a square tower.
+// It is probably never going to be finished, there are multiple remaining issues
+// and there is probably no need to go down this way. m_peters_wipe_tower variable
+// turns this on, maybe it should just be removed. Anyway, the issues are
+// - layer's are not exactly square
+// - variable width for higher levels
+// - make sure it is not too sparse (apply max_bridge_distance and make last wipe longer)
+// - enable enhanced first layer adhesion
 
 
 namespace Slic3r
@@ -730,7 +717,7 @@ std::vector<WipeTower::ToolChangeResult> WipeTower::prime(
 	return results;
 }
 
-WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool last_in_layer)
+WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool)
 {
 	if ( m_print_brim )
 		return toolchange_Brim();
@@ -807,7 +794,6 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool last_in_lay
         else {
             writer.rectangle(Vec2f::Zero(), m_wipe_tower_width, m_layer_info->depth + m_perimeter_width);
             if (layer_finished()) { // no finish_layer will be called, we must wipe the nozzle
-                //writer.travel(writer.x()> m_wipe_tower_width / 2.f ? 0.f : m_wipe_tower_width, writer.y());
                 writer.add_wipe_point(writer.x(), writer.y())
                       .add_wipe_point(writer.x()> m_wipe_tower_width / 2.f ? 0.f : m_wipe_tower_width, writer.y());
 
@@ -878,15 +864,10 @@ WipeTower::ToolChangeResult WipeTower::toolchange_Brim(bool sideOnly, float y_of
               .extrude(box.rd      ).extrude(box.ld);
     }
 
-    //writer.travel(wipeTower_box.ld, 7000); // Move to the front left corner.
-    //writer.travel(wipeTower_box.rd) // Always wipe the nozzle with a long wipe to reduce stringing when moving away from the wipe tower.
-          //.travel(wipeTower_box.ld);
-
     box.expand(-spacing);
     writer.add_wipe_point(writer.x(), writer.y())
           .add_wipe_point(box.ld)
           .add_wipe_point(box.rd);
-
 
     writer.append("; CP WIPE TOWER FIRST LAYER BRIM END\n"
                   ";-----------------------------------\n");
@@ -956,26 +937,12 @@ void WipeTower::toolchange_Unload(
         else
             sparse_beginning_y += (m_layer_info-1)->toolchanges_depth() + m_perimeter_width;
 
-        //debugging:
-        /* float oldx = writer.x();
-        float oldy = writer.y();
-        writer.travel(xr,sparse_beginning_y);
-        writer.extrude(xr+5,writer.y());
-        writer.travel(oldx,oldy);*/
-
         float sum_of_depths = 0.f;
         for (const auto& tch : m_layer_info->tool_changes) {  // let's find this toolchange
             if (tch.old_tool == m_current_tool) {
                 sum_of_depths += tch.ramming_depth;
                 float ramming_end_y = sum_of_depths;
                 ramming_end_y -= (y_step/m_extra_spacing-m_perimeter_width) / 2.f;   // center of final ramming line
-
-                // debugging:
-                /*float oldx = writer.x();
-                float oldy = writer.y();
-                writer.travel(xl,ramming_end_y);
-                writer.extrude(xl-15,writer.y());
-                writer.travel(oldx,oldy);*/
 
                 if ( (m_current_shape == SHAPE_REVERSED   && ramming_end_y < sparse_beginning_y - 0.5f*m_perimeter_width  ) ||
                      (m_current_shape == SHAPE_NORMAL && ramming_end_y > sparse_beginning_y + 0.5f*m_perimeter_width  )  )
@@ -1027,12 +994,6 @@ void WipeTower::toolchange_Unload(
               .retract(0.70f * total_retraction_distance, 1.0f * m_filpar[m_current_tool].unloading_speed * 60.f)
               .retract(0.20f * total_retraction_distance, 0.5f * m_filpar[m_current_tool].unloading_speed * 60.f)
               .retract(0.10f * total_retraction_distance, 0.3f * m_filpar[m_current_tool].unloading_speed * 60.f)
-              
-              /*.load_move_x_advanced(turning_point, -15.f, 83.f, 50.f) // this is done at fixed speed
-              .load_move_x_advanced(old_x,         -0.70f * total_retraction_distance, 1.0f * m_filpar[m_current_tool].unloading_speed)
-              .load_move_x_advanced(turning_point, -0.20f * total_retraction_distance, 0.5f * m_filpar[m_current_tool].unloading_speed)
-              .load_move_x_advanced(old_x,         -0.10f * total_retraction_distance, 0.3f * m_filpar[m_current_tool].unloading_speed)
-              .travel(old_x, writer.y()) // in case previous move was shortened to limit feedrate*/
               .resume_preview();
     }
     // Wipe tower should only change temperature with single extruder MM. Otherwise, all temperatures should
@@ -1125,11 +1086,6 @@ void WipeTower::toolchange_Load(
 
         writer.append("; CP TOOLCHANGE LOAD\n")
               .suppress_preview()
-              /*.load_move_x_advanced(turning_point, 0.2f * edist, 0.3f * m_filpar[m_current_tool].loading_speed)  // Acceleration
-              .load_move_x_advanced(oldx,          0.5f * edist,        m_filpar[m_current_tool].loading_speed)  // Fast phase
-              .load_move_x_advanced(turning_point, 0.2f * edist, 0.3f * m_filpar[m_current_tool].loading_speed)  // Slowing down
-              .load_move_x_advanced(oldx,          0.1f * edist, 0.1f * m_filpar[m_current_tool].loading_speed)  // Super slow*/
-
               .load(0.2f * edist, 60.f * m_filpar[m_current_tool].loading_speed_start)
               .load_move_x_advanced(turning_point, 0.7f * edist,        m_filpar[m_current_tool].loading_speed)  // Fast phase
               .load_move_x_advanced(oldx,          0.1f * edist, 0.1f * m_filpar[m_current_tool].loading_speed)  // Super slow*/
@@ -1203,10 +1159,6 @@ void WipeTower::toolchange_Wipe(
     // going back to the model - wipe the nozzle.
     if (m_layer_info != m_plan.end() && m_current_tool != m_layer_info->tool_changes.back().new_tool) {
         m_left_to_right = !m_left_to_right;
-        //writer.comment_with_value("starting wipe tower wipe ", 0)
-        //      .travel(writer.x(), writer.y() - dy)
-        //      .travel(m_left_to_right ? m_wipe_tower_width : 0.f, writer.y())
-        //      .comment_with_value("finished wipe tower wipe ", 0);
         writer.add_wipe_point(writer.x(), writer.y())
               .add_wipe_point(writer.x(), writer.y() - dy)
               .add_wipe_point(m_left_to_right ? m_wipe_tower_width : 0.f, writer.y() - dy);
@@ -1274,7 +1226,6 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
                 writer.extrude(box.rd.x() - m_perimeter_width / 2.f, writer.y() + 0.5f * step);
                 writer.extrude(box.ld.x() + m_perimeter_width / 2.f, writer.y());
             }
-        //writer.travel(box.rd.x()-m_perimeter_width/2.f,writer.y()); // wipe the nozzle
         writer.add_wipe_point(writer.x(), writer.y())
               .add_wipe_point(box.rd.x()-m_perimeter_width/2.f,writer.y());
     }
@@ -1297,12 +1248,10 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
             }
             writer.add_wipe_point(Vec2f(writer.x(), writer.y()))
                   .add_wipe_point(Vec2f(left, writer.y()));
-            //writer.travel(left,writer.y(),7200); // wipes the nozzle before moving away from the wipe tower
         }
         else {
             writer.add_wipe_point(Vec2f(writer.x(), writer.y()))
                   .add_wipe_point(Vec2f(right, writer.y()));
-            // writer.travel(right,writer.y(),7200); // wipes the nozzle before moving away from the wipe tower
         }
     }
     writer.append("; CP EMPTY GRID END\n"
@@ -1400,7 +1349,7 @@ void WipeTower::save_on_last_wipe()
             continue;
 
         for (const auto &toolchange : m_layer_info->tool_changes)
-            tool_change(toolchange.new_tool, false);
+            tool_change(toolchange.new_tool);
 
         float width = m_wipe_tower_width - 3*m_perimeter_width; // width we draw into
         float length_to_save = 2*(m_wipe_tower_width+m_wipe_tower_depth) + (!layer_finished() ? finish_layer().total_extrusion_length_in_plane() : 0.f);
@@ -1462,7 +1411,7 @@ void WipeTower::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &
 			m_y_shift = (m_wipe_tower_depth-m_layer_info->depth-m_perimeter_width)/2.f;
 
 		for (const auto &toolchange : layer.tool_changes)
-			layer_result.emplace_back(tool_change(toolchange.new_tool, false));
+            layer_result.emplace_back(tool_change(toolchange.new_tool));
 
 		if (! layer_finished()) {
             auto finish_layer_toolchange = finish_layer();
@@ -1512,4 +1461,4 @@ void WipeTower::make_wipe_tower_square()
 		lay.extra_spacing = lay.depth / lay.toolchanges_depth();
 }
 
-}; // namespace Slic3r
+} // namespace Slic3r
