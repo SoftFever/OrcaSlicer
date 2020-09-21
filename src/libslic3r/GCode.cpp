@@ -176,6 +176,93 @@ namespace Slic3r {
         return islands;
     }
 
+    Matrix2d rotation_by_direction(const Point &direction)
+    {
+        Matrix2d rotation;
+        rotation.block<1, 2>(0, 0) = direction.cast<double>() / direction.cast<double>().norm();
+        rotation(1, 0)             = -rotation(0, 1);
+        rotation(1, 1)             = rotation(0, 0);
+
+        return rotation;
+    }
+
+    Polyline AvoidCrossingPerimeters2::travel_to(const GCode &gcodegen, const Point &point)
+    {
+        const Point &start                 = gcodegen.last_pos();
+        const Point &end                   = point;
+        const Point  direction             = end - start;
+        Matrix2d     transform_to_x_axis   = rotation_by_direction(direction);
+        Matrix2d     transform_from_x_axis = transform_to_x_axis.transpose();
+
+        const Line travel_line((transform_to_x_axis * start.cast<double>()).cast<coord_t>(),
+                               (transform_to_x_axis * end.cast<double>()).cast<coord_t>());
+
+        Polygons borders;
+        borders.reserve(gcodegen.layer()->lslices.size());
+
+        for (const ExPolygon &ex_polygon : gcodegen.layer()->lslices) {
+            borders.emplace_back(ex_polygon.contour);
+
+            for (const Polygon &hole : ex_polygon.holes) borders.emplace_back(hole);
+        }
+
+        std::vector<Intersection> intersections;
+        for (size_t border_idx = 0; border_idx < borders.size(); ++border_idx) {
+            const Polygon &border       = borders[border_idx];
+            Lines          border_lines = border.lines();
+
+            for (size_t line_idx = 0; line_idx < border_lines.size(); ++line_idx) {
+                const Line &border_line = border_lines[line_idx];
+                Line border_line_transformed((transform_to_x_axis * border_line.a.cast<double>()).cast<coord_t>(),
+                                             (transform_to_x_axis * border_line.b.cast<double>()).cast<coord_t>());
+
+                Point intersection_transformed;
+
+                if (travel_line.intersection(border_line_transformed, &intersection_transformed))
+                    intersections.emplace_back(border_idx, line_idx, intersection_transformed);
+            }
+        }
+
+        // Sort intersections from the nearest to the farthest
+        std::sort(intersections.begin(), intersections.end());
+
+        //        Polyline result(start, end);
+        Polyline result;
+        result.append(start);
+
+        for (auto it_first = intersections.begin(); it_first != intersections.end(); ++it_first) {
+            const Intersection &intersection_first = *it_first;
+
+            for (auto it_second = it_first + 1; it_second != intersections.end(); ++it_second) {
+                const Intersection &intersection_second = *it_second;
+
+                if (intersection_first.border_idx == intersection_second.border_idx) {
+                    Lines border_lines = borders[intersection_first.border_idx].lines();
+
+                    // Append the nearest intersection into the path
+                    result.append((transform_from_x_axis * intersection_first.point.cast<double>()).cast<coord_t>());
+
+                    // Append the path around the border into the path
+                    for (size_t line_idx = intersection_first.line_idx; line_idx != intersection_second.line_idx;) {
+                        result.append(border_lines[line_idx].b);
+
+                        if (++line_idx == border_lines.size()) line_idx = 0;
+                    }
+
+                    // Append the farthest intersection into the path
+                    result.append((transform_from_x_axis * intersection_second.point.cast<double>()).cast<coord_t>());
+
+                    // Skip intersections in between
+                    it_first = it_second;
+                    break;
+                }
+            }
+        }
+
+        result.append(end);
+
+        return result;
+    }
 
     std::string OozePrevention::pre_toolchange(GCode& gcodegen)
     {

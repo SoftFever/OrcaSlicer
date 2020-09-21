@@ -46,13 +46,13 @@ public:
     bool disable_once;
     
     AvoidCrossingPerimeters() : use_external_mp(false), use_external_mp_once(false), disable_once(true) {}
-    ~AvoidCrossingPerimeters() {}
+    virtual ~AvoidCrossingPerimeters() = default;
 
     void reset() { m_external_mp.reset(); m_layer_mp.reset(); }
 	void init_external_mp(const Print &print);
     void init_layer_mp(const ExPolygons &islands) { m_layer_mp = Slic3r::make_unique<MotionPlanner>(islands); }
 
-    Polyline travel_to(const GCode &gcodegen, const Point &point);
+    virtual Polyline travel_to(const GCode &gcodegen, const Point &point);
 
 private:
     // For initializing the regions to avoid.
@@ -62,6 +62,28 @@ private:
     std::unique_ptr<MotionPlanner> m_layer_mp;
 };
 
+class AvoidCrossingPerimeters2 : public AvoidCrossingPerimeters
+{
+protected:
+    struct Intersection
+    {
+        size_t border_idx;
+        size_t line_idx;
+        Point  point;
+
+        Intersection(size_t border_idx, size_t line_idx, Point point)
+            : border_idx(border_idx), line_idx(line_idx), point(point){};
+
+        inline bool operator<(const Intersection &other) const { return this->point.x() < other.point.x(); }
+    };
+
+public:
+    AvoidCrossingPerimeters2() : AvoidCrossingPerimeters() {}
+
+    virtual ~AvoidCrossingPerimeters2() = default;
+
+    virtual Polyline travel_to(const GCode &gcodegen, const Point &point) override;
+};
 
 class OozePrevention {
 public:
@@ -326,7 +348,7 @@ private:
     std::set<std::string>               m_placeholder_parser_failed_templates;
     OozePrevention                      m_ooze_prevention;
     Wipe                                m_wipe;
-    AvoidCrossingPerimeters             m_avoid_crossing_perimeters;
+    AvoidCrossingPerimeters2            m_avoid_crossing_perimeters;
     bool                                m_enable_loop_clipping;
     // If enabled, the G-code generator will put following comments at the ends
     // of the G-code lines: _EXTRUDE_SET_SPEED, _WIPE, _BRIDGE_FAN_START, _BRIDGE_FAN_END
