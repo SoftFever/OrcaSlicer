@@ -33,6 +33,8 @@ class Print;
 struct PrintInstance;
 std::vector<const PrintInstance*> 	 chain_print_object_instances(const Print &print);
 
+// Chain lines into polylines.
+Polylines 							 chain_lines(const std::vector<Line> &lines, const double point_distance_epsilon);
 
 } // namespace Slic3r
 
