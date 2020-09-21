@@ -195,17 +195,20 @@ namespace Slic3r {
         double total_length_forward  = (lines[start_idx].b - intersection_first).cast<double>().norm();
         double total_length_backward = (lines[start_idx].a - intersection_first).cast<double>().norm();
 
-        for (int line_idx = int(start_idx) + 1; line_idx != int(end_idx); ++line_idx) {
-            if (line_idx == int(lines.size())) line_idx = 0;
+        auto cyclic_index = [&lines](int index) {
+            if (index >= int(lines.size()))
+                index = 0;
+            else if (index < 0)
+                index = lines.size() - 1;
 
+            return index;
+        };
+
+        for (int line_idx = cyclic_index(int(start_idx) + 1); line_idx != int(end_idx); line_idx = cyclic_index(line_idx + 1))
             total_length_forward += lines[line_idx].length();
-        }
 
-        for (int line_idx = int(start_idx) - 1; line_idx != int(end_idx); --line_idx) {
-            if (line_idx < 0) line_idx = int(lines.size()) - 1;
-
+        for (int line_idx = cyclic_index(int(start_idx) - 1); line_idx != int(end_idx); line_idx = cyclic_index(line_idx - 1))
             total_length_backward += lines[line_idx].length();
-        }
 
         total_length_forward += (lines[end_idx].a - intersection_last).cast<double>().norm();
         total_length_backward += (lines[end_idx].b - intersection_last).cast<double>().norm();
@@ -275,20 +278,14 @@ namespace Slic3r {
                                                                           intersection_second.line_idx, intersection_first_point,
                                                                           intersection_second_point);
                     // Append the path around the border into the path
-                    if (shortest_direction == Direction::Forward) {
-                        for (int line_idx = intersection_first.line_idx; line_idx != int(intersection_second.line_idx); ++line_idx) {
-                            if (line_idx == int(border_lines.size())) line_idx = 0;
-
-                            result.append(border_lines[line_idx].b);
-                        }
-                    } else {
+                    if (shortest_direction == Direction::Forward)
                         for (int line_idx = intersection_first.line_idx; line_idx != int(intersection_second.line_idx);
-                             --line_idx) {
-                            if (line_idx < 0) line_idx = int(border_lines.size()) - 1;
-
+                             line_idx     = (((line_idx + 1) < int(border_lines.size())) ? (line_idx + 1) : 0))
+                            result.append(border_lines[line_idx].b);
+                    else
+                        for (int line_idx = intersection_first.line_idx; line_idx != int(intersection_second.line_idx);
+                             line_idx     = (((line_idx - 1) >= 0) ? (line_idx - 1) : (int(border_lines.size()) - 1)))
                             result.append(border_lines[line_idx].a);
-                        }
-                    }
 
                     // Append the farthest intersection into the path
                     result.append(intersection_second_point);
