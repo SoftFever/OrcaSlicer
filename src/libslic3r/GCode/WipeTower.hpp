@@ -57,6 +57,13 @@ public:
         // Is this a priming extrusion? (If so, the wipe tower rotation & translation will not be applied later)
         bool                    priming;
 
+        // Pass a polyline so that normal G-code generator can do a wipe for us.
+        // The wipe cannot be done by the wipe tower because it has to pass back
+        // a loaded extruder, so it would have to either do a wipe with no retraction
+        // (leading to https://github.com/prusa3d/PrusaSlicer/issues/2834) or do
+        // an extra retraction-unretraction pair.
+        std::vector<Vec2f> wipe_path;
+
         // Initial tool
         int initial_tool;
 

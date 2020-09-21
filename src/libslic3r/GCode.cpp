@@ -294,13 +294,18 @@ namespace Slic3r {
         // Toolchangeresult.gcode assumes the wipe tower corner is at the origin (except for priming lines)
         // We want to rotate and shift all extrusions (gcode postprocessing) and starting and ending position
         float alpha = m_wipe_tower_rotation / 180.f * float(M_PI);
+
+        auto transform_wt_pt = [&alpha, this](const Vec2f& pt) -> Vec2f {
+            Vec2f out = Eigen::Rotation2Df(alpha) * pt;
+            out += m_wipe_tower_pos;
+            return out;
+        };
+
         Vec2f start_pos = tcr.start_pos;
         Vec2f end_pos = tcr.end_pos;
         if (!tcr.priming) {
-            start_pos = Eigen::Rotation2Df(alpha) * start_pos;
-            start_pos += m_wipe_tower_pos;
-            end_pos = Eigen::Rotation2Df(alpha) * end_pos;
-            end_pos += m_wipe_tower_pos;
+            start_pos = transform_wt_pt(start_pos);
+            end_pos = transform_wt_pt(end_pos);
         }
 
         Vec2f wipe_tower_offset = tcr.priming ? Vec2f::Zero() : m_wipe_tower_pos;
@@ -403,7 +408,7 @@ namespace Slic3r {
 
         else {
             // Prepare a future wipe.
-            gcodegen.m_wipe.path.points.clear();
+            /*gcodegen.m_wipe.path.points.clear();
             if (new_extruder_id >= 0) {
                 // Start the wipe at the current position.
                 gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, end_pos));
@@ -411,7 +416,10 @@ namespace Slic3r {
                 gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen,
                     Vec2f((std::abs(m_left - end_pos.x()) < std::abs(m_right - end_pos.x())) ? m_right : m_left,
                         end_pos.y())));
-            }
+            }*/
+            gcodegen.m_wipe.reset_path();
+            for (const Vec2f& wipe_pt : tcr.wipe_path)
+                gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt)));
         }
 
         // Let the planner know we are traveling between objects.

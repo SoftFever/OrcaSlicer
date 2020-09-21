@@ -441,9 +441,26 @@ public:
 
 	WipeTowerWriter& append(const std::string& text) { m_gcode += text; return *this; }
 
+    std::vector<Vec2f> wipe_path() const
+    {
+        return m_wipe_path;
+    }
+
+    WipeTowerWriter& add_wipe_point(const Vec2f& pt)
+    {
+        m_wipe_path.push_back(rotate(pt));
+        return *this;
+    }
+
+    WipeTowerWriter& add_wipe_point(float x, float y)
+    {
+        return add_wipe_point(Vec2f(x, y));
+    }
+
 private:
 	Vec2f         m_start_pos;
 	Vec2f         m_current_pos;
+    std::vector<Vec2f>  m_wipe_path;
 	float    	  m_current_z;
 	float 	  	  m_current_feedrate;
     size_t        m_current_tool;
@@ -790,7 +807,10 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool last_in_lay
         else {
             writer.rectangle(Vec2f::Zero(), m_wipe_tower_width, m_layer_info->depth + m_perimeter_width);
             if (layer_finished()) { // no finish_layer will be called, we must wipe the nozzle
-                writer.travel(writer.x()> m_wipe_tower_width / 2.f ? 0.f : m_wipe_tower_width, writer.y());
+                //writer.travel(writer.x()> m_wipe_tower_width / 2.f ? 0.f : m_wipe_tower_width, writer.y());
+                writer.add_wipe_point(writer.x(), writer.y())
+                      .add_wipe_point(writer.x()> m_wipe_tower_width / 2.f ? 0.f : m_wipe_tower_width, writer.y());
+
             }
         }
     }
@@ -820,6 +840,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool last_in_lay
 	result.extrusions 	= writer.extrusions();
 	result.start_pos  	= writer.start_pos_rotated();
 	result.end_pos 	  	= writer.pos_rotated();
+    result.wipe_path    = writer.wipe_path();
 	return result;
 }
 
@@ -853,13 +874,20 @@ WipeTower::ToolChangeResult WipeTower::toolchange_Brim(bool sideOnly, float y_of
     for (size_t i = 0; i < 4; ++ i) {
         box.expand(spacing);
         writer.travel (box.ld, 7000)
-                .extrude(box.lu, 2100).extrude(box.ru)
-                .extrude(box.rd      ).extrude(box.ld);
+              .extrude(box.lu, 2100).extrude(box.ru)
+              .extrude(box.rd      ).extrude(box.ld);
     }
 
-    writer.travel(wipeTower_box.ld, 7000); // Move to the front left corner.
-    writer.travel(wipeTower_box.rd) // Always wipe the nozzle with a long wipe to reduce stringing when moving away from the wipe tower.
-          .travel(wipeTower_box.ld);
+    //writer.travel(wipeTower_box.ld, 7000); // Move to the front left corner.
+    //writer.travel(wipeTower_box.rd) // Always wipe the nozzle with a long wipe to reduce stringing when moving away from the wipe tower.
+          //.travel(wipeTower_box.ld);
+
+    box.expand(-spacing);
+    writer.add_wipe_point(writer.x(), writer.y())
+          .add_wipe_point(box.ld)
+          .add_wipe_point(box.rd);
+
+
     writer.append("; CP WIPE TOWER FIRST LAYER BRIM END\n"
                   ";-----------------------------------\n");
 
@@ -884,6 +912,7 @@ WipeTower::ToolChangeResult WipeTower::toolchange_Brim(bool sideOnly, float y_of
 	result.extrusions 	= writer.extrusions();
 	result.start_pos  	= writer.start_pos_rotated();
 	result.end_pos 	  	= writer.pos_rotated();
+    result.wipe_path    = writer.wipe_path();
 	return result;
 }
 
@@ -1170,11 +1199,18 @@ void WipeTower::toolchange_Wipe(
 		m_left_to_right = !m_left_to_right;
 	}
 
-    // this is neither priming nor not the last toolchange on this layer - we are going back to the model - wipe the nozzle
+    // this is neither priming nor not the last toolchange on this layer - we are
+    // going back to the model - wipe the nozzle.
     if (m_layer_info != m_plan.end() && m_current_tool != m_layer_info->tool_changes.back().new_tool) {
         m_left_to_right = !m_left_to_right;
-        writer.travel(writer.x(), writer.y() - dy)
-        .travel(m_left_to_right ? m_wipe_tower_width : 0.f, writer.y());
+        //writer.comment_with_value("starting wipe tower wipe ", 0)
+        //      .travel(writer.x(), writer.y() - dy)
+        //      .travel(m_left_to_right ? m_wipe_tower_width : 0.f, writer.y())
+        //      .comment_with_value("finished wipe tower wipe ", 0);
+        writer.add_wipe_point(writer.x(), writer.y())
+              .add_wipe_point(writer.x(), writer.y() - dy)
+              .add_wipe_point(m_left_to_right ? m_wipe_tower_width : 0.f, writer.y() - dy);
+
     }
 
 	writer.set_extrusion_flow(m_extrusion_flow); // Reset the extrusion flow.
@@ -1238,7 +1274,9 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
                 writer.extrude(box.rd.x() - m_perimeter_width / 2.f, writer.y() + 0.5f * step);
                 writer.extrude(box.ld.x() + m_perimeter_width / 2.f, writer.y());
             }
-        writer.travel(box.rd.x()-m_perimeter_width/2.f,writer.y()); // wipe the nozzle
+        //writer.travel(box.rd.x()-m_perimeter_width/2.f,writer.y()); // wipe the nozzle
+        writer.add_wipe_point(writer.x(), writer.y())
+              .add_wipe_point(box.rd.x()-m_perimeter_width/2.f,writer.y());
     }
     else {  // Extrude a sparse infill to support the material to be printed above.
         const float dy = (fill_box.lu.y() - fill_box.ld.y() - m_perimeter_width);
@@ -1257,10 +1295,15 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
                 writer.travel(x,writer.y());
                 writer.extrude(x,i%2 ? fill_box.rd.y() : fill_box.ru.y());
             }
-            writer.travel(left,writer.y(),7200); // wipes the nozzle before moving away from the wipe tower
+            writer.add_wipe_point(Vec2f(writer.x(), writer.y()))
+                  .add_wipe_point(Vec2f(left, writer.y()));
+            //writer.travel(left,writer.y(),7200); // wipes the nozzle before moving away from the wipe tower
         }
-        else
-            writer.travel(right,writer.y(),7200); // wipes the nozzle before moving away from the wipe tower
+        else {
+            writer.add_wipe_point(Vec2f(writer.x(), writer.y()))
+                  .add_wipe_point(Vec2f(right, writer.y()));
+            // writer.travel(right,writer.y(),7200); // wipes the nozzle before moving away from the wipe tower
+        }
     }
     writer.append("; CP EMPTY GRID END\n"
                   ";------------------\n\n\n\n\n\n\n");
@@ -1285,6 +1328,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
 	result.extrusions 	= writer.extrusions();
 	result.start_pos 	= writer.start_pos_rotated();
 	result.end_pos 	  	= writer.pos_rotated();
+    result.wipe_path    = writer.wipe_path();
 	return result;
 }
 
@@ -1432,6 +1476,7 @@ void WipeTower::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &
                 last_toolchange.gcode += finish_layer_toolchange.gcode;
                 last_toolchange.extrusions.insert(last_toolchange.extrusions.end(), finish_layer_toolchange.extrusions.begin(), finish_layer_toolchange.extrusions.end());
                 last_toolchange.end_pos = finish_layer_toolchange.end_pos;
+                last_toolchange.wipe_path = finish_layer_toolchange.wipe_path;
             }
             else
                 layer_result.emplace_back(std::move(finish_layer_toolchange));
