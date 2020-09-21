@@ -362,7 +362,7 @@ void NotificationManager::PopNotification::render_hypertext(ImGuiWrapper& imgui,
 	ImGui::PopStyleColor();
 
 	//hover color
-	ImVec4 orange_color = ImGui::GetStyleColorVec4(ImGuiCol_Button);
+	ImVec4 orange_color = ImVec4(.99f, .313f, .0f, 1.0f);//ImGui::GetStyleColorVec4(ImGuiCol_Button);
 	if (ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly))
 		orange_color.y += 0.2f;
 
