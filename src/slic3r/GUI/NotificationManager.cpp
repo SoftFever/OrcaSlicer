@@ -56,8 +56,7 @@ NotificationManager::PopNotification::~PopNotification()
 }
 NotificationManager::PopNotification::RenderResult NotificationManager::PopNotification::render(GLCanvas3D& canvas, const float& initial_y)
 {
-	if (!m_initialized)
-	{
+	if (!m_initialized) {
 		init();
 	}
 	if (m_finished)
@@ -682,11 +681,13 @@ void NotificationManager::push_plater_error_notification(const std::string& text
 void NotificationManager::push_plater_warning_notification(const std::string& text, GLCanvas3D& canvas)
 {
 	push_notification_data({ NotificationType::PlaterWarning, NotificationLevel::WarningNotification, 0,  _u8L("WARNING:") + "\n" + text }, canvas, 0);
+	// dissaper if in preview
+	set_in_preview(m_in_preview);
 }
-void NotificationManager::close_plater_error_notification()
+void NotificationManager::close_plater_error_notification(const std::string& text)
 {
 	for (PopNotification* notification : m_pop_notifications) {
-		if (notification->get_type() == NotificationType::PlaterError) {
+		if (notification->get_type() == NotificationType::PlaterError && notification->compare_text(_u8L("ERROR:") + "\n" + text)) {
 			notification->close();
 		}
 	}

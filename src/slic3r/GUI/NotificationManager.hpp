@@ -220,7 +220,8 @@ public:
 	void compare_warning_oids(const std::vector<size_t>& living_oids);
 	void push_plater_error_notification(const std::string& text, GLCanvas3D& canvas);
 	void push_plater_warning_notification(const std::string& text, GLCanvas3D& canvas);
-	void close_plater_error_notification();
+	// Closes error or warning of same text
+	void close_plater_error_notification(const std::string& text);
 	void close_plater_warning_notification(const std::string& text);
 	// creates special notification slicing complete
 	// if large = true prints printing time and export button 
@@ -250,7 +251,7 @@ private:
 	bool                         m_hovered { false };
 	//timestamps used for slining finished - notification could be gone so it needs to be stored here
 	std::unordered_set<int>      m_used_timestamps;
-    bool                         m_in_preview;
+	bool                         m_in_preview { false };
 
 	//prepared (basic) notifications
 	const std::vector<NotificationData> basic_notifications = {
