@@ -77,6 +77,15 @@ protected:
         inline bool operator<(const Intersection &other) const { return this->point.x() < other.point.x(); }
     };
 
+    enum class Direction { Forward, Backward };
+
+private:
+    static Direction get_shortest_direction(const Lines &lines,
+                                            const size_t start_idx,
+                                            const size_t end_idx,
+                                            const Point &intersection_first,
+                                            const Point &intersection_last);
+
 public:
     AvoidCrossingPerimeters2() : AvoidCrossingPerimeters() {}
 

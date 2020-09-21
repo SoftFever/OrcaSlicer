@@ -176,7 +176,7 @@ namespace Slic3r {
         return islands;
     }
 
-    Matrix2d rotation_by_direction(const Point &direction)
+    static Matrix2d rotation_by_direction(const Point &direction)
     {
         Matrix2d rotation;
         rotation.block<1, 2>(0, 0) = direction.cast<double>() / direction.cast<double>().norm();
@@ -184,6 +184,33 @@ namespace Slic3r {
         rotation(1, 1)             = rotation(0, 0);
 
         return rotation;
+    }
+
+    AvoidCrossingPerimeters2::Direction AvoidCrossingPerimeters2::get_shortest_direction(const Lines &lines,
+                                                                                         const size_t start_idx,
+                                                                                         const size_t end_idx,
+                                                                                         const Point &intersection_first,
+                                                                                         const Point &intersection_last)
+    {
+        double total_length_forward  = (lines[start_idx].b - intersection_first).cast<double>().norm();
+        double total_length_backward = (lines[start_idx].a - intersection_first).cast<double>().norm();
+
+        for (int line_idx = int(start_idx) + 1; line_idx != int(end_idx); ++line_idx) {
+            if (line_idx == int(lines.size())) line_idx = 0;
+
+            total_length_forward += lines[line_idx].length();
+        }
+
+        for (int line_idx = int(start_idx) - 1; line_idx != int(end_idx); --line_idx) {
+            if (line_idx < 0) line_idx = int(lines.size()) - 1;
+
+            total_length_backward += lines[line_idx].length();
+        }
+
+        total_length_forward += (lines[end_idx].a - intersection_last).cast<double>().norm();
+        total_length_backward += (lines[end_idx].b - intersection_last).cast<double>().norm();
+
+        return (total_length_forward < total_length_backward) ? Direction::Forward : Direction::Backward;
     }
 
     Polyline AvoidCrossingPerimeters2::travel_to(const GCode &gcodegen, const Point &point)
@@ -213,7 +240,7 @@ namespace Slic3r {
 
             for (size_t line_idx = 0; line_idx < border_lines.size(); ++line_idx) {
                 const Line &border_line = border_lines[line_idx];
-                Line border_line_transformed((transform_to_x_axis * border_line.a.cast<double>()).cast<coord_t>(),
+                Line        border_line_transformed((transform_to_x_axis * border_line.a.cast<double>()).cast<coord_t>(),
                                              (transform_to_x_axis * border_line.b.cast<double>()).cast<coord_t>());
 
                 Point intersection_transformed;
@@ -226,32 +253,45 @@ namespace Slic3r {
         // Sort intersections from the nearest to the farthest
         std::sort(intersections.begin(), intersections.end());
 
-        //        Polyline result(start, end);
+        // Polyline result(start, end);
         Polyline result;
         result.append(start);
 
         for (auto it_first = intersections.begin(); it_first != intersections.end(); ++it_first) {
             const Intersection &intersection_first = *it_first;
+            Point intersection_first_point((transform_from_x_axis * intersection_first.point.cast<double>()).cast<coord_t>());
 
             for (auto it_second = it_first + 1; it_second != intersections.end(); ++it_second) {
                 const Intersection &intersection_second = *it_second;
+                Point               intersection_second_point(
+                    (transform_from_x_axis * intersection_second.point.cast<double>()).cast<coord_t>());
 
                 if (intersection_first.border_idx == intersection_second.border_idx) {
                     Lines border_lines = borders[intersection_first.border_idx].lines();
-
                     // Append the nearest intersection into the path
-                    result.append((transform_from_x_axis * intersection_first.point.cast<double>()).cast<coord_t>());
+                    result.append(intersection_first_point);
 
+                    Direction shortest_direction = get_shortest_direction(border_lines, intersection_first.line_idx,
+                                                                          intersection_second.line_idx, intersection_first_point,
+                                                                          intersection_second_point);
                     // Append the path around the border into the path
-                    for (size_t line_idx = intersection_first.line_idx; line_idx != intersection_second.line_idx;) {
-                        result.append(border_lines[line_idx].b);
+                    if (shortest_direction == Direction::Forward) {
+                        for (int line_idx = intersection_first.line_idx; line_idx != int(intersection_second.line_idx); ++line_idx) {
+                            if (line_idx == int(border_lines.size())) line_idx = 0;
 
-                        if (++line_idx == border_lines.size()) line_idx = 0;
+                            result.append(border_lines[line_idx].b);
+                        }
+                    } else {
+                        for (int line_idx = intersection_first.line_idx; line_idx != int(intersection_second.line_idx);
+                             --line_idx) {
+                            if (line_idx < 0) line_idx = int(border_lines.size()) - 1;
+
+                            result.append(border_lines[line_idx].a);
+                        }
                     }
 
                     // Append the farthest intersection into the path
-                    result.append((transform_from_x_axis * intersection_second.point.cast<double>()).cast<coord_t>());
-
+                    result.append(intersection_second_point);
                     // Skip intersections in between
                     it_first = it_second;
                     break;
