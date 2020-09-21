@@ -128,9 +128,9 @@ TEST_CASE("WingedPadAroundObjectIsValid", "[SLASupportGeneration]") {
 
 TEST_CASE("ElevatedSupportGeometryIsValid", "[SLASupportGeneration]") {
     sla::SupportTreeConfig supportcfg;
-    supportcfg.object_elevation_mm = 5.;
+    supportcfg.object_elevation_mm = 10.;
     
-    for (auto fname : SUPPORT_TEST_MODELS) test_supports(fname);
+    for (auto fname : SUPPORT_TEST_MODELS) test_supports(fname, supportcfg);
 }
 
 TEST_CASE("FloorSupportGeometryIsValid", "[SLASupportGeneration]") {
