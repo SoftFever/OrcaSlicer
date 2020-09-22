@@ -439,9 +439,9 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
         return sizer;
     };
     line.append_widget(wiping_dialog_btn);
-
     m_og->append_line(line);
 
+    m_og->activate();
 
     // Frequently changed parameters for SLA_technology
     m_og_sla = std::make_shared<ConfigOptionsGroup>(parent, "");
@@ -512,6 +512,8 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
     line.append_widget(empty_widget);
 
     m_og_sla->append_line(line);
+
+    m_og_sla->activate();
 
     m_sizer = new wxBoxSizer(wxVERTICAL);
     m_sizer->Add(m_og->sizer, 0, wxEXPAND);

@@ -51,6 +51,20 @@ wxString double_to_string(double const value, const int max_precision /*= 4*/)
     return s;
 }
 
+Field::~Field()
+{
+	if (m_on_kill_focus)
+		m_on_kill_focus = nullptr;
+	if (m_on_set_focus)
+		m_on_set_focus = nullptr;
+	if (m_on_change)
+		m_on_change = nullptr;
+	if (m_back_to_initial_value)
+		m_back_to_initial_value = nullptr;
+	if (m_back_to_sys_value)
+		m_back_to_sys_value = nullptr;
+}
+
 void Field::PostInitialize()
 {
 	auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
@@ -318,7 +332,7 @@ void Field::sys_color_changed()
 template<class T>
 bool is_defined_input_value(wxWindow* win, const ConfigOptionType& type)
 {
-    if (static_cast<T*>(win)->GetValue().empty() && type != coString && type != coStrings)
+    if (!win || (static_cast<T*>(win)->GetValue().empty() && type != coString && type != coStrings))
         return false;
     return true;
 }

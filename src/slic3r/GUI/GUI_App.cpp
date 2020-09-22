@@ -68,6 +68,8 @@
 #include <shlobj.h>
 #endif // __WXMSW__
 
+#include <chrono>
+
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG
 #include <boost/beast/core/detail/base64.hpp>
 #include <boost/nowide/fstream.hpp>
@@ -77,6 +79,25 @@ namespace Slic3r {
 namespace GUI {
 
 class MainFrame;
+
+class InitTimer
+{
+    std::chrono::milliseconds start_timer;
+public:
+    InitTimer()
+    {
+        start_timer = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch());
+    }
+
+    ~InitTimer()
+    {
+        std::chrono::milliseconds stop_timer = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch());
+        auto process_duration = std::chrono::milliseconds(stop_timer - start_timer).count();
+        printf("on_init duration = %lld ms \n", process_duration);
+    }
+};
 
 class SplashScreen : public wxSplashScreen
 {
@@ -596,6 +617,7 @@ bool GUI_App::OnInit()
 
 bool GUI_App::on_init_inner()
 {
+    InitTimer local_timer;
     // Verify resources path
     const wxString resources_dir = from_u8(Slic3r::resources_dir());
     wxCHECK_MSG(wxDirExists(resources_dir), false,

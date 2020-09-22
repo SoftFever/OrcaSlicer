@@ -148,14 +148,15 @@ bool ObjectSettings::update_settings_list()
                 if (is_extruders_cat)
                     option.opt.max = wxGetApp().extruders_edited_cnt();
                 optgroup->append_single_option_line(option);
-
+            }
+            optgroup->activate();
+            for (auto& opt : cat.second)
                 optgroup->get_field(opt)->m_on_change = [optgroup](const std::string& opt_id, const boost::any& value) {
                     // first of all take a snapshot and then change value in configuration
                     wxGetApp().plater()->take_snapshot(from_u8((boost::format(_utf8(L("Change Option %s"))) % opt_id).str()));
                     optgroup->on_change_OG(opt_id, value);
                 };
 
-            }
             optgroup->reload_config();
 
             m_settings_list_sizer->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 0);
@@ -233,18 +234,19 @@ void ObjectSettings::update_config_values(DynamicPrintConfig* config)
         }
     };
 
-    auto get_field = [this](const t_config_option_key & opt_key, int opt_index)
+    auto toggle_field = [this](const t_config_option_key & opt_key, bool toggle, int opt_index)
     {
         Field* field = nullptr;
         for (auto og : m_og_settings) {
             field = og->get_fieldc(opt_key, opt_index);
             if (field != nullptr)
-                return field;
+                break;
         }
-        return field;
+        if (field)
+            field->toggle(toggle);
     };
 
-    ConfigManipulation config_manipulation(load_config, get_field, nullptr, config);
+    ConfigManipulation config_manipulation(load_config, toggle_field, nullptr, config);
 
     if (!is_object_settings)
     {
