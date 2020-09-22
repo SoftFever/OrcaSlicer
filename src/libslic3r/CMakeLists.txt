@@ -97,6 +97,8 @@ add_library(libslic3r STATIC
     GCode/PrintExtents.hpp
     GCode/SpiralVase.cpp
     GCode/SpiralVase.hpp
+    GCode/SeamPlacer.cpp
+    GCode/SeamPlacer.hpp
     GCode/ToolOrdering.cpp
     GCode/ToolOrdering.hpp
     GCode/WipeTower.cpp

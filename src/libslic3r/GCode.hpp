@@ -13,6 +13,7 @@
 #include "GCode/SpiralVase.hpp"
 #include "GCode/ToolOrdering.hpp"
 #include "GCode/WipeTower.hpp"
+#include "GCode/SeamPlacer.hpp"
 #if ENABLE_GCODE_VIEWER
 #include "GCode/GCodeProcessor.hpp"
 #else
@@ -68,6 +69,7 @@ private:
     std::unique_ptr<MotionPlanner> m_external_mp;
     std::unique_ptr<MotionPlanner> m_layer_mp;
 };
+
 
 class OozePrevention {
 public:
@@ -338,6 +340,9 @@ private:
     std::string     unretract() { return m_writer.unlift() + m_writer.unretract(); }
     std::string     set_extruder(unsigned int extruder_id, double print_z);
 
+    // Cache for custom seam enforcers/blockers for each layer.
+    SeamPlacer                          m_seam_placer;
+
     /* Origin of print coordinates expressed in unscaled G-code coordinates.
        This affects the input arguments supplied to the extrude*() and travel_to()
        methods. */
@@ -376,7 +381,6 @@ private:
     // Current layer processed. Insequential printing mode, only a single copy will be printed.
     // In non-sequential mode, all its copies will be printed.
     const Layer*                        m_layer;
-    std::map<const PrintObject*,Point>  m_seam_position;
     double                              m_volumetric_speed;
     // Support for the extrusion role markers. Which marker is active?
     ExtrusionRole                       m_last_extrusion_role;
