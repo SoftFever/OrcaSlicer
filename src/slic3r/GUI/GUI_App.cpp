@@ -80,22 +80,27 @@ namespace GUI {
 
 class MainFrame;
 
-class InitTimer
+class TaskTimer
 {
-    std::chrono::milliseconds start_timer;
+    std::chrono::milliseconds   start_timer;
+    std::string                 task_name;
 public:
-    InitTimer()
+    TaskTimer(std::string task_name):
+        task_name(task_name.empty() ? "task" : task_name)
     {
         start_timer = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now().time_since_epoch());
     }
 
-    ~InitTimer()
+    ~TaskTimer()
     {
         std::chrono::milliseconds stop_timer = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now().time_since_epoch());
         auto process_duration = std::chrono::milliseconds(stop_timer - start_timer).count();
-        printf("on_init duration = %lld ms \n", process_duration);
+        std::string out = (boost::format("\n!!! %1% duration = %2% ms \n\n") % task_name % process_duration).str();
+        printf(out.c_str());
+        std::wstring stemp = std::wstring(out.begin(), out.end());
+        OutputDebugString(stemp.c_str());
     }
 };
 
@@ -617,7 +622,7 @@ bool GUI_App::OnInit()
 
 bool GUI_App::on_init_inner()
 {
-    InitTimer local_timer;
+    TaskTimer timer("on_init");
     // Verify resources path
     const wxString resources_dir = from_u8(Slic3r::resources_dir());
     wxCHECK_MSG(wxDirExists(resources_dir), false,

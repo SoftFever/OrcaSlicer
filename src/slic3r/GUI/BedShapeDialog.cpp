@@ -252,6 +252,7 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const Conf
 		return sizer;
 	};
 	optgroup->append_line(line);
+    optgroup->activate();
 
     wxPanel* texture_panel = init_texture_panel();
     wxPanel* model_panel = init_model_panel();
@@ -373,6 +374,7 @@ wxPanel* BedShapePanel::init_texture_panel()
         return sizer;
     };
     optgroup->append_line(line);
+    optgroup->activate();
 
     panel->SetSizerAndFit(optgroup->sizer);
 
@@ -452,6 +454,7 @@ wxPanel* BedShapePanel::init_model_panel()
         return sizer;
     };
     optgroup->append_line(line);
+    optgroup->activate();
 
     panel->SetSizerAndFit(optgroup->sizer);
 

@@ -441,6 +441,7 @@ public:
     void		build_fff();
     void		build_sla();
 	void		active_selected_page() override;
+	void		clear_pages() override;
 	void		toggle_options() override;
     void		update() override;
     void		update_fff();

@@ -882,8 +882,10 @@ void Tab::msw_rescale()
     m_treectrl->AssignImageList(m_icons);
 
     // rescale options_groups
-    for (auto page : m_pages)
-        page->msw_rescale();
+    if (m_active_page)
+        m_active_page->msw_rescale();
+    //for (auto page : m_pages)
+    //    page->msw_rescale();
 
     Layout();
 }
@@ -1169,7 +1171,9 @@ void Tab::build_preset_description_line(ConfigOptionsGroup* optgroup)
     };
 
     auto detach_preset_btn = [this](wxWindow* parent) {
-        add_scaled_button(parent, &m_detach_preset_btn, "lock_open_sys", _(L("Detach from system preset")), wxBU_LEFT | wxBU_EXACTFIT);
+        //add_scaled_button(parent, &m_detach_preset_btn, "lock_open_sys", _(L("Detach from system preset")), wxBU_LEFT | wxBU_EXACTFIT);
+        m_detach_preset_btn = new ScalableButton(parent, wxID_ANY, "lock_open_sys", _L("Detach from system preset"), 
+                                                 wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
         ScalableButton* btn = m_detach_preset_btn;
         btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
@@ -2668,8 +2672,10 @@ void TabPrinter::build_unregular_pages()
             optgroup = page->new_optgroup(L("Preview"));
 
             auto reset_to_filament_color = [this, extruder_idx](wxWindow* parent) {
-                add_scaled_button(parent, &m_reset_to_filament_color, "undo",
-                                  _(L("Reset to Filament Color")), wxBU_LEFT | wxBU_EXACTFIT);
+                //add_scaled_button(parent, &m_reset_to_filament_color, "undo",
+                //                  _(L("Reset to Filament Color")), wxBU_LEFT | wxBU_EXACTFIT);
+                m_reset_to_filament_color = new ScalableButton(parent, wxID_ANY, "undo", _L("Reset to Filament Color"), 
+                                                               wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
                 ScalableButton* btn = m_reset_to_filament_color;
                 btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
                 auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -2774,6 +2780,12 @@ void TabPrinter::active_selected_page()
     // so update it implicitly
     if (m_active_page->title() == "General")
         m_active_page->set_value("extruders_count", int(m_extruders_count));
+}
+
+void TabPrinter::clear_pages()
+{
+    Tab::clear_pages();
+    m_reset_to_filament_color = nullptr;
 }
 
 void TabPrinter::toggle_options()
@@ -3289,9 +3301,15 @@ void Tab::clear_pages()
     for (auto p : m_pages)
         p->clear();
 
-    // nulling description lines pointers
+    // nulling pointers
     m_parent_preset_description_line = nullptr;
     m_detach_preset_btn = nullptr;
+
+    m_compatible_printers.checkbox  = nullptr;
+    m_compatible_printers.btn       = nullptr;
+
+    m_compatible_prints.checkbox    = nullptr;
+    m_compatible_prints.btn         = nullptr;
 }
 
 void Tab::update_description_lines()
@@ -3574,7 +3592,9 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 {
     deps.checkbox = new wxCheckBox(parent, wxID_ANY, _(L("All")));
     deps.checkbox->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-    add_scaled_button(parent, &deps.btn, "printer_white", from_u8((boost::format(" %s %s") % _utf8(L("Set")) % std::string(dots.ToUTF8())).str()), wxBU_LEFT | wxBU_EXACTFIT);
+//    add_scaled_button(parent, &deps.btn, "printer_white", from_u8((boost::format(" %s %s") % _utf8(L("Set")) % std::string(dots.ToUTF8())).str()), wxBU_LEFT | wxBU_EXACTFIT);
+    deps.btn = new ScalableButton(parent, wxID_ANY, "printer_white", from_u8((boost::format(" %s %s") % _utf8(L("Set")) % std::string(dots.ToUTF8())).str()),
+                                  wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
     deps.btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
     BlinkingBitmap* bbmp = new BlinkingBitmap(parent);
@@ -3652,8 +3672,9 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 // Return a callback to create a TabPrinter widget to edit bed shape
 wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
 {
-    ScalableButton* btn;
-    add_scaled_button(parent, &btn, "printer_white", " " + _(L("Set")) + " " + dots, wxBU_LEFT | wxBU_EXACTFIT);
+    ScalableButton* btn = new ScalableButton(parent, wxID_ANY, "printer_white", " " + _(L("Set")) + " " + dots,
+        wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
+//    add_scaled_button(parent, &btn, "printer_white", " " + _(L("Set")) + " " + dots, wxBU_LEFT | wxBU_EXACTFIT);
     btn->SetFont(wxGetApp().normal_font());
 
     BlinkingBitmap* bbmp = new BlinkingBitmap(parent);

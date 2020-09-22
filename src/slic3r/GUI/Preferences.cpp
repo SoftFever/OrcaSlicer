@@ -140,6 +140,8 @@ void PreferencesDialog::build()
 	option = Option(def, "show_splash_screen");
 	m_optgroup_general->append_single_option_line(option);
 
+	m_optgroup_general->activate();
+
 	m_optgroup_camera = std::make_shared<ConfigOptionsGroup>(this, _(L("Camera")));
 	m_optgroup_camera->label_width = 40;
 	m_optgroup_camera->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
@@ -159,6 +161,8 @@ void PreferencesDialog::build()
 	def.set_default_value(new ConfigOptionBool(app_config->get("use_free_camera") == "1"));
 	option = Option(def, "use_free_camera");
 	m_optgroup_camera->append_single_option_line(option);
+
+	m_optgroup_camera->activate();
 
 	m_optgroup_gui = std::make_shared<ConfigOptionsGroup>(this, _(L("GUI")));
 	m_optgroup_gui->label_width = 40;
@@ -184,6 +188,8 @@ void PreferencesDialog::build()
 	option = Option(def, "use_custom_toolbar_size");
 	m_optgroup_gui->append_single_option_line(option);
 
+	m_optgroup_gui->activate();
+
 	create_icon_size_slider();
 	m_icon_size_sizer->ShowItems(app_config->get("use_custom_toolbar_size") == "1");
 
@@ -202,6 +208,8 @@ void PreferencesDialog::build()
 	def.set_default_value(new ConfigOptionBool{ app_config->get("use_environment_map") == "1" });
 	option = Option(def, "use_environment_map");
 	m_optgroup_render->append_single_option_line(option);
+
+	m_optgroup_render->activate();
 #endif // ENABLE_ENVIRONMENT_MAP
 
 	auto sizer = new wxBoxSizer(wxVERTICAL);

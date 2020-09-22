@@ -632,7 +632,7 @@ void ConfigOptionsGroup::msw_rescale()
     const int em = em_unit(parent());
 
     // rescale width of label column
-    if (!m_options_mode.empty() && label_width > 1)
+    if (m_grid_sizer && !m_options_mode.empty() && label_width > 1)
     {
         const int cols = m_grid_sizer->GetCols();
         const int rows = m_grid_sizer->GetEffectiveRowsCount();
