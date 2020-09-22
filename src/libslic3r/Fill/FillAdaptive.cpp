@@ -152,6 +152,67 @@ bool triangle_AABB_intersects(const Vector &a, const Vector &b, const Vector &c,
     return true;
 }
 
+static double dist2_to_triangle(const Vec3d &a, const Vec3d &b, const Vec3d &c, const Vec3d &p)
+{
+    double out = std::numeric_limits<double>::max();
+    const Vec3d v1 = b - a;
+    auto        l1 = v1.squaredNorm();
+    const Vec3d v2 = c - b;
+    auto        l2 = v2.squaredNorm();
+    const Vec3d v3 = a - c;
+    auto        l3 = v3.squaredNorm();
+
+    // Is the triangle valid?
+    if (l1 > 0. && l2 > 0. && l3 > 0.) 
+    {
+        // 1) Project point into the plane of the triangle.
+        const Vec3d n = v1.cross(v2);
+        double d = (p - a).dot(n);
+        const Vec3d foot_pt = p - n * d / n.squaredNorm();
+
+        // 2) Maximum projection of n.
+        int proj_axis;
+        n.array().cwiseAbs().maxCoeff(&proj_axis);
+
+        // 3) Test whether the foot_pt is inside the triangle.
+        {
+            auto inside_triangle = [](const Vec2d& v1, const Vec2d& v2, const Vec2d& v3, const Vec2d& pt) {
+                const double d1 = cross2(v1, pt);
+                const double d2 = cross2(v2, pt);
+                const double d3 = cross2(v3, pt);
+                // Testing both CCW and CW orientations.
+                return (d1 >= 0. && d2 >= 0. && d3 >= 0.) || (d1 <= 0. && d2 <= 0. && d3 <= 0.);
+            };
+            bool inside;
+            switch (proj_axis) {
+            case 0: 
+                inside = inside_triangle({v1.y(), v1.z()}, {v2.y(), v2.z()}, {v3.y(), v3.z()}, {foot_pt.y(), foot_pt.z()}); break;
+            case 1: 
+                inside = inside_triangle({v1.z(), v1.x()}, {v2.z(), v2.x()}, {v3.z(), v3.x()}, {foot_pt.z(), foot_pt.x()}); break;
+            default: 
+                assert(proj_axis == 2);
+                inside = inside_triangle({v1.x(), v1.y()}, {v2.x(), v2.y()}, {v3.x(), v3.y()}, {foot_pt.x(), foot_pt.y()}); break;
+            }
+            if (inside)
+                return (p - foot_pt).squaredNorm();
+        }
+
+        // 4) Find minimum distance to triangle vertices and edges.
+        out = std::min((p - a).squaredNorm(), std::min((p - b).squaredNorm(), (p - c).squaredNorm()));
+        auto t = (p - a).dot(v1);
+        if (t > 0. && t < l1)
+            out = std::min(out, (a + v1 * (t / l1) - p).squaredNorm());
+        t = (p - b).dot(v2);
+        if (t > 0. && t < l2)
+            out = std::min(out, (b + v2 * (t / l2) - p).squaredNorm());
+        t = (p - c).dot(v3);
+        if (t > 0. && t < l3)
+            out = std::min(out, (c + v3 * (t / l3) - p).squaredNorm());
+    }
+
+    return out;
+}
+
 // Ordering of children cubes.
 static const std::array<Vec3d, 8> child_centers {
     Vec3d(-1, -1, -1), Vec3d( 1, -1, -1), Vec3d(-1,  1, -1), Vec3d( 1,  1, -1),
@@ -295,7 +356,6 @@ struct FillContext
     };
 
     FillContext(const Octree &octree, double z_position, int direction_idx) :
-        origin_world(octree.origin),
         cubes_properties(octree.cubes_properties),
         z_position(z_position),
         traversal_order(child_traversal_order[direction_idx]),
@@ -309,8 +369,6 @@ struct FillContext
     // Rotate the point, uses the same convention as Point::rotate().
     Vec2d rotate(const Vec2d& v) { return Vec2d(this->cos_a * v.x() - this->sin_a * v.y(), this->sin_a * v.x() + this->cos_a * v.y()); }
 
-    // Center of the root cube in the Octree coordinate system.
-    const Vec3d                         origin_world;
     const std::vector<CubeProperties>  &cubes_properties;
     // Top of the current layer.
     const double                        z_position;
@@ -402,7 +460,7 @@ static void generate_infill_lines_recursive(
         from = context.rotate(from);
         to   = context.rotate(to);
         // Relative to cube center
-        Vec2d offset(cube->center.x() - context.origin_world.x(), cube->center.y() - context.origin_world.y());
+        const Vec2d offset(cube->center.x(), cube->center.y());
         from += offset;
         to   += offset;
         // Verify that the traversal order of the octree children matches the line direction,
@@ -597,7 +655,14 @@ static void transform_center(Cube *current_cube, const Eigen::Matrix3d &rot)
             transform_center(child, rot);
 }
 
-OctreePtr build_octree(const indexed_triangle_set &triangle_mesh, coordf_t line_spacing, bool support_overhangs_only)
+OctreePtr build_octree(
+    // Mesh is rotated to the coordinate system of the octree.
+    const indexed_triangle_set  &triangle_mesh,
+    // Overhang triangles extracted from fill surfaces with stInternalBridge type,
+    // rotated to the coordinate system of the octree.
+    const std::vector<Vec3d>    &overhang_triangles, 
+    coordf_t                     line_spacing,
+    bool                         support_overhangs_only)
 {
     assert(line_spacing > 0);
     assert(! std::isnan(line_spacing));
@@ -608,21 +673,27 @@ OctreePtr build_octree(const indexed_triangle_set &triangle_mesh, coordf_t line_
     auto                        octree           = OctreePtr(new Octree(cube_center, cubes_properties));
 
     if (cubes_properties.size() > 1) {
+        Octree *octree_ptr = octree.get();
+        double edge_length_half = 0.5 * cubes_properties.back().edge_length;
+        Vec3d  diag_half(edge_length_half, edge_length_half, edge_length_half);
+        int    max_depth = int(cubes_properties.size()) - 1;
+        auto process_triangle = [octree_ptr, max_depth, diag_half](const Vec3d &a, const Vec3d &b, const Vec3d &c) {
+            octree_ptr->insert_triangle(
+                a, b, c,
+                octree_ptr->root_cube,
+                BoundingBoxf3(octree_ptr->root_cube->center - diag_half, octree_ptr->root_cube->center + diag_half),
+                max_depth);
+        };
         auto up_vector = support_overhangs_only ? Vec3d(transform_to_octree() * Vec3d(0., 0., 1.)) : Vec3d();
         for (auto &tri : triangle_mesh.indices) {
             auto a = triangle_mesh.vertices[tri[0]].cast<double>();
             auto b = triangle_mesh.vertices[tri[1]].cast<double>();
             auto c = triangle_mesh.vertices[tri[2]].cast<double>();
-            if (support_overhangs_only && ! is_overhang_triangle(a, b, c, up_vector))
-                continue;
-            double edge_length_half = 0.5 * cubes_properties.back().edge_length;
-            Vec3d  diag_half(edge_length_half, edge_length_half, edge_length_half);
-            octree->insert_triangle(
-                a, b, c,
-                octree->root_cube, 
-                BoundingBoxf3(octree->root_cube->center - diag_half, octree->root_cube->center + diag_half),
-                int(cubes_properties.size()) - 1);
+            if (! support_overhangs_only || is_overhang_triangle(a, b, c, up_vector))
+                process_triangle(a, b, c);
         }
+        for (size_t i = 0; i < overhang_triangles.size(); i += 3)
+            process_triangle(overhang_triangles[i], overhang_triangles[i + 1], overhang_triangles[i + 2]);
         {
             // Transform the octree to world coordinates to reduce computation when extracting infill lines.
             auto rot = transform_to_world().toRotationMatrix();
@@ -639,13 +710,16 @@ void Octree::insert_triangle(const Vec3d &a, const Vec3d &b, const Vec3d &c, Cub
     assert(current_cube);
     assert(depth > 0);
 
+    // Squared radius of a sphere around the child cube.
+    const double r2_cube = Slic3r::sqr(0.5 * this->cubes_properties[-- depth].height + EPSILON);
+
     for (size_t i = 0; i < 8; ++ i) {
-        const Vec3d &child_center = child_centers[i];
+        const Vec3d &child_center_dir = child_centers[i];
         // Calculate a slightly expanded bounding box of a child cube to cope with triangles touching a cube wall and other numeric errors.
         // We will rather densify the octree a bit more than necessary instead of missing a triangle.
         BoundingBoxf3 bbox;
         for (int k = 0; k < 3; ++ k) {
-            if (child_center[k] == -1.) {
+            if (child_center_dir[k] == -1.) {
                 bbox.min[k] = current_bbox.min[k];
                 bbox.max[k] = current_cube->center[k] + EPSILON;
             } else {
@@ -653,11 +727,13 @@ void Octree::insert_triangle(const Vec3d &a, const Vec3d &b, const Vec3d &c, Cub
                 bbox.max[k] = current_bbox.max[k];
             }
         }
+        Vec3d child_center = current_cube->center + (child_center_dir * (this->cubes_properties[depth].edge_length / 2.));
+        //if (dist2_to_triangle(a, b, c, child_center) < r2_cube) {
         if (triangle_AABB_intersects(a, b, c, bbox)) {
             if (! current_cube->children[i])
-                current_cube->children[i] = this->pool.construct(current_cube->center + (child_center * (this->cubes_properties[depth].edge_length / 4)));
-            if (depth > 1)
-                this->insert_triangle(a, b, c, current_cube->children[i], bbox, depth - 1);
+                current_cube->children[i] = this->pool.construct(child_center);
+            if (depth > 0)
+                this->insert_triangle(a, b, c, current_cube->children[i], bbox, depth);
         }
     }
 }

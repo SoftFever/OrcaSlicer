@@ -40,7 +40,10 @@ Eigen::Quaterniond              transform_to_octree();
 
 FillAdaptive::OctreePtr         build_octree(
     // Mesh is rotated to the coordinate system of the octree.
-    const indexed_triangle_set  &triangle_mesh, 
+    const indexed_triangle_set  &triangle_mesh,
+    // Overhang triangles extracted from fill surfaces with stInternalBridge type, 
+    // rotated to the coordinate system of the octree.
+    const std::vector<Vec3d>    &overhang_triangles, 
     coordf_t                     line_spacing, 
     // If true, octree is densified below internal overhangs only.
     bool                         support_overhangs_only);

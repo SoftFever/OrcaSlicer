@@ -9,6 +9,7 @@
 #include "SupportMaterial.hpp"
 #include "Surface.hpp"
 #include "Slicing.hpp"
+#include "Tesselate.hpp"
 #include "Utils.hpp"
 #include "AABBTreeIndirect.hpp"
 #include "Fill/FillAdaptive.hpp"
@@ -439,17 +440,40 @@ std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> PrintObject::prepare
     using namespace FillAdaptive;
 
     auto [adaptive_line_spacing, support_line_spacing] = adaptive_fill_line_spacing(*this);
-    if (adaptive_line_spacing == 0. && support_line_spacing == 0.)
+    if (adaptive_line_spacing == 0. && support_line_spacing == 0. || this->layers().empty())
         return std::make_pair(OctreePtr(), OctreePtr());
 
     indexed_triangle_set mesh = this->model_object()->raw_indexed_triangle_set();
     // Rotate mesh and build octree on it with axis-aligned (standart base) cubes.
     Transform3d m = m_trafo;
-    m.translate(Vec3d(- unscale<float>(m_center_offset.x()), - unscale<float>(m_center_offset.y()), 0));
-    its_transform(mesh, transform_to_octree().toRotationMatrix() * m, true);
+    m.pretranslate(Vec3d(- unscale<float>(m_center_offset.x()), - unscale<float>(m_center_offset.y()), 0));
+    auto to_octree = transform_to_octree().toRotationMatrix();
+    its_transform(mesh, to_octree * m, true);
+
+    // Triangulate internal bridging surfaces.
+    std::vector<std::vector<Vec3d>> overhangs(this->layers().size());
+    tbb::parallel_for(
+        tbb::blocked_range<int>(0, int(m_layers.size()) - 1),
+        [this, &to_octree, &overhangs](const tbb::blocked_range<int> &range) {
+            std::vector<Vec3d> &out = overhangs[range.begin()];
+            for (int idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
+                m_print->throw_if_canceled();
+                const Layer *layer = this->layers()[idx_layer];
+                for (const LayerRegion *layerm : layer->regions())
+                    for (const Surface &surface : layerm->fill_surfaces.surfaces)
+                        if (surface.surface_type == stInternalBridge)
+                            append(out, triangulate_expolygon_3d(surface.expolygon, layer->bottom_z()));
+            }
+            for (Vec3d &p : out)
+                p = (to_octree * p).eval();
+        });
+    // and gather them.
+    for (size_t i = 1; i < overhangs.size(); ++ i)
+        append(overhangs.front(), std::move(overhangs[i]));
+
     return std::make_pair(
-        adaptive_line_spacing ? build_octree(mesh, adaptive_line_spacing, false) : OctreePtr(),
-        support_line_spacing  ? build_octree(mesh, support_line_spacing, true) : OctreePtr());
+        adaptive_line_spacing ? build_octree(mesh, overhangs.front(), adaptive_line_spacing, false) : OctreePtr(),
+        support_line_spacing  ? build_octree(mesh, overhangs.front(), support_line_spacing, true) : OctreePtr());
 }
 
 void PrintObject::clear_layers()
@@ -2785,8 +2809,8 @@ void PrintObject::project_and_append_custom_facets(
             // Calculate how to move points on triangle sides per unit z increment.
             Vec2f ta(trianglef[1] - trianglef[0]);
             Vec2f tb(trianglef[2] - trianglef[0]);
-            ta *= 1./(facet[1].z() - facet[0].z());
-            tb *= 1./(facet[2].z() - facet[0].z());
+            ta *= 1.f/(facet[1].z() - facet[0].z());
+            tb *= 1.f/(facet[2].z() - facet[0].z());
 
             // Projection on current slice will be build directly in place.
             LightPolygon* proj = &projections_of_triangles[idx].polygons[0];
@@ -2797,7 +2821,7 @@ void PrintObject::project_and_append_custom_facets(
 
             // Project a sub-polygon on all slices intersecting the triangle.
             while (it != layers().end()) {
-                const float z = (*it)->slice_z;
+                const float z = float((*it)->slice_z);
 
                 // Projections of triangle sides intersections with slices.
                 // a moves along one side, b tracks the other.
@@ -2809,7 +2833,7 @@ void PrintObject::project_and_append_custom_facets(
                 if (z > facet[1].z() && ! passed_first) {
                     proj->add(trianglef[1]);
                     ta = trianglef[2]-trianglef[1];
-                    ta *= 1./(facet[2].z() - facet[1].z());
+                    ta *= 1.f/(facet[2].z() - facet[1].z());
                     passed_first = true;
                 }
 
