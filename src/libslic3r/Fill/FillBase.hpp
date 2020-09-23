@@ -11,6 +11,7 @@
 
 #include "../libslic3r.h"
 #include "../BoundingBox.hpp"
+#include "../Exception.hpp"
 #include "../Utils.hpp"
 
 namespace Slic3r {
@@ -19,13 +20,14 @@ class ExPolygon;
 class Surface;
 enum InfillPattern : int;
 
-namespace FillAdaptive_Internal {
+namespace FillAdaptive {
     struct Octree;
 };
 
-class InfillFailedException : public std::runtime_error {
+// Infill shall never fail, therefore the error is classified as RuntimeError, not SlicingError.
+class InfillFailedException : public Slic3r::RuntimeError {
 public:
-    InfillFailedException() : std::runtime_error("Infill failed") {}
+    InfillFailedException() : Slic3r::RuntimeError("Infill failed") {}
 };
 
 struct FillParams
@@ -74,9 +76,7 @@ public:
     BoundingBox bounding_box;
 
     // Octree builds on mesh for usage in the adaptive cubic infill
-    FillAdaptive_Internal::Octree* adapt_fill_octree = nullptr;
-    // Octree builds on mesh for usage in the support cubic infill
-    FillAdaptive_Internal::Octree* support_fill_octree = nullptr;
+    FillAdaptive::Octree* adapt_fill_octree = nullptr;
 
 public:
     virtual ~Fill() {}

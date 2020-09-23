@@ -315,7 +315,7 @@ size_t SnapshotDB::load_db()
     // Sort the snapshots by their date/time.
     std::sort(m_snapshots.begin(), m_snapshots.end(), [](const Snapshot &s1, const Snapshot &s2) { return s1.time_captured < s2.time_captured; });
     if (! errors_cummulative.empty())
-        throw std::runtime_error(errors_cummulative);
+        throw Slic3r::RuntimeError(errors_cummulative);
     return m_snapshots.size();
 }
 
@@ -339,7 +339,7 @@ static void copy_config_dir_single_level(const boost::filesystem::path &path_src
 {
     if (! boost::filesystem::is_directory(path_dst) && 
         ! boost::filesystem::create_directory(path_dst))
-        throw std::runtime_error(std::string("Slic3r was unable to create a directory at ") + path_dst.string());
+        throw Slic3r::RuntimeError(std::string("Slic3r was unable to create a directory at ") + path_dst.string());
 
     for (auto &dir_entry : boost::filesystem::directory_iterator(path_src))
         if (Slic3r::is_ini_file(dir_entry))
@@ -429,7 +429,7 @@ const Snapshot& SnapshotDB::restore_snapshot(const std::string &id, AppConfig &a
 			this->restore_snapshot(snapshot, app_config);
 			return snapshot;
 		}
-	throw std::runtime_error(std::string("Snapshot with id " + id + " was not found."));
+	throw Slic3r::RuntimeError(std::string("Snapshot with id " + id + " was not found."));
 }
 
 void SnapshotDB::restore_snapshot(const Snapshot &snapshot, AppConfig &app_config)
@@ -501,7 +501,7 @@ boost::filesystem::path SnapshotDB::create_db_dir()
         subdir.make_preferred();
         if (! boost::filesystem::is_directory(subdir) && 
             ! boost::filesystem::create_directory(subdir))
-            throw std::runtime_error(std::string("Slic3r was unable to create a directory at ") + subdir.string());
+            throw Slic3r::RuntimeError(std::string("Slic3r was unable to create a directory at ") + subdir.string());
     }
     return snapshots_dir;
 }

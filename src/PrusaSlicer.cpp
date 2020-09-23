@@ -589,7 +589,7 @@ int CLI::run(int argc, char **argv)
 #if ENABLE_GCODE_VIEWER
             if (start_as_gcodeviewer) {
                 if (!m_input_files.empty())
-                    gui->plater()->load_gcode(wxString::FromUTF8(m_input_files[0]));
+                    gui->plater()->load_gcode(wxString::FromUTF8(m_input_files[0].c_str()));
             } else {
 #endif // ENABLE_GCODE_VIEWER_AS
 #if 0

@@ -1926,7 +1926,7 @@ void _3DScene::extrusionentity_to_verts(const ExtrusionEntity *extrusion_entity,
                     if (extrusion_entity_collection != nullptr)
                         extrusionentity_to_verts(*extrusion_entity_collection, print_z, copy, volume);
                     else {
-                        throw std::runtime_error("Unexpected extrusion_entity type in to_verts()");
+                        throw Slic3r::RuntimeError("Unexpected extrusion_entity type in to_verts()");
                     }
                 }
             }

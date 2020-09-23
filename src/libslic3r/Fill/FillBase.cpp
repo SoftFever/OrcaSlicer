@@ -38,9 +38,9 @@ Fill* Fill::new_from_type(const InfillPattern type)
     case ipArchimedeanChords:   return new FillArchimedeanChords();
     case ipHilbertCurve:        return new FillHilbertCurve();
     case ipOctagramSpiral:      return new FillOctagramSpiral();
-    case ipAdaptiveCubic:       return new FillAdaptive();
-    case ipSupportCubic:        return new FillSupportCubic();
-    default: throw std::invalid_argument("unknown type");
+    case ipAdaptiveCubic:       return new FillAdaptive::Filler();
+    case ipSupportCubic:        return new FillAdaptive::Filler();
+    default: throw Slic3r::InvalidArgument("unknown type");
     }
 }
 
@@ -847,8 +847,9 @@ void Fill::connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary_
 	boundary.assign(boundary_src.holes.size() + 1, Points());
 	boundary_data.assign(boundary_src.holes.size() + 1, std::vector<ContourPointData>());
 	// Mapping the infill_ordered end point to a (contour, point) of boundary.
-	std::vector<std::pair<size_t, size_t>> map_infill_end_point_to_boundary;
-	map_infill_end_point_to_boundary.assign(infill_ordered.size() * 2, std::pair<size_t, size_t>(std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max()));
+	std::vector<std::pair<size_t, size_t>>      map_infill_end_point_to_boundary;
+    static constexpr auto                       boundary_idx_unconnected = std::numeric_limits<size_t>::max();
+	map_infill_end_point_to_boundary.assign(infill_ordered.size() * 2, std::pair<size_t, size_t>(boundary_idx_unconnected, boundary_idx_unconnected));
 	{
 		// Project the infill_ordered end points onto boundary_src.
 		std::vector<std::pair<EdgeGrid::Grid::ClosestPointResult, size_t>> intersection_points;
@@ -898,13 +899,14 @@ void Fill::connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary_
 			contour_data.front().param = contour_data.back().param + (contour_dst.back().cast<float>() - contour_dst.front().cast<float>()).norm();
 		}
 
-#ifndef NDEBUG
 		assert(boundary.size() == boundary_src.num_contours());
-		assert(std::all_of(map_infill_end_point_to_boundary.begin(), map_infill_end_point_to_boundary.end(),
+#if 0
+        // Adaptive Cubic Infill produces infill lines, which not always end at the outer boundary.
+        assert(std::all_of(map_infill_end_point_to_boundary.begin(), map_infill_end_point_to_boundary.end(),
 			[&boundary](const std::pair<size_t, size_t> &contour_point) {
 				return contour_point.first < boundary.size() && contour_point.second < boundary[contour_point.first].size();
 			}));
-#endif /* NDEBUG */
+#endif
 	}
 
 	// Mark the points and segments of split boundary as consumed if they are very close to some of the infill line.
@@ -935,9 +937,9 @@ void Fill::connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary_
 		const Polyline 						&pl2 			= infill_ordered[idx_chain];
 		const std::pair<size_t, size_t>		*cp1			= &map_infill_end_point_to_boundary[(idx_chain - 1) * 2 + 1];
 		const std::pair<size_t, size_t>		*cp2			= &map_infill_end_point_to_boundary[idx_chain * 2];
-		const std::vector<ContourPointData>	&contour_data	= boundary_data[cp1->first];
-		if (cp1->first == cp2->first) {
+		if (cp1->first != boundary_idx_unconnected && cp1->first == cp2->first) {
 			// End points on the same contour. Try to connect them.
+    		const std::vector<ContourPointData>	&contour_data = boundary_data[cp1->first];
 			float param_lo  = (cp1->second == 0) ? 0.f : contour_data[cp1->second].param;
 			float param_hi  = (cp2->second == 0) ? 0.f : contour_data[cp2->second].param;
 			float param_end = contour_data.front().param;
@@ -964,7 +966,7 @@ void Fill::connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary_
 		const std::pair<size_t, size_t>	*cp1prev = cp1 - 1;
 		const std::pair<size_t, size_t>	*cp2     = &map_infill_end_point_to_boundary[(connection_cost.idx_first + 1) * 2];
 		const std::pair<size_t, size_t>	*cp2next = cp2 + 1;
-		assert(cp1->first == cp2->first);
+		assert(cp1->first == cp2->first && cp1->first != boundary_idx_unconnected);
 		std::vector<ContourPointData>	&contour_data = boundary_data[cp1->first];
 		if (connection_cost.reversed)
 			std::swap(cp1, cp2);

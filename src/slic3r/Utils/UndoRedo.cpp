@@ -847,7 +847,7 @@ void StackImpl::load_snapshot(size_t timestamp, Slic3r::Model& model, Slic3r::GU
 	// Find the snapshot by time. It must exist.
 	const auto it_snapshot = std::lower_bound(m_snapshots.begin(), m_snapshots.end(), Snapshot(timestamp));
 	if (it_snapshot == m_snapshots.end() || it_snapshot->timestamp != timestamp)
-		throw std::runtime_error((boost::format("Snapshot with timestamp %1% does not exist") % timestamp).str());
+		throw Slic3r::RuntimeError((boost::format("Snapshot with timestamp %1% does not exist") % timestamp).str());
 
 	m_active_snapshot_time = timestamp;
 	model.clear_objects();

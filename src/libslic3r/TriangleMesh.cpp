@@ -1,3 +1,4 @@
+#include "Exception.hpp"
 #include "TriangleMesh.hpp"
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
@@ -420,7 +421,7 @@ std::deque<uint32_t> TriangleMesh::find_unvisited_neighbors(std::vector<unsigned
 {
     // Make sure we're not operating on a broken mesh.
     if (!this->repaired)
-        throw std::runtime_error("find_unvisited_neighbors() requires repair()");
+        throw Slic3r::RuntimeError("find_unvisited_neighbors() requires repair()");
 
     // If the visited list is empty, populate it with false for every facet.
     if (facet_visited.empty())
@@ -683,7 +684,7 @@ void TriangleMeshSlicer::init(const TriangleMesh *_mesh, throw_on_cancel_callbac
 {
     mesh = _mesh;
     if (! mesh->has_shared_vertices())
-        throw std::invalid_argument("TriangleMeshSlicer was passed a mesh without shared vertices.");
+        throw Slic3r::InvalidArgument("TriangleMeshSlicer was passed a mesh without shared vertices.");
 
     throw_on_cancel();
     facets_edges.assign(_mesh->stl.stats.number_of_facets * 3, -1);

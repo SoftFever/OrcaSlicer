@@ -2,6 +2,7 @@
 #define GUI_PROCESS_HPP
 
 class wxWindow;
+class wxString;
 
 namespace Slic3r {
 namespace GUI {

@@ -11,7 +11,6 @@
 
 #include <wx/progdlg.h>
 
-#include "libslic3r/PrintConfig.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "Http.hpp"

@@ -1,5 +1,6 @@
 #include "clipper/clipper_z.hpp"
 
+#include "Exception.hpp"
 #include "Print.hpp"
 #include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
@@ -1507,7 +1508,7 @@ BoundingBox Print::total_bounding_box() const
 double Print::skirt_first_layer_height() const
 {
     if (m_objects.empty()) 
-        throw std::invalid_argument("skirt_first_layer_height() can't be called without PrintObjects");
+        throw Slic3r::InvalidArgument("skirt_first_layer_height() can't be called without PrintObjects");
     return m_objects.front()->config().get_abs_value("first_layer_height");
 }
 
@@ -1583,7 +1584,7 @@ void Print::auto_assign_extruders(ModelObject* model_object) const
 // Slicing process, running at a background thread.
 void Print::process()
 {
-    BOOST_LOG_TRIVIAL(info) << "Staring the slicing process." << log_memory_info();
+    BOOST_LOG_TRIVIAL(info) << "Starting the slicing process." << log_memory_info();
     for (PrintObject *obj : m_objects)
         obj->make_perimeters();
     this->set_status(70, L("Infilling layers"));
@@ -1603,7 +1604,7 @@ void Print::process()
         	// Initialize the tool ordering, so it could be used by the G-code preview slider for planning tool changes and filament switches.
         	m_tool_ordering = ToolOrdering(*this, -1, false);
             if (m_tool_ordering.empty() || m_tool_ordering.last_extruder() == unsigned(-1))
-                throw std::runtime_error("The print is empty. The model is not printable with current print settings.");
+                throw Slic3r::SlicingError("The print is empty. The model is not printable with current print settings.");
         }
         this->set_done(psWipeTower);
     }
@@ -2173,7 +2174,7 @@ void Print::_make_wipe_tower()
         wipe_tower.set_layer(float(m_wipe_tower_data.tool_ordering.back().print_z), float(layer_height), 0, false, true);
     }
     m_wipe_tower_data.final_purge = Slic3r::make_unique<WipeTower::ToolChangeResult>(
-		wipe_tower.tool_change((unsigned int)-1, false));
+        wipe_tower.tool_change((unsigned int)(-1)));
 
     m_wipe_tower_data.used_filament = wipe_tower.get_used_filament();
     m_wipe_tower_data.number_of_toolchanges = wipe_tower.get_number_of_toolchanges();

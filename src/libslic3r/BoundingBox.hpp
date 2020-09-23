@@ -2,6 +2,7 @@
 #define slic3r_BoundingBox_hpp_
 
 #include "libslic3r.h"
+#include "Exception.hpp"
 #include "Point.hpp"
 #include "Polygon.hpp"
 
@@ -18,11 +19,13 @@ public:
     BoundingBoxBase() : min(PointClass::Zero()), max(PointClass::Zero()), defined(false) {}
     BoundingBoxBase(const PointClass &pmin, const PointClass &pmax) : 
         min(pmin), max(pmax), defined(pmin(0) < pmax(0) && pmin(1) < pmax(1)) {}
+    BoundingBoxBase(const PointClass &p1, const PointClass &p2, const PointClass &p3) :
+        min(p1), max(p1), defined(false) { merge(p2); merge(p3); }
     BoundingBoxBase(const std::vector<PointClass>& points) : min(PointClass::Zero()), max(PointClass::Zero())
     {
         if (points.empty()) {
             this->defined = false;
-            // throw std::invalid_argument("Empty point set supplied to BoundingBoxBase constructor");
+            // throw Slic3r::InvalidArgument("Empty point set supplied to BoundingBoxBase constructor");
         } else {
             typename std::vector<PointClass>::const_iterator it = points.begin();
             this->min = *it;
@@ -65,10 +68,12 @@ public:
     BoundingBox3Base(const PointClass &pmin, const PointClass &pmax) : 
         BoundingBoxBase<PointClass>(pmin, pmax) 
         { if (pmin(2) >= pmax(2)) BoundingBoxBase<PointClass>::defined = false; }
+    BoundingBox3Base(const PointClass &p1, const PointClass &p2, const PointClass &p3) :
+        BoundingBoxBase<PointClass>(p1, p1) { merge(p2); merge(p3); }
     BoundingBox3Base(const std::vector<PointClass>& points)
     {
         if (points.empty())
-            throw std::invalid_argument("Empty point set supplied to BoundingBox3Base constructor");
+            throw Slic3r::InvalidArgument("Empty point set supplied to BoundingBox3Base constructor");
         typename std::vector<PointClass>::const_iterator it = points.begin();
         this->min = *it;
         this->max = *it;
@@ -109,24 +114,32 @@ extern template void     BoundingBoxBase<Vec3d>::scale(double factor);
 extern template void     BoundingBoxBase<Point>::offset(coordf_t delta);
 extern template void     BoundingBoxBase<Vec2d>::offset(coordf_t delta);
 extern template void     BoundingBoxBase<Point>::merge(const Point &point);
+extern template void     BoundingBoxBase<Vec2f>::merge(const Vec2f &point);
 extern template void     BoundingBoxBase<Vec2d>::merge(const Vec2d &point);
 extern template void     BoundingBoxBase<Point>::merge(const Points &points);
 extern template void     BoundingBoxBase<Vec2d>::merge(const Pointfs &points);
 extern template void     BoundingBoxBase<Point>::merge(const BoundingBoxBase<Point> &bb);
+extern template void     BoundingBoxBase<Vec2f>::merge(const BoundingBoxBase<Vec2f> &bb);
 extern template void     BoundingBoxBase<Vec2d>::merge(const BoundingBoxBase<Vec2d> &bb);
 extern template Point    BoundingBoxBase<Point>::size() const;
+extern template Vec2f    BoundingBoxBase<Vec2f>::size() const;
 extern template Vec2d    BoundingBoxBase<Vec2d>::size() const;
 extern template double   BoundingBoxBase<Point>::radius() const;
 extern template double   BoundingBoxBase<Vec2d>::radius() const;
 extern template Point    BoundingBoxBase<Point>::center() const;
+extern template Vec2f    BoundingBoxBase<Vec2f>::center() const;
 extern template Vec2d    BoundingBoxBase<Vec2d>::center() const;
+extern template void     BoundingBox3Base<Vec3f>::merge(const Vec3f &point);
 extern template void     BoundingBox3Base<Vec3d>::merge(const Vec3d &point);
 extern template void     BoundingBox3Base<Vec3d>::merge(const Pointf3s &points);
 extern template void     BoundingBox3Base<Vec3d>::merge(const BoundingBox3Base<Vec3d> &bb);
+extern template Vec3f    BoundingBox3Base<Vec3f>::size() const;
 extern template Vec3d    BoundingBox3Base<Vec3d>::size() const;
 extern template double   BoundingBox3Base<Vec3d>::radius() const;
 extern template void     BoundingBox3Base<Vec3d>::offset(coordf_t delta);
+extern template Vec3f    BoundingBox3Base<Vec3f>::center() const;
 extern template Vec3d    BoundingBox3Base<Vec3d>::center() const;
+extern template coordf_t BoundingBox3Base<Vec3f>::max_size() const;
 extern template coordf_t BoundingBox3Base<Vec3d>::max_size() const;
 
 class BoundingBox : public BoundingBoxBase<Point>

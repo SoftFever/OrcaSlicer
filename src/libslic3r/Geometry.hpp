@@ -281,7 +281,7 @@ bool directions_parallel(double angle1, double angle2, double max_diff = 0);
 template<class T> bool contains(const std::vector<T> &vector, const Point &point);
 template<typename T> T rad2deg(T angle) { return T(180.0) * angle / T(PI); }
 double rad2deg_dir(double angle);
-template<typename T> T deg2rad(T angle) { return T(PI) * angle / T(180.0); }
+template<typename T> constexpr T deg2rad(const T angle) { return T(PI) * angle / T(180.0); }
 template<typename T> T angle_to_0_2PI(T angle)
 {
     static const T TWO_PI = T(2) * T(PI);

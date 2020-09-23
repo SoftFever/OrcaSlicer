@@ -64,11 +64,6 @@ openvdb::FloatGrid::Ptr mesh_to_grid(const TriangleMesh &mesh,
                                      float               interiorBandWidth,
                                      int                 flags)
 {
-//    openvdb::initialize();
-//    return openvdb::tools::meshToVolume<openvdb::FloatGrid>(
-//        TriangleMeshDataAdapter{mesh}, tr, exteriorBandWidth,
-//        interiorBandWidth, flags);
-
     openvdb::initialize();
 
     TriangleMeshPtrs meshparts = mesh.split();
@@ -83,15 +78,23 @@ openvdb::FloatGrid::Ptr mesh_to_grid(const TriangleMesh &mesh,
 
     openvdb::FloatGrid::Ptr grid;
     for (TriangleMesh *m : meshparts) {
-        auto gridptr = openvdb::tools::meshToVolume<openvdb::FloatGrid>(
+        auto subgrid = openvdb::tools::meshToVolume<openvdb::FloatGrid>(
             TriangleMeshDataAdapter{*m}, tr, exteriorBandWidth,
             interiorBandWidth, flags);
 
-        if (grid && gridptr) openvdb::tools::csgUnion(*grid, *gridptr);
-        else if (gridptr) grid = std::move(gridptr);
+        if (grid && subgrid) openvdb::tools::csgUnion(*grid, *subgrid);
+        else if (subgrid) grid = std::move(subgrid);
     }
 
-    grid = openvdb::tools::levelSetRebuild(*grid, 0., exteriorBandWidth, interiorBandWidth);
+    if (grid) {
+        grid = openvdb::tools::levelSetRebuild(*grid, 0., exteriorBandWidth,
+                                               interiorBandWidth);
+    } else if(meshparts.empty()) {
+        // Splitting failed, fall back to hollow the original mesh
+        grid = openvdb::tools::meshToVolume<openvdb::FloatGrid>(
+            TriangleMeshDataAdapter{mesh}, tr, exteriorBandWidth,
+            interiorBandWidth, flags);
+    }
 
     return grid;
 }

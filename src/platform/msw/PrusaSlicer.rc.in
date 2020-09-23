@@ -12,7 +12,7 @@ PRODUCTVERSION @SLIC3R_RC_VERSION@
    VALUE "ProductName", "@SLIC3R_APP_NAME@"
    VALUE "ProductVersion", "@SLIC3R_BUILD_ID@"
    VALUE "InternalName", "@SLIC3R_APP_NAME@"
-   VALUE "LegalCopyright", "Copyright \251 2016-2020 Prusa Research, \251 2011-2018 Alessandro Ranelucci"
+   VALUE "LegalCopyright", "Copyright \251 2016-2020 Prusa Research, \251 2011-2018 Alessandro Ranellucci"
    VALUE "OriginalFilename", "prusa-slicer.exe"
   }
  }

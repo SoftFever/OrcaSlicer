@@ -1,3 +1,4 @@
+#include "Exception.hpp"
 #include "Print.hpp"
 #include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
@@ -8,6 +9,7 @@
 #include "SupportMaterial.hpp"
 #include "Surface.hpp"
 #include "Slicing.hpp"
+#include "Tesselate.hpp"
 #include "Utils.hpp"
 #include "AABBTreeIndirect.hpp"
 #include "Fill/FillAdaptive.hpp"
@@ -138,7 +140,7 @@ void PrintObject::slice()
             }
         });
     if (m_layers.empty())
-        throw std::runtime_error("No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n");    
+        throw Slic3r::SlicingError("No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n");    
     this->set_done(posSlice);
 }
 
@@ -426,81 +428,52 @@ void PrintObject::generate_support_material()
             // therefore they cannot be printed without supports.
             for (const Layer *layer : m_layers)
                 if (layer->empty())
-                    throw std::runtime_error("Levitating objects cannot be printed without supports.");
+                    throw Slic3r::SlicingError("Levitating objects cannot be printed without supports.");
 #endif
         }
         this->set_done(posSupportMaterial);
     }
 }
 
-//#define ADAPTIVE_SUPPORT_SIMPLE
-
-std::pair<std::unique_ptr<FillAdaptive_Internal::Octree>, std::unique_ptr<FillAdaptive_Internal::Octree>> PrintObject::prepare_adaptive_infill_data()
+std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> PrintObject::prepare_adaptive_infill_data()
 {
-    using namespace FillAdaptive_Internal;
+    using namespace FillAdaptive;
 
     auto [adaptive_line_spacing, support_line_spacing] = adaptive_fill_line_spacing(*this);
+    if (adaptive_line_spacing == 0. && support_line_spacing == 0. || this->layers().empty())
+        return std::make_pair(OctreePtr(), OctreePtr());
 
-    std::unique_ptr<Octree> adaptive_fill_octree = {}, support_fill_octree = {};
+    indexed_triangle_set mesh = this->model_object()->raw_indexed_triangle_set();
+    // Rotate mesh and build octree on it with axis-aligned (standart base) cubes.
+    Transform3d m = m_trafo;
+    m.pretranslate(Vec3d(- unscale<float>(m_center_offset.x()), - unscale<float>(m_center_offset.y()), 0));
+    auto to_octree = transform_to_octree().toRotationMatrix();
+    its_transform(mesh, to_octree * m, true);
 
-    if (adaptive_line_spacing == 0. && support_line_spacing == 0.)
-        return std::make_pair(std::move(adaptive_fill_octree), std::move(support_fill_octree));
+    // Triangulate internal bridging surfaces.
+    std::vector<std::vector<Vec3d>> overhangs(this->layers().size());
+    tbb::parallel_for(
+        tbb::blocked_range<int>(0, int(m_layers.size()) - 1),
+        [this, &to_octree, &overhangs](const tbb::blocked_range<int> &range) {
+            std::vector<Vec3d> &out = overhangs[range.begin()];
+            for (int idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
+                m_print->throw_if_canceled();
+                const Layer *layer = this->layers()[idx_layer];
+                for (const LayerRegion *layerm : layer->regions())
+                    for (const Surface &surface : layerm->fill_surfaces.surfaces)
+                        if (surface.surface_type == stInternalBridge)
+                            append(out, triangulate_expolygon_3d(surface.expolygon, layer->bottom_z()));
+            }
+            for (Vec3d &p : out)
+                p = (to_octree * p).eval();
+        });
+    // and gather them.
+    for (size_t i = 1; i < overhangs.size(); ++ i)
+        append(overhangs.front(), std::move(overhangs[i]));
 
-    TriangleMesh mesh = this->model_object()->raw_mesh();
-    mesh.transform(m_trafo, true);
-    // Apply XY shift
-    mesh.translate(- unscale<float>(m_center_offset.x()), - unscale<float>(m_center_offset.y()), 0);
-    // Center of the first cube in octree
-    Vec3d mesh_origin = mesh.bounding_box().center();
-
-#ifdef ADAPTIVE_SUPPORT_SIMPLE
-    if (mesh.its.vertices.empty())
-    {
-        mesh.require_shared_vertices();
-    }
-
-    Vec3f vertical(0, 0, 1);
-
-    indexed_triangle_set its_set;
-    its_set.vertices = mesh.its.vertices;
-
-    // Filter out non overhanging faces
-    for (size_t i = 0; i < mesh.its.indices.size(); ++i) {
-        stl_triangle_vertex_indices vertex_idx = mesh.its.indices[i];
-
-        auto its_calculate_normal = [](const stl_triangle_vertex_indices &index, const std::vector<stl_vertex> &vertices) {
-            stl_normal normal = (vertices[index.y()] - vertices[index.x()]).cross(vertices[index.z()] - vertices[index.x()]);
-            return normal;
-        };
-
-        stl_normal normal = its_calculate_normal(vertex_idx, mesh.its.vertices);
-        stl_normalize_vector(normal);
-
-        if(normal.dot(vertical) >= 0.707) {
-            its_set.indices.push_back(vertex_idx);
-        }
-    }
-
-    mesh = TriangleMesh(its_set);
-
-#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-    Slic3r::store_stl(debug_out_path("overhangs.stl").c_str(), &mesh, false);
-#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
-#endif /* ADAPTIVE_SUPPORT_SIMPLE */
-
-    Vec3d rotation = Vec3d((5.0 * M_PI) / 4.0, Geometry::deg2rad(215.264), M_PI / 6.0);
-    Transform3d rotation_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation, Vec3d::Ones(), Vec3d::Ones()).inverse();
-
-    if (adaptive_line_spacing != 0.) {
-        // Rotate mesh and build octree on it with axis-aligned (standart base) cubes
-        mesh.transform(rotation_matrix);
-        adaptive_fill_octree = FillAdaptive::build_octree(mesh, adaptive_line_spacing, rotation_matrix * mesh_origin);
-    }
-
-    if (support_line_spacing != 0.)
-        support_fill_octree = FillSupportCubic::build_octree(mesh, support_line_spacing, rotation_matrix * mesh_origin, rotation_matrix);
-
-    return std::make_pair(std::move(adaptive_fill_octree), std::move(support_fill_octree));
+    return std::make_pair(
+        adaptive_line_spacing ? build_octree(mesh, overhangs.front(), adaptive_line_spacing, false) : OctreePtr(),
+        support_line_spacing  ? build_octree(mesh, overhangs.front(), support_line_spacing, true) : OctreePtr());
 }
 
 void PrintObject::clear_layers()
@@ -2836,8 +2809,8 @@ void PrintObject::project_and_append_custom_facets(
             // Calculate how to move points on triangle sides per unit z increment.
             Vec2f ta(trianglef[1] - trianglef[0]);
             Vec2f tb(trianglef[2] - trianglef[0]);
-            ta *= 1./(facet[1].z() - facet[0].z());
-            tb *= 1./(facet[2].z() - facet[0].z());
+            ta *= 1.f/(facet[1].z() - facet[0].z());
+            tb *= 1.f/(facet[2].z() - facet[0].z());
 
             // Projection on current slice will be build directly in place.
             LightPolygon* proj = &projections_of_triangles[idx].polygons[0];
@@ -2848,7 +2821,7 @@ void PrintObject::project_and_append_custom_facets(
 
             // Project a sub-polygon on all slices intersecting the triangle.
             while (it != layers().end()) {
-                const float z = (*it)->slice_z;
+                const float z = float((*it)->slice_z);
 
                 // Projections of triangle sides intersections with slices.
                 // a moves along one side, b tracks the other.
@@ -2860,7 +2833,7 @@ void PrintObject::project_and_append_custom_facets(
                 if (z > facet[1].z() && ! passed_first) {
                     proj->add(trianglef[1]);
                     ta = trianglef[2]-trianglef[1];
-                    ta *= 1./(facet[2].z() - facet[1].z());
+                    ta *= 1.f/(facet[2].z() - facet[1].z());
                     passed_first = true;
                 }
 

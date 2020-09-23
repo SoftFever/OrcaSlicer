@@ -1,5 +1,6 @@
 #include "BoundingBox.hpp"
 #include "ExPolygon.hpp"
+#include "Exception.hpp"
 #include "Geometry.hpp"
 #include "Polygon.hpp"
 #include "Line.hpp"
@@ -435,7 +436,7 @@ void ExPolygon::triangulate_pp(Polygons* polygons) const
     std::list<TPPLPoly> output;
     int res = TPPLPartition().Triangulate_MONO(&input, &output);
     if (res != 1)
-        throw std::runtime_error("Triangulation failed");
+        throw Slic3r::RuntimeError("Triangulation failed");
     
     // convert output polygons
     for (std::list<TPPLPoly>::iterator poly = output.begin(); poly != output.end(); ++poly) {
@@ -548,7 +549,7 @@ void ExPolygon::triangulate_pp(Points *triangles) const
     int res = TPPLPartition().Triangulate_MONO(&input, &output);
 // int TPPLPartition::Triangulate_EC(TPPLPolyList *inpolys, TPPLPolyList *triangles) {
     if (res != 1)
-        throw std::runtime_error("Triangulation failed");
+        throw Slic3r::RuntimeError("Triangulation failed");
     *triangles = polypartition_output_to_triangles(output);
 }
 
@@ -591,7 +592,7 @@ void ExPolygon::triangulate_p2t(Polygons* polygons) const
                 }
                 polygons->push_back(p);
             }
-        } catch (const std::runtime_error & /* err */) {
+        } catch (const Slic3r::RuntimeError & /* err */) {
             assert(false);
             // just ignore, don't triangulate
         }

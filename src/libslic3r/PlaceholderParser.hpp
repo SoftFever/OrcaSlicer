@@ -40,11 +40,11 @@ public:
 	const DynamicConfig*	external_config() const  			{ return m_external_config; }
 
     // Fill in the template using a macro processing language.
-    // Throws std::runtime_error on syntax or runtime error.
+    // Throws Slic3r::RuntimeError on syntax or runtime error.
     std::string process(const std::string &templ, unsigned int current_extruder_id = 0, const DynamicConfig *config_override = nullptr) const;
     
     // Evaluate a boolean expression using the full expressive power of the PlaceholderParser boolean expression syntax.
-    // Throws std::runtime_error on syntax or runtime error.
+    // Throws Slic3r::RuntimeError on syntax or runtime error.
     static bool evaluate_boolean_expression(const std::string &templ, const DynamicConfig &config, const DynamicConfig *config_override = nullptr);
 
     // Update timestamp, year, month, day, hour, minute, second variables at the provided config.

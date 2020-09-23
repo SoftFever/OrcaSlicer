@@ -107,7 +107,7 @@ namespace GUI {
 wxDEFINE_EVENT(EVT_SCHEDULE_BACKGROUND_PROCESS,     SimpleEvent);
 wxDEFINE_EVENT(EVT_SLICING_UPDATE,                  SlicingStatusEvent);
 wxDEFINE_EVENT(EVT_SLICING_COMPLETED,               wxCommandEvent);
-wxDEFINE_EVENT(EVT_PROCESS_COMPLETED,               wxCommandEvent);
+wxDEFINE_EVENT(EVT_PROCESS_COMPLETED,               SlicingProcessCompletedEvent);
 wxDEFINE_EVENT(EVT_EXPORT_BEGAN,                    wxCommandEvent);
 
 // Sidebar widgets
@@ -1168,8 +1168,27 @@ void Sidebar::update_sliced_info_sizer()
             p->sliced_info->SetTextAndShow(siCost, info_text,      new_label);
 
 #if ENABLE_GCODE_VIEWER
-            // hide the estimate time
-            p->sliced_info->SetTextAndShow(siEstimatedTime, "N/A");
+            if (ps.estimated_normal_print_time == "N/A" && ps.estimated_silent_print_time == "N/A")
+                p->sliced_info->SetTextAndShow(siEstimatedTime, "N/A");
+            else {
+                info_text = "";
+                new_label = _L("Estimated printing time") + ":";
+                if (ps.estimated_normal_print_time != "N/A") {
+                    new_label += format_wxstr("\n   - %1%", _L("normal mode"));
+                    info_text += format_wxstr("\n%1%", short_time(ps.estimated_normal_print_time));
+
+                    // uncomment next line to not disappear slicing finished notif when colapsing sidebar before time estimate
+                    //if (p->plater->is_sidebar_collapsed())
+                    p->plater->get_notification_manager()->set_slicing_complete_large(p->plater->is_sidebar_collapsed());
+                    p->plater->get_notification_manager()->set_slicing_complete_print_time("Estimated printing time: " + ps.estimated_normal_print_time);
+
+                }
+                if (ps.estimated_silent_print_time != "N/A") {
+                    new_label += format_wxstr("\n   - %1%", _L("stealth mode"));
+                    info_text += format_wxstr("\n%1%", short_time(ps.estimated_silent_print_time));
+                }
+                p->sliced_info->SetTextAndShow(siEstimatedTime, info_text, new_label);
+            }
 #else
             if (ps.estimated_normal_print_time == "N/A" && ps.estimated_silent_print_time == "N/A")
                 p->sliced_info->SetTextAndShow(siEstimatedTime, "N/A");
@@ -1684,7 +1703,7 @@ struct Plater::priv
     void on_select_preset(wxCommandEvent&);
     void on_slicing_update(SlicingStatusEvent&);
     void on_slicing_completed(wxCommandEvent&);
-    void on_process_completed(wxCommandEvent&);
+    void on_process_completed(SlicingProcessCompletedEvent&);
 	void on_export_began(wxCommandEvent&);
     void on_layer_editing_toggled(bool enable);
 	void on_slicing_began();
@@ -3512,7 +3531,7 @@ bool Plater::priv::warnings_dialog()
 	return res == wxID_OK;
 
 }
-void Plater::priv::on_process_completed(wxCommandEvent &evt)
+void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
 {
     // Stop the background task, wait until the thread goes into the "Idle" state.
     // At this point of time the thread should be either finished or canceled,
@@ -3521,27 +3540,30 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
     this->statusbar()->reset_cancel_callback();
     this->statusbar()->stop_busy();
 
-    const bool canceled = evt.GetInt() < 0;
-    const bool error = evt.GetInt() == 0;
-    const bool success  = evt.GetInt() > 0;
     // Reset the "export G-code path" name, so that the automatic background processing will be enabled again.
     this->background_process.reset_export();
 
-    if (error) {
-        wxString message = evt.GetString();
-        if (message.IsEmpty())
-            message = _L("Export failed.");
-		notification_manager->push_slicing_error_notification(boost::nowide::narrow(message), *q->get_current_canvas3D());
-        this->statusbar()->set_status_text(message);
+    if (evt.error()) {
+        std::string message = evt.format_error_message();
+        if (evt.critical_error()) {
+            if (q->m_tracking_popup_menu)
+                // We don't want to pop-up a message box when tracking a pop-up menu.
+                // We postpone the error message instead.
+                q->m_tracking_popup_menu_error_message = message;
+            else
+                show_error(q, message);
+        } else
+		  notification_manager->push_slicing_error_notification(message, *q->get_current_canvas3D());
+        this->statusbar()->set_status_text(from_u8(message));
 		const wxString invalid_str = _L("Invalid data");
 		for (auto btn : { ActionButtonType::abReslice, ActionButtonType::abSendGCode, ActionButtonType::abExport })
 			sidebar->set_btn_label(btn, invalid_str);
 		process_completed_with_error = true;
     }
-    if (canceled)
+    if (evt.cancelled())
         this->statusbar()->set_status_text(_L("Cancelled"));
 
-    this->sidebar->show_sliced_info_sizer(success);
+    this->sidebar->show_sliced_info_sizer(evt.success());
 
     // This updates the "Slice now", "Export G-code", "Arrange" buttons status.
     // Namely, it refreshes the "Out of print bed" property of all the ModelObjects, and it enables
@@ -3562,7 +3584,7 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
     default: break;
     }
 	
-    if (canceled) {
+    if (evt.cancelled()) {
         if (wxGetApp().get_mode() == comSimple)
             sidebar->set_btn_label(ActionButtonType::abReslice, "Slice now");
         show_action_buttons(true);
@@ -5378,6 +5400,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             this->set_printer_technology(config.opt_enum<PrinterTechnology>(opt_key));
             // print technology is changed, so we should to update a search list
             p->sidebar->update_searcher();
+            p->sidebar->show_sliced_info_sizer(false);
 #if ENABLE_GCODE_VIEWER
             p->reset_gcode_toolpaths();
 #endif // ENABLE_GCODE_VIEWER

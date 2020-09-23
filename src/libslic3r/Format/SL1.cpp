@@ -10,6 +10,7 @@
 
 #include <sstream>
 
+#include "libslic3r/Exception.hpp"
 #include "libslic3r/SlicesToTriangleMesh.hpp"
 #include "libslic3r/MarchingSquares.hpp"
 #include "libslic3r/ClipperUtils.hpp"
@@ -64,7 +65,7 @@ boost::property_tree::ptree read_ini(const mz_zip_archive_file_stat &entry,
 
     if (!mz_zip_reader_extract_file_to_mem(&zip.arch, entry.m_filename,
                                            buf.data(), buf.size(), 0))
-        throw std::runtime_error(zip.get_errorstr());
+        throw Slic3r::FileIOError(zip.get_errorstr());
 
     boost::property_tree::ptree tree;
     std::stringstream ss(buf);
@@ -80,7 +81,7 @@ PNGBuffer read_png(const mz_zip_archive_file_stat &entry,
 
     if (!mz_zip_reader_extract_file_to_mem(&zip.arch, entry.m_filename,
                                            buf.data(), buf.size(), 0))
-        throw std::runtime_error(zip.get_errorstr());
+        throw Slic3r::FileIOError(zip.get_errorstr());
 
     return {std::move(buf), (name.empty() ? entry.m_filename : name)};
 }
@@ -94,7 +95,7 @@ ArchiveData extract_sla_archive(const std::string &zipfname,
     struct Arch: public MZ_Archive {
         Arch(const std::string &fname) {
             if (!open_zip_reader(&arch, fname))
-                throw std::runtime_error(get_errorstr());
+                throw Slic3r::FileIOError(get_errorstr());
         }
 
         ~Arch() { close_zip_reader(&arch); }
@@ -202,7 +203,7 @@ RasterParams get_raster_params(const DynamicPrintConfig &cfg)
 
     if (!opt_disp_cols || !opt_disp_rows || !opt_disp_w || !opt_disp_h ||
         !opt_mirror_x || !opt_mirror_y || !opt_orient)
-        throw std::runtime_error("Invalid SL1 file");
+        throw Slic3r::FileIOError("Invalid SL1 file");
 
     RasterParams rstp;
 
@@ -228,7 +229,7 @@ SliceParams get_slice_params(const DynamicPrintConfig &cfg)
     auto *opt_init_layerh = cfg.option<ConfigOptionFloat>("initial_layer_height");
 
     if (!opt_layerh || !opt_init_layerh)
-        throw std::runtime_error("Invalid SL1 file");
+        throw Slic3r::FileIOError("Invalid SL1 file");
 
     return SliceParams{opt_layerh->getFloat(), opt_init_layerh->getFloat()};
 }

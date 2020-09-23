@@ -1,4 +1,5 @@
 #include "libslic3r.h"
+#include "Exception.hpp"
 #include "Geometry.hpp"
 #include "ClipperUtils.hpp"
 #include "ExPolygon.hpp"
@@ -471,7 +472,7 @@ Pointfs arrange(size_t num_parts, const Vec2d &part_size, coordf_t gap, const Bo
     size_t cellw = size_t(floor((bed_bbox.size()(0) + gap) / cell_size(0)));
     size_t cellh = size_t(floor((bed_bbox.size()(1) + gap) / cell_size(1)));
     if (num_parts > cellw * cellh)
-        throw std::invalid_argument("%zu parts won't fit in your print area!\n", num_parts);
+        throw Slic3r::InvalidArgument("%zu parts won't fit in your print area!\n", num_parts);
     
     // Get a bounding box of cellw x cellh cells, centered at the center of the bed.
     Vec2d       cells_size(cellw * cell_size(0) - gap, cellh * cell_size(1) - gap);

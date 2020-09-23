@@ -283,7 +283,7 @@ namespace detail {
 
 	template<typename V, typename W>
     std::enable_if_t<std::is_same<typename V::Scalar, double>::value && std::is_same<typename W::Scalar, double>::value, bool>
-	intersect_triangle(const V &origin, const V &dir, const W &v0, const W &v1, const W v2, double &t, double &u, double &v) {
+	intersect_triangle(const V &origin, const V &dir, const W &v0, const W &v1, const W &v2, double &t, double &u, double &v) {
         return intersect_triangle1(const_cast<double*>(origin.data()), const_cast<double*>(dir.data()),
                                    const_cast<double*>(v0.data()), const_cast<double*>(v1.data()), const_cast<double*>(v2.data()),
                                    &t, &u, &v);
@@ -291,7 +291,7 @@ namespace detail {
 
 	template<typename V, typename W>
     std::enable_if_t<std::is_same<typename V::Scalar, double>::value && !std::is_same<typename W::Scalar, double>::value, bool>
-	intersect_triangle(const V &origin, const V &dir, const W &v0, const W &v1, const W v2, double &t, double &u, double &v) {
+	intersect_triangle(const V &origin, const V &dir, const W &v0, const W &v1, const W &v2, double &t, double &u, double &v) {
         using Vector = Eigen::Matrix<double, 3, 1>;
         Vector w0 = v0.template cast<double>();
         Vector w1 = v1.template cast<double>();
@@ -302,7 +302,7 @@ namespace detail {
 
 	template<typename V, typename W>
     std::enable_if_t<! std::is_same<typename V::Scalar, double>::value && std::is_same<typename W::Scalar, double>::value, bool>
-	intersect_triangle(const V &origin, const V &dir, const W &v0, const W &v1, const W v2, double &t, double &u, double &v) {
+	intersect_triangle(const V &origin, const V &dir, const W &v0, const W &v1, const W &v2, double &t, double &u, double &v) {
         using Vector = Eigen::Matrix<double, 3, 1>;
         Vector o  = origin.template cast<double>();
         Vector d  = dir.template cast<double>();
@@ -311,7 +311,7 @@ namespace detail {
 
 	template<typename V, typename W>
     std::enable_if_t<! std::is_same<typename V::Scalar, double>::value && ! std::is_same<typename W::Scalar, double>::value, bool>
-	intersect_triangle(const V &origin, const V &dir, const W &v0, const W &v1, const W v2, double &t, double &u, double &v) {
+	intersect_triangle(const V &origin, const V &dir, const W &v0, const W &v1, const W &v2, double &t, double &u, double &v) {
         using Vector = Eigen::Matrix<double, 3, 1>;
         Vector o  = origin.template cast<double>();
         Vector d  = dir.template cast<double>();

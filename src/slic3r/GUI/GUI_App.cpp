@@ -211,7 +211,7 @@ public:
         copyright_string += //"Slic3r" + _L("is licensed under the") + _L("GNU Affero General Public License, version 3") + "\n\n" + 
                             _L("PrusaSlicer is based on Slic3r by Alessandro Ranellucci and the RepRap community.") + "\n\n" +
                             _L("Contributions by Henrik Brix Andersen, Nicolas Dandrimont, Mark Hindess, Petr Ledvina, Joseph Lenox, Y. Sapir, Mike Sheldrake, Vojtech Bubnik and numerous others.") + "\n\n" +
-                            _L("Splash screen could be desabled from the \"Preferences\"");
+                            _L("Splash screen can be disabled from the \"Preferences\"");
 
         word_wrap_string(copyright_string, banner_width, screen_scale);
 
@@ -599,7 +599,7 @@ void GUI_App::init_app_config()
         std::string error = app_config->load();
         if (!error.empty())
             // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
-            throw std::runtime_error(
+            throw Slic3r::RuntimeError(
                 _u8L("Error parsing PrusaSlicer config file, it is probably corrupted. "
                     "Try to manually delete the file to recover from the error. Your user profiles will not be affected.") +
                 "\n\n" + AppConfig::config_path() + "\n\n" + error);

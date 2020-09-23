@@ -61,12 +61,14 @@ public:
     bool contains(const Point &point) const;
     Polygons simplify(double tolerance) const;
     void simplify(double tolerance, Polygons &polygons) const;
+    void densify(float min_length, std::vector<float>* lengths = nullptr);
     void triangulate_convex(Polygons* polygons) const;
     Point centroid() const;
     Points concave_points(double angle = PI) const;
     Points convex_points(double angle = PI) const;
     // Projection of a point onto the polygon.
     Point point_projection(const Point &point) const;
+    std::vector<float> parameter_by_length() const;
 };
 
 inline bool operator==(const Polygon &lhs, const Polygon &rhs) { return lhs.points == rhs.points; }

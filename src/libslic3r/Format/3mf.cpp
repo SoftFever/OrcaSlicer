@@ -1,4 +1,5 @@
 #include "../libslic3r.h"
+#include "../Exception.hpp"
 #include "../Model.hpp"
 #include "../Utils.hpp"
 #include "../GCode.hpp"
@@ -123,11 +124,11 @@ const char* INVALID_OBJECT_TYPES[] =
     "other"
 };
 
-class version_error : public std::runtime_error
+class version_error : public Slic3r::FileIOError
 {
 public:
-    version_error(const std::string& what_arg) : std::runtime_error(what_arg) {}
-    version_error(const char* what_arg) : std::runtime_error(what_arg) {}
+    version_error(const std::string& what_arg) : Slic3r::FileIOError(what_arg) {}
+    version_error(const char* what_arg) : Slic3r::FileIOError(what_arg) {}
 };
 
 const char* get_attribute_value_charptr(const char** attributes, unsigned int attributes_size, const char* attribute_key)
@@ -607,7 +608,7 @@ namespace Slic3r {
                     {
                         // ensure the zip archive is closed and rethrow the exception
                         close_zip_reader(&archive);
-                        throw std::runtime_error(e.what());
+                        throw Slic3r::FileIOError(e.what());
                     }
                 }
             }
@@ -780,7 +781,7 @@ namespace Slic3r {
                 {
                     char error_buf[1024];
                     ::sprintf(error_buf, "Error (%s) while parsing '%s' at line %d", XML_ErrorString(XML_GetErrorCode(data->parser)), data->stat.m_filename, (int)XML_GetCurrentLineNumber(data->parser));
-                    throw std::runtime_error(error_buf);
+                    throw Slic3r::FileIOError(error_buf);
                 }
 
                 return n;
@@ -789,7 +790,7 @@ namespace Slic3r {
         catch (const version_error& e)
         {
             // rethrow the exception
-            throw std::runtime_error(e.what());
+            throw Slic3r::FileIOError(e.what());
         }
         catch (std::exception& e)
         {
@@ -2360,9 +2361,9 @@ namespace Slic3r {
                 continue;
 
 			if (!volume->mesh().repaired)
-				throw std::runtime_error("store_3mf() requires repair()");
+				throw Slic3r::FileIOError("store_3mf() requires repair()");
 			if (!volume->mesh().has_shared_vertices())
-				throw std::runtime_error("store_3mf() requires shared vertices");
+				throw Slic3r::FileIOError("store_3mf() requires shared vertices");
 
             volumes_offsets.insert(VolumeToOffsetsMap::value_type(volume, Offsets(vertices_count))).first;
 

@@ -1,5 +1,7 @@
 #include "Serial.hpp"
 
+#include "libslic3r/Exception.hpp"
+
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -298,7 +300,7 @@ void Serial::set_baud_rate(unsigned baud_rate)
 
 		auto handle_errno = [](int retval) {
 			if (retval != 0) {
-				throw std::runtime_error(
+				throw Slic3r::RuntimeError(
 					(boost::format("Could not set baud rate: %1%") % strerror(errno)).str()
 				);
 			}
@@ -346,7 +348,7 @@ void Serial::set_baud_rate(unsigned baud_rate)
 		handle_errno(::cfsetspeed(&ios, baud_rate));
 		handle_errno(::tcsetattr(handle, TCSAFLUSH, &ios));
 #else
-		throw std::runtime_error("Custom baud rates are not currently supported on this OS");
+		throw Slic3r::RuntimeError("Custom baud rates are not currently supported on this OS");
 #endif
 	}
 }
@@ -358,7 +360,7 @@ void Serial::set_DTR(bool on)
 	auto handle = native_handle();
 #if defined(_WIN32) && !defined(__SYMBIAN32__)
 	if (! EscapeCommFunction(handle, on ? SETDTR : CLRDTR)) {
-		throw std::runtime_error("Could not set serial port DTR");
+		throw Slic3r::RuntimeError("Could not set serial port DTR");
 	}
 #else
 	int status;
@@ -369,7 +371,7 @@ void Serial::set_DTR(bool on)
 		}
 	}
 
-	throw std::runtime_error(
+	throw Slic3r::RuntimeError(
 		(boost::format("Could not set serial port DTR: %1%") % strerror(errno)).str()
 	);
 #endif

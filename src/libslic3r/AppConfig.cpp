@@ -1,6 +1,7 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
 #include "AppConfig.hpp"
+#include "Exception.hpp"
 
 #include <utility>
 #include <vector>
@@ -126,7 +127,7 @@ std::string AppConfig::load()
         // ! But to avoid the use of _utf8 (related to use of wxWidgets) 
         // we will rethrow this exception from the place of load() call, if returned value wouldn't be empty
         /*
-        throw std::runtime_error(
+        throw Slic3r::RuntimeError(
         	_utf8(L("Error parsing PrusaSlicer config file, it is probably corrupted. "
                     "Try to manually delete the file to recover from the error. Your user profiles will not be affected.")) + 
         	"\n\n" + AppConfig::config_path() + "\n\n" + ex.what());

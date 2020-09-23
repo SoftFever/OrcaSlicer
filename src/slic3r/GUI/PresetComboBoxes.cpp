@@ -741,7 +741,8 @@ void PlaterPresetComboBox::update()
         if (m_type == Preset::TYPE_FILAMENT)
         {
             // Assign an extruder color to the selected item if the extruder color is defined.
-            filament_rgb = preset.config.opt_string("filament_colour", 0);
+            filament_rgb = is_selected ? selected_filament_preset->config.opt_string("filament_colour", 0) : 
+                                         preset.config.opt_string("filament_colour", 0);
             extruder_rgb = (is_selected && !extruder_color.empty()) ? extruder_color : filament_rgb;
             single_bar = filament_rgb == extruder_rgb;
 
