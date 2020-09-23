@@ -99,8 +99,10 @@ public:
         auto process_duration = std::chrono::milliseconds(stop_timer - start_timer).count();
         std::string out = (boost::format("\n!!! %1% duration = %2% ms \n\n") % task_name % process_duration).str();
         printf(out.c_str());
+#ifdef __WXMSW__
         std::wstring stemp = std::wstring(out.begin(), out.end());
         OutputDebugString(stemp.c_str());
+#endif
     }
 };
 
