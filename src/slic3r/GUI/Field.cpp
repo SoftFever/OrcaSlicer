@@ -1118,8 +1118,7 @@ void Choice::msw_rescale(bool rescale_sidetext/* = false*/)
     Field::msw_rescale();
 
     wxBitmapComboBox* field = dynamic_cast<wxBitmapComboBox*>(window);
-
-    const wxString selection = field->GetString(field->GetSelection());
+    const wxString selection = field->GetValue();// field->GetString(index);
 
 	/* To correct scaling (set new controll size) of a wxBitmapCombobox 
 	 * we need to refill control with new bitmaps. So, in our case : 
