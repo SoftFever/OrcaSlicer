@@ -307,7 +307,11 @@ private:
 		size_t		size;
 		char 		data[1];
 
+		// The serialized data matches the data stored here.
 		bool 		matches(const std::string& rhs) { return this->size == rhs.size() && memcmp(this->data, rhs.data(), this->size) == 0; }
+
+		// The timestamp matches the timestamp serialized in the data stored here.
+		bool 		matches_timestamp(uint64_t timestamp) { assert(timestamp > 0);  assert(this->size > 8); return memcmp(this->data, &timestamp, 8) == 0; }
 	};
 
 	Interval    m_interval;
@@ -350,7 +354,8 @@ public:
 	size_t  	size() const { return m_data->size; }
 	size_t		refcnt() const { return m_data->refcnt; }
 	bool		matches(const std::string& data) { return m_data->matches(data); }
-	size_t 		memsize() const { 
+	bool		matches_timestamp(uint64_t timestamp) { return m_data->matches_timestamp(timestamp); }
+	size_t 		memsize() const {
 		return m_data->refcnt == 1 ?
 			// Count just the size of the snapshot data.
 			m_data->size :
@@ -396,6 +401,27 @@ public:
 		for (const MutableHistoryInterval &interval : m_history)
 			memsize += interval.memsize();
 		return memsize;
+	}
+
+	// If an object provides a reliable timestamp and the object serializes the timestamp first,
+	// then we may just check the validity of the timestamp against the last snapshot without 
+	// having to serialize the whole object. This reduces the amount of serialization and memcmp 
+	// when taking a snapshot.
+	bool try_save_timestamp(size_t active_snapshot_time, size_t current_time, uint64_t timestamp) {
+		assert(m_history.empty() || m_history.back().end() <= active_snapshot_time);
+		if (! m_history.empty() && m_history.back().matches_timestamp(timestamp)) {
+			if (m_history.back().end() < active_snapshot_time)
+				// Share the previous data by reference counting.
+				m_history.emplace_back(Interval(current_time, current_time + 1), m_history.back());
+			else {
+				assert(m_history.back().end() == active_snapshot_time);
+				// Just extend the last interval using the old data.
+				m_history.back().extend_end(current_time + 1);
+			}
+			return true;
+		}
+		// The timestamp is not valid, the caller has to call this->save() with the serialized data.
+		return false;
 	}
 
 	void save(size_t active_snapshot_time, size_t current_time, const std::string &data) {
@@ -749,13 +775,23 @@ template<typename T> ObjectID StackImpl::save_mutable_object(const T &object)
 	if (it_object_history == m_objects.end())
 		it_object_history = m_objects.insert(it_object_history, std::make_pair(object.id(), std::unique_ptr<MutableObjectHistory<T>>(new MutableObjectHistory<T>())));
 	auto *object_history = static_cast<MutableObjectHistory<T>*>(it_object_history->second.get());
-	// Then serialize the object into a string.
-	std::ostringstream oss;
+	bool  needs_to_save  = true;
 	{
-		Slic3r::UndoRedo::OutputArchive archive(*this, oss);
-		archive(object);
+		// If the timestamp returned is non zero, then it is considered reliable.
+		// The caller is supposed to serialize the timestamp first.
+		uint64_t timestamp = object.timestamp();
+		if (timestamp > 0)
+			needs_to_save = ! object_history->try_save_timestamp(m_active_snapshot_time, m_current_time, timestamp);
 	}
-	object_history->save(m_active_snapshot_time, m_current_time, oss.str());
+	if (needs_to_save) {
+		// Serialize the object into a string.
+		std::ostringstream oss;
+		{
+			Slic3r::UndoRedo::OutputArchive archive(*this, oss);
+			archive(object);
+		}
+		object_history->save(m_active_snapshot_time, m_current_time, oss.str());
+	}
 	return object.id();
 }
 

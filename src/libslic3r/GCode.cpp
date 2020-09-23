@@ -601,7 +601,7 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
         // Check that there are extrusions on the very first layer.
         if (layers_to_print.size() == 1u) {
             if (!has_extrusions)
-                throw Slic3r::RuntimeError(_(L("There is an object with no extrusions on the first layer.")));
+                throw Slic3r::SlicingError(_(L("There is an object with no extrusions on the first layer.")));
         }
 
         // In case there are extrusions on this layer, check there is a layer to lay it on.

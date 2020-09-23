@@ -448,7 +448,11 @@ public:
         Vec3d mesh_offset{ Vec3d::Zero() };
         Geometry::Transformation transform;
 
-        template<class Archive> void serialize(Archive& ar) { ar(input_file, object_idx, volume_idx, mesh_offset, transform); }
+        template<class Archive> void serialize(Archive& ar) { 
+            //FIXME Vojtech: Serialize / deserialize only if the Source is set.
+            // likely testing input_file or object_idx would be sufficient.
+            ar(input_file, object_idx, volume_idx, mesh_offset, transform);
+        }
     };
     Source              source;
 
@@ -467,7 +471,7 @@ public:
     FacetsAnnotation    m_supported_facets;
 
     // List of seam enforcers/blockers.
-    FacetsAnnotation   m_seam_facets;
+    FacetsAnnotation    m_seam_facets;
 
     // A parent object owning this modifier volume.
     ModelObject*        get_object() const { return this->object; }
