@@ -49,7 +49,12 @@ private:
 class ObjectBase
 {
 public:
-    ObjectID     id() const { return m_id; }
+    ObjectID     		id() const { return m_id; }
+    // Return an optional timestamp of this object.
+    // If the timestamp returned is non-zero, then the serialization framework will
+    // only save this object on the Undo/Redo stack if the timestamp is different
+    // from the timestmap of the object at the top of the Undo / Redo stack.
+    virtual uint64_t	timestamp() const { return 0; }
 
 protected:
     // Constructors to be only called by derived classes.
@@ -59,7 +64,7 @@ protected:
     // by an existing ID copied from elsewhere.
     ObjectBase(int) : m_id(ObjectID(0)) {}
 	// The class tree will have virtual tables and type information.
-	virtual ~ObjectBase() {}
+	virtual ~ObjectBase() = default;
 
     // Use with caution!
     void        set_new_unique_id() { m_id = generate_new_id(); }
