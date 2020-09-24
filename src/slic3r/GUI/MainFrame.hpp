@@ -159,6 +159,7 @@ public:
     void        init_tabpanel();
     void        create_preset_tabs();
     void        add_created_tab(Tab* panel);
+    bool        is_active_and_shown_tab(Tab* tab);
 #if ENABLE_GCODE_VIEWER
     void        init_menubar_as_editor();
     void        init_menubar_as_gcodeviewer();
@@ -184,6 +185,7 @@ public:
     void        load_config(const DynamicPrintConfig& config);
     // Select tab in m_tabpanel
     // When tab == -1, will be selected last selected tab
+    void        select_tab(Tab* tab);
     void        select_tab(size_t tab = size_t(-1));
     void        select_view(const std::string& direction);
     // Propagate changed configuration from the Tab to the Plater and save changes to the AppConfig

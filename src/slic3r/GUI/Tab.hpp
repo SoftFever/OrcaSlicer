@@ -223,9 +223,9 @@ protected:
 		void set_timer_owner(wxEvtHandler* owner, int timerid = wxID_ANY);
 		void init(BlinkingBitmap* bmp);
 		void blink();
+		void invalidate();
 
 	private:
-		void invalidate();
 
 		BlinkingBitmap*	bbmp {nullptr};
 		int				blink_counter {0};
@@ -327,7 +327,7 @@ public:
 	Field*			get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
     Field*          get_field(const t_config_option_key &opt_key, Page** selected_page, int opt_index = -1);
 	void			toggle_option(const std::string& opt_key, bool toggle, int opt_index = -1);
-	bool			set_value(const t_config_option_key& opt_key, const boost::any& value);
+//	bool			set_value(const t_config_option_key& opt_key, const boost::any& value);
 	wxSizer*		description_line_widget(wxWindow* parent, ogStaticText** StaticText);
 	bool			current_preset_is_dirty();
 
@@ -417,7 +417,7 @@ class TabPrinter : public Tab
     std::vector<PageShp>			m_pages_fff;
     std::vector<PageShp>			m_pages_sla;
 
-    void build_printhost(ConfigOptionsGroup *optgroup);
+//    void build_printhost(ConfigOptionsGroup *optgroup);
 public:
 	wxButton*	m_serial_test_btn = nullptr;
 	ScalableButton*	m_print_host_test_btn = nullptr;
@@ -447,7 +447,7 @@ public:
     void		update_fff();
     void		update_sla();
     void        update_pages(); // update m_pages according to printer technology
-	void		update_serial_ports();
+//	void		update_serial_ports();
 	void		extruders_count_changed(size_t extruders_count);
 	PageShp		build_kinematics_page();
 	void		build_unregular_pages();

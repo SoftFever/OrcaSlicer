@@ -305,11 +305,12 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
         if (!tab_print) return;
 
         if (opt_key == "fill_density") {
-            value = m_og->get_config_value(*config, opt_key);
-            tab_print->set_value(opt_key, value);
+            tab_print->update_dirty();
+            tab_print->reload_config();
             tab_print->update();
         }
-        else{
+        else
+        {
             DynamicPrintConfig new_conf = *config;
             if (opt_key == "brim") {
                 double new_val;
@@ -350,8 +351,6 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
             }
             tab_print->load_config(new_conf);
         }
-
-        tab_print->update_dirty();
     };
 
 
@@ -982,7 +981,7 @@ void Sidebar::jump_to_option(size_t selected)
     wxGetApp().get_tab(opt.type)->activate_option(boost::nowide::narrow(opt.opt_key), boost::nowide::narrow(opt.category));
 
     // Switch to the Settings NotePad
-    wxGetApp().mainframe->select_tab();
+//    wxGetApp().mainframe->select_tab();
 }
 
 ObjectManipulation* Sidebar::obj_manipul()

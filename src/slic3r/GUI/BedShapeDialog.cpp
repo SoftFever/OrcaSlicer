@@ -229,9 +229,11 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const Conf
     auto optgroup = init_shape_options_page(BedShape::get_name(BedShape::Type::Rectangular));
     BedShape::append_option_line(optgroup, BedShape::Parameter::RectSize);
     BedShape::append_option_line(optgroup, BedShape::Parameter::RectOrigin);
+    optgroup->activate();
 
     optgroup = init_shape_options_page(BedShape::get_name(BedShape::Type::Circular));
     BedShape::append_option_line(optgroup, BedShape::Parameter::Diameter);
+    optgroup->activate();
 
     optgroup = init_shape_options_page(BedShape::get_name(BedShape::Type::Custom));
 

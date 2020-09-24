@@ -68,8 +68,6 @@
 #include <shlobj.h>
 #endif // __WXMSW__
 
-#include <chrono>
-
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG
 #include <boost/beast/core/detail/base64.hpp>
 #include <boost/nowide/fstream.hpp>
@@ -79,32 +77,6 @@ namespace Slic3r {
 namespace GUI {
 
 class MainFrame;
-
-class TaskTimer
-{
-    std::chrono::milliseconds   start_timer;
-    std::string                 task_name;
-public:
-    TaskTimer(std::string task_name):
-        task_name(task_name.empty() ? "task" : task_name)
-    {
-        start_timer = std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch());
-    }
-
-    ~TaskTimer()
-    {
-        std::chrono::milliseconds stop_timer = std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch());
-        auto process_duration = std::chrono::milliseconds(stop_timer - start_timer).count();
-        std::string out = (boost::format("\n!!! %1% duration = %2% ms \n\n") % task_name % process_duration).str();
-        printf(out.c_str());
-#ifdef __WXMSW__
-        std::wstring stemp = std::wstring(out.begin(), out.end());
-        OutputDebugString(stemp.c_str());
-#endif
-    }
-};
 
 class SplashScreen : public wxSplashScreen
 {
@@ -753,9 +725,11 @@ bool GUI_App::on_init_inner()
 #endif // ENABLE_GCODE_VIEWER
         scrn->SetText(_L("Creating settings tabs..."));
 
+    TaskTimer timer2("Creating settings tabs");
+
     mainframe = new MainFrame();
     // hide settings tabs after first Layout
-    mainframe->select_tab(0);
+    mainframe->select_tab(size_t(0));
 
     sidebar().obj_list()->init_objects(); // propagate model objects to object list
 //     update_mode(); // !!! do that later
@@ -1007,7 +981,7 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
     MainFrame *old_main_frame = mainframe;
     mainframe = new MainFrame();
     // hide settings tabs after first Layout
-    mainframe->select_tab(0);
+    mainframe->select_tab(size_t(0));
     // Propagate model objects to object list.
     sidebar().obj_list()->init_objects();
     SetTopWindow(mainframe);
@@ -1456,7 +1430,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                 // hide full main_sizer for mainFrame
                 mainframe->GetSizer()->Show(false);
                 mainframe->update_layout();
-                mainframe->select_tab(0);
+                mainframe->select_tab(size_t(0));
             }
             break;
         }

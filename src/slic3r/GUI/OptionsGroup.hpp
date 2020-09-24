@@ -49,7 +49,6 @@ public:
     wxString	label_tooltip {wxString("")};
     size_t		full_width {0}; 
 	wxStaticText**	full_Label {nullptr};
-    wxSizer*	sizer {nullptr};
     widget_t	widget {nullptr};
     std::function<wxWindow*(wxWindow*)>	near_label_widget{ nullptr };
 

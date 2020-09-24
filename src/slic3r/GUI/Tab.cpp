@@ -67,8 +67,10 @@ void Tab::Highlighter::invalidate()
 {
     timer.Stop();
 
-    bbmp->invalidate();
-    bbmp = nullptr;
+    if (bbmp) {
+        bbmp->invalidate();
+        bbmp = nullptr;
+    }
     blink_counter = 0;
 }
 
@@ -385,19 +387,24 @@ Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::str
 
 void Tab::OnActivate()
 {
-#ifdef __WXOSX__
     wxWindowUpdateLocker noUpdates(this);
-
+#ifdef __WXOSX__
+//    wxWindowUpdateLocker noUpdates(this);
     auto size = GetSizer()->GetSize();
     m_tmp_panel->GetSizer()->SetMinSize(size.x + m_size_move, size.y);
     Fit();
     m_size_move *= -1;
 #endif // __WXOSX__
+
+    // create controls on active page
+    active_selected_page();
+    m_active_page->Show();
+    m_hsizer->Layout();
+    Refresh();
 }
 
 void Tab::update_labels_colour()
 {
-//	Freeze();
     //update options "decoration"
     for (const auto opt : m_options_list)
     {
@@ -426,7 +433,6 @@ void Tab::update_labels_colour()
         if (field == nullptr) continue;
         field->set_label_colour_force(color);
     }
-//	Thaw();
 
     auto cur_item = m_treectrl->GetFirstVisibleItem();
     if (!cur_item || !m_treectrl->IsVisible(cur_item))
@@ -722,6 +728,8 @@ void Tab::update_undo_buttons()
 
 void Tab::on_roll_back_value(const bool to_sys /*= true*/)
 {
+    if (!m_active_page) return;
+
     int os;
     if (to_sys)	{
         if (!m_is_nonsys_values) return;
@@ -734,10 +742,10 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
 
     m_postpone_update_ui = true;
 
-    auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
-    for (auto page : m_pages)
-        if (_(page->title()) == selection)	{
-            for (auto group : page->m_optgroups) {
+    //auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
+    //for (auto page : m_pages)
+    //    if (_(page->title()) == selection)	{
+            for (auto group : /*page*/m_active_page->m_optgroups) {
                 if (group->title == "Capabilities") {
                     if ((m_options_list["extruders_count"] & os) == 0)
                         to_sys ? group->back_to_sys_value("extruders_count") : group->back_to_initial_value("extruders_count");
@@ -778,8 +786,8 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
                         to_sys ? group->back_to_sys_value(opt_key) : group->back_to_initial_value(opt_key);
                 }
             }
-            break;
-        }
+       //     break;
+       //}
 
     m_postpone_update_ui = false;
     update_changed_ui();
@@ -819,10 +827,10 @@ void Tab::load_config(const DynamicPrintConfig& config)
 // Reload current $self->{config} (aka $self->{presets}->edited_preset->config) into the UI fields.
 void Tab::reload_config()
 {
-//	Freeze();
-    for (auto page : m_pages)
-        page->reload_config();
-// 	Thaw();
+    //for (auto page : m_pages)
+    //    page->reload_config();
+    if (m_active_page)
+        m_active_page->reload_config();
 }
 
 void Tab::update_mode()
@@ -884,8 +892,6 @@ void Tab::msw_rescale()
     // rescale options_groups
     if (m_active_page)
         m_active_page->msw_rescale();
-    //for (auto page : m_pages)
-    //    page->msw_rescale();
 
     Layout();
 }
@@ -918,14 +924,16 @@ void Tab::sys_color_changed()
     update_labels_colour();
 
     // update options_groups
-    for (auto page : m_pages)
-        page->sys_color_changed();
+    if (m_active_page)
+        m_active_page->msw_rescale();
 
     Layout();
 }
 
 Field* Tab::get_field(const t_config_option_key& opt_key, int opt_index/* = -1*/) const
 {
+    return m_active_page ? m_active_page->get_field(opt_key, opt_index) : nullptr;
+
     Field* field = nullptr;
     for (auto page : m_pages) {
         field = page->get_field(opt_key, opt_index);
@@ -960,14 +968,14 @@ void Tab::toggle_option(const std::string& opt_key, bool toggle, int opt_index/*
 // Set a key/value pair on this page. Return true if the value has been modified.
 // Currently used for distributing extruders_count over preset pages of Slic3r::GUI::Tab::Printer
 // after a preset is loaded.
-bool Tab::set_value(const t_config_option_key& opt_key, const boost::any& value) {
-    bool changed = false;
-    for(auto page: m_pages) {
-        if (page->set_value(opt_key, value))
-        changed = true;
-    }
-    return changed;
-}
+//bool Tab::set_value(const t_config_option_key& opt_key, const boost::any& value) {
+//    bool changed = false;
+//    for(auto page: m_pages) {
+//        if (page->set_value(opt_key, value))
+//        changed = true;
+//    }
+//    return changed;
+//}
 
 // To be called by custom widgets, load a value into a config,
 // update the preset selection boxes (the dirty flags)
@@ -1020,7 +1028,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     
     if (opt_key == "pad_around_object") {
         for (PageShp &pg : m_pages) {
-            Field * fld = pg->get_field(opt_key);
+            Field * fld = pg->get_field(opt_key); /// !!! ysFIXME ????
             if (fld) fld->set_value(value, false);
         }
     }
@@ -1064,11 +1072,20 @@ void Tab::update_wiping_button_visibility() {
 
 void Tab::activate_option(const std::string& opt_key, const wxString& category)
 {
-    Page* page {nullptr};
-    Field* field = get_field(opt_key, &page);
+//    wxWindowUpdateLocker noUpdates(this);
+
+    // we should to activate a tab with searched option, if it doesn't.
+    //if (!wxGetApp().mainframe->is_active_tab(this)) {
+    //    wxNotebook* tap_panel = wxGetApp().tab_panel();
+    //    tap_panel->SetSelection(tap_panel->FindPage(this));
+    //}
+//    Page* page {nullptr};
+//    Field* field = get_field(opt_key, &page);
 
     // for option, which doesn't have field but just a text or button
-    wxString page_title = (!field || !page) ? category : page->title();
+//    wxString page_title = (!field || !page) ? category : page->title();
+
+    wxString page_title = _(category);
 
     auto cur_item = m_treectrl->GetFirstVisibleItem();
     if (!cur_item || !m_treectrl->IsVisible(cur_item))
@@ -1076,7 +1093,7 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
 
     while (cur_item) {
         auto title = m_treectrl->GetItemText(cur_item);
-        if (_(page_title) != title) {
+        if (page_title != title) {
             cur_item = m_treectrl->GetNextVisible(cur_item);
             continue;
         }
@@ -1086,10 +1103,14 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
     }
 
     // we should to activate a tab with searched option, if it doesn't.
-    wxNotebook* tap_panel = wxGetApp().tab_panel();
-    int page_id = tap_panel->FindPage(this);
-    if (tap_panel->GetSelection() != page_id)
-        tap_panel->SetSelection(page_id);
+    wxGetApp().mainframe->select_tab(this);
+    Field* field = get_field(opt_key);
+
+    // we should to activate a tab with searched option, if it doesn't.
+    //wxNotebook* tap_panel = wxGetApp().tab_panel();
+    //int page_id = tap_panel->FindPage(this);
+    //if (tap_panel->GetSelection() != page_id)
+    //    tap_panel->SetSelection(page_id);
 
     // focused selected field
     if (field) {
@@ -1973,7 +1994,7 @@ bool Tab::current_preset_is_dirty()
 {
     return m_presets->current_is_dirty();
 }
-
+/*
 void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 {
     const PrinterTechnology tech = m_presets->get_selected_preset().printer_technology();
@@ -2090,7 +2111,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
     \tOn this system, %s uses HTTPS certificates from the system Certificate Store or Keychain.\n\
     \tTo use a custom CA file, please import your CA file into Certificate Store / Keychain."))) % SLIC3R_APP_NAME).str()
     % std::string(ca_file_hint.ToUTF8())).str()));
-*/            txt->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+* /            txt->SetFont(Slic3r::GUI::wxGetApp().normal_font());
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
             sizer->Add(txt, 1, wxEXPAND);
             return sizer;
@@ -2099,7 +2120,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
         optgroup->append_line(line);
     }
 }
-
+*/
 void TabPrinter::build()
 {
     m_presets = &m_preset_bundle->printers;
@@ -2423,14 +2444,14 @@ void TabPrinter::build_sla()
 
     build_preset_description_line(optgroup.get());
 }
-
+/*
 void TabPrinter::update_serial_ports()
 {
     Field *field = get_field("serial_port");
     Choice *choice = static_cast<Choice *>(field);
     choice->set_values(Utils::scan_serial_ports());
 }
-
+*/
 void TabPrinter::extruders_count_changed(size_t extruders_count)
 {
     bool is_count_changed = false;
@@ -2728,7 +2749,7 @@ void TabPrinter::on_preset_loaded()
     // update the extruders count field
     auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
     size_t extruders_count = nozzle_diameter->values.size();
-    set_value("extruders_count", int(extruders_count));
+//    set_value("extruders_count", int(extruders_count));
     // update the GUI field according to the number of nozzle diameters supplied
     extruders_count_changed(extruders_count);
 }
@@ -3297,6 +3318,8 @@ bool Tab::may_switch_to_SLA_preset()
 
 void Tab::clear_pages()
 {
+    // invalidated highlighter, if any exists
+    m_highlighter.invalidate();
     // clear pages from the controlls
     for (auto p : m_pages)
         p->clear();
@@ -3310,6 +3333,8 @@ void Tab::clear_pages()
 
     m_compatible_prints.checkbox    = nullptr;
     m_compatible_prints.btn         = nullptr;
+
+    m_blinking_ikons.clear();
 }
 
 void Tab::update_description_lines()
@@ -3372,7 +3397,10 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
     for (auto& el : m_pages)
         el.get()->Hide();
 
-    active_selected_page();
+    if (wxGetApp().mainframe->is_active_and_shown_tab(this)) {
+        active_selected_page();
+        m_active_page->Show();
+    }
 
     #ifdef __linux__
         no_updates.reset(nullptr);
@@ -3380,7 +3408,7 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 
     update_undo_buttons();
 
-    m_active_page->Show();
+//    m_active_page->Show();
     m_hsizer->Layout();
     Refresh();
 }
@@ -3592,7 +3620,6 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 {
     deps.checkbox = new wxCheckBox(parent, wxID_ANY, _(L("All")));
     deps.checkbox->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-//    add_scaled_button(parent, &deps.btn, "printer_white", from_u8((boost::format(" %s %s") % _utf8(L("Set")) % std::string(dots.ToUTF8())).str()), wxBU_LEFT | wxBU_EXACTFIT);
     deps.btn = new ScalableButton(parent, wxID_ANY, "printer_white", from_u8((boost::format(" %s %s") % _utf8(L("Set")) % std::string(dots.ToUTF8())).str()),
                                   wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
     deps.btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
@@ -3674,7 +3701,6 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
 {
     ScalableButton* btn = new ScalableButton(parent, wxID_ANY, "printer_white", " " + _(L("Set")) + " " + dots,
         wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
-//    add_scaled_button(parent, &btn, "printer_white", " " + _(L("Set")) + " " + dots, wxBU_LEFT | wxBU_EXACTFIT);
     btn->SetFont(wxGetApp().normal_font());
 
     BlinkingBitmap* bbmp = new BlinkingBitmap(parent);
@@ -4103,7 +4129,6 @@ void TabSLAPrint::build()
     optgroup->append_single_option_line("support_base_safety_distance");
     
     // Mirrored parameter from Pad page for toggling elevation on the same page
-//    optgroup->append_single_option_line("pad_around_object");
     optgroup->append_single_option_line("support_object_elevation");
 
     Line line{ "", "" };

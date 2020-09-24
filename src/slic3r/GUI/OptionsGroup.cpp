@@ -138,7 +138,6 @@ void OptionsGroup::append_line(const Line& line)
 	m_lines.emplace_back(line);
 
 	if (line.full_width && (
-		line.sizer != nullptr ||
 		line.widget != nullptr ||
 		!line.get_extra_widgets().empty())
 		)
@@ -156,14 +155,9 @@ void OptionsGroup::append_line(const Line& line)
 void OptionsGroup::activate_line(Line& line)
 {
 	if (line.full_width && (
-		line.sizer != nullptr ||
 		line.widget != nullptr ||
 		!line.get_extra_widgets().empty())
 		) {
-		if (line.sizer != nullptr) {
-            sizer->Add(line.sizer, 0, wxEXPAND | wxALL, wxOSX ? 0 : 15);
-            return;
-        }
         if (line.widget != nullptr) {
             sizer->Add(line.widget(this->ctrl_parent()), 0, wxEXPAND | wxALL, wxOSX ? 0 : 15);
             return;
@@ -585,7 +579,7 @@ bool ConfigOptionsGroup::is_visible(ConfigOptionMode mode)
 
 bool ConfigOptionsGroup::update_visibility(ConfigOptionMode mode)
 {
-	if (m_options_mode.empty())
+	if (m_options_mode.empty() || !m_grid_sizer)
 		return true;
 	int opt_mode_size = m_options_mode.size();
 	if (m_grid_sizer->GetEffectiveRowsCount() != opt_mode_size &&
