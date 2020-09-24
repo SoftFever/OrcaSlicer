@@ -64,21 +64,26 @@ namespace instance_check_internal
 		//BOOST_LOG_TRIVIAL(error) << "ewp: version: " << l_version_wstring;
 		TCHAR 		 wndText[1000];
 		TCHAR 		 className[1000];
-		GetClassName(hwnd, className, 1000);
-		GetWindowText(hwnd, wndText, 1000);
+		int          err;
+		err = GetClassName(hwnd, className, 1000);
+		if (err == 0)
+			return true;
+		err = GetWindowText(hwnd, wndText, 1000);
+		if (err == 0)
+			return true;
 		std::wstring classNameString(className);
 		std::wstring wndTextString(wndText);
-		if (wndTextString.find(L"PrusaSlicer") != std::wstring::npos && classNameString == L"wxWindowNR") {
+		if (wndTextString.find(L"PrusaSlicer") == 0 && classNameString == L"wxWindowNR") {
 			//check if other instances has same instance hash
 			//if not it is not same version(binary) as this version 
-			HANDLE       handle = GetProp(hwnd, L"Instance_Hash_Minor");
-			size_t       other_instance_hash = PtrToUint(handle);
-			size_t       other_instance_hash_major;
+			HANDLE                handle = GetProp(hwnd, L"Instance_Hash_Minor");
+			unsigned long long    other_instance_hash = PtrToUint(handle);
+			unsigned long long    other_instance_hash_major;
+			unsigned long long    my_instance_hash = GUI::wxGetApp().get_instance_hash_int();
 			handle = GetProp(hwnd, L"Instance_Hash_Major");
 			other_instance_hash_major = PtrToUint(handle);
 			other_instance_hash_major = other_instance_hash_major << 32;
 			other_instance_hash += other_instance_hash_major;
-			size_t my_instance_hash = GUI::wxGetApp().get_instance_hash_int();
 			if(my_instance_hash == other_instance_hash)
 			{
 				BOOST_LOG_TRIVIAL(debug) << "win enum - found correct instance";
@@ -95,19 +100,19 @@ namespace instance_check_internal
 	{
 		if (!EnumWindows(EnumWindowsProc, 0)) {
 			std::wstring wstr = boost::nowide::widen(message);
-			//LPWSTR command_line_args = wstr.c_str();//GetCommandLine();
-			LPWSTR command_line_args = new wchar_t[wstr.size() + 1];
+			std::unique_ptr<LPWSTR> command_line_args = std::make_unique<LPWSTR>(const_cast<LPWSTR>(wstr.c_str()));
+			/*LPWSTR command_line_args = new wchar_t[wstr.size() + 1];
 			copy(wstr.begin(), wstr.end(), command_line_args);
-			command_line_args[wstr.size()] = 0; 
+			command_line_args[wstr.size()] = 0;*/
+
 			//Create a COPYDATASTRUCT to send the information
 			//cbData represents the size of the information we want to send.
 			//lpData represents the information we want to send.
 			//dwData is an ID defined by us(this is a type of ID different than WM_COPYDATA).
 			COPYDATASTRUCT data_to_send = { 0 };
 			data_to_send.dwData = 1;
-			data_to_send.cbData = sizeof(TCHAR) * (wcslen(command_line_args) + 1);
-			data_to_send.lpData = command_line_args;
-
+			data_to_send.cbData = sizeof(TCHAR) * (wcslen(*command_line_args.get()) + 1);
+			data_to_send.lpData = *command_line_args.get();
 			SendMessage(l_prusa_slicer_hwnd, WM_COPYDATA, 0, (LPARAM)&data_to_send);
 			return true;  
 		}
@@ -242,7 +247,7 @@ bool instance_check(int argc, char** argv, bool app_config_single_instance)
 	GUI::wxGetApp().init_single_instance_checker(lock_name + ".lock", data_dir() + "/cache/");
 	if ((cla.should_send || app_config_single_instance) && GUI::wxGetApp().single_instance_checker()->IsAnotherRunning()) {
 #else // mac & linx
-	if (instance_check_internal::get_lock(lock_name + ".lock", data_dir() + "/cache/") && (cla.should_send || app_config_single_instance)) {
+	if ((cla.should_send || app_config_single_instance) && instance_check_internal::get_lock(lock_name + ".lock", data_dir() + "/cache/")) {
 #endif
 		instance_check_internal::send_message(cla.cl_string, lock_name);
 		BOOST_LOG_TRIVIAL(info) << "instance check: Another instance found. This instance will terminate.";
@@ -345,7 +350,7 @@ void OtherInstanceMessageHandler::print_window_info(HWND hwnd)
 namespace MessageHandlerInternal
 {
    // returns ::path to possible model or empty ::path if input string is not existing path
-	static boost::filesystem::path get_path(std::string possible_path)
+	static boost::filesystem::path get_path(const std::string& possible_path)
 	{
 		BOOST_LOG_TRIVIAL(debug) << "message part:" << possible_path;
 
@@ -434,7 +439,7 @@ namespace MessageHandlerDBusInternal
 	static void handle_method_another_instance(DBusConnection *connection, DBusMessage *request)
 	{
 	    DBusError     err;
-	    char*         text= "";
+	    char*         text = nullptr;
 		wxEvtHandler* evt_handler;
 
 	    dbus_error_init(&err);
