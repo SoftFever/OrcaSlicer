@@ -82,7 +82,7 @@ bool ObjectSettings::update_settings_list()
         return false;
 
     const bool is_object_settings = objects_model->GetItemType(objects_model->GetParent(item)) == itObject;
-	SettingsBundle cat_options = objects_ctrl->get_item_settings_bundle(config, is_object_settings);
+	SettingsBundle cat_options = objects_ctrl->get_item_settings_bundle(&config->get(), is_object_settings);
 
     if (!cat_options.empty())
     {
@@ -176,7 +176,7 @@ bool ObjectSettings::update_settings_list()
     return true;
 }
 
-bool ObjectSettings::add_missed_options(DynamicPrintConfig* config_to, const DynamicPrintConfig& config_from)
+bool ObjectSettings::add_missed_options(ModelConfig* config_to, const DynamicPrintConfig& config_from)
 {
     bool is_added = false;
     if (wxGetApp().plater()->printer_technology() == ptFFF)
@@ -193,7 +193,7 @@ bool ObjectSettings::add_missed_options(DynamicPrintConfig* config_to, const Dyn
     return is_added;
 }
 
-void ObjectSettings::update_config_values(DynamicPrintConfig* config)
+void ObjectSettings::update_config_values(ModelConfig* config)
 {
     const auto objects_model        = wxGetApp().obj_list()->GetModel();
     const auto item                 = wxGetApp().obj_list()->GetSelection();
@@ -250,14 +250,12 @@ void ObjectSettings::update_config_values(DynamicPrintConfig* config)
     {
         const int obj_idx = objects_model->GetObjectIdByItem(item);
         assert(obj_idx >= 0);
-        DynamicPrintConfig* obj_config = &wxGetApp().model().objects[obj_idx]->config;
-
-        main_config.apply(*obj_config, true);
+        main_config.apply(wxGetApp().model().objects[obj_idx]->config.get(), true);
         printer_technology == ptFFF  ?  config_manipulation.update_print_fff_config(&main_config) :
                                         config_manipulation.update_print_sla_config(&main_config) ;
     }
 
-    main_config.apply(*config, true);
+    main_config.apply(config->get(), true);
     printer_technology == ptFFF  ?  config_manipulation.update_print_fff_config(&main_config) :
                                     config_manipulation.update_print_sla_config(&main_config) ;
 

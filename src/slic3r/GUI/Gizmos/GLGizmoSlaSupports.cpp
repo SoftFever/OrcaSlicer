@@ -546,7 +546,7 @@ std::vector<const ConfigOption*> GLGizmoSlaSupports::get_config_options(const st
     if (! mo)
         return out;
 
-    const DynamicPrintConfig& object_cfg = mo->config;
+    const DynamicPrintConfig& object_cfg = mo->config.get();
     const DynamicPrintConfig& print_cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
     std::unique_ptr<DynamicPrintConfig> default_cfg = nullptr;
 
@@ -753,15 +753,15 @@ RENDER_AGAIN:
             m_density_stash = density;
         }
         if (slider_edited) {
-            mo->config.opt<ConfigOptionFloat>("support_points_minimal_distance", true)->value = minimal_point_distance;
-            mo->config.opt<ConfigOptionInt>("support_points_density_relative", true)->value = (int)density;
+            mo->config.set("support_points_minimal_distance", minimal_point_distance);
+            mo->config.set("support_points_density_relative", (int)density);
         }
         if (slider_released) {
-            mo->config.opt<ConfigOptionFloat>("support_points_minimal_distance", true)->value = m_minimal_point_distance_stash;
-            mo->config.opt<ConfigOptionInt>("support_points_density_relative", true)->value = (int)m_density_stash;
+            mo->config.set("support_points_minimal_distance", m_minimal_point_distance_stash);
+            mo->config.set("support_points_density_relative", (int)m_density_stash);
             Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Support parameter change")));
-            mo->config.opt<ConfigOptionFloat>("support_points_minimal_distance", true)->value = minimal_point_distance;
-            mo->config.opt<ConfigOptionInt>("support_points_density_relative", true)->value = (int)density;
+            mo->config.set("support_points_minimal_distance", minimal_point_distance);
+            mo->config.set("support_points_density_relative", (int)density);
             wxGetApp().obj_list()->update_and_show_object_settings_item();
         }
 

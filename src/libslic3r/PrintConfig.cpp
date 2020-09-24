@@ -3718,6 +3718,8 @@ void DynamicPrintAndCLIConfig::handle_legacy(t_config_option_key &opt_key, std::
     }
 }
 
+uint64_t ModelConfig::s_last_timestamp = 1;
+
 static Points to_points(const std::vector<Vec2d> &dpts)
 {
     Points pts; pts.reserve(dpts.size());

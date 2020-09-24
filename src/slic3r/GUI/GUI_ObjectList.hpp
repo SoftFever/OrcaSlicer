@@ -24,6 +24,7 @@ class MenuWithSeparators;
 namespace Slic3r {
 class ConfigOptionsGroup;
 class DynamicPrintConfig;
+class ModelConfig;
 class ModelObject;
 class ModelVolume;
 class TriangleMesh;
@@ -39,9 +40,9 @@ typedef std::map< std::string, std::vector< std::pair<std::string, std::string> 
 
 typedef std::vector<ModelVolume*> ModelVolumePtrs;
 
-typedef double                                              coordf_t;
-typedef std::pair<coordf_t, coordf_t>                       t_layer_height_range;
-typedef std::map<t_layer_height_range, DynamicPrintConfig>  t_layer_config_ranges;
+typedef double                                       coordf_t;
+typedef std::pair<coordf_t, coordf_t>                t_layer_height_range;
+typedef std::map<t_layer_height_range, ModelConfig>  t_layer_config_ranges;
 
 namespace GUI {
 
@@ -165,7 +166,7 @@ private:
     wxMenuItem* m_menu_item_split_instances { nullptr };
 
     ObjectDataViewModel         *m_objects_model{ nullptr };
-    DynamicPrintConfig          *m_config {nullptr};
+    ModelConfig                 *m_config {nullptr};
     std::vector<ModelObject*>   *m_objects{ nullptr };
 
     wxBitmapComboBox            *m_extruder_editor { nullptr };
@@ -210,7 +211,7 @@ public:
     std::map<std::string, wxBitmap> CATEGORY_ICON;
 
     ObjectDataViewModel*        GetModel() const    { return m_objects_model; }
-    DynamicPrintConfig*         config() const      { return m_config; }
+    ModelConfig*                config() const      { return m_config; }
     std::vector<ModelObject*>*  objects() const     { return m_objects; }
 
     ModelObject*                object(const int obj_idx) const ;
@@ -320,7 +321,7 @@ public:
     wxPoint             get_mouse_position_in_control() const { return wxGetMousePosition() - this->GetScreenPosition(); }
     wxBoxSizer*         get_sizer() {return  m_sizer;}
     int                 get_selected_obj_idx() const;
-    DynamicPrintConfig& get_item_config(const wxDataViewItem& item) const;
+    ModelConfig&        get_item_config(const wxDataViewItem& item) const;
     SettingsBundle      get_item_settings_bundle(const DynamicPrintConfig* config, const bool is_object_settings);
 
     void                changed_object(const int obj_idx = -1) const;

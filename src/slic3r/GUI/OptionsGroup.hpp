@@ -221,18 +221,18 @@ protected:
 
 class ConfigOptionsGroup: public OptionsGroup {
 public:
-	ConfigOptionsGroup(	wxWindow* parent, const wxString& title, DynamicPrintConfig* _config = nullptr, 
+	ConfigOptionsGroup(	wxWindow* parent, const wxString& title, DynamicPrintConfig* config = nullptr, 
 						bool is_tab_opt = false, column_t extra_clmn = nullptr) :
-		OptionsGroup(parent, title, is_tab_opt, extra_clmn), m_config(_config) {}
+		OptionsGroup(parent, title, is_tab_opt, extra_clmn), m_config(config) {}
+	ConfigOptionsGroup(	wxWindow* parent, const wxString& title, ModelConfig* config, 
+						bool is_tab_opt = false, column_t extra_clmn = nullptr) :
+		OptionsGroup(parent, title, is_tab_opt, extra_clmn), m_config(&config->get()), m_modelconfig(config) {}
 
-    /// reference to libslic3r config, non-owning pointer (?).
-    DynamicPrintConfig*		m_config {nullptr};
-    bool					m_full_labels {0};
-	t_opt_map				m_opt_map;
+	const std::string& config_category() const throw() { return m_config_category; }
+	const t_opt_map&   opt_map() const throw() { return m_opt_map; }
 
-    std::string             config_category;
-
-    void        set_config(DynamicPrintConfig* config) { m_config = config; }
+	void 		set_config_category(const std::string &category) { this->m_config_category = category; }
+    void        set_config(DynamicPrintConfig* config) { m_config = config; m_modelconfig = nullptr; }
 	Option		get_option(const std::string& opt_key, int opt_index = -1);
 	Line		create_single_option_line(const std::string& title, int idx = -1) /*const*/{
 		Option option = get_option(title, idx);
@@ -266,6 +266,20 @@ public:
 	// return option value from config 
 	boost::any	get_config_value(const DynamicPrintConfig& config, const std::string& opt_key, int opt_index = -1);
 	Field*		get_fieldc(const t_config_option_key& opt_key, int opt_index);
+
+private:
+    // Reference to libslic3r config or ModelConfig::get(), non-owning pointer.
+    // The reference is const, so that the spots which modify m_config are clearly
+    // demarcated by const_cast and m_config_changed_callback is called afterwards.
+    const DynamicPrintConfig*	m_config {nullptr};
+    // If the config is modelconfig, then ModelConfig::touch() has to be called after value change.
+    ModelConfig*				m_modelconfig { nullptr };
+	bool						m_full_labels{ 0 };
+	t_opt_map					m_opt_map;
+    std::string             	m_config_category;
+
+    // Change an option on m_config, possibly call ModelConfig::touch().
+	void 	change_opt_value(const t_config_option_key& opt_key, const boost::any& value, int opt_index = 0);
 };
 
 //  Static text shown among the options.

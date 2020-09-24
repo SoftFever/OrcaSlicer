@@ -466,7 +466,7 @@ GLGizmoHollow::get_config_options(const std::vector<std::string>& keys) const
     if (! mo)
         return out;
 
-    const DynamicPrintConfig& object_cfg = mo->config;
+    const DynamicPrintConfig& object_cfg = mo->config.get();
     const DynamicPrintConfig& print_cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
     std::unique_ptr<DynamicPrintConfig> default_cfg = nullptr;
 
@@ -556,7 +556,7 @@ RENDER_AGAIN:
         auto opts = get_config_options({"hollowing_enable"});
         m_enable_hollowing = static_cast<const ConfigOptionBool*>(opts[0].first)->value;
         if (m_imgui->checkbox(m_desc["enable"], m_enable_hollowing)) {
-            mo->config.opt<ConfigOptionBool>("hollowing_enable", true)->value = m_enable_hollowing;
+            mo->config.set("hollowing_enable", m_enable_hollowing);
             wxGetApp().obj_list()->update_and_show_object_settings_item();
             config_changed = true;
         }
@@ -618,14 +618,14 @@ RENDER_AGAIN:
     }
     if (slider_edited || slider_released) {
         if (slider_released) {
-            mo->config.opt<ConfigOptionFloat>("hollowing_min_thickness", true)->value = m_offset_stash;
-            mo->config.opt<ConfigOptionFloat>("hollowing_quality", true)->value = m_quality_stash;
-            mo->config.opt<ConfigOptionFloat>("hollowing_closing_distance", true)->value = m_closing_d_stash;
+            mo->config.set("hollowing_min_thickness", m_offset_stash);
+            mo->config.set("hollowing_quality", m_quality_stash);
+            mo->config.set("hollowing_closing_distance", m_closing_d_stash);
             Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Hollowing parameter change")));
         }
-        mo->config.opt<ConfigOptionFloat>("hollowing_min_thickness", true)->value = offset;
-        mo->config.opt<ConfigOptionFloat>("hollowing_quality", true)->value = quality;
-        mo->config.opt<ConfigOptionFloat>("hollowing_closing_distance", true)->value = closing_d;
+        mo->config.set("hollowing_min_thickness", offset);
+        mo->config.set("hollowing_quality", quality);
+        mo->config.set("hollowing_closing_distance", closing_d);
         if (slider_released) {
             wxGetApp().obj_list()->update_and_show_object_settings_item();
             config_changed = true;

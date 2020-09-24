@@ -1592,13 +1592,13 @@ SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig& full
 				print_config,
 				region_config_from_model_volume(default_region_config, nullptr, *model_volume, num_extruders),
 				object_extruders);
-			for (const std::pair<const t_layer_height_range, DynamicPrintConfig> &range_and_config : model_object.layer_config_ranges)
+			for (const std::pair<const t_layer_height_range, ModelConfig> &range_and_config : model_object.layer_config_ranges)
 				if (range_and_config.second.has("perimeter_extruder") ||
 					range_and_config.second.has("infill_extruder") ||
 					range_and_config.second.has("solid_infill_extruder"))
 					PrintRegion::collect_object_printing_extruders(
 						print_config,
-						region_config_from_model_volume(default_region_config, &range_and_config.second, *model_volume, num_extruders),
+						region_config_from_model_volume(default_region_config, &range_and_config.second.get(), *model_volume, num_extruders),
 						object_extruders);
 		}
     sort_remove_duplicates(object_extruders);
@@ -1626,7 +1626,7 @@ bool PrintObject::update_layer_height_profile(const ModelObject &model_object, c
 
     if (layer_height_profile.empty()) {
         // use the constructor because the assignement is crashing on ASAN OsX
-        layer_height_profile = std::vector<coordf_t>(model_object.layer_height_profile);
+        layer_height_profile = std::vector<coordf_t>(model_object.layer_height_profile.get());
 //        layer_height_profile = model_object.layer_height_profile;
         updated = true;
     }
@@ -2872,7 +2872,7 @@ void PrintObject::project_and_append_custom_facets(
 
         // Now append the collected polygons to respective layers.
         for (auto& trg : projections_of_triangles) {
-            int layer_id = trg.first_layer_id;
+            int layer_id = int(trg.first_layer_id);
             for (const LightPolygon& poly : trg.polygons) {
                 if (layer_id >= int(expolys.size()))
                     break; // part of triangle could be projected above top layer

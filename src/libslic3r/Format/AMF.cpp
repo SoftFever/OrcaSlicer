@@ -688,7 +688,7 @@ void AMFParserContext::endElement(const char * /* name */)
         else if (strncmp(m_value[0].c_str(), "slic3r.", 7) == 0) {
             const char *opt_key = m_value[0].c_str() + 7;
             if (print_config_def.options.find(opt_key) != print_config_def.options.end()) {
-                DynamicPrintConfig *config = nullptr;
+                ModelConfig *config = nullptr;
                 if (m_path.size() == 3) {
                     if (m_path[1] == NODE_TYPE_MATERIAL && m_material)
                         config = &m_material->config;
@@ -706,15 +706,17 @@ void AMFParserContext::endElement(const char * /* name */)
             } else if (m_path.size() == 3 && m_path[1] == NODE_TYPE_OBJECT && m_object && strcmp(opt_key, "layer_height_profile") == 0) {
                 // Parse object's layer height profile, a semicolon separated list of floats.
                 char *p = m_value[1].data();
+                std::vector<coordf_t> data;
                 for (;;) {
                     char *end = strchr(p, ';');
                     if (end != nullptr)
 	                    *end = 0;
-                    m_object->layer_height_profile.push_back(float(atof(p)));
+                    data.emplace_back(float(atof(p)));
 					if (end == nullptr)
 						break;
 					p = end + 1;
                 }
+                m_object->layer_height_profile.set(std::move(data));
             }
             else if (m_path.size() == 3 && m_path[1] == NODE_TYPE_OBJECT && m_object && strcmp(opt_key, "sla_support_points") == 0) {
                 // Parse object's layer height profile, a semicolon separated list of floats.
@@ -1095,7 +1097,7 @@ bool store_amf(const char* path, Model* model, const DynamicPrintConfig* config,
             stream << "    <metadata type=\"slic3r." << key << "\">" << object->config.opt_serialize(key) << "</metadata>\n";
         if (!object->name.empty())
             stream << "    <metadata type=\"name\">" << xml_escape(object->name) << "</metadata>\n";
-        const std::vector<double> &layer_height_profile = object->layer_height_profile;
+        const std::vector<double> &layer_height_profile = object->layer_height_profile.get();
         if (layer_height_profile.size() >= 4 && (layer_height_profile.size() % 2) == 0) {
             // Store the layer height profile as a single semicolon separated list.
             stream << "    <metadata type=\"slic3r.layer_height_profile\">";
@@ -1112,7 +1114,7 @@ bool store_amf(const char* path, Model* model, const DynamicPrintConfig* config,
             // Store the layer config range as a single semicolon separated list.
             stream << "    <layer_config_ranges>\n";
             size_t layer_counter = 0;
-            for (auto range : config_ranges) {
+            for (const auto &range : config_ranges) {
                 stream << "      <range id=\"" << layer_counter << "\">\n";
 
                 stream << "        <metadata type=\"slic3r.layer_height_range\">";

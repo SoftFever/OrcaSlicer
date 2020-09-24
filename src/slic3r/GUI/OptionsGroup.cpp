@@ -414,7 +414,7 @@ Option ConfigOptionsGroup::get_option(const std::string& opt_key, int opt_index 
 	m_opt_map.emplace(opt_id, pair);
 
 	if (m_show_modified_btns) // fill group and category values just fro options from Settings Tab 
-	    wxGetApp().sidebar().get_searcher().add_key(opt_id, title, config_category);
+	    wxGetApp().sidebar().get_searcher().add_key(opt_id, title, this->config_category());
 
 	return Option(*m_config->def()->get(opt_key), opt_id);
 }
@@ -430,13 +430,11 @@ void ConfigOptionsGroup::on_change_OG(const t_config_option_key& opt_id, const b
 			return;
 		}		
 
-		auto itOption = it->second;
-		std::string opt_key = itOption.first;
-		int opt_index = itOption.second;
+		auto 				itOption  = it->second;
+		const std::string  &opt_key   = itOption.first;
+		int 			    opt_index = itOption.second;
 
-		auto option = m_options.at(opt_id).opt;
-
-		change_opt_value(*m_config, opt_key, value, opt_index == -1 ? 0 : opt_index);
+		this->change_opt_value(opt_key, value, opt_index == -1 ? 0 : opt_index);
 	}
 
 	OptionsGroup::on_change_OG(opt_id, value); 
@@ -470,7 +468,7 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
 		     opt_key == "bed_shape"				|| opt_key == "filament_ramming_parameters" || 
 		     opt_key == "compatible_printers"	|| opt_key == "compatible_prints" ) {
         value = get_config_value(config, opt_key);
-        change_opt_value(*m_config, opt_key, value);
+        this->change_opt_value(opt_key, value);
         return;
     }
 	else
@@ -787,6 +785,15 @@ Field* ConfigOptionsGroup::get_fieldc(const t_config_option_key& opt_key, int op
 		}
 	}
 	return opt_id.empty() ? nullptr : get_field(opt_id);
+}
+
+// Change an option on m_config, possibly call ModelConfig::touch().
+void ConfigOptionsGroup::change_opt_value(const t_config_option_key& opt_key, const boost::any& value, int opt_index /*= 0*/)
+
+{
+	Slic3r::GUI::change_opt_value(const_cast<DynamicPrintConfig&>(*m_config), opt_key, value, opt_index);
+	if (m_modelconfig)
+		m_modelconfig->touch();
 }
 
 void ogStaticText::SetText(const wxString& value, bool wrap/* = true*/)

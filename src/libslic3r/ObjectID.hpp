@@ -49,12 +49,14 @@ private:
 class ObjectBase
 {
 public:
+    using Timestamp = uint64_t;
+
     ObjectID     		id() const { return m_id; }
     // Return an optional timestamp of this object.
     // If the timestamp returned is non-zero, then the serialization framework will
     // only save this object on the Undo/Redo stack if the timestamp is different
     // from the timestmap of the object at the top of the Undo / Redo stack.
-    virtual uint64_t	timestamp() const { return 0; }
+    virtual Timestamp	timestamp() const { return 0; }
 
 protected:
     // Constructors to be only called by derived classes.
@@ -89,6 +91,42 @@ private:
 	template<class Archive> void serialize(Archive &ar) { ar(m_id); }
     ObjectBase(const ObjectID id) : m_id(id) {}
   	template<class Archive> static void load_and_construct(Archive & ar, cereal::construct<ObjectBase> &construct) { ObjectID id; ar(id); construct(id); }
+};
+
+class ObjectWithTimestamp : public ObjectBase
+{
+protected:
+    // Constructors to be only called by derived classes.
+    // Default constructor to assign a new timestamp unique to this object's history.
+	ObjectWithTimestamp() = default;
+    // Constructor with ignored int parameter to assign an invalid ID, to be replaced
+    // by an existing ID copied from elsewhere.
+    ObjectWithTimestamp(int) : ObjectBase(-1) {}
+	// The class tree will have virtual tables and type information.
+	virtual ~ObjectWithTimestamp() = default;
+
+    // Resetting timestamp to 1 indicates the object is in its initial (cleared) state.
+    // To be called by the derived class's clear() method.
+    void                reset_timestamp() { m_timestamp = 1; }
+
+public:
+    // Return an optional timestamp of this object.
+    // If the timestamp returned is non-zero, then the serialization framework will
+    // only save this object on the Undo/Redo stack if the timestamp is different
+    // from the timestmap of the object at the top of the Undo / Redo stack.
+    Timestamp	        timestamp() const throw() override { return m_timestamp; }
+    bool 				timestamp_matches(const ObjectWithTimestamp &rhs) const throw() { return m_timestamp == rhs.m_timestamp; }
+    bool 				object_id_and_timestamp_match(const ObjectWithTimestamp &rhs) const throw() { return this->id() == rhs.id() && m_timestamp == rhs.m_timestamp; }
+    void 				touch() { m_timestamp = ++ s_last_timestamp; }
+
+private:
+	// The first timestamp is non-zero, as zero timestamp means the timestamp is not reliable.
+	Timestamp 			m_timestamp { 1 };
+    static Timestamp    s_last_timestamp;
+	
+	friend class cereal::access;
+	friend class Slic3r::UndoRedo::StackImpl;
+	template<class Archive> void serialize(Archive &ar) { ar(m_timestamp); }
 };
 
 // Unique object / instance ID for the wipe tower.

@@ -18,7 +18,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include <chrono>
 
 namespace cereal {
 	class BinaryInputArchive;
@@ -45,7 +44,7 @@ namespace UndoRedo {
 	class StackImpl;
 }
 
-class ModelConfig : public ObjectBase, public DynamicPrintConfig
+class ModelConfigObject : public ObjectBase, public ModelConfig
 {
 private:
 	friend class cereal::access;
@@ -56,21 +55,25 @@ private:
 
     // Constructors to be only called by derived classes.
     // Default constructor to assign a unique ID.
-    explicit ModelConfig() {}
+    explicit ModelConfigObject() {}
     // Constructor with ignored int parameter to assign an invalid ID, to be replaced
     // by an existing ID copied from elsewhere.
-    explicit ModelConfig(int) : ObjectBase(-1) {}
+    explicit ModelConfigObject(int) : ObjectBase(-1) {}
     // Copy constructor copies the ID.
-	explicit ModelConfig(const ModelConfig &cfg) : ObjectBase(-1), DynamicPrintConfig(cfg) { this->copy_id(cfg); }
+	explicit ModelConfigObject(const ModelConfigObject &cfg) : ObjectBase(-1), ModelConfig(cfg) { this->copy_id(cfg); }
     // Move constructor copies the ID.
-	explicit ModelConfig(ModelConfig &&cfg) : ObjectBase(-1), DynamicPrintConfig(std::move(cfg)) { this->copy_id(cfg); }
+	explicit ModelConfigObject(ModelConfigObject &&cfg) : ObjectBase(-1), ModelConfig(std::move(cfg)) { this->copy_id(cfg); }
 
-	ModelConfig& operator=(const ModelConfig &rhs) = default;
-    ModelConfig& operator=(ModelConfig &&rhs) = default;
+    Timestamp          timestamp() const throw() override { return this->ModelConfig::timestamp(); }
+    bool               object_id_and_timestamp_match(const ModelConfigObject &rhs) const throw() { return this->id() == rhs.id() && this->timestamp() == rhs.timestamp(); }
 
-	template<class Archive> void serialize(Archive &ar) {
-		ar(cereal::base_class<DynamicPrintConfig>(this));
-	}
+    // called by ModelObject::assign_copy()
+	ModelConfigObject& operator=(const ModelConfigObject &rhs) = default;
+    ModelConfigObject& operator=(ModelConfigObject &&rhs) = default;
+
+    template<class Archive> void serialize(Archive &ar) {
+        ar(cereal::base_class<ModelConfig>(this));
+    }
 };
 
 namespace Internal {
@@ -136,7 +139,7 @@ public:
     // Attributes are defined by the AMF file format, but they don't seem to be used by Slic3r for any purpose.
     t_model_material_attributes attributes;
     // Dynamic configuration storage for the object specific configuration values, overriding the global configuration.
-    ModelConfig config;
+    ModelConfigObject config;
 
     Model* get_model() const { return m_model; }
     void apply(const t_model_material_attributes &attributes)
@@ -162,7 +165,7 @@ private:
 	ModelMaterial() : ObjectBase(-1), config(-1), m_model(nullptr) { assert(this->id().invalid()); assert(this->config.id().invalid()); }
 	template<class Archive> void serialize(Archive &ar) { 
 		assert(this->id().invalid()); assert(this->config.id().invalid());
-		Internal::StaticSerializationWrapper<ModelConfig> config_wrapper(config);
+		Internal::StaticSerializationWrapper<ModelConfigObject> config_wrapper(config);
 		ar(attributes, config_wrapper);
 		// assert(this->id().valid()); assert(this->config.id().valid());
 	}
@@ -171,6 +174,23 @@ private:
 	ModelMaterial(ModelMaterial &&rhs) = delete;
 	ModelMaterial& operator=(const ModelMaterial &rhs) = delete;
     ModelMaterial& operator=(ModelMaterial &&rhs) = delete;
+};
+
+class LayerHeightProfile final : public ObjectWithTimestamp {
+public:
+    std::vector<coordf_t> get() const throw() { return m_data; }
+    bool                  empty() const throw() { return m_data.empty(); }
+    void                  set(const std::vector<coordf_t> &data) { if (m_data != data) { m_data = data; this->touch(); } }
+    void                  set(std::vector<coordf_t> &&data) { if (m_data != data) { m_data = std::move(data); this->touch(); } }
+    void                  clear() { m_data.clear(); this->touch(); }
+
+    template<class Archive> void serialize(Archive &ar)
+    {
+        ar(cereal::base_class<ObjectWithTimestamp>(this), m_data);
+    }
+
+private:
+    std::vector<coordf_t> m_data;
 };
 
 // A printable object, possibly having multiple print volumes (each with its own set of parameters and materials),
@@ -189,12 +209,12 @@ public:
     // ModelVolumes are owned by this ModelObject.
     ModelVolumePtrs         volumes;
     // Configuration parameters specific to a single ModelObject, overriding the global Slic3r settings.
-    ModelConfig      		config;
+    ModelConfigObject 		config;
     // Variation of a layer thickness for spans of Z coordinates + optional parameter overrides.
     t_layer_config_ranges   layer_config_ranges;
     // Profile of increasing z to a layer height, to be linearly interpolated when calculating the layers.
     // The pairs of <z, layer_height> are packed into a 1D array.
-    std::vector<coordf_t>   layer_height_profile;
+    LayerHeightProfile      layer_height_profile;
     // Whether or not this object is printable
     bool                    printable;
 
@@ -381,8 +401,10 @@ private:
 	}
 	template<class Archive> void serialize(Archive &ar) {
 		ar(cereal::base_class<ObjectBase>(this));
-		Internal::StaticSerializationWrapper<ModelConfig> config_wrapper(config);
-        ar(name, input_file, instances, volumes, config_wrapper, layer_config_ranges, layer_height_profile, sla_support_points, sla_points_status, sla_drain_holes, printable, origin_translation,
+		Internal::StaticSerializationWrapper<ModelConfigObject> config_wrapper(config);
+        Internal::StaticSerializationWrapper<LayerHeightProfile> layer_heigth_profile_wrapper(layer_height_profile);
+        ar(name, input_file, instances, volumes, config_wrapper, layer_config_ranges, layer_heigth_profile_wrapper, 
+            sla_support_points, sla_points_status, sla_drain_holes, printable, origin_translation,
             m_bounding_box, m_bounding_box_valid, m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid);
 	}
 };
@@ -403,34 +425,27 @@ enum class EnforcerBlockerType : int8_t {
     BLOCKER   = 2
 };
 
-class FacetsAnnotation {
+class FacetsAnnotation final : public ObjectWithTimestamp {
 public:
-    using ClockType = std::chrono::steady_clock;
-
-    const std::map<int, std::vector<bool>>& get_data() const { return m_data; }
+    void assign(const FacetsAnnotation &rhs) { if (! this->timestamp_matches(rhs)) this->m_data = rhs.m_data; }
+    void assign(FacetsAnnotation &&rhs) { if (! this->timestamp_matches(rhs)) this->m_data = rhs.m_data; }
+    const std::map<int, std::vector<bool>>& get_data() const throw() { return m_data; }
     bool set(const TriangleSelector& selector);
     indexed_triangle_set get_facets(const ModelVolume& mv, EnforcerBlockerType type) const;
     void clear();
     std::string get_triangle_as_string(int i) const;
     void set_triangle_from_string(int triangle_id, const std::string& str);
 
-    ClockType::time_point get_timestamp() const { return timestamp; }
-    bool is_same_as(const FacetsAnnotation& other) const {
-        return timestamp == other.get_timestamp();
-    }
+private:
+    friend class cereal::access;
+    friend class UndoRedo::StackImpl;
 
     template<class Archive> void serialize(Archive &ar)
     {
-        ar(m_data);
+        ar(cereal::base_class<ObjectWithTimestamp>(this), m_data);
     }
 
-private:
     std::map<int, std::vector<bool>> m_data;
-
-    ClockType::time_point timestamp;
-    void update_timestamp() {
-        timestamp = ClockType::now();
-    }
 };
 
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
@@ -465,7 +480,7 @@ public:
 	void				reset_mesh() { m_mesh = std::make_shared<const TriangleMesh>(); }
     // Configuration parameters specific to an object model geometry or a modifier volume, 
     // overriding the global Slic3r settings and the ModelObject settings.
-    ModelConfig  		config;
+    ModelConfigObject	config;
 
     // List of mesh facets to be supported/unsupported.
     FacetsAnnotation    m_supported_facets;
@@ -634,8 +649,9 @@ private:
 	}
 	template<class Archive> void load(Archive &ar) {
 		bool has_convex_hull;
-        ar(name, source, m_mesh, m_type, m_material_id, m_transformation,
-           m_is_splittable, has_convex_hull, m_supported_facets, m_seam_facets);
+        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull);
+        cereal::load_by_value(ar, m_supported_facets);
+        cereal::load_by_value(ar, m_seam_facets);
         cereal::load_by_value(ar, config);
 		assert(m_mesh);
 		if (has_convex_hull) {
@@ -648,8 +664,9 @@ private:
 	}
 	template<class Archive> void save(Archive &ar) const {
 		bool has_convex_hull = m_convex_hull.get() != nullptr;
-        ar(name, source, m_mesh, m_type, m_material_id, m_transformation,
-           m_is_splittable, has_convex_hull, m_supported_facets, m_seam_facets);
+        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull);
+        cereal::save_by_value(ar, m_supported_facets);
+        cereal::save_by_value(ar, m_seam_facets);
         cereal::save_by_value(ar, config);
 		if (has_convex_hull)
 			cereal::save_optional(ar, m_convex_hull);
@@ -935,7 +952,7 @@ void check_model_ids_equal(const Model &model1, const Model &model2);
 namespace cereal
 {
 	template <class Archive> struct specialize<Archive, Slic3r::ModelVolume, cereal::specialization::member_load_save> {};
-	template <class Archive> struct specialize<Archive, Slic3r::ModelConfig, cereal::specialization::member_serialize> {};
+	template <class Archive> struct specialize<Archive, Slic3r::ModelConfigObject, cereal::specialization::member_serialize> {};
 }
 
 #endif /* slic3r_Model_hpp_ */

@@ -683,23 +683,23 @@ namespace Slic3r {
             // m_layer_heights_profiles are indexed by a 1 based model object index.
             IdToLayerHeightsProfileMap::iterator obj_layer_heights_profile = m_layer_heights_profiles.find(object.second + 1);
             if (obj_layer_heights_profile != m_layer_heights_profiles.end())
-                model_object->layer_height_profile = obj_layer_heights_profile->second;
+                model_object->layer_height_profile.set(std::move(obj_layer_heights_profile->second));
 
             // m_layer_config_ranges are indexed by a 1 based model object index.
             IdToLayerConfigRangesMap::iterator obj_layer_config_ranges = m_layer_config_ranges.find(object.second + 1);
             if (obj_layer_config_ranges != m_layer_config_ranges.end())
-                model_object->layer_config_ranges = obj_layer_config_ranges->second;
+                model_object->layer_config_ranges = std::move(obj_layer_config_ranges->second);
 
             // m_sla_support_points are indexed by a 1 based model object index.
             IdToSlaSupportPointsMap::iterator obj_sla_support_points = m_sla_support_points.find(object.second + 1);
             if (obj_sla_support_points != m_sla_support_points.end() && !obj_sla_support_points->second.empty()) {
-                model_object->sla_support_points = obj_sla_support_points->second;
+                model_object->sla_support_points = std::move(obj_sla_support_points->second);
                 model_object->sla_points_status = sla::PointsStatus::UserModified;
             }
             
             IdToSlaDrainHolesMap::iterator obj_drain_holes = m_sla_drain_holes.find(object.second + 1);
             if (obj_drain_holes != m_sla_drain_holes.end() && !obj_drain_holes->second.empty()) {
-                model_object->sla_drain_holes = obj_drain_holes->second;
+                model_object->sla_drain_holes = std::move(obj_drain_holes->second);
             }
 
             IdToMetadataMap::iterator obj_metadata = m_objects_metadata.find(object.first);
@@ -934,7 +934,7 @@ namespace Slic3r {
                     double max_z = range_tree.get<double>("<xmlattr>.max_z");
 
                     // get Z range information
-                    DynamicPrintConfig& config = config_ranges[{ min_z, max_z }];
+                    DynamicPrintConfig config;
 
                     for (const auto& option : range_tree)
                     {
@@ -945,10 +945,12 @@ namespace Slic3r {
 
                         config.set_deserialize(opt_key, value);
                     }
+
+                    config_ranges[{ min_z, max_z }].assign_config(std::move(config));
                 }
 
                 if (!config_ranges.empty())
-                    m_layer_config_ranges.insert(IdToLayerConfigRangesMap::value_type(obj_idx, config_ranges));
+                    m_layer_config_ranges.insert(IdToLayerConfigRangesMap::value_type(obj_idx, std::move(config_ranges)));
             }
         }
     }
@@ -2407,7 +2409,7 @@ namespace Slic3r {
             triangles_count += (int)its.indices.size();
             volume_it->second.last_triangle_id = triangles_count - 1;
 
-            for (size_t i = 0; i < its.indices.size(); ++ i)
+            for (int i = 0; i < int(its.indices.size()); ++ i)
             {
                 stream << "     <" << TRIANGLE_TAG << " ";
                 for (int j = 0; j < 3; ++j)
@@ -2472,7 +2474,7 @@ namespace Slic3r {
         for (const ModelObject* object : model.objects)
         {
             ++count;
-            const std::vector<double> &layer_height_profile = object->layer_height_profile;
+            const std::vector<double>& layer_height_profile = object->layer_height_profile.get();
             if ((layer_height_profile.size() >= 4) && ((layer_height_profile.size() % 2) == 0))
             {
                 sprintf(buffer, "object_id=%d|", count);
@@ -2527,7 +2529,7 @@ namespace Slic3r {
                     range_tree.put("<xmlattr>.max_z", range.first.second);
 
                     // store range configuration
-                    const DynamicPrintConfig& config = range.second;
+                    const ModelConfig& config = range.second;
                     for (const std::string& opt_key : config.keys())
                     {
                         pt::ptree& opt_tree = range_tree.add("option", config.opt_serialize(opt_key));
