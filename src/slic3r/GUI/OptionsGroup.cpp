@@ -110,13 +110,13 @@ OptionsGroup::OptionsGroup(	wxWindow* _parent, const wxString& title,
                 m_show_modified_btns(is_tab_opt),
                 staticbox(title!=""), extra_column(extra_clmn)
 {
-    if (staticbox) {
+    /*if (staticbox) {
         stb = new wxStaticBox(_parent, wxID_ANY, _(title));
         if (!wxOSX) stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
         stb->SetFont(wxOSX ? wxGetApp().normal_font() : wxGetApp().bold_font());
     } else
         stb = nullptr;
-    sizer = (staticbox ? new wxStaticBoxSizer(stb, wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
+    sizer = (staticbox ? new wxStaticBoxSizer(stb, wxVERTICAL) : new wxBoxSizer(wxVERTICAL));*/
 }
 
 void OptionsGroup::add_undo_buttons_to_sizer(wxSizer* sizer, const t_field& field)
@@ -362,10 +362,19 @@ void OptionsGroup::activate_line(Line& line)
 }
 
 // create all controls for the option group from the m_lines
-void OptionsGroup::activate()
+bool OptionsGroup::activate()
 {
-	if (!sizer->IsEmpty())
-		return;
+	if (sizer)//(!sizer->IsEmpty())
+		return false;
+
+	if (staticbox) {
+		stb = new wxStaticBox(m_parent, wxID_ANY, _(title));
+		if (!wxOSX) stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
+		stb->SetFont(wxOSX ? wxGetApp().normal_font() : wxGetApp().bold_font());
+	}
+	else
+		stb = nullptr;
+	sizer = (staticbox ? new wxStaticBoxSizer(stb, wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
 
 	auto num_columns = 1U;
 	size_t grow_col = 1;
@@ -389,24 +398,30 @@ void OptionsGroup::activate()
 	// activate lines
 	for (Line& line: m_lines)
 		activate_line(line);
+
+	return true;
 }
 // delete all controls from the option group
 void OptionsGroup::clear()
 {
-	if (sizer->IsEmpty())
+	if (!sizer)//(sizer->IsEmpty())
 		return;
 
-	m_grid_sizer->Clear(true);
-	sizer->Clear(true);
+//	m_grid_sizer->Clear(true);
+	m_grid_sizer = nullptr;
+
+//	sizer->Clear(true);
+	//if (stb) {
+	//	stb->SetContainingSizer(NULL);
+	//	stb->Destroy();
+	//}
+	sizer = nullptr;
 
 	for (Line& line : m_lines)
 		if(line.full_Label)
 			*line.full_Label = nullptr;
 
-	//for (auto extra_col_win : m_extra_column_item_ptrs)
-	//	destroy(extra_col_win);
 	m_extra_column_item_ptrs.clear();
-
 	m_near_label_widget_ptrs.clear();
 	m_fields.clear();
 }

@@ -124,7 +124,7 @@ public:
 	void		activate_line(Line& line);
 
 	// create all controls for the option group from the m_lines
-	void		activate();
+	bool		activate();
 	// delete all controls from the option group
 	void		clear();
 

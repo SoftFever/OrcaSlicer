@@ -44,7 +44,7 @@ class TabPresetComboBox;
 // Single Tab page containing a{ vsizer } of{ optgroups }
 // package Slic3r::GUI::Tab::Page;
 using ConfigOptionsGroupShp = std::shared_ptr<ConfigOptionsGroup>;
-class Page : public wxScrolledWindow
+class Page// : public wxScrolledWindow
 {
 	wxWindow*		m_parent;
 	wxString		m_title;
@@ -126,6 +126,9 @@ protected:
 	wxBoxSizer*			m_left_sizer;
 	wxTreeCtrl*			m_treectrl;
 	wxImageList*		m_icons;
+
+	wxScrolledWindow*	m_page_view {nullptr};
+	wxBoxSizer*			m_page_sizer {nullptr};
 
     ModeSizer*     m_mode_sizer;
 

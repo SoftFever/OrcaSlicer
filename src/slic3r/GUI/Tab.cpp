@@ -296,6 +296,19 @@ void Tab::create_preset_tab()
     m_treectrl->Bind(wxEVT_TREE_SEL_CHANGED, &Tab::OnTreeSelChange, this);
     m_treectrl->Bind(wxEVT_KEY_DOWN, &Tab::OnKeyDown, this);
 
+    // Initialize the page.
+#ifdef __WXOSX__
+    auto page_parent = m_tmp_panel;
+#else
+    auto page_parent = this;
+#endif
+
+    m_page_view = new wxScrolledWindow(page_parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_page_sizer = new wxBoxSizer(wxVERTICAL);
+    m_page_view->SetSizer(m_page_sizer);
+    m_page_view->SetScrollbars(1, 20, 1, 2);
+    m_hsizer->Add(m_page_view, 1, wxEXPAND | wxLEFT, 5);
+
     m_btn_save_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { save_preset(); }));
     m_btn_delete_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { delete_preset(); }));
     m_btn_hide_incompatible_presets->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) {
@@ -368,15 +381,16 @@ Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::str
 #else
     auto panel = this;
 #endif
-    PageShp page(new Page(panel, title, icon_idx, m_mode_bitmap_cache));
+    PageShp page(new Page(/*panel*/m_page_view, title, icon_idx, m_mode_bitmap_cache));
 //	page->SetBackgroundStyle(wxBG_STYLE_SYSTEM);
 #ifdef __WINDOWS__
 //	page->SetDoubleBuffered(true);
 #endif //__WINDOWS__
 
-    page->SetScrollbars(1, 20, 1, 2);
-    page->Hide();
-    m_hsizer->Add(page.get(), 1, wxEXPAND | wxLEFT, 5);
+    //page->SetScrollbars(1, 20, 1, 2);
+    //page->Hide();
+    //m_hsizer->Add(page.get(), 1, wxEXPAND | wxLEFT, 5);
+//    m_hsizer->Add(page->vsizer(), 1, wxEXPAND | wxLEFT, 5);
 
     if (!is_extruder_pages)
         m_pages.push_back(page);
@@ -398,7 +412,7 @@ void Tab::OnActivate()
 
     // create controls on active page
     active_selected_page();
-    m_active_page->Show();
+//    m_active_page->Show();
     m_hsizer->Layout();
     Refresh();
 }
@@ -2562,12 +2576,12 @@ void TabPrinter::build_unregular_pages()
     /* Workaround for correct layout of controls inside the created page:
      * In some _strange_ way we should we should imitate page resizing.
      */
-    auto layout_page = [this](PageShp page)
+/*    auto layout_page = [this](PageShp page)
     {
         const wxSize& sz = page->GetSize();
         page->SetSize(sz.x + 1, sz.y + 1);
         page->SetSize(sz);
-    };
+    };*/
 #endif //__WXMSW__
 
     // Add/delete Kinematics page according to is_marlin_flavor
@@ -2584,7 +2598,7 @@ void TabPrinter::build_unregular_pages()
     if (existed_page < n_before_extruders && is_marlin_flavor) {
         auto page = build_kinematics_page();
 #ifdef __WXMSW__
-        layout_page(page);
+//        layout_page(page);
 #endif
         m_pages.insert(m_pages.begin() + n_before_extruders, page);
     }
@@ -2722,7 +2736,7 @@ void TabPrinter::build_unregular_pages()
             optgroup->append_line(line);
 
 #ifdef __WXMSW__
-        layout_page(page);
+//        layout_page(page);
 #endif
     }
 
@@ -2762,8 +2776,8 @@ void TabPrinter::update_pages()
         return;
 
     // hide all old pages
-    for (auto& el : m_pages)
-        el.get()->Hide();
+    //for (auto& el : m_pages)
+    //    el.get()->Hide();
 
     // set m_pages to m_pages_(technology before changing)
     m_printer_technology == ptFFF ? m_pages.swap(m_pages_fff) : m_pages.swap(m_pages_sla);
@@ -3320,9 +3334,11 @@ void Tab::clear_pages()
 {
     // invalidated highlighter, if any exists
     m_highlighter.invalidate();
+    m_page_sizer->Clear(true);
     // clear pages from the controlls
     for (auto p : m_pages)
-        p->clear();
+        p->clear(); 
+    int i = m_page_sizer->GetItemCount();
 
     // nulling pointers
     m_parent_preset_description_line = nullptr;
@@ -3369,7 +3385,7 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
      * so on Window is no needed to call a Freeze/Thaw functions.
      * But under OSX (builds compiled with MacOSX10.14.sdk) wxStaticBitmap rendering is broken without Freeze/Thaw call.
      */
-//#ifdef __WXOSX__  // Use Freeze/Thaw to avoid flickering during cleare/activate new page
+//#ifdef __WXOSX__  // Use Freeze/Thaw to avoid flickering during clear/activate new page
 	wxWindowUpdateLocker noUpdates(this);
 //#endif
 #endif
@@ -3394,12 +3410,12 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
     m_active_page = page;
     clear_pages();
 
-    for (auto& el : m_pages)
-        el.get()->Hide();
+    //for (auto& el : m_pages)
+    //    el.get()->Hide();
 
     if (wxGetApp().mainframe->is_active_and_shown_tab(this)) {
         active_selected_page();
-        m_active_page->Show();
+//        m_active_page->Show();
     }
 
     #ifdef __linux__
@@ -3843,10 +3859,11 @@ Page::Page(wxWindow* parent, const wxString& title, const int iconID, const std:
         m_iconID(iconID),
         m_mode_bitmap_cache(mode_bmp_cache)
 {
-    Create(m_parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    m_vsizer = new wxBoxSizer(wxVERTICAL);
+//    Create(m_parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+//    m_vsizer = new wxBoxSizer(wxVERTICAL);
+    m_vsizer = (wxBoxSizer*)parent->GetSizer();
     m_item_color = &wxGetApp().get_label_clr_default();
-    SetSizer(m_vsizer);
+//    SetSizer(m_vsizer);
 }
 
 void Page::reload_config()
@@ -3870,8 +3887,12 @@ void Page::update_visibility(ConfigOptionMode mode, bool update_contolls_visibil
 
 void Page::activate(ConfigOptionMode mode)
 {
+    //if (m_parent)
+    //m_parent->SetSizer(m_vsizer);
     for (auto group : m_optgroups) {
-        group->activate();
+        if (!group->activate())
+            continue;
+        m_vsizer->Add(group->sizer, 0, wxEXPAND | wxALL, 10);
         group->update_visibility(mode);
         group->reload_config();
     }
@@ -3910,7 +3931,7 @@ bool Page::set_value(const t_config_option_key& opt_key, const boost::any& value
     bool changed = false;
     for(auto optgroup: m_optgroups) {
         if (optgroup->set_value(opt_key, value))
-            changed = 1 ;
+            changed = true ;
     }
     return changed;
 }
@@ -3933,15 +3954,15 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
     };
 
     //! config_ have to be "right"
-    ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(this, title, m_config, true, extra_column);
+    ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(/*this*/m_parent, title, m_config, true, extra_column);
     optgroup->config_category = m_title.ToStdString();
     if (noncommon_label_width >= 0)
         optgroup->label_width = noncommon_label_width;
 
 #ifdef __WXOSX__
-        auto tab = GetParent()->GetParent();
+    auto tab = parent()->GetParent()->GetParent();// GetParent()->GetParent();
 #else
-        auto tab = GetParent();
+    auto tab = parent()->GetParent();// GetParent();
 #endif
     optgroup->m_on_change = [this, tab](t_config_option_key opt_key, boost::any value) {
         //! This function will be called from OptionGroup.
@@ -3975,7 +3996,7 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
         ctrl->SetBitmap(reinterpret_cast<ScalableBitmap*>(ctrl->GetClientData())->bmp());
     };
 
-    vsizer()->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 10);
+//    vsizer()->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 10);
     m_optgroups.push_back(optgroup);
 
     return optgroup;

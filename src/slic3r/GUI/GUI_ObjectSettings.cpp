@@ -58,6 +58,7 @@ wxSizer* OG_Settings::get_sizer()
 ObjectSettings::ObjectSettings(wxWindow* parent) :
     OG_Settings(parent, true)
 {
+    m_og->activate();
     m_og->set_name(_(L("Additional Settings")));    
 
     m_settings_list_sizer = new wxBoxSizer(wxVERTICAL);

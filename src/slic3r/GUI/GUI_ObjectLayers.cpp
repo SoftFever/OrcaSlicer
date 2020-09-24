@@ -34,6 +34,7 @@ ObjectLayers::ObjectLayers(wxWindow* parent) :
         m_grid_sizer->Add(temp);
     }
 
+    m_og->activate();
     m_og->sizer->Clear(true);
     m_og->sizer->Add(m_grid_sizer, 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
 
