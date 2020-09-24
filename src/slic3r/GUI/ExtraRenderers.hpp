@@ -1,6 +1,8 @@
 #ifndef slic3r_GUI_ExtraRenderers_hpp_
 #define slic3r_GUI_ExtraRenderers_hpp_
 
+#include <functional>
+
 #include <wx/dataview.h>
 
 #if wxUSE_MARKUP && wxCHECK_VERSION(3, 1, 1)
