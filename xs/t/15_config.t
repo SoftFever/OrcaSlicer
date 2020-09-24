@@ -219,7 +219,7 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Static::new_FullPrintCo
     my $config = Slic3r::Config->new;
     $config->set('extruder', 2);
     $config->set('perimeter_extruder', 3);
-    $config->normalize;
+    $config->normalize_fdm;
     ok !$config->has('extruder'), 'extruder option is removed after normalize()';
     is $config->get('infill_extruder'), 2, 'undefined extruder is populated with default extruder';
     is $config->get('perimeter_extruder'), 3, 'defined extruder is not overwritten by default extruder';
@@ -228,7 +228,7 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Static::new_FullPrintCo
 {
     my $config = Slic3r::Config->new;
     $config->set('infill_extruder', 2);
-    $config->normalize;
+    $config->normalize_fdm;
     is $config->get('solid_infill_extruder'), 2, 'undefined solid infill extruder is populated with infill extruder';
 }
 
@@ -236,7 +236,7 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Static::new_FullPrintCo
     my $config = Slic3r::Config->new;
     $config->set('spiral_vase', 1);
     $config->set('retract_layer_change', [1,0]);
-    $config->normalize;
+    $config->normalize_fdm;
     is_deeply $config->get('retract_layer_change'), [0,0], 'retract_layer_change is disabled with spiral_vase';
 }
 

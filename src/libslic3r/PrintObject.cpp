@@ -440,7 +440,7 @@ std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> PrintObject::prepare
     using namespace FillAdaptive;
 
     auto [adaptive_line_spacing, support_line_spacing] = adaptive_fill_line_spacing(*this);
-    if (adaptive_line_spacing == 0. && support_line_spacing == 0. || this->layers().empty())
+    if ((adaptive_line_spacing == 0. && support_line_spacing == 0.) || this->layers().empty())
         return std::make_pair(OctreePtr(), OctreePtr());
 
     indexed_triangle_set mesh = this->model_object()->raw_indexed_triangle_set();
@@ -1561,9 +1561,11 @@ static void apply_to_print_region_config(PrintRegionConfig &out, const DynamicPr
     std::string sextruder = "extruder";
     auto *opt_extruder = in.opt<ConfigOptionInt>(sextruder);
     if (opt_extruder) {
-        if (opt_extruder->value != 0) {
-            out.infill_extruder.value = opt_extruder->value;
-            out.perimeter_extruder.value = opt_extruder->value;
+        int extruder = opt_extruder->value;
+        if (extruder != 0) {
+            out.infill_extruder      .value = extruder;
+            out.solid_infill_extruder.value = extruder;
+            out.perimeter_extruder   .value = extruder;
         }
     }
     // 2) Copy the rest of the values.
