@@ -118,7 +118,7 @@ load_stl(CLASS, path, object_name)
         %code%{ RETVAL = THIS->get_model(); %};
 
     Ref<DynamicPrintConfig> config()
-        %code%{ RETVAL = &THIS->config; %};
+        %code%{ RETVAL = &const_cast<DynamicPrintConfig&>(THIS->config.get()); %};
     
     std::string get_attribute(std::string name)
         %code%{ if (THIS->attributes.find(name) != THIS->attributes.end()) RETVAL = THIS->attributes[name]; %};
@@ -202,7 +202,7 @@ ModelMaterial::attributes()
     void set_input_file(std::string value)
         %code%{ THIS->input_file = value; %};
     Ref<DynamicPrintConfig> config()
-        %code%{ RETVAL = &THIS->config; %};
+        %code%{ RETVAL = &const_cast<DynamicPrintConfig&>(THIS->config.get()); %};
 
     Ref<Model> model()
         %code%{ RETVAL = THIS->get_model(); %};
@@ -248,7 +248,7 @@ ModelMaterial::attributes()
     Ref<ModelMaterial> material();
     
     Ref<DynamicPrintConfig> config()
-        %code%{ RETVAL = &THIS->config; %};
+        %code%{ RETVAL = &const_cast<DynamicPrintConfig&>(THIS->config.get()); %};
     Ref<TriangleMesh> mesh()
         %code%{ RETVAL = &THIS->mesh(); %};
     
