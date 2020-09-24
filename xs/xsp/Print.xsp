@@ -139,7 +139,19 @@ _constant()
         %};
         
     bool apply(Model *model, DynamicPrintConfig* config)
-        %code%{ RETVAL = THIS->apply(*model, *config); %};
+        %code%{ 
+            // Touching every config as the Perl bindings does not correctly export ModelConfig,
+            // therefore the configs have often invalid timestamps.
+            model->config.touch();
+            for (auto obj : model->objects) {
+                obj->config.touch();
+                for (auto vol : obj->volumes)
+                    vol->config.touch();
+            }
+            for (auto mat : model->materials)
+                mat->config.touch();
+            RETVAL = THIS->apply(*model, *config);
+        %};
     bool has_infinite_skirt();
     std::vector<unsigned int> extruders() const;
     int validate() %code%{ 
