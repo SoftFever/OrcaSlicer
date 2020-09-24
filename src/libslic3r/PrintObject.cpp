@@ -1544,22 +1544,46 @@ static void clamp_exturder_to_default(ConfigOptionInt &opt, size_t num_extruders
 PrintObjectConfig PrintObject::object_config_from_model_object(const PrintObjectConfig &default_object_config, const ModelObject &object, size_t num_extruders)
 {
     PrintObjectConfig config = default_object_config;
-    normalize_and_apply_config(config, object.config);
+    {
+        DynamicPrintConfig src_normalized(object.config.get());
+        src_normalized.normalize_fdm();
+        config.apply(src_normalized, true);
+    }
     // Clamp invalid extruders to the default extruder (with index 1).
     clamp_exturder_to_default(config.support_material_extruder,           num_extruders);
     clamp_exturder_to_default(config.support_material_interface_extruder, num_extruders);
     return config;
 }
 
+static void apply_to_print_region_config(PrintRegionConfig &out, const DynamicPrintConfig &in)
+{
+    // 1) Copy the "extruder key to infill_extruder and perimeter_extruder.
+    std::string sextruder = "extruder";
+    auto *opt_extruder = in.opt<ConfigOptionInt>(sextruder);
+    if (opt_extruder) {
+        if (opt_extruder->value != 0) {
+            out.infill_extruder.value = opt_extruder->value;
+            out.perimeter_extruder.value = opt_extruder->value;
+        }
+    }
+    // 2) Copy the rest of the values.
+    for (auto it = in.cbegin(); it != in.cend(); ++ it)
+        if (it->first != sextruder) {
+            ConfigOption *my_opt = out.option(it->first, false);
+            if (my_opt)
+                my_opt->set(it->second.get());
+        }
+}
+
 PrintRegionConfig PrintObject::region_config_from_model_volume(const PrintRegionConfig &default_region_config, const DynamicPrintConfig *layer_range_config, const ModelVolume &volume, size_t num_extruders)
 {
     PrintRegionConfig config = default_region_config;
-    normalize_and_apply_config(config, volume.get_object()->config);
+    apply_to_print_region_config(config, volume.get_object()->config.get());
     if (layer_range_config != nullptr)
-    	normalize_and_apply_config(config, *layer_range_config);
-    normalize_and_apply_config(config, volume.config);
+    	apply_to_print_region_config(config, *layer_range_config);
+    apply_to_print_region_config(config, volume.config.get());
     if (! volume.material_id().empty())
-        normalize_and_apply_config(config, volume.material()->config);
+        apply_to_print_region_config(config, volume.material()->config.get());
     // Clamp invalid extruders to the default extruder (with index 1).
     clamp_exturder_to_default(config.infill_extruder,       num_extruders);
     clamp_exturder_to_default(config.perimeter_extruder,    num_extruders);

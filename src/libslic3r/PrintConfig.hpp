@@ -254,7 +254,7 @@ public:
     // Overrides ConfigBase::def(). Static configuration definition. Any value stored into this ConfigBase shall have its definition here.
     const ConfigDef*    def() const override { return &print_config_def; }
 
-    void                normalize();
+    void                normalize_fdm();
 
     void 				set_num_extruders(unsigned int num_extruders);
 
@@ -268,14 +268,6 @@ public:
     void                handle_legacy(t_config_option_key &opt_key, std::string &value) const override
         { PrintConfigDef::handle_legacy(opt_key, value); }
 };
-
-template<typename CONFIG>
-void normalize_and_apply_config(CONFIG &dst, const DynamicPrintConfig &src)
-{
-    DynamicPrintConfig src_normalized(src);
-    src_normalized.normalize();
-    dst.apply(src_normalized, true);
-}
 
 class StaticPrintConfig : public StaticConfig
 {
@@ -1456,8 +1448,6 @@ private:
 
     static uint64_t             s_last_timestamp;
 };
-
-template<typename CONFIG> void normalize_and_apply_config(CONFIG& dst, const ModelConfig& src) { normalize_and_apply_config(dst, src.get()); }
 
 } // namespace Slic3r
 

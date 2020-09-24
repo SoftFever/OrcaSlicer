@@ -587,7 +587,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 	new_full_config.option("print_settings_id",    true);
 	new_full_config.option("filament_settings_id", true);
 	new_full_config.option("printer_settings_id",  true);
-    new_full_config.normalize();
+    new_full_config.normalize_fdm();
 
     // Find modified keys of the various configs. Resolve overrides extruder retract values by filament profiles.
 	t_config_option_keys print_diff, object_diff, region_diff, full_config_diff;
@@ -844,8 +844,8 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         // Only volume IDs, volume types, transformation matrices and their order are checked, configuration and other parameters are NOT checked.
         bool model_parts_differ         = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::MODEL_PART);
         bool modifiers_differ           = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::PARAMETER_MODIFIER);
-        bool support_blockers_differ    = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_BLOCKER);
-        bool support_enforcers_differ   = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_ENFORCER);
+        bool supports_differ            = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_BLOCKER) ||
+                                          model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_ENFORCER);
         if (model_parts_differ || modifiers_differ || 
             model_object.origin_translation != model_object_new.origin_translation   ||
             ! model_object.layer_height_profile.timestamp_matches(model_object_new.layer_height_profile) ||
@@ -858,20 +858,21 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             }
             // Copy content of the ModelObject including its ID, do not change the parent.
             model_object.assign_copy(model_object_new);
-        } else if (support_blockers_differ || support_enforcers_differ || model_custom_supports_data_changed(model_object, model_object_new)) {
+        } else if (supports_differ || model_custom_supports_data_changed(model_object, model_object_new)) {
             // First stop background processing before shuffling or deleting the ModelVolumes in the ModelObject's list.
-            this->call_cancel_callback();
-            update_apply_status(false);
+            if (supports_differ) {
+                this->call_cancel_callback();
+                update_apply_status(false);
+            }
             // Invalidate just the supports step.
             auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
             for (auto it = range.first; it != range.second; ++ it)
                 update_apply_status(it->print_object->invalidate_step(posSupportMaterial));
-            if (support_enforcers_differ || support_blockers_differ) {
+            if (supports_differ) {
                 // Copy just the support volumes.
                 model_volume_list_update_supports(model_object, model_object_new);
             }
-        }
-        if (model_custom_seam_data_changed(model_object, model_object_new)) {
+        } else if (model_custom_seam_data_changed(model_object, model_object_new)) {
             update_apply_status(this->invalidate_step(psGCodeExport));
         }
         if (! model_parts_differ && ! modifiers_differ) {
@@ -942,13 +943,20 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                         old.emplace_back(&(*it));
             }
             // Generate a list of trafos and XY offsets for instances of a ModelObject
-            PrintObjectConfig config = PrintObject::object_config_from_model_object(m_default_object_config, *model_object, num_extruders);
+            // Producing the config for PrintObject on demand, caching it at print_object_last.
+            const PrintObject *print_object_last = nullptr;
+            auto print_object_apply_config = [this, &print_object_last, model_object, num_extruders](PrintObject* print_object) {
+                print_object->config_apply(print_object_last ?
+                    print_object_last->config() :
+                    PrintObject::object_config_from_model_object(m_default_object_config, *model_object, num_extruders));
+                print_object_last = print_object;
+            };
             std::vector<PrintObjectTrafoAndInstances> new_print_instances = print_objects_from_model_object(*model_object);
             if (old.empty()) {
                 // Simple case, just generate new instances.
                 for (PrintObjectTrafoAndInstances &print_instances : new_print_instances) {
                     PrintObject *print_object = new PrintObject(this, model_object, print_instances.trafo, std::move(print_instances.instances));
-                    print_object->config_apply(config);
+                    print_object_apply_config(print_object);
                     print_objects_new.emplace_back(print_object);
                     // print_object_status.emplace(PrintObjectStatus(print_object, PrintObjectStatus::New));
                     new_objects = true;
@@ -965,7 +973,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 				if (it_old == old.end() || ! transform3d_equal((*it_old)->trafo, new_instances.trafo)) {
                     // This is a new instance (or a set of instances with the same trafo). Just add it.
                     PrintObject *print_object = new PrintObject(this, model_object, new_instances.trafo, std::move(new_instances.instances));
-                    print_object->config_apply(config);
+                    print_object_apply_config(print_object);
                     print_objects_new.emplace_back(print_object);
                     // print_object_status.emplace(PrintObjectStatus(print_object, PrintObjectStatus::New));
                     new_objects = true;

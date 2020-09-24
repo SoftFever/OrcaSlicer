@@ -185,7 +185,6 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, DynamicPrintConfig con
     config.option("sla_print_settings_id",    true);
     config.option("sla_material_settings_id", true);
     config.option("printer_settings_id",      true);
-    config.normalize();
     // Collect changes to print config.
     t_config_option_keys print_diff    = m_print_config.diff(config);
     t_config_option_keys printer_diff  = m_printer_config.diff(config);
@@ -400,7 +399,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, DynamicPrintConfig con
                     model_object.config.assign_config(model_object_new.config);
                 if (! object_diff.empty() || object_config_changed) {
                     SLAPrintObjectConfig new_config = m_default_object_config;
-                    normalize_and_apply_config(new_config, model_object.config);
+                    new_config.apply(model_object.config.get(), true);
                     if (it_print_object_status != print_object_status.end()) {
                         t_config_option_keys diff = it_print_object_status->print_object->config().diff(new_config);
                         if (! diff.empty()) {
@@ -464,9 +463,8 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, DynamicPrintConfig con
 
             print_object->set_instances(std::move(new_instances));
 
-            SLAPrintObjectConfig new_config = m_default_object_config;
-            normalize_and_apply_config(new_config, model_object.config);
-            print_object->config_apply(new_config, true);
+            print_object->config_apply(m_default_object_config, true);
+            print_object->config_apply(model_object.config.get(), true);
             print_objects_new.emplace_back(print_object);
             new_objects = true;
         }

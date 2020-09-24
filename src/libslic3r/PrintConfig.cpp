@@ -3233,7 +3233,7 @@ PrinterTechnology printer_technology(const ConfigBase &cfg)
     return ptUnknown;
 }
 
-void DynamicPrintConfig::normalize()
+void DynamicPrintConfig::normalize_fdm()
 {
     if (this->has("extruder")) {
         int extruder = this->option("extruder")->getInt();
