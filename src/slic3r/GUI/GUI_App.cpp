@@ -152,9 +152,9 @@ public:
         // this box will be 2/5 of the weight of the bitmap, and be at the left.
         int banner_width = (bmp.GetWidth() / 5) * 2 - 2;
         const wxRect banner_rect(wxPoint(0, (bmp.GetHeight() / 9) * 2), wxPoint(banner_width, bmp.GetHeight()));
-        wxDCBrushChanger bc(memDc, wxBrush(wxColour(51, 51, 51)));
-        wxDCPenChanger pc(memDc, wxPen(wxColour(51, 51, 51)));
-        memDc.DrawRectangle(banner_rect);
+        //wxDCBrushChanger bc(memDc, wxBrush(wxColour(51, 51, 51)));
+        //wxDCPenChanger pc(memDc, wxPen(wxColour(51, 51, 51)));
+        //memDc.DrawRectangle(banner_rect);
 
         wxFont sys_font = get_scaled_sys_font(screen_sf);
 
@@ -175,22 +175,25 @@ public:
         // create a copyright notice that uses the year that this file was compiled
         wxString year(__DATE__);
         wxString cr_symbol = wxString::FromUTF8("\xc2\xa9");
-        wxString copyright_string = wxString::Format("%s 2016-%s Prusa Research.\n"
-            "%s 2011-2018 Alessandro Ranellucci.",
-            cr_symbol, year.Mid(year.Length() - 4), cr_symbol) + "\n\n";
+        //wxString copyright_string = wxString::Format("%s 2016-%s Prusa Research.\n"
+        //    "%s 2011-2018 Alessandro Ranellucci.",
+        //    cr_symbol, year.Mid(year.Length() - 4), cr_symbol) + "\n\n";
         wxFont copyright_font = sys_font.Larger();
 
-        copyright_string += //"Slic3r" + _L("is licensed under the") + _L("GNU Affero General Public License, version 3") + "\n\n" + 
+        wxString copyright_string = //+= "Slic3r" + _L("is licensed under the") + _L("GNU Affero General Public License, version 3") + "\n\n" + 
                             _L("PrusaSlicer is based on Slic3r by Alessandro Ranellucci and the RepRap community.") + "\n\n" +
-                            _L("Contributions by Henrik Brix Andersen, Nicolas Dandrimont, Mark Hindess, Petr Ledvina, Joseph Lenox, Y. Sapir, Mike Sheldrake, Vojtech Bubnik and numerous others.") + "\n\n" +
-                            _L("Splash screen can be disabled from the \"Preferences\"");
+                               "PrusaSlicer" + _L("is licensed under the") + _L("GNU Affero General Public License, version 3") + "\n\n" +
+//                            _L("Contributions by Henrik Brix Andersen, Nicolas Dandrimont, Mark Hindess, Petr Ledvina, Joseph Lenox, Y. Sapir, Mike Sheldrake, Vojtech Bubnik and numerous others.") + "\n\n" +
+//                            _L("Splash screen can be disabled from the \"Preferences\"");
+                            _L("Contributions by Vojtech Bubnik, Enrico Turri, Oleksandra Iushchenko, Tamas Meszaros, Lukas Matena, Vojtech Kral, David Kocik and numerous others.") + "\n\n" +
+                            _L("Artwork model by Nora Al-Badri and Jan Nikolai Nelles");
 
         word_wrap_string(copyright_string, banner_width, screen_scale);
 
         wxCoord margin = int(screen_scale * 20);
 
         // draw the (orange) labels inside of our black box (at the left of the splashscreen)
-        memDc.SetTextForeground(wxColour(237, 107, 33));
+        memDc.SetTextForeground(wxColour(255, 255, 255));
 
         memDc.SetFont(title_font);
         memDc.DrawLabel(title_string, banner_rect.Deflate(margin, 0), wxALIGN_TOP | wxALIGN_LEFT);
@@ -199,7 +202,7 @@ public:
         memDc.DrawLabel(version_string, banner_rect.Deflate(margin, 2 * margin), wxALIGN_TOP | wxALIGN_LEFT);
 
         memDc.SetFont(copyright_font);
-        memDc.DrawLabel(copyright_string, banner_rect.Deflate(margin, margin), wxALIGN_BOTTOM | wxALIGN_LEFT);
+        memDc.DrawLabel(copyright_string, banner_rect.Deflate(margin, 2 * margin), wxALIGN_BOTTOM | wxALIGN_LEFT);
 
         return true;
     }
