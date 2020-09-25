@@ -119,6 +119,8 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection) const
 
 void GLGizmoPainterBase::render_cursor_circle() const
 {
+    return;
+
     const Camera& camera = wxGetApp().plater()->get_camera();
     float zoom = (float)camera.get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;

@@ -61,7 +61,7 @@ void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
                 // add neighboring facets to list to be proccessed later
                 for (int n=0; n<3; ++n) {
                     int neighbor_idx = m_mesh->stl.neighbors_start[facet].neighbor[n];
-                    if (neighbor_idx >=0 && faces_camera(neighbor_idx))
+                    if (neighbor_idx >=0 && true/*faces_camera(neighbor_idx)*/)
                         facets_to_check.push_back(neighbor_idx);
                 }
             }
@@ -206,8 +206,10 @@ void TriangleSelector::split_triangle(int facet_idx)
 // Calculate distance of a point from a line.
 bool TriangleSelector::is_point_inside_cursor(const Vec3f& point) const
 {
-    Vec3f diff = m_cursor.center - point;
-    return (diff - diff.dot(m_cursor.dir) * m_cursor.dir).squaredNorm() < m_cursor.radius_sqr;
+     Vec3f diff = m_cursor.center - point;
+    // return (diff - diff.dot(m_cursor.dir) * m_cursor.dir).squaredNorm() < m_cursor.radius_sqr;
+
+    return diff.squaredNorm() < m_cursor.radius_sqr;
 }
 
 
