@@ -173,7 +173,7 @@ namespace instance_check_internal
 			const char* sigval = message_text.c_str();
 			//std::string		interface_name = "com.prusa3d.prusaslicer.InstanceCheck";
 			std::string		interface_name = "com.prusa3d.prusaslicer.InstanceCheck.Object" + version;
-			std::string   	method_name = "AnotherInstace";
+			std::string   	method_name = "AnotherInstance";
 			//std::string		object_name = "/com/prusa3d/prusaslicer/InstanceCheck";
 			std::string		object_name = "/com/prusa3d/prusaslicer/InstanceCheck/Object" + version;
 
@@ -203,7 +203,7 @@ namespace instance_check_internal
 				dbus_connection_unref(conn);
 				return true;
 			}
-			//the AnotherInstace method is not sending reply.
+			//the AnotherInstance method is not sending reply.
 			dbus_message_set_no_reply(msg, TRUE);
 
 			//append arguments to message
@@ -424,7 +424,7 @@ namespace MessageHandlerDBusInternal
 	        "     </method>"
 	        "   </interface>"
 	        "   <interface name=\"com.prusa3d.prusaslicer.InstanceCheck\">"
-	        "     <method name=\"AnotherInstace\">"
+	        "     <method name=\"AnotherInstance\">"
 	        "       <arg name=\"data\" direction=\"in\" type=\"s\" />"
 	        "     </method>"
 	        "   </interface>"
@@ -466,7 +466,7 @@ namespace MessageHandlerDBusInternal
 	    if (0 == strcmp("org.freedesktop.DBus.Introspectable", interface_name) && 0 == strcmp("Introspect", member_name)) {		
 	        respond_to_introspect(connection, message);
 	        return DBUS_HANDLER_RESULT_HANDLED;
-	    } else if (0 == strcmp(our_interface.c_str(), interface_name) && 0 == strcmp("AnotherInstace", member_name)) {
+	    } else if (0 == strcmp(our_interface.c_str(), interface_name) && 0 == strcmp("AnotherInstance", member_name)) {
 	        handle_method_another_instance(connection, message);
 	        return DBUS_HANDLER_RESULT_HANDLED;
 	    } 
