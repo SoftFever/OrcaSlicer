@@ -1725,7 +1725,19 @@ void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject
             if ((mo == nullptr || m_model->objects[vol->composite_id.object_id] == mo)
             && (instance_idx == -1 || vol->composite_id.instance_id == instance_idx)) {
                 vol->is_active = visible;
-                vol->force_native_color = (instance_idx != -1);
+
+                if (instance_idx == -1) {
+                    vol->force_native_color = false;
+                    vol->force_neutral_color = false;
+                } else {
+                    const GLGizmosManager& gm = get_gizmos_manager();
+                    auto gizmo_type = gm.get_current_type();
+                    if (gizmo_type == GLGizmosManager::FdmSupports
+                     || gizmo_type == GLGizmosManager::Seam)
+                        vol->force_neutral_color = true;
+                    else
+                        vol->force_native_color = true;
+                }
             }
         }
     }

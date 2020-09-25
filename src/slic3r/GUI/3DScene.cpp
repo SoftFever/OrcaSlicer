@@ -306,6 +306,7 @@ const float GLVolume::MODEL_COLOR[4][4] = {
 };
 const float GLVolume::SLA_SUPPORT_COLOR[4] = { 0.75f, 0.75f, 0.75f, 1.0f };
 const float GLVolume::SLA_PAD_COLOR[4] = { 0.0f, 0.2f, 0.0f, 1.0f };
+const float GLVolume::NEUTRAL_COLOR[4] = { 0.9f, 0.9f, 0.9f, 1.0f };
 
 GLVolume::GLVolume(float r, float g, float b, float a)
     : m_transformed_bounding_box_dirty(true)
@@ -327,6 +328,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , is_extrusion_path(false)
     , force_transparent(false)
     , force_native_color(false)
+    , force_neutral_color(false)
     , tverts_range(0, size_t(-1))
     , qverts_range(0, size_t(-1))
 {
@@ -352,12 +354,16 @@ void GLVolume::set_render_color(const float* rgba, unsigned int size)
 
 void GLVolume::set_render_color()
 {
-    if (force_native_color)
+    if (force_native_color || force_neutral_color)
     {
         if (is_outside && shader_outside_printer_detection_enabled)
             set_render_color(OUTSIDE_COLOR, 4);
-        else
-            set_render_color(color, 4);
+        else {
+            if (force_native_color)
+                set_render_color(color, 4);
+            else
+                set_render_color(NEUTRAL_COLOR, 4);
+        }
     }
     else {
         if (hover == HS_Select)

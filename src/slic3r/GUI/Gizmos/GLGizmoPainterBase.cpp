@@ -504,13 +504,13 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
     m_iva_blockers.finalize_geometry(true);
 
     if (m_iva_enforcers.has_VBOs()) {
-        ::glColor4f(0.f, 0.f, 1.f, 0.2f);
+        ::glColor4f(0.f, 0.f, 1.f, 0.3f);
         m_iva_enforcers.render();
     }
 
 
     if (m_iva_blockers.has_VBOs()) {
-        ::glColor4f(1.f, 0.f, 0.f, 0.2f);
+        ::glColor4f(1.f, 0.f, 0.f, 0.3f);
         m_iva_blockers.render();
     }
 

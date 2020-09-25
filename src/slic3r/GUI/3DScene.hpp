@@ -251,6 +251,7 @@ public:
     static const float MODEL_COLOR[4][4];
     static const float SLA_SUPPORT_COLOR[4];
     static const float SLA_PAD_COLOR[4];
+    static const float NEUTRAL_COLOR[4];
 
     enum EHoverState : unsigned char
     {
@@ -336,6 +337,8 @@ public:
 	    bool                force_transparent : 1;
 	    // Whether or not always use the volume's own color (not using SELECTED/HOVER/DISABLED/OUTSIDE)
 	    bool                force_native_color : 1;
+        // Whether or not render this volume in neutral
+        bool                force_neutral_color : 1;
 	};
 
     // Is mouse or rectangle selection over this object to select/deselect it ?
