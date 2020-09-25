@@ -84,6 +84,12 @@ public:
 		}
 	};
 
+    // Construct ToolChangeResult from current state of WipeTower and WipeTowerWriter.
+    // WipeTowerWriter is moved from !
+    ToolChangeResult construct_tcr(WipeTowerWriter& writer,
+                                   bool priming,
+                                   size_t old_tool) const;
+
 	// x			-- x coordinates of wipe tower in mm ( left bottom corner )
 	// y			-- y coordinates of wipe tower in mm ( left bottom corner )
 	// width		-- width of wipe tower in mm ( default 60 mm - leave as it is )

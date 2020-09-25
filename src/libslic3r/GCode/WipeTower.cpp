@@ -521,6 +521,27 @@ private:
 
 
 
+WipeTower::ToolChangeResult WipeTower::construct_tcr(WipeTowerWriter& writer,
+                                                     bool priming,
+                                                     size_t old_tool) const
+{
+    ToolChangeResult result;
+    result.priming      = priming;
+    result.initial_tool = int(old_tool);
+    result.new_tool     = int(this->m_current_tool);
+    result.print_z      = this->m_z_pos;
+    result.layer_height = this->m_layer_height;
+    result.elapsed_time = writer.elapsed_time();
+    result.start_pos    = writer.start_pos_rotated();
+    result.end_pos      = priming ? writer.pos() : writer.pos_rotated();
+    result.gcode        = writer.gcode();
+    result.extrusions   = writer.extrusions();
+    result.wipe_path    = writer.wipe_path();
+    return result;
+}
+
+
+
 WipeTower::WipeTower(const PrintConfig& config, const std::vector<std::vector<float>>& wiping_matrix, size_t initial_tool) :
     m_semm(config.single_extruder_multi_material.value),
     m_wipe_tower_pos(config.wipe_tower_x, config.wipe_tower_y),
@@ -679,20 +700,6 @@ std::vector<WipeTower::ToolChangeResult> WipeTower::prime(
         if (m_current_tool < m_used_filament_length.size())
             m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
-        ToolChangeResult result;
-        result.priming      = true;
-        result.initial_tool = int(old_tool);
-        result.new_tool     = int(m_current_tool);
-        result.print_z 	  	= this->m_z_pos;
-        result.layer_height = this->m_layer_height;
-        result.gcode   	  	= writer.gcode();
-        result.elapsed_time = writer.elapsed_time();
-        result.extrusions 	= writer.extrusions();
-        result.start_pos  	= writer.start_pos_rotated();
-        result.end_pos 	  	= writer.pos();
-
-        results.push_back(std::move(result));
-
         // This is the last priming toolchange - finish priming
         if (idx_tool+1 == tools.size()) {
             // Reset the extruder current to a normal value.
@@ -706,6 +713,8 @@ std::vector<WipeTower::ToolChangeResult> WipeTower::prime(
                           ";------------------\n"
                           "\n\n");
         }
+
+        results.emplace_back(construct_tcr(writer, true, old_tool));
     }
 
     m_old_temperature = -1; // If the priming is turned off in config, the temperature changing commands will not actually appear
@@ -815,19 +824,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool)
     if (m_current_tool < m_used_filament_length.size())
         m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
-    ToolChangeResult result;
-    result.priming      = false;
-    result.initial_tool = int(old_tool);
-    result.new_tool     = int(m_current_tool);
-	result.print_z 	  	= this->m_z_pos;
-	result.layer_height = this->m_layer_height;
-	result.gcode   	  	= writer.gcode();
-	result.elapsed_time = writer.elapsed_time();
-	result.extrusions 	= writer.extrusions();
-	result.start_pos  	= writer.start_pos_rotated();
-	result.end_pos 	  	= writer.pos_rotated();
-    result.wipe_path    = writer.wipe_path();
-	return result;
+   return construct_tcr(writer, false, old_tool);
 }
 
 WipeTower::ToolChangeResult WipeTower::toolchange_Brim(bool sideOnly, float y_offset)
@@ -882,19 +879,7 @@ WipeTower::ToolChangeResult WipeTower::toolchange_Brim(bool sideOnly, float y_of
     if (m_current_tool < m_used_filament_length.size())
     	m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
-    ToolChangeResult result;
-    result.priming      = false;
-    result.initial_tool = int(old_tool);
-    result.new_tool     = int(m_current_tool);
-	result.print_z 	  	= this->m_z_pos;
-	result.layer_height = this->m_layer_height;
-	result.gcode   	  	= writer.gcode();
-	result.elapsed_time = writer.elapsed_time();
-	result.extrusions 	= writer.extrusions();
-	result.start_pos  	= writer.start_pos_rotated();
-	result.end_pos 	  	= writer.pos_rotated();
-    result.wipe_path    = writer.wipe_path();
-	return result;
+    return construct_tcr(writer, false, old_tool);
 }
 
 
@@ -1266,19 +1251,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
         if (m_current_tool < m_used_filament_length.size())
             m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
-    ToolChangeResult result;
-    result.priming      = false;
-    result.initial_tool = int(old_tool);
-    result.new_tool     = int(m_current_tool);
-	result.print_z 	  	= this->m_z_pos;
-	result.layer_height = this->m_layer_height;
-	result.gcode   	  	= writer.gcode();
-	result.elapsed_time = writer.elapsed_time();
-	result.extrusions 	= writer.extrusions();
-	result.start_pos 	= writer.start_pos_rotated();
-	result.end_pos 	  	= writer.pos_rotated();
-    result.wipe_path    = writer.wipe_path();
-	return result;
+    return construct_tcr(writer, false, old_tool);
 }
 
 // Appends a toolchange into m_plan and calculates neccessary depth of the corresponding box
@@ -1460,5 +1433,6 @@ void WipeTower::make_wipe_tower_square()
 	for (auto& lay : m_plan)	// depths set, now the spacing
 		lay.extra_spacing = lay.depth / lay.toolchanges_depth();
 }
+
 
 } // namespace Slic3r
