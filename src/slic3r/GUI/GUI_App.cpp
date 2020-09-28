@@ -63,6 +63,8 @@
 #include "UnsavedChangesDialog.hpp"
 #include "PresetComboBoxes.hpp"
 
+#include "BitmapCache.hpp"
+
 #ifdef __WXMSW__
 #include <dbt.h>
 #include <shlobj.h>
@@ -112,11 +114,38 @@ public:
             wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
             memDC.SetFont(m_font);
             memDC.SetTextForeground(wxColour(237, 107, 33));
-            memDC.DrawText(text, int(m_scale * 45), int(m_scale * 200));
+            memDC.DrawText(text, int(m_scale * 45), int(m_scale * 240));
 
             memDC.SelectObject(wxNullBitmap);
             set_bitmap(bitmap);
         }
+    }
+
+    static wxBitmap MakeBitmap(wxBitmap bmp)
+    {
+        if (!bmp.IsOk())
+            return wxNullBitmap;
+
+        // create dark grey background for the splashscreen
+        // It will be 5/3 of the weight of the bitmap
+        int width = lround((double)5 / 3 * bmp.GetWidth());
+        int height = bmp.GetHeight();
+
+        wxImage image(width, height);
+        unsigned char* imgdata_ = image.GetData();
+        for (int i = 0; i < width * height; ++i) {
+            *imgdata_++ = 51;
+            *imgdata_++ = 51;
+            *imgdata_++ = 51;
+        }
+
+        wxBitmap new_bmp(image);
+
+        wxMemoryDC memDC;
+        memDC.SelectObject(new_bmp);
+        memDC.DrawBitmap(bmp, width - bmp.GetWidth(), 0, true);
+
+        return new_bmp;
     }
 
     static bool Decorate(wxBitmap& bmp, wxPoint screen_pos = wxDefaultPosition, bool force_decor = false)
@@ -145,18 +174,23 @@ public:
             // Decoration will be continued later, from the SplashScreen constructor
         }
 
-        // use a memory DC to draw directly onto the bitmap
-        wxMemoryDC memDc(bmp);
-
-        // draw an dark grey box at the left of the splashscreen.
+        // draw text to the box at the left of the splashscreen.
         // this box will be 2/5 of the weight of the bitmap, and be at the left.
-        int banner_width = (bmp.GetWidth() / 5) * 2 - 2;
-        const wxRect banner_rect(wxPoint(0, (bmp.GetHeight() / 9) * 2), wxPoint(banner_width, bmp.GetHeight()));
-        //wxDCBrushChanger bc(memDc, wxBrush(wxColour(51, 51, 51)));
-        //wxDCPenChanger pc(memDc, wxPen(wxColour(51, 51, 51)));
-        //memDc.DrawRectangle(banner_rect);
+        int width = lround(bmp.GetWidth() * 0.4);
+
+        // load bitmap for logo
+        BitmapCache bmp_cache;
+        int logo_size = lround(width * 0.25);
+#if ENABLE_GCODE_VIEWER
+        wxBitmap logo_bmp = *bmp_cache.load_svg(wxGetApp().is_editor() ? "prusa_slicer_logo" : "add_gcode", logo_size, logo_size);
+#else
+        wxBitmap logo_bmp = *bmp_cache.load_svg("prusa_slicer_logo", logo_size, logo_size);
+#endif // ENABLE_GCODE_VIEWER
 
         wxFont sys_font = get_scaled_sys_font(screen_sf);
+        wxCoord margin = int(screen_scale * 20);
+
+        const wxRect banner_rect(wxPoint(0, logo_size + margin * 2), wxPoint(width, bmp.GetHeight()));
 
         // title
 #if ENABLE_GCODE_VIEWER
@@ -172,27 +206,23 @@ public:
         wxString version_string = _L("Version") + " " + std::string(SLIC3R_VERSION);
         wxFont version_font = sys_font.Larger().Larger();
 
-        // create a copyright notice that uses the year that this file was compiled
-        wxString year(__DATE__);
-        wxString cr_symbol = wxString::FromUTF8("\xc2\xa9");
-        //wxString copyright_string = wxString::Format("%s 2016-%s Prusa Research.\n"
-        //    "%s 2011-2018 Alessandro Ranellucci.",
-        //    cr_symbol, year.Mid(year.Length() - 4), cr_symbol) + "\n\n";
-        wxFont copyright_font = sys_font.Larger();
-
-        wxString copyright_string = //+= "Slic3r" + _L("is licensed under the") + _L("GNU Affero General Public License, version 3") + "\n\n" + 
-                            _L("PrusaSlicer is based on Slic3r by Alessandro Ranellucci and the RepRap community.") + "\n\n" +
-                               "PrusaSlicer" + _L("is licensed under the") + _L("GNU Affero General Public License, version 3") + "\n\n" +
-//                            _L("Contributions by Henrik Brix Andersen, Nicolas Dandrimont, Mark Hindess, Petr Ledvina, Joseph Lenox, Y. Sapir, Mike Sheldrake, Vojtech Bubnik and numerous others.") + "\n\n" +
-//                            _L("Splash screen can be disabled from the \"Preferences\"");
+        // create a info notice
+        wxString info_string = title_string + " " +
+                            _L("is based on Slic3r by Alessandro Ranellucci and the RepRap community.") + "\n\n" +
+                               title_string + _L("is licensed under the") + _L("GNU Affero General Public License, version 3") + "\n\n" +
                             _L("Contributions by Vojtech Bubnik, Enrico Turri, Oleksandra Iushchenko, Tamas Meszaros, Lukas Matena, Vojtech Kral, David Kocik and numerous others.") + "\n\n" +
                             _L("Artwork model by Nora Al-Badri and Jan Nikolai Nelles");
+        wxFont info_font = sys_font.Larger();
 
-        word_wrap_string(copyright_string, banner_width, screen_scale);
+        word_wrap_string(info_string, width, screen_scale);
 
-        wxCoord margin = int(screen_scale * 20);
+        // use a memory DC to draw directly onto the bitmap
+        wxMemoryDC memDc(bmp);
 
-        // draw the (orange) labels inside of our black box (at the left of the splashscreen)
+        // draw logo
+        memDc.DrawBitmap(logo_bmp, margin, margin, true);
+
+        // draw the (white) labels inside of our black box (at the left of the splashscreen)
         memDc.SetTextForeground(wxColour(255, 255, 255));
 
         memDc.SetFont(title_font);
@@ -201,8 +231,8 @@ public:
         memDc.SetFont(version_font);
         memDc.DrawLabel(version_string, banner_rect.Deflate(margin, 2 * margin), wxALIGN_TOP | wxALIGN_LEFT);
 
-        memDc.SetFont(copyright_font);
-        memDc.DrawLabel(copyright_string, banner_rect.Deflate(margin, 2 * margin), wxALIGN_BOTTOM | wxALIGN_LEFT);
+        memDc.SetFont(info_font);
+        memDc.DrawLabel(info_string, banner_rect.Deflate(margin, 2 * margin), wxALIGN_BOTTOM | wxALIGN_LEFT);
 
         return true;
     }
@@ -643,11 +673,7 @@ bool GUI_App::on_init_inner()
     SplashScreen* scrn = nullptr;
     if (app_config->get("show_splash_screen") == "1")
     {
-#if ENABLE_GCODE_VIEWER
-    	wxBitmap bmp(is_editor() ? from_u8(var("splashscreen.jpg")) : from_u8(var("splashscreen-gcodeviewer.jpg")), wxBITMAP_TYPE_JPEG);
-#else
-        wxBitmap bmp(from_u8(var("splashscreen.jpg")), wxBITMAP_TYPE_JPEG);
-#endif // ENABLE_GCODE_VIEWER
+        wxBitmap bmp = SplashScreen::MakeBitmap(wxBitmap(from_u8(var("splashscreen.jpg")), wxBITMAP_TYPE_JPEG));
 
         // Detect position (display) to show the splash screen
         // Now this position is equal to the mainframe position
