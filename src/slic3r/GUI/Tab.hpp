@@ -130,7 +130,7 @@ protected:
 	wxScrolledWindow*	m_page_view {nullptr};
 	wxBoxSizer*			m_page_sizer {nullptr};
 
-    ModeSizer*     m_mode_sizer;
+    ModeSizer*			m_mode_sizer;
 
    	struct PresetDependencies {
 		Preset::Type type	  = Preset::TYPE_INVALID;
@@ -237,6 +237,9 @@ protected:
     m_highlighter;
 
 	DynamicPrintConfig 	m_cache_config;
+
+
+	bool				m_page_switch_planned = false;
 
 public:
 	PresetBundle*		m_preset_bundle;
@@ -351,6 +354,7 @@ protected:
 	void 			compatible_widget_reload(PresetDependencies &deps);
 	void			load_key_value(const std::string& opt_key, const boost::any& value, bool saved_value = false);
 
+	void			tree_sel_change_delayed();
 	void			on_presets_changed();
 	void			build_preset_description_line(ConfigOptionsGroup* optgroup);
 	void			update_preset_description_line();

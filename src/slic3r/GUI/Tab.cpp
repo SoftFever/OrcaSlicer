@@ -293,7 +293,20 @@ void Tab::create_preset_tab()
     m_treectrl->AddRoot("root");
     m_treectrl->SetIndent(0);
 
-    m_treectrl->Bind(wxEVT_TREE_SEL_CHANGED, &Tab::OnTreeSelChange, this);
+    // Delay processing of the following handler until the message queue is flushed.
+    // This helps to process all the cursor key events on Windows in the tree control,
+    // so that the cursor jumps to the last item.
+    m_treectrl->Bind(wxEVT_TREE_SEL_CHANGED, [this](wxTreeEvent&) {
+            if (!m_disable_tree_sel_changed_event && !m_pages.empty())
+                m_page_switch_planned = true;
+        });
+    m_treectrl->Bind(wxEVT_IDLE, [this](wxIdleEvent&) {
+            if (m_page_switch_planned) {
+            	this->tree_sel_change_delayed();
+                m_page_switch_planned = false;
+            }
+        });
+
     m_treectrl->Bind(wxEVT_KEY_DOWN, &Tab::OnKeyDown, this);
 
     // Initialize the page.
@@ -3370,14 +3383,11 @@ void Tab::active_selected_page()
     toggle_options();
 }
 
-void Tab::OnTreeSelChange(wxTreeEvent& event)
+void Tab::tree_sel_change_delayed()
 {
-    if (m_disable_tree_sel_changed_event)
-        return;
-
-// There is a bug related to Ubuntu overlay scrollbars, see https://github.com/prusa3d/PrusaSlicer/issues/898 and https://github.com/prusa3d/PrusaSlicer/issues/952.
-// The issue apparently manifests when Show()ing a window with overlay scrollbars while the UI is frozen. For this reason,
-// we will Thaw the UI prematurely on Linux. This means destroing the no_updates object prematurely.
+	// There is a bug related to Ubuntu overlay scrollbars, see https://github.com/prusa3d/PrusaSlicer/issues/898 and https://github.com/prusa3d/PrusaSlicer/issues/952.
+	// The issue apparently manifests when Show()ing a window with overlay scrollbars while the UI is frozen. For this reason,
+	// we will Thaw the UI prematurely on Linux. This means destroing the no_updates object prematurely.
 #ifdef __linux__
     std::unique_ptr<wxWindowUpdateLocker> no_updates(new wxWindowUpdateLocker(this));
 #else
@@ -3389,9 +3399,6 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 	wxWindowUpdateLocker noUpdates(this);
 //#endif
 #endif
-
-    if (m_pages.empty())
-        return;
 
     Page* page = nullptr;
     const auto sel_item = m_treectrl->GetSelection();
