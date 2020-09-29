@@ -24,6 +24,9 @@
 
 namespace Slic3r { namespace GUI {
 
+// Thrown if the building of a parameter page is canceled.
+class UIBuildCanceled : public std::exception {};
+
 /// Widget type describes a function object that returns a wxWindow (our widget) and accepts a wxWidget (parent window).
 using widget_t = std::function<wxSizer*(wxWindow*)>;//!std::function<wxWindow*(wxWindow*)>;
 
@@ -124,7 +127,7 @@ public:
 	void		activate_line(Line& line);
 
 	// create all controls for the option group from the m_lines
-	bool		activate();
+	bool		activate(std::function<void()> throw_if_canceled = [](){});
 	// delete all controls from the option group
 	void		clear();
 

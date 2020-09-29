@@ -362,42 +362,52 @@ void OptionsGroup::activate_line(Line& line)
 }
 
 // create all controls for the option group from the m_lines
-bool OptionsGroup::activate()
+bool OptionsGroup::activate(std::function<void()> throw_if_canceled)
 {
 	if (sizer)//(!sizer->IsEmpty())
 		return false;
 
-	if (staticbox) {
-		stb = new wxStaticBox(m_parent, wxID_ANY, _(title));
-		if (!wxOSX) stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
-		stb->SetFont(wxOSX ? wxGetApp().normal_font() : wxGetApp().bold_font());
+	try {
+		if (staticbox) {
+			stb = new wxStaticBox(m_parent, wxID_ANY, _(title));
+			if (!wxOSX) stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
+			stb->SetFont(wxOSX ? wxGetApp().normal_font() : wxGetApp().bold_font());
+		}
+		else
+			stb = nullptr;
+		sizer = (staticbox ? new wxStaticBoxSizer(stb, wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
+
+		auto num_columns = 1U;
+		size_t grow_col = 1;
+
+		if (label_width == 0)
+			grow_col = 0;
+		else
+			num_columns++;
+
+		if (extra_column) {
+			num_columns++;
+			grow_col++;
+		}
+
+		m_grid_sizer = new wxFlexGridSizer(0, num_columns, 1, 0);
+		static_cast<wxFlexGridSizer*>(m_grid_sizer)->SetFlexibleDirection(wxBOTH);
+		static_cast<wxFlexGridSizer*>(m_grid_sizer)->AddGrowableCol(grow_col);
+
+		sizer->Add(m_grid_sizer, 0, wxEXPAND | wxALL, wxOSX || !staticbox ? 0 : 5);
+
+		// activate lines
+		for (Line& line: m_lines) {
+			throw_if_canceled();
+			activate_line(line);
+		}
+	} catch (UIBuildCanceled&) {
+		auto p = sizer;
+		this->clear();
+		p->Clear(true);
+		delete p;
+		throw;
 	}
-	else
-		stb = nullptr;
-	sizer = (staticbox ? new wxStaticBoxSizer(stb, wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
-
-	auto num_columns = 1U;
-	size_t grow_col = 1;
-
-	if (label_width == 0)
-		grow_col = 0;
-	else
-		num_columns++;
-
-	if (extra_column) {
-		num_columns++;
-		grow_col++;
-	}
-
-	m_grid_sizer = new wxFlexGridSizer(0, num_columns, 1, 0);
-	static_cast<wxFlexGridSizer*>(m_grid_sizer)->SetFlexibleDirection(wxBOTH);
-	static_cast<wxFlexGridSizer*>(m_grid_sizer)->AddGrowableCol(grow_col);
-
-	sizer->Add(m_grid_sizer, 0, wxEXPAND | wxALL, wxOSX || !staticbox ? 0 : 5);
-
-	// activate lines
-	for (Line& line: m_lines)
-		activate_line(line);
 
 	return true;
 }

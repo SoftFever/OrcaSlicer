@@ -297,15 +297,28 @@ void Tab::create_preset_tab()
     // This helps to process all the cursor key events on Windows in the tree control,
     // so that the cursor jumps to the last item.
     m_treectrl->Bind(wxEVT_TREE_SEL_CHANGED, [this](wxTreeEvent&) {
-            if (!m_disable_tree_sel_changed_event && !m_pages.empty())
-                m_page_switch_planned = true;
+            if (!m_disable_tree_sel_changed_event && !m_pages.empty()) {
+                if (m_page_switch_running)
+                    m_page_switch_planned = true;
+                else {
+                    m_page_switch_running = true;
+                    do {
+                        m_page_switch_planned = false;
+                    } while (this->tree_sel_change_delayed());
+                    m_page_switch_running = false;
+                }
+            }
+            m_treectrl->Update();
         });
+#if 0
     m_treectrl->Bind(wxEVT_IDLE, [this](wxIdleEvent&) {
             if (m_page_switch_planned) {
-            	this->tree_sel_change_delayed();
-                m_page_switch_planned = false;
+                do {
+                    m_page_switch_planned = false;
+                }  while (this->tree_sel_change_delayed());
             }
         });
+#endif
 
     m_treectrl->Bind(wxEVT_KEY_DOWN, &Tab::OnKeyDown, this);
 
@@ -424,7 +437,7 @@ void Tab::OnActivate()
 #endif // __WXOSX__
 
     // create controls on active page
-    active_selected_page();
+    activate_selected_page();
 //    m_active_page->Show();
     m_hsizer->Layout();
     Refresh();
@@ -2820,9 +2833,9 @@ void TabPrinter::update_pages()
     rebuild_page_tree();
 }
 
-void TabPrinter::active_selected_page()
+void TabPrinter::activate_selected_page(std::function<void()> throw_if_canceled)
 {
-    Tab::active_selected_page();
+    Tab::activate_selected_page(throw_if_canceled);
 
     // "extruders_count" doesn't update from the update_config(),
     // so update it implicitly
@@ -3372,19 +3385,20 @@ void Tab::update_description_lines()
         update_preset_description_line();
 }
 
-void Tab::active_selected_page()
+void Tab::activate_selected_page(std::function<void()> throw_if_canceled)
 {
     if (!m_active_page)
         return;
 
-    m_active_page->activate(m_mode);
+    m_active_page->activate(m_mode, throw_if_canceled);
     update_changed_ui();
     update_description_lines();
     toggle_options();
 }
 
-void Tab::tree_sel_change_delayed()
+bool Tab::tree_sel_change_delayed()
 {
+#if 1
 	// There is a bug related to Ubuntu overlay scrollbars, see https://github.com/prusa3d/PrusaSlicer/issues/898 and https://github.com/prusa3d/PrusaSlicer/issues/952.
 	// The issue apparently manifests when Show()ing a window with overlay scrollbars while the UI is frozen. For this reason,
 	// we will Thaw the UI prematurely on Linux. This means destroing the no_updates object prematurely.
@@ -3399,6 +3413,7 @@ void Tab::tree_sel_change_delayed()
 	wxWindowUpdateLocker noUpdates(this);
 //#endif
 #endif
+#endif
 
     Page* page = nullptr;
     const auto sel_item = m_treectrl->GetSelection();
@@ -3411,29 +3426,50 @@ void Tab::tree_sel_change_delayed()
             m_is_modified_values = page->m_is_modified_values;
             break;
         }
-    if (page == nullptr || m_active_page == page) return;
+    if (page == nullptr || m_active_page == page)
+        return false;
 
     // clear pages from the controls
     m_active_page = page;
-    clear_pages();
+    
+    auto throw_if_canceled = std::function<void()>([this](){
+#ifdef WIN32
+            wxCheckForInterrupt(m_treectrl);
+            if (m_page_switch_planned)
+                throw UIBuildCanceled();
+#endif // WIN32
+        });
 
-    //for (auto& el : m_pages)
-    //    el.get()->Hide();
+    try {
+        clear_pages();
+        throw_if_canceled();
 
-    if (wxGetApp().mainframe->is_active_and_shown_tab(this)) {
-        active_selected_page();
-//        m_active_page->Show();
+        //for (auto& el : m_pages)
+        //    el.get()->Hide();
+
+        if (wxGetApp().mainframe->is_active_and_shown_tab(this)) {
+            activate_selected_page(throw_if_canceled);
+    //        m_active_page->Show();
+        }
+
+        #ifdef __linux__
+            no_updates.reset(nullptr);
+        #endif
+
+        update_undo_buttons();
+        throw_if_canceled();
+
+    //    m_active_page->Show();
+        m_hsizer->Layout();
+        throw_if_canceled();
+        Refresh();
+    } catch (const UIBuildCanceled&) {
+	    if (m_active_page)
+		    m_active_page->clear();
+        return true;
     }
 
-    #ifdef __linux__
-        no_updates.reset(nullptr);
-    #endif
-
-    update_undo_buttons();
-
-//    m_active_page->Show();
-    m_hsizer->Layout();
-    Refresh();
+    return false;
 }
 
 void Tab::OnKeyDown(wxKeyEvent& event)
@@ -3892,16 +3928,17 @@ void Page::update_visibility(ConfigOptionMode mode, bool update_contolls_visibil
     m_show = ret_val;
 }
 
-void Page::activate(ConfigOptionMode mode)
+void Page::activate(ConfigOptionMode mode, std::function<void()> throw_if_canceled)
 {
     //if (m_parent)
     //m_parent->SetSizer(m_vsizer);
     for (auto group : m_optgroups) {
-        if (!group->activate())
+        if (!group->activate(throw_if_canceled))
             continue;
         m_vsizer->Add(group->sizer, 0, wxEXPAND | wxALL, 10);
         group->update_visibility(mode);
         group->reload_config();
+        throw_if_canceled();
     }
 }
 

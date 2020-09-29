@@ -73,7 +73,7 @@ public:
 	void		set_config(DynamicPrintConfig* config_in) { m_config = config_in; }
 	void		reload_config();
     void        update_visibility(ConfigOptionMode mode, bool update_contolls_visibility);
-    void        activate(ConfigOptionMode mode);
+    void        activate(ConfigOptionMode mode, std::function<void()> throw_if_canceled);
     void        clear();
     void        msw_rescale();
     void        sys_color_changed();
@@ -239,6 +239,7 @@ protected:
 	DynamicPrintConfig 	m_cache_config;
 
 
+	bool				m_page_switch_running = false;
 	bool				m_page_switch_planned = false;
 
 public:
@@ -294,7 +295,7 @@ public:
 
     virtual void    clear_pages();
     virtual void    update_description_lines();
-    virtual void    active_selected_page();
+    virtual void    activate_selected_page(std::function<void()> throw_if_canceled);
 
 	void		OnTreeSelChange(wxTreeEvent& event);
 	void		OnKeyDown(wxKeyEvent& event);
@@ -354,7 +355,8 @@ protected:
 	void 			compatible_widget_reload(PresetDependencies &deps);
 	void			load_key_value(const std::string& opt_key, const boost::any& value, bool saved_value = false);
 
-	void			tree_sel_change_delayed();
+	// return true if cancelled
+	bool			tree_sel_change_delayed();
 	void			on_presets_changed();
 	void			build_preset_description_line(ConfigOptionsGroup* optgroup);
 	void			update_preset_description_line();
@@ -447,7 +449,7 @@ public:
 	void		build() override;
     void		build_fff();
     void		build_sla();
-	void		active_selected_page() override;
+	void		activate_selected_page(std::function<void()> throw_if_canceled) override;
 	void		clear_pages() override;
 	void		toggle_options() override;
     void		update() override;
