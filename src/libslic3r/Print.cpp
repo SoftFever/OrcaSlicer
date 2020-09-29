@@ -403,9 +403,11 @@ static inline void model_volume_list_copy_configs(ModelObject &model_object_dst,
         assert(mv_src.id() == mv_dst.id());
         // Copy the ModelVolume data.
         mv_dst.name   = mv_src.name;
-		static_cast<DynamicPrintConfig&>(mv_dst.config) = static_cast<const DynamicPrintConfig&>(mv_src.config);
-        mv_dst.m_supported_facets = mv_src.m_supported_facets;
-        mv_dst.m_seam_facets = mv_src.m_seam_facets;
+		mv_dst.config.assign_config(mv_src.config);
+        if (! mv_dst.m_supported_facets.timestamp_matches(mv_src.m_supported_facets))
+            mv_dst.m_supported_facets = mv_src.m_supported_facets;
+        if (! mv_dst.m_seam_facets.timestamp_matches(mv_src.m_seam_facets))
+            mv_dst.m_seam_facets = mv_src.m_seam_facets;
         //FIXME what to do with the materials?
         // mv_dst.m_material_id = mv_src.m_material_id;
         ++ i_src;
@@ -585,7 +587,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 	new_full_config.option("print_settings_id",    true);
 	new_full_config.option("filament_settings_id", true);
 	new_full_config.option("printer_settings_id",  true);
-    new_full_config.normalize();
+    new_full_config.normalize_fdm();
 
     // Find modified keys of the various configs. Resolve overrides extruder retract values by filament profiles.
 	t_config_option_keys print_diff, object_diff, region_diff, full_config_diff;
@@ -644,7 +646,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             m_ranges.reserve(in.size());
             // Input ranges are sorted lexicographically. First range trims the other ranges.
             coordf_t last_z = 0;
-            for (const std::pair<const t_layer_height_range, DynamicPrintConfig> &range : in)
+            for (const std::pair<const t_layer_height_range, ModelConfig> &range : in)
 				if (range.first.second > last_z) {
                     coordf_t min_z = std::max(range.first.first, 0.);
                     if (min_z > last_z + EPSILON) {
@@ -652,7 +654,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                         last_z = min_z;
                     }
                     if (range.first.second > last_z + EPSILON) {
-						const DynamicPrintConfig* cfg = &range.second;
+						const DynamicPrintConfig *cfg = &range.second.get();
                         m_ranges.emplace_back(t_layer_height_range(last_z, range.first.second), cfg);
                         last_z = range.first.second;
                     }
@@ -842,11 +844,11 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         // Only volume IDs, volume types, transformation matrices and their order are checked, configuration and other parameters are NOT checked.
         bool model_parts_differ         = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::MODEL_PART);
         bool modifiers_differ           = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::PARAMETER_MODIFIER);
-        bool support_blockers_differ    = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_BLOCKER);
-        bool support_enforcers_differ   = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_ENFORCER);
+        bool supports_differ            = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_BLOCKER) ||
+                                          model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_ENFORCER);
         if (model_parts_differ || modifiers_differ || 
-            model_object.origin_translation         != model_object_new.origin_translation   ||
-            model_object.layer_height_profile       != model_object_new.layer_height_profile ||
+            model_object.origin_translation != model_object_new.origin_translation   ||
+            ! model_object.layer_height_profile.timestamp_matches(model_object_new.layer_height_profile) ||
             ! layer_height_ranges_equal(model_object.layer_config_ranges, model_object_new.layer_config_ranges, model_object_new.layer_height_profile.empty())) {
             // The very first step (the slicing step) is invalidated. One may freely remove all associated PrintObjects.
             auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
@@ -856,27 +858,28 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             }
             // Copy content of the ModelObject including its ID, do not change the parent.
             model_object.assign_copy(model_object_new);
-        } else if (support_blockers_differ || support_enforcers_differ || model_custom_supports_data_changed(model_object, model_object_new)) {
+        } else if (supports_differ || model_custom_supports_data_changed(model_object, model_object_new)) {
             // First stop background processing before shuffling or deleting the ModelVolumes in the ModelObject's list.
-            this->call_cancel_callback();
-            update_apply_status(false);
+            if (supports_differ) {
+                this->call_cancel_callback();
+                update_apply_status(false);
+            }
             // Invalidate just the supports step.
             auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
             for (auto it = range.first; it != range.second; ++ it)
                 update_apply_status(it->print_object->invalidate_step(posSupportMaterial));
-            if (support_enforcers_differ || support_blockers_differ) {
+            if (supports_differ) {
                 // Copy just the support volumes.
                 model_volume_list_update_supports(model_object, model_object_new);
             }
-        }
-        if (model_custom_seam_data_changed(model_object, model_object_new)) {
+        } else if (model_custom_seam_data_changed(model_object, model_object_new)) {
             update_apply_status(this->invalidate_step(psGCodeExport));
         }
         if (! model_parts_differ && ! modifiers_differ) {
             // Synchronize Object's config.
-            bool object_config_changed = model_object.config != model_object_new.config;
+            bool object_config_changed = ! model_object.config.timestamp_matches(model_object_new.config);
 			if (object_config_changed)
-				static_cast<DynamicPrintConfig&>(model_object.config) = static_cast<const DynamicPrintConfig&>(model_object_new.config);
+				model_object.config.assign_config(model_object_new.config);
             if (! object_diff.empty() || object_config_changed || num_extruders_changed) {
                 PrintObjectConfig new_config = PrintObject::object_config_from_model_object(m_default_object_config, model_object, num_extruders);
                 auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
@@ -940,13 +943,20 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                         old.emplace_back(&(*it));
             }
             // Generate a list of trafos and XY offsets for instances of a ModelObject
-            PrintObjectConfig config = PrintObject::object_config_from_model_object(m_default_object_config, *model_object, num_extruders);
+            // Producing the config for PrintObject on demand, caching it at print_object_last.
+            const PrintObject *print_object_last = nullptr;
+            auto print_object_apply_config = [this, &print_object_last, model_object, num_extruders](PrintObject* print_object) {
+                print_object->config_apply(print_object_last ?
+                    print_object_last->config() :
+                    PrintObject::object_config_from_model_object(m_default_object_config, *model_object, num_extruders));
+                print_object_last = print_object;
+            };
             std::vector<PrintObjectTrafoAndInstances> new_print_instances = print_objects_from_model_object(*model_object);
             if (old.empty()) {
                 // Simple case, just generate new instances.
                 for (PrintObjectTrafoAndInstances &print_instances : new_print_instances) {
                     PrintObject *print_object = new PrintObject(this, model_object, print_instances.trafo, std::move(print_instances.instances));
-                    print_object->config_apply(config);
+                    print_object_apply_config(print_object);
                     print_objects_new.emplace_back(print_object);
                     // print_object_status.emplace(PrintObjectStatus(print_object, PrintObjectStatus::New));
                     new_objects = true;
@@ -963,7 +973,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 				if (it_old == old.end() || ! transform3d_equal((*it_old)->trafo, new_instances.trafo)) {
                     // This is a new instance (or a set of instances with the same trafo). Just add it.
                     PrintObject *print_object = new PrintObject(this, model_object, new_instances.trafo, std::move(new_instances.instances));
-                    print_object->config_apply(config);
+                    print_object_apply_config(print_object);
                     print_objects_new.emplace_back(print_object);
                     // print_object_status.emplace(PrintObjectStatus(print_object, PrintObjectStatus::New));
                     new_objects = true;
@@ -1577,7 +1587,7 @@ void Print::auto_assign_extruders(ModelObject* model_object) const
         ModelVolume *volume = model_object->volumes[volume_id];
         //FIXME Vojtech: This assigns an extruder ID even to a modifier volume, if it has a material assigned.
         if ((volume->is_model_part() || volume->is_modifier()) && ! volume->material_id().empty() && ! volume->config.has("extruder"))
-            volume->config.opt<ConfigOptionInt>("extruder", true)->value = int(volume_id + 1);
+            volume->config.set("extruder", int(volume_id + 1));
     }
 }
 

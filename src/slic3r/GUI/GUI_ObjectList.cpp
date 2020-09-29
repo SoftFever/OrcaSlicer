@@ -468,7 +468,7 @@ int ObjectList::get_selected_obj_idx() const
     return -1;
 }
 
-DynamicPrintConfig& ObjectList::get_item_config(const wxDataViewItem& item) const 
+ModelConfig& ObjectList::get_item_config(const wxDataViewItem& item) const 
 {
     assert(item);
     const ItemType type = m_objects_model->GetItemType(item);
@@ -492,10 +492,10 @@ void ObjectList::update_extruder_values_for_items(const size_t max_extruder)
         auto object = (*m_objects)[i];
         wxString extruder;
         if (!object->config.has("extruder") ||
-            size_t(object->config.option<ConfigOptionInt>("extruder")->value) > max_extruder)
+            size_t(object->config.extruder()) > max_extruder)
             extruder = _(L("default"));
         else
-            extruder = wxString::Format("%d", object->config.option<ConfigOptionInt>("extruder")->value);
+            extruder = wxString::Format("%d", object->config.extruder());
 
         m_objects_model->SetExtruder(extruder, item);
 
@@ -504,10 +504,10 @@ void ObjectList::update_extruder_values_for_items(const size_t max_extruder)
                 item = m_objects_model->GetItemByVolumeId(i, id);
                 if (!item) continue;
                 if (!object->volumes[id]->config.has("extruder") ||
-                    size_t(object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value) > max_extruder)
+                    size_t(object->volumes[id]->config.extruder()) > max_extruder)
                     extruder = _(L("default"));
                 else
-                    extruder = wxString::Format("%d", object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value); 
+                    extruder = wxString::Format("%d", object->volumes[id]->config.extruder()); 
 
                 m_objects_model->SetExtruder(extruder, item);
             }
@@ -767,8 +767,7 @@ void ObjectList::copy_settings_to_clipboard()
     if (m_objects_model->GetItemType(item) & itSettings)
         item = m_objects_model->GetParent(item);
 
-    DynamicPrintConfig& config_cache = m_clipboard.get_config_cache();
-    config_cache = get_item_config(item);
+    m_clipboard.get_config_cache() = get_item_config(item).get();
 }
 
 void ObjectList::paste_settings_into_list()
@@ -799,7 +798,7 @@ void ObjectList::paste_settings_into_list()
     }
 
     // Add settings item for object/sub-object and show them 
-    show_settings(add_settings_item(item, m_config));
+    show_settings(add_settings_item(item, &m_config->get()));
 }
 
 void ObjectList::paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& volumes)
@@ -818,8 +817,8 @@ void ObjectList::paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& vol
     {
         const wxDataViewItem& vol_item = m_objects_model->AddVolumeChild(object_item, wxString::FromUTF8(volume->name.c_str()), volume->type(), 
             volume->get_mesh_errors_count()>0 ,
-            volume->config.has("extruder") ? volume->config.option<ConfigOptionInt>("extruder")->value : 0);
-        add_settings_item(vol_item, &volume->config);
+            volume->config.has("extruder") ? volume->config.extruder() : 0);
+        add_settings_item(vol_item, &volume->config.get());
         items.Add(vol_item);
     }
 
@@ -1480,7 +1479,7 @@ void ObjectList::get_settings_choice(const wxString& category_name)
     // Add settings item for object/sub-object and show them 
     if (!(item_type & (itObject | itVolume | itLayer)))
         item = m_objects_model->GetTopParent(item);
-    show_settings(add_settings_item(item, m_config));
+    show_settings(add_settings_item(item, &m_config->get()));
 }
 
 void ObjectList::get_freq_settings_choice(const wxString& bundle_name)
@@ -1537,7 +1536,7 @@ void ObjectList::get_freq_settings_choice(const wxString& bundle_name)
     // Add settings item for object/sub-object and show them 
     if (!(item_type & (itObject | itVolume | itLayer)))
         item = m_objects_model->GetTopParent(item);
-    show_settings(add_settings_item(item, m_config));
+    show_settings(add_settings_item(item, &m_config->get()));
 }
 
 void ObjectList::show_settings(const wxDataViewItem settings_item)
@@ -1821,9 +1820,8 @@ void ObjectList::append_menu_item_change_extruder(wxMenu* menu)
 
     int initial_extruder = -1; // negative value for multiple object/part selection
     if (sels.Count()==1) {
-        DynamicPrintConfig& config = get_item_config(sels[0]);
-        initial_extruder = !config.has("extruder") ? 0 : 
-                            config.option<ConfigOptionInt>("extruder")->value;
+        const ModelConfig &config = get_item_config(sels[0]);
+        initial_extruder = config.has("extruder") ? config.extruder() : 0;
     }
 
     for (int i = 0; i <= extruders_cnt; i++)
@@ -2320,9 +2318,7 @@ void ObjectList::del_settings_from_config(const wxDataViewItem& parent_item)
 
     take_snapshot(_(L("Delete Settings")));
 
-    int extruder = -1;
-    if (m_config->has("extruder"))
-        extruder = m_config->option<ConfigOptionInt>("extruder")->value;
+    int extruder = m_config->has("extruder") ? m_config->extruder() : -1;
 
     coordf_t layer_height = 0.0;
     if (is_layer_settings)
@@ -2459,11 +2455,10 @@ void ObjectList::split()
         const wxDataViewItem& vol_item = m_objects_model->AddVolumeChild(parent, from_u8(volume->name),
             volume->is_modifier() ? ModelVolumeType::PARAMETER_MODIFIER : ModelVolumeType::MODEL_PART,
             volume->get_mesh_errors_count()>0,
-            volume->config.has("extruder") ?
-            volume->config.option<ConfigOptionInt>("extruder")->value : 0,
+            volume->config.has("extruder") ? volume->config.extruder() : 0,
             false);
         // add settings to the part, if it has those
-        add_settings_item(vol_item, &volume->config);
+        add_settings_item(vol_item, &volume->config.get());
     }
 
     model_object->input_file.clear();
@@ -2579,7 +2574,7 @@ void ObjectList::merge(bool to_multipart_object)
         Model* model = (*m_objects)[0]->get_model();
         ModelObject* new_object = model->add_object();
         new_object->name = _u8L("Merged");
-        DynamicPrintConfig* config = &new_object->config;
+        ModelConfig &config = new_object->config;
 
         for (int obj_idx : obj_idxs)
         {
@@ -2616,8 +2611,8 @@ void ObjectList::merge(bool to_multipart_object)
             }
 
             // merge settings
-            auto new_opt_keys = config->keys();
-            const DynamicPrintConfig& from_config = object->config;
+            auto new_opt_keys = config.keys();
+            const ModelConfig& from_config = object->config;
             auto opt_keys = from_config.keys();
 
             for (auto& opt_key : opt_keys) {
@@ -2628,7 +2623,7 @@ void ObjectList::merge(bool to_multipart_object)
                         // get it from default config values
                         option = DynamicPrintConfig::new_from_defaults_keys({ opt_key })->option(opt_key);
                     }
-                    config->set_key_value(opt_key, option->clone());
+                    config.set_key_value(opt_key, option->clone());
                 }
             }
             // save extruder value if it was set
@@ -2695,7 +2690,7 @@ void ObjectList::layers_editing()
         // set some default value
         if (ranges.empty()) {
             take_snapshot(_(L("Add Layers")));
-            ranges[{ 0.0f, 2.0f }] = get_default_layer_config(obj_idx);
+            ranges[{ 0.0f, 2.0f }].assign_config(get_default_layer_config(obj_idx));
         }
 
         // create layer root item
@@ -3011,8 +3006,7 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
     auto model_object = (*m_objects)[obj_idx];
     const wxString& item_name = from_u8(model_object->name);
     const auto item = m_objects_model->Add(item_name,
-                      !model_object->config.has("extruder") ? 0 :
-                      model_object->config.option<ConfigOptionInt>("extruder")->value,
+                      model_object->config.has("extruder") ? model_object->config.extruder() : 0,
                       get_mesh_errors_count(obj_idx) > 0);
 
     // add volumes to the object
@@ -3022,10 +3016,9 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
                 from_u8(volume->name),
                 volume->type(),
                 volume->get_mesh_errors_count()>0,
-                !volume->config.has("extruder") ? 0 :
-                volume->config.option<ConfigOptionInt>("extruder")->value,
+                volume->config.has("extruder") ? volume->config.extruder() : 0,
                 false);
-            add_settings_item(vol_item, &volume->config);
+            add_settings_item(vol_item, &volume->config.get());
         }
         Expand(item);
     }
@@ -3045,7 +3038,7 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
         m_objects_model->SetPrintableState(model_object->instances[0]->printable ? piPrintable : piUnprintable, obj_idx);
 
     // add settings to the object, if it has those
-    add_settings_item(item, &model_object->config);
+    add_settings_item(item, &model_object->config.get());
 
     // Add layers if it has
     add_layer_root_item(item);
@@ -3123,7 +3116,7 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
                 if ((*m_objects)[item->obj_idx]->volumes.size() == 1 && 
                     (*m_objects)[item->obj_idx]->config.has("extruder"))
                 {
-                    const wxString extruder = wxString::Format("%d", (*m_objects)[item->obj_idx]->config.option<ConfigOptionInt>("extruder")->value);
+                    const wxString extruder = wxString::Format("%d", (*m_objects)[item->obj_idx]->config.extruder());
                     m_objects_model->SetExtruder(extruder, m_objects_model->GetItemById(item->obj_idx));
                 }
                 wxGetApp().plater()->canvas3D()->ensure_on_bed(item->obj_idx);
@@ -3289,7 +3282,7 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range curren
 
     const wxDataViewItem layers_item = GetSelection();
 
-    t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
+    auto& ranges = object(obj_idx)->layer_config_ranges;
     auto it_range = ranges.find(current_range);
     assert(it_range != ranges.end());
     if (it_range == ranges.end())
@@ -3305,7 +3298,7 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range curren
         changed = true;
 
         const t_layer_height_range new_range = { current_range.second, current_range.second + 2. };
-        ranges[new_range] = get_default_layer_config(obj_idx);
+        ranges[new_range].assign_config(get_default_layer_config(obj_idx));
         add_layer_item(new_range, layers_item);
     }
     else if (const std::pair<coordf_t, coordf_t> &next_range = it_next_range->first; current_range.second <= next_range.first)
@@ -3342,7 +3335,7 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range curren
                     add_layer_item(new_range, layers_item, layer_idx);
 
                     new_range = { current_range.second, middle_layer_z };
-                    ranges[new_range] = get_default_layer_config(obj_idx);
+                    ranges[new_range].assign_config(get_default_layer_config(obj_idx));
                     add_layer_item(new_range, layers_item, layer_idx);
                 }
             }
@@ -3353,7 +3346,7 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range curren
                 changed = true;
 
                 const t_layer_height_range new_range = { current_range.second, next_range.first };
-                ranges[new_range] = get_default_layer_config(obj_idx);
+                ranges[new_range].assign_config(get_default_layer_config(obj_idx));
                 add_layer_item(new_range, layers_item, layer_idx);
             }
         }
@@ -3379,7 +3372,7 @@ wxString ObjectList::can_add_new_range_after_current(const t_layer_height_range 
         // This should not happen.
         return "ObjectList assert";
 
-    t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
+    auto& ranges = object(obj_idx)->layer_config_ranges;
     auto it_range = ranges.find(current_range);
     assert(it_range != ranges.end());
     if (it_range == ranges.end())
@@ -3418,7 +3411,7 @@ void ObjectList::add_layer_item(const t_layer_height_range& range,
     const int obj_idx = m_objects_model->GetObjectIdByItem(layers_item);
     if (obj_idx < 0) return;
 
-    const DynamicPrintConfig& config = object(obj_idx)->layer_config_ranges[range];
+    const DynamicPrintConfig& config = object(obj_idx)->layer_config_ranges[range].get();
     if (!config.has("extruder"))
         return;
 
@@ -3438,7 +3431,7 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, coordf_t la
     if (obj_idx < 0) 
         return false;
 
-    DynamicPrintConfig* config = &object(obj_idx)->layer_config_ranges[range];
+    ModelConfig* config = &object(obj_idx)->layer_config_ranges[range];
     if (fabs(layer_height - config->opt_float("layer_height")) < EPSILON)
         return false;
 
@@ -3467,12 +3460,14 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_lay
 
     const ItemType sel_type = m_objects_model->GetItemType(GetSelection());
 
-    t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
+    auto& ranges = object(obj_idx)->layer_config_ranges;
 
-    const DynamicPrintConfig config = ranges[range];
+    {
+        ModelConfig config = std::move(ranges[range]);
+        ranges.erase(range);
+        ranges[new_range] = std::move(config);
+    }
 
-    ranges.erase(range);
-    ranges[new_range] = config;
     changed_object(obj_idx);
     
     wxDataViewItem root_item = m_objects_model->GetLayerRootItem(m_objects_model->GetItemById(obj_idx));
@@ -4040,7 +4035,7 @@ void ObjectList::change_part_type()
     }
     else if (!settings_item && 
               (new_type == ModelVolumeType::MODEL_PART || new_type == ModelVolumeType::PARAMETER_MODIFIER)) {
-        add_settings_item(item, &volume->config);
+        add_settings_item(item, &volume->config.get());
     }
 }
 
@@ -4065,14 +4060,14 @@ void ObjectList::update_and_show_object_settings_item()
     if (!item) return;
 
     const wxDataViewItem& obj_item = m_objects_model->IsSettingsItem(item) ? m_objects_model->GetParent(item) : item;
-    select_item(add_settings_item(obj_item, &get_item_config(obj_item)));
+    select_item(add_settings_item(obj_item, &get_item_config(obj_item).get()));
 }
 
 // Update settings item for item had it
 void ObjectList::update_settings_item_and_selection(wxDataViewItem item, wxDataViewItemArray& selections)
 {
     const wxDataViewItem old_settings_item = m_objects_model->GetSettingsItem(item);
-    const wxDataViewItem new_settings_item = add_settings_item(item, &get_item_config(item));
+    const wxDataViewItem new_settings_item = add_settings_item(item, &get_item_config(item).get());
 
     if (!new_settings_item && old_settings_item)
         m_objects_model->Delete(old_settings_item);
@@ -4489,19 +4484,19 @@ void ObjectList::set_extruder_for_selected_items(const int extruder) const
 
     for (const wxDataViewItem& item : sels)
     {
-        DynamicPrintConfig& config = get_item_config(item);
+        ModelConfig& config = get_item_config(item);
         
         if (config.has("extruder")) {
             if (extruder == 0)
                 config.erase("extruder");
             else
-                config.option<ConfigOptionInt>("extruder")->value = extruder;
+                config.set("extruder", extruder);
         }
         else if (extruder > 0)
             config.set_key_value("extruder", new ConfigOptionInt(extruder));
 
         const wxString extruder_str = extruder == 0 ? wxString (_(L("default"))) : 
-                                      wxString::Format("%d", config.option<ConfigOptionInt>("extruder")->value);
+                                      wxString::Format("%d", config.extruder());
 
         auto const type = m_objects_model->GetItemType(item);
 

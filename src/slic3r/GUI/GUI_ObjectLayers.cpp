@@ -153,7 +153,7 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range, PlusMinus
     
 void ObjectLayers::create_layers_list()
 {
-    for (const auto layer : m_object->layer_config_ranges)
+    for (const auto &layer : m_object->layer_config_ranges)
     {
         const t_layer_height_range& range = layer.first;
         auto del_btn = new PlusMinusButton(m_parent, m_bmp_delete, range);

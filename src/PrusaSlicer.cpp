@@ -93,7 +93,7 @@ int CLI::run(int argc, char **argv)
 		return 1;
 
     m_extra_config.apply(m_config, true);
-    m_extra_config.normalize();
+    m_extra_config.normalize_fdm();
     
     PrinterTechnology printer_technology = Slic3r::printer_technology(m_config);
 
@@ -129,7 +129,7 @@ int CLI::run(int argc, char **argv)
             boost::nowide::cerr << "Error while reading config file: " << ex.what() << std::endl;
             return 1;
         }
-        config.normalize();
+        config.normalize_fdm();
         PrinterTechnology other_printer_technology = Slic3r::printer_technology(config);
         if (printer_technology == ptUnknown) {
             printer_technology = other_printer_technology;
@@ -196,7 +196,7 @@ int CLI::run(int argc, char **argv)
     // (command line options override --load files)
     m_print_config.apply(m_extra_config, true);
     // Normalizing after importing the 3MFs / AMFs
-    m_print_config.normalize();
+    m_print_config.normalize_fdm();
 
     // Initialize full print configs for both the FFF and SLA technologies.
     FullPrintConfig    fff_print_config;

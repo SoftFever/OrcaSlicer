@@ -3233,7 +3233,7 @@ PrinterTechnology printer_technology(const ConfigBase &cfg)
     return ptUnknown;
 }
 
-void DynamicPrintConfig::normalize()
+void DynamicPrintConfig::normalize_fdm()
 {
     if (this->has("extruder")) {
         int extruder = this->option("extruder")->getInt();
@@ -3717,6 +3717,8 @@ void DynamicPrintAndCLIConfig::handle_legacy(t_config_option_key &opt_key, std::
         PrintConfigDef::handle_legacy(opt_key, value);
     }
 }
+
+uint64_t ModelConfig::s_last_timestamp = 1;
 
 static Points to_points(const std::vector<Vec2d> &dpts)
 {

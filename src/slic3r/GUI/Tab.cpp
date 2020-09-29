@@ -675,8 +675,8 @@ void Tab::update_changed_tree_ui()
             {
                 if (!sys_page && modified_page)
                     break;
-                for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
-                    const std::string& opt_key = it->first;
+                for (const auto &kvp : group->opt_map()) {
+                    const std::string& opt_key = kvp.first;
                     get_sys_and_mod_flags(opt_key, sys_page, modified_page);
                 }
             }
@@ -764,7 +764,7 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
                         is_empty ? m_compatible_prints.btn->Disable() : m_compatible_prints.btn->Enable();
                     }
                 }
-                for (auto kvp : group->m_opt_map) {
+                for (const auto &kvp : group->opt_map()) {
                     const std::string& opt_key = kvp.first;
                     if ((m_options_list[opt_key] & os) == 0)
                         to_sys ? group->back_to_sys_value(opt_key) : group->back_to_initial_value(opt_key);
@@ -3791,7 +3791,7 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
 
     //! config_ have to be "right"
     ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(this, title, m_config, true, extra_column);
-    optgroup->config_category = m_title.ToStdString();
+    optgroup->set_config_category(m_title.ToStdString());
     if (noncommon_label_width >= 0)
         optgroup->label_width = noncommon_label_width;
 
