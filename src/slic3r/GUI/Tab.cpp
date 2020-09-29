@@ -304,21 +304,12 @@ void Tab::create_preset_tab()
                     m_page_switch_running = true;
                     do {
                         m_page_switch_planned = false;
+                        m_treectrl->Update();
                     } while (this->tree_sel_change_delayed());
                     m_page_switch_running = false;
                 }
             }
-            m_treectrl->Update();
         });
-#if 0
-    m_treectrl->Bind(wxEVT_IDLE, [this](wxIdleEvent&) {
-            if (m_page_switch_planned) {
-                do {
-                    m_page_switch_planned = false;
-                }  while (this->tree_sel_change_delayed());
-            }
-        });
-#endif
 
     m_treectrl->Bind(wxEVT_KEY_DOWN, &Tab::OnKeyDown, this);
 
@@ -437,7 +428,7 @@ void Tab::OnActivate()
 #endif // __WXOSX__
 
     // create controls on active page
-    activate_selected_page();
+    activate_selected_page([](){});
 //    m_active_page->Show();
     m_hsizer->Layout();
     Refresh();
