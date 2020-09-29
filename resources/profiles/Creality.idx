@@ -1,4 +1,5 @@
 min_slic3r_version = 2.2.0-alpha3
+0.0.3 Added Ender-2, Ender-3 BLTouch, updated Ender-3 bed texture.
 0.0.2 Updated for PrusaSlicer 2.2.0-rc
 0.0.2-beta Update for PrusaSlicer 2.2.0-beta
 0.0.2-alpha1 Extended list of default filaments to be installed
