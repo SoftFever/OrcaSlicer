@@ -84,8 +84,13 @@ class SplashScreen : public wxSplashScreen
 {
 public:
     SplashScreen(const wxBitmap& bitmap, long splashStyle, int milliseconds, wxPoint pos = wxDefaultPosition, bool is_decorated = false)
-        : wxSplashScreen(bitmap, splashStyle, milliseconds, nullptr, wxID_ANY, 
-           wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER | wxFRAME_NO_TASKBAR )
+        : wxSplashScreen(bitmap, splashStyle, milliseconds, nullptr, wxID_ANY, wxDefaultPosition, wxDefaultSize, 
+#ifdef __APPLE__
+            wxSIMPLE_BORDER | wxFRAME_NO_TASKBAR | wxSTAY_ON_TOP
+#else
+            wxSIMPLE_BORDER | wxFRAME_NO_TASKBAR
+#endif // !__APPLE__
+        )
     {
         wxASSERT(bitmap.IsOk());
         m_main_bitmap = bitmap;
