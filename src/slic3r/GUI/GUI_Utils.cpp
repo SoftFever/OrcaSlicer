@@ -75,7 +75,7 @@ template<class F> typename F::FN winapi_get_function(const wchar_t *dll, const c
 #endif
 
 // If called with nullptr, a DPI for the primary monitor is returned.
-int get_dpi_for_window(wxWindow *window)
+int get_dpi_for_window(const wxWindow *window)
 {
 #ifdef _WIN32
     enum MONITOR_DPI_TYPE_ {
@@ -126,7 +126,7 @@ int get_dpi_for_window(wxWindow *window)
 #endif
 }
 
-wxFont get_default_font_for_dpi(int dpi)
+wxFont get_default_font_for_dpi(const wxWindow *window, int dpi)
 {
 #ifdef _WIN32
     // First try to load the font with the Windows 10 specific way.
@@ -137,7 +137,7 @@ wxFont get_default_font_for_dpi(int dpi)
         memset(&nm, 0, sizeof(NONCLIENTMETRICS));
         nm.cbSize = sizeof(NONCLIENTMETRICS);
         if (SystemParametersInfoForDpi_fn(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &nm, 0, dpi))
-            return wxFont(wxNativeFontInfo(nm.lfMessageFont));
+            return wxFont(wxNativeFontInfo(nm.lfMessageFont, window));
     }
     // Then try to guesstimate the font DPI scaling on Windows 8.
     // Let's hope that the font returned by the SystemParametersInfo(), which is used by wxWidgets internally, makes sense.

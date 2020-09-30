@@ -129,7 +129,7 @@ SysInfoDialog::SysInfoDialog()
     }
 
     // main_info_text
-    wxFont font = get_default_font_for_dpi(get_dpi_for_window(this));// wxGetApp().normal_font();
+    wxFont font = get_default_font(this);
     const auto text_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     auto text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
     auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
@@ -195,7 +195,7 @@ void SysInfoDialog::on_dpi_changed(const wxRect &suggested_rect)
     m_logo_bmp.msw_rescale();
     m_logo->SetBitmap(m_logo_bmp.bmp());
 
-    wxFont font = get_default_font_for_dpi(get_dpi_for_window(this));// GetFont();
+    wxFont font = get_default_font(this);
     const int fs = font.GetPointSize() - 1;
     int font_size[] = { static_cast<int>(fs*1.5), static_cast<int>(fs*1.4), static_cast<int>(fs*1.3), fs, fs, fs, fs };
 

@@ -114,7 +114,7 @@ ConfigSnapshotDialog::ConfigSnapshotDialog(const Config::SnapshotDB &snapshot_db
     // text
     html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO);
     {
-        wxFont font = get_default_font_for_dpi(get_dpi_for_window(this));// wxGetApp().normal_font();//wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+        wxFont font = get_default_font(this);
         #ifdef __WXMSW__
             const int fs = font.GetPointSize();
             const int fs1 = static_cast<int>(0.8f*fs);
@@ -140,7 +140,7 @@ ConfigSnapshotDialog::ConfigSnapshotDialog(const Config::SnapshotDB &snapshot_db
 
 void ConfigSnapshotDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
-    wxFont font = get_default_font_for_dpi(get_dpi_for_window(this));// GetFont();
+    wxFont font = get_default_font(this);
     const int fs = font.GetPointSize();
     const int fs1 = static_cast<int>(0.8f*fs);
     const int fs2 = static_cast<int>(1.1f*fs);
