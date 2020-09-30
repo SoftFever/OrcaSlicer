@@ -88,12 +88,10 @@ protected:
 
 
 private:
-    bool is_mesh_point_clipped(const Vec3d& point) const;
-    void get_mesh_hit(const Vec2d& mouse_position,
-                      const Camera& camera,
-                      const std::vector<Transform3d>& trafo_matrices,
-                      int& mesh_id, Vec3f& hit, size_t& facet,
-                      bool& clipped_mesh_was_hit) const;
+    bool is_mesh_point_clipped(const Vec3d& point, const Transform3d& trafo) const;
+    void update_raycast_cache(const Vec2d& mouse_position,
+                              const Camera& camera,
+                              const std::vector<Transform3d>& trafo_matrices) const;
 
     float m_clipping_plane_distance = 0.f;
     std::unique_ptr<ClippingPlane> m_clipping_plane;
@@ -101,8 +99,7 @@ private:
 
     bool m_internal_stack_active = false;
     bool m_schedule_update = false;
-    Vec2d m_last_mouse_position = Vec2d::Zero();
-    std::pair<int, Vec3f> m_last_mesh_idx_and_hit = {-1, Vec3f::Zero()};
+    Vec2d m_last_mouse_click = Vec2d::Zero();
 
     enum class Button {
         None,
@@ -112,6 +109,18 @@ private:
 
     Button m_button_down = Button::None;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
+
+    // Following cache holds result of a raycast query. The queries are asked
+    // during rendering the sphere cursor and painting, this saves repeated
+    // raycasts when the mouse position is the same as before.
+    struct RaycastResult {
+        Vec2d mouse_position;
+        int mesh_id;
+        Vec3f hit;
+        size_t facet;
+        bool clipped_mesh_was_hit;
+    };
+    mutable RaycastResult m_rr;
 
 protected:
     void on_set_state() override;

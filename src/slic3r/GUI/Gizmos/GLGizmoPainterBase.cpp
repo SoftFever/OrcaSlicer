@@ -182,33 +182,41 @@ void GLGizmoPainterBase::render_cursor_circle() const
 
 void GLGizmoPainterBase::render_cursor_sphere() const
 {
-    int mesh_id = m_last_mesh_idx_and_hit.first;
-    if (mesh_id == -1)
+    Vec2d mouse_position(m_parent.get_local_mouse_position()(0), m_parent.get_local_mouse_position()(1));
+
+    const ModelObject* mo = m_c->selection_info()->model_object();
+    const Selection& selection = m_parent.get_selection();
+    const ModelInstance* mi = mo->instances[selection.get_instance_idx()];
+    const Camera& camera = wxGetApp().plater()->get_camera();
+
+    // Precalculate transformations of individual meshes.
+    std::vector<Transform3d> trafo_matrices;
+    for (const ModelVolume* mv : mo->volumes) {
+        if (mv->is_model_part())
+            trafo_matrices.emplace_back(mi->get_transformation().get_matrix() * mv->get_matrix());
+    }
+    update_raycast_cache(mouse_position, camera, trafo_matrices);
+    if (m_rr.mesh_id == -1)
         return;
 
-    const Vec3f hit_pos = m_last_mesh_idx_and_hit.second;
-    const Selection& selection = m_parent.get_selection();
-    const ModelObject* mo = m_c->selection_info()->model_object();
-    const ModelVolume* mv = mo->volumes[mesh_id];
-    const ModelInstance* mi = mo->instances[selection.get_instance_idx()];
-    const Transform3d instance_matrix = mi->get_transformation().get_matrix() * mv->get_matrix();
-    const Transform3d instance_scaling_matrix_inverse = Geometry::Transformation(instance_matrix).get_matrix(true, true, false, true).inverse();
-    const bool is_left_handed = Geometry::Transformation(instance_matrix).is_left_handed();
+    const Transform3d& complete_matrix = trafo_matrices[m_rr.mesh_id];
+    const Transform3d complete_scaling_matrix_inverse = Geometry::Transformation(complete_matrix).get_matrix(true, true, false, true).inverse();
+    const bool is_left_handed = Geometry::Transformation(complete_matrix).is_left_handed();
 
     glsafe(::glPushMatrix());
-    glsafe(::glMultMatrixd(instance_matrix.data()));
+    glsafe(::glMultMatrixd(complete_matrix.data()));
     // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
-    glsafe(::glTranslatef(hit_pos(0), hit_pos(1), hit_pos(2)));
-    glsafe(::glMultMatrixd(instance_scaling_matrix_inverse.data()));
+    glsafe(::glTranslatef(m_rr.hit(0), m_rr.hit(1), m_rr.hit(2)));
+    glsafe(::glMultMatrixd(complete_scaling_matrix_inverse.data()));
     glsafe(::glScaled(m_cursor_radius, m_cursor_radius, m_cursor_radius));
 
     if (is_left_handed)
         glFrontFace(GL_CW);
 
-    float render_color[4] = { 0.f, 0.f, 0.f, 0.15f };
+    float render_color[4] = { 0.f, 0.f, 0.f, 0.25f };
     if (m_button_down == Button::Left)
         render_color[2] = 1.f;
-    else // right
+    else if (m_button_down == Button::Right)
         render_color[0] = 1.f;
     glsafe(::glColor4fv(render_color));
 
@@ -221,16 +229,12 @@ void GLGizmoPainterBase::render_cursor_sphere() const
 }
 
 
-bool GLGizmoPainterBase::is_mesh_point_clipped(const Vec3d& point) const
+bool GLGizmoPainterBase::is_mesh_point_clipped(const Vec3d& point, const Transform3d& trafo) const
 {
     if (m_c->object_clipper()->get_position() == 0.)
         return false;
 
     auto sel_info = m_c->selection_info();
-    int active_inst = m_c->selection_info()->get_active_instance();
-    const ModelInstance* mi = sel_info->model_object()->instances[active_inst];
-    const Transform3d& trafo = mi->get_transformation().get_matrix();
-
     Vec3d transformed_point =  trafo * point;
     transformed_point(2) += sel_info->get_sla_shift();
     return m_c->object_clipper()->get_clipping_plane()->is_point_clipped(transformed_point);
@@ -299,20 +303,20 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         // add several positions from between into the list, so there
         // are no gaps in the painted region.
         {
-            if (m_last_mouse_position == Vec2d::Zero())
-                m_last_mouse_position = mouse_position;
+            if (m_last_mouse_click == Vec2d::Zero())
+                m_last_mouse_click = mouse_position;
             // resolution describes minimal distance limit using circle radius
             // as a unit (e.g., 2 would mean the patches will be touching).
             double resolution = 0.7;
             double diameter_px =  resolution  * m_cursor_radius * camera.get_zoom();
-            int patches_in_between = int(((mouse_position - m_last_mouse_position).norm() - diameter_px) / diameter_px);
+            int patches_in_between = int(((mouse_position - m_last_mouse_click).norm() - diameter_px) / diameter_px);
             if (patches_in_between > 0) {
-                Vec2d diff = (mouse_position - m_last_mouse_position)/(patches_in_between+1);
+                Vec2d diff = (mouse_position - m_last_mouse_click)/(patches_in_between+1);
                 for (int i=1; i<=patches_in_between; ++i)
-                    mouse_positions.emplace_back(m_last_mouse_position + i*diff);
+                    mouse_positions.emplace_back(m_last_mouse_click + i*diff);
             }
         }
-        m_last_mouse_position = Vec2d::Zero(); // only actual hits should be saved
+        m_last_mouse_click = Vec2d::Zero(); // only actual hits should be saved
 
         // Precalculate transformations of individual meshes.
         std::vector<Transform3d> trafo_matrices;
@@ -323,34 +327,28 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
         // Now "click" into all the prepared points and spill paint around them.
         for (const Vec2d& mp : mouse_positions) {
-
-            bool clipped_mesh_was_hit = false;
-            Vec3f hit = Vec3f::Zero();
-            size_t facet = 0;
-            int mesh_id = -1;
-
-            get_mesh_hit(mp, camera, trafo_matrices, mesh_id, hit, facet, clipped_mesh_was_hit);
+            update_raycast_cache(mp, camera, trafo_matrices);
 
             bool dragging_while_painting = (action == SLAGizmoEventType::Dragging && m_button_down != Button::None);
 
             // The mouse button click detection is enabled when there is a valid hit
             // or when the user clicks the clipping plane. Missing the object entirely
             // shall not capture the mouse.
-            if (mesh_id != -1 || clipped_mesh_was_hit) {
+            if (m_rr.mesh_id != -1 || m_rr.clipped_mesh_was_hit) {
                 if (m_button_down == Button::None)
                     m_button_down = ((action == SLAGizmoEventType::LeftDown) ? Button::Left : Button::Right);
             }
 
-            if (mesh_id == -1) {
+            if (m_rr.mesh_id == -1) {
                 // In case we have no valid hit, we can return. The event will
                 // be stopped in following two cases:
                 //  1. clicking the clipping plane
                 //  2. dragging while painting (to prevent scene rotations and moving the object)
-                return clipped_mesh_was_hit
+                return m_rr.clipped_mesh_was_hit
                     || dragging_while_painting;
             }
 
-            const Transform3d& trafo_matrix = trafo_matrices[mesh_id];
+            const Transform3d& trafo_matrix = trafo_matrices[m_rr.mesh_id];
 
             // Calculate how far can a point be from the line (in mesh coords).
             // FIXME: The scaling of the mesh can be non-uniform.
@@ -360,13 +358,12 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
             // Calculate direction from camera to the hit (in mesh coords):
             Vec3f camera_pos = (trafo_matrix.inverse() * camera.get_position()).cast<float>();
-            Vec3f dir = (hit - camera_pos).normalized();
+            Vec3f dir = (m_rr.hit - camera_pos).normalized();
 
-            assert(mesh_id < int(m_triangle_selectors.size()));
-            m_triangle_selectors[mesh_id]->select_patch(hit, facet, camera_pos,
+            assert(m_rr.mesh_id < int(m_triangle_selectors.size()));
+            m_triangle_selectors[m_rr.mesh_id]->select_patch(m_rr.hit, m_rr.facet, camera_pos,
                                               dir, limit, m_cursor_type, new_state);
-            m_last_mouse_position = mouse_position;
-            m_last_mesh_idx_and_hit = {mesh_id, hit};
+            m_last_mouse_click = mouse_position;
         }
 
         return true;
@@ -402,8 +399,7 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         update_model_object();
 
         m_button_down = Button::None;
-        m_last_mouse_position = Vec2d::Zero();
-        m_last_mesh_idx_and_hit = {-1, Vec3f::Zero()};
+        m_last_mouse_click = Vec2d::Zero();
         return true;
     }
 
@@ -411,21 +407,27 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 }
 
 
-void GLGizmoPainterBase::get_mesh_hit(const Vec2d& mouse_position,
-                                      const Camera& camera,
-                                      const std::vector<Transform3d>& trafo_matrices,
-                                      int& mesh_id, Vec3f& hit, size_t& facet,
-                                      bool& clipped_mesh_was_hit) const
+
+void GLGizmoPainterBase::update_raycast_cache(const Vec2d& mouse_position,
+                                              const Camera& camera,
+                                              const std::vector<Transform3d>& trafo_matrices) const
 {
+    if (m_rr.mouse_position == mouse_position) {
+        // Same query as last time - the answer is already in the cache.
+        return;
+    }
+
+    bool clipped_mesh_was_hit{false};
     Vec3f normal =  Vec3f::Zero();
-    size_t current_facet = 0;
+    Vec3f hit = Vec3f::Zero();
+    size_t facet = 0;
     Vec3f closest_hit = Vec3f::Zero();
     double closest_hit_squared_distance = std::numeric_limits<double>::max();
     size_t closest_facet = 0;
     int closest_hit_mesh_id = -1;
 
     // Cast a ray on all meshes, pick the closest hit and save it for the respective mesh
-    for (mesh_id = 0; mesh_id < int(trafo_matrices.size()); ++mesh_id) {
+    for (int mesh_id = 0; mesh_id < int(trafo_matrices.size()); ++mesh_id) {
 
         if (m_c->raycaster()->raycasters()[mesh_id]->unproject_on_mesh(
                    mouse_position,
@@ -434,10 +436,10 @@ void GLGizmoPainterBase::get_mesh_hit(const Vec2d& mouse_position,
                    hit,
                    normal,
                    m_clipping_plane.get(),
-                   &current_facet))
+                   &facet))
         {
             // In case this hit is clipped, skip it.
-            if (is_mesh_point_clipped(hit.cast<double>())) {
+            if (is_mesh_point_clipped(hit.cast<double>(), trafo_matrices[mesh_id])) {
                 clipped_mesh_was_hit = true;
                 continue;
             }
@@ -446,16 +448,14 @@ void GLGizmoPainterBase::get_mesh_hit(const Vec2d& mouse_position,
             double hit_squared_distance = (camera.get_position()-trafo_matrices[mesh_id]*hit.cast<double>()).squaredNorm();
             if (hit_squared_distance < closest_hit_squared_distance) {
                 closest_hit_squared_distance = hit_squared_distance;
-                closest_facet = current_facet;
+                closest_facet = facet;
                 closest_hit_mesh_id = mesh_id;
                 closest_hit = hit;
             }
         }
     }
 
-    mesh_id = closest_hit_mesh_id;
-    facet = closest_facet;
-    hit = closest_hit;
+    m_rr = {mouse_position, closest_hit_mesh_id, closest_hit, closest_facet, clipped_mesh_was_hit};
 }
 
 bool GLGizmoPainterBase::on_is_activable() const
@@ -564,13 +564,13 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
     m_iva_blockers.finalize_geometry(true);
 
     if (m_iva_enforcers.has_VBOs()) {
-        ::glColor4f(0.f, 0.f, 1.f, 0.3f);
+        ::glColor4f(0.f, 0.f, 1.f, 0.4f);
         m_iva_enforcers.render();
     }
 
 
     if (m_iva_blockers.has_VBOs()) {
-        ::glColor4f(1.f, 0.f, 0.f, 0.3f);
+        ::glColor4f(1.f, 0.f, 0.f, 0.4f);
         m_iva_blockers.render();
     }
 
