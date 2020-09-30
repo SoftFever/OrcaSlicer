@@ -66,7 +66,7 @@ void GLGizmoFdmSupports::on_render() const
         render_triangles(selection);
 
     m_c->object_clipper()->render_cut();
-    render_cursor_circle();
+    render_cursor();
 
     glsafe(::glDisable(GL_BLEND));
 }

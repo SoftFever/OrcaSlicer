@@ -21,6 +21,14 @@ GLGizmoPainterBase::GLGizmoPainterBase(GLCanvas3D& parent, const std::string& ic
     : GLGizmoBase(parent, icon_filename, sprite_id)
 {
     m_clipping_plane.reset(new ClippingPlane());
+    // Make sphere and save it into a vertex buffer.
+    const TriangleMesh sphere_mesh = make_sphere(1., (2*M_PI)/24.);
+    for (size_t i=0; i<sphere_mesh.its.vertices.size(); ++i)
+        m_vbo_sphere.push_geometry(sphere_mesh.its.vertices[i].cast<double>(),
+                                    sphere_mesh.stl.facet_start[i].normal.cast<double>());
+    for (const stl_triangle_vertex_indices& indices : sphere_mesh.its.indices)
+        m_vbo_sphere.push_triangle(indices(0), indices(1), indices(2));
+    m_vbo_sphere.finalize_geometry(true);
 }
 
 
@@ -117,10 +125,18 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection) const
 }
 
 
+void GLGizmoPainterBase::render_cursor() const
+{
+    if (m_cursor_type == TriangleSelector::SPHERE)
+        render_cursor_sphere();
+    else
+        render_cursor_circle();
+}
+
+
+
 void GLGizmoPainterBase::render_cursor_circle() const
 {
-    return;
-
     const Camera& camera = wxGetApp().plater()->get_camera();
     float zoom = (float)camera.get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
@@ -163,6 +179,46 @@ void GLGizmoPainterBase::render_cursor_circle() const
     glsafe(::glPopMatrix());
 }
 
+
+void GLGizmoPainterBase::render_cursor_sphere() const
+{
+    int mesh_id = m_last_mesh_idx_and_hit.first;
+    if (mesh_id == -1)
+        return;
+
+    const Vec3f hit_pos = m_last_mesh_idx_and_hit.second;
+    const Selection& selection = m_parent.get_selection();
+    const ModelObject* mo = m_c->selection_info()->model_object();
+    const ModelVolume* mv = mo->volumes[mesh_id];
+    const ModelInstance* mi = mo->instances[selection.get_instance_idx()];
+    const Transform3d instance_matrix = mi->get_transformation().get_matrix() * mv->get_matrix();
+    const Transform3d instance_scaling_matrix_inverse = Geometry::Transformation(instance_matrix).get_matrix(true, true, false, true).inverse();
+    const bool is_left_handed = Geometry::Transformation(instance_matrix).is_left_handed();
+
+    glsafe(::glPushMatrix());
+    glsafe(::glMultMatrixd(instance_matrix.data()));
+    // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
+    glsafe(::glTranslatef(hit_pos(0), hit_pos(1), hit_pos(2)));
+    glsafe(::glMultMatrixd(instance_scaling_matrix_inverse.data()));
+    glsafe(::glScaled(m_cursor_radius, m_cursor_radius, m_cursor_radius));
+
+    if (is_left_handed)
+        glFrontFace(GL_CW);
+
+    float render_color[4] = { 0.f, 0.f, 0.f, 0.15f };
+    if (m_button_down == Button::Left)
+        render_color[2] = 1.f;
+    else // right
+        render_color[0] = 1.f;
+    glsafe(::glColor4fv(render_color));
+
+    m_vbo_sphere.render();
+
+    if (is_left_handed)
+        glFrontFace(GL_CCW);
+
+    glsafe(::glPopMatrix());
+}
 
 
 bool GLGizmoPainterBase::is_mesh_point_clipped(const Vec3d& point) const
@@ -354,8 +410,9 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
             assert(mesh_id < int(m_triangle_selectors.size()));
             m_triangle_selectors[mesh_id]->select_patch(closest_hit, closest_facet, camera_pos,
-                                              dir, limit, new_state);
+                                              dir, limit, m_cursor_type, new_state);
             m_last_mouse_position = mouse_position;
+            m_last_mesh_idx_and_hit = {mesh_id, closest_hit};
         }
 
         return true;
@@ -392,6 +449,7 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
         m_button_down = Button::None;
         m_last_mouse_position = Vec2d::Zero();
+        m_last_mesh_idx_and_hit = {-1, Vec3f::Zero()};
         return true;
     }
 

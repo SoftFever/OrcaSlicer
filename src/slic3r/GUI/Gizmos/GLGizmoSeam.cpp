@@ -25,6 +25,7 @@ bool GLGizmoSeam::on_init()
     m_desc["clipping_of_view"] = _L("Clipping of view") + ": ";
     m_desc["reset_direction"]  = _L("Reset direction");
     m_desc["cursor_size"]      = _L("Cursor size") + ": ";
+    m_desc["cursor_type"]      = _L("Cursor size") + ": ";
     m_desc["enforce_caption"]  = _L("Left mouse button") + ": ";
     m_desc["enforce"]          = _L("Enforce seam");
     m_desc["block_caption"]    = _L("Right mouse button") + " ";
@@ -55,7 +56,7 @@ void GLGizmoSeam::on_render() const
     render_triangles(selection);
 
     m_c->object_clipper()->render_cut();
-    render_cursor_circle();
+    render_cursor();
 
     glsafe(::glDisable(GL_BLEND));
 }
@@ -133,6 +134,23 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
+
+
+    m_imgui->text(m_desc.at("cursor_type"));
+    ImGui::SameLine(/*clipping_slider_left*/);
+    //ImGui::PushItemWidth(window_width - clipping_slider_left);
+    int selection = int(m_cursor_type);
+    m_imgui->combo("   ", {"Circle", "Sphere"}, selection);
+    m_cursor_type = TriangleSelector::CursorType(selection);
+    /*if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::PushTextWrapPos(max_tooltip_width);
+        ImGui::TextUnformatted(_L("Alt + Mouse wheel").ToUTF8().data());
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }*/
+
+
 
     ImGui::Separator();
     if (m_c->object_clipper()->get_position() == 0.f)

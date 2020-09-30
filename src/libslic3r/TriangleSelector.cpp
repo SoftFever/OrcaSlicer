@@ -35,14 +35,15 @@ void TriangleSelector::Triangle::set_division(int sides_to_split, int special_si
 
 void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
                                     const Vec3f& source, const Vec3f& dir,
-                                    float radius, EnforcerBlockerType new_state)
+                                    float radius, CursorType cursor_type,
+                                    EnforcerBlockerType new_state)
 {
     assert(facet_start < m_orig_size_indices);
     assert(is_approx(dir.norm(), 1.f));
 
     // Save current cursor center, squared radius and camera direction,
     // so we don't have to pass it around.
-    m_cursor = {hit, source, dir, radius*radius};
+    m_cursor = {hit, source, dir, radius*radius, cursor_type};
 
     // In case user changed cursor size since last time, update triangle edge limit.
     if (m_old_cursor_radius != radius) {
@@ -61,7 +62,7 @@ void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
                 // add neighboring facets to list to be proccessed later
                 for (int n=0; n<3; ++n) {
                     int neighbor_idx = m_mesh->stl.neighbors_start[facet].neighbor[n];
-                    if (neighbor_idx >=0 && true/*faces_camera(neighbor_idx)*/)
+                    if (neighbor_idx >=0 && (m_cursor.type == SPHERE || faces_camera(neighbor_idx)))
                         facets_to_check.push_back(neighbor_idx);
                 }
             }
@@ -207,9 +208,11 @@ void TriangleSelector::split_triangle(int facet_idx)
 bool TriangleSelector::is_point_inside_cursor(const Vec3f& point) const
 {
      Vec3f diff = m_cursor.center - point;
-    // return (diff - diff.dot(m_cursor.dir) * m_cursor.dir).squaredNorm() < m_cursor.radius_sqr;
 
-    return diff.squaredNorm() < m_cursor.radius_sqr;
+     if (m_cursor.type == CIRCLE)
+         return (diff - diff.dot(m_cursor.dir) * m_cursor.dir).squaredNorm() < m_cursor.radius_sqr;
+     else // SPHERE
+         return diff.squaredNorm() < m_cursor.radius_sqr;
 }
 
 

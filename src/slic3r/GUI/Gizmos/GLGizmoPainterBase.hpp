@@ -67,10 +67,13 @@ public:
 
 protected:
     void render_triangles(const Selection& selection) const;
+    void render_cursor() const;
     void render_cursor_circle() const;
+    void render_cursor_sphere() const;
     virtual void update_model_object() const = 0;
     virtual void update_from_model_object() = 0;
     void activate_internal_undo_redo_stack(bool activate);
+    void set_cursor_type(TriangleSelector::CursorType);
 
     float m_cursor_radius = 2.f;
     static constexpr float CursorRadiusMin  = 0.4f; // cannot be zero
@@ -80,16 +83,20 @@ protected:
     // For each model-part volume, store status and division of the triangles.
     std::vector<std::unique_ptr<TriangleSelectorGUI>> m_triangle_selectors;
 
+    TriangleSelector::CursorType m_cursor_type = TriangleSelector::SPHERE;
+
 
 private:
     bool is_mesh_point_clipped(const Vec3d& point) const;
 
     float m_clipping_plane_distance = 0.f;
     std::unique_ptr<ClippingPlane> m_clipping_plane;
+    GLIndexedVertexArray m_vbo_sphere;
 
     bool m_internal_stack_active = false;
     bool m_schedule_update = false;
     Vec2d m_last_mouse_position = Vec2d::Zero();
+    std::pair<int, Vec3f> m_last_mesh_idx_and_hit = {-1, Vec3f::Zero()};
 
     enum class Button {
         None,
