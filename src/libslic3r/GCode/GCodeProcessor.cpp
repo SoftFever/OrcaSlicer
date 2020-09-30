@@ -1377,12 +1377,11 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
     auto move_type = [this](const AxisCoords& delta_pos) {
         EMoveType type = EMoveType::Noop;
 
-        if (delta_pos[E] < 0.0f) {
+        if (delta_pos[E] < 0.0f)
             type = (delta_pos[X] != 0.0f || delta_pos[Y] != 0.0f || delta_pos[Z] != 0.0f) ? EMoveType::Travel : EMoveType::Retract;
-        }
         else if (delta_pos[E] > 0.0f) {
-            if (delta_pos[X] == 0.0f && delta_pos[Y] == 0.0f && delta_pos[Z] == 0.0f)
-                type = EMoveType::Unretract;
+            if (delta_pos[X] == 0.0f && delta_pos[Y] == 0.0f)
+                type = (delta_pos[Z] == 0.0f) ? EMoveType::Unretract : EMoveType::Travel;
             else if (delta_pos[X] != 0.0f || delta_pos[Y] != 0.0f)
                 type = EMoveType::Extrude;
         } 
