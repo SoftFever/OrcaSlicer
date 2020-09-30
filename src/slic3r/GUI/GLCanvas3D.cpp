@@ -5420,7 +5420,9 @@ void GLCanvas3D::_render_background() const
 #if ENABLE_GCODE_VIEWER
     bool use_error_color = false;
     if (wxGetApp().is_editor()) {
-        use_error_color = m_dynamic_background_enabled;
+        use_error_color = m_dynamic_background_enabled &&
+            (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA || !m_volumes.empty());
+
         if (!m_volumes.empty())
             use_error_color &= _is_any_volume_outside();
         else {
