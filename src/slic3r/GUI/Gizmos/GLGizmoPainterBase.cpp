@@ -323,50 +323,13 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
         // Now "click" into all the prepared points and spill paint around them.
         for (const Vec2d& mp : mouse_positions) {
-            bool clipped_mesh_was_hit = false;
 
-            Vec3f normal =  Vec3f::Zero();
+            bool clipped_mesh_was_hit = false;
             Vec3f hit = Vec3f::Zero();
             size_t facet = 0;
-            Vec3f closest_hit = Vec3f::Zero();
-            double closest_hit_squared_distance = std::numeric_limits<double>::max();
-            size_t closest_facet = 0;
-            int closest_hit_mesh_id = -1;
-
             int mesh_id = -1;
-            // Cast a ray on all meshes, pick the closest hit and save it for the respective mesh
-            for (const ModelVolume* mv : mo->volumes) {
-                if (! mv->is_model_part())
-                    continue;
 
-                ++mesh_id;
-
-                if (m_c->raycaster()->raycasters()[mesh_id]->unproject_on_mesh(
-                           mp,
-                           trafo_matrices[mesh_id],
-                           camera,
-                           hit,
-                           normal,
-                           m_clipping_plane.get(),
-                           &facet))
-                {
-                    // In case this hit is clipped, skip it.
-                    if (is_mesh_point_clipped(hit.cast<double>())) {
-                        clipped_mesh_was_hit = true;
-                        continue;
-                    }
-
-                    // Is this hit the closest to the camera so far?
-                    double hit_squared_distance = (camera.get_position()-trafo_matrices[mesh_id]*hit.cast<double>()).squaredNorm();
-                    if (hit_squared_distance < closest_hit_squared_distance) {
-                        closest_hit_squared_distance = hit_squared_distance;
-                        closest_facet = facet;
-                        closest_hit_mesh_id = mesh_id;
-                        closest_hit = hit;
-                    }
-                }
-            }
-            mesh_id = closest_hit_mesh_id;
+            get_mesh_hit(mp, camera, trafo_matrices, mesh_id, hit, facet, clipped_mesh_was_hit);
 
             bool dragging_while_painting = (action == SLAGizmoEventType::Dragging && m_button_down != Button::None);
 
@@ -397,13 +360,13 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
             // Calculate direction from camera to the hit (in mesh coords):
             Vec3f camera_pos = (trafo_matrix.inverse() * camera.get_position()).cast<float>();
-            Vec3f dir = (closest_hit - camera_pos).normalized();
+            Vec3f dir = (hit - camera_pos).normalized();
 
             assert(mesh_id < int(m_triangle_selectors.size()));
-            m_triangle_selectors[mesh_id]->select_patch(closest_hit, closest_facet, camera_pos,
+            m_triangle_selectors[mesh_id]->select_patch(hit, facet, camera_pos,
                                               dir, limit, m_cursor_type, new_state);
             m_last_mouse_position = mouse_position;
-            m_last_mesh_idx_and_hit = {mesh_id, closest_hit};
+            m_last_mesh_idx_and_hit = {mesh_id, hit};
         }
 
         return true;
@@ -448,6 +411,52 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 }
 
 
+void GLGizmoPainterBase::get_mesh_hit(const Vec2d& mouse_position,
+                                      const Camera& camera,
+                                      const std::vector<Transform3d>& trafo_matrices,
+                                      int& mesh_id, Vec3f& hit, size_t& facet,
+                                      bool& clipped_mesh_was_hit) const
+{
+    Vec3f normal =  Vec3f::Zero();
+    size_t current_facet = 0;
+    Vec3f closest_hit = Vec3f::Zero();
+    double closest_hit_squared_distance = std::numeric_limits<double>::max();
+    size_t closest_facet = 0;
+    int closest_hit_mesh_id = -1;
+
+    // Cast a ray on all meshes, pick the closest hit and save it for the respective mesh
+    for (mesh_id = 0; mesh_id < int(trafo_matrices.size()); ++mesh_id) {
+
+        if (m_c->raycaster()->raycasters()[mesh_id]->unproject_on_mesh(
+                   mouse_position,
+                   trafo_matrices[mesh_id],
+                   camera,
+                   hit,
+                   normal,
+                   m_clipping_plane.get(),
+                   &current_facet))
+        {
+            // In case this hit is clipped, skip it.
+            if (is_mesh_point_clipped(hit.cast<double>())) {
+                clipped_mesh_was_hit = true;
+                continue;
+            }
+
+            // Is this hit the closest to the camera so far?
+            double hit_squared_distance = (camera.get_position()-trafo_matrices[mesh_id]*hit.cast<double>()).squaredNorm();
+            if (hit_squared_distance < closest_hit_squared_distance) {
+                closest_hit_squared_distance = hit_squared_distance;
+                closest_facet = current_facet;
+                closest_hit_mesh_id = mesh_id;
+                closest_hit = hit;
+            }
+        }
+    }
+
+    mesh_id = closest_hit_mesh_id;
+    facet = closest_facet;
+    hit = closest_hit;
+}
 
 bool GLGizmoPainterBase::on_is_activable() const
 {

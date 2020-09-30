@@ -21,6 +21,7 @@ namespace GUI {
 
 enum class SLAGizmoEventType : unsigned char;
 class ClippingPlane;
+class Camera;
 
 enum class PainterGizmoType {
     FDM_SUPPORTS,
@@ -88,6 +89,11 @@ protected:
 
 private:
     bool is_mesh_point_clipped(const Vec3d& point) const;
+    void get_mesh_hit(const Vec2d& mouse_position,
+                      const Camera& camera,
+                      const std::vector<Transform3d>& trafo_matrices,
+                      int& mesh_id, Vec3f& hit, size_t& facet,
+                      bool& clipped_mesh_was_hit) const;
 
     float m_clipping_plane_distance = 0.f;
     std::unique_ptr<ClippingPlane> m_clipping_plane;
