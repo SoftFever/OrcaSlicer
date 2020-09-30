@@ -22,6 +22,8 @@
 #include <GL/glew.h>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
+#include <wx/progdlg.h>
+#include <wx/numformatter.h>
 
 #include <array>
 #include <algorithm>
