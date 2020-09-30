@@ -21,6 +21,7 @@ namespace GUI {
 
 enum class SLAGizmoEventType : unsigned char;
 class ClippingPlane;
+class Camera;
 
 enum class PainterGizmoType {
     FDM_SUPPORTS,
@@ -67,10 +68,13 @@ public:
 
 protected:
     void render_triangles(const Selection& selection) const;
+    void render_cursor() const;
     void render_cursor_circle() const;
+    void render_cursor_sphere() const;
     virtual void update_model_object() const = 0;
     virtual void update_from_model_object() = 0;
     void activate_internal_undo_redo_stack(bool activate);
+    void set_cursor_type(TriangleSelector::CursorType);
 
     float m_cursor_radius = 2.f;
     static constexpr float CursorRadiusMin  = 0.4f; // cannot be zero
@@ -80,16 +84,22 @@ protected:
     // For each model-part volume, store status and division of the triangles.
     std::vector<std::unique_ptr<TriangleSelectorGUI>> m_triangle_selectors;
 
+    TriangleSelector::CursorType m_cursor_type = TriangleSelector::SPHERE;
+
 
 private:
-    bool is_mesh_point_clipped(const Vec3d& point) const;
+    bool is_mesh_point_clipped(const Vec3d& point, const Transform3d& trafo) const;
+    void update_raycast_cache(const Vec2d& mouse_position,
+                              const Camera& camera,
+                              const std::vector<Transform3d>& trafo_matrices) const;
 
     float m_clipping_plane_distance = 0.f;
     std::unique_ptr<ClippingPlane> m_clipping_plane;
+    GLIndexedVertexArray m_vbo_sphere;
 
     bool m_internal_stack_active = false;
     bool m_schedule_update = false;
-    Vec2d m_last_mouse_position = Vec2d::Zero();
+    Vec2d m_last_mouse_click = Vec2d::Zero();
 
     enum class Button {
         None,
@@ -99,6 +109,18 @@ private:
 
     Button m_button_down = Button::None;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
+
+    // Following cache holds result of a raycast query. The queries are asked
+    // during rendering the sphere cursor and painting, this saves repeated
+    // raycasts when the mouse position is the same as before.
+    struct RaycastResult {
+        Vec2d mouse_position;
+        int mesh_id;
+        Vec3f hit;
+        size_t facet;
+        bool clipped_mesh_was_hit;
+    };
+    mutable RaycastResult m_rr;
 
 protected:
     void on_set_state() override;
