@@ -314,9 +314,15 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         }
         m_last_mouse_position = Vec2d::Zero(); // only actual hits should be saved
 
+        // Precalculate transformations of individual meshes.
+        std::vector<Transform3d> trafo_matrices;
+        for (const ModelVolume* mv : mo->volumes) {
+            if (mv->is_model_part())
+                trafo_matrices.emplace_back(instance_trafo * mv->get_matrix());
+        }
+
         // Now "click" into all the prepared points and spill paint around them.
         for (const Vec2d& mp : mouse_positions) {
-            std::vector<std::vector<std::pair<Vec3f, size_t>>> hit_positions_and_facet_ids;
             bool clipped_mesh_was_hit = false;
 
             Vec3f normal =  Vec3f::Zero();
@@ -327,9 +333,6 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             size_t closest_facet = 0;
             int closest_hit_mesh_id = -1;
 
-            // Transformations of individual meshes
-            std::vector<Transform3d> trafo_matrices;
-
             int mesh_id = -1;
             // Cast a ray on all meshes, pick the closest hit and save it for the respective mesh
             for (const ModelVolume* mv : mo->volumes) {
@@ -337,9 +340,6 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                     continue;
 
                 ++mesh_id;
-
-                trafo_matrices.push_back(instance_trafo * mv->get_matrix());
-                hit_positions_and_facet_ids.push_back(std::vector<std::pair<Vec3f, size_t>>());
 
                 if (m_c->raycaster()->raycasters()[mesh_id]->unproject_on_mesh(
                            mp,
@@ -366,34 +366,25 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                     }
                 }
             }
+            mesh_id = closest_hit_mesh_id;
 
             bool dragging_while_painting = (action == SLAGizmoEventType::Dragging && m_button_down != Button::None);
 
             // The mouse button click detection is enabled when there is a valid hit
             // or when the user clicks the clipping plane. Missing the object entirely
             // shall not capture the mouse.
-            if (closest_hit_mesh_id != -1 || clipped_mesh_was_hit) {
+            if (mesh_id != -1 || clipped_mesh_was_hit) {
                 if (m_button_down == Button::None)
                     m_button_down = ((action == SLAGizmoEventType::LeftDown) ? Button::Left : Button::Right);
             }
 
-            if (closest_hit_mesh_id == -1) {
+            if (mesh_id == -1) {
                 // In case we have no valid hit, we can return. The event will
                 // be stopped in following two cases:
                 //  1. clicking the clipping plane
                 //  2. dragging while painting (to prevent scene rotations and moving the object)
                 return clipped_mesh_was_hit
                     || dragging_while_painting;
-            }
-
-            // Find respective mesh id.
-            mesh_id = -1;
-            for (const ModelVolume* mv : mo->volumes) {
-                if (! mv->is_model_part())
-                    continue;
-                ++mesh_id;
-                if (mesh_id == closest_hit_mesh_id)
-                    break;
             }
 
             const Transform3d& trafo_matrix = trafo_matrices[mesh_id];
