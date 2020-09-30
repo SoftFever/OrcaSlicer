@@ -872,9 +872,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         }
     }
 
-    // add origin
-    m_paths_bounding_box.merge(Vec3d::Zero());
-
     // max bounding box (account for tool marker)
     m_max_bounding_box = m_paths_bounding_box;
     m_max_bounding_box.merge(m_paths_bounding_box.max + m_sequential_view.marker.get_bounding_box().size()[2] * Vec3d::UnitZ());
