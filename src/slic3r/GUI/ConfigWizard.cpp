@@ -746,7 +746,7 @@ void PageMaterials::set_compatible_printers_html_window(const std::vector<std::s
         );
     }
    
-    wxFont font = get_default_font_for_dpi(get_dpi_for_window(this));
+    wxFont font = get_default_font_for_dpi(this, get_dpi_for_window(this));
     const int fs = font.GetPointSize();
     int size[] = { fs,fs,fs,fs,fs,fs,fs };
     html_window->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
