@@ -1361,7 +1361,7 @@ const std::vector<std::string>& PhysicalPrinter::printer_options()
         s_opts = {
             "preset_name",
             "printer_technology",
-            "printer_model",
+//            "printer_model",
             "host_type", 
             "print_host", 
             "printhost_apikey", 
@@ -1576,6 +1576,24 @@ void PhysicalPrinterCollection::load_printers(const std::string& dir_path, const
         throw Slic3r::RuntimeError(errors_cummulative);
 }
 
+void PhysicalPrinterCollection::load_printer(const std::string& path, const std::string& name, DynamicPrintConfig&& config, bool select, bool save/* = false*/)
+{
+    auto it = this->find_printer_internal(name);
+    if (it == m_printers.end() || it->name != name) {
+        // The preset was not found. Create a new preset.
+        it = m_printers.emplace(it, PhysicalPrinter(name, config));
+    }
+
+    it->file = path;
+    it->config = std::move(config);
+    it->loaded = true;
+    if (select)
+        this->select_printer(*it);
+
+    if (save)
+        it->save();
+}
+
 // if there is saved user presets, contains information about "Print Host upload",
 // Create default printers with this presets
 // Note! "Print Host upload" options will be cleared after physical printer creations
@@ -1623,12 +1641,39 @@ void PhysicalPrinterCollection::load_printers_from_presets(PrinterPresetCollecti
     }
 }
 
-PhysicalPrinter* PhysicalPrinterCollection::find_printer( const std::string& name, bool first_visible_if_not_found)
+PhysicalPrinter* PhysicalPrinterCollection::find_printer( const std::string& name, bool case_sensitive_search)
 {
-    auto it = this->find_printer_internal(name);
+    auto it = this->find_printer_internal(name, case_sensitive_search);
+
     // Ensure that a temporary copy is returned if the preset found is currently selected.
-    return (it != m_printers.end() && it->name == name) ? &this->printer(it - m_printers.begin()) :
-        first_visible_if_not_found ? &this->printer(0) : nullptr;
+    auto is_equal_name = [name, case_sensitive_search](const std::string& in_name) {
+        if (case_sensitive_search)
+            return in_name == name;
+        return boost::to_lower_copy<std::string>(in_name) == boost::to_lower_copy<std::string>(name);
+    };
+
+    if (it == m_printers.end() || !is_equal_name(it->name))
+        return nullptr;
+    return &this->printer(it - m_printers.begin());
+}
+
+std::deque<PhysicalPrinter>::iterator PhysicalPrinterCollection::find_printer_internal(const std::string& name, bool case_sensitive_search/* = true*/)
+{
+    if (case_sensitive_search)
+        return Slic3r::lower_bound_by_predicate(m_printers.begin(), m_printers.end(), [&name](const auto& l) { return l.name < name;  });
+
+    std::string low_name = boost::to_lower_copy<std::string>(name);
+
+    int i = 0;
+    for (const PhysicalPrinter& printer : m_printers) {
+        if (boost::to_lower_copy<std::string>(printer.name) == low_name)
+            break;
+        i++;
+    }
+    if (i == m_printers.size())
+        return m_printers.end();
+
+    return m_printers.begin() + i;
 }
 
 PhysicalPrinter* PhysicalPrinterCollection::find_printer_with_same_config(const DynamicPrintConfig& config)
@@ -1667,10 +1712,13 @@ void PhysicalPrinterCollection::save_printer(PhysicalPrinter& edited_printer, co
         it->config = std::move(edited_printer.config);
         it->name = edited_printer.name;
         it->preset_names = edited_printer.preset_names;
+        // sort printers and get new it
+        std::sort(m_printers.begin(), m_printers.end());
+        it = this->find_printer_internal(edited_printer.name);
     }
     else {
         // Creating a new printer.
-        it = m_printers.insert(it, edited_printer);
+        it = m_printers.emplace(it, edited_printer);
     }
     assert(it != m_printers.end());
 

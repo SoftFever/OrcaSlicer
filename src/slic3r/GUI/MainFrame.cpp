@@ -1071,6 +1071,9 @@ void MainFrame::init_menubar()
         append_menu_item(export_menu, wxID_ANY, _L("Export Config &Bundle") + dots, _L("Export all presets to file"),
             [this](wxCommandEvent&) { export_configbundle(); }, "export_config_bundle", nullptr,
             [this]() {return true; }, this);
+        append_menu_item(export_menu, wxID_ANY, _L("Export Config Bundle With Physical Printers") + dots, _L("Export all presets including physical printers to file"),
+            [this](wxCommandEvent&) { export_configbundle(true); }, "export_config_bundle", nullptr,
+            [this]() {return true; }, this);
         append_submenu(fileMenu, export_menu, wxID_ANY, _L("&Export"), "");
 
 		append_menu_item(fileMenu, wxID_ANY, _L("Ejec&t SD card / Flash drive") + dots + "\tCtrl+T", _L("Eject SD card / Flash drive after the G-code was exported to it."),
@@ -1641,7 +1644,7 @@ bool MainFrame::load_config_file(const std::string &path)
     return true;
 }
 
-void MainFrame::export_configbundle()
+void MainFrame::export_configbundle(bool export_physical_printers /*= false*/)
 {
     if (!wxGetApp().check_unsaved_changes())
         return;
@@ -1663,7 +1666,7 @@ void MainFrame::export_configbundle()
         // Export the config bundle.
         wxGetApp().app_config->update_config_dir(get_dir_name(file));
         try {
-            wxGetApp().preset_bundle->export_configbundle(file.ToUTF8().data()); 
+            wxGetApp().preset_bundle->export_configbundle(file.ToUTF8().data(), false, export_physical_printers);
         } catch (const std::exception &ex) {
 			show_error(this, ex.what());
         }

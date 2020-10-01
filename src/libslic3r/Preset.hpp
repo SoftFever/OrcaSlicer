@@ -632,6 +632,8 @@ public:
     // Load ini files of the particular type from the provided directory path.
     void            load_printers(const std::string& dir_path, const std::string& subdir);
     void            load_printers_from_presets(PrinterPresetCollection &printer_presets);
+    // Load printer from the loaded configuration
+    void            load_printer(const std::string& path, const std::string& name, DynamicPrintConfig&& config, bool select, bool save=false);
 
     // Save the printer under a new name. If the name is different from the old one,
     // a new printer is stored into the list of printers.
@@ -687,10 +689,11 @@ public:
 
     // Return a preset by its name. If the preset is active, a temporary copy is returned.
     // If a preset is not found by its name, null is returned.
-    PhysicalPrinter* find_printer(const std::string& name, bool first_visible_if_not_found = false);
-    const PhysicalPrinter* find_printer(const std::string& name, bool first_visible_if_not_found = false) const
+    // It is possible case (in)sensitive search
+    PhysicalPrinter* find_printer(const std::string& name, bool case_sensitive_search = true);
+    const PhysicalPrinter* find_printer(const std::string& name, bool case_sensitive_search = true) const
     {
-        return const_cast<PhysicalPrinterCollection*>(this)->find_printer(name, first_visible_if_not_found);
+        return const_cast<PhysicalPrinterCollection*>(this)->find_printer(name, case_sensitive_search);
     }
 
     // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
@@ -701,15 +704,11 @@ public:
 private:
     PhysicalPrinterCollection& operator=(const PhysicalPrinterCollection& other);
 
-    // Find a preset position in the sorted list of presets.
-    // The "-- default -- " preset is always the first, so it needs
-    // to be handled differently.
-    // If a preset does not exist, an iterator is returned indicating where to insert a preset with the same name.
-    std::deque<PhysicalPrinter>::iterator find_printer_internal(const std::string& name)
-    {
-        return Slic3r::lower_bound_by_predicate(m_printers.begin(), m_printers.end(), [&name](const auto& l) { return l.name < name;  });
-    }
-    std::deque<PhysicalPrinter>::const_iterator find_printer_internal(const std::string& name) const
+    // Find a physical printer position in the sorted list of printers.
+    // The name of a printer should be unique and case insensitive
+    // Use this functions with case_sensitive_search = false, when you need case insensitive search
+    std::deque<PhysicalPrinter>::iterator find_printer_internal(const std::string& name, bool case_sensitive_search = true);
+    std::deque<PhysicalPrinter>::const_iterator find_printer_internal(const std::string& name, bool case_sensitive_search = true) const
     {
         return const_cast<PhysicalPrinterCollection*>(this)->find_printer_internal(name);
     }

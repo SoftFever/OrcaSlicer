@@ -1113,16 +1113,22 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
     std::vector<std::string> loaded_sla_prints;
     std::vector<std::string> loaded_sla_materials;
     std::vector<std::string> loaded_printers;
+    std::vector<std::string> loaded_physical_printers;
     std::string              active_print;
     std::vector<std::string> active_filaments;
     std::string              active_sla_print;
     std::string              active_sla_material;
     std::string              active_printer;
+    std::string              active_physical_printer;
     size_t                   presets_loaded = 0;
+    size_t                   ph_printers_loaded = 0;
+
     for (const auto &section : tree) {
         PresetCollection         *presets = nullptr;
         std::vector<std::string> *loaded  = nullptr;
         std::string               preset_name;
+        PhysicalPrinterCollection *ph_printers = nullptr;
+        std::string               ph_printer_name;
         if (boost::starts_with(section.first, "print:")) {
             presets = &this->prints;
             loaded  = &loaded_prints;
@@ -1143,6 +1149,10 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
             presets = &this->printers;
             loaded  = &loaded_printers;
             preset_name = section.first.substr(8);
+        } else if (boost::starts_with(section.first, "physical_printer:")) {
+            ph_printers = &this->physical_printers;
+            loaded  = &loaded_physical_printers;
+            ph_printer_name = section.first.substr(17);
         } else if (section.first == "presets") {
             // Load the names of the active presets.
             for (auto &kvp : section.second) {
@@ -1161,6 +1171,8 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
                     active_sla_material = kvp.second.data();
                 } else if (kvp.first == "printer") {
                     active_printer = kvp.second.data();
+                }else if (kvp.first == "physical_printer") {
+                    active_physical_printer = kvp.second.data();
                 }
             }
         } else if (section.first == "obsolete_presets") {
@@ -1317,9 +1329,46 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
 
             ++ presets_loaded;
         }
+
+        if (ph_printers != nullptr) {
+            // Load the physical printer
+            const DynamicPrintConfig& default_config = ph_printers->default_config();
+            DynamicPrintConfig        config = default_config;
+
+            for (auto& kvp : section.second)
+                config.set_deserialize(kvp.first, kvp.second.data());
+
+            // Report configuration fields, which are misplaced into a wrong group.
+            std::string incorrect_keys = Preset::remove_invalid_keys(config, default_config);
+            if (!incorrect_keys.empty())
+                BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The physical printer \"" <<
+                section.first << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
+
+            const PhysicalPrinter* ph_printer_existing = ph_printers->find_printer(ph_printer_name, false);
+            if (ph_printer_existing != nullptr) {
+                BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The physical printer \"" <<
+                    section.first << "\" has already been loaded from another Confing Bundle.";
+                continue;
+            }
+
+            // Decide a full path to this .ini file.
+            auto file_name = boost::algorithm::iends_with(ph_printer_name, ".ini") ? ph_printer_name : ph_printer_name + ".ini";
+            auto file_path = (boost::filesystem::path(data_dir())
+#ifdef SLIC3R_PROFILE_USE_PRESETS_SUBDIR
+                // Store the physical printers into a "presets" directory.
+                / "presets"
+#else
+                // Store the physical printers at the same location as the upstream Slic3r.
+#endif
+                / "physical_printer" / file_name).make_preferred();
+            // Load the preset into the list of presets, save it to disk.
+            ph_printers->load_printer(file_path.string(), ph_printer_name, std::move(config), false, flags & LOAD_CFGBNDLE_SAVE);
+
+            ++ph_printers_loaded;
+        }
     }
 
-    // 3) Activate the presets.
+    // 3) Activate the presets and physical printer if any exists.
     if ((flags & LOAD_CFGBNDLE_SYSTEM) == 0) {
         if (! active_print.empty()) 
             prints.select_preset_by_name(active_print, true);
@@ -1329,6 +1378,8 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
             sla_materials.select_preset_by_name(active_sla_material, true);
         if (! active_printer.empty())
             printers.select_preset_by_name(active_printer, true);
+        if (! active_physical_printer.empty())
+            physical_printers.select_printer(active_physical_printer +" * " + active_printer);
         // Activate the first filament preset.
         if (! active_filaments.empty() && ! active_filaments.front().empty())
             filaments.select_preset_by_name(active_filaments.front(), true);
@@ -1338,7 +1389,7 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
         this->update_compatible(PresetSelectCompatibleType::Never);
     }
 
-    return presets_loaded;
+    return presets_loaded + ph_printers_loaded;
 }
 
 void PresetBundle::update_multi_material_filament_presets()
@@ -1458,7 +1509,7 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
     }
 }
 
-void PresetBundle::export_configbundle(const std::string &path, bool export_system_settings)
+void PresetBundle::export_configbundle(const std::string &path, bool export_system_settings, bool export_physical_printers/* = false*/)
 {
     boost::nowide::ofstream c;
     c.open(path, std::ios::out | std::ios::trunc);
@@ -1482,6 +1533,14 @@ void PresetBundle::export_configbundle(const std::string &path, bool export_syst
         }
     }
 
+    if (export_physical_printers) {
+        for (const PhysicalPrinter& ph_printer : this->physical_printers) {
+            c << std::endl << "[physical_printer:" << ph_printer.name << "]" << std::endl;
+            for (const std::string& opt_key : ph_printer.config.keys())
+                c << opt_key << " = " << ph_printer.config.opt_serialize(opt_key) << std::endl;
+        }
+    }
+
     // Export the names of the active presets.
     c << std::endl << "[presets]" << std::endl;
     c << "print = " << this->prints.get_selected_preset_name() << std::endl;
@@ -1497,6 +1556,8 @@ void PresetBundle::export_configbundle(const std::string &path, bool export_syst
         c << "filament" << suffix << " = " << this->filament_presets[i] << std::endl;
     }
 
+    if (export_physical_printers && this->physical_printers.get_selected_idx() >= 0)
+        c << "physical_printer = " << this->physical_printers.get_selected_printer_name() << std::endl;
 #if 0
     // Export the following setting values from the provided setting repository.
     static const char *settings_keys[] = { "autocenter" };

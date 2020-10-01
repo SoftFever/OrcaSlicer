@@ -102,7 +102,7 @@ public:
     size_t                      load_configbundle(const std::string &path, unsigned int flags = LOAD_CFGBNDLE_SAVE);
 
     // Export a config bundle file containing all the presets and the names of the active presets.
-    void                        export_configbundle(const std::string &path, bool export_system_settings = false);
+    void                        export_configbundle(const std::string &path, bool export_system_settings = false, bool export_physical_printers = false);
 
     // Enable / disable the "- default -" preset.
     void                        set_default_suppressed(bool default_suppressed);

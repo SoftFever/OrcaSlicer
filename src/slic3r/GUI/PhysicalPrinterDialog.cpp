@@ -468,15 +468,17 @@ void PhysicalPrinterDialog::OnOK(wxEvent& event)
     }
 
     PhysicalPrinterCollection& printers = wxGetApp().preset_bundle->physical_printers;
-    const PhysicalPrinter* existing = printers.find_printer(into_u8(printer_name));
+    const PhysicalPrinter* existing = printers.find_printer(into_u8(printer_name), false);
     if (existing && into_u8(printer_name) != printers.get_selected_printer_name())
     {
-        wxString msg_text = from_u8((boost::format(_u8L("Printer with name \"%1%\" already exists.")) % printer_name).str());
+        wxString msg_text = from_u8((boost::format(_u8L("Printer with name \"%1%\" already exists.")) % existing->name/*printer_name*/).str());
         msg_text += "\n" + _L("Replace?");
         wxMessageDialog dialog(nullptr, msg_text, _L("Warning"), wxICON_WARNING | wxYES | wxNO);
 
         if (dialog.ShowModal() == wxID_NO)
             return;
+
+        m_printer.name = existing->name;
     }
 
     std::set<std::string> repeat_presets;
