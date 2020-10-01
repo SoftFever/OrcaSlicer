@@ -96,8 +96,8 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
                                               + m_imgui->scaled(1.5f);
         const float cursor_slider_left = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.f);
         const float cursor_type_combo_left  = m_imgui->calc_text_size(m_desc.at("cursor_type")).x + m_imgui->scaled(1.f);
-        const float cursor_type_combo_width = std::max(m_imgui->calc_text_size(wxString::FromUTF8(cursor_types[0])).x,
-                                                       m_imgui->calc_text_size(wxString::FromUTF8(cursor_types[1])).x)
+        const float cursor_type_combo_width = std::max(m_imgui->calc_text_size(wxString::FromUTF8(cursor_types[0].c_str())).x,
+                                                       m_imgui->calc_text_size(wxString::FromUTF8(cursor_types[1].c_str())).x)
                                                  + m_imgui->scaled(2.5f);
         const float button_width = m_imgui->calc_text_size(m_desc.at("remove_all")).x + m_imgui->scaled(1.f);
         const float minimal_slider_width = m_imgui->scaled(4.f);
