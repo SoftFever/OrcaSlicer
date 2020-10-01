@@ -21,7 +21,7 @@ namespace GUI {
 
 enum class SLAGizmoEventType : unsigned char;
 class ClippingPlane;
-class Camera;
+struct Camera;
 
 enum class PainterGizmoType {
     FDM_SUPPORTS,
