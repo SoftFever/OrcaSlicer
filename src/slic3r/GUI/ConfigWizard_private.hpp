@@ -19,6 +19,7 @@
 #include <wx/listbox.h>
 #include <wx/checklst.h>
 #include <wx/radiobut.h>
+#include <wx/html/htmlwin.h>
 
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -86,9 +87,9 @@ struct Materials
 {
     Technology technology;
     // use vector for the presets to purpose of save of presets sorting in the bundle
-	// bool is true if material is present in all printers (omnipresent)
-	// size_t is counter of printers compatible with material
-    std::vector<std::pair<const Preset*, size_t>> presets;
+    std::vector<const Preset*> presets;
+    // String is alias of material, size_t number of compatible counters 
+    std::vector<std::pair<std::string, size_t>> compatibility_counter;
     std::set<std::string> types;
 	std::set<const Preset*> printers;
 
@@ -100,7 +101,7 @@ struct Materials
     bool containts(const Preset *preset) const {
         //return std::find(presets.begin(), presets.end(), preset) != presets.end(); 
 		return std::find_if(presets.begin(), presets.end(),
-			[preset](const std::pair<const Preset*, bool>& element) { return element.first == preset; }) != presets.end();
+			[preset](const Preset* element) { return element == preset; }) != presets.end();
 
     }
 	
@@ -111,42 +112,35 @@ struct Materials
     const std::vector<const Preset*> get_presets_by_alias(const std::string name) {
         std::vector<const Preset*> ret_vec;
         for (auto it = presets.begin(); it != presets.end(); ++it) {
-            if ((*it).first->alias == name)
-                ret_vec.push_back((*it).first);
+            if ((*it)->alias == name)
+                ret_vec.push_back((*it));
         }
         return ret_vec;
     }
 
-	void add_printer_counter(const Preset* preset) {
-		for (auto it = presets.begin(); it != presets.end(); ++it) {
-			if ((*it).first->alias == preset->alias)
-				(*it).second += 1;
-		}
-	}
+	
 
 	size_t get_printer_counter(const Preset* preset) {
-		size_t highest = 0;
-		for (auto it : presets) {
-			if (it.first->alias == preset->alias && it.second > highest)
-				highest = it.second;
-		}
-		return highest;
+		for (auto it : compatibility_counter) {
+			if (it.first == preset->alias)
+                return it.second;
+        }
+		return 0;
 	}
 
     const std::string& appconfig_section() const;
     const std::string& get_type(const Preset *preset) const;
     const std::string& get_vendor(const Preset *preset) const;
 	
-
 	template<class F> void filter_presets(const Preset* printer, const std::string& type, const std::string& vendor, F cb) {
 		for (auto preset : presets) {
-			const Preset& prst = *(preset.first);
+			const Preset& prst = *(preset);
 			const Preset& prntr = *printer;
 		      if ((printer == nullptr || is_compatible_with_printer(PresetWithVendorProfile(prst, prst.vendor), PresetWithVendorProfile(prntr, prntr.vendor))) &&
-			    (type.empty() || get_type(preset.first) == type) &&
-				(vendor.empty() || get_vendor(preset.first) == vendor)) {
+			    (type.empty() || get_type(preset) == type) &&
+				(vendor.empty() || get_vendor(preset) == vendor)) {
 
-				cb(preset.first);
+				cb(preset);
 			}
 		}
 	}
@@ -325,11 +319,12 @@ struct PageMaterials: ConfigWizardPage
     Materials *materials;
     StringList *list_printer, *list_type, *list_vendor;
     PresetList *list_profile;
-    int sel_printer_prev, sel_type_prev, sel_vendor_prev;
+    int sel_printer_count_prev, sel_printer_item_prev, sel_type_prev, sel_vendor_prev;
     bool presets_loaded;
 
     wxFlexGridSizer *grid;
-    wxStaticText *compatible_printers;
+    wxHtmlWindow* html_window;
+
     int compatible_printers_width = { 100 };
     std::string empty_printers_label;
     bool first_paint = { false };
@@ -345,8 +340,11 @@ struct PageMaterials: ConfigWizardPage
     void select_material(int i);
     void select_all(bool select);
     void clear();
-    void prepare_compatible_printers_label();
+    void set_compatible_printers_html_window(const std::vector<std::string>& printer_names, bool all_printers = false);
     void clear_compatible_printers_label();
+
+    void sort_list_data(StringList* list, bool add_All_item, bool material_type_ordering);
+    void sort_list_data(PresetList* list);
 
     void on_paint();
     void on_mouse_move_on_profiles(wxMouseEvent& evt);
