@@ -38,6 +38,10 @@
 #include "PhysicalPrinterDialog.hpp"
 #include "UnsavedChangesDialog.hpp"
 
+#ifdef WIN32
+	#include <commctrl.h>
+#endif // WIN32
+
 namespace Slic3r {
 namespace GUI {
 
