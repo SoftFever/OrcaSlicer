@@ -22,6 +22,8 @@
 #include <GL/glew.h>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
+#include <wx/progdlg.h>
+#include <wx/numformatter.h>
 
 #include <array>
 #include <algorithm>
@@ -861,6 +863,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     if (m_moves_count == 0)
         return;
 
+    unsigned int progress_count = 0;
+    static const unsigned int progress_threshold = 1000;
     wxProgressDialog progress_dialog(_L("Generating toolpaths"), "...",
         100, wxGetApp().plater(), wxPD_AUTO_HIDE | wxPD_APP_MODAL);
 
@@ -1243,10 +1247,13 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         if (i == 0)
             continue;
 
-        progress_dialog.Update(int(100.0f * float(i) / (2.0f * float(m_moves_count))),
-            _L("Generating vertex buffer") + " (" + wxNumberFormatter::ToString((long)i, wxNumberFormatter::Style_None) + "/" +
-            wxNumberFormatter::ToString((long)m_moves_count, wxNumberFormatter::Style_None) + ")");
-        progress_dialog.Fit();
+        ++progress_count;
+        if (progress_count % progress_threshold == 0) {
+            progress_dialog.Update(int(100.0f * float(i) / (2.0f * float(m_moves_count))),
+                _L("Generating vertex buffer") + ": " + wxNumberFormatter::ToString(100.0 * double(i) / double(m_moves_count), 0, wxNumberFormatter::Style_None) + "%");
+            progress_dialog.Fit();
+            progress_count = 0;
+        }
 
         const GCodeProcessor::MoveVertex& prev = gcode_result.moves[i - 1];
         const GCodeProcessor::MoveVertex& curr = gcode_result.moves[i];
@@ -1314,10 +1321,13 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         if (i == 0)
             continue;
 
-        progress_dialog.Update(int(100.0f * float(m_moves_count + i) / (2.0f * float(m_moves_count))),
-            _L("Generating index buffers") + " (" + wxNumberFormatter::ToString((long)i, wxNumberFormatter::Style_None) + "/" +
-            wxNumberFormatter::ToString((long)m_moves_count, wxNumberFormatter::Style_None) + ")");
-        progress_dialog.Fit();
+        ++progress_count;
+        if (progress_count % progress_threshold == 0) {
+            progress_dialog.Update(int(100.0f * float(m_moves_count + i) / (2.0f * float(m_moves_count))),
+                _L("Generating index buffers") + ": " + wxNumberFormatter::ToString(100.0 * double(i) / double(m_moves_count), 0, wxNumberFormatter::Style_None) + "%");
+            progress_dialog.Fit();
+            progress_count = 0;
+        }
 
         const GCodeProcessor::MoveVertex& prev = gcode_result.moves[i - 1];
         const GCodeProcessor::MoveVertex& curr = gcode_result.moves[i];

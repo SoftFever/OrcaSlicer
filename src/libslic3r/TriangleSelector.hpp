@@ -17,6 +17,11 @@ enum class EnforcerBlockerType : int8_t;
 // to recursively subdivide the triangles and make the selection finer.
 class TriangleSelector {
 public:
+    enum CursorType {
+        CIRCLE,
+        SPHERE
+    };
+
     void set_edge_limit(float edge_limit);
 
     // Create new object on a TriangleMesh. The referenced mesh must
@@ -29,6 +34,7 @@ public:
                       const Vec3f& source, // camera position (mesh coords)
                       const Vec3f& dir,    // direction of the ray (mesh coords)
                       float radius,        // radius of the cursor
+                      CursorType type,     // current type of cursor
                       EnforcerBlockerType new_state);   // enforcer or blocker?
 
     // Get facets currently in the given state.
@@ -127,6 +133,7 @@ protected:
         Vec3f source;
         Vec3f dir;
         float radius_sqr;
+        CursorType type;
     };
 
     Cursor m_cursor;
