@@ -431,6 +431,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     m_main_grid_sizer->Add(m_check_inch, 1, wxEXPAND);
 
+    m_og->activate();
     m_og->sizer->Clear(true);
     m_og->sizer->Add(m_main_grid_sizer, 1, wxEXPAND | wxALL, border);
 }

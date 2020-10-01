@@ -110,30 +110,16 @@ OptionsGroup::OptionsGroup(	wxWindow* _parent, const wxString& title,
                 m_show_modified_btns(is_tab_opt),
                 staticbox(title!=""), extra_column(extra_clmn)
 {
-    if (staticbox) {
+    /*if (staticbox) {
         stb = new wxStaticBox(_parent, wxID_ANY, _(title));
         if (!wxOSX) stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
         stb->SetFont(wxOSX ? wxGetApp().normal_font() : wxGetApp().bold_font());
     } else
         stb = nullptr;
-    sizer = (staticbox ? new wxStaticBoxSizer(stb, wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
-    auto num_columns = 1U;
-    if (label_width != 0) num_columns++;
-    if (extra_column != nullptr) num_columns++;
-    m_grid_sizer = new wxFlexGridSizer(0, num_columns, 1,0);
-    static_cast<wxFlexGridSizer*>(m_grid_sizer)->SetFlexibleDirection(wxBOTH/*wxHORIZONTAL*/);
-    static_cast<wxFlexGridSizer*>(m_grid_sizer)->AddGrowableCol(label_width == 0 ? 0 : !extra_column ? 1 : 2 );
-#if 0//#ifdef __WXGTK__
-    m_panel = new wxPanel( _parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-    sizer->Fit(m_panel);
-    sizer->Add(m_panel, 0, wxEXPAND | wxALL, wxOSX||!staticbox ? 0: 5);
-#else
-    sizer->Add(m_grid_sizer, 0, wxEXPAND | wxALL, wxOSX||!staticbox ? 0: 5);
-#endif /* __WXGTK__ */
-
+    sizer = (staticbox ? new wxStaticBoxSizer(stb, wxVERTICAL) : new wxBoxSizer(wxVERTICAL));*/
 }
 
-void OptionsGroup::add_undo_buttuns_to_sizer(wxSizer* sizer, const t_field& field)
+void OptionsGroup::add_undo_buttons_to_sizer(wxSizer* sizer, const t_field& field)
 {
 	if (!m_show_modified_btns) {
         field->m_Undo_btn->set_as_hidden();
@@ -147,16 +133,31 @@ void OptionsGroup::add_undo_buttuns_to_sizer(wxSizer* sizer, const t_field& fiel
 	sizer->Add(field->m_Undo_btn, 0, wxALIGN_CENTER_VERTICAL);
 }
 
-void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = nullptr*/) {
-	if ( line.full_width && (
-		 line.sizer  != nullptr				|| 
-		 line.widget != nullptr				||
-		!line.get_extra_widgets().empty() ) 
+void OptionsGroup::append_line(const Line& line)
+{
+	m_lines.emplace_back(line);
+
+	if (line.full_width && (
+		line.widget != nullptr ||
+		!line.get_extra_widgets().empty())
+		)
+		return;
+
+	auto option_set = line.get_options();
+	for (auto opt : option_set) 
+		m_options.emplace(opt.opt_id, opt);
+
+	// add mode value for current line to m_options_mode
+    if (!option_set.empty())
+        m_options_mode.push_back(option_set[0].opt.mode);
+}
+
+void OptionsGroup::activate_line(Line& line)
+{
+	if (line.full_width && (
+		line.widget != nullptr ||
+		!line.get_extra_widgets().empty())
 		) {
-		if (line.sizer != nullptr) {
-            sizer->Add(line.sizer, 0, wxEXPAND | wxALL, wxOSX ? 0 : 15);
-            return;
-        }
         if (line.widget != nullptr) {
             sizer->Add(line.widget(this->ctrl_parent()), 0, wxEXPAND | wxALL, wxOSX ? 0 : 15);
             return;
@@ -175,22 +176,12 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
     }
 
 	auto option_set = line.get_options();
-	for (auto opt : option_set) 
-		m_options.emplace(opt.opt_id, opt);
 
 	// Set sidetext width for a better alignment of options in line
 	// "m_show_modified_btns==true" means that options groups are in tabs
 	if (option_set.size() > 1 && m_show_modified_btns) {
 		sidetext_width = Field::def_width_thinner();
-		/* Temporary commented till UI-review will be completed
-		if (m_show_modified_btns) // means that options groups are in tabs
-		    sublabel_width = Field::def_width();
-	    */
 	}
-
-    // add mode value for current line to m_options_mode
-    if (!option_set.empty())
-        m_options_mode.push_back(option_set[0].opt.mode);
 
 	// if we have a single option with no label, no sidetext just add it directly to sizer
     if (option_set.size() == 1 && label_width == 0 && option_set.front().opt.full_width &&
@@ -210,7 +201,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 		const auto& field = build_field(option);
 
 		auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-		add_undo_buttuns_to_sizer(btn_sizer, field);
+		add_undo_buttons_to_sizer(btn_sizer, field);
 		tmp_sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, 0);
 		if (is_window_field(field))
 			tmp_sizer->Add(field->getWindow(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
@@ -221,16 +212,16 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 
     auto grid_sizer = m_grid_sizer;
 #if 0//#ifdef __WXGTK__
-        m_panel->SetSizer(m_grid_sizer);
-        m_panel->Layout();
+	m_panel->SetSizer(m_grid_sizer);
+	m_panel->Layout();
 #endif /* __WXGTK__ */
 
 	// if we have an extra column, build it
-        if (extra_column)
-        {
-            m_extra_column_item_ptrs.push_back(extra_column(this->ctrl_parent(), line));
-            grid_sizer->Add(m_extra_column_item_ptrs.back(), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 3);
-        }
+	if (extra_column)
+	{
+		m_extra_column_item_ptrs.push_back(extra_column(this->ctrl_parent(), line));
+		grid_sizer->Add(m_extra_column_item_ptrs.back(), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 3);
+	}
 
     // Build a label if we have it
 	wxStaticText* label=nullptr;
@@ -244,8 +235,8 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 			// Text is properly aligned only when Ellipsize is checked.
 			label_style |= staticbox ? 0 : wxST_ELLIPSIZE_END;
 #endif /* __WXGTK__ */
-			label = new wxStaticText(this->ctrl_parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ": "), 
-								wxDefaultPosition, wxSize(label_width*wxGetApp().em_unit(), -1), label_style);
+			label = new wxStaticText(this->ctrl_parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ": "),
+				wxDefaultPosition, wxSize(label_width * wxGetApp().em_unit(), -1), label_style);
 			label->SetBackgroundStyle(wxBG_STYLE_PAINT);
 	        label->SetFont(wxGetApp().normal_font());
 	        label->Wrap(label_width*wxGetApp().em_unit()); // avoid a Linux/GTK bug
@@ -270,16 +261,16 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 			label->SetToolTip(line.label_tooltip);
     }
 
-	if (full_Label != nullptr) 
-        *full_Label = label; // Initiate the pointer to the control of the full label, if we need this one.
-    // If there's a widget, build it and add the result to the sizer.
+	if (line.full_Label != nullptr)
+		*line.full_Label = label; // Initiate the pointer to the control of the full label, if we need this one.
+	// If there's a widget, build it and add the result to the sizer.
 	if (line.widget != nullptr) {
 		auto wgt = line.widget(this->ctrl_parent());
 		// If widget doesn't have label, don't use border
 		grid_sizer->Add(wgt, 0, wxEXPAND | wxBOTTOM | wxTOP, (wxOSX || line.label.IsEmpty()) ? 0 : 5);
 		return;
 	}
-	
+
 	// If we're here, we have more than one option or a single option with sidetext
     // so we need a horizontal sizer to arrange these things
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -291,11 +282,11 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 		const auto& option = option_set.front();
 		const auto& field = build_field(option, label);
 
-		add_undo_buttuns_to_sizer(sizer, field);
-		if (is_window_field(field)) 
-            sizer->Add(field->getWindow(), option.opt.full_width ? 1 : 0, //(option.opt.full_width ? wxEXPAND : 0) |
-            wxBOTTOM | wxTOP | (option.opt.full_width ? wxEXPAND : wxALIGN_CENTER_VERTICAL), (wxOSX || !staticbox) ? 0 : 2);
-		if (is_sizer_field(field)) 
+		add_undo_buttons_to_sizer(sizer, field);
+		if (is_window_field(field))
+			sizer->Add(field->getWindow(), option.opt.full_width ? 1 : 0, //(option.opt.full_width ? wxEXPAND : 0) |
+				wxBOTTOM | wxTOP | (option.opt.full_width ? wxEXPAND : wxALIGN_CENTER_VERTICAL), (wxOSX || !staticbox) ? 0 : 2);
+		if (is_sizer_field(field))
 			sizer->Add(field->getSizer(), 1, /*(*/option.opt.full_width ? wxEXPAND : /*0) |*/ wxALIGN_CENTER_VERTICAL, 0);
 		return;
 	}
@@ -307,8 +298,8 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 		if (!option.label.empty()) {
 //!			To correct translation by context have to use wxGETTEXT_IN_CONTEXT macro from wxWidget 3.1.1
 			wxString str_label = (option.label == L_CONTEXT("Top", "Layers") || option.label == L_CONTEXT("Bottom", "Layers")) ?
-								_CTX(option.label, "Layers") :
-								_(option.label);
+				_CTX(option.label, "Layers") :
+				_(option.label);
 			label = new wxStaticText(this->ctrl_parent(), wxID_ANY, str_label + ": ", wxDefaultPosition, //wxDefaultSize); 
 				wxSize(sublabel_width != -1 ? sublabel_width * wxGetApp().em_unit() : -1, -1), wxALIGN_RIGHT);
 			label->SetBackgroundStyle(wxBG_STYLE_PAINT);
@@ -319,7 +310,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 		// add field
 		const Option& opt_ref = opt;
 		auto& field = build_field(opt_ref, label);
-		add_undo_buttuns_to_sizer(sizer_tmp, field);
+		add_undo_buttons_to_sizer(sizer_tmp, field);
         if (option_set.size() == 1 && option_set.front().opt.full_width)
         {
             const auto v_sizer = new wxBoxSizer(wxVERTICAL);
@@ -330,10 +321,10 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
             break;//return;
         }
 
-		is_sizer_field(field) ? 
+		is_sizer_field(field) ?
 			sizer_tmp->Add(field->getSizer(), 0, wxALIGN_CENTER_VERTICAL, 0) :
 			sizer_tmp->Add(field->getWindow(), 0, wxALIGN_CENTER_VERTICAL, 0);
-		
+
 		// add sidetext if any
 		if (!option.sidetext.empty() || sidetext_width > 0) {
 			auto sidetext = new wxStaticText(	this->ctrl_parent(), wxID_ANY, _(option.sidetext), wxDefaultPosition, 
@@ -368,6 +359,81 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 
 		sizer->Add(extra_widget(this->ctrl_parent())/*!.target<wxWindow>()*/, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);		//! requires verification
 	}
+}
+
+// create all controls for the option group from the m_lines
+bool OptionsGroup::activate(std::function<void()> throw_if_canceled)
+{
+	if (sizer)//(!sizer->IsEmpty())
+		return false;
+
+	try {
+		if (staticbox) {
+			stb = new wxStaticBox(m_parent, wxID_ANY, _(title));
+			if (!wxOSX) stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
+			stb->SetFont(wxOSX ? wxGetApp().normal_font() : wxGetApp().bold_font());
+		}
+		else
+			stb = nullptr;
+		sizer = (staticbox ? new wxStaticBoxSizer(stb, wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
+
+		auto num_columns = 1U;
+		size_t grow_col = 1;
+
+		if (label_width == 0)
+			grow_col = 0;
+		else
+			num_columns++;
+
+		if (extra_column) {
+			num_columns++;
+			grow_col++;
+		}
+
+		m_grid_sizer = new wxFlexGridSizer(0, num_columns, 1, 0);
+		static_cast<wxFlexGridSizer*>(m_grid_sizer)->SetFlexibleDirection(wxBOTH);
+		static_cast<wxFlexGridSizer*>(m_grid_sizer)->AddGrowableCol(grow_col);
+
+		sizer->Add(m_grid_sizer, 0, wxEXPAND | wxALL, wxOSX || !staticbox ? 0 : 5);
+
+		// activate lines
+		for (Line& line: m_lines) {
+			throw_if_canceled();
+			activate_line(line);
+		}
+	} catch (UIBuildCanceled&) {
+		auto p = sizer;
+		this->clear();
+		p->Clear(true);
+		delete p;
+		throw;
+	}
+
+	return true;
+}
+// delete all controls from the option group
+void OptionsGroup::clear()
+{
+	if (!sizer)//(sizer->IsEmpty())
+		return;
+
+//	m_grid_sizer->Clear(true);
+	m_grid_sizer = nullptr;
+
+//	sizer->Clear(true);
+	//if (stb) {
+	//	stb->SetContainingSizer(NULL);
+	//	stb->Destroy();
+	//}
+	sizer = nullptr;
+
+	for (Line& line : m_lines)
+		if(line.full_Label)
+			*line.full_Label = nullptr;
+
+	m_extra_column_item_ptrs.clear();
+	m_near_label_widget_ptrs.clear();
+	m_fields.clear();
 }
 
 Line OptionsGroup::create_single_option_line(const Option& option) const {
@@ -519,15 +585,31 @@ void ConfigOptionsGroup::Show(const bool show)
 #endif /* __WXGTK__ */
 }
 
-bool ConfigOptionsGroup::update_visibility(ConfigOptionMode mode) {
+bool ConfigOptionsGroup::is_visible(ConfigOptionMode mode)
+{
     if (m_options_mode.empty())
         return true;
-    int opt_mode_size = m_options_mode.size();
-    if (m_grid_sizer->GetEffectiveRowsCount() != opt_mode_size &&
-        opt_mode_size == 1)
+    if (m_options_mode.size() == 1)
         return m_options_mode[0] <= mode;
 
-    Show(true);
+    int hidden_row_cnt = 0;
+    for (auto opt_mode : m_options_mode)
+        if (opt_mode > mode)
+            hidden_row_cnt++;
+
+    return hidden_row_cnt != m_options_mode.size();
+}
+
+bool ConfigOptionsGroup::update_visibility(ConfigOptionMode mode)
+{
+	if (m_options_mode.empty() || !m_grid_sizer)
+		return true;
+	int opt_mode_size = m_options_mode.size();
+	if (m_grid_sizer->GetEffectiveRowsCount() != opt_mode_size &&
+		opt_mode_size == 1)
+		return m_options_mode[0] <= mode;
+
+	Show(true);
 
     int coef = 0;
     int hidden_row_cnt = 0;
@@ -568,7 +650,7 @@ void ConfigOptionsGroup::msw_rescale()
     const int em = em_unit(parent());
 
     // rescale width of label column
-    if (!m_options_mode.empty() && label_width > 1)
+    if (m_grid_sizer && !m_options_mode.empty() && label_width > 1)
     {
         const int cols = m_grid_sizer->GetCols();
         const int rows = m_grid_sizer->GetEffectiveRowsCount();

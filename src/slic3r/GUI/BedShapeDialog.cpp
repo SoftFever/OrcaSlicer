@@ -229,9 +229,11 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const Conf
     auto optgroup = init_shape_options_page(BedShape::get_name(BedShape::Type::Rectangular));
     BedShape::append_option_line(optgroup, BedShape::Parameter::RectSize);
     BedShape::append_option_line(optgroup, BedShape::Parameter::RectOrigin);
+    activate_options_page(optgroup);
 
     optgroup = init_shape_options_page(BedShape::get_name(BedShape::Type::Circular));
     BedShape::append_option_line(optgroup, BedShape::Parameter::Diameter);
+    activate_options_page(optgroup);
 
     optgroup = init_shape_options_page(BedShape::get_name(BedShape::Type::Custom));
 
@@ -252,6 +254,7 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const Conf
 		return sizer;
 	};
 	optgroup->append_line(line);
+    activate_options_page(optgroup);
 
     wxPanel* texture_panel = init_texture_panel();
     wxPanel* model_panel = init_model_panel();
@@ -294,10 +297,16 @@ ConfigOptionsGroupShp BedShapePanel::init_shape_options_page(const wxString& tit
     };
 	
     m_optgroups.push_back(optgroup);
-    panel->SetSizerAndFit(optgroup->sizer);
+//    panel->SetSizerAndFit(optgroup->sizer);
     m_shape_options_book->AddPage(panel, title);
 
     return optgroup;
+}
+
+void BedShapePanel::activate_options_page(ConfigOptionsGroupShp options_group)
+{
+    options_group->activate();
+    options_group->parent()->SetSizerAndFit(options_group->sizer);
 }
 
 wxPanel* BedShapePanel::init_texture_panel()
@@ -373,6 +382,7 @@ wxPanel* BedShapePanel::init_texture_panel()
         return sizer;
     };
     optgroup->append_line(line);
+    optgroup->activate();
 
     panel->SetSizerAndFit(optgroup->sizer);
 
@@ -452,6 +462,7 @@ wxPanel* BedShapePanel::init_model_panel()
         return sizer;
     };
     optgroup->append_line(line);
+    optgroup->activate();
 
     panel->SetSizerAndFit(optgroup->sizer);
 

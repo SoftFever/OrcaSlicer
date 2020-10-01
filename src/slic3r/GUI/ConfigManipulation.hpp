@@ -23,25 +23,25 @@ class ConfigManipulation
 
     // function to loading of changed configuration 
     std::function<void()>                                       load_config = nullptr;
-    std::function<Field* (const std::string&, int opt_index)>   get_field = nullptr;
+    std::function<void (const std::string&, bool toggle, int opt_index)>   cb_toggle_field = nullptr;
     // callback to propagation of changed value, if needed 
     std::function<void(const std::string&, const boost::any&)>  cb_value_change = nullptr;
     ModelConfig* local_config = nullptr;
 
 public:
     ConfigManipulation(std::function<void()> load_config,
-        std::function<Field* (const std::string&, int opt_index)> get_field,
+        std::function<void(const std::string&, bool toggle, int opt_index)> cb_toggle_field,
         std::function<void(const std::string&, const boost::any&)>  cb_value_change,
         ModelConfig* local_config = nullptr) :
         load_config(load_config),
-        get_field(get_field),
+        cb_toggle_field(cb_toggle_field),
         cb_value_change(cb_value_change),
         local_config(local_config) {}
     ConfigManipulation() {}
 
     ~ConfigManipulation() {
         load_config = nullptr;
-        get_field = nullptr;
+        cb_toggle_field = nullptr;
         cb_value_change = nullptr;
     }
 

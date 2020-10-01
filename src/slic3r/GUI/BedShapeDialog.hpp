@@ -75,6 +75,7 @@ public:
 
 private:
     ConfigOptionsGroupShp	init_shape_options_page(const wxString& title);
+    void	    activate_options_page(ConfigOptionsGroupShp options_group);
     wxPanel*    init_texture_panel();
     wxPanel*    init_model_panel();
     void		set_shape(const ConfigOptionPoints& points);

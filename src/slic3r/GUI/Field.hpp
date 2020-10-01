@@ -145,7 +145,7 @@ public:
 
     Field(const ConfigOptionDef& opt, const t_config_option_key& id) : m_opt(opt), m_opt_id(id) {};
     Field(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : m_parent(parent), m_opt(opt), m_opt_id(id) {};
-    virtual ~Field() {}
+    virtual ~Field();
 
     /// If you don't know what you are getting back, check both methods for nullptr. 
     virtual wxSizer*	getSizer()  { return nullptr; }

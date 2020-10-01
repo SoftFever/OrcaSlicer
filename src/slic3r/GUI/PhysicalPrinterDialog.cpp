@@ -374,6 +374,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
         m_optgroup->append_single_option_line(option);
     }
 
+    m_optgroup->activate();
     update();
 }
 
@@ -434,6 +435,7 @@ void PhysicalPrinterDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
     const int& em = em_unit();
 
+    m_add_preset_btn->msw_rescale();
     m_printhost_browse_btn->msw_rescale();
     m_printhost_test_btn->msw_rescale();
     if (m_printhost_cafile_browse_btn)
