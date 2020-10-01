@@ -118,7 +118,7 @@ public:
         this->Bind(EVT_DPI_CHANGED_SLICER, [this](const DpiChangedEvent& evt) {
             m_scale_factor = (float)evt.dpi / (float)DPI_DEFAULT;
 
-            m_new_font_point_size = get_default_font_for_dpi(evt.dpi).GetPointSize();
+            m_new_font_point_size = get_default_font_for_dpi(this, evt.dpi).GetPointSize();
 
             if (!m_can_rescale)
                 return;

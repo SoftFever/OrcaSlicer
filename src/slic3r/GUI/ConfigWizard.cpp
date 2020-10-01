@@ -566,19 +566,19 @@ PageMaterials::PageMaterials(ConfigWizard *parent, Materials *materials, wxStrin
     , list_type(new StringList(this))
     , list_vendor(new StringList(this))
     , list_profile(new PresetList(this))
-    , compatible_printers(new wxStaticText(this, wxID_ANY, _(L(""))))
 {
     append_spacer(VERTICAL_SPACING);
 
     const int em = parent->em_unit();
     const int list_h = 30*em;
 
-	list_printer->SetWindowStyle(wxLB_EXTENDED);
 
 	list_printer->SetMinSize(wxSize(23*em, list_h));
     list_type->SetMinSize(wxSize(8*em, list_h));
     list_vendor->SetMinSize(wxSize(13*em, list_h));
     list_profile->SetMinSize(wxSize(23*em, list_h));
+
+
 
     grid = new wxFlexGridSizer(4, em/2, em);
     grid->AddGrowableCol(3, 1);
@@ -603,14 +603,16 @@ PageMaterials::PageMaterials(ConfigWizard *parent, Materials *materials, wxStrin
 
     grid->Add(new wxBoxSizer(wxHORIZONTAL));
     grid->Add(new wxBoxSizer(wxHORIZONTAL));
+    grid->Add(new wxBoxSizer(wxHORIZONTAL));
     grid->Add(btn_sizer, 0, wxALIGN_RIGHT);
-    
-    auto* notes_sizer = new wxBoxSizer(wxHORIZONTAL);
-    notes_sizer->Add(compatible_printers);
-    grid->Add(notes_sizer);
-    
 
     append(grid, 1, wxEXPAND);
+
+    append_spacer(VERTICAL_SPACING);
+
+    html_window = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition,
+        wxSize(60 * em, 20 * em), wxHW_SCROLLBAR_AUTO);
+    append(html_window, 0, wxEXPAND);
 
 	list_printer->Bind(wxEVT_LISTBOX, [this](wxCommandEvent& evt) {
 		update_lists(evt.GetInt(), list_type->GetSelection(), list_vendor->GetSelection());
@@ -627,28 +629,25 @@ PageMaterials::PageMaterials(ConfigWizard *parent, Materials *materials, wxStrin
 
     sel_all->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { select_all(true); });
     sel_none->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { select_all(false); });
-
+    /*
     Bind(wxEVT_PAINT, [this](wxPaintEvent& evt) {on_paint();});
 
     list_profile->Bind(wxEVT_MOTION, [this](wxMouseEvent& evt) { on_mouse_move_on_profiles(evt); });
     list_profile->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& evt) { on_mouse_enter_profiles(evt); });
     list_profile->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& evt) { on_mouse_leave_profiles(evt); });
-    
+    */
     reload_presets();
+    set_compatible_printers_html_window(std::vector<std::string>(), false);
 }
 void PageMaterials::on_paint()
 {
-    if (first_paint) {
-        first_paint = false;
-        prepare_compatible_printers_label();
-    }
 }
 void PageMaterials::on_mouse_move_on_profiles(wxMouseEvent& evt)
 {
     const wxClientDC dc(list_profile);
     const wxPoint pos = evt.GetLogicalPosition(dc);
     int item = list_profile->HitTest(pos);
-    BOOST_LOG_TRIVIAL(error) << "hit test: " << item;
+    //BOOST_LOG_TRIVIAL(debug) << "hit test: " << item;
     on_material_hovered(item);
 }
 void PageMaterials::on_mouse_enter_profiles(wxMouseEvent& evt)
@@ -666,10 +665,11 @@ void PageMaterials::reload_presets()
 	for (const Preset* printer : materials->printers) {
 		list_printer->append(printer->name, &printer->name);
 	}
-
+    sort_list_data(list_printer, true, false);
     if (list_printer->GetCount() > 0) {
         list_printer->SetSelection(0);
-		sel_printer_prev = wxNOT_FOUND;
+		sel_printer_count_prev = wxNOT_FOUND;
+        sel_printer_item_prev = wxNOT_FOUND;
         sel_type_prev = wxNOT_FOUND;
         sel_vendor_prev = wxNOT_FOUND;
         update_lists(0, 0, 0);
@@ -678,34 +678,105 @@ void PageMaterials::reload_presets()
     presets_loaded = true;
 }
 
-void PageMaterials::prepare_compatible_printers_label()
+void PageMaterials::set_compatible_printers_html_window(const std::vector<std::string>& printer_names, bool all_printers)
 {
-    assert(grid->GetColWidths().size() == 4);
-    compatible_printers_width = grid->GetColWidths()[3];
-    empty_printers_label = "Compatible printers:";
-    for (const Preset* printer : materials->printers) {
-        empty_printers_label += "\n";
+    //Slic3r::GUI::wxGetApp().dark_mode()
+    const auto bgr_clr = 
+#if defined(__APPLE__)
+        wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+#else
+        wxSystemSettings::GetColour(wxSYS_COLOUR_MENU);
+#endif
+    const auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
+    const auto text_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+    const auto text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
+    wxString first_line = L"Profiles marked with * are not compatible with all installed printers.";
+    wxString text;
+    if (all_printers) {
+        text = wxString::Format(
+            "<html>"
+            "<style>"
+            "table{border-spacing: 1px;}"
+            "</style>"
+            "<body bgcolor= %s>"
+            "<font color=%s>"
+            "<font size=\"3\">"
+            "%s<br /><br /> All installed printers are compatible with selected profile."
+            "</font>"
+            "</font>"
+            "</body>"
+            "</html>"
+            , bgr_clr_str
+            , text_clr_str
+            , first_line
+            );
+    } else {
+        wxString second_line = L"Compatible printers:";
+        text = wxString::Format(
+            "<html>"
+            "<style>"
+            "table{border-spacing: 1px;}"
+            "</style>"
+            "<body bgcolor= %s>"
+            "<font color=%s>"
+            "<font size=\"3\">"
+            "%s<br /><br />%s"
+            "<table>"
+            "<tr>"
+            , bgr_clr_str
+            , text_clr_str
+            , first_line
+            , second_line);
+        for (int i = 0; i < printer_names.size(); ++i)
+        {
+            text += wxString::Format("<td>%s</td>", boost::nowide::widen(printer_names[i]));
+            if (i % 3 == 2) {
+                text += wxString::Format(
+                    "</tr>"
+                    "<tr>");
+            }
+        }
+        text += wxString::Format(
+            "</tr>"
+            "</table>"
+            "</font>"
+            "</font>"
+            "</body>"
+            "</html>"
+        );
     }
-    clear_compatible_printers_label();
+   
+    wxFont font = get_default_font_for_dpi(this, get_dpi_for_window(this));
+    const int fs = font.GetPointSize();
+    int size[] = { fs,fs,fs,fs,fs,fs,fs };
+    html_window->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
+    html_window->SetPage(text);
 }
 
 void PageMaterials::clear_compatible_printers_label()
 {
-    compatible_printers->SetLabel(boost::nowide::widen(empty_printers_label));
-    compatible_printers->Wrap(compatible_printers_width);
-    Layout();
+    set_compatible_printers_html_window(std::vector<std::string>(), false);
 }
 
 void PageMaterials::on_material_hovered(int sel_material)
 {
-    if ( sel_material == last_hovered_item)
+
+}
+
+void PageMaterials::on_material_highlighted(int sel_material)
+{
+    if (sel_material == last_hovered_item)
         return;
     if (sel_material == -1) {
         clear_compatible_printers_label();
         return;
     }
     last_hovered_item = sel_material;
-    std::string compatible_printers_label = "compatible printers:\n";
+    std::string compatible_printers_label = "Compatible printers:\n";
+    std::vector<std::string> tabs;
+    tabs.push_back(std::string());
+    tabs.push_back(std::string());
+    tabs.push_back(std::string());
     //selected material string
     std::string material_name = list_profile->get_data(sel_material);
     // get material preset
@@ -716,70 +787,16 @@ void PageMaterials::on_material_hovered(int sel_material)
         return;
     }
     //find matching printers
-    bool first = true;
+    std::vector<std::string> names;
     for (const Preset* printer : materials->printers) {
-        bool compatible = false;
         for (const Preset* material : matching_materials) {
             if (is_compatible_with_printer(PresetWithVendorProfile(*material, material->vendor), PresetWithVendorProfile(*printer, printer->vendor))) {
-                if (first)
-                    first = false;
-                else
-                    compatible_printers_label += "\n";//", ";
-                compatible_printers_label += printer->name;
-                compatible = true;
+                names.push_back(printer->name);
                 break;
             }
         }
     }
-    this->compatible_printers->SetLabel(boost::nowide::widen(compatible_printers_label));
-    this->compatible_printers->Wrap(compatible_printers_width);
-}
-
-void PageMaterials::on_material_highlighted(int sel_material)
-{
-	wxWindowUpdateLocker freeze_guard(this);
-	(void)freeze_guard;
-
-    //std::string compatible_printers_label = "compatible printers:\n";
-    //std::string empty_suplement = std::string();
-	//unselect all printers
-	list_printer->SetSelection(wxNOT_FOUND);
-	//selected material string
-	std::string material_name = list_profile->get_data(sel_material);
-    // get material preset
-    const std::vector<const Preset*> matching_materials = materials->get_presets_by_alias(material_name);
-    if (matching_materials.empty())
-        return;
-    //find matching printers
-    //bool first = true;
-    for (const Preset* printer : materials->printers) {
-        bool compatible = false;
-        for (const Preset* material : matching_materials) {
-            if (is_compatible_with_printer(PresetWithVendorProfile(*material, material->vendor), PresetWithVendorProfile(*printer, printer->vendor))) {
-                //select printer
-                int index = list_printer->find(printer->name);
-                list_printer->SetSelection(index);
-                /*if (first) 
-                    first = false;
-                else
-                    compatible_printers_label += "\n";//", ";
-                compatible_printers_label += printer->name;
-                compatible = true;
-                break;*/
-            }
-        } 
-        //if(!compatible)
-        //    empty_suplement += std::string(printer->name.length() + 2, ' ');
-    }
-    // fill rest of label with blanks so it maintains legth
-    //compatible_printers_label += empty_suplement;
-
-    update_lists(0,0,0);
-    list_profile->SetSelection(list_profile->find(material_name));
-
-    //this->compatible_printers->SetLabel(boost::nowide::widen(compatible_printers_label));
-    //this->compatible_printers->Wrap(compatible_printers_width);
-    //Refresh();
+    set_compatible_printers_html_window(names, names.size() == materials->printers.size());
 }
 
 void PageMaterials::update_lists(int sel_printer, int sel_type, int sel_vendor)
@@ -790,7 +807,7 @@ void PageMaterials::update_lists(int sel_printer, int sel_type, int sel_vendor)
 	wxArrayInt sel_printers;
 	int sel_printers_count = list_printer->GetSelections(sel_printers);
 
-	if (sel_printers_count != sel_printer_prev) {
+	if (sel_printers_count != sel_printer_count_prev || (sel_printers_count == 1 && sel_printer_item_prev != sel_printer && sel_printer != -1)) {
         // Refresh type list
 		list_type->Clear();
 		list_type->append(_(L("(All)")), &EMPTY);
@@ -827,6 +844,7 @@ void PageMaterials::update_lists(int sel_printer, int sel_type, int sel_vendor)
                 //clear selection except "ALL"
                 list_printer->SetSelection(wxNOT_FOUND);
                 list_printer->SetSelection(0);
+                sel_printers_count = list_printer->GetSelections(sel_printers);
 
 				materials->filter_presets(nullptr, EMPTY, EMPTY, [this](const Preset* p) {
 					const std::string& type = this->materials->get_type(p);
@@ -835,10 +853,11 @@ void PageMaterials::update_lists(int sel_printer, int sel_type, int sel_vendor)
 					}
 					});
 			}
-
+            sort_list_data(list_type, true, true);
 		}
 
-		sel_printer_prev = sel_printers_count;
+		sel_printer_count_prev = sel_printers_count;
+        sel_printer_item_prev = sel_printer;
 		sel_type = 0;
 		sel_type_prev = wxNOT_FOUND;
 		list_type->SetSelection(sel_type);
@@ -872,6 +891,7 @@ void PageMaterials::update_lists(int sel_printer, int sel_type, int sel_vendor)
 					}
 					});
 			}
+            sort_list_data(list_vendor, true, false);
 		}
 
 		sel_type_prev = sel_type;
@@ -905,7 +925,6 @@ void PageMaterials::update_lists(int sel_printer, int sel_type, int sel_vendor)
 					//size_t printer_counter = materials->get_printer_counter(p);
 					int cur_i = list_profile->find(p->alias);
 					if (cur_i == wxNOT_FOUND)
-						//cur_i = list_profile->append(p->alias + " " + std::to_string(printer_counter)/*+ (omnipresent ? "" : " ONLY SOME PRINTERS")*/, &p->alias);
 						cur_i = list_profile->append(p->alias + (materials->get_omnipresent(p) ? "" : " *"), &p->alias);
 					else
 						was_checked = list_profile->IsChecked(cur_i);
@@ -925,10 +944,101 @@ void PageMaterials::update_lists(int sel_printer, int sel_type, int sel_vendor)
 						wizard_p()->appconfig_new.set(section, p->name, "1");
 					});
 			}
+            sort_list_data(list_profile);
 		}
 
 		sel_vendor_prev = sel_vendor;
 	}
+}
+
+void PageMaterials::sort_list_data(StringList* list, bool add_All_item, bool material_type_ordering)
+{
+// get data from list
+// sort data
+// first should be <all>
+// then prusa profiles
+// then the rest
+// in alphabetical order
+    
+    std::vector<std::reference_wrapper<const std::string>> prusa_profiles;
+    std::vector<std::reference_wrapper<const std::string>> other_profiles;
+    for (int i = 0 ; i < list->size(); ++i) {
+        const std::string& data = list->get_data(i);
+        if (data == EMPTY) // do not sort <all> item
+            continue;
+        if (!material_type_ordering && data.find("Prusa") != std::string::npos)
+            prusa_profiles.push_back(data);
+        else 
+            other_profiles.push_back(data);
+    }
+    if(material_type_ordering) {
+        
+        const ConfigOptionDef* def = print_config_def.get("filament_type");
+        std::vector<std::string>enum_values = def->enum_values;
+        int end_of_sorted = 0;
+        for (size_t vals = 0; vals < enum_values.size(); vals++) {
+            for (size_t profs = end_of_sorted; profs < other_profiles.size(); profs++)
+            {
+                // find instead compare because PET vs PETG
+                if (other_profiles[profs].get().find(enum_values[vals]) != std::string::npos) {
+                    //swap
+                    if(profs != end_of_sorted) {
+                        std::reference_wrapper<const std::string> aux = other_profiles[end_of_sorted];
+                        other_profiles[end_of_sorted] = other_profiles[profs];
+                        other_profiles[profs] = aux;
+                    }
+                    end_of_sorted++;
+                    break;
+                }
+            }
+        }
+    } else {
+        std::sort(prusa_profiles.begin(), prusa_profiles.end(), [](std::reference_wrapper<const std::string> a, std::reference_wrapper<const std::string> b) {
+            return a.get() < b.get();
+            });
+        std::sort(other_profiles.begin(), other_profiles.end(), [](std::reference_wrapper<const std::string> a, std::reference_wrapper<const std::string> b) {
+            return a.get() < b.get();
+            });
+    }
+    
+    list->Clear();
+    if (add_All_item)
+        list->append(_(L("(All)")), &EMPTY);
+    for (const auto& item : prusa_profiles)
+        list->append(item, &const_cast<std::string&>(item.get()));
+    for (const auto& item : other_profiles)
+        list->append(item, &const_cast<std::string&>(item.get()));
+}     
+
+void PageMaterials::sort_list_data(PresetList* list)
+{
+    // sort data
+    // then prusa profiles
+    // then the rest
+    // in alphabetical order
+    std::vector<std::reference_wrapper<const std::string>> prusa_profiles;
+    std::vector<std::reference_wrapper<const std::string>> other_profiles;
+    for (int i = 0; i < list->size(); ++i) {
+        const std::string& data = list->get_data(i);
+        if (data == EMPTY) // do not sort <all> item
+            continue;
+        if (data.find("Prusa") != std::string::npos)
+            prusa_profiles.push_back(data);
+        else
+            other_profiles.push_back(data);
+    }
+    std::sort(prusa_profiles.begin(), prusa_profiles.end(), [](std::reference_wrapper<const std::string> a, std::reference_wrapper<const std::string> b) {
+        return a.get() < b.get();
+        });
+    std::sort(other_profiles.begin(), other_profiles.end(), [](std::reference_wrapper<const std::string> a, std::reference_wrapper<const std::string> b) {
+        return a.get() < b.get();
+        });
+    list->Clear();
+    for (const auto& item : prusa_profiles)
+        list->append(item, &const_cast<std::string&>(item.get()));
+    for (const auto& item : other_profiles)
+        list->append(item, &const_cast<std::string&>(item.get()));
+
 }
 
 void PageMaterials::select_material(int i)
@@ -959,7 +1069,8 @@ void PageMaterials::clear()
     list_type->Clear();
     list_vendor->Clear();
     list_profile->Clear();
-	sel_printer_prev = wxNOT_FOUND;
+	sel_printer_count_prev = wxNOT_FOUND;
+    sel_printer_item_prev = wxNOT_FOUND;
     sel_type_prev = wxNOT_FOUND;
     sel_vendor_prev = wxNOT_FOUND;
     presets_loaded = false;
@@ -1546,7 +1657,7 @@ const std::string Materials::UNKNOWN = "(Unknown)";
 
 void Materials::push(const Preset *preset)
 {
-    presets.emplace_back(preset, 0);
+    presets.emplace_back(preset);
     types.insert(technology & T_FFF
         ? Materials::get_filament_type(preset)
         : Materials::get_material_type(preset));
@@ -1562,6 +1673,7 @@ void Materials::clear()
     presets.clear();
     types.clear();
 	printers.clear();
+    compatibility_counter.clear();
 }
 
 const std::string& Materials::appconfig_section() const
@@ -1855,12 +1967,44 @@ void ConfigWizard::priv::update_materials(Technology technology)
 							if (!filament.alias.empty())
 								aliases_fff[filament.alias].insert(filament.name); 
 						} 
-						filaments.add_printer_counter(&filament);
 						filaments.add_printer(&printer);
                     }
 				}
 				
             }
+        }
+        // count compatible printers
+        for (const auto& preset : filaments.presets) {
+
+            const auto filter = [preset](const std::pair<std::string, size_t> element) {
+                return preset->alias == element.first;
+            };
+            if (std::find_if(filaments.compatibility_counter.begin(), filaments.compatibility_counter.end(), filter) != filaments.compatibility_counter.end()) {
+                continue;
+            }
+            std::vector<size_t> idx_with_same_alias;
+            for (size_t i = 0; i < filaments.presets.size(); ++i) {
+                if (preset->alias == filaments.presets[i]->alias)
+                    idx_with_same_alias.push_back(i);
+            }
+            size_t counter = 0;
+            for (const auto& printer : filaments.printers) {
+                if (!(*printer).is_visible || (*printer).printer_technology() != ptFFF)
+                    continue;
+                bool compatible = false;
+                // Test otrher materials with same alias
+                for (size_t i = 0; i < idx_with_same_alias.size() && !compatible; ++i) {
+                    const Preset& prst = *(filaments.presets[idx_with_same_alias[i]]);
+                    const Preset& prntr = *printer;
+                    if (is_compatible_with_printer(PresetWithVendorProfile(prst, prst.vendor), PresetWithVendorProfile(prntr, prntr.vendor))) {
+                        compatible = true;
+                        break;
+                    }
+                }
+                if (compatible)
+                    counter++;
+            }
+            filaments.compatibility_counter.emplace_back(preset->alias, counter);
         }
     }
 
@@ -1887,11 +2031,43 @@ void ConfigWizard::priv::update_materials(Technology technology)
                             if (!material.alias.empty())
                                 aliases_sla[material.alias].insert(material.name);
                         }
-                        sla_materials.add_printer_counter(&material);
                         sla_materials.add_printer(&printer);
                     }
                 }
             }
+        }
+        // count compatible printers        
+        for (const auto& preset : sla_materials.presets) {
+            
+            const auto filter = [preset](const std::pair<std::string, size_t> element) {
+                return preset->alias == element.first;
+            };
+            if (std::find_if(sla_materials.compatibility_counter.begin(), sla_materials.compatibility_counter.end(), filter) != sla_materials.compatibility_counter.end()) {
+                continue;
+            }
+            std::vector<size_t> idx_with_same_alias;
+            for (size_t i = 0; i < sla_materials.presets.size(); ++i) {
+                if(preset->alias == sla_materials.presets[i]->alias)
+                    idx_with_same_alias.push_back(i);
+            }
+            size_t counter = 0;
+            for (const auto& printer : sla_materials.printers) {
+                if (!(*printer).is_visible || (*printer).printer_technology() != ptSLA)
+                    continue;
+                bool compatible = false;
+                // Test otrher materials with same alias
+                for (size_t i = 0; i < idx_with_same_alias.size() && !compatible; ++i) {
+                    const Preset& prst = *(sla_materials.presets[idx_with_same_alias[i]]);
+                    const Preset& prntr = *printer;
+                    if (is_compatible_with_printer(PresetWithVendorProfile(prst, prst.vendor), PresetWithVendorProfile(prntr, prntr.vendor))) {
+                        compatible = true;
+                        break;
+                    }
+                }
+                if (compatible)
+                    counter++;
+            }
+            sla_materials.compatibility_counter.emplace_back(preset->alias, counter);
         }
     }
 }

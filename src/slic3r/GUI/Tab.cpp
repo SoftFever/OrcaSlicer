@@ -38,6 +38,10 @@
 #include "PhysicalPrinterDialog.hpp"
 #include "UnsavedChangesDialog.hpp"
 
+#ifdef WIN32
+	#include <commctrl.h>
+#endif // WIN32
+
 namespace Slic3r {
 namespace GUI {
 
@@ -431,6 +435,31 @@ void Tab::OnActivate()
     Fit();
     m_size_move *= -1;
 #endif // __WXOSX__
+
+#ifdef __WXMSW__
+    // Workaround for tooltips over Tree Controls displayed over excessively long
+    // tree control items, stealing the window focus.
+    //
+    // In case the Tab was reparented from the MainFrame to the floating dialog,
+    // the tooltip created by the Tree Control before reparenting is not reparented, 
+    // but it still points to the MainFrame. If the tooltip pops up, the MainFrame 
+    // is incorrectly focussed, stealing focus from the floating dialog.
+    //
+    // The workaround is to delete the tooltip control.
+    // Vojtech tried to reparent the tooltip control, but it did not work,
+    // and if the Tab was later reparented back to MainFrame, the tooltip was displayed
+    // at an incorrect position, therefore it is safer to just discard the tooltip control
+    // altogether.
+    HWND hwnd_tt = TreeView_GetToolTips(m_treectrl->GetHandle());
+    if (hwnd_tt) {
+	    HWND hwnd_toplevel 	= find_toplevel_parent(m_treectrl)->GetHandle();
+	    HWND hwnd_parent 	= ::GetParent(hwnd_tt);
+	    if (hwnd_parent != hwnd_toplevel) {
+	    	::DestroyWindow(hwnd_tt);
+			TreeView_SetToolTips(m_treectrl->GetHandle(), nullptr);
+	    }
+    }
+#endif
 
     // create controls on active page
     activate_selected_page([](){});
