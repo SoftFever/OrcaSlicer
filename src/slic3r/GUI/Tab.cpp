@@ -3471,10 +3471,8 @@ bool Tab::tree_sel_change_delayed()
         //for (auto& el : m_pages)
         //    el.get()->Hide();
 
-        if (wxGetApp().mainframe->is_active_and_shown_tab(this)) {
+        if (wxGetApp().mainframe!=nullptr && wxGetApp().mainframe->is_active_and_shown_tab(this))
             activate_selected_page(throw_if_canceled);
-    //        m_active_page->Show();
-        }
 
         #ifdef __linux__
             no_updates.reset(nullptr);

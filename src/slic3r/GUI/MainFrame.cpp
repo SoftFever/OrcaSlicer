@@ -668,8 +668,6 @@ void MainFrame::add_created_tab(Tab* panel)
 
 bool MainFrame::is_active_and_shown_tab(Tab* tab)
 {
-    if (!this)
-        return false;
     int page_id = m_tabpanel->FindPage(tab);
 
     if (m_tabpanel->GetSelection() != page_id)

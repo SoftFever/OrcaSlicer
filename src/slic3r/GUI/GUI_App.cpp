@@ -634,7 +634,6 @@ bool GUI_App::OnInit()
 
 bool GUI_App::on_init_inner()
 {
-    TaskTimer timer("on_init");
     // Verify resources path
     const wxString resources_dir = from_u8(Slic3r::resources_dir());
     wxCHECK_MSG(wxDirExists(resources_dir), false,
@@ -758,8 +757,6 @@ bool GUI_App::on_init_inner()
     if (scrn)
 #endif // ENABLE_GCODE_VIEWER
         scrn->SetText(_L("Creating settings tabs..."));
-
-    TaskTimer timer2("Creating settings tabs");
 
     mainframe = new MainFrame();
     // hide settings tabs after first Layout
