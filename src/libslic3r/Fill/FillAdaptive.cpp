@@ -14,10 +14,17 @@
 #include <cstdlib>
 #include <cmath>
 #include <algorithm>
+#include <numeric>
 
 // Boost pool: Don't use mutexes to synchronize memory allocation.
 #define BOOST_POOL_NO_MT
 #include <boost/pool/object_pool.hpp>
+
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/point.hpp>
+#include <boost/geometry/geometries/segment.hpp>
+#include <boost/geometry/index/rtree.hpp>
+
 
 namespace Slic3r {
 namespace FillAdaptive {
@@ -475,7 +482,7 @@ static void generate_infill_lines_recursive(
         Line  new_line(Point::new_scale(from), Point::new_scale(to));
         if (last_line.a.x() == std::numeric_limits<coord_t>::max()) {
             last_line.a = new_line.a;
-        } else if ((new_line.a - last_line.b).cwiseAbs().maxCoeff() > 300) { // SCALED_EPSILON is 100 and it is not enough
+        } else if ((new_line.a - last_line.b).cwiseAbs().maxCoeff() > 1000) { // SCALED_EPSILON is 100 and it is not enough
             context.output_lines.emplace_back(last_line);
             last_line.a = new_line.a;
         }
@@ -546,6 +553,234 @@ static void export_infill_lines_to_svg(const ExPolygon &expoly, const Polylines 
 }
 #endif /* ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT */
 
+static Matrix2d rotation_matrix_from_vector(const Point &vector)
+{
+    Matrix2d rotation;
+    rotation.block<1, 2>(0, 0) = vector.cast<double>() / vector.cast<double>().norm();
+    rotation(1, 0)             = -rotation(0, 1);
+    rotation(1, 1)             = rotation(0, 0);
+
+    return rotation;
+}
+
+struct Intersection
+{
+    size_t    closest_line_idx;
+    Line      closest_line;
+    Point     closest_point;
+    size_t    intersect_pl_idx;
+    Polyline *intersect_pl;
+    Line      intersect_line;
+    bool      forward;
+    bool      used = false;
+
+    Intersection(const size_t closest_line_idx,
+                 const Line & closest_line,
+                 const Point &closest_point,
+                 size_t       intersect_pl_idx,
+                 Polyline *   intersect_pl,
+                 const Line & intersect_line,
+                 bool         forward)
+        : closest_line_idx(closest_line_idx)
+        , closest_line(closest_line)
+        , closest_point(closest_point)
+        , intersect_pl_idx(intersect_pl_idx)
+        , intersect_pl(intersect_pl)
+        , intersect_line(intersect_line)
+        , forward(forward){};
+};
+
+static inline Intersection *get_nearest_intersection(std::vector<std::pair<Intersection, double>> &intersect_line, const size_t first_idx)
+{
+    if (first_idx == 0)
+        return &intersect_line[first_idx + 1].first;
+    else if (first_idx == (intersect_line.size() - 1))
+        return &intersect_line[first_idx - 1].first;
+    else if ((intersect_line[first_idx].second - intersect_line[first_idx - 1].second) < (intersect_line[first_idx + 1].second - intersect_line[first_idx].second))
+        return &intersect_line[first_idx - 1].first;
+    else
+        return &intersect_line[first_idx + 1].first;
+};
+
+static Line create_offset_line(const Line &line_to_offset, const Intersection &intersection, const double scaled_spacing)
+{
+    Matrix2d rotation          = rotation_matrix_from_vector(line_to_offset.vector());
+    Vec2d    offset_vector     = ((scaled_spacing / 2.) * line_to_offset.normal().cast<double>().normalized());
+    Vec2d    offset_line_point = line_to_offset.a.cast<double>();
+    Vec2d    furthest_point    = (intersection.forward ? intersection.intersect_line.b : intersection.intersect_line.a).cast<double>();
+
+    if ((rotation * furthest_point).y() >= (rotation * offset_line_point).y()) offset_vector *= -1;
+
+    Line  offset_line    = line_to_offset;
+    Point line_extension = (1000000. * line_to_offset.vector().cast<double>().normalized()).cast<coord_t>();
+
+    offset_line.translate(offset_vector.x(), offset_vector.y());
+    offset_line.a -= line_extension;
+    offset_line.b += line_extension;
+
+    return offset_line;
+};
+
+static void connect_lines_with_hooks(Polylines &&lines, Polylines &polylines_out, const double spacing, const int hook_length)
+{
+    namespace bgm = boost::geometry::model;
+    namespace bgi = boost::geometry::index;
+
+    using rtree_point_t   = bgm::point<coord_t, 2, boost::geometry::cs::cartesian>;
+    using rtree_segment_t = bgm::segment<rtree_point_t>;
+    using rtree_t         = bgi::rtree<std::pair<rtree_segment_t, size_t>, bgi::rstar<16, 4>>;
+
+    std::vector<std::pair<rtree_segment_t, size_t>> rtee_segments;
+    size_t                                          poly_idx = 0;
+    for (const Polyline &poly : lines) {
+        rtee_segments.emplace_back(rtree_segment_t(rtree_point_t(poly.points.front().x(), poly.points.front().y()),
+                                                   rtree_point_t(poly.points.back().x(), poly.points.back().y())),
+                                   poly_idx);
+        ++poly_idx;
+    }
+    rtree_t rtree(rtee_segments.begin(), rtee_segments.end());
+
+    std::vector<Intersection> intersections;
+    for (Polyline &line : lines) {
+        Point                                           front_point = line.points.front();
+        Point                                           back_point  = line.points.back();
+        std::vector<std::pair<rtree_segment_t, size_t>> closest;
+
+        closest.reserve(2);
+        rtree.query(bgi::nearest(rtree_point_t(front_point.x(), front_point.y()), 2), std::back_inserter(closest));
+        if (((Line) lines[closest[0].second]).distance_to(front_point) <= 1000)
+            intersections.emplace_back(closest[0].second, (Line) lines[closest[0].second], front_point, &line - lines.data(), &line, (Line) line, true);
+
+        closest.clear();
+        closest.reserve(2);
+        rtree.query(bgi::nearest(rtree_point_t(back_point.x(), back_point.y()), 2), std::back_inserter(closest));
+        if (((Line) lines[closest[0].second]).distance_to(back_point) <= 1000)
+            intersections.emplace_back(closest[0].second, (Line) lines[closest[0].second], back_point, &line - lines.data(), &line, (Line) line, false);
+    }
+
+    std::sort(intersections.begin(), intersections.end(),
+              [](const Intersection &i1, const Intersection &i2) { return i1.closest_line_idx < i2.closest_line_idx; });
+
+    std::vector<size_t> merged_with(lines.size());
+    std::iota(merged_with.begin(), merged_with.end(), 0);
+
+    auto get_merged_index = [&merged_with](size_t polyline_idx) {
+        for (size_t last = polyline_idx;;) {
+            size_t lower = merged_with[last];
+            if (lower == last) {
+                merged_with[polyline_idx] = lower;
+                polyline_idx              = lower;
+                break;
+            }
+            last = lower;
+        }
+
+        return polyline_idx;
+    };
+
+    for (size_t min_idx = 0; min_idx < intersections.size(); ++min_idx) {
+        std::vector<std::pair<Intersection, double>> intersect_line;
+        Matrix2d                                     rotation = rotation_matrix_from_vector(intersections[min_idx].closest_line.vector());
+        intersect_line.emplace_back(intersections[min_idx], (rotation * intersections[min_idx].closest_point.cast<double>()).x());
+
+        for (size_t max_idx = min_idx + 1; max_idx < intersections.size(); ++max_idx) {
+            if (intersections[min_idx].closest_line_idx == intersections[max_idx].closest_line_idx) {
+                intersect_line.emplace_back(intersections[max_idx], (rotation * intersections[max_idx].closest_point.cast<double>()).x());
+                min_idx = max_idx;
+            }
+        }
+
+        if (intersect_line.size() <= 1) continue;
+
+        std::sort(intersect_line.begin(), intersect_line.end(), [](const auto &i1, const auto &i2) { return i1.second < i2.second; });
+
+        for (size_t first_idx = 0; first_idx < intersect_line.size(); ++first_idx) {
+            Intersection &first_i   = intersect_line[first_idx].first;
+            Intersection &nearest_i = *get_nearest_intersection(intersect_line, first_idx);
+
+            if (first_i.used || first_i.intersect_pl->points.size() == 0) continue;
+
+            Line   intersection_line(first_i.closest_point, nearest_i.closest_point);
+            Point  hook_vector              = (hook_length * intersection_line.vector().cast<double>().normalized()).cast<coord_t>();
+            Line   offset_line              = create_offset_line(intersection_line, first_i, scale_(spacing));
+            double intersection_line_length = intersection_line.length();
+
+            {
+                nearest_i.intersect_pl_idx = get_merged_index(nearest_i.intersect_pl_idx);
+                nearest_i.intersect_pl     = &lines[nearest_i.intersect_pl_idx];
+
+                if (!nearest_i.used && nearest_i.intersect_pl->points.size() != 0)
+                    nearest_i.forward = (nearest_i.intersect_pl->points.front() == nearest_i.closest_point);
+            }
+
+            Point first_i_point, nearest_i_point;
+            if (first_i.intersect_line.intersection(offset_line, &first_i_point) &&
+                nearest_i.intersect_line.intersection(offset_line, &nearest_i_point)) {
+                if (!nearest_i.used && nearest_i.intersect_pl->points.size() != 0 && intersection_line_length <= 2 * hook_length) {
+                    if (first_i.intersect_pl_idx == nearest_i.intersect_pl_idx) {
+                        if (!first_i.forward) { std::swap(first_i_point, nearest_i_point); }
+
+                        first_i.intersect_pl->points.front() = first_i_point;
+                        first_i.intersect_pl->points.back()  = nearest_i_point;
+                        first_i.intersect_pl->points.emplace(first_i.intersect_pl->points.begin(), nearest_i_point);
+                    } else {
+                        Points merge_polyline_points;
+                        size_t first_polyline_lenght = first_i.intersect_pl->points.size();
+                        size_t short_polyline_lenght = nearest_i.intersect_pl->points.size();
+                        merge_polyline_points.reserve(first_polyline_lenght + short_polyline_lenght);
+
+                        if (first_i.forward) {
+                            if (nearest_i.forward)
+                                for (auto it = nearest_i.intersect_pl->points.rbegin(); it != nearest_i.intersect_pl->points.rend(); ++it)
+                                    merge_polyline_points.emplace_back(*it);
+                            else
+                                for (auto it = nearest_i.intersect_pl->points.begin(); it != nearest_i.intersect_pl->points.end(); ++it)
+                                    merge_polyline_points.emplace_back(*it);
+
+                            append(merge_polyline_points, std::move(first_i.intersect_pl->points));
+                            merge_polyline_points[short_polyline_lenght - 1] = nearest_i_point;
+                            merge_polyline_points[short_polyline_lenght]     = first_i_point;
+                        } else {
+                            append(merge_polyline_points, std::move(first_i.intersect_pl->points));
+                            if (nearest_i.forward)
+                                for (auto it = nearest_i.intersect_pl->points.begin(); it != nearest_i.intersect_pl->points.end(); ++it)
+                                    merge_polyline_points.emplace_back(*it);
+                            else
+                                for (auto it = nearest_i.intersect_pl->points.rbegin(); it != nearest_i.intersect_pl->points.rend(); ++it)
+                                    merge_polyline_points.emplace_back(*it);
+
+                            merge_polyline_points[first_polyline_lenght - 1] = first_i_point;
+                            merge_polyline_points[first_polyline_lenght]     = nearest_i_point;
+                        }
+
+                        merged_with[nearest_i.intersect_pl_idx] = merged_with[first_i.intersect_pl_idx];
+
+                        nearest_i.intersect_pl->points.clear();
+                        first_i.intersect_pl->points = merge_polyline_points;
+                    }
+
+                    first_i.used   = true;
+                    nearest_i.used = true;
+                } else {
+                    if (first_i.forward) {
+                        first_i.intersect_pl->points.front() = first_i_point;
+                        first_i.intersect_pl->points.emplace(first_i.intersect_pl->points.begin(), first_i_point + hook_vector);
+                    } else {
+                        first_i.intersect_pl->points.back() = first_i_point;
+                        first_i.intersect_pl->points.emplace_back(first_i_point + hook_vector);
+                    }
+
+                    first_i.used = true;
+                }
+            }
+        }
+    }
+
+    polylines_out.reserve(polylines_out.size() + std::count_if(lines.begin(), lines.end(), [](const Polyline &pl) { return !pl.empty(); }));
+    for (Polyline &pl : lines)
+        if (!pl.empty()) polylines_out.emplace_back(std::move(pl));
+}
+
 void Filler::_fill_surface_single(
     const FillParams &             params,
     unsigned int                   thickness_layers,
@@ -591,6 +826,10 @@ void Filler::_fill_surface_single(
     // Crop all polylines
     all_polylines = intersection_pl(std::move(all_polylines), to_polygons(expolygon));
 
+    // After intersection_pl some polylines with only one line are split into more lines
+    for (Polyline &polyline : all_polylines)
+        if (polyline.points.size() > 2) polyline = Polyline(polyline.points.front(), polyline.points.back());
+
 #ifdef ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT
     {
         static int iRun = 0;
@@ -598,10 +837,13 @@ void Filler::_fill_surface_single(
     }
 #endif /* ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT */
 
-    if (params.dont_connect || all_polylines.size() <= 1)
-        append(polylines_out, std::move(all_polylines));
+    Polylines all_polylines_with_hooks;
+    connect_lines_with_hooks(std::move(all_polylines), all_polylines_with_hooks, this->spacing, int(scale_(2.)));
+
+    if (params.dont_connect || all_polylines_with_hooks.size() <= 1)
+        append(polylines_out, std::move(all_polylines_with_hooks));
     else
-        connect_infill(chain_polylines(std::move(all_polylines)), expolygon, polylines_out, this->spacing, params);
+        connect_infill(chain_polylines(std::move(all_polylines_with_hooks)), expolygon, polylines_out, this->spacing, params);
 
 #ifdef ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT
     {
