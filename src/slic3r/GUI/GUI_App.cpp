@@ -696,6 +696,7 @@ bool GUI_App::on_init_inner()
         // create splash screen with updated bmp
         scrn = new SplashScreen(bmp.IsOk() ? bmp : create_scaled_bitmap("prusa_slicer_logo", nullptr, 400), 
                                 wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 4000, splashscreen_pos, is_decorated);
+        wxYield();
         scrn->SetText(_L("Loading configuration..."));
     }
 
