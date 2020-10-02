@@ -89,10 +89,26 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     // Load the icon either from the exe, or from the ico file.
 #if _WIN32
     {
-
+#if ENABLE_GCODE_DRAG_AND_DROP_GCODE_FILES
+        switch (wxGetApp().get_app_mode())
+        {
+        default:
+        case GUI_App::EAppMode::Editor:
+        {
+            SetIcon(wxIcon(Slic3r::var("PrusaSlicer.ico"), wxBITMAP_TYPE_ICO));
+            break;
+        }
+        case GUI_App::EAppMode::GCodeViewer:
+        {
+            SetIcon(wxIcon(Slic3r::var("PrusaSlicer-gcodeviewer.ico"), wxBITMAP_TYPE_ICO));
+            break;
+        }
+        }
+#else
         TCHAR szExeFileName[MAX_PATH];
         GetModuleFileName(nullptr, szExeFileName, MAX_PATH);
         SetIcon(wxIcon(szExeFileName, wxBITMAP_TYPE_ICO));
+#endif // ENABLE_GCODE_DRAG_AND_DROP_GCODE_FILES
     }
 #else
 #if ENABLE_GCODE_VIEWER
@@ -1965,7 +1981,6 @@ SettingsDialog::SettingsDialog(MainFrame* mainframe)
     // Load the icon either from the exe, or from the ico file.
 #if _WIN32
     {
-
         TCHAR szExeFileName[MAX_PATH];
         GetModuleFileName(nullptr, szExeFileName, MAX_PATH);
         SetIcon(wxIcon(szExeFileName, wxBITMAP_TYPE_ICO));
