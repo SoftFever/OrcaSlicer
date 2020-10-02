@@ -678,7 +678,7 @@ bool GUI_App::on_init_inner()
     SplashScreen* scrn = nullptr;
     if (app_config->get("show_splash_screen") == "1")
     {
-        wxBitmap bmp = SplashScreen::MakeBitmap(wxBitmap(from_u8(var("splashscreen.jpg")), wxBITMAP_TYPE_JPEG));
+        wxBitmap bmp = SplashScreen::MakeBitmap(wxBitmap(from_u8(var(is_editor() ? "splashscreen.jpg" : "splashscreen-gcodepreview.jpg")), wxBITMAP_TYPE_JPEG));
 
         // Detect position (display) to show the splash screen
         // Now this position is equal to the mainframe position
