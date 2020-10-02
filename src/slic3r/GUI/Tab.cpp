@@ -2510,6 +2510,7 @@ void TabPrinter::build_sla()
 
     build_preset_description_line(optgroup.get());
 }
+
 /*
 void TabPrinter::update_serial_ports()
 {
@@ -2556,7 +2557,18 @@ PageShp TabPrinter::build_kinematics_page()
 {
     auto page = add_options_page(L("Machine limits"), "cog", true);
 
-    if (m_use_silent_mode)	{
+    auto optgroup = page->new_optgroup(L("General"));
+    {
+	    optgroup->append_single_option_line("machine_limits_usage");
+        Line line { "", "" };
+        line.full_width = 1;
+        line.widget = [this](wxWindow* parent) {
+            return description_line_widget(parent, &m_machine_limits_description_line);
+        };
+        optgroup->append_line(line);
+    }
+
+    if (m_use_silent_mode) {
         // Legend for OptionsGroups
         auto optgroup = page->new_optgroup("");
         optgroup->set_show_modified_btns_val(false);
@@ -2583,7 +2595,7 @@ PageShp TabPrinter::build_kinematics_page()
     }
 
     std::vector<std::string> axes{ "x", "y", "z", "e" };
-    auto optgroup = page->new_optgroup(L("Maximum feedrates"));
+    optgroup = page->new_optgroup(L("Maximum feedrates"));
         for (const std::string &axis : axes)	{
             append_option_line(optgroup, "machine_max_feedrate_" + axis);
         }
@@ -2953,6 +2965,17 @@ void TabPrinter::toggle_options()
         toggle_option("retract_restart_extra_toolchange", have_multiple_extruders && toolchange_retraction, i);
     }
 
+    if (m_active_page->title() == "Machine limits") {
+        assert(m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlin);
+		const auto *machine_limits_usage = m_config->option<ConfigOptionEnum<MachineLimitsUsage>>("machine_limits_usage");
+		bool enabled = machine_limits_usage->value != MachineLimitsUsage::Ignore;
+        bool silent_mode = m_config->opt_bool("silent_mode");
+        int  max_field = silent_mode ? 2 : 1;
+    	for (const std::string &opt : Preset::machine_limits_options())
+            for (int i = 0; i < max_field; ++ i)
+	            toggle_option(opt, enabled, i);
+        update_machine_limits_description(machine_limits_usage->value);
+    }
 }
 
 void TabPrinter::update()
@@ -3845,6 +3868,25 @@ void TabPrinter::apply_extruder_cnt_from_cache()
         m_presets->get_edited_preset().set_num_extruders(m_cache_extruder_count);
         m_cache_extruder_count = 0;
     }
+}
+
+void TabPrinter::update_machine_limits_description(const MachineLimitsUsage usage)
+{
+	wxString text;
+	switch (usage) {
+	case MachineLimitsUsage::EmitToGCode:
+		text = _L("Machine limits will be emitted to G-code and used to estimate print time.");
+		break;
+	case MachineLimitsUsage::TimeEstimateOnly:
+		text = _L("Machine limits will NOT be emitted to G-code, however they will be used to estimate print time, \
+			which may herefore not be accurate as the printer may apply a different set of machine limits.");
+		break;
+	case MachineLimitsUsage::Ignore:
+		text = _L("Machine limits are not set, therefore the print time estimate may not be accurate.");
+		break;
+	default: assert(false);
+	}
+    m_machine_limits_description_line->SetText(text);
 }
 
 void Tab::compatible_widget_reload(PresetDependencies &deps)

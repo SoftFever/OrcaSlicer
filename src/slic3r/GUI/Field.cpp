@@ -1084,6 +1084,8 @@ boost::any& Choice::get_value()
 			m_value = static_cast<IroningType>(ret_enum);
 		else if (m_opt_id.compare("gcode_flavor") == 0)
 			m_value = static_cast<GCodeFlavor>(ret_enum);
+		else if (m_opt_id.compare("machine_limits_usage") == 0)
+			m_value = static_cast<MachineLimitsUsage>(ret_enum);
 		else if (m_opt_id.compare("support_material_pattern") == 0)
 			m_value = static_cast<SupportMaterialPattern>(ret_enum);
 		else if (m_opt_id.compare("seam_position") == 0)

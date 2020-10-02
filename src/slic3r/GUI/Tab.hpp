@@ -376,10 +376,6 @@ public:
         Tab(parent, _(L("Print Settings")), Slic3r::Preset::TYPE_PRINT) {}
 	~TabPrint() {}
 
-	ogStaticText*	m_recommended_thin_wall_thickness_description_line = nullptr;
-	ogStaticText*	m_top_bottom_shell_thickness_explanation = nullptr;
-	bool			m_support_material_overhangs_queried = false;
-
 	void		build() override;
 	void		reload_config() override;
 	void		update_description_lines() override;
@@ -388,10 +384,16 @@ public:
 //	void		OnActivate() override;
 	void		clear_pages() override;
     bool 		supports_printer_technology(const PrinterTechnology tech) override { return tech == ptFFF; }
+
+private:
+	ogStaticText*	m_recommended_thin_wall_thickness_description_line = nullptr;
+	ogStaticText*	m_top_bottom_shell_thickness_explanation = nullptr;
+	bool			m_support_material_overhangs_queried = false;
 };
 
 class TabFilament : public Tab
 {
+private:
 	ogStaticText*	m_volumetric_speed_description_line {nullptr};
 	ogStaticText*	m_cooling_description_line {nullptr};
 
@@ -418,10 +420,13 @@ public:
 
 class TabPrinter : public Tab
 {
+private:
 	bool		m_has_single_extruder_MM_page = false;
 	bool		m_use_silent_mode = false;
 	void		append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key);
 	bool		m_rebuild_kinematics_page = false;
+	ogStaticText* m_machine_limits_description_line {nullptr};
+	void 		update_machine_limits_description(const MachineLimitsUsage usage);
 
     std::vector<PageShp>			m_pages_fff;
     std::vector<PageShp>			m_pages_sla;

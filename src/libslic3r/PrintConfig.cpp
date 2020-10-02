@@ -1201,6 +1201,21 @@ void PrintConfigDef::init_fff_params()
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionBool(true));
 
+    def = this->add("machine_limits_usage", coEnum);
+    def->label = L("How to apply");
+    def->full_label = L("Purpose of Machine Limits");
+    def->category = L("Machine limits");
+    def->tooltip = L("How to apply the Machine Limits");
+    def->enum_keys_map = &ConfigOptionEnum<MachineLimitsUsage>::get_enum_values();
+    def->enum_values.push_back("emit_to_gcode");
+    def->enum_values.push_back("time_estimate_only");
+    def->enum_values.push_back("ignore");
+    def->enum_labels.push_back("Emit to G-code");
+    def->enum_labels.push_back("Use for time estimate");
+    def->enum_labels.push_back("Ignore");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<MachineLimitsUsage>(MachineLimitsUsage::EmitToGCode));
+
     {
         struct AxisDefault {
             std::string         name;

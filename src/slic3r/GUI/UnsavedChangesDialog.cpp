@@ -809,6 +809,8 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
             return get_string_from_enum<InfillPattern>(opt_key, config, true);
         if (opt_key == "gcode_flavor")
             return get_string_from_enum<GCodeFlavor>(opt_key, config);
+        if (opt_key == "machine_limits_usage")
+            return get_string_from_enum<MachineLimitsUsage>(opt_key, config);
         if (opt_key == "ironing_type")
             return get_string_from_enum<IroningType>(opt_key, config);
         if (opt_key == "support_material_pattern")

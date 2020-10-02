@@ -29,6 +29,13 @@ enum GCodeFlavor : unsigned char {
     gcfSmoothie, gcfNoExtrusion,
 };
 
+enum class MachineLimitsUsage {
+	EmitToGCode,
+	TimeEstimateOnly,
+	Ignore,
+	Count,
+};
+
 enum PrintHostType {
     htOctoPrint, htDuet, htFlashAir, htAstroBox
 };
@@ -98,6 +105,16 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<GCodeFlavor>::get
         keys_map["mach3"]           = gcfMach3;
         keys_map["machinekit"]      = gcfMachinekit;
         keys_map["no-extrusion"]    = gcfNoExtrusion;
+    }
+    return keys_map;
+}
+
+template<> inline const t_config_enum_values& ConfigOptionEnum<MachineLimitsUsage>::get_enum_values() {
+    static t_config_enum_values keys_map;
+    if (keys_map.empty()) {
+        keys_map["emit_to_gcode"]       = int(MachineLimitsUsage::EmitToGCode);
+        keys_map["time_estimate_only"]  = int(MachineLimitsUsage::TimeEstimateOnly);
+        keys_map["ignore"]            	= int(MachineLimitsUsage::Ignore);
     }
     return keys_map;
 }
@@ -597,6 +614,8 @@ class MachineEnvelopeConfig : public StaticPrintConfig
 {
     STATIC_PRINT_CONFIG_CACHE(MachineEnvelopeConfig)
 public:
+	// Allowing the machine limits to be completely ignored or used just for time estimator.
+    ConfigOptionEnum<MachineLimitsUsage> machine_limits_type;
     // M201 X... Y... Z... E... [mm/sec^2]
     ConfigOptionFloats              machine_max_acceleration_x;
     ConfigOptionFloats              machine_max_acceleration_y;
@@ -624,6 +643,7 @@ public:
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
+    	OPT_PTR(machine_limits_type);
         OPT_PTR(machine_max_acceleration_x);
         OPT_PTR(machine_max_acceleration_y);
         OPT_PTR(machine_max_acceleration_z);

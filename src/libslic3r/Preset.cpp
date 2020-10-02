@@ -454,6 +454,21 @@ const std::vector<std::string>& Preset::filament_options()
     return s_opts;
 }
 
+const std::vector<std::string>& Preset::machine_limits_options()
+{
+    static std::vector<std::string> s_opts;
+    if (s_opts.empty()) {
+        s_opts = {
+			"machine_max_acceleration_extruding", "machine_max_acceleration_retracting",
+		    "machine_max_acceleration_x", "machine_max_acceleration_y", "machine_max_acceleration_z", "machine_max_acceleration_e",
+		    "machine_max_feedrate_x", "machine_max_feedrate_y", "machine_max_feedrate_z", "machine_max_feedrate_e",
+		    "machine_min_extruding_rate", "machine_min_travel_rate",
+		    "machine_max_jerk_x", "machine_max_jerk_y", "machine_max_jerk_z", "machine_max_jerk_e",
+		};
+	}
+	return s_opts;
+}
+
 const std::vector<std::string>& Preset::printer_options()
 {
     static std::vector<std::string> s_opts;
@@ -468,13 +483,10 @@ const std::vector<std::string>& Preset::printer_options()
             "between_objects_gcode", "printer_vendor", "printer_model", "printer_variant", "printer_notes", "cooling_tube_retraction",
             "cooling_tube_length", "high_current_on_filament_swap", "parking_pos_retraction", "extra_loading_move", "max_print_height",
             "default_print_profile", "inherits",
-            "remaining_times", "silent_mode", "machine_max_acceleration_extruding", "machine_max_acceleration_retracting",
-            "machine_max_acceleration_x", "machine_max_acceleration_y", "machine_max_acceleration_z", "machine_max_acceleration_e",
-            "machine_max_feedrate_x", "machine_max_feedrate_y", "machine_max_feedrate_z", "machine_max_feedrate_e",
-            "machine_min_extruding_rate", "machine_min_travel_rate",
-            "machine_max_jerk_x", "machine_max_jerk_y", "machine_max_jerk_z", "machine_max_jerk_e",
-            "thumbnails"
+            "remaining_times", "silent_mode", 
+            "machine_limits_usage", "thumbnails"
         };
+        s_opts.insert(s_opts.end(), Preset::machine_limits_options().begin(), Preset::machine_limits_options().end());
         s_opts.insert(s_opts.end(), Preset::nozzle_options().begin(), Preset::nozzle_options().end());
     }
     return s_opts;
