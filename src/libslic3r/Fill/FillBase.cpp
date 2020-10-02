@@ -833,7 +833,67 @@ void mark_boundary_segments_touching_infill(
 	}
 }
 
-void Fill::connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary_src, Polylines &polylines_out, const double spacing, const FillParams &params)
+static double compute_distance_to_consumed_point(const std::vector<Points> &                       boundary,
+                                                 const std::vector<std::vector<ContourPointData>> &boundary_data,
+                                                 size_t                                            contour_idx,
+                                                 size_t                                            point_index,
+                                                 bool                                              forward)
+{
+    Point  predecessor    = boundary[contour_idx][point_index];
+    double total_distance = 0;
+
+    do {
+        if (forward)
+            point_index = (point_index == (boundary[contour_idx].size() - 1)) ? 0 : (point_index + 1);
+        else
+            point_index = (point_index > 0) ? (point_index - 1) : (boundary[contour_idx].size() - 1);
+
+        Point successor = boundary[contour_idx][point_index];
+        total_distance += (successor - predecessor).cast<double>().norm();
+        predecessor = successor;
+    } while (!boundary_data[contour_idx][point_index].point_consumed);
+
+    return total_distance;
+}
+
+static std::pair<Points, double> get_hook_path(const std::vector<Points> &                       boundary,
+                                               const std::vector<std::vector<ContourPointData>> &boundary_data,
+                                               size_t                                            contour_idx,
+                                               size_t                                            point_index,
+                                               bool                                              forward,
+                                               int                                               hook_length,
+                                               std::vector<Point> &                              not_connected)
+{
+    double total_distance = 0;
+
+    Points points;
+    points.emplace_back(boundary[contour_idx][point_index]);
+
+    do {
+        if (forward)
+            point_index = (point_index == (boundary[contour_idx].size() - 1)) ? 0 : (point_index + 1);
+        else
+            point_index = (point_index > 0) ? (point_index - 1) : (boundary[contour_idx].size() - 1);
+
+        Point successor = boundary[contour_idx][point_index];
+        total_distance += (successor - points.back()).cast<double>().norm();
+        points.emplace_back(successor);
+    } while (!boundary_data[contour_idx][point_index].point_consumed && total_distance < hook_length &&
+             std::find(not_connected.begin(), not_connected.end(), points.back()) == not_connected.end());
+
+    if (total_distance > hook_length) {
+        Vec2d  vector            = (points.back() - points[points.size() - 2]).cast<double>();
+        double vector_length     = vector.norm();
+        double shrink_vec_length = vector_length - (total_distance - hook_length);
+
+        points.back() = ((vector / vector_length) * shrink_vec_length).cast<coord_t>() + points[points.size() - 2];
+        // total_distance += (shrink_vec_length - vector_length);
+    }
+
+    return std::make_pair(points, total_distance);
+}
+
+void Fill::connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary_src, Polylines &polylines_out, const double spacing, const FillParams &params, const int hook_length)
 {
 	assert(! infill_ordered.empty());
 	assert(! boundary_src.contour.points.empty());
@@ -1005,7 +1065,68 @@ void Fill::connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary_
 		if (next_marked)
 			contour_data[cp2next->second].point_consumed = false;
 	}
-	polylines_out.reserve(polylines_out.size() + std::count_if(infill_ordered.begin(), infill_ordered.end(), [](const Polyline &pl) { return ! pl.empty(); }));
+
+    auto get_merged_index = [&merged_with](size_t polyline_idx) {
+        for (size_t last = polyline_idx;;) {
+            size_t lower = merged_with[last];
+            if (lower == last) {
+                merged_with[polyline_idx] = lower;
+                polyline_idx              = lower;
+                break;
+            }
+            last = lower;
+        }
+
+        return polyline_idx;
+    };
+
+    if (hook_length != 0) {
+        std::vector<Point> not_connect_points;
+        for (const std::pair<size_t, size_t> &contour_point : map_infill_end_point_to_boundary)
+            if (contour_point.first != boundary_idx_unconnected && !boundary_data[contour_point.first][contour_point.second].point_consumed)
+                not_connect_points.emplace_back(boundary[contour_point.first][contour_point.second]);
+
+        for (size_t endpoint_idx = 0; endpoint_idx < map_infill_end_point_to_boundary.size(); ++endpoint_idx) {
+            Polyline &                       polyline      = infill_ordered[get_merged_index(endpoint_idx / 2)];
+            const std::pair<size_t, size_t> &contour_point = map_infill_end_point_to_boundary[endpoint_idx];
+
+            if (contour_point.first != boundary_idx_unconnected &&
+                !boundary_data[contour_point.first][contour_point.second].point_consumed) {
+                Point boundary_point                          = boundary[contour_point.first][contour_point.second];
+                auto [points_forward, total_length_forward]   = get_hook_path(boundary, boundary_data, contour_point.first,
+                                                                            contour_point.second, true, hook_length, not_connect_points);
+                auto [points_backward, total_length_backward] = get_hook_path(boundary, boundary_data, contour_point.first,
+                                                                              contour_point.second, false, hook_length, not_connect_points);
+
+                Points points;
+                if (total_length_forward < hook_length && total_length_backward < hook_length) {
+                    continue;
+                } else if (total_length_forward < total_length_backward && total_length_forward >= hook_length) {
+                    points = std::move(points_forward);
+                } else if (total_length_backward < total_length_forward && total_length_backward >= hook_length) {
+                    points = std::move(points_backward);
+                } else if (total_length_forward > total_length_backward) {
+                    points = std::move(points_forward);
+                } else {
+                    points = std::move(points_backward);
+                }
+
+                if ((boundary_point - polyline.points.front()).cast<double>().squaredNorm() <= (SCALED_EPSILON * SCALED_EPSILON)) {
+                    Points merge_points;
+                    merge_points.reserve(polyline.points.size() + points.size() - 1);
+
+                    for (auto it = points.rbegin(); it != points.rend() - 1; ++it) merge_points.emplace_back(*it);
+
+                    append(merge_points, std::move(polyline.points));
+                    polyline.points = std::move(merge_points);
+                } else {
+                    for (auto it = points.begin() + 1; it != points.end(); ++it) polyline.points.emplace_back(*it);
+                }
+            }
+        }
+    }
+
+    polylines_out.reserve(polylines_out.size() + std::count_if(infill_ordered.begin(), infill_ordered.end(), [](const Polyline &pl) { return ! pl.empty(); }));
 	for (Polyline &pl : infill_ordered)
 		if (! pl.empty())
 			polylines_out.emplace_back(std::move(pl));
