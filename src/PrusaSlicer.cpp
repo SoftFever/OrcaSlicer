@@ -578,6 +578,12 @@ int CLI::run(int argc, char **argv)
 //		gui->autosave = m_config.opt_string("autosave");
         GUI::GUI_App::SetInstance(gui);
 #if ENABLE_GCODE_VIEWER
+        gui->m_after_init_loads.set_params(load_configs, m_extra_config, m_input_files, start_as_gcodeviewer);
+#else
+        gui->m_after_init_loads.set_params(load_configs, m_extra_config, m_input_files);
+#endif // ENABLE_GCODE_VIEWER
+/*
+#if ENABLE_GCODE_VIEWER
         gui->CallAfter([gui, this, &load_configs, start_as_gcodeviewer] {
 #else
         gui->CallAfter([gui, this, &load_configs] {
@@ -614,6 +620,7 @@ int CLI::run(int argc, char **argv)
             }
 #endif // ENABLE_GCODE_VIEWER
         });
+*/
         int result = wxEntry(argc, argv);
         return result;
 #else /* SLIC3R_GUI */
