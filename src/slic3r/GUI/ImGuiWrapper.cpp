@@ -23,7 +23,7 @@
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
-#include "3DScene.hpp"
+#include "3DScene.hpp"+
 #include "GUI.hpp"
 #include "I18N.hpp"
 #include "Search.hpp"
@@ -57,8 +57,8 @@ const ImVec4 ImGuiWrapper::COL_GREY_LIGHT        = { 0.4f, 0.4f, 0.4f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_ORANGE_DARK       = { 0.757f, 0.404f, 0.216f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_ORANGE_LIGHT      = { 1.0f, 0.49f, 0.216f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_WINDOW_BACKGROUND = { 0.133f, 0.133f, 0.133f, 0.8f };
-const ImVec4 ImGuiWrapper::COL_BUTTON_BACKGROUND = { 0.233f, 0.233f, 0.233f, 1.0f };
-const ImVec4 ImGuiWrapper::COL_BUTTON_HOVERED    = { 0.433f, 0.433f, 0.433f, 1.8f };
+const ImVec4 ImGuiWrapper::COL_BUTTON_BACKGROUND = COL_ORANGE_DARK;
+const ImVec4 ImGuiWrapper::COL_BUTTON_HOVERED    = COL_ORANGE_LIGHT;
 const ImVec4 ImGuiWrapper::COL_BUTTON_ACTIVE     = ImGuiWrapper::COL_BUTTON_HOVERED;
 
 ImGuiWrapper::ImGuiWrapper()
