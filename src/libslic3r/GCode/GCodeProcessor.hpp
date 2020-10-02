@@ -305,10 +305,12 @@ namespace Slic3r {
             {}
 
             void update(float value, ExtrusionRole role) {
-                ++count;
-                if (last_tag_value != 0.0f) {
-                    if (std::abs(value - last_tag_value) / last_tag_value > threshold)
-                        errors.push_back({ value, last_tag_value, role });
+                if (role != erCustom) {
+                    ++count;
+                    if (last_tag_value != 0.0f) {
+                        if (std::abs(value - last_tag_value) / last_tag_value > threshold)
+                            errors.push_back({ value, last_tag_value, role });
+                    }
                 }
             }
 
