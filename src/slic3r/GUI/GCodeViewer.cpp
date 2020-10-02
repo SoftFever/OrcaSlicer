@@ -865,8 +865,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
     unsigned int progress_count = 0;
     static const unsigned int progress_threshold = 1000;
-    wxProgressDialog progress_dialog(_L("Generating toolpaths"), "...",
-        100, wxGetApp().plater(), wxPD_AUTO_HIDE | wxPD_APP_MODAL);
+    wxProgressDialog* progress_dialog = wxGetApp().is_gcode_viewer() ?
+        new wxProgressDialog(_L("Generating toolpaths"), "...",
+            100, wxGetApp().plater(), wxPD_AUTO_HIDE | wxPD_APP_MODAL) : nullptr;
 
     for (size_t i = 0; i < m_moves_count; ++i) {
         const GCodeProcessor::MoveVertex& move = gcode_result.moves[i];
@@ -1248,10 +1249,10 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             continue;
 
         ++progress_count;
-        if (progress_count % progress_threshold == 0) {
-            progress_dialog.Update(int(100.0f * float(i) / (2.0f * float(m_moves_count))),
+        if (progress_dialog != nullptr && progress_count % progress_threshold == 0) {
+            progress_dialog->Update(int(100.0f * float(i) / (2.0f * float(m_moves_count))),
                 _L("Generating vertex buffer") + ": " + wxNumberFormatter::ToString(100.0 * double(i) / double(m_moves_count), 0, wxNumberFormatter::Style_None) + "%");
-            progress_dialog.Fit();
+            progress_dialog->Fit();
             progress_count = 0;
         }
 
@@ -1322,10 +1323,10 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             continue;
 
         ++progress_count;
-        if (progress_count % progress_threshold == 0) {
-            progress_dialog.Update(int(100.0f * float(m_moves_count + i) / (2.0f * float(m_moves_count))),
+        if (progress_dialog != nullptr && progress_count % progress_threshold == 0) {
+            progress_dialog->Update(int(100.0f * float(m_moves_count + i) / (2.0f * float(m_moves_count))),
                 _L("Generating index buffers") + ": " + wxNumberFormatter::ToString(100.0 * double(i) / double(m_moves_count), 0, wxNumberFormatter::Style_None) + "%");
-            progress_dialog.Fit();
+            progress_dialog->Fit();
             progress_count = 0;
         }
 
@@ -1473,6 +1474,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.load_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+
+    if (progress_dialog != nullptr)
+        progress_dialog->Destroy();
 }
 
 void GCodeViewer::load_shells(const Print& print, bool initialized)
