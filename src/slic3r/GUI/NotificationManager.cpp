@@ -54,7 +54,7 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
 NotificationManager::PopNotification::~PopNotification()
 {
 }
-NotificationManager::PopNotification::RenderResult NotificationManager::PopNotification::render(GLCanvas3D& canvas, const float& initial_y)
+NotificationManager::PopNotification::RenderResult NotificationManager::PopNotification::render(GLCanvas3D& canvas, const float& initial_y, bool move_from_overlay, float overlay_width, bool move_from_slope, float slope_width)
 {
 	if (!m_initialized) {
 		init();
@@ -76,6 +76,7 @@ NotificationManager::PopNotification::RenderResult NotificationManager::PopNotif
 	bool            shown = true;
 	std::string     name;
 	ImVec2          mouse_pos = ImGui::GetMousePos();
+	float           right_gap = SPACE_RIGHT_PANEL + (move_from_overlay ? overlay_width + m_line_height * 5 : (move_from_slope ? slope_width /*+ m_line_height * 0.3f*/ : 0));
 
 	if (m_line_height != ImGui::CalcTextSize("A").y)
 		init();
@@ -85,10 +86,11 @@ NotificationManager::PopNotification::RenderResult NotificationManager::PopNotif
 	//top y of window
 	m_top_y = initial_y + m_window_height;
 	//top right position
-	ImVec2 win_pos(1.0f * (float)cnv_size.get_width() - SPACE_RIGHT_PANEL, 1.0f * (float)cnv_size.get_height() - m_top_y);
+
+	ImVec2 win_pos(1.0f * (float)cnv_size.get_width() - right_gap, 1.0f * (float)cnv_size.get_height() - m_top_y);
 	imgui.set_next_window_pos(win_pos.x, win_pos.y, ImGuiCond_Always, 1.0f, 0.0f);
 	imgui.set_next_window_size(m_window_width, m_window_height, ImGuiCond_Always);
-
+	
 	//find if hovered
 	if (mouse_pos.x < win_pos.x && mouse_pos.x > win_pos.x - m_window_width && mouse_pos.y > win_pos.y&& mouse_pos.y < win_pos.y + m_window_height)
 	{
@@ -820,7 +822,7 @@ bool NotificationManager::push_notification_data(NotificationManager::PopNotific
 		return false;
 	}
 }
-void NotificationManager::render_notifications(GLCanvas3D& canvas)
+void NotificationManager::render_notifications(GLCanvas3D& canvas, float overlay_width, float slope_width)
 {
 	float    last_x = 0.0f;
 	float    current_height = 0.0f;
@@ -835,7 +837,7 @@ void NotificationManager::render_notifications(GLCanvas3D& canvas)
 			it = m_pop_notifications.erase(it);
 		} else {
 			(*it)->set_paused(m_hovered);
-			PopNotification::RenderResult res = (*it)->render(canvas, last_x);
+			PopNotification::RenderResult res = (*it)->render(canvas, last_x, m_move_from_overlay, overlay_width, m_move_from_slope, slope_width);
 			if (res != PopNotification::RenderResult::Finished) {
 				last_x = (*it)->get_top() + GAP_WIDTH;
 				current_height = std::max(current_height, (*it)->get_current_top());

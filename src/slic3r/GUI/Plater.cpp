@@ -3625,6 +3625,7 @@ void Plater::priv::on_action_split_volumes(SimpleEvent&)
 void Plater::priv::on_action_layersediting(SimpleEvent&)
 {
     view3D->enable_layers_editing(!view3D->is_layers_editing_enabled());
+    notification_manager->set_move_from_overlay(view3D->is_layers_editing_enabled());
 }
 
 void Plater::priv::on_object_select(SimpleEvent& evt)

@@ -186,6 +186,8 @@ private:
 
         mutable float               m_adaptive_quality;
         mutable HeightProfileSmoothingParams m_smooth_params;
+        
+        static float                s_overelay_window_width;
 
         class LayersTexture
         {
@@ -241,6 +243,7 @@ private:
         static bool bar_rect_contains(const GLCanvas3D& canvas, float x, float y);
         static Rect get_bar_rect_screen(const GLCanvas3D& canvas);
         static Rect get_bar_rect_viewport(const GLCanvas3D& canvas);
+        static float get_overelay_window_width() { return LayersEditing::s_overelay_window_width; }
 
         float object_max_z() const { return m_object_max_z; }
 
@@ -254,6 +257,7 @@ private:
         void update_slicing_parameters();
 
         static float thickness_bar_width(const GLCanvas3D &canvas);
+        
     };
 
     struct Mouse
@@ -425,7 +429,7 @@ private:
         bool m_dialog_shown{ false };
         GLCanvas3D& m_canvas;
         GLVolumeCollection& m_volumes;
-
+        static float s_window_width;
     public:
         Slope(GLCanvas3D& canvas, GLVolumeCollection& volumes) : m_canvas(canvas), m_volumes(volumes) {}
 
@@ -433,12 +437,13 @@ private:
         bool is_enabled() const { return m_enabled; }
         void use(bool use) { m_volumes.set_slope_active(m_enabled ? use : false); }
         bool is_used() const { return m_volumes.is_slope_active(); }
-        void show_dialog(bool show) { if (show && is_used()) return; use(show); m_dialog_shown = show; }
+        void show_dialog(bool show);
         bool is_dialog_shown() const { return m_dialog_shown; }
         void render() const;
         void set_range(const std::array<float, 2>& range) const {
             m_volumes.set_slope_z_range({ -::cos(Geometry::deg2rad(90.0f - range[0])), -::cos(Geometry::deg2rad(90.0f - range[1])) });
         }
+        static float get_window_width() { return s_window_width; };
     };
 #endif // ENABLE_SLOPE_RENDERING
 
@@ -772,6 +777,8 @@ public:
     void set_slope_range(const std::array<float, 2>& range) { m_slope.set_range(range); }
 #endif // ENABLE_SLOPE_RENDERING
 
+   
+
 private:
     bool _is_shown_on_screen() const;
 
@@ -891,6 +898,15 @@ private:
     bool _deactivate_search_toolbar_item();
     bool _activate_search_toolbar_item();
     bool _deactivate_collapse_toolbar_items();
+
+    float get_overelay_window_width() { return LayersEditing::get_overelay_window_width(); }
+    float get_slope_window_width()    {
+#if ENABLE_SLOPE_RENDERING
+        return Slope::get_window_width(); 
+#else
+        return 0.0f;
+#endif
+    }
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 

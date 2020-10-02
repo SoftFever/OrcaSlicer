@@ -215,6 +215,8 @@ void GLCanvas3D::LayersEditing::set_enabled(bool enabled)
     m_enabled = is_allowed() && enabled;
 }
 
+float GLCanvas3D::LayersEditing::s_overelay_window_width;
+
 void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
 {
     if (!m_enabled)
@@ -297,6 +299,7 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     if (imgui.button(_L("Reset")))
         wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), SimpleEvent(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE));
 
+    GLCanvas3D::LayersEditing::s_overelay_window_width = ImGui::GetWindowSize().x /*+ (float)m_layers_texture.width/4*/;
     imgui.end();
 
     const Rect& bar_rect = get_bar_rect_viewport(canvas);
@@ -1426,6 +1429,16 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas
 }
 
 #if ENABLE_SLOPE_RENDERING
+
+float GLCanvas3D::Slope::s_window_width;
+
+void GLCanvas3D::Slope::show_dialog(bool show) {
+    if (show && is_used()) 
+        return; use(show); 
+    m_dialog_shown = show;
+    wxGetApp().plater()->get_notification_manager()->set_move_from_slope(show);
+}
+
 void GLCanvas3D::Slope::render() const
 {
     if (m_dialog_shown) {
@@ -1481,6 +1494,8 @@ void GLCanvas3D::Slope::render() const
         // to let the dialog immediately showup without waiting for a mouse move
         if (ImGui::GetWindowContentRegionWidth() + 2.0f * ImGui::GetStyle().WindowPadding.x != ImGui::CalcWindowExpectedSize(ImGui::GetCurrentWindow()).x)
             m_canvas.request_extra_frame();
+
+        s_window_width = ImGui::GetWindowSize().x;
 
         imgui.end();
 
@@ -2151,7 +2166,7 @@ void GLCanvas3D::render()
 
     wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog(*this);
 	
-	wxGetApp().plater()->get_notification_manager()->render_notifications(*this);
+	wxGetApp().plater()->get_notification_manager()->render_notifications(*this, get_overelay_window_width(), get_slope_window_width());
 
     wxGetApp().imgui()->render();
 
@@ -2662,6 +2677,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
         _set_warning_texture(WarningTexture::ObjectClashed, state == ModelInstancePVS_Partly_Outside);
         _set_warning_texture(WarningTexture::ObjectOutside, state == ModelInstancePVS_Fully_Outside);
+        if(printer_technology != ptSLA || state == ModelInstancePVS_Inside)
+            _set_warning_texture(WarningTexture::SlaSupportsOutside, false);
 
         post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, 
                                contained_min_one && !m_model->objects.empty() && state != ModelInstancePVS_Partly_Outside));
@@ -2670,6 +2687,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     {
         _set_warning_texture(WarningTexture::ObjectOutside, false);
         _set_warning_texture(WarningTexture::ObjectClashed, false);
+        _set_warning_texture(WarningTexture::SlaSupportsOutside, false);
         post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
     }
 

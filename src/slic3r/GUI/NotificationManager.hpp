@@ -76,7 +76,7 @@ public:
 		};
 		 PopNotification(const NotificationData &n, const int id, wxEvtHandler* evt_handler);
 		virtual ~PopNotification();
-		RenderResult           render(GLCanvas3D& canvas, const float& initial_y);
+		RenderResult           render(GLCanvas3D& canvas, const float& initial_y, bool move_from_overlay, float overlay_width, bool move_from_slope, float slope_width);
 		// close will dissapear notification on next render
 		void                   close() { m_close_pending = true; }
 		// data from newer notification of same type
@@ -229,11 +229,15 @@ public:
 	void set_slicing_complete_print_time(std::string info);
 	void set_slicing_complete_large(bool large);
 	// renders notifications in queue and deletes expired ones
-	void render_notifications(GLCanvas3D& canvas);
+	void render_notifications(GLCanvas3D& canvas, float overlay_width, float slope_width);
 	// finds and closes all notifications of given type
 	void close_notification_of_type(const NotificationType type);
 	void dpi_changed();
     void set_in_preview(bool preview);
+	// Move to left to avoid colision with variable layer height gizmo
+	void set_move_from_overlay(bool move) { m_move_from_overlay = move; }
+	// or slope visualization gizmo
+	void set_move_from_slope (bool move) { m_move_from_slope = move; }
 private:
 	//pushes notification into the queue of notifications that are rendered
 	//can be used to create custom notification
@@ -252,6 +256,8 @@ private:
 	//timestamps used for slining finished - notification could be gone so it needs to be stored here
 	std::unordered_set<int>      m_used_timestamps;
 	bool                         m_in_preview { false };
+	bool                         m_move_from_overlay { false };
+	bool                         m_move_from_slope{ false };
 
 	//prepared (basic) notifications
 	const std::vector<NotificationData> basic_notifications = {
