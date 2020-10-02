@@ -422,7 +422,6 @@ private:
         bool is_in_imgui() const { return m_in_imgui; }
     };
 
-#if ENABLE_SLOPE_RENDERING
     class Slope
     {
         bool m_enabled{ false };
@@ -437,15 +436,11 @@ private:
         bool is_enabled() const { return m_enabled; }
         void use(bool use) { m_volumes.set_slope_active(m_enabled ? use : false); }
         bool is_used() const { return m_volumes.is_slope_active(); }
-        void show_dialog(bool show);
-        bool is_dialog_shown() const { return m_dialog_shown; }
-        void render() const;
-        void set_range(const std::array<float, 2>& range) const {
-            m_volumes.set_slope_z_range({ -::cos(Geometry::deg2rad(90.0f - range[0])), -::cos(Geometry::deg2rad(90.0f - range[1])) });
+        void set_normal_angle(float angle_in_deg) const {
+            m_volumes.set_slope_normal_z(-::cos(Geometry::deg2rad(90.0f - angle_in_deg)));
         }
         static float get_window_width() { return s_window_width; };
     };
-#endif // ENABLE_SLOPE_RENDERING
 
 public:
     enum ECursorType : unsigned char
@@ -534,9 +529,7 @@ private:
     Labels m_labels;
     mutable Tooltip m_tooltip;
     mutable bool m_tooltip_enabled{ true };
-#if ENABLE_SLOPE_RENDERING
     Slope m_slope;
-#endif // ENABLE_SLOPE_RENDERING
 
 public:
     explicit GLCanvas3D(wxGLCanvas* canvas);
@@ -621,9 +614,7 @@ public:
     void enable_undoredo_toolbar(bool enable);
     void enable_dynamic_background(bool enable);
     void enable_labels(bool enable) { m_labels.enable(enable); }
-#if ENABLE_SLOPE_RENDERING
     void enable_slope(bool enable) { m_slope.enable(enable); }
-#endif // ENABLE_SLOPE_RENDERING
     void allow_multisample(bool allow);
 
     void zoom_to_bed();
@@ -770,14 +761,9 @@ public:
     bool are_labels_shown() const { return m_labels.is_shown(); }
     void show_labels(bool show) { m_labels.show(show); }
 
-#if ENABLE_SLOPE_RENDERING
-    bool is_slope_shown() const { return m_slope.is_dialog_shown(); }
+    bool is_using_slope() const { return m_slope.is_used(); }
     void use_slope(bool use) { m_slope.use(use); }
-    void show_slope(bool show) { m_slope.show_dialog(show); }
-    void set_slope_range(const std::array<float, 2>& range) { m_slope.set_range(range); }
-#endif // ENABLE_SLOPE_RENDERING
-
-   
+    void set_slope_normal_angle(float angle_in_deg) { m_slope.set_normal_angle(angle_in_deg); }
 
 private:
     bool _is_shown_on_screen() const;
@@ -900,13 +886,7 @@ private:
     bool _deactivate_collapse_toolbar_items();
 
     float get_overelay_window_width() { return LayersEditing::get_overelay_window_width(); }
-    float get_slope_window_width()    {
-#if ENABLE_SLOPE_RENDERING
-        return Slope::get_window_width(); 
-#else
-        return 0.0f;
-#endif
-    }
+    float get_slope_window_width()    { return Slope::get_window_width(); }
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 

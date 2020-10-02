@@ -1278,20 +1278,9 @@ void MainFrame::init_menubar()
             "", nullptr, [this](){return can_change_view(); }, this);
 #endif // ENABLE_GCODE_VIEWER
         viewMenu->AppendSeparator();
-#if ENABLE_SLOPE_RENDERING
-        wxMenu* options_menu = new wxMenu();
-        append_menu_check_item(options_menu, wxID_ANY, _L("Show &labels") + sep + "E", _L("Show object/instance labels in 3D scene"),
-            [this](wxCommandEvent&) { m_plater->show_view3D_labels(!m_plater->are_view3D_labels_shown()); }, this,
-            [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_labels_shown(); }, this);
-        append_menu_check_item(options_menu, wxID_ANY, _L("Show &slope") + sep + "D", _L("Objects coloring using faces' slope"),
-            [this](wxCommandEvent&) { m_plater->show_view3D_slope(!m_plater->is_view3D_slope_shown()); }, this,
-            [this]() { return m_plater->is_view3D_shown() && !m_plater->is_view3D_layers_editing_enabled(); }, [this]() { return m_plater->is_view3D_slope_shown(); }, this);
-        append_submenu(viewMenu, options_menu, wxID_ANY, _L("&Options"), "");
-#else
         append_menu_check_item(viewMenu, wxID_ANY, _L("Show &labels") + sep + "E", _L("Show object/instance labels in 3D scene"),
             [this](wxCommandEvent&) { m_plater->show_view3D_labels(!m_plater->are_view3D_labels_shown()); }, this,
             [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_labels_shown(); }, this);
-#endif // ENABLE_SLOPE_RENDERING
         append_menu_check_item(viewMenu, wxID_ANY, _L("&Collapse sidebar"), _L("Collapse sidebar"),
             [this](wxCommandEvent&) { m_plater->collapse_sidebar(!m_plater->is_sidebar_collapsed()); }, this,
             [this]() { return true; }, [this]() { return m_plater->is_sidebar_collapsed(); }, this);

@@ -74,9 +74,7 @@ bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, Ba
     m_canvas->enable_main_toolbar(true);
     m_canvas->enable_undoredo_toolbar(true);
     m_canvas->enable_labels(true);
-#if ENABLE_SLOPE_RENDERING
     m_canvas->enable_slope(true);
-#endif // ENABLE_SLOPE_RENDERING
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);

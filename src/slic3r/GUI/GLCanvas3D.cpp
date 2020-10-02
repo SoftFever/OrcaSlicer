@@ -1414,7 +1414,7 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
     imgui.set_next_window_pos(position(0), position(1), ImGuiCond_Always, 0.0f, 0.0f);
 
-    imgui.begin(_(L("canvas_tooltip")), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoFocusOnAppearing);
+    imgui.begin(_L("canvas_tooltip"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoFocusOnAppearing);
     ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
     ImGui::TextUnformatted(m_text.c_str());
 
@@ -1428,82 +1428,7 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas
     ImGui::PopStyleVar(2);
 }
 
-#if ENABLE_SLOPE_RENDERING
-
 float GLCanvas3D::Slope::s_window_width;
-
-void GLCanvas3D::Slope::show_dialog(bool show) {
-    if (show && is_used()) 
-        return; use(show); 
-    m_dialog_shown = show;
-    wxGetApp().plater()->get_notification_manager()->set_move_from_slope(show);
-}
-
-void GLCanvas3D::Slope::render() const
-{
-    if (m_dialog_shown) {
-        const std::array<float, 2>& z_range = m_volumes.get_slope_z_range();
-        std::array<float, 2> angle_range = { Geometry::rad2deg(::acos(z_range[0])) - 90.0f, Geometry::rad2deg(::acos(z_range[1])) - 90.0f };
-        bool modified = false;
-
-        ImGuiWrapper& imgui = *wxGetApp().imgui();
-        const Size& cnv_size = m_canvas.get_canvas_size();
-        imgui.set_next_window_pos((float)cnv_size.get_width(), (float)cnv_size.get_height(), ImGuiCond_Always, 1.0f, 1.0f);
-        imgui.begin(_L("Slope visualization"), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-
-        imgui.text(_L("Facets' slope range (degrees)") + ":");
-
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.75f, 0.0f, 0.0f, 0.5f));
-        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(1.0f, 0.0f, 0.0f, 0.5f));
-        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.85f, 0.0f, 0.0f, 0.5f));
-        ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.25f, 0.0f, 0.0f, 1.0f));
-
-        // angle_range is range of normal angle, GUI should
-        // show facet slope angle
-        float slope_bound = 90.f - angle_range[1];
-        bool mod = ImGui::SliderFloat("##red", &slope_bound, 0.0f, 90.0f, "%.1f");
-        angle_range[1] = 90.f - slope_bound;
-        if (mod) {
-            modified = true;
-            if (angle_range[0] > angle_range[1])
-                angle_range[0] = angle_range[1];
-        }
-
-        ImGui::PopStyleColor(4);
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.75f, 0.75f, 0.0f, 0.5f));
-        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(1.0f, 1.0f, 0.0f, 0.5f));
-        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.85f, 0.85f, 0.0f, 0.5f));
-        ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.25f, 0.25f, 0.0f, 1.0f));
-
-        slope_bound = 90.f - angle_range[0];
-        mod = ImGui::SliderFloat("##yellow", &slope_bound, 0.0f, 90.0f, "%.1f");
-        angle_range[0] = 90.f - slope_bound;
-        if (mod) {
-            modified = true;
-            if (angle_range[1] < angle_range[0])
-                angle_range[1] = angle_range[0];
-        }
-
-        ImGui::PopStyleColor(4);
-
-        ImGui::Separator();
-
-        if (imgui.button(_(L("Default"))))
-            m_volumes.set_default_slope_z_range();
-
-        // to let the dialog immediately showup without waiting for a mouse move
-        if (ImGui::GetWindowContentRegionWidth() + 2.0f * ImGui::GetStyle().WindowPadding.x != ImGui::CalcWindowExpectedSize(ImGui::GetCurrentWindow()).x)
-            m_canvas.request_extra_frame();
-
-        s_window_width = ImGui::GetWindowSize().x;
-
-        imgui.end();
-
-        if (modified)
-            set_range(angle_range);
-    }
-    }
-#endif // ENABLE_SLOPE_RENDERING
 
 wxDEFINE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
@@ -1577,9 +1502,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
 #endif // ENABLE_RENDER_PICKING_PASS
     , m_render_sla_auxiliaries(true)
     , m_labels(*this)
-#if ENABLE_SLOPE_RENDERING
     , m_slope(*this, m_volumes)
-#endif // ENABLE_SLOPE_RENDERING
 {
     if (m_canvas != nullptr) {
         m_timer.SetOwner(m_canvas);
@@ -1887,11 +1810,6 @@ bool GLCanvas3D::is_reload_delayed() const
 
 void GLCanvas3D::enable_layers_editing(bool enable)
 {
-#if ENABLE_SLOPE_RENDERING
-    if (enable && m_slope.is_dialog_shown())
-        m_slope.show_dialog(false);
-#endif // ENABLE_SLOPE_RENDERING
-
     m_layers_editing.set_enabled(enable);
     const Selection::IndicesList& idxs = m_selection.get_volume_idxs();
     for (unsigned int idx : idxs)
@@ -3105,17 +3023,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'a': { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
         case 'B':
         case 'b': { zoom_to_bed(); break; }
-#if ENABLE_SLOPE_RENDERING
-        case 'D':
-        case 'd': {
-                    if (!is_layers_editing_enabled())
-                    {
-                        m_slope.show_dialog(!m_slope.is_dialog_shown());
-                        m_dirty = true;
-                    }
-                    break;
-                  }
-#endif // ENABLE_SLOPE_RENDERING
         case 'E':
         case 'e': { m_labels.show(!m_labels.is_shown()); m_dirty = true; break; }
         case 'I':
@@ -5683,10 +5590,6 @@ void GLCanvas3D::_render_overlays() const
             }
     }
     m_labels.render(sorted_instances);
-
-#if ENABLE_SLOPE_RENDERING
-    m_slope.render();
-#endif // ENABLE_SLOPE_RENDERING
 
     glsafe(::glPopMatrix());
 }

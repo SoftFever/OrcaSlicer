@@ -1590,12 +1590,7 @@ struct Plater::priv
     bool is_sidebar_collapsed() const   { return sidebar->is_collapsed(); }
     void collapse_sidebar(bool show)    { sidebar->collapse(show); }
 
-#if ENABLE_SLOPE_RENDERING
-    bool is_view3D_slope_shown() const { return (current_panel == view3D) && view3D->get_canvas3d()->is_slope_shown(); }
-    void show_view3D_slope(bool show) { if (current_panel == view3D) view3D->get_canvas3d()->show_slope(show); }
-
     bool is_view3D_layers_editing_enabled() const { return (current_panel == view3D) && view3D->get_canvas3d()->is_layers_editing_enabled(); }
-#endif // ENABLE_SLOPE_RENDERING
 
     void set_current_canvas_as_dirty();
     GLCanvas3D* get_current_canvas3D();
@@ -4698,12 +4693,7 @@ void Plater::show_view3D_labels(bool show) { p->show_view3D_labels(show); }
 bool Plater::is_sidebar_collapsed() const { return p->is_sidebar_collapsed(); }
 void Plater::collapse_sidebar(bool show) { p->collapse_sidebar(show); }
 
-#if ENABLE_SLOPE_RENDERING
-bool Plater::is_view3D_slope_shown() const { return p->is_view3D_slope_shown(); }
-void Plater::show_view3D_slope(bool show) { p->show_view3D_slope(show); }
-
 bool Plater::is_view3D_layers_editing_enabled() const { return p->is_view3D_layers_editing_enabled(); }
-#endif // ENABLE_SLOPE_RENDERING
 
 void Plater::select_all() { p->select_all(); }
 void Plater::deselect_all() { p->deselect_all(); }

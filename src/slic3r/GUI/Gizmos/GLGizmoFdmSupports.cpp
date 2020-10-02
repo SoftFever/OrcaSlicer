@@ -150,6 +150,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
         const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
 
+        ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("cursor_size"));
         ImGui::SameLine(cursor_slider_left);
         ImGui::PushItemWidth(window_width - cursor_slider_left);
@@ -163,6 +164,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         }
 
 
+        ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("cursor_type"));
         ImGui::SameLine(window_width - cursor_type_combo_width - m_imgui->scaled(0.5f));
         ImGui::PushItemWidth(cursor_type_combo_width);
@@ -180,8 +182,10 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
 
         ImGui::Separator();
-        if (m_c->object_clipper()->get_position() == 0.f)
+        if (m_c->object_clipper()->get_position() == 0.f) {
+            ImGui::AlignTextToFramePadding();
             m_imgui->text(m_desc.at("clipping_of_view"));
+        }
         else {
             if (m_imgui->button(m_desc.at("reset_direction"))) {
                 wxGetApp().CallAfter([this](){
@@ -206,23 +210,24 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         m_imgui->end();
     }
     else {
-        std::string name = "Autoset custom supports";
-        m_imgui->begin(wxString(name), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
-        m_imgui->text("Threshold:");
+        m_imgui->begin(_L("Autoset custom supports"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+        ImGui::AlignTextToFramePadding();
+        m_imgui->text(_L("Threshold:") + " " + _L("deg"));
         ImGui::SameLine();
         if (m_imgui->slider_float("", &m_angle_threshold_deg, 0.f, 90.f, "%.f"))
-            m_parent.set_slope_range({90.f - m_angle_threshold_deg, 90.f - m_angle_threshold_deg});
-        if (m_imgui->button("Enforce"))
+            m_parent.set_slope_normal_angle(90.f - m_angle_threshold_deg);
+        if (m_imgui->button(_L("Enforce")))
             select_facets_by_angle(m_angle_threshold_deg, false);
         ImGui::SameLine();
-        if (m_imgui->button("Block"))
+        if (m_imgui->button(_L("Block")))
             select_facets_by_angle(m_angle_threshold_deg, true);
         ImGui::SameLine();
-        if (m_imgui->button("Cancel"))
+        if (m_imgui->button(_L("Cancel")))
             m_setting_angle = false;
         m_imgui->end();
-        if (! m_setting_angle) {
-            m_parent.use_slope(false);
+        bool needs_update = !(m_setting_angle && m_parent.is_using_slope());
+        if (needs_update) {
+            m_parent.use_slope(m_setting_angle);
             m_parent.set_as_dirty();
         }
     }

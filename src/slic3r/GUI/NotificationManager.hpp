@@ -236,8 +236,6 @@ public:
     void set_in_preview(bool preview);
 	// Move to left to avoid colision with variable layer height gizmo
 	void set_move_from_overlay(bool move) { m_move_from_overlay = move; }
-	// or slope visualization gizmo
-	void set_move_from_slope (bool move) { m_move_from_slope = move; }
 private:
 	//pushes notification into the queue of notifications that are rendered
 	//can be used to create custom notification
