@@ -361,7 +361,7 @@ void MainFrame::update_layout()
         fromDlg,
         toDlg
     };
-    State update_scaling_state = m_layout == ESettingsLayout::Unknown   ? State::noUpdate   : // don't scale settings dialog from the application start
+    State update_scaling_state = //m_layout == ESettingsLayout::Unknown   ? State::noUpdate   : // don't scale settings dialog from the application start
                                  m_layout == ESettingsLayout::Dlg       ? State::fromDlg    :
                                  layout   == ESettingsLayout::Dlg       ? State::toDlg      : State::noUpdate;
 #endif //__WXMSW__

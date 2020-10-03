@@ -3336,17 +3336,8 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
 
     if (dlg.save_preset())  // save selected changes
     {
-        std::vector<std::string> unselected_options = dlg.get_unselected_options(presets->type());
-        const Preset& preset = presets->get_edited_preset();
-        std::string name = preset.name;
-
-        // for system/default/external presets we should take an edited name
-        if (preset.is_system || preset.is_default || preset.is_external) {
-            SavePresetDialog save_dlg(preset.type);
-            if (save_dlg.ShowModal() != wxID_OK)
-                return false;
-            name = save_dlg.get_name();
-        }
+        const std::vector<std::string>& unselected_options = dlg.get_unselected_options(presets->type());
+        const std::string& name = dlg.get_preset_name();
 
         if (m_type == presets->type()) // save changes for the current preset from this tab
         {
@@ -3358,9 +3349,9 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
         {
             m_preset_bundle->save_changes_for_preset(name, presets->type(), unselected_options);
 
-            /* If filament preset is saved for multi-material printer preset,
-             * there are cases when filament comboboxs are updated for old (non-modified) colors,
-             * but in full_config a filament_colors option aren't.*/
+            // If filament preset is saved for multi-material printer preset,
+            // there are cases when filament comboboxs are updated for old (non-modified) colors,
+            // but in full_config a filament_colors option aren't.
             if (presets->type() == Preset::TYPE_FILAMENT && wxGetApp().extruders_edited_cnt() > 1)
                 wxGetApp().plater()->force_filament_colors_update();
         }
@@ -3878,8 +3869,8 @@ void TabPrinter::update_machine_limits_description(const MachineLimitsUsage usag
 		text = _L("Machine limits will be emitted to G-code and used to estimate print time.");
 		break;
 	case MachineLimitsUsage::TimeEstimateOnly:
-		text = _L("Machine limits will NOT be emitted to G-code, however they will be used to estimate print time, \
-			which may herefore not be accurate as the printer may apply a different set of machine limits.");
+		text = _L("Machine limits will NOT be emitted to G-code, however they will be used to estimate print time, "
+			      "which may herefore not be accurate as the printer may apply a different set of machine limits.");
 		break;
 	case MachineLimitsUsage::Ignore:
 		text = _L("Machine limits are not set, therefore the print time estimate may not be accurate.");
@@ -3887,6 +3878,8 @@ void TabPrinter::update_machine_limits_description(const MachineLimitsUsage usag
 	default: assert(false);
 	}
     m_machine_limits_description_line->SetText(text);
+
+    Layout();
 }
 
 void Tab::compatible_widget_reload(PresetDependencies &deps)

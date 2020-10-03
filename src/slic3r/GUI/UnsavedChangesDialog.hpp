@@ -227,6 +227,9 @@ class UnsavedChangesDialog : public DPIDialog
     // tree items related to the options
     std::map<wxDataViewItem, ItemData> m_items_map;
 
+    // preset names which are modified in SavePresetDialog and related types
+    std::vector<std::pair<std::string, Preset::Type>>  names_and_types;
+
 public:
     UnsavedChangesDialog(const wxString& header);
     UnsavedChangesDialog(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset);
@@ -241,10 +244,16 @@ public:
     void context_menu(wxDataViewEvent &event);
     void show_info_line(Action action, std::string preset_name = "");
     void close(Action action);
+    void save_and_close(PresetCollection* dependent_presets);
 
     bool save_preset() const    { return m_exit_action == Action::Save;      }
     bool move_preset() const    { return m_exit_action == Action::Move;      }
     bool just_continue() const  { return m_exit_action == Action::Continue;  }
+
+    // get full bundle of preset names and types for saving
+    const std::vector<std::pair<std::string, Preset::Type>>& get_names_and_types() { return names_and_types; }
+    // short version of the previous function, for the case, when just one preset is modified
+    std::string get_preset_name() { return names_and_types[0].first; }
 
     std::vector<std::string> get_unselected_options(Preset::Type type);
     std::vector<std::string> get_selected_options();

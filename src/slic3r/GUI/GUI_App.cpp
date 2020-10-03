@@ -1526,41 +1526,8 @@ bool GUI_App::check_unsaved_changes(const wxString &header)
 
         if (dlg.save_preset())  // save selected changes
         {
-            struct NameType
-            {
-                std::string     name;
-                Preset::Type    type {Preset::TYPE_INVALID};
-            };
-
-            std::vector<NameType> names_and_types;
-
-            // for system/default/external presets we should take an edited name
-            std::vector<Preset::Type> types;
-            for (Tab* tab : tabs_list)
-                if (tab->supports_printer_technology(printer_technology) && tab->current_preset_is_dirty())
-                {
-                    const Preset& preset = tab->get_presets()->get_edited_preset();
-                    if (preset.is_system || preset.is_default || preset.is_external)
-                        types.emplace_back(preset.type);
-
-                    names_and_types.emplace_back(NameType{ preset.name, preset.type });
-                }
-
-
-            if (!types.empty()) {
-                SavePresetDialog save_dlg(types);
-                if (save_dlg.ShowModal() != wxID_OK)
-                    return false;
-
-                for (NameType& nt : names_and_types) {
-                    const std::string name = save_dlg.get_name(nt.type);
-                    if (!name.empty())
-                        nt.name = name;
-                }
-            }
-
-            for (const NameType& nt : names_and_types)
-                preset_bundle->save_changes_for_preset(nt.name, nt.type, dlg.get_unselected_options(nt.type));
+            for (const std::pair<std::string, Preset::Type>& nt : dlg.get_names_and_types())
+                preset_bundle->save_changes_for_preset(nt.first, nt.second, dlg.get_unselected_options(nt.second));
 
             // if we saved changes to the new presets, we should to 
             // synchronize config.ini with the current selections.
