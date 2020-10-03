@@ -1670,8 +1670,9 @@ void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject
                 } else {
                     const GLGizmosManager& gm = get_gizmos_manager();
                     auto gizmo_type = gm.get_current_type();
-                    if (gizmo_type == GLGizmosManager::FdmSupports
-                     || gizmo_type == GLGizmosManager::Seam)
+                    if (    (gizmo_type == GLGizmosManager::FdmSupports
+                          || gizmo_type == GLGizmosManager::Seam)
+                        && ! vol->is_modifier)
                         vol->force_neutral_color = true;
                     else
                         vol->force_native_color = true;
