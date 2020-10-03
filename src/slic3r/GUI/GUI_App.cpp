@@ -123,6 +123,10 @@ public:
 
             memDC.SelectObject(wxNullBitmap);
             set_bitmap(bitmap);
+#ifdef __WXOSX__
+            // without this code splash screen wouldn't be updated under OSX
+            wxYield();
+#endif
         }
     }
 
@@ -531,6 +535,41 @@ static void generic_exception_handle()
     }
 }
 
+void GUI_App::AFTER_INIT_LOADS::on_loads(GUI_App* gui)
+{
+    if (!gui->initialized())
+        return;
+
+#if ENABLE_GCODE_VIEWER
+    if (m_start_as_gcodeviewer) {
+        if (!m_input_files.empty())
+            gui->plater()->load_gcode(wxString::FromUTF8(m_input_files[0].c_str()));
+    }
+    else {
+#endif // ENABLE_GCODE_VIEWER_AS
+#if 0
+        // Load the cummulative config over the currently active profiles.
+        //FIXME if multiple configs are loaded, only the last one will have an effect.
+        // We need to decide what to do about loading of separate presets (just print preset, just filament preset etc).
+        // As of now only the full configs are supported here.
+        if (!m_print_config.empty())
+            gui->mainframe->load_config(m_print_config);
+#endif
+        if (!m_load_configs.empty())
+            // Load the last config to give it a name at the UI. The name of the preset may be later
+            // changed by loading an AMF or 3MF.
+            //FIXME this is not strictly correct, as one may pass a print/filament/printer profile here instead of a full config.
+            gui->mainframe->load_config_file(m_load_configs.back());
+        // If loading a 3MF file, the config is loaded from the last one.
+        if (!m_input_files.empty())
+            gui->plater()->load_files(m_input_files, true, true);
+        if (!m_extra_config.empty())
+            gui->mainframe->load_config(m_extra_config);
+#if ENABLE_GCODE_VIEWER
+    }
+#endif // ENABLE_GCODE_VIEWER
+  }
+
 IMPLEMENT_APP(GUI_App)
 
 #if ENABLE_GCODE_VIEWER
@@ -780,6 +819,13 @@ bool GUI_App::on_init_inner()
             app_config->save();
 
         this->obj_manipul()->update_if_dirty();
+
+        static bool update_gui_after_init = true;
+        if (update_gui_after_init)
+        {
+            update_gui_after_init = false;
+            m_after_init_loads.on_loads(this);
+        }
 
 		// Preset updating & Configwizard are done after the above initializations,
 	    // and after MainFrame is created & shown.

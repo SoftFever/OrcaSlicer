@@ -140,6 +140,35 @@ private:
     std::string m_instance_hash_string;
 	size_t m_instance_hash_int;
 
+    // parameters needed for the after OnInit() loads
+    struct AFTER_INIT_LOADS
+    {
+        std::vector<std::string>    m_load_configs;
+        DynamicPrintConfig          m_extra_config;
+        std::vector<std::string>    m_input_files;
+#if ENABLE_GCODE_VIEWER
+        bool                        m_start_as_gcodeviewer;
+#endif // ENABLE_GCODE_VIEWER
+
+        void set_params(
+            const std::vector<std::string>& load_configs,
+            const DynamicPrintConfig&       extra_config,
+            const std::vector<std::string>& input_files,
+#if ENABLE_GCODE_VIEWER
+            bool                            start_as_gcodeviewer
+#endif // ENABLE_GCODE_VIEWER
+        ) {
+            m_load_configs = load_configs;
+            m_extra_config = extra_config;
+            m_input_files = input_files;
+#if ENABLE_GCODE_VIEWER
+            m_start_as_gcodeviewer = start_as_gcodeviewer;
+#endif // ENABLE_GCODE_VIEWER
+        }
+
+        void on_loads(GUI_App* gui);
+    };
+
 public:
     bool            OnInit() override;
     bool            initialized() const { return m_initialized; }
@@ -236,6 +265,7 @@ public:
     PresetUpdater*  preset_updater{ nullptr };
     MainFrame*      mainframe{ nullptr };
     Plater*         plater_{ nullptr };
+    AFTER_INIT_LOADS m_after_init_loads;
 
 	PresetUpdater* get_preset_updater() { return preset_updater; }
 
