@@ -647,7 +647,6 @@ void PageMaterials::on_mouse_move_on_profiles(wxMouseEvent& evt)
     const wxClientDC dc(list_profile);
     const wxPoint pos = evt.GetLogicalPosition(dc);
     int item = list_profile->HitTest(pos);
-    //BOOST_LOG_TRIVIAL(debug) << "hit test: " << item;
     on_material_hovered(item);
 }
 void PageMaterials::on_mouse_enter_profiles(wxMouseEvent& evt)
@@ -661,7 +660,7 @@ void PageMaterials::reload_presets()
     clear();
 
 	list_printer->append(_(L("(All)")), &EMPTY);
-    list_printer->SetLabelMarkup("<b>bald</b>");
+    //list_printer->SetLabelMarkup("<b>bald</b>");
 	for (const Preset* printer : materials->printers) {
 		list_printer->append(printer->name, &printer->name);
 	}
@@ -680,7 +679,6 @@ void PageMaterials::reload_presets()
 
 void PageMaterials::set_compatible_printers_html_window(const std::vector<std::string>& printer_names, bool all_printers)
 {
-    //Slic3r::GUI::wxGetApp().dark_mode()
     const auto bgr_clr = 
 #if defined(__APPLE__)
         wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
@@ -690,9 +688,10 @@ void PageMaterials::set_compatible_printers_html_window(const std::vector<std::s
     const auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
     const auto text_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     const auto text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
-    wxString first_line = L"Profiles marked with * are not compatible with all installed printers.";
+    wxString first_line = _(L("Profiles marked with * are not compatible with all installed printers."));
     wxString text;
     if (all_printers) {
+        wxString second_line = _(L("All installed printers are compatible with selected profile."));
         text = wxString::Format(
             "<html>"
             "<style>"
@@ -701,7 +700,7 @@ void PageMaterials::set_compatible_printers_html_window(const std::vector<std::s
             "<body bgcolor= %s>"
             "<font color=%s>"
             "<font size=\"3\">"
-            "%s<br /><br /> All installed printers are compatible with selected profile."
+            "%s<br /><br />%s"
             "</font>"
             "</font>"
             "</body>"
@@ -709,9 +708,10 @@ void PageMaterials::set_compatible_printers_html_window(const std::vector<std::s
             , bgr_clr_str
             , text_clr_str
             , first_line
+            , second_line
             );
     } else {
-        wxString second_line = L"Compatible printers:";
+        wxString second_line = _(L("Compatible printers:"));
         text = wxString::Format(
             "<html>"
             "<style>"
@@ -772,7 +772,7 @@ void PageMaterials::on_material_highlighted(int sel_material)
         return;
     }
     last_hovered_item = sel_material;
-    std::string compatible_printers_label = "Compatible printers:\n";
+    //std::string compatible_printers_label = "Compatible printers:\n";
     std::vector<std::string> tabs;
     tabs.push_back(std::string());
     tabs.push_back(std::string());
