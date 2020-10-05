@@ -505,7 +505,9 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         m_filament_diameters[i] = static_cast<float>(config.filament_diameter.values[i]);
     }
 
-    m_time_processor.machine_limits = reinterpret_cast<const MachineEnvelopeConfig&>(config);
+    if (config.machine_limits_type.value != MachineLimitsUsage::Ignore)
+        m_time_processor.machine_limits = reinterpret_cast<const MachineEnvelopeConfig&>(config);
+
     // Filament load / unload times are not specific to a firmware flavor. Let anybody use it if they find it useful.
     // As of now the fields are shown at the UI dialog in the same combo box as the ramming values, so they
     // are considered to be active for the single extruder multi-material printers only.
