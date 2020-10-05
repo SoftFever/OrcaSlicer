@@ -910,6 +910,7 @@ void PageMaterials::update_lists(int sel_printer, int sel_type, int sel_vendor)
 			const std::string& type = list_type->get_data(sel_type);
 			const std::string& vendor = list_vendor->get_data(sel_vendor);
 			// finst printer preset
+            std::vector<std::pair<std::reference_wrapper<const std::string>, bool>> to_list;
 			for (size_t i = 0; i < sel_printers_count; i++) {
 				const std::string& printer_name = list_printer->get_data(sel_printers[i]);
 				const Preset* printer = nullptr;
@@ -920,13 +921,14 @@ void PageMaterials::update_lists(int sel_printer, int sel_type, int sel_vendor)
 					}
 				}
 
-				materials->filter_presets(printer, type, vendor, [this](const Preset* p) {
+				materials->filter_presets(printer, type, vendor, [this, &to_list](const Preset* p) {
 					bool was_checked = false;
 					//size_t printer_counter = materials->get_printer_counter(p);
 					int cur_i = list_profile->find(p->alias);
-					if (cur_i == wxNOT_FOUND)
+					if (cur_i == wxNOT_FOUND) {
 						cur_i = list_profile->append(p->alias + (materials->get_omnipresent(p) ? "" : " *"), &p->alias);
-					else
+                        to_list.emplace_back(p->alias, materials->get_omnipresent(p));
+                    } else
 						was_checked = list_profile->IsChecked(cur_i);
 
 					const std::string& section = materials->appconfig_section();
@@ -944,7 +946,7 @@ void PageMaterials::update_lists(int sel_printer, int sel_type, int sel_vendor)
 						wizard_p()->appconfig_new.set(section, p->name, "1");
 					});
 			}
-            sort_list_data(list_profile);
+            sort_list_data(list_profile, to_list);
 		}
 
 		sel_vendor_prev = sel_vendor;
@@ -1010,35 +1012,33 @@ void PageMaterials::sort_list_data(StringList* list, bool add_All_item, bool mat
         list->append(item, &const_cast<std::string&>(item.get()));
 }     
 
-void PageMaterials::sort_list_data(PresetList* list)
+void PageMaterials::sort_list_data(PresetList* list, const std::vector<std::pair<std::reference_wrapper<const std::string>, bool>>& data)
 {
     // sort data
     // then prusa profiles
     // then the rest
     // in alphabetical order
-    std::vector<std::reference_wrapper<const std::string>> prusa_profiles;
-    std::vector<std::reference_wrapper<const std::string>> other_profiles;
-    for (int i = 0; i < list->size(); ++i) {
-        const std::string& data = list->get_data(i);
-        if (data == EMPTY) // do not sort <all> item
-            continue;
-        if (data.find("Prusa") != std::string::npos)
-            prusa_profiles.push_back(data);
+    std::vector<std::pair<std::reference_wrapper<const std::string>, bool>> prusa_profiles;
+    std::vector<std::pair<std::reference_wrapper<const std::string>, bool>> other_profiles;
+    //for (int i = 0; i < data.size(); ++i) {
+    for (const auto& item : data) {
+        const std::string& name = item.first;
+        if (name.find("Prusa") != std::string::npos)
+            prusa_profiles.emplace_back(item);
         else
-            other_profiles.push_back(data);
+            other_profiles.emplace_back(item);
     }
-    std::sort(prusa_profiles.begin(), prusa_profiles.end(), [](std::reference_wrapper<const std::string> a, std::reference_wrapper<const std::string> b) {
-        return a.get() < b.get();
+    std::sort(prusa_profiles.begin(), prusa_profiles.end(), [](std::pair<std::reference_wrapper<const std::string>, bool> a, std::pair<std::reference_wrapper<const std::string>, bool> b) {
+        return a.first.get() < b.first.get();
         });
-    std::sort(other_profiles.begin(), other_profiles.end(), [](std::reference_wrapper<const std::string> a, std::reference_wrapper<const std::string> b) {
-        return a.get() < b.get();
+    std::sort(other_profiles.begin(), other_profiles.end(), [](std::pair<std::reference_wrapper<const std::string>, bool> a, std::pair<std::reference_wrapper<const std::string>, bool> b) {
+        return a.first.get() < b.first.get();
         });
     list->Clear();
     for (const auto& item : prusa_profiles)
-        list->append(item, &const_cast<std::string&>(item.get()));
+        list->append(std::string(item.first) + (item.second ? "" : " *"), &const_cast<std::string&>(item.first.get()));
     for (const auto& item : other_profiles)
-        list->append(item, &const_cast<std::string&>(item.get()));
-
+        list->append(std::string(item.first) + (item.second ? "" : " *"), &const_cast<std::string&>(item.first.get()));
 }
 
 void PageMaterials::select_material(int i)
