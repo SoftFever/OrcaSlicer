@@ -83,7 +83,7 @@ class MainFrame;
 class SplashScreen : public wxSplashScreen
 {
 public:
-    SplashScreen(const wxBitmap& bitmap, long splashStyle, int milliseconds, wxPoint pos = wxDefaultPosition, bool is_decorated = false)
+    SplashScreen(const wxBitmap& bitmap, long splashStyle, int milliseconds, wxPoint pos = wxDefaultPosition)
         : wxSplashScreen(bitmap, splashStyle, milliseconds, nullptr, wxID_ANY, wxDefaultPosition, wxDefaultSize, 
 #ifdef __APPLE__
             wxSIMPLE_BORDER | wxFRAME_NO_TASKBAR | wxSTAY_ON_TOP
@@ -93,18 +93,19 @@ public:
         )
     {
         wxASSERT(bitmap.IsOk());
-        m_main_bitmap = bitmap;
 
-        if (!is_decorated)
-            Decorate(m_main_bitmap, pos, true);
+        int init_dpi = get_dpi_for_window(this);
+        this->SetPosition(pos);
+        this->CenterOnScreen();
+        int new_dpi = get_dpi_for_window(this);
 
-        m_scale = get_display_scale(pos);
-        m_font  = get_scaled_sys_font(get_splashscreen_display_scale_factor(pos)).Bold().Larger();        
+        m_scale         = (float)(new_dpi) / (float)(init_dpi);
+        m_font          = get_default_font(this);//.Larger()
+        m_main_bitmap   = bitmap;
 
-        if (pos != wxDefaultPosition) {
-            this->SetPosition(pos);
-            this->CenterOnScreen();
-        }
+        scale_bitmap(m_main_bitmap, m_scale);
+        // draw logo and constant info text
+        Decorate(m_main_bitmap);
     }
 
     void SetText(const wxString& text)
@@ -116,10 +117,9 @@ public:
             wxMemoryDC memDC;
             memDC.SelectObject(bitmap);
 
-            wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-            memDC.SetFont(m_font);
+            memDC.SetFont(m_font.Bold());
             memDC.SetTextForeground(wxColour(237, 107, 33));
-            memDC.DrawText(text, int(m_scale * 45), int(m_scale * 240));
+            memDC.DrawText(text, int(m_scale * 55), int(m_scale * 265));
 
             memDC.SelectObject(wxNullBitmap);
             set_bitmap(bitmap);
@@ -157,31 +157,10 @@ public:
         return new_bmp;
     }
 
-    static bool Decorate(wxBitmap& bmp, wxPoint screen_pos = wxDefaultPosition, bool force_decor = false)
+    bool Decorate(wxBitmap& bmp, wxPoint screen_pos = wxDefaultPosition, bool force_decor = false)
     {
         if (!bmp.IsOk())
             return false;
-
-        float screen_sf = get_splashscreen_display_scale_factor(screen_pos);
-        float screen_scale = get_display_scale(screen_pos);
-
-        if (screen_sf == 1.0) {
-            // it means that we have just one display or all displays have a same scale
-            // Scale bitmap for this display and continue the decoration
-            scale_bitmap(bmp, screen_scale);
-        }
-        else if (force_decor) {
-            // if we are here, it means that bitmap is already scaled for the main display
-            // and now we should just scale it th the secondary monitor and continue the decoration
-            scale_bitmap(bmp, screen_sf);
-        }
-        else {
-            // if screens have different scale and this function is called with force_decor == false
-            // then just rescale the bitmap for the main display scale
-            scale_bitmap(bmp, get_display_scale());
-            return false;
-            // Decoration will be continued later, from the SplashScreen constructor
-        }
 
         // draw text to the box at the left of the splashscreen.
         // this box will be 2/5 of the weight of the bitmap, and be at the left.
@@ -196,8 +175,7 @@ public:
         wxBitmap logo_bmp = *bmp_cache.load_svg("prusa_slicer_logo", logo_size, logo_size);
 #endif // ENABLE_GCODE_VIEWER
 
-        wxFont sys_font = get_scaled_sys_font(screen_sf);
-        wxCoord margin = int(screen_scale * 20);
+        wxCoord margin = int(m_scale * 20);
 
         const wxRect banner_rect(wxPoint(0, logo_size + margin * 2), wxPoint(width, bmp.GetHeight()));
 
@@ -208,12 +186,11 @@ public:
         wxString title_string = SLIC3R_APP_NAME;
 #endif // ENABLE_GCODE_VIEWER
 
-        wxFont title_font = sys_font;
-        title_font.SetPointSize(3 * sys_font.GetPointSize());
+        wxFont title_font = m_font.Scaled(3.f);
 
         // dynamically get the version to display
         wxString version_string = _L("Version") + " " + std::string(SLIC3R_VERSION);
-        wxFont version_font = sys_font.Larger().Larger();
+        wxFont version_font = m_font.Scaled(1.5f);
 
         // create a info notice
         wxString info_string = title_string + " " +
@@ -221,9 +198,9 @@ public:
                                title_string + " " + _L("is licensed under the") + " " + _L("GNU Affero General Public License, version 3") + "\n\n" +
                             _L("Contributions by Vojtech Bubnik, Enrico Turri, Oleksandra Iushchenko, Tamas Meszaros, Lukas Matena, Vojtech Kral, David Kocik and numerous others.") + "\n\n" +
                             _L("Artwork model by Nora Al-Badri and Jan Nikolai Nelles");
-        wxFont info_font = sys_font.Larger();
+        wxFont info_font = m_font;
 
-        word_wrap_string(info_string, width, screen_scale);
+        word_wrap_string(info_string);
 
         // use a memory DC to draw directly onto the bitmap
         wxMemoryDC memDc(bmp);
@@ -238,7 +215,7 @@ public:
         memDc.DrawLabel(title_string, banner_rect.Deflate(margin, 0), wxALIGN_TOP | wxALIGN_LEFT);
 
         memDc.SetFont(version_font);
-        memDc.DrawLabel(version_string, banner_rect.Deflate(margin, 2 * margin), wxALIGN_TOP | wxALIGN_LEFT);
+        memDc.DrawLabel(version_string, banner_rect.Deflate(margin, (2.5f * margin)), wxALIGN_TOP | wxALIGN_LEFT);
 
         memDc.SetFont(info_font);
         memDc.DrawLabel(info_string, banner_rect.Deflate(margin, 2 * margin), wxALIGN_BOTTOM | wxALIGN_LEFT);
@@ -258,42 +235,6 @@ private:
         m_window->Update();
     }
 
-    static float get_splashscreen_display_scale_factor(wxPoint pos = wxDefaultPosition)
-    {
-        if (wxDisplay::GetCount() == 1)
-            return 1.0;
-
-        wxFrame main_screen_fr(nullptr, wxID_ANY, wxEmptyString);
-        wxFrame splash_screen_fr(nullptr, wxID_ANY, wxEmptyString, pos);
-
-#if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT && !defined(__WXGTK__)
-        int main_dpi = get_dpi_for_window(&main_screen_fr);
-        int splash_dpi = get_dpi_for_window(&splash_screen_fr);
-        float sf = (float)splash_dpi / (float)main_dpi;
-#else
-        // initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
-        float sf = (float)splash_screen_fr.GetTextExtent("m").x / (float)main_screen_fr.GetTextExtent("m").x;
-#endif // ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
-
-        return sf;
-    }
-
-    static float get_display_scale(wxPoint pos = wxDefaultPosition)
-    {
-        // pos equals to wxDefaultPosition, when display is main
-        wxFrame fr(nullptr, wxID_ANY, wxEmptyString, pos);
-
-#if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT && !defined(__WXGTK__)
-        int dpi = get_dpi_for_window(&fr);
-        float scale = dpi != DPI_DEFAULT ? (float)dpi / DPI_DEFAULT : 1.0;
-#else
-        // initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
-        float scale = 0.1 * std::max<size_t>(10, fr.GetTextExtent("m").x - 1);
-#endif // ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
-
-        return scale;
-    }
-
     static void scale_bitmap(wxBitmap& bmp, float scale)
     {
         if (scale == 1.0)
@@ -309,20 +250,11 @@ private:
 
         bmp = wxBitmap(std::move(image));
     }
-
-    static wxFont get_scaled_sys_font(float screen_sf)
+    
+    void word_wrap_string(wxString& input)
     {
-        wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-        if (screen_sf != 1.0)
-            font.SetPointSize(int(screen_sf * (float)font.GetPointSize()));
-
-        return font;
-    }
-
-    static void word_wrap_string(wxString& input, int line_px_len, float scalef)
-    {
-        // calculate count od symbols in one line according to the scale
-        int line_len = int((float)line_px_len / (scalef * 10) + 0.5) + 10;
+        // count od symbols in one line
+        int line_len = 55;
 
         int idx = -1;
         int cur_len = 0;
@@ -730,17 +662,13 @@ bool GUI_App::on_init_inner()
 
     app_config->set("version", SLIC3R_VERSION);
     app_config->save();
-/*
-    if (wxImage::FindHandler(wxBITMAP_TYPE_JPEG) == nullptr)
-        wxImage::AddHandler(new wxJPEGHandler());
-    if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
-        wxImage::AddHandler(new wxPNGHandler());
-*/
+
     wxInitAllImageHandlers();
 
     SplashScreen* scrn = nullptr;
     if (app_config->get("show_splash_screen") == "1")
     {
+        // make a bitmap with dark grey banner on the left side
         wxBitmap bmp = SplashScreen::MakeBitmap(wxBitmap(from_u8(var(is_editor() ? "splashscreen.jpg" : "splashscreen-gcodepreview.jpg")), wxBITMAP_TYPE_JPEG));
 
         // Detect position (display) to show the splash screen
@@ -752,12 +680,9 @@ bool GUI_App::on_init_inner()
                 splashscreen_pos = metrics->get_rect().GetPosition();
         }
 
-        // try to decorate and/or scale the bitmap before splash screen creation
-        bool is_decorated = SplashScreen::Decorate(bmp, splashscreen_pos);
-
         // create splash screen with updated bmp
         scrn = new SplashScreen(bmp.IsOk() ? bmp : create_scaled_bitmap("prusa_slicer_logo", nullptr, 400), 
-                                wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 4000, splashscreen_pos, is_decorated);
+                                wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 4000, splashscreen_pos);
         scrn->SetText(_L("Loading configuration..."));
     }
 
