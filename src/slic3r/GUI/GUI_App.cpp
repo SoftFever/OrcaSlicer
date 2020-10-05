@@ -634,25 +634,49 @@ void GUI_App::init_app_config()
 		set_data_dir(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data());
 
 	if (!app_config)
-		app_config = new AppConfig();
+#if ENABLE_GCODE_APP_CONFIG
+        app_config = new AppConfig(is_editor() ? AppConfig::EAppMode::Editor : AppConfig::EAppMode::GCodeViewer);
+#else
+        app_config = new AppConfig();
+#endif // ENABLE_GCODE_APP_CONFIG
 
 #if ENABLE_GCODE_VIEWER
+#if !ENABLE_GCODE_APP_CONFIG
     if (is_gcode_viewer())
         // disable config save to avoid to mess it up for the editor
         app_config->enable_save(false);
+#endif // !ENABLE_GCODE_APP_CONFIG
 #endif // ENABLE_GCODE_VIEWER
 
 	// load settings
 	app_conf_exists = app_config->exists();
 	if (app_conf_exists) {
         std::string error = app_config->load();
+#if ENABLE_GCODE_APP_CONFIG
+        if (!error.empty()) {
+            // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
+            if (is_editor()) {
+                throw Slic3r::RuntimeError(
+                    _u8L("Error parsing PrusaSlicer config file, it is probably corrupted. "
+                        "Try to manually delete the file to recover from the error. Your user profiles will not be affected.") +
+                    "\n\n" + app_config->config_path() + "\n\n" + error);
+            }
+            else {
+                throw Slic3r::RuntimeError(
+                    _u8L("Error parsing PrusaGCodeViewer config file, it is probably corrupted. "
+                        "Try to manually delete the file to recover from the error.") +
+                    "\n\n" + app_config->config_path() + "\n\n" + error);
+            }
+        }
+#else
         if (!error.empty())
             // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
             throw Slic3r::RuntimeError(
                 _u8L("Error parsing PrusaSlicer config file, it is probably corrupted. "
                     "Try to manually delete the file to recover from the error. Your user profiles will not be affected.") +
                 "\n\n" + AppConfig::config_path() + "\n\n" + error);
-	}
+#endif // ENABLE_GCODE_APP_CONFIG
+    }
 }
 
 void GUI_App::init_single_instance_checker(const std::string &name, const std::string &path)

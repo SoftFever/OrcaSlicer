@@ -557,6 +557,9 @@ struct ConfigWizard::priv
 
     priv(ConfigWizard *q)
         : q(q)
+#if ENABLE_GCODE_APP_CONFIG
+        , appconfig_new(AppConfig::EAppMode::Editor)
+#endif // ENABLE_GCODE_APP_CONFIG
         , filaments(T_FFF)
         , sla_materials(T_SLA)
     {}
