@@ -823,7 +823,10 @@ bool GUI_App::on_init_inner()
 
     mainframe = new MainFrame();
     // hide settings tabs after first Layout
-    mainframe->select_tab(size_t(0));
+#if ENABLE_GCODE_VIEWER
+    if (is_editor())
+#endif // ENABLE_GCODE_VIEWER
+        mainframe->select_tab(size_t(0));
 
     sidebar().obj_list()->init_objects(); // propagate model objects to object list
 //     update_mode(); // !!! do that later
