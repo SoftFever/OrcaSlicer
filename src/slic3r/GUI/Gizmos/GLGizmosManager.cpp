@@ -437,6 +437,19 @@ void GLGizmosManager::render_current_gizmo() const
     m_gizmos[m_current]->render();
 }
 
+void GLGizmosManager::render_painter_gizmo() const
+{
+    // This function shall only be called when current gizmo is
+    // derived from GLGizmoPainterBase.
+
+    if (!m_enabled || m_current == Undefined)
+        return;
+
+    auto* gizmo = dynamic_cast<GLGizmoPainterBase*>(get_current());
+    assert(gizmo); // check the precondition
+    gizmo->render_painter_gizmo();
+}
+
 void GLGizmosManager::render_current_gizmo_for_picking_pass() const
 {
     if (! m_enabled || m_current == Undefined)

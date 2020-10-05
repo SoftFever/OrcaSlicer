@@ -59,12 +59,20 @@ class GLGizmoPainterBase : public GLGizmoBase
 private:
     ObjectID m_old_mo_id;
     size_t m_old_volumes_size = 0;
+    virtual void on_render() const {}
+    virtual void on_render_for_picking() const {}
 
 public:
     GLGizmoPainterBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
     ~GLGizmoPainterBase() override {}
     void set_painter_gizmo_data(const Selection& selection);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
+
+    // Following function renders the triangles and cursor. Having this separated
+    // from usual on_render method allows to render them before transparent objects,
+    // so they can be seen inside them. The usual on_render is called after all
+    // volumes (including transparent ones) are rendered.
+    virtual void render_painter_gizmo() const = 0;
 
 protected:
     void render_triangles(const Selection& selection) const;

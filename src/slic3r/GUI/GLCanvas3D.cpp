@@ -5461,6 +5461,20 @@ void GLCanvas3D::_render_objects() const
             });
         }
 
+        // In case a painting gizmo is open, it should render the painted triangles
+        // before transparent objects are rendered. Otherwise they would not be
+        // visible when inside modifier meshes etc.
+        {
+            const GLGizmosManager& gm = get_gizmos_manager();
+            GLGizmosManager::EType type = gm.get_current_type();
+            if (type == GLGizmosManager::FdmSupports
+             || type == GLGizmosManager::Seam) {
+                shader->stop_using();
+                gm.render_painter_gizmo();
+                shader->start_using();
+            }
+        }
+
         m_volumes.render(GLVolumeCollection::Transparent, false, wxGetApp().plater()->get_camera().get_view_matrix());
         shader->stop_using();
     }

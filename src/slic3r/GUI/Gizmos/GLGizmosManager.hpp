@@ -212,6 +212,7 @@ public:
 
     void render_current_gizmo() const;
     void render_current_gizmo_for_picking_pass() const;
+    void render_painter_gizmo() const;
 
     void render_overlay() const;
 

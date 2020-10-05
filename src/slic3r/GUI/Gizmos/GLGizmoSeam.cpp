@@ -46,7 +46,7 @@ std::string GLGizmoSeam::on_get_name() const
 
 
 
-void GLGizmoSeam::on_render() const
+void GLGizmoSeam::render_painter_gizmo() const
 {
     const Selection& selection = m_parent.get_selection();
 
