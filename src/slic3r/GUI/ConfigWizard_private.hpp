@@ -344,7 +344,7 @@ struct PageMaterials: ConfigWizardPage
     void clear_compatible_printers_label();
 
     void sort_list_data(StringList* list, bool add_All_item, bool material_type_ordering);
-    void sort_list_data(PresetList* list);
+    void sort_list_data(PresetList* list, const std::vector<std::pair<std::reference_wrapper<const std::string>, bool>>& data);
 
     void on_paint();
     void on_mouse_move_on_profiles(wxMouseEvent& evt);
