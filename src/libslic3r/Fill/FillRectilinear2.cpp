@@ -1387,7 +1387,7 @@ static void traverse_graph_generate_polylines(
     }
 }
 
-struct MonotonousRegion
+struct MonotonicRegion
 {
     struct Boundary {
         int vline;
@@ -1412,13 +1412,13 @@ struct MonotonousRegion
 
 #if NDEBUG
     // Left regions are used to track whether all regions left to this one have already been printed.
-    boost::container::small_vector<MonotonousRegion*, 4>	left_neighbors;
+    boost::container::small_vector<MonotonicRegion*, 4>	left_neighbors;
     // Right regions are held to pick a next region to be extruded using the "Ant colony" heuristics.
-    boost::container::small_vector<MonotonousRegion*, 4>	right_neighbors;
+    boost::container::small_vector<MonotonicRegion*, 4>	right_neighbors;
 #else
     // For debugging, use the normal vector as it is better supported by debug visualizers.
-    std::vector<MonotonousRegion*> left_neighbors;
-    std::vector<MonotonousRegion*> right_neighbors;
+    std::vector<MonotonicRegion*> left_neighbors;
+    std::vector<MonotonicRegion*> right_neighbors;
 #endif
 };
 
@@ -1429,9 +1429,9 @@ struct AntPath
 	float pheromone  { 0 }; 		// <0, 1>
 };
 
-struct MonotonousRegionLink
+struct MonotonicRegionLink
 {
-    MonotonousRegion    *region;
+    MonotonicRegion    *region;
     bool 				 flipped;
     // Distance of right side of this region to left side of the next region, if the "flipped" flag of this region and the next region 
     // is applied as defined.
@@ -1447,7 +1447,7 @@ class AntPathMatrix
 {
 public:
 	AntPathMatrix(
-		const std::vector<MonotonousRegion> 			&regions, 
+		const std::vector<MonotonicRegion> 			    &regions, 
 		const ExPolygonWithOffset 						&poly_with_offset, 
 		const std::vector<SegmentedIntersectionLine> 	&segs,
 		const float 									 initial_pheromone) : 
@@ -1463,7 +1463,7 @@ public:
 			ap.pheromone = initial_pheromone;
 	}
 
-	AntPath& operator()(const MonotonousRegion &region_from, bool flipped_from, const MonotonousRegion &region_to, bool flipped_to)
+	AntPath& operator()(const MonotonicRegion &region_from, bool flipped_from, const MonotonicRegion &region_to, bool flipped_to)
 	{
 		int row = 2 * int(&region_from - m_regions.data()) + flipped_from;
 		int col = 2 * int(&region_to   - m_regions.data()) + flipped_to;
@@ -1490,16 +1490,16 @@ public:
 		return path;
 	}
 
-	AntPath& operator()(const MonotonousRegionLink &region_from, const MonotonousRegion &region_to, bool flipped_to)
+	AntPath& operator()(const MonotonicRegionLink &region_from, const MonotonicRegion &region_to, bool flipped_to)
 		{ return (*this)(*region_from.region, region_from.flipped, region_to, flipped_to); }
-	AntPath& operator()(const MonotonousRegion &region_from, bool flipped_from, const MonotonousRegionLink &region_to)
+	AntPath& operator()(const MonotonicRegion &region_from, bool flipped_from, const MonotonicRegionLink &region_to)
 		{ return (*this)(region_from, flipped_from, *region_to.region, region_to.flipped); }
-    AntPath& operator()(const MonotonousRegionLink &region_from, const MonotonousRegionLink &region_to)
+    AntPath& operator()(const MonotonicRegionLink &region_from, const MonotonicRegionLink &region_to)
         { return (*this)(*region_from.region, region_from.flipped, *region_to.region, region_to.flipped); }
 
 private:
 	// Source regions, used for addressing and updating m_matrix.
-	const std::vector<MonotonousRegion>    			&m_regions;
+	const std::vector<MonotonicRegion>    			&m_regions;
 	// To calculate the intersection points and contour lengths.
 	const ExPolygonWithOffset 						&m_poly_with_offset;
 	const std::vector<SegmentedIntersectionLine> 	&m_segs;
@@ -1652,9 +1652,9 @@ static std::pair<SegmentIntersection*, SegmentIntersection*> right_overlap(std::
 	return start_end.first == nullptr ? start_end : right_overlap(*start_end.first, *start_end.second, vline_this, vline_right);
 }
 
-static std::vector<MonotonousRegion> generate_montonous_regions(std::vector<SegmentedIntersectionLine> &segs)
+static std::vector<MonotonicRegion> generate_montonous_regions(std::vector<SegmentedIntersectionLine> &segs)
 {
-	std::vector<MonotonousRegion> monotonous_regions;
+	std::vector<MonotonicRegion> monotonic_regions;
 
 #ifndef NDEBUG
 	#define SLIC3R_DEBUG_MONOTONOUS_REGIONS
@@ -1685,11 +1685,11 @@ static std::vector<MonotonousRegion> generate_montonous_regions(std::vector<Segm
 			SegmentIntersection *start = &vline_seed.intersections[i_intersection_seed];
             SegmentIntersection *end   = &end_of_vertical_run(vline_seed, *start);
 			if (! start->consumed_vertical_up) {
-				// Draw a new monotonous region starting with this segment.
+				// Draw a new monotonic region starting with this segment.
 				// while there is only a single right neighbor
 		        int i_vline = i_vline_seed;
                 std::pair<SegmentIntersection*, SegmentIntersection*> left(start, end);
-				MonotonousRegion region;
+				MonotonicRegion region;
 				region.left.vline = i_vline;
 				region.left.low   = int(left.first  - vline_seed.intersections.data());
 				region.left.high  = int(left.second - vline_seed.intersections.data());
@@ -1722,19 +1722,19 @@ static std::vector<MonotonousRegion> generate_montonous_regions(std::vector<Segm
 				}
 				// Even number of lines makes the infill zig-zag to exit on the other side of the region than where it starts.
 				region.flips = (num_lines & 1) != 0;
-                monotonous_regions.emplace_back(region);
+                monotonic_regions.emplace_back(region);
 			}
 			i_intersection_seed = int(end - vline_seed.intersections.data()) + 1;
 		}
     }
 
-    return monotonous_regions;
+    return monotonic_regions;
 }
 
 // Traverse path, calculate length of the draw for the purpose of optimization.
 // This function is very similar to polylines_from_paths() in the way how it traverses the path, but
 // polylines_from_paths() emits a path, while this function just calculates the path length.
-static float montonous_region_path_length(const MonotonousRegion &region, bool dir, const ExPolygonWithOffset &poly_with_offset, const std::vector<SegmentedIntersectionLine> &segs)
+static float montonous_region_path_length(const MonotonicRegion &region, bool dir, const ExPolygonWithOffset &poly_with_offset, const std::vector<SegmentedIntersectionLine> &segs)
 {
     // From the initial point (i_vline, i_intersection), follow a path.
 	int   i_intersection = region.left_intersection_point(dir);
@@ -1822,15 +1822,15 @@ static float montonous_region_path_length(const MonotonousRegion &region, bool d
     return unscale<float>(total_length);
 }
 
-static void connect_monotonous_regions(std::vector<MonotonousRegion> &regions, const ExPolygonWithOffset &poly_with_offset, std::vector<SegmentedIntersectionLine> &segs)
+static void connect_monotonic_regions(std::vector<MonotonicRegion> &regions, const ExPolygonWithOffset &poly_with_offset, std::vector<SegmentedIntersectionLine> &segs)
 {
-	// Map from low intersection to left / right side of a monotonous region.
-	using MapType = std::pair<SegmentIntersection*, MonotonousRegion*>;
+	// Map from low intersection to left / right side of a monotonic region.
+	using MapType = std::pair<SegmentIntersection*, MonotonicRegion*>;
 	std::vector<MapType> map_intersection_to_region_start;
 	std::vector<MapType> map_intersection_to_region_end;
 	map_intersection_to_region_start.reserve(regions.size());
 	map_intersection_to_region_end.reserve(regions.size());
-	for (MonotonousRegion &region : regions) {
+	for (MonotonicRegion &region : regions) {
 		map_intersection_to_region_start.emplace_back(&segs[region.left.vline].intersections[region.left.low], &region);
 		map_intersection_to_region_end.emplace_back(&segs[region.right.vline].intersections[region.right.low], &region);
 	}
@@ -1840,7 +1840,7 @@ static void connect_monotonous_regions(std::vector<MonotonousRegion> &regions, c
 	std::sort(map_intersection_to_region_end.begin(), map_intersection_to_region_end.end(), intersections_lower);
 
 	// Scatter links to neighboring regions.
-	for (MonotonousRegion &region : regions) {
+	for (MonotonicRegion &region : regions) {
 		if (region.left.vline > 0) {
 			auto &vline = segs[region.left.vline];
             auto &vline_left = segs[region.left.vline - 1];
@@ -1884,17 +1884,17 @@ static void connect_monotonous_regions(std::vector<MonotonousRegion> &regions, c
 	// Sometimes a segment may indicate that it connects to a segment on the other side while the other does not.
     // This may be a valid case if one side contains runs of OUTER_LOW, INNER_LOW, {INNER_HIGH, INNER_LOW}*, INNER_HIGH, OUTER_HIGH,
     // where the part in the middle does not connect to the other side, but it will be extruded through.
-    for (MonotonousRegion &region : regions) {
+    for (MonotonicRegion &region : regions) {
         std::sort(region.left_neighbors.begin(),  region.left_neighbors.end());
         std::sort(region.right_neighbors.begin(), region.right_neighbors.end());
     }
-    for (MonotonousRegion &region : regions) {
-        for (MonotonousRegion *neighbor : region.left_neighbors) {
+    for (MonotonicRegion &region : regions) {
+        for (MonotonicRegion *neighbor : region.left_neighbors) {
             auto it = std::lower_bound(neighbor->right_neighbors.begin(), neighbor->right_neighbors.end(), &region);
             if (it == neighbor->right_neighbors.end() || *it != &region)
                 neighbor->right_neighbors.insert(it, &region);
         }
-        for (MonotonousRegion *neighbor : region.right_neighbors) {
+        for (MonotonicRegion *neighbor : region.right_neighbors) {
             auto it = std::lower_bound(neighbor->left_neighbors.begin(), neighbor->left_neighbors.end(), &region);
             if (it == neighbor->left_neighbors.end() || *it != &region)
                 neighbor->left_neighbors.insert(it, &region);
@@ -1903,12 +1903,12 @@ static void connect_monotonous_regions(std::vector<MonotonousRegion> &regions, c
 
 #ifndef NDEBUG
     // Verify symmetry of the left_neighbors / right_neighbors.
-    for (MonotonousRegion &region : regions) {
-        for (MonotonousRegion *neighbor : region.left_neighbors) {
+    for (MonotonicRegion &region : regions) {
+        for (MonotonicRegion *neighbor : region.left_neighbors) {
             assert(std::count(region.left_neighbors.begin(), region.left_neighbors.end(), neighbor) == 1);
             assert(std::find(neighbor->right_neighbors.begin(), neighbor->right_neighbors.end(), &region) != neighbor->right_neighbors.end());
         }
-        for (MonotonousRegion *neighbor : region.right_neighbors) {
+        for (MonotonicRegion *neighbor : region.right_neighbors) {
             assert(std::count(region.right_neighbors.begin(), region.right_neighbors.end(), neighbor) == 1);
             assert(std::find(neighbor->left_neighbors.begin(), neighbor->left_neighbors.end(), &region) != neighbor->left_neighbors.end());
         }
@@ -1916,7 +1916,7 @@ static void connect_monotonous_regions(std::vector<MonotonousRegion> &regions, c
 #endif /* NDEBUG */
 
     // Fill in sum length of connecting lines of a region. This length is used for optimizing the infill path for minimum length.
-    for (MonotonousRegion &region : regions) {
+    for (MonotonicRegion &region : regions) {
     	region.len1 = montonous_region_path_length(region, false, poly_with_offset, segs);
     	region.len2 = montonous_region_path_length(region, true,  poly_with_offset, segs);
     	// Subtract the smaller length from the longer one, so we will optimize just with the positive difference of the two.
@@ -1934,7 +1934,7 @@ static void connect_monotonous_regions(std::vector<MonotonousRegion> &regions, c
 // https://www.chalmers.se/en/departments/math/research/research-groups/optimization/OptimizationMasterTheses/MScThesis-RaadSalman-final.pdf
 // Algorithm 6.1 Lexicographic Path Preserving 3-opt
 // Optimize path while maintaining the ordering constraints.
-void monotonous_3_opt(std::vector<MonotonousRegionLink> &path, const std::vector<SegmentedIntersectionLine> &segs)
+void monotonic_3_opt(std::vector<MonotonicRegionLink> &path, const std::vector<SegmentedIntersectionLine> &segs)
 {
 	// When doing the 3-opt path preserving flips, one has to fulfill two constraints:
 	//
@@ -1949,7 +1949,7 @@ void monotonous_3_opt(std::vector<MonotonousRegionLink> &path, const std::vector
 	// then the precedence constraint verification is amortized inside the O(n^3) loop. Now which is better for our task?
 	//
 	// It is beneficial to also try flipping of the infill zig-zags, for which a prefix sum of both flipped and non-flipped paths over
-	// MonotonousRegionLinks may be utilized, however updating the prefix sum has a linear complexity, the same complexity as doing the 3-opt
+	// MonotonicRegionLinks may be utilized, however updating the prefix sum has a linear complexity, the same complexity as doing the 3-opt
 	// exchange by copying the pieces.
 }
 
@@ -1962,17 +1962,17 @@ inline void print_ant(const std::string& fmt, TArgs&&... args) {
 #endif
 }
 
-// Find a run through monotonous infill blocks using an 'Ant colony" optimization method.
+// Find a run through monotonic infill blocks using an 'Ant colony" optimization method.
 // http://www.scholarpedia.org/article/Ant_colony_optimization
-static std::vector<MonotonousRegionLink> chain_monotonous_regions(
-	std::vector<MonotonousRegion> &regions, const ExPolygonWithOffset &poly_with_offset, const std::vector<SegmentedIntersectionLine> &segs, std::mt19937_64 &rng)
+static std::vector<MonotonicRegionLink> chain_monotonic_regions(
+	std::vector<MonotonicRegion> &regions, const ExPolygonWithOffset &poly_with_offset, const std::vector<SegmentedIntersectionLine> &segs, std::mt19937_64 &rng)
 {
 	// Number of left neighbors (regions that this region depends on, this region cannot be printed before the regions left of it are printed) + self.
 	std::vector<int32_t>			left_neighbors_unprocessed(regions.size(), 1);
 	// Queue of regions, which have their left neighbors already printed.
-	std::vector<MonotonousRegion*> 	queue;
+	std::vector<MonotonicRegion*> 	queue;
 	queue.reserve(regions.size());
-	for (MonotonousRegion &region : regions)
+	for (MonotonicRegion &region : regions)
 		if (region.left_neighbors.empty())
 			queue.emplace_back(&region);
 		else
@@ -1981,13 +1981,13 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
 	auto left_neighbors_unprocessed_initial = left_neighbors_unprocessed;
 	auto queue_initial 						= queue;
 
-	std::vector<MonotonousRegionLink> path, best_path;
+	std::vector<MonotonicRegionLink> path, best_path;
 	path.reserve(regions.size());
 	best_path.reserve(regions.size());
 	float best_path_length = std::numeric_limits<float>::max();
 
 	struct NextCandidate {
-        MonotonousRegion    *region;
+        MonotonicRegion    *region;
         AntPath  	        *link;
         AntPath  	        *link_flipped;
         float                probability;
@@ -2002,22 +2002,22 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
         [&regions, &left_neighbors_unprocessed, &path, &queue]() {
             std::vector<unsigned char> regions_processed(regions.size(), false);
             std::vector<unsigned char> regions_in_queue(regions.size(), false);
-            for (const MonotonousRegion *region : queue) {
+            for (const MonotonicRegion *region : queue) {
             	// This region is not processed yet, his predecessors are processed.
                 assert(left_neighbors_unprocessed[region - regions.data()] == 1);
                 regions_in_queue[region - regions.data()] = true;
             }
-            for (const MonotonousRegionLink &link : path) {
+            for (const MonotonicRegionLink &link : path) {
                 assert(left_neighbors_unprocessed[link.region - regions.data()] == 0);
                 regions_processed[link.region - regions.data()] = true;
             }
             for (size_t i = 0; i < regions_processed.size(); ++ i) {
                 assert(! regions_processed[i] || ! regions_in_queue[i]);
-                const MonotonousRegion &region = regions[i];
+                const MonotonicRegion &region = regions[i];
                 if (regions_processed[i] || regions_in_queue[i]) {
                     assert(left_neighbors_unprocessed[i] == (regions_in_queue[i] ? 1 : 0));
                     // All left neighbors should be processed already.
-                    for (const MonotonousRegion *left : region.left_neighbors) {
+                    for (const MonotonicRegion *left : region.left_neighbors) {
                         assert(regions_processed[left - regions.data()]);
                         assert(left_neighbors_unprocessed[left - regions.data()] == 0);
                     }
@@ -2026,7 +2026,7 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
                     assert(left_neighbors_unprocessed[i] > 1);
                     size_t num_predecessors_unprocessed = 0;
                     bool   has_left_last_on_path       = false;
-                    for (const MonotonousRegion* left : region.left_neighbors) {
+                    for (const MonotonicRegion* left : region.left_neighbors) {
                         size_t iprev = left - regions.data();
                         if (regions_processed[iprev]) {
                         	assert(left_neighbors_unprocessed[iprev] == 0);
@@ -2080,18 +2080,18 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
 		left_neighbors_unprocessed = left_neighbors_unprocessed_initial;
         assert(validate_unprocessed());
         // Pick the last of the queue.
-        MonotonousRegionLink path_end { queue.back(), false };
+        MonotonicRegionLink path_end { queue.back(), false };
         queue.pop_back();
         -- left_neighbors_unprocessed[path_end.region - regions.data()];
 
         float total_length = path_end.region->length(false);
 		while (! queue.empty() || ! path_end.region->right_neighbors.empty()) {
             // Chain.
-			MonotonousRegion 		    &region = *path_end.region;
+			MonotonicRegion 		    &region = *path_end.region;
 			bool 			  			 dir    = path_end.flipped;
 			NextCandidate 				 next_candidate;
 			next_candidate.probability = 0;
-			for (MonotonousRegion *next : region.right_neighbors) {
+			for (MonotonicRegion *next : region.right_neighbors) {
 				int &unprocessed = left_neighbors_unprocessed[next - regions.data()];
 				assert(unprocessed > 1);
 				if (left_neighbors_unprocessed[next - regions.data()] == 2) {
@@ -2106,7 +2106,7 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
 			}
 			bool from_queue = next_candidate.probability == 0;
             if (from_queue) {
-                for (MonotonousRegion *next : queue) {
+                for (MonotonicRegion *next : queue) {
                     AntPath &path1 = path_matrix(region, dir, *next, false);
                     AntPath &path2 = path_matrix(region, dir, *next, true);
                     if (path1.visibility > next_candidate.probability)
@@ -2116,7 +2116,7 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
                 }
             }
             // Move the other right neighbors with satisified constraints to the queue.
-			for (MonotonousRegion *next : region.right_neighbors)
+			for (MonotonicRegion *next : region.right_neighbors)
 				if (-- left_neighbors_unprocessed[next - regions.data()] == 1 && next_candidate.region != next)
 	                queue.emplace_back(next);
             if (from_queue) {
@@ -2127,7 +2127,7 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
                 queue.pop_back();
             }
 			// Extend the path.
-			MonotonousRegion *next_region = next_candidate.region;
+			MonotonicRegion *next_region = next_candidate.region;
 			bool              next_dir    = next_candidate.dir;
             total_length += next_region->length(next_dir) + path_matrix(*path_end.region, path_end.flipped, *next_region, next_dir).length;
             path_end = { next_region, next_dir };
@@ -2140,7 +2140,7 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
         path_matrix.update_inital_pheromone(pheromone_initial_deposit);
     }
 
-    // Probability (unnormalized) of traversing a link between two monotonous regions.
+    // Probability (unnormalized) of traversing a link between two monotonic regions.
 	auto path_probability = [pheromone_alpha, pheromone_beta](AntPath &path) {
 		return pow(path.pheromone, pheromone_alpha) * pow(path.visibility, pheromone_beta);
 	};
@@ -2163,10 +2163,10 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
 			left_neighbors_unprocessed = left_neighbors_unprocessed_initial;
             assert(validate_unprocessed());
             // Pick randomly the first from the queue at random orientation.
-            //FIXME picking the 1st monotonous region should likely be done based on accumulated pheromone level as well,
-            // but the inefficiency caused by the random pick of the 1st monotonous region is likely insignificant.
+            //FIXME picking the 1st monotonic region should likely be done based on accumulated pheromone level as well,
+            // but the inefficiency caused by the random pick of the 1st monotonic region is likely insignificant.
             int first_idx = std::uniform_int_distribution<>(0, int(queue.size()) - 1)(rng);
-            path.emplace_back(MonotonousRegionLink{ queue[first_idx], rng() > rng.max() / 2 });
+            path.emplace_back(MonotonicRegionLink{ queue[first_idx], rng() > rng.max() / 2 });
             *(queue.begin() + first_idx) = std::move(queue.back());
             queue.pop_back();
             -- left_neighbors_unprocessed[path.back().region - regions.data()];
@@ -2182,12 +2182,12 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
 
 			while (! queue.empty() || ! path.back().region->right_neighbors.empty()) {
                 // Chain.
-				MonotonousRegion 		    &region = *path.back().region;
+				MonotonicRegion 		    &region = *path.back().region;
 				bool 			  			 dir    = path.back().flipped;
 				// Sort by distance to pt.
                 next_candidates.clear();
 				next_candidates.reserve(region.right_neighbors.size() * 2);
-				for (MonotonousRegion *next : region.right_neighbors) {
+				for (MonotonicRegion *next : region.right_neighbors) {
 					int &unprocessed = left_neighbors_unprocessed[next - regions.data()];
 					assert(unprocessed > 1);
 					if (-- unprocessed == 1) {
@@ -2204,7 +2204,7 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
                 //FIXME add the queue items to the candidates? These are valid moves as well.
                 if (num_direct_neighbors == 0) {
                     // Add the queue candidates.
-                    for (MonotonousRegion *next : queue) {
+                    for (MonotonicRegion *next : queue) {
                     	assert(left_neighbors_unprocessed[next - regions.data()] == 1);
                         AntPath &path1  	   = path_matrix(region,   dir, *next, false);
                         AntPath &path1_flipped = path_matrix(region, ! dir, *next, true);
@@ -2247,11 +2247,11 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
                     queue.pop_back();
                 }
 				// Extend the path.
-				MonotonousRegion *next_region = take_path->region;
+				MonotonicRegion  *next_region = take_path->region;
 				bool              next_dir    = take_path->dir;
                 path.back().next         = take_path->link;
                 path.back().next_flipped = take_path->link_flipped;
-                path.emplace_back(MonotonousRegionLink{ next_region, next_dir });
+                path.emplace_back(MonotonicRegionLink{ next_region, next_dir });
                 assert(left_neighbors_unprocessed[next_region - regions.data()] == 1);
                 left_neighbors_unprocessed[next_region - regions.data()] = 0;
 				print_ant("\tRegion (%1%:%2%,%3%) (%4%:%5%,%6%) length to prev %7%", 
@@ -2279,14 +2279,14 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
             }
 
 			// Perform 3-opt local optimization of the path.
-			monotonous_3_opt(path, segs);
+			monotonic_3_opt(path, segs);
 
 			// Measure path length.
             assert(! path.empty());
             float path_length = std::accumulate(path.begin(), path.end() - 1,
                 path.back().region->length(path.back().flipped),
-                [&path_matrix](const float l, const MonotonousRegionLink &r) { 
-                    const MonotonousRegionLink &next = *(&r + 1);
+                [&path_matrix](const float l, const MonotonicRegionLink &r) { 
+                    const MonotonicRegionLink &next = *(&r + 1);
                     return l + r.region->length(r.flipped) + path_matrix(*r.region, r.flipped, *next.region, next.flipped).length;
                 });
 			// Save the shortest path.
@@ -2309,7 +2309,7 @@ static std::vector<MonotonousRegionLink> chain_monotonous_regions(
 		// Reinforce the path pheromones with the best path.
         float total_cost = best_path_length + float(EPSILON);
         for (size_t i = 0; i + 1 < path.size(); ++ i) {
-            MonotonousRegionLink &link = path[i];
+            MonotonicRegionLink &link = path[i];
             link.next->pheromone = (1.f - pheromone_evaporation) * link.next->pheromone + pheromone_evaporation / total_cost;
         }
 
@@ -2324,7 +2324,7 @@ end:
 }
 
 // Traverse path, produce polylines.
-static void polylines_from_paths(const std::vector<MonotonousRegionLink> &path, const ExPolygonWithOffset &poly_with_offset, const std::vector<SegmentedIntersectionLine> &segs, Polylines &polylines_out)
+static void polylines_from_paths(const std::vector<MonotonicRegionLink> &path, const ExPolygonWithOffset &poly_with_offset, const std::vector<SegmentedIntersectionLine> &segs, Polylines &polylines_out)
 {
 	Polyline *polyline = nullptr;
 	auto finish_polyline = [&polyline, &polylines_out]() {
@@ -2340,8 +2340,8 @@ static void polylines_from_paths(const std::vector<MonotonousRegionLink> &path, 
     	polyline = nullptr;
     };
 
-	for (const MonotonousRegionLink &path_segment : path) {
-		MonotonousRegion &region = *path_segment.region;
+	for (const MonotonicRegionLink &path_segment : path) {
+		MonotonicRegion &region = *path_segment.region;
 		bool 			  dir    = path_segment.flipped;
 
         // From the initial point (i_vline, i_intersection), follow a path.
@@ -2350,8 +2350,8 @@ static void polylines_from_paths(const std::vector<MonotonousRegionLink> &path, 
 
         if (polyline != nullptr && &path_segment != path.data()) {
         	// Connect previous path segment with the new one.
-        	const MonotonousRegionLink 	      &path_segment_prev  = *(&path_segment - 1);
-			const MonotonousRegion 		      &region_prev		  = *path_segment_prev.region;
+        	const MonotonicRegionLink 	      &path_segment_prev  = *(&path_segment - 1);
+			const MonotonicRegion 		      &region_prev		  = *path_segment_prev.region;
 			bool 			  			       dir_prev 		  = path_segment_prev.flipped;
 			int                                i_vline_prev       = region_prev.right.vline;
 			const SegmentedIntersectionLine   &vline_prev         = segs[i_vline_prev];
@@ -2456,7 +2456,7 @@ static void polylines_from_paths(const std::vector<MonotonousRegionLink> &path, 
 
     if (polyline != nullptr) {
         // Finish the current vertical line,
-        const MonotonousRegion           &region = *path.back().region;
+        const MonotonicRegion            &region = *path.back().region;
         const SegmentedIntersectionLine  &vline  = segs[region.right.vline];
         const SegmentIntersection        *ip     = &vline.intersections[region.right_intersection_point(path.back().flipped)];
         assert(ip->is_inner());
@@ -2558,14 +2558,14 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
     svg.Close();
 #endif /* SLIC3R_DEBUG */
 
-    //FIXME this is a hack to get the monotonous infill rolling. We likely want a smarter switch, likely based on user decison.
-    bool monotonous_infill = params.monotonous; // || params.density > 0.99;
-    if (monotonous_infill) {
-		std::vector<MonotonousRegion> regions = generate_montonous_regions(segs);
-		connect_monotonous_regions(regions, poly_with_offset, segs);
+    //FIXME this is a hack to get the monotonic infill rolling. We likely want a smarter switch, likely based on user decison.
+    bool monotonic_infill = params.monotonic; // || params.density > 0.99;
+    if (monotonic_infill) {
+		std::vector<MonotonicRegion> regions = generate_montonous_regions(segs);
+		connect_monotonic_regions(regions, poly_with_offset, segs);
         if (! regions.empty()) {
 		    std::mt19937_64 rng;
-		    std::vector<MonotonousRegionLink> path = chain_monotonous_regions(regions, poly_with_offset, segs, rng);
+		    std::vector<MonotonicRegionLink> path = chain_monotonic_regions(regions, poly_with_offset, segs, rng);
 		    polylines_from_paths(path, poly_with_offset, segs, polylines_out);
         }
 	} else
@@ -2616,13 +2616,13 @@ Polylines FillRectilinear2::fill_surface(const Surface *surface, const FillParam
     return polylines_out;
 }
 
-Polylines FillMonotonous::fill_surface(const Surface *surface, const FillParams &params)
+Polylines FillMonotonic::fill_surface(const Surface *surface, const FillParams &params)
 {
     FillParams params2 = params;
-    params2.monotonous = true;
+    params2.monotonic = true;
     Polylines polylines_out;
     if (! fill_surface_by_lines(surface, params2, 0.f, 0.f, polylines_out)) {
-        printf("FillMonotonous::fill_surface() failed to fill a region.\n");
+        printf("FillMonotonic::fill_surface() failed to fill a region.\n");
     }
     return polylines_out;
 }

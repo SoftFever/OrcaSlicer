@@ -2706,7 +2706,7 @@ void PrintObject::combine_infill()
              // Because fill areas for rectilinear and honeycomb are grown 
              // later to overlap perimeters, we need to counteract that too.
                 ((region->config().fill_pattern == ipRectilinear   ||
-                  region->config().fill_pattern == ipMonotonous    ||
+                  region->config().fill_pattern == ipMonotonic     ||
                   region->config().fill_pattern == ipGrid          ||
                   region->config().fill_pattern == ipLine          ||
                   region->config().fill_pattern == ipHoneycomb) ? 1.5f : 0.5f) * 

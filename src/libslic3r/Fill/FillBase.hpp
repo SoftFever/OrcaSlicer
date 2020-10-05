@@ -43,8 +43,8 @@ struct FillParams
     // Don't adjust spacing to fill the space evenly.
     bool        dont_adjust 	{ true };
 
-    // Monotonous infill - strictly left to right for better surface quality of top infills.
-    bool 		monotonous		{ false };
+    // Monotonic infill - strictly left to right for better surface quality of top infills.
+    bool 		monotonic		{ false };
 
     // For Honeycomb.
     // we were requested to complete each loop;

@@ -45,7 +45,7 @@ enum AuthorizationType {
 };
 
 enum InfillPattern : int {
-    ipRectilinear, ipMonotonous, ipGrid, ipTriangles, ipStars, ipCubic, ipLine, ipConcentric, ipHoneycomb, ip3DHoneycomb,
+    ipRectilinear, ipMonotonic, ipGrid, ipTriangles, ipStars, ipCubic, ipLine, ipConcentric, ipHoneycomb, ip3DHoneycomb,
     ipGyroid, ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipAdaptiveCubic, ipSupportCubic, ipCount,
 };
 
@@ -143,7 +143,7 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<InfillPattern>::g
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
         keys_map["rectilinear"]         = ipRectilinear;
-        keys_map["monotonous"]          = ipMonotonous;
+        keys_map["monotonic"]           = ipMonotonic;
         keys_map["grid"]                = ipGrid;
         keys_map["triangles"]           = ipTriangles;
         keys_map["stars"]               = ipStars;

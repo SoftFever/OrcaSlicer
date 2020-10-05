@@ -20,11 +20,11 @@ protected:
 	bool fill_surface_by_lines(const Surface *surface, const FillParams &params, float angleBase, float pattern_shift, Polylines &polylines_out);
 };
 
-class FillMonotonous : public FillRectilinear2
+class FillMonotonic : public FillRectilinear2
 {
 public:
-    virtual Fill* clone() const { return new FillMonotonous(*this); };
-    virtual ~FillMonotonous() = default;
+    virtual Fill* clone() const { return new FillMonotonic(*this); };
+    virtual ~FillMonotonic() = default;
     virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
 	virtual bool no_sort() const { return true; }
 };

@@ -221,7 +221,7 @@ static const std::array<Vec3d, 8> child_centers {
 };
 
 // Traversal order of octree children cells for three infill directions,
-// so that a single line will be discretized in a strictly monotonous order.
+// so that a single line will be discretized in a strictly monotonic order.
 static constexpr std::array<std::array<int, 8>, 3> child_traversal_order {
     std::array<int, 8>{ 2, 3, 0, 1, 6, 7, 4, 5 },
     std::array<int, 8>{ 4, 0, 6, 2, 5, 1, 7, 3 },
