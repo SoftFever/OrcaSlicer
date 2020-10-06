@@ -106,6 +106,9 @@ private:
 #endif // ENABLE_GCODE_VIEWER
 
     bool            m_initialized { false };
+#ifdef __APPLE__
+    bool            m_mac_initialized { false };
+#endif // __APPLE__
     bool            app_conf_exists{ false };
 #if ENABLE_GCODE_VIEWER
     EAppMode        m_app_mode{ EAppMode::Editor };
@@ -119,7 +122,7 @@ private:
     wxFont		    m_bold_font;
 	wxFont			m_normal_font;
 
-    int          m_em_unit; // width of a "m"-symbol in pixels for current system font
+    int             m_em_unit; // width of a "m"-symbol in pixels for current system font
                                // Note: for 100% Scale m_em_unit = 10 -> it's a good enough coefficient for a size setting of controls
 
     std::unique_ptr<wxLocale> 	  m_wxLocale;
@@ -247,6 +250,8 @@ public:
     virtual bool OnExceptionInMainLoop() override;
 
 #ifdef __APPLE__
+    // Called if there is no file to open.
+    void            MacNewFile();
     // wxWidgets override to get an event on open files.
     void            MacOpenFiles(const wxArrayString &fileNames) override;
 #endif /* __APPLE */
