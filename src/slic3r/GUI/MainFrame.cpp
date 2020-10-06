@@ -49,6 +49,35 @@ enum class ERescaleTarget
     SettingsDialog
 };
 
+#ifdef __APPLE__
+class PrusaSlicerTaskBarIcon : public wxTaskBarIcon
+{
+public:
+    PrusaSlicerTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
+    void OnLeftButtonDClick(wxTaskBarIconEvent&) { wxMessageBox("Doubleclick on docker icon"); }
+    wxMenu *CreatePopupMenu() override {
+        wxMenu *menu = new wxMenu;
+        int id;
+        auto *item = menu->Append(id = wxNewId(), "&Test menu");
+        menu->Bind(wxEVT_MENU, [this](wxCommandEvent &) { wxMessageBox("Test menu"); }, id);
+        return menu;
+    }
+};
+class GCodeViewerTaskBarIcon : public wxTaskBarIcon
+{
+public:
+    GCodeViewerTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
+    void OnLeftButtonDClick(wxTaskBarIconEvent&) { wxMessageBox("Doubleclick on docker icon"); }
+    wxMenu *CreatePopupMenu() override {
+        wxMenu *menu = new wxMenu;
+        int id;
+        auto *item = menu->Append(id = wxNewId(), "&Test menu");
+        menu->Bind(wxEVT_MENU, [this](wxCommandEvent &) { wxMessageBox("Test menu"); }, id);
+        return menu;
+    }
+};
+#endif // __APPLE__
+
 MainFrame::MainFrame() :
 DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
     m_printhost_queue_dlg(new PrintHostQueueDialog(this))
@@ -64,27 +93,20 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     // Font is already set in DPIFrame constructor
 */
 
-#if ENABLE_GCODE_VIEWER_TASKBAR_ICON
-    if (wxTaskBarIcon::IsAvailable()) {
-#if defined(__WXOSX__) && wxOSX_USE_COCOA
-        m_taskbar_icon = new wxTaskBarIcon(wxTBI_DOCK);
-#else
-        m_taskbar_icon = new wxTaskBarIcon();
-#endif
+#ifdef __APPLE__
+    // Initialize the docker task bar icon.
+    switch (wxGetApp().get_app_mode()) {
+    default:
+    case GUI_App::EAppMode::Editor:
+        m_taskbar_icon = std::make_unique<PrusaSlicerTaskBarIcon>(wxTBI_DOCK);
         m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG), "PrusaSlicer");
-
-        m_taskbar_icon->Bind(wxEVT_TASKBAR_CLICK, [this](wxTaskBarIconEvent& evt) {
-            wxString msg = _L("You pressed the icon in taskbar for ") + "\n";
-            if (m_mode == EMode::Editor)
-                msg += wxString(SLIC3R_APP_NAME);
-            else
-                msg += wxString(SLIC3R_APP_NAME) + "-GCode viewer";
-
-            wxMessageDialog dialog(nullptr, msg, _("Taskbar icon clicked"), wxOK);
-            dialog.ShowModal();
-            });
+        break;
+    case GUI_App::EAppMode::GCodeViewer:
+        m_taskbar_icon = std::make_unique<GCodeViewerTaskBarIcon>(wxTBI_DOCK);
+        m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("PrusaSlicerGCodeViewer_128px.png"), wxBITMAP_TYPE_PNG), "G-code Viewer");
+        break;
     }
-#endif // ENABLE_GCODE_VIEWER_TASKBAR_ICON
+#endif // __APPLE__
 
     // Load the icon either from the exe, or from the ico file.
 #if _WIN32
@@ -287,13 +309,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
         m_plater->show_action_buttons(true);
     }
 }
-
-#if ENABLE_GCODE_VIEWER_TASKBAR_ICON
-MainFrame::~MainFrame()
-{
-    delete m_taskbar_icon;
-}
-#endif // ENABLE_GCODE_VIEWER_TASKBAR_ICON
 
 void MainFrame::update_layout()
 {
