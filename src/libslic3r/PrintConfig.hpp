@@ -615,7 +615,7 @@ class MachineEnvelopeConfig : public StaticPrintConfig
     STATIC_PRINT_CONFIG_CACHE(MachineEnvelopeConfig)
 public:
 	// Allowing the machine limits to be completely ignored or used just for time estimator.
-    ConfigOptionEnum<MachineLimitsUsage> machine_limits_type;
+    ConfigOptionEnum<MachineLimitsUsage> machine_limits_usage;
     // M201 X... Y... Z... E... [mm/sec^2]
     ConfigOptionFloats              machine_max_acceleration_x;
     ConfigOptionFloats              machine_max_acceleration_y;
@@ -643,7 +643,7 @@ public:
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
-    	OPT_PTR(machine_limits_type);
+        OPT_PTR(machine_limits_usage);
         OPT_PTR(machine_max_acceleration_x);
         OPT_PTR(machine_max_acceleration_y);
         OPT_PTR(machine_max_acceleration_z);
