@@ -47,6 +47,7 @@
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Utils/PrintHost.hpp"
+#include "../Utils/Process.hpp"
 #include "../Utils/MacDarkMode.hpp"
 #include "slic3r/Config/Snapshot.hpp"
 #include "ConfigSnapshotDialog.hpp"
@@ -1575,9 +1576,16 @@ bool GUI_App::OnExceptionInMainLoop()
 void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
 {
     std::vector<std::string> files;
-    for (size_t i = 0; i < fileNames.GetCount(); ++ i)
-        files.emplace_back(fileNames[i].ToUTF8().data());
-    this->plater()->load_files(files, true, true);
+    const std::regex pattern_gcode_drop(".*[.](gcode|g)", std::regex::icase);
+    for (const auto& filename : fileNames) {
+        boost::filesystem::path path(into_path(filename));
+        if (std::regex_match(path.string(), pattern_gcode_drop))
+            start_new_gcodeviewer(&filename);
+        else
+            files.emplace_back(path.string());
+    }
+    if (! files.empty())
+        this->plater()->load_files(files, true, true);
 }
 #endif /* __APPLE */
 
