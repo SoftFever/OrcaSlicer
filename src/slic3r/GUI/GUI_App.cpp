@@ -32,6 +32,7 @@
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
 #include <wx/splash.h>
+#include <wx/fontutil.h>
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
@@ -101,10 +102,21 @@ public:
         int new_dpi = get_dpi_for_window(this);
 
         m_scale         = (float)(new_dpi) / (float)(init_dpi);
-        m_font          = get_default_font(this);//.Larger()
+        m_font          = get_default_font(this);
         m_main_bitmap   = bitmap;
+        m_constant_text.init();
 
         scale_bitmap(m_main_bitmap, m_scale);
+
+        // As default we use a system font for current display.
+        // But width of the credits information string doesn't respect to the banner width some times.
+        // So, scale font in the respect to the longest string width
+        int   longest_string_width  = word_wrap_string(m_constant_text.credits);
+        float text_banner_width     = 0.4 * m_main_bitmap.GetWidth() - m_scale * 50; // banner_width - margins
+
+        float font_scale = text_banner_width / longest_string_width;
+        scale_font(m_font, font_scale);
+
         // draw logo and constant info text
         Decorate(m_main_bitmap);
     }
@@ -158,10 +170,10 @@ public:
         return new_bmp;
     }
 
-    bool Decorate(wxBitmap& bmp, wxPoint screen_pos = wxDefaultPosition, bool force_decor = false)
+    void Decorate(wxBitmap& bmp)
     {
         if (!bmp.IsOk())
-            return false;
+            return;
 
         // draw text to the box at the left of the splashscreen.
         // this box will be 2/5 of the weight of the bitmap, and be at the left.
@@ -180,28 +192,13 @@ public:
 
         const wxRect banner_rect(wxPoint(0, logo_size + margin * 2), wxPoint(width, bmp.GetHeight()));
 
-        // title
-#if ENABLE_GCODE_VIEWER
-    	wxString title_string = wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME;
-#else
-        wxString title_string = SLIC3R_APP_NAME;
-#endif // ENABLE_GCODE_VIEWER
+        wxFont title_font = m_font;
+        scale_font(title_font, 3.f);
 
-        wxFont title_font = m_font.Scaled(3.f);
+        wxFont version_font = m_font;
+        scale_font(version_font, 1.5f);
 
-        // dynamically get the version to display
-        wxString version_string = _L("Version") + " " + std::string(SLIC3R_VERSION);
-        wxFont version_font = m_font.Scaled(1.5f);
-
-        // create a info notice
-        wxString info_string = title_string + " " +
-                            _L("is based on Slic3r by Alessandro Ranellucci and the RepRap community.") + "\n\n" +
-                               title_string + " " + _L("is licensed under the") + " " + _L("GNU Affero General Public License, version 3") + "\n\n" +
-                            _L("Contributions by Vojtech Bubnik, Enrico Turri, Oleksandra Iushchenko, Tamas Meszaros, Lukas Matena, Vojtech Kral, David Kocik and numerous others.") + "\n\n" +
-                            _L("Artwork model by Nora Al-Badri and Jan Nikolai Nelles");
         wxFont info_font = m_font;
-
-        word_wrap_string(info_string);
 
         // use a memory DC to draw directly onto the bitmap
         wxMemoryDC memDc(bmp);
@@ -213,21 +210,47 @@ public:
         memDc.SetTextForeground(wxColour(255, 255, 255));
 
         memDc.SetFont(title_font);
-        memDc.DrawLabel(title_string, banner_rect.Deflate(margin, 0), wxALIGN_TOP | wxALIGN_LEFT);
+        memDc.DrawLabel(m_constant_text.title,   banner_rect.Deflate(margin, 0), wxALIGN_TOP | wxALIGN_LEFT);
 
         memDc.SetFont(version_font);
-        memDc.DrawLabel(version_string, banner_rect.Deflate(margin, (2.5f * margin)), wxALIGN_TOP | wxALIGN_LEFT);
+        memDc.DrawLabel(m_constant_text.version, banner_rect.Deflate(margin, 3 * margin), wxALIGN_TOP | wxALIGN_LEFT);
 
         memDc.SetFont(info_font);
-        memDc.DrawLabel(info_string, banner_rect.Deflate(margin, 2 * margin), wxALIGN_BOTTOM | wxALIGN_LEFT);
-
-        return true;
+        memDc.DrawLabel(m_constant_text.credits, banner_rect.Deflate(margin, 2 * margin), wxALIGN_BOTTOM | wxALIGN_LEFT);
     }
 
 private:
     wxBitmap    m_main_bitmap;
     wxFont      m_font;
     float       m_scale {1.0};
+
+    struct CONSTANT_TEXT
+    {
+        wxString title;
+        wxString version;
+        wxString credits;
+
+        void init()
+        {
+            // title
+#if ENABLE_GCODE_VIEWER
+            title = wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME;
+#else
+            title = SLIC3R_APP_NAME;
+#endif // ENABLE_GCODE_VIEWER
+
+            // dynamically get the version to display
+            version = _L("Version") + " " + std::string(SLIC3R_VERSION);
+
+            // credits infornation
+            credits =   title + " " +
+                        _L("is based on Slic3r by Alessandro Ranellucci and the RepRap community.") + "\n\n" +
+                        title + " " + _L("is licensed under the") + " " + _L("GNU Affero General Public License, version 3") + "\n\n" +
+                        _L("Contributions by Vojtech Bubnik, Enrico Turri, Oleksandra Iushchenko, Tamas Meszaros, Lukas Matena, Vojtech Kral, David Kocik and numerous others.") + "\n\n" +
+                        _L("Artwork model by Nora Al-Badri and Jan Nikolai Nelles");
+        }
+    } 
+    m_constant_text;
 
     void set_bitmap(wxBitmap& bmp)
     {
@@ -236,7 +259,7 @@ private:
         m_window->Update();
     }
 
-    static void scale_bitmap(wxBitmap& bmp, float scale)
+    void scale_bitmap(wxBitmap& bmp, float scale)
     {
         if (scale == 1.0)
             return;
@@ -251,14 +274,34 @@ private:
 
         bmp = wxBitmap(std::move(image));
     }
-    
-    void word_wrap_string(wxString& input)
-    {
-        // count od symbols in one line
-        int line_len = 55;
 
+    // Workaround for the font scaling in respect to the current active display,
+    // not for the primary display, as it's implemented in Font.cpp
+    // See https://github.com/wxWidgets/wxWidgets/blob/master/src/msw/font.cpp
+    // void wxNativeFontInfo::SetFractionalPointSize(float pointSizeNew)
+    void scale_font(wxFont& font, float scale)
+    {
+        wxNativeFontInfo nfi= *font.GetNativeFontInfo();
+        float pointSizeNew  = scale * font.GetPointSize();
+        nfi.lf.lfHeight     = nfi.GetLogFontHeightAtPPI(pointSizeNew, get_dpi_for_window(this));
+        nfi.pointSize       = pointSizeNew;
+        font = wxFont(nfi);
+    }
+
+    // wrap a string for the strings no longer then 55 symbols
+    // return extent of the longest string
+    int word_wrap_string(wxString& input)
+    {
+        int line_len = 55;// count of symbols in one line
         int idx = -1;
         int cur_len = 0;
+
+        wxString longest_sub_string;
+        auto get_longest_sub_string = [longest_sub_string, input](wxString &longest_sub_str, int cur_len, size_t i) {
+            if (cur_len > longest_sub_str.Len())
+                longest_sub_str = input.SubString(i - cur_len + 1, i);
+        };
+
         for (size_t i = 0; i < input.Len(); i++)
         {
             cur_len++;
@@ -266,15 +309,19 @@ private:
                 idx = i;
             if (input[i] == '\n')
             {
+                get_longest_sub_string(longest_sub_string, cur_len, i);
                 idx = -1;
                 cur_len = 0;
             }
             if (cur_len >= line_len && idx >= 0)
             {
+                get_longest_sub_string(longest_sub_string, cur_len, i);
                 input[idx] = '\n';
                 cur_len = static_cast<int>(i) - idx;
             }
         }
+
+        return GetTextExtent(longest_sub_string).GetX();
     }
 };
 
@@ -684,6 +731,7 @@ bool GUI_App::on_init_inner()
         // create splash screen with updated bmp
         scrn = new SplashScreen(bmp.IsOk() ? bmp : create_scaled_bitmap("prusa_slicer_logo", nullptr, 400), 
                                 wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 4000, splashscreen_pos);
+        wxYield();
         scrn->SetText(_L("Loading configuration..."));
     }
 
