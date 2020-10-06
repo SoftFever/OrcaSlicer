@@ -73,10 +73,8 @@ void AppConfig::set_defaults()
             set("use_retina_opengl", "1");
 #endif
 
-#if !ENABLE_GCODE_APP_CONFIG
         if (get("single_instance").empty())
             set("single_instance", "0");
-#endif // !ENABLE_GCODE_APP_CONFIG
 
         if (get("remember_output_path").empty())
             set("remember_output_path", "1");
@@ -84,7 +82,6 @@ void AppConfig::set_defaults()
         if (get("remember_output_path_removable").empty())
             set("remember_output_path_removable", "1");
 
-#if !ENABLE_GCODE_APP_CONFIG
         if (get("use_custom_toolbar_size").empty())
             set("use_custom_toolbar_size", "0");
 
@@ -94,6 +91,7 @@ void AppConfig::set_defaults()
         if (get("auto_toolbar_size").empty())
             set("auto_toolbar_size", "100");
 
+#if !ENABLE_GCODE_APP_CONFIG
         if (get("use_perspective_camera").empty())
             set("use_perspective_camera", "1");
 
@@ -110,18 +108,6 @@ void AppConfig::set_defaults()
             set("use_inches", "0");
 #if ENABLE_GCODE_APP_CONFIG
     }
-
-    if (get("single_instance").empty())
-        set("single_instance", "0");
-
-    if (get("use_custom_toolbar_size").empty())
-        set("use_custom_toolbar_size", "0");
-
-    if (get("custom_toolbar_size").empty())
-        set("custom_toolbar_size", "100");
-
-    if (get("auto_toolbar_size").empty())
-        set("auto_toolbar_size", "100");
 
     if (get("use_perspective_camera").empty())
         set("use_perspective_camera", "1");

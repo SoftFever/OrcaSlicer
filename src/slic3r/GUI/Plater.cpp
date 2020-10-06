@@ -1331,7 +1331,10 @@ void Sidebar::collapse(bool collapse)
     p->plater->Layout();
 
     // save collapsing state to the AppConfig
-    wxGetApp().app_config->set("collapsed_sidebar", collapse ? "1" : "0");
+#if ENABLE_GCODE_VIEWER
+    if (wxGetApp().is_editor())
+#endif // ENABLE_GCODE_VIEWER
+        wxGetApp().app_config->set("collapsed_sidebar", collapse ? "1" : "0");
 }
 
 
@@ -2056,8 +2059,14 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 	wxGetApp().other_instance_message_handler()->init(this->q);
 
     // collapse sidebar according to saved value
-    bool is_collapsed = wxGetApp().app_config->get("collapsed_sidebar") == "1";
-    sidebar->collapse(is_collapsed);
+#if ENABLE_GCODE_VIEWER
+    if (wxGetApp().is_editor()) {
+#endif // ENABLE_GCODE_VIEWER
+        bool is_collapsed = wxGetApp().app_config->get("collapsed_sidebar") == "1";
+        sidebar->collapse(is_collapsed);
+#if ENABLE_GCODE_VIEWER
+    }
+#endif // ENABLE_GCODE_VIEWER
 }
 
 Plater::priv::~priv()
@@ -3988,6 +3997,11 @@ void Plater::priv::reset_canvas_volumes()
 
 bool Plater::priv::init_view_toolbar()
 {
+#if ENABLE_GCODE_VIEWER
+    if (wxGetApp().is_gcode_viewer())
+        return true;
+#endif // ENABLE_GCODE_VIEWER
+
     if (view_toolbar.get_items_count() > 0)
         // already initialized
         return true;
@@ -4026,17 +4040,18 @@ bool Plater::priv::init_view_toolbar()
         return false;
 
     view_toolbar.select_item("3D");
-
-#if ENABLE_GCODE_VIEWER
-    if (wxGetApp().is_editor())
-#endif // ENABLE_GCODE_VIEWER
-        view_toolbar.set_enabled(true);
+    view_toolbar.set_enabled(true);
 
     return true;
 }
 
 bool Plater::priv::init_collapse_toolbar()
 {
+#if ENABLE_GCODE_VIEWER
+    if (wxGetApp().is_gcode_viewer())
+        return true;
+#endif // ENABLE_GCODE_VIEWER
+
     if (collapse_toolbar.get_items_count() > 0)
         // already initialized
         return true;

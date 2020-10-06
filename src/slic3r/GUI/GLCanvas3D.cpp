@@ -1946,7 +1946,10 @@ void GLCanvas3D::render()
     }
 
 #if ENABLE_ENVIRONMENT_MAP
-    wxGetApp().plater()->init_environment_texture();
+#if ENABLE_GCODE_VIEWER
+    if (wxGetApp().is_editor())
+#endif // ENABLE_GCODE_VIEWER
+        wxGetApp().plater()->init_environment_texture();
 #endif // ENABLE_ENVIRONMENT_MAP
 
     const Size& cnv_size = get_canvas_size();
@@ -4241,7 +4244,7 @@ void GLCanvas3D::update_ui_from_settings()
 
 #if ENABLE_GCODE_VIEWER
     if (wxGetApp().is_editor())
-        wxGetApp().plater()->get_collapse_toolbar().set_enabled(wxGetApp().app_config->get("show_collapse_button") == "1");
+        wxGetApp().plater()->enable_collapse_toolbar(wxGetApp().app_config->get("show_collapse_button") == "1");
 #else
     bool enable_collapse = wxGetApp().app_config->get("show_collapse_button") == "1";
     wxGetApp().plater()->get_collapse_toolbar().set_enabled(enable_collapse);

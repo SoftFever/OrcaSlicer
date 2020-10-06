@@ -506,10 +506,10 @@ static void generic_exception_handle()
     } catch (const std::bad_alloc& ex) {
         // bad_alloc in main thread is most likely fatal. Report immediately to the user (wxLogError would be delayed)
         // and terminate the app so it is at least certain to happen now.
-        wxString errmsg = wxString::Format(_(L("%s has encountered an error. It was likely caused by running out of memory. "
+        wxString errmsg = wxString::Format(_L("%s has encountered an error. It was likely caused by running out of memory. "
                               "If you are sure you have enough RAM on your system, this may also be a bug and we would "
-                              "be glad if you reported it.\n\nThe application will now terminate.")), SLIC3R_APP_NAME);
-        wxMessageBox(errmsg + "\n\n" + wxString(ex.what()), _(L("Fatal error")), wxOK | wxICON_ERROR);
+                              "be glad if you reported it.\n\nThe application will now terminate."), SLIC3R_APP_NAME);
+        wxMessageBox(errmsg + "\n\n" + wxString(ex.what()), _L("Fatal error"), wxOK | wxICON_ERROR);
         BOOST_LOG_TRIVIAL(error) << boost::format("std::bad_alloc exception: %1%") % ex.what();
         std::terminate();
     } catch (const std::exception& ex) {
@@ -701,9 +701,9 @@ bool GUI_App::on_init_inner()
     if (!msg.empty() && !ssl_accept) {
         wxRichMessageDialog
             dlg(nullptr,
-                wxString::Format(_(L("%s\nDo you want to continue?")), msg),
+                wxString::Format(_L("%s\nDo you want to continue?"), msg),
                 "PrusaSlicer", wxICON_QUESTION | wxYES_NO);
-        dlg.ShowCheckBox(_(L("Remember my choice")));
+        dlg.ShowCheckBox(_L("Remember my choice"));
         if (dlg.ShowModal() != wxID_YES) return false;
 
         app_config->set("tls_cert_store_accepted",
@@ -1157,7 +1157,7 @@ void GUI_App::load_project(wxWindow *parent, wxString& input_file) const
 {
     input_file.Clear();
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
-        _(L("Choose one file (3MF/AMF):")),
+        _L("Choose one file (3MF/AMF):"),
         app_config->get_last_dir(), "",
         file_wildcards(FT_PROJECT), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
@@ -1169,7 +1169,7 @@ void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files) const
 {
     input_files.Clear();
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
-        _(L("Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):")),
+        _L("Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):"),
         from_u8(app_config->get_last_dir()), "",
         file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
 
@@ -1182,7 +1182,7 @@ void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
 {
     input_file.Clear();
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
-        _(L("Choose one file (GCODE/.GCO/.G/.ngc/NGC):")),
+        _L("Choose one file (GCODE/.GCO/.G/.ngc/NGC):"),
         app_config->get_last_dir(), "",
         file_wildcards(FT_GCODE), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
@@ -1244,7 +1244,7 @@ bool GUI_App::select_language()
     	// This is the language to highlight in the choice dialog initially.
     	init_selection_default = init_selection;
 
-    const long index = wxGetSingleChoiceIndex(_(L("Select the language")), _(L("Language")), names, init_selection_default);
+    const long index = wxGetSingleChoiceIndex(_L("Select the language"), _L("Language"), names, init_selection_default);
 	// Try to load a new language.
     if (index != -1 && (init_selection == -1 || init_selection != index)) {
     	const wxLanguageInfo *new_language_info = language_infos[index];
@@ -1425,35 +1425,52 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     const auto config_wizard_name = _(ConfigWizard::name(true));
     const auto config_wizard_tooltip = from_u8((boost::format(_utf8(L("Run %s"))) % config_wizard_name).str());
     // Cmd+, is standard on OS X - what about other operating systems?
-    local_menu->Append(config_id_base + ConfigMenuWizard, config_wizard_name + dots, config_wizard_tooltip);
-    local_menu->Append(config_id_base + ConfigMenuSnapshots, _(L("&Configuration Snapshots")) + dots, _(L("Inspect / activate configuration snapshots")));
-    local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _(L("Take Configuration &Snapshot")), _(L("Capture a configuration snapshot")));
-    local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 					_(L("Check for configuration updates")));
-    local_menu->AppendSeparator();
-    local_menu->Append(config_id_base + ConfigMenuPreferences, _(L("&Preferences")) + dots + 
+#if ENABLE_GCODE_APP_CONFIG
+    if (is_editor()) {
+#endif // ENABLE_GCODE_APP_CONFIG
+        local_menu->Append(config_id_base + ConfigMenuWizard, config_wizard_name + dots, config_wizard_tooltip);
+        local_menu->Append(config_id_base + ConfigMenuSnapshots, _L("&Configuration Snapshots") + dots, _L("Inspect / activate configuration snapshots"));
+        local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _L("Take Configuration &Snapshot"), _L("Capture a configuration snapshot"));
+        local_menu->Append(config_id_base + ConfigMenuUpdate, _L("Check for updates"), _L("Check for configuration updates"));
+        local_menu->AppendSeparator();
+#if ENABLE_GCODE_APP_CONFIG
+    }
+#endif // ENABLE_GCODE_APP_CONFIG
+    local_menu->Append(config_id_base + ConfigMenuPreferences, _L("&Preferences") + dots +
 #ifdef __APPLE__
         "\tCtrl+,",
 #else
         "\tCtrl+P",
 #endif
-        _(L("Application preferences")));
-    local_menu->AppendSeparator();
-    auto mode_menu = new wxMenu();
-    mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple, _(L("Simple")), _(L("Simple View Mode")));
-//    mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeAdvanced, _(L("Advanced")), _(L("Advanced View Mode")));
-    mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeAdvanced, _CTX(L_CONTEXT("Advanced", "Mode"), "Mode"), _L("Advanced View Mode"));
-    mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeExpert, _(L("Expert")), _(L("Expert View Mode")));
-    Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { if(get_mode() == comSimple) evt.Check(true); }, config_id_base + ConfigMenuModeSimple);
-    Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { if(get_mode() == comAdvanced) evt.Check(true); }, config_id_base + ConfigMenuModeAdvanced);
-    Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { if(get_mode() == comExpert) evt.Check(true); }, config_id_base + ConfigMenuModeExpert);
+        _L("Application preferences"));
+#if ENABLE_GCODE_APP_CONFIG
+    wxMenu* mode_menu = nullptr;
+    if (is_editor()) {
+#endif // ENABLE_GCODE_APP_CONFIG
+        local_menu->AppendSeparator();
+#if ENABLE_GCODE_APP_CONFIG
+        mode_menu = new wxMenu();
+#else
+        auto mode_menu = new wxMenu();
+#endif // ENABLE_GCODE_APP_CONFIG
+        mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple, _L("Simple"), _L("Simple View Mode"));
+//    mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeAdvanced, _L("Advanced"), _L("Advanced View Mode"));
+        mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeAdvanced, _CTX(L_CONTEXT("Advanced", "Mode"), "Mode"), _L("Advanced View Mode"));
+        mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeExpert, _L("Expert"), _L("Expert View Mode"));
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { if (get_mode() == comSimple) evt.Check(true); }, config_id_base + ConfigMenuModeSimple);
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { if (get_mode() == comAdvanced) evt.Check(true); }, config_id_base + ConfigMenuModeAdvanced);
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { if (get_mode() == comExpert) evt.Check(true); }, config_id_base + ConfigMenuModeExpert);
 
-    local_menu->AppendSubMenu(mode_menu, _(L("Mode")), wxString::Format(_(L("%s View Mode")), SLIC3R_APP_NAME));
-    local_menu->AppendSeparator();
-    local_menu->Append(config_id_base + ConfigMenuLanguage, _(L("&Language")));
-    local_menu->AppendSeparator();
-    local_menu->Append(config_id_base + ConfigMenuFlashFirmware, _(L("Flash printer &firmware")), _(L("Upload a firmware image into an Arduino based printer")));
-    // TODO: for when we're able to flash dictionaries
-    // local_menu->Append(config_id_base + FirmwareMenuDict,  _(L("Flash language file")),    _(L("Upload a language dictionary file into a Prusa printer")));
+        local_menu->AppendSubMenu(mode_menu, _L("Mode"), wxString::Format(_L("%s View Mode"), SLIC3R_APP_NAME));
+        local_menu->AppendSeparator();
+        local_menu->Append(config_id_base + ConfigMenuLanguage, _L("&Language"));
+        local_menu->AppendSeparator();
+        local_menu->Append(config_id_base + ConfigMenuFlashFirmware, _L("Flash printer &firmware"), _L("Upload a firmware image into an Arduino based printer"));
+        // TODO: for when we're able to flash dictionaries
+        // local_menu->Append(config_id_base + FirmwareMenuDict,  _L("Flash language file"),    _L("Upload a language dictionary file into a Prusa printer"));
+#if ENABLE_GCODE_APP_CONFIG
+    }
+#endif // ENABLE_GCODE_APP_CONFIG
 
     local_menu->Bind(wxEVT_MENU, [this, config_id_base](wxEvent &event) {
         switch (event.GetId() - config_id_base) {
@@ -1466,7 +1483,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
         case ConfigMenuTakeSnapshot:
             // Take a configuration snapshot.
             if (check_unsaved_changes()) {
-                wxTextEntryDialog dlg(nullptr, _(L("Taking configuration snapshot")), _(L("Snapshot name")));
+                wxTextEntryDialog dlg(nullptr, _L("Taking configuration snapshot"), _L("Snapshot name"));
                 
                 // set current normal font for dialog children, 
                 // because of just dlg.SetFont(normal_font()) has no result;
@@ -1526,10 +1543,10 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                 // or sometimes the application crashes into wxDialogBase() destructor
                 // so we put it into an inner scope
                 wxMessageDialog dialog(nullptr,
-                    _(L("Switching the language will trigger application restart.\n"
-                        "You will lose content of the plater.")) + "\n\n" +
-                    _(L("Do you want to proceed?")),
-                    wxString(SLIC3R_APP_NAME) + " - " + _(L("Language selection")),
+                    _L("Switching the language will trigger application restart.\n"
+                        "You will lose content of the plater.") + "\n\n" +
+                    _L("Do you want to proceed?"),
+                    wxString(SLIC3R_APP_NAME) + " - " + _L("Language selection"),
                     wxICON_QUESTION | wxOK | wxCANCEL);
                 if (dialog.ShowModal() == wxID_CANCEL)
                     return;
@@ -1548,12 +1565,18 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     
     using std::placeholders::_1;
     
-    auto modfn = [this](int mode, wxCommandEvent&) { if(get_mode() != mode) save_mode(mode); };
-    mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comSimple, _1),   config_id_base + ConfigMenuModeSimple);
-    mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comAdvanced, _1), config_id_base + ConfigMenuModeAdvanced);
-    mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comExpert, _1),   config_id_base + ConfigMenuModeExpert);
+#if ENABLE_GCODE_APP_CONFIG
+    if (mode_menu != nullptr) {
+#endif // ENABLE_GCODE_APP_CONFIG
+        auto modfn = [this](int mode, wxCommandEvent&) { if (get_mode() != mode) save_mode(mode); };
+        mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comSimple, _1), config_id_base + ConfigMenuModeSimple);
+        mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comAdvanced, _1), config_id_base + ConfigMenuModeAdvanced);
+        mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comExpert, _1), config_id_base + ConfigMenuModeExpert);
+#if ENABLE_GCODE_APP_CONFIG
+    }
+#endif // ENABLE_GCODE_APP_CONFIG
 
-    menu->Append(local_menu, _(L("&Configuration")));
+    menu->Append(local_menu, _L("&Configuration"));
 }
 
 // This is called when closing the application, when loading a config file or when starting the config wizard
@@ -1763,9 +1786,9 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
         if (preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA
             && Slic3r::model_has_multi_part_objects(wxGetApp().model())) {
             GUI::show_info(nullptr,
-                _(L("It's impossible to print multi-part object(s) with SLA technology.")) + "\n\n" +
-                _(L("Please check and fix your object list.")),
-                _(L("Attention!")));
+                _L("It's impossible to print multi-part object(s) with SLA technology.") + "\n\n" +
+                _L("Please check and fix your object list."),
+                _L("Attention!"));
         }
     }
 
@@ -1782,7 +1805,7 @@ void GUI_App::gcode_thumbnails_debug()
     unsigned int width = 0;
     unsigned int height = 0;
 
-    wxFileDialog dialog(GetTopWindow(), _(L("Select a gcode file:")), "", "", "G-code files (*.gcode)|*.gcode;*.GCODE;", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    wxFileDialog dialog(GetTopWindow(), _L("Select a gcode file:"), "", "", "G-code files (*.gcode)|*.gcode;*.GCODE;", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (dialog.ShowModal() != wxID_OK)
         return;
 
