@@ -54,6 +54,7 @@ class PrusaSlicerTaskBarIcon : public wxTaskBarIcon
 {
 public:
     PrusaSlicerTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
+#if 0
     wxMenu *CreatePopupMenu() override {
         wxMenu *menu = new wxMenu;
         int id;
@@ -61,11 +62,13 @@ public:
         menu->Bind(wxEVT_MENU, [this](wxCommandEvent &) { wxMessageBox("Test menu - PrusaSlicer"); }, id);
         return menu;
     }
+#endif
 };
 class GCodeViewerTaskBarIcon : public wxTaskBarIcon
 {
 public:
     GCodeViewerTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
+#if 0
     wxMenu *CreatePopupMenu() override {
         wxMenu *menu = new wxMenu;
         int id;
@@ -73,6 +76,7 @@ public:
         menu->Bind(wxEVT_MENU, [this](wxCommandEvent &) { wxMessageBox("Test menu - GCode Viewer"); }, id);
         return menu;
     }
+#endif
 };
 #endif // __APPLE__
 
