@@ -686,7 +686,7 @@ void PlaterPresetComboBox::update()
 {
     if (m_type == Preset::TYPE_FILAMENT &&
         (m_preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA ||
-        m_preset_bundle->filament_presets.size() <= m_extruder_idx) )
+        m_preset_bundle->filament_presets.size() <= (size_t)m_extruder_idx) )
         return;
 
     // Otherwise fill in the list from scratch.
@@ -883,15 +883,12 @@ void TabPresetComboBox::update()
     wxString selected = "";
     if (!presets.front().is_visible)
         set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
-    int idx_selected = m_collection->get_selected_idx();
+    size_t idx_selected = m_collection->get_selected_idx();
 
-    PrinterTechnology proper_pt = ptAny;
     if (m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection()) {
         std::string sel_preset_name = m_preset_bundle->physical_printers.get_selected_printer_preset_name();
         Preset* preset = m_collection->find_preset(sel_preset_name);
-        if (preset)
-            proper_pt = preset->printer_technology();
-        else
+        if (!preset)
             m_preset_bundle->physical_printers.unselect_printer();
     }
 

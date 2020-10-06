@@ -1767,7 +1767,7 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
         // when tab == -1, it means we should show the last selected tab
         size_t new_selection = tab == (size_t)(-1) ? m_last_selected_tab : (m_layout == ESettingsLayout::Dlg && tab != 0) ? tab - 1 : tab;
 
-        if (m_tabpanel->GetSelection() != new_selection)
+        if (m_tabpanel->GetSelection() != (int)new_selection)
             m_tabpanel->SetSelection(new_selection);
         else if (was_hidden) {
             Tab* cur_tab = dynamic_cast<Tab*>(m_tabpanel->GetPage(new_selection));

@@ -2906,7 +2906,7 @@ void TabPrinter::toggle_options()
     wxString extruder_number;
     long val;
     if (m_active_page->title().StartsWith("Extruder ", &extruder_number) && extruder_number.ToLong(&val) &&
-        val > 0 && val <= m_extruders_count)
+        val > 0 && (size_t)val <= m_extruders_count)
     {
         size_t i = size_t(val - 1);
         bool have_retract_length = m_config->opt_float("retract_length", i) > 0;
@@ -3403,8 +3403,7 @@ void Tab::clear_pages()
     m_page_sizer->Clear(true);
     // clear pages from the controlls
     for (auto p : m_pages)
-        p->clear(); 
-    int i = m_page_sizer->GetItemCount();
+        p->clear();
 
     // nulling pointers
     m_parent_preset_description_line = nullptr;

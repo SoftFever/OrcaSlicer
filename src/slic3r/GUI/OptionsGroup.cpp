@@ -592,7 +592,7 @@ bool ConfigOptionsGroup::is_visible(ConfigOptionMode mode)
     if (m_options_mode.size() == 1)
         return m_options_mode[0] <= mode;
 
-    int hidden_row_cnt = 0;
+    size_t hidden_row_cnt = 0;
     for (auto opt_mode : m_options_mode)
         if (opt_mode > mode)
             hidden_row_cnt++;

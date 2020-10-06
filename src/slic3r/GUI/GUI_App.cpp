@@ -275,26 +275,30 @@ private:
         bmp = wxBitmap(std::move(image));
     }
 
-    // Workaround for the font scaling in respect to the current active display,
-    // not for the primary display, as it's implemented in Font.cpp
-    // See https://github.com/wxWidgets/wxWidgets/blob/master/src/msw/font.cpp
-    // void wxNativeFontInfo::SetFractionalPointSize(float pointSizeNew)
     void scale_font(wxFont& font, float scale)
     {
+#ifdef __WXMSW__
+        // Workaround for the font scaling in respect to the current active display,
+        // not for the primary display, as it's implemented in Font.cpp
+        // See https://github.com/wxWidgets/wxWidgets/blob/master/src/msw/font.cpp
+        // void wxNativeFontInfo::SetFractionalPointSize(float pointSizeNew)
         wxNativeFontInfo nfi= *font.GetNativeFontInfo();
         float pointSizeNew  = scale * font.GetPointSize();
         nfi.lf.lfHeight     = nfi.GetLogFontHeightAtPPI(pointSizeNew, get_dpi_for_window(this));
         nfi.pointSize       = pointSizeNew;
         font = wxFont(nfi);
+#else
+        font.Scale(scale);
+#endif //__WXMSW__
     }
 
     // wrap a string for the strings no longer then 55 symbols
     // return extent of the longest string
     int word_wrap_string(wxString& input)
     {
-        int line_len = 55;// count of symbols in one line
+        size_t line_len = 55;// count of symbols in one line
         int idx = -1;
-        int cur_len = 0;
+        size_t cur_len = 0;
 
         wxString longest_sub_string;
         auto get_longest_sub_string = [longest_sub_string, input](wxString &longest_sub_str, int cur_len, size_t i) {
@@ -317,7 +321,7 @@ private:
             {
                 get_longest_sub_string(longest_sub_string, cur_len, i);
                 input[idx] = '\n';
-                cur_len = static_cast<int>(i) - idx;
+                cur_len = i - static_cast<size_t>(idx);
             }
         }
 
