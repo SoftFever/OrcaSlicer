@@ -1654,58 +1654,42 @@ bool GUI_App::OnExceptionInMainLoop()
 // to a G-code viewer.
 void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
 {
-    wxArrayString other_files;
-    std::vector<wxString> gcode_files;
-    const std::regex pattern_gcode_drop(".*[.](gcode|g)", std::regex::icase);
-    for (const auto& filename : fileNames) {
-        boost::filesystem::path path(into_path(filename));
-        if (std::regex_match(path.string(), pattern_gcode_drop))
-            gcode_files.emplace_back(filename);
-        else
-            other_files.Add(filename);
+    size_t num_gcodes = 0;
+    for (const wxString &filename : fileNames) {
+        wxString fn = filename.Upper();
+        if (fn.EndsWith(".G") || fn.EndsWith(".GCODE"))
+            ++ num_gcodes;
     }
-    if (! gcode_files.empty()) {
-        // Drag & Dropping a G-code onto PrusaSlicer. Switch PrusaSlicer to G-code viewer mode.
-        //FIXME Switch application to G-code viewer mode?
-        wxMessageBox("PrusaSlicer on early startup", wxString::Format("Switching to G-code viewer for %s", gcode_files.front()), wxICON_INFORMATION);
+    if (fileNames.size() == num_gcodes) {
+        // Opening PrusaSlicer by drag & dropping a G-Code onto PrusaSlicer icon in Finder,
+        // just G-codes were passed. Switch to G-code viewer mode.
         m_app_mode = EAppMode::GCodeViewer;
     }
-    wxApp::OSXStoreOpenFiles(other_files);
-}
-void GUI_App::MacNewFile()
-{
-    m_mac_initialized = true;
+    wxApp::OSXStoreOpenFiles(fileNames);
 }
 // wxWidgets override to get an event on open files.
 void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
 {
     std::vector<std::string> files;
     std::vector<wxString>    gcode_files;
-    const std::regex pattern_gcode_drop(".*[.](gcode|g)", std::regex::icase);
     for (const auto& filename : fileNames) {
-        boost::filesystem::path path(into_path(filename));
-        if (std::regex_match(path.string(), pattern_gcode_drop))
+        wxString fn = filename.Upper();
+        if (fn.EndsWith(".G") || fn.EndsWith(".GCODE"))
             gcode_files.emplace_back(filename);
         else
-            files.emplace_back(path.string());
+            files.emplace_back(into_u8(filename));
     }
-    if (! files.empty())
-        this->plater()->load_files(files, true, true);
-    if (! files.empty() || m_mac_initialized) {
-        // Opening a G-code after the PrusaSlicer application was initalized.
-        // Start a new G-code viewer instance for each G-code file.
+    if (m_app_mode == EAppMode::GCodeViewer) {
+        // Running in G-code viewer.
+        // Load the first G-code into the G-code viewer.
+        if (! gcode_files.empty())
+            this->plater()->load_gcode(gcode_files.front());
+    } else {
+        if (! files.empty())
+            this->plater()->load_files(files, true, true);
         for (const wxString &filename : gcode_files)
             start_new_gcodeviewer(&filename);
-    } else if (! gcode_files.empty()) {
-        assert(! m_mac_initialized);
-        assert(m_app_mode == EAppMode::GCodeViewer);
-        // Drag & Dropping a G-code onto PrusaSlicer. Switch PrusaSlicer to G-code viewer mode.
-        //FIXME Switch application to G-code viewer mode?
-        wxMessageBox("PrusaSlicer on startup", wxString::Format("Switching to G-code viewer for %s", gcode_files.front()), wxICON_INFORMATION);
-        // Load the G-code into the G-code viewer.
-        this->plater()->load_gcode(gcode_files.front());
     }
-    m_mac_initialized = true;
 }
 #endif /* __APPLE */
 

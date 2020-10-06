@@ -106,9 +106,6 @@ private:
 #endif // ENABLE_GCODE_VIEWER
 
     bool            m_initialized { false };
-#ifdef __APPLE__
-    bool            m_mac_initialized { false };
-#endif // __APPLE__
     bool            app_conf_exists{ false };
 #if ENABLE_GCODE_VIEWER
     EAppMode        m_app_mode{ EAppMode::Editor };
@@ -251,8 +248,6 @@ public:
 
 #ifdef __APPLE__
     void            OSXStoreOpenFiles(const wxArrayString &files) override;
-    // Called if there is no file to open.
-    void            MacNewFile();
     // wxWidgets override to get an event on open files.
     void            MacOpenFiles(const wxArrayString &fileNames) override;
 #endif /* __APPLE */
