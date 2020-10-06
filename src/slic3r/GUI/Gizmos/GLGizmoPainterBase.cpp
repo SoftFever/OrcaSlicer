@@ -177,6 +177,7 @@ void GLGizmoPainterBase::render_cursor_circle() const
 
     glsafe(::glPopAttrib());
     glsafe(::glPopMatrix());
+    glsafe(::glEnable(GL_DEPTH_TEST));
 }
 
 
