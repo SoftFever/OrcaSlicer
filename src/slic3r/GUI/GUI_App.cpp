@@ -1703,7 +1703,7 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
         //FIXME Switch application to G-code viewer mode?
         wxMessageBox("PrusaSlicer on startup", wxString::Format("Switching to G-code viewer for %s", gcode_files.front()), wxICON_INFORMATION);
         // Load the G-code into the G-code viewer.
-        this->plater()->load_gcode(paths.front());
+        this->plater()->load_gcode(gcode_files.front());
     }
     m_mac_initialized = true;
 }
