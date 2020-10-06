@@ -1626,7 +1626,6 @@ bool GUI_App::OnExceptionInMainLoop()
 #ifdef __APPLE__
 void GUI_App::MacNewFile()
 {
-    wxDocManager::GetDocumentManager()->CreateNewDocument();
     m_mac_initialized = true;
 }
 // wxWidgets override to get an event on open files.
