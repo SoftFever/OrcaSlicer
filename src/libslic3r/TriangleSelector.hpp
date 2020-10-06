@@ -32,10 +32,10 @@ public:
     void select_patch(const Vec3f& hit,    // point where to start
                       int facet_start,     // facet that point belongs to
                       const Vec3f& source, // camera position (mesh coords)
-                      const Vec3f& dir,    // direction of the ray (mesh coords)
                       float radius,        // radius of the cursor
                       CursorType type,     // current type of cursor
-                      EnforcerBlockerType new_state);   // enforcer or blocker?
+                      EnforcerBlockerType new_state,   // enforcer or blocker?
+                      const Transform3d& trafo); // matrix to get from mesh to world
 
     // Get facets currently in the given state.
     indexed_triangle_set get_facets(EnforcerBlockerType state) const;
@@ -129,11 +129,20 @@ protected:
 
     // Cache for cursor position, radius and direction.
     struct Cursor {
+        Cursor() = default;
+        Cursor(const Vec3f& center_, const Vec3f& source_, float radius_world,
+               CursorType type_, const Transform3d& trafo_);
+        bool is_mesh_point_inside(Vec3f pt) const;
+        bool is_pointer_in_triangle(const Vec3f& p1, const Vec3f& p2, const Vec3f& p3) const;
+
         Vec3f center;
         Vec3f source;
         Vec3f dir;
         float radius_sqr;
         CursorType type;
+        Transform3f trafo;
+        Transform3f trafo_normal;
+        bool uniform_scaling;
     };
 
     Cursor m_cursor;
@@ -142,7 +151,6 @@ protected:
     // Private functions:
     bool select_triangle(int facet_idx, EnforcerBlockerType type,
                          bool recursive_call = false);
-    bool is_point_inside_cursor(const Vec3f& point) const;
     int  vertices_inside(int facet_idx) const;
     bool faces_camera(int facet) const;
     void undivide_triangle(int facet_idx);

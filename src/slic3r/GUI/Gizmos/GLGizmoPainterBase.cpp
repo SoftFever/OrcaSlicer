@@ -350,19 +350,12 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
             const Transform3d& trafo_matrix = trafo_matrices[m_rr.mesh_id];
 
-            // Calculate how far can a point be from the line (in mesh coords).
-            // FIXME: The scaling of the mesh can be non-uniform.
-            const Vec3d sf = Geometry::Transformation(trafo_matrix).get_scaling_factor();
-            const float avg_scaling = (sf(0) + sf(1) + sf(2))/3.;
-            const float limit = m_cursor_radius/avg_scaling;
-
             // Calculate direction from camera to the hit (in mesh coords):
             Vec3f camera_pos = (trafo_matrix.inverse() * camera.get_position()).cast<float>();
-            Vec3f dir = (m_rr.hit - camera_pos).normalized();
 
             assert(m_rr.mesh_id < int(m_triangle_selectors.size()));
             m_triangle_selectors[m_rr.mesh_id]->select_patch(m_rr.hit, m_rr.facet, camera_pos,
-                                              dir, limit, m_cursor_type, new_state);
+                                       m_cursor_radius, m_cursor_type, new_state, trafo_matrix);
             m_last_mouse_click = mouse_position;
         }
 

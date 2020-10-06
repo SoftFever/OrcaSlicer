@@ -13,6 +13,8 @@ public:
     GLGizmoSeam(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
         : GLGizmoPainterBase(parent, icon_filename, sprite_id) {}
 
+    void render_painter_gizmo() const override;
+
 protected:
     void on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;
@@ -20,8 +22,6 @@ protected:
 
 private:
     bool on_init() override;
-    void on_render() const override;
-    void on_render_for_picking() const override {}
 
     void update_model_object() const override;
     void update_from_model_object() override;

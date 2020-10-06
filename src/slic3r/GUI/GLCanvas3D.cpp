@@ -1670,8 +1670,9 @@ void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject
                 } else {
                     const GLGizmosManager& gm = get_gizmos_manager();
                     auto gizmo_type = gm.get_current_type();
-                    if (gizmo_type == GLGizmosManager::FdmSupports
-                     || gizmo_type == GLGizmosManager::Seam)
+                    if (    (gizmo_type == GLGizmosManager::FdmSupports
+                          || gizmo_type == GLGizmosManager::Seam)
+                        && ! vol->is_modifier)
                         vol->force_neutral_color = true;
                     else
                         vol->force_native_color = true;
@@ -5458,6 +5459,20 @@ void GLCanvas3D::_render_objects() const
         m_volumes.render(GLVolumeCollection::Opaque, m_picking_enabled, wxGetApp().plater()->get_camera().get_view_matrix(), [this](const GLVolume& volume) {
             return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
             });
+        }
+
+        // In case a painting gizmo is open, it should render the painted triangles
+        // before transparent objects are rendered. Otherwise they would not be
+        // visible when inside modifier meshes etc.
+        {
+            const GLGizmosManager& gm = get_gizmos_manager();
+            GLGizmosManager::EType type = gm.get_current_type();
+            if (type == GLGizmosManager::FdmSupports
+             || type == GLGizmosManager::Seam) {
+                shader->stop_using();
+                gm.render_painter_gizmo();
+                shader->start_using();
+            }
         }
 
         m_volumes.render(GLVolumeCollection::Transparent, false, wxGetApp().plater()->get_camera().get_view_matrix());
