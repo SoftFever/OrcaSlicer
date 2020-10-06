@@ -54,12 +54,11 @@ class PrusaSlicerTaskBarIcon : public wxTaskBarIcon
 {
 public:
     PrusaSlicerTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
-    void OnLeftButtonDClick(wxTaskBarIconEvent&) { wxMessageBox("Doubleclick on docker icon"); }
     wxMenu *CreatePopupMenu() override {
         wxMenu *menu = new wxMenu;
         int id;
         auto *item = menu->Append(id = wxNewId(), "&Test menu");
-        menu->Bind(wxEVT_MENU, [this](wxCommandEvent &) { wxMessageBox("Test menu"); }, id);
+        menu->Bind(wxEVT_MENU, [this](wxCommandEvent &) { wxMessageBox("Test menu - PrusaSlicer"); }, id);
         return menu;
     }
 };
@@ -67,12 +66,11 @@ class GCodeViewerTaskBarIcon : public wxTaskBarIcon
 {
 public:
     GCodeViewerTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
-    void OnLeftButtonDClick(wxTaskBarIconEvent&) { wxMessageBox("Doubleclick on docker icon"); }
     wxMenu *CreatePopupMenu() override {
         wxMenu *menu = new wxMenu;
         int id;
         auto *item = menu->Append(id = wxNewId(), "&Test menu");
-        menu->Bind(wxEVT_MENU, [this](wxCommandEvent &) { wxMessageBox("Test menu"); }, id);
+        menu->Bind(wxEVT_MENU, [this](wxCommandEvent &) { wxMessageBox("Test menu - GCode Viewer"); }, id);
         return menu;
     }
 };
@@ -103,7 +101,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
         break;
     case GUI_App::EAppMode::GCodeViewer:
         m_taskbar_icon = std::make_unique<GCodeViewerTaskBarIcon>(wxTBI_DOCK);
-        m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("PrusaSlicerGCodeViewer_128px.png"), wxBITMAP_TYPE_PNG), "G-code Viewer");
+        m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("PrusaSlicer-gcodeviewer_128px.png"), wxBITMAP_TYPE_PNG), "G-code Viewer");
         break;
     }
 #endif // __APPLE__
