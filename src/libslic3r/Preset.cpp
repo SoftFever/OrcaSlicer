@@ -1457,7 +1457,7 @@ void PhysicalPrinter::update_from_preset(const Preset& preset)
 {
     config.apply_only(preset.config, printer_options(), true);
     // add preset names to the options list
-    auto ret = preset_names.emplace(preset.name);
+    preset_names.emplace(preset.name);
     update_preset_names_in_config();
 }
 
@@ -1676,7 +1676,7 @@ std::deque<PhysicalPrinter>::iterator PhysicalPrinterCollection::find_printer_in
 
     std::string low_name = boost::to_lower_copy<std::string>(name);
 
-    int i = 0;
+    size_t i = 0;
     for (const PhysicalPrinter& printer : m_printers) {
         if (boost::to_lower_copy<std::string>(printer.name) == low_name)
             break;
@@ -1866,7 +1866,7 @@ void PhysicalPrinterCollection::unselect_printer()
 
 bool PhysicalPrinterCollection::is_selected(PhysicalPrinterCollection::ConstIterator it, const std::string& preset_name) const
 {
-    return  m_idx_selected      == it - m_printers.begin() && 
+    return  m_idx_selected      == size_t(it - m_printers.begin()) && 
             m_selected_preset   == preset_name;
 }
 

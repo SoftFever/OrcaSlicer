@@ -141,8 +141,8 @@ public:
         , int align = wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL
     ) : wxDataViewCustomRenderer(wxT("DataViewBitmapText"), mode, align) {}
 
-    bool SetValue(const wxVariant& value);
-    bool GetValue(wxVariant& value) const;
+    bool SetValue(const wxVariant& value) override;
+    bool GetValue(wxVariant& value) const override;
 
     virtual bool Render(wxRect cell, wxDC* dc, int state) override;
     virtual wxSize GetSize() const override;

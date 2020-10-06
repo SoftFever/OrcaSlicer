@@ -449,7 +449,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
     DynamicPrintConfig*	config_sla = &wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
     m_og_sla->set_config(config_sla);
 
-    m_og_sla->m_on_change = [config_sla, this](t_config_option_key opt_key, boost::any value) {
+    m_og_sla->m_on_change = [config_sla](t_config_option_key opt_key, boost::any value) {
         Tab* tab = wxGetApp().get_tab(Preset::TYPE_SLA_PRINT);
         if (!tab) return;
 

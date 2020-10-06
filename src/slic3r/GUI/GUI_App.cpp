@@ -1583,6 +1583,8 @@ bool GUI_App::check_unsaved_changes(const wxString &header)
             // if we saved changes to the new presets, we should to 
             // synchronize config.ini with the current selections.
             preset_bundle->export_selections(*app_config);
+
+            wxMessageBox(_L("The preset(s) modifications are successfully saved"));
         }
     }
 
