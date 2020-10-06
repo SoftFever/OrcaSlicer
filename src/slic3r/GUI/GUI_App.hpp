@@ -250,6 +250,7 @@ public:
     virtual bool OnExceptionInMainLoop() override;
 
 #ifdef __APPLE__
+    void            OSXStoreOpenFiles(const wxArrayString &files) override;
     // Called if there is no file to open.
     void            MacNewFile();
     // wxWidgets override to get an event on open files.
