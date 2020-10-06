@@ -1626,6 +1626,9 @@ bool GUI_App::OnExceptionInMainLoop()
 }
 
 #ifdef __APPLE__
+// This callback is called from wxEntry()->wxApp::CallOnInit()->NSApplication run
+// that is, before GUI_App::OnInit(), so we have a chance to switch GUI_App
+// to a G-code viewer.
 void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
 {
     wxArrayString other_files;
@@ -1642,6 +1645,7 @@ void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
         // Drag & Dropping a G-code onto PrusaSlicer. Switch PrusaSlicer to G-code viewer mode.
         //FIXME Switch application to G-code viewer mode?
         wxMessageBox("PrusaSlicer on early startup", wxString::Format("Switching to G-code viewer for %s", gcode_files.front()), wxICON_INFORMATION);
+        m_app_mode = EAppMode::GCodeViewer;
     }
     wxApp::OSXStoreOpenFiles(other_files);
 }
@@ -1671,9 +1675,12 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
             start_new_gcodeviewer(&filename);
     } else if (! gcode_files.empty()) {
         assert(! m_mac_initialized);
+        assert(m_app_mode == EAppMode::GCodeViewer);
         // Drag & Dropping a G-code onto PrusaSlicer. Switch PrusaSlicer to G-code viewer mode.
         //FIXME Switch application to G-code viewer mode?
         wxMessageBox("PrusaSlicer on startup", wxString::Format("Switching to G-code viewer for %s", gcode_files.front()), wxICON_INFORMATION);
+        // Load the G-code into the G-code viewer.
+        this->plater()->load_gcode(paths.front());
     }
     m_mac_initialized = true;
 }
