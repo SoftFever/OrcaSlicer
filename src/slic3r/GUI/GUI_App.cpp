@@ -102,20 +102,15 @@ public:
         int new_dpi = get_dpi_for_window(this);
 
         m_scale         = (float)(new_dpi) / (float)(init_dpi);
-        m_font          = get_default_font(this);
         m_main_bitmap   = bitmap;
-        m_constant_text.init();
 
         scale_bitmap(m_main_bitmap, m_scale);
 
-        // As default we use a system font for current display.
-        // But width of the credits information string doesn't respect to the banner width some times.
-        // So, scale font in the respect to the longest string width
-        int   longest_string_width  = word_wrap_string(m_constant_text.credits);
-        float text_banner_width     = 0.4 * m_main_bitmap.GetWidth() - m_scale * 50; // banner_width - margins
+        // init constant texts and scale fonts
+        init_constant_text();
 
-        float font_scale = text_banner_width / longest_string_width;
-        scale_font(m_font, font_scale);
+        // this font will be used for the action string
+        m_action_font = m_constant_text.credits_font.Bold();
 
         // draw logo and constant info text
         Decorate(m_main_bitmap);
@@ -130,7 +125,7 @@ public:
             wxMemoryDC memDC;
             memDC.SelectObject(bitmap);
 
-            memDC.SetFont(m_font.Bold());
+            memDC.SetFont(m_action_font);
             memDC.SetTextForeground(wxColour(237, 107, 33));
             memDC.DrawText(text, int(m_scale * 55), int(m_scale * 265));
 
@@ -192,14 +187,6 @@ public:
 
         const wxRect banner_rect(wxPoint(0, logo_size + margin * 2), wxPoint(width, bmp.GetHeight()));
 
-        wxFont title_font = m_font;
-        scale_font(title_font, 3.f);
-
-        wxFont version_font = m_font;
-        scale_font(version_font, 1.5f);
-
-        wxFont info_font = m_font;
-
         // use a memory DC to draw directly onto the bitmap
         wxMemoryDC memDc(bmp);
 
@@ -209,19 +196,19 @@ public:
         // draw the (white) labels inside of our black box (at the left of the splashscreen)
         memDc.SetTextForeground(wxColour(255, 255, 255));
 
-        memDc.SetFont(title_font);
+        memDc.SetFont(m_constant_text.title_font);
         memDc.DrawLabel(m_constant_text.title,   banner_rect.Deflate(margin, 0), wxALIGN_TOP | wxALIGN_LEFT);
 
-        memDc.SetFont(version_font);
+        memDc.SetFont(m_constant_text.version_font);
         memDc.DrawLabel(m_constant_text.version, banner_rect.Deflate(margin, 3 * margin), wxALIGN_TOP | wxALIGN_LEFT);
 
-        memDc.SetFont(info_font);
+        memDc.SetFont(m_constant_text.credits_font);
         memDc.DrawLabel(m_constant_text.credits, banner_rect.Deflate(margin, 2 * margin), wxALIGN_BOTTOM | wxALIGN_LEFT);
     }
 
 private:
     wxBitmap    m_main_bitmap;
-    wxFont      m_font;
+    wxFont      m_action_font;
     float       m_scale {1.0};
 
     struct CONSTANT_TEXT
@@ -230,7 +217,11 @@ private:
         wxString version;
         wxString credits;
 
-        void init()
+        wxFont   title_font;
+        wxFont   version_font;
+        wxFont   credits_font;
+
+        void init(wxFont init_font)
         {
             // title
 #if ENABLE_GCODE_VIEWER
@@ -248,9 +239,32 @@ private:
                         title + " " + _L("is licensed under the") + " " + _L("GNU Affero General Public License, version 3") + "\n\n" +
                         _L("Contributions by Vojtech Bubnik, Enrico Turri, Oleksandra Iushchenko, Tamas Meszaros, Lukas Matena, Vojtech Kral, David Kocik and numerous others.") + "\n\n" +
                         _L("Artwork model by Nora Al-Badri and Jan Nikolai Nelles");
+
+            title_font = version_font = credits_font = init_font;
         }
     } 
     m_constant_text;
+
+    void init_constant_text()
+    {
+        m_constant_text.init(get_default_font(this));
+
+        // As default we use a system font for current display.
+        // Scale fonts in respect to banner width
+
+        int text_banner_width = lround(0.4 * m_main_bitmap.GetWidth()) - roundl(m_scale * 50); // banner_width - margins
+
+        float title_font_scale = (float)text_banner_width / GetTextExtent(m_constant_text.title).GetX();
+        scale_font(m_constant_text.title_font, title_font_scale > 3.5f ? 3.5f : title_font_scale);
+
+        scale_font(m_constant_text.version_font, 2.f);
+
+        // The width of the credits information string doesn't respect to the banner width some times.
+        // So, scale credits_font in the respect to the longest string width
+        int   longest_string_width = word_wrap_string(m_constant_text.credits);
+        float font_scale = (float)text_banner_width / longest_string_width;
+        scale_font(m_constant_text.credits_font, font_scale);
+    }
 
     void set_bitmap(wxBitmap& bmp)
     {
