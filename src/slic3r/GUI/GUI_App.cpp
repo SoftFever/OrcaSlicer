@@ -1626,6 +1626,25 @@ bool GUI_App::OnExceptionInMainLoop()
 }
 
 #ifdef __APPLE__
+void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
+{
+    wxArrayString other_files;
+    std::vector<wxString> gcode_files;
+    const std::regex pattern_gcode_drop(".*[.](gcode|g)", std::regex::icase);
+    for (const auto& filename : fileNames) {
+        boost::filesystem::path path(into_path(filename));
+        if (std::regex_match(path.string(), pattern_gcode_drop))
+            gcode_files.emplace_back(filename);
+        else
+            other_files.Add(filename);
+    }
+    if (! gcode_files.empty()) {
+        // Drag & Dropping a G-code onto PrusaSlicer. Switch PrusaSlicer to G-code viewer mode.
+        //FIXME Switch application to G-code viewer mode?
+        wxMessageBox("PrusaSlicer on early startup", wxString::Format("Switching to G-code viewer for %s", gcode_files.front()), wxICON_INFORMATION);
+    }
+    wxApp::OSXStoreOpenFiles(other_files);
+}
 void GUI_App::MacNewFile()
 {
     m_mac_initialized = true;
