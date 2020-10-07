@@ -280,6 +280,7 @@ namespace Slic3r {
 
     void AvoidCrossingPerimeters2::init_layer(const Layer &layer)
     {
+        m_boundaries.clear();
         BoundingBox bbox = get_extents(layer.lslices);
         bbox.offset(SCALED_EPSILON);
         ExPolygons boundaries = get_boundary(layer);
