@@ -178,6 +178,7 @@ namespace Slic3r {
         return islands;
     }
 
+    // Create a rotation matrix for projection on the given vector
     static Matrix2d rotation_by_direction(const Point &direction)
     {
         Matrix2d rotation;
@@ -188,6 +189,7 @@ namespace Slic3r {
         return rotation;
     }
 
+    // Returns a direction of the shortest path along the polygon boundary
     AvoidCrossingPerimeters2::Direction AvoidCrossingPerimeters2::get_shortest_direction(const Lines &lines,
                                                                                          const size_t start_idx,
                                                                                          const size_t end_idx,
@@ -253,6 +255,7 @@ namespace Slic3r {
         optimized_comb_path.points.reserve(travel.points.size());
         optimized_comb_path.points.emplace_back(travel.points.front());
 
+        // Try to skip some points in the path.
         for (size_t point_idx = 1; point_idx < travel.size(); point_idx++) {
             const Point &current_point = travel.points[point_idx - 1];
             Point        next          = travel.points[point_idx];
@@ -262,6 +265,7 @@ namespace Slic3r {
             for (size_t point_idx_2 = point_idx + 1; point_idx_2 < travel.size(); point_idx_2++) {
                 visitor.pt_next = &travel.points[point_idx_2];
                 m_grid.visit_cells_intersecting_line(*visitor.pt_current, *visitor.pt_next, visitor);
+                // Check if deleting point causes crossing a boundary
                 if (!visitor.intersect) {
                     next      = travel.points[point_idx_2];
                     point_idx = point_idx_2;
@@ -359,6 +363,7 @@ namespace Slic3r {
         return (normal_1 + normal_2).normalized();
     };
 
+    // Compute offset of polygon's in a direction inward normal
     static Point get_polygon_vertex_offset(const Polygon &polygon, const size_t point_idx, const int offset)
     {
         return polygon.points[point_idx] + (get_polygon_vertex_inward_normal(polygon, point_idx) * double(offset)).cast<coord_t>();
@@ -446,6 +451,7 @@ namespace Slic3r {
                     Direction shortest_direction = get_shortest_direction(border_lines, intersection_first.line_idx, intersection_second.line_idx,
                                                                           intersection_first_point, intersection_second_point);
                     // Append the path around the border into the path
+                    // Offset of the polygon's point is used to simplify calculation of intersection between boundary
                     if (shortest_direction == Direction::Forward)
                         for (int line_idx = intersection_first.line_idx; line_idx != int(intersection_second.line_idx);
                             line_idx     = (((line_idx + 1) < int(border_lines.size())) ? (line_idx + 1) : 0))
