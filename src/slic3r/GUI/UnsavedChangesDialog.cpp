@@ -38,6 +38,10 @@ static const std::map<Preset::Type, std::string> type_icon_names = {
     {Preset::TYPE_PRINTER,      "printer"       },
 };
 
+static std::string get_icon_name(Preset::Type type, PrinterTechnology pt) {
+    return pt == ptSLA && type == Preset::TYPE_PRINTER ? "sla_printer" : type_icon_names.at(type);
+}
+
 static std::string black    = "#000000";
 static std::string grey     = "#808080";
 static std::string orange   = "#ed6b21";
@@ -57,17 +61,17 @@ static void make_string_bold(wxString& str)
 }
 
 // preset(root) node
-ModelNode::ModelNode(Preset::Type preset_type, const wxString& text, wxWindow* parent_win) :
+ModelNode::ModelNode(Preset::Type preset_type, wxWindow* parent_win, const wxString& text, const std::string& icon_name) :
     m_parent_win(parent_win),
     m_parent(nullptr),
     m_preset_type(preset_type),
-    m_icon_name(type_icon_names.at(preset_type)),
+    m_icon_name(icon_name),
     m_text(text)
 {
     UpdateIcons();
 }
 
-// group node
+// category node
 ModelNode::ModelNode(ModelNode* parent, const wxString& text, const std::string& icon_name) :
     m_parent_win(parent->m_parent_win),
     m_parent(parent),
@@ -77,12 +81,14 @@ ModelNode::ModelNode(ModelNode* parent, const wxString& text, const std::string&
     UpdateIcons();
 }
 
-// category node
+// group node
 ModelNode::ModelNode(ModelNode* parent, const wxString& text) :
     m_parent_win(parent->m_parent_win),
     m_parent(parent),
-    m_text(text)
+    m_text(text),
+    m_icon_name("dot_small")
 {
+    UpdateIcons();
 }
 
 #ifdef __linux__
@@ -119,6 +125,7 @@ ModelNode::ModelNode(ModelNode* parent, const wxString& text, const wxString& ol
     m_new_color(new_value.StartsWith("#") ? new_value : ""),
     m_container(false),
     m_text(text),
+    m_icon_name("empty"),
     m_old_value(old_value),
     m_new_value(new_value)
 {
@@ -144,6 +151,8 @@ ModelNode::ModelNode(ModelNode* parent, const wxString& text, const wxString& ol
     // "color" strings
     color_string(m_old_value, black);
     color_string(m_new_value, orange);
+
+    UpdateIcons();
 }
 
 void ModelNode::UpdateEnabling()
@@ -206,13 +215,13 @@ UnsavedChangesModel::~UnsavedChangesModel()
         delete preset_node;
 }
 
-wxDataViewItem UnsavedChangesModel::AddPreset(Preset::Type type, wxString preset_name)
+wxDataViewItem UnsavedChangesModel::AddPreset(Preset::Type type, wxString preset_name, PrinterTechnology pt)
 {
     // "color" strings
     color_string(preset_name, black);
     make_string_bold(preset_name);
 
-    auto preset = new ModelNode(type, preset_name, m_parent_win);
+    auto preset = new ModelNode(type, m_parent_win, preset_name, get_icon_name(type, pt));
     m_preset_nodes.emplace_back(preset);
 
     wxDataViewItem child((void*)preset);
@@ -242,9 +251,10 @@ ModelNode* UnsavedChangesModel::AddOptionWithGroup(ModelNode* category_node, wxS
     return AddOption(group_node, option_name, old_value, new_value);
 }
 
-ModelNode* UnsavedChangesModel::AddOptionWithGroupAndCategory(ModelNode* preset_node, wxString category_name, wxString group_name, wxString option_name, wxString old_value, wxString new_value)
+ModelNode* UnsavedChangesModel::AddOptionWithGroupAndCategory(ModelNode* preset_node, wxString category_name, wxString group_name, 
+                                            wxString option_name, wxString old_value, wxString new_value, const std::string category_icon_name)
 {
-    ModelNode* category_node = new ModelNode(preset_node, category_name, "cog");
+    ModelNode* category_node = new ModelNode(preset_node, category_name, category_icon_name);
     preset_node->Append(category_node);
     ItemAdded(wxDataViewItem((void*)preset_node), wxDataViewItem((void*)category_node));
 
@@ -252,7 +262,7 @@ ModelNode* UnsavedChangesModel::AddOptionWithGroupAndCategory(ModelNode* preset_
 }
 
 wxDataViewItem UnsavedChangesModel::AddOption(Preset::Type type, wxString category_name, wxString group_name, wxString option_name,
-                                              wxString old_value, wxString new_value)
+                                              wxString old_value, wxString new_value, const std::string category_icon_name)
 {
     // "color" strings
     color_string(category_name, black);
@@ -277,7 +287,7 @@ wxDataViewItem UnsavedChangesModel::AddOption(Preset::Type type, wxString catego
                     return wxDataViewItem((void*)AddOptionWithGroup(category, group_name, option_name, old_value, new_value));
                 }
 
-            return wxDataViewItem((void*)AddOptionWithGroupAndCategory(preset, category_name, group_name, option_name, old_value, new_value));
+            return wxDataViewItem((void*)AddOptionWithGroupAndCategory(preset, category_name, group_name, option_name, old_value, new_value, category_icon_name));
         }
 
     return wxDataViewItem(nullptr);    
@@ -972,10 +982,13 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
     for (PresetCollection* presets : presets_list)
     {
         const DynamicPrintConfig& old_config = presets->get_selected_preset().config;
+        const PrinterTechnology&  old_pt     = presets->get_selected_preset().printer_technology();
         const DynamicPrintConfig& new_config = presets->get_edited_preset().config;
         type = presets->type();
 
-        m_tree_model->AddPreset(type, from_u8(presets->get_edited_preset().name));
+        const std::map<wxString, std::string>& category_icon_map = wxGetApp().get_tab(type)->get_category_icon_map();
+
+        m_tree_model->AddPreset(type, from_u8(presets->get_edited_preset().name), old_pt);
 
         // Collect dirty options.
         const bool deep_compare = (type == Preset::TYPE_PRINTER || type == Preset::TYPE_SLA_MATERIAL);
@@ -983,14 +996,14 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
         auto dirty_options_ = presets->current_dirty_options();
 
         // process changes of extruders count
-        if (type == Preset::TYPE_PRINTER &&
+        if (type == Preset::TYPE_PRINTER && old_pt == ptFFF &&
             old_config.opt<ConfigOptionStrings>("extruder_colour")->values.size() != new_config.opt<ConfigOptionStrings>("extruder_colour")->values.size()) {
             wxString local_label = _L("Extruders count");
             wxString old_val = from_u8((boost::format("%1%") % old_config.opt<ConfigOptionStrings>("extruder_colour")->values.size()).str());
             wxString new_val = from_u8((boost::format("%1%") % new_config.opt<ConfigOptionStrings>("extruder_colour")->values.size()).str());
 
             ItemData item_data = { "extruders_count", local_label, old_val, new_val, type };
-            m_items_map.emplace(m_tree_model->AddOption(type, _L("General"), _L("Capabilities"), local_label, old_val, new_val), item_data);
+            m_items_map.emplace(m_tree_model->AddOption(type, _L("General"), _L("Capabilities"), local_label, old_val, new_val, category_icon_map.at("General")), item_data);
 
         }
 
@@ -1004,7 +1017,7 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
             if (old_val != item_data.old_val || new_val != item_data.new_val)
                 item_data.is_long = true;
 
-            m_items_map.emplace(m_tree_model->AddOption(type, option.category_local, option.group_local, option.label_local, old_val, new_val), item_data);
+            m_items_map.emplace(m_tree_model->AddOption(type, option.category_local, option.group_local, option.label_local, old_val, new_val, category_icon_map.at(option.category)), item_data);
         }
     }
 }

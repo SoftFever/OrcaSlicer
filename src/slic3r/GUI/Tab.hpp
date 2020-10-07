@@ -198,6 +198,7 @@ protected:
 
 	int					m_icon_count;
 	std::map<std::string, size_t>	m_icon_index;		// Map from an icon file name to its index
+	std::map<wxString, std::string>	m_category_icon;	// Map from a category name to an icon file name
 	std::vector<PageShp>			m_pages;
 	Page*				m_active_page {nullptr};
 	bool				m_disable_tree_sel_changed_event {false};
@@ -348,6 +349,8 @@ public:
     void			apply_searcher();
 	void			cache_config_diff(const std::vector<std::string>& selected_options);
 	void			apply_config_from_cache();
+
+	const std::map<wxString, std::string>& get_category_icon_map() { return m_category_icon; }
 
 protected:
 	void			create_line_with_widget(ConfigOptionsGroup* optgroup, const std::string& opt_key, widget_t widget);

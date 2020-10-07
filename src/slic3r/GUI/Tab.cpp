@@ -402,6 +402,11 @@ Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::str
             icon_idx = ++m_icon_count;
             m_icon_index[icon] = icon_idx;
         }
+
+        if (m_category_icon.find(title) == m_category_icon.end()) {
+            // Add new category to the category_to_icon list.
+            m_category_icon[title] = icon;
+        }
     }
     // Initialize the page.
 #ifdef __WXOSX__

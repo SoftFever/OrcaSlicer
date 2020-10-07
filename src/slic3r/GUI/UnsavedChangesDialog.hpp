@@ -76,7 +76,7 @@ public:
     wxString    m_new_value;
 
     // preset(root) node
-    ModelNode(Preset::Type preset_type, const wxString& text, wxWindow* parent_win);
+    ModelNode(Preset::Type preset_type, wxWindow* parent_win, const wxString& text, const std::string& icon_name);
 
     // category node
     ModelNode(ModelNode* parent, const wxString& text, const std::string& icon_name);
@@ -141,7 +141,8 @@ class UnsavedChangesModel : public wxDataViewModel
                                              wxString   group_name,
                                              wxString   option_name,
                                              wxString   old_value,
-                                             wxString   new_value);
+                                             wxString   new_value,
+                                             const std::string category_icon_name);
 
 public:
     enum {
@@ -157,9 +158,9 @@ public:
 
     void            SetAssociatedControl(wxDataViewCtrl* ctrl) { m_ctrl = ctrl; }
 
-    wxDataViewItem  AddPreset(Preset::Type type, wxString preset_name);
+    wxDataViewItem  AddPreset(Preset::Type type, wxString preset_name, PrinterTechnology pt);
     wxDataViewItem  AddOption(Preset::Type type, wxString category_name, wxString group_name, wxString option_name,
-                              wxString old_value, wxString new_value);
+                              wxString old_value, wxString new_value, const std::string category_icon_name);
 
     void            UpdateItemEnabling(wxDataViewItem item);
     bool            IsEnabledItem(const wxDataViewItem& item);
