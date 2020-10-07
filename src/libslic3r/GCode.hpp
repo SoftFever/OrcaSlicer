@@ -54,7 +54,7 @@ public:
 
     virtual Polyline travel_to(const GCode &gcodegen, const Point &point);
 
-private:
+protected:
     // For initializing the regions to avoid.
 	static Polygons collect_contours_all_layers(const PrintObjectPtrs& objects);
 
@@ -85,13 +85,20 @@ private:
                                             const size_t end_idx,
                                             const Point &intersection_first,
                                             const Point &intersection_last);
+    static ExPolygons get_boundary(const Layer &layer);
 
+    Polyline simplify_travel(const Polyline &travel, const GCode &gcodegen);
+
+    Polygons m_boundaries;
+    EdgeGrid::Grid m_grid;
 public:
     AvoidCrossingPerimeters2() : AvoidCrossingPerimeters() {}
 
     virtual ~AvoidCrossingPerimeters2() = default;
 
     virtual Polyline travel_to(const GCode &gcodegen, const Point &point) override;
+
+    void init_layer(const Layer &layer);
 };
 
 class OozePrevention {

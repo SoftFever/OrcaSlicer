@@ -46,6 +46,8 @@ using namespace std::literals::string_view_literals;
 #endif
 
 #include <assert.h>
+#include <unordered_set>
+#include <boost/functional/hash.hpp>
 
 namespace Slic3r {
 
@@ -216,76 +218,243 @@ namespace Slic3r {
         return (total_length_forward < total_length_backward) ? Direction::Forward : Direction::Backward;
     }
 
+    Polyline AvoidCrossingPerimeters2::simplify_travel(const Polyline &travel, const GCode &gcodegen)
+    {
+        struct Visitor
+        {
+            Visitor(const EdgeGrid::Grid &grid) : grid(grid) {}
+
+            bool operator()(coord_t iy, coord_t ix)
+            {
+                assert(pt_current != nullptr);
+                assert(pt_next != nullptr);
+                // Called with a row and colum of the grid cell, which is intersected by a line.
+                auto cell_data_range = grid.cell_data_range(iy, ix);
+                this->intersect      = false;
+                for (auto it_contour_and_segment = cell_data_range.first; it_contour_and_segment != cell_data_range.second; ++it_contour_and_segment) {
+                    // End points of the line segment and their vector.
+                    auto segment = grid.segment(*it_contour_and_segment);
+                    if (Geometry::segments_intersect(segment.first, segment.second, *pt_current, *pt_next)) {
+                        this->intersect = true;
+                        return false;
+                    }
+                }
+                // Continue traversing the grid along the edge.
+                return true;
+            }
+
+            const EdgeGrid::Grid &grid;
+            const Slic3r::Point  *pt_current = nullptr;
+            const Slic3r::Point  *pt_next    = nullptr;
+            bool                  intersect  = false;
+        } visitor(m_grid);
+
+        Polyline optimized_comb_path;
+        optimized_comb_path.points.reserve(travel.points.size());
+        optimized_comb_path.points.emplace_back(travel.points.front());
+
+        for (size_t point_idx = 1; point_idx < travel.size(); point_idx++) {
+            const Point &current_point = travel.points[point_idx - 1];
+            Point        next          = travel.points[point_idx];
+
+            visitor.pt_current = &current_point;
+
+            for (size_t point_idx_2 = point_idx + 1; point_idx_2 < travel.size(); point_idx_2++) {
+                visitor.pt_next = &travel.points[point_idx_2];
+                m_grid.visit_cells_intersecting_line(*visitor.pt_current, *visitor.pt_next, visitor);
+                if (!visitor.intersect) {
+                    next      = travel.points[point_idx_2];
+                    point_idx = point_idx_2;
+                }
+            }
+
+            optimized_comb_path.append(next);
+        }
+
+        return optimized_comb_path;
+    }
+
+    void AvoidCrossingPerimeters2::init_layer(const Layer &layer)
+    {
+        BoundingBox bbox = get_extents(layer.lslices);
+        bbox.offset(SCALED_EPSILON);
+        ExPolygons boundaries = get_boundary(layer);
+
+        for (const ExPolygon &ex_polygon : boundaries) {
+            m_boundaries.emplace_back(ex_polygon.contour);
+
+            for (const Polygon &hole : ex_polygon.holes) m_boundaries.emplace_back(hole);
+        }
+
+        m_grid.set_bbox(bbox);
+        m_grid.create(m_boundaries, scale_(10.));
+    }
+
+    ExPolygons AvoidCrossingPerimeters2::get_boundary(const Layer &layer)
+    {
+        size_t regions_count     = 0;
+        size_t polygons_count    = 0;
+        long   perimeter_spacing = 0;
+        for (const LayerRegion *layer_region : layer.regions()) {
+            polygons_count += layer_region->slices.surfaces.size();
+            perimeter_spacing += layer_region->flow(frPerimeter).scaled_spacing();
+            ++regions_count;
+        }
+        perimeter_spacing /= regions_count;
+        const long offset = perimeter_spacing / 2;
+
+        ExPolygons boundary;
+        boundary.reserve(polygons_count);
+        for (const LayerRegion *layer_region : layer.regions())
+            for (const Surface &surface : layer_region->slices.surfaces) boundary.emplace_back(surface.expolygon);
+
+        boundary                      = union_ex(boundary);
+        ExPolygons perimeter_boundary = offset_ex(boundary, -offset);
+        ExPolygons final_boundary;
+        if (perimeter_boundary.size() != boundary.size()) {
+            // If any part of the polygon is missing after shrinking, the boundary os slice is used instead.
+            ExPolygons missing_perimeter_boundary = offset_ex(diff_ex(boundary, offset_ex(perimeter_boundary, offset + SCALED_EPSILON)),
+                                                              offset + SCALED_EPSILON);
+            perimeter_boundary                    = offset_ex(perimeter_boundary, offset + SCALED_EPSILON);
+            perimeter_boundary.insert(perimeter_boundary.begin(), missing_perimeter_boundary.begin(), missing_perimeter_boundary.end());
+            final_boundary = union_ex(perimeter_boundary);
+        } else {
+            final_boundary = std::move(perimeter_boundary);
+        }
+
+        // Collect all top layers that will not be crossed.
+        polygons_count = 0;
+        for (const LayerRegion *layer_region : layer.regions())
+            for (const Surface &surface : layer_region->fill_surfaces.surfaces)
+                if (surface.is_top()) ++polygons_count;
+
+        if (polygons_count > 0) {
+            ExPolygons top_layer_polygons;
+            top_layer_polygons.reserve(polygons_count);
+            for (const LayerRegion *layer_region : layer.regions())
+                for (const Surface &surface : layer_region->fill_surfaces.surfaces)
+                    if (surface.is_top()) top_layer_polygons.emplace_back(surface.expolygon);
+
+            top_layer_polygons = union_ex(top_layer_polygons);
+            return diff_ex(final_boundary, offset_ex(top_layer_polygons, -offset));
+        }
+
+        return final_boundary;
+    }
+
+    static Vec2d get_polygon_vertex_inward_normal(const Polygon &polygon, const size_t point_idx)
+    {
+        const Point &p0 = polygon.points[(point_idx <= 0) ? (polygon.size() - 1) : (point_idx - 1)];
+        const Point &p1 = polygon.points[point_idx];
+        const Point &p2 = polygon.points[(point_idx >= (polygon.size() - 1)) ? (0) : (point_idx + 1)];
+
+        assert(p0 != p1);
+        assert(p1 != p2);
+
+        Vec2d normal_1(-1 * (p1.y() - p0.y()), p1.x() - p0.x());
+        Vec2d normal_2(-1 * (p2.y() - p1.y()), p2.x() - p1.x());
+        normal_1.normalize();
+        normal_2.normalize();
+
+        return (normal_1 + normal_2).normalized();
+    };
+
+    static Point get_polygon_vertex_offset(const Polygon &polygon, const size_t point_idx, const int offset)
+    {
+        return polygon.points[point_idx] + (get_polygon_vertex_inward_normal(polygon, point_idx) * double(offset)).cast<coord_t>();
+    }
+
     Polyline AvoidCrossingPerimeters2::travel_to(const GCode &gcodegen, const Point &point)
     {
+        bool use_external = this->use_external_mp || this->use_external_mp_once;
+        if (use_external) {
+            Point    scaled_origin = Point::new_scale(gcodegen.origin()(0), gcodegen.origin()(1));
+            Polyline result        = m_external_mp.get()->shortest_path(gcodegen.last_pos() + scaled_origin, point + scaled_origin);
+            result.translate(-scaled_origin);
+            return result;
+        }
+
         const Point &start                 = gcodegen.last_pos();
         const Point &end                   = point;
         const Point  direction             = end - start;
         Matrix2d     transform_to_x_axis   = rotation_by_direction(direction);
         Matrix2d     transform_from_x_axis = transform_to_x_axis.transpose();
 
+        const Line travel_line_orig(start, end);
         const Line travel_line((transform_to_x_axis * start.cast<double>()).cast<coord_t>(),
                                (transform_to_x_axis * end.cast<double>()).cast<coord_t>());
 
-        Polygons borders;
-        borders.reserve(gcodegen.layer()->lslices.size());
-
-        for (const ExPolygon &ex_polygon : gcodegen.layer()->lslices) {
-            borders.emplace_back(ex_polygon.contour);
-
-            for (const Polygon &hole : ex_polygon.holes) borders.emplace_back(hole);
-        }
-
         std::vector<Intersection> intersections;
-        for (size_t border_idx = 0; border_idx < borders.size(); ++border_idx) {
-            const Polygon &border       = borders[border_idx];
-            Lines          border_lines = border.lines();
+        {
+            struct Visitor
+            {
+                Visitor(const EdgeGrid::Grid &     grid,
+                        std::vector<Intersection> &intersections,
+                        const Matrix2d &           transform_to_x_axis,
+                        const Line &               travel_line)
+                    : grid(grid), intersections(intersections), transform_to_x_axis(transform_to_x_axis), travel_line(travel_line)
+                {}
 
-            for (size_t line_idx = 0; line_idx < border_lines.size(); ++line_idx) {
-                const Line &border_line = border_lines[line_idx];
-                Line        border_line_transformed((transform_to_x_axis * border_line.a.cast<double>()).cast<coord_t>(),
-                                             (transform_to_x_axis * border_line.b.cast<double>()).cast<coord_t>());
+                bool operator()(coord_t iy, coord_t ix)
+                {
+                    // Called with a row and colum of the grid cell, which is intersected by a line.
+                    auto cell_data_range = grid.cell_data_range(iy, ix);
+                    for (auto it_contour_and_segment = cell_data_range.first; it_contour_and_segment != cell_data_range.second;
+                         ++it_contour_and_segment) {
+                        // End points of the line segment and their vector.
+                        auto segment = grid.segment(*it_contour_and_segment);
 
-                Point intersection_transformed;
+                        Point intersection_point;
+                        if (travel_line.intersection(Line(segment.first, segment.second), &intersection_point) &&
+                            intersection_set.find(*it_contour_and_segment) == intersection_set.end()) {
+                            intersections.emplace_back(it_contour_and_segment->first, it_contour_and_segment->second,
+                                                       (transform_to_x_axis * intersection_point.cast<double>()).cast<coord_t>());
+                            intersection_set.insert(*it_contour_and_segment);
+                        }
+                    }
+                    // Continue traversing the grid along the edge.
+                    return true;
+                }
 
-                if (travel_line.intersection(border_line_transformed, &intersection_transformed))
-                    intersections.emplace_back(border_idx, line_idx, intersection_transformed);
-            }
+                const EdgeGrid::Grid                                                                 &grid;
+                std::vector<Intersection>                                                            &intersections;
+                const Matrix2d                                                                       &transform_to_x_axis;
+                const Line                                                                           &travel_line;
+                std::unordered_set<std::pair<size_t, size_t>, boost::hash<std::pair<size_t, size_t>>> intersection_set;
+            } visitor(m_grid, intersections, transform_to_x_axis, travel_line_orig);
+
+            m_grid.visit_cells_intersecting_line(start, end, visitor);
         }
 
-        // Sort intersections from the nearest to the farthest
         std::sort(intersections.begin(), intersections.end());
 
-        // Polyline result(start, end);
         Polyline result;
         result.append(start);
-
         for (auto it_first = intersections.begin(); it_first != intersections.end(); ++it_first) {
             const Intersection &intersection_first = *it_first;
-            Point intersection_first_point((transform_from_x_axis * intersection_first.point.cast<double>()).cast<coord_t>());
+            Point               intersection_first_point((transform_from_x_axis * intersection_first.point.cast<double>()).cast<coord_t>());
 
             for (auto it_second = it_first + 1; it_second != intersections.end(); ++it_second) {
                 const Intersection &intersection_second = *it_second;
-                Point               intersection_second_point(
-                    (transform_from_x_axis * intersection_second.point.cast<double>()).cast<coord_t>());
+                Point               intersection_second_point((transform_from_x_axis * intersection_second.point.cast<double>()).cast<coord_t>());
 
                 if (intersection_first.border_idx == intersection_second.border_idx) {
-                    Lines border_lines = borders[intersection_first.border_idx].lines();
+                    Lines border_lines = m_boundaries[intersection_first.border_idx].lines();
                     // Append the nearest intersection into the path
                     result.append(intersection_first_point);
 
-                    Direction shortest_direction = get_shortest_direction(border_lines, intersection_first.line_idx,
-                                                                          intersection_second.line_idx, intersection_first_point,
-                                                                          intersection_second_point);
+                    Direction shortest_direction = get_shortest_direction(border_lines, intersection_first.line_idx, intersection_second.line_idx,
+                                                                          intersection_first_point, intersection_second_point);
                     // Append the path around the border into the path
                     if (shortest_direction == Direction::Forward)
                         for (int line_idx = intersection_first.line_idx; line_idx != int(intersection_second.line_idx);
-                             line_idx     = (((line_idx + 1) < int(border_lines.size())) ? (line_idx + 1) : 0))
-                            result.append(border_lines[line_idx].b);
+                            line_idx     = (((line_idx + 1) < int(border_lines.size())) ? (line_idx + 1) : 0))
+                            result.append(get_polygon_vertex_offset(m_boundaries[intersection_first.border_idx],
+                                          (line_idx + 1 == int(m_boundaries[intersection_first.border_idx].points.size())) ? 0 : (line_idx + 1), SCALED_EPSILON));
                     else
                         for (int line_idx = intersection_first.line_idx; line_idx != int(intersection_second.line_idx);
-                             line_idx     = (((line_idx - 1) >= 0) ? (line_idx - 1) : (int(border_lines.size()) - 1)))
-                            result.append(border_lines[line_idx].a);
+                            line_idx     = (((line_idx - 1) >= 0) ? (line_idx - 1) : (int(border_lines.size()) - 1)))
+                            result.append(get_polygon_vertex_offset(m_boundaries[intersection_first.border_idx], line_idx + 0, SCALED_EPSILON));
 
                     // Append the farthest intersection into the path
                     result.append(intersection_second_point);
@@ -297,8 +466,7 @@ namespace Slic3r {
         }
 
         result.append(end);
-
-        return result;
+        return simplify_travel(result, gcodegen);
     }
 
     std::string OozePrevention::pre_toolchange(GCode& gcodegen)
@@ -2264,8 +2432,10 @@ void GCode::process_layer(
             for (InstanceToPrint &instance_to_print : instances_to_print) {
                 m_config.apply(instance_to_print.print_object.config(), true);
                 m_layer = layers[instance_to_print.layer_id].layer();
-                if (m_config.avoid_crossing_perimeters)
+                if (m_config.avoid_crossing_perimeters) {
                     m_avoid_crossing_perimeters.init_layer_mp(union_ex(m_layer->lslices, true));
+                    m_avoid_crossing_perimeters.init_layer(*m_layer);
+                }
 
                 if (this->config().gcode_label_objects)
                     gcode += std::string("; printing object ") + instance_to_print.print_object.model_object()->name + " id:" + std::to_string(instance_to_print.layer_id) + " copy " + std::to_string(instance_to_print.instance_id) + "\n";
