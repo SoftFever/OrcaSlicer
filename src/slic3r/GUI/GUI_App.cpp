@@ -708,23 +708,29 @@ bool GUI_App::on_init_inner()
 
 //     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", wxVERSION_STRING, wxVERSION;
 
-    std::string msg = Http::tls_global_init();
-    std::string ssl_cert_store = app_config->get("tls_accepted_cert_store_location");
-    bool ssl_accept = app_config->get("tls_cert_store_accepted") == "yes" && ssl_cert_store == Http::tls_system_cert_store();
+#if ENABLE_GCODE_VIEWER
+    if (is_editor()) {
+#endif // ENABLE_GCODE_VIEWER
+        std::string msg = Http::tls_global_init();
+        std::string ssl_cert_store = app_config->get("tls_accepted_cert_store_location");
+        bool ssl_accept = app_config->get("tls_cert_store_accepted") == "yes" && ssl_cert_store == Http::tls_system_cert_store();
 
-    if (!msg.empty() && !ssl_accept) {
-        wxRichMessageDialog
-            dlg(nullptr,
-                wxString::Format(_L("%s\nDo you want to continue?"), msg),
-                "PrusaSlicer", wxICON_QUESTION | wxYES_NO);
-        dlg.ShowCheckBox(_L("Remember my choice"));
-        if (dlg.ShowModal() != wxID_YES) return false;
+        if (!msg.empty() && !ssl_accept) {
+            wxRichMessageDialog
+                dlg(nullptr,
+                    wxString::Format(_L("%s\nDo you want to continue?"), msg),
+                    "PrusaSlicer", wxICON_QUESTION | wxYES_NO);
+            dlg.ShowCheckBox(_L("Remember my choice"));
+            if (dlg.ShowModal() != wxID_YES) return false;
 
-        app_config->set("tls_cert_store_accepted",
-            dlg.IsCheckBoxChecked() ? "yes" : "no");
-        app_config->set("tls_accepted_cert_store_location",
-            dlg.IsCheckBoxChecked() ? Http::tls_system_cert_store() : "");
+            app_config->set("tls_cert_store_accepted",
+                dlg.IsCheckBoxChecked() ? "yes" : "no");
+            app_config->set("tls_accepted_cert_store_location",
+                dlg.IsCheckBoxChecked() ? Http::tls_system_cert_store() : "");
+        }
+#if ENABLE_GCODE_VIEWER
     }
+#endif // ENABLE_GCODE_VIEWER
 
     app_config->set("version", SLIC3R_VERSION);
     app_config->save();
