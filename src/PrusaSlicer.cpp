@@ -665,7 +665,7 @@ bool CLI::setup(int argc, char **argv)
 #ifdef __APPLE__
     // The application is packed in the .dmg archive as 'Slic3r.app/Contents/MacOS/Slic3r'
     // The resources are packed to 'Slic3r.app/Contents/Resources'
-    boost::filesystem::path path_resources = path_to_binary.parent_path() / "../Resources";
+    boost::filesystem::path path_resources = std::filesystem::canonical(path_to_binary).parent_path() / "../Resources";
 #elif defined _WIN32
     // The application is packed in the .zip archive in the root,
     // The resources are packed to 'resources'
@@ -679,7 +679,7 @@ bool CLI::setup(int argc, char **argv)
     // The application is packed in the .tar.bz archive (or in AppImage) as 'bin/slic3r',
     // The resources are packed to 'resources'
     // Path from Slic3r binary to resources:
-    boost::filesystem::path path_resources = path_to_binary.parent_path() / "../resources";
+    boost::filesystem::path path_resources = std::filesystem::canonical(path_to_binary).parent_path() / "../resources";
 #endif
 
     set_resources_dir(path_resources.string());
