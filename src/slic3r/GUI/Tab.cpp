@@ -2843,6 +2843,9 @@ void TabPrinter::update_pages()
     //for (auto& el : m_pages)
     //    el.get()->Hide();
 
+    //clear all active pages before switching
+    clear_pages();
+
     // set m_pages to m_pages_(technology before changing)
     m_printer_technology == ptFFF ? m_pages.swap(m_pages_fff) : m_pages.swap(m_pages_sla);
 
