@@ -381,7 +381,6 @@ public:
 	void		update_description_lines() override;
 	void		toggle_options() override;
 	void		update() override;
-//	void		OnActivate() override;
 	void		clear_pages() override;
     bool 		supports_printer_technology(const PrinterTechnology tech) override { return tech == ptFFF; }
 
@@ -413,7 +412,6 @@ public:
 	void		update_description_lines() override;
 	void		toggle_options() override;
 	void		update() override;
-//	void		OnActivate() override;
 	void		clear_pages() override;
     bool 		supports_printer_technology(const PrinterTechnology tech) override { return tech == ptFFF; }
 };
@@ -431,7 +429,6 @@ private:
     std::vector<PageShp>			m_pages_fff;
     std::vector<PageShp>			m_pages_sla;
 
-//    void build_printhost(ConfigOptionsGroup *optgroup);
 public:
 	wxButton*	m_serial_test_btn = nullptr;
 	ScalableButton*	m_print_host_test_btn = nullptr;
@@ -461,7 +458,6 @@ public:
     void		update_fff();
     void		update_sla();
     void        update_pages(); // update m_pages according to printer technology
-//	void		update_serial_ports();
 	void		extruders_count_changed(size_t extruders_count);
 	PageShp		build_kinematics_page();
 	void		build_unregular_pages();
