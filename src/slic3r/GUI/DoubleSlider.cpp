@@ -1021,8 +1021,7 @@ void Control::OnLeftDown(wxMouseEvent& event)
         m_mouse = maOneLayerIconClick;
     else if (is_point_in_rect(pos, m_rect_cog_icon))
         m_mouse = maCogIconClick;
-    else if (m_draw_mode == dmRegular)
-    {
+    else if (m_draw_mode == dmRegular) {
         if (is_point_in_rect(pos, m_rect_tick_action)) {
             auto it = m_ticks.ticks.find(TickCode{ m_selection == ssLower ? m_lower_value : m_higher_value });
             m_mouse = it == m_ticks.ticks.end() ? maAddTick : maDeleteTick;
@@ -1267,8 +1266,8 @@ void Control::append_change_extruder_menu_item(wxMenu* menu, bool switch_current
         for (int i = 1; i <= extruders_cnt; i++)
         {
             const bool is_active_extruder = i == active_extruders[0] || i == active_extruders[1];
-            const wxString item_name = wxString::Format(_(L("Extruder %d")), i) +
-                                       (is_active_extruder ? " (" + _(L("active")) + ")" : "");
+            const wxString item_name = wxString::Format(_L("Extruder %d"), i) +
+                                       (is_active_extruder ? " (" + _L("active") + ")" : "");
 
             if (m_mode == MultiAsSingle)
                 append_menu_item(change_extruder_menu, wxID_ANY, item_name, "",
@@ -1280,7 +1279,7 @@ void Control::append_change_extruder_menu_item(wxMenu* menu, bool switch_current
                                                    (switch_current_code ? _L("Switch code to Change extruder") : _L("Change extruder") ) : 
                                                    _L("Change extruder (N/A)");
 
-        wxMenuItem* change_extruder_menu_item = menu->AppendSubMenu(change_extruder_menu, change_extruder_menu_name, _(L("Use another extruder")));
+        wxMenuItem* change_extruder_menu_item = menu->AppendSubMenu(change_extruder_menu, change_extruder_menu_name, _L("Use another extruder"));
         change_extruder_menu_item->SetBitmap(create_scaled_bitmap(active_extruders[1] > 0 ? "edit_uni" : "change_extruder"));
 
         GUI::wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this, change_extruder_menu_item](wxUpdateUIEvent& evt) {
@@ -1303,8 +1302,8 @@ void Control::append_add_color_change_menu_item(wxMenu* menu, bool switch_curren
         {
             const bool is_used_extruder = used_extruders_for_tick.empty() ? true : // #ys_FIXME till used_extruders_for_tick doesn't filled correct for mmMultiExtruder
                                           used_extruders_for_tick.find(i) != used_extruders_for_tick.end();
-            const wxString item_name = wxString::Format(_(L("Extruder %d")), i) +
-                                       (is_used_extruder ? " (" + _(L("used")) + ")" : "");
+            const wxString item_name = wxString::Format(_L("Extruder %d"), i) +
+                                       (is_used_extruder ? " (" + _L("used") + ")" : "");
 
             append_menu_item(add_color_change_menu, wxID_ANY, item_name, "",
                 [this, i](wxCommandEvent&) { add_code_as_tick(ColorChange, i); }, "", menu,
@@ -1466,11 +1465,9 @@ void Control::OnKeyDown(wxKeyEvent &event)
     else if (event.GetKeyCode() == WXK_SHIFT)
         UseDefaultColors(false);
 #endif // ENABLE_GCODE_VIEWER
-    else if (is_horizontal())
-    {
+    else if (is_horizontal()) {
 #if ENABLE_GCODE_VIEWER
-        if (m_is_focused)
-        {
+        if (m_is_focused) {
 #endif // ENABLE_GCODE_VIEWER
             if (key == WXK_LEFT || key == WXK_RIGHT)
                 move_current_thumb(key == WXK_LEFT);
@@ -1481,11 +1478,10 @@ void Control::OnKeyDown(wxKeyEvent &event)
 #if ENABLE_GCODE_VIEWER
         }
 #endif // ENABLE_GCODE_VIEWER
-        }
+    }
     else {
 #if ENABLE_GCODE_VIEWER
-        if (m_is_focused)
-        {
+        if (m_is_focused) {
 #endif // ENABLE_GCODE_VIEWER
             if (key == WXK_LEFT || key == WXK_RIGHT) {
                 m_selection = key == WXK_LEFT ? ssHigher : ssLower;
@@ -1704,18 +1700,18 @@ void Control::show_edit_context_menu()
         append_add_color_change_menu_item(&menu, true);
     }
     else
-        append_menu_item(&menu, wxID_ANY, it->type == ColorChange ? _(L("Edit color")) :
-                                          it->type == PausePrint  ? _(L("Edit pause print message")) :
-                                          _(L("Edit custom G-code")), "",
+        append_menu_item(&menu, wxID_ANY, it->type == ColorChange ? _L("Edit color") :
+                                          it->type == PausePrint  ? _L("Edit pause print message") :
+                                          _L("Edit custom G-code"), "",
             [this](wxCommandEvent&) { edit_tick(); }, "edit_uni", &menu);
 
     if (it->type == ColorChange && m_mode == MultiAsSingle)
         append_change_extruder_menu_item(&menu, true);
 
-    append_menu_item(&menu, wxID_ANY, it->type == ColorChange ? _(L("Delete color change")) : 
-                                      it->type == ToolChange  ? _(L("Delete tool change")) :
-                                      it->type == PausePrint  ? _(L("Delete pause print")) :
-                                      _(L("Delete custom G-code")), "",
+    append_menu_item(&menu, wxID_ANY, it->type == ColorChange ? _L("Delete color change") : 
+                                      it->type == ToolChange  ? _L("Delete tool change") :
+                                      it->type == PausePrint  ? _L("Delete pause print") :
+                                      _L("Delete custom G-code"), "",
         [this](wxCommandEvent&) { delete_current_tick();}, "colorchange_del_f", &menu);
 
     GUI::wxGetApp().plater()->PopupMenu(&menu);
@@ -1725,14 +1721,14 @@ void Control::show_cog_icon_context_menu()
 {
     wxMenu menu;
 
-    append_menu_item(&menu, wxID_ANY, _(L("Jump to height")) + " (Shift+G)", "",
+    append_menu_item(&menu, wxID_ANY, _L("Jump to height") + " (Shift+G)", "",
 #if ENABLE_GCODE_VIEWER
                      [this](wxCommandEvent&) { jump_to_value(); }, "", & menu);
 #else
                      [this](wxCommandEvent&) { jump_to_print_z(); }, "", &menu);
 #endif // ENABLE_GCODE_VIEWER
 
-    append_menu_item(&menu, wxID_ANY, _(L("Set extruder sequence for the entire print")), "",
+    append_menu_item(&menu, wxID_ANY, _L("Set extruder sequence for the entire print"), "",
         [this](wxCommandEvent&) { edit_extruder_sequence(); }, "", &menu);
 
     GUI::wxGetApp().plater()->PopupMenu(&menu);
@@ -1861,8 +1857,8 @@ static double get_print_z_to_jump(double active_print_z, double min_z, double ma
     wxString msg_header = (mode == dmSequentialGCodeView) ? _L("Jump to move") : _L("Jump to height");
     wxString msg_in = GUI::double_to_string(active_value);
 #else
-    wxString msg_text = _(L("Enter the height you want to jump to")) + ":";
-    wxString msg_header = _(L("Jump to height"));
+    wxString msg_text = _L("Enter the height you want to jump to") + ":";
+    wxString msg_header = _L("Jump to height");
     wxString msg_in = GUI::double_to_string(active_print_z);
 #endif // ENABLE_GCODE_VIEWER
 

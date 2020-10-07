@@ -495,6 +495,50 @@ void GCodeViewer::render() const
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 }
 
+void GCodeViewer::update_sequential_view_current(unsigned int first, unsigned int last)
+{
+    auto is_visible = [this](unsigned int id) {
+        for (const TBuffer& buffer : m_buffers) {
+            if (buffer.visible) {
+                for (const Path& path : buffer.paths) {
+                    if (path.first.s_id <= id && id <= path.last.s_id)
+                        return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    int first_diff = static_cast<int>(first) - static_cast<int>(m_sequential_view.last_current.first);
+    int last_diff = static_cast<int>(last) - static_cast<int>(m_sequential_view.last_current.last);
+
+    unsigned int new_first = first;
+    unsigned int new_last = last;
+
+    while (!is_visible(new_first)) {
+        if (first_diff > 0)
+            ++new_first;
+        else
+            --new_first;
+    }
+
+    while (!is_visible(new_last)) {
+        if (last_diff > 0)
+            ++new_last;
+        else
+            --new_last;
+    }
+
+    m_sequential_view.current.first = new_first;
+    m_sequential_view.current.last = new_last;
+    m_sequential_view.last_current = m_sequential_view.current;
+
+    refresh_render_paths(true, true);
+
+    if (new_first != first || new_last != last)
+        wxGetApp().plater()->update_preview_moves_slider();
+}
+
 bool GCodeViewer::is_toolpath_move_type_visible(EMoveType type) const
 {
     size_t id = static_cast<size_t>(buffer_id(type));
@@ -2138,10 +2182,10 @@ void GCodeViewer::render_legend() const
         }
         break;
     }
-    case EViewType::Height: { append_range(m_extrusions.ranges.height, 3); break; }
-    case EViewType::Width: { append_range(m_extrusions.ranges.width, 3); break; }
-    case EViewType::Feedrate: { append_range(m_extrusions.ranges.feedrate, 1); break; }
-    case EViewType::FanSpeed: { append_range(m_extrusions.ranges.fan_speed, 0); break; }
+    case EViewType::Height:         { append_range(m_extrusions.ranges.height, 3); break; }
+    case EViewType::Width:          { append_range(m_extrusions.ranges.width, 3); break; }
+    case EViewType::Feedrate:       { append_range(m_extrusions.ranges.feedrate, 1); break; }
+    case EViewType::FanSpeed:       { append_range(m_extrusions.ranges.fan_speed, 0); break; }
     case EViewType::VolumetricRate: { append_range(m_extrusions.ranges.volumetric_rate, 3); break; }
     case EViewType::Tool:
     {

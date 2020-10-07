@@ -367,6 +367,7 @@ public:
 
         Endpoints endpoints;
         Endpoints current;
+        Endpoints last_current;
         Vec3f current_position{ Vec3f::Zero() };
         Marker marker;
     };
@@ -430,12 +431,7 @@ public:
     const std::vector<double>& get_layers_zs() const { return m_layers_zs; };
 
     const SequentialView& get_sequential_view() const { return m_sequential_view; }
-    void update_sequential_view_current(unsigned int first, unsigned int last)
-    {
-        m_sequential_view.current.first = first;
-        m_sequential_view.current.last = last;
-        refresh_render_paths(true, true);
-    }
+    void update_sequential_view_current(unsigned int first, unsigned int last);
 
     EViewType get_view_type() const { return m_view_type; }
     void set_view_type(EViewType type) {
