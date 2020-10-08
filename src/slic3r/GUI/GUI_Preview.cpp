@@ -1173,8 +1173,10 @@ void Preview::update_moves_slider()
 
 void Preview::enable_moves_slider(bool enable)
 {
-    if (m_moves_slider != nullptr)
+    if (m_moves_slider != nullptr && m_moves_slider->IsEnabled() != enable) {
         m_moves_slider->Enable(enable);
+        m_moves_slider->Refresh();
+    }
 }
 #else
 void Preview::update_double_slider_from_canvas(wxKeyEvent & event)

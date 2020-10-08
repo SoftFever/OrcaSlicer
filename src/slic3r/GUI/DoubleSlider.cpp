@@ -447,26 +447,29 @@ void Control::render()
     // and only in a case of no-empty m_values
     draw_colored_band(dc);
 
-    // draw line
-    draw_scroll_line(dc, lower_pos, higher_pos);
+    if (this->IsEnabled()) {
+        // draw line
+        draw_scroll_line(dc, lower_pos, higher_pos);
 
-    // draw color print ticks
-    draw_ticks(dc);
+        // draw color print ticks
+        draw_ticks(dc);
 
-    // draw both sliders
-    draw_thumbs(dc, lower_pos, higher_pos);
+        // draw both sliders
+        draw_thumbs(dc, lower_pos, higher_pos);
 
-    // draw lock/unlock
-    draw_one_layer_icon(dc);
 
-    // draw revert bitmap (if it's shown)
-    draw_revert_icon(dc);
+        // draw lock/unlock
+        draw_one_layer_icon(dc);
 
-    // draw cog bitmap (if it's shown)
-    draw_cog_icon(dc);
+        // draw revert bitmap (if it's shown)
+        draw_revert_icon(dc);
 
-    // draw mouse position
-    draw_tick_on_mouse_position(dc);
+        // draw cog bitmap (if it's shown)
+        draw_cog_icon(dc);
+
+        // draw mouse position
+        draw_tick_on_mouse_position(dc);
+    }
 }
 
 void Control::draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoint pt_end)
