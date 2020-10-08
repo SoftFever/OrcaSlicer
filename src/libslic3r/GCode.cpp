@@ -263,6 +263,12 @@ namespace Slic3r {
             visitor.pt_current = &current_point;
 
             for (size_t point_idx_2 = point_idx + 1; point_idx_2 < travel.size(); point_idx_2++) {
+                if (travel.points[point_idx_2] == current_point) {
+                    next      = travel.points[point_idx_2];
+                    point_idx = point_idx_2;
+                    continue;
+                }
+
                 visitor.pt_next = &travel.points[point_idx_2];
                 m_grid.visit_cells_intersecting_line(*visitor.pt_current, *visitor.pt_next, visitor);
                 // Check if deleting point causes crossing a boundary
@@ -282,6 +288,9 @@ namespace Slic3r {
     {
         m_boundaries.clear();
         BoundingBox bbox = get_extents(layer.lslices);
+        // The path could start in the previous layer. Because of it, we need to extend bounding box by the previous layer
+        if (layer.lower_layer != nullptr) bbox.merge(get_extents(layer.lower_layer->lslices));
+
         bbox.offset(SCALED_EPSILON);
         ExPolygons boundaries = get_boundary(layer);
 
@@ -292,7 +301,7 @@ namespace Slic3r {
         }
 
         m_grid.set_bbox(bbox);
-        m_grid.create(m_boundaries, scale_(10.));
+        m_grid.create(m_boundaries, scale_(1.));
     }
 
     ExPolygons AvoidCrossingPerimeters2::get_boundary(const Layer &layer)
@@ -317,12 +326,12 @@ namespace Slic3r {
         ExPolygons perimeter_boundary = offset_ex(boundary, -offset);
         ExPolygons final_boundary;
         if (perimeter_boundary.size() != boundary.size()) {
-            // If any part of the polygon is missing after shrinking, the boundary os slice is used instead.
-            ExPolygons missing_perimeter_boundary = offset_ex(diff_ex(boundary, offset_ex(perimeter_boundary, offset + SCALED_EPSILON)),
+            // If any part of the polygon is missing after shrinking, the boundary of slice is used instead.
+            ExPolygons missing_perimeter_boundary = offset_ex(diff_ex(boundary, offset_ex(perimeter_boundary, offset + SCALED_EPSILON / 2)),
                                                               offset + SCALED_EPSILON);
-            perimeter_boundary                    = offset_ex(perimeter_boundary, offset + SCALED_EPSILON);
+            perimeter_boundary                    = offset_ex(perimeter_boundary, offset);
             perimeter_boundary.insert(perimeter_boundary.begin(), missing_perimeter_boundary.begin(), missing_perimeter_boundary.end());
-            final_boundary = union_ex(perimeter_boundary);
+            final_boundary = offset_ex(union_ex(perimeter_boundary), -offset);
         } else {
             final_boundary = std::move(perimeter_boundary);
         }
