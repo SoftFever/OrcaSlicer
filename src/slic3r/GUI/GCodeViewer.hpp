@@ -468,14 +468,14 @@ private:
         return role < erCount && (m_extrusions.role_visibility_flags & (1 << role)) != 0;
     }
     bool is_visible(const Path& path) const { return is_visible(path.role); }
-    bool is_in_z_range(const Path& path) const {
-        auto in_z_range = [this](double z) {
-            return z > m_layers_z_range[0] - EPSILON && z < m_layers_z_range[1] + EPSILON;
+    bool is_in_z_range(const Path& path, double min_z, double max_z) const {
+        auto in_z_range = [this, min_z, max_z](double z) {
+            return z > min_z - EPSILON && z < max_z + EPSILON;
         };
 
         return in_z_range(path.first.position[2]) || in_z_range(path.last.position[2]);
     }
-    bool is_travel_in_z_range(size_t id) const;
+    bool is_travel_in_z_range(size_t id, double min_z, double max_z) const;
     void log_memory_used(const std::string& label, long long additional = 0) const;
 };
 

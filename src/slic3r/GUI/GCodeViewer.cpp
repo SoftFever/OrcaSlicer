@@ -1633,10 +1633,10 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         for (size_t i = 0; i < buffer.paths.size(); ++i) {
             const Path& path = buffer.paths[i];
             if (path.type == EMoveType::Travel) {
-                if (!is_travel_in_z_range(i))
+                if (!is_travel_in_z_range(i, m_layers_z_range[0], m_layers_z_range[1]))
                     continue;
             }
-            else if (!is_in_z_range(path))
+            else if (!is_in_z_range(path, m_layers_z_range[0], m_layers_z_range[1]))
                 continue;
 
             if (path.type == EMoveType::Extrude && !is_visible(path))
@@ -2613,7 +2613,7 @@ void GCodeViewer::render_statistics() const
 }
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
-bool GCodeViewer::is_travel_in_z_range(size_t id) const
+bool GCodeViewer::is_travel_in_z_range(size_t id, double min_z, double max_z) const
 {
     const TBuffer& buffer = m_buffers[buffer_id(EMoveType::Travel)];
     if (id >= buffer.paths.size())
@@ -2633,7 +2633,7 @@ bool GCodeViewer::is_travel_in_z_range(size_t id) const
         path.last = buffer.paths[last].last;
     }
 
-    return is_in_z_range(path);
+    return is_in_z_range(path, min_z, max_z);
 }
 
 void GCodeViewer::log_memory_used(const std::string& label, long long additional) const
