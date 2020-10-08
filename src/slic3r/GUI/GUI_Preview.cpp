@@ -1173,8 +1173,9 @@ void Preview::update_moves_slider()
 
 void Preview::enable_moves_slider(bool enable)
 {
-    if (m_moves_slider != nullptr && m_moves_slider->IsEnabled() != enable) {
-        m_moves_slider->Enable(enable);
+    bool render_as_disabled = !enable;
+    if (m_moves_slider != nullptr && m_moves_slider->is_rendering_as_disabled() != render_as_disabled) {
+        m_moves_slider->set_render_as_disabled(render_as_disabled);
         m_moves_slider->Refresh();
     }
 }

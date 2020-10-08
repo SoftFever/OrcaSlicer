@@ -447,7 +447,7 @@ void Control::render()
     // and only in a case of no-empty m_values
     draw_colored_band(dc);
 
-    if (this->IsEnabled()) {
+    if (!m_render_as_disabled) {
         // draw line
         draw_scroll_line(dc, lower_pos, higher_pos);
 
