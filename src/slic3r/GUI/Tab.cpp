@@ -303,7 +303,6 @@ void Tab::create_preset_tab()
     // so that the cursor jumps to the last item.
     m_treectrl->Bind(wxEVT_TREE_SEL_CHANGED, [this](wxTreeEvent&) {
             if (!m_disable_tree_sel_changed_event && !m_pages.empty()) {
-#ifdef WIN32		    
                 if (m_page_switch_running)
                     m_page_switch_planned = true;
                 else {
@@ -314,10 +313,6 @@ void Tab::create_preset_tab()
                     } while (this->tree_sel_change_delayed());
                     m_page_switch_running = false;
                 }
-#else
-                // Crashes on Linux on start-up without CallAfter.
-                this->CallAfter([this]() { this->tree_sel_change_delayed(); });
-#endif
             }
         });
 
@@ -357,6 +352,13 @@ void Tab::create_preset_tab()
 
     // Initialize the DynamicPrintConfig by default keys/values.
     build();
+
+    // ys_FIXME: Following should not be needed, the function will be called later
+    // (update_mode->update_visibility->rebuild_page_tree). This does not work, during the
+    // second call of rebuild_page_tree m_treectrl->GetFirstVisibleItem(); returns zero
+    // for some unknown reason (and the page is not refreshed until user does a selection).
+    rebuild_page_tree();
+
     m_completed = true;
 }
 

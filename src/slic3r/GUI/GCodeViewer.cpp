@@ -495,6 +495,50 @@ void GCodeViewer::render() const
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 }
 
+void GCodeViewer::update_sequential_view_current(unsigned int first, unsigned int last)
+{
+    auto is_visible = [this](unsigned int id) {
+        for (const TBuffer& buffer : m_buffers) {
+            if (buffer.visible) {
+                for (const Path& path : buffer.paths) {
+                    if (path.first.s_id <= id && id <= path.last.s_id)
+                        return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    int first_diff = static_cast<int>(first) - static_cast<int>(m_sequential_view.last_current.first);
+    int last_diff = static_cast<int>(last) - static_cast<int>(m_sequential_view.last_current.last);
+
+    unsigned int new_first = first;
+    unsigned int new_last = last;
+
+    while (!is_visible(new_first)) {
+        if (first_diff > 0)
+            ++new_first;
+        else
+            --new_first;
+    }
+
+    while (!is_visible(new_last)) {
+        if (last_diff > 0)
+            ++new_last;
+        else
+            --new_last;
+    }
+
+    m_sequential_view.current.first = new_first;
+    m_sequential_view.current.last = new_last;
+    m_sequential_view.last_current = m_sequential_view.current;
+
+    refresh_render_paths(true, true);
+
+    if (new_first != first || new_last != last)
+        wxGetApp().plater()->update_preview_moves_slider();
+}
+
 bool GCodeViewer::is_toolpath_move_type_visible(EMoveType type) const
 {
     size_t id = static_cast<size_t>(buffer_id(type));
@@ -1645,6 +1689,8 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             break;
     }
 
+    unsigned int render_paths_count = 0;
+
     // second pass: filter paths by sequential data and collect them by color
     for (const auto& [buffer, index_buffer_id, path_id] : paths) {
         const Path& path = buffer->paths[path_id];
@@ -1667,6 +1713,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             it->color = color;
             it->path_id = path_id;
             it->index_buffer_id = index_buffer_id;
+            ++render_paths_count;
         }
 
         unsigned int segments_count = std::min(m_sequential_view.current.last, path.last.s_id) - std::max(m_sequential_view.current.first, path.first.s_id) + 1;
@@ -1688,6 +1735,8 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
         it->offsets.push_back(static_cast<size_t>((path.first.i_id + delta_1st) * sizeof(unsigned int)));
     }
+
+    wxGetApp().plater()->enable_preview_moves_slider(render_paths_count > 0);
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     for (const TBuffer& buffer : m_buffers) {
@@ -2138,10 +2187,10 @@ void GCodeViewer::render_legend() const
         }
         break;
     }
-    case EViewType::Height: { append_range(m_extrusions.ranges.height, 3); break; }
-    case EViewType::Width: { append_range(m_extrusions.ranges.width, 3); break; }
-    case EViewType::Feedrate: { append_range(m_extrusions.ranges.feedrate, 1); break; }
-    case EViewType::FanSpeed: { append_range(m_extrusions.ranges.fan_speed, 0); break; }
+    case EViewType::Height:         { append_range(m_extrusions.ranges.height, 3); break; }
+    case EViewType::Width:          { append_range(m_extrusions.ranges.width, 3); break; }
+    case EViewType::Feedrate:       { append_range(m_extrusions.ranges.feedrate, 1); break; }
+    case EViewType::FanSpeed:       { append_range(m_extrusions.ranges.fan_speed, 0); break; }
     case EViewType::VolumetricRate: { append_range(m_extrusions.ranges.volumetric_rate, 3); break; }
     case EViewType::Tool:
     {

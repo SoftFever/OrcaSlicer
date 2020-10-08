@@ -1612,9 +1612,8 @@ struct Plater::priv
 #if ENABLE_GCODE_VIEWER
     void update_preview_bottom_toolbar();
     void update_preview_moves_slider();
-#endif // ENABLE_GCODE_VIEWER
+    void enable_preview_moves_slider(bool enable);
 
-#if ENABLE_GCODE_VIEWER
     void reset_gcode_toolpaths();
 #endif // ENABLE_GCODE_VIEWER
 
@@ -4105,9 +4104,12 @@ void Plater::priv::update_preview_moves_slider()
 {
     preview->update_moves_slider();
 }
-#endif // ENABLE_GCODE_VIEWER
 
-#if ENABLE_GCODE_VIEWER
+void Plater::priv::enable_preview_moves_slider(bool enable)
+{
+    preview->enable_moves_slider(enable);
+}
+
 void Plater::priv::reset_gcode_toolpaths()
 {
     preview->get_canvas3d()->reset_gcode_toolpaths();
@@ -5896,6 +5898,11 @@ void Plater::update_preview_bottom_toolbar()
 void Plater::update_preview_moves_slider()
 {
     p->update_preview_moves_slider();
+}
+
+void Plater::enable_preview_moves_slider(bool enable)
+{
+    p->enable_preview_moves_slider(enable);
 }
 
 void Plater::reset_gcode_toolpaths()

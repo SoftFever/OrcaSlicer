@@ -1162,14 +1162,19 @@ void Preview::update_moves_slider()
 
     std::vector<double> values(view.endpoints.last - view.endpoints.first + 1);
     unsigned int count = 0;
-    for (unsigned int i = view.endpoints.first; i <= view.endpoints.last; ++i)
-    {
+    for (unsigned int i = view.endpoints.first; i <= view.endpoints.last; ++i) {
         values[count++] = static_cast<double>(i + 1);
     }
 
     m_moves_slider->SetSliderValues(values);
     m_moves_slider->SetMaxValue(view.endpoints.last - view.endpoints.first);
     m_moves_slider->SetSelectionSpan(view.current.first - view.endpoints.first, view.current.last - view.endpoints.first);
+}
+
+void Preview::enable_moves_slider(bool enable)
+{
+    if (m_moves_slider != nullptr)
+        m_moves_slider->Enable(enable);
 }
 #else
 void Preview::update_double_slider_from_canvas(wxKeyEvent & event)
