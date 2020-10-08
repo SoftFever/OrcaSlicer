@@ -1804,13 +1804,12 @@ static void upgrade_text_entry_dialog(wxTextEntryDialog* dlg, double min = -1.0,
     btn_OK->Bind(wxEVT_UPDATE_UI, [textctrl, min, max](wxUpdateUIEvent& evt)
     {
         bool disable = textctrl->IsEmpty();
-        if (!disable && min >= 0.0 && max >= 0.0)
-        {
+        if (!disable && min >= 0.0 && max >= 0.0) {
             double value = -1.0;
             if (!textctrl->GetValue().ToCDouble(&value))    // input value couldn't be converted to double
                 disable = true;
             else
-                disable = value < min || value > max;       // is input value is out of valid range ?
+                disable = value < min - epsilon() || value > max + epsilon();       // is input value is out of valid range ?
         }
 
         evt.Enable(!disable);
