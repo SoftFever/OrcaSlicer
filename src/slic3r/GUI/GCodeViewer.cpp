@@ -1689,8 +1689,6 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             break;
     }
 
-    unsigned int render_paths_count = 0;
-
     // second pass: filter paths by sequential data and collect them by color
     for (const auto& [buffer, index_buffer_id, path_id] : paths) {
         const Path& path = buffer->paths[path_id];
@@ -1713,7 +1711,6 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             it->color = color;
             it->path_id = path_id;
             it->index_buffer_id = index_buffer_id;
-            ++render_paths_count;
         }
 
         unsigned int segments_count = std::min(m_sequential_view.current.last, path.last.s_id) - std::max(m_sequential_view.current.first, path.first.s_id) + 1;
@@ -1736,7 +1733,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         it->offsets.push_back(static_cast<size_t>((path.first.i_id + delta_1st) * sizeof(unsigned int)));
     }
 
-    wxGetApp().plater()->enable_preview_moves_slider(render_paths_count > 0);
+    wxGetApp().plater()->enable_preview_moves_slider(!paths.empty());
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     for (const TBuffer& buffer : m_buffers) {
