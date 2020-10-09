@@ -608,6 +608,7 @@ void ModelObject::assign_new_unique_ids_recursive()
         model_volume->assign_new_unique_ids_recursive();
     for (ModelInstance *model_instance : this->instances)
         model_instance->assign_new_unique_ids_recursive();
+    this->layer_height_profile.set_new_unique_id();
 }
 
 // Clone this ModelObject including its volumes and instances, keep the IDs of the copies equal to the original.
@@ -1725,6 +1726,14 @@ void ModelObject::scale_to_fit(const Vec3d &size)
     );
     this->scale(factor);
 */
+}
+
+void ModelVolume::assign_new_unique_ids_recursive()
+{
+    ObjectBase::set_new_unique_id();
+    config.set_new_unique_id();
+    m_supported_facets.set_new_unique_id();
+    m_seam_facets.set_new_unique_id();
 }
 
 void ModelVolume::rotate(double angle, Axis axis)

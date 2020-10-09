@@ -191,6 +191,9 @@ public:
 
 private:
     std::vector<coordf_t> m_data;
+
+    // to access set_new_unique_id() when copy / pasting an object
+    friend class ModelObject;
 };
 
 // A printable object, possibly having multiple print volumes (each with its own set of parameters and materials),
@@ -446,6 +449,9 @@ private:
     }
 
     std::map<int, std::vector<bool>> m_data;
+
+    // To access set_new_unique_id() when copy / pasting a ModelVolume.
+    friend class ModelVolume;
 };
 
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
@@ -579,7 +585,7 @@ protected:
 	// Copies IDs of both the ModelVolume and its config.
 	explicit ModelVolume(const ModelVolume &rhs) = default;
     void     set_model_object(ModelObject *model_object) { object = model_object; }
-	void 	 assign_new_unique_ids_recursive() override { ObjectBase::set_new_unique_id(); config.set_new_unique_id(); }
+	void 	 assign_new_unique_ids_recursive() override;
     void     transform_this_mesh(const Transform3d& t, bool fix_left_handed);
     void     transform_this_mesh(const Matrix3d& m, bool fix_left_handed);
 
