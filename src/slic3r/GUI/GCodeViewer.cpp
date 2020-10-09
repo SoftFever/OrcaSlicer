@@ -445,7 +445,7 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     // update buffers' render paths
-    refresh_render_paths(false, false);
+    refresh_render_paths(/*false,*/ false);
 
     log_memory_used("Refreshed G-code extrusion paths, ");
 }
@@ -533,7 +533,7 @@ void GCodeViewer::update_sequential_view_current(unsigned int first, unsigned in
     m_sequential_view.current.last = new_last;
     m_sequential_view.last_current = m_sequential_view.current;
 
-    refresh_render_paths(true, true);
+    refresh_render_paths(/*true,*/ true);
 
     if (new_first != first || new_last != last)
         wxGetApp().plater()->update_preview_moves_slider();
@@ -592,10 +592,10 @@ void GCodeViewer::set_options_visibility_from_flags(unsigned int flags)
 
 void GCodeViewer::set_layers_z_range(const std::array<double, 2>& layers_z_range)
 {
-    bool keep_sequential_current_first = layers_z_range[0] >= m_layers_z_range[0];
+    /*bool keep_sequential_current_first = layers_z_range[0] >= m_layers_z_range[0];*/
     bool keep_sequential_current_last = layers_z_range[1] <= m_layers_z_range[1];
     m_layers_z_range = layers_z_range;
-    refresh_render_paths(keep_sequential_current_first, keep_sequential_current_last);
+    refresh_render_paths(/*keep_sequential_current_first,*/ keep_sequential_current_last);
     wxGetApp().plater()->update_preview_moves_slider();
 }
 
@@ -1581,7 +1581,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized)
     }
 }
 
-void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const
+void GCodeViewer::refresh_render_paths(/*bool keep_sequential_current_first,*/ bool keep_sequential_current_last) const
 {
 #if ENABLE_GCODE_VIEWER_STATISTICS
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -1610,16 +1610,44 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
                 Travel_Colors[0] /* Move */);
     };
 
+    auto is_in_z_range = [](const Path& path, double min_z, double max_z) {
+        auto in_z_range = [min_z, max_z](double z) {
+            return z > min_z - EPSILON && z < max_z + EPSILON;
+        };
+
+        return in_z_range(path.first.position[2]) || in_z_range(path.last.position[2]);
+    };
+
+    auto is_travel_in_z_range = [this, is_in_z_range](size_t path_id, double min_z, double max_z) {
+        const TBuffer& buffer = m_buffers[buffer_id(EMoveType::Travel)];
+        if (path_id >= buffer.paths.size())
+            return false;
+
+        Path path = buffer.paths[path_id];
+        int first = static_cast<int>(path_id);
+        unsigned int last = static_cast<unsigned int>(path_id);
+
+        // check adjacent paths
+        while (first > 0 && path.first.position.isApprox(buffer.paths[first - 1].last.position)) {
+            --first;
+            path.first = buffer.paths[first].first;
+        }
+        while (last < static_cast<unsigned int>(buffer.paths.size() - 1) && path.last.position.isApprox(buffer.paths[last + 1].first.position)) {
+            ++last;
+            path.last = buffer.paths[last].last;
+        }
+
+        return is_in_z_range(path, min_z, max_z);
+    };
+
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.render_paths_size = 0;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
-    m_sequential_view.endpoints.first = m_moves_count;
-    m_sequential_view.endpoints.last = 0;
-    if (!keep_sequential_current_first)
-        m_sequential_view.current.first = 0;
-    if (!keep_sequential_current_last)
-        m_sequential_view.current.last = m_moves_count;
+    SequentialView::Endpoints global_endpoints = { m_moves_count , 0 };
+    SequentialView::Endpoints top_layer_endpoints = global_endpoints;
+    /*if (!keep_sequential_current_first)*/ m_sequential_view.current.first = 0;
+    if (!keep_sequential_current_last) m_sequential_view.current.last = m_moves_count;
 
     // first pass: collect visible paths and update sequential view data
     std::vector<std::tuple<TBuffer*, unsigned int, unsigned int>> paths;
@@ -1645,14 +1673,25 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             // store valid path
             paths.push_back({ &buffer, path.first.b_id, static_cast<unsigned int>(i) });
 
-            m_sequential_view.endpoints.first = std::min(m_sequential_view.endpoints.first, path.first.s_id);
-            m_sequential_view.endpoints.last = std::max(m_sequential_view.endpoints.last, path.last.s_id);
+            global_endpoints.first = std::min(global_endpoints.first, path.first.s_id);
+            global_endpoints.last = std::max(global_endpoints.last, path.last.s_id);
+
+            if (path.type == EMoveType::Travel) {
+                if (is_travel_in_z_range(i, m_layers_z_range[1], m_layers_z_range[1])) {
+                    top_layer_endpoints.first = std::min(top_layer_endpoints.first, path.first.s_id);
+                    top_layer_endpoints.last = std::max(top_layer_endpoints.last, path.last.s_id);
+                }
+            }
+            else if (is_in_z_range(path, m_layers_z_range[1], m_layers_z_range[1])) {
+                top_layer_endpoints.first = std::min(top_layer_endpoints.first, path.first.s_id);
+                top_layer_endpoints.last = std::max(top_layer_endpoints.last, path.last.s_id);
+            }
         }
     }
 
     // update current sequential position
-    m_sequential_view.current.first = keep_sequential_current_first ? std::clamp(m_sequential_view.current.first, m_sequential_view.endpoints.first, m_sequential_view.endpoints.last) : m_sequential_view.endpoints.first;
-    m_sequential_view.current.last = keep_sequential_current_last ? std::clamp(m_sequential_view.current.last, m_sequential_view.endpoints.first, m_sequential_view.endpoints.last) : m_sequential_view.endpoints.last;
+    m_sequential_view.current.first = /*keep_sequential_current_first ? std::clamp(m_sequential_view.current.first, global_endpoints.first, global_endpoints.last) :*/ global_endpoints.first;
+    m_sequential_view.current.last = keep_sequential_current_last ? std::clamp(m_sequential_view.current.last, global_endpoints.first, global_endpoints.last) : global_endpoints.last;
 
     // get the world position from gpu
     bool found = false;
@@ -1698,8 +1737,22 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         Color color;
         switch (path.type)
         {
-        case EMoveType::Extrude: { color = extrusion_color(path); break; }
-        case EMoveType::Travel: { color = (m_view_type == EViewType::Feedrate || m_view_type == EViewType::Tool || m_view_type == EViewType::ColorPrint) ? extrusion_color(path) : travel_color(path); break; }
+        case EMoveType::Extrude: {
+            if (m_sequential_view.current.last == global_endpoints.last || is_in_z_range(path, m_layers_z_range[1], m_layers_z_range[1]))
+                color = extrusion_color(path);
+            else
+                color = { 0.25f, 0.25f, 0.25f };
+
+            break;
+        }
+        case EMoveType::Travel: {
+            if (m_sequential_view.current.last == global_endpoints.last || is_travel_in_z_range(path_id, m_layers_z_range[1], m_layers_z_range[1]))
+                color = (m_view_type == EViewType::Feedrate || m_view_type == EViewType::Tool || m_view_type == EViewType::ColorPrint) ? extrusion_color(path) : travel_color(path);
+            else
+                color = { 0.25f, 0.25f, 0.25f };
+
+            break;
+        }
         default: { color = { 0.0f, 0.0f, 0.0f }; break; }
         }
 
@@ -1732,6 +1785,10 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
         it->offsets.push_back(static_cast<size_t>((path.first.i_id + delta_1st) * sizeof(unsigned int)));
     }
+
+    // set sequential data to their final value
+    m_sequential_view.endpoints = top_layer_endpoints;
+    m_sequential_view.current.first = /*keep_sequential_current_first ? std::clamp(m_sequential_view.current.first, m_sequential_view.endpoints.first, m_sequential_view.endpoints.last) :*/ m_sequential_view.endpoints.first;
 
     wxGetApp().plater()->enable_preview_moves_slider(!paths.empty());
 
@@ -2176,7 +2233,7 @@ void GCodeViewer::render_legend() const
                 visible, times[i], percents[i], max_percent, offsets, [this, role, visible]() {
                     m_extrusions.role_visibility_flags = visible ? m_extrusions.role_visibility_flags & ~(1 << role) : m_extrusions.role_visibility_flags | (1 << role);
                     // update buffers' render paths
-                    refresh_render_paths(false, false);
+                    refresh_render_paths(/*false,*/ false);
                     wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
                     wxGetApp().plater()->update_preview_bottom_toolbar();
                 }
@@ -2609,29 +2666,6 @@ void GCodeViewer::render_statistics() const
     imgui.end();
 }
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-
-bool GCodeViewer::is_travel_in_z_range(size_t id, double min_z, double max_z) const
-{
-    const TBuffer& buffer = m_buffers[buffer_id(EMoveType::Travel)];
-    if (id >= buffer.paths.size())
-        return false;
-
-    Path path = buffer.paths[id];
-    int first = static_cast<int>(id);
-    unsigned int last = static_cast<unsigned int>(id);
-
-    // check adjacent paths
-    while (first > 0 && path.first.position.isApprox(buffer.paths[first - 1].last.position)) {
-        --first;
-        path.first = buffer.paths[first].first;
-    }
-    while (last < static_cast<unsigned int>(buffer.paths.size() - 1) && path.last.position.isApprox(buffer.paths[last + 1].first.position)) {
-        ++last;
-        path.last = buffer.paths[last].last;
-    }
-
-    return is_in_z_range(path, min_z, max_z);
-}
 
 void GCodeViewer::log_memory_used(const std::string& label, long long additional) const
 {
