@@ -365,6 +365,7 @@ public:
             size_t last{ 0 };
         };
 
+        bool skip_invisible_moves{ false };
         Endpoints endpoints;
         Endpoints current;
         Endpoints last_current;

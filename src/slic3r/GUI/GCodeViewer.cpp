@@ -325,6 +325,7 @@ bool GCodeViewer::init()
 
     set_toolpath_move_type_visible(EMoveType::Extrude, true);
     m_sequential_view.marker.init();
+    m_sequential_view.skip_invisible_moves = true;
 
     std::array<int, 2> point_sizes;
     ::glGetIntegerv(GL_ALIASED_POINT_SIZE_RANGE, point_sizes.data());
@@ -515,18 +516,20 @@ void GCodeViewer::update_sequential_view_current(unsigned int first, unsigned in
     unsigned int new_first = first;
     unsigned int new_last = last;
 
-    while (!is_visible(new_first)) {
-        if (first_diff > 0)
-            ++new_first;
-        else
-            --new_first;
-    }
+    if (m_sequential_view.skip_invisible_moves) {
+        while (!is_visible(new_first)) {
+            if (first_diff > 0)
+                ++new_first;
+            else
+                --new_first;
+        }
 
-    while (!is_visible(new_last)) {
-        if (last_diff > 0)
-            ++new_last;
-        else
-            --new_last;
+        while (!is_visible(new_last)) {
+            if (last_diff > 0)
+                ++new_last;
+            else
+                --new_last;
+        }
     }
 
     m_sequential_view.current.first = new_first;
