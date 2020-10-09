@@ -11,7 +11,11 @@
 #include "Point.hpp"
 #include "ClipperUtils.hpp"
 #include "Tesselate.hpp"
+#include "ExPolygonCollection.hpp"
 #include "libslic3r.h"
+
+#include "libnest2d/backends/clipper/geometries.hpp"
+#include "libnest2d/utils/rotcalipers.hpp"
 
 #include <iostream>
 #include <random>
@@ -545,10 +549,14 @@ void SupportPointGenerator::uniformly_cover(const ExPolygons& islands, Structure
     //int num_of_points = std::max(1, (int)((island.area()*pow(SCALING_FACTOR, 2) * m_config.tear_pressure)/m_config.support_force));
 
     float support_force_deficit = deficit;
-    auto bb = get_extents(islands);
+//    auto bb = get_extents(islands);
 
     if (flags & icfIsNew) {
-        Vec2d bbdim = unscaled(Vec2crd{bb.max - bb.min});
+        auto chull_ex = ExPolygonCollection{islands}.convex_hull();
+        auto chull = Slic3rMultiPoint_to_ClipperPath(chull_ex);
+        auto rotbox = libnest2d::minAreaBoundingBox(chull);
+        Vec2d bbdim = {unscaled(rotbox.width()), unscaled(rotbox.height())};
+
         if (bbdim.x() > bbdim.y()) std::swap(bbdim.x(), bbdim.y());
         double aspectr = bbdim.y() / bbdim.x();
 
