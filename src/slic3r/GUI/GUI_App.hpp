@@ -118,6 +118,7 @@ private:
     wxFont		    m_small_font;
     wxFont		    m_bold_font;
 	wxFont			m_normal_font;
+	wxFont			m_code_font;
 
     int             m_em_unit; // width of a "m"-symbol in pixels for current system font
                                // Note: for 100% Scale m_em_unit = 10 -> it's a good enough coefficient for a size setting of controls
@@ -206,6 +207,7 @@ public:
     const wxFont&   small_font()            { return m_small_font; }
     const wxFont&   bold_font()             { return m_bold_font; }
     const wxFont&   normal_font()           { return m_normal_font; }
+    const wxFont&   code_font()             { return m_code_font; }
     int             em_unit() const         { return m_em_unit; }
     wxSize          get_min_size() const;
     float           toolbar_icon_scale(const bool is_limited = false) const;
