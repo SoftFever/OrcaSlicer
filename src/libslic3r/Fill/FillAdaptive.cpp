@@ -781,6 +781,10 @@ static void connect_lines_with_hooks(Polylines &&lines, Polylines &polylines_out
         if (!pl.empty()) polylines_out.emplace_back(std::move(pl));
 }
 
+coord_t get_hook_length(const double spacing) {
+    return scale_(spacing) * 5;
+}
+
 void Filler::_fill_surface_single(
     const FillParams &             params,
     unsigned int                   thickness_layers,
@@ -837,13 +841,21 @@ void Filler::_fill_surface_single(
     }
 #endif /* ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT */
 
+    coord_t hook_length = get_hook_length(this->spacing);
     Polylines all_polylines_with_hooks;
-    connect_lines_with_hooks(std::move(all_polylines), all_polylines_with_hooks, this->spacing, int(scale_(2.)));
+    connect_lines_with_hooks(std::move(all_polylines), all_polylines_with_hooks, this->spacing, hook_length);
+
+#ifdef ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT
+    {
+        static int iRun = 0;
+        export_infill_lines_to_svg(expolygon, all_polylines_with_hooks, debug_out_path("FillAdaptive-hooks-%d.svg", iRun ++));
+    }
+#endif /* ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT */
 
     if (params.dont_connect || all_polylines_with_hooks.size() <= 1)
         append(polylines_out, std::move(all_polylines_with_hooks));
     else
-        connect_infill(chain_polylines(std::move(all_polylines_with_hooks)), expolygon, polylines_out, this->spacing, params, int(scale_(2.)));
+        connect_infill(chain_polylines(std::move(all_polylines_with_hooks)), expolygon, polylines_out, this->spacing, params, hook_length);
 
 #ifdef ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT
     {
