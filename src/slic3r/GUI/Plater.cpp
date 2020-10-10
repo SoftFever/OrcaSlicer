@@ -1597,7 +1597,7 @@ struct Plater::priv
     void show_view3D_labels(bool show) { if (current_panel == view3D) view3D->get_canvas3d()->show_labels(show); }
 
     bool is_sidebar_collapsed() const   { return sidebar->is_collapsed(); }
-    void collapse_sidebar(bool show)    { sidebar->collapse(show); }
+    void collapse_sidebar(bool collapse);
 
     bool is_view3D_layers_editing_enabled() const { return (current_panel == view3D) && view3D->get_canvas3d()->is_layers_editing_enabled(); }
 
@@ -2127,6 +2127,20 @@ void Plater::priv::select_next_view_3D()
     else if (current_panel == preview)
         set_current_panel(view3D);
 }
+
+void Plater::priv::collapse_sidebar(bool collapse)
+{
+    sidebar->collapse(collapse);
+
+    // Now update the tooltip in the toolbar.
+    std::string new_tooltip = collapse
+                              ? _utf8(L("Expand sidebar"))
+                              : _utf8(L("Collapse sidebar"));
+    new_tooltip += " [Shift+Tab]";
+    int id = collapse_toolbar.get_item_id("collapse_sidebar");
+    collapse_toolbar.set_tooltip(id, new_tooltip);
+}
+
 
 void Plater::priv::reset_all_gizmos()
 {
@@ -4075,26 +4089,19 @@ bool Plater::priv::init_collapse_toolbar()
 
     GLToolbarItem::Data item;
 
-    auto item_tooltip_update = [this, item](bool flip) {
-        std::string new_tooltip = wxGetApp().plater()->is_sidebar_collapsed() ^ flip?
-            _utf8(L("Expand sidebar")) : _utf8(L("Collapse sidebar"));
-        new_tooltip += " [Shift+Tab]";
-        int id = collapse_toolbar.get_item_id("collapse_sidebar");
-        collapse_toolbar.set_tooltip(id, new_tooltip);
-    };
-
     item.name = "collapse_sidebar";
     item.icon_filename = "collapse.svg";
     item.sprite_id = 0;
-    item.left.action_callback = [this, item_tooltip_update]() {
-        item_tooltip_update(true);
+    item.left.action_callback = []() {
         wxGetApp().plater()->collapse_sidebar(!wxGetApp().plater()->is_sidebar_collapsed());
     };
 
     if (!collapse_toolbar.add_item(item))
         return false;
 
-    item_tooltip_update(false);
+    // Now "collapse" sidebar to current state. This is done so the tooltip
+    // is updated before the toolbar is first used.
+    wxGetApp().plater()->collapse_sidebar(wxGetApp().plater()->is_sidebar_collapsed());
     return true;
 }
 
