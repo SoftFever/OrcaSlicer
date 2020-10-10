@@ -621,27 +621,99 @@ static Line create_offset_line(const Line &line_to_offset, const Intersection &i
     return offset_line;
 };
 
-static void connect_lines_with_hooks(Polylines &&lines, Polylines &polylines_out, const double spacing, const int hook_length)
+namespace bg  = boost::geometry;
+namespace bgm = boost::geometry::model;
+namespace bgi = boost::geometry::index;
+
+// int64_t is needed because for coord_t bgi::intersects throws "bad numeric conversion: positive overflow"
+using rtree_point_t   = bgm::point<int64_t, 2, boost::geometry::cs::cartesian>;
+using rtree_segment_t = bgm::segment<rtree_point_t>;
+using rtree_t         = bgi::rtree<std::pair<rtree_segment_t, size_t>, bgi::rstar<16, 4>>;
+
+static void add_hook(const Intersection &intersection, const Line &hook_line, const double scaled_spacing, const int hook_length, const rtree_t &rtree)
 {
-    namespace bgm = boost::geometry::model;
-    namespace bgi = boost::geometry::index;
+    Vec2d  hook_vector_norm = hook_line.vector().cast<double>().normalized();
+    Vector hook_vector      = (hook_length * hook_vector_norm).cast<coord_t>();
+    Line   hook_line_offset = create_offset_line(hook_line, intersection, scaled_spacing);
 
-    using rtree_point_t   = bgm::point<coord_t, 2, boost::geometry::cs::cartesian>;
-    using rtree_segment_t = bgm::segment<rtree_point_t>;
-    using rtree_t         = bgi::rtree<std::pair<rtree_segment_t, size_t>, bgi::rstar<16, 4>>;
+    Point intersection_point;
+    bool  intersection_found = intersection.intersect_line.intersection(hook_line_offset, &intersection_point);
+    assert(intersection_found);
 
-    std::vector<std::pair<rtree_segment_t, size_t>> rtee_segments;
-    size_t                                          poly_idx = 0;
-    for (const Polyline &poly : lines) {
-        rtee_segments.emplace_back(rtree_segment_t(rtree_point_t(poly.points.front().x(), poly.points.front().y()),
-                                                   rtree_point_t(poly.points.back().x(), poly.points.back().y())),
-                                   poly_idx);
-        ++poly_idx;
+    Line hook_forward(intersection_point, intersection_point + hook_vector);
+    Line hook_backward(intersection_point, intersection_point - hook_vector);
+    Line hook_forward_o = hook_forward, hook_backward_o = hook_backward;
+    hook_forward_o.offset(-SCALED_EPSILON);
+    hook_backward_o.offset(-SCALED_EPSILON);
+
+    std::vector<std::pair<rtree_segment_t, size_t>> hook_intersections;
+    rtree.query(bgi::intersects(rtree_segment_t(rtree_point_t(hook_forward_o.a.x(), hook_forward_o.a.y()),
+                                                rtree_point_t(hook_forward_o.b.x(), hook_forward_o.b.y()))),
+                std::back_inserter(hook_intersections));
+
+    auto max_hook_length = [&hook_intersections, &hook_length](const Line &hook) {
+        coord_t max_length = hook_length;
+        for (const auto &hook_intersection : hook_intersections) {
+            const rtree_segment_t &segment = hook_intersection.first;
+            double                 dist    = Line::distance_to(hook.a, Point(bg::get<0, 0>(segment), bg::get<0, 1>(segment)),
+                                            Point(bg::get<1, 0>(segment), bg::get<1, 1>(segment)));
+            max_length                     = std::min(coord_t(dist), max_length);
+        }
+        return max_length;
+    };
+
+    Line hook_final;
+    if (hook_intersections.empty()) {
+        hook_final = std::move(hook_forward);
+    } else {
+        // There is not enough space for the hook, try another direction
+        coord_t hook_forward_max_length = max_hook_length(hook_forward);
+        hook_intersections.clear();
+        rtree.query(bgi::intersects(rtree_segment_t(rtree_point_t(hook_backward_o.a.x(), hook_backward_o.a.y()),
+                                                    rtree_point_t(hook_backward_o.b.x(), hook_backward_o.b.y()))),
+                    std::back_inserter(hook_intersections));
+
+        if (hook_intersections.empty()) {
+            hook_final = std::move(hook_backward);
+        } else {
+            // There is not enough space for hook in both directions, shrink the hook
+            coord_t hook_backward_max_length = max_hook_length(hook_backward);
+            if (hook_forward_max_length > hook_backward_max_length) {
+                Vector hook_vector_reduced = (hook_forward_max_length * hook_vector_norm).cast<coord_t>();
+                hook_final                 = Line(intersection_point, intersection_point + hook_vector_reduced);
+            } else {
+                Vector hook_vector_reduced = (hook_backward_max_length * hook_vector_norm).cast<coord_t>();
+                hook_final                 = Line(intersection_point, intersection_point - hook_vector_reduced);
+            }
+        }
     }
-    rtree_t rtree(rtee_segments.begin(), rtee_segments.end());
+
+    if (intersection.forward) {
+        intersection.intersect_pl->points.front() = hook_final.a;
+        intersection.intersect_pl->points.emplace(intersection.intersect_pl->points.begin(), hook_final.b);
+    } else {
+        intersection.intersect_pl->points.back() = hook_final.a;
+        intersection.intersect_pl->points.emplace_back(hook_final.b);
+    }
+}
+
+static void connect_lines_using_hooks(Polylines &&lines, Polylines &polylines_out, const ExPolygon &boundary, const double spacing, const int hook_length)
+{
+    rtree_t rtree;
+    size_t  poly_idx = 0;
+    for (const Polyline &poly : lines) {
+        rtree.insert(std::make_pair(rtree_segment_t(rtree_point_t(poly.points.front().x(), poly.points.front().y()),
+                                                    rtree_point_t(poly.points.back().x(), poly.points.back().y())),
+                                    poly_idx++));
+    }
 
     std::vector<Intersection> intersections;
+    coord_t                   scaled_spacing = scale_(spacing);
     for (Polyline &line : lines) {
+        // Lines shorter than spacing are skipped because it is needed to shrink a line by the value of spacing.
+        // A shorter line than spacing could produce a degenerate polyline.
+        if (line.length() <= scaled_spacing) continue;
+
         Point                                           front_point = line.points.front();
         Point                                           back_point  = line.points.back();
         std::vector<std::pair<rtree_segment_t, size_t>> closest;
@@ -663,6 +735,13 @@ static void connect_lines_with_hooks(Polylines &&lines, Polylines &polylines_out
 
     std::vector<size_t> merged_with(lines.size());
     std::iota(merged_with.begin(), merged_with.end(), 0);
+
+    // Appends the boundary polygon with all holes to rtee for detection if hooks not crossing the boundary
+    for (const Line &line : boundary.contour.lines())
+        rtree.insert(std::make_pair(rtree_segment_t(rtree_point_t(line.a.x(), line.a.y()), rtree_point_t(line.b.x(), line.b.y())), poly_idx++));
+    for (const Polygon &polygon : boundary.holes)
+        for (const Line &line : polygon.lines())
+            rtree.insert(std::make_pair(rtree_segment_t(rtree_point_t(line.a.x(), line.a.y()), rtree_point_t(line.b.x(), line.b.y())), poly_idx++));
 
     auto get_merged_index = [&merged_with](size_t polyline_idx) {
         for (size_t last = polyline_idx;;) {
@@ -700,8 +779,8 @@ static void connect_lines_with_hooks(Polylines &&lines, Polylines &polylines_out
 
             if (first_i.used || first_i.intersect_pl->points.size() == 0) continue;
 
+            // A line between two intersections points
             Line   intersection_line(first_i.closest_point, nearest_i.closest_point);
-            Point  hook_vector              = (hook_length * intersection_line.vector().cast<double>().normalized()).cast<coord_t>();
             Line   offset_line              = create_offset_line(intersection_line, first_i, scale_(spacing));
             double intersection_line_length = intersection_line.length();
 
@@ -762,14 +841,7 @@ static void connect_lines_with_hooks(Polylines &&lines, Polylines &polylines_out
                     first_i.used   = true;
                     nearest_i.used = true;
                 } else {
-                    if (first_i.forward) {
-                        first_i.intersect_pl->points.front() = first_i_point;
-                        first_i.intersect_pl->points.emplace(first_i.intersect_pl->points.begin(), first_i_point + hook_vector);
-                    } else {
-                        first_i.intersect_pl->points.back() = first_i_point;
-                        first_i.intersect_pl->points.emplace_back(first_i_point + hook_vector);
-                    }
-
+                    add_hook(first_i, intersection_line, scale_(spacing), hook_length, rtree);
                     first_i.used = true;
                 }
             }
@@ -781,12 +853,10 @@ static void connect_lines_with_hooks(Polylines &&lines, Polylines &polylines_out
         if (!pl.empty()) polylines_out.emplace_back(std::move(pl));
 }
 
-coord_t get_hook_length(const double spacing) {
-    return scale_(spacing) * 5;
-}
+coord_t get_hook_length(const double spacing) { return scale_(spacing) * 5; }
 
 void Filler::_fill_surface_single(
-    const FillParams &             params,
+    const FillParams              &params,
     unsigned int                   thickness_layers,
     const std::pair<float, Point> &direction,
     ExPolygon                     &expolygon,
@@ -841,14 +911,14 @@ void Filler::_fill_surface_single(
     }
 #endif /* ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT */
 
-    coord_t hook_length = get_hook_length(this->spacing);
+    coord_t   hook_length = get_hook_length(this->spacing);
     Polylines all_polylines_with_hooks;
-    connect_lines_with_hooks(std::move(all_polylines), all_polylines_with_hooks, this->spacing, hook_length);
+    connect_lines_using_hooks(std::move(all_polylines), all_polylines_with_hooks, expolygon, this->spacing, hook_length);
 
 #ifdef ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT
     {
         static int iRun = 0;
-        export_infill_lines_to_svg(expolygon, all_polylines_with_hooks, debug_out_path("FillAdaptive-hooks-%d.svg", iRun ++));
+        export_infill_lines_to_svg(expolygon, all_polylines_with_hooks, debug_out_path("FillAdaptive-hooks-%d.svg", iRun++));
     }
 #endif /* ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT */
 
