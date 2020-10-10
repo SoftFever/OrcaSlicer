@@ -769,10 +769,18 @@ static void connect_lines_using_hooks(Polylines &&lines, Polylines &polylines_ou
             }
         }
 
-        if (intersect_line.size() <= 1) continue;
+        assert(!intersect_line.empty());
+        if (intersect_line.size() <= 1) {
+            Intersection &first_i = intersect_line.front().first;
+            if (first_i.used || first_i.intersect_pl->points.size() == 0) continue;
 
+            add_hook(first_i, first_i.closest_line, scale_(spacing), hook_length, rtree);
+            first_i.used = true;
+            continue;
+        }
+
+        assert(intersect_line.size() >= 2);
         std::sort(intersect_line.begin(), intersect_line.end(), [](const auto &i1, const auto &i2) { return i1.second < i2.second; });
-
         for (size_t first_idx = 0; first_idx < intersect_line.size(); ++first_idx) {
             Intersection &first_i   = intersect_line[first_idx].first;
             Intersection &nearest_i = *get_nearest_intersection(intersect_line, first_idx);
@@ -841,7 +849,7 @@ static void connect_lines_using_hooks(Polylines &&lines, Polylines &polylines_ou
                     first_i.used   = true;
                     nearest_i.used = true;
                 } else {
-                    add_hook(first_i, intersection_line, scale_(spacing), hook_length, rtree);
+                    add_hook(first_i, first_i.closest_line, scale_(spacing), hook_length, rtree);
                     first_i.used = true;
                 }
             }
