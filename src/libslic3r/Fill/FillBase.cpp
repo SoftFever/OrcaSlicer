@@ -833,6 +833,7 @@ void mark_boundary_segments_touching_infill(
 	}
 }
 
+#if 0
 static double compute_distance_to_consumed_point(const std::vector<Points> &                       boundary,
                                                  const std::vector<std::vector<ContourPointData>> &boundary_data,
                                                  size_t                                            contour_idx,
@@ -855,20 +856,24 @@ static double compute_distance_to_consumed_point(const std::vector<Points> &    
 
     return total_distance;
 }
+#endif
 
-static std::pair<Points, double> get_hook_path(const std::vector<Points> &                       boundary,
+// Returns possible path for an added hook. The path shrinks to max_lenght, by the closest consumed point or by the closest point in not_connected
+// Also returns not shrink path's length to closest consumed point or closest point in not_connected
+static std::pair<Points, double> get_hook_path(const std::vector<Points>                        &boundary,
                                                const std::vector<std::vector<ContourPointData>> &boundary_data,
                                                size_t                                            contour_idx,
                                                size_t                                            point_index,
                                                bool                                              forward,
                                                int                                               hook_length,
-                                               std::vector<Point> &                              not_connected)
+                                               std::unordered_set<Point, PointHash>             &not_connected)
 {
     double total_distance = 0;
 
     Points points;
     points.emplace_back(boundary[contour_idx][point_index]);
 
+    // Follow the path around the boundary to consumed point or to the point in not_connected
     do {
         if (forward)
             point_index = (point_index == (boundary[contour_idx].size() - 1)) ? 0 : (point_index + 1);
@@ -879,8 +884,9 @@ static std::pair<Points, double> get_hook_path(const std::vector<Points> &      
         total_distance += (successor - points.back()).cast<double>().norm();
         points.emplace_back(successor);
     } while (!boundary_data[contour_idx][point_index].point_consumed && total_distance < hook_length &&
-             std::find(not_connected.begin(), not_connected.end(), points.back()) == not_connected.end());
+             not_connected.find(points.back()) == not_connected.end());
 
+    // If the path is longer than hook_length, shrink it to this its length
     if (total_distance > hook_length) {
         Vec2d  vector            = (points.back() - points[points.size() - 2]).cast<double>();
         double vector_length     = vector.norm();
@@ -1081,46 +1087,46 @@ void Fill::connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary_
     };
 
     if (hook_length != 0) {
-        std::vector<Point> not_connect_points;
+        // Create a set of points which has not been connected by the previous part of the algorithm
+        std::unordered_set<Point, PointHash> not_connect_points;
         for (const std::pair<size_t, size_t> &contour_point : map_infill_end_point_to_boundary)
             if (contour_point.first != boundary_idx_unconnected && !boundary_data[contour_point.first][contour_point.second].point_consumed)
-                not_connect_points.emplace_back(boundary[contour_point.first][contour_point.second]);
+                not_connect_points.emplace(boundary[contour_point.first][contour_point.second]);
 
         for (size_t endpoint_idx = 0; endpoint_idx < map_infill_end_point_to_boundary.size(); ++endpoint_idx) {
-            Polyline &                       polyline      = infill_ordered[get_merged_index(endpoint_idx / 2)];
+            Polyline                        &polyline      = infill_ordered[get_merged_index(endpoint_idx / 2)];
             const std::pair<size_t, size_t> &contour_point = map_infill_end_point_to_boundary[endpoint_idx];
 
-            if (contour_point.first != boundary_idx_unconnected &&
-                !boundary_data[contour_point.first][contour_point.second].point_consumed) {
-                Point boundary_point                          = boundary[contour_point.first][contour_point.second];
-                auto [points_forward, total_length_forward]   = get_hook_path(boundary, boundary_data, contour_point.first,
-                                                                            contour_point.second, true, hook_length, not_connect_points);
-                auto [points_backward, total_length_backward] = get_hook_path(boundary, boundary_data, contour_point.first,
-                                                                              contour_point.second, false, hook_length, not_connect_points);
-
-                Points points;
-                if (total_length_forward < hook_length && total_length_backward < hook_length) {
-                    continue;
-                } else if (total_length_forward < total_length_backward && total_length_forward >= hook_length) {
-                    points = std::move(points_forward);
-                } else if (total_length_backward < total_length_forward && total_length_backward >= hook_length) {
-                    points = std::move(points_backward);
-                } else if (total_length_forward > total_length_backward) {
-                    points = std::move(points_forward);
+            if (contour_point.first != boundary_idx_unconnected && !boundary_data[contour_point.first][contour_point.second].point_consumed) {
+                Point boundary_point                       = boundary[contour_point.first][contour_point.second];
+                auto [points_forward, forward_free_length] = get_hook_path(boundary, boundary_data, contour_point.first, contour_point.second, true,
+                                                                           hook_length, not_connect_points);
+                Points hook_points;
+                // Check if the hook could fit in space in the direction of perimeters
+                if (forward_free_length >= hook_length) {
+                    hook_points = std::move(points_forward);
                 } else {
-                    points = std::move(points_backward);
+                    auto [points_backward, backward_free_length] = get_hook_path(boundary, boundary_data, contour_point.first, contour_point.second,
+                                                                                 false, hook_length, not_connect_points);
+                    // Check if the hook could fit in space in the opposite direction of perimeters.
+                    // In this direction could be another hook. Because of it, it is required free space of size at least 2 * hook_length
+                    if (backward_free_length >= (2 * hook_length))
+                        hook_points = std::move(points_backward);
+                    else
+                        continue;
                 }
 
+                // Identify if the front point or back point of the polyline is touching the boundary
                 if ((boundary_point - polyline.points.front()).cast<double>().squaredNorm() <= (SCALED_EPSILON * SCALED_EPSILON)) {
-                    Points merge_points;
-                    merge_points.reserve(polyline.points.size() + points.size() - 1);
+                    Points merged_points;
+                    merged_points.reserve(polyline.points.size() + hook_points.size() - 1);
 
-                    for (auto it = points.rbegin(); it != points.rend() - 1; ++it) merge_points.emplace_back(*it);
+                    for (auto it = hook_points.rbegin(); it != hook_points.rend() - 1; ++it) merged_points.emplace_back(*it);
 
-                    append(merge_points, std::move(polyline.points));
-                    polyline.points = std::move(merge_points);
+                    append(merged_points, std::move(polyline.points));
+                    polyline.points = std::move(merged_points);
                 } else {
-                    for (auto it = points.begin() + 1; it != points.end(); ++it) polyline.points.emplace_back(*it);
+                    for (auto it = hook_points.begin() + 1; it != hook_points.end(); ++it) polyline.points.emplace_back(*it);
                 }
             }
         }
