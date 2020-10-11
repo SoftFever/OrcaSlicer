@@ -660,8 +660,8 @@ static void add_hook(const Intersection &intersection, const Line &hook_line, co
     };
 
     std::vector<std::pair<rtree_segment_t, size_t>> hook_intersections;
-    rtree.query(bgi::intersects(
-                    rtree_segment_t(rtree_point_t(hook_forward.a.x(), hook_forward.a.y()), rtree_point_t(hook_forward.b.x(), hook_forward.b.y()))) &&
+    rtree.query(bgi::intersects(rtree_segment_t(rtree_point_t(float(hook_forward.a.x()), float(hook_forward.a.y())),
+                                                rtree_point_t(float(hook_forward.b.x()), float(hook_forward.b.y())))) &&
                     bgi::satisfies(filter_itself),
                 std::back_inserter(hook_intersections));
 
@@ -683,8 +683,8 @@ static void add_hook(const Intersection &intersection, const Line &hook_line, co
         // There is not enough space for the hook, try another direction
         coord_t hook_forward_max_length = max_hook_length(hook_forward);
         hook_intersections.clear();
-        rtree.query(bgi::intersects(rtree_segment_t(rtree_point_t(hook_backward.a.x(), hook_backward.a.y()),
-                                                    rtree_point_t(hook_backward.b.x(), hook_backward.b.y()))) &&
+        rtree.query(bgi::intersects(rtree_segment_t(rtree_point_t(float(hook_backward.a.x()), float(hook_backward.a.y())),
+                                                    rtree_point_t(float(hook_backward.b.x()), float(hook_backward.b.y())))) &&
                         bgi::satisfies(filter_itself),
                     std::back_inserter(hook_intersections));
 
@@ -717,8 +717,8 @@ static void connect_lines_using_hooks(Polylines &&lines, Polylines &polylines_ou
     rtree_t rtree;
     size_t  poly_idx = 0;
     for (const Polyline &poly : lines) {
-        rtree.insert(std::make_pair(rtree_segment_t(rtree_point_t(poly.points.front().x(), poly.points.front().y()),
-                                                    rtree_point_t(poly.points.back().x(), poly.points.back().y())),
+        rtree.insert(std::make_pair(rtree_segment_t(rtree_point_t(float(poly.points.front().x()), float(poly.points.front().y())),
+                                                    rtree_point_t(float(poly.points.back().x()), float(poly.points.back().y()))),
                                     poly_idx++));
     }
 
@@ -737,13 +737,13 @@ static void connect_lines_using_hooks(Polylines &&lines, Polylines &polylines_ou
         auto filter_itself = [line_idx](const auto &item) { return item.second != line_idx; };
 
         // Find the nearest line from the start point of the line.
-        rtree.query(bgi::nearest(rtree_point_t(front_point.x(), front_point.y()), 1) && bgi::satisfies(filter_itself), std::back_inserter(closest));
+        rtree.query(bgi::nearest(rtree_point_t(float(front_point.x()), float(front_point.y())), 1) && bgi::satisfies(filter_itself), std::back_inserter(closest));
         if (((Line) lines[closest[0].second]).distance_to(front_point) <= 1000)
             intersections.emplace_back(closest[0].second, (Line) lines[closest[0].second], front_point, line_idx, &line, (Line) line, true);
 
         closest.clear();
         // Find the nearest line from the end point of the line
-        rtree.query(bgi::nearest(rtree_point_t(back_point.x(), back_point.y()), 1) && bgi::satisfies(filter_itself), std::back_inserter(closest));
+        rtree.query(bgi::nearest(rtree_point_t(float(back_point.x()), float(back_point.y())), 1) && bgi::satisfies(filter_itself), std::back_inserter(closest));
         if (((Line) lines[closest[0].second]).distance_to(back_point) <= 1000)
             intersections.emplace_back(closest[0].second, (Line) lines[closest[0].second], back_point, line_idx, &line, (Line) line, false);
     }
@@ -756,10 +756,14 @@ static void connect_lines_using_hooks(Polylines &&lines, Polylines &polylines_ou
 
     // Appends the boundary polygon with all holes to rtree for detection if hooks not crossing the boundary
     for (const Line &line : boundary.contour.lines())
-        rtree.insert(std::make_pair(rtree_segment_t(rtree_point_t(line.a.x(), line.a.y()), rtree_point_t(line.b.x(), line.b.y())), poly_idx++));
+        rtree.insert(
+            std::make_pair(rtree_segment_t(rtree_point_t(float(line.a.x()), float(line.a.y())), rtree_point_t(float(line.b.x()), float(line.b.y()))),
+                           poly_idx++));
     for (const Polygon &polygon : boundary.holes)
         for (const Line &line : polygon.lines())
-            rtree.insert(std::make_pair(rtree_segment_t(rtree_point_t(line.a.x(), line.a.y()), rtree_point_t(line.b.x(), line.b.y())), poly_idx++));
+            rtree.insert(std::make_pair(rtree_segment_t(rtree_point_t(float(line.a.x()), float(line.a.y())),
+                                                        rtree_point_t(float(line.b.x()), float(line.b.y()))),
+                                        poly_idx++));
 
     auto update_merged_polyline = [&lines, &merged_with](Intersection &intersection) {
         // Update the polyline index to index which is merged
