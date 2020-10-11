@@ -295,7 +295,7 @@ std::pair<double, double> adaptive_fill_line_spacing(const PrintObject &print_ob
     bool                       build_octree                   = false;
     const std::vector<double> &nozzle_diameters               = print_object.print()->config().nozzle_diameter.values;
     double                     max_nozzle_diameter            = *std::max_element(nozzle_diameters.begin(), nozzle_diameters.end());
-    double                     default_infill_extrusion_width = Flow::auto_extrusion_width(FlowRole::frInfill, max_nozzle_diameter);
+    double                     default_infill_extrusion_width = Flow::auto_extrusion_width(FlowRole::frInfill, float(max_nozzle_diameter));
     for (const PrintRegion *region : print_object.print()->regions()) {
         const PrintRegionConfig &config   = region->config();
         bool                     nonempty = config.fill_density > 0;
@@ -577,7 +577,7 @@ struct Intersection
     Polyline *intersect_pl;
     // The line for which is computed closest line from intersect_point to closest_line
     Line      intersect_line;
-    // Indicate if intersect_point is the first or the last point of intersect_line
+    // Indicate if intersect_point is the first or the last point of intersect_pl
     bool      forward;
     // Indication if this intersection has been proceed
     bool      used = false;
@@ -618,7 +618,7 @@ static Line create_offset_line(const Line &line_to_offset, const Intersection &i
     Matrix2d rotation          = rotation_matrix_from_vector(line_to_offset.vector());
     Vec2d    offset_vector     = ((scaled_spacing / 2.) * line_to_offset.normal().cast<double>().normalized());
     Vec2d    offset_line_point = line_to_offset.a.cast<double>();
-    Vec2d    furthest_point    = (intersection.forward ? intersection.intersect_line.b : intersection.intersect_line.a).cast<double>();
+    Vec2d    furthest_point    = (intersection.intersect_point == intersection.intersect_line.a ? intersection.intersect_line.b : intersection.intersect_line.a).cast<double>();
 
     if ((rotation * furthest_point).y() >= (rotation * offset_line_point).y()) offset_vector *= -1;
 
@@ -633,8 +633,8 @@ namespace bg  = boost::geometry;
 namespace bgm = boost::geometry::model;
 namespace bgi = boost::geometry::index;
 
-// int64_t is needed because for coord_t bgi::intersects throws "bad numeric conversion: positive overflow"
-using rtree_point_t   = bgm::point<int64_t, 2, boost::geometry::cs::cartesian>;
+// float is needed because for coord_t bgi::intersects throws "bad numeric conversion: positive overflow"
+using rtree_point_t   = bgm::point<float, 2, boost::geometry::cs::cartesian>;
 using rtree_segment_t = bgm::segment<rtree_point_t>;
 using rtree_t         = bgi::rtree<std::pair<rtree_segment_t, size_t>, bgi::rstar<16, 4>>;
 
@@ -655,8 +655,8 @@ static void add_hook(const Intersection &intersection, const Line &hook_line, co
     auto filter_itself = [&intersection](const auto &item) {
         const rtree_segment_t &seg     = item.first;
         const Point           &i_point = intersection.intersect_point;
-        return !((i_point.x() == bg::get<0, 0>(seg) && i_point.y() == bg::get<0, 1>(seg)) ||
-                 (i_point.x() == bg::get<1, 0>(seg) && i_point.y() == bg::get<1, 1>(seg)));
+        return !((float(i_point.x()) == bg::get<0, 0>(seg) && float(i_point.y()) == bg::get<0, 1>(seg)) ||
+                 (float(i_point.x()) == bg::get<1, 0>(seg) && float(i_point.y()) == bg::get<1, 1>(seg)));
     };
 
     std::vector<std::pair<rtree_segment_t, size_t>> hook_intersections;
@@ -723,12 +723,12 @@ static void connect_lines_using_hooks(Polylines &&lines, Polylines &polylines_ou
     }
 
     std::vector<Intersection> intersections;
-    coord_t                   scaled_spacing = scale_(spacing);
+    coord_t                   scaled_spacing = coord_t(scale_(spacing));
     for (size_t line_idx = 0; line_idx < lines.size(); ++line_idx) {
         Polyline &line = lines[line_idx];
         // Lines shorter than spacing are skipped because it is needed to shrink a line by the value of spacing.
         // A shorter line than spacing could produce a degenerate polyline.
-        if (line.length() <= scaled_spacing) continue;
+        if (line.length() <= (scaled_spacing + SCALED_EPSILON)) continue;
 
         Point                                           front_point = line.points.front();
         Point                                           back_point  = line.points.back();
@@ -761,18 +761,22 @@ static void connect_lines_using_hooks(Polylines &&lines, Polylines &polylines_ou
         for (const Line &line : polygon.lines())
             rtree.insert(std::make_pair(rtree_segment_t(rtree_point_t(line.a.x(), line.a.y()), rtree_point_t(line.b.x(), line.b.y())), poly_idx++));
 
-    auto get_merged_index = [&merged_with](size_t polyline_idx) {
-        for (size_t last = polyline_idx;;) {
+    auto update_merged_polyline = [&lines, &merged_with](Intersection &intersection) {
+        // Update the polyline index to index which is merged
+        for (size_t last = intersection.intersect_pl_idx;;) {
             size_t lower = merged_with[last];
             if (lower == last) {
-                merged_with[polyline_idx] = lower;
-                polyline_idx              = lower;
+                merged_with[intersection.intersect_pl_idx] = lower;
+                intersection.intersect_pl_idx              = lower;
                 break;
             }
             last = lower;
         }
 
-        return polyline_idx;
+        intersection.intersect_pl = &lines[intersection.intersect_pl_idx];
+        // After polylines are merged, it is necessary to update "forward" based on if intersect_point is the first or the last point of intersect_pl.
+        if (!intersection.used && !intersection.intersect_pl->points.empty())
+            intersection.forward = (intersection.intersect_pl->points.front() == intersection.intersect_point);
     };
 
     for (size_t min_idx = 0; min_idx < intersections.size(); ++min_idx) {
@@ -804,21 +808,16 @@ static void connect_lines_using_hooks(Polylines &&lines, Polylines &polylines_ou
             Intersection &first_i   = intersect_line[first_idx].first;
             Intersection &nearest_i = *get_nearest_intersection(intersect_line, first_idx);
 
-            // The intersection has been processer or polyline has been merge to another polyline
+            update_merged_polyline(first_i);
+            update_merged_polyline(nearest_i);
+
+            // The intersection has been processed, or the polyline has been merge to another polyline.
             if (first_i.used || first_i.intersect_pl->points.empty()) continue;
 
             // A line between two intersections points
             Line   intersection_line(first_i.intersect_point, nearest_i.intersect_point);
             Line   offset_line              = create_offset_line(intersection_line, first_i, scale_(spacing));
             double intersection_line_length = intersection_line.length();
-
-            // Update the polyline index to index which is merged
-            nearest_i.intersect_pl_idx = get_merged_index(nearest_i.intersect_pl_idx);
-            nearest_i.intersect_pl     = &lines[nearest_i.intersect_pl_idx];
-
-            // The nearest intersection has been processer or polyline has been merge to another polyline
-            if (!nearest_i.used && !nearest_i.intersect_pl->points.empty())
-                nearest_i.forward = (nearest_i.intersect_pl->points.front() == nearest_i.intersect_point);
 
             // Check if both intersections lie on the offset_line and simultaneously get their points of intersecting.
             // These points are used as start and end of the hook
@@ -886,7 +885,7 @@ static void connect_lines_using_hooks(Polylines &&lines, Polylines &polylines_ou
         if (!pl.empty()) polylines_out.emplace_back(std::move(pl));
 }
 
-coord_t get_hook_length(const double spacing) { return scale_(spacing) * 5; }
+coord_t get_hook_length(const double spacing) { return coord_t(scale_(spacing)) * 5; }
 
 void Filler::_fill_surface_single(
     const FillParams              &params,
