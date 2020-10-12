@@ -203,10 +203,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     sizer->Add(m_main_sizer, 1, wxEXPAND);
     SetSizer(sizer);
     // initialize layout from config
-#if ENABLE_GCODE_VIEWER
-    if (wxGetApp().is_editor())
-#endif // ENABLE_GCODE_VIEWER
-        update_layout();
+    update_layout();
     sizer->SetSizeHints(this);
     Fit();
 

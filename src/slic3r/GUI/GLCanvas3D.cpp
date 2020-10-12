@@ -1530,7 +1530,7 @@ bool GLCanvas3D::init()
     if (m_initialized)
         return true;
 
-    if ((m_canvas == nullptr) || (m_context == nullptr))
+    if (m_canvas == nullptr || m_context == nullptr)
         return false;
 
     glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
@@ -1580,8 +1580,7 @@ bool GLCanvas3D::init()
         m_layers_editing.init();
 
 #if ENABLE_GCODE_VIEWER
-    if (!m_main_toolbar.is_enabled())
-    {
+    if (!m_main_toolbar.is_enabled()) {
         if (!m_gcode_viewer.init())
             return false;
     }
@@ -5128,7 +5127,7 @@ bool GLCanvas3D::_set_current()
 
 void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 {
-    if ((m_canvas == nullptr) && (m_context == nullptr))
+    if (m_canvas == nullptr && m_context == nullptr)
         return;
 
     auto *imgui = wxGetApp().imgui();

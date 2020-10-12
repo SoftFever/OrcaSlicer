@@ -106,9 +106,12 @@ private:
 #endif // ENABLE_GCODE_VIEWER
 
     bool            m_initialized { false };
-    bool            app_conf_exists{ false };
+    bool            m_app_conf_exists{ false };
 #if ENABLE_GCODE_VIEWER
     EAppMode        m_app_mode{ EAppMode::Editor };
+#if ENABLE_GCODE_APP_CONFIG
+    bool            m_is_recreating_gui{ false };
+#endif // ENABLE_GCODE_APP_CONFIG
 #endif // ENABLE_GCODE_VIEWER
 
     wxColour        m_color_label_modified;
@@ -184,6 +187,9 @@ public:
     EAppMode get_app_mode() const { return m_app_mode; }
     bool is_editor() const { return m_app_mode == EAppMode::Editor; }
     bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
+#if ENABLE_GCODE_APP_CONFIG
+    bool is_recreating_gui() const { return m_is_recreating_gui; }
+#endif // ENABLE_GCODE_APP_CONFIG
 #endif // ENABLE_GCODE_VIEWER
 
     static std::string get_gl_info(bool format_as_html, bool extensions);

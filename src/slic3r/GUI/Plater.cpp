@@ -5418,7 +5418,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             p->reset_gcode_toolpaths();
 #endif // ENABLE_GCODE_VIEWER
         }
-        else if ((opt_key == "bed_shape") || (opt_key == "bed_custom_texture") || (opt_key == "bed_custom_model")) {
+        else if (opt_key == "bed_shape" || opt_key == "bed_custom_texture" || opt_key == "bed_custom_model") {
             bed_shape_changed = true;
             update_scheduled = true;
         }

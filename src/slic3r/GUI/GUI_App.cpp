@@ -647,8 +647,8 @@ void GUI_App::init_app_config()
 #endif // ENABLE_GCODE_VIEWER
 
 	// load settings
-	app_conf_exists = app_config->exists();
-	if (app_conf_exists) {
+	m_app_conf_exists = app_config->exists();
+	if (m_app_conf_exists) {
         std::string error = app_config->load();
 #if ENABLE_GCODE_APP_CONFIG
         if (!error.empty()) {
@@ -1079,6 +1079,10 @@ void GUI_App::check_printer_presets()
 
 void GUI_App::recreate_GUI(const wxString& msg_name)
 {
+#if ENABLE_GCODE_APP_CONFIG
+    m_is_recreating_gui = true;
+#endif // ENABLE_GCODE_APP_CONFIG
+
     mainframe->shutdown();
 
     wxProgressDialog dlg(msg_name, msg_name, 100, nullptr, wxPD_AUTO_HIDE);
@@ -1087,8 +1091,11 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 
     MainFrame *old_main_frame = mainframe;
     mainframe = new MainFrame();
-    // hide settings tabs after first Layout
-    mainframe->select_tab(size_t(0));
+#if ENABLE_GCODE_APP_CONFIG
+    if (is_editor())
+#endif // ENABLE_GCODE_APP_CONFIG
+        // hide settings tabs after first Layout
+        mainframe->select_tab(size_t(0));
     // Propagate model objects to object list.
     sidebar().obj_list()->init_objects();
     SetTopWindow(mainframe);
@@ -1118,6 +1125,10 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 //         // Run the config wizard, don't offer the "reset user profile" checkbox.
 //         config_wizard_startup(true);
 //     });
+
+#if ENABLE_GCODE_APP_CONFIG
+    m_is_recreating_gui = false;
+#endif // ENABLE_GCODE_APP_CONFIG
 }
 
 void GUI_App::system_info()
@@ -1487,8 +1498,14 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { if (get_mode() == comExpert) evt.Check(true); }, config_id_base + ConfigMenuModeExpert);
 
         local_menu->AppendSubMenu(mode_menu, _L("Mode"), wxString::Format(_L("%s View Mode"), SLIC3R_APP_NAME));
-        local_menu->AppendSeparator();
-        local_menu->Append(config_id_base + ConfigMenuLanguage, _L("&Language"));
+#if ENABLE_GCODE_APP_CONFIG
+    }
+#endif // ENABLE_GCODE_APP_CONFIG
+    local_menu->AppendSeparator();
+    local_menu->Append(config_id_base + ConfigMenuLanguage, _L("&Language"));
+#if ENABLE_GCODE_APP_CONFIG
+    if (is_editor()) {
+#endif // ENABLE_GCODE_APP_CONFIG
         local_menu->AppendSeparator();
         local_menu->Append(config_id_base + ConfigMenuFlashFirmware, _L("Flash printer &firmware"), _L("Upload a firmware image into an Arduino based printer"));
         // TODO: for when we're able to flash dictionaries
@@ -1567,11 +1584,19 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                 // the dialog needs to be destroyed before the call to switch_language()
                 // or sometimes the application crashes into wxDialogBase() destructor
                 // so we put it into an inner scope
+#if ENABLE_GCODE_APP_CONFIG
+                wxString title = is_editor() ? wxString(SLIC3R_APP_NAME) : wxString(GCODEVIEWER_APP_NAME);
+                title += " - " + _L("Language selection");
+#endif // ENABLE_GCODE_APP_CONFIG
                 wxMessageDialog dialog(nullptr,
                     _L("Switching the language will trigger application restart.\n"
                         "You will lose content of the plater.") + "\n\n" +
                     _L("Do you want to proceed?"),
+#if ENABLE_GCODE_APP_CONFIG
+                    title,
+#else
                     wxString(SLIC3R_APP_NAME) + " - " + _L("Language selection"),
+#endif // ENABLE_GCODE_APP_CONFIG
                     wxICON_QUESTION | wxOK | wxCANCEL);
                 if (dialog.ShowModal() == wxID_CANCEL)
                     return;
@@ -1948,7 +1973,7 @@ void GUI_App::window_pos_sanitize(wxTopLevelWindow* window)
 
 bool GUI_App::config_wizard_startup()
 {
-    if (!app_conf_exists || preset_bundle->printers.size() <= 1) {
+    if (!m_app_conf_exists || preset_bundle->printers.size() <= 1) {
         run_wizard(ConfigWizard::RR_DATA_EMPTY);
         return true;
     } else if (get_app_config()->legacy_datadir()) {
@@ -1965,8 +1990,7 @@ bool GUI_App::config_wizard_startup()
 }
 
 void GUI_App::check_updates(const bool verbose)
-{
-	
+{	
 	PresetUpdater::UpdateResult updater_result;
 	try {
 		updater_result = preset_updater->config_update(app_config->orig_version(), verbose);
@@ -1974,10 +1998,9 @@ void GUI_App::check_updates(const bool verbose)
 			mainframe->Close();
 		}
 		else if (updater_result == PresetUpdater::R_INCOMPAT_CONFIGURED) {
-			app_conf_exists = true;
+            m_app_conf_exists = true;
 		}
-		else if(verbose && updater_result == PresetUpdater::R_NOOP)
-		{
+		else if (verbose && updater_result == PresetUpdater::R_NOOP) {
 			MsgNoUpdates dlg;
 			dlg.ShowModal();
 		}
@@ -1985,9 +2008,8 @@ void GUI_App::check_updates(const bool verbose)
 	catch (const std::exception & ex) {
 		show_error(nullptr, ex.what());
 	}
-
-	
 }
+
 // static method accepting a wxWindow object as first parameter
 // void warning_catcher{
 //     my($self, $message_dialog) = @_;
