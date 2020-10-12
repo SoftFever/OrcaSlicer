@@ -39,11 +39,6 @@ void PrintConfigDef::init_common_params()
 {
     ConfigOptionDef* def;
 
-	def = this->add("single_instance", coBool);
-	def->label = L("Single Instance");
-	def->mode = comAdvanced;
-	def->set_default_value(new ConfigOptionBool(false));
-
     def = this->add("printer_technology", coEnum);
     def->label = L("Printer technology");
     def->tooltip = L("Printer technology");
@@ -3697,6 +3692,12 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->label = L("Output File");
     def->tooltip = L("The file where the output will be written (if not specified, it will be based on the input file).");
     def->cli = "output|o";
+
+    def = this->add("single_instance", coBool);
+    def->label = L("Single Instance");
+    def->tooltip = L("If enabled, the command line arguments are sent to an existing instance of GUI PrusaSlicer, "
+                     "or an existing PrusaSlicer window is activated. "
+                     "Overrides the \"single_instance\" configuration value from application preferences.");
 
 /*
     def = this->add("autosave", coString);
