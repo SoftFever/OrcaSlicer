@@ -101,8 +101,6 @@ private:
                               const Camera& camera,
                               const std::vector<Transform3d>& trafo_matrices) const;
 
-    float m_clipping_plane_distance = 0.f;
-    std::unique_ptr<ClippingPlane> m_clipping_plane;
     GLIndexedVertexArray m_vbo_sphere;
 
     bool m_internal_stack_active = false;
@@ -126,7 +124,6 @@ private:
         int mesh_id;
         Vec3f hit;
         size_t facet;
-        bool clipped_mesh_was_hit;
     };
     mutable RaycastResult m_rr;
 
