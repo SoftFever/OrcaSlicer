@@ -1,6 +1,9 @@
 #ifndef GUI_PROCESS_HPP
 #define GUI_PROCESS_HPP
 
+#include <vector>
+
+
 class wxWindow;
 class wxString;
 
