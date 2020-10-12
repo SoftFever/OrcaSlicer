@@ -113,7 +113,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     // Load the icon either from the exe, or from the ico file.
 #if _WIN32
     {
-#if ENABLE_GCODE_DRAG_AND_DROP_GCODE_FILES
+#if ENABLE_GCODE_VIEWER
         wxString src_path;
         wxFileName::SplitPath(wxStandardPaths::Get().GetExecutablePath(), &src_path, nullptr, nullptr, wxPATH_NATIVE);
         switch (wxGetApp().get_app_mode()) {
@@ -128,7 +128,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
         TCHAR szExeFileName[MAX_PATH];
         GetModuleFileName(nullptr, szExeFileName, MAX_PATH);
         SetIcon(wxIcon(szExeFileName, wxBITMAP_TYPE_ICO));
-#endif // ENABLE_GCODE_DRAG_AND_DROP_GCODE_FILES
+#endif // ENABLE_GCODE_VIEWER
     }
 #else
 #if ENABLE_GCODE_VIEWER

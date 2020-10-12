@@ -154,7 +154,6 @@ int CLI::run(int argc, char **argv)
 
     // Read input file(s) if any.
 #if ENABLE_GCODE_VIEWER
-#if ENABLE_GCODE_DRAG_AND_DROP_GCODE_FILES
     for (const std::string& file : m_input_files) {
         std::string ext = boost::filesystem::path(file).extension().string();
         if (boost::filesystem::path(file).extension().string() == ".gcode") {
@@ -164,7 +163,6 @@ int CLI::run(int argc, char **argv)
             }
         }
     }
-#endif // ENABLE_GCODE_DRAG_AND_DROP_GCODE_FILES
     if (!start_as_gcodeviewer) {
 #endif // ENABLE_GCODE_VIEWER
         for (const std::string& file : m_input_files) {
