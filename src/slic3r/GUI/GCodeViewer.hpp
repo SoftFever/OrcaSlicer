@@ -342,7 +342,7 @@ public:
             Vec3f m_world_position;
             Transform3f m_world_transform;
             float m_z_offset{ 0.5f };
-            std::array<float, 4> m_color{ 1.0f, 1.0f, 1.0f, 1.0f };
+            std::array<float, 4> m_color{ 1.0f, 1.0f, 1.0f, 0.5f };
             bool m_visible{ false };
 
         public:
@@ -365,6 +365,7 @@ public:
             size_t last{ 0 };
         };
 
+        bool skip_invisible_moves{ false };
         Endpoints endpoints;
         Endpoints current;
         Endpoints last_current;

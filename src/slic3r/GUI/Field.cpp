@@ -387,7 +387,9 @@ void TextCtrl::BUILD() {
 
     const long style = m_opt.multiline ? wxTE_MULTILINE : wxTE_PROCESS_ENTER/*0*/;
 	auto temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, style);
-	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+    temp->SetFont(m_opt.is_code ?
+                  Slic3r::GUI::wxGetApp().code_font():
+                  Slic3r::GUI::wxGetApp().normal_font());
 
     if (! m_opt.multiline && !wxOSX)
 		// Only disable background refresh for single line input fields, as they are completely painted over by the edit control.

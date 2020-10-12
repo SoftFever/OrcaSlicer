@@ -40,7 +40,7 @@
 #define ENABLE_2_3_0_ALPHA1 1
 
 // Enable rendering of objects using environment map
-#define ENABLE_ENVIRONMENT_MAP (1 && ENABLE_2_3_0_ALPHA1)
+#define ENABLE_ENVIRONMENT_MAP (0 && ENABLE_2_3_0_ALPHA1)
 
 // Enable smoothing of objects normals
 #define ENABLE_SMOOTH_NORMALS (0 && ENABLE_2_3_0_ALPHA1)

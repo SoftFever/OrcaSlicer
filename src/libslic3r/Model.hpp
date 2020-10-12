@@ -191,6 +191,9 @@ public:
 
 private:
     std::vector<coordf_t> m_data;
+
+    // to access set_new_unique_id() when copy / pasting an object
+    friend class ModelObject;
 };
 
 // A printable object, possibly having multiple print volumes (each with its own set of parameters and materials),
@@ -446,6 +449,9 @@ private:
     }
 
     std::map<int, std::vector<bool>> m_data;
+
+    // To access set_new_unique_id() when copy / pasting a ModelVolume.
+    friend class ModelVolume;
 };
 
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
@@ -483,10 +489,10 @@ public:
     ModelConfigObject	config;
 
     // List of mesh facets to be supported/unsupported.
-    FacetsAnnotation    m_supported_facets;
+    FacetsAnnotation    supported_facets;
 
     // List of seam enforcers/blockers.
-    FacetsAnnotation    m_seam_facets;
+    FacetsAnnotation    seam_facets;
 
     // A parent object owning this modifier volume.
     ModelObject*        get_object() const { return this->object; }
@@ -579,7 +585,7 @@ protected:
 	// Copies IDs of both the ModelVolume and its config.
 	explicit ModelVolume(const ModelVolume &rhs) = default;
     void     set_model_object(ModelObject *model_object) { object = model_object; }
-	void 	 assign_new_unique_ids_recursive() override { ObjectBase::set_new_unique_id(); config.set_new_unique_id(); }
+	void 	 assign_new_unique_ids_recursive() override;
     void     transform_this_mesh(const Transform3d& t, bool fix_left_handed);
     void     transform_this_mesh(const Matrix3d& m, bool fix_left_handed);
 
@@ -617,7 +623,7 @@ private:
         ObjectBase(other),
         name(other.name), source(other.source), m_mesh(other.m_mesh), m_convex_hull(other.m_convex_hull),
         config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation),
-        m_supported_facets(other.m_supported_facets), m_seam_facets(other.m_seam_facets)
+        supported_facets(other.supported_facets), seam_facets(other.seam_facets)
     {
 		assert(this->id().valid()); assert(this->config.id().valid()); assert(this->id() != this->config.id());
 		assert(this->id() == other.id() && this->config.id() == other.config.id());
@@ -635,8 +641,8 @@ private:
             calculate_convex_hull();
 		assert(this->config.id().valid()); assert(this->config.id() != other.config.id()); assert(this->id() != this->config.id());
 
-        m_supported_facets.clear();
-        m_seam_facets.clear();
+        supported_facets.clear();
+        seam_facets.clear();
     }
 
     ModelVolume& operator=(ModelVolume &rhs) = delete;
@@ -650,8 +656,8 @@ private:
 	template<class Archive> void load(Archive &ar) {
 		bool has_convex_hull;
         ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull);
-        cereal::load_by_value(ar, m_supported_facets);
-        cereal::load_by_value(ar, m_seam_facets);
+        cereal::load_by_value(ar, supported_facets);
+        cereal::load_by_value(ar, seam_facets);
         cereal::load_by_value(ar, config);
 		assert(m_mesh);
 		if (has_convex_hull) {
@@ -665,8 +671,8 @@ private:
 	template<class Archive> void save(Archive &ar) const {
 		bool has_convex_hull = m_convex_hull.get() != nullptr;
         ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull);
-        cereal::save_by_value(ar, m_supported_facets);
-        cereal::save_by_value(ar, m_seam_facets);
+        cereal::save_by_value(ar, supported_facets);
+        cereal::save_by_value(ar, seam_facets);
         cereal::save_by_value(ar, config);
 		if (has_convex_hull)
 			cereal::save_optional(ar, m_convex_hull);
