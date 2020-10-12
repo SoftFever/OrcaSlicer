@@ -838,7 +838,6 @@ bool GUI_App::on_init_inner()
         if (! plater_)
             return;
 
-		//m_other_instance_message_handler->report();
 
         if (app_config->dirty() && app_config->get("autosave") == "1")
             app_config->save();
@@ -861,6 +860,7 @@ bool GUI_App::on_init_inner()
         static bool once = true;
         if (once) {
             once = false;
+
 #if ENABLE_GCODE_VIEWER
             if (preset_updater != nullptr) {
 #endif // ENABLE_GCODE_VIEWER
@@ -903,6 +903,10 @@ bool GUI_App::on_init_inner()
         obj_list()->SetMinSize(wxSize(-1, list_min_height));
 
     update_mode(); // update view mode after fix of the object_list size
+
+#ifdef __APPLE__
+    other_instance_message_handler()->bring_instance_forward();
+#endif //__APPLE__
 
     m_initialized = true;
     return true;
@@ -1714,6 +1718,10 @@ void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
         // Opening PrusaSlicer by drag & dropping a G-Code onto PrusaSlicer icon in Finder,
         // just G-codes were passed. Switch to G-code viewer mode.
         m_app_mode = EAppMode::GCodeViewer;
+        if(app_config != nullptr)
+            delete app_config;
+        app_config = nullptr;
+        init_app_config();
     }
     wxApp::OSXStoreOpenFiles(fileNames);
 }
@@ -1722,18 +1730,24 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
 {
     std::vector<std::string> files;
     std::vector<wxString>    gcode_files;
+    std::vector<wxString>    non_gcode_files;
     for (const auto& filename : fileNames) {
         wxString fn = filename.Upper();
         if (fn.EndsWith(".G") || fn.EndsWith(".GCODE"))
             gcode_files.emplace_back(filename);
-        else
+        else {
             files.emplace_back(into_u8(filename));
+            non_gcode_files.emplace_back(filename);
+        }
     }
     if (m_app_mode == EAppMode::GCodeViewer) {
         // Running in G-code viewer.
         // Load the first G-code into the G-code viewer.
+        // Or if no G-codes, send other files to slicer. 
         if (! gcode_files.empty())
             this->plater()->load_gcode(gcode_files.front());
+        if (!non_gcode_files.empty()) 
+            start_new_slicer(non_gcode_files, true);
     } else {
         if (! files.empty())
             this->plater()->load_files(files, true, true);

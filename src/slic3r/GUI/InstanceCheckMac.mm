@@ -20,6 +20,13 @@
 -(void)message_update:(NSNotification *)msg
 {
 	//NSLog(@"recieved msg %@", msg);	
+	[self bring_forward];
+	//pass message  
+	Slic3r::GUI::wxGetApp().other_instance_message_handler()->handle_message(std::string([msg.userInfo[@"data"] UTF8String]));
+}
+
+-(void) bring_forward
+{
 	//demiaturize all windows
 	for(NSWindow* win in [NSApp windows])
 	{
@@ -30,8 +37,6 @@
 	}
 	//bring window to front 
 	[[NSApplication sharedApplication] activateIgnoringOtherApps : YES];
-	//pass message  
-	Slic3r::GUI::wxGetApp().other_instance_message_handler()->handle_message(std::string([msg.userInfo[@"data"] UTF8String]));
 }
 
 @end
@@ -65,6 +70,13 @@ void OtherInstanceMessageHandler::unregister_for_messages()
         m_impl_osx = nullptr;
     } else {
 		NSLog(@"warning: unregister instance InstanceCheck notifications not required");
+	}
+}
+
+void OtherInstanceMessageHandler::bring_instance_forward()
+{
+	if (m_impl_osx) {
+		[m_impl_osx bring_forward];
 	}
 }
 }//namespace GUI
