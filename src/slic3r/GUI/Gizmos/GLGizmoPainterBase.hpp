@@ -78,7 +78,7 @@ protected:
     void render_triangles(const Selection& selection) const;
     void render_cursor() const;
     void render_cursor_circle() const;
-    void render_cursor_sphere() const;
+    void render_cursor_sphere(const Transform3d& trafo) const;
     virtual void update_model_object() const = 0;
     virtual void update_from_model_object() = 0;
     void activate_internal_undo_redo_stack(bool activate);

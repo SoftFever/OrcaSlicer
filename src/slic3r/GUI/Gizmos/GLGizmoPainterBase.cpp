@@ -127,8 +127,26 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection) const
 
 void GLGizmoPainterBase::render_cursor() const
 {
+    // First check that the mouse pointer is on an object.
+    const ModelObject* mo = m_c->selection_info()->model_object();
+    const Selection& selection = m_parent.get_selection();
+    const ModelInstance* mi = mo->instances[selection.get_instance_idx()];
+    const Camera& camera = wxGetApp().plater()->get_camera();
+
+    // Precalculate transformations of individual meshes.
+    std::vector<Transform3d> trafo_matrices;
+    for (const ModelVolume* mv : mo->volumes) {
+        if (mv->is_model_part())
+            trafo_matrices.emplace_back(mi->get_transformation().get_matrix() * mv->get_matrix());
+    }
+    // Raycast and return if there's no hit.
+    update_raycast_cache(m_parent.get_local_mouse_position(), camera, trafo_matrices);
+    if (m_rr.mesh_id == -1)
+        return;
+
+
     if (m_cursor_type == TriangleSelector::SPHERE)
-        render_cursor_sphere();
+        render_cursor_sphere(trafo_matrices[m_rr.mesh_id]);
     else
         render_cursor_circle();
 }
@@ -181,31 +199,13 @@ void GLGizmoPainterBase::render_cursor_circle() const
 }
 
 
-void GLGizmoPainterBase::render_cursor_sphere() const
+void GLGizmoPainterBase::render_cursor_sphere(const Transform3d& trafo) const
 {
-    Vec2d mouse_position(m_parent.get_local_mouse_position()(0), m_parent.get_local_mouse_position()(1));
-
-    const ModelObject* mo = m_c->selection_info()->model_object();
-    const Selection& selection = m_parent.get_selection();
-    const ModelInstance* mi = mo->instances[selection.get_instance_idx()];
-    const Camera& camera = wxGetApp().plater()->get_camera();
-
-    // Precalculate transformations of individual meshes.
-    std::vector<Transform3d> trafo_matrices;
-    for (const ModelVolume* mv : mo->volumes) {
-        if (mv->is_model_part())
-            trafo_matrices.emplace_back(mi->get_transformation().get_matrix() * mv->get_matrix());
-    }
-    update_raycast_cache(mouse_position, camera, trafo_matrices);
-    if (m_rr.mesh_id == -1)
-        return;
-
-    const Transform3d& complete_matrix = trafo_matrices[m_rr.mesh_id];
-    const Transform3d complete_scaling_matrix_inverse = Geometry::Transformation(complete_matrix).get_matrix(true, true, false, true).inverse();
-    const bool is_left_handed = Geometry::Transformation(complete_matrix).is_left_handed();
+    const Transform3d complete_scaling_matrix_inverse = Geometry::Transformation(trafo).get_matrix(true, true, false, true).inverse();
+    const bool is_left_handed = Geometry::Transformation(trafo).is_left_handed();
 
     glsafe(::glPushMatrix());
-    glsafe(::glMultMatrixd(complete_matrix.data()));
+    glsafe(::glMultMatrixd(trafo.data()));
     // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
     glsafe(::glTranslatef(m_rr.hit(0), m_rr.hit(1), m_rr.hit(2)));
     glsafe(::glMultMatrixd(complete_scaling_matrix_inverse.data()));
