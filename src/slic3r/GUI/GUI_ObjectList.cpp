@@ -1855,10 +1855,10 @@ void ObjectList::append_menu_item_scale_selection_to_fit_print_volume(wxMenu* me
 
 void ObjectList::append_menu_items_convert_unit(wxMenu* menu)
 {
-    append_menu_item(menu, wxID_ANY, _L("Convert from imperial unit"), _L("Convert from imperial unit"),
+    append_menu_item(menu, wxID_ANY, _L("Convert from imperial units"), _L("Convert from imperial units"),
         [](wxCommandEvent&) { wxGetApp().plater()->convert_unit(true); }, "", menu);
 
-    append_menu_item(menu, wxID_ANY, _L("Convert to imperial unit"), _L("Convert to imperial unit"),
+    append_menu_item(menu, wxID_ANY, _L("Revert conversion from imperial units"), _L("Revert conversion from imperial units"),
         [](wxCommandEvent&) { wxGetApp().plater()->convert_unit(false); }, "", menu);
 }
 

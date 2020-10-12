@@ -4848,7 +4848,7 @@ void Plater::convert_unit(bool from_imperial_unit)
     if (obj_idxs.empty() && volume_idxs.empty())
         return;
 
-    TakeSnapshot snapshot(this, from_imperial_unit ? _L("Convert from imperial units") : _L("Convert to imperial units"));
+    TakeSnapshot snapshot(this, from_imperial_unit ? _L("Convert from imperial units") : _L("Revert conversion from imperial units"));
     wxBusyCursor wait;
 
     ModelObjectPtrs objects;
