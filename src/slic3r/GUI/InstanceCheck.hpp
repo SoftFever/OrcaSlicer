@@ -89,6 +89,8 @@ private:
 	void    unregister_for_messages();
 	// Opaque pointer to RemovableDriveManagerMM
 	void* m_impl_osx;
+public: 
+	void    bring_instance_forward();
 #endif //__APPLE__
 
 };

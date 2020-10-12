@@ -68,15 +68,15 @@ class GCodeViewerTaskBarIcon : public wxTaskBarIcon
 {
 public:
     GCodeViewerTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
-#if 0
     wxMenu *CreatePopupMenu() override {
         wxMenu *menu = new wxMenu;
-        int id;
-        auto *item = menu->Append(id = wxNewId(), "&Test menu");
-        menu->Bind(wxEVT_MENU, [this](wxCommandEvent &) { wxMessageBox("Test menu - GCode Viewer"); }, id);
+        //int id;
+        //auto *item = menu->Append(id = wxNewId(), "&Test menu");
+        //menu->Bind(wxEVT_MENU, [this](wxCommandEvent &) { wxMessageBox("Test menu - GCode Viewer"); }, id);
+        append_menu_item(menu, wxID_ANY, _(L("Open PrusaSlicer")), _(L("")),
+            [this](wxCommandEvent&) { start_new_slicer(nullptr, true); }, "", nullptr);
         return menu;
     }
-#endif
 };
 #endif // __APPLE__
 
@@ -1258,7 +1258,8 @@ void MainFrame::init_menubar()
         
         windowMenu->AppendSeparator();
         append_menu_item(windowMenu, wxID_ANY, _(L("Open new instance")) + "\tCtrl+I", _(L("Open a new PrusaSlicer instance")),
-			[this](wxCommandEvent&) { start_new_slicer(); }, "", nullptr);
+			[this](wxCommandEvent&) { start_new_slicer(); }, "", nullptr, [this]() {return m_plater != nullptr && wxGetApp().app_config->get("single_instance") != "1"; }, this);
+
     }
 
     // View menu
@@ -1392,6 +1393,9 @@ void MainFrame::init_menubar_as_gcodeviewer()
         append_menu_item(fileMenu, wxID_ANY, _L("Export &toolpaths as OBJ") + dots, _L("Export toolpaths as OBJ"),
             [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->export_toolpaths_to_obj(); }, "export_plater", nullptr,
             [this]() {return can_export_toolpaths(); }, this);
+        append_menu_item(fileMenu, wxID_ANY, _L("Open &PrusaSlicer") + dots, _L("Open PrusaSlicer"),
+            [this](wxCommandEvent&) { start_new_slicer(); }, "", nullptr,
+            [this]() {return true; }, this);
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_EXIT, _L("&Quit"), wxString::Format(_L("Quit %s"), SLIC3R_APP_NAME),
             [this](wxCommandEvent&) { Close(false); });

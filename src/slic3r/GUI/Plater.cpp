@@ -1409,7 +1409,7 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
         else if (paths.size() == 1) {
                 plater->load_gcode(from_path(paths.front()));
                 return true;
-        }
+        } 
         return false;
     }
 #endif // ENABLE_GCODE_VIEWER
@@ -1759,6 +1759,8 @@ struct Plater::priv
 
     void msw_rescale_object_menu();
 
+    void bring_instance_forward() const;
+
     // returns the path to project file with the given extension (none if extension == wxEmptyString)
     // extension should contain the leading dot, i.e.: ".3mf"
     wxString get_project_filename(const wxString& extension = wxEmptyString) const;
@@ -2040,23 +2042,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         this->load_files(evt.data, true, true);
     });
     this->q->Bind(EVT_INSTANCE_GO_TO_FRONT, [this](InstanceGoToFrontEvent &) { 
-        BOOST_LOG_TRIVIAL(debug) << "prusaslicer window going forward";
-		//this code maximize app window on Fedora
-		{
-			wxGetApp().mainframe->Iconize(false);
-			if (wxGetApp().mainframe->IsMaximized())
-				wxGetApp().mainframe->Maximize(true);
-			else
-				wxGetApp().mainframe->Maximize(false);
-		}
-		//this code maximize window on Ubuntu
-		{
-			wxGetApp().mainframe->Restore();  
-			wxGetApp().GetTopWindow()->SetFocus();  // focus on my window
-			wxGetApp().GetTopWindow()->Raise();  // bring window to front
-			wxGetApp().GetTopWindow()->Show(true); // show the window
-		}
-
+        bring_instance_forward();
     });
 	wxGetApp().other_instance_message_handler()->init(this->q);
 
@@ -4545,6 +4531,34 @@ void Plater::priv::update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bo
     BOOST_LOG_TRIVIAL(info) << "Undo / Redo snapshot reloaded. Undo / Redo stack memory: " << Slic3r::format_memsize_MB(this->undo_redo_stack().memsize()) << log_memory_info();
 }
 
+void Plater::priv::bring_instance_forward() const
+{
+#ifdef __APPLE__
+    wxGetApp().other_instance_message_handler()->bring_instance_forward();
+    return;
+#endif //__APPLE__
+    if (main_frame == nullptr) {
+        BOOST_LOG_TRIVIAL(debug) << "Couldnt bring instance forward - mainframe is null";
+        return;
+    }
+    BOOST_LOG_TRIVIAL(debug) << "prusaslicer window going forward";
+    //this code maximize app window on Fedora
+    {
+        main_frame->Iconize(false);
+        if (main_frame->IsMaximized())
+            main_frame->Maximize(true);
+        else
+            main_frame->Maximize(false);
+    }
+    //this code maximize window on Ubuntu
+    {
+        main_frame->Restore();
+        wxGetApp().GetTopWindow()->SetFocus();  // focus on my window
+        wxGetApp().GetTopWindow()->Raise();  // bring window to front
+        wxGetApp().GetTopWindow()->Show(true); // show the window
+    }
+}
+
 void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& label) const
 {
     switch (btn_type)
@@ -6015,6 +6029,10 @@ bool Plater::PopupMenu(wxMenu *menu, const wxPoint& pos)
         m_tracking_popup_menu_error_message.clear();
     }
 	return out;
+}
+void Plater::bring_instance_forward()
+{
+    p->bring_instance_forward();
 }
 
 SuppressBackgroundProcessingUpdate::SuppressBackgroundProcessingUpdate() :
