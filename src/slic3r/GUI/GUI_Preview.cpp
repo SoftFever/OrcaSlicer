@@ -1212,11 +1212,7 @@ void Preview::update_double_slider_from_canvas(wxKeyEvent & event)
 void Preview::load_print_as_fff(bool keep_z_range)
 {
 #if ENABLE_GCODE_VIEWER
-#if ENABLE_GCODE_APP_CONFIG
     if (wxGetApp().mainframe == nullptr || wxGetApp().is_recreating_gui())
-#else
-    if (wxGetApp().mainframe == nullptr)
-#endif // ENABLE_GCODE_APP_CONFIG
         // avoid processing while mainframe is being constructed
         return;
 #endif // ENABLE_GCODE_VIEWER

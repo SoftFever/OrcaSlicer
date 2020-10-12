@@ -1410,10 +1410,10 @@ void MainFrame::init_menubar_as_gcodeviewer()
     m_menubar = new wxMenuBar();
     m_menubar->Append(fileMenu, _L("&File"));
     if (viewMenu != nullptr) m_menubar->Append(viewMenu, _L("&View"));
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
     // Add additional menus from C++
     wxGetApp().add_config_menu(m_menubar);
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
     m_menubar->Append(helpMenu, _L("&Help"));
     SetMenuBar(m_menubar);
 

@@ -37,9 +37,9 @@ void AppConfig::reset()
 // Override missing or keys with their defaults.
 void AppConfig::set_defaults()
 {
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
     if (m_mode == EAppMode::Editor) {
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
         // Reset the empty fields to defaults.
         if (get("autocenter").empty())
             set("autocenter", "0");
@@ -91,13 +91,13 @@ void AppConfig::set_defaults()
         if (get("auto_toolbar_size").empty())
             set("auto_toolbar_size", "100");
 
-#if !ENABLE_GCODE_APP_CONFIG
+#if !ENABLE_GCODE_VIEWER
         if (get("use_perspective_camera").empty())
             set("use_perspective_camera", "1");
 
         if (get("use_free_camera").empty())
             set("use_free_camera", "0");
-#endif // !ENABLE_GCODE_APP_CONFIG
+#endif // !ENABLE_GCODE_VIEWER
 
 #if ENABLE_ENVIRONMENT_MAP
         if (get("use_environment_map").empty())
@@ -106,7 +106,7 @@ void AppConfig::set_defaults()
 
         if (get("use_inches").empty())
             set("use_inches", "0");
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
     }
 
     if (get("use_perspective_camera").empty())
@@ -114,7 +114,7 @@ void AppConfig::set_defaults()
 
     if (get("use_free_camera").empty())
         set("use_free_camera", "0");
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
 
     if (get("show_splash_screen").empty())
         set("show_splash_screen", "1");
@@ -197,13 +197,6 @@ std::string AppConfig::load()
 
 void AppConfig::save()
 {
-#if ENABLE_GCODE_VIEWER
-#if !ENABLE_GCODE_APP_CONFIG
-    if (!m_save_enabled)
-        return;
-#endif // !ENABLE_GCODE_APP_CONFIG
-#endif // ENABLE_GCODE_VIEWER
-
     // The config is first written to a file with a PID suffix and then moved
     // to avoid race conditions with multiple instances of Slic3r
     const auto path = config_path();
@@ -211,14 +204,14 @@ void AppConfig::save()
 
     boost::nowide::ofstream c;
     c.open(path_pid, std::ios::out | std::ios::trunc);
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
     if (m_mode == EAppMode::Editor)
         c << "# " << Slic3r::header_slic3r_generated() << std::endl;
     else
         c << "# " << Slic3r::header_gcodeviewer_generated() << std::endl;
 #else
     c << "# " << Slic3r::header_slic3r_generated() << std::endl;
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
     // Make sure the "no" category is written first.
     for (const std::pair<std::string, std::string> &kvp : m_storage[""])
         c << kvp.first << " = " << kvp.second << std::endl;
@@ -418,7 +411,7 @@ void AppConfig::reset_selections()
 
 std::string AppConfig::config_path()
 {
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
     std::string path = (m_mode == EAppMode::Editor) ?
         (boost::filesystem::path(Slic3r::data_dir()) / (SLIC3R_APP_KEY ".ini")).make_preferred().string() :
         (boost::filesystem::path(Slic3r::data_dir()) / (GCODEVIEWER_APP_KEY ".ini")).make_preferred().string();
@@ -426,7 +419,7 @@ std::string AppConfig::config_path()
     return path;
 #else
     return (boost::filesystem::path(Slic3r::data_dir()) / (SLIC3R_APP_KEY ".ini")).make_preferred().string();
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
 }
 
 std::string AppConfig::version_check_url() const
@@ -437,11 +430,11 @@ std::string AppConfig::version_check_url() const
 
 bool AppConfig::exists()
 {
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
     return boost::filesystem::exists(config_path());
 #else
     return boost::filesystem::exists(AppConfig::config_path());
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
 }
 
 }; // namespace Slic3r

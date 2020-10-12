@@ -632,25 +632,17 @@ void GUI_App::init_app_config()
 		set_data_dir(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data());
 
 	if (!app_config)
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
         app_config = new AppConfig(is_editor() ? AppConfig::EAppMode::Editor : AppConfig::EAppMode::GCodeViewer);
 #else
         app_config = new AppConfig();
-#endif // ENABLE_GCODE_APP_CONFIG
-
-#if ENABLE_GCODE_VIEWER
-#if !ENABLE_GCODE_APP_CONFIG
-    if (is_gcode_viewer())
-        // disable config save to avoid to mess it up for the editor
-        app_config->enable_save(false);
-#endif // !ENABLE_GCODE_APP_CONFIG
 #endif // ENABLE_GCODE_VIEWER
 
 	// load settings
 	m_app_conf_exists = app_config->exists();
 	if (m_app_conf_exists) {
         std::string error = app_config->load();
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
         if (!error.empty()) {
             // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
             if (is_editor()) {
@@ -673,7 +665,7 @@ void GUI_App::init_app_config()
                 _u8L("Error parsing PrusaSlicer config file, it is probably corrupted. "
                     "Try to manually delete the file to recover from the error. Your user profiles will not be affected.") +
                 "\n\n" + AppConfig::config_path() + "\n\n" + error);
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
     }
 }
 
@@ -1087,9 +1079,9 @@ void GUI_App::check_printer_presets()
 
 void GUI_App::recreate_GUI(const wxString& msg_name)
 {
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
     m_is_recreating_gui = true;
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
 
     mainframe->shutdown();
 
@@ -1099,9 +1091,9 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 
     MainFrame *old_main_frame = mainframe;
     mainframe = new MainFrame();
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
     if (is_editor())
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
         // hide settings tabs after first Layout
         mainframe->select_tab(size_t(0));
     // Propagate model objects to object list.
@@ -1134,9 +1126,9 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 //         config_wizard_startup(true);
 //     });
 
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
     m_is_recreating_gui = false;
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void GUI_App::system_info()
@@ -1469,17 +1461,17 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     const auto config_wizard_name = _(ConfigWizard::name(true));
     const auto config_wizard_tooltip = from_u8((boost::format(_utf8(L("Run %s"))) % config_wizard_name).str());
     // Cmd+, is standard on OS X - what about other operating systems?
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
     if (is_editor()) {
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
         local_menu->Append(config_id_base + ConfigMenuWizard, config_wizard_name + dots, config_wizard_tooltip);
         local_menu->Append(config_id_base + ConfigMenuSnapshots, _L("&Configuration Snapshots") + dots, _L("Inspect / activate configuration snapshots"));
         local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _L("Take Configuration &Snapshot"), _L("Capture a configuration snapshot"));
         local_menu->Append(config_id_base + ConfigMenuUpdate, _L("Check for updates"), _L("Check for configuration updates"));
         local_menu->AppendSeparator();
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
     }
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
     local_menu->Append(config_id_base + ConfigMenuPreferences, _L("&Preferences") + dots +
 #ifdef __APPLE__
         "\tCtrl+,",
@@ -1487,16 +1479,16 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
         "\tCtrl+P",
 #endif
         _L("Application preferences"));
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
     wxMenu* mode_menu = nullptr;
     if (is_editor()) {
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
         local_menu->AppendSeparator();
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
         mode_menu = new wxMenu();
 #else
         auto mode_menu = new wxMenu();
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
         mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple, _L("Simple"), _L("Simple View Mode"));
 //    mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeAdvanced, _L("Advanced"), _L("Advanced View Mode"));
         mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeAdvanced, _CTX(L_CONTEXT("Advanced", "Mode"), "Mode"), _L("Advanced View Mode"));
@@ -1506,21 +1498,21 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { if (get_mode() == comExpert) evt.Check(true); }, config_id_base + ConfigMenuModeExpert);
 
         local_menu->AppendSubMenu(mode_menu, _L("Mode"), wxString::Format(_L("%s View Mode"), SLIC3R_APP_NAME));
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
     }
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
     local_menu->AppendSeparator();
     local_menu->Append(config_id_base + ConfigMenuLanguage, _L("&Language"));
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
     if (is_editor()) {
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
         local_menu->AppendSeparator();
         local_menu->Append(config_id_base + ConfigMenuFlashFirmware, _L("Flash printer &firmware"), _L("Upload a firmware image into an Arduino based printer"));
         // TODO: for when we're able to flash dictionaries
         // local_menu->Append(config_id_base + FirmwareMenuDict,  _L("Flash language file"),    _L("Upload a language dictionary file into a Prusa printer"));
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
     }
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
 
     local_menu->Bind(wxEVT_MENU, [this, config_id_base](wxEvent &event) {
         switch (event.GetId() - config_id_base) {
@@ -1592,19 +1584,19 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                 // the dialog needs to be destroyed before the call to switch_language()
                 // or sometimes the application crashes into wxDialogBase() destructor
                 // so we put it into an inner scope
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
                 wxString title = is_editor() ? wxString(SLIC3R_APP_NAME) : wxString(GCODEVIEWER_APP_NAME);
                 title += " - " + _L("Language selection");
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
                 wxMessageDialog dialog(nullptr,
                     _L("Switching the language will trigger application restart.\n"
                         "You will lose content of the plater.") + "\n\n" +
                     _L("Do you want to proceed?"),
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
                     title,
 #else
                     wxString(SLIC3R_APP_NAME) + " - " + _L("Language selection"),
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
                     wxICON_QUESTION | wxOK | wxCANCEL);
                 if (dialog.ShowModal() == wxID_CANCEL)
                     return;
@@ -1622,17 +1614,17 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     });
     
     using std::placeholders::_1;
-    
-#if ENABLE_GCODE_APP_CONFIG
+
+#if ENABLE_GCODE_VIEWER
     if (mode_menu != nullptr) {
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
         auto modfn = [this](int mode, wxCommandEvent&) { if (get_mode() != mode) save_mode(mode); };
         mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comSimple, _1), config_id_base + ConfigMenuModeSimple);
         mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comAdvanced, _1), config_id_base + ConfigMenuModeAdvanced);
         mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comExpert, _1), config_id_base + ConfigMenuModeExpert);
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
     }
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
 
     menu->Append(local_menu, _L("&Configuration"));
 }

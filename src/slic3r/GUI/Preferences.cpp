@@ -36,25 +36,25 @@ void PreferencesDialog::build()
 //        readonly = > !wxTheApp->have_version_check,
 //    ));
 
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
 	bool is_editor = wxGetApp().is_editor();
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
 
 	ConfigOptionDef def;
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
 	Option option(def, "");
 	if (is_editor) {
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
 		def.label = L("Remember output directory");
 		def.type = coBool;
 		def.tooltip = L("If this is enabled, Slic3r will prompt the last output directory "
 			"instead of the one containing the input files.");
 		def.set_default_value(new ConfigOptionBool{ app_config->has("remember_output_path") ? app_config->get("remember_output_path") == "1" : true });
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
 		option = Option(def, "remember_output_path");
 #else
 		Option option(def, "remember_output_path");
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
 		m_optgroup_general->append_single_option_line(option);
 
 		def.label = L("Auto-center parts");
@@ -123,9 +123,9 @@ void PreferencesDialog::build()
 		def.set_default_value(new ConfigOptionBool{ app_config->has("single_instance") ? app_config->get("single_instance") == "1" : false });
 		option = Option(def, "single_instance");
 		m_optgroup_general->append_single_option_line(option);
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
 	}
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
 
 #if __APPLE__
 	def.label = L("Use Retina resolution for the 3D scene");
@@ -179,9 +179,9 @@ void PreferencesDialog::build()
 
 	m_optgroup_camera->activate();
 
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
 	if (is_editor) {
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
 		m_optgroup_gui = std::make_shared<ConfigOptionsGroup>(this, _L("GUI"));
 		m_optgroup_gui->label_width = 40;
 		m_optgroup_gui->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
@@ -229,21 +229,21 @@ void PreferencesDialog::build()
 
 		m_optgroup_render->activate();
 #endif // ENABLE_ENVIRONMENT_MAP
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
 	}
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
 
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 	sizer->Add(m_optgroup_general->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 	sizer->Add(m_optgroup_camera->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
 	if (m_optgroup_gui != nullptr)
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
 		sizer->Add(m_optgroup_gui->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 #if ENABLE_ENVIRONMENT_MAP
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
 	if (m_optgroup_render != nullptr)
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
 		sizer->Add(m_optgroup_render->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 #endif // ENABLE_ENVIRONMENT_MAP
 

@@ -15,7 +15,7 @@ namespace Slic3r {
 class AppConfig
 {
 public:
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
 	enum class EAppMode : unsigned char
 	{
 		Editor,
@@ -25,15 +25,11 @@ public:
 	explicit AppConfig(EAppMode mode) :
 #else
 	AppConfig() :
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
 		m_dirty(false),
 		m_orig_version(Semver::invalid()),
 #if ENABLE_GCODE_VIEWER
-#if ENABLE_GCODE_APP_CONFIG
 		m_mode(mode),
-#else
-		m_save_enabled(true),
-#endif // !ENABLE_GCODE_APP_CONFIG
 #endif // ENABLE_GCODE_VIEWER
 		m_legacy_datadir(false)
 	{
@@ -139,11 +135,11 @@ public:
     void                reset_selections();
 
 	// Get the default config path from Slic3r::data_dir().
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
 	std::string			config_path();
 #else
 	static std::string  config_path();
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
 
 	// Returns true if the user's data directory comes from before Slic3r 1.40.0 (no updating)
 	bool legacy_datadir() const { return m_legacy_datadir; }
@@ -158,11 +154,11 @@ public:
 	Semver orig_version() const { return m_orig_version; }
 
 	// Does the config file exist?
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
 	bool 		exists();
 #else
 	static bool 		exists();
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
 
     std::vector<std::string> get_recent_projects() const;
     void set_recent_projects(const std::vector<std::string>& recent_projects);
@@ -182,12 +178,6 @@ public:
 	bool get_mouse_device_swap_yz(const std::string& name, bool& swap) const
 		{ return get_3dmouse_device_numeric_value(name, "swap_yz", swap); }
 
-#if ENABLE_GCODE_VIEWER
-#if !ENABLE_GCODE_APP_CONFIG
-	void enable_save(bool enable) { m_save_enabled = enable; }
-#endif // !ENABLE_GCODE_APP_CONFIG
-#endif // ENABLE_GCODE_VIEWER
-
 	static const std::string SECTION_FILAMENTS;
     static const std::string SECTION_MATERIALS;
 
@@ -206,9 +196,9 @@ private:
 	    return true;
 	}
 
-#if ENABLE_GCODE_APP_CONFIG
+#if ENABLE_GCODE_VIEWER
 	EAppMode													m_mode { EAppMode::Editor };
-#endif // ENABLE_GCODE_APP_CONFIG
+#endif // ENABLE_GCODE_VIEWER
 
 	// Map of section, name -> value
 	std::map<std::string, std::map<std::string, std::string>> 	m_storage;
@@ -218,12 +208,6 @@ private:
 	bool														m_dirty;
 	// Original version found in the ini file before it was overwritten
 	Semver                                                      m_orig_version;
-#if ENABLE_GCODE_VIEWER
-#if !ENABLE_GCODE_APP_CONFIG
-	// Whether or not calls to save() should take effect
-	bool                                                        m_save_enabled;
-#endif // !ENABLE_GCODE_APP_CONFIG
-#endif // ENABLE_GCODE_VIEWER
 	// Whether the existing version is before system profiles & configuration updating
 	bool                                                        m_legacy_datadir;
 };
