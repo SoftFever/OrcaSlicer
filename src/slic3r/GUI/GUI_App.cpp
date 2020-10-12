@@ -738,10 +738,13 @@ bool GUI_App::on_init_inner()
     wxInitAllImageHandlers();
 
     SplashScreen* scrn = nullptr;
-    if (app_config->get("show_splash_screen") == "1")
-    {
+    if (app_config->get("show_splash_screen") == "1") {
         // make a bitmap with dark grey banner on the left side
+#if ENABLE_GCODE_VIEWER
         wxBitmap bmp = SplashScreen::MakeBitmap(wxBitmap(from_u8(var(is_editor() ? "splashscreen.jpg" : "splashscreen-gcodepreview.jpg")), wxBITMAP_TYPE_JPEG));
+#else
+        wxBitmap bmp = SplashScreen::MakeBitmap(wxBitmap(from_u8(var("splashscreen.jpg")), wxBITMAP_TYPE_JPEG));
+#endif // ENABLE_GCODE_VIEWER
 
         // Detect position (display) to show the splash screen
         // Now this position is equal to the mainframe position
@@ -851,8 +854,7 @@ bool GUI_App::on_init_inner()
         this->obj_manipul()->update_if_dirty();
 
         static bool update_gui_after_init = true;
-        if (update_gui_after_init)
-        {
+        if (update_gui_after_init) {
             update_gui_after_init = false;
             m_after_init_loads.on_loads(this);
         }

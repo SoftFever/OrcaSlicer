@@ -1419,8 +1419,10 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
         fs::path path(into_path(filename));
         if (std::regex_match(path.string(), pattern_drop))
             paths.push_back(std::move(path));
+#if ENABLE_GCODE_VIEWER
         else if (std::regex_match(path.string(), pattern_gcode_drop))
             start_new_gcodeviewer(&filename);
+#endif // ENABLE_GCODE_VIEWER
         else
             return false;
     }

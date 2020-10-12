@@ -157,9 +157,11 @@ private:
         void set_params(
             const std::vector<std::string>& load_configs,
             const DynamicPrintConfig&       extra_config,
-            const std::vector<std::string>& input_files,
 #if ENABLE_GCODE_VIEWER
+            const std::vector<std::string>& input_files,
             bool                            start_as_gcodeviewer
+#else
+            const std::vector<std::string>& input_files
 #endif // ENABLE_GCODE_VIEWER
         ) {
             m_load_configs = load_configs;
