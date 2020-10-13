@@ -356,27 +356,36 @@ namespace Slic3r {
         return final_boundary;
     }
 
-    static Vec2d get_polygon_vertex_inward_normal(const Polygon &polygon, const size_t point_idx)
+    static Vec2d three_points_inward_normal(const Point &left, const Point &middle, const Point &right)
     {
-        const Point &p0 = polygon.points[(point_idx <= 0) ? (polygon.size() - 1) : (point_idx - 1)];
-        const Point &p1 = polygon.points[point_idx];
-        const Point &p2 = polygon.points[(point_idx >= (polygon.size() - 1)) ? (0) : (point_idx + 1)];
+        assert(left != middle);
+        assert(middle != right);
 
-        assert(p0 != p1);
-        assert(p1 != p2);
-
-        Vec2d normal_1(-1 * (p1.y() - p0.y()), p1.x() - p0.x());
-        Vec2d normal_2(-1 * (p2.y() - p1.y()), p2.x() - p1.x());
+        Vec2d normal_1(-1 * (middle.y() - left.y()), middle.x() - left.x());
+        Vec2d normal_2(-1 * (right.y() - middle.y()), right.x() - middle.x());
         normal_1.normalize();
         normal_2.normalize();
 
         return (normal_1 + normal_2).normalized();
     };
 
+    static Vec2d get_polygon_vertex_inward_normal(const Polygon &polygon, const size_t point_idx)
+    {
+        const Point &p0 = polygon.points[(point_idx <= 0) ? (polygon.size() - 1) : (point_idx - 1)];
+        const Point &p1 = polygon.points[point_idx];
+        const Point &p2 = polygon.points[(point_idx >= (polygon.size() - 1)) ? (0) : (point_idx + 1)];
+        return three_points_inward_normal(p0, p1, p2);
+    };
+
     // Compute offset of polygon's in a direction inward normal
     static Point get_polygon_vertex_offset(const Polygon &polygon, const size_t point_idx, const int offset)
     {
         return polygon.points[point_idx] + (get_polygon_vertex_inward_normal(polygon, point_idx) * double(offset)).cast<coord_t>();
+    }
+
+    static Point get_middle_point_offset(const Point &left, const Point &middle, const Point &right, const int offset)
+    {
+        return middle + (three_points_inward_normal(left, middle, right) * double(offset)).cast<coord_t>();
     }
 
     Polyline AvoidCrossingPerimeters2::travel_to(const GCode &gcodegen, const Point &point)
@@ -393,7 +402,6 @@ namespace Slic3r {
         const Point &end                   = point;
         const Point  direction             = end - start;
         Matrix2d     transform_to_x_axis   = rotation_by_direction(direction);
-        Matrix2d     transform_from_x_axis = transform_to_x_axis.transpose();
 
         const Line travel_line_orig(start, end);
         const Line travel_line((transform_to_x_axis * start.cast<double>()).cast<coord_t>(),
@@ -423,7 +431,7 @@ namespace Slic3r {
                         if (travel_line.intersection(Line(segment.first, segment.second), &intersection_point) &&
                             intersection_set.find(*it_contour_and_segment) == intersection_set.end()) {
                             intersections.emplace_back(it_contour_and_segment->first, it_contour_and_segment->second,
-                                                       (transform_to_x_axis * intersection_point.cast<double>()).cast<coord_t>());
+                                                       (transform_to_x_axis * intersection_point.cast<double>()).cast<coord_t>(), intersection_point);
                             intersection_set.insert(*it_contour_and_segment);
                         }
                     }
@@ -447,19 +455,17 @@ namespace Slic3r {
         result.append(start);
         for (auto it_first = intersections.begin(); it_first != intersections.end(); ++it_first) {
             const Intersection &intersection_first = *it_first;
-            Point               intersection_first_point((transform_from_x_axis * intersection_first.point.cast<double>()).cast<coord_t>());
-
             for (auto it_second = it_first + 1; it_second != intersections.end(); ++it_second) {
                 const Intersection &intersection_second = *it_second;
-                Point               intersection_second_point((transform_from_x_axis * intersection_second.point.cast<double>()).cast<coord_t>());
-
                 if (intersection_first.border_idx == intersection_second.border_idx) {
                     Lines border_lines = m_boundaries[intersection_first.border_idx].lines();
+                    const Line &first_intersected_line = border_lines[intersection_first.line_idx];
+                    const Line &second_intersected_line = border_lines[intersection_second.line_idx];
                     // Append the nearest intersection into the path
-                    result.append(intersection_first_point);
+                    result.append(get_middle_point_offset(first_intersected_line.a, intersection_first.point, first_intersected_line.b, SCALED_EPSILON));
 
                     Direction shortest_direction = get_shortest_direction(border_lines, intersection_first.line_idx, intersection_second.line_idx,
-                                                                          intersection_first_point, intersection_second_point);
+                                                                          intersection_first.point, intersection_second.point);
                     // Append the path around the border into the path
                     // Offset of the polygon's point is used to simplify calculation of intersection between boundary
                     if (shortest_direction == Direction::Forward)
@@ -473,9 +479,9 @@ namespace Slic3r {
                             result.append(get_polygon_vertex_offset(m_boundaries[intersection_first.border_idx], line_idx + 0, SCALED_EPSILON));
 
                     // Append the farthest intersection into the path
-                    result.append(intersection_second_point);
+                    result.append(get_middle_point_offset(second_intersected_line.a, intersection_second.point, second_intersected_line.b, SCALED_EPSILON));
                     // Skip intersections in between
-                    it_first = it_second;
+                    it_first = (it_second - 1);
                     break;
                 }
             }

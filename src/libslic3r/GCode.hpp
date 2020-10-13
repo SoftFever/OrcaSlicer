@@ -69,12 +69,13 @@ protected:
     {
         size_t border_idx;
         size_t line_idx;
+        Point  point_transformed;
         Point  point;
 
-        Intersection(size_t border_idx, size_t line_idx, Point point)
-            : border_idx(border_idx), line_idx(line_idx), point(point){};
+        Intersection(size_t border_idx, size_t line_idx, const Point &point_transformed, const Point &point)
+            : border_idx(border_idx), line_idx(line_idx), point_transformed(point_transformed), point(point){};
 
-        inline bool operator<(const Intersection &other) const { return this->point.x() < other.point.x(); }
+        inline bool operator<(const Intersection &other) const { return this->point_transformed.x() < other.point_transformed.x(); }
     };
 
     enum class Direction { Forward, Backward };
