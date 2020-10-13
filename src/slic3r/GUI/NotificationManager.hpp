@@ -42,6 +42,7 @@ enum class NotificationType
 	ApplyError
 
 };
+
 class NotificationManager
 {
 public:
@@ -52,6 +53,48 @@ public:
 		ImportantNotification = 2,
 		RegularNotification   = 1,
 	};
+
+	NotificationManager(wxEvtHandler* evt_handler);
+	~NotificationManager();
+
+	
+	// only type means one of basic_notification (see below)
+	void push_notification(const NotificationType type, GLCanvas3D& canvas, int timestamp = 0);
+	// only text means Undefined type
+	void push_notification(const std::string& text, GLCanvas3D& canvas, int timestamp = 0);
+	void push_notification(const std::string& text, NotificationLevel level, GLCanvas3D& canvas, int timestamp = 0);
+	// creates Slicing Error notification with custom text
+	void push_slicing_error_notification(const std::string& text, GLCanvas3D& canvas);
+	// creates Slicing Warning notification with custom text
+	void push_slicing_warning_notification(const std::string& text, bool gray, GLCanvas3D& canvas, size_t oid, int warning_step);
+	// marks slicing errors as gray
+	void set_all_slicing_errors_gray(bool g);
+	// marks slicing warings as gray
+	void set_all_slicing_warnings_gray(bool g);
+	void set_slicing_warning_gray(const std::string& text, bool g);
+	// imidietly stops showing slicing errors
+	void close_slicing_errors_and_warnings();
+	void compare_warning_oids(const std::vector<size_t>& living_oids);
+	void push_plater_error_notification(const std::string& text, GLCanvas3D& canvas);
+	void push_plater_warning_notification(const std::string& text, GLCanvas3D& canvas);
+	// Closes error or warning of same text
+	void close_plater_error_notification(const std::string& text);
+	void close_plater_warning_notification(const std::string& text);
+	// creates special notification slicing complete
+	// if large = true prints printing time and export button 
+	void push_slicing_complete_notification(GLCanvas3D& canvas, int timestamp, bool large);
+	void set_slicing_complete_print_time(std::string info);
+	void set_slicing_complete_large(bool large);
+	// renders notifications in queue and deletes expired ones
+	void render_notifications(GLCanvas3D& canvas, float overlay_width, float slope_width);
+	// finds and closes all notifications of given type
+	void close_notification_of_type(const NotificationType type);
+	void dpi_changed();
+    void set_in_preview(bool preview);
+	// Move to left to avoid colision with variable layer height gizmo
+	void set_move_from_overlay(bool move) { m_move_from_overlay = move; }
+
+private:
 	// duration 0 means not disapearing
 	struct NotificationData {
 		NotificationType    type;
@@ -197,46 +240,6 @@ public:
 		int    warning_step;
 	};
 
-	NotificationManager(wxEvtHandler* evt_handler);
-	~NotificationManager();
-
-	
-	// only type means one of basic_notification (see below)
-	void push_notification(const NotificationType type, GLCanvas3D& canvas, int timestamp = 0);
-	// only text means Undefined type
-	void push_notification(const std::string& text, GLCanvas3D& canvas, int timestamp = 0);
-	void push_notification(const std::string& text, NotificationLevel level, GLCanvas3D& canvas, int timestamp = 0);
-	// creates Slicing Error notification with custom text
-	void push_slicing_error_notification(const std::string& text, GLCanvas3D& canvas);
-	// creates Slicing Warning notification with custom text
-	void push_slicing_warning_notification(const std::string& text, bool gray, GLCanvas3D& canvas, size_t oid, int warning_step);
-	// marks slicing errors as gray
-	void set_all_slicing_errors_gray(bool g);
-	// marks slicing warings as gray
-	void set_all_slicing_warnings_gray(bool g);
-	void set_slicing_warning_gray(const std::string& text, bool g);
-	// imidietly stops showing slicing errors
-	void close_slicing_errors_and_warnings();
-	void compare_warning_oids(const std::vector<size_t>& living_oids);
-	void push_plater_error_notification(const std::string& text, GLCanvas3D& canvas);
-	void push_plater_warning_notification(const std::string& text, GLCanvas3D& canvas);
-	// Closes error or warning of same text
-	void close_plater_error_notification(const std::string& text);
-	void close_plater_warning_notification(const std::string& text);
-	// creates special notification slicing complete
-	// if large = true prints printing time and export button 
-	void push_slicing_complete_notification(GLCanvas3D& canvas, int timestamp, bool large);
-	void set_slicing_complete_print_time(std::string info);
-	void set_slicing_complete_large(bool large);
-	// renders notifications in queue and deletes expired ones
-	void render_notifications(GLCanvas3D& canvas, float overlay_width, float slope_width);
-	// finds and closes all notifications of given type
-	void close_notification_of_type(const NotificationType type);
-	void dpi_changed();
-    void set_in_preview(bool preview);
-	// Move to left to avoid colision with variable layer height gizmo
-	void set_move_from_overlay(bool move) { m_move_from_overlay = move; }
-private:
 	//pushes notification into the queue of notifications that are rendered
 	//can be used to create custom notification
 	bool push_notification_data(const NotificationData& notification_data, GLCanvas3D& canvas, int timestamp);
