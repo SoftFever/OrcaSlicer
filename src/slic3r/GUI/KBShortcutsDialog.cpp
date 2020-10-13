@@ -67,8 +67,7 @@ KBShortcutsDialog::KBShortcutsDialog()
 main_sizer->Add(book, 1, wxEXPAND | wxALL, 10);
 
     fill_shortcuts();
-    for (size_t i = 0; i < m_full_shortcuts.size(); ++i)
-    {
+    for (size_t i = 0; i < m_full_shortcuts.size(); ++i) {
         wxPanel* page = create_page(book, m_full_shortcuts[i], font, bold_font);
         m_pages.push_back(page);
         book->AddPage(page, m_full_shortcuts[i].first, i == 0);
@@ -140,8 +139,6 @@ void KBShortcutsDialog::fill_shortcuts()
             // View
             { "0-6", L("Camera view") },
             { "E", L("Show/Hide object/instance labels") },
-            { "Tab", L("Switch between Editor/Preview") },
-            { "Shift+Tab", L("Collapse/Expand the sidebar") },
             // Configuration
             { ctrl + "P", L("Preferences") },
             // Help
@@ -179,6 +176,8 @@ void KBShortcutsDialog::fill_shortcuts()
             { "Z", L("Zoom to selected object\nor all objects in scene, if none selected") },
             { "I", L("Zoom in") },
             { "O", L("Zoom out") },
+            { "Tab", L("Switch between Editor/Preview") },
+            { "Shift+Tab", L("Collapse/Expand the sidebar") },
 #ifdef __linux__
             { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
 #endif // __linux__
@@ -286,22 +285,23 @@ wxPanel* KBShortcutsDialog::create_page(wxWindow* parent, const std::pair<wxStri
     wxFlexGridSizer* grid_sizer = new wxFlexGridSizer(2 * columns_count, 5, 15);
 
     int items_count = (int)shortcuts.second.size();
-    for (int i = 0; i < max_items_per_column; ++i)
-    {
-        for (int j = 0; j < columns_count; ++j)
-        {
+    for (int i = 0; i < max_items_per_column; ++i) {
+        for (int j = 0; j < columns_count; ++j) {
             int id = j * max_items_per_column + i;
-            if (id >= items_count)
-                break;
+            if (id < items_count) {
+                const auto& [shortcut, description] = shortcuts.second[id];
+                auto key = new wxStaticText(page, wxID_ANY, _(shortcut));
+                key->SetFont(bold_font);
+                grid_sizer->Add(key, 0, wxALIGN_CENTRE_VERTICAL);
 
-            const auto& [shortcut, description] = shortcuts.second[id];
-            auto key = new wxStaticText(page, wxID_ANY, _(shortcut));
-            key->SetFont(bold_font);
-            grid_sizer->Add(key, 0, wxALIGN_CENTRE_VERTICAL);
-
-            auto desc = new wxStaticText(page, wxID_ANY, _(description));
-            desc->SetFont(font);
-            grid_sizer->Add(desc, 0, wxALIGN_CENTRE_VERTICAL);
+                auto desc = new wxStaticText(page, wxID_ANY, _(description));
+                desc->SetFont(font);
+                grid_sizer->Add(desc, 0, wxALIGN_CENTRE_VERTICAL);
+            }
+            else {
+                grid_sizer->Add(new wxStaticText(page, wxID_ANY, ""), 0, wxALIGN_CENTRE_VERTICAL);
+                grid_sizer->Add(new wxStaticText(page, wxID_ANY, ""), 0, wxALIGN_CENTRE_VERTICAL);
+            }
         }
     }
 

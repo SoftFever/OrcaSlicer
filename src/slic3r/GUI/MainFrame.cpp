@@ -73,7 +73,7 @@ public:
         //int id;
         //auto *item = menu->Append(id = wxNewId(), "&Test menu");
         //menu->Bind(wxEVT_MENU, [this](wxCommandEvent &) { wxMessageBox("Test menu - GCode Viewer"); }, id);
-        append_menu_item(menu, wxID_ANY, _(L("Open PrusaSlicer")), _(L("")),
+        append_menu_item(menu, wxID_ANY, _L("Open PrusaSlicer"), _L(""),
             [this](wxCommandEvent&) { start_new_slicer(nullptr, true); }, "", nullptr);
         return menu;
     }
@@ -906,7 +906,7 @@ static wxMenu* generate_help_menu()
     wxMenu* helpMenu = new wxMenu();
     append_menu_item(helpMenu, wxID_ANY, _L("Prusa 3D &Drivers"), _L("Open the Prusa3D drivers download page in your browser"),
         [](wxCommandEvent&) { wxGetApp().open_web_page_localized("https://www.prusa3d.com/downloads"); });
-    append_menu_item(helpMenu, wxID_ANY, _(L("Software &Releases")), _(L("Open the software releases page in your browser")),
+    append_menu_item(helpMenu, wxID_ANY, _L("Software &Releases"), _L("Open the software releases page in your browser"),
         [](wxCommandEvent&) { wxLaunchDefaultBrowser("https://github.com/prusa3d/PrusaSlicer/releases"); });
 //#        my $versioncheck = $self->_append_menu_item($helpMenu, "Check for &Updates...", "Check for new Slic3r versions", sub{
 //#            wxTheApp->check_version(1);
@@ -915,15 +915,15 @@ static wxMenu* generate_help_menu()
     append_menu_item(helpMenu, wxID_ANY, wxString::Format(_L("%s &Website"), SLIC3R_APP_NAME),
         wxString::Format(_L("Open the %s website in your browser"), SLIC3R_APP_NAME),
         [](wxCommandEvent&) { wxGetApp().open_web_page_localized("https://www.prusa3d.com/slicerweb"); });
-//        append_menu_item(helpMenu, wxID_ANY, wxString::Format(_(L("%s &Manual")), SLIC3R_APP_NAME),
-//                                             wxString::Format(_(L("Open the %s manual in your browser")), SLIC3R_APP_NAME),
+//        append_menu_item(helpMenu, wxID_ANY, wxString::Format(_L("%s &Manual"), SLIC3R_APP_NAME),
+//                                             wxString::Format(_L("Open the %s manual in your browser"), SLIC3R_APP_NAME),
 //            [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://manual.slic3r.org/"); });
     helpMenu->AppendSeparator();
     append_menu_item(helpMenu, wxID_ANY, _L("System &Info"), _L("Show system information"),
         [](wxCommandEvent&) { wxGetApp().system_info(); });
     append_menu_item(helpMenu, wxID_ANY, _L("Show &Configuration Folder"), _L("Show user configuration folder (datadir)"),
         [](wxCommandEvent&) { Slic3r::GUI::desktop_open_datadir_folder(); });
-    append_menu_item(helpMenu, wxID_ANY, _(L"Report an I&ssue"), wxString::Format(_L("Report an issue on %s"), SLIC3R_APP_NAME),
+    append_menu_item(helpMenu, wxID_ANY, _L("Report an I&ssue"), wxString::Format(_L("Report an issue on %s"), SLIC3R_APP_NAME),
         [](wxCommandEvent&) { wxLaunchDefaultBrowser("https://github.com/prusa3d/slic3r/issues/new"); });
 #if ENABLE_GCODE_VIEWER
     if (wxGetApp().is_editor())
@@ -1257,7 +1257,7 @@ void MainFrame::init_menubar()
             [this](wxCommandEvent&) { m_printhost_queue_dlg->Show(); }, "upload_queue", nullptr, []() {return true; }, this);
         
         windowMenu->AppendSeparator();
-        append_menu_item(windowMenu, wxID_ANY, _(L("Open new instance")) + "\tCtrl+I", _(L("Open a new PrusaSlicer instance")),
+        append_menu_item(windowMenu, wxID_ANY, _L("Open new instance") + "\tCtrl+I", _L("Open a new PrusaSlicer instance"),
 			[this](wxCommandEvent&) { start_new_slicer(); }, "", nullptr, [this]() {return m_plater != nullptr && wxGetApp().app_config->get("single_instance") != "1"; }, this);
 
     }
@@ -1292,7 +1292,7 @@ void MainFrame::init_menubar()
         append_menu_check_item(viewMenu, wxID_ANY, _L("Show &labels") + sep + "E", _L("Show object/instance labels in 3D scene"),
             [this](wxCommandEvent&) { m_plater->show_view3D_labels(!m_plater->are_view3D_labels_shown()); }, this,
             [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_labels_shown(); }, this);
-        append_menu_check_item(viewMenu, wxID_ANY, _L("&Collapse sidebar") + sep + "Shift+Tab", _L("Collapse sidebar"),
+        append_menu_check_item(viewMenu, wxID_ANY, _L("&Collapse sidebar"), _L("Collapse sidebar"),
             [this](wxCommandEvent&) { m_plater->collapse_sidebar(!m_plater->is_sidebar_collapsed()); }, this,
             []() { return true; }, [this]() { return m_plater->is_sidebar_collapsed(); }, this);
     }
@@ -1314,8 +1314,8 @@ void MainFrame::init_menubar()
         append_menu_item(helpMenu, wxID_ANY, wxString::Format(_L("%s &Website"), SLIC3R_APP_NAME), 
                                              wxString::Format(_L("Open the %s website in your browser"), SLIC3R_APP_NAME),
             [this](wxCommandEvent&) { wxGetApp().open_web_page_localized("https://www.prusa3d.com/slicerweb"); });
-//        append_menu_item(helpMenu, wxID_ANY, wxString::Format(_(L("%s &Manual")), SLIC3R_APP_NAME),
-//                                             wxString::Format(_(L("Open the %s manual in your browser")), SLIC3R_APP_NAME),
+//        append_menu_item(helpMenu, wxID_ANY, wxString::Format(_L("%s &Manual"), SLIC3R_APP_NAME),
+//                                             wxString::Format(_L("Open the %s manual in your browser"), SLIC3R_APP_NAME),
 //            [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://manual.slic3r.org/"); });
         helpMenu->AppendSeparator();
         append_menu_item(helpMenu, wxID_ANY, _L("System &Info"), _L("Show system information"), 
@@ -1324,7 +1324,7 @@ void MainFrame::init_menubar()
             [this](wxCommandEvent&) { Slic3r::GUI::desktop_open_datadir_folder(); });
         append_menu_item(helpMenu, wxID_ANY, _L("Report an I&ssue"), wxString::Format(_L("Report an issue on %s"), SLIC3R_APP_NAME), 
             [this](wxCommandEvent&) { wxLaunchDefaultBrowser("https://github.com/prusa3d/slic3r/issues/new"); });
-        append_menu_item(helpMenu, wxID_ANY, wxString::Format(_(L("&About %s")), SLIC3R_APP_NAME), _(L("Show about dialog")),
+        append_menu_item(helpMenu, wxID_ANY, wxString::Format(_L("&About %s"), SLIC3R_APP_NAME), _L("Show about dialog"),
             [this](wxCommandEvent&) { Slic3r::GUI::about(); });
         helpMenu->AppendSeparator();
         append_menu_item(helpMenu, wxID_ANY, _L("Keyboard Shortcuts") + sep + "&?", _L("Show the list of the keyboard shortcuts"),
@@ -1469,7 +1469,7 @@ void MainFrame::quick_slice(const int qs)
 
     // select input file
     if (!(qs & qsReslice)) {
-        wxFileDialog dlg(this, _(L("Choose a file to slice (STL/OBJ/AMF/3MF/PRUSA):")),
+        wxFileDialog dlg(this, _L("Choose a file to slice (STL/OBJ/AMF/3MF/PRUSA):"),
             wxGetApp().app_config->get_last_dir(), "",
             file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         if (dlg.ShowModal() != wxID_OK)
@@ -1480,14 +1480,14 @@ void MainFrame::quick_slice(const int qs)
     }
     else {
         if (m_qs_last_input_file.IsEmpty()) {
-            wxMessageDialog dlg(this, _(L("No previously sliced file.")),
-                _(L("Error")), wxICON_ERROR | wxOK);
+            wxMessageDialog dlg(this, _L("No previously sliced file."),
+                _L("Error"), wxICON_ERROR | wxOK);
             dlg.ShowModal();
             return;
         }
         if (std::ifstream(m_qs_last_input_file.ToUTF8().data())) {
-            wxMessageDialog dlg(this, _(L("Previously sliced file ("))+m_qs_last_input_file+_(L(") not found.")),
-                _(L("File Not Found")), wxICON_ERROR | wxOK);
+            wxMessageDialog dlg(this, _L("Previously sliced file (")+m_qs_last_input_file+_L(") not found."),
+                _L("File Not Found"), wxICON_ERROR | wxOK);
             dlg.ShowModal();
             return;
         }
@@ -1522,7 +1522,7 @@ void MainFrame::quick_slice(const int qs)
     } 
     else if (qs & qsSaveAs) {
         // The following line may die if the output_filename_format template substitution fails.
-        wxFileDialog dlg(this, from_u8((boost::format(_utf8(L("Save %s file as:"))) % ((qs & qsExportSVG) ? _(L("SVG")) : _(L("G-code")))).str()),
+        wxFileDialog dlg(this, from_u8((boost::format(_utf8(L("Save %s file as:"))) % ((qs & qsExportSVG) ? _L("SVG") : _L("G-code"))).str()),
             wxGetApp().app_config->get_last_output_dir(get_dir_name(output_file)), get_base_name(input_file), 
             qs & qsExportSVG ? file_wildcards(FT_SVG) : file_wildcards(FT_GCODE),
             wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -1534,7 +1534,7 @@ void MainFrame::quick_slice(const int qs)
         wxGetApp().app_config->update_last_output_dir(get_dir_name(output_file));
     } 
     else if (qs & qsExportPNG) {
-        wxFileDialog dlg(this, _(L("Save zip file as:")),
+        wxFileDialog dlg(this, _L("Save zip file as:"),
             wxGetApp().app_config->get_last_output_dir(get_dir_name(output_file)),
             get_base_name(output_file), "*.sl1", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if (dlg.ShowModal() != wxID_OK)
@@ -1568,9 +1568,9 @@ void MainFrame::quick_slice(const int qs)
     m_progress_dialog->Destroy();
     m_progress_dialog = nullptr;
 
-    auto message = input_file_basename + _(L(" was successfully sliced."));
+    auto message = input_file_basename + _L(" was successfully sliced.");
 //     wxTheApp->notify(message);
-    wxMessageDialog(this, message, _(L("Slicing Done!")), wxOK | wxICON_INFORMATION).ShowModal();
+    wxMessageDialog(this, message, _L("Slicing Done!"), wxOK | wxICON_INFORMATION).ShowModal();
 //     };
 //     Slic3r::GUI::catch_error(this, []() { if (m_progress_dialog) m_progress_dialog->Destroy(); });
 }
@@ -1585,7 +1585,7 @@ void MainFrame::repair_stl()
 {
     wxString input_file;
     {
-        wxFileDialog dlg(this, _(L("Select the STL file to repair:")),
+        wxFileDialog dlg(this, _L("Select the STL file to repair:"),
             wxGetApp().app_config->get_last_dir(), "",
             file_wildcards(FT_STL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         if (dlg.ShowModal() != wxID_OK)
@@ -1621,7 +1621,7 @@ void MainFrame::export_config()
         return;
     }
     // Ask user for the file name for the config file.
-    wxFileDialog dlg(this, _(L("Save configuration as:")),
+    wxFileDialog dlg(this, _L("Save configuration as:"),
         !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
         !m_last_config.IsEmpty() ? get_base_name(m_last_config) : "config.ini",
         file_wildcards(FT_INI), wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -1640,7 +1640,7 @@ void MainFrame::load_config_file()
 {
     if (!wxGetApp().check_unsaved_changes())
         return;
-    wxFileDialog dlg(this, _(L("Select configuration to load:")),
+    wxFileDialog dlg(this, _L("Select configuration to load:"),
         !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
         "config.ini", "INI files (*.ini, *.gcode)|*.ini;*.INI;*.gcode;*.g", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 	wxString file;
@@ -1676,7 +1676,7 @@ void MainFrame::export_configbundle(bool export_physical_printers /*= false*/)
         return;
     }
     // Ask user for a file name.
-    wxFileDialog dlg(this, _(L("Save presets bundle as:")),
+    wxFileDialog dlg(this, _L("Save presets bundle as:"),
         !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
         SLIC3R_APP_KEY "_config_bundle.ini",
         file_wildcards(FT_INI), wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -1702,7 +1702,7 @@ void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool re
     if (!wxGetApp().check_unsaved_changes())
         return;
     if (file.IsEmpty()) {
-        wxFileDialog dlg(this, _(L("Select configuration to load:")),
+        wxFileDialog dlg(this, _L("Select configuration to load:"),
             !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
             "config.ini", file_wildcards(FT_INI), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         if (dlg.ShowModal() != wxID_OK)
@@ -1723,7 +1723,7 @@ void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool re
     // Load the currently selected preset into the GUI, update the preset selection box.
 	wxGetApp().load_current_presets();
 
-    const auto message = wxString::Format(_(L("%d presets successfully imported.")), presets_imported);
+    const auto message = wxString::Format(_L("%d presets successfully imported."), presets_imported);
     Slic3r::GUI::show_info(this, message, wxString("Info"));
 }
 
