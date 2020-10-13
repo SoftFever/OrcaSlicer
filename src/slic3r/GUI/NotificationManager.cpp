@@ -51,9 +51,6 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
 {
 	//init();
 }
-NotificationManager::PopNotification::~PopNotification()
-{
-}
 NotificationManager::PopNotification::RenderResult NotificationManager::PopNotification::render(GLCanvas3D& canvas, const float& initial_y, bool move_from_overlay, float overlay_width, bool move_from_slope, float slope_width)
 {
 	if (!m_initialized) {
@@ -618,13 +615,6 @@ NotificationManager::NotificationManager(wxEvtHandler* evt_handler) :
 	m_evt_handler(evt_handler)
 {
 }
-NotificationManager::~NotificationManager()
-{
-	for (PopNotification* notification : m_pop_notifications)
-	{
-		delete notification;
-	}
-}
 void NotificationManager::push_notification(const NotificationType type, GLCanvas3D& canvas, int timestamp)
 {
 	auto it = std::find_if(basic_notifications.begin(), basic_notifications.end(),
@@ -664,17 +654,12 @@ void NotificationManager::push_slicing_warning_notification(const std::string& t
 {
 	NotificationData data { NotificationType::SlicingWarning, NotificationLevel::WarningNotification, 0,  _u8L("WARNING:") + "\n" + text };
 
-	NotificationManager::SlicingWarningNotification* notification = new NotificationManager::SlicingWarningNotification(data, m_next_id++, m_evt_handler);
+	auto notification = std::make_unique<NotificationManager::SlicingWarningNotification>(data, m_next_id++, m_evt_handler);
 	notification->set_object_id(oid);
 	notification->set_warning_step(warning_step);
-	if 
-		(push_notification_data(notification, canvas, 0)) {
+	if (push_notification_data(std::move(notification), canvas, 0)) {
 		notification->set_gray(gray);		
 	}
-	else {
-		delete notification;
-	}
-	
 }
 void NotificationManager::push_plater_error_notification(const std::string& text, GLCanvas3D& canvas)
 {
@@ -688,7 +673,7 @@ void NotificationManager::push_plater_warning_notification(const std::string& te
 }
 void NotificationManager::close_plater_error_notification(const std::string& text)
 {
-	for (PopNotification* notification : m_pop_notifications) {
+	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
 		if (notification->get_type() == NotificationType::PlaterError && notification->compare_text(_u8L("ERROR:") + "\n" + text)) {
 			notification->close();
 		}
@@ -696,7 +681,7 @@ void NotificationManager::close_plater_error_notification(const std::string& tex
 }
 void NotificationManager::close_plater_warning_notification(const std::string& text)
 {
-	for (PopNotification* notification : m_pop_notifications) {
+	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
 		if (notification->get_type() == NotificationType::PlaterWarning && notification->compare_text(_u8L("WARNING:") + "\n" + text)) {
 			notification->close();
 		}
@@ -704,7 +689,7 @@ void NotificationManager::close_plater_warning_notification(const std::string& t
 }
 void NotificationManager::set_all_slicing_errors_gray(bool g)
 {
-	for (PopNotification* notification : m_pop_notifications) {
+	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
 		if (notification->get_type() == NotificationType::SlicingError) {
 			notification->set_gray(g);
 		}
@@ -712,7 +697,7 @@ void NotificationManager::set_all_slicing_errors_gray(bool g)
 }
 void NotificationManager::set_all_slicing_warnings_gray(bool g)
 {
-	for (PopNotification* notification : m_pop_notifications) {
+	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
 		if (notification->get_type() == NotificationType::SlicingWarning) {
 			notification->set_gray(g);
 		}
@@ -720,7 +705,7 @@ void NotificationManager::set_all_slicing_warnings_gray(bool g)
 }
 void NotificationManager::set_slicing_warning_gray(const std::string& text, bool g)
 {
-	for (PopNotification* notification : m_pop_notifications) {
+	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
 		if (notification->get_type() == NotificationType::SlicingWarning && notification->compare_text(text)) {
 			notification->set_gray(g);
 		}
@@ -728,7 +713,7 @@ void NotificationManager::set_slicing_warning_gray(const std::string& text, bool
 }
 void NotificationManager::close_slicing_errors_and_warnings()
 {
-	for (PopNotification* notification : m_pop_notifications) {
+	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
 		if (notification->get_type() == NotificationType::SlicingError || notification->get_type() == NotificationType::SlicingWarning) {
 			notification->close();
 		}
@@ -745,33 +730,30 @@ void NotificationManager::push_slicing_complete_notification(GLCanvas3D& canvas,
 		time = 0;
 	}
 	NotificationData data{ NotificationType::SlicingComplete, NotificationLevel::RegularNotification, time,  _u8L("Slicing finished."), hypertext };
-
-	NotificationManager::SlicingCompleteLargeNotification* notification = new NotificationManager::SlicingCompleteLargeNotification(data, m_next_id++, m_evt_handler, large);
-	if (!push_notification_data(notification, canvas, timestamp)) {
-		delete notification;
-	}	
+	push_notification_data(std::make_unique<NotificationManager::SlicingCompleteLargeNotification>(data, m_next_id++, m_evt_handler, large),
+		canvas, timestamp);
 }
 void NotificationManager::set_slicing_complete_print_time(std::string info)
 {
-	for (PopNotification* notification : m_pop_notifications) {
+	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
 		if (notification->get_type() == NotificationType::SlicingComplete) {
-			dynamic_cast<SlicingCompleteLargeNotification*>(notification)->set_print_info(info);
+			dynamic_cast<SlicingCompleteLargeNotification*>(notification.get())->set_print_info(info);
 			break;
 		}
 	}
 }
 void NotificationManager::set_slicing_complete_large(bool large)
 {
-	for (PopNotification* notification : m_pop_notifications) {
+	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
 		if (notification->get_type() == NotificationType::SlicingComplete) {
-			dynamic_cast<SlicingCompleteLargeNotification*>(notification)->set_large(large);
+			dynamic_cast<SlicingCompleteLargeNotification*>(notification.get())->set_large(large);
 			break;
 		}
 	}
 }
 void NotificationManager::close_notification_of_type(const NotificationType type)
 {
-	for (PopNotification* notification : m_pop_notifications) {
+	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
 		if (notification->get_type() == type) {
 			notification->close();
 		}
@@ -779,9 +761,9 @@ void NotificationManager::close_notification_of_type(const NotificationType type
 }
 void NotificationManager::compare_warning_oids(const std::vector<size_t>& living_oids)
 {
-	for (PopNotification* notification : m_pop_notifications) {
+	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
 		if (notification->get_type() == NotificationType::SlicingWarning) {
-			auto w = dynamic_cast<SlicingWarningNotification*>(notification);
+			auto w = dynamic_cast<SlicingWarningNotification*>(notification.get());
 			bool found = false;
 			for (size_t oid : living_oids) {
 				if (w->get_object_id() == oid) {
@@ -796,13 +778,9 @@ void NotificationManager::compare_warning_oids(const std::vector<size_t>& living
 }
 bool NotificationManager::push_notification_data(const NotificationData &notification_data,  GLCanvas3D& canvas, int timestamp)
 {
-	PopNotification* n = new PopNotification(notification_data, m_next_id++, m_evt_handler);
-	bool r = push_notification_data(n, canvas, timestamp);
-	if (!r)
-		delete n;
-	return r;
+	return push_notification_data(std::make_unique<PopNotification>(notification_data, m_next_id++, m_evt_handler), canvas, timestamp);
 }
-bool NotificationManager::push_notification_data(NotificationManager::PopNotification* notification, GLCanvas3D& canvas, int timestamp)
+bool NotificationManager::push_notification_data(std::unique_ptr<NotificationManager::PopNotification> notification, GLCanvas3D& canvas, int timestamp)
 {
 	// if timestamped notif, push only new one
 	if (timestamp != 0) {
@@ -812,8 +790,8 @@ bool NotificationManager::push_notification_data(NotificationManager::PopNotific
 			return false;
 		}
 	}
-	if (!this->find_older(notification)) {
-			m_pop_notifications.emplace_back(notification);
+	if (!this->find_older(notification.get())) {
+			m_pop_notifications.emplace_back(std::move(notification));
 		canvas.request_extra_frame();
 		return true;
 	} else {
@@ -833,7 +811,6 @@ void NotificationManager::render_notifications(GLCanvas3D& canvas, float overlay
 	// iterate thru notifications and render them / erease them
 	for (auto it = m_pop_notifications.begin(); it != m_pop_notifications.end();) {
 		if ((*it)->get_finished()) {
-			delete (*it);
 			it = m_pop_notifications.erase(it);
 		} else {
 			(*it)->set_paused(m_hovered);
@@ -864,7 +841,7 @@ void NotificationManager::render_notifications(GLCanvas3D& canvas, float overlay
 	{
 		if (wxGetLocalTime() - m_last_time == 1)
 		{
-			for(auto notification : m_pop_notifications)
+			for(auto &notification : m_pop_notifications)
 			{
 				notification->substract_remaining_time();
 			}
@@ -879,7 +856,7 @@ void NotificationManager::render_notifications(GLCanvas3D& canvas, float overlay
 
 void NotificationManager::sort_notifications()
 {
-	std::sort(m_pop_notifications.begin(), m_pop_notifications.end(), [](PopNotification* n1, PopNotification* n2) {
+	std::sort(m_pop_notifications.begin(), m_pop_notifications.end(), [](const std::unique_ptr<PopNotification> &n1, const std::unique_ptr<PopNotification> &n2) {
 		int n1l = (int)n1->get_data().level;
 		int n2l = (int)n2->get_data().level;
 		if (n1l == n2l && n1->get_is_gray() && !n2->get_is_gray())
@@ -899,7 +876,7 @@ bool NotificationManager::find_older(NotificationManager::PopNotification* notif
 					continue;
 			}else if (type == NotificationType::SlicingWarning) {
 				auto w1 = dynamic_cast<SlicingWarningNotification*>(notification);
-				auto w2 = dynamic_cast<SlicingWarningNotification*>(*it);
+				auto w2 = dynamic_cast<SlicingWarningNotification*>(it->get());
 				if (w1 != nullptr && w2 != nullptr) {
 					if (!(*it)->compare_text(text) || w1->get_object_id() != w2->get_object_id()) {
 						continue;
@@ -920,14 +897,14 @@ bool NotificationManager::find_older(NotificationManager::PopNotification* notif
 void NotificationManager::set_in_preview(bool preview) 
 { 
     m_in_preview = preview;
-    for (PopNotification* notification : m_pop_notifications) {
+    for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::PlaterWarning) 
             notification->hide(preview);     
     }
 }
 bool NotificationManager::has_error_notification()
 {
-    for (PopNotification* notification : m_pop_notifications) {
+    for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_data().level == NotificationLevel::ErrorNotification)
             return true;
     }

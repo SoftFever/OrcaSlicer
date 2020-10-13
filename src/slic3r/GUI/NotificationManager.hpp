@@ -55,8 +55,6 @@ public:
 	};
 
 	NotificationManager(wxEvtHandler* evt_handler);
-	~NotificationManager();
-
 	
 	// only type means one of basic_notification (see below)
 	void push_notification(const NotificationType type, GLCanvas3D& canvas, int timestamp = 0);
@@ -118,7 +116,7 @@ private:
 			Hovered
 		};
 		 PopNotification(const NotificationData &n, const int id, wxEvtHandler* evt_handler);
-		virtual ~PopNotification();
+		virtual ~PopNotification() = default;
 		RenderResult           render(GLCanvas3D& canvas, const float& initial_y, bool move_from_overlay, float overlay_width, bool move_from_slope, float slope_width);
 		// close will dissapear notification on next render
 		void                   close() { m_close_pending = true; }
@@ -243,14 +241,14 @@ private:
 	//pushes notification into the queue of notifications that are rendered
 	//can be used to create custom notification
 	bool push_notification_data(const NotificationData& notification_data, GLCanvas3D& canvas, int timestamp);
-	bool push_notification_data(NotificationManager::PopNotification* notification, GLCanvas3D& canvas, int timestamp);
+	bool push_notification_data(std::unique_ptr<NotificationManager::PopNotification> notification, GLCanvas3D& canvas, int timestamp);
 	//finds older notification of same type and moves it to the end of queue. returns true if found
 	bool find_older(NotificationManager::PopNotification* notification);
 	void sort_notifications();
     bool has_error_notification();
 
 	wxEvtHandler*                m_evt_handler;
-	std::deque<PopNotification*> m_pop_notifications;
+	std::deque<std::unique_ptr<PopNotification>> m_pop_notifications;
 	int                          m_next_id { 1 };
 	long                         m_last_time { 0 };
 	bool                         m_hovered { false };
