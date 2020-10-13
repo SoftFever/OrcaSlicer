@@ -2,6 +2,7 @@
 #include "ConfigExceptions.hpp"
 #include "Plater.hpp"
 #include "GUI_App.hpp"
+#include "OG_CustomCtrl.hpp"
 
 #include <utility>
 #include <wx/numformatter.h>
@@ -114,7 +115,7 @@ OptionsGroup::OptionsGroup(	wxWindow* _parent, const wxString& title,
 
 void OptionsGroup::add_undo_buttons_to_sizer(wxSizer* sizer, const t_field& field)
 {
-	if (!m_show_modified_btns) {
+	if (!m_show_modified_btns && field->m_Undo_btn) {
         field->m_Undo_btn->set_as_hidden();
 		field->m_Undo_to_sys_btn->set_as_hidden();
 		field->m_blinking_bmp->Hide();
@@ -147,11 +148,14 @@ void OptionsGroup::append_line(const Line& line)
 
 void OptionsGroup::activate_line(Line& line)
 {
+	m_use_custom_ctrl_as_parent = false;
+
 	if (line.full_width && (
 		line.widget != nullptr ||
 		!line.get_extra_widgets().empty())
 		) {
         if (line.widget != nullptr) {
+			// description lines
             sizer->Add(line.widget(this->ctrl_parent()), 0, wxEXPAND | wxALL, wxOSX ? 0 : 15);
             return;
         }
@@ -168,6 +172,11 @@ void OptionsGroup::activate_line(Line& line)
 		}
     }
 
+    if (!custom_ctrl && m_show_modified_btns) {
+        custom_ctrl = new OG_CustomCtrl((wxWindow*)this->stb, this);
+        sizer->Add(custom_ctrl, 0, wxEXPAND | wxALL, wxOSX || !staticbox ? 0 : 5);
+    }
+
 	auto option_set = line.get_options();
 
 	// Set sidetext width for a better alignment of options in line
@@ -181,36 +190,29 @@ void OptionsGroup::activate_line(Line& line)
         option_set.front().opt.label.empty() &&
 		option_set.front().opt.sidetext.size() == 0 && option_set.front().side_widget == nullptr && 
 		line.get_extra_widgets().size() == 0) {
-		wxSizer* tmp_sizer;
-#if 0//#ifdef __WXGTK__
-		tmp_sizer = new wxBoxSizer(wxVERTICAL);
-        m_panel->SetSizer(tmp_sizer);
-        m_panel->Layout();
-#else
-        tmp_sizer = sizer;
-#endif /* __WXGTK__ */
 
 		const auto& option = option_set.front();
 		const auto& field = build_field(option);
 
-		auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-		add_undo_buttons_to_sizer(btn_sizer, field);
-		tmp_sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, 0);
+		if (!custom_ctrl) {
+			auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+			add_undo_buttons_to_sizer(btn_sizer, field);
+			sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, 0);
+		}
 		if (is_window_field(field))
-			tmp_sizer->Add(field->getWindow(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
+			sizer->Add(field->getWindow(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
 		if (is_sizer_field(field))
-			tmp_sizer->Add(field->getSizer(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
+			sizer->Add(field->getSizer(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
 		return;
 	}
 
     auto grid_sizer = m_grid_sizer;
-#if 0//#ifdef __WXGTK__
-	m_panel->SetSizer(m_grid_sizer);
-	m_panel->Layout();
-#endif /* __WXGTK__ */
+
+    if (custom_ctrl)
+        m_use_custom_ctrl_as_parent = true;
 
 	// if we have an extra column, build it
-	if (extra_column)
+	if (extra_column && !m_show_modified_btns)
 	{
 		m_extra_column_item_ptrs.push_back(extra_column(this->ctrl_parent(), line));
 		grid_sizer->Add(m_extra_column_item_ptrs.back(), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 3);
@@ -219,55 +221,76 @@ void OptionsGroup::activate_line(Line& line)
     // Build a label if we have it
 	wxStaticText* label=nullptr;
     if (label_width != 0) {
-    	if (! line.near_label_widget || ! line.label.IsEmpty()) {
-    		// Only create the label if it is going to be displayed.
-			long label_style = staticbox ? 0 : wxALIGN_RIGHT;
-#ifdef __WXGTK__
-			// workaround for correct text align of the StaticBox on Linux
-			// flags wxALIGN_RIGHT and wxALIGN_CENTRE don't work when Ellipsize flags are _not_ given.
-			// Text is properly aligned only when Ellipsize is checked.
-			label_style |= staticbox ? 0 : wxST_ELLIPSIZE_END;
-#endif /* __WXGTK__ */
-			label = new wxStaticText(this->ctrl_parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ": "),
-				wxDefaultPosition, wxSize(label_width * wxGetApp().em_unit(), -1), label_style);
-			label->SetBackgroundStyle(wxBG_STYLE_PAINT);
-	        label->SetFont(wxGetApp().normal_font());
-	        label->Wrap(label_width*wxGetApp().em_unit()); // avoid a Linux/GTK bug
-	    }
-        if (!line.near_label_widget)
-            grid_sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, line.label.IsEmpty() ? 0 : 5);
-        else {
-            m_near_label_widget_ptrs.push_back(line.near_label_widget(this->ctrl_parent()));
+        if (custom_ctrl) {
+            if (line.near_label_widget) {
+                m_near_label_widget_ptrs.push_back(line.near_label_widget(this->ctrl_parent()));
 
-            if (line.label.IsEmpty())
-                grid_sizer->Add(m_near_label_widget_ptrs.back(), 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 7);
-            else {
-                // If we're here, we have some widget near the label
-                // so we need a horizontal sizer to arrange these things
-                auto sizer = new wxBoxSizer(wxHORIZONTAL);
-                grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM | wxTOP | wxLEFT), staticbox ? 0 : 1);
-                sizer->Add(m_near_label_widget_ptrs.back(), 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 7);
-                sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, 5);
+                wxPoint pos = custom_ctrl->get_pos(line);
+                m_near_label_widget_ptrs.back()->SetPosition(pos);
             }
         }
-		if (label != nullptr && line.label_tooltip != "")
-			label->SetToolTip(line.label_tooltip);
+        else {
+            if (!line.near_label_widget || !line.label.IsEmpty()) {
+                // Only create the label if it is going to be displayed.
+                long label_style = staticbox ? 0 : wxALIGN_RIGHT;
+#ifdef __WXGTK__
+                // workaround for correct text align of the StaticBox on Linux
+                // flags wxALIGN_RIGHT and wxALIGN_CENTRE don't work when Ellipsize flags are _not_ given.
+                // Text is properly aligned only when Ellipsize is checked.
+                label_style |= staticbox ? 0 : wxST_ELLIPSIZE_END;
+#endif /* __WXGTK__ */
+                label = new wxStaticText(this->ctrl_parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ": "),
+                    wxDefaultPosition, wxSize(label_width * wxGetApp().em_unit(), -1), label_style);
+                label->SetBackgroundStyle(wxBG_STYLE_PAINT);
+                label->SetFont(wxGetApp().normal_font());
+                label->Wrap(label_width * wxGetApp().em_unit()); // avoid a Linux/GTK bug
+            }
+            if (!line.near_label_widget)
+                grid_sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, line.label.IsEmpty() ? 0 : 5);
+            else {
+                m_near_label_widget_ptrs.push_back(line.near_label_widget(this->ctrl_parent()));
+
+                if (line.label.IsEmpty())
+                    grid_sizer->Add(m_near_label_widget_ptrs.back(), 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 7);
+                else {
+                    // If we're here, we have some widget near the label
+                    // so we need a horizontal sizer to arrange these things
+                    auto sizer = new wxBoxSizer(wxHORIZONTAL);
+                    grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM | wxTOP | wxLEFT), staticbox ? 0 : 1);
+                    sizer->Add(m_near_label_widget_ptrs.back(), 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 7);
+                    sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, 5);
+                }
+            }
+            if (label != nullptr && line.label_tooltip != "")
+                label->SetToolTip(line.label_tooltip);
+        }
     }
 
 	if (line.full_Label != nullptr)
 		*line.full_Label = label; // Initiate the pointer to the control of the full label, if we need this one.
 	// If there's a widget, build it and add the result to the sizer.
 	if (line.widget != nullptr) {
-		auto wgt = line.widget(this->ctrl_parent());
+		auto wgt = line.widget(custom_ctrl ? custom_ctrl : this->ctrl_parent());
+        if (custom_ctrl) {
+            auto children = wgt->GetChildren();
+            wxPoint pos = custom_ctrl->get_pos(line);
+            for (auto child : children)
+                if (child->IsWindow()) {
+                    child->GetWindow()->SetPosition(pos);
+                    pos.x += child->GetWindow()->GetBestSize().x + custom_ctrl->m_h_gap;
+                }
+        }
 		// If widget doesn't have label, don't use border
-		grid_sizer->Add(wgt, 0, wxEXPAND | wxBOTTOM | wxTOP, (wxOSX || line.label.IsEmpty()) ? 0 : 5);
+        else
+            grid_sizer->Add(wgt, 0, wxEXPAND | wxBOTTOM | wxTOP, (wxOSX || line.label.IsEmpty()) ? 0 : 5);
 		return;
 	}
 
 	// If we're here, we have more than one option or a single option with sidetext
     // so we need a horizontal sizer to arrange these things
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
-	grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM | wxTOP | wxLEFT), staticbox ? 0 : 1);
+    if (!custom_ctrl)
+        grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM | wxTOP | wxLEFT), staticbox ? 0 : 1);
 	// If we have a single option with no sidetext just add it directly to the grid sizer
 	if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
         option_set.front().opt.label.empty() &&
@@ -275,20 +298,28 @@ void OptionsGroup::activate_line(Line& line)
 		const auto& option = option_set.front();
 		const auto& field = build_field(option, label);
 
-		add_undo_buttons_to_sizer(sizer, field);
-		if (is_window_field(field))
-			sizer->Add(field->getWindow(), option.opt.full_width ? 1 : 0, //(option.opt.full_width ? wxEXPAND : 0) |
-				wxBOTTOM | wxTOP | (option.opt.full_width ? wxEXPAND : wxALIGN_CENTER_VERTICAL), (wxOSX || !staticbox) ? 0 : 2);
-		if (is_sizer_field(field))
-			sizer->Add(field->getSizer(), 1, /*(*/option.opt.full_width ? wxEXPAND : /*0) |*/ wxALIGN_CENTER_VERTICAL, 0);
-		return;
+        if (!custom_ctrl)
+            add_undo_buttons_to_sizer(sizer, field);
+        if (is_window_field(field)) {
+            if (custom_ctrl) {
+                field->getWindow()->SetPosition(custom_ctrl->get_pos(line, field.get()));
+                if (option.opt.full_width)
+                    field->getWindow()->SetSize(wxSize(3 * Field::def_width_wider() * wxGetApp().em_unit(), -1));
+            }
+            else
+                sizer->Add(field->getWindow(), option.opt.full_width ? 1 : 0,
+                    wxBOTTOM | wxTOP | (option.opt.full_width ? wxEXPAND : wxALIGN_CENTER_VERTICAL), (wxOSX || !staticbox) ? 0 : 2);
+        }
+        if (is_sizer_field(field))
+            sizer->Add(field->getSizer(), 1, option.opt.full_width ? wxEXPAND : wxALIGN_CENTER_VERTICAL, 0);
+        return;
 	}
 
     for (auto opt : option_set) {
 		ConfigOptionDef option = opt.opt;
 		wxSizer* sizer_tmp = sizer;
 		// add label if any
-		if (!option.label.empty()) {
+		if (!option.label.empty() && !custom_ctrl) {
 //!			To correct translation by context have to use wxGETTEXT_IN_CONTEXT macro from wxWidget 3.1.1
 			wxString str_label = (option.label == L_CONTEXT("Top", "Layers") || option.label == L_CONTEXT("Bottom", "Layers")) ?
 				_CTX(option.label, "Layers") :
@@ -303,22 +334,40 @@ void OptionsGroup::activate_line(Line& line)
 		// add field
 		const Option& opt_ref = opt;
 		auto& field = build_field(opt_ref, label);
-		add_undo_buttons_to_sizer(sizer_tmp, field);
+        if (!custom_ctrl)
+            add_undo_buttons_to_sizer(sizer_tmp, field);
         if (option_set.size() == 1 && option_set.front().opt.full_width)
         {
-            const auto v_sizer = new wxBoxSizer(wxVERTICAL);
-            sizer_tmp->Add(v_sizer, 1, wxEXPAND);
-            is_sizer_field(field) ?
-                v_sizer->Add(field->getSizer(), 0, wxEXPAND) :
-                v_sizer->Add(field->getWindow(), 0, wxEXPAND);
+            if (custom_ctrl) {
+                if (is_window_field(field))
+                    field->getWindow()->SetPosition(custom_ctrl->get_pos(line, field.get()));
+                else {
+                }
+            }
+            else {
+                const auto v_sizer = new wxBoxSizer(wxVERTICAL);
+                sizer_tmp->Add(v_sizer, 1, wxEXPAND);
+                is_sizer_field(field) ?
+                    v_sizer->Add(field->getSizer(), 0, wxEXPAND) :
+                    v_sizer->Add(field->getWindow(), 0, wxEXPAND);
+            }
             break;//return;
         }
 
-		is_sizer_field(field) ?
-			sizer_tmp->Add(field->getSizer(), 0, wxALIGN_CENTER_VERTICAL, 0) :
-			sizer_tmp->Add(field->getWindow(), 0, wxALIGN_CENTER_VERTICAL, 0);
+        if (custom_ctrl) {
+            if (is_window_field(field))
+                field->getWindow()->SetPosition(custom_ctrl->get_pos(line, field.get()));
+            else {
+            }
+        }
+        else {
+            is_sizer_field(field) ?
+                sizer_tmp->Add(field->getSizer(), 0, wxALIGN_CENTER_VERTICAL, 0) :
+                sizer_tmp->Add(field->getWindow(), 0, wxALIGN_CENTER_VERTICAL, 0);
+        }
 
 		// add sidetext if any
+		if (!custom_ctrl)
 		if (!option.sidetext.empty() || sidetext_width > 0) {
 			auto sidetext = new wxStaticText(	this->ctrl_parent(), wxID_ANY, _(option.sidetext), wxDefaultPosition, 
 												wxSize(sidetext_width != -1 ? sidetext_width*wxGetApp().em_unit() : -1, -1), wxALIGN_LEFT);
@@ -333,11 +382,18 @@ void OptionsGroup::activate_line(Line& line)
 			sizer_tmp->Add(opt.side_widget(this->ctrl_parent())/*!.target<wxWindow>()*/, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1);	//! requires verification
 		}
 
+        if (custom_ctrl)
+            continue;
+
 		if (opt.opt_id != option_set.back().opt_id) //! istead of (opt != option_set.back())
 		{
 			sizer_tmp->AddSpacer(6);
 	    }
 	}
+
+    if (custom_ctrl)
+        return;
+
 	// add extra sizers if any
 	for (auto extra_widget : line.get_extra_widgets()) 
     {
@@ -416,6 +472,15 @@ void OptionsGroup::clear()
 	for (Line& line : m_lines)
 		if(line.full_Label)
 			*line.full_Label = nullptr;
+
+    if (custom_ctrl) {
+        for (auto const &item : m_fields) {
+            wxWindow* win = item.second.get()->getWindow();
+            if (win)
+                win = nullptr;
+        }
+        custom_ctrl = nullptr;
+    }
 
 	m_extra_column_item_ptrs.clear();
 	m_near_label_widget_ptrs.clear();

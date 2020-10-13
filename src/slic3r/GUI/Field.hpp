@@ -168,7 +168,7 @@ public:
     bool 	set_undo_bitmap(const ScalableBitmap *bmp) {
     	if (m_undo_bitmap != bmp) {
     		m_undo_bitmap = bmp;
-    		m_Undo_btn->SetBitmap_(*bmp);
+//    		m_Undo_btn->SetBitmap_(*bmp);
     		return true;
     	}
     	return false;
@@ -177,33 +177,33 @@ public:
     bool 	set_undo_to_sys_bitmap(const ScalableBitmap *bmp) {
     	if (m_undo_to_sys_bitmap != bmp) {
     		m_undo_to_sys_bitmap = bmp;
-    		m_Undo_to_sys_btn->SetBitmap_(*bmp);
+//    		m_Undo_to_sys_btn->SetBitmap_(*bmp);
     		return true;
     	}
     	return false;
     }
 
 	bool	set_label_colour(const wxColour *clr) {
-		if (m_Label == nullptr) return false;
+//		if (m_Label == nullptr) return false;
 		if (m_label_color != clr) {
 			m_label_color = clr;
-			m_Label->SetForegroundColour(*clr);
-			m_Label->Refresh(true);
+//			m_Label->SetForegroundColour(*clr);
+//			m_Label->Refresh(true);
 		}
 		return false;
 	}
 
 	bool	set_label_colour_force(const wxColour *clr) {
 		if (m_Label == nullptr) return false;
-		m_Label->SetForegroundColour(*clr);
-		m_Label->Refresh(true);
+//		m_Label->SetForegroundColour(*clr);
+//		m_Label->Refresh(true);
 		return false;
 	}
 
 	bool 	set_undo_tooltip(const wxString *tip) {
 		if (m_undo_tooltip != tip) {
 			m_undo_tooltip = tip;
-			m_Undo_btn->SetToolTip(*tip);
+//			m_Undo_btn->SetToolTip(*tip);
 			return true;
 		}
 		return false;
@@ -212,7 +212,7 @@ public:
 	bool 	set_undo_to_sys_tooltip(const wxString *tip) {
 		if (m_undo_to_sys_tooltip != tip) {
 			m_undo_to_sys_tooltip = tip;
-			m_Undo_to_sys_btn->SetToolTip(*tip);
+//			m_Undo_to_sys_btn->SetToolTip(*tip);
 			return true;
 		}
 		return false;
@@ -234,6 +234,12 @@ public:
 	static int def_width_thinner()	;
 
 	BlinkingBitmap*			blinking_bitmap() const { return m_blinking_bmp;}
+
+	const ScalableBitmap*	undo_bitmap()			{ return m_undo_bitmap; }
+	const wxString*			undo_tooltip()			{ return m_undo_tooltip; }
+	const ScalableBitmap*	undo_to_sys_bitmap()	{ return m_undo_to_sys_bitmap; }
+	const wxString*			undo_to_sys_tooltip()	{ return m_undo_to_sys_tooltip; }
+	const wxColour*			label_color()			{ return m_label_color; }
 
 protected:
 	RevertButton*			m_Undo_btn = nullptr;

@@ -111,6 +111,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Field.hpp
     GUI/OptionsGroup.cpp
     GUI/OptionsGroup.hpp
+    GUI/OG_CustomCtrl.cpp
+    GUI/OG_CustomCtrl.hpp
     GUI/BedShapeDialog.cpp
     GUI/BedShapeDialog.hpp
     GUI/2DBed.cpp

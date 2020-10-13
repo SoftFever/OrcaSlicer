@@ -26,6 +26,7 @@ namespace Slic3r { namespace GUI {
 
 // Thrown if the building of a parameter page is canceled.
 class UIBuildCanceled : public std::exception {};
+class OG_CustomCtrl;
 
 /// Widget type describes a function object that returns a wxWindow (our widget) and accepts a wxWidget (parent window).
 using widget_t = std::function<wxSizer*(wxWindow*)>;//!std::function<wxWindow*(wxWindow*)>;
@@ -52,6 +53,7 @@ public:
     wxString	label_tooltip {wxString("")};
     size_t		full_width {0}; 
 	wxStaticText**	full_Label {nullptr};
+	wxColor*		full_Label_color {nullptr};
     widget_t	widget {nullptr};
     std::function<wxWindow*(wxWindow*)>	near_label_widget{ nullptr };
 
@@ -84,6 +86,7 @@ public:
     const wxString	title;
     size_t			label_width = 20 ;// {200};
     wxSizer*		sizer {nullptr};
+	OG_CustomCtrl*  custom_ctrl{ nullptr };
     column_t		extra_column {nullptr};
     t_change		m_on_change { nullptr };
 	// To be called when the field loses focus, to assign a new initial value to the field.
@@ -119,7 +122,7 @@ public:
 #endif /* __WXGTK__ */
 
     wxWindow* ctrl_parent() const {
-    	return this->stb ? (wxWindow*)this->stb : this->parent();
+    	return this->stb ? (this->custom_ctrl && m_use_custom_ctrl_as_parent ? (wxWindow*)this->custom_ctrl : (wxWindow*)this->stb) : this->parent();
     }
 
 	void		append_line(const Line& line);
@@ -188,6 +191,8 @@ public:
 
     wxGridSizer*        get_grid_sizer() { return m_grid_sizer; }
 
+	const std::vector<Line>& get_lines() { return m_lines; }
+
 protected:
 	std::map<t_config_option_key, Option>	m_options;
     wxWindow*				m_parent {nullptr};
@@ -205,6 +210,9 @@ protected:
     wxGridSizer*			m_grid_sizer {nullptr};
 	// "true" if option is created in preset tabs
 	bool					m_show_modified_btns{ false };
+
+	// "true" if control should be created on custom_ctrl
+	bool					m_use_custom_ctrl_as_parent { false };
 
 	// This panel is needed for correct showing of the ToolTips for Button, StaticText and CheckBox
 	// Tooltips on GTK doesn't work inside wxStaticBoxSizer unless you insert a panel 

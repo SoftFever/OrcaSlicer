@@ -63,18 +63,23 @@ Field::~Field()
 		m_back_to_initial_value = nullptr;
 	if (m_back_to_sys_value)
 		m_back_to_sys_value = nullptr;
+	if (getWindow()) {
+		wxWindow* win = getWindow();
+		win->Destroy();
+		win = nullptr;
+	}
 }
 
 void Field::PostInitialize()
 {
 	auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
-	m_Undo_btn			= new RevertButton(m_parent, "bullet_white.png");
-	m_Undo_to_sys_btn	= new RevertButton(m_parent, "bullet_white.png");
+//	m_Undo_btn			= new RevertButton(m_parent, "bullet_white.png");
+//	m_Undo_to_sys_btn	= new RevertButton(m_parent, "bullet_white.png");
 
-    m_Undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_back_to_initial_value(); }));
-	m_Undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_back_to_sys_value(); }));
+//    m_Undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_back_to_initial_value(); }));
+//	m_Undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_back_to_sys_value(); }));
 
-	m_blinking_bmp		= new BlinkingBitmap(m_parent);
+//	m_blinking_bmp		= new BlinkingBitmap(m_parent);
 
 	switch (m_opt.type)
 	{
