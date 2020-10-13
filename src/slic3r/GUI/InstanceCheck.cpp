@@ -51,7 +51,7 @@ namespace instance_check_internal
 		} 
 		ret.cl_string = escape_strings_cstyle(arguments);
 		BOOST_LOG_TRIVIAL(debug) << "single instance: " << 
-			(ret.should_send.has_value() ? (ret.should_send.value() ? "true" : "false") : "undefined") << 
+            (ret.should_send.has_value() ? (*ret.should_send ? "true" : "false") : "undefined") <<
 			". other params: " << ret.cl_string;
 		return ret;
 	}
