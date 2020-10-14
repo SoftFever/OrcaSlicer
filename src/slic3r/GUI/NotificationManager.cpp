@@ -36,11 +36,34 @@ namespace Notifications_Internal{
 			ImGui::PushStyleColor(idx, col);
 	}
 }
-//ScalableBitmap bmp_icon;
+
+#if 1
+// Reuse ImGUI Windows.
+int NotificationManager::NotificationIDProvider::allocate_id() 
+{
+	int id;
+	if (m_released_ids.empty())
+		id = ++m_next_id;
+	else {
+		id = m_released_ids.back();
+		m_released_ids.pop_back();
+	}
+	return id;
+}
+void NotificationManager::NotificationIDProvider::release_id(int id) 
+{
+	m_released_ids.push_back(id);
+}
+#else
+// Don't reuse ImGUI Windows, allocate a new ID every time.
+int NotificationManager::NotificationIDProvider::allocate_id() { return ++ m_next_id; }
+void NotificationManager::NotificationIDProvider::release_id(int) {}
+#endif
+
 //------PopNotification--------
-NotificationManager::PopNotification::PopNotification(const NotificationData &n, const int id, wxEvtHandler* evt_handler) :
+NotificationManager::PopNotification::PopNotification(const NotificationData &n, NotificationIDProvider &id_provider, wxEvtHandler* evt_handler) :
 	  m_data                (n)
-	, m_id                  (id)    
+	, m_id_provider   		(id_provider)
 	, m_remaining_time      (n.duration)
 	, m_last_remaining_time (n.duration)
 	, m_counting_down       (n.duration != 0)
@@ -71,7 +94,6 @@ NotificationManager::PopNotification::RenderResult NotificationManager::PopNotif
 	Size            cnv_size = canvas.get_canvas_size();
 	ImGuiWrapper&   imgui = *wxGetApp().imgui();
 	bool            shown = true;
-	std::string     name;
 	ImVec2          mouse_pos = ImGui::GetMousePos();
 	float           right_gap = SPACE_RIGHT_PANEL + (move_from_overlay ? overlay_width + m_line_height * 5 : (move_from_slope ? slope_width /*+ m_line_height * 0.3f*/ : 0));
 
@@ -134,8 +156,15 @@ NotificationManager::PopNotification::RenderResult NotificationManager::PopNotif
 	}
 
 	//name of window - probably indentifies window and is shown so last_end add whitespaces according to id
-	for (size_t i = 0; i < m_id; i++)
-		name += " ";
+	if (! m_id)
+		m_id = m_id_provider.allocate_id();
+	std::string name;
+	{
+		// Create a unique ImGUI window name. The name may be recycled using a name of an already released notification.
+		char buf[32];
+		sprintf(buf, "!!Ntfctn%d", m_id);
+		name = buf;
+	}
 	if (imgui.begin(name, &shown, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar )) {
 		if (shown) {
 			
@@ -562,8 +591,8 @@ bool NotificationManager::PopNotification::compare_text(const std::string& text)
 	return false;
 }
 
-NotificationManager::SlicingCompleteLargeNotification::SlicingCompleteLargeNotification(const NotificationData& n, const int id, wxEvtHandler* evt_handler, bool large) :
-	  NotificationManager::PopNotification(n, id, evt_handler)
+NotificationManager::SlicingCompleteLargeNotification::SlicingCompleteLargeNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, bool large) :
+	  NotificationManager::PopNotification(n, id_provider, evt_handler)
 {
 	set_large(large);
 }
@@ -654,7 +683,7 @@ void NotificationManager::push_slicing_warning_notification(const std::string& t
 {
 	NotificationData data { NotificationType::SlicingWarning, NotificationLevel::WarningNotification, 0,  _u8L("WARNING:") + "\n" + text };
 
-	auto notification = std::make_unique<NotificationManager::SlicingWarningNotification>(data, m_next_id++, m_evt_handler);
+	auto notification = std::make_unique<NotificationManager::SlicingWarningNotification>(data, m_id_provider, m_evt_handler);
 	notification->set_object_id(oid);
 	notification->set_warning_step(warning_step);
 	if (push_notification_data(std::move(notification), canvas, 0)) {
@@ -730,7 +759,7 @@ void NotificationManager::push_slicing_complete_notification(GLCanvas3D& canvas,
 		time = 0;
 	}
 	NotificationData data{ NotificationType::SlicingComplete, NotificationLevel::RegularNotification, time,  _u8L("Slicing finished."), hypertext };
-	push_notification_data(std::make_unique<NotificationManager::SlicingCompleteLargeNotification>(data, m_next_id++, m_evt_handler, large),
+	push_notification_data(std::make_unique<NotificationManager::SlicingCompleteLargeNotification>(data, m_id_provider, m_evt_handler, large),
 		canvas, timestamp);
 }
 void NotificationManager::set_slicing_complete_print_time(std::string info)
@@ -778,7 +807,7 @@ void NotificationManager::compare_warning_oids(const std::vector<size_t>& living
 }
 bool NotificationManager::push_notification_data(const NotificationData &notification_data,  GLCanvas3D& canvas, int timestamp)
 {
-	return push_notification_data(std::make_unique<PopNotification>(notification_data, m_next_id++, m_evt_handler), canvas, timestamp);
+	return push_notification_data(std::make_unique<PopNotification>(notification_data, m_id_provider, m_evt_handler), canvas, timestamp);
 }
 bool NotificationManager::push_notification_data(std::unique_ptr<NotificationManager::PopNotification> notification, GLCanvas3D& canvas, int timestamp)
 {

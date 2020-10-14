@@ -28,37 +28,33 @@ enum class NotificationType
 	// Notification on end of slicing and G-code processing (the full G-code preview is available).
 	// Contains a hyperlink to export the G-code to a removable media.
 	SlicingComplete,
-	// Not used.
-	SlicingNotPossible,
+//	SlicingNotPossible,
 	// Notification on end of export to a removable media, with hyperling to eject the external media.
 	ExportToRemovableFinished,
 	// Works on OSX only.
 	//FIXME Do we want to have it on Linux and Windows? Is it possible to get the Disconnect event on Windows?
 	Mouse3dDisconnected,
-	// Not used.
-	Mouse3dConnected,
-	// Not used.
-	NewPresetsAviable,
+//	Mouse3dConnected,
+//	NewPresetsAviable,
 	// Notification on the start of PrusaSlicer, when a new PrusaSlicer version is published.
 	// Contains a hyperlink to open a web browser pointing to the PrusaSlicer download location.
 	NewAppAviable,
 	// Notification on the start of PrusaSlicer, when updates of system profiles are detected.
 	// Contains a hyperlink to execute installation of the new system profiles.
 	PresetUpdateAvailable,
-	// Not used.
-	LoadingFailed,
+//	LoadingFailed,
 	// Not used - instead Slicing error is used for both slicing and validate errors.
-	ValidateError,
+//	ValidateError,
 	// Slicing error produced by BackgroundSlicingProcess::validate() or by the BackgroundSlicingProcess background
 	// thread thowing a SlicingError exception.
 	SlicingError,
 	// Slicing warnings, issued by the slicing process.
-	// Slicing warnings are registered for a Print step or a PrintObject step, 
+	// Slicing warnings are registered for a particular Print milestone or a PrintObject and its milestone.
 	SlicingWarning,
+	// Object partially outside the print volume. Cannot slice.
 	PlaterError,
-	PlaterWarning,
-	ApplyError
-
+	// Object fully outside the print volume, or extrusion outside the print volume. Slicing is not disabled.
+	PlaterWarning
 };
 
 class NotificationManager
@@ -121,6 +117,20 @@ private:
 		const std::string   text2     = std::string();
 	};
 
+	// Cache of IDs to identify and reuse ImGUI windows.
+	class NotificationIDProvider
+	{
+	public:
+		int 		allocate_id();
+		void 		release_id(int id);
+
+	private:
+		// Next ID used for naming the ImGUI windows.
+		int       			m_next_id{ 1 };
+		// IDs of ImGUI windows, which were released and they are ready for reuse.
+		std::vector<int>	m_released_ids;
+	};
+
 	//Pop notification - shows only once to user.
 	class PopNotification
 	{
@@ -133,8 +143,8 @@ private:
 			Countdown,
 			Hovered
 		};
-		 PopNotification(const NotificationData &n, const int id, wxEvtHandler* evt_handler);
-		virtual ~PopNotification() = default;
+		PopNotification(const NotificationData &n, NotificationIDProvider &id_provider, wxEvtHandler* evt_handler);
+		virtual ~PopNotification() { if (m_id) m_id_provider.release_id(m_id); }
 		RenderResult           render(GLCanvas3D& canvas, const float& initial_y, bool move_from_overlay, float overlay_width, bool move_from_slope, float slope_width);
 		// close will dissapear notification on next render
 		void                   close() { m_close_pending = true; }
@@ -154,6 +164,7 @@ private:
 		void                   set_paused(bool p) { m_paused = p; }
 		bool                   compare_text(const std::string& text);
         void                   hide(bool h) { m_hidden = h; }
+
 	protected:
 		// Call after every size change
 		void         init();
@@ -179,7 +190,8 @@ private:
 
 		const NotificationData m_data;
 
-		int              m_id;
+		NotificationIDProvider &m_id_provider;
+		int              m_id { 0 };
 		bool			 m_initialized          { false };
 		// Main text
 		std::string      m_text1;
@@ -227,7 +239,7 @@ private:
 	class SlicingCompleteLargeNotification : public PopNotification
 	{
 	public:
-		SlicingCompleteLargeNotification(const NotificationData& n, const int id, wxEvtHandler* evt_handler, bool largeds);
+		SlicingCompleteLargeNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, bool largeds);
 		void set_large(bool l);
 		bool get_large() { return m_is_large; }
 
@@ -246,7 +258,7 @@ private:
 	class SlicingWarningNotification : public PopNotification
 	{
 	public:
-		SlicingWarningNotification(const NotificationData& n, const int id, wxEvtHandler* evt_handler) : PopNotification(n, id, evt_handler) {}
+		SlicingWarningNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler) : PopNotification(n, id_provider, evt_handler) {}
 		void         set_object_id(size_t id) { object_id = id; }
 		const size_t get_object_id() { return object_id; }
 		void         set_warning_step(int ws) { warning_step = ws; }
@@ -265,25 +277,26 @@ private:
 	void sort_notifications();
     bool has_error_notification();
 
+    // Target for wxWidgets events sent by clicking on the hyperlink available at some notifications.
 	wxEvtHandler*                m_evt_handler;
+	// Cache of IDs to identify and reuse ImGUI windows.
+	NotificationIDProvider 		 m_id_provider;
 	std::deque<std::unique_ptr<PopNotification>> m_pop_notifications;
-	int                          m_next_id { 1 };
 	long                         m_last_time { 0 };
 	bool                         m_hovered { false };
 	//timestamps used for slining finished - notification could be gone so it needs to be stored here
 	std::unordered_set<int>      m_used_timestamps;
 	bool                         m_in_preview { false };
 	bool                         m_move_from_overlay { false };
-	bool                         m_move_from_slope{ false };
+	bool                         m_move_from_slope { false };
 
 	//prepared (basic) notifications
 	const std::vector<NotificationData> basic_notifications = {
-		// Currently not used.
-		{NotificationType::SlicingNotPossible, NotificationLevel::RegularNotification, 10,  _u8L("Slicing is not possible.")},
+//		{NotificationType::SlicingNotPossible, NotificationLevel::RegularNotification, 10,  _u8L("Slicing is not possible.")},
 		{NotificationType::ExportToRemovableFinished, NotificationLevel::ImportantNotification, 0,  _u8L("Exporting finished."),  _u8L("Eject drive.") },
 		{NotificationType::Mouse3dDisconnected, NotificationLevel::RegularNotification, 10,  _u8L("3D Mouse disconnected.") },
-		{NotificationType::Mouse3dConnected, NotificationLevel::RegularNotification, 5,  _u8L("3D Mouse connected.") },
-		{NotificationType::NewPresetsAviable, NotificationLevel::ImportantNotification, 20,  _u8L("New Presets are available."),  _u8L("See here.") },
+//		{NotificationType::Mouse3dConnected, NotificationLevel::RegularNotification, 5,  _u8L("3D Mouse connected.") },
+//		{NotificationType::NewPresetsAviable, NotificationLevel::ImportantNotification, 20,  _u8L("New Presets are available."),  _u8L("See here.") },
 		{NotificationType::PresetUpdateAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("Configuration update is available."),  _u8L("See more.")},
 		{NotificationType::NewAppAviable, NotificationLevel::ImportantNotification, 20,  _u8L("New version is available."),  _u8L("See Releases page.")},
 		//{NotificationType::NewAppAviable, NotificationLevel::ImportantNotification, 20,  _u8L("New vesion of PrusaSlicer is available.",  _u8L("Download page.") },
