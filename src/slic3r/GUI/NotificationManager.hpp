@@ -107,7 +107,7 @@ public:
 	// the "slicing info" normally shown at the side bar.
 	void set_slicing_complete_large(bool large);
 	// renders notifications in queue and deletes expired ones
-	void render_notifications(GLCanvas3D& canvas, float overlay_width, float slope_width);
+	void render_notifications(GLCanvas3D& canvas, float overlay_width);
 	// finds and closes all notifications of given type
 	void close_notification_of_type(const NotificationType type);
 	// Which view is active? Plater or G-code preview? Hide warnings in G-code preview.
@@ -154,7 +154,7 @@ private:
 		};
 		PopNotification(const NotificationData &n, NotificationIDProvider &id_provider, wxEvtHandler* evt_handler);
 		virtual ~PopNotification() { if (m_id) m_id_provider.release_id(m_id); }
-		RenderResult           render(GLCanvas3D& canvas, const float& initial_y, bool move_from_overlay, float overlay_width, bool move_from_slope, float slope_width);
+		RenderResult           render(GLCanvas3D& canvas, const float& initial_y, bool move_from_overlay, float overlay_width);
 		// close will dissapear notification on next render
 		void                   close() { m_close_pending = true; }
 		// data from newer notification of same type
@@ -279,7 +279,7 @@ private:
 	bool push_notification_data(const NotificationData& notification_data, GLCanvas3D& canvas, int timestamp);
 	bool push_notification_data(std::unique_ptr<NotificationManager::PopNotification> notification, GLCanvas3D& canvas, int timestamp);
 	//finds older notification of same type and moves it to the end of queue. returns true if found
-	bool find_older(NotificationManager::PopNotification* notification);
+	bool activate_existing(const NotificationManager::PopNotification* notification);
 	// Put the more important notifications to the bottom of the list.
 	void sort_notifications();
 	// If there is some error notification active, then the "Export G-code" notification after the slicing is finished is suppressed.
@@ -292,11 +292,10 @@ private:
 	std::deque<std::unique_ptr<PopNotification>> m_pop_notifications;
 	long                         m_last_time { 0 };
 	bool                         m_hovered { false };
-	//timestamps used for slining finished - notification could be gone so it needs to be stored here
+	//timestamps used for slicing finished - notification could be gone so it needs to be stored here
 	std::unordered_set<int>      m_used_timestamps;
 	bool                         m_in_preview { false };
 	bool                         m_move_from_overlay { false };
-	bool                         m_move_from_slope { false };
 
 	//prepared (basic) notifications
 	const std::vector<NotificationData> basic_notifications = {

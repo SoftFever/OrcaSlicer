@@ -243,7 +243,7 @@ private:
         static bool bar_rect_contains(const GLCanvas3D& canvas, float x, float y);
         static Rect get_bar_rect_screen(const GLCanvas3D& canvas);
         static Rect get_bar_rect_viewport(const GLCanvas3D& canvas);
-        static float get_overelay_window_width() { return LayersEditing::s_overelay_window_width; }
+        static float get_overlay_window_width() { return LayersEditing::s_overelay_window_width; }
 
         float object_max_z() const { return m_object_max_z; }
 
@@ -885,8 +885,7 @@ private:
     bool _activate_search_toolbar_item();
     bool _deactivate_collapse_toolbar_items();
 
-    float get_overelay_window_width() { return LayersEditing::get_overelay_window_width(); }
-    float get_slope_window_width()    { return Slope::get_window_width(); }
+    float get_overlay_window_width() { return LayersEditing::get_overlay_window_width(); }
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 
