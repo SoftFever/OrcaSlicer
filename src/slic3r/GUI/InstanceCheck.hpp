@@ -28,6 +28,8 @@ bool    instance_check(int argc, char** argv, bool app_config_single_instance);
 // apple implementation of inner functions of instance_check
 // in InstanceCheckMac.mm
 void    send_message_mac(const std::string& msg, const std::string& version);
+
+bool unlock_lockfile(const std::string& name, const std::string& path);
 #endif //__APPLE__
 
 namespace GUI {

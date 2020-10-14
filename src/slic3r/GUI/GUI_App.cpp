@@ -1718,6 +1718,7 @@ void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
         // Opening PrusaSlicer by drag & dropping a G-Code onto PrusaSlicer icon in Finder,
         // just G-codes were passed. Switch to G-code viewer mode.
         m_app_mode = EAppMode::GCodeViewer;
+        unlock_lockfile(get_instance_hash_string() + ".lock", data_dir() + "/cache/");
         if(app_config != nullptr)
             delete app_config;
         app_config = nullptr;
