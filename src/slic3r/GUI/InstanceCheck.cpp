@@ -254,7 +254,8 @@ bool instance_check(int argc, char** argv, bool app_config_single_instance)
 	GUI::wxGetApp().init_single_instance_checker(lock_name + ".lock", data_dir() + "/cache/");
 	if (cla.should_send.value() && GUI::wxGetApp().single_instance_checker()->IsAnotherRunning()) {
 #else // mac & linx
-	if (*cla.should_send && instance_check_internal::get_lock(lock_name + ".lock", data_dir() + "/cache/")) {
+	// get_lock() creates the lockfile therefore *cla.should_send is checked after
+	if (instance_check_internal::get_lock(lock_name + ".lock", data_dir() + "/cache/"&& *cla.should_send)) {
 #endif
 		instance_check_internal::send_message(cla.cl_string, lock_name);
 		BOOST_LOG_TRIVIAL(info) << "instance check: Another instance found. This instance will terminate.";
