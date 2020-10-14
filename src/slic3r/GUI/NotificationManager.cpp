@@ -678,7 +678,7 @@ void NotificationManager::push_slicing_warning_notification(const std::string& t
 	notification->object_id = oid;
 	notification->warning_step = warning_step;
 	if (push_notification_data(std::move(notification), canvas, 0)) {
-		notification->set_gray(gray);		
+		m_pop_notifications.back()->set_gray(gray);
 	}
 }
 void NotificationManager::push_plater_error_notification(const std::string& text, GLCanvas3D& canvas)
@@ -824,7 +824,7 @@ void NotificationManager::render_notifications(GLCanvas3D& canvas, float overlay
 	sort_notifications();
 	// iterate thru notifications and render them / erease them
 	for (auto it = m_pop_notifications.begin(); it != m_pop_notifications.end();) {
-		if (! (*it)->get_finished()) {
+		if ((*it)->get_finished()) {
 			it = m_pop_notifications.erase(it);
 		} else {
 			(*it)->set_paused(m_hovered);
