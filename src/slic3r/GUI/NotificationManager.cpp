@@ -12,13 +12,8 @@
 #include <wx/glcanvas.h>
 #include <iostream>
 
-
-
-
-#define NOTIFICATION_MAX_MOVE 3.0f
-
-#define GAP_WIDTH 10.0f
-#define SPACE_RIGHT_PANEL 10.0f
+static constexpr float GAP_WIDTH = 10.0f;
+static constexpr float SPACE_RIGHT_PANEL = 10.0f;
 
 namespace Slic3r {
 namespace GUI {
@@ -28,7 +23,7 @@ wxDEFINE_EVENT(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED, ExportGcodeNotificationClic
 wxDEFINE_EVENT(EVT_PRESET_UPDATE_AVAILABLE_CLICKED, PresetUpdateAvailableClickedEvent);
 
 namespace Notifications_Internal{
-	void push_style_color(ImGuiCol idx, const ImVec4& col, bool fading_out, float current_fade_opacity)
+	static inline void push_style_color(ImGuiCol idx, const ImVec4& col, bool fading_out, float current_fade_opacity)
 	{
 		if (fading_out)
 			ImGui::PushStyleColor(idx, ImVec4(col.x, col.y, col.z, col.w * current_fade_opacity));
@@ -74,7 +69,7 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
 {
 	//init();
 }
-NotificationManager::PopNotification::RenderResult NotificationManager::PopNotification::render(GLCanvas3D& canvas, const float& initial_y, bool move_from_overlay, float overlay_width, bool move_from_slope, float slope_width)
+NotificationManager::PopNotification::RenderResult NotificationManager::PopNotification::render(GLCanvas3D& canvas, const float& initial_y, bool move_from_overlay, float overlay_width)
 {
 	if (!m_initialized) {
 		init();
@@ -95,7 +90,7 @@ NotificationManager::PopNotification::RenderResult NotificationManager::PopNotif
 	ImGuiWrapper&   imgui = *wxGetApp().imgui();
 	bool            shown = true;
 	ImVec2          mouse_pos = ImGui::GetMousePos();
-	float           right_gap = SPACE_RIGHT_PANEL + (move_from_overlay ? overlay_width + m_line_height * 5 : (move_from_slope ? slope_width /*+ m_line_height * 0.3f*/ : 0));
+	float           right_gap = SPACE_RIGHT_PANEL + (move_from_overlay ? overlay_width + m_line_height * 5 : 0);
 
 	if (m_line_height != ImGui::CalcTextSize("A").y)
 		init();
@@ -263,12 +258,9 @@ void NotificationManager::PopNotification::init()
 }
 void NotificationManager::PopNotification::set_next_window_size(ImGuiWrapper& imgui)
 { 
-	if (m_multiline) {
-		m_window_height = m_lines_count * m_line_height;
-	}else
-	{
-		m_window_height = 2 * m_line_height;
-	}
+	m_window_height = m_multiline ?
+		m_lines_count * m_line_height :
+		2 * m_line_height;
 	m_window_height += 1 * m_line_height; // top and bottom
 }
 
@@ -622,14 +614,13 @@ void NotificationManager::SlicingCompleteLargeNotification::render_text(ImGuiWra
 		imgui.text(m_text1.c_str());
 
 		render_hypertext(imgui, x_offset + text1_size.x + 4, cursor_y, m_hypertext);
-		
 	}
 }
 void NotificationManager::SlicingCompleteLargeNotification::set_print_info(const std::string &info)
 {
 	m_print_info = info;
 	m_has_print_info = true;
-	if(m_is_large)
+	if (m_is_large)
 		m_lines_count = 2;
 }
 void NotificationManager::SlicingCompleteLargeNotification::set_large(bool l)
@@ -813,17 +804,17 @@ bool NotificationManager::push_notification_data(std::unique_ptr<NotificationMan
 			return false;
 		}
 	}
-	if (!this->find_older(notification.get())) {
-			m_pop_notifications.emplace_back(std::move(notification));
-		canvas.request_extra_frame();
-		return true;
-	} else {
+	if (this->activate_existing(notification.get())) {
 		m_pop_notifications.back()->update(notification->get_data());
 		canvas.request_extra_frame();
 		return false;
+	} else {
+		m_pop_notifications.emplace_back(std::move(notification));
+		canvas.request_extra_frame();
+		return true;
 	}
 }
-void NotificationManager::render_notifications(GLCanvas3D& canvas, float overlay_width, float slope_width)
+void NotificationManager::render_notifications(GLCanvas3D& canvas, float overlay_width)
 {
 	float    last_x = 0.0f;
 	float    current_height = 0.0f;
@@ -837,7 +828,7 @@ void NotificationManager::render_notifications(GLCanvas3D& canvas, float overlay
 			it = m_pop_notifications.erase(it);
 		} else {
 			(*it)->set_paused(m_hovered);
-			PopNotification::RenderResult res = (*it)->render(canvas, last_x, m_move_from_overlay, overlay_width, m_move_from_slope, slope_width);
+			PopNotification::RenderResult res = (*it)->render(canvas, last_x, m_move_from_overlay, overlay_width);
 			if (res != PopNotification::RenderResult::Finished) {
 				last_x = (*it)->get_top() + GAP_WIDTH;
 				current_height = std::max(current_height, (*it)->get_current_top());
@@ -889,20 +880,20 @@ void NotificationManager::sort_notifications()
 		});
 }
 
-bool NotificationManager::find_older(NotificationManager::PopNotification* notification)
+bool NotificationManager::activate_existing(const NotificationManager::PopNotification* notification)
 {
-	NotificationType type = notification->get_type();
-	std::string text = notification->get_data().text1;
+	NotificationType   new_type = notification->get_type();
+	const std::string &new_text = notification->get_data().text1;
 	for (auto it = m_pop_notifications.begin(); it != m_pop_notifications.end(); ++it) {
-		if((*it)->get_type() == type && !(*it)->get_finished()) {
-			if (type == NotificationType::CustomNotification || type == NotificationType::PlaterWarning) {
-				if (!(*it)->compare_text(text))
+		if ((*it)->get_type() == new_type && !(*it)->get_finished()) {
+			if (new_type == NotificationType::CustomNotification || new_type == NotificationType::PlaterWarning) {
+				if (!(*it)->compare_text(new_text))
 					continue;
-			}else if (type == NotificationType::SlicingWarning) {
+			} else if (new_type == NotificationType::SlicingWarning) {
 				auto w1 = dynamic_cast<SlicingWarningNotification*>(notification);
 				auto w2 = dynamic_cast<SlicingWarningNotification*>(it->get());
 				if (w1 != nullptr && w2 != nullptr) {
-					if (!(*it)->compare_text(text) || w1->object_id != w2->object_id) {
+					if (!(*it)->compare_text(new_text) || w1->object_id != w2->object_id) {
 						continue;
 					}
 				} else {
@@ -918,7 +909,7 @@ bool NotificationManager::find_older(NotificationManager::PopNotification* notif
 	return false;
 }
 
-void NotificationManager::set_in_preview(bool preview) 
+void NotificationManager::set_in_preview(bool preview)
 { 
     m_in_preview = preview;
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
@@ -926,6 +917,7 @@ void NotificationManager::set_in_preview(bool preview)
             notification->hide(preview);     
     }
 }
+
 bool NotificationManager::has_slicing_error_notification()
 {
 	return std::any_of(m_pop_notifications.begin(), m_pop_notifications.end(), [](auto &n) {
