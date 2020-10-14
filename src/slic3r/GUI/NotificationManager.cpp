@@ -25,7 +25,7 @@ namespace GUI {
 
 wxDEFINE_EVENT(EVT_EJECT_DRIVE_NOTIFICAION_CLICKED, EjectDriveNotificationClickedEvent);
 wxDEFINE_EVENT(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED, ExportGcodeNotificationClickedEvent);
-wxDEFINE_EVENT(EVT_PRESET_UPDATE_AVIABLE_CLICKED, PresetUpdateAviableClickedEvent);
+wxDEFINE_EVENT(EVT_PRESET_UPDATE_AVAILABLE_CLICKED, PresetUpdateAvailableClickedEvent);
 
 namespace Notifications_Internal{
 	void push_style_color(ImGuiCol idx, const ImVec4& col, bool fading_out, float current_fade_opacity)
@@ -531,11 +531,11 @@ void NotificationManager::PopNotification::on_text_click()
 		if (m_evt_handler != nullptr)
 			wxPostEvent(m_evt_handler, ExportGcodeNotificationClickedEvent(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED));
 		break;
-	case NotificationType::PresetUpdateAviable :
+	case NotificationType::PresetUpdateAvailable :
 		//wxGetApp().plater()->export_gcode(false);
 		assert(m_evt_handler != nullptr);
 		if (m_evt_handler != nullptr)
-			wxPostEvent(m_evt_handler, PresetUpdateAviableClickedEvent(EVT_PRESET_UPDATE_AVIABLE_CLICKED));
+			wxPostEvent(m_evt_handler, PresetUpdateAvailableClickedEvent(EVT_PRESET_UPDATE_AVAILABLE_CLICKED));
 		break;
 	case NotificationType::NewAppAviable:
 		wxLaunchDefaultBrowser("https://github.com/prusa3d/PrusaSlicer/releases");

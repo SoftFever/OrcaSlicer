@@ -16,8 +16,8 @@ using EjectDriveNotificationClickedEvent = SimpleEvent;
 wxDECLARE_EVENT(EVT_EJECT_DRIVE_NOTIFICAION_CLICKED, EjectDriveNotificationClickedEvent);
 using ExportGcodeNotificationClickedEvent = SimpleEvent;
 wxDECLARE_EVENT(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED, ExportGcodeNotificationClickedEvent);
-using PresetUpdateAviableClickedEvent = SimpleEvent;
-wxDECLARE_EVENT(EVT_PRESET_UPDATE_AVIABLE_CLICKED, PresetUpdateAviableClickedEvent);
+using PresetUpdateAvailableClickedEvent = SimpleEvent;
+wxDECLARE_EVENT(EVT_PRESET_UPDATE_AVAILABLE_CLICKED, PresetUpdateAvailableClickedEvent);
 
 class GLCanvas3D;
 class ImGuiWrapper;
@@ -25,17 +25,35 @@ class ImGuiWrapper;
 enum class NotificationType
 {
 	CustomNotification,
+	// Notification on end of slicing and G-code processing (the full G-code preview is available).
+	// Contains a hyperlink to export the G-code to a removable media.
 	SlicingComplete,
+	// Not used.
 	SlicingNotPossible,
+	// Notification on end of export to a removable media, with hyperling to eject the external media.
 	ExportToRemovableFinished,
+	// Works on OSX only.
+	//FIXME Do we want to have it on Linux and Windows? Is it possible to get the Disconnect event on Windows?
 	Mouse3dDisconnected,
+	// Not used.
 	Mouse3dConnected,
+	// Not used.
 	NewPresetsAviable,
+	// Notification on the start of PrusaSlicer, when a new PrusaSlicer version is published.
+	// Contains a hyperlink to open a web browser pointing to the PrusaSlicer download location.
 	NewAppAviable,
-	PresetUpdateAviable,
+	// Notification on the start of PrusaSlicer, when updates of system profiles are detected.
+	// Contains a hyperlink to execute installation of the new system profiles.
+	PresetUpdateAvailable,
+	// Not used.
 	LoadingFailed,
-	ValidateError, // currently not used - instead Slicing error is used for both slicing and validate errors
+	// Not used - instead Slicing error is used for both slicing and validate errors.
+	ValidateError,
+	// Slicing error produced by BackgroundSlicingProcess::validate() or by the BackgroundSlicingProcess background
+	// thread thowing a SlicingError exception.
 	SlicingError,
+	// Slicing warnings, issued by the slicing process.
+	// Slicing warnings are registered for a Print step or a PrintObject step, 
 	SlicingWarning,
 	PlaterError,
 	PlaterWarning,
@@ -260,12 +278,13 @@ private:
 
 	//prepared (basic) notifications
 	const std::vector<NotificationData> basic_notifications = {
+		// Currently not used.
 		{NotificationType::SlicingNotPossible, NotificationLevel::RegularNotification, 10,  _u8L("Slicing is not possible.")},
 		{NotificationType::ExportToRemovableFinished, NotificationLevel::ImportantNotification, 0,  _u8L("Exporting finished."),  _u8L("Eject drive.") },
 		{NotificationType::Mouse3dDisconnected, NotificationLevel::RegularNotification, 10,  _u8L("3D Mouse disconnected.") },
 		{NotificationType::Mouse3dConnected, NotificationLevel::RegularNotification, 5,  _u8L("3D Mouse connected.") },
 		{NotificationType::NewPresetsAviable, NotificationLevel::ImportantNotification, 20,  _u8L("New Presets are available."),  _u8L("See here.") },
-		{NotificationType::PresetUpdateAviable, NotificationLevel::ImportantNotification, 20,  _u8L("Configuration update is available."),  _u8L("See more.")},
+		{NotificationType::PresetUpdateAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("Configuration update is available."),  _u8L("See more.")},
 		{NotificationType::NewAppAviable, NotificationLevel::ImportantNotification, 20,  _u8L("New version is available."),  _u8L("See Releases page.")},
 		//{NotificationType::NewAppAviable, NotificationLevel::ImportantNotification, 20,  _u8L("New vesion of PrusaSlicer is available.",  _u8L("Download page.") },
 		//{NotificationType::LoadingFailed, NotificationLevel::RegularNotification, 20,  _u8L("Loading of model has Failed") },
