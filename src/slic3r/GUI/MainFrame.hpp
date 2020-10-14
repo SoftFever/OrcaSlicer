@@ -156,6 +156,9 @@ public:
     void        create_preset_tabs();
     void        add_created_tab(Tab* panel);
     bool        is_active_and_shown_tab(Tab* tab);
+    // Register Win32 RawInput callbacks (3DConnexion) and removable media insert / remove callbacks.
+    // Called from wxEVT_ACTIVATE, as wxEVT_CREATE was not reliable (bug in wxWidgets?).
+    void        register_win32_callbacks();
 #if ENABLE_GCODE_VIEWER
     void        init_menubar_as_editor();
     void        init_menubar_as_gcodeviewer();

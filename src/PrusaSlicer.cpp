@@ -588,9 +588,9 @@ int CLI::run(int argc, char **argv)
 //		gui->autosave = m_config.opt_string("autosave");
         GUI::GUI_App::SetInstance(gui);
 #if ENABLE_GCODE_VIEWER
-        gui->m_after_init_loads.set_params(load_configs, m_extra_config, m_input_files, start_as_gcodeviewer);
+        gui->after_init_loads.set_params(load_configs, m_extra_config, m_input_files, start_as_gcodeviewer);
 #else
-        gui->m_after_init_loads.set_params(load_configs, m_extra_config, m_input_files);
+        gui->after_init_loads.set_params(load_configs, m_extra_config, m_input_files);
 #endif // ENABLE_GCODE_VIEWER
 /*
 #if ENABLE_GCODE_VIEWER

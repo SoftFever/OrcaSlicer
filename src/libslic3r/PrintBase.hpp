@@ -406,7 +406,7 @@ public:
         // set to an ObjectID of a Print or a PrintObject based on flags
         // (whether UPDATE_PRINT_STEP_WARNINGS or UPDATE_PRINT_OBJECT_STEP_WARNINGS is set).
         ObjectID        warning_object_id;
-        // For which Print or PrintObject step a new warning is beeing issued?
+        // For which Print or PrintObject step a new warning is being issued?
         int             warning_step { -1 };
     };
     typedef std::function<void(const SlicingStatus&)>  status_callback_type;

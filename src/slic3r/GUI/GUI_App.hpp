@@ -143,7 +143,7 @@ private:
 	size_t m_instance_hash_int;
 
     // parameters needed for the after OnInit() loads
-    struct AFTER_INIT_LOADS
+    struct AfterInitLoads 
     {
         std::vector<std::string>    m_load_configs;
         DynamicPrintConfig          m_extra_config;
@@ -272,7 +272,7 @@ public:
     PresetUpdater*  preset_updater{ nullptr };
     MainFrame*      mainframe{ nullptr };
     Plater*         plater_{ nullptr };
-    AFTER_INIT_LOADS m_after_init_loads;
+    AfterInitLoads  after_init_loads;
 
 	PresetUpdater* get_preset_updater() { return preset_updater; }
 
