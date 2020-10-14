@@ -1714,7 +1714,8 @@ struct Plater::priv
 
 	void clear_warnings();
 	void add_warning(const Slic3r::PrintStateBase::Warning &warning, size_t oid);
-	void actualizate_warnings(const Model& model, size_t print_oid);
+    // Update notification manager with the current state of warnings produced by the background process (slicing).
+	void actualize_slicing_warnings(const PrintBase &print);
 	// Displays dialog window with list of warnings. 
 	// Returns true if user clicks OK.
 	// Returns true if current_warnings vector is empty without showning the dialog
@@ -2885,8 +2886,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 
 	//actualizate warnings
 	if (invalidated != Print::APPLY_STATUS_UNCHANGED) {
-		actualizate_warnings(this->q->model(), this->background_process.current_print()->id().id);
-		notification_manager->set_all_slicing_warnings_gray(true);
+		actualize_slicing_warnings(*this->background_process.current_print());
 		show_warning_dialog = false;
 		process_completed_with_error = false;
 	}
@@ -3474,7 +3474,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         // Now process state.warnings.
 		for (auto const& warning : state.warnings) {
 			if (warning.current) {
-				notification_manager->push_slicing_warning_notification(warning.message, false, *q->get_current_canvas3D(), object_id.id, warning_step);
+				notification_manager->push_slicing_warning_notification(warning.message, false, *q->get_current_canvas3D(), object_id, warning_step);
 				add_warning(warning, object_id.id);
 			}
 		}
@@ -3520,19 +3520,17 @@ void Plater::priv::add_warning(const Slic3r::PrintStateBase::Warning& warning, s
 	}
 	current_warnings.emplace_back(std::pair<Slic3r::PrintStateBase::Warning, size_t>(warning, oid));
 }
-void Plater::priv::actualizate_warnings(const Model& model, size_t print_oid)
+void Plater::priv::actualize_slicing_warnings(const PrintBase &print)
 {
-    if (model.objects.size() == 0) {
+    std::vector<ObjectID> ids = print.print_object_ids();
+    if (ids.empty()) {
         clear_warnings();
         return;
     }
-	std::vector<size_t> living_oids;
-	living_oids.push_back(model.id().id);
-	living_oids.push_back(print_oid);
-	for (auto it = model.objects.begin(); it != model.objects.end(); ++it) {
-		living_oids.push_back((*it)->id().id);
-	}
-	notification_manager->compare_warning_oids(living_oids);
+    ids.emplace_back(print.id());
+    std::sort(ids.begin(), ids.end());
+	notification_manager->remove_slicing_warnings_of_released_objects(ids);
+    notification_manager->set_all_slicing_warnings_gray(true);
 }
 void Plater::priv::clear_warnings()
 {

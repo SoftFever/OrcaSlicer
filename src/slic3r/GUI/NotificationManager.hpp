@@ -4,6 +4,8 @@
 #include "Event.hpp"
 #include "I18N.hpp"
 
+#include <libslic3r/ObjectID.hpp>
+
 #include <string>
 #include <vector>
 #include <deque>
@@ -78,30 +80,37 @@ public:
 	// creates Slicing Error notification with custom text
 	void push_slicing_error_notification(const std::string& text, GLCanvas3D& canvas);
 	// creates Slicing Warning notification with custom text
-	void push_slicing_warning_notification(const std::string& text, bool gray, GLCanvas3D& canvas, size_t oid, int warning_step);
+	void push_slicing_warning_notification(const std::string& text, bool gray, GLCanvas3D& canvas, ObjectID oid, int warning_step);
 	// marks slicing errors as gray
 	void set_all_slicing_errors_gray(bool g);
 	// marks slicing warings as gray
 	void set_all_slicing_warnings_gray(bool g);
-	void set_slicing_warning_gray(const std::string& text, bool g);
-	// imidietly stops showing slicing errors
+//	void set_slicing_warning_gray(const std::string& text, bool g);
+	// immediately stops showing slicing errors
 	void close_slicing_errors_and_warnings();
-	void compare_warning_oids(const std::vector<size_t>& living_oids);
+	// Release those slicing warnings, which refer to an ObjectID, which is not in the list.
+	// living_oids is expected to be sorted.
+	void remove_slicing_warnings_of_released_objects(const std::vector<ObjectID>& living_oids);
+	// Object partially outside of the printer working space, cannot print.
 	void push_plater_error_notification(const std::string& text, GLCanvas3D& canvas);
+	// Object fully out of the printer working space and such.
 	void push_plater_warning_notification(const std::string& text, GLCanvas3D& canvas);
-	// Closes error or warning of same text
+	// Closes error or warning of the same text
 	void close_plater_error_notification(const std::string& text);
 	void close_plater_warning_notification(const std::string& text);
 	// creates special notification slicing complete
 	// if large = true prints printing time and export button 
 	void push_slicing_complete_notification(GLCanvas3D& canvas, int timestamp, bool large);
-	void set_slicing_complete_print_time(std::string info);
+	// Add a print time estimate to an existing SlicingComplete notification.
+	void set_slicing_complete_print_time(const std::string &info);
+	// Called when the side bar changes its visibility, as the "slicing complete" notification supplements
+	// the "slicing info" normally shown at the side bar.
 	void set_slicing_complete_large(bool large);
 	// renders notifications in queue and deletes expired ones
 	void render_notifications(GLCanvas3D& canvas, float overlay_width, float slope_width);
 	// finds and closes all notifications of given type
 	void close_notification_of_type(const NotificationType type);
-	void dpi_changed();
+	// Which view is active? Plater or G-code preview? Hide warnings in G-code preview.
     void set_in_preview(bool preview);
 	// Move to left to avoid colision with variable layer height gizmo
 	void set_move_from_overlay(bool move) { m_move_from_overlay = move; }
@@ -113,8 +122,8 @@ private:
 		NotificationLevel   level;
 		const int           duration;
 		const std::string   text1;
-		const std::string   hypertext = std::string();
-		const std::string   text2     = std::string();
+		const std::string   hypertext;
+		const std::string   text2;
 	};
 
 	// Cache of IDs to identify and reuse ImGUI windows.
@@ -190,6 +199,7 @@ private:
 
 		const NotificationData m_data;
 
+		// For reusing ImGUI windows.
 		NotificationIDProvider &m_id_provider;
 		int              m_id { 0 };
 		bool			 m_initialized          { false };
@@ -233,6 +243,7 @@ private:
 		//if multiline = true, notification is showing all lines(>2)
 		bool             m_multiline            { false };
 		int              m_lines_count{ 1 };
+	    // Target for wxWidgets events sent by clicking on the hyperlink available at some notifications.
 		wxEvtHandler*    m_evt_handler;
 	};
 
@@ -243,7 +254,7 @@ private:
 		void set_large(bool l);
 		bool get_large() { return m_is_large; }
 
-		void set_print_info(std::string info);
+		void set_print_info(const std::string &info);
 	protected:
 		virtual void render_text(ImGuiWrapper& imgui,
 			                     const float win_size_x, const float win_size_y,
@@ -259,13 +270,8 @@ private:
 	{
 	public:
 		SlicingWarningNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler) : PopNotification(n, id_provider, evt_handler) {}
-		void         set_object_id(size_t id) { object_id = id; }
-		const size_t get_object_id() { return object_id; }
-		void         set_warning_step(int ws) { warning_step = ws; }
-		const int    get_warning_step() { return warning_step; }
-	protected:
-		size_t object_id;
-		int    warning_step;
+		ObjectID 	object_id;
+		int    		warning_step;
 	};
 
 	//pushes notification into the queue of notifications that are rendered
@@ -274,8 +280,10 @@ private:
 	bool push_notification_data(std::unique_ptr<NotificationManager::PopNotification> notification, GLCanvas3D& canvas, int timestamp);
 	//finds older notification of same type and moves it to the end of queue. returns true if found
 	bool find_older(NotificationManager::PopNotification* notification);
+	// Put the more important notifications to the bottom of the list.
 	void sort_notifications();
-    bool has_error_notification();
+	// If there is some error notification active, then the "Export G-code" notification after the slicing is finished is suppressed.
+    bool has_slicing_error_notification();
 
     // Target for wxWidgets events sent by clicking on the hyperlink available at some notifications.
 	wxEvtHandler*                m_evt_handler;

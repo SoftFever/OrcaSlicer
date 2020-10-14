@@ -640,16 +640,17 @@ void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool 
         error = true;
         break;
     }
-    if(state) {
+    auto &notification_manager = *wxGetApp().plater()->get_notification_manager();
+    if (state) {
         if(error)
-            wxGetApp().plater()->get_notification_manager()->push_plater_error_notification(text,*(wxGetApp().plater()->get_current_canvas3D()));
+            notification_manager.push_plater_error_notification(text,*(wxGetApp().plater()->get_current_canvas3D()));
         else
-            wxGetApp().plater()->get_notification_manager()->push_plater_warning_notification(text, *(wxGetApp().plater()->get_current_canvas3D()));
+            notification_manager.push_plater_warning_notification(text, *(wxGetApp().plater()->get_current_canvas3D()));
     } else {
         if (error)
-            wxGetApp().plater()->get_notification_manager()->close_plater_error_notification(text);
+            notification_manager.close_plater_error_notification(text);
         else
-            wxGetApp().plater()->get_notification_manager()->close_plater_warning_notification(text);
+            notification_manager.close_plater_warning_notification(text);
     }
 
     /*

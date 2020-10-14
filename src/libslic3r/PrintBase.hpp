@@ -348,6 +348,8 @@ public:
     // The Print is empty either after clear() or after apply() over an empty model,
     // or after apply() over a model, where no object is printable (all outside the print volume).
     virtual bool            empty() const = 0;
+    // List of existing PrintObject IDs, to remove notifications for non-existent IDs.
+    virtual std::vector<ObjectID> print_object_ids() const = 0;
 
     // Validate the print, return empty string if valid, return error if process() cannot (or should not) be started.
     virtual std::string     validate() const { return std::string(); }
