@@ -35,9 +35,9 @@ namespace instance_check_internal
 	};
 	static CommandLineAnalysis process_command_line(int argc, char** argv)
 	{
-		CommandLineAnalysis ret { false };
-		if (argc < 2)
-			return ret;
+		CommandLineAnalysis ret;
+		//if (argc < 2)
+		//	return ret;
 		std::vector<std::string> arguments { argv[0] };
 		for (size_t i = 1; i < argc; ++i) {
 			const std::string token = argv[i];
