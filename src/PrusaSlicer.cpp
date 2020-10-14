@@ -578,7 +578,7 @@ int CLI::run(int argc, char **argv)
         GUI::GUI_App *gui = new GUI::GUI_App();
 #endif // ENABLE_GCODE_VIEWER
 
-        if(!start_as_gcodeviewer) { // gcode viewer is currently not performing instance check
+        if(gui->get_app_mode() != GUI::GUI_App::EAppMode::GCodeViewer){ // gcode viewer is currently not performing instance check
 		    bool gui_single_instance_setting = gui->app_config->get("single_instance") == "1";
 		    if (Slic3r::instance_check(argc, argv, gui_single_instance_setting)) {
 			    //TODO: do we have delete gui and other stuff?

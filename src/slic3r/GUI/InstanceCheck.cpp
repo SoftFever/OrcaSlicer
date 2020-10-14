@@ -264,6 +264,26 @@ bool instance_check(int argc, char** argv, bool app_config_single_instance)
 	return false;
 }
 
+#ifdef __APPLE__
+bool unlock_lockfile(const std::string& name, const std::string& path)
+{
+	std::string dest_dir = path + name;
+	//BOOST_LOG_TRIVIAL(debug) << "full lock path: " << dest_dir;
+	struct      flock fl;
+	int         fdlock;
+	fl.l_type = F_UNLCK;
+	fl.l_whence = SEEK_SET;
+	fl.l_start = 0;
+	fl.l_len = 1;
+	if ((fdlock = open(dest_dir.c_str(), O_WRONLY | O_CREAT, 0666)) == -1)
+		return false;
+
+	if (fcntl(fdlock, F_SETLK, &fl) == -1)
+		return false;
+
+	return true;
+}
+#endif //__APPLE__
 namespace GUI {
 
 wxDEFINE_EVENT(EVT_LOAD_MODEL_OTHER_INSTANCE, LoadFromOtherInstanceEvent);
