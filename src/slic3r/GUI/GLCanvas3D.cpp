@@ -1580,13 +1580,6 @@ bool GLCanvas3D::init()
     if (m_main_toolbar.is_enabled())
         m_layers_editing.init();
 
-#if ENABLE_GCODE_VIEWER
-    if (!m_main_toolbar.is_enabled()) {
-        if (!m_gcode_viewer.init())
-            return false;
-    }
-#endif // ENABLE_GCODE_VIEWER
-
     // on linux the gl context is not valid until the canvas is not shown on screen
     // we defer the geometry finalization of volumes until the first call to render()
     m_volumes.finalize_geometry(true);

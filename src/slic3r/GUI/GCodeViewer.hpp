@@ -387,6 +387,7 @@ public:
     };
 
 private:
+    bool m_initialized{ false };
     unsigned int m_last_result_id{ 0 };
     size_t m_moves_count{ 0 };
     mutable std::vector<TBuffer> m_buffers{ static_cast<size_t>(EMoveType::Extrude) };
@@ -414,8 +415,6 @@ private:
 public:
     GCodeViewer() = default;
     ~GCodeViewer() { reset(); }
-
-    bool init();
 
     // extract rendering data from the given parameters
     void load(const GCodeProcessor::Result& gcode_result, const Print& print, bool initialized);
@@ -456,6 +455,7 @@ public:
     void export_toolpaths_to_obj(const char* filename) const;
 
 private:
+    void init();
     void load_toolpaths(const GCodeProcessor::Result& gcode_result);
     void load_shells(const Print& print, bool initialized);
     void refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const;
