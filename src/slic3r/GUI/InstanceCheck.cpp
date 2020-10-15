@@ -231,7 +231,7 @@ namespace instance_check_internal
 			BOOST_LOG_TRIVIAL(trace) << "DBus message sent.";
 
 			// free the message and close the connection
-			dbus_message_unref(msg);
+			dbus_message_unref(msg);                                                                                                                                                                                    
 			dbus_connection_unref(conn);
 			return true;
 		}
@@ -242,8 +242,14 @@ namespace instance_check_internal
 } //namespace instance_check_internal
 
 bool instance_check(int argc, char** argv, bool app_config_single_instance)
-{	
-	std::size_t hashed_path = std::hash<std::string>{}(boost::filesystem::system_complete(argv[0]).string());
+{
+	std::size_t hashed_path = 
+#ifdef _WIN32
+		std::hash<std::string>{}(boost::filesystem::system_complete(argv[0]).string());
+#else
+		std::hash<std::string>{}(boost::filesystem::canonical(boost::filesystem::system_complete(argv[0])).string());
+#endif // win32
+
 	std::string lock_name 	= std::to_string(hashed_path);
 	GUI::wxGetApp().set_instance_hash(hashed_path);
 	BOOST_LOG_TRIVIAL(debug) <<"full path: "<< lock_name;
