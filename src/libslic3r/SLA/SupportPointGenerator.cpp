@@ -360,7 +360,7 @@ std::vector<Vec2f> sample_expolygon(const ExPolygon &expoly, float samples_per_m
             const Vec2f &a = triangles[idx_triangle ++];
             const Vec2f &b = triangles[idx_triangle++];
             const Vec2f &c = triangles[idx_triangle];
-#if 0
+#if 1
             // https://www.cs.princeton.edu/~funk/tog02.pdf
             // page 814, formula 1.
             double u = float(std::sqrt(random_float(rng)));
