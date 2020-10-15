@@ -688,10 +688,10 @@ void PageMaterials::set_compatible_printers_html_window(const std::vector<std::s
     const auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
     const auto text_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     const auto text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
-    wxString first_line = _(L("Profiles marked with * are not compatible with all installed printers."));
+    wxString first_line = _(L("Filaments marked with <b>*</b> are <b>not</b> compatible with some installed printers."));
     wxString text;
     if (all_printers) {
-        wxString second_line = _(L("All installed printers are compatible with selected profile."));
+        wxString second_line = _(L("All installed printers are compatible with the selected filament."));
         text = wxString::Format(
             "<html>"
             "<style>"
@@ -711,7 +711,7 @@ void PageMaterials::set_compatible_printers_html_window(const std::vector<std::s
             , second_line
             );
     } else {
-        wxString second_line = _(L("Compatible printers:"));
+        wxString second_line = _(L("Only the following installed printers are compatible with the selected filament:"));
         text = wxString::Format(
             "<html>"
             "<style>"
@@ -772,7 +772,6 @@ void PageMaterials::on_material_highlighted(int sel_material)
         return;
     }
     last_hovered_item = sel_material;
-    //std::string compatible_printers_label = "Compatible printers:\n";
     std::vector<std::string> tabs;
     tabs.push_back(std::string());
     tabs.push_back(std::string());
