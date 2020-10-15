@@ -4726,6 +4726,11 @@ void Plater::load_gcode(const wxString& filename)
     p->preview->reload_print(false);
     p->preview->get_canvas3d()->zoom_to_gcode();
 }
+
+void Plater::refresh_print()
+{
+    p->preview->refresh_print();
+}
 #endif // ENABLE_GCODE_VIEWER
 
 std::vector<size_t> Plater::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool imperial_units /*= false*/) { return p->load_files(input_files, load_model, load_config, imperial_units); }

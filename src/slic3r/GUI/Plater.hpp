@@ -143,6 +143,7 @@ public:
 #if ENABLE_GCODE_VIEWER
     void load_gcode();
     void load_gcode(const wxString& filename);
+    void refresh_print();
 #endif // ENABLE_GCODE_VIEWER
 
     std::vector<size_t> load_files(const std::vector<boost::filesystem::path>& input_files, bool load_model = true, bool load_config = true, bool imperial_units = false);

@@ -458,7 +458,7 @@ public:
 private:
     void load_toolpaths(const GCodeProcessor::Result& gcode_result);
     void load_shells(const Print& print, bool initialized);
-    void refresh_render_paths(/*bool keep_sequential_current_first,*/ bool keep_sequential_current_last) const;
+    void refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const;
     void render_toolpaths() const;
     void render_shells() const;
     void render_legend() const;

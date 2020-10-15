@@ -1,6 +1,7 @@
 #include "Preferences.hpp"
 #include "OptionsGroup.hpp"
 #include "GUI_App.hpp"
+#include "Plater.hpp"
 #include "I18N.hpp"
 #include "libslic3r/AppConfig.hpp"
 
@@ -179,19 +180,19 @@ void PreferencesDialog::build()
 
 	m_optgroup_camera->activate();
 
+	m_optgroup_gui = std::make_shared<ConfigOptionsGroup>(this, _L("GUI"));
+	m_optgroup_gui->label_width = 40;
+	m_optgroup_gui->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
+		m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
+		if (opt_key == "use_custom_toolbar_size") {
+			m_icon_size_sizer->ShowItems(boost::any_cast<bool>(value));
+			this->layout();
+		}
+	};
+
 #if ENABLE_GCODE_VIEWER
 	if (is_editor) {
 #endif // ENABLE_GCODE_VIEWER
-		m_optgroup_gui = std::make_shared<ConfigOptionsGroup>(this, _L("GUI"));
-		m_optgroup_gui->label_width = 40;
-		m_optgroup_gui->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
-			m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
-			if (opt_key == "use_custom_toolbar_size") {
-				m_icon_size_sizer->ShowItems(boost::any_cast<bool>(value));
-				this->layout();
-			}
-		};
-
 		def.label = L("Show sidebar collapse/expand button");
 		def.type = coBool;
 		def.tooltip = L("If enabled, the button for the collapse sidebar will be appeared in top right corner of the 3D Scene");
@@ -205,14 +206,34 @@ void PreferencesDialog::build()
 		def.set_default_value(new ConfigOptionBool{ app_config->get("use_custom_toolbar_size") == "1" });
 		option = Option(def, "use_custom_toolbar_size");
 		m_optgroup_gui->append_single_option_line(option);
+#if ENABLE_GCODE_VIEWER
+	}
+#endif // ENABLE_GCODE_VIEWER
 
-		m_optgroup_gui->activate();
+	def.label = L("Sequential slider applied only to top layer");
+	def.type = coBool;
+	def.tooltip = L("If enabled, changes made using the sequential slider, in preview, apply only to gcode top layer, "
+					"if disabled, changes made using the sequential slider, in preview, apply to the whole gcode.");
+	def.set_default_value(new ConfigOptionBool{ app_config->get("seq_top_layer_only") == "1" });
+	option = Option(def, "seq_top_layer_only");
+	m_optgroup_gui->append_single_option_line(option);
 
+	m_optgroup_gui->activate();
+
+#if ENABLE_GCODE_VIEWER
+	if (is_editor) {
+#endif // ENABLE_GCODE_VIEWER
 		create_icon_size_slider();
 		m_icon_size_sizer->ShowItems(app_config->get("use_custom_toolbar_size") == "1");
 
 		create_settings_mode_widget();
+#if ENABLE_GCODE_VIEWER
+	}
+#endif // ENABLE_GCODE_VIEWER
 
+#if ENABLE_GCODE_VIEWER
+	if (is_editor) {
+#endif // ENABLE_GCODE_VIEWER
 #if ENABLE_ENVIRONMENT_MAP
 		m_optgroup_render = std::make_shared<ConfigOptionsGroup>(this, _L("Render"));
 		m_optgroup_render->label_width = 40;
@@ -236,10 +257,7 @@ void PreferencesDialog::build()
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 	sizer->Add(m_optgroup_general->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 	sizer->Add(m_optgroup_camera->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
-#if ENABLE_GCODE_VIEWER
-	if (m_optgroup_gui != nullptr)
-#endif // ENABLE_GCODE_VIEWER
-		sizer->Add(m_optgroup_gui->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
+	sizer->Add(m_optgroup_gui->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 #if ENABLE_ENVIRONMENT_MAP
 #if ENABLE_GCODE_VIEWER
 	if (m_optgroup_render != nullptr)
@@ -265,6 +283,10 @@ void PreferencesDialog::accept()
 	}
 
     auto app_config = get_app_config();
+
+	m_seq_top_layer_only_changed = false;
+	if (auto it = m_values.find("seq_top_layer_only"); it != m_values.end())
+		m_seq_top_layer_only_changed = app_config->get("seq_top_layer_only") != it->second;
 
 	m_settings_layout_changed = false;
 	for (const std::string& key : {"old_settings_layout_mode",
