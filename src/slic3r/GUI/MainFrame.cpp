@@ -54,9 +54,11 @@ class PrusaSlicerTaskBarIcon : public wxTaskBarIcon
 {
 public:
     PrusaSlicerTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
-#if 0
     wxMenu *CreatePopupMenu() override {
         wxMenu *menu = new wxMenu;
+        //int id;
+        //auto *item = menu->Append(id = wxNewId(), "&Test menu");
+        //menu->Bind(wxEVT_MENU, [this](wxCommandEvent &) { wxMessageBox("Test menu - PrusaSlicer"); }, id);
         append_menu_item(menu, wxID_ANY, _L("Open new instance"), _L("Open a new PrusaSlicer instance"),
             [this](wxCommandEvent&) { start_new_slicer(); }, "", nullptr, [this]() {return wxGetApp().app_config->get("single_instance") != "1"; });
         append_menu_item(menu, wxID_ANY, _L("G-code preview") + dots, _L("Open G-code viewer"),
@@ -68,8 +70,11 @@ class GCodeViewerTaskBarIcon : public wxTaskBarIcon
 {
 public:
     GCodeViewerTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
-    wxMenu* CreatePopupMenu() override {
-        wxMenu* menu = new wxMenu;
+    wxMenu *CreatePopupMenu() override {
+        wxMenu *menu = new wxMenu;
+        //int id;
+        //auto *item = menu->Append(id = wxNewId(), "&Test menu");
+        //menu->Bind(wxEVT_MENU, [this](wxCommandEvent &) { wxMessageBox("Test menu - GCode Viewer"); }, id);
         append_menu_item(menu, wxID_ANY, _L("Open PrusaSlicer"), _L("Open a new PrusaSlicer instance"),
             [this](wxCommandEvent&) { start_new_slicer(nullptr, true); }, "", nullptr);
         append_menu_item(menu, wxID_ANY, _L("G-code preview") + dots, _L("Open new G-code viewer"),
