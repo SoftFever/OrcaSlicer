@@ -127,7 +127,7 @@ public:
 
             memDC.SetFont(m_action_font);
             memDC.SetTextForeground(wxColour(237, 107, 33));
-            memDC.DrawText(text, int(m_scale * 55), int(m_scale * 265));
+            memDC.DrawText(text, int(m_scale * 60), int(m_scale * 275));
 
             memDC.SelectObject(wxNullBitmap);
             set_bitmap(bitmap);
@@ -185,7 +185,8 @@ public:
 
         wxCoord margin = int(m_scale * 20);
 
-        const wxRect banner_rect(wxPoint(0, logo_size + margin * 2), wxPoint(width, bmp.GetHeight()));
+        wxRect banner_rect(wxPoint(0, logo_size), wxPoint(width, bmp.GetHeight()));
+        banner_rect.Deflate(margin, 2 * margin);
 
         // use a memory DC to draw directly onto the bitmap
         wxMemoryDC memDc(bmp);
@@ -197,13 +198,17 @@ public:
         memDc.SetTextForeground(wxColour(255, 255, 255));
 
         memDc.SetFont(m_constant_text.title_font);
-        memDc.DrawLabel(m_constant_text.title,   banner_rect.Deflate(margin, 0), wxALIGN_TOP | wxALIGN_LEFT);
+        memDc.DrawLabel(m_constant_text.title,   banner_rect, wxALIGN_TOP | wxALIGN_LEFT);
+
+        int title_height = memDc.GetTextExtent(m_constant_text.title).GetY();
+        banner_rect.SetTop(banner_rect.GetTop() + title_height);
+        banner_rect.SetHeight(banner_rect.GetHeight() - title_height);
 
         memDc.SetFont(m_constant_text.version_font);
-        memDc.DrawLabel(m_constant_text.version, banner_rect.Deflate(margin, 3 * margin), wxALIGN_TOP | wxALIGN_LEFT);
+        memDc.DrawLabel(m_constant_text.version, banner_rect, wxALIGN_TOP | wxALIGN_LEFT);
 
         memDc.SetFont(m_constant_text.credits_font);
-        memDc.DrawLabel(m_constant_text.credits, banner_rect.Deflate(margin, 2 * margin), wxALIGN_BOTTOM | wxALIGN_LEFT);
+        memDc.DrawLabel(m_constant_text.credits, banner_rect, wxALIGN_BOTTOM | wxALIGN_LEFT);
     }
 
 private:
@@ -211,7 +216,7 @@ private:
     wxFont      m_action_font;
     float       m_scale {1.0};
 
-    struct CONSTANT_TEXT
+    struct ConstantText
     {
         wxString title;
         wxString version;

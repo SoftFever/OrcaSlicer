@@ -253,7 +253,7 @@ public:
     void show_info_line(Action action, std::string preset_name = "");
     void update_config(Action action);
     void close(Action action);
-    void save(PresetCollection* dependent_presets);
+    bool save(PresetCollection* dependent_presets);
 
     bool save_preset() const        { return m_exit_action == Action::Save;     }
     bool transfer_changes() const   { return m_exit_action == Action::Transfer; }

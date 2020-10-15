@@ -629,8 +629,8 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
 
         (*btn)->Bind(wxEVT_BUTTON, [this, close_act, dependent_presets](wxEvent&) {
             update_config(close_act);
-            if (close_act == Action::Save)
-                save(dependent_presets);
+            if (close_act == Action::Save && !save(dependent_presets))
+                return;
             close(close_act);
         });
         if (process_enable)
@@ -657,7 +657,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
 
     m_remember_choice = new wxCheckBox(this, wxID_ANY, _L("Remember my choice"));
     m_remember_choice->SetValue(wxGetApp().app_config->get(m_app_config_key) != "none");
-    m_remember_choice->Bind(wxEVT_CHECKBOX, [type](wxCommandEvent& evt)
+    m_remember_choice->Bind(wxEVT_CHECKBOX, [type, this](wxCommandEvent& evt)
     {
         if (!evt.IsChecked())
             return;
@@ -669,7 +669,9 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
                           "Visit \"Preferences\" and check \"%3%\"\n"
                           "to be asked about unsaved changes again.")) % SLIC3R_APP_NAME % act % preferences_item).str();
     
-        wxMessageBox(from_u8(msg), _L("Note"),wxOK | wxICON_INFORMATION);
+        wxMessageDialog dialog(nullptr, from_u8(msg), _L("Note"), wxOK | wxCANCEL | wxICON_INFORMATION);
+        if (dialog.ShowModal() == wxID_CANCEL)
+            m_remember_choice->SetValue(false);
     });
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
@@ -773,7 +775,7 @@ void UnsavedChangesDialog::close(Action action)
     this->EndModal(wxID_CLOSE);
 }
 
-void UnsavedChangesDialog::save(PresetCollection* dependent_presets)
+bool UnsavedChangesDialog::save(PresetCollection* dependent_presets)
 {
     names_and_types.clear();
 
@@ -787,7 +789,7 @@ void UnsavedChangesDialog::save(PresetCollection* dependent_presets)
             SavePresetDialog save_dlg(preset.type);
             if (save_dlg.ShowModal() != wxID_OK) {
                 m_exit_action = Action::Discard;
-                return;
+                return false;
             }
             name = save_dlg.get_name();
         }
@@ -815,7 +817,7 @@ void UnsavedChangesDialog::save(PresetCollection* dependent_presets)
             SavePresetDialog save_dlg(types_for_save);
             if (save_dlg.ShowModal() != wxID_OK) {
                 m_exit_action = Action::Discard;
-                return;
+                return false;
             }
 
             for (std::pair<std::string, Preset::Type>& nt : names_and_types) {
@@ -825,6 +827,7 @@ void UnsavedChangesDialog::save(PresetCollection* dependent_presets)
             }
         }
     }
+    return true;
 }
 
 template<class T>
