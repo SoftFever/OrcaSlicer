@@ -518,9 +518,12 @@ int CLI::run(int argc, char **argv)
                             outfile_final = sla_print.print_statistics().finalize_output_path(outfile);
                             sla_archive.export_print(outfile_final, sla_print);
                         }
-                        if (outfile != outfile_final && Slic3r::rename_file(outfile, outfile_final)) {
-                            boost::nowide::cerr << "Renaming file " << outfile << " to " << outfile_final << " failed" << std::endl;
-                            return 1;
+                        if (outfile != outfile_final) {
+                            if (Slic3r::rename_file(outfile, outfile_final)) {
+                                boost::nowide::cerr << "Renaming file " << outfile << " to " << outfile_final << " failed" << std::endl;
+                                return 1;
+                            }
+                            outfile = outfile_final;
                         }
                         boost::nowide::cout << "Slicing result exported to " << outfile << std::endl;
                     } catch (const std::exception &ex) {
