@@ -518,9 +518,12 @@ int CLI::run(int argc, char **argv)
                             outfile_final = sla_print.print_statistics().finalize_output_path(outfile);
                             sla_archive.export_print(outfile_final, sla_print);
                         }
-                        if (outfile != outfile_final && Slic3r::rename_file(outfile, outfile_final)) {
-                            boost::nowide::cerr << "Renaming file " << outfile << " to " << outfile_final << " failed" << std::endl;
-                            return 1;
+                        if (outfile != outfile_final) {
+                            if (Slic3r::rename_file(outfile, outfile_final)) {
+                                boost::nowide::cerr << "Renaming file " << outfile << " to " << outfile_final << " failed" << std::endl;
+                                return 1;
+                            }
+                            outfile = outfile_final;
                         }
                         boost::nowide::cout << "Slicing result exported to " << outfile << std::endl;
                     } catch (const std::exception &ex) {
@@ -588,9 +591,9 @@ int CLI::run(int argc, char **argv)
 //		gui->autosave = m_config.opt_string("autosave");
         GUI::GUI_App::SetInstance(gui);
 #if ENABLE_GCODE_VIEWER
-        gui->m_after_init_loads.set_params(load_configs, m_extra_config, m_input_files, start_as_gcodeviewer);
+        gui->after_init_loads.set_params(load_configs, m_extra_config, m_input_files, start_as_gcodeviewer);
 #else
-        gui->m_after_init_loads.set_params(load_configs, m_extra_config, m_input_files);
+        gui->after_init_loads.set_params(load_configs, m_extra_config, m_input_files);
 #endif // ENABLE_GCODE_VIEWER
 /*
 #if ENABLE_GCODE_VIEWER

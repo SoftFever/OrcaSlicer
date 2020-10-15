@@ -357,13 +357,26 @@ std::vector<Vec2f> sample_expolygon(const ExPolygon &expoly, float samples_per_m
             double r = random_triangle(rng);
             size_t idx_triangle = std::min<size_t>(std::upper_bound(areas.begin(), areas.end(), (float)r) - areas.begin(), areas.size() - 1) * 3;
             // Select a random point on the triangle.
-            double u = float(std::sqrt(random_float(rng)));
-            double v = float(random_float(rng));
             const Vec2f &a = triangles[idx_triangle ++];
             const Vec2f &b = triangles[idx_triangle++];
             const Vec2f &c = triangles[idx_triangle];
-            const Vec2f  x = a * (1.f - u) + b * (u * (1.f - v)) + c * (v * u);
-            out.emplace_back(x);
+#if 0
+            // https://www.cs.princeton.edu/~funk/tog02.pdf
+            // page 814, formula 1.
+            double u = float(std::sqrt(random_float(rng)));
+            double v = float(random_float(rng));
+            out.emplace_back(a * (1.f - u) + b * (u * (1.f - v)) + c * (v * u));
+#else
+            // Greg Turk, Graphics Gems
+            // https://devsplorer.wordpress.com/2019/08/07/find-a-random-point-on-a-plane-using-barycentric-coordinates-in-unity/
+            double u = float(random_float(rng));
+            double v = float(random_float(rng));
+            if (u + v >= 1.f) {
+              u = 1.f - u;
+              v = 1.f - v;
+            }
+            out.emplace_back(a + u * (b - a) + v * (c - a));
+#endif
         }
     }
     return out;

@@ -217,65 +217,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     update_title();
 
     // declare events
-    Bind(wxEVT_CREATE, [this](wxWindowCreateEvent& event) {
-
-#ifdef _WIN32
-		//static GUID GUID_DEVINTERFACE_USB_DEVICE	= { 0xA5DCBF10, 0x6530, 0x11D2, 0x90, 0x1F, 0x00, 0xC0, 0x4F, 0xB9, 0x51, 0xED };
-		//static GUID GUID_DEVINTERFACE_DISK 		= { 0x53f56307, 0xb6bf, 0x11d0, 0x94, 0xf2, 0x00, 0xa0, 0xc9, 0x1e, 0xfb, 0x8b };
-		//static GUID GUID_DEVINTERFACE_VOLUME 	    = { 0x71a27cdd, 0x812a, 0x11d0, 0xbe, 0xc7, 0x08, 0x00, 0x2b, 0xe2, 0x09, 0x2f };
-		static GUID GUID_DEVINTERFACE_HID			= { 0x4D1E55B2, 0xF16F, 0x11CF, 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 };
-
-    	// Register USB HID (Human Interface Devices) notifications to trigger the 3DConnexion enumeration.
-		DEV_BROADCAST_DEVICEINTERFACE NotificationFilter = { 0 };
-		NotificationFilter.dbcc_size = sizeof(DEV_BROADCAST_DEVICEINTERFACE);
-		NotificationFilter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
-		NotificationFilter.dbcc_classguid = GUID_DEVINTERFACE_HID;
-		m_hDeviceNotify = ::RegisterDeviceNotification(this->GetHWND(), &NotificationFilter, DEVICE_NOTIFY_WINDOW_HANDLE);
-
-// or register for file handle change?
-//		DEV_BROADCAST_HANDLE NotificationFilter = { 0 };
-//		NotificationFilter.dbch_size = sizeof(DEV_BROADCAST_HANDLE);
-//		NotificationFilter.dbch_devicetype = DBT_DEVTYP_HANDLE;
-
-		// Using Win32 Shell API to register for media insert / removal events.
-		LPITEMIDLIST ppidl;
-		if (SHGetSpecialFolderLocation(this->GetHWND(), CSIDL_DESKTOP, &ppidl) == NOERROR) {
-			SHChangeNotifyEntry shCNE;
-			shCNE.pidl       = ppidl;
-			shCNE.fRecursive = TRUE;
-			// Returns a positive integer registration identifier (ID).
-			// Returns zero if out of memory or in response to invalid parameters.
-			m_ulSHChangeNotifyRegister = SHChangeNotifyRegister(this->GetHWND(),		// Hwnd to receive notification
-				SHCNE_DISKEVENTS,														// Event types of interest (sources)
-				SHCNE_MEDIAINSERTED | SHCNE_MEDIAREMOVED,
-				//SHCNE_UPDATEITEM,														// Events of interest - use SHCNE_ALLEVENTS for all events
-				WM_USER_MEDIACHANGED,													// Notification message to be sent upon the event
-				1,																		// Number of entries in the pfsne array
-				&shCNE);																// Array of SHChangeNotifyEntry structures that 
-																						// contain the notifications. This array should 
-																						// always be set to one when calling SHChnageNotifyRegister
-																						// or SHChangeNotifyDeregister will not work properly.
-			assert(m_ulSHChangeNotifyRegister != 0);    // Shell notification failed
-		} else {
-			// Failed to get desktop location
-			assert(false); 
-		}
-
-		{
-			static constexpr int device_count = 1;
-			RAWINPUTDEVICE devices[device_count] = { 0 };
-			// multi-axis mouse (SpaceNavigator, etc.)
-			devices[0].usUsagePage = 0x01;
-			devices[0].usUsage = 0x08;
-			if (! RegisterRawInputDevices(devices, device_count, sizeof(RAWINPUTDEVICE)))
-				BOOST_LOG_TRIVIAL(error) << "RegisterRawInputDevices failed";
-		}
-#endif // _WIN32
-
-        // propagate event
-        event.Skip();
-    });
-
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
         if (event.CanVeto() && !wxGetApp().check_unsaved_changes()) {
             event.Veto();
@@ -286,6 +227,8 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
         event.Skip();
     });
 
+    //FIXME it seems this method is not called on application start-up, at least not on Windows. Why?
+    // The same applies to wxEVT_CREATE, it is not being called on startup on Windows.
     Bind(wxEVT_ACTIVATE, [this](wxActivateEvent& event) {
         if (m_plater != nullptr && event.GetActive())
             m_plater->on_activate();
@@ -655,6 +598,62 @@ void MainFrame::init_tabpanel()
         }
     }
 }
+
+#ifdef WIN32
+void MainFrame::register_win32_callbacks()
+{
+    //static GUID GUID_DEVINTERFACE_USB_DEVICE  = { 0xA5DCBF10, 0x6530, 0x11D2, 0x90, 0x1F, 0x00, 0xC0, 0x4F, 0xB9, 0x51, 0xED };
+    //static GUID GUID_DEVINTERFACE_DISK        = { 0x53f56307, 0xb6bf, 0x11d0, 0x94, 0xf2, 0x00, 0xa0, 0xc9, 0x1e, 0xfb, 0x8b };
+    //static GUID GUID_DEVINTERFACE_VOLUME      = { 0x71a27cdd, 0x812a, 0x11d0, 0xbe, 0xc7, 0x08, 0x00, 0x2b, 0xe2, 0x09, 0x2f };
+    static GUID GUID_DEVINTERFACE_HID           = { 0x4D1E55B2, 0xF16F, 0x11CF, 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 };
+
+    // Register USB HID (Human Interface Devices) notifications to trigger the 3DConnexion enumeration.
+    DEV_BROADCAST_DEVICEINTERFACE NotificationFilter = { 0 };
+    NotificationFilter.dbcc_size = sizeof(DEV_BROADCAST_DEVICEINTERFACE);
+    NotificationFilter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+    NotificationFilter.dbcc_classguid = GUID_DEVINTERFACE_HID;
+    m_hDeviceNotify = ::RegisterDeviceNotification(this->GetHWND(), &NotificationFilter, DEVICE_NOTIFY_WINDOW_HANDLE);
+
+// or register for file handle change?
+//      DEV_BROADCAST_HANDLE NotificationFilter = { 0 };
+//      NotificationFilter.dbch_size = sizeof(DEV_BROADCAST_HANDLE);
+//      NotificationFilter.dbch_devicetype = DBT_DEVTYP_HANDLE;
+
+    // Using Win32 Shell API to register for media insert / removal events.
+    LPITEMIDLIST ppidl;
+    if (SHGetSpecialFolderLocation(this->GetHWND(), CSIDL_DESKTOP, &ppidl) == NOERROR) {
+        SHChangeNotifyEntry shCNE;
+        shCNE.pidl       = ppidl;
+        shCNE.fRecursive = TRUE;
+        // Returns a positive integer registration identifier (ID).
+        // Returns zero if out of memory or in response to invalid parameters.
+        m_ulSHChangeNotifyRegister = SHChangeNotifyRegister(this->GetHWND(),        // Hwnd to receive notification
+            SHCNE_DISKEVENTS,                                                       // Event types of interest (sources)
+            SHCNE_MEDIAINSERTED | SHCNE_MEDIAREMOVED,
+            //SHCNE_UPDATEITEM,                                                     // Events of interest - use SHCNE_ALLEVENTS for all events
+            WM_USER_MEDIACHANGED,                                                   // Notification message to be sent upon the event
+            1,                                                                      // Number of entries in the pfsne array
+            &shCNE);                                                                // Array of SHChangeNotifyEntry structures that 
+                                                                                    // contain the notifications. This array should 
+                                                                                    // always be set to one when calling SHChnageNotifyRegister
+                                                                                    // or SHChangeNotifyDeregister will not work properly.
+        assert(m_ulSHChangeNotifyRegister != 0);    // Shell notification failed
+    } else {
+        // Failed to get desktop location
+        assert(false); 
+    }
+
+    {
+        static constexpr int device_count = 1;
+        RAWINPUTDEVICE devices[device_count] = { 0 };
+        // multi-axis mouse (SpaceNavigator, etc.)
+        devices[0].usUsagePage = 0x01;
+        devices[0].usUsage = 0x08;
+        if (! RegisterRawInputDevices(devices, device_count, sizeof(RAWINPUTDEVICE)))
+            BOOST_LOG_TRIVIAL(error) << "RegisterRawInputDevices failed";
+    }
+}
+#endif // _WIN32
 
 void MainFrame::create_preset_tabs()
 {

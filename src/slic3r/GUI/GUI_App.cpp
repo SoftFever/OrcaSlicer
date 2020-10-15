@@ -533,7 +533,7 @@ static void generic_exception_handle()
     }
 }
 
-void GUI_App::AFTER_INIT_LOADS::on_loads(GUI_App* gui)
+void GUI_App::AfterInitLoads::on_loads(GUI_App* gui)
 {
     if (!gui->initialized())
         return;
@@ -773,7 +773,7 @@ bool GUI_App::on_init_inner()
             app_config->save();
             if (this->plater_ != nullptr) {
                 if (*Semver::parse(SLIC3R_VERSION) < *Semver::parse(into_u8(evt.GetString()))) {
-                    this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAviable, *(this->plater_->get_current_canvas3D()));
+                    this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable, *(this->plater_->get_current_canvas3D()));
                 }
             }
             });
@@ -847,7 +847,10 @@ bool GUI_App::on_init_inner()
         static bool update_gui_after_init = true;
         if (update_gui_after_init) {
             update_gui_after_init = false;
-            m_after_init_loads.on_loads(this);
+#ifdef WIN32
+            this->mainframe->register_win32_callbacks();
+#endif
+            this->after_init_loads.on_loads(this);
         }
 
 		// Preset updating & Configwizard are done after the above initializations,

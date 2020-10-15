@@ -175,6 +175,16 @@ static std::vector<SLAPrintObject::Instance> sla_instances(const ModelObject &mo
     return instances;
 }
 
+std::vector<ObjectID> SLAPrint::print_object_ids() const 
+{ 
+    std::vector<ObjectID> out;
+    // Reserve one more for the caller to append the ID of the Print itself.
+    out.reserve(m_objects.size() + 1);
+    for (const SLAPrintObject *print_object : m_objects)
+        out.emplace_back(print_object->id());
+    return out;
+}
+
 SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, DynamicPrintConfig config)
 {
 #ifdef _DEBUG

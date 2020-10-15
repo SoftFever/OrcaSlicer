@@ -577,6 +577,16 @@ void Print::config_diffs(
     }
 }
 
+std::vector<ObjectID> Print::print_object_ids() const 
+{ 
+    std::vector<ObjectID> out; 
+    // Reserve one more for the caller to append the ID of the Print itself.
+    out.reserve(m_objects.size() + 1);
+    for (const PrintObject *print_object : m_objects)
+        out.emplace_back(print_object->id());
+    return out;
+}
+
 Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_config)
 {
 #ifdef _DEBUG
