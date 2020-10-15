@@ -122,7 +122,9 @@ void BackgroundSlicingProcess::process_fff()
 	assert(m_print == m_fff_print);
     m_print->process();
 	wxCommandEvent evt(m_event_slicing_completed_id);
-	evt.SetInt((int)(m_fff_print->step_state_with_timestamp(PrintStep::psBrim).timestamp));
+	// Post the Slicing Finished message for the G-code viewer to update.
+	// Passing the timestamp 
+	evt.SetInt((int)(m_fff_print->step_state_with_timestamp(PrintStep::psSlicingFinished).timestamp));
 	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
 #if ENABLE_GCODE_VIEWER
 	m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, m_thumbnail_cb);
