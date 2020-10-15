@@ -9,8 +9,10 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
-#include <wx/glcanvas.h>
+#include <functional>
 #include <iostream>
+
+#include <wx/glcanvas.h>
 
 static constexpr float GAP_WIDTH = 10.0f;
 static constexpr float SPACE_RIGHT_PANEL = 10.0f;
@@ -638,7 +640,8 @@ NotificationManager::NotificationManager(wxEvtHandler* evt_handler) :
 void NotificationManager::push_notification(const NotificationType type, GLCanvas3D& canvas, int timestamp)
 {
 	auto it = std::find_if(basic_notifications.begin(), basic_notifications.end(),
-		boost::bind(&NotificationData::type, _1) == type);	
+		std::bind(&NotificationData::type, _1) == type);
+	assert(it != basic_notifications.end());
 	if (it != basic_notifications.end())
 		push_notification_data( *it, canvas, timestamp);
 }

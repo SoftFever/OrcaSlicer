@@ -72,14 +72,16 @@ public:
 
 	NotificationManager(wxEvtHandler* evt_handler);
 	
-	// only type means one of basic_notification (see below)
+	// Push a prefabricated notification from basic_notifications (see the table at the end of this file).
 	void push_notification(const NotificationType type, GLCanvas3D& canvas, int timestamp = 0);
-	// only text means Undefined type
+	// Push a NotificationType::CustomNotification with NotificationLevel::RegularNotification and 10s fade out interval.
 	void push_notification(const std::string& text, GLCanvas3D& canvas, int timestamp = 0);
+	// Push a NotificationType::CustomNotification with provided notification level and 10s for RegularNotification.
+	// ErrorNotification and ImportantNotification are never faded out.
 	void push_notification(const std::string& text, NotificationLevel level, GLCanvas3D& canvas, int timestamp = 0);
-	// creates Slicing Error notification with custom text
+	// Creates Slicing Error notification with a custom text and no fade out.
 	void push_slicing_error_notification(const std::string& text, GLCanvas3D& canvas);
-	// creates Slicing Warning notification with custom text
+	// Creates Slicing Warning notification with a custom text and no fade out.
 	void push_slicing_warning_notification(const std::string& text, bool gray, GLCanvas3D& canvas, ObjectID oid, int warning_step);
 	// marks slicing errors as gray
 	void set_all_slicing_errors_gray(bool g);
@@ -91,15 +93,16 @@ public:
 	// Release those slicing warnings, which refer to an ObjectID, which is not in the list.
 	// living_oids is expected to be sorted.
 	void remove_slicing_warnings_of_released_objects(const std::vector<ObjectID>& living_oids);
-	// Object partially outside of the printer working space, cannot print.
+	// Object partially outside of the printer working space, cannot print. No fade out.
 	void push_plater_error_notification(const std::string& text, GLCanvas3D& canvas);
-	// Object fully out of the printer working space and such.
+	// Object fully out of the printer working space and such. No fade out.
 	void push_plater_warning_notification(const std::string& text, GLCanvas3D& canvas);
 	// Closes error or warning of the same text
 	void close_plater_error_notification(const std::string& text);
 	void close_plater_warning_notification(const std::string& text);
-	// creates special notification slicing complete
-	// if large = true prints printing time and export button 
+	// Creates special notification slicing complete.
+	// If large = true (Plater side bar is closed), then printing time and export button is shown
+	// at the notification and fade-out is disabled. Otherwise the fade out time is set to 10s.
 	void push_slicing_complete_notification(GLCanvas3D& canvas, int timestamp, bool large);
 	// Add a print time estimate to an existing SlicingComplete notification.
 	void set_slicing_complete_print_time(const std::string &info);
@@ -120,6 +123,7 @@ private:
 	struct NotificationData {
 		NotificationType    type;
 		NotificationLevel   level;
+		// Fade out time
 		const int           duration;
 		const std::string   text1;
 		const std::string   hypertext;
@@ -290,11 +294,14 @@ private:
 	// Cache of IDs to identify and reuse ImGUI windows.
 	NotificationIDProvider 		 m_id_provider;
 	std::deque<std::unique_ptr<PopNotification>> m_pop_notifications;
+	// Last render time for fade out control.
 	long                         m_last_time { 0 };
 	bool                         m_hovered { false };
 	//timestamps used for slicing finished - notification could be gone so it needs to be stored here
 	std::unordered_set<int>      m_used_timestamps;
+	// True if G-code preview is active. False if the Plater is active.
 	bool                         m_in_preview { false };
+	// True if the layer editing is enabled in Plater, so that the notifications are shifted left of it.
 	bool                         m_move_from_overlay { false };
 
 	//prepared (basic) notifications
