@@ -1405,8 +1405,6 @@ class ModelConfig
 public:
     void         clear() { m_data.clear(); m_timestamp = 1; }
 
-    // Modification of the ModelConfig is not thread safe due to the global timestamp counter!
-    // Don't call modification methods from the back-end!
     void         assign_config(const ModelConfig &rhs) {
         if (m_timestamp != rhs.m_timestamp) {
             m_data      = rhs.m_data;
@@ -1420,6 +1418,9 @@ public:
             rhs.clear();
         }
     }
+
+    // Modification of the ModelConfig is not thread safe due to the global timestamp counter!
+    // Don't call modification methods from the back-end!
     // Assign methods don't assign if src==dst to not having to bump the timestamp in case they are equal.
     void         assign_config(const DynamicPrintConfig &rhs)  { if (m_data != rhs) { m_data = rhs; this->touch(); } }
     void         assign_config(DynamicPrintConfig &&rhs)       { if (m_data != rhs) { m_data = std::move(rhs); this->touch(); } }

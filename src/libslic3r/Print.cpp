@@ -404,10 +404,10 @@ static inline void model_volume_list_copy_configs(ModelObject &model_object_dst,
         // Copy the ModelVolume data.
         mv_dst.name   = mv_src.name;
 		mv_dst.config.assign_config(mv_src.config);
-        if (! mv_dst.supported_facets.timestamp_matches(mv_src.supported_facets))
-            mv_dst.supported_facets = mv_src.supported_facets;
-        if (! mv_dst.seam_facets.timestamp_matches(mv_src.seam_facets))
-            mv_dst.seam_facets = mv_src.seam_facets;
+        assert(mv_dst.supported_facets.id() == mv_src.supported_facets.id());
+        mv_dst.supported_facets.assign(mv_src.supported_facets);
+        assert(mv_dst.seam_facets.id() == mv_src.seam_facets.id());
+        mv_dst.seam_facets.assign(mv_src.seam_facets);
         //FIXME what to do with the materials?
         // mv_dst.m_material_id = mv_src.m_material_id;
         ++ i_src;
