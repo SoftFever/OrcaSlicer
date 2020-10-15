@@ -208,7 +208,7 @@ void check_support_tree_integrity(const sla::SupportTreeBuilder &stree,
     };
     
     for (auto &bridge : stree.bridges()) chck_bridge(bridge, max_bridgelen);
-    REQUIRE(max_bridgelen <= cfg.max_bridge_length_mm);
+    REQUIRE(max_bridgelen <= Approx(cfg.max_bridge_length_mm));
     
     max_bridgelen = 0;
     for (auto &bridge : stree.crossbridges()) chck_bridge(bridge, max_bridgelen);
