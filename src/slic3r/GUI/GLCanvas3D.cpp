@@ -4465,8 +4465,7 @@ static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
 
 void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) const
 {
-    auto is_visible = [](const GLVolume& v) -> bool
-    {
+    auto is_visible = [](const GLVolume& v) {
         bool ret = v.printable;
         ret &= (!v.shader_outside_printer_detection_enabled || !v.is_outside);
         return ret;
@@ -4477,10 +4476,8 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool 
 
     GLVolumePtrs visible_volumes;
 
-    for (GLVolume* vol : m_volumes.volumes)
-    {
-        if (!vol->is_modifier && !vol->is_wipe_tower && (!parts_only || (vol->composite_id.volume_id >= 0)))
-        {
+    for (GLVolume* vol : m_volumes.volumes) {
+        if (!vol->is_modifier && !vol->is_wipe_tower && (!parts_only || (vol->composite_id.volume_id >= 0))) {
             if (!printable_only || is_visible(*vol))
                 visible_volumes.emplace_back(vol);
         }
@@ -4490,8 +4487,7 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool 
         return;
 
     BoundingBoxf3 box;
-    for (const GLVolume* vol : visible_volumes)
-    {
+    for (const GLVolume* vol : visible_volumes) {
         box.merge(vol->transformed_bounding_box());
     }
 
@@ -4505,8 +4501,7 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool 
     double near_z = -1.0;
     double far_z = -1.0;
 
-    if (show_bed)
-    {
+    if (show_bed) {
         // extends the near and far z of the frustrum to avoid the bed being clipped
 
         // box in eye space
@@ -4517,7 +4512,7 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool 
 
     camera.apply_projection(box, near_z, far_z);
 
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud");
+    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr)
         return;
 
@@ -4530,8 +4525,7 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool 
     shader->start_using();
     shader->set_uniform("print_box.volume_detection", 0);
 
-    for (const GLVolume* vol : visible_volumes)
-    {
+    for (const GLVolume* vol : visible_volumes) {
         shader->set_uniform("uniform_color", (vol->printable && !vol->is_outside) ? orange : gray);
         vol->render();
     }

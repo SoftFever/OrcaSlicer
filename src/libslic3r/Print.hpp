@@ -47,6 +47,7 @@ enum PrintStep {
     // psToolOrdering is a synonym to psWipeTower, as the Wipe Tower calculates and modifies the ToolOrdering,
     // while if printing without the Wipe Tower, the ToolOrdering is calculated as well.
     psToolOrdering = psWipeTower,
+    psSlicingFinished = psToolOrdering,
     psGCodeExport,
     psCount,
 };
