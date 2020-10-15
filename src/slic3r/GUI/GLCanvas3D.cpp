@@ -4429,10 +4429,14 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
 
     if (selected >= 0) {
         // selected == 9999 means that Esc kye was pressed
+        /*// revert commit https://github.com/prusa3d/PrusaSlicer/commit/91897589928789b261ca0dc735ffd46f2b0b99f2
         if (selected == 9999)
             action_taken = true;
         else
+            sidebar.jump_to_option(selected);*/
+        if (selected != 9999)
             sidebar.jump_to_option(selected);
+        action_taken = true;
     }
 
     imgui->end();

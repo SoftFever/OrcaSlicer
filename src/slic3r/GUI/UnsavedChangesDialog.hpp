@@ -192,10 +192,11 @@ class UnsavedChangesDialog : public DPIDialog
     UnsavedChangesModel*    m_tree_model    { nullptr };
 
     ScalableButton*         m_save_btn      { nullptr };
-    ScalableButton*         m_move_btn      { nullptr };
-    ScalableButton*         m_continue_btn  { nullptr };
+    ScalableButton*         m_transfer_btn  { nullptr };
+    ScalableButton*         m_discard_btn   { nullptr };
     wxStaticText*           m_action_line   { nullptr };
     wxStaticText*           m_info_line     { nullptr };
+    wxCheckBox*             m_remember_choice   { nullptr };
 
     bool                    m_empty_selection   { false };
     bool                    m_has_long_strings  { false };
@@ -203,12 +204,18 @@ class UnsavedChangesDialog : public DPIDialog
     int                     m_move_btn_id       { wxID_ANY };
     int                     m_continue_btn_id   { wxID_ANY };
 
+    std::string             m_app_config_key;
+
     enum class Action {
         Undef,
-        Save,
-        Move,
-        Continue
+        Transfer,
+        Discard,
+        Save
     };
+
+    static constexpr char ActTransfer[] = "transfer";
+    static constexpr char ActDiscard[]  = "discard";
+    static constexpr char ActSave[]     = "save";
 
     // selected action after Dialog closing
     Action m_exit_action {Action::Undef};
@@ -244,12 +251,13 @@ public:
     void item_value_changed(wxDataViewEvent &event);
     void context_menu(wxDataViewEvent &event);
     void show_info_line(Action action, std::string preset_name = "");
+    void update_config(Action action);
     void close(Action action);
-    void save_and_close(PresetCollection* dependent_presets);
+    void save(PresetCollection* dependent_presets);
 
-    bool save_preset() const    { return m_exit_action == Action::Save;      }
-    bool move_preset() const    { return m_exit_action == Action::Move;      }
-    bool just_continue() const  { return m_exit_action == Action::Continue;  }
+    bool save_preset() const        { return m_exit_action == Action::Save;     }
+    bool transfer_changes() const   { return m_exit_action == Action::Transfer; }
+    bool discard() const            { return m_exit_action == Action::Discard;  }
 
     // get full bundle of preset names and types for saving
     const std::vector<std::pair<std::string, Preset::Type>>& get_names_and_types() { return names_and_types; }

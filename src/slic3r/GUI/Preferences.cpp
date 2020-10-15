@@ -24,7 +24,10 @@ void PreferencesDialog::build()
 	m_optgroup_general = std::make_shared<ConfigOptionsGroup>(this, _L("General"));
 	m_optgroup_general->label_width = 40;
 	m_optgroup_general->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
-		m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
+		if (opt_key == "default_action_on_close_application" || opt_key == "default_action_on_select_preset")
+			m_values[opt_key] = boost::any_cast<bool>(value) ? "none" : "discard";
+		else
+		    m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
 	};
 
 	// TODO
@@ -147,6 +150,20 @@ void PreferencesDialog::build()
 	option = Option(def, "use_inches");
 	m_optgroup_general->append_single_option_line(option);
 */
+
+	def.label = L("Ask for unsaved changes when closing application");
+	def.type = coBool;
+	def.tooltip = L("Always ask for unsaved changes when closing application");
+	def.set_default_value(new ConfigOptionBool{ app_config->get("default_action_on_close_application") == "none" });
+	option = Option(def, "default_action_on_close_application");
+	m_optgroup_general->append_single_option_line(option);
+
+	def.label = L("Ask for unsaved changes when selecting new preset");
+	def.type = coBool;
+	def.tooltip = L("Always ask for unsaved changes when selecting new preset");
+	def.set_default_value(new ConfigOptionBool{ app_config->get("default_action_on_select_preset") == "none" });
+	option = Option(def, "default_action_on_select_preset");
+	m_optgroup_general->append_single_option_line(option);
 
     // Show/Hide splash screen
 	def.label = L("Show splash screen");
@@ -298,6 +315,13 @@ void PreferencesDialog::accept()
 			m_settings_layout_changed = true;
 			break;
 	    }
+	}
+
+	for (const std::string& key : {"default_action_on_close_application", "default_action_on_select_preset"})
+	{
+	    auto it = m_values.find(key);
+		if (it != m_values.end() && it->second != "none" && app_config->get(key) != "none")
+			m_values.erase(it); // we shouldn't change value, if some of those parameters was selected, and then deselected
 	}
 
 	for (std::map<std::string, std::string>::iterator it = m_values.begin(); it != m_values.end(); ++it)

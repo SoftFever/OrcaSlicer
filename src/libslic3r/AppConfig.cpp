@@ -122,6 +122,12 @@ void AppConfig::set_defaults()
     if (get("show_splash_screen").empty())
         set("show_splash_screen", "1");
 
+    if (get("default_action_on_close_application").empty())
+        set("default_action_on_close_application", "none"); // , "discard" or "save" 
+
+    if (get("default_action_on_select_preset").empty())
+        set("default_action_on_select_preset", "none");     // , "transfer", "discard" or "save" 
+
     // Remove legacy window positions/sizes
     erase("", "main_frame_maximized");
     erase("", "main_frame_pos");

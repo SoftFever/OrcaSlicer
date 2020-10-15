@@ -3099,7 +3099,7 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
     if (presets == nullptr) presets = m_presets;
 
     UnsavedChangesDialog dlg(m_type, presets, new_printer_name);
-    if (dlg.ShowModal() == wxID_CANCEL)
+    if (wxGetApp().app_config->get("default_action_on_select_preset") == "none" && dlg.ShowModal() == wxID_CANCEL)
         return false;
 
     if (dlg.save_preset())  // save selected changes
@@ -3124,7 +3124,7 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
                 wxGetApp().plater()->force_filament_colors_update();
         }
     }
-    else if (dlg.move_preset()) // move selected changes
+    else if (dlg.transfer_changes()) // move selected changes
     {
         std::vector<std::string> selected_options = dlg.get_selected_options();
         if (m_type == presets->type()) // move changes for the current preset from this tab

@@ -1654,7 +1654,7 @@ bool GUI_App::check_unsaved_changes(const wxString &header)
     if (has_unsaved_changes)
     {
         UnsavedChangesDialog dlg(header);
-        if (dlg.ShowModal() == wxID_CANCEL)
+        if (wxGetApp().app_config->get("default_action_on_close_application") == "none" && dlg.ShowModal() == wxID_CANCEL)
             return false;
 
         if (dlg.save_preset())  // save selected changes

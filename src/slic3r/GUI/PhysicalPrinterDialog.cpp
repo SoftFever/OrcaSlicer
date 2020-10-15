@@ -236,6 +236,8 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxString printer_name) :
         m_printer_name->SetFocus();
         m_printer_name->SelectAll();
     }
+
+    this->CenterOnScreen();
 }
 
 PhysicalPrinterDialog::~PhysicalPrinterDialog()

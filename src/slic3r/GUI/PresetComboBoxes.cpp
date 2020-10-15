@@ -1221,6 +1221,8 @@ void SavePresetDialog::build(std::vector<Preset::Type> types, std::string suffix
 
     SetSizer(topSizer);
     topSizer->SetSizeHints(this);
+
+    this->CenterOnScreen();
 }
 
 void SavePresetDialog::AddItem(Preset::Type type, const std::string& suffix)
