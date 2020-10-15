@@ -9,7 +9,6 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
-#include <functional>
 #include <iostream>
 
 #include <wx/glcanvas.h>
@@ -560,7 +559,7 @@ void NotificationManager::PopNotification::on_text_click()
 		if (m_evt_handler != nullptr)
 			wxPostEvent(m_evt_handler, PresetUpdateAvailableClickedEvent(EVT_PRESET_UPDATE_AVAILABLE_CLICKED));
 		break;
-	case NotificationType::NewAppAviable:
+	case NotificationType::NewAppAvailable:
 		wxLaunchDefaultBrowser("https://github.com/prusa3d/PrusaSlicer/releases");
 		break;
 	default:
@@ -640,7 +639,7 @@ NotificationManager::NotificationManager(wxEvtHandler* evt_handler) :
 void NotificationManager::push_notification(const NotificationType type, GLCanvas3D& canvas, int timestamp)
 {
 	auto it = std::find_if(basic_notifications.begin(), basic_notifications.end(),
-		std::bind(&NotificationData::type, _1) == type);
+		boost::bind(&NotificationData::type, _1) == type);
 	assert(it != basic_notifications.end());
 	if (it != basic_notifications.end())
 		push_notification_data( *it, canvas, timestamp);
@@ -651,21 +650,16 @@ void NotificationManager::push_notification(const std::string& text, GLCanvas3D&
 }
 void NotificationManager::push_notification(const std::string& text, NotificationManager::NotificationLevel level, GLCanvas3D& canvas, int timestamp)
 {
-	switch (level)
-	{
-	case Slic3r::GUI::NotificationManager::NotificationLevel::RegularNotification:
-		push_notification_data({ NotificationType::CustomNotification, level, 10, text }, canvas, timestamp);
-		break;
-	case Slic3r::GUI::NotificationManager::NotificationLevel::ErrorNotification:
-		push_notification_data({ NotificationType::CustomNotification, level, 0, text }, canvas, timestamp);
-
-		break;
-	case Slic3r::GUI::NotificationManager::NotificationLevel::ImportantNotification:
-		push_notification_data({ NotificationType::CustomNotification, level, 0, text }, canvas, timestamp);
-		break;
+	int duration = 0;
+	switch (level) {
+	case NotificationLevel::RegularNotification: 	duration = 10; break;
+	case NotificationLevel::ErrorNotification: 		break;
+	case NotificationLevel::ImportantNotification: 	break;
 	default:
-		break;
+		assert(false);
+		return;
 	}
+	push_notification_data({ NotificationType::CustomNotification, level, duration, text }, canvas, timestamp);
 }
 void NotificationManager::push_slicing_error_notification(const std::string& text, GLCanvas3D& canvas)
 {
@@ -823,7 +817,7 @@ void NotificationManager::render_notifications(GLCanvas3D& canvas, float overlay
 	float    current_height = 0.0f;
 	bool     request_next_frame = false;
 	bool     render_main = false;
-	bool     hovered = false;	
+	bool     hovered = false;
 	sort_notifications();
 	// iterate thru notifications and render them / erease them
 	for (auto it = m_pop_notifications.begin(); it != m_pop_notifications.end();) {
@@ -854,22 +848,29 @@ void NotificationManager::render_notifications(GLCanvas3D& canvas, float overlay
 	if (!top_level_wnd->IsActive())
 		return;
 
-	if (!m_hovered && m_last_time < wxGetLocalTime())
 	{
-		if (wxGetLocalTime() - m_last_time == 1)
+		// Control the fade-out.
+		// time in seconds
+		long now = wxGetLocalTime();
+		// Pausing fade-out when the mouse is over some notification.
+		if (!m_hovered && m_last_time < now)
 		{
-			for(auto &notification : m_pop_notifications)
+			if (now - m_last_time == 1)
 			{
-				notification->substract_remaining_time();
+				for (auto &notification : m_pop_notifications)
+				{
+					notification->substract_remaining_time();
+				}
 			}
+			m_last_time = now;
 		}
-		m_last_time = wxGetLocalTime();
 	}
 
 	if (request_next_frame)
+		//FIXME this is very expensive for fade-out control.
+		// If any of the notifications is fading out, 100% of the CPU/GPU is consumed.
 		canvas.request_extra_frame();
 }
-
 
 void NotificationManager::sort_notifications()
 {

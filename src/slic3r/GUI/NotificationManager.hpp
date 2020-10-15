@@ -40,7 +40,7 @@ enum class NotificationType
 //	NewPresetsAviable,
 	// Notification on the start of PrusaSlicer, when a new PrusaSlicer version is published.
 	// Contains a hyperlink to open a web browser pointing to the PrusaSlicer download location.
-	NewAppAviable,
+	NewAppAvailable,
 	// Notification on the start of PrusaSlicer, when updates of system profiles are detected.
 	// Contains a hyperlink to execute installation of the new system profiles.
 	PresetUpdateAvailable,
@@ -64,10 +64,16 @@ class NotificationManager
 public:
 	enum class NotificationLevel : int
 	{
-		ErrorNotification =     4,
-		WarningNotification =   3,
-		ImportantNotification = 2,
-		RegularNotification   = 1,
+		// The notifications will be presented in the order of importance, thus these enum values
+		// are sorted by the importance.
+		// "Good to know" notification, usually but not always with a quick fade-out.
+		RegularNotification = 1,
+		// Information notification without a fade-out or with a longer fade-out.
+		ImportantNotification,
+		// Warning, no fade-out.
+		WarningNotification,
+		// Error, no fade-out.
+		ErrorNotification,
 	};
 
 	NotificationManager(wxEvtHandler* evt_handler);
@@ -294,8 +300,9 @@ private:
 	// Cache of IDs to identify and reuse ImGUI windows.
 	NotificationIDProvider 		 m_id_provider;
 	std::deque<std::unique_ptr<PopNotification>> m_pop_notifications;
-	// Last render time for fade out control.
+	// Last render time in seconds for fade out control.
 	long                         m_last_time { 0 };
+	// When mouse hovers over some notification, the fade-out of all notifications is suppressed.
 	bool                         m_hovered { false };
 	//timestamps used for slicing finished - notification could be gone so it needs to be stored here
 	std::unordered_set<int>      m_used_timestamps;
@@ -312,8 +319,8 @@ private:
 //		{NotificationType::Mouse3dConnected, NotificationLevel::RegularNotification, 5,  _u8L("3D Mouse connected.") },
 //		{NotificationType::NewPresetsAviable, NotificationLevel::ImportantNotification, 20,  _u8L("New Presets are available."),  _u8L("See here.") },
 		{NotificationType::PresetUpdateAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("Configuration update is available."),  _u8L("See more.")},
-		{NotificationType::NewAppAviable, NotificationLevel::ImportantNotification, 20,  _u8L("New version is available."),  _u8L("See Releases page.")},
-		//{NotificationType::NewAppAviable, NotificationLevel::ImportantNotification, 20,  _u8L("New vesion of PrusaSlicer is available.",  _u8L("Download page.") },
+		{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("New version is available."),  _u8L("See Releases page.")},
+		//{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("New vesion of PrusaSlicer is available.",  _u8L("Download page.") },
 		//{NotificationType::LoadingFailed, NotificationLevel::RegularNotification, 20,  _u8L("Loading of model has Failed") },
 		//{NotificationType::DeviceEjected, NotificationLevel::RegularNotification, 10,  _u8L("Removable device has been safely ejected")} // if we want changeble text (like here name of device), we need to do it as CustomNotification
 	};
