@@ -220,7 +220,7 @@ namespace Slic3r {
         return (total_length_forward < total_length_backward) ? Direction::Forward : Direction::Backward;
     }
 
-    Polyline AvoidCrossingPerimeters2::simplify_travel(const Polyline &travel, const GCode &gcodegen)
+    Polyline AvoidCrossingPerimeters2::simplify_travel(const EdgeGrid::Grid &edge_grid, const Polyline &travel)
     {
         struct Visitor
         {
@@ -249,7 +249,7 @@ namespace Slic3r {
             const Slic3r::Point  *pt_current = nullptr;
             const Slic3r::Point  *pt_next    = nullptr;
             bool                  intersect  = false;
-        } visitor(m_grid);
+        } visitor(edge_grid);
 
         Polyline optimized_comb_path;
         optimized_comb_path.points.reserve(travel.points.size());
@@ -270,7 +270,7 @@ namespace Slic3r {
                 }
 
                 visitor.pt_next = &travel.points[point_idx_2];
-                m_grid.visit_cells_intersecting_line(*visitor.pt_current, *visitor.pt_next, visitor);
+                edge_grid.visit_cells_intersecting_line(*visitor.pt_current, *visitor.pt_next, visitor);
                 // Check if deleting point causes crossing a boundary
                 if (!visitor.intersect) {
                     next      = travel.points[point_idx_2];
@@ -287,21 +287,75 @@ namespace Slic3r {
     void AvoidCrossingPerimeters2::init_layer(const Layer &layer)
     {
         m_boundaries.clear();
-        BoundingBox bbox = get_extents(layer.lslices);
-        // The path could start in the previous layer. Because of it, we need to extend bounding box by the previous layer
-        if (layer.lower_layer != nullptr) bbox.merge(get_extents(layer.lower_layer->lslices));
+        m_boundaries_external.clear();
 
-        bbox.offset(SCALED_EPSILON);
-        ExPolygons boundaries = get_boundary(layer);
+        ExPolygons boundaries          = get_boundary(layer);
+        ExPolygons boundaries_external = get_boundary_external(layer);
 
-        for (const ExPolygon &ex_polygon : boundaries) {
-            m_boundaries.emplace_back(ex_polygon.contour);
+        m_bbox = get_extents(boundaries);
+        m_bbox.offset(SCALED_EPSILON);
+        m_bbox_external = get_extents(boundaries_external);
+        m_bbox_external.offset(SCALED_EPSILON);
 
-            for (const Polygon &hole : ex_polygon.holes) m_boundaries.emplace_back(hole);
+        for (const ExPolygon &ex_poly : boundaries) {
+            m_boundaries.emplace_back(ex_poly.contour);
+            append(m_boundaries, ex_poly.holes);
+        }
+        for (const ExPolygon &ex_poly : boundaries_external) {
+            m_boundaries_external.emplace_back(ex_poly.contour);
+            append(m_boundaries_external, ex_poly.holes);
         }
 
-        m_grid.set_bbox(bbox);
+        m_grid.set_bbox(m_bbox);
         m_grid.create(m_boundaries, scale_(1.));
+        m_grid_external.set_bbox(m_bbox_external);
+        m_grid_external.create(m_boundaries_external, scale_(1.));
+    }
+
+    ExPolygons AvoidCrossingPerimeters2::get_boundary_external(const Layer &llayer)
+    {
+        size_t     regions_count     = 0;
+        long       perimeter_spacing = 0;
+        ExPolygons boundary;
+        for (const PrintObject *object : llayer.object()->print()->objects()) {
+            ExPolygons polygons_per_obj;
+            for (Layer *layer : object->layers()) {
+                if ((llayer.print_z - EPSILON) <= layer->print_z && layer->print_z <= (llayer.print_z + EPSILON)) {
+                    for (const LayerRegion *layer_region : layer->regions()) {
+                        for (const Surface &surface : layer_region->slices.surfaces)
+                            polygons_per_obj.emplace_back(surface.expolygon);
+
+                        perimeter_spacing += layer_region->flow(frPerimeter).scaled_spacing();
+                        ++regions_count;
+                    }
+                }
+            }
+
+            for (const PrintInstance &instance : object->instances()) {
+                size_t boundary_idx = boundary.size();
+                boundary.reserve(boundary.size() + polygons_per_obj.size());
+                boundary.insert(boundary.end(), polygons_per_obj.begin(), polygons_per_obj.end());
+                for (; boundary_idx < boundary.size(); ++boundary_idx)
+                    boundary[boundary_idx].translate(instance.shift.x(), instance.shift.y());
+            }
+        }
+
+        perimeter_spacing /= regions_count;
+        const long perimeter_offset = perimeter_spacing / 2;
+
+        Polygons contours;
+        Polygons holes;
+        for (ExPolygon &poly : boundary) {
+            contours.emplace_back(poly.contour);
+            append(holes, poly.holes);
+        }
+
+        ExPolygons final_boundary = union_ex(diff(offset(contours, perimeter_spacing * 3), offset(contours, 3 * perimeter_spacing - perimeter_offset)));
+        ExPolygons holes_boundary = union_ex(diff(offset(holes, perimeter_spacing), offset(holes, perimeter_offset)));
+        final_boundary.reserve(final_boundary.size() + holes_boundary.size());
+        final_boundary.insert(final_boundary.end(), holes_boundary.begin(), holes_boundary.end());
+        final_boundary = union_ex(final_boundary);
+        return final_boundary;
     }
 
     ExPolygons AvoidCrossingPerimeters2::get_boundary(const Layer &layer)
@@ -331,7 +385,7 @@ namespace Slic3r {
                                                               offset + SCALED_EPSILON);
             perimeter_boundary                    = offset_ex(perimeter_boundary, offset);
             perimeter_boundary.insert(perimeter_boundary.begin(), missing_perimeter_boundary.begin(), missing_perimeter_boundary.end());
-            final_boundary = offset_ex(union_ex(perimeter_boundary), -offset);
+            final_boundary = union_ex(intersection_ex(offset_ex(perimeter_boundary, -offset), boundary));
         } else {
             final_boundary = std::move(perimeter_boundary);
         }
@@ -388,20 +442,51 @@ namespace Slic3r {
         return middle + (three_points_inward_normal(left, middle, right) * double(offset)).cast<coord_t>();
     }
 
-    Polyline AvoidCrossingPerimeters2::travel_to(const GCode &gcodegen, const Point &point)
+    bool check_if_could_cross_perimeters(const BoundingBox &bbox, const Point &start, const Point &end)
     {
-        bool use_external = this->use_external_mp || this->use_external_mp_once;
-        if (use_external) {
-            Point    scaled_origin = Point::new_scale(gcodegen.origin()(0), gcodegen.origin()(1));
-            Polyline result        = m_external_mp.get()->shortest_path(gcodegen.last_pos() + scaled_origin, point + scaled_origin);
-            result.translate(-scaled_origin);
-            return result;
+        bool start_out_of_bound = !bbox.contains(start), end_out_of_bound = !bbox.contains(end);
+        // When both endpoints are out of the bounding box, it needs to check in more detail.
+        if (start_out_of_bound && end_out_of_bound) {
+            Point intersection;
+            return bbox.polygon().intersection(Line(start, end), &intersection);
+        }
+        return true;
+    }
+
+    std::pair<Point, Point> clamp_endpoints_by_bounding_box(const BoundingBox &bbox, const Point &start, const Point &end)
+    {
+        bool   start_out_of_bound = !bbox.contains(start), end_out_of_bound = !bbox.contains(end);
+        Point  start_clamped = start, end_clamped = end;
+        Points intersections;
+        if (start_out_of_bound || end_out_of_bound) {
+            bbox.polygon().intersections(Line(start, end), &intersections);
+            assert(intersections.size() <= 2);
         }
 
-        const Point &start                 = gcodegen.last_pos();
-        const Point &end                   = point;
-        const Point  direction             = end - start;
-        Matrix2d     transform_to_x_axis   = rotation_by_direction(direction);
+        if (start_out_of_bound && !end_out_of_bound && intersections.size() == 1) {
+            start_clamped = intersections[0];
+        } else if (!start_out_of_bound && end_out_of_bound && intersections.size() == 1) {
+            end_clamped = intersections[0];
+        } else if (start_out_of_bound && end_out_of_bound && intersections.size() == 2) {
+            if ((intersections[0] - start).cast<double>().norm() < (intersections[1] - start).cast<double>().norm()) {
+                start_clamped = intersections[0];
+                end_clamped   = intersections[1];
+            } else {
+                start_clamped = intersections[1];
+                end_clamped   = intersections[0];
+            }
+        }
+
+        return std::make_pair(start_clamped, end_clamped);
+    }
+
+    Polyline AvoidCrossingPerimeters2::avoid_perimeters(const Polygons &      boundaries,
+                                                        const EdgeGrid::Grid &edge_grid,
+                                                        const Point &         start,
+                                                        const Point &         end)
+    {
+        const Point direction           = end - start;
+        Matrix2d    transform_to_x_axis = rotation_by_direction(direction);
 
         const Line travel_line_orig(start, end);
         const Line travel_line((transform_to_x_axis * start.cast<double>()).cast<coord_t>(),
@@ -444,9 +529,9 @@ namespace Slic3r {
                 const Matrix2d                                                                       &transform_to_x_axis;
                 const Line                                                                           &travel_line;
                 std::unordered_set<std::pair<size_t, size_t>, boost::hash<std::pair<size_t, size_t>>> intersection_set;
-            } visitor(m_grid, intersections, transform_to_x_axis, travel_line_orig);
+            } visitor(edge_grid, intersections, transform_to_x_axis, travel_line_orig);
 
-            m_grid.visit_cells_intersecting_line(start, end, visitor);
+            edge_grid.visit_cells_intersecting_line(start, end, visitor);
         }
 
         std::sort(intersections.begin(), intersections.end());
@@ -458,8 +543,8 @@ namespace Slic3r {
             for (auto it_second = it_first + 1; it_second != intersections.end(); ++it_second) {
                 const Intersection &intersection_second = *it_second;
                 if (intersection_first.border_idx == intersection_second.border_idx) {
-                    Lines border_lines = m_boundaries[intersection_first.border_idx].lines();
-                    const Line &first_intersected_line = border_lines[intersection_first.line_idx];
+                    Lines       border_lines            = boundaries[intersection_first.border_idx].lines();
+                    const Line &first_intersected_line  = border_lines[intersection_first.line_idx];
                     const Line &second_intersected_line = border_lines[intersection_second.line_idx];
                     // Append the nearest intersection into the path
                     result.append(get_middle_point_offset(first_intersected_line.a, intersection_first.point, first_intersected_line.b, SCALED_EPSILON));
@@ -471,12 +556,12 @@ namespace Slic3r {
                     if (shortest_direction == Direction::Forward)
                         for (int line_idx = intersection_first.line_idx; line_idx != int(intersection_second.line_idx);
                             line_idx     = (((line_idx + 1) < int(border_lines.size())) ? (line_idx + 1) : 0))
-                            result.append(get_polygon_vertex_offset(m_boundaries[intersection_first.border_idx],
-                                          (line_idx + 1 == int(m_boundaries[intersection_first.border_idx].points.size())) ? 0 : (line_idx + 1), SCALED_EPSILON));
+                            result.append(get_polygon_vertex_offset(boundaries[intersection_first.border_idx],
+                                          (line_idx + 1 == int(boundaries[intersection_first.border_idx].points.size())) ? 0 : (line_idx + 1), SCALED_EPSILON));
                     else
                         for (int line_idx = intersection_first.line_idx; line_idx != int(intersection_second.line_idx);
                             line_idx     = (((line_idx - 1) >= 0) ? (line_idx - 1) : (int(border_lines.size()) - 1)))
-                            result.append(get_polygon_vertex_offset(m_boundaries[intersection_first.border_idx], line_idx + 0, SCALED_EPSILON));
+                            result.append(get_polygon_vertex_offset(boundaries[intersection_second.border_idx], line_idx + 0, SCALED_EPSILON));
 
                     // Append the farthest intersection into the path
                     result.append(get_middle_point_offset(second_intersected_line.a, intersection_second.point, second_intersected_line.b, SCALED_EPSILON));
@@ -488,7 +573,33 @@ namespace Slic3r {
         }
 
         result.append(end);
-        return simplify_travel(result, gcodegen);
+        return simplify_travel(edge_grid, result);
+    }
+
+    Polyline AvoidCrossingPerimeters2::travel_to(const GCode &gcodegen, const Point &point)
+    {
+        // If use_external, then perform the path planning in the world coordinate system (correcting for the gcodegen offset).
+        // Otherwise perform the path planning in the coordinate system of the active object.
+        bool     use_external  = this->use_external_mp || this->use_external_mp_once;
+        Point    scaled_origin = use_external ? Point::new_scale(gcodegen.origin()(0), gcodegen.origin()(1)) : Point(0, 0);
+        Point    start         = gcodegen.last_pos() + scaled_origin;
+        Point    end           = point + scaled_origin;
+        Polyline result;
+        if (!check_if_could_cross_perimeters(use_external ? m_bbox_external : m_bbox, start, end)) {
+            result = Polyline({start, end});
+        } else {
+            auto [start_clamped, end_clamped] = clamp_endpoints_by_bounding_box(use_external ? m_bbox_external : m_bbox, start, end);
+            if (use_external)
+                result = this->avoid_perimeters(m_boundaries_external, m_grid_external, start_clamped, end_clamped);
+            else
+                result = this->avoid_perimeters(m_boundaries, m_grid, start_clamped, end_clamped);
+        }
+
+        result.points.front() = start;
+        result.points.back()  = end;
+        if (use_external)
+            result.translate(-scaled_origin);
+        return result;
     }
 
     std::string OozePrevention::pre_toolchange(GCode& gcodegen)

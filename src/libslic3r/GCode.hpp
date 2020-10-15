@@ -88,10 +88,19 @@ private:
                                             const Point &intersection_last);
     static ExPolygons get_boundary(const Layer &layer);
 
-    Polyline simplify_travel(const Polyline &travel, const GCode &gcodegen);
+    static ExPolygons get_boundary_external(const Layer &layer);
 
-    Polygons m_boundaries;
+    static Polyline simplify_travel(const EdgeGrid::Grid &edge_grid, const Polyline &travel);
+
+    static Polyline avoid_perimeters(const Polygons &boundaries, const EdgeGrid::Grid &grid, const Point &start, const Point &end);
+
+    Polygons       m_boundaries;
+    Polygons       m_boundaries_external;
+    BoundingBox    m_bbox;
+    BoundingBox    m_bbox_external;
     EdgeGrid::Grid m_grid;
+    EdgeGrid::Grid m_grid_external;
+
 public:
     AvoidCrossingPerimeters2() : AvoidCrossingPerimeters() {}
 
