@@ -541,7 +541,9 @@ void Preview::refresh_print()
         return;
 
     load_print(true);
+#if ENABLE_GCODE_VIEWER
     m_moves_slider->set_lower_editable(get_app_config()->get("seq_top_layer_only") == "0");
+#endif // ENABLE_GCODE_VIEWER
 }
 
 void Preview::msw_rescale()

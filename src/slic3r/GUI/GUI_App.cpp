@@ -1578,8 +1578,10 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                 PreferencesDialog dlg(mainframe);
                 dlg.ShowModal();
                 app_layout_changed = dlg.settings_layout_changed();
+#if ENABLE_GCODE_VIEWER
                 if (dlg.seq_top_layer_only_changed())
                     this->plater_->refresh_print();
+#endif // ENABLE_GCODE_VIEWER
             }
             if (app_layout_changed) {
                 // hide full main_sizer for mainFrame
