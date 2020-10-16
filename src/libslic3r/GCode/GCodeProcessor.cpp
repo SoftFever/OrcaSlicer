@@ -1456,7 +1456,8 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             m_width = delta_pos[E] * static_cast<float>(M_PI * sqr(filament_radius)) / (delta_xyz * m_height) + static_cast<float>(1.0 - 0.25 * M_PI) * m_height;
 
         // clamp width to avoid artifacts which may arise from wrong values of m_height
-        m_width = std::min(m_width, 4.0f * m_height);
+        m_width = std::min(m_width, 1.0f);
+//        m_width = std::min(m_width, 4.0f * m_height);
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_width_compare.update(m_width, m_extrusion_role);
