@@ -11,7 +11,11 @@
 #include "Point.hpp"
 #include "ClipperUtils.hpp"
 #include "Tesselate.hpp"
+#include "ExPolygonCollection.hpp"
 #include "libslic3r.h"
+
+#include "libnest2d/backends/clipper/geometries.hpp"
+#include "libnest2d/utils/rotcalipers.hpp"
 
 #include <iostream>
 #include <random>
@@ -300,32 +304,35 @@ void SupportPointGenerator::add_support_points(SupportPointGenerator::Structure 
 
     float tp      = m_config.tear_pressure();
     float current = s.supports_force_total();
-    static constexpr float SLOPE_DAMPING = .0015f;
-    static constexpr float DANGL_DAMPING = .09f;
+    static constexpr float DANGL_DAMPING = .5f;
+    static constexpr float SLOPE_DAMPING = .1f;
 
     if (s.islands_below.empty()) {
         // completely new island - needs support no doubt
         // deficit is full, there is nothing below that would hold this island
-        uniformly_cover({ *s.polygon }, s, s.area * tp, grid3d, IslandCoverageFlags(icfIsNew | icfBoundaryOnly) );
+        uniformly_cover({ *s.polygon }, s, s.area * tp, grid3d, IslandCoverageFlags(icfIsNew | icfWithBoundary) );
         return;
     }
 
+    if (! s.overhangs.empty()) {
+        uniformly_cover(s.overhangs, s, s.overhangs_area * tp, grid3d);
+    }
+
     auto areafn = [](double sum, auto &p) { return sum + p.area() * SCALING_FACTOR * SCALING_FACTOR; };
+
+    current = s.supports_force_total();
     if (! s.dangling_areas.empty()) {
         // Let's see if there's anything that overlaps enough to need supports:
         // What we now have in polygons needs support, regardless of what the forces are, so we can add them.
 
         double a = std::accumulate(s.dangling_areas.begin(), s.dangling_areas.end(), 0., areafn);
-        uniformly_cover(s.dangling_areas, s, a * tp - current * DANGL_DAMPING * std::sqrt(1. - a / s.area), grid3d);
+        uniformly_cover(s.dangling_areas, s, a * tp - a * current * s.area, grid3d, icfWithBoundary);
     }
 
+    current = s.supports_force_total();
     if (! s.overhangs_slopes.empty()) {
         double a = std::accumulate(s.overhangs_slopes.begin(), s.overhangs_slopes.end(), 0., areafn);
-        uniformly_cover(s.overhangs_slopes, s, a * tp -  current * SLOPE_DAMPING * std::sqrt(1. - a / s.area), grid3d);
-    }
-
-    if (! s.overhangs.empty()) {
-        uniformly_cover(s.overhangs, s, s.overhangs_area * tp, grid3d);
+        uniformly_cover(s.overhangs_slopes, s, a * tp - a * current / s.area, grid3d, icfWithBoundary);
     }
 }
 
@@ -545,10 +552,14 @@ void SupportPointGenerator::uniformly_cover(const ExPolygons& islands, Structure
     //int num_of_points = std::max(1, (int)((island.area()*pow(SCALING_FACTOR, 2) * m_config.tear_pressure)/m_config.support_force));
 
     float support_force_deficit = deficit;
-    auto bb = get_extents(islands);
+//    auto bb = get_extents(islands);
 
     if (flags & icfIsNew) {
-        Vec2d bbdim = unscaled(Vec2crd{bb.max - bb.min});
+        auto chull_ex = ExPolygonCollection{islands}.convex_hull();
+        auto chull = Slic3rMultiPoint_to_ClipperPath(chull_ex);
+        auto rotbox = libnest2d::minAreaBoundingBox(chull);
+        Vec2d bbdim = {unscaled(rotbox.width()), unscaled(rotbox.height())};
+
         if (bbdim.x() > bbdim.y()) std::swap(bbdim.x(), bbdim.y());
         double aspectr = bbdim.y() / bbdim.x();
 
@@ -573,7 +584,7 @@ void SupportPointGenerator::uniformly_cover(const ExPolygons& islands, Structure
     //FIXME share the random generator. The random generator may be not so cheap to initialize, also we don't want the random generator to be restarted for each polygon.
 
     std::vector<Vec2f> raw_samples =
-        flags & icfBoundaryOnly ?
+        flags & icfWithBoundary ?
             sample_expolygon_with_boundary(islands, samples_per_mm2,
                                            5.f / poisson_radius, m_rng) :
             sample_expolygon(islands, samples_per_mm2, m_rng);

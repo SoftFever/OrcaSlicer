@@ -201,7 +201,7 @@ private:
     void process(const std::vector<ExPolygons>& slices, const std::vector<float>& heights);
 
 public:
-    enum IslandCoverageFlags : uint8_t { icfNone = 0x0, icfIsNew = 0x1, icfBoundaryOnly = 0x2 };
+    enum IslandCoverageFlags : uint8_t { icfNone = 0x0, icfIsNew = 0x1, icfWithBoundary = 0x2 };
 
 private:
 
