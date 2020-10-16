@@ -5408,6 +5408,7 @@ void GLCanvas3D::_render_bed(bool bottom, bool show_axes) const
     bool show_texture = ! bottom ||
             (m_gizmos.get_current_type() != GLGizmosManager::FdmSupports
           && m_gizmos.get_current_type() != GLGizmosManager::SlaSupports
+          && m_gizmos.get_current_type() != GLGizmosManager::Hollow
           && m_gizmos.get_current_type() != GLGizmosManager::Seam);
 
     wxGetApp().plater()->get_bed().render(const_cast<GLCanvas3D&>(*this), bottom, scale_factor, show_axes, show_texture);
