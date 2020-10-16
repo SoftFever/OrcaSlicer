@@ -20,7 +20,7 @@ namespace GUI{
 // ----------------------------------------------------------------------------
 
 class ModelNode;
-WX_DEFINE_ARRAY_PTR(ModelNode*, ModelNodePtrArray);
+using ModelNodePtrArray = std::vector<std::unique_ptr<ModelNode>>;
 
 // On all of 3 different platforms Bitmap+Text icon column looks different 
 // because of Markup text is missed or not implemented.
@@ -47,7 +47,7 @@ class ModelNode
     // needs to know in advance if a node is or _will be_ a container.
     // Thus implementing:
     //   bool IsContainer() const
-    //    { return m_children.GetCount()>0; }
+    //    { return m_children.size()>0; }
     // doesn't work with wxGTK when UnsavedChangesModel::AddToClassical is called
     // AND the classical node was removed (a new node temporary without children
     // would be added to the control)
@@ -87,15 +87,6 @@ public:
     // option node
     ModelNode(ModelNode* parent, const wxString& text, const wxString& old_value, const wxString& new_value);
 
-    ~ModelNode() {
-        // free all our children nodes
-        size_t count = m_children.GetCount();
-        for (size_t i = 0; i < count; i++) {
-            ModelNode* child = m_children[i];
-            delete child;
-        }
-    }
-
     bool                IsContainer() const         { return m_container; }
     bool                IsToggled() const           { return m_toggle; }
     void                Toggle(bool toggle = true)  { m_toggle = toggle; }
@@ -105,11 +96,10 @@ public:
 
     ModelNode*          GetParent()                 { return m_parent; }
     ModelNodePtrArray&  GetChildren()               { return m_children; }
-    ModelNode*          GetNthChild(unsigned int n) { return m_children.Item(n); }
-    unsigned int        GetChildCount() const       { return m_children.GetCount(); }
+    ModelNode*          GetNthChild(unsigned int n) { return m_children[n].get(); }
+    unsigned int        GetChildCount() const       { return m_children.size(); }
 
-    void Insert(ModelNode* child, unsigned int n)   { m_children.Insert(child, n); }
-    void Append(ModelNode* child)                   { m_children.Add(child); }
+    void Append(std::unique_ptr<ModelNode> child)   { m_children.emplace_back(std::move(child)); }
 
     void UpdateEnabling();
     void UpdateIcons();

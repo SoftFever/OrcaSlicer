@@ -234,8 +234,8 @@ wxDataViewItem UnsavedChangesModel::AddPreset(Preset::Type type, wxString preset
 
 ModelNode* UnsavedChangesModel::AddOption(ModelNode* group_node, wxString option_name, wxString old_value, wxString new_value)
 {
-    ModelNode* option = new ModelNode(group_node, option_name, old_value, new_value);
-    group_node->Append(option);
+    group_node->Append(std::make_unique<ModelNode>(group_node, option_name, old_value, new_value));
+    ModelNode* option = group_node->GetChildren().back().get();
     wxDataViewItem group_item = wxDataViewItem((void*)group_node);
     ItemAdded(group_item, wxDataViewItem((void*)option));
 
@@ -245,8 +245,8 @@ ModelNode* UnsavedChangesModel::AddOption(ModelNode* group_node, wxString option
 
 ModelNode* UnsavedChangesModel::AddOptionWithGroup(ModelNode* category_node, wxString group_name, wxString option_name, wxString old_value, wxString new_value)
 {
-    ModelNode* group_node = new ModelNode(category_node, group_name);
-    category_node->Append(group_node);
+    category_node->Append(std::make_unique<ModelNode>(category_node, group_name));
+    ModelNode* group_node = category_node->GetChildren().back().get();
     ItemAdded(wxDataViewItem((void*)category_node), wxDataViewItem((void*)group_node));
 
     return AddOption(group_node, option_name, old_value, new_value);
@@ -255,8 +255,8 @@ ModelNode* UnsavedChangesModel::AddOptionWithGroup(ModelNode* category_node, wxS
 ModelNode* UnsavedChangesModel::AddOptionWithGroupAndCategory(ModelNode* preset_node, wxString category_name, wxString group_name, 
                                             wxString option_name, wxString old_value, wxString new_value, const std::string category_icon_name)
 {
-    ModelNode* category_node = new ModelNode(preset_node, category_name, category_icon_name);
-    preset_node->Append(category_node);
+    preset_node->Append(std::make_unique<ModelNode>(preset_node, category_name, category_icon_name));
+    ModelNode* category_node = preset_node->GetChildren().back().get();
     ItemAdded(wxDataViewItem((void*)preset_node), wxDataViewItem((void*)category_node));
 
     return AddOptionWithGroup(category_node, group_name, option_name, old_value, new_value);
@@ -278,14 +278,14 @@ wxDataViewItem UnsavedChangesModel::AddOption(Preset::Type type, wxString catego
     for (ModelNode* preset : m_preset_nodes)
         if (preset->type() == type)
         {
-            for (ModelNode* category : preset->GetChildren())
+            for (std::unique_ptr<ModelNode> &category : preset->GetChildren())
                 if (category->text() == category_name)
                 {
-                    for (ModelNode* group : category->GetChildren())
+                    for (std::unique_ptr<ModelNode> &group : category->GetChildren())
                         if (group->text() == group_name)
-                            return wxDataViewItem((void*)AddOption(group, option_name, old_value, new_value));
+                            return wxDataViewItem((void*)AddOption(group.get(), option_name, old_value, new_value));
                     
-                    return wxDataViewItem((void*)AddOptionWithGroup(category, group_name, option_name, old_value, new_value));
+                    return wxDataViewItem((void*)AddOptionWithGroup(category.get(), group_name, option_name, old_value, new_value));
                 }
 
             return wxDataViewItem((void*)AddOptionWithGroupAndCategory(preset, category_name, group_name, option_name, old_value, new_value, category_icon_name));
@@ -298,10 +298,10 @@ static void update_children(ModelNode* parent)
 {
     if (parent->IsContainer()) {
         bool toggle = parent->IsToggled();
-        for (ModelNode* child : parent->GetChildren()) {
+        for (std::unique_ptr<ModelNode> &child : parent->GetChildren()) {
             child->Toggle(toggle);
             child->UpdateEnabling();
-            update_children(child);
+            update_children(child.get());
         }
     }
 }
@@ -311,7 +311,7 @@ static void update_parents(ModelNode* node)
     ModelNode* parent = node->GetParent();
     if (parent) {
         bool toggle = false;
-        for (ModelNode* child : parent->GetChildren()) {
+        for (std::unique_ptr<ModelNode> &child : parent->GetChildren()) {
             if (child->IsToggled()) {
                 toggle = true;
                 break;
@@ -476,16 +476,10 @@ unsigned int UnsavedChangesModel::GetChildren(const wxDataViewItem& parent, wxDa
         return m_preset_nodes.size();
     }
 
-    if (node->GetChildCount() == 0)
-        return 0;
+    for (std::unique_ptr<ModelNode> &child : node->GetChildren())
+        array.Add(wxDataViewItem((void*)child.get()));
 
-    unsigned int count = node->GetChildren().GetCount();
-    for (unsigned int pos = 0; pos < count; pos++) {
-        ModelNode* child = node->GetChildren().Item(pos);
-        array.Add(wxDataViewItem((void*)child));
-    }
-
-    return count;
+    return node->GetChildCount();
 }
 
 
@@ -506,9 +500,9 @@ wxString UnsavedChangesModel::GetColumnType(unsigned int col) const
 static void rescale_children(ModelNode* parent)
 {
     if (parent->IsContainer()) {
-        for (ModelNode* child : parent->GetChildren()) {
+        for (std::unique_ptr<ModelNode> &child : parent->GetChildren()) {
             child->UpdateIcons();
-            rescale_children(child);
+            rescale_children(child.get());
         }
     }
 }
