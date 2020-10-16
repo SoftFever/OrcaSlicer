@@ -597,6 +597,12 @@ namespace Slic3r {
 
         result.points.front() = start;
         result.points.back()  = end;
+
+        Line travel(start, end);
+        double max_detour_length scale_(gcodegen.config().avoid_crossing_perimeters_max_detour);
+        if ((max_detour_length > 0) && ((result.length() - travel.length()) > max_detour_length)) {
+            result = Polyline({start, end});
+        }
         if (use_external)
             result.translate(-scaled_origin);
         return result;
