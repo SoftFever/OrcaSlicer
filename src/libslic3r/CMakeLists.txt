@@ -99,6 +99,8 @@ add_library(libslic3r STATIC
     GCode/WipeTower.hpp
     GCode/GCodeProcessor.cpp
     GCode/GCodeProcessor.hpp
+    GCode/AvoidCrossingPerimeters.cpp
+    GCode/AvoidCrossingPerimeters.hpp
     GCode.cpp
     GCode.hpp
     GCodeReader.cpp
