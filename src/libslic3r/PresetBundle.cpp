@@ -1459,6 +1459,78 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
         const std::string &m_prefered_name;
     };
 
+    // Matching by the layer height in addition.
+    class PreferedPrintProfileMatch : public PreferedProfileMatch
+    {
+    public:
+        PreferedPrintProfileMatch(const Preset &preset, const std::string &prefered_name) :
+            PreferedProfileMatch(preset.alias, prefered_name), m_prefered_layer_height(preset.config.opt_float("layer_height")) {}
+
+        int operator()(const Preset &preset) const
+        {
+            int match_quality = PreferedProfileMatch::operator()(preset);
+            if (match_quality < std::numeric_limits<int>::max()) {
+                match_quality += 1;
+                if (m_prefered_layer_height > 0. && std::abs(preset.config.opt_float("layer_height") - m_prefered_layer_height) < 0.0005)
+                    match_quality *= 10;
+            }
+            return match_quality;
+        }
+
+    private:
+        const double m_prefered_layer_height;
+    };
+
+    // Matching by the layer height in addition.
+    class PreferedFilamentProfileMatch : public PreferedProfileMatch
+    {
+    public:
+        PreferedFilamentProfileMatch(const Preset *preset, const std::string &prefered_name) :
+            PreferedProfileMatch(preset ? preset->alias : std::string(), prefered_name), 
+            m_prefered_filament_type(preset ? preset->config.opt_string("filament_type", 0) : std::string()) {}
+
+        int operator()(const Preset &preset) const
+        {
+            int match_quality = PreferedProfileMatch::operator()(preset);
+            if (match_quality < std::numeric_limits<int>::max()) {
+                match_quality += 1;
+                if (! m_prefered_filament_type.empty() && m_prefered_filament_type == preset.config.opt_string("filament_type", 0))
+                    match_quality *= 10;
+            }
+            return match_quality;
+        }
+
+    private:
+        const std::string m_prefered_filament_type;
+    };
+
+    // Matching by the layer height in addition.
+    class PreferedFilamentsProfileMatch
+    {
+    public:
+        PreferedFilamentsProfileMatch(const Preset &preset, const std::vector<std::string> &prefered_names) :
+            m_prefered_alias(preset.alias),
+            m_prefered_filament_type(preset.config.opt_string("filament_type", 0)),
+            m_prefered_names(prefered_names)
+            {}
+
+        int operator()(const Preset &preset) const
+        {
+            if (! m_prefered_alias.empty() && m_prefered_alias == preset.alias)
+                // Matching an alias, always take this preset with priority.
+                return std::numeric_limits<int>::max();
+            int match_quality = (std::find(m_prefered_names.begin(), m_prefered_names.end(), preset.name) != m_prefered_names.end()) + 1;
+            if (! m_prefered_filament_type.empty() && m_prefered_filament_type == preset.config.opt_string("filament_type", 0))
+                match_quality *= 10;
+            return match_quality;
+        }
+
+    private:
+        const std::string               m_prefered_alias;
+        const std::string               m_prefered_filament_type;
+        const std::vector<std::string> &m_prefered_names;
+    };
+
 	switch (printer_preset.printer_technology()) {
     case ptFFF:
     {
@@ -1466,7 +1538,7 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
 		assert(printer_preset.config.has("default_filament_profile"));
         const std::vector<std::string> &prefered_filament_profiles = printer_preset.config.option<ConfigOptionStrings>("default_filament_profile")->values;
         this->prints.update_compatible(printer_preset_with_vendor_profile, nullptr, select_other_print_if_incompatible,
-            PreferedProfileMatch(this->prints.get_edited_preset().alias, printer_preset.config.opt_string("default_print_profile")));
+            PreferedPrintProfileMatch(this->prints.get_edited_preset(), printer_preset.config.opt_string("default_print_profile")));
         const PresetWithVendorProfile   print_preset_with_vendor_profile = this->prints.get_edited_preset_with_vendor_profile();
         // Remember whether the filament profiles were compatible before updating the filament compatibility.
         std::vector<char> 				filament_preset_was_compatible(this->filament_presets.size(), false);
@@ -1475,15 +1547,8 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
             filament_preset_was_compatible[idx] = preset != nullptr && preset->is_compatible;
         }
         // First select a first compatible profile for the preset editor.
-        std::string prev_filament_alias = this->filaments.get_edited_preset().alias;
         this->filaments.update_compatible(printer_preset_with_vendor_profile, &print_preset_with_vendor_profile, select_other_filament_if_incompatible,
-            [&prev_filament_alias, &prefered_filament_profiles](const Preset &preset) -> int {
-                return (! prev_filament_alias.empty() && prev_filament_alias == preset.alias) ?
-                    // Matching an alias, always take this preset with priority.
-                    std::numeric_limits<int>::max() :
-                    // Otherwise take the prefered profile, or the first compatible, any is good for the preset editor.
-                    std::find(prefered_filament_profiles.begin(), prefered_filament_profiles.end(), preset.name) != prefered_filament_profiles.end();
-            });
+            PreferedFilamentsProfileMatch(this->filaments.get_edited_preset(), prefered_filament_profiles));
         if (select_other_filament_if_incompatible != PresetSelectCompatibleType::Never) {
             // Verify validity of the current filament presets.
             const std::string prefered_filament_profile = prefered_filament_profiles.empty() ? std::string() : prefered_filament_profiles.front();
@@ -1498,7 +1563,7 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
                     if (preset == nullptr || (! preset->is_compatible && (select_other_filament_if_incompatible == PresetSelectCompatibleType::Always || filament_preset_was_compatible[idx])))
                         // Pick a compatible profile. If there are prefered_filament_profiles, use them.
                         filament_name = this->filaments.first_compatible(
-                            PreferedProfileMatch(preset ? preset->alias : std::string(), 
+                            PreferedFilamentProfileMatch(preset,
                                 (idx < prefered_filament_profiles.size()) ? prefered_filament_profiles[idx] : prefered_filament_profile)).name;
                 }
             }
@@ -1510,7 +1575,7 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
 		assert(printer_preset.config.has("default_sla_print_profile"));
 		assert(printer_preset.config.has("default_sla_material_profile"));
 		this->sla_prints.update_compatible(printer_preset_with_vendor_profile, nullptr, select_other_print_if_incompatible,
-            PreferedProfileMatch(this->sla_prints.get_edited_preset().alias, printer_preset.config.opt_string("default_sla_print_profile")));
+            PreferedPrintProfileMatch(this->sla_prints.get_edited_preset(), printer_preset.config.opt_string("default_sla_print_profile")));
         const PresetWithVendorProfile sla_print_preset_with_vendor_profile = this->sla_prints.get_edited_preset_with_vendor_profile();
 		this->sla_materials.update_compatible(printer_preset_with_vendor_profile, &sla_print_preset_with_vendor_profile, select_other_filament_if_incompatible,
             PreferedProfileMatch(this->sla_materials.get_edited_preset().alias, printer_preset.config.opt_string("default_sla_material_profile")));
