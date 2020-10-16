@@ -204,11 +204,11 @@ if (WIN32)
             VERBATIM
         )
     endif ()
-    
+
     # This has to be a separate target due to the windows command line lenght limits
     add_custom_target(PrusaSlicerDllsCopy ALL DEPENDS PrusaSlicer)
     prusaslicer_copy_dlls(PrusaSlicerDllsCopy)
-    
+
 else ()
     if (APPLE)
         # On OSX, the name of the binary matches the name of the Application.
