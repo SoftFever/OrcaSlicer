@@ -84,7 +84,7 @@ Polygons AvoidCrossingPerimeters::collect_contours_all_layers(const PrintObjectP
                                       polygons_per_layer[i * 2] = union_(polys);
                                   }
                               });
-            for (size_t i = 0; i < cnt / 2; ++i)
+            for (size_t i = 1; i < cnt / 2; ++i)
                 polygons_per_layer[i] = std::move(polygons_per_layer[i * 2]);
             if (cnt & 1)
                 polygons_per_layer[cnt / 2] = std::move(polygons_per_layer[cnt - 1]);
