@@ -4442,7 +4442,8 @@ void ObjectList::show_multi_selection_menu()
     }, wxGetApp().plater());
 
     append_menu_items_convert_unit(menu);
-    append_menu_item_merge_to_multipart_object(menu);
+    if (can_merge_to_multipart_object())
+        append_menu_item_merge_to_multipart_object(menu);
 
     wxGetApp().plater()->PopupMenu(menu);
 }
