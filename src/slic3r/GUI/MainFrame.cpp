@@ -1139,7 +1139,7 @@ void MainFrame::init_menubar()
             [this](wxCommandEvent&) { start_new_gcodeviewer_open_file(this); }, "", nullptr);
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_EXIT, _L("&Quit"), wxString::Format(_L("Quit %s"), SLIC3R_APP_NAME),
-            [this](wxCommandEvent&) { Close(false); });
+            [this](wxCommandEvent&) { Close(false); }, "exit");
     }
 
 #if !ENABLE_GCODE_VIEWER

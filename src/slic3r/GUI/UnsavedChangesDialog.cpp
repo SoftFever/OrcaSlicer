@@ -546,7 +546,7 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection* 
 
     const std::string& def_action = wxGetApp().app_config->get(m_app_config_key);
     if (def_action == "none") {
-        if (wxGetApp().mainframe->is_dlg_layout())
+        if (wxGetApp().mainframe->is_dlg_layout() && wxGetApp().mainframe->m_settings_dialog.HasFocus())
             this->SetPosition(wxGetApp().mainframe->m_settings_dialog.GetPosition());
         this->CenterOnScreen();
     }
@@ -637,7 +637,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
         dependent_presets->get_edited_preset().printer_technology() == dependent_presets->find_preset(new_selected_preset)->printer_technology() :
         printers.get_edited_preset().printer_technology() == printers.find_preset(new_selected_preset)->printer_technology()))
         add_btn(&m_transfer_btn, m_move_btn_id, "paste_menu", Action::Transfer, _L("Transfer"));
-    add_btn(&m_discard_btn, m_continue_btn_id, dependent_presets ? "cross" : "exit", Action::Discard, _L("Discard"), false);
+    add_btn(&m_discard_btn, m_continue_btn_id, dependent_presets ? "switch_presets" : "exit", Action::Discard, _L("Discard"), false);
     add_btn(&m_save_btn, m_save_btn_id, "save", Action::Save, _L("Save"));
 
     ScalableButton* cancel_btn = new ScalableButton(this, wxID_CANCEL, "cross", _L("Cancel"), wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true, 24);
