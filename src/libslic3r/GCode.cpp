@@ -410,6 +410,19 @@ namespace Slic3r {
         return final_boundary;
     }
 
+    static Point find_first_different_vertex(const Polygon &polygon, const size_t point_idx, const Point &point, bool forward)
+    {
+        if (point != polygon.points[point_idx])
+            return polygon.points[point_idx];
+
+        int line_idx = point_idx;
+        if (forward)
+            for (; point == polygon.points[line_idx]; line_idx = (((line_idx + 1) < int(polygon.points.size())) ? (line_idx + 1) : 0));
+        else
+            for (; point == polygon.points[line_idx]; line_idx = (((line_idx - 1) >= 0) ? (line_idx - 1) : (int(polygon.points.size()) - 1)));
+        return polygon.points[line_idx];
+    }
+
     static Vec2d three_points_inward_normal(const Point &left, const Point &middle, const Point &right)
     {
         assert(left != middle);
@@ -425,11 +438,13 @@ namespace Slic3r {
 
     static Vec2d get_polygon_vertex_inward_normal(const Polygon &polygon, const size_t point_idx)
     {
-        const Point &p0 = polygon.points[(point_idx <= 0) ? (polygon.size() - 1) : (point_idx - 1)];
-        const Point &p1 = polygon.points[point_idx];
-        const Point &p2 = polygon.points[(point_idx >= (polygon.size() - 1)) ? (0) : (point_idx + 1)];
-        return three_points_inward_normal(p0, p1, p2);
-    };
+        const size_t left_idx  = (point_idx <= 0) ? (polygon.size() - 1) : (point_idx - 1);
+        const size_t right_idx = (point_idx >= (polygon.size() - 1)) ? 0 : (point_idx + 1);
+        const Point &middle    = polygon.points[point_idx];
+        const Point &left      = find_first_different_vertex(polygon, left_idx, middle, false);
+        const Point &right     = find_first_different_vertex(polygon, right_idx, middle, true);
+        return three_points_inward_normal(left, middle, right);
+    }
 
     // Compute offset of polygon's in a direction inward normal
     static Point get_polygon_vertex_offset(const Polygon &polygon, const size_t point_idx, const int offset)
@@ -437,8 +452,10 @@ namespace Slic3r {
         return polygon.points[point_idx] + (get_polygon_vertex_inward_normal(polygon, point_idx) * double(offset)).cast<coord_t>();
     }
 
-    static Point get_middle_point_offset(const Point &left, const Point &middle, const Point &right, const int offset)
+    static Point get_middle_point_offset(const Polygon &polygon, const size_t left_idx, const size_t right_idx, const Point &middle, const int offset)
     {
+        const Point &left  = find_first_different_vertex(polygon, left_idx, middle, false);
+        const Point &right = find_first_different_vertex(polygon, right_idx, middle, true);
         return middle + (three_points_inward_normal(left, middle, right) * double(offset)).cast<coord_t>();
     }
 
@@ -543,11 +560,11 @@ namespace Slic3r {
             for (auto it_second = it_first + 1; it_second != intersections.end(); ++it_second) {
                 const Intersection &intersection_second = *it_second;
                 if (intersection_first.border_idx == intersection_second.border_idx) {
-                    Lines       border_lines            = boundaries[intersection_first.border_idx].lines();
-                    const Line &first_intersected_line  = border_lines[intersection_first.line_idx];
-                    const Line &second_intersected_line = border_lines[intersection_second.line_idx];
+                    Lines border_lines = boundaries[intersection_first.border_idx].lines();
                     // Append the nearest intersection into the path
-                    result.append(get_middle_point_offset(first_intersected_line.a, intersection_first.point, first_intersected_line.b, SCALED_EPSILON));
+                    size_t left_idx  = intersection_first.line_idx;
+                    size_t right_idx = (intersection_first.line_idx >= (boundaries[intersection_first.border_idx].points.size() - 1)) ? 0 : (intersection_first.line_idx + 1);
+                    result.append(get_middle_point_offset(boundaries[intersection_first.border_idx], left_idx, right_idx, intersection_first.point, SCALED_EPSILON));
 
                     Direction shortest_direction = get_shortest_direction(border_lines, intersection_first.line_idx, intersection_second.line_idx,
                                                                           intersection_first.point, intersection_second.point);
@@ -564,7 +581,9 @@ namespace Slic3r {
                             result.append(get_polygon_vertex_offset(boundaries[intersection_second.border_idx], line_idx + 0, SCALED_EPSILON));
 
                     // Append the farthest intersection into the path
-                    result.append(get_middle_point_offset(second_intersected_line.a, intersection_second.point, second_intersected_line.b, SCALED_EPSILON));
+                    left_idx  = intersection_second.line_idx;
+                    right_idx = (intersection_second.line_idx >= (boundaries[intersection_second.border_idx].points.size() - 1)) ? 0 : (intersection_second.line_idx + 1);
+                    result.append(get_middle_point_offset(boundaries[intersection_second.border_idx], left_idx, right_idx, intersection_second.point, SCALED_EPSILON));
                     // Skip intersections in between
                     it_first = (it_second - 1);
                     break;
