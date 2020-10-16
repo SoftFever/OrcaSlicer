@@ -200,18 +200,56 @@ static std::pair<Point, Point> clamp_endpoints_by_bounding_box(const BoundingBox
     return std::make_pair(start_clamped, end_clamped);
 }
 
-ExPolygons AvoidCrossingPerimeters2::get_boundary(const Layer &layer)
+static inline coord_t get_default_perimeter_spacing(const Print &print)
 {
-    size_t regions_count     = 0;
-    size_t polygons_count    = 0;
-    long   perimeter_spacing = 0;
+    const std::vector<double> &nozzle_diameters = print.config().nozzle_diameter.values;
+    return scale_(*std::max_element(nozzle_diameters.begin(), nozzle_diameters.end()));
+}
+
+static coord_t get_perimeter_spacing(const Layer &layer)
+{
+    size_t  regions_count     = 0;
+    coord_t perimeter_spacing = 0;
     for (const LayerRegion *layer_region : layer.regions()) {
-        polygons_count += layer_region->slices.surfaces.size();
         perimeter_spacing += layer_region->flow(frPerimeter).scaled_spacing();
         ++regions_count;
     }
-    perimeter_spacing /= regions_count;
-    const long offset = perimeter_spacing / 2;
+
+    assert(perimeter_spacing >= 0);
+    if (regions_count != 0)
+        perimeter_spacing /= regions_count;
+    else
+        perimeter_spacing = get_default_perimeter_spacing(*layer.object()->print());
+    return perimeter_spacing;
+}
+
+static coord_t get_perimeter_spacing_external(const Layer &layer)
+{
+    size_t  regions_count     = 0;
+    coord_t perimeter_spacing = 0;
+    for (const PrintObject *object : layer.object()->print()->objects())
+        for (Layer *l : object->layers())
+            if ((layer.print_z - EPSILON) <= l->print_z && l->print_z <= (layer.print_z + EPSILON))
+                for (const LayerRegion *layer_region : l->regions()) {
+                    perimeter_spacing += layer_region->flow(frPerimeter).scaled_spacing();
+                    ++regions_count;
+                }
+
+    assert(perimeter_spacing >= 0);
+    if (regions_count != 0)
+        perimeter_spacing /= regions_count;
+    else
+        perimeter_spacing = get_default_perimeter_spacing(*layer.object()->print());
+    return perimeter_spacing;
+}
+
+ExPolygons AvoidCrossingPerimeters2::get_boundary(const Layer &layer)
+{
+    const coord_t perimeter_spacing = get_perimeter_spacing(layer);
+    const coord_t offset            = perimeter_spacing / 2;
+    size_t        polygons_count    = 0;
+    for (const LayerRegion *layer_region : layer.regions())
+        polygons_count += layer_region->slices.surfaces.size();
 
     ExPolygons boundary;
     boundary.reserve(polygons_count);
@@ -252,36 +290,27 @@ ExPolygons AvoidCrossingPerimeters2::get_boundary(const Layer &layer)
     return final_boundary;
 }
 
-ExPolygons AvoidCrossingPerimeters2::get_boundary_external(const Layer &llayer)
+ExPolygons AvoidCrossingPerimeters2::get_boundary_external(const Layer &layer)
 {
-    size_t     regions_count     = 0;
-    long       perimeter_spacing = 0;
     ExPolygons boundary;
-    for (const PrintObject *object : llayer.object()->print()->objects()) {
+    for (const PrintObject *object : layer.object()->print()->objects()) {
         ExPolygons polygons_per_obj;
-        for (Layer *layer : object->layers()) {
-            if ((llayer.print_z - EPSILON) <= layer->print_z && layer->print_z <= (llayer.print_z + EPSILON)) {
-                for (const LayerRegion *layer_region : layer->regions()) {
+        for (Layer *l : object->layers())
+            if ((layer.print_z - EPSILON) <= l->print_z && l->print_z <= (layer.print_z + EPSILON))
+                for (const LayerRegion *layer_region : l->regions())
                     for (const Surface &surface : layer_region->slices.surfaces)
                         polygons_per_obj.emplace_back(surface.expolygon);
-
-                    perimeter_spacing += layer_region->flow(frPerimeter).scaled_spacing();
-                    ++regions_count;
-                }
-            }
-        }
 
         for (const PrintInstance &instance : object->instances()) {
             size_t boundary_idx = boundary.size();
             boundary.reserve(boundary.size() + polygons_per_obj.size());
             boundary.insert(boundary.end(), polygons_per_obj.begin(), polygons_per_obj.end());
-            for (; boundary_idx < boundary.size(); ++boundary_idx)
-                boundary[boundary_idx].translate(instance.shift.x(), instance.shift.y());
+            for (; boundary_idx < boundary.size(); ++boundary_idx) boundary[boundary_idx].translate(instance.shift.x(), instance.shift.y());
         }
     }
 
-    perimeter_spacing /= regions_count;
-    const long perimeter_offset = perimeter_spacing / 2;
+    const coord_t perimeter_spacing = get_perimeter_spacing_external(layer);
+    const coord_t perimeter_offset  = perimeter_spacing / 2;
 
     Polygons contours;
     Polygons holes;
