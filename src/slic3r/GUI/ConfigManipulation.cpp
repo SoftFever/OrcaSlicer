@@ -312,6 +312,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     for (auto el : { "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle",
                      "wipe_tower_bridging", "wipe_tower_no_sparse_layers", "single_extruder_multi_material_priming" })
         toggle_field(el, have_wipe_tower);
+
+    bool have_avoid_crossing_perimeters = config->opt_bool("avoid_crossing_perimeters");
+    toggle_field("avoid_crossing_perimeters_max_detour", have_avoid_crossing_perimeters);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)
