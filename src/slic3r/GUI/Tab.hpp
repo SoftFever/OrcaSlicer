@@ -335,8 +335,7 @@ public:
 	Field*			get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
     Field*          get_field(const t_config_option_key &opt_key, Page** selected_page, int opt_index = -1);
 	void			toggle_option(const std::string& opt_key, bool toggle, int opt_index = -1);
-//	bool			set_value(const t_config_option_key& opt_key, const boost::any& value);
-	wxSizer*		description_line_widget(wxWindow* parent, ogStaticText** StaticText);
+	wxSizer*		description_line_widget(wxWindow* parent, ogStaticText** StaticText, wxString text = wxEmptyString);
 	bool			current_preset_is_dirty();
 
 	DynamicPrintConfig*	get_config() { return m_config; }
@@ -429,6 +428,9 @@ private:
 	ogStaticText* m_machine_limits_description_line {nullptr};
 	void 		update_machine_limits_description(const MachineLimitsUsage usage);
 
+	ogStaticText*	m_fff_print_host_upload_description_line {nullptr};
+	ogStaticText*	m_sla_print_host_upload_description_line {nullptr};
+
     std::vector<PageShp>			m_pages_fff;
     std::vector<PageShp>			m_pages_sla;
 
@@ -452,6 +454,7 @@ public:
 	~TabPrinter() {}
 
 	void		build() override;
+	void		build_print_host_upload_group(Page* page);
     void		build_fff();
     void		build_sla();
 	void		activate_selected_page(std::function<void()> throw_if_canceled) override;

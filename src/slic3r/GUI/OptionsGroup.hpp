@@ -296,7 +296,8 @@ private:
 class ogStaticText :public wxStaticText{
 public:
 	ogStaticText() {}
-	ogStaticText(wxWindow* parent, const char *text) : wxStaticText(parent, wxID_ANY, text, wxDefaultPosition, wxDefaultSize) {}
+//	ogStaticText(wxWindow* parent, const char *text) : wxStaticText(parent, wxID_ANY, text, wxDefaultPosition, wxDefaultSize) {}
+	ogStaticText(wxWindow* parent, const wxString& text);
 	~ogStaticText() {}
 
 	void		SetText(const wxString& value, bool wrap = true);

@@ -867,6 +867,16 @@ void ConfigOptionsGroup::change_opt_value(const t_config_option_key& opt_key, co
 		m_modelconfig->touch();
 }
 
+ogStaticText::ogStaticText(wxWindow* parent, const wxString& text) : 
+    wxStaticText(parent, wxID_ANY, text, wxDefaultPosition, wxDefaultSize)
+{
+    if (!text.IsEmpty()) {
+		Wrap(60 * wxGetApp().em_unit());
+		GetParent()->Layout();
+    }
+}
+
+
 void ogStaticText::SetText(const wxString& value, bool wrap/* = true*/)
 {
 	SetLabel(value);

@@ -1991,9 +1991,9 @@ void TabFilament::clear_pages()
 	m_cooling_description_line = nullptr;
 }
 
-wxSizer* Tab::description_line_widget(wxWindow* parent, ogStaticText* *StaticText)
+wxSizer* Tab::description_line_widget(wxWindow* parent, ogStaticText* *StaticText, wxString text /*= wxEmptyString*/)
 {
-    *StaticText = new ogStaticText(parent, "");
+    *StaticText = new ogStaticText(parent, text);
 
 //	auto font = (new wxSystemSettings)->GetFont(wxSYS_DEFAULT_GUI_FONT);
     (*StaticText)->SetFont(wxGetApp().normal_font());
@@ -2016,6 +2016,27 @@ void TabPrinter::build()
     m_printer_technology = m_presets->get_selected_preset().printer_technology();
 
     m_presets->get_selected_preset().printer_technology() == ptSLA ? build_sla() : build_fff();
+}
+
+void TabPrinter::build_print_host_upload_group(Page* page)
+{
+    ConfigOptionsGroupShp optgroup = page->new_optgroup(L("Print Host upload"));
+
+    wxString description_line_text = _L(""
+        "Note: All parameters from this group are moved to the Physical Printer settings (see changelog).\n\n"
+        "A new Physical Printer profile is created by clicking on the \"cog\" icon right of the Printer profiles combo box, "
+        "by selecting the \"add or remove printers\" item in the Printer combo box. The Physical Printer profile editor opens "
+        "also when clicking on the \"cog\" icon in the Printer settings tab. The Physical Printer profiles are being stored "
+        "into PrusaSlicer/physical_printer directory.");
+
+    Line line = { "", "" };
+    line.full_width = 1;
+    line.widget = [this, description_line_text](wxWindow* parent) {
+        return description_line_widget(parent, m_presets->get_selected_preset().printer_technology() == ptFFF ?
+                                       &m_fff_print_host_upload_description_line : &m_sla_print_host_upload_description_line,
+                                       description_line_text);
+    };
+    optgroup->append_line(line);
 }
 
 void TabPrinter::build_fff()
@@ -2104,6 +2125,8 @@ void TabPrinter::build_fff()
                 }
             });
         };
+
+        build_print_host_upload_group(page.get());
 
         optgroup = page->new_optgroup(L("Firmware"));
         optgroup->append_single_option_line("gcode_flavor");
@@ -2265,6 +2288,8 @@ void TabPrinter::build_sla()
     optgroup->append_single_option_line("max_exposure_time");
     optgroup->append_single_option_line("min_initial_exposure_time");
     optgroup->append_single_option_line("max_initial_exposure_time");
+
+    build_print_host_upload_group(page.get());
 
     const int notes_field_height = 25; // 250
 
@@ -2743,6 +2768,8 @@ void TabPrinter::update()
     m_update_cnt++;
     m_presets->get_edited_preset().printer_technology() == ptFFF ? update_fff() : update_sla();
     m_update_cnt--;
+
+    Layout();
 
     if (m_update_cnt == 0)
         wxGetApp().mainframe->on_config_changed(m_config);
@@ -3641,8 +3668,6 @@ void TabPrinter::update_machine_limits_description(const MachineLimitsUsage usag
 	default: assert(false);
 	}
     m_machine_limits_description_line->SetText(text);
-
-    Layout();
 }
 
 void Tab::compatible_widget_reload(PresetDependencies &deps)
