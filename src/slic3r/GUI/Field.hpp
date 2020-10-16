@@ -416,8 +416,8 @@ public:
 
     void            msw_rescale(bool rescale_sidetext = false) override;
 
-	void			enable() override { dynamic_cast<wxBitmapComboBox*>(window)->Enable(); };
-	void			disable() override{ dynamic_cast<wxBitmapComboBox*>(window)->Disable(); };
+	void			enable() override ;//{ dynamic_cast<wxBitmapComboBox*>(window)->Enable(); };
+	void			disable() override;//{ dynamic_cast<wxBitmapComboBox*>(window)->Disable(); };
 	wxWindow*		getWindow() override { return window; }
 };
 
