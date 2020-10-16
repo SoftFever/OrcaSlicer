@@ -371,19 +371,28 @@ public:
         size_t i = m_default_suppressed ? m_num_default_presets : 0;
         size_t n = this->m_presets.size();
         size_t i_compatible = n;
+        int    match_quality = -1;
         for (; i < n; ++ i)
             // Since we use the filament selection from Wizard, it's needed to control the preset visibility too 
             if (m_presets[i].is_compatible && m_presets[i].is_visible) {
-                if (prefered_condition(m_presets[i].name))
-                    return i;
-                if (i_compatible == n)
-                    // Store the first compatible profile into i_compatible.
+                int this_match_quality = prefered_condition(m_presets[i]);
+                if (this_match_quality > match_quality) {
+                    if (match_quality == std::numeric_limits<int>::max())
+                        // Better match will not be found.
+                        return i;
+                    // Store the first compatible profile with highest match quality into i_compatible.
                     i_compatible = i;
+                    match_quality = this_match_quality;
+                } 
             }
-        return (i_compatible == n) ? 0 : i_compatible;
+        return (i_compatible == n) ? 
+            // No compatible preset found, return the default preset.
+            0 :
+            // Compatible preset found.
+            i_compatible;
     }
     // Return index of the first compatible preset. Certainly at least the '- default -' preset shall be compatible.
-    size_t          first_compatible_idx() const { return this->first_compatible_idx([](const std::string&){return true;}); }
+    size_t          first_compatible_idx() const { return this->first_compatible_idx([](const Preset&) -> int { return 0; }); }
 
     // Return index of the first visible preset. Certainly at least the '- default -' preset shall be visible.
     // Return the first visible preset. Certainly at least the '- default -' preset shall be visible.
@@ -407,7 +416,7 @@ public:
             this->select_preset(this->first_compatible_idx(prefered_condition));        
     }
     void            update_compatible(const PresetWithVendorProfile &active_printer, const PresetWithVendorProfile *active_print, PresetSelectCompatibleType select_other_if_incompatible)
-        { this->update_compatible(active_printer, active_print, select_other_if_incompatible, [](const std::string&){return true;}); }
+        { this->update_compatible(active_printer, active_print, select_other_if_incompatible, [](const Preset&) -> int { return 0; }); }
 
     size_t          num_visible() const { return std::count_if(m_presets.begin(), m_presets.end(), [](const Preset &preset){return preset.is_visible;}); }
 
