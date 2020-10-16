@@ -894,7 +894,7 @@ void GCodeViewer::init()
 
     set_toolpath_move_type_visible(EMoveType::Extrude, true);
     m_sequential_view.marker.init();
-    m_sequential_view.skip_invisible_moves = true;
+//    m_sequential_view.skip_invisible_moves = true;
 
     std::array<int, 2> point_sizes;
     ::glGetIntegerv(GL_ALIASED_POINT_SIZE_RANGE, point_sizes.data());
