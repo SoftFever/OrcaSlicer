@@ -455,7 +455,6 @@ void Control::render()
         // draw both sliders
         draw_thumbs(dc, lower_pos, higher_pos);
 
-
         // draw lock/unlock
         draw_one_layer_icon(dc);
 
@@ -473,6 +472,9 @@ void Control::render()
 void Control::draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoint pt_end)
 {
     const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
+
+    if (!m_enable_action_icon)
+        return;
 
     // suppress add tick on first layer
     if (tick == 0)

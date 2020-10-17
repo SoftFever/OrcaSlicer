@@ -264,6 +264,7 @@ public:
     void edit_extruder_sequence();
 #if ENABLE_GCODE_VIEWER
     void jump_to_value();
+    void enable_action_icon(bool enable) { m_enable_action_icon = enable; }
 #else
     void jump_to_print_z();
 #endif // ENABLE_GCODE_VIEWER
@@ -360,6 +361,9 @@ private:
     bool        m_is_one_layer = false;
     bool        m_is_focused = false;
     bool        m_force_mode_apply = true;
+#if ENABLE_GCODE_VIEWER
+    bool        m_enable_action_icon = true;
+#endif // ENABLE_GCODE_VIEWER
 
     DrawMode    m_draw_mode = dmRegular;
 
