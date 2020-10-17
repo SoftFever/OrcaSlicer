@@ -11,6 +11,7 @@
 
 #include "boost/nowide/convert.hpp"
 #include <boost/log/trivial.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <iostream>
 #include <unordered_map>
 #include <fcntl.h>
@@ -136,6 +137,13 @@ namespace instance_check_internal
 		fl.l_whence = SEEK_SET;
 		fl.l_start = 0;
 		fl.l_len = 1;
+
+        if (! boost::filesystem::is_directory(path)) {
+            BOOST_LOG_TRIVIAL(debug) << "get_lock(): datadir does not exist yet, creating...";
+            if (! boost::filesystem::create_directories(path))
+                BOOST_LOG_TRIVIAL(debug) << "get_lock(): unable to create datadir !!!";
+        }
+
 		if ((fdlock = open(dest_dir.c_str(), O_WRONLY | O_CREAT, 0666)) == -1)
 			return true;
 
