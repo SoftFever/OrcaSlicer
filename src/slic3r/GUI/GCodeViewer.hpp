@@ -410,7 +410,7 @@ private:
 #if ENABLE_GCODE_VIEWER_STATISTICS
     mutable Statistics m_statistics;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-    std::array<float, 2> m_detected_point_sizes = { 0.0f, 0.0f };
+    mutable std::array<float, 2> m_detected_point_sizes = { 0.0f, 0.0f };
 
 public:
     GCodeViewer() = default;

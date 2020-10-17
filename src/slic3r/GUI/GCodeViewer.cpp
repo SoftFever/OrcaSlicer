@@ -434,9 +434,25 @@ void GCodeViewer::reset()
 
 void GCodeViewer::render() const
 {
+    auto init_gl_data = [this]() {
+        static bool first_run = true;
+        if (first_run) {
+            m_sequential_view.marker.init();
+
+            std::array<int, 2> point_sizes;
+            ::glGetIntegerv(GL_ALIASED_POINT_SIZE_RANGE, point_sizes.data());
+            m_detected_point_sizes = { static_cast<float>(point_sizes[0]), static_cast<float>(point_sizes[1]) };
+            first_run = false;
+        }
+    };
+
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.reset_opengl();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+
+    // OpenGL data must be initialized after the glContext has been created.
+    // This is ensured when this method is called by GLCanvas3D::_render_gcode().
+    init_gl_data();
 
     if (m_roles.empty())
         return;
@@ -893,12 +909,7 @@ void GCodeViewer::init()
     }
 
     set_toolpath_move_type_visible(EMoveType::Extrude, true);
-    m_sequential_view.marker.init();
 //    m_sequential_view.skip_invisible_moves = true;
-
-    std::array<int, 2> point_sizes;
-    ::glGetIntegerv(GL_ALIASED_POINT_SIZE_RANGE, point_sizes.data());
-    m_detected_point_sizes = { static_cast<float>(point_sizes[0]), static_cast<float>(point_sizes[1]) };
 
     m_initialized = true;
 }
