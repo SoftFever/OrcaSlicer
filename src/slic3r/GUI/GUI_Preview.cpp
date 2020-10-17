@@ -334,7 +334,7 @@ bool Preview::init(wxWindow* parent, Model* model)
 #else
     m_checkbox_travel = new wxCheckBox(this, wxID_ANY, _(L("Travel")));
     m_checkbox_retractions = new wxCheckBox(this, wxID_ANY, _(L("Retractions")));
-    m_checkbox_unretractions = new wxCheckBox(this, wxID_ANY, _(L("Unretractions")));
+    m_checkbox_unretractions = new wxCheckBox(this, wxID_ANY, _(L("Deretractions")));
     m_checkbox_shells = new wxCheckBox(this, wxID_ANY, _(L("Shells")));
     m_checkbox_legend = new wxCheckBox(this, wxID_ANY, _(L("Legend")));
     m_checkbox_legend->SetValue(true);
@@ -1470,7 +1470,7 @@ wxString Preview::get_option_type_string(OptionType type) const
     {
     case OptionType::Travel:        { return _L("Travel"); }
     case OptionType::Retractions:   { return _L("Retractions"); }
-    case OptionType::Unretractions: { return _L("Unretractions"); }
+    case OptionType::Unretractions: { return _L("Deretractions"); }
     case OptionType::ToolChanges:   { return _L("Tool changes"); }
     case OptionType::ColorChanges:  { return _L("Color changes"); }
     case OptionType::PausePrints:   { return _L("Pause prints"); }
