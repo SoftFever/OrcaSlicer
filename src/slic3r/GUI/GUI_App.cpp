@@ -1075,7 +1075,7 @@ void GUI_App::check_printer_presets()
     if (preset_names.empty())
         return;
 
-    wxString msg_text =  _L("You have next presets with saved options for \"Print Host upload\"") + ":";
+    wxString msg_text =  _L("You have the following presets with saved options for \"Print Host upload\"") + ":";
     for (const std::string& preset_name : preset_names)
         msg_text += "\n    \"" + from_u8(preset_name) + "\",";
     msg_text.RemoveLast();
