@@ -8,6 +8,7 @@
 
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "format.hpp"
 #include "GUI_App.hpp"
 #include "Plater.hpp"
 #include "Tab.hpp"
@@ -521,7 +522,7 @@ void UnsavedChangesModel::Rescale()
 //------------------------------------------
 
 UnsavedChangesDialog::UnsavedChangesDialog(const wxString& header)
-    : DPIDialog(nullptr, wxID_ANY, _L("Close Application: Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog(nullptr, wxID_ANY, _L("Closing PrusaSlicer: Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     m_app_config_key = "default_action_on_close_application";
 
@@ -538,7 +539,7 @@ UnsavedChangesDialog::UnsavedChangesDialog(const wxString& header)
 }
 
 UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset)
-    : DPIDialog(nullptr, wxID_ANY, _L("Select New Preset: Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog(nullptr, wxID_ANY, _L("Switching Presets: Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     m_app_config_key = "default_action_on_select_preset";
 
@@ -655,15 +656,16 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
     {
         if (!evt.IsChecked())
             return;
-        std::string act                 = type == Preset::TYPE_INVALID ? _u8L("close the application") : _u8L("select new preset");
-        std::string preferences_item    = type == Preset::TYPE_INVALID ? _u8L("Ask for unsaved changes when closing application") : 
-                                                                         _u8L("Ask for unsaved changes when selecting new preset");
-        std::string msg = (boost::format(_u8L("%1% will remember your action choice.\n"
-                          "You will not be asked about unsaved changes the next time you %2%.\n"
-                          "Visit \"Preferences\" and check \"%3%\"\n"
-                          "to be asked about unsaved changes again.")) % SLIC3R_APP_NAME % act % preferences_item).str();
+        wxString preferences_item = type == Preset::TYPE_INVALID ? _L("Ask for unsaved changes when closing application") : 
+                                                                   _L("Ask for unsaved changes when selecting new preset");
+        wxString msg =
+            _L("PrusaSlicer will remember your action.") + "\n\n" +
+            (type == Preset::TYPE_INVALID ?
+                _L("You will not be asked about the unsaved changes the next time you close PrusaSlicer.") :
+                _L("You will not be asked about the unsaved changes the next time you switch a preset.")) + "\n\n" +
+                format_wxstr(_L("Visit \"Preferences\" and check \"%1%\"\nto be asked about unsaved changes again."), preferences_item);
     
-        wxMessageDialog dialog(nullptr, from_u8(msg), _L("Note"), wxOK | wxCANCEL | wxICON_INFORMATION);
+        wxMessageDialog dialog(nullptr, msg, _L("PrusaSlicer: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
         if (dialog.ShowModal() == wxID_CANCEL)
             m_remember_choice->SetValue(false);
     });
@@ -732,16 +734,19 @@ void UnsavedChangesDialog::show_info_line(Action action, std::string preset_name
     else {
         wxString text;
         if (action == Action::Undef)
-            text = _L("Some fields are too long to fit. Right click on it to show full text.");
+            text = _L("Some fields are too long to fit. Right mouse click reveals the full text.");
         else if (action == Action::Discard)
             text = _L("All modified options will be reverted.");
         else {
-            std::string act_string = action == Action::Save ? _u8L("save") : _u8L("transfer");
             if (preset_name.empty())
-                text = from_u8((boost::format("Press to %1% selected options.") % act_string).str());
+                text = action == Action::Save ? _L("Save the selected options.") : _L("Transfer the selected options to the newly selected presets.");
             else
-                text = from_u8((boost::format("Press to %1% selected options to the preset \"%2%\".") % act_string % preset_name).str());
-            text += "\n" + _L("Unselected options will be reverted.");
+                text = format_wxstr(
+                    action == Action::Save ?
+                        _L("Save the selected options to preset \"%1%\".") :
+                        _L("Transfer the selected options to the newly selected preset \"%1%\"."),
+                    preset_name);
+            //text += "\n" + _L("Unselected options will be reverted.");
         }
         m_info_line->SetLabel(text);
         m_info_line->Show();
@@ -1000,21 +1005,20 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
 
 
     if (type == Preset::TYPE_INVALID) {
-        m_action_line   ->SetLabel(header + "\n" + _L("Next presets have the following unsaved changes:"));
+        m_action_line->SetLabel(header + "\n" + _L("The following presets were modified:"));
     }
     else {
         wxString action_msg;
         if (type == dependent_presets->type()) {
-            action_msg = _L("has the following unsaved changes:");
+            action_msg = format_wxstr(_L("Preset \"%1%\" has the following unsaved changes:"), presets->get_edited_preset().name);
         }
         else {
-            action_msg = type == Preset::TYPE_PRINTER ?
-                        _L("is not compatible with printer") :
-                        _L("is not compatible with print profile");
-            action_msg += " \"" + from_u8(new_selected_preset) + "\"\n";
-            action_msg += _L("and it has the following unsaved changes:");
+            action_msg = format_wxstr(Preset::TYPE_PRINTER ?
+                _L("Preset \"%1%\" is not compatible with the new printer profile and it has the following unsaved changes:") :
+                _L("Preset \"%1%\" is not compatible with the new print profile and it has the following unsaved changes:"),
+                presets->get_edited_preset().name);
         }
-        m_action_line->SetLabel(from_u8((boost::format(_utf8(L("Preset \"%1%\" %2%"))) % _utf8(presets->get_edited_preset().name) % action_msg).str()));
+        m_action_line->SetLabel(action_msg);
     }
 
     update_tree(type, presets);
