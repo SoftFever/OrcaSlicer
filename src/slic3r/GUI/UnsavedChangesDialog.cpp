@@ -597,7 +597,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
 #endif
         wxDataViewColumn* column = new wxDataViewColumn(label, rd, model_column, width, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_CELL_INERT);
 #else
-        wxDataViewColumn* column = new wxDataViewColumn(label, new BitmapTextRenderer(true), model_column, width, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE);
+        wxDataViewColumn* column = new wxDataViewColumn(label, new BitmapTextRenderer(true, wxDATAVIEW_CELL_INERT), model_column, width, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE);
 #endif //__linux__
         m_tree->AppendColumn(column);
         if (set_expander)
@@ -727,8 +727,6 @@ void UnsavedChangesDialog::context_menu(wxDataViewEvent& event)
 
 void UnsavedChangesDialog::show_info_line(Action action, std::string preset_name)
 {
-    if (m_motion_action == action)
-        return;
     if (action == Action::Undef && !m_has_long_strings)
         m_info_line->Hide();
     else {
@@ -751,8 +749,6 @@ void UnsavedChangesDialog::show_info_line(Action action, std::string preset_name
         m_info_line->SetLabel(text);
         m_info_line->Show();
     }
-
-    m_motion_action = action;
 
     Layout();
     Refresh();

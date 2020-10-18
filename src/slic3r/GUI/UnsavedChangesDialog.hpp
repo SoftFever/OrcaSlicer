@@ -210,9 +210,6 @@ class UnsavedChangesDialog : public DPIDialog
     // selected action after Dialog closing
     Action m_exit_action {Action::Undef};
 
-    // Action during mouse motion
-    Action m_motion_action {Action::Undef};
-
     struct ItemData
     {
         std::string     opt_key;
