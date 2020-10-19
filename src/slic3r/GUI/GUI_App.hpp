@@ -230,7 +230,7 @@ public:
     static bool     catch_error(std::function<void()> cb, const std::string& err);
 
     void            persist_window_geometry(wxTopLevelWindow *window, bool default_maximized = false);
-    void            update_ui_from_settings();
+    void            update_ui_from_settings(bool apply_free_camera_correction = true);
 
     bool            switch_language();
     bool            load_language(wxString language, bool initial);

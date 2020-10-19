@@ -167,7 +167,7 @@ public:
 #endif // ENABLE_GCODE_VIEWER
     void        update_menubar();
 
-    void        update_ui_from_settings();
+    void        update_ui_from_settings(bool apply_free_camera_correction = true);
     bool        is_loaded() const { return m_loaded; }
     bool        is_last_input_file() const  { return !m_qs_last_input_file.IsEmpty(); }
     bool        is_dlg_layout() const { return m_layout == ESettingsLayout::Dlg; }

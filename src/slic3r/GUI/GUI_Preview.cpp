@@ -59,7 +59,6 @@ bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, Ba
 
     m_canvas = new GLCanvas3D(m_canvas_widget);
     m_canvas->set_context(wxGetApp().init_glcontext(*m_canvas_widget));
-    m_canvas->bind_event_handlers();
 
     m_canvas->allow_multisample(OpenGLManager::can_multisample());
     // XXX: If have OpenGL
@@ -250,7 +249,6 @@ bool Preview::init(wxWindow* parent, Model* model)
 
     m_canvas = new GLCanvas3D(m_canvas_widget);
     m_canvas->set_context(wxGetApp().init_glcontext(*m_canvas_widget));
-    m_canvas->bind_event_handlers();
     m_canvas->allow_multisample(OpenGLManager::can_multisample());
     m_canvas->set_config(m_config);
     m_canvas->set_model(model);

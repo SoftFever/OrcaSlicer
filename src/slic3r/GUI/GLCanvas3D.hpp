@@ -474,6 +474,7 @@ private:
     // when true renders an extra frame by not resetting m_dirty to false
     // see request_extra_frame()
     bool m_extra_frame_requested;
+    bool m_event_handlers_bound{ false };
 
     mutable GLVolumeCollection m_volumes;
 #if ENABLE_GCODE_VIEWER

@@ -1180,9 +1180,9 @@ void fatal_error(wxWindow* parent)
 
 // Called after the Preferences dialog is closed and the program settings are saved.
 // Update the UI based on the current preferences.
-void GUI_App::update_ui_from_settings()
+void GUI_App::update_ui_from_settings(bool apply_free_camera_correction)
 {
-    mainframe->update_ui_from_settings();
+    mainframe->update_ui_from_settings(apply_free_camera_correction);
 }
 
 void GUI_App::persist_window_geometry(wxTopLevelWindow *window, bool default_maximized)

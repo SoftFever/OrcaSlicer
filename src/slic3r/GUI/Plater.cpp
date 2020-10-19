@@ -1620,7 +1620,7 @@ struct Plater::priv
 #endif // ENABLE_GCODE_VIEWER
 
     void reset_all_gizmos();
-    void update_ui_from_settings();
+    void update_ui_from_settings(bool apply_free_camera_correction = true);
     void update_main_toolbar_tooltips();
     std::shared_ptr<ProgressStatusBar> statusbar();
     std::string get_config(const std::string &key) const;
@@ -2122,7 +2122,7 @@ void Plater::priv::select_view_3D(const std::string& name)
         set_current_panel(preview);
 
 #if ENABLE_GCODE_VIEWER
-    wxGetApp().update_ui_from_settings();
+    wxGetApp().update_ui_from_settings(false);
 #endif // ENABLE_GCODE_VIEWER
 }
 
@@ -2155,10 +2155,10 @@ void Plater::priv::reset_all_gizmos()
 
 // Called after the Preferences dialog is closed and the program settings are saved.
 // Update the UI based on the current preferences.
-void Plater::priv::update_ui_from_settings()
+void Plater::priv::update_ui_from_settings(bool apply_free_camera_correction)
 {
     camera.set_type(wxGetApp().app_config->get("use_perspective_camera"));
-    if (wxGetApp().app_config->get("use_free_camera") != "1")
+    if (apply_free_camera_correction && wxGetApp().app_config->get("use_free_camera") != "1")
         camera.recover_from_free_camera();
 
     view3D->get_canvas3d()->update_ui_from_settings();
@@ -3296,16 +3296,14 @@ void Plater::priv::set_current_panel(wxPanel* panel)
     if (current_panel == panel)
         return;
 
+    wxPanel* old_panel = current_panel;
     current_panel = panel;
     // to reduce flickering when changing view, first set as visible the new current panel
-    for (wxPanel* p : panels)
-    {
-        if (p == current_panel)
-        {
+    for (wxPanel* p : panels) {
+        if (p == current_panel) {
 #ifdef __WXMAC__
             // On Mac we need also to force a render to avoid flickering when changing view
-            if (force_render)
-            {
+            if (force_render) {
                 if (p == view3D)
                     dynamic_cast<View3D*>(p)->get_canvas3d()->render();
                 else if (p == preview)
@@ -3316,21 +3314,22 @@ void Plater::priv::set_current_panel(wxPanel* panel)
         }
     }
     // then set to invisible the other
-    for (wxPanel* p : panels)
-    {
+    for (wxPanel* p : panels) {
         if (p != current_panel)
             p->Hide();
     }
 
     panel_sizer->Layout();
 
-    if (current_panel == view3D)
-    {
-        if (view3D->is_reload_delayed())
-        {
+    if (current_panel == view3D) {
+        if (old_panel == preview)
+            preview->get_canvas3d()->unbind_event_handlers();
+
+        view3D->get_canvas3d()->bind_event_handlers();
+
+        if (view3D->is_reload_delayed()) {
             // Delayed loading of the 3D scene.
-            if (this->printer_technology == ptSLA)
-            {
+            if (this->printer_technology == ptSLA) {
                 // Update the SLAPrint from the current Model, so that the reload_scene()
                 // pulls the correct data.
                 this->update_restart_background_process(true, false);
@@ -3344,8 +3343,12 @@ void Plater::priv::set_current_panel(wxPanel* panel)
         if(notification_manager != nullptr)
             notification_manager->set_in_preview(false);
     }
-    else if (current_panel == preview)
-    {
+    else if (current_panel == preview) {
+        if (old_panel == view3D)
+            view3D->get_canvas3d()->unbind_event_handlers();
+
+        preview->get_canvas3d()->bind_event_handlers();
+
         // see: Plater::priv::object_list_changed()
         // FIXME: it may be better to have a single function making this check and let it be called wherever needed
         bool export_in_progress = this->background_process.is_export_scheduled();
@@ -4746,7 +4749,7 @@ void Plater::update() { p->update(); }
 
 void Plater::stop_jobs() { p->m_ui_jobs.stop_all(); }
 
-void Plater::update_ui_from_settings() { p->update_ui_from_settings(); }
+void Plater::update_ui_from_settings(bool apply_free_camera_correction) { p->update_ui_from_settings(apply_free_camera_correction); }
 
 void Plater::select_view(const std::string& direction) { p->select_view(direction); }
 

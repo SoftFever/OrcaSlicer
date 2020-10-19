@@ -2804,8 +2804,7 @@ void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors, c
 
 void GLCanvas3D::bind_event_handlers()
 {
-    if (m_canvas != nullptr)
-    {
+    if (m_canvas != nullptr) {
         m_canvas->Bind(wxEVT_SIZE, &GLCanvas3D::on_size, this);
         m_canvas->Bind(wxEVT_IDLE, &GLCanvas3D::on_idle, this);
         m_canvas->Bind(wxEVT_CHAR, &GLCanvas3D::on_char, this);
@@ -2827,13 +2826,14 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_PAINT, &GLCanvas3D::on_paint, this);
         m_canvas->Bind(wxEVT_SET_FOCUS, &GLCanvas3D::on_set_focus, this);
+
+        m_event_handlers_bound = true;
     }
 }
 
 void GLCanvas3D::unbind_event_handlers()
 {
-    if (m_canvas != nullptr)
-    {
+    if (m_canvas != nullptr && m_event_handlers_bound) {
         m_canvas->Unbind(wxEVT_SIZE, &GLCanvas3D::on_size, this);
         m_canvas->Unbind(wxEVT_IDLE, &GLCanvas3D::on_idle, this);
         m_canvas->Unbind(wxEVT_CHAR, &GLCanvas3D::on_char, this);
@@ -2855,6 +2855,8 @@ void GLCanvas3D::unbind_event_handlers()
         m_canvas->Unbind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_PAINT, &GLCanvas3D::on_paint, this);
         m_canvas->Unbind(wxEVT_SET_FOCUS, &GLCanvas3D::on_set_focus, this);
+
+        m_event_handlers_bound = false;
     }
 }
 
@@ -2880,8 +2882,7 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
 
     _refresh_if_shown_on_screen();
 
-    if (m_extra_frame_requested || mouse3d_controller_applied)
-    {
+    if (m_extra_frame_requested || mouse3d_controller_applied) {
         m_dirty = true;
         m_extra_frame_requested = false;
         evt.RequestMore();

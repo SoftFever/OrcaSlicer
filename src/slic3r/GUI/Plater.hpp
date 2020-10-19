@@ -169,7 +169,7 @@ public:
 
     // Called after the Preferences dialog is closed and the program settings are saved.
     // Update the UI based on the current preferences.
-    void update_ui_from_settings();
+    void update_ui_from_settings(bool apply_free_camera_correction = true);
 
     void select_all();
     void deselect_all();
