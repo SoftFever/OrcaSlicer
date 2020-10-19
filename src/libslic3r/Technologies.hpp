@@ -56,4 +56,12 @@
 #define ENABLE_GCODE_VIEWER_STATISTICS (0 && ENABLE_GCODE_VIEWER)
 #define ENABLE_GCODE_VIEWER_DATA_CHECKING (0 && ENABLE_GCODE_VIEWER)
 
+
+//===================
+// 2.3.0.alpha2 techs
+//===================
+#define ENABLE_2_3_0_ALPHA2 1
+
+#define ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS (1 && ENABLE_2_3_0_ALPHA2)
+
 #endif // _prusaslicer_technologies_h_
