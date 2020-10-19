@@ -1009,7 +1009,7 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
             action_msg = format_wxstr(_L("Preset \"%1%\" has the following unsaved changes:"), presets->get_edited_preset().name);
         }
         else {
-            action_msg = format_wxstr(Preset::TYPE_PRINTER ?
+            action_msg = format_wxstr(type == Preset::TYPE_PRINTER ?
                 _L("Preset \"%1%\" is not compatible with the new printer profile and it has the following unsaved changes:") :
                 _L("Preset \"%1%\" is not compatible with the new print profile and it has the following unsaved changes:"),
                 presets->get_edited_preset().name);
