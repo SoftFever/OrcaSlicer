@@ -14,7 +14,7 @@ class Http;
 class Duet : public PrintHost
 {
 public:
-	Duet(DynamicPrintConfig *config);
+    explicit Duet(DynamicPrintConfig *config);
 	~Duet() override = default;
 
 	const char* get_name() const override;

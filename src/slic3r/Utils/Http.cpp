@@ -120,7 +120,7 @@ struct Http::priv
 	std::string error_buffer;    // Used for CURLOPT_ERRORBUFFER
 	size_t limit;
 	bool cancel;
-	fs::ifstream* putFile;
+    std::unique_ptr<fs::ifstream> putFile;
 
 	std::thread io_thread;
 	Http::CompleteFn completefn;
@@ -298,8 +298,8 @@ void Http::priv::set_put_body(const fs::path &path)
 	boost::system::error_code ec;
 	boost::uintmax_t filesize = file_size(path, ec);
 	if (!ec) {
-		putFile = new fs::ifstream(path);
-		::curl_easy_setopt(curl, CURLOPT_READDATA, (void *) (putFile));
+        putFile = std::make_unique<fs::ifstream>(path);
+        ::curl_easy_setopt(curl, CURLOPT_READDATA, (void *) (putFile.get()));
 		::curl_easy_setopt(curl, CURLOPT_INFILESIZE, filesize);
 	}
 }
@@ -355,10 +355,7 @@ void Http::priv::http_perform()
 
 	CURLcode res = ::curl_easy_perform(curl);
 
-	if (putFile != nullptr) {
-		delete putFile;
-		putFile = nullptr;
-	}
+    putFile.reset();
 
 	if (res != CURLE_OK) {
 		if (res == CURLE_ABORTED_BY_CALLBACK) {
@@ -398,6 +395,7 @@ Http::Http(Http &&other) : p(std::move(other.p)) {}
 
 Http::~Http()
 {
+    assert(! putFile);
 	if (p && p->io_thread.joinable()) {
 		p->io_thread.detach();
 	}

@@ -177,6 +177,8 @@ void Duet::disconnect(ConnectionType connectionType) const
 
 std::string Duet::get_upload_url(const std::string &filename, ConnectionType connectionType) const
 {
+    assert(connectionType != ConnectionType::error);
+
 	if (connectionType == ConnectionType::dsf) {
 		return (boost::format("%1%machine/file/gcodes/%2%")
 				% get_base_url()
@@ -230,6 +232,8 @@ std::string Duet::timestamp_str() const
 
 bool Duet::start_print(wxString &msg, const std::string &filename, ConnectionType connectionType) const
 {
+    assert(connectionType != ConnectionType::error);
+
 	bool res = false;
 	bool dsf = (connectionType == ConnectionType::dsf);
 
