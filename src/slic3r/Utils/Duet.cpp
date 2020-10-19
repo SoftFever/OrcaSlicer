@@ -36,12 +36,10 @@ const char* Duet::get_name() const { return "Duet"; }
 
 bool Duet::test(wxString &msg) const
 {
-	bool connected = connect(msg);
-	if (connected) {
-		disconnect();
-	}
+	auto connectionType = connect(msg);
+	disconnect(connectionType);
 
-	return connected;
+	return connectionType != ConnectionType::error;
 }
 
 wxString Duet::get_test_ok_msg () const
@@ -59,33 +57,39 @@ wxString Duet::get_test_failed_msg (wxString &msg) const
 bool Duet::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn) const
 {
 	wxString connect_msg;
-	if (!connect(connect_msg)) {
+	auto connectionType = connect(connect_msg);
+	if (connectionType == ConnectionType::error) {
 		error_fn(std::move(connect_msg));
 		return false;
 	}
 
 	bool res = true;
+	bool dsf = (connectionType == ConnectionType::dsf);
 
-	auto upload_cmd = get_upload_url(upload_data.upload_path.string());
+	auto upload_cmd = get_upload_url(upload_data.upload_path.string(), connectionType);
 	BOOST_LOG_TRIVIAL(info) << boost::format("Duet: Uploading file %1%, filepath: %2%, print: %3%, command: %4%")
 		% upload_data.source_path
 		% upload_data.upload_path
 		% upload_data.start_print
 		% upload_cmd;
 
-	auto http = Http::post(std::move(upload_cmd));
-	http.set_post_body(upload_data.source_path)
-		.on_complete([&](std::string body, unsigned status) {
+	auto http = (dsf ? Http::put(std::move(upload_cmd)) : Http::post(std::move(upload_cmd)));
+	if (dsf) {
+		http.set_put_body(upload_data.source_path);
+	} else {
+		http.set_post_body(upload_data.source_path);
+	}
+	http.on_complete([&](std::string body, unsigned status) {
 			BOOST_LOG_TRIVIAL(debug) << boost::format("Duet: File uploaded: HTTP %1%: %2%") % status % body;
 
-			int err_code = get_err_code_from_body(body);
+			int err_code = dsf ? (status == 201 ? 0 : 1) : get_err_code_from_body(body);
 			if (err_code != 0) {
 				BOOST_LOG_TRIVIAL(error) << boost::format("Duet: Request completed but error code was received: %1%") % err_code;
 				error_fn(format_error(body, L("Unknown error occured"), 0));
 				res = false;
 			} else if (upload_data.start_print) {
 				wxString errormsg;
-				res = start_print(errormsg, upload_data.upload_path.string());
+				res = start_print(errormsg, upload_data.upload_path.string(), connectionType);
 				if (! res) {
 					error_fn(std::move(errormsg));
 				}
@@ -106,20 +110,28 @@ bool Duet::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn e
 		})
 		.perform_sync();
 
-	disconnect();
+	disconnect(connectionType);
 
 	return res;
 }
 
-bool Duet::connect(wxString &msg) const
+Duet::ConnectionType Duet::connect(wxString &msg) const
 {
-	bool res = false;
-	auto url = get_connect_url();
+	auto res = ConnectionType::error;
+	auto url = get_connect_url(false);
 
 	auto http = Http::get(std::move(url));
 	http.on_error([&](std::string body, std::string error, unsigned status) {
-			BOOST_LOG_TRIVIAL(error) << boost::format("Duet: Error connecting: %1%, HTTP %2%, body: `%3%`") % error % status % body;
-			msg = format_error(body, error, status);
+			auto dsfUrl = get_connect_url(true);
+			auto dsfHttp = Http::get(std::move(dsfUrl));
+			dsfHttp.on_error([&](std::string body, std::string error, unsigned status) {
+					BOOST_LOG_TRIVIAL(error) << boost::format("Duet: Error connecting: %1%, HTTP %2%, body: `%3%`") % error % status % body;
+					msg = format_error(body, error, status);
+				})
+				.on_complete([&](std::string body, unsigned) {
+					res = ConnectionType::dsf;
+				})
+				.perform_sync();
 		})
 		.on_complete([&](std::string body, unsigned) {
 			BOOST_LOG_TRIVIAL(debug) << boost::format("Duet: Got: %1%") % body;
@@ -127,7 +139,7 @@ bool Duet::connect(wxString &msg) const
 			int err_code = get_err_code_from_body(body);
 			switch (err_code) {
 				case 0:
-					res = true;
+					res = ConnectionType::rrf;
 					break;
 				case 1:
 					msg = format_error(body, L("Wrong password"), 0);
@@ -146,8 +158,12 @@ bool Duet::connect(wxString &msg) const
 	return res;
 }
 
-void Duet::disconnect() const
+void Duet::disconnect(ConnectionType connectionType) const
 {
+	// we don't need to disconnect from DSF or if it failed anyway
+	if (connectionType != ConnectionType::rrf) {
+		return;
+	}
 	auto url =  (boost::format("%1%rr_disconnect")
 			% get_base_url()).str();
 
@@ -159,20 +175,31 @@ void Duet::disconnect() const
 	.perform_sync();
 }
 
-std::string Duet::get_upload_url(const std::string &filename) const
+std::string Duet::get_upload_url(const std::string &filename, ConnectionType connectionType) const
 {
-	return (boost::format("%1%rr_upload?name=0:/gcodes/%2%&%3%")
-			% get_base_url()
-			% Http::url_encode(filename) 
-			% timestamp_str()).str();
+	if (connectionType == ConnectionType::dsf) {
+		return (boost::format("%1%machine/file/gcodes/%2%")
+				% get_base_url()
+				% Http::url_encode(filename)).str();
+	} else {
+		return (boost::format("%1%rr_upload?name=0:/gcodes/%2%&%3%")
+				% get_base_url()
+				% Http::url_encode(filename)
+				% timestamp_str()).str();
+	}
 }
 
-std::string Duet::get_connect_url() const
+std::string Duet::get_connect_url(const bool dsfUrl) const
 {
-	return (boost::format("%1%rr_connect?password=%2%&%3%")
-			% get_base_url()
-			% (password.empty() ? "reprap" : password)
-			% timestamp_str()).str();
+	if (dsfUrl)	{
+		return (boost::format("%1%machine/status")
+				% get_base_url()).str();
+	} else {
+		return (boost::format("%1%rr_connect?password=%2%&%3%")
+				% get_base_url()
+				% (password.empty() ? "reprap" : password)
+				% timestamp_str()).str();
+	}
 }
 
 std::string Duet::get_base_url() const
@@ -201,15 +228,25 @@ std::string Duet::timestamp_str() const
 	return std::string(buffer);
 }
 
-bool Duet::start_print(wxString &msg, const std::string &filename) const 
+bool Duet::start_print(wxString &msg, const std::string &filename, ConnectionType connectionType) const
 {
 	bool res = false;
+	bool dsf = (connectionType == ConnectionType::dsf);
 
-	auto url = (boost::format("%1%rr_gcode?gcode=M32%%20\"%2%\"")
+	auto url = dsf
+		? (boost::format("%1%machine/code")
+			% get_base_url()).str()
+		: (boost::format("%1%rr_gcode?gcode=M32%%20\"0:/gcodes/%2%\"")
 			% get_base_url()
 			% Http::url_encode(filename)).str();
 
-	auto http = Http::get(std::move(url));
+	auto http = (dsf ? Http::post(std::move(url)) : Http::get(std::move(url)));
+	if (dsf) {
+		http.set_post_body(
+				(boost::format("M32 \"0:/gcodes/%1%\"")
+					% filename).str()
+				);
+	}
 	http.on_error([&](std::string body, std::string error, unsigned status) {
 			BOOST_LOG_TRIVIAL(error) << boost::format("Duet: Error starting print: %1%, HTTP %2%, body: `%3%`") % error % status % body;
 			msg = format_error(body, error, status);
