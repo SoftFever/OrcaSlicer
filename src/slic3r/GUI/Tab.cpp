@@ -37,6 +37,7 @@
 #include "format.hpp"
 #include "PhysicalPrinterDialog.hpp"
 #include "UnsavedChangesDialog.hpp"
+#include "SavePresetDialog.hpp"
 
 #ifdef WIN32
 	#include <commctrl.h>

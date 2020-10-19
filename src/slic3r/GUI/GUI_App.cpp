@@ -63,7 +63,7 @@
 #include "InstanceCheck.hpp"
 #include "NotificationManager.hpp"
 #include "UnsavedChangesDialog.hpp"
-#include "PresetComboBoxes.hpp"
+#include "SavePresetDialog.hpp"
 
 #include "BitmapCache.hpp"
 

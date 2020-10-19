@@ -87,6 +87,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Plater.hpp
     GUI/PresetComboBoxes.hpp
     GUI/PresetComboBoxes.cpp
+    GUI/SavePresetDialog.hpp
+    GUI/SavePresetDialog.cpp
     GUI/PhysicalPrinterDialog.hpp
     GUI/PhysicalPrinterDialog.cpp
     GUI/GUI_ObjectList.cpp

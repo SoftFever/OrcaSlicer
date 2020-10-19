@@ -14,7 +14,7 @@
 #include "Tab.hpp"
 #include "ExtraRenderers.hpp"
 #include "wxExtensions.hpp"
-#include "PresetComboBoxes.hpp"
+#include "SavePresetDialog.hpp"
 #include "MainFrame.hpp"
 
 //#define FTS_FUZZY_MATCH_IMPLEMENTATION
