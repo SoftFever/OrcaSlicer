@@ -264,11 +264,18 @@ ExPolygons AvoidCrossingPerimeters2::get_boundary(const Layer &layer)
         ExPolygons missing_perimeter_boundary = offset_ex(diff_ex(boundary, offset_ex(perimeter_boundary, offset + SCALED_EPSILON / 2)),
                                                           offset + SCALED_EPSILON);
         perimeter_boundary                    = offset_ex(perimeter_boundary, offset);
+        perimeter_boundary.reserve(perimeter_boundary.size() + missing_perimeter_boundary.size());
         perimeter_boundary.insert(perimeter_boundary.begin(), missing_perimeter_boundary.begin(), missing_perimeter_boundary.end());
         final_boundary = union_ex(intersection_ex(offset_ex(perimeter_boundary, -offset), boundary));
     } else {
         final_boundary = std::move(perimeter_boundary);
     }
+
+    // Add an outer boundary to avoid crossing perimeters from supports
+    ExPolygons outer_boundary = diff_ex(offset_ex(boundary, 2 * perimeter_spacing), offset_ex(boundary, 2 * perimeter_spacing - offset));
+    final_boundary.reserve(final_boundary.size() + outer_boundary.size());
+    final_boundary.insert(final_boundary.begin(), outer_boundary.begin(), outer_boundary.end());
+    final_boundary = union_ex(final_boundary);
 
     // Collect all top layers that will not be crossed.
     polygons_count = 0;
