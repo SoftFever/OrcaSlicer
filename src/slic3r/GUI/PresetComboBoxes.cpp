@@ -805,11 +805,13 @@ void PlaterPresetComboBox::update()
         }
     }
 
-    if (m_type == Preset::TYPE_PRINTER || m_type == Preset::TYPE_SLA_MATERIAL) {
+    if (m_type == Preset::TYPE_PRINTER || m_type == Preset::TYPE_FILAMENT || m_type == Preset::TYPE_SLA_MATERIAL) {
         wxBitmap* bmp = get_bmp("edit_preset_list", wide_icons, "edit_uni");
         assert(bmp);
 
-        if (m_type == Preset::TYPE_SLA_MATERIAL)
+        if (m_type == Preset::TYPE_FILAMENT)
+            set_label_marker(Append(separator(L("Add/Remove filaments")), *bmp), LABEL_ITEM_WIZARD_FILAMENTS);
+        else if (m_type == Preset::TYPE_SLA_MATERIAL)
             set_label_marker(Append(separator(L("Add/Remove materials")), *bmp), LABEL_ITEM_WIZARD_MATERIALS);
         else
             set_label_marker(Append(separator(L("Add/Remove printers")), *bmp), LABEL_ITEM_WIZARD_PRINTERS);
