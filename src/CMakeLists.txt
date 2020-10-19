@@ -204,11 +204,11 @@ if (WIN32)
             VERBATIM
         )
     endif ()
-    
+
     # This has to be a separate target due to the windows command line lenght limits
     add_custom_target(PrusaSlicerDllsCopy ALL DEPENDS PrusaSlicer)
     prusaslicer_copy_dlls(PrusaSlicerDllsCopy)
-    
+
 else ()
     if (APPLE)
         # On OSX, the name of the binary matches the name of the Application.
@@ -247,4 +247,7 @@ if (WIN32)
     endif ()
 else ()
     install(TARGETS PrusaSlicer RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+
+    # Install the symlink for gcodeviewer
+    install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink prusa-slicer prusa-gcodeviewer WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})")
 endif ()
