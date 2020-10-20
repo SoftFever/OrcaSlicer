@@ -556,10 +556,9 @@ static void export_infill_lines_to_svg(const ExPolygon &expoly, const Polylines 
 static Matrix2d rotation_matrix_from_vector(const Point &vector)
 {
     Matrix2d rotation;
-    rotation.block<1, 2>(0, 0) = vector.cast<double>() / vector.cast<double>().norm();
+    rotation.block<1, 2>(0, 0) = vector.cast<double>().normalized();
     rotation(1, 0)             = -rotation(0, 1);
     rotation(1, 1)             = rotation(0, 0);
-
     return rotation;
 }
 
@@ -638,6 +637,13 @@ using rtree_point_t   = bgm::point<float, 2, boost::geometry::cs::cartesian>;
 using rtree_segment_t = bgm::segment<rtree_point_t>;
 using rtree_t         = bgi::rtree<std::pair<rtree_segment_t, size_t>, bgi::rstar<16, 4>>;
 
+static inline rtree_segment_t mk_rtree_seg(const Point &a, const Point &b) {
+    return { rtree_point_t(float(a.x()), float(a.y())), rtree_point_t(float(b.x()), float(b.y())) };
+}
+static inline rtree_segment_t mk_rtree_seg(const Line &l) {
+    return mk_rtree_seg(l.a, l.b);
+}
+
 // Create a hook based on hook_line and append it to the begin or end of the polyline in the intersection
 static void add_hook(const Intersection &intersection, const Line &hook_line, const double scaled_spacing, const int hook_length, const rtree_t &rtree)
 {
@@ -660,9 +666,7 @@ static void add_hook(const Intersection &intersection, const Line &hook_line, co
     };
 
     std::vector<std::pair<rtree_segment_t, size_t>> hook_intersections;
-    rtree.query(bgi::intersects(rtree_segment_t(rtree_point_t(float(hook_forward.a.x()), float(hook_forward.a.y())),
-                                                rtree_point_t(float(hook_forward.b.x()), float(hook_forward.b.y())))) &&
-                    bgi::satisfies(filter_itself),
+    rtree.query(bgi::intersects(mk_rtree_seg(hook_forward)) && bgi::satisfies(filter_itself),
                 std::back_inserter(hook_intersections));
 
     auto max_hook_length = [&hook_intersections, &hook_length](const Line &hook) {
@@ -683,9 +687,7 @@ static void add_hook(const Intersection &intersection, const Line &hook_line, co
         // There is not enough space for the hook, try another direction
         coord_t hook_forward_max_length = max_hook_length(hook_forward);
         hook_intersections.clear();
-        rtree.query(bgi::intersects(rtree_segment_t(rtree_point_t(float(hook_backward.a.x()), float(hook_backward.a.y())),
-                                                    rtree_point_t(float(hook_backward.b.x()), float(hook_backward.b.y())))) &&
-                        bgi::satisfies(filter_itself),
+        rtree.query(bgi::intersects(mk_rtree_seg(hook_backward)) && bgi::satisfies(filter_itself),
                     std::back_inserter(hook_intersections));
 
         if (hook_intersections.empty()) {
@@ -712,40 +714,42 @@ static void add_hook(const Intersection &intersection, const Line &hook_line, co
     }
 }
 
-static void connect_lines_using_hooks(Polylines &&lines, Polylines &polylines_out, const ExPolygon &boundary, const double spacing, const int hook_length)
+static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &boundary, const double spacing, const int hook_length)
 {
     rtree_t rtree;
     size_t  poly_idx = 0;
     for (const Polyline &poly : lines) {
-        rtree.insert(std::make_pair(rtree_segment_t(rtree_point_t(float(poly.points.front().x()), float(poly.points.front().y())),
-                                                    rtree_point_t(float(poly.points.back().x()), float(poly.points.back().y()))),
-                                    poly_idx++));
+        rtree.insert(std::make_pair(mk_rtree_seg(poly.points.front(), poly.points.back()), poly_idx++));
     }
 
     std::vector<Intersection> intersections;
-    coord_t                   scaled_spacing = coord_t(scale_(spacing));
-    for (size_t line_idx = 0; line_idx < lines.size(); ++line_idx) {
-        Polyline &line = lines[line_idx];
-        // Lines shorter than spacing are skipped because it is needed to shrink a line by the value of spacing.
-        // A shorter line than spacing could produce a degenerate polyline.
-        if (line.length() <= (scaled_spacing + SCALED_EPSILON)) continue;
-
-        Point                                           front_point = line.points.front();
-        Point                                           back_point  = line.points.back();
+    {
+        const coord_t scaled_spacing = coord_t(scale_(spacing));
+        // Keeping the vector of closest points outside the loop, so the vector does not need to be reallocated.
         std::vector<std::pair<rtree_segment_t, size_t>> closest;
+        for (size_t line_idx = 0; line_idx < lines.size(); ++line_idx) {
+            Polyline &line = lines[line_idx];
+            // Lines shorter than spacing are skipped because it is needed to shrink a line by the value of spacing.
+            // A shorter line than spacing could produce a degenerate polyline.
+            if (line.length() <= (scaled_spacing + SCALED_EPSILON)) continue;
 
-        auto filter_itself = [line_idx](const auto &item) { return item.second != line_idx; };
+            Point                                           front_point = line.points.front();
+            Point                                           back_point  = line.points.back();
 
-        // Find the nearest line from the start point of the line.
-        rtree.query(bgi::nearest(rtree_point_t(float(front_point.x()), float(front_point.y())), 1) && bgi::satisfies(filter_itself), std::back_inserter(closest));
-        if (((Line) lines[closest[0].second]).distance_to(front_point) <= 1000)
-            intersections.emplace_back(closest[0].second, (Line) lines[closest[0].second], front_point, line_idx, &line, (Line) line, true);
+            auto filter_itself = [line_idx](const auto &item) { return item.second != line_idx; };
 
-        closest.clear();
-        // Find the nearest line from the end point of the line
-        rtree.query(bgi::nearest(rtree_point_t(float(back_point.x()), float(back_point.y())), 1) && bgi::satisfies(filter_itself), std::back_inserter(closest));
-        if (((Line) lines[closest[0].second]).distance_to(back_point) <= 1000)
-            intersections.emplace_back(closest[0].second, (Line) lines[closest[0].second], back_point, line_idx, &line, (Line) line, false);
+            // Find the nearest line from the start point of the line.
+            closest.clear();
+            rtree.query(bgi::nearest(rtree_point_t(float(front_point.x()), float(front_point.y())), 1) && bgi::satisfies(filter_itself), std::back_inserter(closest));
+            if (((Line) lines[closest[0].second]).distance_to(front_point) <= 1000)
+                intersections.emplace_back(closest[0].second, (Line) lines[closest[0].second], front_point, line_idx, &line, (Line) line, true);
+
+            // Find the nearest line from the end point of the line
+            closest.clear();
+            rtree.query(bgi::nearest(rtree_point_t(float(back_point.x()), float(back_point.y())), 1) && bgi::satisfies(filter_itself), std::back_inserter(closest));
+            if (((Line) lines[closest[0].second]).distance_to(back_point) <= 1000)
+                intersections.emplace_back(closest[0].second, (Line) lines[closest[0].second], back_point, line_idx, &line, (Line) line, false);
+        }
     }
 
     std::sort(intersections.begin(), intersections.end(),
@@ -755,15 +759,20 @@ static void connect_lines_using_hooks(Polylines &&lines, Polylines &polylines_ou
     std::iota(merged_with.begin(), merged_with.end(), 0);
 
     // Appends the boundary polygon with all holes to rtree for detection if hooks not crossing the boundary
-    for (const Line &line : boundary.contour.lines())
-        rtree.insert(
-            std::make_pair(rtree_segment_t(rtree_point_t(float(line.a.x()), float(line.a.y())), rtree_point_t(float(line.b.x()), float(line.b.y()))),
-                           poly_idx++));
-    for (const Polygon &polygon : boundary.holes)
-        for (const Line &line : polygon.lines())
-            rtree.insert(std::make_pair(rtree_segment_t(rtree_point_t(float(line.a.x()), float(line.a.y())),
-                                                        rtree_point_t(float(line.b.x()), float(line.b.y()))),
-                                        poly_idx++));
+    {
+        Point prev = boundary.contour.points.back();
+        for (const Point &point : boundary.contour.points) {
+            rtree.insert(std::make_pair(mk_rtree_seg(prev, point), poly_idx++));
+            prev = point;
+        }
+        for (const Polygon &polygon : boundary.holes) {
+            Point prev = polygon.points.back();
+            for (const Point &point : polygon.points) {
+                rtree.insert(std::make_pair(mk_rtree_seg(prev, point), poly_idx++));
+                prev = point;
+            }
+        }
+    }
 
     auto update_merged_polyline = [&lines, &merged_with](Intersection &intersection) {
         // Update the polyline index to index which is merged
@@ -884,9 +893,11 @@ static void connect_lines_using_hooks(Polylines &&lines, Polylines &polylines_ou
         }
     }
 
+    Polylines polylines_out;
     polylines_out.reserve(polylines_out.size() + std::count_if(lines.begin(), lines.end(), [](const Polyline &pl) { return !pl.empty(); }));
     for (Polyline &pl : lines)
         if (!pl.empty()) polylines_out.emplace_back(std::move(pl));
+    return polylines_out;
 }
 
 coord_t get_hook_length(const double spacing) { return coord_t(scale_(spacing)) * 5; }
@@ -937,8 +948,11 @@ void Filler::_fill_surface_single(
     all_polylines = intersection_pl(std::move(all_polylines), to_polygons(expolygon));
 
     // After intersection_pl some polylines with only one line are split into more lines
-    for (Polyline &polyline : all_polylines)
-        if (polyline.points.size() > 2) polyline = Polyline(polyline.points.front(), polyline.points.back());
+    for (Polyline &polyline : all_polylines) {
+        //FIXME assert that all the points are collinear and in between the start and end point.
+        if (polyline.points.size() > 2)
+            polyline.points.erase(polyline.points.begin() + 1, polyline.points.end() - 1);
+    }
 
 #ifdef ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT
     {
@@ -948,8 +962,7 @@ void Filler::_fill_surface_single(
 #endif /* ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT */
 
     coord_t   hook_length = get_hook_length(this->spacing);
-    Polylines all_polylines_with_hooks;
-    connect_lines_using_hooks(std::move(all_polylines), all_polylines_with_hooks, expolygon, this->spacing, hook_length);
+    Polylines all_polylines_with_hooks = connect_lines_using_hooks(std::move(all_polylines), expolygon, this->spacing, hook_length);
 
 #ifdef ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT
     {
