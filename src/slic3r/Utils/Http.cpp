@@ -395,7 +395,7 @@ Http::Http(Http &&other) : p(std::move(other.p)) {}
 
 Http::~Http()
 {
-    assert(! putFile);
+    assert(! p->putFile);
 	if (p && p->io_thread.joinable()) {
 		p->io_thread.detach();
 	}
