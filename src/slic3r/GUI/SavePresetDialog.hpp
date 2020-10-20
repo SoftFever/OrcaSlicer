@@ -10,6 +10,7 @@
 class wxString;
 class wxStaticText;
 class wxComboBox;
+class wxRadioBox;
 class wxStaticBitmap;
 
 namespace Slic3r {
