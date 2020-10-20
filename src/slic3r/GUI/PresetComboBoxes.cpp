@@ -248,6 +248,51 @@ void PresetComboBox::update(std::string select_preset_name)
     Thaw();
 }
 
+void PresetComboBox::edit_physical_printer()
+{
+    if (!m_preset_bundle->physical_printers.has_selection())
+        return;
+
+    PhysicalPrinterDialog dlg(this->GetString(this->GetSelection()));
+    if (dlg.ShowModal() == wxID_OK)
+        update();
+}
+
+void PresetComboBox::add_physical_printer()
+{
+    if (PhysicalPrinterDialog(wxEmptyString).ShowModal() == wxID_OK)
+        update();
+}
+
+bool PresetComboBox::del_physical_printer(const wxString& note_string/* = wxEmptyString*/)
+{
+    const std::string& printer_name = m_preset_bundle->physical_printers.get_selected_full_printer_name();
+    if (printer_name.empty())
+        return false;
+
+    wxString msg;
+    if (!note_string.IsEmpty())
+        msg += note_string + "\n";
+    msg += format_wxstr(_L("Are you sure you want to delete \"%1%\" printer?"), printer_name);
+
+    if (wxMessageDialog(this, msg, _L("Delete Physical Printer"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal() != wxID_YES)
+        return false;
+
+    m_preset_bundle->physical_printers.delete_selected_printer();
+
+    this->update();
+
+    if (dynamic_cast<PlaterPresetComboBox*>(this) != nullptr)
+        wxGetApp().get_tab(m_type)->update_preset_choice();
+    else if (dynamic_cast<TabPresetComboBox*>(this) != nullptr)
+    {
+        wxGetApp().get_tab(m_type)->update_btns_enabling();
+        wxGetApp().plater()->sidebar().update_presets(m_type);
+    }
+
+    return true;
+}
+
 void PresetComboBox::update()
 {
     this->update(into_u8(this->GetString(this->GetSelection())));
@@ -313,7 +358,7 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, bool wide_icons, con
             // Paint a red flag for incompatible presets.
             bmps.emplace_back(is_compatible ? bitmap_cache().mkclear(norm_icon_width, icon_height) : m_bitmapIncompatible.bmp());
 
-        if (m_type == Preset::TYPE_FILAMENT)
+        if (m_type == Preset::TYPE_FILAMENT && !filament_rgb.empty())
         {
             unsigned char rgb[3];
             // Paint the color bars.
@@ -642,28 +687,11 @@ void PlaterPresetComboBox::show_edit_menu()
         [this](wxCommandEvent&) { this->switch_to_tab(); }, "cog", menu, []() { return true; }, wxGetApp().plater());
 
     if (this->is_selected_physical_printer()) {
-    append_menu_item(menu, wxID_ANY, _L("Edit physical printer"), "",
-        [this](wxCommandEvent&) {
-            PhysicalPrinterDialog dlg(this->GetString(this->GetSelection()));
-            if (dlg.ShowModal() == wxID_OK)
-                update();
-        }, "cog", menu, []() { return true; }, wxGetApp().plater());
+        append_menu_item(menu, wxID_ANY, _L("Edit physical printer"), "",
+            [this](wxCommandEvent&) { this->edit_physical_printer(); }, "cog", menu, []() { return true; }, wxGetApp().plater());
 
-    append_menu_item(menu, wxID_ANY, _L("Delete physical printer"), "",
-        [this](wxCommandEvent&) {
-            const std::string& printer_name = m_preset_bundle->physical_printers.get_selected_full_printer_name();
-            if (printer_name.empty())
-                return;
-
-            const wxString msg = from_u8((boost::format(_u8L("Are you sure you want to delete \"%1%\" printer?")) % printer_name).str());
-            if (wxMessageDialog(this, msg, _L("Delete Physical Printer"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal() != wxID_YES)
-                return;
-
-            m_preset_bundle->physical_printers.delete_selected_printer();
-
-            wxGetApp().get_tab(m_type)->update_preset_choice();
-            update();
-        }, "cross", menu, []() { return true; }, wxGetApp().plater());
+        append_menu_item(menu, wxID_ANY, _L("Delete physical printer"), "",
+            [this](wxCommandEvent&) { this->del_physical_printer(); }, "cross", menu, []() { return true; }, wxGetApp().plater());
     }
     else
         append_menu_item(menu, wxID_ANY, _L("Add/Remove presets"), "",
@@ -672,11 +700,7 @@ void PlaterPresetComboBox::show_edit_menu()
             }, "edit_uni", menu, []() { return true; }, wxGetApp().plater());
 
     append_menu_item(menu, wxID_ANY, _L("Add physical printer"), "",
-        [this](wxCommandEvent&) {
-            PhysicalPrinterDialog dlg(wxEmptyString);
-            if (dlg.ShowModal() == wxID_OK)
-                update();
-        }, "edit_uni", menu, []() { return true; }, wxGetApp().plater());
+        [this](wxCommandEvent&) { this->add_physical_printer(); }, "edit_uni", menu, []() { return true; }, wxGetApp().plater());
 
     wxGetApp().plater()->PopupMenu(menu);
 }

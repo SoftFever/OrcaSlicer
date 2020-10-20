@@ -59,6 +59,10 @@ public:
 
     void update(std::string select_preset);
 
+    void edit_physical_printer();
+    void add_physical_printer();
+    bool del_physical_printer(const wxString& note_string = wxEmptyString);
+
     virtual void update();
     virtual void msw_rescale();
 

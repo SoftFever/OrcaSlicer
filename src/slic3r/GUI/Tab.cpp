@@ -202,9 +202,7 @@ void Tab::create_preset_tab()
     // TRN "Save current Settings"
     m_btn_save_preset->SetToolTip(from_u8((boost::format(_utf8(L("Save current %s"))) % m_title).str()));
     m_btn_delete_preset->SetToolTip(_(L("Delete this preset")));
-    m_btn_delete_preset->Disable();
-    if (m_btn_edit_ph_printer)
-        m_btn_edit_ph_printer->Disable();
+    m_btn_delete_preset->Hide();
 
     add_scaled_button(panel, &m_question_btn, "question");
     m_question_btn->SetToolTip(_(L("Hover the cursor over buttons to find more information \n"
@@ -339,11 +337,12 @@ void Tab::create_preset_tab()
     }));
 
     if (m_btn_edit_ph_printer)
-        m_btn_edit_ph_printer->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { 
-        PhysicalPrinterDialog dlg(m_presets_choice->GetString(m_presets_choice->GetSelection()));
-        if (dlg.ShowModal() == wxID_OK)
-            update_tab_ui(); 
-     }));
+        m_btn_edit_ph_printer->Bind(wxEVT_BUTTON, [this](wxCommandEvent e) {
+            if (m_preset_bundle->physical_printers.has_selection())
+                m_presets_choice->edit_physical_printer();
+            else
+                m_presets_choice->add_physical_printer();
+        });
 
     // Fill cache for mode bitmaps
     m_mode_bitmap_cache.reserve(3);
@@ -2927,17 +2926,15 @@ void Tab::rebuild_page_tree()
 
 void Tab::update_btns_enabling()
 {
-    // we can't delete last preset from the physical printer
-    if (m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection())
-        m_btn_delete_preset->Enable(m_preset_bundle->physical_printers.get_selected_printer().preset_names.size() > 1);
-    else {
-        const Preset& preset = m_presets->get_edited_preset();
-        m_btn_delete_preset->Enable(!preset.is_default && !preset.is_system);
-    }
+    // we can delete any preset from the physical printer
+    // and any user preset
+    const Preset& preset = m_presets->get_edited_preset();
+    m_btn_delete_preset->Show(m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection() || 
+                              !preset.is_default && !preset.is_system);
 
-    // we can edit physical printer only if it's selected in the list 
     if (m_btn_edit_ph_printer)
-        m_btn_edit_ph_printer->Enable(m_preset_bundle->physical_printers.has_selection());
+        m_btn_edit_ph_printer->SetToolTip( m_preset_bundle->physical_printers.has_selection() ?
+                                           _L("Edit physical printer") : _L("Add physical printer"));
 }
 
 void Tab::update_preset_choice()
@@ -3336,7 +3333,7 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach)
     // Update the selection boxes at the plater.
     on_presets_changed();
     // If current profile is saved, "delete preset" button have to be enabled
-    m_btn_delete_preset->Enable(true);
+    m_btn_delete_preset->Show();
 
     if (m_type == Preset::TYPE_PRINTER)
         static_cast<TabPrinter*>(this)->m_initial_extruders_count = static_cast<TabPrinter*>(this)->m_extruders_count;
@@ -3389,8 +3386,16 @@ void Tab::delete_preset()
     PhysicalPrinterCollection& physical_printers = m_preset_bundle->physical_printers;
     wxString msg;
     if (m_presets_choice->is_selected_physical_printer())
-        msg = from_u8((boost::format(_u8L("Are you sure you want to delete \"%1%\" preset from the physical printer \"%2%\"?")) 
-                                     % current_preset.name % physical_printers.get_selected_printer_name()).str());
+    {
+        PhysicalPrinter& printer = physical_printers.get_selected_printer();
+        if (printer.preset_names.size() == 1) {
+            if (m_presets_choice->del_physical_printer(_L("It's a last preset for this physical printer.")))
+                Layout();
+            return;
+        }
+        
+        msg = format_wxstr(_L("Are you sure you want to delete \"%1%\" preset from the physical printer \"%2%\"?"), current_preset.name, printer.name);
+    }
     else
     {
         if (m_type == Preset::TYPE_PRINTER && !physical_printers.empty())
@@ -3431,11 +3436,6 @@ void Tab::delete_preset()
     if (m_presets_choice->is_selected_physical_printer()) {
         PhysicalPrinter& printer = physical_printers.get_selected_printer();
 
-        if (printer.preset_names.size() == 1) {
-            wxMessageDialog dialog(nullptr, _L("It's a last for this physical printer. We can't delete it"), _L("Information"), wxICON_INFORMATION | wxOK);
-            dialog.ShowModal();
-            return;
-        }
         // just delete this preset from the current physical printer
         printer.delete_preset(m_presets->get_edited_preset().name);
         // select first from the possible presets for this printer
