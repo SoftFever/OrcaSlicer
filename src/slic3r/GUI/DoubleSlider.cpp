@@ -2095,7 +2095,7 @@ void Control::jump_to_print_z()
 
 void Control::post_ticks_changed_event(Type type /*= Custom*/)
 {
-    m_force_mode_apply = type != ToolChange;
+//    m_force_mode_apply = type != ToolChange; // It looks like this condition is no needed now. Leave it for the testing
 
     wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
 }
