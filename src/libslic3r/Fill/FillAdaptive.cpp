@@ -625,7 +625,7 @@ static Line create_offset_line(const Line &line_to_offset, const Intersection &i
     Line  offset_line    = line_to_offset;
     offset_line.translate(offset_vector.x(), offset_vector.y());
     // Extend the line by small value to guarantee a collision with adjacent lines
-    offset_line.offset(1000000);
+    offset_line.extend(coord_t(scale_(1.)));
     return offset_line;
 };
 

@@ -100,7 +100,7 @@ bool Line::clip_with_bbox(const BoundingBox &bbox)
 	return result;
 }
 
-void Line::offset(double offset)
+void Line::extend(double offset)
 {
     Vector offset_vector = (offset * this->vector().cast<double>().normalized()).cast<coord_t>();
     this->a -= offset_vector;

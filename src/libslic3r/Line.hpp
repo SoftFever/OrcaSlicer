@@ -75,8 +75,8 @@ public:
     double ccw(const Point& point) const { return point.ccw(*this); }
     // Clip a line with a bounding box. Returns false if the line is completely outside of the bounding box.
 	bool   clip_with_bbox(const BoundingBox &bbox);
-    // Resize a line from both sides by the offset.
-    void   offset(double offset);
+    // Extend the line from both sides by an offset.
+    void   extend(double offset);
 
     static inline double distance_to_squared(const Point &point, const Point &a, const Point &b) { return line_alg::distance_to_squared(Line{a, b}, Vec<2, coord_t>{point}); }
     static double distance_to(const Point &point, const Point &a, const Point &b) { return sqrt(distance_to_squared(point, a, b)); }
