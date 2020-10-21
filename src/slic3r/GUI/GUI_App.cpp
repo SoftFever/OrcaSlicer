@@ -25,7 +25,6 @@
 #include <wx/wupdlock.h>
 #include <wx/filefn.h>
 #include <wx/sysopt.h>
-#include <wx/msgdlg.h>
 #include <wx/richmsgdlg.h>
 #include <wx/log.h>
 #include <wx/intl.h>
@@ -349,6 +348,63 @@ private:
     }
 };
 
+
+#ifdef __linux__
+bool static check_old_linux_datadir(const wxString& app_name) {
+    // If we are on Linux and the datadir does not exist yet, look into the old
+    // location where the datadir was before version 2.3. If we find it there,
+    // tell the user that he might wanna migrate to the new location.
+    // (https://github.com/prusa3d/PrusaSlicer/issues/2911)
+    // To be precise, the datadir should exist, it is created when single instance
+    // lock happens. Instead of checking for existence, check the contents.
+
+    namespace fs = boost::filesystem;
+
+    // If running Linux, file layout should be already set to XDG.
+    assert(wxStandardPaths::Get().GetFileLayout() == wxStandardPaths::FileLayout_XDG);
+
+    std::string new_path = Slic3r::data_dir();
+
+    if (new_path != (wxStandardPaths::Get().GetUserConfigDir() + "/" + app_name).ToUTF8().data()) {
+        // This happens when the user specifies a custom --datadir.
+        // Do not show anything in that case.
+        return true;
+    }
+
+    fs::path data_dir = fs::path(new_path);
+    if (! fs::is_directory(data_dir))
+        return true; // This should not happen.
+
+    int file_count = std::distance(fs::directory_iterator(data_dir), fs::directory_iterator());
+
+    if (file_count <= 1) { // just cache dir with an instance lock
+        wxStandardPaths::Get().SetFileLayout(wxStandardPaths::FileLayout_Classic);
+        std::string old_path = wxStandardPaths::Get().GetUserDataDir().ToUTF8().data();
+        wxStandardPaths::Get().SetFileLayout(wxStandardPaths::FileLayout_XDG);
+
+        if (fs::is_directory(old_path)) {
+            wxString msg = from_u8((boost::format(_u8L("Starting with %1% 2.3, configuration "
+                "directory on Linux has changed (according to XDG Base Directory Specification) to \n%2%.\n\n"
+                "This directory did not exist yet (maybe you run the new version for the first time).\nHowever, "
+                "an old %1% configuration directory was detected in \n%3%.\n\n"
+                "Consider moving the contents of the old directory to the new location in order to access "
+                "your profiles, etc.\nNote that if you decide to downgrade %1% in future, it will use the old "
+                "location again.\n\n"
+                "What do you want to do now?")) % SLIC3R_APP_NAME % new_path % old_path).str());
+            wxString caption = from_u8((boost::format(_u8L("%s - BREAKING CHANGE")) % SLIC3R_APP_NAME).str());
+            wxRichMessageDialog dlg(nullptr, msg, caption, wxYES_NO);
+            dlg.SetYesNoLabels(_L("Quit, I will move my data now"), _L("Start the application"));
+            if (dlg.ShowModal() != wxID_NO)
+                return false;
+        }
+    } else {
+        // If the new directory exists, be silent. The user likely already saw the message.
+    }
+    return true;
+}
+#endif
+
+
 wxString file_wildcards(FileType file_type, const std::string &custom_extension)
 {
     static const std::string defaults[FT_SIZE] = {
@@ -635,8 +691,16 @@ void GUI_App::init_app_config()
 	// Windows : "C:\Users\username\AppData\Roaming\Slic3r" or "C:\Documents and Settings\username\Application Data\Slic3r"
 	// Mac : "~/Library/Application Support/Slic3r"
 
-	if (data_dir().empty())
-		set_data_dir(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data());
+    if (data_dir().empty()) {
+        #ifndef __linux__
+            set_data_dir(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data());
+        #else
+            // Since version 2.3, config dir on Linux is in ${XDG_CONFIG_HOME}.
+            // https://github.com/prusa3d/PrusaSlicer/issues/2911
+            wxStandardPaths::Get().SetFileLayout(wxStandardPaths::FileLayout_XDG);
+            set_data_dir((wxStandardPaths::Get().GetUserConfigDir() + "/" + GetAppName()).ToUTF8().data());
+        #endif
+    }
 
 	if (!app_config)
 #if ENABLE_GCODE_VIEWER
@@ -689,6 +753,13 @@ bool GUI_App::on_init_inner()
     const wxString resources_dir = from_u8(Slic3r::resources_dir());
     wxCHECK_MSG(wxDirExists(resources_dir), false,
         wxString::Format("Resources path does not exist or is not a directory: %s", resources_dir));
+
+#ifdef __linux__
+    if (! check_old_linux_datadir(GetAppName())) {
+        std::cerr << "Quitting, user chose to move his data to new location." << std::endl;
+        return false;
+    }
+#endif
 
     // Enable this to get the default Win32 COMCTRL32 behavior of static boxes.
 //    wxSystemOptions::SetOption("msw.staticbox.optimized-paint", 0);
