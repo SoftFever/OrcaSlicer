@@ -218,15 +218,34 @@ void OptionsGroup::activate_line(Line& line)
 		grid_sizer->Add(m_extra_column_item_ptrs.back(), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 3);
 	}
 
+    auto correct_window_position = [this](wxWindow* win, const Line& line, Field* field = nullptr) {
+        wxPoint pos = custom_ctrl->get_pos(line, field);
+        int line_height = custom_ctrl->get_height(line);
+        pos.y += std::max(0, int(0.5 * (line_height - win->GetSize().y)));
+        win->SetPosition(pos);
+    };
+
+    auto correct_widgets_position = [this](wxSizer* widget, const Line& line, Field* field = nullptr) {
+        auto children = widget->GetChildren();
+        wxPoint line_pos = custom_ctrl->get_pos(line, field);
+        int line_height = custom_ctrl->get_height(line);
+        for (auto child : children)
+            if (child->IsWindow()) {
+                wxPoint pos = line_pos;
+                wxSize  sz = child->GetWindow()->GetSize();
+                pos.y += std::max(0, int(0.5 * (line_height - sz.y)));
+                child->GetWindow()->SetPosition(pos);
+                line_pos.x += sz.x + custom_ctrl->m_h_gap;
+            }
+    };
+
     // Build a label if we have it
 	wxStaticText* label=nullptr;
     if (label_width != 0) {
         if (custom_ctrl) {
             if (line.near_label_widget) {
                 m_near_label_widget_ptrs.push_back(line.near_label_widget(this->ctrl_parent()));
-
-                wxPoint pos = custom_ctrl->get_pos(line);
-                m_near_label_widget_ptrs.back()->SetPosition(pos);
+                correct_window_position(m_near_label_widget_ptrs.back(), line);
             }
         }
         else {
@@ -268,18 +287,12 @@ void OptionsGroup::activate_line(Line& line)
 
 	if (line.full_Label != nullptr)
 		*line.full_Label = label; // Initiate the pointer to the control of the full label, if we need this one.
+
 	// If there's a widget, build it and add the result to the sizer.
 	if (line.widget != nullptr) {
-		auto wgt = line.widget(custom_ctrl ? custom_ctrl : this->ctrl_parent());
-        if (custom_ctrl) {
-            auto children = wgt->GetChildren();
-            wxPoint pos = custom_ctrl->get_pos(line);
-            for (auto child : children)
-                if (child->IsWindow()) {
-                    child->GetWindow()->SetPosition(pos);
-                    pos.x += child->GetWindow()->GetBestSize().x + custom_ctrl->m_h_gap;
-                }
-        }
+		auto wgt = line.widget(this->ctrl_parent());
+        if (custom_ctrl)
+            correct_widgets_position(wgt, line);
 		// If widget doesn't have label, don't use border
         else
             grid_sizer->Add(wgt, 0, wxEXPAND | wxBOTTOM | wxTOP, (wxOSX || line.label.IsEmpty()) ? 0 : 5);
@@ -302,7 +315,7 @@ void OptionsGroup::activate_line(Line& line)
             add_undo_buttons_to_sizer(sizer, field);
         if (is_window_field(field)) {
             if (custom_ctrl) {
-                field->getWindow()->SetPosition(custom_ctrl->get_pos(line, field.get()));
+                correct_window_position(field->getWindow(), line, field.get());
                 if (option.opt.full_width)
                     field->getWindow()->SetSize(wxSize(3 * Field::def_width_wider() * wxGetApp().em_unit(), -1));
             }
@@ -340,8 +353,9 @@ void OptionsGroup::activate_line(Line& line)
         {
             if (custom_ctrl) {
                 if (is_window_field(field))
-                    field->getWindow()->SetPosition(custom_ctrl->get_pos(line, field.get()));
+                    correct_window_position(field->getWindow(), line, field.get());
                 else {
+                    correct_widgets_position(field->getSizer(), line, field.get());
                 }
             }
             else {
@@ -356,9 +370,9 @@ void OptionsGroup::activate_line(Line& line)
 
         if (custom_ctrl) {
             if (is_window_field(field))
-                field->getWindow()->SetPosition(custom_ctrl->get_pos(line, field.get()));
-            else {
-            }
+                correct_window_position(field->getWindow(), line, field.get());
+            else
+                correct_widgets_position(field->getSizer(), line, field.get());
         }
         else {
             is_sizer_field(field) ?
@@ -391,9 +405,6 @@ void OptionsGroup::activate_line(Line& line)
 	    }
 	}
 
-    if (custom_ctrl)
-        return;
-
 	// add extra sizers if any
 	for (auto extra_widget : line.get_extra_widgets()) 
     {
@@ -406,7 +417,11 @@ void OptionsGroup::activate_line(Line& line)
             return;
         }
 
-		sizer->Add(extra_widget(this->ctrl_parent())/*!.target<wxWindow>()*/, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);		//! requires verification
+        auto extra_wgt = extra_widget(this->ctrl_parent());
+        if (custom_ctrl)
+            correct_widgets_position(extra_wgt, line);
+        else
+            sizer->Add(extra_wgt, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);        //! requires verification
 	}
 }
 

@@ -76,6 +76,7 @@ public:
     void    sys_color_changed();
 
     wxPoint get_pos(const Line& line, Field* field = nullptr);
+    int     get_height(const Line& line);
 
     OptionsGroup*  m_og;
     int            m_border;

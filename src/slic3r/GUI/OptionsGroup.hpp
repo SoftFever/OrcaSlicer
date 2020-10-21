@@ -192,6 +192,7 @@ public:
     wxGridSizer*        get_grid_sizer() { return m_grid_sizer; }
 
 	const std::vector<Line>& get_lines() { return m_lines; }
+	wxWindow*			get_last_near_label_widget() { return m_near_label_widget_ptrs.back(); }
 
 protected:
 	std::map<t_config_option_key, Option>	m_options;

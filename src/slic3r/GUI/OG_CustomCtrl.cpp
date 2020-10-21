@@ -88,6 +88,15 @@ void OG_CustomCtrl::init_ctrl_lines()
     this->SetMinSize(wxSize(wxDefaultCoord, v_pos));
 }
 
+int OG_CustomCtrl::get_height(const Line& line)
+{
+    for (auto ctrl_line : ctrl_lines)
+        if (&ctrl_line.m_og_line == &line)
+            return ctrl_line.m_height;
+        
+    return 0;
+}
+
 wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 {
     wxCoord v_pos = 0;
@@ -97,8 +106,9 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
         {
             h_pos = m_bmp_mode_simple.bmp().GetWidth() + m_h_gap;
             if (line.near_label_widget) {
+                wxSize near_label_widget_sz = m_og->get_last_near_label_widget()->GetSize();
                 if (field_in)
-                    h_pos += m_bmp_blinking.bmp().GetWidth() + m_h_gap; // ysFIXME
+                    h_pos += near_label_widget_sz.GetWidth() + m_h_gap;
                 else
                     break;
             }
@@ -280,7 +290,15 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
 
         if (field) {
             h_pos = draw_act_bmps(dc, wxPoint(h_pos, v_pos), m_ctrl->m_bmp_blinking.bmp(), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp());
-            h_pos += field->getWindow()->GetSize().x;
+            if (field->getSizer())
+            {
+                auto children = field->getSizer()->GetChildren();
+                for (auto child : children)
+                    if (child->IsWindow())
+                        h_pos += child->GetWindow()->GetSize().x + m_ctrl->m_h_gap;
+            }
+            else if (field->getWindow())
+                h_pos += field->getWindow()->GetSize().x + m_ctrl->m_h_gap;
         }
 
         // add field
