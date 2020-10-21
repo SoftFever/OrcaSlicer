@@ -3805,7 +3805,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
         else if (evt.LeftUp() && !m_mouse.ignore_left_up && !m_mouse.dragging && m_hover_volume_idxs.empty() && !is_layers_editing_enabled()) {
             // deselect and propagate event through callback
+#if ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
+            if (!evt.ShiftDown() && (!any_gizmo_active || !evt.CmdDown()) && m_picking_enabled)
+#else
             if (!evt.ShiftDown() && m_picking_enabled)
+#endif // ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
                 deselect_all();
         }
         else if (evt.RightUp()) {
