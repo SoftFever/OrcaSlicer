@@ -37,17 +37,18 @@ namespace FillAdaptive {
 };
 
 // Print step IDs for keeping track of the print state.
+// The Print steps are applied in this order.
 enum PrintStep {
-    psSkirt, 
-    psBrim,
-    // Synonym for the last step before the Wipe Tower / Tool Ordering, for the G-code preview slider to understand that 
-    // all the extrusions are there for the layer slider to add color changes etc.
-    psExtrusionPaths = psBrim,
     psWipeTower,
+    // Ordering of the tools on PrintObjects for a multi-material print.
     // psToolOrdering is a synonym to psWipeTower, as the Wipe Tower calculates and modifies the ToolOrdering,
     // while if printing without the Wipe Tower, the ToolOrdering is calculated as well.
     psToolOrdering = psWipeTower,
-    psSlicingFinished = psToolOrdering,
+    psSkirt, 
+    psBrim,
+    // Last step before G-code export, after this step is finished, the initial extrusion path preview
+    // should be refreshed.
+    psSlicingFinished = psBrim,
     psGCodeExport,
     psCount,
 };
