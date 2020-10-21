@@ -3618,7 +3618,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // Don't deselect a volume if layer editing is enabled or any gizmo is active. We want the object to stay selected
             // during the scene manipulation.
 
-            if (m_picking_enabled && !any_gizmo_active && (!m_hover_volume_idxs.empty() || !is_layers_editing_enabled())) {
+            if (m_picking_enabled && (!any_gizmo_active || !evt.CmdDown()) && (!m_hover_volume_idxs.empty() || !is_layers_editing_enabled())) {
 #else
             // Select volume in this 3D canvas.
             // Don't deselect a volume if layer editing is enabled. We want the object to stay selected
@@ -3665,7 +3665,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     BoundingBoxf3 volume_bbox = m_volumes.volumes[volume_idx]->transformed_bounding_box();
                     volume_bbox.offset(1.0);
 #if ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
-                    if (!any_gizmo_active && volume_bbox.contains(m_mouse.scene_position)) {
+                    if ((!any_gizmo_active || !evt.CmdDown()) && volume_bbox.contains(m_mouse.scene_position)) {
 #else
                     if (volume_bbox.contains(m_mouse.scene_position)) {
 #endif // ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
