@@ -251,7 +251,11 @@ wxPanel* KBShortcutsDialog::create_header(wxWindow* parent, const wxFont& bold_f
     sizer->AddStretchSpacer();
 
     // logo
+#if ENABLE_GCODE_VIEWER
+    m_logo_bmp = ScalableBitmap(this, wxGetApp().is_editor() ? "PrusaSlicer_32px.png" : "PrusaSlicer-gcodeviewer_32px.png", 32);
+#else
     m_logo_bmp = ScalableBitmap(this, "PrusaSlicer_32px.png", 32);
+#endif // ENABLE_GCODE_VIEWER
     m_header_bitmap = new wxStaticBitmap(panel, wxID_ANY, m_logo_bmp.bmp());
     sizer->Add(m_header_bitmap, 0, wxEXPAND | wxLEFT | wxRIGHT, 10);
 
