@@ -2002,13 +2002,11 @@ void Control::move_current_thumb_to_pos(wxPoint pos)
     const int mouse_val = tick_val >= 0 && m_draw_mode == dmRegular ? tick_val :
         get_value_from_position(pos);
     if (mouse_val >= 0) {
-        // if (abs(mouse_val - m_lower_value) < abs(mouse_val - m_higher_value)) {
-        // if (mouse_val <= m_lower_value) {
         if (m_selection == ssLower) {
             SetLowerValue(mouse_val);
             correct_lower_value();
         }
-        else if (m_selection == ssHigher) {
+        else { // even m_selection is ssUndef, upper thumb should be selected
             SetHigherValue(mouse_val);
             correct_higher_value();
         }
