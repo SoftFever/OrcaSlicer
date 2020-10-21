@@ -519,9 +519,9 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         }
         else if (is_dragging()) {
             switch (m_current) {
-            case Move: m_parent.do_move(L("Gizmo-Move")); break;
-            case Scale: m_parent.do_scale(L("Gizmo-Scale")); break;
-            case Rotate: m_parent.do_rotate(L("Gizmo-Rotate")); break;
+            case Move:   { m_parent.do_move(L("Gizmo-Move")); break; }
+            case Scale:  { m_parent.do_scale(L("Gizmo-Scale")); break; }
+            case Rotate: { m_parent.do_rotate(L("Gizmo-Rotate")); break; }
             default: break;
             }
 
@@ -665,7 +665,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             // event was taken care of by the FdmSupports / Seam gizmo
             processed = true;
         }
-        else if (evt.Dragging() && (m_parent.get_move_volume_id() != -1)
+        else if (evt.Dragging() && m_parent.get_move_volume_id() != -1
              && (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam))
             // don't allow dragging objects with the Sla gizmo on
             processed = true;
@@ -680,6 +680,15 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             m_parent.set_as_dirty();
             processed = true;
         }
+#if ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
+        else if (evt.Dragging() && control_down && (evt.LeftIsDown() || evt.RightIsDown())) {
+            // CTRL has been pressed while already dragging -> stop current action
+            if (evt.LeftIsDown())
+                gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), true);
+            else if (evt.RightIsDown())
+                gizmo_event(SLAGizmoEventType::RightUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), true);
+        }
+#endif // ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
         else if (evt.LeftUp() && (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam) && !m_parent.is_mouse_dragging()) {
             // in case SLA/FDM gizmo is selected, we just pass the LeftUp event and stop processing - neither
             // object moving or selecting is suppressed in that case
