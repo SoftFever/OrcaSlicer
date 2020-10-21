@@ -28,7 +28,6 @@ bool GLGizmoFlatten::on_init()
 
 void GLGizmoFlatten::on_set_state()
 {
-
 }
 
 CommonGizmosDataID GLGizmoFlatten::on_get_requirements() const
@@ -38,7 +37,7 @@ CommonGizmosDataID GLGizmoFlatten::on_get_requirements() const
 
 std::string GLGizmoFlatten::on_get_name() const
 {
-    return (_(L("Place on face")) + " [F]").ToUTF8().data();
+    return (_L("Place on face") + " [F]").ToUTF8().data();
 }
 
 bool GLGizmoFlatten::on_is_activable() const
@@ -48,8 +47,7 @@ bool GLGizmoFlatten::on_is_activable() const
 
 void GLGizmoFlatten::on_start_dragging()
 {
-    if (m_hover_id != -1)
-    {
+    if (m_hover_id != -1) {
         assert(m_planes_valid);
         m_normal = m_planes[m_hover_id].normal;
         m_starting_center = m_parent.get_selection().get_bounding_box().center();
@@ -65,16 +63,14 @@ void GLGizmoFlatten::on_render() const
     glsafe(::glEnable(GL_DEPTH_TEST));
     glsafe(::glEnable(GL_BLEND));
 
-    if (selection.is_single_full_instance())
-    {
+    if (selection.is_single_full_instance()) {
         const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
         glsafe(::glPushMatrix());
         glsafe(::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z()));
         glsafe(::glMultMatrixd(m.data()));
         if (this->is_plane_update_necessary())
 			const_cast<GLGizmoFlatten*>(this)->update_planes();
-        for (int i = 0; i < (int)m_planes.size(); ++i)
-        {
+        for (int i = 0; i < (int)m_planes.size(); ++i) {
             if (i == m_hover_id)
                 glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 0.75f));
             else
@@ -97,16 +93,18 @@ void GLGizmoFlatten::on_render_for_picking() const
     glsafe(::glDisable(GL_DEPTH_TEST));
     glsafe(::glDisable(GL_BLEND));
 
-    if (selection.is_single_full_instance())
-    {
+#if ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
+    if (selection.is_single_full_instance() && !wxGetKeyState(WXK_CONTROL)) {
+#else
+    if (selection.is_single_full_instance()) {
+#endif // ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
         const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
         glsafe(::glPushMatrix());
         glsafe(::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z()));
         glsafe(::glMultMatrixd(m.data()));
         if (this->is_plane_update_necessary())
 			const_cast<GLGizmoFlatten*>(this)->update_planes();
-        for (int i = 0; i < (int)m_planes.size(); ++i)
-        {
+        for (int i = 0; i < (int)m_planes.size(); ++i) {
             glsafe(::glColor4fv(picking_color_component(i).data()));
             m_planes[i].vbo.render();
         }
@@ -129,8 +127,7 @@ void GLGizmoFlatten::update_planes()
 {
     const ModelObject* mo = m_c->selection_info()->model_object();
     TriangleMesh ch;
-    for (const ModelVolume* vol : mo->volumes)
-    {
+    for (const ModelVolume* vol : mo->volumes) {
         if (vol->type() != ModelVolumeType::MODEL_PART)
             continue;
         TriangleMesh vol_ch = vol->get_convex_hull();
