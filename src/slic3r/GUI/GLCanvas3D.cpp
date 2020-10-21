@@ -5169,8 +5169,7 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
 
 void GLCanvas3D::_picking_pass() const
 {
-    if (m_picking_enabled && !m_mouse.dragging && (m_mouse.position != Vec2d(DBL_MAX, DBL_MAX)))
-    {
+    if (m_picking_enabled && !m_mouse.dragging && m_mouse.position != Vec2d(DBL_MAX, DBL_MAX)) {
         m_hover_volume_idxs.clear();
 
         // Render the object for picking.
@@ -5204,17 +5203,19 @@ void GLCanvas3D::_picking_pass() const
 
         GLubyte color[4] = { 0, 0, 0, 0 };
         const Size& cnv_size = get_canvas_size();
-        bool inside = (0 <= m_mouse.position(0)) && (m_mouse.position(0) < cnv_size.get_width()) && (0 <= m_mouse.position(1)) && (m_mouse.position(1) < cnv_size.get_height());
-        if (inside)
-        {
+        bool inside = 0 <= m_mouse.position(0) && m_mouse.position(0) < cnv_size.get_width() && 0 <= m_mouse.position(1) && m_mouse.position(1) < cnv_size.get_height();
+        if (inside) {
             glsafe(::glReadPixels(m_mouse.position(0), cnv_size.get_height() - m_mouse.position(1) - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color));
             if (picking_checksum_alpha_channel(color[0], color[1], color[2]) == color[3])
             	// Only non-interpolated colors are valid, those have their lowest three bits zeroed.
             	volume_id = color[0] + (color[1] << 8) + (color[2] << 16);
         }
-        if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size()))
-        {
-            m_hover_volume_idxs.emplace_back(volume_id);
+        if (0 <= volume_id && volume_id < (int)m_volumes.volumes.size()) {
+#if ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
+            // do not add the volume id if any gizmo is active and CTRL is pressed
+            if (m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined || !wxGetKeyState(WXK_CONTROL))
+#endif // ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
+                m_hover_volume_idxs.emplace_back(volume_id);
             m_gizmos.set_hover_id(-1);
         }
         else
