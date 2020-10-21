@@ -86,7 +86,7 @@ public:
 	// Set the POST request body.
 	// The data is used verbatim, it is not additionally encoded in any way.
 	// This can be used for hosts which do not support multipart requests.
-	Http& set_post_body(const std::string body);
+	Http& set_post_body(const std::string &body);
 
 	// Set the file contents as a PUT request body.
 	// The data is used verbatim, it is not additionally encoded in any way.

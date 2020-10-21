@@ -139,7 +139,7 @@ struct Http::priv
 	void set_timeout_connect(long timeout);
 	void form_add_file(const char *name, const fs::path &path, const char* filename);
 	void set_post_body(const fs::path &path);
-	void set_post_body(const std::string body);
+	void set_post_body(const std::string &body);
 	void set_put_body(const fs::path &path);
 
 	std::string curl_error(CURLcode curlcode);
@@ -155,7 +155,6 @@ Http::priv::priv(const std::string &url)
 	, error_buffer(CURL_ERROR_SIZE + 1, '\0')
 	, limit(0)
 	, cancel(false)
-	, putFile(nullptr)
 {
     Http::tls_global_init();
 
@@ -281,14 +280,15 @@ void Http::priv::form_add_file(const char *name, const fs::path &path, const cha
 	}
 }
 
+//FIXME may throw! Is the caller aware of it?
 void Http::priv::set_post_body(const fs::path &path)
 {
 	std::ifstream file(path.string());
 	std::string file_content { std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() };
-	postfields = file_content;
+	postfields = std::move(file_content);
 }
 
-void Http::priv::set_post_body(const std::string body)
+void Http::priv::set_post_body(const std::string &body)
 {
 	postfields = body;
 }
@@ -488,7 +488,7 @@ Http& Http::set_post_body(const fs::path &path)
 	return *this;
 }
 
-Http& Http::set_post_body(const std::string body)
+Http& Http::set_post_body(const std::string &body)
 {
 	if (p) { p->set_post_body(body); }
 	return *this;
