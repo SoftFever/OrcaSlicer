@@ -224,7 +224,7 @@ void BackgroundSlicingProcess::process_sla()
 
 void BackgroundSlicingProcess::thread_proc()
 {
-    set_current_thread_name("slic3r_BackgroundSlicingProcess");
+    set_current_thread_name("slic3r_BgSlcPcs");
 	name_tbb_thread_pool_threads();
 
 	assert(m_print != nullptr);

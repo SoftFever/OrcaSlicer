@@ -84,6 +84,13 @@ void set_current_thread_name(const char *thread_name)
     WindowsSetThreadName(::GetCurrentThread(), thread_name);
 }
 
+void std::string get_current_thread_name() const
+{
+	wchar_t *ptr = nullptr;
+	::GetThreadDescription(::GetCurrentThread(), &ptr);
+	return std::string((ptr == nullptr) ? "" : ptr);
+}
+
 #else // _WIN32
 
 // posix
@@ -100,6 +107,12 @@ void set_thread_name(boost::thread &thread, const char *thread_name)
 void set_current_thread_name(const char *thread_name)
 {
 	set_thread_name(pthread_self(), thread_name);
+}
+
+void std::string get_current_thread_name() const
+{
+	char buf[16];
+	return std::string(pthread_getname_np(pthread_self(), buf, 16) == 0 ? buf : "");
 }
 
 #endif // _WIN32
@@ -149,7 +162,7 @@ void name_tbb_thread_pool_threads()
 			} else {
 				assert(range.begin() > 0);
 				std::ostringstream name;
-		        name << "slic3r_tbbpool_" << range.begin() << "_" << thread_id;
+		        name << "slic3r_tbb_" << range.begin();
 		        set_current_thread_name(name.str());
     		}
         });
