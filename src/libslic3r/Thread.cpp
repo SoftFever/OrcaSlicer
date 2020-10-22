@@ -87,7 +87,7 @@ std::string get_current_thread_name()
 {
 	wchar_t *ptr = nullptr;
 	::GetThreadDescription(::GetCurrentThread(), &ptr);
-	return std::string((ptr == nullptr) ? "" : ptr);
+	return (ptr == nullptr) ? std::string() : boost::nowide::narrow(ptr);
 }
 
 #else // _WIN32
@@ -133,7 +133,7 @@ void name_tbb_thread_pool_threads()
 #endif
 
 	if (nthreads != nthreads_hw) 
-           new tbb::task_scheduler_init(nthreads);
+		new tbb::task_scheduler_init(nthreads);
 
 	std::atomic<size_t>		nthreads_running(0);
 	std::condition_variable cv;
