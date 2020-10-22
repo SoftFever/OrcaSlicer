@@ -16,10 +16,9 @@
 
 #include "Thread.hpp"
 
-#ifdef _WIN32
-
 namespace Slic3r {
 
+#ifdef _WIN32
 #ifdef SLIC3R_THREAD_NAME_WIN32_MODERN
 
 	static void WindowsSetThreadName(HANDLE hThread, const char *thread_name)
@@ -84,7 +83,7 @@ void set_current_thread_name(const char *thread_name)
     WindowsSetThreadName(::GetCurrentThread(), thread_name);
 }
 
-void std::string get_current_thread_name() const
+std::string get_current_thread_name() 
 {
 	wchar_t *ptr = nullptr;
 	::GetThreadDescription(::GetCurrentThread(), &ptr);
@@ -96,20 +95,20 @@ void std::string get_current_thread_name() const
 // posix
 void set_thread_name(std::thread &thread, const char *thread_name)
 {
-   	pthread_setname_np(thread->native_handle(), thread_name);
+   	pthread_setname_np(thread.native_handle(), thread_name);
 }
 
 void set_thread_name(boost::thread &thread, const char *thread_name)
 {
-   	pthread_setname_np(thread->native_handle(), thread_name);
+   	pthread_setname_np(thread.native_handle(), thread_name);
 }
 
 void set_current_thread_name(const char *thread_name)
 {
-	set_thread_name(pthread_self(), thread_name);
+	pthread_setname_np(pthread_self(), thread_name);
 }
 
-void std::string get_current_thread_name() const
+std::string get_current_thread_name()
 {
 	char buf[16];
 	return std::string(pthread_getname_np(pthread_self(), buf, 16) == 0 ? buf : "");
@@ -133,10 +132,8 @@ void name_tbb_thread_pool_threads()
 	nthreads = 1;
 #endif
 
-	if (nthreads != nthreads_hw) {
-	    static tbb::task_scheduler_init *tbb_init = nullptr;
-    	tbb_init = new tbb::task_scheduler_init(nthreads);
-	}
+	if (nthreads != nthreads_hw) 
+           new tbb::task_scheduler_init(nthreads);
 
 	std::atomic<size_t>		nthreads_running(0);
 	std::condition_variable cv;
@@ -163,7 +160,7 @@ void name_tbb_thread_pool_threads()
 				assert(range.begin() > 0);
 				std::ostringstream name;
 		        name << "slic3r_tbb_" << range.begin();
-		        set_current_thread_name(name.str());
+		        set_current_thread_name(name.str().c_str());
     		}
         });
 }
