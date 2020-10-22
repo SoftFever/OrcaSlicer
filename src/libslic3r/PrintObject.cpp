@@ -653,7 +653,7 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
 		invalidated |= this->invalidate_steps({ posPrepareInfill, posInfill, posIroning });
         invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
     } else if (step == posPrepareInfill) {
-        invalidated |= this->invalidate_step(posInfill, posIroning);
+        invalidated |= this->invalidate_steps({ posInfill, posIroning });
     } else if (step == posInfill) {
         invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
     } else if (step == posSlice) {
