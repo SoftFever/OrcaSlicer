@@ -4,6 +4,7 @@
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
 #include "MTUtils.hpp"
+#include "Thread.hpp"
 
 #include <unordered_set>
 #include <numeric>
@@ -689,7 +690,10 @@ bool SLAPrint::invalidate_step(SLAPrintStep step)
 
 void SLAPrint::process()
 {
-    if(m_objects.empty()) return;
+    if (m_objects.empty())
+        return;
+
+    name_tbb_thread_pool_threads();
 
     // Assumption: at this point the print objects should be populated only with
     // the model objects we have to process and the instances are also filtered

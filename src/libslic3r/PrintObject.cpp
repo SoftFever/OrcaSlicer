@@ -1688,12 +1688,6 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
 
     m_typed_slices = false;
 
-#ifdef SLIC3R_PROFILE
-    // Disable parallelization so the Shiny profiler works
-    static tbb::task_scheduler_init *tbb_init = nullptr;
-    tbb_init = new tbb::task_scheduler_init(1);
-#endif
-
     // 1) Initialize layers and their slice heights.
     std::vector<float> slice_zs;
     {

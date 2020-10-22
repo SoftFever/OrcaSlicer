@@ -10,6 +10,7 @@
 #include "I18N.hpp"
 #include "ShortestPath.hpp"
 #include "SupportMaterial.hpp"
+#include "Thread.hpp"
 #include "GCode.hpp"
 #include "GCode/WipeTower.hpp"
 #include "Utils.hpp"
@@ -1604,6 +1605,8 @@ void Print::auto_assign_extruders(ModelObject* model_object) const
 // Slicing process, running at a background thread.
 void Print::process()
 {
+    name_tbb_thread_pool_threads();
+
     BOOST_LOG_TRIVIAL(info) << "Starting the slicing process." << log_memory_info();
     for (PrintObject *obj : m_objects)
         obj->make_perimeters();

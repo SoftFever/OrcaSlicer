@@ -46,6 +46,7 @@
 #include "libslic3r/Format/SL1.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/AppConfig.hpp" 
+#include "libslic3r/Thread.hpp"
 
 #include "PrusaSlicer.hpp"
 
@@ -62,6 +63,9 @@ using namespace Slic3r;
 
 int CLI::run(int argc, char **argv)
 {
+    // Mark the main thread for the debugger and for runtime checks.
+    set_current_thread_name("slic3r_main");
+
 #ifdef __WXGTK__
     // On Linux, wxGTK has no support for Wayland, and the app crashes on
     // startup if gtk3 is used. This env var has to be set explicitly to
