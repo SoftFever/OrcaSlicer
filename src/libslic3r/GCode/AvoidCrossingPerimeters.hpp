@@ -37,10 +37,16 @@ public:
         m_external_mp.reset();
         m_layer_mp.reset();
     }
-    void init_external_mp(const Print &print);
-    void init_layer_mp(const ExPolygons &islands) { m_layer_mp = Slic3r::make_unique<MotionPlanner>(islands); }
+    virtual void init_external_mp(const Print &print);
+    virtual void init_layer_mp(const ExPolygons &islands) { m_layer_mp = Slic3r::make_unique<MotionPlanner>(islands); }
 
     virtual Polyline travel_to(const GCode &gcodegen, const Point &point);
+
+    virtual Polyline travel_to(const GCode &gcodegen, const Point &point, bool *could_be_wipe_disabled)
+    {
+        *could_be_wipe_disabled = true;
+        return this->travel_to(gcodegen, point);
+    }
 
 protected:
     // For initializing the regions to avoid.
@@ -55,9 +61,13 @@ class AvoidCrossingPerimeters2 : public AvoidCrossingPerimeters
 protected:
     struct Intersection
     {
+        // Index of the polygon containing this point of intersection.
         size_t border_idx;
+        // Index of the line on the polygon containing this point of intersection.
         size_t line_idx;
+        // Point of intersection projected on the travel path.
         Point  point_transformed;
+        // Point of intersection.
         Point  point;
 
         Intersection(size_t border_idx, size_t line_idx, const Point &point_transformed, const Point &point)
@@ -78,11 +88,19 @@ private:
 
     static Polyline simplify_travel(const EdgeGrid::Grid &edge_grid, const Polyline &travel);
 
-    static Polyline avoid_perimeters(const Polygons &boundaries, const EdgeGrid::Grid &grid, const Point &start, const Point &end);
+    static size_t avoid_perimeters(const Polygons &boundaries, const EdgeGrid::Grid &grid, const Point &start, const Point &end, Polyline *result_out);
 
+    bool needs_wipe(const GCode &gcodegen, const Line &original_travel, const Polyline &result_travel, const size_t intersection_count);
+
+    // Slice of layer with elephant foot compensation
+    ExPolygons     m_slice;
+    // Collection of boundaries used for detection of crossing perimetrs for travels inside object
     Polygons       m_boundaries;
+    // Collection of boundaries used for detection of crossing perimetrs for travels outside object
     Polygons       m_boundaries_external;
+    // Bounding box of m_boundaries
     BoundingBox    m_bbox;
+    // Bounding box of m_boundaries_external
     BoundingBox    m_bbox_external;
     EdgeGrid::Grid m_grid;
     EdgeGrid::Grid m_grid_external;
@@ -92,7 +110,17 @@ public:
 
     virtual ~AvoidCrossingPerimeters2() = default;
 
-    virtual Polyline travel_to(const GCode &gcodegen, const Point &point) override;
+    // Used for disabling unnecessary calling collect_contours_all_layers
+    virtual void init_external_mp(const Print &print) override {};
+    virtual void init_layer_mp(const ExPolygons &islands) override {};
+
+    virtual Polyline travel_to(const GCode &gcodegen, const Point &point) override
+    {
+        bool could_be_wipe_disabled;
+        return this->travel_to(gcodegen, point, &could_be_wipe_disabled);
+    }
+
+    virtual Polyline travel_to(const GCode &gcodegen, const Point &point, bool *needs_wipe) override;
 
     void init_layer(const Layer &layer);
 };

@@ -115,6 +115,7 @@ static Matrix2d rotation_by_direction(const Point &direction)
 
 static Point find_first_different_vertex(const Polygon &polygon, const size_t point_idx, const Point &point, bool forward)
 {
+    assert(point_idx < polygon.size());
     if (point != polygon.points[point_idx])
         return polygon.points[point_idx];
 
@@ -137,8 +138,9 @@ static Vec2d three_points_inward_normal(const Point &left, const Point &middle, 
     normal_2.normalize();
 
     return (normal_1 + normal_2).normalized();
-};
+}
 
+// Compute normal of the polygon's vertex in an inward direction
 static Vec2d get_polygon_vertex_inward_normal(const Polygon &polygon, const size_t point_idx)
 {
     const size_t left_idx  = (point_idx <= 0) ? (polygon.size() - 1) : (point_idx - 1);
@@ -149,12 +151,13 @@ static Vec2d get_polygon_vertex_inward_normal(const Polygon &polygon, const size
     return three_points_inward_normal(left, middle, right);
 }
 
-// Compute offset of polygon's in a direction inward normal
+// Compute offset of point_idx of the polygon in a direction of inward normal
 static Point get_polygon_vertex_offset(const Polygon &polygon, const size_t point_idx, const int offset)
 {
     return polygon.points[point_idx] + (get_polygon_vertex_inward_normal(polygon, point_idx) * double(offset)).cast<coord_t>();
 }
 
+// Compute offset (in the direction of inward normal) of the point(passed on "middle") based on the nearest points laying on the polygon (left_idx and right_idx).
 static Point get_middle_point_offset(const Polygon &polygon, const size_t left_idx, const size_t right_idx, const Point &middle, const int offset)
 {
     const Point &left  = find_first_different_vertex(polygon, left_idx, middle, false);
@@ -243,6 +246,15 @@ static coord_t get_perimeter_spacing_external(const Layer &layer)
     return perimeter_spacing;
 }
 
+// Check if anyone of ExPolygons contains whole travel.
+template<class T> static bool any_expolygon_contains(const ExPolygons &ex_polygons, const T &travel)
+{
+    for (const ExPolygon &ex_polygon : ex_polygons)
+        if (ex_polygon.contains(travel)) return true;
+
+    return false;
+}
+
 ExPolygons AvoidCrossingPerimeters2::get_boundary(const Layer &layer)
 {
     const coord_t perimeter_spacing = get_perimeter_spacing(layer);
@@ -321,6 +333,7 @@ ExPolygons AvoidCrossingPerimeters2::get_boundary_external(const Layer &layer)
 
     Polygons contours;
     Polygons holes;
+    contours.reserve(boundary.size());
     for (ExPolygon &poly : boundary) {
         contours.emplace_back(poly.contour);
         append(holes, poly.holes);
@@ -429,10 +442,11 @@ Polyline AvoidCrossingPerimeters2::simplify_travel(const EdgeGrid::Grid &edge_gr
     return optimized_comb_path;
 }
 
-Polyline AvoidCrossingPerimeters2::avoid_perimeters(const Polygons       &boundaries,
-                                                    const EdgeGrid::Grid &edge_grid,
-                                                    const Point          &start,
-                                                    const Point          &end)
+size_t AvoidCrossingPerimeters2::avoid_perimeters(const Polygons       &boundaries,
+                                                  const EdgeGrid::Grid &edge_grid,
+                                                  const Point          &start,
+                                                  const Point          &end,
+                                                  Polyline             *result_out)
 {
     const Point direction           = end - start;
     Matrix2d    transform_to_x_axis = rotation_by_direction(direction);
@@ -496,12 +510,12 @@ Polyline AvoidCrossingPerimeters2::avoid_perimeters(const Polygons       &bounda
                 // Append the nearest intersection into the path
                 size_t left_idx  = intersection_first.line_idx;
                 size_t right_idx = (intersection_first.line_idx >= (boundaries[intersection_first.border_idx].points.size() - 1)) ? 0 : (intersection_first.line_idx + 1);
+                // Offset of the polygon's point using get_middle_point_offset is used to simplify calculation of intersection between boundary
                 result.append(get_middle_point_offset(boundaries[intersection_first.border_idx], left_idx, right_idx, intersection_first.point, SCALED_EPSILON));
 
                 Direction shortest_direction = get_shortest_direction(border_lines, intersection_first.line_idx, intersection_second.line_idx,
                                                                       intersection_first.point, intersection_second.point);
                 // Append the path around the border into the path
-                // Offset of the polygon's point is used to simplify calculation of intersection between boundary
                 if (shortest_direction == Direction::Forward)
                     for (int line_idx = intersection_first.line_idx; line_idx != int(intersection_second.line_idx);
                          line_idx     = (((line_idx + 1) < int(border_lines.size())) ? (line_idx + 1) : 0))
@@ -524,10 +538,48 @@ Polyline AvoidCrossingPerimeters2::avoid_perimeters(const Polygons       &bounda
     }
 
     result.append(end);
-    return simplify_travel(edge_grid, result);
+    if(!intersections.empty()) {
+        result = simplify_travel(edge_grid, result);
+    }
+
+    append(result_out->points, result.points);
+    return intersections.size();
 }
 
-Polyline AvoidCrossingPerimeters2::travel_to(const GCode &gcodegen, const Point &point)
+bool AvoidCrossingPerimeters2::needs_wipe(const GCode &   gcodegen,
+                                          const Line &    original_travel,
+                                          const Polyline &result_travel,
+                                          const size_t    intersection_count)
+{
+    bool z_lift_enabled = gcodegen.config().retract_lift.get_at(gcodegen.writer().extruder()->id()) > 0.;
+    bool wipe_needed    = false;
+
+    // If the original unmodified path doesn't have any intersection with boundary, then it is entirely inside the object otherwise is entirely
+    // outside the object.
+    if (intersection_count > 0) {
+        // The original layer is intersected with defined boundaries. Then it is necessary to make a detailed test.
+        // If the z-lift is enabled, then a wipe is needed when the original travel leads above the holes.
+        if (z_lift_enabled) {
+            if (any_expolygon_contains(m_slice, original_travel)) {
+                // Check if original_travel and are not same result_travel
+                if (result_travel.size() == 2 && result_travel.first_point() == original_travel.a && result_travel.last_point() == original_travel.b) {
+                    wipe_needed = false;
+                } else {
+                    wipe_needed = !any_expolygon_contains(m_slice, result_travel);
+                }
+            } else {
+                wipe_needed = true;
+            }
+        } else {
+            wipe_needed = !any_expolygon_contains(m_slice, result_travel);
+        }
+    }
+
+    return wipe_needed;
+}
+
+// Plan travel, which avoids perimeter crossings by following the boundaries of the layer.
+Polyline AvoidCrossingPerimeters2::travel_to(const GCode &gcodegen, const Point &point, bool *could_be_wipe_disabled)
 {
     // If use_external, then perform the path planning in the world coordinate system (correcting for the gcodegen offset).
     // Otherwise perform the path planning in the coordinate system of the active object.
@@ -536,14 +588,16 @@ Polyline AvoidCrossingPerimeters2::travel_to(const GCode &gcodegen, const Point 
     Point    start         = gcodegen.last_pos() + scaled_origin;
     Point    end           = point + scaled_origin;
     Polyline result;
+    size_t   travel_intersection_count = 0;
     if (!check_if_could_cross_perimeters(use_external ? m_bbox_external : m_bbox, start, end)) {
-        result = Polyline({start, end});
+        result                    = Polyline({start, end});
+        travel_intersection_count = 0;
     } else {
         auto [start_clamped, end_clamped] = clamp_endpoints_by_bounding_box(use_external ? m_bbox_external : m_bbox, start, end);
         if (use_external)
-            result = this->avoid_perimeters(m_boundaries_external, m_grid_external, start_clamped, end_clamped);
+            travel_intersection_count = this->avoid_perimeters(m_boundaries_external, m_grid_external, start_clamped, end_clamped, &result);
         else
-            result = this->avoid_perimeters(m_boundaries, m_grid, start_clamped, end_clamped);
+            travel_intersection_count = this->avoid_perimeters(m_boundaries, m_grid, start_clamped, end_clamped, &result);
     }
 
     result.points.front() = start;
@@ -554,32 +608,31 @@ Polyline AvoidCrossingPerimeters2::travel_to(const GCode &gcodegen, const Point 
     if ((max_detour_length > 0) && ((result.length() - travel.length()) > max_detour_length)) {
         result = Polyline({start, end});
     }
-    if (use_external)
+    if (use_external) {
         result.translate(-scaled_origin);
+        *could_be_wipe_disabled = false;
+    } else
+        *could_be_wipe_disabled = !needs_wipe(gcodegen, travel, result, travel_intersection_count);
+
     return result;
 }
 
 void AvoidCrossingPerimeters2::init_layer(const Layer &layer)
 {
+    m_slice.clear();
     m_boundaries.clear();
     m_boundaries_external.clear();
 
-    ExPolygons boundaries          = get_boundary(layer);
-    ExPolygons boundaries_external = get_boundary_external(layer);
+    for (const LayerRegion *layer_region : layer.regions())
+        append(m_slice, (ExPolygons) layer_region->slices);
 
-    m_bbox = get_extents(boundaries);
+    m_boundaries = to_polygons(get_boundary(layer));
+    m_boundaries_external = to_polygons(get_boundary_external(layer));
+
+    m_bbox = get_extents(m_boundaries);
     m_bbox.offset(SCALED_EPSILON);
-    m_bbox_external = get_extents(boundaries_external);
+    m_bbox_external = get_extents(m_boundaries_external);
     m_bbox_external.offset(SCALED_EPSILON);
-
-    for (const ExPolygon &ex_poly : boundaries) {
-        m_boundaries.emplace_back(ex_poly.contour);
-        append(m_boundaries, ex_poly.holes);
-    }
-    for (const ExPolygon &ex_poly : boundaries_external) {
-        m_boundaries_external.emplace_back(ex_poly.contour);
-        append(m_boundaries_external, ex_poly.holes);
-    }
 
     m_grid.set_bbox(m_bbox);
     m_grid.create(m_boundaries, scale_(1.));
