@@ -156,7 +156,7 @@ int CLI::run(int argc, char **argv)
 #if ENABLE_GCODE_VIEWER
     for (const std::string& file : m_input_files) {
         std::string ext = boost::filesystem::path(file).extension().string();
-        if (boost::filesystem::path(file).extension().string() == ".gcode") {
+        if (ext == ".gcode" || ext == ".g") {
             if (boost::filesystem::exists(file)) {
                 start_as_gcodeviewer = true;
                 break;

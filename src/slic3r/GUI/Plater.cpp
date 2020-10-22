@@ -4702,7 +4702,9 @@ void Plater::load_gcode()
 
 void Plater::load_gcode(const wxString& filename)
 {
-    if (filename.empty() || m_last_loaded_gcode == filename)
+    if (filename.empty() ||
+        (!filename.Lower().EndsWith(".gcode") && !filename.Lower().EndsWith(".g")) ||
+        m_last_loaded_gcode == filename)
         return;
 
     m_last_loaded_gcode = filename;
