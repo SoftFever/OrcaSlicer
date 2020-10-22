@@ -2,6 +2,7 @@
 #include "libslic3r/Utils.hpp"
 #include "AppConfig.hpp"
 #include "Exception.hpp"
+#include "Thread.hpp"
 
 #include <utility>
 #include <vector>
@@ -212,6 +213,9 @@ std::string AppConfig::load()
 
 void AppConfig::save()
 {
+    if (get_current_thread_name() != "slic3r_main")
+        throw CriticalException("Calling AppConfig::save() from a worker thread!");
+
     // The config is first written to a file with a PID suffix and then moved
     // to avoid race conditions with multiple instances of Slic3r
     const auto path = config_path();

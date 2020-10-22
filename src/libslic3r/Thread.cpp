@@ -92,6 +92,36 @@ std::string get_current_thread_name()
 
 #else // _WIN32
 
+#ifdef __APPLE__
+
+// Appe screwed the Posix norm.
+void set_thread_name(std::thread &thread, const char *thread_name)
+{
+// not supported
+//   	pthread_setname_np(thread.native_handle(), thread_name);
+	throw CriticalException("Not supported");
+}
+
+void set_thread_name(boost::thread &thread, const char *thread_name)
+{
+// not supported	
+//   	pthread_setname_np(thread.native_handle(), thread_name);
+	throw CriticalException("Not supported");
+}
+
+void set_current_thread_name(const char *thread_name)
+{
+	pthread_setname_np(thread_name);
+}
+
+std::string get_current_thread_name()
+{
+	char buf[16];
+	return std::string(thread_getname_np(buf, 16) == 0 ? buf : "");
+}
+
+#else
+
 // posix
 void set_thread_name(std::thread &thread, const char *thread_name)
 {
@@ -113,6 +143,8 @@ std::string get_current_thread_name()
 	char buf[16];
 	return std::string(pthread_getname_np(pthread_self(), buf, 16) == 0 ? buf : "");
 }
+
+#endif
 
 #endif // _WIN32
 
