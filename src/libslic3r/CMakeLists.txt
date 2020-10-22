@@ -201,6 +201,8 @@ add_library(libslic3r STATIC
     Utils.hpp
     Time.cpp
     Time.hpp
+    Thread.cpp
+    Thread.hpp
     TriangleSelector.cpp
     TriangleSelector.hpp
     MTUtils.hpp

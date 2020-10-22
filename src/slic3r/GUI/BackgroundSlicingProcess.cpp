@@ -23,6 +23,7 @@
 #include "libslic3r/GCode/PreviewData.hpp"
 #endif // !ENABLE_GCODE_VIEWER
 #include "libslic3r/Format/SL1.hpp"
+#include "libslic3r/Thread.hpp"
 #include "libslic3r/libslic3r.h"
 
 #include <cassert>
@@ -36,7 +37,6 @@
 #include "I18N.hpp"
 #include "RemovableDriveManager.hpp"
 
-#include "slic3r/Utils/Thread.hpp"
 #include "slic3r/GUI/Plater.hpp"
 
 namespace Slic3r {
@@ -224,6 +224,9 @@ void BackgroundSlicingProcess::process_sla()
 
 void BackgroundSlicingProcess::thread_proc()
 {
+    set_current_thread_name("slic3r_BackgroundSlicingProcess");
+	name_tbb_thread_pool_threads();
+
 	assert(m_print != nullptr);
 	assert(m_print == m_fff_print || m_print == m_sla_print);
 	std::unique_lock<std::mutex> lck(m_mutex);

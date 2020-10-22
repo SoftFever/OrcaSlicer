@@ -3,7 +3,8 @@
 
 #include <atomic>
 
-#include <slic3r/Utils/Thread.hpp>
+#include "libslic3r/libslic3r.h"
+
 #include <slic3r/GUI/I18N.hpp>
 
 #include "ProgressIndicator.hpp"
