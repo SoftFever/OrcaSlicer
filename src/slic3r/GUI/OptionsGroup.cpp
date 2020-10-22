@@ -218,35 +218,12 @@ void OptionsGroup::activate_line(Line& line)
 		grid_sizer->Add(m_extra_column_item_ptrs.back(), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 3);
 	}
 
-    auto correct_window_position = [this](wxWindow* win, const Line& line, Field* field = nullptr) {
-        wxPoint pos = custom_ctrl->get_pos(line, field);
-        int line_height = custom_ctrl->get_height(line);
-        pos.y += std::max(0, int(0.5 * (line_height - win->GetSize().y)));
-        win->SetPosition(pos);
-    };
-
-    auto correct_widgets_position = [this](wxSizer* widget, const Line& line, Field* field = nullptr) {
-        auto children = widget->GetChildren();
-        wxPoint line_pos = custom_ctrl->get_pos(line, field);
-        int line_height = custom_ctrl->get_height(line);
-        for (auto child : children)
-            if (child->IsWindow()) {
-                wxPoint pos = line_pos;
-                wxSize  sz = child->GetWindow()->GetSize();
-                pos.y += std::max(0, int(0.5 * (line_height - sz.y)));
-                child->GetWindow()->SetPosition(pos);
-                line_pos.x += sz.x + custom_ctrl->m_h_gap;
-            }
-    };
-
-    // Build a label if we have it
+	// Build a label if we have it
 	wxStaticText* label=nullptr;
     if (label_width != 0) {
         if (custom_ctrl) {
-            if (line.near_label_widget) {
-                m_near_label_widget_ptrs.push_back(line.near_label_widget(this->ctrl_parent()));
-                correct_window_position(m_near_label_widget_ptrs.back(), line);
-            }
+            if (line.near_label_widget)
+                line.near_label_widget_win = line.near_label_widget(this->ctrl_parent());
         }
         else {
             if (!line.near_label_widget || !line.label.IsEmpty()) {
@@ -285,15 +262,14 @@ void OptionsGroup::activate_line(Line& line)
         }
     }
 
-	if (line.full_Label != nullptr)
+	if (!custom_ctrl && line.full_Label != nullptr)
 		*line.full_Label = label; // Initiate the pointer to the control of the full label, if we need this one.
 
 	// If there's a widget, build it and add the result to the sizer.
 	if (line.widget != nullptr) {
 		auto wgt = line.widget(this->ctrl_parent());
         if (custom_ctrl)
-            correct_widgets_position(wgt, line);
-		// If widget doesn't have label, don't use border
+            line.widget_sizer = wgt;
         else
             grid_sizer->Add(wgt, 0, wxEXPAND | wxBOTTOM | wxTOP, (wxOSX || line.label.IsEmpty()) ? 0 : 5);
 		return;
@@ -311,20 +287,18 @@ void OptionsGroup::activate_line(Line& line)
 		const auto& option = option_set.front();
 		const auto& field = build_field(option, label);
 
-        if (!custom_ctrl)
+        if (custom_ctrl) {
+            if (is_window_field(field) && option.opt.full_width)
+                field->getWindow()->SetSize(wxSize(3 * Field::def_width_wider() * wxGetApp().em_unit(), -1));
+        }
+        else {
             add_undo_buttons_to_sizer(sizer, field);
-        if (is_window_field(field)) {
-            if (custom_ctrl) {
-                correct_window_position(field->getWindow(), line, field.get());
-                if (option.opt.full_width)
-                    field->getWindow()->SetSize(wxSize(3 * Field::def_width_wider() * wxGetApp().em_unit(), -1));
-            }
-            else
+            if (is_window_field(field))
                 sizer->Add(field->getWindow(), option.opt.full_width ? 1 : 0,
                     wxBOTTOM | wxTOP | (option.opt.full_width ? wxEXPAND : wxALIGN_CENTER_VERTICAL), (wxOSX || !staticbox) ? 0 : 2);
+            if (is_sizer_field(field))
+                sizer->Add(field->getSizer(), 1, option.opt.full_width ? wxEXPAND : wxALIGN_CENTER_VERTICAL, 0);
         }
-        if (is_sizer_field(field))
-            sizer->Add(field->getSizer(), 1, option.opt.full_width ? wxEXPAND : wxALIGN_CENTER_VERTICAL, 0);
         return;
 	}
 
@@ -347,62 +321,40 @@ void OptionsGroup::activate_line(Line& line)
 		// add field
 		const Option& opt_ref = opt;
 		auto& field = build_field(opt_ref, label);
-        if (!custom_ctrl)
+        if (!custom_ctrl) {
             add_undo_buttons_to_sizer(sizer_tmp, field);
-        if (option_set.size() == 1 && option_set.front().opt.full_width)
-        {
-            if (custom_ctrl) {
-                if (is_window_field(field))
-                    correct_window_position(field->getWindow(), line, field.get());
-                else {
-                    correct_widgets_position(field->getSizer(), line, field.get());
-                }
-            }
-            else {
+            if (option_set.size() == 1 && option_set.front().opt.full_width)
+            {
                 const auto v_sizer = new wxBoxSizer(wxVERTICAL);
                 sizer_tmp->Add(v_sizer, 1, wxEXPAND);
                 is_sizer_field(field) ?
                     v_sizer->Add(field->getSizer(), 0, wxEXPAND) :
                     v_sizer->Add(field->getWindow(), 0, wxEXPAND);
+                break;
             }
-            break;//return;
-        }
 
-        if (custom_ctrl) {
-            if (is_window_field(field))
-                correct_window_position(field->getWindow(), line, field.get());
-            else
-                correct_widgets_position(field->getSizer(), line, field.get());
-        }
-        else {
             is_sizer_field(field) ?
                 sizer_tmp->Add(field->getSizer(), 0, wxALIGN_CENTER_VERTICAL, 0) :
                 sizer_tmp->Add(field->getWindow(), 0, wxALIGN_CENTER_VERTICAL, 0);
+
+            // add sidetext if any
+            if (!option.sidetext.empty() || sidetext_width > 0) {
+                auto sidetext = new wxStaticText(this->ctrl_parent(), wxID_ANY, _(option.sidetext), wxDefaultPosition,
+                    wxSize(sidetext_width != -1 ? sidetext_width * wxGetApp().em_unit() : -1, -1), wxALIGN_LEFT);
+                sidetext->SetBackgroundStyle(wxBG_STYLE_PAINT);
+                sidetext->SetFont(wxGetApp().normal_font());
+                sizer_tmp->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
+                field->set_side_text_ptr(sidetext);
+            }
+
+            // add side widget if any
+            if (opt.side_widget != nullptr) {
+                sizer_tmp->Add(opt.side_widget(this->ctrl_parent())/*!.target<wxWindow>()*/, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1);    //! requires verification
+            }
+
+            if (opt.opt_id != option_set.back().opt_id) //! istead of (opt != option_set.back())
+                sizer_tmp->AddSpacer(6);
         }
-
-		// add sidetext if any
-		if (!custom_ctrl)
-		if (!option.sidetext.empty() || sidetext_width > 0) {
-			auto sidetext = new wxStaticText(	this->ctrl_parent(), wxID_ANY, _(option.sidetext), wxDefaultPosition, 
-												wxSize(sidetext_width != -1 ? sidetext_width*wxGetApp().em_unit() : -1, -1), wxALIGN_LEFT);
-			sidetext->SetBackgroundStyle(wxBG_STYLE_PAINT);
-            sidetext->SetFont(wxGetApp().normal_font());
-			sizer_tmp->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
-			field->set_side_text_ptr(sidetext);
-		}
-
-		// add side widget if any
-		if (opt.side_widget != nullptr) {
-			sizer_tmp->Add(opt.side_widget(this->ctrl_parent())/*!.target<wxWindow>()*/, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1);	//! requires verification
-		}
-
-        if (custom_ctrl)
-            continue;
-
-		if (opt.opt_id != option_set.back().opt_id) //! istead of (opt != option_set.back())
-		{
-			sizer_tmp->AddSpacer(6);
-	    }
 	}
 
 	// add extra sizers if any
@@ -419,7 +371,7 @@ void OptionsGroup::activate_line(Line& line)
 
         auto extra_wgt = extra_widget(this->ctrl_parent());
         if (custom_ctrl)
-            correct_widgets_position(extra_wgt, line);
+            line.extra_widget_sizer = extra_wgt;
         else
             sizer->Add(extra_wgt, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);        //! requires verification
 	}
@@ -484,9 +436,23 @@ void OptionsGroup::clear()
 	m_grid_sizer = nullptr;
 	sizer = nullptr;
 
-	for (Line& line : m_lines)
+	for (Line& line : m_lines) {
 		if(line.full_Label)
 			*line.full_Label = nullptr;
+
+        if (line.near_label_widget_win)
+            line.near_label_widget_win = nullptr;
+
+        if (line.widget_sizer) {
+            line.widget_sizer->Clear(true);
+            line.widget_sizer = nullptr;
+        }
+
+        if (line.extra_widget_sizer) {
+            line.extra_widget_sizer->Clear(true);
+            line.extra_widget_sizer = nullptr;
+        }
+	}
 
     if (custom_ctrl) {
         for (auto const &item : m_fields) {
@@ -670,6 +636,13 @@ bool ConfigOptionsGroup::update_visibility(ConfigOptionMode mode)
 {
 	if (m_options_mode.empty() || !m_grid_sizer)
 		return true;
+
+    if (custom_ctrl) {
+        bool show = custom_ctrl->update_visibility(mode);
+        this->Show(show);
+        return show;
+    }
+
 	int opt_mode_size = m_options_mode.size();
 	if (m_grid_sizer->GetEffectiveRowsCount() != opt_mode_size &&
 		opt_mode_size == 1)

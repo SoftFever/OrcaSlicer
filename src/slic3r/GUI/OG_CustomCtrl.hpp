@@ -27,7 +27,9 @@ namespace Slic3r { namespace GUI {
 //  Static text shown among the options.
 class OG_CustomCtrl :public wxControl
 {
-    wxFont            m_font;
+    wxFont  m_font;
+    int     m_v_gap;
+    int     m_h_gap;
 
     ScalableBitmap    m_bmp_mode_simple;
     ScalableBitmap    m_bmp_mode_advanced;
@@ -35,23 +37,23 @@ class OG_CustomCtrl :public wxControl
     ScalableBitmap    m_bmp_blinking;
 
     struct CtrlLine {
-        wxCoord           m_height  { wxDefaultCoord };
-        OG_CustomCtrl*    m_ctrl    { nullptr };
-        const Line&       m_og_line;
+        wxCoord           height  { wxDefaultCoord };
+        OG_CustomCtrl*    ctrl    { nullptr };
+        const Line&       og_line;
 
         bool draw_just_act_buttons  { false };
         bool is_visible             { true };
+
+        wxRect      m_rect_blinking;
+        wxRect      m_rect_undo_icon;
+        wxRect      m_rect_undo_to_sys_icon;
+
+        void    update_visibility(ConfigOptionMode mode);
 
         void    render(wxDC& dc, wxCoord v_pos);
         wxCoord draw_mode_bmp(wxDC& dc, wxCoord v_pos);
         wxCoord draw_text      (wxDC& dc, wxPoint pos, const wxString& text, const wxColour* color, int width);
         wxCoord draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmap& bmp_blinking, const wxBitmap& bmp_undo_to_sys, const wxBitmap& bmp_undo);
-
-        void    set_visible(bool show) { is_visible = show; }
-
-        wxRect      m_rect_blinking;
-        wxRect      m_rect_undo_icon;
-        wxRect      m_rect_undo_to_sys_icon;
     };
 
     std::vector<CtrlLine> ctrl_lines;
@@ -72,15 +74,16 @@ public:
 
     void    init_ctrl_lines();
     bool    update_visibility(ConfigOptionMode mode);
+    void    correct_window_position(wxWindow* win, const Line& line, Field* field = nullptr);
+    void    correct_widgets_position(wxSizer* widget, const Line& line, Field* field = nullptr);
+
     void    msw_rescale();
     void    sys_color_changed();
 
     wxPoint get_pos(const Line& line, Field* field = nullptr);
     int     get_height(const Line& line);
 
-    OptionsGroup*  m_og;
-    int            m_v_gap;
-    int            m_h_gap;
+    OptionsGroup*  opt_group;
 
 };
 

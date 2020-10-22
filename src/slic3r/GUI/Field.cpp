@@ -312,6 +312,8 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
 
 void Field::msw_rescale(bool rescale_sidetext)
 {
+	if (!m_Undo_btn)
+		return;
 	m_Undo_to_sys_btn->msw_rescale();
 	m_Undo_btn->msw_rescale();
 	m_blinking_bmp->msw_rescale();

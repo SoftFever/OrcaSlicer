@@ -56,6 +56,9 @@ public:
 	wxColour*	full_Label_color {nullptr};
     widget_t	widget {nullptr};
     std::function<wxWindow*(wxWindow*)>	near_label_widget{ nullptr };
+	wxWindow*	near_label_widget_win {nullptr};
+    wxSizer*	widget_sizer {nullptr};
+    wxSizer*	extra_widget_sizer {nullptr};
 
     void append_option(const Option& option) {
         m_options.push_back(option);
