@@ -79,7 +79,6 @@ public:
     int     get_height(const Line& line);
 
     OptionsGroup*  m_og;
-    int            m_border;
     int            m_v_gap;
     int            m_h_gap;
 

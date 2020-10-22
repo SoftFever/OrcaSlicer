@@ -255,6 +255,10 @@ public:
     // Used for options which don't have corresponded field
 	std::map<std::string, wxStaticText*>	m_colored_Labels;
 
+	// map of option name -> wxColour (color of the colored label, associated with option) 
+    // Used for options which don't have corresponded field
+	std::map<std::string, wxColour*>		m_colored_Label_colors;
+
 	// map of option name -> BlinkingBitmap (blinking ikon, associated with option) 
     // Used for options which don't have corresponded field
 	std::map<std::string, BlinkingBitmap*>	m_blinking_ikons;

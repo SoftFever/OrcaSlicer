@@ -492,6 +492,10 @@ void Tab::update_labels_colour()
                 label->SetForegroundColour(*color);
                 label->Refresh(true);
             }
+
+            if (m_colored_Label_colors.find(opt.first) != m_colored_Label_colors.end())
+                *m_colored_Label_colors.at(opt.first) = *color;
+
             continue;
         }
 
@@ -528,13 +532,17 @@ void Tab::decorate()
         wxStaticText*   label = nullptr;
         Field*          field = nullptr;
 
-        if (opt.first == "bed_shape" || opt.first == "filament_ramming_parameters" ||
-            opt.first == "compatible_prints" || opt.first == "compatible_printers")
-            label = (m_colored_Labels.find(opt.first) == m_colored_Labels.end()) ? nullptr : m_colored_Labels.at(opt.first);
+        wxColour* colored_label_clr = nullptr;
 
-        if (!label)
+        if (opt.first == "bed_shape" || opt.first == "filament_ramming_parameters" ||
+            opt.first == "compatible_prints" || opt.first == "compatible_printers") {
+            label = (m_colored_Labels.find(opt.first) == m_colored_Labels.end()) ? nullptr : m_colored_Labels.at(opt.first);
+            colored_label_clr = (m_colored_Label_colors.find(opt.first) == m_colored_Label_colors.end()) ? nullptr : m_colored_Label_colors.at(opt.first);
+        }
+
+        if (!label && !colored_label_clr)
             field = get_field(opt.first);
-        if (!label && !field) 
+        if (!label && !colored_label_clr && !field) 
             continue;
 
         bool is_nonsys_value = false;
@@ -569,6 +577,11 @@ void Tab::decorate()
         if (label) {
             label->SetForegroundColour(*color);
             label->Refresh(true);
+            continue;
+        }
+
+        if (colored_label_clr) {
+            *colored_label_clr = *color;
             continue;
         }
         
@@ -3498,6 +3511,10 @@ void Tab::create_line_with_widget(ConfigOptionsGroup* optgroup, const std::strin
 
     m_colored_Labels[opt_key] = nullptr;
     line.full_Label = &m_colored_Labels[opt_key];
+
+    m_colored_Label_colors[opt_key] = &m_default_text_clr;
+    line.full_Label_color = m_colored_Label_colors[opt_key];
+
     optgroup->append_line(line);
 }
 

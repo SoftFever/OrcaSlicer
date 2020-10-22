@@ -32,7 +32,6 @@ OG_CustomCtrl::OG_CustomCtrl(   wxWindow*            parent,
     m_bmp_mode_expert    = ScalableBitmap(this, "mode_expert"  , wxOSX ? 10 : 12);
     m_bmp_blinking        = ScalableBitmap(this, "search_blink");
 
-    m_border = lround(0.2 * wxGetApp().em_unit());
     m_v_gap     = lround(1.0 * wxGetApp().em_unit());
     m_h_gap     = lround(0.2 * wxGetApp().em_unit());
 
@@ -115,7 +114,7 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 
             wxString label = line.label;
             if (m_og->label_width != 0 && !label.IsEmpty())
-                h_pos += m_og->label_width * wxGetApp().em_unit();
+                h_pos += m_og->label_width * wxGetApp().em_unit() + m_h_gap;
 
             if (line.widget)
                 break;
@@ -140,7 +139,9 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                         _CTX(option.label, "Layers") : _(option.label);
                     label += ":";
 
-                    h_pos += GetTextExtent(label).x + m_h_gap;
+                    wxPaintDC dc(this);
+                    dc.SetFont(m_font);
+                    h_pos += dc.GetMultiLineTextExtent(label).x + m_h_gap;
                 }                
                 h_pos += 3 * (m_bmp_blinking.bmp().GetWidth() + m_h_gap);
                 
@@ -153,7 +154,7 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 
                 // add sidetext if any
                 if (!option.sidetext.empty() || m_og->sidetext_width > 0)
-                    h_pos += m_og->sidetext_width * wxGetApp().em_unit();
+                    h_pos += m_og->sidetext_width * wxGetApp().em_unit() + m_h_gap;
 
                 if (opt.opt_id != option_set.back().opt_id) //! istead of (opt != option_set.back())
                     h_pos += lround(0.6 * wxGetApp().em_unit());
@@ -255,8 +256,10 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
     const std::vector<Option>& option_set = m_og_line.get_options();
 
     wxString label = m_og_line.label;
-    if (m_ctrl->m_og->label_width != 0 && !label.IsEmpty())
-        h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label+":", (option_set.size() == 1 && field ? field->label_color() : m_og_line.full_Label_color),  m_ctrl->m_og->label_width*wxGetApp().em_unit());
+    if (m_ctrl->m_og->label_width != 0 && !label.IsEmpty()) {
+        const wxColour* text_clr = (option_set.size() == 1 && field ? field->label_color() : m_og_line.full_Label_color);
+        h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label + ":", text_clr, m_ctrl->m_og->label_width * wxGetApp().em_unit());
+    }
 
     // If there's a widget, build it and add the result to the sizer.
     if (m_og_line.widget != nullptr)
@@ -322,9 +325,9 @@ wxCoord OG_CustomCtrl::CtrlLine::draw_mode_bmp(wxDC& dc, wxCoord v_pos)
 
     wxCoord y_draw = v_pos + lround((m_height - bmp.GetHeight()) / 2);
 
-    dc.DrawBitmap(bmp, m_ctrl->m_border, y_draw);
+    dc.DrawBitmap(bmp, 0, y_draw);
 
-    return m_ctrl->m_border + bmp.GetWidth() + m_ctrl->m_h_gap;
+    return bmp.GetWidth() + m_ctrl->m_h_gap;
 }
 
 wxCoord    OG_CustomCtrl::CtrlLine::draw_text(wxDC& dc, wxPoint pos, const wxString& text, const wxColour* color, int width)
