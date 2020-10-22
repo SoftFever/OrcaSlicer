@@ -116,8 +116,10 @@ void set_current_thread_name(const char *thread_name)
 
 std::string get_current_thread_name()
 {
-	char buf[16];
-	return std::string(thread_getname_np(buf, 16) == 0 ? buf : "");
+// not supported	
+//	char buf[16];
+//	return std::string(thread_getname_np(buf, 16) == 0 ? buf : "");
+	throw CriticalException("Not supported");
 }
 
 #else

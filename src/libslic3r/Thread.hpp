@@ -10,6 +10,7 @@ namespace Slic3r {
 
 // Set / get thread name.
 // pthread_setname_np supports maximum 15 character thread names! (16th character is the null terminator)
+// Methods taking the thread as an argument are not supported by OSX.
 void set_thread_name(std::thread &thread, const char *thread_name);
 inline void set_thread_name(std::thread &thread, const std::string &thread_name) { set_thread_name(thread, thread_name.c_str()); }
 void set_thread_name(boost::thread &thread, const char *thread_name);
@@ -17,6 +18,7 @@ inline void set_thread_name(boost::thread &thread, const std::string &thread_nam
 void set_current_thread_name(const char *thread_name);
 inline void set_current_thread_name(const std::string &thread_name) { set_current_thread_name(thread_name.c_str()); }
 
+// Not supported by OSX.
 std::string get_current_thread_name();
 
 // To be called somewhere before the TBB threads are spinned for the first time, to
