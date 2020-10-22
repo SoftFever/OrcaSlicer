@@ -1,5 +1,6 @@
 #include "libslic3r/Technologies.hpp"
 #include "GUI_App.hpp"
+#include "GUI_Init.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
 #include "I18N.hpp"
@@ -538,15 +539,16 @@ static void generic_exception_handle()
     }
 }
 
-void GUI_App::AfterInitLoads::on_loads(GUI_App* gui)
+void GUI_App::post_init()
 {
-    if (!gui->initialized())
-        return;
+    assert(initialized());
+    if (! this->initialized())
+        throw Slic3r::RuntimeError("Calling post_init() while not yet initialized");
 
 #if ENABLE_GCODE_VIEWER
-    if (m_start_as_gcodeviewer) {
-        if (!m_input_files.empty())
-            gui->plater()->load_gcode(wxString::FromUTF8(m_input_files[0].c_str()));
+    if (this->init_params->start_as_gcodeviewer) {
+        if (! this->init_params->input_files.empty())
+            this->plater()->load_gcode(wxString::FromUTF8(this->init_params->input_files[0].c_str()));
     }
     else {
 #endif // ENABLE_GCODE_VIEWER_AS
@@ -556,22 +558,22 @@ void GUI_App::AfterInitLoads::on_loads(GUI_App* gui)
         // We need to decide what to do about loading of separate presets (just print preset, just filament preset etc).
         // As of now only the full configs are supported here.
         if (!m_print_config.empty())
-            gui->mainframe->load_config(m_print_config);
+            this->gui->mainframe->load_config(m_print_config);
 #endif
-        if (!m_load_configs.empty())
+        if (! this->init_params->load_configs.empty())
             // Load the last config to give it a name at the UI. The name of the preset may be later
             // changed by loading an AMF or 3MF.
             //FIXME this is not strictly correct, as one may pass a print/filament/printer profile here instead of a full config.
-            gui->mainframe->load_config_file(m_load_configs.back());
+            this->mainframe->load_config_file(this->init_params->load_configs.back());
         // If loading a 3MF file, the config is loaded from the last one.
-        if (!m_input_files.empty())
-            gui->plater()->load_files(m_input_files, true, true);
-        if (!m_extra_config.empty())
-            gui->mainframe->load_config(m_extra_config);
+        if (! this->init_params->input_files.empty())
+            this->plater()->load_files(this->init_params->input_files, true, true);
+        if (! this->init_params->extra_config.empty())
+            this->mainframe->load_config(this->init_params->extra_config);
 #if ENABLE_GCODE_VIEWER
     }
 #endif // ENABLE_GCODE_VIEWER
-  }
+}
 
 IMPLEMENT_APP(GUI_App)
 
@@ -647,7 +649,6 @@ void GUI_App::init_app_config()
 	m_app_conf_exists = app_config->exists();
 	if (m_app_conf_exists) {
         std::string error = app_config->load();
-#if ENABLE_GCODE_VIEWER
         if (!error.empty()) {
             // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
             if (is_editor()) {
@@ -663,14 +664,6 @@ void GUI_App::init_app_config()
                     "\n\n" + app_config->config_path() + "\n\n" + error);
             }
         }
-#else
-        if (!error.empty())
-            // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
-            throw Slic3r::RuntimeError(
-                _u8L("Error parsing PrusaSlicer config file, it is probably corrupted. "
-                    "Try to manually delete the file to recover from the error. Your user profiles will not be affected.") +
-                "\n\n" + AppConfig::config_path() + "\n\n" + error);
-#endif // ENABLE_GCODE_VIEWER
     }
 }
 
@@ -855,7 +848,7 @@ bool GUI_App::on_init_inner()
 #ifdef WIN32
             this->mainframe->register_win32_callbacks();
 #endif
-            this->after_init_loads.on_loads(this);
+            this->post_init();
         }
 
 		// Preset updating & Configwizard are done after the above initializations,

@@ -73,6 +73,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/PresetHints.hpp
     GUI/GUI.cpp
     GUI/GUI.hpp
+    GUI/GUI_Init.cpp
+    GUI/GUI_Init.hpp
     GUI/GUI_Preview.cpp
     GUI/GUI_Preview.hpp
     GUI/GUI_App.cpp

@@ -24,6 +24,7 @@ class wxNotebook;
 struct wxLanguageInfo;
 
 namespace Slic3r {
+
 class AppConfig;
 class PresetBundle;
 class PresetUpdater;
@@ -32,6 +33,7 @@ class PrintHostJobQueue;
 class Model;
 
 namespace GUI{
+
 class RemovableDriveManager;
 class OtherInstanceMessageHandler;
 class MainFrame;
@@ -41,6 +43,7 @@ class ObjectSettings;
 class ObjectList;
 class ObjectLayers;
 class Plater;
+struct GUI_InitParams;
 
 
 
@@ -142,37 +145,6 @@ private:
     std::string m_instance_hash_string;
 	size_t m_instance_hash_int;
 
-    // parameters needed for the after OnInit() loads
-    struct AfterInitLoads 
-    {
-        std::vector<std::string>    m_load_configs;
-        DynamicPrintConfig          m_extra_config;
-        std::vector<std::string>    m_input_files;
-#if ENABLE_GCODE_VIEWER
-        bool                        m_start_as_gcodeviewer;
-#endif // ENABLE_GCODE_VIEWER
-
-        void set_params(
-            const std::vector<std::string>& load_configs,
-            const DynamicPrintConfig&       extra_config,
-#if ENABLE_GCODE_VIEWER
-            const std::vector<std::string>& input_files,
-            bool                            start_as_gcodeviewer
-#else
-            const std::vector<std::string>& input_files
-#endif // ENABLE_GCODE_VIEWER
-        ) {
-            m_load_configs = load_configs;
-            m_extra_config = extra_config;
-            m_input_files = input_files;
-#if ENABLE_GCODE_VIEWER
-            m_start_as_gcodeviewer = start_as_gcodeviewer;
-#endif // ENABLE_GCODE_VIEWER
-        }
-
-        void on_loads(GUI_App* gui);
-    };
-
 public:
     bool            OnInit() override;
     bool            initialized() const { return m_initialized; }
@@ -191,9 +163,13 @@ public:
     bool is_recreating_gui() const { return m_is_recreating_gui; }
 #endif // ENABLE_GCODE_VIEWER
 
+    // To be called after the GUI is fully built up.
+    // Process command line parameters cached in this->init_params,
+    // load configs, STLs etc.
+    void            post_init();
     static std::string get_gl_info(bool format_as_html, bool extensions);
-    wxGLContext* init_glcontext(wxGLCanvas& canvas);
-    bool init_opengl();
+    wxGLContext*    init_glcontext(wxGLCanvas& canvas);
+    bool            init_opengl();
 
     static unsigned get_colour_approx_luma(const wxColour &colour);
     static bool     dark_mode();
@@ -267,12 +243,14 @@ public:
     Model&      		model();
 
 
+    // Parameters extracted from the command line to be passed to GUI after initialization.
+    const GUI_InitParams* init_params { nullptr };
+
     AppConfig*      app_config{ nullptr };
     PresetBundle*   preset_bundle{ nullptr };
     PresetUpdater*  preset_updater{ nullptr };
     MainFrame*      mainframe{ nullptr };
     Plater*         plater_{ nullptr };
-    AfterInitLoads  after_init_loads;
 
 	PresetUpdater* get_preset_updater() { return preset_updater; }
 
