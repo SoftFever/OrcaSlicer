@@ -190,9 +190,7 @@ void KBShortcutsDialog::fill_shortcuts()
         m_full_shortcuts.push_back(std::make_pair(_L("Plater"), plater_shortcuts));
 
         Shortcuts gizmos_shortcuts = {
-#if ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
             { ctrl, L("All gizmos: Press to rotate view with mouse left or to pan view with mouse right") },
-#endif // ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
             { "Shift+", L("Gizmo move: Press to snap by 1mm") },
             { "Shift+", L("Gizmo scale: Press to snap by 5%") },
             { "F", L("Gizmo scale: Scale selection to fit print volume") },

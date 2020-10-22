@@ -504,10 +504,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
     int selected_object_idx = selection.get_object_idx();
     bool processed = false;
 
-#if ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
     // when control is down we allow scene pan and rotation even when clicking over some object
     bool control_down = evt.CmdDown();
-#endif // ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
 
     // mouse anywhere
     if (evt.Moving())
@@ -590,11 +588,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             if (evt.AltDown())
                 transformation_type.set_independent();
             selection.scale(get_scale(), transformation_type);
-#if ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
             if (control_down)
-#else
-            if (evt.ControlDown())
-#endif // ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
                 selection.translate(get_scale_offset(), true);
             wxGetApp().obj_manipul()->set_dirty();
             break;
@@ -621,17 +615,9 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         // mouse is outside the toolbar
         m_tooltip = "";
 
-#if ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
         if (evt.LeftDown() && (!control_down || grabber_contains_mouse())) {
-#else
-        if (evt.LeftDown()) {
-#endif // ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
             if ((m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam)
-#if ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
                 && gizmo_event(SLAGizmoEventType::LeftDown, mouse_pos, evt.ShiftDown(), evt.AltDown()))
-#else
-                && gizmo_event(SLAGizmoEventType::LeftDown, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown()))
-#endif // ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
                 // the gizmo got the event and took some action, there is no need to do anything more
                 processed = true;
             else if (!selection.is_empty() && grabber_contains_mouse()) {
@@ -656,11 +642,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             // event was taken care of by the SlaSupports gizmo
             processed = true;
         }
-#if ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
         else if (evt.RightDown() && !control_down && selected_object_idx != -1 && (m_current == FdmSupports || m_current == Seam)
-#else
-        else if (evt.RightDown() && (selected_object_idx != -1) && (m_current == FdmSupports || m_current == Seam)
-#endif // ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
             && gizmo_event(SLAGizmoEventType::RightDown, mouse_pos)) {
             // event was taken care of by the FdmSupports / Seam gizmo
             processed = true;
@@ -669,18 +651,12 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
              && (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam))
             // don't allow dragging objects with the Sla gizmo on
             processed = true;
-#if ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
         else if (evt.Dragging() && !control_down && (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam)
             && gizmo_event(SLAGizmoEventType::Dragging, mouse_pos, evt.ShiftDown(), evt.AltDown())) {
-#else
-        else if (evt.Dragging() && (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam)
-            && gizmo_event(SLAGizmoEventType::Dragging, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown())) {
-#endif // ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
             // the gizmo got the event and took some action, no need to do anything more here
             m_parent.set_as_dirty();
             processed = true;
         }
-#if ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
         else if (evt.Dragging() && control_down && (evt.LeftIsDown() || evt.RightIsDown())) {
             // CTRL has been pressed while already dragging -> stop current action
             if (evt.LeftIsDown())
@@ -688,15 +664,10 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             else if (evt.RightIsDown())
                 gizmo_event(SLAGizmoEventType::RightUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), true);
         }
-#endif // ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
         else if (evt.LeftUp() && (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam) && !m_parent.is_mouse_dragging()) {
             // in case SLA/FDM gizmo is selected, we just pass the LeftUp event and stop processing - neither
             // object moving or selecting is suppressed in that case
-#if ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
             gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), control_down);
-#else
-            gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown());
-#endif // ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
             processed = true;
         }
         else if (evt.LeftUp() && m_current == Flatten && m_gizmos[m_current]->get_hover_id() != -1) {
@@ -704,11 +675,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             processed = true;
         }
         else if (evt.RightUp() && (m_current == FdmSupports || m_current == Seam) && !m_parent.is_mouse_dragging()) {
-#if ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
             gizmo_event(SLAGizmoEventType::RightUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), control_down);
-#else
-            gizmo_event(SLAGizmoEventType::RightUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown());
-#endif // ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
             processed = true;
         }
     }

@@ -93,11 +93,7 @@ void GLGizmoFlatten::on_render_for_picking() const
     glsafe(::glDisable(GL_DEPTH_TEST));
     glsafe(::glDisable(GL_BLEND));
 
-#if ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
     if (selection.is_single_full_instance() && !wxGetKeyState(WXK_CONTROL)) {
-#else
-    if (selection.is_single_full_instance()) {
-#endif // ENABLE_PAN_ROTATE_SCENE_IN_GIZMOS
         const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
         glsafe(::glPushMatrix());
         glsafe(::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z()));
