@@ -3616,16 +3616,16 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         if (wxGetApp().get_mode() == comSimple)
             sidebar->set_btn_label(ActionButtonType::abReslice, "Slice now");
         show_action_buttons(true);
+    } else {
+        if(wxGetApp().get_mode() == comSimple) {
+            show_action_buttons(false);
+        }
+        // If writing to removable drive was scheduled, show notification with eject button
+        if (this->writing_to_removable_device) {
+            show_action_buttons(false);
+            notification_manager->push_notification(NotificationType::ExportToRemovableFinished, *q->get_current_canvas3D());
+        }
     }
-    else if (wxGetApp().get_mode() == comSimple)
-	{
-		show_action_buttons(false);
-	}
-	else if (this->writing_to_removable_device)
-	{
-		show_action_buttons(false);
-		notification_manager->push_notification(NotificationType::ExportToRemovableFinished, *q->get_current_canvas3D());
-	}
 	this->writing_to_removable_device = false;
 }
 
