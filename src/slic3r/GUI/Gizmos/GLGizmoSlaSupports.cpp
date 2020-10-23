@@ -16,7 +16,7 @@
 #include "slic3r/GUI/GUI_ObjectSettings.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
 #include "slic3r/GUI/Plater.hpp"
-#include "slic3r/GUI/PresetBundle.hpp"
+#include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/SLAPrint.hpp"
 
 
@@ -222,7 +222,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
         render_color[3] = 0.7f;
         glsafe(::glColor4fv(render_color));
         for (const sla::DrainHole& drain_hole : m_c->selection_info()->model_object()->sla_drain_holes) {
-            if (is_mesh_point_clipped((drain_hole.pos+HoleStickOutLength*drain_hole.normal).cast<double>()))
+            if (is_mesh_point_clipped(drain_hole.pos.cast<double>()))
                 continue;
 
             // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
@@ -241,10 +241,10 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
             glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2)));
             glsafe(::glPushMatrix());
             glsafe(::glTranslated(0., 0., -drain_hole.height));
-            ::gluCylinder(m_quadric, drain_hole.radius, drain_hole.radius, drain_hole.height, 24, 1);
-            glsafe(::glTranslated(0., 0., drain_hole.height));
+            ::gluCylinder(m_quadric, drain_hole.radius, drain_hole.radius, drain_hole.height + sla::HoleStickOutLength, 24, 1);
+            glsafe(::glTranslated(0., 0., drain_hole.height + sla::HoleStickOutLength));
             ::gluDisk(m_quadric, 0.0, drain_hole.radius, 24, 1);
-            glsafe(::glTranslated(0., 0., -drain_hole.height));
+            glsafe(::glTranslated(0., 0., -drain_hole.height - sla::HoleStickOutLength));
             glsafe(::glRotatef(180.f, 1.f, 0.f, 0.f));
             ::gluDisk(m_quadric, 0.0, drain_hole.radius, 24, 1);
             glsafe(::glPopMatrix());
@@ -546,7 +546,7 @@ std::vector<const ConfigOption*> GLGizmoSlaSupports::get_config_options(const st
     if (! mo)
         return out;
 
-    const DynamicPrintConfig& object_cfg = mo->config;
+    const DynamicPrintConfig& object_cfg = mo->config.get();
     const DynamicPrintConfig& print_cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
     std::unique_ptr<DynamicPrintConfig> default_cfg = nullptr;
 
@@ -753,15 +753,15 @@ RENDER_AGAIN:
             m_density_stash = density;
         }
         if (slider_edited) {
-            mo->config.opt<ConfigOptionFloat>("support_points_minimal_distance", true)->value = minimal_point_distance;
-            mo->config.opt<ConfigOptionInt>("support_points_density_relative", true)->value = (int)density;
+            mo->config.set("support_points_minimal_distance", minimal_point_distance);
+            mo->config.set("support_points_density_relative", (int)density);
         }
         if (slider_released) {
-            mo->config.opt<ConfigOptionFloat>("support_points_minimal_distance", true)->value = m_minimal_point_distance_stash;
-            mo->config.opt<ConfigOptionInt>("support_points_density_relative", true)->value = (int)m_density_stash;
+            mo->config.set("support_points_minimal_distance", m_minimal_point_distance_stash);
+            mo->config.set("support_points_density_relative", (int)m_density_stash);
             Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Support parameter change")));
-            mo->config.opt<ConfigOptionFloat>("support_points_minimal_distance", true)->value = minimal_point_distance;
-            mo->config.opt<ConfigOptionInt>("support_points_density_relative", true)->value = (int)density;
+            mo->config.set("support_points_minimal_distance", minimal_point_distance);
+            mo->config.set("support_points_density_relative", (int)density);
             wxGetApp().obj_list()->update_and_show_object_settings_item();
         }
 
@@ -889,16 +889,18 @@ void GLGizmoSlaSupports::on_set_state()
         return;
 
     if (m_state == On && m_old_state != On) { // the gizmo was just turned on
-        // This function can be called from undo/redo, when selection (and hence
-        // common gizmos data are not yet deserialized. The CallAfter should put
-        // this off until after the update is done.
-        wxGetApp().CallAfter([this]() {
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned on")));
+        if (! m_parent.get_gizmos_manager().is_serializing()) {
+            // Only take the snapshot when the USER opens the gizmo. Common gizmos
+            // data are not yet available, the CallAfter will postpone taking the
+            // snapshot until they are. No, it does not feel right.
+            wxGetApp().CallAfter([this]() {
+                Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned on")));
+            });
+        }
 
-            // Set default head diameter from config.
-            const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
-            m_new_point_head_diameter = static_cast<const ConfigOptionFloat*>(cfg.option("support_head_front_diameter"))->value;
-        });
+        // Set default head diameter from config.
+        const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
+        m_new_point_head_diameter = static_cast<const ConfigOptionFloat*>(cfg.option("support_head_front_diameter"))->value;
     }
     if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
         bool will_ask = m_editing_mode && unsaved_changes();

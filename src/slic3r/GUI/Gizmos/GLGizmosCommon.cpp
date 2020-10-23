@@ -8,7 +8,7 @@
 #include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/Plater.hpp"
 
-#include "slic3r/GUI/PresetBundle.hpp"
+#include "libslic3r/PresetBundle.hpp"
 
 #include <GL/glew.h>
 
@@ -295,11 +295,9 @@ void ObjectClipper::on_update()
     if (has_hollowed)
         meshes.push_back(get_pool()->hollowed_mesh()->get_hollowed_mesh());
 
-    if (meshes.empty()) {
+    if (meshes.empty())
         for (const ModelVolume* mv : mo->volumes)
-            if (mv->is_model_part())
-                meshes.push_back(&mv->mesh());
-    }
+            meshes.push_back(&mv->mesh());
 
     if (meshes != m_old_meshes) {
         m_clippers.clear();
@@ -335,9 +333,6 @@ void ObjectClipper::render_cut() const
 
     size_t clipper_id = 0;
     for (const ModelVolume* mv : mo->volumes) {
-        if (! mv->is_model_part())
-            continue;
-
         Geometry::Transformation vol_trafo  = mv->get_transformation();
         Geometry::Transformation trafo = inst_trafo * vol_trafo;
         trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., sel_info->get_sla_shift()));

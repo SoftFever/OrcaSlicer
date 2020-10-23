@@ -333,6 +333,14 @@ extern std::list<TPPLPoly> expoly_to_polypartition_input(const ExPolygons &expp)
 extern std::list<TPPLPoly> expoly_to_polypartition_input(const ExPolygon &ex);
 extern std::vector<Point> polypartition_output_to_triangles(const std::list<TPPLPoly> &output);
 
+inline double area(const ExPolygons &polys)
+{
+    double s = 0.;
+    for (auto &p : polys) s += p.area();
+
+    return s;
+}
+
 } // namespace Slic3r
 
 // start Boost

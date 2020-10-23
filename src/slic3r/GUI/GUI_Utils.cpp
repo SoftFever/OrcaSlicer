@@ -75,7 +75,7 @@ template<class F> typename F::FN winapi_get_function(const wchar_t *dll, const c
 #endif
 
 // If called with nullptr, a DPI for the primary monitor is returned.
-int get_dpi_for_window(wxWindow *window)
+int get_dpi_for_window(const wxWindow *window)
 {
 #ifdef _WIN32
     enum MONITOR_DPI_TYPE_ {
@@ -126,7 +126,7 @@ int get_dpi_for_window(wxWindow *window)
 #endif
 }
 
-wxFont get_default_font_for_dpi(int dpi)
+wxFont get_default_font_for_dpi(const wxWindow *window, int dpi)
 {
 #ifdef _WIN32
     // First try to load the font with the Windows 10 specific way.
@@ -137,7 +137,7 @@ wxFont get_default_font_for_dpi(int dpi)
         memset(&nm, 0, sizeof(NONCLIENTMETRICS));
         nm.cbSize = sizeof(NONCLIENTMETRICS);
         if (SystemParametersInfoForDpi_fn(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &nm, 0, dpi))
-            return wxFont(wxNativeFontInfo(nm.lfMessageFont));
+            return wxFont(wxNativeFontInfo(nm.lfMessageFont, window));
     }
     // Then try to guesstimate the font DPI scaling on Windows 8.
     // Let's hope that the font returned by the SystemParametersInfo(), which is used by wxWidgets internally, makes sense.
@@ -264,6 +264,27 @@ std::string WindowMetrics::serialize() const
 std::ostream& operator<<(std::ostream &os, const WindowMetrics& metrics)
 {
     return os << '(' << metrics.serialize() << ')';
+}
+
+
+TaskTimer::TaskTimer(std::string task_name):
+    task_name(task_name.empty() ? "task" : task_name)
+{
+    start_timer = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch());
+}
+
+TaskTimer::~TaskTimer()
+{
+    std::chrono::milliseconds stop_timer = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch());
+    auto process_duration = std::chrono::milliseconds(stop_timer - start_timer).count();
+    std::string out = (boost::format("\n!!! %1% duration = %2% ms \n\n") % task_name % process_duration).str();
+    printf("%s", out.c_str());
+#ifdef __WXMSW__
+    std::wstring stemp = std::wstring(out.begin(), out.end());
+    OutputDebugString(stemp.c_str());
+#endif
 }
 
 

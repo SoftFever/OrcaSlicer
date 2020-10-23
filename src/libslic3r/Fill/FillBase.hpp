@@ -11,6 +11,7 @@
 
 #include "../libslic3r.h"
 #include "../BoundingBox.hpp"
+#include "../Exception.hpp"
 #include "../Utils.hpp"
 
 namespace Slic3r {
@@ -19,9 +20,14 @@ class ExPolygon;
 class Surface;
 enum InfillPattern : int;
 
-class InfillFailedException : public std::runtime_error {
+namespace FillAdaptive {
+    struct Octree;
+};
+
+// Infill shall never fail, therefore the error is classified as RuntimeError, not SlicingError.
+class InfillFailedException : public Slic3r::RuntimeError {
 public:
-    InfillFailedException() : std::runtime_error("Infill failed") {}
+    InfillFailedException() : Slic3r::RuntimeError("Infill failed") {}
 };
 
 struct FillParams
@@ -37,8 +43,8 @@ struct FillParams
     // Don't adjust spacing to fill the space evenly.
     bool        dont_adjust 	{ true };
 
-    // Monotonous infill - strictly left to right for better surface quality of top infills.
-    bool 		monotonous		{ false };
+    // Monotonic infill - strictly left to right for better surface quality of top infills.
+    bool 		monotonic		{ false };
 
     // For Honeycomb.
     // we were requested to complete each loop;
@@ -68,6 +74,9 @@ public:
     coord_t     loop_clipping;
     // In scaled coordinates. Bounding box of the 2D projection of the object.
     BoundingBox bounding_box;
+
+    // Octree builds on mesh for usage in the adaptive cubic infill
+    FillAdaptive::Octree* adapt_fill_octree = nullptr;
 
 public:
     virtual ~Fill() {}

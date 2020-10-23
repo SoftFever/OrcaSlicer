@@ -304,7 +304,7 @@ private:
 
 class PrintBase;
 
-class PrintObjectBase : public ObjectID
+class PrintObjectBase : public ObjectBase
 {
 public:
     const ModelObject*      model_object() const    { return m_model_object; }
@@ -335,7 +335,7 @@ protected:
  * The PrintBase class will abstract this flow for different technologies.
  *
  */
-class PrintBase : public ObjectID
+class PrintBase : public ObjectBase
 {
 public:
 	PrintBase() : m_placeholder_parser(&m_full_print_config) { this->restart(); }
@@ -348,6 +348,8 @@ public:
     // The Print is empty either after clear() or after apply() over an empty model,
     // or after apply() over a model, where no object is printable (all outside the print volume).
     virtual bool            empty() const = 0;
+    // List of existing PrintObject IDs, to remove notifications for non-existent IDs.
+    virtual std::vector<ObjectID> print_object_ids() const = 0;
 
     // Validate the print, return empty string if valid, return error if process() cannot (or should not) be started.
     virtual std::string     validate() const { return std::string(); }
@@ -386,9 +388,9 @@ public:
     struct SlicingStatus {
 		SlicingStatus(int percent, const std::string &text, unsigned int flags = 0) : percent(percent), text(text), flags(flags) {}
         SlicingStatus(const PrintBase &print, int warning_step) : 
-            flags(UPDATE_PRINT_STEP_WARNINGS), warning_object_id(print), warning_step(warning_step) {}
+            flags(UPDATE_PRINT_STEP_WARNINGS), warning_object_id(print.id()), warning_step(warning_step) {}
         SlicingStatus(const PrintObjectBase &print_object, int warning_step) : 
-            flags(UPDATE_PRINT_OBJECT_STEP_WARNINGS), warning_object_id(print_object), warning_step(warning_step) {}
+            flags(UPDATE_PRINT_OBJECT_STEP_WARNINGS), warning_object_id(print_object.id()), warning_step(warning_step) {}
         int             percent { -1 };
         std::string     text;
         // Bitmap of flags.
@@ -406,7 +408,7 @@ public:
         // set to an ObjectID of a Print or a PrintObject based on flags
         // (whether UPDATE_PRINT_STEP_WARNINGS or UPDATE_PRINT_OBJECT_STEP_WARNINGS is set).
         ObjectID        warning_object_id;
-        // For which Print or PrintObject step a new warning is beeing issued?
+        // For which Print or PrintObject step a new warning is being issued?
         int             warning_step { -1 };
     };
     typedef std::function<void(const SlicingStatus&)>  status_callback_type;
@@ -507,9 +509,9 @@ protected:
     bool            set_started(PrintStepEnum step) { return m_state.set_started(step, this->state_mutex(), [this](){ this->throw_if_canceled(); }); }
 	PrintStateBase::TimeStamp set_done(PrintStepEnum step) { 
 		std::pair<PrintStateBase::TimeStamp, bool> status = m_state.set_done(step, this->state_mutex(), [this](){ this->throw_if_canceled(); });
-    	if (status.second)
-    		this->status_update_warnings(*this, static_cast<int>(step), PrintStateBase::WarningLevel::NON_CRITICAL, std::string());
-		return status.first;
+        if (status.second)
+            this->status_update_warnings(this->id(), static_cast<int>(step), PrintStateBase::WarningLevel::NON_CRITICAL, std::string());
+        return status.first;
 	}
     bool            invalidate_step(PrintStepEnum step)
 		{ return m_state.invalidate(step, this->cancel_callback()); }
@@ -530,7 +532,7 @@ protected:
     	std::pair<PrintStepEnum, bool> active_step = m_state.active_step_add_warning(warning_level, message, message_id, this->state_mutex());
     	if (active_step.second)
     		// Update UI.
-    		this->status_update_warnings(*this, static_cast<int>(active_step.first), warning_level, message);
+    		this->status_update_warnings(this->id(), static_cast<int>(active_step.first), warning_level, message);
     }
 
 private:
@@ -556,9 +558,9 @@ protected:
         { return m_state.set_started(step, PrintObjectBase::state_mutex(m_print), [this](){ this->throw_if_canceled(); }); }
 	PrintStateBase::TimeStamp set_done(PrintObjectStepEnum step) { 
 		std::pair<PrintStateBase::TimeStamp, bool> status = m_state.set_done(step, PrintObjectBase::state_mutex(m_print), [this](){ this->throw_if_canceled(); });
-    	if (status.second)
-    		this->status_update_warnings(m_print, static_cast<int>(step), PrintStateBase::WarningLevel::NON_CRITICAL, std::string());
-		return status.first;
+        if (status.second)
+            this->status_update_warnings(m_print, static_cast<int>(step), PrintStateBase::WarningLevel::NON_CRITICAL, std::string());
+        return status.first;
 	}
 
     bool            invalidate_step(PrintObjectStepEnum step)

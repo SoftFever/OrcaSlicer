@@ -18,6 +18,8 @@
 #include <wx/debug.h>
 #include <wx/settings.h>
 
+#include <chrono>
+
 #include "Event.hpp"
 
 class wxCheckBox;
@@ -53,8 +55,9 @@ void on_window_geometry(wxTopLevelWindow *tlw, std::function<void()> callback);
 
 enum { DPI_DEFAULT = 96 };
 
-int get_dpi_for_window(wxWindow *window);
-wxFont get_default_font_for_dpi(int dpi);
+int get_dpi_for_window(const wxWindow *window);
+wxFont get_default_font_for_dpi(const wxWindow* window, int dpi);
+inline wxFont get_default_font(const wxWindow* window) { return get_default_font_for_dpi(window, get_dpi_for_window(window)); }
 
 #if !wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
 struct DpiChangedEvent : public wxEvent {
@@ -84,7 +87,7 @@ public:
         int dpi = get_dpi_for_window(this);
         m_scale_factor = (float)dpi / (float)DPI_DEFAULT;
         m_prev_scale_factor = m_scale_factor;
-		m_normal_font = get_default_font_for_dpi(dpi);
+		m_normal_font = get_default_font_for_dpi(this, dpi);
 
         /* Because of default window font is a primary display font, 
          * We should set correct font for window before getting em_unit value.
@@ -92,10 +95,13 @@ public:
 #ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList 
         this->SetFont(m_normal_font);
 #endif
-        // initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
-#if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
+
+        // Linux specific issue : get_dpi_for_window(this) still doesn't responce to the Display's scale in new wxWidgets(3.1.3).
+        // So, calculate the m_em_unit value from the font size, as before
+#if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT && !defined(__WXGTK__)
         m_em_unit = std::max<size_t>(10, 10.0f * m_scale_factor);
 #else
+        // initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
         m_em_unit = std::max<size_t>(10, this->GetTextExtent("m").x - 1);
 #endif // ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
 
@@ -103,37 +109,22 @@ public:
 
 #if wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
         this->Bind(wxEVT_DPI_CHANGED, [this](wxDPIChangedEvent& evt) {
-            m_scale_factor = (float)evt.GetNewDPI().x / (float)DPI_DEFAULT;
-
-            m_new_font_point_size = get_default_font_for_dpi(evt.GetNewDPI().x).GetPointSize();
-
-            if (!m_can_rescale)
-                return;
-
-#if ENABLE_LAYOUT_NO_RESTART
-            if (m_force_rescale || is_new_scale_factor())
-                rescale(wxRect());
-#else
-            if (is_new_scale_factor())
-                rescale(wxRect());
-#endif // ENABLE_LAYOUT_NO_RESTART
+	            m_scale_factor = (float)evt.GetNewDPI().x / (float)DPI_DEFAULT;
+	            m_new_font_point_size = get_default_font_for_dpi(this, evt.GetNewDPI().x).GetPointSize();
+	            if (m_can_rescale && (m_force_rescale || is_new_scale_factor()))
+	                rescale(wxRect());
             });
 #else
         this->Bind(EVT_DPI_CHANGED_SLICER, [this](const DpiChangedEvent& evt) {
             m_scale_factor = (float)evt.dpi / (float)DPI_DEFAULT;
 
-            m_new_font_point_size = get_default_font_for_dpi(evt.dpi).GetPointSize();
+            m_new_font_point_size = get_default_font_for_dpi(this, evt.dpi).GetPointSize();
 
             if (!m_can_rescale)
                 return;
 
-#if ENABLE_LAYOUT_NO_RESTART
             if (m_force_rescale || is_new_scale_factor())
                 rescale(evt.rect);
-#else
-            if (is_new_scale_factor())
-                rescale(evt.rect);
-#endif // ENABLE_LAYOUT_NO_RESTART
             });
 #endif // wxVERSION_EQUAL_OR_GREATER_THAN
 
@@ -175,9 +166,7 @@ public:
     int     em_unit() const             { return m_em_unit; }
 //    int     font_size() const           { return m_font_size; }
     const wxFont& normal_font() const   { return m_normal_font; }
-#if ENABLE_LAYOUT_NO_RESTART
     void enable_force_rescale()         { m_force_rescale = true; }
-#endif // ENABLE_LAYOUT_NO_RESTART
 
 protected:
     virtual void on_dpi_changed(const wxRect &suggested_rect) = 0;
@@ -191,9 +180,7 @@ private:
     wxFont m_normal_font;
     float m_prev_scale_factor;
     bool  m_can_rescale{ true };
-#if ENABLE_LAYOUT_NO_RESTART
     bool m_force_rescale{ false };
-#endif // ENABLE_LAYOUT_NO_RESTART
 
     int   m_new_font_point_size;
 
@@ -233,17 +220,13 @@ private:
     {
         this->Freeze();
 
-#if ENABLE_LAYOUT_NO_RESTART && wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
-        if (m_force_rescale) {
-#endif // ENABLE_LAYOUT_NO_RESTART
-            // rescale fonts of all controls
-            scale_controls_fonts(this, m_new_font_point_size);
-            // rescale current window font
-            scale_win_font(this, m_new_font_point_size);
-#if ENABLE_LAYOUT_NO_RESTART && wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
-            m_force_rescale = false;
-        }
-#endif // ENABLE_LAYOUT_NO_RESTART
+        m_force_rescale = false;
+#if !wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
+        // rescale fonts of all controls
+        scale_controls_fonts(this, m_new_font_point_size);
+        // rescale current window font
+        scale_win_font(this, m_new_font_point_size);
+#endif // wxVERSION_EQUAL_OR_GREATER_THAN
 
         // set normal application font as a current window font
         m_normal_font = this->GetFont();
@@ -401,6 +384,25 @@ public:
 
 std::ostream& operator<<(std::ostream &os, const WindowMetrics& metrics);
 
+#if ENABLE_GCODE_VIEWER
+inline int hex_digit_to_int(const char c)
+{
+    return
+        (c >= '0' && c <= '9') ? int(c - '0') :
+        (c >= 'A' && c <= 'F') ? int(c - 'A') + 10 :
+        (c >= 'a' && c <= 'f') ? int(c - 'a') + 10 : -1;
+}
+#endif // ENABLE_GCODE_VIEWER
+
+class TaskTimer
+{
+    std::chrono::milliseconds   start_timer;
+    std::string                 task_name;
+public:
+    TaskTimer(std::string task_name);
+
+    ~TaskTimer();
+};
 
 }}
 

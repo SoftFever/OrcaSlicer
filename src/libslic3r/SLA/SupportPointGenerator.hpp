@@ -3,9 +3,8 @@
 
 #include <random>
 
-#include <libslic3r/SLA/Common.hpp>
 #include <libslic3r/SLA/SupportPoint.hpp>
-#include <libslic3r/SLA/EigenMesh3D.hpp>
+#include <libslic3r/SLA/IndexedMesh.hpp>
 
 #include <libslic3r/BoundingBox.hpp>
 #include <libslic3r/ClipperUtils.hpp>
@@ -23,15 +22,16 @@ public:
         float density_relative {1.f};
         float minimal_distance {1.f};
         float head_diameter {0.4f};
-        ///////////////
-        inline float support_force() const { return 7.7f / density_relative; } // a force one point can support       (arbitrary force unit)
+
+        // Originally calibrated to 7.7f, reduced density by Tamas to 70% which is 11.1 (7.7 / 0.7) to adjust for new algorithm changes in tm_suppt_gen_improve
+        inline float support_force() const { return 11.1f / density_relative; } // a force one point can support       (arbitrary force unit)
         inline float tear_pressure() const { return 1.f; }  // pressure that the display exerts    (the force unit per mm2)
     };
     
-    SupportPointGenerator(const EigenMesh3D& emesh, const std::vector<ExPolygons>& slices,
+    SupportPointGenerator(const IndexedMesh& emesh, const std::vector<ExPolygons>& slices,
                     const std::vector<float>& heights, const Config& config, std::function<void(void)> throw_on_cancel, std::function<void(int)> statusfn);
     
-    SupportPointGenerator(const EigenMesh3D& emesh, const Config& config, std::function<void(void)> throw_on_cancel, std::function<void(int)> statusfn);
+    SupportPointGenerator(const IndexedMesh& emesh, const Config& config, std::function<void(void)> throw_on_cancel, std::function<void(int)> statusfn);
     
     const std::vector<SupportPoint>& output() const { return m_output; }
     std::vector<SupportPoint>& output() { return m_output; }
@@ -39,8 +39,8 @@ public:
     struct MyLayer;
     
     struct Structure {
-        Structure(MyLayer &layer, const ExPolygon& poly, const BoundingBox &bbox, const Vec2f &centroid, float area, float h) : 
-            layer(&layer), polygon(&poly), bbox(bbox), centroid(centroid), area(area), height(h)
+        Structure(MyLayer &layer, const ExPolygon& poly, const BoundingBox &bbox, const Vec2f &centroid, float area, float h) :
+            layer(&layer), polygon(&poly), bbox(bbox), centroid(centroid), area(area), zlevel(h)
 #ifdef SLA_SUPPORTPOINTGEN_DEBUG
             , unique_id(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()))
 #endif /* SLA_SUPPORTPOINTGEN_DEBUG */
@@ -50,7 +50,7 @@ public:
         const BoundingBox bbox;
         const Vec2f centroid = Vec2f::Zero();
         const float area = 0.f;
-        float height = 0;
+        float zlevel = 0;
         // How well is this ExPolygon held to the print base?
         // Positive number, the higher the better.
         float supports_force_this_layer     = 0.f;
@@ -160,8 +160,8 @@ public:
             grid.emplace(cell_id(pt.position), pt);
         }
         
-        bool collides_with(const Vec2f &pos, Structure *island, float radius) {
-            Vec3f pos3d(pos.x(), pos.y(), float(island->layer->print_z));
+        bool collides_with(const Vec2f &pos, float print_z, float radius) {
+            Vec3f pos3d(pos.x(), pos.y(), print_z);
             Vec3i cell = cell_id(pos3d);
             std::pair<Grid::const_iterator, Grid::const_iterator> it_pair = grid.equal_range(cell);
             if (collides_with(pos3d, radius, it_pair.first, it_pair.second))
@@ -199,7 +199,16 @@ private:
     SupportPointGenerator::Config m_config;
     
     void process(const std::vector<ExPolygons>& slices, const std::vector<float>& heights);
-    void uniformly_cover(const ExPolygons& islands, Structure& structure, PointGrid3D &grid3d, bool is_new_island = false, bool just_one = false);
+
+public:
+    enum IslandCoverageFlags : uint8_t { icfNone = 0x0, icfIsNew = 0x1, icfWithBoundary = 0x2 };
+
+private:
+
+    void uniformly_cover(const ExPolygons& islands, Structure& structure, float deficit, PointGrid3D &grid3d, IslandCoverageFlags flags = icfNone);
+
+    void add_support_points(Structure& structure, PointGrid3D &grid3d);
+
     void project_onto_mesh(std::vector<SupportPoint>& points) const;
 
 #ifdef SLA_SUPPORTPOINTGEN_DEBUG
@@ -207,14 +216,17 @@ private:
     static void output_structures(const std::vector<Structure> &structures);
 #endif // SLA_SUPPORTPOINTGEN_DEBUG
     
-    const EigenMesh3D& m_emesh;
+    const IndexedMesh& m_emesh;
     std::function<void(void)> m_throw_on_cancel;
     std::function<void(int)>  m_statusfn;
     
     std::mt19937 m_rng;
 };
 
-void remove_bottom_points(std::vector<SupportPoint> &pts, double gnd_lvl, double tolerance);
+void remove_bottom_points(std::vector<SupportPoint> &pts, float lvl);
+
+std::vector<Vec2f> sample_expolygon(const ExPolygon &expoly, float samples_per_mm2, std::mt19937 &rng);
+void sample_expolygon_boundary(const ExPolygon &expoly, float samples_per_mm, std::vector<Vec2f> &out, std::mt19937 &rng);
 
 }} // namespace Slic3r::sla
 

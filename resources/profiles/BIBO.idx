@@ -1,4 +1,5 @@
 min_slic3r_version = 2.2.0-alpha3
+0.0.2 General print quality improvements
 0.0.1 Multiple Print models were unified into a single one.
 0.0.1-beta2 Bed model and textures added. Materials all use the BOBO2 identifier. deretract speed set to 0 to use retract speed.
 0.0.1-beta1 Added new printer profiles for ditto printing. New retraction settings, new materials. Removed some settings which do not apply. More start gcode improvements.

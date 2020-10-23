@@ -11,6 +11,9 @@
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Format/SL1.hpp"
 #include "slic3r/Utils/PrintHost.hpp"
+#if ENABLE_GCODE_VIEWER
+#include "libslic3r/GCode/GCodeProcessor.hpp"
+#endif // ENABLE_GCODE_VIEWER
 
 
 namespace boost { namespace filesystem { class path; } }
@@ -18,7 +21,9 @@ namespace boost { namespace filesystem { class path; } }
 namespace Slic3r {
 
 class DynamicPrintConfig;
+#if !ENABLE_GCODE_VIEWER
 class GCodePreviewData;
+#endif // !ENABLE_GCODE_VIEWER
 class Model;
 class SLAPrint;
 
@@ -30,6 +35,36 @@ public:
 	virtual wxEvent *Clone() const { return new SlicingStatusEvent(*this); }
 
 	PrintBase::SlicingStatus status;
+};
+
+class SlicingProcessCompletedEvent : public wxEvent
+{
+public:
+	enum StatusType {
+		Finished,
+		Cancelled,
+		Error
+	};
+
+	SlicingProcessCompletedEvent(wxEventType eventType, int winid, StatusType status, std::exception_ptr exception) :
+		wxEvent(winid, eventType), m_status(status), m_exception(exception) {}
+	virtual wxEvent* Clone() const { return new SlicingProcessCompletedEvent(*this); }
+
+	StatusType 	status()    const { return m_status; }
+	bool 		finished()  const { return m_status == Finished; }
+	bool 		success()   const { return m_status == Finished; }
+	bool 		cancelled() const { return m_status == Cancelled; }
+	bool		error() 	const { return m_status == Error; }
+	// Unhandled error produced by stdlib or a Win32 structured exception, or unhandled Slic3r's own critical exception.
+	bool 		critical_error() const;
+	// Only valid if error()
+	void 		rethrow_exception() const { assert(this->error()); assert(m_exception); std::rethrow_exception(m_exception); }
+	// Produce a human readable message to be displayed by a notification or a message box.
+	std::string format_error_message() const;
+
+private:
+	StatusType 			m_status;
+	std::exception_ptr 	m_exception;
 };
 
 wxDEFINE_EVENT(EVT_SLICING_UPDATE, SlicingStatusEvent);
@@ -50,8 +85,12 @@ public:
 
 	void set_fff_print(Print *print) { m_fff_print = print; }
     void set_sla_print(SLAPrint *print) { m_sla_print = print; m_sla_print->set_printer(&m_sla_archive); }
-	void set_gcode_preview_data(GCodePreviewData *gpd) { m_gcode_preview_data = gpd; }
-    void set_thumbnail_cb(ThumbnailsGeneratorCallback cb) { m_thumbnail_cb = cb; }
+	void set_thumbnail_cb(ThumbnailsGeneratorCallback cb) { m_thumbnail_cb = cb; }
+#if ENABLE_GCODE_VIEWER
+	void set_gcode_result(GCodeProcessor::Result* result) { m_gcode_result = result; }
+#else
+	void set_gcode_preview_data(GCodePreviewData* gpd) { m_gcode_preview_data = gpd; }
+#endif // ENABLE_GCODE_VIEWER
 
 	// The following wxCommandEvent will be sent to the UI thread / Plater window, when the slicing is finished
 	// and the background processing will transition into G-code export.
@@ -60,6 +99,10 @@ public:
 	// The following wxCommandEvent will be sent to the UI thread / Plater window, when the G-code export is finished.
 	// The wxCommandEvent is sent to the UI thread asynchronously without waiting for the event to be processed.
 	void set_finished_event(int event_id) { m_event_finished_id = event_id; }
+	// The following wxCommandEvent will be sent to the UI thread / Plater window, when the G-code is being exported to
+	// specified path or uploaded.
+	// The wxCommandEvent is sent to the UI thread asynchronously without waiting for the event to be processed.
+	void set_export_began_event(int event_id) { m_event_export_began_id = event_id; }
 
 	// Activate either m_fff_print or m_sla_print.
 	// Return true if changed.
@@ -153,12 +196,17 @@ private:
 	// Non-owned pointers to Print instances.
 	Print 					   *m_fff_print 		 = nullptr;
 	SLAPrint 				   *m_sla_print			 = nullptr;
+#if ENABLE_GCODE_VIEWER
+	// Data structure, to which the G-code export writes its annotations.
+	GCodeProcessor::Result     *m_gcode_result = nullptr;
+#else
 	// Data structure, to which the G-code export writes its annotations.
 	GCodePreviewData 		   *m_gcode_preview_data = nullptr;
-    // Callback function, used to write thumbnails into gcode.
-    ThumbnailsGeneratorCallback m_thumbnail_cb 		 = nullptr;
-    SL1Archive                  m_sla_archive;
-	// Temporary G-code, there is one defined for the BackgroundSlicingProcess, differentiated from the other processes by a process ID.
+#endif // ENABLE_GCODE_VIEWER
+	// Callback function, used to write thumbnails into gcode.
+	ThumbnailsGeneratorCallback m_thumbnail_cb = nullptr;
+	SL1Archive                  m_sla_archive;
+		// Temporary G-code, there is one defined for the BackgroundSlicingProcess, differentiated from the other processes by a process ID.
 	std::string 				m_temp_output_path;
 	// Output path provided by the user. The output path may be set even if the slicing is running,
 	// but once set, it cannot be re-set.
@@ -190,6 +238,9 @@ private:
 	int 						m_event_slicing_completed_id 	= 0;
 	// wxWidgets command ID to be sent to the plater to inform that the task finished.
 	int 						m_event_finished_id  			= 0;
+	// wxWidgets command ID to be sent to the plater to inform that the G-code is being exported.
+	int                         m_event_export_began_id         = 0;
+
 };
 
 }; // namespace Slic3r

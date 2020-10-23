@@ -1,5 +1,6 @@
 #include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
+#include "Exception.hpp"
 #include "Polygon.hpp"
 #include "Polyline.hpp"
 
@@ -16,7 +17,7 @@ Polyline Polygon::split_at_vertex(const Point &point) const
     for (const Point &pt : this->points)
         if (pt == point)
             return this->split_at_index(int(&pt - &this->points.front()));
-    throw std::invalid_argument("Point not found");
+    throw Slic3r::InvalidArgument("Point not found");
     return Polyline();
 }
 
@@ -257,6 +258,44 @@ Point Polygon::point_projection(const Point &point) const
         }
     }
     return proj;
+}
+
+std::vector<float> Polygon::parameter_by_length() const
+{
+    // Parametrize the polygon by its length.
+    std::vector<float> lengths(points.size()+1, 0.);
+    for (size_t i = 1; i < points.size(); ++ i)
+        lengths[i] = lengths[i-1] + (points[i] - points[i-1]).cast<float>().norm();
+    lengths.back() = lengths[lengths.size()-2] + (points.front() - points.back()).cast<float>().norm();
+    return lengths;
+}
+
+void Polygon::densify(float min_length, std::vector<float>* lengths_ptr)
+{
+    std::vector<float> lengths_local;
+    std::vector<float>& lengths = lengths_ptr ? *lengths_ptr : lengths_local;
+
+    if (! lengths_ptr) {
+        // Length parametrization has not been provided. Calculate our own.
+        lengths = this->parameter_by_length();
+    }
+
+    assert(points.size() == lengths.size() - 1);
+
+    for (size_t j=1; j<=points.size(); ++j) {
+        bool last = j == points.size();
+        int i = last ? 0 : j;
+
+        if (lengths[j] - lengths[j-1] > min_length) {
+            Point diff = points[i] - points[j-1];
+            float diff_len = lengths[j] - lengths[j-1];
+            float r = (min_length/diff_len);
+            Point new_pt = points[j-1] + Point(r*diff[0], r*diff[1]);
+            points.insert(points.begin() + j, new_pt);
+            lengths.insert(lengths.begin() + j, lengths[j-1] + min_length);
+        }
+    }
+    assert(points.size() == lengths.size() - 1);
 }
 
 BoundingBox get_extents(const Points &points)

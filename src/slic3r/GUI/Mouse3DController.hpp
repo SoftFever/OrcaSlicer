@@ -33,11 +33,11 @@ class Mouse3DController
 	struct Params
 	{
 		static constexpr double DefaultTranslationScale = 2.5;
-		static constexpr double MaxTranslationDeadzone = 0.2;
-		static constexpr double DefaultTranslationDeadzone = 0.5 * MaxTranslationDeadzone;
+        static constexpr double MaxTranslationDeadzone = 0.0;
+        static constexpr double DefaultTranslationDeadzone = 0.5 * MaxTranslationDeadzone;
 		static constexpr float  DefaultRotationScale = 1.0f;
-		static constexpr float  MaxRotationDeadzone = 0.2f;
-		static constexpr float  DefaultRotationDeadzone = 0.5f * MaxRotationDeadzone;
+        static constexpr float  MaxRotationDeadzone = 0.0f;
+        static constexpr float  DefaultRotationDeadzone = 0.5f * MaxRotationDeadzone;
 		static constexpr double DefaultZoomScale = 0.1;
 
         template <typename Number>

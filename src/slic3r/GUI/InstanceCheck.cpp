@@ -11,10 +11,12 @@
 
 #include "boost/nowide/convert.hpp"
 #include <boost/log/trivial.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <iostream>
 #include <unordered_map>
 #include <fcntl.h>
 #include <errno.h>
+#include <optional>
 
 #ifdef _WIN32
 #include <strsafe.h>
@@ -29,25 +31,29 @@ namespace instance_check_internal
 {
 	struct CommandLineAnalysis
 	{
-		bool           should_send;
-		std::string    cl_string;
+		std::optional<bool>	should_send;
+		std::string    		cl_string;
 	};
 	static CommandLineAnalysis process_command_line(int argc, char** argv)
 	{
-		CommandLineAnalysis ret { false };
-		if (argc < 2)
-			return ret;
-		ret.cl_string = escape_string_cstyle(argv[0]);
+		CommandLineAnalysis ret;
+		//if (argc < 2)
+		//	return ret;
+		std::vector<std::string> arguments { argv[0] };
 		for (size_t i = 1; i < argc; ++i) {
 			const std::string token = argv[i];
-			if (token == "--single-instance" || token == "--single-instance=1") {
+			// Processing of boolean command line arguments shall match DynamicConfig::read_cli().
+			if (token == "--single-instance")
 				ret.should_send = true;
-			} else {
-				ret.cl_string += " : ";
-				ret.cl_string += escape_string_cstyle(token);
-			}
+			else if (token == "--no-single-instance")
+				ret.should_send = false;
+			else
+				arguments.emplace_back(token);
 		} 
-		BOOST_LOG_TRIVIAL(debug) << "single instance: "<< ret.should_send << ". other params: " << ret.cl_string;
+		ret.cl_string = escape_strings_cstyle(arguments);
+		BOOST_LOG_TRIVIAL(debug) << "single instance: " << 
+            (ret.should_send.has_value() ? (*ret.should_send ? "true" : "false") : "undefined") <<
+			". other params: " << ret.cl_string;
 		return ret;
 	}
 
@@ -64,21 +70,26 @@ namespace instance_check_internal
 		//BOOST_LOG_TRIVIAL(error) << "ewp: version: " << l_version_wstring;
 		TCHAR 		 wndText[1000];
 		TCHAR 		 className[1000];
-		GetClassName(hwnd, className, 1000);
-		GetWindowText(hwnd, wndText, 1000);
+		int          err;
+		err = GetClassName(hwnd, className, 1000);
+		if (err == 0)
+			return true;
+		err = GetWindowText(hwnd, wndText, 1000);
+		if (err == 0)
+			return true;
 		std::wstring classNameString(className);
 		std::wstring wndTextString(wndText);
-		if (wndTextString.find(L"PrusaSlicer") != std::wstring::npos && classNameString == L"wxWindowNR") {
+		if (wndTextString.find(L"PrusaSlicer") == 0 && classNameString == L"wxWindowNR") {
 			//check if other instances has same instance hash
 			//if not it is not same version(binary) as this version 
-			HANDLE       handle = GetProp(hwnd, L"Instance_Hash_Minor");
-			size_t       other_instance_hash = PtrToUint(handle);
-			size_t       other_instance_hash_major;
+			HANDLE                handle = GetProp(hwnd, L"Instance_Hash_Minor");
+			unsigned long long    other_instance_hash = PtrToUint(handle);
+			unsigned long long    other_instance_hash_major;
+			unsigned long long    my_instance_hash = GUI::wxGetApp().get_instance_hash_int();
 			handle = GetProp(hwnd, L"Instance_Hash_Major");
 			other_instance_hash_major = PtrToUint(handle);
 			other_instance_hash_major = other_instance_hash_major << 32;
 			other_instance_hash += other_instance_hash_major;
-			size_t my_instance_hash = GUI::wxGetApp().get_instance_hash_int();
 			if(my_instance_hash == other_instance_hash)
 			{
 				BOOST_LOG_TRIVIAL(debug) << "win enum - found correct instance";
@@ -95,19 +106,19 @@ namespace instance_check_internal
 	{
 		if (!EnumWindows(EnumWindowsProc, 0)) {
 			std::wstring wstr = boost::nowide::widen(message);
-			//LPWSTR command_line_args = wstr.c_str();//GetCommandLine();
-			LPWSTR command_line_args = new wchar_t[wstr.size() + 1];
+			std::unique_ptr<LPWSTR> command_line_args = std::make_unique<LPWSTR>(const_cast<LPWSTR>(wstr.c_str()));
+			/*LPWSTR command_line_args = new wchar_t[wstr.size() + 1];
 			copy(wstr.begin(), wstr.end(), command_line_args);
-			command_line_args[wstr.size()] = 0; 
+			command_line_args[wstr.size()] = 0;*/
+
 			//Create a COPYDATASTRUCT to send the information
 			//cbData represents the size of the information we want to send.
 			//lpData represents the information we want to send.
 			//dwData is an ID defined by us(this is a type of ID different than WM_COPYDATA).
 			COPYDATASTRUCT data_to_send = { 0 };
 			data_to_send.dwData = 1;
-			data_to_send.cbData = sizeof(TCHAR) * (wcslen(command_line_args) + 1);
-			data_to_send.lpData = command_line_args;
-
+			data_to_send.cbData = sizeof(TCHAR) * (wcslen(*command_line_args.get()) + 1);
+			data_to_send.lpData = *command_line_args.get();
 			SendMessage(l_prusa_slicer_hwnd, WM_COPYDATA, 0, (LPARAM)&data_to_send);
 			return true;  
 		}
@@ -126,6 +137,13 @@ namespace instance_check_internal
 		fl.l_whence = SEEK_SET;
 		fl.l_start = 0;
 		fl.l_len = 1;
+
+        if (! boost::filesystem::is_directory(path)) {
+            BOOST_LOG_TRIVIAL(debug) << "get_lock(): datadir does not exist yet, creating...";
+            if (! boost::filesystem::create_directories(path))
+                BOOST_LOG_TRIVIAL(debug) << "get_lock(): unable to create datadir !!!";
+        }
+
 		if ((fdlock = open(dest_dir.c_str(), O_WRONLY | O_CREAT, 0666)) == -1)
 			return true;
 
@@ -168,7 +186,7 @@ namespace instance_check_internal
 			const char* sigval = message_text.c_str();
 			//std::string		interface_name = "com.prusa3d.prusaslicer.InstanceCheck";
 			std::string		interface_name = "com.prusa3d.prusaslicer.InstanceCheck.Object" + version;
-			std::string   	method_name = "AnotherInstace";
+			std::string   	method_name = "AnotherInstance";
 			//std::string		object_name = "/com/prusa3d/prusaslicer/InstanceCheck";
 			std::string		object_name = "/com/prusa3d/prusaslicer/InstanceCheck/Object" + version;
 
@@ -198,7 +216,7 @@ namespace instance_check_internal
 				dbus_connection_unref(conn);
 				return true;
 			}
-			//the AnotherInstace method is not sending reply.
+			//the AnotherInstance method is not sending reply.
 			dbus_message_set_no_reply(msg, TRUE);
 
 			//append arguments to message
@@ -221,7 +239,7 @@ namespace instance_check_internal
 			BOOST_LOG_TRIVIAL(trace) << "DBus message sent.";
 
 			// free the message and close the connection
-			dbus_message_unref(msg);
+			dbus_message_unref(msg);                                                                                                                                                                                    
 			dbus_connection_unref(conn);
 			return true;
 		}
@@ -232,17 +250,26 @@ namespace instance_check_internal
 } //namespace instance_check_internal
 
 bool instance_check(int argc, char** argv, bool app_config_single_instance)
-{	
-	std::size_t hashed_path = std::hash<std::string>{}(boost::filesystem::system_complete(argv[0]).string());
+{
+	std::size_t hashed_path = 
+#ifdef _WIN32
+		std::hash<std::string>{}(boost::filesystem::system_complete(argv[0]).string());
+#else
+		std::hash<std::string>{}(boost::filesystem::canonical(boost::filesystem::system_complete(argv[0])).string());
+#endif // win32
+
 	std::string lock_name 	= std::to_string(hashed_path);
 	GUI::wxGetApp().set_instance_hash(hashed_path);
 	BOOST_LOG_TRIVIAL(debug) <<"full path: "<< lock_name;
 	instance_check_internal::CommandLineAnalysis cla = instance_check_internal::process_command_line(argc, argv);
+	if (! cla.should_send.has_value())
+		cla.should_send = app_config_single_instance;
 #ifdef _WIN32
 	GUI::wxGetApp().init_single_instance_checker(lock_name + ".lock", data_dir() + "/cache/");
-	if ((cla.should_send || app_config_single_instance) && GUI::wxGetApp().single_instance_checker()->IsAnotherRunning()) {
+	if (cla.should_send.value() && GUI::wxGetApp().single_instance_checker()->IsAnotherRunning()) {
 #else // mac & linx
-	if (instance_check_internal::get_lock(lock_name + ".lock", data_dir() + "/cache/") && (cla.should_send || app_config_single_instance)) {
+	// get_lock() creates the lockfile therefore *cla.should_send is checked after
+	if (instance_check_internal::get_lock(lock_name + ".lock", data_dir() + "/cache/") && *cla.should_send) {
 #endif
 		instance_check_internal::send_message(cla.cl_string, lock_name);
 		BOOST_LOG_TRIVIAL(info) << "instance check: Another instance found. This instance will terminate.";
@@ -252,6 +279,26 @@ bool instance_check(int argc, char** argv, bool app_config_single_instance)
 	return false;
 }
 
+#ifdef __APPLE__
+bool unlock_lockfile(const std::string& name, const std::string& path)
+{
+	std::string dest_dir = path + name;
+	//BOOST_LOG_TRIVIAL(debug) << "full lock path: " << dest_dir;
+	struct      flock fl;
+	int         fdlock;
+	fl.l_type = F_UNLCK;
+	fl.l_whence = SEEK_SET;
+	fl.l_start = 0;
+	fl.l_len = 1;
+	if ((fdlock = open(dest_dir.c_str(), O_WRONLY | O_CREAT, 0666)) == -1)
+		return false;
+
+	if (fcntl(fdlock, F_SETLK, &fl) == -1)
+		return false;
+
+	return true;
+}
+#endif //__APPLE__
 namespace GUI {
 
 wxDEFINE_EVENT(EVT_LOAD_MODEL_OTHER_INSTANCE, LoadFromOtherInstanceEvent);
@@ -345,7 +392,7 @@ void OtherInstanceMessageHandler::print_window_info(HWND hwnd)
 namespace MessageHandlerInternal
 {
    // returns ::path to possible model or empty ::path if input string is not existing path
-	static boost::filesystem::path get_path(std::string possible_path)
+	static boost::filesystem::path get_path(const std::string& possible_path)
 	{
 		BOOST_LOG_TRIVIAL(debug) << "message part:" << possible_path;
 
@@ -367,32 +414,27 @@ namespace MessageHandlerInternal
 	}
 } //namespace MessageHandlerInternal
 
-void OtherInstanceMessageHandler::handle_message(const std::string& message) {
-	std::vector<boost::filesystem::path> paths;
-	auto                                 next_space = message.find(" : ");
-	size_t                               last_space = 0;
-	int                                  counter    = 0;
-
+void OtherInstanceMessageHandler::handle_message(const std::string& message) 
+{
 	BOOST_LOG_TRIVIAL(info) << "message from other instance: " << message;
 
-	while (next_space != std::string::npos)
-	{	
-		if (counter != 0) {
-			std::string possible_path = message.substr(last_space, next_space - last_space);
-			boost::filesystem::path p = MessageHandlerInternal::get_path(std::move(possible_path));
-			if(!p.string().empty())
-				paths.emplace_back(p);
-		}
-		last_space = next_space + 3;
-		next_space = message.find(" : ", last_space);
-		counter++;
+	std::vector<std::string> args;
+	bool parsed = unescape_strings_cstyle(message, args);
+	assert(parsed);
+	if (! parsed) {
+		BOOST_LOG_TRIVIAL(error) << "message from other instance is incorrectly formatted: " << message;
+		return;
 	}
-	if (counter != 0 ) {
-		boost::filesystem::path p = MessageHandlerInternal::get_path(message.substr(last_space));
-		if (!p.string().empty())
+
+	std::vector<boost::filesystem::path> paths;
+	// Skip the first argument, it is the path to the slicer executable.
+	auto it = args.begin();
+	for (++ it; it != args.end(); ++ it) {
+		boost::filesystem::path p = MessageHandlerInternal::get_path(*it);
+		if (! p.string().empty())
 			paths.emplace_back(p);
 	}
-	if (!paths.empty()) {
+	if (! paths.empty()) {
 		//wxEvtHandler* evt_handler = wxGetApp().plater(); //assert here?
 		//if (evt_handler) {
 			wxPostEvent(m_callback_evt_handler, LoadFromOtherInstanceEvent(GUI::EVT_LOAD_MODEL_OTHER_INSTANCE, std::vector<boost::filesystem::path>(std::move(paths))));
@@ -419,7 +461,7 @@ namespace MessageHandlerDBusInternal
 	        "     </method>"
 	        "   </interface>"
 	        "   <interface name=\"com.prusa3d.prusaslicer.InstanceCheck\">"
-	        "     <method name=\"AnotherInstace\">"
+	        "     <method name=\"AnotherInstance\">"
 	        "       <arg name=\"data\" direction=\"in\" type=\"s\" />"
 	        "     </method>"
 	        "   </interface>"
@@ -434,7 +476,7 @@ namespace MessageHandlerDBusInternal
 	static void handle_method_another_instance(DBusConnection *connection, DBusMessage *request)
 	{
 	    DBusError     err;
-	    char*         text= "";
+	    char*         text = nullptr;
 		wxEvtHandler* evt_handler;
 
 	    dbus_error_init(&err);
@@ -461,7 +503,7 @@ namespace MessageHandlerDBusInternal
 	    if (0 == strcmp("org.freedesktop.DBus.Introspectable", interface_name) && 0 == strcmp("Introspect", member_name)) {		
 	        respond_to_introspect(connection, message);
 	        return DBUS_HANDLER_RESULT_HANDLED;
-	    } else if (0 == strcmp(our_interface.c_str(), interface_name) && 0 == strcmp("AnotherInstace", member_name)) {
+	    } else if (0 == strcmp(our_interface.c_str(), interface_name) && 0 == strcmp("AnotherInstance", member_name)) {
 	        handle_method_another_instance(connection, message);
 	        return DBUS_HANDLER_RESULT_HANDLED;
 	    } 

@@ -1,9 +1,15 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoRotate.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/ImGuiWrapper.hpp"
 
 #include <GL/glew.h>
 
+#include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/GUI.hpp"
+#include "libslic3r/PresetBundle.hpp"
+
+#include "libslic3r/SLA/Rotfinder.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -192,6 +198,64 @@ void GLGizmoRotate::on_render_for_picking() const
     render_grabber_extension(box, true);
 
     glsafe(::glPopMatrix());
+}
+
+
+
+GLGizmoRotate3D::RotoptimzeWindow::RotoptimzeWindow(ImGuiWrapper *   imgui,
+                                                    State &          state,
+                                                    const Alignment &alignment)
+    : m_imgui{imgui}
+{
+    imgui->begin(_L("Rotation"), ImGuiWindowFlags_NoMove |
+                                   ImGuiWindowFlags_AlwaysAutoResize |
+                                   ImGuiWindowFlags_NoCollapse);
+
+    // adjust window position to avoid overlap the view toolbar
+    float win_h = ImGui::GetWindowHeight();
+    float x = alignment.x, y = alignment.y;
+    y = std::min(y, alignment.bottom_limit - win_h);
+    ImGui::SetWindowPos(ImVec2(x, y), ImGuiCond_Always);
+
+    static constexpr const char * button_txt = L("Optimize orientation");
+    static constexpr const char * slider_txt = L("Accuracy");
+
+    float button_width = imgui->calc_text_size(_(button_txt)).x;
+    ImGui::PushItemWidth(100.);
+    //if (imgui->button(_(button_txt))) {
+    if (ImGui::ArrowButton(_(button_txt).c_str(), ImGuiDir_Down)){
+        std::cout << "Blip" << std::endl;
+    }
+
+    ImGui::SliderFloat(_(slider_txt).c_str(), &state.accuracy, 0.01f, 1.f, "%.1f");
+
+    static const std::vector<std::string> options = {
+        _L("Least supports").ToStdString(),
+        _L("Suface quality").ToStdString()
+    };
+
+//    if (imgui->combo(_L("Choose method"), options, state.method) ) {
+//        std::cout << "method: " << state.method << std::endl;
+//    }
+
+
+}
+
+GLGizmoRotate3D::RotoptimzeWindow::~RotoptimzeWindow()
+{
+    m_imgui->end();
+}
+
+void GLGizmoRotate3D::on_render_input_window(float x, float y, float bottom_limit)
+{
+    if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
+        return;
+
+// TODO:
+
+//    m_rotoptimizewin_state.mobj = ?;
+//    RotoptimzeWindow popup{m_imgui, m_rotoptimizewin_state, {x, y, bottom_limit}};
+
 }
 
 void GLGizmoRotate::render_circle() const

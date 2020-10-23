@@ -2,7 +2,6 @@
 #define OPENVDBUTILS_HPP
 
 #include <libslic3r/TriangleMesh.hpp>
-#include <libslic3r/SLA/Common.hpp>
 #include <libslic3r/SLA/Contour3D.hpp>
 #include <openvdb/openvdb.h>
 

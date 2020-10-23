@@ -75,6 +75,7 @@ BoundingBoxBase<PointClass>::merge(const PointClass &point)
     }
 }
 template void BoundingBoxBase<Point>::merge(const Point &point);
+template void BoundingBoxBase<Vec2f>::merge(const Vec2f &point);
 template void BoundingBoxBase<Vec2d>::merge(const Vec2d &point);
 
 template <class PointClass> void
@@ -101,6 +102,7 @@ BoundingBoxBase<PointClass>::merge(const BoundingBoxBase<PointClass> &bb)
     }
 }
 template void BoundingBoxBase<Point>::merge(const BoundingBoxBase<Point> &bb);
+template void BoundingBoxBase<Vec2f>::merge(const BoundingBoxBase<Vec2f> &bb);
 template void BoundingBoxBase<Vec2d>::merge(const BoundingBoxBase<Vec2d> &bb);
 
 template <class PointClass> void
@@ -115,6 +117,7 @@ BoundingBox3Base<PointClass>::merge(const PointClass &point)
         this->defined = true;
     }
 }
+template void BoundingBox3Base<Vec3f>::merge(const Vec3f &point);
 template void BoundingBox3Base<Vec3d>::merge(const Vec3d &point);
 
 template <class PointClass> void
@@ -147,6 +150,7 @@ BoundingBoxBase<PointClass>::size() const
     return PointClass(this->max(0) - this->min(0), this->max(1) - this->min(1));
 }
 template Point BoundingBoxBase<Point>::size() const;
+template Vec2f BoundingBoxBase<Vec2f>::size() const;
 template Vec2d BoundingBoxBase<Vec2d>::size() const;
 
 template <class PointClass> PointClass
@@ -154,6 +158,7 @@ BoundingBox3Base<PointClass>::size() const
 {
     return PointClass(this->max(0) - this->min(0), this->max(1) - this->min(1), this->max(2) - this->min(2));
 }
+template Vec3f BoundingBox3Base<Vec3f>::size() const;
 template Vec3d BoundingBox3Base<Vec3d>::size() const;
 
 template <class PointClass> double BoundingBoxBase<PointClass>::radius() const
@@ -200,6 +205,7 @@ BoundingBoxBase<PointClass>::center() const
     return (this->min + this->max) / 2;
 }
 template Point BoundingBoxBase<Point>::center() const;
+template Vec2f BoundingBoxBase<Vec2f>::center() const;
 template Vec2d BoundingBoxBase<Vec2d>::center() const;
 
 template <class PointClass> PointClass
@@ -207,6 +213,7 @@ BoundingBox3Base<PointClass>::center() const
 {
     return (this->min + this->max) / 2;
 }
+template Vec3f BoundingBox3Base<Vec3f>::center() const;
 template Vec3d BoundingBox3Base<Vec3d>::center() const;
 
 template <class PointClass> coordf_t
@@ -215,6 +222,7 @@ BoundingBox3Base<PointClass>::max_size() const
     PointClass s = size();
     return std::max(s(0), std::max(s(1), s(2)));
 }
+template coordf_t BoundingBox3Base<Vec3f>::max_size() const;
 template coordf_t BoundingBox3Base<Vec3d>::max_size() const;
 
 // Align a coordinate to a grid. The coordinate may be negative,

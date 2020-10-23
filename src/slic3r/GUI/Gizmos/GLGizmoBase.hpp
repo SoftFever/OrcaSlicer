@@ -124,7 +124,6 @@ public:
     void set_state(EState state) { m_state = state; on_set_state(); }
 
     int get_shortcut_key() const { return m_shortcut_key; }
-    void set_shortcut_key(int key) { m_shortcut_key = key; }
 
     const std::string& get_icon_filename() const { return m_icon_filename; }
 

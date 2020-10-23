@@ -28,7 +28,7 @@
 
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
-#include <boost/detail/endian.hpp>
+#include <boost/predef/other/endian.h>
 
 #include "stl.h"
 
@@ -36,9 +36,9 @@
 #error "SEEK_SET not defined"
 #endif
 
-#ifndef BOOST_LITTLE_ENDIAN
+#if BOOST_ENDIAN_BIG_BYTE
 extern void stl_internal_reverse_quads(char *buf, size_t cnt);
-#endif /* BOOST_LITTLE_ENDIAN */
+#endif /* BOOST_ENDIAN_BIG_BYTE */
 
 static FILE* stl_open_count_facets(stl_file *stl, const char *file) 
 {
@@ -89,10 +89,10 @@ static FILE* stl_open_count_facets(stl_file *stl, const char *file)
     	// Read the int following the header.  This should contain # of facets.
 	  	uint32_t header_num_facets;
     	bool header_num_faces_read = fread(&header_num_facets, sizeof(uint32_t), 1, fp) != 0;
-#ifndef BOOST_LITTLE_ENDIAN
+#if BOOST_ENDIAN_BIG_BYTE
     	// Convert from little endian to big endian.
     	stl_internal_reverse_quads((char*)&header_num_facets, 4);
-#endif /* BOOST_LITTLE_ENDIAN */
+#endif /* BOOST_ENDIAN_BIG_BYTE */
     	if (! header_num_faces_read || num_facets != header_num_facets)
 			BOOST_LOG_TRIVIAL(info) << "stl_open_count_facets: Warning: File size doesn't match number of facets in the header: " << file;
   	}
@@ -158,10 +158,10 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first)
       		// Read a single facet from a binary .STL file. We assume little-endian architecture!
       		if (fread(&facet, 1, SIZEOF_STL_FACET, fp) != SIZEOF_STL_FACET)
       			return false;
-#ifndef BOOST_LITTLE_ENDIAN
+#if BOOST_ENDIAN_BIG_BYTE
       		// Convert the loaded little endian data to big endian.
       		stl_internal_reverse_quads((char*)&facet, 48);
-#endif /* BOOST_LITTLE_ENDIAN */
+#endif /* BOOST_ENDIAN_BIG_BYTE */
     	} else {
 			// Read a single facet from an ASCII .STL file
 			// skip solid/endsolid

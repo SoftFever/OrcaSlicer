@@ -4,6 +4,12 @@
 #include <tbb/spin_mutex.h>
 #include <tbb/mutex.h>
 #include <tbb/parallel_for.h>
+#include <tbb/parallel_reduce.h>
+
+#include <algorithm>
+#include <numeric>
+
+#include <libslic3r/libslic3r.h>
 
 namespace Slic3r {
 namespace sla {
@@ -17,17 +23,58 @@ template<bool> struct _ccr {};
 template<> struct _ccr<true>
 {
     using SpinningMutex = tbb::spin_mutex;
-    using BlockingMutex  = tbb::mutex;
-    
-    template<class It, class Fn>
-    static inline void enumerate(It from, It to, Fn fn)
+    using BlockingMutex = tbb::mutex;
+
+    template<class Fn, class It>
+    static IteratorOnly<It, void> loop_(const tbb::blocked_range<It> &range, Fn &&fn)
     {
-        auto   iN = to - from;
-        size_t N  = iN < 0 ? 0 : size_t(iN);
-        
-        tbb::parallel_for(size_t(0), N, [from, fn](size_t n) {
-            fn(*(from + decltype(iN)(n)), n);
+        for (auto &el : range) fn(el);
+    }
+
+    template<class Fn, class I>
+    static IntegerOnly<I, void> loop_(const tbb::blocked_range<I> &range, Fn &&fn)
+    {
+        for (I i = range.begin(); i < range.end(); ++i) fn(i);
+    }
+
+    template<class It, class Fn>
+    static void for_each(It from, It to, Fn &&fn, size_t granularity = 1)
+    {
+        tbb::parallel_for(tbb::blocked_range{from, to, granularity},
+                          [&fn, from](const auto &range) {
+            loop_(range, std::forward<Fn>(fn));
         });
+    }
+
+    template<class I, class MergeFn, class T, class AccessFn>
+    static T reduce(I          from,
+                    I          to,
+                    const T   &init,
+                    MergeFn  &&mergefn,
+                    AccessFn &&access,
+                    size_t     granularity = 1
+                    )
+    {
+        return tbb::parallel_reduce(
+            tbb::blocked_range{from, to, granularity}, init,
+            [&](const auto &range, T subinit) {
+                T acc = subinit;
+                loop_(range, [&](auto &i) { acc = mergefn(acc, access(i)); });
+                return acc;
+            },
+            std::forward<MergeFn>(mergefn));
+    }
+
+    template<class I, class MergeFn, class T>
+    static IteratorOnly<I, T> reduce(I         from,
+                                     I         to,
+                                     const T & init,
+                                     MergeFn &&mergefn,
+                                     size_t    granularity = 1)
+    {
+        return reduce(
+            from, to, init, std::forward<MergeFn>(mergefn),
+            [](typename I::value_type &i) { return i; }, granularity);
     }
 };
 
@@ -39,11 +86,52 @@ private:
 public:
     using SpinningMutex = _Mtx;
     using BlockingMutex = _Mtx;
-    
-    template<class It, class Fn>
-    static inline void enumerate(It from, It to, Fn fn)
+
+    template<class Fn, class It>
+    static IteratorOnly<It, void> loop_(It from, It to, Fn &&fn)
     {
-        for (auto it = from; it != to; ++it) fn(*it, size_t(it - from));
+        for (auto it = from; it != to; ++it) fn(*it);
+    }
+
+    template<class Fn, class I>
+    static IntegerOnly<I, void> loop_(I from, I to, Fn &&fn)
+    {
+        for (I i = from; i < to; ++i) fn(i);
+    }
+
+    template<class It, class Fn>
+    static void for_each(It   from,
+                         It   to,
+                         Fn &&fn,
+                         size_t /* ignore granularity */ = 1)
+    {
+        loop_(from, to, std::forward<Fn>(fn));
+    }
+
+    template<class I, class MergeFn, class T, class AccessFn>
+    static T reduce(I         from,
+                    I         to,
+                    const T & init,
+                    MergeFn  &&mergefn,
+                    AccessFn &&access,
+                    size_t   /*granularity*/ = 1
+                    )
+    {
+        T acc = init;
+        loop_(from, to, [&](auto &i) { acc = mergefn(acc, access(i)); });
+        return acc;
+    }
+
+    template<class I, class MergeFn, class T>
+    static IteratorOnly<I, T> reduce(I          from,
+                                     I          to,
+                                     const T   &init,
+                                     MergeFn  &&mergefn,
+                                     size_t     /*granularity*/ = 1
+                                     )
+    {
+        return reduce(from, to, init, std::forward<MergeFn>(mergefn),
+                      [](typename I::value_type &i) { return i; });
     }
 };
 

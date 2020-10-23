@@ -4,7 +4,6 @@
 #include "libslic3r/Slicing.hpp"
 #include "libslic3r/libslic3r.h"
 
-#include "PresetBundle.hpp"
 #include "PresetHints.hpp"
 
 #include <wx/intl.h> 

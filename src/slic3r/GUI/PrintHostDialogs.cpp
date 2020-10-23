@@ -15,11 +15,11 @@
 
 #include "GUI.hpp"
 #include "GUI_App.hpp"
-#include "AppConfig.hpp"
 #include "MsgDialog.hpp"
 #include "I18N.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "wxExtensions.hpp"
+#include "libslic3r/AppConfig.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -140,8 +140,6 @@ PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
 {
     const auto em = GetTextExtent("m").x;
 
-    SetSize(wxSize(HEIGHT * em, WIDTH * em));
-
     auto *topsizer = new wxBoxSizer(wxVERTICAL);
 
     job_list = new wxDataViewListCtrl(this, wxID_ANY);
@@ -167,6 +165,8 @@ PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
     topsizer->Add(job_list, 1, wxEXPAND | wxBOTTOM, SPACING);
     topsizer->Add(btnsizer, 0, wxEXPAND);
     SetSizer(topsizer);
+
+    SetSize(wxSize(HEIGHT * em, WIDTH * em));
 
     job_list->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxDataViewEvent&) { on_list_select(); });
 

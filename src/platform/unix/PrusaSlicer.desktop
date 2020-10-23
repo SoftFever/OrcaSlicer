@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=PrusaSlicer
+Exec=prusa-slicer %F
+Icon=PrusaSlicer
+Terminal=false
+Type=Application
+MimeType=model/stl;application/vnd.ms-3mfdocument;application/prs.wavefront-obj;application/x-amf;
+Categories=Graphics;3DGraphics;
+Keywords=3D;Printing;Slicer;

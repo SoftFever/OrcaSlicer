@@ -27,11 +27,13 @@ class PreferencesDialog : public DPIDialog
 	wxRadioBox*							m_layout_mode_box;
     bool                                isOSX {false};
 	bool								m_settings_layout_changed {false};
+	bool								m_seq_top_layer_only_changed{ false };
 public:
 	PreferencesDialog(wxWindow* parent);
 	~PreferencesDialog() {}
 
-	bool settings_layout_changed() { return m_settings_layout_changed; }
+	bool settings_layout_changed() const { return m_settings_layout_changed; }
+	bool seq_top_layer_only_changed() const { return m_seq_top_layer_only_changed; }
 
 	void	build();
 	void	accept();

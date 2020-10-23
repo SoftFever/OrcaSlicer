@@ -1,14 +1,15 @@
 #include "Preferences.hpp"
-#include "AppConfig.hpp"
 #include "OptionsGroup.hpp"
 #include "GUI_App.hpp"
+#include "Plater.hpp"
 #include "I18N.hpp"
+#include "libslic3r/AppConfig.hpp"
 
 namespace Slic3r {
 namespace GUI {
 
 PreferencesDialog::PreferencesDialog(wxWindow* parent) : 
-    DPIDialog(parent, wxID_ANY, _(L("Preferences")), wxDefaultPosition, 
+    DPIDialog(parent, wxID_ANY, _L("Preferences"), wxDefaultPosition, 
               wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
 {
 #ifdef __WXOSX__
@@ -20,10 +21,13 @@ PreferencesDialog::PreferencesDialog(wxWindow* parent) :
 void PreferencesDialog::build()
 {
 	auto app_config = get_app_config();
-	m_optgroup_general = std::make_shared<ConfigOptionsGroup>(this, _(L("General")));
+	m_optgroup_general = std::make_shared<ConfigOptionsGroup>(this, _L("General"));
 	m_optgroup_general->label_width = 40;
 	m_optgroup_general->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
-		m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
+		if (opt_key == "default_action_on_close_application" || opt_key == "default_action_on_select_preset")
+			m_values[opt_key] = boost::any_cast<bool>(value) ? "none" : "discard";
+		else
+		    m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
 	};
 
 	// TODO
@@ -36,81 +40,96 @@ void PreferencesDialog::build()
 //        readonly = > !wxTheApp->have_version_check,
 //    ));
 
+#if ENABLE_GCODE_VIEWER
+	bool is_editor = wxGetApp().is_editor();
+#endif // ENABLE_GCODE_VIEWER
+
 	ConfigOptionDef def;
-	def.label = L("Remember output directory");
-	def.type = coBool;
-	def.tooltip = L("If this is enabled, Slic3r will prompt the last output directory "
-					  "instead of the one containing the input files.");
-    def.set_default_value(new ConfigOptionBool{ app_config->has("remember_output_path") ? app_config->get("remember_output_path") == "1" : true });
-    Option option(def, "remember_output_path");
-	m_optgroup_general->append_single_option_line(option);
-
-	def.label = L("Auto-center parts");
-	def.type = coBool;
-	def.tooltip = L("If this is enabled, Slic3r will auto-center objects "
-					  "around the print bed center.");
-	def.set_default_value(new ConfigOptionBool{ app_config->get("autocenter") == "1" });
-	option = Option (def,"autocenter");
-	m_optgroup_general->append_single_option_line(option);
-
-	def.label = L("Background processing");
-	def.type = coBool;
-	def.tooltip = L("If this is enabled, Slic3r will pre-process objects as soon "
-					  "as they\'re loaded in order to save time when exporting G-code.");
-	def.set_default_value(new ConfigOptionBool{ app_config->get("background_processing") == "1" });
-	option = Option (def,"background_processing");
-	m_optgroup_general->append_single_option_line(option);
-
-	// Please keep in sync with ConfigWizard
-	def.label = L("Check for application updates");
-	def.type = coBool;
-	def.tooltip = L("If enabled, PrusaSlicer will check for the new versions of itself online. When a new version becomes available a notification is displayed at the next application startup (never during program usage). This is only a notification mechanisms, no automatic installation is done.");
-	def.set_default_value(new ConfigOptionBool(app_config->get("version_check") == "1"));
-	option = Option (def, "version_check");
-	m_optgroup_general->append_single_option_line(option);
-
-	// Please keep in sync with ConfigWizard
-	def.label = L("Export sources full pathnames to 3mf and amf");
-	def.type = coBool;
-	def.tooltip = L("If enabled, allows the Reload from disk command to automatically find and load the files when invoked.");
-	def.set_default_value(new ConfigOptionBool(app_config->get("export_sources_full_pathnames") == "1"));
-	option = Option(def, "export_sources_full_pathnames");
-	m_optgroup_general->append_single_option_line(option);
-
-	// Please keep in sync with ConfigWizard
-	def.label = L("Update built-in Presets automatically");
-	def.type = coBool;
-	def.tooltip = L("If enabled, Slic3r downloads updates of built-in system presets in the background. These updates are downloaded into a separate temporary location. When a new preset version becomes available it is offered at application startup.");
-	def.set_default_value(new ConfigOptionBool(app_config->get("preset_update") == "1"));
-	option = Option (def, "preset_update");
-	m_optgroup_general->append_single_option_line(option);
-
-	def.label = L("Suppress \" - default - \" presets");
-	def.type = coBool;
-	def.tooltip = L("Suppress \" - default - \" presets in the Print / Filament / Printer "
-					  "selections once there are any other valid presets available.");
-	def.set_default_value(new ConfigOptionBool{ app_config->get("no_defaults") == "1" });
-	option = Option (def,"no_defaults");
-	m_optgroup_general->append_single_option_line(option);
-
-	def.label = L("Show incompatible print and filament presets");
-	def.type = coBool;
-	def.tooltip = L("When checked, the print and filament presets are shown in the preset editor "
-					  "even if they are marked as incompatible with the active printer");
-	def.set_default_value(new ConfigOptionBool{ app_config->get("show_incompatible_presets") == "1" });
-	option = Option (def,"show_incompatible_presets");
-	m_optgroup_general->append_single_option_line(option);
-
-	def.label = L("Single Instance");
-	def.type = coBool;
-#if __APPLE__
-	def.tooltip = L("On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances of same app from the command line. In such case this settings will allow only one instance.");
+#if ENABLE_GCODE_VIEWER
+	Option option(def, "");
+	if (is_editor) {
+#endif // ENABLE_GCODE_VIEWER
+		def.label = L("Remember output directory");
+		def.type = coBool;
+		def.tooltip = L("If this is enabled, Slic3r will prompt the last output directory "
+			"instead of the one containing the input files.");
+		def.set_default_value(new ConfigOptionBool{ app_config->has("remember_output_path") ? app_config->get("remember_output_path") == "1" : true });
+#if ENABLE_GCODE_VIEWER
+		option = Option(def, "remember_output_path");
 #else
-	def.tooltip = L("If this is enabled, when staring PrusaSlicer and another instance of same PrusaSlicer is running, that instance will be reactivated instead.");
+		Option option(def, "remember_output_path");
+#endif // ENABLE_GCODE_VIEWER
+		m_optgroup_general->append_single_option_line(option);
+
+		def.label = L("Auto-center parts");
+		def.type = coBool;
+		def.tooltip = L("If this is enabled, Slic3r will auto-center objects "
+			"around the print bed center.");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("autocenter") == "1" });
+		option = Option(def, "autocenter");
+		m_optgroup_general->append_single_option_line(option);
+
+		def.label = L("Background processing");
+		def.type = coBool;
+		def.tooltip = L("If this is enabled, Slic3r will pre-process objects as soon "
+			"as they\'re loaded in order to save time when exporting G-code.");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("background_processing") == "1" });
+		option = Option(def, "background_processing");
+		m_optgroup_general->append_single_option_line(option);
+
+		// Please keep in sync with ConfigWizard
+		def.label = L("Check for application updates");
+		def.type = coBool;
+		def.tooltip = L("If enabled, PrusaSlicer will check for the new versions of itself online. When a new version becomes available a notification is displayed at the next application startup (never during program usage). This is only a notification mechanisms, no automatic installation is done.");
+		def.set_default_value(new ConfigOptionBool(app_config->get("version_check") == "1"));
+		option = Option(def, "version_check");
+		m_optgroup_general->append_single_option_line(option);
+
+		// Please keep in sync with ConfigWizard
+		def.label = L("Export sources full pathnames to 3mf and amf");
+		def.type = coBool;
+		def.tooltip = L("If enabled, allows the Reload from disk command to automatically find and load the files when invoked.");
+		def.set_default_value(new ConfigOptionBool(app_config->get("export_sources_full_pathnames") == "1"));
+		option = Option(def, "export_sources_full_pathnames");
+		m_optgroup_general->append_single_option_line(option);
+
+		// Please keep in sync with ConfigWizard
+		def.label = L("Update built-in Presets automatically");
+		def.type = coBool;
+		def.tooltip = L("If enabled, Slic3r downloads updates of built-in system presets in the background. These updates are downloaded into a separate temporary location. When a new preset version becomes available it is offered at application startup.");
+		def.set_default_value(new ConfigOptionBool(app_config->get("preset_update") == "1"));
+		option = Option(def, "preset_update");
+		m_optgroup_general->append_single_option_line(option);
+
+		def.label = L("Suppress \" - default - \" presets");
+		def.type = coBool;
+		def.tooltip = L("Suppress \" - default - \" presets in the Print / Filament / Printer "
+			"selections once there are any other valid presets available.");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("no_defaults") == "1" });
+		option = Option(def, "no_defaults");
+		m_optgroup_general->append_single_option_line(option);
+
+		def.label = L("Show incompatible print and filament presets");
+		def.type = coBool;
+		def.tooltip = L("When checked, the print and filament presets are shown in the preset editor "
+			"even if they are marked as incompatible with the active printer");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("show_incompatible_presets") == "1" });
+		option = Option(def, "show_incompatible_presets");
+		m_optgroup_general->append_single_option_line(option);
+
+		def.label = L("Single Instance");
+		def.type = coBool;
+#if __APPLE__
+		def.tooltip = L("On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances of same app from the command line. In such case this settings will allow only one instance.");
+#else
+		def.tooltip = L("If this is enabled, when staring PrusaSlicer and another instance of same PrusaSlicer is running, that instance will be reactivated instead.");
 #endif
-	def.set_default_value(new ConfigOptionBool{ app_config->has("single_instance") ? app_config->get("single_instance") == "1" : false });
-	option = Option(def, "single_instance");
-	m_optgroup_general->append_single_option_line(option);
+		def.set_default_value(new ConfigOptionBool{ app_config->has("single_instance") ? app_config->get("single_instance") == "1" : false });
+		option = Option(def, "single_instance");
+		m_optgroup_general->append_single_option_line(option);
+#if ENABLE_GCODE_VIEWER
+	}
+#endif // ENABLE_GCODE_VIEWER
 
 #if __APPLE__
 	def.label = L("Use Retina resolution for the 3D scene");
@@ -131,7 +150,32 @@ void PreferencesDialog::build()
 	option = Option(def, "use_inches");
 	m_optgroup_general->append_single_option_line(option);
 */
-	m_optgroup_camera = std::make_shared<ConfigOptionsGroup>(this, _(L("Camera")));
+
+	def.label = L("Ask for unsaved changes when closing application");
+	def.type = coBool;
+	def.tooltip = L("Always ask for unsaved changes when closing application");
+	def.set_default_value(new ConfigOptionBool{ app_config->get("default_action_on_close_application") == "none" });
+	option = Option(def, "default_action_on_close_application");
+	m_optgroup_general->append_single_option_line(option);
+
+	def.label = L("Ask for unsaved changes when selecting new preset");
+	def.type = coBool;
+	def.tooltip = L("Always ask for unsaved changes when selecting new preset");
+	def.set_default_value(new ConfigOptionBool{ app_config->get("default_action_on_select_preset") == "none" });
+	option = Option(def, "default_action_on_select_preset");
+	m_optgroup_general->append_single_option_line(option);
+
+    // Show/Hide splash screen
+	def.label = L("Show splash screen");
+	def.type = coBool;
+	def.tooltip = L("Show splash screen");
+	def.set_default_value(new ConfigOptionBool{ app_config->get("show_splash_screen") == "1" });
+	option = Option(def, "show_splash_screen");
+	m_optgroup_general->append_single_option_line(option);
+
+	m_optgroup_general->activate();
+
+	m_optgroup_camera = std::make_shared<ConfigOptionsGroup>(this, _L("Camera"));
 	m_optgroup_camera->label_width = 40;
 	m_optgroup_camera->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
 		m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
@@ -151,7 +195,9 @@ void PreferencesDialog::build()
 	option = Option(def, "use_free_camera");
 	m_optgroup_camera->append_single_option_line(option);
 
-	m_optgroup_gui = std::make_shared<ConfigOptionsGroup>(this, _(L("GUI")));
+	m_optgroup_camera->activate();
+
+	m_optgroup_gui = std::make_shared<ConfigOptionsGroup>(this, _L("GUI"));
 	m_optgroup_gui->label_width = 40;
 	m_optgroup_gui->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
 		m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
@@ -161,46 +207,79 @@ void PreferencesDialog::build()
 		}
 	};
 
-	def.label = L("Show sidebar collapse/expand button");
+#if ENABLE_GCODE_VIEWER
+	if (is_editor) {
+#endif // ENABLE_GCODE_VIEWER
+		def.label = L("Show sidebar collapse/expand button");
+		def.type = coBool;
+		def.tooltip = L("If enabled, the button for the collapse sidebar will be appeared in top right corner of the 3D Scene");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("show_collapse_button") == "1" });
+		option = Option(def, "show_collapse_button");
+		m_optgroup_gui->append_single_option_line(option);
+
+		def.label = L("Use custom size for toolbar icons");
+		def.type = coBool;
+		def.tooltip = L("If enabled, you can change size of toolbar icons manually.");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("use_custom_toolbar_size") == "1" });
+		option = Option(def, "use_custom_toolbar_size");
+		m_optgroup_gui->append_single_option_line(option);
+#if ENABLE_GCODE_VIEWER
+	}
+#endif // ENABLE_GCODE_VIEWER
+
+	def.label = L("Sequential slider applied only to top layer");
 	def.type = coBool;
-	def.tooltip = L("If enabled, the button for the collapse sidebar will be appeared in top right corner of the 3D Scene");
-	def.set_default_value(new ConfigOptionBool{ app_config->get("show_collapse_button") == "1" });
-	option = Option(def, "show_collapse_button");
+	def.tooltip = L("If enabled, changes made using the sequential slider, in preview, apply only to gcode top layer, "
+					"if disabled, changes made using the sequential slider, in preview, apply to the whole gcode.");
+	def.set_default_value(new ConfigOptionBool{ app_config->get("seq_top_layer_only") == "1" });
+	option = Option(def, "seq_top_layer_only");
 	m_optgroup_gui->append_single_option_line(option);
 
-	def.label = L("Use custom size for toolbar icons");
-	def.type = coBool;
-	def.tooltip = L("If enabled, you can change size of toolbar icons manually.");
-	def.set_default_value(new ConfigOptionBool{ app_config->get("use_custom_toolbar_size") == "1" });
-	option = Option(def, "use_custom_toolbar_size");
-	m_optgroup_gui->append_single_option_line(option);
+	m_optgroup_gui->activate();
 
-	create_icon_size_slider();
-	m_icon_size_sizer->ShowItems(app_config->get("use_custom_toolbar_size") == "1");
+#if ENABLE_GCODE_VIEWER
+	if (is_editor) {
+#endif // ENABLE_GCODE_VIEWER
+		create_icon_size_slider();
+		m_icon_size_sizer->ShowItems(app_config->get("use_custom_toolbar_size") == "1");
 
-	create_settings_mode_widget();
+		create_settings_mode_widget();
+#if ENABLE_GCODE_VIEWER
+	}
+#endif // ENABLE_GCODE_VIEWER
 
+#if ENABLE_GCODE_VIEWER
+	if (is_editor) {
+#endif // ENABLE_GCODE_VIEWER
 #if ENABLE_ENVIRONMENT_MAP
-	m_optgroup_render = std::make_shared<ConfigOptionsGroup>(this, _(L("Render")));
-	m_optgroup_render->label_width = 40;
-	m_optgroup_render->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
-		m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
-	};
+		m_optgroup_render = std::make_shared<ConfigOptionsGroup>(this, _L("Render"));
+		m_optgroup_render->label_width = 40;
+		m_optgroup_render->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
+			m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
+		};
 
-	def.label = L("Use environment map");
-	def.type = coBool;
-	def.tooltip = L("If enabled, renders object using the environment map.");
-	def.set_default_value(new ConfigOptionBool{ app_config->get("use_environment_map") == "1" });
-	option = Option(def, "use_environment_map");
-	m_optgroup_render->append_single_option_line(option);
+		def.label = L("Use environment map");
+		def.type = coBool;
+		def.tooltip = L("If enabled, renders object using the environment map.");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("use_environment_map") == "1" });
+		option = Option(def, "use_environment_map");
+		m_optgroup_render->append_single_option_line(option);
+
+		m_optgroup_render->activate();
 #endif // ENABLE_ENVIRONMENT_MAP
+#if ENABLE_GCODE_VIEWER
+	}
+#endif // ENABLE_GCODE_VIEWER
 
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 	sizer->Add(m_optgroup_general->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 	sizer->Add(m_optgroup_camera->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 	sizer->Add(m_optgroup_gui->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 #if ENABLE_ENVIRONMENT_MAP
-	sizer->Add(m_optgroup_render->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
+#if ENABLE_GCODE_VIEWER
+	if (m_optgroup_render != nullptr)
+#endif // ENABLE_GCODE_VIEWER
+		sizer->Add(m_optgroup_render->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 #endif // ENABLE_ENVIRONMENT_MAP
 
     SetFont(wxGetApp().normal_font());
@@ -217,10 +296,14 @@ void PreferencesDialog::build()
 void PreferencesDialog::accept()
 {
     if (m_values.find("no_defaults") != m_values.end()) {
-        warning_catcher(this, wxString::Format(_(L("You need to restart %s to make the changes effective.")), SLIC3R_APP_NAME));
+        warning_catcher(this, wxString::Format(_L("You need to restart %s to make the changes effective."), SLIC3R_APP_NAME));
 	}
 
     auto app_config = get_app_config();
+
+	m_seq_top_layer_only_changed = false;
+	if (auto it = m_values.find("seq_top_layer_only"); it != m_values.end())
+		m_seq_top_layer_only_changed = app_config->get("seq_top_layer_only") != it->second;
 
 	m_settings_layout_changed = false;
 	for (const std::string& key : {"old_settings_layout_mode",
@@ -234,29 +317,12 @@ void PreferencesDialog::accept()
 	    }
 	}
 
-#if !ENABLE_LAYOUT_NO_RESTART
-	if (m_settings_layout_changed) {
-		// the dialog needs to be destroyed before the call to recreate_gui()
-		// or sometimes the application crashes into wxDialogBase() destructor
-		// so we put it into an inner scope
-		wxMessageDialog dialog(nullptr,
-			            _L("Switching the settings layout mode will trigger application restart.\n"
-				                  "You will lose content of the plater.") + "\n\n" +
-			                   _L("Do you want to proceed?"),
-			wxString(SLIC3R_APP_NAME) + " - " + _L("Switching the settings layout mode"),
-			wxICON_QUESTION | wxOK | wxCANCEL);
-
-		if (dialog.ShowModal() == wxID_CANCEL)
-		{
-			int selection = app_config->get("old_settings_layout_mode") == "1" ? 0 :
-				            app_config->get("new_settings_layout_mode") == "1" ? 1 :
-				            app_config->get("dlg_settings_layout_mode") == "1" ? 2 : 0;
-
-			m_layout_mode_box->SetSelection(selection);
-			return;
-		}
+	for (const std::string& key : {"default_action_on_close_application", "default_action_on_select_preset"})
+	{
+	    auto it = m_values.find(key);
+		if (it != m_values.end() && it->second != "none" && app_config->get(key) != "none")
+			m_values.erase(it); // we shouldn't change value, if some of those parameters was selected, and then deselected
 	}
-#endif // !ENABLE_LAYOUT_NO_RESTART
 
 	for (std::map<std::string, std::string>::iterator it = m_values.begin(); it != m_values.end(); ++it)
 		app_config->set(it->first, it->second);
@@ -307,7 +373,7 @@ void PreferencesDialog::create_icon_size_slider()
         // we should use system default background
         parent->SetBackgroundStyle(wxBG_STYLE_ERASE);
 
-    auto label = new wxStaticText(parent, wxID_ANY, _(L("Icon size in a respect to the default size")) + " (%) :");
+    auto label = new wxStaticText(parent, wxID_ANY, _L("Icon size in a respect to the default size") + " (%) :");
 
     m_icon_size_sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL| wxRIGHT | (isOSX ? 0 : wxLEFT), em);
 
@@ -322,7 +388,7 @@ void PreferencesDialog::create_icon_size_slider()
 
     slider->SetTickFreq(10);
     slider->SetPageSize(10);
-    slider->SetToolTip(_(L("Select toolbar icon size in respect to the default one.")));
+    slider->SetToolTip(_L("Select toolbar icon size in respect to the default one."));
 
     m_icon_size_sizer->Add(slider, 1, wxEXPAND);
 

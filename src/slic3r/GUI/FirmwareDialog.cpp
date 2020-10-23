@@ -766,7 +766,7 @@ const char* FirmwareDialog::priv::avr109_dev_name(Avr109Pid usb_pid) {
 			return "Original Prusa CW1";
 		break;
 
-		default: throw std::runtime_error((boost::format("Invalid avr109 device USB PID: %1%") % usb_pid.boot).str());
+		default: throw Slic3r::RuntimeError((boost::format("Invalid avr109 device USB PID: %1%") % usb_pid.boot).str());
 	}
 }
 
@@ -790,7 +790,7 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
     SetFont(font);
     wxFont status_font = font;//wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 	status_font.MakeBold();
-	wxFont mono_font(wxFontInfo().Family(wxFONTFAMILY_TELETYPE));
+	wxFont mono_font = GUI::wxGetApp().code_font();
 	mono_font.MakeSmaller();
 
 	// Create GUI components and layout

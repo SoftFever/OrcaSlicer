@@ -261,7 +261,7 @@ protected:
 	SLAPrintObject(SLAPrint* print, ModelObject* model_object);
     ~SLAPrintObject();
 
-    void                    config_apply(const ConfigBase &other, bool ignore_nonexistent = false) { this->m_config.apply(other, ignore_nonexistent); }
+    void                    config_apply(const ConfigBase &other, bool ignore_nonexistent = false) { m_config.apply(other, ignore_nonexistent); }
     void                    config_apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false)
         { this->m_config.apply_only(other, keys, ignore_nonexistent); }
 
@@ -374,7 +374,7 @@ protected:
     std::vector<sla::EncodedRaster> m_layers;
     
     virtual uqptr<sla::RasterBase> create_raster() const = 0;
-    virtual sla::EncodedRaster encode_raster(const sla::RasterBase &rst) const = 0;
+    virtual sla::RasterEncoder get_encoder() const = 0;
     
 public:
     virtual ~SLAPrinter() = default;
@@ -385,12 +385,13 @@ public:
     template<class Fn> void draw_layers(size_t layer_num, Fn &&drawfn)
     {
         m_layers.resize(layer_num);
-        sla::ccr::enumerate(m_layers.begin(), m_layers.end(),
-                            [this, &drawfn](sla::EncodedRaster& enc, size_t idx) {
-                                auto rst = create_raster();
-                                drawfn(*rst, idx);
-                                enc = encode_raster(*rst);
-                            });
+        sla::ccr::for_each(size_t(0), m_layers.size(),
+                           [this, &drawfn] (size_t idx) {
+                               sla::EncodedRaster& enc = m_layers[idx];
+                               auto rst = create_raster();
+                               drawfn(*rst, idx);
+                               enc = rst->encode(get_encoder());
+                           });
     }
 };
 
@@ -419,6 +420,8 @@ public:
 
     void                clear() override;
     bool                empty() const override { return m_objects.empty(); }
+    // List of existing PrintObject IDs, to remove notifications for non-existent IDs.
+    std::vector<ObjectID> print_object_ids() const;
     ApplyStatus         apply(const Model &model, DynamicPrintConfig config) override;
     void                set_task(const TaskParams &params) override;
     void                process() override;
@@ -433,7 +436,7 @@ public:
     // in the notification center.
     const SLAPrintObject* get_object(ObjectID object_id) const {
         auto it = std::find_if(m_objects.begin(), m_objects.end(),
-            [object_id](const SLAPrintObject *obj) { return *static_cast<const ObjectID*>(obj) == object_id; });
+            [object_id](const SLAPrintObject *obj) { return obj->id() == object_id; });
         return (it == m_objects.end()) ? nullptr : *it;
     }
 
@@ -544,7 +547,7 @@ private:
 
 bool is_zero_elevation(const SLAPrintObjectConfig &c);
 
-sla::SupportConfig make_support_cfg(const SLAPrintObjectConfig& c);
+sla::SupportTreeConfig make_support_cfg(const SLAPrintObjectConfig& c);
 
 sla::PadConfig::EmbedObject builtin_pad_cfg(const SLAPrintObjectConfig& c);
 

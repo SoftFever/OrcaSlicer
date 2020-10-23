@@ -6,7 +6,7 @@
 #include "OptionsGroup.hpp"
 #include "GUI_App.hpp"
 #include "wxExtensions.hpp"
-#include "PresetBundle.hpp"
+#include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "Selection.hpp"
@@ -65,8 +65,8 @@ static wxBitmapComboBox* create_word_local_combo(wxWindow *parent)
     temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
     if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
-    temp->Append(_(L("World coordinates")));
-    temp->Append(_(L("Local coordinates")));
+    temp->Append(_L("World coordinates"));
+    temp->Append(_L("Local coordinates"));
     temp->SetSelection(0);
     temp->SetValue(temp->GetString(0));
 
@@ -85,7 +85,7 @@ static wxBitmapComboBox* create_word_local_combo(wxWindow *parent)
     temp->SetItemBitmap(0, empty_bmp);
 #endif
 
-    temp->SetToolTip(_(L("Select coordinate space, in which the transformation will be performed.")));
+    temp->SetToolTip(_L("Select coordinate space, in which the transformation will be performed."));
 	return temp;
 }
 
@@ -108,8 +108,8 @@ void msw_rescale_word_local_combo(wxBitmapComboBox* combo)
     // Set rescaled size
     combo->SetSize(size);
     
-    combo->Append(_(L("World coordinates")));
-    combo->Append(_(L("Local coordinates")));
+    combo->Append(_L("World coordinates"));
+    combo->Append(_L("Local coordinates"));
 
     wxBitmap empty_bmp(1, combo->GetFont().GetPixelSize().y + 2);
     empty_bmp.SetWidth(0);
@@ -158,9 +158,9 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     sizer->Add(m_fix_throught_netfab_bitmap);
 
-    auto name_label = new wxStaticText(m_parent, wxID_ANY, _(L("Name"))+":");
+    auto name_label = new wxStaticText(m_parent, wxID_ANY, _L("Name")+":");
     set_font_and_background_style(name_label, wxGetApp().normal_font());
-    name_label->SetToolTip(_(L("Object name")));
+    name_label->SetToolTip(_L("Object name"));
     sizer->Add(name_label);
 
     m_main_grid_sizer->Add(sizer);
@@ -268,7 +268,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
         // We will add a button to toggle mirroring to each axis:
         auto btn = new ScalableButton(parent, wxID_ANY, "mirroring_off", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER | wxTRANSPARENT_WINDOW);
-        btn->SetToolTip(wxString::Format(_(L("Toggle %c axis mirroring")), (int)label));
+        btn->SetToolTip(wxString::Format(_L("Toggle %c axis mirroring"), (int)label));
         btn->SetBitmapDisabled_(m_mirror_bitmap_hidden);
 
         m_mirror_buttons[axis_idx].first = btn;
@@ -342,7 +342,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     // Add drop to bed button
     m_drop_to_bed_button = new ScalableButton(parent, wxID_ANY, ScalableBitmap(parent, "drop_to_bed"));
-    m_drop_to_bed_button->SetToolTip(_(L("Drop to bed")));
+    m_drop_to_bed_button->SetToolTip(_L("Drop to bed"));
     m_drop_to_bed_button->Bind(wxEVT_BUTTON, [=](wxCommandEvent& e) {
         // ???
         GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
@@ -354,7 +354,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
             const Geometry::Transformation& instance_trafo = volume->get_instance_transformation();
             Vec3d diff = m_cache.position - instance_trafo.get_matrix(true).inverse() * Vec3d(0., 0., get_volume_min_z(volume));
 
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Drop to bed")));
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Drop to bed"));
             change_position_value(0, diff.x());
             change_position_value(1, diff.y());
             change_position_value(2, diff.z());
@@ -369,7 +369,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     // Add reset rotation button
     m_reset_rotation_button = new ScalableButton(parent, wxID_ANY, ScalableBitmap(parent, "undo"));
-    m_reset_rotation_button->SetToolTip(_(L("Reset rotation")));
+    m_reset_rotation_button->SetToolTip(_L("Reset rotation"));
     m_reset_rotation_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
         GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
         Selection& selection = canvas->get_selection();
@@ -404,9 +404,9 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     // Add reset scale button
     m_reset_scale_button = new ScalableButton(parent, wxID_ANY, ScalableBitmap(parent, "undo"));
-    m_reset_scale_button->SetToolTip(_(L("Reset scale")));
+    m_reset_scale_button->SetToolTip(_L("Reset scale"));
     m_reset_scale_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Reset scale")));
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Reset scale"));
         change_scale_value(0, 100.);
         change_scale_value(1, 100.);
         change_scale_value(2, 100.);
@@ -431,6 +431,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     m_main_grid_sizer->Add(m_check_inch, 1, wxEXPAND);
 
+    m_og->activate();
     m_og->sizer->Clear(true);
     m_og->sizer->Add(m_main_grid_sizer, 1, wxEXPAND | wxALL, border);
 }
@@ -509,8 +510,7 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
         m_world_coordinates = true;
 
     ObjectList* obj_list = wxGetApp().obj_list();
-    if (selection.is_single_full_instance())
-    {
+    if (selection.is_single_full_instance()) {
         // all volumes in the selection belongs to the same instance, any of them contains the needed instance data, so we take the first one
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
         m_new_position = volume->get_instance_offset();
@@ -528,7 +528,8 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
 			m_new_rotation = Vec3d::Zero();
 			m_new_size     = selection.get_scaled_instance_bounding_box().size();
 			m_new_scale    = m_new_size.cwiseProduct(selection.get_unscaled_instance_bounding_box().size().cwiseInverse()) * 100.;
-		} else {
+		} 
+        else {
 			m_new_rotation = volume->get_instance_rotation() * (180. / M_PI);
 			m_new_size     = volume->get_instance_transformation().get_scaling_factor().cwiseProduct(wxGetApp().model().objects[volume->object_idx()]->raw_mesh_bounding_box().size());
 			m_new_scale    = volume->get_instance_scaling_factor() * 100.;
@@ -536,8 +537,7 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
 
         m_new_enabled  = true;
     }
-    else if (selection.is_single_full_object() && obj_list->is_selected(itObject))
-    {
+    else if (selection.is_single_full_object() && obj_list->is_selected(itObject)) {
         const BoundingBoxf3& box = selection.get_bounding_box();
         m_new_position = box.center();
         m_new_rotation = Vec3d::Zero();
@@ -547,18 +547,16 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
 		m_new_scale_label_string  = L("Scale");
         m_new_enabled  = true;
     }
-    else if (selection.is_single_modifier() || selection.is_single_volume())
-    {
+    else if (selection.is_single_modifier() || selection.is_single_volume()) {
         // the selection contains a single volume
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
         m_new_position = volume->get_volume_offset();
         m_new_rotation = volume->get_volume_rotation() * (180. / M_PI);
         m_new_scale    = volume->get_volume_scaling_factor() * 100.;
-        m_new_size = volume->get_volume_transformation().get_scaling_factor().cwiseProduct(volume->bounding_box().size());
+        m_new_size     = volume->get_instance_transformation().get_scaling_factor().cwiseProduct(volume->get_volume_transformation().get_scaling_factor().cwiseProduct(volume->bounding_box().size()));
         m_new_enabled = true;
     }
-    else if (obj_list->multiple_selection() || obj_list->is_selected(itInstanceRoot))
-    {
+    else if (obj_list->multiple_selection() || obj_list->is_selected(itInstanceRoot)) {
         reset_settings_value();
 		m_new_move_label_string   = L("Translate");
 		m_new_rotate_label_string = L("Rotate");
@@ -624,7 +622,7 @@ void ObjectManipulation::update_if_dirty()
 
     if (selection.requires_uniform_scale()) {
         m_lock_bnt->SetLock(true);
-        m_lock_bnt->SetToolTip(_(L("You cannot use non-uniform scaling mode for multiple objects/parts selection")));
+        m_lock_bnt->SetToolTip(_L("You cannot use non-uniform scaling mode for multiple objects/parts selection"));
         m_lock_bnt->disable();
     }
     else {
@@ -924,11 +922,11 @@ void ObjectManipulation::set_uniform_scaling(const bool new_value)
 		if (! Geometry::is_rotation_ninety_degrees(volume->get_instance_rotation())) {
             // Cannot apply scaling in the world coordinate system.
 			wxMessageDialog dlg(GUI::wxGetApp().mainframe,
-                _(L("The currently manipulated object is tilted (rotation angles are not multiples of 90°).\n"
+                _L("The currently manipulated object is tilted (rotation angles are not multiples of 90°).\n"
                     "Non-uniform scaling of tilted objects is only possible in the World coordinate system,\n"
-                    "once the rotation is embedded into the object coordinates.")) + "\n" +
-                _(L("This operation is irreversible.\n"
-                    "Do you want to proceed?")),
+                    "once the rotation is embedded into the object coordinates.") + "\n" +
+                _L("This operation is irreversible.\n"
+                    "Do you want to proceed?"),
                 SLIC3R_APP_NAME,
 				wxYES_NO | wxCANCEL | wxCANCEL_DEFAULT | wxICON_QUESTION);
             if (dlg.ShowModal() != wxID_YES) {

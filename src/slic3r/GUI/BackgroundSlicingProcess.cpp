@@ -19,8 +19,11 @@
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/GCode/PostProcessor.hpp"
+#if !ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/PreviewData.hpp"
+#endif // !ENABLE_GCODE_VIEWER
 #include "libslic3r/Format/SL1.hpp"
+#include "libslic3r/Thread.hpp"
 #include "libslic3r/libslic3r.h"
 
 #include <cassert>
@@ -34,10 +37,39 @@
 #include "I18N.hpp"
 #include "RemovableDriveManager.hpp"
 
-#include "slic3r/Utils/Thread.hpp"
 #include "slic3r/GUI/Plater.hpp"
 
 namespace Slic3r {
+
+bool SlicingProcessCompletedEvent::critical_error() const
+{
+	try {
+		this->rethrow_exception();
+	} catch (const Slic3r::SlicingError &) {
+		// Exception derived from SlicingError is non-critical.
+		return false;
+	} catch (...) {
+	}
+	return true;
+}
+
+std::string SlicingProcessCompletedEvent::format_error_message() const
+{
+	std::string error;
+	try {
+		this->rethrow_exception();
+    } catch (const std::bad_alloc& ex) {
+        wxString errmsg = GUI::from_u8((boost::format(_utf8(L("%s has encountered an error. It was likely caused by running out of memory. "
+                              "If you are sure you have enough RAM on your system, this may also be a bug and we would "
+                              "be glad if you reported it."))) % SLIC3R_APP_NAME).str());
+        error = std::string(errmsg.ToUTF8()) + "\n\n" + std::string(ex.what());
+    } catch (std::exception &ex) {
+		error = ex.what();
+	} catch (...) {
+		error = "Unknown C++ exception.";
+	}
+	return error;
+}
 
 BackgroundSlicingProcess::BackgroundSlicingProcess()
 {
@@ -89,34 +121,44 @@ void BackgroundSlicingProcess::process_fff()
 {
 	assert(m_print == m_fff_print);
     m_print->process();
-	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_slicing_completed_id));
-    m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data, m_thumbnail_cb);
-
+	wxCommandEvent evt(m_event_slicing_completed_id);
+	// Post the Slicing Finished message for the G-code viewer to update.
+	// Passing the timestamp 
+	evt.SetInt((int)(m_fff_print->step_state_with_timestamp(PrintStep::psSlicingFinished).timestamp));
+	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
+#if ENABLE_GCODE_VIEWER
+	m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, m_thumbnail_cb);
+#else
+	m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data, m_thumbnail_cb);
+#endif // ENABLE_GCODE_VIEWER
 	if (this->set_step_started(bspsGCodeFinalize)) {
 	    if (! m_export_path.empty()) {
+			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
 	    	//FIXME localize the messages
 	    	// Perform the final post-processing of the export path by applying the print statistics over the file name.
 	    	std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);
-			int copy_ret_val = copy_file(m_temp_output_path, export_path, m_export_path_on_removable_media);
+			std::string error_message;
+			int copy_ret_val = copy_file(m_temp_output_path, export_path, error_message, m_export_path_on_removable_media);
 			switch (copy_ret_val) {
 			case SUCCESS: break; // no error
 			case FAIL_COPY_FILE:
-				throw std::runtime_error(_utf8(L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?")));
+				throw Slic3r::RuntimeError((boost::format(_utf8(L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?\nError message: %1%"))) % error_message).str());
 				break;
 			case FAIL_FILES_DIFFERENT: 
-				throw std::runtime_error((boost::format(_utf8(L("Copying of the temporary G-code to the output G-code failed. There might be problem with target device, please try exporting again or using different device. The corrupted output G-code is at %1%.tmp."))) % export_path).str());
+				throw Slic3r::RuntimeError((boost::format(_utf8(L("Copying of the temporary G-code to the output G-code failed. There might be problem with target device, please try exporting again or using different device. The corrupted output G-code is at %1%.tmp."))) % export_path).str());
 				break;
 			case FAIL_RENAMING: 
-				throw std::runtime_error((boost::format(_utf8(L("Renaming of the G-code after copying to the selected destination folder has failed. Current path is %1%.tmp. Please try exporting again."))) % export_path).str()); 
+				throw Slic3r::RuntimeError((boost::format(_utf8(L("Renaming of the G-code after copying to the selected destination folder has failed. Current path is %1%.tmp. Please try exporting again."))) % export_path).str()); 
 				break;
 			case FAIL_CHECK_ORIGIN_NOT_OPENED: 
-				throw std::runtime_error((boost::format(_utf8(L("Copying of the temporary G-code has finished but the original code at %1% couldn't be opened during copy check. The output G-code is at %2%.tmp."))) % m_temp_output_path % export_path).str());
+				throw Slic3r::RuntimeError((boost::format(_utf8(L("Copying of the temporary G-code has finished but the original code at %1% couldn't be opened during copy check. The output G-code is at %2%.tmp."))) % m_temp_output_path % export_path).str());
 				break;
 			case FAIL_CHECK_TARGET_NOT_OPENED: 
-				throw std::runtime_error((boost::format(_utf8(L("Copying of the temporary G-code has finished but the exported code couldn't be opened during copy check. The output G-code is at %1%.tmp."))) % export_path).str()); 
+				throw Slic3r::RuntimeError((boost::format(_utf8(L("Copying of the temporary G-code has finished but the exported code couldn't be opened during copy check. The output G-code is at %1%.tmp."))) % export_path).str()); 
 				break;
 			default:
-				BOOST_LOG_TRIVIAL(warning) << "Unexpected fail code(" << (int)copy_ret_val << ") durring copy_file() to " << export_path << ".";
+				throw Slic3r::RuntimeError(_utf8(L("Unknown error occured during exporting G-code.")));
+				BOOST_LOG_TRIVIAL(error) << "Unexpected fail code(" << (int)copy_ret_val << ") durring copy_file() to " << export_path << ".";
 				break;
 			}
 			
@@ -124,6 +166,7 @@ void BackgroundSlicingProcess::process_fff()
 	    	run_post_process_scripts(export_path, m_fff_print->config());
 	    	m_print->set_status(100, (boost::format(_utf8(L("G-code file exported to %1%"))) % export_path).str());
 	    } else if (! m_upload_job.empty()) {
+			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
 			prepare_upload();
 	    } else {
 			m_print->set_status(100, _utf8(L("Slicing complete")));
@@ -149,6 +192,8 @@ void BackgroundSlicingProcess::process_sla()
     m_print->process();
     if (this->set_step_started(bspsGCodeFinalize)) {
         if (! m_export_path.empty()) {
+			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
+
             const std::string export_path = m_sla_print->print_statistics().finalize_output_path(m_export_path);
 
             Zipper zipper(export_path);
@@ -170,6 +215,7 @@ void BackgroundSlicingProcess::process_sla()
 
             m_print->set_status(100, (boost::format(_utf8(L("Masked SLA file exported to %1%"))) % export_path).str());
         } else if (! m_upload_job.empty()) {
+			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
             prepare_upload();
         } else {
 			m_print->set_status(100, _utf8(L("Slicing complete")));
@@ -180,6 +226,9 @@ void BackgroundSlicingProcess::process_sla()
 
 void BackgroundSlicingProcess::thread_proc()
 {
+    set_current_thread_name("slic3r_BgSlcPcs");
+	name_tbb_thread_pool_threads();
+
 	assert(m_print != nullptr);
 	assert(m_print == m_fff_print || m_print == m_sla_print);
 	std::unique_lock<std::mutex> lck(m_mutex);
@@ -198,7 +247,7 @@ void BackgroundSlicingProcess::thread_proc()
 		// Process the background slicing task.
 		m_state = STATE_RUNNING;
 		lck.unlock();
-		std::string error;
+		std::exception_ptr exception;
 		try {
 			assert(m_print != nullptr);
 			switch(m_print->technology()) {
@@ -209,15 +258,8 @@ void BackgroundSlicingProcess::thread_proc()
 		} catch (CanceledException & /* ex */) {
 			// Canceled, this is all right.
 			assert(m_print->canceled());
-        } catch (const std::bad_alloc& ex) {
-            wxString errmsg = GUI::from_u8((boost::format(_utf8(L("%s has encountered an error. It was likely caused by running out of memory. "
-                                  "If you are sure you have enough RAM on your system, this may also be a bug and we would "
-                                  "be glad if you reported it."))) % SLIC3R_APP_NAME).str());
-            error = std::string(errmsg.ToUTF8()) + "\n\n" + std::string(ex.what());
-        } catch (std::exception &ex) {
-			error = ex.what();
 		} catch (...) {
-			error = "Unknown C++ exception.";
+			exception = std::current_exception();
 		}
 		m_print->finalize();
 		lck.lock();
@@ -225,9 +267,9 @@ void BackgroundSlicingProcess::thread_proc()
 		if (m_print->cancel_status() != Print::CANCELED_INTERNAL) {
 			// Only post the canceled event, if canceled by user.
 			// Don't post the canceled event, if canceled from Print::apply().
-			wxCommandEvent evt(m_event_finished_id);
-            evt.SetString(GUI::from_u8(error));
-			evt.SetInt(m_print->canceled() ? -1 : (error.empty() ? 1 : 0));
+			SlicingProcessCompletedEvent evt(m_event_finished_id, 0, 
+				(m_state == STATE_CANCELED) ? SlicingProcessCompletedEvent::Cancelled :
+				exception ? SlicingProcessCompletedEvent::Error : SlicingProcessCompletedEvent::Finished, exception);
         	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
         }
 	    m_print->restart();
@@ -287,7 +329,7 @@ bool BackgroundSlicingProcess::start()
 		// The background processing thread is already running.
 		return false;
 	if (! this->idle())
-		throw std::runtime_error("Cannot start a background task, the worker thread is not idle.");
+		throw Slic3r::RuntimeError("Cannot start a background task, the worker thread is not idle.");
 	m_state = STATE_STARTED;
 	m_print->set_cancel_callback([this](){ this->stop_internal(); });
 	lck.unlock();
@@ -376,6 +418,17 @@ Print::ApplyStatus BackgroundSlicingProcess::apply(const Model &model, const Dyn
 	assert(m_print != nullptr);
 	assert(config.opt_enum<PrinterTechnology>("printer_technology") == m_print->technology());
 	Print::ApplyStatus invalidated = m_print->apply(model, config);
+#if ENABLE_GCODE_VIEWER
+	if ((invalidated & PrintBase::APPLY_STATUS_INVALIDATED) != 0 && m_print->technology() == ptFFF &&
+		!this->m_fff_print->is_step_done(psGCodeExport))
+	{
+		// Some FFF status was invalidated, and the G-code was not exported yet.
+		// Let the G-code preview UI know that the final G-code preview is not valid.
+		// In addition, this early memory deallocation reduces memory footprint.
+		if (m_gcode_result != nullptr)
+			m_gcode_result->reset();
+	}
+#else
 	if ((invalidated & PrintBase::APPLY_STATUS_INVALIDATED) != 0 && m_print->technology() == ptFFF &&
 		m_gcode_preview_data != nullptr && ! this->m_fff_print->is_step_done(psGCodeExport)) {
 		// Some FFF status was invalidated, and the G-code was not exported yet.
@@ -383,6 +436,7 @@ Print::ApplyStatus BackgroundSlicingProcess::apply(const Model &model, const Dyn
 		// In addition, this early memory deallocation reduces memory footprint.
 		m_gcode_preview_data->reset();
 	}
+#endif // ENABLE_GCODE_VIEWER
 	return invalidated;
 }
 
@@ -469,8 +523,9 @@ void BackgroundSlicingProcess::prepare_upload()
 
 	if (m_print == m_fff_print) {
 		m_print->set_status(95, _utf8(L("Running post-processing scripts")));
-		if (copy_file(m_temp_output_path, source_path.string()) != SUCCESS) {
-			throw std::runtime_error(_utf8(L("Copying of the temporary G-code to the output G-code failed")));
+		std::string error_message;
+		if (copy_file(m_temp_output_path, source_path.string(), error_message) != SUCCESS) {
+			throw Slic3r::RuntimeError(_utf8(L("Copying of the temporary G-code to the output G-code failed")));
 		}
 		run_post_process_scripts(source_path.string(), m_fff_print->config());
         m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());

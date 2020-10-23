@@ -4,6 +4,9 @@
 
 #include "sla_test_utils.hpp"
 
+#include <libslic3r/SLA/SupportTreeMesher.hpp>
+#include <libslic3r/SLA/Concurrency.hpp>
+
 namespace {
 
 const char *const BELOW_PAD_TEST_OBJECTS[] = {
@@ -37,9 +40,9 @@ TEST_CASE("Support point generator should be deterministic if seeded",
           "[SLASupportGeneration], [SLAPointGen]") {
     TriangleMesh mesh = load_model("A_upsidedown.obj");
     
-    sla::EigenMesh3D emesh{mesh};
+    sla::IndexedMesh emesh{mesh};
     
-    sla::SupportConfig supportcfg;
+    sla::SupportTreeConfig supportcfg;
     sla::SupportPointGenerator::Config autogencfg;
     autogencfg.head_diameter = float(2 * supportcfg.head_front_radius_mm);
     sla::SupportPointGenerator point_gen{emesh, autogencfg, [] {}, [](int) {}};
@@ -124,14 +127,14 @@ TEST_CASE("WingedPadAroundObjectIsValid", "[SLASupportGeneration]") {
 }
 
 TEST_CASE("ElevatedSupportGeometryIsValid", "[SLASupportGeneration]") {
-    sla::SupportConfig supportcfg;
-    supportcfg.object_elevation_mm = 5.;
+    sla::SupportTreeConfig supportcfg;
+    supportcfg.object_elevation_mm = 10.;
     
-    for (auto fname : SUPPORT_TEST_MODELS) test_supports(fname);
+    for (auto fname : SUPPORT_TEST_MODELS) test_supports(fname, supportcfg);
 }
 
 TEST_CASE("FloorSupportGeometryIsValid", "[SLASupportGeneration]") {
-    sla::SupportConfig supportcfg;
+    sla::SupportTreeConfig supportcfg;
     supportcfg.object_elevation_mm = 0;
     
     for (auto &fname: SUPPORT_TEST_MODELS) test_supports(fname, supportcfg);
@@ -139,7 +142,7 @@ TEST_CASE("FloorSupportGeometryIsValid", "[SLASupportGeneration]") {
 
 TEST_CASE("ElevatedSupportsDoNotPierceModel", "[SLASupportGeneration]") {
     
-    sla::SupportConfig supportcfg;
+    sla::SupportTreeConfig supportcfg;
     
     for (auto fname : SUPPORT_TEST_MODELS)
         test_support_model_collision(fname, supportcfg);
@@ -147,7 +150,7 @@ TEST_CASE("ElevatedSupportsDoNotPierceModel", "[SLASupportGeneration]") {
 
 TEST_CASE("FloorSupportsDoNotPierceModel", "[SLASupportGeneration]") {
     
-    sla::SupportConfig supportcfg;
+    sla::SupportTreeConfig supportcfg;
     supportcfg.object_elevation_mm = 0;
     
     for (auto fname : SUPPORT_TEST_MODELS)
@@ -227,4 +230,24 @@ TEST_CASE("Triangle mesh conversions should be correct", "[SLAConversions]")
         std::fstream infile{"extruder_idler_quads.obj", std::ios::in};
         cntr.from_obj(infile);
     }
+}
+
+TEST_CASE("halfcone test", "[halfcone]") {
+    sla::DiffBridge br{Vec3d{1., 1., 1.}, Vec3d{10., 10., 10.}, 0.25, 0.5};
+
+    TriangleMesh m = sla::to_triangle_mesh(sla::get_mesh(br, 45));
+
+    m.require_shared_vertices();
+    m.WriteOBJFile("Halfcone.obj");
+}
+
+TEST_CASE("Test concurrency")
+{
+    std::vector<double> vals = grid(0., 100., 10.);
+
+    double ref = std::accumulate(vals.begin(), vals.end(), 0.);
+
+    double s = sla::ccr_par::reduce(vals.begin(), vals.end(), 0., std::plus<double>{});
+
+    REQUIRE(s == Approx(ref));
 }

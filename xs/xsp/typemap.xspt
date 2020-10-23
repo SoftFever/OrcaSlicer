@@ -155,9 +155,9 @@
 %typemap{Ref<GCode>}{simple};
 %typemap{Clone<GCode>}{simple};
 
-%typemap{GCodePreviewData*};
-%typemap{Ref<GCodePreviewData>}{simple};
-%typemap{Clone<GCodePreviewData>}{simple};
+//%typemap{GCodePreviewData*};
+//%typemap{Ref<GCodePreviewData>}{simple};
+//%typemap{Clone<GCodePreviewData>}{simple};
 
 %typemap{Points};
 %typemap{Pointfs};

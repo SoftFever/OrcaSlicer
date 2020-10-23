@@ -409,7 +409,7 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
                 export_print_z_polygons_and_extrusions_to_svg(
                     debug_out_path("support-w-fills-%d-%lf.svg", iRun, layers_sorted[i]->print_z).c_str(),
                     layers_sorted.data() + i, j - i,
-                    *object.support_layers[layer_id]);
+                    *object.support_layers()[layer_id]);
                 ++layer_id;
             }
             i = j;
@@ -597,8 +597,8 @@ public:
             ::fwrite(&n_points, 4, 1, file);
             for (uint32_t j = 0; j < n_points; ++ j) {
                 const Point &pt = poly.points[j];
-                ::fwrite(&pt.x, sizeof(coord_t), 1, file);
-                ::fwrite(&pt.y, sizeof(coord_t), 1, file);
+                ::fwrite(&pt.x(), sizeof(coord_t), 1, file);
+                ::fwrite(&pt.y(), sizeof(coord_t), 1, file);
             }
         }
         n_polygons = m_trimming_polygons->size();
@@ -609,8 +609,8 @@ public:
             ::fwrite(&n_points, 4, 1, file);
             for (uint32_t j = 0; j < n_points; ++ j) {
                 const Point &pt = poly.points[j];
-                ::fwrite(&pt.x, sizeof(coord_t), 1, file);
-                ::fwrite(&pt.y, sizeof(coord_t), 1, file);
+                ::fwrite(&pt.x(), sizeof(coord_t), 1, file);
+                ::fwrite(&pt.y(), sizeof(coord_t), 1, file);
             }
         }
         ::fclose(file);
@@ -972,8 +972,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
     std::vector<ExPolygons> blockers  = object.slice_support_blockers();
 
     // Append custom supports.
-    object.project_and_append_custom_enforcers(enforcers);
-    object.project_and_append_custom_blockers(blockers);
+    object.project_and_append_custom_facets(false, EnforcerBlockerType::ENFORCER, enforcers);
+    object.project_and_append_custom_facets(false, EnforcerBlockerType::BLOCKER, blockers);
 
     // Output layers, sorted by top Z.
     MyLayersPtr contact_out;
@@ -1134,7 +1134,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                         {
                             ::Slic3r::SVG svg(debug_out_path("support-top-contacts-raw-run%d-layer%d-region%d.svg", 
                                 iRun, layer_id, 
-                                std::find_if(layer.regions.begin(), layer.regions.end(), [layerm](const LayerRegion* other){return other == layerm;}) - layer.regions.begin()),
+                                std::find_if(layer.regions().begin(), layer.regions().end(), [layerm](const LayerRegion* other){return other == layerm;}) - layer.regions().begin()),
                             get_extents(diff_polygons));
                             Slic3r::ExPolygons expolys = union_ex(diff_polygons, false);
                             svg.draw(expolys);
@@ -1152,7 +1152,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                         Slic3r::SVG::export_expolygons(
                             debug_out_path("support-top-contacts-filtered-run%d-layer%d-region%d-z%f.svg", 
                                 iRun, layer_id, 
-                                std::find_if(layer.regions.begin(), layer.regions.end(), [layerm](const LayerRegion* other){return other == layerm;}) - layer.regions.begin(), 
+                                std::find_if(layer.regions().begin(), layer.regions().end(), [layerm](const LayerRegion* other){return other == layerm;}) - layer.regions().begin(),
                                 layer.print_z),
                             union_ex(diff_polygons, false));
                         #endif /* SLIC3R_DEBUG */
@@ -1482,7 +1482,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
                         svg.draw(union_ex(top, false), "blue", 0.5f);
                         svg.draw(union_ex(projection_raw, true), "red", 0.5f);
                         svg.draw_outline(union_ex(projection_raw, true), "red", "blue", scale_(0.1f));
-                        svg.draw(layer.slices, "green", 0.5f);
+                        svg.draw(layer.lslices, "green", 0.5f);
                     }
         #endif /* SLIC3R_DEBUG */
 

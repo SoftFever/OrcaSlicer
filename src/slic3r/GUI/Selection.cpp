@@ -16,8 +16,11 @@
 #include <GL/glew.h>
 
 #include <boost/algorithm/string/predicate.hpp>
+#if ENABLE_GCODE_VIEWER
+#include <boost/log/trivial.hpp>
+#endif // ENABLE_GCODE_VIEWER
 
-static const float UNIFORM_SCALE_COLOR[3] = { 1.0f, 0.38f, 0.0f };
+static const float UNIFORM_SCALE_COLOR[4] = { 0.923f, 0.504f, 0.264f, 1.0f };
 
 namespace Slic3r {
 namespace GUI {
@@ -110,8 +113,10 @@ Selection::Selection()
     , m_valid(false)
     , m_scale_factor(1.0f)
 {
+#if !ENABLE_GCODE_VIEWER
     m_arrow.reset(new GLArrow);
     m_curved_arrow.reset(new GLCurvedArrow(16));
+#endif // !ENABLE_GCODE_VIEWER
 
     this->set_bounding_boxes_dirty();
 #if ENABLE_RENDER_SELECTION_CENTER
@@ -138,6 +143,10 @@ void Selection::set_volumes(GLVolumePtrs* volumes)
 // Init shall be called from the OpenGL render function, so that the OpenGL context is initialized!
 bool Selection::init()
 {
+#if ENABLE_GCODE_VIEWER
+    m_arrow.init_from(straight_arrow(10.0f, 5.0f, 5.0f, 10.0f, 1.0f));
+    m_curved_arrow.init_from(circular_arrow(16, 10.0f, 5.0f, 10.0f, 5.0f, 1.0f));
+#else
     if (!m_arrow->init())
         return false;
 
@@ -147,6 +156,7 @@ bool Selection::init()
         return false;
 
     m_curved_arrow->set_scale(5.0 * Vec3d::Ones());
+#endif //ENABLE_GCODE_VIEWER
     return true;
 }
 
@@ -1261,40 +1271,40 @@ void Selection::render_center(bool gizmo_is_dragging) const
 }
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
-void Selection::render_sidebar_hints(const std::string& sidebar_field, const Shader& shader) const
+void Selection::render_sidebar_hints(const std::string& sidebar_field) const
 {
     if (sidebar_field.empty())
         return;
 
+    GLShaderProgram* shader = nullptr;
+
     if (!boost::starts_with(sidebar_field, "layer"))
     {
-        shader.start_using();
+        shader = wxGetApp().get_shader("gouraud_light");
+        if (shader == nullptr)
+            return;
+
+        shader->start_using();
         glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
-        glsafe(::glEnable(GL_LIGHTING));
     }
 
     glsafe(::glEnable(GL_DEPTH_TEST));
 
     glsafe(::glPushMatrix());
 
-    if (!boost::starts_with(sidebar_field, "layer"))
-    {
+    if (!boost::starts_with(sidebar_field, "layer")) {
         const Vec3d& center = get_bounding_box().center();
 
-        if (is_single_full_instance() && !wxGetApp().obj_manipul()->get_world_coordinates())
-        {
+        if (is_single_full_instance() && !wxGetApp().obj_manipul()->get_world_coordinates()) {
             glsafe(::glTranslated(center(0), center(1), center(2)));
-            if (!boost::starts_with(sidebar_field, "position"))
-            {
+            if (!boost::starts_with(sidebar_field, "position")) {
                 Transform3d orient_matrix = Transform3d::Identity();
                 if (boost::starts_with(sidebar_field, "scale"))
                     orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
-                else if (boost::starts_with(sidebar_field, "rotation"))
-                {
+                else if (boost::starts_with(sidebar_field, "rotation")) {
                     if (boost::ends_with(sidebar_field, "x"))
                         orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
-                    else if (boost::ends_with(sidebar_field, "y"))
-                    {
+                    else if (boost::ends_with(sidebar_field, "y")) {
                         const Vec3d& rotation = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_rotation();
                         if (rotation(0) == 0.0)
                             orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
@@ -1305,21 +1315,16 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, const Sha
 
                 glsafe(::glMultMatrixd(orient_matrix.data()));
             }
-        }
-        else if (is_single_volume() || is_single_modifier())
-        {
+        } else if (is_single_volume() || is_single_modifier()) {
             glsafe(::glTranslated(center(0), center(1), center(2)));
             Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
             if (!boost::starts_with(sidebar_field, "position"))
                 orient_matrix = orient_matrix * (*m_volumes)[*m_list.begin()]->get_volume_transformation().get_matrix(true, false, true, true);
 
             glsafe(::glMultMatrixd(orient_matrix.data()));
-        }
-        else
-        {
+        } else {
             glsafe(::glTranslated(center(0), center(1), center(2)));
-            if (requires_local_axes())
-            {
+            if (requires_local_axes()) {
                 Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
                 glsafe(::glMultMatrixd(orient_matrix.data()));
             }
@@ -1330,20 +1335,15 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, const Sha
         render_sidebar_position_hints(sidebar_field);
     else if (boost::starts_with(sidebar_field, "rotation"))
         render_sidebar_rotation_hints(sidebar_field);
-    else if (boost::starts_with(sidebar_field, "scale"))
+    else if (boost::starts_with(sidebar_field, "scale") || boost::starts_with(sidebar_field, "size"))
         render_sidebar_scale_hints(sidebar_field);
-    else if (boost::starts_with(sidebar_field, "size"))
-        render_sidebar_size_hints(sidebar_field);
     else if (boost::starts_with(sidebar_field, "layer"))
         render_sidebar_layers_hints(sidebar_field);
 
     glsafe(::glPopMatrix());
 
     if (!boost::starts_with(sidebar_field, "layer"))
-    {
-        glsafe(::glDisable(GL_LIGHTING));
-        shader.stop_using();
-    }
+        shader->stop_using();
 }
 
 bool Selection::requires_local_axes() const
@@ -1364,12 +1364,12 @@ void Selection::copy_to_clipboard()
         ModelObject* dst_object = m_clipboard.add_object();
         dst_object->name                 = src_object->name;
         dst_object->input_file           = src_object->input_file;
-		static_cast<DynamicPrintConfig&>(dst_object->config) = static_cast<const DynamicPrintConfig&>(src_object->config);
+		dst_object->config.assign_config(src_object->config);
         dst_object->sla_support_points   = src_object->sla_support_points;
         dst_object->sla_points_status    = src_object->sla_points_status;
         dst_object->sla_drain_holes      = src_object->sla_drain_holes;
         dst_object->layer_config_ranges  = src_object->layer_config_ranges;     // #ys_FIXME_experiment
-        dst_object->layer_height_profile = src_object->layer_height_profile;
+        dst_object->layer_height_profile.assign(src_object->layer_height_profile);
         dst_object->origin_translation   = src_object->origin_translation;
 
         for (int i : object.second)
@@ -1595,20 +1595,21 @@ void Selection::update_type()
         }
         else
         {
+            unsigned int sla_volumes_count = 0;
+            // Note: sla_volumes_count is a count of the selected sla_volumes per object instead of per instance, like a model_volumes_count is
+            for (unsigned int i : m_list) {
+                if ((*m_volumes)[i]->volume_idx() < 0)
+                    ++sla_volumes_count;
+            }
+
             if (m_cache.content.size() == 1) // single object
             {
                 const ModelObject* model_object = m_model->objects[m_cache.content.begin()->first];
                 unsigned int model_volumes_count = (unsigned int)model_object->volumes.size();
-                unsigned int sla_volumes_count = 0;
-                for (unsigned int i : m_list)
-                {
-                    if ((*m_volumes)[i]->volume_idx() < 0)
-                        ++sla_volumes_count;
-                }
-                unsigned int volumes_count = model_volumes_count + sla_volumes_count;
+
                 unsigned int instances_count = (unsigned int)model_object->instances.size();
                 unsigned int selected_instances_count = (unsigned int)m_cache.content.begin()->second.size();
-                if (volumes_count * instances_count == (unsigned int)m_list.size())
+                if (model_volumes_count * instances_count + sla_volumes_count == (unsigned int)m_list.size())
                 {
                     m_type = SingleFullObject;
                     // ensures the correct mode is selected
@@ -1616,7 +1617,7 @@ void Selection::update_type()
                 }
                 else if (selected_instances_count == 1)
                 {
-                    if (volumes_count == (unsigned int)m_list.size())
+                    if (model_volumes_count + sla_volumes_count == (unsigned int)m_list.size())
                     {
                         m_type = SingleFullInstance;
                         // ensures the correct mode is selected
@@ -1639,7 +1640,7 @@ void Selection::update_type()
                         requires_disable = true;
                     }
                 }
-                else if ((selected_instances_count > 1) && (selected_instances_count * volumes_count == (unsigned int)m_list.size()))
+                else if ((selected_instances_count > 1) && (selected_instances_count * model_volumes_count + sla_volumes_count == (unsigned int)m_list.size()))
                 {
                     m_type = MultipleFullInstance;
                     // ensures the correct mode is selected
@@ -1656,7 +1657,7 @@ void Selection::update_type()
                     unsigned int instances_count = (unsigned int)model_object->instances.size();
                     sels_cntr += volumes_count * instances_count;
                 }
-                if (sels_cntr == (unsigned int)m_list.size())
+                if (sels_cntr + sla_volumes_count == (unsigned int)m_list.size())
                 {
                     m_type = MultipleFullObject;
                     // ensures the correct mode is selected
@@ -1943,6 +1944,29 @@ void Selection::render_bounding_box(const BoundingBoxf3& box, float* color) cons
     glsafe(::glEnd());
 }
 
+#if ENABLE_GCODE_VIEWER
+void Selection::render_sidebar_position_hints(const std::string& sidebar_field) const
+{
+    auto set_color = [](Axis axis) {
+        GLShaderProgram* shader = wxGetApp().get_current_shader();
+        if (shader != nullptr)
+            shader->set_uniform("uniform_color", AXES_COLOR[axis], 4);
+    };
+
+    if (boost::ends_with(sidebar_field, "x")) {
+        set_color(X);
+        glsafe(::glRotated(-90.0, 0.0, 0.0, 1.0));
+        m_arrow.render();
+    } else if (boost::ends_with(sidebar_field, "y")) {
+        set_color(Y);
+        m_arrow.render();
+    } else if (boost::ends_with(sidebar_field, "z")) {
+        set_color(Z);
+        glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
+        m_arrow.render();
+    }
+}
+#else
 void Selection::render_sidebar_position_hints(const std::string& sidebar_field) const
 {
     if (boost::ends_with(sidebar_field, "x"))
@@ -1958,8 +1982,38 @@ void Selection::render_sidebar_position_hints(const std::string& sidebar_field) 
         render_sidebar_position_hint(Z);
     }
 }
+#endif // ENABLE_GCODE_VIEWER
 
+#if ENABLE_GCODE_VIEWER
 void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) const
+{
+    auto set_color = [](Axis axis) {
+        GLShaderProgram* shader = wxGetApp().get_current_shader();
+        if (shader != nullptr)
+            shader->set_uniform("uniform_color", AXES_COLOR[axis], 4);
+    };
+
+    auto render_sidebar_rotation_hint = [this]() {
+        m_curved_arrow.render();
+        glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
+        m_curved_arrow.render();
+    };
+
+    if (boost::ends_with(sidebar_field, "x")) {
+        set_color(X);
+        glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
+        render_sidebar_rotation_hint();
+    } else if (boost::ends_with(sidebar_field, "y")) {
+        set_color(Y);
+        glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
+        render_sidebar_rotation_hint();
+    } else if (boost::ends_with(sidebar_field, "z")) {
+        set_color(Z);
+        render_sidebar_rotation_hint();
+    }
+}
+#else
+void Selection::render_sidebar_rotation_hints(const std::string & sidebar_field) const
 {
     if (boost::ends_with(sidebar_field, "x"))
     {
@@ -1974,10 +2028,32 @@ void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) 
     else if (boost::ends_with(sidebar_field, "z"))
         render_sidebar_rotation_hint(Z);
 }
+#endif // ENABLE_GCODE_VIEWER
 
 void Selection::render_sidebar_scale_hints(const std::string& sidebar_field) const
 {
     bool uniform_scale = requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling();
+
+    auto render_sidebar_scale_hint = [this, uniform_scale](Axis axis) {
+        GLShaderProgram* shader = wxGetApp().get_current_shader();
+        if (shader != nullptr)
+            shader->set_uniform("uniform_color", uniform_scale ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis], 4);
+
+        glsafe(::glTranslated(0.0, 5.0, 0.0));
+#if ENABLE_GCODE_VIEWER
+        m_arrow.render();
+#else
+        m_arrow->render();
+#endif // ENABLE_GCODE_VIEWER
+
+        glsafe(::glTranslated(0.0, -10.0, 0.0));
+        glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
+#if ENABLE_GCODE_VIEWER
+        m_arrow.render();
+#else
+        m_arrow->render();
+#endif // ENABLE_GCODE_VIEWER
+    };
 
     if (boost::ends_with(sidebar_field, "x") || uniform_scale)
     {
@@ -2001,11 +2077,6 @@ void Selection::render_sidebar_scale_hints(const std::string& sidebar_field) con
         render_sidebar_scale_hint(Z);
         glsafe(::glPopMatrix());
     }
-}
-
-void Selection::render_sidebar_size_hints(const std::string& sidebar_field) const
-{
-    render_sidebar_scale_hints(sidebar_field);
 }
 
 void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) const
@@ -2080,6 +2151,7 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
     glsafe(::glDisable(GL_BLEND));
 }
 
+#if !ENABLE_GCODE_VIEWER
 void Selection::render_sidebar_position_hint(Axis axis) const
 {
     m_arrow->set_color(AXES_COLOR[axis], 3);
@@ -2106,10 +2178,7 @@ void Selection::render_sidebar_scale_hint(Axis axis) const
     glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
     m_arrow->render();
 }
-
-void Selection::render_sidebar_size_hint(Axis axis, double length) const
-{
-}
+#endif // !ENABLE_GCODE_VIEWER
 
 #ifndef NDEBUG
 static bool is_rotation_xy_synchronized(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)

@@ -1,3 +1,4 @@
+#include "Exception.hpp"
 #include "Print.hpp"
 #include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
@@ -8,7 +9,11 @@
 #include "SupportMaterial.hpp"
 #include "Surface.hpp"
 #include "Slicing.hpp"
+#include "Tesselate.hpp"
 #include "Utils.hpp"
+#include "AABBTreeIndirect.hpp"
+#include "Fill/FillAdaptive.hpp"
+#include "Format/STL.hpp"
 
 #include <utility>
 #include <boost/log/trivial.hpp>
@@ -135,7 +140,7 @@ void PrintObject::slice()
             }
         });
     if (m_layers.empty())
-        throw std::runtime_error("No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n");    
+        throw Slic3r::SlicingError("No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n");    
     this->set_done(posSlice);
 }
 
@@ -369,13 +374,15 @@ void PrintObject::infill()
     this->prepare_infill();
 
     if (this->set_started(posInfill)) {
+        auto [adaptive_fill_octree, support_fill_octree] = this->prepare_adaptive_infill_data();
+
         BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - start";
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size()),
-            [this](const tbb::blocked_range<size_t>& range) {
+            [this, &adaptive_fill_octree = adaptive_fill_octree, &support_fill_octree = support_fill_octree](const tbb::blocked_range<size_t>& range) {
                 for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                     m_print->throw_if_canceled();
-                    m_layers[layer_idx]->make_fills();
+                    m_layers[layer_idx]->make_fills(adaptive_fill_octree.get(), support_fill_octree.get());
                 }
             }
         );
@@ -421,11 +428,52 @@ void PrintObject::generate_support_material()
             // therefore they cannot be printed without supports.
             for (const Layer *layer : m_layers)
                 if (layer->empty())
-                    throw std::runtime_error("Levitating objects cannot be printed without supports.");
+                    throw Slic3r::SlicingError("Levitating objects cannot be printed without supports.");
 #endif
         }
         this->set_done(posSupportMaterial);
     }
+}
+
+std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> PrintObject::prepare_adaptive_infill_data()
+{
+    using namespace FillAdaptive;
+
+    auto [adaptive_line_spacing, support_line_spacing] = adaptive_fill_line_spacing(*this);
+    if ((adaptive_line_spacing == 0. && support_line_spacing == 0.) || this->layers().empty())
+        return std::make_pair(OctreePtr(), OctreePtr());
+
+    indexed_triangle_set mesh = this->model_object()->raw_indexed_triangle_set();
+    // Rotate mesh and build octree on it with axis-aligned (standart base) cubes.
+    Transform3d m = m_trafo;
+    m.pretranslate(Vec3d(- unscale<float>(m_center_offset.x()), - unscale<float>(m_center_offset.y()), 0));
+    auto to_octree = transform_to_octree().toRotationMatrix();
+    its_transform(mesh, to_octree * m, true);
+
+    // Triangulate internal bridging surfaces.
+    std::vector<std::vector<Vec3d>> overhangs(this->layers().size());
+    tbb::parallel_for(
+        tbb::blocked_range<int>(0, int(m_layers.size()) - 1),
+        [this, &to_octree, &overhangs](const tbb::blocked_range<int> &range) {
+            std::vector<Vec3d> &out = overhangs[range.begin()];
+            for (int idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
+                m_print->throw_if_canceled();
+                const Layer *layer = this->layers()[idx_layer];
+                for (const LayerRegion *layerm : layer->regions())
+                    for (const Surface &surface : layerm->fill_surfaces.surfaces)
+                        if (surface.surface_type == stInternalBridge)
+                            append(out, triangulate_expolygon_3d(surface.expolygon, layer->bottom_z()));
+            }
+            for (Vec3d &p : out)
+                p = (to_octree * p).eval();
+        });
+    // and gather them.
+    for (size_t i = 1; i < overhangs.size(); ++ i)
+        append(overhangs.front(), std::move(overhangs[i]));
+
+    return std::make_pair(
+        adaptive_line_spacing ? build_octree(mesh, overhangs.front(), adaptive_line_spacing, false) : OctreePtr(),
+        support_line_spacing  ? build_octree(mesh, overhangs.front(), support_line_spacing, true) : OctreePtr());
 }
 
 void PrintObject::clear_layers()
@@ -602,14 +650,14 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
     
     // propagate to dependent steps
     if (step == posPerimeters) {
-		invalidated |= this->invalidate_steps({ posPrepareInfill, posInfill });
+		invalidated |= this->invalidate_steps({ posPrepareInfill, posInfill, posIroning });
         invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
     } else if (step == posPrepareInfill) {
-        invalidated |= this->invalidate_step(posInfill);
+        invalidated |= this->invalidate_steps({ posInfill, posIroning });
     } else if (step == posInfill) {
         invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
     } else if (step == posSlice) {
-		invalidated |= this->invalidate_steps({ posPerimeters, posPrepareInfill, posInfill, posSupportMaterial });
+		invalidated |= this->invalidate_steps({ posPerimeters, posPrepareInfill, posInfill, posIroning, posSupportMaterial });
 		invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
         this->m_slicing_params.valid = false;
     } else if (step == posSupportMaterial) {
@@ -1496,22 +1544,48 @@ static void clamp_exturder_to_default(ConfigOptionInt &opt, size_t num_extruders
 PrintObjectConfig PrintObject::object_config_from_model_object(const PrintObjectConfig &default_object_config, const ModelObject &object, size_t num_extruders)
 {
     PrintObjectConfig config = default_object_config;
-    normalize_and_apply_config(config, object.config);
+    {
+        DynamicPrintConfig src_normalized(object.config.get());
+        src_normalized.normalize_fdm();
+        config.apply(src_normalized, true);
+    }
     // Clamp invalid extruders to the default extruder (with index 1).
     clamp_exturder_to_default(config.support_material_extruder,           num_extruders);
     clamp_exturder_to_default(config.support_material_interface_extruder, num_extruders);
     return config;
 }
 
+static void apply_to_print_region_config(PrintRegionConfig &out, const DynamicPrintConfig &in)
+{
+    // 1) Copy the "extruder key to infill_extruder and perimeter_extruder.
+    std::string sextruder = "extruder";
+    auto *opt_extruder = in.opt<ConfigOptionInt>(sextruder);
+    if (opt_extruder) {
+        int extruder = opt_extruder->value;
+        if (extruder != 0) {
+            out.infill_extruder      .value = extruder;
+            out.solid_infill_extruder.value = extruder;
+            out.perimeter_extruder   .value = extruder;
+        }
+    }
+    // 2) Copy the rest of the values.
+    for (auto it = in.cbegin(); it != in.cend(); ++ it)
+        if (it->first != sextruder) {
+            ConfigOption *my_opt = out.option(it->first, false);
+            if (my_opt)
+                my_opt->set(it->second.get());
+        }
+}
+
 PrintRegionConfig PrintObject::region_config_from_model_volume(const PrintRegionConfig &default_region_config, const DynamicPrintConfig *layer_range_config, const ModelVolume &volume, size_t num_extruders)
 {
     PrintRegionConfig config = default_region_config;
-    normalize_and_apply_config(config, volume.get_object()->config);
+    apply_to_print_region_config(config, volume.get_object()->config.get());
     if (layer_range_config != nullptr)
-    	normalize_and_apply_config(config, *layer_range_config);
-    normalize_and_apply_config(config, volume.config);
+    	apply_to_print_region_config(config, *layer_range_config);
+    apply_to_print_region_config(config, volume.config.get());
     if (! volume.material_id().empty())
-        normalize_and_apply_config(config, volume.material()->config);
+        apply_to_print_region_config(config, volume.material()->config.get());
     // Clamp invalid extruders to the default extruder (with index 1).
     clamp_exturder_to_default(config.infill_extruder,       num_extruders);
     clamp_exturder_to_default(config.perimeter_extruder,    num_extruders);
@@ -1544,13 +1618,13 @@ SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig& full
 				print_config,
 				region_config_from_model_volume(default_region_config, nullptr, *model_volume, num_extruders),
 				object_extruders);
-			for (const std::pair<const t_layer_height_range, DynamicPrintConfig> &range_and_config : model_object.layer_config_ranges)
+			for (const std::pair<const t_layer_height_range, ModelConfig> &range_and_config : model_object.layer_config_ranges)
 				if (range_and_config.second.has("perimeter_extruder") ||
 					range_and_config.second.has("infill_extruder") ||
 					range_and_config.second.has("solid_infill_extruder"))
 					PrintRegion::collect_object_printing_extruders(
 						print_config,
-						region_config_from_model_volume(default_region_config, &range_and_config.second, *model_volume, num_extruders),
+						region_config_from_model_volume(default_region_config, &range_and_config.second.get(), *model_volume, num_extruders),
 						object_extruders);
 		}
     sort_remove_duplicates(object_extruders);
@@ -1578,7 +1652,7 @@ bool PrintObject::update_layer_height_profile(const ModelObject &model_object, c
 
     if (layer_height_profile.empty()) {
         // use the constructor because the assignement is crashing on ASAN OsX
-        layer_height_profile = std::vector<coordf_t>(model_object.layer_height_profile);
+        layer_height_profile = std::vector<coordf_t>(model_object.layer_height_profile.get());
 //        layer_height_profile = model_object.layer_height_profile;
         updated = true;
     }
@@ -1613,12 +1687,6 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
     BOOST_LOG_TRIVIAL(info) << "Slicing objects..." << log_memory_info();
 
     m_typed_slices = false;
-
-#ifdef SLIC3R_PROFILE
-    // Disable parallelization so the Shiny profiler works
-    static tbb::task_scheduler_init *tbb_init = nullptr;
-    tbb_init = new tbb::task_scheduler_init(1);
-#endif
 
     // 1) Initialize layers and their slice heights.
     std::vector<float> slice_zs;
@@ -2632,7 +2700,7 @@ void PrintObject::combine_infill()
              // Because fill areas for rectilinear and honeycomb are grown 
              // later to overlap perimeters, we need to counteract that too.
                 ((region->config().fill_pattern == ipRectilinear   ||
-                  region->config().fill_pattern == ipMonotonous    ||
+                  region->config().fill_pattern == ipMonotonic     ||
                   region->config().fill_pattern == ipGrid          ||
                   region->config().fill_pattern == ipLine          ||
                   region->config().fill_pattern == ipHoneycomb) ? 1.5f : 0.5f) * 
@@ -2669,18 +2737,20 @@ void PrintObject::_generate_support_material()
 }
 
 
-void PrintObject::project_and_append_custom_supports(
-        FacetSupportType type, std::vector<ExPolygons>& expolys) const
+void PrintObject::project_and_append_custom_facets(
+        bool seam, EnforcerBlockerType type, std::vector<ExPolygons>& expolys) const
 {
     for (const ModelVolume* mv : this->model_object()->volumes) {
-        const std::vector<int> custom_facets = mv->m_supported_facets.get_facets(type);
-        if (custom_facets.empty())
+        const indexed_triangle_set custom_facets = seam
+                ? mv->seam_facets.get_facets(*mv, type)
+                : mv->supported_facets.get_facets(*mv, type);
+        if (! mv->is_model_part() || custom_facets.indices.empty())
             continue;
 
-        const TriangleMesh& mesh = mv->mesh();
         const Transform3f& tr1 = mv->get_matrix().cast<float>();
         const Transform3f& tr2 = this->trafo().cast<float>();
         const Transform3f  tr  = tr2 * tr1;
+        const float tr_det_sign = (tr.matrix().determinant() > 0. ? 1.f : -1.f);
 
 
         // The projection will be at most a pentagon. Let's minimize heap
@@ -2705,11 +2775,11 @@ void PrintObject::project_and_append_custom_supports(
         };
 
         // Vector to collect resulting projections from each triangle.
-        std::vector<TriangleProjections> projections_of_triangles(custom_facets.size());
+        std::vector<TriangleProjections> projections_of_triangles(custom_facets.indices.size());
 
         // Iterate over all triangles.
         tbb::parallel_for(
-            tbb::blocked_range<size_t>(0, custom_facets.size()),
+            tbb::blocked_range<size_t>(0, custom_facets.indices.size()),
             [&](const tbb::blocked_range<size_t>& range) {
             for (size_t idx = range.begin(); idx < range.end(); ++ idx) {
 
@@ -2717,10 +2787,11 @@ void PrintObject::project_and_append_custom_supports(
 
             // Transform the triangle into worlds coords.
             for (int i=0; i<3; ++i)
-                facet[i] = tr * mesh.its.vertices[mesh.its.indices[custom_facets[idx]](i)];
+                facet[i] = tr * custom_facets.vertices[custom_facets.indices[idx](i)];
 
-            // Ignore triangles with upward-pointing normal.
-            if ((facet[1]-facet[0]).cross(facet[2]-facet[0]).z() > 0.)
+            // Ignore triangles with upward-pointing normal. Don't forget about mirroring.
+            float z_comp = (facet[1]-facet[0]).cross(facet[2]-facet[0]).z();
+            if (! seam && tr_det_sign * z_comp > 0.)
                 continue;
 
             // Sort the three vertices according to z-coordinate.
@@ -2732,7 +2803,7 @@ void PrintObject::project_and_append_custom_supports(
             std::array<Vec2f, 3> trianglef;
             for (int i=0; i<3; ++i) {
                 trianglef[i] = Vec2f(facet[i].x(), facet[i].y());
-                trianglef[i] += Vec2f(unscale<float>(this->center_offset().x()),
+                trianglef[i] -= Vec2f(unscale<float>(this->center_offset().x()),
                                       unscale<float>(this->center_offset().y()));
             }
 
@@ -2758,8 +2829,8 @@ void PrintObject::project_and_append_custom_supports(
             // Calculate how to move points on triangle sides per unit z increment.
             Vec2f ta(trianglef[1] - trianglef[0]);
             Vec2f tb(trianglef[2] - trianglef[0]);
-            ta *= 1./(facet[1].z() - facet[0].z());
-            tb *= 1./(facet[2].z() - facet[0].z());
+            ta *= 1.f/(facet[1].z() - facet[0].z());
+            tb *= 1.f/(facet[2].z() - facet[0].z());
 
             // Projection on current slice will be build directly in place.
             LightPolygon* proj = &projections_of_triangles[idx].polygons[0];
@@ -2770,7 +2841,7 @@ void PrintObject::project_and_append_custom_supports(
 
             // Project a sub-polygon on all slices intersecting the triangle.
             while (it != layers().end()) {
-                const float z = (*it)->slice_z;
+                const float z = float((*it)->slice_z);
 
                 // Projections of triangle sides intersections with slices.
                 // a moves along one side, b tracks the other.
@@ -2782,7 +2853,7 @@ void PrintObject::project_and_append_custom_supports(
                 if (z > facet[1].z() && ! passed_first) {
                     proj->add(trianglef[1]);
                     ta = trianglef[2]-trianglef[1];
-                    ta *= 1./(facet[2].z() - facet[1].z());
+                    ta *= 1.f/(facet[2].z() - facet[1].z());
                     passed_first = true;
                 }
 
@@ -2821,9 +2892,10 @@ void PrintObject::project_and_append_custom_supports(
 
         // Now append the collected polygons to respective layers.
         for (auto& trg : projections_of_triangles) {
-            int layer_id = trg.first_layer_id;
-
+            int layer_id = int(trg.first_layer_id);
             for (const LightPolygon& poly : trg.polygons) {
+                if (layer_id >= int(expolys.size()))
+                    break; // part of triangle could be projected above top layer
                 expolys[layer_id].emplace_back(std::move(poly.pts));
                 ++layer_id;
             }

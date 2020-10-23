@@ -10,14 +10,14 @@
 namespace Slic3r {
 
 // Generic file parser error, mostly copied from boost::property_tree::file_parser_error
-class file_parser_error: public std::runtime_error
+class file_parser_error: public Slic3r::RuntimeError
 {
 public:
     file_parser_error(const std::string &msg, const std::string &file, unsigned long line = 0) :
-        std::runtime_error(format_what(msg, file, line)),
+        Slic3r::RuntimeError(format_what(msg, file, line)),
         m_message(msg), m_filename(file), m_line(line) {}
     file_parser_error(const std::string &msg, const boost::filesystem::path &file, unsigned long line = 0) :
-        std::runtime_error(format_what(msg, file.string(), line)),
+        Slic3r::RuntimeError(format_what(msg, file.string(), line)),
         m_message(msg), m_filename(file.string()), m_line(line) {}
     // gcc 3.4.2 complains about lack of throw specifier on compiler
     // generated dtor
@@ -35,7 +35,7 @@ private:
     std::string     m_filename;
     unsigned long   m_line;
 
-    // Format error message to be returned by std::runtime_error::what()
+    // Format error message to be returned by Slic3r::RuntimeError::what()
     static std::string format_what(const std::string &msg, const std::string &file, unsigned long l)
     {
         std::stringstream stream;

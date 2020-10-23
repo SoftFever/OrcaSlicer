@@ -9,8 +9,7 @@ const float EPSILON = 0.0001;
 struct SlopeDetection
 {
     bool actived;
-	// x = yellow, y = red
-	vec2 z_range;
+	float normal_z;
     mat3 volume_world_normal_matrix;
 };
 
@@ -33,8 +32,7 @@ varying vec3 eye_normal;
 
 vec3 slope_color()
 {
-    float gradient_range = slope.z_range.x - slope.z_range.y;
-    return (world_normal_z > slope.z_range.x - EPSILON) ? GREEN : ((gradient_range == 0.0) ? RED : mix(RED, YELLOW, clamp((world_normal_z - slope.z_range.y) / gradient_range, 0.0, 1.0)));
+    return (world_normal_z > slope.normal_z - EPSILON) ? GREEN : RED;
 }
 
 void main()

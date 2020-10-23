@@ -1,3 +1,4 @@
+#include "Exception.hpp"
 #include "MeshBoolean.hpp"
 #include "libslic3r/TriangleMesh.hpp"
 #undef PI
@@ -11,7 +12,6 @@
 #include <CGAL/Exact_integer.h>
 #include <CGAL/Surface_mesh.h>
 #include <CGAL/Polygon_mesh_processing/orient_polygon_soup.h>
-#include <CGAL/Polygon_mesh_processing/repair_polygon_soup.h>
 #include <CGAL/Polygon_mesh_processing/repair.h>
 #include <CGAL/Polygon_mesh_processing/remesh.h>
 #include <CGAL/Polygon_mesh_processing/polygon_soup_to_polygon_mesh.h>
@@ -136,7 +136,7 @@ template<class _Mesh> void triangle_mesh_to_cgal(const TriangleMesh &M, _Mesh &o
     if(CGAL::is_closed(out))
         CGALProc::orient_to_bound_a_volume(out);
     else
-        std::runtime_error("Mesh not watertight");
+        throw Slic3r::RuntimeError("Mesh not watertight");
 }
 
 inline Vec3d to_vec3d(const _EpicMesh::Point &v)
@@ -222,7 +222,7 @@ template<class Op> void _cgal_do(Op &&op, CGALMesh &A, CGALMesh &B)
     }
 
     if (! success)
-        throw std::runtime_error("CGAL mesh boolean operation failed.");
+        throw Slic3r::RuntimeError("CGAL mesh boolean operation failed.");
 }
 
 void minus(CGALMesh &A, CGALMesh &B) { _cgal_do(_cgal_diff, A, B); }

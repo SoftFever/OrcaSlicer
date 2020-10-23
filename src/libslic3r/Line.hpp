@@ -18,6 +18,35 @@ typedef std::vector<ThickLine> ThickLines;
 
 Linef3 transform(const Linef3& line, const Transform3d& t);
 
+namespace line_alg {
+
+// Distance to the closest point of line.
+template<class L, class T, int N>
+double distance_to_squared(const L &line, const Vec<N, T> &point)
+{
+    const Vec<N, double>  v  = line.vector().template cast<double>();
+    const Vec<N, double>  va = (point  - line.a).template cast<double>();
+    const double  l2 = v.squaredNorm();  // avoid a sqrt
+    if (l2 == 0.0)
+        // a == b case
+        return va.squaredNorm();
+    // Consider the line extending the segment, parameterized as a + t (b - a).
+    // We find projection of this point onto the line.
+    // It falls where t = [(this-a) . (b-a)] / |b-a|^2
+    const double t = va.dot(v) / l2;
+    if (t < 0.0)      return va.squaredNorm();  // beyond the 'a' end of the segment
+    else if (t > 1.0) return (point - line.b).template cast<double>().squaredNorm();  // beyond the 'b' end of the segment
+    return (t * v - va).squaredNorm();
+}
+
+template<class L, class T, int N>
+double distance_to(const L &line, const Vec<N, T> &point)
+{
+    return std::sqrt(distance_to_squared(line, point));
+}
+
+} // namespace line_alg
+
 class Line
 {
 public:
@@ -47,7 +76,7 @@ public:
     // Clip a line with a bounding box. Returns false if the line is completely outside of the bounding box.
 	bool   clip_with_bbox(const BoundingBox &bbox);
 
-    static double distance_to_squared(const Point &point, const Point &a, const Point &b);
+    static inline double distance_to_squared(const Point &point, const Point &a, const Point &b) { return line_alg::distance_to_squared(Line{a, b}, Vec<2, coord_t>{point}); }
     static double distance_to(const Point &point, const Point &a, const Point &b) { return sqrt(distance_to_squared(point, a, b)); }
 
     Point a;

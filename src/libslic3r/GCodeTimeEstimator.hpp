@@ -6,6 +6,8 @@
 #include "GCodeReader.hpp"
 #include "CustomGCode.hpp"
 
+#if !ENABLE_GCODE_VIEWER
+
 #define ENABLE_MOVE_STATS 0
 
 namespace Slic3r {
@@ -480,5 +482,7 @@ namespace Slic3r {
     };
 
 } /* namespace Slic3r */
+
+#endif // !ENABLE_GCODE_VIEWER
 
 #endif /* slic3r_GCodeTimeEstimator_hpp_ */

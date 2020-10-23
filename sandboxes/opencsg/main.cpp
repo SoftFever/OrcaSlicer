@@ -26,7 +26,7 @@
 #include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/SLAPrint.hpp"
 
-#include "slic3r/GUI/Job.hpp"
+#include "slic3r/GUI/Jobs/Job.hpp"
 #include "slic3r/GUI/ProgressStatusBar.hpp"
 
 using namespace Slic3r::GL;

@@ -67,6 +67,7 @@ public:
         Hollow,
         SlaSupports,
         FdmSupports,
+        Seam,
         Undefined
     };
 
@@ -203,7 +204,7 @@ public:
 
     void set_sla_support_data(ModelObject* model_object);
 
-    void set_fdm_support_data(ModelObject* model_object);
+    void set_painter_gizmo_data();
 
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false, bool alt_down = false, bool control_down = false);
     ClippingPlane get_clipping_plane() const;
@@ -211,6 +212,7 @@ public:
 
     void render_current_gizmo() const;
     void render_current_gizmo_for_picking_pass() const;
+    void render_painter_gizmo() const;
 
     void render_overlay() const;
 

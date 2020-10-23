@@ -25,17 +25,28 @@
 namespace Slic3r {
 
 enum GCodeFlavor : unsigned char {
-    gcfRepRap, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlin, gcfSailfish, gcfMach3, gcfMachinekit,
+    gcfRepRapSprinter, gcfRepRapFirmware, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlin, gcfSailfish, gcfMach3, gcfMachinekit,
     gcfSmoothie, gcfNoExtrusion,
+};
+
+enum class MachineLimitsUsage {
+	EmitToGCode,
+	TimeEstimateOnly,
+	Ignore,
+	Count,
 };
 
 enum PrintHostType {
     htOctoPrint, htDuet, htFlashAir, htAstroBox
 };
 
+enum AuthorizationType {
+    atKeyPassword, atUserPassword
+};
+
 enum InfillPattern : int {
-    ipRectilinear, ipMonotonous, ipGrid, ipTriangles, ipStars, ipCubic, ipLine, ipConcentric, ipHoneycomb, ip3DHoneycomb,
-    ipGyroid, ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipCount,
+    ipRectilinear, ipMonotonic, ipGrid, ipTriangles, ipStars, ipCubic, ipLine, ipConcentric, ipHoneycomb, ip3DHoneycomb,
+    ipGyroid, ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipAdaptiveCubic, ipSupportCubic, ipCount,
 };
 
 enum class IroningType {
@@ -84,7 +95,8 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<PrinterTechnology
 template<> inline const t_config_enum_values& ConfigOptionEnum<GCodeFlavor>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
-        keys_map["reprap"]          = gcfRepRap;
+        keys_map["reprap"]          = gcfRepRapSprinter;
+        keys_map["reprapfirmware"]  = gcfRepRapFirmware;
         keys_map["repetier"]        = gcfRepetier;
         keys_map["teacup"]          = gcfTeacup;
         keys_map["makerware"]       = gcfMakerWare;
@@ -94,6 +106,16 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<GCodeFlavor>::get
         keys_map["mach3"]           = gcfMach3;
         keys_map["machinekit"]      = gcfMachinekit;
         keys_map["no-extrusion"]    = gcfNoExtrusion;
+    }
+    return keys_map;
+}
+
+template<> inline const t_config_enum_values& ConfigOptionEnum<MachineLimitsUsage>::get_enum_values() {
+    static t_config_enum_values keys_map;
+    if (keys_map.empty()) {
+        keys_map["emit_to_gcode"]       = int(MachineLimitsUsage::EmitToGCode);
+        keys_map["time_estimate_only"]  = int(MachineLimitsUsage::TimeEstimateOnly);
+        keys_map["ignore"]            	= int(MachineLimitsUsage::Ignore);
     }
     return keys_map;
 }
@@ -109,11 +131,20 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<PrintHostType>::g
     return keys_map;
 }
 
+template<> inline const t_config_enum_values& ConfigOptionEnum<AuthorizationType>::get_enum_values() {
+    static t_config_enum_values keys_map;
+    if (keys_map.empty()) {
+        keys_map["key"]             = atKeyPassword;
+        keys_map["user"]            = atUserPassword;
+    }
+    return keys_map;
+}
+
 template<> inline const t_config_enum_values& ConfigOptionEnum<InfillPattern>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
         keys_map["rectilinear"]         = ipRectilinear;
-        keys_map["monotonous"]          = ipMonotonous;
+        keys_map["monotonic"]           = ipMonotonic;
         keys_map["grid"]                = ipGrid;
         keys_map["triangles"]           = ipTriangles;
         keys_map["stars"]               = ipStars;
@@ -126,6 +157,8 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<InfillPattern>::g
         keys_map["hilbertcurve"]        = ipHilbertCurve;
         keys_map["archimedeanchords"]   = ipArchimedeanChords;
         keys_map["octagramspiral"]      = ipOctagramSpiral;
+        keys_map["adaptivecubic"]       = ipAdaptiveCubic;
+        keys_map["supportcubic"]        = ipSupportCubic;
     }
     return keys_map;
 }
@@ -226,8 +259,12 @@ class DynamicPrintConfig : public DynamicConfig
 public:
     DynamicPrintConfig() {}
     DynamicPrintConfig(const DynamicPrintConfig &rhs) : DynamicConfig(rhs) {}
+    DynamicPrintConfig(DynamicPrintConfig &&rhs) noexcept : DynamicConfig(std::move(rhs)) {}
     explicit DynamicPrintConfig(const StaticPrintConfig &rhs);
     explicit DynamicPrintConfig(const ConfigBase &rhs) : DynamicConfig(rhs) {}
+
+    DynamicPrintConfig& operator=(const DynamicPrintConfig &rhs) { DynamicConfig::operator=(rhs); return *this; }
+    DynamicPrintConfig& operator=(DynamicPrintConfig &&rhs) noexcept { DynamicConfig::operator=(std::move(rhs)); return *this; }
 
     static DynamicPrintConfig  full_print_config();
     static DynamicPrintConfig* new_from_defaults_keys(const std::vector<std::string> &keys);
@@ -235,7 +272,7 @@ public:
     // Overrides ConfigBase::def(). Static configuration definition. Any value stored into this ConfigBase shall have its definition here.
     const ConfigDef*    def() const override { return &print_config_def; }
 
-    void                normalize();
+    void                normalize_fdm();
 
     void 				set_num_extruders(unsigned int num_extruders);
 
@@ -249,14 +286,6 @@ public:
     void                handle_legacy(t_config_option_key &opt_key, std::string &value) const override
         { PrintConfigDef::handle_legacy(opt_key, value); }
 };
-
-template<typename CONFIG>
-void normalize_and_apply_config(CONFIG &dst, const DynamicPrintConfig &src)
-{
-    DynamicPrintConfig src_normalized(src);
-    src_normalized.normalize();
-    dst.apply(src_normalized, true);
-}
 
 class StaticPrintConfig : public StaticConfig
 {
@@ -586,6 +615,8 @@ class MachineEnvelopeConfig : public StaticPrintConfig
 {
     STATIC_PRINT_CONFIG_CACHE(MachineEnvelopeConfig)
 public:
+	// Allowing the machine limits to be completely ignored or used just for time estimator.
+    ConfigOptionEnum<MachineLimitsUsage> machine_limits_usage;
     // M201 X... Y... Z... E... [mm/sec^2]
     ConfigOptionFloats              machine_max_acceleration_x;
     ConfigOptionFloats              machine_max_acceleration_y;
@@ -613,6 +644,7 @@ public:
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
+        OPT_PTR(machine_limits_usage);
         OPT_PTR(machine_max_acceleration_x);
         OPT_PTR(machine_max_acceleration_y);
         OPT_PTR(machine_max_acceleration_z);
@@ -1018,6 +1050,10 @@ public:
 
     // Radius in mm of the support pillars.
     ConfigOptionFloat support_pillar_diameter /*= 0.8*/;
+
+    // The percentage of smaller pillars compared to the normal pillar diameter
+    // which are used in problematic areas where a normal pilla cannot fit.
+    ConfigOptionPercent support_small_pillar_diameter_percent;
     
     // How much bridge (supporting another pinhead) can be placed on a pillar.
     ConfigOptionInt   support_max_bridges_on_pillar;
@@ -1142,6 +1178,7 @@ protected:
         OPT_PTR(support_head_penetration);
         OPT_PTR(support_head_width);
         OPT_PTR(support_pillar_diameter);
+        OPT_PTR(support_small_pillar_diameter_percent);
         OPT_PTR(support_max_bridges_on_pillar);
         OPT_PTR(support_pillar_connection_mode);
         OPT_PTR(support_buildplate_only);
@@ -1344,6 +1381,95 @@ private:
 Points get_bed_shape(const DynamicPrintConfig &cfg);
 Points get_bed_shape(const PrintConfig &cfg);
 Points get_bed_shape(const SLAPrinterConfig &cfg);
+
+// ModelConfig is a wrapper around DynamicPrintConfig with an addition of a timestamp.
+// Each change of ModelConfig is tracked by assigning a new timestamp from a global counter.
+// The counter is used for faster synchronization of the background slicing thread
+// with the front end by skipping synchronization of equal config dictionaries. 
+// The global counter is also used for avoiding unnecessary serialization of config 
+// dictionaries when taking an Undo snapshot.
+//
+// The global counter is NOT thread safe, therefore it is recommended to use ModelConfig from
+// the main thread only.
+// 
+// As there is a global counter and it is being increased with each change to any ModelConfig,
+// if two ModelConfig dictionaries differ, they should differ with their timestamp as well.
+// Therefore copying the ModelConfig including its timestamp is safe as there is no harm
+// in having multiple ModelConfig with equal timestamps as long as their dictionaries are equal.
+//
+// The timestamp is used by the Undo/Redo stack. As zero timestamp means invalid timestamp
+// to the Undo/Redo stack (zero timestamp means the Undo/Redo stack needs to serialize and
+// compare serialized data for differences), zero timestamp shall never be used.
+// Timestamp==1 shall only be used for empty dictionaries.
+class ModelConfig
+{
+public:
+    void         clear() { m_data.clear(); m_timestamp = 1; }
+
+    void         assign_config(const ModelConfig &rhs) {
+        if (m_timestamp != rhs.m_timestamp) {
+            m_data      = rhs.m_data;
+            m_timestamp = rhs.m_timestamp;
+        }
+    }
+    void         assign_config(ModelConfig &&rhs) {
+        if (m_timestamp != rhs.m_timestamp) {
+            m_data      = std::move(rhs.m_data);
+            m_timestamp = rhs.m_timestamp;
+            rhs.clear();
+        }
+    }
+
+    // Modification of the ModelConfig is not thread safe due to the global timestamp counter!
+    // Don't call modification methods from the back-end!
+    // Assign methods don't assign if src==dst to not having to bump the timestamp in case they are equal.
+    void         assign_config(const DynamicPrintConfig &rhs)  { if (m_data != rhs) { m_data = rhs; this->touch(); } }
+    void         assign_config(DynamicPrintConfig &&rhs)       { if (m_data != rhs) { m_data = std::move(rhs); this->touch(); } }
+    void         apply(const ModelConfig &other, bool ignore_nonexistent = false) { this->apply(other.get(), ignore_nonexistent); }
+    void         apply(const ConfigBase &other, bool ignore_nonexistent = false) { m_data.apply_only(other, other.keys(), ignore_nonexistent); this->touch(); }
+    void         apply_only(const ModelConfig &other, const t_config_option_keys &keys, bool ignore_nonexistent = false) { this->apply_only(other.get(), keys, ignore_nonexistent); }
+    void         apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false) { m_data.apply_only(other, keys, ignore_nonexistent); this->touch(); }
+    bool         set_key_value(const std::string &opt_key, ConfigOption *opt) { bool out = m_data.set_key_value(opt_key, opt); this->touch(); return out; }
+    template<typename T>
+    void         set(const std::string &opt_key, T value) { m_data.set(opt_key, value, true); this->touch(); }
+    void         set_deserialize(const t_config_option_key &opt_key, const std::string &str, bool append = false)
+        { m_data.set_deserialize(opt_key, str, append); this->touch(); }
+    bool         erase(const t_config_option_key &opt_key) { bool out = m_data.erase(opt_key); if (out) this->touch(); return out; }
+
+    // Getters are thread safe.
+    // The following implicit conversion breaks the Cereal serialization.
+//    operator const DynamicPrintConfig&() const throw() { return this->get(); }
+    const DynamicPrintConfig&   get() const throw() { return m_data; }
+    bool                        empty() const throw() { return m_data.empty(); }
+    size_t                      size() const throw() { return m_data.size(); }
+    auto                        cbegin() const { return m_data.cbegin(); }
+    auto                        cend() const { return m_data.cend(); }
+    t_config_option_keys        keys() const { return m_data.keys(); }
+    bool                        has(const t_config_option_key &opt_key) const { return m_data.has(opt_key); }
+    const ConfigOption*         option(const t_config_option_key &opt_key) const { return m_data.option(opt_key); }
+    int                         opt_int(const t_config_option_key &opt_key) const { return m_data.opt_int(opt_key); }
+    int                         extruder() const { return opt_int("extruder"); }
+    double                      opt_float(const t_config_option_key &opt_key) const { return m_data.opt_float(opt_key); }
+    std::string                 opt_serialize(const t_config_option_key &opt_key) const { return m_data.opt_serialize(opt_key); }
+
+    // Return an optional timestamp of this object.
+    // If the timestamp returned is non-zero, then the serialization framework will
+    // only save this object on the Undo/Redo stack if the timestamp is different
+    // from the timestmap of the object at the top of the Undo / Redo stack.
+    virtual uint64_t    timestamp() const throw() { return m_timestamp; }
+    bool                timestamp_matches(const ModelConfig &rhs) const throw() { return m_timestamp == rhs.m_timestamp; }
+    // Not thread safe! Should not be called from other than the main thread!
+    void                touch() { m_timestamp = ++ s_last_timestamp; }
+
+private:
+    friend class cereal::access;
+    template<class Archive> void serialize(Archive& ar) { ar(m_timestamp); ar(m_data); }
+
+    uint64_t                    m_timestamp { 1 };
+    DynamicPrintConfig          m_data;
+
+    static uint64_t             s_last_timestamp;
+};
 
 } // namespace Slic3r
 

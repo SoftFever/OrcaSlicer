@@ -1,9 +1,7 @@
 #ifndef SLA_SUPPORTPOINT_HPP
 #define SLA_SUPPORTPOINT_HPP
 
-#include <vector>
-#include <libslic3r/SLA/Common.hpp>
-#include <libslic3r/ExPolygon.hpp>
+#include <libslic3r/Point.hpp>
 
 namespace Slic3r { namespace sla {
 
@@ -29,13 +27,13 @@ struct SupportPoint
                  float pos_y,
                  float pos_z,
                  float head_radius,
-                 bool  new_island)
+                 bool  new_island = false)
         : pos(pos_x, pos_y, pos_z)
         , head_front_radius(head_radius)
         , is_new_island(new_island)
     {}
     
-    SupportPoint(Vec3f position, float head_radius, bool new_island)
+    SupportPoint(Vec3f position, float head_radius, bool new_island = false)
         : pos(position)
         , head_front_radius(head_radius)
         , is_new_island(new_island)

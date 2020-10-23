@@ -16,6 +16,42 @@ namespace GUI {
 class ConfigOptionsGroup;
 
 using ConfigOptionsGroupShp = std::shared_ptr<ConfigOptionsGroup>;
+
+struct BedShape
+{
+    enum class Type {
+        Rectangular = 0,
+        Circular,
+        Custom,
+        Invalid
+    };
+
+    enum class Parameter {
+        RectSize,
+        RectOrigin,
+        Diameter
+    };
+
+    BedShape(const ConfigOptionPoints& points);
+
+    bool            is_custom() { return m_type == Type::Custom; }
+
+    static void     append_option_line(ConfigOptionsGroupShp optgroup, Parameter param);
+    static wxString get_name(Type type);
+
+    // convert Type to size_t
+    size_t          get_type();
+
+    wxString        get_full_name_with_params();
+    void            apply_optgroup_values(ConfigOptionsGroupShp optgroup);
+
+private:
+    Type    m_type          {Type::Invalid};
+    Vec2d   m_rectSize      {200, 200};
+    Vec2d   m_rectOrigin    {0, 0};
+    double  m_diameter      {0};
+};
+
 class BedShapePanel : public wxPanel
 {
     static const std::string NONE;
@@ -39,6 +75,7 @@ public:
 
 private:
     ConfigOptionsGroupShp	init_shape_options_page(const wxString& title);
+    void	    activate_options_page(ConfigOptionsGroupShp options_group);
     wxPanel*    init_texture_panel();
     wxPanel*    init_model_panel();
     void		set_shape(const ConfigOptionPoints& points);

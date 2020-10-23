@@ -5,6 +5,7 @@
 
 #include <libslic3r/SLA/SupportTreeBuilder.hpp>
 #include <libslic3r/SLA/Clustering.hpp>
+#include <libslic3r/SLA/SpatIndex.hpp>
 
 namespace Slic3r {
 namespace sla {
@@ -16,9 +17,7 @@ enum { // For indexing Eigen vectors as v(X), v(Y), v(Z) instead of numbers
     X, Y, Z
 };
 
-inline Vec2d to_vec2(const Vec3d& v3) {
-    return {v3(X), v3(Y)};
-}
+inline Vec2d to_vec2(const Vec3d &v3) { return {v3(X), v3(Y)}; }
 
 inline std::pair<double, double> dir_to_spheric(const Vec3d &n, double norm = 1.)
 {
@@ -46,55 +45,71 @@ inline Vec3d spheric_to_dir(const std::pair<double, double> &v)
     return spheric_to_dir(v.first, v.second);
 }
 
-// This function returns the position of the centroid in the input 'clust'
-// vector of point indices.
-template<class DistFn>
-long cluster_centroid(const ClusterEl& clust,
-                      const std::function<Vec3d(size_t)> &pointfn,
-                      DistFn df)
+inline Vec3d spheric_to_dir(const std::array<double, 2> &v)
 {
-    switch(clust.size()) {
-    case 0: /* empty cluster */ return ID_UNSET;
-    case 1: /* only one element */ return 0;
-    case 2: /* if two elements, there is no center */ return 0;
-    default: ;
+    return spheric_to_dir(v[0], v[1]);
+}
+
+// Give points on a 3D ring with given center, radius and orientation
+// method based on:
+// https://math.stackexchange.com/questions/73237/parametric-equation-of-a-circle-in-3d-space
+template<size_t N>
+class PointRing {
+    std::array<double, N> m_phis;
+
+    // Two vectors that will be perpendicular to each other and to the
+    // axis. Values for a(X) and a(Y) are now arbitrary, a(Z) is just a
+    // placeholder.
+    // a and b vectors are perpendicular to the ring direction and to each other.
+    // Together they define the plane where we have to iterate with the
+    // given angles in the 'm_phis' vector
+    Vec3d a = {0, 1, 0}, b;
+    double m_radius = 0.;
+
+    static inline bool constexpr is_one(double val)
+    {
+        return std::abs(std::abs(val) - 1) < 1e-20;
     }
 
-    // The function works by calculating for each point the average distance
-    // from all the other points in the cluster. We create a selector bitmask of
-    // the same size as the cluster. The bitmask will have two true bits and
-    // false bits for the rest of items and we will loop through all the
-    // permutations of the bitmask (combinations of two points). Get the
-    // distance for the two points and add the distance to the averages.
-    // The point with the smallest average than wins.
+public:
 
-    // The complexity should be O(n^2) but we will mostly apply this function
-    // for small clusters only (cca 3 elements)
+    PointRing(const Vec3d &n)
+    {
+        m_phis = linspace_array<N>(0., 2 * PI);
 
-    std::vector<bool> sel(clust.size(), false);   // create full zero bitmask
-    std::fill(sel.end() - 2, sel.end(), true);    // insert the two ones
-    std::vector<double> avgs(clust.size(), 0.0);  // store the average distances
+        // We have to address the case when the direction vector v (same as
+        // dir) is coincident with one of the world axes. In this case two of
+        // its components will be completely zero and one is 1.0. Our method
+        // becomes dangerous here due to division with zero. Instead, vector
+        // 'a' can be an element-wise rotated version of 'v'
+        if(is_one(n(X)) || is_one(n(Y)) || is_one(n(Z))) {
+            a = {n(Z), n(X), n(Y)};
+            b = {n(Y), n(Z), n(X)};
+        }
+        else {
+            a(Z) = -(n(Y)*a(Y)) / n(Z); a.normalize();
+            b = a.cross(n);
+        }
+    }
 
-    do {
-        std::array<size_t, 2> idx;
-        for(size_t i = 0, j = 0; i < clust.size(); i++) if(sel[i]) idx[j++] = i;
+    Vec3d get(size_t idx, const Vec3d src, double r) const
+    {
+        double phi = m_phis[idx];
+        double sinphi = std::sin(phi);
+        double cosphi = std::cos(phi);
 
-        double d = df(pointfn(clust[idx[0]]),
-                      pointfn(clust[idx[1]]));
+        double rpscos = r * cosphi;
+        double rpssin = r * sinphi;
 
-        // add the distance to the sums for both associated points
-        for(auto i : idx) avgs[i] += d;
+        // Point on the sphere
+        return {src(X) + rpscos * a(X) + rpssin * b(X),
+                src(Y) + rpscos * a(Y) + rpssin * b(Y),
+                src(Z) + rpscos * a(Z) + rpssin * b(Z)};
+    }
+};
 
-        // now continue with the next permutation of the bitmask with two 1s
-    } while(std::next_permutation(sel.begin(), sel.end()));
-
-    // Divide by point size in the cluster to get the average (may be redundant)
-    for(auto& a : avgs) a /= clust.size();
-
-    // get the lowest average distance and return the index
-    auto minit = std::min_element(avgs.begin(), avgs.end());
-    return long(minit - avgs.begin());
-}
+//IndexedMesh::hit_result query_hit(const SupportableMesh &msh, const Bridge &br, double safety_d = std::nan(""));
+//IndexedMesh::hit_result query_hit(const SupportableMesh &msh, const Head &br, double safety_d = std::nan(""));
 
 inline Vec3d dirv(const Vec3d& startp, const Vec3d& endp) {
     return (endp - startp).normalized();
@@ -170,8 +185,8 @@ IntegerOnly<DoubleI> pairhash(I a, I b)
 }
 
 class SupportTreeBuildsteps {
-    const SupportConfig& m_cfg;
-    const EigenMesh3D& m_mesh;
+    const SupportTreeConfig& m_cfg;
+    const IndexedMesh& m_mesh;
     const std::vector<SupportPoint>& m_support_pts;
 
     using PtIndices = std::vector<unsigned>;
@@ -180,7 +195,7 @@ class SupportTreeBuildsteps {
     PtIndices m_iheads_onmodel;
     PtIndices m_iheadless;         // headless support points
     
-    std::map<unsigned, EigenMesh3D::hit_result> m_head_to_ground_scans;
+    std::map<unsigned, IndexedMesh::hit_result> m_head_to_ground_scans;
 
     // normals for support points from model faces.
     PointSet  m_support_nmls;
@@ -206,7 +221,7 @@ class SupportTreeBuildsteps {
     // When bridging heads to pillars... TODO: find a cleaner solution
     ccr::BlockingMutex m_bridge_mutex;
 
-    inline EigenMesh3D::hit_result ray_mesh_intersect(const Vec3d& s, 
+    inline IndexedMesh::hit_result ray_mesh_intersect(const Vec3d& s, 
                                                       const Vec3d& dir)
     {
         return m_mesh.query_ray_hit(s, dir);
@@ -223,16 +238,24 @@ class SupportTreeBuildsteps {
     // point was inside the model, an "invalid" hit_result will be returned
     // with a zero distance value instead of a NAN. This way the result can
     // be used safely for comparison with other distances.
-    EigenMesh3D::hit_result pinhead_mesh_intersect(
+    IndexedMesh::hit_result pinhead_mesh_intersect(
         const Vec3d& s,
         const Vec3d& dir,
         double r_pin,
         double r_back,
-        double width);
-    
-    template<class...Args>
-    inline double pinhead_mesh_distance(Args&&...args) {
-        return pinhead_mesh_intersect(std::forward<Args>(args)...).distance();
+        double width,
+        double safety_d);
+
+    IndexedMesh::hit_result pinhead_mesh_intersect(
+        const Vec3d& s,
+        const Vec3d& dir,
+        double r_pin,
+        double r_back,
+        double width)
+    {
+        return pinhead_mesh_intersect(s, dir, r_pin, r_back, width,
+                                      r_back * m_cfg.safety_distance_mm /
+                                          m_cfg.head_back_radius_mm);
     }
 
     // Checking bridge (pillar and stick as well) intersection with the model.
@@ -243,11 +266,21 @@ class SupportTreeBuildsteps {
     // point was inside the model, an "invalid" hit_result will be returned
     // with a zero distance value instead of a NAN. This way the result can
     // be used safely for comparison with other distances.
-    EigenMesh3D::hit_result bridge_mesh_intersect(
+    IndexedMesh::hit_result bridge_mesh_intersect(
         const Vec3d& s,
         const Vec3d& dir,
         double r,
-        bool ins_check = false);
+        double safety_d);
+
+    IndexedMesh::hit_result bridge_mesh_intersect(
+        const Vec3d& s,
+        const Vec3d& dir,
+        double r)
+    {
+        return bridge_mesh_intersect(s, dir, r,
+                                     r * m_cfg.safety_distance_mm /
+                                         m_cfg.head_back_radius_mm);
+    }
     
     template<class...Args>
     inline double bridge_mesh_distance(Args&&...args) {
@@ -268,20 +301,29 @@ class SupportTreeBuildsteps {
     inline bool connect_to_ground(Head& head);
     
     bool connect_to_model_body(Head &head);
-    
-    bool search_pillar_and_connect(const Head& head);
+
+    bool search_pillar_and_connect(const Head& source);
     
     // This is a proxy function for pillar creation which will mind the gap
     // between the pad and the model bottom in zero elevation mode.
     // jp is the starting junction point which needs to be routed down.
     // sourcedir is the allowed direction of an optional bridge between the
     // jp junction and the final pillar.
-    void create_ground_pillar(const Vec3d &jp,
+    bool create_ground_pillar(const Vec3d &jp,
                               const Vec3d &sourcedir,
                               double       radius,
-                              long         head_id = ID_UNSET);
-    
-    
+                              long         head_id = SupportTreeNode::ID_UNSET);
+
+    void add_pillar_base(long pid)
+    {
+        m_builder.add_pillar_base(pid, m_cfg.base_height_mm, m_cfg.base_radius_mm);
+    }
+
+    std::optional<DiffBridge> search_widening_path(const Vec3d &jp,
+                                                   const Vec3d &dir,
+                                                   double       radius,
+                                                   double       new_radius);
+
 public:
     SupportTreeBuildsteps(SupportTreeBuilder & builder, const SupportableMesh &sm);
 
@@ -323,11 +365,6 @@ public:
     void routing_to_model();
 
     void interconnect_pillars();
-
-    // Step: process the support points where there is not enough space for a
-    // full pinhead. In this case we will use a rounded sphere as a touching
-    // point and use a thinner bridge (let's call it a stick).
-    void routing_headless ();
 
     inline void merge_result() { m_builder.merged_mesh(); }
 

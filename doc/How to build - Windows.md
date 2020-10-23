@@ -125,11 +125,11 @@ intermediate files, which are not handled correctly by either `b2.exe` or possib
 # Noob guide (step by step)
 
 Install Visual Studio Community 2019 from
-visualstudio.microsoft.com/vs/
+[visualstudio.microsoft.com/vs/](https://visualstudio.microsoft.com/vs/)
 Select all workload options for C++ 
 
 Install git for Windows from
-gitforwindows.org
+[gitforwindows.org](https://gitforwindows.org/)
 download and run the exe accepting all defaults
 
 download PrusaSlicer-master.zip from github

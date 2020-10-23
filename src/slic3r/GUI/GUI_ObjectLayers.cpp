@@ -3,7 +3,7 @@
 
 #include "OptionsGroup.hpp"
 #include "GUI_App.hpp"
-#include "PresetBundle.hpp"
+#include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Model.hpp"
 #include "GLCanvas3D.hpp"
 #include "Plater.hpp"
@@ -34,6 +34,7 @@ ObjectLayers::ObjectLayers(wxWindow* parent) :
         m_grid_sizer->Add(temp);
     }
 
+    m_og->activate();
     m_og->sizer->Clear(true);
     m_og->sizer->Add(m_grid_sizer, 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
 
@@ -153,7 +154,7 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range, PlusMinus
     
 void ObjectLayers::create_layers_list()
 {
-    for (const auto layer : m_object->layer_config_ranges)
+    for (const auto &layer : m_object->layer_config_ranges)
     {
         const t_layer_height_range& range = layer.first;
         auto del_btn = new PlusMinusButton(m_parent, m_bmp_delete, range);

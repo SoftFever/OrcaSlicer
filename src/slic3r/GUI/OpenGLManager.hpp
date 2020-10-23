@@ -1,6 +1,8 @@
 #ifndef slic3r_OpenGLManager_hpp_
 #define slic3r_OpenGLManager_hpp_
 
+#include "GLShadersManager.hpp"
+
 class wxWindow;
 class wxGLCanvas;
 class wxGLContext;
@@ -41,6 +43,7 @@ public:
         float get_max_anisotropy() const;
 
         bool is_version_greater_or_equal_to(unsigned int major, unsigned int minor) const;
+        bool is_glsl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const;
 
         std::string to_string(bool format_as_html, bool extensions) const;
 
@@ -70,6 +73,7 @@ private:
 
     bool m_gl_initialized{ false };
     wxGLContext* m_context{ nullptr };
+    GLShadersManager m_shaders_manager;
     static GLInfo s_gl_info;
 #if ENABLE_HACK_CLOSING_ON_OSX_10_9_5
 #ifdef __APPLE__ 
@@ -86,8 +90,10 @@ public:
     ~OpenGLManager();
 
     bool init_gl();
-
     wxGLContext* init_glcontext(wxGLCanvas& canvas);
+
+    GLShaderProgram* get_shader(const std::string& shader_name) { return m_shaders_manager.get_shader(shader_name); }
+    GLShaderProgram* get_current_shader() { return m_shaders_manager.get_current_shader(); }
 
     static bool are_compressed_textures_supported() { return s_compressed_textures_supported; }
     static bool can_multisample() { return s_multisample == EMultisampleState::Enabled; }

@@ -2,9 +2,13 @@
 #define _libslic3r_h_
 
 #include "libslic3r_version.h"
+#define GCODEVIEWER_APP_NAME "PrusaSlicer G-code Viewer"
+#define GCODEVIEWER_APP_KEY  "PrusaSlicerGcodeViewer"
+#define GCODEVIEWER_BUILD_ID std::string("PrusaSlicer G-code Viewer-") + std::string(SLIC3R_VERSION) + std::string("-UNKNOWN")
 
 // this needs to be included early for MSVC (listing it in Build.PL is not enough)
 #include <memory>
+#include <array>
 #include <algorithm>
 #include <ostream>
 #include <iostream>
@@ -259,6 +263,20 @@ using IntegerOnly = std::enable_if_t<std::is_integral<T>::value, O>;
 
 template<class T, class O = T>
 using ArithmeticOnly = std::enable_if_t<std::is_arithmetic<T>::value, O>;
+
+template<class T, class O = T>
+using IteratorOnly = std::enable_if_t<
+    !std::is_same_v<typename std::iterator_traits<T>::value_type, void>, O
+>;
+
+template<class T, class I, class... Args> // Arbitrary allocator can be used
+IntegerOnly<I, std::vector<T, Args...>> reserve_vector(I capacity)
+{
+    std::vector<T, Args...> ret;
+    if (capacity > I(0)) ret.reserve(size_t(capacity));
+
+    return ret;
+}
 
 } // namespace Slic3r
 
