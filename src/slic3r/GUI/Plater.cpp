@@ -1770,7 +1770,8 @@ struct Plater::priv
     // Caching last value of show_action_buttons parameter for show_action_buttons(), so that a callback which does not know this state will not override it.
     mutable bool    			ready_to_slice = { false };
     // Flag indicating that the G-code export targets a removable device, therefore the show_action_buttons() needs to be called at any case when the background processing finishes.
-    bool 						writing_to_removable_device = { false };
+    bool 						writing_to_removable_device { false };
+    bool 						show_ExportToRemovableFinished_notification { false };
     bool                        inside_snapshot_capture() { return m_prevent_snapshots != 0; }
 	bool                        process_completed_with_error { false };
 private:
@@ -3506,6 +3507,8 @@ void Plater::priv::on_export_began(wxCommandEvent& evt)
 {
 	if (show_warning_dialog)
 		warnings_dialog();
+    if (this->writing_to_removable_device)
+        this->show_ExportToRemovableFinished_notification = true;
 }
 void Plater::priv::on_slicing_began()
 {
@@ -3621,11 +3624,12 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
             show_action_buttons(false);
         }
         // If writing to removable drive was scheduled, show notification with eject button
-        if (this->writing_to_removable_device) {
+        if (this->writing_to_removable_device && this->show_ExportToRemovableFinished_notification) {
             show_action_buttons(false);
             notification_manager->push_notification(NotificationType::ExportToRemovableFinished, *q->get_current_canvas3D());
         }
     }
+    this->show_ExportToRemovableFinished_notification = false;
 	this->writing_to_removable_device = false;
 }
 
@@ -4989,12 +4993,13 @@ void Plater::export_gcode(bool prefer_removable)
 
     if (! output_path.empty()) {
 		bool path_on_removable_media = removable_drive_manager.set_and_verify_last_save_path(output_path.string());
+        p->writing_to_removable_device = path_on_removable_media;
         p->export_gcode(output_path, path_on_removable_media, PrintHostJob());
         // Storing a path to AppConfig either as path to removable media or a path to internal media.
         // is_path_on_removable_drive() is called with the "true" parameter to update its internal database as the user may have shuffled the external drives
         // while the dialog was open.
         appconfig.update_last_output_dir(output_path.parent_path().string(), path_on_removable_media);
-		p->writing_to_removable_device = path_on_removable_media;
+		
 	}
 }
 
