@@ -393,6 +393,7 @@ endif ()
 
 find_package(PNG REQUIRED)
 
+set(OpenGL_GL_PREFERENCE "LEGACY")
 find_package(OpenGL REQUIRED)
 
 # Find glew or use bundled version
