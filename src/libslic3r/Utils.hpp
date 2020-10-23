@@ -75,11 +75,12 @@ enum CopyFileResult {
 	FAIL_CHECK_TARGET_NOT_OPENED
 };
 // Copy a file, adjust the access attributes, so that the target is writable.
-CopyFileResult copy_file_inner(const std::string &from, const std::string &to, boost::system::error_code& error_code);
+CopyFileResult copy_file_inner(const std::string &from, const std::string &to, std::string& error_message);
 // Copy file to a temp file first, then rename it to the final file name.
 // If with_check is true, then the content of the copied file is compared to the content
 // of the source file before renaming.
-extern CopyFileResult copy_file(const std::string &from, const std::string &to, boost::system::error_code& error_code, const bool with_check = false);
+// Additional error info is passed in error message.
+extern CopyFileResult copy_file(const std::string &from, const std::string &to, std::string& error_message, const bool with_check = false);
 
 // Compares two files if identical.
 extern CopyFileResult check_copy(const std::string& origin, const std::string& copy);
