@@ -7,6 +7,8 @@
 #include <type_traits>
 #include <system_error>
 
+#include <boost/system/error_code.hpp>
+
 #include "libslic3r.h"
 
 namespace boost { namespace filesystem { class directory_entry; }}
