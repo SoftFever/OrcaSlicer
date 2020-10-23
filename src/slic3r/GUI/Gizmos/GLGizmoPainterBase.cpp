@@ -79,7 +79,7 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection) const
 
     glsafe(::glEnable(GL_POLYGON_OFFSET_FILL));
     ScopeGuard offset_fill_guard([]() { glsafe(::glDisable(GL_POLYGON_OFFSET_FILL)); } );
-    glsafe(::glPolygonOffset(-1.0, -1.0));
+    glsafe(::glPolygonOffset(-5.0, -5.0));
 
     // Take care of the clipping plane. The normal of the clipping plane is
     // saved with opposite sign than we need to pass to OpenGL (FIXME)
