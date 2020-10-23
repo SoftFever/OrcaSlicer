@@ -433,7 +433,7 @@ CopyFileResult copy_file_inner(const std::string& from, const std::string& to, b
 	//This error code is ignored
 	boost::system::error_code ec;
 	
-	boost::filesystem::permissions(target, perms, error_code);
+	boost::filesystem::permissions(target, perms, ec);
 	if (ec)
 		BOOST_LOG_TRIVIAL(error) << "Copy file permisions before copy error message: " << ec.message();
 	// This error code is passed up
@@ -443,7 +443,7 @@ CopyFileResult copy_file_inner(const std::string& from, const std::string& to, b
 		return FAIL_COPY_FILE;
 	}
 	ec.clear();
-	boost::filesystem::permissions(target, perms, error_code);
+	boost::filesystem::permissions(target, perms, ec);
 	if (ec)
 		BOOST_LOG_TRIVIAL(error) << "Copy file permisions after copy error message: " << ec.message();
 	return SUCCESS;
