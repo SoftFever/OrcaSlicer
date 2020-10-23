@@ -417,7 +417,7 @@ std::error_code rename_file(const std::string &from, const std::string &to)
 #endif
 }
 
-CopyFileResult copy_file_inner(const std::string& from, const std::string& to, boost::system::error_code &error_code)
+CopyFileResult copy_file_inner(const std::string& from, const std::string& to, std::string& error_message)
 {
 	const boost::filesystem::path source(from);
 	const boost::filesystem::path target(to);
@@ -434,25 +434,26 @@ CopyFileResult copy_file_inner(const std::string& from, const std::string& to, b
 	boost::system::error_code ec;
 	
 	boost::filesystem::permissions(target, perms, ec);
-	if (ec)
-		BOOST_LOG_TRIVIAL(error) << "Copy file permisions before copy error message: " << ec.message();
+	//if (ec)
+	//	BOOST_LOG_TRIVIAL(error) << "Copy file permisions before copy error message: " << ec.message();
 	// This error code is passed up
-	error_code.clear();
-	boost::filesystem::copy_file(source, target, boost::filesystem::copy_option::overwrite_if_exists, error_code);
-	if (error_code) {
+	ec.clear();
+	boost::filesystem::copy_file(source, target, boost::filesystem::copy_option::overwrite_if_exists, ec);
+	if (ec) {
+		error_message = ec.message();
 		return FAIL_COPY_FILE;
 	}
-	ec.clear();
+	//ec.clear();
 	boost::filesystem::permissions(target, perms, ec);
-	if (ec)
-		BOOST_LOG_TRIVIAL(error) << "Copy file permisions after copy error message: " << ec.message();
+	//if (ec)
+	//	BOOST_LOG_TRIVIAL(error) << "Copy file permisions after copy error message: " << ec.message();
 	return SUCCESS;
 }
 
-CopyFileResult copy_file(const std::string &from, const std::string &to, boost::system::error_code &error_code, const bool with_check)
+CopyFileResult copy_file(const std::string &from, const std::string &to, std::string& error_message, const bool with_check)
 {
 	std::string to_temp = to + ".tmp";
-	CopyFileResult ret_val = copy_file_inner(from, to_temp, error_code);
+	CopyFileResult ret_val = copy_file_inner(from, to_temp, error_message);
     if(ret_val == SUCCESS)
 	{
         if (with_check)
