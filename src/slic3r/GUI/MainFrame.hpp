@@ -9,7 +9,7 @@
 #include <wx/filehistory.h>
 #ifdef __APPLE__
 #include <wx/taskbar.h>
-#endif __APPLE__
+#endif // __APPLE__
 
 #include <string>
 #include <map>

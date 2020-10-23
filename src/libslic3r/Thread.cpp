@@ -11,6 +11,7 @@
 #include <mutex>
 #include <tbb/parallel_for.h>
 #include <tbb/tbb_thread.h>
+#include <tbb/task_scheduler_init.h>
 
 #define SLIC3R_THREAD_NAME_WIN32_MODERN
 

@@ -14,6 +14,7 @@
 #include <wx/msgdlg.h>
 
 #include <boost/nowide/iostream.hpp>
+#include <boost/nowide/convert.hpp>
 
 namespace Slic3r {
 namespace GUI {

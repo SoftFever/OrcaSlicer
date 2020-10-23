@@ -78,9 +78,9 @@ void AppConfig::set_defaults()
             set("single_instance", 
 #ifdef __APPLE__
                 "1"
-#else __APPLE__
+#else // __APPLE__
                 "0"
-#endif __APPLE__
+#endif // __APPLE__
                 );
 
         if (get("remember_output_path").empty())
