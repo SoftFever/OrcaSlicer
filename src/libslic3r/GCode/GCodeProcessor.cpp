@@ -689,7 +689,7 @@ void GCodeProcessor::reset()
     m_global_positioning_type = EPositioningType::Absolute;
     m_e_local_positioning_type = EPositioningType::Absolute;
     m_extruder_offsets = std::vector<Vec3f>(Min_Extruder_Count, Vec3f::Zero());
-    m_flavor = gcfRepRap;
+    m_flavor = gcfRepRapSprinter;
 
     m_start_position = { 0.0f, 0.0f, 0.0f, 0.0f };
     m_end_position = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -1109,7 +1109,7 @@ bool GCodeProcessor::process_cura_tags(const std::string& comment)
         else if (flavor == "Repetier")
             m_flavor = gcfRepetier;
         else if (flavor == "RepRap")
-            m_flavor = gcfRepRap;
+            m_flavor = gcfRepRapFirmware;
         else if (flavor == "Marlin")
             m_flavor = gcfMarlin;
         else
@@ -1801,7 +1801,7 @@ void GCodeProcessor::process_M201(const GCodeReader::GCodeLine& line)
         return;
 
     // see http://reprap.org/wiki/G-code#M201:_Set_max_printing_acceleration
-    float factor = (m_flavor != gcfRepRap && m_units == EUnits::Inches) ? INCHES_TO_MM : 1.0f;
+    float factor = ((m_flavor != gcfRepRapSprinter && m_flavor != gcfRepRapFirmware) && m_units == EUnits::Inches) ? INCHES_TO_MM : 1.0f;
 
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Count); ++i) {
         if (line.has_x())
