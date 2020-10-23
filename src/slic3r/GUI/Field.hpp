@@ -119,6 +119,9 @@ public:
 	const t_config_option_key		m_opt_id;//! {""};
 	int								m_opt_idx = 0;
 
+	double							opt_height{ 0.0 };
+	bool							parent_is_custom_ctrl{ false };
+
     /// Sets a value for this control.
     /// subclasses should overload with a specific version
     /// Postcondition: Method does not fire the on_change event.

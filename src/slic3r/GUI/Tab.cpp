@@ -677,6 +677,9 @@ void TabPrinter::msw_rescale()
     for (auto page : pages)
         page->msw_rescale();
 
+    if (m_reset_to_filament_color)
+        m_reset_to_filament_color->msw_rescale();
+
     Layout();
 }
 
@@ -950,6 +953,9 @@ void Tab::msw_rescale()
         ikon.second->msw_rescale();
     for (ScalableBitmap& bmp : m_mode_bitmap_cache)
         bmp.msw_rescale();
+
+    if (m_detach_preset_btn)
+        m_detach_preset_btn->msw_rescale();
 
     // rescale icons for tree_ctrl
     for (ScalableBitmap& bmp : m_scaled_icons_list)

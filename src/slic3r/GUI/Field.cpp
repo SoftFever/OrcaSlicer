@@ -13,6 +13,7 @@
 #include <wx/tooltip.h>
 #include <wx/notebook.h>
 #include <boost/algorithm/string/predicate.hpp>
+#include "OG_CustomCtrl.hpp"
 
 #ifdef __WXOSX__
 #define wxOSX true
@@ -99,6 +100,7 @@ void Field::PostInitialize()
 
     // initialize m_unit_value
     m_em_unit = em_unit(m_parent);
+    parent_is_custom_ctrl = dynamic_cast<OG_CustomCtrl*>(m_parent) != nullptr;
 
 	BUILD();
 
@@ -312,12 +314,11 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
 
 void Field::msw_rescale(bool rescale_sidetext)
 {
-	if (!m_Undo_btn)
-		return;
+	if (m_Undo_btn) {
 	m_Undo_to_sys_btn->msw_rescale();
 	m_Undo_btn->msw_rescale();
 	m_blinking_bmp->msw_rescale();
-
+    }
 	// update em_unit value
 	m_em_unit = em_unit(m_parent);
 
@@ -394,6 +395,8 @@ void TextCtrl::BUILD() {
 
     const long style = m_opt.multiline ? wxTE_MULTILINE : wxTE_PROCESS_ENTER/*0*/;
 	auto temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, style);
+    if (parent_is_custom_ctrl && m_opt.height < 0)
+        opt_height = (double)temp->GetSize().GetHeight()/m_em_unit;
     temp->SetFont(m_opt.is_code ?
                   Slic3r::GUI::wxGetApp().code_font():
                   Slic3r::GUI::wxGetApp().normal_font());
@@ -561,13 +564,20 @@ void TextCtrl::msw_rescale(bool rescale_sidetext/* = false*/)
 {
     Field::msw_rescale(rescale_sidetext);
     auto size = wxSize(def_width() * m_em_unit, wxDefaultCoord);
-    if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
+
+    if (m_opt.height >= 0) 
+        size.SetHeight(m_opt.height*m_em_unit);
+    else if (parent_is_custom_ctrl && opt_height > 0)
+        size.SetHeight(lround(opt_height*m_em_unit));
     if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
     if (size != wxDefaultSize)
     {
         wxTextCtrl* field = dynamic_cast<wxTextCtrl*>(window);
-        field->SetMinSize(size);
+        if (parent_is_custom_ctrl)
+            field->SetSize(size);
+        else
+            field->SetMinSize(size);
     }
 
 }
@@ -711,6 +721,9 @@ void SpinCtrl::BUILD() {
 	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
     if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
+    if (m_opt.height < 0 && parent_is_custom_ctrl)
+        opt_height = (double)temp->GetSize().GetHeight() / m_em_unit;
+
 // XXX: On OS X the wxSpinCtrl widget is made up of two subwidgets, unfortunatelly
 // the kill focus event is not propagated to the encompassing widget,
 // so we need to bind it on the inner text widget instead. (Ugh.)
@@ -797,7 +810,10 @@ void SpinCtrl::msw_rescale(bool rescale_sidetext/* = false*/)
     Field::msw_rescale(rescale_sidetext);
 
     wxSpinCtrl* field = dynamic_cast<wxSpinCtrl*>(window);
-    field->SetMinSize(wxSize(def_width() * m_em_unit, int(1.9f*field->GetFont().GetPixelSize().y)));
+    if (parent_is_custom_ctrl)
+        field->SetSize(wxSize(def_width() * m_em_unit, lround(opt_height * m_em_unit)));
+    else
+        field->SetMinSize(wxSize(def_width() * m_em_unit, int(1.9f*field->GetFont().GetPixelSize().y)));
 }
 
 #ifdef __WXOSX__
@@ -1159,11 +1175,12 @@ void Choice::msw_rescale(bool rescale_sidetext/* = false*/)
     Field::msw_rescale();
 
     choice_ctrl* field = dynamic_cast<choice_ctrl*>(window);
+#ifdef __WXOSX__
     const wxString selection = field->GetValue();// field->GetString(index);
 
 	/* To correct scaling (set new controll size) of a wxBitmapCombobox 
 	 * we need to refill control with new bitmaps. So, in our case : 
-	 * 1. clear conrol
+	 * 1. clear control
 	 * 2. add content
 	 * 3. add scaled "empty" bitmap to the at least one item
 	 */
@@ -1189,15 +1206,23 @@ void Choice::msw_rescale(bool rescale_sidetext/* = false*/)
         }
     }
 
-#ifdef __WXOSX__
     wxBitmap empty_bmp(1, field->GetFont().GetPixelSize().y + 2);
     empty_bmp.SetWidth(0);
     field->SetItemBitmap(0, empty_bmp);
-#endif
 
     idx == m_opt.enum_values.size() ?
         field->SetValue(selection) :
         field->SetSelection(idx);
+#else
+    auto size = wxSize(def_width_wider() * m_em_unit, wxDefaultCoord);
+    if (m_opt.height >= 0) size.SetHeight(m_opt.height * m_em_unit);
+    if (m_opt.width >= 0) size.SetWidth(m_opt.width * m_em_unit);
+
+    if (parent_is_custom_ctrl)
+        field->SetSize(size);
+    else
+        field->SetMinSize(size);
+#endif
 }
 
 void ColourPicker::BUILD()
@@ -1214,6 +1239,8 @@ void ColourPicker::BUILD()
 	}
 
 	auto temp = new wxColourPickerCtrl(m_parent, wxID_ANY, clr, wxDefaultPosition, size);
+    if (parent_is_custom_ctrl && m_opt.height < 0)
+        opt_height = (double)temp->GetSize().GetHeight() / m_em_unit;
     temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
     if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
@@ -1276,9 +1303,15 @@ void ColourPicker::msw_rescale(bool rescale_sidetext/* = false*/)
 
 	wxColourPickerCtrl* field = dynamic_cast<wxColourPickerCtrl*>(window);
     auto size = wxSize(def_width() * m_em_unit, wxDefaultCoord);
-	if (m_opt.height >= 0) size.SetHeight(m_opt.height * m_em_unit);
+    if (m_opt.height >= 0) 
+        size.SetHeight(m_opt.height * m_em_unit);
+    else if (parent_is_custom_ctrl && opt_height > 0)
+        size.SetHeight(lround(opt_height * m_em_unit));
 	if (m_opt.width >= 0) size.SetWidth(m_opt.width * m_em_unit);
-	field->SetMinSize(size);
+    if (parent_is_custom_ctrl)
+        field->SetSize(size);
+    else
+        field->SetMinSize(size);
 
     if (field->GetColour() == wxTransparentColour)
         set_undef_value(field);
@@ -1298,6 +1331,9 @@ void PointCtrl::BUILD()
 
 	x_textctrl = new wxTextCtrl(m_parent, wxID_ANY, X, wxDefaultPosition, field_size, wxTE_PROCESS_ENTER);
 	y_textctrl = new wxTextCtrl(m_parent, wxID_ANY, Y, wxDefaultPosition, field_size, wxTE_PROCESS_ENTER);
+    if (parent_is_custom_ctrl && m_opt.height < 0)
+        opt_height = (double)x_textctrl->GetSize().GetHeight() / m_em_unit;
+
 	x_textctrl->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	x_textctrl->SetBackgroundStyle(wxBG_STYLE_PAINT);
 	y_textctrl->SetFont(Slic3r::GUI::wxGetApp().normal_font());
@@ -1314,9 +1350,6 @@ void PointCtrl::BUILD()
 	temp->Add(x_textctrl);
 	temp->Add(static_text_y, 0, wxALIGN_CENTER_VERTICAL, 0);
 	temp->Add(y_textctrl);
-
-// 	x_textctrl->Bind(wxEVT_TEXT, ([this](wxCommandEvent e) { on_change_field(); }), x_textctrl->GetId());
-// 	y_textctrl->Bind(wxEVT_TEXT, ([this](wxCommandEvent e) { on_change_field(); }), y_textctrl->GetId());
 
     x_textctrl->Bind(wxEVT_TEXT_ENTER, ([this](wxCommandEvent e) { propagate_value(x_textctrl); }), x_textctrl->GetId());
 	y_textctrl->Bind(wxEVT_TEXT_ENTER, ([this](wxCommandEvent e) { propagate_value(y_textctrl); }), y_textctrl->GetId());
@@ -1335,10 +1368,17 @@ void PointCtrl::msw_rescale(bool rescale_sidetext/* = false*/)
 {
     Field::msw_rescale();
 
-    const wxSize field_size(4 * m_em_unit, -1);
+    wxSize field_size(4 * m_em_unit, -1);
 
-    x_textctrl->SetMinSize(field_size);
-    y_textctrl->SetMinSize(field_size);
+    if (parent_is_custom_ctrl) {
+        field_size.SetHeight(lround(opt_height * m_em_unit));
+        x_textctrl->SetSize(field_size);
+        y_textctrl->SetSize(field_size);
+    }
+    else {
+        x_textctrl->SetMinSize(field_size);
+        y_textctrl->SetMinSize(field_size);
+    }
 }
 
 bool PointCtrl::value_was_changed(wxTextCtrl* win)

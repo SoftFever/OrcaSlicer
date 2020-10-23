@@ -30,11 +30,10 @@ class OG_CustomCtrl :public wxControl
     wxFont  m_font;
     int     m_v_gap;
     int     m_h_gap;
+    int     m_em_unit;
 
-    ScalableBitmap    m_bmp_mode_simple;
-    ScalableBitmap    m_bmp_mode_advanced;
-    ScalableBitmap    m_bmp_mode_expert;
-    ScalableBitmap    m_bmp_blinking;
+    wxSize  m_bmp_mode_sz;
+    wxSize  m_bmp_blinking_sz;
 
     struct CtrlLine {
         wxCoord           height  { wxDefaultCoord };
@@ -48,12 +47,16 @@ class OG_CustomCtrl :public wxControl
         wxRect      m_rect_undo_icon;
         wxRect      m_rect_undo_to_sys_icon;
 
+        ~CtrlLine() { ctrl = nullptr; }
+
+        void    correct_items_positions();
+        void    msw_rescale();
         void    update_visibility(ConfigOptionMode mode);
 
         void    render(wxDC& dc, wxCoord v_pos);
         wxCoord draw_mode_bmp(wxDC& dc, wxCoord v_pos);
         wxCoord draw_text      (wxDC& dc, wxPoint pos, const wxString& text, const wxColour* color, int width);
-        wxCoord draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmap& bmp_blinking, const wxBitmap& bmp_undo_to_sys, const wxBitmap& bmp_undo);
+        wxCoord draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmap& bmp_undo_to_sys, const wxBitmap& bmp_undo);
     };
 
     std::vector<CtrlLine> ctrl_lines;

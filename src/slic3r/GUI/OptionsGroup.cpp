@@ -686,6 +686,9 @@ void ConfigOptionsGroup::msw_rescale()
     for (const auto& field : m_fields)
         field.second->msw_rescale(sidetext_width>0);
 
+    if (custom_ctrl)
+        custom_ctrl->msw_rescale();
+
     const int em = em_unit(parent());
 
     // rescale width of label column
