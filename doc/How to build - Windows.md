@@ -129,14 +129,14 @@ intermediate files, which are not handled correctly by either `b2.exe` or possib
 - Install git for Windows from [gitforwindows.org](https://gitforwindows.org/) 
   - download and run the exe accepting all defaults
 - Download `PrusaSlicer-master.zip` from github
-  - I downloaded this to c:\PrusaSlicer and unzipped to `c:\PrusaSlicer\PrusaSlicer-master\` so this will be my prefix for all my steps. Substitute your prefix.
+  - This example will use the directory c:\PrusaSlicer and unzipped to `c:\PrusaSlicer\PrusaSlicer-master\` so this will be the prefix for all the steps. Substitute your as required prefix.
 - Go to the Windows Start Menu and Click on "Visual Studio 2019" folder, then select the ->"x64 Native Tools Command Prompt" to open a command window
 
       cd c:\PrusaSlicer\PrusaSlicer-master\deps
       mkdir build
       cd build
       cmake .. -G "Visual Studio 16 2019" -DDESTDIR="c:\PrusaSlicer\PrusaSlicer-master"
-      msbuild /m ALL_BUILD.vcxproj // This took 13.5 minutes on my machine: core I7-7700K @ 4.2Ghz with 32GB main memory and 20min on a average laptop
+      msbuild /m ALL_BUILD.vcxproj // This took 13.5 minutes on the following machine: core I7-7700K @ 4.2Ghz with 32GB main memory and 20min on an average laptop
       cd c:\PrusaSlicer\PrusaSlicer-master\
       mkdir build
       cd build
