@@ -1,7 +1,3 @@
-set(_prefix_line "")
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(_prefix_line "-DPNG_PREFIX=prusaslicer_")
-endif()
 
 prusaslicer_add_cmake_project(PNG 
     GIT_REPOSITORY https://github.com/glennrp/libpng.git 
@@ -10,7 +6,7 @@ prusaslicer_add_cmake_project(PNG
     CMAKE_ARGS
         -DPNG_SHARED=OFF
         -DPNG_STATIC=ON
-        ${_prefix_line}
+        -DPNG_PREFIX=prusaslicer_
         -DPNG_TESTS=OFF
 )
 
