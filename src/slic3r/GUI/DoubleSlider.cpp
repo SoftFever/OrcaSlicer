@@ -12,6 +12,9 @@
 #include "I18N.hpp"
 #include "ExtruderSequenceDialog.hpp"
 #include "libslic3r/Print.hpp"
+#if ENABLE_GCODE_VIEWER
+#include "libslic3r/AppConfig.hpp"
+#endif // ENABLE_GCODE_VIEWER
 
 #include <wx/button.h>
 #include <wx/dialog.h>
@@ -45,15 +48,16 @@ static std::string gcode(Type type)
 {
     const PrintConfig& config = GUI::wxGetApp().plater()->fff_print().config();
     switch (type) {
-    case ColorChange:
-        return config.color_change_gcode;
-    case PausePrint:
-        return config.pause_print_gcode;
-    case Template:
-        return config.template_custom_gcode;
-    default:
-        return "";
+    case ColorChange: return config.color_change_gcode;
+    case PausePrint:  return config.pause_print_gcode;
+    case Template:    return config.template_custom_gcode;
+    default:          return "";
     }
+}
+
+static bool is_lower_thumb_editable()
+{
+    return Slic3r::GUI::get_app_config()->get("seq_top_layer_only") == "0";
 }
 
 Control::Control( wxWindow *parent,
@@ -959,7 +963,7 @@ int Control::get_value_from_position(const wxCoord x, const wxCoord y)
 bool Control::detect_selected_slider(const wxPoint& pt)
 {
     if (is_point_in_rect(pt, m_rect_lower_thumb))
-        m_selection = m_lower_editable ? ssLower : ssUndef;
+        m_selection = is_lower_thumb_editable() ? ssLower : ssUndef;
     else if(is_point_in_rect(pt, m_rect_higher_thumb))
         m_selection = ssHigher;
     else
@@ -1415,7 +1419,7 @@ void Control::OnWheel(wxMouseEvent& event)
                           ssLower : ssHigher;
     }
 
-    if (m_selection == ssLower && !m_lower_editable)
+    if (m_selection == ssLower && !is_lower_thumb_editable())
         m_selection = ssUndef;
 
 #if ENABLE_GCODE_VIEWER
@@ -1468,7 +1472,7 @@ void Control::OnKeyDown(wxKeyEvent &event)
             else if (key == WXK_UP || key == WXK_DOWN) {
                 if (key == WXK_UP)
                     m_selection = ssHigher;
-                else if (key == WXK_DOWN && m_lower_editable)
+                else if (key == WXK_DOWN && is_lower_thumb_editable())
                     m_selection = ssLower;
                 Refresh();
             }
@@ -1483,7 +1487,7 @@ void Control::OnKeyDown(wxKeyEvent &event)
             if (key == WXK_LEFT || key == WXK_RIGHT) {
                 if (key == WXK_LEFT)
                     m_selection = ssHigher;
-                else if (key == WXK_RIGHT && m_lower_editable)
+                else if (key == WXK_RIGHT && is_lower_thumb_editable())
                     m_selection = ssLower;
                 Refresh();
             }
