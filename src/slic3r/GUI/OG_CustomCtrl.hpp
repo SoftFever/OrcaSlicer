@@ -43,10 +43,10 @@ class OG_CustomCtrl :public wxControl
         bool draw_just_act_buttons  { false };
         bool is_visible             { true };
 
-        wxRect      m_rect_blinking;
-        wxRect      m_rect_undo_icon;
-        wxRect      m_rect_undo_to_sys_icon;
-
+        CtrlLine(   wxCoord         height,
+                    OG_CustomCtrl*  ctrl,
+                    const Line&     og_line,
+                    bool            draw_just_act_buttons = false);
         ~CtrlLine() { ctrl = nullptr; }
 
         void    correct_items_positions();
@@ -56,7 +56,12 @@ class OG_CustomCtrl :public wxControl
         void    render(wxDC& dc, wxCoord v_pos);
         wxCoord draw_mode_bmp(wxDC& dc, wxCoord v_pos);
         wxCoord draw_text      (wxDC& dc, wxPoint pos, const wxString& text, const wxColour* color, int width);
-        wxCoord draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmap& bmp_undo_to_sys, const wxBitmap& bmp_undo);
+        wxPoint draw_blinking_bmp(wxDC& dc, wxPoint pos, size_t rect_id = 0);
+        wxCoord draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmap& bmp_undo_to_sys, const wxBitmap& bmp_undo, size_t rect_id = 0);
+
+        std::vector<wxRect> rects_blinking;
+        std::vector<wxRect> rects_undo_icon;
+        std::vector<wxRect> rects_undo_to_sys_icon;
     };
 
     std::vector<CtrlLine> ctrl_lines;
@@ -73,7 +78,6 @@ public:
     void    OnPaint(wxPaintEvent&);
     void    OnMotion(wxMouseEvent& event);
     void    OnLeftDown(wxMouseEvent& event);
-    void    OnLeftUp(wxMouseEvent& event);
 
     void    init_ctrl_lines();
     bool    update_visibility(ConfigOptionMode mode);

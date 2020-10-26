@@ -593,6 +593,9 @@ void Tab::decorate()
         field->set_undo_to_sys_tooltip(sys_tt);
         field->set_label_colour(color);
     }
+
+    if (m_active_page)
+        m_active_page->refresh();
 }
 
 // Update UI according to changes
@@ -3533,10 +3536,10 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
                                   wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
     deps.btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
-    BlinkingBitmap* bbmp = new BlinkingBitmap(parent);
+//    BlinkingBitmap* bbmp = new BlinkingBitmap(parent);
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(bbmp, 0, wxALIGN_CENTER_VERTICAL);
+//    sizer->Add(bbmp, 0, wxALIGN_CENTER_VERTICAL);
     sizer->Add((deps.checkbox), 0, wxALIGN_CENTER_VERTICAL);
     sizer->Add((deps.btn), 0, wxALIGN_CENTER_VERTICAL);
 
@@ -3599,7 +3602,7 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 
     // fill m_blinking_ikons map with options
     {
-        m_blinking_ikons[deps.key_list] = bbmp;
+ //       m_blinking_ikons[deps.key_list] = bbmp;
     }
 
     return sizer;
@@ -3612,10 +3615,10 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
         wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
     btn->SetFont(wxGetApp().normal_font());
 
-    BlinkingBitmap* bbmp = new BlinkingBitmap(parent);
+//    BlinkingBitmap* bbmp = new BlinkingBitmap(parent);
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(bbmp, 0, wxALIGN_CENTER_VERTICAL);
+//    sizer->Add(bbmp, 0, wxALIGN_CENTER_VERTICAL);
     sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL);
 
     btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
@@ -3649,8 +3652,8 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
 
     // fill m_blinking_ikons map with options
     {
-        for (const std::string opt : {"bed_shape", "bed_custom_texture", "bed_custom_model"})
-            m_blinking_ikons[opt] = bbmp;
+        //for (const std::string opt : {"bed_shape", "bed_custom_texture", "bed_custom_model"})
+        //    m_blinking_ikons[opt] = bbmp;
     }
 
     return sizer;
@@ -3822,6 +3825,12 @@ void Page::sys_color_changed()
 {
     for (auto group : m_optgroups)
         group->sys_color_changed();
+}
+
+void Page::refresh()
+{
+    for (auto group : m_optgroups)
+        group->refresh();
 }
 
 Field* Page::get_field(const t_config_option_key& opt_key, int opt_index /*= -1*/) const

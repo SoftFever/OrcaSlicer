@@ -87,6 +87,8 @@ protected:
     void			on_set_focus(wxEvent& event);
     /// Call the attached on_change method. 
     void			on_change_field();
+
+public:
     /// Call the attached m_back_to_initial_value method. 
 	void			on_back_to_initial_value();
     /// Call the attached m_back_to_sys_value method. 

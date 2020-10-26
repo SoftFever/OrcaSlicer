@@ -135,7 +135,7 @@ public:
 	// create all controls for the option group from the m_lines
 	bool		activate(std::function<void()> throw_if_canceled = [](){});
 	// delete all controls from the option group
-	void		clear();
+	void		clear(bool destroy_custom_ctrl = false);
 
     Line		create_single_option_line(const Option& option) const;
     void		append_single_option_line(const Option& option) { append_line(create_single_option_line(option)); }
@@ -191,6 +191,7 @@ public:
 
 	OptionsGroup(	wxWindow* _parent, const wxString& title, bool is_tab_opt = false, 
                     column_t extra_clmn = nullptr);
+	~OptionsGroup() { clear(true); }
 
     wxGridSizer*        get_grid_sizer() { return m_grid_sizer; }
 
@@ -284,6 +285,7 @@ public:
     bool        update_visibility(ConfigOptionMode mode);
     void        msw_rescale();
     void        sys_color_changed();
+    void        refresh();
 	boost::any	config_value(const std::string& opt_key, int opt_index, bool deserialize);
 	// return option value from config 
 	boost::any	get_config_value(const DynamicPrintConfig& config, const std::string& opt_key, int opt_index = -1);

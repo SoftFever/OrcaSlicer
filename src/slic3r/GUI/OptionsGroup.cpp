@@ -428,7 +428,7 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled)
 	return true;
 }
 // delete all controls from the option group
-void OptionsGroup::clear()
+void OptionsGroup::clear(bool destroy_custom_ctrl)
 {
 	if (!sizer)
 		return;
@@ -460,7 +460,10 @@ void OptionsGroup::clear()
             if (win)
                 win = nullptr;
         }
-        custom_ctrl = nullptr;
+        if (destroy_custom_ctrl)
+            custom_ctrl->Destroy();
+        else
+            custom_ctrl = nullptr;
     }
 
 	m_extra_column_item_ptrs.clear();
@@ -734,6 +737,12 @@ void ConfigOptionsGroup::sys_color_changed()
 	// update undo buttons : rescale bitmaps
 	for (const auto& field : m_fields)
 		field.second->sys_color_changed();
+}
+
+void ConfigOptionsGroup::refresh()
+{
+    if (custom_ctrl)
+        custom_ctrl->Refresh();
 }
 
 boost::any ConfigOptionsGroup::config_value(const std::string& opt_key, int opt_index, bool deserialize) {
