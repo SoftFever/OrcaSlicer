@@ -178,7 +178,7 @@ void KBShortcutsDialog::fill_shortcuts()
             { "O", L("Zoom out") },
             { "Tab", L("Switch between Editor/Preview") },
             { "Shift+Tab", L("Collapse/Expand the sidebar") },
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
             { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
 #endif // __linux__
 #if ENABLE_RENDER_PICKING_PASS

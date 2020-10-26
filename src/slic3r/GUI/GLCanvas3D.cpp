@@ -2934,7 +2934,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
             post_event(SimpleEvent(EVT_GLTOOLBAR_COPY));
         break;
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
         case WXK_CONTROL_M:
         {
             Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
