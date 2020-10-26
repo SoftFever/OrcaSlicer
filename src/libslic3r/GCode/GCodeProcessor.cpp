@@ -400,7 +400,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
             const TimeMachine& machine = machines[i];
             if (machine.enabled && g1_lines_counter < machine.g1_times_cache.size()) {
                 float elapsed_time = machine.g1_times_cache[g1_lines_counter];
-                std::pair<int, int> to_export = { int(::roundf(100.0f * elapsed_time / machine.time)), 
+                std::pair<int, int> to_export = { int(100.0f * elapsed_time / machine.time),
                                                   time_in_minutes(machine.time - elapsed_time) };
                 if (last_exported[i] != to_export) {
                     export_line += format_line_M73(machine.line_m73_mask.c_str(),
