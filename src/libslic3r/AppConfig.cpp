@@ -213,11 +213,12 @@ std::string AppConfig::load()
 
 void AppConfig::save()
 {
-#ifndef __APPLE__
-    // Apple does not implement thread_getname_np() correctly.
-    if (get_current_thread_name() != "slic3r_main")
-        throw CriticalException("Calling AppConfig::save() from a worker thread!");
-#endif
+    {
+        // Returns "undefined" if the thread naming functionality is not supported by the operating system.
+        std::optional<std::string> current_thread_name = get_current_thread_name();
+        if (current_thread_name && *current_thread_name != "slic3r_main")
+            throw CriticalException("Calling AppConfig::save() from a worker thread!");
+    }
 
     // The config is first written to a file with a PID suffix and then moved
     // to avoid race conditions with multiple instances of Slic3r
