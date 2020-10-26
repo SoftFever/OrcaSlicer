@@ -43,7 +43,7 @@ bool GLGizmoSeam::on_init()
 
 std::string GLGizmoSeam::on_get_name() const
 {
-    return (_(L("Seam Editing")) + " [P]").ToUTF8().data();
+    return (_L("Seam painting") + " [P]").ToUTF8().data();
 }
 
 

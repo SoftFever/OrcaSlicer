@@ -30,7 +30,7 @@ void GLGizmoFdmSupports::on_shutdown()
 
 std::string GLGizmoFdmSupports::on_get_name() const
 {
-    return (_(L("FDM Support Editing")) + " [L]").ToUTF8().data();
+    return (_L("Paint-on supports") + " [L]").ToUTF8().data();
 }
 
 
