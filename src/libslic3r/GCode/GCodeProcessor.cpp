@@ -466,6 +466,8 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
 
 const std::vector<std::pair<GCodeProcessor::EProducer, std::string>> GCodeProcessor::Producers = {
     { EProducer::PrusaSlicer, "PrusaSlicer" },
+    { EProducer::Slic3rPE,    "Slic3r Prusa Edition" },
+    { EProducer::Slic3r,      "Slic3r" },
     { EProducer::Cura,        "Cura_SteamEngine" },
     { EProducer::Simplify3D,  "Simplify3D" },
     { EProducer::CraftWare,   "CraftWare" },
@@ -751,7 +753,7 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
 
         // if the gcode was produced by PrusaSlicer,
         // extract the config from it
-        if (m_producer == EProducer::PrusaSlicer) {
+        if (m_producer == EProducer::PrusaSlicer || m_producer == EProducer::Slic3rPE || m_producer == EProducer::Slic3r) {
             DynamicPrintConfig config;
             config.apply(FullPrintConfig::defaults());
             config.load_from_gcode_file(filename);

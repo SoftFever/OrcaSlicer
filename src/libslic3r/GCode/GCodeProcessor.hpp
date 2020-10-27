@@ -383,6 +383,8 @@ namespace Slic3r {
         {
             Unknown,
             PrusaSlicer,
+            Slic3rPE,
+            Slic3r,
             Cura,
             Simplify3D,
             CraftWare,
