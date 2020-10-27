@@ -12,9 +12,7 @@
 #include "I18N.hpp"
 #include "ExtruderSequenceDialog.hpp"
 #include "libslic3r/Print.hpp"
-#if ENABLE_GCODE_VIEWER
 #include "libslic3r/AppConfig.hpp"
-#endif // ENABLE_GCODE_VIEWER
 
 #include <wx/button.h>
 #include <wx/dialog.h>
@@ -477,8 +475,10 @@ void Control::draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoint pt_
 {
     const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
 
+#if ENABLE_GCODE_VIEWER
     if (!m_enable_action_icon)
         return;
+#endif // ENABLE_GCODE_VIEWER
 
     // suppress add tick on first layer
     if (tick == 0)
