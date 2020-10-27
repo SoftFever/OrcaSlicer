@@ -145,6 +145,7 @@ namespace Slic3r {
 
             EMoveType move_type{ EMoveType::Noop };
             ExtrusionRole role{ erNone };
+            unsigned int g1_line_id{ 0 };
             unsigned int layer_id{ 0 };
             float distance{ 0.0f }; // mm
             float acceleration{ 0.0f }; // mm/s^2
@@ -182,6 +183,12 @@ namespace Slic3r {
                 void reset();
             };
 
+            struct G1LinesCacheItem
+            {
+                unsigned int id;
+                float elapsed_time;
+            };
+
             bool enabled;
             float acceleration; // mm/s^2
             // hard limit for the acceleration, to which the firmware will clamp.
@@ -193,7 +200,7 @@ namespace Slic3r {
             State prev;
             CustomGCodeTime gcode_time;
             std::vector<TimeBlock> blocks;
-            std::vector<float> g1_times_cache;
+            std::vector<G1LinesCacheItem> g1_times_cache;
             std::array<float, static_cast<size_t>(EMoveType::Count)> moves_time;
             std::array<float, static_cast<size_t>(ExtrusionRole::erCount)> roles_time;
             std::vector<float> layers_time;
@@ -376,6 +383,7 @@ namespace Slic3r {
         ExtruderColors m_extruder_colors;
         std::vector<float> m_filament_diameters;
         float m_extruded_last_z;
+        unsigned int m_g1_line_id;
         unsigned int m_layer_id;
         CpColor m_cp_color;
 
