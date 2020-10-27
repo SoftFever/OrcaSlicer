@@ -40,6 +40,7 @@ namespace Slic3r {
 namespace GUI {
 
 class TabPresetComboBox;
+class OG_CustomCtrl;
 
 // Single Tab page containing a{ vsizer } of{ optgroups }
 // package Slic3r::GUI::Tab::Page;
@@ -226,13 +227,16 @@ protected:
 	struct Highlighter
 	{
 		void set_timer_owner(wxEvtHandler* owner, int timerid = wxID_ANY);
-		void init(BlinkingBitmap* bmp);
+//		void init(BlinkingBitmap* bmp);
+		void init(std::pair<OG_CustomCtrl*, bool*>);
 		void blink();
 		void invalidate();
 
 	private:
 
-		BlinkingBitmap*	bbmp {nullptr};
+		OG_CustomCtrl*	custom_ctrl {nullptr};
+		bool*			blink_ptr   {nullptr};
+//		BlinkingBitmap*	bbmp {nullptr};
 		int				blink_counter {0};
 	    wxTimer         timer;
 	} 
@@ -338,6 +342,8 @@ public:
     virtual void    msw_rescale();
     virtual void	sys_color_changed();
 	Field*			get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
+	std::pair<OG_CustomCtrl*, bool*> get_custom_ctrl_with_blinking_ptr(const t_config_option_key& opt_key, int opt_index = -1);
+
     Field*          get_field(const t_config_option_key &opt_key, Page** selected_page, int opt_index = -1);
 	void			toggle_option(const std::string& opt_key, bool toggle, int opt_index = -1);
 	wxSizer*		description_line_widget(wxWindow* parent, ogStaticText** StaticText, wxString text = wxEmptyString);

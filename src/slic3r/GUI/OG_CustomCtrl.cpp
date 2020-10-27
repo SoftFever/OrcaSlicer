@@ -426,7 +426,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
 
     if (draw_just_act_buttons) {
         if (field)
-            draw_act_bmps(dc, wxPoint(0, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp());
+            draw_act_bmps(dc, wxPoint(0, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink());
         return;
     }
 
@@ -445,7 +445,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
 
     // If there's a widget, build it and set result to the correct position.
     if (og_line.widget != nullptr) {
-        draw_blinking_bmp(dc, wxPoint(h_pos, v_pos));
+        draw_blinking_bmp(dc, wxPoint(h_pos, v_pos), og_line.blink);
         return;
     }
 
@@ -458,7 +458,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
         option_set.front().side_widget == nullptr && og_line.get_extra_widgets().size() == 0)
     {
         if (field && field->undo_to_sys_bitmap())
-            draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp());
+            draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink());
         return;
     }
 
@@ -477,7 +477,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
         }
 
         if (field && field->undo_to_sys_bitmap()) {
-            h_pos = draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), bmp_rect_id++);
+            h_pos = draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink(), bmp_rect_id++);
             if (field->getSizer())
             {
                 auto children = field->getSizer()->GetChildren();
@@ -559,10 +559,9 @@ wxCoord    OG_CustomCtrl::CtrlLine::draw_text(wxDC& dc, wxPoint pos, const wxStr
     return pos.x + width + ctrl->m_h_gap;
 }
 
-wxPoint OG_CustomCtrl::CtrlLine::draw_blinking_bmp(wxDC& dc, wxPoint pos, size_t rect_id)
+wxPoint OG_CustomCtrl::CtrlLine::draw_blinking_bmp(wxDC& dc, wxPoint pos, bool is_blinking, size_t rect_id)
 {
-//    wxBitmap bmp_blinking = create_scaled_bitmap("search_blink", ctrl);
-    wxBitmap bmp_blinking = create_scaled_bitmap("empty", ctrl);
+    wxBitmap bmp_blinking = create_scaled_bitmap(is_blinking ? "search_blink" : "empty", ctrl);
     wxCoord h_pos = pos.x;
     wxCoord v_pos = pos.y + lround((height - bmp_blinking.GetHeight()) / 2);
 
@@ -575,9 +574,9 @@ wxPoint OG_CustomCtrl::CtrlLine::draw_blinking_bmp(wxDC& dc, wxPoint pos, size_t
     return wxPoint(h_pos, v_pos);
 }
 
-wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmap& bmp_undo_to_sys, const wxBitmap& bmp_undo, size_t rect_id)
+wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmap& bmp_undo_to_sys, const wxBitmap& bmp_undo, bool is_blinking, size_t rect_id)
 {
-    pos = draw_blinking_bmp(dc, pos, rect_id);
+    pos = draw_blinking_bmp(dc, pos, is_blinking, rect_id);
     wxCoord h_pos = pos.x;
     wxCoord v_pos = pos.y;
 

@@ -54,6 +54,7 @@ public:
     size_t		full_width {0}; 
 	wxStaticText**	full_Label {nullptr};
 	wxColour*	full_Label_color {nullptr};
+	bool		blink	{false};
     widget_t	widget {nullptr};
     std::function<wxWindow*(wxWindow*)>	near_label_widget{ nullptr };
 	wxWindow*	near_label_widget_win {nullptr};
@@ -71,6 +72,7 @@ public:
 
     const std::vector<widget_t>&	get_extra_widgets() const {return m_extra_widgets;}
     const std::vector<Option>&		get_options() const { return m_options; }
+	bool*							get_blink_ptr() { return &blink; }
 
 private:
 	std::vector<Option>		m_options;//! {std::vector<Option>()};
@@ -290,6 +292,7 @@ public:
 	// return option value from config 
 	boost::any	get_config_value(const DynamicPrintConfig& config, const std::string& opt_key, int opt_index = -1);
 	Field*		get_fieldc(const t_config_option_key& opt_key, int opt_index);
+	std::pair<OG_CustomCtrl*, bool*>	get_custom_ctrl_with_blinking_ptr(const t_config_option_key& opt_key, int opt_index/* = -1*/);
 
 private:
     // Reference to libslic3r config or ModelConfig::get(), non-owning pointer.

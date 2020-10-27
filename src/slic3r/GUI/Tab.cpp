@@ -12,6 +12,7 @@
 #include "WipeTowerDialog.hpp"
 #include "ButtonsDescription.hpp"
 #include "Search.hpp"
+#include "OG_CustomCtrl.hpp"
 
 #include <wx/app.h>
 #include <wx/button.h>
@@ -54,7 +55,7 @@ void Tab::Highlighter::set_timer_owner(wxEvtHandler* owner, int timerid/* = wxID
 {
     timer.SetOwner(owner, timerid);
 }
-
+/*
 void Tab::Highlighter::init(BlinkingBitmap* bmp)
 {
     if (timer.IsRunning())
@@ -67,24 +68,53 @@ void Tab::Highlighter::init(BlinkingBitmap* bmp)
     bbmp = bmp;
     bbmp->activate();
 }
+*/
+void Tab::Highlighter::init(std::pair<OG_CustomCtrl*, bool*> params)
+{
+    if (timer.IsRunning())
+        invalidate();
+    if (!params.first || !params.second)
+        return;
+
+    timer.Start(300, false);
+
+    custom_ctrl = params.first;
+    blink_ptr = params.second;
+
+    *blink_ptr = true;
+    custom_ctrl->Refresh();
+}
 
 void Tab::Highlighter::invalidate()
 {
     timer.Stop();
 
-    if (bbmp) {
-        bbmp->invalidate();
-        bbmp = nullptr;
+    //if (bbmp) {
+    //    bbmp->invalidate();
+    //    bbmp = nullptr;
+    //}
+
+    if (custom_ctrl && blink_ptr) {
+        *blink_ptr = false;
+        custom_ctrl->Refresh();
+        blink_ptr   = nullptr;
+        custom_ctrl = nullptr;
     }
+
     blink_counter = 0;
 }
 
 void Tab::Highlighter::blink()
 {
-    if (!bbmp)
+    //if (!bbmp)
+    if (custom_ctrl && blink_ptr) {
+        *blink_ptr = !*blink_ptr;
+        custom_ctrl->Refresh();
+    }
+    else
         return;
 
-    bbmp->blink();
+//    bbmp->blink();
     if ((++blink_counter) == 11)
         invalidate();
 }
@@ -1014,14 +1044,21 @@ void Tab::sys_color_changed()
 Field* Tab::get_field(const t_config_option_key& opt_key, int opt_index/* = -1*/) const
 {
     return m_active_page ? m_active_page->get_field(opt_key, opt_index) : nullptr;
+}
 
-    Field* field = nullptr;
-    for (auto page : m_pages) {
-        field = page->get_field(opt_key, opt_index);
-        if (field != nullptr)
-            return field;
+std::pair<OG_CustomCtrl*, bool*> Tab::get_custom_ctrl_with_blinking_ptr(const t_config_option_key& opt_key, int opt_index/* = -1*/)
+{
+    if (!m_active_page)
+        return {nullptr, nullptr};
+
+    std::pair<OG_CustomCtrl*, bool*> ret = {nullptr, nullptr};
+
+    for (auto opt_group : m_active_page->m_optgroups) {
+        ret = opt_group->get_custom_ctrl_with_blinking_ptr(opt_key, opt_index);
+        if (ret.first && ret.second)
+            break;
     }
-    return field;
+    return ret;
 }
 
 Field* Tab::get_field(const t_config_option_key& opt_key, Page** selected_page, int opt_index/* = -1*/)
@@ -1165,7 +1202,8 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
     // focused selected field
     if (field) {
         field->getWindow()->SetFocus();
-        m_highlighter.init(field->blinking_bitmap());
+//        m_highlighter.init()
+//        m_highlighter.init(field->blinking_bitmap());
     }
     else if (category == "Single extruder MM setup")
     {
@@ -1176,12 +1214,13 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
         field = get_field("single_extruder_multi_material");
         if (field) {
             field->getWindow()->SetFocus();
-            m_highlighter.init(field->blinking_bitmap());
+//            m_highlighter.init(field->blinking_bitmap());
         }
     }
-    else
-        m_highlighter.init(m_blinking_ikons[opt_key]);
+    //else
+    //    m_highlighter.init(m_blinking_ikons[opt_key]);
 
+    m_highlighter.init(get_custom_ctrl_with_blinking_ptr(opt_key));
 }
 
 void Tab::apply_searcher()

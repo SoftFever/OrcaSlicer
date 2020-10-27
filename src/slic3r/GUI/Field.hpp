@@ -227,6 +227,10 @@ public:
 		m_side_text = side_text;
     }
 
+	bool*	get_blink_ptr() {
+		return &m_blink;
+    }
+
     virtual void msw_rescale(bool rescale_sidetext = false);
     void sys_color_changed();
 
@@ -245,6 +249,7 @@ public:
 	const ScalableBitmap*	undo_to_sys_bitmap()	{ return m_undo_to_sys_bitmap; }
 	const wxString*			undo_to_sys_tooltip()	{ return m_undo_to_sys_tooltip; }
 	const wxColour*			label_color()			{ return m_label_color; }
+	const bool				blink()					{ return m_blink; }
 
 protected:
 	RevertButton*			m_Undo_btn = nullptr;
@@ -255,6 +260,8 @@ protected:
 	// Bitmap and Tooltip text for m_Undo_to_sys_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
     const ScalableBitmap*   m_undo_to_sys_bitmap = nullptr;
 	const wxString*		    m_undo_to_sys_tooltip = nullptr;
+
+	bool					m_blink{ false };
 
 	BlinkingBitmap*			m_blinking_bmp{ nullptr };
 
