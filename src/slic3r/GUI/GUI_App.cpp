@@ -717,6 +717,7 @@ void GUI_App::init_app_config()
         std::string error = app_config->load();
         if (!error.empty()) {
             // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
+#if ENABLE_GCODE_VIEWER
             if (is_editor()) {
                 throw Slic3r::RuntimeError(
                     _u8L("Error parsing PrusaSlicer config file, it is probably corrupted. "
@@ -724,11 +725,14 @@ void GUI_App::init_app_config()
                     "\n\n" + app_config->config_path() + "\n\n" + error);
             }
             else {
+#endif // ENABLE_GCODE_VIEWER
                 throw Slic3r::RuntimeError(
                     _u8L("Error parsing PrusaGCodeViewer config file, it is probably corrupted. "
                         "Try to manually delete the file to recover from the error.") +
                     "\n\n" + app_config->config_path() + "\n\n" + error);
+#if ENABLE_GCODE_VIEWER
             }
+#endif // ENABLE_GCODE_VIEWER
         }
     }
 }

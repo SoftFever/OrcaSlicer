@@ -31,8 +31,11 @@ void Snapshot::clear()
 	this->comment.clear();
 	this->reason = SNAPSHOT_UNKNOWN;
 	this->print.clear();
+    this->sla_print.clear();
 	this->filaments.clear();
+    this->sla_material.clear();
 	this->printer.clear();
+    this->physical_printer.clear();
 }
 
 void Snapshot::load_ini(const std::string &path)
@@ -94,6 +97,8 @@ void Snapshot::load_ini(const std::string &path)
             for (auto &kvp : section.second) {
                 if (kvp.first == "print") {
                     this->print = kvp.second.data();
+                } else if (kvp.first == "sla_print") {
+                    this->sla_print = kvp.second.data();
                 } else if (boost::starts_with(kvp.first, "filament")) {
                     int idx = 0;
                     if (kvp.first == "filament" || sscanf(kvp.first.c_str(), "filament_%d", &idx) == 1) {
@@ -101,8 +106,12 @@ void Snapshot::load_ini(const std::string &path)
                             this->filaments.resize(idx + 1, std::string());
                         this->filaments[idx] = kvp.second.data();
                     }
+                } else if (kvp.first == "sla_material") {
+                    this->sla_material = kvp.second.data();
                 } else if (kvp.first == "printer") {
                     this->printer = kvp.second.data();
+                } else if (kvp.first == "physical_printer") {
+                    this->physical_printer = kvp.second.data();
                 }
             }
     	} else if (boost::starts_with(section.first, group_name_vendor) && section.first.size() > group_name_vendor.size()) {
@@ -172,10 +181,13 @@ void Snapshot::save_ini(const std::string &path)
     // Export the active presets at the time of the snapshot.
 	c << std::endl << "[presets]" << std::endl;
 	c << "print = " << this->print << std::endl;
+    c << "sla_print = " << this->sla_print << std::endl;
 	c << "filament = " << this->filaments.front() << std::endl;
 	for (size_t i = 1; i < this->filaments.size(); ++ i)
 		c << "filament_" << std::to_string(i) << " = " << this->filaments[i] << std::endl;
+    c << "sla_material = " << this->sla_material << std::endl;
 	c << "printer = " << this->printer << std::endl;
+    c << "physical_printer = " << this->physical_printer << std::endl;
 
     // Export the vendor configs.
     for (const VendorConfig &vc : this->vendor_configs) {
@@ -199,14 +211,17 @@ void Snapshot::export_selections(AppConfig &config) const
 {
     assert(filaments.size() >= 1);
     config.clear_section("presets");
-    config.set("presets", "print",    print);
-    config.set("presets", "filament", filaments.front());
+    config.set("presets", "print",     print);
+    config.set("presets", "sla_print", sla_print);
+    config.set("presets", "filament",  filaments.front());
     for (unsigned i = 1; i < filaments.size(); ++i) {
         char name[64];
         sprintf(name, "filament_%u", i);
         config.set("presets", name, filaments[i]);
     }
-    config.set("presets", "printer",  printer);
+    config.set("presets", "sla_material",     sla_material);
+    config.set("presets", "printer",          printer);
+    config.set("presets", "physical_printer", physical_printer);
 }
 
 void Snapshot::export_vendor_configs(AppConfig &config) const
@@ -217,8 +232,10 @@ void Snapshot::export_vendor_configs(AppConfig &config) const
     config.set_vendors(std::move(vendors));
 }
 
-// Perform a deep compare of the active print / filament / printer / vendor directories.
-// Return true if the content of the current print / filament / printer / vendor directories
+static constexpr auto snapshot_subdirs = { "print", "sla_print", "filament", "sla_material", "printer", "physical_printer", "vendor" };
+
+// Perform a deep compare of the active print / sla_print / filament / sla_material / printer / physical_printer / vendor directories.
+// Return true if the content of the current print / sla_print / filament / sla_material / printer / physical_printer / vendor directories
 // matches the state stored in this snapshot.
 bool Snapshot::equal_to_active(const AppConfig &app_config) const
 {
@@ -243,7 +260,7 @@ bool Snapshot::equal_to_active(const AppConfig &app_config) const
     // 2) Check, whether this snapshot references the same set of ini files as the current state.
     boost::filesystem::path data_dir     = boost::filesystem::path(Slic3r::data_dir());
     boost::filesystem::path snapshot_dir = boost::filesystem::path(Slic3r::data_dir()) / SLIC3R_SNAPSHOTS_DIR / this->id;
-    for (const char *subdir : { "print", "filament", "printer", "vendor" }) {
+    for (const char *subdir : snapshot_subdirs) {
         boost::filesystem::path path1 = data_dir / subdir;
         boost::filesystem::path path2 = snapshot_dir / subdir;
         std::vector<std::string> files1, files2;
@@ -369,9 +386,12 @@ const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot:
 	snapshot.comment 				 = comment;
 	snapshot.reason 				 = reason;
 	// Active presets at the time of the snapshot.
-    snapshot.print   = app_config.get("presets", "print");
+    snapshot.print                   = app_config.get("presets", "print");
+    snapshot.sla_print               = app_config.get("presets", "sla_print");
     snapshot.filaments.emplace_back(app_config.get("presets", "filament"));
-    snapshot.printer = app_config.get("presets", "printer");
+    snapshot.sla_material            = app_config.get("presets", "sla_material");
+    snapshot.printer                 = app_config.get("presets", "printer");
+    snapshot.physical_printer        = app_config.get("presets", "physical_printer");
     for (unsigned i = 1; i < 1000; ++ i) {
         char name[64];
         sprintf(name, "filament_%u", i);
@@ -414,7 +434,7 @@ const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot:
 	boost::filesystem::create_directory(snapshot_dir);
 
     // Backup the presets.
-    for (const char *subdir : { "print", "filament", "printer", "vendor" })
+    for (const char *subdir : snapshot_subdirs)
     	copy_config_dir_single_level(data_dir / subdir, snapshot_dir / subdir);
     snapshot.save_ini((snapshot_dir / "snapshot.ini").string());
     assert(m_snapshots.empty() || m_snapshots.back().time_captured <= snapshot.time_captured);
@@ -438,11 +458,11 @@ void SnapshotDB::restore_snapshot(const Snapshot &snapshot, AppConfig &app_confi
 	boost::filesystem::path snapshot_db_dir = SnapshotDB::create_db_dir();
     boost::filesystem::path snapshot_dir 	= snapshot_db_dir / snapshot.id;
     // Remove existing ini files and restore the ini files from the snapshot.
-    for (const char *subdir : { "print", "filament", "printer", "vendor" }) {
+    for (const char *subdir : snapshot_subdirs) {
 		delete_existing_ini_files(data_dir / subdir);
     	copy_config_dir_single_level(snapshot_dir / subdir, data_dir / subdir);
     }
-    // Update AppConfig with the selections of the print / filament / printer profiles
+    // Update AppConfig with the selections of the print / sla_print / filament / sla_material / printer profiles
     // and about the installed printer types and variants.
     snapshot.export_selections(app_config);
     snapshot.export_vendor_configs(app_config);

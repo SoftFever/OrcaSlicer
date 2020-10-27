@@ -9,6 +9,8 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/bind/placeholders.hpp>
+
 #include <iostream>
 
 #include <wx/glcanvas.h>
@@ -639,7 +641,7 @@ NotificationManager::NotificationManager(wxEvtHandler* evt_handler) :
 void NotificationManager::push_notification(const NotificationType type, GLCanvas3D& canvas, int timestamp)
 {
 	auto it = std::find_if(basic_notifications.begin(), basic_notifications.end(),
-		boost::bind(&NotificationData::type, _1) == type);
+		boost::bind(&NotificationData::type, boost::placeholders::_1) == type);
 	assert(it != basic_notifications.end());
 	if (it != basic_notifications.end())
 		push_notification_data( *it, canvas, timestamp);
@@ -825,7 +827,7 @@ void NotificationManager::render_notifications(GLCanvas3D& canvas, float overlay
 			it = m_pop_notifications.erase(it);
 		} else {
 			(*it)->set_paused(m_hovered);
-			PopNotification::RenderResult res = (*it)->render(canvas, last_x, m_move_from_overlay, overlay_width);
+			PopNotification::RenderResult res = (*it)->render(canvas, last_x, m_move_from_overlay && !m_in_preview, overlay_width);
 			if (res != PopNotification::RenderResult::Finished) {
 				last_x = (*it)->get_top() + GAP_WIDTH;
 				current_height = std::max(current_height, (*it)->get_current_top());

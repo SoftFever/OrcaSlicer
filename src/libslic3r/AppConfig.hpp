@@ -142,20 +142,20 @@ public:
 #endif // ENABLE_GCODE_VIEWER
 
 	// Returns true if the user's data directory comes from before Slic3r 1.40.0 (no updating)
-	bool legacy_datadir() const { return m_legacy_datadir; }
-	void set_legacy_datadir(bool value) { m_legacy_datadir = value; }
+	bool 				legacy_datadir() const { return m_legacy_datadir; }
+	void 				set_legacy_datadir(bool value) { m_legacy_datadir = value; }
 
 	// Get the Slic3r version check url.
 	// This returns a hardcoded string unless it is overriden by "version_check_url" in the ini file.
-	std::string version_check_url() const;
+	std::string 		version_check_url() const;
 
 	// Returns the original Slic3r version found in the ini file before it was overwritten
 	// by the current version
-	Semver orig_version() const { return m_orig_version; }
+	Semver 				orig_version() const { return m_orig_version; }
 
 	// Does the config file exist?
 #if ENABLE_GCODE_VIEWER
-	bool 		exists();
+	bool 				exists();
 #else
 	static bool 		exists();
 #endif // ENABLE_GCODE_VIEWER
