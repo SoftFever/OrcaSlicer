@@ -827,7 +827,7 @@ void NotificationManager::render_notifications(GLCanvas3D& canvas, float overlay
 			it = m_pop_notifications.erase(it);
 		} else {
 			(*it)->set_paused(m_hovered);
-			PopNotification::RenderResult res = (*it)->render(canvas, last_x, m_move_from_overlay, overlay_width);
+			PopNotification::RenderResult res = (*it)->render(canvas, last_x, m_move_from_overlay && !m_in_preview, overlay_width);
 			if (res != PopNotification::RenderResult::Finished) {
 				last_x = (*it)->get_top() + GAP_WIDTH;
 				current_height = std::max(current_height, (*it)->get_current_top());
