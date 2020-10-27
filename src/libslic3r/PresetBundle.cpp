@@ -458,7 +458,7 @@ void PresetBundle::load_selections(AppConfig &config, const std::string &preferr
     this->update_multi_material_filament_presets();
 
     // Parse the initial physical printer name.
-    std::string initial_physical_printer_name = remove_ini_suffix(config.get("extras", "physical_printer"));
+    std::string initial_physical_printer_name = remove_ini_suffix(config.get("presets", "physical_printer"));
 
     // Activate physical printer from the config
     if (!initial_physical_printer_name.empty())
@@ -482,8 +482,7 @@ void PresetBundle::export_selections(AppConfig &config)
     config.set("presets", "sla_print",    sla_prints.get_selected_preset_name());
     config.set("presets", "sla_material", sla_materials.get_selected_preset_name());
     config.set("presets", "printer",      printers.get_selected_preset_name());
-
-    config.set("extras", "physical_printer", physical_printers.get_selected_full_printer_name());
+    config.set("presets", "physical_printer", physical_printers.get_selected_full_printer_name());
 }
 
 DynamicPrintConfig PresetBundle::full_config() const
