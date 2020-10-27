@@ -170,7 +170,7 @@ void GCodeProcessor::TimeMachine::reset()
     prev.reset();
     gcode_time.reset();
     blocks = std::vector<TimeBlock>();
-    g1_times_cache = std::vector<float>();
+    g1_times_cache = std::vector<G1LinesCacheItem>();
     std::fill(moves_time.begin(), moves_time.end(), 0.0f);
     std::fill(roles_time.begin(), roles_time.end(), 0.0f);
     layers_time = std::vector<float>();
@@ -292,7 +292,7 @@ void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks)
             }
             layers_time[block.layer_id - 1] += block_time;
         }
-        g1_times_cache.push_back(time);
+        g1_times_cache.push_back({ block.g1_line_id, time });
     }
 
     if (keep_last_n_blocks)
@@ -398,14 +398,18 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
     auto process_line_G1 = [&]() {
         for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Count); ++i) {
             const TimeMachine& machine = machines[i];
-            if (machine.enabled && g1_lines_counter < machine.g1_times_cache.size()) {
-                float elapsed_time = machine.g1_times_cache[g1_lines_counter];
-                std::pair<int, int> to_export = { int(100.0f * elapsed_time / machine.time),
-                                                  time_in_minutes(machine.time - elapsed_time) };
-                if (last_exported[i] != to_export) {
-                    export_line += format_line_M73(machine.line_m73_mask.c_str(),
-                        to_export.first, to_export.second);
-                    last_exported[i] = to_export;
+            if (machine.enabled) {
+                auto it = std::find_if(machine.g1_times_cache.begin(), machine.g1_times_cache.end(),
+                    [g1_lines_counter](const TimeMachine::G1LinesCacheItem& item) { return item.id == g1_lines_counter; });
+                if (it != machine.g1_times_cache.end()) {
+                    float elapsed_time = it->elapsed_time;
+                    std::pair<int, int> to_export = { int(100.0f * elapsed_time / machine.time),
+                                                      time_in_minutes(machine.time - elapsed_time) };
+                    if (last_exported[i] != to_export) {
+                        export_line += format_line_M73(machine.line_m73_mask.c_str(),
+                            to_export.first, to_export.second);
+                        last_exported[i] = to_export;
+                    }
                 }
             }
         }
@@ -713,6 +717,7 @@ void GCodeProcessor::reset()
 
     m_filament_diameters = std::vector<float>(Min_Extruder_Count, 1.75f);
     m_extruded_last_z = 0.0f;
+    m_g1_line_id = 0;
     m_layer_id = 0;
     m_cp_color.reset();
 
@@ -1395,6 +1400,8 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         return type;
     };
 
+    ++m_g1_line_id;
+
     // enable processing of lines M201/M203/M204/M205
     m_time_processor.machine_envelope_processing_enabled = true;
 
@@ -1500,6 +1507,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         block.move_type = type;
         block.role = m_extrusion_role;
         block.distance = distance;
+        block.g1_line_id = m_g1_line_id;
         block.layer_id = m_layer_id;
 
         // calculates block cruise feedrate
