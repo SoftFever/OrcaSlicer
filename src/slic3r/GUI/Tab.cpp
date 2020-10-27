@@ -2717,6 +2717,16 @@ void TabPrinter::update_pages()
     rebuild_page_tree();
 }
 
+void TabPrinter::reload_config()
+{
+    Tab::reload_config();
+
+    // "extruders_count" doesn't update from the update_config(),
+    // so update it implicitly
+    if (m_active_page && m_active_page->title() == "General")
+        m_active_page->set_value("extruders_count", int(m_extruders_count));
+}
+
 void TabPrinter::activate_selected_page(std::function<void()> throw_if_canceled)
 {
     Tab::activate_selected_page(throw_if_canceled);

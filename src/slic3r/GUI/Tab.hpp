@@ -465,6 +465,7 @@ public:
 	void		build_print_host_upload_group(Page* page);
     void		build_fff();
     void		build_sla();
+	void		reload_config() override;
 	void		activate_selected_page(std::function<void()> throw_if_canceled) override;
 	void		clear_pages() override;
 	void		toggle_options() override;
