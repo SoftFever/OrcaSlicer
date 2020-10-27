@@ -2003,6 +2003,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 #endif // ENABLE_GCODE_VIEWER
 
     // updates camera type from .ini file
+    camera.enable_update_config_on_type_change(true);
     camera.set_type(get_config("use_perspective_camera"));
 
     // Load the 3DConnexion device database.
