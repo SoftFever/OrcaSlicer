@@ -154,7 +154,9 @@ struct SegmentIntersection
     	// Vertical link, up.
     	Up,
     	// Vertical link, down.
-    	Down
+    	Down,
+        // Phony intersection point has no link.
+        Phony,
     };
 
     enum class LinkQuality : uint8_t {
@@ -352,6 +354,25 @@ struct SegmentedIntersectionLine
     // List of intersection points with polygons, sorted increasingly by the y axis.
     std::vector<SegmentIntersection>    intersections;
 };
+
+static SegmentIntersection phony_outer_intersection(SegmentIntersection::SegmentIntersectionType type, coord_t pos)
+{
+    assert(type == SegmentIntersection::OUTER_LOW || type == SegmentIntersection::OUTER_HIGH);
+    SegmentIntersection out;
+    // Invalid contour & segment.
+    out.iContour                = std::numeric_limits<size_t>::max();
+    out.iSegment                = std::numeric_limits<size_t>::max();
+    out.pos_p                   = pos;
+    out.type                    = type;
+    // Invalid prev / next.
+    out.prev_on_contour         = -1;
+    out.next_on_contour         = -1;
+    out.prev_on_contour_type    = SegmentIntersection::LinkType::Phony;
+    out.next_on_contour_type    = SegmentIntersection::LinkType::Phony;
+    out.prev_on_contour_quality = SegmentIntersection::LinkQuality::Invalid;
+    out.next_on_contour_quality = SegmentIntersection::LinkQuality::Invalid;
+    return out;
+}
 
 // A container maintaining an expolygon with its inner offsetted polygon.
 // The purpose of the inner offsetted polygon is to provide segments to connect the infill lines.
@@ -889,6 +910,60 @@ static std::vector<SegmentedIntersectionLine> slice_region_by_vertical_lines(con
     return segs;
 }
 
+#ifndef NDEBUG
+bool validate_segment_intersection_connectivity(const std::vector<SegmentedIntersectionLine> &segs)
+{
+    // Validate the connectivity.
+    for (size_t i_vline = 0; i_vline + 1 < segs.size(); ++ i_vline) {
+        const SegmentedIntersectionLine &il_left  = segs[i_vline];
+        const SegmentedIntersectionLine &il_right = segs[i_vline + 1];
+        for (const SegmentIntersection &it : il_left.intersections) {
+            if (it.has_right_horizontal()) {
+                const SegmentIntersection &it_right = il_right.intersections[it.right_horizontal()];
+                // For a right link there is a symmetric left link.
+                assert(it.iContour == it_right.iContour);
+                assert(it.type == it_right.type);
+                assert(it_right.has_left_horizontal());
+                assert(it_right.left_horizontal() == int(&it - il_left.intersections.data()));
+            }
+        }
+        for (const SegmentIntersection &it : il_right.intersections) {
+            if (it.has_left_horizontal()) {
+                const SegmentIntersection &it_left = il_left.intersections[it.left_horizontal()];
+                // For a right link there is a symmetric left link.
+                assert(it.iContour == it_left.iContour);
+                assert(it.type == it_left.type);
+                assert(it_left.has_right_horizontal());
+                assert(it_left.right_horizontal() == int(&it - il_right.intersections.data()));
+            }
+        }
+    }
+    for (size_t i_vline = 0; i_vline < segs.size(); ++ i_vline) {
+        const SegmentedIntersectionLine &il = segs[i_vline];
+        for (const SegmentIntersection &it : il.intersections) {
+            auto i_it = int(&it - il.intersections.data());
+            if (it.has_left_vertical_up()) {
+                assert(il.intersections[it.left_vertical_up()].left_vertical_down() == i_it);
+                assert(il.intersections[it.left_vertical_up()].prev_on_contour_quality == it.prev_on_contour_quality);
+            }
+            if (it.has_left_vertical_down()) {
+                assert(il.intersections[it.left_vertical_down()].left_vertical_up() == i_it);
+                assert(il.intersections[it.left_vertical_down()].prev_on_contour_quality == it.prev_on_contour_quality);
+            }
+            if (it.has_right_vertical_up()) {
+                assert(il.intersections[it.right_vertical_up()].right_vertical_down() == i_it);
+                assert(il.intersections[it.right_vertical_up()].next_on_contour_quality == it.next_on_contour_quality);
+            }
+            if (it.has_right_vertical_down()) {
+                assert(il.intersections[it.right_vertical_down()].right_vertical_up() == i_it);
+                assert(il.intersections[it.right_vertical_down()].next_on_contour_quality == it.next_on_contour_quality);
+            }
+        }
+    }
+    return true;
+}
+#endif /* NDEBUG */
+
 // Connect each contour / vertical line intersection point with another two contour / vertical line intersection points.
 // (fill in SegmentIntersection::{prev_on_contour, prev_on_contour_vertical, next_on_contour, next_on_contour_vertical}.
 // These contour points are either on the same vertical line, or on the vertical line left / right to the current one.
@@ -1055,55 +1130,104 @@ static void connect_segment_intersections_by_contours(
 		}
     }
 
-#ifndef NDEBUG
-    // Validate the connectivity.
-    for (size_t i_vline = 0; i_vline + 1 < segs.size(); ++ i_vline) {
-        const SegmentedIntersectionLine &il_left  = segs[i_vline];
-        const SegmentedIntersectionLine &il_right = segs[i_vline + 1];
-        for (const SegmentIntersection &it : il_left.intersections) {
-            if (it.has_right_horizontal()) {
-                const SegmentIntersection &it_right = il_right.intersections[it.right_horizontal()];
-                // For a right link there is a symmetric left link.
-                assert(it.iContour == it_right.iContour);
-                assert(it.type == it_right.type);
-                assert(it_right.has_left_horizontal());
-                assert(it_right.left_horizontal() == int(&it - il_left.intersections.data()));
+    assert(validate_segment_intersection_connectivity(segs));
+}
+
+static void pinch_contours_insert_phony_outer_intersections(std::vector<SegmentedIntersectionLine> &segs)
+{
+    // Keep the vector outside the loops, so they will not be reallocated.
+    // Where to insert new outer points.
+    std::vector<size_t>                 insert_after;
+    // Mapping of indices of current intersection line after inserting new outer points.
+    std::vector<int32_t>                map;
+    std::vector<SegmentIntersection>    temp_intersections;
+
+    for (size_t i_vline = 1; i_vline < segs.size(); ++ i_vline) {
+        SegmentedIntersectionLine &il = segs[i_vline];
+        assert(il.intersections.empty() || il.intersections.size() >= 2);
+        if (! il.intersections.empty()) {
+            assert(il.intersections.front().type == SegmentIntersection::OUTER_LOW);
+            assert(il.intersections.back().type == SegmentIntersection::OUTER_HIGH);
+            auto end = il.intersections.end() - 1;
+            insert_after.clear();
+            for (auto it = il.intersections.begin() + 1; it != end;) {
+                if (it->type == SegmentIntersection::OUTER_HIGH) {
+                    ++ it;
+                    assert(it->type == SegmentIntersection::OUTER_LOW);
+                    ++ it;
+                } else {
+                    auto lo  = it;
+                    assert(lo->type == SegmentIntersection::INNER_LOW);
+                    auto hi  = ++ it;
+                    assert(hi->type == SegmentIntersection::INNER_HIGH);
+                    auto lo2 = ++ it;
+                    if (lo2->type == SegmentIntersection::INNER_LOW) {
+                        // INNER_HIGH followed by INNER_LOW. The outer contour may have squeezed the inner contour into two separate loops.
+                        // In that case one shall insert a phony OUTER_HIGH / OUTER_LOW pair.
+                        int up = hi->vertical_up();
+                        int dn = lo2->vertical_down();
+#ifndef _NDEBUG
+                        assert(up == -1 || up > 0);
+                        assert(dn == -1 || dn >= 0);
+                        assert((up == -1 && dn == -1) || (dn + 1 == up));
+#endif // _NDEBUG
+                        bool pinched = dn + 1 != up;
+                        if (pinched) {
+                            // hi is not connected with its inner contour to lo2.
+                            // Insert a phony OUTER_HIGH / OUTER_LOW pair.
+#if 0
+                            static int pinch_idx = 0;
+                            printf("Pinched %d\n", pinch_idx++);
+#endif
+                            insert_after.emplace_back(hi - il.intersections.begin());
+                        }
+                    }
+                }
             }
-        }
-        for (const SegmentIntersection &it : il_right.intersections) {
-            if (it.has_left_horizontal()) {
-                const SegmentIntersection &it_left = il_left.intersections[it.left_horizontal()];
-                // For a right link there is a symmetric left link.
-                assert(it.iContour == it_left.iContour);
-                assert(it.type == it_left.type);
-                assert(it_left.has_right_horizontal());
-                assert(it_left.right_horizontal() == int(&it - il_right.intersections.data()));
+
+            if (! insert_after.empty()) {
+                // Insert phony OUTER_HIGH / OUTER_LOW pairs, adjust indices pointing to intersection points on this contour.
+                map.clear();
+                {
+                    size_t i = 0;
+                    temp_intersections.clear();
+                    for (size_t idx_inset_after : insert_after) {
+                        for (; i <= idx_inset_after; ++ i) {
+                            map.emplace_back(temp_intersections.size());
+                            temp_intersections.emplace_back(il.intersections[i]);
+                        }
+                        coord_t pos = (temp_intersections.back().pos() + il.intersections[i].pos()) / 2;
+                        temp_intersections.emplace_back(phony_outer_intersection(SegmentIntersection::OUTER_HIGH, pos));
+                        temp_intersections.emplace_back(phony_outer_intersection(SegmentIntersection::OUTER_LOW, pos));
+                    }
+                    for (; i < il.intersections.size(); ++ i) {
+                        map.emplace_back(temp_intersections.size());
+                        temp_intersections.emplace_back(il.intersections[i]);
+                    }
+                    temp_intersections.swap(il.intersections);
+                }
+                // Reindex references on current intersection line.
+                for (SegmentIntersection &ip : il.intersections) {
+                    if (ip.has_left_vertical())
+                        ip.prev_on_contour = map[ip.prev_on_contour];
+                    if (ip.has_right_vertical())
+                        ip.next_on_contour = map[ip.next_on_contour];
+                }
+                // Reindex references on previous intersection line.
+                for (SegmentIntersection &ip : segs[i_vline - 1].intersections)
+                    if (ip.has_right_horizontal())
+                        ip.next_on_contour = map[ip.next_on_contour];
+                if (i_vline < segs.size()) {
+                    // Reindex references on next intersection line.
+                    for (SegmentIntersection &ip : segs[i_vline + 1].intersections)
+                        if (ip.has_left_horizontal())
+                            ip.prev_on_contour = map[ip.prev_on_contour];
+                }
             }
         }
     }
-    for (size_t i_vline = 0; i_vline < segs.size(); ++ i_vline) {
-        const SegmentedIntersectionLine &il = segs[i_vline];
-        for (const SegmentIntersection &it : il.intersections) {
-            auto i_it = int(&it - il.intersections.data());
-            if (it.has_left_vertical_up()) {
-                assert(il.intersections[it.left_vertical_up()].left_vertical_down() == i_it);
-                assert(il.intersections[it.left_vertical_up()].prev_on_contour_quality == it.prev_on_contour_quality);
-            }
-            if (it.has_left_vertical_down()) {
-                assert(il.intersections[it.left_vertical_down()].left_vertical_up() == i_it);
-                assert(il.intersections[it.left_vertical_down()].prev_on_contour_quality == it.prev_on_contour_quality);
-            }
-            if (it.has_right_vertical_up()) {
-                assert(il.intersections[it.right_vertical_up()].right_vertical_down() == i_it);
-                assert(il.intersections[it.right_vertical_up()].next_on_contour_quality == it.next_on_contour_quality);
-            }
-            if (it.has_right_vertical_down()) {
-                assert(il.intersections[it.right_vertical_down()].right_vertical_up() == i_it);
-                assert(il.intersections[it.right_vertical_down()].next_on_contour_quality == it.next_on_contour_quality);
-            }
-        }
-    }
-#endif /* NDEBUG */
+
+    assert(validate_segment_intersection_connectivity(segs));
 }
 
 // Find the last INNER_HIGH intersection starting with INNER_LOW, that is followed by OUTER_HIGH intersection.
@@ -1431,7 +1555,7 @@ struct AntPath
 
 struct MonotonicRegionLink
 {
-    MonotonicRegion    *region;
+    MonotonicRegion     *region;
     bool 				 flipped;
     // Distance of right side of this region to left side of the next region, if the "flipped" flag of this region and the next region 
     // is applied as defined.
@@ -2058,7 +2182,7 @@ static std::vector<MonotonicRegionLink> chain_monotonic_regions(
 	// After how many rounds without an improvement to exit?
 	constexpr int 	num_rounds_no_change_exit = 8;
 	// With how many ants each of the run will be performed?
-	const int   	num_ants = std::min<int>(regions.size(), 10);
+	const int   	num_ants = std::min(int(regions.size()), 10);
 	// Base (initial) pheromone level. This value will be adjusted based on the length of the first greedy path found.
 	float           pheromone_initial_deposit = 0.5f;
 	// Evaporation rate of pheromones.
@@ -2136,7 +2260,7 @@ static std::vector<MonotonicRegionLink> chain_monotonic_regions(
         }
 
         // Set an initial pheromone value to 10% of the greedy path's value.
-        pheromone_initial_deposit = 0.1 / total_length;
+        pheromone_initial_deposit = 0.1f / total_length;
         path_matrix.update_inital_pheromone(pheromone_initial_deposit);
     }
 
@@ -2334,9 +2458,21 @@ static void polylines_from_paths(const std::vector<MonotonicRegionLink> &path, c
         // Handle nearly zero length edges.
         if (polyline->points.size() <= 1 ||
             (polyline->points.size() == 2 &&
-                std::abs(polyline->points.front()(0) - polyline->points.back()(0)) < SCALED_EPSILON &&
-                std::abs(polyline->points.front()(1) - polyline->points.back()(1)) < SCALED_EPSILON))
+                std::abs(polyline->points.front().x() - polyline->points.back().x()) < SCALED_EPSILON &&
+                std::abs(polyline->points.front().y() - polyline->points.back().y()) < SCALED_EPSILON))
             polylines_out.pop_back();
+        else if (polylines_out.size() >= 2) {
+            assert(polyline->points.size() >= 2);
+            // Merge the two last polylines. An extrusion may have been split by an introduction of phony outer points on intersection lines
+            // to cope with pinching of inner offset contours.
+            Polyline &pl_prev = polylines_out[polylines_out.size() - 2];
+            if (std::abs(polyline->points.front().x() - pl_prev.points.back().x()) < SCALED_EPSILON &&
+                std::abs(polyline->points.front().y() - pl_prev.points.back().y()) < SCALED_EPSILON) {
+                pl_prev.points.back() = (pl_prev.points.back() + polyline->points.front()) / 2;
+                pl_prev.points.insert(pl_prev.points.end(), polyline->points.begin() + 1, polyline->points.end());
+                polylines_out.pop_back();
+            }
+        }
     	polyline = nullptr;
     };
 
@@ -2489,7 +2625,7 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
         surface->expolygon, 
         - rotate_vector.first, 
         float(scale_(this->overlap - (0.5 - INFILL_OVERLAP_OVER_SPACING) * this->spacing)),
-        float(scale_(this->overlap - 0.5 * this->spacing)));
+        float(scale_(this->overlap - 0.5f * this->spacing)));
     if (poly_with_offset.n_contours_inner == 0) {
         // Not a single infill line fits.
         //FIXME maybe one shall trigger the gap fill here?
@@ -2561,6 +2697,10 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
     //FIXME this is a hack to get the monotonic infill rolling. We likely want a smarter switch, likely based on user decison.
     bool monotonic_infill = params.monotonic; // || params.density > 0.99;
     if (monotonic_infill) {
+        // Sometimes the outer contour pinches the inner contour from both sides along a single vertical line.
+        // This situation is not handled correctly by generate_montonous_regions().
+        // Insert phony OUTER_HIGH / OUTER_LOW pairs at the position where the contour is pinched.
+        pinch_contours_insert_phony_outer_intersections(segs);
 		std::vector<MonotonicRegion> regions = generate_montonous_regions(segs);
 		connect_monotonic_regions(regions, poly_with_offset, segs);
         if (! regions.empty()) {
