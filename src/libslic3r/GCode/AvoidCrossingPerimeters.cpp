@@ -119,7 +119,7 @@ static Point find_first_different_vertex(const Polygon &polygon, const size_t po
     if (point != polygon.points[point_idx])
         return polygon.points[point_idx];
 
-    int line_idx = point_idx;
+    int line_idx = int(point_idx);
     if (forward)
         for (; point == polygon.points[line_idx]; line_idx = (((line_idx + 1) < int(polygon.points.size())) ? (line_idx + 1) : 0));
     else
@@ -158,7 +158,7 @@ static Point get_polygon_vertex_offset(const Polygon &polygon, const size_t poin
 }
 
 // Compute offset (in the direction of inward normal) of the point(passed on "middle") based on the nearest points laying on the polygon (left_idx and right_idx).
-static Point get_middle_point_offset(const Polygon &polygon, const size_t left_idx, const size_t right_idx, const Point &middle, const int offset)
+static Point get_middle_point_offset(const Polygon &polygon, const size_t left_idx, const size_t right_idx, const Point &middle, const coord_t offset)
 {
     const Point &left  = find_first_different_vertex(polygon, left_idx, middle, false);
     const Point &right = find_first_different_vertex(polygon, right_idx, middle, true);
@@ -203,33 +203,33 @@ static std::pair<Point, Point> clamp_endpoints_by_bounding_box(const BoundingBox
     return std::make_pair(start_clamped, end_clamped);
 }
 
-static inline coord_t get_default_perimeter_spacing(const Print &print)
+static inline float get_default_perimeter_spacing(const Print &print)
 {
     const std::vector<double> &nozzle_diameters = print.config().nozzle_diameter.values;
-    return scale_(*std::max_element(nozzle_diameters.begin(), nozzle_diameters.end()));
+    return float(scale_(*std::max_element(nozzle_diameters.begin(), nozzle_diameters.end())));
 }
 
-static coord_t get_perimeter_spacing(const Layer &layer)
+static float get_perimeter_spacing(const Layer &layer)
 {
-    size_t  regions_count     = 0;
-    coord_t perimeter_spacing = 0;
+    size_t regions_count     = 0;
+    float  perimeter_spacing = 0.f;
     for (const LayerRegion *layer_region : layer.regions()) {
         perimeter_spacing += layer_region->flow(frPerimeter).scaled_spacing();
         ++regions_count;
     }
 
-    assert(perimeter_spacing >= 0);
+    assert(perimeter_spacing >= 0.f);
     if (regions_count != 0)
-        perimeter_spacing /= regions_count;
+        perimeter_spacing /= float(regions_count);
     else
         perimeter_spacing = get_default_perimeter_spacing(*layer.object()->print());
     return perimeter_spacing;
 }
 
-static coord_t get_perimeter_spacing_external(const Layer &layer)
+static float get_perimeter_spacing_external(const Layer &layer)
 {
-    size_t  regions_count     = 0;
-    coord_t perimeter_spacing = 0;
+    size_t regions_count     = 0;
+    float  perimeter_spacing = 0.f;
     for (const PrintObject *object : layer.object()->print()->objects())
         for (Layer *l : object->layers())
             if ((layer.print_z - EPSILON) <= l->print_z && l->print_z <= (layer.print_z + EPSILON))
@@ -238,9 +238,9 @@ static coord_t get_perimeter_spacing_external(const Layer &layer)
                     ++regions_count;
                 }
 
-    assert(perimeter_spacing >= 0);
+    assert(perimeter_spacing >= 0.f);
     if (regions_count != 0)
-        perimeter_spacing /= regions_count;
+        perimeter_spacing /= float(regions_count);
     else
         perimeter_spacing = get_default_perimeter_spacing(*layer.object()->print());
     return perimeter_spacing;
@@ -290,9 +290,9 @@ static void export_travel_to_svg(const Polygons                                 
 
 ExPolygons AvoidCrossingPerimeters2::get_boundary(const Layer &layer)
 {
-    const coord_t perimeter_spacing = get_perimeter_spacing(layer);
-    const coord_t perimeter_offset  = perimeter_spacing / 2;
-    size_t        polygons_count    = 0;
+    const float perimeter_spacing = get_perimeter_spacing(layer);
+    const float perimeter_offset  = perimeter_spacing / 2.f;
+    size_t      polygons_count    = 0;
     for (const LayerRegion *layer_region : layer.regions())
         polygons_count += layer_region->slices.surfaces.size();
 
@@ -307,8 +307,8 @@ ExPolygons AvoidCrossingPerimeters2::get_boundary(const Layer &layer)
     if (perimeter_boundary.size() != boundary.size()) {
         // If any part of the polygon is missing after shrinking, then for misisng parts are is used the boundary of the slice.
         ExPolygons missing_perimeter_boundary = offset_ex(diff_ex(boundary,
-                                                                  offset_ex(perimeter_boundary, perimeter_offset + SCALED_EPSILON / 2)),
-                                                          perimeter_offset + SCALED_EPSILON);
+                                                                  offset_ex(perimeter_boundary, perimeter_offset + float(SCALED_EPSILON) / 2.f)),
+                                                          perimeter_offset + float(SCALED_EPSILON));
         perimeter_boundary                    = offset_ex(perimeter_boundary, perimeter_offset);
         perimeter_boundary.reserve(perimeter_boundary.size() + missing_perimeter_boundary.size());
         perimeter_boundary.insert(perimeter_boundary.end(), missing_perimeter_boundary.begin(), missing_perimeter_boundary.end());
@@ -321,7 +321,7 @@ ExPolygons AvoidCrossingPerimeters2::get_boundary(const Layer &layer)
     auto [contours, holes] = split_expolygon(boundary);
     // Add an outer boundary to avoid crossing perimeters from supports
     ExPolygons outer_boundary = union_ex(
-        diff(static_cast<Polygons>(Geometry::convex_hull(offset(contours, 2 * perimeter_spacing))),
+        diff(static_cast<Polygons>(Geometry::convex_hull(offset(contours, 2.f * perimeter_spacing))),
              offset(contours, perimeter_spacing + perimeter_offset)));
     result_boundary.insert(result_boundary.end(), outer_boundary.begin(), outer_boundary.end());
     ExPolygons holes_boundary = offset_ex(holes, -perimeter_spacing);
@@ -350,9 +350,9 @@ ExPolygons AvoidCrossingPerimeters2::get_boundary(const Layer &layer)
 
 ExPolygons AvoidCrossingPerimeters2::get_boundary_external(const Layer &layer)
 {
-    const coord_t perimeter_spacing = get_perimeter_spacing_external(layer);
-    const coord_t perimeter_offset  = perimeter_spacing / 2;
-    ExPolygons    boundary;
+    const float perimeter_spacing = get_perimeter_spacing_external(layer);
+    const float perimeter_offset  = perimeter_spacing / 2.f;
+    ExPolygons  boundary;
     // Collect all polygons for all printed objects and their instances, which will be printed at the same time as passed "layer".
     for (const PrintObject *object : layer.object()->print()->objects()) {
         ExPolygons polygons_per_obj;
@@ -374,7 +374,7 @@ ExPolygons AvoidCrossingPerimeters2::get_boundary_external(const Layer &layer)
     // Polygons in which is possible traveling without crossing perimeters of another object.
     // A convex hull allows removing unnecessary detour caused by following the boundary of the object.
     ExPolygons result_boundary = union_ex(
-        diff(static_cast<Polygons>(Geometry::convex_hull(offset(contours, 2 * perimeter_spacing))),
+        diff(static_cast<Polygons>(Geometry::convex_hull(offset(contours, 2.f * perimeter_spacing))),
              offset(contours,  perimeter_spacing + perimeter_offset)));
     // All holes are extended for forcing travel around the outer perimeter of a hole when a hole is crossed.
     ExPolygons holes_boundary = union_ex(diff(offset(holes, perimeter_spacing), offset(holes, perimeter_offset)));
@@ -398,7 +398,7 @@ AvoidCrossingPerimeters2::Direction AvoidCrossingPerimeters2::get_shortest_direc
         if (index >= int(lines.size()))
             index = 0;
         else if (index < 0)
-            index = lines.size() - 1;
+            index = int(lines.size()) - 1;
 
         return index;
     };
@@ -554,7 +554,7 @@ size_t AvoidCrossingPerimeters2::avoid_perimeters(const Polygons       &boundari
         // Offset of the polygon's point using get_middle_point_offset is used to simplify the calculation of intersection between the
         // boundary and the travel. The appended point is translated in the direction of inward normal. This translation ensures that the
         // appended point will be inside the polygon and not on the polygon border.
-        result.append(get_middle_point_offset(boundaries[intersection_first.border_idx], left_idx, right_idx, intersection_first.point, SCALED_EPSILON));
+        result.append(get_middle_point_offset(boundaries[intersection_first.border_idx], left_idx, right_idx, intersection_first.point, coord_t(SCALED_EPSILON)));
 
         // Check if intersection line also exit the boundary polygon
         if (it_second_r != it_last_item) {
@@ -567,19 +567,19 @@ size_t AvoidCrossingPerimeters2::avoid_perimeters(const Polygons       &boundari
             Direction shortest_direction = get_shortest_direction(border_lines, intersection_first.line_idx, intersection_second.line_idx, intersection_first.point, intersection_second.point);
             // Append the path around the border into the path
             if (shortest_direction == Direction::Forward)
-                for (int line_idx = intersection_first.line_idx; line_idx != int(intersection_second.line_idx);
+                for (int line_idx = int(intersection_first.line_idx); line_idx != int(intersection_second.line_idx);
                     line_idx      = (((line_idx + 1) < int(border_lines.size())) ? (line_idx + 1) : 0))
                     result.append(get_polygon_vertex_offset(boundaries[intersection_first.border_idx],
-                                                            (line_idx + 1 == int(boundaries[intersection_first.border_idx].points.size())) ? 0 : (line_idx + 1), SCALED_EPSILON));
+                                                            (line_idx + 1 == int(boundaries[intersection_first.border_idx].points.size())) ? 0 : (line_idx + 1), coord_t(SCALED_EPSILON)));
             else
-                for (int line_idx = intersection_first.line_idx; line_idx != int(intersection_second.line_idx);
+                for (int line_idx = int(intersection_first.line_idx); line_idx != int(intersection_second.line_idx);
                     line_idx      = (((line_idx - 1) >= 0) ? (line_idx - 1) : (int(border_lines.size()) - 1)))
-                    result.append(get_polygon_vertex_offset(boundaries[intersection_second.border_idx], line_idx + 0, SCALED_EPSILON));
+                    result.append(get_polygon_vertex_offset(boundaries[intersection_second.border_idx], line_idx + 0, coord_t(SCALED_EPSILON)));
 
             // Append the farthest intersection into the path
             left_idx  = intersection_second.line_idx;
             right_idx = (intersection_second.line_idx >= (boundaries[intersection_second.border_idx].points.size() - 1)) ? 0 : (intersection_second.line_idx + 1);
-            result.append(get_middle_point_offset(boundaries[intersection_second.border_idx], left_idx, right_idx, intersection_second.point, SCALED_EPSILON));
+            result.append(get_middle_point_offset(boundaries[intersection_second.border_idx], left_idx, right_idx, intersection_second.point, coord_t(SCALED_EPSILON)));
             // Skip intersections in between
             it_first = it_second;
         }
@@ -699,9 +699,9 @@ void AvoidCrossingPerimeters2::init_layer(const Layer &layer)
     m_bbox_external.offset(SCALED_EPSILON);
 
     m_grid.set_bbox(m_bbox);
-    m_grid.create(m_boundaries, scale_(1.));
+    m_grid.create(m_boundaries, coord_t(scale_(1.)));
     m_grid_external.set_bbox(m_bbox_external);
-    m_grid_external.create(m_boundaries_external, scale_(1.));
+    m_grid_external.create(m_boundaries_external, coord_t(scale_(1.)));
 }
 
 } // namespace Slic3r
