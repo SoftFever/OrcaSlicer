@@ -383,6 +383,7 @@ void fill_slicerconf(ConfMap &m, const SLAPrint &print)
     static constexpr auto banned_keys = { 
 		"compatible_printers"sv,
         "compatible_prints"sv,
+        //FIXME The print host keys should not be exported to full_print_config anymore. The following keys may likely be removed.
         "print_host"sv,
         "printhost_apikey"sv,
         "printhost_cafile"sv

@@ -750,14 +750,11 @@ bool MainFrame::can_export_gcode() const
 
 bool MainFrame::can_send_gcode() const
 {
-    if (m_plater == nullptr)
-        return false;
-
-    if (m_plater->model().objects.empty())
-        return false;
-
-    const auto print_host_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionString>("print_host");
-    return print_host_opt != nullptr && !print_host_opt->value.empty();
+    if (m_plater && ! m_plater->model().objects.empty())
+        if (const DynamicPrintConfig *cfg = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config(); cfg)
+            if (const auto *print_host_opt = cfg->option<ConfigOptionString>("print_host"); print_host_opt)
+                return ! print_host_opt->value.empty();
+    return false;
 }
 
 bool MainFrame::can_export_gcode_sd() const

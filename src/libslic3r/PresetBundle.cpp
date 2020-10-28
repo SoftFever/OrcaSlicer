@@ -37,11 +37,11 @@ static std::vector<std::string> s_project_options {
 const char *PresetBundle::PRUSA_BUNDLE = "PrusaResearch";
 
 PresetBundle::PresetBundle() :
-    prints(Preset::TYPE_PRINT, Preset::print_options(), static_cast<const HostConfig&>(FullPrintConfig::defaults())), 
-    filaments(Preset::TYPE_FILAMENT, Preset::filament_options(), static_cast<const HostConfig&>(FullPrintConfig::defaults())), 
+    prints(Preset::TYPE_PRINT, Preset::print_options(), static_cast<const PrintRegionConfig&>(FullPrintConfig::defaults())),
+    filaments(Preset::TYPE_FILAMENT, Preset::filament_options(), static_cast<const PrintRegionConfig&>(FullPrintConfig::defaults())),
     sla_materials(Preset::TYPE_SLA_MATERIAL, Preset::sla_material_options(), static_cast<const SLAMaterialConfig&>(SLAFullPrintConfig::defaults())), 
     sla_prints(Preset::TYPE_SLA_PRINT, Preset::sla_print_options(), static_cast<const SLAPrintObjectConfig&>(SLAFullPrintConfig::defaults())),
-    printers(Preset::TYPE_PRINTER, Preset::printer_options(), static_cast<const HostConfig&>(FullPrintConfig::defaults()), "- default FFF -"),
+    printers(Preset::TYPE_PRINTER, Preset::printer_options(), static_cast<const PrintRegionConfig&>(FullPrintConfig::defaults()), "- default FFF -"),
     physical_printers(PhysicalPrinter::printer_options())
 {
     // The following keys are handled by the UI, they do not have a counterpart in any StaticPrintConfig derived classes,
@@ -77,11 +77,12 @@ PresetBundle::PresetBundle() :
     for (size_t i = 0; i < 2; ++ i) {
 		// The following ugly switch is to avoid printers.preset(0) to return the edited instance, as the 0th default is the current one.
 		Preset &preset = this->printers.default_preset(i);
-        preset.config.optptr("printer_settings_id", true);
-        preset.config.optptr("printer_vendor", true);
-        preset.config.optptr("printer_model", true);
-        preset.config.optptr("printer_variant", true);
-		preset.config.optptr("thumbnails", true);
+        for (const char *key : { 
+            "printer_settings_id", "printer_vendor", "printer_model", "printer_variant", "thumbnails",
+            //FIXME the following keys are only created here for compatibility to be able to parse legacy Printer profiles.
+            // These keys are converted to Physical Printer profile. After the conversion, they shall be removed.
+            "host_type", "print_host", "printhost_apikey", "printhost_cafile"})
+            preset.config.optptr(key, true);
         if (i == 0) {
             preset.config.optptr("default_print_profile", true);
             preset.config.option<ConfigOptionStrings>("default_filament_profile", true)->values = { "" };
@@ -495,6 +496,7 @@ DynamicPrintConfig PresetBundle::full_config() const
 DynamicPrintConfig PresetBundle::full_config_secure() const
 {
     DynamicPrintConfig config = this->full_config();
+    //FIXME legacy, the keys should not be there after conversion to a Physical Printer profile.
     config.erase("print_host");
     config.erase("printhost_apikey");
     config.erase("printhost_cafile");

@@ -11,7 +11,6 @@
 //    PrintRegionConfig
 //    PrintConfig
 //        GCodeConfig
-//    HostConfig
 //
 
 #ifndef slic3r_PrintConfig_hpp_
@@ -37,7 +36,7 @@ enum class MachineLimitsUsage {
 };
 
 enum PrintHostType {
-    htOctoPrint, htDuet, htFlashAir, htAstroBox
+    htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier
 };
 
 enum AuthorizationType {
@@ -127,6 +126,7 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<PrintHostType>::g
         keys_map["duet"]            = htDuet;
         keys_map["flashair"]        = htFlashAir;
         keys_map["astrobox"]        = htAstroBox;
+        keys_map["repetier"]        = htRepetier;
     }
     return keys_map;
 }
@@ -962,38 +962,14 @@ protected:
     }
 };
 
-class HostConfig : public StaticPrintConfig
-{
-    STATIC_PRINT_CONFIG_CACHE(HostConfig)
-public:
-    ConfigOptionEnum<PrintHostType> host_type;
-    ConfigOptionString              print_host;
-    ConfigOptionString              printhost_apikey;
-    ConfigOptionString              printhost_cafile;
-    ConfigOptionString              serial_port;
-    ConfigOptionInt                 serial_speed;
-
-protected:
-    void initialize(StaticCacheBase &cache, const char *base_ptr)
-    {
-        OPT_PTR(host_type);
-        OPT_PTR(print_host);
-        OPT_PTR(printhost_apikey);
-        OPT_PTR(printhost_cafile);
-        OPT_PTR(serial_port);
-        OPT_PTR(serial_speed);
-    }
-};
-
 // This object is mapped to Perl as Slic3r::Config::Full.
 class FullPrintConfig :
     public PrintObjectConfig,
     public PrintRegionConfig,
-    public PrintConfig,
-    public HostConfig
+    public PrintConfig
 {
     STATIC_PRINT_CONFIG_CACHE_DERIVED(FullPrintConfig)
-    FullPrintConfig() : PrintObjectConfig(0), PrintRegionConfig(0), PrintConfig(0), HostConfig(0) { initialize_cache(); *this = s_cache_FullPrintConfig.defaults(); }
+    FullPrintConfig() : PrintObjectConfig(0), PrintRegionConfig(0), PrintConfig(0) { initialize_cache(); *this = s_cache_FullPrintConfig.defaults(); }
 
 public:
     // Validate the FullPrintConfig. Returns an empty string on success, otherwise an error message is returned.
@@ -1001,13 +977,12 @@ public:
 
 protected:
     // Protected constructor to be called to initialize ConfigCache::m_default.
-    FullPrintConfig(int) : PrintObjectConfig(0), PrintRegionConfig(0), PrintConfig(0), HostConfig(0) {}
+    FullPrintConfig(int) : PrintObjectConfig(0), PrintRegionConfig(0), PrintConfig(0) {}
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
         this->PrintObjectConfig::initialize(cache, base_ptr);
         this->PrintRegionConfig::initialize(cache, base_ptr);
         this->PrintConfig      ::initialize(cache, base_ptr);
-        this->HostConfig       ::initialize(cache, base_ptr);
     }
 };
 

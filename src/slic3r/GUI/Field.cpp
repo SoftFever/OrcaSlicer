@@ -1048,8 +1048,28 @@ void Choice::set_values(const std::vector<std::string>& values)
 	auto value = ww->GetValue();
 	ww->Clear();
 	ww->Append("");
-	for (auto el : values)
+	for (const auto &el : values)
 		ww->Append(wxString(el));
+	ww->SetValue(value);
+
+	m_disable_change_event = false;
+}
+
+void Choice::set_values(const wxArrayString &values)
+{
+	if (values.empty())
+		return;
+
+	m_disable_change_event = true;
+
+	// 	# it looks that Clear() also clears the text field in recent wxWidgets versions,
+	// 	# but we want to preserve it
+	auto ww = dynamic_cast<wxBitmapComboBox*>(window);
+	auto value = ww->GetValue();
+	ww->Clear();
+	ww->Append("");
+	for (const auto &el : values)
+		ww->Append(el);
 	ww->SetValue(value);
 
 	m_disable_change_event = false;

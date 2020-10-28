@@ -27,7 +27,7 @@ public:
 	bool can_test() const override { return true; }
 	bool can_start_print() const override { return true; }
 	std::string get_host() const override { return host; }
-
+   
 private:
 	enum class ConnectionType { rrf, dsf, error };
 	std::string host;
