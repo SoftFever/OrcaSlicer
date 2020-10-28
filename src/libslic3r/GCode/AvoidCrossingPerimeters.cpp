@@ -259,7 +259,7 @@ static std::pair<Polygons, Polygons> split_expolygon(const ExPolygons &ex_polygo
 {
     Polygons contours, holes;
     contours.reserve(ex_polygons.size());
-    holes.reserve(std::accumulate(ex_polygons.begin(), ex_polygons.end(), 0,
+    holes.reserve(std::accumulate(ex_polygons.begin(), ex_polygons.end(), size_t(0),
                                   [](size_t sum, const ExPolygon &ex_poly) { return sum + ex_poly.holes.size(); }));
     for (const ExPolygon &ex_poly : ex_polygons) {
         contours.emplace_back(ex_poly.contour);
