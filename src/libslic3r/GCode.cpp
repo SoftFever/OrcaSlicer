@@ -1088,14 +1088,14 @@ namespace DoExport {
 	                ++ dst.second;
 	            };
 	            print_statistics.filament_stats.insert(std::pair<size_t, float>{extruder.id(), (float)used_filament});
-	            append(out_filament_used_mm,  "%.1lf", used_filament);
-	            append(out_filament_used_cm3, "%.1lf", extruded_volume * 0.001);
+	            append(out_filament_used_mm,  "%.2lf", used_filament);
+	            append(out_filament_used_cm3, "%.2lf", extruded_volume * 0.001);
 	            if (filament_weight > 0.) {
 	                print_statistics.total_weight = print_statistics.total_weight + filament_weight;
-	                append(out_filament_used_g, "%.1lf", filament_weight);
+	                append(out_filament_used_g, "%.2lf", filament_weight);
 	                if (filament_cost > 0.) {
 	                    print_statistics.total_cost = print_statistics.total_cost + filament_cost;
-	                    append(out_filament_cost, "%.1lf", filament_cost);
+	                    append(out_filament_cost, "%.2lf", filament_cost);
 	                }
 	            }
 	            print_statistics.total_used_filament += used_filament;
@@ -1604,8 +1604,8 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
         // Modifies
         print.m_print_statistics));
     _write(file, "\n");
-    _write_format(file, "; total filament used [g] = %.1lf\n", print.m_print_statistics.total_weight);
-    _write_format(file, "; total filament cost = %.1lf\n", print.m_print_statistics.total_cost);
+    _write_format(file, "; total filament used [g] = %.2lf\n", print.m_print_statistics.total_weight);
+    _write_format(file, "; total filament cost = %.2lf\n", print.m_print_statistics.total_cost);
     if (print.m_print_statistics.total_toolchanges > 0)
     	_write_format(file, "; total toolchanges = %i\n", print.m_print_statistics.total_toolchanges);
 #if ENABLE_GCODE_VIEWER
