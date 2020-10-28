@@ -62,8 +62,6 @@ add_library(libslic3r STATIC
     Fill/FillRectilinear.hpp
     Fill/FillRectilinear2.cpp
     Fill/FillRectilinear2.hpp
-    Fill/FillRectilinear3.cpp
-    Fill/FillRectilinear3.hpp
     Flow.cpp
     Flow.hpp
     format.hpp

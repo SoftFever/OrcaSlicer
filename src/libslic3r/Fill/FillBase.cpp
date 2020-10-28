@@ -15,7 +15,6 @@
 #include "FillPlanePath.hpp"
 #include "FillRectilinear.hpp"
 #include "FillRectilinear2.hpp"
-#include "FillRectilinear3.hpp"
 #include "FillAdaptive.hpp"
 
 namespace Slic3r {
