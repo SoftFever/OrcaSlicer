@@ -58,7 +58,7 @@ protected:
 
 class AvoidCrossingPerimeters2 : public AvoidCrossingPerimeters
 {
-protected:
+public:
     struct Intersection
     {
         // Index of the polygon containing this point of intersection.
