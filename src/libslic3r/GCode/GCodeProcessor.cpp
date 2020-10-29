@@ -9,7 +9,11 @@
 
 #include <float.h>
 #include <assert.h>
-#include <charconv>
+
+#if __has_include(<charconv>)
+    #include <charconv>
+    #include <utility>
+#endif
 
 #if ENABLE_GCODE_VIEWER
 #include <chrono>
@@ -947,13 +951,47 @@ static inline bool starts_with(const std::string_view comment, const std::string
     return comment.size() >= tag_len && comment.substr(0, tag_len) == tag;
 }
 
+#if __has_include(<charconv>)
+    template <typename T, typename = void>
+    struct is_from_chars_convertible : std::false_type {};
+    template <typename T>
+    struct is_from_chars_convertible<T, std::void_t<decltype(std::from_chars(std::declval<const char*>(), std::declval<const char*>(), std::declval<T&>()))>> : std::true_type {};
+#endif
+
 // Returns true if the number was parsed correctly into out and the number spanned the whole input string.
 template<typename T>
-static inline bool parse_number(const std::string_view str, T &out)
+[[nodiscard]] static inline bool parse_number(const std::string_view sv, T &out)
 {
-    auto str_end = str.data() + str.size();
-    auto [end_ptr, error_code] = std::from_chars(str.data(), str_end, out);
-    return error_code == std::errc() && end_ptr == str_end;
+    // https://www.bfilipek.com/2019/07/detect-overload-from-chars.html#example-stdfromchars
+#if __has_include(<charconv>)
+    // Visual Studio 19 supports from_chars all right.
+    // OSX compiler that we use only implements std::from_chars just for ints.
+    // GCC that we compile on does not provide <charconv> at all.
+    if constexpr (is_from_chars_convertible<T>::value) {
+        auto str_end = sv.data() + sv.size();
+        auto [end_ptr, error_code] = std::from_chars(sv.data(), str_end, out);
+        return error_code == std::errc() && end_ptr == str_end;
+    } 
+    else
+#endif
+    {
+        // Legacy conversion, which is costly due to having to make a copy of the string before conversion.
+        try {
+            std::string str { str };
+            size_t read = 0;
+            if constexpr (std::is_same_v<T, int>)
+                out = std::stoi(str, &read);
+            else if constexpr (std::is_same_v<T, long>)
+                out = std::stol(str, &read);
+            else if constexpr (std::is_same_v<T, float>)
+                out = std::stof(str, &read);
+            else if constexpr (std::is_same_v<T, double>)
+                out = std::stod(str, &read);
+            return str.size() == read;
+        } catch (...) {
+            return false;
+        }
+    }
 }
 
 void GCodeProcessor::process_tags(const std::string_view comment)
