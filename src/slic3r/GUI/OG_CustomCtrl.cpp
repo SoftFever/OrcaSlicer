@@ -1,14 +1,10 @@
 #include "OG_CustomCtrl.hpp"
 #include "OptionsGroup.hpp"
-#include "ConfigExceptions.hpp"
 #include "Plater.hpp"
 #include "GUI_App.hpp"
 
-#include <utility>
-#include <wx/numformatter.h>
+#include <wx/utils.h>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
-#include "libslic3r/Exception.hpp"
 #include "libslic3r/Utils.hpp"
 #include "I18N.hpp"
 
@@ -20,15 +16,6 @@ static bool is_point_in_rect(const wxPoint& pt, const wxRect& rect)
             rect.GetTop() <= pt.y && pt.y <= rect.GetBottom();
 }
 
-static int get_bitmap_height(const wxBitmap& bmp)
-{
-#ifdef __APPLE__
-    return bmp.GetScaledHeight();
-#else
-    return bmp.GetHeight();
-#endif
-}
-
 static wxSize get_bitmap_size(const wxBitmap& bmp)
 {
 #ifdef __APPLE__
@@ -36,6 +23,13 @@ static wxSize get_bitmap_size(const wxBitmap& bmp)
 #else
     return bmp.GetSize();
 #endif
+}
+
+static wxString get_url(const wxString& path_end) 
+{
+    if (path_end.IsEmpty())
+        return wxEmptyString;
+    return wxString("https://help.prusa3d.com/") + "en" + "/article/" + path_end;
 }
 
 OG_CustomCtrl::OG_CustomCtrl(   wxWindow*            parent,
@@ -216,7 +210,13 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
     const wxPoint pos = event.GetLogicalPosition(wxClientDC(this));
     wxString tooltip;
 
-    for (const CtrlLine& line : ctrl_lines) {
+    for (CtrlLine& line : ctrl_lines) {
+        line.is_focused = is_point_in_rect(pos, line.rect_label);
+        if (line.is_focused) {
+            tooltip = get_url(line.og_line.label_path);
+            break;
+        }
+
         for (size_t opt_idx = 0; opt_idx < line.rects_undo_icon.size(); opt_idx++)
             if (is_point_in_rect(pos, line.rects_undo_icon[opt_idx])) {
                 const std::vector<Option>& option_set = line.og_line.get_options();
@@ -250,6 +250,8 @@ void OG_CustomCtrl::OnLeftDown(wxMouseEvent& event)
     const wxPoint pos = event.GetLogicalPosition(wxClientDC(this));
 
     for (const CtrlLine& line : ctrl_lines) {
+        if (line.launch_browser())
+            return;
         for (size_t opt_idx = 0; opt_idx < line.rects_undo_icon.size(); opt_idx++)
             if (is_point_in_rect(pos, line.rects_undo_icon[opt_idx])) {
                 const std::vector<Option>& option_set = line.og_line.get_options();
@@ -347,13 +349,8 @@ OG_CustomCtrl::CtrlLine::CtrlLine(  wxCoord         height,
     og_line(og_line),
     draw_just_act_buttons(draw_just_act_buttons)
 {
-    if (og_line.widget) {
-        rects_blinking.emplace_back(wxRect());
-        return;
-    }
 
     for (size_t i = 0; i < og_line.get_options().size(); i++) {
-        rects_blinking.emplace_back(wxRect());
         rects_undo_icon.emplace_back(wxRect());
         rects_undo_to_sys_icon.emplace_back(wxRect());
     }
@@ -387,7 +384,7 @@ void OG_CustomCtrl::CtrlLine::msw_rescale()
 {
     // if we have a single option with no label, no sidetext
     if (draw_just_act_buttons)
-        height = get_bitmap_height(create_scaled_bitmap("empty"));
+        height = get_bitmap_size(create_scaled_bitmap("empty")).GetHeight();
 
     if (ctrl->opt_group->label_width != 0 && !og_line.label.IsEmpty()) {
         wxSize label_sz = ctrl->GetTextExtent(og_line.label);
@@ -456,9 +453,11 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
     const std::vector<Option>& option_set = og_line.get_options();
 
     wxString label = og_line.label;
+    bool is_url_string = false;
     if (ctrl->opt_group->label_width != 0 && !label.IsEmpty()) {
         const wxColour* text_clr = (option_set.size() == 1 && field ? field->label_color() : og_line.full_Label_color);
-        h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label + ":", text_clr, ctrl->opt_group->label_width * ctrl->m_em_unit);
+        is_url_string = !og_line.label_path.IsEmpty();
+        h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label + ":", text_clr, ctrl->opt_group->label_width * ctrl->m_em_unit, is_url_string);
     }
 
     // If there's a widget, build it and set result to the correct position.
@@ -481,7 +480,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
     }
 
     size_t bmp_rect_id = 0;
-    for (auto opt : option_set) {
+    for (const Option& opt : option_set) {
         field = ctrl->opt_group->get_field(opt.opt_id);
         ConfigOptionDef option = opt.opt;
         // add label if any
@@ -491,7 +490,11 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
                     _CTX(option.label, "Layers") : _(option.label);
             label += ":";
 
-            h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label, field ? field->label_color() : nullptr, ctrl->opt_group->sublabel_width * ctrl->m_em_unit);
+            if (is_url_string)
+                is_url_string = false;
+            else if(opt == option_set.front())
+                is_url_string = !og_line.label_path.IsEmpty();
+            h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label, field ? field->label_color() : nullptr, ctrl->opt_group->sublabel_width * ctrl->m_em_unit, is_url_string);
         }
 
         if (field && field->undo_to_sys_bitmap()) {
@@ -526,14 +529,14 @@ wxCoord OG_CustomCtrl::CtrlLine::draw_mode_bmp(wxDC& dc, wxCoord v_pos)
     const std::string& bmp_name = mode == ConfigOptionMode::comSimple   ? "mode_simple" :
                                   mode == ConfigOptionMode::comAdvanced ? "mode_advanced" : "mode_expert";
     wxBitmap bmp = create_scaled_bitmap(bmp_name, ctrl, wxOSX ? 10 : 12);
-    wxCoord y_draw = v_pos + lround((height - get_bitmap_height(bmp)) / 2);
+    wxCoord y_draw = v_pos + lround((height - get_bitmap_size(bmp).GetHeight()) / 2);
 
     dc.DrawBitmap(bmp, 0, y_draw);
 
-    return bmp.GetWidth() + ctrl->m_h_gap;
+    return get_bitmap_size(bmp).GetWidth() + ctrl->m_h_gap;
 }
 
-wxCoord    OG_CustomCtrl::CtrlLine::draw_text(wxDC& dc, wxPoint pos, const wxString& text, const wxColour* color, int width)
+wxCoord    OG_CustomCtrl::CtrlLine::draw_text(wxDC& dc, wxPoint pos, const wxString& text, const wxColour* color, int width, bool is_url/* = false*/)
 {
     wxString multiline_text;
     if (width > 0 && dc.GetTextExtent(text).x > width) {
@@ -560,19 +563,32 @@ wxCoord    OG_CustomCtrl::CtrlLine::draw_text(wxDC& dc, wxPoint pos, const wxStr
             multiline_text[idx] = '\n';
     }
 
-    const wxString& out_text = multiline_text.IsEmpty() ? text : multiline_text;
-    wxCoord text_width, text_height;
-    dc.GetMultiLineTextExtent(out_text, &text_width, &text_height);
+    if (!text.IsEmpty()) {
+        const wxString& out_text = multiline_text.IsEmpty() ? text : multiline_text;
+        wxCoord text_width, text_height;
+        dc.GetMultiLineTextExtent(out_text, &text_width, &text_height);
 
-    pos.y = pos.y + lround((height - text_height) / 2);
-    
-    wxColour old_clr = dc.GetTextForeground();
-    dc.SetTextForeground(color ? *color : wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT));
-    dc.DrawText(out_text, pos);
-    dc.SetTextForeground(old_clr);
+        pos.y = pos.y + lround((height - text_height) / 2);
+        if (width > 0 && is_url)
+            rect_label = wxRect(pos, wxSize(text_width, text_height));
 
-    if (width < 1)
-        width = text_width;
+        wxColour old_clr = dc.GetTextForeground();
+        wxFont old_font = dc.GetFont();
+        if (is_focused && is_url)
+        // temporary workaround for the OSX because of strange Bold font behavior on BigSerf
+#ifdef __APPLE__
+            dc.SetFont(old_font.Underlined());
+#else
+            dc.SetFont(old_font.Bold().Underlined());
+#endif            
+        dc.SetTextForeground(color ? *color : wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT));
+        dc.DrawText(out_text, pos);
+        dc.SetTextForeground(old_clr);
+        dc.SetFont(old_font);
+
+        if (width < 1)
+            width = text_width;
+    }
 
     return pos.x + width + ctrl->m_h_gap;
 }
@@ -581,12 +597,11 @@ wxPoint OG_CustomCtrl::CtrlLine::draw_blinking_bmp(wxDC& dc, wxPoint pos, bool i
 {
     wxBitmap bmp_blinking = create_scaled_bitmap(is_blinking ? "search_blink" : "empty", ctrl);
     wxCoord h_pos = pos.x;
-    wxCoord v_pos = pos.y + lround((height - get_bitmap_height(bmp_blinking)) / 2);
+    wxCoord v_pos = pos.y + lround((height - get_bitmap_size(bmp_blinking).GetHeight()) / 2);
 
     dc.DrawBitmap(bmp_blinking, h_pos, v_pos);
 
-    int bmp_dim = bmp_blinking.GetWidth();
-    rects_blinking[rect_id] = wxRect(h_pos, v_pos, bmp_dim, bmp_dim);
+    int bmp_dim = get_bitmap_size(bmp_blinking).GetWidth();
 
     h_pos += bmp_dim + ctrl->m_h_gap;
     return wxPoint(h_pos, v_pos);
@@ -600,19 +615,29 @@ wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBi
 
     dc.DrawBitmap(bmp_undo_to_sys, h_pos, v_pos);
 
-    int bmp_dim = bmp_undo_to_sys.GetWidth();
+    int bmp_dim = get_bitmap_size(bmp_undo_to_sys).GetWidth();
     rects_undo_to_sys_icon[rect_id] = wxRect(h_pos, v_pos, bmp_dim, bmp_dim);
 
     h_pos += bmp_dim + ctrl->m_h_gap;
     dc.DrawBitmap(bmp_undo, h_pos, v_pos);
 
-    bmp_dim = bmp_undo.GetWidth();
+    bmp_dim = get_bitmap_size(bmp_undo).GetWidth();
     rects_undo_icon[rect_id] = wxRect(h_pos, v_pos, bmp_dim, bmp_dim);
 
     h_pos += bmp_dim + ctrl->m_h_gap;
 
     return h_pos;
 }
+
+bool OG_CustomCtrl::CtrlLine::launch_browser() const
+{
+    if (is_focused && !og_line.label_path.IsEmpty()) {
+        wxLaunchDefaultBrowser(get_url(og_line.label_path));
+        return true;
+    }
+    return false;
+}
+
 
 } // GUI
 } // Slic3r

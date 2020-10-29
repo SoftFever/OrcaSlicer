@@ -1428,16 +1428,18 @@ void TabPrint::build()
     load_initial_data();
 
     auto page = add_options_page(L("Layers and perimeters"), "layers");
+        wxString category_path = "layers-and-perimeters_1748#";
         auto optgroup = page->new_optgroup(L("Layer height"));
-        optgroup->append_single_option_line("layer_height");
-        optgroup->append_single_option_line("first_layer_height");
+        optgroup->append_single_option_line("layer_height", category_path + "layer-height");
+        optgroup->append_single_option_line("first_layer_height", category_path + "first-layer-height");
 
         optgroup = page->new_optgroup(L("Vertical shells"));
-        optgroup->append_single_option_line("perimeters");
-        optgroup->append_single_option_line("spiral_vase");
+        optgroup->append_single_option_line("perimeters", category_path + "perimeters");
+        optgroup->append_single_option_line("spiral_vase", category_path + "spiral-vase");
 
         Line line { "", "" };
         line.full_width = 1;
+        line.label_path = category_path + "recommended-thin-wall-thickness";
         line.widget = [this](wxWindow* parent) {
             return description_line_widget(parent, &m_recommended_thin_wall_thickness_description_line);
         };
@@ -1445,6 +1447,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Horizontal shells"));
         line = { L("Solid layers"), "" };
+        line.label_path = category_path + "solid-layers-top-bottom";
         line.append_option(optgroup->get_option("top_solid_layers"));
         line.append_option(optgroup->get_option("bottom_solid_layers"));
         optgroup->append_line(line);
@@ -1460,22 +1463,23 @@ void TabPrint::build()
 	    optgroup->append_line(line);
 
         optgroup = page->new_optgroup(L("Quality (slower slicing)"));
-        optgroup->append_single_option_line("extra_perimeters");
-        optgroup->append_single_option_line("ensure_vertical_shell_thickness");
-        optgroup->append_single_option_line("avoid_crossing_perimeters");
-        optgroup->append_single_option_line("thin_walls");
-        optgroup->append_single_option_line("overhangs");
+        optgroup->append_single_option_line("extra_perimeters", category_path + "extra-perimeters-if-needed");
+        optgroup->append_single_option_line("ensure_vertical_shell_thickness", category_path + "ensure-vertical-shell-thickness");
+        optgroup->append_single_option_line("avoid_crossing_perimeters", category_path + "avoid-crossing-perimeters");
+        optgroup->append_single_option_line("thin_walls", category_path + "detect-thin-walls");
+        optgroup->append_single_option_line("overhangs", category_path + "detect-bridging-perimeters");
 
         optgroup = page->new_optgroup(L("Advanced"));
-        optgroup->append_single_option_line("seam_position");
-        optgroup->append_single_option_line("external_perimeters_first");
+        optgroup->append_single_option_line("seam_position", category_path + "seam-position");
+        optgroup->append_single_option_line("external_perimeters_first", category_path + "external-perimeters-first");
 
     page = add_options_page(L("Infill"), "infill");
+        category_path = "infill_42#";
         optgroup = page->new_optgroup(L("Infill"));
-        optgroup->append_single_option_line("fill_density");
-        optgroup->append_single_option_line("fill_pattern");
-        optgroup->append_single_option_line("top_fill_pattern");
-        optgroup->append_single_option_line("bottom_fill_pattern");
+        optgroup->append_single_option_line("fill_density", category_path + "fill-density");
+        optgroup->append_single_option_line("fill_pattern", category_path + "fill-pattern");
+        optgroup->append_single_option_line("top_fill_pattern", category_path + "top-fill-pattern");
+        optgroup->append_single_option_line("bottom_fill_pattern", category_path + "bottom-fill-pattern");
 
         optgroup = page->new_optgroup(L("Ironing"));
         optgroup->append_single_option_line("ironing");
@@ -1484,52 +1488,54 @@ void TabPrint::build()
         optgroup->append_single_option_line("ironing_spacing");
 
         optgroup = page->new_optgroup(L("Reducing printing time"));
-        optgroup->append_single_option_line("infill_every_layers");
-        optgroup->append_single_option_line("infill_only_where_needed");
+        optgroup->append_single_option_line("infill_every_layers", category_path + "combine-infill-every-x-layers");
+        optgroup->append_single_option_line("infill_only_where_needed", category_path + "only-infill-where-needed");
 
         optgroup = page->new_optgroup(L("Advanced"));
-        optgroup->append_single_option_line("solid_infill_every_layers");
-        optgroup->append_single_option_line("fill_angle");
-        optgroup->append_single_option_line("solid_infill_below_area");
+        optgroup->append_single_option_line("solid_infill_every_layers", category_path + "solid-infill-every-x-layers");
+        optgroup->append_single_option_line("fill_angle", category_path + "fill-angle");
+        optgroup->append_single_option_line("solid_infill_below_area", category_path + "solid-infill-threshold-area");
         optgroup->append_single_option_line("bridge_angle");
         optgroup->append_single_option_line("only_retract_when_crossing_perimeters");
         optgroup->append_single_option_line("infill_first");
 
     page = add_options_page(L("Skirt and brim"), "skirt+brim");
+        category_path = "skirt-and-brim_133969#";
         optgroup = page->new_optgroup(L("Skirt"));
-        optgroup->append_single_option_line("skirts");
-        optgroup->append_single_option_line("skirt_distance");
-        optgroup->append_single_option_line("skirt_height");
-        optgroup->append_single_option_line("draft_shield");
-        optgroup->append_single_option_line("min_skirt_length");
+        optgroup->append_single_option_line("skirts", category_path + "skirt");
+        optgroup->append_single_option_line("skirt_distance", category_path + "skirt");
+        optgroup->append_single_option_line("skirt_height", category_path + "skirt");
+        optgroup->append_single_option_line("draft_shield", category_path + "skirt");
+        optgroup->append_single_option_line("min_skirt_length", category_path + "skirt");
 
         optgroup = page->new_optgroup(L("Brim"));
-        optgroup->append_single_option_line("brim_width");
+        optgroup->append_single_option_line("brim_width", category_path + "brim");
 
     page = add_options_page(L("Support material"), "support");
+        category_path = "support-material_1698#";
         optgroup = page->new_optgroup(L("Support material"));
-        optgroup->append_single_option_line("support_material");
-        optgroup->append_single_option_line("support_material_auto");
-        optgroup->append_single_option_line("support_material_threshold");
-        optgroup->append_single_option_line("support_material_enforce_layers");
+        optgroup->append_single_option_line("support_material", category_path + "generate-support-material");
+        optgroup->append_single_option_line("support_material_auto", category_path + "auto-generated-supports");
+        optgroup->append_single_option_line("support_material_threshold", category_path + "overhang-threshold");
+        optgroup->append_single_option_line("support_material_enforce_layers", category_path + "enforce-support-for-the-first");
 
         optgroup = page->new_optgroup(L("Raft"));
-        optgroup->append_single_option_line("raft_layers");
+        optgroup->append_single_option_line("raft_layers", category_path + "raft-layers");
 //		# optgroup->append_single_option_line(get_option_("raft_contact_distance");
 
         optgroup = page->new_optgroup(L("Options for support material and raft"));
-        optgroup->append_single_option_line("support_material_contact_distance");
-        optgroup->append_single_option_line("support_material_pattern");
-        optgroup->append_single_option_line("support_material_with_sheath");
-        optgroup->append_single_option_line("support_material_spacing");
-        optgroup->append_single_option_line("support_material_angle");
-        optgroup->append_single_option_line("support_material_interface_layers");
-        optgroup->append_single_option_line("support_material_interface_spacing");
-        optgroup->append_single_option_line("support_material_interface_contact_loops");
-        optgroup->append_single_option_line("support_material_buildplate_only");
-        optgroup->append_single_option_line("support_material_xy_spacing");
-        optgroup->append_single_option_line("dont_support_bridges");
-        optgroup->append_single_option_line("support_material_synchronize_layers");
+        optgroup->append_single_option_line("support_material_contact_distance", category_path + "contact-z-distance");
+        optgroup->append_single_option_line("support_material_pattern", category_path + "pattern");
+        optgroup->append_single_option_line("support_material_with_sheath", category_path + "with-sheath-around-the-support");
+        optgroup->append_single_option_line("support_material_spacing", category_path + "pattern-spacing-0-inf");
+        optgroup->append_single_option_line("support_material_angle", category_path + "pattern-angle");
+        optgroup->append_single_option_line("support_material_interface_layers", category_path + "interface-layers");
+        optgroup->append_single_option_line("support_material_interface_spacing", category_path + "interface-pattern-spacing");
+        optgroup->append_single_option_line("support_material_interface_contact_loops", category_path + "interface-loops");
+        optgroup->append_single_option_line("support_material_buildplate_only", category_path + "support-on-build-plate-only");
+        optgroup->append_single_option_line("support_material_xy_spacing", category_path + "xy-separation-between-an-object-and-its-support");
+        optgroup->append_single_option_line("dont_support_bridges", category_path + "dont-support-bridges");
+        optgroup->append_single_option_line("support_material_synchronize_layers", category_path + "synchronize-with-object-layers");
 
     page = add_options_page(L("Speed"), "time");
         optgroup = page->new_optgroup(L("Speed for print moves"));
@@ -1559,8 +1565,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("default_acceleration");
 
         optgroup = page->new_optgroup(L("Autospeed (advanced)"));
-        optgroup->append_single_option_line("max_print_speed");
-        optgroup->append_single_option_line("max_volumetric_speed");
+        optgroup->append_single_option_line("max_print_speed", "max-volumetric-speed_127176");
+        optgroup->append_single_option_line("max_volumetric_speed", "max-volumetric-speed_127176");
 #ifdef HAS_PRESSURE_EQUALIZER
         optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_positive");
         optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_negative");
@@ -1612,14 +1618,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("slice_closing_radius");
         optgroup->append_single_option_line("resolution");
         optgroup->append_single_option_line("xy_size_compensation");
-        optgroup->append_single_option_line("elefant_foot_compensation");
+        optgroup->append_single_option_line("elefant_foot_compensation", "elephant-foot-compensation_114487");
 
         optgroup = page->new_optgroup(L("Other"));
         optgroup->append_single_option_line("clip_multipart_objects");
 
     page = add_options_page(L("Output options"), "output+page_white");
         optgroup = page->new_optgroup(L("Sequential printing"));
-        optgroup->append_single_option_line("complete_objects");
+        optgroup->append_single_option_line("complete_objects", "sequential-printing_124589");
         line = { L("Extruder clearance (mm)"), "" };
         line.append_option(optgroup->get_option("extruder_clearance_radius"));
         line.append_option(optgroup->get_option("extruder_clearance_height"));
@@ -1648,7 +1654,7 @@ void TabPrint::build()
     page = add_options_page(L("Dependencies"), "wrench.png");
         optgroup = page->new_optgroup(L("Profile dependencies"));
 
-        create_line_with_widget(optgroup.get(), "compatible_printers", [this](wxWindow* parent) {
+        create_line_with_widget(optgroup.get(), "compatible_printers", wxEmptyString, [this](wxWindow* parent) {
             return compatible_widget_create(parent, m_compatible_printers);
         });
         
@@ -1848,6 +1854,7 @@ void TabFilament::build()
         optgroup->append_line(line);
 
     page = add_options_page(L("Cooling"), "cooling");
+        wxString category_path = "cooling_127569#";
         optgroup = page->new_optgroup(L("Enable"));
         optgroup->append_single_option_line("fan_always_on");
         optgroup->append_single_option_line("cooling");
@@ -1861,17 +1868,18 @@ void TabFilament::build()
 
         optgroup = page->new_optgroup(L("Fan settings"));
         line = { L("Fan speed"), "" };
+        line.label_path = category_path + "fan-settings";
         line.append_option(optgroup->get_option("min_fan_speed"));
         line.append_option(optgroup->get_option("max_fan_speed"));
         optgroup->append_line(line);
 
-        optgroup->append_single_option_line("bridge_fan_speed");
-        optgroup->append_single_option_line("disable_fan_first_layers");
+        optgroup->append_single_option_line("bridge_fan_speed", category_path + "fan-settings");
+        optgroup->append_single_option_line("disable_fan_first_layers", category_path + "fan-settings");
 
         optgroup = page->new_optgroup(L("Cooling thresholds"), 25);
-        optgroup->append_single_option_line("fan_below_layer_time");
-        optgroup->append_single_option_line("slowdown_below_layer_time");
-        optgroup->append_single_option_line("min_print_speed");
+        optgroup->append_single_option_line("fan_below_layer_time", category_path + "cooling-thresholds");
+        optgroup->append_single_option_line("slowdown_below_layer_time", category_path + "cooling-thresholds");
+        optgroup->append_single_option_line("min_print_speed", category_path + "cooling-thresholds");
 
     page = add_options_page(L("Advanced"), "wrench");
         optgroup = page->new_optgroup(L("Filament properties"));
@@ -1882,7 +1890,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_soluble");
 
         optgroup = page->new_optgroup(L("Print speed override"));
-        optgroup->append_single_option_line("filament_max_volumetric_speed");
+        optgroup->append_single_option_line("filament_max_volumetric_speed", "max-volumetric-speed_127176");
 
         line = { "", "" };
         line.full_width = 1;
@@ -1906,9 +1914,10 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_cooling_initial_speed");
         optgroup->append_single_option_line("filament_cooling_final_speed");
 
-        create_line_with_widget(optgroup.get(), "filament_ramming_parameters", [this](wxWindow* parent) {
+        create_line_with_widget(optgroup.get(), "filament_ramming_parameters", wxEmptyString, [this](wxWindow* parent) {
             auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
             ramming_dialog_btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+            ramming_dialog_btn->SetSize(ramming_dialog_btn->GetBestSize());
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
             sizer->Add(ramming_dialog_btn);
 
@@ -1954,7 +1963,7 @@ void TabFilament::build()
 
     page = add_options_page(L("Dependencies"), "wrench.png");
         optgroup = page->new_optgroup(L("Profile dependencies"));
-        create_line_with_widget(optgroup.get(), "compatible_printers", [this](wxWindow* parent) {
+        create_line_with_widget(optgroup.get(), "compatible_printers", wxEmptyString, [this](wxWindow* parent) {
             return compatible_widget_create(parent, m_compatible_printers);
         });
 
@@ -1962,7 +1971,7 @@ void TabFilament::build()
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
 
-        create_line_with_widget(optgroup.get(), "compatible_prints", [this](wxWindow* parent) {
+        create_line_with_widget(optgroup.get(), "compatible_prints", wxEmptyString, [this](wxWindow* parent) {
             return compatible_widget_create(parent, m_compatible_prints);
         });
 
@@ -2118,7 +2127,7 @@ void TabPrinter::build_fff()
     auto page = add_options_page(L("General"), "printer");
         auto optgroup = page->new_optgroup(L("Size and coordinates"));
 
-        create_line_with_widget(optgroup.get(), "bed_shape", [this](wxWindow* parent) {
+        create_line_with_widget(optgroup.get(), "bed_shape", "custom-svg-and-png-bed-textures_124612", [this](wxWindow* parent) {
             return 	create_bed_shape_widget(parent);
         });
 
@@ -2300,7 +2309,7 @@ void TabPrinter::build_sla()
     auto page = add_options_page(L("General"), "printer");
     auto optgroup = page->new_optgroup(L("Size and coordinates"));
 
-    create_line_with_widget(optgroup.get(), "bed_shape", [this](wxWindow* parent) {
+    create_line_with_widget(optgroup.get(), "bed_shape", "custom-svg-and-png-bed-textures_124612", [this](wxWindow* parent) {
         return 	create_bed_shape_widget(parent);
     });
     optgroup->append_single_option_line("max_print_height");
@@ -2551,7 +2560,7 @@ void TabPrinter::build_unregular_pages()
         m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
 
             auto optgroup = page->new_optgroup(L("Size"));
-            optgroup->append_single_option_line("nozzle_diameter", extruder_idx);
+            optgroup->append_single_option_line("nozzle_diameter", wxEmptyString, extruder_idx);
 
             optgroup->m_on_change = [this, extruder_idx](const t_config_option_key& opt_key, boost::any value)
             {
@@ -2589,32 +2598,32 @@ void TabPrinter::build_unregular_pages()
             };
 
             optgroup = page->new_optgroup(L("Layer height limits"));
-            optgroup->append_single_option_line("min_layer_height", extruder_idx);
-            optgroup->append_single_option_line("max_layer_height", extruder_idx);
+            optgroup->append_single_option_line("min_layer_height", wxEmptyString, extruder_idx);
+            optgroup->append_single_option_line("max_layer_height", wxEmptyString, extruder_idx);
 
 
             optgroup = page->new_optgroup(L("Position (for multi-extruder printers)"));
-            optgroup->append_single_option_line("extruder_offset", extruder_idx);
+            optgroup->append_single_option_line("extruder_offset", wxEmptyString, extruder_idx);
 
             optgroup = page->new_optgroup(L("Retraction"));
-            optgroup->append_single_option_line("retract_length", extruder_idx);
-            optgroup->append_single_option_line("retract_lift", extruder_idx);
+            optgroup->append_single_option_line("retract_length", wxEmptyString, extruder_idx);
+            optgroup->append_single_option_line("retract_lift", wxEmptyString, extruder_idx);
                 Line line = { L("Only lift Z"), "" };
                 line.append_option(optgroup->get_option("retract_lift_above", extruder_idx));
                 line.append_option(optgroup->get_option("retract_lift_below", extruder_idx));
                 optgroup->append_line(line);
 
-            optgroup->append_single_option_line("retract_speed", extruder_idx);
-            optgroup->append_single_option_line("deretract_speed", extruder_idx);
-            optgroup->append_single_option_line("retract_restart_extra", extruder_idx);
-            optgroup->append_single_option_line("retract_before_travel", extruder_idx);
-            optgroup->append_single_option_line("retract_layer_change", extruder_idx);
-            optgroup->append_single_option_line("wipe", extruder_idx);
-            optgroup->append_single_option_line("retract_before_wipe", extruder_idx);
+            optgroup->append_single_option_line("retract_speed", wxEmptyString, extruder_idx);
+            optgroup->append_single_option_line("deretract_speed", wxEmptyString, extruder_idx);
+            optgroup->append_single_option_line("retract_restart_extra", wxEmptyString, extruder_idx);
+            optgroup->append_single_option_line("retract_before_travel", wxEmptyString, extruder_idx);
+            optgroup->append_single_option_line("retract_layer_change", wxEmptyString, extruder_idx);
+            optgroup->append_single_option_line("wipe", wxEmptyString, extruder_idx);
+            optgroup->append_single_option_line("retract_before_wipe", wxEmptyString, extruder_idx);
 
             optgroup = page->new_optgroup(L("Retraction when tool is disabled (advanced settings for multi-extruder setups)"));
-            optgroup->append_single_option_line("retract_length_toolchange", extruder_idx);
-            optgroup->append_single_option_line("retract_restart_extra_toolchange", extruder_idx);
+            optgroup->append_single_option_line("retract_length_toolchange", wxEmptyString, extruder_idx);
+            optgroup->append_single_option_line("retract_restart_extra_toolchange", wxEmptyString, extruder_idx);
 
             optgroup = page->new_optgroup(L("Preview"));
 
@@ -2625,6 +2634,7 @@ void TabPrinter::build_unregular_pages()
                                                                wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
                 ScalableButton* btn = m_reset_to_filament_color;
                 btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+                btn->SetSize(btn->GetBestSize());
                 auto sizer = new wxBoxSizer(wxHORIZONTAL);
                 sizer->Add(btn);
 
@@ -2643,7 +2653,7 @@ void TabPrinter::build_unregular_pages()
 
                 return sizer;
             };
-            line = optgroup->create_single_option_line("extruder_colour", extruder_idx);
+            line = optgroup->create_single_option_line("extruder_colour", wxEmptyString, extruder_idx);
             line.append_widget(reset_to_filament_color);
             optgroup->append_line(line);
 
@@ -3562,10 +3572,11 @@ void Tab::update_ui_from_settings()
     }
 }
 
-void Tab::create_line_with_widget(ConfigOptionsGroup* optgroup, const std::string& opt_key, widget_t widget)
+void Tab::create_line_with_widget(ConfigOptionsGroup* optgroup, const std::string& opt_key, const wxString& path, widget_t widget)
 {
     Line line = optgroup->create_single_option_line(opt_key);
     line.widget = widget;
+    line.label_path = path;
 
     m_colored_Labels[opt_key] = nullptr;
     line.full_Label = &m_colored_Labels[opt_key];
@@ -3581,9 +3592,10 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 {
     deps.checkbox = new wxCheckBox(parent, wxID_ANY, _(L("All")));
     deps.checkbox->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-    deps.btn = new ScalableButton(parent, wxID_ANY, "printer_white", from_u8((boost::format(" %s %s") % _utf8(L("Set")) % std::string(dots.ToUTF8())).str()),
+    deps.btn = new ScalableButton(parent, wxID_ANY, "printer", from_u8((boost::format(" %s %s") % _utf8(L("Set")) % std::string(dots.ToUTF8())).str()),
                                   wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
     deps.btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+    deps.btn->SetSize(deps.btn->GetBestSize());
 
 //    BlinkingBitmap* bbmp = new BlinkingBitmap(parent);
 
@@ -3660,9 +3672,10 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 // Return a callback to create a TabPrinter widget to edit bed shape
 wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
 {
-    ScalableButton* btn = new ScalableButton(parent, wxID_ANY, "printer_white", " " + _(L("Set")) + " " + dots,
+    ScalableButton* btn = new ScalableButton(parent, wxID_ANY, "printer", " " + _(L("Set")) + " " + dots,
         wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
     btn->SetFont(wxGetApp().normal_font());
+    btn->SetSize(btn->GetBestSize());
 
 //    BlinkingBitmap* bbmp = new BlinkingBitmap(parent);
 
@@ -4040,7 +4053,7 @@ void TabSLAMaterial::build()
     page = add_options_page(L("Dependencies"), "wrench.png");
     optgroup = page->new_optgroup(L("Profile dependencies"));
 
-    create_line_with_widget(optgroup.get(), "compatible_printers", [this](wxWindow* parent) {
+    create_line_with_widget(optgroup.get(), "compatible_printers", wxEmptyString, [this](wxWindow* parent) {
         return compatible_widget_create(parent, m_compatible_printers);
     });
     
@@ -4048,7 +4061,7 @@ void TabSLAMaterial::build()
     option.opt.full_width = true;
     optgroup->append_single_option_line(option);
 
-    create_line_with_widget(optgroup.get(), "compatible_prints", [this](wxWindow* parent) {
+    create_line_with_widget(optgroup.get(), "compatible_prints", wxEmptyString, [this](wxWindow* parent) {
         return compatible_widget_create(parent, m_compatible_prints);
     });
 
@@ -4171,7 +4184,7 @@ void TabSLAPrint::build()
     page = add_options_page(L("Dependencies"), "wrench");
     optgroup = page->new_optgroup(L("Profile dependencies"));
 
-    create_line_with_widget(optgroup.get(), "compatible_printers", [this](wxWindow* parent) {
+    create_line_with_widget(optgroup.get(), "compatible_printers", wxEmptyString, [this](wxWindow* parent) {
         return compatible_widget_create(parent, m_compatible_printers);
     });
 

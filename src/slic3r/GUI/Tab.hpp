@@ -363,7 +363,7 @@ public:
 	const std::map<wxString, std::string>& get_category_icon_map() { return m_category_icon; }
 
 protected:
-	void			create_line_with_widget(ConfigOptionsGroup* optgroup, const std::string& opt_key, widget_t widget);
+	void			create_line_with_widget(ConfigOptionsGroup* optgroup, const std::string& opt_key, const wxString& path, widget_t widget);
 	wxSizer*		compatible_widget_create(wxWindow* parent, PresetDependencies &deps);
 	void 			compatible_widget_reload(PresetDependencies &deps);
 	void			load_key_value(const std::string& opt_key, const boost::any& value, bool saved_value = false);
