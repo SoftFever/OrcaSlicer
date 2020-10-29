@@ -11,6 +11,7 @@
 #include <array>
 #include <vector>
 #include <string>
+#include <string_view>
 
 namespace Slic3r {
 
@@ -446,15 +447,15 @@ namespace Slic3r {
         void process_gcode_line(const GCodeReader::GCodeLine& line);
 
         // Process tags embedded into comments
-        void process_tags(const std::string& comment);
-        bool process_producers_tags(const std::string& comment);
-        bool process_prusaslicer_tags(const std::string& comment);
-        bool process_cura_tags(const std::string& comment);
-        bool process_simplify3d_tags(const std::string& comment);
-        bool process_craftware_tags(const std::string& comment);
-        bool process_ideamaker_tags(const std::string& comment);
+        void process_tags(const std::string_view comment);
+        bool process_producers_tags(const std::string_view comment);
+        bool process_prusaslicer_tags(const std::string_view comment);
+        bool process_cura_tags(const std::string_view comment);
+        bool process_simplify3d_tags(const std::string_view comment);
+        bool process_craftware_tags(const std::string_view comment);
+        bool process_ideamaker_tags(const std::string_view comment);
 
-        bool detect_producer(const std::string& comment);
+        bool detect_producer(const std::string_view comment);
 
         // Move
         void process_G0(const GCodeReader::GCodeLine& line);
@@ -540,7 +541,7 @@ namespace Slic3r {
 
         // Processes T line (Select Tool)
         void process_T(const GCodeReader::GCodeLine& line);
-        void process_T(const std::string& command);
+        void process_T(const std::string_view command);
 
         void store_move_vertex(EMoveType type);
 

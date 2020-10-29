@@ -9,6 +9,7 @@
 
 #include <float.h>
 #include <assert.h>
+#include <charconv>
 
 #if ENABLE_GCODE_VIEWER
 #include <chrono>
@@ -748,9 +749,9 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
     // parse the gcode file to detect its producer
     if (m_producers_enabled) {
         m_parser.parse_file(filename, [this](GCodeReader& reader, const GCodeReader::GCodeLine& line) {
-            std::string cmd = line.cmd();
+            const std::string_view cmd = line.cmd();
             if (cmd.length() == 0) {
-                std::string comment = line.comment();
+                const std::string_view comment = line.comment();
                 if (comment.length() > 1 && detect_producer(comment))
                     m_parser.quit_parsing_file();
             }
@@ -874,7 +875,7 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line)
     // update start position
     m_start_position = m_end_position;
 
-    std::string cmd = line.cmd();
+    const std::string_view cmd = line.cmd();
     if (cmd.length() > 1) {
         // process command lines
         switch (::toupper(cmd[0]))
@@ -932,122 +933,115 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line)
         }
     }
     else {
-        std::string comment = line.comment();
-        if (comment.length() > 1)
-            // process tags embedded into comments
-            process_tags(comment);
+        const std::string &comment = line.raw();
+        if (comment.length() > 2 && comment.front() == ';')
+            // Process tags embedded into comments. Tag comments always start at the start of a line
+            // with a comment and continue with a tag without any whitespace separator.
+            process_tags(comment.substr(1));
     }
 }
 
-void GCodeProcessor::process_tags(const std::string& comment)
+static inline bool starts_with(const std::string_view comment, const std::string_view tag)
+{
+    size_t tag_len = tag.size();
+    return comment.size() >= tag_len && comment.substr(0, tag_len) == tag;
+}
+
+// Returns true if the number was parsed correctly into out and the number spanned the whole input string.
+template<typename T>
+static inline bool parse_number(const std::string_view str, T &out)
+{
+    auto str_end = str.data() + str.size();
+    auto [end_ptr, error_code] = std::from_chars(str.data(), str_end, out);
+    return error_code == std::errc() && end_ptr == str_end;
+}
+
+void GCodeProcessor::process_tags(const std::string_view comment)
 {
     // producers tags
-    if (m_producers_enabled) {
-        if (m_producer != EProducer::Unknown) {
-            if (process_producers_tags(comment))
-                return;
-        }
-    }
+    if (m_producers_enabled && process_producers_tags(comment))
+        return;
 
     // extrusion role tag
-    size_t pos = comment.find(Extrusion_Role_Tag);
-    if (pos != comment.npos) {
-        m_extrusion_role = ExtrusionEntity::string_to_role(comment.substr(pos + Extrusion_Role_Tag.length()));
+    if (starts_with(comment, Extrusion_Role_Tag)) {
+        m_extrusion_role = ExtrusionEntity::string_to_role(comment.substr(Extrusion_Role_Tag.length()));
         return;
     }
 
-    if (!m_producers_enabled || m_producer == EProducer::PrusaSlicer) {
+    if ((!m_producers_enabled || m_producer == EProducer::PrusaSlicer) &&
+        starts_with(comment, Height_Tag)) {
         // height tag
-        pos = comment.find(Height_Tag);
-        if (pos != comment.npos) {
-            try {
-                m_height = std::stof(comment.substr(pos + Height_Tag.length()));
-            }
-            catch (...) {
-                BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Height (" << comment << ").";
-            }
-            return;
-        }
+        if (! parse_number(comment.substr(Height_Tag.size()), m_height))
+            BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Height (" << comment << ").";
+        return;
     }
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     // width tag
-    pos = comment.find(Width_Tag);
-    if (pos != comment.npos) {
-        try {
-            m_width_compare.last_tag_value = std::stof(comment.substr(pos + Width_Tag.length()));
-        }
-        catch (...) {
+    if (starts_with(comment, Width_Tag)) {
+        if (! parse_number(comment.substr(Width_Tag.size()), m_width_compare.last_tag_value))
             BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
-        }
         return;
     }
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
     // color change tag
-    pos = comment.find(Color_Change_Tag);
-    if (pos != comment.npos) {
-        pos = comment.find_last_of(",T");
-        try {
-            unsigned char extruder_id = (pos == comment.npos) ? 0 : static_cast<unsigned char>(std::stoi(comment.substr(pos + 1)));
-
-            m_extruder_colors[extruder_id] = static_cast<unsigned char>(m_extruder_offsets.size()) + m_cp_color.counter; // color_change position in list of color for preview
-            ++m_cp_color.counter;
-            if (m_cp_color.counter == UCHAR_MAX)
-                m_cp_color.counter = 0;
-
-            if (m_extruder_id == extruder_id) {
-                m_cp_color.current = m_extruder_colors[extruder_id];
-                store_move_vertex(EMoveType::Color_change);
+    if (starts_with(comment, Color_Change_Tag)) {
+        unsigned char extruder_id = 0;
+        if (starts_with(comment.substr(Color_Change_Tag.size()), ",T")) {
+            int eid;
+            if (! parse_number(comment.substr(Color_Change_Tag.size() + 2), eid) || eid < 0 || eid > 255) {
+                BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Color_Change (" << comment << ").";
+                return;
             }
+            extruder_id = static_cast<unsigned char>(eid);
+        }
 
-            process_custom_gcode_time(CustomGCode::ColorChange);
+        m_extruder_colors[extruder_id] = static_cast<unsigned char>(m_extruder_offsets.size()) + m_cp_color.counter; // color_change position in list of color for preview
+        ++m_cp_color.counter;
+        if (m_cp_color.counter == UCHAR_MAX)
+            m_cp_color.counter = 0;
+
+        if (m_extruder_id == extruder_id) {
+            m_cp_color.current = m_extruder_colors[extruder_id];
+            store_move_vertex(EMoveType::Color_change);
         }
-        catch (...) {
-            BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Color_Change (" << comment << ").";
-        }
+
+        process_custom_gcode_time(CustomGCode::ColorChange);
 
         return;
     }
 
     // pause print tag
-    pos = comment.find(Pause_Print_Tag);
-    if (pos != comment.npos) {
+    if (comment == Pause_Print_Tag) {
         store_move_vertex(EMoveType::Pause_Print);
         process_custom_gcode_time(CustomGCode::PausePrint);
         return;
     }
 
     // custom code tag
-    pos = comment.find(Custom_Code_Tag);
-    if (pos != comment.npos) {
+    if (comment == Custom_Code_Tag) {
         store_move_vertex(EMoveType::Custom_GCode);
         return;
     }
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     // mm3_per_mm print tag
-    pos = comment.find(Mm3_Per_Mm_Tag);
-    if (pos != comment.npos) {
-        try {
-            m_mm3_per_mm_compare.last_tag_value = std::stof(comment.substr(pos + Mm3_Per_Mm_Tag.length()));
-        }
-        catch (...) {
+    if (starts_with(comment, Mm3_Per_Mm_Tag)) {
+        if (! parse_number(comment.substr(Mm3_Per_Mm_Tag.size()), m_mm3_per_mm_compare.last_tag_value))
             BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Mm3_Per_Mm (" << comment << ").";
-        }
         return;
     }
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
     // layer change tag
-    pos = comment.find(Layer_Change_Tag);
-    if (pos != comment.npos) {
+    if (comment == Layer_Change_Tag) {
         ++m_layer_id;
         return;
     }
 }
 
-bool GCodeProcessor::process_producers_tags(const std::string& comment)
+bool GCodeProcessor::process_producers_tags(const std::string_view comment)
 {
     switch (m_producer)
     {
@@ -1060,18 +1054,18 @@ bool GCodeProcessor::process_producers_tags(const std::string& comment)
     }
 }
 
-bool GCodeProcessor::process_prusaslicer_tags(const std::string& comment)
+bool GCodeProcessor::process_prusaslicer_tags(const std::string_view comment)
 {
     return false;
 }
 
-bool GCodeProcessor::process_cura_tags(const std::string& comment)
+bool GCodeProcessor::process_cura_tags(const std::string_view comment)
 {
     // TYPE -> extrusion role
     std::string tag = "TYPE:";
     size_t pos = comment.find(tag);
     if (pos != comment.npos) {
-        std::string type = comment.substr(pos + tag.length());
+        const std::string_view type = comment.substr(pos + tag.length());
         if (type == "SKIRT")
             m_extrusion_role = erSkirt;
         else if (type == "WALL-OUTER")
@@ -1100,7 +1094,7 @@ bool GCodeProcessor::process_cura_tags(const std::string& comment)
     tag = "FLAVOR:";
     pos = comment.find(tag);
     if (pos != comment.npos) {
-        std::string flavor = comment.substr(pos + tag.length());
+        const std::string_view flavor = comment.substr(pos + tag.length());
         if (flavor == "BFB")
             m_flavor = gcfMarlin; // << ???????????????????????
         else if (flavor == "Mach3")
@@ -1128,7 +1122,7 @@ bool GCodeProcessor::process_cura_tags(const std::string& comment)
     return false;
 }
 
-bool GCodeProcessor::process_simplify3d_tags(const std::string& comment)
+bool GCodeProcessor::process_simplify3d_tags(const std::string_view comment)
 {
     // extrusion roles
 
@@ -1216,7 +1210,7 @@ bool GCodeProcessor::process_simplify3d_tags(const std::string& comment)
     std::string tag = " tool";
     pos = comment.find(tag);
     if (pos == 0) {
-        std::string data = comment.substr(pos + tag.length());
+        const std::string_view data = comment.substr(pos + tag.length());
         std::string h_tag = "H";
         size_t h_start = data.find(h_tag);
         size_t h_end = data.find_first_of(' ', h_start);
@@ -1224,20 +1218,12 @@ bool GCodeProcessor::process_simplify3d_tags(const std::string& comment)
         size_t w_start = data.find(w_tag);
         size_t w_end = data.find_first_of(' ', w_start);
         if (h_start != data.npos) {
-            try {
-                m_height_compare.last_tag_value = std::stof(data.substr(h_start + 1, (h_end != data.npos) ? h_end - h_start - 1 : h_end));
-            }
-            catch (...) {
+            if (! parse_number(data.substr(h_start + 1, (h_end != data.npos) ? h_end - h_start - 1 : h_end), m_height_compare.last_tag_value))
                 BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Height (" << comment << ").";
-            }
         }
         if (w_start != data.npos) {
-            try {
-                m_width_compare.last_tag_value = std::stof(data.substr(w_start + 1, (w_end != data.npos) ? w_end - w_start - 1 : w_end));
-            }
-            catch (...) {
+            if (! parse_number(data.substr(w_start + 1, (w_end != data.npos) ? w_end - w_start - 1 : w_end), m_width_compare.last_tag_value))
                 BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
-            }
         }
 
         return true;
@@ -1247,13 +1233,13 @@ bool GCodeProcessor::process_simplify3d_tags(const std::string& comment)
     return false;
 }
 
-bool GCodeProcessor::process_craftware_tags(const std::string& comment)
+bool GCodeProcessor::process_craftware_tags(const std::string_view comment)
 {
     // segType -> extrusion role
     std::string tag = "segType:";
     size_t pos = comment.find(tag);
     if (pos != comment.npos) {
-        std::string type = comment.substr(pos + tag.length());
+        const std::string_view type = comment.substr(pos + tag.length());
         if (type == "Skirt")
             m_extrusion_role = erSkirt;
         else if (type == "Perimeter")
@@ -1287,13 +1273,13 @@ bool GCodeProcessor::process_craftware_tags(const std::string& comment)
     return false;
 }
 
-bool GCodeProcessor::process_ideamaker_tags(const std::string& comment)
+bool GCodeProcessor::process_ideamaker_tags(const std::string_view comment)
 {
     // TYPE -> extrusion role
     std::string tag = "TYPE:";
     size_t pos = comment.find(tag);
     if (pos != comment.npos) {
-        std::string type = comment.substr(pos + tag.length());
+        const std::string_view type = comment.substr(pos + tag.length());
         if (type == "RAFT")
             m_extrusion_role = erSkirt;
         else if (type == "WALL-OUTER")
@@ -1322,12 +1308,8 @@ bool GCodeProcessor::process_ideamaker_tags(const std::string& comment)
     tag = "WIDTH:";
     pos = comment.find(tag);
     if (pos != comment.npos) {
-        try {
-            m_width_compare.last_tag_value = std::stof(comment.substr(pos + tag.length()));
-        }
-        catch (...) {
+        if (! parse_number(comment.substr(pos + tag.length()), m_width_compare.last_tag_value))
             BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
-        }
         return true;
     }
 
@@ -1335,12 +1317,8 @@ bool GCodeProcessor::process_ideamaker_tags(const std::string& comment)
     tag = "HEIGHT:";
     pos = comment.find(tag);
     if (pos != comment.npos) {
-        try {
-            m_height_compare.last_tag_value = std::stof(comment.substr(pos + tag.length()));
-        }
-        catch (...) {
+        if (! parse_number(comment.substr(pos + tag.length()), m_height_compare.last_tag_value))
             BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Height (" << comment << ").";
-        }
         return true;
     }
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
@@ -1348,7 +1326,7 @@ bool GCodeProcessor::process_ideamaker_tags(const std::string& comment)
     return false;
 }
 
-bool GCodeProcessor::detect_producer(const std::string& comment)
+bool GCodeProcessor::detect_producer(const std::string_view comment)
 {
     for (const auto& [id, search_string] : Producers) {
         size_t pos = comment.find(search_string);
@@ -2004,11 +1982,14 @@ void GCodeProcessor::process_T(const GCodeReader::GCodeLine& line)
     process_T(line.cmd());
 }
 
-void GCodeProcessor::process_T(const std::string& command)
+void GCodeProcessor::process_T(const std::string_view command)
 {
     if (command.length() > 1) {
-        try {
-            unsigned char id = static_cast<unsigned char>(std::stoi(command.substr(1)));
+        int eid;
+        if (! parse_number(command.substr(1), eid) || eid < 0 || eid > 255) {
+            BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid toolchange (" << command << ").";
+        } else {
+            unsigned char id = static_cast<unsigned char>(eid);
             if (m_extruder_id != id) {
                 unsigned char extruders_count = static_cast<unsigned char>(m_extruder_offsets.size());
                 if (id >= extruders_count)
@@ -2029,9 +2010,6 @@ void GCodeProcessor::process_T(const std::string& command)
                 // store tool change move
                 store_move_vertex(EMoveType::Tool_change);
             }
-        }
-        catch (...) {
-            BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid toolchange (" << command << ").";
         }
     }
 }

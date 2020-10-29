@@ -331,7 +331,7 @@ std::string ExtrusionEntity::role_to_string(ExtrusionRole role)
     return "";
 }
 
-ExtrusionRole ExtrusionEntity::string_to_role(const std::string& role)
+ExtrusionRole ExtrusionEntity::string_to_role(const std::string_view role)
 {
     if (role == L("Perimeter"))
         return erPerimeter;

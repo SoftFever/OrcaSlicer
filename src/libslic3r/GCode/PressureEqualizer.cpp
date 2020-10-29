@@ -165,9 +165,10 @@ static inline float parse_float(const char *&line)
     return result;
 };
 
-#define EXTRUSION_ROLE_TAG ";_EXTRUSION_ROLE:"
 bool PressureEqualizer::process_line(const char *line, const size_t len, GCodeLine &buf)
 {
+    static constexpr const char *EXTRUSION_ROLE_TAG = ";_EXTRUSION_ROLE:";
+
     if (strncmp(line, EXTRUSION_ROLE_TAG, strlen(EXTRUSION_ROLE_TAG)) == 0) {
         line += strlen(EXTRUSION_ROLE_TAG);
         int role = atoi(line);
