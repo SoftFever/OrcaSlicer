@@ -14,6 +14,30 @@
 
 namespace Slic3r { namespace GUI {
 
+static bool is_point_in_rect(const wxPoint& pt, const wxRect& rect)
+{
+    return  rect.GetLeft() <= pt.x && pt.x <= rect.GetRight() &&
+            rect.GetTop() <= pt.y && pt.y <= rect.GetBottom();
+}
+
+static int get_bitmap_height(const wxBitmap& bmp)
+{
+#ifdef __APPLE__
+    return bmp.GetScaledHeight();
+#else
+    return bmp.GetHeight();
+#endif
+}
+
+static wxSize get_bitmap_size(const wxBitmap& bmp)
+{
+#ifdef __APPLE__
+    return bmp.GetScaledSize();
+#else
+    return bmp.GetSize();
+#endif
+}
+
 OG_CustomCtrl::OG_CustomCtrl(   wxWindow*            parent,
                                 OptionsGroup*        og,
                                 const wxPoint&       pos /* = wxDefaultPosition*/,
@@ -31,8 +55,8 @@ OG_CustomCtrl::OG_CustomCtrl(   wxWindow*            parent,
     m_v_gap     = lround(1.0 * m_em_unit);
     m_h_gap     = lround(0.2 * m_em_unit);
 
-    m_bmp_mode_sz       = create_scaled_bitmap("mode_simple", this, wxOSX ? 10 : 12).GetSize();
-    m_bmp_blinking_sz   = create_scaled_bitmap("search_blink", this).GetSize();
+    m_bmp_mode_sz       = get_bitmap_size(create_scaled_bitmap("mode_simple", this, wxOSX ? 10 : 12));
+    m_bmp_blinking_sz   = get_bitmap_size(create_scaled_bitmap("search_blink", this));
 
     init_ctrl_lines();// from og.lines()
 
@@ -185,12 +209,6 @@ void OG_CustomCtrl::OnPaint(wxPaintEvent&)
         line.render(dc, v_pos);
         v_pos += line.height;
     }
-}
-
-static bool is_point_in_rect(const wxPoint& pt, const wxRect& rect)
-{
-    return  rect.GetLeft() <= pt.x && pt.x <= rect.GetRight() &&
-            rect.GetTop() <= pt.y && pt.y <= rect.GetBottom();
 }
 
 void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
@@ -369,7 +387,7 @@ void OG_CustomCtrl::CtrlLine::msw_rescale()
 {
     // if we have a single option with no label, no sidetext
     if (draw_just_act_buttons)
-        height = create_scaled_bitmap("empty").GetHeight();
+        height = get_bitmap_height(create_scaled_bitmap("empty"));
 
     if (ctrl->opt_group->label_width != 0 && !og_line.label.IsEmpty()) {
         wxSize label_sz = ctrl->GetTextExtent(og_line.label);
@@ -508,7 +526,7 @@ wxCoord OG_CustomCtrl::CtrlLine::draw_mode_bmp(wxDC& dc, wxCoord v_pos)
     const std::string& bmp_name = mode == ConfigOptionMode::comSimple   ? "mode_simple" :
                                   mode == ConfigOptionMode::comAdvanced ? "mode_advanced" : "mode_expert";
     wxBitmap bmp = create_scaled_bitmap(bmp_name, ctrl, wxOSX ? 10 : 12);
-    wxCoord y_draw = v_pos + lround((height - bmp.GetHeight()) / 2);
+    wxCoord y_draw = v_pos + lround((height - get_bitmap_height(bmp)) / 2);
 
     dc.DrawBitmap(bmp, 0, y_draw);
 
@@ -563,7 +581,7 @@ wxPoint OG_CustomCtrl::CtrlLine::draw_blinking_bmp(wxDC& dc, wxPoint pos, bool i
 {
     wxBitmap bmp_blinking = create_scaled_bitmap(is_blinking ? "search_blink" : "empty", ctrl);
     wxCoord h_pos = pos.x;
-    wxCoord v_pos = pos.y + lround((height - bmp_blinking.GetHeight()) / 2);
+    wxCoord v_pos = pos.y + lround((height - get_bitmap_height(bmp_blinking)) / 2);
 
     dc.DrawBitmap(bmp_blinking, h_pos, v_pos);
 
