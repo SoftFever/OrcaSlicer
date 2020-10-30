@@ -25,7 +25,7 @@
 namespace Slic3r { namespace GUI {
 
 //  Static text shown among the options.
-class OG_CustomCtrl :public wxControl
+class OG_CustomCtrl :public wxPanel
 {
     wxFont  m_font;
     int     m_v_gap;

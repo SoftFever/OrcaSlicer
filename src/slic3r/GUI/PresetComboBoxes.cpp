@@ -349,6 +349,8 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, bool wide_icons, con
 
     bitmap_key += is_system ? ",syst" : ",nsyst";
     bitmap_key += ",h" + std::to_string(icon_height);
+    if (wxGetApp().dark_mode())
+        bitmap_key += ",dark";
 
     wxBitmap* bmp = bitmap_cache().find(bitmap_key);
     if (bmp == nullptr) {
@@ -393,6 +395,8 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, const std::string& m
     bitmap_key += is_compatible ? ",cmpt" : ",ncmpt";
     bitmap_key += is_system ? ",syst" : ",nsyst";
     bitmap_key += ",h" + std::to_string(icon_height);
+    if (wxGetApp().dark_mode())
+        bitmap_key += ",dark";
 
     wxBitmap* bmp = bitmap_cache().find(bitmap_key);
     if (bmp == nullptr) {

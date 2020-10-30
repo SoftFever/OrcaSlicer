@@ -2,6 +2,7 @@
 #include "OptionsGroup.hpp"
 #include "Plater.hpp"
 #include "GUI_App.hpp"
+#include "libslic3r/AppConfig.hpp"
 
 #include <wx/utils.h>
 #include <boost/algorithm/string/split.hpp>
@@ -25,11 +26,16 @@ static wxSize get_bitmap_size(const wxBitmap& bmp)
 #endif
 }
 
-static wxString get_url(const wxString& path_end) 
+static wxString get_url(const wxString& path_end, bool get_default = false) 
 {
     if (path_end.IsEmpty())
         return wxEmptyString;
-    return wxString("https://help.prusa3d.com/") + "en" + "/article/" + path_end;
+
+    wxString language = wxGetApp().app_config->get("translation_language");
+    if (language.IsEmpty())
+        return wxEmptyString;
+
+    return wxString("https://help.prusa3d.com/") + language.BeforeFirst('_') + "/article/" + path_end;
 }
 
 OG_CustomCtrl::OG_CustomCtrl(   wxWindow*            parent,
@@ -38,7 +44,7 @@ OG_CustomCtrl::OG_CustomCtrl(   wxWindow*            parent,
                                 const wxSize&        size/* = wxDefaultSize*/,
                                 const wxValidator&   val /* = wxDefaultValidator*/,
                                 const wxString&      name/* = wxEmptyString*/) :
-    wxControl(parent, wxID_ANY, pos, size, wxWANTS_CHARS | wxBORDER_NONE),
+    wxPanel(parent, wxID_ANY, pos, size, /*wxWANTS_CHARS |*/ wxBORDER_NONE | wxTAB_TRAVERSAL),
     opt_group(og)
 {
     if (!wxOSX)
@@ -209,6 +215,8 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
 {
     const wxPoint pos = event.GetLogicalPosition(wxClientDC(this));
     wxString tooltip;
+
+    wxString language = wxGetApp().app_config->get("translation_language");
 
     for (CtrlLine& line : ctrl_lines) {
         line.is_focused = is_point_in_rect(pos, line.rect_label);
@@ -631,11 +639,7 @@ wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBi
 
 bool OG_CustomCtrl::CtrlLine::launch_browser() const
 {
-    if (is_focused && !og_line.label_path.IsEmpty()) {
-        wxLaunchDefaultBrowser(get_url(og_line.label_path));
-        return true;
-    }
-    return false;
+    return is_focused && !og_line.label_path.IsEmpty() && wxLaunchDefaultBrowser(get_url(og_line.label_path));
 }
 
 

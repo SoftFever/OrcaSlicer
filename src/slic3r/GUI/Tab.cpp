@@ -1010,6 +1010,7 @@ void Tab::msw_rescale()
 void Tab::sys_color_changed()
 {
     update_tab_ui();
+    m_presets_choice->msw_rescale();
 
     // update buttons and cached bitmaps
     for (const auto btn : m_scaled_buttons)
