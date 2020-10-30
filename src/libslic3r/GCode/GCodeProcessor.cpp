@@ -399,14 +399,20 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
             return false;
     };
 
+    // Iterators for the normal and silent cached time estimate entry recently processed, used by process_line_G1.
+    auto g1_times_cache_it = Slic3r::reserve_vector<std::vector<TimeMachine::G1LinesCacheItem>::const_iterator>(machines.size());
+    for (const auto& machine : machines)
+        g1_times_cache_it.emplace_back(machine.g1_times_cache.begin());
     // add lines M73 to exported gcode
     auto process_line_G1 = [&]() {
         for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Count); ++i) {
             const TimeMachine& machine = machines[i];
             if (machine.enabled) {
-                auto it = std::find_if(machine.g1_times_cache.begin(), machine.g1_times_cache.end(),
-                    [g1_lines_counter](const TimeMachine::G1LinesCacheItem& item) { return item.id == g1_lines_counter; });
-                if (it != machine.g1_times_cache.end()) {
+                // Skip all machine.g1_times_cache below g1_lines_counter.
+                auto& it = g1_times_cache_it[i];
+                while (it != machine.g1_times_cache.end() && it->id < g1_lines_counter)
+                    ++ it;
+                if (it != machine.g1_times_cache.end() && it->id == g1_lines_counter) {
                     float elapsed_time = it->elapsed_time;
                     std::pair<int, int> to_export = { int(100.0f * elapsed_time / machine.time),
                                                       time_in_minutes(machine.time - elapsed_time) };
