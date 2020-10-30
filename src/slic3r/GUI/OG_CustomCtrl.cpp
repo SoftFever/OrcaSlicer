@@ -32,10 +32,9 @@ static wxString get_url(const wxString& path_end, bool get_default = false)
         return wxEmptyString;
 
     wxString language = wxGetApp().app_config->get("translation_language");
-    if (language.IsEmpty())
-        return wxEmptyString;
+    wxString lang_marker = language.IsEmpty() ? "en" : language.BeforeFirst('_');
 
-    return wxString("https://help.prusa3d.com/") + language.BeforeFirst('_') + "/article/" + path_end;
+    return wxString("https://help.prusa3d.com/") + lang_marker + "/article/" + path_end;
 }
 
 OG_CustomCtrl::OG_CustomCtrl(   wxWindow*            parent,
