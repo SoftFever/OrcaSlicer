@@ -7,7 +7,7 @@ as the versions listed - generally versions available on conservative Linux dist
 
 Perl is not required any more.
 
-In a typical situation, one would open a command line, go to the PrusaSlicer sources, create a directory called `build` or similar,
+In a typical situation, one would open a command line, go to the PrusaSlicer sources (**the root directory of the repository**), create a directory called `build` or similar,
 `cd` into it and call:
 
     cmake ..
@@ -37,7 +37,7 @@ To do this, go to the `deps` directory, create a `build` subdirectory (or the li
 where the target destdir is a directory of your choosing where the dependencies will be installed.
 You can also omit the `DESTDIR` option to use the default, in that case the `destdir` will be created inside the `build` directory where `cmake` is run.
 
-To pass the destdir path to the top-level PrusaSlicer CMake script, use the `CMAKE_PREFIX_PATH` option along with turning on `SLIC3R_STATIC`:
+Once the dependencies have been built, in order to pass the destdir path to the **top-level** PrusaSlicer `CMakeLists.txt` script, use the `CMAKE_PREFIX_PATH` option along with turning on `SLIC3R_STATIC`:
 
     cmake .. -DSLIC3R_STATIC=1 -DCMAKE_PREFIX_PATH=<path to destdir>/usr/local
 
