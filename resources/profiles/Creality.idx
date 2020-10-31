@@ -1,3 +1,5 @@
+min_slic3r_version = 2.3.0-alpha2
+0.0.4 Added initial CR-10 profile, end g-code improvements.
 min_slic3r_version = 2.3.0-alpha0
 0.0.3 Added Ender-2, Ender-3 BLTouch, updated Ender-3 bed texture.
 min_slic3r_version = 2.2.0-alpha3
