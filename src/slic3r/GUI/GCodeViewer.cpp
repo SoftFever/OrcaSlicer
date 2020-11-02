@@ -302,6 +302,9 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
     reset();
 
     load_toolpaths(gcode_result);
+    if (m_layers_zs.empty())
+        return;
+
     if (wxGetApp().is_editor())
         load_shells(print, initialized);
     else {
@@ -1477,6 +1480,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         }
     }
 
+    if (progress_dialog != nullptr) {
+        progress_dialog->Update(100, "");
+        progress_dialog->Fit();
+    }
+
     log_memory_usage("Loaded G-code generated indices buffers, ", vertices, indices);
 
     // toolpaths data -> send indices data to gpu
@@ -1550,7 +1558,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     }
 
     // set layers z range
-    m_layers_z_range = { m_layers_zs.front(), m_layers_zs.back() };
+    if (!m_layers_zs.empty())
+        m_layers_z_range = { m_layers_zs.front(), m_layers_zs.back() };
 
     // roles -> remove duplicates
     std::sort(m_roles.begin(), m_roles.end());

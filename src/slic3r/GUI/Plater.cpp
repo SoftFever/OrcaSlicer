@@ -1407,8 +1407,8 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
             return false;
         }
         else if (paths.size() == 1) {
-                plater->load_gcode(from_path(paths.front()));
-                return true;
+            plater->load_gcode(from_path(paths.front()));
+            return true;
         } 
         return false;
     }
@@ -4728,6 +4728,10 @@ void Plater::load_gcode(const wxString& filename)
     // show results
     p->preview->reload_print(false);
     p->preview->get_canvas3d()->zoom_to_gcode();
+
+    if (p->preview->get_canvas3d()->get_gcode_layers_zs().empty())
+        wxMessageDialog(this, _L("The selected file") + ":\n" + filename + "\n" + _L("does not contain valid gcode."),
+            wxString(GCODEVIEWER_APP_NAME) + " - " + _L("Error while loading .gcode file"), wxCLOSE | wxICON_WARNING | wxCENTRE).ShowModal();
 }
 
 void Plater::refresh_print()

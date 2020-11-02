@@ -1256,7 +1256,7 @@ void Preview::load_print_as_fff(bool keep_z_range)
         // It is left to Slic3r to decide whether the print shall be colored by the tool or by the feature.
         // Color by feature if it is a single extruder print.
         unsigned int number_extruders = (unsigned int)print->extruders().size();
-        int tool_idx = m_choice_view_type->FindString(_(L("Tool")));
+        int tool_idx = m_choice_view_type->FindString(_L("Tool"));
         int type = (number_extruders > 1) ? tool_idx /* color by a tool number */ : 0; // color by a feature type
         m_choice_view_type->SetSelection(type);
 #if ENABLE_GCODE_VIEWER
