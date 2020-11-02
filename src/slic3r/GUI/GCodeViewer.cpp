@@ -437,8 +437,39 @@ void GCodeViewer::render() const
     auto init_gl_data = [this]() {
         static bool first_run = true;
         if (first_run) {
+            // initializes opengl data of TBuffers
+            for (size_t i = 0; i < m_buffers.size(); ++i) {
+                TBuffer& buffer = m_buffers[i];
+                switch (buffer_type(i))
+                {
+                default: { break; }
+                case EMoveType::Tool_change:
+                case EMoveType::Color_change:
+                case EMoveType::Pause_Print:
+                case EMoveType::Custom_GCode:
+                case EMoveType::Retract:
+                case EMoveType::Unretract:
+                {
+                    buffer.shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110";
+                    break;
+                }
+                case EMoveType::Extrude:
+                {
+                    buffer.shader = "gouraud_light";
+                    break;
+                }
+                case EMoveType::Travel:
+                {
+                    buffer.shader = "toolpaths_lines";
+                    break;
+                }
+                }
+            }
+
+            // initializes tool marker
             m_sequential_view.marker.init();
 
+            // initializes point sizes
             std::array<int, 2> point_sizes;
             ::glGetIntegerv(GL_ALIASED_POINT_SIZE_RANGE, point_sizes.data());
             m_detected_point_sizes = { static_cast<float>(point_sizes[0]), static_cast<float>(point_sizes[1]) };
@@ -874,6 +905,7 @@ void GCodeViewer::init()
     if (m_initialized)
         return;
 
+    // initializes non opengl data of TBuffers
     for (size_t i = 0; i < m_buffers.size(); ++i) {
         TBuffer& buffer = m_buffers[i];
         switch (buffer_type(i))
@@ -888,21 +920,18 @@ void GCodeViewer::init()
         {
             buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Point;
             buffer.vertices.format = VBuffer::EFormat::Position;
-            buffer.shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110";
             break;
         }
         case EMoveType::Extrude:
         {
             buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Triangle;
             buffer.vertices.format = VBuffer::EFormat::PositionNormal3;
-            buffer.shader = "gouraud_light";
             break;
         }
         case EMoveType::Travel:
         {
             buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Line;
             buffer.vertices.format = VBuffer::EFormat::PositionNormal1;
-            buffer.shader = "toolpaths_lines";
             break;
         }
         }
