@@ -20,8 +20,6 @@
     #define wxOSX false
 #endif
 
-//#define BORDER(a, b) ((wxOSX ? a : b))
-
 namespace Slic3r { namespace GUI {
 
 //  Static text shown among the options.

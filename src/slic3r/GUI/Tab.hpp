@@ -53,15 +53,11 @@ class Page// : public wxScrolledWindow
 	wxBoxSizer*		m_vsizer;
     bool            m_show = true;
 public:
-    Page(wxWindow* parent, const wxString& title, const int iconID,
-         const std::vector<ScalableBitmap>& mode_bmp_cache);
+    Page(wxWindow* parent, const wxString& title, int iconID);
 	~Page() {}
 
 	bool				m_is_modified_values{ false };
 	bool				m_is_nonsys_values{ true };
-
-    // Delayed layout after resizing the main window.
-    const std::vector<ScalableBitmap>&   m_mode_bitmap_cache;
 
 public:
 	std::vector <ConfigOptionsGroupShp> m_optgroups;
@@ -172,7 +168,6 @@ protected:
     std::vector<ScalableButton*>	m_scaled_buttons = {};    
     std::vector<ScalableBitmap*>	m_scaled_bitmaps = {};    
     std::vector<ScalableBitmap>     m_scaled_icons_list = {};
-    std::vector<ScalableBitmap>     m_mode_bitmap_cache = {};
 
 	// Colors for ui "decoration"
 	wxColour			m_sys_label_clr;
@@ -227,18 +222,15 @@ protected:
 	struct Highlighter
 	{
 		void set_timer_owner(wxEvtHandler* owner, int timerid = wxID_ANY);
-//		void init(BlinkingBitmap* bmp);
 		void init(std::pair<OG_CustomCtrl*, bool*>);
 		void blink();
 		void invalidate();
 
 	private:
-
-		OG_CustomCtrl*	custom_ctrl {nullptr};
-		bool*			blink_ptr   {nullptr};
-//		BlinkingBitmap*	bbmp {nullptr};
-		int				blink_counter {0};
-	    wxTimer         timer;
+		OG_CustomCtrl*	m_custom_ctrl	{nullptr};
+		bool*			m_show_blink_ptr{nullptr};
+		int				m_blink_counter	{0};
+	    wxTimer         m_timer;
 	} 
     m_highlighter;
 
@@ -256,17 +248,9 @@ public:
 	ogStaticText*		m_parent_preset_description_line = nullptr;
 	ScalableButton*		m_detach_preset_btn	= nullptr;
 
-	// map of option name -> wxStaticText (colored label, associated with option) 
-    // Used for options which don't have corresponded field
-	std::map<std::string, wxStaticText*>	m_colored_Labels;
-
 	// map of option name -> wxColour (color of the colored label, associated with option) 
     // Used for options which don't have corresponded field
-	std::map<std::string, wxColour*>		m_colored_Label_colors;
-
-	// map of option name -> BlinkingBitmap (blinking ikon, associated with option) 
-    // Used for options which don't have corresponded field
-	std::map<std::string, BlinkingBitmap*>	m_blinking_ikons;
+	std::map<std::string, wxColour*>	m_colored_Label_colors;
 
     // Counter for the updating (because of an update() function can have a recursive behavior):
     // 1. increase value from the very beginning of an update() function

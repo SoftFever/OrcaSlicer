@@ -14,15 +14,15 @@
 
 namespace Slic3r { namespace GUI {
 
-const t_field& OptionsGroup::build_field(const Option& opt, wxStaticText* label/* = nullptr*/) {
-    return build_field(opt.opt_id, opt.opt, label);
+const t_field& OptionsGroup::build_field(const Option& opt) {
+    return build_field(opt.opt_id, opt.opt);
 }
-const t_field& OptionsGroup::build_field(const t_config_option_key& id, wxStaticText* label/* = nullptr*/) {
+const t_field& OptionsGroup::build_field(const t_config_option_key& id) {
 	const ConfigOptionDef& opt = m_options.at(id).opt;
-    return build_field(id, opt, label);
+    return build_field(id, opt);
 }
 
-const t_field& OptionsGroup::build_field(const t_config_option_key& id, const ConfigOptionDef& opt, wxStaticText* label/* = nullptr*/) {
+const t_field& OptionsGroup::build_field(const t_config_option_key& id, const ConfigOptionDef& opt) {
     // Check the gui_type field first, fall through
     // is the normal type.
     if (opt.gui_type.compare("select") == 0) {
@@ -88,9 +88,7 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 				this->on_set_focus(opt_id);
 	};
     field->m_parent = parent();
-	
-	//! Label to change background color, when option is modified
-	field->m_Label = label;
+
 	field->m_back_to_initial_value = [this](std::string opt_id) {
 		if (!m_disabled)
 			this->back_to_initial_value(opt_id);
@@ -113,18 +111,44 @@ OptionsGroup::OptionsGroup(	wxWindow* _parent, const wxString& title,
 {
 }
 
-void OptionsGroup::add_undo_buttons_to_sizer(wxSizer* sizer, const t_field& field)
+void OptionsGroup::show_field(const t_config_option_key& opt_key, bool show/* = true*/)
 {
-	if (!m_show_modified_btns && field->m_Undo_btn) {
-        field->m_Undo_btn->set_as_hidden();
-		field->m_Undo_to_sys_btn->set_as_hidden();
-		field->m_blinking_bmp->Hide();
-		return;
-	}
+    Field* field = get_field(opt_key);
+    if (!field) return;
+    wxWindow* win = field->getWindow();
+    if (!win) return;
+    wxSizerItem* win_item = m_grid_sizer->GetItem(win, true);
+    if (!win_item) return;
 
-    sizer->Add(field->m_blinking_bmp, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 2);
-	sizer->Add(field->m_Undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
-	sizer->Add(field->m_Undo_btn, 0, wxALIGN_CENTER_VERTICAL);
+    const size_t cols = (size_t)m_grid_sizer->GetCols();
+    const size_t rows = (size_t)m_grid_sizer->GetEffectiveRowsCount();
+
+    auto show_row = [this, show, cols, win_item](wxSizerItem* item, size_t row_shift) {
+        // check if item contanes required win
+        if (!item->IsWindow() || item != win_item)
+            return false;
+        // show/hide hole line contanes this window
+        for (size_t i = 0; i < cols; ++i)
+            m_grid_sizer->Show(row_shift + i, show);
+        return true;
+    };
+
+    size_t row_shift = 0;
+    for (size_t j = 0; j < rows; ++j) {
+        for (size_t i = 0; i < cols; ++i) {
+            wxSizerItem* item = m_grid_sizer->GetItem(row_shift + i);
+            if (!item)
+                continue;
+            if (item->IsSizer()) {
+                for (wxSizerItem* child_item : item->GetSizer()->GetChildren())
+                    if (show_row(child_item, row_shift))
+                        return;
+            }
+            else if (show_row(item, row_shift))
+                return;
+        }
+        row_shift += cols;
+    }
 }
 
 void OptionsGroup::append_line(const Line& line)
@@ -194,11 +218,6 @@ void OptionsGroup::activate_line(Line& line)
 		const auto& option = option_set.front();
 		const auto& field = build_field(option);
 
-		if (!custom_ctrl) {
-			auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-			add_undo_buttons_to_sizer(btn_sizer, field);
-			sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, 0);
-		}
 		if (is_window_field(field))
 			sizer->Add(field->getWindow(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
 		if (is_sizer_field(field))
@@ -243,27 +262,17 @@ void OptionsGroup::activate_line(Line& line)
             }
             if (!line.near_label_widget)
                 grid_sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, line.label.IsEmpty() ? 0 : 5);
-            else {
-                m_near_label_widget_ptrs.push_back(line.near_label_widget(this->ctrl_parent()));
-
-                if (line.label.IsEmpty())
-                    grid_sizer->Add(m_near_label_widget_ptrs.back(), 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 7);
-                else {
-                    // If we're here, we have some widget near the label
-                    // so we need a horizontal sizer to arrange these things
-                    auto sizer = new wxBoxSizer(wxHORIZONTAL);
-                    grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM | wxTOP | wxLEFT), staticbox ? 0 : 1);
-                    sizer->Add(m_near_label_widget_ptrs.back(), 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 7);
-                    sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, 5);
-                }
+            else if (!line.label.IsEmpty()) {
+                // If we're here, we have some widget near the label
+                // so we need a horizontal sizer to arrange these things
+                auto sizer = new wxBoxSizer(wxHORIZONTAL);
+                grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM | wxTOP | wxLEFT), staticbox ? 0 : 1);
+                sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, 5);
             }
             if (label != nullptr && line.label_tooltip != "")
                 label->SetToolTip(line.label_tooltip);
         }
     }
-
-	if (!custom_ctrl && line.full_Label != nullptr)
-		*line.full_Label = label; // Initiate the pointer to the control of the full label, if we need this one.
 
 	// If there's a widget, build it and add the result to the sizer.
 	if (line.widget != nullptr) {
@@ -285,14 +294,13 @@ void OptionsGroup::activate_line(Line& line)
         option_set.front().opt.label.empty() &&
 		option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0) {
 		const auto& option = option_set.front();
-		const auto& field = build_field(option, label);
+		const auto& field = build_field(option);
 
         if (custom_ctrl) {
             if (is_window_field(field) && option.opt.full_width)
                 field->getWindow()->SetSize(wxSize(3 * Field::def_width_wider() * wxGetApp().em_unit(), -1));
         }
         else {
-            add_undo_buttons_to_sizer(sizer, field);
             if (is_window_field(field))
                 sizer->Add(field->getWindow(), option.opt.full_width ? 1 : 0,
                     wxBOTTOM | wxTOP | (option.opt.full_width ? wxEXPAND : wxALIGN_CENTER_VERTICAL), (wxOSX || !staticbox) ? 0 : 2);
@@ -320,9 +328,8 @@ void OptionsGroup::activate_line(Line& line)
 
 		// add field
 		const Option& opt_ref = opt;
-		auto& field = build_field(opt_ref, label);
+		auto& field = build_field(opt_ref);
         if (!custom_ctrl) {
-            add_undo_buttons_to_sizer(sizer_tmp, field);
             if (option_set.size() == 1 && option_set.front().opt.full_width)
             {
                 const auto v_sizer = new wxBoxSizer(wxVERTICAL);
@@ -344,7 +351,6 @@ void OptionsGroup::activate_line(Line& line)
                 sidetext->SetBackgroundStyle(wxBG_STYLE_PAINT);
                 sidetext->SetFont(wxGetApp().normal_font());
                 sizer_tmp->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
-                field->set_side_text_ptr(sidetext);
             }
 
             // add side widget if any
@@ -369,11 +375,9 @@ void OptionsGroup::activate_line(Line& line)
             return;
         }
 
-        auto extra_wgt = extra_widget(this->ctrl_parent());
-        if (custom_ctrl)
-            line.extra_widget_sizer = extra_wgt;
-        else
-            sizer->Add(extra_wgt, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);        //! requires verification
+        line.extra_widget_sizer = extra_widget(this->ctrl_parent());
+        if (!custom_ctrl)
+            sizer->Add(line.extra_widget_sizer, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);        //! requires verification
 	}
 }
 
@@ -437,9 +441,6 @@ void OptionsGroup::clear(bool destroy_custom_ctrl)
 	sizer = nullptr;
 
 	for (Line& line : m_lines) {
-		if(line.full_Label)
-			*line.full_Label = nullptr;
-
         if (line.near_label_widget_win)
             line.near_label_widget_win = nullptr;
 
@@ -467,7 +468,6 @@ void OptionsGroup::clear(bool destroy_custom_ctrl)
     }
 
 	m_extra_column_item_ptrs.clear();
-	m_near_label_widget_ptrs.clear();
 	m_fields.clear();
 }
 
@@ -681,60 +681,44 @@ void ConfigOptionsGroup::msw_rescale()
         for (auto extra_col : m_extra_column_item_ptrs)
             rescale_extra_column_item(extra_col);
 
-    // update bitmaps for near label widgets (like "Set uniform scale" button on settings panel)
-    if (rescale_near_label_widget)
-        for (auto near_label_widget : m_near_label_widget_ptrs)
-            rescale_near_label_widget(near_label_widget);
-
     // update undo buttons : rescale bitmaps
     for (const auto& field : m_fields)
-        field.second->msw_rescale(sidetext_width>0);
+        field.second->msw_rescale();
+
+    auto rescale = [](wxSizer* sizer) {
+        for (wxSizerItem* item : sizer->GetChildren())
+            if (item->IsWindow()) {
+                wxWindow* win = item->GetWindow();
+                // check if window is ScalableButton
+                ScalableButton* sc_btn = dynamic_cast<ScalableButton*>(win);
+                if (sc_btn) {
+                    sc_btn->msw_rescale();
+                    sc_btn->SetSize(sc_btn->GetBestSize());
+                    return;
+                }
+                // check if window is wxButton
+                wxButton* btn = dynamic_cast<wxButton*>(win);
+                if (btn) {
+                    btn->SetSize(btn->GetBestSize());
+                    return;
+                }
+            }
+    };
+
+    // scale widgets and extra widgets if any exists
+    for (const Line& line : m_lines) {
+        if (line.widget_sizer)
+            rescale(line.widget_sizer);
+        if (line.extra_widget_sizer)
+            rescale(line.extra_widget_sizer);
+    }
 
     if (custom_ctrl)
         custom_ctrl->msw_rescale();
-
-    const int em = em_unit(parent());
-
-    // rescale width of label column
-    if (m_grid_sizer && !m_options_mode.empty() && label_width > 1)
-    {
-        const int cols = m_grid_sizer->GetCols();
-        const int rows = m_grid_sizer->GetEffectiveRowsCount();
-        const int label_col = extra_column == nullptr ? 0 : 1;
-
-        for (int i = 0; i < rows; i++)
-        {
-            const wxSizerItem* label_item = m_grid_sizer->GetItem(i*cols+label_col);
-            if (label_item->IsWindow())
-            {
-                auto label = dynamic_cast<wxStaticText*>(label_item->GetWindow());
-                if (label != nullptr) {
-                    label->SetMinSize(wxSize(label_width*em, -1));
-                }
-            }
-            else if (label_item->IsSizer()) // case when we have near_label_widget
-            {
-                const wxSizerItem* l_item = label_item->GetSizer()->GetItem(1);
-                if (l_item->IsWindow())
-                {
-                    auto label = dynamic_cast<wxStaticText*>(l_item->GetWindow());
-                    if (label != nullptr) {
-                        label->SetMinSize(wxSize(label_width*em, -1));
-                    }
-                }
-            }
-        }
-        m_grid_sizer->Layout();
-    }
 }
 
 void ConfigOptionsGroup::sys_color_changed()
 {
-	// update bitmaps for near label widgets (like "Set uniform scale" button on settings panel)
-	if (rescale_near_label_widget)
-		for (auto near_label_widget : m_near_label_widget_ptrs)
-			rescale_near_label_widget(near_label_widget);
-
 	// update undo buttons : rescale bitmaps
 	for (const auto& field : m_fields)
 		field.second->sys_color_changed();

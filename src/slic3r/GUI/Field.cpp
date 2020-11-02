@@ -74,13 +74,6 @@ Field::~Field()
 void Field::PostInitialize()
 {
 	auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
-//	m_Undo_btn			= new RevertButton(m_parent, "bullet_white.png");
-//	m_Undo_to_sys_btn	= new RevertButton(m_parent, "bullet_white.png");
-
-//    m_Undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_back_to_initial_value(); }));
-//	m_Undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_back_to_sys_value(); }));
-
-//	m_blinking_bmp		= new BlinkingBitmap(m_parent);
 
 	switch (m_opt.type)
 	{
@@ -223,10 +216,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                 break;
             }
 
-			wxString label = m_Label->GetLabel();
-			if		(label.Last() == '\n')	label.RemoveLast();
-			while	(label.Last() == ' ')	label.RemoveLast();
-			if		(label.Last() == ':')	label.RemoveLast();
+			wxString label = m_opt.full_label.empty() ? _(m_opt.label) : _(m_opt.full_label);
             show_error(m_parent, from_u8((boost::format(_utf8(L("%s doesn't support percentage"))) % label).str()));
 			set_value(double_to_string(m_opt.min), true);
 			m_value = double(m_opt.min);
@@ -312,29 +302,14 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
 	}
 }
 
-void Field::msw_rescale(bool rescale_sidetext)
+void Field::msw_rescale()
 {
-	if (m_Undo_btn) {
-	m_Undo_to_sys_btn->msw_rescale();
-	m_Undo_btn->msw_rescale();
-	m_blinking_bmp->msw_rescale();
-    }
 	// update em_unit value
 	m_em_unit = em_unit(m_parent);
-
-	// update sidetext if it is needed
-	if (m_side_text && rescale_sidetext)
-	{
-		auto size = wxSize(def_width_thinner() * m_em_unit, -1);
-		m_side_text->SetSize(size);
-		m_side_text->SetMinSize(size);
-	}
 }
 
 void Field::sys_color_changed()
 {
-	m_Undo_to_sys_btn->msw_rescale();
-	m_Undo_btn->msw_rescale();
 }
 
 template<class T>
@@ -560,9 +535,9 @@ boost::any& TextCtrl::get_value()
 	return m_value;
 }
 
-void TextCtrl::msw_rescale(bool rescale_sidetext/* = false*/)
+void TextCtrl::msw_rescale()
 {
-    Field::msw_rescale(rescale_sidetext);
+    Field::msw_rescale();
     auto size = wxSize(def_width() * m_em_unit, wxDefaultCoord);
 
     if (m_opt.height >= 0) 
@@ -667,7 +642,7 @@ boost::any& CheckBox::get_value()
  	return m_value;
 }
 
-void CheckBox::msw_rescale(bool rescale_sidetext/* = false*/)
+void CheckBox::msw_rescale()
 {
     Field::msw_rescale();
 
@@ -805,9 +780,9 @@ void SpinCtrl::propagate_value()
     suppress_propagation = false;
 }
 
-void SpinCtrl::msw_rescale(bool rescale_sidetext/* = false*/)
+void SpinCtrl::msw_rescale()
 {
-    Field::msw_rescale(rescale_sidetext);
+    Field::msw_rescale();
 
     wxSpinCtrl* field = dynamic_cast<wxSpinCtrl*>(window);
     if (parent_is_custom_ctrl)
@@ -1170,7 +1145,7 @@ boost::any& Choice::get_value()
 void Choice::enable()  { dynamic_cast<choice_ctrl*>(window)->Enable(); };
 void Choice::disable() { dynamic_cast<choice_ctrl*>(window)->Disable(); };
 
-void Choice::msw_rescale(bool rescale_sidetext/* = false*/)
+void Choice::msw_rescale()
 {
     Field::msw_rescale();
 
@@ -1297,7 +1272,7 @@ boost::any& ColourPicker::get_value()
 	return m_value;
 }
 
-void ColourPicker::msw_rescale(bool rescale_sidetext/* = false*/)
+void ColourPicker::msw_rescale()
 {
     Field::msw_rescale();
 
@@ -1364,7 +1339,7 @@ void PointCtrl::BUILD()
 	y_textctrl->SetToolTip(get_tooltip_text(X+", "+Y));
 }
 
-void PointCtrl::msw_rescale(bool rescale_sidetext/* = false*/)
+void PointCtrl::msw_rescale()
 {
     Field::msw_rescale();
 
@@ -1470,7 +1445,7 @@ void StaticText::BUILD()
 	temp->SetToolTip(get_tooltip_text(legend));
 }
 
-void StaticText::msw_rescale(bool rescale_sidetext/* = false*/)
+void StaticText::msw_rescale()
 {
     Field::msw_rescale();
 

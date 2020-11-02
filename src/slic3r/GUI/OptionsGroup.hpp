@@ -31,9 +31,6 @@ class OG_CustomCtrl;
 /// Widget type describes a function object that returns a wxWindow (our widget) and accepts a wxWidget (parent window).
 using widget_t = std::function<wxSizer*(wxWindow*)>;//!std::function<wxWindow*(wxWindow*)>;
 
-//auto default_label_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT); //GetSystemColour
-//auto modified_label_clr = *new wxColour(254, 189, 101);
-
 /// Wraps a ConfigOptionDef and adds function object for creating a side_widget.
 struct Option {
 	ConfigOptionDef			opt { ConfigOptionDef() };
@@ -58,7 +55,6 @@ public:
 	wxString	label_path;
 
     size_t		full_width {0}; 
-	wxStaticText**	full_Label {nullptr};
 	wxColour*	full_Label_color {nullptr};
 	bool		blink	{false};
     widget_t	widget {nullptr};
@@ -166,19 +162,7 @@ public:
 							return out;
     }
 
-	bool			set_side_text(const t_config_option_key& opt_key, const wxString& side_text) {
-							if (m_fields.find(opt_key) == m_fields.end()) return false;
-							auto st = m_fields.at(opt_key)->m_side_text;
-							if (!st) return false;
-							st->SetLabel(side_text);
-							return true;
-    }
-
-	void			show_field(const t_config_option_key& opt_key, bool show = true) {
-		                    Field* field = get_field(opt_key);
-		                    field->getWindow()->Show(show);
-		                    field->getLabel()->Show(show);
-    }
+	void			show_field(const t_config_option_key& opt_key, bool show = true);
 	void			hide_field(const t_config_option_key& opt_key) {  show_field(opt_key, false);  }
 
 	void			set_name(const wxString& new_name) {
@@ -202,16 +186,13 @@ public:
 	~OptionsGroup() { clear(true); }
 
     wxGridSizer*        get_grid_sizer() { return m_grid_sizer; }
-
 	const std::vector<Line>& get_lines() { return m_lines; }
-	wxWindow*			get_last_near_label_widget() { return m_near_label_widget_ptrs.back(); }
 
 protected:
 	std::map<t_config_option_key, Option>	m_options;
     wxWindow*				m_parent {nullptr};
     std::vector<ConfigOptionMode>           m_options_mode;
     std::vector<wxWindow*>                  m_extra_column_item_ptrs;
-    std::vector<wxWindow*>                  m_near_label_widget_ptrs;
 
     std::vector<Line>                       m_lines;
 
@@ -237,10 +218,9 @@ protected:
     /// Generate a wxSizer or wxWindow from a configuration option
     /// Precondition: opt resolves to a known ConfigOption
     /// Postcondition: fields contains a wx gui object.
-	const t_field&		build_field(const t_config_option_key& id, const ConfigOptionDef& opt, wxStaticText* label = nullptr);
-	const t_field&		build_field(const t_config_option_key& id, wxStaticText* label = nullptr);
-	const t_field&		build_field(const Option& opt, wxStaticText* label = nullptr);
-	void				add_undo_buttons_to_sizer(wxSizer* sizer, const t_field& field);
+	const t_field&		build_field(const t_config_option_key& id, const ConfigOptionDef& opt);
+	const t_field&		build_field(const t_config_option_key& id);
+	const t_field&		build_field(const Option& opt);
 
     virtual void		on_kill_focus(const std::string& opt_key) {};
 	virtual void		on_set_focus(const std::string& opt_key);
@@ -319,7 +299,6 @@ private:
 class ogStaticText :public wxStaticText{
 public:
 	ogStaticText() {}
-//	ogStaticText(wxWindow* parent, const char *text) : wxStaticText(parent, wxID_ANY, text, wxDefaultPosition, wxDefaultSize) {}
 	ogStaticText(wxWindow* parent, const wxString& text);
 	~ogStaticText() {}
 
