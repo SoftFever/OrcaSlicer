@@ -195,6 +195,13 @@ void PreferencesDialog::build()
 	option = Option(def, "use_free_camera");
 	m_optgroup_camera->append_single_option_line(option);
 
+	def.label = L("Reverse direction of zoom with mouse wheel");
+	def.type = coBool;
+	def.tooltip = L("If enabled, reverses the direction of zoom with mouse wheel");
+	def.set_default_value(new ConfigOptionBool(app_config->get("reverse_mouse_wheel_zoom") == "1"));
+	option = Option(def, "reverse_mouse_wheel_zoom");
+	m_optgroup_camera->append_single_option_line(option);
+
 	m_optgroup_camera->activate();
 
 	m_optgroup_gui = std::make_shared<ConfigOptionsGroup>(this, _L("GUI"));
@@ -225,7 +232,6 @@ void PreferencesDialog::build()
 		m_optgroup_gui->append_single_option_line(option);
 #if ENABLE_GCODE_VIEWER
 	}
-#endif // ENABLE_GCODE_VIEWER
 
 	def.label = L("Sequential slider applied only to top layer");
 	def.type = coBool;
@@ -234,6 +240,7 @@ void PreferencesDialog::build()
 	def.set_default_value(new ConfigOptionBool{ app_config->get("seq_top_layer_only") == "1" });
 	option = Option(def, "seq_top_layer_only");
 	m_optgroup_gui->append_single_option_line(option);
+#endif // ENABLE_GCODE_VIEWER
 
 	m_optgroup_gui->activate();
 
