@@ -194,6 +194,9 @@ public:
 
     // Called by Win32 HID enumeration callback.
     void device_attached(const std::string &device);
+#if ENABLE_CTRL_M_ON_WINDOWS
+    void device_detached(const std::string& device);
+#endif // ENABLE_CTRL_M_ON_WINDOWS
 
     // On Windows, the 3DConnexion driver sends out mouse wheel rotation events to an active application
     // if the application does not register at the driver. This is a workaround to ignore these superfluous

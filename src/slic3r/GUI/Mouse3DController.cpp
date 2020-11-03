@@ -115,9 +115,19 @@ void Mouse3DController::device_attached(const std::string &device)
 			// Never mind, enumeration will be performed until connected.
 		    m_wakeup = true;
 			m_stop_condition.notify_all();
-		}
+#if ENABLE_CTRL_M_ON_WINDOWS
+            m_connected = true;
+#endif // ENABLE_CTRL_M_ON_WINDOWS
+        }
 	}
 }
+
+#if ENABLE_CTRL_M_ON_WINDOWS
+void Mouse3DController::device_detached(const std::string& device)
+{
+    m_connected = false;
+}
+#endif // ENABLE_CTRL_M_ON_WINDOWS
 
 // Filter out mouse scroll events produced by the 3DConnexion driver.
 bool Mouse3DController::State::process_mouse_wheel()
@@ -863,6 +873,9 @@ bool Mouse3DController::handle_raw_input_win32(const unsigned char *data, const 
         DataPacketRaw packet;
     	memcpy(packet.data(), data, packet_length);
         handle_packet(packet, packet_length, m_params, m_state);
+#if ENABLE_CTRL_M_ON_WINDOWS
+        m_connected = true;
+#endif // ENABLE_CTRL_M_ON_WINDOWS
     }
 
     return true;

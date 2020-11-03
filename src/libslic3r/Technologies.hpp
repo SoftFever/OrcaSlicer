@@ -57,4 +57,11 @@
 #define ENABLE_GCODE_VIEWER_DATA_CHECKING (0 && ENABLE_GCODE_VIEWER)
 
 
+//===================
+// 2.3.0.alpha3 techs
+//===================
+#define ENABLE_2_3_0_ALPHA3 1
+
+#define ENABLE_CTRL_M_ON_WINDOWS (1 && ENABLE_2_3_0_ALPHA3)
+
 #endif // _prusaslicer_technologies_h_
