@@ -493,8 +493,10 @@ void GCodeViewer::render() const
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_toolpaths();
-    m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
-    m_sequential_view.marker.render();
+    if (m_sequential_view.current.last != m_sequential_view.endpoints.last) {
+        m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
+        m_sequential_view.marker.render();
+    }
     render_shells();
     render_legend();
 #if ENABLE_GCODE_VIEWER_STATISTICS

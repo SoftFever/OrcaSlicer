@@ -325,16 +325,16 @@ bool Preview::init(wxWindow* parent, Model* model)
         get_option_type_string(OptionType::PausePrints) + "|0|" +
         get_option_type_string(OptionType::CustomGCodes) + "|0|" +
         get_option_type_string(OptionType::Shells) + "|0|" +
-        get_option_type_string(OptionType::ToolMarker) + "|0|" +
+        get_option_type_string(OptionType::ToolMarker) + "|1|" +
         get_option_type_string(OptionType::Legend) + "|1"
 );
     Slic3r::GUI::create_combochecklist(m_combochecklist_options, GUI::into_u8(_L("Options")), options_items);
 #else
-    m_checkbox_travel = new wxCheckBox(this, wxID_ANY, _(L("Travel")));
-    m_checkbox_retractions = new wxCheckBox(this, wxID_ANY, _(L("Retractions")));
-    m_checkbox_unretractions = new wxCheckBox(this, wxID_ANY, _(L("Deretractions")));
-    m_checkbox_shells = new wxCheckBox(this, wxID_ANY, _(L("Shells")));
-    m_checkbox_legend = new wxCheckBox(this, wxID_ANY, _(L("Legend")));
+    m_checkbox_travel = new wxCheckBox(this, wxID_ANY, _L("Travel"));
+    m_checkbox_retractions = new wxCheckBox(this, wxID_ANY, _L("Retractions"));
+    m_checkbox_unretractions = new wxCheckBox(this, wxID_ANY, _L("Deretractions"));
+    m_checkbox_shells = new wxCheckBox(this, wxID_ANY, _L("Shells"));
+    m_checkbox_legend = new wxCheckBox(this, wxID_ANY, _L("Legend"));
     m_checkbox_legend->SetValue(true);
 #endif // ENABLE_GCODE_VIEWER
 

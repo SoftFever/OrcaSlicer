@@ -343,7 +343,7 @@ public:
             Transform3f m_world_transform;
             float m_z_offset{ 0.5f };
             std::array<float, 4> m_color{ 1.0f, 1.0f, 1.0f, 0.5f };
-            bool m_visible{ false };
+            bool m_visible{ true };
 
         public:
             void init();
