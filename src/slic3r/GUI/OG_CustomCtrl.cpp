@@ -62,6 +62,7 @@ OG_CustomCtrl::OG_CustomCtrl(   wxWindow*            parent,
     this->Bind(wxEVT_PAINT,     &OG_CustomCtrl::OnPaint, this);
     this->Bind(wxEVT_MOTION,    &OG_CustomCtrl::OnMotion, this);
     this->Bind(wxEVT_LEFT_DOWN, &OG_CustomCtrl::OnLeftDown, this);
+    this->Bind(wxEVT_LEAVE_WINDOW, &OG_CustomCtrl::OnLeaveWin, this);
 }
 
 void OG_CustomCtrl::init_ctrl_lines()
@@ -279,6 +280,16 @@ void OG_CustomCtrl::OnLeftDown(wxMouseEvent& event)
             }
     }
 
+}
+
+void OG_CustomCtrl::OnLeaveWin(wxMouseEvent& event)
+{
+    for (CtrlLine& line : ctrl_lines)
+        line.is_focused = false;
+
+    Refresh();
+    Update();
+    event.Skip();
 }
 
 bool OG_CustomCtrl::update_visibility(ConfigOptionMode mode)
