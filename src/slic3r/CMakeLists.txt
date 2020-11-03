@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.13)
 project(libslic3r_gui)
 
 include(PrecompiledHeader)
@@ -73,6 +73,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/PresetHints.hpp
     GUI/GUI.cpp
     GUI/GUI.hpp
+    GUI/GUI_Init.cpp
+    GUI/GUI_Init.hpp
     GUI/GUI_Preview.cpp
     GUI/GUI_Preview.hpp
     GUI/GUI_App.cpp
@@ -87,6 +89,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Plater.hpp
     GUI/PresetComboBoxes.hpp
     GUI/PresetComboBoxes.cpp
+    GUI/SavePresetDialog.hpp
+    GUI/SavePresetDialog.cpp
     GUI/PhysicalPrinterDialog.hpp
     GUI/PhysicalPrinterDialog.cpp
     GUI/GUI_ObjectList.cpp
@@ -107,6 +111,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Field.hpp
     GUI/OptionsGroup.cpp
     GUI/OptionsGroup.hpp
+    GUI/OG_CustomCtrl.cpp
+    GUI/OG_CustomCtrl.hpp
     GUI/BedShapeDialog.cpp
     GUI/BedShapeDialog.hpp
     GUI/2DBed.cpp
@@ -189,6 +195,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/FlashAir.hpp
     Utils/AstroBox.cpp
     Utils/AstroBox.hpp
+    Utils/Repetier.cpp
+    Utils/Repetier.hpp
     Utils/PrintHost.cpp
     Utils/PrintHost.hpp
     Utils/Bonjour.cpp
@@ -202,7 +210,6 @@ set(SLIC3R_GUI_SOURCES
     Utils/UndoRedo.hpp
     Utils/HexFile.cpp
     Utils/HexFile.hpp
-    Utils/Thread.hpp
 )
 
 if (APPLE)

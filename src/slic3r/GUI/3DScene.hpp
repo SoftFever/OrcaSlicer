@@ -447,9 +447,6 @@ public:
     void                set_range(double low, double high);
 
     void                render() const;
-#if !ENABLE_SLOPE_RENDERING
-    void                render(int color_id, int detection_id, int worldmatrix_id) const;
-#endif // !ENABLE_SLOPE_RENDERING
 
     void                finalize_geometry(bool opengl_initialized) { this->indexed_vertex_array.finalize_geometry(opengl_initialized); }
     void                release_geometry() { this->indexed_vertex_array.release_geometry(); }
@@ -494,26 +491,19 @@ private:
     // plane coeffs for clipping in shaders
     float m_clipping_plane[4];
 
-#if ENABLE_SLOPE_RENDERING
     struct Slope
     {
         // toggle for slope rendering 
         bool active{ false };
-        // [0] = yellow, [1] = red
-        std::array<float, 2> z_range;
+        float normal_z;
     };
 
     Slope m_slope;
-#endif // ENABLE_SLOPE_RENDERING
 
 public:
     GLVolumePtrs volumes;
 
-#if ENABLE_SLOPE_RENDERING
-    GLVolumeCollection() { set_default_slope_z_range(); }
-#else
-    GLVolumeCollection() = default;
-#endif // ENABLE_SLOPE_RENDERING
+    GLVolumeCollection() { set_default_slope_normal_z(); }
     ~GLVolumeCollection() { clear(); }
 
     std::vector<int> load_object(
@@ -572,14 +562,12 @@ public:
     void set_z_range(float min_z, float max_z) { m_z_range[0] = min_z; m_z_range[1] = max_z; }
     void set_clipping_plane(const double* coeffs) { m_clipping_plane[0] = coeffs[0]; m_clipping_plane[1] = coeffs[1]; m_clipping_plane[2] = coeffs[2]; m_clipping_plane[3] = coeffs[3]; }
 
-#if ENABLE_SLOPE_RENDERING
     bool is_slope_active() const { return m_slope.active; }
     void set_slope_active(bool active) { m_slope.active = active; }
 
-    const std::array<float, 2>& get_slope_z_range() const { return m_slope.z_range; }
-    void set_slope_z_range(const std::array<float, 2>& range) { m_slope.z_range = range; }
-    void set_default_slope_z_range() { m_slope.z_range = { -::cos(Geometry::deg2rad(90.0f - 45.0f)), -::cos(Geometry::deg2rad(90.0f - 70.0f)) }; }
-#endif // ENABLE_SLOPE_RENDERING
+    float get_slope_normal_z() const { return m_slope.normal_z; }
+    void set_slope_normal_z(float normal_z) { m_slope.normal_z = normal_z; }
+    void set_default_slope_normal_z() { m_slope.normal_z = -::cos(Geometry::deg2rad(90.0f - 45.0f)); }
 
     // returns true if all the volumes are completely contained in the print volume
     // returns the containment state in the given out_state, if non-null

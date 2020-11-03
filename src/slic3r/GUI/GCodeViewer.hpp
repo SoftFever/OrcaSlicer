@@ -342,8 +342,8 @@ public:
             Vec3f m_world_position;
             Transform3f m_world_transform;
             float m_z_offset{ 0.5f };
-            std::array<float, 4> m_color{ 1.0f, 1.0f, 1.0f, 1.0f };
-            bool m_visible{ false };
+            std::array<float, 4> m_color{ 1.0f, 1.0f, 1.0f, 0.5f };
+            bool m_visible{ true };
 
         public:
             void init();
@@ -365,8 +365,10 @@ public:
             size_t last{ 0 };
         };
 
+        bool skip_invisible_moves{ false };
         Endpoints endpoints;
         Endpoints current;
+        Endpoints last_current;
         Vec3f current_position{ Vec3f::Zero() };
         Marker marker;
     };
@@ -385,6 +387,7 @@ public:
     };
 
 private:
+    bool m_initialized{ false };
     unsigned int m_last_result_id{ 0 };
     size_t m_moves_count{ 0 };
     mutable std::vector<TBuffer> m_buffers{ static_cast<size_t>(EMoveType::Extrude) };
@@ -407,13 +410,11 @@ private:
 #if ENABLE_GCODE_VIEWER_STATISTICS
     mutable Statistics m_statistics;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-    std::array<float, 2> m_detected_point_sizes = { 0.0f, 0.0f };
+    mutable std::array<float, 2> m_detected_point_sizes = { 0.0f, 0.0f };
 
 public:
     GCodeViewer() = default;
     ~GCodeViewer() { reset(); }
-
-    bool init();
 
     // extract rendering data from the given parameters
     void load(const GCodeProcessor::Result& gcode_result, const Print& print, bool initialized);
@@ -430,12 +431,7 @@ public:
     const std::vector<double>& get_layers_zs() const { return m_layers_zs; };
 
     const SequentialView& get_sequential_view() const { return m_sequential_view; }
-    void update_sequential_view_current(unsigned int first, unsigned int last)
-    {
-        m_sequential_view.current.first = first;
-        m_sequential_view.current.last = last;
-        refresh_render_paths(true, true);
-    }
+    void update_sequential_view_current(unsigned int first, unsigned int last);
 
     EViewType get_view_type() const { return m_view_type; }
     void set_view_type(EViewType type) {
@@ -459,6 +455,7 @@ public:
     void export_toolpaths_to_obj(const char* filename) const;
 
 private:
+    void init();
     void load_toolpaths(const GCodeProcessor::Result& gcode_result);
     void load_shells(const Print& print, bool initialized);
     void refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const;
@@ -472,14 +469,6 @@ private:
         return role < erCount && (m_extrusions.role_visibility_flags & (1 << role)) != 0;
     }
     bool is_visible(const Path& path) const { return is_visible(path.role); }
-    bool is_in_z_range(const Path& path) const {
-        auto in_z_range = [this](double z) {
-            return z > m_layers_z_range[0] - EPSILON && z < m_layers_z_range[1] + EPSILON;
-        };
-
-        return in_z_range(path.first.position[2]) || in_z_range(path.last.position[2]);
-    }
-    bool is_travel_in_z_range(size_t id) const;
     void log_memory_used(const std::string& label, long long additional = 0) const;
 };
 

@@ -28,7 +28,7 @@ public:
 	bool can_test() const override { return true; }
 	bool can_start_print() const override { return false; }
 	std::string get_host() const override { return host; }
-
+    
 private:
 	std::string host;
 

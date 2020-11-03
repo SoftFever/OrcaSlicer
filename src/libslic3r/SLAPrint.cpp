@@ -4,6 +4,7 @@
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
 #include "MTUtils.hpp"
+#include "Thread.hpp"
 
 #include <unordered_set>
 #include <numeric>
@@ -173,6 +174,16 @@ static std::vector<SLAPrintObject::Instance> sla_instances(const ModelObject &mo
             }
     }
     return instances;
+}
+
+std::vector<ObjectID> SLAPrint::print_object_ids() const 
+{ 
+    std::vector<ObjectID> out;
+    // Reserve one more for the caller to append the ID of the Print itself.
+    out.reserve(m_objects.size() + 1);
+    for (const SLAPrintObject *print_object : m_objects)
+        out.emplace_back(print_object->id());
+    return out;
 }
 
 SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, DynamicPrintConfig config)
@@ -679,7 +690,10 @@ bool SLAPrint::invalidate_step(SLAPrintStep step)
 
 void SLAPrint::process()
 {
-    if(m_objects.empty()) return;
+    if (m_objects.empty())
+        return;
+
+    name_tbb_thread_pool_threads();
 
     // Assumption: at this point the print objects should be populated only with
     // the model objects we have to process and the instances are also filtered

@@ -20,7 +20,7 @@ namespace GUI{
 // ----------------------------------------------------------------------------
 
 class ModelNode;
-WX_DEFINE_ARRAY_PTR(ModelNode*, ModelNodePtrArray);
+using ModelNodePtrArray = std::vector<std::unique_ptr<ModelNode>>;
 
 // On all of 3 different platforms Bitmap+Text icon column looks different 
 // because of Markup text is missed or not implemented.
@@ -47,7 +47,7 @@ class ModelNode
     // needs to know in advance if a node is or _will be_ a container.
     // Thus implementing:
     //   bool IsContainer() const
-    //    { return m_children.GetCount()>0; }
+    //    { return m_children.size()>0; }
     // doesn't work with wxGTK when UnsavedChangesModel::AddToClassical is called
     // AND the classical node was removed (a new node temporary without children
     // would be added to the control)
@@ -76,7 +76,7 @@ public:
     wxString    m_new_value;
 
     // preset(root) node
-    ModelNode(Preset::Type preset_type, const wxString& text, wxWindow* parent_win);
+    ModelNode(Preset::Type preset_type, wxWindow* parent_win, const wxString& text, const std::string& icon_name);
 
     // category node
     ModelNode(ModelNode* parent, const wxString& text, const std::string& icon_name);
@@ -87,15 +87,6 @@ public:
     // option node
     ModelNode(ModelNode* parent, const wxString& text, const wxString& old_value, const wxString& new_value);
 
-    ~ModelNode() {
-        // free all our children nodes
-        size_t count = m_children.GetCount();
-        for (size_t i = 0; i < count; i++) {
-            ModelNode* child = m_children[i];
-            delete child;
-        }
-    }
-
     bool                IsContainer() const         { return m_container; }
     bool                IsToggled() const           { return m_toggle; }
     void                Toggle(bool toggle = true)  { m_toggle = toggle; }
@@ -105,11 +96,10 @@ public:
 
     ModelNode*          GetParent()                 { return m_parent; }
     ModelNodePtrArray&  GetChildren()               { return m_children; }
-    ModelNode*          GetNthChild(unsigned int n) { return m_children.Item(n); }
-    unsigned int        GetChildCount() const       { return m_children.GetCount(); }
+    ModelNode*          GetNthChild(unsigned int n) { return m_children[n].get(); }
+    unsigned int        GetChildCount() const       { return m_children.size(); }
 
-    void Insert(ModelNode* child, unsigned int n)   { m_children.Insert(child, n); }
-    void Append(ModelNode* child)                   { m_children.Add(child); }
+    void Append(std::unique_ptr<ModelNode> child)   { m_children.emplace_back(std::move(child)); }
 
     void UpdateEnabling();
     void UpdateIcons();
@@ -141,7 +131,8 @@ class UnsavedChangesModel : public wxDataViewModel
                                              wxString   group_name,
                                              wxString   option_name,
                                              wxString   old_value,
-                                             wxString   new_value);
+                                             wxString   new_value,
+                                             const std::string category_icon_name);
 
 public:
     enum {
@@ -157,9 +148,9 @@ public:
 
     void            SetAssociatedControl(wxDataViewCtrl* ctrl) { m_ctrl = ctrl; }
 
-    wxDataViewItem  AddPreset(Preset::Type type, wxString preset_name);
+    wxDataViewItem  AddPreset(Preset::Type type, wxString preset_name, PrinterTechnology pt);
     wxDataViewItem  AddOption(Preset::Type type, wxString category_name, wxString group_name, wxString option_name,
-                              wxString old_value, wxString new_value);
+                              wxString old_value, wxString new_value, const std::string category_icon_name);
 
     void            UpdateItemEnabling(wxDataViewItem item);
     bool            IsEnabledItem(const wxDataViewItem& item);
@@ -191,10 +182,11 @@ class UnsavedChangesDialog : public DPIDialog
     UnsavedChangesModel*    m_tree_model    { nullptr };
 
     ScalableButton*         m_save_btn      { nullptr };
-    ScalableButton*         m_move_btn      { nullptr };
-    ScalableButton*         m_continue_btn  { nullptr };
+    ScalableButton*         m_transfer_btn  { nullptr };
+    ScalableButton*         m_discard_btn   { nullptr };
     wxStaticText*           m_action_line   { nullptr };
     wxStaticText*           m_info_line     { nullptr };
+    wxCheckBox*             m_remember_choice   { nullptr };
 
     bool                    m_empty_selection   { false };
     bool                    m_has_long_strings  { false };
@@ -202,18 +194,21 @@ class UnsavedChangesDialog : public DPIDialog
     int                     m_move_btn_id       { wxID_ANY };
     int                     m_continue_btn_id   { wxID_ANY };
 
+    std::string             m_app_config_key;
+
     enum class Action {
         Undef,
-        Save,
-        Move,
-        Continue
+        Transfer,
+        Discard,
+        Save
     };
+
+    static constexpr char ActTransfer[] = "transfer";
+    static constexpr char ActDiscard[]  = "discard";
+    static constexpr char ActSave[]     = "save";
 
     // selected action after Dialog closing
     Action m_exit_action {Action::Undef};
-
-    // Action during mouse motion
-    Action m_motion_action {Action::Undef};
 
     struct ItemData
     {
@@ -226,6 +221,9 @@ class UnsavedChangesDialog : public DPIDialog
     };
     // tree items related to the options
     std::map<wxDataViewItem, ItemData> m_items_map;
+
+    // preset names which are modified in SavePresetDialog and related types
+    std::vector<std::pair<std::string, Preset::Type>>  names_and_types;
 
 public:
     UnsavedChangesDialog(const wxString& header);
@@ -240,11 +238,18 @@ public:
     void item_value_changed(wxDataViewEvent &event);
     void context_menu(wxDataViewEvent &event);
     void show_info_line(Action action, std::string preset_name = "");
+    void update_config(Action action);
     void close(Action action);
+    bool save(PresetCollection* dependent_presets);
 
-    bool save_preset() const    { return m_exit_action == Action::Save;      }
-    bool move_preset() const    { return m_exit_action == Action::Move;      }
-    bool just_continue() const  { return m_exit_action == Action::Continue;  }
+    bool save_preset() const        { return m_exit_action == Action::Save;     }
+    bool transfer_changes() const   { return m_exit_action == Action::Transfer; }
+    bool discard() const            { return m_exit_action == Action::Discard;  }
+
+    // get full bundle of preset names and types for saving
+    const std::vector<std::pair<std::string, Preset::Type>>& get_names_and_types() { return names_and_types; }
+    // short version of the previous function, for the case, when just one preset is modified
+    std::string get_preset_name() { return names_and_types[0].first; }
 
     std::vector<std::string> get_unselected_options(Preset::Type type);
     std::vector<std::string> get_selected_options();

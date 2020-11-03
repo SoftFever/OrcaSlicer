@@ -1,5 +1,5 @@
 project(libslic3r)
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.13)
 
 include(PrecompiledHeader)
 
@@ -62,8 +62,6 @@ add_library(libslic3r STATIC
     Fill/FillRectilinear.hpp
     Fill/FillRectilinear2.cpp
     Fill/FillRectilinear2.hpp
-    Fill/FillRectilinear3.cpp
-    Fill/FillRectilinear3.hpp
     Flow.cpp
     Flow.hpp
     format.hpp
@@ -81,8 +79,6 @@ add_library(libslic3r STATIC
     Format/STL.hpp
     Format/SL1.hpp
     Format/SL1.cpp
-    GCode/Analyzer.cpp
-    GCode/Analyzer.hpp
     GCode/ThumbnailData.cpp
     GCode/ThumbnailData.hpp
     GCode/CoolingBuffer.cpp
@@ -111,8 +107,6 @@ add_library(libslic3r STATIC
     GCodeReader.hpp
     # GCodeSender.cpp
     # GCodeSender.hpp
-    GCodeTimeEstimator.cpp
-    GCodeTimeEstimator.hpp
     GCodeWriter.cpp
     GCodeWriter.hpp
     Geometry.cpp
@@ -201,6 +195,8 @@ add_library(libslic3r STATIC
     Utils.hpp
     Time.cpp
     Time.hpp
+    Thread.cpp
+    Thread.hpp
     TriangleSelector.cpp
     TriangleSelector.hpp
     MTUtils.hpp

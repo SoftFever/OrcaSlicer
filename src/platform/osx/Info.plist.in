@@ -103,7 +103,7 @@
         <key>CFBundleTypeName</key>
         <string>GCODE</string>
         <key>CFBundleTypeRole</key>
-        <string>Editor</string>
+        <string>Viewer</string>
         <key>LISsAppleDefaultForType</key>
         <true/>
         <key>LSHandlerRank</key>

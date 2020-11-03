@@ -228,6 +228,9 @@ public:
     void    SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, const int only_extruder);
     void    SetExtruderColors(const std::vector<std::string>& extruder_colors);
 
+    void set_render_as_disabled(bool value) { m_render_as_disabled = value; }
+    bool is_rendering_as_disabled() const { return m_render_as_disabled; }
+
     bool is_horizontal() const      { return m_style == wxSL_HORIZONTAL; }
     bool is_one_layer() const       { return m_is_one_layer; }
     bool is_lower_at_min() const    { return m_lower_value == m_min_value; }
@@ -260,6 +263,7 @@ public:
     void edit_extruder_sequence();
 #if ENABLE_GCODE_VIEWER
     void jump_to_value();
+    void enable_action_icon(bool enable) { m_enable_action_icon = enable; }
 #else
     void jump_to_print_z();
 #endif // ENABLE_GCODE_VIEWER
@@ -334,6 +338,9 @@ private:
     int         m_max_value;
     int         m_lower_value;
     int         m_higher_value;
+
+    bool        m_render_as_disabled{ false };
+
     ScalableBitmap    m_bmp_thumb_higher;
     ScalableBitmap    m_bmp_thumb_lower;
     ScalableBitmap    m_bmp_add_tick_on;
@@ -352,6 +359,9 @@ private:
     bool        m_is_one_layer = false;
     bool        m_is_focused = false;
     bool        m_force_mode_apply = true;
+#if ENABLE_GCODE_VIEWER
+    bool        m_enable_action_icon = true;
+#endif // ENABLE_GCODE_VIEWER
 
     DrawMode    m_draw_mode = dmRegular;
 

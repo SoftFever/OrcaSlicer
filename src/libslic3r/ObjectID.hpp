@@ -108,6 +108,8 @@ protected:
     // Resetting timestamp to 1 indicates the object is in its initial (cleared) state.
     // To be called by the derived class's clear() method.
     void                reset_timestamp() { m_timestamp = 1; }
+    // The timestamp uniquely identifies content of the derived class' data, therefore it makes sense to copy the timestamp if the content data was copied.
+    void                copy_timestamp(const ObjectWithTimestamp& rhs) { m_timestamp = rhs.m_timestamp; }
 
 public:
     // Return an optional timestamp of this object.

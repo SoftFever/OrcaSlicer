@@ -143,6 +143,7 @@ public:
 #if ENABLE_GCODE_VIEWER
     void load_gcode();
     void load_gcode(const wxString& filename);
+    void refresh_print();
 #endif // ENABLE_GCODE_VIEWER
 
     std::vector<size_t> load_files(const std::vector<boost::filesystem::path>& input_files, bool load_model = true, bool load_config = true, bool imperial_units = false);
@@ -164,16 +165,11 @@ public:
     bool is_sidebar_collapsed() const;
     void collapse_sidebar(bool show);
 
-#if ENABLE_SLOPE_RENDERING
-    bool is_view3D_slope_shown() const;
-    void show_view3D_slope(bool show);
-
     bool is_view3D_layers_editing_enabled() const;
-#endif // ENABLE_SLOPE_RENDERING
 
     // Called after the Preferences dialog is closed and the program settings are saved.
     // Update the UI based on the current preferences.
-    void update_ui_from_settings();
+    void update_ui_from_settings(bool apply_free_camera_correction = true);
 
     void select_all();
     void deselect_all();
@@ -321,6 +317,7 @@ public:
 #if ENABLE_GCODE_VIEWER
     void update_preview_bottom_toolbar();
     void update_preview_moves_slider();
+    void enable_preview_moves_slider(bool enable);
 
     void reset_gcode_toolpaths();
     void reset_last_loaded_gcode() { m_last_loaded_gcode = ""; }
@@ -336,6 +333,8 @@ public:
     
 	const NotificationManager* get_notification_manager() const;
 	NotificationManager* get_notification_manager();
+
+    void bring_instance_forward();
 
     // ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
 	class SuppressSnapshots

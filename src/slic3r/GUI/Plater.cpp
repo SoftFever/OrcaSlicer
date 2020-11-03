@@ -79,6 +79,7 @@
 #include "../Utils/FixModelByWin10.hpp"
 #include "../Utils/UndoRedo.hpp"
 #include "../Utils/PresetUpdater.hpp"
+#include "../Utils/Process.hpp"
 #include "RemovableDriveManager.hpp"
 #include "InstanceCheck.hpp"
 #include "NotificationManager.hpp"
@@ -448,7 +449,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
     DynamicPrintConfig*	config_sla = &wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
     m_og_sla->set_config(config_sla);
 
-    m_og_sla->m_on_change = [config_sla, this](t_config_option_key opt_key, boost::any value) {
+    m_og_sla->m_on_change = [config_sla](t_config_option_key opt_key, boost::any value) {
         Tab* tab = wxGetApp().get_tab(Preset::TYPE_SLA_PRINT);
         if (!tab) return;
 
@@ -1330,7 +1331,10 @@ void Sidebar::collapse(bool collapse)
     p->plater->Layout();
 
     // save collapsing state to the AppConfig
-    wxGetApp().app_config->set("collapsed_sidebar", collapse ? "1" : "0");
+#if ENABLE_GCODE_VIEWER
+    if (wxGetApp().is_editor())
+#endif // ENABLE_GCODE_VIEWER
+        wxGetApp().app_config->set("collapsed_sidebar", collapse ? "1" : "0");
 }
 
 
@@ -1376,7 +1380,7 @@ private:
 
 const std::regex PlaterDropTarget::pattern_drop(".*[.](stl|obj|amf|3mf|prusa)", std::regex::icase);
 #if ENABLE_GCODE_VIEWER
-const std::regex PlaterDropTarget::pattern_gcode_drop(".*[.](gcode)", std::regex::icase);
+const std::regex PlaterDropTarget::pattern_gcode_drop(".*[.](gcode|g)", std::regex::icase);
 #endif // ENABLE_GCODE_VIEWER
 
 bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames)
@@ -1403,9 +1407,9 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
             return false;
         }
         else if (paths.size() == 1) {
-                plater->load_gcode(from_path(paths.front()));
-                return true;
-        }
+            plater->load_gcode(from_path(paths.front()));
+            return true;
+        } 
         return false;
     }
 #endif // ENABLE_GCODE_VIEWER
@@ -1415,9 +1419,16 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
         fs::path path(into_path(filename));
         if (std::regex_match(path.string(), pattern_drop))
             paths.push_back(std::move(path));
+#if ENABLE_GCODE_VIEWER
+        else if (std::regex_match(path.string(), pattern_gcode_drop))
+            start_new_gcodeviewer(&filename);
+#endif // ENABLE_GCODE_VIEWER
         else
             return false;
     }
+    if (paths.empty())
+        // Likely all paths processed were gcodes, for which a G-code viewer instance has hopefully been started.
+        return false;
 
     wxString snapshot_label;
     assert(! paths.empty());
@@ -1588,14 +1599,9 @@ struct Plater::priv
     void show_view3D_labels(bool show) { if (current_panel == view3D) view3D->get_canvas3d()->show_labels(show); }
 
     bool is_sidebar_collapsed() const   { return sidebar->is_collapsed(); }
-    void collapse_sidebar(bool show)    { sidebar->collapse(show); }
-
-#if ENABLE_SLOPE_RENDERING
-    bool is_view3D_slope_shown() const { return (current_panel == view3D) && view3D->get_canvas3d()->is_slope_shown(); }
-    void show_view3D_slope(bool show) { if (current_panel == view3D) view3D->get_canvas3d()->show_slope(show); }
+    void collapse_sidebar(bool collapse);
 
     bool is_view3D_layers_editing_enabled() const { return (current_panel == view3D) && view3D->get_canvas3d()->is_layers_editing_enabled(); }
-#endif // ENABLE_SLOPE_RENDERING
 
     void set_current_canvas_as_dirty();
     GLCanvas3D* get_current_canvas3D();
@@ -1608,14 +1614,13 @@ struct Plater::priv
 #if ENABLE_GCODE_VIEWER
     void update_preview_bottom_toolbar();
     void update_preview_moves_slider();
-#endif // ENABLE_GCODE_VIEWER
+    void enable_preview_moves_slider(bool enable);
 
-#if ENABLE_GCODE_VIEWER
     void reset_gcode_toolpaths();
 #endif // ENABLE_GCODE_VIEWER
 
     void reset_all_gizmos();
-    void update_ui_from_settings();
+    void update_ui_from_settings(bool apply_free_camera_correction = true);
     void update_main_toolbar_tooltips();
     std::shared_ptr<ProgressStatusBar> statusbar();
     std::string get_config(const std::string &key) const;
@@ -1709,7 +1714,8 @@ struct Plater::priv
 
 	void clear_warnings();
 	void add_warning(const Slic3r::PrintStateBase::Warning &warning, size_t oid);
-	void actualizate_warnings(const Model& model, size_t print_oid);
+    // Update notification manager with the current state of warnings produced by the background process (slicing).
+	void actualize_slicing_warnings(const PrintBase &print);
 	// Displays dialog window with list of warnings. 
 	// Returns true if user clicks OK.
 	// Returns true if current_warnings vector is empty without showning the dialog
@@ -1754,6 +1760,8 @@ struct Plater::priv
 
     void msw_rescale_object_menu();
 
+    void bring_instance_forward() const;
+
     // returns the path to project file with the given extension (none if extension == wxEmptyString)
     // extension should contain the leading dot, i.e.: ".3mf"
     wxString get_project_filename(const wxString& extension = wxEmptyString) const;
@@ -1762,7 +1770,8 @@ struct Plater::priv
     // Caching last value of show_action_buttons parameter for show_action_buttons(), so that a callback which does not know this state will not override it.
     mutable bool    			ready_to_slice = { false };
     // Flag indicating that the G-code export targets a removable device, therefore the show_action_buttons() needs to be called at any case when the background processing finishes.
-    bool 						writing_to_removable_device = { false };
+    bool 						writing_to_removable_device { false };
+    bool 						show_ExportToRemovableFinished_notification { false };
     bool                        inside_snapshot_capture() { return m_prevent_snapshots != 0; }
 	bool                        process_completed_with_error { false };
 private:
@@ -1810,8 +1819,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , main_frame(main_frame)
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
         "bed_shape", "bed_custom_texture", "bed_custom_model", "complete_objects", "duplicate_distance", "extruder_clearance_radius", "skirts", "skirt_distance",
-        "brim_width", "variable_layer_height", "serial_port", "serial_speed", "host_type", "print_host",
-        "printhost_apikey", "printhost_cafile", "nozzle_diameter", "single_extruder_multi_material",
+        "brim_width", "variable_layer_height", "nozzle_diameter", "single_extruder_multi_material",
         "wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle",
         "extruder_colour", "filament_colour", "max_print_height", "printer_model", "printer_technology",
         // These values are necessary to construct SlicingParameters by the Canvas3D variable layer height editor.
@@ -1894,61 +1902,73 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     // Events:
 
-    // Preset change event
-    sidebar->Bind(wxEVT_COMBOBOX, &priv::on_select_preset, this);
+#if ENABLE_GCODE_VIEWER
+    if (wxGetApp().is_editor()) {
+#endif // ENABLE_GCODE_VIEWER
+        // Preset change event
+        sidebar->Bind(wxEVT_COMBOBOX, &priv::on_select_preset, this);
+        sidebar->Bind(EVT_OBJ_LIST_OBJECT_SELECT, [this](wxEvent&) { priv::selection_changed(); });
+        sidebar->Bind(EVT_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { this->schedule_background_process(); });
+#if ENABLE_GCODE_VIEWER
+    }
+#endif // ENABLE_GCODE_VIEWER
 
-    sidebar->Bind(EVT_OBJ_LIST_OBJECT_SELECT, [this](wxEvent&) { priv::selection_changed(); });
-    sidebar->Bind(EVT_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { this->schedule_background_process(); });
+     wxGLCanvas* view3D_canvas = view3D->get_wxglcanvas();
 
-    wxGLCanvas* view3D_canvas = view3D->get_wxglcanvas();
-    
-    // 3DScene events:
-    view3D_canvas->Bind(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { this->schedule_background_process(); });
-    view3D_canvas->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
-    view3D_canvas->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
-    view3D_canvas->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
-    view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { this->q->arrange(); });
-    view3D_canvas->Bind(EVT_GLCANVAS_SELECT_ALL, [this](SimpleEvent&) { this->q->select_all(); });
-    view3D_canvas->Bind(EVT_GLCANVAS_QUESTION_MARK, [](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
-    view3D_canvas->Bind(EVT_GLCANVAS_INCREASE_INSTANCES, [this](Event<int> &evt)
-        { if (evt.data == 1) this->q->increase_instances(); else if (this->can_decrease_instances()) this->q->decrease_instances(); });
-    view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) { update(); });
-    view3D_canvas->Bind(EVT_GLCANVAS_FORCE_UPDATE, [this](SimpleEvent&) { update(); });
-    view3D_canvas->Bind(EVT_GLCANVAS_WIPETOWER_MOVED, &priv::on_wipetower_moved, this);
-    view3D_canvas->Bind(EVT_GLCANVAS_WIPETOWER_ROTATED, &priv::on_wipetower_rotated, this);
-    view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_ROTATED, [this](SimpleEvent&) { update(); });
-    view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_SCALED, [this](SimpleEvent&) { update(); });
-    view3D_canvas->Bind(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, [this](Event<bool> &evt) { this->sidebar->enable_buttons(evt.data); });
-    view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_GEOMETRY, &priv::on_update_geometry, this);
-    view3D_canvas->Bind(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, &priv::on_3dcanvas_mouse_dragging_finished, this);
-    view3D_canvas->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent&) { select_next_view_3D(); });
-    view3D_canvas->Bind(EVT_GLCANVAS_RESETGIZMOS, [this](SimpleEvent&) { reset_all_gizmos(); });
-    view3D_canvas->Bind(EVT_GLCANVAS_UNDO, [this](SimpleEvent&) { this->undo(); });
-    view3D_canvas->Bind(EVT_GLCANVAS_REDO, [this](SimpleEvent&) { this->redo(); });
-    view3D_canvas->Bind(EVT_GLCANVAS_COLLAPSE_SIDEBAR, [this](SimpleEvent&) { this->q->collapse_sidebar(!this->q->is_sidebar_collapsed());  });
-    view3D_canvas->Bind(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, [this](SimpleEvent&) { this->view3D->get_canvas3d()->reset_layer_height_profile(); });
-    view3D_canvas->Bind(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, [this](Event<float>& evt) { this->view3D->get_canvas3d()->adaptive_layer_height_profile(evt.data); });
-    view3D_canvas->Bind(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, [this](HeightProfileSmoothEvent& evt) { this->view3D->get_canvas3d()->smooth_layer_height_profile(evt.data); });
-    view3D_canvas->Bind(EVT_GLCANVAS_RELOAD_FROM_DISK, [this](SimpleEvent&) { this->reload_all_from_disk(); });
+#if ENABLE_GCODE_VIEWER
+     if (wxGetApp().is_editor()) {
+#endif // ENABLE_GCODE_VIEWER
+        // 3DScene events:
+        view3D_canvas->Bind(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { this->schedule_background_process(); });
+        view3D_canvas->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
+        view3D_canvas->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
+        view3D_canvas->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
+        view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { this->q->arrange(); });
+        view3D_canvas->Bind(EVT_GLCANVAS_SELECT_ALL, [this](SimpleEvent&) { this->q->select_all(); });
+        view3D_canvas->Bind(EVT_GLCANVAS_QUESTION_MARK, [](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
+        view3D_canvas->Bind(EVT_GLCANVAS_INCREASE_INSTANCES, [this](Event<int>& evt)
+            { if (evt.data == 1) this->q->increase_instances(); else if (this->can_decrease_instances()) this->q->decrease_instances(); });
+        view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) { update(); });
+        view3D_canvas->Bind(EVT_GLCANVAS_FORCE_UPDATE, [this](SimpleEvent&) { update(); });
+        view3D_canvas->Bind(EVT_GLCANVAS_WIPETOWER_MOVED, &priv::on_wipetower_moved, this);
+        view3D_canvas->Bind(EVT_GLCANVAS_WIPETOWER_ROTATED, &priv::on_wipetower_rotated, this);
+        view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_ROTATED, [this](SimpleEvent&) { update(); });
+        view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_SCALED, [this](SimpleEvent&) { update(); });
+        view3D_canvas->Bind(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, [this](Event<bool>& evt) { this->sidebar->enable_buttons(evt.data); });
+        view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_GEOMETRY, &priv::on_update_geometry, this);
+        view3D_canvas->Bind(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, &priv::on_3dcanvas_mouse_dragging_finished, this);
+        view3D_canvas->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent&) { select_next_view_3D(); });
+        view3D_canvas->Bind(EVT_GLCANVAS_RESETGIZMOS, [this](SimpleEvent&) { reset_all_gizmos(); });
+        view3D_canvas->Bind(EVT_GLCANVAS_UNDO, [this](SimpleEvent&) { this->undo(); });
+        view3D_canvas->Bind(EVT_GLCANVAS_REDO, [this](SimpleEvent&) { this->redo(); });
+        view3D_canvas->Bind(EVT_GLCANVAS_COLLAPSE_SIDEBAR, [this](SimpleEvent&) { this->q->collapse_sidebar(!this->q->is_sidebar_collapsed());  });
+        view3D_canvas->Bind(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, [this](SimpleEvent&) { this->view3D->get_canvas3d()->reset_layer_height_profile(); });
+        view3D_canvas->Bind(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, [this](Event<float>& evt) { this->view3D->get_canvas3d()->adaptive_layer_height_profile(evt.data); });
+        view3D_canvas->Bind(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, [this](HeightProfileSmoothEvent& evt) { this->view3D->get_canvas3d()->smooth_layer_height_profile(evt.data); });
+        view3D_canvas->Bind(EVT_GLCANVAS_RELOAD_FROM_DISK, [this](SimpleEvent&) { this->reload_all_from_disk(); });
 
-    // 3DScene/Toolbar:
-    view3D_canvas->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
-    view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE, [q](SimpleEvent&) { q->remove_selected(); });
-    view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE_ALL, [q](SimpleEvent&) { q->reset_with_confirm(); });
-    view3D_canvas->Bind(EVT_GLTOOLBAR_ARRANGE, [this](SimpleEvent&) { this->q->arrange(); });
-    view3D_canvas->Bind(EVT_GLTOOLBAR_COPY, [q](SimpleEvent&) { q->copy_selection_to_clipboard(); });
-    view3D_canvas->Bind(EVT_GLTOOLBAR_PASTE, [q](SimpleEvent&) { q->paste_from_clipboard(); });
-    view3D_canvas->Bind(EVT_GLTOOLBAR_MORE, [q](SimpleEvent&) { q->increase_instances(); });
-    view3D_canvas->Bind(EVT_GLTOOLBAR_FEWER, [q](SimpleEvent&) { q->decrease_instances(); });
-    view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_OBJECTS, &priv::on_action_split_objects, this);
-    view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_VOLUMES, &priv::on_action_split_volumes, this);
-    view3D_canvas->Bind(EVT_GLTOOLBAR_LAYERSEDITING, &priv::on_action_layersediting, this);
+        // 3DScene/Toolbar:
+        view3D_canvas->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
+        view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE, [q](SimpleEvent&) { q->remove_selected(); });
+        view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE_ALL, [q](SimpleEvent&) { q->reset_with_confirm(); });
+        view3D_canvas->Bind(EVT_GLTOOLBAR_ARRANGE, [this](SimpleEvent&) { this->q->arrange(); });
+        view3D_canvas->Bind(EVT_GLTOOLBAR_COPY, [q](SimpleEvent&) { q->copy_selection_to_clipboard(); });
+        view3D_canvas->Bind(EVT_GLTOOLBAR_PASTE, [q](SimpleEvent&) { q->paste_from_clipboard(); });
+        view3D_canvas->Bind(EVT_GLTOOLBAR_MORE, [q](SimpleEvent&) { q->increase_instances(); });
+        view3D_canvas->Bind(EVT_GLTOOLBAR_FEWER, [q](SimpleEvent&) { q->decrease_instances(); });
+        view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_OBJECTS, &priv::on_action_split_objects, this);
+        view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_VOLUMES, &priv::on_action_split_volumes, this);
+        view3D_canvas->Bind(EVT_GLTOOLBAR_LAYERSEDITING, &priv::on_action_layersediting, this);
+#if ENABLE_GCODE_VIEWER
+    }
+#endif // ENABLE_GCODE_VIEWER
     view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [q](SimpleEvent&) { q->set_bed_shape(); });
 
     // Preview events:
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_QUESTION_MARK, [this](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [q](SimpleEvent&) { q->set_bed_shape(); });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent&) { select_next_view_3D(); });
+    preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_COLLAPSE_SIDEBAR, [this](SimpleEvent&) { this->q->collapse_sidebar(!this->q->is_sidebar_collapsed());  });
 #if ENABLE_GCODE_VIEWER
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOVE_LAYERS_SLIDER, [this](wxKeyEvent& evt) { preview->move_layers_slider(evt); });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_EDIT_COLOR_CHANGE, [this](wxKeyEvent& evt) { preview->edit_layers_slider(evt); });
@@ -1957,11 +1977,17 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_EDIT_COLOR_CHANGE, [this](wxKeyEvent& evt) { preview->edit_double_slider(evt); });
 #endif // ENABLE_GCODE_VIEWER
 
-	q->Bind(EVT_SLICING_COMPLETED, &priv::on_slicing_completed, this);
-    q->Bind(EVT_PROCESS_COMPLETED, &priv::on_process_completed, this);
-	q->Bind(EVT_EXPORT_BEGAN, &priv::on_export_began, this);
-    q->Bind(EVT_GLVIEWTOOLBAR_3D, [q](SimpleEvent&) { q->select_view_3D("3D"); });
-    q->Bind(EVT_GLVIEWTOOLBAR_PREVIEW, [q](SimpleEvent&) { q->select_view_3D("Preview"); });
+#if ENABLE_GCODE_VIEWER
+    if (wxGetApp().is_editor()) {
+#endif // ENABLE_GCODE_VIEWER
+        q->Bind(EVT_SLICING_COMPLETED, &priv::on_slicing_completed, this);
+        q->Bind(EVT_PROCESS_COMPLETED, &priv::on_process_completed, this);
+        q->Bind(EVT_EXPORT_BEGAN, &priv::on_export_began, this);
+        q->Bind(EVT_GLVIEWTOOLBAR_3D, [q](SimpleEvent&) { q->select_view_3D("3D"); });
+        q->Bind(EVT_GLVIEWTOOLBAR_PREVIEW, [q](SimpleEvent&) { q->select_view_3D("Preview"); });
+#if ENABLE_GCODE_VIEWER
+    }
+#endif // ENABLE_GCODE_VIEWER
 
     // Drop target:
     q->SetDropTarget(new PlaterDropTarget(q));   // if my understanding is right, wxWindow takes the owenership
@@ -1976,6 +2002,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 #endif // ENABLE_GCODE_VIEWER
 
     // updates camera type from .ini file
+    camera.enable_update_config_on_type_change(true);
     camera.set_type(get_config("use_perspective_camera"));
 
     // Load the 3DConnexion device database.
@@ -1989,7 +2016,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     // is one of the 3D Mouse vendors (3DConnexion or Logitech).
     this->q->Bind(EVT_HID_DEVICE_ATTACHED, [this](HIDDeviceAttachedEvent &evt) {
     	mouse3d_controller.device_attached(evt.data);
-    });
+        });
+#if ENABLE_CTRL_M_ON_WINDOWS
+    this->q->Bind(EVT_HID_DEVICE_DETACHED, [this](HIDDeviceAttachedEvent& evt) {
+        mouse3d_controller.device_detached(evt.data);
+        });
+#endif // ENABLE_CTRL_M_ON_WINDOWS
 #endif /* _WIN32 */
 
 	notification_manager = new NotificationManager(this->q);
@@ -1998,11 +2030,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 #endif // ENABLE_GCODE_VIEWER
         this->q->Bind(EVT_EJECT_DRIVE_NOTIFICAION_CLICKED, [this](EjectDriveNotificationClickedEvent&) { this->q->eject_drive(); });
         this->q->Bind(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED, [this](ExportGcodeNotificationClickedEvent&) { this->q->export_gcode(true); });
-        this->q->Bind(EVT_PRESET_UPDATE_AVIABLE_CLICKED, [this](PresetUpdateAviableClickedEvent&) {  wxGetApp().get_preset_updater()->on_update_notification_confirm(); });
+        this->q->Bind(EVT_PRESET_UPDATE_AVAILABLE_CLICKED, [this](PresetUpdateAvailableClickedEvent&) {  wxGetApp().get_preset_updater()->on_update_notification_confirm(); });
 	    this->q->Bind(EVT_REMOVABLE_DRIVE_EJECTED, [this, q](RemovableDriveEjectEvent &evt) {
 		    if (evt.data.second) {
 			    this->show_action_buttons(this->ready_to_slice);
-			    notification_manager->push_notification(format(_L("Unmounting successful. The device %s(%s) can now be safely removed from the computer."),evt.data.first.name, evt.data.first.path),
+			    notification_manager->push_notification(format(_L("Successfully unmounted. The device %s(%s) can now be safely removed from the computer."),evt.data.first.name, evt.data.first.path),
 				                                        NotificationManager::NotificationLevel::RegularNotification, *q->get_current_canvas3D());
 		    } else {
 			    notification_manager->push_notification(format(_L("Ejecting of device %s(%s) has failed."), evt.data.first.name, evt.data.first.path),
@@ -2034,29 +2066,19 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         this->load_files(evt.data, true, true);
     });
     this->q->Bind(EVT_INSTANCE_GO_TO_FRONT, [this](InstanceGoToFrontEvent &) { 
-        BOOST_LOG_TRIVIAL(debug) << "prusaslicer window going forward";
-		//this code maximize app window on Fedora
-		{
-			wxGetApp().mainframe->Iconize(false);
-			if (wxGetApp().mainframe->IsMaximized())
-				wxGetApp().mainframe->Maximize(true);
-			else
-				wxGetApp().mainframe->Maximize(false);
-		}
-		//this code maximize window on Ubuntu
-		{
-			wxGetApp().mainframe->Restore();  
-			wxGetApp().GetTopWindow()->SetFocus();  // focus on my window
-			wxGetApp().GetTopWindow()->Raise();  // bring window to front
-			wxGetApp().GetTopWindow()->Show(true); // show the window
-		}
-
+        bring_instance_forward();
     });
 	wxGetApp().other_instance_message_handler()->init(this->q);
 
     // collapse sidebar according to saved value
-    bool is_collapsed = wxGetApp().app_config->get("collapsed_sidebar") == "1";
-    sidebar->collapse(is_collapsed);
+#if ENABLE_GCODE_VIEWER
+    if (wxGetApp().is_editor()) {
+#endif // ENABLE_GCODE_VIEWER
+        bool is_collapsed = wxGetApp().app_config->get("collapsed_sidebar") == "1";
+        sidebar->collapse(is_collapsed);
+#if ENABLE_GCODE_VIEWER
+    }
+#endif // ENABLE_GCODE_VIEWER
 }
 
 Plater::priv::~priv()
@@ -2106,7 +2128,7 @@ void Plater::priv::select_view_3D(const std::string& name)
         set_current_panel(preview);
 
 #if ENABLE_GCODE_VIEWER
-    wxGetApp().update_ui_from_settings();
+    wxGetApp().update_ui_from_settings(false);
 #endif // ENABLE_GCODE_VIEWER
 }
 
@@ -2118,6 +2140,20 @@ void Plater::priv::select_next_view_3D()
         set_current_panel(view3D);
 }
 
+void Plater::priv::collapse_sidebar(bool collapse)
+{
+    sidebar->collapse(collapse);
+
+    // Now update the tooltip in the toolbar.
+    std::string new_tooltip = collapse
+                              ? _utf8(L("Expand sidebar"))
+                              : _utf8(L("Collapse sidebar"));
+    new_tooltip += " [Shift+Tab]";
+    int id = collapse_toolbar.get_item_id("collapse_sidebar");
+    collapse_toolbar.set_tooltip(id, new_tooltip);
+}
+
+
 void Plater::priv::reset_all_gizmos()
 {
     view3D->get_canvas3d()->reset_all_gizmos();
@@ -2125,10 +2161,10 @@ void Plater::priv::reset_all_gizmos()
 
 // Called after the Preferences dialog is closed and the program settings are saved.
 // Update the UI based on the current preferences.
-void Plater::priv::update_ui_from_settings()
+void Plater::priv::update_ui_from_settings(bool apply_free_camera_correction)
 {
     camera.set_type(wxGetApp().app_config->get("use_perspective_camera"));
-    if (wxGetApp().app_config->get("use_free_camera") != "1")
+    if (apply_free_camera_correction && wxGetApp().app_config->get("use_free_camera") != "1")
         camera.recover_from_free_camera();
 
     view3D->get_canvas3d()->update_ui_from_settings();
@@ -2856,8 +2892,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 
 	//actualizate warnings
 	if (invalidated != Print::APPLY_STATUS_UNCHANGED) {
-		actualizate_warnings(this->q->model(), this->background_process.current_print()->id().id);
-		notification_manager->set_all_slicing_warnings_gray(true);
+		actualize_slicing_warnings(*this->background_process.current_print());
 		show_warning_dialog = false;
 		process_completed_with_error = false;
 	}
@@ -3267,16 +3302,14 @@ void Plater::priv::set_current_panel(wxPanel* panel)
     if (current_panel == panel)
         return;
 
+    wxPanel* old_panel = current_panel;
     current_panel = panel;
     // to reduce flickering when changing view, first set as visible the new current panel
-    for (wxPanel* p : panels)
-    {
-        if (p == current_panel)
-        {
+    for (wxPanel* p : panels) {
+        if (p == current_panel) {
 #ifdef __WXMAC__
             // On Mac we need also to force a render to avoid flickering when changing view
-            if (force_render)
-            {
+            if (force_render) {
                 if (p == view3D)
                     dynamic_cast<View3D*>(p)->get_canvas3d()->render();
                 else if (p == preview)
@@ -3287,21 +3320,22 @@ void Plater::priv::set_current_panel(wxPanel* panel)
         }
     }
     // then set to invisible the other
-    for (wxPanel* p : panels)
-    {
+    for (wxPanel* p : panels) {
         if (p != current_panel)
             p->Hide();
     }
 
     panel_sizer->Layout();
 
-    if (current_panel == view3D)
-    {
-        if (view3D->is_reload_delayed())
-        {
+    if (current_panel == view3D) {
+        if (old_panel == preview)
+            preview->get_canvas3d()->unbind_event_handlers();
+
+        view3D->get_canvas3d()->bind_event_handlers();
+
+        if (view3D->is_reload_delayed()) {
             // Delayed loading of the 3D scene.
-            if (this->printer_technology == ptSLA)
-            {
+            if (this->printer_technology == ptSLA) {
                 // Update the SLAPrint from the current Model, so that the reload_scene()
                 // pulls the correct data.
                 this->update_restart_background_process(true, false);
@@ -3315,8 +3349,12 @@ void Plater::priv::set_current_panel(wxPanel* panel)
         if(notification_manager != nullptr)
             notification_manager->set_in_preview(false);
     }
-    else if (current_panel == preview)
-    {
+    else if (current_panel == preview) {
+        if (old_panel == view3D)
+            view3D->get_canvas3d()->unbind_event_handlers();
+
+        preview->get_canvas3d()->bind_event_handlers();
+
         // see: Plater::priv::object_list_changed()
         // FIXME: it may be better to have a single function making this check and let it be called wherever needed
         bool export_in_progress = this->background_process.is_export_scheduled();
@@ -3445,7 +3483,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         // Now process state.warnings.
 		for (auto const& warning : state.warnings) {
 			if (warning.current) {
-				notification_manager->push_slicing_warning_notification(warning.message, false, *q->get_current_canvas3D(), object_id.id, warning_step);
+				notification_manager->push_slicing_warning_notification(warning.message, false, *q->get_current_canvas3D(), object_id, warning_step);
 				add_warning(warning, object_id.id);
 			}
 		}
@@ -3454,7 +3492,6 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 
 void Plater::priv::on_slicing_completed(wxCommandEvent & evt)
 {
-	//notification_manager->push_notification(NotificationType::SlicingComplete, *q->get_current_canvas3D(), evt.GetInt());
 	notification_manager->push_slicing_complete_notification(*q->get_current_canvas3D(), evt.GetInt(), is_sidebar_collapsed());
 
     switch (this->printer_technology) {
@@ -3475,6 +3512,8 @@ void Plater::priv::on_export_began(wxCommandEvent& evt)
 {
 	if (show_warning_dialog)
 		warnings_dialog();
+    if (this->writing_to_removable_device)
+        this->show_ExportToRemovableFinished_notification = true;
 }
 void Plater::priv::on_slicing_began()
 {
@@ -3491,19 +3530,17 @@ void Plater::priv::add_warning(const Slic3r::PrintStateBase::Warning& warning, s
 	}
 	current_warnings.emplace_back(std::pair<Slic3r::PrintStateBase::Warning, size_t>(warning, oid));
 }
-void Plater::priv::actualizate_warnings(const Model& model, size_t print_oid)
+void Plater::priv::actualize_slicing_warnings(const PrintBase &print)
 {
-    if (model.objects.size() == 0) {
+    std::vector<ObjectID> ids = print.print_object_ids();
+    if (ids.empty()) {
         clear_warnings();
         return;
     }
-	std::vector<size_t> living_oids;
-	living_oids.push_back(model.id().id);
-	living_oids.push_back(print_oid);
-	for (auto it = model.objects.begin(); it != model.objects.end(); ++it) {
-		living_oids.push_back((*it)->id().id);
-	}
-	notification_manager->compare_warning_oids(living_oids);
+    ids.emplace_back(print.id());
+    std::sort(ids.begin(), ids.end());
+	notification_manager->remove_slicing_warnings_of_released_objects(ids);
+    notification_manager->set_all_slicing_warnings_gray(true);
 }
 void Plater::priv::clear_warnings()
 {
@@ -3587,16 +3624,17 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         if (wxGetApp().get_mode() == comSimple)
             sidebar->set_btn_label(ActionButtonType::abReslice, "Slice now");
         show_action_buttons(true);
+    } else {
+        if(wxGetApp().get_mode() == comSimple) {
+            show_action_buttons(false);
+        }
+        // If writing to removable drive was scheduled, show notification with eject button
+        if (this->writing_to_removable_device && this->show_ExportToRemovableFinished_notification) {
+            show_action_buttons(false);
+            notification_manager->push_notification(NotificationType::ExportToRemovableFinished, *q->get_current_canvas3D());
+        }
     }
-    else if (wxGetApp().get_mode() == comSimple)
-	{
-		show_action_buttons(false);
-	}
-	else if (this->writing_to_removable_device)
-	{
-		show_action_buttons(false);
-		notification_manager->push_notification(NotificationType::ExportToRemovableFinished, *q->get_current_canvas3D());
-	}
+    this->show_ExportToRemovableFinished_notification = false;
 	this->writing_to_removable_device = false;
 }
 
@@ -3625,6 +3663,7 @@ void Plater::priv::on_action_split_volumes(SimpleEvent&)
 void Plater::priv::on_action_layersediting(SimpleEvent&)
 {
     view3D->enable_layers_editing(!view3D->is_layers_editing_enabled());
+    notification_manager->set_move_from_overlay(view3D->is_layers_editing_enabled());
 }
 
 void Plater::priv::on_object_select(SimpleEvent& evt)
@@ -3986,6 +4025,11 @@ void Plater::priv::reset_canvas_volumes()
 
 bool Plater::priv::init_view_toolbar()
 {
+#if ENABLE_GCODE_VIEWER
+    if (wxGetApp().is_gcode_viewer())
+        return true;
+#endif // ENABLE_GCODE_VIEWER
+
     if (view_toolbar.get_items_count() > 0)
         // already initialized
         return true;
@@ -4024,17 +4068,18 @@ bool Plater::priv::init_view_toolbar()
         return false;
 
     view_toolbar.select_item("3D");
-
-#if ENABLE_GCODE_VIEWER
-    if (wxGetApp().is_editor())
-#endif // ENABLE_GCODE_VIEWER
-        view_toolbar.set_enabled(true);
+    view_toolbar.set_enabled(true);
 
     return true;
 }
 
 bool Plater::priv::init_collapse_toolbar()
 {
+#if ENABLE_GCODE_VIEWER
+    if (wxGetApp().is_gcode_viewer())
+        return true;
+#endif // ENABLE_GCODE_VIEWER
+
     if (collapse_toolbar.get_items_count() > 0)
         // already initialized
         return true;
@@ -4060,21 +4105,17 @@ bool Plater::priv::init_collapse_toolbar()
 
     item.name = "collapse_sidebar";
     item.icon_filename = "collapse.svg";
-    item.tooltip = wxGetApp().plater()->is_sidebar_collapsed() ? _utf8(L("Expand right panel")) : _utf8(L("Collapse right panel"));
     item.sprite_id = 0;
-    item.left.action_callback = [this, item]() {
-        std::string new_tooltip = wxGetApp().plater()->is_sidebar_collapsed() ?
-            _utf8(L("Collapse right panel")) : _utf8(L("Expand right panel"));
-
-        int id = collapse_toolbar.get_item_id("collapse_sidebar");
-        collapse_toolbar.set_tooltip(id, new_tooltip);
-
+    item.left.action_callback = []() {
         wxGetApp().plater()->collapse_sidebar(!wxGetApp().plater()->is_sidebar_collapsed());
     };
 
     if (!collapse_toolbar.add_item(item))
         return false;
 
+    // Now "collapse" sidebar to current state. This is done so the tooltip
+    // is updated before the toolbar is first used.
+    wxGetApp().plater()->collapse_sidebar(wxGetApp().plater()->is_sidebar_collapsed());
     return true;
 }
 
@@ -4088,9 +4129,12 @@ void Plater::priv::update_preview_moves_slider()
 {
     preview->update_moves_slider();
 }
-#endif // ENABLE_GCODE_VIEWER
 
-#if ENABLE_GCODE_VIEWER
+void Plater::priv::enable_preview_moves_slider(bool enable)
+{
+    preview->enable_moves_slider(enable);
+}
+
 void Plater::priv::reset_gcode_toolpaths()
 {
     preview->get_canvas3d()->reset_gcode_toolpaths();
@@ -4252,11 +4296,8 @@ void Plater::priv::show_action_buttons(const bool ready_to_slice) const
     wxWindowUpdateLocker noUpdater(sidebar);
 
     DynamicPrintConfig* selected_printer_config = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config();
-    if (!selected_printer_config)
-        selected_printer_config = config;
-
-    const auto prin_host_opt = selected_printer_config->option<ConfigOptionString>("print_host");
-    const bool send_gcode_shown = prin_host_opt != nullptr && !prin_host_opt->value.empty();
+    const auto print_host_opt = selected_printer_config ? selected_printer_config->option<ConfigOptionString>("print_host") : nullptr;
+    const bool send_gcode_shown = print_host_opt != nullptr && !print_host_opt->value.empty();
     
     // when a background processing is ON, export_btn and/or send_btn are showing
     if (wxGetApp().app_config->get("background_processing") == "1")
@@ -4513,6 +4554,34 @@ void Plater::priv::update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bo
     BOOST_LOG_TRIVIAL(info) << "Undo / Redo snapshot reloaded. Undo / Redo stack memory: " << Slic3r::format_memsize_MB(this->undo_redo_stack().memsize()) << log_memory_info();
 }
 
+void Plater::priv::bring_instance_forward() const
+{
+#ifdef __APPLE__
+    wxGetApp().other_instance_message_handler()->bring_instance_forward();
+    return;
+#endif //__APPLE__
+    if (main_frame == nullptr) {
+        BOOST_LOG_TRIVIAL(debug) << "Couldnt bring instance forward - mainframe is null";
+        return;
+    }
+    BOOST_LOG_TRIVIAL(debug) << "prusaslicer window going forward";
+    //this code maximize app window on Fedora
+    {
+        main_frame->Iconize(false);
+        if (main_frame->IsMaximized())
+            main_frame->Maximize(true);
+        else
+            main_frame->Maximize(false);
+    }
+    //this code maximize window on Ubuntu
+    {
+        main_frame->Restore();
+        wxGetApp().GetTopWindow()->SetFocus();  // focus on my window
+        wxGetApp().GetTopWindow()->Raise();  // bring window to front
+        wxGetApp().GetTopWindow()->Show(true); // show the window
+    }
+}
+
 void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& label) const
 {
     switch (btn_type)
@@ -4639,7 +4708,9 @@ void Plater::load_gcode()
 
 void Plater::load_gcode(const wxString& filename)
 {
-    if (filename.empty() || m_last_loaded_gcode == filename)
+    if (filename.empty() ||
+        (!filename.Lower().EndsWith(".gcode") && !filename.Lower().EndsWith(".g")) ||
+        m_last_loaded_gcode == filename)
         return;
 
     m_last_loaded_gcode = filename;
@@ -4662,6 +4733,19 @@ void Plater::load_gcode(const wxString& filename)
     // show results
     p->preview->reload_print(false);
     p->preview->get_canvas3d()->zoom_to_gcode();
+
+    if (p->preview->get_canvas3d()->get_gcode_layers_zs().empty()) {
+        wxMessageDialog(this, _L("The selected file") + ":\n" + filename + "\n" + _L("does not contain valid gcode."),
+            wxString(GCODEVIEWER_APP_NAME) + " - " + _L("Error while loading .gcode file"), wxCLOSE | wxICON_WARNING | wxCENTRE).ShowModal();
+        set_project_filename(wxEmptyString);
+    }
+    else
+        set_project_filename(filename);
+}
+
+void Plater::refresh_print()
+{
+    p->preview->refresh_print();
 }
 #endif // ENABLE_GCODE_VIEWER
 
@@ -4681,7 +4765,7 @@ void Plater::update() { p->update(); }
 
 void Plater::stop_jobs() { p->m_ui_jobs.stop_all(); }
 
-void Plater::update_ui_from_settings() { p->update_ui_from_settings(); }
+void Plater::update_ui_from_settings(bool apply_free_camera_correction) { p->update_ui_from_settings(apply_free_camera_correction); }
 
 void Plater::select_view(const std::string& direction) { p->select_view(direction); }
 
@@ -4697,12 +4781,7 @@ void Plater::show_view3D_labels(bool show) { p->show_view3D_labels(show); }
 bool Plater::is_sidebar_collapsed() const { return p->is_sidebar_collapsed(); }
 void Plater::collapse_sidebar(bool show) { p->collapse_sidebar(show); }
 
-#if ENABLE_SLOPE_RENDERING
-bool Plater::is_view3D_slope_shown() const { return p->is_view3D_slope_shown(); }
-void Plater::show_view3D_slope(bool show) { p->show_view3D_slope(show); }
-
 bool Plater::is_view3D_layers_editing_enabled() const { return p->is_view3D_layers_editing_enabled(); }
-#endif // ENABLE_SLOPE_RENDERING
 
 void Plater::select_all() { p->select_all(); }
 void Plater::deselect_all() { p->deselect_all(); }
@@ -4823,7 +4902,7 @@ void Plater::convert_unit(bool from_imperial_unit)
     if (obj_idxs.empty() && volume_idxs.empty())
         return;
 
-    TakeSnapshot snapshot(this, from_imperial_unit ? _L("Convert from imperial units") : _L("Convert to imperial units"));
+    TakeSnapshot snapshot(this, from_imperial_unit ? _L("Convert from imperial units") : _L("Revert conversion from imperial units"));
     wxBusyCursor wait;
 
     ModelObjectPtrs objects;
@@ -4924,12 +5003,13 @@ void Plater::export_gcode(bool prefer_removable)
 
     if (! output_path.empty()) {
 		bool path_on_removable_media = removable_drive_manager.set_and_verify_last_save_path(output_path.string());
+        p->writing_to_removable_device = path_on_removable_media;
         p->export_gcode(output_path, path_on_removable_media, PrintHostJob());
         // Storing a path to AppConfig either as path to removable media or a path to internal media.
         // is_path_on_removable_drive() is called with the "true" parameter to update its internal database as the user may have shuffled the external drives
         // while the dialog was open.
         appconfig.update_last_output_dir(output_path.parent_path().string(), path_on_removable_media);
-		p->writing_to_removable_device = path_on_removable_media;
+		
 	}
 }
 
@@ -5233,12 +5313,14 @@ void Plater::reslice_SLA_until_step(SLAPrintObjectStep step, const ModelObject &
 
 void Plater::send_gcode()
 {
-    if (p->model.objects.empty()) { return; }
-
     // if physical_printer is selected, send gcode for this printer
     DynamicPrintConfig* physical_printer_config = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config();
-    PrintHostJob upload_job(physical_printer_config ? physical_printer_config : p->config);
-    if (upload_job.empty()) { return; }
+    if (! physical_printer_config || p->model.objects.empty())
+        return;
+
+    PrintHostJob upload_job(physical_printer_config);
+    if (upload_job.empty())
+        return;
 
     // Obtain default output path
     fs::path default_output_file;
@@ -5256,11 +5338,18 @@ void Plater::send_gcode()
     }
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
 
-    PrintHostSendDialog dlg(default_output_file, upload_job.printhost->can_start_print());
+    // Repetier specific: Query the server for the list of file groups.
+    wxArrayString groups;
+    {
+        wxBusyCursor wait;
+        upload_job.printhost->get_groups(groups);
+    }
+    
+    PrintHostSendDialog dlg(default_output_file, upload_job.printhost->can_start_print(), groups);
     if (dlg.ShowModal() == wxID_OK) {
         upload_job.upload_data.upload_path = dlg.filename();
         upload_job.upload_data.start_print = dlg.start_print();
-
+        upload_job.upload_data.group       = dlg.group();
         p->export_gcode(fs::path(), false, std::move(upload_job));
     }
 }
@@ -5404,7 +5493,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             p->reset_gcode_toolpaths();
 #endif // ENABLE_GCODE_VIEWER
         }
-        else if ((opt_key == "bed_shape") || (opt_key == "bed_custom_texture") || (opt_key == "bed_custom_model")) {
+        else if (opt_key == "bed_shape" || opt_key == "bed_custom_texture" || opt_key == "bed_custom_model") {
             bed_shape_changed = true;
             update_scheduled = true;
         }
@@ -5886,6 +5975,11 @@ void Plater::update_preview_moves_slider()
     p->update_preview_moves_slider();
 }
 
+void Plater::enable_preview_moves_slider(bool enable)
+{
+    p->enable_preview_moves_slider(enable);
+}
+
 void Plater::reset_gcode_toolpaths()
 {
     p->reset_gcode_toolpaths();
@@ -5983,6 +6077,10 @@ bool Plater::PopupMenu(wxMenu *menu, const wxPoint& pos)
         m_tracking_popup_menu_error_message.clear();
     }
 	return out;
+}
+void Plater::bring_instance_forward()
+{
+    p->bring_instance_forward();
 }
 
 SuppressBackgroundProcessingUpdate::SuppressBackgroundProcessingUpdate() :

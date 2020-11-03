@@ -67,8 +67,7 @@ KBShortcutsDialog::KBShortcutsDialog()
 main_sizer->Add(book, 1, wxEXPAND | wxALL, 10);
 
     fill_shortcuts();
-    for (size_t i = 0; i < m_full_shortcuts.size(); ++i)
-    {
+    for (size_t i = 0; i < m_full_shortcuts.size(); ++i) {
         wxPanel* page = create_page(book, m_full_shortcuts[i], font, bold_font);
         m_pages.push_back(page);
         book->AddPage(page, m_full_shortcuts[i].first, i == 0);
@@ -140,9 +139,6 @@ void KBShortcutsDialog::fill_shortcuts()
             // View
             { "0-6", L("Camera view") },
             { "E", L("Show/Hide object/instance labels") },
-#if ENABLE_SLOPE_RENDERING
-            { "D", L("Turn On/Off facets' slope rendering") },
-#endif // ENABLE_SLOPE_RENDERING
             // Configuration
             { ctrl + "P", L("Preferences") },
             // Help
@@ -180,9 +176,15 @@ void KBShortcutsDialog::fill_shortcuts()
             { "Z", L("Zoom to selected object\nor all objects in scene, if none selected") },
             { "I", L("Zoom in") },
             { "O", L("Zoom out") },
-#ifdef __linux__
+            { "Tab", L("Switch between Editor/Preview") },
+            { "Shift+Tab", L("Collapse/Expand the sidebar") },
+#if ENABLE_CTRL_M_ON_WINDOWS
+            { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
+#else
+#if defined(__linux__) || defined(__APPLE__)
             { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
 #endif // __linux__
+#endif // ENABLE_CTRL_M_ON_WINDOWS
 #if ENABLE_RENDER_PICKING_PASS
             // Don't localize debugging texts.
             { "P", "Toggle picking pass texture rendering on/off" },
@@ -192,10 +194,13 @@ void KBShortcutsDialog::fill_shortcuts()
         m_full_shortcuts.push_back(std::make_pair(_L("Plater"), plater_shortcuts));
 
         Shortcuts gizmos_shortcuts = {
-            { "Shift+", L("Press to snap by 5% in Gizmo scale\nor to snap by 1mm in Gizmo move") },
-            { "F", L("Scale selection to fit print volume\nin Gizmo scale") },
-            { ctrl, L("Press to activate one direction scaling in Gizmo scale") },
-            { alt, L("Press to scale (in Gizmo scale) or rotate (in Gizmo rotate)\nselected objects around their own center") },
+            { ctrl, L("All gizmos: Press to rotate view with mouse left or to pan view with mouse right") },
+            { "Shift+", L("Gizmo move: Press to snap by 1mm") },
+            { "Shift+", L("Gizmo scale: Press to snap by 5%") },
+            { "F", L("Gizmo scale: Scale selection to fit print volume") },
+            { ctrl, L("Gizmo scale: Press to activate one direction scaling") },
+            { alt, L("Gizmo scale: Press to scale selected objects around their own center") },
+            { alt, L("Gizmo rotate: Press to rotate selected objects around their own center") },
         };
 
         m_full_shortcuts.push_back(std::make_pair(_L("Gizmos"), gizmos_shortcuts));
@@ -253,7 +258,11 @@ wxPanel* KBShortcutsDialog::create_header(wxWindow* parent, const wxFont& bold_f
     sizer->AddStretchSpacer();
 
     // logo
+#if ENABLE_GCODE_VIEWER
+    m_logo_bmp = ScalableBitmap(this, wxGetApp().is_editor() ? "PrusaSlicer_32px.png" : "PrusaSlicer-gcodeviewer_32px.png", 32);
+#else
     m_logo_bmp = ScalableBitmap(this, "PrusaSlicer_32px.png", 32);
+#endif // ENABLE_GCODE_VIEWER
     m_header_bitmap = new wxStaticBitmap(panel, wxID_ANY, m_logo_bmp.bmp());
     sizer->Add(m_header_bitmap, 0, wxEXPAND | wxLEFT | wxRIGHT, 10);
 
@@ -287,22 +296,23 @@ wxPanel* KBShortcutsDialog::create_page(wxWindow* parent, const std::pair<wxStri
     wxFlexGridSizer* grid_sizer = new wxFlexGridSizer(2 * columns_count, 5, 15);
 
     int items_count = (int)shortcuts.second.size();
-    for (int i = 0; i < max_items_per_column; ++i)
-    {
-        for (int j = 0; j < columns_count; ++j)
-        {
+    for (int i = 0; i < max_items_per_column; ++i) {
+        for (int j = 0; j < columns_count; ++j) {
             int id = j * max_items_per_column + i;
-            if (id >= items_count)
-                break;
+            if (id < items_count) {
+                const auto& [shortcut, description] = shortcuts.second[id];
+                auto key = new wxStaticText(page, wxID_ANY, _(shortcut));
+                key->SetFont(bold_font);
+                grid_sizer->Add(key, 0, wxALIGN_CENTRE_VERTICAL);
 
-            const auto& [shortcut, description] = shortcuts.second[id];
-            auto key = new wxStaticText(page, wxID_ANY, _(shortcut));
-            key->SetFont(bold_font);
-            grid_sizer->Add(key, 0, wxALIGN_CENTRE_VERTICAL);
-
-            auto desc = new wxStaticText(page, wxID_ANY, _(description));
-            desc->SetFont(font);
-            grid_sizer->Add(desc, 0, wxALIGN_CENTRE_VERTICAL);
+                auto desc = new wxStaticText(page, wxID_ANY, _(description));
+                desc->SetFont(font);
+                grid_sizer->Add(desc, 0, wxALIGN_CENTRE_VERTICAL);
+            }
+            else {
+                grid_sizer->Add(new wxStaticText(page, wxID_ANY, ""), 0, wxALIGN_CENTRE_VERTICAL);
+                grid_sizer->Add(new wxStaticText(page, wxID_ANY, ""), 0, wxALIGN_CENTRE_VERTICAL);
+            }
         }
     }
 

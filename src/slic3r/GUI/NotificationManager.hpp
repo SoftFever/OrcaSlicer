@@ -4,6 +4,8 @@
 #include "Event.hpp"
 #include "I18N.hpp"
 
+#include <libslic3r/ObjectID.hpp>
+
 #include <string>
 #include <vector>
 #include <deque>
@@ -16,8 +18,8 @@ using EjectDriveNotificationClickedEvent = SimpleEvent;
 wxDECLARE_EVENT(EVT_EJECT_DRIVE_NOTIFICAION_CLICKED, EjectDriveNotificationClickedEvent);
 using ExportGcodeNotificationClickedEvent = SimpleEvent;
 wxDECLARE_EVENT(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED, ExportGcodeNotificationClickedEvent);
-using PresetUpdateAviableClickedEvent = SimpleEvent;
-wxDECLARE_EVENT(EVT_PRESET_UPDATE_AVIABLE_CLICKED, PresetUpdateAviableClickedEvent);
+using PresetUpdateAvailableClickedEvent = SimpleEvent;
+wxDECLARE_EVENT(EVT_PRESET_UPDATE_AVAILABLE_CLICKED, PresetUpdateAvailableClickedEvent);
 
 class GLCanvas3D;
 class ImGuiWrapper;
@@ -25,41 +27,127 @@ class ImGuiWrapper;
 enum class NotificationType
 {
 	CustomNotification,
+	// Notification on end of slicing and G-code processing (the full G-code preview is available).
+	// Contains a hyperlink to export the G-code to a removable media.
 	SlicingComplete,
-	SlicingNotPossible,
+//	SlicingNotPossible,
+	// Notification on end of export to a removable media, with hyperling to eject the external media.
 	ExportToRemovableFinished,
+	// Works on OSX only.
+	//FIXME Do we want to have it on Linux and Windows? Is it possible to get the Disconnect event on Windows?
 	Mouse3dDisconnected,
-	Mouse3dConnected,
-	NewPresetsAviable,
-	NewAppAviable,
-	PresetUpdateAviable,
-	LoadingFailed,
-	ValidateError, // currently not used - instead Slicing error is used for both slicing and validate errors
+//	Mouse3dConnected,
+//	NewPresetsAviable,
+	// Notification on the start of PrusaSlicer, when a new PrusaSlicer version is published.
+	// Contains a hyperlink to open a web browser pointing to the PrusaSlicer download location.
+	NewAppAvailable,
+	// Notification on the start of PrusaSlicer, when updates of system profiles are detected.
+	// Contains a hyperlink to execute installation of the new system profiles.
+	PresetUpdateAvailable,
+//	LoadingFailed,
+	// Not used - instead Slicing error is used for both slicing and validate errors.
+//	ValidateError,
+	// Slicing error produced by BackgroundSlicingProcess::validate() or by the BackgroundSlicingProcess background
+	// thread thowing a SlicingError exception.
 	SlicingError,
+	// Slicing warnings, issued by the slicing process.
+	// Slicing warnings are registered for a particular Print milestone or a PrintObject and its milestone.
 	SlicingWarning,
+	// Object partially outside the print volume. Cannot slice.
 	PlaterError,
-	PlaterWarning,
-	ApplyError
-
+	// Object fully outside the print volume, or extrusion outside the print volume. Slicing is not disabled.
+	PlaterWarning
 };
+
 class NotificationManager
 {
 public:
 	enum class NotificationLevel : int
 	{
-		ErrorNotification =     4,
-		WarningNotification =   3,
-		ImportantNotification = 2,
-		RegularNotification   = 1,
+		// The notifications will be presented in the order of importance, thus these enum values
+		// are sorted by the importance.
+		// "Good to know" notification, usually but not always with a quick fade-out.
+		RegularNotification = 1,
+		// Information notification without a fade-out or with a longer fade-out.
+		ImportantNotification,
+		// Warning, no fade-out.
+		WarningNotification,
+		// Error, no fade-out.
+		ErrorNotification,
 	};
+
+	NotificationManager(wxEvtHandler* evt_handler);
+	
+	// Push a prefabricated notification from basic_notifications (see the table at the end of this file).
+	void push_notification(const NotificationType type, GLCanvas3D& canvas, int timestamp = 0);
+	// Push a NotificationType::CustomNotification with NotificationLevel::RegularNotification and 10s fade out interval.
+	void push_notification(const std::string& text, GLCanvas3D& canvas, int timestamp = 0);
+	// Push a NotificationType::CustomNotification with provided notification level and 10s for RegularNotification.
+	// ErrorNotification and ImportantNotification are never faded out.
+	void push_notification(const std::string& text, NotificationLevel level, GLCanvas3D& canvas, int timestamp = 0);
+	// Creates Slicing Error notification with a custom text and no fade out.
+	void push_slicing_error_notification(const std::string& text, GLCanvas3D& canvas);
+	// Creates Slicing Warning notification with a custom text and no fade out.
+	void push_slicing_warning_notification(const std::string& text, bool gray, GLCanvas3D& canvas, ObjectID oid, int warning_step);
+	// marks slicing errors as gray
+	void set_all_slicing_errors_gray(bool g);
+	// marks slicing warings as gray
+	void set_all_slicing_warnings_gray(bool g);
+//	void set_slicing_warning_gray(const std::string& text, bool g);
+	// immediately stops showing slicing errors
+	void close_slicing_errors_and_warnings();
+	// Release those slicing warnings, which refer to an ObjectID, which is not in the list.
+	// living_oids is expected to be sorted.
+	void remove_slicing_warnings_of_released_objects(const std::vector<ObjectID>& living_oids);
+	// Object partially outside of the printer working space, cannot print. No fade out.
+	void push_plater_error_notification(const std::string& text, GLCanvas3D& canvas);
+	// Object fully out of the printer working space and such. No fade out.
+	void push_plater_warning_notification(const std::string& text, GLCanvas3D& canvas);
+	// Closes error or warning of the same text
+	void close_plater_error_notification(const std::string& text);
+	void close_plater_warning_notification(const std::string& text);
+	// Creates special notification slicing complete.
+	// If large = true (Plater side bar is closed), then printing time and export button is shown
+	// at the notification and fade-out is disabled. Otherwise the fade out time is set to 10s.
+	void push_slicing_complete_notification(GLCanvas3D& canvas, int timestamp, bool large);
+	// Add a print time estimate to an existing SlicingComplete notification.
+	void set_slicing_complete_print_time(const std::string &info);
+	// Called when the side bar changes its visibility, as the "slicing complete" notification supplements
+	// the "slicing info" normally shown at the side bar.
+	void set_slicing_complete_large(bool large);
+	// renders notifications in queue and deletes expired ones
+	void render_notifications(GLCanvas3D& canvas, float overlay_width);
+	// finds and closes all notifications of given type
+	void close_notification_of_type(const NotificationType type);
+	// Which view is active? Plater or G-code preview? Hide warnings in G-code preview.
+    void set_in_preview(bool preview);
+	// Move to left to avoid colision with variable layer height gizmo
+	void set_move_from_overlay(bool move) { m_move_from_overlay = move; }
+
+private:
 	// duration 0 means not disapearing
 	struct NotificationData {
 		NotificationType    type;
 		NotificationLevel   level;
+		// Fade out time
 		const int           duration;
 		const std::string   text1;
-		const std::string   hypertext = std::string();
-		const std::string   text2     = std::string();
+		const std::string   hypertext;
+		const std::string   text2;
+	};
+
+	// Cache of IDs to identify and reuse ImGUI windows.
+	class NotificationIDProvider
+	{
+	public:
+		int 		allocate_id();
+		void 		release_id(int id);
+
+	private:
+		// Next ID used for naming the ImGUI windows.
+		int       			m_next_id{ 1 };
+		// IDs of ImGUI windows, which were released and they are ready for reuse.
+		std::vector<int>	m_released_ids;
 	};
 
 	//Pop notification - shows only once to user.
@@ -74,9 +162,9 @@ public:
 			Countdown,
 			Hovered
 		};
-		 PopNotification(const NotificationData &n, const int id, wxEvtHandler* evt_handler);
-		virtual ~PopNotification();
-		RenderResult           render(GLCanvas3D& canvas, const float& initial_y);
+		PopNotification(const NotificationData &n, NotificationIDProvider &id_provider, wxEvtHandler* evt_handler);
+		virtual ~PopNotification() { if (m_id) m_id_provider.release_id(m_id); }
+		RenderResult           render(GLCanvas3D& canvas, const float& initial_y, bool move_from_overlay, float overlay_width);
 		// close will dissapear notification on next render
 		void                   close() { m_close_pending = true; }
 		// data from newer notification of same type
@@ -95,6 +183,7 @@ public:
 		void                   set_paused(bool p) { m_paused = p; }
 		bool                   compare_text(const std::string& text);
         void                   hide(bool h) { m_hidden = h; }
+
 	protected:
 		// Call after every size change
 		void         init();
@@ -120,7 +209,9 @@ public:
 
 		const NotificationData m_data;
 
-		int              m_id;
+		// For reusing ImGUI windows.
+		NotificationIDProvider &m_id_provider;
+		int              m_id { 0 };
 		bool			 m_initialized          { false };
 		// Main text
 		std::string      m_text1;
@@ -162,17 +253,18 @@ public:
 		//if multiline = true, notification is showing all lines(>2)
 		bool             m_multiline            { false };
 		int              m_lines_count{ 1 };
+	    // Target for wxWidgets events sent by clicking on the hyperlink available at some notifications.
 		wxEvtHandler*    m_evt_handler;
 	};
 
 	class SlicingCompleteLargeNotification : public PopNotification
 	{
 	public:
-		SlicingCompleteLargeNotification(const NotificationData& n, const int id, wxEvtHandler* evt_handler, bool largeds);
+		SlicingCompleteLargeNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, bool largeds);
 		void set_large(bool l);
 		bool get_large() { return m_is_large; }
 
-		void set_print_info(std::string info);
+		void set_print_info(const std::string &info);
 	protected:
 		virtual void render_text(ImGuiWrapper& imgui,
 			                     const float win_size_x, const float win_size_y,
@@ -187,82 +279,48 @@ public:
 	class SlicingWarningNotification : public PopNotification
 	{
 	public:
-		SlicingWarningNotification(const NotificationData& n, const int id, wxEvtHandler* evt_handler) : PopNotification(n, id, evt_handler) {}
-		void         set_object_id(size_t id) { object_id = id; }
-		const size_t get_object_id() { return object_id; }
-		void         set_warning_step(int ws) { warning_step = ws; }
-		const int    get_warning_step() { return warning_step; }
-	protected:
-		size_t object_id;
-		int    warning_step;
+		SlicingWarningNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler) : PopNotification(n, id_provider, evt_handler) {}
+		ObjectID 	object_id;
+		int    		warning_step;
 	};
 
-	NotificationManager(wxEvtHandler* evt_handler);
-	~NotificationManager();
-
-	
-	// only type means one of basic_notification (see below)
-	void push_notification(const NotificationType type, GLCanvas3D& canvas, int timestamp = 0);
-	// only text means Undefined type
-	void push_notification(const std::string& text, GLCanvas3D& canvas, int timestamp = 0);
-	void push_notification(const std::string& text, NotificationLevel level, GLCanvas3D& canvas, int timestamp = 0);
-	// creates Slicing Error notification with custom text
-	void push_slicing_error_notification(const std::string& text, GLCanvas3D& canvas);
-	// creates Slicing Warning notification with custom text
-	void push_slicing_warning_notification(const std::string& text, bool gray, GLCanvas3D& canvas, size_t oid, int warning_step);
-	// marks slicing errors as gray
-	void set_all_slicing_errors_gray(bool g);
-	// marks slicing warings as gray
-	void set_all_slicing_warnings_gray(bool g);
-	void set_slicing_warning_gray(const std::string& text, bool g);
-	// imidietly stops showing slicing errors
-	void close_slicing_errors_and_warnings();
-	void compare_warning_oids(const std::vector<size_t>& living_oids);
-	void push_plater_error_notification(const std::string& text, GLCanvas3D& canvas);
-	void push_plater_warning_notification(const std::string& text, GLCanvas3D& canvas);
-	// Closes error or warning of same text
-	void close_plater_error_notification(const std::string& text);
-	void close_plater_warning_notification(const std::string& text);
-	// creates special notification slicing complete
-	// if large = true prints printing time and export button 
-	void push_slicing_complete_notification(GLCanvas3D& canvas, int timestamp, bool large);
-	void set_slicing_complete_print_time(std::string info);
-	void set_slicing_complete_large(bool large);
-	// renders notifications in queue and deletes expired ones
-	void render_notifications(GLCanvas3D& canvas);
-	// finds and closes all notifications of given type
-	void close_notification_of_type(const NotificationType type);
-	void dpi_changed();
-    void set_in_preview(bool preview);
-private:
 	//pushes notification into the queue of notifications that are rendered
 	//can be used to create custom notification
 	bool push_notification_data(const NotificationData& notification_data, GLCanvas3D& canvas, int timestamp);
-	bool push_notification_data(NotificationManager::PopNotification* notification, GLCanvas3D& canvas, int timestamp);
+	bool push_notification_data(std::unique_ptr<NotificationManager::PopNotification> notification, GLCanvas3D& canvas, int timestamp);
 	//finds older notification of same type and moves it to the end of queue. returns true if found
-	bool find_older(NotificationManager::PopNotification* notification);
+	bool activate_existing(const NotificationManager::PopNotification* notification);
+	// Put the more important notifications to the bottom of the list.
 	void sort_notifications();
-    bool has_error_notification();
+	// If there is some error notification active, then the "Export G-code" notification after the slicing is finished is suppressed.
+    bool has_slicing_error_notification();
 
+    // Target for wxWidgets events sent by clicking on the hyperlink available at some notifications.
 	wxEvtHandler*                m_evt_handler;
-	std::deque<PopNotification*> m_pop_notifications;
-	int                          m_next_id { 1 };
+	// Cache of IDs to identify and reuse ImGUI windows.
+	NotificationIDProvider 		 m_id_provider;
+	std::deque<std::unique_ptr<PopNotification>> m_pop_notifications;
+	// Last render time in seconds for fade out control.
 	long                         m_last_time { 0 };
+	// When mouse hovers over some notification, the fade-out of all notifications is suppressed.
 	bool                         m_hovered { false };
-	//timestamps used for slining finished - notification could be gone so it needs to be stored here
+	//timestamps used for slicing finished - notification could be gone so it needs to be stored here
 	std::unordered_set<int>      m_used_timestamps;
+	// True if G-code preview is active. False if the Plater is active.
 	bool                         m_in_preview { false };
+	// True if the layer editing is enabled in Plater, so that the notifications are shifted left of it.
+	bool                         m_move_from_overlay { false };
 
 	//prepared (basic) notifications
 	const std::vector<NotificationData> basic_notifications = {
-		{NotificationType::SlicingNotPossible, NotificationLevel::RegularNotification, 10,  _u8L("Slicing is not possible.")},
+//		{NotificationType::SlicingNotPossible, NotificationLevel::RegularNotification, 10,  _u8L("Slicing is not possible.")},
 		{NotificationType::ExportToRemovableFinished, NotificationLevel::ImportantNotification, 0,  _u8L("Exporting finished."),  _u8L("Eject drive.") },
 		{NotificationType::Mouse3dDisconnected, NotificationLevel::RegularNotification, 10,  _u8L("3D Mouse disconnected.") },
-		{NotificationType::Mouse3dConnected, NotificationLevel::RegularNotification, 5,  _u8L("3D Mouse connected.") },
-		{NotificationType::NewPresetsAviable, NotificationLevel::ImportantNotification, 20,  _u8L("New Presets are available."),  _u8L("See here.") },
-		{NotificationType::PresetUpdateAviable, NotificationLevel::ImportantNotification, 20,  _u8L("Configuration update is available."),  _u8L("See more.")},
-		{NotificationType::NewAppAviable, NotificationLevel::ImportantNotification, 20,  _u8L("New version is available."),  _u8L("See Releases page.")},
-		//{NotificationType::NewAppAviable, NotificationLevel::ImportantNotification, 20,  _u8L("New vesion of PrusaSlicer is available.",  _u8L("Download page.") },
+//		{NotificationType::Mouse3dConnected, NotificationLevel::RegularNotification, 5,  _u8L("3D Mouse connected.") },
+//		{NotificationType::NewPresetsAviable, NotificationLevel::ImportantNotification, 20,  _u8L("New Presets are available."),  _u8L("See here.") },
+		{NotificationType::PresetUpdateAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("Configuration update is available."),  _u8L("See more.")},
+		{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("New version is available."),  _u8L("See Releases page.")},
+		//{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("New vesion of PrusaSlicer is available.",  _u8L("Download page.") },
 		//{NotificationType::LoadingFailed, NotificationLevel::RegularNotification, 20,  _u8L("Loading of model has Failed") },
 		//{NotificationType::DeviceEjected, NotificationLevel::RegularNotification, 10,  _u8L("Removable device has been safely ejected")} // if we want changeble text (like here name of device), we need to do it as CustomNotification
 	};

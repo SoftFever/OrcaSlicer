@@ -45,23 +45,21 @@
 #include "libslic3r/Format/OBJ.hpp"
 #include "libslic3r/Format/SL1.hpp"
 #include "libslic3r/Utils.hpp"
-#include "libslic3r/AppConfig.hpp" 
+#include "libslic3r/Thread.hpp"
 
 #include "PrusaSlicer.hpp"
 
 #ifdef SLIC3R_GUI
-    #include "slic3r/GUI/GUI.hpp"
-    #include "slic3r/GUI/GUI_App.hpp"
-    #include "slic3r/GUI/3DScene.hpp"
-    #include "slic3r/GUI/InstanceCheck.hpp" 
-    #include "slic3r/GUI/MainFrame.hpp"
-    #include "slic3r/GUI/Plater.hpp"
+    #include "slic3r/GUI/GUI_Init.hpp"
 #endif /* SLIC3R_GUI */
 
 using namespace Slic3r;
 
 int CLI::run(int argc, char **argv)
 {
+    // Mark the main thread for the debugger and for runtime checks.
+    set_current_thread_name("slic3r_main");
+
 #ifdef __WXGTK__
     // On Linux, wxGTK has no support for Wayland, and the app crashes on
     // startup if gtk3 is used. This env var has to be set explicitly to
@@ -154,6 +152,15 @@ int CLI::run(int argc, char **argv)
 
     // Read input file(s) if any.
 #if ENABLE_GCODE_VIEWER
+    for (const std::string& file : m_input_files) {
+        std::string ext = boost::filesystem::path(file).extension().string();
+        if (ext == ".gcode" || ext == ".g") {
+            if (boost::filesystem::exists(file)) {
+                start_as_gcodeviewer = true;
+                break;
+            }
+        }
+    }
     if (!start_as_gcodeviewer) {
 #endif // ENABLE_GCODE_VIEWER
         for (const std::string& file : m_input_files) {
@@ -509,9 +516,12 @@ int CLI::run(int argc, char **argv)
                             outfile_final = sla_print.print_statistics().finalize_output_path(outfile);
                             sla_archive.export_print(outfile_final, sla_print);
                         }
-                        if (outfile != outfile_final && Slic3r::rename_file(outfile, outfile_final)) {
-                            boost::nowide::cerr << "Renaming file " << outfile << " to " << outfile_final << " failed" << std::endl;
-                            return 1;
+                        if (outfile != outfile_final) {
+                            if (Slic3r::rename_file(outfile, outfile_final)) {
+                                boost::nowide::cerr << "Renaming file " << outfile << " to " << outfile_final << " failed" << std::endl;
+                                return 1;
+                            }
+                            outfile = outfile_final;
                         }
                         boost::nowide::cout << "Slicing result exported to " << outfile << std::endl;
                     } catch (const std::exception &ex) {
@@ -562,66 +572,20 @@ int CLI::run(int argc, char **argv)
 
     if (start_gui) {
 #ifdef SLIC3R_GUI
-// #ifdef USE_WX
-#if ENABLE_GCODE_VIEWER
-        GUI::GUI_App* gui = new GUI::GUI_App(start_as_gcodeviewer ? GUI::GUI_App::EAppMode::GCodeViewer : GUI::GUI_App::EAppMode::Editor);
-#else
-        GUI::GUI_App *gui = new GUI::GUI_App();
-#endif // ENABLE_GCODE_VIEWER
-
-		bool gui_single_instance_setting = gui->app_config->get("single_instance") == "1";
-		if (Slic3r::instance_check(argc, argv, gui_single_instance_setting)) {
-			//TODO: do we have delete gui and other stuff?
-			return -1;
-		}
-		
-//		gui->autosave = m_config.opt_string("autosave");
-        GUI::GUI_App::SetInstance(gui);
-#if ENABLE_GCODE_VIEWER
-        gui->CallAfter([gui, this, &load_configs, start_as_gcodeviewer] {
-#else
-        gui->CallAfter([gui, this, &load_configs] {
-#endif // ENABLE_GCODE_VIEWER
-            if (!gui->initialized()) {
-                return;
-            }
-
-#if ENABLE_GCODE_VIEWER
-            if (start_as_gcodeviewer) {
-                if (!m_input_files.empty())
-                    gui->plater()->load_gcode(wxString::FromUTF8(m_input_files[0].c_str()));
-            } else {
-#endif // ENABLE_GCODE_VIEWER_AS
-#if 0
-                // Load the cummulative config over the currently active profiles.
-                //FIXME if multiple configs are loaded, only the last one will have an effect.
-                // We need to decide what to do about loading of separate presets (just print preset, just filament preset etc).
-                // As of now only the full configs are supported here.
-                if (!m_print_config.empty())
-                    gui->mainframe->load_config(m_print_config);
-#endif
-                if (!load_configs.empty())
-                    // Load the last config to give it a name at the UI. The name of the preset may be later
-                    // changed by loading an AMF or 3MF.
-                    //FIXME this is not strictly correct, as one may pass a print/filament/printer profile here instead of a full config.
-                    gui->mainframe->load_config_file(load_configs.back());
-                // If loading a 3MF file, the config is loaded from the last one.
-                if (!m_input_files.empty())
-                    gui->plater()->load_files(m_input_files, true, true);
-                if (!m_extra_config.empty())
-                    gui->mainframe->load_config(m_extra_config);
-#if ENABLE_GCODE_VIEWER
-            }
-#endif // ENABLE_GCODE_VIEWER
-        });
-        int result = wxEntry(argc, argv);
-        return result;
-#else /* SLIC3R_GUI */
+        Slic3r::GUI::GUI_InitParams params;
+        params.argc = argc;
+        params.argv = argv;
+        params.load_configs = load_configs;
+        params.extra_config = std::move(m_extra_config);
+        params.input_files  = std::move(m_input_files);
+        params.start_as_gcodeviewer = start_as_gcodeviewer;
+        return Slic3r::GUI::GUI_Run(params);
+#else // SLIC3R_GUI
         // No GUI support. Just print out a help.
         this->print_help(false);
         // If started without a parameter, consider it to be OK, otherwise report an error code (no action etc).
         return (argc == 0) ? 0 : 1;
-#endif /* SLIC3R_GUI */
+#endif // SLIC3R_GUI
     }
 
     return 0;
@@ -646,7 +610,7 @@ bool CLI::setup(int argc, char **argv)
 #ifdef __APPLE__
     // The application is packed in the .dmg archive as 'Slic3r.app/Contents/MacOS/Slic3r'
     // The resources are packed to 'Slic3r.app/Contents/Resources'
-    boost::filesystem::path path_resources = path_to_binary.parent_path() / "../Resources";
+    boost::filesystem::path path_resources = boost::filesystem::canonical(path_to_binary).parent_path() / "../Resources";
 #elif defined _WIN32
     // The application is packed in the .zip archive in the root,
     // The resources are packed to 'resources'
@@ -660,7 +624,7 @@ bool CLI::setup(int argc, char **argv)
     // The application is packed in the .tar.bz archive (or in AppImage) as 'bin/slic3r',
     // The resources are packed to 'resources'
     // Path from Slic3r binary to resources:
-    boost::filesystem::path path_resources = path_to_binary.parent_path() / "../resources";
+    boost::filesystem::path path_resources = boost::filesystem::canonical(path_to_binary).parent_path() / "../resources";
 #endif
 
     set_resources_dir(path_resources.string());

@@ -10,6 +10,7 @@
 #include "I18N.hpp"
 #include "ShortestPath.hpp"
 #include "SupportMaterial.hpp"
+#include "Thread.hpp"
 #include "GCode.hpp"
 #include "GCode/WipeTower.hpp"
 #include "Utils.hpp"
@@ -404,10 +405,10 @@ static inline void model_volume_list_copy_configs(ModelObject &model_object_dst,
         // Copy the ModelVolume data.
         mv_dst.name   = mv_src.name;
 		mv_dst.config.assign_config(mv_src.config);
-        if (! mv_dst.m_supported_facets.timestamp_matches(mv_src.m_supported_facets))
-            mv_dst.m_supported_facets = mv_src.m_supported_facets;
-        if (! mv_dst.m_seam_facets.timestamp_matches(mv_src.m_seam_facets))
-            mv_dst.m_seam_facets = mv_src.m_seam_facets;
+        assert(mv_dst.supported_facets.id() == mv_src.supported_facets.id());
+        mv_dst.supported_facets.assign(mv_src.supported_facets);
+        assert(mv_dst.seam_facets.id() == mv_src.seam_facets.id());
+        mv_dst.seam_facets.assign(mv_src.seam_facets);
         //FIXME what to do with the materials?
         // mv_dst.m_material_id = mv_src.m_material_id;
         ++ i_src;
@@ -575,6 +576,16 @@ void Print::config_diffs(
         if (opt_old == nullptr || *opt_new != *opt_old)
             full_config_diff.emplace_back(opt_key);
     }
+}
+
+std::vector<ObjectID> Print::print_object_ids() const 
+{ 
+    std::vector<ObjectID> out; 
+    // Reserve one more for the caller to append the ID of the Print itself.
+    out.reserve(m_objects.size() + 1);
+    for (const PrintObject *print_object : m_objects)
+        out.emplace_back(print_object->id());
+    return out;
 }
 
 Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_config)
@@ -1274,8 +1285,9 @@ std::string Print::validate() const
                           "and use filaments of the same diameter.");
         }
 
-        if (m_config.gcode_flavor != gcfRepRap && m_config.gcode_flavor != gcfRepetier && m_config.gcode_flavor != gcfMarlin)
-            return L("The Wipe Tower is currently only supported for the Marlin, RepRap/Sprinter and Repetier G-code flavors.");
+        if (m_config.gcode_flavor != gcfRepRapSprinter && m_config.gcode_flavor != gcfRepRapFirmware &&
+            m_config.gcode_flavor != gcfRepetier && m_config.gcode_flavor != gcfMarlin)
+            return L("The Wipe Tower is currently only supported for the Marlin, RepRap/Sprinter, RepRapFirmware and Repetier G-code flavors.");
         if (! m_config.use_relative_e_distances)
             return L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).");
         if (m_config.ooze_prevention)
@@ -1594,6 +1606,8 @@ void Print::auto_assign_extruders(ModelObject* model_object) const
 // Slicing process, running at a background thread.
 void Print::process()
 {
+    name_tbb_thread_pool_threads();
+
     BOOST_LOG_TRIVIAL(info) << "Starting the slicing process." << log_memory_info();
     for (PrintObject *obj : m_objects)
         obj->make_perimeters();

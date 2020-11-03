@@ -1,4 +1,12 @@
 min_slic3r_version = 2.2.0-alpha3
+1.1.10 Updated firmware version.
+1.1.9 Updated K values in filament profiles (linear advance). Added new filament profiles and SLA materials.
+1.1.8 Updated start/end g-code scripts for MK3 family printer profiles (reduced extruder motor current for some print profiles). Added new filament and SLA material profiles.
+1.1.7 Updated end g-code for MMU2 Single printer profiles. Added/updated filament and SLA material profiles.
+1.1.6 Updated firmware version for MK2.5/S and MK3/S.
+1.1.5 Updated MMU1 specific retraction settings for Prusament PC Blend
+1.1.4 Added Prusament PC Blend filament profile.
+1.1.3 Added SLA material and filament profile
 1.1.2 Added renamed_from fields for PETG filaments to indicate that they were renamed from PET.
 1.1.1 Added Verbatim and Fiberlogy PETG filament profiles. Updated auto cooling settings for ABS.
 1.1.1-beta Updated for PrusaSlicer 2.2.0-beta
@@ -11,6 +19,8 @@ min_slic3r_version = 2.2.0-alpha0
 1.1.1-alpha2 Bumped up config version, so our in house customer will get updated profiles.
 1.1.0 Filament aliases, Creality profiles and other goodies for PrusaSlicer 2.2.0-alpha0
 min_slic3r_version = 2.1.1-beta0
+1.0.10 Updated firmware version for MK2.5/S and MK3/S.
+1.0.9 Updated firmware version for MK2.5/S and MK3/S.
 1.0.8 Various changes in FFF profiles, new filaments/materials added. See changelog.
 1.0.7 Updated layer height limits for MINI
 1.0.6 Added Prusa MINI profiles
@@ -27,6 +37,8 @@ min_slic3r_version = 2.1.0-alpha0
 1.0.0-alpha1 Added Prusament ASA profile
 1.0.0-alpha0 Filament specific retract for PET and similar copolymers, and for FLEX
 min_slic3r_version = 1.42.0-alpha6
+0.8.9 Updated firmware version for MK2.5/S and MK3/S.
+0.8.8 Updated firmware version for MK2.5/S and MK3/S.
 0.8.7 Updated firmware version
 0.8.6 Updated firmware version for MK2.5/S and MK3/S
 0.8.5 Updated SL1 printer and material settings
@@ -53,6 +65,8 @@ min_slic3r_version = 1.42.0-alpha
 0.4.0-alpha3 Update of SLA profiles
 0.4.0-alpha2 First SLA profiles
 min_slic3r_version = 1.41.3-alpha
+0.4.12 Updated firmware version for MK2.5/S and MK3/S.
+0.4.11 Updated firmware version for MK2.5/S and MK3/S.
 0.4.10 Updated firmware version
 0.4.9 Updated firmware version for MK2.5/S and MK3/S
 0.4.8 MK2.5/3/S FW update
@@ -65,6 +79,7 @@ min_slic3r_version = 1.41.3-alpha
 0.4.1 New MK2.5S and MK3S FW versions
 0.4.0 Changelog: https://github.com/prusa3d/Slic3r-settings/blob/master/live/PrusaResearch/changelog.txt 
 min_slic3r_version = 1.41.1
+0.3.11 Updated firmware version for MK2.5/S and MK3/S.
 0.3.10 Updated firmware version
 0.3.9 Updated firmware version for MK2.5/S and MK3/S
 0.3.8 MK2.5/3/S FW update

@@ -853,6 +853,7 @@ void Selection::flattening_rotate(const Vec3d& normal)
     // We get the normal in untransformed coordinates. We must transform it using the instance matrix, find out
     // how to rotate the instance so it faces downwards and do the rotation. All that for all selected instances.
     // The function assumes that is_from_single_object() holds.
+    assert(Slic3r::is_approx(normal.norm(), 1.));
 
     if (!m_valid)
         return;
@@ -866,14 +867,31 @@ void Selection::flattening_rotate(const Vec3d& normal)
         Vec3d mirror(wmt(0, 0), wmt(1, 1), wmt(2, 2));
 
         Vec3d rotation = Geometry::extract_euler_angles(m_cache.volumes_data[i].get_instance_rotation_matrix());
-        Vec3d transformed_normal = Geometry::assemble_transform(Vec3d::Zero(), rotation, scaling_factor, mirror) * normal;
-        transformed_normal.normalize();
+        Vec3d tnormal = Geometry::assemble_transform(Vec3d::Zero(), rotation, scaling_factor, mirror) * normal;
+        tnormal.normalize();
 
-        Vec3d axis = transformed_normal(2) > 0.999f ? Vec3d(1., 0., 0.) : Vec3d(transformed_normal.cross(Vec3d(0., 0., -1.)));
+        // Calculate rotation axis. It shall be perpendicular to "down" direction
+        // and the normal, so the rotation is the shortest possible and logical.
+        Vec3d axis = tnormal.cross(-Vec3d::UnitZ());
+
+        // Make sure the axis is not zero and normalize it. "Almost" zero is not interesting.
+        // In case the vectors are almost colinear, the rotation axis does not matter much.
+        if (axis == Vec3d::Zero())
+            axis = Vec3d::UnitX();
         axis.normalize();
 
+        // Calculate the angle using the component where we achieve more precision.
+        // Cosine of small angles is const in first order. No good.
+        double angle = 0.;
+        if (std::abs(tnormal.z()) < std::sqrt(2.)/2.)
+            angle = std::acos(-tnormal.z());
+        else {
+            double xy = std::hypot(tnormal.x(), tnormal.y());
+            angle = PI/2. + std::acos(xy * (tnormal.z() > 0.));
+        }
+
         Transform3d extra_rotation = Transform3d::Identity();
-        extra_rotation.rotate(Eigen::AngleAxisd(acos(-transformed_normal(2)), axis));
+        extra_rotation.rotate(Eigen::AngleAxisd(angle, axis));
 
         Vec3d new_rotation = Geometry::extract_euler_angles(extra_rotation * m_cache.volumes_data[i].get_instance_rotation_matrix());
         (*m_volumes)[i]->set_instance_rotation(new_rotation);
@@ -1369,7 +1387,7 @@ void Selection::copy_to_clipboard()
         dst_object->sla_points_status    = src_object->sla_points_status;
         dst_object->sla_drain_holes      = src_object->sla_drain_holes;
         dst_object->layer_config_ranges  = src_object->layer_config_ranges;     // #ys_FIXME_experiment
-        dst_object->layer_height_profile = src_object->layer_height_profile;
+        dst_object->layer_height_profile.assign(src_object->layer_height_profile);
         dst_object->origin_translation   = src_object->origin_translation;
 
         for (int i : object.second)

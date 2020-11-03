@@ -650,14 +650,14 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
     
     // propagate to dependent steps
     if (step == posPerimeters) {
-		invalidated |= this->invalidate_steps({ posPrepareInfill, posInfill });
+		invalidated |= this->invalidate_steps({ posPrepareInfill, posInfill, posIroning });
         invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
     } else if (step == posPrepareInfill) {
-        invalidated |= this->invalidate_step(posInfill);
+        invalidated |= this->invalidate_steps({ posInfill, posIroning });
     } else if (step == posInfill) {
         invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
     } else if (step == posSlice) {
-		invalidated |= this->invalidate_steps({ posPerimeters, posPrepareInfill, posInfill, posSupportMaterial });
+		invalidated |= this->invalidate_steps({ posPerimeters, posPrepareInfill, posInfill, posIroning, posSupportMaterial });
 		invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
         this->m_slicing_params.valid = false;
     } else if (step == posSupportMaterial) {
@@ -1688,12 +1688,6 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
 
     m_typed_slices = false;
 
-#ifdef SLIC3R_PROFILE
-    // Disable parallelization so the Shiny profiler works
-    static tbb::task_scheduler_init *tbb_init = nullptr;
-    tbb_init = new tbb::task_scheduler_init(1);
-#endif
-
     // 1) Initialize layers and their slice heights.
     std::vector<float> slice_zs;
     {
@@ -2706,7 +2700,7 @@ void PrintObject::combine_infill()
              // Because fill areas for rectilinear and honeycomb are grown 
              // later to overlap perimeters, we need to counteract that too.
                 ((region->config().fill_pattern == ipRectilinear   ||
-                  region->config().fill_pattern == ipMonotonous    ||
+                  region->config().fill_pattern == ipMonotonic     ||
                   region->config().fill_pattern == ipGrid          ||
                   region->config().fill_pattern == ipLine          ||
                   region->config().fill_pattern == ipHoneycomb) ? 1.5f : 0.5f) * 
@@ -2748,8 +2742,8 @@ void PrintObject::project_and_append_custom_facets(
 {
     for (const ModelVolume* mv : this->model_object()->volumes) {
         const indexed_triangle_set custom_facets = seam
-                ? mv->m_seam_facets.get_facets(*mv, type)
-                : mv->m_supported_facets.get_facets(*mv, type);
+                ? mv->seam_facets.get_facets(*mv, type)
+                : mv->supported_facets.get_facets(*mv, type);
         if (! mv->is_model_part() || custom_facets.indices.empty())
             continue;
 

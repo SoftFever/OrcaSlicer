@@ -3,10 +3,7 @@
 
 set(SLIC3R_APP_NAME "PrusaSlicer")
 set(SLIC3R_APP_KEY "PrusaSlicer")
-set(SLIC3R_VERSION "2.3.0-alpha0")
+set(SLIC3R_VERSION "2.3.0-alpha2")
 set(SLIC3R_BUILD_ID "PrusaSlicer-${SLIC3R_VERSION}+UNKNOWN")
 set(SLIC3R_RC_VERSION "2,3,0,0")
 set(SLIC3R_RC_VERSION_DOTS "2.3.0.0")
-
-set(GCODEVIEWER_APP_NAME "Prusa GCode Viewer")
-set(GCODEVIEWER_BUILD_ID "Prusa GCode Viewer-${SLIC3R_VERSION}+UNKNOWN")

@@ -59,6 +59,8 @@ class GLGizmoPainterBase : public GLGizmoBase
 private:
     ObjectID m_old_mo_id;
     size_t m_old_volumes_size = 0;
+    virtual void on_render() const {}
+    virtual void on_render_for_picking() const {}
 
 public:
     GLGizmoPainterBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
@@ -66,11 +68,17 @@ public:
     void set_painter_gizmo_data(const Selection& selection);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
 
+    // Following function renders the triangles and cursor. Having this separated
+    // from usual on_render method allows to render them before transparent objects,
+    // so they can be seen inside them. The usual on_render is called after all
+    // volumes (including transparent ones) are rendered.
+    virtual void render_painter_gizmo() const = 0;
+
 protected:
     void render_triangles(const Selection& selection) const;
     void render_cursor() const;
     void render_cursor_circle() const;
-    void render_cursor_sphere() const;
+    void render_cursor_sphere(const Transform3d& trafo) const;
     virtual void update_model_object() const = 0;
     virtual void update_from_model_object() = 0;
     void activate_internal_undo_redo_stack(bool activate);
@@ -93,8 +101,6 @@ private:
                               const Camera& camera,
                               const std::vector<Transform3d>& trafo_matrices) const;
 
-    float m_clipping_plane_distance = 0.f;
-    std::unique_ptr<ClippingPlane> m_clipping_plane;
     GLIndexedVertexArray m_vbo_sphere;
 
     bool m_internal_stack_active = false;
@@ -118,7 +124,6 @@ private:
         int mesh_id;
         Vec3f hit;
         size_t facet;
-        bool clipped_mesh_was_hit;
     };
     mutable RaycastResult m_rr;
 

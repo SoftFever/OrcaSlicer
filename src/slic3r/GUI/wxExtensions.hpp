@@ -210,7 +210,8 @@ public:
         const wxSize&       size = wxDefaultSize,
         const wxPoint&      pos = wxDefaultPosition,
         long                style = wxBU_EXACTFIT | wxNO_BORDER,
-        bool                use_default_disabled_bitmap = false);
+        bool                use_default_disabled_bitmap = false,
+        int                 bmp_px_cnt = 16);
 
     ScalableButton(
         wxWindow *          parent,
@@ -346,6 +347,8 @@ public:
     void    invalidate();
     void    activate();
     void    blink();
+
+    const wxBitmap& get_bmp() const { return bmp.bmp(); }
 
 private:
     ScalableBitmap  bmp;

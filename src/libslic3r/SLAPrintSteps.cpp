@@ -93,9 +93,10 @@ void SLAPrint::Steps::apply_printer_corrections(SLAPrintObject &po, SliceOrigin 
     coord_t clpr_offs = scaled(doffs);
     
     faded_lyrs = std::min(po.m_slice_index.size(), faded_lyrs);
+    size_t faded_lyrs_efc = std::max(size_t(1), faded_lyrs - 1);
     
-    auto efc = [start_efc, faded_lyrs](size_t pos) {
-        return (faded_lyrs - 1 - pos) * start_efc / (faded_lyrs - 1); 
+    auto efc = [start_efc, faded_lyrs_efc](size_t pos) {
+        return (faded_lyrs_efc - pos) * start_efc / faded_lyrs_efc;
     };
 
     std::vector<ExPolygons> &slices = o == soModel ?

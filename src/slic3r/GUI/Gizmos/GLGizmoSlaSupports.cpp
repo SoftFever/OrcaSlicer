@@ -889,16 +889,18 @@ void GLGizmoSlaSupports::on_set_state()
         return;
 
     if (m_state == On && m_old_state != On) { // the gizmo was just turned on
-        // This function can be called from undo/redo, when selection (and hence
-        // common gizmos data are not yet deserialized. The CallAfter should put
-        // this off until after the update is done.
-        wxGetApp().CallAfter([this]() {
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned on")));
+        if (! m_parent.get_gizmos_manager().is_serializing()) {
+            // Only take the snapshot when the USER opens the gizmo. Common gizmos
+            // data are not yet available, the CallAfter will postpone taking the
+            // snapshot until they are. No, it does not feel right.
+            wxGetApp().CallAfter([this]() {
+                Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned on")));
+            });
+        }
 
-            // Set default head diameter from config.
-            const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
-            m_new_point_head_diameter = static_cast<const ConfigOptionFloat*>(cfg.option("support_head_front_diameter"))->value;
-        });
+        // Set default head diameter from config.
+        const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
+        m_new_point_head_diameter = static_cast<const ConfigOptionFloat*>(cfg.option("support_head_front_diameter"))->value;
     }
     if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
         bool will_ask = m_editing_mode && unsaved_changes();

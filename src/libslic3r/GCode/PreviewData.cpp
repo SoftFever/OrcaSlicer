@@ -1,4 +1,3 @@
-#include "Analyzer.hpp"
 #include "PreviewData.hpp"
 #include <I18N.hpp>
 #include "Utils.hpp"

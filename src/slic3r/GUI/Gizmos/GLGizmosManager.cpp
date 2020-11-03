@@ -104,7 +104,7 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoCut(m_parent, "cut.svg", 4));
     m_gizmos.emplace_back(new GLGizmoHollow(m_parent, "hollow.svg", 5));
     m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", 6));
-    m_gizmos.emplace_back(new GLGizmoFdmSupports(m_parent, "sla_supports.svg", 7));
+    m_gizmos.emplace_back(new GLGizmoFdmSupports(m_parent, "fdm_supports.svg", 7));
     m_gizmos.emplace_back(new GLGizmoSeam(m_parent, "seam.svg", 8));
 
     m_common_gizmos_data.reset(new CommonGizmosDataPool(&m_parent));
@@ -437,6 +437,19 @@ void GLGizmosManager::render_current_gizmo() const
     m_gizmos[m_current]->render();
 }
 
+void GLGizmosManager::render_painter_gizmo() const
+{
+    // This function shall only be called when current gizmo is
+    // derived from GLGizmoPainterBase.
+
+    if (!m_enabled || m_current == Undefined)
+        return;
+
+    auto* gizmo = dynamic_cast<GLGizmoPainterBase*>(get_current());
+    assert(gizmo); // check the precondition
+    gizmo->render_painter_gizmo();
+}
+
 void GLGizmosManager::render_current_gizmo_for_picking_pass() const
 {
     if (! m_enabled || m_current == Undefined)
@@ -491,22 +504,22 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
     int selected_object_idx = selection.get_object_idx();
     bool processed = false;
 
+    // when control is down we allow scene pan and rotation even when clicking over some object
+    bool control_down = evt.CmdDown();
+
     // mouse anywhere
     if (evt.Moving())
         m_tooltip = update_hover_state(mouse_pos);
-    else if (evt.LeftUp())
-    {
-        if (m_mouse_capture.left)
-        {
+    else if (evt.LeftUp()) {
+        if (m_mouse_capture.left) {
             processed = true;
             m_mouse_capture.left = false;
         }
-        else if (is_dragging())
-        {
+        else if (is_dragging()) {
             switch (m_current) {
-            case Move: m_parent.do_move(L("Gizmo-Move")); break;
-            case Scale: m_parent.do_scale(L("Gizmo-Scale")); break;
-            case Rotate: m_parent.do_rotate(L("Gizmo-Rotate")); break;
+            case Move:   { m_parent.do_move(L("Gizmo-Move")); break; }
+            case Scale:  { m_parent.do_scale(L("Gizmo-Scale")); break; }
+            case Rotate: { m_parent.do_rotate(L("Gizmo-Rotate")); break; }
             default: break;
             }
 
@@ -525,41 +538,34 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
 //        else
 //            return false;
     }
-    else if (evt.MiddleUp())
-    {
-        if (m_mouse_capture.middle)
-        {
+    else if (evt.MiddleUp()) {
+        if (m_mouse_capture.middle) {
             processed = true;
             m_mouse_capture.middle = false;
         }
         else
             return false;
     }
-    else if (evt.RightUp())
-    {
-        if (pending_right_up)
-        {
+    else if (evt.RightUp()) {
+        if (pending_right_up) {
             pending_right_up = false;
             return true;
         }
-        if (m_mouse_capture.right)
-        {
+        if (m_mouse_capture.right) {
             processed = true;
             m_mouse_capture.right = false;
         }
 //        else
 //            return false;
     }
-    else if (evt.Dragging() && !is_dragging())
-    {
+    else if (evt.Dragging() && !is_dragging()) {
         if (m_mouse_capture.any())
             // if the button down was done on this toolbar, prevent from dragging into the scene
             processed = true;
 //        else
 //            return false;
     }
-    else if (evt.Dragging() && is_dragging())
-    {
+    else if (evt.Dragging() && is_dragging()) {
         if (!m_parent.get_wxglcanvas()->HasCapture())
             m_parent.get_wxglcanvas()->CaptureMouse();
 
@@ -582,7 +588,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             if (evt.AltDown())
                 transformation_type.set_independent();
             selection.scale(get_scale(), transformation_type);
-            if (evt.ControlDown())
+            if (control_down)
                 selection.translate(get_scale_offset(), true);
             wxGetApp().obj_manipul()->set_dirty();
             break;
@@ -605,15 +611,13 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         processed = true;
     }
 
-    if (get_gizmo_idx_from_mouse(mouse_pos) == Undefined)
-    {
+    if (get_gizmo_idx_from_mouse(mouse_pos) == Undefined) {
         // mouse is outside the toolbar
         m_tooltip = "";
 
-        if (evt.LeftDown())
-        {
-            if ((m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports ||m_current == Seam)
-              && gizmo_event(SLAGizmoEventType::LeftDown, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown()))
+        if (evt.LeftDown() && (!control_down || grabber_contains_mouse())) {
+            if ((m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam)
+                && gizmo_event(SLAGizmoEventType::LeftDown, mouse_pos, evt.ShiftDown(), evt.AltDown()))
                 // the gizmo got the event and took some action, there is no need to do anything more
                 processed = true;
             else if (!selection.is_empty() && grabber_contains_mouse()) {
@@ -631,71 +635,67 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
                 processed = true;
             }
         }
-        else if (evt.RightDown() && (selected_object_idx != -1) && (m_current == SlaSupports || m_current == Hollow)
-              && gizmo_event(SLAGizmoEventType::RightDown, mouse_pos))
-        {
+        else if (evt.RightDown() && selected_object_idx != -1 && (m_current == SlaSupports || m_current == Hollow)
+            && gizmo_event(SLAGizmoEventType::RightDown, mouse_pos)) {
             // we need to set the following right up as processed to avoid showing the context menu if the user release the mouse over the object
             pending_right_up = true;
             // event was taken care of by the SlaSupports gizmo
             processed = true;
         }
-        else if (evt.RightDown() && (selected_object_idx != -1) && (m_current == FdmSupports || m_current == Seam)
-              && gizmo_event(SLAGizmoEventType::RightDown, mouse_pos))
-        {
+        else if (evt.RightDown() && !control_down && selected_object_idx != -1 && (m_current == FdmSupports || m_current == Seam)
+            && gizmo_event(SLAGizmoEventType::RightDown, mouse_pos)) {
             // event was taken care of by the FdmSupports / Seam gizmo
             processed = true;
         }
-        else if (evt.Dragging() && (m_parent.get_move_volume_id() != -1)
+        else if (evt.Dragging() && m_parent.get_move_volume_id() != -1
              && (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam))
             // don't allow dragging objects with the Sla gizmo on
             processed = true;
-        else if (evt.Dragging() && (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam )
-              && gizmo_event(SLAGizmoEventType::Dragging, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown()))
-        {
+        else if (evt.Dragging() && !control_down && (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam)
+            && gizmo_event(SLAGizmoEventType::Dragging, mouse_pos, evt.ShiftDown(), evt.AltDown())) {
             // the gizmo got the event and took some action, no need to do anything more here
             m_parent.set_as_dirty();
             processed = true;
         }
-        else if (evt.LeftUp() && (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam) && !m_parent.is_mouse_dragging())
-        {
+        else if (evt.Dragging() && control_down && (evt.LeftIsDown() || evt.RightIsDown())) {
+            // CTRL has been pressed while already dragging -> stop current action
+            if (evt.LeftIsDown())
+                gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), true);
+            else if (evt.RightIsDown())
+                gizmo_event(SLAGizmoEventType::RightUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), true);
+        }
+        else if (evt.LeftUp() && (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam) && !m_parent.is_mouse_dragging()) {
             // in case SLA/FDM gizmo is selected, we just pass the LeftUp event and stop processing - neither
             // object moving or selecting is suppressed in that case
-            gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown());
+            gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), control_down);
             processed = true;
         }
-        else if (evt.LeftUp() && (m_current == Flatten) && (m_gizmos[m_current]->get_hover_id() != -1))
-        {
+        else if (evt.LeftUp() && m_current == Flatten && m_gizmos[m_current]->get_hover_id() != -1) {
             // to avoid to loose the selection when user clicks an the white faces of a different object while the Flatten gizmo is active
             processed = true;
         }
-        else if (evt.RightUp() && (m_current == FdmSupports || m_current == Seam) && !m_parent.is_mouse_dragging())
-        {
-            gizmo_event(SLAGizmoEventType::RightUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown());
+        else if (evt.RightUp() && (m_current == FdmSupports || m_current == Seam) && !m_parent.is_mouse_dragging()) {
+            gizmo_event(SLAGizmoEventType::RightUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), control_down);
             processed = true;
         }
     }
-    else
-    {
+    else {
         // mouse inside toolbar
-        if (evt.LeftDown() || evt.LeftDClick())
-        {
+        if (evt.LeftDown() || evt.LeftDClick()) {
             m_mouse_capture.left = true;
             m_mouse_capture.parent = &m_parent;
             processed = true;
-            if (!selection.is_empty())
-            {
+            if (!selection.is_empty()) {
                 update_on_off_state(mouse_pos);
                 update_data();
                 m_parent.set_as_dirty();
             }
         }
-        else if (evt.MiddleDown())
-        {
+        else if (evt.MiddleDown()) {
             m_mouse_capture.middle = true;
             m_mouse_capture.parent = &m_parent;
         }
-        else if (evt.RightDown())
-        {
+        else if (evt.RightDown()) {
             m_mouse_capture.right = true;
             m_mouse_capture.parent = &m_parent;
         }

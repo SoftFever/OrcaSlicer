@@ -314,6 +314,14 @@ template<class T, class D> struct DataList : public T
 typedef DataList<wxListBox, std::string> StringList;
 typedef DataList<wxCheckListBox, std::string> PresetList;
 
+struct ProfilePrintData
+{
+    std::reference_wrapper<const std::string> name;
+    bool omnipresent;
+    bool checked;
+    ProfilePrintData(const std::string& n, bool o, bool c) : name(n), omnipresent(o), checked(c) {}
+};
+
 struct PageMaterials: ConfigWizardPage
 {
     Materials *materials;
@@ -344,7 +352,7 @@ struct PageMaterials: ConfigWizardPage
     void clear_compatible_printers_label();
 
     void sort_list_data(StringList* list, bool add_All_item, bool material_type_ordering);
-    void sort_list_data(PresetList* list);
+    void sort_list_data(PresetList* list, const std::vector<ProfilePrintData>& data);
 
     void on_paint();
     void on_mouse_move_on_profiles(wxMouseEvent& evt);
@@ -557,6 +565,9 @@ struct ConfigWizard::priv
 
     priv(ConfigWizard *q)
         : q(q)
+#if ENABLE_GCODE_VIEWER
+        , appconfig_new(AppConfig::EAppMode::Editor)
+#endif // ENABLE_GCODE_VIEWER
         , filaments(T_FFF)
         , sla_materials(T_SLA)
     {}

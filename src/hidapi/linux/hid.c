@@ -42,9 +42,15 @@
 #include <linux/hidraw.h>
 #include <linux/version.h>
 #include <linux/input.h>
-#include <libudev.h>
 
 #include "hidapi.h"
+
+// Declare udev structures needed in this module. They are passed by pointers
+// to udev functions and not used directly.
+struct udev_device;
+struct udev_list_entry;
+struct udev_enumerate;
+struct udev;
 
 typedef const char* 			(*hid_wrapper_udev_device_get_devnode_type)(struct udev_device *udev_device);
 typedef struct udev_device* 	(*hid_wrapper_udev_device_get_parent_with_subsystem_devtype_type)(struct udev_device *udev_device, const char *subsystem, const char *devtype);

@@ -8,11 +8,14 @@
 
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "format.hpp"
 #include "GUI_App.hpp"
 #include "Plater.hpp"
 #include "Tab.hpp"
 #include "ExtraRenderers.hpp"
 #include "wxExtensions.hpp"
+#include "SavePresetDialog.hpp"
+#include "MainFrame.hpp"
 
 //#define FTS_FUZZY_MATCH_IMPLEMENTATION
 //#include "fts_fuzzy_match.h"
@@ -37,6 +40,10 @@ static const std::map<Preset::Type, std::string> type_icon_names = {
     {Preset::TYPE_PRINTER,      "printer"       },
 };
 
+static std::string get_icon_name(Preset::Type type, PrinterTechnology pt) {
+    return pt == ptSLA && type == Preset::TYPE_PRINTER ? "sla_printer" : type_icon_names.at(type);
+}
+
 static std::string black    = "#000000";
 static std::string grey     = "#808080";
 static std::string orange   = "#ed6b21";
@@ -56,17 +63,17 @@ static void make_string_bold(wxString& str)
 }
 
 // preset(root) node
-ModelNode::ModelNode(Preset::Type preset_type, const wxString& text, wxWindow* parent_win) :
+ModelNode::ModelNode(Preset::Type preset_type, wxWindow* parent_win, const wxString& text, const std::string& icon_name) :
     m_parent_win(parent_win),
     m_parent(nullptr),
     m_preset_type(preset_type),
-    m_icon_name(type_icon_names.at(preset_type)),
+    m_icon_name(icon_name),
     m_text(text)
 {
     UpdateIcons();
 }
 
-// group node
+// category node
 ModelNode::ModelNode(ModelNode* parent, const wxString& text, const std::string& icon_name) :
     m_parent_win(parent->m_parent_win),
     m_parent(parent),
@@ -76,12 +83,14 @@ ModelNode::ModelNode(ModelNode* parent, const wxString& text, const std::string&
     UpdateIcons();
 }
 
-// category node
+// group node
 ModelNode::ModelNode(ModelNode* parent, const wxString& text) :
     m_parent_win(parent->m_parent_win),
     m_parent(parent),
-    m_text(text)
+    m_text(text),
+    m_icon_name("dot_small")
 {
+    UpdateIcons();
 }
 
 #ifdef __linux__
@@ -118,6 +127,7 @@ ModelNode::ModelNode(ModelNode* parent, const wxString& text, const wxString& ol
     m_new_color(new_value.StartsWith("#") ? new_value : ""),
     m_container(false),
     m_text(text),
+    m_icon_name("empty"),
     m_old_value(old_value),
     m_new_value(new_value)
 {
@@ -143,6 +153,8 @@ ModelNode::ModelNode(ModelNode* parent, const wxString& text, const wxString& ol
     // "color" strings
     color_string(m_old_value, black);
     color_string(m_new_value, orange);
+
+    UpdateIcons();
 }
 
 void ModelNode::UpdateEnabling()
@@ -205,13 +217,13 @@ UnsavedChangesModel::~UnsavedChangesModel()
         delete preset_node;
 }
 
-wxDataViewItem UnsavedChangesModel::AddPreset(Preset::Type type, wxString preset_name)
+wxDataViewItem UnsavedChangesModel::AddPreset(Preset::Type type, wxString preset_name, PrinterTechnology pt)
 {
     // "color" strings
     color_string(preset_name, black);
     make_string_bold(preset_name);
 
-    auto preset = new ModelNode(type, preset_name, m_parent_win);
+    auto preset = new ModelNode(type, m_parent_win, preset_name, get_icon_name(type, pt));
     m_preset_nodes.emplace_back(preset);
 
     wxDataViewItem child((void*)preset);
@@ -223,8 +235,8 @@ wxDataViewItem UnsavedChangesModel::AddPreset(Preset::Type type, wxString preset
 
 ModelNode* UnsavedChangesModel::AddOption(ModelNode* group_node, wxString option_name, wxString old_value, wxString new_value)
 {
-    ModelNode* option = new ModelNode(group_node, option_name, old_value, new_value);
-    group_node->Append(option);
+    group_node->Append(std::make_unique<ModelNode>(group_node, option_name, old_value, new_value));
+    ModelNode* option = group_node->GetChildren().back().get();
     wxDataViewItem group_item = wxDataViewItem((void*)group_node);
     ItemAdded(group_item, wxDataViewItem((void*)option));
 
@@ -234,24 +246,25 @@ ModelNode* UnsavedChangesModel::AddOption(ModelNode* group_node, wxString option
 
 ModelNode* UnsavedChangesModel::AddOptionWithGroup(ModelNode* category_node, wxString group_name, wxString option_name, wxString old_value, wxString new_value)
 {
-    ModelNode* group_node = new ModelNode(category_node, group_name);
-    category_node->Append(group_node);
+    category_node->Append(std::make_unique<ModelNode>(category_node, group_name));
+    ModelNode* group_node = category_node->GetChildren().back().get();
     ItemAdded(wxDataViewItem((void*)category_node), wxDataViewItem((void*)group_node));
 
     return AddOption(group_node, option_name, old_value, new_value);
 }
 
-ModelNode* UnsavedChangesModel::AddOptionWithGroupAndCategory(ModelNode* preset_node, wxString category_name, wxString group_name, wxString option_name, wxString old_value, wxString new_value)
+ModelNode* UnsavedChangesModel::AddOptionWithGroupAndCategory(ModelNode* preset_node, wxString category_name, wxString group_name, 
+                                            wxString option_name, wxString old_value, wxString new_value, const std::string category_icon_name)
 {
-    ModelNode* category_node = new ModelNode(preset_node, category_name, "cog");
-    preset_node->Append(category_node);
+    preset_node->Append(std::make_unique<ModelNode>(preset_node, category_name, category_icon_name));
+    ModelNode* category_node = preset_node->GetChildren().back().get();
     ItemAdded(wxDataViewItem((void*)preset_node), wxDataViewItem((void*)category_node));
 
     return AddOptionWithGroup(category_node, group_name, option_name, old_value, new_value);
 }
 
 wxDataViewItem UnsavedChangesModel::AddOption(Preset::Type type, wxString category_name, wxString group_name, wxString option_name,
-                                              wxString old_value, wxString new_value)
+                                              wxString old_value, wxString new_value, const std::string category_icon_name)
 {
     // "color" strings
     color_string(category_name, black);
@@ -266,17 +279,17 @@ wxDataViewItem UnsavedChangesModel::AddOption(Preset::Type type, wxString catego
     for (ModelNode* preset : m_preset_nodes)
         if (preset->type() == type)
         {
-            for (ModelNode* category : preset->GetChildren())
+            for (std::unique_ptr<ModelNode> &category : preset->GetChildren())
                 if (category->text() == category_name)
                 {
-                    for (ModelNode* group : category->GetChildren())
+                    for (std::unique_ptr<ModelNode> &group : category->GetChildren())
                         if (group->text() == group_name)
-                            return wxDataViewItem((void*)AddOption(group, option_name, old_value, new_value));
+                            return wxDataViewItem((void*)AddOption(group.get(), option_name, old_value, new_value));
                     
-                    return wxDataViewItem((void*)AddOptionWithGroup(category, group_name, option_name, old_value, new_value));
+                    return wxDataViewItem((void*)AddOptionWithGroup(category.get(), group_name, option_name, old_value, new_value));
                 }
 
-            return wxDataViewItem((void*)AddOptionWithGroupAndCategory(preset, category_name, group_name, option_name, old_value, new_value));
+            return wxDataViewItem((void*)AddOptionWithGroupAndCategory(preset, category_name, group_name, option_name, old_value, new_value, category_icon_name));
         }
 
     return wxDataViewItem(nullptr);    
@@ -286,10 +299,10 @@ static void update_children(ModelNode* parent)
 {
     if (parent->IsContainer()) {
         bool toggle = parent->IsToggled();
-        for (ModelNode* child : parent->GetChildren()) {
+        for (std::unique_ptr<ModelNode> &child : parent->GetChildren()) {
             child->Toggle(toggle);
             child->UpdateEnabling();
-            update_children(child);
+            update_children(child.get());
         }
     }
 }
@@ -299,7 +312,7 @@ static void update_parents(ModelNode* node)
     ModelNode* parent = node->GetParent();
     if (parent) {
         bool toggle = false;
-        for (ModelNode* child : parent->GetChildren()) {
+        for (std::unique_ptr<ModelNode> &child : parent->GetChildren()) {
             if (child->IsToggled()) {
                 toggle = true;
                 break;
@@ -464,16 +477,10 @@ unsigned int UnsavedChangesModel::GetChildren(const wxDataViewItem& parent, wxDa
         return m_preset_nodes.size();
     }
 
-    if (node->GetChildCount() == 0)
-        return 0;
+    for (std::unique_ptr<ModelNode> &child : node->GetChildren())
+        array.Add(wxDataViewItem((void*)child.get()));
 
-    unsigned int count = node->GetChildren().GetCount();
-    for (unsigned int pos = 0; pos < count; pos++) {
-        ModelNode* child = node->GetChildren().Item(pos);
-        array.Add(wxDataViewItem((void*)child));
-    }
-
-    return count;
+    return node->GetChildCount();
 }
 
 
@@ -494,9 +501,9 @@ wxString UnsavedChangesModel::GetColumnType(unsigned int col) const
 static void rescale_children(ModelNode* parent)
 {
     if (parent->IsContainer()) {
-        for (ModelNode* child : parent->GetChildren()) {
+        for (std::unique_ptr<ModelNode> &child : parent->GetChildren()) {
             child->UpdateIcons();
-            rescale_children(child);
+            rescale_children(child.get());
         }
     }
 }
@@ -515,15 +522,45 @@ void UnsavedChangesModel::Rescale()
 //------------------------------------------
 
 UnsavedChangesDialog::UnsavedChangesDialog(const wxString& header)
-    : DPIDialog(nullptr, wxID_ANY, _L("Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog(nullptr, wxID_ANY, _L("Closing PrusaSlicer: Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
+    m_app_config_key = "default_action_on_close_application";
+
     build(Preset::TYPE_INVALID, nullptr, "", header);
+
+    const std::string& def_action = wxGetApp().app_config->get(m_app_config_key);
+    if (def_action == "none")
+        this->CenterOnScreen();
+    else {
+        m_exit_action = def_action == ActSave ? Action::Save : Action::Discard;
+        if (m_exit_action == Action::Save)
+            save(nullptr);
+    }
 }
 
 UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset)
-    : DPIDialog(nullptr, wxID_ANY, _L("Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog(nullptr, wxID_ANY, _L("Switching Presets: Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
+    m_app_config_key = "default_action_on_select_preset";
+
     build(type, dependent_presets, new_selected_preset);
+
+    const std::string& def_action = wxGetApp().app_config->get(m_app_config_key);
+    if (def_action == "none") {
+        if (wxGetApp().mainframe->is_dlg_layout() && wxGetApp().mainframe->m_settings_dialog.HasFocus())
+            this->SetPosition(wxGetApp().mainframe->m_settings_dialog.GetPosition());
+        this->CenterOnScreen();
+    }
+    else {
+        m_exit_action = def_action == ActTransfer   ? Action::Transfer  :
+                        def_action == ActSave       ? Action::Save      : Action::Discard;
+        const PresetCollection& printers = wxGetApp().preset_bundle->printers;
+        if (m_exit_action == Action::Save || 
+            (m_exit_action == Action::Transfer && dependent_presets && (type == dependent_presets->type() ?
+            dependent_presets->get_edited_preset().printer_technology() != dependent_presets->find_preset(new_selected_preset)->printer_technology() :
+            printers.get_edited_preset().printer_technology() != printers.find_preset(new_selected_preset)->printer_technology())) )
+            save(dependent_presets);
+    }
 }
 
 void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset, const wxString& header)
@@ -544,7 +581,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
     m_action_line = new wxStaticText(this, wxID_ANY, "");
     m_action_line->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold());
 
-    m_tree       = new wxDataViewCtrl(this, wxID_ANY, wxDefaultPosition, wxSize(em * 80, em * 30), wxBORDER_SIMPLE | wxDV_VARIABLE_LINE_HEIGHT | wxDV_ROW_LINES);
+    m_tree       = new wxDataViewCtrl(this, wxID_ANY, wxDefaultPosition, wxSize(em * 60, em * 30), wxBORDER_SIMPLE | wxDV_VARIABLE_LINE_HEIGHT | wxDV_ROW_LINES);
     m_tree_model = new UnsavedChangesModel(this);
     m_tree->AssociateModel(m_tree_model);
     m_tree_model->SetAssociatedControl(m_tree);
@@ -560,54 +597,86 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
 #endif
         wxDataViewColumn* column = new wxDataViewColumn(label, rd, model_column, width, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_CELL_INERT);
 #else
-        wxDataViewColumn* column = new wxDataViewColumn(label, new BitmapTextRenderer(true), model_column, width, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE);
+        wxDataViewColumn* column = new wxDataViewColumn(label, new BitmapTextRenderer(true, wxDATAVIEW_CELL_INERT), model_column, width, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE);
 #endif //__linux__
         m_tree->AppendColumn(column);
         if (set_expander)
             m_tree->SetExpanderColumn(column);
     };
 
-    append_bmp_text_column("",              UnsavedChangesModel::colIconText, 30 * em);
-    append_bmp_text_column(_L("Old Value"), UnsavedChangesModel::colOldValue, 20 * em);
-    append_bmp_text_column(_L("New Value"), UnsavedChangesModel::colNewValue, 20 * em);
+    append_bmp_text_column(""             , UnsavedChangesModel::colIconText, 28 * em);
+    append_bmp_text_column(_L("Old Value"), UnsavedChangesModel::colOldValue, 12 * em);
+    append_bmp_text_column(_L("New Value"), UnsavedChangesModel::colNewValue, 12 * em);
 
     m_tree->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, &UnsavedChangesDialog::item_value_changed, this);
     m_tree->Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU,  &UnsavedChangesDialog::context_menu, this);
 
     // Add Buttons 
-    wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxCANCEL);
+    wxFont      btn_font = this->GetFont().Scaled(1.4f);
+    wxBoxSizer* buttons  = new wxBoxSizer(wxHORIZONTAL);
 
-    auto add_btn = [this, buttons](ScalableButton** btn, int& btn_id, const std::string& icon_name, Action close_act, int idx, bool process_enable = true)
+    auto add_btn = [this, buttons, btn_font, dependent_presets](ScalableButton** btn, int& btn_id, const std::string& icon_name, Action close_act, const wxString& label, bool process_enable = true)
     {
-        *btn = new ScalableButton(this, btn_id = NewControlId(), icon_name, "", wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true);
-        buttons->Insert(idx, *btn, 0, wxLEFT, 5);
+        *btn = new ScalableButton(this, btn_id = NewControlId(), icon_name, label, wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true, 24);
 
-        (*btn)->Bind(wxEVT_BUTTON, [this, close_act](wxEvent&) { close(close_act); });
+        buttons->Add(*btn, 1, wxLEFT, 5);
+        (*btn)->SetFont(btn_font);
+
+        (*btn)->Bind(wxEVT_BUTTON, [this, close_act, dependent_presets](wxEvent&) {
+            update_config(close_act);
+            if (close_act == Action::Save && !save(dependent_presets))
+                return;
+            close(close_act);
+        });
         if (process_enable)
             (*btn)->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(!m_empty_selection); });
         (*btn)->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) { show_info_line(Action::Undef); e.Skip(); });
     };
 
-    int btn_idx = 0;
-    add_btn(&m_save_btn, m_save_btn_id, "save", Action::Save, btn_idx++);
-
     const PresetCollection& printers = wxGetApp().preset_bundle->printers;
-    if (dependent_presets && (type == dependent_presets->type() ? 
-        dependent_presets->get_edited_preset().printer_technology() == dependent_presets->find_preset(new_selected_preset)->printer_technology() : 
-        printers.get_edited_preset().printer_technology() == printers.find_preset(new_selected_preset)->printer_technology() ) )
-        add_btn(&m_move_btn, m_move_btn_id, "paste_menu", Action::Move, btn_idx++);
-    add_btn(&m_continue_btn, m_continue_btn_id, "cross", Action::Continue, btn_idx, false);
+    if (dependent_presets && (type == dependent_presets->type() ?
+        dependent_presets->get_edited_preset().printer_technology() == dependent_presets->find_preset(new_selected_preset)->printer_technology() :
+        printers.get_edited_preset().printer_technology() == printers.find_preset(new_selected_preset)->printer_technology()))
+        add_btn(&m_transfer_btn, m_move_btn_id, "paste_menu", Action::Transfer, _L("Transfer"));
+    add_btn(&m_discard_btn, m_continue_btn_id, dependent_presets ? "switch_presets" : "exit", Action::Discard, _L("Discard"), false);
+    add_btn(&m_save_btn, m_save_btn_id, "save", Action::Save, _L("Save"));
+
+    ScalableButton* cancel_btn = new ScalableButton(this, wxID_CANCEL, "cross", _L("Cancel"), wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true, 24);
+    buttons->Add(cancel_btn, 1, wxLEFT|wxRIGHT, 5);
+    cancel_btn->SetFont(btn_font);
+    cancel_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { this->EndModal(wxID_CANCEL); });
 
     m_info_line = new wxStaticText(this, wxID_ANY, "");
     m_info_line->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold());
     m_info_line->Hide();
+
+    m_remember_choice = new wxCheckBox(this, wxID_ANY, _L("Remember my choice"));
+    m_remember_choice->SetValue(wxGetApp().app_config->get(m_app_config_key) != "none");
+    m_remember_choice->Bind(wxEVT_CHECKBOX, [type, this](wxCommandEvent& evt)
+    {
+        if (!evt.IsChecked())
+            return;
+        wxString preferences_item = type == Preset::TYPE_INVALID ? _L("Ask for unsaved changes when closing application") : 
+                                                                   _L("Ask for unsaved changes when selecting new preset");
+        wxString msg =
+            _L("PrusaSlicer will remember your action.") + "\n\n" +
+            (type == Preset::TYPE_INVALID ?
+                _L("You will not be asked about the unsaved changes the next time you close PrusaSlicer.") :
+                _L("You will not be asked about the unsaved changes the next time you switch a preset.")) + "\n\n" +
+                format_wxstr(_L("Visit \"Preferences\" and check \"%1%\"\nto be asked about unsaved changes again."), preferences_item);
+    
+        wxMessageDialog dialog(nullptr, msg, _L("PrusaSlicer: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
+        if (dialog.ShowModal() == wxID_CANCEL)
+            m_remember_choice->SetValue(false);
+    });
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
     topSizer->Add(m_action_line,0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
     topSizer->Add(m_tree,       1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
     topSizer->Add(m_info_line,  0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, 2*border);
-    topSizer->Add(buttons,      0, wxEXPAND | wxALL, border);
+    topSizer->Add(buttons,      0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
+    topSizer->Add(m_remember_choice, 0, wxEXPAND | wxALL, border);
 
     update(type, dependent_presets, new_selected_preset, header);
 
@@ -658,38 +727,102 @@ void UnsavedChangesDialog::context_menu(wxDataViewEvent& event)
 
 void UnsavedChangesDialog::show_info_line(Action action, std::string preset_name)
 {
-    if (m_motion_action == action)
-        return;
     if (action == Action::Undef && !m_has_long_strings)
         m_info_line->Hide();
     else {
         wxString text;
         if (action == Action::Undef)
-            text = _L("Some fields are too long to fit. Right click on it to show full text.");
-        else if (action == Action::Continue)
-            text = _L("All changed options will be reverted.");
+            text = _L("Some fields are too long to fit. Right mouse click reveals the full text.");
+        else if (action == Action::Discard)
+            text = _L("All modified options will be reverted.");
         else {
-            std::string act_string = action == Action::Save ? _u8L("save") : _u8L("move");
             if (preset_name.empty())
-                text = from_u8((boost::format("Press to %1% selected options.") % act_string).str());
+                text = action == Action::Save ? _L("Save the selected options.") : _L("Transfer the selected options to the newly selected presets.");
             else
-                text = from_u8((boost::format("Press to %1% selected options to the preset \"%2%\".") % act_string % preset_name).str());
-            text += "\n" + _L("Unselected options will be reverted.");
+                text = format_wxstr(
+                    action == Action::Save ?
+                        _L("Save the selected options to preset \"%1%\".") :
+                        _L("Transfer the selected options to the newly selected preset \"%1%\"."),
+                    preset_name);
+            //text += "\n" + _L("Unselected options will be reverted.");
         }
         m_info_line->SetLabel(text);
         m_info_line->Show();
     }
 
-    m_motion_action = action;
-
     Layout();
     Refresh();
+}
+
+void UnsavedChangesDialog::update_config(Action action)
+{
+    if (!m_remember_choice->GetValue())
+        return;
+
+    std::string act = action == Action::Transfer ? ActTransfer :
+                      action == Action::Discard  ? ActDiscard   : ActSave;
+    wxGetApp().app_config->set(m_app_config_key, act);
 }
 
 void UnsavedChangesDialog::close(Action action)
 {
     m_exit_action = action;
     this->EndModal(wxID_CLOSE);
+}
+
+bool UnsavedChangesDialog::save(PresetCollection* dependent_presets)
+{
+    names_and_types.clear();
+
+    // save one preset
+    if (dependent_presets) {
+        const Preset& preset = dependent_presets->get_edited_preset();
+        std::string name = preset.name;
+
+        // for system/default/external presets we should take an edited name
+        if (preset.is_system || preset.is_default || preset.is_external) {
+            SavePresetDialog save_dlg(preset.type);
+            if (save_dlg.ShowModal() != wxID_OK) {
+                m_exit_action = Action::Discard;
+                return false;
+            }
+            name = save_dlg.get_name();
+        }
+
+        names_and_types.emplace_back(make_pair(name, preset.type));
+    }
+    // save all presets 
+    else
+    {
+        std::vector<Preset::Type> types_for_save;
+
+        PrinterTechnology printer_technology = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
+
+        for (Tab* tab : wxGetApp().tabs_list)
+            if (tab->supports_printer_technology(printer_technology) && tab->current_preset_is_dirty()) {
+                const Preset& preset = tab->get_presets()->get_edited_preset();
+                if (preset.is_system || preset.is_default || preset.is_external)
+                    types_for_save.emplace_back(preset.type);
+
+                names_and_types.emplace_back(make_pair(preset.name, preset.type));
+            }
+
+
+        if (!types_for_save.empty()) {
+            SavePresetDialog save_dlg(types_for_save);
+            if (save_dlg.ShowModal() != wxID_OK) {
+                m_exit_action = Action::Discard;
+                return false;
+            }
+
+            for (std::pair<std::string, Preset::Type>& nt : names_and_types) {
+                const std::string& name = save_dlg.get_name(nt.second);
+                if (!name.empty())
+                    nt.first = name;
+            }
+        }
+    }
+    return true;
 }
 
 template<class T>
@@ -809,6 +942,8 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
             return get_string_from_enum<InfillPattern>(opt_key, config, true);
         if (opt_key == "gcode_flavor")
             return get_string_from_enum<GCodeFlavor>(opt_key, config);
+        if (opt_key == "machine_limits_usage")
+            return get_string_from_enum<MachineLimitsUsage>(opt_key, config);
         if (opt_key == "ironing_type")
             return get_string_from_enum<IroningType>(opt_key, config);
         if (opt_key == "support_material_pattern")
@@ -858,37 +993,28 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
 
     // activate buttons and labels
     m_save_btn      ->Bind(wxEVT_ENTER_WINDOW, [this, presets]              (wxMouseEvent& e) { show_info_line(Action::Save, presets ? presets->get_selected_preset().name : ""); e.Skip(); });
-    if (m_move_btn) {
+    if (m_transfer_btn) {
         bool is_empty_name = type != dependent_presets->type();
-        m_move_btn  ->Bind(wxEVT_ENTER_WINDOW, [this, new_selected_preset, is_empty_name]  (wxMouseEvent& e) { show_info_line(Action::Move, is_empty_name ? "" : new_selected_preset); e.Skip(); });
+        m_transfer_btn  ->Bind(wxEVT_ENTER_WINDOW, [this, new_selected_preset, is_empty_name]  (wxMouseEvent& e) { show_info_line(Action::Transfer, is_empty_name ? "" : new_selected_preset); e.Skip(); });
     }
-    m_continue_btn  ->Bind(wxEVT_ENTER_WINDOW, [this]                       (wxMouseEvent& e) { show_info_line(Action::Continue); e.Skip(); });
+    m_discard_btn  ->Bind(wxEVT_ENTER_WINDOW, [this]                       (wxMouseEvent& e) { show_info_line(Action::Discard); e.Skip(); });
 
-    m_continue_btn->SetLabel(_L("Continue without changes"));
 
     if (type == Preset::TYPE_INVALID) {
-        m_action_line   ->SetLabel(header + "\n" + _L("Next presets have the following unsaved changes:"));
-        m_save_btn      ->SetLabel(_L("Save selected"));
+        m_action_line->SetLabel(header + "\n" + _L("The following presets were modified:"));
     }
     else {
         wxString action_msg;
         if (type == dependent_presets->type()) {
-            action_msg = _L("has the following unsaved changes:");
-            if (m_move_btn)
-                m_move_btn->SetLabel(from_u8((boost::format(_u8L("Move selected to preset: %1%")) % ("\"" + new_selected_preset + "\"")).str()));
+            action_msg = format_wxstr(_L("Preset \"%1%\" has the following unsaved changes:"), presets->get_edited_preset().name);
         }
         else {
-            action_msg = type == Preset::TYPE_PRINTER ?
-                        _L("is not compatible with printer") :
-                        _L("is not compatible with print profile");
-            action_msg += " \"" + from_u8(new_selected_preset) + "\"\n";
-            action_msg += _L("and it has the following unsaved changes:");
-
-            if (m_move_btn)
-                m_move_btn->SetLabel(_L("Move selected to the first compatible preset"));
+            action_msg = format_wxstr(type == Preset::TYPE_PRINTER ?
+                _L("Preset \"%1%\" is not compatible with the new printer profile and it has the following unsaved changes:") :
+                _L("Preset \"%1%\" is not compatible with the new print profile and it has the following unsaved changes:"),
+                presets->get_edited_preset().name);
         }
-        m_action_line->SetLabel(from_u8((boost::format(_utf8(L("Preset \"%1%\" %2%"))) % _utf8(presets->get_edited_preset().name) % action_msg).str()));
-        m_save_btn->SetLabel(from_u8((boost::format(_u8L("Save selected to preset: %1%")) % ("\"" + presets->get_selected_preset().name + "\"")).str()));
+        m_action_line->SetLabel(action_msg);
     }
 
     update_tree(type, presets);
@@ -916,10 +1042,13 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
     for (PresetCollection* presets : presets_list)
     {
         const DynamicPrintConfig& old_config = presets->get_selected_preset().config;
+        const PrinterTechnology&  old_pt     = presets->get_selected_preset().printer_technology();
         const DynamicPrintConfig& new_config = presets->get_edited_preset().config;
         type = presets->type();
 
-        m_tree_model->AddPreset(type, from_u8(presets->get_edited_preset().name));
+        const std::map<wxString, std::string>& category_icon_map = wxGetApp().get_tab(type)->get_category_icon_map();
+
+        m_tree_model->AddPreset(type, from_u8(presets->get_edited_preset().name), old_pt);
 
         // Collect dirty options.
         const bool deep_compare = (type == Preset::TYPE_PRINTER || type == Preset::TYPE_SLA_MATERIAL);
@@ -927,14 +1056,14 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
         auto dirty_options_ = presets->current_dirty_options();
 
         // process changes of extruders count
-        if (type == Preset::TYPE_PRINTER &&
+        if (type == Preset::TYPE_PRINTER && old_pt == ptFFF &&
             old_config.opt<ConfigOptionStrings>("extruder_colour")->values.size() != new_config.opt<ConfigOptionStrings>("extruder_colour")->values.size()) {
             wxString local_label = _L("Extruders count");
             wxString old_val = from_u8((boost::format("%1%") % old_config.opt<ConfigOptionStrings>("extruder_colour")->values.size()).str());
             wxString new_val = from_u8((boost::format("%1%") % new_config.opt<ConfigOptionStrings>("extruder_colour")->values.size()).str());
 
             ItemData item_data = { "extruders_count", local_label, old_val, new_val, type };
-            m_items_map.emplace(m_tree_model->AddOption(type, _L("General"), _L("Capabilities"), local_label, old_val, new_val), item_data);
+            m_items_map.emplace(m_tree_model->AddOption(type, _L("General"), _L("Capabilities"), local_label, old_val, new_val, category_icon_map.at("General")), item_data);
 
         }
 
@@ -948,7 +1077,7 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
             if (old_val != item_data.old_val || new_val != item_data.new_val)
                 item_data.is_long = true;
 
-            m_items_map.emplace(m_tree_model->AddOption(type, option.category_local, option.group_local, option.label_local, old_val, new_val), item_data);
+            m_items_map.emplace(m_tree_model->AddOption(type, option.category_local, option.group_local, option.label_local, old_val, new_val, category_icon_map.at(option.category)), item_data);
         }
     }
 }
@@ -983,8 +1112,8 @@ void UnsavedChangesDialog::on_dpi_changed(const wxRect& suggested_rect)
     int em = em_unit();
 
     msw_buttons_rescale(this, em, { wxID_CANCEL, m_save_btn_id, m_move_btn_id, m_continue_btn_id });
-    for (auto btn : { m_save_btn, m_move_btn, m_continue_btn } )
-        btn->msw_rescale();
+    for (auto btn : { m_save_btn, m_transfer_btn, m_discard_btn } )
+        if (btn) btn->msw_rescale();
 
     const wxSize& size = wxSize(80 * em, 30 * em);
     SetMinSize(size);
@@ -1003,7 +1132,7 @@ void UnsavedChangesDialog::on_dpi_changed(const wxRect& suggested_rect)
 
 void UnsavedChangesDialog::on_sys_color_changed()
 {
-    for (auto btn : { m_save_btn, m_move_btn, m_continue_btn } )
+    for (auto btn : { m_save_btn, m_transfer_btn, m_discard_btn } )
         btn->msw_rescale();
     // msw_rescale updates just icons, so use it
     m_tree_model->Rescale();

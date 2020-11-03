@@ -1899,9 +1899,9 @@ namespace Slic3r {
                 assert(index < geometry.custom_supports.size());
                 assert(index < geometry.custom_seam.size());
                 if (! geometry.custom_supports[index].empty())
-                    volume->m_supported_facets.set_triangle_from_string(i, geometry.custom_supports[index]);
+                    volume->supported_facets.set_triangle_from_string(i, geometry.custom_supports[index]);
                 if (! geometry.custom_seam[index].empty())
-                    volume->m_seam_facets.set_triangle_from_string(i, geometry.custom_seam[index]);
+                    volume->seam_facets.set_triangle_from_string(i, geometry.custom_seam[index]);
             }
 
 
@@ -2417,11 +2417,11 @@ namespace Slic3r {
                     stream << "v" << j + 1 << "=\"" << its.indices[i][j] + volume_it->second.first_vertex_id << "\" ";
                 }
 
-                std::string custom_supports_data_string = volume->m_supported_facets.get_triangle_as_string(i);
+                std::string custom_supports_data_string = volume->supported_facets.get_triangle_as_string(i);
                 if (! custom_supports_data_string.empty())
                     stream << CUSTOM_SUPPORTS_ATTR << "=\"" << custom_supports_data_string << "\" ";
 
-                std::string custom_seam_data_string = volume->m_seam_facets.get_triangle_as_string(i);
+                std::string custom_seam_data_string = volume->seam_facets.get_triangle_as_string(i);
                 if (! custom_seam_data_string.empty())
                     stream << CUSTOM_SEAM_ATTR << "=\"" << custom_seam_data_string << "\" ";
 

@@ -24,6 +24,7 @@ class wxNotebook;
 struct wxLanguageInfo;
 
 namespace Slic3r {
+
 class AppConfig;
 class PresetBundle;
 class PresetUpdater;
@@ -32,6 +33,7 @@ class PrintHostJobQueue;
 class Model;
 
 namespace GUI{
+
 class RemovableDriveManager;
 class OtherInstanceMessageHandler;
 class MainFrame;
@@ -41,6 +43,7 @@ class ObjectSettings;
 class ObjectList;
 class ObjectLayers;
 class Plater;
+struct GUI_InitParams;
 
 
 
@@ -106,9 +109,10 @@ private:
 #endif // ENABLE_GCODE_VIEWER
 
     bool            m_initialized { false };
-    bool            app_conf_exists{ false };
+    bool            m_app_conf_exists{ false };
 #if ENABLE_GCODE_VIEWER
     EAppMode        m_app_mode{ EAppMode::Editor };
+    bool            m_is_recreating_gui{ false };
 #endif // ENABLE_GCODE_VIEWER
 
     wxColour        m_color_label_modified;
@@ -118,8 +122,9 @@ private:
     wxFont		    m_small_font;
     wxFont		    m_bold_font;
 	wxFont			m_normal_font;
+	wxFont			m_code_font;
 
-    int          m_em_unit; // width of a "m"-symbol in pixels for current system font
+    int             m_em_unit; // width of a "m"-symbol in pixels for current system font
                                // Note: for 100% Scale m_em_unit = 10 -> it's a good enough coefficient for a size setting of controls
 
     std::unique_ptr<wxLocale> 	  m_wxLocale;
@@ -155,11 +160,16 @@ public:
     EAppMode get_app_mode() const { return m_app_mode; }
     bool is_editor() const { return m_app_mode == EAppMode::Editor; }
     bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
+    bool is_recreating_gui() const { return m_is_recreating_gui; }
 #endif // ENABLE_GCODE_VIEWER
 
+    // To be called after the GUI is fully built up.
+    // Process command line parameters cached in this->init_params,
+    // load configs, STLs etc.
+    void            post_init();
     static std::string get_gl_info(bool format_as_html, bool extensions);
-    wxGLContext* init_glcontext(wxGLCanvas& canvas);
-    bool init_opengl();
+    wxGLContext*    init_glcontext(wxGLCanvas& canvas);
+    bool            init_opengl();
 
     static unsigned get_colour_approx_luma(const wxColour &colour);
     static bool     dark_mode();
@@ -177,6 +187,7 @@ public:
     const wxFont&   small_font()            { return m_small_font; }
     const wxFont&   bold_font()             { return m_bold_font; }
     const wxFont&   normal_font()           { return m_normal_font; }
+    const wxFont&   code_font()             { return m_code_font; }
     int             em_unit() const         { return m_em_unit; }
     wxSize          get_min_size() const;
     float           toolbar_icon_scale(const bool is_limited = false) const;
@@ -195,7 +206,7 @@ public:
     static bool     catch_error(std::function<void()> cb, const std::string& err);
 
     void            persist_window_geometry(wxTopLevelWindow *window, bool default_maximized = false);
-    void            update_ui_from_settings();
+    void            update_ui_from_settings(bool apply_free_camera_correction = true);
 
     bool            switch_language();
     bool            load_language(wxString language, bool initial);
@@ -218,6 +229,7 @@ public:
     virtual bool OnExceptionInMainLoop() override;
 
 #ifdef __APPLE__
+    void            OSXStoreOpenFiles(const wxArrayString &files) override;
     // wxWidgets override to get an event on open files.
     void            MacOpenFiles(const wxArrayString &fileNames) override;
 #endif /* __APPLE */
@@ -230,6 +242,9 @@ public:
     Plater*             plater();
     Model&      		model();
 
+
+    // Parameters extracted from the command line to be passed to GUI after initialization.
+    const GUI_InitParams* init_params { nullptr };
 
     AppConfig*      app_config{ nullptr };
     PresetBundle*   preset_bundle{ nullptr };
@@ -285,6 +300,7 @@ private:
 
 #ifdef __WXMSW__
     void            associate_3mf_files();
+    void            associate_gcode_files();
 #endif // __WXMSW__
 };
 DECLARE_APP(GUI_App)

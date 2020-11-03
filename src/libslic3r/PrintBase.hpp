@@ -348,6 +348,8 @@ public:
     // The Print is empty either after clear() or after apply() over an empty model,
     // or after apply() over a model, where no object is printable (all outside the print volume).
     virtual bool            empty() const = 0;
+    // List of existing PrintObject IDs, to remove notifications for non-existent IDs.
+    virtual std::vector<ObjectID> print_object_ids() const = 0;
 
     // Validate the print, return empty string if valid, return error if process() cannot (or should not) be started.
     virtual std::string     validate() const { return std::string(); }
@@ -406,7 +408,7 @@ public:
         // set to an ObjectID of a Print or a PrintObject based on flags
         // (whether UPDATE_PRINT_STEP_WARNINGS or UPDATE_PRINT_OBJECT_STEP_WARNINGS is set).
         ObjectID        warning_object_id;
-        // For which Print or PrintObject step a new warning is beeing issued?
+        // For which Print or PrintObject step a new warning is being issued?
         int             warning_step { -1 };
     };
     typedef std::function<void(const SlicingStatus&)>  status_callback_type;

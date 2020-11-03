@@ -28,18 +28,20 @@ namespace GUI {
 
 static const char *CONFIG_KEY_PATH  = "printhost_path";
 static const char *CONFIG_KEY_PRINT = "printhost_print";
+static const char *CONFIG_KEY_GROUP = "printhost_group";
 
-PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, bool can_start_print)
-    : MsgDialog(nullptr, _(L("Send G-Code to printer host")), _(L("Upload to Printer Host with the following filename:")), wxID_NONE)
+PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, bool can_start_print, const wxArrayString &groups)
+    : MsgDialog(nullptr, _L("Send G-Code to printer host"), _L("Upload to Printer Host with the following filename:"), wxID_NONE)
     , txt_filename(new wxTextCtrl(this, wxID_ANY))
-    , box_print(can_start_print ? new wxCheckBox(this, wxID_ANY, _(L("Start printing after upload"))) : nullptr)
+    , box_print(can_start_print ? new wxCheckBox(this, wxID_ANY, _L("Start printing after upload")) : nullptr)
+    , combo_groups(!groups.IsEmpty() ? new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, groups, wxCB_READONLY) : nullptr)
 {
 #ifdef __APPLE__
     txt_filename->OSXDisableAllSmartSubstitutions();
 #endif
     const AppConfig *app_config = wxGetApp().app_config;
 
-    auto *label_dir_hint = new wxStaticText(this, wxID_ANY, _(L("Use forward slashes ( / ) as a directory separator if needed.")));
+    auto *label_dir_hint = new wxStaticText(this, wxID_ANY, _L("Use forward slashes ( / ) as a directory separator if needed."));
     label_dir_hint->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 
     content_sizer->Add(txt_filename, 0, wxEXPAND);
@@ -49,9 +51,18 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, bool can_start_pr
         content_sizer->Add(box_print, 0, wxBOTTOM, 2*VERT_SPACING);
         box_print->SetValue(app_config->get("recent", CONFIG_KEY_PRINT) == "1");
     }
+    
+    if (combo_groups != nullptr) {
+        // Repetier specific: Show a selection of file groups.
+        auto *label_group = new wxStaticText(this, wxID_ANY, _L("Group"));
+        content_sizer->Add(label_group);
+        content_sizer->Add(combo_groups, 0, wxBOTTOM, 2*VERT_SPACING);        
+        wxString recent_group = from_u8(app_config->get("recent", CONFIG_KEY_GROUP));
+        if (! recent_group.empty())
+            combo_groups->SetValue(recent_group);
+    }
 
     btn_sizer->Add(CreateStdDialogButtonSizer(wxOK | wxCANCEL));
-
 
     wxString recent_path = from_u8(app_config->get("recent", CONFIG_KEY_PATH));
     if (recent_path.Length() > 0 && recent_path[recent_path.Length() - 1] != '/') {
@@ -64,7 +75,7 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, bool can_start_pr
 
     txt_filename->SetValue(recent_path);
     txt_filename->SetFocus();
-
+    
     Fit();
 
     Bind(wxEVT_SHOW, [=](const wxShowEvent &) {
@@ -86,6 +97,16 @@ bool PrintHostSendDialog::start_print() const
     return box_print != nullptr ? box_print->GetValue() : false;
 }
 
+std::string PrintHostSendDialog::group() const
+{
+     if (combo_groups == nullptr) {
+         return "";
+     } else {
+         wxString group = combo_groups->GetValue();
+         return into_u8(group);
+    }
+}
+
 void PrintHostSendDialog::EndModal(int ret)
 {
     if (ret == wxID_OK) {
@@ -96,9 +117,15 @@ void PrintHostSendDialog::EndModal(int ret)
 			path.clear();
 		else
             path = path.SubString(0, last_slash);
+                
 		AppConfig *app_config = wxGetApp().app_config;
 		app_config->set("recent", CONFIG_KEY_PATH, into_u8(path));
         app_config->set("recent", CONFIG_KEY_PRINT, start_print() ? "1" : "0");
+        
+        if (combo_groups != nullptr) {
+            wxString group = combo_groups->GetValue();
+            app_config->set("recent", CONFIG_KEY_GROUP, into_u8(group));
+        }
     }
 
     MsgDialog::EndModal(ret);
@@ -133,7 +160,7 @@ wxEvent *PrintHostQueueDialog::Event::Clone() const
 }
 
 PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
-    : DPIDialog(parent, wxID_ANY, _(L("Print host upload queue")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog(parent, wxID_ANY, _L("Print host upload queue"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
     , on_progress_evt(this, EVT_PRINTHOST_PROGRESS, &PrintHostQueueDialog::on_progress, this)
     , on_error_evt(this, EVT_PRINTHOST_ERROR, &PrintHostQueueDialog::on_error, this)
     , on_cancel_evt(this, EVT_PRINTHOST_CANCEL, &PrintHostQueueDialog::on_cancel, this)
@@ -144,19 +171,20 @@ PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
 
     job_list = new wxDataViewListCtrl(this, wxID_ANY);
     // Note: Keep these in sync with Column
-    job_list->AppendTextColumn(_(L("ID")), wxDATAVIEW_CELL_INERT);
-    job_list->AppendProgressColumn(_(L("Progress")), wxDATAVIEW_CELL_INERT);
-    job_list->AppendTextColumn(_(L("Status")), wxDATAVIEW_CELL_INERT);
-    job_list->AppendTextColumn(_(L("Host")), wxDATAVIEW_CELL_INERT);
-    job_list->AppendTextColumn(_(L("Filename")), wxDATAVIEW_CELL_INERT);
-    job_list->AppendTextColumn(_(L("Error Message")), wxDATAVIEW_CELL_INERT, -1, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
+    job_list->AppendTextColumn(_L("ID"), wxDATAVIEW_CELL_INERT);
+    job_list->AppendProgressColumn(_L("Progress"), wxDATAVIEW_CELL_INERT);
+    job_list->AppendTextColumn(_L("Status"), wxDATAVIEW_CELL_INERT);
+    job_list->AppendTextColumn(_L("Host"), wxDATAVIEW_CELL_INERT);
+    job_list->AppendTextColumn(_L("Filename"), wxDATAVIEW_CELL_INERT);
+    job_list->AppendTextColumn(_L("Error Message"), wxDATAVIEW_CELL_INERT, -1, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
 
     auto *btnsizer = new wxBoxSizer(wxHORIZONTAL);
-    btn_cancel = new wxButton(this, wxID_DELETE, _(L("Cancel selected")));
+    btn_cancel = new wxButton(this, wxID_DELETE, _L("Cancel selected"));
     btn_cancel->Disable();
-    btn_error = new wxButton(this, wxID_ANY, _(L("Show error message")));
+    btn_error = new wxButton(this, wxID_ANY, _L("Show error message"));
     btn_error->Disable();
-    auto *btn_close = new wxButton(this, wxID_CANCEL, _(L("Close")));  // Note: The label needs to be present, otherwise we get accelerator bugs on Mac
+    // Note: The label needs to be present, otherwise we get accelerator bugs on Mac
+    auto *btn_close = new wxButton(this, wxID_CANCEL, _L("Close"));
     btnsizer->Add(btn_cancel, 0, wxRIGHT, SPACING);
     btnsizer->Add(btn_error, 0);
     btnsizer->AddStretchSpacer();
@@ -195,7 +223,7 @@ void PrintHostQueueDialog::append_job(const PrintHostJob &job)
     wxVector<wxVariant> fields;
     fields.push_back(wxVariant(wxString::Format("%d", job_list->GetItemCount() + 1)));
     fields.push_back(wxVariant(0));
-    fields.push_back(wxVariant(_(L("Enqueued"))));
+    fields.push_back(wxVariant(_L("Enqueued")));
     fields.push_back(wxVariant(job.printhost->get_host()));
     fields.push_back(wxVariant(job.upload_data.upload_path.string()));
     fields.push_back(wxVariant(""));
@@ -226,12 +254,12 @@ void PrintHostQueueDialog::set_state(int idx, JobState state)
     job_list->SetItemData(job_list->RowToItem(idx), static_cast<wxUIntPtr>(state));
 
     switch (state) {
-        case ST_NEW:        job_list->SetValue(_(L("Enqueued")), idx, COL_STATUS); break;
-        case ST_PROGRESS:   job_list->SetValue(_(L("Uploading")), idx, COL_STATUS); break;
-        case ST_ERROR:      job_list->SetValue(_(L("Error")), idx, COL_STATUS); break;
-        case ST_CANCELLING: job_list->SetValue(_(L("Cancelling")), idx, COL_STATUS); break;
-        case ST_CANCELLED:  job_list->SetValue(_(L("Cancelled")), idx, COL_STATUS); break;
-        case ST_COMPLETED:  job_list->SetValue(_(L("Completed")), idx, COL_STATUS); break;
+        case ST_NEW:        job_list->SetValue(_L("Enqueued"), idx, COL_STATUS); break;
+        case ST_PROGRESS:   job_list->SetValue(_L("Uploading"), idx, COL_STATUS); break;
+        case ST_ERROR:      job_list->SetValue(_L("Error"), idx, COL_STATUS); break;
+        case ST_CANCELLING: job_list->SetValue(_L("Cancelling"), idx, COL_STATUS); break;
+        case ST_CANCELLED:  job_list->SetValue(_L("Cancelled"), idx, COL_STATUS); break;
+        case ST_COMPLETED:  job_list->SetValue(_L("Completed"), idx, COL_STATUS); break;
     }
 }
 

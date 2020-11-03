@@ -11,7 +11,6 @@
 //    PrintRegionConfig
 //    PrintConfig
 //        GCodeConfig
-//    HostConfig
 //
 
 #ifndef slic3r_PrintConfig_hpp_
@@ -25,12 +24,19 @@
 namespace Slic3r {
 
 enum GCodeFlavor : unsigned char {
-    gcfRepRap, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlin, gcfSailfish, gcfMach3, gcfMachinekit,
+    gcfRepRapSprinter, gcfRepRapFirmware, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlin, gcfSailfish, gcfMach3, gcfMachinekit,
     gcfSmoothie, gcfNoExtrusion,
 };
 
+enum class MachineLimitsUsage {
+	EmitToGCode,
+	TimeEstimateOnly,
+	Ignore,
+	Count,
+};
+
 enum PrintHostType {
-    htOctoPrint, htDuet, htFlashAir, htAstroBox
+    htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier
 };
 
 enum AuthorizationType {
@@ -38,7 +44,7 @@ enum AuthorizationType {
 };
 
 enum InfillPattern : int {
-    ipRectilinear, ipMonotonous, ipGrid, ipTriangles, ipStars, ipCubic, ipLine, ipConcentric, ipHoneycomb, ip3DHoneycomb,
+    ipRectilinear, ipMonotonic, ipGrid, ipTriangles, ipStars, ipCubic, ipLine, ipConcentric, ipHoneycomb, ip3DHoneycomb,
     ipGyroid, ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipAdaptiveCubic, ipSupportCubic, ipCount,
 };
 
@@ -88,7 +94,8 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<PrinterTechnology
 template<> inline const t_config_enum_values& ConfigOptionEnum<GCodeFlavor>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
-        keys_map["reprap"]          = gcfRepRap;
+        keys_map["reprap"]          = gcfRepRapSprinter;
+        keys_map["reprapfirmware"]  = gcfRepRapFirmware;
         keys_map["repetier"]        = gcfRepetier;
         keys_map["teacup"]          = gcfTeacup;
         keys_map["makerware"]       = gcfMakerWare;
@@ -102,6 +109,16 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<GCodeFlavor>::get
     return keys_map;
 }
 
+template<> inline const t_config_enum_values& ConfigOptionEnum<MachineLimitsUsage>::get_enum_values() {
+    static t_config_enum_values keys_map;
+    if (keys_map.empty()) {
+        keys_map["emit_to_gcode"]       = int(MachineLimitsUsage::EmitToGCode);
+        keys_map["time_estimate_only"]  = int(MachineLimitsUsage::TimeEstimateOnly);
+        keys_map["ignore"]            	= int(MachineLimitsUsage::Ignore);
+    }
+    return keys_map;
+}
+
 template<> inline const t_config_enum_values& ConfigOptionEnum<PrintHostType>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
@@ -109,6 +126,7 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<PrintHostType>::g
         keys_map["duet"]            = htDuet;
         keys_map["flashair"]        = htFlashAir;
         keys_map["astrobox"]        = htAstroBox;
+        keys_map["repetier"]        = htRepetier;
     }
     return keys_map;
 }
@@ -126,7 +144,7 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<InfillPattern>::g
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
         keys_map["rectilinear"]         = ipRectilinear;
-        keys_map["monotonous"]          = ipMonotonous;
+        keys_map["monotonic"]           = ipMonotonic;
         keys_map["grid"]                = ipGrid;
         keys_map["triangles"]           = ipTriangles;
         keys_map["stars"]               = ipStars;
@@ -597,6 +615,8 @@ class MachineEnvelopeConfig : public StaticPrintConfig
 {
     STATIC_PRINT_CONFIG_CACHE(MachineEnvelopeConfig)
 public:
+	// Allowing the machine limits to be completely ignored or used just for time estimator.
+    ConfigOptionEnum<MachineLimitsUsage> machine_limits_usage;
     // M201 X... Y... Z... E... [mm/sec^2]
     ConfigOptionFloats              machine_max_acceleration_x;
     ConfigOptionFloats              machine_max_acceleration_y;
@@ -624,6 +644,7 @@ public:
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
+        OPT_PTR(machine_limits_usage);
         OPT_PTR(machine_max_acceleration_x);
         OPT_PTR(machine_max_acceleration_y);
         OPT_PTR(machine_max_acceleration_z);
@@ -941,38 +962,14 @@ protected:
     }
 };
 
-class HostConfig : public StaticPrintConfig
-{
-    STATIC_PRINT_CONFIG_CACHE(HostConfig)
-public:
-    ConfigOptionEnum<PrintHostType> host_type;
-    ConfigOptionString              print_host;
-    ConfigOptionString              printhost_apikey;
-    ConfigOptionString              printhost_cafile;
-    ConfigOptionString              serial_port;
-    ConfigOptionInt                 serial_speed;
-
-protected:
-    void initialize(StaticCacheBase &cache, const char *base_ptr)
-    {
-        OPT_PTR(host_type);
-        OPT_PTR(print_host);
-        OPT_PTR(printhost_apikey);
-        OPT_PTR(printhost_cafile);
-        OPT_PTR(serial_port);
-        OPT_PTR(serial_speed);
-    }
-};
-
 // This object is mapped to Perl as Slic3r::Config::Full.
 class FullPrintConfig :
     public PrintObjectConfig,
     public PrintRegionConfig,
-    public PrintConfig,
-    public HostConfig
+    public PrintConfig
 {
     STATIC_PRINT_CONFIG_CACHE_DERIVED(FullPrintConfig)
-    FullPrintConfig() : PrintObjectConfig(0), PrintRegionConfig(0), PrintConfig(0), HostConfig(0) { initialize_cache(); *this = s_cache_FullPrintConfig.defaults(); }
+    FullPrintConfig() : PrintObjectConfig(0), PrintRegionConfig(0), PrintConfig(0) { initialize_cache(); *this = s_cache_FullPrintConfig.defaults(); }
 
 public:
     // Validate the FullPrintConfig. Returns an empty string on success, otherwise an error message is returned.
@@ -980,13 +977,12 @@ public:
 
 protected:
     // Protected constructor to be called to initialize ConfigCache::m_default.
-    FullPrintConfig(int) : PrintObjectConfig(0), PrintRegionConfig(0), PrintConfig(0), HostConfig(0) {}
+    FullPrintConfig(int) : PrintObjectConfig(0), PrintRegionConfig(0), PrintConfig(0) {}
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
         this->PrintObjectConfig::initialize(cache, base_ptr);
         this->PrintRegionConfig::initialize(cache, base_ptr);
         this->PrintConfig      ::initialize(cache, base_ptr);
-        this->HostConfig       ::initialize(cache, base_ptr);
     }
 };
 
@@ -1385,8 +1381,6 @@ class ModelConfig
 public:
     void         clear() { m_data.clear(); m_timestamp = 1; }
 
-    // Modification of the ModelConfig is not thread safe due to the global timestamp counter!
-    // Don't call modification methods from the back-end!
     void         assign_config(const ModelConfig &rhs) {
         if (m_timestamp != rhs.m_timestamp) {
             m_data      = rhs.m_data;
@@ -1400,6 +1394,9 @@ public:
             rhs.clear();
         }
     }
+
+    // Modification of the ModelConfig is not thread safe due to the global timestamp counter!
+    // Don't call modification methods from the back-end!
     // Assign methods don't assign if src==dst to not having to bump the timestamp in case they are equal.
     void         assign_config(const DynamicPrintConfig &rhs)  { if (m_data != rhs) { m_data = rhs; this->touch(); } }
     void         assign_config(DynamicPrintConfig &&rhs)       { if (m_data != rhs) { m_data = std::move(rhs); this->touch(); } }

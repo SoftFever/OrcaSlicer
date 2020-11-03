@@ -399,25 +399,9 @@ class TaskTimer
     std::chrono::milliseconds   start_timer;
     std::string                 task_name;
 public:
-    TaskTimer(std::string task_name):
-        task_name(task_name.empty() ? "task" : task_name)
-    {
-        start_timer = std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch());
-    }
+    TaskTimer(std::string task_name);
 
-    ~TaskTimer()
-    {
-        std::chrono::milliseconds stop_timer = std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch());
-        auto process_duration = std::chrono::milliseconds(stop_timer - start_timer).count();
-        std::string out = (boost::format("\n!!! %1% duration = %2% ms \n\n") % task_name % process_duration).str();
-        printf(out.c_str());
-#ifdef __WXMSW__
-        std::wstring stemp = std::wstring(out.begin(), out.end());
-        OutputDebugString(stemp.c_str());
-#endif
-    }
+    ~TaskTimer();
 };
 
 }}
