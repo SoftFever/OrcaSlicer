@@ -363,7 +363,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
 
         std::string ret;
 
-        if (line == First_Line_M73_Placeholder_Tag || line == Last_Line_M73_Placeholder_Tag) {
+        if (export_remaining_time_enabled && (line == First_Line_M73_Placeholder_Tag || line == Last_Line_M73_Placeholder_Tag)) {
             for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Count); ++i) {
                 const TimeMachine& machine = machines[i];
                 if (machine.enabled) {
@@ -376,10 +376,11 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
         else if (line == Estimated_Printing_Time_Placeholder_Tag) {
             for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Count); ++i) {
                 const TimeMachine& machine = machines[i];
-                if (machine.enabled) {
+                PrintEstimatedTimeStatistics::ETimeMode mode = static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i);
+                if (mode == PrintEstimatedTimeStatistics::ETimeMode::Normal || machine.enabled) {
                     char buf[128];
                     sprintf(buf, "; estimated printing time (%s mode) = %s\n",
-                        (static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i) == PrintEstimatedTimeStatistics::ETimeMode::Normal) ? "normal" : "silent",
+                        (mode == PrintEstimatedTimeStatistics::ETimeMode::Normal) ? "normal" : "silent",
                         get_time_dhms(machine.time).c_str());
                     ret += buf;
                 }
@@ -405,21 +406,23 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
         g1_times_cache_it.emplace_back(machine.g1_times_cache.begin());
     // add lines M73 to exported gcode
     auto process_line_G1 = [&]() {
-        for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Count); ++i) {
-            const TimeMachine& machine = machines[i];
-            if (machine.enabled) {
-                // Skip all machine.g1_times_cache below g1_lines_counter.
-                auto& it = g1_times_cache_it[i];
-                while (it != machine.g1_times_cache.end() && it->id < g1_lines_counter)
-                    ++ it;
-                if (it != machine.g1_times_cache.end() && it->id == g1_lines_counter) {
-                    float elapsed_time = it->elapsed_time;
-                    std::pair<int, int> to_export = { int(100.0f * elapsed_time / machine.time),
-                                                      time_in_minutes(machine.time - elapsed_time) };
-                    if (last_exported[i] != to_export) {
-                        export_line += format_line_M73(machine.line_m73_mask.c_str(),
-                            to_export.first, to_export.second);
-                        last_exported[i] = to_export;
+        if (export_remaining_time_enabled) {
+            for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Count); ++i) {
+                const TimeMachine& machine = machines[i];
+                if (machine.enabled) {
+                    // Skip all machine.g1_times_cache below g1_lines_counter.
+                    auto& it = g1_times_cache_it[i];
+                    while (it != machine.g1_times_cache.end() && it->id < g1_lines_counter)
+                        ++it;
+                    if (it != machine.g1_times_cache.end() && it->id == g1_lines_counter) {
+                        float elapsed_time = it->elapsed_time;
+                        std::pair<int, int> to_export = { int(100.0f * elapsed_time / machine.time),
+                                                          time_in_minutes(machine.time - elapsed_time) };
+                        if (last_exported[i] != to_export) {
+                            export_line += format_line_M73(machine.line_m73_mask.c_str(),
+                                to_export.first, to_export.second);
+                            last_exported[i] = to_export;
+                        }
                     }
                 }
             }
@@ -805,8 +808,7 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
     update_estimated_times_stats();
 
     // post-process to add M73 lines into the gcode
-    if (m_time_processor.export_remaining_time_enabled)
-        m_time_processor.post_process(filename);
+    m_time_processor.post_process(filename);
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     std::cout << "\n";
