@@ -433,6 +433,7 @@ void PhysicalPrinterDialog::update()
     if (tech == ptFFF) {
         m_optgroup->show_field("host_type");
         m_optgroup->hide_field("printhost_authorization_type");
+        m_optgroup->show_field("printhost_apikey", true);
         for (const std::string& opt_key : std::vector<std::string>{ "printhost_user", "printhost_password" })
             m_optgroup->hide_field(opt_key);
         const auto opt = m_config->option<ConfigOptionEnum<PrintHostType>>("host_type");
@@ -452,7 +453,13 @@ void PhysicalPrinterDialog::update()
     }
 
     m_optgroup->show_field("printhost_port", supports_multiple_printers);
-    m_printhost_port_browse_btn->Show(supports_multiple_printers);    
+    m_printhost_port_browse_btn->Show(supports_multiple_printers);
+
+    std::unique_ptr<PrintHost> host(PrintHost::get_print_host(m_config));
+    m_printhost_test_btn->Enable(!m_config->opt_string("print_host").empty() && host->can_test());
+    m_printhost_browse_btn->Enable(host->has_auto_discovery());
+
+    this->SetSize(this->GetBestSize());
     this->Layout();
 }
 

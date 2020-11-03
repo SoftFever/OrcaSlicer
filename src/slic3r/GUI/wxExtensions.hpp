@@ -348,6 +348,8 @@ public:
     void    activate();
     void    blink();
 
+    const wxBitmap& get_bmp() const { return bmp.bmp(); }
+
 private:
     ScalableBitmap  bmp;
     bool            show {false};
