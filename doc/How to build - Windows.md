@@ -1,5 +1,44 @@
+# Step by Step Visual Studio 2019 Instructions
 
-# This how-to is out of date
+Install Visual Studio Community 2019 from [visualstudio.microsoft.com/vs/](https://visualstudio.microsoft.com/vs/)
+Select all workload options for C++ 
+
+Install git for Windows from [gitforwindows.org](https://gitforwindows.org/)
+Download and run the exe accepting all defaults
+
+Clone the respository.  To place it in C:\PrusaSlicer, run:
+c:\>git clone https://github.com/prusa3d/PrusaSlicer.git
+
+Go to the Windows Start Menu and Click on "Visual Studio 2019" folder, then select the ->"x64 Native Tools Command Prompt" to open a command window and run the following:
+
+cd c:\PrusaSlicer\deps
+mkdir build
+cd build
+cmake .. -G "Visual Studio 16 2019" -DDESTDIR="c:\PrusaSlicer"
+
+msbuild /m ALL_BUILD.vcxproj // This took 13.5 minutes on my machine: core I7-7700K @ 4.2Ghz with 32GB main memory and 20min on a average laptop
+
+cd c:\PrusaSlicer\
+mkdir build
+cd build
+cmake .. -G "Visual Studio 16 2019" -DCMAKE_PREFIX_PATH="c:\PrusaSlicer\usr\local"
+
+Double-click c:\PrusaSlicer\build\PrusaSlicer.sln to open in Visual Studio 2019.
+OR
+Open Visual Studio for C++ development (VS asks this the first time you start it).
+
+Select PrusaSlicer_app_gui as your startup project (right-click->Set as Startup Project).
+
+Run Build->Rebuild Solution once to populate all required dependency modules.  This is NOT done automatically when you build/run.  If you run both Debug and Release variants, you will need to do this once for each.
+
+Debug->Start Debugging or press F5
+
+PrusaSlicer should start. You're up and running!
+
+note: Thanks to @douggorgen for the original guide, as an answer for a issue 
+
+
+# The below information is out of date, but still useful for reference purposes
 
 We have switched to MS Visual Studio 2019.
 
@@ -122,47 +161,4 @@ Refer to the CMake scripts inside the `deps` directory to see which dependencies
 intermediate files, which are not handled correctly by either `b2.exe` or possibly `ninja` (?).
 
 
-# Noob guide (step by step)
 
-Install Visual Studio Community 2019 from
-[visualstudio.microsoft.com/vs/](https://visualstudio.microsoft.com/vs/)
-Select all workload options for C++ 
-
-Install git for Windows from
-[gitforwindows.org](https://gitforwindows.org/)
-download and run the exe accepting all defaults
-
-download PrusaSlicer-master.zip from github
-I downloaded this to c:\PrusaSlicer and unzipped to c:\PrusaSlicer\PrusaSlicer-master\ so this will be my prefix for all my steps. Substitute your prefix.
-
-Go to the Windows Start Menu and Click on "Visual Studio 2019" folder, then select the ->"x64 Native Tools Command Prompt" to open a command window
-
-cd c:\PrusaSlicer\PrusaSlicer-master\deps
-
-mkdir build
-
-cd build
-
-cmake .. -G "Visual Studio 16 2019" -DDESTDIR="c:\PrusaSlicer\PrusaSlicer-master"
-
-msbuild /m ALL_BUILD.vcxproj // This took 13.5 minutes on my machine: core I7-7700K @ 4.2Ghz with 32GB main memory and 20min on a average laptop
-
-cd c:\PrusaSlicer\PrusaSlicer-master\
-
-mkdir build
-
-cd build
-
-cmake .. -G "Visual Studio 16 2019" -DCMAKE_PREFIX_PATH="c:\PrusaSlicer\PrusaSlicer-master\usr\local"
-
-open Visual Studio for c++ development (VS asks this the first time you start it)
-
-Open->Project/Solution or File->Open->Project/Solution (depending on which dialog comes up first)
-
-click on c:\PrusaSlicer\PrusaSlicer-master\build\PrusaSlicer.sln
-
-Debug->Start Debugging or Debug->Start Without debugging
-PrusaSlicer should start. You're up and running!
-
-
-note: Thanks to @douggorgen for the original guide, as an answer for a issue 
