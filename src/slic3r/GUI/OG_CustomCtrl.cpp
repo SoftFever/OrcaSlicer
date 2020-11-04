@@ -114,6 +114,14 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 {
     wxCoord v_pos = 0;
     wxCoord h_pos = 0;
+
+    auto correct_line_height = [](int& line_height, wxWindow* win)
+    {
+        int win_height = win->GetSize().GetHeight();
+        if (line_height < win_height)
+            line_height = win_height;
+    };
+
     for (auto ctrl_line : ctrl_lines) {
         if (&ctrl_line.og_line == &line)
         {
@@ -134,6 +142,10 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 
             if (line.widget) {
                 h_pos += blinking_button_width;
+
+                for (auto child : line.widget_sizer->GetChildren())
+                    if (child->IsWindow())
+                        correct_line_height(ctrl_line.height, child->GetWindow());
                 break;
             }
 
@@ -144,11 +156,15 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                 option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0)
             {
                 h_pos += 3 * blinking_button_width;
+                Field* field = opt_group->get_field(option_set.front().opt_id);
+                correct_line_height(ctrl_line.height, field->getWindow());
                 break;
             }
 
             for (auto opt : option_set) {
                 Field* field = opt_group->get_field(opt.opt_id);
+                correct_line_height(ctrl_line.height, field->getWindow());
+
                 ConfigOptionDef option = opt.opt;
                 // add label if any
                 if (!option.label.empty()) {
