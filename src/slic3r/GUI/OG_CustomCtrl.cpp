@@ -122,7 +122,7 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
             line_height = win_height;
     };
 
-    for (auto ctrl_line : ctrl_lines) {
+    for (CtrlLine& ctrl_line : ctrl_lines) {
         if (&ctrl_line.og_line == &line)
         {
             h_pos = m_bmp_mode_sz.GetWidth() + m_h_gap;
