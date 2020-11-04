@@ -1898,7 +1898,7 @@ namespace ProcessLayer
 		        // Color Change or Tool Change as Color Change.
 #if ENABLE_GCODE_VIEWER
                 // add tag for processor
-                gcode += "; " + GCodeProcessor::Color_Change_Tag + ",T" + std::to_string(m600_extruder_before_layer) + "\n";
+                gcode += ";" + GCodeProcessor::Color_Change_Tag + ",T" + std::to_string(m600_extruder_before_layer) + "\n";
 #else
                 // add tag for analyzer
                 gcode += "; " + GCodeAnalyzer::Color_Change_Tag + ",T" + std::to_string(m600_extruder_before_layer) + "\n";
@@ -1925,7 +1925,7 @@ namespace ProcessLayer
 	            {
 #if ENABLE_GCODE_VIEWER
                     // add tag for processor
-                    gcode += "; " + GCodeProcessor::Pause_Print_Tag + "\n";
+                    gcode += ";" + GCodeProcessor::Pause_Print_Tag + "\n";
 #else
                     // add tag for analyzer
                     gcode += "; " + GCodeAnalyzer::Pause_Print_Tag + "\n";
@@ -1943,13 +1943,13 @@ namespace ProcessLayer
 	            {
 #if ENABLE_GCODE_VIEWER
                     // add tag for processor
-                    gcode += "; " + GCodeProcessor::Custom_Code_Tag + "\n";
+                    gcode += ";" + GCodeProcessor::Custom_Code_Tag + "\n";
 #else
                     // add tag for analyzer
                     gcode += "; " + GCodeAnalyzer::Custom_Code_Tag + "\n";
-#endif // ENABLE_GCODE_VIEWER
                     // add tag for time estimator
-	                //gcode += "; " + GCodeTimeEstimator::Custom_Code_Tag + "\n";
+                    //gcode += "; " + GCodeTimeEstimator::Custom_Code_Tag + "\n";
+#endif // ENABLE_GCODE_VIEWER
                     if (gcode_type == CustomGCode::Template)    // Template Cistom Gcode
                         gcode += config.template_custom_gcode;
                     else                                        // custom Gcode
