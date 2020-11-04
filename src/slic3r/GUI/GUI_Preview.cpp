@@ -557,6 +557,16 @@ void Preview::msw_rescale()
     refresh_print();
 }
 
+void Preview::jump_layers_slider(wxKeyEvent& evt)
+{
+#if ENABLE_GCODE_VIEWER
+    if (m_layers_slider) m_layers_slider->OnChar(evt);
+#else
+    if (m_slider)
+        m_slider->OnKeyDown(evt);
+#endif // ENABLE_GCODE_VIEWER
+}
+
 #if ENABLE_GCODE_VIEWER
 void Preview::move_layers_slider(wxKeyEvent& evt)
 {

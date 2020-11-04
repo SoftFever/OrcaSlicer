@@ -294,6 +294,8 @@ wxSize Control::get_size() const
 void Control::get_size(int* w, int* h) const
 {
     GetSize(w, h);
+    if (m_draw_mode == dmSequentialGCodeView)
+        return; // we have no more icons for drawing
     is_horizontal() ? *w -= m_lock_icon_dim : *h -= m_lock_icon_dim;
 }
 
@@ -909,6 +911,10 @@ void Control::draw_revert_icon(wxDC& dc)
 
 void Control::draw_cog_icon(wxDC& dc)
 {
+#if ENABLE_GCODE_VIEWER
+    if (m_draw_mode == dmSequentialGCodeView)
+        return;
+#endif // ENABLE_GCODE_VIEWER
     int width, height;
     get_size(&width, &height);
 
