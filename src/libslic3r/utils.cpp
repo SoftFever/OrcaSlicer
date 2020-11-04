@@ -429,24 +429,20 @@ CopyFileResult copy_file_inner(const std::string& from, const std::string& to, s
 	// the copy_file() function will fail appropriately and we don't want the permission()
 	// calls to cause needless failures on permissionless filesystems (ie. FATs on SD cards etc.)
 	// or when the target file doesn't exist.
-	
-	//This error code is ignored
 	boost::system::error_code ec;
-	
 	boost::filesystem::permissions(target, perms, ec);
-	//if (ec)
-	//	BOOST_LOG_TRIVIAL(error) << "Copy file permisions before copy error message: " << ec.message();
-	// This error code is passed up
+	if (ec)
+		BOOST_LOG_TRIVIAL(error) << "boost::filesystem::permisions before copy error message (this could be irrelevant message based on file system): " << ec.message();
 	ec.clear();
 	boost::filesystem::copy_file(source, target, boost::filesystem::copy_option::overwrite_if_exists, ec);
 	if (ec) {
 		error_message = ec.message();
 		return FAIL_COPY_FILE;
 	}
-	//ec.clear();
+	ec.clear();
 	boost::filesystem::permissions(target, perms, ec);
-	//if (ec)
-	//	BOOST_LOG_TRIVIAL(error) << "Copy file permisions after copy error message: " << ec.message();
+	if (ec)
+		BOOST_LOG_TRIVIAL(error) << "boost::filesystem::permisions after copy error message (this could be irrelevant message based on file system): " << ec.message();
 	return SUCCESS;
 }
 

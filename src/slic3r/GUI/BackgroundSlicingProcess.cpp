@@ -53,6 +53,24 @@ bool SlicingProcessCompletedEvent::critical_error() const
 	return true;
 }
 
+bool SlicingProcessCompletedEvent::invalidate_plater() const
+{
+	if (critical_error())
+	{
+		try {
+			this->rethrow_exception();
+		}
+		catch (const Slic3r::ExportError&) {
+			// Exception thrown by copying file does not ivalidate plater
+			return false;
+		}
+		catch (...) {
+		}
+		return true;
+	}
+	return false;
+}
+
 std::string SlicingProcessCompletedEvent::format_error_message() const
 {
 	std::string error;
@@ -142,19 +160,19 @@ void BackgroundSlicingProcess::process_fff()
 			switch (copy_ret_val) {
 			case SUCCESS: break; // no error
 			case FAIL_COPY_FILE:
-				throw Slic3r::RuntimeError((boost::format(_utf8(L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?\nError message: %1%"))) % error_message).str());
+				throw Slic3r::ExportError((boost::format(_utf8(L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?\nError message: %1%"))) % error_message).str());
 				break;
 			case FAIL_FILES_DIFFERENT: 
-				throw Slic3r::RuntimeError((boost::format(_utf8(L("Copying of the temporary G-code to the output G-code failed. There might be problem with target device, please try exporting again or using different device. The corrupted output G-code is at %1%.tmp."))) % export_path).str());
+				throw Slic3r::ExportError((boost::format(_utf8(L("Copying of the temporary G-code to the output G-code failed. There might be problem with target device, please try exporting again or using different device. The corrupted output G-code is at %1%.tmp."))) % export_path).str());
 				break;
 			case FAIL_RENAMING: 
-				throw Slic3r::RuntimeError((boost::format(_utf8(L("Renaming of the G-code after copying to the selected destination folder has failed. Current path is %1%.tmp. Please try exporting again."))) % export_path).str()); 
+				throw Slic3r::ExportError((boost::format(_utf8(L("Renaming of the G-code after copying to the selected destination folder has failed. Current path is %1%.tmp. Please try exporting again."))) % export_path).str());
 				break;
 			case FAIL_CHECK_ORIGIN_NOT_OPENED: 
-				throw Slic3r::RuntimeError((boost::format(_utf8(L("Copying of the temporary G-code has finished but the original code at %1% couldn't be opened during copy check. The output G-code is at %2%.tmp."))) % m_temp_output_path % export_path).str());
+				throw Slic3r::ExportError((boost::format(_utf8(L("Copying of the temporary G-code has finished but the original code at %1% couldn't be opened during copy check. The output G-code is at %2%.tmp."))) % m_temp_output_path % export_path).str());
 				break;
 			case FAIL_CHECK_TARGET_NOT_OPENED: 
-				throw Slic3r::RuntimeError((boost::format(_utf8(L("Copying of the temporary G-code has finished but the exported code couldn't be opened during copy check. The output G-code is at %1%.tmp."))) % export_path).str()); 
+				throw Slic3r::ExportError((boost::format(_utf8(L("Copying of the temporary G-code has finished but the exported code couldn't be opened during copy check. The output G-code is at %1%.tmp."))) % export_path).str());
 				break;
 			default:
 				throw Slic3r::RuntimeError(_utf8(L("Unknown error occured during exporting G-code.")));

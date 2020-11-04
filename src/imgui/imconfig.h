@@ -121,6 +121,8 @@ namespace ImGui
     const char MinimalizeHoverMarker   = 0xF;
 	const char WarningMarker           = 0x10;
 	const char ErrorMarker             = 0x11;
+    const char EjectMarker             = 0x12;
+    const char EjectHoverMarker        = 0x13;
 //    void MyFunction(const char* name, const MyMatrix44& v);
 
 }
