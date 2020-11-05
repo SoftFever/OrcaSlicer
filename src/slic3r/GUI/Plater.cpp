@@ -4740,7 +4740,7 @@ void Plater::load_gcode(const wxString& filename)
     GCodeProcessor processor;
     processor.enable_producers(true);
     processor.enable_machine_envelope_processing(true);
-    processor.process_file(filename.ToUTF8().data());
+    processor.process_file(filename.ToUTF8().data(), false);
     p->gcode_result = std::move(processor.extract_result());
 
     // show results
