@@ -213,7 +213,7 @@ void KBShortcutsDialog::fill_shortcuts()
         { L("Arrow Down"), L("Lower Layer") },
         { "U", L("Upper Layer") },
         { "D", L("Lower Layer") },
-        { "L", L("Show/Hide Legend/Estimated printing time") },
+        { "L", L("Show/Hide Legend & Estimated printing time") },
     };
 
     m_full_shortcuts.push_back(std::make_pair(_L("Preview"), preview_shortcuts));

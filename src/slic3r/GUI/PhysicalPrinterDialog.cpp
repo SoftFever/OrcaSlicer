@@ -169,7 +169,7 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent, wxString printer_
         new_printer = false;
     }
 
-    wxStaticText* label_top = new wxStaticText(this, wxID_ANY, _L("Descriptive name for the printer device") + ":");
+    wxStaticText* label_top = new wxStaticText(this, wxID_ANY, _L("Descriptive name for the printer") + ":");
 
     m_add_preset_btn = new ScalableButton(this, wxID_ANY, "add_copies", "", wxDefaultSize, wxDefaultPosition, /*wxBU_LEFT | */wxBU_EXACTFIT);
     m_add_preset_btn->SetFont(wxGetApp().normal_font());
@@ -598,7 +598,7 @@ void PhysicalPrinterDialog::AddPreset(wxEvent& event)
 void PhysicalPrinterDialog::DeletePreset(PresetForPrinter* preset_for_printer)
 {
     if (m_presets.size() == 1) {
-        wxString msg_text = _L("It's not possible to delete last related preset for the printer.");
+        wxString msg_text = _L("It's not possible to delete the last related preset for the printer.");
         wxMessageDialog dialog(nullptr, msg_text, _L("Infornation"), wxICON_INFORMATION | wxOK);
         dialog.ShowModal();
         return;

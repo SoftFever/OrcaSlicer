@@ -1389,7 +1389,7 @@ void PageDiameters::apply_custom_config(DynamicPrintConfig &config)
 }
 
 PageTemperatures::PageTemperatures(ConfigWizard *parent)
-    : ConfigWizardPage(parent, _(L("Extruder and Bed Temperatures")), _(L("Temperatures")), 1)
+    : ConfigWizardPage(parent, _(L("Nozzle and Bed Temperatures")), _(L("Temperatures")), 1)
     , spin_extr(new wxSpinCtrlDouble(this, wxID_ANY))
     , spin_bed(new wxSpinCtrlDouble(this, wxID_ANY))
 {

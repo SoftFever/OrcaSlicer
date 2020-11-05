@@ -957,9 +957,9 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("first_layer_temperature", coInts);
     def->label = L("First layer");
-    def->full_label = L("First layer extruder temperature");
-    def->tooltip = L("Extruder temperature for first layer. If you want to control temperature manually "
-                   "during print, set this to zero to disable temperature control commands in the output file.");
+    def->full_label = L("First layer nozzle temperature");
+    def->tooltip = L("Nozzle temperature for the first layer. If you want to control temperature manually "
+                     "during print, set this to zero to disable temperature control commands in the output G-code.");
     def->sidetext = L("°C");
     def->min = 0;
     def->max = max_temp;
@@ -1170,9 +1170,9 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(0.1));
 
     def = this->add("ironing_speed", coFloat);
-    def->label = L("Ironing speed");
+    def->label = L("Ironing");
     def->category = L("Speed");
-    def->tooltip = L("Ironing speed");
+    def->tooltip = L("Ironing");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
@@ -1206,7 +1206,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("machine_limits_usage", coEnum);
-    def->label = L("How to apply");
+    def->label = L("How to apply limits");
     def->full_label = L("Purpose of Machine Limits");
     def->category = L("Machine limits");
     def->tooltip = L("How to apply the Machine Limits");
@@ -2195,10 +2195,10 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("temperature", coInts);
     def->label = L("Other layers");
-    def->tooltip = L("Extruder temperature for layers after the first one. Set this to zero to disable "
-                   "temperature control commands in the output.");
+    def->tooltip = L("Nozzle temperature for layers after the first one. Set this to zero to disable "
+                     "temperature control commands in the output G-code.");
     def->sidetext = L("°C");
-    def->full_label = L("Extruder temperature");
+    def->full_label = L("Nozzle temperature");
     def->min = 0;
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 200 });
@@ -3686,7 +3686,7 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->cli = "output|o";
 
     def = this->add("single_instance", coBool);
-    def->label = L("Single Instance");
+    def->label = L("Single instance mode");
     def->tooltip = L("If enabled, the command line arguments are sent to an existing instance of GUI PrusaSlicer, "
                      "or an existing PrusaSlicer window is activated. "
                      "Overrides the \"single_instance\" configuration value from application preferences.");

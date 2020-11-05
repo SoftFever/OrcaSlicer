@@ -1415,7 +1415,7 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
     imgui.set_next_window_pos(position(0), position(1), ImGuiCond_Always, 0.0f, 0.0f);
 
-    imgui.begin(_L("canvas_tooltip"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoFocusOnAppearing);
+    imgui.begin(wxString("canvas_tooltip"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoFocusOnAppearing);
     ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
     ImGui::TextUnformatted(m_text.c_str());
 
@@ -4399,7 +4399,7 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
 
     std::string& search_line = sidebar.get_search_line();
     char *s = new char[255];
-    strcpy(s, search_line.empty() ? _u8L("Type here to search").c_str() : search_line.c_str());
+    strcpy(s, search_line.empty() ? _u8L("Enter a search term").c_str() : search_line.c_str());
 
     imgui->search_list(ImVec2(45 * em, 30 * em), &search_string_getter, s, 
                        sidebar.get_searcher().view_params,
@@ -4407,7 +4407,7 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
 
     search_line = s;
     delete [] s;
-    if (search_line == _u8L("Type here to search"))
+    if (search_line == _u8L("Enter a search term"))
         search_line.clear();
 
     if (edited)
