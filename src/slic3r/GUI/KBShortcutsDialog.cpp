@@ -34,9 +34,9 @@ namespace GUI {
 
 KBShortcutsDialog::KBShortcutsDialog()
 #if ENABLE_GCODE_VIEWER
-    : DPIDialog(NULL, wxID_ANY, wxString(wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME) + " - " + _L("Keyboard Shortcuts"),
+    : DPIDialog((wxWindow*)wxGetApp().mainframe, wxID_ANY, wxString(wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME) + " - " + _L("Keyboard Shortcuts"),
 #else
-    : DPIDialog(NULL, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _L("Keyboard Shortcuts"),
+    : DPIDialog((wxWindow*)wxGetApp().mainframe, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _L("Keyboard Shortcuts"),
 #endif // ENABLE_GCODE_VIEWER
     wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {

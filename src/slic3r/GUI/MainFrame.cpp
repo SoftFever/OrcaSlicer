@@ -238,6 +238,17 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
         event.Skip();
     });
 
+// OSX specific issue:
+// When we move application between Retina and non-Retina displays, The legend on a canvas doesn't redraw
+// So, redraw explicitly canvas, when application is moved
+#ifdef ENABLE_RETINA_GL
+    Bind(wxEVT_MOVE, [this](wxMoveEvent& event) {
+        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
+        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+        event.Skip();
+    });
+#endif
+
     wxGetApp().persist_window_geometry(this, true);
     wxGetApp().persist_window_geometry(&m_settings_dialog, true);
 

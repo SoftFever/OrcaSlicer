@@ -3338,7 +3338,7 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach)
 //!	m_treectrl->OnSetFocus();
 
     if (name.empty()) {
-        SavePresetDialog dlg(m_type, detach ? _u8L("Detached") : "");
+        SavePresetDialog dlg(m_parent, m_type, detach ? _u8L("Detached") : "");
         if (dlg.ShowModal() != wxID_OK)
             return;
         name = dlg.get_name();

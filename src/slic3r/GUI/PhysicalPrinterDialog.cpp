@@ -151,8 +151,8 @@ void PresetForPrinter::msw_rescale()
 //          PhysicalPrinterDialog
 //------------------------------------------
 
-PhysicalPrinterDialog::PhysicalPrinterDialog(wxString printer_name) : 
-    DPIDialog(NULL, wxID_ANY, _L("Physical Printer"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), -1), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
+PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent, wxString printer_name) :
+    DPIDialog(parent, wxID_ANY, _L("Physical Printer"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), -1), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
     m_printer("", wxGetApp().preset_bundle->physical_printers.default_config())
 {
     SetFont(wxGetApp().normal_font());

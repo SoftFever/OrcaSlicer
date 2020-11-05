@@ -86,7 +86,7 @@ class SplashScreen : public wxSplashScreen
 {
 public:
     SplashScreen(const wxBitmap& bitmap, long splashStyle, int milliseconds, wxPoint pos = wxDefaultPosition)
-        : wxSplashScreen(bitmap, splashStyle, milliseconds, nullptr, wxID_ANY, wxDefaultPosition, wxDefaultSize, 
+        : wxSplashScreen(bitmap, splashStyle, milliseconds, (wxWindow*)wxGetApp().mainframe, wxID_ANY, wxDefaultPosition, wxDefaultSize, 
 #ifdef __APPLE__
             wxSIMPLE_BORDER | wxFRAME_NO_TASKBAR | wxSTAY_ON_TOP
 #else
