@@ -112,16 +112,14 @@ bool GCodeViewer::Path::matches(const GCodeProcessor::MoveVertex& move) const
     case EMoveType::Custom_GCode:
     case EMoveType::Retract:
     case EMoveType::Unretract:
-    case EMoveType::Extrude:
-    {
+    case EMoveType::Extrude: {
         // use rounding to reduce the number of generated paths
-        return type == move.type && role == move.extrusion_role && height == round_to_nearest(move.height, 2) &&
+        return type == move.type && move.position[2] <= first.position[2] && role == move.extrusion_role && height == round_to_nearest(move.height, 2) &&
             width == round_to_nearest(move.width, 2) && feedrate == move.feedrate && fan_speed == move.fan_speed &&
             volumetric_rate == round_to_nearest(move.volumetric_rate(), 2) && extruder_id == move.extruder_id &&
             cp_color_id == move.cp_color_id;
     }
-    case EMoveType::Travel:
-    {
+    case EMoveType::Travel: {
         return type == move.type && feedrate == move.feedrate && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id;
     }
     default: { return false; }
@@ -1531,14 +1529,15 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     // dismiss indices data, no more needed
     std::vector<MultiIndexBuffer>().swap(indices);
 
-    // layers zs / roles / extruder ids / cp color ids -> extract from result
+    // layers zs -> extract from result
+    for (const Path& path : m_buffers[buffer_id(EMoveType::Extrude)].paths) {
+        m_layers_zs.emplace_back(static_cast<double>(path.first.position[2]));
+//        m_layers_zs.emplace_back(static_cast<double>(path.last.position[2]));
+    }
+    // roles / extruder ids / cp color ids -> extract from result
     for (size_t i = 0; i < m_moves_count; ++i) {
         const GCodeProcessor::MoveVertex& move = gcode_result.moves[i];
-        if (move.type == EMoveType::Extrude)
-            m_layers_zs.emplace_back(static_cast<double>(move.position[2]));
-
         m_extruder_ids.emplace_back(move.extruder_id);
-
         if (i > 0)
             m_roles.emplace_back(move.extrusion_role);
     }
