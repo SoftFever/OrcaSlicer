@@ -2415,28 +2415,26 @@ void GCodeViewer::render_legend() const
             for (const auto& time_rec : times) {
                 switch (time_rec.first)
                 {
-                case CustomGCode::PausePrint:
-                {
+                case CustomGCode::PausePrint: {
                     auto it = std::find_if(custom_gcode_per_print_z.begin(), custom_gcode_per_print_z.end(), [time_rec](const CustomGCode::Item& item) { return item.type == time_rec.first; });
                     if (it != custom_gcode_per_print_z.end()) {
-                        items.push_back({ PartialTime::EType::Print, it->extruder, Color(), Color(), time_rec.second });
+                        items.push_back({ PartialTime::EType::Print, it->extruder, last_color[it->extruder - 1], Color(), time_rec.second });
                         items.push_back({ PartialTime::EType::Pause, it->extruder, Color(), Color(), time_rec.second });
                         custom_gcode_per_print_z.erase(it);
                     }
                     break;
                 }
-                case CustomGCode::ColorChange:
-                {
+                case CustomGCode::ColorChange: {
                     auto it = std::find_if(custom_gcode_per_print_z.begin(), custom_gcode_per_print_z.end(), [time_rec](const CustomGCode::Item& item) { return item.type == time_rec.first; });
                     if (it != custom_gcode_per_print_z.end()) {
-                        items.push_back({ PartialTime::EType::Print, it->extruder, Color(), Color(), time_rec.second });
+                        items.push_back({ PartialTime::EType::Print, it->extruder, last_color[it->extruder - 1], Color(), time_rec.second });
                         items.push_back({ PartialTime::EType::ColorChange, it->extruder, last_color[it->extruder - 1], decode_color(it->color), time_rec.second });
                         last_color[it->extruder - 1] = decode_color(it->color);
                         last_extruder_id = it->extruder;
                         custom_gcode_per_print_z.erase(it);
                     }
                     else
-                        items.push_back({ PartialTime::EType::Print, last_extruder_id, Color(), Color(), time_rec.second });
+                        items.push_back({ PartialTime::EType::Print, last_extruder_id, last_color[last_extruder_id - 1], Color(), time_rec.second });
 
                     break;
                 }
@@ -2447,7 +2445,7 @@ void GCodeViewer::render_legend() const
             return items;
         };
 
-        auto append_color = [this, &imgui](const Color& color1, const Color& color2, std::array<float, 2>& offsets, const Times& times) {
+        auto append_color_change = [this, &imgui](const Color& color1, const Color& color2, const std::array<float, 2>& offsets, const Times& times) {
             imgui.text(_u8L("Color change"));
             ImGui::SameLine();
 
@@ -2466,6 +2464,24 @@ void GCodeViewer::render_legend() const
             imgui.text(short_time(get_time_dhms(times.second - times.first)));
         };
 
+        auto append_print = [this, &imgui](const Color& color, const std::array<float, 2>& offsets, const Times& times) {
+            imgui.text(_u8L("Print"));
+            ImGui::SameLine();
+
+            float icon_size = ImGui::GetTextLineHeight();
+            ImDrawList* draw_list = ImGui::GetWindowDrawList();
+            ImVec2 pos = ImGui::GetCursorScreenPos();
+            pos.x -= 0.5f * ImGui::GetStyle().ItemSpacing.x;
+
+            draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
+                ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
+
+            ImGui::SameLine(offsets[0]);
+            imgui.text(short_time(get_time_dhms(times.second)));
+            ImGui::SameLine(offsets[1]);
+            imgui.text(short_time(get_time_dhms(times.first)));
+        };
+
         PartialTimes partial_times = generate_partial_times(time_mode.custom_gcode_times);
         if (!partial_times.empty()) {
             labels.clear();
@@ -2474,8 +2490,8 @@ void GCodeViewer::render_legend() const
             for (const PartialTime& item : partial_times) {
                 switch (item.type)
                 {
-                case PartialTime::EType::Print: { labels.push_back(_u8L("Print")); break; }
-                case PartialTime::EType::Pause: { labels.push_back(_u8L("Pause")); break; }
+                case PartialTime::EType::Print:       { labels.push_back(_u8L("Print")); break; }
+                case PartialTime::EType::Pause:       { labels.push_back(_u8L("Pause")); break; }
                 case PartialTime::EType::ColorChange: { labels.push_back(_u8L("Color change")); break; }
                 }
                 times.push_back(short_time(get_time_dhms(item.times.second)));
@@ -2487,25 +2503,18 @@ void GCodeViewer::render_legend() const
             for (const PartialTime& item : partial_times) {
                 switch (item.type)
                 {
-                case PartialTime::EType::Print:
-                {
-                    imgui.text(_u8L("Print"));
-                    ImGui::SameLine(offsets[0]);
-                    imgui.text(short_time(get_time_dhms(item.times.second)));
-                    ImGui::SameLine(offsets[1]);
-                    imgui.text(short_time(get_time_dhms(item.times.first)));
+                case PartialTime::EType::Print: {
+                    append_print(item.color1, offsets, item.times);
                     break;
                 }
-                case PartialTime::EType::Pause:
-                {
+                case PartialTime::EType::Pause: {
                     imgui.text(_u8L("Pause"));
                     ImGui::SameLine(offsets[0]);
                     imgui.text(short_time(get_time_dhms(item.times.second - item.times.first)));
                     break;
                 }
-                case PartialTime::EType::ColorChange:
-                {
-                    append_color(item.color1, item.color2, offsets, item.times);
+                case PartialTime::EType::ColorChange: {
+                    append_color_change(item.color1, item.color2, offsets, item.times);
                     break;
                 }
                 }
@@ -2519,12 +2528,10 @@ void GCodeViewer::render_legend() const
         {
         case EViewType::Feedrate:
         case EViewType::Tool:
-        case EViewType::ColorPrint:
-        {
+        case EViewType::ColorPrint: {
             break;
         }
-        default:
-        {
+        default: {
             // title
             ImGui::Spacing();
             imgui.title(_u8L("Travel"));
