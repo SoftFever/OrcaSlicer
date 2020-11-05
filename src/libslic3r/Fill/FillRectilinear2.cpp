@@ -7,12 +7,14 @@
 #include <random>
 
 #include <boost/container/small_vector.hpp>
+#include <boost/log/trivial.hpp>
 #include <boost/static_assert.hpp>
 
 #include "../ClipperUtils.hpp"
 #include "../ExPolygon.hpp"
 #include "../Geometry.hpp"
 #include "../Surface.hpp"
+#include "../ShortestPath.hpp"
 
 #include "FillRectilinear2.hpp"
 
@@ -128,6 +130,13 @@ struct SegmentIntersection
         return coord_t(p / int64_t(pos_q)); 
     }
 
+    // Left vertical line / contour intersection point.
+    // null if next_on_contour_vertical.
+    int32_t	prev_on_contour { 0 };
+    // Right vertical line / contour intersection point.
+    // If next_on_contour_vertical, then then next_on_contour contains next contour point on the same vertical line.
+    int32_t	next_on_contour { 0 };
+
     // Kind of intersection. With the original contour, or with the inner offestted contour?
     // A vertical segment will be at least intersected by OUTER_LOW, OUTER_HIGH,
     // but it could be intersected with OUTER_LOW, INNER_LOW, INNER_HIGH, OUTER_HIGH,
@@ -140,13 +149,6 @@ struct SegmentIntersection
         INNER_HIGH,
     };
     SegmentIntersectionType type { UNKNOWN };
-
-    // Left vertical line / contour intersection point.
-    // null if next_on_contour_vertical.
-    int32_t	prev_on_contour { 0 };
-    // Right vertical line / contour intersection point.
-    // If next_on_contour_vertical, then then next_on_contour contains next contour point on the same vertical line.
-    int32_t	next_on_contour { 0 };
 
     enum class LinkType : uint8_t {
     	// Horizontal link (left or right).
@@ -383,30 +385,31 @@ public:
         const ExPolygon &expolygon,
         float   angle,
         coord_t aoffset1,
-        coord_t aoffset2)
+        // If the 2nd offset is zero, then it is ignored and only OUTER_LOW / OUTER_HIGH intersections are
+        // populated into vertical intersection lines.
+        coord_t aoffset2 = 0)
     {
         // Copy and rotate the source polygons.
         polygons_src = expolygon;
-        polygons_src.contour.rotate(angle);
-        for (Polygons::iterator it = polygons_src.holes.begin(); it != polygons_src.holes.end(); ++ it)
-            it->rotate(angle);
+        if (angle != 0.f) {
+            polygons_src.contour.rotate(angle);
+            for (Polygon &hole : polygons_src.holes)
+                hole.rotate(angle);
+        }
 
         double mitterLimit = 3.;
         // for the infill pattern, don't cut the corners.
         // default miterLimt = 3
         //double mitterLimit = 10.;
         assert(aoffset1 < 0);
-        assert(aoffset2 < 0);
-        assert(aoffset2 < aoffset1);
+        assert(aoffset2 <= 0);
+        assert(aoffset2 == 0 || aoffset2 < aoffset1);
 //        bool sticks_removed = 
         remove_sticks(polygons_src);
-//        if (sticks_removed) printf("Sticks removed!\n");
-        polygons_outer = offset(polygons_src, float(aoffset1),
-            ClipperLib::jtMiter,
-            mitterLimit);
-        polygons_inner = offset(polygons_outer, float(aoffset2 - aoffset1),
-            ClipperLib::jtMiter,
-            mitterLimit);
+//        if (sticks_removed) BOOST_LOG_TRIVIAL(error) << "Sticks removed!";
+        polygons_outer = offset(polygons_src, float(aoffset1), ClipperLib::jtMiter, mitterLimit);
+        if (aoffset2 < 0)
+            polygons_inner = offset(polygons_outer, float(aoffset2 - aoffset1), ClipperLib::jtMiter, mitterLimit);
 		// Filter out contours with zero area or small area, contours with 2 points only.
         const double min_area_threshold = 0.01 * aoffset2 * aoffset2;
         remove_small(polygons_outer, min_area_threshold);
@@ -421,6 +424,18 @@ public:
             contour(i).remove_duplicate_points();
             assert(! contour(i).has_duplicate_points());
             polygons_ccw[i] = Slic3r::Geometry::is_ccw(contour(i));
+        }
+    }
+
+    ExPolygonWithOffset(const ExPolygonWithOffset &rhs, float angle) : ExPolygonWithOffset(rhs) {
+        if (angle != 0.f) {
+            this->polygons_src.contour.rotate(angle);
+            for (Polygon &hole : this->polygons_src.holes)
+                hole.rotate(angle);
+            for (Polygon &poly : this->polygons_outer)
+                poly.rotate(angle);
+            for (Polygon &poly : this->polygons_inner)
+                poly.rotate(angle);
         }
     }
 
@@ -2644,7 +2659,7 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
         Point refpt = rotate_vector.second.rotated(- rotate_vector.first);
         // _align_to_grid will not work correctly with positive pattern_shift.
         coord_t pattern_shift_scaled = coord_t(scale_(pattern_shift)) % line_spacing;
-        refpt(0) -= (pattern_shift_scaled >= 0) ? pattern_shift_scaled : (line_spacing + pattern_shift_scaled);
+        refpt.x() -= (pattern_shift_scaled >= 0) ? pattern_shift_scaled : (line_spacing + pattern_shift_scaled);
         bounding_box.merge(_align_to_grid(
             bounding_box.min, 
             Point(line_spacing, line_spacing), 
@@ -2747,12 +2762,93 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
     return true;
 }
 
+#define FILL_MULTIPLE_SWEEPS_NEW
+
+#ifdef FILL_MULTIPLE_SWEEPS_NEW
+bool FillRectilinear2::fill_surface_by_multilines(const Surface *surface, FillParams params, const std::initializer_list<SweepParams> &sweep_params, Polylines &polylines_out)
+{
+    assert(sweep_params.size() > 1);
+    assert(! params.full_infill());
+    params.density /= double(sweep_params.size());
+    assert(params.density > 0.0001f && params.density <= 1.f);
+
+    ExPolygonWithOffset poly_with_offset_base(surface->expolygon, 0, float(scale_(this->overlap - 0.5 * this->spacing)));
+    if (poly_with_offset_base.n_contours == 0)
+        // Not a single infill line fits.
+        return true;
+
+    Polylines fill_lines;
+    coord_t line_spacing = coord_t(scale_(this->spacing) / params.density);
+    std::pair<float, Point> rotate_vector = this->_infill_direction(surface);
+    for (const SweepParams &sweep : sweep_params) {
+        size_t n_fill_lines_initial = fill_lines.size();
+
+        // Rotate polygons so that we can work with vertical lines here
+        double angle = rotate_vector.first + sweep.angle_base;
+        ExPolygonWithOffset poly_with_offset(poly_with_offset_base, - angle);
+        BoundingBox bounding_box = poly_with_offset.bounding_box_src();
+        // extend bounding box so that our pattern will be aligned with other layers
+        // Transform the reference point to the rotated coordinate system.
+        Point refpt = rotate_vector.second.rotated(- angle);
+        // _align_to_grid will not work correctly with positive pattern_shift.
+        coord_t pattern_shift_scaled = coord_t(scale_(sweep.pattern_shift)) % line_spacing;
+        refpt.x() -= (pattern_shift_scaled >= 0) ? pattern_shift_scaled : (line_spacing + pattern_shift_scaled);
+        bounding_box.merge(_align_to_grid(bounding_box.min, Point(line_spacing, line_spacing), refpt));
+
+        // Intersect a set of euqally spaced vertical lines wiht expolygon.
+        // n_vlines = ceil(bbox_width / line_spacing)
+        const size_t n_vlines = (bounding_box.max.x() - bounding_box.min.x() + line_spacing - 1) / line_spacing;
+        const double cos_a    = cos(angle);
+        const double sin_a    = sin(angle);
+        for (const SegmentedIntersectionLine &vline : slice_region_by_vertical_lines(poly_with_offset, n_vlines, bounding_box.min.x(), line_spacing)) {
+            for (auto it = vline.intersections.begin(); it != vline.intersections.end();) {
+                auto it_low  = it ++;
+                assert(it_low->type == SegmentIntersection::OUTER_LOW);
+                if (it_low->type != SegmentIntersection::OUTER_LOW)
+                    continue;
+                auto it_high = it;
+                assert(it_high->type == SegmentIntersection::OUTER_HIGH);
+                if (it_high->type == SegmentIntersection::OUTER_HIGH) {
+                    fill_lines.emplace_back(Point(vline.pos, it_low->pos()).rotated(cos_a, sin_a), Point(vline.pos, it_high->pos()).rotated(cos_a, sin_a));
+                    ++ it;
+                }
+            }
+        }
+    }
+
+    if (fill_lines.size() > 1)
+        fill_lines = chain_polylines(std::move(fill_lines));
+
+    if (params.dont_connect || fill_lines.size() <= 1)
+        append(polylines_out, std::move(fill_lines));
+    else {
+//        coord_t hook_length = 0;
+        coord_t hook_length = coord_t(scale_(this->spacing)) * 5;
+        connect_infill(std::move(fill_lines), poly_with_offset_base.polygons_outer, get_extents(surface->expolygon.contour), polylines_out, this->spacing, params, hook_length);
+    }
+
+    return true;
+}
+#else
+bool FillRectilinear2::fill_surface_by_multilines(const Surface *surface, FillParams params, const std::initializer_list<SweepParams> &sweep_params, Polylines &polylines_out)
+{
+    params.density /= double(sweep_params.size());
+    bool success = true;
+    int  idx = 0;
+    for (const SweepParams &sweep_param : sweep_params) {
+        if (++ idx == 3)
+            params.dont_connect = true;
+        success &= this->fill_surface_by_lines(surface, params, sweep_param.angle_base, sweep_param.pattern_shift, polylines_out);
+    }
+    return success;
+}
+#endif
+
 Polylines FillRectilinear2::fill_surface(const Surface *surface, const FillParams &params)
 {
     Polylines polylines_out;
-    if (! fill_surface_by_lines(surface, params, 0.f, 0.f, polylines_out)) {
-        printf("FillRectilinear2::fill_surface() failed to fill a region.\n");
-    }
+    if (! fill_surface_by_lines(surface, params, 0.f, 0.f, polylines_out))
+        BOOST_LOG_TRIVIAL(error) << "FillRectilinear2::fill_surface() failed to fill a region.";
     return polylines_out;
 }
 
@@ -2761,72 +2857,53 @@ Polylines FillMonotonic::fill_surface(const Surface *surface, const FillParams &
     FillParams params2 = params;
     params2.monotonic = true;
     Polylines polylines_out;
-    if (! fill_surface_by_lines(surface, params2, 0.f, 0.f, polylines_out)) {
-        printf("FillMonotonic::fill_surface() failed to fill a region.\n");
-    }
+    if (! fill_surface_by_lines(surface, params2, 0.f, 0.f, polylines_out))
+        BOOST_LOG_TRIVIAL(error) << "FillMonotonous::fill_surface() failed to fill a region.";
     return polylines_out;
 }
 
 Polylines FillGrid2::fill_surface(const Surface *surface, const FillParams &params)
 {
-    // Each linear fill covers half of the target coverage.
-    FillParams params2 = params;
-    params2.density *= 0.5f;
     Polylines polylines_out;
-    if (! fill_surface_by_lines(surface, params2, 0.f, 0.f, polylines_out) ||
-        ! fill_surface_by_lines(surface, params2, float(M_PI / 2.), 0.f, polylines_out)) {
-        printf("FillGrid2::fill_surface() failed to fill a region.\n");
-    }
+    if (! this->fill_surface_by_multilines(
+            surface, params,
+            { { 0.f, 0.f }, { float(M_PI / 2.), 0.f } },
+            polylines_out))
+        BOOST_LOG_TRIVIAL(error) << "FillGrid2::fill_surface() failed to fill a region.";
     return polylines_out;
 }
 
 Polylines FillTriangles::fill_surface(const Surface *surface, const FillParams &params)
 {
-    // Each linear fill covers 1/3 of the target coverage.
-    FillParams params2 = params;
-    params2.density *= 0.333333333f;
-    FillParams params3 = params2;
-    params3.dont_connect = true;
     Polylines polylines_out;
-    if (! fill_surface_by_lines(surface, params2, 0.f, 0., polylines_out) ||
-        ! fill_surface_by_lines(surface, params2, float(M_PI / 3.), 0., polylines_out) ||
-        ! fill_surface_by_lines(surface, params3, float(2. * M_PI / 3.), 0., polylines_out)) {
-        printf("FillTriangles::fill_surface() failed to fill a region.\n");
-    }
+    if (! this->fill_surface_by_multilines(
+            surface, params,
+            { { 0.f, 0.f }, { float(M_PI / 3.), 0.f }, { float(2. * M_PI / 3.), 0. } },
+            polylines_out))
+        BOOST_LOG_TRIVIAL(error) << "FillTriangles::fill_surface() failed to fill a region.";
     return polylines_out;
 }
 
 Polylines FillStars::fill_surface(const Surface *surface, const FillParams &params)
 {
-    // Each linear fill covers 1/3 of the target coverage.
-    FillParams params2 = params;
-    params2.density *= 0.333333333f;
-    FillParams params3 = params2;
-    params3.dont_connect = true;
     Polylines polylines_out;
-    if (! fill_surface_by_lines(surface, params2, 0.f, 0., polylines_out) ||
-        ! fill_surface_by_lines(surface, params2, float(M_PI / 3.), 0., polylines_out) ||
-        ! fill_surface_by_lines(surface, params3, float(2. * M_PI / 3.), 0.5 * this->spacing / params2.density, polylines_out)) {
-        printf("FillStars::fill_surface() failed to fill a region.\n");
-    }
+    if (! this->fill_surface_by_multilines(
+            surface, params,
+            { { 0.f, 0.f }, { float(M_PI / 3.), 0.f }, { float(2. * M_PI / 3.), float((3./2.) * this->spacing / params.density) } },
+            polylines_out))
+        BOOST_LOG_TRIVIAL(error) << "FillStars::fill_surface() failed to fill a region.";
     return polylines_out;
 }
 
 Polylines FillCubic::fill_surface(const Surface *surface, const FillParams &params)
 {
-    // Each linear fill covers 1/3 of the target coverage.
-    FillParams params2 = params;
-    params2.density *= 0.333333333f;
-    FillParams params3 = params2;
-    params3.dont_connect = true;
     Polylines polylines_out;
     coordf_t dx = sqrt(0.5) * z;
-    if (! fill_surface_by_lines(surface, params2, 0.f, float(dx), polylines_out) ||
-        ! fill_surface_by_lines(surface, params2, float(M_PI / 3.), - float(dx), polylines_out) ||
-        // Rotated by PI*2/3 + PI to achieve reverse sloping wall.
-        ! fill_surface_by_lines(surface, params3, float(M_PI * 2. / 3.), float(dx), polylines_out)) {
-        printf("FillCubic::fill_surface() failed to fill a region.\n");
-    } 
+    if (! this->fill_surface_by_multilines(
+            surface, params, 
+            { { 0.f, float(dx) }, { float(M_PI / 3.), - float(dx) }, { float(M_PI * 2. / 3.), float(dx) } },
+            polylines_out))
+        BOOST_LOG_TRIVIAL(error) << "FillCubic::fill_surface() failed to fill a region.";
     return polylines_out; 
 }
 

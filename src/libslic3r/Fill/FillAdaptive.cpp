@@ -553,21 +553,15 @@ static void export_infill_lines_to_svg(const ExPolygon &expoly, const Polylines 
 }
 #endif /* ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT */
 
-static Matrix2d rotation_matrix_from_vector(const Point &vector)
-{
-    Matrix2d rotation;
-    rotation.block<1, 2>(0, 0) = vector.cast<double>().normalized();
-    rotation(1, 0)             = -rotation(0, 1);
-    rotation(1, 1)             = rotation(0, 0);
-    return rotation;
-}
-
+// Representing a T-joint (in general case) between two infill lines
+// (between one end point of intersect_pl/intersect_line and 
 struct Intersection
 {
     // Index of the closest line to intersect_line
     size_t    closest_line_idx;
     // Copy of closest line to intersect_point, used for storing original line in an unchanged state
     Line      closest_line;
+
     // Point for which is computed closest line (closest_line)
     Point     intersect_point;
     // Index of the polyline from which is computed closest_line
@@ -577,54 +571,53 @@ struct Intersection
     // The line for which is computed closest line from intersect_point to closest_line
     Line      intersect_line;
     // Indicate if intersect_point is the first or the last point of intersect_pl
-    bool      forward;
+    bool      front;
+
     // Indication if this intersection has been proceed
     bool      used = false;
 
-    Intersection(const size_t closest_line_idx,
-                 const Line  &closest_line,
-                 const Point &intersect_point,
-                 size_t       intersect_pl_idx,
-                 Polyline    *intersect_pl,
-                 const Line  &intersect_line,
-                 bool         forward)
-        : closest_line_idx(closest_line_idx)
-        , closest_line(closest_line)
-        , intersect_point(intersect_point)
-        , intersect_pl_idx(intersect_pl_idx)
-        , intersect_pl(intersect_pl)
-        , intersect_line(intersect_line)
-        , forward(forward)
-    {}
+    bool      fresh() const throw() { return ! used && ! intersect_pl->empty(); }
 };
 
-static inline Intersection *get_nearest_intersection(std::vector<std::pair<Intersection, double>> &intersect_line, const size_t first_idx)
+static inline Intersection *get_nearest_intersection(std::vector<std::pair<Intersection*, double>> &intersect_line, const size_t first_idx)
 {
     assert(intersect_line.size() >= 2);
+    bool take_next = false;
     if (first_idx == 0)
-        return &intersect_line[first_idx + 1].first;
-    else if (first_idx == (intersect_line.size() - 1))
-        return &intersect_line[first_idx - 1].first;
-    else if ((intersect_line[first_idx].second - intersect_line[first_idx - 1].second) < (intersect_line[first_idx + 1].second - intersect_line[first_idx].second))
-        return &intersect_line[first_idx - 1].first;
-    else
-        return &intersect_line[first_idx + 1].first;
+        take_next = true;
+    else if (first_idx + 1 == intersect_line.size())
+        take_next = false;
+    else {
+        // Has both prev and next.
+        const std::pair<Intersection*, double> &ithis = intersect_line[first_idx];
+        const std::pair<Intersection*, double> &iprev = intersect_line[first_idx - 1];
+        const std::pair<Intersection*, double> &inext = intersect_line[first_idx + 1];
+        take_next = iprev.first->fresh() && inext.first->fresh() ?
+            inext.second - ithis.second < ithis.second - iprev.second :
+            inext.first->fresh();
+    }
+    return intersect_line[take_next ? first_idx + 1 : first_idx - 1].first;
 }
 
-// Create a line based on line_to_offset translated it in the direction of the intersection line (intersection.intersect_line)
+// Create a line representing the anchor aka hook extrusion based on line_to_offset 
+// translated in the direction of the intersection line (intersection.intersect_line).
 static Line create_offset_line(const Line &line_to_offset, const Intersection &intersection, const double scaled_spacing)
 {
-    Matrix2d rotation          = rotation_matrix_from_vector(line_to_offset.vector());
-    Vec2d    offset_vector     = ((scaled_spacing / 2.) * line_to_offset.normal().cast<double>().normalized());
-    Vec2d    offset_line_point = line_to_offset.a.cast<double>();
-    Vec2d    furthest_point    = (intersection.intersect_point == intersection.intersect_line.a ? intersection.intersect_line.b : intersection.intersect_line.a).cast<double>();
+    Vec2d        dir            = line_to_offset.vector().cast<double>().normalized();
+    // 50% overlap of the extrusion lines to achieve strong bonding.
+    Vec2d        offset_vector  = Vec2d(- dir.y(), dir.x()) * (scaled_spacing / 2.);
+    const Point &furthest_point = (intersection.intersect_point == intersection.intersect_line.a ? intersection.intersect_line.b : intersection.intersect_line.a);
 
-    if ((rotation * furthest_point).y() >= (rotation * offset_line_point).y()) offset_vector *= -1;
+    // Move inside.
+    if (offset_vector.dot((furthest_point - intersection.intersect_point).cast<double>()) < 0.)
+        offset_vector *= -1.;
 
     Line  offset_line    = line_to_offset;
     offset_line.translate(offset_vector.x(), offset_vector.y());
-    // Extend the line by small value to guarantee a collision with adjacent lines
+    // Extend the line by a small value to guarantee a collision with adjacent lines
     offset_line.extend(coord_t(scale_(1.)));
+    //FIXME scaled_spacing * tan(PI/6)
+//    offset_line.extend(coord_t(scaled_spacing * 0.577));
     return offset_line;
 };
 
@@ -637,26 +630,29 @@ using rtree_point_t   = bgm::point<float, 2, boost::geometry::cs::cartesian>;
 using rtree_segment_t = bgm::segment<rtree_point_t>;
 using rtree_t         = bgi::rtree<std::pair<rtree_segment_t, size_t>, bgi::rstar<16, 4>>;
 
+static inline rtree_point_t mk_rtree_point(const Point &pt) {
+    return rtree_point_t(float(pt.x()), float(pt.y()));
+}
 static inline rtree_segment_t mk_rtree_seg(const Point &a, const Point &b) {
-    return { rtree_point_t(float(a.x()), float(a.y())), rtree_point_t(float(b.x()), float(b.y())) };
+    return { mk_rtree_point(a), mk_rtree_point(b) };
 }
 static inline rtree_segment_t mk_rtree_seg(const Line &l) {
     return mk_rtree_seg(l.a, l.b);
 }
 
 // Create a hook based on hook_line and append it to the begin or end of the polyline in the intersection
-static void add_hook(const Intersection &intersection, const Line &hook_line, const double scaled_spacing, const int hook_length, const rtree_t &rtree)
+static void add_hook(const Intersection &intersection, const double scaled_spacing, const int hook_length, const rtree_t &rtree)
 {
-    Vec2d  hook_vector_norm = hook_line.vector().cast<double>().normalized();
-    Vector hook_vector      = (hook_length * hook_vector_norm).cast<coord_t>();
-    Line   hook_line_offset = create_offset_line(hook_line, intersection, scaled_spacing);
-
-    Point intersection_point;
-    bool  intersection_found = intersection.intersect_line.intersection(hook_line_offset, &intersection_point);
+    // Trim the hook start by the infill line it will connect to.
+    Point hook_start;
+    bool  intersection_found = intersection.intersect_line.intersection(
+        create_offset_line(intersection.closest_line, intersection, scaled_spacing),
+        &hook_start);
     assert(intersection_found);
 
-    Line hook_forward(intersection_point, intersection_point + hook_vector);
-    Line hook_backward(intersection_point, intersection_point - hook_vector);
+    Vec2d   hook_vector_norm = intersection.closest_line.vector().cast<double>().normalized();
+    Vector  hook_vector      = (hook_length * hook_vector_norm).cast<coord_t>();
+    Line    hook_forward(hook_start, hook_start + hook_vector);
 
     auto filter_itself = [&intersection](const auto &item) {
         const rtree_segment_t &seg     = item.first;
@@ -666,51 +662,66 @@ static void add_hook(const Intersection &intersection, const Line &hook_line, co
     };
 
     std::vector<std::pair<rtree_segment_t, size_t>> hook_intersections;
-    rtree.query(bgi::intersects(mk_rtree_seg(hook_forward)) && bgi::satisfies(filter_itself),
-                std::back_inserter(hook_intersections));
+    rtree.query(bgi::intersects(mk_rtree_seg(hook_forward)) && bgi::satisfies(filter_itself), std::back_inserter(hook_intersections));
 
-    auto max_hook_length = [&hook_intersections, &hook_length](const Line &hook) {
-        coord_t max_length = hook_length;
-        for (const auto &hook_intersection : hook_intersections) {
-            const rtree_segment_t &segment = hook_intersection.first;
-            double                 dist    = Line::distance_to(hook.a, Point(bg::get<0, 0>(segment), bg::get<0, 1>(segment)),
-                                            Point(bg::get<1, 0>(segment), bg::get<1, 1>(segment)));
-            max_length                     = std::min(coord_t(dist), max_length);
-        }
-        return max_length;
-    };
-
-    Line hook_final;
+    Point hook_end;
     if (hook_intersections.empty()) {
-        hook_final = std::move(hook_forward);
+        // The hook is not limited by another infill line. Extrude it in its full length.
+        hook_end = hook_forward.b;
     } else {
-        // There is not enough space for the hook, try another direction
-        coord_t hook_forward_max_length = max_hook_length(hook_forward);
+
+        // Find closest intersection of a line segment starting with pt pointing in dir
+        // with any of the hook_intersections, returns Euclidian distance.
+        // dir is normalized.
+        auto max_hook_length = [hook_length](const Vec2d &pt, const Vec2d &dir, const std::vector<std::pair<rtree_segment_t, size_t>> &hook_intersections) {
+            // No hook is longer than hook_length, there shouldn't be any intersection closer than that.
+            auto max_length = double(hook_length);
+            auto update_max_length = [&max_length](double d) {
+                if (d > 0. && d < max_length)
+                    max_length = d;
+            };
+            for (const auto &hook_intersection : hook_intersections) {
+                const rtree_segment_t &segment = hook_intersection.first;
+                // Segment start and end points.
+                Vec2d pt2(bg::get<0, 0>(segment), bg::get<0, 1>(segment));
+                Vec2d pt2b(bg::get<1, 0>(segment), bg::get<1, 1>(segment));
+                // Segment vector.
+                Vec2d dir2 = pt2b - pt2;
+                // Find intersection of (pt, dir) with (pt2, dir2), where dir is normalized.
+                double denom = cross2(dir, dir2);
+                if (std::abs(denom) < EPSILON) {
+                    update_max_length((pt2 - pt).dot(dir));
+                    update_max_length((pt2b - pt).dot(dir));
+                } else
+                    update_max_length(cross2(pt2 - pt, dir2) / denom);
+            }
+            return max_length;
+        };
+
+        // There is not enough space for the full hook length, try the opposite direction.
+        Vec2d  hook_startf             = hook_start.cast<double>();
+        double hook_forward_max_length = max_hook_length(hook_startf, hook_vector_norm, hook_intersections);
         hook_intersections.clear();
-        rtree.query(bgi::intersects(mk_rtree_seg(hook_backward)) && bgi::satisfies(filter_itself),
-                    std::back_inserter(hook_intersections));
+        Line hook_backward(hook_start, hook_start - hook_vector);
+        rtree.query(bgi::intersects(mk_rtree_seg(hook_backward)) && bgi::satisfies(filter_itself), std::back_inserter(hook_intersections));
 
         if (hook_intersections.empty()) {
-            hook_final = std::move(hook_backward);
+          // The hook in the other direction is not limited by another infill line. Extrude it in its full length.
+            hook_end = hook_backward.b;
         } else {
-            // There is not enough space for hook in both directions, shrink the hook
-            coord_t hook_backward_max_length = max_hook_length(hook_backward);
-            if (hook_forward_max_length > hook_backward_max_length) {
-                Vector hook_vector_reduced = (hook_forward_max_length * hook_vector_norm).cast<coord_t>();
-                hook_final                 = Line(intersection_point, intersection_point + hook_vector_reduced);
-            } else {
-                Vector hook_vector_reduced = (hook_backward_max_length * hook_vector_norm).cast<coord_t>();
-                hook_final                 = Line(intersection_point, intersection_point - hook_vector_reduced);
-            }
+            // There is not enough space for the full hook in both directions, take the longer one.
+            double hook_backward_max_length = max_hook_length(hook_startf, - hook_vector_norm, hook_intersections);
+            Vec2d hook_dir = (hook_forward_max_length > hook_backward_max_length ? hook_forward_max_length : - hook_backward_max_length) * hook_vector_norm;
+            hook_end = hook_start + hook_dir.cast<coord_t>();
         }
     }
 
-    if (intersection.forward) {
-        intersection.intersect_pl->points.front() = hook_final.a;
-        intersection.intersect_pl->points.emplace(intersection.intersect_pl->points.begin(), hook_final.b);
+    if (intersection.front) {
+        intersection.intersect_pl->points.front() = hook_start;
+        intersection.intersect_pl->points.emplace(intersection.intersect_pl->points.begin(), hook_end);
     } else {
-        intersection.intersect_pl->points.back() = hook_final.a;
-        intersection.intersect_pl->points.emplace_back(hook_final.b);
+        intersection.intersect_pl->points.back() = hook_start;
+        intersection.intersect_pl->points.emplace_back(hook_end);
     }
 }
 
@@ -719,6 +730,7 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
     rtree_t rtree;
     size_t  poly_idx = 0;
     for (const Polyline &poly : lines) {
+        assert(poly.points.size() == 2);
         rtree.insert(std::make_pair(mk_rtree_seg(poly.points.front(), poly.points.back()), poly_idx++));
     }
 
@@ -731,24 +743,28 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
             Polyline &line = lines[line_idx];
             // Lines shorter than spacing are skipped because it is needed to shrink a line by the value of spacing.
             // A shorter line than spacing could produce a degenerate polyline.
-            if (line.length() <= (scaled_spacing + SCALED_EPSILON)) continue;
+            //FIXME we should rather remove such short infill lines earlier!
+            if (line.length() <= (scaled_spacing + SCALED_EPSILON))
+                continue;
 
-            Point                                           front_point = line.points.front();
-            Point                                           back_point  = line.points.back();
+            const Point &front_point = line.points.front();
+            const Point &back_point  = line.points.back();
 
             auto filter_itself = [line_idx](const auto &item) { return item.second != line_idx; };
 
             // Find the nearest line from the start point of the line.
             closest.clear();
-            rtree.query(bgi::nearest(rtree_point_t(float(front_point.x()), float(front_point.y())), 1) && bgi::satisfies(filter_itself), std::back_inserter(closest));
-            if (((Line) lines[closest[0].second]).distance_to(front_point) <= 1000)
-                intersections.emplace_back(closest[0].second, (Line) lines[closest[0].second], front_point, line_idx, &line, (Line) line, true);
+            rtree.query(bgi::nearest(mk_rtree_point(front_point), 1) && bgi::satisfies(filter_itself), std::back_inserter(closest));
+            if (((Line) lines[closest.front().second]).distance_to(front_point) <= 1000)
+                // T-joint of line's front point with the 'closest' line.
+                intersections.push_back({ closest.front().second, (Line)lines[closest.front().second], front_point, line_idx, &line, (Line)line, true });
 
             // Find the nearest line from the end point of the line
             closest.clear();
-            rtree.query(bgi::nearest(rtree_point_t(float(back_point.x()), float(back_point.y())), 1) && bgi::satisfies(filter_itself), std::back_inserter(closest));
-            if (((Line) lines[closest[0].second]).distance_to(back_point) <= 1000)
-                intersections.emplace_back(closest[0].second, (Line) lines[closest[0].second], back_point, line_idx, &line, (Line) line, false);
+            rtree.query(bgi::nearest(mk_rtree_point(back_point), 1) && bgi::satisfies(filter_itself), std::back_inserter(closest));
+            if (((Line) lines[closest.front().second]).distance_to(back_point) <= 1000)
+                // T-joint of line's back point with the 'closest' line.
+                intersections.push_back({ closest.front().second, (Line)lines[closest.front().second], back_point, line_idx, &line, (Line)line, false });
         }
     }
 
@@ -758,7 +774,7 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
     std::vector<size_t> merged_with(lines.size());
     std::iota(merged_with.begin(), merged_with.end(), 0);
 
-    // Appends the boundary polygon with all holes to rtree for detection if hooks not crossing the boundary
+    // Appends the boundary polygon with all holes to rtree for detection to check whether hooks are not crossing the boundary
     {
         Point prev = boundary.contour.points.back();
         for (const Point &point : boundary.contour.points) {
@@ -788,107 +804,97 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
 
         intersection.intersect_pl = &lines[intersection.intersect_pl_idx];
         // After polylines are merged, it is necessary to update "forward" based on if intersect_point is the first or the last point of intersect_pl.
-        if (!intersection.used && !intersection.intersect_pl->points.empty())
-            intersection.forward = (intersection.intersect_pl->points.front() == intersection.intersect_point);
+        if (intersection.fresh())
+            intersection.front = intersection.intersect_pl->points.front() == intersection.intersect_point;
     };
 
-    for (size_t min_idx = 0; min_idx < intersections.size(); ++min_idx) {
-        std::vector<std::pair<Intersection, double>> intersect_line;
-        Matrix2d                                     rotation = rotation_matrix_from_vector(intersections[min_idx].closest_line.vector());
-        intersect_line.emplace_back(intersections[min_idx], (rotation * intersections[min_idx].intersect_point.cast<double>()).x());
-        // All the nearest points on the same line are projected on this line. Because of it, it can easily find the nearest point
-        for (size_t max_idx = min_idx + 1; max_idx < intersections.size(); ++max_idx) {
-            if (intersections[min_idx].closest_line_idx != intersections[max_idx].closest_line_idx) break;
-
-            intersect_line.emplace_back(intersections[max_idx], (rotation * intersections[max_idx].intersect_point.cast<double>()).x());
+    // Keep intersect_line outside the loop, so it does not get reallocated.
+    std::vector<std::pair<Intersection*, double>> intersect_line;
+    for (size_t min_idx = 0; min_idx < intersections.size();) {
+        const Vec2d line_dir = intersections[min_idx].closest_line.vector().cast<double>();
+        intersect_line.clear();
+        // All the nearest points (T-joints) ending at the same line are projected onto this line. Because of it, it can easily find the nearest point.
+        {
+            const Point &p0 = intersections[min_idx].intersect_point;
+            size_t max_idx = min_idx + 1;
+            intersect_line.emplace_back(&intersections[min_idx], 0.);
+            for (; max_idx < intersections.size() && intersections[min_idx].closest_line_idx == intersections[max_idx].closest_line_idx; ++max_idx)
+                intersect_line.emplace_back(&intersections[max_idx], line_dir.dot((intersections[max_idx].intersect_point - p0).cast<double>()));
             min_idx = max_idx;
         }
-
-        assert(!intersect_line.empty());
-        if (intersect_line.size() <= 1) {
-            // On the adjacent line is only one intersection
-            Intersection &first_i = intersect_line.front().first;
-            if (first_i.used || first_i.intersect_pl->points.empty()) continue;
-
-            add_hook(first_i, first_i.closest_line, scale_(spacing), hook_length, rtree);
-            first_i.used = true;
+        if (intersect_line.size() == 1) {
+            // Simple case: The current intersection is the only one touching its adjacent line.
+            Intersection &first_i = *intersect_line.front().first;
+            if (first_i.fresh()) {
+                // Try to connect left or right. If not enough space for hook_length, take the longer side.
+                add_hook(first_i, scale_(spacing), hook_length, rtree);
+                first_i.used = true;
+            }
             continue;
         }
 
-        assert(intersect_line.size() >= 2);
+        assert(intersect_line.size() > 1);
+        // Sort the intersections along line_dir.
         std::sort(intersect_line.begin(), intersect_line.end(), [](const auto &i1, const auto &i2) { return i1.second < i2.second; });
-        for (size_t first_idx = 0; first_idx < intersect_line.size(); ++first_idx) {
-            Intersection &first_i   = intersect_line[first_idx].first;
-            Intersection &nearest_i = *get_nearest_intersection(intersect_line, first_idx);
+        for (size_t first_idx = 0; first_idx < intersect_line.size(); ++ first_idx) {
+            Intersection &first_i = *intersect_line[first_idx].first;
+            if (! first_i.fresh())
+                // The intersection has been processed, or the polyline has been merged to another polyline.
+                continue;
 
+            // Get the previous or next intersection on the same line, pick the closer one.
+            Intersection &nearest_i = *get_nearest_intersection(intersect_line, first_idx);
             update_merged_polyline(first_i);
             update_merged_polyline(nearest_i);
 
-            // The intersection has been processed, or the polyline has been merge to another polyline.
-            if (first_i.used || first_i.intersect_pl->points.empty()) continue;
-
             // A line between two intersections points
-            Line   intersection_line(first_i.intersect_point, nearest_i.intersect_point);
-            Line   offset_line              = create_offset_line(intersection_line, first_i, scale_(spacing));
-            double intersection_line_length = intersection_line.length();
-
+            Line offset_line = create_offset_line(Line(first_i.intersect_point, nearest_i.intersect_point), first_i, scale_(spacing));
             // Check if both intersections lie on the offset_line and simultaneously get their points of intersecting.
             // These points are used as start and end of the hook
             Point first_i_point, nearest_i_point;
             if (first_i.intersect_line.intersection(offset_line, &first_i_point) &&
                 nearest_i.intersect_line.intersection(offset_line, &nearest_i_point)) {
-                // Both intersections are so close that their polylines can be connected
-                if (!nearest_i.used && !nearest_i.intersect_pl->points.empty() && intersection_line_length <= 2 * hook_length) {
+                if (nearest_i.fresh() && (nearest_i_point - first_i_point).cast<double>().squaredNorm() <= Slic3r::sqr(3. * hook_length)) {
+                    // Both intersections are so close that their polylines can be connected.
                     if (first_i.intersect_pl_idx == nearest_i.intersect_pl_idx) {
-                        // Both intersections are on the same polyline
-                        if (!first_i.forward) { std::swap(first_i_point, nearest_i_point); }
-
+                        // Both intersections are on the same polyline, that means a loop is being closed.
+                        if (! first_i.front)
+                            std::swap(first_i_point, nearest_i_point);
                         first_i.intersect_pl->points.front() = first_i_point;
                         first_i.intersect_pl->points.back()  = nearest_i_point;
+                        //FIXME trim the end of a closed loop a bit?
                         first_i.intersect_pl->points.emplace(first_i.intersect_pl->points.begin(), nearest_i_point);
                     } else {
                         // Both intersections are on different polylines
-                        Points merge_polyline_points;
-                        size_t first_polyline_size     = first_i.intersect_pl->points.size();
-                        size_t nearest_polyline_size   = nearest_i.intersect_pl->points.size();
-                        merge_polyline_points.reserve(first_polyline_size + nearest_polyline_size);
-
-                        if (first_i.forward) {
-                            if (nearest_i.forward)
-                                for (auto it = nearest_i.intersect_pl->points.rbegin(); it != nearest_i.intersect_pl->points.rend(); ++it)
-                                    merge_polyline_points.emplace_back(*it);
-                            else
-                                for (const Point &point : nearest_i.intersect_pl->points)
-                                    merge_polyline_points.emplace_back(point);
-
-                            append(merge_polyline_points, std::move(first_i.intersect_pl->points));
-                            merge_polyline_points[nearest_polyline_size - 1] = nearest_i_point;
-                            merge_polyline_points[nearest_polyline_size]     = first_i_point;
+                        Points &first_points  = first_i.intersect_pl->points;
+                        Points &second_points = nearest_i.intersect_pl->points;
+                        first_points.reserve(first_points.size() + second_points.size());
+                        if (first_i.front)
+                            std::reverse(first_points.begin(), first_points.end());
+                        first_points.back() = first_i_point;
+                        first_points.emplace_back(nearest_i_point);
+                        if (nearest_i.front)
+                            first_points.insert(first_points.end(), second_points.begin() + 1, second_points.end());
+                        else
+                            first_points.insert(first_points.end(), second_points.rbegin() + 1, second_points.rend());
+                        // Keep the polyline at the lower index slot.
+                        if (first_i.intersect_pl_idx < nearest_i.intersect_pl_idx) {
+                            second_points.clear();
+                            merged_with[nearest_i.intersect_pl_idx] = merged_with[first_i.intersect_pl_idx];
                         } else {
-                            append(merge_polyline_points, std::move(first_i.intersect_pl->points));
-                            if (nearest_i.forward)
-                                for (const Point &point : nearest_i.intersect_pl->points)
-                                    merge_polyline_points.emplace_back(point);
-                            else
-                                for (auto it = nearest_i.intersect_pl->points.rbegin(); it != nearest_i.intersect_pl->points.rend(); ++it)
-                                    merge_polyline_points.emplace_back(*it);
-
-                            merge_polyline_points[first_polyline_size - 1] = first_i_point;
-                            merge_polyline_points[first_polyline_size]     = nearest_i_point;
+                            second_points = std::move(first_points);
+                            first_points.clear();
+                            merged_with[first_i.intersect_pl_idx] = merged_with[nearest_i.intersect_pl_idx];
                         }
-
-                        merged_with[nearest_i.intersect_pl_idx] = merged_with[first_i.intersect_pl_idx];
-
-                        nearest_i.intersect_pl->points.clear();
-                        first_i.intersect_pl->points = merge_polyline_points;
                     }
-
-                    first_i.used   = true;
                     nearest_i.used = true;
-                } else {
-                    add_hook(first_i, first_i.closest_line, scale_(spacing), hook_length, rtree);
-                    first_i.used = true;
-                }
+                } else
+                    // Try to connect left or right. If not enough space for hook_length, take the longer side.
+                    add_hook(first_i, scale_(spacing), hook_length, rtree);
+                first_i.used = true;
+            } else {
+                // The first & last point should always be found.
+                assert(false);
             }
         }
     }

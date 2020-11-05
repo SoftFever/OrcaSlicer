@@ -132,6 +132,7 @@ public:
 
     void   rotate(double angle, const Point &center);
     Point  rotated(double angle) const { Point res(*this); res.rotate(angle); return res; }
+    Point  rotated(double cos_a, double sin_a) const { Point res(*this); res.rotate(cos_a, sin_a); return res; }
     Point  rotated(double angle, const Point &center) const { Point res(*this); res.rotate(angle, center); return res; }
     int    nearest_point_index(const Points &points) const;
     int    nearest_point_index(const PointConstPtrs &points) const;
@@ -172,6 +173,12 @@ inline bool is_approx(const Vec3d &p1, const Vec3d &p2, double epsilon = EPSILON
 {
 	Vec3d d = (p2 - p1).cwiseAbs();
 	return d.x() < epsilon && d.y() < epsilon && d.z() < epsilon;
+}
+
+inline Point lerp(const Point &a, const Point &b, double t)
+{
+    assert((t >= -EPSILON) && (t <= 1. + EPSILON));
+    return ((1. - t) * a.cast<double>() + t * b.cast<double>()).cast<coord_t>();
 }
 
 namespace int128 {

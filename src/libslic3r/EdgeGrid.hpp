@@ -21,6 +21,7 @@ public:
 	void set_bbox(const BoundingBox &bbox) { m_bbox = bbox; }
 
 	void create(const Polygons &polygons, coord_t resolution);
+	void create(const std::vector<const Polygon*> &polygons, coord_t resolution);
 	void create(const std::vector<Points> &polygons, coord_t resolution);
 	void create(const ExPolygon &expoly, coord_t resolution);
 	void create(const ExPolygons &expolygons, coord_t resolution);

@@ -17,7 +17,16 @@ public:
     virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
 
 protected:
+    // Fill by single directional lines, interconnect the lines along perimeters.
 	bool fill_surface_by_lines(const Surface *surface, const FillParams &params, float angleBase, float pattern_shift, Polylines &polylines_out);
+
+
+    // Fill by multiple sweeps of differing directions.
+    struct SweepParams {
+        float angle_base;
+        float pattern_shift;
+    };
+    bool fill_surface_by_multilines(const Surface *surface, FillParams params, const std::initializer_list<SweepParams> &sweep_params, Polylines &polylines_out);
 };
 
 class FillMonotonic : public FillRectilinear2
