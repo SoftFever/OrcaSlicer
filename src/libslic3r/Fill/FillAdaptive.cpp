@@ -564,8 +564,8 @@ struct Intersection
 
     // Point for which is computed closest line (closest_line)
     Point     intersect_point;
-    // Index of the polyline from which is computed closest_line
-    size_t    intersect_pl_idx;
+    // Index of the source infill from which is computed closest_line
+    size_t    intersect_line_idx;
     // Pointer to the polyline from which is computed closest_line
     Polyline *intersect_pl;
     // The line for which is computed closest line from intersect_point to closest_line
@@ -654,12 +654,7 @@ static void add_hook(const Intersection &intersection, const double scaled_spaci
     Vector  hook_vector      = (hook_length * hook_vector_norm).cast<coord_t>();
     Line    hook_forward(hook_start, hook_start + hook_vector);
 
-    auto filter_itself = [&intersection](const auto &item) {
-        const rtree_segment_t &seg     = item.first;
-        const Point           &i_point = intersection.intersect_point;
-        return !((float(i_point.x()) == bg::get<0, 0>(seg) && float(i_point.y()) == bg::get<0, 1>(seg)) ||
-                 (float(i_point.x()) == bg::get<1, 0>(seg) && float(i_point.y()) == bg::get<1, 1>(seg)));
-    };
+    auto filter_itself = [&intersection](const auto &item) { return item.second != intersection.intersect_line_idx; };
 
     std::vector<std::pair<rtree_segment_t, size_t>> hook_intersections;
     rtree.query(bgi::intersects(mk_rtree_seg(hook_forward)) && bgi::satisfies(filter_itself), std::back_inserter(hook_intersections));
@@ -792,17 +787,18 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
 
     auto update_merged_polyline = [&lines, &merged_with](Intersection &intersection) {
         // Update the polyline index to index which is merged
-        for (size_t last = intersection.intersect_pl_idx;;) {
+        size_t intersect_pl_idx = intersection.intersect_pl - lines.data();
+        for (size_t last = intersect_pl_idx;;) {
             size_t lower = merged_with[last];
             if (lower == last) {
-                merged_with[intersection.intersect_pl_idx] = lower;
-                intersection.intersect_pl_idx              = lower;
+                merged_with[intersect_pl_idx] = lower;
+                intersect_pl_idx              = lower;
                 break;
             }
             last = lower;
         }
 
-        intersection.intersect_pl = &lines[intersection.intersect_pl_idx];
+        intersection.intersect_pl = &lines[intersect_pl_idx];
         // After polylines are merged, it is necessary to update "forward" based on if intersect_point is the first or the last point of intersect_pl.
         if (intersection.fresh())
             intersection.front = intersection.intersect_pl->points.front() == intersection.intersect_point;
@@ -854,41 +850,53 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
             Point first_i_point, nearest_i_point;
             if (first_i.intersect_line.intersection(offset_line, &first_i_point) &&
                 nearest_i.intersect_line.intersection(offset_line, &nearest_i_point)) {
+                bool connected = false;
                 if (nearest_i.fresh() && (nearest_i_point - first_i_point).cast<double>().squaredNorm() <= Slic3r::sqr(3. * hook_length)) {
                     // Both intersections are so close that their polylines can be connected.
-                    if (first_i.intersect_pl_idx == nearest_i.intersect_pl_idx) {
-                        // Both intersections are on the same polyline, that means a loop is being closed.
-                        if (! first_i.front)
-                            std::swap(first_i_point, nearest_i_point);
-                        first_i.intersect_pl->points.front() = first_i_point;
-                        first_i.intersect_pl->points.back()  = nearest_i_point;
-                        //FIXME trim the end of a closed loop a bit?
-                        first_i.intersect_pl->points.emplace(first_i.intersect_pl->points.begin(), nearest_i_point);
-                    } else {
-                        // Both intersections are on different polylines
-                        Points &first_points  = first_i.intersect_pl->points;
-                        Points &second_points = nearest_i.intersect_pl->points;
-                        first_points.reserve(first_points.size() + second_points.size());
-                        if (first_i.front)
-                            std::reverse(first_points.begin(), first_points.end());
-                        first_points.back() = first_i_point;
-                        first_points.emplace_back(nearest_i_point);
-                        if (nearest_i.front)
-                            first_points.insert(first_points.end(), second_points.begin() + 1, second_points.end());
-                        else
-                            first_points.insert(first_points.end(), second_points.rbegin() + 1, second_points.rend());
-                        // Keep the polyline at the lower index slot.
-                        if (first_i.intersect_pl_idx < nearest_i.intersect_pl_idx) {
-                            second_points.clear();
-                            merged_with[nearest_i.intersect_pl_idx] = merged_with[first_i.intersect_pl_idx];
+                    // Verify that no other infill line intersects this anchor line.
+                    std::vector<std::pair<rtree_segment_t, size_t>> hook_intersections;
+                    rtree.query(
+                        bgi::intersects(mk_rtree_seg(first_i_point, nearest_i_point)) &&
+                        bgi::satisfies([&first_i, &nearest_i](const auto &item) { return item.second != first_i.intersect_line_idx && item.second != nearest_i.intersect_line_idx; }),
+                        std::back_inserter(hook_intersections));
+                    if (hook_intersections.empty()) {
+                        // No other infill line intersects this anchor line. Extrude it as a whole.
+                        if (first_i.intersect_pl == nearest_i.intersect_pl) {
+                            // Both intersections are on the same polyline, that means a loop is being closed.
+                            if (! first_i.front)
+                                std::swap(first_i_point, nearest_i_point);
+                            first_i.intersect_pl->points.front() = first_i_point;
+                            first_i.intersect_pl->points.back()  = nearest_i_point;
+                            //FIXME trim the end of a closed loop a bit?
+                            first_i.intersect_pl->points.emplace(first_i.intersect_pl->points.begin(), nearest_i_point);
                         } else {
-                            second_points = std::move(first_points);
-                            first_points.clear();
-                            merged_with[first_i.intersect_pl_idx] = merged_with[nearest_i.intersect_pl_idx];
+                            // Both intersections are on different polylines
+                            Points &first_points  = first_i.intersect_pl->points;
+                            Points &second_points = nearest_i.intersect_pl->points;
+                            first_points.reserve(first_points.size() + second_points.size());
+                            if (first_i.front)
+                                std::reverse(first_points.begin(), first_points.end());
+                            first_points.back() = first_i_point;
+                            first_points.emplace_back(nearest_i_point);
+                            if (nearest_i.front)
+                                first_points.insert(first_points.end(), second_points.begin() + 1, second_points.end());
+                            else
+                                first_points.insert(first_points.end(), second_points.rbegin() + 1, second_points.rend());
+                            // Keep the polyline at the lower index slot.
+                            if (first_i.intersect_pl < nearest_i.intersect_pl) {
+                                second_points.clear();
+                                merged_with[nearest_i.intersect_pl - lines.data()] = merged_with[first_i.intersect_pl - lines.data()];
+                            } else {
+                                second_points = std::move(first_points);
+                                first_points.clear();
+                                merged_with[first_i.intersect_pl - lines.data()] = merged_with[nearest_i.intersect_pl - lines.data()];
+                            }
                         }
+                        nearest_i.used = true;
+                        connected = true;
                     }
-                    nearest_i.used = true;
-                } else
+                }
+                if (! connected)
                     // Try to connect left or right. If not enough space for hook_length, take the longer side.
                     add_hook(first_i, scale_(spacing), hook_length, rtree);
                 first_i.used = true;
