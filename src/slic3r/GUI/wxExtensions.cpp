@@ -696,6 +696,17 @@ void ModeSizer::SetMode(const int mode)
         m_mode_btns[m]->SetState(int(m) == mode);
 }
 
+void ModeSizer::set_items_flag(int flag)
+{
+    for (wxSizerItem* item : this->GetChildren())
+        item->SetFlag(flag);
+}
+
+void ModeSizer::set_items_border(int border)
+{
+    for (wxSizerItem* item : this->GetChildren())
+        item->SetBorder(border);
+}
 
 void ModeSizer::msw_rescale()
 {

@@ -429,6 +429,10 @@ void MainFrame::update_layout()
 //        m_tabpanel->SetMinSize(size);
 //    }
 //#endif
+
+#ifdef __APPLE__
+    m_plater->sidebar().change_top_border_for_mode_sizer(m_layout != ESettingsLayout::Old);
+#endif
     
     Layout();
     Thaw();

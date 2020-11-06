@@ -910,6 +910,12 @@ void Sidebar::update_mode_sizer() const
     p->mode_sizer->SetMode(m_mode);
 }
 
+void Sidebar::change_top_border_for_mode_sizer(bool increase_border)
+{
+    p->mode_sizer->set_items_flag(increase_border ? wxTOP : 0);
+    p->mode_sizer->set_items_border(increase_border ? int(0.5 * wxGetApp().em_unit()) : 0);
+}
+
 void Sidebar::update_reslice_btn_tooltip() const
 {
     wxString tooltip = wxString("Slice") + " [" + GUI::shortkey_ctrl_prefix() + "R]";

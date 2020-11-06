@@ -627,7 +627,7 @@ wxCoord    OG_CustomCtrl::CtrlLine::draw_text(wxDC& dc, wxPoint pos, const wxStr
     return pos.x + width + ctrl->m_h_gap;
 }
 
-wxPoint OG_CustomCtrl::CtrlLine::draw_blinking_bmp(wxDC& dc, wxPoint pos, bool is_blinking, size_t rect_id)
+wxPoint OG_CustomCtrl::CtrlLine::draw_blinking_bmp(wxDC& dc, wxPoint pos, bool is_blinking)
 {
     wxBitmap bmp_blinking = create_scaled_bitmap(is_blinking ? "search_blink" : "empty", ctrl);
     wxCoord h_pos = pos.x;
@@ -643,7 +643,7 @@ wxPoint OG_CustomCtrl::CtrlLine::draw_blinking_bmp(wxDC& dc, wxPoint pos, bool i
 
 wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmap& bmp_undo_to_sys, const wxBitmap& bmp_undo, bool is_blinking, size_t rect_id)
 {
-    pos = draw_blinking_bmp(dc, pos, is_blinking, rect_id);
+    pos = draw_blinking_bmp(dc, pos, is_blinking);
     wxCoord h_pos = pos.x;
     wxCoord v_pos = pos.y;
 

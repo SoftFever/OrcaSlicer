@@ -298,6 +298,9 @@ public:
 
     void SetMode(const /*ConfigOptionMode*/int mode);
 
+    void set_items_flag(int flag);
+    void set_items_border(int border);
+
     void msw_rescale();
 
 private:
