@@ -1787,7 +1787,7 @@ void TabFilament::build()
 
 //        optgroup = page->new_optgroup(_(L("Temperature")) + wxString(" °C", wxConvUTF8));
         optgroup = page->new_optgroup(L("Temperature"));
-        Line line = { L("Extruder"), "" };
+        Line line = { L("Nozzle"), "" };
         line.append_option(optgroup->get_option("first_layer_temperature"));
         line.append_option(optgroup->get_option("temperature"));
         optgroup->append_line(line);

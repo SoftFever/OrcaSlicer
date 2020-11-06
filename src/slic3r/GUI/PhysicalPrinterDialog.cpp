@@ -257,7 +257,7 @@ void PhysicalPrinterDialog::update_printers()
             printers.clear();
     } catch (const HostNetworkError &err) {
         printers.clear();
-        show_error(this, _L("Querying printers connected to a print host failed.") + "\n\n" + from_u8(err.what()));
+        show_error(this, _L("Connection to printers connected via the print host failed.") + "\n\n" + from_u8(err.what()));
     }
     Choice *choice = dynamic_cast<Choice*>(rs);
     choice->set_values(printers);
@@ -552,10 +552,10 @@ void PhysicalPrinterDialog::OnOK(wxEvent& event)
             repeatable_presets += "    " + from_u8(preset_name) + "\n";
         repeatable_presets += "\n";
 
-        wxString msg_text = from_u8((boost::format(_u8L("Next printer preset(s) is(are) duplicated:%1%"
-                                                        "Should I add it(they) just once for the printer \"%2%\" and close the Editing Dialog?")) % repeatable_presets % printer_name).str());
-        wxMessageDialog dialog(nullptr, msg_text, _L("Warning"), wxICON_WARNING | wxYES | wxNO);
-        if (dialog.ShowModal() == wxID_NO)
+        wxString msg_text = from_u8((boost::format(_u8L("Following printer preset(s) is duplicated:%1%"
+                                                        "The above preset for printer \"%2%\" will be used just once.")) % repeatable_presets % printer_name).str());
+        wxMessageDialog dialog(nullptr, msg_text, _L("Warning"), wxICON_WARNING | wxOK | wxCANCEL);
+        if (dialog.ShowModal() == wxID_CANCEL)
             return;
     }
 

@@ -122,7 +122,7 @@ void PreferencesDialog::build()
 #if __APPLE__
 		def.tooltip = L("On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances of same app from the command line. In such case this settings will allow only one instance.");
 #else
-		def.tooltip = L("If this is enabled, when starting PrusaSlicer and another instance of same PrusaSlicer is running, that instance will be reactivated instead.");
+		def.tooltip = L("If this is enabled, when starting PrusaSlicer and another instance of the same PrusaSlicer is already running, that instance will be reactivated instead.");
 #endif
 		def.set_default_value(new ConfigOptionBool{ app_config->has("single_instance") ? app_config->get("single_instance") == "1" : false });
 		option = Option(def, "single_instance");
