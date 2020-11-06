@@ -231,6 +231,10 @@ public:
 
 	std::pair<std::vector<std::pair<size_t, size_t>>::const_iterator, std::vector<std::pair<size_t, size_t>>::const_iterator> cell_data_range(coord_t row, coord_t col) const
 	{
+		assert(row >= 0);
+		assert(row < m_rows);
+		assert(col >= 0);
+		assert(col < m_cols);
 		const EdgeGrid::Grid::Cell &cell = m_cells[row * m_cols + col];
 		return std::make_pair(m_cell_data.begin() + cell.begin, m_cell_data.begin() + cell.end);
 	}

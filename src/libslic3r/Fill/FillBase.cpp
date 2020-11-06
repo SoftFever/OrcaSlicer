@@ -1056,7 +1056,8 @@ void mark_boundary_segments_touching_infill(
 #endif
 
 	EdgeGrid::Grid grid;
-	grid.set_bbox(boundary_bbox);
+    // Make sure that the the grid is big enough for queries against the thick segment.
+	grid.set_bbox(boundary_bbox.inflated(distance_colliding + SCALED_EPSILON));
 	// Inflate the bounding box by a thick line width.
 	grid.create(boundary, std::max(clip_distance, distance_colliding) + scale_(10.));
 
@@ -1213,15 +1214,12 @@ void mark_boundary_segments_touching_infill(
 void Fill::connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary_src, Polylines &polylines_out, const double spacing, const FillParams &params, const int hook_length)
 {
 	assert(! boundary_src.contour.points.empty());
-    BoundingBox bbox = get_extents(boundary_src.contour);
-    bbox.offset(SCALED_EPSILON);
-
     auto polygons_src = reserve_vector<const Polygon*>(boundary_src.holes.size() + 1);
     polygons_src.emplace_back(&boundary_src.contour);
     for (const Polygon &polygon : boundary_src.holes)
         polygons_src.emplace_back(&polygon);
 
-    connect_infill(std::move(infill_ordered), polygons_src, bbox, polylines_out, spacing, params, hook_length);
+    connect_infill(std::move(infill_ordered), polygons_src, get_extents(boundary_src.contour), polylines_out, spacing, params, hook_length);
 }
 
 void Fill::connect_infill(Polylines &&infill_ordered, const Polygons &boundary_src, const BoundingBox &bbox, Polylines &polylines_out, const double spacing, const FillParams &params, const int hook_length)
@@ -1255,7 +1253,7 @@ void Fill::connect_infill(Polylines &&infill_ordered, const std::vector<const Po
 		std::vector<std::pair<EdgeGrid::Grid::ClosestPointResult, size_t>> intersection_points;
 		{
 			EdgeGrid::Grid grid;
-			grid.set_bbox(bbox);
+			grid.set_bbox(bbox.inflated(SCALED_EPSILON));
 			grid.create(boundary_src, scale_(10.));
 			intersection_points.reserve(infill_ordered.size() * 2);
 			for (const Polyline &pl : infill_ordered)
