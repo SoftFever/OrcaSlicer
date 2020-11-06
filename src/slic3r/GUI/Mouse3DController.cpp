@@ -665,7 +665,6 @@ void Mouse3DController::init()
 #if ENABLE_CTRL_M_ON_WINDOWS
 #ifdef _WIN32
     m_device_str = detect_attached_device();
-    std::cout << "m_device_str: " << m_device_str << "\n";
     if (!m_device_str.empty()) {
         m_connected = true;
         if (auto it_params = m_params_by_device.find(m_device_str); it_params != m_params_by_device.end())
