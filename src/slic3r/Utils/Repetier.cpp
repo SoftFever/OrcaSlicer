@@ -203,7 +203,7 @@ bool Repetier::get_groups(wxArrayString& groups) const
                         groups.push_back(_utf8(L("Default")));
                     } else {
                         // Is it safe to assume that the data are utf-8 encoded?
-                        groups.push_back(wxString::FromUTF8(v.second.data()));
+                        groups.push_back(GUI::from_u8(v.second.data()));
                     }
                 }
             }

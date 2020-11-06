@@ -86,7 +86,7 @@ class SplashScreen : public wxSplashScreen
 {
 public:
     SplashScreen(const wxBitmap& bitmap, long splashStyle, int milliseconds, wxPoint pos = wxDefaultPosition)
-        : wxSplashScreen(bitmap, splashStyle, milliseconds, nullptr, wxID_ANY, wxDefaultPosition, wxDefaultSize, 
+        : wxSplashScreen(bitmap, splashStyle, milliseconds, (wxWindow*)wxGetApp().mainframe, wxID_ANY, wxDefaultPosition, wxDefaultSize, 
 #ifdef __APPLE__
             wxSIMPLE_BORDER | wxFRAME_NO_TASKBAR | wxSTAY_ON_TOP
 #else
@@ -892,7 +892,7 @@ bool GUI_App::on_init_inner()
 #else
     if (scrn)
 #endif // ENABLE_GCODE_VIEWER
-        scrn->SetText(_L("Creating settings tabs..."));
+        scrn->SetText(_L("Preparing settings tabs..."));
 
     mainframe = new MainFrame();
     // hide settings tabs after first Layout
@@ -1149,8 +1149,8 @@ void GUI_App::check_printer_presets()
     for (const std::string& preset_name : preset_names)
         msg_text += "\n    \"" + from_u8(preset_name) + "\",";
     msg_text.RemoveLast();
-    msg_text += "\n\n" + _L("But from this version of PrusaSlicer we don't show/use this information in Printer Settings.\n"
-                            "Now, this information will be exposed in physical printers settings.") + "\n\n" +
+    msg_text += "\n\n" + _L("But since this version of PrusaSlicer we don't show this information in Printer Settings anymore.\n"
+                            "Settings will be available in physical printers settings.") + "\n\n" +
                          _L("By default new Printer devices will be named as \"Printer N\" during its creation.\n"
                             "Note: This name can be changed later from the physical printers settings");
 

@@ -557,6 +557,16 @@ void Preview::msw_rescale()
     refresh_print();
 }
 
+void Preview::jump_layers_slider(wxKeyEvent& evt)
+{
+#if ENABLE_GCODE_VIEWER
+    if (m_layers_slider) m_layers_slider->OnChar(evt);
+#else
+    if (m_slider)
+        m_slider->OnKeyDown(evt);
+#endif // ENABLE_GCODE_VIEWER
+}
+
 #if ENABLE_GCODE_VIEWER
 void Preview::move_layers_slider(wxKeyEvent& evt)
 {
@@ -1463,8 +1473,8 @@ wxString Preview::get_option_type_string(OptionType type) const
     case OptionType::Unretractions: { return _L("Deretractions"); }
     case OptionType::ToolChanges:   { return _L("Tool changes"); }
     case OptionType::ColorChanges:  { return _L("Color changes"); }
-    case OptionType::PausePrints:   { return _L("Pause prints"); }
-    case OptionType::CustomGCodes:  { return _L("Custom GCodes"); }
+    case OptionType::PausePrints:   { return _L("Print pauses"); }
+    case OptionType::CustomGCodes:  { return _L("Custom G-codes"); }
     case OptionType::Shells:        { return _L("Shells"); }
     case OptionType::ToolMarker:    { return _L("Tool marker"); }
     case OptionType::Legend:        { return _L("Legend/Estimated printing time"); }

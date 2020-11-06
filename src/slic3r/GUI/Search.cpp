@@ -430,7 +430,7 @@ SearchDialog::SearchDialog(OptionsSearcher* searcher)
     wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
     SetBackgroundColour(bgr_clr);
 
-    default_string = _L("Type here to search");
+    default_string = _L("Enter a search term");
     int border = 10;
     int em = em_unit();
 

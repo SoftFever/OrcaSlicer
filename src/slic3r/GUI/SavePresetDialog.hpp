@@ -73,8 +73,8 @@ class SavePresetDialog : public DPIDialog
 
 public:
 
-    SavePresetDialog(Preset::Type type, std::string suffix = "");
-    SavePresetDialog(std::vector<Preset::Type> types, std::string suffix = "");
+    SavePresetDialog(wxWindow* parent, Preset::Type type, std::string suffix = "");
+    SavePresetDialog(wxWindow* parent, std::vector<Preset::Type> types, std::string suffix = "");
     ~SavePresetDialog();
 
     void AddItem(Preset::Type type, const std::string& suffix);

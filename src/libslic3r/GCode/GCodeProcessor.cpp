@@ -750,7 +750,7 @@ void GCodeProcessor::reset()
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 }
 
-void GCodeProcessor::process_file(const std::string& filename, std::function<void()> cancel_callback)
+void GCodeProcessor::process_file(const std::string& filename, bool apply_postprocess, std::function<void()> cancel_callback)
 {
     auto last_cancel_callback_time = std::chrono::high_resolution_clock::now();
 
@@ -808,7 +808,8 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
     update_estimated_times_stats();
 
     // post-process to add M73 lines into the gcode
-    m_time_processor.post_process(filename);
+    if (apply_postprocess)
+        m_time_processor.post_process(filename);
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     std::cout << "\n";

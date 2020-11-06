@@ -78,6 +78,7 @@ public:
     void    OnPaint(wxPaintEvent&);
     void    OnMotion(wxMouseEvent& event);
     void    OnLeftDown(wxMouseEvent& event);
+    void    OnLeaveWin(wxMouseEvent& event);
 
     void    init_ctrl_lines();
     bool    update_visibility(ConfigOptionMode mode);

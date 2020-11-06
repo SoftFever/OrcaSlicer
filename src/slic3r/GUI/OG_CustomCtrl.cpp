@@ -62,6 +62,7 @@ OG_CustomCtrl::OG_CustomCtrl(   wxWindow*            parent,
     this->Bind(wxEVT_PAINT,     &OG_CustomCtrl::OnPaint, this);
     this->Bind(wxEVT_MOTION,    &OG_CustomCtrl::OnMotion, this);
     this->Bind(wxEVT_LEFT_DOWN, &OG_CustomCtrl::OnLeftDown, this);
+    this->Bind(wxEVT_LEAVE_WINDOW, &OG_CustomCtrl::OnLeaveWin, this);
 }
 
 void OG_CustomCtrl::init_ctrl_lines()
@@ -113,7 +114,15 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 {
     wxCoord v_pos = 0;
     wxCoord h_pos = 0;
-    for (auto ctrl_line : ctrl_lines) {
+
+    auto correct_line_height = [](int& line_height, wxWindow* win)
+    {
+        int win_height = win->GetSize().GetHeight();
+        if (line_height < win_height)
+            line_height = win_height;
+    };
+
+    for (CtrlLine& ctrl_line : ctrl_lines) {
         if (&ctrl_line.og_line == &line)
         {
             h_pos = m_bmp_mode_sz.GetWidth() + m_h_gap;
@@ -133,6 +142,10 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 
             if (line.widget) {
                 h_pos += blinking_button_width;
+
+                for (auto child : line.widget_sizer->GetChildren())
+                    if (child->IsWindow())
+                        correct_line_height(ctrl_line.height, child->GetWindow());
                 break;
             }
 
@@ -143,11 +156,15 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                 option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0)
             {
                 h_pos += 3 * blinking_button_width;
+                Field* field = opt_group->get_field(option_set.front().opt_id);
+                correct_line_height(ctrl_line.height, field->getWindow());
                 break;
             }
 
             for (auto opt : option_set) {
                 Field* field = opt_group->get_field(opt.opt_id);
+                correct_line_height(ctrl_line.height, field->getWindow());
+
                 ConfigOptionDef option = opt.opt;
                 // add label if any
                 if (!option.label.empty()) {
@@ -279,6 +296,16 @@ void OG_CustomCtrl::OnLeftDown(wxMouseEvent& event)
             }
     }
 
+}
+
+void OG_CustomCtrl::OnLeaveWin(wxMouseEvent& event)
+{
+    for (CtrlLine& line : ctrl_lines)
+        line.is_focused = false;
+
+    Refresh();
+    Update();
+    event.Skip();
 }
 
 bool OG_CustomCtrl::update_visibility(ConfigOptionMode mode)

@@ -117,12 +117,12 @@ void PreferencesDialog::build()
 		option = Option(def, "show_incompatible_presets");
 		m_optgroup_general->append_single_option_line(option);
 
-		def.label = L("Single Instance");
+		def.label = L("Single instance mode");
 		def.type = coBool;
 #if __APPLE__
 		def.tooltip = L("On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances of same app from the command line. In such case this settings will allow only one instance.");
 #else
-		def.tooltip = L("If this is enabled, when staring PrusaSlicer and another instance of same PrusaSlicer is running, that instance will be reactivated instead.");
+		def.tooltip = L("If this is enabled, when starting PrusaSlicer and another instance of same PrusaSlicer is running, that instance will be reactivated instead.");
 #endif
 		def.set_default_value(new ConfigOptionBool{ app_config->has("single_instance") ? app_config->get("single_instance") == "1" : false });
 		option = Option(def, "single_instance");
@@ -153,7 +153,7 @@ void PreferencesDialog::build()
 
 	def.label = L("Ask for unsaved changes when closing application");
 	def.type = coBool;
-	def.tooltip = L("Always ask for unsaved changes when closing application");
+	def.tooltip = L("When closing the application, always ask for unsaved changes");
 	def.set_default_value(new ConfigOptionBool{ app_config->get("default_action_on_close_application") == "none" });
 	option = Option(def, "default_action_on_close_application");
 	m_optgroup_general->append_single_option_line(option);
@@ -235,8 +235,8 @@ void PreferencesDialog::build()
 
 	def.label = L("Sequential slider applied only to top layer");
 	def.type = coBool;
-	def.tooltip = L("If enabled, changes made using the sequential slider, in preview, apply only to gcode top layer, "
-					"if disabled, changes made using the sequential slider, in preview, apply to the whole gcode.");
+	def.tooltip = L("If enabled, changes made using the sequential slider, in preview, apply only to gcode top layer. "
+					"If disabled, changes made using the sequential slider, in preview, apply to the whole gcode.");
 	def.set_default_value(new ConfigOptionBool{ app_config->get("seq_top_layer_only") == "1" });
 	option = Option(def, "seq_top_layer_only");
 	m_optgroup_gui->append_single_option_line(option);
@@ -427,8 +427,8 @@ void PreferencesDialog::create_icon_size_slider()
 void PreferencesDialog::create_settings_mode_widget()
 {
 	wxString choices[] = {	_L("Old regular layout with the tab bar"),
-							_L("New layout without the tab bar on the plater"),
-							_L("Settings will be shown in the non-modal dialog")		};
+							_L("New layout, access via settings button in the top menu"),
+							_L("Settings in non-modal window")		};
 
 	auto app_config = get_app_config();
 	int selection = app_config->get("old_settings_layout_mode") == "1" ? 0 :
@@ -437,7 +437,7 @@ void PreferencesDialog::create_settings_mode_widget()
 
 	wxWindow* parent = m_optgroup_gui->ctrl_parent();
 
-	m_layout_mode_box = new wxRadioBox(parent, wxID_ANY, _L("Settings layout mode"), wxDefaultPosition, wxDefaultSize, WXSIZEOF(choices), choices,
+	m_layout_mode_box = new wxRadioBox(parent, wxID_ANY, _L("Layout Options"), wxDefaultPosition, wxDefaultSize, WXSIZEOF(choices), choices,
 		3, wxRA_SPECIFY_ROWS);
 	m_layout_mode_box->SetFont(wxGetApp().normal_font());
 	m_layout_mode_box->SetSelection(selection);

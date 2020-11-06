@@ -49,7 +49,9 @@ static const std::map<const char, std::string> font_icons = {
     {ImGui::MinimalizeMarker      , "notification_minimalize"       },
     {ImGui::MinimalizeHoverMarker , "notification_minimalize_hover" },
 	{ImGui::WarningMarker         , "notification_warning"          },
-    {ImGui::ErrorMarker           , "notification_error"            }
+    {ImGui::ErrorMarker           , "notification_error"            },
+    {ImGui::EjectMarker           , "notification_eject_sd"         },
+    {ImGui::EjectHoverMarker      , "notification_eject_sd_hover"   },
 };
 
 const ImVec4 ImGuiWrapper::COL_GREY_DARK         = { 0.333f, 0.333f, 0.333f, 1.0f };
