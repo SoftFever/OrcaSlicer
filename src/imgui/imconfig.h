@@ -113,16 +113,16 @@ namespace ImGui
     const char PrinterSlaIconMarker    = 0x6; 
     const char FilamentIconMarker      = 0x7; 
     const char MaterialIconMarker      = 0x8;
-	const char CloseIconMarker         = 0xB;
-	const char CloseIconHoverMarker    = 0xC;
+	const char CloseNotifButton        = 0xB;
+	const char CloseNotifHoverButton   = 0xC;
 //	const char TimerDotMarker          = 0xE;
 //	const char TimerDotEmptyMarker     = 0xF;
-    const char MinimalizeMarker        = 0xE;
-    const char MinimalizeHoverMarker   = 0xF;
+    const char MinimalizeButton        = 0xE;
+    const char MinimalizeHoverButton   = 0xF;
 	const char WarningMarker           = 0x10;
 	const char ErrorMarker             = 0x11;
-    const char EjectMarker             = 0x12;
-    const char EjectHoverMarker        = 0x13;
+    const char EjectButton             = 0x12;
+    const char EjectHoverButton        = 0x13;
 //    void MyFunction(const char* name, const MyMatrix44& v);
 
 }
