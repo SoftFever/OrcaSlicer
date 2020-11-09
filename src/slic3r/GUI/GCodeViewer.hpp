@@ -388,6 +388,7 @@ public:
 
 private:
     bool m_initialized{ false };
+    mutable bool m_gl_data_initialized{ false };
     unsigned int m_last_result_id{ 0 };
     size_t m_moves_count{ 0 };
     mutable std::vector<TBuffer> m_buffers{ static_cast<size_t>(EMoveType::Extrude) };
