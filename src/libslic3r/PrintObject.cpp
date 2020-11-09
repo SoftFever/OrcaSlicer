@@ -11,7 +11,6 @@
 #include "Slicing.hpp"
 #include "Tesselate.hpp"
 #include "Utils.hpp"
-#include "AABBTreeIndirect.hpp"
 #include "Fill/FillAdaptive.hpp"
 #include "Format/STL.hpp"
 
