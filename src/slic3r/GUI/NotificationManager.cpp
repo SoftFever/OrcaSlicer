@@ -27,6 +27,17 @@ wxDEFINE_EVENT(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED, ExportGcodeNotificationClic
 wxDEFINE_EVENT(EVT_PRESET_UPDATE_AVAILABLE_CLICKED, PresetUpdateAvailableClickedEvent);
 
 namespace Notifications_Internal{
+	ImFont* add_default_font(float pixel_size)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		ImFontConfig config;
+		config.SizePixels = pixel_size;
+		config.OversampleH = config.OversampleV = 1;
+		config.PixelSnapH = true;
+		ImFont* font = io.Fonts->AddFontDefault(&config);
+		return font;
+	}
+
 	static inline void push_style_color(ImGuiCol idx, const ImVec4& col, bool fading_out, float current_fade_opacity)
 	{
 		if (fading_out)
@@ -487,24 +498,25 @@ void NotificationManager::PopNotification::render_close_button(ImGuiWrapper& img
 
 	//button - if part if treggered
 	std::string button_text;
-	button_text = ImGui::CloseIconMarker;
+	button_text = ImGui::CloseNotifButton;
 	
 	if (ImGui::IsMouseHoveringRect(ImVec2(win_pos.x - win_size.x / 10.f, win_pos.y),
 		                           ImVec2(win_pos.x, win_pos.y + win_size.y - ( m_minimize_b_visible ? 2 * m_line_height : 0)),
 		                           true))
 	{
-		button_text = ImGui::CloseIconHoverMarker;
+		button_text = ImGui::CloseNotifHoverButton;
 	}
 	ImVec2 button_pic_size = ImGui::CalcTextSize(button_text.c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
-	ImGui::SetCursorPosX(win_size.x - m_line_height * 2.25f);
-	ImGui::SetCursorPosY(win_size.y / 2 - button_size.y/2);
+	ImGui::SetCursorPosX(win_size.x - m_line_height * 2.75f);
+	ImGui::SetCursorPosY(win_size.y / 2 - button_size.y);
 	if (imgui.button(button_text.c_str(), button_size.x, button_size.y))
 	{
 		m_close_pending = true;
 	}
+
 	//invisible large button
-	ImGui::SetCursorPosX(win_size.x - m_line_height * 2.125);
+	ImGui::SetCursorPosX(win_size.x - m_line_height * 2.35f);
 	ImGui::SetCursorPosY(0);
 	if (imgui.button(" ", m_line_height * 2.125, win_size.y - ( m_minimize_b_visible ? 2 * m_line_height : 0)))
 	{
@@ -569,7 +581,7 @@ void NotificationManager::PopNotification::render_left_sign(ImGuiWrapper& imgui)
 		std::string text;
 		text = (m_data.level == NotificationLevel::ErrorNotification ? ImGui::ErrorMarker : ImGui::WarningMarker);
 		ImGui::SetCursorPosX(m_line_height / 3);
-		ImGui::SetCursorPosY(m_window_height / 2 - m_line_height / 2);
+		ImGui::SetCursorPosY(m_window_height / 2 - m_line_height);
 		imgui.text(text.c_str());
 	} 
 }
@@ -586,16 +598,16 @@ void NotificationManager::PopNotification::render_minimize_button(ImGuiWrapper& 
 	
 	//button - if part if treggered
 	std::string button_text;
-	button_text = ImGui::MinimalizeMarker;
+	button_text = ImGui::MinimalizeButton;
 	if (ImGui::IsMouseHoveringRect(ImVec2(win_pos_x - m_window_width / 10.f, win_pos_y + m_window_height - 2 * m_line_height + 1),
 		ImVec2(win_pos_x, win_pos_y + m_window_height),
 		true)) 
 	{
-		button_text = ImGui::MinimalizeHoverMarker;
+		button_text = ImGui::MinimalizeHoverButton;
 	}
 	ImVec2 button_pic_size = ImGui::CalcTextSize(button_text.c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
-	ImGui::SetCursorPosX(m_window_width - m_line_height * 2.25f);
+	ImGui::SetCursorPosX(m_window_width - m_line_height * 1.8f);
 	ImGui::SetCursorPosY(m_window_height - button_size.y - 5);
 	if (imgui.button(button_text.c_str(), button_size.x, button_size.y))
 	{
@@ -712,7 +724,7 @@ void NotificationManager::ExportFinishedNotification::count_spaces()
 		m_left_indentation = picture_width + m_line_height / 2;
 	}
 	//TODO count this properly
-	m_window_width_offset = m_left_indentation + m_line_height * (m_to_removable ? 5.f : 3.f);
+	m_window_width_offset = m_left_indentation + m_line_height * (m_to_removable ? 6.f : 3.f);
 	m_window_width = m_line_height * 25;
 }
 
@@ -765,13 +777,13 @@ void NotificationManager::ExportFinishedNotification::render_eject_button(ImGuiW
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(.0f, .0f, .0f, .0f));
 
 	std::string button_text;
-	button_text = ImGui::EjectMarker;
+	button_text = ImGui::EjectButton;
 	
-    if (ImGui::IsMouseHoveringRect(ImVec2(win_pos.x - m_line_height * 4.5f, win_pos.y),
+    if (ImGui::IsMouseHoveringRect(ImVec2(win_pos.x - m_line_height * 5.f, win_pos.y),
 		ImVec2(win_pos.x - m_line_height * 2.5f, win_pos.y + win_size.y),
 		true))
 	{
-		button_text = ImGui::EjectHoverMarker;
+		button_text = ImGui::EjectHoverButton;
 		// tooltip
 		long time_now = wxGetLocalTime();
 		if (m_hover_time > 0 && m_hover_time < time_now) {
@@ -788,8 +800,8 @@ void NotificationManager::ExportFinishedNotification::render_eject_button(ImGuiW
 
 	ImVec2 button_pic_size = ImGui::CalcTextSize(button_text.c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
-	ImGui::SetCursorPosX(win_size.x - m_line_height * 4.f);
-	ImGui::SetCursorPosY(win_size.y / 2 - button_size.y / 2);
+	ImGui::SetCursorPosX(win_size.x - m_line_height * 5.0f);
+	ImGui::SetCursorPosY(win_size.y / 2 - button_size.y);
 	if (imgui.button(button_text.c_str(), button_size.x, button_size.y))
 	{
 		assert(m_evt_handler != nullptr);
