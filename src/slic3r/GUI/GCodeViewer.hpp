@@ -411,6 +411,7 @@ private:
     mutable Statistics m_statistics;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
     mutable std::array<float, 2> m_detected_point_sizes = { 0.0f, 0.0f };
+    GCodeProcessor::Result::SettingsIds m_settings_ids;
 
 public:
     GCodeViewer() = default;

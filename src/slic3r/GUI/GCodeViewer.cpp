@@ -303,6 +303,8 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
     if (m_layers_zs.empty())
         return;
 
+    m_settings_ids = gcode_result.settings_ids;
+
     if (wxGetApp().is_editor())
         load_shells(print, initialized);
     else {
@@ -314,8 +316,8 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
             // bed shape detected in the gcode
             bed_shape = gcode_result.bed_shape;
             auto bundle = wxGetApp().preset_bundle;
-            if (bundle != nullptr && !gcode_result.printer_settings_id.empty()) {
-                const Preset* preset = bundle->printers.find_preset(gcode_result.printer_settings_id);
+            if (bundle != nullptr && !m_settings_ids.printer.empty()) {
+                const Preset* preset = bundle->printers.find_preset(m_settings_ids.printer);
                 if (preset != nullptr) {
                     model = PresetUtils::system_printer_bed_model(*preset);
                     texture = PresetUtils::system_printer_bed_texture(*preset);
@@ -2056,17 +2058,14 @@ void GCodeViewer::render_legend() const
             if (!visible)
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
             ImVec2 pos = ImGui::GetCursorScreenPos();
-            switch (type)
-            {
+            switch (type) {
             default:
-            case EItemType::Rect:
-            {
+            case EItemType::Rect: {
                 draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
                     ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
                 break;
             }
-            case EItemType::Circle:
-            {
+            case EItemType::Circle: {
                 ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
                 if (m_buffers[buffer_id(EMoveType::Retract)].shader == "options_120") {
                     draw_list->AddCircleFilled(center, 0.5f * icon_size,
@@ -2081,14 +2080,12 @@ void GCodeViewer::render_legend() const
 
                 break;
             }
-            case EItemType::Hexagon:
-            {
+            case EItemType::Hexagon: {
                 ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
                 draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 6);
                 break;
             }
-            case EItemType::Line:
-            {
+            case EItemType::Line: {
                 draw_list->AddLine({ pos.x + 1, pos.y + icon_size - 1 }, { pos.x + icon_size - 1, pos.y + 1 }, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 3.0f);
                 break;
             }
@@ -2580,6 +2577,56 @@ void GCodeViewer::render_legend() const
         add_option(EMoveType::Custom_GCode, EOptionsColors::CustomGCodes, _u8L("Custom G-codes"));
     }
 
+    // settings section
+    if (wxGetApp().is_gcode_viewer() && 
+        (m_view_type == EViewType::FeatureType || m_view_type == EViewType::Tool) &&
+        (!m_settings_ids.print.empty() || !m_settings_ids.filament.empty() || !m_settings_ids.printer.empty())) {
+
+        auto calc_offset = [this]() {
+            float ret = 0.0f;
+            if (!m_settings_ids.printer.empty())
+                ret = std::max(ret, ImGui::CalcTextSize((_u8L("Printer") + std::string(":")).c_str()).x);
+            if (!m_settings_ids.print.empty())
+                ret = std::max(ret, ImGui::CalcTextSize((_u8L("Print settings") + std::string(":")).c_str()).x);
+            if (!m_settings_ids.filament.empty()) {
+                for (unsigned char i : m_extruder_ids) {
+                    ret = std::max(ret, ImGui::CalcTextSize((_u8L("Filament") + " " + std::to_string(i + 1) + ":").c_str()).x);
+                }
+            }
+            if (ret > 0.0f)
+                ret += 2.0f * ImGui::GetStyle().ItemSpacing.x;
+            return ret;
+        };
+
+
+        ImGui::Spacing();
+        ImGui::Spacing();
+        ImGui::PushStyleColor(ImGuiCol_Separator, { 1.0f, 1.0f, 1.0f, 1.0f });
+        ImGui::Separator();
+        ImGui::PopStyleColor();
+        ImGui::Spacing();
+
+        float offset = calc_offset();
+
+        if (!m_settings_ids.printer.empty()) {
+            imgui.text(_u8L("Printer") + ":");
+            ImGui::SameLine(offset);
+            imgui.text(m_settings_ids.printer);
+        }
+        if (!m_settings_ids.print.empty()) {
+            imgui.text(_u8L("Print settings") + ":");
+            ImGui::SameLine(offset);
+            imgui.text(m_settings_ids.print);
+        }
+        if (!m_settings_ids.filament.empty()) {
+            for (unsigned char i : m_extruder_ids) {
+                imgui.text(_u8L("Filament") + " " + std::to_string(i + 1) + ":");
+                ImGui::SameLine(offset);
+                imgui.text(m_settings_ids.filament[i]);
+            }
+        }
+    }
+
     // total estimated printing time section
     if (time_mode.time > 0.0f && (m_view_type == EViewType::FeatureType ||
         (m_view_type == EViewType::ColorPrint && !time_mode.custom_gcode_times.empty()))) {
@@ -2626,15 +2673,12 @@ void GCodeViewer::render_legend() const
             }
         };
 
-        switch (m_time_estimate_mode)
-        {
-        case PrintEstimatedTimeStatistics::ETimeMode::Normal:
-        {
+        switch (m_time_estimate_mode) {
+        case PrintEstimatedTimeStatistics::ETimeMode::Normal: {
             show_mode_button(_u8L("Show stealth mode"), PrintEstimatedTimeStatistics::ETimeMode::Stealth);
             break;
         }
-        case PrintEstimatedTimeStatistics::ETimeMode::Stealth:
-        {
+        case PrintEstimatedTimeStatistics::ETimeMode::Stealth: {
             show_mode_button(_u8L("Show normal mode"), PrintEstimatedTimeStatistics::ETimeMode::Normal);
             break;
         }
