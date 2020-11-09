@@ -399,6 +399,7 @@ private:
     std::vector<double> m_layers_zs;
     std::array<double, 2> m_layers_z_range;
     std::vector<ExtrusionRole> m_roles;
+    size_t m_extruders_count;
     std::vector<unsigned char> m_extruder_ids;
     mutable Extrusions m_extrusions;
     mutable SequentialView m_sequential_view;

@@ -32,11 +32,9 @@
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Format/AMF.hpp"
 #include "libslic3r/Format/3mf.hpp"
-#if ENABLE_GCODE_VIEWER
-#include "libslic3r/GCode/GCodeProcessor.hpp"
-#else
+#if !ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/PreviewData.hpp"
-#endif // ENABLE_GCODE_VIEWER
+#endif // !ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/SLA/Hollowing.hpp"
@@ -5632,31 +5630,49 @@ void Plater::on_activate()
 }
 
 // Get vector of extruder colors considering filament color, if extruder color is undefined.
+#if ENABLE_GCODE_VIEWER
+std::vector<std::string> Plater::get_extruder_colors_from_plater_config(const GCodeProcessor::Result* const result) const
+#else
 std::vector<std::string> Plater::get_extruder_colors_from_plater_config() const
+#endif // ENABLE_GCODE_VIEWER
 {
-    const Slic3r::DynamicPrintConfig* config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    std::vector<std::string> extruder_colors;
-    if (!config->has("extruder_colour")) // in case of a SLA print
+#if ENABLE_GCODE_VIEWER
+    if (wxGetApp().is_gcode_viewer() && result != nullptr)
+        return result->extruder_colors;
+    else {
+#endif // ENABLE_GCODE_VIEWER
+        const Slic3r::DynamicPrintConfig* config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
+        std::vector<std::string> extruder_colors;
+        if (!config->has("extruder_colour")) // in case of a SLA print
+            return extruder_colors;
+
+        extruder_colors = (config->option<ConfigOptionStrings>("extruder_colour"))->values;
+        if (!wxGetApp().plater())
+            return extruder_colors;
+
+        const std::vector<std::string>& filament_colours = (p->config->option<ConfigOptionStrings>("filament_colour"))->values;
+        for (size_t i = 0; i < extruder_colors.size(); ++i)
+            if (extruder_colors[i] == "" && i < filament_colours.size())
+                extruder_colors[i] = filament_colours[i];
+
         return extruder_colors;
-
-    extruder_colors = (config->option<ConfigOptionStrings>("extruder_colour"))->values;
-    if (!wxGetApp().plater())
-        return extruder_colors;
-
-    const std::vector<std::string>& filament_colours = (p->config->option<ConfigOptionStrings>("filament_colour"))->values;
-    for (size_t i = 0; i < extruder_colors.size(); ++i)
-        if (extruder_colors[i] == "" && i < filament_colours.size())
-            extruder_colors[i] = filament_colours[i];
-
-    return extruder_colors;
+#if ENABLE_GCODE_VIEWER
+    }
+#endif // ENABLE_GCODE_VIEWER
 }
 
 /* Get vector of colors used for rendering of a Preview scene in "Color print" mode
  * It consists of extruder colors and colors, saved in model.custom_gcode_per_print_z
  */
+#if ENABLE_GCODE_VIEWER
+std::vector<std::string> Plater::get_colors_for_color_print(const GCodeProcessor::Result* const result) const
+{
+    std::vector<std::string> colors = get_extruder_colors_from_plater_config(result);
+#else
 std::vector<std::string> Plater::get_colors_for_color_print() const
 {
     std::vector<std::string> colors = get_extruder_colors_from_plater_config();
+#endif // ENABLE_GCODE_VIEWER
     colors.reserve(colors.size() + p->model.custom_gcode_per_print_z.gcodes.size());
 
     for (const CustomGCode::Item& code : p->model.custom_gcode_per_print_z.gcodes)

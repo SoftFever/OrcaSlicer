@@ -508,6 +508,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_flavor = config.gcode_flavor;
 
     size_t extruders_count = config.nozzle_diameter.values.size();
+    m_result.extruders_count = extruders_count;
 
     m_extruder_offsets.resize(extruders_count);
     for (size_t i = 0; i < extruders_count; ++i) {
@@ -579,6 +580,8 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
             m_filament_diameters.push_back(static_cast<float>(diam));
         }
     }
+
+    m_result.extruders_count = config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 
     const ConfigOptionPoints* extruder_offset = config.option<ConfigOptionPoints>("extruder_offset");
     if (extruder_offset != nullptr) {

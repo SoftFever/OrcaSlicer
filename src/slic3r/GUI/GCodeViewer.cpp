@@ -420,6 +420,7 @@ void GCodeViewer::reset()
     m_paths_bounding_box = BoundingBoxf3();
     m_max_bounding_box = BoundingBoxf3();
     m_tool_colors = std::vector<Color>();
+    m_extruders_count = 0;
     m_extruder_ids = std::vector<unsigned char>();
     m_extrusions.reset_role_visibility_flags();
     m_extrusions.reset_ranges();
@@ -966,6 +967,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     wxProgressDialog* progress_dialog = wxGetApp().is_gcode_viewer() ?
         new wxProgressDialog(_L("Generating toolpaths"), "...",
             100, wxGetApp().plater(), wxPD_AUTO_HIDE | wxPD_APP_MODAL) : nullptr;
+
+    m_extruders_count = gcode_result.extruders_count;
 
     for (size_t i = 0; i < m_moves_count; ++i) {
         const GCodeProcessor::MoveVertex& move = gcode_result.moves[i];
@@ -2318,8 +2321,7 @@ void GCodeViewer::render_legend() const
     case EViewType::ColorPrint:
     {
         const std::vector<CustomGCode::Item>& custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
-        const int extruders_count = wxGetApp().extruders_edited_cnt();
-        if (extruders_count == 1) { // single extruder use case
+        if (m_extruders_count == 1) { // single extruder use case
             std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(0, custom_gcode_per_print_z);
             const int items_cnt = static_cast<int>(cp_values.size());
             if (items_cnt == 0) { // There are no color changes, but there are some pause print or custom Gcode

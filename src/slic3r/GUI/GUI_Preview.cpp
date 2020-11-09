@@ -1292,13 +1292,12 @@ void Preview::load_print_as_fff(bool keep_z_range)
     // set color print values, if it si selected "ColorPrint" view type
 #if ENABLE_GCODE_VIEWER
     if (gcode_view_type == GCodeViewer::EViewType::ColorPrint) {
+        colors = wxGetApp().plater()->get_colors_for_color_print(m_gcode_result);
 #else
     if (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint) {
-#endif // ENABLE_GCODE_VIEWER
         colors = wxGetApp().plater()->get_colors_for_color_print();
-#if !ENABLE_GCODE_VIEWER
         colors.push_back("#808080"); // gray color for pause print or custom G-code 
-#endif // !ENABLE_GCODE_VIEWER
+#endif // ENABLE_GCODE_VIEWER
 
         if (!gcode_preview_data_valid) {
             color_print_values = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
@@ -1309,10 +1308,11 @@ void Preview::load_print_as_fff(bool keep_z_range)
     }
 #if ENABLE_GCODE_VIEWER
     else if (gcode_preview_data_valid || gcode_view_type == GCodeViewer::EViewType::Tool) {
+        colors = wxGetApp().plater()->get_extruder_colors_from_plater_config(m_gcode_result);
 #else
     else if (gcode_preview_data_valid || (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::Tool) ) {
-#endif // ENABLE_GCODE_VIEWER
         colors = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+#endif // ENABLE_GCODE_VIEWER
         color_print_values.clear();
     }
 
