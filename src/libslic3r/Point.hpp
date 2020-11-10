@@ -55,7 +55,8 @@ typedef Eigen::Transform<double, 3, Eigen::Affine, Eigen::DontAlign> Transform3d
 
 inline bool operator<(const Vec2d &lhs, const Vec2d &rhs) { return lhs(0) < rhs(0) || (lhs(0) == rhs(0) && lhs(1) < rhs(1)); }
 
-inline int32_t cross2(const Vec2i32 &v1, const Vec2i32 &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
+// One likely does not want to perform the cross product with a 32bit accumulator.
+//inline int32_t cross2(const Vec2i32 &v1, const Vec2i32 &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
 inline int64_t cross2(const Vec2i64 &v1, const Vec2i64 &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
 inline float   cross2(const Vec2f   &v1, const Vec2f   &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
 inline double  cross2(const Vec2d   &v1, const Vec2d   &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
