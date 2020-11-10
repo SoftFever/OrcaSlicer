@@ -60,7 +60,9 @@ enum class NotificationType
 	// Object partially outside the print volume. Cannot slice.
 	PlaterError,
 	// Object fully outside the print volume, or extrusion outside the print volume. Slicing is not disabled.
-	PlaterWarning
+	PlaterWarning,
+	// Progress bar instead of text.
+	ProgressBar
 };
 
 class NotificationManager
@@ -74,6 +76,8 @@ public:
 		RegularNotification = 1,
 		// Information notification without a fade-out or with a longer fade-out.
 		ImportantNotification,
+		// Important notification with progress bar, no fade-out, might appear again after closing.
+		ProgressBarNotification,
 		// Warning, no fade-out.
 		WarningNotification,
 		// Error, no fade-out.
@@ -121,7 +125,10 @@ public:
 	void set_slicing_complete_large(bool large);
 	// Exporting finished, show this information with path, button to open containing folder and if ejectable - eject button
 	void push_exporting_finished_notification(GLCanvas3D& canvas, std::string path, std::string dir_path, bool on_removable);
-    // Close old notification ExportFinished.
+	// notification with progress bar
+	void  push_progress_bar_notification(const std::string& text, GLCanvas3D& canvas, float percentage = 0);
+	void set_progress_bar_percentage(const std::string& text, float percentage, GLCanvas3D& canvas);
+	// Close old notification ExportFinished.
 	void new_export_began(bool on_removable);
 	// finds ExportFinished notification and closes it if it was to removable device
 	void device_ejected();
@@ -137,13 +144,15 @@ public:
 private:
 	// duration 0 means not disapearing
 	struct NotificationData {
-		NotificationType    type;
-		NotificationLevel   level;
+		NotificationType         type;
+		NotificationLevel        level;
 		// Fade out time
-		const int           duration;
-		const std::string   text1;
-		const std::string   hypertext;
-		const std::string   text2;
+		const int                duration;
+		const std::string        text1;
+		const std::string        hypertext;
+		// Callback for hypertext - returns if notif shall close.
+		std::function<bool(wxEvtHandler*)> callback { nullptr };
+		const std::string        text2;
 	};
 
 	// Cache of IDs to identify and reuse ImGUI windows.
@@ -301,6 +310,23 @@ private:
 		int    		warning_step;
 	};
 
+	class ProgressBarNotification : public PopNotification
+	{
+	public:
+		ProgressBarNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, float percentage) : PopNotification(n, id_provider, evt_handler) { set_percentage(percentage); }
+		void set_percentage(float percent) { m_percentage = percent; if (percent >= 1.0f) m_progress_complete = true; else m_progress_complete = false; }
+	protected:
+		virtual void init();
+		virtual void render_text(ImGuiWrapper& imgui,
+			const float win_size_x, const float win_size_y,
+			const float win_pos_x, const float win_pos_y);
+		void         render_bar(ImGuiWrapper& imgui,
+			const float win_size_x, const float win_size_y,
+			const float win_pos_x, const float win_pos_y);
+		bool m_progress_complete{ false };
+		float m_percentage;
+	};
+
 	class ExportFinishedNotification : public PopNotification
 	{
 	public:
@@ -369,8 +395,10 @@ private:
 		{NotificationType::Mouse3dDisconnected, NotificationLevel::RegularNotification, 10,  _u8L("3D Mouse disconnected.") },
 //		{NotificationType::Mouse3dConnected, NotificationLevel::RegularNotification, 5,  _u8L("3D Mouse connected.") },
 //		{NotificationType::NewPresetsAviable, NotificationLevel::ImportantNotification, 20,  _u8L("New Presets are available."),  _u8L("See here.") },
-		{NotificationType::PresetUpdateAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("Configuration update is available."),  _u8L("See more.")},
-		{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("New version is available."),  _u8L("See Releases page.")},
+		{NotificationType::PresetUpdateAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("Configuration update is available."),  _u8L("See more."), [](wxEvtHandler* evnthndlr){
+			if (evnthndlr != nullptr) wxPostEvent(evnthndlr, PresetUpdateAvailableClickedEvent(EVT_PRESET_UPDATE_AVAILABLE_CLICKED)); return true; }},
+		{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("New version is available."),  _u8L("See Releases page."), [](wxEvtHandler* evnthndlr){ 
+				wxLaunchDefaultBrowser("https://github.com/prusa3d/PrusaSlicer/releases"); return true; }},
 		//{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("New vesion of PrusaSlicer is available.",  _u8L("Download page.") },
 		//{NotificationType::LoadingFailed, NotificationLevel::RegularNotification, 20,  _u8L("Loading of model has Failed") },
 		//{NotificationType::DeviceEjected, NotificationLevel::RegularNotification, 10,  _u8L("Removable device has been safely ejected")} // if we want changeble text (like here name of device), we need to do it as CustomNotification
