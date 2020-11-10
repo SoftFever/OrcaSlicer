@@ -24,7 +24,7 @@ namespace line_alg {
 template<class L, class T, int N>
 double distance_to_squared(const L &line, const Vec<N, T> &point)
 {
-    const Vec<N, double>  v  = line.vector().template cast<double>();
+    const Vec<N, double>  v  = (line.b - line.a).template cast<double>();
     const Vec<N, double>  va = (point  - line.a).template cast<double>();
     const double  l2 = v.squaredNorm();  // avoid a sqrt
     if (l2 == 0.0)

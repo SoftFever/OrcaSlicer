@@ -298,6 +298,33 @@ public:
             std::make_pair(nullptr, std::numeric_limits<double>::max());
     }
 
+    // Returns all pairs of values and squared distances.
+    std::vector<std::pair<const ValueType*, double>> find_all(const Vec2crd &pt) {
+        // Iterate over 4 closest grid cells around pt,
+        // Round pt to a closest grid_cell corner.
+        Vec2crd      grid_corner((pt(0)+(m_grid_resolution>>1))>>m_grid_log2, (pt(1)+(m_grid_resolution>>1))>>m_grid_log2);
+        // For four neighbors of grid_corner:
+        std::vector<std::pair<const ValueType*, double>> out;
+        const double r2 = double(m_search_radius) * m_search_radius;
+        for (coord_t neighbor_y = -1; neighbor_y < 1; ++ neighbor_y) {
+            for (coord_t neighbor_x = -1; neighbor_x < 1; ++ neighbor_x) {
+                // Range of fragment starts around grid_corner, close to pt.
+                auto range = m_map.equal_range(Vec2crd(grid_corner(0) + neighbor_x, grid_corner(1) + neighbor_y));
+                // Find the map entry closest to pt.
+                for (auto it = range.first; it != range.second; ++it) {
+                    const ValueType &value = it->second;
+                    const Vec2crd *pt2 = m_point_accessor(value);
+                    if (pt2 != nullptr) {
+                        const double d2 = (pt - *pt2).cast<double>().squaredNorm();
+                        if (d2 <= r2)
+                            out.emplace_back(&value, d2);
+                    }
+                }
+            }
+        }
+        return out;
+    }
+
 private:
     typedef typename std::unordered_multimap<Vec2crd, ValueType, PointHash> map_type;
     PointAccessor m_point_accessor;
