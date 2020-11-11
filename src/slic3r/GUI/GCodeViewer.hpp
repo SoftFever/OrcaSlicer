@@ -272,6 +272,42 @@ class GCodeViewer
         void reset_ranges() { ranges.reset(); }
     };
 
+#if ENABLE_SEQUENTIAL_VSLIDER
+    class Layers
+    {
+    public:
+        struct Endpoints
+        {
+            size_t first{ 0 };
+            size_t last{ 0 };
+        };
+
+    private:
+        std::vector<double> m_zs;
+        std::vector<Endpoints> m_endpoints;
+
+    public:
+        void append(double z, Endpoints endpoints)
+        {
+            m_zs.emplace_back(z);
+            m_endpoints.emplace_back(endpoints);
+        }
+
+        void reset()
+        {
+            m_zs = std::vector<double>();
+            m_endpoints = std::vector<Endpoints>();
+        }
+
+        size_t size() const { return m_zs.size(); }
+        bool empty() const { return m_zs.empty(); }
+        const std::vector<double>& get_zs() const { return m_zs; }
+        const std::vector<Endpoints>& get_endpoints() const { return m_endpoints; }
+        std::vector<Endpoints>& get_endpoints() { return m_endpoints; }
+        Endpoints get_endpoints_at(unsigned int id) const { return (id < m_endpoints.size()) ? m_endpoints[id] : Endpoints(); }
+    };
+#endif // ENABLE_SEQUENTIAL_VSLIDER
+
 #if ENABLE_GCODE_VIEWER_STATISTICS
     struct Statistics
     {
@@ -397,7 +433,12 @@ private:
     // bounding box of toolpaths + marker tools
     BoundingBoxf3 m_max_bounding_box;
     std::vector<Color> m_tool_colors;
+#if ENABLE_SEQUENTIAL_VSLIDER
+    Layers m_layers;
+    std::array<unsigned int, 2> m_layers_z_range_2;
+#else
     std::vector<double> m_layers_zs;
+#endif // ENABLE_SEQUENTIAL_VSLIDER
     std::array<double, 2> m_layers_z_range;
     std::vector<ExtrusionRole> m_roles;
     size_t m_extruders_count;
@@ -431,7 +472,11 @@ public:
 
     const BoundingBoxf3& get_paths_bounding_box() const { return m_paths_bounding_box; }
     const BoundingBoxf3& get_max_bounding_box() const { return m_max_bounding_box; }
+#if ENABLE_SEQUENTIAL_VSLIDER
+    const std::vector<double>& get_layers_zs() const { return m_layers.get_zs(); };
+#else
     const std::vector<double>& get_layers_zs() const { return m_layers_zs; };
+#endif // ENABLE_SEQUENTIAL_VSLIDER
 
     const SequentialView& get_sequential_view() const { return m_sequential_view; }
     void update_sequential_view_current(unsigned int first, unsigned int last);
@@ -450,7 +495,11 @@ public:
     void set_toolpath_role_visibility_flags(unsigned int flags) { m_extrusions.role_visibility_flags = flags; }
     unsigned int get_options_visibility_flags() const;
     void set_options_visibility_from_flags(unsigned int flags);
+#if ENABLE_SEQUENTIAL_VSLIDER
+    void set_layers_z_range(const std::array<unsigned int, 2>& layers_z_range);
+#else
     void set_layers_z_range(const std::array<double, 2>& layers_z_range);
+#endif // ENABLE_SEQUENTIAL_VSLIDER
 
     bool is_legend_enabled() const { return m_legend_enabled; }
     void enable_legend(bool enable) { m_legend_enabled = enable; }

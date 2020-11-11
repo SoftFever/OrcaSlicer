@@ -2182,9 +2182,19 @@ void GLCanvas3D::set_toolpath_view_type(GCodeViewer::EViewType type)
 void GLCanvas3D::set_toolpaths_z_range(const std::array<double, 2>& range)
 {
     m_volumes.set_range(range[0] - 1e-6, range[1] + 1e-6);
+#if !ENABLE_SEQUENTIAL_VSLIDER
+    if (m_gcode_viewer.has_data())
+        m_gcode_viewer.set_layers_z_range(range);
+#endif // !ENABLE_SEQUENTIAL_VSLIDER
+}
+
+#if ENABLE_SEQUENTIAL_VSLIDER
+void GLCanvas3D::set_toolpaths_z_range_2(const std::array<unsigned int, 2>& range)
+{
     if (m_gcode_viewer.has_data())
         m_gcode_viewer.set_layers_z_range(range);
 }
+#endif // ENABLE_SEQUENTIAL_VSLIDER
 #else
 std::vector<double> GLCanvas3D::get_current_print_zs(bool active_only) const
 {

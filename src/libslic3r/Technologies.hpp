@@ -64,4 +64,12 @@
 
 #define ENABLE_CTRL_M_ON_WINDOWS (0 && ENABLE_2_3_0_ALPHA3)
 
+
+//===================
+// 2.3.0.alpha4 techs
+//===================
+#define ENABLE_2_3_0_ALPHA4 1
+
+#define ENABLE_SEQUENTIAL_VSLIDER (1 && ENABLE_GCODE_VIEWER && ENABLE_2_3_0_ALPHA4)
+
 #endif // _prusaslicer_technologies_h_

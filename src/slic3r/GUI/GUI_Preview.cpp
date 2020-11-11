@@ -1427,13 +1427,14 @@ void Preview::on_layers_slider_scroll_changed(wxCommandEvent& event)
 void Preview::on_sliders_scroll_changed(wxCommandEvent& event)
 #endif // ENABLE_GCODE_VIEWER
 {
-    if (IsShown())
-    {
+    if (IsShown()) {
         PrinterTechnology tech = m_process->current_printer_technology();
-        if (tech == ptFFF)
-        {
+        if (tech == ptFFF) {
 #if ENABLE_GCODE_VIEWER
             m_canvas->set_toolpaths_z_range({ m_layers_slider->GetLowerValueD(), m_layers_slider->GetHigherValueD() });
+#if ENABLE_SEQUENTIAL_VSLIDER
+            m_canvas->set_toolpaths_z_range_2({ static_cast<unsigned int>(m_layers_slider->GetLowerValue()), static_cast<unsigned int>(m_layers_slider->GetHigherValue()) });
+#endif // ENABLE_SEQUENTIAL_VSLIDER
             m_canvas->set_as_dirty();
 #else
             m_canvas->set_toolpaths_range(m_slider->GetLowerValueD() - 1e-6, m_slider->GetHigherValueD() + 1e-6);
@@ -1441,8 +1442,7 @@ void Preview::on_sliders_scroll_changed(wxCommandEvent& event)
             m_canvas->set_use_clipping_planes(false);
 #endif // ENABLE_GCODE_VIEWER
         }
-        else if (tech == ptSLA)
-        {
+        else if (tech == ptSLA) {
 #if ENABLE_GCODE_VIEWER
             m_canvas->set_clipping_plane(0, ClippingPlane(Vec3d::UnitZ(), -m_layers_slider->GetLowerValueD()));
             m_canvas->set_clipping_plane(1, ClippingPlane(-Vec3d::UnitZ(), m_layers_slider->GetHigherValueD()));

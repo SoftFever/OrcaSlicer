@@ -652,6 +652,9 @@ public:
     void set_toolpath_role_visibility_flags(unsigned int flags);
     void set_toolpath_view_type(GCodeViewer::EViewType type);
     void set_toolpaths_z_range(const std::array<double, 2>& range);
+#if ENABLE_SEQUENTIAL_VSLIDER
+    void set_toolpaths_z_range_2(const std::array<unsigned int, 2>& range);
+#endif // ENABLE_SEQUENTIAL_VSLIDER
 #else
     std::vector<double> get_current_print_zs(bool active_only) const;
 #endif // ENABLE_GCODE_VIEWER
