@@ -192,6 +192,23 @@ bool unescape_strings_cstyle(const std::string &str, std::vector<std::string> &o
     }
 }
 
+std::string escape_ampersand(const std::string& str)
+{
+    // Allocate a buffer 2 times the input string length,
+    // so the output will fit even if all input characters get escaped.
+    std::vector<char> out(str.size() * 6, 0);
+    char* outptr = out.data();
+    for (size_t i = 0; i < str.size(); ++i) {
+        char c = str[i];
+        if (c == '&') {
+            (*outptr++) = '&';
+            (*outptr++) = '&';
+        } else
+            (*outptr++) = c;
+    }
+    return std::string(out.data(), outptr - out.data());
+}
+
 std::vector<std::string> ConfigOptionDef::cli_args(const std::string &key) const
 {
 	std::vector<std::string> args;
