@@ -776,27 +776,30 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
 
     // Keeping the vector of closest points outside the loop, so the vector does not need to be reallocated.
     std::vector<std::pair<rtree_segment_t, size_t>> closest;
+    // Pairs of lines touching at one end point. The pair is sorted to make the end point connection test symmetric.
+    std::vector<std::pair<const Polyline*, const Polyline*>> lines_touching_at_endpoints;
     {
-        // Insert infill lines into rtree, merge close collinear segments split by the infill boundary.
+        // Insert infill lines into rtree, merge close collinear segments split by the infill boundary,
+        // collect lines_touching_at_endpoints.
         double r2_close = Slic3r::sqr(1200.);
         for (Polyline &poly : lines) {
             assert(poly.points.size() == 2);
             if (&poly != lines.data()) {
                 // Join collinear segments separated by a tiny gap. These gaps were likely created by clipping the infill lines with a concave dent in an infill boundary.
-                auto collinear_segment = [&rtree, &closest, &lines, r2_close](const Point &pt, const Point &pt_other) -> std::pair<Polyline*, bool> {
+                auto collinear_segment = [&rtree, &closest, &lines, &lines_touching_at_endpoints, r2_close](const Point& pt, const Point& pt_other, const Polyline* polyline) -> std::pair<Polyline*, bool> {
                     closest.clear();
                     rtree.query(bgi::nearest(mk_rtree_point(pt), 1), std::back_inserter(closest));
-                    Polyline &other = lines[closest.front().second];
-                    double dist2_front = (other.points.front() - pt).cast<double>().squaredNorm();
-                    double dist2_back  = (other.points.back() - pt).cast<double>().squaredNorm();
-                    double dist2_min = std::min(dist2_front, dist2_back);
+                    const Polyline *other = &lines[closest.front().second];
+                    double dist2_front = (other->points.front() - pt).cast<double>().squaredNorm();
+                    double dist2_back  = (other->points.back() - pt).cast<double>().squaredNorm();
+                    double dist2_min   = std::min(dist2_front, dist2_back);
                     if (dist2_min < r2_close) {
                         // Don't connect the segments in an opposite direction.
-                        double dist2_min_other = std::min((other.points.front() - pt_other).cast<double>().squaredNorm(), (other.points.back() - pt_other).cast<double>().squaredNorm());
+                        double dist2_min_other = std::min((other->points.front() - pt_other).cast<double>().squaredNorm(), (other->points.back() - pt_other).cast<double>().squaredNorm());
                         if (dist2_min_other > dist2_min) {
                             // End points of the two lines are very close, they should have been merged together if they are collinear.
                             Vec2d v1 = (pt_other - pt).cast<double>();
-                            Vec2d v2 = (other.points.back() - other.points.front()).cast<double>();
+                            Vec2d v2 = (other->points.back() - other->points.front()).cast<double>();
                             Vec2d v1n = v1.normalized();
                             Vec2d v2n = v2.normalized();
                             // The vectors must not be collinear.
@@ -804,19 +807,23 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
                             if (std::abs(d) > 0.99f) {
                                 // Lines are collinear, merge them.
                                 rtree.remove(closest.front());
-                                return std::make_pair(&other, dist2_min == dist2_front);
+                                return std::make_pair(const_cast<Polyline*>(other), dist2_min == dist2_front);
+                            } else {
+                                if (polyline > other)
+                                    std::swap(polyline, other);
+                                lines_touching_at_endpoints.emplace_back(polyline, other);
                             }
                         }
                     }
                     return std::make_pair(static_cast<Polyline*>(nullptr), false);
                 };
-                auto collinear_front = collinear_segment(poly.points.front(), poly.points.back());
+                auto collinear_front = collinear_segment(poly.points.front(), poly.points.back(), &poly);
                 if (collinear_front.first) {
                     Polyline &other = *collinear_front.first;
                     poly.points.front() = collinear_front.second ? other.points.back() : other.points.front();
                     other.points.clear();
                 }
-                auto collinear_back = collinear_segment(poly.points.back(), poly.points.front());
+                auto collinear_back = collinear_segment(poly.points.back(), poly.points.front(), &poly);
                 if (collinear_back.first) {
                     Polyline &other = *collinear_front.first;
                     poly.points.back() = collinear_front.second ? other.points.back() : other.points.front();
@@ -826,6 +833,8 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
             rtree.insert(std::make_pair(mk_rtree_seg(poly.points.front(), poly.points.back()), poly_idx++));
         }
     }
+
+    sort_remove_duplicates(lines_touching_at_endpoints);
 
     const float scaled_offset = float(scale_(spacing) * 0.7); // 30% overlap
 
@@ -868,8 +877,22 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
                         out = closest.front().second;
                     return out;
                 };
-                tjoint_front = has_tjoint(front_point);
-                tjoint_back  = has_tjoint(back_point);
+                // Refuse to create a T-joint if the infill lines touch at their ends.
+                auto filter_end_point_connections = [&lines_touching_at_endpoints, &lines, &line](std::optional<size_t> in) {
+                    std::optional<size_t> out;
+                    if (in) {
+                        const Polyline *lo = &line;
+                        const Polyline *hi = &lines[in.value()];
+                        if (lo > hi)
+                            std::swap(lo, hi);
+                        if (! std::binary_search(lines_touching_at_endpoints.begin(), lines_touching_at_endpoints.end(), std::make_pair(lo, hi)))
+                            // Not an end-point connection, it is a valid T-joint.
+                            out = in;
+                    }
+                    return out;
+                };
+                tjoint_front = filter_end_point_connections(has_tjoint(front_point));
+                tjoint_back  = filter_end_point_connections(has_tjoint(back_point));
             }
 
             int num_tjoints = int(tjoint_front.has_value()) + int(tjoint_back.has_value());
@@ -951,35 +974,72 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
         }
     }
 
-    auto update_merged_polyline = [&lines, &merged_with](Intersection &intersection) {
+    auto update_merged_polyline_idx = [&merged_with](size_t pl_idx) {
         // Update the polyline index to index which is merged
-        size_t intersect_pl_idx = intersection.intersect_pl - lines.data();
-        for (size_t last = intersect_pl_idx;;) {
+        for (size_t last = pl_idx;;) {
             size_t lower = merged_with[last];
             if (lower == last) {
-                merged_with[intersect_pl_idx] = lower;
-                intersect_pl_idx              = lower;
-                break;
+                merged_with[pl_idx] = lower;
+                return lower;
             }
             last = lower;
         }
-
+        assert(false);
+        return size_t(0);
+    };
+    auto update_merged_polyline = [&lines, update_merged_polyline_idx](Intersection& intersection) {
+        // Update the polyline index to index which is merged
+        size_t intersect_pl_idx = update_merged_polyline_idx(intersection.intersect_pl - lines.data());
         intersection.intersect_pl = &lines[intersect_pl_idx];
         // After polylines are merged, it is necessary to update "forward" based on if intersect_point is the first or the last point of intersect_pl.
         if (intersection.fresh()) {
             assert(intersection.intersect_pl->points.front() == intersection.intersect_point ||
-                   intersection.intersect_pl->points.back()  == intersection.intersect_point);
+                   intersection.intersect_pl->points.back() == intersection.intersect_point);
             intersection.front = intersection.intersect_pl->points.front() == intersection.intersect_point;
         }
     };
 
+    // Merge polylines touching at their ends. This should be a very rare case, but it happens surprisingly often.
+    for (auto it = lines_touching_at_endpoints.rbegin(); it != lines_touching_at_endpoints.rend(); ++ it) {
+        Polyline *pl1 = const_cast<Polyline*>(it->first);
+        Polyline *pl2 = const_cast<Polyline*>(it->second);
+        assert(pl1 < pl2);
+        // pl1 was visited for the 1st time.
+        // pl2 may have alread been merged with another polyline, even with this one.
+        pl2 = &lines[update_merged_polyline_idx(pl2 - lines.data())];
+        assert(pl1 <= pl2);
+        // Avoid closing a loop.
+        if (pl1 != pl2) {
+            // Merge the polylines.
+            assert(pl1 < pl2);
+            assert(pl1->points.size() >= 2);
+            assert(pl2->points.size() >= 2);
+            double d11 = (pl1->points.front() - pl2->points.front()).cast<double>().squaredNorm();
+            double d12 = (pl1->points.front() - pl2->points.back()) .cast<double>().squaredNorm();
+            double d21 = (pl1->points.back()  - pl2->points.front()).cast<double>().squaredNorm();
+            double d22 = (pl1->points.back()  - pl2->points.back()) .cast<double>().squaredNorm();
+            double d1min = std::min(d11, d12);
+            double d2min = std::min(d21, d22);
+            if (d1min < d2min) {
+                pl1->reverse();
+                if (d12 == d1min)
+                    pl2->reverse();
+            } else if (d22 == d2min)
+                pl2->reverse();
+            pl1->points.back() = (pl1->points.back() + pl2->points.front()) / 2;
+            pl1->append(pl2->points.begin() + 1, pl2->points.end());
+            pl2->points.clear();
+            merged_with[pl2 - lines.data()] = pl1 - lines.data();
+        }
+    }
+
     // Keep intersect_line outside the loop, so it does not get reallocated.
     std::vector<std::pair<Intersection*, double>> intersect_line;
     for (size_t min_idx = 0; min_idx < intersections.size();) {
-        const Vec2d line_dir = intersections[min_idx].closest_line->vector().cast<double>();
         intersect_line.clear();
         // All the nearest points (T-joints) ending at the same line are projected onto this line. Because of it, it can easily find the nearest point.
         {
+            const Vec2d line_dir = intersections[min_idx].closest_line->vector().cast<double>();
             size_t max_idx = min_idx;
             for (; max_idx < intersections.size() && 
                     intersections[min_idx].closest_line == intersections[max_idx].closest_line &&
@@ -987,7 +1047,11 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
                     ++ max_idx)
                 intersect_line.emplace_back(&intersections[max_idx], line_dir.dot(intersections[max_idx].intersect_point.cast<double>()));
             min_idx = max_idx;
+            assert(intersect_line.size() > 0);
+            // Sort the intersections along line_dir.
+            std::sort(intersect_line.begin(), intersect_line.end(), [](const auto &i1, const auto &i2) { return i1.second < i2.second; });
         }
+
         if (intersect_line.size() == 1) {
             // Simple case: The current intersection is the only one touching its adjacent line.
             Intersection &first_i = *intersect_line.front().first;
@@ -1006,10 +1070,6 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
             }
             continue;
         }
-
-        assert(intersect_line.size() > 1);
-        // Sort the intersections along line_dir.
-        std::sort(intersect_line.begin(), intersect_line.end(), [](const auto &i1, const auto &i2) { return i1.second < i2.second; });
 
         for (size_t first_idx = 0; first_idx < intersect_line.size(); ++ first_idx) {
             Intersection &first_i = *intersect_line[first_idx].first;
