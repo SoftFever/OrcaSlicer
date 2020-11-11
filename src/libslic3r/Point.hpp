@@ -61,18 +61,14 @@ inline int64_t cross2(const Vec2i64 &v1, const Vec2i64 &v2) { return v1(0) * v2(
 inline float   cross2(const Vec2f   &v1, const Vec2f   &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
 inline double  cross2(const Vec2d   &v1, const Vec2d   &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
 
-template<class T, int N> Eigen::Matrix<T,  2, 1, Eigen::DontAlign>
-to_2d(const Eigen::Matrix<T,  N, 1, Eigen::DontAlign> &ptN) { return {ptN(0), ptN(1)}; }
+template<typename T, int Options>
+inline Eigen::Matrix<T, 2, 1, Eigen::DontAlign> perp(const Eigen::MatrixBase<Eigen::Matrix<T, 2, 1, Options>> &v) { return Eigen::Matrix<T, 2, 1, Eigen::DontAlign>(- v.y(), v.x()); }
 
-//inline Vec2i32 to_2d(const Vec3i32 &pt3) { return Vec2i32(pt3(0), pt3(1)); }
-//inline Vec2i64 to_2d(const Vec3i64 &pt3) { return Vec2i64(pt3(0), pt3(1)); }
-//inline Vec2f   to_2d(const Vec3f   &pt3) { return Vec2f  (pt3(0), pt3(1)); }
-//inline Vec2d   to_2d(const Vec3d   &pt3) { return Vec2d  (pt3(0), pt3(1)); }
+template<class T, int N, int Options>
+Eigen::Matrix<T, 2, 1, Eigen::DontAlign> to_2d(const Eigen::MatrixBase<Eigen::Matrix<T, N, 1, Options>> &ptN) { return { ptN(0), ptN(1) }; }
 
-inline Vec3d   to_3d(const Vec2d &v, double z) { return Vec3d(v(0), v(1), z); }
-inline Vec3f   to_3d(const Vec2f &v, float z) { return Vec3f(v(0), v(1), z); }
-inline Vec3i64 to_3d(const Vec2i64 &v, float z) { return Vec3i64(int64_t(v(0)), int64_t(v(1)), int64_t(z)); }
-inline Vec3crd to_3d(const Vec3crd &p, coord_t z) { return Vec3crd(p(0), p(1), z); }
+template<class T, int Options>
+Eigen::Matrix<T, 3, 1, Eigen::DontAlign> to_3d(const Eigen::MatrixBase<Eigen::Matrix<T, 2, 1, Options>> & pt, const T z) { return { pt(0), pt(1), z }; }
 
 inline Vec2d   unscale(coord_t x, coord_t y) { return Vec2d(unscale<double>(x), unscale<double>(y)); }
 inline Vec2d   unscale(const Vec2crd &pt) { return Vec2d(unscale<double>(pt(0)), unscale<double>(pt(1))); }

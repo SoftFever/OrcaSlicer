@@ -639,10 +639,8 @@ static inline Intersection* get_nearest_intersection(std::vector<std::pair<Inter
 // translated in the direction of the intersection line (intersection.intersect_line).
 static Line create_offset_line(Line offset_line, const Intersection &intersection, const double scaled_offset)
 {
-    Vec2d        dir            = intersection.closest_line->vector().cast<double>().normalized();
     // 50% overlap of the extrusion lines to achieve strong bonding.
-    Vec2d        offset_vector  = Vec2d(- dir.y(), dir.x()) * (intersection.left ? scaled_offset : - scaled_offset);
-    offset_line.translate(offset_vector.x(), offset_vector.y());
+    offset_line.translate((perp(intersection.closest_line->vector().cast<double>().normalized()) * (intersection.left ? scaled_offset : - scaled_offset)).cast<coord_t>());
     // Extend the line by a small value to guarantee a collision with adjacent lines
     offset_line.extend(coord_t(scaled_offset * 1.16)); // / cos(PI/6)
     return offset_line;
@@ -668,7 +666,10 @@ static inline rtree_segment_t mk_rtree_seg(const Line &l) {
 }
 
 // Create a hook based on hook_line and append it to the begin or end of the polyline in the intersection
-static void add_hook(const Intersection &intersection, const double scaled_offset, const int hook_length, const rtree_t &rtree, const Lines &lines_src)
+static void add_hook(
+    const Intersection &intersection, const double scaled_offset, 
+    const int hook_length, double scaled_trim_distance, 
+    const rtree_t &rtree, const Lines &lines_src)
 {
     // Trim the hook start by the infill line it will connect to.
     Point hook_start;
@@ -680,7 +681,9 @@ static void add_hook(const Intersection &intersection, const double scaled_offse
     std::optional<Line> other_hook = intersection.other_hook();
 
     Vec2d   hook_vector_norm = intersection.closest_line->vector().cast<double>().normalized();
-    Vector  hook_vector      = (hook_length * hook_vector_norm).cast<coord_t>();
+    // hook_vector is extended by the thickness of the infill line, so that a collision is found against
+    // the infill centerline to be later trimmed by the thickened line.
+    Vector  hook_vector      = ((hook_length + 1.16 * scaled_trim_distance) * hook_vector_norm).cast<coord_t>();
     Line    hook_forward(hook_start, hook_start + hook_vector);
 
     auto filter_itself = [&intersection, &lines_src](const auto &item) { return item.second != intersection.intersect_line - lines_src.data(); };
@@ -690,70 +693,60 @@ static void add_hook(const Intersection &intersection, const double scaled_offse
     Point self_intersection_point;
     bool  self_intersection = other_hook && other_hook->intersection(hook_forward, &self_intersection_point);
 
-    Point hook_end;
-    if (hook_intersections.empty() && ! self_intersection) {
-        // The hook is not limited by another infill line. Extrude it in its full length.
-        hook_end = hook_forward.b;
-    } else {
-
-        // Find closest intersection of a line segment starting with pt pointing in dir
-        // with any of the hook_intersections, returns Euclidian distance.
-        // dir is normalized.
-        auto max_hook_length = [hook_length, scaled_offset, &lines_src](
-            const Vec2d &pt, const Vec2d &dir,
-            const std::vector<std::pair<rtree_segment_t, size_t>> &hook_intersections,
-            bool self_intersection, const std::optional<Line> &self_intersection_line, const Point &self_intersection_point) {
-            // No hook is longer than hook_length, there shouldn't be any intersection closer than that.
-            auto max_length = double(hook_length);
-            auto update_max_length = [&max_length](double d) {
-                if (d < max_length)
-                    max_length = std::max(0., d);
-            };
-            // Shift the trimming point away from the colliding thick line.
-            auto shift_from_thick_line = [&dir, scaled_offset](const Vec2d& dir2) -> Vec2d {
-                Vec2d perp = Vec2d(-dir2.y(), dir2.x()).normalized();
-                double shift = perp.dot(dir) > 0. ? -scaled_offset : scaled_offset;
-                return perp * (0.5 * shift);
-            };
-
-            for (const auto &hook_intersection : hook_intersections) {
-                const rtree_segment_t &segment = hook_intersection.first;
-                // Segment start and end points, segment vector.
-                Vec2d pt2(bg::get<0, 0>(segment), bg::get<0, 1>(segment));
-                Vec2d dir2 = Vec2d(bg::get<1, 0>(segment), bg::get<1, 1>(segment)) - pt2;
-                // Find intersection of (pt, dir) with (pt2, dir2), where dir is normalized.
-                double denom = cross2(dir, dir2);
-                assert(std::abs(denom) > EPSILON);
-                if (hook_intersection.second < lines_src.size())
-                    // Trimming by another infill line. Reduce overlap.
-                    pt2 += shift_from_thick_line(dir2);
-                update_max_length(cross2(pt2 - pt, dir2) / denom);
-            }
-            if (self_intersection) {
-                double t = (self_intersection_point.cast<double>() + shift_from_thick_line(self_intersection_line.value().vector().cast<double>()) - pt).norm();
-                max_length = std::min(max_length, t);
-            }
-            return max_length;
+    // Find closest intersection of a line segment starting with pt pointing in dir
+    // with any of the hook_intersections, returns Euclidian distance.
+    // dir is normalized.
+    auto max_hook_length = [hook_length, scaled_trim_distance, &lines_src](
+        const Vec2d &pt, const Vec2d &dir,
+        const std::vector<std::pair<rtree_segment_t, size_t>> &hook_intersections,
+        bool self_intersection, const std::optional<Line> &self_intersection_line, const Point &self_intersection_point) {
+        // No hook is longer than hook_length, there shouldn't be any intersection closer than that.
+        auto max_length = double(hook_length);
+        auto update_max_length = [&max_length](double d) {
+            if (d < max_length)
+                max_length = d;
+        };
+        // Shift the trimming point away from the colliding thick line.
+        auto shift_from_thick_line = [&dir, scaled_trim_distance](const Vec2d& dir2) {
+            return scaled_trim_distance * std::abs(cross2(dir, dir2.normalized()));
         };
 
-        // There is not enough space for the full hook length, try the opposite direction.
-        Vec2d  hook_startf             = hook_start.cast<double>();
-        double hook_forward_max_length = max_hook_length(hook_startf, hook_vector_norm, hook_intersections, self_intersection, other_hook, self_intersection_point);
+        for (const auto &hook_intersection : hook_intersections) {
+            const rtree_segment_t &segment = hook_intersection.first;
+            // Segment start and end points, segment vector.
+            Vec2d pt2(bg::get<0, 0>(segment), bg::get<0, 1>(segment));
+            Vec2d dir2 = Vec2d(bg::get<1, 0>(segment), bg::get<1, 1>(segment)) - pt2;
+            // Find intersection of (pt, dir) with (pt2, dir2), where dir is normalized.
+            double denom = cross2(dir, dir2);
+            assert(std::abs(denom) > EPSILON);
+            double t = cross2(pt2 - pt, dir2) / denom;
+            if (hook_intersection.second < lines_src.size())
+                // Trimming by another infill line. Reduce overlap.
+                t -= shift_from_thick_line(dir2);
+            update_max_length(t);
+        }
+        if (self_intersection) {
+            double t = (self_intersection_point.cast<double>() - pt).dot(dir) - shift_from_thick_line(self_intersection_line.value().vector().cast<double>());
+            max_length = std::min(max_length, t);
+        }
+        return std::max(0., max_length);
+    };
+
+    Vec2d  hook_startf              = hook_start.cast<double>();
+    double hook_forward_max_length  = max_hook_length(hook_startf, hook_vector_norm, hook_intersections, self_intersection, other_hook, self_intersection_point);
+    double hook_backward_max_length = 0.;
+    if (hook_forward_max_length < hook_length - SCALED_EPSILON) {
+        // Try the other side.
         hook_intersections.clear();
         Line hook_backward(hook_start, hook_start - hook_vector);
         rtree.query(bgi::intersects(mk_rtree_seg(hook_backward)) && bgi::satisfies(filter_itself), std::back_inserter(hook_intersections));
         self_intersection = other_hook && other_hook->intersection(hook_backward, &self_intersection_point);
-
-        if (hook_intersections.empty() && ! self_intersection) {
-            // The hook in the other direction is not limited by another infill line. Extrude it in its full length.
-            hook_end = hook_backward.b;
-        } else {
-            // There is not enough space for the full hook in both directions, take the longer one.
-            double hook_backward_max_length = max_hook_length(hook_startf, - hook_vector_norm, hook_intersections, self_intersection, other_hook, self_intersection_point);
-            Vec2d hook_dir = (hook_forward_max_length > hook_backward_max_length ? hook_forward_max_length : - hook_backward_max_length) * hook_vector_norm;
-            hook_end = hook_start + hook_dir.cast<coord_t>();
-        }
+        hook_backward_max_length = max_hook_length(hook_startf, - hook_vector_norm, hook_intersections, self_intersection, other_hook, self_intersection_point);
     }
+
+    // Take the longer hook.
+    Vec2d hook_dir = (hook_forward_max_length > hook_backward_max_length ? hook_forward_max_length : - hook_backward_max_length) * hook_vector_norm;
+    Point hook_end = hook_start + hook_dir.cast<coord_t>();
 
     Points &pl = intersection.intersect_pl->points;
     if (intersection.front) {
@@ -773,6 +766,9 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
     Lines lines_src;
     lines_src.reserve(lines.size());
     std::transform(lines.begin(), lines.end(), std::back_inserter(lines_src), [](const Line& l) { return Polyline{ l.a, l.b }; });
+
+    const float scaled_offset           = float(scale_(spacing) * 0.7); // 30% overlap
+    const float scaled_trim_distance    = float(scale_(spacing) * 0.5 * 0.75); // 25% overlap
 
     // Keeping the vector of closest points outside the loop, so the vector does not need to be reallocated.
     std::vector<std::pair<rtree_segment_t, size_t>> closest;
@@ -836,13 +832,12 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
 
     sort_remove_duplicates(lines_touching_at_endpoints);
 
-    const float scaled_offset = float(scale_(spacing) * 0.7); // 30% overlap
-
     std::vector<Intersection> intersections;
     {
         // Minimum lenght of an infill line to anchor. Very short lines cannot be trimmed from both sides,
         // it does not help to anchor extremely short infill lines, it consumes too much plastic while not adding
         // to the object rigidity.
+        assert(scaled_offset > scaled_trim_distance);
         const double line_len_threshold_drop_both_sides    = scaled_offset * (2. / cos(PI / 6.) + 0.5) + SCALED_EPSILON;
         const double line_len_threshold_anchor_both_sides  = line_len_threshold_drop_both_sides + scaled_offset;
         const double line_len_threshold_drop_single_side   = scaled_offset * (1. / cos(PI / 6.) + 1.5) + SCALED_EPSILON;
@@ -852,8 +847,8 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
             if (line.points.empty())
                 continue;
 
-            const Point &front_point = line.points.front();
-            const Point &back_point  = line.points.back();
+            Point &front_point = line.points.front();
+            Point &back_point  = line.points.back();
 
             // Find the nearest line from the start point of the line.
             std::optional<size_t> tjoint_front, tjoint_back;
@@ -922,6 +917,15 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
                     if (tjoint_back)
                         // T-joint of line's back point with the 'closest' line.
                         intersections.emplace_back(lines_src[tjoint_back.value()],  lines_src[line_idx], &line, back_point,  false);
+                } else {
+                    if (tjoint_front)
+                        // T joint at the front at a 60 degree angle, the line is very short.
+                        // Trim the front side.
+                        front_point += ((scaled_trim_distance * 1.155) * (back_point - front_point).cast<double>().normalized()).cast<coord_t>();
+                    if (tjoint_back)
+                        // T joint at the front at a 60 degree angle, the line is very short.
+                        // Trim the front side.
+                        back_point  += ((scaled_trim_distance * 1.155) * (front_point - back_point).cast<double>().normalized()).cast<coord_t>();
                 }
             }
         }
@@ -1008,8 +1012,8 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
         // pl2 may have alread been merged with another polyline, even with this one.
         pl2 = &lines[update_merged_polyline_idx(pl2 - lines.data())];
         assert(pl1 <= pl2);
-        // Avoid closing a loop.
-        if (pl1 != pl2) {
+        // Avoid closing a loop, ignore dropped infill lines.
+        if (pl1 != pl2 && ! pl1->points.empty() && ! pl2->points.empty()) {
             // Merge the polylines.
             assert(pl1 < pl2);
             assert(pl1->points.size() >= 2);
@@ -1061,7 +1065,7 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
 #ifdef ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT
                 export_infill_lines_to_svg(boundary, lines, debug_out_path("FillAdaptive-add_hook0-pre-%d-%d.svg", iRun, iStep), { first_i.intersect_point });
 #endif // ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT
-                add_hook(first_i, scaled_offset, hook_length, rtree, lines_src);
+                add_hook(first_i, scaled_offset, hook_length, scaled_trim_distance, rtree, lines_src);
 #ifdef ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT
                 export_infill_lines_to_svg(boundary, lines, debug_out_path("FillAdaptive-add_hook0-pre-%d-%d.svg", iRun, iStep), { first_i.intersect_point });
                 ++ iStep;
@@ -1138,6 +1142,7 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
                 } else {
                     // Both intersections are on different polylines
                     Line  l(first_i_point, nearest_i_point);
+                    l.translate((perp(first_i.closest_line->vector().cast<double>().normalized()) * (first_i.left ? scaled_trim_distance : - scaled_trim_distance)).cast<coord_t>());
                     Point pt_start, pt_end;
                     bool  trim_start = first_i  .intersect_pl->points.size() == 3 && first_i  .other_hook_intersects(l, pt_start);
                     bool  trim_end   = nearest_i.intersect_pl->points.size() == 3 && nearest_i.other_hook_intersects(l, pt_end);
@@ -1175,7 +1180,7 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
 #ifdef ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT
                 export_infill_lines_to_svg(boundary, lines, debug_out_path("FillAdaptive-add_hook-pre-%d-%d.svg", iRun, iStep), { first_i.intersect_point });
 #endif // ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT
-                add_hook(first_i, scaled_offset, hook_length, rtree, lines_src);
+                add_hook(first_i, scaled_offset, hook_length, scaled_trim_distance, rtree, lines_src);
 #ifdef ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT
                 export_infill_lines_to_svg(boundary, lines, debug_out_path("FillAdaptive-add_hook-post-%d-%d.svg", iRun, iStep), { first_i.intersect_point });
 #endif // ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT

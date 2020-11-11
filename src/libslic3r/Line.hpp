@@ -54,7 +54,8 @@ public:
     Line(const Point& _a, const Point& _b) : a(_a), b(_b) {}
     explicit operator Lines() const { Lines lines; lines.emplace_back(*this); return lines; }
     void   scale(double factor) { this->a *= factor; this->b *= factor; }
-    void   translate(double x, double y) { Vector v(x, y); this->a += v; this->b += v; }
+    void   translate(const Point &v) { this->a += v; this->b += v; }
+    void   translate(double x, double y) { this->translate(Point(x, y)); }
     void   rotate(double angle, const Point &center) { this->a.rotate(angle, center); this->b.rotate(angle, center); }
     void   reverse() { std::swap(this->a, this->b); }
     double length() const { return (b - a).cast<double>().norm(); }
