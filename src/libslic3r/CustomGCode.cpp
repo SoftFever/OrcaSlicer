@@ -2,8 +2,6 @@
 #include "Config.hpp"
 #if ENABLE_GCODE_VIEWER
 #include "GCode.hpp"
-#else
-#include "GCode/PreviewData.hpp"
 #endif // ENABLE_GCODE_VIEWER
 #include "GCodeWriter.hpp"
 
