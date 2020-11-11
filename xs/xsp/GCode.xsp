@@ -4,7 +4,7 @@
 #include <xsinit.h>
 #include "libslic3r/GCode.hpp"
 #include "libslic3r/GCode/CoolingBuffer.hpp"
-#include "libslic3r/GCode/PreviewData.hpp"
+//#include "libslic3r/GCode/PreviewData.hpp"
 %}
 
 %name{Slic3r::GCode::CoolingBuffer} class CoolingBuffer {
