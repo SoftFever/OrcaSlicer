@@ -84,6 +84,13 @@ enum DrawMode
 #endif // ENABLE_GCODE_VIEWER
 };
 
+enum LabelType
+{
+    ltHeightWithLayer,
+    ltHeight,
+    ltEstimatedTime,
+};
+
 struct TickCode
 {
     bool operator<(const TickCode& other) const { return other.tick > this->tick; }
@@ -283,13 +290,14 @@ protected:
     void    draw_thumbs(wxDC& dc, const wxCoord& lower_pos, const wxCoord& higher_pos);
     void    draw_ticks(wxDC& dc);
     void    draw_colored_band(wxDC& dc);
+    void    draw_ruler(wxDC& dc);
     void    draw_one_layer_icon(wxDC& dc);
     void    draw_revert_icon(wxDC& dc);
     void    draw_cog_icon(wxDC &dc);
     void    draw_thumb_item(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection);
     void    draw_info_line_with_icon(wxDC& dc, const wxPoint& pos, SelectedSlider selection);
     void    draw_tick_on_mouse_position(wxDC &dc);
-    void    draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, bool right_side = true) const;
+    void    draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, LabelType label_type = ltHeight, bool right_side = true) const;
     void    draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const;
 
     void    update_thumb_rect(const wxCoord begin_x, const wxCoord begin_y, const SelectedSlider& selection);
@@ -306,7 +314,7 @@ private:
     int     get_tick_near_point(const wxPoint& pt);
 
     double      get_scroll_step();
-    wxString    get_label(int tick) const;
+    wxString    get_label(int tick, LabelType label_type = ltHeightWithLayer) const;
     void        get_lower_and_higher_position(int& lower_pos, int& higher_pos);
     int         get_value_from_position(const wxCoord x, const wxCoord y);
     int         get_value_from_position(const wxPoint pos) { return get_value_from_position(pos.x, pos.y); }
@@ -387,6 +395,7 @@ private:
     int         m_revert_icon_dim;
     int         m_cog_icon_dim;
     long        m_style;
+    long        m_extra_style;
     float       m_label_koef = 1.0;
 
     std::vector<double> m_values;
