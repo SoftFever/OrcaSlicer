@@ -16,9 +16,6 @@
 #include "GCode/SeamPlacer.hpp"
 #if ENABLE_GCODE_VIEWER
 #include "GCode/GCodeProcessor.hpp"
-#else
-#include "GCode/Analyzer.hpp"
-#include "GCodeTimeEstimator.hpp"
 #endif // ENABLE_GCODE_VIEWER
 #include "EdgeGrid.hpp"
 #include "GCode/ThumbnailData.hpp"

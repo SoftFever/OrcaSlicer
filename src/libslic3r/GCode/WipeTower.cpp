@@ -7,8 +7,6 @@
 
 #if ENABLE_GCODE_VIEWER
 #include "GCodeProcessor.hpp"
-#else
-#include "Analyzer.hpp"
 #endif // ENABLE_GCODE_VIEWER
 #include "BoundingBox.hpp"
 

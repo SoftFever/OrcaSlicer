@@ -22,9 +22,6 @@
 #include "libslic3r/Print.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/Slicing.hpp"
-#if !ENABLE_GCODE_VIEWER
-#include "libslic3r/GCode/Analyzer.hpp"
-#endif // !ENABLE_GCODE_VIEWER
 #include "slic3r/GUI/BitmapCache.hpp"
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Utils.hpp"
