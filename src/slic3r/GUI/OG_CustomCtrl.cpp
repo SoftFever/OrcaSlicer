@@ -173,9 +173,9 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                         _CTX(option.label, "Layers") : _(option.label);
                     label += ":";
 
-                    wxPaintDC dc(this);
-                    dc.SetFont(m_font);
-                    h_pos += dc.GetMultiLineTextExtent(label).x + m_h_gap;
+                    wxCoord label_w, label_h;
+                    GetTextExtent(label, &label_w, &label_h, 0, 0, &m_font);
+                    h_pos += label_w + 1 + m_h_gap;
                 }                
                 h_pos += 3 * blinking_button_width;
                 
