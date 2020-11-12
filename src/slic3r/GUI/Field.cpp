@@ -1482,6 +1482,11 @@ void SliderCtrl::BUILD()
 
 	m_textctrl = new wxTextCtrl(m_parent, wxID_ANY, wxString::Format("%d", m_slider->GetValue()/m_scale), 
 								wxDefaultPosition, field_size);
+#ifdef __WXGTK3__
+	wxSize best_sz = m_textctrl->GetBestSize();
+	if (best_sz.x > size.x)
+		m_textctrl->SetSize(wxSize(size.x + 2 * best_sz.y, best_sz.y));
+#endif //__WXGTK3__
 	m_textctrl->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	m_textctrl->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
