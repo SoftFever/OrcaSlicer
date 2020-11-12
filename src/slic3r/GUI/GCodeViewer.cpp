@@ -435,11 +435,11 @@ void GCodeViewer::reset()
     m_shells.volumes.clear();
 #if ENABLE_SEQUENTIAL_VSLIDER
     m_layers.reset();
-    m_layers_z_range_2 = { 0, 0 };
+    m_layers_z_range = { 0, 0 };
 #else
     m_layers_zs = std::vector<double>();
-#endif // ENABLE_SEQUENTIAL_VSLIDER
     m_layers_z_range = { 0.0, 0.0 };
+#endif // ENABLE_SEQUENTIAL_VSLIDER
     m_roles = std::vector<ExtrusionRole>();
     m_time_statistics.reset();
     m_time_estimate_mode = PrintEstimatedTimeStatistics::ETimeMode::Normal;
@@ -612,9 +612,9 @@ void GCodeViewer::set_options_visibility_from_flags(unsigned int flags)
 #if ENABLE_SEQUENTIAL_VSLIDER
 void GCodeViewer::set_layers_z_range(const std::array<unsigned int, 2>& layers_z_range)
 {
-    bool keep_sequential_current_first = layers_z_range[0] >= m_layers_z_range_2[0];
-    bool keep_sequential_current_last = layers_z_range[1] <= m_layers_z_range_2[1];
-    m_layers_z_range_2 = layers_z_range;
+    bool keep_sequential_current_first = layers_z_range[0] >= m_layers_z_range[0];
+    bool keep_sequential_current_last = layers_z_range[1] <= m_layers_z_range[1];
+    m_layers_z_range = layers_z_range;
     refresh_render_paths(keep_sequential_current_first, keep_sequential_current_last);
     wxGetApp().plater()->update_preview_moves_slider();
 }
@@ -1554,7 +1554,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
 #if ENABLE_SEQUENTIAL_VSLIDER
     // layers zs / roles / extruder ids / cp color ids -> extract from result
-    std::vector<std::pair<double, unsigned int>> averages;    
+    size_t last_travel_s_id = 0;
     for (size_t i = 0; i < m_moves_count; ++i) {
         const GCodeProcessor::MoveVertex& move = gcode_result.moves[i];
         if (move.type == EMoveType::Extrude) {
@@ -1562,7 +1562,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             const double* const last_z = m_layers.empty() ? nullptr : &m_layers.get_zs().back();
             double z = static_cast<double>(move.position[2]);
             if (last_z == nullptr || z < *last_z - EPSILON || *last_z + EPSILON < z)
-                m_layers.append(z, { i - 1, i });
+                m_layers.append(z, { last_travel_s_id, i });
             else
                 m_layers.get_endpoints().back().last = i;
             // extruder ids
@@ -1571,12 +1571,17 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             if (i > 0)
                 m_roles.emplace_back(move.extrusion_role);
         }
+        else if (move.type == EMoveType::Travel) {
+            if (i - last_travel_s_id > 1 && !m_layers.empty())
+                m_layers.get_endpoints().back().last = i;
+
+            last_travel_s_id = i;
+        }
     }
 
     // set layers z range
     if (!m_layers.empty()) {
-        m_layers_z_range = { m_layers.get_zs().front(), m_layers.get_zs().back() };
-        m_layers_z_range_2 = { 0, static_cast<unsigned int>(m_layers.size() - 1) };
+        m_layers_z_range = { 0, static_cast<unsigned int>(m_layers.size() - 1) };
     }
 #else
     // layers zs -> extract from result
@@ -1731,8 +1736,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
         return in_layers_range(path.first.s_id) || in_layers_range(path.last.s_id);
     };
-#endif // ENABLE_SEQUENTIAL_VSLIDER
-
+#else
     auto is_in_z_range = [](const Path& path, double min_z, double max_z) {
         auto in_z_range = [min_z, max_z](double z) {
             return min_z - EPSILON < z && z < max_z + EPSILON;
@@ -1740,7 +1744,43 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
         return in_z_range(path.first.position[2]) || in_z_range(path.last.position[2]);
     };
+#endif // ENABLE_SEQUENTIAL_VSLIDER
 
+#if ENABLE_SEQUENTIAL_VSLIDER
+    auto is_travel_in_layers_range = [this](size_t path_id, size_t min_id, size_t max_id) {
+        auto is_in_z_range = [](const Path& path, double min_z, double max_z) {
+            auto in_z_range = [min_z, max_z](double z) {
+                return min_z - EPSILON < z&& z < max_z + EPSILON;
+            };
+
+            return in_z_range(path.first.position[2]) || in_z_range(path.last.position[2]);
+        };
+
+        const TBuffer& buffer = m_buffers[buffer_id(EMoveType::Travel)];
+        if (path_id >= buffer.paths.size())
+            return false;
+
+        Path path = buffer.paths[path_id];
+        size_t first = path_id;
+        size_t last = path_id;
+
+        // check adjacent paths
+        while (first > 0 && path.first.position.isApprox(buffer.paths[first - 1].last.position)) {
+            --first;
+            path.first = buffer.paths[first].first;
+        }
+        while (last < buffer.paths.size() - 1 && path.last.position.isApprox(buffer.paths[last + 1].first.position)) {
+            ++last;
+            path.last = buffer.paths[last].last;
+        }
+
+        size_t min_s_id = m_layers.get_endpoints_at(min_id).first;
+        size_t max_s_id = m_layers.get_endpoints_at(max_id).last;
+
+        return (min_s_id <= path.first.s_id && path.first.s_id <= max_s_id) ||
+            (min_s_id <= path.last.s_id && path.last.s_id <= max_s_id);
+    };
+#else
     auto is_travel_in_z_range = [this, is_in_z_range](size_t path_id, double min_z, double max_z) {
         const TBuffer& buffer = m_buffers[buffer_id(EMoveType::Travel)];
         if (path_id >= buffer.paths.size())
@@ -1762,6 +1802,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
         return is_in_z_range(path, min_z, max_z);
     };
+#endif // ENABLE_SEQUENTIAL_VSLIDER
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.render_paths_size = 0;
@@ -1786,11 +1827,16 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         for (size_t i = 0; i < buffer.paths.size(); ++i) {
             const Path& path = buffer.paths[i];
             if (path.type == EMoveType::Travel) {
+#if ENABLE_SEQUENTIAL_VSLIDER
+                if (!is_travel_in_layers_range(i, m_layers_z_range[0], m_layers_z_range[1]))
+                    continue;
+#else
                 if (!is_travel_in_z_range(i, m_layers_z_range[0], m_layers_z_range[1]))
                     continue;
+#endif // ENABLE_SEQUENTIAL_VSLIDER
             }
 #if ENABLE_SEQUENTIAL_VSLIDER
-            else if (!is_in_layers_range(path, m_layers_z_range_2[0], m_layers_z_range_2[1]))
+            else if (!is_in_layers_range(path, m_layers_z_range[0], m_layers_z_range[1]))
                 continue;
 #else
             else if (!is_in_z_range(path, m_layers_z_range[0], m_layers_z_range[1]))
@@ -1808,13 +1854,20 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
             if (top_layer_only) {
                 if (path.type == EMoveType::Travel) {
+#if ENABLE_SEQUENTIAL_VSLIDER
+                    if (is_travel_in_layers_range(i, m_layers_z_range[1], m_layers_z_range[1])) {
+                        top_layer_endpoints.first = std::min(top_layer_endpoints.first, path.first.s_id);
+                        top_layer_endpoints.last = std::max(top_layer_endpoints.last, path.last.s_id);
+                    }
+#else
                     if (is_travel_in_z_range(i, m_layers_z_range[1], m_layers_z_range[1])) {
                         top_layer_endpoints.first = std::min(top_layer_endpoints.first, path.first.s_id);
                         top_layer_endpoints.last = std::max(top_layer_endpoints.last, path.last.s_id);
                     }
+#endif // ENABLE_SEQUENTIAL_VSLIDER
                 }
 #if ENABLE_SEQUENTIAL_VSLIDER
-                else if (is_in_layers_range(path, m_layers_z_range_2[1], m_layers_z_range_2[1])) {
+                else if (is_in_layers_range(path, m_layers_z_range[1], m_layers_z_range[1])) {
                     top_layer_endpoints.first = std::min(top_layer_endpoints.first, path.first.s_id);
                     top_layer_endpoints.last = std::max(top_layer_endpoints.last, path.last.s_id);
                 }
@@ -1880,7 +1933,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 #if ENABLE_SEQUENTIAL_VSLIDER
             if (!top_layer_only ||
                 m_sequential_view.current.last == global_endpoints.last ||
-                is_in_layers_range(path, m_layers_z_range_2[1], m_layers_z_range_2[1]))
+                is_in_layers_range(path, m_layers_z_range[1], m_layers_z_range[1]))
 #else
             if (!top_layer_only || m_sequential_view.current.last == global_endpoints.last || is_in_z_range(path, m_layers_z_range[1], m_layers_z_range[1]))
 #endif // ENABLE_SEQUENTIAL_VSLIDER
@@ -1891,7 +1944,11 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             break;
         }
         case EMoveType::Travel: {
+#if ENABLE_SEQUENTIAL_VSLIDER
+            if (!top_layer_only || m_sequential_view.current.last == global_endpoints.last || is_travel_in_layers_range(path_id, m_layers_z_range[1], m_layers_z_range[1]))
+#else
             if (!top_layer_only || m_sequential_view.current.last == global_endpoints.last || is_travel_in_z_range(path_id, m_layers_z_range[1], m_layers_z_range[1]))
+#endif // ENABLE_SEQUENTIAL_VSLIDER
                 color = (m_view_type == EViewType::Feedrate || m_view_type == EViewType::Tool || m_view_type == EViewType::ColorPrint) ? extrusion_color(path) : travel_color(path);
             else
                 color = { 0.25f, 0.25f, 0.25f };

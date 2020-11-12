@@ -304,6 +304,7 @@ class GCodeViewer
         const std::vector<double>& get_zs() const { return m_zs; }
         const std::vector<Endpoints>& get_endpoints() const { return m_endpoints; }
         std::vector<Endpoints>& get_endpoints() { return m_endpoints; }
+        double get_z_at(unsigned int id) const { return (id < m_zs.size()) ? m_zs[id] : 0.0; }
         Endpoints get_endpoints_at(unsigned int id) const { return (id < m_endpoints.size()) ? m_endpoints[id] : Endpoints(); }
     };
 #endif // ENABLE_SEQUENTIAL_VSLIDER
@@ -435,11 +436,11 @@ private:
     std::vector<Color> m_tool_colors;
 #if ENABLE_SEQUENTIAL_VSLIDER
     Layers m_layers;
-    std::array<unsigned int, 2> m_layers_z_range_2;
+    std::array<unsigned int, 2> m_layers_z_range;
 #else
     std::vector<double> m_layers_zs;
-#endif // ENABLE_SEQUENTIAL_VSLIDER
     std::array<double, 2> m_layers_z_range;
+#endif // ENABLE_SEQUENTIAL_VSLIDER
     std::vector<ExtrusionRole> m_roles;
     size_t m_extruders_count;
     std::vector<unsigned char> m_extruder_ids;
