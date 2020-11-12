@@ -1,7 +1,6 @@
 #ifndef slic3r_GCodeProcessor_hpp_
 #define slic3r_GCodeProcessor_hpp_
 
-#if ENABLE_GCODE_VIEWER
 #include "libslic3r/GCodeReader.hpp"
 #include "libslic3r/Point.hpp"
 #include "libslic3r/ExtrusionEntity.hpp"
@@ -583,8 +582,6 @@ namespace Slic3r {
    };
 
 } /* namespace Slic3r */
-
-#endif // ENABLE_GCODE_VIEWER
 
 #endif /* slic3r_GCodeProcessor_hpp_ */
 

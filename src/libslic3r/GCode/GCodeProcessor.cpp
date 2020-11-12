@@ -15,7 +15,6 @@
     #include <utility>
 #endif
 
-#if ENABLE_GCODE_VIEWER
 #include <chrono>
 
 static const float INCHES_TO_MM = 25.4f;
@@ -2228,4 +2227,3 @@ void GCodeProcessor::update_estimated_times_stats()
 
 } /* namespace Slic3r */
 
-#endif // ENABLE_GCODE_VIEWER
