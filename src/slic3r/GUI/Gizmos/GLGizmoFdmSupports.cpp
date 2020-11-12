@@ -126,7 +126,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
         m_imgui->text("");
 
-        if (m_imgui->button("Autoset by angle...")) {
+        if (m_imgui->button(_L("Autoset by angle") + "...")) {
             m_setting_angle = true;
         }
 

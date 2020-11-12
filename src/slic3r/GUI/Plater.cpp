@@ -3560,7 +3560,7 @@ bool Plater::priv::warnings_dialog()
 {
 	if (current_warnings.empty())
 		return true;
-	std::string text = _u8L("There are active warnings concerning sliced models:\n");
+	std::string text = _u8L("There are active warnings concerning sliced models:") + "\n";
 	bool empt = true;
 	for (auto const& it : current_warnings) {
 		int next_n = it.first.message.find_first_of('\n', 0);

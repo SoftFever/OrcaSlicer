@@ -720,7 +720,7 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
         // The press on Esc key invokes editing of InputText (removes last changes)
         // So we should save previous value...
         std::string str = search_str;
-        ImGui::InputTextEx("", NULL, search_str, 20, search_size, ImGuiInputTextFlags_AutoSelectAll, NULL, NULL);
+        ImGui::InputTextEx("", NULL, search_str, 40, search_size, ImGuiInputTextFlags_AutoSelectAll, NULL, NULL);
         edited = ImGui::IsItemEdited();
         if (edited)
             hovered_id = 0;
@@ -797,6 +797,8 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
             edited = true;
         }
     };
+
+    ImGui::AlignTextToFramePadding();
 
     // add checkboxes for show/hide Categories and Groups
     text(_L("Use for search")+":");

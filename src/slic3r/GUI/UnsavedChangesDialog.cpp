@@ -734,7 +734,7 @@ void UnsavedChangesDialog::show_info_line(Action action, std::string preset_name
         if (action == Action::Undef)
             text = _L("Some fields are too long to fit. Right mouse click reveals the full text.");
         else if (action == Action::Discard)
-            text = _L("All modified options will be reverted.");
+            text = _L("All settings changes will be discarded.");
         else {
             if (preset_name.empty())
                 text = action == Action::Save ? _L("Save the selected options.") : _L("Transfer the selected settings to the newly selected preset.");
