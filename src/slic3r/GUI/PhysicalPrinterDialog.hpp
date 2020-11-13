@@ -86,6 +86,7 @@ public:
     ~PhysicalPrinterDialog();
 
     void        update();
+    void        update_printhost_buttons();
     void        update_printers();
     wxString    get_printer_name();
     void        update_full_printer_names();

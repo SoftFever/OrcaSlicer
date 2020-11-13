@@ -1214,9 +1214,9 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("emit_to_gcode");
     def->enum_values.push_back("time_estimate_only");
     def->enum_values.push_back("ignore");
-    def->enum_labels.push_back("Emit to G-code");
-    def->enum_labels.push_back("Use for time estimate");
-    def->enum_labels.push_back("Ignore");
+    def->enum_labels.push_back(L("Emit to G-code"));
+    def->enum_labels.push_back(L("Use for time estimate"));
+    def->enum_labels.push_back(L("Ignore"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<MachineLimitsUsage>(MachineLimitsUsage::EmitToGCode));
 

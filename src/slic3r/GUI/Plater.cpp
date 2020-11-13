@@ -32,9 +32,6 @@
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Format/AMF.hpp"
 #include "libslic3r/Format/3mf.hpp"
-#if !ENABLE_GCODE_VIEWER
-#include "libslic3r/GCode/PreviewData.hpp"
-#endif // !ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/SLA/Hollowing.hpp"
@@ -3563,7 +3560,7 @@ bool Plater::priv::warnings_dialog()
 {
 	if (current_warnings.empty())
 		return true;
-	std::string text = _u8L("There are active warnings concerning sliced models:\n");
+	std::string text = _u8L("There are active warnings concerning sliced models:") + "\n";
 	bool empt = true;
 	for (auto const& it : current_warnings) {
 		int next_n = it.first.message.find_first_of('\n', 0);

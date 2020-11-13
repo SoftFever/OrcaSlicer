@@ -173,9 +173,9 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                         _CTX(option.label, "Layers") : _(option.label);
                     label += ":";
 
-                    wxPaintDC dc(this);
-                    dc.SetFont(m_font);
-                    h_pos += dc.GetMultiLineTextExtent(label).x + m_h_gap;
+                    wxCoord label_w, label_h;
+                    GetTextExtent(label, &label_w, &label_h, 0, 0, &m_font);
+                    h_pos += label_w + 1 + m_h_gap;
                 }                
                 h_pos += 3 * blinking_button_width;
                 
@@ -205,12 +205,6 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 
 void OG_CustomCtrl::OnPaint(wxPaintEvent&)
 {
-#ifdef _WIN32 
-    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-#else
-    SetBackgroundColour(GetParent()->GetBackgroundColour());
-#endif // _WIN32 
-
     // case, when custom controll is destroyed but doesn't deleted from the evet loop
     if(!this->opt_group->custom_ctrl)
         return;
@@ -424,12 +418,6 @@ void OG_CustomCtrl::CtrlLine::msw_rescale()
         wxSize label_sz = ctrl->GetTextExtent(og_line.label);
         height = label_sz.y * (label_sz.GetWidth() > int(ctrl->opt_group->label_width * ctrl->m_em_unit) ? 2 : 1) + ctrl->m_v_gap;
     }
-    
-    if (og_line.get_options().front().opt.full_width) {
-        Field* field = ctrl->opt_group->get_field(og_line.get_options().front().opt_id);
-        if (field->getWindow())
-            field->getWindow()->SetSize(wxSize(3 * Field::def_width_wider() * ctrl->m_em_unit, -1));
-    }
 
     correct_items_positions();
 }
@@ -509,7 +497,10 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
         option_set.front().side_widget == nullptr && og_line.get_extra_widgets().size() == 0)
     {
         if (field && field->undo_to_sys_bitmap())
-            draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink());
+            h_pos = draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink()) + ctrl->m_h_gap;
+        // update width for full_width fields
+        if (option_set.front().opt.full_width && field->getWindow())
+            field->getWindow()->SetSize(ctrl->GetSize().x - h_pos, -1);
         return;
     }
 

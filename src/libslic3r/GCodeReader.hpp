@@ -108,9 +108,7 @@ public:
         { GCodeLine gline; this->parse_line(line.c_str(), gline, callback); }
 
     void parse_file(const std::string &file, callback_t callback);
-#if ENABLE_GCODE_VIEWER
     void quit_parsing_file() { m_parsing_file = false; }
-#endif // ENABLE_GCODE_VIEWER
 
     float& x()       { return m_position[X]; }
     float  x() const { return m_position[X]; }
@@ -149,9 +147,7 @@ private:
     char        m_extrusion_axis;
     float       m_position[NUM_AXES];
     bool        m_verbose;
-#if ENABLE_GCODE_VIEWER
     bool        m_parsing_file{ false };
-#endif // ENABLE_GCODE_VIEWER
 };
 
 } /* namespace Slic3r */

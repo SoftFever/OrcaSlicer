@@ -1836,7 +1836,6 @@ namespace PresetUtils {
 		return out;
 	}
 
-#if ENABLE_GCODE_VIEWER
     std::string system_printer_bed_model(const Preset& preset)
     {
         std::string out;
@@ -1854,7 +1853,6 @@ namespace PresetUtils {
             out = Slic3r::resources_dir() + "/profiles/" + preset.vendor->id + "/" + pm->bed_texture;
         return out;
     }
-#endif // ENABLE_GCODE_VIEWER
 } // namespace PresetUtils
 
 } // namespace Slic3r

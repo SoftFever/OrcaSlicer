@@ -693,6 +693,11 @@ void SpinCtrl::BUILD() {
 
 	auto temp = new wxSpinCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size,
 		0|wxTE_PROCESS_ENTER, min_val, max_val, default_value);
+#ifdef __WXGTK3__
+	wxSize best_sz = temp->GetBestSize();
+	if (best_sz.x > size.x)
+		temp->SetSize(wxSize(size.x + 2 * best_sz.y, best_sz.y));
+#endif //__WXGTK3__
 	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
     if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 

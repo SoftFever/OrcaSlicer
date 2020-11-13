@@ -209,8 +209,10 @@ public:
         return true;
     }
 
-    // Set action icons for node
+    // Set action and extruder(if any exist) icons for node
     void        set_action_and_extruder_icons();
+    // set extruder icon for node
+    void        set_extruder_icon();
 	// Set printable icon for node
     void        set_printable_icon(PrintIndicator printable);
 

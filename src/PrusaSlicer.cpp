@@ -138,7 +138,6 @@ int CLI::run(int argc, char **argv)
         m_print_config.apply(config);
     }
 
-#if ENABLE_GCODE_VIEWER
     // are we starting as gcodeviewer ?
     for (auto it = m_actions.begin(); it != m_actions.end(); ++it) {
         if (*it == "gcodeviewer") {
@@ -148,10 +147,8 @@ int CLI::run(int argc, char **argv)
             break;
         }
     }
-#endif // ENABLE_GCODE_VIEWER
 
     // Read input file(s) if any.
-#if ENABLE_GCODE_VIEWER
     for (const std::string& file : m_input_files) {
         std::string ext = boost::filesystem::path(file).extension().string();
         if (ext == ".gcode" || ext == ".g") {
@@ -162,7 +159,6 @@ int CLI::run(int argc, char **argv)
         }
     }
     if (!start_as_gcodeviewer) {
-#endif // ENABLE_GCODE_VIEWER
         for (const std::string& file : m_input_files) {
             if (!boost::filesystem::exists(file)) {
                 boost::nowide::cerr << "No such file: " << file << std::endl;
@@ -195,9 +191,7 @@ int CLI::run(int argc, char **argv)
             }
             m_models.push_back(model);
         }
-#if ENABLE_GCODE_VIEWER
     }
-#endif // ENABLE_GCODE_VIEWER
 
     // Apply command line options to a more specific DynamicPrintConfig which provides normalize()
     // (command line options override --load files)
@@ -504,11 +498,7 @@ int CLI::run(int argc, char **argv)
                         print->process();
                         if (printer_technology == ptFFF) {
                             // The outfile is processed by a PlaceholderParser.
-#if ENABLE_GCODE_VIEWER
                             outfile = fff_print.export_gcode(outfile, nullptr, nullptr);
-#else
-                            outfile = fff_print.export_gcode(outfile, nullptr);
-#endif // ENABLE_GCODE_VIEWER
                             outfile_final = fff_print.print_statistics().finalize_output_path(outfile);
                         } else {
                             outfile = sla_print.output_filepath(outfile);
@@ -559,11 +549,6 @@ int CLI::run(int argc, char **argv)
                     << " (" << print.total_extruded_volume()/1000 << "cm3)" << std::endl;
 */
             }
-#if !ENABLE_GCODE_VIEWER
-        } else if (opt_key == "gcodeviewer") {
-            start_gui = true;
-        	start_as_gcodeviewer = true;
-#endif // !ENABLE_GCODE_VIEWER
         } else {
             boost::nowide::cerr << "error: option not supported yet: " << opt_key << std::endl;
             return 1;
