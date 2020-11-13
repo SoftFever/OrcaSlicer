@@ -300,13 +300,8 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
     reset();
 
     load_toolpaths(gcode_result);
-#if ENABLE_SEQUENTIAL_VSLIDER
     if (m_layers.empty())
         return;
-#else
-    if (m_layers_zs.empty())
-        return;
-#endif // ENABLE_SEQUENTIAL_VSLIDER
 
     m_settings_ids = gcode_result.settings_ids;
 
@@ -433,13 +428,8 @@ void GCodeViewer::reset()
     m_extrusions.reset_role_visibility_flags();
     m_extrusions.reset_ranges();
     m_shells.volumes.clear();
-#if ENABLE_SEQUENTIAL_VSLIDER
     m_layers.reset();
     m_layers_z_range = { 0, 0 };
-#else
-    m_layers_zs = std::vector<double>();
-    m_layers_z_range = { 0.0, 0.0 };
-#endif // ENABLE_SEQUENTIAL_VSLIDER
     m_roles = std::vector<ExtrusionRole>();
     m_time_statistics.reset();
     m_time_estimate_mode = PrintEstimatedTimeStatistics::ETimeMode::Normal;
@@ -609,7 +599,6 @@ void GCodeViewer::set_options_visibility_from_flags(unsigned int flags)
     enable_legend(is_flag_set(static_cast<unsigned int>(Preview::OptionType::Legend)));
 }
 
-#if ENABLE_SEQUENTIAL_VSLIDER
 void GCodeViewer::set_layers_z_range(const std::array<unsigned int, 2>& layers_z_range)
 {
     bool keep_sequential_current_first = layers_z_range[0] >= m_layers_z_range[0];
@@ -618,16 +607,6 @@ void GCodeViewer::set_layers_z_range(const std::array<unsigned int, 2>& layers_z
     refresh_render_paths(keep_sequential_current_first, keep_sequential_current_last);
     wxGetApp().plater()->update_preview_moves_slider();
 }
-#else
-void GCodeViewer::set_layers_z_range(const std::array<double, 2>& layers_z_range)
-{
-    bool keep_sequential_current_first = layers_z_range[0] >= m_layers_z_range[0];
-    bool keep_sequential_current_last = layers_z_range[1] <= m_layers_z_range[1];
-    m_layers_z_range = layers_z_range;
-    refresh_render_paths(keep_sequential_current_first, keep_sequential_current_last);
-    wxGetApp().plater()->update_preview_moves_slider();
-}
-#endif // ENABLE_SEQUENTIAL_VSLIDER
 
 void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
 {
@@ -1552,7 +1531,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     // dismiss indices data, no more needed
     std::vector<MultiIndexBuffer>().swap(indices);
 
-#if ENABLE_SEQUENTIAL_VSLIDER
     // layers zs / roles / extruder ids / cp color ids -> extract from result
     size_t last_travel_s_id = 0;
     for (size_t i = 0; i < m_moves_count; ++i) {
@@ -1583,43 +1561,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     if (!m_layers.empty()) {
         m_layers_z_range = { 0, static_cast<unsigned int>(m_layers.size() - 1) };
     }
-#else
-    // layers zs -> extract from result
-    for (const Path& path : m_buffers[buffer_id(EMoveType::Extrude)].paths) {
-        m_layers_zs.emplace_back(static_cast<double>(path.first.position[2]));
-//        m_layers_zs.emplace_back(static_cast<double>(path.last.position[2]));
-    }
-
-    // roles / extruder ids / cp color ids -> extract from result
-    for (size_t i = 0; i < m_moves_count; ++i) {
-        const GCodeProcessor::MoveVertex& move = gcode_result.moves[i];
-        m_extruder_ids.emplace_back(move.extruder_id);
-        if (i > 0)
-            m_roles.emplace_back(move.extrusion_role);
-    }
-
-
-    // layers zs -> replace intervals of layers with similar top positions with their average value.
-    std::sort(m_layers_zs.begin(), m_layers_zs.end());
-    int n = int(m_layers_zs.size());
-    int k = 0;
-    for (int i = 0; i < n;) {
-        int j = i + 1;
-        double zmax = m_layers_zs[i] + EPSILON;
-        for (; j < n && m_layers_zs[j] <= zmax; ++j);
-        m_layers_zs[k++] = (j > i + 1) ? (0.5 * (m_layers_zs[i] + m_layers_zs[j - 1])) : m_layers_zs[i];
-        i = j;
-    }
-    if (k < n) {
-        m_layers_zs.erase(m_layers_zs.begin() + k, m_layers_zs.end());
-        m_layers_zs.shrink_to_fit();
-    }
-
-
-    // set layers z range
-    if (!m_layers_zs.empty())
-        m_layers_z_range = { m_layers_zs.front(), m_layers_zs.back() };
-#endif // ENABLE_SEQUENTIAL_VSLIDER
 
     // roles -> remove duplicates
     std::sort(m_roles.begin(), m_roles.end());
@@ -1728,7 +1669,6 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
                 Travel_Colors[0] /* Move */);
     };
 
-#if ENABLE_SEQUENTIAL_VSLIDER
     auto is_in_layers_range = [this](const Path& path, size_t min_id, size_t max_id) {
         auto in_layers_range = [this, min_id, max_id](size_t id) {
             return m_layers.get_endpoints_at(min_id).first <= id && id <= m_layers.get_endpoints_at(max_id).last;
@@ -1736,17 +1676,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
         return in_layers_range(path.first.s_id) || in_layers_range(path.last.s_id);
     };
-#else
-    auto is_in_z_range = [](const Path& path, double min_z, double max_z) {
-        auto in_z_range = [min_z, max_z](double z) {
-            return min_z - EPSILON < z && z < max_z + EPSILON;
-        };
 
-        return in_z_range(path.first.position[2]) || in_z_range(path.last.position[2]);
-    };
-#endif // ENABLE_SEQUENTIAL_VSLIDER
-
-#if ENABLE_SEQUENTIAL_VSLIDER
     auto is_travel_in_layers_range = [this](size_t path_id, size_t min_id, size_t max_id) {
         auto is_in_z_range = [](const Path& path, double min_z, double max_z) {
             auto in_z_range = [min_z, max_z](double z) {
@@ -1780,29 +1710,6 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         return (min_s_id <= path.first.s_id && path.first.s_id <= max_s_id) ||
             (min_s_id <= path.last.s_id && path.last.s_id <= max_s_id);
     };
-#else
-    auto is_travel_in_z_range = [this, is_in_z_range](size_t path_id, double min_z, double max_z) {
-        const TBuffer& buffer = m_buffers[buffer_id(EMoveType::Travel)];
-        if (path_id >= buffer.paths.size())
-            return false;
-
-        Path path = buffer.paths[path_id];
-        int first = static_cast<int>(path_id);
-        unsigned int last = static_cast<unsigned int>(path_id);
-
-        // check adjacent paths
-        while (first > 0 && path.first.position.isApprox(buffer.paths[first - 1].last.position)) {
-            --first;
-            path.first = buffer.paths[first].first;
-        }
-        while (last < static_cast<unsigned int>(buffer.paths.size() - 1) && path.last.position.isApprox(buffer.paths[last + 1].first.position)) {
-            ++last;
-            path.last = buffer.paths[last].last;
-        }
-
-        return is_in_z_range(path, min_z, max_z);
-    };
-#endif // ENABLE_SEQUENTIAL_VSLIDER
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.render_paths_size = 0;
@@ -1827,21 +1734,11 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         for (size_t i = 0; i < buffer.paths.size(); ++i) {
             const Path& path = buffer.paths[i];
             if (path.type == EMoveType::Travel) {
-#if ENABLE_SEQUENTIAL_VSLIDER
                 if (!is_travel_in_layers_range(i, m_layers_z_range[0], m_layers_z_range[1]))
                     continue;
-#else
-                if (!is_travel_in_z_range(i, m_layers_z_range[0], m_layers_z_range[1]))
-                    continue;
-#endif // ENABLE_SEQUENTIAL_VSLIDER
             }
-#if ENABLE_SEQUENTIAL_VSLIDER
             else if (!is_in_layers_range(path, m_layers_z_range[0], m_layers_z_range[1]))
                 continue;
-#else
-            else if (!is_in_z_range(path, m_layers_z_range[0], m_layers_z_range[1]))
-                continue;
-#endif // ENABLE_SEQUENTIAL_VSLIDER
 
             if (path.type == EMoveType::Extrude && !is_visible(path))
                 continue;
@@ -1854,29 +1751,15 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
             if (top_layer_only) {
                 if (path.type == EMoveType::Travel) {
-#if ENABLE_SEQUENTIAL_VSLIDER
                     if (is_travel_in_layers_range(i, m_layers_z_range[1], m_layers_z_range[1])) {
                         top_layer_endpoints.first = std::min(top_layer_endpoints.first, path.first.s_id);
                         top_layer_endpoints.last = std::max(top_layer_endpoints.last, path.last.s_id);
                     }
-#else
-                    if (is_travel_in_z_range(i, m_layers_z_range[1], m_layers_z_range[1])) {
-                        top_layer_endpoints.first = std::min(top_layer_endpoints.first, path.first.s_id);
-                        top_layer_endpoints.last = std::max(top_layer_endpoints.last, path.last.s_id);
-                    }
-#endif // ENABLE_SEQUENTIAL_VSLIDER
                 }
-#if ENABLE_SEQUENTIAL_VSLIDER
                 else if (is_in_layers_range(path, m_layers_z_range[1], m_layers_z_range[1])) {
                     top_layer_endpoints.first = std::min(top_layer_endpoints.first, path.first.s_id);
                     top_layer_endpoints.last = std::max(top_layer_endpoints.last, path.last.s_id);
                 }
-#else
-                else if (is_in_z_range(path, m_layers_z_range[1], m_layers_z_range[1])) {
-                    top_layer_endpoints.first = std::min(top_layer_endpoints.first, path.first.s_id);
-                    top_layer_endpoints.last = std::max(top_layer_endpoints.last, path.last.s_id);
-                }
-#endif // ENABLE_SEQUENTIAL_VSLIDER
             }
         }
     }
@@ -1930,13 +1813,9 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         switch (path.type)
         {
         case EMoveType::Extrude: {
-#if ENABLE_SEQUENTIAL_VSLIDER
             if (!top_layer_only ||
                 m_sequential_view.current.last == global_endpoints.last ||
                 is_in_layers_range(path, m_layers_z_range[1], m_layers_z_range[1]))
-#else
-            if (!top_layer_only || m_sequential_view.current.last == global_endpoints.last || is_in_z_range(path, m_layers_z_range[1], m_layers_z_range[1]))
-#endif // ENABLE_SEQUENTIAL_VSLIDER
                 color = extrusion_color(path);
             else
                 color = { 0.25f, 0.25f, 0.25f };
@@ -1944,11 +1823,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             break;
         }
         case EMoveType::Travel: {
-#if ENABLE_SEQUENTIAL_VSLIDER
             if (!top_layer_only || m_sequential_view.current.last == global_endpoints.last || is_travel_in_layers_range(path_id, m_layers_z_range[1], m_layers_z_range[1]))
-#else
-            if (!top_layer_only || m_sequential_view.current.last == global_endpoints.last || is_travel_in_z_range(path_id, m_layers_z_range[1], m_layers_z_range[1]))
-#endif // ENABLE_SEQUENTIAL_VSLIDER
                 color = (m_view_type == EViewType::Feedrate || m_view_type == EViewType::Tool || m_view_type == EViewType::ColorPrint) ? extrusion_color(path) : travel_color(path);
             else
                 color = { 0.25f, 0.25f, 0.25f };
@@ -2334,23 +2209,13 @@ void GCodeViewer::render_legend() const
             if (item.type != ColorChange)
                 continue;
 
-#if ENABLE_SEQUENTIAL_VSLIDER
             const std::vector<double> zs = m_layers.get_zs();
             auto lower_b = std::lower_bound(zs.begin(), zs.end(), item.print_z - Slic3r::DoubleSlider::epsilon());
             if (lower_b == zs.end())
                 continue;
-#else
-            auto lower_b = std::lower_bound(m_layers_zs.begin(), m_layers_zs.end(), item.print_z - Slic3r::DoubleSlider::epsilon());
-            if (lower_b == m_layers_zs.end())
-                continue;
-#endif // ENABLE_SEQUENTIAL_VSLIDER
 
             double current_z = *lower_b;
-#if ENABLE_SEQUENTIAL_VSLIDER
             double previous_z = (lower_b == zs.begin()) ? 0.0 : *(--lower_b);
-#else
-            double previous_z = lower_b == m_layers_zs.begin() ? 0.0 : *(--lower_b);
-#endif // ENABLE_SEQUENTIAL_VSLIDER
 
             // to avoid duplicate values, check adding values
             if (ret.empty() || !(ret.back().second.first == previous_z && ret.back().second.second == current_z))
@@ -2941,18 +2806,11 @@ void GCodeViewer::log_memory_used(const std::string& label, long long additional
                 render_paths_size += SLIC3R_STDVEC_MEMSIZE(path.offsets, size_t);
             }
         }
-#if ENABLE_SEQUENTIAL_VSLIDER
         long long layers_size = SLIC3R_STDVEC_MEMSIZE(m_layers.get_zs(), double);
         layers_size += SLIC3R_STDVEC_MEMSIZE(m_layers.get_endpoints(), Layers::Endpoints);
         BOOST_LOG_TRIVIAL(trace) << label
             << format_memsize_MB(additional + paths_size + render_paths_size + layers_size)
             << log_memory_info();
-#else
-        long long layers_zs_size = SLIC3R_STDVEC_MEMSIZE(m_layers_zs, double);
-        BOOST_LOG_TRIVIAL(trace) << label
-            << format_memsize_MB(additional + paths_size + render_paths_size + layers_zs_size)
-            << log_memory_info();
-#endif // ENABLE_SEQUENTIAL_VSLIDER
     }
 }
 

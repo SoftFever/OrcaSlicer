@@ -1428,10 +1428,8 @@ void Preview::on_sliders_scroll_changed(wxCommandEvent& event)
         PrinterTechnology tech = m_process->current_printer_technology();
         if (tech == ptFFF) {
 #if ENABLE_GCODE_VIEWER
-            m_canvas->set_toolpaths_z_range({ m_layers_slider->GetLowerValueD(), m_layers_slider->GetHigherValueD() });
-#if ENABLE_SEQUENTIAL_VSLIDER
-            m_canvas->set_toolpaths_z_range_2({ static_cast<unsigned int>(m_layers_slider->GetLowerValue()), static_cast<unsigned int>(m_layers_slider->GetHigherValue()) });
-#endif // ENABLE_SEQUENTIAL_VSLIDER
+            m_canvas->set_volumes_z_range({ m_layers_slider->GetLowerValueD(), m_layers_slider->GetHigherValueD() });
+            m_canvas->set_toolpaths_z_range({ static_cast<unsigned int>(m_layers_slider->GetLowerValue()), static_cast<unsigned int>(m_layers_slider->GetHigherValue()) });
             m_canvas->set_as_dirty();
 #else
             m_canvas->set_toolpaths_range(m_slider->GetLowerValueD() - 1e-6, m_slider->GetHigherValueD() + 1e-6);
