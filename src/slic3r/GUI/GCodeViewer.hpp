@@ -272,6 +272,41 @@ class GCodeViewer
         void reset_ranges() { ranges.reset(); }
     };
 
+    class Layers
+    {
+    public:
+        struct Endpoints
+        {
+            size_t first{ 0 };
+            size_t last{ 0 };
+        };
+
+    private:
+        std::vector<double> m_zs;
+        std::vector<Endpoints> m_endpoints;
+
+    public:
+        void append(double z, Endpoints endpoints)
+        {
+            m_zs.emplace_back(z);
+            m_endpoints.emplace_back(endpoints);
+        }
+
+        void reset()
+        {
+            m_zs = std::vector<double>();
+            m_endpoints = std::vector<Endpoints>();
+        }
+
+        size_t size() const { return m_zs.size(); }
+        bool empty() const { return m_zs.empty(); }
+        const std::vector<double>& get_zs() const { return m_zs; }
+        const std::vector<Endpoints>& get_endpoints() const { return m_endpoints; }
+        std::vector<Endpoints>& get_endpoints() { return m_endpoints; }
+        double get_z_at(unsigned int id) const { return (id < m_zs.size()) ? m_zs[id] : 0.0; }
+        Endpoints get_endpoints_at(unsigned int id) const { return (id < m_endpoints.size()) ? m_endpoints[id] : Endpoints(); }
+    };
+
 #if ENABLE_GCODE_VIEWER_STATISTICS
     struct Statistics
     {
@@ -397,8 +432,8 @@ private:
     // bounding box of toolpaths + marker tools
     BoundingBoxf3 m_max_bounding_box;
     std::vector<Color> m_tool_colors;
-    std::vector<double> m_layers_zs;
-    std::array<double, 2> m_layers_z_range;
+    Layers m_layers;
+    std::array<unsigned int, 2> m_layers_z_range;
     std::vector<ExtrusionRole> m_roles;
     size_t m_extruders_count;
     std::vector<unsigned char> m_extruder_ids;
@@ -431,7 +466,7 @@ public:
 
     const BoundingBoxf3& get_paths_bounding_box() const { return m_paths_bounding_box; }
     const BoundingBoxf3& get_max_bounding_box() const { return m_max_bounding_box; }
-    const std::vector<double>& get_layers_zs() const { return m_layers_zs; };
+    const std::vector<double>& get_layers_zs() const { return m_layers.get_zs(); };
 
     const SequentialView& get_sequential_view() const { return m_sequential_view; }
     void update_sequential_view_current(unsigned int first, unsigned int last);
@@ -450,7 +485,7 @@ public:
     void set_toolpath_role_visibility_flags(unsigned int flags) { m_extrusions.role_visibility_flags = flags; }
     unsigned int get_options_visibility_flags() const;
     void set_options_visibility_from_flags(unsigned int flags);
-    void set_layers_z_range(const std::array<double, 2>& layers_z_range);
+    void set_layers_z_range(const std::array<unsigned int, 2>& layers_z_range);
 
     bool is_legend_enabled() const { return m_legend_enabled; }
     void enable_legend(bool enable) { m_legend_enabled = enable; }
