@@ -1074,7 +1074,7 @@ void Choice::set_values(const wxArrayString &values)
 
 	// 	# it looks that Clear() also clears the text field in recent wxWidgets versions,
 	// 	# but we want to preserve it
-	auto ww = dynamic_cast<wxBitmapComboBox*>(window);
+	auto ww = dynamic_cast<choice_ctrl*>(window);
 	auto value = ww->GetValue();
 	ww->Clear();
 	ww->Append("");
