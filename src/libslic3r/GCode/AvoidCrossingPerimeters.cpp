@@ -12,6 +12,11 @@
 #include "AvoidCrossingPerimeters.hpp"
 
 #include <memory>
+#include <numeric>
+#include <unordered_set>
+
+#include <tbb/parallel_for.h>
+#include <boost/log/trivial.hpp>
 
 namespace Slic3r {
 
@@ -457,7 +462,7 @@ Polyline AvoidCrossingPerimeters2::simplify_travel(const EdgeGrid::Grid &edge_gr
 
         visitor.pt_current = &current_point;
 
-        for (size_t point_idx_2 = point_idx + 1; point_idx_2 < travel.size(); point_idx_2++) {
+        for (size_t point_idx_2 = point_idx + 1; point_idx_2 < travel.size(); ++point_idx_2) {
             if (travel.points[point_idx_2] == current_point) {
                 next      = travel.points[point_idx_2];
                 point_idx = point_idx_2;
@@ -610,7 +615,7 @@ size_t AvoidCrossingPerimeters2::avoid_perimeters(const Polygons       &boundari
     return intersections.size();
 }
 
-bool AvoidCrossingPerimeters2::needs_wipe(const GCode &   gcodegen,
+bool AvoidCrossingPerimeters2::need_wipe(const GCode &   gcodegen,
                                           const Line &    original_travel,
                                           const Polyline &result_travel,
                                           const size_t    intersection_count)
@@ -625,7 +630,8 @@ bool AvoidCrossingPerimeters2::needs_wipe(const GCode &   gcodegen,
         // If the z-lift is enabled, then a wipe is needed when the original travel leads above the holes.
         if (z_lift_enabled) {
             if (any_expolygon_contains(m_slice, original_travel)) {
-                // Check if original_travel and are not same result_travel
+                // Check if original_travel and result_travel are not same.
+                // If both are the same, then it is possible to skip testing of result_travel
                 if (result_travel.size() == 2 && result_travel.first_point() == original_travel.a && result_travel.last_point() == original_travel.b) {
                     wipe_needed = false;
                 } else {
@@ -676,7 +682,7 @@ Polyline AvoidCrossingPerimeters2::travel_to(const GCode &gcodegen, const Point 
         result.translate(-scaled_origin);
         *could_be_wipe_disabled = false;
     } else
-        *could_be_wipe_disabled = !needs_wipe(gcodegen, travel, result, travel_intersection_count);
+        *could_be_wipe_disabled = !need_wipe(gcodegen, travel, result, travel_intersection_count);
 
     return result;
 }

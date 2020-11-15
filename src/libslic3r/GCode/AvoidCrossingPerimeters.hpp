@@ -90,7 +90,7 @@ private:
 
     static size_t avoid_perimeters(const Polygons &boundaries, const EdgeGrid::Grid &grid, const Point &start, const Point &end, Polyline *result_out);
 
-    bool needs_wipe(const GCode &gcodegen, const Line &original_travel, const Polyline &result_travel, const size_t intersection_count);
+    bool need_wipe(const GCode &gcodegen, const Line &original_travel, const Polyline &result_travel, const size_t intersection_count);
 
     // Slice of layer with elephant foot compensation
     ExPolygons     m_slice;
@@ -120,7 +120,7 @@ public:
         return this->travel_to(gcodegen, point, &could_be_wipe_disabled);
     }
 
-    virtual Polyline travel_to(const GCode &gcodegen, const Point &point, bool *needs_wipe) override;
+    virtual Polyline travel_to(const GCode &gcodegen, const Point &point, bool *could_be_wipe_disabled) override;
 
     void init_layer(const Layer &layer);
 };
