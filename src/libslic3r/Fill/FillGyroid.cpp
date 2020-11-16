@@ -190,11 +190,10 @@ void FillGyroid::_fill_surface_single(
 			polylines.end());
 
 	if (! polylines.empty()) {
-		polylines = chain_polylines(polylines);
 		// connect lines
 		size_t polylines_out_first_idx = polylines_out.size();
 		if (params.dont_connect)
-        	append(polylines_out, std::move(polylines));
+        	append(polylines_out, chain_polylines(polylines));
         else
             this->connect_infill(std::move(polylines), expolygon, polylines_out, this->spacing, params);
 

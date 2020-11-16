@@ -162,15 +162,13 @@ void Fill3DHoneycomb::_fill_surface_single(
 		pl.translate(bb.min);
 
     // clip pattern to boundaries, chain the clipped polylines
-    Polylines polylines_chained = chain_polylines(intersection_pl(polylines, to_polygons(expolygon)));
+    polylines = intersection_pl(polylines, to_polygons(expolygon));
 
     // connect lines if needed
-    if (! polylines_chained.empty()) {
-        if (params.dont_connect)
-            append(polylines_out, std::move(polylines_chained));
-        else
-            this->connect_infill(std::move(polylines_chained), expolygon, polylines_out, this->spacing, params);
-    }
+    if (params.dont_connect || polylines.size() <= 1)
+        append(polylines_out, chain_polylines(std::move(polylines)));
+    else
+        this->connect_infill(std::move(polylines), expolygon, polylines_out, this->spacing, params);
 }
 
 } // namespace Slic3r

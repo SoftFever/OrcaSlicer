@@ -36,8 +36,6 @@
         %code{% THIS->params.density = density; %};
     void set_dont_adjust(bool dont_adjust)
         %code{% THIS->params.dont_adjust = dont_adjust; %};
-    void set_complete(bool complete)
-        %code{% THIS->params.complete = complete; %};
 
     PolylineCollection* _fill_surface(Surface *surface)
         %code{% 

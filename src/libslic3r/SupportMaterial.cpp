@@ -2324,7 +2324,6 @@ static inline void fill_expolygons_generate_paths(
 {
     FillParams fill_params;
     fill_params.density = density;
-    fill_params.complete = true;
     fill_params.dont_adjust = true;
     for (const ExPolygon &expoly : expolygons) {
         Surface surface(stInternal, expoly);
@@ -2351,7 +2350,6 @@ static inline void fill_expolygons_generate_paths(
 {
     FillParams fill_params;
     fill_params.density = density;
-    fill_params.complete = true;
     fill_params.dont_adjust = true;
     for (ExPolygon &expoly : expolygons) {
         Surface surface(stInternal, std::move(expoly));

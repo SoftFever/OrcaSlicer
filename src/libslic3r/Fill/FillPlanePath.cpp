@@ -1,4 +1,5 @@
 #include "../ClipperUtils.hpp"
+#include "../ShortestPath.hpp"
 #include "../Surface.hpp"
 
 #include "FillPlanePath.hpp"
@@ -23,14 +24,14 @@ void FillPlanePath::_fill_surface_single(
     Point shift = this->_centered() ? 
         bounding_box.center() :
         bounding_box.min;
-    expolygon.translate(-shift(0), -shift(1));
-    bounding_box.translate(-shift(0), -shift(1));
+    expolygon.translate(-shift.x(), -shift.y());
+    bounding_box.translate(-shift.x(), -shift.y());
 
     Pointfs pts = _generate(
-        coord_t(ceil(coordf_t(bounding_box.min(0)) / distance_between_lines)),
-        coord_t(ceil(coordf_t(bounding_box.min(1)) / distance_between_lines)),
-        coord_t(ceil(coordf_t(bounding_box.max(0)) / distance_between_lines)),
-        coord_t(ceil(coordf_t(bounding_box.max(1)) / distance_between_lines)));
+        coord_t(ceil(coordf_t(bounding_box.min.x()) / distance_between_lines)),
+        coord_t(ceil(coordf_t(bounding_box.min.y()) / distance_between_lines)),
+        coord_t(ceil(coordf_t(bounding_box.max.x()) / distance_between_lines)),
+        coord_t(ceil(coordf_t(bounding_box.max.y()) / distance_between_lines)));
 
     Polylines polylines;
     if (pts.size() >= 2) {
@@ -38,39 +39,24 @@ void FillPlanePath::_fill_surface_single(
         polylines.push_back(Polyline());
         Polyline &polyline = polylines.back();
         polyline.points.reserve(pts.size());
-        for (Pointfs::iterator it = pts.begin(); it != pts.end(); ++ it)
+        for (const Vec2d &pt : pts)
             polyline.points.push_back(Point(
-                coord_t(floor((*it)(0) * distance_between_lines + 0.5)), 
-                coord_t(floor((*it)(1) * distance_between_lines + 0.5))));
+                coord_t(floor(pt.x() * distance_between_lines + 0.5)), 
+                coord_t(floor(pt.y() * distance_between_lines + 0.5))));
 //      intersection(polylines_src, offset((Polygons)expolygon, scale_(0.02)), &polylines);
-        polylines = intersection_pl(polylines, to_polygons(expolygon));
-
-/*        
-        if (1) {
-            require "Slic3r/SVG.pm";
-            print "Writing fill.svg\n";
-            Slic3r::SVG::output("fill.svg",
-                no_arrows       => 1,
-                polygons        => \@$expolygon,
-                green_polygons  => [ $bounding_box->polygon ],
-                polylines       => [ $polyline ],
-                red_polylines   => \@paths,
-            );
-        }
-*/
-        
+        polylines = intersection_pl(std::move(polylines), to_polygons(expolygon));
+        Polylines chained;
+        if (params.dont_connect || params.density > 0.5 || polylines.size() <= 1)
+            chained = chain_polylines(std::move(polylines));
+        else
+            connect_infill(std::move(polylines), expolygon, chained, this->spacing, params);
         // paths must be repositioned and rotated back
-        for (Polylines::iterator it = polylines.begin(); it != polylines.end(); ++ it) {
-            it->translate(shift(0), shift(1));
-            it->rotate(direction.first);
+        for (Polyline &pl : chained) {
+            pl.translate(shift.x(), shift.y());
+            pl.rotate(direction.first);
         }
+        append(polylines_out, std::move(chained));
     }
-
-    // Move the polylines to the output, avoid a deep copy.
-    size_t j = polylines_out.size();
-    polylines_out.resize(j + polylines.size(), Polyline());
-    for (size_t i = 0; i < polylines.size(); ++ i)
-        std::swap(polylines_out[j ++], polylines[i]);
 }
 
 // Follow an Archimedean spiral, in polar coordinates: r=a+b\theta
@@ -85,13 +71,13 @@ Pointfs FillArchimedeanChords::_generate(coord_t min_x, coord_t min_y, coord_t m
     coordf_t r = 1;
     Pointfs out;
     //FIXME Vojtech: If used as a solid infill, there is a gap left at the center.
-    out.push_back(Vec2d(0, 0));
-    out.push_back(Vec2d(1, 0));
+    out.emplace_back(0, 0);
+    out.emplace_back(1, 0);
     while (r < rmax) {
         // Discretization angle to achieve a discretization error lower than RESOLUTION.
         theta += 2. * acos(1. - RESOLUTION / r);
         r = a + b * theta;
-        out.push_back(Vec2d(r * cos(theta), r * sin(theta)));
+        out.emplace_back(r * cos(theta), r * sin(theta));
     }
     return out;
 }
@@ -128,15 +114,12 @@ static inline Point hilbert_n_to_xy(const size_t n)
             ++ ndigits;
         }
     }
-    int state    = (ndigits & 1) ? 4 : 0;
-//    int dirstate = (ndigits & 1) ? 0 : 4;
+    int state = (ndigits & 1) ? 4 : 0;
     coord_t x = 0;
     coord_t y = 0;
     for (int i = (int)ndigits - 1; i >= 0; -- i) {
         int digit = (n >> (i * 2)) & 3;
         state += digit;
-//        if (digit != 3)
-//            dirstate = state; // lowest non-3 digit
         x |= digit_to_x[state] << i;
         y |= digit_to_y[state] << i;
         state = next_state[state];
@@ -162,7 +145,7 @@ Pointfs FillHilbertCurve::_generate(coord_t min_x, coord_t min_y, coord_t max_x,
     line.reserve(sz2);
     for (size_t i = 0; i < sz2; ++ i) {
         Point p = hilbert_n_to_xy(i);
-        line.push_back(Vec2d(p(0) + min_x, p(1) + min_y));
+        line.emplace_back(p.x() + min_x, p.y() + min_y);
     }
     return line;
 }
@@ -175,27 +158,27 @@ Pointfs FillOctagramSpiral::_generate(coord_t min_x, coord_t min_y, coord_t max_
     coordf_t r = 0;
     coordf_t r_inc = sqrt(2.);
     Pointfs out;
-    out.push_back(Vec2d(0, 0));
+    out.emplace_back(0., 0.);
     while (r < rmax) {
         r += r_inc;
         coordf_t rx = r / sqrt(2.);
         coordf_t r2 = r + rx;
-        out.push_back(Vec2d( r,  0.));
-        out.push_back(Vec2d( r2, rx));
-        out.push_back(Vec2d( rx, rx));
-        out.push_back(Vec2d( rx, r2));
-        out.push_back(Vec2d(0.,  r));
-        out.push_back(Vec2d(-rx, r2));
-        out.push_back(Vec2d(-rx, rx));
-        out.push_back(Vec2d(-r2, rx));
-        out.push_back(Vec2d(-r,  0.));
-        out.push_back(Vec2d(-r2, -rx));
-        out.push_back(Vec2d(-rx, -rx));
-        out.push_back(Vec2d(-rx, -r2));
-        out.push_back(Vec2d(0., -r));
-        out.push_back(Vec2d( rx, -r2));
-        out.push_back(Vec2d( rx, -rx));
-        out.push_back(Vec2d( r2+r_inc, -rx));
+        out.emplace_back( r,  0.);
+        out.emplace_back( r2, rx);
+        out.emplace_back( rx, rx);
+        out.emplace_back( rx, r2);
+        out.emplace_back( 0.,  r);
+        out.emplace_back(-rx, r2);
+        out.emplace_back(-rx, rx);
+        out.emplace_back(-r2, rx);
+        out.emplace_back(- r, 0.);
+        out.emplace_back(-r2, -rx);
+        out.emplace_back(-rx, -rx);
+        out.emplace_back(-rx, -r2);
+        out.emplace_back( 0., -r);
+        out.emplace_back( rx, -r2);
+        out.emplace_back( rx, -rx);
+        out.emplace_back( r2+r_inc, -rx);
     }
     return out;
 }
