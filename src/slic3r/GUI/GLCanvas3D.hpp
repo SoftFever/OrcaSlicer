@@ -114,6 +114,7 @@ wxDECLARE_EVENT(EVT_GLCANVAS_MOVE_LAYERS_SLIDER, wxKeyEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, wxKeyEvent);
 #endif // ENABLE_GCODE_VIEWER
 wxDECLARE_EVENT(EVT_GLCANVAS_EDIT_COLOR_CHANGE, wxKeyEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_JUMP_TO, wxKeyEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_UNDO, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_COLLAPSE_SIDEBAR, SimpleEvent);
@@ -650,7 +651,8 @@ public:
     unsigned int get_toolpath_role_visibility_flags() const { return m_gcode_viewer.get_toolpath_role_visibility_flags(); }
     void set_toolpath_role_visibility_flags(unsigned int flags);
     void set_toolpath_view_type(GCodeViewer::EViewType type);
-    void set_toolpaths_z_range(const std::array<double, 2>& range);
+    void set_volumes_z_range(const std::array<double, 2>& range);
+    void set_toolpaths_z_range(const std::array<unsigned int, 2>& range);
 #else
     std::vector<double> get_current_print_zs(bool active_only) const;
 #endif // ENABLE_GCODE_VIEWER

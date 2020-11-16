@@ -87,8 +87,6 @@ add_library(libslic3r STATIC
     GCode/PostProcessor.hpp
 #    GCode/PressureEqualizer.cpp
 #    GCode/PressureEqualizer.hpp
-    GCode/PreviewData.cpp
-    GCode/PreviewData.hpp
     GCode/PrintExtents.cpp
     GCode/PrintExtents.hpp
     GCode/SpiralVase.cpp

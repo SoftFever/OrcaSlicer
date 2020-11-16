@@ -22,9 +22,6 @@
 #include "SVG.hpp"
 #include <Eigen/Dense>
 #include "GCodeWriter.hpp"
-#if !ENABLE_GCODE_VIEWER
-#include "GCode/PreviewData.hpp"
-#endif // !ENABLE_GCODE_VIEWER
 
 namespace Slic3r {
 

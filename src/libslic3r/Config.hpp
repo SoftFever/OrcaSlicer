@@ -34,6 +34,8 @@ extern std::string  escape_strings_cstyle(const std::vector<std::string> &strs);
 extern bool         unescape_string_cstyle(const std::string &str, std::string &out);
 extern bool         unescape_strings_cstyle(const std::string &str, std::vector<std::string> &out);
 
+extern std::string  escape_ampersand(const std::string& str);
+
 /// Specialization of std::exception to indicate that an unknown config option has been encountered.
 class UnknownOptionException : public Slic3r::RuntimeError {
 public:

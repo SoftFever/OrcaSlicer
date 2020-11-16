@@ -34,9 +34,9 @@ namespace GUI {
 
 KBShortcutsDialog::KBShortcutsDialog()
 #if ENABLE_GCODE_VIEWER
-    : DPIDialog(NULL, wxID_ANY, wxString(wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME) + " - " + _L("Keyboard Shortcuts"),
+    : DPIDialog((wxWindow*)wxGetApp().mainframe, wxID_ANY, wxString(wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME) + " - " + _L("Keyboard Shortcuts"),
 #else
-    : DPIDialog(NULL, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _L("Keyboard Shortcuts"),
+    : DPIDialog((wxWindow*)wxGetApp().mainframe, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _L("Keyboard Shortcuts"),
 #endif // ENABLE_GCODE_VIEWER
     wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
@@ -194,7 +194,7 @@ void KBShortcutsDialog::fill_shortcuts()
         m_full_shortcuts.push_back(std::make_pair(_L("Plater"), plater_shortcuts));
 
         Shortcuts gizmos_shortcuts = {
-            { ctrl, L("All gizmos: Press to rotate view with mouse left or to pan view with mouse right") },
+            { ctrl, L("All gizmos: Rotate - left mouse button; Pan - right mouse button") },
             { "Shift+", L("Gizmo move: Press to snap by 1mm") },
             { "Shift+", L("Gizmo scale: Press to snap by 5%") },
             { "F", L("Gizmo scale: Scale selection to fit print volume") },
@@ -213,7 +213,7 @@ void KBShortcutsDialog::fill_shortcuts()
         { L("Arrow Down"), L("Lower Layer") },
         { "U", L("Upper Layer") },
         { "D", L("Lower Layer") },
-        { "L", L("Show/Hide Legend/Estimated printing time") },
+        { "L", L("Show/Hide Legend & Estimated printing time") },
     };
 
     m_full_shortcuts.push_back(std::make_pair(_L("Preview"), preview_shortcuts));

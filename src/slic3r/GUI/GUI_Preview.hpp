@@ -179,6 +179,7 @@ Preview(wxWindow* parent, Model* model, DynamicPrintConfig* config,
     void refresh_print();
 
     void msw_rescale();
+    void jump_layers_slider(wxKeyEvent& evt);
 #if ENABLE_GCODE_VIEWER
     void move_layers_slider(wxKeyEvent& evt);
     void edit_layers_slider(wxKeyEvent& evt);

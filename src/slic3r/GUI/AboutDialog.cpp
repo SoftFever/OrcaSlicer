@@ -38,12 +38,12 @@ void AboutDialogLogo::onRepaint(wxEvent &event)
 // -----------------------------------------
 CopyrightsDialog::CopyrightsDialog()
 #if ENABLE_GCODE_VIEWER
-    : DPIDialog(NULL, wxID_ANY, from_u8((boost::format("%1% - %2%")
+    : DPIDialog((wxWindow*)wxGetApp().mainframe, wxID_ANY, from_u8((boost::format("%1% - %2%")
         % (wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME)
         % _utf8(L("Portions copyright"))).str()),
         wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 #else
-    : DPIDialog(NULL, wxID_ANY, from_u8((boost::format("%1% - %2%")
+    : DPIDialog((wxWindow*)wxGetApp().mainframe, wxID_ANY, from_u8((boost::format("%1% - %2%")
                                                        % SLIC3R_APP_NAME
                                                        % _utf8(L("Portions copyright"))).str()),
                 wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
@@ -209,10 +209,10 @@ void CopyrightsDialog::onCloseDialog(wxEvent &)
 
 AboutDialog::AboutDialog()
 #if ENABLE_GCODE_VIEWER
-    : DPIDialog(NULL, wxID_ANY, from_u8((boost::format(_utf8(L("About %s"))) % (wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME)).str()), wxDefaultPosition,
+    : DPIDialog((wxWindow*)wxGetApp().mainframe, wxID_ANY, from_u8((boost::format(_utf8(L("About %s"))) % (wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME)).str()), wxDefaultPosition,
         wxDefaultSize, /*wxCAPTION*/wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 #else
-    : DPIDialog(NULL, wxID_ANY, from_u8((boost::format(_utf8(L("About %s"))) % SLIC3R_APP_NAME).str()), wxDefaultPosition,
+    : DPIDialog((wxWindow*)wxGetApp().mainframe, wxID_ANY, from_u8((boost::format(_utf8(L("About %s"))) % SLIC3R_APP_NAME).str()), wxDefaultPosition,
                 wxDefaultSize, /*wxCAPTION*/wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 #endif // ENABLE_GCODE_VIEWER
 {

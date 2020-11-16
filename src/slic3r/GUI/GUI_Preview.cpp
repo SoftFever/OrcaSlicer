@@ -1,7 +1,4 @@
 #include "libslic3r/libslic3r.h"
-#if !ENABLE_GCODE_VIEWER
-#include "libslic3r/GCode/PreviewData.hpp"
-#endif // !ENABLE_GCODE_VIEWER
 #include "GUI_Preview.hpp"
 #include "GUI_App.hpp"
 #include "GUI.hpp"
@@ -555,6 +552,16 @@ void Preview::msw_rescale()
 
     // rescale legend
     refresh_print();
+}
+
+void Preview::jump_layers_slider(wxKeyEvent& evt)
+{
+#if ENABLE_GCODE_VIEWER
+    if (m_layers_slider) m_layers_slider->OnChar(evt);
+#else
+    if (m_slider)
+        m_slider->OnKeyDown(evt);
+#endif // ENABLE_GCODE_VIEWER
 }
 
 #if ENABLE_GCODE_VIEWER
@@ -1282,13 +1289,12 @@ void Preview::load_print_as_fff(bool keep_z_range)
     // set color print values, if it si selected "ColorPrint" view type
 #if ENABLE_GCODE_VIEWER
     if (gcode_view_type == GCodeViewer::EViewType::ColorPrint) {
+        colors = wxGetApp().plater()->get_colors_for_color_print(m_gcode_result);
 #else
     if (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint) {
-#endif // ENABLE_GCODE_VIEWER
         colors = wxGetApp().plater()->get_colors_for_color_print();
-#if !ENABLE_GCODE_VIEWER
         colors.push_back("#808080"); // gray color for pause print or custom G-code 
-#endif // !ENABLE_GCODE_VIEWER
+#endif // ENABLE_GCODE_VIEWER
 
         if (!gcode_preview_data_valid) {
             color_print_values = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
@@ -1299,10 +1305,11 @@ void Preview::load_print_as_fff(bool keep_z_range)
     }
 #if ENABLE_GCODE_VIEWER
     else if (gcode_preview_data_valid || gcode_view_type == GCodeViewer::EViewType::Tool) {
+        colors = wxGetApp().plater()->get_extruder_colors_from_plater_config(m_gcode_result);
 #else
     else if (gcode_preview_data_valid || (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::Tool) ) {
-#endif // ENABLE_GCODE_VIEWER
         colors = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+#endif // ENABLE_GCODE_VIEWER
         color_print_values.clear();
     }
 
@@ -1417,13 +1424,12 @@ void Preview::on_layers_slider_scroll_changed(wxCommandEvent& event)
 void Preview::on_sliders_scroll_changed(wxCommandEvent& event)
 #endif // ENABLE_GCODE_VIEWER
 {
-    if (IsShown())
-    {
+    if (IsShown()) {
         PrinterTechnology tech = m_process->current_printer_technology();
-        if (tech == ptFFF)
-        {
+        if (tech == ptFFF) {
 #if ENABLE_GCODE_VIEWER
-            m_canvas->set_toolpaths_z_range({ m_layers_slider->GetLowerValueD(), m_layers_slider->GetHigherValueD() });
+            m_canvas->set_volumes_z_range({ m_layers_slider->GetLowerValueD(), m_layers_slider->GetHigherValueD() });
+            m_canvas->set_toolpaths_z_range({ static_cast<unsigned int>(m_layers_slider->GetLowerValue()), static_cast<unsigned int>(m_layers_slider->GetHigherValue()) });
             m_canvas->set_as_dirty();
 #else
             m_canvas->set_toolpaths_range(m_slider->GetLowerValueD() - 1e-6, m_slider->GetHigherValueD() + 1e-6);
@@ -1431,8 +1437,7 @@ void Preview::on_sliders_scroll_changed(wxCommandEvent& event)
             m_canvas->set_use_clipping_planes(false);
 #endif // ENABLE_GCODE_VIEWER
         }
-        else if (tech == ptSLA)
-        {
+        else if (tech == ptSLA) {
 #if ENABLE_GCODE_VIEWER
             m_canvas->set_clipping_plane(0, ClippingPlane(Vec3d::UnitZ(), -m_layers_slider->GetLowerValueD()));
             m_canvas->set_clipping_plane(1, ClippingPlane(-Vec3d::UnitZ(), m_layers_slider->GetHigherValueD()));
@@ -1463,8 +1468,8 @@ wxString Preview::get_option_type_string(OptionType type) const
     case OptionType::Unretractions: { return _L("Deretractions"); }
     case OptionType::ToolChanges:   { return _L("Tool changes"); }
     case OptionType::ColorChanges:  { return _L("Color changes"); }
-    case OptionType::PausePrints:   { return _L("Pause prints"); }
-    case OptionType::CustomGCodes:  { return _L("Custom GCodes"); }
+    case OptionType::PausePrints:   { return _L("Print pauses"); }
+    case OptionType::CustomGCodes:  { return _L("Custom G-codes"); }
     case OptionType::Shells:        { return _L("Shells"); }
     case OptionType::ToolMarker:    { return _L("Tool marker"); }
     case OptionType::Legend:        { return _L("Legend/Estimated printing time"); }

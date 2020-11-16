@@ -114,7 +114,15 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 {
     wxCoord v_pos = 0;
     wxCoord h_pos = 0;
-    for (auto ctrl_line : ctrl_lines) {
+
+    auto correct_line_height = [](int& line_height, wxWindow* win)
+    {
+        int win_height = win->GetSize().GetHeight();
+        if (line_height < win_height)
+            line_height = win_height;
+    };
+
+    for (CtrlLine& ctrl_line : ctrl_lines) {
         if (&ctrl_line.og_line == &line)
         {
             h_pos = m_bmp_mode_sz.GetWidth() + m_h_gap;
@@ -134,6 +142,10 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 
             if (line.widget) {
                 h_pos += blinking_button_width;
+
+                for (auto child : line.widget_sizer->GetChildren())
+                    if (child->IsWindow())
+                        correct_line_height(ctrl_line.height, child->GetWindow());
                 break;
             }
 
@@ -144,11 +156,15 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                 option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0)
             {
                 h_pos += 3 * blinking_button_width;
+                Field* field = opt_group->get_field(option_set.front().opt_id);
+                correct_line_height(ctrl_line.height, field->getWindow());
                 break;
             }
 
             for (auto opt : option_set) {
                 Field* field = opt_group->get_field(opt.opt_id);
+                correct_line_height(ctrl_line.height, field->getWindow());
+
                 ConfigOptionDef option = opt.opt;
                 // add label if any
                 if (!option.label.empty()) {
@@ -157,9 +173,9 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                         _CTX(option.label, "Layers") : _(option.label);
                     label += ":";
 
-                    wxPaintDC dc(this);
-                    dc.SetFont(m_font);
-                    h_pos += dc.GetMultiLineTextExtent(label).x + m_h_gap;
+                    wxCoord label_w, label_h;
+                    GetTextExtent(label, &label_w, &label_h, 0, 0, &m_font);
+                    h_pos += label_w + 1 + m_h_gap;
                 }                
                 h_pos += 3 * blinking_button_width;
                 
@@ -189,12 +205,6 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 
 void OG_CustomCtrl::OnPaint(wxPaintEvent&)
 {
-#ifdef _WIN32 
-    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-#else
-    SetBackgroundColour(GetParent()->GetBackgroundColour());
-#endif // _WIN32 
-
     // case, when custom controll is destroyed but doesn't deleted from the evet loop
     if(!this->opt_group->custom_ctrl)
         return;
@@ -408,12 +418,6 @@ void OG_CustomCtrl::CtrlLine::msw_rescale()
         wxSize label_sz = ctrl->GetTextExtent(og_line.label);
         height = label_sz.y * (label_sz.GetWidth() > int(ctrl->opt_group->label_width * ctrl->m_em_unit) ? 2 : 1) + ctrl->m_v_gap;
     }
-    
-    if (og_line.get_options().front().opt.full_width) {
-        Field* field = ctrl->opt_group->get_field(og_line.get_options().front().opt_id);
-        if (field->getWindow())
-            field->getWindow()->SetSize(wxSize(3 * Field::def_width_wider() * ctrl->m_em_unit, -1));
-    }
 
     correct_items_positions();
 }
@@ -493,7 +497,10 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
         option_set.front().side_widget == nullptr && og_line.get_extra_widgets().size() == 0)
     {
         if (field && field->undo_to_sys_bitmap())
-            draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink());
+            h_pos = draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink()) + ctrl->m_h_gap;
+        // update width for full_width fields
+        if (option_set.front().opt.full_width && field->getWindow())
+            field->getWindow()->SetSize(ctrl->GetSize().x - h_pos, -1);
         return;
     }
 
@@ -611,7 +618,7 @@ wxCoord    OG_CustomCtrl::CtrlLine::draw_text(wxDC& dc, wxPoint pos, const wxStr
     return pos.x + width + ctrl->m_h_gap;
 }
 
-wxPoint OG_CustomCtrl::CtrlLine::draw_blinking_bmp(wxDC& dc, wxPoint pos, bool is_blinking, size_t rect_id)
+wxPoint OG_CustomCtrl::CtrlLine::draw_blinking_bmp(wxDC& dc, wxPoint pos, bool is_blinking)
 {
     wxBitmap bmp_blinking = create_scaled_bitmap(is_blinking ? "search_blink" : "empty", ctrl);
     wxCoord h_pos = pos.x;
@@ -627,7 +634,7 @@ wxPoint OG_CustomCtrl::CtrlLine::draw_blinking_bmp(wxDC& dc, wxPoint pos, bool i
 
 wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmap& bmp_undo_to_sys, const wxBitmap& bmp_undo, bool is_blinking, size_t rect_id)
 {
-    pos = draw_blinking_bmp(dc, pos, is_blinking, rect_id);
+    pos = draw_blinking_bmp(dc, pos, is_blinking);
     wxCoord h_pos = pos.x;
     wxCoord v_pos = pos.y;
 

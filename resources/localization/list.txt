@@ -78,7 +78,6 @@ src/libslic3r/ExtrusionEntity.cpp
 src/libslic3r/Flow.cpp
 src/libslic3r/Format/3mf.cpp
 src/libslic3r/Format/AMF.cpp
-src/libslic3r/GCode/PreviewData.cpp
 src/libslic3r/miniz_extension.cpp
 src/libslic3r/Preset.cpp
 src/libslic3r/Print.cpp
