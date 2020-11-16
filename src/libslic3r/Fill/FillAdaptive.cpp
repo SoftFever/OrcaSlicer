@@ -725,7 +725,7 @@ static void add_hook(
             update_max_length(t);
         }
         if (self_intersection) {
-            double t = (self_intersection_point.cast<double>() - pt).dot(dir) - shift_from_thick_line(self_intersection_line.value().vector().cast<double>());
+            double t = (self_intersection_point.cast<double>() - pt).dot(dir) - shift_from_thick_line((*self_intersection_line).vector().cast<double>());
             max_length = std::min(max_length, t);
         }
         return std::max(0., max_length);
@@ -878,7 +878,7 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
                     std::optional<size_t> out;
                     if (in) {
                         const Polyline *lo = &line;
-                        const Polyline *hi = &lines[in.value()];
+                        const Polyline *hi = &lines[*in];
                         if (lo > hi)
                             std::swap(lo, hi);
                         if (! std::binary_search(lines_touching_at_endpoints.begin(), lines_touching_at_endpoints.end(), std::make_pair(lo, hi)))
@@ -914,10 +914,10 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
                 } else if (anchor) {
                     if (tjoint_front)
                         // T-joint of line's front point with the 'closest' line.
-                        intersections.emplace_back(lines_src[tjoint_front.value()], lines_src[line_idx], &line, front_point, true);
+                        intersections.emplace_back(lines_src[*tjoint_front], lines_src[line_idx], &line, front_point, true);
                     if (tjoint_back)
                         // T-joint of line's back point with the 'closest' line.
-                        intersections.emplace_back(lines_src[tjoint_back.value()],  lines_src[line_idx], &line, back_point,  false);
+                        intersections.emplace_back(lines_src[*tjoint_back],  lines_src[line_idx], &line, back_point,  false);
                 } else {
                     if (tjoint_front)
                         // T joint at the front at a 60 degree angle, the line is very short.
