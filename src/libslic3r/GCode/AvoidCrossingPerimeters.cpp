@@ -569,7 +569,7 @@ std::vector<AvoidCrossingPerimeters2::TravelPoint> AvoidCrossingPerimeters2::sim
                     std::sort(intersections.begin(), intersections.end());
                     size_t last_border_idx_count = 0;
                     for (const Intersection &intersection : intersections)
-                        if (intersection.border_idx == int(possible_new_next.border_idx))
+                        if (int(intersection.border_idx) == possible_new_next.border_idx)
                             ++last_border_idx_count;
 
                     if (last_border_idx_count > 0)
@@ -748,9 +748,9 @@ Polyline AvoidCrossingPerimeters2::travel_to(const GCode &gcodegen, const Point 
         std::vector<TravelPoint> result;
         auto [start_clamped, end_clamped] = clamp_endpoints_by_bounding_box(use_external ? m_bbox_external : m_bbox, start, end);
         if (use_external)
-            travel_intersection_count = this->avoid_perimeters(m_boundaries_external, m_grid_external, start_clamped, end_clamped, false, &result);
+            travel_intersection_count = this->avoid_perimeters(m_boundaries_external, m_grid_external, start_clamped, end_clamped, true, &result);
         else
-            travel_intersection_count = this->avoid_perimeters(m_boundaries, m_grid, start_clamped, end_clamped, false, &result);
+            travel_intersection_count = this->avoid_perimeters(m_boundaries, m_grid, start_clamped, end_clamped, true, &result);
 
         result_pl = to_polyline(result);
     }
