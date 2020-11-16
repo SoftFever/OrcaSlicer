@@ -14,8 +14,8 @@
 #include "Fill3DHoneycomb.hpp"
 #include "FillGyroid.hpp"
 #include "FillPlanePath.hpp"
+#include "FillLine.hpp"
 #include "FillRectilinear.hpp"
-#include "FillRectilinear2.hpp"
 #include "FillAdaptive.hpp"
 
 namespace Slic3r {
@@ -27,10 +27,10 @@ Fill* Fill::new_from_type(const InfillPattern type)
     case ipHoneycomb:           return new FillHoneycomb();
     case ip3DHoneycomb:         return new Fill3DHoneycomb();
     case ipGyroid:              return new FillGyroid();
-    case ipRectilinear:         return new FillRectilinear2();
+    case ipRectilinear:         return new FillRectilinear();
     case ipMonotonic:           return new FillMonotonic();
     case ipLine:                return new FillLine();
-    case ipGrid:                return new FillGrid2();
+    case ipGrid:                return new FillGrid();
     case ipTriangles:           return new FillTriangles();
     case ipStars:               return new FillStars();
     case ipCubic:               return new FillCubic();

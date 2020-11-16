@@ -3,7 +3,7 @@
 #include "../ShortestPath.hpp"
 #include "../Surface.hpp"
 
-#include "FillRectilinear.hpp"
+#include "FillLine.hpp"
 
 namespace Slic3r {
 

@@ -60,8 +60,8 @@ add_library(libslic3r STATIC
     Fill/FillPlanePath.hpp
     Fill/FillLine.cpp
     Fill/FillLine.hpp
-    Fill/FillRectilinear2.cpp
-    Fill/FillRectilinear2.hpp
+    Fill/FillRectilinear.cpp
+    Fill/FillRectilinear.hpp
     Flow.cpp
     Flow.hpp
     format.hpp

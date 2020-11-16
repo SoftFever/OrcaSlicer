@@ -10,7 +10,7 @@
 #include "../Surface.hpp"
 
 #include "FillBase.hpp"
-#include "FillRectilinear2.hpp"
+#include "FillRectilinear.hpp"
 
 namespace Slic3r {
 
@@ -536,7 +536,7 @@ void Layer::make_ironing()
 		}
 	std::sort(by_extruder.begin(), by_extruder.end());
 
-    FillRectilinear2 	fill;
+    FillRectilinear 	fill;
     FillParams 			fill_params;
 	fill.set_bounding_box(this->object()->bounding_box());
 	fill.layer_id 			 = this->id();

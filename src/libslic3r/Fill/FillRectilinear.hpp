@@ -1,5 +1,5 @@
-#ifndef slic3r_FillRectilinear2_hpp_
-#define slic3r_FillRectilinear2_hpp_
+#ifndef slic3r_FillRectilinear_hpp_
+#define slic3r_FillRectilinear_hpp_
 
 #include "../libslic3r.h"
 
@@ -9,11 +9,11 @@ namespace Slic3r {
 
 class Surface;
 
-class FillRectilinear2 : public Fill
+class FillRectilinear : public Fill
 {
 public:
-    Fill* clone() const override { return new FillRectilinear2(*this); };
-    ~FillRectilinear2() override = default;
+    Fill* clone() const override { return new FillRectilinear(*this); };
+    ~FillRectilinear() override = default;
     Polylines fill_surface(const Surface *surface, const FillParams &params) override;
 
 protected:
@@ -29,7 +29,7 @@ protected:
     bool fill_surface_by_multilines(const Surface *surface, FillParams params, const std::initializer_list<SweepParams> &sweep_params, Polylines &polylines_out);
 };
 
-class FillMonotonic : public FillRectilinear2
+class FillMonotonic : public FillRectilinear
 {
 public:
     Fill* clone() const override { return new FillMonotonic(*this); };
@@ -38,11 +38,11 @@ public:
 	bool no_sort() const override { return true; }
 };
 
-class FillGrid2 : public FillRectilinear2
+class FillGrid : public FillRectilinear
 {
 public:
-    Fill* clone() const override { return new FillGrid2(*this); };
-    ~FillGrid2() override = default;
+    Fill* clone() const override { return new FillGrid(*this); };
+    ~FillGrid() override = default;
     Polylines fill_surface(const Surface *surface, const FillParams &params) override;
 
 protected:
@@ -50,7 +50,7 @@ protected:
     float _layer_angle(size_t idx) const override { return 0.f; }
 };
 
-class FillTriangles : public FillRectilinear2
+class FillTriangles : public FillRectilinear
 {
 public:
     Fill* clone() const override { return new FillTriangles(*this); };
@@ -62,7 +62,7 @@ protected:
     float _layer_angle(size_t idx) const override { return 0.f; }
 };
 
-class FillStars : public FillRectilinear2
+class FillStars : public FillRectilinear
 {
 public:
     Fill* clone() const override { return new FillStars(*this); };
@@ -74,7 +74,7 @@ protected:
     float _layer_angle(size_t idx) const override { return 0.f; }
 };
 
-class FillCubic : public FillRectilinear2
+class FillCubic : public FillRectilinear
 {
 public:
     Fill* clone() const override { return new FillCubic(*this); };
@@ -89,4 +89,4 @@ protected:
 
 }; // namespace Slic3r
 
-#endif // slic3r_FillRectilinear2_hpp_
+#endif // slic3r_FillRectilinear_hpp_

@@ -16,7 +16,7 @@
 #include "../Surface.hpp"
 #include "../ShortestPath.hpp"
 
-#include "FillRectilinear2.hpp"
+#include "FillRectilinear.hpp"
 
 // #define SLIC3R_DEBUG
 
@@ -2618,7 +2618,7 @@ static void polylines_from_paths(const std::vector<MonotonicRegionLink> &path, c
     }
 }
 
-bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillParams &params, float angleBase, float pattern_shift, Polylines &polylines_out)
+bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillParams &params, float angleBase, float pattern_shift, Polylines &polylines_out)
 {
     // At the end, only the new polylines will be rotated back.
     size_t n_polylines_out_initial = polylines_out.size();
@@ -2676,10 +2676,10 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
 #ifdef SLIC3R_DEBUG
     static int iRun = 0;
     BoundingBox bbox_svg = poly_with_offset.bounding_box_outer();
-    ::Slic3r::SVG svg(debug_out_path("FillRectilinear2-%d.svg", iRun), bbox_svg); // , scale_(1.));
+    ::Slic3r::SVG svg(debug_out_path("FillRectilinear-%d.svg", iRun), bbox_svg); // , scale_(1.));
     poly_with_offset.export_to_svg(svg);
     {
-        ::Slic3r::SVG svg(debug_out_path("FillRectilinear2-initial-%d.svg", iRun), bbox_svg); // , scale_(1.));
+        ::Slic3r::SVG svg(debug_out_path("FillRectilinear-initial-%d.svg", iRun), bbox_svg); // , scale_(1.));
         poly_with_offset.export_to_svg(svg);
     }
     iRun ++;
@@ -2729,14 +2729,14 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
 #ifdef SLIC3R_DEBUG
     {
         {
-            ::Slic3r::SVG svg(debug_out_path("FillRectilinear2-final-%03d.svg", iRun), bbox_svg); // , scale_(1.));
+            ::Slic3r::SVG svg(debug_out_path("FillRectilinear-final-%03d.svg", iRun), bbox_svg); // , scale_(1.));
             poly_with_offset.export_to_svg(svg);
             for (size_t i = n_polylines_out_initial; i < polylines_out.size(); ++ i)
                 svg.draw(polylines_out[i].lines(), "black");
         }
         // Paint a picture per polyline. This makes it easier to discover the order of the polylines and their overlap.
         for (size_t i_polyline = n_polylines_out_initial; i_polyline < polylines_out.size(); ++ i_polyline) {
-            ::Slic3r::SVG svg(debug_out_path("FillRectilinear2-final-%03d-%03d.svg", iRun, i_polyline), bbox_svg); // , scale_(1.));
+            ::Slic3r::SVG svg(debug_out_path("FillRectilinear-final-%03d-%03d.svg", iRun, i_polyline), bbox_svg); // , scale_(1.));
             svg.draw(polylines_out[i_polyline].lines(), "black");
         }
     }
@@ -2762,7 +2762,7 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
     return true;
 }
 
-bool FillRectilinear2::fill_surface_by_multilines(const Surface *surface, FillParams params, const std::initializer_list<SweepParams> &sweep_params, Polylines &polylines_out)
+bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillParams params, const std::initializer_list<SweepParams> &sweep_params, Polylines &polylines_out)
 {
     assert(sweep_params.size() > 1);
     assert(! params.full_infill());
@@ -2830,11 +2830,11 @@ bool FillRectilinear2::fill_surface_by_multilines(const Surface *surface, FillPa
     return true;
 }
 
-Polylines FillRectilinear2::fill_surface(const Surface *surface, const FillParams &params)
+Polylines FillRectilinear::fill_surface(const Surface *surface, const FillParams &params)
 {
     Polylines polylines_out;
     if (! fill_surface_by_lines(surface, params, 0.f, 0.f, polylines_out))
-        BOOST_LOG_TRIVIAL(error) << "FillRectilinear2::fill_surface() failed to fill a region.";
+        BOOST_LOG_TRIVIAL(error) << "FillRectilinear::fill_surface() failed to fill a region.";
     return polylines_out;
 }
 
@@ -2848,14 +2848,14 @@ Polylines FillMonotonic::fill_surface(const Surface *surface, const FillParams &
     return polylines_out;
 }
 
-Polylines FillGrid2::fill_surface(const Surface *surface, const FillParams &params)
+Polylines FillGrid::fill_surface(const Surface *surface, const FillParams &params)
 {
     Polylines polylines_out;
     if (! this->fill_surface_by_multilines(
             surface, params,
             { { 0.f, 0.f }, { float(M_PI / 2.), 0.f } },
             polylines_out))
-        BOOST_LOG_TRIVIAL(error) << "FillGrid2::fill_surface() failed to fill a region.";
+        BOOST_LOG_TRIVIAL(error) << "FillGrid::fill_surface() failed to fill a region.";
     return polylines_out;
 }
 
