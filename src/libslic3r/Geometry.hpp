@@ -213,16 +213,7 @@ inline bool liang_barsky_line_clipping_interval(
     double t0 = 0.0;
     double t1 = 1.0;
     // Traverse through left, right, bottom, top edges.
-    for (int edge = 0; edge < 4; ++ edge)
-    {
-        double p, q;
-        switch (edge) {
-        case 0:  p = - v.x();    q = - bbox.min.x() + x0.x();   break;
-        case 1:  p =   v.x();    q =   bbox.max.x() - x0.x();   break;
-        case 2:  p = - v.y();    q = - bbox.min.y() + x0.y();   break;
-        default: p =   v.y();    q =   bbox.max.y() - x0.y();   break;
-        }
-        
+    auto clip_side = [&x0, &v, &bbox, &t0, &t1](double p, double q) -> bool {
         if (p == 0) {
             if (q < 0)
                 // Line parallel to the bounding box edge is fully outside of the bounding box.
@@ -247,10 +238,18 @@ inline bool liang_barsky_line_clipping_interval(
                     t1 = r;
             }
         }
+        return true;
+    };
+
+    if (clip_side(- v.x(), - bbox.min.x() + x0.x()) &&
+        clip_side(  v.x(),   bbox.max.x() - x0.x()) &&
+        clip_side(- v.y(), - bbox.min.y() + x0.y()) &&
+        clip_side(  v.y(),   bbox.max.y() - x0.y())) {
+        out_interval.first = t0;
+        out_interval.second = t1;
+        return true;
     }
-    out_interval.first = t0;
-    out_interval.second = t1;
-    return true;
+    return false;
 }
 
 template<typename T>

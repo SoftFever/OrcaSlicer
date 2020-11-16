@@ -13,6 +13,7 @@
 
 namespace Slic3r {
 
+class BoundingBox;
 class Line;
 class MultiPoint;
 class Point;
@@ -177,6 +178,9 @@ inline Point lerp(const Point &a, const Point &b, double t)
     assert((t >= -EPSILON) && (t <= 1. + EPSILON));
     return ((1. - t) * a.cast<double>() + t * b.cast<double>()).cast<coord_t>();
 }
+
+extern BoundingBox get_extents(const Points &pts);
+extern BoundingBox get_extents(const std::vector<Points> &pts);
 
 namespace int128 {
     // Exact orientation predicate,

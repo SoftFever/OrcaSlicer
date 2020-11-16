@@ -176,6 +176,19 @@ Point Point::projection_onto(const Line &line) const
     return ((line.a - *this).cast<double>().squaredNorm() < (line.b - *this).cast<double>().squaredNorm()) ? line.a : line.b;
 }
 
+BoundingBox get_extents(const Points &pts)
+{ 
+    return BoundingBox(pts);
+}
+
+BoundingBox get_extents(const std::vector<Points> &pts)
+{
+    BoundingBox bbox;
+    for (const Points &p : pts)
+        bbox.merge(get_extents(p));
+    return bbox;
+}
+
 std::ostream& operator<<(std::ostream &stm, const Vec2d &pointf)
 {
     return stm << pointf(0) << "," << pointf(1);

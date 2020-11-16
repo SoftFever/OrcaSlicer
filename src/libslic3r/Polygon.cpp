@@ -298,11 +298,6 @@ void Polygon::densify(float min_length, std::vector<float>* lengths_ptr)
     assert(points.size() == lengths.size() - 1);
 }
 
-BoundingBox get_extents(const Points &points)
-{ 
-	return BoundingBox(points);
-}
-
 BoundingBox get_extents(const Polygon &poly) 
 { 
     return poly.bounding_box();
