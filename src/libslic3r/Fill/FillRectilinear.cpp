@@ -11,7 +11,7 @@ void FillLine::_fill_surface_single(
     const FillParams                &params,
     unsigned int                     thickness_layers,
     const std::pair<float, Point>   &direction,
-    ExPolygon                       &expolygon,
+    ExPolygon                        expolygon,
     Polylines                       &polylines_out)
 {
     // rotate polygons so that we can work with vertical lines here

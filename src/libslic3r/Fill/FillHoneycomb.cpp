@@ -10,7 +10,7 @@ void FillHoneycomb::_fill_surface_single(
     const FillParams                &params, 
     unsigned int                     thickness_layers,
     const std::pair<float, Point>   &direction, 
-    ExPolygon                       &expolygon, 
+    ExPolygon                        expolygon,
     Polylines                       &polylines_out)
 {
     // cache hexagons math

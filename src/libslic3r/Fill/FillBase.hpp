@@ -120,7 +120,7 @@ protected:
         const FillParams                & /* params */, 
         unsigned int                      /* thickness_layers */,
         const std::pair<float, Point>   & /* direction */, 
-        ExPolygon                       & /* expolygon */, 
+        ExPolygon                         /* expolygon */,
         Polylines                       & /* polylines_out */) {};
 
     virtual float _layer_angle(size_t idx) const { return (idx & 1) ? float(M_PI/2.) : 0; }

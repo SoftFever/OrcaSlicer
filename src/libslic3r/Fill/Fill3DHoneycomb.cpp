@@ -137,7 +137,7 @@ void Fill3DHoneycomb::_fill_surface_single(
     const FillParams                &params, 
     unsigned int                     thickness_layers,
     const std::pair<float, Point>   &direction, 
-    ExPolygon                       &expolygon, 
+    ExPolygon                        expolygon,
     Polylines                       &polylines_out)
 {
     // no rotation is supported for this infill pattern
