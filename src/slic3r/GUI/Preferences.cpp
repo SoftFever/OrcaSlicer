@@ -117,6 +117,13 @@ void PreferencesDialog::build()
 		option = Option(def, "show_incompatible_presets");
 		m_optgroup_general->append_single_option_line(option);
 
+		def.label = L("Show drop project dialog");
+		def.type = coBool;
+		def.tooltip = L("When checked, whenever dragging and dropping a project file on the application, shows a dialog asking to select the action to take on the file to load.");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("show_drop_project_dialog") == "1" });
+		option = Option(def, "show_drop_project_dialog");
+		m_optgroup_general->append_single_option_line(option);
+
 		def.label = L("Single instance mode");
 		def.type = coBool;
 #if __APPLE__

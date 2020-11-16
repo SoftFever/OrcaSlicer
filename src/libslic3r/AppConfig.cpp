@@ -55,6 +55,11 @@ void AppConfig::set_defaults()
         if (get("show_incompatible_presets").empty())
             set("show_incompatible_presets", "0");
 
+        if (get("show_drop_project_dialog").empty())
+            set("show_drop_project_dialog", "1");
+        if (get("drop_project_action").empty())
+            set("drop_project_action", "1");
+
         if (get("version_check").empty())
             set("version_check", "1");
         if (get("preset_update").empty())

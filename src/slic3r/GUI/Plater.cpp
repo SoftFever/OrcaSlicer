@@ -1385,6 +1385,70 @@ const std::regex PlaterDropTarget::pattern_drop(".*[.](stl|obj|amf|3mf|prusa)", 
 const std::regex PlaterDropTarget::pattern_gcode_drop(".*[.](gcode|g)", std::regex::icase);
 #endif // ENABLE_GCODE_VIEWER
 
+enum class LoadType : unsigned char
+{
+    Unknown,
+    OpenProject,
+    LoadGeometry,
+    LoadConfig
+};
+
+class ProjectDropDialog : public DPIDialog
+{
+    wxRadioBox* m_action{ nullptr };
+public:
+    ProjectDropDialog(const std::string& filename);
+
+    int get_action() const { return m_action->GetSelection() + 1; }
+
+protected:
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+};
+
+ProjectDropDialog::ProjectDropDialog(const std::string& filename)
+    : DPIDialog((wxWindow*)wxGetApp().mainframe, wxID_ANY,
+        from_u8((boost::format(_utf8(L("%s - Drop project file"))) % SLIC3R_APP_NAME).str()), wxDefaultPosition,
+        wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
+{
+    SetFont(wxGetApp().normal_font());
+
+    wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
+
+    const wxString choices[] = { _L("Open as project"),
+                                 _L("Import geometry only"),
+                                 _L("Import config only") };
+
+    main_sizer->Add(new wxStaticText(this, wxID_ANY, 
+        _L("Select an action to apply to the file") + ": " + from_u8(filename)), 0, wxEXPAND | wxALL, 10);
+    m_action = new wxRadioBox(this, wxID_ANY, _L("Action"), wxDefaultPosition, wxDefaultSize,
+        WXSIZEOF(choices), choices, 0, wxRA_SPECIFY_ROWS);
+    int action = std::clamp(std::stoi(wxGetApp().app_config->get("drop_project_action")),
+        static_cast<int>(LoadType::OpenProject), static_cast<int>(LoadType::LoadConfig)) - 1;
+    m_action->SetSelection(action);
+    main_sizer->Add(m_action, 1, wxEXPAND | wxRIGHT | wxLEFT, 10);
+
+    wxBoxSizer* bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxCheckBox* check = new wxCheckBox(this, wxID_ANY, _L("Don't show again"));
+    check->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& evt) {
+        wxGetApp().app_config->set("show_drop_project_dialog", evt.IsChecked() ? "0" : "1");
+        });
+
+    bottom_sizer->Add(check, 0, wxEXPAND | wxRIGHT, 5);
+    bottom_sizer->Add(CreateStdDialogButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT, 5);
+    main_sizer->Add(bottom_sizer, 0, wxEXPAND | wxALL, 10);
+
+    SetSizer(main_sizer);
+    main_sizer->SetSizeHints(this);
+}
+
+void ProjectDropDialog::on_dpi_changed(const wxRect& suggested_rect)
+{
+    const int em = em_unit();
+    SetMinSize(wxSize(65 * em, 30 * em));
+    Fit();
+    Refresh();
+}
+
 bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames)
 {
     std::vector<fs::path> paths;
@@ -1395,8 +1459,8 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
     this->MSWUpdateDragImageOnLeave();
 #endif // WIN32
 
+    // gcode viewer section
     if (wxGetApp().is_gcode_viewer()) {
-        // gcode section
         for (const auto& filename : filenames) {
             fs::path path(into_path(filename));
             if (std::regex_match(path.string(), pattern_gcode_drop))
@@ -1432,38 +1496,49 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
         // Likely all paths processed were gcodes, for which a G-code viewer instance has hopefully been started.
         return false;
 
-    wxString snapshot_label;
-    assert(! paths.empty());
-    if (paths.size() == 1) {
-        snapshot_label = _L("Load File");
-        snapshot_label += ": ";
-        snapshot_label += wxString::FromUTF8(paths.front().filename().string().c_str());
-    } else {
-        snapshot_label = _L("Load Files");
-        snapshot_label += ": ";
-        snapshot_label += wxString::FromUTF8(paths.front().filename().string().c_str());
-        for (size_t i = 1; i < paths.size(); ++ i) {
-            snapshot_label += ", ";
-            snapshot_label += wxString::FromUTF8(paths[i].filename().string().c_str());
-        }
-    }
-    Plater::TakeSnapshot snapshot(plater, snapshot_label);
+    for (std::vector<fs::path>::const_reverse_iterator it = paths.rbegin(); it != paths.rend(); ++it) {
+        std::string filename = (*it).filename().string();
+        if (boost::algorithm::iends_with(filename, ".3mf") || boost::algorithm::iends_with(filename, ".amf")) {
+            LoadType load_type = LoadType::Unknown;
+            if (!plater->model().objects.empty()) {
+                if (wxGetApp().app_config->get("show_drop_project_dialog") == "1") {
+                    ProjectDropDialog dlg(filename);
+                    if (dlg.ShowModal() == wxID_OK) {
+                        int choice = dlg.get_action();
+                        load_type = static_cast<LoadType>(choice);
+                        wxGetApp().app_config->set("drop_project_action", std::to_string(choice));
+                    }
+                }
+                else
+                    load_type = static_cast<LoadType>(std::clamp(std::stoi(wxGetApp().app_config->get("drop_project_action")),
+                        static_cast<int>(LoadType::OpenProject), static_cast<int>(LoadType::LoadConfig)));
+            }
+            else
+                load_type = LoadType::OpenProject;
 
-    // FIXME: when drag and drop is done on a .3mf or a .amf file we should clear the plater for consistence with the open project command
-    // (the following call to plater->load_files() will load the config data, if present)
+            if (load_type == LoadType::Unknown)
+                return false;
 
-    std::vector<size_t> res = plater->load_files(paths);
-
-    // because right now the plater is not cleared, we set the project file (from the latest imported .3mf or .amf file)
-    // only if not set yet
-    // if res is empty no data has been loaded
-    if (!res.empty() && plater->get_project_filename().empty()) {
-        for (std::vector<fs::path>::const_reverse_iterator it = paths.rbegin(); it != paths.rend(); ++it) {
-            std::string filename = (*it).filename().string();
-            if (boost::algorithm::iends_with(filename, ".3mf") || boost::algorithm::iends_with(filename, ".amf")) {
-                plater->set_project_filename(from_path(*it));
+            switch (load_type) {
+            case LoadType::OpenProject: {
+                plater->load_project(from_path(*it));
                 break;
             }
+            case LoadType::LoadGeometry: {
+                Plater::TakeSnapshot snapshot(plater, _L("Import Object"));
+                std::vector<fs::path> in_paths;
+                in_paths.emplace_back(*it);
+                plater->load_files(in_paths, true, false);
+                break;
+            }
+            case LoadType::LoadConfig: {
+                std::vector<fs::path> in_paths;
+                in_paths.emplace_back(*it);
+                plater->load_files(in_paths, false, true);
+                break;
+            }
+            }
+            break;
         }
     }
 
