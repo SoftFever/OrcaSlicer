@@ -380,6 +380,13 @@ void Control::SetTicksValues(const Info& custom_gcode_per_print_z)
     Update();
 }
 
+void Control::SetLayersTimes(const std::vector<float>& layers_times)
+{ 
+    m_layers_times = layers_times;
+    for (int i = 1; i < m_layers_times.size(); i++)
+        m_layers_times[i] += m_layers_times[i - 1];
+}
+
 void Control::SetDrawMode(bool is_sla_print, bool is_sequential_print)
 { 
     m_draw_mode = is_sla_print          ? dmSlaPrint            : 
@@ -603,9 +610,11 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
     if (m_draw_mode == dmSequentialGCodeView)
         return wxString::Format("%d", static_cast<unsigned int>(m_values[value]));
     else {
-        if (label_type == ltEstimatedTime)
-            // ysFIXME get estimated time for the current tick
-            return "time";
+        if (label_type == ltEstimatedTime) {
+            if (m_values.size() != m_layers_times.size())
+                return "time";
+            return Slic3r::short_time(get_time_dhms(m_layers_times[value]));
+        }
         wxString str = m_values.empty() ?
             wxString::Format("%.*f", 2, m_label_koef * value) :
             wxString::Format("%.*f", 2, m_values[value]);
