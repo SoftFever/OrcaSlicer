@@ -5,6 +5,9 @@
 #include "../ExPolygon.hpp"
 #include "../EdgeGrid.hpp"
 
+#include <unordered_set>
+#include <boost/functional/hash.hpp>
+
 namespace Slic3r {
 
 // Forward declarations.
@@ -76,6 +79,58 @@ public:
         inline bool operator<(const Intersection &other) const { return this->point_transformed.x() < other.point_transformed.x(); }
     };
 
+    struct TravelPoint
+    {
+        Point point;
+        // Index of the polygon containing this point. A negative value indicates that the point is not on any border
+        int   border_idx;
+    };
+
+    struct AllIntersectionsVisitor
+    {
+        AllIntersectionsVisitor(const EdgeGrid::Grid &grid, std::vector<AvoidCrossingPerimeters2::Intersection> &intersections)
+            : grid(grid), intersections(intersections)
+        {}
+
+        AllIntersectionsVisitor(const EdgeGrid::Grid                                &grid,
+                                std::vector<AvoidCrossingPerimeters2::Intersection> &intersections,
+                                const Matrix2d                                      &transform_to_x_axis,
+                                const Line                                          &travel_line)
+            : grid(grid), intersections(intersections), transform_to_x_axis(transform_to_x_axis), travel_line(travel_line)
+        {}
+
+        void reset() {
+            intersection_set.clear();
+        }
+
+        bool operator()(coord_t iy, coord_t ix)
+        {
+            // Called with a row and colum of the grid cell, which is intersected by a line.
+            auto cell_data_range = grid.cell_data_range(iy, ix);
+            for (auto it_contour_and_segment = cell_data_range.first; it_contour_and_segment != cell_data_range.second;
+                 ++it_contour_and_segment) {
+                // End points of the line segment and their vector.
+                auto segment = grid.segment(*it_contour_and_segment);
+
+                Point intersection_point;
+                if (travel_line.intersection(Line(segment.first, segment.second), &intersection_point) &&
+                    intersection_set.find(*it_contour_and_segment) == intersection_set.end()) {
+                    intersections.emplace_back(it_contour_and_segment->first, it_contour_and_segment->second,
+                                               (transform_to_x_axis * intersection_point.cast<double>()).cast<coord_t>(), intersection_point);
+                    intersection_set.insert(*it_contour_and_segment);
+                }
+            }
+            // Continue traversing the grid along the edge.
+            return true;
+        }
+
+        const EdgeGrid::Grid                                                                 &grid;
+        std::vector<AvoidCrossingPerimeters2::Intersection>                                  &intersections;
+        Matrix2d                                                                              transform_to_x_axis;
+        Line                                                                                  travel_line;
+        std::unordered_set<std::pair<size_t, size_t>, boost::hash<std::pair<size_t, size_t>>> intersection_set;
+    };
+
     enum class Direction { Forward, Backward };
 
 private:
@@ -86,9 +141,21 @@ private:
     static Direction get_shortest_direction(
         const Lines &lines, const size_t start_idx, const size_t end_idx, const Point &intersection_first, const Point &intersection_last);
 
-    static Polyline simplify_travel(const EdgeGrid::Grid &edge_grid, const Polyline &travel);
+    static std::vector<AvoidCrossingPerimeters2::TravelPoint> simplify_travel(const EdgeGrid::Grid           &edge_grid,
+                                                                              const std::vector<TravelPoint> &travel,
+                                                                              const Polygons                 &boundaries,
+                                                                              const bool                      use_heuristics);
 
-    static size_t avoid_perimeters(const Polygons &boundaries, const EdgeGrid::Grid &grid, const Point &start, const Point &end, Polyline *result_out);
+    static std::vector<AvoidCrossingPerimeters2::TravelPoint> simplify_travel_heuristics(const EdgeGrid::Grid           &edge_grid,
+                                                                                         const std::vector<TravelPoint> &travel,
+                                                                                         const Polygons                 &boundaries);
+
+    static size_t avoid_perimeters(const Polygons           &boundaries,
+                                   const EdgeGrid::Grid     &grid,
+                                   const Point              &start,
+                                   const Point              &end,
+                                   const bool                use_heuristics,
+                                   std::vector<TravelPoint> *result_out);
 
     bool need_wipe(const GCode &gcodegen, const Line &original_travel, const Polyline &result_travel, const size_t intersection_count);
 
