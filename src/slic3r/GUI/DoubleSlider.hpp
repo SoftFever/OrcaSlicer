@@ -219,7 +219,7 @@ public:
 
     void    SetMaxValue(const int max_value);
     void    SetKoefForLabels(const double koef)                { m_label_koef = koef; }
-    void    SetSliderValues(const std::vector<double>& values) { m_values = values; }
+    void    SetSliderValues(const std::vector<double>& values);
     void    ChangeOneLayerLock();
 
     Info   GetTicksValues() const;
@@ -288,6 +288,7 @@ protected:
     void    draw_scroll_line(wxDC& dc, const int lower_pos, const int higher_pos);
     void    draw_thumb(wxDC& dc, const wxCoord& pos_coord, const SelectedSlider& selection);
     void    draw_thumbs(wxDC& dc, const wxCoord& lower_pos, const wxCoord& higher_pos);
+    void    draw_ticks_pair(wxDC& dc, wxCoord pos, wxCoord mid, int tick_len);
     void    draw_ticks(wxDC& dc);
     void    draw_colored_band(wxDC& dc);
     void    draw_ruler(wxDC& dc);
@@ -416,6 +417,15 @@ private:
 
     std::vector<wxPen*> m_line_pens;
     std::vector<wxPen*> m_segm_pens;
+
+    struct Ruler {
+        double long_step;
+        double short_step;
+        int count { 1 }; // > 1 for sequential print
+
+        void update(wxWindow* win, const std::vector<double>& values, double scroll_step);
+        bool is_ok() { return long_step > 0 && short_step > 0; }
+    } m_ruler;
 };
 
 } // DoubleSlider;

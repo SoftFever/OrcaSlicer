@@ -243,6 +243,12 @@ void Control::SetMaxValue(const int max_value)
     Update();
 }
 
+void Control::SetSliderValues(const std::vector<double>& values)
+{
+    m_values = values;
+    m_ruler.count = std::count(m_values.begin(), m_values.end(), m_values.front());
+}
+
 void Control::draw_scroll_line(wxDC& dc, const int lower_pos, const int higher_pos)
 {
     int width;
@@ -732,6 +738,15 @@ void Control::draw_thumbs(wxDC& dc, const wxCoord& lower_pos, const wxCoord& hig
     draw_thumb_text(dc, pos_l, ssLower);
 }
 
+void Control::draw_ticks_pair(wxDC& dc, wxCoord pos, wxCoord mid, int tick_len)
+{
+    int mid_space = 9;
+    is_horizontal() ? dc.DrawLine(pos, mid - (mid_space + tick_len), pos, mid - mid_space) :
+        dc.DrawLine(mid - (mid_space + tick_len), pos, mid - mid_space, pos);
+    is_horizontal() ? dc.DrawLine(pos, mid + (mid_space + tick_len), pos, mid + mid_space) :
+        dc.DrawLine(mid + (mid_space + tick_len), pos, mid + mid_space, pos);
+};
+
 void Control::draw_ticks(wxDC& dc)
 {
     if (m_draw_mode == dmSlaPrint)
@@ -743,11 +758,7 @@ void Control::draw_ticks(wxDC& dc)
     const wxCoord mid = is_horizontal() ? 0.5*height : 0.5*width;
     for (auto tick : m_ticks.ticks) {
         const wxCoord pos = get_position_from_value(tick.tick);
-
-        is_horizontal() ?   dc.DrawLine(pos, mid-14, pos, mid-9) :
-                            dc.DrawLine(mid - 14, pos/* - 1*/, mid - 9, pos/* - 1*/);
-        is_horizontal() ?   dc.DrawLine(pos, mid+14, pos, mid+9) :
-                            dc.DrawLine(mid + 14, pos/* - 1*/, mid + 9, pos/* - 1*/);
+        draw_ticks_pair(dc, pos, mid, 7);
 
         // if current tick if focused, we should to use a specific "focused" icon 
         bool focused_tick = m_moving_pos != wxDefaultPosition && tick.tick == get_tick_near_point(m_moving_pos);
@@ -883,38 +894,35 @@ void Control::draw_colored_band(wxDC& dc)
     }
 }
 
-void Control::draw_ruler(wxDC& dc)
+void Control::Ruler::update(wxWindow* win, const std::vector<double>& values, double scroll_step)
 {
-    int height, width;
-    get_size(&width, &height);
-    const wxCoord mid = is_horizontal() ? 0.5 * height : 0.5 * width;
-
-    int DPI = GUI::get_dpi_for_window(this->GetParent());
+    int DPI = GUI::get_dpi_for_window(win);
     int pixels_per_sm = lround((double)(DPI) * 5.0/25.4);
 
-    int pow = -1;
+    int pow = -2;
     int step = 0;
-    double ruler_short_step;
+    auto end_it = count == 1 ? values.end() : values.begin() + lround(values.size() / count);
 
     while (pow < 3) {
+        int tick = 0;
         for (int istep : {1, 2, 5}) {
             double val = (double)istep * std::pow(10,pow);
-            auto val_it = std::lower_bound(m_values.begin(), m_values.end(), val - epsilon());
+            auto val_it = std::lower_bound(values.begin(), end_it, val - epsilon());
 
-            if (val_it == m_values.end())
+            if (val_it == values.end())
                 break;
-            int tick = val_it - m_values.begin();
+            int tick = val_it - values.begin();
 
-            if (lround(tick * get_scroll_step()) > pixels_per_sm) {
+            if (lround(tick * scroll_step) > pixels_per_sm) {
                 step = istep;
 
                 // find next tick with istep
                 val *= 2;
-                val_it = std::lower_bound(m_values.begin(), m_values.end(), val - epsilon());
+                val_it = std::lower_bound(values.begin(), end_it, val - epsilon());
                 // count of short ticks between ticks
-                int short_ticks_cnt = val_it == m_values.end() ? tick : val_it - m_values.begin() - tick;
+                int short_ticks_cnt = val_it == values.end() ? tick : val_it - values.begin() - tick;
                 // there couldn't be more then 10 short ticks between thicks
-                ruler_short_step = 0.1 * short_ticks_cnt;
+                short_step = 0.1 * short_ticks_cnt;
                 break;
             }
         }
@@ -923,24 +931,26 @@ void Control::draw_ruler(wxDC& dc)
         pow++;
     }
 
-    if (step == 0)
-        return; 
+    long_step = step == 0 ? -1.0 : (double)step* std::pow(10, pow);
+}
 
-    auto draw_ticks = [this, mid](wxDC& dc, wxCoord pos, int tick_len)
-    {
-        int mid_space = 9;
-        is_horizontal() ?   dc.DrawLine(pos, mid - (mid_space + tick_len), pos, mid - mid_space) :
-                            dc.DrawLine(mid - (mid_space + tick_len), pos, mid - mid_space, pos);
-        is_horizontal() ?   dc.DrawLine(pos, mid + (mid_space + tick_len), pos, mid + mid_space) :
-                            dc.DrawLine(mid + (mid_space + tick_len), pos, mid + mid_space, pos);
-    };
+void Control::draw_ruler(wxDC& dc)
+{
+    m_ruler.update(this->GetParent(), m_values, get_scroll_step());
+    if (!m_ruler.is_ok())
+        return;
 
-    auto draw_short_ticks = [this, draw_ticks, ruler_short_step](wxDC& dc, double& current_tick, int max_tick)
-    {
+    int height, width;
+    get_size(&width, &height);
+    const wxCoord mid = is_horizontal() ? 0.5 * height : 0.5 * width;    
+
+    auto draw_short_ticks = [this, mid](wxDC& dc, double& current_tick, int max_tick) {
         while (current_tick < max_tick) {
             wxCoord pos = get_position_from_value(lround(current_tick));
-            draw_ticks(dc, pos, 2);
-            current_tick += ruler_short_step;
+            draw_ticks_pair(dc, pos, mid, 2);
+            current_tick += m_ruler.short_step;
+            if (current_tick > m_max_value)
+                break;
         }
     };   
 
@@ -951,23 +961,44 @@ void Control::draw_ruler(wxDC& dc)
     double short_tick;
     int tick = 0;
     double value = 0.0;
+    int sequence = 0;
 
-    double interval = (double)step * std::pow(10, pow);
-    while (tick <= m_max_value)
-    {
-        value += interval;
+    while (tick <= m_max_value) {
+        value += m_ruler.long_step;
+        if (value > m_values.back() && sequence < m_ruler.count) {
+            value = m_ruler.long_step;
+            for (tick; tick < m_values.size(); tick++)
+                if (m_values[tick] < value)
+                    break;
+            // short ticks from the last tick to the end of current sequence
+            draw_short_ticks(dc, short_tick, tick);
+            sequence++;
+        }
         short_tick = tick;
-        auto val_it = std::lower_bound(m_values.begin(), m_values.end(), value - epsilon());
 
-        if (val_it == m_values.end())
+        for (tick; tick < m_values.size(); tick++) {
+            if (m_values[tick] == value)
+                break;
+            if (m_values[tick] > value) {
+                if (tick > 0)
+                    tick--;
+                break;
+            }
+        }
+        if (tick > m_max_value)
             break;
-        tick = val_it - m_values.begin();
 
         wxCoord pos = get_position_from_value(tick);
-        draw_ticks(dc, pos, 5);
+        draw_ticks_pair(dc, pos, mid, 5);
+        draw_tick_text(dc, wxPoint(mid, pos), tick);
 
-        draw_tick_text(dc, wxPoint(mid/* + 2*/, pos), tick);
         draw_short_ticks(dc, short_tick, tick);
+
+        if (value == m_values.back() && sequence < m_ruler.count) {
+            value = 0.0;
+            sequence++;
+            tick++;
+        }
     }
     // short ticks from the last tick to the end 
     draw_short_ticks(dc, short_tick, m_max_value);
