@@ -127,7 +127,7 @@ public:
 
     void look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up);
 
-    double max_zoom() const { return 100.0; }
+    double max_zoom() const { return 250.0; }
     double min_zoom() const;
 
 private:
