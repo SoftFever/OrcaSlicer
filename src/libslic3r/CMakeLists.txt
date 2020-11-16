@@ -58,8 +58,8 @@ add_library(libslic3r STATIC
     Fill/FillGyroid.hpp
     Fill/FillPlanePath.cpp
     Fill/FillPlanePath.hpp
-    Fill/FillRectilinear.cpp
-    Fill/FillRectilinear.hpp
+    Fill/FillLine.cpp
+    Fill/FillLine.hpp
     Fill/FillRectilinear2.cpp
     Fill/FillRectilinear2.hpp
     Flow.cpp
