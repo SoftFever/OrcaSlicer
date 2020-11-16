@@ -7,7 +7,7 @@
 
 namespace Slic3r {
 
-void FillRectilinear::_fill_surface_single(
+void FillLine::_fill_surface_single(
     const FillParams                &params,
     unsigned int                     thickness_layers,
     const std::pair<float, Point>   &direction,
@@ -42,11 +42,6 @@ void FillRectilinear::_fill_surface_single(
     Lines lines;
     for (coord_t x = bounding_box.min(0); x <= x_max; x += this->_line_spacing)
         lines.push_back(this->_line(lines.size(), x, bounding_box.min(1), bounding_box.max(1)));
-    if (this->_horizontal_lines()) {
-        coord_t y_max = bounding_box.max(1) + SCALED_EPSILON;
-        for (coord_t y = bounding_box.min(1); y <= y_max; y += this->_line_spacing)
-            lines.push_back(Line(Point(bounding_box.min(0), y), Point(bounding_box.max(0), y)));
-    }
 
     // clip paths against a slightly larger expolygon, so that the first and last paths
     // are kept even if the expolygon has vertical sides

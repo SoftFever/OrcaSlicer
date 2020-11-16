@@ -16,17 +16,17 @@ namespace Slic3r {
 class FillPlanePath : public Fill
 {
 public:
-    virtual ~FillPlanePath() {}
+    ~FillPlanePath() override = default;
 
 protected:
-    virtual void _fill_surface_single(
+    void _fill_surface_single(
         const FillParams                &params, 
         unsigned int                     thickness_layers,
         const std::pair<float, Point>   &direction, 
         ExPolygon                       &expolygon, 
-        Polylines                       &polylines_out);
+        Polylines                       &polylines_out) override;
 
-    virtual float _layer_angle(size_t idx) const { return 0.f; }
+    float _layer_angle(size_t idx) const override { return 0.f; }
     virtual bool  _centered() const = 0;
     virtual Pointfs _generate(coord_t min_x, coord_t min_y, coord_t max_x, coord_t max_y) = 0;
 };
@@ -34,34 +34,34 @@ protected:
 class FillArchimedeanChords : public FillPlanePath
 {
 public:
-    virtual Fill* clone() const { return new FillArchimedeanChords(*this); };
-    virtual ~FillArchimedeanChords() {}
+    Fill* clone() const override { return new FillArchimedeanChords(*this); };
+    ~FillArchimedeanChords() override = default;
 
 protected:
-    virtual bool  _centered() const { return true; }
-    virtual Pointfs _generate(coord_t min_x, coord_t min_y, coord_t max_x, coord_t max_y);
+    bool  _centered() const override { return true; }
+    Pointfs _generate(coord_t min_x, coord_t min_y, coord_t max_x, coord_t max_y) override;
 };
 
 class FillHilbertCurve : public FillPlanePath
 {
 public:
-    virtual Fill* clone() const { return new FillHilbertCurve(*this); };
-    virtual ~FillHilbertCurve() {}
+    Fill* clone() const override { return new FillHilbertCurve(*this); };
+    ~FillHilbertCurve() override = default;
 
 protected:
-    virtual bool  _centered() const { return false; }
-    virtual Pointfs _generate(coord_t min_x, coord_t min_y, coord_t max_x, coord_t max_y);
+    bool  _centered() const override { return false; }
+    Pointfs _generate(coord_t min_x, coord_t min_y, coord_t max_x, coord_t max_y) override;
 };
 
 class FillOctagramSpiral : public FillPlanePath
 {
 public:
-    virtual Fill* clone() const { return new FillOctagramSpiral(*this); };
-    virtual ~FillOctagramSpiral() {}
+    Fill* clone() const override { return new FillOctagramSpiral(*this); };
+    ~FillOctagramSpiral() override = default;
 
 protected:
-    virtual bool  _centered() const { return true; }
-    virtual Pointfs _generate(coord_t min_x, coord_t min_y, coord_t max_x, coord_t max_y);
+    bool  _centered() const override { return true; }
+    Pointfs _generate(coord_t min_x, coord_t min_y, coord_t max_x, coord_t max_y) override;
 };
 
 } // namespace Slic3r

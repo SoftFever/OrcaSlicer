@@ -12,9 +12,9 @@ class Surface;
 class FillRectilinear2 : public Fill
 {
 public:
-    virtual Fill* clone() const { return new FillRectilinear2(*this); };
-    virtual ~FillRectilinear2() = default;
-    virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
+    Fill* clone() const override { return new FillRectilinear2(*this); };
+    ~FillRectilinear2() override = default;
+    Polylines fill_surface(const Surface *surface, const FillParams &params) override;
 
 protected:
     // Fill by single directional lines, interconnect the lines along perimeters.
@@ -32,58 +32,58 @@ protected:
 class FillMonotonic : public FillRectilinear2
 {
 public:
-    virtual Fill* clone() const { return new FillMonotonic(*this); };
-    virtual ~FillMonotonic() = default;
-    virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
-	virtual bool no_sort() const { return true; }
+    Fill* clone() const override { return new FillMonotonic(*this); };
+    ~FillMonotonic() override = default;
+    Polylines fill_surface(const Surface *surface, const FillParams &params) override;
+	bool no_sort() const override { return true; }
 };
 
 class FillGrid2 : public FillRectilinear2
 {
 public:
-    virtual Fill* clone() const { return new FillGrid2(*this); };
-    virtual ~FillGrid2() = default;
-    virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
+    Fill* clone() const override { return new FillGrid2(*this); };
+    ~FillGrid2() override = default;
+    Polylines fill_surface(const Surface *surface, const FillParams &params) override;
 
 protected:
 	// The grid fill will keep the angle constant between the layers, see the implementation of Slic3r::Fill.
-    virtual float _layer_angle(size_t idx) const { return 0.f; }
+    float _layer_angle(size_t idx) const override { return 0.f; }
 };
 
 class FillTriangles : public FillRectilinear2
 {
 public:
-    virtual Fill* clone() const { return new FillTriangles(*this); };
-    virtual ~FillTriangles() = default;
-    virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
+    Fill* clone() const override { return new FillTriangles(*this); };
+    ~FillTriangles() override = default;
+    Polylines fill_surface(const Surface *surface, const FillParams &params) override;
 
 protected:
 	// The grid fill will keep the angle constant between the layers, see the implementation of Slic3r::Fill.
-    virtual float _layer_angle(size_t idx) const { return 0.f; }
+    float _layer_angle(size_t idx) const override { return 0.f; }
 };
 
 class FillStars : public FillRectilinear2
 {
 public:
-    virtual Fill* clone() const { return new FillStars(*this); };
-    virtual ~FillStars() = default;
-    virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
+    Fill* clone() const override { return new FillStars(*this); };
+    ~FillStars() override = default;
+    Polylines fill_surface(const Surface *surface, const FillParams &params) override;
 
 protected:
     // The grid fill will keep the angle constant between the layers, see the implementation of Slic3r::Fill.
-    virtual float _layer_angle(size_t idx) const { return 0.f; }
+    float _layer_angle(size_t idx) const override { return 0.f; }
 };
 
 class FillCubic : public FillRectilinear2
 {
 public:
-    virtual Fill* clone() const { return new FillCubic(*this); };
-    virtual ~FillCubic() = default;
-    virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
+    Fill* clone() const override { return new FillCubic(*this); };
+    ~FillCubic() override = default;
+    Polylines fill_surface(const Surface *surface, const FillParams &params) override;
 
 protected:
 	// The grid fill will keep the angle constant between the layers, see the implementation of Slic3r::Fill.
-    virtual float _layer_angle(size_t idx) const { return 0.f; }
+    float _layer_angle(size_t idx) const override { return 0.f; }
 };
 
 

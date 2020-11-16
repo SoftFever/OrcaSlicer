@@ -19,10 +19,10 @@ class LayerRegion;
 class Filler
 {
 public:
-    Filler() : fill(NULL) {}
+    Filler() : fill(nullptr) {}
     ~Filler() { 
         delete fill; 
-        fill = NULL;
+        fill = nullptr;
     }
     Fill        *fill;
     FillParams   params;

@@ -2762,9 +2762,6 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
     return true;
 }
 
-#define FILL_MULTIPLE_SWEEPS_NEW
-
-#ifdef FILL_MULTIPLE_SWEEPS_NEW
 bool FillRectilinear2::fill_surface_by_multilines(const Surface *surface, FillParams params, const std::initializer_list<SweepParams> &sweep_params, Polylines &polylines_out)
 {
     assert(sweep_params.size() > 1);
@@ -2823,30 +2820,15 @@ bool FillRectilinear2::fill_surface_by_multilines(const Surface *surface, FillPa
             }
     }
 
-    if (fill_lines.size() > 1)
-        fill_lines = chain_polylines(std::move(fill_lines));
-
-    if (params.dont_connect || fill_lines.size() <= 1)
+    if (params.dont_connect || fill_lines.size() <= 1) {
+        if (fill_lines.size() > 1)
+            fill_lines = chain_polylines(std::move(fill_lines));
         append(polylines_out, std::move(fill_lines));
-    else
+    } else
         connect_infill(std::move(fill_lines), poly_with_offset_base.polygons_outer, get_extents(surface->expolygon.contour), polylines_out, this->spacing, params);
 
     return true;
 }
-#else
-bool FillRectilinear2::fill_surface_by_multilines(const Surface *surface, FillParams params, const std::initializer_list<SweepParams> &sweep_params, Polylines &polylines_out)
-{
-    params.density /= double(sweep_params.size());
-    bool success = true;
-    int  idx = 0;
-    for (const SweepParams &sweep_param : sweep_params) {
-        if (++ idx == 3)
-            params.dont_connect = true;
-        success &= this->fill_surface_by_lines(surface, params, sweep_param.angle_base, sweep_param.pattern_shift, polylines_out);
-    }
-    return success;
-}
-#endif
 
 Polylines FillRectilinear2::fill_surface(const Surface *surface, const FillParams &params)
 {

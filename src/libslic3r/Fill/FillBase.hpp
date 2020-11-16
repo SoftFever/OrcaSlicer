@@ -83,6 +83,7 @@ public:
 
 public:
     virtual ~Fill() {}
+    virtual Fill* clone() const = 0;
 
     static Fill* new_from_type(const InfillPattern type);
     static Fill* new_from_type(const std::string &type);
