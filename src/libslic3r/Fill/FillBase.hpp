@@ -37,6 +37,9 @@ struct FillParams
     // Fill density, fraction in <0, 1>
     float       density 		{ 0.f };
 
+    // Length of an infill anchor along the perimeter.
+    float       anchor_length   { std::numeric_limits<float>::max() };
+
     // Don't connect the fill lines around the inner perimeter.
     bool        dont_connect 	{ false };
 
@@ -124,9 +127,9 @@ protected:
     virtual std::pair<float, Point> _infill_direction(const Surface *surface) const;
 
 public:
-    static void connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary, Polylines &polylines_out, const double spacing, const FillParams &params, const int hook_length = 0);
-    static void connect_infill(Polylines &&infill_ordered, const Polygons &boundary, const BoundingBox& bbox, Polylines &polylines_out, const double spacing, const FillParams &params, const int hook_length = 0);
-    static void connect_infill(Polylines &&infill_ordered, const std::vector<const Polygon*> &boundary, const BoundingBox &bbox, Polylines &polylines_out, double spacing, const FillParams &params, const int hook_length = 0);
+    static void connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary, Polylines &polylines_out, const double spacing, const FillParams &params);
+    static void connect_infill(Polylines &&infill_ordered, const Polygons &boundary, const BoundingBox& bbox, Polylines &polylines_out, const double spacing, const FillParams &params);
+    static void connect_infill(Polylines &&infill_ordered, const std::vector<const Polygon*> &boundary, const BoundingBox &bbox, Polylines &polylines_out, double spacing, const FillParams &params);
 
     static coord_t  _adjust_solid_spacing(const coord_t width, const coord_t distance);
 

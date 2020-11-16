@@ -34,8 +34,6 @@
 
     void set_density(float density)
         %code{% THIS->params.density = density; %};
-    void set_dont_connect(bool dont_connect)
-        %code{% THIS->params.dont_connect = dont_connect; %};
     void set_dont_adjust(bool dont_adjust)
         %code{% THIS->params.dont_adjust = dont_adjust; %};
     void set_complete(bool complete)

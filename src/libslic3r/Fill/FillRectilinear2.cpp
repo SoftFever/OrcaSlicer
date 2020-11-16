@@ -2778,6 +2778,7 @@ bool FillRectilinear2::fill_surface_by_multilines(const Surface *surface, FillPa
         return true;
 
     Polylines fill_lines;
+    coord_t line_width   = coord_t(scale_(this->spacing));
     coord_t line_spacing = coord_t(scale_(this->spacing) / params.density);
     std::pair<float, Point> rotate_vector = this->_infill_direction(surface);
     for (const SweepParams &sweep : sweep_params) {
@@ -2787,6 +2788,9 @@ bool FillRectilinear2::fill_surface_by_multilines(const Surface *surface, FillPa
         double angle = rotate_vector.first + sweep.angle_base;
         ExPolygonWithOffset poly_with_offset(poly_with_offset_base, - angle);
         BoundingBox bounding_box = poly_with_offset.bounding_box_src();
+        // Don't produce infill lines, which fully overlap with the infill perimeter.
+        coord_t     x_min = bounding_box.min.x() + line_width + coord_t(SCALED_EPSILON);
+        coord_t     x_max = bounding_box.max.x() - line_width - coord_t(SCALED_EPSILON);
         // extend bounding box so that our pattern will be aligned with other layers
         // Transform the reference point to the rotated coordinate system.
         Point refpt = rotate_vector.second.rotated(- angle);
@@ -2800,20 +2804,23 @@ bool FillRectilinear2::fill_surface_by_multilines(const Surface *surface, FillPa
         const size_t n_vlines = (bounding_box.max.x() - bounding_box.min.x() + line_spacing - 1) / line_spacing;
         const double cos_a    = cos(angle);
         const double sin_a    = sin(angle);
-        for (const SegmentedIntersectionLine &vline : slice_region_by_vertical_lines(poly_with_offset, n_vlines, bounding_box.min.x(), line_spacing)) {
-            for (auto it = vline.intersections.begin(); it != vline.intersections.end();) {
-                auto it_low  = it ++;
-                assert(it_low->type == SegmentIntersection::OUTER_LOW);
-                if (it_low->type != SegmentIntersection::OUTER_LOW)
-                    continue;
-                auto it_high = it;
-                assert(it_high->type == SegmentIntersection::OUTER_HIGH);
-                if (it_high->type == SegmentIntersection::OUTER_HIGH) {
-                    fill_lines.emplace_back(Point(vline.pos, it_low->pos()).rotated(cos_a, sin_a), Point(vline.pos, it_high->pos()).rotated(cos_a, sin_a));
-                    ++ it;
+        for (const SegmentedIntersectionLine &vline : slice_region_by_vertical_lines(poly_with_offset, n_vlines, bounding_box.min.x(), line_spacing))
+            if (vline.pos > x_min) {
+                if (vline.pos >= x_max)
+                    break;
+                for (auto it = vline.intersections.begin(); it != vline.intersections.end();) {
+                    auto it_low  = it ++;
+                    assert(it_low->type == SegmentIntersection::OUTER_LOW);
+                    if (it_low->type != SegmentIntersection::OUTER_LOW)
+                        continue;
+                    auto it_high = it;
+                    assert(it_high->type == SegmentIntersection::OUTER_HIGH);
+                    if (it_high->type == SegmentIntersection::OUTER_HIGH) {
+                        fill_lines.emplace_back(Point(vline.pos, it_low->pos()).rotated(cos_a, sin_a), Point(vline.pos, it_high->pos()).rotated(cos_a, sin_a));
+                        ++ it;
+                    }
                 }
             }
-        }
     }
 
     if (fill_lines.size() > 1)
@@ -2821,11 +2828,8 @@ bool FillRectilinear2::fill_surface_by_multilines(const Surface *surface, FillPa
 
     if (params.dont_connect || fill_lines.size() <= 1)
         append(polylines_out, std::move(fill_lines));
-    else {
-//        coord_t hook_length = 0;
-        coord_t hook_length = coord_t(scale_(this->spacing)) * 5;
-        connect_infill(std::move(fill_lines), poly_with_offset_base.polygons_outer, get_extents(surface->expolygon.contour), polylines_out, this->spacing, params, hook_length);
-    }
+    else
+        connect_infill(std::move(fill_lines), poly_with_offset_base.polygons_outer, get_extents(surface->expolygon.contour), polylines_out, this->spacing, params);
 
     return true;
 }

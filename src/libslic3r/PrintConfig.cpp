@@ -1050,6 +1050,16 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(1));
 
+    def = this->add("infill_anchor", coFloatOrPercent);
+    def->label = L("Length of the infill anchor");
+    def->category = L("Advanced");
+    def->tooltip = L("Connect an infill line to an internal perimeter with a short segment of an additional perimeter. "
+                     "If expressed as percentage (example: 15%) it is calculated over infill extrusion width.");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "infill_extrusion_width";
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(300, true));
+
     def = this->add("infill_extruder", coInt);
     def->label = L("Infill extruder");
     def->category = L("Extruders");

@@ -639,7 +639,6 @@ static inline Intersection* get_nearest_intersection(std::vector<std::pair<Inter
 // translated in the direction of the intersection line (intersection.intersect_line).
 static Line create_offset_line(Line offset_line, const Intersection &intersection, const double scaled_offset)
 {
-    // 50% overlap of the extrusion lines to achieve strong bonding.
     offset_line.translate((perp(intersection.closest_line->vector().cast<double>().normalized()) * (intersection.left ? scaled_offset : - scaled_offset)).cast<coord_t>());
     // Extend the line by a small value to guarantee a collision with adjacent lines
     offset_line.extend(coord_t(scaled_offset * 1.16)); // / cos(PI/6)
@@ -767,8 +766,10 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
     lines_src.reserve(lines.size());
     std::transform(lines.begin(), lines.end(), std::back_inserter(lines_src), [](const Line& l) { return Polyline{ l.a, l.b }; });
 
-    const float scaled_offset           = float(scale_(spacing) * 0.7); // 30% overlap
-    const float scaled_trim_distance    = float(scale_(spacing) * 0.5 * 0.75); // 25% overlap
+    // 19% overlap, slightly lower than the allowed overlap in Fill::connect_infill()
+    const float scaled_offset           = float(scale_(spacing) * 0.81);
+    // 25% overlap
+    const float scaled_trim_distance    = float(scale_(spacing) * 0.5 * 0.75);
 
     // Keeping the vector of closest points outside the loop, so the vector does not need to be reallocated.
     std::vector<std::pair<rtree_segment_t, size_t>> closest;
@@ -1199,9 +1200,6 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
     return polylines_out;
 }
 
-//coord_t get_hook_length(const double spacing) { return coord_t(scale_(spacing)) * 2; }
-coord_t get_hook_length(const double spacing) { return coord_t(scale_(spacing)) * 5; }
-
 #ifndef NDEBUG
 bool has_no_collinear_lines(const Polylines &polylines)
 {
@@ -1323,7 +1321,8 @@ void Filler::_fill_surface_single(
     }
 #endif /* ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT */
 
-    coord_t   hook_length = get_hook_length(this->spacing);
+    const auto hook_length = coord_t(std::min(scale_(this->spacing * 5), scale_(params.anchor_length)));
+
     Polylines all_polylines_with_hooks = all_polylines.size() > 1 ? connect_lines_using_hooks(std::move(all_polylines), expolygon, this->spacing, hook_length) : std::move(all_polylines);
 
 #ifdef ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT
@@ -1336,7 +1335,7 @@ void Filler::_fill_surface_single(
     if (params.dont_connect || all_polylines_with_hooks.size() <= 1)
         append(polylines_out, std::move(all_polylines_with_hooks));
     else
-        connect_infill(chain_polylines(std::move(all_polylines_with_hooks)), expolygon, polylines_out, this->spacing, params, hook_length);
+        connect_infill(chain_polylines(std::move(all_polylines_with_hooks)), expolygon, polylines_out, this->spacing, params);
 
 #ifdef ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT
     {
