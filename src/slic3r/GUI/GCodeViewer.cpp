@@ -1883,7 +1883,11 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
 void GCodeViewer::render_toolpaths() const
 {
+#if ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
+    float point_size = 20.0f;
+#else
     float point_size = 0.8f;
+#endif // ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
     std::array<float, 4> light_intensity = { 0.25f, 0.70f, 0.75f, 0.75f };
     const Camera& camera = wxGetApp().plater()->get_camera();
     double zoom = camera.get_zoom();
@@ -1899,6 +1903,11 @@ void GCodeViewer::render_toolpaths() const
     auto render_as_points = [this, zoom, point_size, near_plane_height, set_uniform_color]
     (const TBuffer& buffer, unsigned int index_buffer_id, EOptionsColors color_id, GLShaderProgram& shader) {
         set_uniform_color(Options_Colors[static_cast<unsigned int>(color_id)], shader);
+#if ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
+        shader.set_uniform("use_fixed_screen_size", 1);
+#else
+        shader.set_uniform("use_fixed_screen_size", 0);
+#endif // ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
         shader.set_uniform("zoom", zoom);
         shader.set_uniform("percent_outline_radius", 0.0f);
         shader.set_uniform("percent_center_radius", 0.33f);
