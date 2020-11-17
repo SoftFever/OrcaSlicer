@@ -170,7 +170,7 @@ void GLCanvas3D::LayersEditing::init()
 }
 
 void GLCanvas3D::LayersEditing::set_config(const DynamicPrintConfig* config)
-{ 
+{
     m_config = config;
     delete m_slicing_parameters;
     m_slicing_parameters = nullptr;
@@ -1325,6 +1325,9 @@ void GLCanvas3D::update_instance_printable_state_for_objects(std::vector<size_t>
 
 void GLCanvas3D::set_config(const DynamicPrintConfig* config)
 {
+    if (!m_config)
+        m_arrange_settings.distance = min_object_distance(*config);
+
     m_config = config;
     m_layers_editing.set_config(config);
 }
@@ -3847,6 +3850,30 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
     return action_taken;
 }
 
+bool GLCanvas3D::_render_arrange_popup()
+{
+    ImGuiWrapper *imgui = wxGetApp().imgui();
+
+    float x = 0.5f * (float)get_canvas_size().get_width();
+    imgui->set_next_window_pos(x, m_main_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
+
+    imgui->begin(_(L("Arrange options")), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+    ArrangeSettings settings = m_arrange_settings;
+
+    if (imgui->slider_float(_(L("Gap size")), &settings.distance, 0.f, 100.f))
+        m_arrange_settings.distance = settings.distance;
+
+    if (imgui->slider_float(_(L("Accuracy")), &settings.accuracy, 0.f, 1.f))
+        m_arrange_settings.accuracy = settings.accuracy;
+
+    if (imgui->checkbox(_(L("Enable rotations")), settings.enable_rotation))
+        m_arrange_settings.enable_rotation = settings.enable_rotation;
+
+    imgui->end();
+
+    return false;
+}
+
 #define ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT 0
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
@@ -4263,6 +4290,13 @@ bool GLCanvas3D::_init_main_toolbar()
     item.sprite_id = 3;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ARRANGE)); };
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };
+    item.right.toggable = true;
+    item.right.render_callback = [this](float left, float right, float, float) {
+        if (m_canvas != nullptr)
+        {
+            _render_arrange_popup();
+        }
+    };
     if (!m_main_toolbar.add_item(item))
         return false;
 

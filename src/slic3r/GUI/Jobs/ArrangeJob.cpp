@@ -147,11 +147,13 @@ void ArrangeJob::prepare()
 void ArrangeJob::process()
 {
     static const auto arrangestr = _(L("Arranging"));
-    
-    double dist = min_object_distance(*m_plater->config());
+
+    GLCanvas3D::ArrangeSettings settings =
+        m_plater->canvas3D()->get_arrange_settings();
     
     arrangement::ArrangeParams params;
-    params.min_obj_distance = scaled(dist);
+    params.min_obj_distance = scaled(settings.distance);
+    params.allow_rotations  = settings.enable_rotation;
     
     auto count = unsigned(m_selected.size() + m_unprintable.size());
     Points bedpts = get_bed_shape(*m_plater->config());

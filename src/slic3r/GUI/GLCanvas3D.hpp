@@ -381,6 +381,13 @@ public:
         Cross
     };
 
+    struct ArrangeSettings
+    {
+        float distance         = 6.;
+        float accuracy         = 0.65f;
+        bool  enable_rotation  = false;
+    };
+
 private:
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
@@ -451,6 +458,8 @@ private:
     mutable Tooltip m_tooltip;
     mutable bool m_tooltip_enabled{ true };
     Slope m_slope;
+
+    ArrangeSettings m_arrange_settings;
 
 public:
     explicit GLCanvas3D(wxGLCanvas* canvas);
@@ -671,6 +680,8 @@ public:
     void use_slope(bool use) { m_slope.use(use); }
     void set_slope_normal_angle(float angle_in_deg) { m_slope.set_normal_angle(angle_in_deg); }
 
+    const ArrangeSettings& get_arrange_settings() const { return m_arrange_settings; }
+
 private:
     bool _is_shown_on_screen() const;
 
@@ -717,6 +728,7 @@ private:
     void _render_selection_sidebar_hints() const;
     bool _render_undo_redo_stack(const bool is_undo, float pos_x) const;
     bool _render_search_list(float pos_x) const;
+    bool _render_arrange_popup();
     void _render_thumbnail_internal(ThumbnailData& thumbnail_data, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) const;
     // render thumbnail using an off-screen framebuffer
     void _render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) const;
