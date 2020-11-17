@@ -47,9 +47,9 @@ private:
     // Collection of boundaries used for detection of crossing perimetrs for travels outside object
     Polygons       m_boundaries_external;
     // Bounding box of m_boundaries
-    BoundingBox    m_bbox;
+    BoundingBoxf   m_bbox;
     // Bounding box of m_boundaries_external
-    BoundingBox    m_bbox_external;
+    BoundingBoxf   m_bbox_external;
     EdgeGrid::Grid m_grid;
     EdgeGrid::Grid m_grid_external;
 };
