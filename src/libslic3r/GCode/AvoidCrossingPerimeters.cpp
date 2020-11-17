@@ -1,7 +1,5 @@
 #include "../Layer.hpp"
-#include "../MotionPlanner.hpp"
 #include "../GCode.hpp"
-#include "../MotionPlanner.hpp"
 #include "../EdgeGrid.hpp"
 #include "../Geometry.hpp"
 #include "../ShortestPath.hpp"
@@ -20,93 +18,6 @@
 #include <boost/log/trivial.hpp>
 
 namespace Slic3r {
-
-void AvoidCrossingPerimeters::init_external_mp(const Print& print)
-{
-    m_external_mp = Slic3r::make_unique<MotionPlanner>(union_ex(this->collect_contours_all_layers(print.objects())));
-}
-
-// Plan a travel move while minimizing the number of perimeter crossings.
-// point is in unscaled coordinates, in the coordinate system of the current active object
-// (set by gcodegen.set_origin()).
-Polyline AvoidCrossingPerimeters::travel_to(const GCode& gcodegen, const Point& point)
-{
-    // If use_external, then perform the path planning in the world coordinate system (correcting for the gcodegen offset).
-    // Otherwise perform the path planning in the coordinate system of the active object.
-    bool  use_external = this->use_external_mp || this->use_external_mp_once;
-    Point scaled_origin = use_external ? Point::new_scale(gcodegen.origin()(0), gcodegen.origin()(1)) : Point(0, 0);
-    Polyline result = (use_external ? m_external_mp.get() : m_layer_mp.get())->
-        shortest_path(gcodegen.last_pos() + scaled_origin, point + scaled_origin);
-    if (use_external)
-        result.translate(-scaled_origin);
-    return result;
-}
-
-// Collect outer contours of all objects over all layers.
-// Discard objects only containing thin walls (offset would fail on an empty polygon).
-// Used by avoid crossing perimeters feature.
-Polygons AvoidCrossingPerimeters::collect_contours_all_layers(const PrintObjectPtrs& objects)
-{
-    Polygons islands;
-    for (const PrintObject* object : objects) {
-        // Reducing all the object slices into the Z projection in a logarithimc fashion.
-        // First reduce to half the number of layers.
-        std::vector<Polygons> polygons_per_layer((object->layers().size() + 1) / 2);
-        tbb::parallel_for(tbb::blocked_range<size_t>(0, object->layers().size() / 2),
-                          [&object, &polygons_per_layer](const tbb::blocked_range<size_t>& range) {
-                              for (size_t i = range.begin(); i < range.end(); ++i) {
-                                  const Layer* layer1 = object->layers()[i * 2];
-                                  const Layer* layer2 = object->layers()[i * 2 + 1];
-                                  Polygons polys;
-                                  polys.reserve(layer1->lslices.size() + layer2->lslices.size());
-                                  for (const ExPolygon& expoly : layer1->lslices)
-                                      //FIXME no holes?
-                                      polys.emplace_back(expoly.contour);
-                                  for (const ExPolygon& expoly : layer2->lslices)
-                                      //FIXME no holes?
-                                      polys.emplace_back(expoly.contour);
-                                  polygons_per_layer[i] = union_(polys);
-                              }
-                          });
-        if (object->layers().size() & 1) {
-            const Layer* layer = object->layers().back();
-            Polygons polys;
-            polys.reserve(layer->lslices.size());
-            for (const ExPolygon& expoly : layer->lslices)
-                //FIXME no holes?
-                polys.emplace_back(expoly.contour);
-            polygons_per_layer.back() = union_(polys);
-        }
-        // Now reduce down to a single layer.
-        size_t cnt = polygons_per_layer.size();
-        while (cnt > 1) {
-            tbb::parallel_for(tbb::blocked_range<size_t>(0, cnt / 2),
-                              [&polygons_per_layer](const tbb::blocked_range<size_t>& range) {
-                                  for (size_t i = range.begin(); i < range.end(); ++i) {
-                                      Polygons polys;
-                                      polys.reserve(polygons_per_layer[i * 2].size() + polygons_per_layer[i * 2 + 1].size());
-                                      polygons_append(polys, polygons_per_layer[i * 2]);
-                                      polygons_append(polys, polygons_per_layer[i * 2 + 1]);
-                                      polygons_per_layer[i * 2] = union_(polys);
-                                  }
-                              });
-            for (size_t i = 1; i < cnt / 2; ++i)
-                polygons_per_layer[i] = std::move(polygons_per_layer[i * 2]);
-            if (cnt & 1)
-                polygons_per_layer[cnt / 2] = std::move(polygons_per_layer[cnt - 1]);
-            cnt = (cnt + 1) / 2;
-        }
-        // And collect copies of the objects.
-        for (const PrintInstance& instance : object->instances()) {
-            // All the layers were reduced to the 1st item of polygons_per_layer.
-            size_t i = islands.size();
-            polygons_append(islands, polygons_per_layer.front());
-            for (; i < islands.size(); ++i)
-                islands[i].translate(instance.shift);
-        }
-    }
-    return islands;
-}
 
 // Create a rotation matrix for projection on the given vector
 static Matrix2d rotation_by_direction(const Point &direction)
@@ -274,16 +185,16 @@ static std::pair<Polygons, Polygons> split_expolygon(const ExPolygons &ex_polygo
     return std::make_pair(std::move(contours), std::move(holes));
 }
 
-static Polyline to_polyline(const std::vector<AvoidCrossingPerimeters2::TravelPoint> &travel)
+static Polyline to_polyline(const std::vector<AvoidCrossingPerimeters::TravelPoint> &travel)
 {
     Polyline result;
     result.points.reserve(travel.size());
-    for (const AvoidCrossingPerimeters2::TravelPoint &t_point : travel)
+    for (const AvoidCrossingPerimeters::TravelPoint &t_point : travel)
         result.append(t_point.point);
     return result;
 }
 
-static double travel_length(const std::vector<AvoidCrossingPerimeters2::TravelPoint> &travel) {
+static double travel_length(const std::vector<AvoidCrossingPerimeters::TravelPoint> &travel) {
     double total_length = 0;
     for (size_t idx = 1; idx < travel.size(); ++idx)
         total_length += (travel[idx].point - travel[idx - 1].point).cast<double>().norm();
@@ -292,11 +203,11 @@ static double travel_length(const std::vector<AvoidCrossingPerimeters2::TravelPo
 }
 
 #ifdef AVOID_CROSSING_PERIMETERS_DEBUG_OUTPUT
-static void export_travel_to_svg(const Polygons                                            &boundary,
-                                 const Line                                                &original_travel,
-                                 const Polyline                                            &result_travel,
-                                 const std::vector<AvoidCrossingPerimeters2::Intersection> &intersections,
-                                 const std::string                                         &path)
+static void export_travel_to_svg(const Polygons                                           &boundary,
+                                 const Line                                               &original_travel,
+                                 const Polyline                                           &result_travel,
+                                 const std::vector<AvoidCrossingPerimeters::Intersection> &intersections,
+                                 const std::string                                        &path)
 {
     BoundingBox   bbox = get_extents(boundary);
     ::Slic3r::SVG svg(path, bbox);
@@ -306,21 +217,21 @@ static void export_travel_to_svg(const Polygons                                 
     svg.draw(original_travel.a, "black");
     svg.draw(original_travel.b, "grey");
 
-    for (const AvoidCrossingPerimeters2::Intersection &intersection : intersections)
+    for (const AvoidCrossingPerimeters::Intersection &intersection : intersections)
         svg.draw(intersection.point, "lightseagreen");
 }
 
-static void export_travel_to_svg(const Polygons                                            &boundary,
-                                 const Line                                                &original_travel,
-                                 const std::vector<AvoidCrossingPerimeters2::TravelPoint>  &result_travel,
-                                 const std::vector<AvoidCrossingPerimeters2::Intersection> &intersections,
-                                 const std::string                                         &path)
+static void export_travel_to_svg(const Polygons                                           &boundary,
+                                 const Line                                               &original_travel,
+                                 const std::vector<AvoidCrossingPerimeters::TravelPoint>  &result_travel,
+                                 const std::vector<AvoidCrossingPerimeters::Intersection> &intersections,
+                                 const std::string                                        &path)
 {
     export_travel_to_svg(boundary, original_travel, to_polyline(result_travel), intersections, path);
 }
 #endif /* AVOID_CROSSING_PERIMETERS_DEBUG_OUTPUT */
 
-ExPolygons AvoidCrossingPerimeters2::get_boundary(const Layer &layer)
+ExPolygons AvoidCrossingPerimeters::get_boundary(const Layer &layer)
 {
     const float perimeter_spacing = get_perimeter_spacing(layer);
     const float perimeter_offset  = perimeter_spacing / 2.f;
@@ -380,7 +291,7 @@ ExPolygons AvoidCrossingPerimeters2::get_boundary(const Layer &layer)
     return result_boundary;
 }
 
-ExPolygons AvoidCrossingPerimeters2::get_boundary_external(const Layer &layer)
+ExPolygons AvoidCrossingPerimeters::get_boundary_external(const Layer &layer)
 {
     const float perimeter_spacing = get_perimeter_spacing_external(layer);
     const float perimeter_offset  = perimeter_spacing / 2.f;
@@ -417,11 +328,11 @@ ExPolygons AvoidCrossingPerimeters2::get_boundary_external(const Layer &layer)
 }
 
 // Returns a direction of the shortest path along the polygon boundary
-AvoidCrossingPerimeters2::Direction AvoidCrossingPerimeters2::get_shortest_direction(const Lines &lines,
-                                                                                     const size_t start_idx,
-                                                                                     const size_t end_idx,
-                                                                                     const Point &intersection_first,
-                                                                                     const Point &intersection_last)
+AvoidCrossingPerimeters::Direction AvoidCrossingPerimeters::get_shortest_direction(const Lines &lines,
+                                                                                   const size_t start_idx,
+                                                                                   const size_t end_idx,
+                                                                                   const Point &intersection_first,
+                                                                                   const Point &intersection_last)
 {
     double total_length_forward  = (lines[start_idx].b - intersection_first).cast<double>().norm();
     double total_length_backward = (lines[start_idx].a - intersection_first).cast<double>().norm();
@@ -447,10 +358,10 @@ AvoidCrossingPerimeters2::Direction AvoidCrossingPerimeters2::get_shortest_direc
     return (total_length_forward < total_length_backward) ? Direction::Forward : Direction::Backward;
 }
 
-std::vector<AvoidCrossingPerimeters2::TravelPoint> AvoidCrossingPerimeters2::simplify_travel(const EdgeGrid::Grid           &edge_grid,
-                                                                                             const std::vector<TravelPoint> &travel,
-                                                                                             const Polygons                 &boundaries,
-                                                                                             const bool                      use_heuristics)
+std::vector<AvoidCrossingPerimeters::TravelPoint> AvoidCrossingPerimeters::simplify_travel(const EdgeGrid::Grid           &edge_grid,
+                                                                                           const std::vector<TravelPoint> &travel,
+                                                                                           const Polygons                 &boundaries,
+                                                                                           const bool                      use_heuristics)
 {
     struct Visitor
     {
@@ -521,9 +432,9 @@ std::vector<AvoidCrossingPerimeters2::TravelPoint> AvoidCrossingPerimeters2::sim
     return simplified_path;
 }
 
-std::vector<AvoidCrossingPerimeters2::TravelPoint> AvoidCrossingPerimeters2::simplify_travel_heuristics(const EdgeGrid::Grid           &edge_grid,
-                                                                                                        const std::vector<TravelPoint> &travel,
-                                                                                                        const Polygons                 &boundaries)
+std::vector<AvoidCrossingPerimeters::TravelPoint> AvoidCrossingPerimeters::simplify_travel_heuristics(const EdgeGrid::Grid           &edge_grid,
+                                                                                                      const std::vector<TravelPoint> &travel,
+                                                                                                      const Polygons                 &boundaries)
 {
     std::vector<TravelPoint>  simplified_path;
     std::vector<Intersection> intersections;
@@ -600,12 +511,12 @@ std::vector<AvoidCrossingPerimeters2::TravelPoint> AvoidCrossingPerimeters2::sim
     return simplified_path;
 }
 
-size_t AvoidCrossingPerimeters2::avoid_perimeters(const Polygons           &boundaries,
-                                                  const EdgeGrid::Grid     &edge_grid,
-                                                  const Point              &start,
-                                                  const Point              &end,
-                                                  const bool                use_heuristics,
-                                                  std::vector<TravelPoint> *result_out)
+size_t AvoidCrossingPerimeters::avoid_perimeters(const Polygons           &boundaries,
+                                                 const EdgeGrid::Grid     &edge_grid,
+                                                 const Point              &start,
+                                                 const Point              &end,
+                                                 const bool                use_heuristics,
+                                                 std::vector<TravelPoint> *result_out)
 {
     const Point direction           = end - start;
     Matrix2d    transform_to_x_axis = rotation_by_direction(direction);
@@ -697,10 +608,10 @@ size_t AvoidCrossingPerimeters2::avoid_perimeters(const Polygons           &boun
     return intersections.size();
 }
 
-bool AvoidCrossingPerimeters2::need_wipe(const GCode &   gcodegen,
-                                          const Line &    original_travel,
-                                          const Polyline &result_travel,
-                                          const size_t    intersection_count)
+bool AvoidCrossingPerimeters::need_wipe(const GCode &   gcodegen,
+                                        const Line &    original_travel,
+                                        const Polyline &result_travel,
+                                        const size_t    intersection_count)
 {
     bool z_lift_enabled = gcodegen.config().retract_lift.get_at(gcodegen.writer().extruder()->id()) > 0.;
     bool wipe_needed    = false;
@@ -731,7 +642,7 @@ bool AvoidCrossingPerimeters2::need_wipe(const GCode &   gcodegen,
 }
 
 // Plan travel, which avoids perimeter crossings by following the boundaries of the layer.
-Polyline AvoidCrossingPerimeters2::travel_to(const GCode &gcodegen, const Point &point, bool *could_be_wipe_disabled)
+Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &point, bool *could_be_wipe_disabled)
 {
     // If use_external, then perform the path planning in the world coordinate system (correcting for the gcodegen offset).
     // Otherwise perform the path planning in the coordinate system of the active object.
@@ -772,7 +683,7 @@ Polyline AvoidCrossingPerimeters2::travel_to(const GCode &gcodegen, const Point 
     return result_pl;
 }
 
-void AvoidCrossingPerimeters2::init_layer(const Layer &layer)
+void AvoidCrossingPerimeters::init_layer(const Layer &layer)
 {
     m_slice.clear();
     m_boundaries.clear();

@@ -13,7 +13,6 @@ namespace Slic3r {
 // Forward declarations.
 class GCode;
 class Layer;
-class MotionPlanner;
 class Point;
 class Print;
 class PrintObject;
@@ -22,44 +21,6 @@ struct PrintInstance;
 using PrintObjectPtrs = std::vector<PrintObject *>;
 
 class AvoidCrossingPerimeters
-{
-public:
-    // this flag triggers the use of the external configuration space
-    bool use_external_mp;
-    bool use_external_mp_once; // just for the next travel move
-
-    // this flag disables avoid_crossing_perimeters just for the next travel move
-    // we enable it by default for the first travel move in print
-    bool disable_once;
-
-    AvoidCrossingPerimeters() : use_external_mp(false), use_external_mp_once(false), disable_once(true) {}
-    virtual ~AvoidCrossingPerimeters() = default;
-
-    void reset()
-    {
-        m_external_mp.reset();
-        m_layer_mp.reset();
-    }
-    virtual void init_external_mp(const Print &print);
-    virtual void init_layer_mp(const ExPolygons &islands) { m_layer_mp = Slic3r::make_unique<MotionPlanner>(islands); }
-
-    virtual Polyline travel_to(const GCode &gcodegen, const Point &point);
-
-    virtual Polyline travel_to(const GCode &gcodegen, const Point &point, bool *could_be_wipe_disabled)
-    {
-        *could_be_wipe_disabled = true;
-        return this->travel_to(gcodegen, point);
-    }
-
-protected:
-    // For initializing the regions to avoid.
-    static Polygons collect_contours_all_layers(const PrintObjectPtrs &objects);
-
-    std::unique_ptr<MotionPlanner> m_external_mp;
-    std::unique_ptr<MotionPlanner> m_layer_mp;
-};
-
-class AvoidCrossingPerimeters2 : public AvoidCrossingPerimeters
 {
 public:
     struct Intersection
@@ -88,14 +49,14 @@ public:
 
     struct AllIntersectionsVisitor
     {
-        AllIntersectionsVisitor(const EdgeGrid::Grid &grid, std::vector<AvoidCrossingPerimeters2::Intersection> &intersections)
+        AllIntersectionsVisitor(const EdgeGrid::Grid &grid, std::vector<AvoidCrossingPerimeters::Intersection> &intersections)
             : grid(grid), intersections(intersections)
         {}
 
-        AllIntersectionsVisitor(const EdgeGrid::Grid                                &grid,
-                                std::vector<AvoidCrossingPerimeters2::Intersection> &intersections,
-                                const Matrix2d                                      &transform_to_x_axis,
-                                const Line                                          &travel_line)
+        AllIntersectionsVisitor(const EdgeGrid::Grid                               &grid,
+                                std::vector<AvoidCrossingPerimeters::Intersection> &intersections,
+                                const Matrix2d                                     &transform_to_x_axis,
+                                const Line                                         &travel_line)
             : grid(grid), intersections(intersections), transform_to_x_axis(transform_to_x_axis), travel_line(travel_line)
         {}
 
@@ -125,7 +86,7 @@ public:
         }
 
         const EdgeGrid::Grid                                                                 &grid;
-        std::vector<AvoidCrossingPerimeters2::Intersection>                                  &intersections;
+        std::vector<AvoidCrossingPerimeters::Intersection>                                   &intersections;
         Matrix2d                                                                              transform_to_x_axis;
         Line                                                                                  travel_line;
         std::unordered_set<std::pair<size_t, size_t>, boost::hash<std::pair<size_t, size_t>>> intersection_set;
@@ -141,14 +102,14 @@ private:
     static Direction get_shortest_direction(
         const Lines &lines, const size_t start_idx, const size_t end_idx, const Point &intersection_first, const Point &intersection_last);
 
-    static std::vector<AvoidCrossingPerimeters2::TravelPoint> simplify_travel(const EdgeGrid::Grid           &edge_grid,
-                                                                              const std::vector<TravelPoint> &travel,
-                                                                              const Polygons                 &boundaries,
-                                                                              const bool                      use_heuristics);
+    static std::vector<AvoidCrossingPerimeters::TravelPoint> simplify_travel(const EdgeGrid::Grid           &edge_grid,
+                                                                             const std::vector<TravelPoint> &travel,
+                                                                             const Polygons                 &boundaries,
+                                                                             const bool                      use_heuristics);
 
-    static std::vector<AvoidCrossingPerimeters2::TravelPoint> simplify_travel_heuristics(const EdgeGrid::Grid           &edge_grid,
-                                                                                         const std::vector<TravelPoint> &travel,
-                                                                                         const Polygons                 &boundaries);
+    static std::vector<AvoidCrossingPerimeters::TravelPoint> simplify_travel_heuristics(const EdgeGrid::Grid           &edge_grid,
+                                                                                        const std::vector<TravelPoint> &travel,
+                                                                                        const Polygons                 &boundaries);
 
     static size_t avoid_perimeters(const Polygons           &boundaries,
                                    const EdgeGrid::Grid     &grid,
@@ -173,24 +134,27 @@ private:
     EdgeGrid::Grid m_grid_external;
 
 public:
-    AvoidCrossingPerimeters2() : AvoidCrossingPerimeters() {}
+    // this flag triggers the use of the external configuration space
+    bool           use_external_mp { false };
+    // just for the next travel move
+    bool           use_external_mp_once { false };
+    // this flag disables avoid_crossing_perimeters just for the next travel move
+    // we enable it by default for the first travel move in print
+    bool           disable_once { true };
 
-    virtual ~AvoidCrossingPerimeters2() = default;
+    AvoidCrossingPerimeters() = default;
 
-    // Used for disabling unnecessary calling collect_contours_all_layers
-    virtual void init_external_mp(const Print &print) override {};
-    virtual void init_layer_mp(const ExPolygons &islands) override {};
-
-    virtual Polyline travel_to(const GCode &gcodegen, const Point &point) override
+    Polyline travel_to(const GCode& gcodegen, const Point& point)
     {
         bool could_be_wipe_disabled;
         return this->travel_to(gcodegen, point, &could_be_wipe_disabled);
     }
 
-    virtual Polyline travel_to(const GCode &gcodegen, const Point &point, bool *could_be_wipe_disabled) override;
+    Polyline travel_to(const GCode& gcodegen, const Point& point, bool* could_be_wipe_disabled);
 
     void init_layer(const Layer &layer);
 };
+
 } // namespace Slic3r
 
 #endif // slic3r_AvoidCrossingPerimeters_hpp_
