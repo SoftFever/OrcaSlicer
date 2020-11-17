@@ -42,7 +42,8 @@ public:
     operator Polylines() const;
     void clear() { contour.points.clear(); holes.clear(); }
     void scale(double factor);
-    void translate(double x, double y);
+    void translate(double x, double y) { this->translate(Point(coord_t(x), coord_t(y))); }
+    void translate(const Point &vector);
     void rotate(double angle);
     void rotate(double angle, const Point &center);
     double area() const;

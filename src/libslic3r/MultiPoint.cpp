@@ -18,13 +18,6 @@ void MultiPoint::scale(double factor_x, double factor_y)
     }
 }
 
-void MultiPoint::translate(double x, double y)
-{
-    Vector v(x, y);
-    for (Point &pt : points)
-        pt += v;
-}
-
 void MultiPoint::translate(const Point &v)
 {
     for (Point &pt : points)

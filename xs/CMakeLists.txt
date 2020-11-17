@@ -62,7 +62,6 @@ set(XS_XSP_FILES
     ${XSP_DIR}/Layer.xsp
     ${XSP_DIR}/Line.xsp
     ${XSP_DIR}/Model.xsp
-    ${XSP_DIR}/MotionPlanner.xsp
     ${XSP_DIR}/PerimeterGenerator.xsp
     ${XSP_DIR}/PlaceholderParser.xsp
     ${XSP_DIR}/Point.xsp
