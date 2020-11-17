@@ -1,8 +1,6 @@
 #include "../Layer.hpp"
 #include "../GCode.hpp"
 #include "../EdgeGrid.hpp"
-#include "../Geometry.hpp"
-#include "../ShortestPath.hpp"
 #include "../Print.hpp"
 #include "../Polygon.hpp"
 #include "../ExPolygon.hpp"
@@ -10,14 +8,79 @@
 #include "../SVG.hpp"
 #include "AvoidCrossingPerimeters.hpp"
 
-#include <memory>
 #include <numeric>
 #include <unordered_set>
 
-#include <tbb/parallel_for.h>
-#include <boost/log/trivial.hpp>
-
 namespace Slic3r {
+
+struct TravelPoint
+{
+    Point point;
+    // Index of the polygon containing this point. A negative value indicates that the point is not on any border
+    int   border_idx;
+};
+
+struct Intersection
+{
+    // Index of the polygon containing this point of intersection.
+    size_t border_idx;
+    // Index of the line on the polygon containing this point of intersection.
+    size_t line_idx;
+    // Point of intersection projected on the travel path.
+    Point  point_transformed;
+    // Point of intersection.
+    Point  point;
+
+    Intersection(size_t border_idx, size_t line_idx, const Point &point_transformed, const Point &point)
+        : border_idx(border_idx), line_idx(line_idx), point_transformed(point_transformed), point(point){};
+
+    inline bool operator<(const Intersection &other) const { return this->point_transformed.x() < other.point_transformed.x(); }
+};
+
+struct AllIntersectionsVisitor
+{
+    AllIntersectionsVisitor(const EdgeGrid::Grid &grid, std::vector<Intersection> &intersections)
+        : grid(grid), intersections(intersections)
+    {}
+
+    AllIntersectionsVisitor(const EdgeGrid::Grid      &grid,
+                            std::vector<Intersection> &intersections,
+                            const Matrix2d            &transform_to_x_axis,
+                            const Line                &travel_line)
+        : grid(grid), intersections(intersections), transform_to_x_axis(transform_to_x_axis), travel_line(travel_line)
+    {}
+
+    void reset() {
+        intersection_set.clear();
+    }
+
+    bool operator()(coord_t iy, coord_t ix)
+    {
+        // Called with a row and colum of the grid cell, which is intersected by a line.
+        auto cell_data_range = grid.cell_data_range(iy, ix);
+        for (auto it_contour_and_segment = cell_data_range.first; it_contour_and_segment != cell_data_range.second;
+             ++it_contour_and_segment) {
+            // End points of the line segment and their vector.
+            auto segment = grid.segment(*it_contour_and_segment);
+
+            Point intersection_point;
+            if (travel_line.intersection(Line(segment.first, segment.second), &intersection_point) &&
+                intersection_set.find(*it_contour_and_segment) == intersection_set.end()) {
+                intersections.emplace_back(it_contour_and_segment->first, it_contour_and_segment->second,
+                                           (transform_to_x_axis * intersection_point.cast<double>()).cast<coord_t>(), intersection_point);
+                intersection_set.insert(*it_contour_and_segment);
+            }
+        }
+        // Continue traversing the grid along the edge.
+        return true;
+    }
+
+    const EdgeGrid::Grid                                                                 &grid;
+    std::vector<Intersection>                                                            &intersections;
+    Matrix2d                                                                              transform_to_x_axis;
+    Line                                                                                  travel_line;
+    std::unordered_set<std::pair<size_t, size_t>, boost::hash<std::pair<size_t, size_t>>> intersection_set;
+};
 
 // Create a rotation matrix for projection on the given vector
 static Matrix2d rotation_by_direction(const Point &direction)
@@ -185,16 +248,16 @@ static std::pair<Polygons, Polygons> split_expolygon(const ExPolygons &ex_polygo
     return std::make_pair(std::move(contours), std::move(holes));
 }
 
-static Polyline to_polyline(const std::vector<AvoidCrossingPerimeters::TravelPoint> &travel)
+static Polyline to_polyline(const std::vector<TravelPoint> &travel)
 {
     Polyline result;
     result.points.reserve(travel.size());
-    for (const AvoidCrossingPerimeters::TravelPoint &t_point : travel)
+    for (const TravelPoint &t_point : travel)
         result.append(t_point.point);
     return result;
 }
 
-static double travel_length(const std::vector<AvoidCrossingPerimeters::TravelPoint> &travel) {
+static double travel_length(const std::vector<TravelPoint> &travel) {
     double total_length = 0;
     for (size_t idx = 1; idx < travel.size(); ++idx)
         total_length += (travel[idx].point - travel[idx - 1].point).cast<double>().norm();
@@ -203,11 +266,11 @@ static double travel_length(const std::vector<AvoidCrossingPerimeters::TravelPoi
 }
 
 #ifdef AVOID_CROSSING_PERIMETERS_DEBUG_OUTPUT
-static void export_travel_to_svg(const Polygons                                           &boundary,
-                                 const Line                                               &original_travel,
-                                 const Polyline                                           &result_travel,
-                                 const std::vector<AvoidCrossingPerimeters::Intersection> &intersections,
-                                 const std::string                                        &path)
+static void export_travel_to_svg(const Polygons                  &boundary,
+                                 const Line                      &original_travel,
+                                 const Polyline                  &result_travel,
+                                 const std::vector<Intersection> &intersections,
+                                 const std::string               &path)
 {
     BoundingBox   bbox = get_extents(boundary);
     ::Slic3r::SVG svg(path, bbox);
@@ -217,21 +280,21 @@ static void export_travel_to_svg(const Polygons                                 
     svg.draw(original_travel.a, "black");
     svg.draw(original_travel.b, "grey");
 
-    for (const AvoidCrossingPerimeters::Intersection &intersection : intersections)
+    for (const Intersection &intersection : intersections)
         svg.draw(intersection.point, "lightseagreen");
 }
 
-static void export_travel_to_svg(const Polygons                                           &boundary,
-                                 const Line                                               &original_travel,
-                                 const std::vector<AvoidCrossingPerimeters::TravelPoint>  &result_travel,
-                                 const std::vector<AvoidCrossingPerimeters::Intersection> &intersections,
-                                 const std::string                                        &path)
+static void export_travel_to_svg(const Polygons                  &boundary,
+                                 const Line                      &original_travel,
+                                 const std::vector<TravelPoint>  &result_travel,
+                                 const std::vector<Intersection> &intersections,
+                                 const std::string               &path)
 {
     export_travel_to_svg(boundary, original_travel, to_polyline(result_travel), intersections, path);
 }
 #endif /* AVOID_CROSSING_PERIMETERS_DEBUG_OUTPUT */
 
-ExPolygons AvoidCrossingPerimeters::get_boundary(const Layer &layer)
+static ExPolygons get_boundary(const Layer &layer)
 {
     const float perimeter_spacing = get_perimeter_spacing(layer);
     const float perimeter_offset  = perimeter_spacing / 2.f;
@@ -291,7 +354,7 @@ ExPolygons AvoidCrossingPerimeters::get_boundary(const Layer &layer)
     return result_boundary;
 }
 
-ExPolygons AvoidCrossingPerimeters::get_boundary_external(const Layer &layer)
+static ExPolygons get_boundary_external(const Layer &layer)
 {
     const float perimeter_spacing = get_perimeter_spacing_external(layer);
     const float perimeter_offset  = perimeter_spacing / 2.f;
@@ -328,11 +391,12 @@ ExPolygons AvoidCrossingPerimeters::get_boundary_external(const Layer &layer)
 }
 
 // Returns a direction of the shortest path along the polygon boundary
-AvoidCrossingPerimeters::Direction AvoidCrossingPerimeters::get_shortest_direction(const Lines &lines,
-                                                                                   const size_t start_idx,
-                                                                                   const size_t end_idx,
-                                                                                   const Point &intersection_first,
-                                                                                   const Point &intersection_last)
+enum class Direction { Forward, Backward };
+static Direction get_shortest_direction(const Lines &lines,
+                                        const size_t start_idx,
+                                        const size_t end_idx,
+                                        const Point &intersection_first,
+                                        const Point &intersection_last)
 {
     double total_length_forward  = (lines[start_idx].b - intersection_first).cast<double>().norm();
     double total_length_backward = (lines[start_idx].a - intersection_first).cast<double>().norm();
@@ -358,165 +422,14 @@ AvoidCrossingPerimeters::Direction AvoidCrossingPerimeters::get_shortest_directi
     return (total_length_forward < total_length_backward) ? Direction::Forward : Direction::Backward;
 }
 
-std::vector<AvoidCrossingPerimeters::TravelPoint> AvoidCrossingPerimeters::simplify_travel(const EdgeGrid::Grid           &edge_grid,
-                                                                                           const std::vector<TravelPoint> &travel,
-                                                                                           const Polygons                 &boundaries,
-                                                                                           const bool                      use_heuristics)
-{
-    struct Visitor
-    {
-        Visitor(const EdgeGrid::Grid &grid) : grid(grid) {}
+static std::vector<TravelPoint> simplify_travel(const EdgeGrid::Grid& edge_grid, const std::vector<TravelPoint>& travel, const Polygons& boundaries, const bool use_heuristics);
 
-        bool operator()(coord_t iy, coord_t ix)
-        {
-            assert(pt_current != nullptr);
-            assert(pt_next != nullptr);
-            // Called with a row and colum of the grid cell, which is intersected by a line.
-            auto cell_data_range = grid.cell_data_range(iy, ix);
-            this->intersect      = false;
-            for (auto it_contour_and_segment = cell_data_range.first; it_contour_and_segment != cell_data_range.second; ++it_contour_and_segment) {
-                // End points of the line segment and their vector.
-                auto segment = grid.segment(*it_contour_and_segment);
-                if (Geometry::segments_intersect(segment.first, segment.second, *pt_current, *pt_next)) {
-                    this->intersect = true;
-                    return false;
-                }
-            }
-            // Continue traversing the grid along the edge.
-            return true;
-        }
-
-        const EdgeGrid::Grid &grid;
-        const Slic3r::Point  *pt_current = nullptr;
-        const Slic3r::Point  *pt_next    = nullptr;
-        bool                  intersect  = false;
-    } visitor(edge_grid);
-
-    std::vector<TravelPoint> simplified_path;
-    simplified_path.reserve(travel.size());
-    simplified_path.emplace_back(travel.front());
-
-    // Try to skip some points in the path.
-    for (size_t point_idx = 1; point_idx < travel.size(); ++point_idx) {
-        const Point &current_point = travel[point_idx - 1].point;
-        TravelPoint  next          = travel[point_idx];
-
-        visitor.pt_current = &current_point;
-
-        for (size_t point_idx_2 = point_idx + 1; point_idx_2 < travel.size(); ++point_idx_2) {
-            if (travel[point_idx_2].point == current_point) {
-                next      = travel[point_idx_2];
-                point_idx = point_idx_2;
-                continue;
-            }
-
-            visitor.pt_next = &travel[point_idx_2].point;
-            edge_grid.visit_cells_intersecting_line(*visitor.pt_current, *visitor.pt_next, visitor);
-            // Check if deleting point causes crossing a boundary
-            if (!visitor.intersect) {
-                next      = travel[point_idx_2];
-                point_idx = point_idx_2;
-            }
-        }
-
-        simplified_path.emplace_back(next);
-    }
-
-    if(use_heuristics) {
-        simplified_path = simplify_travel_heuristics(edge_grid, simplified_path, boundaries);
-        std::reverse(simplified_path.begin(),simplified_path.end());
-        simplified_path = simplify_travel_heuristics(edge_grid, simplified_path, boundaries);
-        std::reverse(simplified_path.begin(),simplified_path.end());
-    }
-
-    return simplified_path;
-}
-
-std::vector<AvoidCrossingPerimeters::TravelPoint> AvoidCrossingPerimeters::simplify_travel_heuristics(const EdgeGrid::Grid           &edge_grid,
-                                                                                                      const std::vector<TravelPoint> &travel,
-                                                                                                      const Polygons                 &boundaries)
-{
-    std::vector<TravelPoint>  simplified_path;
-    std::vector<Intersection> intersections;
-    AllIntersectionsVisitor   visitor(edge_grid, intersections);
-    simplified_path.reserve(travel.size());
-    simplified_path.emplace_back(travel.front());
-    for (size_t point_idx = 1; point_idx < travel.size(); ++point_idx) {
-        // Skip all indexes on the same polygon
-        while (point_idx < travel.size() && travel[point_idx - 1].border_idx == travel[point_idx].border_idx) {
-            simplified_path.emplace_back(travel[point_idx]);
-            point_idx++;
-        }
-
-        if (point_idx < travel.size()) {
-            const TravelPoint       &current                 = travel[point_idx - 1];
-            const TravelPoint       &next                    = travel[point_idx];
-            TravelPoint              new_next                = next;
-            size_t                   new_point_idx           = point_idx;
-            double                   path_length             = (next.point - current.point).cast<double>().norm();
-            double                   new_path_shorter_by     = 0.;
-            size_t                   border_idx_change_count = 0;
-            std::vector<TravelPoint> shortcut;
-            for (size_t point_idx_2 = point_idx + 1; point_idx_2 < travel.size(); ++point_idx_2) {
-                const TravelPoint &possible_new_next = travel[point_idx_2];
-                if (travel[point_idx_2 - 1].border_idx != travel[point_idx_2].border_idx)
-                    border_idx_change_count++;
-
-                if (border_idx_change_count >= 2)
-                    break;
-
-                path_length += (possible_new_next.point - travel[point_idx_2 - 1].point).cast<double>().norm();
-                double shortcut_length = (possible_new_next.point - current.point).cast<double>().norm();
-                if ((path_length - shortcut_length) <= scale_(10.0))
-                    continue;
-
-                intersections.clear();
-                visitor.reset();
-                visitor.travel_line.a       = current.point;
-                visitor.travel_line.b       = possible_new_next.point;
-                visitor.transform_to_x_axis = rotation_by_direction(visitor.travel_line.vector());
-                edge_grid.visit_cells_intersecting_line(visitor.travel_line.a, visitor.travel_line.b, visitor);
-                if (!intersections.empty()) {
-                    std::sort(intersections.begin(), intersections.end());
-                    size_t last_border_idx_count = 0;
-                    for (const Intersection &intersection : intersections)
-                        if (int(intersection.border_idx) == possible_new_next.border_idx)
-                            ++last_border_idx_count;
-
-                    if (last_border_idx_count > 0)
-                        continue;
-
-                    std::vector<TravelPoint> possible_shortcut;
-                    avoid_perimeters(boundaries, edge_grid, current.point, possible_new_next.point, false, &possible_shortcut);
-                    double shortcut_travel = travel_length(possible_shortcut);
-                    if (path_length > shortcut_travel && (path_length - shortcut_travel) > new_path_shorter_by) {
-                        new_path_shorter_by = path_length - shortcut_travel;
-                        shortcut            = possible_shortcut;
-                        new_next            = possible_new_next;
-                        new_point_idx       = point_idx_2;
-                    }
-                }
-            }
-
-            if (!shortcut.empty()) {
-                assert(shortcut.size() >= 2);
-                simplified_path.insert(simplified_path.end(), shortcut.begin() + 1, shortcut.end() - 1);
-                point_idx = new_point_idx;
-            }
-
-            simplified_path.emplace_back(new_next);
-        }
-    }
-
-    return simplified_path;
-}
-
-size_t AvoidCrossingPerimeters::avoid_perimeters(const Polygons           &boundaries,
-                                                 const EdgeGrid::Grid     &edge_grid,
-                                                 const Point              &start,
-                                                 const Point              &end,
-                                                 const bool                use_heuristics,
-                                                 std::vector<TravelPoint> *result_out)
+static size_t avoid_perimeters(const Polygons           &boundaries,
+                               const EdgeGrid::Grid     &edge_grid,
+                               const Point              &start,
+                               const Point              &end,
+                               const bool                use_heuristics,
+                               std::vector<TravelPoint> *result_out)
 {
     const Point direction           = end - start;
     Matrix2d    transform_to_x_axis = rotation_by_direction(direction);
@@ -608,10 +521,164 @@ size_t AvoidCrossingPerimeters::avoid_perimeters(const Polygons           &bound
     return intersections.size();
 }
 
-bool AvoidCrossingPerimeters::need_wipe(const GCode &   gcodegen,
-                                        const Line &    original_travel,
-                                        const Polyline &result_travel,
-                                        const size_t    intersection_count)
+static std::vector<TravelPoint> simplify_travel_heuristics(const EdgeGrid::Grid           &edge_grid,
+                                                           const std::vector<TravelPoint> &travel,
+                                                           const Polygons                 &boundaries)
+{
+    std::vector<TravelPoint>  simplified_path;
+    std::vector<Intersection> intersections;
+    AllIntersectionsVisitor   visitor(edge_grid, intersections);
+    simplified_path.reserve(travel.size());
+    simplified_path.emplace_back(travel.front());
+    for (size_t point_idx = 1; point_idx < travel.size(); ++point_idx) {
+        // Skip all indexes on the same polygon
+        while (point_idx < travel.size() && travel[point_idx - 1].border_idx == travel[point_idx].border_idx) {
+            simplified_path.emplace_back(travel[point_idx]);
+            point_idx++;
+        }
+
+        if (point_idx < travel.size()) {
+            const TravelPoint       &current                 = travel[point_idx - 1];
+            const TravelPoint       &next                    = travel[point_idx];
+            TravelPoint              new_next                = next;
+            size_t                   new_point_idx           = point_idx;
+            double                   path_length             = (next.point - current.point).cast<double>().norm();
+            double                   new_path_shorter_by     = 0.;
+            size_t                   border_idx_change_count = 0;
+            std::vector<TravelPoint> shortcut;
+            for (size_t point_idx_2 = point_idx + 1; point_idx_2 < travel.size(); ++point_idx_2) {
+                const TravelPoint &possible_new_next = travel[point_idx_2];
+                if (travel[point_idx_2 - 1].border_idx != travel[point_idx_2].border_idx)
+                    border_idx_change_count++;
+
+                if (border_idx_change_count >= 2)
+                    break;
+
+                path_length += (possible_new_next.point - travel[point_idx_2 - 1].point).cast<double>().norm();
+                double shortcut_length = (possible_new_next.point - current.point).cast<double>().norm();
+                if ((path_length - shortcut_length) <= scale_(10.0))
+                    continue;
+
+                intersections.clear();
+                visitor.reset();
+                visitor.travel_line.a       = current.point;
+                visitor.travel_line.b       = possible_new_next.point;
+                visitor.transform_to_x_axis = rotation_by_direction(visitor.travel_line.vector());
+                edge_grid.visit_cells_intersecting_line(visitor.travel_line.a, visitor.travel_line.b, visitor);
+                if (!intersections.empty()) {
+                    std::sort(intersections.begin(), intersections.end());
+                    size_t last_border_idx_count = 0;
+                    for (const Intersection &intersection : intersections)
+                        if (int(intersection.border_idx) == possible_new_next.border_idx)
+                            ++last_border_idx_count;
+
+                    if (last_border_idx_count > 0)
+                        continue;
+
+                    std::vector<TravelPoint> possible_shortcut;
+                    avoid_perimeters(boundaries, edge_grid, current.point, possible_new_next.point, false, &possible_shortcut);
+                    double shortcut_travel = travel_length(possible_shortcut);
+                    if (path_length > shortcut_travel && (path_length - shortcut_travel) > new_path_shorter_by) {
+                        new_path_shorter_by = path_length - shortcut_travel;
+                        shortcut            = possible_shortcut;
+                        new_next            = possible_new_next;
+                        new_point_idx       = point_idx_2;
+                    }
+                }
+            }
+
+            if (!shortcut.empty()) {
+                assert(shortcut.size() >= 2);
+                simplified_path.insert(simplified_path.end(), shortcut.begin() + 1, shortcut.end() - 1);
+                point_idx = new_point_idx;
+            }
+
+            simplified_path.emplace_back(new_next);
+        }
+    }
+
+    return simplified_path;
+}
+
+static std::vector<TravelPoint> simplify_travel(const EdgeGrid::Grid           &edge_grid,
+                                                const std::vector<TravelPoint> &travel,
+                                                const Polygons                 &boundaries,
+                                                const bool                      use_heuristics)
+{
+    struct Visitor
+    {
+        Visitor(const EdgeGrid::Grid &grid) : grid(grid) {}
+
+        bool operator()(coord_t iy, coord_t ix)
+        {
+            assert(pt_current != nullptr);
+            assert(pt_next != nullptr);
+            // Called with a row and colum of the grid cell, which is intersected by a line.
+            auto cell_data_range = grid.cell_data_range(iy, ix);
+            this->intersect      = false;
+            for (auto it_contour_and_segment = cell_data_range.first; it_contour_and_segment != cell_data_range.second; ++it_contour_and_segment) {
+                // End points of the line segment and their vector.
+                auto segment = grid.segment(*it_contour_and_segment);
+                if (Geometry::segments_intersect(segment.first, segment.second, *pt_current, *pt_next)) {
+                    this->intersect = true;
+                    return false;
+                }
+            }
+            // Continue traversing the grid along the edge.
+            return true;
+        }
+
+        const EdgeGrid::Grid &grid;
+        const Slic3r::Point  *pt_current = nullptr;
+        const Slic3r::Point  *pt_next    = nullptr;
+        bool                  intersect  = false;
+    } visitor(edge_grid);
+
+    std::vector<TravelPoint> simplified_path;
+    simplified_path.reserve(travel.size());
+    simplified_path.emplace_back(travel.front());
+
+    // Try to skip some points in the path.
+    for (size_t point_idx = 1; point_idx < travel.size(); ++point_idx) {
+        const Point &current_point = travel[point_idx - 1].point;
+        TravelPoint  next          = travel[point_idx];
+
+        visitor.pt_current = &current_point;
+
+        for (size_t point_idx_2 = point_idx + 1; point_idx_2 < travel.size(); ++point_idx_2) {
+            if (travel[point_idx_2].point == current_point) {
+                next      = travel[point_idx_2];
+                point_idx = point_idx_2;
+                continue;
+            }
+
+            visitor.pt_next = &travel[point_idx_2].point;
+            edge_grid.visit_cells_intersecting_line(*visitor.pt_current, *visitor.pt_next, visitor);
+            // Check if deleting point causes crossing a boundary
+            if (!visitor.intersect) {
+                next      = travel[point_idx_2];
+                point_idx = point_idx_2;
+            }
+        }
+
+        simplified_path.emplace_back(next);
+    }
+
+    if(use_heuristics) {
+        simplified_path = simplify_travel_heuristics(edge_grid, simplified_path, boundaries);
+        std::reverse(simplified_path.begin(),simplified_path.end());
+        simplified_path = simplify_travel_heuristics(edge_grid, simplified_path, boundaries);
+        std::reverse(simplified_path.begin(),simplified_path.end());
+    }
+
+    return simplified_path;
+}
+
+static bool need_wipe(const GCode      &gcodegen,
+                      const ExPolygons &slice,
+                      const Line       &original_travel,
+                      const Polyline   &result_travel,
+                      const size_t      intersection_count)
 {
     bool z_lift_enabled = gcodegen.config().retract_lift.get_at(gcodegen.writer().extruder()->id()) > 0.;
     bool wipe_needed    = false;
@@ -622,19 +689,19 @@ bool AvoidCrossingPerimeters::need_wipe(const GCode &   gcodegen,
         // The original layer is intersected with defined boundaries. Then it is necessary to make a detailed test.
         // If the z-lift is enabled, then a wipe is needed when the original travel leads above the holes.
         if (z_lift_enabled) {
-            if (any_expolygon_contains(m_slice, original_travel)) {
+            if (any_expolygon_contains(slice, original_travel)) {
                 // Check if original_travel and result_travel are not same.
                 // If both are the same, then it is possible to skip testing of result_travel
                 if (result_travel.size() == 2 && result_travel.first_point() == original_travel.a && result_travel.last_point() == original_travel.b) {
                     wipe_needed = false;
                 } else {
-                    wipe_needed = !any_expolygon_contains(m_slice, result_travel);
+                    wipe_needed = !any_expolygon_contains(slice, result_travel);
                 }
             } else {
                 wipe_needed = true;
             }
         } else {
-            wipe_needed = !any_expolygon_contains(m_slice, result_travel);
+            wipe_needed = !any_expolygon_contains(slice, result_travel);
         }
     }
 
@@ -646,7 +713,7 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
 {
     // If use_external, then perform the path planning in the world coordinate system (correcting for the gcodegen offset).
     // Otherwise perform the path planning in the coordinate system of the active object.
-    bool     use_external  = this->use_external_mp || this->use_external_mp_once;
+    bool     use_external  = m_use_external_mp || m_use_external_mp_once;
     Point    scaled_origin = use_external ? Point::new_scale(gcodegen.origin()(0), gcodegen.origin()(1)) : Point(0, 0);
     Point    start         = gcodegen.last_pos() + scaled_origin;
     Point    end           = point + scaled_origin;
@@ -659,9 +726,9 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
         std::vector<TravelPoint> result;
         auto [start_clamped, end_clamped] = clamp_endpoints_by_bounding_box(use_external ? m_bbox_external : m_bbox, start, end);
         if (use_external)
-            travel_intersection_count = this->avoid_perimeters(m_boundaries_external, m_grid_external, start_clamped, end_clamped, true, &result);
+            travel_intersection_count = avoid_perimeters(m_boundaries_external, m_grid_external, start_clamped, end_clamped, true, &result);
         else
-            travel_intersection_count = this->avoid_perimeters(m_boundaries, m_grid, start_clamped, end_clamped, true, &result);
+            travel_intersection_count = avoid_perimeters(m_boundaries, m_grid, start_clamped, end_clamped, true, &result);
 
         result_pl = to_polyline(result);
     }
@@ -678,7 +745,7 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
         result_pl.translate(-scaled_origin);
         *could_be_wipe_disabled = false;
     } else
-        *could_be_wipe_disabled = !need_wipe(gcodegen, travel, result_pl, travel_intersection_count);
+        *could_be_wipe_disabled = !need_wipe(gcodegen, m_slice, travel, result_pl, travel_intersection_count);
 
     return result_pl;
 }
