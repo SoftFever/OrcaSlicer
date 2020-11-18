@@ -2909,11 +2909,22 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         return;
     }
 
-    if ((keyCode == WXK_ESCAPE) && (_deactivate_undo_redo_toolbar_items() || _deactivate_search_toolbar_item()))
+    if (keyCode == WXK_ESCAPE && (_deactivate_undo_redo_toolbar_items() || _deactivate_search_toolbar_item()))
         return;
 
     if (m_gizmos.on_char(evt))
         return;
+
+    auto action_plus = [this](wxKeyEvent& evt) {
+        if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
+            post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt));
+        else
+            post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1));
+    };
+
+    auto action_a = [this]() {
+        post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE));
+    };
 
 //#ifdef __APPLE__
 //    ctrlMask |= wxMOD_RAW_CONTROL;
@@ -3002,8 +3013,11 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
     }
     else  if ((evt.GetModifiers() & shiftMask) != 0) {
         switch (keyCode) {
-        case 'g':
-        case 'G': {
+        case '+': { action_plus(evt); break; }
+        case 'A':
+        case 'a': { action_a(); break; }
+        case 'G':
+        case 'g': {
             if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
                 post_event(wxKeyEvent(EVT_GLCANVAS_JUMP_TO, evt));
             break;
@@ -3029,13 +3043,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case '4': { select_view("rear"); break; }
         case '5': { select_view("left"); break; }
         case '6': { select_view("right"); break; }
-        case '+': { 
-                    if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
-                        post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt)); 
-                    else
-                        post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1)); 
-                    break; }
-        case '-': {  
+        case '+': { action_plus(evt); break; }
+        case '-': {
                     if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
                         post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt)); 
                     else
@@ -3043,7 +3052,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                     break; }
         case '?': { post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK)); break; }
         case 'A':
-        case 'a': { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
+        case 'a': { action_a(); break; }
         case 'B':
         case 'b': { zoom_to_bed(); break; }
         case 'E':
@@ -3079,8 +3088,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         {
             if (!m_selection.is_empty())
                 zoom_to_selection();
-            else
-            {
+            else {
                 if (!m_volumes.empty())
                     zoom_to_volumes();
                 else
