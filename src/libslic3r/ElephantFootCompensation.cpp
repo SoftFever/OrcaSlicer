@@ -472,7 +472,7 @@ static inline void smooth_compensation_banded(const Points &contour, float band,
 			float	l2    = (pthis - pprev).squaredNorm();
 			if (l2 < dist_min2) {
 				float l = sqrt(l2);
-				int jprev = exchange(j, prev_idx_modulo(j, contour));
+				int jprev = std::exchange(j, prev_idx_modulo(j, contour));
 				while (j != i) {
 					const Vec2f pp = contour[j].cast<float>();
 					const float lthis = (pp - pprev).norm();
@@ -487,7 +487,7 @@ static inline void smooth_compensation_banded(const Points &contour, float band,
 					prev  = use_min ? std::min(prev, compensation[j]) : compensation[j];
 					pprev = pp;
 					l     = lnext;
-					jprev = exchange(j, prev_idx_modulo(j, contour));
+					jprev = std::exchange(j, prev_idx_modulo(j, contour));
 				}
 			}
 
@@ -497,7 +497,7 @@ static inline void smooth_compensation_banded(const Points &contour, float band,
 			l2 = (pprev - pthis).squaredNorm();
 			if (l2 < dist_min2) {
 				float l = sqrt(l2);
-				int jprev = exchange(j, next_idx_modulo(j, contour));
+				int jprev = std::exchange(j, next_idx_modulo(j, contour));
 				while (j != i) {
 					const Vec2f pp = contour[j].cast<float>();
 					const float lthis = (pp - pprev).norm();
@@ -512,7 +512,7 @@ static inline void smooth_compensation_banded(const Points &contour, float band,
 					next  = use_min ? std::min(next, compensation[j]) : compensation[j];
 					pprev = pp;
 					l     = lnext;
-					jprev = exchange(j, next_idx_modulo(j, contour));
+					jprev = std::exchange(j, next_idx_modulo(j, contour));
 				}
 			}
 
@@ -524,11 +524,22 @@ static inline void smooth_compensation_banded(const Points &contour, float band,
 	}
 }
 
-ExPolygon elephant_foot_compensation(const ExPolygon &input_expoly, const Flow &external_perimeter_flow, const double compensation)
+#ifndef NDEBUG
+static bool validate_expoly_orientation(const ExPolygon &expoly)
+{
+	bool valid = expoly.contour.is_counter_clockwise();
+    for (auto &h : expoly.holes) 
+		valid &= h.is_clockwise();
+	return valid;
+}
+#endif /* NDEBUG */
+
+ExPolygon elephant_foot_compensation(const ExPolygon &input_expoly, double min_contour_width, const double compensation)
 {	
-	// The contour shall be wide enough to apply the external perimeter plus compensation on both sides.
-	double min_contour_width = double(external_perimeter_flow.scaled_width() + external_perimeter_flow.scaled_spacing());
+	assert(validate_expoly_orientation(input_expoly));
+
 	double scaled_compensation = scale_(compensation);
+    min_contour_width = scale_(min_contour_width);
 	double min_contour_width_compensated = min_contour_width + 2. * scaled_compensation;
 	// Make the search radius a bit larger for the averaging in contour_distance over a fan of rays to work.
 	double search_radius = min_contour_width_compensated + min_contour_width * 0.5;
@@ -547,6 +558,7 @@ ExPolygon elephant_foot_compensation(const ExPolygon &input_expoly, const Flow &
 	{
 		EdgeGrid::Grid grid;
 		ExPolygon simplified = input_expoly.simplify(SCALED_EPSILON).front();
+		assert(validate_expoly_orientation(simplified));
 		BoundingBox bbox = get_extents(simplified.contour);
 		bbox.offset(SCALED_EPSILON);
 		grid.set_bbox(bbox);
@@ -559,6 +571,7 @@ ExPolygon elephant_foot_compensation(const ExPolygon &input_expoly, const Flow &
 			Polygon &poly = (idx_contour == 0) ? resampled.contour : resampled.holes[idx_contour - 1];
 			std::vector<ResampledPoint> resampled_point_parameters;
 			poly.points = resample_polygon(poly.points, resample_interval, resampled_point_parameters);
+			assert(poly.is_counter_clockwise() == (idx_contour == 0));
 			std::vector<float> dists = contour_distance2(grid, idx_contour, poly.points, resampled_point_parameters, scaled_compensation, search_radius);
 			for (float &d : dists) {
 	//			printf("Point %d, Distance: %lf\n", int(&d - dists.data()), unscale<double>(d));
@@ -593,8 +606,16 @@ ExPolygon elephant_foot_compensation(const ExPolygon &input_expoly, const Flow &
 			assert(out_vec.size() == 1);
 		}
 	}
-
+    
+	assert(validate_expoly_orientation(out));
 	return out;
+}
+
+ExPolygon  elephant_foot_compensation(const ExPolygon  &input, const Flow &external_perimeter_flow, const double compensation)
+{
+    // The contour shall be wide enough to apply the external perimeter plus compensation on both sides.
+    double min_contour_width = double(external_perimeter_flow.width + external_perimeter_flow.spacing());
+    return elephant_foot_compensation(input, min_contour_width, compensation);
 }
 
 ExPolygons elephant_foot_compensation(const ExPolygons &input, const Flow &external_perimeter_flow, const double compensation)
@@ -603,6 +624,15 @@ ExPolygons elephant_foot_compensation(const ExPolygons &input, const Flow &exter
 	out.reserve(input.size());
 	for (const ExPolygon &expoly : input)
 		out.emplace_back(elephant_foot_compensation(expoly, external_perimeter_flow, compensation));
+	return out;
+}
+
+ExPolygons elephant_foot_compensation(const ExPolygons &input, double min_contour_width, const double compensation)
+{
+	ExPolygons out;
+	out.reserve(input.size());
+	for (const ExPolygon &expoly : input)
+		out.emplace_back(elephant_foot_compensation(expoly, min_contour_width, compensation));
 	return out;
 }
 

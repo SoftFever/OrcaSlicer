@@ -417,27 +417,85 @@ std::error_code rename_file(const std::string &from, const std::string &to)
 #endif
 }
 
-int copy_file(const std::string &from, const std::string &to)
+CopyFileResult copy_file_inner(const std::string& from, const std::string& to, std::string& error_message)
 {
-    const boost::filesystem::path source(from);
-    const boost::filesystem::path target(to);
-    static const auto perms = boost::filesystem::owner_read | boost::filesystem::owner_write | boost::filesystem::group_read | boost::filesystem::others_read;   // aka 644
+	const boost::filesystem::path source(from);
+	const boost::filesystem::path target(to);
+	static const auto perms = boost::filesystem::owner_read | boost::filesystem::owner_write | boost::filesystem::group_read | boost::filesystem::others_read;   // aka 644
 
-    // Make sure the file has correct permission both before and after we copy over it.
-    // NOTE: error_code variants are used here to supress expception throwing.
-    // Error code of permission() calls is ignored on purpose - if they fail,
-    // the copy_file() function will fail appropriately and we don't want the permission()
-    // calls to cause needless failures on permissionless filesystems (ie. FATs on SD cards etc.)
-    // or when the target file doesn't exist.
-    boost::system::error_code ec;
-    boost::filesystem::permissions(target, perms, ec);
-    boost::filesystem::copy_file(source, target, boost::filesystem::copy_option::overwrite_if_exists, ec);
-    if (ec) {
-        return -1;
-    }
-    boost::filesystem::permissions(target, perms, ec);
+	// Make sure the file has correct permission both before and after we copy over it.
+	// NOTE: error_code variants are used here to supress expception throwing.
+	// Error code of permission() calls is ignored on purpose - if they fail,
+	// the copy_file() function will fail appropriately and we don't want the permission()
+	// calls to cause needless failures on permissionless filesystems (ie. FATs on SD cards etc.)
+	// or when the target file doesn't exist.
+	boost::system::error_code ec;
+	boost::filesystem::permissions(target, perms, ec);
+	if (ec)
+		BOOST_LOG_TRIVIAL(error) << "boost::filesystem::permisions before copy error message (this could be irrelevant message based on file system): " << ec.message();
+	ec.clear();
+	boost::filesystem::copy_file(source, target, boost::filesystem::copy_option::overwrite_if_exists, ec);
+	if (ec) {
+		error_message = ec.message();
+		return FAIL_COPY_FILE;
+	}
+	ec.clear();
+	boost::filesystem::permissions(target, perms, ec);
+	if (ec)
+		BOOST_LOG_TRIVIAL(error) << "boost::filesystem::permisions after copy error message (this could be irrelevant message based on file system): " << ec.message();
+	return SUCCESS;
+}
 
-    return 0;
+CopyFileResult copy_file(const std::string &from, const std::string &to, std::string& error_message, const bool with_check)
+{
+	std::string to_temp = to + ".tmp";
+	CopyFileResult ret_val = copy_file_inner(from, to_temp, error_message);
+    if(ret_val == SUCCESS)
+	{
+        if (with_check)
+            ret_val = check_copy(from, to_temp);
+
+        if (ret_val == 0 && rename_file(to_temp, to))
+        	ret_val = FAIL_RENAMING;
+	}
+	return ret_val;
+}
+
+CopyFileResult check_copy(const std::string &origin, const std::string &copy)
+{
+	boost::nowide::ifstream f1(origin, std::ifstream::in | std::ifstream::binary | std::ifstream::ate);
+	boost::nowide::ifstream f2(copy, std::ifstream::in | std::ifstream::binary | std::ifstream::ate);
+
+	if (f1.fail())
+		return FAIL_CHECK_ORIGIN_NOT_OPENED;
+	if (f2.fail())
+		return FAIL_CHECK_TARGET_NOT_OPENED;
+
+	std::streampos fsize = f1.tellg();
+	if (fsize != f2.tellg())
+		return FAIL_FILES_DIFFERENT;
+
+	f1.seekg(0, std::ifstream::beg);
+	f2.seekg(0, std::ifstream::beg);
+
+	// Compare by reading 8 MiB buffers one at a time.
+	size_t 			  buffer_size = 8 * 1024 * 1024;
+	std::vector<char> buffer_origin(buffer_size, 0);
+	std::vector<char> buffer_copy(buffer_size, 0);
+	do {
+		f1.read(buffer_origin.data(), buffer_size);
+        f2.read(buffer_copy.data(), buffer_size);
+		std::streampos origin_cnt = f1.gcount();
+		std::streampos copy_cnt   = f2.gcount();
+		if (origin_cnt != copy_cnt ||
+			(origin_cnt > 0 && std::memcmp(buffer_origin.data(), buffer_copy.data(), origin_cnt) != 0))
+			// Files are different.
+			return FAIL_FILES_DIFFERENT;
+		fsize -= origin_cnt;
+    } while (f1.good() && f2.good());
+
+    // All data has been read and compared equal.
+    return (f1.eof() && f2.eof() && fsize == 0) ? SUCCESS : FAIL_FILES_DIFFERENT;
 }
 
 // Ignore system and hidden files, which may be created by the DropBox synchronisation process.
@@ -486,7 +544,7 @@ std::string encode_path(const char *src)
     // Convert a wide string to a local code page.
     int size_needed = ::WideCharToMultiByte(0, 0, wstr_src.data(), (int)wstr_src.size(), nullptr, 0, nullptr, nullptr);
     std::string str_dst(size_needed, 0);
-    ::WideCharToMultiByte(0, 0, wstr_src.data(), (int)wstr_src.size(), const_cast<char*>(str_dst.data()), size_needed, nullptr, nullptr);
+    ::WideCharToMultiByte(0, 0, wstr_src.data(), (int)wstr_src.size(), str_dst.data(), size_needed, nullptr, nullptr);
     return str_dst;
 #else /* WIN32 */
     return src;
@@ -503,7 +561,7 @@ std::string decode_path(const char *src)
     // Convert the string encoded using the local code page to a wide string.
     int size_needed = ::MultiByteToWideChar(0, 0, src, len, nullptr, 0);
     std::wstring wstr_dst(size_needed, 0);
-    ::MultiByteToWideChar(0, 0, src, len, const_cast<wchar_t*>(wstr_dst.data()), size_needed);
+    ::MultiByteToWideChar(0, 0, src, len, wstr_dst.data(), size_needed);
     // Convert a wide string to utf8.
     return boost::nowide::narrow(wstr_dst.c_str());
 #else /* WIN32 */
@@ -535,20 +593,30 @@ std::string string_printf(const char *format, ...)
     va_start(args1, format);
     va_list args2;
     va_copy(args2, args1);
-
-    size_t needed_size = ::vsnprintf(nullptr, 0, format, args1) + 1;
-    va_end(args1);
-
-    std::string res(needed_size, '\0');
-    ::vsnprintf(&res.front(), res.size(), format, args2);
-    va_end(args2);
-
-    return res;
+    
+    static const size_t INITIAL_LEN = 200;
+    std::string buffer(INITIAL_LEN, '\0');
+    
+    int bufflen = ::vsnprintf(buffer.data(), INITIAL_LEN - 1, format, args1);
+    
+    if (bufflen >= int(INITIAL_LEN)) {
+        buffer.resize(size_t(bufflen) + 1);
+        ::vsnprintf(buffer.data(), buffer.size(), format, args2);
+    }
+    
+    buffer.resize(bufflen);
+    
+    return buffer;
 }
 
 std::string header_slic3r_generated()
 {
-    return std::string("generated by " SLIC3R_APP_NAME " " SLIC3R_VERSION " on " ) + Utils::utc_timestamp();
+	return std::string("generated by " SLIC3R_APP_NAME " " SLIC3R_VERSION " on " ) + Utils::utc_timestamp();
+}
+
+std::string header_gcodeviewer_generated()
+{
+	return std::string("generated by " GCODEVIEWER_APP_NAME " " SLIC3R_VERSION " on ") + Utils::utc_timestamp();
 }
 
 unsigned get_current_pid()

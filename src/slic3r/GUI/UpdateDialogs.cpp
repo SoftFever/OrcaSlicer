@@ -25,7 +25,7 @@ namespace Slic3r {
 namespace GUI {
 
 
-static const char* URL_CHANGELOG = "http://files.prusa3d.com/?latest=slicer-stable&lng=%1%";
+static const char* URL_CHANGELOG = "https://files.prusa3d.com/?latest=slicer-stable&lng=%1%";
 static const char* URL_DOWNLOAD = "https://www.prusa3d.com/downloads&lng=%1%";
 static const char* URL_DEV = "https://github.com/prusa3d/PrusaSlicer/releases/tag/version_%1%";
 
@@ -142,6 +142,67 @@ MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates) :
 
 MsgUpdateConfig::~MsgUpdateConfig() {}
 
+//MsgUpdateForced
+
+MsgUpdateForced::MsgUpdateForced(const std::vector<Update>& updates) :
+    MsgDialog(nullptr, wxString::Format(_(L("%s incompatibility")), SLIC3R_APP_NAME), _(L("You must install a configuration update.")) + " ", wxID_NONE)
+{
+	auto* text = new wxStaticText(this, wxID_ANY, wxString::Format(_(L(
+		"%s will now start updates. Otherwise it won't be able to start.\n\n"
+		"Note that a full configuration snapshot will be created first. It can then be restored at any time "
+		"should there be a problem with the new version.\n\n"
+		"Updated configuration bundles:"
+	)), SLIC3R_APP_NAME));
+	
+	logo->SetBitmap(create_scaled_bitmap("PrusaSlicer_192px_grayscale.png", this, 192));
+
+	text->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
+	content_sizer->Add(text);
+	content_sizer->AddSpacer(VERT_SPACING);
+
+	const auto lang_code = wxGetApp().current_language_code_safe().ToStdString();
+
+	auto* versions = new wxFlexGridSizer(2, 0, VERT_SPACING);
+	for (const auto& update : updates) {
+		auto* text_vendor = new wxStaticText(this, wxID_ANY, update.vendor);
+		text_vendor->SetFont(boldfont);
+		versions->Add(text_vendor);
+		versions->Add(new wxStaticText(this, wxID_ANY, update.version.to_string()));
+
+		if (!update.comment.empty()) {
+			versions->Add(new wxStaticText(this, wxID_ANY, _(L("Comment:")))/*, 0, wxALIGN_RIGHT*/);//uncoment if align to right (might not look good if 1  vedor name is longer than other names)
+			auto* update_comment = new wxStaticText(this, wxID_ANY, from_u8(update.comment));
+			update_comment->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
+			versions->Add(update_comment);
+		}
+
+		if (!update.changelog_url.empty() && update.version.prerelease() == nullptr) {
+			auto* line = new wxBoxSizer(wxHORIZONTAL);
+			auto changelog_url = (boost::format(update.changelog_url) % lang_code).str();
+			line->AddSpacer(3 * VERT_SPACING);
+			line->Add(new wxHyperlinkCtrl(this, wxID_ANY, _(L("Open changelog page")), changelog_url));
+			versions->Add(line);
+		}
+	}
+
+	content_sizer->Add(versions);
+	content_sizer->AddSpacer(2 * VERT_SPACING);
+	
+	auto* btn_exit = new wxButton(this, wxID_EXIT, wxString::Format(_(L("Exit %s")), SLIC3R_APP_NAME));
+	btn_sizer->Add(btn_exit);
+	btn_sizer->AddSpacer(HORIZ_SPACING);
+	auto* btn_ok = new wxButton(this, wxID_OK);
+	btn_sizer->Add(btn_ok);
+	btn_ok->SetFocus();
+
+	auto exiter = [this](const wxCommandEvent& evt) { this->EndModal(evt.GetId()); };
+	btn_exit->Bind(wxEVT_BUTTON, exiter);
+	btn_ok->Bind(wxEVT_BUTTON, exiter);
+
+	Fit();
+}
+
+MsgUpdateForced::~MsgUpdateForced() {}
 
 // MsgDataIncompatible
 
@@ -149,15 +210,15 @@ MsgDataIncompatible::MsgDataIncompatible(const std::unordered_map<std::string, w
     MsgDialog(nullptr, wxString::Format(_(L("%s incompatibility")), SLIC3R_APP_NAME), 
                        wxString::Format(_(L("%s configuration is incompatible")), SLIC3R_APP_NAME), wxID_NONE)
 {
-	logo->SetBitmap(create_scaled_bitmap(this, "PrusaSlicer_192px_grayscale.png", 192));
+	logo->SetBitmap(create_scaled_bitmap("PrusaSlicer_192px_grayscale.png", this, 192));
 
 	auto *text = new wxStaticText(this, wxID_ANY, wxString::Format(_(L(
 		"This version of %s is not compatible with currently installed configuration bundles.\n"
 		"This probably happened as a result of running an older %s after using a newer one.\n\n"
 
 		"You may either exit %s and try again with a newer version, or you may re-run the initial configuration. "
-		"Doing so will create a backup snapshot of the existing configuration before installing files compatible with this %s.\n"
-		)), SLIC3R_APP_NAME, SLIC3R_APP_NAME, SLIC3R_APP_NAME, SLIC3R_APP_NAME));
+		"Doing so will create a backup snapshot of the existing configuration before installing files compatible with this %s.")) + "\n", 
+		SLIC3R_APP_NAME, SLIC3R_APP_NAME, SLIC3R_APP_NAME, SLIC3R_APP_NAME));
 	text->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 	content_sizer->Add(text);
 
@@ -204,8 +265,8 @@ MsgDataIncompatible::~MsgDataIncompatible() {}
 MsgDataLegacy::MsgDataLegacy() :
 	MsgDialog(nullptr, _(L("Configuration update")), _(L("Configuration update")))
 {
-	auto *text = new wxStaticText(this, wxID_ANY, wxString::Format(
-		_(L(
+    auto *text = new wxStaticText(this, wxID_ANY, from_u8((boost::format(
+        _utf8(L(
 			"%s now uses an updated configuration structure.\n\n"
 
 			"So called 'System presets' have been introduced, which hold the built-in default settings for various "
@@ -215,8 +276,9 @@ MsgDataLegacy::MsgDataLegacy() :
 
 			"Please proceed with the %s that follows to set up the new presets "
 			"and to choose whether to enable automatic preset updates."
-		)),
-		SLIC3R_APP_NAME, ConfigWizard::name()
+        )))
+        % SLIC3R_APP_NAME
+        % _utf8(ConfigWizard::name())).str()
 	));
 	text->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 	content_sizer->Add(text);
@@ -235,6 +297,29 @@ MsgDataLegacy::MsgDataLegacy() :
 
 MsgDataLegacy::~MsgDataLegacy() {}
 
+
+// MsgNoUpdate
+
+MsgNoUpdates::MsgNoUpdates() :
+    MsgDialog(nullptr, _(L("Configuration updates")), _(L("No updates available")))
+{
+
+	auto* text = new wxStaticText(this, wxID_ANY, wxString::Format(
+		_(L(
+            "%s has no configuration updates available."
+		)),
+        SLIC3R_APP_NAME
+	));
+	text->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
+	content_sizer->Add(text);
+	content_sizer->AddSpacer(VERT_SPACING);
+
+	logo->SetBitmap(create_scaled_bitmap("PrusaSlicer_192px_grayscale.png", this, 192));
+
+	Fit();
+}
+
+MsgNoUpdates::~MsgNoUpdates() {}
 
 }
 }

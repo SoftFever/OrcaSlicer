@@ -3,6 +3,7 @@
 
 #include "libslic3r.h"
 #include "Config.hpp"
+#include "Exception.hpp"
 #include "ExtrusionEntity.hpp"
 
 namespace Slic3r {
@@ -25,6 +26,31 @@ enum FlowRole {
     frTopSolidInfill,
     frSupportMaterial,
     frSupportMaterialInterface,
+};
+
+class FlowError : public Slic3r::InvalidArgument
+{
+public:
+	FlowError(const std::string& what_arg) : Slic3r::InvalidArgument(what_arg) {}
+	FlowError(const char* what_arg) : Slic3r::InvalidArgument(what_arg) {}
+};
+
+class FlowErrorNegativeSpacing : public FlowError
+{
+public:
+    FlowErrorNegativeSpacing();
+};
+
+class FlowErrorNegativeFlow : public FlowError
+{
+public:
+    FlowErrorNegativeFlow();
+};
+
+class FlowErrorMissingVariable : public FlowError
+{
+public:
+    FlowErrorMissingVariable(const std::string& what_arg) : FlowError(what_arg) {}
 };
 
 class Flow
@@ -64,6 +90,16 @@ public:
     // This method is used exclusively to calculate new flow of 100% infill, where the extrusion width was allowed to scale
     // to fit a region with integer number of lines.
     static Flow new_from_spacing(float spacing, float nozzle_diameter, float height, bool bridge);
+
+    // Sane extrusion width defautl based on nozzle diameter.
+    // The defaults were derived from manual Prusa MK3 profiles.
+    static float auto_extrusion_width(FlowRole role, float nozzle_diameter);
+
+    // Extrusion width from full config, taking into account the defaults (when set to zero) and ratios (percentages).
+    // Precise value depends on layer index (1st layer vs. other layers vs. variable layer height),
+    // on active extruder etc. Therefore the value calculated by this function shall be used as a hint only.
+	static double extrusion_width(const std::string &opt_key, const ConfigOptionFloatOrPercent *opt, const ConfigOptionResolver &config, const unsigned int first_printing_extruder = 0);
+	static double extrusion_width(const std::string &opt_key, const ConfigOptionResolver &config, const unsigned int first_printing_extruder = 0);
 };
 
 extern Flow support_material_flow(const PrintObject *object, float layer_height = 0.f);

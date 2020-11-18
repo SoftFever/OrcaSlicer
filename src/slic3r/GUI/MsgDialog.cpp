@@ -53,7 +53,7 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
 	rightsizer->Add(btn_sizer, 0, wxALIGN_RIGHT);
 
 	if (! bitmap.IsOk()) {
-		bitmap = create_scaled_bitmap(this, "PrusaSlicer_192px.png", 192);
+		bitmap = create_scaled_bitmap("PrusaSlicer_192px.png", this, 192);
 	}
 
 	logo = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);
@@ -81,7 +81,7 @@ ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg)
         html->SetMinSize(wxSize(40 * wxGetApp().em_unit(), -1));
         wxFont 	  	font 			= wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 		wxColour  	text_clr  		= wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
-		wxColour  	bgr_clr 		= wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK); // wxSYS_COLOUR_WINDOW
+        wxColour  	bgr_clr 		= wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 		auto      	text_clr_str 	= wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
 		auto      	bgr_clr_str 	= wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
 		const int 	font_size       = font.GetPointSize()-1;
@@ -99,7 +99,7 @@ ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg)
 	btn_ok->SetFocus();
 	btn_sizer->Add(btn_ok, 0, wxRIGHT, HORIZ_SPACING);
 
-	logo->SetBitmap(create_scaled_bitmap(this, "PrusaSlicer_192px_grayscale.png", 192));
+	logo->SetBitmap(create_scaled_bitmap("PrusaSlicer_192px_grayscale.png", this, 192));
 
     SetMaxSize(wxSize(-1, CONTENT_MAX_HEIGHT*wxGetApp().em_unit()));
 	Fit();

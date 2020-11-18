@@ -48,9 +48,9 @@
         %code{% THIS->apply(*other, true); %};
     %name{get_keys} std::vector<std::string> keys();
     void erase(t_config_option_key opt_key);
-    void normalize();
+    void normalize_fdm();
     %name{setenv} void setenv_();
-    double min_object_distance() %code{% PrintConfig cfg; cfg.apply(*THIS, true); RETVAL = cfg.min_object_distance(); %};
+    double min_object_distance() %code{% RETVAL = Slic3r::min_object_distance(*THIS); %};
     static DynamicPrintConfig* load(char *path)
         %code%{
             auto config = new DynamicPrintConfig();
@@ -114,7 +114,7 @@
             }
         %};
     %name{setenv} void setenv_();
-    double min_object_distance() %code{% RETVAL = PrintConfig::min_object_distance(THIS); %};
+    double min_object_distance() %code{% RETVAL = Slic3r::min_object_distance(*THIS); %};
     static StaticPrintConfig* load(char *path)
         %code%{
             auto config = new FullPrintConfig();

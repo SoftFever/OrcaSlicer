@@ -56,6 +56,10 @@ This is done by passing this option to CMake:
 
 Note that PrusaSlicer is tested with wxWidgets 3.0 somewhat sporadically and so there may be bugs in bleeding edge releases.
 
+When building on ubuntu 20.04 focal fossa, the package libwxgtk3.0-gtk3-dev needs to be installed instead of libwxgtk3.0-dev and you should use:
+
+    -DSLIC3R_WX_STABLE=1 -DSLIC3R_GTK=3
+
 ### Build variant
 
 By default PrusaSlicer builds the release variant.

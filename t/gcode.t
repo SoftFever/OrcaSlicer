@@ -1,4 +1,4 @@
-use Test::More tests => 25;
+use Test::More tests => 24;
 use strict;
 use warnings;
 
@@ -199,22 +199,24 @@ use Slic3r::Test;
     like $gcode, qr/START:20mm_cube/, '[input_filename] is also available in custom G-code';
 }
 
-{
-    my $config = Slic3r::Config::new_from_defaults;
-    $config->set('spiral_vase', 1);
-    my $print = Slic3r::Test::init_print('cube_with_hole', config => $config);
-    
-    my $spiral = 0;
-    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
-        my ($self, $cmd, $args, $info) = @_;
-        
-        if ($cmd eq 'G1' && exists $args->{E} && exists $args->{Z}) {
-            $spiral = 1;
-        }
-    });
-    
-    ok !$spiral, 'spiral vase is correctly disabled on layers with multiple loops';
-}
+# The current Spiral Vase slicing code removes the holes and all but the largest contours from each slice,
+# therefore the following test is no more valid.
+#{
+#    my $config = Slic3r::Config::new_from_defaults;
+#    $config->set('spiral_vase', 1);
+#    my $print = Slic3r::Test::init_print('cube_with_hole', config => $config);
+#    
+#    my $spiral = 0;
+#    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+#        my ($self, $cmd, $args, $info) = @_;
+#        
+#        if ($cmd eq 'G1' && exists $args->{E} && exists $args->{Z}) {
+#            $spiral = 1;
+#        }
+#    });
+#    
+#    ok !$spiral, 'spiral vase is correctly disabled on layers with multiple loops';
+#}
 
 
 {

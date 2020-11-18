@@ -7,7 +7,16 @@ else ()
     set(TBB_MINGW_WORKAROUND "")
 endif ()
 
-find_package(ZLIB REQUIRED)
+find_package(ZLIB QUIET)
+if (NOT ZLIB_FOUND)
+    message(WARNING "No ZLIB dev package found in system, building static library. You should install the system package.")
+endif ()
+
+# TODO Evaluate expat modifications in the bundled version and test with system versions in various distros and OSX SDKs
+# find_package(EXPAT QUIET)
+# if (NOT EXPAT_FOUND)
+#     message(WARNING "No EXPAT dev package found in system, building static library. Consider installing the system package.")
+# endif ()
 
 ExternalProject_Add(dep_tbb
     EXCLUDE_FROM_ALL 1
@@ -51,7 +60,6 @@ ExternalProject_Add(dep_nlopt
         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
         ${DEP_CMAKE_OPTS}
 )
-find_package(Git REQUIRED)
 
 ExternalProject_Add(dep_qhull
     EXCLUDE_FROM_ALL 1
@@ -115,6 +123,7 @@ ExternalProject_Add(dep_openvdb
         -DOPENVDB_CORE_STATIC=ON 
         -DTBB_STATIC=ON
         -DOPENVDB_BUILD_VDB_PRINT=ON
+        -DDISABLE_DEPENDENCY_VERSION_CHECKS=ON
     PATCH_COMMAND PATCH_COMMAND     ${GIT_EXECUTABLE} checkout -f -- . && git clean -df && 
                                     ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/openvdb-mods.patch
 )

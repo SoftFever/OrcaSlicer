@@ -40,8 +40,8 @@ THE SOFTWARE.
 /*---------------------------------------------------------------------------*/
 
 #define OUTPUT_WIDTH_CALL	6
-#define OUTPUT_WIDTH_TIME	6
-#define OUTPUT_WIDTH_PERC	4
+#define OUTPUT_WIDTH_TIME	(6+3)
+#define OUTPUT_WIDTH_PERC	(4+3)
 #define OUTPUT_WIDTH_SUM	120 
 
 #define OUTPUT_WIDTH_DATA	(1+OUTPUT_WIDTH_CALL + 1 + 2*(OUTPUT_WIDTH_TIME+4+OUTPUT_WIDTH_PERC+1) + 1)
@@ -70,7 +70,7 @@ SHINY_INLINE char* printData(char *output, const ShinyData *a_data, float a_tope
 	const ShinyTimeUnit *totalUnit = ShinyGetTimeUnit(totalTicksAvg);
 
 	snprintf(output, OUTPUT_WIDTH_DATA + TRAILING,
-		" %*.1f %*.0f %-2s %*.0f%% %*.0f %-2s %*.0f%%",
+		" %*.1f %*.2f %-2s %*.2f%% %*.2f %-2s %*.2f%%",
 		OUTPUT_WIDTH_CALL, a_data->entryCount.avg,
 		OUTPUT_WIDTH_TIME, a_data->selfTicks.avg * selfUnit->invTickFreq, selfUnit->suffix,
 		OUTPUT_WIDTH_PERC, a_data->selfTicks.avg * a_topercent,

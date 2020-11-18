@@ -1,4 +1,6 @@
 #include "PlaceholderParser.hpp"
+#include "Exception.hpp"
+#include "Flow.hpp"
 #include <cstring>
 #include <ctime>
 #include <iomanip>
@@ -99,11 +101,7 @@ static inline bool opts_equal(const DynamicConfig &config_old, const DynamicConf
 	const ConfigOption *opt_old = config_old.option(opt_key);
 	const ConfigOption *opt_new = config_new.option(opt_key);
 	assert(opt_new != nullptr);
-	if (opt_old == nullptr)
-        return false;
-    return (opt_new->type() == coFloatOrPercent) ?
-		dynamic_cast<const ConfigOptionFloat*>(opt_old)->value == config_new.get_abs_value(opt_key) :
-        *opt_new == *opt_old;
+    return opt_old != nullptr && *opt_new == *opt_old;
 }
 
 std::vector<std::string> PlaceholderParser::config_diff(const DynamicPrintConfig &rhs)
@@ -126,14 +124,7 @@ bool PlaceholderParser::apply_config(const DynamicPrintConfig &rhs)
     bool modified = false;
     for (const t_config_option_key &opt_key : rhs.keys()) {
         if (! opts_equal(m_config, rhs, opt_key)) {
-            // Store a copy of the config option.
-            // Convert FloatOrPercent values to floats first.
-            //FIXME there are some ratio_over chains, which end with empty ratio_with.
-            // For example, XXX_extrusion_width parameters are not handled by get_abs_value correctly.
-			const ConfigOption *opt_rhs = rhs.option(opt_key);
-			this->set(opt_key, (opt_rhs->type() == coFloatOrPercent) ?
-                new ConfigOptionFloat(rhs.get_abs_value(opt_key)) :
-                opt_rhs->clone());
+			this->set(opt_key, rhs.option(opt_key)->clone());
             modified = true;
         }
     }
@@ -142,16 +133,8 @@ bool PlaceholderParser::apply_config(const DynamicPrintConfig &rhs)
 
 void PlaceholderParser::apply_only(const DynamicPrintConfig &rhs, const std::vector<std::string> &keys)
 {
-    for (const t_config_option_key &opt_key : keys) {
-        // Store a copy of the config option.
-        // Convert FloatOrPercent values to floats first.
-        //FIXME there are some ratio_over chains, which end with empty ratio_with.
-        // For example, XXX_extrusion_width parameters are not handled by get_abs_value correctly.
-        const ConfigOption *opt_rhs = rhs.option(opt_key);
-        this->set(opt_key, (opt_rhs->type() == coFloatOrPercent) ?
-            new ConfigOptionFloat(rhs.get_abs_value(opt_key)) :
-            opt_rhs->clone());
-    }
+    for (const t_config_option_key &opt_key : keys)
+        this->set(opt_key, rhs.option(opt_key)->clone());
 }
 
 void PlaceholderParser::apply_config(DynamicPrintConfig &&rhs)
@@ -332,6 +315,21 @@ namespace client
             return expr();
         }
 
+        expr unary_integer(const Iterator start_pos) const
+        { 
+            switch (this->type) {
+            case TYPE_INT :
+                return expr<Iterator>(this->i(), start_pos, this->it_range.end());
+            case TYPE_DOUBLE:
+                return expr<Iterator>(static_cast<int>(this->d()), start_pos, this->it_range.end()); 
+            default:
+                this->throw_exception("Cannot convert to integer.");
+            }
+            assert(false);
+            // Suppress compiler warnings.
+            return expr();
+        }
+
         expr unary_not(const Iterator start_pos) const
         { 
             switch (this->type) {
@@ -403,7 +401,7 @@ namespace client
         {
             this->throw_if_not_numeric("Cannot divide a non-numeric type.");
             rhs.throw_if_not_numeric("Cannot divide with a non-numeric type.");
-            if ((this->type == TYPE_INT) ? (rhs.i() == 0) : (rhs.d() == 0.))
+            if ((rhs.type == TYPE_INT) ? (rhs.i() == 0) : (rhs.d() == 0.))
                 rhs.throw_exception("Division by zero");
             if (this->type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) {
                 double d = this->as_d() / rhs.as_d();
@@ -411,6 +409,22 @@ namespace client
                 this->type = TYPE_DOUBLE;
             } else
                 this->data.i /= rhs.i();
+            this->it_range = boost::iterator_range<Iterator>(this->it_range.begin(), rhs.it_range.end());
+            return *this;
+        }
+
+        expr &operator%=(const expr &rhs)
+        {
+            this->throw_if_not_numeric("Cannot divide a non-numeric type.");
+            rhs.throw_if_not_numeric("Cannot divide with a non-numeric type.");
+            if ((rhs.type == TYPE_INT) ? (rhs.i() == 0) : (rhs.d() == 0.))
+                rhs.throw_exception("Division by zero");
+            if (this->type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) {
+                double d = std::fmod(this->as_d(), rhs.as_d());
+                this->data.d = d;
+                this->type = TYPE_DOUBLE;
+            } else
+                this->data.i %= rhs.i();
             this->it_range = boost::iterator_range<Iterator>(this->it_range.begin(), rhs.it_range.end());
             return *this;
         }
@@ -604,7 +618,7 @@ namespace client
         return os;
     }
 
-    struct MyContext {
+    struct MyContext : public ConfigOptionResolver {
     	const DynamicConfig     *external_config        = nullptr;
         const DynamicConfig     *config                 = nullptr;
         const DynamicConfig     *config_override        = nullptr;
@@ -619,7 +633,7 @@ namespace client
 
         static void             evaluate_full_macro(const MyContext *ctx, bool &result) { result = ! ctx->just_boolean_expression; }
 
-        const ConfigOption*     resolve_symbol(const std::string &opt_key) const
+        const ConfigOption* 	optptr(const t_config_option_key &opt_key) const override
         {
             const ConfigOption *opt = nullptr;
             if (config_override != nullptr)
@@ -630,6 +644,8 @@ namespace client
                 opt = external_config->option(opt_key);
             return opt;
         }
+
+        const ConfigOption*     resolve_symbol(const std::string &opt_key) const { return this->optptr(opt_key); }
 
         template <typename Iterator>
         static void legacy_variable_expansion(
@@ -727,7 +743,43 @@ namespace client
             case coPoint:   output.set_s(opt.opt->serialize());  break;
             case coBool:    output.set_b(opt.opt->getBool());    break;
             case coFloatOrPercent:
-                ctx->throw_exception("FloatOrPercent variables are not supported", opt.it_range);
+            {
+                std::string opt_key(opt.it_range.begin(), opt.it_range.end());
+                if (boost::ends_with(opt_key, "extrusion_width")) {
+                	// Extrusion width supports defaults and a complex graph of dependencies.
+                    output.set_d(Flow::extrusion_width(opt_key, *ctx, static_cast<unsigned int>(ctx->current_extruder_id)));
+                } else if (! static_cast<const ConfigOptionFloatOrPercent*>(opt.opt)->percent) {
+                	// Not a percent, just return the value.
+                    output.set_d(opt.opt->getFloat());
+                } else {
+                	// Resolve dependencies using the "ratio_over" link to a parent value.
+			        const ConfigOptionDef  *opt_def = print_config_def.get(opt_key);
+			        assert(opt_def != nullptr);
+			        double v = opt.opt->getFloat() * 0.01; // percent to ratio
+			        for (;;) {
+			        	const ConfigOption *opt_parent = opt_def->ratio_over.empty() ? nullptr : ctx->resolve_symbol(opt_def->ratio_over);
+			        	if (opt_parent == nullptr)
+			                ctx->throw_exception("FloatOrPercent variable failed to resolve the \"ratio_over\" dependencies", opt.it_range);
+			            if (boost::ends_with(opt_def->ratio_over, "extrusion_width")) {
+                			// Extrusion width supports defaults and a complex graph of dependencies.
+                            assert(opt_parent->type() == coFloatOrPercent);
+                    		v *= Flow::extrusion_width(opt_def->ratio_over, static_cast<const ConfigOptionFloatOrPercent*>(opt_parent), *ctx, static_cast<unsigned int>(ctx->current_extruder_id));
+                    		break;
+                    	}
+                    	if (opt_parent->type() == coFloat || opt_parent->type() == coFloatOrPercent) {
+			        		v *= opt_parent->getFloat();
+			        		if (opt_parent->type() == coFloat || ! static_cast<const ConfigOptionFloatOrPercent*>(opt_parent)->percent)
+			        			break;
+			        		v *= 0.01; // percent to ratio
+			        	}
+		        		// Continue one level up in the "ratio_over" hierarchy.
+				        opt_def = print_config_def.get(opt_def->ratio_over);
+				        assert(opt_def != nullptr);
+			        }
+                    output.set_d(v);
+	            }
+		        break;
+		    }
             default:
                 ctx->throw_exception("Unknown scalar variable type", opt.it_range);
             }
@@ -814,7 +866,7 @@ namespace client
                 } else {
                     // Use the human readable error message.
                     msg += ". ";
-                    msg + it->second;
+                    msg += it->second;
                 }
             }
             msg += '\n';
@@ -1087,6 +1139,7 @@ namespace client
                 unary_expression(_r1)                       [_val  = _1]
                 >> *(   (lit('*') > unary_expression(_r1) ) [_val *= _1]
                     |   (lit('/') > unary_expression(_r1) ) [_val /= _1]
+                    |   (lit('%') > unary_expression(_r1) ) [_val %= _1]
                     );
             multiplicative_expression.name("multiplicative_expression");
 
@@ -1102,11 +1155,13 @@ namespace client
                 static void string_(boost::iterator_range<Iterator> &it_range, expr<Iterator> &out)
                         { out = expr<Iterator>(std::string(it_range.begin() + 1, it_range.end() - 1), it_range.begin(), it_range.end()); }
                 static void expr_(expr<Iterator> &value, Iterator &end_pos, expr<Iterator> &out)
-                        { out = expr<Iterator>(std::move(value), out.it_range.begin(), end_pos); }
+                        { auto begin_pos = out.it_range.begin(); out = expr<Iterator>(std::move(value), begin_pos, end_pos); }
                 static void minus_(expr<Iterator> &value, expr<Iterator> &out)
                         { out = value.unary_minus(out.it_range.begin()); }
                 static void not_(expr<Iterator> &value, expr<Iterator> &out)
                         { out = value.unary_not(out.it_range.begin()); }
+                static void to_int(expr<Iterator> &value, expr<Iterator> &out)
+                        { out = value.unary_integer(out.it_range.begin()); }
             };
             unary_expression = iter_pos[px::bind(&FactorActions::set_start_pos, _1, _val)] >> (
                     scalar_variable_reference(_r1)                  [ _val = _1 ]
@@ -1118,6 +1173,7 @@ namespace client
                                                                     [ px::bind(&expr<Iterator>::min, _val, _2) ]
                 |   (kw["max"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > ')') 
                                                                     [ px::bind(&expr<Iterator>::max, _val, _2) ]
+                |   (kw["int"] > '(' > unary_expression(_r1) > ')') [ px::bind(&FactorActions::to_int,  _1,     _val) ]
                 |   (strict_double > iter_pos)                      [ px::bind(&FactorActions::double_, _1, _2, _val) ]
                 |   (int_      > iter_pos)                          [ px::bind(&FactorActions::int_,    _1, _2, _val) ]
                 |   (kw[bool_] > iter_pos)                          [ px::bind(&FactorActions::bool_,   _1, _2, _val) ]
@@ -1145,6 +1201,7 @@ namespace client
             keywords.add
                 ("and")
                 ("if")
+                ("int")
                 //("inf")
                 ("else")
                 ("elsif")
@@ -1247,7 +1304,7 @@ static std::string process_macro(const std::string &templ, client::MyContext &co
 	if (!context.error_message.empty()) {
         if (context.error_message.back() != '\n' && context.error_message.back() != '\r')
             context.error_message += '\n';
-        throw std::runtime_error(context.error_message);
+        throw Slic3r::RuntimeError(context.error_message);
     }
     return output;
 }
@@ -1263,7 +1320,7 @@ std::string PlaceholderParser::process(const std::string &templ, unsigned int cu
 }
 
 // Evaluate a boolean expression using the full expressive power of the PlaceholderParser boolean expression syntax.
-// Throws std::runtime_error on syntax or runtime error.
+// Throws Slic3r::RuntimeError on syntax or runtime error.
 bool PlaceholderParser::evaluate_boolean_expression(const std::string &templ, const DynamicConfig &config, const DynamicConfig *config_override)
 {
     client::MyContext context;

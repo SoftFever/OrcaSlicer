@@ -8,6 +8,11 @@ add_library(Catch2 INTERFACE)
 list (APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/Catch2)
 target_include_directories(Catch2 INTERFACE ${CMAKE_CURRENT_LIST_DIR})
 add_library(Catch2::Catch2 ALIAS Catch2)
+if (APPLE)
+	# OSX builds targeting OSX 10.9 do not support new std::uncought_exception()
+	# see https://github.com/catchorg/Catch2/issues/1218
+	target_compile_definitions(Catch2 INTERFACE -DCATCH_CONFIG_NO_CPP17_UNCAUGHT_EXCEPTIONS)
+endif()
 include(Catch)
 
 set(CATCH_EXTRA_ARGS "" CACHE STRING "Extra arguments for catch2 test suites.")
@@ -24,7 +29,8 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 add_subdirectory(libnest2d)
 add_subdirectory(libslic3r)
-add_subdirectory(timeutils)
+add_subdirectory(slic3rutils)
 add_subdirectory(fff_print)
 add_subdirectory(sla_print)
+add_subdirectory(cpp17 EXCLUDE_FROM_ALL)    # does not have to be built all the time
 # add_subdirectory(example)

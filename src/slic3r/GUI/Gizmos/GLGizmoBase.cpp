@@ -5,13 +5,7 @@
 
 #include "slic3r/GUI/GUI_App.hpp"
 
-
-
-
-
 // TODO: Display tooltips quicker on Linux
-
-
 
 namespace Slic3r {
 namespace GUI {
@@ -263,12 +257,6 @@ void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
     }
 }
 
-
-void GLGizmoBase::set_tooltip(const std::string& tooltip) const
-{
-    m_parent.set_tooltip(tooltip);
-}
-
 std::string GLGizmoBase::format(float value, unsigned int decimals) const
 {
     return Slic3r::string_printf("%.*f", decimals, value);
@@ -300,6 +288,7 @@ unsigned char picking_checksum_alpha_channel(unsigned char red, unsigned char gr
 	b ^= 0x55;
 	return b;
 }
+
 
 } // namespace GUI
 } // namespace Slic3r

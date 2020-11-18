@@ -3,7 +3,7 @@
 
 #include <set>
 #include "libslic3r/Geometry.hpp"
-#include "3DScene.hpp"
+#include "GLModel.hpp"
 
 #if ENABLE_RENDER_SELECTION_CENTER
 class GLUquadric;
@@ -11,7 +11,20 @@ typedef class GLUquadric GLUquadricObj;
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
 namespace Slic3r {
+
 class Shader;
+class Model;
+class ModelObject;
+class GLVolume;
+class GLArrow;
+class GLCurvedArrow;
+class DynamicPrintConfig;
+class GLShaderProgram;
+
+using GLVolumePtrs = std::vector<GLVolume*>;
+using ModelObjectPtrs = std::vector<ModelObject*>;
+
+
 namespace GUI {
 class TransformationType
 {
@@ -145,18 +158,23 @@ public:
 
     class Clipboard
     {
-        Model m_model;
+        // Model is stored through a pointer to avoid including heavy Model.hpp.
+        // It is created in constructor.
+        std::unique_ptr<Model> m_model;
+
         Selection::EMode m_mode;
 
     public:
-        void reset() { m_model.clear_objects(); }
-        bool is_empty() const { return m_model.objects.empty(); }
+        Clipboard();
+
+        void reset();
+        bool is_empty() const;
 
         bool is_sla_compliant() const;
 
-        ModelObject* add_object() { return m_model.add_object(); }
-        ModelObject* get_object(unsigned int id) { return (id < (unsigned int)m_model.objects.size()) ? m_model.objects[id] : nullptr; }
-        const ModelObjectPtrs& get_objects() const { return m_model.objects; }
+        ModelObject* add_object();
+        ModelObject* get_object(unsigned int id);
+        const ModelObjectPtrs& get_objects() const;
 
         Selection::EMode get_mode() const { return m_mode; }
         void set_mode(Selection::EMode mode) { m_mode = mode; }
@@ -200,8 +218,9 @@ private:
 #if ENABLE_RENDER_SELECTION_CENTER
     GLUquadricObj* m_quadric;
 #endif // ENABLE_RENDER_SELECTION_CENTER
-    mutable GLArrow m_arrow;
-    mutable GLCurvedArrow m_curved_arrow;
+
+    GLModel m_arrow;
+    GLModel m_curved_arrow;
 
     mutable float m_scale_factor;
 
@@ -316,7 +335,7 @@ public:
 #if ENABLE_RENDER_SELECTION_CENTER
     void render_center(bool gizmo_is_dragging) const;
 #endif // ENABLE_RENDER_SELECTION_CENTER
-    void render_sidebar_hints(const std::string& sidebar_field, const Shader& shader) const;
+    void render_sidebar_hints(const std::string& sidebar_field) const;
 
     bool requires_local_axes() const;
 
@@ -357,12 +376,7 @@ private:
     void render_sidebar_position_hints(const std::string& sidebar_field) const;
     void render_sidebar_rotation_hints(const std::string& sidebar_field) const;
     void render_sidebar_scale_hints(const std::string& sidebar_field) const;
-    void render_sidebar_size_hints(const std::string& sidebar_field) const;
     void render_sidebar_layers_hints(const std::string& sidebar_field) const;
-    void render_sidebar_position_hint(Axis axis) const;
-    void render_sidebar_rotation_hint(Axis axis) const;
-    void render_sidebar_scale_hint(Axis axis) const;
-    void render_sidebar_size_hint(Axis axis, double length) const;
 
 public:
     enum SyncRotationType {

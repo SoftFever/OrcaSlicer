@@ -1,46 +1,57 @@
 #include <GL/glew.h>
 
+#if ENABLE_SMOOTH_NORMALS
+#include <igl/per_face_normals.h>
+#include <igl/per_corner_normals.h>
+#include <igl/per_vertex_normals.h>
+#endif // ENABLE_SMOOTH_NORMALS
+
 #include "3DScene.hpp"
+#include "GLShader.hpp"
+#include "GUI_App.hpp"
+#if ENABLE_ENVIRONMENT_MAP
+#include "Plater.hpp"
+#endif // ENABLE_ENVIRONMENT_MAP
 
 #include "libslic3r/ExtrusionEntity.hpp"
 #include "libslic3r/ExtrusionEntityCollection.hpp"
 #include "libslic3r/Geometry.hpp"
-#include "libslic3r/GCode/PreviewData.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/Slicing.hpp"
-#include "libslic3r/GCode/Analyzer.hpp"
-#include "slic3r/GUI/PresetBundle.hpp"
+#include "slic3r/GUI/BitmapCache.hpp"
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/AppConfig.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <utility>
 #include <assert.h>
 
 #include <boost/log/trivial.hpp>
 
 #include <boost/filesystem/operations.hpp>
-#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 #include <boost/nowide/cstdio.hpp>
 
-#include <tbb/parallel_for.h>
-#include <tbb/spin_mutex.h>
-
 #include <Eigen/Dense>
 
-#include "GUI.hpp"
-
 #ifdef HAS_GLSAFE
-void glAssertRecentCallImpl(const char *file_name, unsigned int line, const char *function_name)
+void glAssertRecentCallImpl(const char* file_name, unsigned int line, const char* function_name)
 {
+#if defined(NDEBUG) && ENABLE_OPENGL_ERROR_LOGGING
+    // In release mode, if OpenGL debugging was forced by ENABLE_OPENGL_ERROR_LOGGING, only show
+    // OpenGL errors if sufficiently high loglevel.
+    if (Slic3r::get_logging_level() < 5)
+        return;
+#endif // ENABLE_OPENGL_ERROR_LOGGING
+
     GLenum err = glGetError();
     if (err == GL_NO_ERROR)
         return;
-    const char *sErr = 0;
+    const char* sErr = 0;
     switch (err) {
     case GL_INVALID_ENUM:       sErr = "Invalid Enum";      break;
     case GL_INVALID_VALUE:      sErr = "Invalid Value";     break;
@@ -51,30 +62,114 @@ void glAssertRecentCallImpl(const char *file_name, unsigned int line, const char
     case GL_OUT_OF_MEMORY:      sErr = "Out Of Memory";     break;
     default:                    sErr = "Unknown";           break;
     }
-	BOOST_LOG_TRIVIAL(error) << "OpenGL error in " << file_name << ":" << line << ", function " << function_name << "() : " << (int)err << " - " << sErr;
+    BOOST_LOG_TRIVIAL(error) << "OpenGL error in " << file_name << ":" << line << ", function " << function_name << "() : " << (int)err << " - " << sErr;
     assert(false);
 }
-#endif
+#endif // HAS_GLSAFE
 
 namespace Slic3r {
 
-void GLIndexedVertexArray::load_mesh_full_shading(const TriangleMesh &mesh)
+#if ENABLE_SMOOTH_NORMALS
+static void smooth_normals_corner(TriangleMesh& mesh, std::vector<stl_normal>& normals)
+{
+    mesh.repair();
+
+    using MapMatrixXfUnaligned = Eigen::Map<const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>>;
+    using MapMatrixXiUnaligned = Eigen::Map<const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>>;
+
+    std::vector<stl_normal> face_normals(mesh.stl.stats.number_of_facets);
+    for (uint32_t i = 0; i < mesh.stl.stats.number_of_facets; ++i) {
+        face_normals[i] = mesh.stl.facet_start[i].normal;
+    }
+
+    Eigen::MatrixXd vertices = MapMatrixXfUnaligned(mesh.its.vertices.front().data(),
+        Eigen::Index(mesh.its.vertices.size()), 3).cast<double>();
+    Eigen::MatrixXi indices = MapMatrixXiUnaligned(mesh.its.indices.front().data(),
+        Eigen::Index(mesh.its.indices.size()), 3);
+    Eigen::MatrixXd in_normals = MapMatrixXfUnaligned(face_normals.front().data(),
+        Eigen::Index(face_normals.size()), 3).cast<double>();
+    Eigen::MatrixXd out_normals;
+
+    igl::per_corner_normals(vertices, indices, in_normals, 1.0, out_normals);
+
+    normals = std::vector<stl_normal>(mesh.its.vertices.size());
+    for (size_t i = 0; i < mesh.its.indices.size(); ++i) {
+        for (size_t j = 0; j < 3; ++j) {
+            normals[mesh.its.indices[i][j]] = out_normals.row(i * 3 + j).cast<float>();
+        }
+    }
+}
+
+static void smooth_normals_vertex(TriangleMesh& mesh, std::vector<stl_normal>& normals)
+{
+    mesh.repair();
+
+    using MapMatrixXfUnaligned = Eigen::Map<const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>>;
+    using MapMatrixXiUnaligned = Eigen::Map<const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>>;
+
+    Eigen::MatrixXd vertices = MapMatrixXfUnaligned(mesh.its.vertices.front().data(),
+        Eigen::Index(mesh.its.vertices.size()), 3).cast<double>();
+    Eigen::MatrixXi indices = MapMatrixXiUnaligned(mesh.its.indices.front().data(),
+        Eigen::Index(mesh.its.indices.size()), 3);
+    Eigen::MatrixXd out_normals;
+
+//    igl::per_vertex_normals(vertices, indices, igl::PER_VERTEX_NORMALS_WEIGHTING_TYPE_UNIFORM, out_normals);
+//    igl::per_vertex_normals(vertices, indices, igl::PER_VERTEX_NORMALS_WEIGHTING_TYPE_AREA, out_normals);
+    igl::per_vertex_normals(vertices, indices, igl::PER_VERTEX_NORMALS_WEIGHTING_TYPE_ANGLE, out_normals);
+//    igl::per_vertex_normals(vertices, indices, igl::PER_VERTEX_NORMALS_WEIGHTING_TYPE_DEFAULT, out_normals);
+
+    normals = std::vector<stl_normal>(mesh.its.vertices.size());
+    for (size_t i = 0; i < static_cast<size_t>(out_normals.rows()); ++i) {
+        normals[i] = out_normals.row(i).cast<float>();
+    }
+}
+#endif // ENABLE_SMOOTH_NORMALS
+
+#if ENABLE_SMOOTH_NORMALS
+void GLIndexedVertexArray::load_mesh_full_shading(const TriangleMesh& mesh, bool smooth_normals)
+#else
+void GLIndexedVertexArray::load_mesh_full_shading(const TriangleMesh& mesh)
+#endif // ENABLE_SMOOTH_NORMALS
 {
     assert(triangle_indices.empty() && vertices_and_normals_interleaved_size == 0);
     assert(quad_indices.empty() && triangle_indices_size == 0);
     assert(vertices_and_normals_interleaved.size() % 6 == 0 && quad_indices_size == vertices_and_normals_interleaved.size());
 
-    this->vertices_and_normals_interleaved.reserve(this->vertices_and_normals_interleaved.size() + 3 * 3 * 2 * mesh.facets_count());
+#if ENABLE_SMOOTH_NORMALS
+    if (smooth_normals) {
+        TriangleMesh new_mesh(mesh);
+        std::vector<stl_normal> normals;
+        smooth_normals_corner(new_mesh, normals);
+//        smooth_normals_vertex(new_mesh, normals);
 
-    unsigned int vertices_count = 0;
-    for (int i = 0; i < (int)mesh.stl.stats.number_of_facets; ++i) {
-        const stl_facet &facet = mesh.stl.facet_start[i];
-        for (int j = 0; j < 3; ++j)
-            this->push_geometry(facet.vertex[j](0), facet.vertex[j](1), facet.vertex[j](2), facet.normal(0), facet.normal(1), facet.normal(2));
+        this->vertices_and_normals_interleaved.reserve(this->vertices_and_normals_interleaved.size() + 3 * 2 * new_mesh.its.vertices.size());
+        for (size_t i = 0; i < new_mesh.its.vertices.size(); ++i) {
+            const stl_vertex& v = new_mesh.its.vertices[i];
+            const stl_normal& n = normals[i];
+            this->push_geometry(v(0), v(1), v(2), n(0), n(1), n(2));
+        }
 
-        this->push_triangle(vertices_count, vertices_count + 1, vertices_count + 2);
-        vertices_count += 3;
+        for (size_t i = 0; i < new_mesh.its.indices.size(); ++i) {
+            const stl_triangle_vertex_indices& idx = new_mesh.its.indices[i];
+            this->push_triangle(idx(0), idx(1), idx(2));
+        }
     }
+    else {
+#endif // ENABLE_SMOOTH_NORMALS
+        this->vertices_and_normals_interleaved.reserve(this->vertices_and_normals_interleaved.size() + 3 * 3 * 2 * mesh.facets_count());
+
+        unsigned int vertices_count = 0;
+        for (int i = 0; i < (int)mesh.stl.stats.number_of_facets; ++i) {
+            const stl_facet& facet = mesh.stl.facet_start[i];
+            for (int j = 0; j < 3; ++j)
+                this->push_geometry(facet.vertex[j](0), facet.vertex[j](1), facet.vertex[j](2), facet.normal(0), facet.normal(1), facet.normal(2));
+
+            this->push_triangle(vertices_count, vertices_count + 1, vertices_count + 2);
+            vertices_count += 3;
+        }
+#if ENABLE_SMOOTH_NORMALS
+    }
+#endif // ENABLE_SMOOTH_NORMALS
 }
 
 void GLIndexedVertexArray::finalize_geometry(bool opengl_initialized)
@@ -205,6 +300,7 @@ const float GLVolume::MODEL_COLOR[4][4] = {
 };
 const float GLVolume::SLA_SUPPORT_COLOR[4] = { 0.75f, 0.75f, 0.75f, 1.0f };
 const float GLVolume::SLA_PAD_COLOR[4] = { 0.0f, 0.2f, 0.0f, 1.0f };
+const float GLVolume::NEUTRAL_COLOR[4] = { 0.9f, 0.9f, 0.9f, 1.0f };
 
 GLVolume::GLVolume(float r, float g, float b, float a)
     : m_transformed_bounding_box_dirty(true)
@@ -226,6 +322,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , is_extrusion_path(false)
     , force_transparent(false)
     , force_native_color(false)
+    , force_neutral_color(false)
     , tverts_range(0, size_t(-1))
     , qverts_range(0, size_t(-1))
 {
@@ -251,12 +348,16 @@ void GLVolume::set_render_color(const float* rgba, unsigned int size)
 
 void GLVolume::set_render_color()
 {
-    if (force_native_color)
+    if (force_native_color || force_neutral_color)
     {
         if (is_outside && shader_outside_printer_detection_enabled)
             set_render_color(OUTSIDE_COLOR, 4);
-        else
-            set_render_color(color, 4);
+        else {
+            if (force_native_color)
+                set_render_color(color, 4);
+            else
+                set_render_color(NEUTRAL_COLOR, 4);
+        }
     }
     else {
         if (hover == HS_Select)
@@ -346,7 +447,6 @@ BoundingBoxf3 GLVolume::transformed_convex_hull_bounding_box(const Transform3d &
         bounding_box().transformed(trafo);
 }
 
-
 void GLVolume::set_range(double min_z, double max_z)
 {
     this->qverts_range.first = 0;
@@ -400,22 +500,6 @@ void GLVolume::render() const
         glFrontFace(GL_CCW);
 }
 
-void GLVolume::render(int color_id, int detection_id, int worldmatrix_id) const
-{
-    if (color_id >= 0)
-        glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)render_color));
-    else
-        glsafe(::glColor4fv(render_color));
-
-    if (detection_id != -1)
-        glsafe(::glUniform1i(detection_id, shader_outside_printer_detection_enabled ? 1 : 0));
-
-    if (worldmatrix_id != -1)
-        glsafe(::glUniformMatrix4fv(worldmatrix_id, 1, GL_FALSE, (const GLfloat*)world_matrix().cast<float>().data()));
-
-    render();
-}
-
 bool GLVolume::is_sla_support() const { return this->composite_id.volume_id == -int(slaposSupportTree); }
 bool GLVolume::is_sla_pad() const { return this->composite_id.volume_id == -int(slaposPad); }
 
@@ -461,7 +545,11 @@ int GLVolumeCollection::load_object_volume(
     this->volumes.emplace_back(new GLVolume(color));
     GLVolume& v = *this->volumes.back();
     v.set_color_from_model_volume(model_volume);
+#if ENABLE_SMOOTH_NORMALS
+    v.indexed_vertex_array.load_mesh(mesh, true);
+#else
     v.indexed_vertex_array.load_mesh(mesh);
+#endif // ENABLE_SMOOTH_NORMALS
     v.indexed_vertex_array.finalize_geometry(opengl_initialized);
     v.composite_id = GLVolume::CompositeID(obj_idx, volume_idx, instance_idx);
     if (model_volume->is_model_part())
@@ -503,8 +591,12 @@ void GLVolumeCollection::load_object_auxiliary(
         const ModelInstance& model_instance = *print_object->model_object()->instances[instance_idx.first];
         this->volumes.emplace_back(new GLVolume((milestone == slaposPad) ? GLVolume::SLA_PAD_COLOR : GLVolume::SLA_SUPPORT_COLOR));
         GLVolume& v = *this->volumes.back();
+#if ENABLE_SMOOTH_NORMALS
+        v.indexed_vertex_array.load_mesh(mesh, true);
+#else
         v.indexed_vertex_array.load_mesh(mesh);
-	    v.indexed_vertex_array.finalize_geometry(opengl_initialized);
+#endif // ENABLE_SMOOTH_NORMALS
+        v.indexed_vertex_array.finalize_geometry(opengl_initialized);
         v.composite_id = GLVolume::CompositeID(obj_idx, -int(milestone), (int)instance_idx.first);
         v.geometry_id = std::pair<size_t, size_t>(timestamp, model_instance.id().id);
         // Create a copy of the convex hull mesh for each instance. Use a move operator on the last instance.
@@ -541,16 +633,16 @@ int GLVolumeCollection::load_wipe_tower_preview(
         // We'll now create the box with jagged edge. y-coordinates of the pre-generated model are shifted so that the front
         // edge has y=0 and centerline of the back edge has y=depth:
         Pointf3s points;
-        std::vector<Vec3crd> facets;
+        std::vector<Vec3i> facets;
         float out_points_idx[][3] = { { 0, -depth, 0 }, { 0, 0, 0 }, { 38.453f, 0, 0 }, { 61.547f, 0, 0 }, { 100.0f, 0, 0 }, { 100.0f, -depth, 0 }, { 55.7735f, -10.0f, 0 }, { 44.2265f, 10.0f, 0 },
         { 38.453f, 0, 1 }, { 0, 0, 1 }, { 0, -depth, 1 }, { 100.0f, -depth, 1 }, { 100.0f, 0, 1 }, { 61.547f, 0, 1 }, { 55.7735f, -10.0f, 1 }, { 44.2265f, 10.0f, 1 } };
         int out_facets_idx[][3] = { { 0, 1, 2 }, { 3, 4, 5 }, { 6, 5, 0 }, { 3, 5, 6 }, { 6, 2, 7 }, { 6, 0, 2 }, { 8, 9, 10 }, { 11, 12, 13 }, { 10, 11, 14 }, { 14, 11, 13 }, { 15, 8, 14 },
                                    {8, 10, 14}, {3, 12, 4}, {3, 13, 12}, {6, 13, 3}, {6, 14, 13}, {7, 14, 6}, {7, 15, 14}, {2, 15, 7}, {2, 8, 15}, {1, 8, 2}, {1, 9, 8},
                                    {0, 9, 1}, {0, 10, 9}, {5, 10, 0}, {5, 11, 10}, {4, 11, 5}, {4, 12, 11} };
         for (int i = 0; i < 16; ++i)
-            points.push_back(Vec3d(out_points_idx[i][0] / (100.f / min_width), out_points_idx[i][1] + depth, out_points_idx[i][2]));
+            points.emplace_back(out_points_idx[i][0] / (100.f / min_width), out_points_idx[i][1] + depth, out_points_idx[i][2]);
         for (int i = 0; i < 28; ++i)
-            facets.push_back(Vec3crd(out_facets_idx[i][0], out_facets_idx[i][1], out_facets_idx[i][2]));
+            facets.emplace_back(out_facets_idx[i][0], out_facets_idx[i][1], out_facets_idx[i][2]);
         TriangleMesh tooth_mesh(points, facets);
 
         // We have the mesh ready. It has one tooth and width of min_width. We will now append several of these together until we are close to
@@ -641,6 +733,10 @@ GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCo
 
 void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func) const
 {
+    GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
+    if (shader == nullptr)
+        return;
+
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
@@ -651,34 +747,37 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
     glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
     glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
  
-    GLint current_program_id;
-    glsafe(::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id));
-    GLint color_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "uniform_color") : -1;
-    GLint z_range_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "z_range") : -1;
-    GLint clipping_plane_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "clipping_plane") : -1;
-    GLint print_box_min_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.min") : -1;
-    GLint print_box_max_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.max") : -1;
-    GLint print_box_detection_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.volume_detection") : -1;
-    GLint print_box_worldmatrix_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.volume_world_matrix") : -1;
+    shader->set_uniform("print_box.min", m_print_box_min, 3);
+    shader->set_uniform("print_box.max", m_print_box_max, 3);
+    shader->set_uniform("z_range", m_z_range, 2);
+    shader->set_uniform("clipping_plane", m_clipping_plane, 4);
+    shader->set_uniform("slope.normal_z", m_slope.normal_z);
+
+#if ENABLE_ENVIRONMENT_MAP
+    unsigned int environment_texture_id = GUI::wxGetApp().plater()->get_environment_texture_id();
+    bool use_environment_texture = environment_texture_id > 0 && GUI::wxGetApp().app_config->get("use_environment_map") == "1";
+    shader->set_uniform("use_environment_tex", use_environment_texture);
+    if (use_environment_texture)
+        glsafe(::glBindTexture(GL_TEXTURE_2D, environment_texture_id));
+#endif // ENABLE_ENVIRONMENT_MAP
     glcheck();
-
-    if (print_box_min_id != -1)
-        glsafe(::glUniform3fv(print_box_min_id, 1, (const GLfloat*)print_box_min));
-
-    if (print_box_max_id != -1)
-        glsafe(::glUniform3fv(print_box_max_id, 1, (const GLfloat*)print_box_max));
-
-    if (z_range_id != -1)
-        glsafe(::glUniform2fv(z_range_id, 1, (const GLfloat*)z_range));
-
-    if (clipping_plane_id != -1)
-        glsafe(::glUniform4fv(clipping_plane_id, 1, (const GLfloat*)clipping_plane));
 
     GLVolumeWithIdAndZList to_render = volumes_to_render(this->volumes, type, view_matrix, filter_func);
     for (GLVolumeWithIdAndZ& volume : to_render) {
         volume.first->set_render_color();
-        volume.first->render(color_id, print_box_detection_id, print_box_worldmatrix_id);
+        shader->set_uniform("uniform_color", volume.first->render_color, 4);
+        shader->set_uniform("print_box.actived", volume.first->shader_outside_printer_detection_enabled);
+        shader->set_uniform("print_box.volume_world_matrix", volume.first->world_matrix());
+        shader->set_uniform("slope.actived", m_slope.active && !volume.first->is_modifier && !volume.first->is_wipe_tower);
+        shader->set_uniform("slope.volume_world_normal_matrix", static_cast<Matrix3f>(volume.first->world_matrix().matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>()));
+
+        volume.first->render();
     }
+
+#if ENABLE_ENVIRONMENT_MAP
+    if (use_environment_texture)
+        glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
+#endif // ENABLE_ENVIRONMENT_MAP
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
@@ -692,7 +791,7 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
     glsafe(::glDisable(GL_BLEND));
 }
 
-bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, ModelInstance::EPrintVolumeState* out_state)
+bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, ModelInstanceEPrintVolumeState* out_state)
 {
     if (config == nullptr)
         return false;
@@ -706,7 +805,7 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
     // Allow the objects to protrude below the print bed
     print_volume.min(2) = -1e10;
 
-    ModelInstance::EPrintVolumeState state = ModelInstance::PVS_Inside;
+    ModelInstanceEPrintVolumeState state = ModelInstancePVS_Inside;
 
     bool contained_min_one = false;
 
@@ -725,11 +824,11 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
         if (contained)
             contained_min_one = true;
 
-        if ((state == ModelInstance::PVS_Inside) && volume->is_outside)
-            state = ModelInstance::PVS_Fully_Outside;
+        if ((state == ModelInstancePVS_Inside) && volume->is_outside)
+            state = ModelInstancePVS_Fully_Outside;
 
-        if ((state == ModelInstance::PVS_Fully_Outside) && volume->is_outside && print_volume.intersects(bb))
-            state = ModelInstance::PVS_Partly_Outside;
+        if ((state == ModelInstancePVS_Fully_Outside) && volume->is_outside && print_volume.intersects(bb))
+            state = ModelInstancePVS_Partly_Outside;
     }
 
     if (out_state != nullptr)
@@ -792,14 +891,14 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
     for (unsigned int i = 0; i < colors_count; ++i)
     {
         const std::string& txt_color = config->opt_string("extruder_colour", i);
-        if (PresetBundle::parse_color(txt_color, rgb))
+        if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb))
         {
             colors[i].set(txt_color, rgb);
         }
         else
         {
             const std::string& txt_color = config->opt_string("filament_colour", i);
-            if (PresetBundle::parse_color(txt_color, rgb))
+            if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb))
                 colors[i].set(txt_color, rgb);
         }
     }
@@ -877,13 +976,10 @@ bool can_export_to_obj(const GLVolume& volume)
     if (!volume.is_active || !volume.is_extrusion_path)
         return false;
 
-    if (volume.indexed_vertex_array.triangle_indices.empty() && (std::min(volume.indexed_vertex_array.triangle_indices_size, volume.tverts_range.second - volume.tverts_range.first) == 0))
-        return false;
+    bool has_triangles = !volume.indexed_vertex_array.triangle_indices.empty() || (std::min(volume.indexed_vertex_array.triangle_indices_size, volume.tverts_range.second - volume.tverts_range.first) > 0);
+    bool has_quads = !volume.indexed_vertex_array.quad_indices.empty() || (std::min(volume.indexed_vertex_array.quad_indices_size, volume.qverts_range.second - volume.qverts_range.first) > 0);
 
-    if (volume.indexed_vertex_array.quad_indices.empty() && (std::min(volume.indexed_vertex_array.quad_indices_size, volume.qverts_range.second - volume.qverts_range.first) == 0))
-        return false;
-
-    return true;
+    return has_triangles || has_quads;
 }
 
 bool GLVolumeCollection::has_toolpaths_to_export() const
@@ -895,288 +991,6 @@ bool GLVolumeCollection::has_toolpaths_to_export() const
     }
 
     return false;
-}
-
-void GLVolumeCollection::export_toolpaths_to_obj(const char* filename) const
-{
-    if (filename == nullptr)
-        return;
-
-    if (!has_toolpaths_to_export())
-        return;
-
-    // collect color information to generate materials
-    typedef std::array<float, 4> Color;
-    std::set<Color> colors;
-    for (const GLVolume* volume : this->volumes)
-    {
-        if (!can_export_to_obj(*volume))
-            continue;
-
-        Color color;
-        ::memcpy((void*)color.data(), (const void*)volume->color, 4 * sizeof(float));
-        colors.insert(color);
-    }
-
-    // save materials file
-    boost::filesystem::path mat_filename(filename);
-    mat_filename.replace_extension("mtl");
-    FILE* fp = boost::nowide::fopen(mat_filename.string().c_str(), "w");
-    if (fp == nullptr) {
-        BOOST_LOG_TRIVIAL(error) << "GLVolumeCollection::export_toolpaths_to_obj: Couldn't open " << mat_filename.string().c_str() << " for writing";
-        return;
-    }
-
-    fprintf(fp, "# G-Code Toolpaths Materials\n");
-    fprintf(fp, "# Generated by %s based on Slic3r\n", SLIC3R_BUILD_ID);
-
-    unsigned int colors_count = 1;
-    for (const Color& color : colors)
-    {
-        fprintf(fp, "\nnewmtl material_%d\n", colors_count++);
-        fprintf(fp, "Ka 1 1 1\n");
-        fprintf(fp, "Kd %f %f %f\n", color[0], color[1], color[2]);
-        fprintf(fp, "Ks 0 0 0\n");
-    }
-
-    fclose(fp);
-
-    // save geometry file
-    fp = boost::nowide::fopen(filename, "w");
-    if (fp == nullptr) {
-        BOOST_LOG_TRIVIAL(error) << "GLVolumeCollection::export_toolpaths_to_obj: Couldn't open " << filename << " for writing";
-        return;
-    }
-
-    fprintf(fp, "# G-Code Toolpaths\n");
-    fprintf(fp, "# Generated by %s based on Slic3r\n", SLIC3R_BUILD_ID);
-    fprintf(fp, "\nmtllib ./%s\n", mat_filename.filename().string().c_str());
-
-    unsigned int vertices_count = 0;
-    unsigned int normals_count = 0;
-    unsigned int volumes_count = 0;
-
-    for (const GLVolume* volume : this->volumes)
-    {
-        if (!can_export_to_obj(*volume))
-            continue;
-
-        std::vector<float> src_vertices_and_normals_interleaved;
-        std::vector<int>   src_triangle_indices;
-        std::vector<int>   src_quad_indices;
-
-        if (!volume->indexed_vertex_array.vertices_and_normals_interleaved.empty())
-            // data are in CPU memory
-            src_vertices_and_normals_interleaved = volume->indexed_vertex_array.vertices_and_normals_interleaved;
-        else if ((volume->indexed_vertex_array.vertices_and_normals_interleaved_VBO_id != 0) && (volume->indexed_vertex_array.vertices_and_normals_interleaved_size != 0))
-        {
-            // data are in GPU memory
-            src_vertices_and_normals_interleaved = std::vector<float>(volume->indexed_vertex_array.vertices_and_normals_interleaved_size, 0.0f);
-
-            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, volume->indexed_vertex_array.vertices_and_normals_interleaved_VBO_id));
-            glsafe(::glGetBufferSubData(GL_ARRAY_BUFFER, 0, src_vertices_and_normals_interleaved.size() * sizeof(float), src_vertices_and_normals_interleaved.data()));
-            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-        }
-        else
-            continue;
-
-        if (!volume->indexed_vertex_array.triangle_indices.empty())
-        {
-            // data are in CPU memory
-            size_t size = std::min(volume->indexed_vertex_array.triangle_indices.size(), volume->tverts_range.second - volume->tverts_range.first);
-            if (size != 0)
-            {
-                std::vector<int>::const_iterator it_begin = volume->indexed_vertex_array.triangle_indices.begin() + volume->tverts_range.first;
-                std::vector<int>::const_iterator it_end = volume->indexed_vertex_array.triangle_indices.begin() + volume->tverts_range.first + size;
-                std::copy(it_begin, it_end, std::back_inserter(src_triangle_indices));
-            }
-        }
-        else if ((volume->indexed_vertex_array.triangle_indices_VBO_id != 0) && (volume->indexed_vertex_array.triangle_indices_size != 0))
-        {
-            // data are in GPU memory
-            size_t size = std::min(volume->indexed_vertex_array.triangle_indices_size, volume->tverts_range.second - volume->tverts_range.first);
-            if (size != 0)
-            {
-                src_triangle_indices = std::vector<int>(size, 0);
-
-                glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, volume->indexed_vertex_array.triangle_indices_VBO_id));
-                glsafe(::glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, volume->tverts_range.first * sizeof(int), size * sizeof(int), src_triangle_indices.data()));
-                glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-            }
-        }
-
-        if (!volume->indexed_vertex_array.quad_indices.empty())
-        {
-            // data are in CPU memory
-            size_t size = std::min(volume->indexed_vertex_array.quad_indices.size(), volume->qverts_range.second - volume->qverts_range.first);
-            if (size != 0)
-            {
-                std::vector<int>::const_iterator it_begin = volume->indexed_vertex_array.quad_indices.begin() + volume->qverts_range.first;
-                std::vector<int>::const_iterator it_end = volume->indexed_vertex_array.quad_indices.begin() + volume->qverts_range.first + size;
-                std::copy(it_begin, it_end, std::back_inserter(src_quad_indices));
-            }
-        }
-        else if ((volume->indexed_vertex_array.quad_indices_VBO_id != 0) && (volume->indexed_vertex_array.quad_indices_size != 0))
-        {
-            // data are in GPU memory
-            size_t size = std::min(volume->indexed_vertex_array.quad_indices_size, volume->qverts_range.second - volume->qverts_range.first);
-            if (size != 0)
-            {
-                src_quad_indices = std::vector<int>(size, 0);
-
-                glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, volume->indexed_vertex_array.quad_indices_VBO_id));
-                glsafe(::glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, volume->qverts_range.first * sizeof(int), size * sizeof(int), src_quad_indices.data()));
-                glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-            }
-        }
-
-        if (src_triangle_indices.empty() && src_quad_indices.empty())
-            continue;
-
-        ++volumes_count;
-
-        // reduce output size by keeping only used vertices and normals
-
-        struct Vector
-        {
-            std::array<coord_t, 3> vector;
-
-            explicit Vector(float* ptr)
-            {
-                vector[0] = scale_(*(ptr + 0));
-                vector[1] = scale_(*(ptr + 1));
-                vector[2] = scale_(*(ptr + 2));
-            }
-        };
-        typedef std::vector<Vector> Vectors;
-
-        auto vector_less = [](const Vector& v1, const Vector& v2)->bool {
-            return v1.vector < v2.vector;
-        };
-
-        auto vector_equal = [](const Vector& v1, const Vector& v2)->bool {
-            return (v1.vector[0] == v2.vector[0]) && (v1.vector[1] == v2.vector[1]) && (v1.vector[2] == v2.vector[2]);
-        };
-
-        // copy used vertices and normals data
-        Vectors dst_normals;
-        Vectors dst_vertices;
-
-        unsigned int src_triangle_indices_size = (unsigned int)src_triangle_indices.size();
-        for (unsigned int i = 0; i < src_triangle_indices_size; ++i)
-        {
-            float* src_ptr = src_vertices_and_normals_interleaved.data() + src_triangle_indices[i] * 6;
-            dst_normals.emplace_back(src_ptr + 0);
-            dst_vertices.emplace_back(src_ptr + 3);
-        }
-
-        unsigned int src_quad_indices_size = (unsigned int)src_quad_indices.size();
-        for (unsigned int i = 0; i < src_quad_indices_size; ++i)
-        {
-            float* src_ptr = src_vertices_and_normals_interleaved.data() + src_quad_indices[i] * 6;
-            dst_normals.emplace_back(src_ptr + 0);
-            dst_vertices.emplace_back(src_ptr + 3);
-        }
-
-        // sort vertices and normals
-        std::sort(dst_normals.begin(), dst_normals.end(), vector_less);
-        std::sort(dst_vertices.begin(), dst_vertices.end(), vector_less);
-
-        // remove duplicated vertices and normals
-        dst_normals.erase(std::unique(dst_normals.begin(), dst_normals.end(), vector_equal), dst_normals.end());
-        dst_vertices.erase(std::unique(dst_vertices.begin(), dst_vertices.end(), vector_equal), dst_vertices.end());
-
-        // reindex triangles and quads
-        struct IndicesPair
-        {
-            int vertex;
-            int normal;
-            IndicesPair(int vertex, int normal) : vertex(vertex), normal(normal) {}
-        };
-        typedef std::vector<IndicesPair> Indices;
-
-        unsigned int src_vertices_count = (unsigned int)src_vertices_and_normals_interleaved.size() / 6;
-        std::vector<int> src_dst_vertex_indices_map(src_vertices_count, -1);
-        std::vector<int> src_dst_normal_indices_map(src_vertices_count, -1);
-
-        for (unsigned int i = 0; i < src_vertices_count; ++i)
-        {
-            float* src_ptr = src_vertices_and_normals_interleaved.data() + i * 6;
-            src_dst_normal_indices_map[i] = std::distance(dst_normals.begin(), std::lower_bound(dst_normals.begin(), dst_normals.end(), Vector(src_ptr + 0), vector_less));
-            src_dst_vertex_indices_map[i] = std::distance(dst_vertices.begin(), std::lower_bound(dst_vertices.begin(), dst_vertices.end(), Vector(src_ptr + 3), vector_less));
-        }
-
-        Indices dst_triangle_indices;
-        if (src_triangle_indices_size > 0)
-            dst_triangle_indices.reserve(src_triangle_indices_size);
-
-        for (unsigned int i = 0; i < src_triangle_indices_size; ++i)
-        {
-            int id = src_triangle_indices[i];
-            dst_triangle_indices.emplace_back(src_dst_vertex_indices_map[id], src_dst_normal_indices_map[id]);
-        }
-
-        Indices dst_quad_indices;
-        if (src_quad_indices_size > 0)
-            dst_quad_indices.reserve(src_quad_indices_size);
-
-        for (unsigned int i = 0; i < src_quad_indices_size; ++i)
-        {
-            int id = src_quad_indices[i];
-            dst_quad_indices.emplace_back(src_dst_vertex_indices_map[id], src_dst_normal_indices_map[id]);
-        }
-
-        // save to file
-        fprintf(fp, "\n# vertices volume %d\n", volumes_count);
-        for (const Vector& v : dst_vertices)
-        {
-            fprintf(fp, "v %g %g %g\n", unscale<float>(v.vector[0]), unscale<float>(v.vector[1]), unscale<float>(v.vector[2]));
-        }
-
-        fprintf(fp, "\n# normals volume %d\n", volumes_count);
-        for (const Vector& n : dst_normals)
-        {
-            fprintf(fp, "vn %g %g %g\n", unscale<float>(n.vector[0]), unscale<float>(n.vector[1]), unscale<float>(n.vector[2]));
-        }
-
-        Color color;
-        ::memcpy((void*)color.data(), (const void*)volume->color, 4 * sizeof(float));
-        fprintf(fp, "\n# material volume %d\n", volumes_count);
-        fprintf(fp, "usemtl material_%lld\n", (long long)(1 + std::distance(colors.begin(), colors.find(color))));
-
-        int base_vertex_id = vertices_count + 1;
-        int base_normal_id = normals_count + 1;
-
-        if (!dst_triangle_indices.empty())
-        {
-            fprintf(fp, "\n# triangular facets volume %d\n", volumes_count);
-            for (unsigned int i = 0; i < (unsigned int)dst_triangle_indices.size(); i += 3)
-            {
-                fprintf(fp, "f %d//%d %d//%d %d//%d\n", 
-                    base_vertex_id + dst_triangle_indices[i + 0].vertex, base_normal_id + dst_triangle_indices[i + 0].normal,
-                    base_vertex_id + dst_triangle_indices[i + 1].vertex, base_normal_id + dst_triangle_indices[i + 1].normal,
-                    base_vertex_id + dst_triangle_indices[i + 2].vertex, base_normal_id + dst_triangle_indices[i + 2].normal);
-            }
-        }
-
-        if (!dst_quad_indices.empty())
-        {
-            fprintf(fp, "\n# quadrangular facets volume %d\n", volumes_count);
-            for (unsigned int i = 0; i < (unsigned int)src_quad_indices.size(); i += 4)
-            {
-                fprintf(fp, "f %d//%d %d//%d %d//%d %d//%d\n", 
-                    base_vertex_id + dst_quad_indices[i + 0].vertex, base_normal_id + dst_quad_indices[i + 0].normal,
-                    base_vertex_id + dst_quad_indices[i + 1].vertex, base_normal_id + dst_quad_indices[i + 1].normal,
-                    base_vertex_id + dst_quad_indices[i + 2].vertex, base_normal_id + dst_quad_indices[i + 2].normal,
-                    base_vertex_id + dst_quad_indices[i + 3].vertex, base_normal_id + dst_quad_indices[i + 3].normal);
-            }
-        }
-
-        vertices_count += (unsigned int)dst_vertices.size();
-        normals_count += (unsigned int)dst_normals.size();
-    }
-
-    fclose(fp);
 }
 
 // caller is responsible for supplying NO lines with zero length
@@ -1804,7 +1618,7 @@ void _3DScene::extrusionentity_to_verts(const ExtrusionEntity *extrusion_entity,
                     if (extrusion_entity_collection != nullptr)
                         extrusionentity_to_verts(*extrusion_entity_collection, print_z, copy, volume);
                     else {
-                        throw std::runtime_error("Unexpected extrusion_entity type in to_verts()");
+                        throw Slic3r::RuntimeError("Unexpected extrusion_entity type in to_verts()");
                     }
                 }
             }
@@ -1823,324 +1637,6 @@ void _3DScene::polyline3_to_verts(const Polyline3& polyline, double width, doubl
 void _3DScene::point3_to_verts(const Vec3crd& point, double width, double height, GLVolume& volume)
 {
     thick_point_to_verts(point, width, height, volume);
-}
-
-GUI::GLCanvas3DManager _3DScene::s_canvas_mgr;
-
-GLModel::GLModel()
-    : m_filename("")
-{
-    m_volume.shader_outside_printer_detection_enabled = false;
-}
-
-GLModel::~GLModel()
-{
-    reset();
-}
-
-void GLModel::set_color(const float* color, unsigned int size)
-{
-    ::memcpy((void*)m_volume.color, (const void*)color, (size_t)(std::min((unsigned int)4, size) * sizeof(float)));
-    m_volume.set_render_color(color, size);
-}
-
-const Vec3d& GLModel::get_offset() const
-{
-    return m_volume.get_volume_offset();
-}
-
-void GLModel::set_offset(const Vec3d& offset)
-{
-    m_volume.set_volume_offset(offset);
-}
-
-const Vec3d& GLModel::get_rotation() const
-{
-    return m_volume.get_volume_rotation();
-}
-
-void GLModel::set_rotation(const Vec3d& rotation)
-{
-    m_volume.set_volume_rotation(rotation);
-}
-
-const Vec3d& GLModel::get_scale() const
-{
-    return m_volume.get_volume_scaling_factor();
-}
-
-void GLModel::set_scale(const Vec3d& scale)
-{
-    m_volume.set_volume_scaling_factor(scale);
-}
-
-void GLModel::reset()
-{
-    m_volume.indexed_vertex_array.release_geometry();
-    m_filename = "";
-}
-
-void GLModel::render() const
-{
-    glsafe(::glEnable(GL_BLEND));
-    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-    glsafe(::glCullFace(GL_BACK));
-    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-    glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
-
-    GLint current_program_id;
-    glsafe(::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id));
-    GLint color_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "uniform_color") : -1;
-    glcheck();
-
-    m_volume.render(color_id, -1, -1);
-
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-
-    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-    glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
-
-    glsafe(::glDisable(GL_BLEND));
-}
-
-bool GLArrow::on_init()
-{
-    Pointf3s vertices;
-    std::vector<Vec3crd> triangles;
-
-    // bottom face
-    vertices.emplace_back(0.5, 0.0, -0.1);
-    vertices.emplace_back(0.5, 2.0, -0.1);
-    vertices.emplace_back(1.0, 2.0, -0.1);
-    vertices.emplace_back(0.0, 3.0, -0.1);
-    vertices.emplace_back(-1.0, 2.0, -0.1);
-    vertices.emplace_back(-0.5, 2.0, -0.1);
-    vertices.emplace_back(-0.5, 0.0, -0.1);
-
-    // top face
-    vertices.emplace_back(0.5, 0.0, 0.1);
-    vertices.emplace_back(0.5, 2.0, 0.1);
-    vertices.emplace_back(1.0, 2.0, 0.1);
-    vertices.emplace_back(0.0, 3.0, 0.1);
-    vertices.emplace_back(-1.0, 2.0, 0.1);
-    vertices.emplace_back(-0.5, 2.0, 0.1);
-    vertices.emplace_back(-0.5, 0.0, 0.1);
-
-    // bottom face
-    triangles.emplace_back(0, 6, 1);
-    triangles.emplace_back(6, 5, 1);
-    triangles.emplace_back(5, 4, 3);
-    triangles.emplace_back(5, 3, 1);
-    triangles.emplace_back(1, 3, 2);
-
-    // top face
-    triangles.emplace_back(7, 8, 13);
-    triangles.emplace_back(13, 8, 12);
-    triangles.emplace_back(12, 10, 11);
-    triangles.emplace_back(8, 10, 12);
-    triangles.emplace_back(8, 9, 10);
-
-    // side face
-    triangles.emplace_back(0, 1, 8);
-    triangles.emplace_back(8, 7, 0);
-    triangles.emplace_back(1, 2, 9);
-    triangles.emplace_back(9, 8, 1);
-    triangles.emplace_back(2, 3, 10);
-    triangles.emplace_back(10, 9, 2);
-    triangles.emplace_back(3, 4, 11);
-    triangles.emplace_back(11, 10, 3);
-    triangles.emplace_back(4, 5, 12);
-    triangles.emplace_back(12, 11, 4);
-    triangles.emplace_back(5, 6, 13);
-    triangles.emplace_back(13, 12, 5);
-    triangles.emplace_back(6, 0, 7);
-    triangles.emplace_back(7, 13, 6);
-
-    m_volume.indexed_vertex_array.load_mesh(TriangleMesh(vertices, triangles));
-	m_volume.indexed_vertex_array.finalize_geometry(true);
-    return true;
-}
-
-GLCurvedArrow::GLCurvedArrow(unsigned int resolution)
-    : GLModel()
-    , m_resolution(resolution)
-{
-    if (m_resolution == 0)
-        m_resolution = 1;
-}
-
-bool GLCurvedArrow::on_init()
-{
-    Pointf3s vertices;
-    std::vector<Vec3crd> triangles;
-
-    double ext_radius = 2.5;
-    double int_radius = 1.5;
-    double step = 0.5 * (double)PI / (double)m_resolution;
-
-    unsigned int vertices_per_level = 4 + 2 * m_resolution;
-
-    // bottom face
-    vertices.emplace_back(0.0, 1.5, -0.1);
-    vertices.emplace_back(0.0, 1.0, -0.1);
-    vertices.emplace_back(-1.0, 2.0, -0.1);
-    vertices.emplace_back(0.0, 3.0, -0.1);
-    vertices.emplace_back(0.0, 2.5, -0.1);
-
-    for (unsigned int i = 1; i <= m_resolution; ++i)
-    {
-        double angle = (double)i * step;
-        double x = ext_radius * ::sin(angle);
-        double y = ext_radius * ::cos(angle);
-
-        vertices.emplace_back(x, y, -0.1);
-    }
-
-    for (unsigned int i = 0; i < m_resolution; ++i)
-    {
-        double angle = (double)i * step;
-        double x = int_radius * ::cos(angle);
-        double y = int_radius * ::sin(angle);
-
-        vertices.emplace_back(x, y, -0.1);
-    }
-
-    // top face
-    vertices.emplace_back(0.0, 1.5, 0.1);
-    vertices.emplace_back(0.0, 1.0, 0.1);
-    vertices.emplace_back(-1.0, 2.0, 0.1);
-    vertices.emplace_back(0.0, 3.0, 0.1);
-    vertices.emplace_back(0.0, 2.5, 0.1);
-
-    for (unsigned int i = 1; i <= m_resolution; ++i)
-    {
-        double angle = (double)i * step;
-        double x = ext_radius * ::sin(angle);
-        double y = ext_radius * ::cos(angle);
-
-        vertices.emplace_back(x, y, 0.1);
-    }
-
-    for (unsigned int i = 0; i < m_resolution; ++i)
-    {
-        double angle = (double)i * step;
-        double x = int_radius * ::cos(angle);
-        double y = int_radius * ::sin(angle);
-
-        vertices.emplace_back(x, y, 0.1);
-    }
-
-    // bottom face
-    triangles.emplace_back(0, 1, 2);
-    triangles.emplace_back(0, 2, 4);
-    triangles.emplace_back(4, 2, 3);
-
-    int first_id = 4;
-    int last_id = (int)vertices_per_level;
-    triangles.emplace_back(last_id, 0, first_id);
-    triangles.emplace_back(last_id, first_id, first_id + 1);
-    for (unsigned int i = 1; i < m_resolution; ++i)
-    {
-        triangles.emplace_back(last_id - i, last_id - i + 1, first_id + i);
-        triangles.emplace_back(last_id - i, first_id + i, first_id + i + 1);
-    }
-
-    // top face
-    last_id += 1;
-    triangles.emplace_back(last_id + 0, last_id + 2, last_id + 1);
-    triangles.emplace_back(last_id + 0, last_id + 4, last_id + 2);
-    triangles.emplace_back(last_id + 4, last_id + 3, last_id + 2);
-
-    first_id = last_id + 4;
-    last_id = last_id + 4 + 2 * (int)m_resolution;
-    triangles.emplace_back(last_id, first_id, (int)vertices_per_level + 1);
-    triangles.emplace_back(last_id, first_id + 1, first_id);
-    for (unsigned int i = 1; i < m_resolution; ++i)
-    {
-        triangles.emplace_back(last_id - i, first_id + i, last_id - i + 1);
-        triangles.emplace_back(last_id - i, first_id + i + 1, first_id + i);
-    }
-
-    // side face
-	for (unsigned int i = 0; i < 4 + 2 * (unsigned int)m_resolution; ++i)
-    {
-        triangles.emplace_back(i, vertices_per_level + 2 + i, i + 1);
-        triangles.emplace_back(i, vertices_per_level + 1 + i, vertices_per_level + 2 + i);
-    }
-    triangles.emplace_back(vertices_per_level, vertices_per_level + 1, 0);
-    triangles.emplace_back(vertices_per_level, 2 * vertices_per_level + 1, vertices_per_level + 1);
-
-    m_volume.indexed_vertex_array.load_mesh(TriangleMesh(vertices, triangles));
-	m_volume.indexed_vertex_array.finalize_geometry(true);
-    return true;
-}
-
-bool GLBed::on_init_from_file(const std::string& filename)
-{
-    reset();
-
-    if (!boost::filesystem::exists(filename))
-        return false;
-
-    if (!boost::algorithm::iends_with(filename, ".stl"))
-        return false;
-
-    Model model;
-    try
-    {
-        model = Model::read_from_file(filename);
-    }
-    catch (std::exception & /* ex */)
-    {
-        return false;
-    }
-
-    m_filename = filename;
-
-    m_volume.indexed_vertex_array.load_mesh(model.mesh());
-	m_volume.indexed_vertex_array.finalize_geometry(true);
-
-    float color[4] = { 0.235f, 0.235f, 0.235f, 1.0f };
-    set_color(color, 4);
-
-    return true;
-}
-
-std::string _3DScene::get_gl_info(bool format_as_html, bool extensions)
-{
-    return Slic3r::GUI::GLCanvas3DManager::get_gl_info().to_string(format_as_html, extensions);
-}
-
-bool _3DScene::add_canvas(wxGLCanvas* canvas, GUI::Bed3D& bed, GUI::Camera& camera, GUI::GLToolbar& view_toolbar)
-{
-    return s_canvas_mgr.add(canvas, bed, camera, view_toolbar);
-}
-
-bool _3DScene::remove_canvas(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.remove(canvas);
-}
-
-void _3DScene::remove_all_canvases()
-{
-    s_canvas_mgr.remove_all();
-}
-
-bool _3DScene::init(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.init(canvas);
-}
-
-void _3DScene::destroy()
-{
-    s_canvas_mgr.destroy();
-}
-
-GUI::GLCanvas3D* _3DScene::get_canvas(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_canvas(canvas);
 }
 
 } // namespace Slic3r

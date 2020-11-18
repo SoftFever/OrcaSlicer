@@ -1,4 +1,5 @@
 #include "GCodeWriter.hpp"
+#include "CustomGCode.hpp"
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
@@ -19,12 +20,13 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
     this->config.apply(print_config, true);
     m_extrusion_axis = this->config.get_extrusion_axis();
     m_single_extruder_multi_material = print_config.single_extruder_multi_material.value;
-    m_max_acceleration = (print_config.gcode_flavor.value == gcfMarlin) ?
-        print_config.machine_max_acceleration_extruding.values.front() : 0;
+    m_max_acceleration = std::lrint((print_config.gcode_flavor.value == gcfMarlin && print_config.machine_limits_usage.value == MachineLimitsUsage::EmitToGCode) ?
+        print_config.machine_max_acceleration_extruding.values.front() : 0);
 }
 
-void GCodeWriter::set_extruders(const std::vector<unsigned int> &extruder_ids)
+void GCodeWriter::set_extruders(std::vector<unsigned int> extruder_ids)
 {
+    std::sort(extruder_ids.begin(), extruder_ids.end());
     m_extruders.clear();
     m_extruders.reserve(extruder_ids.size());
     for (unsigned int extruder_id : extruder_ids)
@@ -44,7 +46,13 @@ std::string GCodeWriter::preamble()
         gcode << "G21 ; set units to millimeters\n";
         gcode << "G90 ; use absolute coordinates\n";
     }
-    if (FLAVOR_IS(gcfRepRap) || FLAVOR_IS(gcfMarlin) || FLAVOR_IS(gcfTeacup) || FLAVOR_IS(gcfRepetier) || FLAVOR_IS(gcfSmoothie)) {
+    if (FLAVOR_IS(gcfRepRapSprinter) ||
+        FLAVOR_IS(gcfRepRapFirmware) ||
+        FLAVOR_IS(gcfMarlin) ||
+        FLAVOR_IS(gcfTeacup) ||
+        FLAVOR_IS(gcfRepetier) ||
+        FLAVOR_IS(gcfSmoothie))
+    {
         if (this->config.use_relative_e_distances) {
             gcode << "M83 ; use relative distances for extrusion\n";
         } else {
@@ -70,11 +78,15 @@ std::string GCodeWriter::set_temperature(unsigned int temperature, bool wait, in
         return "";
     
     std::string code, comment;
-    if (wait && FLAVOR_IS_NOT(gcfTeacup)) {
+    if (wait && FLAVOR_IS_NOT(gcfTeacup) && FLAVOR_IS_NOT(gcfRepRapFirmware)) {
         code = "M109";
         comment = "set temperature and wait for it to be reached";
     } else {
-        code = "M104";
+        if (FLAVOR_IS(gcfRepRapFirmware)) { // M104 is deprecated on RepRapFirmware
+            code = "G10";
+        } else {
+            code = "M104";
+        }
         comment = "set temperature";
     }
     
@@ -86,14 +98,17 @@ std::string GCodeWriter::set_temperature(unsigned int temperature, bool wait, in
         gcode << "S";
     }
     gcode << temperature;
-    if (tool != -1 && 
-        ( (this->multiple_extruders && ! m_single_extruder_multi_material) ||
-          FLAVOR_IS(gcfMakerWare) || FLAVOR_IS(gcfSailfish)) ) {
-        gcode << " T" << tool;
+    bool multiple_tools = this->multiple_extruders && ! m_single_extruder_multi_material;
+    if (tool != -1 && (multiple_tools || FLAVOR_IS(gcfMakerWare) || FLAVOR_IS(gcfSailfish)) ) {
+        if (FLAVOR_IS(gcfRepRapFirmware)) {
+            gcode << " P" << tool;
+        } else {
+            gcode << " T" << tool;
+        }
     }
     gcode << " ; " << comment << "\n";
     
-    if (FLAVOR_IS(gcfTeacup) && wait)
+    if ((FLAVOR_IS(gcfTeacup) || FLAVOR_IS(gcfRepRapFirmware)) && wait)
         gcode << "M116 ; wait for temperature to be reached\n";
     
     return gcode.str();
@@ -247,9 +262,9 @@ std::string GCodeWriter::toolchange_prefix() const
 std::string GCodeWriter::toolchange(unsigned int extruder_id)
 {
     // set the new extruder
-    auto it_extruder = std::lower_bound(m_extruders.begin(), m_extruders.end(), Extruder::key(extruder_id));
-    assert(it_extruder != m_extruders.end());
-    m_extruder = const_cast<Extruder*>(&*it_extruder);
+	auto it_extruder = Slic3r::lower_bound_by_predicate(m_extruders.begin(), m_extruders.end(), [extruder_id](const Extruder &e) { return e.id() < extruder_id; });
+    assert(it_extruder != m_extruders.end() && it_extruder->id() == extruder_id);
+    m_extruder = &*it_extruder;
 
     // return the toolchange command
     // if we are running a single-extruder setup, just set the extruder and return nothing

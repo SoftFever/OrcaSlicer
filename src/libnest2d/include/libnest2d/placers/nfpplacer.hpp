@@ -278,6 +278,8 @@ template<class RawShape> class EdgeCache {
 
     inline Vertex coords(const ContourCache& cache, double distance) const {
         assert(distance >= .0 && distance <= 1.0);
+        if (cache.distances.empty() || cache.emap.empty()) return Vertex{};
+        if (distance > 1.0) distance = std::fmod(distance, 1.0);
 
         // distance is from 0.0 to 1.0, we scale it up to the full length of
         // the circumference
@@ -526,15 +528,12 @@ public:
 
     static inline double overfit(const Box& bb, const Box& bin)
     {
-        auto Bw = bin.width();
-        auto Bh = bin.height();
-        auto mBw = -Bw;
-        auto mBh = -Bh;
-        auto wdiff = double(bb.width()) + mBw;
-        auto hdiff = double(bb.height()) + mBh;
-        double diff = 0;
-        if(wdiff > 0) diff += wdiff;
-        if(hdiff > 0) diff += hdiff;
+        auto wdiff = TCompute<RawShape>(bb.width()) - bin.width();
+        auto hdiff = TCompute<RawShape>(bb.height()) - bin.height();
+        double diff = .0;
+        if(wdiff > 0) diff += double(wdiff);
+        if(hdiff > 0) diff += double(hdiff);
+
         return diff;
     }
 
@@ -1116,12 +1115,8 @@ private:
         for(Item& item : items_) item.translate(d);
     }
 
-    void setInitialPosition(Item& item) {
-        auto sh = item.rawShape();
-        sl::translate(sh, item.translation());
-        sl::rotate(sh, item.rotation());
-        
-        Box bb = sl::boundingBox(sh);
+    void setInitialPosition(Item& item) {        
+        Box bb = item.boundingBox();
         
         Vertex ci, cb;
         auto bbin = sl::boundingBox(bin_);

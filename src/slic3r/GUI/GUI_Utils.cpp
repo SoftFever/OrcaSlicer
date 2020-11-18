@@ -21,6 +21,12 @@
 namespace Slic3r {
 namespace GUI {
 
+#ifdef _WIN32
+wxDEFINE_EVENT(EVT_HID_DEVICE_ATTACHED, HIDDeviceAttachedEvent);
+wxDEFINE_EVENT(EVT_HID_DEVICE_DETACHED, HIDDeviceDetachedEvent);
+wxDEFINE_EVENT(EVT_VOLUME_ATTACHED, VolumeAttachedEvent);
+wxDEFINE_EVENT(EVT_VOLUME_DETACHED, VolumeDetachedEvent);
+#endif // _WIN32
 
 wxTopLevelWindow* find_toplevel_parent(wxWindow *window)
 {
@@ -55,7 +61,9 @@ void on_window_geometry(wxTopLevelWindow *tlw, std::function<void()> callback)
 #endif
 }
 
+#if !wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
 wxDEFINE_EVENT(EVT_DPI_CHANGED_SLICER, DpiChangedEvent);
+#endif // !wxVERSION_EQUAL_OR_GREATER_THAN
 
 #ifdef _WIN32
 template<class F> typename F::FN winapi_get_function(const wchar_t *dll, const char *fn_name) {
@@ -67,7 +75,7 @@ template<class F> typename F::FN winapi_get_function(const wchar_t *dll, const c
 #endif
 
 // If called with nullptr, a DPI for the primary monitor is returned.
-int get_dpi_for_window(wxWindow *window)
+int get_dpi_for_window(const wxWindow *window)
 {
 #ifdef _WIN32
     enum MONITOR_DPI_TYPE_ {
@@ -112,10 +120,13 @@ int get_dpi_for_window(wxWindow *window)
 #elif defined __APPLE__
     // TODO
     return DPI_DEFAULT;
+#else // freebsd and others
+    // TODO
+    return DPI_DEFAULT;
 #endif
 }
 
-wxFont get_default_font_for_dpi(int dpi)
+wxFont get_default_font_for_dpi(const wxWindow *window, int dpi)
 {
 #ifdef _WIN32
     // First try to load the font with the Windows 10 specific way.
@@ -125,11 +136,8 @@ wxFont get_default_font_for_dpi(int dpi)
         NONCLIENTMETRICS nm;
         memset(&nm, 0, sizeof(NONCLIENTMETRICS));
         nm.cbSize = sizeof(NONCLIENTMETRICS);
-		if (SystemParametersInfoForDpi_fn(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &nm, 0, dpi)) {
-            wxNativeFontInfo info;
-            info.lf = nm.lfMessageFont;
-            return wxFont(info);
-        }
+        if (SystemParametersInfoForDpi_fn(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &nm, 0, dpi))
+            return wxFont(wxNativeFontInfo(nm.lfMessageFont, window));
     }
     // Then try to guesstimate the font DPI scaling on Windows 8.
     // Let's hope that the font returned by the SystemParametersInfo(), which is used by wxWidgets internally, makes sense.
@@ -256,6 +264,27 @@ std::string WindowMetrics::serialize() const
 std::ostream& operator<<(std::ostream &os, const WindowMetrics& metrics)
 {
     return os << '(' << metrics.serialize() << ')';
+}
+
+
+TaskTimer::TaskTimer(std::string task_name):
+    task_name(task_name.empty() ? "task" : task_name)
+{
+    start_timer = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch());
+}
+
+TaskTimer::~TaskTimer()
+{
+    std::chrono::milliseconds stop_timer = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch());
+    auto process_duration = std::chrono::milliseconds(stop_timer - start_timer).count();
+    std::string out = (boost::format("\n!!! %1% duration = %2% ms \n\n") % task_name % process_duration).str();
+    printf("%s", out.c_str());
+#ifdef __WXMSW__
+    std::wstring stemp = std::wstring(out.begin(), out.end());
+    OutputDebugString(stemp.c_str());
+#endif
 }
 
 

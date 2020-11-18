@@ -601,11 +601,12 @@ void stl_remove_unconnected_facets(stl_file *stl)
 			stl->neighbors_start[facet].which_vertex_not[edge[1]],
 			stl->neighbors_start[facet].which_vertex_not[edge[2]]
 		};
+
 		// Update statistics on edge connectivity.
-	  	if (neighbor[0] == -1)
-	    	stl_update_connects_remove_1(neighbor[1]);
-	  	if (neighbor[1] == -1)
-	    	stl_update_connects_remove_1(neighbor[0]);
+		if ((neighbor[0] == -1) && (neighbor[1] != -1))
+			stl_update_connects_remove_1(neighbor[1]);
+		if ((neighbor[1] == -1) && (neighbor[0] != -1))
+			stl_update_connects_remove_1(neighbor[0]);
 
 	  	if (neighbor[0] >= 0) {
 			if (neighbor[1] >= 0) {

@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=PrusaSlicer
+GenericName=3D Printing Software
+Icon=com.prusa3d.PrusaSlicer
+Exec=prusa-slicer %F
+Terminal=false
+Type=Application
+MimeType=model/stl;model/x-wavefront-obj;model/3mf;model/x-geomview-off;application/x-amf;
+Categories=Graphics;3DGraphics;Engineering;
+Keywords=3D;Printing;Slicer;slice;3D;printer;convert;gcode;stl;obj;amf;SLA
+StartupNotify=false
+StartupWMClass=prusa-slicer

@@ -6,10 +6,10 @@
 #include <boost/optional.hpp>
 
 #include "PrintHost.hpp"
+#include "libslic3r/PrintConfig.hpp"
 
 
 namespace Slic3r {
-
 
 class DynamicPrintConfig;
 class Http;
@@ -18,18 +18,20 @@ class OctoPrint : public PrintHost
 {
 public:
     OctoPrint(DynamicPrintConfig *config);
-    virtual ~OctoPrint();
+    ~OctoPrint() override = default;
 
-    virtual const char* get_name() const;
+    const char* get_name() const;
 
-    virtual bool test(wxString &curl_msg) const;
-    virtual wxString get_test_ok_msg () const;
-    virtual wxString get_test_failed_msg (wxString &msg) const;
-    virtual bool upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn) const;
-    virtual bool has_auto_discovery() const;
-    virtual bool can_test() const;
-    virtual bool can_start_print() const;
-    virtual std::string get_host() const { return host; }
+    bool test(wxString &curl_msg) const override;
+    wxString get_test_ok_msg () const override;
+    wxString get_test_failed_msg (wxString &msg) const override;
+    bool upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn) const override;
+    bool has_auto_discovery() const override { return true; }
+    bool can_test() const override { return true; }
+    bool can_start_print() const override { return true; }
+    std::string get_host() const override { return host; }
+    const std::string& get_apikey() const { return apikey; }
+    const std::string& get_cafile() const { return cafile; }
 
 protected:
     virtual bool validate_version_text(const boost::optional<std::string> &version_text) const;
@@ -39,26 +41,34 @@ private:
     std::string apikey;
     std::string cafile;
 
-    void set_auth(Http &http) const;
+    virtual void set_auth(Http &http) const;
     std::string make_url(const std::string &path) const;
 };
-
 
 class SL1Host: public OctoPrint
 {
 public:
-    SL1Host(DynamicPrintConfig *config) : OctoPrint(config) {}
-    virtual ~SL1Host();
+    SL1Host(DynamicPrintConfig *config);
+    ~SL1Host() override = default;
 
-    virtual const char* get_name() const;
+    const char* get_name() const override;
 
-    virtual wxString get_test_ok_msg () const;
-    virtual wxString get_test_failed_msg (wxString &msg) const;
-    virtual bool can_start_print() const ;
+    wxString get_test_ok_msg() const override;
+    wxString get_test_failed_msg(wxString &msg) const override;
+    bool can_start_print() const override { return false; }
+
 protected:
-    virtual bool validate_version_text(const boost::optional<std::string> &version_text) const;
-};
+    bool validate_version_text(const boost::optional<std::string> &version_text) const override;
 
+private:
+    void set_auth(Http &http) const override;
+
+    // Host authorization type.
+    AuthorizationType authorization_type;
+    // username and password for HTTP Digest Authentization (RFC RFC2617)
+    std::string username;
+    std::string password;
+};
 
 }
 

@@ -1,4 +1,4 @@
-use Test::More tests => 21;
+use Test::More tests => 20;
 use strict;
 use warnings;
 
@@ -293,31 +293,33 @@ use Slic3r::Test;
     ok !$horizontal_extrusions, 'no horizontal extrusions';
 }
 
-{
-    my $config = Slic3r::Config::new_from_defaults;
-    $config->set('perimeters', 1);
-    $config->set('fill_density', 0);
-    $config->set('top_solid_layers', 0);
-    $config->set('spiral_vase', 1);
-    $config->set('bottom_solid_layers', 0);
-    $config->set('skirts', 0);
-    $config->set('first_layer_height', '100%');
-    $config->set('start_gcode', '');
-    
-    my $print = Slic3r::Test::init_print('two_hollow_squares', config => $config);
-    my $diagonal_moves = 0;
-    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
-        my ($self, $cmd, $args, $info) = @_;
-        
-        if ($cmd eq 'G1') {
-            if ($info->{extruding} && $info->{dist_XY} > 0) {
-                if ($info->{dist_Z} > 0) {
-                    $diagonal_moves++;
-                }
-            }
-        }
-    });
-    is $diagonal_moves, 0, 'no spiral moves on two-island object';
-}
+# The current Spiral Vase slicing code removes the holes and all but the largest contours from each slice,
+# therefore the following test is no more valid.
+#{
+#    my $config = Slic3r::Config::new_from_defaults;
+#    $config->set('perimeters', 1);
+#    $config->set('fill_density', 0);
+#    $config->set('top_solid_layers', 0);
+#    $config->set('spiral_vase', 1);
+#    $config->set('bottom_solid_layers', 0);
+#    $config->set('skirts', 0);
+#    $config->set('first_layer_height', '100%');
+#    $config->set('start_gcode', '');
+#    
+#    my $print = Slic3r::Test::init_print('two_hollow_squares', config => $config);
+#    my $diagonal_moves = 0;
+#    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+#        my ($self, $cmd, $args, $info) = @_;
+#        
+#        if ($cmd eq 'G1') {
+#            if ($info->{extruding} && $info->{dist_XY} > 0) {
+#                if ($info->{dist_Z} > 0) {
+#                    $diagonal_moves++;
+#                }
+#            }
+#        }
+#    });
+#    is $diagonal_moves, 0, 'no spiral moves on two-island object';
+#}
 
 __END__

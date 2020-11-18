@@ -9,12 +9,15 @@
 
 #include <wx/string.h>
 #include <wx/app.h>
+#include <wx/arrstr.h>
 
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Channel.hpp"
 #include "OctoPrint.hpp"
 #include "Duet.hpp"
 #include "FlashAir.hpp"
+#include "AstroBox.hpp"
+#include "Repetier.hpp"
 #include "../GUI/PrintHostDialogs.hpp"
 
 namespace fs = boost::filesystem;
@@ -45,6 +48,8 @@ PrintHost* PrintHost::get_print_host(DynamicPrintConfig *config)
             case htOctoPrint: return new OctoPrint(config);
             case htDuet:      return new Duet(config);
             case htFlashAir:  return new FlashAir(config);
+            case htAstroBox:  return new AstroBox(config);
+            case htRepetier:  return new Repetier(config);
             default:          return nullptr;
         }
     } else {

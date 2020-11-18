@@ -1,6 +1,7 @@
 #include "GCodeReader.hpp"
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/nowide/fstream.hpp>
 #include <fstream>
 #include <iostream>
 #include <iomanip>
@@ -40,7 +41,7 @@ const char* GCodeReader::parse_line_internal(const char *ptr, GCodeLine &gline, 
 			if (is_end_of_gcode_line(*c))
 				break;
             // Check the name of the axis.
-            Axis axis = NUM_AXES;
+            Axis axis = NUM_AXES_WITH_UNKNOWN;
             switch (*c) {
             case 'X': axis = X; break;
             case 'Y': axis = Y; break;
@@ -49,15 +50,19 @@ const char* GCodeReader::parse_line_internal(const char *ptr, GCodeLine &gline, 
             default:
                 if (*c == m_extrusion_axis)
                     axis = E;
+                else if (*c >= 'A' && *c <= 'Z')
+                	// Unknown axis, but we still want to remember that such a axis was seen.
+                	axis = UNKNOWN_AXIS;
                 break;
             }
-            if (axis != NUM_AXES) {
+            if (axis != NUM_AXES_WITH_UNKNOWN) {
                 // Try to parse the numeric value.
                 char   *pend = nullptr;
                 double  v = strtod(++ c, &pend);
                 if (pend != nullptr && is_end_of_word(*pend)) {
                     // The axis value has been parsed correctly.
-                    gline.m_axis[int(axis)] = float(v);
+                    if (axis != UNKNOWN_AXIS)
+	                    gline.m_axis[int(axis)] = float(v);
                     gline.m_mask |= 1 << int(axis);
                     c = pend;
                 } else
@@ -109,9 +114,10 @@ void GCodeReader::update_coordinates(GCodeLine &gline, std::pair<const char*, co
 
 void GCodeReader::parse_file(const std::string &file, callback_t callback)
 {
-    std::ifstream f(file);
+    boost::nowide::ifstream f(file);
     std::string line;
-    while (std::getline(f, line))
+    m_parsing_file = true;
+    while (m_parsing_file && std::getline(f, line))
         this->parse_line(line, callback);
 }
 

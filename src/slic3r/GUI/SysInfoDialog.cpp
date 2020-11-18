@@ -3,8 +3,11 @@
 #include "3DScene.hpp"
 #include "GUI.hpp"
 #include "../Utils/UndoRedo.hpp"
+#include "Plater.hpp"
 
 #include <string>
+
+#include <Eigen/Core>
 
 #include <wx/clipbrd.h>
 #include <wx/platinfo.h>
@@ -31,9 +34,9 @@ std::string get_main_info(bool format_as_html)
     std::string line_end = format_as_html ? "<br>" : "\n";
 
     if (!format_as_html)
-        out << b_start << SLIC3R_APP_NAME << b_end << line_end;
+        out << b_start << (wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME) << b_end << line_end;
     out << b_start << "Version:   "             << b_end << SLIC3R_VERSION << line_end;
-    out << b_start << "Build:     "             << b_end << SLIC3R_BUILD_ID << line_end;
+    out << b_start << "Build:     " << b_end << (wxGetApp().is_editor() ? SLIC3R_BUILD_ID : GCODEVIEWER_BUILD_ID) << line_end;
     out << line_end;
     out << b_start << "Operating System:    "   << b_end << wxPlatformInfo::Get().GetOperatingSystemFamilyName() << line_end;
     out << b_start << "System Architecture: "   << b_end << wxPlatformInfo::Get().GetArchName() << line_end;
@@ -75,7 +78,7 @@ std::string get_mem_info(bool format_as_html)
 }
 
 SysInfoDialog::SysInfoDialog()
-    : DPIDialog(NULL, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _(L("System Information")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
+    : DPIDialog((wxWindow*)wxGetApp().mainframe, wxID_ANY, (wxGetApp().is_editor() ? wxString(SLIC3R_APP_NAME) : wxString(GCODEVIEWER_APP_NAME)) + " - " + _L("System Information"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 	SetBackgroundColour(bgr_clr);
@@ -88,7 +91,7 @@ SysInfoDialog::SysInfoDialog()
 	main_sizer->Add(hsizer, 1, wxEXPAND | wxALL, 10);
 
     // logo
-    m_logo_bmp = ScalableBitmap(this, "PrusaSlicer_192px.png", 192);
+    m_logo_bmp = ScalableBitmap(this, wxGetApp().is_editor() ? "PrusaSlicer_192px.png" : "PrusaSlicer-gcodeviewer_192px.png", 192);
     m_logo = new wxStaticBitmap(this, wxID_ANY, m_logo_bmp.bmp());
 	hsizer->Add(m_logo, 0, wxALIGN_CENTER_VERTICAL);
     
@@ -97,7 +100,7 @@ SysInfoDialog::SysInfoDialog()
 
     // title
     {
-        wxStaticText* title = new wxStaticText(this, wxID_ANY, SLIC3R_APP_NAME, wxDefaultPosition, wxDefaultSize);
+        wxStaticText* title = new wxStaticText(this, wxID_ANY, wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME, wxDefaultPosition, wxDefaultSize);
         wxFont title_font = wxGetApp().bold_font();
         title_font.SetFamily(wxFONTFAMILY_ROMAN);
         title_font.SetPointSize(22);
@@ -106,7 +109,7 @@ SysInfoDialog::SysInfoDialog()
     }
 
     // main_info_text
-    wxFont font = wxGetApp().normal_font();
+    wxFont font = get_default_font(this);
     const auto text_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     auto text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
     auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
@@ -145,13 +148,13 @@ SysInfoDialog::SysInfoDialog()
             "</font>"
             "</body>"
             "</html>", bgr_clr_str, text_clr_str, text_clr_str,
-            get_mem_info(true) + "<br>" + _3DScene::get_gl_info(true, true));
+            get_mem_info(true) + "<br>" + wxGetApp().get_gl_info(true, true) + "<br>Eigen vectorization supported: " + Eigen::SimdInstructionSetsInUse());
         m_opengl_info_html->SetPage(text);
         main_sizer->Add(m_opengl_info_html, 1, wxEXPAND | wxBOTTOM, 15);
     }
-    
+
     wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxOK);
-    m_btn_copy_to_clipboard = new wxButton(this, wxID_ANY, _(L("Copy to Clipboard")), wxDefaultPosition, wxDefaultSize);
+    m_btn_copy_to_clipboard = new wxButton(this, wxID_ANY, _L("Copy to Clipboard"), wxDefaultPosition, wxDefaultSize);
 
     buttons->Insert(0, m_btn_copy_to_clipboard, 0, wxLEFT, 5);
     m_btn_copy_to_clipboard->Bind(wxEVT_BUTTON, &SysInfoDialog::onCopyToClipboard, this);
@@ -172,7 +175,7 @@ void SysInfoDialog::on_dpi_changed(const wxRect &suggested_rect)
     m_logo_bmp.msw_rescale();
     m_logo->SetBitmap(m_logo_bmp.bmp());
 
-    wxFont font = GetFont();
+    wxFont font = get_default_font(this);
     const int fs = font.GetPointSize() - 1;
     int font_size[] = { static_cast<int>(fs*1.5), static_cast<int>(fs*1.4), static_cast<int>(fs*1.3), fs, fs, fs, fs };
 
@@ -198,7 +201,7 @@ void SysInfoDialog::on_dpi_changed(const wxRect &suggested_rect)
 void SysInfoDialog::onCopyToClipboard(wxEvent &)
 {
     wxTheClipboard->Open();
-    const auto text = get_main_info(false)+"\n"+_3DScene::get_gl_info(false, true);
+    const auto text = get_main_info(false) + "\n" + wxGetApp().get_gl_info(false, true);
     wxTheClipboard->SetData(new wxTextDataObject(text));
     wxTheClipboard->Close();
 }

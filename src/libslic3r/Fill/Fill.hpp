@@ -6,7 +6,6 @@
 #include <stdint.h>
 
 #include "../libslic3r.h"
-#include "../BoundingBox.hpp"
 #include "../PrintConfig.hpp"
 
 #include "FillBase.hpp"

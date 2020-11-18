@@ -49,13 +49,15 @@ public:
     double get_angle() const { return m_angle; }
     void set_angle(double angle);
 
+    std::string get_tooltip() const override;
+
 protected:
-    virtual bool on_init();
-    virtual std::string on_get_name() const { return ""; }
-    virtual void on_start_dragging();
-    virtual void on_update(const UpdateData& data);
-    virtual void on_render() const;
-    virtual void on_render_for_picking() const;
+    bool on_init() override;
+    std::string on_get_name() const override { return ""; }
+    void on_start_dragging() override;
+    void on_update(const UpdateData& data) override;
+    void on_render() const override;
+    void on_render_for_picking() const override;
 
 private:
     void render_circle() const;
@@ -81,52 +83,60 @@ public:
     Vec3d get_rotation() const { return Vec3d(m_gizmos[X].get_angle(), m_gizmos[Y].get_angle(), m_gizmos[Z].get_angle()); }
     void set_rotation(const Vec3d& rotation) { m_gizmos[X].set_angle(rotation(0)); m_gizmos[Y].set_angle(rotation(1)); m_gizmos[Z].set_angle(rotation(2)); }
 
+    std::string get_tooltip() const override
+    {
+        std::string tooltip = m_gizmos[X].get_tooltip();
+        if (tooltip.empty())
+            tooltip = m_gizmos[Y].get_tooltip();
+        if (tooltip.empty())
+            tooltip = m_gizmos[Z].get_tooltip();
+        return tooltip;
+    }
+
 protected:
-    virtual bool on_init();
-    virtual std::string on_get_name() const;
-    virtual void on_set_state()
+    bool on_init() override;
+    std::string on_get_name() const override;
+    void on_set_state() override
     {
         for (GLGizmoRotate& g : m_gizmos)
             g.set_state(m_state);
     }
-    virtual void on_set_hover_id()
+    void on_set_hover_id() override
     {
         for (int i = 0; i < 3; ++i)
             m_gizmos[i].set_hover_id((m_hover_id == i) ? 0 : -1);
     }
-    virtual void on_enable_grabber(unsigned int id)
+    void on_enable_grabber(unsigned int id) override
     {
         if (id < 3)
             m_gizmos[id].enable_grabber(0);
     }
-    virtual void on_disable_grabber(unsigned int id)
+    void on_disable_grabber(unsigned int id) override
     {
         if (id < 3)
             m_gizmos[id].disable_grabber(0);
     }
-    virtual void on_start_dragging();
-    virtual void on_stop_dragging();
-    virtual void on_update(const UpdateData& data)
+    bool on_is_activable() const override;
+    void on_start_dragging() override;
+    void on_stop_dragging() override;
+    void on_update(const UpdateData& data) override
     {
         for (GLGizmoRotate& g : m_gizmos)
         {
             g.update(data);
         }
     }
-    virtual void on_render() const;
-    virtual void on_render_for_picking() const
+    void on_render() const override;
+    void on_render_for_picking() const override
     {
         for (const GLGizmoRotate& g : m_gizmos)
         {
             g.render_for_picking();
         }
     }
-#if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
-    virtual void on_render_input_window(float x, float y, float bottom_limit);
-#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
+
+    void on_render_input_window(float x, float y, float bottom_limit) override;
 };
-
-
 
 } // namespace GUI
 } // namespace Slic3r

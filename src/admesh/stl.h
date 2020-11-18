@@ -255,18 +255,24 @@ extern void its_transform(indexed_triangle_set &its, T *trafo3x4)
 }
 
 template<typename T>
-inline void its_transform(indexed_triangle_set &its, const Eigen::Transform<T, 3, Eigen::Affine, Eigen::DontAlign>& t)
+inline void its_transform(indexed_triangle_set &its, const Eigen::Transform<T, 3, Eigen::Affine, Eigen::DontAlign>& t, bool fix_left_handed = false)
 {
 	//const Eigen::Matrix<double, 3, 3, Eigen::DontAlign> r = t.matrix().template block<3, 3>(0, 0);
 	for (stl_vertex &v : its.vertices)
 		v = (t * v.template cast<T>()).template cast<float>().eval();
+  if (fix_left_handed && t.matrix().block(0, 0, 3, 3).determinant() < 0.)
+    for (stl_triangle_vertex_indices &i : its.indices)
+      std::swap(i[0], i[1]);
 }
 
 template<typename T>
-inline void its_transform(indexed_triangle_set &its, const Eigen::Matrix<T, 3, 3, Eigen::DontAlign>& m)
+inline void its_transform(indexed_triangle_set &its, const Eigen::Matrix<T, 3, 3, Eigen::DontAlign>& m, bool fix_left_handed = false)
 {
-	for (stl_vertex &v : its.vertices)
+  for (stl_vertex &v : its.vertices)
 		v = (m * v.template cast<T>()).template cast<float>().eval();
+  if (fix_left_handed && m.determinant() < 0.)
+    for (stl_triangle_vertex_indices &i : its.indices)
+      std::swap(i[0], i[1]);
 }
 
 extern void its_rotate_x(indexed_triangle_set &its, float angle);

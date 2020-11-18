@@ -6,6 +6,18 @@
 
 namespace Slic3r {
 
+void filter_by_extrusion_role_in_place(ExtrusionEntitiesPtr &extrusion_entities, ExtrusionRole role)
+{
+	if (role != erMixed) {
+		auto first  = extrusion_entities.begin();
+		auto last   = extrusion_entities.end();
+        extrusion_entities.erase(
+            std::remove_if(first, last, [&role](const ExtrusionEntity* ee) {
+                return ee->role() != role; }),
+            last);
+	}
+}
+
 ExtrusionEntityCollection::ExtrusionEntityCollection(const ExtrusionPaths &paths)
     : no_sort(false)
 {
@@ -74,31 +86,16 @@ void ExtrusionEntityCollection::remove(size_t i)
     this->entities.erase(this->entities.begin() + i);
 }
 
-ExtrusionEntityCollection ExtrusionEntityCollection::chained_path_from(const Point &start_near, ExtrusionRole role) const
+ExtrusionEntityCollection ExtrusionEntityCollection::chained_path_from(const ExtrusionEntitiesPtr& extrusion_entities, const Point &start_near, ExtrusionRole role)
 {
-	ExtrusionEntityCollection out;
-	if (this->no_sort) {
-		out = *this;
-	} else {
-		if (role == erMixed)
-			out = *this;
-		else {
-		    for (const ExtrusionEntity *ee : this->entities) {
-		        if (role != erMixed) {
-		            // The caller wants only paths with a specific extrusion role.
-		            auto role2 = ee->role();
-		            if (role != role2) {
-		                // This extrusion entity does not match the role asked.
-		                assert(role2 != erMixed);
-		                continue;
-		            }
-		        }
-		        out.entities.emplace_back(ee->clone());
-		    }
-		}
-		chain_and_reorder_extrusion_entities(out.entities, &start_near);
-	}
-	return out;
+	// Return a filtered copy of the collection.
+    ExtrusionEntityCollection out;
+    out.entities = filter_by_extrusion_role(extrusion_entities, role);
+	// Clone the extrusion entities.
+	for (auto &ptr : out.entities)
+		ptr = ptr->clone();
+	chain_and_reorder_extrusion_entities(out.entities, &start_near);
+    return out;
 }
 
 void ExtrusionEntityCollection::polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const

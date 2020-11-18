@@ -30,8 +30,11 @@ std::vector<ClipperLib::PolyNode*>	 chain_clipper_polynodes(const Points &points
 // Chain instances of print objects by an approximate shortest path.
 // Returns pairs of PrintObject idx and instance of that PrintObject.
 class Print;
-std::vector<std::pair<size_t, size_t>> chain_print_object_instances(const Print &print);
+struct PrintInstance;
+std::vector<const PrintInstance*> 	 chain_print_object_instances(const Print &print);
 
+// Chain lines into polylines.
+Polylines 							 chain_lines(const std::vector<Line> &lines, const double point_distance_epsilon);
 
 } // namespace Slic3r
 

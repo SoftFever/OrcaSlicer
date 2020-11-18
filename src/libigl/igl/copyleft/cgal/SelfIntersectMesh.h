@@ -635,13 +635,30 @@ inline bool igl::copyleft::cgal::SelfIntersectMesh<
 {
   using namespace std;
 
+  auto opposite_vertex = [](const Index a0, const Index a1) {
+    // get opposite index of A
+    int a2=-1;
+	for(int c=0;c<3;++c)
+      if(c!=a0 && c!=a1) {
+        a2 = c;
+        break;
+      }
+      assert(a2 != -1);
+      return a2;
+  };
+
   // must be co-planar
-  if(
-    A.supporting_plane() != B.supporting_plane() &&
-    A.supporting_plane() != B.supporting_plane().opposite())
-  {
+  Index a2 = opposite_vertex(shared[0].first, shared[1].first);
+  if (! B.supporting_plane().has_on(A.vertex(a2)))
     return false;
-  }
+  
+  Index b2 = opposite_vertex(shared[0].second, shared[1].second);
+
+  if (int(CGAL::coplanar_orientation(A.vertex(shared[0].first), A.vertex(shared[1].first), A.vertex(a2))) * 
+	  int(CGAL::coplanar_orientation(B.vertex(shared[0].second), B.vertex(shared[1].second), B.vertex(b2))) < 0)
+    // There is certainly no self intersection as the non-shared triangle vertices lie on opposite sides of the shared edge.
+    return false;
+
   // Since A and B are non-degenerate the intersection must be a polygon
   // (triangle). Either
   //   - the vertex of A (B) opposite the shared edge of lies on B (A), or
@@ -650,22 +667,10 @@ inline bool igl::copyleft::cgal::SelfIntersectMesh<
   // Determine if the vertex opposite edge (a0,a1) in triangle A lies in
   // (intersects) triangle B
   const auto & opposite_point_inside = [](
-    const Triangle_3 & A, const Index a0, const Index a1, const Triangle_3 & B) 
+    const Triangle_3 & A, const Index a2, const Triangle_3 & B) 
     -> bool
   {
-    // get opposite index
-    Index a2 = -1;
-    for(int c = 0;c<3;c++)
-    {
-      if(c != a0 && c != a1)
-      {
-        a2 = c;
-        break;
-      }
-    }
-    assert(a2 != -1);
-    bool ret = CGAL::do_intersect(A.vertex(a2),B);
-    return ret;
+    return CGAL::do_intersect(A.vertex(a2),B);
   };
 
   // Determine if edge opposite vertex va in triangle A intersects edge
@@ -681,8 +686,8 @@ inline bool igl::copyleft::cgal::SelfIntersectMesh<
   };
 
   if( 
-    !opposite_point_inside(A,shared[0].first,shared[1].first,B) &&
-    !opposite_point_inside(B,shared[0].second,shared[1].second,A) &&
+    !opposite_point_inside(A,a2,B) &&
+    !opposite_point_inside(B,b2,A) &&
     !opposite_edges_intersect(A,shared[0].first,B,shared[1].second) && 
     !opposite_edges_intersect(A,shared[1].first,B,shared[0].second))
   {

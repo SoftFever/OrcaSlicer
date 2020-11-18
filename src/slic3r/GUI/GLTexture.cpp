@@ -2,6 +2,7 @@
 #include "GLTexture.hpp"
 
 #include "3DScene.hpp"
+#include "OpenGLManager.hpp"
 
 #include <GL/glew.h>
 
@@ -168,12 +169,16 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
     if (filenames.empty() || states.empty() || (sprite_size_px == 0))
         return false;
 
-    m_width = (int)(sprite_size_px * states.size());
-    m_height = (int)(sprite_size_px * filenames.size());
+    // every tile needs to have a 1px border around it to avoid artifacts when linear sampling on its edges
+    unsigned int sprite_size_px_ex = sprite_size_px + 1;
+
+    m_width = 1 + (int)(sprite_size_px_ex * states.size());
+    m_height = 1 + (int)(sprite_size_px_ex * filenames.size());
+
     int n_pixels = m_width * m_height;
-    int sprite_n_pixels = sprite_size_px * sprite_size_px;
+    int sprite_n_pixels = sprite_size_px_ex * sprite_size_px_ex;
+    int sprite_stride = sprite_size_px_ex * 4;
     int sprite_bytes = sprite_n_pixels * 4;
-    int sprite_stride = sprite_size_px * 4;
 
     if (n_pixels <= 0)
     {
@@ -211,7 +216,8 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
 
         float scale = (float)sprite_size_px / std::max(image->width, image->height);
 
-        nsvgRasterize(rast, image, 0, 0, scale, sprite_data.data(), sprite_size_px, sprite_size_px, sprite_stride);
+        // offset by 1 to leave the first pixel empty (both in x and y)
+        nsvgRasterize(rast, image, 1, 1, scale, sprite_data.data(), sprite_size_px, sprite_size_px, sprite_stride);
 
         // makes white only copy of the sprite
         ::memcpy((void*)sprite_white_only_data.data(), (const void*)sprite_data.data(), sprite_bytes);
@@ -231,7 +237,7 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
                 ::memset((void*)&sprite_gray_only_data.data()[offset], 128, 3);
         }
 
-        int sprite_offset_px = sprite_id * sprite_size_px * m_width;
+        int sprite_offset_px = sprite_id * (int)sprite_size_px_ex * m_width;
         int state_id = -1;
         for (const std::pair<int, bool>& state : states)
         {
@@ -250,19 +256,25 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
             // applies background, if needed
             if (state.second)
             {
-                for (int i = 0; i < sprite_n_pixels; ++i)
+                float inv_255 = 1.0f / 255.0f;
+                // offset by 1 to leave the first pixel empty (both in x and y)
+                for (unsigned int r = 1; r <= sprite_size_px; ++r)
                 {
-                    int offset = i * 4;
-                    float alpha = (float)output_data.data()[offset + 3] / 255.0f;
-                    output_data.data()[offset + 0] = (unsigned char)(output_data.data()[offset + 0] * alpha);
-                    output_data.data()[offset + 1] = (unsigned char)(output_data.data()[offset + 1] * alpha);
-                    output_data.data()[offset + 2] = (unsigned char)(output_data.data()[offset + 2] * alpha);
-                    output_data.data()[offset + 3] = (unsigned char)(128 * (1.0f - alpha) + output_data.data()[offset + 3] * alpha);
+                    unsigned int offset_r = r * sprite_size_px_ex;
+                    for (unsigned int c = 1; c <= sprite_size_px; ++c)
+                    {
+                        unsigned int offset = (offset_r + c) * 4;
+                        float alpha = (float)output_data.data()[offset + 3] * inv_255;
+                        output_data.data()[offset + 0] = (unsigned char)(output_data.data()[offset + 0] * alpha);
+                        output_data.data()[offset + 1] = (unsigned char)(output_data.data()[offset + 1] * alpha);
+                        output_data.data()[offset + 2] = (unsigned char)(output_data.data()[offset + 2] * alpha);
+                        output_data.data()[offset + 3] = (unsigned char)(128 * (1.0f - alpha) + output_data.data()[offset + 3] * alpha);
+                    }
                 }
             }
 
-            int state_offset_px = sprite_offset_px + state_id * sprite_size_px;
-            for (int j = 0; j < (int)sprite_size_px; ++j)
+            int state_offset_px = sprite_offset_px + state_id * sprite_size_px_ex;
+            for (int j = 0; j < (int)sprite_size_px_ex; ++j)
             {
                 ::memcpy((void*)&data.data()[(state_offset_px + j * m_width) * 4], (const void*)&output_data.data()[j * sprite_stride], sprite_stride);
             }
@@ -429,7 +441,7 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps, ECo
 
     if (apply_anisotropy)
     {
-        GLfloat max_anisotropy = GLCanvas3DManager::get_gl_info().get_max_anisotropy();
+        GLfloat max_anisotropy = OpenGLManager::get_gl_info().get_max_anisotropy();
         if (max_anisotropy > 1.0f)
             glsafe(::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy));
     }
@@ -578,7 +590,7 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, boo
 
     if (apply_anisotropy)
     {
-        GLfloat max_anisotropy = GLCanvas3DManager::get_gl_info().get_max_anisotropy();
+        GLfloat max_anisotropy = OpenGLManager::get_gl_info().get_max_anisotropy();
         if (max_anisotropy > 1.0f)
             glsafe(::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy));
     }

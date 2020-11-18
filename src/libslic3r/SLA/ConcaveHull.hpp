@@ -1,5 +1,5 @@
-#ifndef CONCAVEHULL_HPP
-#define CONCAVEHULL_HPP
+#ifndef SLA_CONCAVEHULL_HPP
+#define SLA_CONCAVEHULL_HPP
 
 #include <libslic3r/ExPolygon.hpp>
 

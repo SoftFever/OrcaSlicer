@@ -20,6 +20,37 @@ GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filen
 {
 }
 
+std::string GLGizmoScale3D::get_tooltip() const
+{
+    const Selection& selection = m_parent.get_selection();
+
+    bool single_instance = selection.is_single_full_instance();
+    bool single_volume = selection.is_single_modifier() || selection.is_single_volume();
+
+    Vec3f scale = 100.0f * Vec3f::Ones();
+    if (single_instance)
+        scale = 100.0f * selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_scaling_factor().cast<float>();
+    else if (single_volume)
+        scale = 100.0f * selection.get_volume(*selection.get_volume_idxs().begin())->get_volume_scaling_factor().cast<float>();
+
+    if (m_hover_id == 0 || m_hover_id == 1 || m_grabbers[0].dragging || m_grabbers[1].dragging)
+        return "X: " + format(scale(0), 4) + "%";
+    else if (m_hover_id == 2 || m_hover_id == 3 || m_grabbers[2].dragging || m_grabbers[3].dragging)
+        return "Y: " + format(scale(1), 4) + "%";
+    else if (m_hover_id == 4 || m_hover_id == 5 || m_grabbers[4].dragging || m_grabbers[5].dragging)
+        return "Z: " + format(scale(2), 4) + "%";
+    else if (m_hover_id == 6 || m_hover_id == 7 || m_hover_id == 8 || m_hover_id == 9 || 
+        m_grabbers[6].dragging || m_grabbers[7].dragging || m_grabbers[8].dragging || m_grabbers[9].dragging)
+    {
+        std::string tooltip = "X: " + format(scale(0), 4) + "%\n";
+        tooltip += "Y: " + format(scale(1), 4) + "%\n";
+        tooltip += "Z: " + format(scale(2), 4) + "%";
+        return tooltip;
+    }
+    else
+        return "";
+}
+
 bool GLGizmoScale3D::on_init()
 {
     for (int i = 0; i < 10; ++i)
@@ -49,7 +80,8 @@ std::string GLGizmoScale3D::on_get_name() const
 
 bool GLGizmoScale3D::on_is_activable() const
 {
-    return !m_parent.get_selection().is_wipe_tower();
+    const Selection& selection = m_parent.get_selection();
+    return !selection.is_empty() && !selection.is_wipe_tower();
 }
 
 void GLGizmoScale3D::on_start_dragging()
@@ -88,37 +120,6 @@ void GLGizmoScale3D::on_render() const
 
     bool single_instance = selection.is_single_full_instance();
     bool single_volume = selection.is_single_modifier() || selection.is_single_volume();
-    bool single_selection = single_instance || single_volume;
-
-    Vec3f scale = 100.0f * Vec3f::Ones();
-    if (single_instance)
-        scale = 100.0f * selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_scaling_factor().cast<float>();
-    else if (single_volume)
-        scale = 100.0f * selection.get_volume(*selection.get_volume_idxs().begin())->get_volume_scaling_factor().cast<float>();
-
-    if ((single_selection && ((m_hover_id == 0) || (m_hover_id == 1))) || m_grabbers[0].dragging || m_grabbers[1].dragging)
-        set_tooltip("X: " + format(scale(0), 4) + "%");
-    else if (!m_grabbers[0].dragging && !m_grabbers[1].dragging && ((m_hover_id == 0) || (m_hover_id == 1)))
-        set_tooltip("X");
-    else if ((single_selection && ((m_hover_id == 2) || (m_hover_id == 3))) || m_grabbers[2].dragging || m_grabbers[3].dragging)
-        set_tooltip("Y: " + format(scale(1), 4) + "%");
-    else if (!m_grabbers[2].dragging && !m_grabbers[3].dragging && ((m_hover_id == 2) || (m_hover_id == 3)))
-        set_tooltip("Y");
-    else if ((single_selection && ((m_hover_id == 4) || (m_hover_id == 5))) || m_grabbers[4].dragging || m_grabbers[5].dragging)
-        set_tooltip("Z: " + format(scale(2), 4) + "%");
-    else if (!m_grabbers[4].dragging && !m_grabbers[5].dragging && ((m_hover_id == 4) || (m_hover_id == 5)))
-        set_tooltip("Z");
-    else if ((single_selection && ((m_hover_id == 6) || (m_hover_id == 7) || (m_hover_id == 8) || (m_hover_id == 9)))
-        || m_grabbers[6].dragging || m_grabbers[7].dragging || m_grabbers[8].dragging || m_grabbers[9].dragging)
-    {
-        std::string tooltip = "X: " + format(scale(0), 4) + "%\n";
-        tooltip += "Y: " + format(scale(1), 4) + "%\n";
-        tooltip += "Z: " + format(scale(2), 4) + "%";
-        set_tooltip(tooltip);
-    }
-    else if (!m_grabbers[6].dragging && !m_grabbers[7].dragging && !m_grabbers[8].dragging && !m_grabbers[9].dragging &&
-        ((m_hover_id == 6) || (m_hover_id == 7) || (m_hover_id == 8) || (m_hover_id == 9)))
-        set_tooltip("X/Y/Z");
 
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
@@ -283,21 +284,6 @@ void GLGizmoScale3D::on_render_for_picking() const
     glsafe(::glDisable(GL_DEPTH_TEST));
     render_grabbers_for_picking(m_parent.get_selection().get_bounding_box());
 }
-
-#if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
-void GLGizmoScale3D::on_render_input_window(float x, float y, float bottom_limit)
-{
-    const Selection& selection = m_parent.get_selection();
-    bool single_instance = selection.is_single_full_instance();
-    wxString label = _(L("Scale (%)"));
-
-    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
-    m_imgui->set_next_window_bg_alpha(0.5f);
-    m_imgui->begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-    m_imgui->input_vec3("", m_scale * 100.f, 100.0f, "%.2f");
-    m_imgui->end();
-}
-#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 
 void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int id_2) const
 {

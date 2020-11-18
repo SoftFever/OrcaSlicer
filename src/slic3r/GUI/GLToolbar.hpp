@@ -61,6 +61,7 @@ public:
         Disabled,
         Hover,
         HoverPressed,
+        HoverDisabled,
         Num_States
     };
 
@@ -115,13 +116,14 @@ public:
     const std::string& get_tooltip() const { return m_data.tooltip; }
     const std::string& get_additional_tooltip() const { return m_data.additional_tooltip; }
     void set_additional_tooltip(const std::string& text) { m_data.additional_tooltip = text; }
+    void set_tooltip(const std::string& text)            { m_data.tooltip = text; }
 
     void do_left_action() { m_last_action_type = Left; m_data.left.action_callback(); }
     void do_right_action() { m_last_action_type = Right; m_data.right.action_callback(); }
 
-    bool is_enabled() const { return m_state != Disabled; }
-    bool is_disabled() const { return m_state == Disabled; }
-    bool is_hovered() const { return (m_state == Hover) || (m_state == HoverPressed); }
+    bool is_enabled() const { return (m_state != Disabled) && (m_state != HoverDisabled); }
+    bool is_disabled() const { return (m_state == Disabled) || (m_state == HoverDisabled); }
+    bool is_hovered() const { return (m_state == Hover) || (m_state == HoverPressed) || (m_state == HoverDisabled); }
     bool is_pressed() const { return (m_state == Pressed) || (m_state == HoverPressed); }
     bool is_visible() const { return m_data.visible; }
     bool is_separator() const { return m_type == Separator; }
@@ -143,7 +145,6 @@ public:
     void render(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const;
 
 private:
-    GLTexture::Quad_UVs get_uvs(unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const;
     void set_visible(bool visible) { m_data.visible = visible; }
 
     friend class GLToolbar;
@@ -253,7 +254,6 @@ private:
     };
 
     MouseCapture m_mouse_capture;
-    std::string m_tooltip;
     int m_pressed_toggable_id;
 
 public:
@@ -276,8 +276,8 @@ public:
     void set_icons_size(float size);
     void set_scale(float scale);
 
-    bool is_enabled() const;
-    void set_enabled(bool enable);
+    bool is_enabled() const { return m_enabled; }
+    void set_enabled(bool enable) { m_enabled = enable; }
 
     bool add_item(const GLToolbarItem::Data& data);
     bool add_separator();
@@ -293,15 +293,18 @@ public:
 
     bool is_any_item_pressed() const;
 
+    unsigned int get_items_count() const { return (unsigned int)m_items.size(); }
     int get_item_id(const std::string& name) const;
 
     void force_left_action(int item_id, GLCanvas3D& parent) { do_action(GLToolbarItem::Left, item_id, parent, false); }
     void force_right_action(int item_id, GLCanvas3D& parent) { do_action(GLToolbarItem::Right, item_id, parent, false); }
 
-    const std::string& get_tooltip() const { return m_tooltip; }
+    std::string get_tooltip() const;
 
     void get_additional_tooltip(int item_id, std::string& text);
     void set_additional_tooltip(int item_id, const std::string& text);
+    void set_tooltip(int item_id, const std::string& text);
+    int  get_visible_items_cnt() const;
 
     // returns true if any item changed its state
     bool update_items_state();
@@ -318,9 +321,9 @@ private:
     float get_height_vertical() const;
     float get_main_size() const;
     void do_action(GLToolbarItem::EActionType type, int item_id, GLCanvas3D& parent, bool check_hover);
-    std::string update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent);
-    std::string update_hover_state_horizontal(const Vec2d& mouse_pos, GLCanvas3D& parent);
-    std::string update_hover_state_vertical(const Vec2d& mouse_pos, GLCanvas3D& parent);
+    void update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent);
+    void update_hover_state_horizontal(const Vec2d& mouse_pos, GLCanvas3D& parent);
+    void update_hover_state_vertical(const Vec2d& mouse_pos, GLCanvas3D& parent);
     // returns the id of the item under the given mouse position or -1 if none
     int contains_mouse(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;
     int contains_mouse_horizontal(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;

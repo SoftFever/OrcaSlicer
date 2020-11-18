@@ -5,7 +5,7 @@
   <key>CFBundleExecutable</key>
   <string>@SLIC3R_APP_KEY@</string>
   <key>CFBundleGetInfoString</key>
-  <string>@SLIC3R_APP_NAME@ Copyright (C) 2011-2019 Alessandro Ranellucci, (C) 2016-2019 Prusa Reseach</string>
+  <string>@SLIC3R_APP_NAME@ Copyright (C) 2011-2019 Alessandro Ranellucci, (C) 2016-2020 Prusa Reseach</string>
   <key>CFBundleIconFile</key>
   <string>PrusaSlicer.icns</string>
   <key>CFBundleName</key>
@@ -103,7 +103,7 @@
         <key>CFBundleTypeName</key>
         <string>GCODE</string>
         <key>CFBundleTypeRole</key>
-        <string>Editor</string>
+        <string>Viewer</string>
         <key>LISsAppleDefaultForType</key>
         <true/>
         <key>LSHandlerRank</key>
@@ -115,8 +115,6 @@
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
     <key>NSHighResolutionCapable</key>
-    <true/>
-    <key>NSRequiresAquaSystemAppearance</key>
     <true/>
   </dict>
 </plist>

@@ -48,9 +48,17 @@ static wxString generate_html_row(const Config::Snapshot &snapshot, bool row_eve
     text += "</b></font><br>";
     // End of row header.
     text += _(L("PrusaSlicer version")) + ": " + snapshot.slic3r_version_captured.to_string() + "<br>";
-    text += _(L("print")) + ": " + snapshot.print + "<br>";
-    text += _(L("filaments")) + ": " + snapshot.filaments.front() + "<br>";
-    text += _(L("printer")) + ": " + snapshot.printer + "<br>";
+    bool has_fff = ! snapshot.print.empty() || ! snapshot.filaments.empty();
+    bool has_sla = ! snapshot.sla_print.empty() || ! snapshot.sla_material.empty();
+    if (has_fff || ! has_sla) {
+        text += _(L("print")) + ": " + snapshot.print + "<br>";
+        text += _(L("filaments")) + ": " + snapshot.filaments.front() + "<br>";
+    }
+    if (has_sla) {
+        text += _(L("SLA print")) + ": " + snapshot.sla_print + "<br>";
+        text += _(L("SLA material")) + ": " + snapshot.sla_material + "<br>";
+    }
+    text += _(L("printer")) + ": " + (snapshot.physical_printer.empty() ? snapshot.printer : snapshot.physical_printer) + "<br>";
 
     bool compatible = true;
     for (const Config::Snapshot::VendorConfig &vc : snapshot.vendor_configs) {
@@ -72,7 +80,7 @@ static wxString generate_html_row(const Config::Snapshot &snapshot, bool row_eve
     }
 
     if (! compatible) {
-        text += "<p align=\"right\">" + wxString::Format(_(L("Incompatible with this %s")), SLIC3R_APP_NAME) + "</p>";
+        text += "<p align=\"right\">" + from_u8((boost::format(_utf8(L("Incompatible with this %s"))) % SLIC3R_APP_NAME).str()) + "</p>";
     }
     else if (! snapshot_active)
         text += "<p align=\"right\"><a href=\"" + snapshot.id + "\">" + _(L("Activate")) + "</a></p>";
@@ -101,7 +109,7 @@ static wxString generate_html_page(const Config::SnapshotDB &snapshot_db, const 
 }
 
 ConfigSnapshotDialog::ConfigSnapshotDialog(const Config::SnapshotDB &snapshot_db, const wxString &on_snapshot)
-    : DPIDialog(NULL, wxID_ANY, _(L("Configuration Snapshots")), wxDefaultPosition, 
+    : DPIDialog((wxWindow*)wxGetApp().mainframe, wxID_ANY, _(L("Configuration Snapshots")), wxDefaultPosition,
                wxSize(45 * wxGetApp().em_unit(), 40 * wxGetApp().em_unit()), 
                wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMAXIMIZE_BOX)
 {
@@ -114,7 +122,7 @@ ConfigSnapshotDialog::ConfigSnapshotDialog(const Config::SnapshotDB &snapshot_db
     // text
     html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO);
     {
-        wxFont font = wxGetApp().normal_font();//wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+        wxFont font = get_default_font(this);
         #ifdef __WXMSW__
             const int fs = font.GetPointSize();
             const int fs1 = static_cast<int>(0.8f*fs);
@@ -140,7 +148,7 @@ ConfigSnapshotDialog::ConfigSnapshotDialog(const Config::SnapshotDB &snapshot_db
 
 void ConfigSnapshotDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
-    wxFont font = GetFont();
+    wxFont font = get_default_font(this);
     const int fs = font.GetPointSize();
     const int fs1 = static_cast<int>(0.8f*fs);
     const int fs2 = static_cast<int>(1.1f*fs);
@@ -162,7 +170,7 @@ void ConfigSnapshotDialog::on_dpi_changed(const wxRect &suggested_rect)
 
 void ConfigSnapshotDialog::onLinkClicked(wxHtmlLinkEvent &event)
 {
-    m_snapshot_to_activate = event.GetLinkInfo().GetHref();
+    m_snapshot_to_activate = event.GetLinkInfo().GetHref().ToUTF8();
     this->EndModal(wxID_CLOSE);
 }
 

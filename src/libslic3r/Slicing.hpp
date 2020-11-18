@@ -11,15 +11,15 @@
 
 #include "libslic3r.h"
 #include "Utils.hpp"
-#include "PrintConfig.hpp"
 
 namespace Slic3r
 {
 
 class PrintConfig;
 class PrintObjectConfig;
-class ModelVolume;
-typedef std::vector<ModelVolume*> ModelVolumePtrs;
+class ModelConfig;
+class ModelObject;
+class DynamicPrintConfig;
 
 // Parameters to guide object slicing and support generation.
 // The slicing parameters account for a raft and whether the 1st object layer is printed with a normal or a bridging flow
@@ -100,7 +100,6 @@ struct SlicingParameters
 };
 static_assert(IsTriviallyCopyable<SlicingParameters>::value, "SlicingParameters class is not POD (and it should be - see constructor).");
 
-
 // The two slicing parameters lead to the same layering as long as the variable layer thickness is not in action.
 inline bool equal_layering(const SlicingParameters &sp1, const SlicingParameters &sp2)
 {
@@ -130,19 +129,28 @@ inline bool equal_layering(const SlicingParameters &sp1, const SlicingParameters
 }
 
 typedef std::pair<coordf_t,coordf_t> t_layer_height_range;
-typedef std::map<t_layer_height_range, DynamicPrintConfig> t_layer_config_ranges;
-
-extern std::vector<std::pair<t_layer_height_range, coordf_t>> layer_height_ranges(const t_layer_config_ranges &config_ranges);
+typedef std::map<t_layer_height_range, ModelConfig> t_layer_config_ranges;
 
 extern std::vector<coordf_t> layer_height_profile_from_ranges(
     const SlicingParameters     &slicing_params,
     const t_layer_config_ranges &layer_config_ranges);
 
-extern std::vector<coordf_t> layer_height_profile_adaptive(
-    const SlicingParameters     &slicing_params,
-    const t_layer_config_ranges &layer_config_ranges,
-    const ModelVolumePtrs       &volumes);
+extern std::vector<double> layer_height_profile_adaptive(
+    const SlicingParameters& slicing_params,
+    const ModelObject& object, float quality_factor);
 
+struct HeightProfileSmoothingParams
+{
+    unsigned int radius;
+    bool keep_min;
+
+    HeightProfileSmoothingParams() : radius(5), keep_min(false) {}
+    HeightProfileSmoothingParams(unsigned int radius, bool keep_min) : radius(radius), keep_min(keep_min) {}
+};
+
+extern std::vector<double> smooth_height_profile(
+    const std::vector<double>& profile, const SlicingParameters& slicing_params,
+    const HeightProfileSmoothingParams& smoothing_params);
 
 enum LayerHeightEditActionType : unsigned int {
     LAYER_HEIGHT_EDIT_ACTION_INCREASE = 0,
@@ -173,7 +181,17 @@ extern int generate_layer_height_texture(
     const std::vector<coordf_t> &layers,
     void *data, int rows, int cols, bool level_of_detail_2nd_level);
 
-}; // namespace Slic3r
+namespace Slicing {
+	// Minimum layer height for the variable layer height algorithm. Nozzle index is 1 based.
+	coordf_t min_layer_height_from_nozzle(const DynamicPrintConfig &print_config, int idx_nozzle);
+
+	// Maximum layer height for the variable layer height algorithm, 3/4 of a nozzle dimaeter by default,
+	// it should not be smaller than the minimum layer height.
+	// Nozzle index is 1 based.
+	coordf_t max_layer_height_from_nozzle(const DynamicPrintConfig &print_config, int idx_nozzle);
+} // namespace Slicing
+
+} // namespace Slic3r
 
 namespace cereal
 {

@@ -2,7 +2,8 @@
 #include "ConfigManipulation.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
-#include "PresetBundle.hpp"
+#include "libslic3r/Model.hpp"
+#include "libslic3r/PresetBundle.hpp"
 
 #include <wx/msgdlg.h>
 
@@ -27,9 +28,7 @@ void ConfigManipulation::toggle_field(const std::string& opt_key, const bool tog
         if (local_config->option(opt_key) == nullptr)
             return;
     }
-    Field* field = get_field(opt_key, opt_index);
-    if (field==nullptr) return;
-    field->toggle(toggle);
+    cb_toggle_field(opt_key, toggle, opt_index);
 }
 
 void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, const bool is_global_config)
@@ -70,14 +69,21 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     double fill_density = config->option<ConfigOptionPercent>("fill_density")->value;
 
     if (config->opt_bool("spiral_vase") &&
-        !(config->opt_int("perimeters") == 1 && config->opt_int("top_solid_layers") == 0 &&
-            fill_density == 0)) {
+        ! (config->opt_int("perimeters") == 1 && 
+           config->opt_int("top_solid_layers") == 0 &&
+           fill_density == 0 &&
+           ! config->opt_bool("support_material") &&
+           config->opt_int("support_material_enforce_layers") == 0 &&
+           config->opt_bool("ensure_vertical_shell_thickness") &&
+           ! config->opt_bool("thin_walls")))
+    {
         wxString msg_text = _(L("The Spiral Vase mode requires:\n"
                                 "- one perimeter\n"
                                 "- no top solid layers\n"
                                 "- 0% fill density\n"
                                 "- no support material\n"
-                                "- no ensure_vertical_shell_thickness"));
+                                "- Ensure vertical shell thickness enabled\n"
+               					"- Detect thin walls disabled"));
         if (is_global_config)
             msg_text += "\n\n" + _(L("Shall I adjust those settings in order to enable Spiral Vase?"));
         wxMessageDialog dialog(nullptr, msg_text, _(L("Spiral Vase")),
@@ -90,7 +96,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             new_conf.set_key_value("fill_density", new ConfigOptionPercent(0));
             new_conf.set_key_value("support_material", new ConfigOptionBool(false));
             new_conf.set_key_value("support_material_enforce_layers", new ConfigOptionInt(0));
-            new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(false));
+            new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(true));
+            new_conf.set_key_value("thin_walls", new ConfigOptionBool(false));            
             fill_density = 0;
         }
         else {
@@ -233,30 +240,36 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
                     "solid_infill_every_layers", "solid_infill_below_area", "infill_extruder" })
         toggle_field(el, have_infill);
 
-    bool have_solid_infill = config->opt_int("top_solid_layers") > 0 || config->opt_int("bottom_solid_layers") > 0;
+    bool has_spiral_vase         = config->opt_bool("spiral_vase");
+    bool has_top_solid_infill 	 = config->opt_int("top_solid_layers") > 0;
+    bool has_bottom_solid_infill = config->opt_int("bottom_solid_layers") > 0;
+    bool has_solid_infill 		 = has_top_solid_infill || has_bottom_solid_infill;
     // solid_infill_extruder uses the same logic as in Print::extruders()
     for (auto el : { "top_fill_pattern", "bottom_fill_pattern", "infill_first", "solid_infill_extruder",
                     "solid_infill_extrusion_width", "solid_infill_speed" })
-        toggle_field(el, have_solid_infill);
+        toggle_field(el, has_solid_infill);
 
     for (auto el : { "fill_angle", "bridge_angle", "infill_extrusion_width",
                     "infill_speed", "bridge_speed" })
-        toggle_field(el, have_infill || have_solid_infill);
+        toggle_field(el, have_infill || has_solid_infill);
+
+    toggle_field("top_solid_min_thickness", ! has_spiral_vase && has_top_solid_infill);
+    toggle_field("bottom_solid_min_thickness", ! has_spiral_vase && has_bottom_solid_infill);
 
     // Gap fill is newly allowed in between perimeter lines even for empty infill (see GH #1476).
     toggle_field("gap_fill_speed", have_perimeters);
 
-    bool have_top_solid_infill = config->opt_int("top_solid_layers") > 0;
     for (auto el : { "top_infill_extrusion_width", "top_solid_infill_speed" })
-        toggle_field(el, have_top_solid_infill);
+        toggle_field(el, has_top_solid_infill);
 
     bool have_default_acceleration = config->opt_float("default_acceleration") > 0;
     for (auto el : { "perimeter_acceleration", "infill_acceleration",
                     "bridge_acceleration", "first_layer_acceleration" })
         toggle_field(el, have_default_acceleration);
 
-    bool have_skirt = config->opt_int("skirts") > 0 || config->opt_float("min_skirt_length") > 0;
-    for (auto el : { "skirt_distance", "skirt_height" })
+    bool have_skirt = config->opt_int("skirts") > 0;
+    toggle_field("skirt_height", have_skirt && !config->opt_bool("draft_shield"));
+    for (auto el : { "skirt_distance", "draft_shield", "min_skirt_length" })
         toggle_field(el, have_skirt);
 
     bool have_brim = config->opt_float("brim_width") > 0;
@@ -284,6 +297,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     toggle_field("support_material_extruder", have_support_material || have_skirt);
     toggle_field("support_material_speed", have_support_material || have_brim || have_skirt);
 
+    bool has_ironing = config->opt_bool("ironing");
+    for (auto el : { "ironing_type", "ironing_flowrate", "ironing_spacing", "ironing_speed" })
+    	toggle_field(el, has_ironing);
+
     bool have_sequential_printing = config->opt_bool("complete_objects");
     for (auto el : { "extruder_clearance_radius", "extruder_clearance_height" })
         toggle_field(el, have_sequential_printing);
@@ -292,7 +309,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     toggle_field("standby_temperature_delta", have_ooze_prevention);
 
     bool have_wipe_tower = config->opt_bool("wipe_tower");
-    for (auto el : { "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_bridging" })
+    for (auto el : { "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle",
+                     "wipe_tower_bridging", "wipe_tower_no_sparse_layers", "single_extruder_multi_material_priming" })
         toggle_field(el, have_wipe_tower);
 }
 
@@ -334,6 +352,8 @@ void ConfigManipulation::toggle_print_sla_options(DynamicPrintConfig* config)
     toggle_field("support_head_penetration", supports_en);
     toggle_field("support_head_width", supports_en);
     toggle_field("support_pillar_diameter", supports_en);
+    toggle_field("support_small_pillar_diameter_percent", supports_en);
+    toggle_field("support_max_bridges_on_pillar", supports_en);
     toggle_field("support_pillar_connection_mode", supports_en);
     toggle_field("support_buildplate_only", supports_en);
     toggle_field("support_base_diameter", supports_en);

@@ -49,6 +49,7 @@ public:
 	// for a GET and a POST request respectively.
 	static Http get(std::string url);
 	static Http post(std::string url);
+	static Http put(std::string url);
 	~Http();
 
 	Http(const Http &) = delete;
@@ -64,6 +65,8 @@ public:
 	Http& header(std::string name, const std::string &value);
 	// Removes a header field.
 	Http& remove_header(std::string name);
+	// Authorization by HTTP digest, based on RFC2617.
+	Http& auth_digest(const std::string &user, const std::string &password);
 	// Sets a CA certificate file for usage with HTTPS. This is only supported on some backends,
 	// specifically, this is supported with OpenSSL and NOT supported with Windows and OS X native certificate store.
 	// See also ca_file_supported().
@@ -79,6 +82,16 @@ public:
 	// The data is used verbatim, it is not additionally encoded in any way.
 	// This can be used for hosts which do not support multipart requests.
 	Http& set_post_body(const boost::filesystem::path &path);
+
+	// Set the POST request body.
+	// The data is used verbatim, it is not additionally encoded in any way.
+	// This can be used for hosts which do not support multipart requests.
+	Http& set_post_body(const std::string &body);
+
+	// Set the file contents as a PUT request body.
+	// The data is used verbatim, it is not additionally encoded in any way.
+	// This can be used for hosts which do not support multipart requests.
+	Http& set_put_body(const boost::filesystem::path &path);
 
 	// Callback called on HTTP request complete
 	Http& on_complete(CompleteFn fn);
@@ -100,6 +113,10 @@ public:
 
 	// Tells whether current backend supports seting up a CA file using ca_file()
 	static bool ca_file_supported();
+
+    // Return empty string on success or error message on fail.
+    static std::string tls_global_init();
+    static std::string tls_system_cert_store();
 
 	// converts the given string to an url_encoded_string
 	static std::string url_encode(const std::string &str);

@@ -31,6 +31,22 @@ GLGizmoMove3D::~GLGizmoMove3D()
         ::gluDeleteQuadric(m_quadric);
 }
 
+std::string GLGizmoMove3D::get_tooltip() const
+{
+    const Selection& selection = m_parent.get_selection();
+    bool show_position = selection.is_single_full_instance();
+    const Vec3d& position = selection.get_bounding_box().center();
+
+    if (m_hover_id == 0 || m_grabbers[0].dragging)
+        return "X: " + format(show_position ? position(0) : m_displacement(0), 2);
+    else if (m_hover_id == 1 || m_grabbers[1].dragging)
+        return "Y: " + format(show_position ? position(1) : m_displacement(1), 2);
+    else if (m_hover_id == 2 || m_grabbers[2].dragging)
+        return "Z: " + format(show_position ? position(2) : m_displacement(2), 2);
+    else
+        return "";
+}
+
 bool GLGizmoMove3D::on_init()
 {
     for (int i = 0; i < 3; ++i)
@@ -46,6 +62,11 @@ bool GLGizmoMove3D::on_init()
 std::string GLGizmoMove3D::on_get_name() const
 {
     return (_(L("Move")) + " [M]").ToUTF8().data();
+}
+
+bool GLGizmoMove3D::on_is_activable() const
+{
+    return !m_parent.get_selection().is_empty();
 }
 
 void GLGizmoMove3D::on_start_dragging()
@@ -79,22 +100,6 @@ void GLGizmoMove3D::on_update(const UpdateData& data)
 void GLGizmoMove3D::on_render() const
 {
     const Selection& selection = m_parent.get_selection();
-
-    bool show_position = selection.is_single_full_instance();
-    const Vec3d& position = selection.get_bounding_box().center();
-
-    if ((show_position && (m_hover_id == 0)) || m_grabbers[0].dragging)
-        set_tooltip("X: " + format(show_position ? position(0) : m_displacement(0), 2));
-    else if (!m_grabbers[0].dragging && (m_hover_id == 0))
-        set_tooltip("X");
-    else if ((show_position && (m_hover_id == 1)) || m_grabbers[1].dragging)
-        set_tooltip("Y: " + format(show_position ? position(1) : m_displacement(1), 2));
-    else if (!m_grabbers[1].dragging && (m_hover_id == 1))
-        set_tooltip("Y");
-    else if ((show_position && (m_hover_id == 2)) || m_grabbers[2].dragging)
-        set_tooltip("Z: " + format(show_position ? position(2) : m_displacement(2), 2));
-    else if (!m_grabbers[2].dragging && (m_hover_id == 2))
-        set_tooltip("Z");
 
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
@@ -165,25 +170,6 @@ void GLGizmoMove3D::on_render_for_picking() const
     render_grabber_extension(Y, box, true);
     render_grabber_extension(Z, box, true);
 }
-
-#if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
-void GLGizmoMove3D::on_render_input_window(float x, float y, float bottom_limit)
-{
-    const Selection& selection = m_parent.get_selection();
-    bool show_position = selection.is_single_full_instance();
-    const Vec3d& position = selection.get_bounding_box().center();
-
-    Vec3d displacement = show_position ? position : m_displacement;
-    wxString label = show_position ? _(L("Position (mm)")) : _(L("Displacement (mm)"));
-
-    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
-    m_imgui->set_next_window_bg_alpha(0.5f);
-    m_imgui->begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-    m_imgui->input_vec3("", displacement, 100.0f, "%.2f");
-
-    m_imgui->end();
-}
-#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 
 double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 {

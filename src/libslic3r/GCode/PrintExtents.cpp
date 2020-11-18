@@ -6,6 +6,7 @@
 #include "../BoundingBox.hpp"
 #include "../ExtrusionEntity.hpp"
 #include "../ExtrusionEntityCollection.hpp"
+#include "../Layer.hpp"
 #include "../Print.hpp"
 
 #include "PrintExtents.hpp"
@@ -29,7 +30,7 @@ static inline BoundingBox extrusion_polyline_extents(const Polyline &polyline, c
 
 static inline BoundingBoxf extrusionentity_extents(const ExtrusionPath &extrusion_path)
 {
-    BoundingBox bbox = extrusion_polyline_extents(extrusion_path.polyline, scale_(0.5 * extrusion_path.width));
+    BoundingBox bbox = extrusion_polyline_extents(extrusion_path.polyline, coord_t(scale_(0.5 * extrusion_path.width)));
     BoundingBoxf bboxf;
     if (! empty(bbox)) {
         bboxf.min = unscale(bbox.min);
@@ -43,7 +44,7 @@ static inline BoundingBoxf extrusionentity_extents(const ExtrusionLoop &extrusio
 {
     BoundingBox bbox;
     for (const ExtrusionPath &extrusion_path : extrusion_loop.paths)
-        bbox.merge(extrusion_polyline_extents(extrusion_path.polyline, scale_(0.5 * extrusion_path.width)));
+        bbox.merge(extrusion_polyline_extents(extrusion_path.polyline, coord_t(scale_(0.5 * extrusion_path.width))));
     BoundingBoxf bboxf;
     if (! empty(bbox)) {
         bboxf.min = unscale(bbox.min);
@@ -57,7 +58,7 @@ static inline BoundingBoxf extrusionentity_extents(const ExtrusionMultiPath &ext
 {
     BoundingBox bbox;
     for (const ExtrusionPath &extrusion_path : extrusion_multi_path.paths)
-        bbox.merge(extrusion_polyline_extents(extrusion_path.polyline, scale_(0.5 * extrusion_path.width)));
+        bbox.merge(extrusion_polyline_extents(extrusion_path.polyline, coord_t(scale_(0.5 * extrusion_path.width))));
     BoundingBoxf bboxf;
     if (! empty(bbox)) {
         bboxf.min = unscale(bbox.min);
@@ -93,7 +94,7 @@ static BoundingBoxf extrusionentity_extents(const ExtrusionEntity *extrusion_ent
     auto *extrusion_entity_collection = dynamic_cast<const ExtrusionEntityCollection*>(extrusion_entity);
     if (extrusion_entity_collection != nullptr)
         return extrusionentity_extents(*extrusion_entity_collection);
-    throw std::runtime_error("Unexpected extrusion_entity type in extrusionentity_extents()");
+    throw Slic3r::RuntimeError("Unexpected extrusion_entity type in extrusionentity_extents()");
     return BoundingBoxf();
 }
 
@@ -121,9 +122,9 @@ BoundingBoxf get_print_object_extrusions_extents(const PrintObject &print_object
         if (support_layer)
             for (const ExtrusionEntity *extrusion_entity : support_layer->support_fills.entities)
                 bbox_this.merge(extrusionentity_extents(extrusion_entity));
-        for (const Point &offset : print_object.copies()) {
+        for (const PrintInstance &instance : print_object.instances()) {
             BoundingBoxf bbox_translated(bbox_this);
-            bbox_translated.translate(unscale(offset));
+            bbox_translated.translate(unscale(instance.shift));
             bbox.merge(bbox_translated);
         }
     }

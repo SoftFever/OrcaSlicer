@@ -6,6 +6,7 @@
 #include <limits> // for numeric_limits
 #include <assert.h>
 
+#define BOOST_VORONOI_USE_GMP 1
 #include "boost/polygon/voronoi.hpp"
 using boost::polygon::voronoi_builder;
 using boost::polygon::voronoi_diagram;
@@ -319,7 +320,7 @@ Polyline MotionPlannerGraph::shortest_path(size_t node_start, size_t node_end) c
     std::vector<size_t>   map_node_to_queue_id(m_adjacency_list.size(), size_t(-1));
     distance[node_start] = 0.;
 
-    auto queue = make_mutable_priority_queue<node_t>(
+    auto queue = make_mutable_priority_queue<node_t, false>(
         [&map_node_to_queue_id](const node_t node, size_t idx) { map_node_to_queue_id[node] = idx; },
         [&distance](const node_t node1, const node_t node2) { return distance[node1] < distance[node2]; });
     queue.reserve(m_adjacency_list.size());

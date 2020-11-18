@@ -3,10 +3,10 @@
 
 #include "GLTexture.hpp"
 #include "3DScene.hpp"
-#include "GLShader.hpp"
+#include "GLModel.hpp"
 
-class GLUquadric;
-typedef class GLUquadric GLUquadricObj;
+#include <tuple>
+#include <array>
 
 namespace Slic3r {
 namespace GUI {
@@ -43,32 +43,31 @@ public:
 
 class Bed3D
 {
-    struct Axes
+    class Axes
     {
-        static const double Radius;
-        static const double ArrowBaseRadius;
-        static const double ArrowLength;
-        Vec3d origin;
-        Vec3d length;
-        GLUquadricObj* m_quadric;
-
-        Axes();
-        ~Axes();
-
-        void render() const;
+    public:
+        static const float DefaultStemRadius;
+        static const float DefaultStemLength;
+        static const float DefaultTipRadius;
+        static const float DefaultTipLength;
 
     private:
-        void render_axis(double length) const;
+        Vec3d m_origin{ Vec3d::Zero() };
+        float m_stem_length{ DefaultStemLength };
+        mutable GLModel m_arrow;
+
+    public:
+        const Vec3d& get_origin() const { return m_origin; }
+        void set_origin(const Vec3d& origin) { m_origin = origin; }
+        void set_stem_length(float length);
+        float get_total_length() const { return m_stem_length + DefaultTipLength; }
+        void render() const;
     };
 
 public:
     enum EType : unsigned char
     {
-        MK2,
-        MK3,
-        SL1,
-        MINI,
-        ENDER3,
+        System,
         Custom,
         Num_Types
     };
@@ -76,21 +75,20 @@ public:
 private:
     EType m_type;
     Pointfs m_shape;
-    std::string m_custom_texture;
-    std::string m_custom_model;
+    std::string m_texture_filename;
+    std::string m_model_filename;
     mutable BoundingBoxf3 m_bounding_box;
     mutable BoundingBoxf3 m_extended_bounding_box;
     Polygon m_polygon;
     GeometryBuffer m_triangles;
     GeometryBuffer m_gridlines;
     mutable GLTexture m_texture;
+    mutable GLModel m_model;
+    mutable Vec3d m_model_offset{ Vec3d::Zero() };
+    std::array<float, 4> m_model_color{ 0.235f, 0.235f, 0.235f, 1.0f };
     // temporary texture shown until the main texture has still no levels compressed
     mutable GLTexture m_temp_texture;
-    // used to trigger 3D scene update once all compressed textures have been sent to GPU
-    mutable bool m_requires_canvas_update;
-    mutable Shader m_shader;
     mutable unsigned int m_vbo_id;
-    mutable GLBed m_model;
     Axes m_axes;
 
     mutable float m_scale_factor;
@@ -101,29 +99,32 @@ public:
 
     EType get_type() const { return m_type; }
 
-    bool is_prusa() const { return (m_type == MK2) || (m_type == MK3) || (m_type == SL1); }
     bool is_custom() const { return m_type == Custom; }
 
     const Pointfs& get_shape() const { return m_shape; }
     // Return true if the bed shape changed, so the calee will update the UI.
-    bool set_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model);
+    bool set_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false);
 
-    const BoundingBoxf3& get_bounding_box(bool extended) const { return extended ? m_extended_bounding_box : m_bounding_box; }
+    const BoundingBoxf3& get_bounding_box(bool extended) const {
+        return extended ? m_extended_bounding_box : m_bounding_box;
+    }
+
     bool contains(const Point& point) const;
     Point point_projection(const Point& point) const;
 
-    void render(GLCanvas3D& canvas, float theta, float scale_factor) const;
+    void render(GLCanvas3D& canvas, bool bottom, float scale_factor,
+                bool show_axes, bool show_texture) const;
 
 private:
     void calc_bounding_boxes() const;
     void calc_triangles(const ExPolygon& poly);
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
-    EType detect_type(const Pointfs& shape) const;
+    std::tuple<EType, std::string, std::string> detect_type(const Pointfs& shape) const;
     void render_axes() const;
-    void render_prusa(GLCanvas3D& canvas, const std::string& key, bool bottom) const;
-    void render_texture(const std::string& filename, bool bottom, GLCanvas3D& canvas) const;
-    void render_model(const std::string& filename) const;
-    void render_custom(GLCanvas3D& canvas, bool bottom) const;
+    void render_system(GLCanvas3D& canvas, bool bottom, bool show_texture) const;
+    void render_texture(bool bottom, GLCanvas3D& canvas) const;
+    void render_model() const;
+    void render_custom(GLCanvas3D& canvas, bool bottom, bool show_texture) const;
     void render_default(bool bottom) const;
     void reset();
 };

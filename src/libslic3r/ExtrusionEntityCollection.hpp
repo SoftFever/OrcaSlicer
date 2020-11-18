@@ -2,9 +2,25 @@
 #define slic3r_ExtrusionEntityCollection_hpp_
 
 #include "libslic3r.h"
+#include "Exception.hpp"
 #include "ExtrusionEntity.hpp"
 
 namespace Slic3r {
+
+// Remove those items from extrusion_entities, that do not match role.
+// Do nothing if role is mixed.
+// Removed elements are NOT being deleted.
+void filter_by_extrusion_role_in_place(ExtrusionEntitiesPtr &extrusion_entities, ExtrusionRole role);
+
+// Return new vector of ExtrusionEntities* with only those items from input extrusion_entities, that match role.
+// Return all extrusion entities if role is mixed.
+// Returned extrusion entities are shared with the source vector, they are NOT cloned, they are considered to be owned by extrusion_entities.
+inline ExtrusionEntitiesPtr filter_by_extrusion_role(const ExtrusionEntitiesPtr &extrusion_entities, ExtrusionRole role)
+{
+	ExtrusionEntitiesPtr out { extrusion_entities }; 
+	filter_by_extrusion_role_in_place(out, role);
+	return out;
+}
 
 class ExtrusionEntityCollection : public ExtrusionEntity
 {
@@ -25,7 +41,7 @@ public:
     ~ExtrusionEntityCollection() { clear(); }
     explicit operator ExtrusionPaths() const;
     
-    bool is_collection() const { return true; }
+    bool is_collection() const override { return true; }
     ExtrusionRole role() const override {
         ExtrusionRole out = erNone;
         for (const ExtrusionEntity *ee : entities) {
@@ -34,7 +50,7 @@ public:
         }
         return out;
     }
-    bool can_reverse() const { return !this->no_sort; }
+    bool can_reverse() const override { return !this->no_sort; }
     bool empty() const { return this->entities.empty(); }
     void clear();
     void swap (ExtrusionEntityCollection &c);
@@ -65,10 +81,12 @@ public:
     }
     void replace(size_t i, const ExtrusionEntity &entity);
     void remove(size_t i);
-    ExtrusionEntityCollection chained_path_from(const Point &start_near, ExtrusionRole role = erMixed) const;
-    void reverse();
-    const Point& first_point() const { return this->entities.front()->first_point(); }
-    const Point& last_point() const { return this->entities.back()->last_point(); }
+    static ExtrusionEntityCollection chained_path_from(const ExtrusionEntitiesPtr &extrusion_entities, const Point &start_near, ExtrusionRole role = erMixed);
+    ExtrusionEntityCollection chained_path_from(const Point &start_near, ExtrusionRole role = erMixed) const 
+    	{ return this->no_sort ? *this : chained_path_from(this->entities, start_near, role); }
+    void reverse() override;
+    const Point& first_point() const override { return this->entities.front()->first_point(); }
+    const Point& last_point() const override { return this->entities.back()->last_point(); }
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
     void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const override;
@@ -85,12 +103,12 @@ public:
     /// You should be iterating over flatten().entities if you are interested in the underlying ExtrusionEntities (and don't care about hierarchy).
     /// \param preserve_ordering Flag to method that will flatten if and only if the underlying collection is sortable when True (default: False).
     ExtrusionEntityCollection flatten(bool preserve_ordering = false) const;
-    double min_mm3_per_mm() const;
+    double min_mm3_per_mm() const override;
     double total_volume() const override { double volume=0.; for (const auto& ent : entities) volume+=ent->total_volume(); return volume; }
 
     // Following methods shall never be called on an ExtrusionEntityCollection.
-    Polyline as_polyline() const {
-        throw std::runtime_error("Calling as_polyline() on a ExtrusionEntityCollection");
+    Polyline as_polyline() const override {
+        throw Slic3r::RuntimeError("Calling as_polyline() on a ExtrusionEntityCollection");
         return Polyline();
     };
 
@@ -100,11 +118,11 @@ public:
     }
 
     double length() const override {
-        throw std::runtime_error("Calling length() on a ExtrusionEntityCollection");
+        throw Slic3r::RuntimeError("Calling length() on a ExtrusionEntityCollection");
         return 0.;        
     }
 };
 
-}
+} // namespace Slic3r
 
 #endif

@@ -355,6 +355,35 @@ bool objparse(const char *path, ObjData &data)
 	return true;
 }
 
+bool objparse(std::istream &stream, ObjData &data)
+{
+    try {
+        char buf[65536 * 2];
+        size_t len = 0;
+        size_t lenPrev = 0;
+        while ((len = size_t(stream.read(buf + lenPrev, 65536).gcount())) != 0) {
+            len += lenPrev;
+            size_t lastLine = 0;
+            for (size_t i = 0; i < len; ++ i)
+                if (buf[i] == '\r' || buf[i] == '\n') {
+                    buf[i] = 0;
+                    char *c = buf + lastLine;
+                    while (*c == ' ' || *c == '\t')
+                        ++ c;
+                    obj_parseline(c, data);
+                    lastLine = i + 1;
+                }
+            lenPrev = len - lastLine;
+            memmove(buf, buf + lastLine, lenPrev);
+        }
+    }
+    catch (std::bad_alloc&) {
+        printf("Out of memory\r\n");
+    }
+    
+    return true;
+}
+
 template<typename T> 
 bool savevector(FILE *pFile, const std::vector<T> &v)
 {
@@ -420,7 +449,7 @@ bool loadvector(FILE *pFile, std::vector<std::string> &v)
 		if (::fread(&len, sizeof(len), 1, pFile) != 1)
 			return false;
 		std::string s(" ", len);
-		if (::fread(const_cast<char*>(s.c_str()), 1, len, pFile) != len)
+		if (::fread(s.data(), 1, len, pFile) != len)
 			return false;
 		v.push_back(std::move(s));
 	}
@@ -442,7 +471,7 @@ bool loadvectornameidx(FILE *pFile, std::vector<T> &v)
 		if (::fread(&len, sizeof(len), 1, pFile) != 1)
 			return false;
 		v[i].name.assign(" ", len);
-		if (::fread(const_cast<char*>(v[i].name.c_str()), 1, len, pFile) != len)
+		if (::fread(v[i].name.data(), 1, len, pFile) != len)
 			return false;
 	}
 	return true;

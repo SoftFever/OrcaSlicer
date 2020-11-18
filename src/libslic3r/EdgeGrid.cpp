@@ -1147,7 +1147,7 @@ EdgeGrid::Grid::ClosestPointResult EdgeGrid::Grid::closest_point(const Point &pt
 			}
 		}
 	}
-	if (result.contour_idx != -1 && d_min <= double(search_radius)) {
+    if (result.contour_idx != size_t(-1) && d_min <= double(search_radius)) {
 		result.distance = d_min * sign_min;
 		result.t /= l2_seg_min;
 		assert(result.t >= 0. && result.t < 1.);
@@ -1586,12 +1586,17 @@ std::vector<std::pair<EdgeGrid::Grid::ContourEdge, EdgeGrid::Grid::ContourEdge>>
 			++ cnt;
 		}
 	}
-	len /= double(cnt);
-	bbox.offset(20);
-	EdgeGrid::Grid grid;
-	grid.set_bbox(bbox);
-	grid.create(polygons, len);
-	return grid.intersecting_edges();
+
+    std::vector<std::pair<EdgeGrid::Grid::ContourEdge, EdgeGrid::Grid::ContourEdge>> out;
+    if (cnt > 0) {
+        len /= double(cnt);
+        bbox.offset(20);
+        EdgeGrid::Grid grid;
+        grid.set_bbox(bbox);
+        grid.create(polygons, len);
+        out = grid.intersecting_edges();
+    }
+    return out;
 }
 
 // Find all pairs of intersectiong edges from the set of polygons, highlight them in an SVG.

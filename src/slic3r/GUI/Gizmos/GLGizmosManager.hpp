@@ -3,7 +3,9 @@
 
 #include "slic3r/GUI/GLTexture.hpp"
 #include "slic3r/GUI/GLToolbar.hpp"
-#include "slic3r/GUI/Gizmos/GLGizmos.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoBase.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
+
 #include "libslic3r/ObjectID.hpp"
 
 #include <map>
@@ -18,6 +20,8 @@ namespace GUI {
 
 class GLCanvas3D;
 class ClippingPlane;
+enum class SLAGizmoEventType : unsigned char;
+class CommonGizmosDataPool;
 
 class Rect
 {
@@ -54,22 +58,42 @@ public:
 
     enum EType : unsigned char
     {
+        // Order must match index in m_gizmos!
         Move,
         Scale,
         Rotate,
         Flatten,
         Cut,
+        Hollow,
         SlaSupports,
+        FdmSupports,
+        Seam,
         Undefined
     };
 
 private:
+    struct Layout
+    {
+        float scale{ 1.0f };
+        float icons_size{ Default_Icons_Size };
+        float border{ 5.0f };
+        float gap_y{ 5.0f };
+
+        float stride_y() const { return icons_size + gap_y;}
+
+        float scaled_icons_size() const { return scale * icons_size; }
+        float scaled_border() const { return scale * border; }
+        float scaled_gap_y() const { return scale * gap_y; }
+        float scaled_stride_y() const { return scale * stride_y(); }
+    };
+
     GLCanvas3D& m_parent;
     bool m_enabled;
     std::vector<std::unique_ptr<GLGizmoBase>> m_gizmos;
     mutable GLTexture m_icons_texture;
     mutable bool m_icons_texture_dirty;
     BackgroundTexture m_background_texture;
+    Layout m_layout;
     EType m_current;
     EType m_hover;
 
@@ -78,11 +102,6 @@ private:
     size_t get_gizmo_idx_from_mouse(const Vec2d& mouse_pos) const;
 
     void activate_gizmo(EType type);
-
-    float m_overlay_icons_size;
-    float m_overlay_scale;
-    float m_overlay_border;
-    float m_overlay_gap_y;
 
     struct MouseCapture
     {
@@ -100,6 +119,8 @@ private:
     MouseCapture m_mouse_capture;
     std::string m_tooltip;
     bool m_serializing;
+    //std::unique_ptr<CommonGizmosData> m_common_gizmos_data;
+    std::unique_ptr<CommonGizmosDataPool> m_common_gizmos_data;
 
 public:
     explicit GLGizmosManager(GLCanvas3D& parent);
@@ -149,6 +170,7 @@ public:
 
     void refresh_on_off_state();
     void reset_all_states();
+    bool is_serializing() const { return m_serializing; }
 
     void set_hover_id(int id);
     void enable_grabber(EType type, unsigned int id, bool enable);
@@ -157,6 +179,7 @@ public:
     void update_data();
 
     EType get_current_type() const { return m_current; }
+    GLGizmoBase* get_current() const;
 
     bool is_running() const;
     bool handle_shortcut(int key);
@@ -180,16 +203,20 @@ public:
     void set_flattening_data(const ModelObject* model_object);
 
     void set_sla_support_data(ModelObject* model_object);
+
+    void set_painter_gizmo_data();
+
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false, bool alt_down = false, bool control_down = false);
-    ClippingPlane get_sla_clipping_plane() const;
+    ClippingPlane get_clipping_plane() const;
     bool wants_reslice_supports_on_undo() const;
 
     void render_current_gizmo() const;
     void render_current_gizmo_for_picking_pass() const;
+    void render_painter_gizmo() const;
 
     void render_overlay() const;
 
-    const std::string& get_tooltip() const { return m_tooltip; }
+    std::string get_tooltip() const;
 
     bool on_mouse(wxMouseEvent& evt);
     bool on_mouse_wheel(wxMouseEvent& evt);
@@ -198,14 +225,14 @@ public:
 
     void update_after_undo_redo(const UndoRedo::Snapshot& snapshot);
 
+    int get_selectable_icons_cnt() const { return get_selectable_idxs().size(); }
+
 private:
     void render_background(float left, float top, float right, float bottom, float border) const;
     void do_render_overlay() const;
 
-    float get_total_overlay_height() const;
-    float get_total_overlay_width() const;
-
-    GLGizmoBase* get_current() const;
+    float get_scaled_total_height() const;
+    float get_scaled_total_width() const;
 
     bool generate_icons_texture() const;
 
@@ -213,6 +240,8 @@ private:
     std::string update_hover_state(const Vec2d& mouse_pos);
     bool grabber_contains_mouse() const;
 };
+
+
 
 } // namespace GUI
 } // namespace Slic3r

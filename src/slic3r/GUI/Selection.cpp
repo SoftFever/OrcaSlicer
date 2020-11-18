@@ -1,19 +1,24 @@
 #include "libslic3r/libslic3r.h"
 #include "Selection.hpp"
 
+#include "3DScene.hpp"
 #include "GLCanvas3D.hpp"
 #include "GUI_App.hpp"
+#include "GUI.hpp"
 #include "GUI_ObjectManipulation.hpp"
 #include "GUI_ObjectList.hpp"
 #include "Gizmos/GLGizmoBase.hpp"
-#include "3DScene.hpp"
 #include "Camera.hpp"
+#include "Plater.hpp"
+
+#include "libslic3r/Model.hpp"
 
 #include <GL/glew.h>
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/log/trivial.hpp>
 
-static const float UNIFORM_SCALE_COLOR[3] = { 1.0f, 0.38f, 0.0f };
+static const float UNIFORM_SCALE_COLOR[4] = { 0.923f, 0.504f, 0.264f, 1.0f };
 
 namespace Slic3r {
 namespace GUI {
@@ -53,7 +58,7 @@ bool Selection::Clipboard::is_sla_compliant() const
     if (m_mode == Selection::Volume)
         return false;
 
-    for (const ModelObject* o : m_model.objects)
+    for (const ModelObject* o : m_model->objects)
     {
         if (o->is_multiparts())
             return false;
@@ -68,6 +73,35 @@ bool Selection::Clipboard::is_sla_compliant() const
     return true;
 }
 
+Selection::Clipboard::Clipboard()
+{
+    m_model.reset(new Model);
+}
+
+void Selection::Clipboard::reset() {
+    m_model->clear_objects();
+}
+
+bool Selection::Clipboard::is_empty() const
+{
+    return m_model->objects.empty();
+}
+
+ModelObject* Selection::Clipboard::add_object()
+{
+    return m_model->add_object();
+}
+
+ModelObject* Selection::Clipboard::get_object(unsigned int id)
+{
+    return (id < (unsigned int)m_model->objects.size()) ? m_model->objects[id] : nullptr;
+}
+
+const ModelObjectPtrs& Selection::Clipboard::get_objects() const
+{
+    return m_model->objects;
+}
+
 Selection::Selection()
     : m_volumes(nullptr)
     , m_model(nullptr)
@@ -75,7 +109,6 @@ Selection::Selection()
     , m_mode(Instance)
     , m_type(Empty)
     , m_valid(false)
-    , m_curved_arrow(16)
     , m_scale_factor(1.0f)
 {
     this->set_bounding_boxes_dirty();
@@ -103,15 +136,8 @@ void Selection::set_volumes(GLVolumePtrs* volumes)
 // Init shall be called from the OpenGL render function, so that the OpenGL context is initialized!
 bool Selection::init()
 {
-    if (!m_arrow.init())
-        return false;
-
-    m_arrow.set_scale(5.0 * Vec3d::Ones());
-
-    if (!m_curved_arrow.init())
-        return false;
-
-    m_curved_arrow.set_scale(5.0 * Vec3d::Ones());
+    m_arrow.init_from(straight_arrow(10.0f, 5.0f, 5.0f, 10.0f, 1.0f));
+    m_curved_arrow.init_from(circular_arrow(16, 10.0f, 5.0f, 10.0f, 5.0f, 1.0f));
     return true;
 }
 
@@ -438,6 +464,10 @@ void Selection::clear()
 
     update_type();
     this->set_bounding_boxes_dirty();
+
+    // this happens while the application is closing
+    if (wxGetApp().obj_manipul() == nullptr)
+        return;
 
     // resets the cache in the sidebar
     wxGetApp().obj_manipul()->reset_cache();
@@ -804,6 +834,7 @@ void Selection::flattening_rotate(const Vec3d& normal)
     // We get the normal in untransformed coordinates. We must transform it using the instance matrix, find out
     // how to rotate the instance so it faces downwards and do the rotation. All that for all selected instances.
     // The function assumes that is_from_single_object() holds.
+    assert(Slic3r::is_approx(normal.norm(), 1.));
 
     if (!m_valid)
         return;
@@ -817,14 +848,31 @@ void Selection::flattening_rotate(const Vec3d& normal)
         Vec3d mirror(wmt(0, 0), wmt(1, 1), wmt(2, 2));
 
         Vec3d rotation = Geometry::extract_euler_angles(m_cache.volumes_data[i].get_instance_rotation_matrix());
-        Vec3d transformed_normal = Geometry::assemble_transform(Vec3d::Zero(), rotation, scaling_factor, mirror) * normal;
-        transformed_normal.normalize();
+        Vec3d tnormal = Geometry::assemble_transform(Vec3d::Zero(), rotation, scaling_factor, mirror) * normal;
+        tnormal.normalize();
 
-        Vec3d axis = transformed_normal(2) > 0.999f ? Vec3d(1., 0., 0.) : Vec3d(transformed_normal.cross(Vec3d(0., 0., -1.)));
+        // Calculate rotation axis. It shall be perpendicular to "down" direction
+        // and the normal, so the rotation is the shortest possible and logical.
+        Vec3d axis = tnormal.cross(-Vec3d::UnitZ());
+
+        // Make sure the axis is not zero and normalize it. "Almost" zero is not interesting.
+        // In case the vectors are almost colinear, the rotation axis does not matter much.
+        if (axis == Vec3d::Zero())
+            axis = Vec3d::UnitX();
         axis.normalize();
 
+        // Calculate the angle using the component where we achieve more precision.
+        // Cosine of small angles is const in first order. No good.
+        double angle = 0.;
+        if (std::abs(tnormal.z()) < std::sqrt(2.)/2.)
+            angle = std::acos(-tnormal.z());
+        else {
+            double xy = std::hypot(tnormal.x(), tnormal.y());
+            angle = PI/2. + std::acos(xy * (tnormal.z() > 0.));
+        }
+
         Transform3d extra_rotation = Transform3d::Identity();
-        extra_rotation.rotate(Eigen::AngleAxisd(acos(-transformed_normal(2)), axis));
+        extra_rotation.rotate(Eigen::AngleAxisd(angle, axis));
 
         Vec3d new_rotation = Geometry::extract_euler_angles(extra_rotation * m_cache.volumes_data[i].get_instance_rotation_matrix());
         (*m_volumes)[i]->set_instance_rotation(new_rotation);
@@ -1222,40 +1270,40 @@ void Selection::render_center(bool gizmo_is_dragging) const
 }
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
-void Selection::render_sidebar_hints(const std::string& sidebar_field, const Shader& shader) const
+void Selection::render_sidebar_hints(const std::string& sidebar_field) const
 {
     if (sidebar_field.empty())
         return;
 
+    GLShaderProgram* shader = nullptr;
+
     if (!boost::starts_with(sidebar_field, "layer"))
     {
-        shader.start_using();
+        shader = wxGetApp().get_shader("gouraud_light");
+        if (shader == nullptr)
+            return;
+
+        shader->start_using();
         glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
-        glsafe(::glEnable(GL_LIGHTING));
     }
 
     glsafe(::glEnable(GL_DEPTH_TEST));
 
     glsafe(::glPushMatrix());
 
-    if (!boost::starts_with(sidebar_field, "layer"))
-    {
+    if (!boost::starts_with(sidebar_field, "layer")) {
         const Vec3d& center = get_bounding_box().center();
 
-        if (is_single_full_instance() && !wxGetApp().obj_manipul()->get_world_coordinates())
-        {
+        if (is_single_full_instance() && !wxGetApp().obj_manipul()->get_world_coordinates()) {
             glsafe(::glTranslated(center(0), center(1), center(2)));
-            if (!boost::starts_with(sidebar_field, "position"))
-            {
+            if (!boost::starts_with(sidebar_field, "position")) {
                 Transform3d orient_matrix = Transform3d::Identity();
                 if (boost::starts_with(sidebar_field, "scale"))
                     orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
-                else if (boost::starts_with(sidebar_field, "rotation"))
-                {
+                else if (boost::starts_with(sidebar_field, "rotation")) {
                     if (boost::ends_with(sidebar_field, "x"))
                         orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
-                    else if (boost::ends_with(sidebar_field, "y"))
-                    {
+                    else if (boost::ends_with(sidebar_field, "y")) {
                         const Vec3d& rotation = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_rotation();
                         if (rotation(0) == 0.0)
                             orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
@@ -1266,21 +1314,16 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, const Sha
 
                 glsafe(::glMultMatrixd(orient_matrix.data()));
             }
-        }
-        else if (is_single_volume() || is_single_modifier())
-        {
+        } else if (is_single_volume() || is_single_modifier()) {
             glsafe(::glTranslated(center(0), center(1), center(2)));
             Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
             if (!boost::starts_with(sidebar_field, "position"))
                 orient_matrix = orient_matrix * (*m_volumes)[*m_list.begin()]->get_volume_transformation().get_matrix(true, false, true, true);
 
             glsafe(::glMultMatrixd(orient_matrix.data()));
-        }
-        else
-        {
+        } else {
             glsafe(::glTranslated(center(0), center(1), center(2)));
-            if (requires_local_axes())
-            {
+            if (requires_local_axes()) {
                 Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
                 glsafe(::glMultMatrixd(orient_matrix.data()));
             }
@@ -1291,20 +1334,15 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, const Sha
         render_sidebar_position_hints(sidebar_field);
     else if (boost::starts_with(sidebar_field, "rotation"))
         render_sidebar_rotation_hints(sidebar_field);
-    else if (boost::starts_with(sidebar_field, "scale"))
+    else if (boost::starts_with(sidebar_field, "scale") || boost::starts_with(sidebar_field, "size"))
         render_sidebar_scale_hints(sidebar_field);
-    else if (boost::starts_with(sidebar_field, "size"))
-        render_sidebar_size_hints(sidebar_field);
     else if (boost::starts_with(sidebar_field, "layer"))
         render_sidebar_layers_hints(sidebar_field);
 
     glsafe(::glPopMatrix());
 
     if (!boost::starts_with(sidebar_field, "layer"))
-    {
-        glsafe(::glDisable(GL_LIGHTING));
-        shader.stop_using();
-    }
+        shader->stop_using();
 }
 
 bool Selection::requires_local_axes() const
@@ -1325,11 +1363,12 @@ void Selection::copy_to_clipboard()
         ModelObject* dst_object = m_clipboard.add_object();
         dst_object->name                 = src_object->name;
         dst_object->input_file           = src_object->input_file;
-		static_cast<DynamicPrintConfig&>(dst_object->config) = static_cast<const DynamicPrintConfig&>(src_object->config);
+		dst_object->config.assign_config(src_object->config);
         dst_object->sla_support_points   = src_object->sla_support_points;
         dst_object->sla_points_status    = src_object->sla_points_status;
+        dst_object->sla_drain_holes      = src_object->sla_drain_holes;
         dst_object->layer_config_ranges  = src_object->layer_config_ranges;     // #ys_FIXME_experiment
-        dst_object->layer_height_profile = src_object->layer_height_profile;
+        dst_object->layer_height_profile.assign(src_object->layer_height_profile);
         dst_object->origin_translation   = src_object->origin_translation;
 
         for (int i : object.second)
@@ -1469,9 +1508,10 @@ void Selection::toggle_instance_printable_state()
             ModelInstance* instance = model_object->instances[instance_idx];
             const bool printable = !instance->printable;
 
-            wxString snapshot_text = model_object->instances.size() == 1 ? wxString::Format("%s %s",
-                                     printable ? _(L("Set Printable")) : _(L("Set Unprintable")), model_object->name) :
-                                     printable ? _(L("Set Printable Instance")) : _(L("Set Unprintable Instance"));
+            wxString snapshot_text = model_object->instances.size() == 1 ? from_u8((boost::format("%1% %2%")
+                                         % (printable ? _utf8(L("Set Printable")) : _utf8(L("Set Unprintable")))
+                                         % model_object->name).str()) :
+                                     (printable ? _(L("Set Printable Instance")) : _(L("Set Unprintable Instance")));
             wxGetApp().plater()->take_snapshot(snapshot_text);
 
             instance->printable = printable;
@@ -1554,20 +1594,21 @@ void Selection::update_type()
         }
         else
         {
+            unsigned int sla_volumes_count = 0;
+            // Note: sla_volumes_count is a count of the selected sla_volumes per object instead of per instance, like a model_volumes_count is
+            for (unsigned int i : m_list) {
+                if ((*m_volumes)[i]->volume_idx() < 0)
+                    ++sla_volumes_count;
+            }
+
             if (m_cache.content.size() == 1) // single object
             {
                 const ModelObject* model_object = m_model->objects[m_cache.content.begin()->first];
                 unsigned int model_volumes_count = (unsigned int)model_object->volumes.size();
-                unsigned int sla_volumes_count = 0;
-                for (unsigned int i : m_list)
-                {
-                    if ((*m_volumes)[i]->volume_idx() < 0)
-                        ++sla_volumes_count;
-                }
-                unsigned int volumes_count = model_volumes_count + sla_volumes_count;
+
                 unsigned int instances_count = (unsigned int)model_object->instances.size();
                 unsigned int selected_instances_count = (unsigned int)m_cache.content.begin()->second.size();
-                if (volumes_count * instances_count == (unsigned int)m_list.size())
+                if (model_volumes_count * instances_count + sla_volumes_count == (unsigned int)m_list.size())
                 {
                     m_type = SingleFullObject;
                     // ensures the correct mode is selected
@@ -1575,7 +1616,7 @@ void Selection::update_type()
                 }
                 else if (selected_instances_count == 1)
                 {
-                    if (volumes_count == (unsigned int)m_list.size())
+                    if (model_volumes_count + sla_volumes_count == (unsigned int)m_list.size())
                     {
                         m_type = SingleFullInstance;
                         // ensures the correct mode is selected
@@ -1598,7 +1639,7 @@ void Selection::update_type()
                         requires_disable = true;
                     }
                 }
-                else if ((selected_instances_count > 1) && (selected_instances_count * volumes_count == (unsigned int)m_list.size()))
+                else if ((selected_instances_count > 1) && (selected_instances_count * model_volumes_count + sla_volumes_count == (unsigned int)m_list.size()))
                 {
                     m_type = MultipleFullInstance;
                     // ensures the correct mode is selected
@@ -1615,7 +1656,7 @@ void Selection::update_type()
                     unsigned int instances_count = (unsigned int)model_object->instances.size();
                     sels_cntr += volumes_count * instances_count;
                 }
-                if (sels_cntr == (unsigned int)m_list.size())
+                if (sels_cntr + sla_volumes_count == (unsigned int)m_list.size())
                 {
                     m_type = MultipleFullObject;
                     // ensures the correct mode is selected
@@ -1904,67 +1945,90 @@ void Selection::render_bounding_box(const BoundingBoxf3& box, float* color) cons
 
 void Selection::render_sidebar_position_hints(const std::string& sidebar_field) const
 {
-    if (boost::ends_with(sidebar_field, "x"))
-    {
+    auto set_color = [](Axis axis) {
+        GLShaderProgram* shader = wxGetApp().get_current_shader();
+        if (shader != nullptr)
+            shader->set_uniform("uniform_color", AXES_COLOR[axis], 4);
+    };
+
+    if (boost::ends_with(sidebar_field, "x")) {
+        set_color(X);
         glsafe(::glRotated(-90.0, 0.0, 0.0, 1.0));
-        render_sidebar_position_hint(X);
-    }
-    else if (boost::ends_with(sidebar_field, "y"))
-        render_sidebar_position_hint(Y);
-    else if (boost::ends_with(sidebar_field, "z"))
-    {
+        m_arrow.render();
+    } else if (boost::ends_with(sidebar_field, "y")) {
+        set_color(Y);
+        m_arrow.render();
+    } else if (boost::ends_with(sidebar_field, "z")) {
+        set_color(Z);
         glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
-        render_sidebar_position_hint(Z);
+        m_arrow.render();
     }
 }
 
 void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) const
 {
-    if (boost::ends_with(sidebar_field, "x"))
-    {
+    auto set_color = [](Axis axis) {
+        GLShaderProgram* shader = wxGetApp().get_current_shader();
+        if (shader != nullptr)
+            shader->set_uniform("uniform_color", AXES_COLOR[axis], 4);
+    };
+
+    auto render_sidebar_rotation_hint = [this]() {
+        m_curved_arrow.render();
+        glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
+        m_curved_arrow.render();
+    };
+
+    if (boost::ends_with(sidebar_field, "x")) {
+        set_color(X);
         glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
-        render_sidebar_rotation_hint(X);
-    }
-    else if (boost::ends_with(sidebar_field, "y"))
-    {
+        render_sidebar_rotation_hint();
+    } else if (boost::ends_with(sidebar_field, "y")) {
+        set_color(Y);
         glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
-        render_sidebar_rotation_hint(Y);
+        render_sidebar_rotation_hint();
+    } else if (boost::ends_with(sidebar_field, "z")) {
+        set_color(Z);
+        render_sidebar_rotation_hint();
     }
-    else if (boost::ends_with(sidebar_field, "z"))
-        render_sidebar_rotation_hint(Z);
 }
 
 void Selection::render_sidebar_scale_hints(const std::string& sidebar_field) const
 {
     bool uniform_scale = requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling();
 
-    if (boost::ends_with(sidebar_field, "x") || uniform_scale)
-    {
+    auto render_sidebar_scale_hint = [this, uniform_scale](Axis axis) {
+        GLShaderProgram* shader = wxGetApp().get_current_shader();
+        if (shader != nullptr)
+            shader->set_uniform("uniform_color", uniform_scale ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis], 4);
+
+        glsafe(::glTranslated(0.0, 5.0, 0.0));
+        m_arrow.render();
+
+        glsafe(::glTranslated(0.0, -10.0, 0.0));
+        glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
+        m_arrow.render();
+    };
+
+    if (boost::ends_with(sidebar_field, "x") || uniform_scale) {
         glsafe(::glPushMatrix());
         glsafe(::glRotated(-90.0, 0.0, 0.0, 1.0));
         render_sidebar_scale_hint(X);
         glsafe(::glPopMatrix());
     }
 
-    if (boost::ends_with(sidebar_field, "y") || uniform_scale)
-    {
+    if (boost::ends_with(sidebar_field, "y") || uniform_scale) {
         glsafe(::glPushMatrix());
         render_sidebar_scale_hint(Y);
         glsafe(::glPopMatrix());
     }
 
-    if (boost::ends_with(sidebar_field, "z") || uniform_scale)
-    {
+    if (boost::ends_with(sidebar_field, "z") || uniform_scale) {
         glsafe(::glPushMatrix());
         glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
         render_sidebar_scale_hint(Z);
         glsafe(::glPopMatrix());
     }
-}
-
-void Selection::render_sidebar_size_hints(const std::string& sidebar_field) const
-{
-    render_sidebar_scale_hints(sidebar_field);
 }
 
 void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) const
@@ -2004,7 +2068,7 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
     const float max_y = box.max(1) + Margin;
 
     // view dependend order of rendering to keep correct transparency
-    bool camera_on_top = wxGetApp().plater()->get_camera().get_theta() <= 90.0f;
+    bool camera_on_top = wxGetApp().plater()->get_camera().is_looking_downward();
     float z1 = camera_on_top ? min_z : max_z;
     float z2 = camera_on_top ? max_z : min_z;
 
@@ -2037,37 +2101,6 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
 
     glsafe(::glEnable(GL_CULL_FACE));
     glsafe(::glDisable(GL_BLEND));
-}
-
-void Selection::render_sidebar_position_hint(Axis axis) const
-{
-    m_arrow.set_color(AXES_COLOR[axis], 3);
-    m_arrow.render();
-}
-
-void Selection::render_sidebar_rotation_hint(Axis axis) const
-{
-    m_curved_arrow.set_color(AXES_COLOR[axis], 3);
-    m_curved_arrow.render();
-
-    glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
-    m_curved_arrow.render();
-}
-
-void Selection::render_sidebar_scale_hint(Axis axis) const
-{
-    m_arrow.set_color(((requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling()) ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis]), 3);
-
-    glsafe(::glTranslated(0.0, 5.0, 0.0));
-    m_arrow.render();
-
-    glsafe(::glTranslated(0.0, -10.0, 0.0));
-    glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
-    m_arrow.render();
-}
-
-void Selection::render_sidebar_size_hint(Axis axis, double length) const
-{
 }
 
 #ifndef NDEBUG

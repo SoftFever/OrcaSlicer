@@ -1,11 +1,11 @@
 #include "../libslic3r.h"
+#include "../Exception.hpp"
 #include "../Model.hpp"
 #include "../Utils.hpp"
 #include "../GCode.hpp"
 #include "../Geometry.hpp"
-#if ENABLE_THUMBNAIL_GENERATOR
 #include "../GCode/ThumbnailData.hpp"
-#endif // ENABLE_THUMBNAIL_GENERATOR
+#include "../Time.hpp"
 
 #include "../I18N.hpp"
 
@@ -34,8 +34,12 @@ namespace pt = boost::property_tree;
 // VERSION NUMBERS
 // 0 : .3mf, files saved by older slic3r or other applications. No version definition in them.
 // 1 : Introduction of 3mf versioning. No other change in data saved into 3mf files.
-// 2 : Meshes saved in their local system; Volumes' matrices and source data added to Metadata/Slic3r_PE_model.config file.
-const unsigned int VERSION_3MF = 2;
+// 2 : Volumes' matrices and source data added to Metadata/Slic3r_PE_model.config file, meshes transformed back to their coordinate system on loading.
+// WARNING !! -> the version number has been rolled back to 1
+//               the next change should use 3
+const unsigned int VERSION_3MF = 1;
+// Allow loading version 2 file as well.
+const unsigned int VERSION_3MF_COMPATIBLE = 2;
 const char* SLIC3RPE_3MF_VERSION = "slic3rpe:Version3mf"; // definition of the metadata name saved into .model file
 
 const std::string MODEL_FOLDER = "3D/";
@@ -43,14 +47,14 @@ const std::string MODEL_EXTENSION = ".model";
 const std::string MODEL_FILE = "3D/3dmodel.model"; // << this is the only format of the string which works with CURA
 const std::string CONTENT_TYPES_FILE = "[Content_Types].xml";
 const std::string RELATIONSHIPS_FILE = "_rels/.rels";
-#if ENABLE_THUMBNAIL_GENERATOR
 const std::string THUMBNAIL_FILE = "Metadata/thumbnail.png";
-#endif // ENABLE_THUMBNAIL_GENERATOR
 const std::string PRINT_CONFIG_FILE = "Metadata/Slic3r_PE.config";
 const std::string MODEL_CONFIG_FILE = "Metadata/Slic3r_PE_model.config";
 const std::string LAYER_HEIGHTS_PROFILE_FILE = "Metadata/Slic3r_PE_layer_heights_profile.txt";
 const std::string LAYER_CONFIG_RANGES_FILE = "Metadata/Prusa_Slicer_layer_config_ranges.xml";
 const std::string SLA_SUPPORT_POINTS_FILE = "Metadata/Slic3r_PE_sla_support_points.txt";
+const std::string SLA_DRAIN_HOLES_FILE = "Metadata/Slic3r_PE_sla_drain_holes.txt";
+const std::string CUSTOM_GCODE_PER_PRINT_Z_FILE = "Metadata/Prusa_Slicer_custom_gcode_per_print_z.xml";
 
 const char* MODEL_TAG = "model";
 const char* RESOURCES_TAG = "resources";
@@ -82,6 +86,9 @@ const char* V3_ATTR = "v3";
 const char* OBJECTID_ATTR = "objectid";
 const char* TRANSFORM_ATTR = "transform";
 const char* PRINTABLE_ATTR = "printable";
+const char* INSTANCESCOUNT_ATTR = "instances_count";
+const char* CUSTOM_SUPPORTS_ATTR = "slic3rpe:custom_supports";
+const char* CUSTOM_SEAM_ATTR = "slic3rpe:custom_seam";
 
 const char* KEY_ATTR = "key";
 const char* VALUE_ATTR = "value";
@@ -117,11 +124,11 @@ const char* INVALID_OBJECT_TYPES[] =
     "other"
 };
 
-class version_error : public std::runtime_error
+class version_error : public Slic3r::FileIOError
 {
 public:
-    version_error(const std::string& what_arg) : std::runtime_error(what_arg) {}
-    version_error(const char* what_arg) : std::runtime_error(what_arg) {}
+    version_error(const std::string& what_arg) : Slic3r::FileIOError(what_arg) {}
+    version_error(const char* what_arg) : Slic3r::FileIOError(what_arg) {}
 };
 
 const char* get_attribute_value_charptr(const char** attributes, unsigned int attributes_size, const char* attribute_key)
@@ -279,6 +286,8 @@ namespace Slic3r {
         {
             std::vector<float> vertices;
             std::vector<unsigned int> triangles;
+            std::vector<std::string> custom_supports;
+            std::vector<std::string> custom_seam;
 
             bool empty()
             {
@@ -289,6 +298,8 @@ namespace Slic3r {
             {
                 vertices.clear();
                 triangles.clear();
+                custom_supports.clear();
+                custom_seam.clear();
             }
         };
 
@@ -379,6 +390,7 @@ namespace Slic3r {
         typedef std::map<int, std::vector<coordf_t>> IdToLayerHeightsProfileMap;
         typedef std::map<int, t_layer_config_ranges> IdToLayerConfigRangesMap;
         typedef std::map<int, std::vector<sla::SupportPoint>> IdToSlaSupportPointsMap;
+        typedef std::map<int, std::vector<sla::DrainHole>> IdToSlaDrainHolesMap;
 
         // Version of the 3mf file
         unsigned int m_version;
@@ -397,6 +409,7 @@ namespace Slic3r {
         IdToLayerHeightsProfileMap m_layer_heights_profiles;
         IdToLayerConfigRangesMap m_layer_config_ranges;
         IdToSlaSupportPointsMap m_sla_support_points;
+        IdToSlaDrainHolesMap    m_sla_drain_holes;
         std::string m_curr_metadata_name;
         std::string m_curr_characters;
         std::string m_name;
@@ -416,6 +429,9 @@ namespace Slic3r {
         void _extract_layer_heights_profile_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         void _extract_layer_config_ranges_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         void _extract_sla_support_points_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
+        void _extract_sla_drain_holes_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
+
+        void _extract_custom_gcode_per_print_z_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
 
         void _extract_print_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, DynamicPrintConfig& config, const std::string& archive_filename);
         bool _extract_model_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model);
@@ -592,7 +608,7 @@ namespace Slic3r {
                     {
                         // ensure the zip archive is closed and rethrow the exception
                         close_zip_reader(&archive);
-                        throw std::runtime_error(e.what());
+                        throw Slic3r::FileIOError(e.what());
                     }
                 }
             }
@@ -621,10 +637,20 @@ namespace Slic3r {
                     // extract sla support points file
                     _extract_sla_support_points_from_archive(archive, stat);
                 }
+                else if (boost::algorithm::iequals(name, SLA_DRAIN_HOLES_FILE))
+                {
+                    // extract sla support points file
+                    _extract_sla_drain_holes_from_archive(archive, stat);
+                }
                 else if (boost::algorithm::iequals(name, PRINT_CONFIG_FILE))
                 {
                     // extract slic3r print config file
                     _extract_print_config_from_archive(archive, stat, config, filename);
+                }
+                if (boost::algorithm::iequals(name, CUSTOM_GCODE_PER_PRINT_Z_FILE))
+                {
+                    // extract slic3r layer config ranges file
+                    _extract_custom_gcode_per_print_z_from_archive(archive, stat);
                 }
                 else if (boost::algorithm::iequals(name, MODEL_CONFIG_FILE))
                 {
@@ -657,18 +683,23 @@ namespace Slic3r {
             // m_layer_heights_profiles are indexed by a 1 based model object index.
             IdToLayerHeightsProfileMap::iterator obj_layer_heights_profile = m_layer_heights_profiles.find(object.second + 1);
             if (obj_layer_heights_profile != m_layer_heights_profiles.end())
-                model_object->layer_height_profile = obj_layer_heights_profile->second;
+                model_object->layer_height_profile.set(std::move(obj_layer_heights_profile->second));
 
             // m_layer_config_ranges are indexed by a 1 based model object index.
             IdToLayerConfigRangesMap::iterator obj_layer_config_ranges = m_layer_config_ranges.find(object.second + 1);
             if (obj_layer_config_ranges != m_layer_config_ranges.end())
-                model_object->layer_config_ranges = obj_layer_config_ranges->second;
+                model_object->layer_config_ranges = std::move(obj_layer_config_ranges->second);
 
             // m_sla_support_points are indexed by a 1 based model object index.
             IdToSlaSupportPointsMap::iterator obj_sla_support_points = m_sla_support_points.find(object.second + 1);
             if (obj_sla_support_points != m_sla_support_points.end() && !obj_sla_support_points->second.empty()) {
-                model_object->sla_support_points = obj_sla_support_points->second;
+                model_object->sla_support_points = std::move(obj_sla_support_points->second);
                 model_object->sla_points_status = sla::PointsStatus::UserModified;
+            }
+            
+            IdToSlaDrainHolesMap::iterator obj_drain_holes = m_sla_drain_holes.find(object.second + 1);
+            if (obj_drain_holes != m_sla_drain_holes.end() && !obj_drain_holes->second.empty()) {
+                model_object->sla_drain_holes = std::move(obj_drain_holes->second);
             }
 
             IdToMetadataMap::iterator obj_metadata = m_objects_metadata.find(object.first);
@@ -703,8 +734,8 @@ namespace Slic3r {
                 return false;
         }
 
-        // fixes the min z of the model if negative
-        model.adjust_min_z();
+//        // fixes the min z of the model if negative
+//        model.adjust_min_z();
 
         return true;
     }
@@ -750,7 +781,7 @@ namespace Slic3r {
                 {
                     char error_buf[1024];
                     ::sprintf(error_buf, "Error (%s) while parsing '%s' at line %d", XML_ErrorString(XML_GetErrorCode(data->parser)), data->stat.m_filename, (int)XML_GetCurrentLineNumber(data->parser));
-                    throw std::runtime_error(error_buf);
+                    throw Slic3r::FileIOError(error_buf);
                 }
 
                 return n;
@@ -759,7 +790,7 @@ namespace Slic3r {
         catch (const version_error& e)
         {
             // rethrow the exception
-            throw std::runtime_error(e.what());
+            throw Slic3r::FileIOError(e.what());
         }
         catch (std::exception& e)
         {
@@ -903,7 +934,7 @@ namespace Slic3r {
                     double max_z = range_tree.get<double>("<xmlattr>.max_z");
 
                     // get Z range information
-                    DynamicPrintConfig& config = config_ranges[{ min_z, max_z }];
+                    DynamicPrintConfig config;
 
                     for (const auto& option : range_tree)
                     {
@@ -914,10 +945,12 @@ namespace Slic3r {
 
                         config.set_deserialize(opt_key, value);
                     }
+
+                    config_ranges[{ min_z, max_z }].assign_config(std::move(config));
                 }
 
                 if (!config_ranges.empty())
-                    m_layer_config_ranges.insert(IdToLayerConfigRangesMap::value_type(obj_idx, config_ranges));
+                    m_layer_config_ranges.insert(IdToLayerConfigRangesMap::value_type(obj_idx, std::move(config_ranges)));
             }
         }
     }
@@ -942,8 +975,9 @@ namespace Slic3r {
 
             // Info on format versioning - see 3mf.hpp
             int version = 0;
-            if (!objects.empty() && objects[0].find("support_points_format_version=") != std::string::npos) {
-                objects[0].erase(objects[0].begin(), objects[0].begin() + 30); // removes the string
+            std::string key("support_points_format_version=");
+            if (!objects.empty() && objects[0].find(key) != std::string::npos) {
+                objects[0].erase(objects[0].begin(), objects[0].begin() + long(key.size())); // removes the string
                 version = std::stoi(objects[0]);
                 objects.erase(objects.begin()); // pop the header
             }
@@ -1009,6 +1043,99 @@ namespace Slic3r {
             }
         }
     }
+    
+    void _3MF_Importer::_extract_sla_drain_holes_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)
+    {
+        if (stat.m_uncomp_size > 0)
+        {
+            std::string buffer(size_t(stat.m_uncomp_size), 0);
+            mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, (void*)buffer.data(), (size_t)stat.m_uncomp_size, 0);
+            if (res == 0)
+            {
+                add_error("Error while reading sla support points data to buffer");
+                return;
+            }
+            
+            if (buffer.back() == '\n')
+                buffer.pop_back();
+            
+            std::vector<std::string> objects;
+            boost::split(objects, buffer, boost::is_any_of("\n"), boost::token_compress_off);
+            
+            // Info on format versioning - see 3mf.hpp
+            int version = 0;
+            std::string key("drain_holes_format_version=");
+            if (!objects.empty() && objects[0].find(key) != std::string::npos) {
+                objects[0].erase(objects[0].begin(), objects[0].begin() + long(key.size())); // removes the string
+                version = std::stoi(objects[0]);
+                objects.erase(objects.begin()); // pop the header
+            }
+            
+            for (const std::string& object : objects)
+            {
+                std::vector<std::string> object_data;
+                boost::split(object_data, object, boost::is_any_of("|"), boost::token_compress_off);
+                
+                if (object_data.size() != 2)
+                {
+                    add_error("Error while reading object data");
+                    continue;
+                }
+                
+                std::vector<std::string> object_data_id;
+                boost::split(object_data_id, object_data[0], boost::is_any_of("="), boost::token_compress_off);
+                if (object_data_id.size() != 2)
+                {
+                    add_error("Error while reading object id");
+                    continue;
+                }
+                
+                int object_id = std::atoi(object_data_id[1].c_str());
+                if (object_id == 0)
+                {
+                    add_error("Found invalid object id");
+                    continue;
+                }
+                
+                IdToSlaDrainHolesMap::iterator object_item = m_sla_drain_holes.find(object_id);
+                if (object_item != m_sla_drain_holes.end())
+                {
+                    add_error("Found duplicated SLA drain holes");
+                    continue;
+                }
+                
+                std::vector<std::string> object_data_points;
+                boost::split(object_data_points, object_data[1], boost::is_any_of(" "), boost::token_compress_off);
+                
+                sla::DrainHoles sla_drain_holes;
+
+                if (version == 1) {
+                    for (unsigned int i=0; i<object_data_points.size(); i+=8)
+                        sla_drain_holes.emplace_back(Vec3f{float(std::atof(object_data_points[i+0].c_str())),
+                                                      float(std::atof(object_data_points[i+1].c_str())),
+                                                      float(std::atof(object_data_points[i+2].c_str()))},
+                                                     Vec3f{float(std::atof(object_data_points[i+3].c_str())),
+                                                      float(std::atof(object_data_points[i+4].c_str())),
+                                                      float(std::atof(object_data_points[i+5].c_str()))},
+                                                      float(std::atof(object_data_points[i+6].c_str())),
+                                                      float(std::atof(object_data_points[i+7].c_str())));
+                }
+
+                // The holes are saved elevated above the mesh and deeper (bad idea indeed).
+                // This is retained for compatibility.
+                // Place the hole to the mesh and make it shallower to compensate.
+                // The offset is 1 mm above the mesh.
+                for (sla::DrainHole& hole : sla_drain_holes) {
+                    hole.pos += hole.normal.normalized();
+                    hole.height -= 1.f;
+                }
+                
+                if (!sla_drain_holes.empty())
+                    m_sla_drain_holes.insert(IdToSlaDrainHolesMap::value_type(object_id, sla_drain_holes));
+            }
+        }
+    }
+    
 
 
     bool _3MF_Importer::_extract_model_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model)
@@ -1054,6 +1181,69 @@ namespace Slic3r {
         }
 
         return true;
+    }
+
+    void _3MF_Importer::_extract_custom_gcode_per_print_z_from_archive(::mz_zip_archive &archive, const mz_zip_archive_file_stat &stat)
+    {
+        if (stat.m_uncomp_size > 0)
+        {
+            std::string buffer((size_t)stat.m_uncomp_size, 0);
+            mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, (void*)buffer.data(), (size_t)stat.m_uncomp_size, 0);
+            if (res == 0) {
+                add_error("Error while reading custom Gcodes per height data to buffer");
+                return;
+            }
+
+            std::istringstream iss(buffer); // wrap returned xml to istringstream
+            pt::ptree main_tree;
+            pt::read_xml(iss, main_tree);
+
+            if (main_tree.front().first != "custom_gcodes_per_print_z")
+                return;
+            pt::ptree code_tree = main_tree.front().second;
+
+            m_model->custom_gcode_per_print_z.gcodes.clear();
+
+            for (const auto& code : code_tree)
+            {
+                if (code.first == "mode")
+                {
+                    pt::ptree tree = code.second;
+                    std::string mode = tree.get<std::string>("<xmlattr>.value");
+                    m_model->custom_gcode_per_print_z.mode = mode == CustomGCode::SingleExtruderMode ? CustomGCode::Mode::SingleExtruder :
+                                                             mode == CustomGCode::MultiAsSingleMode  ? CustomGCode::Mode::MultiAsSingle  :
+                                                             CustomGCode::Mode::MultiExtruder;
+                }
+                if (code.first != "code")
+                    continue;
+
+                pt::ptree tree = code.second;
+                double print_z          = tree.get<double>      ("<xmlattr>.print_z" );
+                int extruder            = tree.get<int>         ("<xmlattr>.extruder");
+                std::string color       = tree.get<std::string> ("<xmlattr>.color"   );
+
+                CustomGCode::Type   type;
+                std::string         extra;
+                if (tree.find("type") == tree.not_found())
+                {
+                    // It means that data was saved in old version (2.2.0 and older) of PrusaSlicer
+                    // read old data ... 
+                    std::string gcode       = tree.get<std::string> ("<xmlattr>.gcode");
+                    // ... and interpret them to the new data
+                    type  = gcode == "M600"           ? CustomGCode::ColorChange : 
+                            gcode == "M601"           ? CustomGCode::PausePrint  :   
+                            gcode == "tool_change"    ? CustomGCode::ToolChange  :   CustomGCode::Custom;
+                    extra = type == CustomGCode::PausePrint ? color :
+                            type == CustomGCode::Custom     ? gcode : "";
+                }
+                else
+                {
+                    type  = static_cast<CustomGCode::Type>(tree.get<int>("<xmlattr>.type"));
+                    extra = tree.get<std::string>("<xmlattr>.extra");
+                }
+                m_model->custom_gcode_per_print_z.gcodes.push_back(CustomGCode::Item{print_z, type, extruder, color, extra}) ;
+            }
+        }
     }
 
     void _3MF_Importer::_handle_start_model_xml_element(const char* name, const char** attributes)
@@ -1367,6 +1557,9 @@ namespace Slic3r {
         m_curr_object.geometry.triangles.push_back((unsigned int)get_attribute_value_int(attributes, num_attributes, V1_ATTR));
         m_curr_object.geometry.triangles.push_back((unsigned int)get_attribute_value_int(attributes, num_attributes, V2_ATTR));
         m_curr_object.geometry.triangles.push_back((unsigned int)get_attribute_value_int(attributes, num_attributes, V3_ATTR));
+
+        m_curr_object.geometry.custom_supports.push_back(get_attribute_value_string(attributes, num_attributes, CUSTOM_SUPPORTS_ATTR));
+        m_curr_object.geometry.custom_seam.push_back(get_attribute_value_string(attributes, num_attributes, CUSTOM_SEAM_ATTR));
         return true;
     }
 
@@ -1467,10 +1660,12 @@ namespace Slic3r {
         {
             m_version = (unsigned int)atoi(m_curr_characters.c_str());
 
-            if (m_check_version && (m_version > VERSION_3MF))
+            if (m_check_version && (m_version > VERSION_3MF_COMPATIBLE))
             {
-                std::string msg = _(L("The selected 3mf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatible."));
-                throw version_error(msg.c_str());
+                // std::string msg = _(L("The selected 3mf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatible."));
+                // throw version_error(msg.c_str());
+                const std::string msg = (boost::format(_(L("The selected 3mf file has been saved with a newer version of %1% and is not compatible."))) % std::string(SLIC3R_APP_NAME)).str();
+                throw version_error(msg);
             }
         }
 
@@ -1563,6 +1758,9 @@ namespace Slic3r {
             return false;
         }
 
+        // Added because of github #3435, currently not used by PrusaSlicer
+        // int instances_count_id = get_attribute_value_int(attributes, num_attributes, INSTANCESCOUNT_ATTR);
+
         m_objects_metadata.insert(IdToMetadataMap::value_type(object_id, ObjectMetadata()));
         m_curr_config.object_id = object_id;
         return true;
@@ -1651,20 +1849,18 @@ namespace Slic3r {
                 return false;
             }
 
-            Slic3r::Geometry::Transformation transform;
-            if (m_version > 1)
+            Transform3d volume_matrix_to_object = Transform3d::Identity();
+            bool        has_transform 		    = false;
+            // extract the volume transformation from the volume's metadata, if present
+            for (const Metadata& metadata : volume_data.metadata)
             {
-                // extract the volume transformation from the volume's metadata, if present
-                for (const Metadata& metadata : volume_data.metadata)
+                if (metadata.key == MATRIX_KEY)
                 {
-                    if (metadata.key == MATRIX_KEY)
-                    {
-                        transform.set_from_string(metadata.value);
-                        break;
-                    }
+                    volume_matrix_to_object = Slic3r::Geometry::transform3d_from_string(metadata.value);
+                    has_transform 			= ! volume_matrix_to_object.isApprox(Transform3d::Identity(), 1e-10);
+                    break;
                 }
             }
-            Transform3d inv_matrix = transform.get_matrix().inverse();
 
             // splits volume out of imported geometry
 			TriangleMesh triangle_mesh;
@@ -1684,11 +1880,7 @@ namespace Slic3r {
                 for (unsigned int v = 0; v < 3; ++v)
                 {
                     unsigned int tri_id = geometry.triangles[src_start_id + ii + v] * 3;
-                    Vec3f vertex(geometry.vertices[tri_id + 0], geometry.vertices[tri_id + 1], geometry.vertices[tri_id + 2]);
-                    if (m_version > 1)
-                        // revert the vertices to the original mesh reference system
-                        vertex = (inv_matrix * vertex.cast<double>()).cast<float>();
-                    ::memcpy(facet.vertex[v].data(), (const void*)vertex.data(), 3 * sizeof(float));
+                    facet.vertex[v] = Vec3f(geometry.vertices[tri_id + 0], geometry.vertices[tri_id + 1], geometry.vertices[tri_id + 2]);
                 }
             }
 
@@ -1696,10 +1888,22 @@ namespace Slic3r {
 			triangle_mesh.repair();
 
 			ModelVolume* volume = object.add_volume(std::move(triangle_mesh));
-            // apply the volume matrix taken from the metadata, if present
-            if (m_version > 1)
-                volume->set_transformation(transform);
+            // stores the volume matrix taken from the metadata, if present
+            if (has_transform)
+                volume->source.transform = Slic3r::Geometry::Transformation(volume_matrix_to_object);
             volume->calculate_convex_hull();
+
+            // recreate custom supports and seam from previously loaded attribute
+            for (unsigned i=0; i<triangles_count; ++i) {
+                size_t index = src_start_id/3 + i;
+                assert(index < geometry.custom_supports.size());
+                assert(index < geometry.custom_seam.size());
+                if (! geometry.custom_supports[index].empty())
+                    volume->supported_facets.set_triangle_from_string(i, geometry.custom_supports[index]);
+                if (! geometry.custom_seam[index].empty())
+                    volume->seam_facets.set_triangle_from_string(i, geometry.custom_seam[index]);
+            }
+
 
             // apply the remaining volume's metadata
             for (const Metadata& metadata : volume_data.metadata)
@@ -1811,54 +2015,37 @@ namespace Slic3r {
         typedef std::vector<BuildItem> BuildItemsList;
         typedef std::map<int, ObjectData> IdToObjectDataMap;
 
+        bool m_fullpath_sources{ true };
+
     public:
-#if ENABLE_THUMBNAIL_GENERATOR
-        bool save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, const ThumbnailData* thumbnail_data = nullptr);
-#else
-        bool save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config);
-#endif // ENABLE_THUMBNAIL_GENERATOR
+        bool save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data = nullptr);
 
     private:
-#if ENABLE_THUMBNAIL_GENERATOR
         bool _save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, const ThumbnailData* thumbnail_data);
-#else
-        bool _save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config);
-#endif // ENABLE_THUMBNAIL_GENERATOR
         bool _add_content_types_file_to_archive(mz_zip_archive& archive);
-#if ENABLE_THUMBNAIL_GENERATOR
         bool _add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data);
-#endif // ENABLE_THUMBNAIL_GENERATOR
         bool _add_relationships_file_to_archive(mz_zip_archive& archive);
-        bool _add_model_file_to_archive(mz_zip_archive& archive, const Model& model, IdToObjectDataMap &objects_data);
+        bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data);
         bool _add_object_to_model_stream(std::stringstream& stream, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items, VolumeToOffsetsMap& volumes_offsets);
         bool _add_mesh_to_object_stream(std::stringstream& stream, ModelObject& object, VolumeToOffsetsMap& volumes_offsets);
         bool _add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items);
         bool _add_layer_height_profile_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_layer_config_ranges_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_sla_support_points_file_to_archive(mz_zip_archive& archive, Model& model);
+        bool _add_sla_drain_holes_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_print_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config);
         bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, const IdToObjectDataMap &objects_data);
+        bool _add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config);
     };
 
-#if ENABLE_THUMBNAIL_GENERATOR
-    bool _3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, const ThumbnailData* thumbnail_data)
+    bool _3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data)
     {
         clear_errors();
+        m_fullpath_sources = fullpath_sources;
         return _save_model_to_file(filename, model, config, thumbnail_data);
     }
-#else
-    bool _3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config)
-    {
-        clear_errors();
-        return _save_model_to_file(filename, model, config);
-    }
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
-#if ENABLE_THUMBNAIL_GENERATOR
     bool _3MF_Exporter::_save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, const ThumbnailData* thumbnail_data)
-#else
-    bool _3MF_Exporter::_save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config)
-#endif // ENABLE_THUMBNAIL_GENERATOR
     {
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
@@ -1877,7 +2064,6 @@ namespace Slic3r {
             return false;
         }
 
-#if ENABLE_THUMBNAIL_GENERATOR
         if ((thumbnail_data != nullptr) && thumbnail_data->is_valid())
         {
             // Adds the file Metadata/thumbnail.png.
@@ -1888,7 +2074,6 @@ namespace Slic3r {
                 return false;
             }
         }
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
         // Adds relationships file ("_rels/.rels"). 
         // The content of this file is the same for each PrusaSlicer 3mf.
@@ -1903,7 +2088,7 @@ namespace Slic3r {
         // Adds model file ("3D/3dmodel.model").
         // This is the one and only file that contains all the geometry (vertices and triangles) of all ModelVolumes.
         IdToObjectDataMap objects_data;
-        if (!_add_model_file_to_archive(archive, model, objects_data))
+        if (!_add_model_file_to_archive(filename, archive, model, objects_data))
         {
             close_zip_writer(&archive);
             boost::filesystem::remove(filename);
@@ -1934,6 +2119,23 @@ namespace Slic3r {
         // All  sla support points of all ModelObjects are stored here, indexed by 1 based index of the ModelObject in Model.
         // The index differes from the index of an object ID of an object instance of a 3MF file!
         if (!_add_sla_support_points_file_to_archive(archive, model))
+        {
+            close_zip_writer(&archive);
+            boost::filesystem::remove(filename);
+            return false;
+        }
+        
+        if (!_add_sla_drain_holes_file_to_archive(archive, model))
+        {
+            close_zip_writer(&archive);
+            boost::filesystem::remove(filename);
+            return false;
+        }
+        
+
+        // Adds custom gcode per height file ("Metadata/Prusa_Slicer_custom_gcode_per_print_z.xml").
+        // All custom gcode per height of whole Model are stored here
+        if (!_add_custom_gcode_per_print_z_file_to_archive(archive, model, config))
         {
             close_zip_writer(&archive);
             boost::filesystem::remove(filename);
@@ -1983,9 +2185,7 @@ namespace Slic3r {
         stream << "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">\n";
         stream << " <Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\" />\n";
         stream << " <Default Extension=\"model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\" />\n";
-#if ENABLE_THUMBNAIL_GENERATOR
         stream << " <Default Extension=\"png\" ContentType=\"image/png\" />\n";
-#endif // ENABLE_THUMBNAIL_GENERATOR
         stream << "</Types>";
 
         std::string out = stream.str();
@@ -1999,7 +2199,6 @@ namespace Slic3r {
         return true;
     }
 
-#if ENABLE_THUMBNAIL_GENERATOR
     bool _3MF_Exporter::_add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data)
     {
         bool res = false;
@@ -2017,7 +2216,6 @@ namespace Slic3r {
 
         return res;
     }
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
     bool _3MF_Exporter::_add_relationships_file_to_archive(mz_zip_archive& archive)
     {
@@ -2025,9 +2223,7 @@ namespace Slic3r {
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         stream << "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">\n";
         stream << " <Relationship Target=\"/" << MODEL_FILE << "\" Id=\"rel-1\" Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\" />\n";
-#if ENABLE_THUMBNAIL_GENERATOR
         stream << " <Relationship Target=\"/" << THUMBNAIL_FILE << "\" Id=\"rel-2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail\" />\n";
-#endif // ENABLE_THUMBNAIL_GENERATOR
         stream << "</Relationships>";
 
         std::string out = stream.str();
@@ -2041,7 +2237,7 @@ namespace Slic3r {
         return true;
     }
 
-	bool _3MF_Exporter::_add_model_file_to_archive(mz_zip_archive& archive, const Model& model, IdToObjectDataMap &objects_data)
+    bool _3MF_Exporter::_add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data)
     {
         std::stringstream stream;
         // https://en.cppreference.com/w/cpp/types/numeric_limits/max_digits10
@@ -2052,6 +2248,19 @@ namespace Slic3r {
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         stream << "<" << MODEL_TAG << " unit=\"millimeter\" xml:lang=\"en-US\" xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" xmlns:slic3rpe=\"http://schemas.slic3r.org/3mf/2017/06\">\n";
         stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_3MF_VERSION << "\">" << VERSION_3MF << "</" << METADATA_TAG << ">\n";
+        std::string name = boost::filesystem::path(filename).stem().string();
+        stream << " <" << METADATA_TAG << " name=\"Title\">" << name << "</" << METADATA_TAG << ">\n";
+        stream << " <" << METADATA_TAG << " name=\"Designer\">" << "</" << METADATA_TAG << ">\n";
+        stream << " <" << METADATA_TAG << " name=\"Description\">" << name << "</" << METADATA_TAG << ">\n";
+        stream << " <" << METADATA_TAG << " name=\"Copyright\">" << "</" << METADATA_TAG << ">\n";
+        stream << " <" << METADATA_TAG << " name=\"LicenseTerms\">" << "</" << METADATA_TAG << ">\n";
+        stream << " <" << METADATA_TAG << " name=\"Rating\">" << "</" << METADATA_TAG << ">\n";
+        std::string date = Slic3r::Utils::utc_timestamp(Slic3r::Utils::get_current_time_utc());
+        // keep only the date part of the string
+        date = date.substr(0, 10);
+        stream << " <" << METADATA_TAG << " name=\"CreationDate\">" << date << "</" << METADATA_TAG << ">\n";
+        stream << " <" << METADATA_TAG << " name=\"ModificationDate\">" << date << "</" << METADATA_TAG << ">\n";
+        stream << " <" << METADATA_TAG << " name=\"Application\">" << SLIC3R_APP_KEY << "-" << SLIC3R_VERSION << "</" << METADATA_TAG << ">\n";
         stream << " <" << RESOURCES_TAG << ">\n";
 
         // Instance transformations, indexed by the 3MF object ID (which is a linear serialization of all instances of all ModelObjects).
@@ -2154,9 +2363,9 @@ namespace Slic3r {
                 continue;
 
 			if (!volume->mesh().repaired)
-				throw std::runtime_error("store_3mf() requires repair()");
+				throw Slic3r::FileIOError("store_3mf() requires repair()");
 			if (!volume->mesh().has_shared_vertices())
-				throw std::runtime_error("store_3mf() requires shared vertices");
+				throw Slic3r::FileIOError("store_3mf() requires shared vertices");
 
             volumes_offsets.insert(VolumeToOffsetsMap::value_type(volume, Offsets(vertices_count))).first;
 
@@ -2200,13 +2409,22 @@ namespace Slic3r {
             triangles_count += (int)its.indices.size();
             volume_it->second.last_triangle_id = triangles_count - 1;
 
-            for (size_t i = 0; i < its.indices.size(); ++ i)
+            for (int i = 0; i < int(its.indices.size()); ++ i)
             {
                 stream << "     <" << TRIANGLE_TAG << " ";
                 for (int j = 0; j < 3; ++j)
                 {
                     stream << "v" << j + 1 << "=\"" << its.indices[i][j] + volume_it->second.first_vertex_id << "\" ";
                 }
+
+                std::string custom_supports_data_string = volume->supported_facets.get_triangle_as_string(i);
+                if (! custom_supports_data_string.empty())
+                    stream << CUSTOM_SUPPORTS_ATTR << "=\"" << custom_supports_data_string << "\" ";
+
+                std::string custom_seam_data_string = volume->seam_facets.get_triangle_as_string(i);
+                if (! custom_seam_data_string.empty())
+                    stream << CUSTOM_SEAM_ATTR << "=\"" << custom_seam_data_string << "\" ";
+
                 stream << "/>\n";
             }
         }
@@ -2256,7 +2474,7 @@ namespace Slic3r {
         for (const ModelObject* object : model.objects)
         {
             ++count;
-            const std::vector<double> &layer_height_profile = object->layer_height_profile;
+            const std::vector<double>& layer_height_profile = object->layer_height_profile.get();
             if ((layer_height_profile.size() >= 4) && ((layer_height_profile.size() % 2) == 0))
             {
                 sprintf(buffer, "object_id=%d|", count);
@@ -2311,7 +2529,7 @@ namespace Slic3r {
                     range_tree.put("<xmlattr>.max_z", range.first.second);
 
                     // store range configuration
-                    const DynamicPrintConfig& config = range.second;
+                    const ModelConfig& config = range.second;
                     for (const std::string& opt_key : config.keys())
                     {
                         pt::ptree& opt_tree = range_tree.add("option", config.opt_serialize(opt_key));
@@ -2324,7 +2542,7 @@ namespace Slic3r {
         if (!tree.empty())
         {
             std::ostringstream oss;
-            boost::property_tree::write_xml(oss, tree);
+            pt::write_xml(oss, tree);
             out = oss.str();
 
             // Post processing("beautification") of the output string for a better preview
@@ -2387,6 +2605,61 @@ namespace Slic3r {
         }
         return true;
     }
+    
+    bool _3MF_Exporter::_add_sla_drain_holes_file_to_archive(mz_zip_archive& archive, Model& model)
+    {
+        const char *const fmt = "object_id=%d|";
+        std::string out;
+        
+        unsigned int count = 0;
+        for (const ModelObject* object : model.objects)
+        {
+            ++count;
+            sla::DrainHoles drain_holes = object->sla_drain_holes;
+
+            // The holes were placed 1mm above the mesh in the first implementation.
+            // This was a bad idea and the reference point was changed in 2.3 so
+            // to be on the mesh exactly. The elevated position is still saved
+            // in 3MFs for compatibility reasons.
+            for (sla::DrainHole& hole : drain_holes) {
+                hole.pos -= hole.normal.normalized();
+                hole.height += 1.f;
+            }
+
+
+            if (!drain_holes.empty())
+            {
+                out += string_printf(fmt, count);
+                
+                // Store the layer height profile as a single space separated list.
+                for (size_t i = 0; i < drain_holes.size(); ++i)
+                    out += string_printf((i == 0 ? "%f %f %f %f %f %f %f %f" : " %f %f %f %f %f %f %f %f"),
+                                         drain_holes[i].pos(0),
+                                         drain_holes[i].pos(1),
+                                         drain_holes[i].pos(2),
+                                         drain_holes[i].normal(0),
+                                         drain_holes[i].normal(1),
+                                         drain_holes[i].normal(2),
+                                         drain_holes[i].radius,
+                                         drain_holes[i].height);
+                
+                out += "\n";
+            }
+        }
+        
+        if (!out.empty())
+        {
+            // Adds version header at the beginning:
+            out = std::string("drain_holes_format_version=") + std::to_string(drain_holes_format_version) + std::string("\n") + out;
+            
+            if (!mz_zip_writer_add_mem(&archive, SLA_DRAIN_HOLES_FILE.c_str(), static_cast<const void*>(out.data()), out.length(), mz_uint(MZ_DEFAULT_COMPRESSION)))
+            {
+                add_error("Unable to add sla support points file to archive");
+                return false;
+            }
+        }
+        return true;
+    }
 
     bool _3MF_Exporter::_add_print_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config)
     {
@@ -2413,6 +2686,9 @@ namespace Slic3r {
     bool _3MF_Exporter::_add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, const IdToObjectDataMap &objects_data)
     {
         std::stringstream stream;
+        // Store mesh transformation in full precision, as the volumes are stored transformed and they need to be transformed back
+        // when loaded as accurately as possible.
+		stream << std::setprecision(std::numeric_limits<double>::max_digits10);
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         stream << "<" << CONFIG_TAG << ">\n";
 
@@ -2421,7 +2697,8 @@ namespace Slic3r {
             const ModelObject* obj = obj_metadata.second.object;
             if (obj != nullptr)
             {
-                stream << " <" << OBJECT_TAG << " id=\"" << obj_metadata.first << "\">\n";
+                // Output of instances count added because of github #3435, currently not used by PrusaSlicer
+                stream << " <" << OBJECT_TAG << " " << ID_ATTR << "=\"" << obj_metadata.first << "\" " << INSTANCESCOUNT_ATTR << "=\"" << obj->instances.size() << "\">\n";
 
                 // stores object's name
                 if (!obj->name.empty())
@@ -2459,7 +2736,7 @@ namespace Slic3r {
 
                             // stores volume's local matrix
                             stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << MATRIX_KEY << "\" " << VALUE_ATTR << "=\"";
-                            const Transform3d& matrix = volume->get_matrix();
+                            Transform3d matrix = volume->get_matrix() * volume->source.transform.get_matrix();
                             for (int r = 0; r < 4; ++r)
                             {
                                 for (int c = 0; c < 4; ++c)
@@ -2474,7 +2751,8 @@ namespace Slic3r {
                             // stores volume's source data
                             if (!volume->source.input_file.empty())
                             {
-                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_FILE_KEY << "\" " << VALUE_ATTR << "=\"" << xml_escape(volume->source.input_file) << "\"/>\n";
+                                std::string input_file = xml_escape(m_fullpath_sources ? volume->source.input_file : boost::filesystem::path(volume->source.input_file).filename().string());
+                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_FILE_KEY << "\" " << VALUE_ATTR << "=\"" << input_file << "\"/>\n";
                                 stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_OBJECT_ID_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.object_idx << "\"/>\n";
                                 stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_VOLUME_ID_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.volume_idx << "\"/>\n";
                                 stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_OFFSET_X_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.mesh_offset(0) << "\"/>\n";
@@ -2510,7 +2788,64 @@ namespace Slic3r {
         return true;
     }
 
-    bool load_3mf(const char* path, DynamicPrintConfig* config, Model* model, bool check_version)
+bool _3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config)
+{
+    std::string out = "";
+
+    if (!model.custom_gcode_per_print_z.gcodes.empty())
+    {
+        pt::ptree tree;
+        pt::ptree& main_tree = tree.add("custom_gcodes_per_print_z", "");
+
+        for (const CustomGCode::Item& code : model.custom_gcode_per_print_z.gcodes)
+        {
+            pt::ptree& code_tree = main_tree.add("code", "");
+
+            // store data of custom_gcode_per_print_z
+            code_tree.put("<xmlattr>.print_z"   , code.print_z  );
+            code_tree.put("<xmlattr>.type"      , static_cast<int>(code.type));
+            code_tree.put("<xmlattr>.extruder"  , code.extruder );
+            code_tree.put("<xmlattr>.color"     , code.color    );
+            code_tree.put("<xmlattr>.extra"     , code.extra    );
+
+            // add gcode field data for the old version of the PrusaSlicer
+            std::string gcode = code.type == CustomGCode::ColorChange ? config->opt_string("color_change_gcode")    :
+                                code.type == CustomGCode::PausePrint  ? config->opt_string("pause_print_gcode")     :
+                                code.type == CustomGCode::Template    ? config->opt_string("template_custom_gcode") :
+                                code.type == CustomGCode::ToolChange  ? "tool_change"   : code.extra; 
+            code_tree.put("<xmlattr>.gcode"     , gcode   );
+        }
+
+        pt::ptree& mode_tree = main_tree.add("mode", "");
+        // store mode of a custom_gcode_per_print_z 
+        mode_tree.put("<xmlattr>.value", model.custom_gcode_per_print_z.mode == CustomGCode::Mode::SingleExtruder ? CustomGCode::SingleExtruderMode :
+                                         model.custom_gcode_per_print_z.mode == CustomGCode::Mode::MultiAsSingle ?  CustomGCode::MultiAsSingleMode :
+                                         CustomGCode::MultiExtruderMode);
+
+        if (!tree.empty())
+        {
+            std::ostringstream oss;
+            boost::property_tree::write_xml(oss, tree);
+            out = oss.str();
+
+            // Post processing("beautification") of the output string
+            boost::replace_all(out, "><", ">\n<");
+        }
+    } 
+
+    if (!out.empty())
+    {
+        if (!mz_zip_writer_add_mem(&archive, CUSTOM_GCODE_PER_PRINT_Z_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
+        {
+            add_error("Unable to add custom Gcodes per print_z file to archive");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool load_3mf(const char* path, DynamicPrintConfig* config, Model* model, bool check_version)
     {
         if ((path == nullptr) || (config == nullptr) || (model == nullptr))
             return false;
@@ -2521,22 +2856,13 @@ namespace Slic3r {
         return res;
     }
 
-#if ENABLE_THUMBNAIL_GENERATOR
-    bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config, const ThumbnailData* thumbnail_data)
-#else
-    bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config)
-#endif // ENABLE_THUMBNAIL_GENERATOR
+bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data)
     {
         if ((path == nullptr) || (model == nullptr))
             return false;
 
         _3MF_Exporter exporter;
-#if ENABLE_THUMBNAIL_GENERATOR
-        bool res = exporter.save_model_to_file(path, *model, config, thumbnail_data);
-#else
-        bool res = exporter.save_model_to_file(path, *model, config);
-#endif // ENABLE_THUMBNAIL_GENERATOR
-
+        bool res = exporter.save_model_to_file(path, *model, config, fullpath_sources, thumbnail_data);
         if (!res)
             exporter.log_errors();
 

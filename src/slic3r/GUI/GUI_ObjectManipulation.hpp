@@ -4,12 +4,14 @@
 #include <memory>
 
 #include "GUI_ObjectSettings.hpp"
-#include "GLCanvas3D.hpp"
+#include "libslic3r/Point.hpp"
+#include <float.h>
 
 class wxBitmapComboBox;
 class wxStaticText;
 class LockButton;
 class wxStaticBitmap;
+class wxCheckBox;
 
 namespace Slic3r {
 namespace GUI {
@@ -41,6 +43,11 @@ private:
 
 class ObjectManipulation : public OG_Settings
 {
+public:
+    static const double in_to_mm;
+    static const double mm_to_in;
+
+private:
     struct Cache
     {
         Vec3d position;
@@ -76,6 +83,10 @@ class ObjectManipulation : public OG_Settings
     wxStaticText*   m_scale_Label = nullptr;
     wxStaticText*   m_rotate_Label = nullptr;
 
+    bool            m_imperial_units { false };
+    wxStaticText*   m_position_unit  { nullptr };
+    wxStaticText*   m_size_unit      { nullptr };
+
     wxStaticText*   m_item_name = nullptr;
     wxStaticText*   m_empty_str = nullptr;
 
@@ -83,6 +94,8 @@ class ObjectManipulation : public OG_Settings
     ScalableButton* m_reset_scale_button = nullptr;
     ScalableButton* m_reset_rotation_button = nullptr;
     ScalableButton* m_drop_to_bed_button = nullptr;
+
+    wxCheckBox*     m_check_inch {nullptr};
 
     // Mirroring buttons and their current state
     enum MirrorButtonState {
@@ -138,6 +151,7 @@ public:
     void        Show(const bool show) override;
     bool        IsShown() override;
     void        UpdateAndShow(const bool show) override;
+    void update_ui_from_settings();
 
     void        set_dirty() { m_dirty = true; }
 	// Called from the App to update the UI if dirty.
@@ -160,6 +174,7 @@ public:
     void update_item_name(const wxString &item_name);
     void update_warning_icon_state(const wxString& tooltip);
     void msw_rescale();
+    void sys_color_changed();
     void on_change(const std::string& opt_key, int axis, double new_value);
     void set_focused_editor(ManipulationEditor* focused_editor) {
 #ifndef __APPLE__

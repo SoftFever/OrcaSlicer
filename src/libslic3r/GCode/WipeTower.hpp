@@ -17,9 +17,12 @@ class PrintConfig;
 enum GCodeFlavor : unsigned char;
 
 
+
 class WipeTower
 {
 public:
+    static const std::string never_skip_tag() { return "_GCODE_WIPE_TOWER_NEVER_SKIP_TAG"; }
+
     struct Extrusion
     {
 		Extrusion(const Vec2f &pos, float width, unsigned int tool) : pos(pos), width(width), tool(tool) {}
@@ -54,6 +57,13 @@ public:
         // Is this a priming extrusion? (If so, the wipe tower rotation & translation will not be applied later)
         bool                    priming;
 
+        // Pass a polyline so that normal G-code generator can do a wipe for us.
+        // The wipe cannot be done by the wipe tower because it has to pass back
+        // a loaded extruder, so it would have to either do a wipe with no retraction
+        // (leading to https://github.com/prusa3d/PrusaSlicer/issues/2834) or do
+        // an extra retraction-unretraction pair.
+        std::vector<Vec2f> wipe_path;
+
         // Initial tool
         int initial_tool;
 
@@ -74,6 +84,12 @@ public:
 		}
 	};
 
+    // Construct ToolChangeResult from current state of WipeTower and WipeTowerWriter.
+    // WipeTowerWriter is moved from !
+    ToolChangeResult construct_tcr(WipeTowerWriter& writer,
+                                   bool priming,
+                                   size_t old_tool) const;
+
 	// x			-- x coordinates of wipe tower in mm ( left bottom corner )
 	// y			-- y coordinates of wipe tower in mm ( left bottom corner )
 	// width		-- width of wipe tower in mm ( default 60 mm - leave as it is )
@@ -93,6 +109,8 @@ public:
 
     float get_depth() const { return m_wipe_tower_depth; }
     float get_brim_width() const { return m_wipe_tower_brim_width; }
+
+
 
 
 
@@ -149,7 +167,7 @@ public:
 
 	// Returns gcode for a toolchange and a final print head position.
 	// On the first layer, extrude a brim around the future wipe tower first.
-    ToolChangeResult tool_change(size_t new_tool, bool last_in_layer);
+    ToolChangeResult tool_change(size_t new_tool);
 
 	// Fill the unfilled space with a sparse infill.
 	// Call this method only if layer_finished() is false.
@@ -184,8 +202,6 @@ public:
     };
 
 private:
-	WipeTower();
-
 	enum wipe_shape // A fill-in direction
 	{
 		SHAPE_NORMAL = 1,
@@ -231,6 +247,7 @@ private:
         CircularBed
     } m_bed_shape;
     float m_bed_width; // width of the bed bounding box
+    Vec2f m_bed_bottom_left; // bottom-left corner coordinates (for rectangular beds)
 
 	float m_perimeter_width = 0.4f * Width_To_Nozzle_Ratio; // Width of an extrusion line, also a perimeter spacing for 100% infill.
 	float m_extrusion_flow = 0.038f; //0.029f;// Extrusion flow is derived from m_perimeter_width, layer height and filament diameter.

@@ -3,6 +3,8 @@
 
 #include "GLGizmoBase.hpp"
 
+#include "libslic3r/BoundingBox.hpp"
+
 
 namespace Slic3r {
 namespace GUI {
@@ -42,6 +44,8 @@ public:
 
     const Vec3d& get_offset() const { return m_offset; }
 
+    std::string get_tooltip() const override;
+
 protected:
     virtual bool on_init();
     virtual std::string on_get_name() const;
@@ -50,9 +54,6 @@ protected:
     virtual void on_update(const UpdateData& data);
     virtual void on_render() const;
     virtual void on_render_for_picking() const;
-#if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
-    virtual void on_render_input_window(float x, float y, float bottom_limit);
-#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 
 private:
     void render_grabbers_connection(unsigned int id_1, unsigned int id_2) const;

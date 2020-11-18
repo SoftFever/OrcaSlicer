@@ -22,6 +22,7 @@ public:
     const Point& operator[](Points::size_type idx) const { return this->points[idx]; }
 
     Polygon() {}
+    virtual ~Polygon() = default;
     explicit Polygon(const Points &points) : MultiPoint(points) {}
 	Polygon(std::initializer_list<Point> points) : MultiPoint(points) {}
     Polygon(const Polygon &other) : MultiPoint(other.points) {}
@@ -39,14 +40,15 @@ public:
     // last point == first point for polygons
     const Point& last_point() const override { return this->points.front(); }
 
-    virtual Lines lines() const;
+    Lines lines() const override;
     Polyline split_at_vertex(const Point &point) const;
     // Split a closed polygon into an open polyline, with the split point duplicated at both ends.
     Polyline split_at_index(int index) const;
     // Split a closed polygon into an open polyline, with the split point duplicated at both ends.
     Polyline split_at_first_point() const { return this->split_at_index(0); }
     Points   equally_spaced_points(double distance) const { return this->split_at_first_point().equally_spaced_points(distance); }
-
+    
+    static double area(const Points &pts);
     double area() const;
     bool is_counter_clockwise() const;
     bool is_clockwise() const;
@@ -59,12 +61,14 @@ public:
     bool contains(const Point &point) const;
     Polygons simplify(double tolerance) const;
     void simplify(double tolerance, Polygons &polygons) const;
+    void densify(float min_length, std::vector<float>* lengths = nullptr);
     void triangulate_convex(Polygons* polygons) const;
     Point centroid() const;
     Points concave_points(double angle = PI) const;
     Points convex_points(double angle = PI) const;
     // Projection of a point onto the polygon.
     Point point_projection(const Point &point) const;
+    std::vector<float> parameter_by_length() const;
 };
 
 inline bool operator==(const Polygon &lhs, const Polygon &rhs) { return lhs.points == rhs.points; }
@@ -82,6 +86,14 @@ inline double total_length(const Polygons &polylines) {
     for (Polygons::const_iterator it = polylines.begin(); it != polylines.end(); ++it)
         total += it->length();
     return total;
+}
+
+inline double area(const Polygons &polys)
+{
+    double s = 0.;
+    for (auto &p : polys) s += p.area();
+
+    return s;
 }
 
 // Remove sticks (tentacles with zero area) from the polygon.
@@ -151,9 +163,11 @@ inline Lines to_lines(const Polygon &poly)
 {
     Lines lines;
     lines.reserve(poly.points.size());
-    for (Points::const_iterator it = poly.points.begin(); it != poly.points.end()-1; ++it)
-        lines.push_back(Line(*it, *(it + 1)));
-    lines.push_back(Line(poly.points.back(), poly.points.front()));
+    if (poly.points.size() > 2) {
+        for (Points::const_iterator it = poly.points.begin(); it != poly.points.end()-1; ++it)
+            lines.push_back(Line(*it, *(it + 1)));
+        lines.push_back(Line(poly.points.back(), poly.points.front()));
+    }
     return lines;
 }
 

@@ -34,7 +34,10 @@ endif ()
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
 
 option(DEP_DEBUG "Build debug variants (only applicable on Windows)" ON)
-option(DEP_WX_STABLE "Build against wxWidgets stable 3.0 as opposed to default 3.1 (Linux only)" OFF)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    option(DEP_WX_GTK3 "Build wxWidgets against GTK3" OFF)
+endif()
 
 # On developer machines, it can be enabled to speed up compilation and suppress warnings coming from IGL. 
 # FIXME:
@@ -44,6 +47,49 @@ option(DEP_WX_STABLE "Build against wxWidgets stable 3.0 as opposed to default 3
 
 message(STATUS "PrusaSlicer deps DESTDIR: ${DESTDIR}")
 message(STATUS "PrusaSlicer deps debug build: ${DEP_DEBUG}")
+
+find_package(Git REQUIRED)
+
+get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+
+function(prusaslicer_add_cmake_project projectname)
+    cmake_parse_arguments(P_ARGS "" "INSTALL_DIR;BUILD_COMMAND;INSTALL_COMMAND" "CMAKE_ARGS" ${ARGN})
+
+    set(_configs_line -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE})
+    if (_is_multi OR MSVC)
+        set(_configs_line "")
+    endif ()
+
+    set(_gen "")
+    set(_build_j "-j${NPROC}")
+    if (MSVC)
+        set(_gen CMAKE_GENERATOR "${DEP_MSVC_GEN}" CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}")
+        set(_build_j "/m")
+    endif ()
+
+    ExternalProject_Add(
+        dep_${projectname}
+        EXCLUDE_FROM_ALL    ON
+        INSTALL_DIR         ${DESTDIR}/usr/local
+        ${_gen}
+        CMAKE_ARGS
+            -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}/usr/local
+            -DCMAKE_MODULE_PATH:STRING=${PROJECT_SOURCE_DIR}/../cmake/modules
+            -DCMAKE_PREFIX_PATH:STRING=${DESTDIR}/usr/local
+            -DCMAKE_DEBUG_POSTFIX:STRING=d
+            -DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}
+            -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
+            -DBUILD_SHARED_LIBS:BOOL=OFF
+            "${_configs_line}"
+            ${DEP_CMAKE_OPTS}
+            ${P_ARGS_CMAKE_ARGS}
+       ${P_ARGS_UNPARSED_ARGUMENTS}
+       BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release -- ${_build_j}
+       INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release
+    )
+
+endfunction(prusaslicer_add_cmake_project)
+
 
 if (MSVC)
     if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
@@ -83,39 +129,77 @@ else()
     include("deps-linux.cmake")
 endif()
 
+set(ZLIB_PKG "")
+if (NOT ZLIB_FOUND) 
+    include(ZLIB/ZLIB.cmake)
+    set(ZLIB_PKG dep_ZLIB)
+endif ()
+set(PNG_PKG "")
+if (NOT PNG_FOUND) 
+    include(PNG/PNG.cmake)
+    set(PNG_PKG dep_PNG)
+endif ()
+set(EXPAT_PKG "")
+if (NOT EXPAT_FOUND) 
+    include(EXPAT/EXPAT.cmake)
+    set(EXPAT_PKG dep_EXPAT)
+endif ()
+
+include(GLEW/GLEW.cmake)
+include(OpenCSG/OpenCSG.cmake)
+include(GMP/GMP.cmake)
+include(MPFR/MPFR.cmake)
+include(CGAL/CGAL.cmake)
+include(wxWidgets/wxWidgets.cmake)
+
+if (NOT "${ZLIB_PKG}" STREQUAL "")
+    add_dependencies(dep_blosc ${ZLIB_PKG})
+    add_dependencies(dep_openexr ${ZLIB_PKG})
+endif ()
+
+set(_dep_list
+    dep_boost
+    dep_tbb
+    dep_libcurl
+    dep_wxWidgets
+    dep_gtest
+    dep_cereal
+    dep_nlopt
+    dep_openvdb
+    dep_OpenCSG
+    dep_CGAL
+    ${PNG_PKG}
+    ${ZLIB_PKG}
+    ${EXPAT_PKG}
+    )
+
+if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
+    # Patch the boost::polygon library with a custom one.
+    ExternalProject_Add(dep_boost_polygon
+        EXCLUDE_FROM_ALL ON
+        GIT_REPOSITORY "https://github.com/prusa3d/polygon"
+        GIT_TAG prusaslicer_gmp
+        DEPENDS dep_boost
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_CURRENT_BINARY_DIR}/dep_boost_polygon-prefix/src/dep_boost_polygon/include/boost/polygon"
+            "${DESTDIR}/usr/local/include/boost/polygon"
+    )
+    # Only override boost::Polygon Voronoi implementation with Vojtech's GMP hacks on 64bit platforms.
+    list(APPEND _dep_list "dep_boost_polygon")
+endif ()
+
 if (MSVC)
-
-    add_custom_target(deps ALL
-    DEPENDS
-        dep_boost
-        dep_tbb
-        dep_libcurl
-        dep_wxwidgets
-        dep_gtest
-        dep_cereal
-        dep_nlopt
-        # dep_qhull # Experimental
-        dep_zlib    # on Windows we still need zlib
-        dep_openvdb
-    )
-
+    # Experimental
+    #list(APPEND _dep_list "dep_qhull")
 else()
-
-    add_custom_target(deps ALL
-    DEPENDS
-        dep_boost
-        dep_tbb
-        dep_libcurl
-        dep_wxwidgets
-        dep_gtest
-        dep_cereal
-        dep_nlopt
-        dep_qhull
-        dep_openvdb
-        # dep_libigl # Not working, static build has different Eigen
-    )
-
+    list(APPEND _dep_list "dep_qhull")
+    # Not working, static build has different Eigen
+    #list(APPEND _dep_list "dep_libigl")
 endif()
+
+add_custom_target(deps ALL DEPENDS ${_dep_list})
 
 # Note: I'm not using any of the LOG_xxx options in ExternalProject_Add() commands
 # because they seem to generate bogus build files (possibly a bug in ExternalProject).

@@ -1,5 +1,6 @@
 #include "BoundingBox.hpp"
 #include "ExPolygon.hpp"
+#include "Exception.hpp"
 #include "Geometry.hpp"
 #include "Polygon.hpp"
 #include "Line.hpp"
@@ -404,7 +405,7 @@ void ExPolygon::triangulate_pp(Polygons* polygons) const
         {
             TPPLPoly p;
             p.Init(int(ex->contour.points.size()));
-            //printf(PRINTF_ZU "\n0\n", ex->contour.points.size());
+            //printf("%zu\n0\n", ex->contour.points.size());
             for (const Point &point : ex->contour.points) {
                 size_t i = &point - &ex->contour.points.front();
                 p[i].x = point(0);
@@ -419,7 +420,7 @@ void ExPolygon::triangulate_pp(Polygons* polygons) const
         for (Polygons::const_iterator hole = ex->holes.begin(); hole != ex->holes.end(); ++hole) {
             TPPLPoly p;
             p.Init(hole->points.size());
-            //printf(PRINTF_ZU "\n1\n", hole->points.size());
+            //printf("%zu\n1\n", hole->points.size());
             for (const Point &point : hole->points) {
                 size_t i = &point - &hole->points.front();
                 p[i].x = point(0);
@@ -435,7 +436,7 @@ void ExPolygon::triangulate_pp(Polygons* polygons) const
     std::list<TPPLPoly> output;
     int res = TPPLPartition().Triangulate_MONO(&input, &output);
     if (res != 1)
-        throw std::runtime_error("Triangulation failed");
+        throw Slic3r::RuntimeError("Triangulation failed");
     
     // convert output polygons
     for (std::list<TPPLPoly>::iterator poly = output.begin(); poly != output.end(); ++poly) {
@@ -548,7 +549,7 @@ void ExPolygon::triangulate_pp(Points *triangles) const
     int res = TPPLPartition().Triangulate_MONO(&input, &output);
 // int TPPLPartition::Triangulate_EC(TPPLPolyList *inpolys, TPPLPolyList *triangles) {
     if (res != 1)
-        throw std::runtime_error("Triangulation failed");
+        throw Slic3r::RuntimeError("Triangulation failed");
     *triangles = polypartition_output_to_triangles(output);
 }
 
@@ -591,7 +592,7 @@ void ExPolygon::triangulate_p2t(Polygons* polygons) const
                 }
                 polygons->push_back(p);
             }
-        } catch (const std::runtime_error & /* err */) {
+        } catch (const Slic3r::RuntimeError & /* err */) {
             assert(false);
             // just ignore, don't triangulate
         }
@@ -655,6 +656,25 @@ extern std::vector<BoundingBox> get_extents_vector(const ExPolygons &polygons)
 bool remove_sticks(ExPolygon &poly)
 {
     return remove_sticks(poly.contour) || remove_sticks(poly.holes);
+}
+
+void keep_largest_contour_only(ExPolygons &polygons)
+{
+	if (polygons.size() > 1) {
+	    double     max_area = 0.;
+	    ExPolygon* max_area_polygon = nullptr;
+	    for (ExPolygon& p : polygons) {
+	        double a = p.contour.area();
+	        if (a > max_area) {
+	            max_area         = a;
+	            max_area_polygon = &p;
+	        }
+	    }
+	    assert(max_area_polygon != nullptr);
+	    ExPolygon p(std::move(*max_area_polygon));
+	    polygons.clear();
+	    polygons.emplace_back(std::move(p));
+	}
 }
 
 } // namespace Slic3r

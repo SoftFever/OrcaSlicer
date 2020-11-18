@@ -19,24 +19,22 @@ namespace Slic3r {
     enum {
         support_points_format_version = 1
     };
+    
+    enum {
+        drain_holes_format_version = 1
+    };
 
     class Model;
     class DynamicPrintConfig;
-#if ENABLE_THUMBNAIL_GENERATOR
     struct ThumbnailData;
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
     // Load the content of a 3mf file into the given model and preset bundle.
     extern bool load_3mf(const char* path, DynamicPrintConfig* config, Model* model, bool check_version);
 
     // Save the given model and the config data contained in the given Print into a 3mf file.
     // The model could be modified during the export process if meshes are not repaired or have no shared vertices
-#if ENABLE_THUMBNAIL_GENERATOR
-    extern bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config, const ThumbnailData* thumbnail_data = nullptr);
-#else
-    extern bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config);
-#endif // ENABLE_THUMBNAIL_GENERATOR
+    extern bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data = nullptr);
 
-}; // namespace Slic3r
+} // namespace Slic3r
 
 #endif /* slic3r_Format_3mf_hpp_ */

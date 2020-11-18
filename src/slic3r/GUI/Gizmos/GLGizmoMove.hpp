@@ -30,17 +30,17 @@ public:
 
     const Vec3d& get_displacement() const { return m_displacement; }
 
+    std::string get_tooltip() const override;
+
 protected:
     virtual bool on_init();
     virtual std::string on_get_name() const;
+    virtual bool on_is_activable() const;
     virtual void on_start_dragging();
     virtual void on_stop_dragging();
     virtual void on_update(const UpdateData& data);
     virtual void on_render() const;
     virtual void on_render_for_picking() const;
-#if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
-    virtual void on_render_input_window(float x, float y, float bottom_limit);
-#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 
 private:
     double calc_projection(const UpdateData& data) const;

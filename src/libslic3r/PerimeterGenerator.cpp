@@ -312,6 +312,10 @@ void PerimeterGenerator::process()
                         for (ExPolygon &ex : expp)
                             ex.medial_axis(ext_perimeter_width + ext_perimeter_spacing2, min_width, &thin_walls);
                     }
+                    if (print_config->spiral_vase && offsets.size() > 1) {
+                    	// Remove all but the largest area polygon.
+                    	keep_largest_contour_only(offsets);
+                    }
                 } else {
                     //FIXME Is this offset correct if the line width of the inner perimeters differs
                     // from the line width of the infill?

@@ -3,7 +3,7 @@
 
 #include <assert.h>
 
-template<typename T, typename IndexSetter, typename LessPredicate>
+template<typename T, typename IndexSetter, typename LessPredicate, const bool ResetIndexWhenRemoved = false>
 class MutablePriorityQueue
 {
 public:
@@ -42,26 +42,30 @@ private:
 	LessPredicate	m_less_predicate;
 };
 
-template<typename T, typename IndexSetter, typename LessPredicate>
-MutablePriorityQueue<T, IndexSetter, LessPredicate> make_mutable_priority_queue(IndexSetter &&index_setter, LessPredicate &&less_predicate)
+template<typename T, const bool ResetIndexWhenRemoved, typename IndexSetter, typename LessPredicate>
+MutablePriorityQueue<T, IndexSetter, LessPredicate, ResetIndexWhenRemoved> make_mutable_priority_queue(IndexSetter &&index_setter, LessPredicate &&less_predicate)
 {
-    return MutablePriorityQueue<T, IndexSetter, LessPredicate>(
+    return MutablePriorityQueue<T, IndexSetter, LessPredicate, ResetIndexWhenRemoved>(
     	std::forward<IndexSetter>(index_setter), std::forward<LessPredicate>(less_predicate));
 }
 
-template<class T, class LessPredicate, class IndexSetter>
-inline void MutablePriorityQueue<T, LessPredicate, IndexSetter>::clear()
+template<class T, class LessPredicate, class IndexSetter, const bool ResetIndexWhenRemoved>
+inline void MutablePriorityQueue<T, LessPredicate, IndexSetter, ResetIndexWhenRemoved>::clear()
 { 
-#ifndef NDEBUG
-	for (size_t idx = 0; idx < m_heap.size(); ++ idx)
-		// Mark as removed from the queue.
-		m_index_setter(m_heap[idx], std::numeric_limits<size_t>::max());
+#ifdef NDEBUG
+	// Only mark as removed from the queue in release mode, if configured so.
+	if (ResetIndexWhenRemoved)
 #endif /* NDEBUG */
+	{
+		for (size_t idx = 0; idx < m_heap.size(); ++ idx)
+			// Mark as removed from the queue.
+			m_index_setter(m_heap[idx], std::numeric_limits<size_t>::max());
+	}
 	m_heap.clear();
 }
 
-template<class T, class LessPredicate, class IndexSetter>
-inline void MutablePriorityQueue<T, LessPredicate, IndexSetter>::push(const T &item)
+template<class T, class LessPredicate, class IndexSetter, const bool ResetIndexWhenRemoved>
+inline void MutablePriorityQueue<T, LessPredicate, IndexSetter, ResetIndexWhenRemoved>::push(const T &item)
 {
 	size_t idx = m_heap.size();
 	m_heap.emplace_back(item);
@@ -69,8 +73,8 @@ inline void MutablePriorityQueue<T, LessPredicate, IndexSetter>::push(const T &i
 	update_heap_up(0, idx);
 }
 
-template<class T, class LessPredicate, class IndexSetter>
-inline void MutablePriorityQueue<T, LessPredicate, IndexSetter>::push(T &&item)
+template<class T, class LessPredicate, class IndexSetter, const bool ResetIndexWhenRemoved>
+inline void MutablePriorityQueue<T, LessPredicate, IndexSetter, ResetIndexWhenRemoved>::push(T &&item)
 {
 	size_t idx = m_heap.size();
 	m_heap.emplace_back(std::move(item));
@@ -78,14 +82,18 @@ inline void MutablePriorityQueue<T, LessPredicate, IndexSetter>::push(T &&item)
 	update_heap_up(0, idx);
 }
 
-template<class T, class LessPredicate, class IndexSetter>
-inline void MutablePriorityQueue<T, LessPredicate, IndexSetter>::pop()
+template<class T, class LessPredicate, class IndexSetter, const bool ResetIndexWhenRemoved>
+inline void MutablePriorityQueue<T, LessPredicate, IndexSetter, ResetIndexWhenRemoved>::pop()
 {
 	assert(! m_heap.empty());
-#ifndef NDEBUG
-	// Mark as removed from the queue.
-	m_index_setter(m_heap.front(), std::numeric_limits<size_t>::max());
+#ifdef NDEBUG
+	// Only mark as removed from the queue in release mode, if configured so.
+	if (ResetIndexWhenRemoved)
 #endif /* NDEBUG */
+	{
+		// Mark as removed from the queue.
+		m_index_setter(m_heap.front(), std::numeric_limits<size_t>::max());
+	}
 	if (m_heap.size() > 1) {
 		m_heap.front() = m_heap.back();
 		m_heap.pop_back();
@@ -95,14 +103,18 @@ inline void MutablePriorityQueue<T, LessPredicate, IndexSetter>::pop()
 		m_heap.clear();
 }
 
-template<class T, class LessPredicate, class IndexSetter>
-inline void MutablePriorityQueue<T, LessPredicate, IndexSetter>::remove(size_t idx)
+template<class T, class LessPredicate, class IndexSetter, const bool ResetIndexWhenRemoved>
+inline void MutablePriorityQueue<T, LessPredicate, IndexSetter, ResetIndexWhenRemoved>::remove(size_t idx)
 {
 	assert(idx < m_heap.size());
-#ifndef NDEBUG
-	// Mark as removed from the queue.
-	m_index_setter(m_heap[idx], std::numeric_limits<size_t>::max());
+#ifdef NDEBUG
+	// Only mark as removed from the queue in release mode, if configured so.
+	if (ResetIndexWhenRemoved)
 #endif /* NDEBUG */
+	{
+		// Mark as removed from the queue.
+		m_index_setter(m_heap[idx], std::numeric_limits<size_t>::max());
+	}
 	if (idx + 1 == m_heap.size()) {
 		m_heap.pop_back();
 		return;
@@ -114,8 +126,8 @@ inline void MutablePriorityQueue<T, LessPredicate, IndexSetter>::remove(size_t i
 	update_heap_up(0, idx);
 }
 
-template<class T, class LessPredicate, class IndexSetter>
-inline void MutablePriorityQueue<T, LessPredicate, IndexSetter>::update_heap_up(size_t top, size_t bottom)
+template<class T, class LessPredicate, class IndexSetter, const bool ResetIndexWhenRemoved>
+inline void MutablePriorityQueue<T, LessPredicate, IndexSetter, ResetIndexWhenRemoved>::update_heap_up(size_t top, size_t bottom)
 {
 	size_t childIdx = bottom;
 	T *child = &m_heap[childIdx];
@@ -138,8 +150,8 @@ inline void MutablePriorityQueue<T, LessPredicate, IndexSetter>::update_heap_up(
 	}
 }
 
-template<class T, class LessPredicate, class IndexSetter>
-inline void MutablePriorityQueue<T, LessPredicate, IndexSetter>::update_heap_down(size_t top, size_t bottom)
+template<class T, class LessPredicate, class IndexSetter, const bool ResetIndexWhenRemoved>
+inline void MutablePriorityQueue<T, LessPredicate, IndexSetter, ResetIndexWhenRemoved>::update_heap_down(size_t top, size_t bottom)
 {
 	size_t parentIdx = top;
 	T *parent = &m_heap[parentIdx];

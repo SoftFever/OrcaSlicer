@@ -30,8 +30,6 @@ FlashAir::FlashAir(DynamicPrintConfig *config) :
 	host(config->opt_string("print_host"))
 {}
 
-FlashAir::~FlashAir() {}
-
 const char* FlashAir::get_name() const { return "FlashAir"; }
 
 bool FlashAir::test(wxString &msg) const
@@ -72,7 +70,10 @@ wxString FlashAir::get_test_ok_msg () const
 
 wxString FlashAir::get_test_failed_msg (wxString &msg) const
 {
-	return wxString::Format("%s: %s", _(L("Could not connect to FlashAir")), msg, _(L("Note: FlashAir with firmware 2.00.02 or newer and activated upload function is required.")));
+    return GUI::from_u8((boost::format("%s: %s\n%s")
+                    % _utf8(L("Could not connect to FlashAir"))
+                    % std::string(msg.ToUTF8())
+                    % _utf8(L("Note: FlashAir with firmware 2.00.02 or newer and activated upload function is required."))).str());
 }
 
 bool FlashAir::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn) const
@@ -81,7 +82,6 @@ bool FlashAir::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Error
 
 	const auto upload_filename = upload_data.upload_path.filename();
 	const auto upload_parent_path = upload_data.upload_path.parent_path();
-
 	wxString test_msg;
 	if (! test(test_msg)) {
 		error_fn(std::move(test_msg));
@@ -90,7 +90,14 @@ bool FlashAir::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Error
 
 	bool res = false;
 
+    std::string strDest = upload_parent_path.string();
+    if (strDest.front()!='/') // Needs a leading / else root uploads fail.
+    {
+        strDest.insert(0,"/");
+    }
+
 	auto urlPrepare = make_url("upload.cgi", "WRITEPROTECT=ON&FTIME", timestamp_str());
+    auto urlSetDir = make_url("upload.cgi","UPDIR",strDest);
 	auto urlUpload = make_url("upload.cgi");
 
 	BOOST_LOG_TRIVIAL(info) << boost::format("%1%: Uploading file %2% at %3% / %4%, filename: %5%")
@@ -103,7 +110,7 @@ bool FlashAir::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Error
 	// set filetime for upload and make card writeprotect to prevent filesystem damage
 	auto httpPrepare = Http::get(std::move(urlPrepare));
 	httpPrepare.on_error([&](std::string body, std::string error, unsigned status) {
-			BOOST_LOG_TRIVIAL(error) << boost::format("%1%: Error prepareing upload: %2%, HTTP %3%, body: `%4%`") % name % error % status % body;
+            BOOST_LOG_TRIVIAL(error) << boost::format("%1%: Error preparing upload: %2%, HTTP %3%, body: `%4%`") % name % error % status % body;
 			error_fn(format_error(body, error, status));
 			res = false;
 		})
@@ -122,6 +129,26 @@ bool FlashAir::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Error
 	}
 	
 	// start file upload
+    auto httpDir = Http::get(std::move(urlSetDir));
+    httpDir.on_error([&](std::string body, std::string error, unsigned status) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("%1%: Error setting upload dir: %2%, HTTP %3%, body: `%4%`") % name % error % status % body;
+            error_fn(format_error(body, error, status));
+            res = false;
+        })
+        .on_complete([&, this](std::string body, unsigned) {
+            BOOST_LOG_TRIVIAL(debug) << boost::format("%1%: Got dir select result: %2%") % name % body;
+            res = boost::icontains(body, "SUCCESS");
+            if (! res) {
+                BOOST_LOG_TRIVIAL(error) << boost::format("%1%: Request completed but no SUCCESS message was received.") % name;
+                error_fn(format_error(body, L("Unknown error occured"), 0));
+            }
+        })
+        .perform_sync();
+
+    if(! res ) {
+        return res;
+    }
+
 	auto http = Http::post(std::move(urlUpload));
 	http.form_add_file("file", upload_data.source_path.string(), upload_filename.string())
 		.on_complete([&](std::string body, unsigned status) {
@@ -150,27 +177,10 @@ bool FlashAir::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Error
 	return res;
 }
 
-bool FlashAir::has_auto_discovery() const
-{
-	return false;
-}
-
-bool FlashAir::can_test() const
-{
-	return true;
-}
-
-bool FlashAir::can_start_print() const
-{
-	return false;
-}
-
 std::string FlashAir::timestamp_str() const
 {
 	auto t = std::time(nullptr);
 	auto tm = *std::localtime(&t);
-
-	const char *name = get_name();
 
 	unsigned long fattime = ((tm.tm_year - 80) << 25) | 
 							((tm.tm_mon + 1) << 21) |

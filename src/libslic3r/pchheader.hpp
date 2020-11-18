@@ -63,6 +63,7 @@
 #include <boost/bind.hpp>
 #include <boost/config.hpp>
 #include <boost/config/warning_disable.hpp>
+#include <boost/container/small_vector.hpp>
 #include <boost/date_time/local_time/local_time.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
@@ -110,6 +111,7 @@
 #include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
 #include "Config.hpp"
+#include "format.hpp"
 #include "I18N.hpp"
 #include "MultiPoint.hpp"
 #include "Point.hpp"

@@ -1,9 +1,8 @@
 #ifndef slic3r_ThumbnailData_hpp_
 #define slic3r_ThumbnailData_hpp_
 
-#if ENABLE_THUMBNAIL_GENERATOR
-
 #include <vector>
+#include "libslic3r/Point.hpp"
 
 namespace Slic3r {
 
@@ -20,8 +19,9 @@ struct ThumbnailData
     bool is_valid() const;
 };
 
-} // namespace Slic3r
+typedef std::vector<ThumbnailData> ThumbnailsList;
+typedef std::function<void(ThumbnailsList & thumbnails, const Vec2ds & sizes, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)> ThumbnailsGeneratorCallback;
 
-#endif // ENABLE_THUMBNAIL_GENERATOR
+} // namespace Slic3r
 
 #endif // slic3r_ThumbnailData_hpp_

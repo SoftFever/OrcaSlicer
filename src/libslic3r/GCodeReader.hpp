@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <functional>
 #include <string>
+#include <string_view>
 #include "PrintConfig.hpp"
 
 namespace Slic3r {
@@ -17,13 +18,13 @@ public:
         GCodeLine() { reset(); }
         void reset() { m_mask = 0; memset(m_axis, 0, sizeof(m_axis)); m_raw.clear(); }
 
-        const std::string&  raw() const { return m_raw; }
-        const std::string   cmd() const { 
+        const std::string&      raw() const { return m_raw; }
+        const std::string_view  cmd() const { 
             const char *cmd = GCodeReader::skip_whitespaces(m_raw.c_str());
-            return std::string(cmd, GCodeReader::skip_word(cmd));
+            return std::string_view(cmd, GCodeReader::skip_word(cmd) - cmd);
         }
-        const std::string   comment() const
-            { size_t pos = m_raw.find(';'); return (pos == std::string::npos) ? "" : m_raw.substr(pos + 1); }
+        const std::string_view  comment() const
+            { size_t pos = m_raw.find(';'); return (pos == std::string::npos) ? std::string_view() : std::string_view(m_raw).substr(pos + 1); }
 
         bool  has(Axis axis) const { return (m_mask & (1 << int(axis))) != 0; }
         float value(Axis axis) const { return m_axis[axis]; }
@@ -58,6 +59,7 @@ public:
         bool  has_z() const { return this->has(Z); }
         bool  has_e() const { return this->has(E); }
         bool  has_f() const { return this->has(F); }
+        bool  has_unknown_axis() const { return this->has(UNKNOWN_AXIS); }
         float x() const { return m_axis[X]; }
         float y() const { return m_axis[Y]; }
         float z() const { return m_axis[Z]; }
@@ -106,6 +108,7 @@ public:
         { GCodeLine gline; this->parse_line(line.c_str(), gline, callback); }
 
     void parse_file(const std::string &file, callback_t callback);
+    void quit_parsing_file() { m_parsing_file = false; }
 
     float& x()       { return m_position[X]; }
     float  x() const { return m_position[X]; }
@@ -119,6 +122,7 @@ public:
     float  f() const { return m_position[F]; }
 
     char   extrusion_axis() const { return m_extrusion_axis; }
+    void   set_extrusion_axis(char axis) { m_extrusion_axis = axis; }
 
 private:
     const char* parse_line_internal(const char *ptr, GCodeLine &gline, std::pair<const char*, const char*> &command);
@@ -143,6 +147,7 @@ private:
     char        m_extrusion_axis;
     float       m_position[NUM_AXES];
     bool        m_verbose;
+    bool        m_parsing_file{ false };
 };
 
 } /* namespace Slic3r */

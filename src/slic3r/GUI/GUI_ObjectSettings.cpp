@@ -2,8 +2,10 @@
 #include "GUI_ObjectList.hpp"
 
 #include "OptionsGroup.hpp"
+#include "GUI_App.hpp"
 #include "wxExtensions.hpp"
-#include "PresetBundle.hpp"
+#include "Plater.hpp"
+#include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Model.hpp"
 
 #include <boost/algorithm/string.hpp>
@@ -56,6 +58,7 @@ wxSizer* OG_Settings::get_sizer()
 ObjectSettings::ObjectSettings(wxWindow* parent) :
     OG_Settings(parent, true)
 {
+    m_og->activate();
     m_og->set_name(_(L("Additional Settings")));    
 
     m_settings_list_sizer = new wxBoxSizer(wxVERTICAL);
@@ -80,7 +83,7 @@ bool ObjectSettings::update_settings_list()
         return false;
 
     const bool is_object_settings = objects_model->GetItemType(objects_model->GetParent(item)) == itObject;
-	SettingsBundle cat_options = objects_ctrl->get_item_settings_bundle(config, is_object_settings);
+	SettingsBundle cat_options = objects_ctrl->get_item_settings_bundle(&config->get(), is_object_settings);
 
     if (!cat_options.empty())
     {
@@ -98,7 +101,7 @@ bool ObjectSettings::update_settings_list()
             btn->SetBitmapHover(m_bmp_delete_focus.bmp());
 
 			btn->Bind(wxEVT_BUTTON, [opt_key, config, this](wxEvent &event) {
-                wxGetApp().plater()->take_snapshot(wxString::Format(_(L("Delete Option %s")), opt_key));
+                wxGetApp().plater()->take_snapshot(from_u8((boost::format(_utf8(L("Delete Option %s"))) % opt_key).str()));
 				config->erase(opt_key);
                 wxGetApp().obj_list()->changed_object();
                 wxTheApp->CallAfter([this]() {
@@ -146,14 +149,15 @@ bool ObjectSettings::update_settings_list()
                 if (is_extruders_cat)
                     option.opt.max = wxGetApp().extruders_edited_cnt();
                 optgroup->append_single_option_line(option);
-
+            }
+            optgroup->activate();
+            for (auto& opt : cat.second)
                 optgroup->get_field(opt)->m_on_change = [optgroup](const std::string& opt_id, const boost::any& value) {
                     // first of all take a snapshot and then change value in configuration
-                    wxGetApp().plater()->take_snapshot(wxString::Format(_(L("Change Option %s")), opt_id));
+                    wxGetApp().plater()->take_snapshot(from_u8((boost::format(_utf8(L("Change Option %s"))) % opt_id).str()));
                     optgroup->on_change_OG(opt_id, value);
                 };
 
-            }
             optgroup->reload_config();
 
             m_settings_list_sizer->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 0);
@@ -174,7 +178,7 @@ bool ObjectSettings::update_settings_list()
     return true;
 }
 
-bool ObjectSettings::add_missed_options(DynamicPrintConfig* config_to, const DynamicPrintConfig& config_from)
+bool ObjectSettings::add_missed_options(ModelConfig* config_to, const DynamicPrintConfig& config_from)
 {
     bool is_added = false;
     if (wxGetApp().plater()->printer_technology() == ptFFF)
@@ -191,7 +195,7 @@ bool ObjectSettings::add_missed_options(DynamicPrintConfig* config_to, const Dyn
     return is_added;
 }
 
-void ObjectSettings::update_config_values(DynamicPrintConfig* config)
+void ObjectSettings::update_config_values(ModelConfig* config)
 {
     const auto objects_model        = wxGetApp().obj_list()->GetModel();
     const auto item                 = wxGetApp().obj_list()->GetSelection();
@@ -231,31 +235,30 @@ void ObjectSettings::update_config_values(DynamicPrintConfig* config)
         }
     };
 
-    auto get_field = [this](const t_config_option_key & opt_key, int opt_index)
+    auto toggle_field = [this](const t_config_option_key & opt_key, bool toggle, int opt_index)
     {
         Field* field = nullptr;
         for (auto og : m_og_settings) {
             field = og->get_fieldc(opt_key, opt_index);
             if (field != nullptr)
-                return field;
+                break;
         }
-        return field;
+        if (field)
+            field->toggle(toggle);
     };
 
-    ConfigManipulation config_manipulation(load_config, get_field, nullptr, config);
+    ConfigManipulation config_manipulation(load_config, toggle_field, nullptr, config);
 
     if (!is_object_settings)
     {
         const int obj_idx = objects_model->GetObjectIdByItem(item);
         assert(obj_idx >= 0);
-        DynamicPrintConfig* obj_config = &wxGetApp().model().objects[obj_idx]->config;
-
-        main_config.apply(*obj_config, true);
+        main_config.apply(wxGetApp().model().objects[obj_idx]->config.get(), true);
         printer_technology == ptFFF  ?  config_manipulation.update_print_fff_config(&main_config) :
                                         config_manipulation.update_print_sla_config(&main_config) ;
     }
 
-    main_config.apply(*config, true);
+    main_config.apply(config->get(), true);
     printer_technology == ptFFF  ?  config_manipulation.update_print_fff_config(&main_config) :
                                     config_manipulation.update_print_sla_config(&main_config) ;
 

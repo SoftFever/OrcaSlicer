@@ -1,9 +1,15 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoRotate.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/ImGuiWrapper.hpp"
 
 #include <GL/glew.h>
 
+#include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/GUI.hpp"
+#include "libslic3r/PresetBundle.hpp"
+
+#include "libslic3r/SLA/Rotfinder.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -67,6 +73,18 @@ void GLGizmoRotate::set_angle(double angle)
     m_angle = angle;
 }
 
+std::string GLGizmoRotate::get_tooltip() const
+{
+    std::string axis;
+    switch (m_axis)
+    {
+    case X: { axis = "X"; break; }
+    case Y: { axis = "Y"; break; }
+    case Z: { axis = "Z"; break; }
+    }
+    return (m_hover_id == 0 || m_grabbers[0].dragging) ? axis + ": " + format((float)Geometry::rad2deg(m_angle), 4) : "";
+}
+
 bool GLGizmoRotate::on_init()
 {
     m_grabbers.push_back(Grabber());
@@ -127,19 +145,7 @@ void GLGizmoRotate::on_render() const
     const Selection& selection = m_parent.get_selection();
     const BoundingBoxf3& box = selection.get_bounding_box();
 
-    std::string axis;
-    switch (m_axis)
-    {
-    case X: { axis = "X"; break; }
-    case Y: { axis = "Y"; break; }
-    case Z: { axis = "Z"; break; }
-    }
-
-    if (!m_dragging && (m_hover_id == 0))
-        set_tooltip(axis);
-    else if (m_dragging)
-        set_tooltip(axis + ": " + format((float)Geometry::rad2deg(m_angle), 4) + "\u00B0");
-    else
+    if (m_hover_id != 0 && !m_grabbers[0].dragging)
     {
         m_center = box.center();
         m_radius = Offset + box.radius();
@@ -192,6 +198,12 @@ void GLGizmoRotate::on_render_for_picking() const
     render_grabber_extension(box, true);
 
     glsafe(::glPopMatrix());
+}
+
+void GLGizmoRotate3D::on_render_input_window(float x, float y, float bottom_limit)
+{
+    if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
+        return;
 }
 
 void GLGizmoRotate::render_circle() const
@@ -449,6 +461,11 @@ std::string GLGizmoRotate3D::on_get_name() const
     return (_(L("Rotate")) + " [R]").ToUTF8().data();
 }
 
+bool GLGizmoRotate3D::on_is_activable() const
+{
+    return !m_parent.get_selection().is_empty();
+}
+
 void GLGizmoRotate3D::on_start_dragging()
 {
     if ((0 <= m_hover_id) && (m_hover_id < 3))
@@ -474,22 +491,6 @@ void GLGizmoRotate3D::on_render() const
     if ((m_hover_id == -1) || (m_hover_id == 2))
         m_gizmos[Z].render();
 }
-
-#if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
-void GLGizmoRotate3D::on_render_input_window(float x, float y, float bottom_limit)
-{
-    Vec3d rotation(Geometry::rad2deg(m_gizmos[0].get_angle()), Geometry::rad2deg(m_gizmos[1].get_angle()), Geometry::rad2deg(m_gizmos[2].get_angle()));
-    wxString label = _(L("Rotation (deg)"));
-
-    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
-    m_imgui->set_next_window_bg_alpha(0.5f);
-    m_imgui->begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-    m_imgui->input_vec3("", rotation, 100.0f, "%.2f");
-    m_imgui->end();
-}
-#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
-
-
 
 } // namespace GUI
 } // namespace Slic3r

@@ -48,12 +48,8 @@ _constant()
     Ref<ModelObject> model_object();
     Ref<StaticPrintConfig> config()
         %code%{ RETVAL = &THIS->config(); %};
-    Points copies();
     Clone<BoundingBox> bounding_box();
     
-    Points _shifted_copies()
-        %code%{ RETVAL = THIS->copies(); %};
-
     size_t layer_count();
     Ref<Layer> get_layer(int idx);
 
@@ -80,10 +76,10 @@ _constant()
         %code%{ RETVAL = const_cast<ExtrusionEntityCollection*>(&THIS->skirt()); %};
     Ref<ExtrusionEntityCollection> brim()
         %code%{ RETVAL = const_cast<ExtrusionEntityCollection*>(&THIS->brim()); %};
-    std::string estimated_normal_print_time()
-        %code%{ RETVAL = THIS->print_statistics().estimated_normal_print_time; %};
-    std::string estimated_silent_print_time()
-        %code%{ RETVAL = THIS->print_statistics().estimated_silent_print_time; %};
+//    std::string estimated_normal_print_time()
+//        %code%{ RETVAL = THIS->print_statistics().estimated_normal_print_time; %};
+//    std::string estimated_silent_print_time()
+//        %code%{ RETVAL = THIS->print_statistics().estimated_silent_print_time; %};
     double total_used_filament()
         %code%{ RETVAL = THIS->print_statistics().total_used_filament; %};
     double total_extruded_volume()
@@ -143,7 +139,18 @@ _constant()
         %};
         
     bool apply(Model *model, DynamicPrintConfig* config)
-        %code%{ RETVAL = THIS->apply(*model, *config); %};
+        %code%{ 
+            // Touching every config as the Perl bindings does not correctly export ModelConfig,
+            // therefore the configs have often invalid timestamps.
+            for (auto obj : model->objects) {
+                obj->config.touch();
+                for (auto vol : obj->volumes)
+                    vol->config.touch();
+            }
+            for (auto mat : model->materials)
+                mat.second->config.touch();
+            RETVAL = THIS->apply(*model, *config);
+        %};
     bool has_infinite_skirt();
     std::vector<unsigned int> extruders() const;
     int validate() %code%{ 
@@ -152,9 +159,6 @@ _constant()
                 croak("Configuration is not valid: %s\n", err.c_str()); 
             RETVAL = 1;
         %};
-    Clone<BoundingBox> bounding_box();
-    Clone<BoundingBox> total_bounding_box();
-    Clone<Point>       size() %code%{ RETVAL = THIS->bounding_box().size(); %};
 
     void set_callback_event(int evt) %code%{
         %};
