@@ -40,25 +40,17 @@ void PreferencesDialog::build()
 //        readonly = > !wxTheApp->have_version_check,
 //    ));
 
-#if ENABLE_GCODE_VIEWER
 	bool is_editor = wxGetApp().is_editor();
-#endif // ENABLE_GCODE_VIEWER
 
 	ConfigOptionDef def;
-#if ENABLE_GCODE_VIEWER
 	Option option(def, "");
 	if (is_editor) {
-#endif // ENABLE_GCODE_VIEWER
 		def.label = L("Remember output directory");
 		def.type = coBool;
 		def.tooltip = L("If this is enabled, Slic3r will prompt the last output directory "
 			"instead of the one containing the input files.");
 		def.set_default_value(new ConfigOptionBool{ app_config->has("remember_output_path") ? app_config->get("remember_output_path") == "1" : true });
-#if ENABLE_GCODE_VIEWER
 		option = Option(def, "remember_output_path");
-#else
-		Option option(def, "remember_output_path");
-#endif // ENABLE_GCODE_VIEWER
 		m_optgroup_general->append_single_option_line(option);
 
 		def.label = L("Auto-center parts");
@@ -134,9 +126,7 @@ void PreferencesDialog::build()
 		def.set_default_value(new ConfigOptionBool{ app_config->has("single_instance") ? app_config->get("single_instance") == "1" : false });
 		option = Option(def, "single_instance");
 		m_optgroup_general->append_single_option_line(option);
-#if ENABLE_GCODE_VIEWER
 	}
-#endif // ENABLE_GCODE_VIEWER
 
 #if __APPLE__
 	def.label = L("Use Retina resolution for the 3D scene");
@@ -221,9 +211,7 @@ void PreferencesDialog::build()
 		}
 	};
 
-#if ENABLE_GCODE_VIEWER
 	if (is_editor) {
-#endif // ENABLE_GCODE_VIEWER
 		def.label = L("Show sidebar collapse/expand button");
 		def.type = coBool;
 		def.tooltip = L("If enabled, the button for the collapse sidebar will be appeared in top right corner of the 3D Scene");
@@ -237,7 +225,6 @@ void PreferencesDialog::build()
 		def.set_default_value(new ConfigOptionBool{ app_config->get("use_custom_toolbar_size") == "1" });
 		option = Option(def, "use_custom_toolbar_size");
 		m_optgroup_gui->append_single_option_line(option);
-#if ENABLE_GCODE_VIEWER
 	}
 
 	def.label = L("Sequential slider applied only to top layer");
@@ -247,24 +234,17 @@ void PreferencesDialog::build()
 	def.set_default_value(new ConfigOptionBool{ app_config->get("seq_top_layer_only") == "1" });
 	option = Option(def, "seq_top_layer_only");
 	m_optgroup_gui->append_single_option_line(option);
-#endif // ENABLE_GCODE_VIEWER
 
 	m_optgroup_gui->activate();
 
-#if ENABLE_GCODE_VIEWER
 	if (is_editor) {
-#endif // ENABLE_GCODE_VIEWER
 		create_icon_size_slider();
 		m_icon_size_sizer->ShowItems(app_config->get("use_custom_toolbar_size") == "1");
 
 		create_settings_mode_widget();
-#if ENABLE_GCODE_VIEWER
 	}
-#endif // ENABLE_GCODE_VIEWER
 
-#if ENABLE_GCODE_VIEWER
 	if (is_editor) {
-#endif // ENABLE_GCODE_VIEWER
 #if ENABLE_ENVIRONMENT_MAP
 		m_optgroup_render = std::make_shared<ConfigOptionsGroup>(this, _L("Render"));
 		m_optgroup_render->label_width = 40;
@@ -281,18 +261,14 @@ void PreferencesDialog::build()
 
 		m_optgroup_render->activate();
 #endif // ENABLE_ENVIRONMENT_MAP
-#if ENABLE_GCODE_VIEWER
 	}
-#endif // ENABLE_GCODE_VIEWER
 
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 	sizer->Add(m_optgroup_general->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 	sizer->Add(m_optgroup_camera->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 	sizer->Add(m_optgroup_gui->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 #if ENABLE_ENVIRONMENT_MAP
-#if ENABLE_GCODE_VIEWER
 	if (m_optgroup_render != nullptr)
-#endif // ENABLE_GCODE_VIEWER
 		sizer->Add(m_optgroup_render->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 #endif // ENABLE_ENVIRONMENT_MAP
 

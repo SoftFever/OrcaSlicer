@@ -16,9 +16,7 @@
 #include <GL/glew.h>
 
 #include <boost/algorithm/string/predicate.hpp>
-#if ENABLE_GCODE_VIEWER
 #include <boost/log/trivial.hpp>
-#endif // ENABLE_GCODE_VIEWER
 
 static const float UNIFORM_SCALE_COLOR[4] = { 0.923f, 0.504f, 0.264f, 1.0f };
 
@@ -113,11 +111,6 @@ Selection::Selection()
     , m_valid(false)
     , m_scale_factor(1.0f)
 {
-#if !ENABLE_GCODE_VIEWER
-    m_arrow.reset(new GLArrow);
-    m_curved_arrow.reset(new GLCurvedArrow(16));
-#endif // !ENABLE_GCODE_VIEWER
-
     this->set_bounding_boxes_dirty();
 #if ENABLE_RENDER_SELECTION_CENTER
     m_quadric = ::gluNewQuadric();
@@ -143,20 +136,8 @@ void Selection::set_volumes(GLVolumePtrs* volumes)
 // Init shall be called from the OpenGL render function, so that the OpenGL context is initialized!
 bool Selection::init()
 {
-#if ENABLE_GCODE_VIEWER
     m_arrow.init_from(straight_arrow(10.0f, 5.0f, 5.0f, 10.0f, 1.0f));
     m_curved_arrow.init_from(circular_arrow(16, 10.0f, 5.0f, 10.0f, 5.0f, 1.0f));
-#else
-    if (!m_arrow->init())
-        return false;
-
-    m_arrow->set_scale(5.0 * Vec3d::Ones());
-
-    if (!m_curved_arrow->init())
-        return false;
-
-    m_curved_arrow->set_scale(5.0 * Vec3d::Ones());
-#endif //ENABLE_GCODE_VIEWER
     return true;
 }
 
@@ -1962,7 +1943,6 @@ void Selection::render_bounding_box(const BoundingBoxf3& box, float* color) cons
     glsafe(::glEnd());
 }
 
-#if ENABLE_GCODE_VIEWER
 void Selection::render_sidebar_position_hints(const std::string& sidebar_field) const
 {
     auto set_color = [](Axis axis) {
@@ -1984,25 +1964,7 @@ void Selection::render_sidebar_position_hints(const std::string& sidebar_field) 
         m_arrow.render();
     }
 }
-#else
-void Selection::render_sidebar_position_hints(const std::string& sidebar_field) const
-{
-    if (boost::ends_with(sidebar_field, "x"))
-    {
-        glsafe(::glRotated(-90.0, 0.0, 0.0, 1.0));
-        render_sidebar_position_hint(X);
-    }
-    else if (boost::ends_with(sidebar_field, "y"))
-        render_sidebar_position_hint(Y);
-    else if (boost::ends_with(sidebar_field, "z"))
-    {
-        glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
-        render_sidebar_position_hint(Z);
-    }
-}
-#endif // ENABLE_GCODE_VIEWER
 
-#if ENABLE_GCODE_VIEWER
 void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) const
 {
     auto set_color = [](Axis axis) {
@@ -2030,23 +1992,6 @@ void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) 
         render_sidebar_rotation_hint();
     }
 }
-#else
-void Selection::render_sidebar_rotation_hints(const std::string & sidebar_field) const
-{
-    if (boost::ends_with(sidebar_field, "x"))
-    {
-        glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
-        render_sidebar_rotation_hint(X);
-    }
-    else if (boost::ends_with(sidebar_field, "y"))
-    {
-        glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
-        render_sidebar_rotation_hint(Y);
-    }
-    else if (boost::ends_with(sidebar_field, "z"))
-        render_sidebar_rotation_hint(Z);
-}
-#endif // ENABLE_GCODE_VIEWER
 
 void Selection::render_sidebar_scale_hints(const std::string& sidebar_field) const
 {
@@ -2058,38 +2003,27 @@ void Selection::render_sidebar_scale_hints(const std::string& sidebar_field) con
             shader->set_uniform("uniform_color", uniform_scale ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis], 4);
 
         glsafe(::glTranslated(0.0, 5.0, 0.0));
-#if ENABLE_GCODE_VIEWER
         m_arrow.render();
-#else
-        m_arrow->render();
-#endif // ENABLE_GCODE_VIEWER
 
         glsafe(::glTranslated(0.0, -10.0, 0.0));
         glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
-#if ENABLE_GCODE_VIEWER
         m_arrow.render();
-#else
-        m_arrow->render();
-#endif // ENABLE_GCODE_VIEWER
     };
 
-    if (boost::ends_with(sidebar_field, "x") || uniform_scale)
-    {
+    if (boost::ends_with(sidebar_field, "x") || uniform_scale) {
         glsafe(::glPushMatrix());
         glsafe(::glRotated(-90.0, 0.0, 0.0, 1.0));
         render_sidebar_scale_hint(X);
         glsafe(::glPopMatrix());
     }
 
-    if (boost::ends_with(sidebar_field, "y") || uniform_scale)
-    {
+    if (boost::ends_with(sidebar_field, "y") || uniform_scale) {
         glsafe(::glPushMatrix());
         render_sidebar_scale_hint(Y);
         glsafe(::glPopMatrix());
     }
 
-    if (boost::ends_with(sidebar_field, "z") || uniform_scale)
-    {
+    if (boost::ends_with(sidebar_field, "z") || uniform_scale) {
         glsafe(::glPushMatrix());
         glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
         render_sidebar_scale_hint(Z);
@@ -2168,35 +2102,6 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
     glsafe(::glEnable(GL_CULL_FACE));
     glsafe(::glDisable(GL_BLEND));
 }
-
-#if !ENABLE_GCODE_VIEWER
-void Selection::render_sidebar_position_hint(Axis axis) const
-{
-    m_arrow->set_color(AXES_COLOR[axis], 3);
-    m_arrow->render();
-}
-
-void Selection::render_sidebar_rotation_hint(Axis axis) const
-{
-    m_curved_arrow->set_color(AXES_COLOR[axis], 3);
-    m_curved_arrow->render();
-
-    glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
-    m_curved_arrow->render();
-}
-
-void Selection::render_sidebar_scale_hint(Axis axis) const
-{
-    m_arrow->set_color(((requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling()) ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis]), 3);
-
-    glsafe(::glTranslated(0.0, 5.0, 0.0));
-    m_arrow->render();
-
-    glsafe(::glTranslated(0.0, -10.0, 0.0));
-    glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
-    m_arrow->render();
-}
-#endif // !ENABLE_GCODE_VIEWER
 
 #ifndef NDEBUG
 static bool is_rotation_xy_synchronized(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)
