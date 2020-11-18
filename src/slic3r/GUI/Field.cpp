@@ -867,7 +867,7 @@ void Choice::BUILD() {
     if (m_is_editable) {
         temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) {
             e.Skip();
-            if (m_opt.type == coStrings) {
+            if (m_opt.type == coStrings || m_opt.type == coFloatOrPercent) {
                 on_change_field();
                 return;
             }
@@ -898,59 +898,42 @@ void Choice::set_selection()
 
     choice_ctrl* field = dynamic_cast<choice_ctrl*>(window);
 	switch (m_opt.type) {
-	case coFloat:
-	case coPercent:	{
-		double val = m_opt.default_value->getFloat();
-		text_value = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 1);
-		size_t idx = 0;
-		for (auto el : m_opt.enum_values)
-		{
-			if (el == text_value)
-				break;
-			++idx;
-		}
-//		if (m_opt.type == coPercent) text_value += "%";
-		idx == m_opt.enum_values.size() ?
-			field->SetValue(text_value) :
-			field->SetSelection(idx);
-		break;
-	}
 	case coEnum:{
 		int id_value = m_opt.get_default_value<ConfigOptionEnum<SeamPosition>>()->value; //!!
         field->SetSelection(id_value);
 		break;
 	}
+	case coFloat:
+	case coPercent:	{
+		double val = m_opt.default_value->getFloat();
+		text_value = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 1);
+		break;
+	}
 	case coInt:{
-		int val = m_opt.default_value->getInt(); //!!
-		text_value = wxString::Format(_T("%i"), int(val));
-		size_t idx = 0;
-		for (auto el : m_opt.enum_values)
-		{
-			if (el == text_value)
-				break;
-			++idx;
-		}
-		idx == m_opt.enum_values.size() ?
-			field->SetValue(text_value) :
-			field->SetSelection(idx);
+		text_value = wxString::Format(_T("%i"), int(m_opt.default_value->getInt()));
 		break;
 	}
 	case coStrings:{
 		text_value = m_opt.get_default_value<ConfigOptionStrings>()->get_at(m_opt_idx);
+		break;
+	}
+	case coFloatOrPercent: {
+		text_value = double_to_string(m_opt.default_value->getFloat());
+		if (m_opt.get_default_value<ConfigOptionFloatOrPercent>()->percent)
+			text_value += "%";
+		break;
+	}
+    default: break;
+	}
 
-		size_t idx = 0;
-		for (auto el : m_opt.enum_values)
-		{
+	if (!text_value.IsEmpty()) {
+		int idx = 0;
+		for (auto el : m_opt.enum_values) {
 			if (el == text_value)
 				break;
 			++idx;
 		}
-		idx == m_opt.enum_values.size() ?
-			field->SetValue(text_value) :
-			field->SetSelection(idx);
-		break;
-	}
-    default: break;
+		idx == m_opt.enum_values.size() ? field->SetValue(text_value) : field->SetSelection(idx);
 	}
 }
 
@@ -984,6 +967,7 @@ void Choice::set_value(const boost::any& value, bool change_event)
 	case coInt:
 	case coFloat:
 	case coPercent:
+	case coFloatOrPercent:
 	case coString:
 	case coStrings: {
 		wxString text_value;
@@ -1137,7 +1121,9 @@ boost::any& Choice::get_value()
             (ret_str != m_opt.enum_values[ret_enum] && ret_str != _(m_opt.enum_labels[ret_enum])))
 			// modifies ret_string!
             get_value_by_opt_type(ret_str);
-        else 
+        else if (m_opt.type == coFloatOrPercent)
+            m_value = m_opt.enum_values[ret_enum];
+        else
             m_value = atof(m_opt.enum_values[ret_enum].c_str());
     }
 	else	

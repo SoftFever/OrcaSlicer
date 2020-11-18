@@ -1422,9 +1422,9 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Infill"));
         optgroup->append_single_option_line("fill_density", category_path + "fill-density");
         optgroup->append_single_option_line("fill_pattern", category_path + "fill-pattern");
+        optgroup->append_single_option_line("infill_anchor", category_path + "fill-pattern");
         optgroup->append_single_option_line("top_fill_pattern", category_path + "top-fill-pattern");
         optgroup->append_single_option_line("bottom_fill_pattern", category_path + "bottom-fill-pattern");
-        optgroup->append_single_option_line("infill_anchor", category_path + "fill-pattern");
 
         optgroup = page->new_optgroup(L("Ironing"));
         optgroup->append_single_option_line("ironing");
