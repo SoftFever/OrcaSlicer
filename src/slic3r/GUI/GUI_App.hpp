@@ -97,7 +97,6 @@ static wxString dots("…", wxConvUTF8);
 
 class GUI_App : public wxApp
 {
-#if ENABLE_GCODE_VIEWER
 public:
     enum class EAppMode : unsigned char
     {
@@ -106,14 +105,10 @@ public:
     };
 
 private:
-#endif // ENABLE_GCODE_VIEWER
-
     bool            m_initialized { false };
     bool            m_app_conf_exists{ false };
-#if ENABLE_GCODE_VIEWER
     EAppMode        m_app_mode{ EAppMode::Editor };
     bool            m_is_recreating_gui{ false };
-#endif // ENABLE_GCODE_VIEWER
 
     wxColour        m_color_label_modified;
     wxColour        m_color_label_sys;
@@ -149,19 +144,13 @@ public:
     bool            OnInit() override;
     bool            initialized() const { return m_initialized; }
 
-#if ENABLE_GCODE_VIEWER
     explicit GUI_App(EAppMode mode = EAppMode::Editor);
-#else
-    GUI_App();
-#endif // ENABLE_GCODE_VIEWER
     ~GUI_App() override;
 
-#if ENABLE_GCODE_VIEWER
     EAppMode get_app_mode() const { return m_app_mode; }
     bool is_editor() const { return m_app_mode == EAppMode::Editor; }
     bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
     bool is_recreating_gui() const { return m_is_recreating_gui; }
-#endif // ENABLE_GCODE_VIEWER
 
     // To be called after the GUI is fully built up.
     // Process command line parameters cached in this->init_params,
@@ -199,9 +188,7 @@ public:
     void            keyboard_shortcuts();
     void            load_project(wxWindow *parent, wxString& input_file) const;
     void            import_model(wxWindow *parent, wxArrayString& input_files) const;
-#if ENABLE_GCODE_VIEWER
     void            load_gcode(wxWindow* parent, wxString& input_file) const;
-#endif // ENABLE_GCODE_VIEWER
 
     static bool     catch_error(std::function<void()> cb, const std::string& err);
 
