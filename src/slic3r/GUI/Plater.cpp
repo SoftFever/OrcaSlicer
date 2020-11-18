@@ -1496,6 +1496,7 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
         // Likely all paths processed were gcodes, for which a G-code viewer instance has hopefully been started.
         return false;
 
+    // searches for project files
     for (std::vector<fs::path>::const_reverse_iterator it = paths.rbegin(); it != paths.rend(); ++it) {
         std::string filename = (*it).filename().string();
         if (boost::algorithm::iends_with(filename, ".3mf") || boost::algorithm::iends_with(filename, ".amf")) {
@@ -1538,9 +1539,30 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
                 break;
             }
             }
-            break;
+
+            return true;
         }
     }
+
+    // other files
+    wxString snapshot_label;
+    assert(!paths.empty());
+    if (paths.size() == 1) {
+        snapshot_label = _L("Load File");
+        snapshot_label += ": ";
+        snapshot_label += wxString::FromUTF8(paths.front().filename().string().c_str());
+    }
+    else {
+        snapshot_label = _L("Load Files");
+        snapshot_label += ": ";
+        snapshot_label += wxString::FromUTF8(paths.front().filename().string().c_str());
+        for (size_t i = 1; i < paths.size(); ++i) {
+            snapshot_label += ", ";
+            snapshot_label += wxString::FromUTF8(paths[i].filename().string().c_str());
+        }
+    }
+    Plater::TakeSnapshot snapshot(plater, snapshot_label);
+    plater->load_files(paths);
 
     return true;
 }
