@@ -1091,6 +1091,25 @@ wxDEFINE_EVENT(EVT_GLCANVAS_RELOAD_FROM_DISK, SimpleEvent);
 
 const double GLCanvas3D::DefaultCameraZoomToBoxMarginFactor = 1.25;
 
+GLCanvas3D::ArrangeSettings load_arrange_settings()
+{
+    GLCanvas3D::ArrangeSettings settings;
+
+    std::string dist_str =
+        wxGetApp().app_config->get("arrange", "min_object_distance");
+
+    std::string en_rot_str =
+        wxGetApp().app_config->get("arrange", "enable_rotation");
+
+    if (!dist_str.empty())
+        settings.distance = std::stof(dist_str);
+
+    if (!en_rot_str.empty())
+        settings.enable_rotation = (en_rot_str == "1" || en_rot_str == "yes");
+
+    return settings;
+}
+
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     : m_canvas(canvas)
     , m_context(nullptr)
@@ -1132,6 +1151,8 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
         m_retina_helper.reset(new RetinaHelper(canvas));
 #endif // ENABLE_RETINA_GL
     }
+
+    m_arrange_settings = load_arrange_settings();
 
     m_selection.set_volumes(&m_volumes.volumes);
 }
@@ -1325,9 +1346,6 @@ void GLCanvas3D::update_instance_printable_state_for_objects(std::vector<size_t>
 
 void GLCanvas3D::set_config(const DynamicPrintConfig* config)
 {
-    if (!m_config)
-        m_arrange_settings.distance = min_object_distance(*config);
-
     m_config = config;
     m_layers_editing.set_config(config);
 }
@@ -3850,7 +3868,7 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
     return action_taken;
 }
 
-bool GLCanvas3D::_render_arrange_popup()
+void GLCanvas3D:: _render_arrange_popup()
 {
     ImGuiWrapper *imgui = wxGetApp().imgui();
 
@@ -3860,18 +3878,19 @@ bool GLCanvas3D::_render_arrange_popup()
     imgui->begin(_(L("Arrange options")), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
     ArrangeSettings settings = m_arrange_settings;
 
-    if (imgui->slider_float(_(L("Gap size")), &settings.distance, 0.f, 100.f))
+    auto &appcfg = wxGetApp().app_config;
+
+    if (imgui->slider_float(_(L("Gap size")), &settings.distance, 0.f, 100.f)) {
         m_arrange_settings.distance = settings.distance;
+        appcfg->set("arrange", "min_object_distance", std::to_string(settings.distance));
+    }
 
-    if (imgui->slider_float(_(L("Accuracy")), &settings.accuracy, 0.f, 1.f))
-        m_arrange_settings.accuracy = settings.accuracy;
-
-    if (imgui->checkbox(_(L("Enable rotations")), settings.enable_rotation))
+    if (imgui->checkbox(_(L("Enable rotations")), settings.enable_rotation)) {
         m_arrange_settings.enable_rotation = settings.enable_rotation;
+        appcfg->set("arrange", "enable_rotation", "1");
+    }
 
     imgui->end();
-
-    return false;
 }
 
 #define ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT 0
@@ -4299,6 +4318,9 @@ bool GLCanvas3D::_init_main_toolbar()
     };
     if (!m_main_toolbar.add_item(item))
         return false;
+
+    item.right.toggable = false;
+    item.right.render_callback = GLToolbarItem::Default_Render_Callback;
 
     if (!m_main_toolbar.add_separator())
         return false;
