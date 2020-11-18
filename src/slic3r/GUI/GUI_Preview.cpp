@@ -999,6 +999,7 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
     }
     m_layers_slider->SetSelectionSpan(idx_low, idx_high);
     m_layers_slider->SetTicksValues(ticks_info_from_model);
+    m_layers_slider->SetLayersTimes(m_gcode_result->time_statistics.modes[0].layers_times);
 
     bool sla_print_technology = wxGetApp().plater()->printer_technology() == ptSLA;
     bool sequential_print = wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_bool("complete_objects");

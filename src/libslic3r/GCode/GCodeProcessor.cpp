@@ -393,7 +393,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
     auto is_temporary_decoration = [](const std::string& gcode_line) {
         // remove trailing '\n'
         std::string line = gcode_line.substr(0, gcode_line.length() - 1);
-        if (line == "; " + Layer_Change_Tag)
+        if (line == ";" + Layer_Change_Tag)
             return true;
         else
             return false;
