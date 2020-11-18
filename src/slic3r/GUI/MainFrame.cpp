@@ -31,6 +31,7 @@
 #include "GLCanvas3D.hpp"
 #include "Plater.hpp"
 #include "../Utils/Process.hpp"
+#include "format.hpp"
 
 #include <fstream>
 #include "GUI_App.hpp"
